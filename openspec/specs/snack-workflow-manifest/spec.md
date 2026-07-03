@@ -1,3 +1,7 @@
+---
+capabilities:
+  - cap.ai.snack-workflow-manifest
+---
 # snack-workflow-manifest Specification
 
 ## Purpose

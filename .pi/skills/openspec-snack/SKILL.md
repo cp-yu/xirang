@@ -104,6 +104,7 @@ After artifacts are generated, output:
 
 **Fast path (skip verify):**
   • Continue development: `openspec sync "<change-name>" --no-verify`
+  • Sync and archive: `openspec sync "<change-name>" --no-verify && openspec archive "<change-name>" --no-verify`
   • Fast archive: `openspec archive "<change-name>" --no-verify`
 
 **Correction path:**

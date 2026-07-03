@@ -402,11 +402,11 @@ capabilities:
     intent: 从 Commander.js 命令树运行时反射派生 CommandDefinition[]，通过 POSITIONAL_TYPE_MAP 补充补全语义注解，消除静态 COMMAND_REGISTRY 的手工同步负担
     type: capability
   - id: cap.ai.snack-skill
-    intent: snack skill 提供代码优先的 artifact reconciliation 工作流，从 conversation context、workspace/staged diff、git diff HEAD 或用户指定 commit/range 等代码变更证据，按需创建或更新 proposal、design、delta specs 与 OPSX delta，并支持多次调用 reconcile 同一 change
+    intent: snack skill 提供代码优先的 artifact reconciliation 工作流，从 conversation context、workspace/staged diff、git diff HEAD 或用户指定 commit/range 等代码变更证据，按需创建或更新 proposal、design、delta specs 与 OPSX delta；完成后输出三条 fast path：继续开发、sync and archive、快速归档，并支持多次调用 reconcile 同一 change
     status: active
     type: capability
   - id: cap.ai.snack-skill-generation
-    intent: 将 snack skill 纳入 skill 生成管线，与现有 5 个核心工作流一致；生成文本必须表达 artifact reconciliation、broader code-change evidence sources、conditional artifact updates 和 no tasks.md 边界
+    intent: 将 snack skill 纳入 skill 生成管线，与现有 5 个核心工作流一致；生成文本必须表达 artifact reconciliation、broader code-change evidence sources、conditional artifact updates、三条 fast path 和 no tasks.md 边界
     status: active
     type: capability
   - id: cap.ai.snack-workflow-manifest

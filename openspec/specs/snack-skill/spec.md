@@ -1,3 +1,7 @@
+---
+capabilities:
+  - cap.ai.snack-skill
+---
 # snack-skill Specification
 
 ## Purpose
@@ -157,9 +161,9 @@ snack skill SHALL 明确不生成 `tasks.md`，因为代码已完成，无需任
 - **WHEN** 所有 specs 和 design 生成完成后
 - **THEN** 不创建 `tasks.md` 文件，skill 流程直接进入输出提示阶段
 
-### Requirement: 输出提示包含双路径
+### Requirement: 输出提示包含三条快速路径
 
-snack skill SHALL 在完成制品生成与自检后，输出提示信息，明确完成路径、修正路径与验证结果。
+snack skill SHALL 在完成制品生成与自检后，输出提示信息，明确继续开发、同步并归档、快速归档、修正路径与验证结果。
 
 #### Scenario: 输出完成路径提示
 
@@ -167,6 +171,7 @@ snack skill SHALL 在完成制品生成与自检后，输出提示信息，明�
 - **THEN** 输出包含：
   - "快速路径（跳过 verify）："
   - "  • 继续开发: `openspec sync \"<change-name>\" --no-verify`"
+  - "  • 同步并归档: `openspec sync \"<change-name>\" --no-verify && openspec archive \"<change-name>\" --no-verify`"
   - "  • 快速归档: `openspec archive \"<change-name>\" --no-verify`"
 
 #### Scenario: 输出修正路径提示

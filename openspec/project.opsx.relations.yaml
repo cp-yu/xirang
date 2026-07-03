@@ -531,6 +531,12 @@ relations:
   - from: cap.ai.snack-skill
     type: contains
     to: dom.ai-integration
+  - from: cap.ai.snack-skill
+    type: depends_on
+    to: cap.cli.sync
+  - from: cap.ai.snack-skill
+    type: depends_on
+    to: cap.cli.archive
   - from: cap.ai.snack-skill-generation
     type: contains
     to: dom.ai-integration

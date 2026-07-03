@@ -42,6 +42,17 @@ nodes:
       - path: src/core/templates/workflows/
       - path: test/core/templates/propose-template.test.ts
       - path: test/core/templates/explore-template.test.ts
+  - id: cap.ai.snack-skill
+    refs:
+      - path: src/core/templates/workflows/snack.ts
+      - path: test/core/templates/snack-template.test.ts
+  - id: cap.ai.snack-skill-generation
+    refs:
+      - path: test/integration/snack-workflow.test.ts
+  - id: cap.ai.snack-workflow-manifest
+    refs:
+      - path: src/core/templates/manifest/registry.ts
+      - path: test/integration/snack-workflow.test.ts
   - id: cap.ai.explore-brainstorming
     refs:
       - path: src/core/templates/workflows/explore.ts

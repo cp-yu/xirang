@@ -72,6 +72,19 @@ describe('snack template evidence/artifact terminology', () => {
   });
 });
 
+describe('snack template output hints', () => {
+  const template = getSnackSkillTemplate();
+  const instructions = template.instructions;
+
+  it('offers continue, sync-and-archive, and fast-archive paths after snack', () => {
+    expect(instructions).toContain('Continue development: `openspec sync "<change-name>" --no-verify`');
+    expect(instructions).toContain(
+      'Sync and archive: `openspec sync "<change-name>" --no-verify && openspec archive "<change-name>" --no-verify`'
+    );
+    expect(instructions).toContain('Fast archive: `openspec archive "<change-name>" --no-verify`');
+  });
+});
+
 describe('snack template length boundary', () => {
   const template = getSnackSkillTemplate();
   const instructions = template.instructions;

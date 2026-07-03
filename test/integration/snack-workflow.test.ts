@@ -107,6 +107,10 @@ describe('snack workflow integration', () => {
     expect(snackSkill).toContain('openspec instructions design');
     expect(snackSkill).toContain('openspec validate "<name>" --type change --json');
     expect(snackSkill).toContain('  • Continue development: `openspec sync "<change-name>" --no-verify`');
+    expect(snackSkill).toContain(
+      '  • Sync and archive: `openspec sync "<change-name>" --no-verify && openspec archive "<change-name>" --no-verify`'
+    );
+    expect(snackSkill).toContain('  • Fast archive: `openspec archive "<change-name>" --no-verify`');
     expect(snackSkill).toContain('Correction branch 1: review change → manually edit specs → sync → archive');
     expect(snackSkill).toMatch(/no architecture-level changes detected|Do NOT generate `tasks.md`/);
     // instructions portion (after YAML frontmatter) must stay <= 200 lines

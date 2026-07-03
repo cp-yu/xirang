@@ -1,3 +1,7 @@
+---
+capabilities:
+  - cap.ai.snack-skill-generation
+---
 # snack-skill-generation Specification
 
 ## Purpose
@@ -5,7 +9,7 @@
 ## Requirements
 ### Requirement: snack skill 纳入生成管线
 
-skill 生成管线 SHALL 包含 snack skill，与现有 5 个核心工作流（propose、explore、apply、archive、bootstrap-opsx）一致。Generated snack skill instructions MUST describe code-first artifact reconciliation, broader code-change evidence sources, two code-first scenarios, conditional artifact updates, and the no-`tasks.md` boundary.
+skill 生成管线 SHALL 包含 snack skill，与现有 5 个核心工作流（propose、explore、apply、archive、bootstrap-opsx）一致。Generated snack skill instructions MUST describe code-first artifact reconciliation, broader code-change evidence sources, two code-first scenarios, conditional artifact updates, three fast path output hints, and the no-`tasks.md` boundary.
 
 #### Scenario: 生成 snack skill 文件
 
@@ -21,7 +25,7 @@ skill 生成管线 SHALL 包含 snack skill，与现有 5 个核心工作流（p
   8. Specs 生成策略（中层推断）
   9. Design 简化生成策略
   10. OPSX delta 启发式规则
-  11. 输出提示（完成路径 vs 修正路径）
+  11. 输出提示（三条 fast path：继续开发、同步并归档、快速归档；以及修正路径）
   12. 明确不生成 tasks.md 的说明
 
 #### Scenario: skill 文件长度验证
@@ -32,7 +36,7 @@ skill 生成管线 SHALL 包含 snack skill，与现有 5 个核心工作流（p
 #### Scenario: generated skill text exposes reconciliation guidance
 
 - **WHEN** tests inspect generated `openspec-snack/SKILL.md`
-- **THEN** the text contains key guidance for artifact reconciliation, conversation context, staged diff, `git diff HEAD`, commit/range evidence selectors, conditional artifact updates, and no `tasks.md`
+- **THEN** the text contains key guidance for artifact reconciliation, conversation context, staged diff, `git diff HEAD`, commit/range evidence selectors, conditional artifact updates, three fast path output hints, and no `tasks.md`
 - **AND** assertions target key behavior phrases rather than full-file snapshots
 
 ### Requirement: snack skill 描述
