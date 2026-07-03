@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-03T19:53:54.219Z",
+  "timestamp": "2026-07-03T20:05:41.246Z",
   "result": "PASS_WITH_WARNINGS",
   "issues": [
     {
@@ -8,7 +8,7 @@
       "requirement": "Unaccounted Changes Detection",
       "task": null,
       "summary": "research.md at repo root is tracked in git diff but not declared in any task Files section and is not a change artifact",
-      "recommendation": "Unstage/remove research.md, add to .gitignore, or exclude from archive commit via boundary commit",
+      "recommendation": "Exclude from archive commit via boundary commit",
       "evidenceCitations": [
         "research.md:1-3"
       ]
@@ -34,9 +34,14 @@
       "openspec/changes/replace-internal-skills-with-subagents/specs/internal-subagent-generation/spec.md",
       "openspec/changes/replace-internal-skills-with-subagents/specs/skill-template-length-check/spec.md",
       "openspec/changes/replace-internal-skills-with-subagents/tasks.md",
+      "openspec/project.opsx.relations.yaml",
+      "openspec/project.opsx.yaml",
       "openspec/specs/ai-command-generation/spec.md",
+      "openspec/specs/ai-tool-paths/spec.md",
+      "openspec/specs/ai-workflow-templates/spec.md",
       "openspec/specs/apply-implementer-subagent/spec.md",
-      "openspec/specs/internal-skill-installation/spec.md",
+      "openspec/specs/internal-subagent-generation/spec.md",
+      "openspec/specs/skill-template-length-check/spec.md",
       "src/core/config.ts",
       "src/core/shared/skill-generation.ts",
       "src/core/shared/subagent-generation.ts",
@@ -63,7 +68,7 @@
       "test/core/templates/tool-profile.test.ts",
       "test/core/workflow-installation.test.ts"
     ],
-    "evidenceFingerprint": "26b424ae5e182c106c0a7ab9f6a7d5db8c999fda01e5bc2ddc9fd0e28d132d98",
+    "evidenceFingerprint": "67149f58c8b2670975512acbdf131d6bbd9fe2bbd36caa4864b11b434dbc1f93",
     "evidenceFingerprintEntries": [
       {
         "path": ".claude/agents/openspec-reviewer.md",
@@ -126,16 +131,36 @@
         "hash": "62cd280bda8f321b774fdcb171cfe9ef3fc206a91cce5aec278659719aa35a12"
       },
       {
+        "path": "openspec/project.opsx.relations.yaml",
+        "hash": "7f54eeb0bfe7bc4d27a22b96d4bfa133c64199411bddd0df2bd01915a9534683"
+      },
+      {
+        "path": "openspec/project.opsx.yaml",
+        "hash": "1420dfcc7e0dd349f59c2e4aa1706ec3714f89e86e8e7705fdbdbba24a2a1afd"
+      },
+      {
         "path": "openspec/specs/ai-command-generation/spec.md",
-        "hash": "33cc1162338a90eb1946ee4e205a67ce55a887e1484363d2c5c21526a812eab7"
+        "hash": "820bb42d5ad34259d398173a6f3a83c98f4c4fdd672a2d344c1dfc1e492e3425"
+      },
+      {
+        "path": "openspec/specs/ai-tool-paths/spec.md",
+        "hash": "c7292aa9f6f147b71977cd5e2ba59b618cb4fc7fede27a356d84e85ec6a6f4a4"
+      },
+      {
+        "path": "openspec/specs/ai-workflow-templates/spec.md",
+        "hash": "1b7d117570928c127893eef82e64e7a626753add2f404c6013ffe50bc777166d"
       },
       {
         "path": "openspec/specs/apply-implementer-subagent/spec.md",
-        "hash": "201c22cafad6ba2a7c9448ef04edd32d607f870473ed80ed389a4be810398c14"
+        "hash": "06f2d8d9a0387d3864449ffafe9541f8f6ca1cfcb13ca2256754e89b7689c5a3"
       },
       {
-        "path": "openspec/specs/internal-skill-installation/spec.md",
-        "hash": "aa95346ea8c8288ba9ee7edb8360c88a74f256d3170f9ee507abe132211c33e2"
+        "path": "openspec/specs/internal-subagent-generation/spec.md",
+        "hash": "4b7b96fed97339d1dbdb39cc92fa14a21bd2a09e0bd3209ca52634d764e95939"
+      },
+      {
+        "path": "openspec/specs/skill-template-length-check/spec.md",
+        "hash": "77ebfe65353cee09d2402b54d6c73ad92e95e1f50055730e0ee39bbfe5b52cae"
       },
       {
         "path": "src/core/config.ts",
@@ -191,7 +216,7 @@
       },
       {
         "path": "src/core/workflow-installation.ts",
-        "hash": "bde208627b46aa9f3bb3adfe79f5c045c42b6abbc476c0ebde1544fdae191a13"
+        "hash": "1acdbc42301448eec7d5a1408e779e16f718d83902b0cb040c99411042d32ea6"
       },
       {
         "path": "test/core/shared/skill-generation.test.ts",
@@ -239,33 +264,33 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "db8ff2d9bfc4fea5278ca4ae6265186ec2a1e0cc",
-    "timestamp": "2026-07-03T19:58:41.735Z"
+    "gitHeadCommit": "ef705dc5dc29a40373f390f7930025c27cc5bc6b",
+    "timestamp": "2026-07-03T20:10:39.689Z"
   },
   "optimization": {
     "status": "IMPROVED",
     "attempts": [
       {
-        "timestamp": "2026-07-03T19:56:22.913Z",
+        "timestamp": "2026-07-03T20:09:32.414Z",
         "type": "optimization",
         "status": "OPTIMIZATION_PROPOSED",
-        "summary": "workflow-installation.ts: flatMap returning single-element array is behaviorally identical to map; shrink to map + inline path.join. ponytail:shrink, Code Smell: Long Method. Affects: src/core/workflow-installation.ts",
+        "summary": "workflow-installation.ts: remove unused AI_TOOLS import (Dead Code). Only getAITool is referenced at line 97. ponytail:delete, Code Smell: Dead Code. Affects: src/core/workflow-installation.ts",
         "files": [
           "src/core/workflow-installation.ts"
         ]
       },
       {
-        "timestamp": "2026-07-03T19:58:41.718Z",
+        "timestamp": "2026-07-03T20:10:39.671Z",
         "type": "verification",
         "result": "PASS",
         "behaviorRetryCounter": 1
       }
     ],
     "affectedFileHashes": {
-      "src/core/workflow-installation.ts": "f36bbbcb7dbdb02c2f0752148d3c869228c8eec2db5c203fb73dc0dedc137f16"
+      "src/core/workflow-installation.ts": "bde208627b46aa9f3bb3adfe79f5c045c42b6abbc476c0ebde1544fdae191a13"
     },
     "baseline": {
-      "timestamp": "2026-07-03T19:53:54.219Z",
+      "timestamp": "2026-07-03T20:05:41.246Z",
       "result": "PASS_WITH_WARNINGS",
       "issues": [
         {
@@ -274,7 +299,7 @@
           "requirement": "Unaccounted Changes Detection",
           "task": null,
           "summary": "research.md at repo root is tracked in git diff but not declared in any task Files section and is not a change artifact",
-          "recommendation": "Unstage/remove research.md, add to .gitignore, or exclude from archive commit via boundary commit",
+          "recommendation": "Exclude from archive commit via boundary commit",
           "evidenceCitations": [
             "research.md:1-3"
           ]
@@ -300,9 +325,14 @@
           "openspec/changes/replace-internal-skills-with-subagents/specs/internal-subagent-generation/spec.md",
           "openspec/changes/replace-internal-skills-with-subagents/specs/skill-template-length-check/spec.md",
           "openspec/changes/replace-internal-skills-with-subagents/tasks.md",
+          "openspec/project.opsx.relations.yaml",
+          "openspec/project.opsx.yaml",
           "openspec/specs/ai-command-generation/spec.md",
+          "openspec/specs/ai-tool-paths/spec.md",
+          "openspec/specs/ai-workflow-templates/spec.md",
           "openspec/specs/apply-implementer-subagent/spec.md",
-          "openspec/specs/internal-skill-installation/spec.md",
+          "openspec/specs/internal-subagent-generation/spec.md",
+          "openspec/specs/skill-template-length-check/spec.md",
           "src/core/config.ts",
           "src/core/shared/skill-generation.ts",
           "src/core/shared/subagent-generation.ts",
@@ -329,7 +359,7 @@
           "test/core/templates/tool-profile.test.ts",
           "test/core/workflow-installation.test.ts"
         ],
-        "evidenceFingerprint": "ca9efc2a7a5be34d1bc9151aa3c24433a90e7b3e2c545b52cdc646c7dac272f0",
+        "evidenceFingerprint": "8725ebf80cc9deed5e0bb416f9c2768bbbabe35bddae4cb44bbe96a9c19e9435",
         "evidenceFingerprintEntries": [
           {
             "path": ".claude/agents/openspec-reviewer.md",
@@ -392,16 +422,36 @@
             "hash": "62cd280bda8f321b774fdcb171cfe9ef3fc206a91cce5aec278659719aa35a12"
           },
           {
+            "path": "openspec/project.opsx.relations.yaml",
+            "hash": "7f54eeb0bfe7bc4d27a22b96d4bfa133c64199411bddd0df2bd01915a9534683"
+          },
+          {
+            "path": "openspec/project.opsx.yaml",
+            "hash": "1420dfcc7e0dd349f59c2e4aa1706ec3714f89e86e8e7705fdbdbba24a2a1afd"
+          },
+          {
             "path": "openspec/specs/ai-command-generation/spec.md",
-            "hash": "33cc1162338a90eb1946ee4e205a67ce55a887e1484363d2c5c21526a812eab7"
+            "hash": "820bb42d5ad34259d398173a6f3a83c98f4c4fdd672a2d344c1dfc1e492e3425"
+          },
+          {
+            "path": "openspec/specs/ai-tool-paths/spec.md",
+            "hash": "c7292aa9f6f147b71977cd5e2ba59b618cb4fc7fede27a356d84e85ec6a6f4a4"
+          },
+          {
+            "path": "openspec/specs/ai-workflow-templates/spec.md",
+            "hash": "1b7d117570928c127893eef82e64e7a626753add2f404c6013ffe50bc777166d"
           },
           {
             "path": "openspec/specs/apply-implementer-subagent/spec.md",
-            "hash": "201c22cafad6ba2a7c9448ef04edd32d607f870473ed80ed389a4be810398c14"
+            "hash": "06f2d8d9a0387d3864449ffafe9541f8f6ca1cfcb13ca2256754e89b7689c5a3"
           },
           {
-            "path": "openspec/specs/internal-skill-installation/spec.md",
-            "hash": "aa95346ea8c8288ba9ee7edb8360c88a74f256d3170f9ee507abe132211c33e2"
+            "path": "openspec/specs/internal-subagent-generation/spec.md",
+            "hash": "4b7b96fed97339d1dbdb39cc92fa14a21bd2a09e0bd3209ca52634d764e95939"
+          },
+          {
+            "path": "openspec/specs/skill-template-length-check/spec.md",
+            "hash": "77ebfe65353cee09d2402b54d6c73ad92e95e1f50055730e0ee39bbfe5b52cae"
           },
           {
             "path": "src/core/config.ts",
@@ -457,7 +507,7 @@
           },
           {
             "path": "src/core/workflow-installation.ts",
-            "hash": "f36bbbcb7dbdb02c2f0752148d3c869228c8eec2db5c203fb73dc0dedc137f16"
+            "hash": "bde208627b46aa9f3bb3adfe79f5c045c42b6abbc476c0ebde1544fdae191a13"
           },
           {
             "path": "test/core/shared/skill-generation.test.ts",
@@ -505,7 +555,7 @@
           }
         ],
         "skippedEvidenceFiles": [],
-        "gitHeadCommit": "db8ff2d9bfc4fea5278ca4ae6265186ec2a1e0cc"
+        "gitHeadCommit": "ef705dc5dc29a40373f390f7930025c27cc5bc6b"
       }
     },
     "final": {

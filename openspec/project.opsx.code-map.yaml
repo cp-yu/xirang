@@ -1,5 +1,5 @@
 schema_version: 1
-generated_at: 2026-07-03T14:26:40.208Z
+generated_at: 2026-07-03T20:02:01.597Z
 nodes:
   - id: cap.config.projection
     refs:
@@ -18,14 +18,6 @@ nodes:
       - path: src/core/templates/workflows/impact-sweeper.ts
       - path: test/core/templates/explore-template.test.ts
       - path: test/core/templates/impact-sweeper-template.test.ts
-  - id: cap.ai.internal-skill-installation
-    refs:
-      - path: src/core/shared/skill-generation.ts
-      - path: src/core/templates/sync-engine.ts
-      - path: src/core/workflow-installation.ts
-      - path: test/core/profile-sync-drift.test.ts
-      - path: test/core/shared/skill-generation.test.ts
-      - path: test/core/workflow-installation.test.ts
   - id: cap.ai.skill-generation
     refs:
       - path: src/core/init.ts

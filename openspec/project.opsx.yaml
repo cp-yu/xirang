@@ -68,9 +68,6 @@ capabilities:
     intent: 通过 CLI 批量 + depth 查询接口获取 OPSX 数据和 cap→spec 映射，生成影响面报告；在读取 specs 时同时执行术语提取步骤，用于检测术语漂移
     status: active
     type: capability
-  - id: cap.ai.internal-skill-installation
-    intent: 内部 skill 安装管线安装仍被 workflow 引用的 active internal skills，并显式排除和清理已删除的 openspec-implementer；不生成对应 slash command。
-    type: capability
   - id: cap.ai.optimizer-skill
     intent: Phase 2 优化器 skill，负责行为保持优化和 Pocock 坏味道检测（从 5 维度扩展至 8 维度，每个维度增加具体识别指标、重构模式和行动指南）
     type: capability
@@ -84,7 +81,7 @@ capabilities:
     intent: Phase 1 验证审查 subagent skill。元规则从"不确定时降级"反转为"不确定时升级"，Correctness/Coherence trigger 强化（spec 偏离和设计违背升为 CRITICAL），新增 Cleanliness 维度检测，summary schema 扩展包含 cleanliness 指标。判定模式按 Check 锚点类型分派：Verifies 普通 requirement 执行存在性判定，REMOVED 锚点执行缺失性判定（残留即 CRITICAL），Preserves 锚点执行双支等价性判定（行为不变 ∧ 旧形态消失）；Completeness 对 Files Delete 声明与 git diff 逐项核对
     type: capability
   - id: cap.ai.skill-generation
-    intent: AI 技能文件生成是唯一受管 workflow surface，包含 workflow skills 与 reviewer、optimizer、impact-sweeper 等内部 subagent skills；不生成 openspec-implementer。
+    intent: AI 技能文件生成是唯一受管 workflow surface，为 propose、explore、apply-change、 archive-change、bootstrap-opsx、snack 等 workflow 生成 SkillTemplate； internal 执行角色（reviewer、optimizer、impact-sweeper）改由 cap.ai.internal-subagent-generation 管理，不再纳入 skill generation 管线； 不生成 openspec-implementer。
     status: active
     type: capability
   - id: cap.ai.subagent-self-read
@@ -418,4 +415,7 @@ capabilities:
     type: capability
   - id: cap.apply.recovery-protocol-enhanced
     intent: 增强版 Recovery Protocol，引入诊断优先（读错误→定位层面→找 working example→形成假设）、单变量修复约束和累计 3-strike 升级机制；替代原有"error signature 变化即进步"的假设
+    type: capability
+  - id: cap.ai.internal-subagent-generation
+    intent: Internal subagent artifact generation framework。为 openspec-reviewer、 openspec-optimizer、openspec-impact-sweeper 等 internal 执行角色生成 tool-native subagent artifact：Claude Code / Pi / OpenCode 写入 <toolDir>/agents/<name>.md，Codex 写入 <toolDir>/agents/<name>.toml。 提供统一 SubagentTemplate 源模型与 per-tool renderer（markdown / toml）， 与 ArtifactSyncEngine 集成，在 init / update 时与 workflow skills 并列生成， 并按显式名 list 清理旧 internal skill 目录；不暴露为用户可调用 workflow surface。
     type: capability

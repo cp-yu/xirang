@@ -24,15 +24,6 @@ relations:
   - from: cap.ai.impact-sweeper
     type: depends_on
     to: cap.ai.workflow-templates
-  - from: cap.ai.internal-skill-installation
-    type: depends_on
-    to: cap.ai.skill-generation
-  - from: cap.ai.internal-skill-installation
-    type: depends_on
-    to: cap.ai.tool-adapters
-  - from: cap.ai.internal-skill-installation
-    type: contains
-    to: dom.ai-integration
   - from: cap.ai.optimizer-skill
     type: depends_on
     to: cap.ai.skill-generation
@@ -555,3 +546,18 @@ relations:
   - from: cap.apply.recovery-protocol-enhanced
     type: contains
     to: dom.apply
+  - from: cap.ai.internal-subagent-generation
+    type: contains
+    to: dom.ai-integration
+  - from: cap.ai.internal-subagent-generation
+    type: depends_on
+    to: cap.ai.skill-generation
+  - from: cap.ai.internal-subagent-generation
+    type: depends_on
+    to: cap.ai.tool-adapters
+  - from: cap.ai.internal-subagent-generation
+    type: depends_on
+    to: cap.ai.subagent-self-read
+  - from: cap.ai.workflow-templates
+    type: depends_on
+    to: cap.ai.internal-subagent-generation

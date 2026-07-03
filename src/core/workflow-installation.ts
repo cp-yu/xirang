@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import path from 'path';
-import { AI_TOOLS, getAITool } from './config.js';
+import { getAITool } from './config.js';
 import {
   ALL_WORKFLOWS,
   getCommandSlug,
