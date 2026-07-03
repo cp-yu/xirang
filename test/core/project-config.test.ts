@@ -1151,6 +1151,7 @@ rules:
       expect(bundle.prompt.compiledLines.join('\n')).toContain('Expect/Evidence descriptions');
       expect(bundle.prompt.compiledLines.join('\n')).toContain('exact existing Requirement titles required for MODIFIED matching');
       expect(bundle.prompt.compiledLines.join('\n')).toContain('English project terminology may remain embedded');
+      expect(bundle.prompt.compiledLines.join('\n')).toContain('CRITICAL: All natural-language prose');
       expect(bundle.prompt.compiledLines.join('\n')).toContain('Tech stack: TypeScript');
       expect(bundle.prompt.compiledLines.join('\n')).toContain('Include rollback plan');
       expect(bundle.prompt.compiledLines.join('\n')).not.toContain('Use Given/When/Then');
@@ -1280,6 +1281,7 @@ rules:
       ]);
       expect(runtimeProjection.fragments[0].lines.join('\n')).toContain('task titles, check names, Requirement titles, Scenario titles');
       expect(runtimeProjection.fragments[0].lines.join('\n')).toContain('ordinary English sentences');
+      expect(runtimeProjection.fragments[0].lines.join('\n')).toContain('CRITICAL: All natural-language prose');
     });
   });
 

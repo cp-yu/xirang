@@ -40,6 +40,12 @@ Config projection SHALL 明确定义哪些 artifact 字段是受 proseLanguage �
 - **WHEN** proseLanguage fragment 生成时
 - **THEN** 它 SHALL 列出 prose 字段：task titles、check names、Requirement titles、Scenario titles、bullet descriptions、Expect/Evidence descriptions、rationale、goals、risks、summaries
 
+#### Scenario: 语言指令强化
+- **WHEN** proseLanguage 被配置
+- **THEN** fragment SHALL 在结尾追加一条 CRITICAL 级别强化指令
+- **AND** 该指令 SHALL 使用 \`CRITICAL: All natural-language prose you newly write or revise in artifact bodies MUST use <proseLanguage>. This overrides any default writing behavior.\` 格式
+- **AND** \`<proseLanguage>\` SHALL 替换为配置中的实际语言值
+
 #### Scenario: Canonical token 保持原文
 - **WHEN** proseLanguage 被配置
 - **THEN** projection SHALL 保留：template headings、normative keywords（SHALL/MUST）、BDD keywords、section headers、IDs、schema keys、relation types、paths、commands、code identifiers

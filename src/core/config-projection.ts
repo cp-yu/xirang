@@ -155,13 +155,19 @@ export function normalizeProjectConfig(config: ProjectConfig | null): Normalized
 }
 
 function buildProseLanguageLines(proseLanguage: string): string[] {
-  return [
+  const lines = [
     `Use ${proseLanguage} for natural-language prose that you newly write or revise.`,
     'Natural-language prose includes task titles, check names, Requirement titles, Scenario titles, bullet descriptions, Expect/Evidence descriptions, rationale, goals, risks, and summaries.',
     'Preserve canonical tokens unchanged: SHALL, MUST, template headings, section headers, scenario headers, BDD keywords, IDs, schema keys, relation types, paths, commands, and code identifiers.',
     'Preserve exact existing Requirement titles required for MODIFIED matching.',
     'English project terminology may remain embedded in prose, but ordinary English sentences and titles still follow proseLanguage.',
   ];
+
+  // Reinforcement: repeat the language requirement as a forceful instruction
+  // so the signal survives an otherwise English-dominant prompt context.
+  lines.push(`CRITICAL: All natural-language prose you newly write or revise in artifact bodies MUST use ${proseLanguage}. This overrides any default writing behavior.`);
+
+  return lines;
 }
 
 function buildArtifactRulesFragment(
@@ -385,6 +391,7 @@ export function isChineseProseLanguage(proseLanguage: string | undefined): boole
   return normalized === 'zh'
     || normalized === 'zh-cn'
     || normalized === 'zh-hans'
+    || normalized === '中文'
     ;
 }
 
