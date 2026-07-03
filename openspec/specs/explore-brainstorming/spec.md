@@ -67,7 +67,7 @@ Explore 阶段 SHALL 执行 6 步 brainstorming checklist，确保设计前置�
 
 ### Requirement: 分段设计呈现
 
-系统 SHALL 将设计分段呈现，每段后询问用户是否正确。系统 SHALL 在单方案讨论中发现过度规格化时，用一行指出 ponytailladder 简化方式。在 Testing Strategy 阶段，当架构变更影响现有测试时，系统 SHALL 识别过时测试（更新/删除/新增）、确定权威测试套件位置，并在 Design Summary 中记录。
+系统 SHALL 将设计分段呈现，每段后询问用户是否正确。系统 SHALL 在单方案讨论中发现过度规格化时，用一行指出 ponytailladder 简化方式。在 Testing Strategy 阶段，当架构变更影响现有测试时，系统 SHALL 识别过时测试（更新/删除/新增）、确定权威测试套件位置，并在 Design Summary 中记录。在 Testing Strategy 阶段，系统 SHALL 将每个测试项分类为 persistent 或 one-time verification。
 
 #### Scenario: 逐段确认
 
@@ -96,6 +96,13 @@ Explore 阶段 SHALL 执行 6 步 brainstorming checklist，确保设计前置�
 - **THEN** 系统 SHALL 读取相关测试文件并识别假设与新设计冲突的测试
 - **AND** 系统 SHALL 将过时测试分类为更新（断言适配新 API）、删除（行为已废弃）、新增（缺少覆盖）
 - **AND** 若项目存在多个测试目录，系统 SHALL 确定哪个测试套件是反映当前契约的权威套件
+
+#### Scenario: Testing Strategy 阶段分类 persistent 与 one-time verification
+
+- **WHEN** Testing Strategy 阶段呈现测试项
+- **THEN** 系统 SHALL 将每个测试项分类为 persistent 或 one-time verification
+- **AND** 对 one-time verification 项，系统 SHALL 不规划 persistent 测试文件
+- **AND** 当存在 one-time verification 项时，系统 SHALL 在 Design Summary 的 Testing Strategy 下输出 `One-time Verification` 子节
 
 ### Requirement: Design Summary 生成
 

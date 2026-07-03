@@ -80,7 +80,7 @@ Advance the design by section; do not dump a complete solution all at once. Comm
 
 Wait for user confirmation at the end of each section. When the user requests changes, revise only the current section and reconfirm before continuing.
 
-**Testing Strategy**: When architectural changes affect existing tests, identify obsolete tests (update/delete/add), note which test suite is authoritative if multiple exist, and document in Design Summary.
+**Testing Strategy**: When architectural changes affect existing tests, identify obsolete tests (update/delete/add), note which test suite is authoritative if multiple exist, and document in Design Summary. Classify each item as persistent (test suite) or one-time verification (no persistent test file). When one-time items exist, add a `One-time Verification` subsection.
 
 ## Design Summary self-review
 

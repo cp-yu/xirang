@@ -9,7 +9,7 @@ The propose workflow SHALL combine change creation and artifact generation into 
 ## Requirements
 ### Requirement: Propose workflow creation
 
-The system SHALL provide a `propose` workflow that creates a change and generates all artifacts in one step. 生成的 propose skill 内容 SHALL 在正文开头通过 `## Workflow Stage` 表格声明制品生成边界，包含 Stage、Allowed、Forbidden 三行。当 Smart Routing 读取 Design Summary 且其 Testing Strategy 包含过时测试信息时，系统 SHALL 将 Test Maintenance 分发到 design.md（过时原因）和 tasks.md（具体更新/删除操作）。
+The system SHALL provide a `propose` workflow that creates a change and generates all artifacts in one step. 生成的 propose skill 内容 SHALL 在正文开头通过 `## Workflow Stage` 表格声明制品生成边界，包含 Stage、Allowed、Forbidden 三行。当 Smart Routing 读取 Design Summary 且其 Testing Strategy 包含过时测试信息时，系统 SHALL 将 Test Maintenance 分发到 design.md（过时原因）和 tasks.md（具体更新/删除操作）。当 Design Summary 的 Testing Strategy 包含 One-time Verification 子节时，系统 SHALL 将这些项分发为 tasks.md 中不创建 persistent 测试文件的 evidence-only Check。
 
 #### Scenario: Basic propose invocation
 - **WHEN** user invokes `/opsx:propose "add user authentication"`
@@ -38,6 +38,12 @@ The system SHALL provide a `propose` workflow that creates a change and generate
 - **THEN** 系统 SHALL 将过时原因（哪个架构变更导致）写入 design.md 的 Testing Strategy 部分
 - **AND** 系统 SHALL 将具体操作（文件的更新/删除动作）生成为 tasks.md 中的独立需求
 - **AND** 若 Design Summary 不包含过时测试信息，系统 SHALL 正常跳过此步骤
+
+#### Scenario: Design Summary One-time Verification 分发
+
+- **WHEN** Smart Routing 检测到 Design Summary 的 Testing Strategy 包含 `One-time Verification` 子节
+- **THEN** 系统 SHALL 将这些项生成为 tasks.md 中的 evidence-only Check，且 SHALL NOT 创建 persistent 测试文件
+- **AND** absence 断言 SHALL 通过 `Verifies: <path> REMOVED Requirement "<name>"` 锁定，一次性 smoke 命令 SHALL 通过普通 `Verifies:` 锁定
 
 ### Requirement: Propose workflow onboarding UX
 The `propose` workflow SHALL include explanatory output to help new users understand the process.

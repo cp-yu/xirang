@@ -19,6 +19,7 @@ Before creating artifacts, inspect the current conversation for an explore-gener
 
 - If a Design Summary exists, extract architecture, core components, data flow, technology stack, testing strategy, and risks/trade-offs. Use those sections as primary input for proposal.md, design.md, specs, and coarse tasks.
   - **Test Maintenance**: If Testing Strategy includes obsolete tests, distribute to \`design.md\` (why obsolete) and \`tasks.md\` (specific update/delete actions).
+  - **One-time Verification**: Route to \`tasks.md\` as Checks with \`Command:\` + \`Evidence:\`/\`Expect:\` (no persistent test file). Absence assertions anchor via \`Verifies: <path> REMOVED Requirement \"<name>\"\`; smoke commands anchor via a normal \`Verifies:\`.
 - If no Design Summary exists, read \`openspec/config.yaml\` through the compiled config projection. When \`propose.smartRouting: false\` or \`propose.requireExplore: false\` is configured, keep legacy behavior and proceed directly.
 - Otherwise, score the user's input across 5 dimensions: technology stack/library, data model/interface, API endpoint/function signature, test strategy, boundary conditions/error handling.
 - Treat input as detailed only when length is greater than 100 characters and score is at least 3/5.
@@ -57,7 +58,7 @@ export function getOpsxProposeSkillTemplate(): SkillTemplate {
 ## Flow
 
 1. Input must identify a kebab-case change name or enough description to derive one. If unclear, ask what to build or fix.
-2. Apply smart routing before creating files: inspect the current conversation for an explore-generated \`Design Summary\`; if no summary exists, respect \`propose.smartRouting: false\` and \`propose.requireExplore: false\`, otherwise score the user's input across 5 dimensions. Detect multi-subsystem scope. Outcomes include: "Design Summary found: proceed and show that Design Summary is being used", "Input is sufficiently detailed. Skipping explore; generating artifacts directly.", and "This request spans multiple independent subsystems. Consider running \`/opsx:explore\` to decompose it first.". Show input length, detail score, multi-subsystem result, and final decision.
+2. Apply smart routing before creating files: inspect the current conversation for an explore-generated \`Design Summary\`; if no summary exists, respect \`propose.smartRouting: false\` and \`propose.requireExplore: false\`, otherwise score the user's input across 5 dimensions. Detect multi-subsystem scope. Outcomes include: "Design Summary found: proceed and show that Design Summary is being used", "Input is sufficiently detailed. Skipping explore; generating artifacts directly.", and "This request spans multiple independent subsystems. Consider running \`/opsx:explore\` to decompose it first.". Show input length, detail score, multi-subsystem result, and final decision. For a **One-time Verification** subsection, route items to \`tasks.md\` Checks (no persistent test file; absence assertions use \`Verifies: <path> REMOVED Requirement\`).
 3. Run \`openspec new change "<name>"\`, then \`openspec status --change "<name>" --json\` to read \`applyRequires\`, artifact order, dependencies, and schema.
 4. Load shared OPSX context before artifact generation.
 ${OPSX_SHARED_CONTEXT}

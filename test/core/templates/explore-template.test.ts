@@ -121,6 +121,15 @@ describe('explore template impact sweeps', () => {
     expect(template).toContain('hard gate, context exploration, visual companion judgment, one-question discipline');
     expect(template).toContain('Do not reconstruct or duplicate Superpowers behavior from this prompt');
   });
+
+  it('classifies testing items into persistent tests vs one-time verification', () => {
+    expect(template).toContain('persistent or one-time verification');
+    expect(template).toContain('no persistent test file');
+  });
+
+  it('emits a One-time Verification subsection in the Design Summary', () => {
+    expect(template).toContain('`One-time Verification` subsection');
+  });
 });
 
 describe('explore supperpowers-style reference', () => {

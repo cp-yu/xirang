@@ -17,23 +17,23 @@ import {
 import { generateSkillContent } from '../../../src/core/shared/skill-generation.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getExploreSkillTemplate: 'cce044ce0a8b2077d96623572707627595ff2c92ee0a278154c906aebfe1af01',
-  getApplyChangeSkillTemplate: 'dbcb1e9b1ee23d3037e574bcee0248f7ad0f299922fa78c49a0fa442f94d7573',
-  getOpsxApplyCommandTemplate: '02c467f76fe6aa9c3e54b838a3c895b69541368096749c39f75a262e5af69410',
+  getExploreSkillTemplate: '07774addd22036beafbb8dc09bfaf209e5d8cf6af9044f182ef72068e453d950',
+  getApplyChangeSkillTemplate: '390d4d60c7b0276efc9049fac07b20ef41838fb253ec119959734ec7d84fca04',
+  getOpsxApplyCommandTemplate: '336191aae7087110cbd86261f5d2042eb9e61164a14ba1e59ac9cb5346dc0c92',
   getArchiveChangeSkillTemplate: '42adc5acf29d55bd165ff6183b98bba5e5a74faf2bb9a4439d0ea15f540a19d5',
   getOpsxArchiveCommandTemplate: '47171ac1cd690fc6ccc6a7108eec3de07d3cd3f53d92e963c58bd47fab937c14',
-  getOpsxProposeSkillTemplate: 'bf2c742c3667fe183c0561a3457a8aae7963956ace078bb9ba1edfe9b69917d0',
-  getOpsxProposeCommandTemplate: '54a5772d6f166edc895389c7602d97091cecd64009fd3ec453be2c519640d63e',
+  getOpsxProposeSkillTemplate: 'a6f86785ee7e28a3f2958df8e6a9032e37507bd027e9bd2fcc2cd1971bcc22c5',
+  getOpsxProposeCommandTemplate: '4323f9949ed2f8c4f9f977d339be1d743de4a665886c24bb755cd3c3c25b396f',
   getFeedbackSkillTemplate: 'd7d83c5f7fc2b92fe8f4588a5bf2d9cb315e4c73ec19bcd5ef28270906319a0d',
   getBootstrapOpsxSkillTemplate: 'e716b90f35332851874f4426319aacb9fdef04a7221bf68669a73bde2232f203',
   getOpsxBootstrapCommandTemplate: 'a249d04dd1706472b46b344b0fe3568c218e369eff33ed781007a473421206a1',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'openspec-explore': '1e850c8e9a4497af2c5c0e037cd4c20f71ff4f4452ce5c19854a91acdaadb0a7',
-  'openspec-apply-change': '25f7949c3bdad7939307d4244eed0b11248cf765b80a66317cbf58285aeb2fae',
+  'openspec-explore': 'c9165398cbc23238b04f082a5d29adc78f1e93560be098b54db31c8437d291f0',
+  'openspec-apply-change': 'abd0c1b08ab49bf9b44bd4a58b4ac45cf6bf717886f9966a059eac20a5f5500f',
   'openspec-archive-change': '276961a512bb0de884eddbdfc82071eba92d06a00e9c360b8fe69b270b35cded',
-  'openspec-propose': 'bb1998f67fad9f212e4fb99d1a3784cbb7e6ebddba8f764bbd69f7590cd48eb0',
+  'openspec-propose': 'a4445f71ad90952b6fc2ac7e0a90deefacc631baed97111d56d05aeb0b2483f9',
 };
 
 function stableStringify(value: unknown): string {

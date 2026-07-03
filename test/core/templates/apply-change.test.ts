@@ -116,6 +116,7 @@ describe('apply change workflow template', () => {
       expect(template).toContain('Rerun the same or equivalent Check command and confirm pass before updating task or remediation checkboxes.');
       expect(template).toContain('Non-runtime text or artifact Checks do not require artificial red failures.');
       expect(template).toContain('Config, schema, template, workflow template, and agent instruction template Checks default to behavior/code Checks');
+      expect(template).toContain('Checks with no Test Files (absence assertions, one-time smoke) use the evidence-only fast path');
       expect(template).toContain('Mark the task\'s nested Checks complete in `tasks.md` only after red/green evidence or final non-runtime evidence passes.');
       expect(template).toContain('openspec list --specs --json');
       expect(template).toContain("capabilities` string array");

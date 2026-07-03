@@ -96,7 +96,7 @@ Explore MUST run this sequence before saying a proposal is ready:
 2. **Visual companion when useful**.
 3. **Clarify one question at a time**. Ask exactly one question, then wait for the answer.
 4. **Compare 2-3 options**. Present 2-3 viable approaches. If the ponytail ladder suggests a simpler alternative (unnecessary abstraction, new dependency, platform-native replacement), name it in one line and let the user choose. Skip when nothing triggers.
-5. **Confirm design in sections**: architecture, core components, data flow, technology stack, testing strategy, risks and trade-offs. When discussing a single section, if you spot over-engineering that the ponytail ladder would simplify, name the lazier path in one line. Do not force ponytail output when nothing triggers.
+5. **Confirm design in sections**: architecture, core components, data flow, technology stack, testing strategy, risks and trade-offs. For testing strategy, classify each item as persistent or one-time verification (one-time: no persistent test file, e.g. import boundary grep); when one-time items exist, add a `One-time Verification` subsection. When discussing a single section, if you spot over-engineering that the ponytail ladder would simplify, name the lazier path in one line. Do not force ponytail output when nothing triggers.
 6. **Generate Design Summary**. Produce a `Design Summary` in the conversation, not in a file. Present it as a visible content block, then end with: "Design Summary complete. Review the above design. If confirmed, call `/skill:openspec-propose <change-name>` generate artifacts." After presenting the Design Summary, STOP — do not offer to run any workflow or ask follow-up questions. Only the user triggers the next workflow.
 
 ## Existing Changes

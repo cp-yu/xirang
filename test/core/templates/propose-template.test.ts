@@ -119,4 +119,12 @@ describe('propose template post-validation flow', () => {
       expect(body).not.toContain('per-artifact self-check');
     }
   });
+
+  it('routes one-time verification items to evidence-only checks without test files', () => {
+    for (const body of getProposeBodies()) {
+      expect(body).toContain('**One-time Verification**');
+      expect(body).toContain('no persistent test file');
+      expect(body).toContain('Verifies: <path> REMOVED Requirement');
+    }
+  });
 });
