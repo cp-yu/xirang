@@ -1,7 +1,7 @@
 # snack-skill-generation Specification
 
 ## Purpose
-此规约记录变更 snack-workflow 引入的行为，请在后续同步或归档前补全正式 Purpose。
+规约 snack skill 的生成管线职责：skill 生成管线 SHALL 将 snack skill 与现有 5 个核心工作流（propose、explore、apply、archive、bootstrap-opsx）一致地纳入，生成的 `openspec-snack/SKILL.md` MUST 表达 code-first artifact reconciliation、broader code-change evidence sources、conditional artifact updates 与 no-`tasks.md` 边界，且 instructions 部分不超过 200 行。
 ## Requirements
 ### Requirement: snack skill 纳入生成管线
 

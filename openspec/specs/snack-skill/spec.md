@@ -1,7 +1,7 @@
 # snack-skill Specification
 
 ## Purpose
-此规约记录变更 snack-workflow 引入的行为，请在后续同步或归档前补全正式 Purpose。
+规约 snack skill 的行为：snack 是面向已写代码的 code-first artifact reconciliation 工作流，从会话上下文、workspace/staged diff、`git diff HEAD` 或用户指定的 commit/range 等代码变更证据，按 missing/stale/inconsistent/current 状态条件式创建或更新 proposal、design、delta specs 与 OPSX delta，不生成 tasks.md，并支持对同一 change 多次调用 reconcile。
 ## Requirements
 ### Requirement: snack skill 基本流程
 
