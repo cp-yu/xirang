@@ -111,6 +111,20 @@ describe('snack workflow integration', () => {
     expect(snackSkill).toMatch(/no architecture-level changes detected|Do NOT generate `tasks.md`/);
     // instructions portion (after YAML frontmatter) must stay <= 200 lines
     expect(instructionLineCount(snackSkill)).toBeLessThanOrEqual(200);
+
+    // C4: installed/generated snack skill exposes artifact reconciliation guidance
+    // (key behavior phrases, not full-file snapshots)
+    expect(snackSkill).toMatch(/reconcil/i);
+    expect(snackSkill).toContain('missing');
+    expect(snackSkill).toContain('stale');
+    expect(snackSkill).toContain('inconsistent');
+    expect(snackSkill).toContain('current');
+    expect(snackSkill).toContain('conversation context');
+    expect(snackSkill).toContain('git diff --cached');
+    expect(snackSkill).toContain('git diff HEAD');
+    expect(snackSkill).toMatch(/commit[/-]?range|commit range/i);
+    expect(snackSkill).toMatch(/natural language|natural-language/i);
+    expect(snackSkill).toMatch(/do NOT generate `tasks.md`|not.*generate.*tasks\.md/i);
   });
 
   it('update refreshes the snack skill file in place', async () => {
@@ -128,6 +142,11 @@ describe('snack workflow integration', () => {
     expect(refreshed).toContain('git diff');
     expect(refreshed).toContain('openspec instructions proposal');
     expect(refreshed).toContain('openspec validate "<name>" --type change --json');
+    // C4: refreshed skill still exposes broader evidence sources
+    expect(refreshed).toContain('conversation context');
+    expect(refreshed).toContain('git diff HEAD');
+    expect(refreshed).toMatch(/commit[/-]?range|commit range/i);
+    expect(refreshed).toMatch(/reconcil/i);
     expect(instructionLineCount(refreshed)).toBeLessThanOrEqual(200);
   });
 });

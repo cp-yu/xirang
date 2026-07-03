@@ -1,8 +1,5 @@
-# snack-skill-generation Specification
+## MODIFIED Requirements
 
-## Purpose
-规约 snack skill 的生成管线职责：skill 生成管线 SHALL 将 snack skill 与现有 5 个核心工作流（propose、explore、apply、archive、bootstrap-opsx）一致地纳入，生成的 `openspec-snack/SKILL.md` MUST 表达 code-first artifact reconciliation、broader code-change evidence sources、conditional artifact updates 与 no-`tasks.md` 边界，且 instructions 部分不超过 200 行。
-## Requirements
 ### Requirement: snack skill 纳入生成管线
 
 skill 生成管线 SHALL 包含 snack skill，与现有 5 个核心工作流（propose、explore、apply、archive、bootstrap-opsx）一致。Generated snack skill instructions MUST describe code-first artifact reconciliation, broader code-change evidence sources, two code-first scenarios, conditional artifact updates, and the no-`tasks.md` boundary.
@@ -43,4 +40,3 @@ snack skill description SHALL state that snack performs quick code-first artifac
 
 - **WHEN** AI 工具加载 skill 列表
 - **THEN** snack skill 的 description 清晰表达其适用场景（代码已完成、从 available code-change evidence 反向 reconcile OpenSpec artifacts，不生成 tasks.md）
-
