@@ -19,11 +19,13 @@ If the report contains terminology observations, decide before impact questions:
 - If exactly one found term equals the user's term, or no related terms were found, continue silently.
 - If the terminology field is missing, treat it as an old sweeper report and continue silently.
 
-For terminology questions, show at most five terms and at most two spec names per term, appending "etc." when truncated. Keep the question in natural English and do not expose JSON keys, subagent names, or implementation terms.
+For terminology questions, show at most five terms and at most two spec names per term, appending "etc." when truncated. Keep the question natural and do not expose JSON keys, subagent names, or implementation terms.
 
 When the user confirms the terms mean the same concept, record that term group in conversation state and continue the explore flow. When the user chooses a canonical term, record that canonical term and prefer it in later proposal/spec prose. When the user says the terms are different concepts, record the rejected term group. For any recorded same-concept, canonical-term, or rejected term group, do not ask again for that same group. These decisions guide later exploration and artifact drafting; they do not rewrite existing specs automatically.
 
 If the report contains questions that affect scope or proposal readiness, ask the user instead of choosing silently. Do not claim proposal readiness until those scope-affecting questions are resolved or explicitly deferred by the user.`;
+
+const CONVERSATION_LANGUAGE_GUIDANCE = `Output language: use the user's main language for prose and non-canonical section labels; keep commands, paths, artifact names, schema keys, and OpenSpec tokens unchanged.`;
 
 const BRAINSTORMING_GUIDANCE = `## Brainstorming Checklist
 
@@ -103,6 +105,10 @@ OpenSpec mapping:
 - The original design-document step maps to a conversation-only \`Design Summary\`.
 - The original commit step is removed; explore does not write files.
 - The original implementation-plan handoff maps to \`openspec-propose\` handoff.
+
+## Conversation language
+
+${CONVERSATION_LANGUAGE_GUIDANCE}
 
 ## Hard gate before implementation
 
@@ -240,6 +246,8 @@ Do not read \`openspec-impact-sweeper/SKILL.md\` directly in the main agent.
 ${OPSX_SHARED_CONTEXT}
 
 ${OPSX_NAVIGATION_GUIDANCE}
+
+${CONVERSATION_LANGUAGE_GUIDANCE}
 
 ## Mandatory Exploration Flow
 

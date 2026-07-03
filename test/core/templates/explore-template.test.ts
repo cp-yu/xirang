@@ -57,6 +57,14 @@ describe('explore template impact sweeps', () => {
     expect(template).toContain('Only the user triggers the next workflow');
   });
 
+  it('adapts conversation-facing summary language to the user', () => {
+    const ref = getExploreSkillTemplate().referenceFiles?.find(f => f.path === 'references/explore-supperpowers-style.md');
+
+    expect(template).toContain("Output language: use the user's main language for prose and non-canonical section labels");
+    expect(template).toContain('keep commands, paths, artifact names, schema keys, and OpenSpec tokens unchanged');
+    expect(ref?.content).toContain("Output language: use the user's main language for prose and non-canonical section labels");
+  });
+
   it('tracks the explore flow with todo when available', () => {
     const ref = getExploreSkillTemplate().referenceFiles?.find(f => f.path === 'references/explore-supperpowers-style.md');
 

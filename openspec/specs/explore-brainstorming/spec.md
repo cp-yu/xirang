@@ -112,6 +112,12 @@ Explore 阶段 SHALL 执行 6 步 brainstorming checklist，确保设计前置�
   - 测试策略（单元测试 + 集成测试覆盖范围；当架构变更影响现有测试时，包含 Test Maintenance 子节）
   - 风险和权衡（已知风险 + 缓解措施）
 
+#### Scenario: Design Summary 输出语言
+
+- **WHEN** 用户主要使用非英语交流
+- **THEN** Design Summary 的自然语言 prose 和非 canonical 小节标题 SHALL 跟随用户主要交流语言
+- **AND** commands、paths、artifact names、schema keys 和 OpenSpec tokens SHALL 保持 canonical
+
 #### Scenario: Design Summary 存储
 
 - **WHEN** Design Summary 生成完成

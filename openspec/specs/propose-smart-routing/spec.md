@@ -80,7 +80,13 @@ Propose 阶段 SHALL 检测对话历史中是否存在 explore 的设计总结�
 
 ### Requirement: 从 Design Summary 提取信息
 
-系统 SHALL 从 explore 的 Design Summary 中提取信息生成制品。
+系统 SHALL 从 explore 的 Design Summary 中提取信息生成制品，并 SHALL 按语义识别本地化标题，而不是依赖精确英文标题。
+
+#### Scenario: 本地化标题按语义提取
+
+- **WHEN** 系统找到 Design Summary
+- **AND** Design Summary 使用中文或其他非英文小节标题
+- **THEN** 系统 SHALL 按语义提取架构、核心组件、数据流、技术栈、测试策略、风险和权衡等内容
 
 #### Scenario: 提取架构方案
 

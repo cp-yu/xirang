@@ -1366,9 +1366,9 @@ More user content after markers.
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('Getting started')
       );
-      // Skills-only: claude uses neutral skill invocation guidance (no /opsx:*)
+      // Claude has precise skill invocation metadata.
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('invoke the openspec-propose skill')
+        expect.stringContaining('/openspec-propose')
       );
 
       // Skills should be created

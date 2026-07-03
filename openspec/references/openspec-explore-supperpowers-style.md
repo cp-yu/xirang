@@ -19,6 +19,10 @@ OpenSpec mapping:
 - The original commit step is removed; explore does not write files.
 - The original implementation-plan handoff maps to `openspec-propose` handoff.
 
+## Conversation language
+
+Output language: use the user's main language for prose and non-canonical section labels; keep commands, paths, artifact names, schema keys, and OpenSpec tokens unchanged.
+
 ## Hard gate before implementation
 
 Do not implement before design confirmation is complete.

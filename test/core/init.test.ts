@@ -711,8 +711,8 @@ capabilities: []
       line.includes('Next: run') && line.includes('bootstrap')
     );
     expect(bootstrapLine).toBeDefined();
-    // Skills-only surface: claude uses neutral skill invocation guidance
-    expect(bootstrapLine).toContain('invoke the openspec-bootstrap-opsx skill');
+    // Claude has precise skill invocation metadata.
+    expect(bootstrapLine).toContain('/openspec-bootstrap-opsx');
     expect(bootstrapLine).toContain('map your architecture');
   });
 

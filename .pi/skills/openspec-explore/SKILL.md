@@ -58,6 +58,8 @@ If `openspec/project.opsx.yaml` exists:
 - Use `openspec/specs/` for behavior documentation
 - Cross-reference domains to understand system boundaries
 
+Output language: use the user's main language for prose and non-canonical section labels; keep commands, paths, artifact names, schema keys, and OpenSpec tokens unchanged.
+
 ## Mandatory Exploration Flow
 
 If todo is available, track this flow before context reads and tick stages as completed.
