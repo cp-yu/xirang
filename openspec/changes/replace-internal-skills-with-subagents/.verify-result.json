@@ -1,0 +1,352 @@
+{
+  "timestamp": "2026-07-03T19:38:15.072Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "research.md staged at repo root is not a change artifact and not declared in any task Files",
+      "requirement": "Unaccounted Changes Detection",
+      "task": "Task 7",
+      "summary": "research.md staged at repo root is not a change artifact and not declared in any task Files",
+      "recommendation": "Unstage research.md or add to .gitignore before archive",
+      "evidenceCitations": [
+        "research.md:1-3"
+      ]
+    }
+  ],
+  "tasksFileHash": "129895fa7fc9f51cfd71fa2350b3811aa6c366e0c51545474ddd88814a5ef6e8",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "executionMode": "subagent-orchestrated",
+    "evidenceFiles": [
+      ".claude/agents/openspec-reviewer.md",
+      ".codex/agents/openspec-reviewer.toml",
+      ".opencode/agents/openspec-reviewer.md",
+      ".pi/agents/openspec-reviewer.md",
+      "src/core/config.ts",
+      "src/core/shared/skill-generation.ts",
+      "src/core/shared/subagent-generation.ts",
+      "src/core/templates/skill-templates.ts",
+      "src/core/templates/sync-engine.ts",
+      "src/core/templates/tool-profile/registry.ts",
+      "src/core/templates/tool-profile/types.ts",
+      "src/core/templates/workflows/apply-change.ts",
+      "src/core/templates/workflows/archive-change.ts",
+      "src/core/templates/workflows/explore.ts",
+      "src/core/templates/workflows/impact-sweeper.ts",
+      "src/core/templates/workflows/optimizer.ts",
+      "src/core/templates/workflows/reviewer.ts",
+      "src/core/workflow-installation.ts",
+      "test/core/shared/skill-generation.test.ts",
+      "test/core/shared/subagent-generation.test.ts",
+      "test/core/templates/apply-change.test.ts",
+      "test/core/templates/archive-change.test.ts",
+      "test/core/templates/explore-template.test.ts",
+      "test/core/templates/impact-sweeper-template.test.ts",
+      "test/core/templates/optimizer-template.test.ts",
+      "test/core/templates/reviewer-template.test.ts",
+      "test/core/templates/sync-engine.test.ts",
+      "test/core/templates/tool-profile.test.ts",
+      "test/core/workflow-installation.test.ts"
+    ],
+    "evidenceFingerprint": "4b9204a6471392cb733d19bca495784c90b64b68fe0f4dd59059f024f7a47e63",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".claude/agents/openspec-reviewer.md",
+        "hash": "03ee118f722bda4745696cedfa19cb4657ac8041eb7510e6e40d5120cb425169"
+      },
+      {
+        "path": ".codex/agents/openspec-reviewer.toml",
+        "hash": "b89993d721a4945c72dd77734b03bede7ce2b8ffe8a29d89453d34847de9ad66"
+      },
+      {
+        "path": ".opencode/agents/openspec-reviewer.md",
+        "hash": "3d78dcc40db748923245d889d9c0df5158453a25c3129c24446231664c57f49e"
+      },
+      {
+        "path": ".pi/agents/openspec-reviewer.md",
+        "hash": "2af014ca75bd0fdd25f39ff14210209ddbb42b5a13a5ef8c1bf13fb1044520f1"
+      },
+      {
+        "path": "src/core/config.ts",
+        "hash": "4841a41c1eef2b6beea8036e4497f030ea854651a6872046931af929f1cca069"
+      },
+      {
+        "path": "src/core/shared/skill-generation.ts",
+        "hash": "440d41e4b91eab41668d31ae97fbd6d355df6d0b2fe78b5d425ecaadae361f86"
+      },
+      {
+        "path": "src/core/shared/subagent-generation.ts",
+        "hash": "6324e1d736b87c82cc5c4c76d2feac00fb05385e39db4401c4eb408d613a54d5"
+      },
+      {
+        "path": "src/core/templates/skill-templates.ts",
+        "hash": "4c816161e80c924dd6bfbc5894120c35d49d716bbb04f811cfc6d4639ed11c5d"
+      },
+      {
+        "path": "src/core/templates/sync-engine.ts",
+        "hash": "d50fd8648a9b18851252bd89d8acda20b995cbe50fc241925bdfe2f185ab6a9a"
+      },
+      {
+        "path": "src/core/templates/tool-profile/registry.ts",
+        "hash": "42311cd05d807e9afd7cb4ce7e938d1d87c07469d1133f8501f42c1bfb74e5ed"
+      },
+      {
+        "path": "src/core/templates/tool-profile/types.ts",
+        "hash": "1ed18e4d6107048d0445b4ee5cf5139969e6d00705c4accf624a311c00b26324"
+      },
+      {
+        "path": "src/core/templates/workflows/apply-change.ts",
+        "hash": "2ed77e53496a79b019527b8bc3b731c45593ca208a3454aae9d40c2d81c5a8a9"
+      },
+      {
+        "path": "src/core/templates/workflows/archive-change.ts",
+        "hash": "1528f85794c13d374f14df048a04982c847a325b3d80ae2093000315e550b2dc"
+      },
+      {
+        "path": "src/core/templates/workflows/explore.ts",
+        "hash": "a1aa74a6d6847e765704231b20a36d0d469ba4e3e0f9cc7c00287a032d571a0a"
+      },
+      {
+        "path": "src/core/templates/workflows/impact-sweeper.ts",
+        "hash": "4468616e863efdd6b90e66263825f805633cbe8bce4bb65131583ee2d1b0a04f"
+      },
+      {
+        "path": "src/core/templates/workflows/optimizer.ts",
+        "hash": "a5d2aa73b4dc9e6a8728813fe19cc07dad9c570d89bb56d707e785e83f6f17ea"
+      },
+      {
+        "path": "src/core/templates/workflows/reviewer.ts",
+        "hash": "ab5d6f8af7b8902dc73594c94ae2c6d53b1249d8b8160c4cedf44db4c6646ae3"
+      },
+      {
+        "path": "src/core/workflow-installation.ts",
+        "hash": "f36bbbcb7dbdb02c2f0752148d3c869228c8eec2db5c203fb73dc0dedc137f16"
+      },
+      {
+        "path": "test/core/shared/skill-generation.test.ts",
+        "hash": "d07837a4d2a3847dd502c07d38d2a794c47448f22f6d8a64baa04f8c7ebf7b78"
+      },
+      {
+        "path": "test/core/shared/subagent-generation.test.ts",
+        "hash": "eae288af35c5af4c8362464e04435e80abc33e319606948a1041a1fa83cb53f7"
+      },
+      {
+        "path": "test/core/templates/apply-change.test.ts",
+        "hash": "14f6bceb5c70c2e600777aee380ee0169b22c437e5ae881ac3cfb503ddfe33ec"
+      },
+      {
+        "path": "test/core/templates/archive-change.test.ts",
+        "hash": "9cd49f49ea37918593825582aa982abaa1d71e4fa7bfcb8d28e4095898aa5f0d"
+      },
+      {
+        "path": "test/core/templates/explore-template.test.ts",
+        "hash": "19c1e9bee4883cfa5b0dbf3db6692b10d662598f5488eeac2946819a39d78481"
+      },
+      {
+        "path": "test/core/templates/impact-sweeper-template.test.ts",
+        "hash": "a3e4311c4fc515c9c63b229761ebd0cbf49251df7850bfc3f0196d943c99cb91"
+      },
+      {
+        "path": "test/core/templates/optimizer-template.test.ts",
+        "hash": "a2667603d163094df06a65d94155d9f858ea795b68cb546e2e9b6eca7d7ce7af"
+      },
+      {
+        "path": "test/core/templates/reviewer-template.test.ts",
+        "hash": "7c51098e3ea3aff9907e7fb061989451d6e9ca618e12a5cd5cc052e10b64d7e1"
+      },
+      {
+        "path": "test/core/templates/sync-engine.test.ts",
+        "hash": "220343a35100aa1dfeb33d9ac2fdc5300675c9ba69bdc4d01e411c7b445c1c7a"
+      },
+      {
+        "path": "test/core/templates/tool-profile.test.ts",
+        "hash": "f9899f821a23c415b310f89df16de61c7aa4317840f86f47d85da65fcc088388"
+      },
+      {
+        "path": "test/core/workflow-installation.test.ts",
+        "hash": "d8125d299463d9ef38b01dab53180a95283567d9f15ccd36422438368a0269c5"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "361fef5a7d86430f5c26e3bcd7ef7b48a34641ca"
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-07-03T19:38:15.072Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "research.md staged at repo root is not a change artifact and not declared in any task Files",
+          "requirement": "Unaccounted Changes Detection",
+          "task": "Task 7",
+          "summary": "research.md staged at repo root is not a change artifact and not declared in any task Files",
+          "recommendation": "Unstage research.md or add to .gitignore before archive",
+          "evidenceCitations": [
+            "research.md:1-3"
+          ]
+        }
+      ],
+      "tasksFileHash": "129895fa7fc9f51cfd71fa2350b3811aa6c366e0c51545474ddd88814a5ef6e8",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "executionMode": "subagent-orchestrated",
+        "evidenceFiles": [
+          ".claude/agents/openspec-reviewer.md",
+          ".codex/agents/openspec-reviewer.toml",
+          ".opencode/agents/openspec-reviewer.md",
+          ".pi/agents/openspec-reviewer.md",
+          "src/core/config.ts",
+          "src/core/shared/skill-generation.ts",
+          "src/core/shared/subagent-generation.ts",
+          "src/core/templates/skill-templates.ts",
+          "src/core/templates/sync-engine.ts",
+          "src/core/templates/tool-profile/registry.ts",
+          "src/core/templates/tool-profile/types.ts",
+          "src/core/templates/workflows/apply-change.ts",
+          "src/core/templates/workflows/archive-change.ts",
+          "src/core/templates/workflows/explore.ts",
+          "src/core/templates/workflows/impact-sweeper.ts",
+          "src/core/templates/workflows/optimizer.ts",
+          "src/core/templates/workflows/reviewer.ts",
+          "src/core/workflow-installation.ts",
+          "test/core/shared/skill-generation.test.ts",
+          "test/core/shared/subagent-generation.test.ts",
+          "test/core/templates/apply-change.test.ts",
+          "test/core/templates/archive-change.test.ts",
+          "test/core/templates/explore-template.test.ts",
+          "test/core/templates/impact-sweeper-template.test.ts",
+          "test/core/templates/optimizer-template.test.ts",
+          "test/core/templates/reviewer-template.test.ts",
+          "test/core/templates/sync-engine.test.ts",
+          "test/core/templates/tool-profile.test.ts",
+          "test/core/workflow-installation.test.ts"
+        ],
+        "evidenceFingerprint": "4b9204a6471392cb733d19bca495784c90b64b68fe0f4dd59059f024f7a47e63",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".claude/agents/openspec-reviewer.md",
+            "hash": "03ee118f722bda4745696cedfa19cb4657ac8041eb7510e6e40d5120cb425169"
+          },
+          {
+            "path": ".codex/agents/openspec-reviewer.toml",
+            "hash": "b89993d721a4945c72dd77734b03bede7ce2b8ffe8a29d89453d34847de9ad66"
+          },
+          {
+            "path": ".opencode/agents/openspec-reviewer.md",
+            "hash": "3d78dcc40db748923245d889d9c0df5158453a25c3129c24446231664c57f49e"
+          },
+          {
+            "path": ".pi/agents/openspec-reviewer.md",
+            "hash": "2af014ca75bd0fdd25f39ff14210209ddbb42b5a13a5ef8c1bf13fb1044520f1"
+          },
+          {
+            "path": "src/core/config.ts",
+            "hash": "4841a41c1eef2b6beea8036e4497f030ea854651a6872046931af929f1cca069"
+          },
+          {
+            "path": "src/core/shared/skill-generation.ts",
+            "hash": "440d41e4b91eab41668d31ae97fbd6d355df6d0b2fe78b5d425ecaadae361f86"
+          },
+          {
+            "path": "src/core/shared/subagent-generation.ts",
+            "hash": "6324e1d736b87c82cc5c4c76d2feac00fb05385e39db4401c4eb408d613a54d5"
+          },
+          {
+            "path": "src/core/templates/skill-templates.ts",
+            "hash": "4c816161e80c924dd6bfbc5894120c35d49d716bbb04f811cfc6d4639ed11c5d"
+          },
+          {
+            "path": "src/core/templates/sync-engine.ts",
+            "hash": "d50fd8648a9b18851252bd89d8acda20b995cbe50fc241925bdfe2f185ab6a9a"
+          },
+          {
+            "path": "src/core/templates/tool-profile/registry.ts",
+            "hash": "42311cd05d807e9afd7cb4ce7e938d1d87c07469d1133f8501f42c1bfb74e5ed"
+          },
+          {
+            "path": "src/core/templates/tool-profile/types.ts",
+            "hash": "1ed18e4d6107048d0445b4ee5cf5139969e6d00705c4accf624a311c00b26324"
+          },
+          {
+            "path": "src/core/templates/workflows/apply-change.ts",
+            "hash": "2ed77e53496a79b019527b8bc3b731c45593ca208a3454aae9d40c2d81c5a8a9"
+          },
+          {
+            "path": "src/core/templates/workflows/archive-change.ts",
+            "hash": "1528f85794c13d374f14df048a04982c847a325b3d80ae2093000315e550b2dc"
+          },
+          {
+            "path": "src/core/templates/workflows/explore.ts",
+            "hash": "a1aa74a6d6847e765704231b20a36d0d469ba4e3e0f9cc7c00287a032d571a0a"
+          },
+          {
+            "path": "src/core/templates/workflows/impact-sweeper.ts",
+            "hash": "4468616e863efdd6b90e66263825f805633cbe8bce4bb65131583ee2d1b0a04f"
+          },
+          {
+            "path": "src/core/templates/workflows/optimizer.ts",
+            "hash": "a5d2aa73b4dc9e6a8728813fe19cc07dad9c570d89bb56d707e785e83f6f17ea"
+          },
+          {
+            "path": "src/core/templates/workflows/reviewer.ts",
+            "hash": "ab5d6f8af7b8902dc73594c94ae2c6d53b1249d8b8160c4cedf44db4c6646ae3"
+          },
+          {
+            "path": "src/core/workflow-installation.ts",
+            "hash": "f36bbbcb7dbdb02c2f0752148d3c869228c8eec2db5c203fb73dc0dedc137f16"
+          },
+          {
+            "path": "test/core/shared/skill-generation.test.ts",
+            "hash": "d07837a4d2a3847dd502c07d38d2a794c47448f22f6d8a64baa04f8c7ebf7b78"
+          },
+          {
+            "path": "test/core/shared/subagent-generation.test.ts",
+            "hash": "eae288af35c5af4c8362464e04435e80abc33e319606948a1041a1fa83cb53f7"
+          },
+          {
+            "path": "test/core/templates/apply-change.test.ts",
+            "hash": "14f6bceb5c70c2e600777aee380ee0169b22c437e5ae881ac3cfb503ddfe33ec"
+          },
+          {
+            "path": "test/core/templates/archive-change.test.ts",
+            "hash": "9cd49f49ea37918593825582aa982abaa1d71e4fa7bfcb8d28e4095898aa5f0d"
+          },
+          {
+            "path": "test/core/templates/explore-template.test.ts",
+            "hash": "19c1e9bee4883cfa5b0dbf3db6692b10d662598f5488eeac2946819a39d78481"
+          },
+          {
+            "path": "test/core/templates/impact-sweeper-template.test.ts",
+            "hash": "a3e4311c4fc515c9c63b229761ebd0cbf49251df7850bfc3f0196d943c99cb91"
+          },
+          {
+            "path": "test/core/templates/optimizer-template.test.ts",
+            "hash": "a2667603d163094df06a65d94155d9f858ea795b68cb546e2e9b6eca7d7ce7af"
+          },
+          {
+            "path": "test/core/templates/reviewer-template.test.ts",
+            "hash": "7c51098e3ea3aff9907e7fb061989451d6e9ca618e12a5cd5cc052e10b64d7e1"
+          },
+          {
+            "path": "test/core/templates/sync-engine.test.ts",
+            "hash": "220343a35100aa1dfeb33d9ac2fdc5300675c9ba69bdc4d01e411c7b445c1c7a"
+          },
+          {
+            "path": "test/core/templates/tool-profile.test.ts",
+            "hash": "f9899f821a23c415b310f89df16de61c7aa4317840f86f47d85da65fcc088388"
+          },
+          {
+            "path": "test/core/workflow-installation.test.ts",
+            "hash": "d8125d299463d9ef38b01dab53180a95283567d9f15ccd36422438368a0269c5"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "361fef5a7d86430f5c26e3bcd7ef7b48a34641ca"
+      }
+    }
+  }
+}

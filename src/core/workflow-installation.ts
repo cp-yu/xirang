@@ -13,6 +13,7 @@ import {
   type SkillTemplateEntry,
 } from './shared/skill-generation.js';
 import { collectSharedReferenceFiles } from './templates/sync-engine.js';
+import { INTERNAL_SUBAGENT_TEMPLATES } from './shared/subagent-generation.js';
 
 export { MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES } from './shared/skill-generation.js';
 
@@ -84,6 +85,7 @@ export function createToolWorkflowArtifactPlan(
 
 export interface PlannedToolArtifacts {
   skillFiles: string[];
+  agentFiles: string[];
   commandFiles: string[];
 }
 
@@ -94,11 +96,15 @@ export function getPlannedToolArtifacts(
 ): PlannedToolArtifacts {
   const tool = getAITool(toolId);
   if (!tool?.skillsDir) {
-    return { skillFiles: [], commandFiles: [] };
+    return { skillFiles: [], agentFiles: [], commandFiles: [] };
   }
 
   const skillsDir = path.join(projectPath, tool.skillsDir, 'skills');
-  const referenceFiles = collectSharedReferenceFiles(plan.skillTemplates).map((referenceFile) =>
+  const subagentTemplates = tool.agentsDir && tool.agentFormat ? INTERNAL_SUBAGENT_TEMPLATES : [];
+  const referenceFiles = collectSharedReferenceFiles([
+    ...plan.skillTemplates,
+    ...subagentTemplates.map((template) => ({ template, workflowId: template.name })),
+  ]).map((referenceFile) =>
     path.join(projectPath, 'openspec', 'references', referenceFile.fileName)
   );
   const skillFiles = plan.skillTemplates.flatMap((entry) => {
@@ -107,5 +113,16 @@ export function getPlannedToolArtifacts(
   });
   skillFiles.push(...referenceFiles);
 
-  return { skillFiles, commandFiles: [] };
+  const agentFiles = tool.agentsDir && tool.agentFormat
+    ? subagentTemplates.map((template) =>
+        path.join(
+          projectPath,
+          tool.agentsDir!,
+          'agents',
+          `${template.name}.${tool.agentFormat === 'toml' ? 'toml' : 'md'}`
+        )
+      )
+    : [];
+
+  return { skillFiles, agentFiles, commandFiles: [] };
 }

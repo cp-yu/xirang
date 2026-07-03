@@ -13,8 +13,13 @@ import {
   getSkillTemplates,
   getManagedSkillDirNames,
 } from '../shared/skill-generation.js';
+import {
+  INTERNAL_SUBAGENT_TEMPLATES,
+  generateSubagentContent,
+  type SubagentArtifactFormat,
+  type SubagentTemplate,
+} from '../shared/subagent-generation.js';
 import type { SkillTemplateEntry } from '../shared/skill-generation.js';
-import type { SkillTemplate } from './types.js';
 import { runTransforms } from './transforms/index.js';
 import {
   ALL_WORKFLOWS,
@@ -38,6 +43,7 @@ export interface ArtifactSyncResult {
   toolId: string;
   toolName: string;
   skillsWritten: number;
+  agentsWritten: number;
   commandsWritten: number;
   skillsRemoved: number;
   commandsRemoved: number;
@@ -47,6 +53,7 @@ export interface ArtifactSyncResult {
 export interface ArtifactSyncSummary {
   results: ArtifactSyncResult[];
   totalSkillsWritten: number;
+  totalAgentsWritten: number;
   totalCommandsWritten: number;
   totalSkillsRemoved: number;
   totalCommandsRemoved: number;
@@ -64,8 +71,12 @@ interface SkillWriteEntry {
   workflowId: string;
 }
 
+interface SubagentWriteEntry {
+  template: SubagentTemplate;
+}
+
 interface SharedReferenceSource {
-  template: Pick<SkillTemplate, 'referenceFiles'>;
+  template: { referenceFiles?: readonly { path: string; content: string }[] };
   workflowId: string;
 }
 
@@ -79,7 +90,10 @@ interface ToolSyncPlan {
   toolId: string;
   toolName: string;
   skillsDir: string;
+  agentsDir?: string;
+  agentFormat?: SubagentArtifactFormat;
   skillEntries: SkillWriteEntry[];
+  subagentEntries: SubagentWriteEntry[];
   expectedSkillDirNames: string[];
   managedSkillDirNames: string[];
 }
@@ -124,7 +138,12 @@ function buildPlan(request: ArtifactSyncRequest): ToolSyncPlan | null {
     toolId: request.toolId,
     toolName: profile.name,
     skillsDir: profile.skillsDir,
+    agentsDir: profile.agentsDir,
+    agentFormat: profile.agentFormat,
     skillEntries,
+    subagentEntries: profile.agentsDir && profile.agentFormat
+      ? INTERNAL_SUBAGENT_TEMPLATES.map((template) => ({ template }))
+      : [],
     expectedSkillDirNames: skillEntries.map((e) => e.dirName),
     managedSkillDirNames: getManagedSkillDirNames(),
   };
@@ -232,6 +251,36 @@ async function writeSkills(
   return written;
 }
 
+async function writeSubagents(
+  projectPath: string,
+  toolId: string,
+  agentsDir: string | undefined,
+  agentFormat: SubagentArtifactFormat | undefined,
+  entries: SubagentWriteEntry[],
+  version: string
+): Promise<number> {
+  if (!agentsDir || !agentFormat) return 0;
+
+  const extension = agentFormat === 'toml' ? 'toml' : 'md';
+  const baseDir = path.join(projectPath, agentsDir, 'agents');
+  const sharedReferenceFiles = collectSharedReferenceFiles(
+    entries.map((entry) => ({ template: entry.template, workflowId: entry.template.name }))
+  );
+  await writeSharedReferences(projectPath, sharedReferenceFiles);
+
+  let written = 0;
+  for (const entry of entries) {
+    const agentFile = path.join(baseDir, `${entry.template.name}.${extension}`);
+    await FileSystemUtils.writeFile(
+      agentFile,
+      generateSubagentContent(entry.template, toolId, version)
+    );
+    written++;
+  }
+
+  return written;
+}
+
 async function removeUnselectedSkillDirs(
   projectPath: string,
   skillsDir: string,
@@ -273,6 +322,7 @@ export const ArtifactSyncEngine = {
         toolId: request.toolId,
         toolName: request.toolId,
         skillsWritten: 0,
+        agentsWritten: 0,
         commandsWritten: 0,
         skillsRemoved: 0,
         commandsRemoved: 0,
@@ -288,6 +338,14 @@ export const ArtifactSyncEngine = {
         plan.skillEntries,
         request.version
       );
+      const agentsWritten = await writeSubagents(
+        request.projectPath,
+        request.toolId,
+        plan.agentsDir,
+        plan.agentFormat,
+        plan.subagentEntries,
+        request.version
+      );
       const skillsRemoved = await removeUnselectedSkillDirs(
         request.projectPath,
         plan.skillsDir,
@@ -299,6 +357,7 @@ export const ArtifactSyncEngine = {
         toolId: request.toolId,
         toolName: plan.toolName,
         skillsWritten,
+        agentsWritten,
         commandsWritten: 0,
         skillsRemoved,
         commandsRemoved: 0,
@@ -308,6 +367,7 @@ export const ArtifactSyncEngine = {
         toolId: request.toolId,
         toolName: plan.toolName,
         skillsWritten: 0,
+        agentsWritten: 0,
         commandsWritten: 0,
         skillsRemoved: 0,
         commandsRemoved: 0,
@@ -328,6 +388,7 @@ export const ArtifactSyncEngine = {
     return {
       results,
       totalSkillsWritten: results.reduce((sum, r) => sum + r.skillsWritten, 0),
+      totalAgentsWritten: results.reduce((sum, r) => sum + r.agentsWritten, 0),
       totalCommandsWritten: results.reduce((sum, r) => sum + r.commandsWritten, 0),
       totalSkillsRemoved: results.reduce((sum, r) => sum + r.skillsRemoved, 0),
       totalCommandsRemoved: results.reduce((sum, r) => sum + r.commandsRemoved, 0),

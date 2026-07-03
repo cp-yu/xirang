@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { getOptimizerSkillTemplate } from '../../src/core/templates/workflows/optimizer.js';
+import { getOptimizerSubagentTemplate } from '../../src/core/templates/workflows/optimizer.js';
 
 const projectRoot = process.cwd();
 
@@ -11,7 +11,7 @@ function readSkill(relativePath: string): string {
 }
 
 function readReference(name: string): string {
-  const template = getOptimizerSkillTemplate();
+  const template = getOptimizerSubagentTemplate();
   const reference = template.referenceFiles?.find((file) => file.path === name);
   expect(reference).toBeDefined();
   return reference!.content;

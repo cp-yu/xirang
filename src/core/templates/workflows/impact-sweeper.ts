@@ -1,7 +1,7 @@
 /**
  * Skill-only template: openspec-impact-sweeper
  */
-import type { SkillTemplate } from '../types.js';
+import type { SubagentTemplate } from '../../shared/subagent-generation.js';
 
 const IMPACT_SWEEPER_EVIDENCE_REFERENCE = `# Impact Sweeper Evidence Protocol
 
@@ -107,12 +107,12 @@ const IMPACT_SWEEPER_REPORT_SCHEMA_REFERENCE = `# Impact Sweeper JSON Report Sch
 
 Field names are canonical. Item values may use natural language. Reports under openspec/sweeper/ are working notes, not proposal, design, tasks, specs, OPSX delta, sync input, or archive input.`;
 
-export function getImpactSweeperSkillTemplate(): SkillTemplate {
+export function getImpactSweeperSubagentTemplate(): SubagentTemplate {
   return {
     name: 'openspec-impact-sweeper',
     description:
       'Generate a lightweight OPSX-grounded JSON impact report for one project concept. Use from explore before scope or proposal readiness claims.',
-    instructions: `## Role
+    prompt: `## Role
 
 You are an impact sweeper for OpenSpec explore. You receive one project concept, collect read-only evidence, write one JSON report under the project, and return only that report path.
 
@@ -140,7 +140,7 @@ Read these before collecting evidence or writing the report:
 
 ## Write Boundary
 
-This skill is read-only except for its report files. It MAY:
+This subagent is read-only except for its report files. It MAY:
 
 - create openspec/sweeper/
 - create openspec/sweeper/.gitignore if missing
@@ -154,6 +154,8 @@ If openspec/sweeper/.gitignore already exists, do not modify it. When creating i
 \`\`\`
 
 Do not modify source files, tests, specs, change artifacts, OPSX files, config files, package files, generated workflow files, or any file outside openspec/sweeper/.
+
+Hard constraint: MAY 仅写 \`openspec/sweeper/\` reports and MUST NOT modify any other file.
 
 ## Forbidden Commands
 
@@ -178,6 +180,10 @@ openspec/sweeper/impact-sweep-explore-impact-sweep.json
 \`\`\`
 
 Do not emit a separate summary.`,
+    tools: ['read', 'grep', 'find', 'bash'],
+    disallowedTools: ['write', 'edit'],
+    model: 'inherit',
+    mode: 'read-only',
     referenceFiles: [
       {
         path: 'references/evidence-protocol.md',
@@ -192,8 +198,6 @@ Do not emit a separate summary.`,
         content: IMPACT_SWEEPER_REPORT_SCHEMA_REFERENCE,
       },
     ],
-    license: 'MIT',
-    compatibility: 'Requires openspec CLI project files.',
-    metadata: { author: 'openspec', version: '1.0', type: 'skill-only' },
+    metadata: { author: 'openspec', version: '1.0', type: 'subagent' },
   };
 }

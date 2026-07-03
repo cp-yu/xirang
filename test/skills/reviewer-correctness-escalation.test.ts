@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { getReviewerSkillTemplate } from '../../src/core/templates/workflows/reviewer.js';
+import { getReviewerSubagentTemplate } from '../../src/core/templates/workflows/reviewer.js';
 
 describe('reviewer correctness escalation contract', () => {
   it('escalates spec contradictions while allowing cosmetic drift downgrade', () => {
-    const instructions = getReviewerSkillTemplate().instructions;
+    const instructions = getReviewerSubagentTemplate().prompt;
 
     expect(instructions).toContain('issue CRITICAL "Implementation contradicts spec"');
     expect(instructions).toContain(
@@ -13,7 +13,7 @@ describe('reviewer correctness escalation contract', () => {
   });
 
   it('escalates incomplete scenario coverage without a downgrade path', () => {
-    const instructions = getReviewerSkillTemplate().instructions;
+    const instructions = getReviewerSubagentTemplate().prompt;
 
     expect(instructions).toContain('issue CRITICAL "Scenario not covered"');
     expect(instructions).toContain('Scenario coverage gaps are not downgrade candidates');

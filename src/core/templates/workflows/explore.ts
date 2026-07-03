@@ -9,9 +9,9 @@ import { OPSX_NAVIGATION_GUIDANCE, OPSX_SHARED_CONTEXT } from '../fragments/opsx
 
 const IMPACT_SWEEP_GUIDANCE = `### Impact Sweeps
 
-Invoke \`openspec-impact-sweeper\` when the user introduces a new module, workflow, command, configuration key, project concept, or unfamiliar domain term, or when preparing to say the discussion is ready for proposal/change artifacts.
+Delegate to generated \`openspec-impact-sweeper\` subagent when the user introduces a new module, workflow, command, configuration key, project concept, or unfamiliar domain term, or when preparing to say the discussion is ready for proposal/change artifacts.
 
-Do not read \`openspec-impact-sweeper/SKILL.md\` in the main agent. \`openspec-impact-sweeper\` is a skill. Spawn a subagent and instruct it to read and execute the \`openspec-impact-sweeper\` skill, run the impact sweep with \`projectRoot\`, \`concept\`, optional \`optionalChangeName\`, optional \`knownUserTerms\`, and optional \`focus\`, and return only the JSON report path. Treat each new concept as an independent sweep, even if another concept was already swept earlier in the conversation. After the subagent returns the JSON report path, read that JSON report and interpret the findings in the explore conversation.
+Never read or inline the generated \`openspec-impact-sweeper\` subagent artifact. Delegate it to a generated subagent with \`projectRoot\`, \`concept\`, optional \`optionalChangeName\`, optional \`knownUserTerms\`, and optional \`focus\`, and return only the JSON report path. Treat each new concept as an independent sweep, even if another concept was already swept earlier in the conversation. After the subagent returns the JSON report path, read that JSON report and interpret the findings in the explore conversation.
 
 If the report contains terminology observations, decide before impact questions:
 - If related specs use terms but none equals the user's term, ask: "you used'{userInput}'，related specs found:\\n  - '{term1}'({count1} occurrences, see {specs1})\\nare they the same concept?"
@@ -223,10 +223,10 @@ export function getExploreSkillTemplate(): SkillTemplate {
 
 ## Skill Delegation Protocol
 
-**Internal Skills** — The following skill must NOT be invoked or read directly by this agent:
-- \`openspec-impact-sweeper\` — it is a skill; delegate it to a subagent (see Impact Sweeps)
+**Internal Subagents** — The following roles are internal subagents and MUST NOT be read or inlined directly by this agent:
+- \`openspec-impact-sweeper\` — delegate to generated subagent; main agent MUST NOT read the generated artifact
 
-Do not read \`openspec-impact-sweeper/SKILL.md\` directly in the main agent.
+**Never** read or inline the generated \`openspec-impact-sweeper\` subagent artifact.
 
 ## Hard Rules
 
@@ -262,7 +262,7 @@ If todo is available, track this flow before context reads and tick stages as co
 
 ## Impact Sweeps
 
-Invoke \`openspec-impact-sweeper\` when the user introduces a new module, workflow, command, configuration key, project concept, or unfamiliar domain term, or when preparing to say the discussion is ready for proposal/change artifacts. Do not read \`openspec-impact-sweeper/SKILL.md\` in the main agent. \`openspec-impact-sweeper\` is a skill. Spawn a subagent and instruct it to read and execute the \`openspec-impact-sweeper\` skill, run the impact sweep with \`projectRoot\`, \`concept\`, optional \`optionalChangeName\`, optional \`knownUserTerms\`, and optional \`focus\`, and return only the JSON report path. Treat each new concept as an independent sweep, even if another concept was already swept earlier in the conversation. After the subagent returns the JSON report path, read that JSON report and interpret the findings in the explore conversation.
+Delegate to generated \`openspec-impact-sweeper\` subagent when the user introduces a new module, workflow, command, configuration key, project concept, or unfamiliar domain term, or when preparing to say the discussion is ready for proposal/change artifacts. Never read or inline the generated \`openspec-impact-sweeper\` subagent artifact. Delegate it to a generated subagent with \`projectRoot\`, \`concept\`, optional \`optionalChangeName\`, optional \`knownUserTerms\`, and optional \`focus\`, and return only the JSON report path. Treat each new concept as an independent sweep, even if another concept was already swept earlier in the conversation. After the subagent returns the JSON report path, read that JSON report and interpret the findings in the explore conversation.
 
 If the report contains terminology observations, decide before impact questions. When the user confirms the terms mean the same concept, record that term group and continue the explore flow. When the user chooses a canonical term, record that canonical term. When the user says the terms are different concepts, record the rejected term group. For any recorded same-concept, canonical-term, or rejected term group, do not ask again for that same group. Do not claim proposal readiness until those scope-affecting questions are resolved or explicitly deferred by the user.
 

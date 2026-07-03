@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { getReviewerSkillTemplate } from '../../src/core/templates/workflows/reviewer.js';
+import { getReviewerSubagentTemplate } from '../../src/core/templates/workflows/reviewer.js';
 
 describe('reviewer cleanliness dimension contract', () => {
   it('defines cleanliness checks after coherence and before OPSX alignment', () => {
-    const instructions = getReviewerSkillTemplate().instructions;
+    const instructions = getReviewerSubagentTemplate().prompt;
     const coherence = instructions.indexOf('### Coherence');
     const cleanliness = instructions.indexOf('### Cleanliness');
     const opsx = instructions.indexOf('### OPSX Alignment');
@@ -20,7 +20,7 @@ describe('reviewer cleanliness dimension contract', () => {
   });
 
   it('uses tool-neutral detection strategy', () => {
-    const instructions = getReviewerSkillTemplate().instructions;
+    const instructions = getReviewerSubagentTemplate().prompt;
 
     expect(instructions).toContain('Possible approaches');
     expect(instructions).toContain('Prioritize speed and reliability');
@@ -28,14 +28,14 @@ describe('reviewer cleanliness dimension contract', () => {
   });
 
   it('maps cleanliness residue to blocking severity except unreachable code', () => {
-    const instructions = getReviewerSkillTemplate().instructions;
+    const instructions = getReviewerSubagentTemplate().prompt;
 
     expect(instructions).toContain('Orphaned code, dead imports, stale TODOs, and half migrations: CRITICAL');
     expect(instructions).toContain('Unreachable code: WARNING');
   });
 
   it('defines unaccounted change detection with attribution universe', () => {
-    const instructions = getReviewerSkillTemplate().instructions;
+    const instructions = getReviewerSubagentTemplate().prompt;
 
     expect(instructions).toContain('unaccounted');
     expect(instructions).toContain('attribution universe');
@@ -44,7 +44,7 @@ describe('reviewer cleanliness dimension contract', () => {
   });
 
   it('escalates behavior code to CRITICAL and downgrades mechanical changes', () => {
-    const instructions = getReviewerSkillTemplate().instructions;
+    const instructions = getReviewerSubagentTemplate().prompt;
 
     expect(instructions).toContain('Behavior code');
     expect(instructions).toContain('lockfile');
@@ -52,14 +52,14 @@ describe('reviewer cleanliness dimension contract', () => {
   });
 
   it('requires POSIX path normalization for cross-platform attribution', () => {
-    const instructions = getReviewerSkillTemplate().instructions;
+    const instructions = getReviewerSubagentTemplate().prompt;
 
     expect(instructions).toContain('POSIX');
     expect(instructions).toContain('normalize');
   });
 
   it('supports directory-level attribution for generated files', () => {
-    const instructions = getReviewerSkillTemplate().instructions;
+    const instructions = getReviewerSubagentTemplate().prompt;
 
     expect(instructions).toContain('directory');
   });

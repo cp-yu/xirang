@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { getReviewerSkillTemplate } from '../../src/core/templates/workflows/reviewer.js';
+import { getReviewerSubagentTemplate } from '../../src/core/templates/workflows/reviewer.js';
 
-const instructions = getReviewerSkillTemplate().instructions;
+const instructions = getReviewerSubagentTemplate().prompt;
 
 type Severity = 'CRITICAL' | 'WARNING' | 'SUGGESTION';
 

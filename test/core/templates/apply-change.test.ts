@@ -52,8 +52,10 @@ describe('apply change workflow template', () => {
       expect(template).toContain('Phase 1: Run canonical verification');
       expect(template).toContain('Phase 2: Optimize under checkpoint protection');
       expect(template).toContain('Phase 3: Seal final result');
-      expect(template).toContain('reviewer subagent');
-      expect(template).toContain('Optimizer subagent');
+      expect(template).toContain('delegate to clean-context generated `openspec-reviewer` subagent');
+      expect(template).toContain('delegate to clean-context generated `openspec-optimizer` subagent');
+      expect(template).not.toContain('invoke the `openspec-reviewer` skill');
+      expect(template).not.toContain('invoke the `openspec-optimizer` skill');
       expect(template).toContain('openspec verify phase1 "<change-name>"');
       expect(template).toContain('openspec verify phase2');
       expect(template).toContain('openspec verify seal "<change-name>"');
@@ -73,6 +75,23 @@ describe('apply change workflow template', () => {
       expect(template).toContain(VERIFY_ERROR_RECOVERY_GUIDE);
       expect(template).toContain(VERIFY_STATE_MACHINE_DIAGRAM);
     }
+  });
+
+  it('declares internal subagents without generated artifact reads', () => {
+    const instructions = getApplyChangeSkillTemplate().instructions;
+
+    expect(instructions).toContain('## Skill Delegation Protocol');
+    expect(instructions).toContain('**Internal Subagents**');
+    for (const name of [
+      'openspec-impact-sweeper',
+      'openspec-reviewer',
+      'openspec-optimizer',
+    ]) {
+      expect(instructions).toContain(`\`${name}\``);
+    }
+    expect(instructions).toContain('**Never** read or inline the generated `openspec-impact-sweeper`, `openspec-reviewer`, or `openspec-optimizer` subagent artifact');
+    expect(instructions).not.toContain('.claude/skills/openspec-reviewer/SKILL.md');
+    expect(instructions).not.toContain('/skills/openspec-optimizer/SKILL.md');
   });
 
   it('documents strict Phase 0 TDD and branch isolation', () => {

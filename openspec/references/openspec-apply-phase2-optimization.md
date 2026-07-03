@@ -9,7 +9,7 @@ The checkpoint is a git commit, not a git stash entry or git tag. Do not create 
    git add -A
    git commit -m "wip: opt-checkpoint-r0 (baseline)"
    ```
-4. Spawn the optimizer subagent and instruct it to invoke the `openspec-optimizer` skill. The optimizer proposes Search/Replace blocks only; it MUST NOT edit files.
+4. Delegate to clean-context generated `openspec-optimizer` subagent with `context: "fresh"`. Pass Phase 1 result, artifacts, file contents, config, and failedDirections. The optimizer proposes Search/Replace blocks only; it MUST NOT edit files. The master agent MUST NOT read or inline generated subagent artifacts.
 5. **Think before patching**: Read the ponytail tags (delete/stdlib/native/yagni/shrink) and Code Smell annotations on each proposed block. Understand the optimization rationale before proceeding.
 6. For each proposed optimization, record pre-patch hashes before editing:
    ```bash

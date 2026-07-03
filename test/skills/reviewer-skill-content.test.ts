@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { getReviewerSkillTemplate } from '../../src/core/templates/workflows/reviewer.js';
+import { getReviewerSubagentTemplate } from '../../src/core/templates/workflows/reviewer.js';
 
 const projectRoot = process.cwd();
 
@@ -24,7 +24,7 @@ function normalizeSelfRead(content: string): string {
 
 describe('openspec reviewer skill content', () => {
   it('contains absence-check protocol for REMOVED anchors', () => {
-    const instructions = getReviewerSkillTemplate().instructions;
+    const instructions = getReviewerSubagentTemplate().prompt;
 
     expect(instructions).toContain('REMOVED Requirement');
     expect(instructions).toContain('multi-angle');
@@ -35,7 +35,7 @@ describe('openspec reviewer skill content', () => {
   });
 
   it('contains dual-branch equivalence check for Preserves anchors', () => {
-    const instructions = getReviewerSkillTemplate().instructions;
+    const instructions = getReviewerSubagentTemplate().prompt;
 
     expect(instructions).toContain('Preserves');
     expect(instructions).toContain('old form');
@@ -44,7 +44,7 @@ describe('openspec reviewer skill content', () => {
   });
 
   it('contains Delete declaration vs git diff cross-check in Completeness', () => {
-    const instructions = getReviewerSkillTemplate().instructions;
+    const instructions = getReviewerSubagentTemplate().prompt;
 
     expect(instructions).toContain('Delete:');
     expect(instructions).toContain('git diff <originalBranch>...HEAD');
@@ -52,7 +52,7 @@ describe('openspec reviewer skill content', () => {
   });
 
   it('uses branch-aware name-only git scope instead of diff content', () => {
-    const instructions = getReviewerSkillTemplate().instructions;
+    const instructions = getReviewerSubagentTemplate().prompt;
 
     expect(instructions).toContain('git diff <originalBranch>...HEAD --name-only');
     expect(instructions).toContain('name-only output');
@@ -62,7 +62,7 @@ describe('openspec reviewer skill content', () => {
   });
 
   it('documents originalBranch resolution fallback chain', () => {
-    const instructions = getReviewerSkillTemplate().instructions;
+    const instructions = getReviewerSubagentTemplate().prompt;
 
     expect(instructions).toContain('changeDir/.apply-isolation.json');
     expect(instructions).toContain('originalBranch');
@@ -72,11 +72,11 @@ describe('openspec reviewer skill content', () => {
     expect(instructions).toContain('WARNING in gitDiffSummary');
   });
 
-  it('keeps codex and claude reviewer skill self-read sections equivalent', () => {
-    const codex = readSkill('.codex/skills/openspec-reviewer/SKILL.md');
-    const claude = readSkill('.claude/skills/openspec-reviewer/SKILL.md');
+  it('keeps codex and claude reviewer subagent self-read sections equivalent', () => {
+    const codex = readSkill('.codex/agents/openspec-reviewer.toml');
+    const claude = readSkill('.claude/agents/openspec-reviewer.md');
 
     expect(normalizeSelfRead(codex)).toBe(normalizeSelfRead(claude));
-    expect(normalizeSelfRead(codex)).toBe(normalizeSelfRead(getReviewerSkillTemplate().instructions));
+    expect(normalizeSelfRead(codex)).toBe(normalizeSelfRead(getReviewerSubagentTemplate().prompt));
   });
 });

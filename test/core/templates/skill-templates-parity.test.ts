@@ -13,30 +13,27 @@ import {
   getOpsxProposeSkillTemplate,
   getBootstrapOpsxSkillTemplate,
   getOpsxBootstrapCommandTemplate,
-  getImpactSweeperSkillTemplate,
 } from '../../../src/core/templates/skill-templates.js';
 import { generateSkillContent } from '../../../src/core/shared/skill-generation.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getExploreSkillTemplate: '7694a02031c5d7403146d60faf717ba07baafc5966ae6b374666020b04f3d9c4',
-  getApplyChangeSkillTemplate: 'b1811eeee81e689354c7de35e65dd994b7df359f49e7b21a4d3ce86a46bf2d22',
-  getOpsxApplyCommandTemplate: 'f20ed3ff39b1e6bf9bc371b06ee7714a3bf460cb56b28e603023316bd45c8545',
-  getArchiveChangeSkillTemplate: 'aa1d1386857766bec331976b3439bbba6c358344ba47f89a6f2fcea9d71862ea',
-  getOpsxArchiveCommandTemplate: '837246afecdf10ebdc52f11f325f5eb598905e17e90e91883819c943c3a3cc53',
+  getExploreSkillTemplate: 'cce044ce0a8b2077d96623572707627595ff2c92ee0a278154c906aebfe1af01',
+  getApplyChangeSkillTemplate: 'dbcb1e9b1ee23d3037e574bcee0248f7ad0f299922fa78c49a0fa442f94d7573',
+  getOpsxApplyCommandTemplate: '02c467f76fe6aa9c3e54b838a3c895b69541368096749c39f75a262e5af69410',
+  getArchiveChangeSkillTemplate: '42adc5acf29d55bd165ff6183b98bba5e5a74faf2bb9a4439d0ea15f540a19d5',
+  getOpsxArchiveCommandTemplate: '47171ac1cd690fc6ccc6a7108eec3de07d3cd3f53d92e963c58bd47fab937c14',
   getOpsxProposeSkillTemplate: 'bf2c742c3667fe183c0561a3457a8aae7963956ace078bb9ba1edfe9b69917d0',
   getOpsxProposeCommandTemplate: '54a5772d6f166edc895389c7602d97091cecd64009fd3ec453be2c519640d63e',
   getFeedbackSkillTemplate: 'd7d83c5f7fc2b92fe8f4588a5bf2d9cb315e4c73ec19bcd5ef28270906319a0d',
   getBootstrapOpsxSkillTemplate: 'e716b90f35332851874f4426319aacb9fdef04a7221bf68669a73bde2232f203',
   getOpsxBootstrapCommandTemplate: 'a249d04dd1706472b46b344b0fe3568c218e369eff33ed781007a473421206a1',
-  getImpactSweeperSkillTemplate: '2806c1ff6aae0fe5563d90b35c3cbeb69b4aa8963a1ba2670513e9c5b31062e2',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'openspec-explore': 'baddc0ab575da85175d3f789882cf27c43d5133c8ff3e01e3dd61d8683578dab',
-  'openspec-apply-change': 'be84f00901cdc6a27a1a6d7146f2772ad1c77319d55ba7f623bd0e3db66a2a9e',
-  'openspec-archive-change': '12f4f0b6d606d7ac009d297ad52cdf4cb2d3995c36b0d726997629c2fbccf1b4',
+  'openspec-explore': '1e850c8e9a4497af2c5c0e037cd4c20f71ff4f4452ce5c19854a91acdaadb0a7',
+  'openspec-apply-change': '25f7949c3bdad7939307d4244eed0b11248cf765b80a66317cbf58285aeb2fae',
+  'openspec-archive-change': '276961a512bb0de884eddbdfc82071eba92d06a00e9c360b8fe69b270b35cded',
   'openspec-propose': 'bb1998f67fad9f212e4fb99d1a3784cbb7e6ebddba8f764bbd69f7590cd48eb0',
-  'openspec-impact-sweeper': '67bf2a12f45ce7421a262e814487cdc38a01945a1c65f94ddd707d3eb2397253',
 };
 
 function stableStringify(value: unknown): string {
@@ -72,7 +69,6 @@ describe('skill templates split parity', () => {
       getFeedbackSkillTemplate,
       getBootstrapOpsxSkillTemplate,
       getOpsxBootstrapCommandTemplate,
-      getImpactSweeperSkillTemplate,
     };
 
     const actualHashes = Object.fromEntries(
@@ -90,7 +86,6 @@ describe('skill templates split parity', () => {
       ['openspec-apply-change', getApplyChangeSkillTemplate],
       ['openspec-archive-change', getArchiveChangeSkillTemplate],
       ['openspec-propose', getOpsxProposeSkillTemplate],
-      ['openspec-impact-sweeper', getImpactSweeperSkillTemplate],
     ];
 
     const actualHashes = Object.fromEntries(
