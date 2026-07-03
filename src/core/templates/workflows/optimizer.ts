@@ -5,7 +5,7 @@
  * verify/apply/archive workflows. Reads Phase 1 results + code + config,
  * returns Search/Replace blocks or NO_OPTIMIZATION_NEEDED.
  */
-import type { SkillTemplate } from '../types.js';
+import type { SubagentTemplate } from '../../shared/subagent-generation.js';
 
 const OPTIMIZER_SELF_READ_REFERENCE = `# Optimizer Self-Read Protocol
 
@@ -190,12 +190,12 @@ You MAY propose blocks that span multiple files (e.g., extracting a shared funct
 
 If the main agent reports your response took too long, it will discard your output and record ABORTED_UNSAFE. Produce your analysis and blocks efficiently. Focus on specific regions with improvement potential - do not enumerate every line of every file.`;
 
-export function getOptimizerSkillTemplate(): SkillTemplate {
+export function getOptimizerSubagentTemplate(): SubagentTemplate {
   return {
     name: 'openspec-optimizer',
     description:
       'Internal clean-context Phase 2 optimization proposer. Analyzes implementation files and outputs behavior-preserving Search/Replace blocks. Never modifies files directly. Reads failedDirections to avoid repeating broken strategies.',
-    instructions: `## Role
+    prompt: `## Role
 
 You are an optimization subagent in OpenSpec's Phase 2 verify workflow. You receive only location inputs, read verification context and code yourself, and propose structural improvements as Search/Replace blocks. You are a clean-context agent and MUST NOT rely on any prior implementation conversation.
 
@@ -211,6 +211,7 @@ You are an optimization subagent in OpenSpec's Phase 2 verify workflow. You rece
 - You MAY use Bash for test commands, read-only git commands, and grep/search commands.
 - The only concrete diff command for scope anchoring is git diff <originalBranch>...HEAD --name-only.
 - You MUST follow the exact Search/Replace format in the project-root file openspec/references/openspec-output-protocol.md. Deviations will be rejected by the main agent.
+- You MUST read and respect optimization.failedDirections / failedDirections before proposing any Search/Replace blocks.
 - If no meaningful improvement is possible, you MUST return exactly: No optimization opportunities found
 
 ### Ponytail Tag Classification
@@ -250,6 +251,10 @@ Read these before deciding:
 ## Output
 
 Return either \`No optimization opportunities found\` or valid Search/Replace blocks exactly as specified in the project-root file openspec/references/openspec-output-protocol.md.`,
+    tools: ['read', 'grep', 'find', 'bash'],
+    disallowedTools: ['write', 'edit'],
+    model: 'inherit',
+    mode: 'read-only',
     referenceFiles: [
       {
         path: 'references/self-read-protocol.md',
@@ -264,8 +269,6 @@ Return either \`No optimization opportunities found\` or valid Search/Replace bl
         content: OPTIMIZER_OUTPUT_REFERENCE,
       },
     ],
-    license: 'MIT',
-    compatibility: 'Requires openspec CLI workflow orchestration.',
     metadata: { author: 'openspec', version: '1.0', type: 'subagent' },
   };
 }

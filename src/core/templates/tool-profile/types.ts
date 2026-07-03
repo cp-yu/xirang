@@ -8,5 +8,7 @@ export interface ToolProfile {
   toolId: string;
   name: string;
   skillsDir?: string;
+  agentsDir?: string;
+  agentFormat?: 'markdown' | 'toml';
   transforms: string[];
 }

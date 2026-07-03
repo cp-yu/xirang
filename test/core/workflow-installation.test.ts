@@ -63,25 +63,35 @@ describe('workflow installation planning', () => {
     expect(plan.expectedSkillDirNames).toContain('openspec-bootstrap-opsx');
   });
 
-  it('treats codex as skills-only (always skills-only)', () => {
+  it('treats codex as skills-only for workflow skills and plans subagent artifacts separately', () => {
     const plan = createToolWorkflowArtifactPlan('codex', ['propose', 'explore'], testDir);
 
     expect(plan.shouldGenerateSkills).toBe(true);
     expect(plan.expectedSkillDirNames).toEqual([
       'openspec-propose',
       'openspec-explore',
-      'openspec-reviewer',
-      'openspec-optimizer',
-      'openspec-impact-sweeper',
     ]);
   });
 
   it('tracks stale internal skill directories by explicit name', () => {
-    expect(MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES).toEqual(['openspec-implementer']);
+    expect(MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES).toEqual([
+      'openspec-implementer',
+      'openspec-reviewer',
+      'openspec-optimizer',
+      'openspec-impact-sweeper',
+    ]);
 
     const plan = createToolWorkflowArtifactPlan('claude', ['propose', 'explore'], testDir);
-    expect(plan.managedSkillDirNames).toContain('openspec-implementer');
+    expect(plan.managedSkillDirNames).toEqual(expect.arrayContaining([
+      'openspec-implementer',
+      'openspec-reviewer',
+      'openspec-optimizer',
+      'openspec-impact-sweeper',
+    ]));
+    expect(MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES).not.toContain('openspec-propose');
+    expect(MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES).not.toContain('openspec-explore');
     expect(plan.expectedSkillDirNames).not.toContain('openspec-implementer');
+    expect(plan.expectedSkillDirNames).not.toContain('openspec-reviewer');
   });
 
   it('includes shared reference files in planned artifacts', () => {
@@ -103,16 +113,28 @@ describe('workflow installation planning', () => {
     expect(artifacts.skillFiles).toContain(
       path.join(testDir, 'openspec', 'references', 'openspec-output-protocol.md')
     );
+    expect(artifacts.agentFiles).toContain(
+      path.join(testDir, '.claude', 'agents', 'openspec-reviewer.md')
+    );
+    expect(artifacts.agentFiles).toContain(
+      path.join(testDir, '.claude', 'agents', 'openspec-optimizer.md')
+    );
     // Skills-only: no command files are planned
     expect(artifacts.commandFiles).toEqual([]);
   });
 
-  it('removes only explicitly managed stale implementer skill directories during sync', async () => {
+  it('removes explicitly managed stale internal skill directories during sync', async () => {
     const skillsDir = path.join(testDir, '.claude', 'skills');
-    await fs.mkdir(path.join(skillsDir, 'openspec-implementer'), { recursive: true });
-    await fs.writeFile(path.join(skillsDir, 'openspec-implementer', 'SKILL.md'), 'name: openspec-implementer\n');
-    await fs.mkdir(path.join(skillsDir, 'user-skill'), { recursive: true });
-    await fs.writeFile(path.join(skillsDir, 'user-skill', 'SKILL.md'), 'name: user-skill\n');
+    for (const name of [
+      'openspec-implementer',
+      'openspec-reviewer',
+      'openspec-optimizer',
+      'openspec-impact-sweeper',
+      'user-skill',
+    ]) {
+      await fs.mkdir(path.join(skillsDir, name), { recursive: true });
+      await fs.writeFile(path.join(skillsDir, name, 'SKILL.md'), `name: ${name}\n`);
+    }
 
     const result = await ArtifactSyncEngine.syncOne({
       toolId: 'claude',
@@ -122,10 +144,17 @@ describe('workflow installation planning', () => {
     });
 
     expect(result.error).toBeUndefined();
-    expect(result.skillsRemoved).toBe(1);
-    await expect(fs.stat(path.join(skillsDir, 'openspec-implementer'))).rejects.toThrow();
+    expect(result.skillsRemoved).toBe(4);
+    for (const name of [
+      'openspec-implementer',
+      'openspec-reviewer',
+      'openspec-optimizer',
+      'openspec-impact-sweeper',
+    ]) {
+      await expect(fs.stat(path.join(skillsDir, name))).rejects.toThrow();
+    }
     await expect(fs.stat(path.join(skillsDir, 'user-skill', 'SKILL.md'))).resolves.toBeDefined();
-    await expect(fs.stat(path.join(skillsDir, 'openspec-reviewer', 'SKILL.md'))).resolves.toBeDefined();
+    await expect(fs.stat(path.join(testDir, '.claude', 'agents', 'openspec-reviewer.md'))).resolves.toBeDefined();
   });
 
   it('writes shared reference files during sync', async () => {

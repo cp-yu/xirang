@@ -6,14 +6,14 @@
  * coherence, and cleanliness verdicts — receives change location strings, reads
  * evidence, returns a structured assessment.
  */
-import type { SkillTemplate } from '../types.js';
+import type { SubagentTemplate } from '../../shared/subagent-generation.js';
 
-export function getReviewerSkillTemplate(): SkillTemplate {
+export function getReviewerSubagentTemplate(): SubagentTemplate {
   return {
     name: 'openspec-reviewer',
     description:
       'Internal clean-context Phase 1 verification reviewer. Judges implementation completeness, correctness, coherence, and cleanliness by reading files from changeName, changeDir, and projectRoot. Never accesses conversation history.',
-    instructions: `## Role
+    prompt: `## Role
 
 You are the clean-context Phase 1 reviewer. Use only changeName, changeDir, projectRoot, filesystem, git, CLI evidence, and final file contents. Do not modify files or propose patches.
 
@@ -124,8 +124,10 @@ Return one structured object only:
 \`\`\`
 
 Only CRITICAL issues may appear in writeBackPlan. If tasks.md has no checkbox tasks, return FAIL_NEEDS_REMEDIATION with "No verifiable tasks exist."`,
-    license: 'MIT',
-    compatibility: 'Requires openspec CLI workflow orchestration.',
+    tools: ['read', 'grep', 'find', 'bash'],
+    disallowedTools: ['write', 'edit'],
+    model: 'inherit',
+    mode: 'read-only',
     metadata: { author: 'openspec', version: '1.0', type: 'subagent' },
   };
 }

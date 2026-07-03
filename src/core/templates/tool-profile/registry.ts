@@ -39,6 +39,8 @@ function buildProfiles(): ToolProfile[] {
       toolId: t.value,
       name: t.name,
       skillsDir: t.skillsDir,
+      ...(t.agentsDir ? { agentsDir: t.agentsDir } : {}),
+      ...(t.agentFormat ? { agentFormat: t.agentFormat } : {}),
       transforms: resolveTransforms(t.value),
     }));
 }
@@ -65,8 +67,17 @@ export const ToolProfileRegistry = {
     return PROFILES.filter((p) => p.skillsDir).map((p) => p.toolId);
   },
 
+  getToolsWithSubagents(): string[] {
+    return PROFILES.filter((p) => p.agentsDir && p.agentFormat).map((p) => p.toolId);
+  },
+
   supportsSkills(toolId: string): boolean {
     const profile = BY_ID.get(toolId);
     return profile?.skillsDir !== undefined;
+  },
+
+  supportsSubagents(toolId: string): boolean {
+    const profile = BY_ID.get(toolId);
+    return profile?.agentsDir !== undefined && profile.agentFormat !== undefined;
   },
 } as const;

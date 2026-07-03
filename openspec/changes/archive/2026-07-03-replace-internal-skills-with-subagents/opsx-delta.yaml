@@ -1,0 +1,53 @@
+schema_version: 1
+ADDED:
+  capabilities:
+    - id: cap.ai.internal-subagent-generation
+      type: capability
+      intent: >-
+        Internal subagent artifact generation framework。为 openspec-reviewer、
+        openspec-optimizer、openspec-impact-sweeper 等 internal 执行角色生成
+        tool-native subagent artifact：Claude Code / Pi / OpenCode 写入
+        <toolDir>/agents/<name>.md，Codex 写入 <toolDir>/agents/<name>.toml。
+        提供统一 SubagentTemplate 源模型与 per-tool renderer（markdown / toml），
+        与 ArtifactSyncEngine 集成，在 init / update 时与 workflow skills 并列生成，
+        并按显式名 list 清理旧 internal skill 目录；不暴露为用户可调用 workflow surface。
+  relations:
+    - from: cap.ai.internal-subagent-generation
+      type: contains
+      to: dom.ai-integration
+    - from: cap.ai.internal-subagent-generation
+      type: depends_on
+      to: cap.ai.skill-generation
+    - from: cap.ai.internal-subagent-generation
+      type: depends_on
+      to: cap.ai.tool-adapters
+    - from: cap.ai.internal-subagent-generation
+      type: depends_on
+      to: cap.ai.subagent-self-read
+    - from: cap.ai.workflow-templates
+      type: depends_on
+      to: cap.ai.internal-subagent-generation
+
+MODIFIED:
+  capabilities:
+    - id: cap.ai.skill-generation
+      intent: >-
+        AI 技能文件生成是唯一受管 workflow surface，为 propose、explore、apply-change、
+        archive-change、bootstrap-opsx、snack 等 workflow 生成 SkillTemplate；
+        internal 执行角色（reviewer、optimizer、impact-sweeper）改由
+        cap.ai.internal-subagent-generation 管理，不再纳入 skill generation 管线；
+        不生成 openspec-implementer。
+
+REMOVED:
+  capabilities:
+    - id: cap.ai.internal-skill-installation
+  relations:
+    - from: cap.ai.internal-skill-installation
+      type: depends_on
+      to: cap.ai.skill-generation
+    - from: cap.ai.internal-skill-installation
+      type: depends_on
+      to: cap.ai.tool-adapters
+    - from: cap.ai.internal-skill-installation
+      type: contains
+      to: dom.ai-integration

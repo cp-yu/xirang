@@ -52,6 +52,35 @@ describe('Tool Profile Registry', () => {
       expect(ToolProfileRegistry.supportsSkills('codex')).toBe(true);
     });
 
+    it('should declare agent artifact paths and formats for native subagent tools', () => {
+      const expected = [
+        ['claude', '.claude', 'markdown'],
+        ['pi', '.pi', 'markdown'],
+        ['opencode', '.opencode', 'markdown'],
+        ['codex', '.codex', 'toml'],
+      ] as const;
+
+      for (const [toolId, agentsDir, agentFormat] of expected) {
+        const tool = AI_TOOLS.find((entry) => entry.value === toolId);
+        const profile = ToolProfileRegistry.get(toolId);
+
+        expect(tool).toMatchObject({ agentsDir, agentFormat, skillsDir: agentsDir });
+        expect(profile).toMatchObject({ agentsDir, agentFormat, skillsDir: agentsDir });
+      }
+    });
+
+    it('should skip tools without agentsDir for subagent artifacts', () => {
+      expect(AI_TOOLS.find((entry) => entry.value === 'cursor')).not.toHaveProperty('agentsDir');
+      expect(ToolProfileRegistry.get('cursor')).not.toHaveProperty('agentsDir');
+      expect(ToolProfileRegistry.supportsSubagents('cursor')).toBe(false);
+      expect(ToolProfileRegistry.getToolsWithSubagents().sort()).toEqual([
+        'claude',
+        'codex',
+        'opencode',
+        'pi',
+      ]);
+    });
+
     it('should have at least 24 tools with skills support', () => {
       expect(ToolProfileRegistry.getToolsWithSkills().length).toBeGreaterThanOrEqual(24);
     });

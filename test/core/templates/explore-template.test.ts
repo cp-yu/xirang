@@ -6,7 +6,7 @@ describe('explore template impact sweeps', () => {
   const template = getExploreSkillTemplate().instructions;
 
   it('invokes the sweeper before proposal readiness', () => {
-    expect(template).toContain('Invoke `openspec-impact-sweeper`');
+    expect(template).toContain('Delegate to generated `openspec-impact-sweeper` subagent');
     expect(template).toContain('preparing to say the discussion is ready for proposal/change artifacts');
     expect(template).toContain('After the subagent returns the JSON report path');
     expect(template).toContain('read that JSON report and interpret the findings in the explore conversation');
@@ -15,10 +15,22 @@ describe('explore template impact sweeps', () => {
 
   it('supports repeated independent concept sweeps', () => {
     expect(template).toContain('the user introduces a new module, workflow, command, configuration key, project concept, or unfamiliar domain term');
-    expect(template).toContain('delegate it to a subagent');
-    expect(template).toContain('Do not read `openspec-impact-sweeper/SKILL.md` directly in the main agent');
+    expect(template).toContain('Delegate it to a generated subagent');
+    expect(template).toContain('**Never** read or inline the generated `openspec-impact-sweeper` subagent artifact');
+    expect(template).not.toContain('openspec-impact-sweeper/SKILL.md');
+    expect(template).not.toContain('.claude/skills/openspec-impact-sweeper/SKILL.md');
     expect(template).toContain('Treat each new concept as an independent sweep');
     expect(template).toContain('even if another concept was already swept earlier in the conversation');
+  });
+
+  it('declares internal subagents instead of internal skills', () => {
+    expect(template).toContain('## Skill Delegation Protocol');
+    expect(template).toContain('**Internal Subagents**');
+    expect(template).toContain('`openspec-impact-sweeper`');
+    expect(template).toContain('delegate to generated');
+    expect(template).toContain('**Never** read or inline the generated `openspec-impact-sweeper` subagent artifact');
+    expect(template).not.toContain('**Internal Skills**');
+    expect(template).not.toContain('/skills/openspec-impact-sweeper/SKILL.md');
   });
 
   it('passes the lightweight sweeper input fields', () => {

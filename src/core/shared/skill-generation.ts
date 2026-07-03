@@ -11,9 +11,6 @@ import {
   createArchiveChangeSkillTemplateForExecutionModel,
 } from '../templates/workflows/archive-change.js';
 import { resolveVerifyExecutionModel } from '../templates/workflows/verify-execution-model.js';
-import { getReviewerSkillTemplate } from '../templates/workflows/reviewer.js';
-import { getOptimizerSkillTemplate } from '../templates/workflows/optimizer.js';
-import { getImpactSweeperSkillTemplate } from '../templates/workflows/impact-sweeper.js';
 import {
   ALL_WORKFLOWS,
   WORKFLOW_TO_SKILL_DIR,
@@ -21,32 +18,12 @@ import {
   type WorkflowId,
 } from '../workflow-surface.js';
 
-/**
- * Internal subagent skill templates.
- *
- * These are NOT workflow entries — they have no command, no promptMeta, no
- * mode membership. They are installed as skill-only files for subagent
- * invoke in verify/apply/archive workflows.
- */
-const INTERNAL_SKILL_TEMPLATES: ReadonlyArray<{
-  dirName: string;
-  getSkillTemplate: () => SkillTemplate;
-}> = [
-  {
-    dirName: 'openspec-reviewer',
-    getSkillTemplate: getReviewerSkillTemplate,
-  },
-  {
-    dirName: 'openspec-optimizer',
-    getSkillTemplate: getOptimizerSkillTemplate,
-  },
-  {
-    dirName: 'openspec-impact-sweeper',
-    getSkillTemplate: getImpactSweeperSkillTemplate,
-  },
-];
-
-export const MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES = ['openspec-implementer'] as const;
+export const MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES = [
+  'openspec-implementer',
+  'openspec-reviewer',
+  'openspec-optimizer',
+  'openspec-impact-sweeper',
+] as const;
 
 export function getManagedSkillDirNames(): string[] {
   return [
@@ -98,14 +75,7 @@ export function getSkillTemplates(
     workflowId: entry.workflowId,
   }));
 
-  // Internal skill templates are always included — they are part of every installation.
-  const internalEntries: SkillTemplateEntry[] = INTERNAL_SKILL_TEMPLATES.map((entry) => ({
-    template: entry.getSkillTemplate(),
-    dirName: entry.dirName,
-    workflowId: entry.dirName,
-  }));
-
-  return [...workflowSurfaces, ...internalEntries];
+  return workflowSurfaces;
 }
 
 function escapeYamlString(value: string): string {

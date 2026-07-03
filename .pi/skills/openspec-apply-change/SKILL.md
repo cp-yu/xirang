@@ -13,12 +13,12 @@ Implement tasks from an OpenSpec change.
 
 ## Skill Delegation Protocol
 
-**Internal Skills** — The following skills are subagent-only and MUST NOT be read directly by this agent:
-- `openspec-impact-sweeper` — Use a subagent, not direct reading
-- `openspec-reviewer` — Use a subagent, not direct reading
-- `openspec-optimizer` — Use a subagent, not direct reading
+**Internal Subagents** — The following roles are internal subagents and MUST NOT be read or inlined directly by this agent:
+- `openspec-impact-sweeper` — Delegate to generated subagent; main agent MUST NOT read the generated artifact
+- `openspec-reviewer` — Delegate to generated subagent; main agent MUST NOT read the generated artifact
+- `openspec-optimizer` — Delegate to generated subagent; main agent MUST NOT read the generated artifact
 
-**Never** use the Read tool on `.claude/skills/openspec-impact-sweeper/SKILL.md`, `.claude/skills/openspec-reviewer/SKILL.md`, or `.claude/skills/openspec-optimizer/SKILL.md`.
+**Never** read or inline the generated `openspec-impact-sweeper`, `openspec-reviewer`, or `openspec-optimizer` subagent artifact.
 
 ## Flow
 
@@ -93,11 +93,11 @@ If a task Goal or Requirements is ambiguous, enrich context from proposal, desig
 
 ### Phase 1: Run canonical verification
 
-Invoke reviewer subagent with `context: "fresh"`, persist `openspec verify phase1 "<change-name>" --input '<json>' --json`, and write back only CRITICAL remediation.
+delegate to clean-context generated `openspec-reviewer` subagent with `context: "fresh"`; persist `openspec verify phase1 "<change-name>" --input '<json>' --json`, and write back only CRITICAL remediation.
 
 ### Phase 2: Optimize under checkpoint protection
 
-You MUST read the project-root file `openspec/references/openspec-apply-phase2-optimization.md` before Phase 2. Checkpoints are git commits, not git stash entries or git tags. Respect `--skip-optimization`; read `optimization.optRetries`; create the initial checkpoint commit with `git add -A && git commit -m "wip: opt-checkpoint-r0 (baseline)"`; invoke Optimizer subagent with `context: "fresh"`; when the optimizer returns blocks, read the ponytail tags and Code Smell annotations to understand the optimization rationale before applying Search/Replace; use `openspec verify phase2`; create an incremental checkpoint commit for each successful optimization round; record each failed direction.
+You MUST read the project-root file `openspec/references/openspec-apply-phase2-optimization.md` before Phase 2. Checkpoints are git commits, not git stash entries or git tags. Respect `--skip-optimization`; read `optimization.optRetries`; create the initial checkpoint commit with `git add -A && git commit -m "wip: opt-checkpoint-r0 (baseline)"`; delegate to clean-context generated `openspec-optimizer` subagent with `context: "fresh"`; when the optimizer returns blocks, read the ponytail tags and Code Smell annotations to understand the optimization rationale before applying Search/Replace; use `openspec verify phase2`; create an incremental checkpoint commit for each successful optimization round; record each failed direction.
 
 ### Phase 3: Seal final result
 

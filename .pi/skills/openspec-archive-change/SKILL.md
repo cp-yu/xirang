@@ -27,11 +27,12 @@ Before archiving, run `openspec config project --json` and consume git policy fr
 
    When the verify result is missing or stale, execute the same verify contract as `/opsx:verify` using the `subagent-orchestrated` skeleton:
    - Determine `changeName`, absolute `changeDir`, and absolute `projectRoot`
-   - Spawn the reviewer subagent with `context: "fresh"`, Read and Bash tool capability, instruct it to invoke the `openspec-reviewer` skill for canonical Phase 1, and pass only `changeName`, `changeDir`, and `projectRoot`
+   - Delegate to clean-context generated `openspec-reviewer` subagent with `context: "fresh"`; pass only `changeName`, `changeDir`, `projectRoot`, and the explicit evidence bundle required for canonical Phase 1
    - Validate the reviewer payload, apply only deterministic `tasks.md` write-back in the main workspace, and persist the canonical Phase 1 payload
-   - Execute the verify workflow end-to-end, including Phase 2 (spawn optimizer subagent with `context: "fresh"`, Read and Bash tool capability, invoke `openspec-optimizer`, and pass only `changeName`, `changeDir`, and `projectRoot`) whenever the `/opsx:verify` contract would make it eligible
-   - In `P1_SPECULATIVE_FENCE`, invoke the reviewer subagent again with `context: "fresh"`, `changeName`, `changeDir`, and `projectRoot` for the speculative verdict
+   - Execute the verify workflow end-to-end; when Phase 2 is eligible, delegate to clean-context generated `openspec-optimizer` subagent with `context: "fresh"`; pass only `changeName`, `changeDir`, `projectRoot`, Phase 1 result, artifacts, file contents, config, and failedDirections
+   - In `P1_SPECULATIVE_FENCE`, delegate to clean-context generated `openspec-reviewer` subagent again with `context: "fresh"`, `changeName`, `changeDir`, and `projectRoot` for the speculative verdict
    - The top-level archive flow MUST NOT inline a current-agent review skeleton or silently downgrade to reread mode
+   - The top-level archive flow MUST NOT read or inline generated subagent artifacts
    Continue through Phase 2 when eligible; `SKIPPED` is valid only for config/user skip. Persist fresh verify before archiving.
 
 3. **Check artifact completion status**

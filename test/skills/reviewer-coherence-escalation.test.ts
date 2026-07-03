@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { getReviewerSkillTemplate } from '../../src/core/templates/workflows/reviewer.js';
+import { getReviewerSubagentTemplate } from '../../src/core/templates/workflows/reviewer.js';
 
 describe('reviewer coherence escalation contract', () => {
   it('escalates design violations while keeping pattern deviations non-blocking', () => {
-    const instructions = getReviewerSkillTemplate().instructions;
+    const instructions = getReviewerSubagentTemplate().prompt;
 
     expect(instructions).toContain('issue CRITICAL "Design decision violated"');
     expect(instructions).toContain(

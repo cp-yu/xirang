@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { getImpactSweeperSkillTemplate } from '../../../src/core/templates/skill-templates.js';
+import { getImpactSweeperSubagentTemplate } from '../../../src/core/templates/workflows/impact-sweeper.js';
 
 describe('impact sweeper template', () => {
-  const template = getImpactSweeperSkillTemplate();
-  const instructions = template.instructions;
+  const template = getImpactSweeperSubagentTemplate();
+  const instructions = template.prompt;
 
   function readReference(path: string): string {
     const reference = template.referenceFiles?.find((file) => file.path === path);
@@ -13,7 +13,7 @@ describe('impact sweeper template', () => {
   }
 
   it('defines the report input and output contract', () => {
-    expect(getImpactSweeperSkillTemplate().name).toBe('openspec-impact-sweeper');
+    expect(getImpactSweeperSubagentTemplate().name).toBe('openspec-impact-sweeper');
     expect(instructions).toContain('projectRoot');
     expect(instructions).toContain('concept');
     expect(instructions).toContain('optionalChangeName');
@@ -108,8 +108,10 @@ describe('impact sweeper template', () => {
     expect(instructions).toContain('create openspec/sweeper/');
     expect(instructions).toContain('create openspec/sweeper/.gitignore if missing');
     expect(instructions).toContain('write or overwrite openspec/sweeper/impact-sweep-<english-project-term-slug>.json');
+    expect(instructions).toContain('MAY 仅写 `openspec/sweeper/` reports and MUST NOT modify any other file');
     expect(instructions).toContain('If openspec/sweeper/.gitignore already exists, do not modify it');
     expect(instructions).toContain('*\n!.gitignore');
     expect(instructions).toContain('Do not modify source files, tests, specs, change artifacts, OPSX files, config files, package files, generated workflow files');
+    expect(template.disallowedTools).toEqual(expect.arrayContaining(['write', 'edit']));
   });
 });

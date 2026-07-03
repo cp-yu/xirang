@@ -1,0 +1,566 @@
+{
+  "timestamp": "2026-07-03T20:05:41.246Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "research.md at repo root is tracked in git diff but not declared in any task Files section and is not a change artifact",
+      "requirement": "Unaccounted Changes Detection",
+      "task": null,
+      "summary": "research.md at repo root is tracked in git diff but not declared in any task Files section and is not a change artifact",
+      "recommendation": "Exclude from archive commit via boundary commit",
+      "evidenceCitations": [
+        "research.md:1-3"
+      ]
+    }
+  ],
+  "tasksFileHash": "62cd280bda8f321b774fdcb171cfe9ef3fc206a91cce5aec278659719aa35a12",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "executionMode": "subagent-orchestrated",
+    "evidenceFiles": [
+      ".claude/agents/openspec-reviewer.md",
+      ".codex/agents/openspec-reviewer.toml",
+      ".opencode/agents/openspec-reviewer.md",
+      ".pi/agents/openspec-reviewer.md",
+      "openspec/changes/replace-internal-skills-with-subagents/design.md",
+      "openspec/changes/replace-internal-skills-with-subagents/opsx-delta.yaml",
+      "openspec/changes/replace-internal-skills-with-subagents/proposal.md",
+      "openspec/changes/replace-internal-skills-with-subagents/specs/ai-command-generation/spec.md",
+      "openspec/changes/replace-internal-skills-with-subagents/specs/ai-tool-paths/spec.md",
+      "openspec/changes/replace-internal-skills-with-subagents/specs/ai-workflow-templates/spec.md",
+      "openspec/changes/replace-internal-skills-with-subagents/specs/apply-implementer-subagent/spec.md",
+      "openspec/changes/replace-internal-skills-with-subagents/specs/internal-skill-installation/spec.md",
+      "openspec/changes/replace-internal-skills-with-subagents/specs/internal-subagent-generation/spec.md",
+      "openspec/changes/replace-internal-skills-with-subagents/specs/skill-template-length-check/spec.md",
+      "openspec/changes/replace-internal-skills-with-subagents/tasks.md",
+      "openspec/project.opsx.relations.yaml",
+      "openspec/project.opsx.yaml",
+      "openspec/specs/ai-command-generation/spec.md",
+      "openspec/specs/ai-tool-paths/spec.md",
+      "openspec/specs/ai-workflow-templates/spec.md",
+      "openspec/specs/apply-implementer-subagent/spec.md",
+      "openspec/specs/internal-subagent-generation/spec.md",
+      "openspec/specs/skill-template-length-check/spec.md",
+      "src/core/config.ts",
+      "src/core/shared/skill-generation.ts",
+      "src/core/shared/subagent-generation.ts",
+      "src/core/templates/skill-templates.ts",
+      "src/core/templates/sync-engine.ts",
+      "src/core/templates/tool-profile/registry.ts",
+      "src/core/templates/tool-profile/types.ts",
+      "src/core/templates/workflows/apply-change.ts",
+      "src/core/templates/workflows/archive-change.ts",
+      "src/core/templates/workflows/explore.ts",
+      "src/core/templates/workflows/impact-sweeper.ts",
+      "src/core/templates/workflows/optimizer.ts",
+      "src/core/templates/workflows/reviewer.ts",
+      "src/core/workflow-installation.ts",
+      "test/core/shared/skill-generation.test.ts",
+      "test/core/shared/subagent-generation.test.ts",
+      "test/core/templates/apply-change.test.ts",
+      "test/core/templates/archive-change.test.ts",
+      "test/core/templates/explore-template.test.ts",
+      "test/core/templates/impact-sweeper-template.test.ts",
+      "test/core/templates/optimizer-template.test.ts",
+      "test/core/templates/reviewer-template.test.ts",
+      "test/core/templates/sync-engine.test.ts",
+      "test/core/templates/tool-profile.test.ts",
+      "test/core/workflow-installation.test.ts"
+    ],
+    "evidenceFingerprint": "67149f58c8b2670975512acbdf131d6bbd9fe2bbd36caa4864b11b434dbc1f93",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".claude/agents/openspec-reviewer.md",
+        "hash": "03ee118f722bda4745696cedfa19cb4657ac8041eb7510e6e40d5120cb425169"
+      },
+      {
+        "path": ".codex/agents/openspec-reviewer.toml",
+        "hash": "b89993d721a4945c72dd77734b03bede7ce2b8ffe8a29d89453d34847de9ad66"
+      },
+      {
+        "path": ".opencode/agents/openspec-reviewer.md",
+        "hash": "3d78dcc40db748923245d889d9c0df5158453a25c3129c24446231664c57f49e"
+      },
+      {
+        "path": ".pi/agents/openspec-reviewer.md",
+        "hash": "2af014ca75bd0fdd25f39ff14210209ddbb42b5a13a5ef8c1bf13fb1044520f1"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/design.md",
+        "hash": "3277e525ef15ededf3cd655a0b822b1a2b3876c634ee5a5b2409930f46609674"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/opsx-delta.yaml",
+        "hash": "f03c80323ac7760b559b53912c038a78c701ae8b5d9c51072533af297b6c8ec3"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/proposal.md",
+        "hash": "242ad32fb5324412f7133252e938edcd497c3fa72f866bf25f610465a6aadb62"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/specs/ai-command-generation/spec.md",
+        "hash": "38c13547a2283de40a69a122df0a5da105c51c7b9e02a727aa9eae8841877f65"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/specs/ai-tool-paths/spec.md",
+        "hash": "5799001d498a351c7c03667972fe1de99c7ff1410553bb8e8bc70896b9c8b542"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/specs/ai-workflow-templates/spec.md",
+        "hash": "8f0b04e0297f4a4a119970a66faa70dbf5be57cf656a3d9fa20358b47ad99a73"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/specs/apply-implementer-subagent/spec.md",
+        "hash": "7d3db1eb46d1329af45870ab7a628773cfa71e5dcd3105a04678776ad730e046"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/specs/internal-skill-installation/spec.md",
+        "hash": "4f5c025f9fa3d26bce8d438e2b476c5b838ad027f7771e3be6599c40dd008577"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/specs/internal-subagent-generation/spec.md",
+        "hash": "654899772c41a27a4463c6eec30e6a3ab4b69ccf2fa5f1c85bfa8ab80703c1c5"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/specs/skill-template-length-check/spec.md",
+        "hash": "d262ca6f20ce8cc8238fef8a04ed7329f30f4dd4589011c89cce75d17b93b5c3"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/tasks.md",
+        "hash": "62cd280bda8f321b774fdcb171cfe9ef3fc206a91cce5aec278659719aa35a12"
+      },
+      {
+        "path": "openspec/project.opsx.relations.yaml",
+        "hash": "7f54eeb0bfe7bc4d27a22b96d4bfa133c64199411bddd0df2bd01915a9534683"
+      },
+      {
+        "path": "openspec/project.opsx.yaml",
+        "hash": "1420dfcc7e0dd349f59c2e4aa1706ec3714f89e86e8e7705fdbdbba24a2a1afd"
+      },
+      {
+        "path": "openspec/specs/ai-command-generation/spec.md",
+        "hash": "820bb42d5ad34259d398173a6f3a83c98f4c4fdd672a2d344c1dfc1e492e3425"
+      },
+      {
+        "path": "openspec/specs/ai-tool-paths/spec.md",
+        "hash": "c7292aa9f6f147b71977cd5e2ba59b618cb4fc7fede27a356d84e85ec6a6f4a4"
+      },
+      {
+        "path": "openspec/specs/ai-workflow-templates/spec.md",
+        "hash": "1b7d117570928c127893eef82e64e7a626753add2f404c6013ffe50bc777166d"
+      },
+      {
+        "path": "openspec/specs/apply-implementer-subagent/spec.md",
+        "hash": "06f2d8d9a0387d3864449ffafe9541f8f6ca1cfcb13ca2256754e89b7689c5a3"
+      },
+      {
+        "path": "openspec/specs/internal-subagent-generation/spec.md",
+        "hash": "4b7b96fed97339d1dbdb39cc92fa14a21bd2a09e0bd3209ca52634d764e95939"
+      },
+      {
+        "path": "openspec/specs/skill-template-length-check/spec.md",
+        "hash": "77ebfe65353cee09d2402b54d6c73ad92e95e1f50055730e0ee39bbfe5b52cae"
+      },
+      {
+        "path": "src/core/config.ts",
+        "hash": "4841a41c1eef2b6beea8036e4497f030ea854651a6872046931af929f1cca069"
+      },
+      {
+        "path": "src/core/shared/skill-generation.ts",
+        "hash": "440d41e4b91eab41668d31ae97fbd6d355df6d0b2fe78b5d425ecaadae361f86"
+      },
+      {
+        "path": "src/core/shared/subagent-generation.ts",
+        "hash": "6324e1d736b87c82cc5c4c76d2feac00fb05385e39db4401c4eb408d613a54d5"
+      },
+      {
+        "path": "src/core/templates/skill-templates.ts",
+        "hash": "4c816161e80c924dd6bfbc5894120c35d49d716bbb04f811cfc6d4639ed11c5d"
+      },
+      {
+        "path": "src/core/templates/sync-engine.ts",
+        "hash": "d50fd8648a9b18851252bd89d8acda20b995cbe50fc241925bdfe2f185ab6a9a"
+      },
+      {
+        "path": "src/core/templates/tool-profile/registry.ts",
+        "hash": "42311cd05d807e9afd7cb4ce7e938d1d87c07469d1133f8501f42c1bfb74e5ed"
+      },
+      {
+        "path": "src/core/templates/tool-profile/types.ts",
+        "hash": "1ed18e4d6107048d0445b4ee5cf5139969e6d00705c4accf624a311c00b26324"
+      },
+      {
+        "path": "src/core/templates/workflows/apply-change.ts",
+        "hash": "2ed77e53496a79b019527b8bc3b731c45593ca208a3454aae9d40c2d81c5a8a9"
+      },
+      {
+        "path": "src/core/templates/workflows/archive-change.ts",
+        "hash": "1528f85794c13d374f14df048a04982c847a325b3d80ae2093000315e550b2dc"
+      },
+      {
+        "path": "src/core/templates/workflows/explore.ts",
+        "hash": "a1aa74a6d6847e765704231b20a36d0d469ba4e3e0f9cc7c00287a032d571a0a"
+      },
+      {
+        "path": "src/core/templates/workflows/impact-sweeper.ts",
+        "hash": "4468616e863efdd6b90e66263825f805633cbe8bce4bb65131583ee2d1b0a04f"
+      },
+      {
+        "path": "src/core/templates/workflows/optimizer.ts",
+        "hash": "a5d2aa73b4dc9e6a8728813fe19cc07dad9c570d89bb56d707e785e83f6f17ea"
+      },
+      {
+        "path": "src/core/templates/workflows/reviewer.ts",
+        "hash": "ab5d6f8af7b8902dc73594c94ae2c6d53b1249d8b8160c4cedf44db4c6646ae3"
+      },
+      {
+        "path": "src/core/workflow-installation.ts",
+        "hash": "1acdbc42301448eec7d5a1408e779e16f718d83902b0cb040c99411042d32ea6"
+      },
+      {
+        "path": "test/core/shared/skill-generation.test.ts",
+        "hash": "d07837a4d2a3847dd502c07d38d2a794c47448f22f6d8a64baa04f8c7ebf7b78"
+      },
+      {
+        "path": "test/core/shared/subagent-generation.test.ts",
+        "hash": "eae288af35c5af4c8362464e04435e80abc33e319606948a1041a1fa83cb53f7"
+      },
+      {
+        "path": "test/core/templates/apply-change.test.ts",
+        "hash": "14f6bceb5c70c2e600777aee380ee0169b22c437e5ae881ac3cfb503ddfe33ec"
+      },
+      {
+        "path": "test/core/templates/archive-change.test.ts",
+        "hash": "9cd49f49ea37918593825582aa982abaa1d71e4fa7bfcb8d28e4095898aa5f0d"
+      },
+      {
+        "path": "test/core/templates/explore-template.test.ts",
+        "hash": "19c1e9bee4883cfa5b0dbf3db6692b10d662598f5488eeac2946819a39d78481"
+      },
+      {
+        "path": "test/core/templates/impact-sweeper-template.test.ts",
+        "hash": "a3e4311c4fc515c9c63b229761ebd0cbf49251df7850bfc3f0196d943c99cb91"
+      },
+      {
+        "path": "test/core/templates/optimizer-template.test.ts",
+        "hash": "a2667603d163094df06a65d94155d9f858ea795b68cb546e2e9b6eca7d7ce7af"
+      },
+      {
+        "path": "test/core/templates/reviewer-template.test.ts",
+        "hash": "7c51098e3ea3aff9907e7fb061989451d6e9ca618e12a5cd5cc052e10b64d7e1"
+      },
+      {
+        "path": "test/core/templates/sync-engine.test.ts",
+        "hash": "220343a35100aa1dfeb33d9ac2fdc5300675c9ba69bdc4d01e411c7b445c1c7a"
+      },
+      {
+        "path": "test/core/templates/tool-profile.test.ts",
+        "hash": "f9899f821a23c415b310f89df16de61c7aa4317840f86f47d85da65fcc088388"
+      },
+      {
+        "path": "test/core/workflow-installation.test.ts",
+        "hash": "d8125d299463d9ef38b01dab53180a95283567d9f15ccd36422438368a0269c5"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "ef705dc5dc29a40373f390f7930025c27cc5bc6b",
+    "timestamp": "2026-07-03T20:10:39.689Z"
+  },
+  "optimization": {
+    "status": "IMPROVED",
+    "attempts": [
+      {
+        "timestamp": "2026-07-03T20:09:32.414Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED",
+        "summary": "workflow-installation.ts: remove unused AI_TOOLS import (Dead Code). Only getAITool is referenced at line 97. ponytail:delete, Code Smell: Dead Code. Affects: src/core/workflow-installation.ts",
+        "files": [
+          "src/core/workflow-installation.ts"
+        ]
+      },
+      {
+        "timestamp": "2026-07-03T20:10:39.671Z",
+        "type": "verification",
+        "result": "PASS",
+        "behaviorRetryCounter": 1
+      }
+    ],
+    "affectedFileHashes": {
+      "src/core/workflow-installation.ts": "bde208627b46aa9f3bb3adfe79f5c045c42b6abbc476c0ebde1544fdae191a13"
+    },
+    "baseline": {
+      "timestamp": "2026-07-03T20:05:41.246Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "research.md at repo root is tracked in git diff but not declared in any task Files section and is not a change artifact",
+          "requirement": "Unaccounted Changes Detection",
+          "task": null,
+          "summary": "research.md at repo root is tracked in git diff but not declared in any task Files section and is not a change artifact",
+          "recommendation": "Exclude from archive commit via boundary commit",
+          "evidenceCitations": [
+            "research.md:1-3"
+          ]
+        }
+      ],
+      "tasksFileHash": "62cd280bda8f321b774fdcb171cfe9ef3fc206a91cce5aec278659719aa35a12",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "executionMode": "subagent-orchestrated",
+        "evidenceFiles": [
+          ".claude/agents/openspec-reviewer.md",
+          ".codex/agents/openspec-reviewer.toml",
+          ".opencode/agents/openspec-reviewer.md",
+          ".pi/agents/openspec-reviewer.md",
+          "openspec/changes/replace-internal-skills-with-subagents/design.md",
+          "openspec/changes/replace-internal-skills-with-subagents/opsx-delta.yaml",
+          "openspec/changes/replace-internal-skills-with-subagents/proposal.md",
+          "openspec/changes/replace-internal-skills-with-subagents/specs/ai-command-generation/spec.md",
+          "openspec/changes/replace-internal-skills-with-subagents/specs/ai-tool-paths/spec.md",
+          "openspec/changes/replace-internal-skills-with-subagents/specs/ai-workflow-templates/spec.md",
+          "openspec/changes/replace-internal-skills-with-subagents/specs/apply-implementer-subagent/spec.md",
+          "openspec/changes/replace-internal-skills-with-subagents/specs/internal-skill-installation/spec.md",
+          "openspec/changes/replace-internal-skills-with-subagents/specs/internal-subagent-generation/spec.md",
+          "openspec/changes/replace-internal-skills-with-subagents/specs/skill-template-length-check/spec.md",
+          "openspec/changes/replace-internal-skills-with-subagents/tasks.md",
+          "openspec/project.opsx.relations.yaml",
+          "openspec/project.opsx.yaml",
+          "openspec/specs/ai-command-generation/spec.md",
+          "openspec/specs/ai-tool-paths/spec.md",
+          "openspec/specs/ai-workflow-templates/spec.md",
+          "openspec/specs/apply-implementer-subagent/spec.md",
+          "openspec/specs/internal-subagent-generation/spec.md",
+          "openspec/specs/skill-template-length-check/spec.md",
+          "src/core/config.ts",
+          "src/core/shared/skill-generation.ts",
+          "src/core/shared/subagent-generation.ts",
+          "src/core/templates/skill-templates.ts",
+          "src/core/templates/sync-engine.ts",
+          "src/core/templates/tool-profile/registry.ts",
+          "src/core/templates/tool-profile/types.ts",
+          "src/core/templates/workflows/apply-change.ts",
+          "src/core/templates/workflows/archive-change.ts",
+          "src/core/templates/workflows/explore.ts",
+          "src/core/templates/workflows/impact-sweeper.ts",
+          "src/core/templates/workflows/optimizer.ts",
+          "src/core/templates/workflows/reviewer.ts",
+          "src/core/workflow-installation.ts",
+          "test/core/shared/skill-generation.test.ts",
+          "test/core/shared/subagent-generation.test.ts",
+          "test/core/templates/apply-change.test.ts",
+          "test/core/templates/archive-change.test.ts",
+          "test/core/templates/explore-template.test.ts",
+          "test/core/templates/impact-sweeper-template.test.ts",
+          "test/core/templates/optimizer-template.test.ts",
+          "test/core/templates/reviewer-template.test.ts",
+          "test/core/templates/sync-engine.test.ts",
+          "test/core/templates/tool-profile.test.ts",
+          "test/core/workflow-installation.test.ts"
+        ],
+        "evidenceFingerprint": "8725ebf80cc9deed5e0bb416f9c2768bbbabe35bddae4cb44bbe96a9c19e9435",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".claude/agents/openspec-reviewer.md",
+            "hash": "03ee118f722bda4745696cedfa19cb4657ac8041eb7510e6e40d5120cb425169"
+          },
+          {
+            "path": ".codex/agents/openspec-reviewer.toml",
+            "hash": "b89993d721a4945c72dd77734b03bede7ce2b8ffe8a29d89453d34847de9ad66"
+          },
+          {
+            "path": ".opencode/agents/openspec-reviewer.md",
+            "hash": "3d78dcc40db748923245d889d9c0df5158453a25c3129c24446231664c57f49e"
+          },
+          {
+            "path": ".pi/agents/openspec-reviewer.md",
+            "hash": "2af014ca75bd0fdd25f39ff14210209ddbb42b5a13a5ef8c1bf13fb1044520f1"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/design.md",
+            "hash": "3277e525ef15ededf3cd655a0b822b1a2b3876c634ee5a5b2409930f46609674"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/opsx-delta.yaml",
+            "hash": "f03c80323ac7760b559b53912c038a78c701ae8b5d9c51072533af297b6c8ec3"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/proposal.md",
+            "hash": "242ad32fb5324412f7133252e938edcd497c3fa72f866bf25f610465a6aadb62"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/specs/ai-command-generation/spec.md",
+            "hash": "38c13547a2283de40a69a122df0a5da105c51c7b9e02a727aa9eae8841877f65"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/specs/ai-tool-paths/spec.md",
+            "hash": "5799001d498a351c7c03667972fe1de99c7ff1410553bb8e8bc70896b9c8b542"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/specs/ai-workflow-templates/spec.md",
+            "hash": "8f0b04e0297f4a4a119970a66faa70dbf5be57cf656a3d9fa20358b47ad99a73"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/specs/apply-implementer-subagent/spec.md",
+            "hash": "7d3db1eb46d1329af45870ab7a628773cfa71e5dcd3105a04678776ad730e046"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/specs/internal-skill-installation/spec.md",
+            "hash": "4f5c025f9fa3d26bce8d438e2b476c5b838ad027f7771e3be6599c40dd008577"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/specs/internal-subagent-generation/spec.md",
+            "hash": "654899772c41a27a4463c6eec30e6a3ab4b69ccf2fa5f1c85bfa8ab80703c1c5"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/specs/skill-template-length-check/spec.md",
+            "hash": "d262ca6f20ce8cc8238fef8a04ed7329f30f4dd4589011c89cce75d17b93b5c3"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/tasks.md",
+            "hash": "62cd280bda8f321b774fdcb171cfe9ef3fc206a91cce5aec278659719aa35a12"
+          },
+          {
+            "path": "openspec/project.opsx.relations.yaml",
+            "hash": "7f54eeb0bfe7bc4d27a22b96d4bfa133c64199411bddd0df2bd01915a9534683"
+          },
+          {
+            "path": "openspec/project.opsx.yaml",
+            "hash": "1420dfcc7e0dd349f59c2e4aa1706ec3714f89e86e8e7705fdbdbba24a2a1afd"
+          },
+          {
+            "path": "openspec/specs/ai-command-generation/spec.md",
+            "hash": "820bb42d5ad34259d398173a6f3a83c98f4c4fdd672a2d344c1dfc1e492e3425"
+          },
+          {
+            "path": "openspec/specs/ai-tool-paths/spec.md",
+            "hash": "c7292aa9f6f147b71977cd5e2ba59b618cb4fc7fede27a356d84e85ec6a6f4a4"
+          },
+          {
+            "path": "openspec/specs/ai-workflow-templates/spec.md",
+            "hash": "1b7d117570928c127893eef82e64e7a626753add2f404c6013ffe50bc777166d"
+          },
+          {
+            "path": "openspec/specs/apply-implementer-subagent/spec.md",
+            "hash": "06f2d8d9a0387d3864449ffafe9541f8f6ca1cfcb13ca2256754e89b7689c5a3"
+          },
+          {
+            "path": "openspec/specs/internal-subagent-generation/spec.md",
+            "hash": "4b7b96fed97339d1dbdb39cc92fa14a21bd2a09e0bd3209ca52634d764e95939"
+          },
+          {
+            "path": "openspec/specs/skill-template-length-check/spec.md",
+            "hash": "77ebfe65353cee09d2402b54d6c73ad92e95e1f50055730e0ee39bbfe5b52cae"
+          },
+          {
+            "path": "src/core/config.ts",
+            "hash": "4841a41c1eef2b6beea8036e4497f030ea854651a6872046931af929f1cca069"
+          },
+          {
+            "path": "src/core/shared/skill-generation.ts",
+            "hash": "440d41e4b91eab41668d31ae97fbd6d355df6d0b2fe78b5d425ecaadae361f86"
+          },
+          {
+            "path": "src/core/shared/subagent-generation.ts",
+            "hash": "6324e1d736b87c82cc5c4c76d2feac00fb05385e39db4401c4eb408d613a54d5"
+          },
+          {
+            "path": "src/core/templates/skill-templates.ts",
+            "hash": "4c816161e80c924dd6bfbc5894120c35d49d716bbb04f811cfc6d4639ed11c5d"
+          },
+          {
+            "path": "src/core/templates/sync-engine.ts",
+            "hash": "d50fd8648a9b18851252bd89d8acda20b995cbe50fc241925bdfe2f185ab6a9a"
+          },
+          {
+            "path": "src/core/templates/tool-profile/registry.ts",
+            "hash": "42311cd05d807e9afd7cb4ce7e938d1d87c07469d1133f8501f42c1bfb74e5ed"
+          },
+          {
+            "path": "src/core/templates/tool-profile/types.ts",
+            "hash": "1ed18e4d6107048d0445b4ee5cf5139969e6d00705c4accf624a311c00b26324"
+          },
+          {
+            "path": "src/core/templates/workflows/apply-change.ts",
+            "hash": "2ed77e53496a79b019527b8bc3b731c45593ca208a3454aae9d40c2d81c5a8a9"
+          },
+          {
+            "path": "src/core/templates/workflows/archive-change.ts",
+            "hash": "1528f85794c13d374f14df048a04982c847a325b3d80ae2093000315e550b2dc"
+          },
+          {
+            "path": "src/core/templates/workflows/explore.ts",
+            "hash": "a1aa74a6d6847e765704231b20a36d0d469ba4e3e0f9cc7c00287a032d571a0a"
+          },
+          {
+            "path": "src/core/templates/workflows/impact-sweeper.ts",
+            "hash": "4468616e863efdd6b90e66263825f805633cbe8bce4bb65131583ee2d1b0a04f"
+          },
+          {
+            "path": "src/core/templates/workflows/optimizer.ts",
+            "hash": "a5d2aa73b4dc9e6a8728813fe19cc07dad9c570d89bb56d707e785e83f6f17ea"
+          },
+          {
+            "path": "src/core/templates/workflows/reviewer.ts",
+            "hash": "ab5d6f8af7b8902dc73594c94ae2c6d53b1249d8b8160c4cedf44db4c6646ae3"
+          },
+          {
+            "path": "src/core/workflow-installation.ts",
+            "hash": "bde208627b46aa9f3bb3adfe79f5c045c42b6abbc476c0ebde1544fdae191a13"
+          },
+          {
+            "path": "test/core/shared/skill-generation.test.ts",
+            "hash": "d07837a4d2a3847dd502c07d38d2a794c47448f22f6d8a64baa04f8c7ebf7b78"
+          },
+          {
+            "path": "test/core/shared/subagent-generation.test.ts",
+            "hash": "eae288af35c5af4c8362464e04435e80abc33e319606948a1041a1fa83cb53f7"
+          },
+          {
+            "path": "test/core/templates/apply-change.test.ts",
+            "hash": "14f6bceb5c70c2e600777aee380ee0169b22c437e5ae881ac3cfb503ddfe33ec"
+          },
+          {
+            "path": "test/core/templates/archive-change.test.ts",
+            "hash": "9cd49f49ea37918593825582aa982abaa1d71e4fa7bfcb8d28e4095898aa5f0d"
+          },
+          {
+            "path": "test/core/templates/explore-template.test.ts",
+            "hash": "19c1e9bee4883cfa5b0dbf3db6692b10d662598f5488eeac2946819a39d78481"
+          },
+          {
+            "path": "test/core/templates/impact-sweeper-template.test.ts",
+            "hash": "a3e4311c4fc515c9c63b229761ebd0cbf49251df7850bfc3f0196d943c99cb91"
+          },
+          {
+            "path": "test/core/templates/optimizer-template.test.ts",
+            "hash": "a2667603d163094df06a65d94155d9f858ea795b68cb546e2e9b6eca7d7ce7af"
+          },
+          {
+            "path": "test/core/templates/reviewer-template.test.ts",
+            "hash": "7c51098e3ea3aff9907e7fb061989451d6e9ca618e12a5cd5cc052e10b64d7e1"
+          },
+          {
+            "path": "test/core/templates/sync-engine.test.ts",
+            "hash": "220343a35100aa1dfeb33d9ac2fdc5300675c9ba69bdc4d01e411c7b445c1c7a"
+          },
+          {
+            "path": "test/core/templates/tool-profile.test.ts",
+            "hash": "f9899f821a23c415b310f89df16de61c7aa4317840f86f47d85da65fcc088388"
+          },
+          {
+            "path": "test/core/workflow-installation.test.ts",
+            "hash": "d8125d299463d9ef38b01dab53180a95283567d9f15ccd36422438368a0269c5"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "ef705dc5dc29a40373f390f7930025c27cc5bc6b"
+      }
+    },
+    "final": {
+      "result": "PASS",
+      "issues": []
+    }
+  }
+}
