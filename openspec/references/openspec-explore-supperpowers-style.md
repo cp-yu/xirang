@@ -12,6 +12,8 @@ The core of Superpowers brainstorming is not free-form discussion, but compressi
 - Self-review the design, then hand off for user review.
 - Enter the next workflow through explicit handoff.
 
+If todo is available, track these stages as a checklist and tick each completed stage.
+
 OpenSpec mapping:
 - The original design-document step maps to a conversation-only `Design Summary`.
 - The original commit step is removed; explore does not write files.
@@ -28,6 +30,8 @@ Simple changes still require design confirmation. Simple changes can shorten the
 ## Project context exploration
 
 **Evidence-first discipline**: All claims about existing code, architecture, or technical decisions must be grounded in project evidence. Do not substitute general knowledge for project facts.
+
+Before context reads, create the todo checklist: context, visual decision, one question, options, section approvals, self-review, handoff.
 
 Constrain the discussion with project facts first:
 - Read relevant OpenSpec change, spec, design, and tasks.

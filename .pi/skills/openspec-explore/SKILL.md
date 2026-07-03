@@ -60,6 +60,8 @@ If `openspec/project.opsx.yaml` exists:
 
 ## Mandatory Exploration Flow
 
+If todo is available, track this flow before context reads and tick stages as completed.
+
 1. Explore project context and identify affected subsystems.
 2. Use a compact visual companion when it clarifies architecture, state, data flow, or trade-offs.
 3. Ask exactly one scope/design question at a time.

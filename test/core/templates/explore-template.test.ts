@@ -57,6 +57,14 @@ describe('explore template impact sweeps', () => {
     expect(template).toContain('Only the user triggers the next workflow');
   });
 
+  it('tracks the explore flow with todo when available', () => {
+    const ref = getExploreSkillTemplate().referenceFiles?.find(f => f.path === 'references/explore-supperpowers-style.md');
+
+    expect(template).toContain('If todo is available, track this flow before context reads and tick stages as completed');
+    expect(ref?.content).toContain('If todo is available, track these stages as a checklist and tick each completed stage');
+    expect(ref?.content).toContain('Before context reads, create the todo checklist');
+  });
+
   it('states the main explore agent is read-only', () => {
     expect(template).toContain('Forbidden');
     expect(template).toContain('Create, edit, delete any file or artifact');
