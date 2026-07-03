@@ -239,3 +239,28 @@
   - Preserves: `openspec/specs/ai-workflow-templates/spec.md` / Requirement "固定工作流模板集合" / Scenario "注册表包含固定的 5 个工作流"
   - Command: `ls .claude/skills | grep -E 'openspec-(propose|explore|apply-change|archive-change|bootstrap-opsx|snack)'`
   - Expect: workflow skill 目录全部保留
+
+### Task 8 (补全): 清理 sweeper mustChange 清单中遗漏的 active spec 旧术语
+
+**Goal**: 根据 `openspec/sweeper/impact-sweep-clean-internal-skills-old-concepts.json` 的 mustChange 清单，补全本次 change 未覆盖的两个 active spec（`apply-implementer-subagent`、`ai-command-generation`）的术语迁移，确保归档 sync 后主 spec 不再残留 "internal skill" 旧术语。
+
+**Files**:
+- Create: `specs/apply-implementer-subagent/spec.md` (delta, MODIFIED)
+- Create: `specs/ai-command-generation/spec.md` (delta, MODIFIED)
+
+**Requirements**:
+- `apply-implementer-subagent` 的 Scenario 标题与 body 从 "internal skill 列表显式排除 implementer" / "系统生成 internal skills" 改为 "internal subagent 列表显式排除 implementer" / "系统渲染 internal subagent artifact"
+- `ai-command-generation` 的 Requirement 标题从 "命令列表排除内部 skill" 改为 "命令列表排除内部 subagent"，Scenario body 中的 "内部 skill" 改为 "internal subagent"
+- MODIFIED requirement 标题必须与主 spec 当前标题精确匹配以保证 delta merge
+
+#### Checks
+
+- [x] C23 验证 apply-implementer-subagent delta 术语迁移
+  - Verifies: `specs/apply-implementer-subagent/spec.md` / Requirement "apply 不再调用 implementer subagent" / Scenario "internal subagent 列表显式排除 implementer"
+  - Command: `openspec validate "replace-internal-skills-with-subagents" --type change --json`
+  - Expect: delta 通过 section-type cross-check，主 spec 标题与 delta MODIFIED 标题匹配
+
+- [x] C24 验证 ai-command-generation delta 术语迁移
+  - Verifies: `specs/ai-command-generation/spec.md` / Requirement "命令列表排除内部 subagent"
+  - Command: `openspec validate "replace-internal-skills-with-subagents" --type change --json`
+  - Expect: MODIFIED requirement 标题与主 spec 精确匹配，新 Scenario 引用三个 internal subagent
