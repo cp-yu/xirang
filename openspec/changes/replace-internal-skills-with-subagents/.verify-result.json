@@ -1,20 +1,20 @@
 {
-  "timestamp": "2026-07-03T19:38:15.072Z",
+  "timestamp": "2026-07-03T19:53:54.219Z",
   "result": "PASS_WITH_WARNINGS",
   "issues": [
     {
       "severity": "WARNING",
-      "message": "research.md staged at repo root is not a change artifact and not declared in any task Files",
+      "message": "research.md at repo root is tracked in git diff but not declared in any task Files section and is not a change artifact",
       "requirement": "Unaccounted Changes Detection",
-      "task": "Task 7",
-      "summary": "research.md staged at repo root is not a change artifact and not declared in any task Files",
-      "recommendation": "Unstage research.md or add to .gitignore before archive",
+      "task": null,
+      "summary": "research.md at repo root is tracked in git diff but not declared in any task Files section and is not a change artifact",
+      "recommendation": "Unstage/remove research.md, add to .gitignore, or exclude from archive commit via boundary commit",
       "evidenceCitations": [
         "research.md:1-3"
       ]
     }
   ],
-  "tasksFileHash": "129895fa7fc9f51cfd71fa2350b3811aa6c366e0c51545474ddd88814a5ef6e8",
+  "tasksFileHash": "62cd280bda8f321b774fdcb171cfe9ef3fc206a91cce5aec278659719aa35a12",
   "verificationContext": {
     "contractVersion": "1.0",
     "executionMode": "subagent-orchestrated",
@@ -23,6 +23,20 @@
       ".codex/agents/openspec-reviewer.toml",
       ".opencode/agents/openspec-reviewer.md",
       ".pi/agents/openspec-reviewer.md",
+      "openspec/changes/replace-internal-skills-with-subagents/design.md",
+      "openspec/changes/replace-internal-skills-with-subagents/opsx-delta.yaml",
+      "openspec/changes/replace-internal-skills-with-subagents/proposal.md",
+      "openspec/changes/replace-internal-skills-with-subagents/specs/ai-command-generation/spec.md",
+      "openspec/changes/replace-internal-skills-with-subagents/specs/ai-tool-paths/spec.md",
+      "openspec/changes/replace-internal-skills-with-subagents/specs/ai-workflow-templates/spec.md",
+      "openspec/changes/replace-internal-skills-with-subagents/specs/apply-implementer-subagent/spec.md",
+      "openspec/changes/replace-internal-skills-with-subagents/specs/internal-skill-installation/spec.md",
+      "openspec/changes/replace-internal-skills-with-subagents/specs/internal-subagent-generation/spec.md",
+      "openspec/changes/replace-internal-skills-with-subagents/specs/skill-template-length-check/spec.md",
+      "openspec/changes/replace-internal-skills-with-subagents/tasks.md",
+      "openspec/specs/ai-command-generation/spec.md",
+      "openspec/specs/apply-implementer-subagent/spec.md",
+      "openspec/specs/internal-skill-installation/spec.md",
       "src/core/config.ts",
       "src/core/shared/skill-generation.ts",
       "src/core/shared/subagent-generation.ts",
@@ -49,7 +63,7 @@
       "test/core/templates/tool-profile.test.ts",
       "test/core/workflow-installation.test.ts"
     ],
-    "evidenceFingerprint": "4b9204a6471392cb733d19bca495784c90b64b68fe0f4dd59059f024f7a47e63",
+    "evidenceFingerprint": "26b424ae5e182c106c0a7ab9f6a7d5db8c999fda01e5bc2ddc9fd0e28d132d98",
     "evidenceFingerprintEntries": [
       {
         "path": ".claude/agents/openspec-reviewer.md",
@@ -66,6 +80,62 @@
       {
         "path": ".pi/agents/openspec-reviewer.md",
         "hash": "2af014ca75bd0fdd25f39ff14210209ddbb42b5a13a5ef8c1bf13fb1044520f1"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/design.md",
+        "hash": "3277e525ef15ededf3cd655a0b822b1a2b3876c634ee5a5b2409930f46609674"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/opsx-delta.yaml",
+        "hash": "f03c80323ac7760b559b53912c038a78c701ae8b5d9c51072533af297b6c8ec3"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/proposal.md",
+        "hash": "242ad32fb5324412f7133252e938edcd497c3fa72f866bf25f610465a6aadb62"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/specs/ai-command-generation/spec.md",
+        "hash": "38c13547a2283de40a69a122df0a5da105c51c7b9e02a727aa9eae8841877f65"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/specs/ai-tool-paths/spec.md",
+        "hash": "5799001d498a351c7c03667972fe1de99c7ff1410553bb8e8bc70896b9c8b542"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/specs/ai-workflow-templates/spec.md",
+        "hash": "8f0b04e0297f4a4a119970a66faa70dbf5be57cf656a3d9fa20358b47ad99a73"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/specs/apply-implementer-subagent/spec.md",
+        "hash": "7d3db1eb46d1329af45870ab7a628773cfa71e5dcd3105a04678776ad730e046"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/specs/internal-skill-installation/spec.md",
+        "hash": "4f5c025f9fa3d26bce8d438e2b476c5b838ad027f7771e3be6599c40dd008577"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/specs/internal-subagent-generation/spec.md",
+        "hash": "654899772c41a27a4463c6eec30e6a3ab4b69ccf2fa5f1c85bfa8ab80703c1c5"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/specs/skill-template-length-check/spec.md",
+        "hash": "d262ca6f20ce8cc8238fef8a04ed7329f30f4dd4589011c89cce75d17b93b5c3"
+      },
+      {
+        "path": "openspec/changes/replace-internal-skills-with-subagents/tasks.md",
+        "hash": "62cd280bda8f321b774fdcb171cfe9ef3fc206a91cce5aec278659719aa35a12"
+      },
+      {
+        "path": "openspec/specs/ai-command-generation/spec.md",
+        "hash": "33cc1162338a90eb1946ee4e205a67ce55a887e1484363d2c5c21526a812eab7"
+      },
+      {
+        "path": "openspec/specs/apply-implementer-subagent/spec.md",
+        "hash": "201c22cafad6ba2a7c9448ef04edd32d607f870473ed80ed389a4be810398c14"
+      },
+      {
+        "path": "openspec/specs/internal-skill-installation/spec.md",
+        "hash": "aa95346ea8c8288ba9ee7edb8360c88a74f256d3170f9ee507abe132211c33e2"
       },
       {
         "path": "src/core/config.ts",
@@ -121,7 +191,7 @@
       },
       {
         "path": "src/core/workflow-installation.ts",
-        "hash": "f36bbbcb7dbdb02c2f0752148d3c869228c8eec2db5c203fb73dc0dedc137f16"
+        "hash": "bde208627b46aa9f3bb3adfe79f5c045c42b6abbc476c0ebde1544fdae191a13"
       },
       {
         "path": "test/core/shared/skill-generation.test.ts",
@@ -169,35 +239,48 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "361fef5a7d86430f5c26e3bcd7ef7b48a34641ca"
+    "gitHeadCommit": "db8ff2d9bfc4fea5278ca4ae6265186ec2a1e0cc",
+    "timestamp": "2026-07-03T19:58:41.735Z"
   },
   "optimization": {
-    "status": "NOT_NEEDED",
+    "status": "IMPROVED",
     "attempts": [
       {
-        "timestamp": "2026-07-03T19:42:27.288Z",
+        "timestamp": "2026-07-03T19:56:22.913Z",
         "type": "optimization",
-        "status": "NO_OPTIMIZATION_NEEDED",
-        "summary": "Optimizer reviewed all base-scope implementation files. One duplication candidate (escapeYamlString byte-identical in skill-generation.ts and subagent-generation.ts; escapeTomlString identical to escapeYamlString) evaluated but every clean dedup path is blocked by spec boundary (skills vs subagents separation is mandated by the change) or contract constraint (no new shared util file allowed; no rename). No blocks proposed."
+        "status": "OPTIMIZATION_PROPOSED",
+        "summary": "workflow-installation.ts: flatMap returning single-element array is behaviorally identical to map; shrink to map + inline path.join. ponytail:shrink, Code Smell: Long Method. Affects: src/core/workflow-installation.ts",
+        "files": [
+          "src/core/workflow-installation.ts"
+        ]
+      },
+      {
+        "timestamp": "2026-07-03T19:58:41.718Z",
+        "type": "verification",
+        "result": "PASS",
+        "behaviorRetryCounter": 1
       }
     ],
+    "affectedFileHashes": {
+      "src/core/workflow-installation.ts": "f36bbbcb7dbdb02c2f0752148d3c869228c8eec2db5c203fb73dc0dedc137f16"
+    },
     "baseline": {
-      "timestamp": "2026-07-03T19:38:15.072Z",
+      "timestamp": "2026-07-03T19:53:54.219Z",
       "result": "PASS_WITH_WARNINGS",
       "issues": [
         {
           "severity": "WARNING",
-          "message": "research.md staged at repo root is not a change artifact and not declared in any task Files",
+          "message": "research.md at repo root is tracked in git diff but not declared in any task Files section and is not a change artifact",
           "requirement": "Unaccounted Changes Detection",
-          "task": "Task 7",
-          "summary": "research.md staged at repo root is not a change artifact and not declared in any task Files",
-          "recommendation": "Unstage research.md or add to .gitignore before archive",
+          "task": null,
+          "summary": "research.md at repo root is tracked in git diff but not declared in any task Files section and is not a change artifact",
+          "recommendation": "Unstage/remove research.md, add to .gitignore, or exclude from archive commit via boundary commit",
           "evidenceCitations": [
             "research.md:1-3"
           ]
         }
       ],
-      "tasksFileHash": "129895fa7fc9f51cfd71fa2350b3811aa6c366e0c51545474ddd88814a5ef6e8",
+      "tasksFileHash": "62cd280bda8f321b774fdcb171cfe9ef3fc206a91cce5aec278659719aa35a12",
       "verificationContext": {
         "contractVersion": "1.0",
         "executionMode": "subagent-orchestrated",
@@ -206,6 +289,20 @@
           ".codex/agents/openspec-reviewer.toml",
           ".opencode/agents/openspec-reviewer.md",
           ".pi/agents/openspec-reviewer.md",
+          "openspec/changes/replace-internal-skills-with-subagents/design.md",
+          "openspec/changes/replace-internal-skills-with-subagents/opsx-delta.yaml",
+          "openspec/changes/replace-internal-skills-with-subagents/proposal.md",
+          "openspec/changes/replace-internal-skills-with-subagents/specs/ai-command-generation/spec.md",
+          "openspec/changes/replace-internal-skills-with-subagents/specs/ai-tool-paths/spec.md",
+          "openspec/changes/replace-internal-skills-with-subagents/specs/ai-workflow-templates/spec.md",
+          "openspec/changes/replace-internal-skills-with-subagents/specs/apply-implementer-subagent/spec.md",
+          "openspec/changes/replace-internal-skills-with-subagents/specs/internal-skill-installation/spec.md",
+          "openspec/changes/replace-internal-skills-with-subagents/specs/internal-subagent-generation/spec.md",
+          "openspec/changes/replace-internal-skills-with-subagents/specs/skill-template-length-check/spec.md",
+          "openspec/changes/replace-internal-skills-with-subagents/tasks.md",
+          "openspec/specs/ai-command-generation/spec.md",
+          "openspec/specs/apply-implementer-subagent/spec.md",
+          "openspec/specs/internal-skill-installation/spec.md",
           "src/core/config.ts",
           "src/core/shared/skill-generation.ts",
           "src/core/shared/subagent-generation.ts",
@@ -232,7 +329,7 @@
           "test/core/templates/tool-profile.test.ts",
           "test/core/workflow-installation.test.ts"
         ],
-        "evidenceFingerprint": "4b9204a6471392cb733d19bca495784c90b64b68fe0f4dd59059f024f7a47e63",
+        "evidenceFingerprint": "ca9efc2a7a5be34d1bc9151aa3c24433a90e7b3e2c545b52cdc646c7dac272f0",
         "evidenceFingerprintEntries": [
           {
             "path": ".claude/agents/openspec-reviewer.md",
@@ -249,6 +346,62 @@
           {
             "path": ".pi/agents/openspec-reviewer.md",
             "hash": "2af014ca75bd0fdd25f39ff14210209ddbb42b5a13a5ef8c1bf13fb1044520f1"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/design.md",
+            "hash": "3277e525ef15ededf3cd655a0b822b1a2b3876c634ee5a5b2409930f46609674"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/opsx-delta.yaml",
+            "hash": "f03c80323ac7760b559b53912c038a78c701ae8b5d9c51072533af297b6c8ec3"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/proposal.md",
+            "hash": "242ad32fb5324412f7133252e938edcd497c3fa72f866bf25f610465a6aadb62"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/specs/ai-command-generation/spec.md",
+            "hash": "38c13547a2283de40a69a122df0a5da105c51c7b9e02a727aa9eae8841877f65"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/specs/ai-tool-paths/spec.md",
+            "hash": "5799001d498a351c7c03667972fe1de99c7ff1410553bb8e8bc70896b9c8b542"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/specs/ai-workflow-templates/spec.md",
+            "hash": "8f0b04e0297f4a4a119970a66faa70dbf5be57cf656a3d9fa20358b47ad99a73"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/specs/apply-implementer-subagent/spec.md",
+            "hash": "7d3db1eb46d1329af45870ab7a628773cfa71e5dcd3105a04678776ad730e046"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/specs/internal-skill-installation/spec.md",
+            "hash": "4f5c025f9fa3d26bce8d438e2b476c5b838ad027f7771e3be6599c40dd008577"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/specs/internal-subagent-generation/spec.md",
+            "hash": "654899772c41a27a4463c6eec30e6a3ab4b69ccf2fa5f1c85bfa8ab80703c1c5"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/specs/skill-template-length-check/spec.md",
+            "hash": "d262ca6f20ce8cc8238fef8a04ed7329f30f4dd4589011c89cce75d17b93b5c3"
+          },
+          {
+            "path": "openspec/changes/replace-internal-skills-with-subagents/tasks.md",
+            "hash": "62cd280bda8f321b774fdcb171cfe9ef3fc206a91cce5aec278659719aa35a12"
+          },
+          {
+            "path": "openspec/specs/ai-command-generation/spec.md",
+            "hash": "33cc1162338a90eb1946ee4e205a67ce55a887e1484363d2c5c21526a812eab7"
+          },
+          {
+            "path": "openspec/specs/apply-implementer-subagent/spec.md",
+            "hash": "201c22cafad6ba2a7c9448ef04edd32d607f870473ed80ed389a4be810398c14"
+          },
+          {
+            "path": "openspec/specs/internal-skill-installation/spec.md",
+            "hash": "aa95346ea8c8288ba9ee7edb8360c88a74f256d3170f9ee507abe132211c33e2"
           },
           {
             "path": "src/core/config.ts",
@@ -352,8 +505,12 @@
           }
         ],
         "skippedEvidenceFiles": [],
-        "gitHeadCommit": "361fef5a7d86430f5c26e3bcd7ef7b48a34641ca"
+        "gitHeadCommit": "db8ff2d9bfc4fea5278ca4ae6265186ec2a1e0cc"
       }
+    },
+    "final": {
+      "result": "PASS",
+      "issues": []
     }
   }
 }

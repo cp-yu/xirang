@@ -107,10 +107,9 @@ export function getPlannedToolArtifacts(
   ]).map((referenceFile) =>
     path.join(projectPath, 'openspec', 'references', referenceFile.fileName)
   );
-  const skillFiles = plan.skillTemplates.flatMap((entry) => {
-    const skillDir = path.join(skillsDir, entry.dirName);
-    return [path.join(skillDir, 'SKILL.md')];
-  });
+  const skillFiles = plan.skillTemplates.map((entry) =>
+    path.join(skillsDir, entry.dirName, 'SKILL.md')
+  );
   skillFiles.push(...referenceFiles);
 
   const agentFiles = tool.agentsDir && tool.agentFormat
