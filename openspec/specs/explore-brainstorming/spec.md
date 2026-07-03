@@ -67,7 +67,7 @@ Explore 阶段 SHALL 执行 6 步 brainstorming checklist，确保设计前置�
 
 ### Requirement: 分段设计呈现
 
-系统 SHALL 将设计分段呈现，每段后询问用户是否正确。系统 SHALL 在单方案讨论中发现过度规格化时，用一行指出 ponytailladder 简化方式。
+系统 SHALL 将设计分段呈现，每段后询问用户是否正确。系统 SHALL 在单方案讨论中发现过度规格化时，用一行指出 ponytailladder 简化方式。在 Testing Strategy 阶段，当架构变更影响现有测试时，系统 SHALL 识别过时测试（更新/删除/新增）、确定权威测试套件位置，并在 Design Summary 中记录。
 
 #### Scenario: 逐段确认
 
@@ -90,9 +90,16 @@ Explore 阶段 SHALL 执行 6 步 brainstorming checklist，确保设计前置�
 - **THEN** 系统 SHALL 用一行指出简化方式
 - **AND** 系统在 ponytailladder 无特别发现时自然跳过，不强制输出
 
+#### Scenario: Testing Strategy 阶段识别过时测试
+
+- **WHEN** 设计涉及架构变更、API 重构或数据布局调整
+- **THEN** 系统 SHALL 读取相关测试文件并识别假设与新设计冲突的测试
+- **AND** 系统 SHALL 将过时测试分类为更新（断言适配新 API）、删除（行为已废弃）、新增（缺少覆盖）
+- **AND** 若项目存在多个测试目录，系统 SHALL 确定哪个测试套件是反映当前契约的权威套件
+
 ### Requirement: Design Summary 生成
 
-系统 SHALL 在设计确认后生成结构化的 Design Summary。
+系统 SHALL 在设计确认后生成结构化的 Design Summary。当识别到过时测试时，Testing Strategy 部分 SHALL 包含 Test Maintenance 子节。
 
 #### Scenario: Design Summary 格式
 
@@ -102,7 +109,7 @@ Explore 阶段 SHALL 执行 6 步 brainstorming checklist，确保设计前置�
   - 核心组件（组件列表 + 职责 + 接口）
   - 数据流（关键数据流描述）
   - 技术栈（具体技术选择）
-  - 测试策略（单元测试 + 集成测试覆盖范围）
+  - 测试策略（单元测试 + 集成测试覆盖范围；当架构变更影响现有测试时，包含 Test Maintenance 子节）
   - 风险和权衡（已知风险 + 缓解措施）
 
 #### Scenario: Design Summary 存储
@@ -113,6 +120,14 @@ Explore 阶段 SHALL 执行 6 步 brainstorming checklist，确保设计前置�
 - **THEN** 系统在同一个消息末尾附上："Design Summary complete. Review the above design. If confirmed, call `/opsx:propose <change-name>` generate artifacts."
 - **AND** 在此消息后系统 SHALL STOP，不主动提供任何工作流运行、不提出任何追问
 - **AND** 只有用户能触发下一个工作流
+
+#### Scenario: Test Maintenance 子节格式
+
+- **WHEN** Design Summary 包含过时测试信息
+- **THEN** Testing Strategy 部分 SHALL 包含 "Test Maintenance" 子节
+- **AND** 该子节 SHALL 列出待删除测试及原因、待更新测试及原因
+- **AND** 若存在权威测试套件，SHALL 注明其位置和通过用例数
+- **AND** 若变更不影响现有测试假设，SHALL 省略此子节
 
 ### Requirement: 智能判断是否需要 explore
 
@@ -184,6 +199,13 @@ Explore 在已有 change 上发现 insight 时 SHALL 先判断 insight 类型，
 - **AND** OPSX graph intent change SHALL 分类到 `opsx-delta.yaml`
 - **AND** invalidated assumption SHALL 分类到相关制品
 - **AND** 制品写入 SHALL 由 `/opsx:propose <change-name>` 或合适的非-explore workflow 执行
+
+#### Scenario: 过时测试的 future capture target
+
+- **WHEN** explore 发现架构变更导致现有测试过时
+- **THEN** 系统 SHALL 将测试需要更新或删除分类到 `tasks.md` + `design.md`
+- **AND** 具体操作（哪个测试文件、更新还是删除）SHALL 进入 `tasks.md`
+- **AND** 过时原因（哪个架构变更导致）SHALL 进入 `design.md`
 
 ### Requirement: Explore 主代理保持只读
 

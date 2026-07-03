@@ -76,6 +76,7 @@ When exploring an active change, read proposal/design/specs/tasks, reference the
 | New work or verification identified  | \`tasks.md\`                   |
 | OPSX graph intent changed            | \`opsx-delta.yaml\`            |
 | Assumption invalidated               | Relevant artifact              |
+| Test needs update or deletion        | \`tasks.md\` + \`design.md\`   |
 
 Example offers:
 - "That is a design decision for \`design.md\`; include it in the Design Summary, then call \`/opsx:propose <change-name>\` or the appropriate non-explore workflow."
@@ -156,15 +157,18 @@ Advance the design by section; do not dump a complete solution all at once. Comm
 
 Wait for user confirmation at the end of each section. When the user requests changes, revise only the current section and reconfirm before continuing.
 
+**Testing Strategy**: When architectural changes affect existing tests, identify obsolete tests (update/delete/add), note which test suite is authoritative if multiple exist, and document in Design Summary.
+
 ## Design Summary self-review
 
 Before generating the \`Design Summary\`, self-review:
 - Are there unresolved scope questions?
 - Are there placeholders, vague boundaries, or contradictory decisions?
 - Are the testing strategy and risks explained?
+- Does testing strategy include obsolete test handling when architectural changes affect existing tests?
 - Are file writes, artifact updates, or subsequent generation actions left for non-explore workflows?
 
-The \`Design Summary\` must stay in the conversation; do not create or update files. Content focuses on architecture, components, data flow, technology stack, testing strategy, risks, and trade-offs.
+The \`Design Summary\` must stay in the conversation; do not create or update files. Content focuses on architecture, components, data flow, technology stack, testing strategy (with test maintenance when applicable), risks, and trade-offs.
 
 ## User review gate
 

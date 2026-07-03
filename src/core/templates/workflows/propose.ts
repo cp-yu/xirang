@@ -18,6 +18,7 @@ const SMART_ROUTING_GUIDANCE = `## Smart Explore Routing
 Before creating artifacts, inspect the current conversation for an explore-generated \`Design Summary\`.
 
 - If a Design Summary exists, extract architecture, core components, data flow, technology stack, testing strategy, and risks/trade-offs. Use those sections as primary input for proposal.md, design.md, specs, and coarse tasks.
+  - **Test Maintenance**: If Testing Strategy includes obsolete tests, distribute to \`design.md\` (why obsolete) and \`tasks.md\` (specific update/delete actions).
 - If no Design Summary exists, read \`openspec/config.yaml\` through the compiled config projection. When \`propose.smartRouting: false\` or \`propose.requireExplore: false\` is configured, keep legacy behavior and proceed directly.
 - Otherwise, score the user's input across 5 dimensions: technology stack/library, data model/interface, API endpoint/function signature, test strategy, boundary conditions/error handling.
 - Treat input as detailed only when length is greater than 100 characters and score is at least 3/5.
