@@ -11,6 +11,16 @@ metadata:
 
 Archive a completed change in the experimental workflow.
 
+**OPSX Compilation Philosophy**:
+OpenSpec treats human intent → running code as a compilation pipeline: change artifacts (proposal/specs/design/tasks) are the source code; the agent is the compiler; `openspec validate` is static analysis; verify Phase 1 (reviewer) is the semantic-check pass; verify Phase 2 (optimizer) is the optimization pass; sync + archive is linking and release; OPSX YAML is the symbol table and module graph; snack is decompilation. Rules that follow:
+1. Artifacts are source code and MUST be elegant: every sentence is consumed downstream; redundant restatement is a code smell — state each fact exactly once.
+2. Complete = faithful + elicited: key decisions the user never stated are undefined behavior in the source, and implementations deviate exactly in those silent gaps. Make them explicit — ask, or record them as explicit assumptions. Never guess silently.
+3. Faithful translation: a compiler MUST NOT invent instructions. Do not exceed or deviate from specs; behavior not covered by specs goes back into specs first.
+4. Syntax is contract: keep canonical headings, IDs, schema keys, and normative keywords verbatim, or downstream parsers fail.
+5. No dead-code output: no placeholders, no empty template sections, no repeated narration — content either carries intent or does not exist.
+6. Not compiled until gates pass: validate/verify/seal are pipeline stages, not optional extras.
+A single compilation is faithful and deterministic; the source itself iterates freely and recompiles fast.
+
 **Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
 Before archiving, run `openspec config project --json` and consume git policy from its normalized project config: `git.commitMessage.archive`, `git.commitMessage.merge`, `git.merge.strategy`, and `git.branch.deleteAfterArchive`; do not parse raw YAML inside the skill.
