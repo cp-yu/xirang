@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  OPSX_COMPILATION_PHILOSOPHY,
   VERIFY_CLI_JSON_SCHEMA_REFERENCE,
   VERIFY_ERROR_RECOVERY_GUIDE,
   VERIFY_STATE_MACHINE_DIAGRAM,
@@ -12,6 +13,10 @@ import {
 import { runTransforms } from '../../../src/core/templates/transforms/index.js';
 
 describe('apply change workflow template', () => {
+  it('includes the OPSX compilation philosophy in the skill surface', () => {
+    expect(getApplyChangeSkillTemplate().instructions).toContain(OPSX_COMPILATION_PHILOSOPHY);
+  });
+
   it('references the apply Phase 2 optimization protocol from the skill surface', () => {
     const template = getApplyChangeSkillTemplate();
 

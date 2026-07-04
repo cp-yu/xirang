@@ -6,6 +6,7 @@
  * returns Search/Replace blocks or NO_OPTIMIZATION_NEEDED.
  */
 import type { SubagentTemplate } from '../../shared/subagent-generation.js';
+import { OPSX_COMPILATION_PHILOSOPHY } from '../fragments/opsx-fragments.js';
 
 const OPTIMIZER_SELF_READ_REFERENCE = `# Optimizer Self-Read Protocol
 
@@ -198,6 +199,8 @@ export function getOptimizerSubagentTemplate(): SubagentTemplate {
     prompt: `## Role
 
 You are an optimization subagent in OpenSpec's Phase 2 verify workflow. You receive only location inputs, read verification context and code yourself, and propose structural improvements as Search/Replace blocks. You are a clean-context agent and MUST NOT rely on any prior implementation conversation.
+
+${OPSX_COMPILATION_PHILOSOPHY}
 
 ## Hard Constraints
 

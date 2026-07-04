@@ -8,6 +8,7 @@ import type { SkillTemplate, CommandTemplate } from '../types.js';
 import {
   ARTIFACT_DOC_LANGUAGE_CONTRACT,
   OPSX_CLI_QUERY_CONTEXT,
+  OPSX_COMPILATION_PHILOSOPHY,
   OPSX_SHARED_CONTEXT,
   VERIFY_CLI_JSON_SCHEMA_REFERENCE,
   VERIFY_ERROR_RECOVERY_GUIDE,
@@ -173,6 +174,8 @@ export function getApplyChangeSkillTemplate(): SkillTemplate {
     name: 'openspec-apply-change',
     description: 'Implement tasks from an OpenSpec change. Use when the user wants to start implementing, continue implementation, or work through tasks.',
     instructions: `Implement tasks from an OpenSpec change.
+
+${OPSX_COMPILATION_PHILOSOPHY}
 
 ## Skill Delegation Protocol
 

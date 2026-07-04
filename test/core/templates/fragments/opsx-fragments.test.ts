@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  OPSX_COMPILATION_PHILOSOPHY,
   VERIFY_CLI_JSON_SCHEMA_REFERENCE,
   VERIFY_ERROR_RECOVERY_GUIDE,
   VERIFY_SIMPLE_CHANGE_FAST_PATH,
@@ -46,6 +47,41 @@ describe('verify gate shared fragments', () => {
       'Archive gate rejects',
     ]) {
       expect(VERIFY_STATE_MACHINE_DIAGRAM).toContain(token);
+    }
+  });
+});
+
+describe('OPSX compilation philosophy fragment', () => {
+  it('states the compilation metaphor mapping', () => {
+    for (const token of [
+      'compilation pipeline',
+      'source code',
+      'the agent is the compiler',
+      'static analysis',
+      'semantic-check pass',
+      'optimization pass',
+      'linking and release',
+      'symbol table',
+      'decompilation',
+    ]) {
+      expect(OPSX_COMPILATION_PHILOSOPHY).toContain(token);
+    }
+  });
+
+  it('states all six derived rules and the iteration clause', () => {
+    for (const token of [
+      'MUST be elegant',
+      'state each fact exactly once',
+      'faithful + elicited',
+      'Never guess silently',
+      'MUST NOT invent instructions',
+      'goes back into specs first',
+      'Syntax is contract',
+      'No dead-code output',
+      'Not compiled until gates pass',
+      'iterates freely',
+    ]) {
+      expect(OPSX_COMPILATION_PHILOSOPHY).toContain(token);
     }
   });
 });

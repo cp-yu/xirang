@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest';
+import { OPSX_COMPILATION_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import {
   getBootstrapOpsxSkillTemplate,
   getOpsxBootstrapCommandTemplate,
 } from '../../../src/core/templates/workflows/bootstrap-opsx.js';
 
 describe('bootstrap OPSX templates', () => {
+  it('includes the OPSX compilation philosophy in the skill surface', () => {
+    expect(getBootstrapOpsxSkillTemplate().instructions).toContain(OPSX_COMPILATION_PHILOSOPHY);
+  });
+
   it('documents backfill-specs and subagent semantic matching after promote', () => {
     const skill = getBootstrapOpsxSkillTemplate().instructions;
 

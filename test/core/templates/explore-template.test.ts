@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
+import { OPSX_COMPILATION_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import { getExploreSkillTemplate } from '../../../src/core/templates/skill-templates.js';
 
 describe('explore template impact sweeps', () => {
   const template = getExploreSkillTemplate().instructions;
+
+  it('includes the OPSX compilation philosophy', () => {
+    expect(template).toContain(OPSX_COMPILATION_PHILOSOPHY);
+  });
 
   it('invokes the sweeper before proposal readiness', () => {
     expect(template).toContain('Delegate to generated `openspec-impact-sweeper` subagent');

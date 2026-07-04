@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
+import { OPSX_COMPILATION_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import { getOptimizerSubagentTemplate } from '../../../src/core/templates/workflows/optimizer.js';
 
 describe('optimizer subagent template', () => {
+  it('includes the OPSX compilation philosophy in the prompt', () => {
+    expect(getOptimizerSubagentTemplate().prompt).toContain(OPSX_COMPILATION_PHILOSOPHY);
+  });
+
   it('preserves behavior-preserving Search/Replace-only optimization protocol', () => {
     const template = getOptimizerSubagentTemplate();
 

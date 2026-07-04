@@ -10,6 +10,7 @@ import type { SkillTemplate } from '../types.js';
 import {
   ARTIFACT_DOC_LANGUAGE_CONTRACT,
   OPSX_CLI_QUERY_CONTEXT,
+  OPSX_COMPILATION_PHILOSOPHY,
   OPSX_GENERATE_DELTA,
   OPSX_SHARED_CONTEXT,
 } from '../fragments/opsx-fragments.js';
@@ -20,6 +21,8 @@ export function getSnackSkillTemplate(): SkillTemplate {
     description:
       'Quick code-first artifact reconciliation: from already-written code, conditionally create or update proposal + specs + simplified design + OPSX delta using available code-change evidence. Use after iterative coding to back-fill OpenSpec artifacts without redoing propose→apply. Does not generate tasks.md.',
     instructions: `Reconcile OpenSpec artifacts from already-written code (code-first artifact reconciliation, reverse of propose/apply).
+
+${OPSX_COMPILATION_PHILOSOPHY}
 
 snack performs artifact reconciliation, not unconditional regeneration. Treat \`proposal.md\`, \`design.md\`, \`specs/*/spec.md\`, and \`opsx-delta.yaml\` as conditional artifacts: create them when missing, update them when stale or inconsistent, and leave them unchanged when current.
 

@@ -8,6 +8,7 @@ import type { SkillTemplate, CommandTemplate } from '../types.js';
 import {
   ARTIFACT_DOC_LANGUAGE_CONTRACT,
   OPSX_CLI_QUERY_CONTEXT,
+  OPSX_COMPILATION_PHILOSOPHY,
   OPSX_GENERATE_DELTA,
   OPSX_POST_PROPOSE_VALIDATION,
   OPSX_SHARED_CONTEXT,
@@ -46,6 +47,8 @@ export function getOpsxProposeSkillTemplate(): SkillTemplate {
     name: 'openspec-propose',
     description: 'Propose a new change with all artifacts generated in one step. Use when the user wants to quickly describe what they want to build and get a complete proposal with design, specs, and tasks ready for implementation.',
     instructions: `Propose a new change and generate all artifacts needed for implementation.
+
+${OPSX_COMPILATION_PHILOSOPHY}
 
 ## Workflow Stage
 

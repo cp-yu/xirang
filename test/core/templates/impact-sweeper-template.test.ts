@@ -12,6 +12,10 @@ describe('impact sweeper template', () => {
     return reference!.content;
   }
 
+  it('excludes the OPSX compilation philosophy (read-only reporter role)', () => {
+    expect(instructions).not.toContain('OPSX Compilation Philosophy');
+  });
+
   it('defines the report input and output contract', () => {
     expect(getImpactSweeperSubagentTemplate().name).toBe('openspec-impact-sweeper');
     expect(instructions).toContain('projectRoot');

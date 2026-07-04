@@ -5,6 +5,7 @@
  * templates file into workflow-focused modules.
  */
 import type { SkillTemplate, CommandTemplate } from '../types.js';
+import { OPSX_COMPILATION_PHILOSOPHY } from '../fragments/opsx-fragments.js';
 import {
   SUBAGENT_VERIFY_EXECUTION_MODEL,
   type VerifyExecutionModel,
@@ -130,6 +131,8 @@ function buildArchiveInstructions(
   executionModel: VerifyExecutionModel
 ): string {
   return `Archive a completed change in the experimental workflow.
+
+${OPSX_COMPILATION_PHILOSOPHY}
 
 **Input**: ${inputLine}
 

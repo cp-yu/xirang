@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import { generateSubagentContent } from '../../../src/core/shared/subagent-generation.js';
+import { OPSX_COMPILATION_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import { getReviewerSubagentTemplate } from '../../../src/core/templates/workflows/reviewer.js';
 
 describe('reviewer subagent template', () => {
+  it('includes the OPSX compilation philosophy in the prompt', () => {
+    expect(getReviewerSubagentTemplate().prompt).toContain(OPSX_COMPILATION_PHILOSOPHY);
+  });
+
   it('declares read-only permission intent in the source model and renderers', () => {
     const template = getReviewerSubagentTemplate();
 

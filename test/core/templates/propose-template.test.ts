@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { OPSX_COMPILATION_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import {
   getOpsxProposeCommandTemplate,
   getOpsxProposeSkillTemplate,
@@ -13,6 +14,10 @@ function getProposeBodies(): string[] {
 }
 
 describe('propose template post-validation flow', () => {
+  it('includes the OPSX compilation philosophy in the skill surface', () => {
+    expect(getOpsxProposeSkillTemplate().instructions).toContain(OPSX_COMPILATION_PHILOSOPHY);
+  });
+
   it('keeps post-propose validation warning-only with a single repair pass', () => {
     for (const body of getProposeBodies()) {
       expect(body).toContain('This validation is warning-only.');

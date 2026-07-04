@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
+import { OPSX_COMPILATION_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import { getSnackSkillTemplate } from '../../../src/core/templates/skill-templates.js';
 
 describe('snack template code-change evidence collection', () => {
   const template = getSnackSkillTemplate();
   const instructions = template.instructions;
+
+  it('includes the OPSX compilation philosophy', () => {
+    expect(instructions).toContain(OPSX_COMPILATION_PHILOSOPHY);
+  });
 
   it('treats conversation context as a first-class evidence source', () => {
     expect(instructions).toContain('conversation context');

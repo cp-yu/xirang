@@ -5,7 +5,11 @@
  * templates file into workflow-focused modules.
  */
 import type { SkillTemplate } from '../types.js';
-import { OPSX_NAVIGATION_GUIDANCE, OPSX_SHARED_CONTEXT } from '../fragments/opsx-fragments.js';
+import {
+  OPSX_COMPILATION_PHILOSOPHY,
+  OPSX_NAVIGATION_GUIDANCE,
+  OPSX_SHARED_CONTEXT,
+} from '../fragments/opsx-fragments.js';
 
 const IMPACT_SWEEP_GUIDANCE = `### Impact Sweeps
 
@@ -208,6 +212,8 @@ export function getExploreSkillTemplate(): SkillTemplate {
       },
     ],
     instructions: `Enter explore mode: investigate, clarify, compare, and help the user think before implementation.
+
+${OPSX_COMPILATION_PHILOSOPHY}
 
 ## Workflow Stage
 
