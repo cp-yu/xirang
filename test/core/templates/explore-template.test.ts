@@ -69,7 +69,8 @@ describe('explore template impact sweeps', () => {
     expect(template).toContain('5. **Confirm design in sections**');
     expect(template).toContain('architecture, core components, data flow, technology stack, testing strategy, risks and trade-offs');
     expect(template).toContain('6. **Generate Design Summary**');
-    expect(template).toContain('Present it as a visible content block');
+    expect(template).toContain('Present the Design Summary, then end with');
+    expect(template).not.toContain('visible content block');
     expect(template).toContain('After presenting the Design Summary, STOP');
     expect(template).toContain('Only the user triggers the next workflow');
   });

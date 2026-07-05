@@ -129,7 +129,7 @@ Explore 阶段 SHALL 执行 6 步 brainstorming checklist，确保设计前置�
 
 - **WHEN** Design Summary 生成完成
 - **THEN** 系统将其存储在对话上下文中（不写入文件）
-- **AND** 系统 SHALL 将 Design Summary 内容作为一个可见的内容块先行呈现
+- **AND** 系统 SHALL 在对话中先行呈现 Design Summary 内容
 - **THEN** 系统在同一个消息末尾附上："Design Summary complete. Review the above design. If confirmed, call `/opsx:propose <change-name>` generate artifacts."
 - **AND** 在此消息后系统 SHALL STOP，不主动提供任何工作流运行、不提出任何追问
 - **AND** 只有用户能触发下一个工作流
@@ -324,4 +324,3 @@ reference 文件 SHALL 声明为 `references/explore-supperpowers-style.md` 并�
 - **WHEN** explore 使用 todo checklist 跟踪流程
 - **THEN** checklist SHALL 只表示 explore 对话流程进度
 - **AND** checklist SHALL NOT 授权 main explore agent 创建、编辑或删除项目文件或 OpenSpec 制品
-
