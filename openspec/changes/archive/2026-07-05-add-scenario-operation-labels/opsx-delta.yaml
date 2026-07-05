@@ -1,0 +1,17 @@
+schema_version: 1
+MODIFIED:
+  capabilities:
+    - id: cap.change.specs-sync
+      intent: 将变更中的 delta specs 和 OPSX delta 同步到主规约与主 OPSX；支持 change-local scenario operation labels，sync/archive 写入 formal specs 前去除 [ADDED]/[MODIFIED] labels 并省略 [REMOVED] scenario blocks；重复 sync 对 normalized requirement 内容保持幂等。core 模式下改为调用 openspec sync CLI 工具（而非手动内联 sync）。sync 执行前增加 verify gate 入口校验
+    - id: cap.cli.sync
+      intent: 顶层 CLI 命令，将 change 中的 delta specs 和 OPSX delta 同步到主文件，不执行归档；sync 写入 formal specs 时清洗 scenario operation labels，省略 [REMOVED] scenario blocks，并基于 normalized 内容保持幂等。在需要生成正文时消费统一 runtime projection。sync 执行前增加 verify gate 入口校验，失败时输出增强诊断信息和补救操作指引。sync 完成后自动刷新 .verify-result.json evidence fingerprint
+    - id: cap.validation.change
+      intent: 验证变更的完整性和结构，包括 delta spec section-type 与主 spec header 存在性的交叉验证、scenario operation label 语法与 surviving scenario 校验，以及 tasks.md 中 Verifies 字段的确定性结构和 change-local spec 引用校验；Verifies 支持 REMOVED 锚定语法变体（无 Scenario），并以 label-free scenario title 匹配 change-local specs；新增 Preserves 字段校验（仅主 spec 路径白名单，不放宽 Verifies）
+    - id: cap.validation.spec
+      intent: 验证规约的格式和内容；formal specs SHALL NOT contain change-local scenario operation labels such as [ADDED], [MODIFIED], or [REMOVED] in Scenario headings
+    - id: cap.ai.propose-smart-routing
+      intent: Propose 阶段的智能路由与 artifact 生成 guidance；生成 specs 时应用 schema content boundary，支持在 change-local MODIFIED requirement 中使用 scenario operation labels 标记局部变化，并消费共享 artifact language contract 而不增加额外 per-artifact language scan。
+    - id: cap.ai.snack-skill
+      intent: snack skill 提供代码优先的 artifact reconciliation 工作流，从 conversation context、workspace/staged diff、git diff HEAD 或用户指定 commit/range 等代码变更证据，按需创建或更新 proposal、design、带 scenario operation labels 的 delta specs 与 OPSX delta；完成后输出三条 fast path：继续开发、sync and archive、快速归档，并支持多次调用 reconcile 同一 change
+    - id: cap.apply.preflight-scan
+      intent: apply 执行前的 tasks.md 一致性预检，扫描 task 间矛盾（同一文件互斥声明、与 spec/design 冲突）和依赖顺序问题（前序 task 引用后序 task 的产出）；对 change-local scenario operation labels 使用 label-free scenario title 匹配 Verifies 引用

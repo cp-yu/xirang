@@ -146,6 +146,31 @@ ${capabilities}
     expect(crossCheckErrors).toHaveLength(0);
   });
 
+  it('should pass when MODIFIED scenario operation labels are valid', async () => {
+    await writeMainSpec('foo', mainSpecWithHeaders(['Valid Header']));
+    await writeChangeSpec('foo', `## MODIFIED Requirements
+
+### Requirement: Valid Header
+The system SHALL do something.
+
+#### Scenario: [MODIFIED] Existing path
+- **WHEN** action
+- **THEN** result
+
+#### Scenario: [ADDED] New path
+- **WHEN** new action
+- **THEN** new result
+
+#### Scenario: [REMOVED] Old path
+- **WHEN** old action
+- **THEN** old result
+`);
+
+    const report = await new Validator().validateChangeDeltaSpecs(changeDir);
+
+    expect(report.issues.filter(i => i.level === 'ERROR')).toHaveLength(0);
+  });
+
   it('should pass when MODIFIED header exists in main spec', async () => {
     await writeMainSpec('foo', mainSpecWithHeaders(['Valid Header']));
     await writeChangeSpec('foo', deltaSpec('MODIFIED', 'Valid Header'));

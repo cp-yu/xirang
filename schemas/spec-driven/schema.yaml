@@ -64,6 +64,7 @@ artifacts:
       - Each requirement: `### Requirement: <name>` followed by description
       - Use SHALL/MUST for normative requirements (avoid should/may)
       - Each scenario: `#### Scenario: <name>` with WHEN/THEN format
+      - Scenario operation labels are change-local metadata only: use `#### Scenario: [ADDED] <title>`, `#### Scenario: [MODIFIED] <title>`, or `#### Scenario: [REMOVED] <title>` when marking per-scenario changes; sync/archive strip or omit these labels, and formal specs MUST NOT contain them.
       - **CRITICAL**: Scenarios MUST use exactly 4 hashtags (`####`). Using 3 hashtags or bullets will fail silently.
       - Every requirement MUST have at least one scenario.
       - `### Requirement:` and `#### Scenario:` markers remain canonical.
@@ -196,7 +197,7 @@ artifacts:
       - `Preserves:` anchors behavior-equivalence checks to main spec paths (`openspec/specs/<capability>/spec.md` / Requirement "<name>" / Scenario "<name>"), naming old forms in `Expect:` and absence assertion in `Command:`
       - Each check MUST include at least one executable evidence field: `Command:`, `Evidence:`, or `Expect:`
       - When this change has local delta specs, `Verifies:` MUST use a change-local relative POSIX path from the change directory: `specs/<capability>/spec.md`
-      - `Verifies:` MUST name the full Requirement title and one or more full Scenario names (except for REMOVED Requirement variant)
+      - `Verifies:` MUST name the full Requirement title and one or more full clean Scenario names without scenario operation labels (for `#### Scenario: [ADDED] <title>`, use `Scenario "<title>"`; except for REMOVED Requirement variant)
       - `Verifies:` MUST NOT use `openspec/specs/...`, project-root-relative paths, archived/main spec paths, absolute paths, parent traversal, or backslash-separated paths
       - `Preserves:` path whitelist is independent: only `openspec/specs/<capability>/spec.md` is allowed; it does not relax `Verifies:` constraints
 

@@ -18,7 +18,12 @@ import {
   MAX_REQUIREMENT_TEXT_LENGTH,
   VALIDATION_MESSAGES
 } from './constants.js';
-import { parseDeltaSpec, normalizeRequirementName, extractRequirementsSection } from '../parsers/requirement-blocks.js';
+import {
+  parseDeltaSpec,
+  normalizeRequirementName,
+  extractRequirementsSection,
+  parseScenarioOperationLabel,
+} from '../parsers/requirement-blocks.js';
 import { parseSpecFrontmatter } from '../parsers/spec-frontmatter.js';
 import { findMainSpecStructureIssues } from '../parsers/spec-structure.js';
 import { FileSystemUtils } from '../../utils/file-system.js';
@@ -392,6 +397,10 @@ export class Validator {
         message: structuralIssue.message,
       });
     }
+
+    for (const issue of this.findFormalScenarioOperationLabels(content)) {
+      issues.push(issue);
+    }
     
     if (spec.overview.length < MIN_PURPOSE_LENGTH) {
       issues.push({
@@ -532,8 +541,10 @@ export class Validator {
         issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${block.name}" must contain SHALL or MUST` });
       }
 
-      if (this.countScenarios(block.raw) < 1) {
-        issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${block.name}" must include at least one scenario` });
+      this.validateScenarioOperationLabels(block.raw, section, entryPath, block.name, issues);
+
+      if (this.countSurvivingScenarios(block.raw) < 1) {
+        issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${block.name}" must include at least one unlabeled, [ADDED], or [MODIFIED] scenario` });
       }
     }
 
@@ -572,9 +583,56 @@ export class Validator {
     return /\b(SHALL|MUST)\b/.test(text);
   }
 
-  private countScenarios(blockRaw: string): number {
-    const matches = blockRaw.match(/^####\s+/gm);
-    return matches ? matches.length : 0;
+  private findFormalScenarioOperationLabels(content: string): ValidationIssue[] {
+    const issues: ValidationIssue[] = [];
+    const lines = content.replace(/\r\n?/g, '\n').split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      if (/^####\s+Scenario:\s+\[(ADDED|MODIFIED|REMOVED)\]\s+/.test(lines[i])) {
+        issues.push({
+          level: 'ERROR',
+          path: 'file',
+          line: i + 1,
+          message: 'Formal specs SHALL NOT contain scenario operation labels in Scenario headings',
+        });
+      }
+    }
+    return issues;
+  }
+
+  private validateScenarioOperationLabels(
+    blockRaw: string,
+    section: 'ADDED' | 'MODIFIED',
+    entryPath: string,
+    blockName: string,
+    issues: ValidationIssue[],
+  ): void {
+    for (const line of blockRaw.replace(/\r\n?/g, '\n').split('\n')) {
+      const canonicalUnknown = line.match(/^####\s+Scenario:\s+\[([^\]]+)\]\s+/);
+      if (canonicalUnknown && !['ADDED', 'MODIFIED', 'REMOVED'].includes(canonicalUnknown[1])) {
+        issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${blockName}" has unknown scenario operation label. Allowed labels are [ADDED], [MODIFIED], [REMOVED]` });
+        continue;
+      }
+
+      const label = parseScenarioOperationLabel(line);
+      if (label?.operation === 'REMOVED' && section === 'ADDED') {
+        issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${blockName}" has [REMOVED] scenario; [REMOVED] scenario should be under ## MODIFIED Requirements` });
+        continue;
+      }
+
+      if (/^####\s+/.test(line) && /\[(ADDED|MODIFIED|REMOVED)\]/.test(line) && !label) {
+        issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${blockName}" has malformed scenario operation label. Use legal format #### Scenario: [ADDED] 场景` });
+      }
+    }
+  }
+
+  private countSurvivingScenarios(blockRaw: string): number {
+    let count = 0;
+    for (const line of blockRaw.replace(/\r\n?/g, '\n').split('\n')) {
+      if (!/^####\s+Scenario:\s+/.test(line)) continue;
+      if (parseScenarioOperationLabel(line)?.operation === 'REMOVED') continue;
+      count++;
+    }
+    return count;
   }
 
   private formatSectionList(sections: string[]): string {

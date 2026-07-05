@@ -1,8 +1,5 @@
-# apply-preflight-scan Specification
+## MODIFIED Requirements
 
-## Purpose
-此规约记录变更 reviewer-optimization 引入的行为，请在后续同步或归档前补全正式 Purpose。
-## Requirements
 ### Requirement: Task 间矛盾检测
 
 apply-change skill SHALL 在完成 OPSX 导航（Step 5）之后、Branch Isolation 之前，扫描 tasks.md 全部 task 的 Goal、Files、Requirements 和 Checks，检测不同 task 对同一文件或接口的互斥声明，以及 task 声明与 change-local specs 或 design.md 的冲突。当 change-local specs 的 scenario headings 含有 scenario operation labels 时，pre-flight scan SHALL 使用 label-free scenario title 来匹配 task `Verifies:` 引用。
@@ -30,20 +27,3 @@ apply-change skill SHALL 在完成 OPSX 导航（Step 5）之后、Branch Isolat
 - **WHEN** pre-flight scan 未检测到任何矛盾或依赖顺序问题
 - **THEN** 系统 SHALL 无声继续进入 Branch Isolation 步骤
 - **AND** 系统 SHALL NOT 向用户报告"扫描通过"
-
-### Requirement: Task 依赖顺序检测
-
-apply-change skill SHALL 检测 task 间的隐式依赖顺序问题：当 Task N 的 Files 中包含 Modify 或 Delete 某文件，而该文件由执行顺序在后的 Task M（M > N）的 Files Create 声明产生时，标记为依赖顺序问题。
-
-#### Scenario: 检测到前序 task 依赖后序 task 的产出
-
-- **WHEN** Task N（N < M）的 Files 声明 Modify 或 Delete 某路径，该路径由 Task M 的 Files 声明 Create
-- **THEN** 系统 SHALL 将此标记为依赖顺序 finding
-- **AND** finding SHALL 包含涉及的两个 task 编号和文件路径
-
-#### Scenario: 用户决策后继续执行
-
-- **WHEN** pre-flight scan 呈现 findings 给用户
-- **THEN** 系统 SHALL 等待用户决策（修改 tasks.md 或确认忽略）
-- **AND** 用户确认后系统 SHALL 继续进入 Branch Isolation
-

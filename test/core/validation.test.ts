@@ -352,6 +352,27 @@ The system SHALL ...
       expect(report.issues.some(i => i.message.includes('Main spec contains delta header'))).toBe(false);
       expect(report.issues.some(i => i.message.includes('appears outside the main ## Requirements section'))).toBe(false);
     });
+
+    it('should reject scenario operation labels in formal spec content', async () => {
+      for (const label of ['ADDED', 'MODIFIED', 'REMOVED']) {
+        const report = await new Validator().validateSpecContent('test-spec', `# Test Spec
+
+## Purpose
+This is a test specification with requirements.
+
+## Requirements
+
+### Requirement: Label cleanliness
+The system SHALL keep formal specs clean.
+
+#### Scenario: [${label}] Polluted scenario
+- **WHEN** validation runs
+- **THEN** it fails`);
+
+        expect(report.valid).toBe(false);
+        expect(report.issues.some(i => i.message.includes('Formal specs SHALL NOT contain scenario operation labels'))).toBe(true);
+      }
+    });
   });
 
   describe('validateChange', () => {
@@ -589,6 +610,70 @@ The system MUST support mixed case delta headers.
       expect(report.summary.errors).toBe(0);
       expect(report.summary.warnings).toBe(0);
       expect(report.summary.info).toBe(0);
+    });
+
+    it('should reject invalid scenario operation labels in change specs', async () => {
+      const cases = [
+        {
+          change: 'unknown-label',
+          body: '#### Scenario: [UPDATED] 场景',
+          message: '[ADDED], [MODIFIED], [REMOVED]',
+        },
+        {
+          change: 'malformed-label',
+          body: '#### [ADDED] Scenario: 场景',
+          message: '#### Scenario: [ADDED] 场景',
+        },
+        {
+          change: 'removed-in-added',
+          body: '#### Scenario: [REMOVED] 旧场景',
+          message: '[REMOVED] scenario should be under ## MODIFIED Requirements',
+        },
+      ];
+
+      for (const item of cases) {
+        const changeDir = path.join(testDir, item.change);
+        const specsDir = path.join(changeDir, 'specs', 'test-spec');
+        await fs.mkdir(specsDir, { recursive: true });
+        await fs.writeFile(
+          path.join(specsDir, 'spec.md'),
+          `## ADDED Requirements
+
+### Requirement: Label Validation
+The system SHALL validate labels.
+
+${item.body}
+- **WHEN** action
+- **THEN** result`,
+        );
+
+        const report = await new Validator(true).validateChangeDeltaSpecs(changeDir);
+
+        expect(report.valid).toBe(false);
+        expect(report.issues.some(i => i.message.includes(item.message))).toBe(true);
+      }
+    });
+
+    it('should require at least one surviving scenario after REMOVED labels', async () => {
+      const changeDir = path.join(testDir, 'surviving-scenarios');
+      const specsDir = path.join(changeDir, 'specs', 'test-spec');
+      await fs.mkdir(specsDir, { recursive: true });
+      await fs.writeFile(
+        path.join(specsDir, 'spec.md'),
+        `## MODIFIED Requirements
+
+### Requirement: Label Validation
+The system SHALL validate labels.
+
+#### Scenario: [REMOVED] 旧场景
+- **WHEN** old
+- **THEN** gone`,
+      );
+
+      const report = await new Validator(true).validateChangeDeltaSpecs(changeDir);
+
+      expect(report.valid).toBe(false);
+      expect(report.issues.some(i => i.message.includes('at least one unlabeled, [ADDED], or [MODIFIED] scenario'))).toBe(true);
     });
   });
 

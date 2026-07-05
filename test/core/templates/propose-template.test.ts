@@ -107,6 +107,16 @@ describe('propose template post-validation flow', () => {
     }
   });
 
+  it('keeps scenario operation labels as change-local metadata', () => {
+    for (const body of getProposeBodies()) {
+      expect(body).toContain('#### Scenario: [ADDED] <title>');
+      expect(body).toContain('#### Scenario: [MODIFIED] <title>');
+      expect(body).toContain('#### Scenario: [REMOVED] <title>');
+      expect(body).toContain('change-local metadata');
+      expect(body).toContain('sync/archive');
+    }
+  });
+
   it('uses the shared document language contract for proseLanguage boundaries', () => {
     for (const body of getProposeBodies()) {
       expect(body).toContain('Document Language Contract');

@@ -417,6 +417,72 @@ Then the system signs the user in`
     expect(console.log).toHaveBeenCalledWith('No sync required.');
   });
 
+  it('strips scenario operation labels and stays idempotent on repeated sync', async () => {
+    const syncCommand = await loadSyncCommand();
+    const changeName = 'scenario-label-sync';
+    const changeDir = await createChange(changeName);
+    const changeSpecDir = path.join(changeDir, 'specs', 'auth');
+    const mainSpecDir = path.join(tempDir, 'openspec', 'specs', 'auth');
+    await fs.mkdir(changeSpecDir, { recursive: true });
+    await fs.mkdir(mainSpecDir, { recursive: true });
+
+    const mainSpecPath = path.join(mainSpecDir, 'spec.md');
+    await fs.writeFile(
+      mainSpecPath,
+      `# auth Specification
+
+## Purpose
+Auth behavior.
+
+## Requirements
+
+### Requirement: Login
+The system SHALL support login.
+
+#### Scenario: Existing path
+- **WHEN** credentials are valid
+- **THEN** login succeeds
+
+#### Scenario: Legacy path
+- **WHEN** legacy flow runs
+- **THEN** old behavior happens`,
+      'utf-8'
+    );
+    await fs.writeFile(
+      path.join(changeSpecDir, 'spec.md'),
+      `## MODIFIED Requirements
+
+### Requirement: Login
+The system SHALL support login.
+
+#### Scenario: [MODIFIED] Existing path
+- **WHEN** credentials are valid
+- **THEN** login succeeds
+
+#### Scenario: [REMOVED] Legacy path
+- **WHEN** legacy flow runs
+- **THEN** old behavior happens
+
+#### Scenario: [ADDED] MFA path
+- **WHEN** MFA is required
+- **THEN** a challenge is shown`,
+      'utf-8'
+    );
+
+    await syncCommand(changeName, { noValidate: true, noVerify: true });
+    const first = await fs.readFile(mainSpecPath, 'utf-8');
+    expect(first).toContain('#### Scenario: Existing path');
+    expect(first).toContain('#### Scenario: MFA path');
+    expect(first).not.toContain('Scenario: [MODIFIED]');
+    expect(first).not.toContain('Scenario: [ADDED]');
+    expect(first).not.toContain('Scenario: [REMOVED]');
+    expect(first).not.toContain('legacy flow runs');
+
+    await syncCommand(changeName, { noValidate: true, noVerify: true });
+    expect(await fs.readFile(mainSpecPath, 'utf-8')).toBe(first);
+    expect(console.log).toHaveBeenCalledWith('No sync required.');
+  });
+
   it('refreshes evidence fingerprint after OPSX sync writes', async () => {
     const syncCommand = await loadSyncCommand();
     const changeName = 'refresh-evidence-sync';
