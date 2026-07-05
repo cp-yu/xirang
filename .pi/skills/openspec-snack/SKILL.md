@@ -74,6 +74,7 @@ After reading shared `project.opsx.yaml` context, use OpenSpec CLI query surface
    - Reuse an existing `openspec/specs/<capability>/` directory when the instruction says it applies; otherwise use the proposal capability name.
    - New concerns use `## ADDED Requirements`; changed existing behavior uses `## MODIFIED Requirements` with the exact existing Requirement title.
    - Requirement text MUST contain SHALL/MUST language and at least one `#### Scenario:` block with WHEN/THEN style.
+   - Scenario operation labels are change-local metadata only: use `#### Scenario: [ADDED] <title>`, `#### Scenario: [MODIFIED] <title>`, or `#### Scenario: [REMOVED] <title>` in change specs; sync/archive strip or omit them, and formal specs MUST NOT contain them.
    - Preserve unrelated existing delta requirements unless the evidence makes them stale or inconsistent.
    - Mark uncertain inferences with `[REVIEW NEEDED]`.
 9. Reconcile simplified `design.md`.
