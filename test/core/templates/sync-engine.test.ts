@@ -129,6 +129,6 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
 
     expect(result.error).toBeUndefined();
     await expect(fs.readFile(path.join(agentsDir, 'my-custom.md'), 'utf-8')).resolves.toBe('custom');
-    await expect(fs.readFile(path.join(agentsDir, 'openspec-reviewer.md'), 'utf-8')).resolves.toContain('display_name: "OpenSpec Reviewer"');
+    await expect(fs.readFile(path.join(agentsDir, 'openspec-reviewer.md'), 'utf-8')).resolves.toContain('name: openspec-reviewer');
   });
 });

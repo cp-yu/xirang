@@ -30,8 +30,6 @@ export const INTERNAL_SUBAGENT_TEMPLATES: readonly SubagentTemplate[] = [
 ] as const;
 
 const DEFAULT_TOOLS = ['read', 'grep', 'find', 'bash'] as const;
-const DEFAULT_DISALLOWED_TOOLS = ['write', 'edit'] as const;
-
 function escapeYamlString(value: string): string {
   return `"${value
     .replace(/\\/g, '\\\\')
@@ -59,10 +57,6 @@ function toolList(template: SubagentTemplate): readonly string[] {
   return template.tools ?? DEFAULT_TOOLS;
 }
 
-function disallowedToolList(template: SubagentTemplate): readonly string[] {
-  return template.disallowedTools ?? DEFAULT_DISALLOWED_TOOLS;
-}
-
 function toClaudeTools(template: SubagentTemplate): string {
   const mapping: Record<string, string> = {
     read: 'Read',
@@ -77,14 +71,6 @@ function toClaudeTools(template: SubagentTemplate): string {
     .map((tool) => mapping[tool] ?? tool)
     .filter((tool, index, all) => all.indexOf(tool) === index)
     .join(', ');
-}
-
-function displayName(name: string): string {
-  const withoutPrefix = name.replace(/^openspec-/, '');
-  return `OpenSpec ${withoutPrefix
-    .split('-')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ')}`;
 }
 
 function renderMarkdownBody(frontmatter: string, prompt: string): string {
@@ -107,12 +93,10 @@ function renderClaudeMarkdown(template: SubagentTemplate): string {
 function renderPiMarkdown(template: SubagentTemplate): string {
   return renderMarkdownBody(
     [
+      `name: ${template.name}`,
       `description: ${escapeYamlString(template.description)}`,
-      `display_name: ${escapeYamlString(displayName(template.name))}`,
       `tools: ${escapeYamlString(toolList(template).join(', '))}`,
-      `disallowed_tools: ${escapeYamlString(disallowedToolList(template).join(', '))}`,
       `model: ${escapeYamlString(template.model ?? 'inherit')}`,
-      'enabled: true',
       '',
     ].join('\n'),
     template.prompt

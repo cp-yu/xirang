@@ -34,7 +34,7 @@ Internal subagent SHALL NOT 注册到 `WorkflowManifestRegistry`，SHALL NOT 生
 系统 SHALL 通过 `generateSubagentContent(template, toolId, version)` 把统一 `SubagentTemplate` 渲染为 tool-native subagent artifact 内容。渲染 SHALL 按 `toolId` 分派到对应 renderer：
 
 - `claude` SHALL 渲染为 Markdown + YAML frontmatter（含 `name`、`description`、`tools`、`model`）
-- `pi` SHALL 渲染为 Markdown + YAML frontmatter（含 `description`、`display_name`、`tools`、`disallowed_tools`、`model`、`enabled`）
+- `pi` SHALL 渲染为 Markdown + YAML frontmatter（含 `name`、`description`、`tools`、`model`）
 - `opencode` SHALL 渲染为 Markdown + YAML frontmatter（含 `description`、`mode: subagent`、`model`、`permission`）
 - `codex` SHALL 渲染为 TOML（含 `name`、`description`、`developer_instructions`、`sandbox_mode`）
 
@@ -47,11 +47,12 @@ Renderer SHALL NOT 复用 workflow invocation transform 管线（如 `/opsx:<slu
 - **AND** frontmatter 后 SHALL 跟 Markdown body 承载 `prompt`
 - **AND** SHALL NOT 出现 `display_name`、`sandbox_mode` 或 `permission` 等其他工具字段
 
-#### Scenario: Pi renderer 输出带权限声明的 Markdown
+#### Scenario: Pi renderer 输出含 name 的 Markdown agent 文件
 
 - **WHEN** 调用 `generateSubagentContent(template, 'pi', version)`
-- **THEN** frontmatter SHALL 包含 `display_name`、`tools`、`disallowed_tools`、`enabled: true`
-- **AND** SHALL 在 `disallowed_tools` 中声明 `write`、`edit`（对应用源模型的 `disallowedTools`）
+- **THEN** frontmatter SHALL 包含 `name`（取值为 `template.name`）、`description`、`tools`、`model`
+- **AND** SHALL NOT 包含 `display_name`、`disallowed_tools` 或 `enabled`
+- **AND** 工具权限通过 `tools` allowlist 表达（仅列 read/grep/find/bash，未列出的工具不可用）
 
 #### Scenario: OpenCode renderer 输出 subagent mode 与 permission
 

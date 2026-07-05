@@ -19,7 +19,7 @@ describe('reviewer subagent template', () => {
     expect(template.disallowedTools).toEqual(expect.arrayContaining(['write', 'edit']));
 
     expect(generateSubagentContent(template, 'claude', 'TEST')).toContain('Bash');
-    expect(generateSubagentContent(template, 'pi', 'TEST')).toContain('disallowed_tools: "write, edit"');
+    expect(generateSubagentContent(template, 'pi', 'TEST')).toContain('name: openspec-reviewer');
     expect(generateSubagentContent(template, 'opencode', 'TEST')).toContain('edit: deny');
     expect(generateSubagentContent(template, 'codex', 'TEST')).toContain('sandbox_mode = "read-only"');
   });

@@ -67,16 +67,17 @@ describe('subagent generation', () => {
 
     const pi = markdownFrontmatter(generateSubagentContent(reviewer!, 'pi', 'TEST'));
     expect(pi).toMatchObject({
-      display_name: 'OpenSpec Reviewer',
-      enabled: true,
+      name: 'openspec-reviewer',
+      description: reviewer!.description,
       model: 'inherit',
     });
     expect(String(pi.tools)).toContain('read');
     expect(String(pi.tools)).toContain('grep');
     expect(String(pi.tools)).toContain('find');
     expect(String(pi.tools)).toContain('bash');
-    expect(String(pi.disallowed_tools)).toContain('write');
-    expect(String(pi.disallowed_tools)).toContain('edit');
+    expect(pi).not.toHaveProperty('display_name');
+    expect(pi).not.toHaveProperty('disallowed_tools');
+    expect(pi).not.toHaveProperty('enabled');
 
     const opencode = markdownFrontmatter(generateSubagentContent(reviewer!, 'opencode', 'TEST'));
     expect(opencode).toMatchObject({
