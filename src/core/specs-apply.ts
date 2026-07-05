@@ -52,7 +52,6 @@ export interface SpecsApplyOutput {
 
 function normalizeRequirementBlockRaw(raw: string): string {
   return normalizeScenarioOperationLabelsForSync(raw)
-    .replace(/\r\n/g, '\n')
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line.length > 0)

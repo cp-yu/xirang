@@ -29,7 +29,7 @@
       "test/core/validation.cross-check.test.ts",
       "test/core/validation.test.ts"
     ],
-    "evidenceFingerprint": "45b3042c10d677e49273adfa0172bcbbc6f9658fd64c4373459f54ded089e200",
+    "evidenceFingerprint": "3ce2cb3932d3e637ca4331be0fbaff95a51db522b65e4e8222d44d74085870ee",
     "evidenceFingerprintEntries": [
       {
         "path": "schemas/spec-driven/schema.yaml",
@@ -45,7 +45,7 @@
       },
       {
         "path": "src/core/specs-apply.ts",
-        "hash": "31e9fa3d981596a4468628ff81fd9d11c13d0d0851cae84f0fa23888235a15b9"
+        "hash": "3b999085fbc70c731c22e0295c9b741c235e87cd567c64c0851a756591ad9d68"
       },
       {
         "path": "src/core/templates/workflows/propose.ts",
@@ -97,11 +97,30 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "fce0a52ca1e7ac2b138c656bda66473c773b02bf"
+    "gitHeadCommit": "e7d5f4590ef32f284457cc33db3c0a7d6c66a5a7",
+    "timestamp": "2026-07-05T14:30:04.834Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "status": "IMPROVED",
+    "attempts": [
+      {
+        "timestamp": "2026-07-05T14:22:01.145Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED",
+        "files": [
+          "src/core/specs-apply.ts"
+        ]
+      },
+      {
+        "timestamp": "2026-07-05T14:30:04.824Z",
+        "type": "verification",
+        "result": "PASS",
+        "behaviorRetryCounter": 0
+      }
+    ],
+    "affectedFileHashes": {
+      "src/core/specs-apply.ts": "31e9fa3d981596a4468628ff81fd9d11c13d0d0851cae84f0fa23888235a15b9"
+    },
     "baseline": {
       "timestamp": "2026-07-05T14:12:40.619Z",
       "result": "PASS_WITH_WARNINGS",
@@ -203,6 +222,11 @@
         "skippedEvidenceFiles": [],
         "gitHeadCommit": "fce0a52ca1e7ac2b138c656bda66473c773b02bf"
       }
+    },
+    "final": {
+      "result": "PASS",
+      "issues": [],
+      "behaviorRetryCounter": 0
     }
   }
 }
