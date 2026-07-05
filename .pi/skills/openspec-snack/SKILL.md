@@ -124,15 +124,12 @@ After reading shared `project.opsx.yaml` context, use OpenSpec CLI query surface
 
 After artifacts are reconciled, output:
 
-**Fast path (skip verify):**
-  • Continue development: `openspec sync "<change-name>" --no-verify`
-  • Sync and archive: `openspec sync "<change-name>" --no-verify && openspec archive "<change-name>" --no-verify`
-  • Fast archive: `openspec archive "<change-name>" --no-verify`
-
-**Correction path:**
 ⚠️ Generated specs are based on code inference. Review items marked [REVIEW NEEDED]
-- Correction branch 1: review change → manually edit specs → sync → archive
-- Correction branch 2: review change → modify code → run `/skill:openspec-snack` again → continue iterating
+
+1. **Quick sync**: `openspec sync "<change-name>" --no-verify`
+2. **Quick archive**: `openspec archive "<change-name>" --no-verify`
+3. **Sync and archive**: `openspec sync "<change-name>" --no-verify && openspec archive "<change-name>" --no-verify`
+4. **Continue development**: review change → modify code → run `/skill:openspec-snack` again → continue iterating
 
 ## Artifact Contract
 
