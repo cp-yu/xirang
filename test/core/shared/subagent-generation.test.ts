@@ -47,8 +47,8 @@ describe('subagent generation', () => {
     expect(frontmatter).toMatchObject({
       name: 'openspec-reviewer',
       description: reviewer!.description,
-      model: 'inherit',
     });
+    expect(frontmatter).not.toHaveProperty('model');
     expect(String(frontmatter.tools)).toContain('Read');
     expect(String(frontmatter.tools)).toContain('Grep');
     expect(String(frontmatter.tools)).toContain('Glob');
@@ -69,8 +69,8 @@ describe('subagent generation', () => {
     expect(pi).toMatchObject({
       name: 'openspec-reviewer',
       description: reviewer!.description,
-      model: 'inherit',
     });
+    expect(pi).not.toHaveProperty('model');
     expect(String(pi.tools)).toContain('read');
     expect(String(pi.tools)).toContain('grep');
     expect(String(pi.tools)).toContain('find');
@@ -82,11 +82,11 @@ describe('subagent generation', () => {
     const opencode = markdownFrontmatter(generateSubagentContent(reviewer!, 'opencode', 'TEST'));
     expect(opencode).toMatchObject({
       mode: 'subagent',
-      model: 'inherit',
       permission: {
         edit: 'deny',
       },
     });
+    expect(opencode).not.toHaveProperty('model');
   });
 
   it('renders Codex TOML with escaped multiline developer instructions', () => {
@@ -105,7 +105,7 @@ describe('subagent generation', () => {
     expect(content).not.toMatch(/^---\n/);
     expect(content).toContain('name = "openspec-reviewer"');
     expect(content).toContain('description = "A reviewer with \\"quotes\\""');
-    expect(content).toContain('model = "inherit"');
+    expect(content).not.toContain('model =');
     expect(content).toContain('sandbox_mode = "read-only"');
     expect(content).toContain('developer_instructions = """');
     expect(content).toContain('\\"\\"\\"');

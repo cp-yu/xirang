@@ -256,7 +256,6 @@ Read these before deciding:
 Return either \`No optimization opportunities found\` or valid Search/Replace blocks exactly as specified in the project-root file openspec/references/openspec-output-protocol.md.`,
     tools: ['read', 'grep', 'find', 'bash'],
     disallowedTools: ['write', 'edit'],
-    model: 'inherit',
     mode: 'read-only',
     referenceFiles: [
       {

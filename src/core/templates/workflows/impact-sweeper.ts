@@ -182,7 +182,6 @@ openspec/sweeper/impact-sweep-explore-impact-sweep.json
 Do not emit a separate summary.`,
     tools: ['read', 'grep', 'find', 'bash'],
     disallowedTools: ['write', 'edit'],
-    model: 'inherit',
     mode: 'read-only',
     referenceFiles: [
       {

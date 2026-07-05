@@ -7,6 +7,7 @@
 
 import path from 'path';
 import * as fs from 'fs';
+import { parse as parseYaml } from 'yaml';
 import { FileSystemUtils } from '../../utils/file-system.js';
 import {
   generateSkillContent,
@@ -251,6 +252,39 @@ async function writeSkills(
   return written;
 }
 
+function extractUserModel(
+  content: string,
+  extension: string
+): string | undefined {
+  if (extension === 'toml') {
+    const match = content.match(/^model\s*=\s*"([^"]+)"/m);
+    return match?.[1];
+  }
+
+  // Markdown: parse YAML frontmatter
+  const fmMatch = content.match(/^---\n([\s\S]*?)\n---\n/);
+  if (!fmMatch) return undefined;
+
+  const fm = parseYaml(fmMatch[1]) as Record<string, unknown>;
+  return typeof fm.model === 'string' ? fm.model : undefined;
+}
+
+function injectModelMarkdown(content: string, model: string): string {
+  // Insert model line before the closing frontmatter `---`
+  return content.replace(
+    /\n---\n/,
+    `\nmodel: ${JSON.stringify(model)}\n---\n`
+  );
+}
+
+function injectModelToml(content: string, model: string): string {
+  // Insert model line after description
+  return content.replace(
+    /(description\s*=\s*"[^"]*"\n)/,
+    `$1model = ${JSON.stringify(model)}\n`
+  );
+}
+
 async function writeSubagents(
   projectPath: string,
   toolId: string,
@@ -271,10 +305,23 @@ async function writeSubagents(
   let written = 0;
   for (const entry of entries) {
     const agentFile = path.join(baseDir, `${entry.template.name}.${extension}`);
-    await FileSystemUtils.writeFile(
-      agentFile,
-      generateSubagentContent(entry.template, toolId, version)
-    );
+
+    let content = generateSubagentContent(entry.template, toolId, version);
+
+    // Preserve user-set model from existing agent file
+    try {
+      const existing = await fs.promises.readFile(agentFile, 'utf-8');
+      const userModel = extractUserModel(existing, extension);
+      if (userModel && userModel !== 'inherit') {
+        content = extension === 'toml'
+          ? injectModelToml(content, userModel)
+          : injectModelMarkdown(content, userModel);
+      }
+    } catch {
+      // File doesn't exist yet — keep generated content as-is
+    }
+
+    await FileSystemUtils.writeFile(agentFile, content);
     written++;
   }
 

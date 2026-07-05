@@ -129,7 +129,6 @@ Return one structured object only:
 Only CRITICAL issues may appear in writeBackPlan. If tasks.md has no checkbox tasks, return FAIL_NEEDS_REMEDIATION with "No verifiable tasks exist."`,
     tools: ['read', 'grep', 'find', 'bash'],
     disallowedTools: ['write', 'edit'],
-    model: 'inherit',
     mode: 'read-only',
     metadata: { author: 'openspec', version: '1.0', type: 'subagent' },
   };

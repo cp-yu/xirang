@@ -83,7 +83,9 @@ function renderClaudeMarkdown(template: SubagentTemplate): string {
       `name: ${template.name}`,
       `description: ${escapeYamlString(template.description)}`,
       `tools: ${escapeYamlString(toClaudeTools(template))}`,
-      `model: ${escapeYamlString(template.model ?? 'inherit')}`,
+      ...(template.model && template.model !== 'inherit'
+        ? [`model: ${escapeYamlString(template.model)}`]
+        : []),
       '',
     ].join('\n'),
     template.prompt
@@ -96,7 +98,9 @@ function renderPiMarkdown(template: SubagentTemplate): string {
       `name: ${template.name}`,
       `description: ${escapeYamlString(template.description)}`,
       `tools: ${escapeYamlString(toolList(template).join(', '))}`,
-      `model: ${escapeYamlString(template.model ?? 'inherit')}`,
+      ...(template.model && template.model !== 'inherit'
+        ? [`model: ${escapeYamlString(template.model)}`]
+        : []),
       '',
     ].join('\n'),
     template.prompt
@@ -108,7 +112,9 @@ function renderOpenCodeMarkdown(template: SubagentTemplate): string {
     [
       `description: ${escapeYamlString(template.description)}`,
       'mode: subagent',
-      `model: ${escapeYamlString(template.model ?? 'inherit')}`,
+      ...(template.model && template.model !== 'inherit'
+        ? [`model: ${escapeYamlString(template.model)}`]
+        : []),
       'permission:',
       '  edit: deny',
       '  bash: ask',
@@ -122,7 +128,9 @@ function renderCodexToml(template: SubagentTemplate): string {
   return [
     `name = ${escapeTomlString(template.name)}`,
     `description = ${escapeTomlString(template.description)}`,
-    `model = ${escapeTomlString(template.model ?? 'inherit')}`,
+    ...(template.model && template.model !== 'inherit'
+      ? [`model = ${escapeTomlString(template.model)}`]
+      : []),
     `sandbox_mode = ${escapeTomlString(template.mode ?? 'read-only')}`,
     '',
     'developer_instructions = """',

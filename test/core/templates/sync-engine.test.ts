@@ -131,4 +131,106 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
     await expect(fs.readFile(path.join(agentsDir, 'my-custom.md'), 'utf-8')).resolves.toBe('custom');
     await expect(fs.readFile(path.join(agentsDir, 'openspec-reviewer.md'), 'utf-8')).resolves.toContain('name: openspec-reviewer');
   });
+
+  it('preserves user-set model value on update', async () => {
+    const agentsDir = path.join(testDir, '.pi', 'agents');
+    await fs.mkdir(agentsDir, { recursive: true });
+
+    // Pre-create agent file with user-customized model
+    await fs.writeFile(
+      path.join(agentsDir, 'openspec-reviewer.md'),
+      `---
+name: openspec-reviewer
+description: test
+tools: read, grep
+model: "anthropic/claude-sonnet-4"
+---
+
+User-changed prompt.`
+    );
+
+    await ArtifactSyncEngine.syncOne({
+      toolId: 'pi',
+      projectPath: testDir,
+      workflows: ['explore'],
+      version: 'test',
+    });
+
+    const content = await fs.readFile(path.join(agentsDir, 'openspec-reviewer.md'), 'utf-8');
+    expect(content).toContain('model: "anthropic/claude-sonnet-4"');
+  });
+
+  it('preserves user-set model value in toml agent on update', async () => {
+    const agentsDir = path.join(testDir, '.codex', 'agents');
+    await fs.mkdir(agentsDir, { recursive: true });
+
+    // Pre-create toml agent file with user-customized model
+    await fs.writeFile(
+      path.join(agentsDir, 'openspec-reviewer.toml'),
+      `name = "openspec-reviewer"
+description = "test"
+model = "gpt-5"
+sandbox_mode = "read-only"
+
+developer_instructions = """
+stale
+"""
+`
+    );
+
+    await ArtifactSyncEngine.syncOne({
+      toolId: 'codex',
+      projectPath: testDir,
+      workflows: ['explore'],
+      version: 'test',
+    });
+
+    const content = await fs.readFile(path.join(agentsDir, 'openspec-reviewer.toml'), 'utf-8');
+    expect(content).toContain('model = "gpt-5"');
+  });
+
+  it('does not preserve model when set to inherit', async () => {
+    const agentsDir = path.join(testDir, '.pi', 'agents');
+    await fs.mkdir(agentsDir, { recursive: true });
+
+    // Pre-create agent file with model: 'inherit'
+    await fs.writeFile(
+      path.join(agentsDir, 'openspec-reviewer.md'),
+      `---
+name: openspec-reviewer
+description: test
+tools: read, grep
+model: "inherit"
+---
+
+Stale prompt.`
+    );
+
+    await ArtifactSyncEngine.syncOne({
+      toolId: 'pi',
+      projectPath: testDir,
+      workflows: ['explore'],
+      version: 'test',
+    });
+
+    const content = await fs.readFile(path.join(agentsDir, 'openspec-reviewer.md'), 'utf-8');
+    // model: "inherit" is a sentinel for 'no override' — should be stripped
+    expect(content).not.toContain('model:');
+  });
+
+  it('generated content has no model field when template has no model', async () => {
+    await ArtifactSyncEngine.syncOne({
+      toolId: 'pi',
+      projectPath: testDir,
+      workflows: ['explore'],
+      version: 'test',
+    });
+
+    const content = await fs.readFile(
+      path.join(testDir, '.pi', 'agents', 'openspec-reviewer.md'),
+      'utf-8'
+    );
+    // Fresh generation without override should not write model
+    expect(content).not.toContain('model:');
+  });
 });
