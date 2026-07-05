@@ -179,6 +179,8 @@ describe('instruction-loader', () => {
       expect(instructions.instruction).toMatch(/paths/i);
       expect(instructions.instruction).toContain('Task titles, check names');
       expect(instructions.instruction).toContain('Evidence:/Expect:');
+      expect(instructions.instruction).toContain('clean Scenario names without scenario operation labels');
+      expect(instructions.instruction).toContain('Scenario "<title>"');
       expect(instructions.instruction).toContain('proseLanguage');
     });
 
@@ -190,6 +192,17 @@ describe('instruction-loader', () => {
       expect(instructions.instruction).toContain('New Requirement titles and new Scenario titles');
       expect(instructions.instruction).toContain('MODIFIED Requirements');
       expect(instructions.instruction).toContain('proseLanguage');
+    });
+
+    it('should expose scenario operation label boundaries for specs', () => {
+      const context = loadChangeContext(tempDir, 'my-change');
+      const instructions = generateInstructions(context, 'specs');
+
+      expect(instructions.instruction).toContain('#### Scenario: [ADDED] <title>');
+      expect(instructions.instruction).toContain('#### Scenario: [MODIFIED] <title>');
+      expect(instructions.instruction).toContain('#### Scenario: [REMOVED] <title>');
+      expect(instructions.instruction).toContain('change-local metadata');
+      expect(instructions.instruction).toContain('formal specs');
     });
 
     it('should show dependencies with completion status', () => {

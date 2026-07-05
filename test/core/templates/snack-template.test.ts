@@ -77,6 +77,18 @@ describe('snack template evidence/artifact terminology', () => {
   });
 });
 
+describe('snack template scenario operation labels', () => {
+  const template = getSnackSkillTemplate();
+  const instructions = template.instructions;
+
+  it('guides scenario labels for added, modified, and removed scenarios', () => {
+    expect(instructions).toContain('#### Scenario: [ADDED] <title>');
+    expect(instructions).toContain('#### Scenario: [MODIFIED] <title>');
+    expect(instructions).toContain('#### Scenario: [REMOVED] <title>');
+    expect(instructions).toContain('change-local metadata');
+  });
+});
+
 describe('snack template output hints', () => {
   const template = getSnackSkillTemplate();
   const instructions = template.instructions;

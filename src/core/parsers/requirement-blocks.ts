@@ -17,6 +17,54 @@ export function normalizeRequirementName(name: string): string {
 }
 
 const REQUIREMENT_HEADER_REGEX = /^###\s*Requirement:\s*(.+)\s*$/;
+const SCENARIO_HEADER_REGEX = /^(####\s+Scenario:\s*)\[(ADDED|MODIFIED|REMOVED)\]\s+(.+?)\s*$/;
+
+export type ScenarioOperation = 'ADDED' | 'MODIFIED' | 'REMOVED';
+
+export interface ScenarioOperationLabel {
+  operation: ScenarioOperation;
+  title: string;
+}
+
+export function parseScenarioOperationLabel(line: string): ScenarioOperationLabel | null {
+  const match = line.match(SCENARIO_HEADER_REGEX);
+  if (!match) return null;
+  return { operation: match[2] as ScenarioOperation, title: match[3].trim() };
+}
+
+export function stripScenarioOperationLabel(line: string): string {
+  const match = line.match(SCENARIO_HEADER_REGEX);
+  if (!match) return line;
+  return `${match[1]}${match[3].trim()}`;
+}
+
+export function normalizeScenarioOperationLabelsForSync(raw: string): string {
+  const lines = normalizeLineEndings(raw).split('\n');
+  const output: string[] = [];
+  let skippingRemovedScenario = false;
+
+  for (const line of lines) {
+    if (/^####\s+Scenario:\s+/.test(line)) {
+      const label = parseScenarioOperationLabel(line);
+      if (label?.operation === 'REMOVED') {
+        skippingRemovedScenario = true;
+        if (output[output.length - 1] === '') output.pop();
+        continue;
+      }
+      if (skippingRemovedScenario && output.length > 0 && output[output.length - 1] !== '') {
+        output.push('');
+      }
+      skippingRemovedScenario = false;
+      output.push(stripScenarioOperationLabel(line));
+      continue;
+    }
+
+    if (skippingRemovedScenario) continue;
+    output.push(line);
+  }
+
+  return output.join('\n').trimEnd();
+}
 
 /**
  * Extracts the Requirements section from a spec file and parses requirement blocks.

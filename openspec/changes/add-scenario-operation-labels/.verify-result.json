@@ -1,0 +1,208 @@
+{
+  "timestamp": "2026-07-05T14:12:40.619Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "file": "test/core/templates/skill-templates-parity.test.ts",
+      "message": "Unaccounted mechanical hash update: propose template hashes changed (getOpsxProposeSkillTemplate, getOpsxProposeCommandTemplate, openspec-propose). This is a benign auto-generated hash recalibration triggered by the scenario-label template changes in propose.ts — no behavioral change."
+    }
+  ],
+  "tasksFileHash": "593a51107b3f4e582ab344a8d4f0388a7fe76856c886440ba0c02063883f636b",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      "schemas/spec-driven/schema.yaml",
+      "src/core/parsers/requirement-blocks.ts",
+      "src/core/parsers/task-structure.ts",
+      "src/core/specs-apply.ts",
+      "src/core/templates/workflows/propose.ts",
+      "src/core/templates/workflows/snack.ts",
+      "src/core/validation/validator.ts",
+      "test/commands/sync.test.ts",
+      "test/core/artifact-graph/instruction-loader.test.ts",
+      "test/core/parsers/requirement-blocks.test.ts",
+      "test/core/parsers/task-structure.test.ts",
+      "test/core/specs-apply.test.ts",
+      "test/core/templates/propose-template.test.ts",
+      "test/core/templates/snack-template.test.ts",
+      "test/core/validation.cross-check.test.ts",
+      "test/core/validation.test.ts"
+    ],
+    "evidenceFingerprint": "45b3042c10d677e49273adfa0172bcbbc6f9658fd64c4373459f54ded089e200",
+    "evidenceFingerprintEntries": [
+      {
+        "path": "schemas/spec-driven/schema.yaml",
+        "hash": "31f96247917ab7082a20f3bf8174cf0131c643855d74f3d5afb513ee52b24184"
+      },
+      {
+        "path": "src/core/parsers/requirement-blocks.ts",
+        "hash": "0f659d447d8546ebabecf92134d17f451024f2555ee5d01007ae88e981b9b7ec"
+      },
+      {
+        "path": "src/core/parsers/task-structure.ts",
+        "hash": "0c0defc110f35d093664fb6a2d32136ed718dcbe8996d7ddecd220e9643f1244"
+      },
+      {
+        "path": "src/core/specs-apply.ts",
+        "hash": "31e9fa3d981596a4468628ff81fd9d11c13d0d0851cae84f0fa23888235a15b9"
+      },
+      {
+        "path": "src/core/templates/workflows/propose.ts",
+        "hash": "66210104c681abfd62dc12d7dd58f8b690b419ddd248b0dc8a97dd1c444eb576"
+      },
+      {
+        "path": "src/core/templates/workflows/snack.ts",
+        "hash": "8dd277b4300f7cc19e63006e8023b677a393ba161b90cc00a0c018cecd6ec6e2"
+      },
+      {
+        "path": "src/core/validation/validator.ts",
+        "hash": "68632a18bed567d282cbb2caa529ba2c887c4a8c4f3d6213e3ff060a011a8a6c"
+      },
+      {
+        "path": "test/commands/sync.test.ts",
+        "hash": "0b5b7e6eee73caf4e7b0be56d3017338d694261672a6a887f51af6c944bc3558"
+      },
+      {
+        "path": "test/core/artifact-graph/instruction-loader.test.ts",
+        "hash": "41860293cde8ba7cd35047c59eb3d7b1a46d19cd32da51131d4ec111708cfbec"
+      },
+      {
+        "path": "test/core/parsers/requirement-blocks.test.ts",
+        "hash": "6d6b76ad98b4680998ab8a4d2d8f28d6f35548285c04753792916533c38cbde0"
+      },
+      {
+        "path": "test/core/parsers/task-structure.test.ts",
+        "hash": "45198dc0962cbcdac0766e6bcf79aae4413a2fd9dd79734614e1198ef87bc297"
+      },
+      {
+        "path": "test/core/specs-apply.test.ts",
+        "hash": "4ae3027821110620eecd16fb3f73a2e470aac3cdbfbf4ded064bce2928c163a5"
+      },
+      {
+        "path": "test/core/templates/propose-template.test.ts",
+        "hash": "58e8cbab99d0735a46ca9c812b8ec790d7bb1ae3ee19fe124e155bb72aaee4f8"
+      },
+      {
+        "path": "test/core/templates/snack-template.test.ts",
+        "hash": "42e3a471eedd60f41f7d788c429a9a1a94f7c347883b8ce1bf5f585ee664524b"
+      },
+      {
+        "path": "test/core/validation.cross-check.test.ts",
+        "hash": "156e1ff9b79a17a24831c28f3269c23528b2702acccdcd29b946c91dad6e6367"
+      },
+      {
+        "path": "test/core/validation.test.ts",
+        "hash": "dabbc7cff37c6497444e122d3680f3800de9ce61c730fb2d067d78a49e65fac4"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "fce0a52ca1e7ac2b138c656bda66473c773b02bf"
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-07-05T14:12:40.619Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "file": "test/core/templates/skill-templates-parity.test.ts",
+          "message": "Unaccounted mechanical hash update: propose template hashes changed (getOpsxProposeSkillTemplate, getOpsxProposeCommandTemplate, openspec-propose). This is a benign auto-generated hash recalibration triggered by the scenario-label template changes in propose.ts — no behavioral change."
+        }
+      ],
+      "tasksFileHash": "593a51107b3f4e582ab344a8d4f0388a7fe76856c886440ba0c02063883f636b",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          "schemas/spec-driven/schema.yaml",
+          "src/core/parsers/requirement-blocks.ts",
+          "src/core/parsers/task-structure.ts",
+          "src/core/specs-apply.ts",
+          "src/core/templates/workflows/propose.ts",
+          "src/core/templates/workflows/snack.ts",
+          "src/core/validation/validator.ts",
+          "test/commands/sync.test.ts",
+          "test/core/artifact-graph/instruction-loader.test.ts",
+          "test/core/parsers/requirement-blocks.test.ts",
+          "test/core/parsers/task-structure.test.ts",
+          "test/core/specs-apply.test.ts",
+          "test/core/templates/propose-template.test.ts",
+          "test/core/templates/snack-template.test.ts",
+          "test/core/validation.cross-check.test.ts",
+          "test/core/validation.test.ts"
+        ],
+        "evidenceFingerprint": "45b3042c10d677e49273adfa0172bcbbc6f9658fd64c4373459f54ded089e200",
+        "evidenceFingerprintEntries": [
+          {
+            "path": "schemas/spec-driven/schema.yaml",
+            "hash": "31f96247917ab7082a20f3bf8174cf0131c643855d74f3d5afb513ee52b24184"
+          },
+          {
+            "path": "src/core/parsers/requirement-blocks.ts",
+            "hash": "0f659d447d8546ebabecf92134d17f451024f2555ee5d01007ae88e981b9b7ec"
+          },
+          {
+            "path": "src/core/parsers/task-structure.ts",
+            "hash": "0c0defc110f35d093664fb6a2d32136ed718dcbe8996d7ddecd220e9643f1244"
+          },
+          {
+            "path": "src/core/specs-apply.ts",
+            "hash": "31e9fa3d981596a4468628ff81fd9d11c13d0d0851cae84f0fa23888235a15b9"
+          },
+          {
+            "path": "src/core/templates/workflows/propose.ts",
+            "hash": "66210104c681abfd62dc12d7dd58f8b690b419ddd248b0dc8a97dd1c444eb576"
+          },
+          {
+            "path": "src/core/templates/workflows/snack.ts",
+            "hash": "8dd277b4300f7cc19e63006e8023b677a393ba161b90cc00a0c018cecd6ec6e2"
+          },
+          {
+            "path": "src/core/validation/validator.ts",
+            "hash": "68632a18bed567d282cbb2caa529ba2c887c4a8c4f3d6213e3ff060a011a8a6c"
+          },
+          {
+            "path": "test/commands/sync.test.ts",
+            "hash": "0b5b7e6eee73caf4e7b0be56d3017338d694261672a6a887f51af6c944bc3558"
+          },
+          {
+            "path": "test/core/artifact-graph/instruction-loader.test.ts",
+            "hash": "41860293cde8ba7cd35047c59eb3d7b1a46d19cd32da51131d4ec111708cfbec"
+          },
+          {
+            "path": "test/core/parsers/requirement-blocks.test.ts",
+            "hash": "6d6b76ad98b4680998ab8a4d2d8f28d6f35548285c04753792916533c38cbde0"
+          },
+          {
+            "path": "test/core/parsers/task-structure.test.ts",
+            "hash": "45198dc0962cbcdac0766e6bcf79aae4413a2fd9dd79734614e1198ef87bc297"
+          },
+          {
+            "path": "test/core/specs-apply.test.ts",
+            "hash": "4ae3027821110620eecd16fb3f73a2e470aac3cdbfbf4ded064bce2928c163a5"
+          },
+          {
+            "path": "test/core/templates/propose-template.test.ts",
+            "hash": "58e8cbab99d0735a46ca9c812b8ec790d7bb1ae3ee19fe124e155bb72aaee4f8"
+          },
+          {
+            "path": "test/core/templates/snack-template.test.ts",
+            "hash": "42e3a471eedd60f41f7d788c429a9a1a94f7c347883b8ce1bf5f585ee664524b"
+          },
+          {
+            "path": "test/core/validation.cross-check.test.ts",
+            "hash": "156e1ff9b79a17a24831c28f3269c23528b2702acccdcd29b946c91dad6e6367"
+          },
+          {
+            "path": "test/core/validation.test.ts",
+            "hash": "dabbc7cff37c6497444e122d3680f3800de9ce61c730fb2d067d78a49e65fac4"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "fce0a52ca1e7ac2b138c656bda66473c773b02bf"
+      }
+    }
+  }
+}

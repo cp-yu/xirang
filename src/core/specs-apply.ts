@@ -12,6 +12,7 @@ import {
   extractRequirementsSection,
   parseDeltaSpec,
   normalizeRequirementName,
+  normalizeScenarioOperationLabelsForSync,
   type RequirementBlock,
 } from './parsers/requirement-blocks.js';
 import { projectConfigForRuntime, type RuntimeProjection } from './config-projection.js';
@@ -50,12 +51,17 @@ export interface SpecsApplyOutput {
 }
 
 function normalizeRequirementBlockRaw(raw: string): string {
-  return raw
+  return normalizeScenarioOperationLabelsForSync(raw)
     .replace(/\r\n/g, '\n')
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line.length > 0)
     .join('\n');
+}
+
+function normalizeRequirementBlockForSync(block: RequirementBlock): RequirementBlock {
+  const raw = normalizeScenarioOperationLabelsForSync(block.raw);
+  return { ...block, raw, headerLine: raw.split('\n')[0] ?? block.headerLine };
 }
 
 export function isDeltaSpecAlreadyApplied(
@@ -356,7 +362,7 @@ export async function buildUpdatedSpec(
         `${specName} MODIFIED failed for header "### Requirement: ${mod.name}" - header mismatch in content`
       );
     }
-    nameToBlock.set(key, mod);
+    nameToBlock.set(key, normalizeRequirementBlockForSync(mod));
   }
 
   // ADDED
@@ -365,7 +371,7 @@ export async function buildUpdatedSpec(
     if (nameToBlock.has(key)) {
       throw new Error(`${specName} ADDED failed for header "### Requirement: ${add.name}" - already exists`);
     }
-    nameToBlock.set(key, add);
+    nameToBlock.set(key, normalizeRequirementBlockForSync(add));
   }
 
   // Duplicates within resulting map are implicitly prevented by key uniqueness.

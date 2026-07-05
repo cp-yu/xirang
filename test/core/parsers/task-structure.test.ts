@@ -311,6 +311,31 @@ function createChangeDir(specs: Record<string, string>): string {
   return tempDir;
 }
 
+describe('scenario operation label references', () => {
+  it('matches Verifies scenario references by clean scenario title', () => {
+    const tempDir = createChangeDir({
+      'example/spec.md': `## MODIFIED Requirements
+
+### Requirement: Parser behavior
+The system SHALL validate task references.
+
+#### Scenario: [MODIFIED] Valid tasks pass
+- **WHEN** validation runs
+- **THEN** the task reference is valid
+`,
+    });
+
+    try {
+      const result = validateTaskStructure(validTasks(), { changeDir: tempDir });
+
+      expect(result.valid).toBe(true);
+      expect(result.issues.map((issue) => issue.code)).not.toContain('unknown-verifies-scenario');
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
 describe('REMOVED requirement anchoring', () => {
   it('accepts Verifies with REMOVED Requirement without Scenario', () => {
     const tempDir = createChangeDir({
