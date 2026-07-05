@@ -14,43 +14,54 @@ The system SHALL reconcile delta specs and OPSX delta during archive.
 - **AND** SHALL preserve idempotency
 
 ### Requirement: Delta Reconciliation Logic
-The agent SHALL reconcile main specs with delta specs using the delta operation headers. The reconciliation SHALL determine removal-only delta completion by explicit requirement header lookup: when every header listed under `## REMOVED Requirements` is absent from the current main spec, that removal-only delta is already applied even if unrelated requirements remain.
+Agent SHALL 使用 delta operation headers 将主 specs 与 delta specs 进行合入。合入 SHALL 通过对 requirement header 的显式查找判断 removal-only delta 是否已完成：当 `## REMOVED Requirements` 下列出的所有 headers 都已从当前主 spec 缺失时，即使无关 requirements 仍保留，该 removal-only delta 也视为已合入。当 ADDED 或 MODIFIED requirement 的 `#### Scenario:` 标题包含 scenario operation labels 时，合入 SHALL 将这些 labels 视为 change-local metadata，并仅将归一化后的正式 scenario 标题写入主 spec。
 
 #### Scenario: ADDED requirements
-- **WHEN** delta contains `## ADDED Requirements` with a requirement
-- **AND** the requirement does not exist in main spec
-- **THEN** add the requirement to main spec
+- **WHEN** delta 包含 `## ADDED Requirements` 及其 requirement
+- **AND** 主 spec 中不存在同名 requirement
+- **THEN** 将该 requirement 添加到主 spec
 
 #### Scenario: ADDED requirement already exists
-- **WHEN** delta contains `## ADDED Requirements` with a requirement
-- **AND** a requirement with the same name already exists in main spec
-- **THEN** update the existing requirement to match the delta version
+- **WHEN** delta 包含 `## ADDED Requirements` 及其 requirement
+- **AND** 主 spec 中已存在同名 requirement
+- **THEN** 用 delta 版本更新主 spec 中的对应 requirement
 
 #### Scenario: MODIFIED requirements
-- **WHEN** delta contains `## MODIFIED Requirements` with a requirement
-- **AND** the requirement exists in main spec
-- **THEN** replace the requirement in main spec with the delta version
+- **WHEN** delta 包含 `## MODIFIED Requirements` 及其 requirement
+- **AND** 主 spec 中存在同名 requirement
+- **THEN** 用 delta 版本替换主 spec 中的对应 requirement
+
+#### Scenario: Scenario labels 在合入时被清洗
+- **WHEN** ADDED 或 MODIFIED requirement 包含 `#### Scenario: [ADDED] 新场景` 或 `#### Scenario: [MODIFIED] 已调整场景`
+- **THEN** 合入 SHALL 将对应 scenario 写入主 spec 时去除 operation label，如写入为 `#### Scenario: 新场景` 或 `#### Scenario: 已调整场景`
+- **AND** SHALL NOT 将 `[ADDED]` 或 `[MODIFIED]` 写入 formal spec
+
+#### Scenario: Removed scenario block 在合入时被省略
+- **WHEN** MODIFIED requirement 包含 `#### Scenario: [REMOVED] 旧场景`
+- **AND** 该 scenario 在下一个 scenario 或 requirement header 前包含 body 内容
+- **THEN** 合入 SHALL 将整个 removed scenario block 从主 spec 中省略
+- **AND** SHALL NOT 将 `[REMOVED]` 或 removed scenario body 写入 formal spec
 
 #### Scenario: REMOVED requirements
-- **WHEN** delta contains `## REMOVED Requirements` with a requirement name
-- **AND** the requirement exists in main spec
-- **THEN** remove the requirement from main spec
+- **WHEN** delta 包含 `## REMOVED Requirements` 及其 requirement name
+- **AND** 主 spec 中存在同名 requirement
+- **THEN** 从主 spec 中删除该 requirement
 
 #### Scenario: REMOVED requirements already absent
-- **WHEN** delta contains only `## REMOVED Requirements`
-- **AND** every listed requirement header is absent from main spec
-- **AND** main spec still contains unrelated requirements
-- **THEN** reconciliation SHALL treat the delta as already applied
-- **AND** SHALL NOT attempt to remove the missing headers again
+- **WHEN** delta 只包含 `## REMOVED Requirements`
+- **AND** 所列全部 requirement headers 都已从主 spec 缺失
+- **AND** 主 spec 仍包含无关 requirements
+- **THEN** 合入 SHALL 视该 delta 为已合入
+- **AND** SHALL NOT 再次尝试删除这些 headers
 
 #### Scenario: RENAMED requirements
-- **WHEN** delta contains `## RENAMED Requirements` with FROM:/TO: format
-- **AND** the FROM requirement exists in main spec
-- **THEN** rename the requirement to the TO name
+- **WHEN** delta 包含 `## RENAMED Requirements` 及 FROM:/TO: 格式
+- **AND** 主 spec 中存在 FROM requirement
+- **THEN** 将该 requirement 重命名为 TO 名称
 
 #### Scenario: New capability spec
-- **WHEN** delta spec exists for a capability not in main specs
-- **THEN** create new main spec file at `openspec/specs/<capability>/spec.md`
+- **WHEN** 主 specs 中不存在对应 capability 的 delta spec
+- **THEN** 在 `openspec/specs/<capability>/spec.md` 创建新的主 spec 文件
 
 ### Requirement: Skill Output
 The skill SHALL provide clear feedback on what was applied.
