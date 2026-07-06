@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-06T09:12:12.855Z",
+  "timestamp": "2026-07-06T09:18:36.816Z",
   "result": "PASS_WITH_WARNINGS",
   "issues": [],
   "tasksFileHash": "1e0b2ec001788c2ae1f00fae5ac8bb72f887aa115ae66ef362876d81643daaae",
@@ -26,7 +26,7 @@
       "test/utils/bootstrap-utils.pbt.contract.test.ts",
       "test/utils/bootstrap-utils.test.ts"
     ],
-    "evidenceFingerprint": "2489dd2ca86690dbea772f2186e600d09a7652ee6390c751b447549dae602751",
+    "evidenceFingerprint": "1b5a3df404a3093395223de86c4be5c4bfd909a27c2e4c996f345a47a8b5fd57",
     "evidenceFingerprintEntries": [
       {
         "path": ".pi/skills/openspec-bootstrap-opsx/SKILL.md",
@@ -50,7 +50,7 @@
       },
       {
         "path": "src/commands/bootstrap.ts",
-        "hash": "1d8d2ffab3e5a828c5c4a862ac0e2a07917f8a1f6181ec907b31acbc3245436b"
+        "hash": "cd5a14e33e41cd7a153a74c0ca7a8267c8e8947820fc2b885434957444514c25"
       },
       {
         "path": "src/core/templates/workflows/bootstrap-opsx.ts",
@@ -102,26 +102,21 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "84aff3e3eac53c20c945b3f25f3a456cd829a692"
+    "gitHeadCommit": "b0fc572c12fee5fefad64f4dac27c5a449a0ad81",
+    "timestamp": "2026-07-06T09:18:40.550Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
-        "timestamp": "2026-07-06T09:18:23.103Z",
-        "type": "optimization",
-        "status": "OPTIMIZATION_PROPOSED",
-        "summary": "Extract isInteractive() helper to deduplicate TTY-check pattern used by both resolveBootstrapMode and resolveGranularity.",
-        "files": [
-          "src/commands/bootstrap.ts"
-        ]
+        "timestamp": "2026-07-06T09:18:40.539Z",
+        "type": "verification",
+        "result": "PASS",
+        "behaviorRetryCounter": 1
       }
     ],
-    "affectedFileHashes": {
-      "src/commands/bootstrap.ts": "cd5a14e33e41cd7a153a74c0ca7a8267c8e8947820fc2b885434957444514c25"
-    },
     "baseline": {
-      "timestamp": "2026-07-06T09:12:12.855Z",
+      "timestamp": "2026-07-06T09:18:36.816Z",
       "result": "PASS_WITH_WARNINGS",
       "issues": [],
       "tasksFileHash": "1e0b2ec001788c2ae1f00fae5ac8bb72f887aa115ae66ef362876d81643daaae",
@@ -148,7 +143,7 @@
           "test/utils/bootstrap-utils.pbt.contract.test.ts",
           "test/utils/bootstrap-utils.test.ts"
         ],
-        "evidenceFingerprint": "2489dd2ca86690dbea772f2186e600d09a7652ee6390c751b447549dae602751",
+        "evidenceFingerprint": "1b5a3df404a3093395223de86c4be5c4bfd909a27c2e4c996f345a47a8b5fd57",
         "evidenceFingerprintEntries": [
           {
             "path": ".pi/skills/openspec-bootstrap-opsx/SKILL.md",
@@ -172,7 +167,7 @@
           },
           {
             "path": "src/commands/bootstrap.ts",
-            "hash": "1d8d2ffab3e5a828c5c4a862ac0e2a07917f8a1f6181ec907b31acbc3245436b"
+            "hash": "cd5a14e33e41cd7a153a74c0ca7a8267c8e8947820fc2b885434957444514c25"
           },
           {
             "path": "src/core/templates/workflows/bootstrap-opsx.ts",
@@ -224,8 +219,12 @@
           }
         ],
         "skippedEvidenceFiles": [],
-        "gitHeadCommit": "84aff3e3eac53c20c945b3f25f3a456cd829a692"
+        "gitHeadCommit": "b0fc572c12fee5fefad64f4dac27c5a449a0ad81"
       }
+    },
+    "final": {
+      "result": "PASS",
+      "issues": []
     }
   }
 }
