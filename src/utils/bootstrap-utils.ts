@@ -1055,11 +1055,7 @@ function validateSpecScenarioSteps(
   return errors;
 }
 
-function renderProjectedProse(text: string, projection: RuntimeProjection): string {
-  if (projection.preserveCanonicalTokens) {
-    return text.trim();
-  }
-
+function renderProjectedProse(text: string, _projection: RuntimeProjection): string {
   return text.trim();
 }
 
