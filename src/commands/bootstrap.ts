@@ -49,6 +49,10 @@ export interface BootstrapBackfillOptions {
 
 // ─── Init ────────────────────────────────────────────────────────────────────
 
+function isInteractive(): boolean {
+  return Boolean((process.stdout as NodeJS.WriteStream & { isTTY?: boolean }).isTTY);
+}
+
 function parseBootstrapMode(mode: string | undefined): BootstrapMode {
   if (mode === 'full' || mode === 'opsx-first' || mode === 'refresh') {
     return mode;
@@ -71,8 +75,7 @@ async function resolveBootstrapMode(
   }
 
   const allowedModes = getAllowedBootstrapModes(preInitStatus.baselineType);
-  const isTTY = Boolean((process.stdout as NodeJS.WriteStream & { isTTY?: boolean }).isTTY);
-  if (!isTTY) {
+  if (!isInteractive()) {
     throw new Error(
       `Missing required option --mode in non-interactive mode. Valid modes: ${allowedModes.join(', ')}`
     );
@@ -102,8 +105,7 @@ async function resolveGranularity(
     return parseGranularity(requested);
   }
 
-  const isTTY = Boolean((process.stdout as NodeJS.WriteStream & { isTTY?: boolean }).isTTY);
-  if (!isTTY) {
+  if (!isInteractive()) {
     throw new Error('Missing required option: --granularity coarse|fine');
   }
 
