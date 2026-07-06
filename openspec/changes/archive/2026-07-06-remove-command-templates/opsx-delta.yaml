@@ -1,0 +1,5 @@
+schema_version: 1
+MODIFIED:
+  capabilities:
+    - id: cap.ai.skill-generation
+      intent: AI 技能文件生成是唯一受管 workflow surface，通过 manifest registry 生成 SkillTemplate 制品，暴露 skills-only workflow surface。为 propose、explore、apply-change、archive-change、bootstrap-opsx、snack 等 workflow 生成 SkillTemplate。

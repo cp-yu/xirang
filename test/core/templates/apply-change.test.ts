@@ -8,7 +8,6 @@ import {
 } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import {
   getApplyChangeSkillTemplate,
-  getOpsxApplyCommandTemplate,
 } from '../../../src/core/templates/workflows/apply-change.js';
 import { runTransforms } from '../../../src/core/templates/transforms/index.js';
 
@@ -50,10 +49,7 @@ describe('apply change workflow template', () => {
   });
 
   it('documents the Phase 0-3 apply + verify workflow in both surfaces', () => {
-    for (const template of [
-      getApplyChangeSkillTemplate().instructions,
-      getOpsxApplyCommandTemplate().content,
-    ]) {
+    const template = getApplyChangeSkillTemplate().instructions;
       expect(template).toContain('Phase 1: Run canonical verification');
       expect(template).toContain('Phase 2: Optimize under checkpoint protection');
       expect(template).toContain('Phase 3: Seal final result');
@@ -100,10 +96,7 @@ describe('apply change workflow template', () => {
   });
 
   it('documents strict Phase 0 TDD and branch isolation', () => {
-    for (const template of [
-      getApplyChangeSkillTemplate().instructions,
-      getOpsxApplyCommandTemplate().content,
-    ]) {
+    const template = getApplyChangeSkillTemplate().instructions;
       expect(template).toContain('Branch Isolation Preflight');
       expect(template).toContain('git branch --show-current');
       expect(template).toContain('Create branch `<change-name>`');
@@ -137,10 +130,7 @@ describe('apply change workflow template', () => {
   });
 
   it('documents Pocock TDD checkpoints for apply implementation', () => {
-    for (const template of [
-      getApplyChangeSkillTemplate().instructions,
-      getOpsxApplyCommandTemplate().content,
-    ]) {
+    const template = getApplyChangeSkillTemplate().instructions;
       expect(template).toContain('TDD Checkpoint 1: Interface Design for Testability');
       expect(template).toContain('dependencies are injected through parameters');
       expect(template).toContain('returns values or observable results');
@@ -158,10 +148,7 @@ describe('apply change workflow template', () => {
   });
 
   it('documents continuous recovery before user-visible pause', () => {
-    for (const template of [
-      getApplyChangeSkillTemplate().instructions,
-      getOpsxApplyCommandTemplate().content,
-    ]) {
+    const template = getApplyChangeSkillTemplate().instructions;
       expect(template).toContain('Continuous Recovery Protocol');
       expect(template).toContain('task + check + command + failure kind');
       expect(template).toContain('two consecutive failures');
@@ -176,10 +163,7 @@ describe('apply change workflow template', () => {
   });
 
   it('documents diagnosis-first discipline in enhanced recovery protocol', () => {
-    for (const template of [
-      getApplyChangeSkillTemplate().instructions,
-      getOpsxApplyCommandTemplate().content,
-    ]) {
+    const template = getApplyChangeSkillTemplate().instructions;
       expect(template).toContain('Diagnosis Before Repair');
       expect(template).toContain('Read the full error output');
       expect(template).toContain('Identify the failure layer');
@@ -189,10 +173,7 @@ describe('apply change workflow template', () => {
   });
 
   it('documents single-variable fix constraint in enhanced recovery protocol', () => {
-    for (const template of [
-      getApplyChangeSkillTemplate().instructions,
-      getOpsxApplyCommandTemplate().content,
-    ]) {
+    const template = getApplyChangeSkillTemplate().instructions;
       expect(template).toContain('Single-Variable Fix Constraint');
       expect(template).toContain('change only one variable');
       expect(template).toContain('do not stack multiple independent changes');
@@ -200,10 +181,7 @@ describe('apply change workflow template', () => {
   });
 
   it('documents cumulative 3-strike mechanism in enhanced recovery protocol', () => {
-    for (const template of [
-      getApplyChangeSkillTemplate().instructions,
-      getOpsxApplyCommandTemplate().content,
-    ]) {
+    const template = getApplyChangeSkillTemplate().instructions;
       expect(template).toContain('Cumulative 3-Strike Escalation');
       expect(template).toContain('stop and present evidence');
       expect(template).toContain('attempted paths');
@@ -211,10 +189,7 @@ describe('apply change workflow template', () => {
   });
 
   it('does not require generated step files for oversized task execution', () => {
-    for (const template of [
-      getApplyChangeSkillTemplate().instructions,
-      getOpsxApplyCommandTemplate().content,
-    ]) {
+    const template = getApplyChangeSkillTemplate().instructions;
       expect(template).not.toContain('If more than 5 cycles are needed, split the task automatically');
       expect(template).not.toContain('Each step file or batch MUST contain 1-5 TDD Cycles');
       expect(template).not.toContain('Do not pause solely because a task needs more than 5 TDD Cycles');
@@ -222,10 +197,7 @@ describe('apply change workflow template', () => {
   });
 
   it('contains pre-flight scan paragraph in the skill template', () => {
-    for (const template of [
-      getApplyChangeSkillTemplate().instructions,
-      getOpsxApplyCommandTemplate().content,
-    ]) {
+    const template = getApplyChangeSkillTemplate().instructions;
       expect(template).toContain('Pre-flight Scan');
       expect(template).toContain('scan all tasks in tasks.md for contradictions');
       expect(template).toContain('dependency-ordering issues');
@@ -233,10 +205,7 @@ describe('apply change workflow template', () => {
   });
 
   it('positions pre-flight scan after OPSX navigation before Branch Isolation', () => {
-    for (const template of [
-      getApplyChangeSkillTemplate().instructions,
-      getOpsxApplyCommandTemplate().content,
-    ]) {
+    const template = getApplyChangeSkillTemplate().instructions;
       const opsxEnd = template.indexOf('Treat CLI output as navigation context');
       const preflightIndex = template.indexOf('Pre-flight Scan');
       const branchIndex = template.indexOf('Branch Isolation Preflight');
@@ -249,20 +218,14 @@ describe('apply change workflow template', () => {
   });
 
   it('contains dependency order detection in pre-flight scan', () => {
-    for (const template of [
-      getApplyChangeSkillTemplate().instructions,
-      getOpsxApplyCommandTemplate().content,
-    ]) {
+    const template = getApplyChangeSkillTemplate().instructions;
       expect(template).toContain('dependency-ordering');
       expect(template).toContain('Earlier task depending on output of a later task');
     }
   });
 
   it('routes seal failure into remediation and recovery', () => {
-    for (const template of [
-      getApplyChangeSkillTemplate().instructions,
-      getOpsxApplyCommandTemplate().content,
-    ]) {
+    const template = getApplyChangeSkillTemplate().instructions;
       expect(template).toContain('If seal fails, preserve diagnostics, convert them into remediation context');
       expect(template).toContain('map the remediation to the affected task');
       expect(template).toContain('return to Phase 0 recovery');

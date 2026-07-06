@@ -23,7 +23,6 @@ WorkflowManifestRegistry SHALL 包含 snack workflow manifest entry，与现有 
   - `promptMeta.name: 'Snack sync'`
   - `promptMeta.description: 'Quick sync from code to specs'`
   - `getSkillTemplate: getSnackSkillTemplate`
-  - 不提供 `getCommandTemplate`（snack 为 skill-only 工作流）
 
 ### Requirement: 6 个工作流架构
 

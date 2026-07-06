@@ -52,14 +52,7 @@ capabilities:
     status: active
     type: capability
   - id: cap.ai.agent-prompt-guidance
-    intent: 面向 Agent 的 verify gate 提示词指引系统。VERIFY_SIMPLE_CHANGE_FAST_PATH 从"允许 master agent 自主跳过"改为"强制委托 optimizer subagent"语义。共享片段（状态机流程图、JSON schema 速查表、CLI 错误恢复决策树）中 OPTIMIZATION_PROPOSED 行补全 --files 参数，错误恢复增加 FILES_REQUIRED 条目。apply-change 模板 Phase 2 命令模板同步补全 --files
-    type: capability
-  - id: cap.ai.command-generation
-    intent: 历史 command generation 不再作为 active workflow delivery surface；workflow 制品由 skills-only 管线生成，内部 skill 不暴露为用户可调用 workflow。
-    status: active
-    type: capability
-  - id: cap.ai.command-slugs
-    intent: 历史 command slug 不再驱动 active workflow artifact 生成、检测或清理；用户可调用 workflow 引用通过 skill surface 元数据渲染。
+    intent: 面向 Agent 的 verify gate 提示词指引系统。VERIFY_SIMPLE_CHANGE_FAST_PATH 从"允许 master agent 自主跳过"改为"强制委托 optimizer subagent"语义。共享片段（状态机流程图、JSON schema 速查表、CLI 错误恢复决策树）中 OPTIMIZATION_PROPOSED 行补全 --files 参数，错误恢复增加 FILES_REQUIRED 条目。
     type: capability
   - id: cap.ai.explore-brainstorming
     intent: Explore 阶段的 brainstorming 流程，包含 6 步 checklist、一次一问纪律、2-3 方案对比、Design Summary 生成；todo 可用时必须在读取 context 前将 Superpowers 阶段记录为 checklist 并逐步 tick；main explore agent 严格 read-only，用户设计确认不构成文件写入授权；已有 change 的 insight 仅分类为 future capture target，不在 explore 中更新 artifacts；Superpowers 行为引导通过 referenceFiles 暴露为 OpenSpec-adapted brainstorming protocol，以原始 Superpowers brainstorming 的 hard gate、上下文探索、just-in-time visual 判断、分段设计确认、自检和用户审查 gate 为行为来源，并映射到 conversation-only Design Summary 与 openspec-propose 路由；主 instructions 中的 workflow 引用使用规范形 /opsx:<slug>，经 transform 管线按工具适配渲染
@@ -81,7 +74,7 @@ capabilities:
     intent: Phase 1 验证审查 subagent skill。元规则从"不确定时降级"反转为"不确定时升级"，Correctness/Coherence trigger 强化（spec 偏离和设计违背升为 CRITICAL），新增 Cleanliness 维度检测，summary schema 扩展包含 cleanliness 指标。判定模式按 Check 锚点类型分派：Verifies 普通 requirement 执行存在性判定，REMOVED 锚点执行缺失性判定（残留即 CRITICAL），Preserves 锚点执行双支等价性判定（行为不变 ∧ 旧形态消失）；Completeness 对 Files Delete 声明与 git diff 逐项核对
     type: capability
   - id: cap.ai.skill-generation
-    intent: AI 技能文件生成是唯一受管 workflow surface，为 propose、explore、apply-change、 archive-change、bootstrap-opsx、snack 等 workflow 生成 SkillTemplate； internal 执行角色（reviewer、optimizer、impact-sweeper）改由 cap.ai.internal-subagent-generation 管理，不再纳入 skill generation 管线； 不生成 openspec-implementer。
+    intent: AI 技能文件生成是唯一受管 workflow surface，通过 manifest registry 生成 SkillTemplate 制品，暴露 skills-only workflow surface。为 propose、explore、apply-change、archive-change、bootstrap-opsx、snack 等 workflow 生成 SkillTemplate。
     status: active
     type: capability
   - id: cap.ai.subagent-self-read

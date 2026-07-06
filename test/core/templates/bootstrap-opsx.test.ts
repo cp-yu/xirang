@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { OPSX_COMPILATION_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import {
   getBootstrapOpsxSkillTemplate,
-  getOpsxBootstrapCommandTemplate,
 } from '../../../src/core/templates/workflows/bootstrap-opsx.js';
 
 describe('bootstrap OPSX templates', () => {
@@ -21,10 +20,10 @@ describe('bootstrap OPSX templates', () => {
     expect(skill).toContain('report any specs that still have no match');
   });
 
-  it('lists backfill-specs as a bootstrap CLI subcommand', () => {
-    const command = getOpsxBootstrapCommandTemplate().content;
+  it('lists backfill-specs in the skill instructions', () => {
+    const skill = getBootstrapOpsxSkillTemplate().instructions;
 
-    expect(command).toContain('openspec bootstrap backfill-specs [--json]');
-    expect(command).toContain('also runs backfill-specs after promotion');
+    expect(skill).toContain('openspec bootstrap backfill-specs --json');
+    expect(skill).toContain('also runs the programmatic spec frontmatter backfill');
   });
 });

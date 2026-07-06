@@ -3,7 +3,7 @@
  * Canonical source-of-truth types for workflow artifact generation.
  */
 
-import type { SkillTemplate, CommandTemplate } from '../types.js';
+import type { SkillTemplate } from '../types.js';
 
 export type WorkflowPreset = 'core' | 'flexible';
 
@@ -20,7 +20,6 @@ export interface WorkflowManifestEntry {
   commandSlug: string;
   promptMeta: WorkflowPromptMeta;
   getSkillTemplate: () => SkillTemplate;
-  getCommandTemplate?: () => CommandTemplate;
 }
 
 export type WorkflowId = string;

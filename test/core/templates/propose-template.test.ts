@@ -2,14 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import { OPSX_COMPILATION_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import {
-  getOpsxProposeCommandTemplate,
   getOpsxProposeSkillTemplate,
 } from '../../../src/core/templates/workflows/propose.js';
 
 function getProposeBodies(): string[] {
   return [
     getOpsxProposeSkillTemplate().instructions,
-    getOpsxProposeCommandTemplate().content,
   ];
 }
 

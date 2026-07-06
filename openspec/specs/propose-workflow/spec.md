@@ -98,7 +98,7 @@ The `propose` workflow SHALL create the same planning artifacts that were previo
 `$openspec-propose` workflow SHALL 在生成 proposal、specs、design 和 tasks 时消费共享 `Document Language Contract` 与 artifact instructions 中的 `configProjection.prompt.fragments`，使新写或改写的 natural-language prose 跟随 `proseLanguage`。
 
 #### Scenario: Propose template 包含共享语言契约
-- **WHEN** propose skill 或 command template 被组装
+- **WHEN** propose skill template 被组装
 - **THEN** template SHALL 包含共享 `Document Language Contract`
 - **AND** contract SHALL 指示 agent 保留 canonical tokens，同时让 artifact prose fields 跟随 `proseLanguage`
 

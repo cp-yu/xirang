@@ -8,13 +8,9 @@
 import {
   getExploreSkillTemplate,
   getApplyChangeSkillTemplate,
-  getOpsxApplyCommandTemplate,
   getArchiveChangeSkillTemplate,
-  getOpsxArchiveCommandTemplate,
   getOpsxProposeSkillTemplate,
-  getOpsxProposeCommandTemplate,
   getBootstrapOpsxSkillTemplate,
-  getOpsxBootstrapCommandTemplate,
   getSnackSkillTemplate,
 } from '../skill-templates.js';
 
@@ -36,7 +32,6 @@ const MANIFEST_ENTRIES: readonly WorkflowManifestEntry[] = [
       description: 'Create proposal, design, and tasks from a request',
     },
     getSkillTemplate: getOpsxProposeSkillTemplate,
-    getCommandTemplate: getOpsxProposeCommandTemplate,
   },
   {
     workflowId: 'explore',
@@ -61,7 +56,6 @@ const MANIFEST_ENTRIES: readonly WorkflowManifestEntry[] = [
       description: 'Implement tasks from the current change',
     },
     getSkillTemplate: getApplyChangeSkillTemplate,
-    getCommandTemplate: getOpsxApplyCommandTemplate,
   },
   {
     workflowId: 'archive',
@@ -74,7 +68,6 @@ const MANIFEST_ENTRIES: readonly WorkflowManifestEntry[] = [
       description: 'Finalize and archive a completed change',
     },
     getSkillTemplate: getArchiveChangeSkillTemplate,
-    getCommandTemplate: getOpsxArchiveCommandTemplate,
   },
   {
     workflowId: 'bootstrap-opsx',
@@ -87,7 +80,6 @@ const MANIFEST_ENTRIES: readonly WorkflowManifestEntry[] = [
       description: 'Bootstrap project OPSX structure for architecture tracking',
     },
     getSkillTemplate: getBootstrapOpsxSkillTemplate,
-    getCommandTemplate: getOpsxBootstrapCommandTemplate,
   },
   {
     workflowId: 'snack',

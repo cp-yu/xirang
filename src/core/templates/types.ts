@@ -16,11 +16,3 @@ export interface SkillReferenceFile {
   path: string;
   content: string;
 }
-
-export interface CommandTemplate {
-  name: string;
-  description: string;
-  category: string;
-  tags: string[];
-  content: string;
-}

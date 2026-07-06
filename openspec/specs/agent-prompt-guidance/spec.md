@@ -119,13 +119,3 @@ verify skill 模板的 `buildCanonicalPhase1Step` 和 `buildPhase2Step` SHALL �
 - **THEN** 系统 SHALL 始终 spawn optimizer subagent，无论 change 类型（包括纯删除、重命名）
 - **AND** optimizer subagent 对简单 change 快速返回 "No optimization opportunities found"
 
-### Requirement: apply 工作流 Phase 2 命令模板
-
-`apply-change.ts` 中 Phase 2 TIMING CONSTRAINT 步骤的命令模板 SHALL 在 `OPTIMIZATION_PROPOSED` 调用中包含 `--files` 参数，确保 agent 按模板构造命令时不会触发 `FILES_REQUIRED` 错误。
-
-#### Scenario: apply 模板命令
-
-- **WHEN** apply-change 模板渲染 Phase 2 TIMING CONSTRAINT 步骤
-- **THEN** 步骤 1 的命令模板 SHALL 为 `openspec verify phase2 "<change-name>" --type=optimization --files "<affected-files>" --input '<json>'`
-- **AND** `<affected-files>` 占位符 SHALL 在上下文中说明来源为 optimizer subagent 声明的文件列表
-

@@ -46,19 +46,9 @@ describe('Workflow Manifest', () => {
       }
     });
 
-    it('should produce command getter with required fields for entries that have one', () => {
-      const withCommands = WorkflowManifestRegistry.entries.filter(
-        (entry) => entry.getCommandTemplate !== undefined
-      );
-      // explore and snack are skill-only; other workflows may still keep legacy command factories.
-      expect(withCommands.length).toBeGreaterThanOrEqual(4);
-      for (const entry of withCommands) {
-        const cmd = entry.getCommandTemplate!();
-        expect(cmd.name).toBeTruthy();
-        expect(cmd.description).toBeTruthy();
-        expect(cmd.category).toBeTruthy();
-        expect(cmd.content).toBeTruthy();
-        expect(Array.isArray(cmd.tags)).toBe(true);
+    it('should only have skill templates, no command templates', () => {
+      for (const entry of WorkflowManifestRegistry.entries) {
+        expect(entry.getSkillTemplate).toBeDefined();
       }
     });
 
