@@ -102,7 +102,7 @@ capabilities:
     status: active
     type: capability
   - id: cap.ai.workflow-templates
-    intent: 提供 6 个核心工作流的 AI workflow 模板（propose, explore, apply, archive, bootstrap-opsx, snack）。Scenario operation labels 交互规则明确为：仅 MODIFIED Requirements 下每个 scenario 必须带标签，ADDED 下不加，REMOVED 无场景。提示词以精简段落替代冗长表格。
+    intent: 提供核心 workflow skill 模板；bootstrap-opsx 模板要求 agent 在 init 前询问 coarse/fine granularity，解释差异，不默认选择，并在 promote/backfill 后运行 openspec validate --all。
     type: capability
   - id: cap.apply.branch-isolation
     intent: Apply 阶段分支隔离策略由 apply.defaultIsolation 驱动；main/master 上仅 ask 模式询问用户，branch/worktree/none 配置直接执行并持久化 .apply-isolation.json。
@@ -269,7 +269,7 @@ capabilities:
     status: active
     type: capability
   - id: cap.opsx.bootstrap
-    intent: 提供基于现有 CLI 的 bootstrap 工作流，支持 TTY 模式选择、invalid domain-map 诊断、gate 驱动的五阶段生命周期，以及对 retained workspace 的显式 completed/restart 语义；promote 后自动调用 backfill-specs 补全 spec frontmatter，并保留工作区通过显式 restart 路径开启下一轮 run
+    intent: 提供基于现有 CLI 的 bootstrap 工作流，支持 agent 显式选择 coarse/fine granularity、coarse 模式的 domain-map spec_groups 分组规约源、fine 模式的 per-capability spec 源、gate 驱动五阶段生命周期、promote 后 backfill 与 openspec validate --all 验证闭环。
     status: active
     type: capability
   - id: cap.opsx.bootstrap-backfill-specs
