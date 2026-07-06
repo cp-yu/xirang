@@ -102,7 +102,7 @@ capabilities:
     status: active
     type: capability
   - id: cap.ai.workflow-templates
-    intent: 提供 6 个核心工作流的 AI workflow 模板（propose, explore, apply, archive, bootstrap-opsx, snack）
+    intent: 提供 6 个核心工作流的 AI workflow 模板（propose, explore, apply, archive, bootstrap-opsx, snack）。Scenario operation labels 交互规则明确为：仅 MODIFIED Requirements 下每个 scenario 必须带标签，ADDED 下不加，REMOVED 无场景。提示词以精简段落替代冗长表格。
     type: capability
   - id: cap.apply.branch-isolation
     intent: Apply 阶段分支隔离策略由 apply.defaultIsolation 驱动；main/master 上仅 ask 模式询问用户，branch/worktree/none 配置直接执行并持久化 .apply-isolation.json。
@@ -332,7 +332,7 @@ capabilities:
     intent: sync 完成后自动刷新 .verify-result.json 中与 sync 输出重叠的 evidence 文件哈希，使 verify freshness 判决不受合法 sync 写入的影响
     type: capability
   - id: cap.validation.change
-    intent: 验证变更的完整性和结构，包括 delta spec section-type 与主 spec header 存在性的交叉验证、scenario operation label 语法与 surviving scenario 校验，以及 tasks.md 中 Verifies 字段的确定性结构和 change-local spec 引用校验；Verifies 支持 REMOVED 锚定语法变体（无 Scenario），并以 label-free scenario title 匹配 change-local specs；新增 Preserves 字段校验（仅主 spec 路径白名单，不放宽 Verifies）
+    intent: 验证变更的完整性和结构，包括 delta spec section-type 与主 spec header 存在性的交叉验证、scenario operation label 语法与位置校验（MODIFIED 下强制标签、ADDED 下禁止 [MODIFIED]/[REMOVED]、错误信息含语义解释）、surviving scenario 校验（messages 按 section 区分），以及 tasks.md 中 Verifies 字段的确定性结构和 change-local spec 引用校验；Verifies 支持 REMOVED 锚定语法变体（无 Scenario），并以 label-free scenario title 匹配 change-local specs；新增 Preserves 字段校验（仅主 spec 路径白名单，不放宽 Verifies）
     status: active
     type: capability
   - id: cap.validation.opsx
@@ -343,7 +343,7 @@ capabilities:
     intent: Validator.validateOpsxDelta() 方法执行 opsx-delta.yaml 的 dry-run merge 校验，检查 Zod schema 解析、引用完整性和 code-map 完整性；validate 命令变更路径 SHALL 并行执行 spec + OPSX 校验
     type: capability
   - id: cap.validation.spec
-    intent: 验证规约的格式和内容；formal specs SHALL NOT contain change-local scenario operation labels such as [ADDED], [MODIFIED], or [REMOVED] in Scenario headings
+    intent: 验证规约的格式和内容；formal specs SHALL NOT contain change-local scenario operation labels such as [ADDED], [MODIFIED], or [REMOVED] in Scenario headings；change-local delta spec 的 scenario operation label 校验规则：MODIFIED section 下每个 scenario 必须有标签，ADDED section 下 [MODIFIED]/[REMOVED] 报错并解释语义原因
     status: active
     type: capability
   - id: cap.validation.spec-section-type-cross-check

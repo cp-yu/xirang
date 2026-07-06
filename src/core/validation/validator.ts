@@ -607,20 +607,34 @@ export class Validator {
     issues: ValidationIssue[],
   ): void {
     for (const line of blockRaw.replace(/\r\n?/g, '\n').split('\n')) {
+      // Only process lines that look like scenario headers
+      if (!/^####\s+/.test(line)) continue;
+
+      // Unknown label check (canonical scenario header with unexpected label)
       const canonicalUnknown = line.match(/^####\s+Scenario:\s+\[([^\]]+)\]\s+/);
       if (canonicalUnknown && !['ADDED', 'MODIFIED', 'REMOVED'].includes(canonicalUnknown[1])) {
         issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${blockName}" has unknown scenario operation label. Allowed labels are [ADDED], [MODIFIED], [REMOVED]` });
         continue;
       }
 
-      const label = parseScenarioOperationLabel(line);
-      if (label?.operation === 'REMOVED' && section === 'ADDED') {
-        issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${blockName}" has [REMOVED] scenario; [REMOVED] scenario should be under ## MODIFIED Requirements` });
+      // Malformed label check (label-like text present but not in canonical position)
+      if (/\[(ADDED|MODIFIED|REMOVED)\]/.test(line) && !parseScenarioOperationLabel(line)) {
+        issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${blockName}" has malformed scenario operation label. Use legal format #### Scenario: [ADDED] 场景` });
         continue;
       }
 
-      if (/^####\s+/.test(line) && /\[(ADDED|MODIFIED|REMOVED)\]/.test(line) && !label) {
-        issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${blockName}" has malformed scenario operation label. Use legal format #### Scenario: [ADDED] 场景` });
+      // From here on, only canonical `#### Scenario:` lines with valid labels
+      if (!/^####\s+Scenario:\s+/.test(line)) continue;
+
+      const label = parseScenarioOperationLabel(line);
+
+      if (section === 'ADDED') {
+        if (label?.operation === 'REMOVED') {
+          issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${blockName}" has [REMOVED] scenario. A new requirement cannot have removed scenarios — if modifying an existing requirement, use "## MODIFIED Requirements" instead.` });
+        } else if (label?.operation === 'MODIFIED') {
+          issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${blockName}" has [MODIFIED] scenario. A new requirement can only have [ADDED] scenarios — if modifying an existing requirement, use "## MODIFIED Requirements" instead.` });
+        }
+        // [ADDED] or unlabeled: fine (unlabeled is the recommended form under ADDED)
       }
     }
   }

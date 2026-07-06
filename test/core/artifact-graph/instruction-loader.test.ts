@@ -198,11 +198,12 @@ describe('instruction-loader', () => {
       const context = loadChangeContext(tempDir, 'my-change');
       const instructions = generateInstructions(context, 'specs');
 
-      expect(instructions.instruction).toContain('#### Scenario: [ADDED] <title>');
-      expect(instructions.instruction).toContain('#### Scenario: [MODIFIED] <title>');
-      expect(instructions.instruction).toContain('#### Scenario: [REMOVED] <title>');
+      expect(instructions.instruction).toContain('[ADDED]');
+      expect(instructions.instruction).toContain('[MODIFIED]');
+      expect(instructions.instruction).toContain('[REMOVED]');
       expect(instructions.instruction).toContain('change-local metadata');
       expect(instructions.instruction).toContain('formal specs');
+      expect(instructions.instruction).toContain('Only scenarios whose behavior changed need labels');
     });
 
     it('should show dependencies with completion status', () => {

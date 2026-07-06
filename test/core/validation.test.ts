@@ -627,7 +627,7 @@ The system MUST support mixed case delta headers.
         {
           change: 'removed-in-added',
           body: '#### Scenario: [REMOVED] 旧场景',
-          message: '[REMOVED] scenario should be under ## MODIFIED Requirements',
+          message: 'A new requirement cannot have removed scenarios',
         },
       ];
 
@@ -674,6 +674,32 @@ The system SHALL validate labels.
 
       expect(report.valid).toBe(false);
       expect(report.issues.some(i => i.message.includes('at least one unlabeled, [ADDED], or [MODIFIED] scenario'))).toBe(true);
+    });
+
+    it('should reject [MODIFIED] label under ADDED Requirements', async () => {
+      const changeDir = path.join(testDir, 'modified-under-added');
+      const specsDir = path.join(changeDir, 'specs', 'test-spec');
+      await fs.mkdir(specsDir, { recursive: true });
+      await fs.writeFile(
+        path.join(specsDir, 'spec.md'),
+        `## ADDED Requirements
+
+### Requirement: Label Validation
+The system SHALL validate labels.
+
+#### Scenario: [ADDED] 新场景
+- **WHEN** new
+- **THEN** result
+
+#### Scenario: [MODIFIED] 修改场景
+- **WHEN** action
+- **THEN** result`,
+      );
+
+      const report = await new Validator(true).validateChangeDeltaSpecs(changeDir);
+
+      expect(report.valid).toBe(false);
+      expect(report.issues.some(i => i.message.includes('has [MODIFIED] scenario. A new requirement can only have [ADDED] scenarios'))).toBe(true);
     });
   });
 

@@ -237,9 +237,13 @@ The markdown parser SHALL correctly identify sections regardless of line ending 
 
 `openspec validate` SHALL 对 change-local delta specs 中 `#### Scenario:` 标题上的 scenario operation labels 进行校验。合法 labels 为 `[ADDED]`、`[MODIFIED]`、`[REMOVED]`，且 SHALL 仅出现在 canonical `#### Scenario:` 标记之后的 scenario 标题起始处。
 
+校验规则：
+- `## MODIFIED Requirements` 下每个 scenario MUST 携带 `[ADDED]`、`[MODIFIED]` 或 `[REMOVED]`，无标签 → ERROR
+- `## ADDED Requirements` 下 scenario 隐式新增，不加标签（`[ADDED]` 为冗余），`[MODIFIED]` 或 `[REMOVED]` → ERROR 并解释语义原因
+- `## REMOVED Requirements` 无 scenario
+
 #### Scenario: 合法 scenario labels 通过 change validation
-- **WHEN** change spec 在 `## MODIFIED Requirements` 下包含 `#### Scenario: [ADDED] 新场景`、`#### Scenario: [MODIFIED] 已调整场景`、`#### Scenario: [REMOVED] 旧场景`
-- **AND** requirement 在去除 `[REMOVED]` scenario block 后仍有至少一个 surviving scenario
+- **WHEN** change spec 在 `## MODIFIED Requirements` 下每个 scenario 均携带 `[ADDED]`、`[MODIFIED]` 或 `[REMOVED]`
 - **THEN** `openspec validate <change> --type change` SHALL NOT 为这些 labels 报告错误
 
 #### Scenario: 未知 label 报错
@@ -255,12 +259,26 @@ The markdown parser SHALL correctly identify sections regardless of line ending 
 #### Scenario: REMOVED scenario 不允许出现在 ADDED requirement 中
 - **WHEN** change spec 在 `## ADDED Requirements` 下包含 `#### Scenario: [REMOVED] 旧场景`
 - **THEN** `openspec validate <change> --type change` SHALL report ERROR
-- **AND** 错误信息 SHALL 说明 `[REMOVED]` scenario 应归属到 `## MODIFIED Requirements` 下
+- **AND** 错误信息 SHALL 说明新增 requirement 不能有 removed scenario，建议使用 `## MODIFIED Requirements` 替代
+
+#### Scenario: MODIFIED label 不允许出现在 ADDED requirement 中
+- **WHEN** change spec 在 `## ADDED Requirements` 下包含 `#### Scenario: [MODIFIED] 场景`
+- **THEN** `openspec validate <change> --type change` SHALL report ERROR
+- **AND** 错误信息 SHALL 说明新增 requirement 只能有 `[ADDED]` scenario，建议使用 `## MODIFIED Requirements` 替代
+
+#### Scenario: MODIFIED requirement 下无标签 scenario 报错
+- **WHEN** change spec 在 `## MODIFIED Requirements` 下包含无标签的 `#### Scenario: 场景`
+- **THEN** `openspec validate <change> --type change` SHALL report ERROR
+- **AND** 错误信息 SHALL 说明每个 scenario 必须带有 `[ADDED]` / `[MODIFIED]` / `[REMOVED]`
 
 #### Scenario: surviving scenario 数量必须非零
-- **WHEN** change spec 中某个 ADDED 或 MODIFIED requirement 的全部 scenarios 都标记为 `[REMOVED]`
+- **WHEN** change spec 中某个 MODIFIED requirement 的全部 scenarios 都标记为 `[REMOVED]`
 - **THEN** `openspec validate <change> --type change` SHALL report ERROR
-- **AND** 错误信息 SHALL 说明至少需要一个 unlabeled、`[ADDED]` 或 `[MODIFIED]` scenario 在 sync 后存活
+- **AND** 错误信息 SHALL 说明至少需要一个 `[ADDED]` 或 `[MODIFIED]` scenario（surviving, non-removed）
+
+#### Scenario: ADDED requirement 无标签 scenario 通过校验
+- **WHEN** change spec 在 `## ADDED Requirements` 下包含无标签的 `#### Scenario: 场景`
+- **THEN** `openspec validate <change> --type change` SHALL NOT 报告错误
 
 ### Requirement: Formal spec scenario label 清洁度
 

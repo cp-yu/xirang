@@ -64,7 +64,8 @@ artifacts:
       - Each requirement: `### Requirement: <name>` followed by description
       - Use SHALL/MUST for normative requirements (avoid should/may)
       - Each scenario: `#### Scenario: <name>` with WHEN/THEN format
-      - Scenario operation labels are change-local metadata only: use `#### Scenario: [ADDED] <title>`, `#### Scenario: [MODIFIED] <title>`, or `#### Scenario: [REMOVED] <title>` when marking per-scenario changes; sync/archive strip or omit these labels, and formal specs MUST NOT contain them.
+      - Scenario operation labels (`[ADDED]`, `[MODIFIED]`, `[REMOVED]`) are change-local metadata only: sync/archive strip or omit them, and formal specs MUST NOT contain them.
+      - Only scenarios whose behavior changed need labels: use `[ADDED]` for new scenarios, `[MODIFIED]` for changed ones, `[REMOVED]` for deleted ones. Unchanged scenarios stay unlabeled. Under `## ADDED Requirements`, scenarios are implicitly all new — omit labels. Under `## REMOVED Requirements`, scenarios are absent — only Reason + Migration.
       - **CRITICAL**: Scenarios MUST use exactly 4 hashtags (`####`). Using 3 hashtags or bullets will fail silently.
       - Every requirement MUST have at least one scenario.
       - `### Requirement:` and `#### Scenario:` markers remain canonical.

@@ -67,7 +67,7 @@ The `propose` workflow SHALL create the same planning artifacts that were previo
 - **THEN** console output MAY differ (propose includes onboarding explanations)
 
 ### Requirement: Propose applies spec content boundary
-`propose` workflow SHALL 在生成 `specs` artifact 时应用 schema 提供的 `Spec content boundary`。当生成的 change-local specs 包含完整 MODIFIED requirement blocks 且只有部分 scenarios 受影响时，workflow SHALL 允许将 scenario operation labels 作为 change-local review/sync metadata 使用，并 SHALL 保持 labels 不属于 formal spec 内容的边界。
+`propose` workflow SHALL 在生成 `specs` artifact 时应用 schema 提供的 `Spec content boundary`。Scenario operation labels (`[ADDED]`、`[MODIFIED]`、`[REMOVED]`) 是 change-local metadata，仅 `## MODIFIED Requirements` 下每个 scenario 必须带标签标注变更类型；`## ADDED Requirements` 下 scenario 隐式全部新增不加标签；`## REMOVED Requirements` 无 scenario。
 
 #### Scenario: Specs generation routes non-behavior content
 - **WHEN** `/opsx:propose` 创建 `specs` artifact
@@ -79,10 +79,15 @@ The `propose` workflow SHALL create the same planning artifacts that were previo
 - **THEN** 应依赖 `openspec instructions specs --change "<name>" --json` 返回的 boundary
 - **AND** SHALL NOT 在 propose workflow template 中定义独立冲突分类表
 
-#### Scenario: Scenario labels 标记局部变化
-- **WHEN** `/opsx:propose` 生成一个 `## MODIFIED Requirements` block，其中未变化和已变化的 scenarios 都需要展示
-- **THEN** 生成的 change-local spec MAY 用 `#### Scenario: [ADDED] <title>`、`#### Scenario: [MODIFIED] <title>` 或 `#### Scenario: [REMOVED] <title>` 标记受影响的 scenario headings
-- **AND** 未变化 scenario headings SHALL 保持 unlabeled
+#### Scenario: MODIFIED requirement 下每个 scenario 必须有标签
+- **WHEN** `/opsx:propose` 生成 `## MODIFIED Requirements` block
+- **THEN** 每个 scenario 标题 MUST 携带 `[ADDED]`、`[MODIFIED]` 或 `[REMOVED]`
+- **AND** 无标签 scenario 将被 validator 拒绝
+
+#### Scenario: ADDED requirement 下不加标签
+- **WHEN** `/opsx:propose` 生成 `## ADDED Requirements` block
+- **THEN** scenario 标题 SHALL 不加 operation label
+- **AND** 隐式语义为全部新增
 
 #### Scenario: Scenario labels 保持 change-local
 - **WHEN** `/opsx:propose` 在生成的 instructions 或 artifacts 中说明 scenario operation labels
