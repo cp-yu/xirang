@@ -86,7 +86,7 @@ Key behavior:
   - You add full behavior specs later through normal OpenSpec changes
 - `full` on `raw`
   - Writes the formal OPSX bundle
-  - Writes one validated `openspec/specs/<capability-folder>/spec.md` per mapped capability
+  - Writes valid specs covering all mapped capabilities: per spec_groups grouping in coarse mode, per capability in fine mode
 - `full` on `specs-based`
   - Preserves existing specs
   - Adds only missing capability specs

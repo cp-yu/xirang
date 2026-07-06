@@ -32,3 +32,22 @@
       line_start: N
       line_end: N
 -->
+
+## Spec Groups (coarse granularity only)
+
+<!-- Each entry generates one candidate spec with multi-capability frontmatter: -->
+<!--
+- folder: <single_posix_segment>
+  capabilities: [cap.x, cap.y]
+  purpose: One-sentence spec purpose
+  requirements:
+    - title: Requirement name
+      text: The system SHALL ...
+      scenarios:
+        - title: Scenario name
+          steps:
+            - keyword: WHEN
+              text: ...
+            - keyword: THEN
+              text: ...
+-->

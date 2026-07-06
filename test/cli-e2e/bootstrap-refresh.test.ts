@@ -191,7 +191,7 @@ describe('openspec bootstrap refresh', () => {
     await writeFormalBaseline(projectDir);
     const baselineHead = await initGitRepo(projectDir);
 
-    const initResult = await runCLI(['bootstrap', 'init', '--mode', 'refresh'], { cwd: projectDir });
+    const initResult = await runCLI(['bootstrap', 'init', '--mode', 'refresh', '--granularity', 'fine'], { cwd: projectDir });
     expect(initResult.exitCode).toBe(0);
     await setBootstrapMetadata(projectDir, (metadata) => {
       metadata.phase = 'scan';
@@ -231,7 +231,7 @@ describe('openspec bootstrap refresh', () => {
     await writeFormalBaseline(projectDir, { codeMapRef: 'src/auth' });
     const baselineHead = await initGitRepo(projectDir);
 
-    const initResult = await runCLI(['bootstrap', 'init', '--mode', 'refresh'], { cwd: projectDir });
+    const initResult = await runCLI(['bootstrap', 'init', '--mode', 'refresh', '--granularity', 'fine'], { cwd: projectDir });
     expect(initResult.exitCode).toBe(0);
     await setBootstrapMetadata(projectDir, (metadata) => {
       metadata.phase = 'scan';
@@ -264,7 +264,7 @@ describe('openspec bootstrap refresh', () => {
     const projectDir = await createTempProject();
     await writeFormalBaseline(projectDir);
 
-    expect((await runCLI(['bootstrap', 'init', '--mode', 'refresh'], { cwd: projectDir })).exitCode).toBe(0);
+    expect((await runCLI(['bootstrap', 'init', '--mode', 'refresh', '--granularity', 'fine'], { cwd: projectDir })).exitCode).toBe(0);
     await writeFile(projectDir, 'openspec/bootstrap/evidence.yaml', 'domains: []\n');
     await writeFile(projectDir, 'openspec/bootstrap/review.md', '# Completed review\n');
     await writeFile(projectDir, 'openspec/bootstrap/candidate/project.opsx.yaml', 'schema_version: 1\nproject:\n  id: proj.demo\n  name: Demo\n');
@@ -284,7 +284,7 @@ describe('openspec bootstrap refresh', () => {
       metadata.candidate_spec_paths = ['openspec/bootstrap/candidate/specs/auth/spec.md'];
     });
 
-    const restartResult = await runCLI(['bootstrap', 'init', '--mode', 'refresh', '--restart'], { cwd: projectDir });
+    const restartResult = await runCLI(['bootstrap', 'init', '--mode', 'refresh', '--granularity', 'fine', '--restart'], { cwd: projectDir });
     expect(restartResult.exitCode).toBe(0);
     expect(restartResult.stdout).toContain('Previous workspace snapshot: openspec/bootstrap-history');
     expect(restartResult.stdout).toContain('This run starts fresh from init while retaining the previous workspace as audit history.');
@@ -318,10 +318,10 @@ describe('openspec bootstrap refresh', () => {
     const projectDir = await createTempProject();
     await writeFormalBaseline(projectDir);
 
-    expect((await runCLI(['bootstrap', 'init', '--mode', 'refresh'], { cwd: projectDir })).exitCode).toBe(0);
+    expect((await runCLI(['bootstrap', 'init', '--mode', 'refresh', '--granularity', 'fine'], { cwd: projectDir })).exitCode).toBe(0);
     await writeFile(projectDir, 'openspec/bootstrap/review.md', '# In progress\n');
 
-    const restartResult = await runCLI(['bootstrap', 'init', '--mode', 'refresh', '--restart'], { cwd: projectDir });
+    const restartResult = await runCLI(['bootstrap', 'init', '--mode', 'refresh', '--granularity', 'fine', '--restart'], { cwd: projectDir });
     expect(restartResult.exitCode).toBe(1);
     expect(restartResult.stderr).toContain('`--restart` only works after promote completes');
     await expect(readFile(projectDir, 'openspec/bootstrap/review.md')).resolves.toContain('# In progress');

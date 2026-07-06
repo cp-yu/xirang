@@ -85,7 +85,7 @@ async function initWorkspace(
     await writeFile(projectDir, 'openspec/specs/auth/spec.md', '# Auth\n');
   }
 
-  const initResult = await runCLI(['bootstrap', 'init', '--mode', mode], { cwd: projectDir });
+  const initResult = await runCLI(['bootstrap', 'init', '--mode', mode, '--granularity', 'fine'], { cwd: projectDir });
   expect(initResult.exitCode).toBe(0);
   await setBootstrapPhase(projectDir, 'scan');
 }

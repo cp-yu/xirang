@@ -1,0 +1,218 @@
+{
+  "timestamp": "2026-07-06T08:57:35.974Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [],
+  "tasksFileHash": "1e0b2ec001788c2ae1f00fae5ac8bb72f887aa115ae66ef362876d81643daaae",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "executionMode": "subagent",
+    "evidenceFiles": [
+      ".pi/skills/openspec-bootstrap-opsx/SKILL.md",
+      "docs/opsx-bootstrap.md",
+      "schemas/bootstrap/schema.yaml",
+      "schemas/bootstrap/templates/domain-map.md",
+      "src/cli/index.ts",
+      "src/commands/bootstrap.ts",
+      "src/core/templates/workflows/bootstrap-opsx.ts",
+      "src/utils/bootstrap-utils.ts",
+      "test/cli-e2e/bootstrap-backfill.test.ts",
+      "test/cli-e2e/bootstrap-lifecycle.test.ts",
+      "test/cli-e2e/bootstrap-phase1.test.ts",
+      "test/cli-e2e/bootstrap-refresh.test.ts",
+      "test/commands/bootstrap.test.ts",
+      "test/core/templates/bootstrap-opsx.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts",
+      "test/utils/bootstrap-refresh-utils.test.ts",
+      "test/utils/bootstrap-utils.pbt.contract.test.ts",
+      "test/utils/bootstrap-utils.test.ts"
+    ],
+    "evidenceFingerprint": "e1bfcb6792b1813fc10d9b4bf0d0a7037944315ff8bdb6dc0210114a8abd736b",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".pi/skills/openspec-bootstrap-opsx/SKILL.md",
+        "hash": "0cb1f197db523cddddf275e5c874be39b0ad4b6dc2ba1517e5b0d4f60ff8f9f6"
+      },
+      {
+        "path": "docs/opsx-bootstrap.md",
+        "hash": "bb5df87e67ef44c09e963261a43fbb3f6731280035206de7ca06862369782c5c"
+      },
+      {
+        "path": "schemas/bootstrap/schema.yaml",
+        "hash": "73174db914d04390998eaf2480e6feb3a5b16f101283f682b6d8bfb30d936cf5"
+      },
+      {
+        "path": "schemas/bootstrap/templates/domain-map.md",
+        "hash": "81d88f43810fe6e1b4b13d501e36e0bdb0a76b52398954effe11be41f5b2d973"
+      },
+      {
+        "path": "src/cli/index.ts",
+        "hash": "a1de5200235d6a1c292ececcd73b87cad3d97031c8e02f968d159447eeebb966"
+      },
+      {
+        "path": "src/commands/bootstrap.ts",
+        "hash": "1d8d2ffab3e5a828c5c4a862ac0e2a07917f8a1f6181ec907b31acbc3245436b"
+      },
+      {
+        "path": "src/core/templates/workflows/bootstrap-opsx.ts",
+        "hash": "ec8a20c8e57eafb59416c907cec2da6ef90002f53ff7e9d5ec7b38c6a3ccb618"
+      },
+      {
+        "path": "src/utils/bootstrap-utils.ts",
+        "hash": "863a515487a2de4cac9449f8c6f35a1bc4d60e0f84622a5f09c764d87e899463"
+      },
+      {
+        "path": "test/cli-e2e/bootstrap-backfill.test.ts",
+        "hash": "bbdb1def0babd22de330dc077ff958ff7058e03bd8983db1c27ccad9db8b0809"
+      },
+      {
+        "path": "test/cli-e2e/bootstrap-lifecycle.test.ts",
+        "hash": "c8d5351dc1278d18a0f60705b94cf6c4034231bdf6bf9fe93d7d2f552f6b9cb9"
+      },
+      {
+        "path": "test/cli-e2e/bootstrap-phase1.test.ts",
+        "hash": "c4b5fad2d7a8ddb86bb2286d93e454634b0971c3d684547b1fee2af48062a306"
+      },
+      {
+        "path": "test/cli-e2e/bootstrap-refresh.test.ts",
+        "hash": "58c3e4e6eb135f4c539505756874162d3ec7b4d9bc095f4c2560a2fe498b7d24"
+      },
+      {
+        "path": "test/commands/bootstrap.test.ts",
+        "hash": "493a867a43d06ac1ba3a76929e042d9f102ff83760bd39a8f94f6b3ed0c2f8b6"
+      },
+      {
+        "path": "test/core/templates/bootstrap-opsx.test.ts",
+        "hash": "8cca7495227c0a6439eb4e8eeb30b631692fe4741484d121bd03146cfb97cd76"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "16203d0bad341f39bd503d08fab087fa666df2d26922907db902746c136fb3fc"
+      },
+      {
+        "path": "test/utils/bootstrap-refresh-utils.test.ts",
+        "hash": "1d0dae93a81819ed8fb029b4f39dadbdc65d60ecef9bf1ee975bcc17f3b26828"
+      },
+      {
+        "path": "test/utils/bootstrap-utils.pbt.contract.test.ts",
+        "hash": "c1a0910bf61b0559e4b47df111600a4d8aa781a04890ddcddaf9ab8394db2ff7"
+      },
+      {
+        "path": "test/utils/bootstrap-utils.test.ts",
+        "hash": "980be315ab10938ee3a1452067fa0dff0cb5388a4b2c1e431d23f54370d717c4"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "f4e8c9ee2d0c72a2d0a7514dc4fd240dca5b2065"
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-07-06T08:57:35.974Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [],
+      "tasksFileHash": "1e0b2ec001788c2ae1f00fae5ac8bb72f887aa115ae66ef362876d81643daaae",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "executionMode": "subagent",
+        "evidenceFiles": [
+          ".pi/skills/openspec-bootstrap-opsx/SKILL.md",
+          "docs/opsx-bootstrap.md",
+          "schemas/bootstrap/schema.yaml",
+          "schemas/bootstrap/templates/domain-map.md",
+          "src/cli/index.ts",
+          "src/commands/bootstrap.ts",
+          "src/core/templates/workflows/bootstrap-opsx.ts",
+          "src/utils/bootstrap-utils.ts",
+          "test/cli-e2e/bootstrap-backfill.test.ts",
+          "test/cli-e2e/bootstrap-lifecycle.test.ts",
+          "test/cli-e2e/bootstrap-phase1.test.ts",
+          "test/cli-e2e/bootstrap-refresh.test.ts",
+          "test/commands/bootstrap.test.ts",
+          "test/core/templates/bootstrap-opsx.test.ts",
+          "test/core/templates/skill-templates-parity.test.ts",
+          "test/utils/bootstrap-refresh-utils.test.ts",
+          "test/utils/bootstrap-utils.pbt.contract.test.ts",
+          "test/utils/bootstrap-utils.test.ts"
+        ],
+        "evidenceFingerprint": "e1bfcb6792b1813fc10d9b4bf0d0a7037944315ff8bdb6dc0210114a8abd736b",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".pi/skills/openspec-bootstrap-opsx/SKILL.md",
+            "hash": "0cb1f197db523cddddf275e5c874be39b0ad4b6dc2ba1517e5b0d4f60ff8f9f6"
+          },
+          {
+            "path": "docs/opsx-bootstrap.md",
+            "hash": "bb5df87e67ef44c09e963261a43fbb3f6731280035206de7ca06862369782c5c"
+          },
+          {
+            "path": "schemas/bootstrap/schema.yaml",
+            "hash": "73174db914d04390998eaf2480e6feb3a5b16f101283f682b6d8bfb30d936cf5"
+          },
+          {
+            "path": "schemas/bootstrap/templates/domain-map.md",
+            "hash": "81d88f43810fe6e1b4b13d501e36e0bdb0a76b52398954effe11be41f5b2d973"
+          },
+          {
+            "path": "src/cli/index.ts",
+            "hash": "a1de5200235d6a1c292ececcd73b87cad3d97031c8e02f968d159447eeebb966"
+          },
+          {
+            "path": "src/commands/bootstrap.ts",
+            "hash": "1d8d2ffab3e5a828c5c4a862ac0e2a07917f8a1f6181ec907b31acbc3245436b"
+          },
+          {
+            "path": "src/core/templates/workflows/bootstrap-opsx.ts",
+            "hash": "ec8a20c8e57eafb59416c907cec2da6ef90002f53ff7e9d5ec7b38c6a3ccb618"
+          },
+          {
+            "path": "src/utils/bootstrap-utils.ts",
+            "hash": "863a515487a2de4cac9449f8c6f35a1bc4d60e0f84622a5f09c764d87e899463"
+          },
+          {
+            "path": "test/cli-e2e/bootstrap-backfill.test.ts",
+            "hash": "bbdb1def0babd22de330dc077ff958ff7058e03bd8983db1c27ccad9db8b0809"
+          },
+          {
+            "path": "test/cli-e2e/bootstrap-lifecycle.test.ts",
+            "hash": "c8d5351dc1278d18a0f60705b94cf6c4034231bdf6bf9fe93d7d2f552f6b9cb9"
+          },
+          {
+            "path": "test/cli-e2e/bootstrap-phase1.test.ts",
+            "hash": "c4b5fad2d7a8ddb86bb2286d93e454634b0971c3d684547b1fee2af48062a306"
+          },
+          {
+            "path": "test/cli-e2e/bootstrap-refresh.test.ts",
+            "hash": "58c3e4e6eb135f4c539505756874162d3ec7b4d9bc095f4c2560a2fe498b7d24"
+          },
+          {
+            "path": "test/commands/bootstrap.test.ts",
+            "hash": "493a867a43d06ac1ba3a76929e042d9f102ff83760bd39a8f94f6b3ed0c2f8b6"
+          },
+          {
+            "path": "test/core/templates/bootstrap-opsx.test.ts",
+            "hash": "8cca7495227c0a6439eb4e8eeb30b631692fe4741484d121bd03146cfb97cd76"
+          },
+          {
+            "path": "test/core/templates/skill-templates-parity.test.ts",
+            "hash": "16203d0bad341f39bd503d08fab087fa666df2d26922907db902746c136fb3fc"
+          },
+          {
+            "path": "test/utils/bootstrap-refresh-utils.test.ts",
+            "hash": "1d0dae93a81819ed8fb029b4f39dadbdc65d60ecef9bf1ee975bcc17f3b26828"
+          },
+          {
+            "path": "test/utils/bootstrap-utils.pbt.contract.test.ts",
+            "hash": "c1a0910bf61b0559e4b47df111600a4d8aa781a04890ddcddaf9ab8394db2ff7"
+          },
+          {
+            "path": "test/utils/bootstrap-utils.test.ts",
+            "hash": "980be315ab10938ee3a1452067fa0dff0cb5388a4b2c1e431d23f54370d717c4"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "f4e8c9ee2d0c72a2d0a7514dc4fd240dca5b2065"
+      }
+    }
+  }
+}

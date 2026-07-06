@@ -17,17 +17,17 @@
 
 #### Checks
 
-- [ ] C1 Verify explicit granularity persistence
+- [x] C1 Verify explicit granularity persistence
   - Verifies: `specs/bootstrap-init-ux/spec.md` / Requirement "Granularity init state SHALL be explicit" / Scenario "Agent supplies explicit granularity to init"
   - Command: `pnpm test -- test/commands/bootstrap.test.ts test/utils/bootstrap-utils.test.ts`
   - Expect: init with `--granularity coarse` writes `granularity: coarse` to `openspec/bootstrap/scope.yaml`
 
-- [ ] C2 Verify missing and invalid granularity rejection
+- [x] C2 Verify missing and invalid granularity rejection
   - Verifies: `specs/bootstrap-init-ux/spec.md` / Requirement "Granularity init state SHALL be explicit" / Scenario "Missing granularity fails fast", Scenario "Invalid granularity fails fast"
   - Command: `pnpm test -- test/commands/bootstrap.test.ts test/utils/bootstrap-utils.test.ts`
   - Expect: init without `--granularity` or with an invalid value fails before creating or updating scope
 
-- [ ] C3 Verify restart explicit granularity override
+- [x] C3 Verify restart explicit granularity override
   - Verifies: `specs/bootstrap-init-ux/spec.md` / Requirement "Granularity init state SHALL be explicit" / Scenario "Restart carries explicit granularity"
   - Command: `pnpm test -- test/commands/bootstrap.test.ts test/utils/bootstrap-refresh-utils.test.ts test/cli-e2e/bootstrap-refresh.test.ts`
   - Expect: restart writes the explicitly supplied granularity instead of silently inheriting or defaulting
@@ -49,17 +49,17 @@
 
 #### Checks
 
-- [ ] C4 Verify valid coarse spec_groups gate
+- [x] C4 Verify valid coarse spec_groups gate
   - Verifies: `specs/bootstrap-domain-map-state/spec.md` / Requirement "Domain-map spec_groups validation" / Scenario "Coarse domain-map with valid spec_groups is valid"
   - Command: `pnpm test -- test/utils/bootstrap-utils.test.ts`
   - Expect: valid `spec_groups` passes `map_to_review` until candidate spec validation
 
-- [ ] C5 Verify coarse spec_groups validation failures
+- [x] C5 Verify coarse spec_groups validation failures
   - Verifies: `specs/bootstrap-domain-map-state/spec.md` / Requirement "Domain-map spec_groups validation" / Scenario "Coarse domain-map without spec_groups is invalid", Scenario "spec_groups cannot reference missing capabilities", Scenario "spec_groups folder conflicts are rejected"
   - Command: `pnpm test -- test/utils/bootstrap-utils.test.ts`
   - Expect: coarse without groups, missing capability references, and duplicate folders each report deterministic gate errors
 
-- [ ] C6 Verify Windows path separator rejection
+- [x] C6 Verify Windows path separator rejection
   - Verifies: `specs/bootstrap-domain-map-state/spec.md` / Requirement "Domain-map spec_groups validation" / Scenario "Windows path separators are rejected in spec_groups folder"
   - Command: `pnpm test -- test/utils/bootstrap-utils.test.ts`
   - Expect: `spec_groups[].folder` containing platform separators is rejected as not being a single segment
@@ -83,17 +83,17 @@
 
 #### Checks
 
-- [ ] C7 Verify coarse grouped candidate specs
+- [x] C7 Verify coarse grouped candidate specs
   - Verifies: `specs/bootstrap/spec.md` / Requirement "Bootstrap grouped spec source" / Scenario "Coarse mode uses spec_groups as spec source"
   - Command: `pnpm test -- test/utils/bootstrap-utils.test.ts test/cli-e2e/bootstrap-lifecycle.test.ts`
   - Expect: one `spec_groups` entry generates one candidate/formal spec with multi-capability frontmatter
 
-- [ ] C8 Verify fine candidate specs remain per capability
+- [x] C8 Verify fine candidate specs remain per capability
   - Verifies: `specs/bootstrap/spec.md` / Requirement "Bootstrap grouped spec source" / Scenario "Fine mode keeps capability spec source"
   - Command: `pnpm test -- test/utils/bootstrap-utils.test.ts`
   - Expect: `granularity: fine` continues to use `capabilities[].spec` and does not merge through `spec_groups`
 
-- [ ] C9 Verify coverage invariant replaces one-to-one invariant
+- [x] C9 Verify coverage invariant replaces one-to-one invariant
   - Verifies: `specs/bootstrap-baseline/spec.md` / Requirement "Raw + full SHALL generate formal OPSX and complete valid specs" / Scenario "Coarse full output covers capabilities through grouped specs", Scenario "Fine full output remains per capability"
   - Command: `pnpm test -- test/utils/bootstrap-utils.pbt.contract.test.ts`
   - Expect: every mapped capability is covered by at least one generated spec frontmatter; grouped specs may cover multiple capabilities
@@ -118,12 +118,12 @@
 
 #### Checks
 
-- [ ] C10 Verify agent granularity guidance
+- [x] C10 Verify agent granularity guidance
   - Verifies: `specs/bootstrap/spec.md` / Requirement "Bootstrap granularity selection" / Scenario "Agent asks granularity before init", Scenario "CLI persists explicit granularity"
   - Command: `pnpm test -- test/core/templates/bootstrap-opsx.test.ts test/cli-e2e/bootstrap-phase1.test.ts`
   - Expect: generated bootstrap guidance requires agent-side granularity selection and explicit CLI persistence
 
-- [ ] C11 Verify completion validation guidance
+- [x] C11 Verify completion validation guidance
   - Verifies: `specs/bootstrap/spec.md` / Requirement "Bootstrap completion validation" / Scenario "Agent validates after promote", Scenario "Validation failure returns to artifact repair"
   - Command: `pnpm test -- test/core/templates/bootstrap-opsx.test.ts`
   - Expect: bootstrap skill guidance requires `openspec validate --all` after promote/backfill and routes failures back to repair
@@ -147,17 +147,17 @@
 
 #### Checks
 
-- [ ] C12 Verify hidden default removal
+- [x] C12 Verify hidden default removal
   - Verifies: `specs/bootstrap-init-ux/spec.md` / Requirement "Granularity init state SHALL be explicit" / Scenario "Missing granularity fails fast"
   - Command: `rg "default\\('coarse'\\)|\\?\\? 'coarse'" src test schemas docs openspec`
   - Expect: no hidden `coarse` default remains outside archived historical content
 
-- [ ] C13 Verify stale one-to-one wording cleanup
+- [x] C13 Verify stale one-to-one wording cleanup
   - Verifies: `specs/bootstrap-baseline/spec.md` / Requirement "Raw + full SHALL generate formal OPSX and complete valid specs" / Scenario "Coarse full output covers capabilities through grouped specs"
   - Command: `rg "one validated spec.*mapped capability|per mapped capability" src docs openspec`
   - Expect: active wording no longer states per-capability specs as the only full-mode contract
 
-- [ ] C14 Verify all OpenSpec artifacts
+- [x] C14 Verify all OpenSpec artifacts
   - Verifies: `specs/bootstrap/spec.md` / Requirement "Bootstrap completion validation" / Scenario "Agent validates after promote"
   - Command: `openspec validate --all`
   - Expect: all changes and formal specs validate successfully

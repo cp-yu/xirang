@@ -157,7 +157,7 @@ describe('bootstrap command Phase 1 baseline contract', () => {
     await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'), 'schema_version: 1\nrelations: []\n');
     await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.code-map.yaml'), 'schema_version: 1\nnodes: []\n');
 
-    await expect(initBootstrap(testDir, { mode: 'full' })).rejects.toThrow(
+    await expect(initBootstrap(testDir, { mode: 'full', granularity: 'fine' })).rejects.toThrow(
       "Bootstrap mode 'full' is not supported for baseline 'formal-opsx'. Valid modes: refresh"
     );
     await expect(fs.stat(path.join(testDir, 'openspec', 'bootstrap'))).rejects.toThrow();
@@ -168,7 +168,7 @@ describe('bootstrap command Phase 1 baseline contract', () => {
     await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'), 'schema_version: 1\nrelations: []\n');
     await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.code-map.yaml'), 'schema_version: 1\nnodes: []\n');
 
-    await initBootstrap(testDir, { mode: 'refresh' });
+    await initBootstrap(testDir, { mode: 'refresh', granularity: 'fine' });
 
     const metadata = await fs.readFile(path.join(testDir, 'openspec', 'bootstrap', '.bootstrap.yaml'), 'utf-8');
     expect(metadata).toContain('baseline_type: formal-opsx');
@@ -180,14 +180,14 @@ describe('bootstrap command Phase 1 baseline contract', () => {
     await fs.mkdir(path.join(testDir, 'openspec', 'specs', 'auth'), { recursive: true });
     await fs.writeFile(path.join(testDir, 'openspec', 'specs', 'auth', 'spec.md'), '# Auth\n', 'utf-8');
 
-    await expect(initBootstrap(testDir, { mode: 'opsx-first' })).rejects.toThrow(
+    await expect(initBootstrap(testDir, { mode: 'opsx-first', granularity: 'fine' })).rejects.toThrow(
       "Bootstrap mode 'opsx-first' is not supported for baseline 'specs-based'. Valid modes: full"
     );
     await expect(fs.stat(path.join(testDir, 'openspec', 'bootstrap'))).rejects.toThrow();
   });
 
   it('persists baseline type and approved mode names on init', async () => {
-    await initBootstrap(testDir, { mode: 'opsx-first' });
+    await initBootstrap(testDir, { mode: 'opsx-first', granularity: 'fine' });
     const metadata = await fs.readFile(path.join(testDir, 'openspec', 'bootstrap', '.bootstrap.yaml'), 'utf-8');
     expect(metadata).toContain('baseline_type: raw');
     expect(metadata).toContain('mode: opsx-first');
@@ -198,6 +198,7 @@ describe('bootstrap command Phase 1 baseline contract', () => {
     const mockSelect = select as unknown as ReturnType<typeof vi.fn>;
     (process.stdout as NodeJS.WriteStream & { isTTY?: boolean }).isTTY = true;
     mockSelect.mockResolvedValueOnce('opsx-first');
+    mockSelect.mockResolvedValueOnce('coarse');
 
     await withCwd(testDir, () => bootstrapInitCommand({}));
 
@@ -218,7 +219,7 @@ describe('bootstrap command Phase 1 baseline contract', () => {
     const mockSelect = select as unknown as ReturnType<typeof vi.fn>;
     (process.stdout as NodeJS.WriteStream & { isTTY?: boolean }).isTTY = false;
 
-    await expect(withCwd(testDir, () => bootstrapInitCommand({}))).rejects.toThrow(
+    await expect(withCwd(testDir, () => bootstrapInitCommand({ granularity: 'fine' }))).rejects.toThrow(
       'Missing required option --mode in non-interactive mode.'
     );
     expect(mockSelect).not.toHaveBeenCalled();
@@ -230,7 +231,7 @@ describe('bootstrap command Phase 1 baseline contract', () => {
     const mockSelect = select as unknown as ReturnType<typeof vi.fn>;
     (process.stdout as NodeJS.WriteStream & { isTTY?: boolean }).isTTY = true;
 
-    await withCwd(testDir, () => bootstrapInitCommand({ mode: 'full' }));
+    await withCwd(testDir, () => bootstrapInitCommand({ mode: 'full', granularity: 'fine' }));
 
     expect(mockSelect).not.toHaveBeenCalled();
     const metadata = await fs.readFile(path.join(testDir, 'openspec', 'bootstrap', '.bootstrap.yaml'), 'utf-8');
@@ -242,7 +243,7 @@ describe('bootstrap command Phase 1 baseline contract', () => {
     const mockSelect = select as unknown as ReturnType<typeof vi.fn>;
     (process.stdout as NodeJS.WriteStream & { isTTY?: boolean }).isTTY = false;
 
-    await withCwd(testDir, () => bootstrapInitCommand({ mode: 'opsx-first' }));
+    await withCwd(testDir, () => bootstrapInitCommand({ mode: 'opsx-first', granularity: 'fine' }));
 
     expect(mockSelect).not.toHaveBeenCalled();
     const metadata = await fs.readFile(path.join(testDir, 'openspec', 'bootstrap', '.bootstrap.yaml'), 'utf-8');
@@ -251,7 +252,7 @@ describe('bootstrap command Phase 1 baseline contract', () => {
 
   it('bootstrap validate restores current derived states after an invalid domain-map is fixed', async () => {
     const originalExitCode = process.exitCode;
-    await initBootstrap(testDir, { mode: 'full' });
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
 
     await fs.mkdir(path.join(testDir, 'src', 'auth'), { recursive: true });
     await fs.writeFile(path.join(testDir, 'src', 'auth', 'index.ts'), 'export {};\n', 'utf-8');
@@ -387,7 +388,7 @@ code_refs:
   });
 
   it('prints the retained bootstrap workspace notice after promote succeeds', async () => {
-    await initBootstrap(testDir, { mode: 'full' });
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
 
     await fs.mkdir(path.join(testDir, 'src', 'auth'), { recursive: true });
     await fs.writeFile(path.join(testDir, 'src', 'auth', 'index.ts'), 'export {};\n', 'utf-8');
@@ -455,7 +456,7 @@ code_refs:
     await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), 'schema_version: 1\nproject:\n  id: demo\n  name: Demo\n', 'utf-8');
     await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'), 'schema_version: 1\nrelations: []\n', 'utf-8');
     await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.code-map.yaml'), 'schema_version: 1\nnodes: []\n', 'utf-8');
-    await initBootstrap(testDir, { mode: 'refresh' });
+    await initBootstrap(testDir, { mode: 'refresh', granularity: 'fine' });
     await setBootstrapPhase(testDir, 'promote');
 
     const metadataPath = path.join(testDir, 'openspec', 'bootstrap', '.bootstrap.yaml');
@@ -476,5 +477,28 @@ code_refs:
     expect(instructions).toContain('## Bootstrap: completed workspace');
     expect(instructions).toContain('openspec bootstrap init --mode refresh --restart');
     expect(instructions).not.toContain('## Bootstrap: promote phase');
+  });
+
+  // ─── Task 1: Granularity persistence tests ───────────────────────────────
+
+  it('init with --granularity coarse writes granularity: coarse to scope.yaml', async () => {
+    await withCwd(testDir, () => bootstrapInitCommand({ mode: 'full', granularity: 'coarse' }));
+    const scopeRaw = await fs.readFile(path.join(testDir, 'openspec', 'bootstrap', 'scope.yaml'), 'utf-8');
+    expect(scopeRaw).toContain('granularity: coarse');
+  });
+
+  it('init without --granularity fails fast', async () => {
+    (process.stdout as NodeJS.WriteStream & { isTTY?: boolean }).isTTY = false;
+    await expect(
+      withCwd(testDir, () => bootstrapInitCommand({ mode: 'full' }))
+    ).rejects.toThrow('--granularity coarse|fine');
+    await expect(fs.stat(path.join(testDir, 'openspec', 'bootstrap'))).rejects.toThrow();
+  });
+
+  it('init with invalid --granularity fails fast', async () => {
+    await expect(
+      withCwd(testDir, () => bootstrapInitCommand({ mode: 'full', granularity: 'medium' }))
+    ).rejects.toThrow();
+    await expect(fs.stat(path.join(testDir, 'openspec', 'bootstrap', 'scope.yaml'))).rejects.toThrow();
   });
 });

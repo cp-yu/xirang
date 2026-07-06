@@ -54,7 +54,7 @@ describe('bootstrap-utils invalid domain-map handling', () => {
         mode: scope.mode ?? 'full',
         include: scope.include ?? [],
         exclude: scope.exclude ?? [],
-        granularity: scope.granularity ?? 'coarse',
+        granularity: scope.granularity ?? 'fine',
       }),
       'utf-8'
     );
@@ -172,7 +172,7 @@ capabilities:
   }
 
   it('distinguishes valid, missing, and invalid domain-map states in bootstrap status', async () => {
-    await initBootstrap(testDir, { mode: 'full' });
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
     await writeEvidence(['dom.auth', 'dom.billing', 'dom.docs']);
     await writeValidDomainMap('dom.auth');
     await writeInvalidDomainMap('dom.billing');
@@ -200,7 +200,7 @@ capabilities:
   });
 
   it('fails map_to_review and downgrades derived artifacts to stale when a domain-map becomes invalid', async () => {
-    await initBootstrap(testDir, { mode: 'full' });
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
     await writeEvidence(['dom.auth']);
     await writeValidDomainMap('dom.auth');
 
@@ -254,7 +254,7 @@ capabilities:
         mode: 'seed',
         include: [],
         exclude: [],
-        granularity: 'coarse',
+        granularity: 'fine',
       }),
       'utf-8'
     );
@@ -268,7 +268,7 @@ capabilities:
     await fs.mkdir(path.join(testDir, 'openspec', 'specs', 'auth'), { recursive: true });
     await fs.writeFile(path.join(testDir, 'openspec', 'specs', 'auth', 'spec.md'), '# Existing auth spec\n', 'utf-8');
 
-    await initBootstrap(testDir, { mode: 'full' });
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
     await writeEvidence(['dom.auth']);
 
     const filePath = path.join(testDir, 'openspec', 'bootstrap', 'domain-map', 'dom.auth.yaml');
@@ -318,7 +318,7 @@ code_refs:
   });
 
   it('marks candidate and review stale when a requirement text change alters candidate spec content', async () => {
-    await initBootstrap(testDir, { mode: 'full' });
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
     await writeEvidence(['dom.auth']);
     await writeValidDomainMap('dom.auth');
 
@@ -346,7 +346,7 @@ code_refs:
   });
 
   it('marks candidate and review stale when scenario steps change', async () => {
-    await initBootstrap(testDir, { mode: 'full' });
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
     await writeEvidence(['dom.auth']);
     await writeValidDomainMap('dom.auth');
 
@@ -375,7 +375,7 @@ code_refs:
   });
 
   it('marks candidate and review stale when projection-affecting config changes', async () => {
-    await initBootstrap(testDir, { mode: 'full' });
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
     await writeEvidence(['dom.auth']);
     await writeValidDomainMap('dom.auth');
 
@@ -404,7 +404,7 @@ code_refs:
   });
 
   it('marks candidate and review stale when spec folder mapping changes (spec-path change)', async () => {
-    await initBootstrap(testDir, { mode: 'full' });
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
     await writeEvidence(['dom.auth']);
     await writeValidDomainMap('dom.auth');
 
@@ -432,7 +432,7 @@ code_refs:
   });
 
   it('writes candidate spec files to cross-platform joined paths', async () => {
-    await initBootstrap(testDir, { mode: 'full' });
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
     await writeEvidence(['dom.auth']);
     await writeValidDomainMap('dom.auth');
 
@@ -449,7 +449,7 @@ code_refs:
       'schema: spec-driven\ndocLanguage: 中文\n',
       'utf-8'
     );
-    await initBootstrap(testDir, { mode: 'opsx-first' });
+    await initBootstrap(testDir, { mode: 'opsx-first', granularity: 'fine' });
     await writeEvidence(['dom.auth']);
     await writeValidDomainMap('dom.auth');
 
@@ -468,7 +468,7 @@ code_refs:
   });
 
   it('rejects spec folders that embed path separators (Windows/posix)', async () => {
-    await initBootstrap(testDir, { mode: 'full' });
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
     await writeEvidence(['dom.auth']);
 
     // This should be treated as an invalid domain-map, not a missing one.
@@ -497,7 +497,7 @@ code_refs:
       'utf-8'
     );
 
-    await initBootstrap(testDir, { mode: 'full' });
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
     await writeScope({
       mode: 'full',
       include: ['src', 'docs'],
@@ -538,7 +538,7 @@ code_refs:
   });
 
   it('leaves bootstrap project intent and scope undefined when workspace inputs are insufficient', async () => {
-    await initBootstrap(testDir, { mode: 'full' });
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
     await fs.writeFile(
       path.join(testDir, 'openspec', 'bootstrap', 'evidence.yaml'),
       stringifyYaml({
@@ -576,7 +576,7 @@ project:
     await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'), 'schema_version: 1\nrelations: []\n', 'utf-8');
     await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.code-map.yaml'), 'schema_version: 1\nnodes: []\n', 'utf-8');
 
-    await expect(initBootstrap(testDir, { mode: 'full' })).rejects.toThrow(
+    await expect(initBootstrap(testDir, { mode: 'full', granularity: 'fine' })).rejects.toThrow(
       "Bootstrap mode 'full' is not supported for baseline 'formal-opsx'. Valid modes: refresh"
     );
     await expect(fs.readFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), 'utf-8')).resolves.toBe(originalProjectOpsx);
@@ -584,7 +584,7 @@ project:
   });
 
   it('retains the bootstrap workspace after promote and returns a manual cleanup notice', async () => {
-    await initBootstrap(testDir, { mode: 'full' });
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
     await writeEvidence(['dom.auth']);
     await writeValidDomainMap('dom.auth');
 
@@ -596,5 +596,295 @@ project:
 
     expect(result.retainedWorkspaceNotice).toBe(BOOTSTRAP_WORKSPACE_RETAINED_NOTICE);
     await expect(fs.stat(path.join(testDir, 'openspec', 'bootstrap'))).resolves.toBeDefined();
+  });
+});
+
+// ─── Task 2: spec_groups validation tests ──────────────────────────────────
+
+describe('bootstrap-utils spec_groups validation', () => {
+  let testDir: string;
+
+  beforeEach(async () => {
+    testDir = path.join(os.tmpdir(), `openspec-bootstrap-specgroups-${randomUUID()}`);
+    await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(testDir, { recursive: true, force: true });
+  });
+
+  async function initCoarse(testDir: string): Promise<void> {
+    await initBootstrap(testDir, { mode: 'full', granularity: 'coarse' });
+    await fs.mkdir(path.join(testDir, 'src', 'cli'), { recursive: true });
+    await fs.writeFile(path.join(testDir, 'src', 'cli', 'index.ts'), 'export {};\n', 'utf-8');
+    await fs.writeFile(
+      path.join(testDir, 'openspec', 'bootstrap', 'evidence.yaml'),
+      `domains:
+  - id: dom.cli
+    confidence: high
+    sources:
+      - code:src/cli/index.ts
+    intent: CLI intent
+`,
+      'utf-8'
+    );
+  }
+
+  function domainMapYaml(domainId: string, capabilityIds: string[], specGroups?: Array<{ folder: string; capabilities: string[] }>): string {
+    const capabilities = capabilityIds.map((id) => ({
+      id,
+      type: 'capability',
+      intent: `${id} intent`,
+      ...(!specGroups ? {
+        spec: {
+          folder: id.replace('cap.', '').replace('.', '-'),
+          purpose: `${id} purpose`,
+          requirements: [{
+            title: `${id} requirement`,
+            text: `The system SHALL support ${id}.`,
+            scenarios: [{
+              title: 'Basic flow',
+              steps: [
+                { keyword: 'WHEN', text: `${id} is invoked` },
+                { keyword: 'THEN', text: `${id} succeeds` },
+              ],
+            }],
+          }],
+        },
+      } : {}),
+    }));
+
+    const data: Record<string, unknown> = {
+      domain: { id: domainId, type: 'domain', intent: `${domainId} boundary` },
+      capabilities,
+      relations: capabilityIds.map((id) => ({ from: id, to: domainId, type: 'contains' })),
+      code_refs: capabilityIds.map((id) => ({
+        id,
+        refs: [{ path: `src/${domainId.replace('dom.', '')}/index.ts`, line_start: 1 }],
+      })),
+    };
+
+    if (specGroups) {
+      data.spec_groups = specGroups.map((g) => ({ folder: g.folder, capabilities: g.capabilities }));
+    }
+
+    return stringifyYaml(data, { lineWidth: 0 });
+  }
+
+  it('accepts a valid coarse domain-map with spec_groups', async () => {
+    await initCoarse(testDir);
+    await fs.writeFile(
+      path.join(testDir, 'openspec', 'bootstrap', 'domain-map', 'dom.cli.yaml'),
+      domainMapYaml('dom.cli', ['cap.cli.init', 'cap.cli.validate'], [
+        { folder: 'cli', capabilities: ['cap.cli.init', 'cap.cli.validate'] },
+      ]),
+      'utf-8'
+    );
+
+    const gate = await validateGate(testDir, 'map_to_review');
+    expect(gate.passed).toBe(true);
+    expect(gate.errors).toEqual([]);
+  });
+
+  it('rejects a coarse domain-map without spec_groups', async () => {
+    await initCoarse(testDir);
+    await fs.writeFile(
+      path.join(testDir, 'openspec', 'bootstrap', 'domain-map', 'dom.cli.yaml'),
+      domainMapYaml('dom.cli', ['cap.cli.init']),
+      'utf-8'
+    );
+
+    const gate = await validateGate(testDir, 'map_to_review');
+    expect(gate.passed).toBe(false);
+    expect(gate.errors).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('spec_groups'),
+        expect.stringContaining('coarse'),
+      ])
+    );
+  });
+
+  it('rejects spec_groups referencing capabilities not in the domain-map', async () => {
+    await initCoarse(testDir);
+    await fs.writeFile(
+      path.join(testDir, 'openspec', 'bootstrap', 'domain-map', 'dom.cli.yaml'),
+      domainMapYaml('dom.cli', ['cap.cli.init'], [
+        { folder: 'cli', capabilities: ['cap.cli.init', 'cap.cli.missing'] },
+      ]),
+      'utf-8'
+    );
+
+    const gate = await validateGate(testDir, 'map_to_review');
+    expect(gate.passed).toBe(false);
+    expect(gate.errors).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('cap.cli.missing'),
+      ])
+    );
+  });
+
+  it('rejects duplicate spec_groups folders', async () => {
+    await initCoarse(testDir);
+    await fs.writeFile(
+      path.join(testDir, 'openspec', 'bootstrap', 'domain-map', 'dom.cli.yaml'),
+      domainMapYaml('dom.cli', ['cap.cli.init', 'cap.cli.validate'], [
+        { folder: 'cli', capabilities: ['cap.cli.init'] },
+        { folder: 'cli', capabilities: ['cap.cli.validate'] },
+      ]),
+      'utf-8'
+    );
+
+    const gate = await validateGate(testDir, 'map_to_review');
+    expect(gate.passed).toBe(false);
+    expect(gate.errors).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('folder'),
+        expect.stringContaining('cli'),
+      ])
+    );
+  });
+
+  it('rejects spec_groups folder with Windows path separators', async () => {
+    await initCoarse(testDir);
+    await fs.writeFile(
+      path.join(testDir, 'openspec', 'bootstrap', 'domain-map', 'dom.cli.yaml'),
+      `domain:
+  id: dom.cli
+  type: domain
+  intent: dom.cli boundary
+capabilities:
+  - id: cap.cli.init
+    type: capability
+    intent: cap.cli.init intent
+relations:
+  - from: cap.cli.init
+    to: dom.cli
+    type: contains
+code_refs:
+  - id: cap.cli.init
+    refs:
+      - path: src/cli/index.ts
+        line_start: 1
+spec_groups:
+  - folder: cli\\commands
+    capabilities:
+      - cap.cli.init
+`,
+      'utf-8'
+    );
+
+    const gate = await validateGate(testDir, 'map_to_review');
+    expect(gate.passed).toBe(false);
+    expect(gate.errors).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('spec_groups'),
+      ])
+    );
+  });
+});
+
+// ─── Task 3: Coarse/Fine candidate spec compilation ─────────────────────
+
+describe('bootstrap-utils coarse candidate spec compilation', () => {
+  let testDir: string;
+
+  beforeEach(async () => {
+    testDir = path.join(os.tmpdir(), `openspec-bootstrap-compile-${randomUUID()}`);
+    await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(testDir, { recursive: true, force: true });
+  });
+
+  async function setupCoarseWorkspace(): Promise<void> {
+    await initBootstrap(testDir, { mode: 'full', granularity: 'coarse' });
+    await fs.mkdir(path.join(testDir, 'src', 'cli'), { recursive: true });
+    await fs.writeFile(path.join(testDir, 'src', 'cli', 'index.ts'), 'export {};\n', 'utf-8');
+    await fs.writeFile(
+      path.join(testDir, 'openspec', 'bootstrap', 'evidence.yaml'),
+      `domains:
+  - id: dom.cli
+    confidence: high
+    sources:
+      - code:src/cli/index.ts
+    intent: CLI
+`,
+      'utf-8'
+    );
+  }
+
+  function coarseDomainMapYaml(domainId: string, capabilityIds: string[], deps: Array<{ folder: string; capabilities: string[] }>): string {
+    const data: Record<string, unknown> = {
+      domain: { id: domainId, type: 'domain', intent: `${domainId} boundary` },
+      capabilities: capabilityIds.map((id) => ({
+        id,
+        type: 'capability',
+        intent: `${id} intent`,
+      })),
+      relations: capabilityIds.map((id) => ({ from: id, to: domainId, type: 'contains' })),
+      code_refs: capabilityIds.map((id) => ({
+        id,
+        refs: [{ path: `src/${domainId.replace('dom.', '')}/index.ts`, line_start: 1 }],
+      })),
+      spec_groups: deps.map((dep) => ({
+        folder: dep.folder,
+        capabilities: dep.capabilities,
+        purpose: `${dep.folder} purpose`,
+        requirements: [{
+          title: `${dep.folder} requirement`,
+          text: `The system SHALL support ${dep.folder}.`,
+          scenarios: [{
+            title: 'Basic flow',
+            steps: [
+              { keyword: 'WHEN', text: `${dep.folder} is used` },
+              { keyword: 'THEN', text: `${dep.folder} succeeds` },
+            ],
+          }],
+        }],
+      })),
+    };
+    return stringifyYaml(data, { lineWidth: 0 });
+  }
+
+  it('generates one candidate spec per spec_groups entry in coarse mode', async () => {
+    await setupCoarseWorkspace();
+    await fs.writeFile(
+      path.join(testDir, 'openspec', 'bootstrap', 'domain-map', 'dom.cli.yaml'),
+      coarseDomainMapYaml('dom.cli', ['cap.cli.init', 'cap.cli.validate'], [
+        { folder: 'cli-core', capabilities: ['cap.cli.init', 'cap.cli.validate'] },
+      ]),
+      'utf-8'
+    );
+
+    await refreshBootstrapDerivedArtifacts(testDir);
+
+    const candidateSpec = await fs.readFile(
+      path.join(testDir, 'openspec', 'bootstrap', 'candidate', 'specs', 'cli-core', 'spec.md'),
+      'utf-8'
+    );
+    expect(candidateSpec).toContain('# Spec: cli-core');
+    expect(candidateSpec).toContain('The system SHALL support cli-core');
+  });
+
+  it('coarse candidate spec frontmatter contains multiple capabilities', async () => {
+    await setupCoarseWorkspace();
+    await fs.writeFile(
+      path.join(testDir, 'openspec', 'bootstrap', 'domain-map', 'dom.cli.yaml'),
+      coarseDomainMapYaml('dom.cli', ['cap.cli.init', 'cap.cli.validate'], [
+        { folder: 'cli-core', capabilities: ['cap.cli.init', 'cap.cli.validate'] },
+      ]),
+      'utf-8'
+    );
+
+    await refreshBootstrapDerivedArtifacts(testDir);
+
+    const candidateSpec = await fs.readFile(
+      path.join(testDir, 'openspec', 'bootstrap', 'candidate', 'specs', 'cli-core', 'spec.md'),
+      'utf-8'
+    );
+    // Frontmatter should list the capabilities
+    expect(candidateSpec).toContain('cap.cli.init');
+    expect(candidateSpec).toContain('cap.cli.validate');
   });
 });

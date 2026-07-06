@@ -33,9 +33,17 @@ Treat \`openspec/config.yaml\` as the source of truth for authoring policy, but 
    \`\`\`
 
    **Phase: init**
+   
+   **Before init**: Ask the user to choose a spec granularity:
+   - **coarse** — fewer, wider grouped specs via \`spec_groups\` in domain-map source
+   - **fine** — per-capability specs via \`capabilities[].spec\`
+   
+   Do NOT pick a default. Explain the trade-off: coarse produces fewer spec files covering multiple capabilities each; fine produces one spec per capability.
+
    \`\`\`bash
-   openspec bootstrap init --mode full
+   openspec bootstrap init --mode full --granularity coarse
    \`\`\`
+   The CLI persists the confirmed granularity in \`scope.yaml\`. Missing or invalid \`--granularity\` fails fast.
    Creates workspace at \`openspec/bootstrap/\` with scope configuration.
    Supported upgrade paths:
    - \`specs-based -> full\`
@@ -73,6 +81,21 @@ Treat \`openspec/config.yaml\` as the source of truth for authoring policy, but 
          type: capability
          intent: Initialize OpenSpec in a project
          status: active
+         spec:
+           folder: cli-init
+           purpose: ...
+           requirements:
+             - title: ...
+               text: The system SHALL ...
+               scenarios: ...
+     spec_groups:  # For coarse granularity only
+       - folder: cli
+         capabilities: [cap.cli.init, cap.cli.validate]
+         purpose: CLI commands expose OpenSpec workflows through deterministic behavior.
+         requirements:
+           - title: ...
+             text: The system SHALL ...
+             scenarios: ...
      relations:
        - from: cap.cli.init
          to: dom.cli
@@ -101,7 +124,8 @@ Treat \`openspec/config.yaml\` as the source of truth for authoring policy, but 
    \`\`\`
    Re-validates all upstream gates before writing.
    - \`opsx-first\`: writes the formal OPSX three-file bundle plus only \`openspec/specs/README.md\`
-   - \`full\` on \`raw\`: writes the formal OPSX bundle plus one validated spec per mapped capability
+   - \`full\` on \`raw\` with \`granularity: coarse\`: writes the formal OPSX bundle plus grouped specs from \`spec_groups\` with multi-capability frontmatter
+   - \`full\` on \`raw\` with \`granularity: fine\`: writes the formal OPSX bundle plus one spec per mapped capability
    - \`full\` on \`specs-based\`: preserves existing specs, adds only missing capability specs, and fails fast on target-path conflicts
    - \`refresh\` on \`formal-opsx\`: merges the reviewed delta into the existing formal OPSX bundle, preserves existing specs, adds only missing specs for newly added capabilities, and fails fast on conflicts
    Promote also runs the programmatic spec frontmatter backfill. After promote, run:
@@ -110,6 +134,11 @@ Treat \`openspec/config.yaml\` as the source of truth for authoring policy, but 
    \`\`\`
    For unmatched specs, spawn a subagent to read the spec content and OPSX capability intents, return semantic matches, then write the returned frontmatter mappings; report any specs that still have no match.
    Retains the bootstrap workspace on success for audit history.
+   After promote + backfill, run:
+   \`\`\`bash
+   openspec validate --all
+   \`\`\`
+   If validation fails, report the failing item and return to the relevant bootstrap source artifact for repair. Do NOT claim bootstrap completion while validation failures remain unresolved.
    Start the next refresh run with \`openspec bootstrap init --mode refresh --restart\`, which snapshots the retained workspace into \`openspec/bootstrap-history/\`.
 
 3. **After each phase action**

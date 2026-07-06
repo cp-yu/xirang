@@ -549,6 +549,7 @@ bootstrapCmd
   .option('--mode <mode>', 'Bootstrap mode: full (complete specs), opsx-first (README-only starter), or refresh (delta-first formal OPSX refresh)')
   .option('--scope <paths>', 'Comma-separated paths to include in scan')
   .option('--restart', 'Start a new run from a completed retained workspace by snapshotting the previous openspec/bootstrap/')
+  .option('--granularity <granularity>', 'Spec granularity: coarse (fewer grouped specs) or fine (per-capability specs)')
   .action(async (options: BootstrapInitOptions) => {
     try {
       await bootstrapInitCommand(options);

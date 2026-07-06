@@ -23,6 +23,7 @@ export interface BootstrapInitOptions {
   mode?: string;
   scope?: string;
   restart?: boolean;
+  granularity?: string;
 }
 
 export interface BootstrapStatusOptions {
@@ -84,15 +85,48 @@ async function resolveBootstrapMode(
   });
 }
 
+function parseGranularity(value: string | undefined): 'coarse' | 'fine' {
+  if (!value) {
+    throw new Error('Missing required option: --granularity coarse|fine');
+  }
+  if (value !== 'coarse' && value !== 'fine') {
+    throw new Error(`Invalid granularity '${value}'. Valid values: coarse, fine`);
+  }
+  return value;
+}
+
+async function resolveGranularity(
+  requested: string | undefined
+): Promise<'coarse' | 'fine'> {
+  if (requested) {
+    return parseGranularity(requested);
+  }
+
+  const isTTY = Boolean((process.stdout as NodeJS.WriteStream & { isTTY?: boolean }).isTTY);
+  if (!isTTY) {
+    throw new Error('Missing required option: --granularity coarse|fine');
+  }
+
+  const { select } = await import('@inquirer/prompts');
+  return select({
+    message: 'Select spec granularity',
+    choices: [
+      { name: 'coarse — fewer, wider grouped specs', value: 'coarse' },
+      { name: 'fine — per-capability specs', value: 'fine' },
+    ],
+  });
+}
+
 export async function bootstrapInitCommand(options: BootstrapInitOptions): Promise<void> {
   const projectRoot = process.cwd();
   const mode = await resolveBootstrapMode(projectRoot, options.mode);
+  const granularity = await resolveGranularity(options.granularity);
   const scope = options.scope ? options.scope.split(',').map(s => s.trim()) : undefined;
 
   const spinner = ora(`${options.restart ? 'Restarting' : 'Initializing'} bootstrap workspace (mode: ${mode})...`).start();
 
   try {
-    const result = await initBootstrap(projectRoot, { mode, scope, restart: options.restart });
+    const result = await initBootstrap(projectRoot, { mode, scope, restart: options.restart, granularity });
     const metadata = result.metadata;
     spinner.succeed(`Bootstrap workspace ${result.restarted ? 'restarted' : 'created'} at openspec/bootstrap/`);
     console.log(`  Phase: ${metadata.phase}`);
@@ -418,7 +452,7 @@ ${mode === 'opsx-first'
     ? 'Refresh merges the reviewed delta back into the existing formal OPSX bundle, preserves existing specs, adds only missing specs for newly added capabilities, and fails fast on spec-path conflicts.'
     : baselineType === 'specs-based'
     ? 'Full mode preserves your existing specs, adds only missing capability specs, and fails fast on target-path conflicts.'
-    : 'Full mode writes the formal OPSX bundle and one validated spec file per mapped capability.'}
+    : 'Full mode writes the formal OPSX bundle plus valid specs covering all mapped capabilities (coarse: grouped via spec_groups, fine: one per capability).'}}
 After a completed retained workspace, start the next refresh run with: openspec bootstrap init --mode refresh --restart`;
   }
 }

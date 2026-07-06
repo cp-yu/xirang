@@ -92,7 +92,7 @@ nodes:
 
   it('falls back to a full scan when refresh runs without git support', async () => {
     await writeFormalBaseline();
-    await initBootstrap(testDir, { mode: 'refresh' });
+    await initBootstrap(testDir, { mode: 'refresh', granularity: 'fine' });
     await writeRefreshInputs({
       domain: {
         id: 'dom.auth',
@@ -145,7 +145,7 @@ nodes:
 
   it('fails refresh promote on spec conflicts before mutating formal outputs', async () => {
     await writeFormalBaseline();
-    await initBootstrap(testDir, { mode: 'refresh' });
+    await initBootstrap(testDir, { mode: 'refresh', granularity: 'fine' });
     await writeRefreshInputs({
       domain: {
         id: 'dom.auth',
@@ -268,7 +268,7 @@ nodes:
 
   it('restarts a completed retained refresh workspace by snapshotting the old workspace and carrying forward stable inputs', async () => {
     await writeFormalBaseline();
-    await initBootstrap(testDir, { mode: 'refresh' });
+    await initBootstrap(testDir, { mode: 'refresh', granularity: 'fine' });
 
     await writeFile('openspec/bootstrap/evidence.yaml', 'domains: []\n');
     await writeFile('openspec/bootstrap/review.md', '# Review\n');
@@ -322,7 +322,7 @@ nodes:
 
   it('infers legacy completed refresh workspaces from refresh anchors and preserves the anchor on restart', async () => {
     await writeFormalBaseline();
-    await initBootstrap(testDir, { mode: 'refresh' });
+    await initBootstrap(testDir, { mode: 'refresh', granularity: 'fine' });
     await rewriteBootstrapMetadata((metadata) => {
       metadata.phase = 'promote';
       metadata.refresh_anchor_commit = 'legacy-anchor';
@@ -344,7 +344,7 @@ nodes:
   });
 
   it('allows restart from a legacy completed full workspace and falls back to a refresh run without an anchor', async () => {
-    await initBootstrap(testDir, { mode: 'full' });
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
     await writeFormalBaseline();
     await rewriteBootstrapMetadata((metadata) => {
       metadata.phase = 'promote';
@@ -361,7 +361,7 @@ nodes:
 
   it('refuses restart for in-progress workspaces without moving the current workspace', async () => {
     await writeFormalBaseline();
-    await initBootstrap(testDir, { mode: 'refresh' });
+    await initBootstrap(testDir, { mode: 'refresh', granularity: 'fine' });
     await writeFile('openspec/bootstrap/review.md', '# In progress\n');
 
     await expect(initBootstrap(testDir, { mode: 'refresh', restart: true })).rejects.toThrow(
