@@ -192,7 +192,7 @@ describe('PBT: Bootstrap candidate specs contract', () => {
         alphaStringArb,
         async (capabilityCount, salt) => {
           await withTempProject(async (projectDir) => {
-            await initBootstrap(projectDir, { mode: 'full' });
+            await initBootstrap(projectDir, { mode: 'full', granularity: 'fine' });
             await writeBootstrapEvidence(projectDir);
             const folders = await writeBootstrapDomainMap(projectDir, {
               capabilityCount,
@@ -225,7 +225,7 @@ describe('PBT: Bootstrap candidate specs contract', () => {
     await fc.assert(
       fc.asyncProperty(fc.integer({ min: 1, max: 3 }), async (capabilityCount) => {
         await withTempProject(async (projectDir) => {
-          await initBootstrap(projectDir, { mode: 'opsx-first' });
+          await initBootstrap(projectDir, { mode: 'opsx-first', granularity: 'fine' });
           await writeBootstrapEvidence(projectDir);
           await writeBootstrapDomainMap(projectDir, {
             capabilityCount,
@@ -254,7 +254,7 @@ describe('PBT: Bootstrap candidate specs contract', () => {
         alphaStringArb,
         async (salt) => {
           await withTempProject(async (projectDir) => {
-            await initBootstrap(projectDir, { mode: 'full' });
+            await initBootstrap(projectDir, { mode: 'full', granularity: 'fine' });
             await writeBootstrapEvidence(projectDir);
             await writeBootstrapDomainMap(projectDir, {
               capabilityCount: 1,
@@ -294,7 +294,7 @@ describe('PBT: Bootstrap candidate specs contract', () => {
     await fc.assert(
       fc.asyncProperty(fc.integer({ min: 1, max: 3 }), async (capabilityCount) => {
         await withTempProject(async (projectDir) => {
-          await initBootstrap(projectDir, { mode: 'full' });
+          await initBootstrap(projectDir, { mode: 'full', granularity: 'fine' });
           await writeBootstrapEvidence(projectDir);
           const folders = await writeBootstrapDomainMap(projectDir, {
             capabilityCount,

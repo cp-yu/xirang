@@ -55,7 +55,7 @@ capabilities:
 async function preparePromoteWorkspace(projectDir: string): Promise<void> {
   await writeFile(projectDir, 'src/cli/index.ts', 'export const cli = true;\n');
 
-  expect((await runCLI(['bootstrap', 'init', '--mode', 'full'], { cwd: projectDir })).exitCode).toBe(0);
+  expect((await runCLI(['bootstrap', 'init', '--mode', 'full', '--granularity', 'fine'], { cwd: projectDir })).exitCode).toBe(0);
   await setBootstrapPhase(projectDir, 'scan');
   await writeFile(projectDir, 'openspec/bootstrap/evidence.yaml', `domains:
   - id: dom.cli

@@ -155,7 +155,7 @@ capabilities: []
     const projectDir = await createTempProject();
     await writeFormalOpsxBundle(projectDir);
 
-    await expect(initBootstrap(projectDir, { mode: 'full' })).rejects.toThrow(
+    await expect(initBootstrap(projectDir, { mode: 'full', granularity: 'fine' })).rejects.toThrow(
       "Bootstrap mode 'full' is not supported for baseline 'formal-opsx'. Valid modes: refresh"
     );
     expect(await pathExists(projectDir, 'openspec/bootstrap')).toBe(false);
@@ -165,7 +165,7 @@ capabilities: []
     const projectDir = await createTempProject();
     await writeFormalOpsxBundle(projectDir);
 
-    await initBootstrap(projectDir, { mode: 'refresh' });
+    await initBootstrap(projectDir, { mode: 'refresh', granularity: 'fine' });
 
     expect(await pathExists(projectDir, 'openspec/bootstrap')).toBe(true);
   });
@@ -174,7 +174,7 @@ capabilities: []
     const projectDir = await createTempProject();
     await writeFile(projectDir, 'openspec/specs/auth/spec.md', '# Auth spec\n');
 
-    await expect(initBootstrap(projectDir, { mode: 'opsx-first' })).rejects.toThrow(
+    await expect(initBootstrap(projectDir, { mode: 'opsx-first', granularity: 'fine' })).rejects.toThrow(
       "Bootstrap mode 'opsx-first' is not supported for baseline 'specs-based'. Valid modes: full"
     );
     expect(await pathExists(projectDir, 'openspec/bootstrap')).toBe(false);

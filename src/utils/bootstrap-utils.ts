@@ -103,7 +103,7 @@ const ScopeConfigDiskSchema = z.object({
   mode: BootstrapDiskModeSchema,
   include: z.array(z.string()).default([]),
   exclude: z.array(z.string()).default([]),
-  granularity: z.enum(['coarse', 'fine']).default('coarse'),
+  granularity: z.enum(['coarse', 'fine']),
 });
 
 
@@ -168,11 +168,33 @@ const DomainCodeRefSchema = z.object({
   })),
 });
 
+const SpecGroupSchema = z.object({
+  folder: z
+    .string()
+    .min(1)
+    .regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/)
+    .refine((value) => value !== '.' && value !== '..', 'folder must be a single path segment'),
+  capabilities: z.array(z.string().regex(/^cap\./)).min(1),
+  purpose: z.string().min(1).optional(),
+  requirements: z.array(z.object({
+    title: z.string().min(1),
+    text: z.string().min(1),
+    scenarios: z.array(z.object({
+      title: z.string().min(1),
+      steps: z.array(z.object({
+        keyword: z.enum(['GIVEN', 'WHEN', 'THEN', 'AND']),
+        text: z.string().min(1),
+      })).min(1),
+    })).min(1),
+  })).min(1).optional(),
+});
+
 const DomainMapFileSchema = z.object({
   domain: DomainNodeSchema,
   capabilities: z.array(DomainCapabilitySchema).default([]),
   relations: z.array(DomainRelationSchema).default([]),
   code_refs: z.array(DomainCodeRefSchema).default([]),
+  spec_groups: z.array(SpecGroupSchema).optional(),
 });
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -1033,11 +1055,7 @@ function validateSpecScenarioSteps(
   return errors;
 }
 
-function renderProjectedProse(text: string, projection: RuntimeProjection): string {
-  if (projection.preserveCanonicalTokens) {
-    return text.trim();
-  }
-
+function renderProjectedProse(text: string, _projection: RuntimeProjection): string {
   return text.trim();
 }
 
@@ -1101,6 +1119,77 @@ async function assembleCandidateSpecs(
   const restrictToAddedCapabilities = state.metadata.mode === 'refresh' ? (options.addedCapabilityIds ?? new Set<string>()) : null;
 
   for (const mapFile of sortedDomainMaps) {
+    // Coarse mode: generate specs from spec_groups
+    if (state.scope?.granularity === 'coarse' && mapFile.spec_groups && mapFile.spec_groups.length > 0) {
+      const domainCapIds = new Set(mapFile.capabilities.map((c) => c.id));
+      for (const group of mapFile.spec_groups) {
+        const folder = normalizeSpecFolderInput(group.folder);
+        if (!folder || folder.includes('/') || folder.includes('\\')) {
+          sourceErrors.push(`spec_groups folder '${group.folder}' must be a single cross-platform path segment`);
+          continue;
+        }
+
+        const priorCapability = seenFolders.get(folder);
+        if (priorCapability) {
+          sourceErrors.push(`spec_groups folder '${folder}' conflicts with folder from ${priorCapability}`);
+          continue;
+        }
+        seenFolders.set(folder, `spec_group:${folder}`);
+
+        const candidateRelativePath = `openspec/bootstrap/candidate/specs/${folder}/spec.md`;
+        const formalRelativePath = `openspec/specs/${folder}/spec.md`;
+        const existingFormalPath = formalSpecPath(projectRoot, folder);
+        const alreadyExists = await FileSystemUtils.fileExists(existingFormalPath);
+        if (state.metadata.mode === 'refresh' && alreadyExists) {
+          sourceErrors.push(
+            `Refresh cannot write spec '${formalRelativePath}' because the target path already exists. Preserve existing formal specs or choose a different folder.`
+          );
+          continue;
+        }
+
+        if (state.metadata.baseline_type === 'specs-based' && alreadyExists) {
+          preservedFormalPaths.push(formalRelativePath);
+          continue;
+        }
+
+        const frontmatterLines = ['---', 'capabilities:', ...group.capabilities.filter((c) => domainCapIds.has(c)).map((c) => `  - ${c}`), '---', '', `# Spec: ${folder}`, '', '## Purpose', '', group.purpose || 'TODO', ''];
+        const contentParts = [...frontmatterLines];
+        if (group.requirements && group.requirements.length > 0) {
+          contentParts.push('## Requirements', '');
+          for (const req of group.requirements) {
+            contentParts.push(`### Requirement: ${req.title}`, req.text, '');
+            for (const scenario of req.scenarios) {
+              contentParts.push(`#### Scenario: ${scenario.title}`);
+              for (const step of scenario.steps) {
+                contentParts.push(`- **${step.keyword}** ${step.text}`);
+              }
+              contentParts.push('');
+            }
+          }
+        } else {
+          contentParts.push('## Requirements', '', '### Requirement: TODO', 'The system SHALL be defined.', '', '#### Scenario: TODO', '- **WHEN** the system is used', '- **THEN** it responds', '');
+        }
+        const content = contentParts.join('\n');
+        specs.push({
+          capabilityId: `spec_group:${folder}`,
+          folder,
+          candidateRelativePath,
+          formalRelativePath,
+          content,
+        });
+
+        const report = await validator.validateSpecContent(folder, content);
+        if (!report.valid) {
+          for (const issue of report.issues.filter((issue) => issue.level === 'ERROR')) {
+            validationErrors.push(
+              `Candidate spec '${candidateRelativePath}' failed validation at ${issue.path || 'file'}: ${issue.message}`
+            );
+          }
+        }
+      }
+      continue;
+    }
+
     for (const capability of [...mapFile.capabilities].sort((a, b) => a.id.localeCompare(b.id))) {
       if (restrictToAddedCapabilities && !restrictToAddedCapabilities.has(capability.id)) {
         const formalPath = capability.spec ? `openspec/specs/${normalizeSpecFolderInput(capability.spec.folder)}/spec.md` : null;
@@ -1111,7 +1200,9 @@ async function assembleCandidateSpecs(
       }
 
       if (!capability.spec) {
-        sourceErrors.push(`Capability '${capability.id}' is missing spec source data. Add spec.folder, spec.purpose, and spec.requirements.`);
+        if (state.scope?.granularity !== 'coarse' || !mapFile.spec_groups || mapFile.spec_groups.length === 0) {
+          sourceErrors.push(`Capability '${capability.id}' is missing spec source data. Add spec.folder, spec.purpose, and spec.requirements.`);
+        }
         continue;
       }
 
@@ -1545,7 +1636,7 @@ function assembleRefreshDelta(
 
 export async function initBootstrap(
   projectRoot: string,
-  options: { mode?: BootstrapMode; scope?: string[]; restart?: boolean } = {}
+  options: { mode?: BootstrapMode; scope?: string[]; restart?: boolean; granularity?: 'coarse' | 'fine' } = {}
 ): Promise<BootstrapInitResult> {
   const bsDir = bootstrapPath(projectRoot);
   const mode = options.mode ?? 'full';
@@ -1605,8 +1696,12 @@ export async function initBootstrap(
     mode,
     include: options.scope ?? inheritedScope?.include ?? [],
     exclude: inheritedScope?.exclude ?? [],
-    granularity: inheritedScope?.granularity ?? 'coarse',
+    granularity: options.granularity ?? (inheritedScope ? inheritedScope.granularity : undefined) as 'coarse' | 'fine',
   };
+
+  if (!scope.granularity) {
+    throw new Error('Missing required option: --granularity coarse|fine');
+  }
 
   // Create workspace
   await FileSystemUtils.createDirectory(bsDir);
@@ -1803,6 +1898,51 @@ export async function validateGate(
           errors.push(`Domain '${dom.id}' has no domain-map file`);
         }
       }
+
+      // Validate spec_groups for coarse granularity
+      if (state.scope?.granularity === 'coarse') {
+        const capabilityIds = new Map<string, Set<string>>();
+        for (const [, mapFile] of state.domainMaps) {
+          const ids = new Set(mapFile.capabilities.map((c) => c.id));
+          capabilityIds.set(mapFile.domain.id, ids);
+        }
+
+        for (const [, mapFile] of state.domainMaps) {
+          const domainCaps = capabilityIds.get(mapFile.domain.id) ?? new Set();
+
+          if (!mapFile.spec_groups || mapFile.spec_groups.length === 0) {
+            errors.push(
+              `Domain '${mapFile.domain.id}' uses coarse granularity but has no spec_groups`
+            );
+            continue;
+          }
+
+          const seenFolders = new Set<string>();
+          for (const group of mapFile.spec_groups) {
+            for (const capId of group.capabilities) {
+              if (!domainCaps.has(capId)) {
+                errors.push(
+                  `Domain '${mapFile.domain.id}' spec_groups references capability '${capId}' not declared in domain-map capabilities`
+                );
+              }
+            }
+
+            if (seenFolders.has(group.folder)) {
+              errors.push(
+                `Domain '${mapFile.domain.id}' spec_groups has duplicate folder '${group.folder}'`
+              );
+            }
+            seenFolders.add(group.folder);
+
+            if (group.folder.includes('/') || group.folder.includes('\\')) {
+              errors.push(
+                `Domain '${mapFile.domain.id}' spec_groups folder '${group.folder}' is not a single path segment`
+              );
+            }
+          }
+        }
+      }
+
       for (const [, mapFile] of state.domainMaps) {
         for (const cap of mapFile.capabilities) {
           if (!cap.id.startsWith('cap.')) {

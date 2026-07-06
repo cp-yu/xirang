@@ -10,7 +10,9 @@ artifacts:
     instruction: |
       Create the bootstrap workspace under openspec/bootstrap/.
 
-      Run: openspec bootstrap init [--mode full|opsx-first|refresh] [--scope src/]
+      Run: openspec bootstrap init [--mode full|opsx-first|refresh] --granularity coarse|fine [--scope src/]
+
+      **Granularity**: coarse produces fewer grouped specs via spec_groups; fine produces per-capability specs. The agent must confirm choice with user before init.
 
       This creates:
       - .bootstrap.yaml — metadata (phase, baseline, mode, fingerprints, created_at)
@@ -114,10 +116,14 @@ artifacts:
       1. Re-validates scan, map, and review gate conditions
       2. Assembles candidate OPSX bundle from domain-map files
       3. Writes only reviewed candidate artifacts to the formal OPSX bundle and specs tree
-      4. In raw + full, writes one validated spec per mapped capability; in raw + opsx-first, writes only openspec/specs/README.md
-      5. In specs-based + full, preserves existing specs and writes only missing capability specs
-      6. In formal-opsx + refresh, merges the reviewed delta into the existing formal OPSX bundle, preserves existing specs, and writes only missing specs for newly added capabilities
-      7. Retains openspec/bootstrap/ workspace for manual inspection or cleanup
+      4. In raw + full with granularity coarse, writes grouped specs from spec_groups; with granularity fine, writes one spec per mapped capability
+      5. In raw + opsx-first, writes only openspec/specs/README.md
+      6. In specs-based + full, preserves existing specs and writes only missing capability specs
+      7. In formal-opsx + refresh, merges the reviewed delta into the existing formal OPSX bundle, preserves existing specs, and writes only missing specs for newly added capabilities
+      8. Runs spec frontmatter backfill automatically
+      9. Retains openspec/bootstrap/ workspace for manual inspection or cleanup
+
+      After promote completes, run `openspec validate --all`. If validation fails, return to the relevant bootstrap source artifact for repair before claiming completion.
 
       Confirm before writing to formal OPSX files.
     requires:
