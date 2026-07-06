@@ -1,0 +1,7 @@
+schema_version: 1
+MODIFIED:
+  capabilities:
+    - id: cap.opsx.bootstrap
+      intent: 提供基于现有 CLI 的 bootstrap 工作流，支持 agent 显式选择 coarse/fine granularity、coarse 模式的 domain-map spec_groups 分组规约源、fine 模式的 per-capability spec 源、gate 驱动五阶段生命周期、promote 后 backfill 与 openspec validate --all 验证闭环。
+    - id: cap.ai.workflow-templates
+      intent: 提供核心 workflow skill 模板；bootstrap-opsx 模板要求 agent 在 init 前询问 coarse/fine granularity，解释差异，不默认选择，并在 promote/backfill 后运行 openspec validate --all。
