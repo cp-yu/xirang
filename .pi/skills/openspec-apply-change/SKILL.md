@@ -107,7 +107,7 @@ delegate to clean-context generated `openspec-reviewer` subagent with `context: 
 
 ### Phase 2: Optimize under checkpoint protection
 
-You MUST read the project-root file `openspec/references/openspec-apply-phase2-optimization.md` before Phase 2. Checkpoints are git commits, not git stash entries or git tags. Respect `--skip-optimization`; read `optimization.optRetries`; create the initial checkpoint commit with `git add -A && git commit -m "wip: opt-checkpoint-r0 (baseline)"`; delegate to clean-context generated `openspec-optimizer` subagent with `context: "fresh"`; when the optimizer returns blocks, read the ponytail tags and Code Smell annotations to understand the optimization rationale before applying Search/Replace; use `openspec verify phase2`; create an incremental checkpoint commit for each successful optimization round; record each failed direction.
+You MUST read the project-root file `openspec/references/openspec-apply-phase2-optimization.md` before Phase 2. Checkpoints are git commits, not git stash entries or git tags. Respect `--skip-optimization`; read `optimization.optRetries`; create the initial checkpoint commit with `git add -A && git commit -m "wip: opt-checkpoint-r0 (baseline)"`; delegate to clean-context generated `openspec-optimizer` subagent with `context: "fresh"`; when the optimizer returns blocks, read the ponytail tags and Code Smell annotations to understand the optimization rationale before applying Search/Replace; use `openspec verify phase2` to record pre-patch hashes before applying Search/Replace and record verification after applying Search/Replace; create an incremental checkpoint commit for each successful optimization round; record each failed direction.
 
 ### Phase 3: Seal final result
 

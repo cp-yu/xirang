@@ -48,6 +48,25 @@ describe('apply change workflow template', () => {
     expect(reference?.content).not.toContain('git tag apply-opt-checkpoint');
   });
 
+  it('pins Phase 2 optimization hash sampling before patch application and verification after patching', () => {
+    const template = getApplyChangeSkillTemplate();
+    const reference = template.referenceFiles?.find(
+      (file) => file.path === 'references/apply-phase2-optimization.md'
+    );
+    const content = reference?.content ?? '';
+
+    const optimizationIndex = content.indexOf('openspec verify phase2 "<change-name>" --type=optimization');
+    const patchIndex = content.indexOf('Apply Search/Replace blocks atomically');
+    const verificationIndex = content.indexOf('openspec verify phase2 "<change-name>" --type=verification');
+
+    expect(optimizationIndex).toBeGreaterThan(-1);
+    expect(patchIndex).toBeGreaterThan(optimizationIndex);
+    expect(verificationIndex).toBeGreaterThan(patchIndex);
+    expect(content).toContain('while the working tree is still pre-patch');
+    expect(getApplyChangeSkillTemplate().instructions).toContain('record pre-patch hashes before applying Search/Replace');
+    expect(getApplyChangeSkillTemplate().instructions).toContain('record verification after applying Search/Replace');
+  });
+
   it('documents the Phase 0-3 apply + verify workflow in both surfaces', () => {
     const template = getApplyChangeSkillTemplate().instructions;
       expect(template).toContain('Phase 1: Run canonical verification');
@@ -75,7 +94,6 @@ describe('apply change workflow template', () => {
       expect(template).toContain(VERIFY_CLI_JSON_SCHEMA_REFERENCE);
       expect(template).toContain(VERIFY_ERROR_RECOVERY_GUIDE);
       expect(template).toContain(VERIFY_STATE_MACHINE_DIAGRAM);
-    }
   });
 
   it('declares internal subagents without generated artifact reads', () => {
@@ -126,7 +144,6 @@ describe('apply change workflow template', () => {
       expect(template).not.toContain('openspec-implementer');
       expect(template).not.toContain('cheapest available subagent model');
       expect(template).not.toContain('DONE_WITH_CONCERNS');
-    }
   });
 
   it('documents Pocock TDD checkpoints for apply implementation', () => {
@@ -144,7 +161,6 @@ describe('apply change workflow template', () => {
       expect(template).toContain('mocks are allowed only at system boundaries');
       expect(template).toContain('internal classes, modules, and project-owned collaborators MUST NOT be mocked');
       expect(template).toContain('mockable boundaries must be passed through dependency injection');
-    }
   });
 
   it('documents continuous recovery before user-visible pause', () => {
@@ -159,7 +175,6 @@ describe('apply change workflow template', () => {
       expect(template).toContain('If a task Goal or Requirements is ambiguous, enrich context from proposal, design, change-local specs, tasks.md, OPSX code-map, related specs, and project search');
       expect(template).not.toContain('update the .apply-steps file and continue dispatch before asking the user');
       expect(template).toContain('If project context is missing, convert the gap into verifiable exploration or check steps in the current task and continue execution');
-    }
   });
 
   it('documents diagnosis-first discipline in enhanced recovery protocol', () => {
@@ -169,7 +184,6 @@ describe('apply change workflow template', () => {
       expect(template).toContain('Identify the failure layer');
       expect(template).toContain('working example');
       expect(template).toContain('Root cause hypothesis');
-    }
   });
 
   it('documents single-variable fix constraint in enhanced recovery protocol', () => {
@@ -177,7 +191,6 @@ describe('apply change workflow template', () => {
       expect(template).toContain('Single-Variable Fix Constraint');
       expect(template).toContain('change only one variable');
       expect(template).toContain('do not stack multiple independent changes');
-    }
   });
 
   it('documents cumulative 3-strike mechanism in enhanced recovery protocol', () => {
@@ -185,7 +198,6 @@ describe('apply change workflow template', () => {
       expect(template).toContain('Cumulative 3-Strike Escalation');
       expect(template).toContain('stop and present evidence');
       expect(template).toContain('attempted paths');
-    }
   });
 
   it('does not require generated step files for oversized task execution', () => {
@@ -193,7 +205,6 @@ describe('apply change workflow template', () => {
       expect(template).not.toContain('If more than 5 cycles are needed, split the task automatically');
       expect(template).not.toContain('Each step file or batch MUST contain 1-5 TDD Cycles');
       expect(template).not.toContain('Do not pause solely because a task needs more than 5 TDD Cycles');
-    }
   });
 
   it('contains pre-flight scan paragraph in the skill template', () => {
@@ -201,7 +212,6 @@ describe('apply change workflow template', () => {
       expect(template).toContain('Pre-flight Scan');
       expect(template).toContain('scan all tasks in tasks.md for contradictions');
       expect(template).toContain('dependency-ordering issues');
-    }
   });
 
   it('positions pre-flight scan after OPSX navigation before Branch Isolation', () => {
@@ -214,14 +224,12 @@ describe('apply change workflow template', () => {
       expect(branchIndex).toBeGreaterThan(-1);
       expect(preflightIndex).toBeGreaterThan(opsxEnd);
       expect(branchIndex).toBeGreaterThan(preflightIndex);
-    }
   });
 
   it('contains dependency order detection in pre-flight scan', () => {
     const template = getApplyChangeSkillTemplate().instructions;
       expect(template).toContain('dependency-ordering');
       expect(template).toContain('Earlier task depending on output of a later task');
-    }
   });
 
   it('routes seal failure into remediation and recovery', () => {
@@ -230,7 +238,6 @@ describe('apply change workflow template', () => {
       expect(template).toContain('map the remediation to the affected task');
       expect(template).toContain('return to Phase 0 recovery');
       expect(template).toContain('Do not pause on the first seal failure');
-    }
   });
 
   it('uses canonical archive source reference for archive-ready handoff', () => {
