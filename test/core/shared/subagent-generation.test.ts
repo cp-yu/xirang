@@ -68,7 +68,7 @@ describe('subagent generation', () => {
     const pi = markdownFrontmatter(generateSubagentContent(reviewer!, 'pi', 'TEST'));
     expect(pi).toMatchObject({
       name: 'openspec-reviewer',
-      description: reviewer!.description,
+      description: `${reviewer!.description} Pi callers: run foreground and omit timeoutMs/maxRuntimeMs.`,
     });
     expect(pi).not.toHaveProperty('model');
     expect(String(pi.tools)).toContain('read');
@@ -87,6 +87,22 @@ describe('subagent generation', () => {
       },
     });
     expect(opencode).not.toHaveProperty('model');
+  });
+
+  it('adds Pi-only foreground/no-timeout guidance to all internal subagent descriptions', () => {
+    const suffix = ' Pi callers: run foreground and omit timeoutMs/maxRuntimeMs.';
+
+    for (const template of INTERNAL_SUBAGENT_TEMPLATES) {
+      const pi = markdownFrontmatter(generateSubagentContent(template, 'pi', 'TEST'));
+      const claude = markdownFrontmatter(generateSubagentContent(template, 'claude', 'TEST'));
+      const opencode = markdownFrontmatter(generateSubagentContent(template, 'opencode', 'TEST'));
+      const codex = generateSubagentContent(template, 'codex', 'TEST');
+
+      expect(pi.description).toBe(`${template.description}${suffix}`);
+      expect(claude.description).toBe(template.description);
+      expect(opencode.description).toBe(template.description);
+      expect(codex).toContain(`description = "${template.description.replace(/"/g, '\\"')}"`);
+    }
   });
 
   it('renders Codex TOML with escaped multiline developer instructions', () => {

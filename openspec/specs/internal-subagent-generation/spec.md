@@ -53,6 +53,8 @@ Renderer SHALL NOT 复用 workflow invocation transform 管线（如 `/opsx:<slu
 
 - **WHEN** 调用 `generateSubagentContent(template, 'pi', version)`
 - **THEN** frontmatter SHALL 包含 `name`（取值为 `template.name`）、`description`、`tools`
+- **AND** 对 `openspec-reviewer`、`openspec-optimizer`、`openspec-impact-sweeper`，`description` SHALL 追加 Pi-only 提示：`Pi callers: run foreground and omit timeoutMs/maxRuntimeMs.`
+- **AND** 其他工具 renderer SHALL NOT 追加该 Pi-only 提示
 - **AND** SHALL NOT 包含 `display_name`、`disallowed_tools` 或 `enabled`
 - **AND** 工具权限通过 `tools` allowlist 表达（仅列 read/grep/find/bash，未列出的工具不可用）
 

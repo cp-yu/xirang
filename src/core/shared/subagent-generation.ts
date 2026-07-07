@@ -30,6 +30,19 @@ export const INTERNAL_SUBAGENT_TEMPLATES: readonly SubagentTemplate[] = [
 ] as const;
 
 const DEFAULT_TOOLS = ['read', 'grep', 'find', 'bash'] as const;
+const PI_FOREGROUND_DESCRIPTION_SUBAGENTS = new Set([
+  'openspec-reviewer',
+  'openspec-optimizer',
+  'openspec-impact-sweeper',
+]);
+const PI_FOREGROUND_DESCRIPTION_SUFFIX = ' Pi callers: run foreground and omit timeoutMs/maxRuntimeMs.';
+
+function piDescription(template: SubagentTemplate): string {
+  return PI_FOREGROUND_DESCRIPTION_SUBAGENTS.has(template.name)
+    ? `${template.description}${PI_FOREGROUND_DESCRIPTION_SUFFIX}`
+    : template.description;
+}
+
 function escapeYamlString(value: string): string {
   return `"${value
     .replace(/\\/g, '\\\\')
@@ -96,7 +109,7 @@ function renderPiMarkdown(template: SubagentTemplate): string {
   return renderMarkdownBody(
     [
       `name: ${template.name}`,
-      `description: ${escapeYamlString(template.description)}`,
+      `description: ${escapeYamlString(piDescription(template))}`,
       `tools: ${escapeYamlString(toolList(template).join(', '))}`,
       ...(template.model && template.model !== 'inherit'
         ? [`model: ${escapeYamlString(template.model)}`]
