@@ -54,6 +54,12 @@ capabilities:
   - id: cap.ai.agent-prompt-guidance
     intent: 面向 Agent 的 verify gate 提示词指引系统。VERIFY_SIMPLE_CHANGE_FAST_PATH 从"允许 master agent 自主跳过"改为"强制委托 optimizer subagent"语义。共享片段（状态机流程图、JSON schema 速查表、CLI 错误恢复决策树）中 OPTIMIZATION_PROPOSED 行补全 --files 参数，错误恢复增加 FILES_REQUIRED 条目。
     type: capability
+  - id: cap.ai.command-generation
+    intent: 管理 AI 工具命令生成管线的能力——将 workflow templates 编译为各 AI 工具平台的 command instructions
+    type: capability
+  - id: cap.ai.command-slugs
+    intent: 管理 OpenSpec CLI 命令的 slug 映射与工具检测，确保跨工具 workflow surface 的命名一致性
+    type: capability
   - id: cap.ai.explore-brainstorming
     intent: Explore 阶段的 brainstorming 流程，包含 6 步 checklist、一次一问纪律、2-3 方案对比、Design Summary 生成；todo 可用时必须在读取 context 前将 Superpowers 阶段记录为 checklist 并逐步 tick；main explore agent 严格 read-only，用户设计确认不构成文件写入授权；已有 change 的 insight 仅分类为 future capture target，不在 explore 中更新 artifacts；Superpowers 行为引导通过 referenceFiles 暴露为 OpenSpec-adapted brainstorming protocol，以原始 Superpowers brainstorming 的 hard gate、上下文探索、just-in-time visual 判断、分段设计确认、自检和用户审查 gate 为行为来源，并映射到 conversation-only Design Summary 与 openspec-propose 路由；主 instructions 中的 workflow 引用使用规范形 /opsx:<slug>，经 transform 管线按工具适配渲染
     type: capability
@@ -65,7 +71,7 @@ capabilities:
     intent: Phase 2 优化器 skill，负责行为保持优化和 Pocock 坏味道检测（从 5 维度扩展至 8 维度，每个维度增加具体识别指标、重构模式和行动指南）
     type: capability
   - id: cap.ai.propose-smart-routing
-    intent: Propose 阶段的智能路由与 artifact 生成 guidance；生成 specs 时应用 schema content boundary，支持在 change-local MODIFIED requirement 中使用 scenario operation labels 标记局部变化，并消费共享 artifact language contract 而不增加额外 per-artifact language scan。
+    intent: Propose 阶段的智能路由与 artifact 生成 guidance；生成 specs 时应用 schema content boundary，支持在 change-local MODIFIED requirement 中使用 scenario operation labels 标记局部变化，并消费共享 artifact language contract；post-propose validation guidance 使用 artifact-scoped validate 命令分阶段检查 specs 与 opsx-delta
     type: capability
   - id: cap.ai.reviewer-cleanliness-dimension
     intent: Cleanliness 维度的检测逻辑、severity 映射和跨语言工具适配策略，用于检测重构残留、孤儿代码、过时 TODO、半迁移等遗留物；新增规格外改动检测——以 task Files 声明（含目录条目）、Check 证据文件与 change 工件构成归因宇宙，diff 中无法归因的行为代码升级 CRITICAL，机械性良性改动降级
@@ -184,7 +190,7 @@ capabilities:
     status: active
     type: capability
   - id: cap.cli.list
-    intent: 列出变更或 specs，specs 模式支持 JSON 输出包含 capabilities 字段
+    intent: 列出变更或 specs，specs 模式支持 JSON 输出包含 capabilities 字段与 requirement header 名称列表
     status: active
     type: capability
   - id: cap.cli.new-change
@@ -227,7 +233,7 @@ capabilities:
     status: active
     type: capability
   - id: cap.cli.validate
-    intent: 验证变更和规约的完整性
+    intent: 验证变更和规约的完整性，支持显式 change scope 与 specs/opsx-delta artifact scope 分阶段验证
     status: active
     type: capability
   - id: cap.cli.verify-aware-instructions
