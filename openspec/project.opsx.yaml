@@ -71,7 +71,7 @@ capabilities:
     intent: Phase 2 优化器 skill，负责行为保持优化和 Pocock 坏味道检测（从 5 维度扩展至 8 维度，每个维度增加具体识别指标、重构模式和行动指南）
     type: capability
   - id: cap.ai.propose-smart-routing
-    intent: Propose 阶段的智能路由与 artifact 生成 guidance；生成 specs 时应用 schema content boundary，支持在 change-local MODIFIED requirement 中使用 scenario operation labels 标记局部变化，并消费共享 artifact language contract 而不增加额外 per-artifact language scan。
+    intent: Propose 阶段的智能路由与 artifact 生成 guidance；生成 specs 时应用 schema content boundary，支持在 change-local MODIFIED requirement 中使用 scenario operation labels 标记局部变化，并消费共享 artifact language contract；post-propose validation guidance 使用 artifact-scoped validate 命令分阶段检查 specs 与 opsx-delta
     type: capability
   - id: cap.ai.reviewer-cleanliness-dimension
     intent: Cleanliness 维度的检测逻辑、severity 映射和跨语言工具适配策略，用于检测重构残留、孤儿代码、过时 TODO、半迁移等遗留物；新增规格外改动检测——以 task Files 声明（含目录条目）、Check 证据文件与 change 工件构成归因宇宙，diff 中无法归因的行为代码升级 CRITICAL，机械性良性改动降级
@@ -190,7 +190,7 @@ capabilities:
     status: active
     type: capability
   - id: cap.cli.list
-    intent: 列出变更或 specs，specs 模式支持 JSON 输出包含 capabilities 字段
+    intent: 列出变更或 specs，specs 模式支持 JSON 输出包含 capabilities 字段与 requirement header 名称列表
     status: active
     type: capability
   - id: cap.cli.new-change
@@ -233,7 +233,7 @@ capabilities:
     status: active
     type: capability
   - id: cap.cli.validate
-    intent: 验证变更和规约的完整性
+    intent: 验证变更和规约的完整性，支持显式 change scope 与 specs/opsx-delta artifact scope 分阶段验证
     status: active
     type: capability
   - id: cap.cli.verify-aware-instructions
