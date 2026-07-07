@@ -59,6 +59,27 @@ describe('top-level validate command', () => {
     await fs.writeFile(path.join(specsDir, 'dup', 'spec.md'), specContent, 'utf-8');
   });
 
+  async function writeProjectOpsx(): Promise<void> {
+    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), [
+      'schema_version: 1',
+      'project:',
+      '  id: proj.test',
+      '  name: Test',
+      '  intent: Test project',
+      '  scope: Test scope',
+      '  roots:',
+      '    - path: .',
+      'domains:',
+      '  - id: dom.alpha',
+      '    intent: Alpha domain',
+      '    type: domain',
+      'capabilities:',
+      '  - id: cap.alpha',
+      '    intent: Alpha capability',
+      '    type: capability',
+    ].join('\n'), 'utf-8');
+  }
+
   afterEach(async () => {
     await fs.rm(testDir, { recursive: true, force: true });
   });
@@ -67,6 +88,77 @@ describe('top-level validate command', () => {
     const result = await runCLI(['validate'], { cwd: testDir });
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain('Nothing to validate. Try one of:');
+  });
+
+  it('validates explicit --change with the same full semantics as legacy change validation', async () => {
+    const legacy = await runCLI(['validate', 'c1', '--type', 'change', '--json'], { cwd: testDir });
+    const explicit = await runCLI(['validate', '--change', 'c1', '--json'], { cwd: testDir });
+
+    expect(explicit.exitCode).toBe(legacy.exitCode);
+    const legacyJson = JSON.parse(legacy.stdout.trim());
+    const explicitJson = JSON.parse(explicit.stdout.trim());
+    expect(explicitJson.items[0]).toMatchObject({ id: 'c1', type: 'change', valid: true });
+    expect(explicitJson.items[0].issues).toEqual(legacyJson.items[0].issues);
+  });
+
+  it('validates only delta specs for --artifacts specs', async () => {
+    await writeProjectOpsx();
+    await fs.writeFile(path.join(changesDir, 'c1', 'opsx-delta.yaml'), [
+      'schema_version: 1',
+      'MODIFIED:',
+      '  capabilities:',
+      '    - id: cap.missing',
+      '      intent: Missing capability',
+    ].join('\n'), 'utf-8');
+
+    const result = await runCLI(['validate', '--change', 'c1', '--artifacts', 'specs', '--json'], { cwd: testDir });
+
+    expect(result.exitCode).toBe(0);
+    const json = JSON.parse(result.stdout.trim());
+    expect(json.items[0]).toMatchObject({ id: 'c1', type: 'change', valid: true });
+    expect(json.items[0].issues.some((issue: any) => issue.message.includes('OPSX dry-run merge failed'))).toBe(false);
+  });
+
+  it('validates only opsx-delta for --artifacts opsx-delta', async () => {
+    await writeProjectOpsx();
+    const badChange = path.join(changesDir, 'bad-spec-good-opsx');
+    await fs.mkdir(path.join(badChange, 'specs', 'alpha'), { recursive: true });
+    await fs.writeFile(path.join(badChange, 'proposal.md'), '# Bad spec\n\n## Why\nInvalid specs.\n\n## What Changes\n- Bad spec');
+    await fs.writeFile(path.join(badChange, 'specs', 'alpha', 'spec.md'), [
+      '## ADDED Requirements',
+      '### Requirement: Missing scenarios',
+      'This requirement SHALL be invalid without scenarios.',
+    ].join('\n'), 'utf-8');
+    await fs.writeFile(path.join(badChange, 'opsx-delta.yaml'), [
+      'schema_version: 1',
+      'MODIFIED:',
+      '  capabilities:',
+      '    - id: cap.alpha',
+      '      intent: Updated alpha capability',
+    ].join('\n'), 'utf-8');
+
+    const result = await runCLI(['validate', '--change', 'bad-spec-good-opsx', '--artifacts', 'opsx-delta', '--json'], { cwd: testDir });
+
+    expect(result.exitCode).toBe(0);
+    const json = JSON.parse(result.stdout.trim());
+    expect(json.items[0]).toMatchObject({ id: 'bad-spec-good-opsx', type: 'change', valid: true });
+    expect(json.items[0].issues).toEqual([]);
+  });
+
+  it('rejects invalid artifact scope before running validation', async () => {
+    const result = await runCLI(['validate', '--change', 'c1', '--artifacts', 'unknown'], { cwd: testDir });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('Unknown artifact scope');
+    expect(result.stderr).toContain('specs');
+    expect(result.stderr).toContain('opsx-delta');
+  });
+
+  it('rejects missing explicit changes deterministically', async () => {
+    const result = await runCLI(['validate', '--change', 'missing-change'], { cwd: testDir });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("Unknown change 'missing-change'");
   });
 
   it('validates all with --all and outputs JSON summary', async () => {

@@ -7,11 +7,14 @@ import { nearestMatches } from '../utils/match.js';
 import type { ValidationReport } from '../core/validation/types.js';
 
 type ItemType = 'change' | 'spec';
+type ArtifactScope = 'specs' | 'opsx-delta';
 
 interface ExecuteOptions {
   all?: boolean;
   changes?: boolean;
   specs?: boolean;
+  change?: string;
+  artifacts?: string;
   type?: string;
   strict?: boolean;
   json?: boolean;
@@ -31,6 +34,22 @@ interface BulkItemResult {
 export class ValidateCommand {
   async execute(itemName: string | undefined, options: ExecuteOptions = {}): Promise<void> {
     const interactive = isInteractive(options);
+
+    if (options.change) {
+      await this.validateExplicitChange(options.change, {
+        artifactScope: this.normalizeArtifactScope(options.artifacts),
+        rawArtifactScope: options.artifacts,
+        strict: !!options.strict,
+        json: !!options.json,
+      });
+      return;
+    }
+
+    if (options.artifacts) {
+      console.error('--artifacts requires --change <name>. Supported artifact scopes: specs, opsx-delta');
+      process.exitCode = 1;
+      return;
+    }
 
     // Handle bulk flags first
     if (options.all || options.changes || options.specs) {
@@ -61,6 +80,13 @@ export class ValidateCommand {
     if (!value) return undefined;
     const v = value.toLowerCase();
     if (v === 'change' || v === 'spec') return v;
+    return undefined;
+  }
+
+  private normalizeArtifactScope(value?: string): ArtifactScope | undefined {
+    if (!value) return undefined;
+    const v = value.toLowerCase();
+    if (v === 'specs' || v === 'opsx-delta') return v;
     return undefined;
   }
 
@@ -126,6 +152,31 @@ export class ValidateCommand {
     }
 
     await this.validateByType(type, itemName, opts);
+  }
+
+  private async validateExplicitChange(id: string, opts: { artifactScope?: ArtifactScope; rawArtifactScope?: string; strict: boolean; json: boolean }): Promise<void> {
+    if (opts.rawArtifactScope && !opts.artifactScope) {
+      console.error(`Unknown artifact scope '${opts.rawArtifactScope}'. Supported artifact scopes: specs, opsx-delta`);
+      process.exitCode = 1;
+      return;
+    }
+
+    const changes = await getActiveChangeIds();
+    if (!changes.includes(id)) {
+      console.error(`Unknown change '${id}'`);
+      const suggestions = nearestMatches(id, changes);
+      if (suggestions.length) console.error(`Did you mean: ${suggestions.join(', ')}?`);
+      process.exitCode = 1;
+      return;
+    }
+
+    const validator = new Validator(opts.strict);
+    const changeDir = path.join(process.cwd(), 'openspec', 'changes', id);
+    const start = Date.now();
+    const report = await this.validateChangeReports(validator, changeDir, opts.artifactScope);
+    const durationMs = Date.now() - start;
+    this.printReport('change', id, report, durationMs, opts.json);
+    process.exitCode = report.valid ? 0 : 1;
   }
 
   private async validateByType(type: ItemType, id: string, opts: { strict: boolean; json: boolean }): Promise<void> {
@@ -295,7 +346,10 @@ export class ValidateCommand {
     process.exitCode = failed > 0 ? 1 : 0;
   }
 
-  private async validateChangeReports(validator: Validator, changeDir: string): Promise<ValidationReport> {
+  private async validateChangeReports(validator: Validator, changeDir: string, artifactScope?: ArtifactScope): Promise<ValidationReport> {
+    if (artifactScope === 'specs') return validator.validateChangeDeltaSpecs(changeDir);
+    if (artifactScope === 'opsx-delta') return validator.validateOpsxDelta(changeDir);
+
     const [specReport, opsxReport] = await Promise.all([
       validator.validateChangeDeltaSpecs(changeDir),
       validator.validateOpsxDelta(changeDir),

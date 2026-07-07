@@ -1,0 +1,9 @@
+schema_version: 1
+MODIFIED:
+  capabilities:
+    - id: cap.cli.list
+      intent: 列出变更或 specs，specs 模式支持 JSON 输出包含 capabilities 字段与 requirement header 名称列表
+    - id: cap.cli.validate
+      intent: 验证变更和规约的完整性，支持显式 change scope 与 specs/opsx-delta artifact scope 分阶段验证
+    - id: cap.ai.propose-smart-routing
+      intent: Propose 阶段的智能路由与 artifact 生成 guidance；生成 specs 时应用 schema content boundary，支持在 change-local MODIFIED requirement 中使用 scenario operation labels 标记局部变化，并消费共享 artifact language contract；post-propose validation guidance 使用 artifact-scoped validate 命令分阶段检查 specs 与 opsx-delta

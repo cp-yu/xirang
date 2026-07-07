@@ -1,0 +1,118 @@
+{
+  "timestamp": "2026-07-07T04:43:53.453Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "20363f6e0fdb1373e9f13ca0d60ff09e026725d88f3617fc56d7441b5b8d384b",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "executionMode": "subagent-reviewer",
+    "evidenceFiles": [
+      "openspec/changes/improve-spec-list-and-staged-validation/tasks.md",
+      "src/cli/index.ts",
+      "src/commands/validate.ts",
+      "src/core/list.ts",
+      "src/core/templates/workflows/propose.ts",
+      "test/commands/validate.test.ts",
+      "test/core/list.test.ts",
+      "test/core/templates/propose-template.test.ts"
+    ],
+    "evidenceFingerprint": "4eb3f1bbd7c2f764c40aad1399404e4577289ce5eef39eec675a639270e9b32a",
+    "evidenceFingerprintEntries": [
+      {
+        "path": "openspec/changes/improve-spec-list-and-staged-validation/tasks.md",
+        "hash": "20363f6e0fdb1373e9f13ca0d60ff09e026725d88f3617fc56d7441b5b8d384b"
+      },
+      {
+        "path": "src/cli/index.ts",
+        "hash": "2a4f2ab313a9b698080bc18d4e1758d615cef9b6805baf41543086850593875d"
+      },
+      {
+        "path": "src/commands/validate.ts",
+        "hash": "65152f46def6656ecdd012dc4dffd433d0f648e46804247e2d8ea12a2813acb8"
+      },
+      {
+        "path": "src/core/list.ts",
+        "hash": "5d3b76ebee5018158b0f7f7b7a7f68e4ab17128ee2dd029ec4d4397662e16691"
+      },
+      {
+        "path": "src/core/templates/workflows/propose.ts",
+        "hash": "39222608f111dfda6859994cab227028d220cf97830c5621d0d13ff5a2792ad2"
+      },
+      {
+        "path": "test/commands/validate.test.ts",
+        "hash": "bed382e654271fadaf64ca288b39c9cbbefb1c309c7bd66781e36cfa878a80ee"
+      },
+      {
+        "path": "test/core/list.test.ts",
+        "hash": "8c0c5c46a8c741212051d831ea4913d619a7ba1b7ecc9e19af96893b94e61197"
+      },
+      {
+        "path": "test/core/templates/propose-template.test.ts",
+        "hash": "a1e6f7362e048325eebe26c835fc6e2d0af048355e5a9e101f291e0138472f13"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "29c1fb9a4afde3af234fe4f8f449b85b56ab29ae"
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-07-07T04:43:53.453Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "20363f6e0fdb1373e9f13ca0d60ff09e026725d88f3617fc56d7441b5b8d384b",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "executionMode": "subagent-reviewer",
+        "evidenceFiles": [
+          "openspec/changes/improve-spec-list-and-staged-validation/tasks.md",
+          "src/cli/index.ts",
+          "src/commands/validate.ts",
+          "src/core/list.ts",
+          "src/core/templates/workflows/propose.ts",
+          "test/commands/validate.test.ts",
+          "test/core/list.test.ts",
+          "test/core/templates/propose-template.test.ts"
+        ],
+        "evidenceFingerprint": "4eb3f1bbd7c2f764c40aad1399404e4577289ce5eef39eec675a639270e9b32a",
+        "evidenceFingerprintEntries": [
+          {
+            "path": "openspec/changes/improve-spec-list-and-staged-validation/tasks.md",
+            "hash": "20363f6e0fdb1373e9f13ca0d60ff09e026725d88f3617fc56d7441b5b8d384b"
+          },
+          {
+            "path": "src/cli/index.ts",
+            "hash": "2a4f2ab313a9b698080bc18d4e1758d615cef9b6805baf41543086850593875d"
+          },
+          {
+            "path": "src/commands/validate.ts",
+            "hash": "65152f46def6656ecdd012dc4dffd433d0f648e46804247e2d8ea12a2813acb8"
+          },
+          {
+            "path": "src/core/list.ts",
+            "hash": "5d3b76ebee5018158b0f7f7b7a7f68e4ab17128ee2dd029ec4d4397662e16691"
+          },
+          {
+            "path": "src/core/templates/workflows/propose.ts",
+            "hash": "39222608f111dfda6859994cab227028d220cf97830c5621d0d13ff5a2792ad2"
+          },
+          {
+            "path": "test/commands/validate.test.ts",
+            "hash": "bed382e654271fadaf64ca288b39c9cbbefb1c309c7bd66781e36cfa878a80ee"
+          },
+          {
+            "path": "test/core/list.test.ts",
+            "hash": "8c0c5c46a8c741212051d831ea4913d619a7ba1b7ecc9e19af96893b94e61197"
+          },
+          {
+            "path": "test/core/templates/propose-template.test.ts",
+            "hash": "a1e6f7362e048325eebe26c835fc6e2d0af048355e5a9e101f291e0138472f13"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "29c1fb9a4afde3af234fe4f8f449b85b56ab29ae"
+      }
+    }
+  }
+}

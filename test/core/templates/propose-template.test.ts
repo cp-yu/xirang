@@ -28,7 +28,7 @@ describe('propose template post-validation flow', () => {
 
   it('aligns generated spec validation with the existing change delta validation contract', () => {
     for (const body of getProposeBodies()) {
-      expect(body).toContain('openspec validate "<name>" --type change --json');
+      expect(body).toContain('openspec validate --change "<name>" --artifacts specs --json');
       expect(body).toContain('Validator.validateChangeDeltaSpecs()');
       expect(body).toContain('SHALL/MUST requirement text');
       expect(body).toContain('required `#### Scenario:` blocks');
@@ -42,12 +42,21 @@ describe('propose template post-validation flow', () => {
       expect(body).toContain('ADDED:');
       expect(body).toContain('MODIFIED:');
       expect(body).toContain('REMOVED:');
+      expect(body).toContain('openspec validate --change "<name>" --artifacts opsx-delta --json');
       expect(body).toContain('Validator.validateOpsxDelta()');
       expect(body).toContain('applyOpsxDelta()');
       expect(body).toContain('Do NOT run `openspec sync`');
       expect(body).toContain('referential integrity');
       expect(body).toContain('code-map integrity');
       expect(body).toContain('skips this check');
+    }
+  });
+
+  it('keeps full validation available as warning-only post-propose validation', () => {
+    for (const body of getProposeBodies()) {
+      expect(body).toContain('openspec validate --change "<name>" --json');
+      expect(body).toContain('This validation is warning-only.');
+      expect(body).toContain('Do NOT run `openspec sync`');
     }
   });
 

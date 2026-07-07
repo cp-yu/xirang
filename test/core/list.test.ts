@@ -276,12 +276,55 @@ The system SHALL output JSON.
           id: 'cli-list',
           title: 'cli-list',
           requirementCount: 1,
+          requirements: ['JSON output'],
           capabilities: ['cap.cli.list'],
         },
       ]);
     });
 
-    it('空数组用于无frontmatter的spec capabilities字段', async () => {
+    it('requirements字段来自spec headers并忽略fenced code', async () => {
+      const specsDir = path.join(tempDir, 'openspec', 'specs');
+      await fs.mkdir(path.join(specsDir, 'cli-list'), { recursive: true });
+      await fs.writeFile(
+        path.join(specsDir, 'cli-list', 'spec.md'),
+        `# CLI List
+
+## Purpose
+List specs as JSON.
+
+## Requirements
+
+\`\`\`md
+### Requirement: Not real
+\`\`\`
+
+### Requirement: JSON output format for specs
+The system SHALL output JSON.
+
+#### Scenario: JSON output
+- **WHEN** listing specs
+- **THEN** JSON is emitted
+
+### Requirement: Human table output
+The system SHALL output a table.
+
+#### Scenario: Human output
+- **WHEN** listing specs
+- **THEN** a table is emitted
+`
+      );
+
+      const listCommand = new ListCommand();
+      await listCommand.execute(tempDir, 'specs', { json: true });
+
+      const output = JSON.parse(logOutput[0]);
+      expect(output[0].requirements).toEqual([
+        'JSON output format for specs',
+        'Human table output',
+      ]);
+    });
+
+    it('空数组用于无frontmatter的spec capabilities字段和无requirement headers的requirements字段', async () => {
       const specsDir = path.join(tempDir, 'openspec', 'specs');
       await fs.mkdir(path.join(specsDir, 'legacy'), { recursive: true });
       await fs.writeFile(
@@ -302,6 +345,7 @@ Legacy spec.
       expect(output[0]).toMatchObject({
         id: 'legacy',
         capabilities: [],
+        requirements: [],
       });
     });
   });

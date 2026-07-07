@@ -20,6 +20,24 @@ interface ListOptions {
   json?: boolean;
 }
 
+function extractRequirementHeaders(content: string): string[] {
+  const requirements: string[] = [];
+  let inFence = false;
+
+  for (const line of content.split(/\r?\n/)) {
+    if (/^\s*```/.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
+    if (inFence) continue;
+
+    const match = line.match(/^### Requirement:\s*(.+?)\s*$/);
+    if (match) requirements.push(match[1]);
+  }
+
+  return requirements;
+}
+
 /**
  * Get the most recent modification time of any file in a directory (recursive).
  * Falls back to the directory's own mtime if no files are found.
@@ -173,7 +191,7 @@ export class ListCommand {
       return;
     }
 
-    type SpecInfo = { id: string; title: string; requirementCount: number; capabilities: string[] };
+    type SpecInfo = { id: string; title: string; requirementCount: number; requirements: string[]; capabilities: string[] };
     const specs: SpecInfo[] = [];
     for (const id of specDirs) {
       const specPath = join(specsDir, id, 'spec.md');
@@ -183,13 +201,19 @@ export class ListCommand {
         try {
           const parser = new MarkdownParser(content);
           const spec = parser.parseSpec(id);
-          specs.push({ id, title: spec.name, requirementCount: spec.requirements.length, capabilities });
+          specs.push({
+            id,
+            title: spec.name,
+            requirementCount: spec.requirements.length,
+            requirements: extractRequirementHeaders(content),
+            capabilities,
+          });
         } catch {
-          specs.push({ id, title: id, requirementCount: 0, capabilities });
+          specs.push({ id, title: id, requirementCount: 0, requirements: [], capabilities });
         }
       } catch {
         // If spec cannot be read or parsed, include with 0 count
-        specs.push({ id, title: id, requirementCount: 0, capabilities: [] });
+        specs.push({ id, title: id, requirementCount: 0, requirements: [], capabilities: [] });
       }
     }
 
