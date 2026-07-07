@@ -17,7 +17,7 @@
       "test/commands/check-delta.test.ts",
       "test/core/templates/propose-template.test.ts"
     ],
-    "evidenceFingerprint": "fbb039f63bbd91235f53233b35c7c88e3b120734e242359f515910375a4a4a2c",
+    "evidenceFingerprint": "31ba2c48805053be1e061a9feeb5d658b077e0d13490ab2ef2049038d18f892c",
     "evidenceFingerprintEntries": [
       {
         "path": "openspec/changes/add-check-delta-command/opsx-delta.yaml",
@@ -33,7 +33,7 @@
       },
       {
         "path": "openspec/project.opsx.code-map.yaml",
-        "hash": "c010e38dc3e570405f4c22ceb368ee103546c8b9725c284b68c1fc8e006501c2"
+        "hash": "b105904ec16bdb2cb86051a3028b0c66eb6fb248b33c1268838365a075cfcea2"
       },
       {
         "path": "src/cli/index.ts",
@@ -60,8 +60,15 @@
     "gitHeadCommit": "6717dbce3cd6515f52f7d4acaa1334091ad3f7c3"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "status": "NOT_NEEDED",
+    "attempts": [
+      {
+        "timestamp": "2026-07-07T06:18:57.269Z",
+        "type": "optimization",
+        "status": "NO_OPTIMIZATION_NEEDED",
+        "summary": "No optimization opportunities found: optimizer found the new command, CLI registration, and propose template guidance already minimal and behavior-preserving."
+      }
+    ],
     "baseline": {
       "timestamp": "2026-07-07T06:17:05.263Z",
       "result": "PASS",

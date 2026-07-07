@@ -561,3 +561,12 @@ relations:
   - from: cap.ai.workflow-templates
     type: depends_on
     to: cap.ai.internal-subagent-generation
+  - from: cap.cli.check-delta
+    type: contains
+    to: dom.cli
+  - from: cap.cli.check-delta
+    type: relates_to
+    to: cap.validation.spec-section-type-cross-check
+  - from: cap.cli.check-delta
+    type: relates_to
+    to: cap.cli.validate
