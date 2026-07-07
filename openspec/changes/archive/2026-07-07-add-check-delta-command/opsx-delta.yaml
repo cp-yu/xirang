@@ -1,0 +1,21 @@
+schema_version: 1
+ADDED:
+  capabilities:
+    - id: cap.cli.check-delta
+      type: capability
+      intent: 提供 `openspec check-delta` 写入前检查命令，按 spec id 列出 main spec requirement headers，并按 `--added`、`--modified`、`--removed`、`--renamed-from` 聚合校验计划引用
+  relations:
+    - from: cap.cli.check-delta
+      type: contains
+      to: dom.cli
+    - from: cap.cli.check-delta
+      type: relates_to
+      to: cap.validation.spec-section-type-cross-check
+    - from: cap.cli.check-delta
+      type: relates_to
+      to: cap.cli.validate
+MODIFIED:
+  capabilities:
+    - id: cap.ai.propose-smart-routing
+      intent: Propose 阶段的智能路由与 artifact 生成 guidance；生成 specs 时应用 schema content boundary，支持在 change-local MODIFIED requirement 中使用 scenario operation labels 标记局部变化，并消费共享 artifact language contract；写入 change-local specs 前提示使用 `openspec check-delta` 检查计划引用；post-propose validation guidance 使用 artifact-scoped validate 命令分阶段检查 specs 与 opsx-delta
+REMOVED: {}

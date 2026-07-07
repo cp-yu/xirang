@@ -20,6 +20,7 @@ import { registerConfigCommand } from '../commands/config.js';
 import { registerSchemaCommand } from '../commands/schema.js';
 import { registerSyncCommand } from '../commands/sync.js';
 import { registerVerifyCommand } from '../commands/verify.js';
+import { registerCheckDeltaCommand } from '../commands/check-delta.js';
 import {
   bootstrapInitCommand,
   bootstrapStatusCommand,
@@ -194,6 +195,7 @@ program
 
 registerSyncCommand(program);
 registerVerifyCommand(program);
+registerCheckDeltaCommand(program);
 
 program
   .command('list')
