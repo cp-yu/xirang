@@ -26,6 +26,18 @@ describe('propose template post-validation flow', () => {
     }
   });
 
+  it('guides agents to run check-delta before writing change-local specs', () => {
+    const template = getOpsxProposeSkillTemplate();
+    expect(template.instructions.indexOf('openspec check-delta')).toBeGreaterThan(-1);
+    expect(template.instructions.indexOf('openspec check-delta')).toBeLessThan(template.instructions.indexOf('When creating `specs`'));
+    expect(template.instructions).toContain('--added');
+    expect(template.instructions).toContain('--modified');
+    expect(template.instructions).toContain('--removed');
+    expect(template.instructions).toContain('--renamed-from');
+    expect(template.instructions).toContain('Missing and Conflict results are blocking before writing specs');
+    expect(template).not.toHaveProperty('referenceFiles');
+  });
+
   it('aligns generated spec validation with the existing change delta validation contract', () => {
     for (const body of getProposeBodies()) {
       expect(body).toContain('openspec validate --change "<name>" --artifacts specs --json');

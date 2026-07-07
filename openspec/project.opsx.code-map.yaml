@@ -96,6 +96,11 @@ nodes:
         line_start: 197
         line_end: 215
       - path: src/core/archive.ts
+  - id: cap.cli.check-delta
+    refs:
+      - path: src/cli/index.ts
+      - path: src/commands/check-delta.ts
+      - path: test/commands/check-delta.test.ts
   - id: cap.cli.change
     refs:
       - path: src/cli/index.ts

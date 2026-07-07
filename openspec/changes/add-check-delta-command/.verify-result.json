@@ -1,0 +1,128 @@
+{
+  "timestamp": "2026-07-07T06:17:05.263Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "20dc01cb554e2777752fde8b4c389b5ba7382e239945a8d5a50d9f3f5f8144e8",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "executionMode": "subagent",
+    "evidenceFiles": [
+      "openspec/changes/add-check-delta-command/opsx-delta.yaml",
+      "openspec/changes/add-check-delta-command/specs/cli-check-delta/spec.md",
+      "openspec/changes/add-check-delta-command/specs/propose-workflow/spec.md",
+      "openspec/project.opsx.code-map.yaml",
+      "src/cli/index.ts",
+      "src/commands/check-delta.ts",
+      "src/core/templates/workflows/propose.ts",
+      "test/commands/check-delta.test.ts",
+      "test/core/templates/propose-template.test.ts"
+    ],
+    "evidenceFingerprint": "fbb039f63bbd91235f53233b35c7c88e3b120734e242359f515910375a4a4a2c",
+    "evidenceFingerprintEntries": [
+      {
+        "path": "openspec/changes/add-check-delta-command/opsx-delta.yaml",
+        "hash": "8783782367eaa07779c6601e0e9feb80e71bf9cda04a55dcd3b9027b56e11e44"
+      },
+      {
+        "path": "openspec/changes/add-check-delta-command/specs/cli-check-delta/spec.md",
+        "hash": "e74d00c81727ea2f6f326d70c9c31d1af1fde6d96120c107f170c96a6c8fe90d"
+      },
+      {
+        "path": "openspec/changes/add-check-delta-command/specs/propose-workflow/spec.md",
+        "hash": "0193670934fffceaa278c984f683b7f3daec11f746c982d744601311436cf5b7"
+      },
+      {
+        "path": "openspec/project.opsx.code-map.yaml",
+        "hash": "c010e38dc3e570405f4c22ceb368ee103546c8b9725c284b68c1fc8e006501c2"
+      },
+      {
+        "path": "src/cli/index.ts",
+        "hash": "14abf4ce8fa937df8d064abf6d5a69d22d0757e94ba1e94c560d9e257fe15ffc"
+      },
+      {
+        "path": "src/commands/check-delta.ts",
+        "hash": "c727c72274bdd45aa9f78e8d0383722485b98daa15c33a51f8a24b8e306bcf8b"
+      },
+      {
+        "path": "src/core/templates/workflows/propose.ts",
+        "hash": "c69a0138633e78b2fd181777b6f5bfb21e1e0c4974b2cf72316b98117dc3d512"
+      },
+      {
+        "path": "test/commands/check-delta.test.ts",
+        "hash": "75e56a99c4ba4f4dc44f74fd4de1ee6ea3f70b01e4c3a2179688c9438a00b3f3"
+      },
+      {
+        "path": "test/core/templates/propose-template.test.ts",
+        "hash": "f3a4818502a374581c4b12e8a28a7545be120159687065e898d9228a9446ceb3"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "6717dbce3cd6515f52f7d4acaa1334091ad3f7c3"
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-07-07T06:17:05.263Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "20dc01cb554e2777752fde8b4c389b5ba7382e239945a8d5a50d9f3f5f8144e8",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "executionMode": "subagent",
+        "evidenceFiles": [
+          "openspec/changes/add-check-delta-command/opsx-delta.yaml",
+          "openspec/changes/add-check-delta-command/specs/cli-check-delta/spec.md",
+          "openspec/changes/add-check-delta-command/specs/propose-workflow/spec.md",
+          "openspec/project.opsx.code-map.yaml",
+          "src/cli/index.ts",
+          "src/commands/check-delta.ts",
+          "src/core/templates/workflows/propose.ts",
+          "test/commands/check-delta.test.ts",
+          "test/core/templates/propose-template.test.ts"
+        ],
+        "evidenceFingerprint": "fbb039f63bbd91235f53233b35c7c88e3b120734e242359f515910375a4a4a2c",
+        "evidenceFingerprintEntries": [
+          {
+            "path": "openspec/changes/add-check-delta-command/opsx-delta.yaml",
+            "hash": "8783782367eaa07779c6601e0e9feb80e71bf9cda04a55dcd3b9027b56e11e44"
+          },
+          {
+            "path": "openspec/changes/add-check-delta-command/specs/cli-check-delta/spec.md",
+            "hash": "e74d00c81727ea2f6f326d70c9c31d1af1fde6d96120c107f170c96a6c8fe90d"
+          },
+          {
+            "path": "openspec/changes/add-check-delta-command/specs/propose-workflow/spec.md",
+            "hash": "0193670934fffceaa278c984f683b7f3daec11f746c982d744601311436cf5b7"
+          },
+          {
+            "path": "openspec/project.opsx.code-map.yaml",
+            "hash": "c010e38dc3e570405f4c22ceb368ee103546c8b9725c284b68c1fc8e006501c2"
+          },
+          {
+            "path": "src/cli/index.ts",
+            "hash": "14abf4ce8fa937df8d064abf6d5a69d22d0757e94ba1e94c560d9e257fe15ffc"
+          },
+          {
+            "path": "src/commands/check-delta.ts",
+            "hash": "c727c72274bdd45aa9f78e8d0383722485b98daa15c33a51f8a24b8e306bcf8b"
+          },
+          {
+            "path": "src/core/templates/workflows/propose.ts",
+            "hash": "c69a0138633e78b2fd181777b6f5bfb21e1e0c4974b2cf72316b98117dc3d512"
+          },
+          {
+            "path": "test/commands/check-delta.test.ts",
+            "hash": "75e56a99c4ba4f4dc44f74fd4de1ee6ea3f70b01e4c3a2179688c9438a00b3f3"
+          },
+          {
+            "path": "test/core/templates/propose-template.test.ts",
+            "hash": "f3a4818502a374581c4b12e8a28a7545be120159687065e898d9228a9446ceb3"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "6717dbce3cd6515f52f7d4acaa1334091ad3f7c3"
+      }
+    }
+  }
+}
