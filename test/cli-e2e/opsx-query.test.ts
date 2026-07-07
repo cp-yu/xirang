@@ -157,6 +157,7 @@ describe('openspec opsx query e2e', () => {
         id: 'cli-list',
         title: 'cli-list',
         requirementCount: 1,
+        requirements: ['JSON output'],
         capabilities: ['cap.cli.list'],
       },
     ]);
