@@ -42,7 +42,6 @@ Before archiving, run `openspec config project --json` and consume git policy fr
    - Execute the verify workflow end-to-end; when Phase 2 is eligible, delegate to clean-context generated `openspec-optimizer` subagent with `context: "fresh"`; pass only `changeName`, `changeDir`, `projectRoot`, Phase 1 result, artifacts, file contents, config, and failedDirections
    - In `P1_SPECULATIVE_FENCE`, delegate to clean-context generated `openspec-reviewer` subagent again with `context: "fresh"`, `changeName`, `changeDir`, and `projectRoot` for the speculative verdict
    - The top-level archive flow MUST NOT inline a current-agent review skeleton or silently downgrade to reread mode
-   - The top-level archive flow MUST NOT read or inline generated subagent artifacts
    Continue through Phase 2 when eligible; `SKIPPED` is valid only for config/user skip. Persist fresh verify before archiving.
 
 3. **Check artifact completion status**

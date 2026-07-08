@@ -45,18 +45,17 @@ Treat `openspec/config.yaml` as the source of truth for authoring policy, but co
    ```
 
    **Phase: init**
-
+   
    **Before init**: Ask the user to choose a spec granularity:
    - **coarse** — fewer, wider grouped specs via `spec_groups` in domain-map source
    - **fine** — per-capability specs via `capabilities[].spec`
-
+   
    Do NOT pick a default. Explain the trade-off: coarse produces fewer spec files covering multiple capabilities each; fine produces one spec per capability.
 
    ```bash
    openspec bootstrap init --mode full --granularity coarse
    ```
    The CLI persists the confirmed granularity in `scope.yaml`. Missing or invalid `--granularity` fails fast.
-
    Creates workspace at `openspec/bootstrap/` with scope configuration.
    Supported upgrade paths:
    - `specs-based -> full`

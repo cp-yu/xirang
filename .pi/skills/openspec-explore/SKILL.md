@@ -34,13 +34,6 @@ A single compilation is faithful and deterministic; the source itself iterates f
 - MUST read the project-root file `openspec/references/openspec-explore-supperpowers-style.md` before exploring. DO NOT proceed without reading it first. It is the authoritative Superpowers brainstorming behavior guide for hard gate, context exploration, visual companion judgment, one-question discipline, options comparison, section approval, Design Summary review, and propose handoff.
 - Do not reconstruct or duplicate Superpowers behavior from this prompt. This prompt defines boundaries, context loading, sweeper delegation, and proposal routing only.
 
-## Skill Delegation Protocol
-
-**Internal Subagents** — The following roles are internal subagents and MUST NOT be read or inlined directly by this agent:
-- `openspec-impact-sweeper` — delegate to generated subagent; main agent MUST NOT read the generated artifact
-
-**Never** read or inline the generated `openspec-impact-sweeper` subagent artifact.
-
 ## Hard Rules
 
 - User confirmations ("ok", "option 2") approve design direction only, not file modification.
@@ -83,15 +76,15 @@ If todo is available, track this flow before context reads and tick stages as co
 
 ## Impact Sweeps
 
-Delegate to generated `openspec-impact-sweeper` subagent when the user introduces a new module, workflow, command, configuration key, project concept, or unfamiliar domain term, or when preparing to say the discussion is ready for proposal/change artifacts. Never read or inline the generated `openspec-impact-sweeper` subagent artifact. Delegate it to a generated subagent with `projectRoot`, `concept`, optional `optionalChangeName`, optional `knownUserTerms`, and optional `focus`, and return only the JSON report path. Treat each new concept as an independent sweep, even if another concept was already swept earlier in the conversation. After the subagent returns the JSON report path, read that JSON report and interpret the findings in the explore conversation.
+Delegate to the `openspec-impact-sweeper` agent when the user introduces a new module, workflow, command, configuration key, project concept, or unfamiliar domain term, or when preparing to say the discussion is ready for proposal/change artifacts. Pass `projectRoot`, `concept`, optional `optionalChangeName`, optional `knownUserTerms`, and optional `focus`, and return only the JSON report path. Treat each new concept as an independent sweep, even if another concept was already swept earlier in the conversation. After the agent returns the JSON report path, read that JSON report and interpret the findings in the explore conversation.
 
 If the report contains terminology observations, decide before impact questions. When the user confirms the terms mean the same concept, record that term group and continue the explore flow. When the user chooses a canonical term, record that canonical term. When the user says the terms are different concepts, record the rejected term group. For any recorded same-concept, canonical-term, or rejected term group, do not ask again for that same group. Do not claim proposal readiness until those scope-affecting questions are resolved or explicitly deferred by the user.
 
-## Ponytail-lite
+## Simplicity Awareness
 
-While exploring, apply ponytail-lite awareness: build what's asked, but name the lazier alternative in one line when it exists. The user decides. Do not add a standalone ponytail review step — weave it into option comparison and section confirmation naturally.
+While exploring, build what's asked, but name the lazier alternative in one line when it exists. The user decides. Do not add a standalone simplicity review step — weave it into option comparison and section confirmation naturally.
 
-The ponytail 6-rung ladder (for reference):
+The simplicity filter (for reference):
 1. Does this need to exist at all? (YAGNI)
 2. Does the standard library already do it? Use it.
 3. Does a native platform feature cover it? Use it.
@@ -105,8 +98,8 @@ Explore MUST run this sequence before saying a proposal is ready:
 1. **Explore project context**. If the request spans multiple independent subsystems, identify them and recommend an implementation order.
 2. **Visual companion when useful**.
 3. **Clarify one question at a time**. Ask exactly one question, then wait for the answer.
-4. **Compare 2-3 options**. Present 2-3 viable approaches. If the ponytail ladder suggests a simpler alternative (unnecessary abstraction, new dependency, platform-native replacement), name it in one line and let the user choose. Skip when nothing triggers.
-5. **Confirm design in sections**: architecture, core components, data flow, technology stack, testing strategy, risks and trade-offs. For testing strategy, classify each item as persistent or one-time verification (one-time: no persistent test file, e.g. import boundary grep); when one-time items exist, add a `One-time Verification` subsection. When discussing a single section, if you spot over-engineering that the ponytail ladder would simplify, name the lazier path in one line. Do not force ponytail output when nothing triggers.
+4. **Compare 2-3 options**. Present 2-3 viable approaches. If a simpler alternative exists (unnecessary abstraction, new dependency, platform-native replacement), name it in one line and let the user choose. Skip when nothing triggers.
+5. **Confirm design in sections**: architecture, core components, data flow, technology stack, testing strategy, risks and trade-offs. For testing strategy, classify each item as persistent or one-time verification (one-time: no persistent test file, e.g. import boundary grep); when one-time items exist, add a `One-time Verification` subsection. When discussing a single section, if you spot over-engineering that a simpler alternative would address, name the lazier path in one line. Do not force this when nothing triggers.
 6. **Generate Design Summary**. Produce a `Design Summary` in the conversation, not in a file. Present the Design Summary, then end with: "Design Summary complete. Review the above design. If confirmed, call `/skill:openspec-propose <change-name>` generate artifacts." After presenting the Design Summary, STOP — do not offer to run any workflow or ask follow-up questions. Only the user triggers the next workflow.
 
 ## Existing Changes

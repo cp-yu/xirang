@@ -1,8 +1,8 @@
 # Optimization Decision Rules
 
-## Ponytail Ladder
+## Simplicity Filter
 
-Before analyzing structural improvements, run each area of concern through the ponytail 6-rung ladder. Stop at the first rung that holds:
+Before analyzing structural improvements, ask whether the code can be deleted, replaced by standard library or native platform behavior, covered by an installed dependency, or expressed directly. Stop at the first answer that holds:
 
 1. **Does this need to exist at all? (YAGNI)** — dead code, unused flexibility, speculative feature. Skip further analysis; classify as `delete:`.
 2. **Does the standard library already do it?** — hand-rolled string parsing, date math, collection operations. Classify as `stdlib:`.
@@ -10,9 +10,9 @@ Before analyzing structural improvements, run each area of concern through the p
 4. **Does an already-installed dependency solve it?** — check installed deps before proposing new ones. Classify as `yagni:` when an installed dep already covers the need.
 5. **Can it be one line?** — prefer a direct expression over a helper function. Classify as `shrink:`.
 
-Only after exhausting the ladder, proceed to the structural improvements below.
+Only after exhausting this filter, proceed to the structural improvements below.
 
-Each optimization block MUST carry a ponytail tag (delete/stdlib/native/yagni/shrink) as supplementary classification alongside the `<!-- Code Smell -->` annotation.
+Each optimization block MUST carry a rationale tag (delete/stdlib/native/yagni/shrink) as supplementary classification alongside the `<!-- Code Smell -->` annotation.
 
 ## What to Improve
 
