@@ -2,58 +2,94 @@ import { describe, expect, it } from 'vitest';
 
 import {
   OPSX_COMPILATION_PHILOSOPHY,
-  VERIFY_CLI_JSON_SCHEMA_REFERENCE,
-  VERIFY_ERROR_RECOVERY_GUIDE,
-  VERIFY_STATE_MACHINE_DIAGRAM,
 } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import {
   getApplyChangeSkillTemplate,
 } from '../../../src/core/templates/workflows/apply-change.js';
 import { runTransforms } from '../../../src/core/templates/transforms/index.js';
 
+const applyReference = (path: string) => {
+  const reference = getApplyChangeSkillTemplate().referenceFiles?.find((file) => file.path === path);
+  expect(reference).toBeDefined();
+  return reference?.content ?? '';
+};
+
 describe('apply change workflow template', () => {
-  it('includes the OPSX compilation philosophy in the skill surface', () => {
+  it('keeps the OPSX compilation philosophy in the skill surface', () => {
     expect(getApplyChangeSkillTemplate().instructions).toContain(OPSX_COMPILATION_PHILOSOPHY);
   });
 
-  it('references the apply Phase 2 optimization protocol from the skill surface', () => {
+  it('keeps one reference file per apply workflow step', () => {
     const template = getApplyChangeSkillTemplate();
 
-    expect(template.referenceFiles).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          path: 'references/apply-phase2-optimization.md',
-        }),
-      ])
-    );
-    expect(template.instructions).toContain(
-      'read the project-root file `openspec/references/openspec-apply-phase2-optimization.md` before Phase 2'
-    );
+    expect(template.referenceFiles?.map((file) => file.path)).toEqual([
+      'references/apply-step-1-preparation.md',
+      'references/apply-step-2-preflight-scan.md',
+      'references/apply-step-3-branch-isolation.md',
+      'references/apply-step-4-phase1-verification.md',
+      'references/apply-step-5-phase2-optimization.md',
+      'references/apply-step-6-phase3-seal.md',
+      'references/apply-step-7-output.md',
+    ]);
+
+    for (const reference of template.referenceFiles ?? []) {
+      const sharedPath = `openspec/references/openspec-${reference.path.replace('references/', '')}`;
+      expect(template.instructions).toContain(sharedPath);
+    }
   });
 
-  it('keeps apply Phase 2 checkpoint commands in a commit-based reference', () => {
-    const template = getApplyChangeSkillTemplate();
-    const reference = template.referenceFiles?.find(
-      (file) => file.path === 'references/apply-phase2-optimization.md'
-    );
+  it('keeps flow details in step references instead of the skill outline', () => {
+    const instructions = getApplyChangeSkillTemplate().instructions;
+    const preparation = applyReference('references/apply-step-1-preparation.md');
 
-    expect(reference?.content).toContain('git commit -m "wip: opt-checkpoint-r0 (baseline)"');
-    expect(reference?.content).toContain('git commit -m "wip: opt-r${N} (${description})"');
-    expect(reference?.content).toContain('git reset --hard HEAD');
-    expect(reference?.content).toContain('git clean -fd');
-    expect(reference?.content).toContain('record verification PASS and save the new successful state before deciding whether to continue');
-    expect(reference?.content).not.toContain('If another retry remains, save the new successful state');
-    expect(reference?.content).not.toContain('git stash push');
-    expect(reference?.content).not.toContain('git stash apply');
-    expect(reference?.content).not.toContain('git tag apply-opt-checkpoint');
+    expect(instructions).toContain('## Flow Outline');
+    expect(instructions).toContain('Step 1: Preparation');
+    expect(instructions).not.toContain('openspec list --specs --json');
+    expect(instructions).not.toContain('capabilities: []');
+    expect(preparation).toContain('openspec list --specs --json');
+    expect(preparation).toContain('capabilities: []');
+  });
+
+  it('does not carry obsolete generated subagent artifact warnings', () => {
+    const instructions = getApplyChangeSkillTemplate().instructions;
+
+    expect(instructions).not.toContain('## Skill Delegation Protocol');
+    expect(instructions).not.toContain('**Internal Subagents**');
+    expect(instructions).not.toContain('generated `openspec-impact-sweeper`');
+    expect(instructions).not.toContain('generated `openspec-reviewer`');
+    expect(instructions).not.toContain('generated `openspec-optimizer`');
+    expect(instructions).not.toContain('.claude/skills/openspec-reviewer/SKILL.md');
+    expect(instructions).not.toContain('/skills/openspec-optimizer/SKILL.md');
+  });
+
+  it('keeps concise implementation discipline directly in the apply skill without borrowed framework names', () => {
+    const instructions = getApplyChangeSkillTemplate().instructions;
+
+    expect(instructions).toContain('Write or update targeted tests before behavior/code changes.');
+    expect(instructions).toContain('Verify the expected failure before implementation, then rerun the same check after the minimal fix.');
+    expect(instructions).toContain('Prefer deletion, standard library, native platform support, installed dependencies, and direct expressions before adding new code.');
+    expect(instructions).toContain('Exercise public behavior; mock only system boundaries injected through parameters.');
+    expect(instructions).not.toContain('Ponytail');
+    expect(instructions).not.toContain('Superpowers');
+    expect(instructions).not.toContain('Pocock');
+  });
+
+  it('keeps apply Phase 2 checkpoint commands in the Phase 2 reference', () => {
+    const reference = applyReference('references/apply-step-5-phase2-optimization.md');
+
+    expect(reference).toContain('git commit -m "wip: opt-checkpoint-r0 (baseline)"');
+    expect(reference).toContain('git commit -m "wip: opt-r${N} (${description})"');
+    expect(reference).toContain('git reset --hard HEAD');
+    expect(reference).toContain('git clean -fd');
+    expect(reference).toContain('record verification PASS and save the new successful state before deciding whether to continue');
+    expect(reference).not.toContain('If another retry remains, save the new successful state');
+    expect(reference).not.toContain('git stash push');
+    expect(reference).not.toContain('git stash apply');
+    expect(reference).not.toContain('git tag apply-opt-checkpoint');
   });
 
   it('pins Phase 2 optimization hash sampling before patch application and verification after patching', () => {
-    const template = getApplyChangeSkillTemplate();
-    const reference = template.referenceFiles?.find(
-      (file) => file.path === 'references/apply-phase2-optimization.md'
-    );
-    const content = reference?.content ?? '';
+    const content = applyReference('references/apply-step-5-phase2-optimization.md');
 
     const optimizationIndex = content.indexOf('openspec verify phase2 "<change-name>" --type=optimization');
     const patchIndex = content.indexOf('Apply Search/Replace blocks atomically');
@@ -63,181 +99,31 @@ describe('apply change workflow template', () => {
     expect(patchIndex).toBeGreaterThan(optimizationIndex);
     expect(verificationIndex).toBeGreaterThan(patchIndex);
     expect(content).toContain('while the working tree is still pre-patch');
-    expect(getApplyChangeSkillTemplate().instructions).toContain('record pre-patch hashes before applying Search/Replace');
-    expect(getApplyChangeSkillTemplate().instructions).toContain('record verification after applying Search/Replace');
   });
 
-  it('documents the Phase 0-3 apply + verify workflow in both surfaces', () => {
-    const template = getApplyChangeSkillTemplate().instructions;
-      expect(template).toContain('Phase 1: Run canonical verification');
-      expect(template).toContain('Phase 2: Optimize under checkpoint protection');
-      expect(template).toContain('Phase 3: Seal final result');
-      expect(template).toContain('delegate to clean-context generated `openspec-reviewer` subagent');
-      expect(template).toContain('delegate to clean-context generated `openspec-optimizer` subagent');
-      expect(template).not.toContain('invoke the `openspec-reviewer` skill');
-      expect(template).not.toContain('invoke the `openspec-optimizer` skill');
-      expect(template).toContain('openspec verify phase1 "<change-name>"');
-      expect(template).toContain('openspec verify phase2');
-      expect(template).toContain('openspec verify seal "<change-name>"');
-      expect(template).toContain('wip: opt-checkpoint-r0 (baseline)');
-      expect(template).toContain('create an incremental checkpoint commit');
-      expect(template).not.toContain('create an incremental checkpoint commit when another retry remains');
-      expect(template).not.toContain('git stash push');
-      expect(template).not.toContain('git stash apply');
-      expect(template).toContain('optimization.optRetries');
-      expect(template).toContain('failed direction');
-      expect(template).toContain('--skip-optimization');
-      expect(template).toContain('state: "needs_verify"');
-      expect(template).toContain('state: "needs_seal"');
-      expect(template).toContain('skip back to Phase 1');
-      expect(template).toContain('continue with Phase 2/3');
-      expect(template).toContain(VERIFY_CLI_JSON_SCHEMA_REFERENCE);
-      expect(template).toContain(VERIFY_ERROR_RECOVERY_GUIDE);
-      expect(template).toContain(VERIFY_STATE_MACHINE_DIAGRAM);
-  });
-
-  it('declares internal subagents without generated artifact reads', () => {
+  it('documents the Phase 0-3 apply + verify workflow through outline and step references', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
 
-    expect(instructions).toContain('## Skill Delegation Protocol');
-    expect(instructions).toContain('**Internal Subagents**');
-    for (const name of [
-      'openspec-impact-sweeper',
-      'openspec-reviewer',
-      'openspec-optimizer',
-    ]) {
-      expect(instructions).toContain(`\`${name}\``);
-    }
-    expect(instructions).toContain('**Never** read or inline the generated `openspec-impact-sweeper`, `openspec-reviewer`, or `openspec-optimizer` subagent artifact');
-    expect(instructions).not.toContain('.claude/skills/openspec-reviewer/SKILL.md');
-    expect(instructions).not.toContain('/skills/openspec-optimizer/SKILL.md');
+    expect(instructions).toContain('Phase 1 verification');
+    expect(instructions).toContain('Phase 2 optimization');
+    expect(instructions).toContain('Phase 3 seal');
+    expect(instructions).toContain('delegate to the clean-context `openspec-reviewer` agent');
+    expect(instructions).toContain('delegate to the clean-context `openspec-optimizer` agent');
+    expect(instructions).not.toContain('invoke the `openspec-reviewer` skill');
+    expect(instructions).not.toContain('invoke the `openspec-optimizer` skill');
+
+    expect(applyReference('references/apply-step-4-phase1-verification.md')).toContain('openspec verify phase1 "<change-name>"');
+    expect(applyReference('references/apply-step-5-phase2-optimization.md')).toContain('openspec verify phase2');
+    expect(applyReference('references/apply-step-6-phase3-seal.md')).toContain('openspec verify seal "<change-name>"');
   });
 
-  it('documents strict Phase 0 TDD and branch isolation', () => {
-    const template = getApplyChangeSkillTemplate().instructions;
-      expect(template).toContain('Branch Isolation Preflight');
-      expect(template).toContain('git branch --show-current');
-      expect(template).toContain('Create branch `<change-name>`');
-      expect(template).toContain('Create worktree at `.worktrees/<change-name>`');
-      expect(template).toContain('use that as the default choice without prompting; only `ask` is interactive and means prompt');
-      expect(template).toContain("path.join(changeDir, '.apply-isolation.json')");
-      expect(template).toContain('method');
-      expect(template).toContain('branchName');
-      expect(template).toContain('originalBranch');
-      expect(template).toContain('using-git-worktrees');
-      expect(template).toContain('Master Agent Strict TDD Implementation');
-      expect(template).toContain('For behavior or code Checks, add or update the targeted test before implementation.');
-      expect(template).toContain('Run the declared Check command or equivalent targeted command and confirm the expected failure before implementation.');
-      expect(template).toContain('Make the minimal implementation needed for that Check.');
-      expect(template).toContain('Rerun the same or equivalent Check command and confirm pass before updating task or remediation checkboxes.');
-      expect(template).toContain('Non-runtime text or artifact Checks do not require artificial red failures.');
-      expect(template).toContain('Config, schema, template, workflow template, and agent instruction template Checks default to behavior/code Checks');
-      expect(template).toContain('Checks with no Test Files (absence assertions, one-time smoke) use the evidence-only fast path');
-      expect(template).toContain('Mark the task\'s nested Checks complete in `tasks.md` only after red/green evidence or final non-runtime evidence passes.');
-      expect(template).toContain('openspec list --specs --json');
-      expect(template).toContain("capabilities` string array");
-      expect(template).toContain('capabilities: []');
-      expect(template).not.toContain('openspec spec list');
-      expect(template).not.toContain('Master Agent Direct Implementation');
-      expect(template).not.toContain('Implement the task directly in the current agent context');
-      expect(template).not.toContain("path.join(changeDir, '.apply-steps')");
-      expect(template).not.toContain('openspec-implementer');
-      expect(template).not.toContain('cheapest available subagent model');
-      expect(template).not.toContain('DONE_WITH_CONCERNS');
-  });
+  it('routes seal failure into remediation and recovery in the seal reference', () => {
+    const reference = applyReference('references/apply-step-6-phase3-seal.md');
 
-  it('documents Pocock TDD checkpoints for apply implementation', () => {
-    const template = getApplyChangeSkillTemplate().instructions;
-      expect(template).toContain('TDD Checkpoint 1: Interface Design for Testability');
-      expect(template).toContain('dependencies are injected through parameters');
-      expect(template).toContain('returns values or observable results');
-      expect(template).toContain('public interface area is minimal');
-      expect(template).toContain('TDD Checkpoint 2: Test Quality Standards');
-      expect(template).toContain('verifies behavior through public interfaces');
-      expect(template).toContain('avoids mocking internal project collaborators');
-      expect(template).toContain('keeps one logical assertion per test');
-      expect(template).toContain('survives internal refactoring');
-      expect(template).toContain('TDD Checkpoint 3: Mock Boundary Enforcement');
-      expect(template).toContain('mocks are allowed only at system boundaries');
-      expect(template).toContain('internal classes, modules, and project-owned collaborators MUST NOT be mocked');
-      expect(template).toContain('mockable boundaries must be passed through dependency injection');
-  });
-
-  it('documents continuous recovery before user-visible pause', () => {
-    const template = getApplyChangeSkillTemplate().instructions;
-      expect(template).toContain('Continuous Recovery Protocol');
-      expect(template).toContain('task + check + command + failure kind');
-      expect(template).toContain('two consecutive failures');
-      expect(template).toContain('same task and same normalized error signature');
-      expect(template).toContain('User interrupt remains an immediate stop condition');
-      expect(template).toContain('Failures are recovery feedback');
-      expect(template).toContain('Phase 1 failures enter the same recovery loop');
-      expect(template).toContain('If a task Goal or Requirements is ambiguous, enrich context from proposal, design, change-local specs, tasks.md, OPSX code-map, related specs, and project search');
-      expect(template).not.toContain('update the .apply-steps file and continue dispatch before asking the user');
-      expect(template).toContain('If project context is missing, convert the gap into verifiable exploration or check steps in the current task and continue execution');
-  });
-
-  it('documents diagnosis-first discipline in enhanced recovery protocol', () => {
-    const template = getApplyChangeSkillTemplate().instructions;
-      expect(template).toContain('Diagnosis Before Repair');
-      expect(template).toContain('Read the full error output');
-      expect(template).toContain('Identify the failure layer');
-      expect(template).toContain('working example');
-      expect(template).toContain('Root cause hypothesis');
-  });
-
-  it('documents single-variable fix constraint in enhanced recovery protocol', () => {
-    const template = getApplyChangeSkillTemplate().instructions;
-      expect(template).toContain('Single-Variable Fix Constraint');
-      expect(template).toContain('change only one variable');
-      expect(template).toContain('do not stack multiple independent changes');
-  });
-
-  it('documents cumulative 3-strike mechanism in enhanced recovery protocol', () => {
-    const template = getApplyChangeSkillTemplate().instructions;
-      expect(template).toContain('Cumulative 3-Strike Escalation');
-      expect(template).toContain('stop and present evidence');
-      expect(template).toContain('attempted paths');
-  });
-
-  it('does not require generated step files for oversized task execution', () => {
-    const template = getApplyChangeSkillTemplate().instructions;
-      expect(template).not.toContain('If more than 5 cycles are needed, split the task automatically');
-      expect(template).not.toContain('Each step file or batch MUST contain 1-5 TDD Cycles');
-      expect(template).not.toContain('Do not pause solely because a task needs more than 5 TDD Cycles');
-  });
-
-  it('contains pre-flight scan paragraph in the skill template', () => {
-    const template = getApplyChangeSkillTemplate().instructions;
-      expect(template).toContain('Pre-flight Scan');
-      expect(template).toContain('scan all tasks in tasks.md for contradictions');
-      expect(template).toContain('dependency-ordering issues');
-  });
-
-  it('positions pre-flight scan after OPSX navigation before Branch Isolation', () => {
-    const template = getApplyChangeSkillTemplate().instructions;
-      const opsxEnd = template.indexOf('Treat CLI output as navigation context');
-      const preflightIndex = template.indexOf('Pre-flight Scan');
-      const branchIndex = template.indexOf('Branch Isolation Preflight');
-      expect(opsxEnd).toBeGreaterThan(-1);
-      expect(preflightIndex).toBeGreaterThan(-1);
-      expect(branchIndex).toBeGreaterThan(-1);
-      expect(preflightIndex).toBeGreaterThan(opsxEnd);
-      expect(branchIndex).toBeGreaterThan(preflightIndex);
-  });
-
-  it('contains dependency order detection in pre-flight scan', () => {
-    const template = getApplyChangeSkillTemplate().instructions;
-      expect(template).toContain('dependency-ordering');
-      expect(template).toContain('Earlier task depending on output of a later task');
-  });
-
-  it('routes seal failure into remediation and recovery', () => {
-    const template = getApplyChangeSkillTemplate().instructions;
-      expect(template).toContain('If seal fails, preserve diagnostics, convert them into remediation context');
-      expect(template).toContain('map the remediation to the affected task');
-      expect(template).toContain('return to Phase 0 recovery');
-      expect(template).toContain('Do not pause on the first seal failure');
+    expect(reference).toContain('If seal fails, preserve diagnostics, convert them into remediation context');
+    expect(reference).toContain('map the remediation to the affected task');
+    expect(reference).toContain('return to Phase 0 recovery');
+    expect(reference).toContain('Do not pause on the first seal failure');
   });
 
   it('uses canonical archive source reference for archive-ready handoff', () => {

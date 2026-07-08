@@ -65,6 +65,8 @@ interface CoarseTask {
 }
 
 const CHECKBOX_RE = /^\s*-\s+\[[ xX]\]\s+(\S+)/;
+const ACTION_ID_RE = /^A\d+$/;
+const CHECK_ID_RE = /^C\d+$/;
 const FIELD_RE = /^\s*-\s+(Covers|Verifies|Preserves|Command|Evidence|Expect):\s*(.*)$/;
 const TASK_FIELD_RE = /^\*\*(Goal|Files|Requirements)\*\*:\s*(.*)$/;
 const TASK_CHECKS_HEADING_RE = /^####\s+Checks\s*$/;
@@ -102,13 +104,13 @@ export function validateTaskStructure(
   const coveredActions = new Set<string>();
 
   for (const item of actions) {
-    if (!/^A\d+$/.test(item.id)) {
+    if (!isActionId(item.id)) {
       issues.push(error('malformed-action-id', `Action checkbox must use an A-prefixed ID: ${item.id}.`, item.line));
     }
   }
 
   for (const item of checks) {
-    if (!/^C\d+$/.test(item.id)) {
+    if (!isCheckId(item.id)) {
       issues.push(error('malformed-check-id', `Check checkbox must use a C-prefixed ID: ${item.id}.`, item.line));
     }
 
@@ -132,7 +134,7 @@ export function validateTaskStructure(
   }
 
   for (const item of actions) {
-    if (/^A\d+$/.test(item.id) && !coveredActions.has(item.id)) {
+    if (isActionId(item.id) && !coveredActions.has(item.id)) {
       issues.push(error('uncovered-action', `Action ${item.id} is not covered by any check.`, item.line));
     }
   }
@@ -207,6 +209,14 @@ function error(code: TaskStructureIssue['code'], message: string, line?: number)
 
 function warning(code: TaskStructureIssue['code'], message: string, line?: number): TaskStructureIssue {
   return { severity: 'warning', code, message, line };
+}
+
+function isActionId(id: string): boolean {
+  return ACTION_ID_RE.test(id);
+}
+
+function isCheckId(id: string): boolean {
+  return CHECK_ID_RE.test(id);
 }
 
 function hasEvidenceField(item: TaskItem): boolean {

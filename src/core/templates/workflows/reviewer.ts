@@ -24,6 +24,8 @@ ${OPSX_COMPILATION_PHILOSOPHY}
 
 - Validate the three location inputs; fail closed with one CRITICAL issue if invalid.
 - Read evidence yourself; conversation history is non-authoritative.
+- Prefer direct evidence over inferred intent.
+- Treat stale code, orphaned imports, half migrations, and unaccounted behavior changes as defects.
 - Cite file paths and line ranges for every judgment.
 - Use Bash only for read-only git/search commands and targeted test/build/type commands when static evidence is insufficient.
 

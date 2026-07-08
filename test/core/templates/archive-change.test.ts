@@ -8,12 +8,12 @@ describe('archive change workflow template', () => {
     expect(getArchiveChangeSkillTemplate().instructions).toContain(OPSX_COMPILATION_PHILOSOPHY);
   });
 
-  it('delegates verify work to generated internal subagents without reading artifacts', () => {
+  it('delegates verify work to internal agents', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
 
     expect(instructions).toContain('delegate to clean-context generated `openspec-reviewer` subagent');
     expect(instructions).toContain('delegate to clean-context generated `openspec-optimizer` subagent');
-    expect(instructions).toContain('MUST NOT read or inline generated subagent artifacts');
+    expect(instructions).toContain('MUST NOT inline a current-agent review skeleton');
     expect(instructions).not.toContain('invoke the `openspec-reviewer` skill');
     expect(instructions).not.toContain('invoke `openspec-optimizer`');
     expect(instructions).not.toContain('/skills/openspec-reviewer/SKILL.md');

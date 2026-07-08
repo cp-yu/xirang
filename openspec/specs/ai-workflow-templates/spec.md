@@ -65,36 +65,22 @@ delegation instructions SHALL 指定：
 
 ### Requirement: Explore invokes impact sweeper
 
-`openspec-explore` SHALL invoke `openspec-impact-sweeper` when exploration reaches a code-change concept that needs impact discovery, a user term does not clearly map to project terminology and affects scope, or the agent is preparing to say the discussion is ready for proposal/change artifacts.
+`openspec-explore` SHALL invoke `openspec-impact-sweeper` agent when exploration reaches a code-change concept that needs impact discovery, a user term does not clearly map to project terminology and affects scope, or the agent is preparing to say the discussion is ready for proposal/change artifacts.
 
-Explore agent SHALL 将 sweeper 视为可复用方法，在一次对话中可以多次调用，每次调用只处理一个 concept。Explore agent SHALL 在向用户总结影响面发现前读取 sweeper 返回的 JSON report path。Sweeper report 写入是内部 subagent 例外，SHALL NOT 赋予 main explore agent 创建或修改项目文件、OpenSpec 制品的权限。
+Explore agent SHALL 将 sweeper 视为可复用方法，在一次对话中可以多次调用，每次调用只处理一个 concept。Explore agent SHALL 在向用户总结影响面发现前读取 sweeper 返回的 JSON report path。Sweeper report 写入是内部 agent 例外，SHALL NOT 赋予 main explore agent 创建或修改项目文件、OpenSpec 制品的权限。
 
-#### Scenario: Proposal readiness 需要 sweep
+#### Scenario: 委托使用 agent 表述
 
-- **WHEN** `openspec-explore` 准备说明讨论已经具备 proposal/change artifacts 就绪度
-- **AND** 当前 code-change concept 在本对话中尚未 sweep
-- **THEN** agent SHALL 调用 `openspec-impact-sweeper`
-- **AND** SHALL 在说明 proposal 就绪前读取生成的 JSON report
-- **AND** SHALL 继续将制品生成路由到 `$openspec-propose <change-name>` 或合适的非-explore workflow
+- **WHEN** explore 指令描述 sweeper 调用
+- **THEN** 指令 SHALL 使用 "Delegate to the `openspec-impact-sweeper` agent" 表述
+- **AND** SHALL 传递 `projectRoot`、`concept`、`optionalChangeName`、`knownUserTerms`、`focus` 参数
 
-#### Scenario: 新 concept 触发另一次 sweep
+#### Scenario: 简洁意识使用中性术语
 
-- **WHEN** 用户在 explore 中引入新的 module、workflow、command、configuration key、project concept 或陌生 domain term
-- **AND** 该 term 可能影响 implementation scope
-- **THEN** agent SHALL 针对该 concept 调用 `openspec-impact-sweeper`
-- **AND** SHALL 让该 sweep 独立于之前的 concept sweeps
-
-#### Scenario: 影响 scope 的不确定性询问用户
-
-- **WHEN** sweeper report 包含影响 scope 或 proposal readiness 的问题
-- **THEN** `openspec-explore` SHALL 询问用户，而不是静默选择一种解释
-- **AND** SHALL 在 scope-affecting question 被解决或被用户显式延后前，不声称 proposal readiness
-
-#### Scenario: Sweeper report 写入不授权 explore 写入
-
-- **WHEN** `openspec-impact-sweeper` 在 `openspec/sweeper/` 下写入 JSON report
-- **THEN** main explore agent SHALL 只读取并解释该 report
-- **AND** SHALL NOT 在 explore 中创建或修改源码、测试、generated workflow surfaces 或 OpenSpec 制品
+- **WHEN** explore 指令描述简单性检查
+- **THEN** 章节 SHALL 使用 "Simplicity Awareness" 标题
+- **AND** 规则列表 SHALL 称为 "simplicity filter"
+- **AND** SHALL 使用中性术语，不引用外部框架名称
 
 ### Requirement: Impact sweeper report contract
 `openspec-impact-sweeper` SHALL accept lightweight location and concept input from the caller: `projectRoot`, `concept`, optional `optionalChangeName`, optional `knownUserTerms`, and optional `focus`.
@@ -262,81 +248,36 @@ Apply-change 模板 SHALL 使用 `openspec list --specs --json` 替代 deprecate
 
 ### Requirement: 内部 subagent 引用替换内联 fragment
 
-verify/apply/archive 三个模板中 delegate to reviewer subagent 的步骤 SHALL delegate to 对应的 generated `openspec-reviewer` subagent。Delegate to optimizer subagent 的步骤 SHALL delegate to 对应的 generated `openspec-optimizer` subagent。
+Verify/apply/archive 三个模板中 delegate to reviewer subagent 的步骤 SHALL delegate to 对应的 `openspec-reviewer` agent。Delegate to optimizer subagent 的步骤 SHALL delegate to 对应的 `openspec-optimizer` agent。
 
-模板中的 delegation 指令 SHALL 使用 internal subagent 名引用（`openspec-reviewer`、`openspec-optimizer`、`openspec-impact-sweeper`），SHALL NOT 指示主 agent 读取或内联 generated subagent artifact，也 SHALL NOT 引用 `<toolDir>/skills/<name>/SKILL.md` 路径。
+模板中的 delegation 指令 SHALL 使用 agent 名引用（`openspec-reviewer`、`openspec-optimizer`、`openspec-impact-sweeper`）。Subagent 由 agent 文件承载，模板 SHALL 引用 `openspec/references/` 路径下的 reference 文件获取步骤详情。
 
-#### Scenario: Propose 模板包含 spec 发现指令
+#### Scenario: Apply 模板 delegate to reviewer agent
 
-- **WHEN** propose 模板被加载
-- **THEN** SHALL 包含步骤指示 LLM 运行 `openspec list --specs --json` 获取现有 specs 及其 capabilities 关联
-- **AND** SHALL 指示 LLM 交叉对比提议的新 capabilities 与已有 specs，避免创建冗余 spec
+- **WHEN** apply 模板执行 Phase 1
+- **THEN** 模板 SHALL 指示顶层 agent delegate to the clean-context `openspec-reviewer` agent with `context: "fresh"`
+- **AND** agent 的审查维度和判定标准 SHALL 由 reviewer agent 自身 prompt 定义
 
-#### Scenario: Apply 模板包含 spec 交叉检查指令
-
-- **WHEN** apply-change 模板被加载
-- **THEN** SHALL 包含步骤指示 LLM 在实现 capability 前查询关联的所有 specs
-- **AND** SHALL 指示 LLM 运行 `openspec list --specs --json` 获取 cap→spec 映射
-- **AND** SHALL 指示 LLM 确认是否需要同步更新 delta spec
-
-#### Scenario: Verify 模板 delegate to reviewer subagent
-
-- **WHEN** verify 模板执行 Phase 1
-- **THEN** 模板 SHALL 指示顶层 agent delegate to clean-context generated `openspec-reviewer` subagent
-- **AND** SHALL 同时传递显式证据包作为 subagent 的输入上下文
-- **AND** SHALL NOT 内联输出验证协议、严重性阈值或证据标准的文本
-- **AND** SHALL NOT 指示主 agent 读取 generated subagent artifact 文件
-
-#### Scenario: Apply 模板 Phase 2 的 optimizer subagent
+#### Scenario: Apply 模板 Phase 2 的 optimizer agent
 
 - **WHEN** apply 模板执行 Phase 2 优化循环
-- **AND** 需要 delegate to optimizer subagent
-- **THEN** 模板 SHALL 指示主 agent delegate to clean-context generated `openspec-optimizer` subagent
+- **THEN** 模板 SHALL 指示主 agent delegate to the clean-context `openspec-optimizer` agent with `context: "fresh"`
 - **AND** SHALL 传递 Phase 1 结果、制品、文件内容、config 和 failedDirections
 
 ### Requirement: Workflow Skills 声明 Internal Subagents 约束
 
-Workflow skill 模板（`openspec-explore` 和 `openspec-apply-change`）SHALL 在其 instructions 开头包含 "Skill Delegation Protocol" 部分，明确声明哪些角色是 internal subagents，主 agent MUST NOT 直接读取或内联其 generated artifact。
+Workflow skill 模板的 instructions SHALL 以 OPSX Compilation Philosophy 开头，直接后接 Flow Outline 或核心规则。Subagent 的描述和约束 SHALL 放在对应 subagent 自身的 agent prompt 中，而非在主 skill 模板中以独立协议节列出。
 
-#### Scenario: Explore skill 声明 internal subagents 约束
+#### Scenario: Explore skill 的 instructions 结构
 
 - **WHEN** `getExploreSkillTemplate()` 生成 explore skill instructions
-- **THEN** instructions SHALL 包含 "Skill Delegation Protocol" 部分
-- **AND** SHALL 至少列出 `openspec-impact-sweeper` 为 internal subagent
-- **AND** MAY 列出 `openspec-reviewer` 和 `openspec-optimizer`（如果 explore 需要避免读取它们）
-- **AND** SHALL 包含明确的禁止指令："**Never** read or inline the generated `openspec-impact-sweeper` subagent artifact"
-- **AND** SHALL NOT 引用 `<toolDir>/skills/openspec-impact-sweeper/SKILL.md` 路径
+- **THEN** instructions SHALL 以 OPSX Compilation Philosophy 开头，后接 Hard Rules、Required Context、Mandatory Exploration Flow
+- **AND** impact sweeper 的调用描述 SHALL 使用 "Delegate to the `openspec-impact-sweeper` agent" 表述
+- **AND** sweeper 调用参数 SHALL 包含 `projectRoot`、`concept`、`optionalChangeName`、`knownUserTerms`、`focus`
 
-#### Scenario: Apply skill 声明所有 internal subagents 约束
+#### Scenario: Apply skill 的 instructions 结构
 
 - **WHEN** `getApplyChangeSkillTemplate()` 生成 apply skill instructions
-- **THEN** instructions SHALL 包含 "Skill Delegation Protocol" 部分
-- **AND** SHALL 列出所有三个 internal subagents：
-  - `openspec-impact-sweeper`
-  - `openspec-reviewer`
-  - `openspec-optimizer`
-- **AND** SHALL 包含明确的禁止指令："**Never** read or inline the generated `openspec-impact-sweeper`, `openspec-reviewer`, or `openspec-optimizer` subagent artifact"
-- **AND** SHALL NOT 引用任何 `<toolDir>/skills/<name>/SKILL.md` 形式的 internal 路径
-
-#### Scenario: 约束格式一致
-
-- **WHEN** workflow skill 包含 Skill Delegation Protocol
-- **THEN** 格式 SHALL 为：
-  ```markdown
-  ## Skill Delegation Protocol
-
-  **Internal Subagents** — The following roles are internal subagents and MUST NOT be read or inlined directly by this agent:
-  - `<name>` — Delegate via subagent tool; main agent MUST NOT read the generated artifact
-
-  **Never** read or inline the generated `<name>` subagent artifact.
-  ```
-- **AND** SHALL 位于 instructions 开头，在首个 "Hard Rules" 或 "Flow" 部分之前
-
-#### Scenario: 约束在模板源代码中定义
-
-- **WHEN** 开发者需要修改 subagent delegation 约束
-- **THEN** 应修改以下文件：
-  - `src/core/templates/workflows/explore.ts` 中的 `getExploreSkillTemplate()`
-  - `src/core/templates/workflows/apply-change.ts` 中的 `getApplyChangeSkillTemplate()`
-- **AND** 运行 `openspec update` 重新生成 `<toolDir>/skills/` 下的 workflow skill 文件与 `<toolDir>/agents/` 下的 subagent artifact 文件
+- **THEN** instructions SHALL 以 OPSX Compilation Philosophy 开头，后接 Flow Outline 和 Implementation Discipline
+- **AND** 每个流程步骤 SHALL 指向独立的 `openspec/references/openspec-apply-step-<N>-<name>.md` 文件
 

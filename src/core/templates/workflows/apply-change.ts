@@ -14,8 +14,44 @@ import {
   VERIFY_STATE_MACHINE_DIAGRAM,
 } from '../fragments/opsx-fragments.js';
 
-const APPLY_PHASE2_OPTIMIZATION_REFERENCE = `
-## Apply Phase 2 Optimization Protocol
+const APPLY_STEP_1_PREPARATION_REFERENCE = `
+# Apply Step 1: Preparation
+
+1. Select the change. If no clear name is provided, infer only from explicit context; otherwise run \`openspec list --json\` and ask. Always announce "Using change: <name>".
+2. Run \`openspec status --change "<name>" --json\` and \`openspec instructions apply --change "<name>" --json\`. Read \`configProjection.prompt.fragments\` for \`proseLanguage\` and \`apply.defaultIsolation\`. Handle \`state: "needs_verify"\` by skipping to Phase 1 and \`state: "needs_seal"\` by continuing with Phase 2/3.
+3. Load shared OPSX context before reading change artifacts.
+${OPSX_SHARED_CONTEXT}
+4. Read every context file listed by the CLI. Inspect \`changeDir/.verify-result.json\` and \`## Remediation\`; unresolved CRITICAL/code_fix/artifact_fix items take priority.
+5. Use CLI-backed OPSX navigation after shared context.
+${OPSX_CLI_QUERY_CONTEXT}
+`.trim();
+
+const APPLY_STEP_2_PREFLIGHT_SCAN_REFERENCE = `
+# Apply Step 2: Pre-flight Scan
+
+Before entering branch isolation, scan all tasks in tasks.md for contradictions and dependency-ordering issues across Goals, Files, Requirements, and Checks:
+- Conflicting declarations on the same file or interface across different tasks
+- Task declarations that conflict with change-local specs or design.md
+- Earlier task depending on output of a later task, for example Task N's Files declares Modify on a path created by Task M's Files where M > N
+- Present all findings at once; proceed silently when the scan is clean
+`.trim();
+
+const APPLY_STEP_3_BRANCH_ISOLATION_REFERENCE = `
+# Apply Step 3: Branch Isolation
+
+Run \`git branch --show-current\`. On main/master ask whether to Create branch \`<change-name>\`, Create worktree at \`.worktrees/<change-name>\`, or continue; config branch/worktree/none use that as the default choice without prompting; only \`ask\` is interactive and means prompt.
+
+Persist \`path.join(changeDir, '.apply-isolation.json')\` with \`method\`, \`branchName\`, optional \`worktreePath\`, and \`originalBranch\`. Use using-git-worktrees when present.
+`.trim();
+
+const APPLY_STEP_4_PHASE1_VERIFICATION_REFERENCE = `
+# Apply Step 4: Phase 1 Verification
+
+Delegate to the clean-context \`openspec-reviewer\` agent with \`context: "fresh"\`; persist \`openspec verify phase1 "<change-name>" --input '<json>' --json\`, and write back only CRITICAL remediation.
+`.trim();
+
+const APPLY_STEP_5_PHASE2_OPTIMIZATION_REFERENCE = `
+# Apply Step 5: Phase 2 Optimization
 
 The checkpoint is a git commit, not a git stash entry or git tag. Do not create stash or tag checkpoints for apply optimization.
 
@@ -26,13 +62,13 @@ The checkpoint is a git commit, not a git stash entry or git tag. Do not create 
    git add -A
    git commit -m "wip: opt-checkpoint-r0 (baseline)"
    \`\`\`
-4. Delegate to clean-context generated \`openspec-optimizer\` subagent with \`context: "fresh"\`. Pass Phase 1 result, artifacts, file contents, config, and failedDirections. The optimizer proposes Search/Replace blocks only; it MUST NOT edit files. The master agent MUST NOT read or inline generated subagent artifacts.
-5. **Think before patching**: Read the ponytail tags (delete/stdlib/native/yagni/shrink) and Code Smell annotations on each proposed block. Understand the optimization rationale before proceeding.
+4. Delegate to the clean-context \`openspec-optimizer\` agent with \`context: "fresh"\`. Pass Phase 1 result, artifacts, file contents, config, and failedDirections. The optimizer proposes Search/Replace blocks only; it MUST NOT edit files.
+5. Read the rationale tags (delete/stdlib/native/yagni/shrink) and Code Smell annotations on each proposed block. Understand the optimization rationale before proceeding.
 6. For each proposed optimization, record pre-patch hashes before editing, while the working tree is still pre-patch:
    \`\`\`bash
    openspec verify phase2 "<change-name>" --type=optimization --files "<affected-files>" --input '<json>' --json
    \`\`\`
-7. Apply Search/Replace blocks atomically, then spawn the reviewer subagent for speculative Phase 1 re-verification.
+7. Apply Search/Replace blocks atomically, then spawn the reviewer agent for speculative Phase 1 re-verification.
 8. On speculative PASS, record verification PASS and save the new successful state before deciding whether to continue. This verification call happens after patching:
    \`\`\`bash
    openspec verify phase2 "<change-name>" --type=verification --input '<json>' --json
@@ -47,6 +83,22 @@ The checkpoint is a git commit, not a git stash entry or git tag. Do not create 
    Record the failed direction in \`.verify-result.json\`.
 10. Each complete proposal + patch + reviewer re-verify loop consumes one \`optRetries\` budget, whether it passes or fails. Format or Search/Replace matching problems are handled by the main agent and do not consume retry budget.
 11. When all attempts finish, keep all \`wip: opt-*\` commits as audit history.
+
+${VERIFY_CLI_JSON_SCHEMA_REFERENCE}
+${VERIFY_ERROR_RECOVERY_GUIDE}
+${VERIFY_STATE_MACHINE_DIAGRAM}
+`.trim();
+
+const APPLY_STEP_6_PHASE3_SEAL_REFERENCE = `
+# Apply Step 6: Phase 3 Seal
+
+Run \`openspec verify seal "<change-name>" --json\`. If seal fails, preserve diagnostics, convert them into remediation context, map the remediation to the affected task, and return to Phase 0 recovery. Do not pause on the first seal failure.
+`.trim();
+
+const APPLY_STEP_7_OUTPUT_REFERENCE = `
+# Apply Step 7: Output
+
+Report schema, progress, current task, completed tasks this session, and final sealed/archive-ready status. Keep edits minimal, use Node path handling for generated paths, update task checkboxes only after evidence passes, and preserve canonical artifact headings/tokens and configured document language projection.
 `.trim();
 
 export function getApplyChangeSkillTemplate(): SkillTemplate {
@@ -57,110 +109,40 @@ export function getApplyChangeSkillTemplate(): SkillTemplate {
 
 ${OPSX_COMPILATION_PHILOSOPHY}
 
-## Skill Delegation Protocol
+## Flow Outline
 
-**Internal Subagents** — The following roles are internal subagents and MUST NOT be read or inlined directly by this agent:
-- \`openspec-impact-sweeper\` — Delegate to generated subagent; main agent MUST NOT read the generated artifact
-- \`openspec-reviewer\` — Delegate to generated subagent; main agent MUST NOT read the generated artifact
-- \`openspec-optimizer\` — Delegate to generated subagent; main agent MUST NOT read the generated artifact
+1. Step 1: Preparation — read \`openspec/references/openspec-apply-step-1-preparation.md\`.
+2. Step 2: Pre-flight scan — read \`openspec/references/openspec-apply-step-2-preflight-scan.md\`.
+3. Step 3: Branch isolation — read \`openspec/references/openspec-apply-step-3-branch-isolation.md\`.
+4. Execute tasks with the implementation discipline below.
+5. Step 4: Phase 1 verification — read \`openspec/references/openspec-apply-step-4-phase1-verification.md\` and delegate to the clean-context \`openspec-reviewer\` agent.
+6. Step 5: Phase 2 optimization — read \`openspec/references/openspec-apply-step-5-phase2-optimization.md\` and delegate to the clean-context \`openspec-optimizer\` agent when eligible.
+7. Step 6: Phase 3 seal — read \`openspec/references/openspec-apply-step-6-phase3-seal.md\`.
+8. Step 7: Output — read \`openspec/references/openspec-apply-step-7-output.md\`.
 
-**Never** read or inline the generated \`openspec-impact-sweeper\`, \`openspec-reviewer\`, or \`openspec-optimizer\` subagent artifact.
+## Implementation Discipline
 
-## Flow
-
-1. Select the change. If no clear name is provided, infer only from explicit context; otherwise run \`openspec list --json\` and ask. Always announce "Using change: <name>".
-2. Run \`openspec status --change "<name>" --json\` and \`openspec instructions apply --change "<name>" --json\`. Read \`configProjection.prompt.fragments\` for \`proseLanguage\` and \`apply.defaultIsolation\`. Handle \`state: "needs_verify"\` by skip back to Phase 1 and \`state: "needs_seal"\` by continue with Phase 2/3.
-3. Load shared OPSX context before reading change artifacts.
-${OPSX_SHARED_CONTEXT}
-4. Read every context file listed by the CLI. Inspect \`changeDir/.verify-result.json\` and \`## Remediation\`; unresolved CRITICAL/code_fix/artifact_fix items take priority.
-5. Use CLI-backed OPSX navigation after shared context.
-${OPSX_CLI_QUERY_CONTEXT}
-
-### Pre-flight Scan
-
-Before entering Branch Isolation, scan all tasks in tasks.md for contradictions and dependency-ordering issues across Goals, Files, Requirements, and Checks:
-- Conflicting declarations on the same file or interface across different tasks
-- Task declarations that conflict with change-local specs or design.md
-- Earlier task depending on output of a later task (e.g., Task N's Files declares Modify on a path created by Task M's Files, where M > N)
-- Present all findings at once; proceed silently when scan is clean
-
-### Branch Isolation Preflight
-
-Run \`git branch --show-current\`. On main/master ask whether to Create branch \`<change-name>\`, Create worktree at \`.worktrees/<change-name>\`, or continue; config branch/worktree/none use that as the default choice without prompting; only \`ask\` is interactive and means prompt. Persist \`path.join(changeDir, '.apply-isolation.json')\` with \`method\`, \`branchName\`, optional \`worktreePath\`, and \`originalBranch\`. Use using-git-worktrees when present.
-
-### Master Agent Strict TDD Implementation
-
-Execute tasks sequentially. For each pending task, read Goal, Files, Requirements, and Checks. For behavior or code Checks, add or update the targeted test before implementation. Run the declared Check command or equivalent targeted command and confirm the expected failure before implementation. Make the minimal implementation needed for that Check. Rerun the same or equivalent Check command and confirm pass before updating task or remediation checkboxes. Non-runtime text or artifact Checks do not require artificial red failures. Checks with no Test Files (absence assertions, one-time smoke) use the evidence-only fast path. Config, schema, template, workflow template, and agent instruction template Checks default to behavior/code Checks. Mark the task's nested Checks complete in \`tasks.md\` only after red/green evidence or final non-runtime evidence passes.
-
-TDD Checkpoint 1: Interface Design for Testability — dependencies are injected through parameters, behavior returns values or observable results, and public interface area is minimal. TDD Checkpoint 2: Test Quality Standards — verifies behavior through public interfaces, avoids mocking internal project collaborators, keeps one logical assertion per test, and survives internal refactoring. TDD Checkpoint 3: Mock Boundary Enforcement — mocks are allowed only at system boundaries; internal classes, modules, and project-owned collaborators MUST NOT be mocked; mockable boundaries must be passed through dependency injection.
-
-### Ponytail-full Coding Discipline
-
-While implementing, apply the ponytail 6-rung ladder for implementation details NOT specified by any spec requirement. This is a coding behavior, not a standalone review step.
-
-**The ladder** — stop at the first rung that holds:
-1. Does this need to exist at all? (YAGNI)
-2. Does the standard library already do it? Use it.
-3. Does a native platform feature cover it? Use it.
-4. Does an already-installed dependency solve it? Use it.
-5. Can it be one line? Make it one line.
-6. Only then: the minimum code that works.
-
-**Specs-first hard constraint**: Spec requirements always take priority. When a spec explicitly requires an interface, abstraction, or component, implement it fully — do not simplify, skip, or argue. The ladder ONLY applies to implementation details the specs leave open (internal helpers, file organization, utility functions, implementation approach).
-
-**Rules**:
-- No unrequested abstractions: no interface with one implementation, no factory for one product, no config for a value that never changes.
-- No new dependency if it can be avoided. Prefer stdlib, native platform, or installed deps.
-- Deletion over addition. Boring over clever. Fewest files possible.
-- Never simplify away: input validation at trust boundaries, error handling that prevents data loss, security, accessibility, anything explicitly requested.
-- Mark deliberate simplifications with a \`ponytail:\` comment. If a shortcut has a known ceiling, the comment names the ceiling and the upgrade path.
-
-### Continuous Recovery Protocol
-
-Failures are recovery feedback. Normalize as \`task + check + command + failure kind\`; pause only after two consecutive failures for the same task and same normalized error signature.
-
-**Diagnosis Before Repair**: When a Check command returns an unexpected failure, the agent SHALL complete diagnosis steps before attempting code fixes:
-1. Read the full error output (including stack trace)
-2. Identify the failure layer (compile / type / runtime / assertion)
-3. Search the codebase for a working example of the same pattern and compare
-4. Form and state a single hypothesis ("Root cause hypothesis: X, because Y")
-
-**Single-Variable Fix Constraint**: Each fix attempt SHALL change only one variable — do not stack multiple independent changes in a single fix. After the fix, SHALL re-run the same Check command to confirm the result.
-
-**Cumulative 3-Strike Escalation**: When the same task accumulates 3 failed fix attempts without resolution, the agent SHALL stop and present evidence: the 3 attempted paths with their results, the current best root-cause judgment, and suspected directions. Two consecutive identical normalized error signatures still trigger a fast pause. Counter resets on user instruction.
-
-If a task Goal or Requirements is ambiguous, enrich context from proposal, design, change-local specs, tasks.md, OPSX code-map, related specs, and project search. If project context is missing, convert the gap into verifiable exploration or check steps in the current task and continue execution. Phase 1 failures enter the same recovery loop. User interrupt remains an immediate stop condition.
-
-### Phase 1: Run canonical verification
-
-delegate to clean-context generated \`openspec-reviewer\` subagent with \`context: "fresh"\`; persist \`openspec verify phase1 "<change-name>" --input '<json>' --json\`, and write back only CRITICAL remediation.
-
-### Phase 2: Optimize under checkpoint protection
-
-You MUST read the project-root file \`openspec/references/openspec-apply-phase2-optimization.md\` before Phase 2. Checkpoints are git commits, not git stash entries or git tags. Respect \`--skip-optimization\`; read \`optimization.optRetries\`; create the initial checkpoint commit with \`git add -A && git commit -m "wip: opt-checkpoint-r0 (baseline)"\`; delegate to clean-context generated \`openspec-optimizer\` subagent with \`context: "fresh"\`; when the optimizer returns blocks, read the ponytail tags and Code Smell annotations to understand the optimization rationale before applying Search/Replace; use \`openspec verify phase2\` to record pre-patch hashes before applying Search/Replace and record verification after applying Search/Replace; create an incremental checkpoint commit for each successful optimization round; record each failed direction.
-
-### Phase 3: Seal final result
-
-Run \`openspec verify seal "<change-name>" --json\`. If seal fails, preserve diagnostics, convert them into remediation context, map the remediation to the affected task, and return to Phase 0 recovery. Do not pause on the first seal failure.
-
-${VERIFY_CLI_JSON_SCHEMA_REFERENCE}
-${VERIFY_ERROR_RECOVERY_GUIDE}
-${VERIFY_STATE_MACHINE_DIAGRAM}
-
-## Output
-
-Report schema, progress, current task, completed tasks this session, and final sealed/archive-ready status. Keep edits minimal, use Node path handling for generated paths, update task checkboxes only after evidence passes, and preserve canonical artifact headings/tokens and configured document language projection.
+- Write or update targeted tests before behavior/code changes.
+- Verify the expected failure before implementation, then rerun the same check after the minimal fix.
+- Prefer deletion, standard library, native platform support, installed dependencies, and direct expressions before adding new code.
+- Do not add abstractions, dependencies, or files unless the spec or failing test requires them.
+- Exercise public behavior; mock only system boundaries injected through parameters.
+- Preserve canonical artifact headings, schema keys, IDs, commands, and template tokens exactly.
+- Treat failures as recovery feedback: read the full error, isolate the layer, compare a working pattern, state one hypothesis, change one variable, and rerun the same check.
+- Pause after repeated identical failures or three failed fix attempts.
 
 When Phase 3 seal passes, end with an explicit call-to-action: \`Archive ready. Run /opsx:archive <change-name> to complete the workflow.\``,
     license: 'MIT',
     compatibility: 'Requires openspec CLI.',
     metadata: { author: 'openspec', version: '1.0' },
     referenceFiles: [
-      {
-        path: 'references/apply-phase2-optimization.md',
-        content: APPLY_PHASE2_OPTIMIZATION_REFERENCE,
-      },
+      { path: 'references/apply-step-1-preparation.md', content: APPLY_STEP_1_PREPARATION_REFERENCE },
+      { path: 'references/apply-step-2-preflight-scan.md', content: APPLY_STEP_2_PREFLIGHT_SCAN_REFERENCE },
+      { path: 'references/apply-step-3-branch-isolation.md', content: APPLY_STEP_3_BRANCH_ISOLATION_REFERENCE },
+      { path: 'references/apply-step-4-phase1-verification.md', content: APPLY_STEP_4_PHASE1_VERIFICATION_REFERENCE },
+      { path: 'references/apply-step-5-phase2-optimization.md', content: APPLY_STEP_5_PHASE2_OPTIMIZATION_REFERENCE },
+      { path: 'references/apply-step-6-phase3-seal.md', content: APPLY_STEP_6_PHASE3_SEAL_REFERENCE },
+      { path: 'references/apply-step-7-output.md', content: APPLY_STEP_7_OUTPUT_REFERENCE },
     ],
   };
 }
-

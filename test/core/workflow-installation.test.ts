@@ -108,7 +108,10 @@ describe('workflow installation planning', () => {
       path.join(testDir, 'openspec', 'references', 'openspec-archive-commit-message.md')
     );
     expect(artifacts.skillFiles).toContain(
-      path.join(testDir, 'openspec', 'references', 'openspec-apply-phase2-optimization.md')
+      path.join(testDir, 'openspec', 'references', 'openspec-apply-step-1-preparation.md')
+    );
+    expect(artifacts.skillFiles).toContain(
+      path.join(testDir, 'openspec', 'references', 'openspec-apply-step-5-phase2-optimization.md')
     );
     expect(artifacts.skillFiles).toContain(
       path.join(testDir, 'openspec', 'references', 'openspec-output-protocol.md')

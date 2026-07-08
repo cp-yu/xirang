@@ -4,8 +4,14 @@ import { OPSX_COMPILATION_PHILOSOPHY } from '../../../src/core/templates/fragmen
 import { getOptimizerSubagentTemplate } from '../../../src/core/templates/workflows/optimizer.js';
 
 describe('optimizer subagent template', () => {
-  it('includes the OPSX compilation philosophy in the prompt', () => {
-    expect(getOptimizerSubagentTemplate().prompt).toContain(OPSX_COMPILATION_PHILOSOPHY);
+  it('includes OPSX philosophy and concise optimization discipline in the agent prompt', () => {
+    const prompt = getOptimizerSubagentTemplate().prompt;
+
+    expect(prompt).toContain(OPSX_COMPILATION_PHILOSOPHY);
+    expect(prompt).toContain('First ask whether code can be deleted, replaced by standard library or native platform behavior, or expressed directly.');
+    expect(prompt).toContain('Do not preserve framework names for this discipline; apply the substance only.');
+    expect(prompt).not.toContain('Ponytail');
+    expect(prompt).not.toContain('Superpowers');
   });
 
   it('preserves behavior-preserving Search/Replace-only optimization protocol', () => {
