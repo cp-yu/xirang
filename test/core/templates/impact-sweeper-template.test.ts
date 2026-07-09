@@ -16,6 +16,10 @@ describe('impact sweeper template', () => {
     expect(instructions).not.toContain('OPSX Compilation Philosophy');
   });
 
+  it('describes fast-model usage for the lightweight sweep', () => {
+    expect(template.description).toContain('Prefer a fast model for this lightweight OPSX-grounded impact sweep.');
+  });
+
   it('defines the report input and output contract', () => {
     expect(getImpactSweeperSubagentTemplate().name).toBe('openspec-impact-sweeper');
     expect(instructions).toContain('projectRoot');

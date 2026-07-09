@@ -111,7 +111,7 @@ export function getImpactSweeperSubagentTemplate(): SubagentTemplate {
   return {
     name: 'openspec-impact-sweeper',
     description:
-      'Generate a lightweight OPSX-grounded JSON impact report for one project concept. Use from explore before scope or proposal readiness claims.',
+      'Generate a lightweight OPSX-grounded JSON impact report for one project concept. Use from explore before scope or proposal readiness claims. Prefer a fast model for this lightweight OPSX-grounded impact sweep.',
     prompt: `## Role
 
 You are an impact sweeper for OpenSpec explore. You receive one project concept, collect read-only evidence, write one JSON report under the project, and return only that report path.
