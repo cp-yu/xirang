@@ -483,6 +483,98 @@ The system SHALL support login.
     expect(console.log).toHaveBeenCalledWith('No sync required.');
   });
 
+  it('auto-labels unlabeled scenario differences before sync output and stays idempotent', async () => {
+    const syncCommand = await loadSyncCommand();
+    const changeName = 'auto-label-sync';
+    const changeDir = await createChange(changeName);
+    const changeSpecPath = path.join(changeDir, 'specs', 'auth', 'spec.md');
+    const mainSpecDir = path.join(tempDir, 'openspec', 'specs', 'auth');
+    await fs.mkdir(path.dirname(changeSpecPath), { recursive: true });
+    await fs.mkdir(mainSpecDir, { recursive: true });
+
+    const mainSpecPath = path.join(mainSpecDir, 'spec.md');
+    await fs.writeFile(
+      mainSpecPath,
+      `# auth Specification
+
+## Purpose
+Auth behavior.
+
+## Requirements
+
+### Requirement: Login
+The system SHALL support login.
+
+#### Scenario: Existing path
+- **WHEN** credentials are valid
+- **THEN** login succeeds
+
+#### Scenario: Legacy path
+- **WHEN** legacy flow runs
+- **THEN** old behavior happens`,
+      'utf-8'
+    );
+    await fs.writeFile(
+      changeSpecPath,
+      `## MODIFIED Requirements
+
+### Requirement: Login
+The system SHALL support login.
+
+#### Scenario: Existing path
+- **WHEN** credentials are valid
+- **THEN** login succeeds with audit
+
+#### Scenario: MFA path
+- **WHEN** MFA is required
+- **THEN** a challenge is shown`,
+      'utf-8'
+    );
+    await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] verified\n', 'utf-8');
+    const evidenceFiles = [`openspec/changes/${changeName}/specs/auth/spec.md`];
+    const beforeEvidence = await computeEvidenceFingerprint(evidenceFiles, tempDir);
+    const verifyResult: VerifyResult = {
+      timestamp: new Date().toISOString(),
+      result: 'PASS',
+      issues: [],
+      tasksFileHash: (await computeTasksFileHash(path.join(changeDir, 'tasks.md')))!,
+      verificationContext: {
+        contractVersion: '1.0',
+        evidenceFiles,
+        evidenceFingerprint: beforeEvidence.hash,
+        evidenceFingerprintEntries: beforeEvidence.entries,
+      },
+      optimization: { status: 'NOT_NEEDED', attempts: [] },
+    };
+    await fs.writeFile(
+      path.join(changeDir, '.verify-result.json'),
+      `${JSON.stringify(verifyResult, null, 2)}\n`,
+      'utf-8'
+    );
+
+    await syncCommand(changeName, { noValidate: true, noVerify: true });
+
+    const changeSpecAfterFirst = await fs.readFile(changeSpecPath, 'utf-8');
+    expect(changeSpecAfterFirst).toContain('#### Scenario: [MODIFIED] Existing path');
+    expect(changeSpecAfterFirst).toContain('#### Scenario: [ADDED] MFA path');
+    expect(changeSpecAfterFirst).toContain('#### Scenario: [REMOVED] Legacy path');
+
+    const mainAfterFirst = await fs.readFile(mainSpecPath, 'utf-8');
+    expect(mainAfterFirst).toContain('#### Scenario: Existing path');
+    expect(mainAfterFirst).toContain('#### Scenario: MFA path');
+    expect(mainAfterFirst).not.toContain('Scenario: [MODIFIED]');
+    expect(mainAfterFirst).not.toContain('Scenario: [ADDED]');
+    expect(mainAfterFirst).not.toContain('Scenario: [REMOVED]');
+    expect(mainAfterFirst).not.toContain('legacy flow runs');
+
+    await syncCommand(changeName, { noValidate: true, noVerify: true });
+    expect(await fs.readFile(changeSpecPath, 'utf-8')).toBe(changeSpecAfterFirst);
+    expect(await fs.readFile(mainSpecPath, 'utf-8')).toBe(mainAfterFirst);
+    const { checkFreshness } = await import('../../src/core/verify/freshness.js');
+    expect((await checkFreshness(changeDir, tempDir)).status).toBe('FRESH');
+    expect(console.log).toHaveBeenCalledWith('No sync required.');
+  });
+
   it('refreshes evidence fingerprint after OPSX sync writes', async () => {
     const syncCommand = await loadSyncCommand();
     const changeName = 'refresh-evidence-sync';
