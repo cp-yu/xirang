@@ -67,7 +67,8 @@ The `propose` workflow SHALL create the same planning artifacts that were previo
 - **THEN** console output MAY differ (propose includes onboarding explanations)
 
 ### Requirement: Propose applies spec content boundary
-`propose` workflow SHALL 在生成 `specs` artifact 时应用 schema 提供的 `Spec content boundary`。Scenario operation labels (`[ADDED]`、`[MODIFIED]`、`[REMOVED]`) 是 change-local metadata，仅 `## MODIFIED Requirements` 下每个 scenario 必须带标签标注变更类型；`## ADDED Requirements` 下 scenario 隐式全部新增不加标签；`## REMOVED Requirements` 无 scenario。
+
+`propose` workflow SHALL 在生成 `specs` artifact 时应用 schema 提供的 `Spec content boundary`。Scenario operation labels are automatically handled by the OpenSpec CLI after validation and remain change-local review metadata for sync/archive review.
 
 #### Scenario: Specs generation routes non-behavior content
 - **WHEN** `/opsx:propose` 创建 `specs` artifact
@@ -79,10 +80,9 @@ The `propose` workflow SHALL create the same planning artifacts that were previo
 - **THEN** 应依赖 `openspec instructions specs --change "<name>" --json` 返回的 boundary
 - **AND** SHALL NOT 在 propose workflow template 中定义独立冲突分类表
 
-#### Scenario: MODIFIED requirement 下每个 scenario 必须有标签
-- **WHEN** `/opsx:propose` 生成 `## MODIFIED Requirements` block
-- **THEN** 每个 scenario 标题 MUST 携带 `[ADDED]`、`[MODIFIED]` 或 `[REMOVED]`
-- **AND** 无标签 scenario 将被 validator 拒绝
+#### Scenario: Propose guidance delegates scenario labels to CLI
+- **WHEN** `/opsx:propose` 在 specs 生成指引中说明 scenario operation labels
+- **THEN** the guidance SHALL include `Scenario operation labels are automatically handled by the OpenSpec CLI after validation and remain change-local review metadata for sync/archive review.`
 
 #### Scenario: ADDED requirement 下不加标签
 - **WHEN** `/opsx:propose` 生成 `## ADDED Requirements` block
@@ -92,7 +92,7 @@ The `propose` workflow SHALL create the same planning artifacts that were previo
 #### Scenario: Scenario labels 保持 change-local
 - **WHEN** `/opsx:propose` 在生成的 instructions 或 artifacts 中说明 scenario operation labels
 - **THEN** 应说明 labels 是 change-local metadata
-- **AND** 应说明 sync/archive 在写入 formal specs 前清洗 `[ADDED]` 和 `[MODIFIED]` labels，并省略 `[REMOVED]` scenario blocks
+- **AND** 应说明 sync/archive review 使用自动处理后的 labels
 
 ### Requirement: Propose 消费共享 artifact language contract
 `$openspec-propose` workflow SHALL 在生成 proposal、specs、design 和 tasks 时消费共享 `Document Language Contract` 与 artifact instructions 中的 `configProjection.prompt.fragments`，使新写或改写的 natural-language prose 跟随 `proseLanguage`。

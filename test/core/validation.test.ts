@@ -701,6 +701,42 @@ The system SHALL validate labels.
       expect(report.valid).toBe(false);
       expect(report.issues.some(i => i.message.includes('has [MODIFIED] scenario. A new requirement can only have [ADDED] scenarios'))).toBe(true);
     });
+
+    it('should accept unlabeled MODIFIED scenarios without writing labels', async () => {
+      const projectRoot = path.join(testDir, 'unlabeled-project');
+      const changeDir = path.join(projectRoot, 'openspec', 'changes', 'unlabeled-modified-scenario');
+      const mainSpecsDir = path.join(projectRoot, 'openspec', 'specs', 'test-spec');
+      const specsDir = path.join(changeDir, 'specs', 'test-spec');
+      await fs.mkdir(mainSpecsDir, { recursive: true });
+      await fs.mkdir(specsDir, { recursive: true });
+      await fs.writeFile(
+        path.join(mainSpecsDir, 'spec.md'),
+        `## Requirements
+
+### Requirement: Label Validation
+The system SHALL validate labels.
+
+#### Scenario: 场景
+- **WHEN** old
+- **THEN** old result`,
+      );
+      const specPath = path.join(specsDir, 'spec.md');
+      const content = `## MODIFIED Requirements
+
+### Requirement: Label Validation
+The system SHALL validate labels.
+
+#### Scenario: 场景
+- **WHEN** action
+- **THEN** result`;
+      await fs.writeFile(specPath, content);
+
+      const report = await new Validator(false).validateChangeDeltaSpecs(changeDir);
+
+      expect(report.valid).toBe(true);
+      expect(report.issues.filter(i => i.level === 'ERROR')).toHaveLength(0);
+      expect(await fs.readFile(specPath, 'utf-8')).toBe(content);
+    });
   });
 
   describe('validateOpsxDelta', () => {

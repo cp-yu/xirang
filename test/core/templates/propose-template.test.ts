@@ -126,13 +126,13 @@ describe('propose template post-validation flow', () => {
     }
   });
 
-  it('keeps scenario operation labels as change-local metadata', () => {
+  it('delegates scenario operation labels to the CLI', () => {
+    const finalWording = 'Scenario operation labels are automatically handled by the OpenSpec CLI after validation and remain change-local review metadata for sync/archive review.';
     for (const body of getProposeBodies()) {
-      expect(body).toContain('#### Scenario: [ADDED] <title>');
-      expect(body).toContain('#### Scenario: [MODIFIED] <title>');
-      expect(body).toContain('#### Scenario: [REMOVED] <title>');
-      expect(body).toContain('change-local metadata');
-      expect(body).toContain('sync/archive');
+      expect(body).toContain(finalWording);
+      expect(body).not.toContain('#### Scenario: [ADDED] <title>');
+      expect(body).not.toContain('#### Scenario: [MODIFIED] <title>');
+      expect(body).not.toContain('#### Scenario: [REMOVED] <title>');
     }
   });
 

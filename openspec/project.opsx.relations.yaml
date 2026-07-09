@@ -570,3 +570,12 @@ relations:
   - from: cap.cli.check-delta
     type: relates_to
     to: cap.cli.validate
+  - from: cap.cli.fix-scenario-labels
+    type: contains
+    to: dom.cli
+  - from: cap.cli.fix-scenario-labels
+    type: depends_on
+    to: cap.validation.spec
+  - from: cap.change.specs-sync
+    type: depends_on
+    to: cap.cli.fix-scenario-labels

@@ -1,0 +1,354 @@
+{
+  "timestamp": "2026-07-09T10:31:05.691Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "3fb8ebdfb43be8a2347bcdfbc844f9c8cf1891f5e54bf5c8da21e28d8c34d1ef",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "executionMode": "subagent:openspec-reviewer:fresh",
+    "evidenceFiles": [
+      "openspec/changes/add-fix-scenario-labels-command/.apply-isolation.json",
+      "openspec/changes/add-fix-scenario-labels-command/design.md",
+      "openspec/changes/add-fix-scenario-labels-command/opsx-delta.yaml",
+      "openspec/changes/add-fix-scenario-labels-command/proposal.md",
+      "openspec/changes/add-fix-scenario-labels-command/specs/cli-fix-scenario-labels/spec.md",
+      "openspec/changes/add-fix-scenario-labels-command/specs/cli-sync/spec.md",
+      "openspec/changes/add-fix-scenario-labels-command/specs/cli-validate/spec.md",
+      "openspec/changes/add-fix-scenario-labels-command/specs/propose-workflow/spec.md",
+      "openspec/changes/add-fix-scenario-labels-command/specs/snack-skill/spec.md",
+      "openspec/changes/add-fix-scenario-labels-command/specs/specs-sync-skill/spec.md",
+      "openspec/changes/add-fix-scenario-labels-command/tasks.md",
+      "schemas/spec-driven/schema.yaml",
+      "src/cli/index.ts",
+      "src/commands/fix-scenario-labels.ts",
+      "src/core/change-sync.ts",
+      "src/core/parsers/requirement-blocks.ts",
+      "src/core/scenario-labels.ts",
+      "src/core/specs-apply.ts",
+      "src/core/templates/workflows/propose.ts",
+      "src/core/templates/workflows/snack.ts",
+      "src/core/validation/validator.ts",
+      "test/commands/fix-scenario-labels.test.ts",
+      "test/commands/sync.test.ts",
+      "test/core/artifact-graph/instruction-loader.test.ts",
+      "test/core/scenario-labels.test.ts",
+      "test/core/templates/propose-template.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts",
+      "test/core/templates/snack-template.test.ts",
+      "test/core/validation.test.ts"
+    ],
+    "evidenceFingerprint": "b000357391392b2537c224d80db0cf7679993eba6627e37d647fc8d63fedd7bb",
+    "evidenceFingerprintEntries": [
+      {
+        "path": "openspec/changes/add-fix-scenario-labels-command/.apply-isolation.json",
+        "hash": "65bf4d804da9c9a38c2ff534e992f052c85eaa8193d59a94cc92978ef970b0b1"
+      },
+      {
+        "path": "openspec/changes/add-fix-scenario-labels-command/design.md",
+        "hash": "c61b887f98754859b5b8b12fb8459a84c1bb69c725a16ced8712f4d2a9c3b979"
+      },
+      {
+        "path": "openspec/changes/add-fix-scenario-labels-command/opsx-delta.yaml",
+        "hash": "aa84a2d03a0c065e9c5263b8c18693320f0c592222c71cb366f17d1dacc867ab"
+      },
+      {
+        "path": "openspec/changes/add-fix-scenario-labels-command/proposal.md",
+        "hash": "b6bf1cd3c24b6c6a380a7669bfd951bc3e6b20cab91545fcbc50a8b9b0af1060"
+      },
+      {
+        "path": "openspec/changes/add-fix-scenario-labels-command/specs/cli-fix-scenario-labels/spec.md",
+        "hash": "81689eb0031c86c4aaedce526d78c3565ba2d26c1931539b0914ea660e95ac91"
+      },
+      {
+        "path": "openspec/changes/add-fix-scenario-labels-command/specs/cli-sync/spec.md",
+        "hash": "b31a687a8bafe14a4df705d9a5c88987bbb6555995ce111cac3305951ad13aad"
+      },
+      {
+        "path": "openspec/changes/add-fix-scenario-labels-command/specs/cli-validate/spec.md",
+        "hash": "97697c87f1d79df0862b1936d8772e95ec629c406388847f08ff942c2f4483f0"
+      },
+      {
+        "path": "openspec/changes/add-fix-scenario-labels-command/specs/propose-workflow/spec.md",
+        "hash": "8f53a00ea93d03f05dd17d4303f25086b8249127a444745fc6fddedf274b3478"
+      },
+      {
+        "path": "openspec/changes/add-fix-scenario-labels-command/specs/snack-skill/spec.md",
+        "hash": "ecc1aaa6390d77674e1390188d101582a5d6ae0618dae03e987f3e31a2cca30c"
+      },
+      {
+        "path": "openspec/changes/add-fix-scenario-labels-command/specs/specs-sync-skill/spec.md",
+        "hash": "61fba8ef6e1e81ee8484df7f5c4bf39b7d73451ac64fe452de2a9daaea263cb4"
+      },
+      {
+        "path": "openspec/changes/add-fix-scenario-labels-command/tasks.md",
+        "hash": "3fb8ebdfb43be8a2347bcdfbc844f9c8cf1891f5e54bf5c8da21e28d8c34d1ef"
+      },
+      {
+        "path": "schemas/spec-driven/schema.yaml",
+        "hash": "80f33d1af224479224feae310c5d23831fef1252fc90179f91933d36f70b639f"
+      },
+      {
+        "path": "src/cli/index.ts",
+        "hash": "7e68c99192c585348650bde3b74acff97e663afe04b5196fb94a8ccf0c20f84b"
+      },
+      {
+        "path": "src/commands/fix-scenario-labels.ts",
+        "hash": "219b316a1b8532de98e6265d6df1a729741ffa7af22a6026577f963c04d2ac25"
+      },
+      {
+        "path": "src/core/change-sync.ts",
+        "hash": "a93202abd98ff38c856caddb858c9aeec4f7bbb57636f3eb4edfba9d826780f8"
+      },
+      {
+        "path": "src/core/parsers/requirement-blocks.ts",
+        "hash": "0f659d447d8546ebabecf92134d17f451024f2555ee5d01007ae88e981b9b7ec"
+      },
+      {
+        "path": "src/core/scenario-labels.ts",
+        "hash": "11ac3ca3d732298b02b618c2a3d587be0b853b62b14f62e4d2d548868fa0098e"
+      },
+      {
+        "path": "src/core/specs-apply.ts",
+        "hash": "3b999085fbc70c731c22e0295c9b741c235e87cd567c64c0851a756591ad9d68"
+      },
+      {
+        "path": "src/core/templates/workflows/propose.ts",
+        "hash": "607cff261c2329b930f2e9c0e6767fb2e332e3428367a76c736bc2fa4c452f85"
+      },
+      {
+        "path": "src/core/templates/workflows/snack.ts",
+        "hash": "f579ff62edbd373ec918462322da7c60544748ccc156bcf6ce3e9fc1761d4522"
+      },
+      {
+        "path": "src/core/validation/validator.ts",
+        "hash": "2c10bd35b2ee71f25215dad3aacf2f0ba67d12cf94e024417b847c3085f84c2d"
+      },
+      {
+        "path": "test/commands/fix-scenario-labels.test.ts",
+        "hash": "5d49c150c6ccf75d46855b37141bb4d1fb3658cf91144a34341125470d04b9c5"
+      },
+      {
+        "path": "test/commands/sync.test.ts",
+        "hash": "d3b3bf7d18e2637b29b224438b477cf60934a35c029acc13c07c322fc1ac2bb6"
+      },
+      {
+        "path": "test/core/artifact-graph/instruction-loader.test.ts",
+        "hash": "ba9dba26c2294a4a1fcba93f1e703c0bff4ac8afee34fdfc6f85e88bb1d75707"
+      },
+      {
+        "path": "test/core/scenario-labels.test.ts",
+        "hash": "a667bf4091fd6cb04a6f9148fe700bba9c6582ab654c3e9d69ef843cf587f14f"
+      },
+      {
+        "path": "test/core/templates/propose-template.test.ts",
+        "hash": "3ed690b247171180e0ce3055bf16be233f199f0442a978bbf9bba33292f8cad3"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "f71c2ffe4811439da910c7951e025b235b27adc0ddd4769c593aaef9141f9640"
+      },
+      {
+        "path": "test/core/templates/snack-template.test.ts",
+        "hash": "4d7e2ba3871362f815d602a350a9bf960f396185c2b050826f3f5ba9459973ad"
+      },
+      {
+        "path": "test/core/validation.test.ts",
+        "hash": "99c52dabdcc91faf87c133cedf506608c63d44dd6bd535443d75995933d747ac"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "b7f5e40a94d5b691e66707b9f260913be42a28ae",
+    "gitDiffSummary": "openspec-reviewer PASS. Inputs validated. Original branch main from .apply-isolation.json. Diff scope used git status, git diff main --name-only, and git ls-files --modified --others --exclude-standard because git diff main...HEAD was empty for uncommitted worktree. Previous CRITICAL findings remediated: scenario labels re-derived except existing REMOVED synthetic blocks preserved for idempotency; skill-templates-parity test accounted in tasks.md. Parent validation passed: openspec validate, targeted Vitest suite 141 files/2015 tests, build, lint.",
+    "timestamp": "2026-07-09T10:40:35.763Z"
+  },
+  "optimization": {
+    "status": "IMPROVED",
+    "attempts": [
+      {
+        "timestamp": "2026-07-09T10:34:44.671Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED",
+        "summary": "Remove unused preview option from FixScenarioLabelsOptions and flatten printHuman iteration; behavior-preserving dead-code/shrink cleanup proposed by openspec-optimizer.",
+        "files": [
+          "src/commands/fix-scenario-labels.ts"
+        ]
+      },
+      {
+        "timestamp": "2026-07-09T10:40:35.749Z",
+        "type": "verification",
+        "result": "PASS",
+        "behaviorRetryCounter": 1
+      }
+    ],
+    "affectedFileHashes": {
+      "src/commands/fix-scenario-labels.ts": "ec8048e5770a3b0f827a4b9b115dbe131b0657b285a837f53454b26bbd6e96af"
+    },
+    "baseline": {
+      "timestamp": "2026-07-09T10:31:05.691Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "3fb8ebdfb43be8a2347bcdfbc844f9c8cf1891f5e54bf5c8da21e28d8c34d1ef",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "executionMode": "subagent:openspec-reviewer:fresh",
+        "evidenceFiles": [
+          "openspec/changes/add-fix-scenario-labels-command/.apply-isolation.json",
+          "openspec/changes/add-fix-scenario-labels-command/design.md",
+          "openspec/changes/add-fix-scenario-labels-command/opsx-delta.yaml",
+          "openspec/changes/add-fix-scenario-labels-command/proposal.md",
+          "openspec/changes/add-fix-scenario-labels-command/specs/cli-fix-scenario-labels/spec.md",
+          "openspec/changes/add-fix-scenario-labels-command/specs/cli-sync/spec.md",
+          "openspec/changes/add-fix-scenario-labels-command/specs/cli-validate/spec.md",
+          "openspec/changes/add-fix-scenario-labels-command/specs/propose-workflow/spec.md",
+          "openspec/changes/add-fix-scenario-labels-command/specs/snack-skill/spec.md",
+          "openspec/changes/add-fix-scenario-labels-command/specs/specs-sync-skill/spec.md",
+          "openspec/changes/add-fix-scenario-labels-command/tasks.md",
+          "schemas/spec-driven/schema.yaml",
+          "src/cli/index.ts",
+          "src/commands/fix-scenario-labels.ts",
+          "src/core/change-sync.ts",
+          "src/core/parsers/requirement-blocks.ts",
+          "src/core/scenario-labels.ts",
+          "src/core/specs-apply.ts",
+          "src/core/templates/workflows/propose.ts",
+          "src/core/templates/workflows/snack.ts",
+          "src/core/validation/validator.ts",
+          "test/commands/fix-scenario-labels.test.ts",
+          "test/commands/sync.test.ts",
+          "test/core/artifact-graph/instruction-loader.test.ts",
+          "test/core/scenario-labels.test.ts",
+          "test/core/templates/propose-template.test.ts",
+          "test/core/templates/skill-templates-parity.test.ts",
+          "test/core/templates/snack-template.test.ts",
+          "test/core/validation.test.ts"
+        ],
+        "evidenceFingerprint": "5f3dba50ed32c1ef64f91abc8de253fb70d4141fecd324554f20fe72f15dfd22",
+        "evidenceFingerprintEntries": [
+          {
+            "path": "openspec/changes/add-fix-scenario-labels-command/.apply-isolation.json",
+            "hash": "65bf4d804da9c9a38c2ff534e992f052c85eaa8193d59a94cc92978ef970b0b1"
+          },
+          {
+            "path": "openspec/changes/add-fix-scenario-labels-command/design.md",
+            "hash": "c61b887f98754859b5b8b12fb8459a84c1bb69c725a16ced8712f4d2a9c3b979"
+          },
+          {
+            "path": "openspec/changes/add-fix-scenario-labels-command/opsx-delta.yaml",
+            "hash": "aa84a2d03a0c065e9c5263b8c18693320f0c592222c71cb366f17d1dacc867ab"
+          },
+          {
+            "path": "openspec/changes/add-fix-scenario-labels-command/proposal.md",
+            "hash": "b6bf1cd3c24b6c6a380a7669bfd951bc3e6b20cab91545fcbc50a8b9b0af1060"
+          },
+          {
+            "path": "openspec/changes/add-fix-scenario-labels-command/specs/cli-fix-scenario-labels/spec.md",
+            "hash": "81689eb0031c86c4aaedce526d78c3565ba2d26c1931539b0914ea660e95ac91"
+          },
+          {
+            "path": "openspec/changes/add-fix-scenario-labels-command/specs/cli-sync/spec.md",
+            "hash": "b31a687a8bafe14a4df705d9a5c88987bbb6555995ce111cac3305951ad13aad"
+          },
+          {
+            "path": "openspec/changes/add-fix-scenario-labels-command/specs/cli-validate/spec.md",
+            "hash": "97697c87f1d79df0862b1936d8772e95ec629c406388847f08ff942c2f4483f0"
+          },
+          {
+            "path": "openspec/changes/add-fix-scenario-labels-command/specs/propose-workflow/spec.md",
+            "hash": "8f53a00ea93d03f05dd17d4303f25086b8249127a444745fc6fddedf274b3478"
+          },
+          {
+            "path": "openspec/changes/add-fix-scenario-labels-command/specs/snack-skill/spec.md",
+            "hash": "ecc1aaa6390d77674e1390188d101582a5d6ae0618dae03e987f3e31a2cca30c"
+          },
+          {
+            "path": "openspec/changes/add-fix-scenario-labels-command/specs/specs-sync-skill/spec.md",
+            "hash": "61fba8ef6e1e81ee8484df7f5c4bf39b7d73451ac64fe452de2a9daaea263cb4"
+          },
+          {
+            "path": "openspec/changes/add-fix-scenario-labels-command/tasks.md",
+            "hash": "3fb8ebdfb43be8a2347bcdfbc844f9c8cf1891f5e54bf5c8da21e28d8c34d1ef"
+          },
+          {
+            "path": "schemas/spec-driven/schema.yaml",
+            "hash": "80f33d1af224479224feae310c5d23831fef1252fc90179f91933d36f70b639f"
+          },
+          {
+            "path": "src/cli/index.ts",
+            "hash": "7e68c99192c585348650bde3b74acff97e663afe04b5196fb94a8ccf0c20f84b"
+          },
+          {
+            "path": "src/commands/fix-scenario-labels.ts",
+            "hash": "ec8048e5770a3b0f827a4b9b115dbe131b0657b285a837f53454b26bbd6e96af"
+          },
+          {
+            "path": "src/core/change-sync.ts",
+            "hash": "a93202abd98ff38c856caddb858c9aeec4f7bbb57636f3eb4edfba9d826780f8"
+          },
+          {
+            "path": "src/core/parsers/requirement-blocks.ts",
+            "hash": "0f659d447d8546ebabecf92134d17f451024f2555ee5d01007ae88e981b9b7ec"
+          },
+          {
+            "path": "src/core/scenario-labels.ts",
+            "hash": "11ac3ca3d732298b02b618c2a3d587be0b853b62b14f62e4d2d548868fa0098e"
+          },
+          {
+            "path": "src/core/specs-apply.ts",
+            "hash": "3b999085fbc70c731c22e0295c9b741c235e87cd567c64c0851a756591ad9d68"
+          },
+          {
+            "path": "src/core/templates/workflows/propose.ts",
+            "hash": "607cff261c2329b930f2e9c0e6767fb2e332e3428367a76c736bc2fa4c452f85"
+          },
+          {
+            "path": "src/core/templates/workflows/snack.ts",
+            "hash": "f579ff62edbd373ec918462322da7c60544748ccc156bcf6ce3e9fc1761d4522"
+          },
+          {
+            "path": "src/core/validation/validator.ts",
+            "hash": "2c10bd35b2ee71f25215dad3aacf2f0ba67d12cf94e024417b847c3085f84c2d"
+          },
+          {
+            "path": "test/commands/fix-scenario-labels.test.ts",
+            "hash": "5d49c150c6ccf75d46855b37141bb4d1fb3658cf91144a34341125470d04b9c5"
+          },
+          {
+            "path": "test/commands/sync.test.ts",
+            "hash": "d3b3bf7d18e2637b29b224438b477cf60934a35c029acc13c07c322fc1ac2bb6"
+          },
+          {
+            "path": "test/core/artifact-graph/instruction-loader.test.ts",
+            "hash": "ba9dba26c2294a4a1fcba93f1e703c0bff4ac8afee34fdfc6f85e88bb1d75707"
+          },
+          {
+            "path": "test/core/scenario-labels.test.ts",
+            "hash": "a667bf4091fd6cb04a6f9148fe700bba9c6582ab654c3e9d69ef843cf587f14f"
+          },
+          {
+            "path": "test/core/templates/propose-template.test.ts",
+            "hash": "3ed690b247171180e0ce3055bf16be233f199f0442a978bbf9bba33292f8cad3"
+          },
+          {
+            "path": "test/core/templates/skill-templates-parity.test.ts",
+            "hash": "f71c2ffe4811439da910c7951e025b235b27adc0ddd4769c593aaef9141f9640"
+          },
+          {
+            "path": "test/core/templates/snack-template.test.ts",
+            "hash": "4d7e2ba3871362f815d602a350a9bf960f396185c2b050826f3f5ba9459973ad"
+          },
+          {
+            "path": "test/core/validation.test.ts",
+            "hash": "99c52dabdcc91faf87c133cedf506608c63d44dd6bd535443d75995933d747ac"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "819085629cb01dc9f95452c3e864177d636cd20c",
+        "gitDiffSummary": "openspec-reviewer PASS. Inputs validated. Original branch main from .apply-isolation.json. Diff scope used git status, git diff main --name-only, and git ls-files --modified --others --exclude-standard because git diff main...HEAD was empty for uncommitted worktree. Previous CRITICAL findings remediated: scenario labels re-derived except existing REMOVED synthetic blocks preserved for idempotency; skill-templates-parity test accounted in tasks.md. Parent validation passed: openspec validate, targeted Vitest suite 141 files/2015 tests, build, lint."
+      }
+    },
+    "final": {
+      "result": "PASS",
+      "issues": []
+    }
+  }
+}

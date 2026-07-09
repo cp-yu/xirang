@@ -19,6 +19,7 @@ import {
 } from './specs-apply.js';
 import { refreshVerifyEvidenceAfterSync } from './verify/freshness.js';
 import { Validator } from './validation/validator.js';
+import { fixScenarioLabelsForChange } from './scenario-labels.js';
 import { extractRequirementsSection, parseDeltaSpec } from './parsers/requirement-blocks.js';
 
 type SpecCounts = { added: number; modified: number; removed: number; renamed: number };
@@ -48,6 +49,7 @@ interface PreparedOpsxWrite {
 
 export interface PreparedChangeSync {
   state: ChangeSyncState;
+  labelFiles: string[];
   specs: {
     writes: PreparedSpecWrite[];
     totals: SpecCounts;
@@ -133,6 +135,7 @@ export async function prepareChangeSync(
   const totals: SpecCounts = { added: 0, modified: 0, removed: 0, renamed: 0 };
   const validator = options.skipValidation ? null : new Validator();
 
+  const pendingSpecUpdates: Array<{ update: SpecUpdate; originalContent: string | null }> = [];
   for (const update of state.specUpdates) {
     const changeContent = await fs.readFile(update.source, 'utf-8');
     const originalContent = await readOptionalFile(update.target);
@@ -145,7 +148,15 @@ export async function prepareChangeSync(
     if (originalContent === null && isRemovalOnlyDelta(changeContent)) {
       continue;
     }
+    pendingSpecUpdates.push({ update, originalContent });
+  }
 
+  const labelReport = pendingSpecUpdates.length > 0
+    ? await fixScenarioLabelsForChange(projectRoot, state.changeName)
+    : { files: [] };
+  const labelFiles = labelReport.files.filter((file) => file.changed).map((file) => file.path);
+
+  for (const { update, originalContent } of pendingSpecUpdates) {
     const built = await buildUpdatedSpec(update, state.changeName, projectRoot);
     const action = shouldDeleteRebuiltSpec(built.rebuilt) ? 'delete' : 'write';
     if (validator) {
@@ -194,6 +205,7 @@ export async function prepareChangeSync(
     if (!result.changed) {
       return {
         state,
+        labelFiles,
         specs: { writes, totals },
         opsx: null,
       };
@@ -225,6 +237,7 @@ export async function prepareChangeSync(
 
   return {
     state,
+    labelFiles,
     specs: { writes, totals },
     opsx,
   };
@@ -236,7 +249,7 @@ export async function applyPreparedChangeSync(
   options: { silent?: boolean } = {}
 ): Promise<AppliedChangeSyncSummary> {
   const silent = options.silent ?? false;
-  const syncedFiles: string[] = [];
+  const syncedFiles: string[] = [...prepared.labelFiles];
 
   if (prepared.opsx) {
     await writeProjectOpsx(projectRoot, prepared.opsx.mergedBundle);

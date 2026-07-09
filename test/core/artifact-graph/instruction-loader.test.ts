@@ -194,16 +194,16 @@ describe('instruction-loader', () => {
       expect(instructions.instruction).toContain('proseLanguage');
     });
 
-    it('should expose scenario operation label boundaries for specs', () => {
+    it('should expose automatic scenario operation label handling for specs', () => {
       const context = loadChangeContext(tempDir, 'my-change');
       const instructions = generateInstructions(context, 'specs');
+      const finalWording = 'Scenario operation labels are automatically handled by the OpenSpec CLI after validation and remain change-local review metadata for sync/archive review.';
 
-      expect(instructions.instruction).toContain('[ADDED]');
-      expect(instructions.instruction).toContain('[MODIFIED]');
-      expect(instructions.instruction).toContain('[REMOVED]');
-      expect(instructions.instruction).toContain('change-local metadata');
-      expect(instructions.instruction).toContain('formal specs');
-      expect(instructions.instruction).toContain('Only scenarios whose behavior changed need labels');
+      expect(instructions.instruction).toContain(finalWording);
+      expect(instructions.instruction).not.toContain('Only scenarios whose behavior changed need labels');
+      expect(instructions.instruction).not.toContain('use `[ADDED]`');
+      expect(instructions.instruction).not.toContain('use `[MODIFIED]`');
+      expect(instructions.instruction).not.toContain('use `[REMOVED]`');
     });
 
     it('should show dependencies with completion status', () => {

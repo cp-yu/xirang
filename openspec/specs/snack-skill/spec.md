@@ -87,7 +87,7 @@ snack skill SHALL 在 code-map 反查完成后、proposal 生成前，通过 `op
 
 ### Requirement: Specs 中层推断生成
 
-snack skill SHALL 在创建或 reconciling change-local delta specs 前运行 `openspec instructions specs --change "<name>" --json`。Skill MUST 使用返回的 `template`、`instruction`、`outputPath` 和 `configProjection`；MUST 遵循 instruction-projected ADDED/MODIFIED 选择、spec directory 命名、exact MODIFIED title matching 以及 scenario operation label guidance；MUST 保留 stale change 中无关已存在的 delta spec 内容。不确定推断 SHALL 标记 `[REVIEW NEEDED]`。
+snack skill SHALL 在创建或 reconciling change-local delta specs 前运行 `openspec instructions specs --change "<name>" --json`。Skill MUST 使用返回的 `template`、`instruction`、`outputPath` 和 `configProjection`；MUST 遵循 instruction-projected ADDED/MODIFIED 选择、spec directory 命名、exact MODIFIED title matching 以及 scenario operation label guidance；MUST 保留 stale change 中无关已存在的 delta spec 内容。不确定推断 SHALL 标记 `[REVIEW NEEDED]`。Scenario operation labels are automatically handled by the OpenSpec CLI after validation and remain change-local review metadata for sync/archive review.
 
 #### Scenario: 生成前读取 specs 模板
 
@@ -113,27 +113,10 @@ snack skill SHALL 在创建或 reconciling change-local delta specs 前运行 `o
 - **AND** requirement 文本 SHALL 包含 SHALL/MUST，至少一个 `#### Scenario:` block
 - **AND** unrelated existing delta requirements 在 stale change 中保留，除非 code-change evidence 使其过时或不一致
 
-#### Scenario: 生成新增 scenario 的 label
+#### Scenario: Scenario labels 由 CLI 自动处理
 
-- **WHEN** code-change evidence 表明在已有 requirement 内部新增了一个 scenario
-- **AND** snack 在 `## MODIFIED Requirements` 下保留完整 requirement block
-- **THEN** snack SHALL 将新增 scenario 标题呈现为 `#### Scenario: [ADDED] <title>`
-- **AND** SHALL 将无关且未变化的 scenarios 保留为 unlabeled
-
-#### Scenario: 生成修改 scenario 的 label
-
-- **WHEN** code-change evidence 表明已有 requirement 内部某个 scenario 发生了变化
-- **AND** snack 在 `## MODIFIED Requirements` 下保留完整 requirement block
-- **THEN** snack SHALL 将已变化 scenario 标题呈现为 `#### Scenario: [MODIFIED] <title>`
-- **AND** SHALL 将无关且未变化的 scenarios 保留为 unlabeled
-
-#### Scenario: 生成删除 scenario 的 label
-
-- **WHEN** code-change evidence 表明已有 requirement 内部某个 scenario 被删除
-- **AND** snack 在 change-local spec 中为审阅清晰保留旧 scenario
-- **THEN** snack SHALL 将该 scenario 标题呈现为 `#### Scenario: [REMOVED] <title>`
-- **AND** SHALL 保留旧 scenario body 作为审阅证据
-- **AND** SHALL NOT 在 `## ADDED Requirements` 下放置 `[REMOVED]` scenario label
+- **WHEN** snack guidance describes scenario operation labels
+- **THEN** the guidance SHALL include `Scenario operation labels are automatically handled by the OpenSpec CLI after validation and remain change-local review metadata for sync/archive review.`
 
 ### Requirement: Design 简化生成
 

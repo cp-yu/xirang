@@ -1,0 +1,28 @@
+schema_version: 1
+ADDED:
+  capabilities:
+    - id: cap.cli.fix-scenario-labels
+      type: capability
+      intent: 提供 `openspec fix-scenario-labels` preview/write 命令，确定性补全 change-local MODIFIED requirements 的 scenario operation labels，并可插入 removed scenario review blocks
+  relations:
+    - from: cap.cli.fix-scenario-labels
+      type: contains
+      to: dom.cli
+    - from: cap.cli.fix-scenario-labels
+      type: depends_on
+      to: cap.validation.spec
+    - from: cap.change.specs-sync
+      type: depends_on
+      to: cap.cli.fix-scenario-labels
+MODIFIED:
+  capabilities:
+    - id: cap.validation.spec
+      intent: 验证规约的格式和内容；formal specs SHALL NOT contain change-local scenario operation labels such as [ADDED], [MODIFIED], or [REMOVED] in Scenario headings；change-local delta spec 校验只检查 scenario operation label 语法与 ADDED section 下非法 labels，不要求 MODIFIED scenarios 预先带 label
+    - id: cap.cli.sync
+      intent: 顶层 CLI 命令，将 change 中的 delta specs 和 OPSX delta 同步到主文件，不执行归档；sync 写入 formal specs 前自动处理 change-local scenario operation labels，清洗 [ADDED]/[MODIFIED] labels，省略 [REMOVED] scenario blocks，并保持幂等
+    - id: cap.ai.propose-smart-routing
+      intent: Propose 阶段的智能路由与 artifact 生成 guidance；生成 specs 时应用 schema content boundary，说明 scenario operation labels 由 OpenSpec CLI 在 validation 后自动处理，并消费共享 artifact language contract；写入 change-local specs 前提示使用 `openspec check-delta` 检查计划引用；post-propose validation guidance 使用 artifact-scoped validate 命令分阶段检查 specs 与 opsx-delta
+    - id: cap.ai.snack-skill
+      intent: snack skill 提供代码优先的 artifact reconciliation 工作流，从 conversation context、workspace/staged diff、git diff HEAD 或用户指定 commit/range 等代码变更证据，按需创建或更新 proposal、design、delta specs 与 OPSX delta；scenario operation labels 由 OpenSpec CLI 在 validation 后自动处理；完成后输出 fast path 并支持多次调用 reconcile 同一 change
+    - id: cap.change.specs-sync
+      intent: 将变更中的 delta specs 和 OPSX delta 同步到主规约与主 OPSX；sync 前自动处理 change-local scenario operation labels，写入 formal specs 前去除 [ADDED]/[MODIFIED] labels 并省略 [REMOVED] scenario blocks；重复 sync 对 normalized requirement 内容保持幂等

@@ -81,11 +81,11 @@ describe('snack template scenario operation labels', () => {
   const template = getSnackSkillTemplate();
   const instructions = template.instructions;
 
-  it('guides scenario labels for added, modified, and removed scenarios', () => {
-    expect(instructions).toContain('#### Scenario: [ADDED] <title>');
-    expect(instructions).toContain('#### Scenario: [MODIFIED] <title>');
-    expect(instructions).toContain('#### Scenario: [REMOVED] <title>');
-    expect(instructions).toContain('change-local metadata');
+  it('delegates scenario labels to the CLI', () => {
+    expect(instructions).toContain('Scenario operation labels are automatically handled by the OpenSpec CLI after validation and remain change-local review metadata for sync/archive review.');
+    expect(instructions).not.toContain('#### Scenario: [ADDED] <title>');
+    expect(instructions).not.toContain('#### Scenario: [MODIFIED] <title>');
+    expect(instructions).not.toContain('#### Scenario: [REMOVED] <title>');
   });
 });
 
