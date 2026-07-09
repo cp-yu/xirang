@@ -7,7 +7,6 @@ import {
 } from '../core/scenario-labels.js';
 
 interface FixScenarioLabelsOptions {
-  preview?: boolean;
   write?: boolean;
   json?: boolean;
 }
@@ -31,14 +30,14 @@ export async function fixScenarioLabelsCommand(
 }
 
 function printHuman(report: ScenarioLabelReport, wrote: boolean): void {
-  const suggestions = report.files.flatMap(file => file.suggestions.map(suggestion => ({ file, suggestion })));
+  const suggestions = report.files.flatMap(file => file.suggestions);
   if (suggestions.length === 0) {
     console.log('No scenario label suggestions found.');
     return;
   }
 
   console.log('Spec | Requirement | Scenario | Operation | Label | Reason');
-  for (const { suggestion } of suggestions) {
+  for (const suggestion of suggestions) {
     console.log([
       suggestion.specId,
       suggestion.requirementTitle,

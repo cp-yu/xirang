@@ -37,7 +37,7 @@
       "test/core/templates/snack-template.test.ts",
       "test/core/validation.test.ts"
     ],
-    "evidenceFingerprint": "5f3dba50ed32c1ef64f91abc8de253fb70d4141fecd324554f20fe72f15dfd22",
+    "evidenceFingerprint": "b000357391392b2537c224d80db0cf7679993eba6627e37d647fc8d63fedd7bb",
     "evidenceFingerprintEntries": [
       {
         "path": "openspec/changes/add-fix-scenario-labels-command/.apply-isolation.json",
@@ -93,7 +93,7 @@
       },
       {
         "path": "src/commands/fix-scenario-labels.ts",
-        "hash": "ec8048e5770a3b0f827a4b9b115dbe131b0657b285a837f53454b26bbd6e96af"
+        "hash": "219b316a1b8532de98e6265d6df1a729741ffa7af22a6026577f963c04d2ac25"
       },
       {
         "path": "src/core/change-sync.ts",
@@ -157,12 +157,32 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "819085629cb01dc9f95452c3e864177d636cd20c",
-    "gitDiffSummary": "openspec-reviewer PASS. Inputs validated. Original branch main from .apply-isolation.json. Diff scope used git status, git diff main --name-only, and git ls-files --modified --others --exclude-standard because git diff main...HEAD was empty for uncommitted worktree. Previous CRITICAL findings remediated: scenario labels re-derived except existing REMOVED synthetic blocks preserved for idempotency; skill-templates-parity test accounted in tasks.md. Parent validation passed: openspec validate, targeted Vitest suite 141 files/2015 tests, build, lint."
+    "gitHeadCommit": "b7f5e40a94d5b691e66707b9f260913be42a28ae",
+    "gitDiffSummary": "openspec-reviewer PASS. Inputs validated. Original branch main from .apply-isolation.json. Diff scope used git status, git diff main --name-only, and git ls-files --modified --others --exclude-standard because git diff main...HEAD was empty for uncommitted worktree. Previous CRITICAL findings remediated: scenario labels re-derived except existing REMOVED synthetic blocks preserved for idempotency; skill-templates-parity test accounted in tasks.md. Parent validation passed: openspec validate, targeted Vitest suite 141 files/2015 tests, build, lint.",
+    "timestamp": "2026-07-09T10:40:35.763Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "status": "IMPROVED",
+    "attempts": [
+      {
+        "timestamp": "2026-07-09T10:34:44.671Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED",
+        "summary": "Remove unused preview option from FixScenarioLabelsOptions and flatten printHuman iteration; behavior-preserving dead-code/shrink cleanup proposed by openspec-optimizer.",
+        "files": [
+          "src/commands/fix-scenario-labels.ts"
+        ]
+      },
+      {
+        "timestamp": "2026-07-09T10:40:35.749Z",
+        "type": "verification",
+        "result": "PASS",
+        "behaviorRetryCounter": 1
+      }
+    ],
+    "affectedFileHashes": {
+      "src/commands/fix-scenario-labels.ts": "ec8048e5770a3b0f827a4b9b115dbe131b0657b285a837f53454b26bbd6e96af"
+    },
     "baseline": {
       "timestamp": "2026-07-09T10:31:05.691Z",
       "result": "PASS",
@@ -325,6 +345,10 @@
         "gitHeadCommit": "819085629cb01dc9f95452c3e864177d636cd20c",
         "gitDiffSummary": "openspec-reviewer PASS. Inputs validated. Original branch main from .apply-isolation.json. Diff scope used git status, git diff main --name-only, and git ls-files --modified --others --exclude-standard because git diff main...HEAD was empty for uncommitted worktree. Previous CRITICAL findings remediated: scenario labels re-derived except existing REMOVED synthetic blocks preserved for idempotency; skill-templates-parity test accounted in tasks.md. Parent validation passed: openspec validate, targeted Vitest suite 141 files/2015 tests, build, lint."
       }
+    },
+    "final": {
+      "result": "PASS",
+      "issues": []
     }
   }
 }
