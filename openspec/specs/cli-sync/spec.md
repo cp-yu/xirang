@@ -45,9 +45,7 @@ openspec sync [change-name] [--no-validate]
 
 ### Requirement: 同步执行
 
-`openspec sync` SHALL 复用 `change-sync` 契约执行同步。
-
-在同步执行之前，系统 SHALL 检查 verify gate（通过 `checkFreshness` 和 `checkArchiveCompatibility`），除非用户传入 `--no-verify`。
+`openspec sync` SHALL 复用 `change-sync` 契约执行同步。在同步执行之前，系统 SHALL 检查 verify gate（通过 `checkFreshness` 和 `checkArchiveCompatibility`），除非用户传入 `--no-verify`。在准备 sync 输出前，系统 SHALL automatically handle scenario operation labels for change-local specs after validation.
 
 同步完成后，`applyPreparedChangeSync` SHALL 自动刷新 `.verify-result.json` 中与 sync 输出重叠的 evidence 文件哈希，使 verify 结果不因合法的 sync 写入而失效。
 
@@ -77,6 +75,12 @@ openspec sync [change-name] [--no-validate]
 - **THEN** 跳过 verify gate 直接进入同步
 - **AND** 不输出 `formatVerifyGateFailure` 结果
 
+#### Scenario: sync 前自动处理 scenario labels
+
+- **WHEN** `openspec sync my-change` prepares delta specs for writing
+- **THEN** sync SHALL apply the same scenario label handling as `openspec fix-scenario-labels my-change --write`
+- **AND** the updated change-local specs SHALL be used for sync output
+
 #### Scenario: 同步后 evidence fingerprint 自动刷新
 
 - **GIVEN** 用户执行 `openspec sync my-change`
@@ -90,16 +94,16 @@ openspec sync [change-name] [--no-validate]
 
 ### Requirement: 不触发归档
 
-`openspec sync` SHALL NOT 触发归档或移动 change 目录。
+`openspec sync` SHALL NOT 触发归档或移动 change 目录。Sync MAY update change-local delta specs only to apply deterministic scenario operation labels before writing formal specs.
 
 #### Scenario: 同步后 change 目录保持不变
 - **WHEN** sync 成功完成
 - **THEN** change 目录不被移动或删除
-- **AND** change 目录内容不被修改（delta 文件保留）
+- **AND** change 目录中除自动生成 scenario operation labels 之外的内容不被修改
 
 ### Requirement: 幂等性
 
-`openspec sync` SHALL 保持幂等性，重复执行不得引入额外差异。对于只包含 `## REMOVED Requirements` 的 delta，当该 delta 声明的所有 requirement headers 都已从主 spec 缺失时，系统 SHALL 将该 spec delta 视为已经同步；主 spec 中仍存在的无关 requirements SHALL NOT 使该 removal-only delta 重新变为 pending。对于包含 scenario operation labels 的 ADDED 或 MODIFIED requirement，幂等性比较 SHALL 使用 sync-normalized requirement 内容：`[ADDED]` 与 `[MODIFIED]` labels 被忽略，`[REMOVED]` scenario block 被视为不存在。
+`openspec sync` SHALL 保持幂等性，重复执行不得引入额外差异。对于只包含 `## REMOVED Requirements` 的 delta，当该 delta 声明的所有 requirement headers 都已从当前主 spec 缺失时，系统 SHALL 将该 spec delta 视为已经同步；主 spec 中仍存在的无关 requirements SHALL NOT 使该 removal-only delta 重新变为 pending。对于包含 scenario operation labels 的 ADDED 或 MODIFIED requirement，幂等性比较 SHALL 使用 sync-normalized requirement 内容：`[ADDED]` 与 `[MODIFIED]` labels 被忽略，`[REMOVED]` scenario block 被视为不存在。
 
 #### Scenario: 重复执行产生相同结果
 - **GIVEN** 已对某 change 执行过一次 sync
@@ -136,6 +140,12 @@ openspec sync [change-name] [--no-validate]
 - **WHEN** 再次执行 `openspec sync <change-name>`
 - **THEN** sync SHALL treat that spec delta as already synced
 - **AND** SHALL NOT 重建空的主 spec 文件
+
+#### Scenario: 自动 scenario labels 不破坏 sync 幂等性
+- **GIVEN** change spec 的 `## MODIFIED Requirements` initially contains unlabeled scenario differences
+- **AND** `openspec sync <change-name>` has applied scenario labels and synced formal specs
+- **WHEN** executing `openspec sync <change-name>` again
+- **THEN** sync SHALL report no additional spec updates when formal specs already match the sync-normalized delta
 
 ### Requirement: Sync-created specs SHALL use runtime projection
 `openspec sync` 创建或重建 formal specs 时 SHALL 消费 runtime projection，使新写入的 prose 遵循 config 策略而非硬编码英文模板。Sync 写入的 formal specs SHALL NOT 在 `#### Scenario:` 标题中包含 `[ADDED]`、`[MODIFIED]`、`[REMOVED]` 等 scenario operation labels。

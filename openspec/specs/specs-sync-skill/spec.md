@@ -14,7 +14,8 @@ The system SHALL reconcile delta specs and OPSX delta during archive.
 - **AND** SHALL preserve idempotency
 
 ### Requirement: Delta Reconciliation Logic
-Agent SHALL 使用 delta operation headers 将主 specs 与 delta specs 进行合入。合入 SHALL 通过对 requirement header 的显式查找判断 removal-only delta 是否已完成：当 `## REMOVED Requirements` 下列出的所有 headers 都已从当前主 spec 缺失时，即使无关 requirements 仍保留，该 removal-only delta 也视为已合入。当 ADDED 或 MODIFIED requirement 的 `#### Scenario:` 标题包含 scenario operation labels 时，合入 SHALL 将这些 labels 视为 change-local metadata，并仅将归一化后的正式 scenario 标题写入主 spec。
+
+Agent SHALL 使用 delta operation headers 将主 specs 与 delta specs 进行合入。合入 SHALL 通过对 requirement header 的显式查找判断 removal-only delta 是否已完成：当 `## REMOVED Requirements` 下列出的所有 headers 都已从当前主 spec 缺失时，即使无关 requirements 仍保留，该 removal-only delta 也视为已合入。Scenario operation labels are automatically handled by the OpenSpec CLI after validation and remain change-local review metadata for sync/archive review. 当 ADDED 或 MODIFIED requirement 的 `#### Scenario:` 标题包含 scenario operation labels 时，合入 SHALL 将这些 labels 视为 change-local metadata，并仅将归一化后的正式 scenario 标题写入主 spec。
 
 #### Scenario: ADDED requirements
 - **WHEN** delta 包含 `## ADDED Requirements` 及其 requirement
@@ -62,6 +63,10 @@ Agent SHALL 使用 delta operation headers 将主 specs 与 delta specs 进行�
 #### Scenario: New capability spec
 - **WHEN** 主 specs 中不存在对应 capability 的 delta spec
 - **THEN** 在 `openspec/specs/<capability>/spec.md` 创建新的主 spec 文件
+
+#### Scenario: 自动 labels 在 sync 前可供 review
+- **WHEN** archive-time sync processes a change-local MODIFIED requirement with unlabeled scenario differences
+- **THEN** scenario operation labels SHALL be available as change-local review metadata before formal spec output is written
 
 ### Requirement: Skill Output
 The skill SHALL provide clear feedback on what was applied.
