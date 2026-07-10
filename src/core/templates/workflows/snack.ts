@@ -71,7 +71,7 @@ ${OPSX_CLI_QUERY_CONTEXT}
    - Reuse an existing \`openspec/specs/<capability>/\` directory when the instruction says it applies; otherwise use the proposal capability name.
    - New concerns use \`## ADDED Requirements\`; changed existing behavior uses \`## MODIFIED Requirements\` with the exact existing Requirement title.
    - Requirement text MUST contain SHALL/MUST language and at least one \`#### Scenario:\` block with WHEN/THEN style.
-   - Scenario operation labels are automatically handled by the OpenSpec CLI after validation and remain change-local review metadata for sync/archive review.
+   - Do not author scenario operation labels during reconciliation; they are generated only after final validation by the explicit CLI step below and remain change-local review metadata.
    - Preserve unrelated existing delta requirements unless the evidence makes them stale or inconsistent.
    - Mark uncertain inferences with \`[REVIEW NEEDED]\`.
 9. Reconcile simplified \`design.md\`.
@@ -88,7 +88,8 @@ ${OPSX_CLI_QUERY_CONTEXT}
    - If validation returns ERROR or WARNING, run one repair pass using the relevant artifact \`instruction\` rules, then run \`openspec validate "<name>" --type change --json\` once more.
    - Treat the second validation result as final evidence.
    - Output validate result: if passed, indicate self-check passed; if ERROR/WARNING remain, list each and advise user review.
-13. Finish with the output hints below, including the validate result.
+13. Run \`openspec scenario-labels "<name>" --write\` after validate to add deterministic change-local scenario operation labels. Treat this as trusted programmatic metadata generation and SHALL NOT run validate again only because scenario labels were added.
+14. Finish with the output hints below, including the validate result.
 
 ## Output Hints
 

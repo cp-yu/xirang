@@ -1,24 +1,24 @@
 import type { Command } from 'commander';
 import ora from 'ora';
 import {
-  fixScenarioLabelsForChange,
+  applyScenarioLabelsForChange,
   previewScenarioLabelsForChange,
   type ScenarioLabelReport,
 } from '../core/scenario-labels.js';
 
-interface FixScenarioLabelsOptions {
+interface ScenarioLabelsOptions {
   write?: boolean;
   json?: boolean;
 }
 
-export async function fixScenarioLabelsCommand(
+export async function scenarioLabelsCommand(
   changeName: string,
-  options: FixScenarioLabelsOptions = {}
+  options: ScenarioLabelsOptions = {}
 ): Promise<void> {
   const projectRoot = process.cwd();
   const shouldWrite = options.write === true;
   const report = shouldWrite
-    ? await fixScenarioLabelsForChange(projectRoot, changeName)
+    ? await applyScenarioLabelsForChange(projectRoot, changeName)
     : await previewScenarioLabelsForChange(projectRoot, changeName);
 
   if (options.json) {
@@ -58,16 +58,16 @@ function printHuman(report: ScenarioLabelReport, wrote: boolean): void {
   console.log(`Updated ${changed.length} file(s), ${count} scenario suggestion(s).`);
 }
 
-export function registerFixScenarioLabelsCommand(program: Command): void {
+export function registerScenarioLabelsCommand(program: Command): void {
   program
-    .command('fix-scenario-labels <change-name>')
+    .command('scenario-labels <change-name>')
     .description('Preview or write deterministic change-local scenario operation labels')
     .option('--preview', 'Preview suggested labels without writing files')
     .option('--write', 'Write suggested labels to change-local specs')
     .option('--json', 'Output JSON')
-    .action(async (changeName: string, options: FixScenarioLabelsOptions = {}) => {
+    .action(async (changeName: string, options: ScenarioLabelsOptions = {}) => {
       try {
-        await fixScenarioLabelsCommand(changeName, options);
+        await scenarioLabelsCommand(changeName, options);
       } catch (error) {
         if (options.json) {
           console.log(JSON.stringify({ valid: false, error: (error as Error).message }, null, 2));

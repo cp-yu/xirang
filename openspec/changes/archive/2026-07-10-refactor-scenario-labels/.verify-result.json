@@ -1,0 +1,411 @@
+{
+  "timestamp": "2026-07-10T02:38:47.755Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "Unaccounted mechanical hash-baseline update: test/core/templates/skill-templates-parity.test.ts is changed but absent from Task 3 Files and Check commands.",
+      "requirement": "Unaccounted changes detection",
+      "task": "Task 3: 更新 workflow guidance 和 schema instructions",
+      "recommendation": "Declare the parity test under Task 3 Files and include it in the relevant Check command, or revert the hash update if it is not intended evidence.",
+      "evidenceCitations": [
+        "test/core/templates/skill-templates-parity.test.ts:15-29",
+        "openspec/changes/refactor-scenario-labels/tasks.md:62-68",
+        "openspec/changes/refactor-scenario-labels/tasks.md:78-91"
+      ]
+    }
+  ],
+  "tasksFileHash": "5d7f003992e0a381d6024429dc3d97bc279c5ff4536e8d9c4178d8f0b3abedc4",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "executionMode": "clean-context-subagent",
+    "evidenceFiles": [
+      "openspec/changes/refactor-scenario-labels/design.md",
+      "openspec/changes/refactor-scenario-labels/opsx-delta.yaml",
+      "openspec/changes/refactor-scenario-labels/proposal.md",
+      "openspec/changes/refactor-scenario-labels/specs/cli-scenario-labels/spec.md",
+      "openspec/changes/refactor-scenario-labels/specs/cli-sync/spec.md",
+      "openspec/changes/refactor-scenario-labels/specs/cli-validate/spec.md",
+      "openspec/changes/refactor-scenario-labels/specs/propose-workflow/spec.md",
+      "openspec/changes/refactor-scenario-labels/specs/snack-skill/spec.md",
+      "openspec/changes/refactor-scenario-labels/specs/specs-sync-skill/spec.md",
+      "openspec/changes/refactor-scenario-labels/tasks.md",
+      "openspec/project.opsx.code-map.yaml",
+      "openspec/project.opsx.relations.yaml",
+      "openspec/project.opsx.yaml",
+      "openspec/specs/cli-scenario-labels/spec.md",
+      "openspec/specs/cli-sync/spec.md",
+      "openspec/specs/cli-validate/spec.md",
+      "openspec/specs/propose-workflow/spec.md",
+      "openspec/specs/snack-skill/spec.md",
+      "openspec/specs/specs-sync-skill/spec.md",
+      "schemas/spec-driven/schema.yaml",
+      "src/cli/index.ts",
+      "src/commands/scenario-labels.ts",
+      "src/core/change-sync.ts",
+      "src/core/scenario-labels.ts",
+      "src/core/templates/workflows/propose.ts",
+      "src/core/templates/workflows/snack.ts",
+      "test/commands/scenario-labels.test.ts",
+      "test/commands/sync.test.ts",
+      "test/core/artifact-graph/instruction-loader.test.ts",
+      "test/core/scenario-labels.test.ts",
+      "test/core/specs-apply.test.ts",
+      "test/core/templates/propose-template.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts",
+      "test/core/templates/snack-template.test.ts"
+    ],
+    "evidenceFingerprint": "11b99d5addddedc9c667398b9f5c6b7350ad37958a3d11eef79b9fd0e82c6823",
+    "evidenceFingerprintEntries": [
+      {
+        "path": "openspec/changes/refactor-scenario-labels/design.md",
+        "hash": "10052d789c0f8a0bbfadecdbc3b7f86ae4fd76e416174e4b753c081b538393a7"
+      },
+      {
+        "path": "openspec/changes/refactor-scenario-labels/opsx-delta.yaml",
+        "hash": "e92deba5b8e0dd4c4c5fa43a7ee3b725113962b45ae8f5bb3b0335a14ce31505"
+      },
+      {
+        "path": "openspec/changes/refactor-scenario-labels/proposal.md",
+        "hash": "938334397f5fe6b870f26ff6e03d1cc00bb2af7a7b810956c94038797770818b"
+      },
+      {
+        "path": "openspec/changes/refactor-scenario-labels/specs/cli-scenario-labels/spec.md",
+        "hash": "b71207d41ef04d8c4070b076d038b7305070368093b2a819957a8288f77a33d9"
+      },
+      {
+        "path": "openspec/changes/refactor-scenario-labels/specs/cli-sync/spec.md",
+        "hash": "451f9e0b1eb9f899a12f1b6605d193a3387f010cfce27096dc8a70608f48f6be"
+      },
+      {
+        "path": "openspec/changes/refactor-scenario-labels/specs/cli-validate/spec.md",
+        "hash": "7b9648f051e1c55fc026a653e27d2f7a7ef36d02cbb63e740d7586cb729d3186"
+      },
+      {
+        "path": "openspec/changes/refactor-scenario-labels/specs/propose-workflow/spec.md",
+        "hash": "0312a302a1e8892ba38ba46f406e6604924a95d9f0bd9ee9eb9e6a0ae390879c"
+      },
+      {
+        "path": "openspec/changes/refactor-scenario-labels/specs/snack-skill/spec.md",
+        "hash": "7d79f38d116c6a6b7e8aac52dcf1e382b666a2a305c5f68f34e3ccd2cee63f1c"
+      },
+      {
+        "path": "openspec/changes/refactor-scenario-labels/specs/specs-sync-skill/spec.md",
+        "hash": "40b5a16d0ec0d0d5ce3febb6d4b9e4a9ef1a6e336d4ee1a6d89930efe375900a"
+      },
+      {
+        "path": "openspec/changes/refactor-scenario-labels/tasks.md",
+        "hash": "5d7f003992e0a381d6024429dc3d97bc279c5ff4536e8d9c4178d8f0b3abedc4"
+      },
+      {
+        "path": "openspec/project.opsx.code-map.yaml",
+        "hash": "11a966cee2e1abd42e7e0dddf8efd892974599da0ad37e8fb3ea0cb0d9e353c0"
+      },
+      {
+        "path": "openspec/project.opsx.relations.yaml",
+        "hash": "f258f1d1090b97d2c0409c4027aa399f5d17ee409381d74fd9d1a247b8c018d5"
+      },
+      {
+        "path": "openspec/project.opsx.yaml",
+        "hash": "244f38682f88f4d19037a53ff12b880d7f86d64b0ed1e7f2ad9177b851017185"
+      },
+      {
+        "path": "openspec/specs/cli-scenario-labels/spec.md",
+        "hash": "8f3b03772f0fa156d853a12d376c87933bb4b066aa39925c8f5cb5573a6e2684"
+      },
+      {
+        "path": "openspec/specs/cli-sync/spec.md",
+        "hash": "1a2b2e8777b6df731f764a641477fda527ea8cad447ec15335c6b76d0fe6deb4"
+      },
+      {
+        "path": "openspec/specs/cli-validate/spec.md",
+        "hash": "d56bd303bbec84b7ef16f56f61aec9b833184a5aea88b70e395bec2e4ff7711f"
+      },
+      {
+        "path": "openspec/specs/propose-workflow/spec.md",
+        "hash": "174f31ff1a05591258225901aa4352922c5b2f3cb285bd4175ae58d624cb0474"
+      },
+      {
+        "path": "openspec/specs/snack-skill/spec.md",
+        "hash": "c23de55a7e01ed8baedaad3346f042b935c7bedffc2707e99bf88f6efb9a72b7"
+      },
+      {
+        "path": "openspec/specs/specs-sync-skill/spec.md",
+        "hash": "4bc88094ba06e91f84da39bd3aa958cadf4cbecb3903494430ad23f1a264ce4a"
+      },
+      {
+        "path": "schemas/spec-driven/schema.yaml",
+        "hash": "3a52026af1f3112a7c35bc03b956303784208d9518aaeba0da855cb98bb0bd75"
+      },
+      {
+        "path": "src/cli/index.ts",
+        "hash": "e962cdd444946fa53d36012aa3334d2d73e76b2cb183255569826011bf2f8377"
+      },
+      {
+        "path": "src/commands/scenario-labels.ts",
+        "hash": "03d19a328e2148c6532178f1d100ef269bb374247e61c23ae5aa5ffc3e693795"
+      },
+      {
+        "path": "src/core/change-sync.ts",
+        "hash": "4788965a611fdc4c1a9c288feadb43ed6ba65635cc34d96f95194889bc1c9c08"
+      },
+      {
+        "path": "src/core/scenario-labels.ts",
+        "hash": "cb423f73e07b2855a9e47d65d288493a58d324a66f3a84f8fd2425d03ea1df46"
+      },
+      {
+        "path": "src/core/templates/workflows/propose.ts",
+        "hash": "e46f22b5231316cd1ce34297ccbbb6940d4c287c2f4f7fdcc90711d61dfd4808"
+      },
+      {
+        "path": "src/core/templates/workflows/snack.ts",
+        "hash": "4405ca402028023390afd3ba26967eda6edb3567a0528c70a5139e523ec9d765"
+      },
+      {
+        "path": "test/commands/scenario-labels.test.ts",
+        "hash": "08ee345db44fd3be6ec50f1c024255c0b27c37cdc42e9ba14f50122ebd9a0a23"
+      },
+      {
+        "path": "test/commands/sync.test.ts",
+        "hash": "d6b29b35e28a15db258b0196680466af531c3da3e985b871196c06eaa25a35b3"
+      },
+      {
+        "path": "test/core/artifact-graph/instruction-loader.test.ts",
+        "hash": "1db0db66148372a252f2ea11f96004167f93f045a5b13c9a80347d21c8f9ec15"
+      },
+      {
+        "path": "test/core/scenario-labels.test.ts",
+        "hash": "8fdc23276a177644f5c961802e4d9a97c27dcfebb20e63996ee33e3b2925f31a"
+      },
+      {
+        "path": "test/core/specs-apply.test.ts",
+        "hash": "4ae3027821110620eecd16fb3f73a2e470aac3cdbfbf4ded064bce2928c163a5"
+      },
+      {
+        "path": "test/core/templates/propose-template.test.ts",
+        "hash": "7127d35d0c3f2b7c765542a54580670f3da5c4944555b62f98a9e7242defeebe"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "5078a36b5546b40aeb2f40eb0796c082abe458c7dacf36e1e1b1910b72d40b0b"
+      },
+      {
+        "path": "test/core/templates/snack-template.test.ts",
+        "hash": "ac3832c8562774f45d3248fb7ac8dfe9b14a9b73de7ff0afb51a6c7e994ebd92"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "19bb4bc09cc5a280c997af8094b61ccbd11564a9"
+  },
+  "optimization": {
+    "status": "NOT_NEEDED",
+    "attempts": [
+      {
+        "timestamp": "2026-07-10T02:48:58.549Z",
+        "type": "optimization",
+        "status": "NO_OPTIMIZATION_NEEDED",
+        "summary": "clean-context optimizer 未发现有意义且保持行为不变的优化机会。"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-07-10T02:38:47.755Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "Unaccounted mechanical hash-baseline update: test/core/templates/skill-templates-parity.test.ts is changed but absent from Task 3 Files and Check commands.",
+          "requirement": "Unaccounted changes detection",
+          "task": "Task 3: 更新 workflow guidance 和 schema instructions",
+          "recommendation": "Declare the parity test under Task 3 Files and include it in the relevant Check command, or revert the hash update if it is not intended evidence.",
+          "evidenceCitations": [
+            "test/core/templates/skill-templates-parity.test.ts:15-29",
+            "openspec/changes/refactor-scenario-labels/tasks.md:62-68",
+            "openspec/changes/refactor-scenario-labels/tasks.md:78-91"
+          ]
+        }
+      ],
+      "tasksFileHash": "5d7f003992e0a381d6024429dc3d97bc279c5ff4536e8d9c4178d8f0b3abedc4",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "executionMode": "clean-context-subagent",
+        "evidenceFiles": [
+          "openspec/changes/refactor-scenario-labels/design.md",
+          "openspec/changes/refactor-scenario-labels/opsx-delta.yaml",
+          "openspec/changes/refactor-scenario-labels/proposal.md",
+          "openspec/changes/refactor-scenario-labels/specs/cli-scenario-labels/spec.md",
+          "openspec/changes/refactor-scenario-labels/specs/cli-sync/spec.md",
+          "openspec/changes/refactor-scenario-labels/specs/cli-validate/spec.md",
+          "openspec/changes/refactor-scenario-labels/specs/propose-workflow/spec.md",
+          "openspec/changes/refactor-scenario-labels/specs/snack-skill/spec.md",
+          "openspec/changes/refactor-scenario-labels/specs/specs-sync-skill/spec.md",
+          "openspec/changes/refactor-scenario-labels/tasks.md",
+          "openspec/project.opsx.code-map.yaml",
+          "openspec/project.opsx.relations.yaml",
+          "openspec/project.opsx.yaml",
+          "openspec/specs/cli-scenario-labels/spec.md",
+          "openspec/specs/cli-sync/spec.md",
+          "openspec/specs/cli-validate/spec.md",
+          "openspec/specs/propose-workflow/spec.md",
+          "openspec/specs/snack-skill/spec.md",
+          "openspec/specs/specs-sync-skill/spec.md",
+          "schemas/spec-driven/schema.yaml",
+          "src/cli/index.ts",
+          "src/commands/scenario-labels.ts",
+          "src/core/change-sync.ts",
+          "src/core/scenario-labels.ts",
+          "src/core/templates/workflows/propose.ts",
+          "src/core/templates/workflows/snack.ts",
+          "test/commands/scenario-labels.test.ts",
+          "test/commands/sync.test.ts",
+          "test/core/artifact-graph/instruction-loader.test.ts",
+          "test/core/scenario-labels.test.ts",
+          "test/core/specs-apply.test.ts",
+          "test/core/templates/propose-template.test.ts",
+          "test/core/templates/skill-templates-parity.test.ts",
+          "test/core/templates/snack-template.test.ts"
+        ],
+        "evidenceFingerprint": "11b99d5addddedc9c667398b9f5c6b7350ad37958a3d11eef79b9fd0e82c6823",
+        "evidenceFingerprintEntries": [
+          {
+            "path": "openspec/changes/refactor-scenario-labels/design.md",
+            "hash": "10052d789c0f8a0bbfadecdbc3b7f86ae4fd76e416174e4b753c081b538393a7"
+          },
+          {
+            "path": "openspec/changes/refactor-scenario-labels/opsx-delta.yaml",
+            "hash": "e92deba5b8e0dd4c4c5fa43a7ee3b725113962b45ae8f5bb3b0335a14ce31505"
+          },
+          {
+            "path": "openspec/changes/refactor-scenario-labels/proposal.md",
+            "hash": "938334397f5fe6b870f26ff6e03d1cc00bb2af7a7b810956c94038797770818b"
+          },
+          {
+            "path": "openspec/changes/refactor-scenario-labels/specs/cli-scenario-labels/spec.md",
+            "hash": "b71207d41ef04d8c4070b076d038b7305070368093b2a819957a8288f77a33d9"
+          },
+          {
+            "path": "openspec/changes/refactor-scenario-labels/specs/cli-sync/spec.md",
+            "hash": "451f9e0b1eb9f899a12f1b6605d193a3387f010cfce27096dc8a70608f48f6be"
+          },
+          {
+            "path": "openspec/changes/refactor-scenario-labels/specs/cli-validate/spec.md",
+            "hash": "7b9648f051e1c55fc026a653e27d2f7a7ef36d02cbb63e740d7586cb729d3186"
+          },
+          {
+            "path": "openspec/changes/refactor-scenario-labels/specs/propose-workflow/spec.md",
+            "hash": "0312a302a1e8892ba38ba46f406e6604924a95d9f0bd9ee9eb9e6a0ae390879c"
+          },
+          {
+            "path": "openspec/changes/refactor-scenario-labels/specs/snack-skill/spec.md",
+            "hash": "7d79f38d116c6a6b7e8aac52dcf1e382b666a2a305c5f68f34e3ccd2cee63f1c"
+          },
+          {
+            "path": "openspec/changes/refactor-scenario-labels/specs/specs-sync-skill/spec.md",
+            "hash": "40b5a16d0ec0d0d5ce3febb6d4b9e4a9ef1a6e336d4ee1a6d89930efe375900a"
+          },
+          {
+            "path": "openspec/changes/refactor-scenario-labels/tasks.md",
+            "hash": "5d7f003992e0a381d6024429dc3d97bc279c5ff4536e8d9c4178d8f0b3abedc4"
+          },
+          {
+            "path": "openspec/project.opsx.code-map.yaml",
+            "hash": "11a966cee2e1abd42e7e0dddf8efd892974599da0ad37e8fb3ea0cb0d9e353c0"
+          },
+          {
+            "path": "openspec/project.opsx.relations.yaml",
+            "hash": "f258f1d1090b97d2c0409c4027aa399f5d17ee409381d74fd9d1a247b8c018d5"
+          },
+          {
+            "path": "openspec/project.opsx.yaml",
+            "hash": "244f38682f88f4d19037a53ff12b880d7f86d64b0ed1e7f2ad9177b851017185"
+          },
+          {
+            "path": "openspec/specs/cli-scenario-labels/spec.md",
+            "hash": "8f3b03772f0fa156d853a12d376c87933bb4b066aa39925c8f5cb5573a6e2684"
+          },
+          {
+            "path": "openspec/specs/cli-sync/spec.md",
+            "hash": "1a2b2e8777b6df731f764a641477fda527ea8cad447ec15335c6b76d0fe6deb4"
+          },
+          {
+            "path": "openspec/specs/cli-validate/spec.md",
+            "hash": "d56bd303bbec84b7ef16f56f61aec9b833184a5aea88b70e395bec2e4ff7711f"
+          },
+          {
+            "path": "openspec/specs/propose-workflow/spec.md",
+            "hash": "174f31ff1a05591258225901aa4352922c5b2f3cb285bd4175ae58d624cb0474"
+          },
+          {
+            "path": "openspec/specs/snack-skill/spec.md",
+            "hash": "c23de55a7e01ed8baedaad3346f042b935c7bedffc2707e99bf88f6efb9a72b7"
+          },
+          {
+            "path": "openspec/specs/specs-sync-skill/spec.md",
+            "hash": "4bc88094ba06e91f84da39bd3aa958cadf4cbecb3903494430ad23f1a264ce4a"
+          },
+          {
+            "path": "schemas/spec-driven/schema.yaml",
+            "hash": "3a52026af1f3112a7c35bc03b956303784208d9518aaeba0da855cb98bb0bd75"
+          },
+          {
+            "path": "src/cli/index.ts",
+            "hash": "e962cdd444946fa53d36012aa3334d2d73e76b2cb183255569826011bf2f8377"
+          },
+          {
+            "path": "src/commands/scenario-labels.ts",
+            "hash": "03d19a328e2148c6532178f1d100ef269bb374247e61c23ae5aa5ffc3e693795"
+          },
+          {
+            "path": "src/core/change-sync.ts",
+            "hash": "4788965a611fdc4c1a9c288feadb43ed6ba65635cc34d96f95194889bc1c9c08"
+          },
+          {
+            "path": "src/core/scenario-labels.ts",
+            "hash": "cb423f73e07b2855a9e47d65d288493a58d324a66f3a84f8fd2425d03ea1df46"
+          },
+          {
+            "path": "src/core/templates/workflows/propose.ts",
+            "hash": "e46f22b5231316cd1ce34297ccbbb6940d4c287c2f4f7fdcc90711d61dfd4808"
+          },
+          {
+            "path": "src/core/templates/workflows/snack.ts",
+            "hash": "4405ca402028023390afd3ba26967eda6edb3567a0528c70a5139e523ec9d765"
+          },
+          {
+            "path": "test/commands/scenario-labels.test.ts",
+            "hash": "08ee345db44fd3be6ec50f1c024255c0b27c37cdc42e9ba14f50122ebd9a0a23"
+          },
+          {
+            "path": "test/commands/sync.test.ts",
+            "hash": "d6b29b35e28a15db258b0196680466af531c3da3e985b871196c06eaa25a35b3"
+          },
+          {
+            "path": "test/core/artifact-graph/instruction-loader.test.ts",
+            "hash": "1db0db66148372a252f2ea11f96004167f93f045a5b13c9a80347d21c8f9ec15"
+          },
+          {
+            "path": "test/core/scenario-labels.test.ts",
+            "hash": "8fdc23276a177644f5c961802e4d9a97c27dcfebb20e63996ee33e3b2925f31a"
+          },
+          {
+            "path": "test/core/specs-apply.test.ts",
+            "hash": "4ae3027821110620eecd16fb3f73a2e470aac3cdbfbf4ded064bce2928c163a5"
+          },
+          {
+            "path": "test/core/templates/propose-template.test.ts",
+            "hash": "7127d35d0c3f2b7c765542a54580670f3da5c4944555b62f98a9e7242defeebe"
+          },
+          {
+            "path": "test/core/templates/skill-templates-parity.test.ts",
+            "hash": "5078a36b5546b40aeb2f40eb0796c082abe458c7dacf36e1e1b1910b72d40b0b"
+          },
+          {
+            "path": "test/core/templates/snack-template.test.ts",
+            "hash": "ac3832c8562774f45d3248fb7ac8dfe9b14a9b73de7ff0afb51a6c7e994ebd92"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "19bb4bc09cc5a280c997af8094b61ccbd11564a9"
+      }
+    }
+  }
+}

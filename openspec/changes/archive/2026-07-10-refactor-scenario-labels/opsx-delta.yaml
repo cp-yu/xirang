@@ -1,0 +1,38 @@
+schema_version: 1
+ADDED:
+  capabilities:
+    - id: cap.cli.scenario-labels
+      type: capability
+      intent: 提供 `openspec scenario-labels` preview/write 命令，在 validate 之后显式生成 change-local MODIFIED requirements 的 scenario operation labels；不使用 fix 语义
+  relations:
+    - from: cap.cli.scenario-labels
+      type: contains
+      to: dom.cli
+    - from: cap.cli.scenario-labels
+      type: depends_on
+      to: cap.validation.spec
+MODIFIED:
+  capabilities:
+    - id: cap.cli.sync
+      intent: 顶层 CLI 命令，将 change 中的 delta specs 和 OPSX delta 同步到主文件，不执行归档；sync 允许未标注的 change-local scenarios，消费并清洗已有 [ADDED]/[MODIFIED] labels，省略已有 [REMOVED] scenario blocks，但不生成或写回 scenario operation labels
+    - id: cap.change.specs-sync
+      intent: 将变更中的 delta specs 和 OPSX delta 同步到主规约与主 OPSX；sync 不写回 change-local scenario operation labels，写入 formal specs 前清洗已有 [ADDED]/[MODIFIED] labels 并省略已有 [REMOVED] scenario blocks；重复 sync 对 normalized requirement 内容保持幂等
+    - id: cap.ai.propose-smart-routing
+      intent: Propose 阶段的智能路由与 artifact 生成 guidance；生成 specs 时应用 schema content boundary，post-propose validation 后显式运行 `openspec scenario-labels <change> --write` 生成 change-local review metadata，并消费共享 artifact language contract；写入 change-local specs 前提示使用 `openspec check-delta` 检查计划引用；post-propose validation guidance 使用 artifact-scoped validate 命令分阶段检查 specs 与 opsx-delta
+    - id: cap.ai.snack-skill
+      intent: snack skill 提供代码优先的 artifact reconciliation 工作流，从 conversation context、workspace/staged diff、git diff HEAD 或用户指定 commit/range 等代码变更证据，按需创建或更新 proposal、design、delta specs 与 OPSX delta；validate 自检后显式运行 `openspec scenario-labels <change> --write` 生成 change-local review metadata；完成后输出 fast path 并支持多次调用 reconcile 同一 change
+    - id: cap.validation.change
+      intent: 验证变更的完整性和结构，包括 delta spec section-type 与主 spec header 存在性的交叉验证、scenario operation label 语法与位置校验（MODIFIED 下无标签 scenario 合法、ADDED 下禁止 [MODIFIED]/[REMOVED]、错误信息含语义解释）、surviving scenario 校验（messages 按 section 区分），以及 tasks.md 中 Verifies 字段的确定性结构和 change-local spec 引用校验；Verifies 支持 REMOVED 锚定语法变体（无 Scenario），并以 label-free scenario title 匹配 change-local specs；新增 Preserves 字段校验（仅主 spec 路径白名单，不放宽 Verifies）
+REMOVED:
+  capabilities:
+    - id: cap.cli.fix-scenario-labels
+  relations:
+    - from: cap.cli.fix-scenario-labels
+      type: contains
+      to: dom.cli
+    - from: cap.cli.fix-scenario-labels
+      type: depends_on
+      to: cap.validation.spec
+    - from: cap.change.specs-sync
+      type: depends_on
+      to: cap.cli.fix-scenario-labels

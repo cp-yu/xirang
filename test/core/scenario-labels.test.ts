@@ -4,7 +4,7 @@ import os from 'os';
 import path from 'path';
 
 import {
-  fixScenarioLabelsForChange,
+  applyScenarioLabelsForChange,
   previewScenarioLabelsForChange,
 } from '../../src/core/scenario-labels.js';
 
@@ -72,7 +72,7 @@ The system SHALL support login.
       expect.objectContaining({ scenarioTitle: 'Same path', operation: 'UNCHANGED', label: null }),
     ]);
 
-    await fixScenarioLabelsForChange(tempDir, 'label-change');
+    await applyScenarioLabelsForChange(tempDir, 'label-change');
     const updated = await fs.readFile(
       path.join(tempDir, 'openspec', 'changes', 'label-change', 'specs', 'auth', 'spec.md'),
       'utf-8'
@@ -108,7 +108,7 @@ The system SHALL support login.
 - **THEN** login succeeds`
     );
 
-    const report = await fixScenarioLabelsForChange(tempDir, 'label-change');
+    const report = await applyScenarioLabelsForChange(tempDir, 'label-change');
     expect(report.files[0].suggestions).toEqual([
       expect.objectContaining({ scenarioTitle: 'Same path', operation: 'UNCHANGED', label: null }),
     ]);
@@ -150,7 +150,7 @@ The system SHALL support login.
 - **THEN** old behavior happens`
     );
 
-    await fixScenarioLabelsForChange(tempDir, 'label-change');
+    await applyScenarioLabelsForChange(tempDir, 'label-change');
     const changeSpecPath = path.join(tempDir, 'openspec', 'changes', 'label-change', 'specs', 'auth', 'spec.md');
     const first = await fs.readFile(changeSpecPath, 'utf-8');
     expect(first).toContain('#### Scenario: [MODIFIED] Existing path');
@@ -158,7 +158,7 @@ The system SHALL support login.
     expect(first).toContain('- **WHEN** legacy flow runs\n- **THEN** old behavior happens');
     expect((first.match(/\[REMOVED\] Legacy path/g) ?? []).length).toBe(1);
 
-    await fixScenarioLabelsForChange(tempDir, 'label-change');
+    await applyScenarioLabelsForChange(tempDir, 'label-change');
     const second = await fs.readFile(changeSpecPath, 'utf-8');
     expect(second).toBe(first);
   });

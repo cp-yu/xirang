@@ -19,7 +19,7 @@ import { FeedbackCommand } from '../commands/feedback.js';
 import { registerConfigCommand } from '../commands/config.js';
 import { registerSchemaCommand } from '../commands/schema.js';
 import { registerSyncCommand } from '../commands/sync.js';
-import { registerFixScenarioLabelsCommand } from '../commands/fix-scenario-labels.js';
+import { registerScenarioLabelsCommand } from '../commands/scenario-labels.js';
 import { registerVerifyCommand } from '../commands/verify.js';
 import { registerCheckDeltaCommand } from '../commands/check-delta.js';
 import {
@@ -195,7 +195,7 @@ program
   });
 
 registerSyncCommand(program);
-registerFixScenarioLabelsCommand(program);
+registerScenarioLabelsCommand(program);
 registerVerifyCommand(program);
 registerCheckDeltaCommand(program);
 

@@ -483,9 +483,9 @@ The system SHALL support login.
     expect(console.log).toHaveBeenCalledWith('No sync required.');
   });
 
-  it('auto-labels unlabeled scenario differences before sync output and stays idempotent', async () => {
+  it('syncs unlabeled scenario differences without changing the change-local spec', async () => {
     const syncCommand = await loadSyncCommand();
-    const changeName = 'auto-label-sync';
+    const changeName = 'unlabeled-sync';
     const changeDir = await createChange(changeName);
     const changeSpecPath = path.join(changeDir, 'specs', 'auth', 'spec.md');
     const mainSpecDir = path.join(tempDir, 'openspec', 'specs', 'auth');
@@ -530,6 +530,7 @@ The system SHALL support login.
 - **THEN** a challenge is shown`,
       'utf-8'
     );
+    const changeSpecBefore = await fs.readFile(changeSpecPath, 'utf-8');
     await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] verified\n', 'utf-8');
     const evidenceFiles = [`openspec/changes/${changeName}/specs/auth/spec.md`];
     const beforeEvidence = await computeEvidenceFingerprint(evidenceFiles, tempDir);
@@ -555,9 +556,7 @@ The system SHALL support login.
     await syncCommand(changeName, { noValidate: true, noVerify: true });
 
     const changeSpecAfterFirst = await fs.readFile(changeSpecPath, 'utf-8');
-    expect(changeSpecAfterFirst).toContain('#### Scenario: [MODIFIED] Existing path');
-    expect(changeSpecAfterFirst).toContain('#### Scenario: [ADDED] MFA path');
-    expect(changeSpecAfterFirst).toContain('#### Scenario: [REMOVED] Legacy path');
+    expect(changeSpecAfterFirst).toBe(changeSpecBefore);
 
     const mainAfterFirst = await fs.readFile(mainSpecPath, 'utf-8');
     expect(mainAfterFirst).toContain('#### Scenario: Existing path');

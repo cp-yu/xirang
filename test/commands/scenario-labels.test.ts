@@ -4,11 +4,11 @@ import os from 'os';
 import path from 'path';
 import { runCLI } from '../helpers/run-cli.js';
 
-describe('fix-scenario-labels command', () => {
+describe('scenario-labels command', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-fix-labels-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-scenario-labels-'));
     await fs.mkdir(path.join(tempDir, 'openspec', 'changes', 'archive'), { recursive: true });
   });
 
@@ -65,7 +65,7 @@ The system SHALL support login.
     const changeSpecPath = await writeFixture();
     const before = await fs.readFile(changeSpecPath, 'utf-8');
 
-    const result = await runCLI(['fix-scenario-labels', 'label-change', '--preview'], { cwd: tempDir });
+    const result = await runCLI(['scenario-labels', 'label-change', '--preview'], { cwd: tempDir });
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('auth');
@@ -83,7 +83,7 @@ The system SHALL support login.
   it('emits machine-readable JSON preview', async () => {
     await writeFixture();
 
-    const result = await runCLI(['fix-scenario-labels', 'label-change', '--preview', '--json'], { cwd: tempDir });
+    const result = await runCLI(['scenario-labels', 'label-change', '--preview', '--json'], { cwd: tempDir });
 
     expect(result.exitCode).toBe(0);
     const report = JSON.parse(result.stdout);
@@ -98,11 +98,11 @@ The system SHALL support login.
   it('writes labels, fails for missing changes, and is idempotent', async () => {
     const changeSpecPath = await writeFixture();
 
-    const missing = await runCLI(['fix-scenario-labels', 'missing-change', '--preview'], { cwd: tempDir });
+    const missing = await runCLI(['scenario-labels', 'missing-change', '--preview'], { cwd: tempDir });
     expect(missing.exitCode).toBe(1);
     expect(missing.stderr).toContain("Change 'missing-change' not found");
 
-    const written = await runCLI(['fix-scenario-labels', 'label-change', '--write'], { cwd: tempDir });
+    const written = await runCLI(['scenario-labels', 'label-change', '--write'], { cwd: tempDir });
     expect(written.exitCode).toBe(0);
     expect(written.stdout).toContain('Updated');
     const first = await fs.readFile(changeSpecPath, 'utf-8');
@@ -110,7 +110,7 @@ The system SHALL support login.
     expect(first).toContain('#### Scenario: [ADDED] MFA path');
     expect(first).toContain('#### Scenario: [REMOVED] Legacy path');
 
-    const secondRun = await runCLI(['fix-scenario-labels', 'label-change', '--write'], { cwd: tempDir });
+    const secondRun = await runCLI(['scenario-labels', 'label-change', '--write'], { cwd: tempDir });
     expect(secondRun.exitCode).toBe(0);
     expect(secondRun.stdout).toContain('No scenario label updates are needed.');
     expect(await fs.readFile(changeSpecPath, 'utf-8')).toBe(first);

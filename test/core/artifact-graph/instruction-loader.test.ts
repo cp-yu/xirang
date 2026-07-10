@@ -194,12 +194,15 @@ describe('instruction-loader', () => {
       expect(instructions.instruction).toContain('proseLanguage');
     });
 
-    it('should expose automatic scenario operation label handling for specs', () => {
+    it('should expose explicit scenario operation label handling for specs', () => {
       const context = loadChangeContext(tempDir, 'my-change');
       const instructions = generateInstructions(context, 'specs');
-      const finalWording = 'Scenario operation labels are automatically handled by the OpenSpec CLI after validation and remain change-local review metadata for sync/archive review.';
 
-      expect(instructions.instruction).toContain(finalWording);
+      expect(instructions.instruction).toContain('openspec scenario-labels "<change>" --write');
+      expect(instructions.instruction).toContain('after validation');
+      expect(instructions.instruction).not.toContain(
+        ['automatically handled by the OpenSpec CLI', 'after validation'].join(' ')
+      );
       expect(instructions.instruction).not.toContain('Only scenarios whose behavior changed need labels');
       expect(instructions.instruction).not.toContain('use `[ADDED]`');
       expect(instructions.instruction).not.toContain('use `[MODIFIED]`');

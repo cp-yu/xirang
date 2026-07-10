@@ -46,7 +46,7 @@ export async function previewScenarioLabelsForChange(
   return processScenarioLabels(projectRoot, changeName, false);
 }
 
-export async function fixScenarioLabelsForChange(
+export async function applyScenarioLabelsForChange(
   projectRoot: string,
   changeName: string
 ): Promise<ScenarioLabelReport> {
@@ -69,7 +69,7 @@ async function processScenarioLabels(
     const mainContent = await readOptional(mainSpecPath);
     if (mainContent === null) continue;
 
-    const result = fixScenarioLabelsInContent(changeContent, normalizeLineEndings(mainContent), specId);
+    const result = applyScenarioLabelsInContent(changeContent, normalizeLineEndings(mainContent), specId);
     const relativePath = path.join('openspec', 'changes', changeName, 'specs', specId, 'spec.md');
     reports.push({ path: relativePath, changed: result.content !== changeContent, suggestions: result.suggestions });
     if (write && result.content !== changeContent) await fs.writeFile(changeSpecPath, result.content, 'utf-8');
@@ -78,7 +78,7 @@ async function processScenarioLabels(
   return { changeName, files: reports };
 }
 
-export function fixScenarioLabelsInContent(
+export function applyScenarioLabelsInContent(
   changeContent: string,
   mainContent: string,
   specId: string
@@ -93,15 +93,15 @@ export function fixScenarioLabelsInContent(
     const mainBlock = mainBlocks.get(normalizeRequirementName(changeBlock.name));
     if (!mainBlock) continue;
 
-    const fixed = fixRequirementBlock(changeBlock, mainBlock, specId);
-    suggestions.push(...fixed.suggestions);
-    content = replaceOnce(content, changeBlock.raw, fixed.raw);
+    const applied = applyScenarioLabelsToRequirement(changeBlock, mainBlock, specId);
+    suggestions.push(...applied.suggestions);
+    content = replaceOnce(content, changeBlock.raw, applied.raw);
   }
 
   return { content, suggestions };
 }
 
-function fixRequirementBlock(
+function applyScenarioLabelsToRequirement(
   changeBlock: RequirementBlock,
   mainBlock: RequirementBlock,
   specId: string

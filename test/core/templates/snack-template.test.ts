@@ -82,7 +82,14 @@ describe('snack template scenario operation labels', () => {
   const instructions = template.instructions;
 
   it('delegates scenario labels to the CLI', () => {
-    expect(instructions).toContain('Scenario operation labels are automatically handled by the OpenSpec CLI after validation and remain change-local review metadata for sync/archive review.');
+    const validationIndex = instructions.indexOf('12. Run `openspec validate "<name>" --type change --json`');
+    const scenarioLabelsIndex = instructions.indexOf('Run `openspec scenario-labels "<name>" --write` after validate to add deterministic change-local scenario operation labels.');
+    expect(validationIndex).toBeGreaterThanOrEqual(0);
+    expect(scenarioLabelsIndex).toBeGreaterThan(validationIndex);
+    expect(instructions).toContain('SHALL NOT run validate again only because scenario labels were added');
+    expect(instructions).not.toContain(
+      ['automatically handled by the OpenSpec CLI', 'after validation'].join(' ')
+    );
     expect(instructions).not.toContain('#### Scenario: [ADDED] <title>');
     expect(instructions).not.toContain('#### Scenario: [MODIFIED] <title>');
     expect(instructions).not.toContain('#### Scenario: [REMOVED] <title>');
