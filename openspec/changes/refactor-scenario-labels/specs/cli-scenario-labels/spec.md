@@ -1,8 +1,5 @@
-# cli-scenario-labels Specification
+## MODIFIED Requirements
 
-## Purpose
-提供 change-local scenario operation labels 的确定性 preview/write 能力。
-## Requirements
 ### Requirement: Scenario label fix command
 
 `openspec scenario-labels` SHALL provide the deterministic preview/write command for deriving change-local scenario operation labels from differences between main specs and change-local `## MODIFIED Requirements` blocks. The command name SHALL NOT use `fix` terminology.

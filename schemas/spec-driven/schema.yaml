@@ -64,7 +64,7 @@ artifacts:
       - Each requirement: `### Requirement: <name>` followed by description
       - Use SHALL/MUST for normative requirements (avoid should/may)
       - Each scenario: `#### Scenario: <name>` with WHEN/THEN format
-      - Scenario operation labels are automatically handled by the OpenSpec CLI after validation and remain change-local review metadata for sync/archive review.
+      - Do not author scenario operation labels before validation. Run `openspec scenario-labels "<change>" --write` after validation to generate deterministic change-local review metadata; sync/archive consume and clean existing labels but do not generate them.
       - **CRITICAL**: Scenarios MUST use exactly 4 hashtags (`####`). Using 3 hashtags or bullets will fail silently.
       - Every requirement MUST have at least one scenario.
       - `### Requirement:` and `#### Scenario:` markers remain canonical.

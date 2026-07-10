@@ -127,9 +127,15 @@ describe('propose template post-validation flow', () => {
   });
 
   it('delegates scenario operation labels to the CLI', () => {
-    const finalWording = 'Scenario operation labels are automatically handled by the OpenSpec CLI after validation and remain change-local review metadata for sync/archive review.';
     for (const body of getProposeBodies()) {
-      expect(body).toContain(finalWording);
+      const validationIndex = body.indexOf('10. Run warning-only post-propose validation');
+      const scenarioLabelsIndex = body.indexOf('openspec scenario-labels "<name>" --write');
+      expect(validationIndex).toBeGreaterThanOrEqual(0);
+      expect(scenarioLabelsIndex).toBeGreaterThan(validationIndex);
+      expect(body).toContain('does not require a second validate pass');
+      expect(body).not.toContain(
+        ['automatically handled by the OpenSpec CLI', 'after validation'].join(' ')
+      );
       expect(body).not.toContain('#### Scenario: [ADDED] <title>');
       expect(body).not.toContain('#### Scenario: [MODIFIED] <title>');
       expect(body).not.toContain('#### Scenario: [REMOVED] <title>');

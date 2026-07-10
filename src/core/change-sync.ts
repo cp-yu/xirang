@@ -19,7 +19,6 @@ import {
 } from './specs-apply.js';
 import { refreshVerifyEvidenceAfterSync } from './verify/freshness.js';
 import { Validator } from './validation/validator.js';
-import { fixScenarioLabelsForChange } from './scenario-labels.js';
 import { extractRequirementsSection, parseDeltaSpec } from './parsers/requirement-blocks.js';
 
 type SpecCounts = { added: number; modified: number; removed: number; renamed: number };
@@ -49,7 +48,6 @@ interface PreparedOpsxWrite {
 
 export interface PreparedChangeSync {
   state: ChangeSyncState;
-  labelFiles: string[];
   specs: {
     writes: PreparedSpecWrite[];
     totals: SpecCounts;
@@ -151,11 +149,6 @@ export async function prepareChangeSync(
     pendingSpecUpdates.push({ update, originalContent });
   }
 
-  const labelReport = pendingSpecUpdates.length > 0
-    ? await fixScenarioLabelsForChange(projectRoot, state.changeName)
-    : { files: [] };
-  const labelFiles = labelReport.files.filter((file) => file.changed).map((file) => file.path);
-
   for (const { update, originalContent } of pendingSpecUpdates) {
     const built = await buildUpdatedSpec(update, state.changeName, projectRoot);
     const action = shouldDeleteRebuiltSpec(built.rebuilt) ? 'delete' : 'write';
@@ -205,7 +198,6 @@ export async function prepareChangeSync(
     if (!result.changed) {
       return {
         state,
-        labelFiles,
         specs: { writes, totals },
         opsx: null,
       };
@@ -237,7 +229,6 @@ export async function prepareChangeSync(
 
   return {
     state,
-    labelFiles,
     specs: { writes, totals },
     opsx,
   };
@@ -249,7 +240,7 @@ export async function applyPreparedChangeSync(
   options: { silent?: boolean } = {}
 ): Promise<AppliedChangeSyncSummary> {
   const silent = options.silent ?? false;
-  const syncedFiles: string[] = [...prepared.labelFiles];
+  const syncedFiles: string[] = [];
 
   if (prepared.opsx) {
     await writeProjectOpsx(projectRoot, prepared.opsx.mergedBundle);
