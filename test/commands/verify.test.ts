@@ -1,9 +1,10 @@
-import { describe, expect, it, beforeEach, afterEach } from 'vitest';
+import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { execFile } from 'child_process';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { promisify } from 'util';
+import * as freshness from '../../src/core/verify/freshness.js';
 import { runCLI } from '../helpers/run-cli.js';
 
 const execFileAsync = promisify(execFile);
@@ -85,6 +86,62 @@ describe('openspec verify command', () => {
     expect(optimization.history.map((event: { action: string }) => event.action)).toEqual([
       'add', 'add', 'select',
     ]);
+  });
+
+  it('hashes one normalized snapshot in selected-first error order', async () => {
+    await fs.writeFile(path.join(tempDir, 'src', 'b.ts'), 'const b = 1;\n', 'utf-8');
+    await runCLI(['verify', 'phase1', 'c1', '--input', JSON.stringify({
+      result: 'PASS', issues: [], evidenceFiles: ['src/a.ts'],
+    })], { cwd: tempDir });
+    const hashFiles = vi.spyOn(freshness, 'hashFiles');
+
+    const result = await runCLI(['verify', 'phase2', 'c1', '--type=optimization', '--json', '--input', JSON.stringify({
+      status: 'OPTIMIZATION_PROPOSED',
+      envelope: {
+        blockingObservations: [],
+        actions: [
+          { action: 'add', finding: finding({
+            location: { files: ['src/b.ts', 'src\\b.ts'], symbols: ['b'] },
+          }) },
+          { action: 'add', finding: finding({ opportunity: 'Second optimization', impactLevel: 'medium' }) },
+        ],
+        findings: [],
+      },
+    })], { cwd: tempDir });
+
+    expect(result.exitCode, result.stdout).toBe(0);
+    expect(hashFiles).toHaveBeenCalledTimes(1);
+    expect(hashFiles).toHaveBeenCalledWith(['src/b.ts', 'src/a.ts'], tempDir);
+    expect(JSON.parse(result.stdout).result.optimization.findings[0].targetFileHashes)
+      .toEqual({ 'src/b.ts': expect.any(String) });
+  });
+
+  it('reports selected target errors before pending target errors', async () => {
+    await runCLI(['verify', 'phase1', 'c1', '--input', JSON.stringify({
+      result: 'PASS', issues: [], evidenceFiles: ['src/a.ts'],
+    })], { cwd: tempDir });
+
+    const result = await runCLI(['verify', 'phase2', 'c1', '--type=optimization', '--json', '--input', JSON.stringify({
+      status: 'OPTIMIZATION_PROPOSED',
+      envelope: {
+        blockingObservations: [],
+        actions: [
+          { action: 'add', finding: finding({
+            location: { files: ['src/z-missing.ts', 'src/y-missing.ts'], symbols: ['missing'] },
+          }) },
+          { action: 'add', finding: finding({
+            opportunity: 'Second optimization',
+            impactLevel: 'medium',
+            location: { files: ['src/a-missing.ts'], symbols: ['missing'] },
+          }) },
+        ],
+        findings: [],
+      },
+    })], { cwd: tempDir });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('src/z-missing.ts');
+    expect(result.stderr).not.toContain('src/a-missing.ts');
   });
 
   it('selects the highest-priority actionable finding regardless of insertion order', async () => {

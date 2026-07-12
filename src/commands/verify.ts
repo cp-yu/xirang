@@ -443,7 +443,20 @@ async function handleFindingReconciliation(
       return 2;
     }
     selected.status = 'selected';
-    selected.targetFileHashes = await hashFiles(selected.location.files, projectRoot);
+  }
+  const signatureFindings = currentFindings
+    .filter((finding) => ['pending', 'selected'].includes(finding.status))
+    .sort(compareFindingPriority);
+  const signaturePaths = normalizeFindingPaths(
+    [...new Set(signatureFindings.flatMap((finding) => finding.location.files))].sort(),
+    projectRoot
+  );
+  const selectedPaths = normalizeFindingPaths(selected?.location.files ?? [], projectRoot);
+  const hashPaths = [...selectedPaths, ...signaturePaths.filter((file) => !selectedPaths.includes(file))];
+  const hashSnapshot = await hashFiles(hashPaths, projectRoot);
+  const signatureHashes = projectFindingHashes(signaturePaths, hashSnapshot);
+  if (selected) {
+    selected.targetFileHashes = projectFindingHashes(selectedPaths, hashSnapshot);
     appendHistory(history, 'select', selected.priorityReason, selected.id, undefined, selected.targetFileHashes);
   }
 
@@ -459,7 +472,7 @@ async function handleFindingReconciliation(
   const terminal = currentFindings.every((finding) =>
     ['verified', 'resolved', 'rejected', 'invalidated', 'deferred', 'merged'].includes(finding.status)
   );
-  const reconciliationSignature = await computeReconciliationSignature(currentFindings, projectRoot);
+  const reconciliationSignature = computeReconciliationSignature(signatureFindings, signatureHashes);
   const noProgress = envelope.actions.every(
     (action) => action.action === 'retain' || action.action === 'reprioritize'
   );
@@ -654,20 +667,34 @@ function validateCompleteReconciliation(
   return undefined;
 }
 
-async function computeReconciliationSignature(
+function computeReconciliationSignature(
   findings: OptimizationFinding[],
-  projectRoot: string
-): Promise<string> {
-  const pending = findings
-    .filter((finding) => ['pending', 'selected'].includes(finding.status))
-    .sort(compareFindingPriority);
-  const files = [...new Set(pending.flatMap((finding) => finding.location.files))].sort();
-  const hashes = await hashFiles(files, projectRoot);
-  const state = pending.map((finding) => ({
+  hashes: Record<string, string>
+): string {
+  const state = findings.map((finding) => ({
     id: finding.id,
     dependencies: finding.dependencies,
   }));
   return createHash('sha256').update(JSON.stringify({ hashes, state })).digest('hex');
+}
+
+function normalizeFindingPaths(files: string[], projectRoot: string): string[] {
+  const root = path.resolve(projectRoot);
+  const normalized = files.map((file) => {
+    const platformPath = file.split(/[/\\]+/).join(path.sep);
+    const resolved = path.isAbsolute(platformPath)
+      ? path.normalize(platformPath)
+      : path.resolve(root, platformPath);
+    return path.relative(root, resolved).split(path.sep).join('/');
+  });
+  return [...new Set(normalized)];
+}
+
+function projectFindingHashes(
+  files: string[],
+  hashes: Record<string, string>
+): Record<string, string> {
+  return Object.fromEntries(files.map((file) => [file, hashes[file]]));
 }
 
 function allocateTimestampFindingIds(count: number): string[] {

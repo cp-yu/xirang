@@ -44,7 +44,7 @@
       "test/core/verify/result-validator.test.ts",
       "test/skills/optimizer-skill-content.test.ts"
     ],
-    "evidenceFingerprint": "0ec5cc79e90e326f1ac950e87e1f918a10c7c085e0ca3e435b821d87874ae263",
+    "evidenceFingerprint": "1862f545232e2fce9a3644bc6aec52ee91d932f55b2aad1f6ffb1c49e8e3e808",
     "evidenceFingerprintEntries": [
       {
         "path": ".pi/skills/openspec-archive-change/SKILL.md",
@@ -128,7 +128,7 @@
       },
       {
         "path": "src/commands/verify.ts",
-        "hash": "c6904ca5b1fa805f4e55f57754316124d44522ddd4f3ab96aee858074eb9d4b6"
+        "hash": "e616cb97185de63cdaafb6806b552a471c823fcdcfe10d96d3b915ac10b824c6"
       },
       {
         "path": "src/core/templates/fragments/opsx-fragments.ts",
@@ -160,7 +160,7 @@
       },
       {
         "path": "test/commands/verify.test.ts",
-        "hash": "a9a2b090f1b66e81d930cfa4703d55e51c474f39517677ae7bbe4fddeb16565a"
+        "hash": "03891f5d376026e21e5a3ec062d55aaa403dff1d21fa2202fab58484007f16f2"
       },
       {
         "path": "test/core/templates/apply-change.test.ts",
@@ -192,12 +192,24 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "9061d10be396d97ffd3f1a283c1ab2d16db0fec3",
-    "gitDiffSummary": "Fresh openspec-reviewer accepted Phase 1; 141 test files / 2041 tests and 109 OpenSpec items passed."
+    "gitHeadCommit": "de855fef84d4d163df59151afb5080b2d54cbb89",
+    "gitDiffSummary": "Fresh openspec-reviewer accepted Phase 1; 141 test files / 2041 tests and 109 OpenSpec items passed.",
+    "timestamp": "2026-07-12T16:43:52.059Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-07-12T16:30:52.120Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-12T16:43:52.042Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-07-12T15:57:16.626Z",
       "result": "PASS",
@@ -395,6 +407,96 @@
         "gitHeadCommit": "9061d10be396d97ffd3f1a283c1ab2d16db0fec3",
         "gitDiffSummary": "Fresh openspec-reviewer accepted Phase 1; 141 test files / 2041 tests and 109 OpenSpec items passed."
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "src/commands/verify.ts"
+          ],
+          "symbols": [
+            "handleFindingReconciliation",
+            "computeReconciliationSignature"
+          ]
+        },
+        "opportunity": "Each reconciliation that selects a finding hashes every selected target file twice: once to populate targetFileHashes and again while computing the reconciliation signature.",
+        "impact": "Eliminating the duplicate pass removes one filesystem read and SHA-256 computation per selected target file from every actionable reconciliation while retaining both persisted outputs.",
+        "evidence": [
+          "src/commands/verify.ts:446 calls hashFiles(selected.location.files, projectRoot) to create selected.targetFileHashes.",
+          "src/commands/verify.ts:462 immediately calls computeReconciliationSignature for the same reconciliation.",
+          "src/commands/verify.ts:661-665 includes selected findings in the pending set and hashes the union of their location.files, so every selected target is read and hashed again.",
+          "hashFiles in src/core/verify/freshness.ts:223-234 performs an fs.readFile and SHA-256 digest for each supplied path."
+        ],
+        "recommendation": "Create one reconciliation-scoped hash snapshot for the ordered union of pending and selected target files, derive selected.targetFileHashes from that snapshot, and pass the same snapshot into reconciliation-signature construction.",
+        "keyDesign": "After selection, build the canonical pending/selected finding list and file union once, hash that union once, project the resulting normalized path-to-hash record onto the selected finding's normalized target paths, and compute the signature from the shared record plus the existing ordered ID/dependency state.",
+        "preservationConstraints": [
+          "Keep targetFileHashes keyed by the same POSIX-normalized project-relative paths produced by hashFiles.",
+          "Keep the reconciliation signature dependent on exactly the same pending/selected finding IDs, dependency arrays, target-file content hashes, and priority ordering.",
+          "Preserve selected-target freshness behavior: every selected location file must be represented and begin-implementation must detect any subsequent content change.",
+          "Preserve missing, unreadable, outside-root, duplicate, Windows-style, and reordered path handling, including rejection and error timing before persistence.",
+          "Do not change finding selection, status transitions, history event ordering or hashes, attempts, terminal-state calculation, or persisted public contracts."
+        ],
+        "implementationOutline": [
+          "Add an internal signature helper that accepts the already computed canonical hash record instead of reading files itself.",
+          "At the current targetFileHashes assignment point, hash the canonical union needed by both freshness and signature exactly once.",
+          "Project selected target hashes from the shared snapshot using the existing path normalization semantics, append the select history event unchanged, and compute the signature from the shared snapshot.",
+          "Add a focused test with overlapping selected and pending target files that verifies persisted target hashes, stable stall detection, and stale-file rejection remain unchanged."
+        ],
+        "validation": [
+          "Run pnpm vitest run test/commands/verify.test.ts and confirm finding selection, freshness, reconciliation, and STALLED cases pass.",
+          "Add or update a test that instruments file reads or the hash helper and proves each unique reconciliation target is hashed once while shared files still appear in selected.targetFileHashes and affect reconciliationSignature.",
+          "Run pnpm lint && pnpm build to verify the refactor preserves types and formatting."
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "This is the only remaining statically evidenced optimization with direct runtime benefit in the reviewed base-scope implementation; the rest of the inspected repetition either encodes separate contracts or would require workload assumptions to justify.",
+        "id": "OPT-20260712T163052117Z-01",
+        "targetFileHashes": {
+          "src/commands/verify.ts": "c6904ca5b1fa805f4e55f57754316124d44522ddd4f3ab96aee858074eb9d4b6"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-12T16:30:52.117Z",
+        "findingId": "OPT-20260712T163052117Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "select",
+        "reason": "This is the only remaining statically evidenced optimization with direct runtime benefit in the reviewed base-scope implementation; the rest of the inspected repetition either encodes separate contracts or would require workload assumptions to justify.",
+        "timestamp": "2026-07-12T16:30:52.120Z",
+        "findingId": "OPT-20260712T163052117Z-01",
+        "hashes": {
+          "src/commands/verify.ts": "c6904ca5b1fa805f4e55f57754316124d44522ddd4f3ab96aee858074eb9d4b6"
+        }
+      },
+      {
+        "sequence": 3,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-12T16:30:57.698Z",
+        "findingId": "OPT-20260712T163052117Z-01",
+        "hashes": {
+          "src/commands/verify.ts": "c6904ca5b1fa805f4e55f57754316124d44522ddd4f3ab96aee858074eb9d4b6"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-12T16:43:52.042Z",
+        "findingId": "OPT-20260712T163052117Z-01"
+      }
+    ],
+    "reconciliationSignature": "52bbcfc6215f9ac36ef2530c996fb39ed79fc1effa3b42c162515b86bccf5606",
+    "unchangedReconciliations": 0
   }
 }
