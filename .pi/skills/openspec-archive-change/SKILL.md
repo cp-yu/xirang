@@ -31,7 +31,7 @@ Before archiving, run `openspec config project --json` and consume git policy fr
    If no clear change name is provided, run `openspec list --json`, show active changes with schema, and ask. Do not guess.
 
 2. **Unified Full Verify Gate**
-   Run `openspec verify status "<change-name>" --json`. Fresh PASS/PASS_WITH_WARNINGS continues. MISSING/STALE runs Step 2.5 then reruns the gate. FAIL_NEEDS_REMEDIATION hard-blocks with CRITICAL issues. Resolve `PENDING_VERIFICATION` through the appropriate `openspec verify phase2` optimization/verification call, then rerun status. `ABORTED_UNSAFE` hard-stops for manual recovery.
+   Run `openspec verify status "<change-name>" --json`. Treat `freshness.status` as the sole signal for rerunning full verify: only `MISSING` or `STALE` enters Step 2.5. MUST NOT infer staleness from `checks`, `details`, or `information`. A `FRESH` result after seal MUST reuse Phase 1 even when Git HEAD information differs. For a fresh result, resolve incompatible optimization states separately: complete `PENDING_VERIFICATION` through the appropriate `openspec verify phase2` call, and hard-stop `ABORTED_UNSAFE` for manual recovery.
 
 2.5. **Execute Full Verify**
 

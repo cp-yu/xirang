@@ -15,7 +15,6 @@ const execFileAsync = promisify(execFile);
 const ACCEPTABLE_RESULTS = new Set(['PASS', 'PASS_WITH_WARNINGS']);
 const ARCHIVE_COMPATIBLE_STATUSES = new Set(['SKIPPED', 'NOT_NEEDED', 'IMPROVED', 'DEGRADED']);
 const FINGERPRINT_DETAIL_PREFIX = 'evidenceFingerprint mismatch — modified files: ';
-const GIT_HEAD_DETAIL_PREFIX = 'gitHeadCommit changed: ';
 
 interface VerifyGateFailureContext {
   changeName?: string;
@@ -144,7 +143,6 @@ export async function checkFreshness(
     tasksFileHash: false,
     evidenceFingerprint: false,
     contractVersion: false,
-    gitHeadCommit: false,
     resultAcceptable: false,
   };
 
@@ -152,6 +150,7 @@ export async function checkFreshness(
     return {
       status: 'MISSING',
       checks: baseChecks,
+      information: {},
       details: ['.verify-result.json is missing'],
     };
   }
@@ -175,12 +174,12 @@ export async function checkFreshness(
   }
 
   const currentGitHead = await getCurrentGitHead(projectRoot);
-  baseChecks.gitHeadCommit = matchesGitHead(result.verificationContext?.gitHeadCommit, currentGitHead);
-  if (!baseChecks.gitHeadCommit) {
-    details.push(
-      `${GIT_HEAD_DETAIL_PREFIX}${result.verificationContext?.gitHeadCommit ?? 'unknown'} → ${currentGitHead ?? 'unknown'}`
-    );
-  }
+  const recordedGitHead = result.verificationContext?.gitHeadCommit;
+  const gitHeadCommit = {
+    matches: matchesGitHead(recordedGitHead, currentGitHead),
+    ...(recordedGitHead ? { recorded: recordedGitHead } : {}),
+    ...(currentGitHead ? { current: currentGitHead } : {}),
+  };
 
   baseChecks.resultAcceptable = ACCEPTABLE_RESULTS.has(result.result);
   if (!baseChecks.resultAcceptable) {
@@ -197,6 +196,7 @@ export async function checkFreshness(
     status: fresh ? 'FRESH' : 'STALE',
     verifyResult: result,
     checks: baseChecks,
+    information: { gitHeadCommit },
     details,
   };
 }
@@ -246,11 +246,8 @@ export function formatVerifyGateFailure(
   const changeName = context.changeName ?? '<change-name>';
   const command = context.command ?? 'sync';
   const fingerprintFiles = parseFingerprintFiles(freshness.details);
-  const gitHeadChange = parseGitHeadChange(freshness.details);
   const otherDetails = freshness.details.filter(
-    (detail) =>
-      !detail.startsWith(FINGERPRINT_DETAIL_PREFIX) &&
-      !detail.startsWith(GIT_HEAD_DETAIL_PREFIX)
+    (detail) => !detail.startsWith(FINGERPRINT_DETAIL_PREFIX)
   );
   const lines = [`✗ Verify gate failed — ${summarizeFailure(freshness, archiveCompatibility)}`];
 
@@ -259,10 +256,6 @@ export function formatVerifyGateFailure(
     for (const file of fingerprintFiles) {
       lines.push(`    - ${file}`);
     }
-  }
-
-  if (gitHeadChange) {
-    lines.push('', '  Git HEAD:', `    ${gitHeadChange}`);
   }
 
   if (archiveCompatibility && !archiveCompatibility.compatible) {
@@ -379,14 +372,6 @@ function parseFingerprintFiles(details: string[]): string[] {
     }
   }
   return [...files];
-}
-
-function parseGitHeadChange(details: string[]): string | null {
-  const detail = details.find((item) => item.startsWith(GIT_HEAD_DETAIL_PREFIX));
-  if (!detail) {
-    return null;
-  }
-  return detail.slice(GIT_HEAD_DETAIL_PREFIX.length).trim();
 }
 
 function computeEntriesFingerprint(entries: EvidenceFingerprint['entries']): string {

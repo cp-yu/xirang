@@ -8,6 +8,14 @@ describe('archive change workflow template', () => {
     expect(getArchiveChangeSkillTemplate().instructions).toContain(OPSX_COMPILATION_PHILOSOPHY);
   });
 
+  it('routes archive verification only from freshness.status', () => {
+    const instructions = getArchiveChangeSkillTemplate().instructions;
+
+    expect(instructions).toContain('Treat `freshness.status` as the sole signal for rerunning full verify');
+    expect(instructions).toContain('MUST NOT infer staleness from `checks`, `details`, or `information`');
+    expect(instructions).toContain('A `FRESH` result after seal MUST reuse Phase 1 even when Git HEAD information differs');
+  });
+
   it('delegates verify work to internal agents', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
 

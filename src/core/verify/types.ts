@@ -113,8 +113,14 @@ export interface FreshnessResult {
     tasksFileHash: boolean;
     evidenceFingerprint: boolean;
     contractVersion: boolean;
-    gitHeadCommit: boolean;
     resultAcceptable: boolean;
+  };
+  information: {
+    gitHeadCommit?: {
+      matches: boolean;
+      recorded?: string;
+      current?: string;
+    };
   };
   details: string[];
 }

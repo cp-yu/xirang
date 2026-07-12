@@ -99,7 +99,7 @@ describe('openspec verify command', () => {
     expect(status.stdout).toContain('- src/a.ts');
   });
 
-  it('reports git HEAD transitions as warnings without making freshness stale', async () => {
+  it('reports git HEAD transitions as information without making freshness stale', async () => {
     await runCLI([
       'verify',
       'phase1',
@@ -115,6 +115,8 @@ describe('openspec verify command', () => {
       '--input',
       JSON.stringify({ status: 'NO_OPTIMIZATION_NEEDED', summary: 'No optimization needed' }),
     ], { cwd: tempDir });
+    const seal = await runCLI(['verify', 'seal', 'c1', '--json'], { cwd: tempDir });
+    expect(seal.exitCode).toBe(0);
 
     const phase1Result = JSON.parse(
       await fs.readFile(path.join(tempDir, 'openspec', 'changes', 'c1', '.verify-result.json'), 'utf-8')
@@ -123,15 +125,28 @@ describe('openspec verify command', () => {
     await execFileAsync('git', ['add', 'notes.md'], { cwd: tempDir });
     await execFileAsync('git', ['commit', '-m', 'head-change'], { cwd: tempDir });
 
-    const status = await runCLI(['verify', 'status', 'c1'], { cwd: tempDir });
+    const status = await runCLI(['verify', 'status', 'c1', '--json'], { cwd: tempDir });
     const currentHead = (
       await execFileAsync('git', ['rev-parse', 'HEAD'], { cwd: tempDir })
     ).stdout.trim();
+    const output = JSON.parse(status.stdout);
 
     expect(status.exitCode).toBe(0);
-    expect(status.stdout).toContain('Verify gate passed.');
-    expect(status.stdout).toContain('Warnings:');
-    expect(status.stdout).toContain(
+    expect(output.freshness.status).toBe('FRESH');
+    expect(output.freshness.checks).not.toHaveProperty('gitHeadCommit');
+    expect(output.freshness.details).toEqual([]);
+    expect(output.freshness.information.gitHeadCommit).toEqual({
+      matches: false,
+      recorded: phase1Result.verificationContext.gitHeadCommit,
+      current: currentHead,
+    });
+
+    const textStatus = await runCLI(['verify', 'status', 'c1'], { cwd: tempDir });
+    expect(textStatus.exitCode).toBe(0);
+    expect(textStatus.stdout).toContain('Verify gate passed.');
+    expect(textStatus.stdout).toContain('Information:');
+    expect(textStatus.stdout).not.toContain('Warnings:');
+    expect(textStatus.stdout).toContain(
       `gitHeadCommit changed: ${phase1Result.verificationContext.gitHeadCommit} → ${currentHead}`
     );
   });

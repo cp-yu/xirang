@@ -208,7 +208,7 @@ async function verifyStatus(changeName: string, options: VerifyCommandOptions): 
     options,
     { ok, freshness, archiveCompatibility },
     ok
-      ? formatVerifyStatusSuccess(freshness.details)
+      ? formatVerifyStatusSuccess(freshness)
       : formatVerifyGateFailure(freshness, archiveCompatibility, {
           changeName,
           command: 'sync',
@@ -217,11 +217,17 @@ async function verifyStatus(changeName: string, options: VerifyCommandOptions): 
   return ok ? 0 : 1;
 }
 
-function formatVerifyStatusSuccess(details: string[]): string {
-  if (details.length === 0) {
+function formatVerifyStatusSuccess(freshness: Awaited<ReturnType<typeof checkFreshness>>): string {
+  const gitHead = freshness.information.gitHeadCommit;
+  if (!gitHead || gitHead.matches) {
     return 'Verify gate passed.';
   }
-  return ['Verify gate passed.', '', 'Warnings:', ...details.map((detail) => `  - ${detail}`)].join('\n');
+  return [
+    'Verify gate passed.',
+    '',
+    'Information:',
+    `  - gitHeadCommit changed: ${gitHead.recorded ?? 'unknown'} → ${gitHead.current ?? 'unknown'}`,
+  ].join('\n');
 }
 
 async function handleOptimization(

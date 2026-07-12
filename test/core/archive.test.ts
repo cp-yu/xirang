@@ -1,10 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ArchiveCommand } from '../../src/core/archive.js';
 import { Validator } from '../../src/core/validation/validator.js';
+import { execFile } from 'child_process';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
+import { promisify } from 'util';
 import { stringify as stringifyYaml } from 'yaml';
+import { runCLI } from '../helpers/run-cli.js';
 import {
   OPSX_SCHEMA_VERSION,
   readProjectOpsx,
@@ -17,6 +20,8 @@ import {
   computeTasksFileHash,
 } from '../../src/core/verify/freshness.js';
 import type { VerifyResult } from '../../src/core/verify/types.js';
+
+const execFileAsync = promisify(execFile);
 
 // Mock @inquirer/prompts
 vi.mock('@inquirer/prompts', () => ({
@@ -178,6 +183,41 @@ git:
       const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
+
+      await archiveCommand.execute(changeName, { yes: true });
+
+      const archiveDir = path.join(tempDir, 'openspec', 'changes', 'archive');
+      const archives = await fs.readdir(archiveDir);
+      expect(archives.some((entry) => entry.includes(changeName))).toBe(true);
+    });
+
+    it('should archive after seal when only git HEAD changed', async () => {
+      const changeName = 'fresh-after-seal';
+      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      await fs.mkdir(changeDir, { recursive: true });
+      await execFileAsync('git', ['init'], { cwd: tempDir });
+      await execFileAsync('git', ['config', 'user.name', 'OpenSpec Test'], { cwd: tempDir });
+      await execFileAsync('git', ['config', 'user.email', 'test@example.com'], { cwd: tempDir });
+      await writeFreshVerifyResult(changeDir);
+      await execFileAsync('git', ['add', '.'], { cwd: tempDir });
+      await execFileAsync('git', ['commit', '-m', 'verified'], { cwd: tempDir });
+
+      const verifyResultPath = path.join(changeDir, '.verify-result.json');
+      const verifyResult = JSON.parse(await fs.readFile(verifyResultPath, 'utf-8')) as VerifyResult;
+      verifyResult.verificationContext.gitHeadCommit = (
+        await execFileAsync('git', ['rev-parse', 'HEAD'], { cwd: tempDir })
+      ).stdout.trim();
+      await fs.writeFile(verifyResultPath, JSON.stringify(verifyResult), 'utf-8');
+      const seal = await runCLI(['verify', 'seal', changeName, '--json'], { cwd: tempDir });
+      expect(seal.exitCode).toBe(0);
+
+      await fs.writeFile(path.join(tempDir, 'checkpoint.txt'), 'phase 2 checkpoint\n', 'utf-8');
+      await execFileAsync('git', ['add', 'checkpoint.txt'], { cwd: tempDir });
+      await execFileAsync('git', ['commit', '-m', 'checkpoint'], { cwd: tempDir });
+
+      const freshness = await checkFreshness(changeDir, tempDir);
+      expect(freshness.status).toBe('FRESH');
+      expect(freshness.information.gitHeadCommit.matches).toBe(false);
 
       await archiveCommand.execute(changeName, { yes: true });
 

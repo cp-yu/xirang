@@ -152,10 +152,13 @@ describe('verify freshness engine', () => {
     const freshness = await checkFreshness(changeDir, changeDir);
 
     expect(freshness.status).toBe('FRESH');
-    expect(freshness.checks.gitHeadCommit).toBe(false);
-    expect(freshness.details).toEqual([
-      expect.stringContaining('gitHeadCommit changed: recorded-head'),
-    ]);
+    expect(freshness.checks).not.toHaveProperty('gitHeadCommit');
+    expect(freshness.details).toEqual([]);
+    expect(freshness.information.gitHeadCommit).toEqual({
+      matches: false,
+      recorded: 'recorded-head',
+      current: expect.stringMatching(/^[a-f0-9]{40}$/),
+    });
   });
 
   it('refreshes matching evidence entries after sync and keeps freshness fresh', async () => {
