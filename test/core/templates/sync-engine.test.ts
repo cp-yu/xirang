@@ -63,6 +63,45 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
     }
   });
 
+  it('removes only explicitly named stale shared references', async () => {
+    const referencesDir = path.join(testDir, 'openspec', 'references');
+    await fs.mkdir(referencesDir, { recursive: true });
+    await fs.writeFile(path.join(referencesDir, 'openspec-apply-phase2-optimization.md'), 'stale');
+    await fs.writeFile(path.join(referencesDir, 'user-reference.md'), 'user');
+
+    const result = await ArtifactSyncEngine.syncOne({
+      toolId: 'pi',
+      projectPath: testDir,
+      workflows: ['apply'],
+      version: 'test',
+    });
+
+    expect(result.error).toBeUndefined();
+    expect(await exists(path.join(referencesDir, 'openspec-apply-phase2-optimization.md'))).toBe(false);
+    expect(await exists(path.join(referencesDir, 'user-reference.md'))).toBe(true);
+  });
+
+  it.each([
+    ['claude', '.claude/commands/opsx/apply.md', '.claude/commands/opsx/custom.md'],
+    ['github-copilot', '.github/prompts/opsx-apply.prompt.md', '.github/prompts/custom.prompt.md'],
+  ])('removes the retired %s apply command without touching user commands', async (toolId, retiredPath, userPath) => {
+    await fs.mkdir(path.dirname(path.join(testDir, retiredPath)), { recursive: true });
+    await fs.writeFile(path.join(testDir, retiredPath), 'legacy Search/Replace workflow');
+    await fs.writeFile(path.join(testDir, userPath), 'user command');
+
+    const result = await ArtifactSyncEngine.syncOne({
+      toolId,
+      projectPath: testDir,
+      workflows: ['apply'],
+      version: 'test',
+    });
+
+    expect(result.error).toBeUndefined();
+    expect(result.commandsRemoved).toBe(1);
+    expect(await exists(path.join(testDir, retiredPath))).toBe(false);
+    expect(await fs.readFile(path.join(testDir, userPath), 'utf-8')).toBe('user command');
+  });
+
   it('uses path.join-compatible subagent paths and tool-specific extensions', async () => {
     const result = await ArtifactSyncEngine.syncOne({
       toolId: 'codex',

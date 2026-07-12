@@ -1,56 +1,26 @@
 # Optimization Decision Rules
 
-## Simplicity Filter
+Judge correct code for meaningful, statically provable, behavior-preserving improvement.
 
-Before analyzing structural improvements, ask whether the code can be deleted, replaced by standard library or native platform behavior, covered by an installed dependency, or expressed directly. Stop at the first answer that holds:
+## Admission Gates
 
-1. **Does this need to exist at all? (YAGNI)** — dead code, unused flexibility, speculative feature. Skip further analysis; classify as `delete:`.
-2. **Does the standard library already do it?** — hand-rolled string parsing, date math, collection operations. Classify as `stdlib:`.
-3. **Does a native platform feature cover it?** — framework built-ins, language features, OS capabilities. Classify as `native:`.
-4. **Does an already-installed dependency solve it?** — check installed deps before proposing new ones. Classify as `yagni:` when an installed dep already covers the need.
-5. **Can it be one line?** — prefer a direct expression over a helper function. Classify as `shrink:`.
+Every actionable finding requires:
+1. actual benefit;
+2. static evidence from current code;
+3. behavior preservation constraints that close over applicable inputs, outputs, ordering, duplicates, key uniqueness, side effects, error timing, precision, and compatibility.
 
-Only after exhausting this filter, proceed to the structural improvements below.
+If correctness, spec, or artifact conflict is found, return blockingObservations and no selected optimization. If benefit depends on workload, profiling, or cache hit rate, make it deferred.
 
-Each optimization block MUST carry a rationale tag (delete/stdlib/native/yagni/shrink) as supplementary classification alongside the `<!-- Code Smell -->` annotation.
+## Open Scan Surface
 
-## What to Improve
+Use these as non-exhaustive signals, never mandatory categories: deletion and simplification, duplication, control flow, responsibility and locality, algorithmic complexity, data structures, repeated I/O, allocations and resource use. Length, nesting, method count, primitive use, and other smells only trigger investigation.
 
-Seek these improvements in priority order:
+## Priority
 
-1. **Lower duplication** - Extract repeated logic into shared functions, deduplicate validation, consolidate error handling patterns.
-   - Code smell indicators: identical logic blocks in two or more locations, copy-pasted validation or transformation logic, repeated error handling patterns.
-2. **Simpler structure** - Flatten unnecessary nesting, reduce indirection layers, replace over-engineered abstractions with direct code.
-   - Code smell indicators: wrappers that only forward calls, abstractions with one trivial implementation, configuration objects that hide direct values without adding behavior.
-3. **Clearer control flow** - Prefer early returns over deep conditionals, reduce cyclomatic complexity, make happy path obvious.
-   - Code smell indicators: methods longer than 30 lines, conditional nesting deeper than three levels, return paths hidden inside nested branches.
-4. **Better locality** - Move related code closer together, keep data and its operations in the same module, reduce cross-module coupling.
-   - Code smell indicators: Feature Envy where a method mainly operates on another class's data, getter chains, logic placed away from the data owner.
-5. **Remove dead weight** - Eliminate unused imports, unreachable branches, commented-out code, redundant type assertions.
-   - Code smell indicators: unused imports or locals, unreachable conditional branches, commented-out code, redundant type assertions that do not change type safety.
-6. **Break long methods** - Split methods longer than 30 lines by extracting private helper methods that each do one thing while keeping the public method signature, parameters, and return value unchanged.
-   - Code smell indicators: a method exceeds 30 lines, mixes validation with transformation and side effects, or needs comments to explain internal phases.
-   - Refactoring pattern: extract private helper methods with descriptive names; do not change the public interface.
-7. **Deepen shallow modules** - Replace shallow modules with deeper abstractions when the public API is broader or more parameter-heavy than the behavior it hides.
-   - Evaluation criteria: method count, parameter complexity, and hidden internal complexity.
-   - Action strategy: merge related shallow modules, push complexity behind the implementation, simplify the public API.
-8. **Eliminate primitive obsession** - Replace domain-heavy primitive strings or numbers with value objects when validation or domain rules repeat.
-   - Candidate types: Email, money/currency, date ranges, identifiers.
-   - Benefits: validation is encapsulated once, domain concepts become type-safe, and call sites become self-documenting.
+Exclude findings whose evidence or preservation cannot close. Then order by high impact, high confidence, low risk, low cost. Satisfied prerequisites precede dependents. Explain why the first actionable finding outranks the next in priorityReason.
 
-## What NOT to Touch
+## Reconciliation
 
-- Spec files, design documents, tasks files - structural documents, not implementation.
-- Configuration files (config.yaml, package.json, tsconfig.json).
-- Test files unless a test is structurally identical to production logic being deduplicated.
-- Files with no issues in Phase 1 and no structural improvement opportunity visible on inspection.
-- Any change that alters observable behavior, even trivially.
+Read current code, findings, history, and failedDirections. Reconcile every non-terminal finding: retain, reprioritize, resolve, invalidate, reject, or merge it, and add newly discovered opportunities. Never repeat an exhausted failed direction by changing wording. Existing stable IDs belong to the CLI; new add actions omit IDs. Same-envelope dependencies may use actionIndex.
 
-## Constraint Checklist
-
-Before finalizing any Search/Replace block, verify:
-- [ ] Targets an existing tracked base scope file from verificationContext.evidenceFiles or base scope
-- [ ] Does not create, delete, rename, or move any file
-- [ ] Preserves all existing behavior (same inputs -> same outputs, same side effects)
-- [ ] Does not touch spec, design, tasks, or config files
-- [ ] The improvement is structural, not cosmetic (no variable renames, reformatting, comment rewording)
+Only base scope implementation files may be actionable. Never alter specs, design, tasks, configuration, public contracts, or domain semantics.

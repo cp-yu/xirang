@@ -1,0 +1,400 @@
+{
+  "timestamp": "2026-07-12T15:57:16.626Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "87ff9f6901d55b34c686315b96fa615024f552709633e3d05c31c722617f8eb3",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "executionMode": "subagent-orchestrated",
+    "evidenceFiles": [
+      ".pi/skills/openspec-archive-change/SKILL.md",
+      "openspec/changes/refactor-optimizer-finding-workflow/.apply-isolation.json",
+      "openspec/changes/refactor-optimizer-finding-workflow/.openspec.yaml",
+      "openspec/changes/refactor-optimizer-finding-workflow/design.md",
+      "openspec/changes/refactor-optimizer-finding-workflow/opsx-delta.yaml",
+      "openspec/changes/refactor-optimizer-finding-workflow/proposal.md",
+      "openspec/changes/refactor-optimizer-finding-workflow/specs/apply-verify-integration/spec.md",
+      "openspec/changes/refactor-optimizer-finding-workflow/specs/enforce-optimizer-invocation/spec.md",
+      "openspec/changes/refactor-optimizer-finding-workflow/specs/openspec-optimizer-skill/spec.md",
+      "openspec/changes/refactor-optimizer-finding-workflow/specs/optimizer-finding-lifecycle/spec.md",
+      "openspec/changes/refactor-optimizer-finding-workflow/specs/reviewer-cleanliness-dimension/spec.md",
+      "openspec/changes/refactor-optimizer-finding-workflow/specs/tdd-optimizer-smells/spec.md",
+      "openspec/changes/refactor-optimizer-finding-workflow/specs/verify-cli-gate/spec.md",
+      "openspec/changes/refactor-optimizer-finding-workflow/specs/verify-freshness-engine/spec.md",
+      "openspec/changes/refactor-optimizer-finding-workflow/specs/verify-optimization/spec.md",
+      "openspec/changes/refactor-optimizer-finding-workflow/tasks.md",
+      "openspec/references/openspec-apply-step-5-phase2-optimization.md",
+      "openspec/references/openspec-decision-rules.md",
+      "openspec/references/openspec-output-protocol.md",
+      "openspec/references/openspec-self-read-protocol.md",
+      "src/commands/verify.ts",
+      "src/core/templates/fragments/opsx-fragments.ts",
+      "src/core/templates/sync-engine.ts",
+      "src/core/templates/workflows/apply-change.ts",
+      "src/core/templates/workflows/archive-change.ts",
+      "src/core/templates/workflows/optimizer.ts",
+      "src/core/verify/result-validator.ts",
+      "src/core/verify/types.ts",
+      "test/commands/verify.test.ts",
+      "test/core/templates/apply-change.test.ts",
+      "test/core/templates/fragments/opsx-fragments.test.ts",
+      "test/core/templates/optimizer-template.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts",
+      "test/core/templates/sync-engine.test.ts",
+      "test/core/verify/result-validator.test.ts",
+      "test/skills/optimizer-skill-content.test.ts"
+    ],
+    "evidenceFingerprint": "0ec5cc79e90e326f1ac950e87e1f918a10c7c085e0ca3e435b821d87874ae263",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".pi/skills/openspec-archive-change/SKILL.md",
+        "hash": "785437645f1e81bbe4539ee1820210f9b16ced1849216417f1117fb8da2dee96"
+      },
+      {
+        "path": "openspec/changes/refactor-optimizer-finding-workflow/.apply-isolation.json",
+        "hash": "a90c866955eb9867676a737e61eb1399a53392fe4cdfc6bdf3e0ffe78d507ff3"
+      },
+      {
+        "path": "openspec/changes/refactor-optimizer-finding-workflow/.openspec.yaml",
+        "hash": "a930f0a8718817146fcdd2b6ad34c3b36b3336a6f5bc0f99ff7fc07ffd517bfd"
+      },
+      {
+        "path": "openspec/changes/refactor-optimizer-finding-workflow/design.md",
+        "hash": "fed51775140454061e4e5ca8e1645d72eb6d1029d4a4b58565642911e2195f5c"
+      },
+      {
+        "path": "openspec/changes/refactor-optimizer-finding-workflow/opsx-delta.yaml",
+        "hash": "357eef4e8b106c18fa69bd9c0539f452517b2e883abc1d1caa86188d60ab8bc9"
+      },
+      {
+        "path": "openspec/changes/refactor-optimizer-finding-workflow/proposal.md",
+        "hash": "8aff9c356f5b716c2a174c26247a18670a85d2db3c7e2f7e519fb602061eef58"
+      },
+      {
+        "path": "openspec/changes/refactor-optimizer-finding-workflow/specs/apply-verify-integration/spec.md",
+        "hash": "63397e0f21c694167a264a72ee02bd950d5f0d96b435acf67a5de50b283e194b"
+      },
+      {
+        "path": "openspec/changes/refactor-optimizer-finding-workflow/specs/enforce-optimizer-invocation/spec.md",
+        "hash": "83cd33d4d51ef66a0f333082727c7466b9061c834078aab40226c24e3c1a2e44"
+      },
+      {
+        "path": "openspec/changes/refactor-optimizer-finding-workflow/specs/openspec-optimizer-skill/spec.md",
+        "hash": "05bdaf8b9700d1674c4e13053df748c654c07a24c72e417b75c525998bed2f4f"
+      },
+      {
+        "path": "openspec/changes/refactor-optimizer-finding-workflow/specs/optimizer-finding-lifecycle/spec.md",
+        "hash": "3a3d37a8e80ddb6676de9b950e4a9e24ba6f6d3117829faf562fd97e3c7ed048"
+      },
+      {
+        "path": "openspec/changes/refactor-optimizer-finding-workflow/specs/reviewer-cleanliness-dimension/spec.md",
+        "hash": "2b3ca3b16dbd6a46009676661e459af6da8a470118b1a59140110aef3ed6bb11"
+      },
+      {
+        "path": "openspec/changes/refactor-optimizer-finding-workflow/specs/tdd-optimizer-smells/spec.md",
+        "hash": "6a85babdee2c78cac3529f05ee4a18a222340bf91efb7e222302575911b3d38e"
+      },
+      {
+        "path": "openspec/changes/refactor-optimizer-finding-workflow/specs/verify-cli-gate/spec.md",
+        "hash": "b8333e7c2810086adb80b0331a1d0c313251e388130566e0223f1d2102decf5e"
+      },
+      {
+        "path": "openspec/changes/refactor-optimizer-finding-workflow/specs/verify-freshness-engine/spec.md",
+        "hash": "05c8c25cd53be30a09e6cee5753eeed3e4247c146dc7f5150e74bd24a3d9b883"
+      },
+      {
+        "path": "openspec/changes/refactor-optimizer-finding-workflow/specs/verify-optimization/spec.md",
+        "hash": "c89fbfcdb1fbe6be25fc89ea272a3adb78d7423a20c4d2010cc5e7793bb2ba47"
+      },
+      {
+        "path": "openspec/changes/refactor-optimizer-finding-workflow/tasks.md",
+        "hash": "87ff9f6901d55b34c686315b96fa615024f552709633e3d05c31c722617f8eb3"
+      },
+      {
+        "path": "openspec/references/openspec-apply-step-5-phase2-optimization.md",
+        "hash": "a3995b88c760d5896a1e2a092642abe50da2b2fe0f98706f3876042715bcbf5e"
+      },
+      {
+        "path": "openspec/references/openspec-decision-rules.md",
+        "hash": "45ab70c5d57cabf96c05be07dd3e7e8dbfb947e4e629093a1ce715626edaafb2"
+      },
+      {
+        "path": "openspec/references/openspec-output-protocol.md",
+        "hash": "5369347d2fb16ddc9332cee655e0153318f8bda986233cc4348bb9ace4aa7e40"
+      },
+      {
+        "path": "openspec/references/openspec-self-read-protocol.md",
+        "hash": "f1a47c35c95238f88b2c8ed8f5105eeb2c5af20b89e3f588476921ccb41a16bd"
+      },
+      {
+        "path": "src/commands/verify.ts",
+        "hash": "c6904ca5b1fa805f4e55f57754316124d44522ddd4f3ab96aee858074eb9d4b6"
+      },
+      {
+        "path": "src/core/templates/fragments/opsx-fragments.ts",
+        "hash": "2dd412658e6edeaea1834c6417c2169b1cd8fc0cc1a038c07c4b47960cf798ca"
+      },
+      {
+        "path": "src/core/templates/sync-engine.ts",
+        "hash": "0bf862232123b298a01791ca005fe69b5b46d2a5c58a73cf39134608a107d264"
+      },
+      {
+        "path": "src/core/templates/workflows/apply-change.ts",
+        "hash": "4a3fdd6ad1d6b213408fca904db606c5978c956a3eb43338e9fd0f6fcf4efe7c"
+      },
+      {
+        "path": "src/core/templates/workflows/archive-change.ts",
+        "hash": "96547cf3866bfa7ab01ab11fea6092ad20d74fc5f589c956be3c1bd3e94d1fd8"
+      },
+      {
+        "path": "src/core/templates/workflows/optimizer.ts",
+        "hash": "110577a4c8933d7f5c28054bb7295f9d5256962e3810a79cf42ff8d62f5bd9e5"
+      },
+      {
+        "path": "src/core/verify/result-validator.ts",
+        "hash": "bff8a5ed3f4dd611ed56d153d49c58a83ea8c067d0ce2c055245495fede2b0f3"
+      },
+      {
+        "path": "src/core/verify/types.ts",
+        "hash": "abb3d8121cb7be31dde83092851b5d766cd794767267131e04a9d6adea93adbb"
+      },
+      {
+        "path": "test/commands/verify.test.ts",
+        "hash": "a9a2b090f1b66e81d930cfa4703d55e51c474f39517677ae7bbe4fddeb16565a"
+      },
+      {
+        "path": "test/core/templates/apply-change.test.ts",
+        "hash": "029b1e24dc64e6f994b21519d70ae5c14da72e4d9857982fca20add9663c6226"
+      },
+      {
+        "path": "test/core/templates/fragments/opsx-fragments.test.ts",
+        "hash": "b0691b7240f55727c24e2736279fbcc438ccca26ffec4f632f6579cb97fd3f52"
+      },
+      {
+        "path": "test/core/templates/optimizer-template.test.ts",
+        "hash": "2293dd035e219dda136b54b8ad414b95914300cd7bd92459510f0416e1c2abc7"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "5ef82a461370ce6e24096b5618e5d0a15e45378577115b5fe5e13b9efd66e722"
+      },
+      {
+        "path": "test/core/templates/sync-engine.test.ts",
+        "hash": "69b403797a332881f0c5f7bfd08ffe8b2b7a320b4be09f296d99902bc64b071e"
+      },
+      {
+        "path": "test/core/verify/result-validator.test.ts",
+        "hash": "083764983bab13cf444b485ffe2d6e343c6be521790d83e8b8bfa31f6f3d79ca"
+      },
+      {
+        "path": "test/skills/optimizer-skill-content.test.ts",
+        "hash": "22ba7942b964f22d4cef522956f25cb133f4292ac4452923f3abd6a11b77f4c1"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "9061d10be396d97ffd3f1a283c1ab2d16db0fec3",
+    "gitDiffSummary": "Fresh openspec-reviewer accepted Phase 1; 141 test files / 2041 tests and 109 OpenSpec items passed."
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-07-12T15:57:16.626Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "87ff9f6901d55b34c686315b96fa615024f552709633e3d05c31c722617f8eb3",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "executionMode": "subagent-orchestrated",
+        "evidenceFiles": [
+          ".pi/skills/openspec-archive-change/SKILL.md",
+          "openspec/changes/refactor-optimizer-finding-workflow/.apply-isolation.json",
+          "openspec/changes/refactor-optimizer-finding-workflow/.openspec.yaml",
+          "openspec/changes/refactor-optimizer-finding-workflow/design.md",
+          "openspec/changes/refactor-optimizer-finding-workflow/opsx-delta.yaml",
+          "openspec/changes/refactor-optimizer-finding-workflow/proposal.md",
+          "openspec/changes/refactor-optimizer-finding-workflow/specs/apply-verify-integration/spec.md",
+          "openspec/changes/refactor-optimizer-finding-workflow/specs/enforce-optimizer-invocation/spec.md",
+          "openspec/changes/refactor-optimizer-finding-workflow/specs/openspec-optimizer-skill/spec.md",
+          "openspec/changes/refactor-optimizer-finding-workflow/specs/optimizer-finding-lifecycle/spec.md",
+          "openspec/changes/refactor-optimizer-finding-workflow/specs/reviewer-cleanliness-dimension/spec.md",
+          "openspec/changes/refactor-optimizer-finding-workflow/specs/tdd-optimizer-smells/spec.md",
+          "openspec/changes/refactor-optimizer-finding-workflow/specs/verify-cli-gate/spec.md",
+          "openspec/changes/refactor-optimizer-finding-workflow/specs/verify-freshness-engine/spec.md",
+          "openspec/changes/refactor-optimizer-finding-workflow/specs/verify-optimization/spec.md",
+          "openspec/changes/refactor-optimizer-finding-workflow/tasks.md",
+          "openspec/references/openspec-apply-step-5-phase2-optimization.md",
+          "openspec/references/openspec-decision-rules.md",
+          "openspec/references/openspec-output-protocol.md",
+          "openspec/references/openspec-self-read-protocol.md",
+          "src/commands/verify.ts",
+          "src/core/templates/fragments/opsx-fragments.ts",
+          "src/core/templates/sync-engine.ts",
+          "src/core/templates/workflows/apply-change.ts",
+          "src/core/templates/workflows/archive-change.ts",
+          "src/core/templates/workflows/optimizer.ts",
+          "src/core/verify/result-validator.ts",
+          "src/core/verify/types.ts",
+          "test/commands/verify.test.ts",
+          "test/core/templates/apply-change.test.ts",
+          "test/core/templates/fragments/opsx-fragments.test.ts",
+          "test/core/templates/optimizer-template.test.ts",
+          "test/core/templates/skill-templates-parity.test.ts",
+          "test/core/templates/sync-engine.test.ts",
+          "test/core/verify/result-validator.test.ts",
+          "test/skills/optimizer-skill-content.test.ts"
+        ],
+        "evidenceFingerprint": "0ec5cc79e90e326f1ac950e87e1f918a10c7c085e0ca3e435b821d87874ae263",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".pi/skills/openspec-archive-change/SKILL.md",
+            "hash": "785437645f1e81bbe4539ee1820210f9b16ced1849216417f1117fb8da2dee96"
+          },
+          {
+            "path": "openspec/changes/refactor-optimizer-finding-workflow/.apply-isolation.json",
+            "hash": "a90c866955eb9867676a737e61eb1399a53392fe4cdfc6bdf3e0ffe78d507ff3"
+          },
+          {
+            "path": "openspec/changes/refactor-optimizer-finding-workflow/.openspec.yaml",
+            "hash": "a930f0a8718817146fcdd2b6ad34c3b36b3336a6f5bc0f99ff7fc07ffd517bfd"
+          },
+          {
+            "path": "openspec/changes/refactor-optimizer-finding-workflow/design.md",
+            "hash": "fed51775140454061e4e5ca8e1645d72eb6d1029d4a4b58565642911e2195f5c"
+          },
+          {
+            "path": "openspec/changes/refactor-optimizer-finding-workflow/opsx-delta.yaml",
+            "hash": "357eef4e8b106c18fa69bd9c0539f452517b2e883abc1d1caa86188d60ab8bc9"
+          },
+          {
+            "path": "openspec/changes/refactor-optimizer-finding-workflow/proposal.md",
+            "hash": "8aff9c356f5b716c2a174c26247a18670a85d2db3c7e2f7e519fb602061eef58"
+          },
+          {
+            "path": "openspec/changes/refactor-optimizer-finding-workflow/specs/apply-verify-integration/spec.md",
+            "hash": "63397e0f21c694167a264a72ee02bd950d5f0d96b435acf67a5de50b283e194b"
+          },
+          {
+            "path": "openspec/changes/refactor-optimizer-finding-workflow/specs/enforce-optimizer-invocation/spec.md",
+            "hash": "83cd33d4d51ef66a0f333082727c7466b9061c834078aab40226c24e3c1a2e44"
+          },
+          {
+            "path": "openspec/changes/refactor-optimizer-finding-workflow/specs/openspec-optimizer-skill/spec.md",
+            "hash": "05bdaf8b9700d1674c4e13053df748c654c07a24c72e417b75c525998bed2f4f"
+          },
+          {
+            "path": "openspec/changes/refactor-optimizer-finding-workflow/specs/optimizer-finding-lifecycle/spec.md",
+            "hash": "3a3d37a8e80ddb6676de9b950e4a9e24ba6f6d3117829faf562fd97e3c7ed048"
+          },
+          {
+            "path": "openspec/changes/refactor-optimizer-finding-workflow/specs/reviewer-cleanliness-dimension/spec.md",
+            "hash": "2b3ca3b16dbd6a46009676661e459af6da8a470118b1a59140110aef3ed6bb11"
+          },
+          {
+            "path": "openspec/changes/refactor-optimizer-finding-workflow/specs/tdd-optimizer-smells/spec.md",
+            "hash": "6a85babdee2c78cac3529f05ee4a18a222340bf91efb7e222302575911b3d38e"
+          },
+          {
+            "path": "openspec/changes/refactor-optimizer-finding-workflow/specs/verify-cli-gate/spec.md",
+            "hash": "b8333e7c2810086adb80b0331a1d0c313251e388130566e0223f1d2102decf5e"
+          },
+          {
+            "path": "openspec/changes/refactor-optimizer-finding-workflow/specs/verify-freshness-engine/spec.md",
+            "hash": "05c8c25cd53be30a09e6cee5753eeed3e4247c146dc7f5150e74bd24a3d9b883"
+          },
+          {
+            "path": "openspec/changes/refactor-optimizer-finding-workflow/specs/verify-optimization/spec.md",
+            "hash": "c89fbfcdb1fbe6be25fc89ea272a3adb78d7423a20c4d2010cc5e7793bb2ba47"
+          },
+          {
+            "path": "openspec/changes/refactor-optimizer-finding-workflow/tasks.md",
+            "hash": "87ff9f6901d55b34c686315b96fa615024f552709633e3d05c31c722617f8eb3"
+          },
+          {
+            "path": "openspec/references/openspec-apply-step-5-phase2-optimization.md",
+            "hash": "a3995b88c760d5896a1e2a092642abe50da2b2fe0f98706f3876042715bcbf5e"
+          },
+          {
+            "path": "openspec/references/openspec-decision-rules.md",
+            "hash": "45ab70c5d57cabf96c05be07dd3e7e8dbfb947e4e629093a1ce715626edaafb2"
+          },
+          {
+            "path": "openspec/references/openspec-output-protocol.md",
+            "hash": "5369347d2fb16ddc9332cee655e0153318f8bda986233cc4348bb9ace4aa7e40"
+          },
+          {
+            "path": "openspec/references/openspec-self-read-protocol.md",
+            "hash": "f1a47c35c95238f88b2c8ed8f5105eeb2c5af20b89e3f588476921ccb41a16bd"
+          },
+          {
+            "path": "src/commands/verify.ts",
+            "hash": "c6904ca5b1fa805f4e55f57754316124d44522ddd4f3ab96aee858074eb9d4b6"
+          },
+          {
+            "path": "src/core/templates/fragments/opsx-fragments.ts",
+            "hash": "2dd412658e6edeaea1834c6417c2169b1cd8fc0cc1a038c07c4b47960cf798ca"
+          },
+          {
+            "path": "src/core/templates/sync-engine.ts",
+            "hash": "0bf862232123b298a01791ca005fe69b5b46d2a5c58a73cf39134608a107d264"
+          },
+          {
+            "path": "src/core/templates/workflows/apply-change.ts",
+            "hash": "4a3fdd6ad1d6b213408fca904db606c5978c956a3eb43338e9fd0f6fcf4efe7c"
+          },
+          {
+            "path": "src/core/templates/workflows/archive-change.ts",
+            "hash": "96547cf3866bfa7ab01ab11fea6092ad20d74fc5f589c956be3c1bd3e94d1fd8"
+          },
+          {
+            "path": "src/core/templates/workflows/optimizer.ts",
+            "hash": "110577a4c8933d7f5c28054bb7295f9d5256962e3810a79cf42ff8d62f5bd9e5"
+          },
+          {
+            "path": "src/core/verify/result-validator.ts",
+            "hash": "bff8a5ed3f4dd611ed56d153d49c58a83ea8c067d0ce2c055245495fede2b0f3"
+          },
+          {
+            "path": "src/core/verify/types.ts",
+            "hash": "abb3d8121cb7be31dde83092851b5d766cd794767267131e04a9d6adea93adbb"
+          },
+          {
+            "path": "test/commands/verify.test.ts",
+            "hash": "a9a2b090f1b66e81d930cfa4703d55e51c474f39517677ae7bbe4fddeb16565a"
+          },
+          {
+            "path": "test/core/templates/apply-change.test.ts",
+            "hash": "029b1e24dc64e6f994b21519d70ae5c14da72e4d9857982fca20add9663c6226"
+          },
+          {
+            "path": "test/core/templates/fragments/opsx-fragments.test.ts",
+            "hash": "b0691b7240f55727c24e2736279fbcc438ccca26ffec4f632f6579cb97fd3f52"
+          },
+          {
+            "path": "test/core/templates/optimizer-template.test.ts",
+            "hash": "2293dd035e219dda136b54b8ad414b95914300cd7bd92459510f0416e1c2abc7"
+          },
+          {
+            "path": "test/core/templates/skill-templates-parity.test.ts",
+            "hash": "5ef82a461370ce6e24096b5618e5d0a15e45378577115b5fe5e13b9efd66e722"
+          },
+          {
+            "path": "test/core/templates/sync-engine.test.ts",
+            "hash": "69b403797a332881f0c5f7bfd08ffe8b2b7a320b4be09f296d99902bc64b071e"
+          },
+          {
+            "path": "test/core/verify/result-validator.test.ts",
+            "hash": "083764983bab13cf444b485ffe2d6e343c6be521790d83e8b8bfa31f6f3d79ca"
+          },
+          {
+            "path": "test/skills/optimizer-skill-content.test.ts",
+            "hash": "22ba7942b964f22d4cef522956f25cb133f4292ac4452923f3abd6a11b77f4c1"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "9061d10be396d97ffd3f1a283c1ab2d16db0fec3",
+        "gitDiffSummary": "Fresh openspec-reviewer accepted Phase 1; 141 test files / 2041 tests and 109 OpenSpec items passed."
+      }
+    }
+  }
+}

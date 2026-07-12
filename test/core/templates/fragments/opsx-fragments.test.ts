@@ -23,13 +23,13 @@ describe('verify gate shared fragments', () => {
 
   it('covers every verify CLI call input shape', () => {
     for (const token of [
-      'phase1',
-      'NO_OPTIMIZATION_NEEDED',
+      'Phase 1',
       'OPTIMIZATION_PROPOSED',
+      'envelope',
+      'begin-implementation',
+      'findingId',
       'SKIPPED',
       '"result":"PASS"',
-      'FAIL_NEEDS_REMEDIATION',
-      'behaviorRetryCounter',
     ]) {
       expect(VERIFY_CLI_JSON_SCHEMA_REFERENCE).toContain(token);
     }
@@ -43,8 +43,8 @@ describe('verify gate shared fragments', () => {
       'DEGRADED',
       'PENDING_VERIFICATION',
       'ABORTED_UNSAFE',
-      'Archive gate accepts',
-      'Archive gate rejects',
+      'Archive accepts',
+      'Archive rejects',
     ]) {
       expect(VERIFY_STATE_MACHINE_DIAGRAM).toContain(token);
     }
