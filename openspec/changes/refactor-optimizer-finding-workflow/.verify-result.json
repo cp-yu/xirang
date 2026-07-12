@@ -197,7 +197,7 @@
     "timestamp": "2026-07-12T16:43:52.059Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
         "timestamp": "2026-07-12T16:30:52.120Z",
@@ -208,6 +208,11 @@
         "timestamp": "2026-07-12T16:43:52.042Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-07-12T16:47:01.764Z",
+        "type": "optimization",
+        "status": "NO_OPTIMIZATION_NEEDED"
       }
     ],
     "baseline": {
@@ -410,7 +415,7 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "src/commands/verify.ts"
@@ -453,7 +458,7 @@
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "This is the only remaining statically evidenced optimization with direct runtime benefit in the reviewed base-scope implementation; the rest of the inspected repetition either encodes separate contracts or would require workload assumptions to justify.",
+        "priorityReason": "This was the only statically evidenced optimization with direct runtime benefit in the reviewed base-scope implementation; checkpoint f599cf44 implemented it and fresh verification confirmed its preservation constraints.",
         "id": "OPT-20260712T163052117Z-01",
         "targetFileHashes": {
           "src/commands/verify.ts": "c6904ca5b1fa805f4e55f57754316124d44522ddd4f3ab96aee858074eb9d4b6"
@@ -494,9 +499,16 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-07-12T16:43:52.042Z",
         "findingId": "OPT-20260712T163052117Z-01"
+      },
+      {
+        "sequence": 5,
+        "action": "resolve",
+        "reason": "Checkpoint f599cf448d16c52c85b833cb7d9f5823039e3dd3 implemented the finding and the persisted history records a fresh-reviewer verified verdict. Current src/commands/verify.ts builds one selected-first normalized union, calls hashFiles once at line 456, projects selected targetFileHashes from that snapshot at lines 457-460, and computes reconciliationSignature from the same snapshot at line 475. Focused verification passed 35 tests across test/commands/verify.test.ts and test/core/verify/result-validator.test.ts; pnpm lint and pnpm build passed; pnpm exec openspec validate --all passed 109 items with zero failures. No further statically evidenced optimization in tracked base-scope implementation files clears the actual-benefit admission gate: remaining collection passes preserve distinct contracts, while replacing small-array membership checks or path normalization passes would have workload-dependent benefit.",
+        "timestamp": "2026-07-12T16:47:01.764Z",
+        "findingId": "OPT-20260712T163052117Z-01"
       }
     ],
-    "reconciliationSignature": "52bbcfc6215f9ac36ef2530c996fb39ed79fc1effa3b42c162515b86bccf5606",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }
