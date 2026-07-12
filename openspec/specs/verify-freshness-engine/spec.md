@@ -90,12 +90,12 @@ Phase 2 verification 通过时（`optimization.status` 转为 `IMPROVED`），�
 
 系统 SHALL 提供 `checkFreshness(changeDir, projectRoot)` 函数，判定 `.verify-result.json` 的 freshness。
 
-当 freshness 为 STALE 时，`details` 数组 SHALL 包含：
+当 freshness 为 STALE 时，`details` 数组 SHALL 只包含阻塞 freshness 的诊断：
 
 - fingerprint 不匹配时：列出 hash 变更的证据文件及其相对路径，格式为 `evidenceFingerprint mismatch — modified files: <path1>, <path2>, ...`
 - 其他检查项（contractVersion、resultAcceptable）保持现有描述格式
 
-当记录的 git HEAD 与当前 HEAD 不匹配时，`details` 数组 SHALL 记录 warning：`gitHeadCommit changed: <recorded> → <current>`。该 warning SHALL NOT 单独导致 STALE。
+当记录的 git HEAD 与当前 HEAD 不匹配时，系统 SHALL 将该差异写入 `information.gitHeadCommit`，不得将其写入 `checks` 或 `details`，且该信息 SHALL NOT 单独导致 STALE。
 
 指纹差异计算 SHALL 通过对比 `.verify-result.json` 中记录的 `evidenceFingerprint.entries` 与重新计算的文件 hash 来确定变更文件列表。
 
@@ -106,7 +106,9 @@ Phase 2 verification 通过时（`optimization.status` 转为 `IMPROVED`），�
 - **AND** `evidenceFingerprint` 匹配重新计算值
 - **AND** `contractVersion` 为 `"1.0"`
 - **AND** `result` 为 PASS 或 PASS_WITH_WARNINGS
-- **THEN** 返回 `{ status: 'FRESH', checks: { ... } }`
+- **THEN** 返回 `status: 'FRESH'`
+- **AND** `checks` 只包含 freshness 硬条件
+- **AND** `information` 可包含 Git HEAD 诊断信息
 
 `tasksFileHash` SHALL NOT 参与 FRESH 判定 — tasks.md 已在 evidenceFiles 中被 evidenceFingerprint 覆盖，且 verify 后标记完成导致其内容必然变化。
 
@@ -126,16 +128,19 @@ Phase 2 verification 通过时（`optimization.status` 转为 `IMPROVED`），�
 - **AND** 记录的 `gitHeadCommit` 与当前 HEAD 不一致
 - **AND** 其他 freshness 硬条件均通过
 - **THEN** `status` 为 `FRESH`
-- **AND** `checks.gitHeadCommit` 为 `false`
-- **AND** `details` 包含一条以 `gitHeadCommit changed:` 开头的条目
-- **AND** 该条目 SHALL 展示 `<recorded> → <current>` 格式的对比
+- **AND** `checks` SHALL NOT contain `gitHeadCommit`
+- **AND** `details` SHALL NOT contain a Git HEAD failure or warning entry
+- **AND** `information.gitHeadCommit` SHALL contain `matches: false`
+- **AND** `information.gitHeadCommit` SHALL 包含 `recorded` 和 `current`（两者均可用时）
 
 #### Scenario: 多处同时不匹配
 
 - **WHEN** 调用 `checkFreshness`
 - **AND** evidenceFingerprint 与 gitHeadCommit 同时不匹配
 - **THEN** `status` 为 `STALE`
-- **AND** `details` 包含两条独立条目，分别描述指纹差异和 HEAD warning
+- **AND** `details` SHALL contain the fingerprint mismatch diagnostic
+- **AND** `information.gitHeadCommit.matches` SHALL 为 `false`
+- **AND** Git HEAD 信息 SHALL NOT 改变 stale 判定
 
 ### Requirement: Archive Compatibility 判定
 
@@ -174,31 +179,29 @@ Phase 2 verification 通过时（`optimization.status` 转为 `IMPROVED`），�
     - <相对路径>
     - <相对路径>
 
-  Git HEAD:
-    <旧hash> → <新hash>
-
   建议操作:
     openspec verify phase1 <change-name>  # 重新验证
     openspec <command> <change-name> --no-verify  # 跳过门禁 (风险自负)
 ```
 
-其中 `<command>` 由调用上下文决定 — sync 场景为 `openspec sync`，archive 场景为 `openspec archive`。如果 `archiveCompatibility` 指示不兼容，输出中 SHALL 包含对应的 `blockReason`。
+其中 `<command>` 由调用上下文决定 — sync 场景为 `openspec sync`，archive 场景为 `openspec archive`。如果 `archiveCompatibility` 指示不兼容，输出中 SHALL 包含对应的 `blockReason`。非阻塞的 Git HEAD informational 数据 SHALL NOT 作为失败段落输出。
 
-如果没有任何指纹不匹配的文件，指纹部分 SHALL 被省略。如果 gitHeadCommit 匹配，Git HEAD 部分 SHALL 被省略。
+如果没有任何指纹不匹配的文件，指纹部分 SHALL 被省略。
 
 #### Scenario: 全部信息输出
 
-- **WHEN** 调用 `formatVerifyGateFailure` 且 fingerprint 和 HEAD 均不匹配
+- **WHEN** 调用 `formatVerifyGateFailure` 且 fingerprint 不匹配
 - **AND** `archiveCompatibility` 不兼容（blockReason = PENDING_VERIFICATION）
 - **THEN** 输出 SHALL 包含指纹不匹配的文件列表
-- **AND** 包含 git HEAD 前后对比
 - **AND** 包含 `archiveCompatibility: PENDING_VERIFICATION`
 - **AND** 末尾包含建议操作段落
+- **AND** 输出 SHALL NOT 包含 Git HEAD failure section
 
 #### Scenario: 部分信息省略
 
-- **WHEN** fingerprint 未通过但 git HEAD 匹配
-- **THEN** 输出省略 Git HEAD 段落
+- **WHEN** fingerprint 未通过但 git HEAD 不匹配
+- **THEN** 输出 SHALL 包含 fingerprint 阻塞诊断
+- **AND** 输出 SHALL 省略 Git HEAD 段落
 
 #### Scenario: archive 上下文的建议操作
 
@@ -280,3 +283,4 @@ Phase 2 verification 通过时（`optimization.status` 转为 `IMPROVED`），�
 - **THEN** `SHA256(JSON.stringify(evidenceFingerprintEntries))` SHALL 等于 `evidenceFingerprint`
 - **AND** `timestamp` SHALL 为 ISO 8601 格式
 - **AND** `gitHeadCommit` SHALL 保留采样时的 commit SHA（如果可用）
+

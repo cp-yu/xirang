@@ -40,6 +40,15 @@
 - **THEN** 即使顶层 result 为 PASS 也不得复用
 - **AND** CLI SHALL 输出恢复指示
 
+#### Scenario: Seal 后仅 Git HEAD 推进时复用验证
+
+- **WHEN** Phase 2 已完成且 `.verify-result.json` 已通过 seal
+- **AND** 当前工作区的 evidence fingerprint 未发生变化
+- **AND** 当前 Git HEAD 与 verification context 中记录的 HEAD 不一致
+- **THEN** `freshness.status` SHALL 保持为 `FRESH`
+- **AND** archive SHALL 复用 archive-compatible 的 verify result
+- **AND** archive SHALL NOT 仅因 HEAD 差异重新执行 full verify 或委托 reviewer
+
 ### Requirement: Freshness 基于显式验证证据判定
 
 系统 SHALL 基于显式持久化的 verification context 判定 `.verify-result.json` 是否 fresh。`optimization` 字段存在不影响 freshness 判定，但其终局状态会影响 archive 是否可复用该结果。
@@ -110,3 +119,4 @@
 - **THEN** 系统 SHALL 跳过交互式确认
 - **AND** SHALL 记录 `[AUTHORIZED]` 审计日志
 - **AND** SHALL 直接跳过 verify 和 sync 门禁检查
+

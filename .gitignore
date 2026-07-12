@@ -161,3 +161,4 @@ opencode.json
 .npm-cache
 .github
 .roadmap/
+/.pi-subagents/artifacts
