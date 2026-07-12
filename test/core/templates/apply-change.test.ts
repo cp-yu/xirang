@@ -78,27 +78,35 @@ describe('apply change workflow template', () => {
     const reference = applyReference('references/apply-step-5-phase2-optimization.md');
 
     expect(reference).toContain('git commit -m "wip: opt-checkpoint-r0 (baseline)"');
-    expect(reference).toContain('git commit -m "wip: opt-r${N} (${description})"');
+    expect(reference).toContain('git commit -m "wip: opt-r${N} (${findingId}: ${description})"');
     expect(reference).toContain('git reset --hard HEAD');
     expect(reference).toContain('git clean -fd');
-    expect(reference).toContain('record verification PASS and save the new successful state before deciding whether to continue');
+    expect(reference).toContain('re-run optimizer reconciliation against current code');
     expect(reference).not.toContain('If another retry remains, save the new successful state');
     expect(reference).not.toContain('git stash push');
     expect(reference).not.toContain('git stash apply');
     expect(reference).not.toContain('git tag apply-opt-checkpoint');
   });
 
-  it('pins Phase 2 optimization hash sampling before patch application and verification after patching', () => {
+  it('orders finding reconciliation, freshness gate, master implementation, and reviewer verification', () => {
     const content = applyReference('references/apply-step-5-phase2-optimization.md');
 
-    const optimizationIndex = content.indexOf('openspec verify phase2 "<change-name>" --type=optimization');
-    const patchIndex = content.indexOf('Apply Search/Replace blocks atomically');
+    const reconciliationIndex = content.indexOf('optimizer reconciliation envelope');
+    const freshnessIndex = content.indexOf('mode":"begin-implementation');
+    const implementationIndex = content.indexOf('Master implements only the selected finding with TDD');
     const verificationIndex = content.indexOf('openspec verify phase2 "<change-name>" --type=verification');
+    const nextReconciliationIndex = content.indexOf('re-run optimizer reconciliation against current code');
 
-    expect(optimizationIndex).toBeGreaterThan(-1);
-    expect(patchIndex).toBeGreaterThan(optimizationIndex);
-    expect(verificationIndex).toBeGreaterThan(patchIndex);
-    expect(content).toContain('while the working tree is still pre-patch');
+    expect(reconciliationIndex).toBeGreaterThan(-1);
+    expect(freshnessIndex).toBeGreaterThan(reconciliationIndex);
+    expect(implementationIndex).toBeGreaterThan(freshnessIndex);
+    expect(verificationIndex).toBeGreaterThan(implementationIndex);
+    expect(nextReconciliationIndex).toBeGreaterThan(verificationIndex);
+    expect(content).toContain('Successful findings do not consume optRetries');
+    expect(content).toContain('masterChallenge');
+    expect(content).toContain('preservationConstraints');
+    expect(content).not.toContain('Search/Replace');
+    expect(content).not.toContain('delete/stdlib/native/yagni/shrink');
   });
 
   it('documents the Phase 0-3 apply + verify workflow through outline and step references', () => {

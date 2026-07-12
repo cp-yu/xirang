@@ -53,36 +53,37 @@ Delegate to the clean-context \`openspec-reviewer\` agent with \`context: "fresh
 const APPLY_STEP_5_PHASE2_OPTIMIZATION_REFERENCE = `
 # Apply Step 5: Phase 2 Optimization
 
-The checkpoint is a git commit, not a git stash entry or git tag. Do not create stash or tag checkpoints for apply optimization.
+Use git commits as checkpoints; never use stash or tags.
 
-1. Skip Phase 2 only when the user requested \`--skip-optimization\` or \`optimization.enabled: false\`; record \`SKIPPED\` through \`openspec verify phase2\`.
-2. Read \`optimization.optRetries\` from \`openspec/config.yaml\`; default to \`2\`.
-3. Before the first optimization attempt, save the Phase 1 baseline:
+1. Skip only for \`--skip-optimization\` or \`optimization.enabled: false\`; record \`SKIPPED\`.
+2. Read \`optimization.optRetries\`; it limits failures of one finding direction. Successful findings do not consume optRetries.
+3. Save the Phase 1 baseline:
    \`\`\`bash
    git add -A
    git commit -m "wip: opt-checkpoint-r0 (baseline)"
    \`\`\`
-4. Delegate to the clean-context \`openspec-optimizer\` agent with \`context: "fresh"\`. Pass Phase 1 result, artifacts, file contents, config, and failedDirections. The optimizer proposes Search/Replace blocks only; it MUST NOT edit files.
-5. Read the rationale tags (delete/stdlib/native/yagni/shrink) and Code Smell annotations on each proposed block. Understand the optimization rationale before proceeding.
-6. For each proposed optimization, record pre-patch hashes before editing, while the working tree is still pre-patch:
+4. Delegate to fresh \`openspec-optimizer\` with changeName, absolute changeDir, and absolute projectRoot. Submit its strict optimizer reconciliation envelope:
    \`\`\`bash
-   openspec verify phase2 "<change-name>" --type=optimization --files "<affected-files>" --input '<json>' --json
+   openspec verify phase2 "<change-name>" --type=optimization --input '<json>' --json
    \`\`\`
-7. Apply Search/Replace blocks atomically, then spawn the reviewer agent for speculative Phase 1 re-verification.
-8. On speculative PASS, record verification PASS and save the new successful state before deciding whether to continue. This verification call happens after patching:
+5. If optimizer returns blockingObservations, return to Phase 1 remediation. If no finding is selected, Phase 2 is terminal. Otherwise read selected finding evidence, keyDesign, preservationConstraints, validation, and priorityReason.
+6. If project evidence contradicts the finding or keyDesign, submit masterChallenge and re-run fresh optimizer reconciliation. Do not skip or reject it yourself.
+7. Before editing, enforce selected-target freshness:
    \`\`\`bash
-   openspec verify phase2 "<change-name>" --type=verification --input '<json>' --json
-   git add -A
-   git commit -m "wip: opt-r\${N} (\${description})"
+   openspec verify phase2 "<change-name>" --type=optimization --input '{"status":"OPTIMIZATION_PROPOSED","mode":"begin-implementation","findingId":"<finding-id>"}' --json
    \`\`\`
-9. On speculative FAIL, restore the latest commit:
+8. Master implements only the selected finding with TDD. Preserve the finding's constraints and record any non-substantive implementation differences.
+9. Delegate to fresh \`openspec-reviewer\` for speculative verification. It verifies specs and preservationConstraints, not optimization value. Persist its verdict:
    \`\`\`bash
-   git reset --hard HEAD
-   git clean -fd
+   openspec verify phase2 "<change-name>" --type=verification --input '{"result":"PASS","findingId":"<finding-id>","issues":[]}' --json
    \`\`\`
-   Record the failed direction in \`.verify-result.json\`.
-10. Each complete proposal + patch + reviewer re-verify loop consumes one \`optRetries\` budget, whether it passes or fails. Format or Search/Replace matching problems are handled by the main agent and do not consume retry budget.
-11. When all attempts finish, keep all \`wip: opt-*\` commits as audit history.
+10. On PASS, save the successful checkpoint, then re-run optimizer reconciliation against current code:
+    \`\`\`bash
+    git add -A
+    git commit -m "wip: opt-r\${N} (\${findingId}: \${description})"
+    \`\`\`
+11. On FAIL, restore the latest successful checkpoint with \`git reset --hard HEAD\` and \`git clean -fd\`, then re-run optimizer reconciliation. A direction reaching optRetries becomes rejected; other findings continue.
+12. Stop on no actionable findings, all remaining findings terminal/deferred, skip/disabled, or STALLED. Keep all \`wip: opt-*\` commits.
 
 ${VERIFY_CLI_JSON_SCHEMA_REFERENCE}
 ${VERIFY_ERROR_RECOVERY_GUIDE}

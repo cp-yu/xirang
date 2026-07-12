@@ -201,11 +201,19 @@ export function collectSharedReferenceFiles(
   return references;
 }
 
+const STALE_SHARED_REFERENCE_FILES = [
+  'openspec-apply-phase2-optimization.md',
+] as const;
+
 async function writeSharedReferences(
   projectPath: string,
   references: readonly SharedReferenceFile[]
 ): Promise<void> {
   const referencesDir = path.join(projectPath, 'openspec', 'references');
+
+  for (const fileName of STALE_SHARED_REFERENCE_FILES) {
+    await fs.promises.rm(path.join(referencesDir, fileName), { force: true });
+  }
 
   for (const referenceFile of references) {
     if (!referenceFile.fileName.startsWith('openspec-')) {
@@ -328,6 +336,28 @@ async function writeSubagents(
   return written;
 }
 
+const RETIRED_MANAGED_COMMANDS: Readonly<Record<string, readonly string[]>> = {
+  claude: ['commands/opsx/apply.md'],
+  'github-copilot': ['prompts/opsx-apply.prompt.md'],
+};
+
+async function removeRetiredManagedCommands(
+  projectPath: string,
+  skillsDir: string,
+  toolId: string
+): Promise<number> {
+  const toolDir = skillsDir;
+  let removed = 0;
+  for (const relativePath of RETIRED_MANAGED_COMMANDS[toolId] ?? []) {
+    const commandPath = path.join(projectPath, toolDir, relativePath);
+    if (fs.existsSync(commandPath)) {
+      await fs.promises.rm(commandPath, { force: true });
+      removed += 1;
+    }
+  }
+  return removed;
+}
+
 async function removeUnselectedSkillDirs(
   projectPath: string,
   skillsDir: string,
@@ -393,6 +423,11 @@ export const ArtifactSyncEngine = {
         plan.subagentEntries,
         request.version
       );
+      const commandsRemoved = await removeRetiredManagedCommands(
+        request.projectPath,
+        plan.skillsDir,
+        request.toolId
+      );
       const skillsRemoved = await removeUnselectedSkillDirs(
         request.projectPath,
         plan.skillsDir,
@@ -407,7 +442,7 @@ export const ArtifactSyncEngine = {
         agentsWritten,
         commandsWritten: 0,
         skillsRemoved,
-        commandsRemoved: 0,
+        commandsRemoved,
       };
     } catch (error) {
       return {

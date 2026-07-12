@@ -129,17 +129,20 @@ export const VERIFY_STATE_MACHINE_DIAGRAM = `
 Phase 1 PASS / PASS_WITH_WARNINGS
   |
   v
-PENDING_VERIFICATION
-  |-- no affectedFileHashes --> Phase 2 optimization analysis
-  |                              |-- NO_OPTIMIZATION_NEEDED --> NOT_NEEDED
-  |                              |-- SKIPPED / optimization.enabled=false --> SKIPPED
-  |-- affectedFileHashes ------> PENDING_VERIFICATION (optimization proposed)
-                                 |-- verification PASS --> IMPROVED
-                                 |-- verification FAIL_NEEDS_REMEDIATION --> retry or DEGRADED
-                                 |-- retries exhausted --> DEGRADED
+fresh optimizer reconciliation
+  |-- blockingObservations --> Phase 1 remediation
+  |-- no actionable finding --> NOT_NEEDED or IMPROVED
+  |-- selected finding ------> freshness gate -> implemented
+                                      |
+                                      v
+                              fresh reviewer verification
+                                |-- PASS --> verified -> checkpoint -> reconcile
+                                |-- FAIL --> rollback -> failed/rejected -> reconcile
+  |-- unchanged reconciliation twice --> STALLED -> terminal
+  |-- skipped / disabled ------------> SKIPPED
 
-Archive gate accepts: SKIPPED | NOT_NEEDED | IMPROVED | DEGRADED
-Archive gate rejects: PENDING_VERIFICATION | ABORTED_UNSAFE
+Archive accepts: SKIPPED | NOT_NEEDED | IMPROVED | DEGRADED
+Archive rejects: PENDING_VERIFICATION | ABORTED_UNSAFE
 \`\`\`
 `.trim();
 
@@ -152,12 +155,11 @@ export const VERIFY_CLI_JSON_SCHEMA_REFERENCE = `
 
 | CLI call | \`--input\` JSON |
 | --- | --- |
-| \`openspec verify phase1 "<change-name>" --input '<json>' --json\` | \`{"result":"PASS","issues":[],"evidenceFiles":["..."],"executionMode":"..."}\` |
-| \`openspec verify phase2 "<change-name>" --type=optimization --input '<json>' --json\` | \`{"status":"NO_OPTIMIZATION_NEEDED","summary":"..."}\` (summary is required, must be non-empty) |
-| \`openspec verify phase2 "<change-name>" --type=optimization --files "<affected-files>" --input '<json>' --json\` | \`{"status":"OPTIMIZATION_PROPOSED","summary":"..."}\` |
-| \`openspec verify phase2 "<change-name>" --type=optimization --input '<json>' --json\` | \`{"status":"SKIPPED"}\` |
-| \`openspec verify phase2 "<change-name>" --type=verification --input '<json>' --json\` | \`{"result":"PASS","issues":[]}\` |
-| \`openspec verify phase2 "<change-name>" --type=verification --input '<json>' --json\` | \`{"result":"FAIL_NEEDS_REMEDIATION","issues":[...],"behaviorRetryCounter":N}\` |
+| Phase 1 | \`{"result":"PASS","issues":[],"evidenceFiles":["..."]}\` |
+| Phase 2 reconcile | \`{"status":"OPTIMIZATION_PROPOSED","envelope":{"blockingObservations":[],"actions":[],"findings":[]}}\` |
+| Begin implementation | \`{"status":"OPTIMIZATION_PROPOSED","mode":"begin-implementation","findingId":"OPT-<timestamp>-01"}\` |
+| Skip | \`{"status":"SKIPPED"}\` |
+| Finding verification | \`{"result":"PASS","findingId":"OPT-<timestamp>-01","issues":[]}\` |
 `.trim();
 
 /**
@@ -166,11 +168,11 @@ export const VERIFY_CLI_JSON_SCHEMA_REFERENCE = `
  */
 export const VERIFY_ERROR_RECOVERY_GUIDE = `
 **Verify CLI Error Recovery Guide**:
-- If the CLI says \`Invalid JSON input\`: re-check that \`--input\` is a JSON string, not a file path; \`issues\` must be an array and \`evidenceFiles\` must be an array of strings
-- If the CLI says \`status must be NO_OPTIMIZATION_NEEDED, OPTIMIZATION_PROPOSED, ABORTED_UNSAFE, or SKIPPED\`: fix the \`--input.status\` value and confirm whether \`optimization.status\` already has \`affectedFileHashes\`
-- If the CLI says \`result must be PASS, PASS_WITH_WARNINGS, or FAIL_NEEDS_REMEDIATION\`: fix the \`--input.result\` value and keep \`issues\` as an array when provided
-- If the CLI says \`Optimization not yet submitted, call phase2 --type=optimization first\`: call \`phase2 --type=optimization\` before retrying verification
-- If the CLI says \`FILES_REQUIRED\`: add \`--files "<affected-files>"\` with the space-separated list of files the optimizer subagent declared as affected, then retry the same command
+- Invalid JSON or envelope errors: fix the strict JSON structure and retry without editing persisted history
+- OPTIMIZER_REQUIRED: delegate to fresh optimizer and submit its reconciliation envelope
+- STALE_FINDING: do not edit; re-run optimizer reconciliation against current code
+- SELECTED_FINDING_REQUIRED: use the current selected finding ID
+- PENDING_VERIFICATION: complete reviewer verification or rollback before reconciliation
 `.trim();
 
 /**
@@ -179,14 +181,9 @@ export const VERIFY_ERROR_RECOVERY_GUIDE = `
  */
 export const VERIFY_SIMPLE_CHANGE_FAST_PATH = `
 **Simple Change Fast Path**:
-- You MUST spawn the optimizer subagent at least once for every change, including pure deletions, renames, or parameter removals
-- The optimizer subagent (not the master agent) decides whether optimization opportunities exist
-- If the optimizer subagent returns "No optimization opportunities found", record \`NO_OPTIMIZATION_NEEDED\` with the optimizer's conclusion as the \`summary\` field:
-  \`\`\`bash
-  openspec verify phase2 "<change-name>" --type=optimization --input '{"status":"NO_OPTIMIZATION_NEEDED","summary":"<optimizer conclusion>"}' --json
-  \`\`\`
-- The master agent MUST NOT self-determine that no optimization is needed without spawning the optimizer subagent
-- The only conditions that bypass the optimizer subagent are: \`--skip-optimization\` flag or \`optimization.enabled: false\` in config
+- Spawn fresh optimizer at least once unless optimization is skipped or disabled
+- Only a valid reconciliation envelope with no actionable findings may produce NOT_NEEDED
+- Master MUST NOT self-determine NOT_NEEDED, skip selected findings, or reject them without masterChallenge
 `.trim();
 
 /**

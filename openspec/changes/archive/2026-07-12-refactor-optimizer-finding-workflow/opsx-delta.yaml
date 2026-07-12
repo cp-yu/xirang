@@ -1,0 +1,39 @@
+schema_version: 1
+ADDED:
+  capabilities:
+    - id: cap.verify.optimizer-findings
+      type: capability
+      status: active
+      intent: 持久化 Phase 2 optimization findings 的严格 JSON 合约、CLI 稳定 ID、状态机、优先级、append-only reconciliation history、原子波次选择与确定性终止
+  relations:
+    - from: cap.verify.optimizer-findings
+      type: contains
+      to: dom.verify
+    - from: cap.verify.optimize
+      type: depends_on
+      to: cap.verify.optimizer-findings
+    - from: cap.verify.cli-gate
+      type: depends_on
+      to: cap.verify.optimizer-findings
+    - from: cap.apply.verify-integration
+      type: depends_on
+      to: cap.verify.optimizer-findings
+MODIFIED:
+  capabilities:
+    - id: cap.ai.optimizer-skill
+      intent: Phase 2 finding-first 通用优化审查者；基于当前代码输出多个证据化 findings、修改意见、关键设计、保持约束和验证建议，不修改文件、不输出逐字补丁、不受固定优化 taxonomy 限制
+    - id: cap.optimizer.tdd-smells
+      intent: 为 optimizer 提供非穷尽候选信号；长方法、浅模块、原始类型、重复、局部性和控制流阈值只触发分析，不强制产生 finding，也不限制算法、数据结构和资源优化
+    - id: cap.verify.optimize
+      intent: Phase 1 通过后强制委托 optimizer，持久化完整 findings 并逐波次实现最高优先级建议；每波次后基于当前代码全量 reconciliation，成功波次无固定上限，optRetries 只限制失败方向
+    - id: cap.verify.cli-gate
+      intent: 保留 Phase 2 双调用 CLI 表面，并校验 finding JSON actions、CLI-owned stable IDs、dependencies、唯一 selected、状态迁移、append-only history、目标文件 hashes 与 reviewer verdict
+    - id: cap.apply.verify-integration
+      intent: apply 将 Phase 1、finding-driven Phase 2 和 Phase 3 seal 串联；master agent 按 TDD 实现 selected finding，fresh optimizer 负责判断与关键设计，fresh reviewer 负责 speculative re-verify
+    - id: cap.verify.freshness-engine
+      intent: 维持 change-level evidence freshness，并增加 selected finding 目标文件 hash 校验，阻止 optimizer 裁决后代码变化导致的过期建议被实施
+    - id: cap.apply.subagent-orchestration
+      intent: apply 严格区分编码与判断角色；master agent 负责 TDD 实现和有证据的 challenge，reviewer 负责正确性判断，optimizer 负责优化价值、优先级与实现级关键设计
+    - id: cap.verify.enforce-optimizer-invocation
+      intent: 强制每个未跳过的 Phase 2 至少调用 optimizer；NO_OPTIMIZATION_NEEDED 必须由合法 reconciliation envelope 证明，不再接受仅非空 summary 的证据
+REMOVED: {}

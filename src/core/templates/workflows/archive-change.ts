@@ -116,8 +116,8 @@ function buildArchiveFullVerifyContract(_executionModel: VerifyExecutionModel): 
    - Determine \`changeName\`, absolute \`changeDir\`, and absolute \`projectRoot\`
    - Delegate to clean-context generated \`openspec-reviewer\` subagent with \`context: "fresh"\`; pass only \`changeName\`, \`changeDir\`, \`projectRoot\`, and the explicit evidence bundle required for canonical Phase 1
    - Validate the reviewer payload, apply only deterministic \`tasks.md\` write-back in the main workspace, and persist the canonical Phase 1 payload
-   - Execute the verify workflow end-to-end; when Phase 2 is eligible, delegate to clean-context generated \`openspec-optimizer\` subagent with \`context: "fresh"\`; pass only \`changeName\`, \`changeDir\`, \`projectRoot\`, Phase 1 result, artifacts, file contents, config, and failedDirections
-   - In \`P1_SPECULATIVE_FENCE\`, delegate to clean-context generated \`openspec-reviewer\` subagent again with \`context: "fresh"\`, \`changeName\`, \`changeDir\`, and \`projectRoot\` for the speculative verdict
+   - Execute the verify workflow end-to-end; when Phase 2 is eligible, delegate to clean-context generated \`openspec-optimizer\` subagent with \`context: "fresh"\`, pass only \`changeName\`, \`changeDir\`, and \`projectRoot\`, validate its finding reconciliation envelope, and let the master implement only the selected finding with TDD
+   - In \`P1_SPECULATIVE_FENCE\`, delegate to clean-context generated \`openspec-reviewer\` subagent again with \`context: "fresh"\` to verify specs and the selected finding's preservationConstraints, not optimization value
    - The top-level archive flow MUST NOT inline a current-agent review skeleton or silently downgrade to reread mode`;
 }
 

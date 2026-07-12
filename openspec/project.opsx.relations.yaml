@@ -576,3 +576,15 @@ relations:
   - from: cap.cli.scenario-labels
     type: depends_on
     to: cap.validation.spec
+  - from: cap.verify.optimizer-findings
+    type: contains
+    to: dom.verify
+  - from: cap.verify.optimize
+    type: depends_on
+    to: cap.verify.optimizer-findings
+  - from: cap.verify.cli-gate
+    type: depends_on
+    to: cap.verify.optimizer-findings
+  - from: cap.apply.verify-integration
+    type: depends_on
+    to: cap.verify.optimizer-findings

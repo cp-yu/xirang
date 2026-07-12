@@ -34,19 +34,108 @@ export interface Phase1Input {
   gitDiffSummary?: string;
 }
 
+export type FindingLevel = 'high' | 'medium' | 'low';
+
+export type OptimizationFindingStatus =
+  | 'pending'
+  | 'selected'
+  | 'implemented'
+  | 'verified'
+  | 'resolved'
+  | 'failed'
+  | 'rejected'
+  | 'invalidated'
+  | 'deferred'
+  | 'merged';
+
+export interface OptimizationFindingLocation {
+  files: string[];
+  symbols?: string[];
+}
+
+export interface OptimizationFinding {
+  id: string;
+  status: OptimizationFindingStatus;
+  location: OptimizationFindingLocation;
+  opportunity: string;
+  impact: string;
+  evidence: string[];
+  recommendation: string;
+  keyDesign: string;
+  preservationConstraints: string[];
+  implementationOutline: string[];
+  validation: string[];
+  impactLevel: FindingLevel;
+  confidence: FindingLevel;
+  risk: FindingLevel;
+  cost: FindingLevel;
+  dependencies: string[];
+  priorityReason: string;
+  targetFileHashes?: Record<string, string>;
+  failureCount?: number;
+}
+
+export interface OptimizationActionDependency {
+  actionIndex: number;
+}
+
+export type NewOptimizationFinding = Omit<OptimizationFinding, 'id' | 'dependencies'> & {
+  id?: never;
+  dependencies: Array<string | OptimizationActionDependency>;
+};
+
+export type OptimizationReconciliationAction =
+  | { action: 'add'; finding: NewOptimizationFinding; reason?: string }
+  | { action: 'retain' | 'reprioritize' | 'resolve' | 'invalidate' | 'reject'; findingId: string; reason: string }
+  | { action: 'merge'; findingIds: string[]; finding: NewOptimizationFinding; reason: string }
+  | { action: 'masterChallenge'; findingId: string; reason: string; evidence: string[] };
+
+export interface OptimizationBlockingObservation {
+  location: string;
+  issue: string;
+  evidence: string[];
+}
+
+export interface OptimizationEnvelope {
+  blockingObservations: OptimizationBlockingObservation[];
+  actions: OptimizationReconciliationAction[];
+  findings: OptimizationFinding[];
+}
+
+export type OptimizationHistoryAction = OptimizationReconciliationAction['action']
+  | 'select'
+  | 'implemented'
+  | 'verified'
+  | 'failed'
+  | 'stalled';
+
+export interface OptimizationHistoryEvent {
+  sequence: number;
+  action: OptimizationHistoryAction;
+  findingId?: string;
+  findingIds?: string[];
+  reason: string;
+  evidence?: string[];
+  hashes?: Record<string, string>;
+  timestamp?: string;
+}
+
 export interface Phase2OptimizationInput {
   status: Phase2OptimizationInputStatus;
+  mode?: 'reconcile' | 'begin-implementation';
+  findingId?: string;
   summary?: string;
   score?: string;
   attempts?: unknown[];
+  envelope?: OptimizationEnvelope;
   [key: string]: unknown;
 }
 
 export interface Phase2VerificationInput {
   result: VerifyResultStatus;
+  findingId?: string;
   issues?: VerifyIssue[];
   summary?: string;
-  behaviorRetryCounter?: number;
   [key: string]: unknown;
 }
 
@@ -92,6 +181,10 @@ export interface VerifyOptimization {
   attempts: OptimizationAttempt[];
   affectedFileHashes?: Record<string, string>;
   failedDirections?: string[];
+  findings?: OptimizationFinding[];
+  history?: OptimizationHistoryEvent[];
+  reconciliationSignature?: string;
+  unchangedReconciliations?: number;
   baseline?: unknown;
   final?: unknown;
 }

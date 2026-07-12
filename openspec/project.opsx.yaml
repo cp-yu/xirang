@@ -68,7 +68,7 @@ capabilities:
     status: active
     type: capability
   - id: cap.ai.optimizer-skill
-    intent: Phase 2 优化器 skill，负责行为保持优化和 Pocock 坏味道检测（从 5 维度扩展至 8 维度，每个维度增加具体识别指标、重构模式和行动指南）
+    intent: Phase 2 finding-first 通用优化审查者；基于当前代码输出多个证据化 findings、修改意见、关键设计、保持约束和验证建议，不修改文件、不输出逐字补丁、不受固定优化 taxonomy 限制
     type: capability
   - id: cap.ai.propose-smart-routing
     intent: Propose 阶段的智能路由与 artifact 生成 guidance；生成 specs 时应用 schema content boundary，post-propose validation 后显式运行 `openspec scenario-labels <change> --write` 生成 change-local review metadata，并消费共享 artifact language contract；写入 change-local specs 前提示使用 `openspec check-delta` 检查计划引用；post-propose validation guidance 使用 artifact-scoped validate 命令分阶段检查 specs 与 opsx-delta
@@ -107,13 +107,13 @@ capabilities:
     intent: Apply 阶段分支隔离策略由 apply.defaultIsolation 驱动；main/master 上仅 ask 模式询问用户，branch/worktree/none 配置直接执行并持久化 .apply-isolation.json。
     type: capability
   - id: cap.apply.subagent-orchestration
-    intent: apply 工作流中严格区分编码角色和判断角色；Master agent 负责严格 TDD 编码执行，reviewer/optimizer subagent 仅用于 clean-context 验证和优化判断，不用于编码执行。
+    intent: apply 严格区分编码与判断角色；master agent 负责 TDD 实现和有证据的 challenge，reviewer 负责正确性判断，optimizer 负责优化价值、优先级与实现级关键设计
     type: capability
   - id: cap.apply.task-decomposition
     intent: Apply Phase 0 中 Master agent 直接读取 tasks.md、change-local specs、design 与项目代码上下文，但必须按 pending Check 执行严格 TDD。行为/代码 Check 需要 test first、预期失败、最小实现、通过确认后才勾选；非运行时文本制品只需最终证据；缺失断言按非运行时快速路径以 Command 输出为最终证据。失败处理遵循诊断优先、单变量修复、累计 3-strike 升级机制，不再将 error signature 变化视为进步。
     type: capability
   - id: cap.apply.verify-integration
-    intent: apply 命令内置 Phase 1 一致性验证、Phase 2 优化循环和 Phase 3 seal；Phase 1 或 seal failure 写回 remediation 后进入同一 recovery loop，不因首次失败直接 pause。
+    intent: apply 将 Phase 1、finding-driven Phase 2 和 Phase 3 seal 串联；master agent 按 TDD 实现 selected finding，fresh optimizer 负责判断与关键设计，fresh reviewer 负责 speculative re-verify
     type: capability
   - id: cap.archive.branch-merge
     intent: 归档后的 git commit、merge 与 branch cleanup 由 agent 无条件继续处理；agent 先提交残余实现 diff（如有），再无条件创建 --allow-empty 的 semantic boundary commit 承载完整 change 总结（Why/Changes + Implementation footer），随后提交归档制品；message 模板按 git.commitMessage.* 路径覆盖或 openspec/references/ 内置模板路由
@@ -349,20 +349,20 @@ capabilities:
     intent: 在 change delta spec 验证中增加 section-type 与主 spec header 存在性的交叉验证；新增 frontmatter capabilities 存在性校验（cap 是否在 OPSX 中）和缺失 frontmatter 的 warning
     type: capability
   - id: cap.verify.cli-gate
-    intent: 程序化 verify 门禁 CLI 工具。Phase 2 双调用模型保留，但重试上限从硬编码 3 改为读取 config.optimization.optRetries，新增 failedDirections 记录支持
+    intent: 保留 Phase 2 双调用 CLI 表面，并校验 finding JSON actions、CLI-owned stable IDs、dependencies、唯一 selected、状态迁移、append-only history、目标文件 hashes 与 reviewer verdict
     type: capability
   - id: cap.verify.enforce-optimizer-invocation
-    intent: 强制 optimizer subagent 调用约束——CLI 层 runtime enforcement（summary 非空校验）+ prompt 层协议约束（VERIFY_SIMPLE_CHANGE_FAST_PATH 重写为强制委托语义），确保 Phase 2 判断权始终归属 optimizer subagent
+    intent: 强制每个未跳过的 Phase 2 至少调用 optimizer；NO_OPTIMIZATION_NEEDED 必须由合法 reconciliation envelope 证明，不再接受仅非空 summary 的证据
     type: capability
   - id: cap.verify.execution-model-selection
     intent: verify / archive full verify 固定使用 subagent-orchestrated skeleton，不再按工具选择 current-agent-reread fallback。
     status: active
     type: capability
   - id: cap.verify.freshness-engine
-    intent: 确定性 freshness 判定引擎，用 TypeScript 代码实现 tasksFileHash、evidenceFingerprint 计算和 FRESH/STALE/MISSING 判定。evidenceFingerprint 基于文件内容哈希（而非元数据）计算，消除文件系统触碰导致的误报 STALE。Phase 2 verification PASS 时重算 evidenceFingerprint，使其覆盖优化后的文件状态。STALE 判定时生成增强诊断细节（文件级指纹差异、git HEAD 对比），formatVerifyGateFailure 输出结构化可操作指引。新增 refreshVerifyEvidenceAfterSync 函数支持 sync 后增量刷新 evidence 哈希
+    intent: 维持 change-level evidence freshness，并增加 selected finding 目标文件 hash 校验，阻止 optimizer 裁决后代码变化导致的过期建议被实施
     type: capability
   - id: cap.verify.optimize
-    intent: 在一致性检验通过后，对代码进行最优性检验。Phase 2 MUST 始终 spawn optimizer subagent 至少一次，master agent MUST NOT 替代 optimizer 做判断。优化循环由 apply 模板主控，每次提案+补丁+验证循环消耗一次 config.optimization.optRetries（默认 2）配额。NO_OPTIMIZATION_NEEDED 仅在 optimizer subagent 明确返回 "No optimization opportunities found" 时允许，且 CLI 要求 summary 非空作为 runtime enforcement
+    intent: Phase 1 通过后强制委托 optimizer，持久化完整 findings 并逐波次实现最高优先级建议；每波次后基于当前代码全量 reconciliation，成功波次无固定上限，optRetries 只限制失败方向
     type: capability
   - id: cap.verify.prompt-orchestration
     intent: Verification prompt orchestration patterns。Coordinator 的 Evidence 步骤简化为确定路径。Severity philosophy 表述从"prefer lower tier"改为"escalate when uncertain"，删除降级偏见的措辞
@@ -380,7 +380,7 @@ capabilities:
     intent: Apply Phase 0 实现循环中的 3 个 TDD 质量检查点（接口设计可测试性、测试质量标准、Mock 边界约束）
     type: capability
   - id: cap.optimizer.tdd-smells
-    intent: Optimizer Phase 2 扫描中的 Pocock 坏味道检测增强（长方法、浅模块、原始类型痴迷及现有维度的具体识别指标）
+    intent: 为 optimizer 提供非穷尽候选信号；长方法、浅模块、原始类型、重复、局部性和控制流阈值只触发分析，不强制产生 finding，也不限制算法、数据结构和资源优化
     type: capability
   - id: cap.validation.skill-template-length
     intent: 验证所有生成的 `SKILL.md` 模板 instructions 不超过 200 行，并验证所有 `template.referenceFiles[]` 文件不超过 500 行；archive skill 的 commit message convention references 也纳入 reference 文件生成与一致性检查。
@@ -423,4 +423,8 @@ capabilities:
     type: capability
   - id: cap.cli.scenario-labels
     intent: 提供 `openspec scenario-labels` preview/write 命令，在 validate 之后显式生成 change-local MODIFIED requirements 的 scenario operation labels；不使用 fix 语义
+    type: capability
+  - id: cap.verify.optimizer-findings
+    intent: 持久化 Phase 2 optimization findings 的严格 JSON 合约、CLI 稳定 ID、状态机、优先级、append-only reconciliation history、原子波次选择与确定性终止
+    status: active
     type: capability
