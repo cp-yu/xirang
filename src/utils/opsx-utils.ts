@@ -400,26 +400,46 @@ export function applyOpsxDelta(bundle: ProjectOpsxBundle, delta: OpsxDelta): Ops
 
   const relationKey = (relation: OpsxRelation) => `${relation.from}|${relation.to}|${relation.type}`;
   const relationPairKey = (relation: OpsxRelation) => `${relation.from}|${relation.to}`;
+  const indexFirst = <T>(values: T[], keyOf: (value: T) => string): Map<string, number> => {
+    const indexes = new Map<string, number>();
+    values.forEach((value, index) => {
+      const key = keyOf(value);
+      if (!indexes.has(key)) indexes.set(key, index);
+    });
+    return indexes;
+  };
+
+  const domainIndexes = indexFirst(next.domains, (domain) => domain.id);
+  const capabilityIndexes = indexFirst(next.capabilities, (capability) => capability.id);
+  const relationKeys = new Set(next.relations.map(relationKey));
+  const relationPairIndexes = indexFirst(next.relations, relationPairKey);
 
   for (const domain of delta.ADDED?.domains || []) {
-    if (next.domains.some((candidate) => candidate.id === domain.id)) continue;
+    if (domainIndexes.has(domain.id)) continue;
+    domainIndexes.set(domain.id, next.domains.length);
     next.domains.push(domain);
     counts.added.domains += 1;
   }
   for (const capability of delta.ADDED?.capabilities || []) {
-    if (next.capabilities.some((candidate) => candidate.id === capability.id)) continue;
+    if (capabilityIndexes.has(capability.id)) continue;
+    capabilityIndexes.set(capability.id, next.capabilities.length);
     next.capabilities.push(capability);
     counts.added.capabilities += 1;
   }
   for (const relation of delta.ADDED?.relations || []) {
-    if (next.relations.some((candidate) => relationKey(candidate) === relationKey(relation))) continue;
+    const key = relationKey(relation);
+    if (relationKeys.has(key)) continue;
+    relationKeys.add(key);
+    const index = next.relations.length;
     next.relations.push(relation);
+    const pairKey = relationPairKey(relation);
+    if (!relationPairIndexes.has(pairKey)) relationPairIndexes.set(pairKey, index);
     counts.added.relations += 1;
   }
 
   for (const domain of delta.MODIFIED?.domains || []) {
-    const index = next.domains.findIndex((candidate) => candidate.id === domain.id);
-    if (index === -1) {
+    const index = domainIndexes.get(domain.id);
+    if (index === undefined) {
       throw new Error(`OPSX MODIFIED failed for domain '${domain.id}' - not found`);
     }
     if (isPatchAlreadyApplied(next.domains[index], domain)) continue;
@@ -427,8 +447,8 @@ export function applyOpsxDelta(bundle: ProjectOpsxBundle, delta: OpsxDelta): Ops
     counts.modified.domains += 1;
   }
   for (const capability of delta.MODIFIED?.capabilities || []) {
-    const index = next.capabilities.findIndex((candidate) => candidate.id === capability.id);
-    if (index === -1) {
+    const index = capabilityIndexes.get(capability.id);
+    if (index === undefined) {
       throw new Error(`OPSX MODIFIED failed for capability '${capability.id}' - not found`);
     }
     if (isPatchAlreadyApplied(next.capabilities[index], capability)) continue;
@@ -436,9 +456,8 @@ export function applyOpsxDelta(bundle: ProjectOpsxBundle, delta: OpsxDelta): Ops
     counts.modified.capabilities += 1;
   }
   for (const relation of delta.MODIFIED?.relations || []) {
-    const pairKey = relationPairKey(relation);
-    const index = next.relations.findIndex((candidate) => relationPairKey(candidate) === pairKey);
-    if (index === -1) {
+    const index = relationPairIndexes.get(relationPairKey(relation));
+    if (index === undefined) {
       throw new Error(`OPSX MODIFIED failed for relation '${relation.from}' -> '${relation.to}' - not found`);
     }
     if (isPatchAlreadyApplied(next.relations[index], relation)) continue;
@@ -446,27 +465,23 @@ export function applyOpsxDelta(bundle: ProjectOpsxBundle, delta: OpsxDelta): Ops
     counts.modified.relations += 1;
   }
 
-  for (const domain of delta.REMOVED?.domains || []) {
-    const before = next.domains.length;
-    next.domains = next.domains.filter((candidate) => candidate.id !== domain.id);
-    if (next.domains.length !== before) {
-      counts.removed.domains += 1;
-    }
+  const removedDomainIds = new Set(delta.REMOVED?.domains?.map((domain) => domain.id) || []);
+  counts.removed.domains = [...removedDomainIds].filter((id) => domainIndexes.has(id)).length;
+  if (removedDomainIds.size > 0) {
+    next.domains = next.domains.filter((domain) => !removedDomainIds.has(domain.id));
   }
-  for (const capability of delta.REMOVED?.capabilities || []) {
-    const before = next.capabilities.length;
-    next.capabilities = next.capabilities.filter((candidate) => candidate.id !== capability.id);
-    if (next.capabilities.length !== before) {
-      counts.removed.capabilities += 1;
-    }
+
+  const removedCapabilityIds = new Set(delta.REMOVED?.capabilities?.map((capability) => capability.id) || []);
+  counts.removed.capabilities = [...removedCapabilityIds].filter((id) => capabilityIndexes.has(id)).length;
+  if (removedCapabilityIds.size > 0) {
+    next.capabilities = next.capabilities.filter((capability) => !removedCapabilityIds.has(capability.id));
   }
-  for (const relation of delta.REMOVED?.relations || []) {
-    const before = next.relations.length;
-    const removeKey = relationKey(relation);
-    next.relations = next.relations.filter((candidate) => relationKey(candidate) !== removeKey);
-    if (next.relations.length !== before) {
-      counts.removed.relations += 1;
-    }
+
+  const removedRelationKeys = new Set(delta.REMOVED?.relations?.map(relationKey) || []);
+  if (removedRelationKeys.size > 0) {
+    const currentRelationKeys = new Set(next.relations.map(relationKey));
+    counts.removed.relations = [...removedRelationKeys].filter((key) => currentRelationKeys.has(key)).length;
+    next.relations = next.relations.filter((relation) => !removedRelationKeys.has(relationKey(relation)));
   }
 
   const changed = [

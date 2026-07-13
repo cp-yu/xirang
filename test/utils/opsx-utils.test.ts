@@ -359,6 +359,123 @@ domains:
       expect(result.changed).toBe(true);
       expect(result.bundle.relations[0].note).toBe('new');
     });
+
+    it('preserves ordering, duplicate, sequential patch, and removal semantics', () => {
+      const bundle = mkBundle({
+        domains: [
+          { id: 'dom.a', type: 'domain', intent: 'A' },
+          { id: 'dom.remove', type: 'domain', intent: 'remove' },
+        ],
+        capabilities: [
+          { id: 'cap.a.one', type: 'capability', intent: 'old', status: 'draft' },
+          { id: 'cap.remove.one', type: 'capability', intent: 'remove' },
+        ],
+        relations: [
+          { from: 'cap.a.one', to: 'dom.a', type: 'invokes', note: 'first' },
+          { from: 'cap.a.one', to: 'dom.a', type: 'consumes', note: 'second' },
+          { from: 'cap.remove.one', to: 'dom.remove', type: 'belongs_to' },
+          { from: 'cap.remove.one', to: 'dom.remove', type: 'belongs_to' },
+        ],
+      });
+
+      const result = applyOpsxDelta(bundle, {
+        ADDED: {
+          domains: [
+            { id: 'dom.a', type: 'domain', intent: 'duplicate' },
+            { id: 'dom.b', type: 'domain', intent: 'B' },
+            { id: 'dom.b', type: 'domain', intent: 'duplicate' },
+          ],
+          capabilities: [
+            { id: 'cap.a.one', type: 'capability', intent: 'duplicate' },
+            { id: 'cap.b.one', type: 'capability', intent: 'B' },
+            { id: 'cap.b.one', type: 'capability', intent: 'duplicate' },
+          ],
+          relations: [
+            { from: 'cap.a.one', to: 'dom.a', type: 'invokes', note: 'ignored duplicate note' },
+            { from: 'cap.b.one', to: 'dom.b', type: 'belongs_to' },
+          ],
+        },
+        MODIFIED: {
+          capabilities: [
+            { id: 'cap.a.one', intent: 'middle', status: 'active' },
+            { id: 'cap.a.one', intent: 'final' },
+          ],
+          relations: [
+            { from: 'cap.a.one', to: 'dom.a', type: 'consumes', note: 'patched first pair' },
+          ],
+        },
+        REMOVED: {
+          domains: [{ id: 'dom.remove' }, { id: 'dom.remove' }, { id: 'dom.absent' }],
+          capabilities: [{ id: 'cap.remove.one' }, { id: 'cap.remove.one' }, { id: 'cap.absent.one' }],
+          relations: [
+            { from: 'cap.remove.one', to: 'dom.remove', type: 'belongs_to' },
+            { from: 'cap.remove.one', to: 'dom.remove', type: 'belongs_to' },
+          ],
+        },
+      });
+
+      expect(result.bundle.domains.map(({ id }) => id)).toEqual(['dom.a', 'dom.b']);
+      expect(result.bundle.capabilities.map(({ id }) => id)).toEqual(['cap.a.one', 'cap.b.one']);
+      expect(result.bundle.capabilities[0]).toMatchObject({ intent: 'final', status: 'active' });
+      expect(result.bundle.relations).toEqual([
+        { from: 'cap.a.one', to: 'dom.a', type: 'consumes', note: 'patched first pair' },
+        { from: 'cap.a.one', to: 'dom.a', type: 'consumes', note: 'second' },
+        { from: 'cap.b.one', to: 'dom.b', type: 'belongs_to' },
+      ]);
+      expect(result.counts).toEqual({
+        added: { domains: 1, capabilities: 1, relations: 1 },
+        modified: { domains: 0, capabilities: 2, relations: 1 },
+        removed: { domains: 1, capabilities: 1, relations: 1 },
+      });
+      expect(bundle.capabilities[0]).toMatchObject({ intent: 'old', status: 'draft' });
+      expect(bundle.relations).toHaveLength(4);
+    });
+
+    it('applies batched node deltas with a linear number of existing ID reads', () => {
+      let idReads = 0;
+      const capabilities = Array.from({ length: 200 }, (_, index) => {
+        const capability = { type: 'capability' as const, intent: `old-${index}` };
+        Object.defineProperty(capability, 'id', {
+          enumerable: true,
+          get: () => {
+            idReads += 1;
+            return `cap.batch.c${index}`;
+          },
+        });
+        return capability as typeof capability & { id: string };
+      });
+      const bundle = mkBundle({ capabilities });
+      idReads = 0;
+
+      const result = applyOpsxDelta(bundle, {
+        ADDED: {
+          capabilities: Array.from({ length: 50 }, (_, index) => ({
+            id: `cap.added.c${index}`,
+            type: 'capability' as const,
+            intent: `added-${index}`,
+          })),
+        },
+        MODIFIED: {
+          capabilities: Array.from({ length: 50 }, (_, index) => ({
+            id: `cap.batch.c${index}`,
+            intent: `new-${index}`,
+          })),
+        },
+        REMOVED: {
+          capabilities: Array.from({ length: 50 }, (_, index) => ({
+            id: `cap.batch.c${index + 100}`,
+          })),
+        },
+      });
+
+      expect(result.counts).toEqual({
+        added: { domains: 0, capabilities: 50, relations: 0 },
+        modified: { domains: 0, capabilities: 50, relations: 0 },
+        removed: { domains: 0, capabilities: 50, relations: 0 },
+      });
+      expect(result.bundle.capabilities).toHaveLength(200);
+      expect(idReads).toBeLessThanOrEqual(600);
+    });
   });
 
   describe('OpsxDeltaSchema validation', () => {
