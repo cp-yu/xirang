@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-13T14:47:55.793Z",
+  "timestamp": "2026-07-13T15:47:59.932Z",
   "result": "PASS",
   "issues": [],
   "tasksFileHash": "7cfbf1203ae8c67699b1a203e0d0a1114db3f9b9fc72609c3c5c45af8c161463",
@@ -10,9 +10,11 @@
       "openspec/changes/opsx-v2-semantic-relations/opsx-delta.yaml",
       "openspec/changes/opsx-v2-semantic-relations/tasks.md",
       "openspec/project.opsx.relations.yaml",
-      "openspec/project.opsx.yaml"
+      "openspec/project.opsx.yaml",
+      "src/utils/opsx-utils.ts",
+      "test/utils/opsx-utils.test.ts"
     ],
-    "evidenceFingerprint": "9c2c6e41fd9ae065a98d95b64193a41f2b75e68d7a7831749ed7be5fb55515d1",
+    "evidenceFingerprint": "e846910037771e55b090fbebb04e94408762260cda7fbb30a21fdfcb7e07ff60",
     "evidenceFingerprintEntries": [
       {
         "path": "openspec/changes/opsx-v2-semantic-relations/design.md",
@@ -33,28 +35,24 @@
       {
         "path": "openspec/project.opsx.yaml",
         "hash": "68ddf154cb3c667008109e45fe942316584d4d65317ead53cc7dcb76ed3d9170"
+      },
+      {
+        "path": "src/utils/opsx-utils.ts",
+        "hash": "2f0e6a1745b252c36a8fdc9603cc298ef8cd672a9e49eee1529ef13e253a394c"
+      },
+      {
+        "path": "test/utils/opsx-utils.test.ts",
+        "hash": "30d555111cd82714357e026cb67e1bc8bab9e3c0cfc1cd934543d01d72086ce1"
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "4da8da87d708c830f1b6b13d075b449fe78bfeec",
-    "timestamp": "2026-07-13T15:31:54.583Z"
+    "gitHeadCommit": "cecfece3cd39811c5f1041e64c3d3a1c87dbe956"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [
-      {
-        "timestamp": "2026-07-13T15:20:37.994Z",
-        "type": "optimization",
-        "status": "OPTIMIZATION_PROPOSED"
-      },
-      {
-        "timestamp": "2026-07-13T15:31:54.576Z",
-        "type": "verification",
-        "result": "PASS"
-      }
-    ],
+    "attempts": [],
     "baseline": {
-      "timestamp": "2026-07-13T14:47:55.793Z",
+      "timestamp": "2026-07-13T15:47:59.932Z",
       "result": "PASS",
       "issues": [],
       "tasksFileHash": "7cfbf1203ae8c67699b1a203e0d0a1114db3f9b9fc72609c3c5c45af8c161463",
@@ -65,9 +63,11 @@
           "openspec/changes/opsx-v2-semantic-relations/opsx-delta.yaml",
           "openspec/changes/opsx-v2-semantic-relations/tasks.md",
           "openspec/project.opsx.relations.yaml",
-          "openspec/project.opsx.yaml"
+          "openspec/project.opsx.yaml",
+          "src/utils/opsx-utils.ts",
+          "test/utils/opsx-utils.test.ts"
         ],
-        "evidenceFingerprint": "9c2c6e41fd9ae065a98d95b64193a41f2b75e68d7a7831749ed7be5fb55515d1",
+        "evidenceFingerprint": "e846910037771e55b090fbebb04e94408762260cda7fbb30a21fdfcb7e07ff60",
         "evidenceFingerprintEntries": [
           {
             "path": "openspec/changes/opsx-v2-semantic-relations/design.md",
@@ -88,104 +88,19 @@
           {
             "path": "openspec/project.opsx.yaml",
             "hash": "68ddf154cb3c667008109e45fe942316584d4d65317ead53cc7dcb76ed3d9170"
+          },
+          {
+            "path": "src/utils/opsx-utils.ts",
+            "hash": "2f0e6a1745b252c36a8fdc9603cc298ef8cd672a9e49eee1529ef13e253a394c"
+          },
+          {
+            "path": "test/utils/opsx-utils.test.ts",
+            "hash": "30d555111cd82714357e026cb67e1bc8bab9e3c0cfc1cd934543d01d72086ce1"
           }
         ],
         "skippedEvidenceFiles": [],
-        "gitHeadCommit": "6bd236dc11def9891f22acd4a869cf59db16ec6c"
+        "gitHeadCommit": "cecfece3cd39811c5f1041e64c3d3a1c87dbe956"
       }
-    },
-    "findings": [
-      {
-        "status": "verified",
-        "location": {
-          "files": [
-            "src/utils/opsx-utils.ts"
-          ],
-          "symbols": [
-            "applyOpsxDelta"
-          ]
-        },
-        "opportunity": "Each ADDED entry performs a linear existence scan, each MODIFIED entry performs a linear index scan, and each REMOVED entry filters the entire corresponding collection. Applying a delta therefore scales as O(graph-size × delta-size) for domains, capabilities, and relations.",
-        "impact": "Indexing the cloned bundle once would reduce batched delta application to O(graph-size + delta-size), avoiding repeated full-array traversal during validation, sync, and refresh diff assembly.",
-        "evidence": [
-          "ADDED domains and capabilities call Array.some for every delta entry, while ADDED relations repeat the same pattern through relationKey.",
-          "MODIFIED domains, capabilities, and relations call Array.findIndex for every patch.",
-          "REMOVED domains, capabilities, and relations call Array.filter once per removal entry.",
-          "applyOpsxDelta is used by change sync, OPSX dry-run validation, and bootstrap refresh reconciliation, so the repeated scans affect multiple current v2 workflows."
-        ],
-        "recommendation": "Build mutable ID/key-to-index maps for additions and modifications, then apply removals with one set-backed filtering pass per collection. Update indexes as additions occur and preserve the current first-match relation-pair semantics.",
-        "keyDesign": "After cloning the bundle, construct domain ID, capability ID, exact relation key, and first relation-pair index maps. Process ADDED and MODIFIED operations sequentially against the arrays and maps so repeated entries observe prior operations exactly as today. Accumulate unique removal IDs and exact relation keys, derive removal counts from keys present after additions/modifications, and filter each collection once.",
-        "preservationConstraints": [
-          "Preserve input array ordering: unchanged entries retain their relative order and accepted additions remain in delta order.",
-          "Preserve duplicate suppression by domain/capability ID and by exact relation tuple {from,type,to}; relation note differences must not make an ADDED tuple distinct.",
-          "Preserve sequential MODIFIED behavior, including repeated patches to the same node and selection of the first existing relation matching {from,to}.",
-          "Preserve removal semantics: all matching entries are removed, duplicate removal requests increment counts at most once, and absent targets remain no-ops.",
-          "Preserve shallow merge behavior, changed calculation, count fields, returned bundle shape, optional node collections, and all thrown error messages and timing for missing MODIFIED targets.",
-          "Do not add validation, sorting, normalization, I/O, or mutation of the caller-provided bundle or delta."
-        ],
-        "implementationOutline": [
-          "Add internal helpers that construct node ID indexes, exact relation-key membership, and first relation-pair indexes from the cloned arrays.",
-          "Replace per-entry ADDED scans with map/set lookups and update the indexes whenever an entry is appended.",
-          "Replace per-entry MODIFIED scans with indexed lookups, preserving sequential patches and the first-match relation-pair rule.",
-          "Collect unique removal selectors, compute counts against the post-add/modify state, and filter each affected array once.",
-          "Keep result construction and changed calculation unchanged."
-        ],
-        "validation": [
-          "Extend applyOpsxDelta unit tests with batched additions, modifications, and removals and assert exact bundle ordering and all count fields.",
-          "Add cases for duplicate delta entries, absent removals, same endpoint pair with different relation types, relation notes, and repeated sequential patches.",
-          "Run test/utils/opsx-utils.test.ts and test/utils/opsx-utils.pbt.merge-idempotency.test.ts to prove existing merge and idempotency contracts remain intact.",
-          "Run sync and validation tests to prove callers observe unchanged errors and output.",
-          "Add or update the existing OPSX benchmark with increasing graph and delta sizes to demonstrate near-linear scaling without asserting fragile wall-clock thresholds."
-        ],
-        "impactLevel": "medium",
-        "confidence": "high",
-        "risk": "medium",
-        "cost": "medium",
-        "dependencies": [],
-        "priorityReason": "This is the strongest statically provable optimization in the reviewed base scope: it removes multiplicative collection scans from a shared runtime path while requiring no public-contract or domain-semantic change.",
-        "id": "OPT-20260713T152037991Z-01",
-        "targetFileHashes": {
-          "src/utils/opsx-utils.ts": "11d6f37c9e7107e80d6bef72b91ed4e2d3300a0183e1accb3c18f225759393ba"
-        }
-      }
-    ],
-    "history": [
-      {
-        "sequence": 1,
-        "action": "add",
-        "reason": "Optimizer added finding",
-        "timestamp": "2026-07-13T15:20:37.991Z",
-        "findingId": "OPT-20260713T152037991Z-01"
-      },
-      {
-        "sequence": 2,
-        "action": "select",
-        "reason": "This is the strongest statically provable optimization in the reviewed base scope: it removes multiplicative collection scans from a shared runtime path while requiring no public-contract or domain-semantic change.",
-        "timestamp": "2026-07-13T15:20:37.994Z",
-        "findingId": "OPT-20260713T152037991Z-01",
-        "hashes": {
-          "src/utils/opsx-utils.ts": "11d6f37c9e7107e80d6bef72b91ed4e2d3300a0183e1accb3c18f225759393ba"
-        }
-      },
-      {
-        "sequence": 3,
-        "action": "implemented",
-        "reason": "Master began implementation after freshness check",
-        "timestamp": "2026-07-13T15:20:50.626Z",
-        "findingId": "OPT-20260713T152037991Z-01",
-        "hashes": {
-          "src/utils/opsx-utils.ts": "11d6f37c9e7107e80d6bef72b91ed4e2d3300a0183e1accb3c18f225759393ba"
-        }
-      },
-      {
-        "sequence": 4,
-        "action": "verified",
-        "reason": "Fresh reviewer verified preservation constraints",
-        "timestamp": "2026-07-13T15:31:54.576Z",
-        "findingId": "OPT-20260713T152037991Z-01"
-      }
-    ],
-    "reconciliationSignature": "2f47c062a1c493389e8e92071455aa1c0b633a245c21f31fe4bf868798df9629",
-    "unchangedReconciliations": 0
+    }
   }
 }

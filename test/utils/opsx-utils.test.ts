@@ -431,6 +431,40 @@ domains:
       expect(bundle.relations).toHaveLength(4);
     });
 
+    it('keeps relation tuple and endpoint-pair identity collision-free', () => {
+      const left = { from: 'cap.a|cap.b', to: 'cap.c', type: 'invokes' as const, note: 'left' };
+      const right = { from: 'cap.a', to: 'cap.b|cap.c', type: 'invokes' as const, note: 'right' };
+      const bundle = mkBundle({ relations: [left, right] });
+
+      const added = applyOpsxDelta(bundle, {
+        ADDED: {
+          relations: [
+            { from: 'cap.a|cap.b', to: 'cap.c', type: 'consumes' },
+            { from: 'cap.a', to: 'cap.b|cap.c', type: 'consumes' },
+          ],
+        },
+      });
+      expect(added.counts.added.relations).toBe(2);
+
+      const modified = applyOpsxDelta(bundle, {
+        MODIFIED: {
+          relations: [{ from: 'cap.a', to: 'cap.b|cap.c', type: 'invokes', note: 'patched right' }],
+        },
+      });
+      expect(modified.bundle.relations).toEqual([
+        left,
+        { ...right, note: 'patched right' },
+      ]);
+
+      const removed = applyOpsxDelta(bundle, {
+        REMOVED: {
+          relations: [{ from: 'cap.a', to: 'cap.b|cap.c', type: 'invokes' }],
+        },
+      });
+      expect(removed.counts.removed.relations).toBe(1);
+      expect(removed.bundle.relations).toEqual([left]);
+    });
+
     it('applies batched node deltas with a linear number of existing ID reads', () => {
       let idReads = 0;
       const capabilities = Array.from({ length: 200 }, (_, index) => {

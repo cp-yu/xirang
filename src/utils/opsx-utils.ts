@@ -398,8 +398,8 @@ export function applyOpsxDelta(bundle: ProjectOpsxBundle, delta: OpsxDelta): Ops
     removed: { domains: 0, capabilities: 0, relations: 0 },
   };
 
-  const relationKey = (relation: OpsxRelation) => `${relation.from}|${relation.to}|${relation.type}`;
-  const relationPairKey = (relation: OpsxRelation) => `${relation.from}|${relation.to}`;
+  const relationKey = (relation: OpsxRelation) => JSON.stringify([relation.from, relation.to, relation.type]);
+  const relationPairKey = (relation: OpsxRelation) => JSON.stringify([relation.from, relation.to]);
   const indexFirst = <T>(values: T[], keyOf: (value: T) => string): Map<string, number> => {
     const indexes = new Map<string, number>();
     values.forEach((value, index) => {
