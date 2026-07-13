@@ -8,6 +8,8 @@ export interface RelationValidationResult {
 }
 
 type NodeKind = 'capability' | 'domain';
+type CycleRelationType = Exclude<RelationType, 'belongs_to'>;
+type Adjacency = Map<string, string[]>;
 
 export function validateRelationGraph(bundle: ProjectOpsxBundle): RelationValidationResult {
   const errors: string[] = [];
@@ -15,13 +17,18 @@ export function validateRelationGraph(bundle: ProjectOpsxBundle): RelationValida
   const nodeKinds = new Map<string, NodeKind>();
   const ownershipCounts = new Map(bundle.capabilities.map(({ id }) => [id, 0]));
   const seen = new Set<string>();
+  const cycleEdges = new Map<CycleRelationType, Adjacency>();
 
+  for (const type of RELATION_TYPES) {
+    if (type !== 'belongs_to') cycleEdges.set(type, new Map());
+  }
   for (const { id } of bundle.domains) nodeKinds.set(id, 'domain');
   for (const { id } of bundle.capabilities) nodeKinds.set(id, 'capability');
 
   for (const relation of bundle.relations) {
-    const key = `${relation.from}|${relation.type}|${relation.to}`;
-    if (seen.has(key)) errors.push(`Duplicate relation: ${relation.from} -[${relation.type}]-> ${relation.to}`);
+    const type = relation.type;
+    const key = `${relation.from}|${type}|${relation.to}`;
+    if (seen.has(key)) errors.push(`Duplicate relation: ${relation.from} -[${type}]-> ${relation.to}`);
     seen.add(key);
 
     const fromKind = nodeKinds.get(relation.from);
@@ -29,18 +36,25 @@ export function validateRelationGraph(bundle: ProjectOpsxBundle): RelationValida
     if (!fromKind) errors.push(`Relation references non-existent 'from' node: ${relation.from}`);
     if (!toKind) errors.push(`Relation references non-existent 'to' node: ${relation.to}`);
 
-    const definition = getRelationDefinition(relation.type);
+    const definition = getRelationDefinition(type);
     if (fromKind && !definition.fromKinds.includes(fromKind)) {
-      errors.push(`${relation.type} relation '${relation.from}' -> '${relation.to}' requires ${definition.direction}; found ${fromKind} -> ${toKind ?? 'missing'}`);
+      errors.push(`${type} relation '${relation.from}' -> '${relation.to}' requires ${definition.direction}; found ${fromKind} -> ${toKind ?? 'missing'}`);
     }
     if (toKind && !definition.toKinds.includes(toKind)) {
-      errors.push(`${relation.type} relation '${relation.from}' -> '${relation.to}' requires ${definition.direction}; found ${fromKind ?? 'missing'} -> ${toKind}`);
+      errors.push(`${type} relation '${relation.from}' -> '${relation.to}' requires ${definition.direction}; found ${fromKind ?? 'missing'} -> ${toKind}`);
     }
     if (relation.from === relation.to) {
-      errors.push(`Self-loop relation: ${relation.from} -[${relation.type}]-> ${relation.to}`);
+      errors.push(`Self-loop relation: ${relation.from} -[${type}]-> ${relation.to}`);
     }
-    if (relation.type === 'belongs_to' && fromKind === 'capability') {
-      ownershipCounts.set(relation.from, (ownershipCounts.get(relation.from) ?? 0) + 1);
+    if (type === 'belongs_to') {
+      if (fromKind === 'capability') {
+        ownershipCounts.set(relation.from, (ownershipCounts.get(relation.from) ?? 0) + 1);
+      }
+    } else {
+      const edges = cycleEdges.get(type)!;
+      const targets = edges.get(relation.from) ?? [];
+      targets.push(relation.to);
+      edges.set(relation.from, targets);
     }
   }
 
@@ -50,7 +64,7 @@ export function validateRelationGraph(bundle: ProjectOpsxBundle): RelationValida
 
   for (const type of RELATION_TYPES) {
     if (type === 'belongs_to') continue;
-    const cycle = findCycle(bundle, type);
+    const cycle = findCycle(cycleEdges.get(type)!);
     if (!cycle) continue;
     const message = `${type} cycle: ${cycle.join(' -> ')}`;
     if (type === 'precedes') errors.push(message);
@@ -60,15 +74,7 @@ export function validateRelationGraph(bundle: ProjectOpsxBundle): RelationValida
   return { valid: errors.length === 0, errors, diagnostics };
 }
 
-function findCycle(bundle: ProjectOpsxBundle, type: Exclude<RelationType, 'belongs_to'>): string[] | null {
-  const edges = new Map<string, string[]>();
-  for (const relation of bundle.relations) {
-    if (relation.type !== type) continue;
-    const targets = edges.get(relation.from) ?? [];
-    targets.push(relation.to);
-    edges.set(relation.from, targets);
-  }
-
+function findCycle(edges: Adjacency): string[] | null {
   const visited = new Set<string>();
   const active = new Set<string>();
   const path: string[] = [];

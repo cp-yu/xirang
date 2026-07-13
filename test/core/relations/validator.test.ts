@@ -94,4 +94,50 @@ describe('validateRelationGraph', () => {
     expect(result.valid).toBe(true);
     expect(result.diagnostics).toContain('invokes cycle: cap.a -> cap.b -> cap.a');
   });
+
+  it('preserves exact diagnostic order for mixed invalid raw edges', () => {
+    const result = validateRelationGraph(bundle([
+      ownership('cap.a'),
+      ownership('cap.a'),
+      { from: 'cap.missing', type: 'invokes', to: 'cap.a' },
+      { from: 'cap.a', type: 'invokes', to: 'cap.a' },
+      { from: 'cap.a', type: 'precedes', to: 'cap.b' },
+      { from: 'cap.b', type: 'precedes', to: 'cap.a' },
+    ], ['cap.a', 'cap.b', 'cap.c']));
+
+    expect(result).toEqual({
+      valid: false,
+      errors: [
+        'Duplicate relation: cap.a -[belongs_to]-> dom.core',
+        "Relation references non-existent 'from' node: cap.missing",
+        'Self-loop relation: cap.a -[invokes]-> cap.a',
+        "capability 'cap.a' has 2 belongs_to relations; expected exactly 1",
+        "capability 'cap.b' has 0 belongs_to relations; expected exactly 1",
+        "capability 'cap.c' has 0 belongs_to relations; expected exactly 1",
+        'precedes cycle: cap.a -> cap.b -> cap.a',
+      ],
+      diagnostics: ['invokes cycle: cap.a -> cap.a'],
+    });
+  });
+
+  it('builds cycle adjacency with a linear number of relation type reads', () => {
+    let typeReads = 0;
+    const relations = Array.from({ length: 200 }, (_, index) => {
+      const relation = { from: `cap.c${index}`, to: `cap.c${index + 1}` };
+      Object.defineProperty(relation, 'type', {
+        enumerable: true,
+        get: () => {
+          typeReads += 1;
+          return 'invokes';
+        },
+      });
+      return relation as typeof relation & { type: 'invokes' };
+    });
+    const capabilityIds = Array.from({ length: 201 }, (_, index) => `cap.c${index}`);
+    relations.push(...capabilityIds.map(ownership));
+
+    validateRelationGraph(bundle(relations, capabilityIds));
+
+    expect(typeReads).toBeLessThanOrEqual(1000);
+  });
 });

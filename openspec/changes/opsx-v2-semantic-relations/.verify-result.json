@@ -46,11 +46,23 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "cecfece3cd39811c5f1041e64c3d3a1c87dbe956"
+    "gitHeadCommit": "2ce2b49508ac65542d24cb095816067fadcc9343",
+    "timestamp": "2026-07-13T16:03:03.851Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-07-13T15:55:23.420Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-13T16:03:03.843Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-07-13T15:47:59.932Z",
       "result": "PASS",
@@ -101,6 +113,99 @@
         "skippedEvidenceFiles": [],
         "gitHeadCommit": "cecfece3cd39811c5f1041e64c3d3a1c87dbe956"
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "src/core/relations/validator.ts"
+          ],
+          "symbols": [
+            "validateRelationGraph",
+            "findCycle"
+          ]
+        },
+        "opportunity": "validateRelationGraph already traverses every relation for duplicate, endpoint, self-loop, and ownership checks, but findCycle then traverses the complete relation array again for each of the five capability-to-capability relation types solely to rebuild per-type adjacency maps.",
+        "impact": "Build cycle adjacency during the existing semantic-validation pass to remove five unconditional full relation-array scans and five repeated filtering phases from every formal read, delta dry-run, sync preparation, and bootstrap gate validation; cycle detection then visits only edges of the requested type.",
+        "evidence": [
+          "src/core/relations/validator.ts:22 performs the first full bundle.relations traversal.",
+          "src/core/relations/validator.ts:51 invokes findCycle once for each non-belongs_to token in the six-entry Registry.",
+          "src/core/relations/validator.ts:63 rebuilds an adjacency Map by scanning bundle.relations from the beginning on every invocation, yielding one semantic pass plus five full cycle-preparation passes.",
+          "The shared validator is called by readProjectOpsx, OPSX delta dry-run validation, change sync preparation, and bootstrap review gates, so the fixed-factor reduction applies across all required validation surfaces."
+        ],
+        "recommendation": "Accumulate per-type adjacency maps while validateRelationGraph performs its existing relation-order pass, then make cycle detection consume the prebuilt map instead of the full bundle.",
+        "keyDesign": "Create a Map keyed by each non-belongs_to RelationType whose value is an insertion-ordered Map<from, to[]>; append each eligible edge after the current semantic checks, and pass that type's adjacency map to a cycle helper that retains the existing DFS state and first-cycle policy.",
+        "preservationConstraints": [
+          "Return the same { valid, errors, diagnostics } shape and preserve exact error and diagnostic ordering.",
+          "Preserve relation input order within every adjacency list and first-seen source order so the reported first cycle path remains identical.",
+          "Continue reporting only the first cycle per relation type, with precedes cycles in errors and all other non-ownership cycles in diagnostics.",
+          "Do not suppress duplicate edges, dangling endpoints, invalid endpoint kinds, or self-loops from cycle adjacency; current cycle discovery observes the raw relation list even when other semantic errors exist.",
+          "Keep ownership cardinality checks after per-relation errors and cycle messages after ownership errors.",
+          "Do not alter Registry tokens, public types, relation parsing, note policy, side effects, thrown-error timing at callers, or compatibility behavior."
+        ],
+        "implementationOutline": [
+          "Initialize ordered adjacency maps for the five non-belongs_to Registry types before the relation loop.",
+          "During the existing relation loop, append each non-belongs_to edge to its type map in original array order without deduplication or endpoint filtering.",
+          "Change findCycle to accept a prebuilt adjacency map and leave its visited, active, path, and traversal logic unchanged.",
+          "Iterate RELATION_TYPES in the current order and classify each returned cycle exactly as today.",
+          "Add an exact-order regression covering mixed duplicate, dangling, ownership, self-loop, and multiple-type cycle output."
+        ],
+        "validation": [
+          "Run pnpm vitest run test/core/relations/validator.test.ts to preserve endpoint, ownership, duplicate, self-loop, first-cycle-path, and diagnostic behavior.",
+          "Add a mixed-invalid graph assertion comparing the complete ordered errors and diagnostics arrays before and after the refactor.",
+          "Add or extend a relation-heavy benchmark to establish that validation no longer performs one complete relation filtering pass per non-ownership type.",
+          "Run pnpm vitest run test/utils/opsx-utils.test.ts test/commands/validate.test.ts test/utils/bootstrap-refresh-utils.test.ts to cover formal reads, dry-run merge, and bootstrap callers."
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "This is the only admitted finding: it removes a statically provable fixed five-pass cost in a shared gate while requiring only a local data-flow change and allowing exact preservation of diagnostic order and cycle paths.",
+        "id": "OPT-20260713T155523416Z-01",
+        "targetFileHashes": {
+          "src/core/relations/validator.ts": "b4c8364c686e6b035156af4505d67ded870a3dd2f57c1da2268d73c7e1168681"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-13T15:55:23.417Z",
+        "findingId": "OPT-20260713T155523416Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "select",
+        "reason": "This is the only admitted finding: it removes a statically provable fixed five-pass cost in a shared gate while requiring only a local data-flow change and allowing exact preservation of diagnostic order and cycle paths.",
+        "timestamp": "2026-07-13T15:55:23.420Z",
+        "findingId": "OPT-20260713T155523416Z-01",
+        "hashes": {
+          "src/core/relations/validator.ts": "b4c8364c686e6b035156af4505d67ded870a3dd2f57c1da2268d73c7e1168681"
+        }
+      },
+      {
+        "sequence": 3,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-13T15:55:31.088Z",
+        "findingId": "OPT-20260713T155523416Z-01",
+        "hashes": {
+          "src/core/relations/validator.ts": "b4c8364c686e6b035156af4505d67ded870a3dd2f57c1da2268d73c7e1168681"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-13T16:03:03.843Z",
+        "findingId": "OPT-20260713T155523416Z-01"
+      }
+    ],
+    "reconciliationSignature": "cd37b4ee65721c704998d2b661c707c474d7b9c3e0a548d589237751557eeade",
+    "unchangedReconciliations": 0
   }
 }
