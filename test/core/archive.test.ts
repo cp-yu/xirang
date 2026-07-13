@@ -40,7 +40,6 @@ describe('ArchiveCommand', () => {
     domains: [],
     capabilities: [],
     relations: [],
-    code_map: [],
     ...overrides,
   });
 
@@ -250,7 +249,7 @@ git:
       await writeProjectOpsx(tempDir, mkBundle({
         domains: [{ id: 'dom.verify', type: 'domain', intent: 'Verify domain' }],
         capabilities: [{ id: 'cap.verify.gate', type: 'capability', intent: 'Verify gate' }],
-        relations: [{ from: 'cap.verify.gate', to: 'dom.verify', type: 'contains' }],
+        relations: [{ from: 'cap.verify.gate', to: 'dom.verify', type: 'belongs_to' }],
       }));
 
       const deltaSpec = `## ADDED Requirements
@@ -283,7 +282,7 @@ System SHALL keep synced gates stable.
         schema_version: OPSX_SCHEMA_VERSION,
         ADDED: {
           capabilities: [{ id: 'cap.verify.gate', type: 'capability', intent: 'Verify gate' }],
-          relations: [{ from: 'cap.verify.gate', to: 'dom.verify', type: 'contains' }],
+          relations: [{ from: 'cap.verify.gate', to: 'dom.verify', type: 'belongs_to' }],
         },
       }), 'utf-8');
 
@@ -430,7 +429,7 @@ The system SHALL keep this requirement.`,
       await writeProjectOpsx(tempDir, mkBundle({
         domains: [{ id: 'dom.core', type: 'domain', intent: 'Core domain' }],
         capabilities: [{ id: 'cap.core.init', type: 'capability', intent: 'Init' }],
-        relations: [{ from: 'cap.core.init', to: 'dom.core', type: 'contains' }],
+        relations: [{ from: 'cap.core.init', to: 'dom.core', type: 'belongs_to' }],
       }));
       await fs.writeFile(path.join(changeDir, 'opsx-delta.yaml'), stringifyYaml({
         schema_version: OPSX_SCHEMA_VERSION,

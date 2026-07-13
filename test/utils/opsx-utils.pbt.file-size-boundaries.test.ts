@@ -11,7 +11,7 @@ import {
   type ProjectOpsxBundle,
 } from '../../src/utils/opsx-utils.js';
 
-describe('PBT: Fixed Three-File Layout', () => {
+describe('PBT: Fixed Two-File Layout', () => {
   let testDir: string;
 
   beforeEach(async () => {
@@ -46,21 +46,28 @@ describe('PBT: Fixed Three-File Layout', () => {
     intent: fc.option(fc.string({ minLength: 50, maxLength: 200 }), { nil: undefined }),
   });
 
-  const mkBundle = (overrides: Partial<ProjectOpsxBundle>): ProjectOpsxBundle => ({
-    schema_version: OPSX_SCHEMA_VERSION,
-    project: { id: 'test', name: 'test' },
-    domains: [],
-    capabilities: [],
-    relations: [],
-    code_map: [],
-    ...overrides,
-  });
+  const mkBundle = (overrides: Partial<ProjectOpsxBundle>): ProjectOpsxBundle => {
+    const domains = overrides.domains ?? [];
+    const capabilities = overrides.capabilities ?? [];
+    return {
+      schema_version: OPSX_SCHEMA_VERSION,
+      project: { id: 'test', name: 'test' },
+      domains,
+      capabilities,
+      relations: capabilities.map(capability => ({
+        from: capability.id,
+        type: 'belongs_to',
+        to: domains[0].id,
+      })),
+      ...overrides,
+    };
+  };
 
-  it('Property 1: Small data produces exactly three files', async () => {
+  it('Property 1: Small data produces exactly two files', async () => {
     await fc.assert(
       fc.asyncProperty(
         projectMetadataArb,
-        fc.array(domainNodeArb, { minLength: 1, maxLength: 3 }),
+        fc.uniqueArray(domainNodeArb, { selector: node => node.id, minLength: 1, maxLength: 3 }),
         async (project, domains) => {
           const bundle = mkBundle({ project, domains });
           await writeProjectOpsx(testDir, bundle);
@@ -68,7 +75,7 @@ describe('PBT: Fixed Three-File Layout', () => {
           const opsxDir = path.join(testDir, 'openspec');
           const files = await fs.readdir(opsxDir);
           const opsxFiles = files.filter(f => f.startsWith('project.opsx'));
-          expect(opsxFiles).toHaveLength(3);
+          expect(opsxFiles).toHaveLength(2);
 
           const result = await readProjectOpsx(testDir);
           expect(result).not.toBeNull();
@@ -79,12 +86,12 @@ describe('PBT: Fixed Three-File Layout', () => {
     );
   });
 
-  it('Property 2: Large data still produces exactly three files', async () => {
+  it('Property 2: Large data still produces exactly two files', async () => {
     await fc.assert(
       fc.asyncProperty(
         projectMetadataArb,
-        fc.array(domainNodeArb, { minLength: 50, maxLength: 100 }),
-        fc.array(capabilityNodeArb, { minLength: 50, maxLength: 100 }),
+        fc.uniqueArray(domainNodeArb, { selector: node => node.id, minLength: 50, maxLength: 100 }),
+        fc.uniqueArray(capabilityNodeArb, { selector: node => node.id, minLength: 50, maxLength: 100 }),
         async (project, domains, capabilities) => {
           const bundle = mkBundle({ project, domains, capabilities });
           await writeProjectOpsx(testDir, bundle);
@@ -92,7 +99,7 @@ describe('PBT: Fixed Three-File Layout', () => {
           const opsxDir = path.join(testDir, 'openspec');
           const files = await fs.readdir(opsxDir);
           const opsxFiles = files.filter(f => f.startsWith('project.opsx'));
-          expect(opsxFiles).toHaveLength(3);
+          expect(opsxFiles).toHaveLength(2);
 
           const result = await readProjectOpsx(testDir);
           expect(result).not.toBeNull();
@@ -108,7 +115,7 @@ describe('PBT: Fixed Three-File Layout', () => {
     await fc.assert(
       fc.asyncProperty(
         projectMetadataArb,
-        fc.array(domainNodeArb, { minLength: 1, maxLength: 50 }),
+        fc.uniqueArray(domainNodeArb, { selector: node => node.id, minLength: 1, maxLength: 50 }),
         async (project, domains) => {
           const bundle = mkBundle({ project, domains });
           await writeProjectOpsx(testDir, bundle);
@@ -123,12 +130,12 @@ describe('PBT: Fixed Three-File Layout', () => {
     );
   });
 
-  it('Property 4: Three-file layout preserves all data', async () => {
+  it('Property 4: Two-file layout preserves all data', async () => {
     await fc.assert(
       fc.asyncProperty(
         projectMetadataArb,
-        fc.array(domainNodeArb, { minLength: 10, maxLength: 30 }),
-        fc.array(capabilityNodeArb, { minLength: 10, maxLength: 30 }),
+        fc.uniqueArray(domainNodeArb, { selector: node => node.id, minLength: 10, maxLength: 30 }),
+        fc.uniqueArray(capabilityNodeArb, { selector: node => node.id, minLength: 10, maxLength: 30 }),
         async (project, domains, capabilities) => {
           const bundle = mkBundle({ project, domains, capabilities });
           await writeProjectOpsx(testDir, bundle);

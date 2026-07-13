@@ -46,22 +46,23 @@ ${OPSX_SHARED_CONTEXT}
    - A user-specified commit, commit range, or branch range given in natural language is an agent-parsed evidence selector (e.g. \`git diff <range> --name-only\`), not a formal OpenSpec CLI flag.
    - Exclude non-code files (\`.md\`, \`.json\`, \`.yaml\`, lock files) from spec inference.
    - Mark conflicts or uncertain mappings with \`[REVIEW NEEDED]\`.
-4. Reverse-map files to capabilities via code-map.
-   - Read \`openspec/project.opsx.code-map.yaml\` and map each modified path to its capability/domain node IDs.
-   - Files without a code-map entry are [REVIEW NEEDED] candidates for new capabilities.
+4. Map changed symbols/files to capabilities using current evidence.
+   - Use capability IDs/intents, OPSX relations, and spec coverage as semantic context.
+   - If CodeGraph is available, use symbol/call/import evidence as an optional accelerator; never read \`.codegraph/codegraph.db\`.
+   - Otherwise use ACE, \`rg\`, and \`read\`; uncertain mappings remain \`[REVIEW NEEDED]\` and MUST NOT silently create capabilities.
 5. Map capabilities to existing specs via spec registry.
    - Run \`openspec list --specs --json\` to get all specs with their \`capabilities\` field.
-   - For each capability ID from step 4 code-map reverse lookup:
+   - For each capability ID from step 4 evidence mapping:
      - If the capability ID appears in any spec's \`capabilities\` array → mark as **Modified Capability** and record the spec directory name.
      - If no existing spec covers it → mark as **New Capability**.
    - Use this mapping when reconciling the proposal's \`## Capabilities\` section.
-6. Use CLI-backed OPSX navigation after code-map reverse lookup.
+6. Use CLI-backed OPSX navigation after evidence mapping.
 ${OPSX_CLI_QUERY_CONTEXT}
 7. Reconcile \`proposal.md\`.
    - Run \`openspec instructions proposal --change "<name>" --json\`.
    - Use the returned \`template\`, \`instruction\`, \`outputPath\`, and \`configProjection\`; do not invent non-template sections.
    - Determine the \`## Capabilities\` list before specs generation and reuse the same list as specs input.
-   - Prefer code-map reverse lookup; files without code-map coverage may use evidence inference but MUST be marked \`[REVIEW NEEDED]\`.
+   - Reuse the confirmed evidence mapping; uncertain inference MUST be marked \`[REVIEW NEEDED]\`.
    - Preserve the template headings including \`## Why\`, \`## What Changes\`, \`## Capabilities\`, and \`## Impact\`.
    - If an existing proposal already matches the evidence and capability mapping, leave it current and report that no reconciliation was needed.
 8. Reconcile delta specs in \`specs/<capability>/spec.md\`.

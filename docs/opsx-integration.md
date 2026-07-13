@@ -2,437 +2,149 @@
 
 ## Overview
 
-OpenSpec now includes **programmatic OPSX infrastructure** that maintains a machine-readable representation of your project's architecture alongside human-readable specs.
+OPSX v2 stores the project architecture in exactly two files:
 
-**Key file:** `openspec/project.opsx.yaml`
+- `openspec/project.opsx.yaml` — project metadata, domains, and capabilities
+- `openspec/project.opsx.relations.yaml` — directed semantic relations
 
-This file tracks:
-- **Domains** — logical boundaries in your system
-- **Capabilities** — what your system can do
-- **Relations** — how components connect
-- **Code references** — links to implementation
-- **Spec references** — links to documentation
+The model provides stable architecture boundaries for validation, workflows, and AI navigation. Code locations remain live evidence and are discovered with optional CodeGraph or repository search tools.
 
-## Why This Exists
-
-**Problem:** Specs drift from code. Documentation becomes outdated. Architecture knowledge lives only in people's heads.
-
-**Solution:** Maintain a single source of truth that:
-1. **Stays in sync** — updated automatically during changes
-2. **Validates integrity** — catches broken references and inconsistencies
-3. **Enables automation** — machine-readable for tooling
-4. **Guides AI** — provides context for code generation
-
-## File Structure
-
-### Single File Mode (Default)
-
-For small projects, everything lives in one file:
+## Project Model
 
 ```yaml
 # openspec/project.opsx.yaml
+schema_version: 2
 project:
-  name: my-app
-  version: 1.0.0
+  id: proj.my-app
+  name: My App
+  intent: Application and API surface
 
 domains:
   - id: dom.auth
     type: domain
-    intent: User authentication and authorization
-    code_refs:
-      - path: src/auth/index.ts
-        line_start: 1
+    intent: Authentication boundary
 
 capabilities:
   - id: cap.auth.login
     type: capability
-    intent: User login with email/password
-    code_refs:
-      - path: src/auth/login.ts
-        line_start: 15
-        line_end: 45
-    spec_refs:
-      - path: specs/auth/login.md
+    intent: Authenticate a user
+```
 
+Every capability has exactly one ownership relation:
+
+```yaml
+# openspec/project.opsx.relations.yaml
+schema_version: 2
 relations:
   - from: cap.auth.login
+    type: belongs_to
     to: dom.auth
-    type: contains
 ```
 
-### Sharded Mode (Automatic)
+## Semantic Relations
 
-When the file exceeds 1000 lines, it automatically shards by domain:
+OPSX v2 supports six relation types:
 
-```
-openspec/
-├── project.opsx.yaml          # Metadata + relations
-├── project.opsx.dom.auth.yaml # Auth domain nodes
-└── project.opsx.dom.api.yaml  # API domain nodes
-```
+- `belongs_to` — capability ownership within one domain
+- `invokes` — one capability actively triggers another
+- `consumes` — one capability uses another capability's output or contract
+- `precedes` — one capability must complete before another
+- `constrains` — one capability limits another capability's valid behavior
+- `validates` — one capability judges another capability's validity
 
-**You don't manage this manually** — the system handles sharding transparently.
+The canonical endpoint rules, note policy, selection guide, and examples are in [`openspec/references/openspec-relation-authoring.md`](../openspec/references/openspec-relation-authoring.md).
 
-## Node Types
-
-### Domains
-
-Logical boundaries in your system:
-
-```yaml
-domains:
-  - id: dom.auth           # Must start with 'dom.'
-    type: domain
-    intent: Authentication and authorization
-    code_refs:
-      - path: src/auth/
-    spec_refs:
-      - path: specs/auth/
-```
-
-### Capabilities
-
-What your system can do:
-
-```yaml
-capabilities:
-  - id: cap.user.create    # Must start with 'cap.'
-    type: capability
-    intent: Create new user account
-    code_refs:
-      - path: src/users/create.ts
-        line_start: 20
-        line_end: 85
-    spec_refs:
-      - path: specs/users/create-user.md
-```
-
-### Relations
-
-How components connect:
-
-```yaml
-relations:
-  - from: cap.user.create
-    to: dom.user
-    type: contains         # Capability belongs to domain
-
-  - from: cap.user.create
-    to: cap.email.send
-    type: depends_on       # Needs email capability
-
-  - from: cap.user.create
-    to: req.gdpr.consent
-    type: constrains       # Must satisfy GDPR
-```
-
-**Relation types:**
-- `contains` — hierarchical ownership
-- `depends_on` — runtime dependency
-- `constrains` — requirement/constraint
-- `implemented_by` — code implements spec
-- `verified_by` — test verifies behavior
-- `relates_to` — general association
+Do not infer semantic relations mechanically from imports or calls. Use code evidence to form candidates, then select a relation only when the interaction mechanism is clear.
 
 ## Workflow Integration
 
-### During `/opsx:propose`
+### Propose
 
-When you propose a change, the system generates `opsx-delta.yaml`:
+A change may include `opsx-delta.yaml`:
 
 ```yaml
-# openspec/changes/add-auth/opsx-delta.yaml
+schema_version: 2
 ADDED:
-  domains:
-    - id: dom.auth
-      type: domain
-      intent: Authentication domain
-
   capabilities:
-    - id: cap.auth.login
+    - id: cap.auth.logout
       type: capability
-      intent: User login
-
+      intent: End a user session
   relations:
-    - from: cap.auth.login
+    - from: cap.auth.logout
+      type: belongs_to
       to: dom.auth
-      type: contains
+MODIFIED: {}
+REMOVED: {}
 ```
 
-### During `/opsx:apply`
+### Apply
 
-The system:
-1. **Loads context** — reads `project.opsx.yaml` to understand existing architecture
-2. **Guides implementation** — shows how new code fits into the system
-3. **Updates references** — adds `code_refs` as you implement
+Apply uses project metadata and semantic relation paths as architecture context. It locates implementation evidence from the current repository rather than from persisted path mappings.
 
-### During `/opsx:archive`
+### Sync and archive
 
-The system:
-1. **Merges delta** — applies changes from `opsx-delta.yaml` to `project.opsx.yaml`
-2. **Validates integrity** — ensures all references are valid
-3. **Checks alignment** — verifies specs match the delta
+Sync applies the reviewed delta to the two-file model and validates the complete relation graph. Archive runs the verification gates before linking the change into the main specs and OPSX files.
+
+## Query and Authoring Help
+
+```bash
+openspec opsx query cap.auth.login --json
+openspec opsx query cap.auth.login --depth 2 --json
+openspec help authoring
+openspec help authoring project.opsx.relations.yaml
+openspec help authoring opsx-delta.yaml --json
+```
+
+Query output preserves relation direction and type. Use CodeGraph, ACE, `rg`, or `read` after semantic navigation when implementation locations are needed.
 
 ## Validation
 
-### Referential Integrity
+The v2 validator checks:
 
-All relations must reference existing nodes:
+- schema version and the fixed two-file layout
+- relation endpoint kinds and dangling endpoints
+- exactly one `belongs_to` relation per capability
+- duplicate edges and self-loops
+- note policy and length
+- forbidden `precedes` cycles
 
-```yaml
-# ✅ Valid
-relations:
-  - from: cap.auth.login  # Exists in capabilities
-    to: dom.auth          # Exists in domains
-    type: contains
-
-# ❌ Invalid
-relations:
-  - from: cap.auth.login
-    to: dom.nonexistent   # Error: node not found
-    type: contains
-```
-
-### Spec References
-
-All `spec_refs` must point to existing files:
-
-```yaml
-# ✅ Valid
-capabilities:
-  - id: cap.auth.login
-    spec_refs:
-      - path: specs/auth/login.md  # File exists
-
-# ❌ Invalid
-capabilities:
-  - id: cap.auth.login
-    spec_refs:
-      - path: specs/missing.md     # Error: file not found
-```
-
-## Bootstrap Workflow
-
-For existing projects without OPSX structure:
+Other semantic cycles are reported as non-blocking diagnostics for review.
 
 ```bash
-# Start the CLI-backed bootstrap workflow for an existing codebase
+openspec validate --all
+```
+
+## Bootstrap
+
+For an existing repository:
+
+```bash
 /opsx:bootstrap
 ```
 
-This creates a **[DRAFT]** structure by:
-1. **Discovering domains** — from directory structure
-2. **Finding capabilities** — from exports and APIs
-3. **Detecting relations** — from imports and calls
-4. **Linking code** — adding `code_refs`
+Bootstrap discovers a complete candidate from current source, specs, configuration, and reviewed evidence. Imports and calls are candidate evidence only. Promotion writes the two formal v2 files after semantic review.
 
-**You review and refine** — the AI marks it `[DRAFT]` for your approval.
+See [OPSX Bootstrap Workflow](./opsx-bootstrap.md).
 
-## Property-Based Testing
-
-The infrastructure is tested with property-based tests that verify:
-
-### YAML Structure Preservation
-- Round-trip serialization maintains data
-- Schema validation catches invalid structures
-- Type safety enforced at runtime
-
-### Referential Integrity
-- All relation endpoints exist
-- No dangling references
-- Circular dependencies detected
-
-### Merge Idempotency
-- Writing same data twice produces identical result
-- Read-write-read cycle preserves data
-- Multiple writes maintain consistency
-
-### File Size Boundaries
-- Small data stays in single file
-- Large data triggers sharding
-- Sharding preserves all data
-- Reads work regardless of sharding
-
-### Atomic Write Guarantees
-- No partial writes visible
-- No temporary files left behind
-- Sequential writes maintain consistency
-
-### Spec References Alignment
-- Valid refs pass validation
-- Missing files fail validation
-- Mixed valid/invalid refs report correctly
-
-## Migration Guide
-
-### From Root `project.opsx.yaml`
-
-If you have an old `project.opsx.yaml` at project root:
-
-```bash
-# Move to new location
-mv project.opsx.yaml openspec/project.opsx.yaml
-
-# Update any hardcoded paths in your code
-# Old: path.join(projectRoot, 'project.opsx.yaml')
-# New: path.join(projectRoot, 'openspec', 'project.opsx.yaml')
-```
-
-The system now uses `openspec/project.opsx.yaml` as the canonical location.
-
-### From Manual OPSX Management
-
-If you've been manually editing OPSX files:
-
-1. **Let the workflow manage it** — use `/opsx:propose` and `/opsx:archive`
-2. **Validate your structure** — run `openspec validate --all` and rely on `/opsx:archive` for the full verify gate
-3. **Fix any issues** — the validator will report problems
-
-## Best Practices
-
-### 1. Let the Workflow Manage OPSX
-
-**Don't manually edit** `project.opsx.yaml` — let the workflow update it:
-
-```bash
-# ✅ Good
-/opsx:propose "add user management"
-# ... implement ...
-/opsx:archive
-
-# ❌ Avoid
-# Manually editing project.opsx.yaml
-```
-
-### 2. Use Meaningful IDs
-
-```yaml
-# ✅ Good
-- id: dom.user-management
-- id: cap.user.create-account
-
-# ❌ Avoid
-- id: dom.thing1
-- id: cap.do-stuff
-```
-
-### 3. Add Intent Descriptions
-
-```yaml
-# ✅ Good
-- id: cap.auth.login
-  intent: Authenticate user with email/password, create session
-
-# ❌ Avoid
-- id: cap.auth.login
-  # No intent
-```
-
-### 4. Link Code and Specs
-
-```yaml
-# ✅ Good
-- id: cap.user.create
-  code_refs:
-    - path: src/users/create.ts
-      line_start: 20
-      line_end: 85
-  spec_refs:
-    - path: specs/users/create-user.md
-
-# ❌ Avoid
-- id: cap.user.create
-  # No references
-```
-
-### 5. Validate Before Archiving
-
-```bash
-# Archive runs the verify gate before archiving
-/opsx:archive
-```
-
-## Troubleshooting
-
-### "Referential integrity violation"
-
-**Problem:** A relation references a non-existent node.
-
-**Solution:** Check the `from` and `to` IDs in your relations. Ensure all referenced nodes exist in `domains` or `capabilities`.
-
-### "Spec reference not found"
-
-**Problem:** A `spec_refs` path doesn't exist.
-
-**Solution:** Either create the missing spec file or remove the reference.
-
-### "Failed to parse OPSX file"
-
-**Problem:** Invalid YAML syntax.
-
-**Solution:** Check for:
-- Proper indentation (2 spaces)
-- Quoted strings with special characters
-- Valid YAML structure
-
-### "Sharding threshold exceeded"
-
-**Problem:** File is too large but sharding failed.
-
-**Solution:** This is usually automatic. If it fails, check:
-- Write permissions in `openspec/` directory
-- Disk space available
-- No file locks on OPSX files
-
-## API Reference
-
-### Reading OPSX
+## API
 
 ```typescript
-import { readProjectOpsx } from './utils/opsx-utils.js';
+import { readProjectOpsx, writeProjectOpsx } from './utils/opsx-utils.js';
 
-const opsx = await readProjectOpsx(projectRoot);
-if (opsx) {
-  console.log(opsx.domains);
-  console.log(opsx.capabilities);
-  console.log(opsx.relations);
+const bundle = await readProjectOpsx(projectRoot);
+if (bundle) {
+  console.log(bundle.domains, bundle.capabilities, bundle.relations);
 }
-```
-
-### Writing OPSX
-
-```typescript
-import { writeProjectOpsx } from './utils/opsx-utils.js';
 
 await writeProjectOpsx(projectRoot, {
-  project: { name: 'my-app', version: '1.0.0' },
+  schema_version: 2,
+  project: { id: 'proj.my-app', name: 'My App' },
   domains: [{ id: 'dom.core', type: 'domain' }],
+  capabilities: [{ id: 'cap.core.start', type: 'capability' }],
+  relations: [{ from: 'cap.core.start', type: 'belongs_to', to: 'dom.core' }],
 });
 ```
 
-### Validation
+## Migration
 
-```typescript
-import {
-  validateReferentialIntegrity,
-  validateSpecRefs
-} from './utils/opsx-utils.js';
-
-// Check relations
-const integrityResult = validateReferentialIntegrity(opsx);
-if (!integrityResult.valid) {
-  console.error(integrityResult.errors);
-}
-
-// Check spec files
-const specResult = await validateSpecRefs(projectRoot, opsx);
-if (!specResult.valid) {
-  console.error(specResult.errors);
-}
-```
-
-## Next Steps
-
-- Read [OPSX Workflow](./opsx.md) for the full workflow
-- See [Bootstrap Guide](./opsx-bootstrap.md) for existing projects
-- Check [PBT Properties](./opsx-testing.md) for testing guarantees
+OPSX v1 files are not normalized at runtime. Rebuild the architecture with bootstrap, review every relation by mechanism, and validate the resulting v2 graph. This explicit migration prevents vague dependencies and stale path evidence from silently entering the semantic model.

@@ -14,7 +14,8 @@ If either changes, rerun `openspec bootstrap validate` and review the regenerate
 
 - [ ] Review matches current candidate output
 - [ ] Referential integrity passes
-- [ ] Code-map paths exist on disk
+- [ ] Relation semantic validation passes
+- [ ] Review gaps are resolved or explicitly accepted
 - [ ] Candidate spec set matches the bootstrap mode contract
 - [ ] Candidate specs pass OpenSpec validation
 - [ ] Domain boundaries match mental model

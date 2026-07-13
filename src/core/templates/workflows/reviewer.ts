@@ -34,7 +34,7 @@ ${OPSX_COMPILATION_PHILOSOPHY}
 1. Read proposal.md, specs/*/spec.md, design.md, tasks.md, opsx-delta.yaml, and changeDir/.verify-result.json when present.
 2. Resolve originalBranch: read changeDir/.apply-isolation.json, then git symbolic-ref refs/remotes/origin/HEAD --short, else git ls-files --modified --others --exclude-standard plus prior verificationContext.evidenceFiles and record a WARNING in gitDiffSummary.
 3. Run git status and, when possible, git diff <originalBranch>...HEAD --name-only. Use name-only output only as navigation; final file contents are evidence.
-4. Build candidates from evidenceFiles, name-only output, OPSX code-map refs, and requirement keywords.
+4. Build candidates from evidenceFiles, name-only output, OPSX semantic relation paths, live repository search, and requirement keywords.
 5. Read every candidate implementation/test file before positive or negative judgment.
 
 ## Verification Protocol
@@ -98,7 +98,7 @@ For each file in \`git diff <originalBranch>...HEAD --name-only\` scope and outs
 - Attribution matching: normalize both paths to POSIX relative paths before comparing.
 
 ### OPSX Alignment
-- If opsx-delta.yaml exists, check relation referential integrity and code-map node references; misalignment is WARNING.
+- If opsx-delta.yaml exists, check Registry relation endpoint, ownership, note, duplicate, dangling-edge, and cycle contracts; misalignment is WARNING.
 
 ## Output Contract
 

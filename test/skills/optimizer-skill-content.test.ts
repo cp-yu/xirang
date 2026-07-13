@@ -46,7 +46,9 @@ describe('openspec optimizer skill content', () => {
     expect(instructions).toContain('## Dependency Expansion (One Hop)');
     expect(instructions).toContain('imports');
     expect(instructions).toContain('callers');
-    expect(instructions).toContain('OPSX relations');
+    expect(instructions).toContain('OPSX semantic relations');
+    expect(instructions).toContain('Registry meaning');
+    expect(instructions).not.toMatch(/\bdepends_on\b|\brelates_to\b/);
     expect(instructions).toContain('one hop');
   });
 

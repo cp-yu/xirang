@@ -141,8 +141,8 @@ export async function bootstrapInitCommand(options: BootstrapInitOptions): Promi
       console.log('This mode writes the formal OPSX bundle plus a README-only specs starter. Add behavior specs later through normal change workflows.');
       console.log();
     } else if (metadata.mode === 'refresh') {
-      console.log('Refresh mode treats the current formal OPSX bundle as the baseline and rebuilds only reviewed deltas.');
-      console.log('Git diff only narrows scan scope; it does not replace the existing formal OPSX bundle as source of truth.');
+      console.log('Refresh mode rebuilds a complete candidate from all current repository evidence.');
+      console.log('The existing formal OPSX v2 files are review-only baseline evidence and are replaced atomically after approval.');
       console.log();
     } else if (metadata.baseline_type === 'raw') {
       console.log('Full mode will generate the formal OPSX bundle plus complete valid candidate specs for each capability.');
@@ -363,9 +363,9 @@ function getPreInitInstructions(status: Extract<BootstrapStatus, { initialized: 
   }
 
   if (status.baselineType === 'formal-opsx') {
-    lines.push('', 'Refresh preserves the current formal OPSX bundle as the baseline.');
-    lines.push('Git diff is used only to narrow the scan scope when a prior refresh anchor is available.');
-    lines.push('Promotion merges reviewed deltas back into the formal OPSX bundle instead of overwriting it wholesale.');
+    lines.push('', 'Refresh rebuilds a complete candidate from all current repository evidence.');
+    lines.push('The old formal OPSX v2 model is used only for the review diff.');
+    lines.push('After approval, promotion atomically replaces both formal OPSX v2 files.');
   }
 
   if (status.baselineType === 'raw') {
@@ -391,7 +391,7 @@ This creates the workspace at openspec/bootstrap/ with scope configuration.
 ${mode === 'opsx-first'
   ? 'This mode prepares the formal OPSX bundle plus a README-only specs starter. Add behavior specs incrementally later through normal change workflows.'
   : mode === 'refresh'
-    ? 'This mode treats the current formal OPSX bundle as the source-of-truth baseline, uses git diff only to narrow scan scope when possible, and prepares delta-first review/promote outputs.'
+    ? 'This mode rebuilds a complete candidate from current source, specs, config, and reviewed evidence; the existing formal OPSX v2 bundle is review-only baseline evidence.'
   : baselineType === 'specs-based'
     ? 'This mode preserves existing specs, adds missing capability specs, and fails fast if a generated target path already exists.'
     : 'This mode prepares the formal OPSX bundle plus complete valid candidate specs for each mapped capability.'}
@@ -413,20 +413,20 @@ Each domain entry should have:
 
 Prefer fewer domains with solid evidence over exhaustive noise.
 ${mode === 'refresh'
-  ? '\nFor refresh, treat the existing formal OPSX bundle and current specs as the baseline. If git is available, use diff only to narrow the scan scope; fall back to a full scan when the diff cannot be mapped confidently.'
+  ? '\nFor refresh, scan all current source, specs, configuration, and package/build metadata. The existing formal OPSX v2 model is review-only evidence and must not supply candidate content.'
   : ''}
 After writing evidence.yaml, run: openspec bootstrap validate`;
 
     case 'map':
-      return `Map capabilities, relations, and code references per domain.
+      return `Map capabilities and semantic relations per domain.
 
 For each domain in evidence.yaml, create domain-map/<domain-id>.yaml:
 - domain: the domain node definition
 - capabilities: list of cap.<domain>.<action> entries
-- relations: contains/depends_on relationships
-- code_refs: file paths and line ranges for each node
+- relations: precise Registry-defined belongs_to/invokes/consumes/precedes/constrains/validates facts
+- review_gaps: evidence and reason for interactions that cannot be classified precisely
 
-This phase is incremental — map one domain at a time.
+Map one domain at a time, but derive every entry from the complete current scan.
 Run: openspec bootstrap status to see per-domain progress.
 After mapping all domains, run: openspec bootstrap validate`;
 
@@ -434,7 +434,7 @@ After mapping all domains, run: openspec bootstrap validate`;
       return `Review the mapped architecture before promotion.
 
 1. Run: openspec bootstrap validate (regenerates candidate files and review.md from current evidence.yaml + domain-map/*.yaml)
-2. Review review.md — check each domain's boundaries, capabilities, code refs${mode === 'refresh' ? ', and the delta against the current formal OPSX baseline' : ''}
+2. Review review.md — check each domain's boundaries, capabilities, semantic relation type/direction, ownership, and review gaps${mode === 'refresh' ? ', plus the complete-candidate diff against the old formal review baseline' : ''}
 3. Mark each domain checkbox as reviewed
 4. If evidence or domain maps change, run validate again and re-approve the regenerated review
 
@@ -447,11 +447,11 @@ When all checkboxes are checked, proceed to promote.`;
 Run: openspec bootstrap promote
 
 This re-validates scan, map, and review gates before writing any formal OPSX files.
-Successful promotion writes the three formal OPSX files and retains the bootstrap workspace as audit history.
+Successful promotion writes the two formal OPSX v2 files and retains the bootstrap workspace as audit history.
 ${mode === 'opsx-first'
   ? 'Opsx-first writes the formal OPSX bundle plus only openspec/specs/README.md.'
   : mode === 'refresh'
-    ? 'Refresh merges the reviewed delta back into the existing formal OPSX bundle, preserves existing specs, adds only missing specs for newly added capabilities, and fails fast on spec-path conflicts.'
+    ? 'Refresh rebuilds the complete candidate from current evidence, uses the old model only for review diff, replaces both formal files, and fails fast on spec-path conflicts.'
     : baselineType === 'specs-based'
     ? 'Full mode preserves your existing specs, adds only missing capability specs, and fails fast on target-path conflicts.'
     : 'Full mode writes the formal OPSX bundle plus valid specs covering all mapped capabilities (coarse: grouped via spec_groups, fine: one per capability).'}}
@@ -551,7 +551,6 @@ export async function bootstrapPromoteCommand(options: BootstrapPromoteOptions):
     spinner.succeed('Bootstrap promoted to formal OPSX files');
     console.log('  Written: openspec/project.opsx.yaml');
     console.log('  Written: openspec/project.opsx.relations.yaml');
-    console.log('  Written: openspec/project.opsx.code-map.yaml');
     console.log(`  Backfill specs: written ${result.backfill.written.length}, unmatched ${result.backfill.unmatched.length}`);
     console.log(`  ${result.retainedWorkspaceNotice}`);
   } catch (error) {

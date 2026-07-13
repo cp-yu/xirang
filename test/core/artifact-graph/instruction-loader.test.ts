@@ -20,6 +20,18 @@ describe('instruction-loader', () => {
       expect(template).toContain('## What Changes');
     });
 
+    it('loads bootstrap init and review templates with the complete v2 refresh contract', () => {
+      const initTemplate = loadTemplate('bootstrap', 'init.md');
+      const reviewTemplate = loadTemplate('bootstrap', 'review.md');
+
+      expect(initTemplate).toContain('formal-opsx -> refresh');
+      expect(initTemplate).toContain('complete candidate from current evidence');
+      expect(initTemplate).toContain('old formal OPSX v2 model is review-only evidence');
+      expect(reviewTemplate).toContain('Relation semantic validation passes');
+      expect(reviewTemplate).toContain('Review gaps are resolved or explicitly accepted');
+      expect(reviewTemplate).not.toMatch(/code-map/i);
+    });
+
     it('should throw TemplateLoadError for non-existent template', () => {
       expect(() => loadTemplate('spec-driven', 'nonexistent.md')).toThrow(
         TemplateLoadError
@@ -667,7 +679,7 @@ rules:
       fs.writeFileSync(path.join(changeDir, 'proposal.md'), '# Proposal');
       fs.writeFileSync(path.join(changeDir, 'specs', 'test.md'), '# Spec');
       fs.writeFileSync(path.join(changeDir, 'design.md'), '# Design');
-      fs.writeFileSync(path.join(changeDir, 'opsx-delta.yaml'), 'schema_version: 1\nADDED:\n  capabilities: []\n');
+      fs.writeFileSync(path.join(changeDir, 'opsx-delta.yaml'), 'schema_version: 2\nADDED:\n  capabilities: []\n');
       fs.writeFileSync(path.join(changeDir, 'tasks.md'), '# Tasks');
 
       const context = loadChangeContext(tempDir, 'my-change');

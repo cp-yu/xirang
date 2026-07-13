@@ -64,10 +64,13 @@ describe('PBT: Bootstrap mode contract', () => {
 
 describe('Bootstrap contract parity', () => {
   it('keeps schema, workflow template, and docs on approved mode names', async () => {
-    const [schema, workflow, docs] = await Promise.all([
+    const [schema, workflow, docs, command, cli, applyPreparation] = await Promise.all([
       fs.readFile(path.join(projectRoot, 'schemas/bootstrap/schema.yaml'), 'utf-8'),
       fs.readFile(path.join(projectRoot, 'src/core/templates/workflows/bootstrap-opsx.ts'), 'utf-8'),
       fs.readFile(path.join(projectRoot, 'docs/opsx-bootstrap.md'), 'utf-8'),
+      fs.readFile(path.join(projectRoot, 'src/commands/bootstrap.ts'), 'utf-8'),
+      fs.readFile(path.join(projectRoot, 'src/cli/index.ts'), 'utf-8'),
+      fs.readFile(path.join(projectRoot, 'openspec/references/openspec-apply-step-1-preparation.md'), 'utf-8'),
     ]);
 
     for (const content of [schema, workflow, docs]) {
@@ -83,6 +86,15 @@ describe('Bootstrap contract parity', () => {
     expect(schema).toContain('formal-opsx -> refresh');
     expect(workflow).toContain('formal-opsx -> refresh');
     expect(docs).toContain('formal-opsx -> refresh');
+
+    for (const content of [schema, workflow, docs, command, cli, applyPreparation]) {
+      expect(content).not.toMatch(/delta-first|git diff only to narrow|code-map refs|merges reviewed changes back/i);
+    }
+    expect(schema).toContain('complete candidate from current evidence');
+    expect(workflow).toContain('complete candidate');
+    expect(command).toContain('complete candidate');
+    expect(cli).toContain('complete rebuild');
+    expect(applyPreparation).toContain('semantic relations');
   });
 });
 
@@ -115,7 +127,6 @@ async function writeBootstrapDomainMap(
 ): Promise<string[]> {
   const capabilities: any[] = [];
   const relations: any[] = [];
-  const code_refs: any[] = [];
   const folders: string[] = [];
 
   await fs.mkdir(path.join(projectDir, 'src', 'pbt'), { recursive: true });
@@ -154,11 +165,7 @@ async function writeBootstrapDomainMap(
       ...(spec ? { spec } : {}),
     });
 
-    relations.push({ from: capId, to: 'dom.pbt', type: 'contains' });
-    code_refs.push({
-      id: capId,
-      refs: [{ path: `src/pbt/${capId}.ts`, line_start: 1 }],
-    });
+    relations.push({ from: capId, to: 'dom.pbt', type: 'belongs_to' });
 
     await fs.writeFile(path.join(projectDir, 'src', 'pbt', `${capId}.ts`), 'export {};\n', 'utf-8');
   }
@@ -167,7 +174,6 @@ async function writeBootstrapDomainMap(
     domain: { id: 'dom.pbt', type: 'domain', intent: 'PBT domain' },
     capabilities,
     relations,
-    code_refs,
   };
   await fs.writeFile(
     path.join(projectDir, 'openspec', 'bootstrap', 'domain-map', 'dom.pbt.yaml'),
@@ -308,7 +314,6 @@ describe('PBT: Bootstrap candidate specs contract', () => {
           const candidateFiles = [
             path.join(projectDir, 'openspec', 'bootstrap', 'candidate', 'project.opsx.yaml'),
             path.join(projectDir, 'openspec', 'bootstrap', 'candidate', 'project.opsx.relations.yaml'),
-            path.join(projectDir, 'openspec', 'bootstrap', 'candidate', 'project.opsx.code-map.yaml'),
             ...folders.map((folder) =>
               path.join(projectDir, 'openspec', 'bootstrap', 'candidate', 'specs', folder, 'spec.md')
             ),

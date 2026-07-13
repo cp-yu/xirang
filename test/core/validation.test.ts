@@ -740,15 +740,12 @@ The system SHALL validate labels.
   });
 
   describe('validateOpsxDelta', () => {
-    async function writeProjectOpsxFixture(
-      rootDir: string,
-      options: { invalidCodeMap?: boolean } = {}
-    ): Promise<void> {
+    async function writeProjectOpsxFixture(rootDir: string): Promise<void> {
       const openspecDir = path.join(rootDir, 'openspec');
       await fs.mkdir(openspecDir, { recursive: true });
       await fs.writeFile(
         path.join(openspecDir, 'project.opsx.yaml'),
-        `schema_version: 1
+        `schema_version: 2
 project:
   id: proj.test
   name: Test Project
@@ -764,20 +761,11 @@ capabilities:
       );
       await fs.writeFile(
         path.join(openspecDir, 'project.opsx.relations.yaml'),
-        `schema_version: 1
+        `schema_version: 2
 relations:
   - from: cap.core.existing
-    type: contains
+    type: belongs_to
     to: dom.core
-`,
-      );
-      await fs.writeFile(
-        path.join(openspecDir, 'project.opsx.code-map.yaml'),
-        `schema_version: 1
-nodes:
-  - id: ${options.invalidCodeMap ? 'cap.core.ghost' : 'cap.core.existing'}
-    refs:
-      - path: src/core/existing.ts
 `,
       );
     }
@@ -794,7 +782,7 @@ nodes:
       const changeDir = await writeChangeDelta(
         testDir,
         'valid-opsx',
-        `schema_version: 1
+        `schema_version: 2
 ADDED:
   capabilities:
     - id: cap.core.new
@@ -802,7 +790,7 @@ ADDED:
       intent: New capability
   relations:
     - from: cap.core.new
-      type: contains
+      type: belongs_to
       to: dom.core
 `,
       );
@@ -817,7 +805,7 @@ ADDED:
       const changeDir = await writeChangeDelta(
         testDir,
         'missing-project',
-        `schema_version: 1
+        `schema_version: 2
 ADDED:
   capabilities:
     - id: cap.core.new
@@ -848,7 +836,7 @@ ADDED:
       const changeDir = await writeChangeDelta(
         testDir,
         'modified-missing-node',
-        `schema_version: 1
+        `schema_version: 2
 MODIFIED:
   capabilities:
     - id: cap.core.missing
@@ -868,11 +856,11 @@ MODIFIED:
       const changeDir = await writeChangeDelta(
         testDir,
         'broken-relation',
-        `schema_version: 1
+        `schema_version: 2
 ADDED:
   relations:
     - from: cap.core.existing
-      type: contains
+      type: belongs_to
       to: dom.core.missing
 `,
       );
@@ -880,27 +868,8 @@ ADDED:
       const report = await new Validator().validateOpsxDelta(changeDir);
 
       expect(report.valid).toBe(false);
-      expect(report.issues.some(i => i.message.includes('Referential integrity failed'))).toBe(true);
-    });
-
-    it('should fail when code-map integrity is broken', async () => {
-      await writeProjectOpsxFixture(testDir, { invalidCodeMap: true });
-      const changeDir = await writeChangeDelta(
-        testDir,
-        'broken-code-map',
-        `schema_version: 1
-ADDED:
-  capabilities:
-    - id: cap.core.new
-      type: capability
-      intent: New capability
-`,
-      );
-
-      const report = await new Validator().validateOpsxDelta(changeDir);
-
-      expect(report.valid).toBe(false);
-      expect(report.issues.some(i => i.message.includes('Code-map integrity failed'))).toBe(true);
+      expect(report.issues.some(i => i.message.includes('Relation validation failed'))).toBe(true);
+      expect(report.issues.some(i => i.message.includes('dom.core.missing'))).toBe(true);
     });
   });
 });

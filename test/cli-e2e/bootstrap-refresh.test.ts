@@ -53,11 +53,11 @@ async function approveReview(projectDir: string): Promise<void> {
   await fs.writeFile(reviewPath, review.replace(/- \[ \]/g, '- [x]'), 'utf-8');
 }
 
-async function writeFormalBaseline(projectDir: string, options: { codeMapRef?: string } = {}): Promise<void> {
+async function writeFormalBaseline(projectDir: string): Promise<void> {
   await writeFile(projectDir, 'src/auth/login.ts', 'export function login() { return true; }\n');
   await writeFile(projectDir, 'src/auth/session.ts', 'export function session() { return true; }\n');
   await writeFile(projectDir, 'openspec/specs/auth/spec.md', '# Existing auth spec\n');
-  await writeFile(projectDir, 'openspec/project.opsx.yaml', `schema_version: 1
+  await writeFile(projectDir, 'openspec/project.opsx.yaml', `schema_version: 2
 project:
   id: proj.demo
   name: Demo
@@ -71,19 +71,11 @@ capabilities:
     type: capability
     intent: Existing login capability
 `);
-  await writeFile(projectDir, 'openspec/project.opsx.relations.yaml', `schema_version: 1
+  await writeFile(projectDir, 'openspec/project.opsx.relations.yaml', `schema_version: 2
 relations:
   - from: cap.auth.login
     to: dom.auth
-    type: contains
-`);
-  await writeFile(projectDir, 'openspec/project.opsx.code-map.yaml', `schema_version: 1
-generated_at: "2026-04-18T00:00:00.000Z"
-nodes:
-  - id: cap.auth.login
-    refs:
-      - path: ${options.codeMapRef ?? 'src/auth/login.ts'}
-        line_start: 1
+    type: belongs_to
 `);
 }
 
@@ -124,13 +116,7 @@ async function writeRefreshDomainMap(projectDir: string, options: { addSessionCa
   ];
 
   const relations = [
-    { from: 'cap.auth.login', to: 'dom.auth', type: 'contains' },
-  ];
-  const code_refs = [
-    {
-      id: 'cap.auth.login',
-      refs: [{ path: 'src/auth/login.ts', line_start: 1 }],
-    },
+    { from: 'cap.auth.login', to: 'dom.auth', type: 'belongs_to' },
   ];
 
   if (options.addSessionCapability) {
@@ -158,11 +144,7 @@ async function writeRefreshDomainMap(projectDir: string, options: { addSessionCa
         ],
       },
     });
-    relations.push({ from: 'cap.auth.session', to: 'dom.auth', type: 'contains' });
-    code_refs.push({
-      id: 'cap.auth.session',
-      refs: [{ path: 'src/auth/session.ts', line_start: 1 }],
-    });
+    relations.push({ from: 'cap.auth.session', to: 'dom.auth', type: 'belongs_to' });
   }
 
   await writeFile(
@@ -176,7 +158,6 @@ async function writeRefreshDomainMap(projectDir: string, options: { addSessionCa
       },
       capabilities,
       relations,
-      code_refs,
     }, { lineWidth: 0 })
   );
 }
@@ -186,9 +167,10 @@ afterAll(async () => {
 });
 
 describe('openspec bootstrap refresh', () => {
-  it('supports formal-opsx -> refresh with full-scan fallback and merge-based promote', async () => {
+  it('supports formal-opsx -> refresh with complete rebuild and atomic replacement', async () => {
     const projectDir = await createTempProject();
     await writeFormalBaseline(projectDir);
+    await writeFile(projectDir, 'package.json', JSON.stringify({ name: '@acme/current-project' }));
     const baselineHead = await initGitRepo(projectDir);
 
     const initResult = await runCLI(['bootstrap', 'init', '--mode', 'refresh', '--granularity', 'fine'], { cwd: projectDir });
@@ -206,7 +188,7 @@ describe('openspec bootstrap refresh', () => {
     expect(reviewResult.exitCode).toBe(1);
 
     const review = await readFile(projectDir, 'openspec/bootstrap/review.md');
-    expect(review).toContain('full-scan-fallback');
+    expect(review).toContain('Strategy: full-rebuild');
     expect(review).toContain('ADDED: 1 nodes');
 
     await approveReview(projectDir);
@@ -215,8 +197,13 @@ describe('openspec bootstrap refresh', () => {
     const promoteResult = await runCLI(['bootstrap', 'promote', '-y'], { cwd: projectDir });
     expect(promoteResult.exitCode).toBe(0);
 
-    await expect(readFile(projectDir, 'openspec/project.opsx.yaml')).resolves.toContain('intent: Existing formal intent');
-    await expect(readFile(projectDir, 'openspec/project.opsx.yaml')).resolves.toContain('cap.auth.session');
+    const promotedProject = await readFile(projectDir, 'openspec/project.opsx.yaml');
+    expect(promotedProject).toContain('id: acme-current-project');
+    expect(promotedProject).toContain('name: "@acme/current-project"');
+    expect(promotedProject).toContain('intent: Authentication boundary');
+    expect(promotedProject).toContain('scope: mode=refresh; mapped domains=dom.auth');
+    expect(promotedProject).not.toContain('Existing formal intent');
+    expect(promotedProject).toContain('cap.auth.session');
     const authSpec = await readFile(projectDir, 'openspec/specs/auth/spec.md');
     expect(authSpec).toContain('capabilities:\n  - cap.auth.login\n  - cap.auth.session');
     expect(authSpec.endsWith('# Existing auth spec\n')).toBe(true);
@@ -226,9 +213,9 @@ describe('openspec bootstrap refresh', () => {
     expect(metadata.refresh_anchor_commit).toBe(baselineHead);
   });
 
-  it('uses git-aware refresh scope when the stored anchor is reachable', async () => {
+  it('rebuilds the complete candidate even when a stored git anchor is reachable', async () => {
     const projectDir = await createTempProject();
-    await writeFormalBaseline(projectDir, { codeMapRef: 'src/auth' });
+    await writeFormalBaseline(projectDir);
     const baselineHead = await initGitRepo(projectDir);
 
     const initResult = await runCLI(['bootstrap', 'init', '--mode', 'refresh', '--granularity', 'fine'], { cwd: projectDir });
@@ -253,10 +240,9 @@ describe('openspec bootstrap refresh', () => {
     expect((await runCLI(['bootstrap', 'validate'], { cwd: projectDir })).exitCode).toBe(1);
 
     const review = await readFile(projectDir, 'openspec/bootstrap/review.md');
-    expect(review).toContain('Strategy: git-diff');
-    expect(review).toContain('src/auth/login.ts');
-    expect(review).toContain('src/auth/staged.ts');
-    expect(review).toContain('src/auth/untracked.ts');
+    expect(review).toContain('Strategy: full-rebuild');
+    expect(review).toContain('Rebuilding the complete candidate from current source, specs, config, and reviewed workspace evidence.');
+    expect(review).not.toContain('Changed paths:');
     expect(review).toContain('MODIFIED: 2 nodes');
   });
 
@@ -267,7 +253,7 @@ describe('openspec bootstrap refresh', () => {
     expect((await runCLI(['bootstrap', 'init', '--mode', 'refresh', '--granularity', 'fine'], { cwd: projectDir })).exitCode).toBe(0);
     await writeFile(projectDir, 'openspec/bootstrap/evidence.yaml', 'domains: []\n');
     await writeFile(projectDir, 'openspec/bootstrap/review.md', '# Completed review\n');
-    await writeFile(projectDir, 'openspec/bootstrap/candidate/project.opsx.yaml', 'schema_version: 1\nproject:\n  id: proj.demo\n  name: Demo\n');
+    await writeFile(projectDir, 'openspec/bootstrap/candidate/project.opsx.yaml', 'schema_version: 2\nproject:\n  id: proj.demo\n  name: Demo\n');
     await writeFile(projectDir, 'openspec/bootstrap/scope.yaml', stringifyYaml({
       mode: 'refresh',
       include: ['src/auth'],

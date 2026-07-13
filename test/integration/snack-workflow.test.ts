@@ -101,7 +101,9 @@ describe('snack workflow integration', () => {
       'utf-8'
     );
     expect(snackSkill).toContain('git diff');
-    expect(snackSkill).toContain('code-map');
+    expect(snackSkill).toContain('CodeGraph');
+    expect(snackSkill).toContain('ACE, `rg`, and `read`');
+    expect(snackSkill).not.toContain('project.opsx.code-map.yaml');
     expect(snackSkill).toContain('openspec instructions proposal');
     expect(snackSkill).toContain('openspec instructions specs');
     expect(snackSkill).toContain('openspec instructions design');

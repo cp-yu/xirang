@@ -10,13 +10,8 @@ import {
   ProjectOpsxFileSchema,
   OpsxDeltaSchema,
   validateReferentialIntegrity,
-  validateCodeMapIntegrity,
-  normalizeFromLegacy,
   applyOpsxDelta,
   readProjectOpsx,
-  readProjectOpsxFile,
-  readProjectOpsxRelations,
-  readProjectOpsxCodeMap,
   writeProjectOpsx,
   readOpsxDelta,
   type ProjectOpsxBundle,
@@ -40,14 +35,13 @@ describe('opsx-utils', () => {
     domains: [],
     capabilities: [],
     relations: [],
-    code_map: [],
     ...overrides,
   });
 
   describe('YAML parse/serialize', () => {
     it('should parse valid YAML with new schema', () => {
       const yaml = `
-schema_version: 1
+schema_version: 2
 project:
   id: test
   name: test
@@ -78,7 +72,7 @@ domains:
 
     it('should serialize to valid YAML', () => {
       const data = {
-        schema_version: 1,
+        schema_version: 2,
         project: { id: 'test', name: 'test' },
         domains: [
           { id: 'dom.core', type: 'domain' as const, intent: 'Core domain' },
@@ -91,7 +85,7 @@ domains:
 
     it('should round-trip parse and serialize', () => {
       const original = {
-        schema_version: 1,
+        schema_version: 2,
         project: { id: 'test', name: 'test' },
         domains: [
           { id: 'dom.core', type: 'domain' as const, intent: 'Core' },
@@ -116,7 +110,7 @@ domains:
       const bundle = mkBundle({
         domains: [{ id: 'dom.core', type: 'domain' }],
         capabilities: [{ id: 'cap.auth', type: 'capability' }],
-        relations: [{ from: 'cap.auth', to: 'dom.core', type: 'contains' }],
+        relations: [{ from: 'cap.auth', to: 'dom.core', type: 'belongs_to' }],
       });
       const result = validateReferentialIntegrity(bundle);
       expect(result.valid).toBe(true);
@@ -126,7 +120,7 @@ domains:
     it('should fail with missing from reference', () => {
       const bundle = mkBundle({
         domains: [{ id: 'dom.core', type: 'domain' }],
-        relations: [{ from: 'cap.missing', to: 'dom.core', type: 'contains' }],
+        relations: [{ from: 'cap.missing', to: 'dom.core', type: 'belongs_to' }],
       });
       const result = validateReferentialIntegrity(bundle);
       expect(result.valid).toBe(false);
@@ -137,7 +131,7 @@ domains:
     it('should fail with missing to reference', () => {
       const bundle = mkBundle({
         capabilities: [{ id: 'cap.auth', type: 'capability' }],
-        relations: [{ from: 'cap.auth', to: 'dom.missing', type: 'contains' }],
+        relations: [{ from: 'cap.auth', to: 'dom.missing', type: 'belongs_to' }],
       });
       const result = validateReferentialIntegrity(bundle);
       expect(result.valid).toBe(false);
@@ -153,82 +147,18 @@ domains:
     });
   });
 
-  describe('code-map integrity validation', () => {
-    it('should pass with valid code_map references', () => {
-      const bundle = mkBundle({
-        capabilities: [{ id: 'cap.auth', type: 'capability' }],
-        code_map: [{ id: 'cap.auth', refs: [{ path: 'src/auth.ts' }] }],
-      });
-      const result = validateCodeMapIntegrity(bundle);
-      expect(result.valid).toBe(true);
-    });
-
-    it('should fail with dangling code_map reference', () => {
-      const bundle = mkBundle({
-        code_map: [{ id: 'cap.missing', refs: [{ path: 'src/missing.ts' }] }],
-      });
-      const result = validateCodeMapIntegrity(bundle);
-      expect(result.valid).toBe(false);
-      expect(result.errors[0]).toContain('cap.missing');
-    });
-  });
-
-  describe('legacy normalization', () => {
-    it('should convert implemented status to active', () => {
-      const legacy = {
-        project: { id: 'test', name: 'test' },
-        domains: [{ id: 'dom.core', type: 'domain', status: 'implemented' }],
-        capabilities: [{ id: 'cap.auth', type: 'capability', status: 'implemented' }],
-      };
-      const bundle = normalizeFromLegacy(legacy);
-      expect(bundle.schema_version).toBe(OPSX_SCHEMA_VERSION);
-      expect(bundle.domains[0].status).toBe('active');
-      expect(bundle.capabilities[0].status).toBe('active');
-    });
-
-    it('should extract code_refs into code_map', () => {
-      const legacy = {
-        project: { id: 'test', name: 'test' },
-        capabilities: [{
-          id: 'cap.auth',
-          type: 'capability',
-          code_refs: [{ path: 'src/auth.ts', line_start: 10, line_end: 50 }],
-        }],
-      };
-      const bundle = normalizeFromLegacy(legacy);
-      expect(bundle.code_map).toHaveLength(1);
-      expect(bundle.code_map[0].id).toBe('cap.auth');
-      expect(bundle.code_map[0].refs[0].path).toBe('src/auth.ts');
-    });
-
-    it('should strip spec_refs from nodes', () => {
-      const legacy = {
-        project: { id: 'test', name: 'test' },
-        domains: [{
-          id: 'dom.core',
-          type: 'domain',
-          spec_refs: [{ path: 'docs/spec.md' }],
-        }],
-      };
-      const bundle = normalizeFromLegacy(legacy);
-      expect((bundle.domains[0] as any).spec_refs).toBeUndefined();
-    });
-  });
-
   describe('readProjectOpsx', () => {
-    it('should read three-file bundle', async () => {
+    it('should read a valid two-file v2 bundle', async () => {
       const bundle = mkBundle({
         domains: [{ id: 'dom.core', type: 'domain' }],
-        relations: [{ from: 'dom.core', to: 'dom.core', type: 'relates_to' }],
-        code_map: [{ id: 'dom.core', refs: [{ path: 'src/core/' }] }],
+        capabilities: [{ id: 'cap.core', type: 'capability' }],
+        relations: [{ from: 'cap.core', to: 'dom.core', type: 'belongs_to' }],
       });
       await writeProjectOpsx(testDir, bundle);
 
       const result = await readProjectOpsx(testDir);
-      expect(result).not.toBeNull();
-      expect(result!.domains).toHaveLength(1);
-      expect(result!.relations).toHaveLength(1);
-      expect(result!.code_map).toHaveLength(1);
+      expect(result).toEqual(bundle);
+      await expect(fs.access(path.join(testDir, 'openspec', 'project.opsx.code-map.yaml'))).rejects.toThrow();
     });
 
     it('should return null if file does not exist', async () => {
@@ -236,57 +166,72 @@ domains:
       expect(result).toBeNull();
     });
 
-    it('should handle legacy format via normalizer', async () => {
-      const legacyData = {
-        project: { id: 'test', name: 'test' },
-        domains: [{ id: 'dom.core', type: 'domain', status: 'implemented' }],
-      };
+    it('should reject v1 with authoring and rebuild guidance', async () => {
       const opsxDir = path.join(testDir, 'openspec');
       await fs.mkdir(opsxDir, { recursive: true });
-      await fs.writeFile(
-        path.join(testDir, OPSX_PATHS.PROJECT_FILE),
-        stringifyYaml(legacyData),
-      );
-
-      const result = await readProjectOpsx(testDir);
-      expect(result).not.toBeNull();
-      expect(result!.schema_version).toBe(OPSX_SCHEMA_VERSION);
-      expect(result!.domains[0].status).toBe('active');
-    });
-
-    it('should return empty arrays for missing companion files', async () => {
-      const mainData = {
+      await fs.writeFile(path.join(testDir, OPSX_PATHS.PROJECT_FILE), stringifyYaml({
         schema_version: 1,
         project: { id: 'test', name: 'test' },
-        domains: [{ id: 'dom.core', type: 'domain' }],
-      };
+        domains: [],
+        capabilities: [],
+      }));
+
+      await expect(readProjectOpsx(testDir)).rejects.toThrow('openspec help authoring project.opsx.relations.yaml');
+      await expect(readProjectOpsx(testDir)).rejects.toThrow('bootstrap');
+    });
+
+    it('should reject a missing relations companion file', async () => {
       const opsxDir = path.join(testDir, 'openspec');
       await fs.mkdir(opsxDir, { recursive: true });
-      await fs.writeFile(
-        path.join(testDir, OPSX_PATHS.PROJECT_FILE),
-        stringifyYaml(mainData),
-      );
+      await fs.writeFile(path.join(testDir, OPSX_PATHS.PROJECT_FILE), stringifyYaml({
+        schema_version: 2,
+        project: { id: 'test', name: 'test' },
+        domains: [],
+        capabilities: [],
+      }));
 
-      const result = await readProjectOpsx(testDir);
-      expect(result).not.toBeNull();
-      expect(result!.relations).toEqual([]);
-      expect(result!.code_map).toEqual([]);
+      await expect(readProjectOpsx(testDir)).rejects.toThrow('project.opsx.relations.yaml');
+    });
+
+    it('should reject a v1 relations companion file', async () => {
+      const opsxDir = path.join(testDir, 'openspec');
+      await fs.mkdir(opsxDir, { recursive: true });
+      await fs.writeFile(path.join(testDir, OPSX_PATHS.PROJECT_FILE), stringifyYaml({
+        schema_version: 2,
+        project: { id: 'test', name: 'test' },
+      }));
+      await fs.writeFile(path.join(testDir, OPSX_PATHS.RELATIONS_FILE), stringifyYaml({
+        schema_version: 1,
+        relations: [],
+      }));
+
+      await expect(readProjectOpsx(testDir)).rejects.toThrow('openspec help authoring project.opsx.relations.yaml');
+      await expect(readProjectOpsx(testDir)).rejects.toThrow('bootstrap');
+    });
+
+    it('should reject a semantically invalid relation graph', async () => {
+      const opsxDir = path.join(testDir, 'openspec');
+      await fs.mkdir(opsxDir, { recursive: true });
+      await fs.writeFile(path.join(testDir, OPSX_PATHS.PROJECT_FILE), stringifyYaml({
+        schema_version: 2,
+        project: { id: 'test', name: 'test' },
+        capabilities: [{ id: 'cap.test.run', type: 'capability' }],
+      }));
+      await fs.writeFile(path.join(testDir, OPSX_PATHS.RELATIONS_FILE), stringifyYaml({
+        schema_version: 2,
+        relations: [],
+      }));
+
+      await expect(readProjectOpsx(testDir)).rejects.toThrow("capability 'cap.test.run' has 0 belongs_to relations; expected exactly 1");
     });
   });
 
   describe('writeProjectOpsx', () => {
-    it('should write three files', async () => {
-      const bundle = mkBundle({
-        domains: [{ id: 'dom.core', type: 'domain' }],
-      });
-      await writeProjectOpsx(testDir, bundle);
+    it('should write exactly two OPSX files', async () => {
+      await writeProjectOpsx(testDir, mkBundle());
 
-      const mainExists = await fs.access(path.join(testDir, OPSX_PATHS.PROJECT_FILE)).then(() => true).catch(() => false);
-      const relExists = await fs.access(path.join(testDir, OPSX_PATHS.RELATIONS_FILE)).then(() => true).catch(() => false);
-      const mapExists = await fs.access(path.join(testDir, OPSX_PATHS.CODE_MAP_FILE)).then(() => true).catch(() => false);
-      expect(mainExists).toBe(true);
-      expect(relExists).toBe(true);
-      expect(mapExists).toBe(true);
+      const files = await fs.readdir(path.join(testDir, 'openspec'));
+      expect(files.sort()).toEqual(['project.opsx.relations.yaml', 'project.opsx.yaml']);
     });
 
     it('should use atomic write pattern (no tmp files remain)', async () => {
@@ -310,7 +255,7 @@ domains:
         intent: 'Verify gate',
         status: 'active' as const,
       };
-      const relation = { from: 'cap.verify.gate', to: 'dom.verify', type: 'contains' };
+      const relation = { from: 'cap.verify.gate', to: 'dom.verify', type: 'belongs_to' };
       const bundle = mkBundle({
         domains: [{ id: 'dom.verify', type: 'domain', intent: 'Verify domain' }],
         capabilities: [capability],
@@ -321,7 +266,7 @@ domains:
         schema_version: OPSX_SCHEMA_VERSION,
         MODIFIED: {
           capabilities: [{ status: 'active', intent: 'Verify gate', type: 'capability', id: 'cap.verify.gate' }],
-          relations: [{ type: 'contains', to: 'dom.verify', from: 'cap.verify.gate' }],
+          relations: [{ type: 'belongs_to', to: 'dom.verify', from: 'cap.verify.gate' }],
         },
       });
 
@@ -400,23 +345,33 @@ domains:
 
     it('should shallow merge MODIFIED relation (preserve from/to/type)', () => {
       const bundle = mkBundle({
-        domains: [{ id: 'dom.x', type: 'domain' }],
-        capabilities: [{ id: 'cap.y', type: 'capability' }],
-        relations: [{ from: 'cap.y', to: 'dom.x', type: 'contains', metadata: { key: 'old' } }],
+        capabilities: [
+          { id: 'cap.x', type: 'capability' },
+          { id: 'cap.y', type: 'capability' },
+        ],
+        relations: [{ from: 'cap.y', to: 'cap.x', type: 'invokes', note: 'old' }],
       });
 
       const result = applyOpsxDelta(bundle, {
-        MODIFIED: { relations: [{ from: 'cap.y', to: 'dom.x', type: 'contains', metadata: { key: 'new' } }] },
+        MODIFIED: { relations: [{ from: 'cap.y', to: 'cap.x', type: 'invokes', note: 'new' }] },
       });
 
       expect(result.changed).toBe(true);
-      expect(result.bundle.relations[0].metadata).toEqual({ key: 'new' });
+      expect(result.bundle.relations[0].note).toBe('new');
     });
   });
 
   describe('OpsxDeltaSchema validation', () => {
+    it.each([
+      ['missing', 'ADDED: {}'],
+      ['v1', 'schema_version: 1\nADDED: {}'],
+    ])('should reject %s schema_version', (_label, yaml) => {
+      expect(OpsxDeltaSchema.safeParse(parseYaml(yaml)).success).toBe(false);
+    });
+
     it('should pass MODIFIED without type field', () => {
       const data = parseYaml(`
+        schema_version: 2
         MODIFIED:
           capabilities:
             - id: cap.xxx
@@ -428,6 +383,7 @@ domains:
 
     it('should fail MODIFIED without id field', () => {
       const data = parseYaml(`
+        schema_version: 2
         MODIFIED:
           capabilities:
             - intent: missing id
@@ -438,6 +394,7 @@ domains:
 
     it('should pass REMOVED with only id field', () => {
       const data = parseYaml(`
+        schema_version: 2
         REMOVED:
           capabilities:
             - id: cap.xxx
@@ -448,6 +405,7 @@ domains:
 
     it('should fail ADDED without type field', () => {
       const data = parseYaml(`
+        schema_version: 2
         ADDED:
           capabilities:
             - id: cap.xxx
@@ -459,6 +417,7 @@ domains:
 
     it('should pass ADDED with complete fields', () => {
       const data = parseYaml(`
+        schema_version: 2
         ADDED:
           capabilities:
             - id: cap.xxx
@@ -475,6 +434,7 @@ domains:
       const changeDir = path.join(testDir, 'openspec', 'changes', 'test-change');
       await fs.mkdir(changeDir, { recursive: true });
       await fs.writeFile(path.join(changeDir, 'opsx-delta.yaml'), stringifyYaml({
+        schema_version: 2,
         ADDED: { capabilities: [{ id: 'cap.xxx', intent: 'no type' }] },
       }));
 
@@ -485,6 +445,7 @@ domains:
       const changeDir = path.join(testDir, 'openspec', 'changes', 'test-change2');
       await fs.mkdir(changeDir, { recursive: true });
       await fs.writeFile(path.join(changeDir, 'opsx-delta.yaml'), stringifyYaml({
+        schema_version: 2,
         ADDED: { capabilities: [{ id: 'cap.xxx', intent: 'no type' }] },
       }));
 
@@ -499,10 +460,6 @@ domains:
 
     it('should have correct relations file path', () => {
       expect(OPSX_PATHS.RELATIONS_FILE).toBe('openspec/project.opsx.relations.yaml');
-    });
-
-    it('should have correct code-map file path', () => {
-      expect(OPSX_PATHS.CODE_MAP_FILE).toBe('openspec/project.opsx.code-map.yaml');
     });
 
     it('should generate correct delta path', () => {

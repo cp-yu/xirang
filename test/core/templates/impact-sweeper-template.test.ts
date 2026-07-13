@@ -51,9 +51,12 @@ describe('impact sweeper template', () => {
       '"opsx"',
       '"nodes"',
       '"relationsExpanded"',
-      '"coverageGaps"',
       '"mustChange"',
-      '"mustCheck"',
+      '"mustVerify"',
+      '"contextual"',
+      '"unknown"',
+      '"architectureDrift"',
+      '"relationPath"',
       '"questions"',
     ]) {
       expect(schema).toContain(field);
@@ -75,36 +78,23 @@ describe('impact sweeper template', () => {
     const evidence = readReference('references/evidence-protocol.md');
 
     expect(evidence).toContain('openspec opsx query <node-id...> --json');
-    expect(evidence).toContain('Use `--depth 2` when');
-    expect(evidence).toContain('Use the returned `nodes`, `relations`, `codeMap`, and `missing` fields as evidence');
-    expect(evidence).toContain('OPSX files not found');
+    expect(evidence).toContain('use `--depth 2` when');
+    expect(evidence).toContain("Preserve each relation's canonical from/type/to direction");
+    expect(evidence).toContain('`belongs_to` supplies domain context only');
     expect(evidence).toContain('openspec list --specs --json');
-    expect(evidence).toContain("Extract each spec entry's `capabilities` string array");
-    expect(evidence).toContain('Treat a missing frontmatter mapping as an empty array');
-    expect(evidence).not.toContain('For each plausible node ID');
-    expect(evidence).not.toContain('one-hop relations');
-    expect(evidence).not.toContain('Expand to second-hop relations only when');
-    expect(evidence).toContain('Default to `--depth 1`');
-    expect(evidence).toContain('shared infrastructure');
-    expect(evidence).toContain('crosses domains');
-    expect(evidence).toContain('outward runtime use');
-    expect(evidence).toContain('git ls-files');
-    expect(evidence).toContain('Exclude openspec/changes/archive/**');
-    expect(evidence).toContain('repo-wide reverse search');
-    expect(evidence).toContain('Do not rely only on OPSX code-map paths');
+    expect(evidence).toContain('CodeGraph is available');
+    expect(evidence).toContain('never read `.codegraph/codegraph.db`');
+    expect(evidence).toContain('ACE, `rg`, `read`, and `git ls-files`');
+    expect(evidence).toContain('architectureDrift');
+    expect(evidence).not.toContain('codeMap');
   });
 
   it('scopes optional change artifact reads', () => {
     const evidence = readReference('references/evidence-protocol.md');
 
     expect(evidence).toContain('When optionalChangeName is provided');
-    expect(evidence).toContain('read only that change');
-    expect(evidence).toContain('proposal.md');
-    expect(evidence).toContain('design.md');
-    expect(evidence).toContain('tasks.md');
-    expect(evidence).toContain('specs/**/*.md');
-    expect(evidence).toContain('opsx-delta.yaml');
-    expect(evidence).toContain('Do not inspect unrelated active changes');
+    expect(evidence).toContain("inspect only that change's artifacts");
+    expect(evidence).toContain('exclude archive history');
   });
 
   it('forbids unsafe execution evidence', () => {

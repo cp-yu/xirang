@@ -68,9 +68,9 @@ async function checkAllReviewBoxes(projectDir: string): Promise<void> {
 }
 
 async function expectFormalBundle(projectDir: string): Promise<void> {
-  await expect(readFile(projectDir, 'openspec/project.opsx.yaml')).resolves.toContain('schema_version: 1');
-  await expect(readFile(projectDir, 'openspec/project.opsx.relations.yaml')).resolves.toContain('schema_version: 1');
-  await expect(readFile(projectDir, 'openspec/project.opsx.code-map.yaml')).resolves.toContain('schema_version: 1');
+  await expect(readFile(projectDir, 'openspec/project.opsx.yaml')).resolves.toContain('schema_version: 2');
+  await expect(readFile(projectDir, 'openspec/project.opsx.relations.yaml')).resolves.toContain('schema_version: 2');
+  await expect(readFile(projectDir, 'openspec/project.opsx.code-map.yaml')).rejects.toThrow();
 }
 
 async function initWorkspace(
@@ -138,12 +138,7 @@ capabilities:
 relations:
   - from: cap.cli.bootstrap
     to: dom.cli
-    type: contains
-code_refs:
-  - id: cap.cli.bootstrap
-    refs:
-      - path: src/cli/index.ts
-        line_start: 1
+    type: belongs_to
 `);
 
   await writeFile(projectDir, 'openspec/bootstrap/domain-map/dom.auth.yaml', `domain:
@@ -171,12 +166,7 @@ capabilities:
 relations:
   - from: cap.auth.login
     to: dom.auth
-    type: contains
-code_refs:
-  - id: cap.auth.login
-    refs:
-      - path: src/auth/login.ts
-        line_start: 1
+    type: belongs_to
 `);
 
   const mapValidate = await runCLI(['bootstrap', 'validate'], { cwd: projectDir });

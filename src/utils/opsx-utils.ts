@@ -3,13 +3,17 @@ import path from 'path';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { z } from 'zod';
 import { FileSystemUtils } from './file-system.js';
+import {
+  getRelationDefinition,
+  RelationTypeSchema,
+} from '../core/relations/registry.js';
+import { validateRelationGraph } from '../core/relations/validator.js';
 
-export const OPSX_SCHEMA_VERSION = 1;
+export const OPSX_SCHEMA_VERSION = 2;
 
 export const OPSX_PATHS = {
   PROJECT_FILE: 'openspec/project.opsx.yaml',
   RELATIONS_FILE: 'openspec/project.opsx.relations.yaml',
-  CODE_MAP_FILE: 'openspec/project.opsx.code-map.yaml',
   deltaPath: (changeName: string) => `openspec/changes/${changeName}/opsx-delta.yaml`,
 } as const;
 
@@ -79,9 +83,28 @@ export const OpsxNodeSchema = z.union([
 // Relation schema
 export const OpsxRelationSchema = z.object({
   from: NodeIdSchema,
-  type: z.enum(['contains', 'depends_on', 'constrains', 'implemented_by', 'verified_by', 'relates_to']),
+  type: RelationTypeSchema,
   to: NodeIdSchema,
-  metadata: z.record(z.string(), z.string()).optional(),
+  note: z.string().optional(),
+}).superRefine((relation, context) => {
+  const policy = getRelationDefinition(relation.type).notePolicy;
+  if (relation.note === undefined) return;
+  if (!policy.allowed) {
+    context.addIssue({
+      code: 'custom',
+      path: ['note'],
+      message: `${relation.type} does not allow note`,
+    });
+  } else if (relation.note.length > policy.maxLength) {
+    context.addIssue({
+      code: 'too_big',
+      origin: 'string',
+      maximum: policy.maxLength,
+      inclusive: true,
+      path: ['note'],
+      message: `note must contain at most ${policy.maxLength} characters`,
+    });
+  }
 });
 
 const ProjectMetadataSchema = z.object({
@@ -92,17 +115,10 @@ const ProjectMetadataSchema = z.object({
   roots: z.array(z.object({ path: z.string() })).optional(),
 });
 
-// Code reference schema (for code-map file)
-export const CodeRefSchema = z.object({
-  path: z.string(),
-  line_start: z.number().optional(),
-  line_end: z.number().optional(),
-});
-
 // --- Disk file schemas ---
 
 export const ProjectOpsxFileSchema = z.object({
-  schema_version: z.number(),
+  schema_version: z.literal(OPSX_SCHEMA_VERSION),
   project: ProjectMetadataSchema,
   domains: z.array(DomainNodeSchema).optional(),
   capabilities: z.array(CapabilityNodeSchema).optional(),
@@ -113,25 +129,14 @@ export const ProjectOpsxFileSchema = z.object({
 });
 
 export const ProjectOpsxRelationsFileSchema = z.object({
-  schema_version: z.number(),
+  schema_version: z.literal(OPSX_SCHEMA_VERSION),
   relations: z.array(OpsxRelationSchema),
-});
-
-const CodeMapEntrySchema = z.object({
-  id: NodeIdSchema,
-  refs: z.array(CodeRefSchema),
-});
-
-export const ProjectOpsxCodeMapFileSchema = z.object({
-  schema_version: z.number(),
-  generated_at: z.string().optional(),
-  nodes: z.array(CodeMapEntrySchema),
 });
 
 // --- Runtime bundle (merged view) ---
 
 export interface ProjectOpsxBundle {
-  schema_version: number;
+  schema_version: typeof OPSX_SCHEMA_VERSION;
   project: z.infer<typeof ProjectMetadataSchema>;
   domains: z.infer<typeof DomainNodeSchema>[];
   capabilities: z.infer<typeof CapabilityNodeSchema>[];
@@ -140,7 +145,6 @@ export interface ProjectOpsxBundle {
   decisions?: z.infer<typeof DecisionNodeSchema>[];
   evidence?: z.infer<typeof EvidenceNodeSchema>[];
   relations: z.infer<typeof OpsxRelationSchema>[];
-  code_map: z.infer<typeof CodeMapEntrySchema>[];
 }
 
 const DeltaCollectionSchema = z.object({
@@ -176,7 +180,7 @@ const RemovedDeltaCollectionSchema = z.object({
 });
 
 export const OpsxDeltaSchema = z.object({
-  schema_version: z.number().optional(),
+  schema_version: z.literal(OPSX_SCHEMA_VERSION),
   ADDED: DeltaCollectionSchema.optional(),
   MODIFIED: ModifiedDeltaCollectionSchema.optional(),
   REMOVED: RemovedDeltaCollectionSchema.optional(),
@@ -186,8 +190,10 @@ export const OpsxDeltaSchema = z.object({
 export type OpsxNode = z.infer<typeof OpsxNodeSchema>;
 export type OpsxRelation = z.infer<typeof OpsxRelationSchema>;
 export type ProjectOpsxFile = z.infer<typeof ProjectOpsxFileSchema>;
-export type OpsxDelta = z.infer<typeof OpsxDeltaSchema>;
-export type CodeMapEntry = z.infer<typeof CodeMapEntrySchema>;
+type ParsedOpsxDelta = z.infer<typeof OpsxDeltaSchema>;
+export type OpsxDelta = Omit<ParsedOpsxDelta, 'schema_version'> & {
+  schema_version?: typeof OPSX_SCHEMA_VERSION;
+};
 
 interface DeltaCounts {
   domains: number;
@@ -213,120 +219,8 @@ export interface ValidationResult {
   errors: string[];
 }
 
-// WHY: Legacy files use `implemented` status and embed code_refs/spec_refs in nodes.
-// This normalizer converts them to the new schema during the migration window.
-export function normalizeFromLegacy(raw: any): ProjectOpsxBundle {
-  const nodes = [
-    ...(raw.domains || []),
-    ...(raw.capabilities || []),
-    ...(raw.invariants || []),
-    ...(raw.interfaces || []),
-    ...(raw.decisions || []),
-    ...(raw.evidence || []),
-  ];
-
-  // Extract code_refs from nodes into code_map
-  const code_map: CodeMapEntry[] = [];
-  for (const node of nodes) {
-    if (node.code_refs?.length) {
-      code_map.push({
-        id: node.id,
-        refs: node.code_refs.map((ref: any) => ({
-          path: ref.path,
-          ...(ref.line_start != null ? { line_start: ref.line_start } : {}),
-          ...(ref.line_end != null ? { line_end: ref.line_end } : {}),
-          ...(ref.line != null && ref.line_start == null ? { line_start: ref.line } : {}),
-        })),
-      });
-    }
-  }
-
-  const stripNode = (node: any) => {
-    const { code_refs, spec_refs, status, ...rest } = node;
-    const normalized: any = { ...rest };
-    if (status === 'implemented') normalized.status = 'active';
-    else if (status === 'deprecated') normalized.status = 'active';
-    else if (status) normalized.status = status;
-    return normalized;
-  };
-
-  return {
-    schema_version: OPSX_SCHEMA_VERSION,
-    project: raw.project,
-    domains: (raw.domains || []).map(stripNode),
-    capabilities: (raw.capabilities || []).map(stripNode),
-    invariants: raw.invariants?.map(stripNode),
-    interfaces: raw.interfaces?.map(stripNode),
-    decisions: raw.decisions?.map(stripNode),
-    evidence: raw.evidence?.map(stripNode),
-    relations: raw.relations || [],
-    code_map,
-  };
-}
-
 /**
- * Read the main project.opsx.yaml file
- */
-export async function readProjectOpsxFile(
-  projectRoot: string
-): Promise<ProjectOpsxFile | null> {
-  const filePath = FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.PROJECT_FILE);
-  if (!await FileSystemUtils.fileExists(filePath)) return null;
-
-  const content = await fs.readFile(filePath, 'utf-8');
-  const data = parseYaml(content);
-
-  const result = ProjectOpsxFileSchema.safeParse(data);
-  if (!result.success) {
-    console.warn(`Invalid project.opsx.yaml:\n${formatZodIssues(result.error.issues, data)}`);
-    return null;
-  }
-  return result.data;
-}
-
-/**
- * Read the relations companion file (empty array if missing)
- */
-export async function readProjectOpsxRelations(
-  projectRoot: string
-): Promise<OpsxRelation[]> {
-  const filePath = FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.RELATIONS_FILE);
-  if (!await FileSystemUtils.fileExists(filePath)) return [];
-
-  const content = await fs.readFile(filePath, 'utf-8');
-  const data = parseYaml(content);
-
-  const result = ProjectOpsxRelationsFileSchema.safeParse(data);
-  if (!result.success) {
-    console.warn(`Invalid project.opsx.relations.yaml: ${result.error.message}`);
-    return [];
-  }
-  return result.data.relations;
-}
-
-/**
- * Read the code-map companion file (empty array if missing)
- */
-export async function readProjectOpsxCodeMap(
-  projectRoot: string
-): Promise<CodeMapEntry[]> {
-  const filePath = FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.CODE_MAP_FILE);
-  if (!await FileSystemUtils.fileExists(filePath)) return [];
-
-  const content = await fs.readFile(filePath, 'utf-8');
-  const data = parseYaml(content);
-
-  const result = ProjectOpsxCodeMapFileSchema.safeParse(data);
-  if (!result.success) {
-    console.warn(`Invalid project.opsx.code-map.yaml: ${result.error.message}`);
-    return [];
-  }
-  return result.data.nodes;
-}
-
-/**
- * Read and assemble the full OPSX bundle from three files.
- * Falls back to legacy normalizer if schema_version is missing.
+ * Read and assemble the full OPSX v2 bundle from two files.
  */
 export async function readProjectOpsx(
   projectRoot: string
@@ -334,41 +228,46 @@ export async function readProjectOpsx(
   const mainPath = FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.PROJECT_FILE);
   if (!await FileSystemUtils.fileExists(mainPath)) return null;
 
-  const content = await fs.readFile(mainPath, 'utf-8');
-  const raw = parseYaml(content);
-
-  // Legacy detection: no schema_version → normalize
-  if (!raw?.schema_version) {
-    return normalizeFromLegacy(raw);
+  const raw = parseYaml(await fs.readFile(mainPath, 'utf-8'));
+  if (raw?.schema_version !== OPSX_SCHEMA_VERSION) {
+    throw new Error(
+      `OPSX schema_version ${String(raw?.schema_version ?? 'missing')} is unsupported; run openspec help authoring project.opsx.relations.yaml and rebuild with the bootstrap/refresh workflow.`
+    );
   }
 
-  const mainFile = ProjectOpsxFileSchema.safeParse(raw);
-  if (!mainFile.success) {
-    console.warn(`Invalid project.opsx.yaml: ${mainFile.error.message}`);
-    return null;
+  const mainFile = ProjectOpsxFileSchema.parse(raw);
+  const relationsPath = FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.RELATIONS_FILE);
+  if (!await FileSystemUtils.fileExists(relationsPath)) {
+    throw new Error(`OPSX file not found: ${OPSX_PATHS.RELATIONS_FILE}. Run openspec init or the bootstrap/refresh workflow.`);
   }
+  const rawRelations = parseYaml(await fs.readFile(relationsPath, 'utf-8'));
+  if (rawRelations?.schema_version !== OPSX_SCHEMA_VERSION) {
+    throw new Error(
+      `OPSX relations schema_version ${String(rawRelations?.schema_version ?? 'missing')} is unsupported; run openspec help authoring project.opsx.relations.yaml and rebuild with the bootstrap/refresh workflow.`
+    );
+  }
+  const relationsFile = ProjectOpsxRelationsFileSchema.parse(rawRelations);
 
-  const [relations, code_map] = await Promise.all([
-    readProjectOpsxRelations(projectRoot),
-    readProjectOpsxCodeMap(projectRoot),
-  ]);
-
-  return {
-    schema_version: mainFile.data.schema_version,
-    project: mainFile.data.project,
-    domains: mainFile.data.domains || [],
-    capabilities: mainFile.data.capabilities || [],
-    invariants: mainFile.data.invariants,
-    interfaces: mainFile.data.interfaces,
-    decisions: mainFile.data.decisions,
-    evidence: mainFile.data.evidence,
-    relations,
-    code_map,
+  const bundle: ProjectOpsxBundle = {
+    schema_version: mainFile.schema_version,
+    project: mainFile.project,
+    domains: mainFile.domains || [],
+    capabilities: mainFile.capabilities || [],
+    ...(mainFile.invariants ? { invariants: mainFile.invariants } : {}),
+    ...(mainFile.interfaces ? { interfaces: mainFile.interfaces } : {}),
+    ...(mainFile.decisions ? { decisions: mainFile.decisions } : {}),
+    ...(mainFile.evidence ? { evidence: mainFile.evidence } : {}),
+    relations: relationsFile.relations,
   };
+  const validation = validateRelationGraph(bundle);
+  if (!validation.valid) {
+    throw new Error(`Invalid OPSX relation graph:\n${validation.errors.map((error) => `  - ${error}`).join('\n')}`);
+  }
+  return bundle;
 }
 
 /**
- * Write the full OPSX bundle atomically to three files.
+ * Write the full OPSX bundle atomically to two files.
  */
 export async function writeProjectOpsx(
   projectRoot: string,
@@ -376,7 +275,6 @@ export async function writeProjectOpsx(
 ): Promise<void> {
   const mainPath = FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.PROJECT_FILE);
   const relPath = FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.RELATIONS_FILE);
-  const mapPath = FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.CODE_MAP_FILE);
 
   const mainData: ProjectOpsxFile = {
     schema_version: bundle.schema_version,
@@ -394,19 +292,11 @@ export async function writeProjectOpsx(
     relations: bundle.relations,
   };
 
-  const mapData = {
-    schema_version: bundle.schema_version,
-    generated_at: new Date().toISOString(),
-    nodes: bundle.code_map,
-  };
-
   const mainTmp = `${mainPath}.tmp`;
   const relTmp = `${relPath}.tmp`;
-  const mapTmp = `${mapPath}.tmp`;
   const originals = await Promise.all([
     readOptionalTextFile(mainPath),
     readOptionalTextFile(relPath),
-    readOptionalTextFile(mapPath),
   ]);
 
   try {
@@ -414,27 +304,21 @@ export async function writeProjectOpsx(
 
     const mainYaml = stringifyYaml(mainData, { lineWidth: 0 });
     const relYaml = stringifyYaml(relData, { lineWidth: 0 });
-    const mapYaml = stringifyYaml(mapData, { lineWidth: 0 });
 
     await Promise.all([
       fs.writeFile(mainTmp, mainYaml, 'utf-8'),
       fs.writeFile(relTmp, relYaml, 'utf-8'),
-      fs.writeFile(mapTmp, mapYaml, 'utf-8'),
     ]);
 
-    // Atomic rename all three
     await fs.rename(mainTmp, mainPath);
     await fs.rename(relTmp, relPath);
-    await fs.rename(mapTmp, mapPath);
   } catch (err) {
-    // Cleanup tmp files on failure
-    for (const tmp of [mainTmp, relTmp, mapTmp]) {
+    for (const tmp of [mainTmp, relTmp]) {
       try { await fs.unlink(tmp); } catch { /* ignore */ }
     }
     await Promise.all([
       restoreOptionalTextFile(mainPath, originals[0]),
       restoreOptionalTextFile(relPath, originals[1]),
-      restoreOptionalTextFile(mapPath, originals[2]),
     ]);
     throw err;
   }
@@ -502,7 +386,6 @@ export function applyOpsxDelta(bundle: ProjectOpsxBundle, delta: OpsxDelta): Ops
     domains: [...bundle.domains],
     capabilities: [...bundle.capabilities],
     relations: [...bundle.relations],
-    code_map: [...bundle.code_map],
     ...(bundle.invariants ? { invariants: [...bundle.invariants] } : {}),
     ...(bundle.interfaces ? { interfaces: [...bundle.interfaces] } : {}),
     ...(bundle.decisions ? { decisions: [...bundle.decisions] } : {}),
@@ -563,12 +446,10 @@ export function applyOpsxDelta(bundle: ProjectOpsxBundle, delta: OpsxDelta): Ops
     counts.modified.relations += 1;
   }
 
-  const removedNodeIds = new Set<string>();
   for (const domain of delta.REMOVED?.domains || []) {
     const before = next.domains.length;
     next.domains = next.domains.filter((candidate) => candidate.id !== domain.id);
     if (next.domains.length !== before) {
-      removedNodeIds.add(domain.id);
       counts.removed.domains += 1;
     }
   }
@@ -576,12 +457,8 @@ export function applyOpsxDelta(bundle: ProjectOpsxBundle, delta: OpsxDelta): Ops
     const before = next.capabilities.length;
     next.capabilities = next.capabilities.filter((candidate) => candidate.id !== capability.id);
     if (next.capabilities.length !== before) {
-      removedNodeIds.add(capability.id);
       counts.removed.capabilities += 1;
     }
-  }
-  if (removedNodeIds.size > 0) {
-    next.code_map = next.code_map.filter((entry) => !removedNodeIds.has(entry.id));
   }
   for (const relation of delta.REMOVED?.relations || []) {
     const before = next.relations.length;
@@ -645,26 +522,6 @@ export function validateReferentialIntegrity(bundle: ProjectOpsxBundle): Validat
     }
     if (!nodeIds.has(rel.to)) {
       errors.push(`Relation references non-existent 'to' node: ${rel.to}`);
-    }
-  }
-
-  return { valid: errors.length === 0, errors };
-}
-
-/**
- * Validate code-map integrity: all code_map entry IDs must reference existing nodes.
- */
-export function validateCodeMapIntegrity(bundle: ProjectOpsxBundle): ValidationResult {
-  const errors: string[] = [];
-  const nodeIds = new Set<string>();
-
-  for (const node of [...bundle.domains, ...bundle.capabilities]) {
-    nodeIds.add(node.id);
-  }
-
-  for (const entry of bundle.code_map) {
-    if (!nodeIds.has(entry.id)) {
-      errors.push(`Code map references non-existent node: ${entry.id}`);
     }
   }
 

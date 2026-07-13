@@ -8,7 +8,6 @@ import {
   readProjectOpsx,
   writeProjectOpsx,
   validateReferentialIntegrity,
-  validateCodeMapIntegrity,
   type ProjectOpsxBundle,
 } from '../../src/utils/opsx-utils.js';
 
@@ -30,7 +29,6 @@ describe('Integration: Bootstrap Workflow', () => {
     domains: [],
     capabilities: [],
     relations: [],
-    code_map: [],
     ...overrides,
   });
 
@@ -78,7 +76,7 @@ describe('Integration: Bootstrap Workflow', () => {
         relations: caps.map(cap => ({
           from: cap.id,
           to: 'dom.user',
-          type: 'contains' as const,
+          type: 'belongs_to' as const,
         })),
       });
 
@@ -93,26 +91,6 @@ describe('Integration: Bootstrap Workflow', () => {
       expect(integrityResult.valid).toBe(true);
     });
 
-    it('should handle bootstrap with code_map entries', async () => {
-      const bundle = mkBundle({
-        domains: [{ id: 'dom.auth', type: 'domain', intent: 'Authentication' }],
-        capabilities: [{ id: 'cap.auth.login', type: 'capability', intent: 'User login' }],
-        code_map: [
-          { id: 'dom.auth', refs: [{ path: 'src/auth/index.ts', line_start: 1 }, { path: 'src/auth/login.ts', line_start: 10 }] },
-          { id: 'cap.auth.login', refs: [{ path: 'src/auth/login.ts', line_start: 15, line_end: 45 }] },
-        ],
-      });
-
-      await writeProjectOpsx(testDir, bundle);
-
-      const result = await readProjectOpsx(testDir);
-      expect(result).not.toBeNull();
-      expect(result!.code_map).toHaveLength(2);
-      expect(result!.code_map.find(e => e.id === 'cap.auth.login')!.refs[0].path).toBe('src/auth/login.ts');
-
-      const mapResult = validateCodeMapIntegrity(result!);
-      expect(mapResult.valid).toBe(true);
-    });
 
     it('should create valid structure for incremental bootstrap', async () => {
       // Phase 1: Minimal
@@ -129,7 +107,7 @@ describe('Integration: Bootstrap Workflow', () => {
         { id: 'cap.core.init', type: 'capability', intent: 'Initialize system' },
       ];
       phase2!.relations = [
-        { from: 'cap.core.init', to: 'dom.core', type: 'contains' },
+        { from: 'cap.core.init', to: 'dom.core', type: 'belongs_to' },
       ];
 
       await writeProjectOpsx(testDir, phase2!);
@@ -163,8 +141,7 @@ describe('Integration: Bootstrap Workflow', () => {
 
       await writeProjectOpsx(testDir, bundle);
 
-      const result = await readProjectOpsx(testDir);
-      expect(result).toBeNull();
+      await expect(readProjectOpsx(testDir)).rejects.toThrow();
     });
 
     it('should handle bootstrap with duplicate IDs', async () => {

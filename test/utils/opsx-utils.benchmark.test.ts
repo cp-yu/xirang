@@ -8,7 +8,6 @@ import {
   OPSX_PATHS,
   OPSX_SCHEMA_VERSION,
   validateReferentialIntegrity,
-  validateCodeMapIntegrity,
   readProjectOpsx,
   writeProjectOpsx,
   type ProjectOpsxBundle,
@@ -31,12 +30,7 @@ function generateBundle(nodeCount: number): ProjectOpsxBundle {
   const relations = capabilities.map((cap, i) => ({
     from: cap.id,
     to: domains[i % domains.length].id,
-    type: 'contains' as const,
-  }));
-
-  const code_map = capabilities.map((cap) => ({
-    id: cap.id,
-    refs: [{ path: `src/${cap.id.replace(/\./g, '/')}.ts`, line_start: 1, line_end: 50 }],
+    type: 'belongs_to' as const,
   }));
 
   return {
@@ -45,7 +39,6 @@ function generateBundle(nodeCount: number): ProjectOpsxBundle {
     domains,
     capabilities,
     relations,
-    code_map,
   };
 }
 function measure(fn: () => void, iterations = 100): { avgMs: number; maxMs: number } {
@@ -126,12 +119,6 @@ describe('opsx-utils performance benchmark', () => {
         expect(avgMs).toBeLessThan(n <= 100 ? 1 : 5);
       });
 
-      it(`validates code-map integrity for ${n} nodes under budget`, () => {
-        const bundle = generateBundle(n);
-        const { avgMs } = measure(() => validateCodeMapIntegrity(bundle), 200);
-        console.log(`  Code-map integrity ${n} nodes: avg=${avgMs.toFixed(4)}ms`);
-        expect(avgMs).toBeLessThan(n <= 100 ? 1 : 5);
-      });
     }
   });
 

@@ -1,0 +1,86 @@
+{
+  "timestamp": "2026-07-13T14:47:55.793Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "7cfbf1203ae8c67699b1a203e0d0a1114db3f9b9fc72609c3c5c45af8c161463",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      "openspec/changes/opsx-v2-semantic-relations/design.md",
+      "openspec/changes/opsx-v2-semantic-relations/opsx-delta.yaml",
+      "openspec/changes/opsx-v2-semantic-relations/tasks.md",
+      "openspec/project.opsx.relations.yaml",
+      "openspec/project.opsx.yaml"
+    ],
+    "evidenceFingerprint": "9c2c6e41fd9ae065a98d95b64193a41f2b75e68d7a7831749ed7be5fb55515d1",
+    "evidenceFingerprintEntries": [
+      {
+        "path": "openspec/changes/opsx-v2-semantic-relations/design.md",
+        "hash": "f4e835e3b047f41387823a351282839cf55d2f9011ad7772a07732a5915a6a9f"
+      },
+      {
+        "path": "openspec/changes/opsx-v2-semantic-relations/opsx-delta.yaml",
+        "hash": "18097a493226358806d4e92cdc2d8d4d7952d88f49105b6d19c1d98f0d47d1c5"
+      },
+      {
+        "path": "openspec/changes/opsx-v2-semantic-relations/tasks.md",
+        "hash": "7cfbf1203ae8c67699b1a203e0d0a1114db3f9b9fc72609c3c5c45af8c161463"
+      },
+      {
+        "path": "openspec/project.opsx.relations.yaml",
+        "hash": "00b12b67142b3554596d43c7c0ba23ece8962a8043ce99aecdc4dc23ddf8d8ec"
+      },
+      {
+        "path": "openspec/project.opsx.yaml",
+        "hash": "68ddf154cb3c667008109e45fe942316584d4d65317ead53cc7dcb76ed3d9170"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "6bd236dc11def9891f22acd4a869cf59db16ec6c"
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-07-13T14:47:55.793Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "7cfbf1203ae8c67699b1a203e0d0a1114db3f9b9fc72609c3c5c45af8c161463",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          "openspec/changes/opsx-v2-semantic-relations/design.md",
+          "openspec/changes/opsx-v2-semantic-relations/opsx-delta.yaml",
+          "openspec/changes/opsx-v2-semantic-relations/tasks.md",
+          "openspec/project.opsx.relations.yaml",
+          "openspec/project.opsx.yaml"
+        ],
+        "evidenceFingerprint": "9c2c6e41fd9ae065a98d95b64193a41f2b75e68d7a7831749ed7be5fb55515d1",
+        "evidenceFingerprintEntries": [
+          {
+            "path": "openspec/changes/opsx-v2-semantic-relations/design.md",
+            "hash": "f4e835e3b047f41387823a351282839cf55d2f9011ad7772a07732a5915a6a9f"
+          },
+          {
+            "path": "openspec/changes/opsx-v2-semantic-relations/opsx-delta.yaml",
+            "hash": "18097a493226358806d4e92cdc2d8d4d7952d88f49105b6d19c1d98f0d47d1c5"
+          },
+          {
+            "path": "openspec/changes/opsx-v2-semantic-relations/tasks.md",
+            "hash": "7cfbf1203ae8c67699b1a203e0d0a1114db3f9b9fc72609c3c5c45af8c161463"
+          },
+          {
+            "path": "openspec/project.opsx.relations.yaml",
+            "hash": "00b12b67142b3554596d43c7c0ba23ece8962a8043ce99aecdc4dc23ddf8d8ec"
+          },
+          {
+            "path": "openspec/project.opsx.yaml",
+            "hash": "68ddf154cb3c667008109e45fe942316584d4d65317ead53cc7dcb76ed3d9170"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "6bd236dc11def9891f22acd4a869cf59db16ec6c"
+      }
+    }
+  }
+}

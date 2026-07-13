@@ -1,10 +1,9 @@
 import { Command } from 'commander';
-import { OPSX_PATHS, readProjectOpsx, type CodeMapEntry, type OpsxNode, type OpsxRelation } from '../utils/opsx-utils.js';
+import { OPSX_PATHS, readProjectOpsx, type OpsxNode, type OpsxRelation } from '../utils/opsx-utils.js';
 import { FileSystemUtils } from '../utils/file-system.js';
 
 interface QueryOptions {
   relations?: boolean;
-  codeMap?: boolean;
   json?: boolean;
   depth?: string;
 }
@@ -41,11 +40,6 @@ function parseDepth(value: string | undefined): { depth: number; explicit: boole
 
 function relationKey(relation: OpsxRelation): string {
   return `${relation.from}\u0000${relation.type}\u0000${relation.to}`;
-}
-
-function buildCodeMap(ids: string[], entries: CodeMapEntry[]): Record<string, CodeMapEntry['refs']> {
-  const refsById = new Map(entries.map((entry) => [entry.id, entry.refs]));
-  return Object.fromEntries(ids.map((id) => [id, refsById.get(id) || []]));
 }
 
 function collectSubgraph(
@@ -114,11 +108,6 @@ export class OpsxCommand {
       throw new Error('OPSX files not found. Initialize with:\n  openspec bootstrap init\n  openspec init');
     }
 
-    const codeMapPath = FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.CODE_MAP_FILE);
-    if (!await FileSystemUtils.fileExists(codeMapPath)) {
-      throw new Error(`OPSX code-map file not found: ${OPSX_PATHS.CODE_MAP_FILE}`);
-    }
-
     const bundle = await readProjectOpsx(projectRoot);
     if (!bundle) {
       throw new Error('OPSX files not found. Initialize with:\n  openspec bootstrap init\n  openspec init');
@@ -137,9 +126,6 @@ export class OpsxCommand {
       throw new Error(`${label} not found in OPSX. Available nodes: ${available}`);
     }
 
-    const includeAll = !options.relations && !options.codeMap;
-    const includeRelations = includeAll || !!options.relations;
-    const includeCodeMap = includeAll || !!options.codeMap;
     const useSubgraphOutput = requestedIds.length > 1 || explicit;
     const output: Record<string, unknown> = {};
 
@@ -147,27 +133,15 @@ export class OpsxCommand {
       const nodeId = seeds[0];
       output.node = nodesById.get(nodeId);
 
-      if (includeRelations) {
-        output.relations = {
-          incoming: bundle.relations.filter((relation) => relation.to === nodeId),
-          outgoing: bundle.relations.filter((relation) => relation.from === nodeId),
-        };
-      }
-
-      if (includeCodeMap) {
-        output.codeMap = bundle.code_map.find((entry) => entry.id === nodeId)?.refs || [];
-      }
+      output.relations = {
+        incoming: bundle.relations.filter((relation) => relation.to === nodeId),
+        outgoing: bundle.relations.filter((relation) => relation.from === nodeId),
+      };
     } else {
       const subgraph = collectSubgraph(seeds, depth, nodesById, bundle.relations);
-      const subgraphIds = subgraph.nodes.map((node) => node.id);
       output.seeds = seeds;
       output.nodes = subgraph.nodes;
-      if (includeRelations) {
-        output.relations = subgraph.relations;
-      }
-      if (includeCodeMap) {
-        output.codeMap = buildCodeMap(subgraphIds, bundle.code_map);
-      }
+      output.relations = subgraph.relations;
       output.missing = missing;
     }
 
@@ -193,8 +167,7 @@ export function registerOpsxCommand(rootProgram: Command): Command {
   opsxCommand
     .command('query <node-id...>')
     .description('Query an OPSX node')
-    .option('--relations', 'Include relations only')
-    .option('--code-map', 'Include code-map refs only')
+    .option('--relations', 'Include relation details')
     .option('--depth <n>', 'Include related nodes up to depth n')
     .option('--json', 'Output as JSON')
     .action(async (nodeIds: string[], options: QueryOptions) => {

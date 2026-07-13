@@ -11,7 +11,7 @@ import {
   type ProjectOpsxBundle,
 } from '../../src/utils/opsx-utils.js';
 
-describe('PBT: Atomic Write Guarantees (Three-File)', () => {
+describe('PBT: Atomic Write Guarantees (Two-File)', () => {
   let testDir: string;
 
   beforeEach(async () => {
@@ -49,7 +49,6 @@ describe('PBT: Atomic Write Guarantees (Three-File)', () => {
     domains: base.domains || [],
     capabilities: [],
     relations: [],
-    code_map: [],
   } as ProjectOpsxBundle));
 
   it('Property 1: No temporary files remain after write', async () => {
@@ -96,7 +95,7 @@ describe('PBT: Atomic Write Guarantees (Three-File)', () => {
     );
   });
 
-  it('Property 4: All three files are created on every write', async () => {
+  it('Property 4: All two files are created on every write', async () => {
     await fc.assert(
       fc.asyncProperty(bundleArb, async (bundle) => {
         await writeProjectOpsx(testDir, bundle);
@@ -104,7 +103,7 @@ describe('PBT: Atomic Write Guarantees (Three-File)', () => {
         const opsxDir = path.join(testDir, 'openspec');
         const files = await fs.readdir(opsxDir);
         const opsxFiles = files.filter(f => f.startsWith('project.opsx'));
-        expect(opsxFiles).toHaveLength(3);
+        expect(opsxFiles).toHaveLength(2);
       }),
       { numRuns: 30 },
     );

@@ -11,6 +11,8 @@ describe('reviewer subagent template', () => {
     expect(prompt).toContain(OPSX_COMPILATION_PHILOSOPHY);
     expect(prompt).toContain('Prefer direct evidence over inferred intent.');
     expect(prompt).toContain('Treat stale code, orphaned imports, half migrations, and unaccounted behavior changes as defects.');
+    expect(prompt).toContain('OPSX semantic relation paths');
+    expect(prompt).not.toContain('OPSX code-map refs');
     expect(prompt).not.toContain('Ponytail');
     expect(prompt).not.toContain('Superpowers');
   });

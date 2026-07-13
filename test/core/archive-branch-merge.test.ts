@@ -106,20 +106,17 @@ describe('archive branch merge', () => {
 ### Requirement: Synced behavior
 The system SHALL sync this requirement.
 `);
-    await writeFile(projectRoot, 'openspec/project.opsx.yaml', `schema_version: 1
+    await writeFile(projectRoot, 'openspec/project.opsx.yaml', `schema_version: 2
 project:
   id: proj.test
   name: Test
 domains: []
 capabilities: []
 `);
-    await writeFile(projectRoot, 'openspec/project.opsx.relations.yaml', `schema_version: 1
+    await writeFile(projectRoot, 'openspec/project.opsx.relations.yaml', `schema_version: 2
 relations: []
 `);
-    await writeFile(projectRoot, 'openspec/project.opsx.code-map.yaml', `schema_version: 1
-nodes: []
-`);
-    await writeFile(projectRoot, 'openspec/changes/feature-archive/opsx-delta.yaml', `schema_version: 1
+    await writeFile(projectRoot, 'openspec/changes/feature-archive/opsx-delta.yaml', `schema_version: 2
 ADDED:
   domains:
     - id: dom.auth
@@ -132,7 +129,7 @@ ADDED:
   relations:
     - from: cap.auth.login
       to: dom.auth
-      type: contains
+      type: belongs_to
 `);
     await writeFile(projectRoot, 'openspec/specs/unrelated/spec.md', '# Unrelated\n');
     const beforeHead = await git(projectRoot, ['rev-parse', 'HEAD']);
@@ -159,7 +156,7 @@ ADDED:
     const status = await git(projectRoot, ['status', '--short']);
     expect(status).toContain('?? openspec/changes/');
     expect(status).toContain('?? openspec/specs/');
-    expect(status).toContain('?? openspec/project.opsx.code-map.yaml');
+    expect(status).toContain('?? openspec/project.opsx.relations.yaml');
   });
 
   it('leaves unrelated dirty files unstaged during handoff', async () => {

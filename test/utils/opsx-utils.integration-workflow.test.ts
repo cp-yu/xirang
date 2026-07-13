@@ -33,7 +33,6 @@ describe('Integration: Full Workflow', () => {
     domains: [],
     capabilities: [],
     relations: [],
-    code_map: [],
     ...overrides,
   });
 
@@ -66,8 +65,8 @@ describe('Integration: Full Workflow', () => {
             { id: 'cap.auth.logout', type: 'capability', intent: 'User logout' },
           ],
           relations: [
-            { from: 'cap.auth.login', to: 'dom.auth', type: 'contains' },
-            { from: 'cap.auth.logout', to: 'dom.auth', type: 'contains' },
+            { from: 'cap.auth.login', to: 'dom.auth', type: 'belongs_to' },
+            { from: 'cap.auth.logout', to: 'dom.auth', type: 'belongs_to' },
           ],
         },
       };
@@ -113,13 +112,14 @@ describe('Integration: Full Workflow', () => {
         r => r.from === 'cap.auth.login' && r.to === 'dom.auth',
       );
       expect(loginRel).toBeDefined();
-      expect(loginRel!.type).toBe('contains');
+      expect(loginRel!.type).toBe('belongs_to');
     });
 
     it('should handle MODIFIED nodes in delta', async () => {
       const initial = mkBundle({
         domains: [{ id: 'dom.auth', type: 'domain', intent: 'Old intent' }],
         capabilities: [{ id: 'cap.auth.login', type: 'capability', intent: 'Old login' }],
+        relations: [{ from: 'cap.auth.login', type: 'belongs_to', to: 'dom.auth' }],
       });
       await writeProjectOpsx(testDir, initial);
 
@@ -174,6 +174,10 @@ describe('Integration: Full Workflow', () => {
           { id: 'cap.auth.login', type: 'capability' },
           { id: 'cap.core.init', type: 'capability' },
         ],
+        relations: [
+          { from: 'cap.auth.login', type: 'belongs_to', to: 'dom.auth' },
+          { from: 'cap.core.init', type: 'belongs_to', to: 'dom.core' },
+        ],
       });
       await writeProjectOpsx(testDir, initial);
 
@@ -201,6 +205,10 @@ describe('Integration: Full Workflow', () => {
         const ids = new Set(delta.REMOVED.capabilities.map(c => c.id));
         bundle!.capabilities = bundle!.capabilities.filter(c => !ids.has(c.id));
       }
+      const remainingIds = new Set([...bundle!.domains, ...bundle!.capabilities].map(node => node.id));
+      bundle!.relations = bundle!.relations.filter(
+        relation => remainingIds.has(relation.from) && remainingIds.has(relation.to),
+      );
 
       await writeProjectOpsx(testDir, bundle!);
 

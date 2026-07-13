@@ -20,6 +20,15 @@ describe('bootstrap OPSX templates', () => {
     expect(skill).toContain('report any specs that still have no match');
   });
 
+  it('keeps refresh guidance on complete rebuilding and explicit review gaps', () => {
+    const skill = getBootstrapOpsxSkillTemplate().instructions;
+
+    expect(skill).toContain('derive every entry from the complete current scan');
+    expect(skill).toContain('review the complete candidate and its diff against the old formal model');
+    expect(skill).toContain('record a `review_gaps` entry instead');
+    expect(skill).not.toMatch(/map incrementally|instead of re-approving the whole model|fabricate code references/i);
+  });
+
   it('lists backfill-specs in the skill instructions', () => {
     const skill = getBootstrapOpsxSkillTemplate().instructions;
 

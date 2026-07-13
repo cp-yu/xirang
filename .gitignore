@@ -159,6 +159,9 @@ opencode.json
 .pi/
 .ace-tool/
 .npm-cache
-.github
+.github/*
+!.github/workflows/
+.github/workflows/*
+!.github/workflows/opsx-v2-cross-platform.yml
 .roadmap/
 /.pi-subagents/artifacts

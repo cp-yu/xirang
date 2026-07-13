@@ -86,7 +86,7 @@ describe('artifact-graph workflow integration', () => {
       expect(graph.getBlocked(completed)).toEqual({});
 
       // 6. Create opsx-delta.yaml and tasks.md - workflow complete
-      fs.writeFileSync(path.join(tempDir, 'opsx-delta.yaml'), 'schema_version: 1\nADDED:\n  capabilities: []\n');
+      fs.writeFileSync(path.join(tempDir, 'opsx-delta.yaml'), 'schema_version: 2\nADDED:\n  capabilities: []\n');
       fs.writeFileSync(path.join(tempDir, 'tasks.md'), '# Tasks\n\n- [ ] Implement feature');
       completed = detectCompleted(graph, tempDir);
       expect(completed).toEqual(new Set(['proposal', 'design', 'specs', 'opsx-delta', 'tasks']));

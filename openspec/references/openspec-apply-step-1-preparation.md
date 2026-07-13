@@ -11,5 +11,6 @@ Before reading other context files, check whether `openspec/project.opsx.yaml` e
 5. Use CLI-backed OPSX navigation after shared context.
 After reading shared `project.opsx.yaml` context, use OpenSpec CLI query surfaces for node details.
 - Run `openspec list --specs --json` to get specs and their `capabilities` string arrays; specs without frontmatter return `capabilities: []`.
-- For known or affected OPSX node IDs, run `openspec opsx query <node-id...> --json` to get node details, relations and code-map refs in one batch; add `--depth 2` when broader related context is needed.
+- For known or affected OPSX node IDs, run `openspec opsx query <node-id...> --json` to get node details and directed semantic relations in one batch; add `--depth 2` when broader related context is needed.
+- Use optional CodeGraph or ACE/`rg`/`read` for current code locations; OPSX does not store code paths.
 - Treat CLI output as navigation context, not as a replacement for change artifacts.

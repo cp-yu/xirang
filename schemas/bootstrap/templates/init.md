@@ -9,7 +9,9 @@ Supported upgrade paths:
 - specs-based -> full
 - raw -> full
 - raw -> opsx-first
+- formal-opsx -> refresh
 
 Mode contract:
 - full => formal OPSX + complete valid specs
 - opsx-first => formal OPSX + README-only starter
+- refresh => complete candidate from current evidence; the old formal OPSX v2 model is review-only evidence

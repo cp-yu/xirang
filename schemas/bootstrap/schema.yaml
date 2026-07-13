@@ -24,9 +24,9 @@ artifacts:
       - raw -> opsx-first
       - formal-opsx -> refresh
 
-      Use opsx-first only when the repository has no existing specs and you want the formal OPSX bundle plus a README-only specs starter first.
+      Use opsx-first only when the repository has no existing specs and you want the formal OPSX v2 two-file bundle plus a README-only specs starter first.
       In that path, add full behavior specs later through normal change workflows.
-      Use refresh only when the repository already has the formal OPSX bundle and you want a delta-first refresh that merges reviewed changes back into the existing formal files.
+      Use refresh only when the repository already has both formal OPSX v2 files. Refresh rebuilds a complete candidate from current evidence; the old model is used only for review diff.
 
       Confirm the scope configuration with the user before proceeding.
     requires: []
@@ -36,7 +36,7 @@ artifacts:
     description: Scan codebase for domains, entrypoints, and structural evidence
     template: evidence.md
     instruction: |
-      Scan the codebase to identify candidate domains.
+      Scan the codebase to identify candidate domains from current source, specs, configuration, and package/build metadata.
 
       For each candidate domain, record:
       - id: domain ID following dom.<area> convention
@@ -44,6 +44,7 @@ artifacts:
       - sources: list of evidence (spec:<path>, code:<path>, readme:<section>)
       - intent: one-sentence description of the domain boundary
 
+      CodeGraph MAY accelerate symbol/call/import discovery when already available. Otherwise use ACE, rg, read, and tracked-file search. Do not install CodeGraph automatically.
       Use repository evidence only. Do not fabricate domains.
       Prefer fewer domains with solid evidence over exhaustive noise.
 
@@ -55,7 +56,7 @@ artifacts:
 
   - id: map
     generates: "domain-map/*.yaml"
-    description: Map capabilities, relations, and code-refs per domain
+    description: Map capabilities and semantic relations per domain
     template: domain-map.md
     instruction: |
       For each domain in evidence.yaml, create a domain-map/<domain-id>.yaml file.
@@ -63,16 +64,24 @@ artifacts:
       Each file contains:
       - domain: the domain node definition
       - capabilities: list of capabilities under this domain
-      - relations: contains/depends_on relationships
-      - code_refs: code reference entries for each node
+      - relations: precise Registry relation facts
+      - review_gaps: current evidence that cannot be promoted to a precise relation; each entry requires evidence and reason
 
+      - `belongs_to` (capability → domain): 记录 capability 的架构所有权。
+      - `invokes` (caller → callee): 一个 capability 在运行时主动调用另一个 capability。
+      - `consumes` (consumer → provider): 交互核心是读取或依赖提供内容。
+      - `precedes` (earlier → later): 执行顺序是正确性合同。
+      - `constrains` (constraint owner → constrained capability): 存在独立且稳定的行为约束。
+      - `validates` (validator → subject): 交互结果是明确的有效性判定。
+
+      Imports and calls are candidate evidence only. Select a relation from the interaction mechanism; do not mechanically promote code edges.
       This phase can be done incrementally — map one domain at a time.
       Run openspec bootstrap status to see per-domain progress.
 
       Gates (map → review):
       - All domains in evidence.yaml have a corresponding domain-map/*.yaml
       - Capability IDs follow cap.<domain>.<action> convention
-      - Code-ref paths exist on disk
+      - Relation endpoints, ownership, notes, duplicates, and cycles satisfy the Registry contract
     requires:
       - scan
 
@@ -81,47 +90,40 @@ artifacts:
     description: Human review and correction of mapped architecture
     template: review.md
     instruction: |
-      Assemble candidate OPSX files from domain-map/*.yaml and generate review.md.
+      Assemble a complete candidate from current domain-map/*.yaml evidence and generate review.md.
 
       Run: openspec bootstrap validate
 
-      The review checklist includes per-domain checkboxes:
-      - [ ] dom.xxx — N capabilities, confidence: high/medium/low
+      Review domain boundaries, capability coverage, semantic relation type/direction, ownership gaps, unsupported interactions, and spec coverage. In refresh mode, compare the complete candidate with the old formal model, which is review evidence only and must not be copied into the candidate.
 
-      Review workflow:
-      1. Verify domain boundaries match your mental model
-      2. Check capability coverage and naming
-      3. Validate code references point to correct files
-      4. Check or fix each domain checkbox
-      5. Re-run validate after any evidence.yaml or domain-map edit because review.md is regenerated from current inputs
+      Re-run validate after any evidence.yaml or domain-map edit because review.md is regenerated from current inputs.
 
       Gates (review → promote):
       - review.md matches the current candidate fingerprint
-      - All review.md checkboxes checked
-      - Referential integrity passes
-      - Code-map integrity passes
+      - All review.md checkboxes are checked
+      - Full Registry-driven relation semantic validation passes
       - Upstream scan/map completeness still passes
-      - In refresh mode, the delta summary matches the current formal OPSX baseline
+      - In refresh mode, the added/modified/removed summary matches the complete current candidate and old formal review baseline
     requires:
       - map
 
   - id: promote
     generates: .promoted
-    description: Validate, write formal OPSX files, clean workspace
+    description: Validate and write formal OPSX files
     template: promote.md
     instruction: |
       Run: openspec bootstrap promote -y
 
       This command:
-      1. Re-validates scan, map, and review gate conditions
-      2. Assembles candidate OPSX bundle from domain-map files
-      3. Writes only reviewed candidate artifacts to the formal OPSX bundle and specs tree
+      1. Re-validates scan, map, review, and Registry semantic gates
+      2. Assembles the complete candidate OPSX v2 bundle from domain-map files
+      3. Atomically writes project.opsx.yaml and project.opsx.relations.yaml
       4. In raw + full with granularity coarse, writes grouped specs from spec_groups; with granularity fine, writes one spec per mapped capability
       5. In raw + opsx-first, writes only openspec/specs/README.md
       6. In specs-based + full, preserves existing specs and writes only missing capability specs
-      7. In formal-opsx + refresh, merges the reviewed delta into the existing formal OPSX bundle, preserves existing specs, and writes only missing specs for newly added capabilities
+      7. In formal-opsx + refresh, atomically replaces the two formal OPSX v2 files with the reviewed complete candidate
       8. Runs spec frontmatter backfill automatically
-      9. Retains openspec/bootstrap/ workspace for manual inspection or cleanup
+      9. Retains openspec/bootstrap/ workspace for audit history
 
       After promote completes, run `openspec validate --all`. If validation fails, return to the relevant bootstrap source artifact for repair before claiming completion.
 
@@ -134,6 +136,6 @@ apply:
   tracks: review.md
   instruction: |
     Review the mapped architecture in review.md.
-    Check each domain checkbox after verifying its boundaries, capabilities, and code refs.
+    Check each domain checkbox after verifying its boundaries, capabilities, semantic relations, and evidence gaps.
     If evidence.yaml or domain-map files change, run openspec bootstrap validate to regenerate review.md and re-approve it.
     When all checkboxes are checked, run openspec bootstrap promote -y.
