@@ -5,41 +5,28 @@
 ## Requirements
 ### Requirement: OPSX Skeleton Generation on Init
 
-`openspec init` SHALL 在首次初始化（非 extend 模式）时自动生成三个最小化 OPSX 骨架文件，仅当对应文件不存在时创建。
+`openspec init` SHALL 在首次初始化（非 extend 模式）时仅在目标不存在时创建两个 OPSX v2 骨架：`openspec/project.opsx.yaml` 与 `openspec/project.opsx.relations.yaml`。两个文件 SHALL 包含 `schema_version: 2`；系统 MUST NOT 创建 `project.opsx.code-map.yaml`。
 
-骨架文件生成路径：
-- `openspec/project.opsx.yaml` — 空架构骨架（空 domains、空 capabilities）
-- `openspec/project.opsx.relations.yaml` — 空关系集
-- `openspec/project.opsx.code-map.yaml` — 空代码映射，含当前时间戳的 `generated_at` 字段
+`project.opsx.yaml` 中的 `project.id` 和 `project.name` SHALL 优先使用 `package.json.name`，否则使用项目根目录 basename，并转换为合法 ID。
 
-所有三个文件 SHALL 包含 `schema_version: 1` 字段。
-
-`project.opsx.yaml` 中的 `project.id` 和 `project.name` SHALL 按以下优先级推断：
-1. 读取 `package.json` 的 `name` 字段，若存在则使用
-2. 回退为项目根目录的 basename
-
-推断值 SHALL 被转换为合法 ID 格式（小写、特殊字符替换为连字符）。
-
-#### Scenario: First-time init generates OPSX skeletons
-
+#### Scenario: First-time init generates two OPSX v2 skeletons
 - **GIVEN** 项目中 `openspec/` 目录不存在
 - **WHEN** 运行 `openspec init`
-- **THEN** 系统 SHALL 在 AI 工具配置前，生成 `openspec/project.opsx.yaml`、`openspec/project.opsx.relations.yaml`、`openspec/project.opsx.code-map.yaml` 三个骨架文件
-- **AND** `project.opsx.yaml` SHALL 包含空的 `domains` 和 `capabilities` 数组
-- **AND** `project.opsx.relations.yaml` SHALL 包含空的 `relations` 数组
-- **AND** `project.opsx.code-map.yaml` SHALL 包含空的 `nodes` 数组
+- **THEN** 系统 SHALL 生成 `project.opsx.yaml` 与 `project.opsx.relations.yaml`
+- **AND** project 文件 SHALL 包含空 `domains` 与 `capabilities`
+- **AND** relations 文件 SHALL 包含空 `relations`
+- **AND** MUST NOT 生成 `project.opsx.code-map.yaml`
 
-#### Scenario: Extend mode does NOT overwrite existing OPSX files
-
-- **GIVEN** `openspec/` 目录已存在，且包含用户已编辑的 `project.opsx.yaml`
-- **WHEN** 运行 `openspec init`（extend 模式）
-- **THEN** 系统 SHALL NOT 覆盖或修改已有的 `project.opsx.yaml`、`project.opsx.relations.yaml`、`project.opsx.code-map.yaml`
+#### Scenario: Extend mode preserves existing OPSX files
+- **GIVEN** `openspec/` 已存在且包含用户编辑的 OPSX 文件
+- **WHEN** 运行 `openspec init`
+- **THEN** 系统 SHALL NOT 覆盖或修改已有 OPSX 文件
+- **AND** SHALL NOT 补写 code-map
 
 #### Scenario: Skeleton files use safe cross-platform paths
-
-- **WHEN** 生成 OPSX 骨架文件
-- **THEN** 文件路径 SHALL 使用 `path.join()` 构造
-- **AND** SHALL NOT 硬编码特定操作系统的路径分隔符
+- **WHEN** 生成 OPSX 骨架
+- **THEN** 文件路径 SHALL 使用 Node.js `path` API 与显式文件名常量构造
+- **AND** MUST NOT 依赖特定操作系统路径分隔符
 
 ### Requirement: Bootstrap Guidance in Init Success Output
 

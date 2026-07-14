@@ -14,7 +14,7 @@
       "src/utils/opsx-utils.ts",
       "test/utils/opsx-utils.test.ts"
     ],
-    "evidenceFingerprint": "e846910037771e55b090fbebb04e94408762260cda7fbb30a21fdfcb7e07ff60",
+    "evidenceFingerprint": "31d13c4d15e02f4fdfeb119ae7eb2dc79af750f9b1b66eaf6c05da40c82d0299",
     "evidenceFingerprintEntries": [
       {
         "path": "openspec/changes/opsx-v2-semantic-relations/design.md",
@@ -30,11 +30,11 @@
       },
       {
         "path": "openspec/project.opsx.relations.yaml",
-        "hash": "00b12b67142b3554596d43c7c0ba23ece8962a8043ce99aecdc4dc23ddf8d8ec"
+        "hash": "85cbaa205c339b8029e8549e4878d0722dd7193966b712e585e0ef1482aebe69"
       },
       {
         "path": "openspec/project.opsx.yaml",
-        "hash": "68ddf154cb3c667008109e45fe942316584d4d65317ead53cc7dcb76ed3d9170"
+        "hash": "f4c5290a2e3f5982936c9690d0f146b7bb892d2ec0ead82476878622bd45ea73"
       },
       {
         "path": "src/utils/opsx-utils.ts",

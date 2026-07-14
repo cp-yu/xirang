@@ -83,96 +83,36 @@ Explore agent SHALL 将 sweeper 视为可复用方法，在一次对话中可以
 - **AND** SHALL 使用中性术语，不引用外部框架名称
 
 ### Requirement: Impact sweeper report contract
-`openspec-impact-sweeper` SHALL accept lightweight location and concept input from the caller: `projectRoot`, `concept`, optional `optionalChangeName`, optional `knownUserTerms`, and optional `focus`.
+`openspec-impact-sweeper` SHALL 保持既有 input/report path 合同，并将 impact report 分类改为 `mustChange`、`mustVerify`、`contextual`、`unknown`、`architectureDrift`、`questions`。每个非 question finding SHALL 包含 target、relation path、reason 与 evidence；canonical JSON field names MUST 保持稳定。
 
-The sweeper SHALL write a JSON report under `openspec/sweeper/impact-sweep-<english-project-term-slug>.json` relative to `projectRoot`, overwriting the same concept path on repeat runs. The JSON report SHALL use this schema shape:
+#### Scenario: Sweeper writes semantic impact report
+- **WHEN** sweeper 完成 concept analysis
+- **THEN** SHALL 写入既有 deterministic report path 并只返回该 path
+- **AND** findings SHALL 解释 capability relation path
 
-```json
-{
-  "concept": "string",
-  "projectRoot": "string",
-  "termMappings": [
-    {
-      "userTerm": "string",
-      "projectTerms": ["string"],
-      "evidence": ["string"]
-    }
-  ],
-  "opsx": {
-    "nodes": [
-      {
-        "id": "string",
-        "reason": "string"
-      }
-    ],
-    "relationsExpanded": [
-      {
-        "from": "string",
-        "to": "string",
-        "type": "string"
-      }
-    ],
-    "coverageGaps": ["string"]
-  },
-  "mustChange": [
-    {
-      "target": "string",
-      "reason": "string",
-      "evidence": ["string"]
-    }
-  ],
-  "mustCheck": [
-    {
-      "target": "string",
-      "reason": "string",
-      "evidence": ["string"]
-    }
-  ],
-  "coverageGaps": ["string"],
-  "questions": ["string"]
-}
-```
-
-The sweeper response SHALL contain only the report path on success. The report content MAY use natural language in item values, but the JSON field names SHALL remain canonical.
-
-#### Scenario: Sweeper writes project report
-- **WHEN** `openspec-impact-sweeper` completes an impact sweep for concept `explore impact sweep`
-- **THEN** it SHALL write `openspec/sweeper/impact-sweep-explore-impact-sweep.json`
-- **AND** SHALL return that path to the caller
-- **AND** SHALL not emit a separate summary
-
-#### Scenario: Sweeper prepares ignored report directory
-- **WHEN** `openspec/sweeper/` does not exist
-- **THEN** the sweeper SHALL create it
-- **AND** SHALL ensure `openspec/sweeper/.gitignore` exists with content that ignores reports while keeping `.gitignore`
-- **AND** SHALL NOT modify an existing `.gitignore`
+#### Scenario: 不确定性显式输出
+- **WHEN** OPSX/spec/code evidence 不足或冲突
+- **THEN** SHALL 使用 `unknown` 或 `architectureDrift`
+- **AND** MUST NOT 将模糊相关性输出为 `mustChange`
 
 ### Requirement: Impact sweeper evidence collection
-`openspec-impact-sweeper` SHALL ground impact discovery in OPSX before broad code search. It SHALL obtain OPSX node data through a single batch invocation of `openspec opsx query <node-id...> --json` covering all plausible node IDs, defaulting to `--depth 1` and using `--depth 2` only when a first-hop node is shared infrastructure, cross-domain, or code search shows outward runtime use. It SHALL NOT read `openspec/project.opsx.yaml`, `openspec/project.opsx.code-map.yaml`, or `openspec/project.opsx.relations.yaml` directly.
+`openspec-impact-sweeper` SHALL 以 OPSX v2 relation paths 和 cap→spec mapping 为主要语义证据，以 CodeGraph 为可选代码结构加速器，并以 ACE、`rg`、`read`、`git ls-files` 为 fallback。Sweeper MUST NOT 读取 code-map 或 `.codegraph/codegraph.db`。
 
-The sweeper SHALL use `git ls-files` as the repository search boundary when available and SHALL exclude `openspec/changes/archive/**`. It SHALL perform repo-wide reverse search for mapped project terms, exported symbols, workflow/skill names, command names, config keys, template fragment names, and path references. It SHALL not rely only on OPSX code-map paths.
+#### Scenario: Relation-specific propagation
+- **WHEN** seed capability 已确定
+- **THEN** `belongs_to` SHALL 只提供 domain context
+- **AND** 其他五种 relations SHALL 按 Registry propagation hint 选择需验证方向
+- **AND** relation 本身 MUST NOT 单独证明 `mustChange`
 
-#### Scenario: OPSX first then reverse search
-- **WHEN** the concept maps to an OPSX capability
-- **THEN** the sweeper SHALL read matching OPSX node intent, code-map refs, and direct relations from the batch query output
-- **AND** SHALL perform repo-wide reverse search for key mapped project terms and symbols
-- **AND** SHALL classify relevant targets into `mustChange`, `mustCheck`, `coverageGaps`, or `questions`
+#### Scenario: CodeGraph 缺失不阻塞
+- **WHEN** CodeGraph 不可用
+- **THEN** sweeper SHALL 使用 fallback tools 完成报告
+- **AND** SHALL 披露降低的 evidence coverage
 
-#### Scenario: depth 展开判据
-- **WHEN** 批量查询返回的一跳邻居属于共享基础设施、跨域节点，或代码搜索显示存在外向运行时使用
-- **THEN** the sweeper SHALL 改用 `--depth 2` 重新批量查询以覆盖二跳邻居
-- **AND** MUST NOT 通过逐节点连环 `openspec opsx query` 调用模拟多跳展开
-
-#### Scenario: Multiple term mappings are explored
-- **WHEN** a user term maps plausibly to multiple project terms
-- **THEN** the sweeper SHALL search all plausible mappings
-- **AND** SHALL record mappings and evidence in `termMappings`
-- **AND** SHALL put scope-changing ambiguity into `questions`
-
-#### Scenario: Optional change artifacts are scoped
-- **WHEN** `optionalChangeName` is provided
-- **THEN** the sweeper SHALL read only that change's proposal, specs, design, tasks, and opsx-delta if they exist
-- **AND** SHALL NOT inspect unrelated active changes
+#### Scenario: OPSX 与代码冲突
+- **WHEN** semantic relation 与当前 call/import evidence 冲突
+- **THEN** report SHALL 记录 `architectureDrift`
+- **AND** SHALL 保留两侧 evidence
 
 ### Requirement: Impact sweeper write and execution boundaries
 `openspec-impact-sweeper` SHALL perform read-only analysis except for its report directory writes. It MAY create `openspec/sweeper/`, create `openspec/sweeper/.gitignore` if missing, and write or overwrite its JSON report. It SHALL NOT modify source files, specs, change artifacts, OPSX files, config, package files, tests, or generated workflow files.
