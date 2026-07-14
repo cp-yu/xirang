@@ -46,7 +46,7 @@ A single compilation is faithful and deterministic; the source itself iterates f
 
 - Start with `openspec list --json`.
 - Read relevant change artifacts when a change name is present.
-- Use OPSX as navigation: project domains/capabilities, code-map refs, specs, and CLI query guidance.
+- Use OPSX as navigation: project domains/capabilities, semantic relations, specs, and CLI query guidance; use live repository tools for code evidence.
 - Ground claims in project files and git evidence when the idea maps to code.
 
 Before reading other context files, check whether `openspec/project.opsx.yaml` exists.
@@ -57,7 +57,8 @@ Before reading other context files, check whether `openspec/project.opsx.yaml` e
 **OPSX-first navigation**:
 If `openspec/project.opsx.yaml` exists:
 - Use `project.opsx.yaml` for domains → capabilities structure
-- Use `project.opsx.code-map.yaml` to locate implementation files
+- Use `openspec opsx query <node-id...> --json` for directed semantic relations
+- Use optional CodeGraph or ACE/`rg`/`read` for current implementation evidence
 - Use `openspec/specs/` for behavior documentation
 - Cross-reference domains to understand system boundaries
 

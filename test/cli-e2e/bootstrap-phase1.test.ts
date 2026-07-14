@@ -60,19 +60,15 @@ async function pathExists(projectDir: string, relativePath: string): Promise<boo
 }
 
 async function writeFormalOpsxBundle(projectDir: string): Promise<void> {
-  await writeFile(projectDir, 'openspec/project.opsx.yaml', `schema_version: 1
+  await writeFile(projectDir, 'openspec/project.opsx.yaml', `schema_version: 2
 project:
   id: project
   name: Project
 domains: []
 capabilities: []
 `);
-  await writeFile(projectDir, 'openspec/project.opsx.relations.yaml', `schema_version: 1
+  await writeFile(projectDir, 'openspec/project.opsx.relations.yaml', `schema_version: 2
 relations: []
-`);
-  await writeFile(projectDir, 'openspec/project.opsx.code-map.yaml', `schema_version: 1
-generated_at: "2026-03-13T00:00:00.000Z"
-nodes: []
 `);
 }
 
@@ -98,7 +94,7 @@ describe('openspec bootstrap Phase 1', () => {
 
   it('returns structured pre-init status for an invalid partial OPSX baseline', async () => {
     const projectDir = await createTempProject();
-    await writeFile(projectDir, 'openspec/project.opsx.yaml', `schema_version: 1
+    await writeFile(projectDir, 'openspec/project.opsx.yaml', `schema_version: 2
 project:
   id: project
   name: Project

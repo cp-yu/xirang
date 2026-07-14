@@ -48,16 +48,24 @@ describe('PBT: Merge Idempotency', () => {
 
   const bundleArb = fc.record({
     project: projectMetadataArb,
-    domains: fc.option(fc.array(domainNodeArb, { minLength: 0, maxLength: 5 }), { nil: undefined }),
-    capabilities: fc.option(fc.array(capabilityNodeArb, { minLength: 0, maxLength: 5 }), { nil: undefined }),
-  }).map(base => ({
-    schema_version: OPSX_SCHEMA_VERSION,
-    project: base.project,
-    domains: base.domains || [],
-    capabilities: base.capabilities || [],
-    relations: [],
-    code_map: [],
-  } as ProjectOpsxBundle));
+    domains: fc.uniqueArray(domainNodeArb, { selector: node => node.id, maxLength: 5 }),
+    capabilities: fc.uniqueArray(capabilityNodeArb, { selector: node => node.id, maxLength: 5 }),
+  }).map(base => {
+    const domains = base.capabilities.length > 0 && base.domains.length === 0
+      ? [{ id: 'dom.generated', type: 'domain' as const }]
+      : base.domains;
+    return {
+      schema_version: OPSX_SCHEMA_VERSION,
+      project: base.project,
+      domains,
+      capabilities: base.capabilities,
+      relations: base.capabilities.map(capability => ({
+        from: capability.id,
+        type: 'belongs_to' as const,
+        to: domains[0].id,
+      })),
+    } as ProjectOpsxBundle;
+  });
 
   it('Property 1: Writing same data twice produces identical result', async () => {
     await fc.assert(
@@ -71,8 +79,7 @@ describe('PBT: Merge Idempotency', () => {
         expect(r1).not.toBeNull();
         expect(r2).not.toBeNull();
         // Compare without generated_at (timestamp differs)
-        const strip = (b: any) => ({ ...b, code_map: b.code_map });
-        expect(strip(r1)).toEqual(strip(r2));
+        expect(r1).toEqual(r2);
       }),
       { numRuns: 50 },
     );

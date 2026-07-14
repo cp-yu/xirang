@@ -238,7 +238,7 @@ ${OPSX_COMPILATION_PHILOSOPHY}
 
 - Start with \`openspec list --json\`.
 - Read relevant change artifacts when a change name is present.
-- Use OPSX as navigation: project domains/capabilities, code-map refs, specs, and CLI query guidance.
+- Use OPSX as navigation: project domains/capabilities, semantic relations, specs, and CLI query guidance; use live repository tools for code evidence.
 - Ground claims in project files and git evidence when the idea maps to code.
 
 ${OPSX_SHARED_CONTEXT}

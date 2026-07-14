@@ -19,15 +19,33 @@ async function writeProjectOpsx(root: string, capIds: string[]) {
   await fs.writeFile(
     path.join(openspecDir, 'project.opsx.yaml'),
     [
-      'schema_version: 1',
+      'schema_version: 2',
       'project:',
       '  id: proj.test',
       '  name: Test',
+      'domains:',
+      '  - id: dom.test',
+      '    type: domain',
+      '    intent: Test domain',
       'capabilities:',
       ...capIds.flatMap((capId) => [
         `  - id: ${capId}`,
         '    type: capability',
         '    intent: Test capability',
+      ]),
+      '',
+    ].join('\n'),
+    'utf-8'
+  );
+  await fs.writeFile(
+    path.join(openspecDir, 'project.opsx.relations.yaml'),
+    [
+      'schema_version: 2',
+      'relations:',
+      ...capIds.flatMap((capId) => [
+        `  - from: ${capId}`,
+        '    type: belongs_to',
+        '    to: dom.test',
       ]),
       '',
     ].join('\n'),

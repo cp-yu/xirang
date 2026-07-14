@@ -1,3 +1,5 @@
+import { renderRelationWorkflowSummary } from '../../relations/renderers.js';
+
 /**
  * Shared OPSX instruction fragments for workflow templates
  *
@@ -41,7 +43,8 @@ Before reading other context files, check whether \`openspec/project.opsx.yaml\`
 export const OPSX_CLI_QUERY_CONTEXT = `
 After reading shared \`project.opsx.yaml\` context, use OpenSpec CLI query surfaces for node details.
 - Run \`openspec list --specs --json\` to get specs and their \`capabilities\` string arrays; specs without frontmatter return \`capabilities: []\`.
-- For known or affected OPSX node IDs, run \`openspec opsx query <node-id...> --json\` to get node details, relations and code-map refs in one batch; add \`--depth 2\` when broader related context is needed.
+- For known or affected OPSX node IDs, run \`openspec opsx query <node-id...> --json\` to get node details and directed semantic relations in one batch; add \`--depth 2\` when broader related context is needed.
+- Use optional CodeGraph or ACE/\`rg\`/\`read\` for current code locations; OPSX does not store code paths.
 - Treat CLI output as navigation context, not as a replacement for change artifacts.
 `.trim();
 
@@ -59,7 +62,7 @@ export const OPSX_GENERATE_DELTA = `
 - Treat \`ADDED\`, \`MODIFIED\`, and \`REMOVED\` as YAML object keys, not Markdown headings
 - Follow a concrete YAML object structure such as:
   \`\`\`yaml
-  schema_version: 1
+  schema_version: 2
   ADDED:
     capabilities:
       - id: cap.example.feature
@@ -67,7 +70,7 @@ export const OPSX_GENERATE_DELTA = `
         intent: Describe the new capability
     relations:
       - from: cap.example.feature
-        type: contains
+        type: belongs_to
         to: dom.example
   MODIFIED:
     capabilities:
@@ -78,6 +81,8 @@ export const OPSX_GENERATE_DELTA = `
       - id: cap.example.legacy
   \`\`\`
 - Delta nodes contain only id, type, intent, status — no code_refs or spec_refs
+- Choose relations only from this Registry projection:\n${renderRelationWorkflowSummary()}
+- If no precise relation applies, omit it and record a review gap
 - Keep this agent-driven: capture merge intent in the YAML, not in programmatic code
 `.trim();
 
@@ -94,7 +99,7 @@ export const OPSX_POST_PROPOSE_VALIDATION = `
   - Align with \`Validator.validateChangeDeltaSpecs()\` semantics for delta sections, SHALL/MUST requirement text, and required \`#### Scenario:\` blocks
 - Validate \`opsx-delta.yaml\` through the same programmatic CLI path used by downstream change validation:
   - Prefer \`openspec validate "<name>" --type change --json\` when available
-  - Align with \`Validator.validateOpsxDelta()\` semantics for Zod parsing, dry-run \`applyOpsxDelta()\`, referential integrity, and code-map integrity
+  - Align with \`Validator.validateOpsxDelta()\` semantics for Zod parsing, dry-run \`applyOpsxDelta()\`, referential integrity, and Registry-driven semantic validation
   - Do NOT run \`openspec sync\` for this check because it mutates project files
   - If \`openspec/project.opsx.yaml\` does not exist, \`Validator.validateOpsxDelta()\` skips this check and the final summary must report the skip
 - Run lightweight structure checks for \`proposal.md\`, \`design.md\`, and \`tasks.md\` against the current schema templates, not scattered examples:
@@ -194,7 +199,8 @@ export const OPSX_NAVIGATION_GUIDANCE = `
 **OPSX-first navigation**:
 If \`openspec/project.opsx.yaml\` exists:
 - Use \`project.opsx.yaml\` for domains → capabilities structure
-- Use \`project.opsx.code-map.yaml\` to locate implementation files
+- Use \`openspec opsx query <node-id...> --json\` for directed semantic relations
+- Use optional CodeGraph or ACE/\`rg\`/\`read\` for current implementation evidence
 - Use \`openspec/specs/\` for behavior documentation
 - Cross-reference domains to understand system boundaries
 `.trim();

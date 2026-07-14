@@ -61,7 +61,7 @@ describe('top-level validate command', () => {
 
   async function writeProjectOpsx(): Promise<void> {
     await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), [
-      'schema_version: 1',
+      'schema_version: 2',
       'project:',
       '  id: proj.test',
       '  name: Test',
@@ -77,6 +77,13 @@ describe('top-level validate command', () => {
       '  - id: cap.alpha',
       '    intent: Alpha capability',
       '    type: capability',
+    ].join('\n'), 'utf-8');
+    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'), [
+      'schema_version: 2',
+      'relations:',
+      '  - from: cap.alpha',
+      '    type: belongs_to',
+      '    to: dom.alpha',
     ].join('\n'), 'utf-8');
   }
 
@@ -104,7 +111,7 @@ describe('top-level validate command', () => {
   it('validates only delta specs for --artifacts specs', async () => {
     await writeProjectOpsx();
     await fs.writeFile(path.join(changesDir, 'c1', 'opsx-delta.yaml'), [
-      'schema_version: 1',
+      'schema_version: 2',
       'MODIFIED:',
       '  capabilities:',
       '    - id: cap.missing',
@@ -130,7 +137,7 @@ describe('top-level validate command', () => {
       'This requirement SHALL be invalid without scenarios.',
     ].join('\n'), 'utf-8');
     await fs.writeFile(path.join(badChange, 'opsx-delta.yaml'), [
-      'schema_version: 1',
+      'schema_version: 2',
       'MODIFIED:',
       '  capabilities:',
       '    - id: cap.alpha',

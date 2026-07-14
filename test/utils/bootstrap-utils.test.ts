@@ -116,18 +116,7 @@ describe('bootstrap-utils invalid domain-map handling', () => {
           {
             from: capabilityId,
             to: domainId,
-            type: 'contains',
-          },
-        ],
-        code_refs: [
-          {
-            id: capabilityId,
-            refs: [
-              {
-                path: `src/${domainSuffix}/index.ts`,
-                line_start: 1,
-              },
-            ],
+            type: 'belongs_to',
           },
         ],
       },
@@ -296,12 +285,7 @@ capabilities:
 relations:
   - from: cap.auth.login
     to: dom.auth
-    type: contains
-code_refs:
-  - id: cap.auth.login
-    refs:
-      - path: src/auth/index.ts
-        line_start: 1
+    type: belongs_to
 `;
     await fs.mkdir(path.dirname(filePath), { recursive: true });
     await fs.mkdir(path.join(testDir, 'src', 'auth'), { recursive: true });
@@ -487,7 +471,104 @@ code_refs:
     );
   });
 
-  it('derives bootstrap project metadata from workspace inputs instead of package manifests', async () => {
+  it('enforces Registry note policy and preserves valid relation notes', async () => {
+    await initBootstrap(testDir, { mode: 'opsx-first', granularity: 'fine' });
+    await writeEvidence(['dom.auth']);
+    await writeDomainMap({ domainId: 'dom.auth', capabilityId: 'cap.auth.login' });
+
+    const mapPath = path.join(testDir, 'openspec', 'bootstrap', 'domain-map', 'dom.auth.yaml');
+    const readMap = async () => parseYaml(await fs.readFile(mapPath, 'utf-8')) as {
+      capabilities: Array<{ id: string; type: string; intent: string }>;
+      relations: Array<{ from: string; to: string; type: string; note?: string }>;
+    };
+    const writeMap = async (map: Awaited<ReturnType<typeof readMap>>) => {
+      await fs.writeFile(mapPath, stringifyYaml(map, { lineWidth: 0 }), 'utf-8');
+    };
+
+    let map = await readMap();
+    map.relations[0]!.note = 'Ownership note is forbidden';
+    await writeMap(map);
+    let gate = await validateGate(testDir, 'map_to_review');
+    expect(gate.passed).toBe(false);
+    expect(gate.errors).toEqual(expect.arrayContaining([
+      expect.stringContaining("Domain 'dom.auth' has invalid domain-map: dom.auth.yaml"),
+    ]));
+
+    await writeDomainMap({ domainId: 'dom.auth', capabilityId: 'cap.auth.login' });
+    map = await readMap();
+    map.capabilities.push({
+      ...map.capabilities[0]!,
+      id: 'cap.auth.session',
+      intent: 'Track sessions',
+    });
+    map.relations.push(
+      { from: 'cap.auth.session', to: 'dom.auth', type: 'belongs_to' },
+      {
+        from: 'cap.auth.login',
+        to: 'cap.auth.session',
+        type: 'invokes',
+        note: 'x'.repeat(201),
+      }
+    );
+    await writeMap(map);
+    gate = await validateGate(testDir, 'map_to_review');
+    expect(gate.passed).toBe(false);
+    expect(gate.errors).toEqual(expect.arrayContaining([
+      expect.stringContaining("Domain 'dom.auth' has invalid domain-map: dom.auth.yaml"),
+    ]));
+
+    map.relations[2]!.note = 'Creates a session after successful authentication.';
+    await writeMap(map);
+    gate = await validateGate(testDir, 'map_to_review');
+    expect(gate.passed, gate.errors.join('\n')).toBe(true);
+    await refreshBootstrapDerivedArtifacts(testDir);
+
+    const relations = parseYaml(
+      await fs.readFile(path.join(testDir, 'openspec', 'bootstrap', 'candidate', 'project.opsx.relations.yaml'), 'utf-8')
+    ) as { relations: Array<{ from: string; to: string; type: string; note?: string }> };
+    expect(relations.relations).toContainEqual({
+      from: 'cap.auth.login',
+      to: 'cap.auth.session',
+      type: 'invokes',
+      note: 'Creates a session after successful authentication.',
+    });
+  });
+
+  it('projects uncertain interaction evidence into review gaps without creating a relation', async () => {
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
+    await writeEvidence(['dom.auth']);
+    await writeDomainMap({ domainId: 'dom.auth', capabilityId: 'cap.auth.login' });
+
+    const mapPath = path.join(testDir, 'openspec', 'bootstrap', 'domain-map', 'dom.auth.yaml');
+    const map = parseYaml(await fs.readFile(mapPath, 'utf-8')) as Record<string, unknown>;
+    map.review_gaps = [{
+      evidence: 'import src/auth/login.ts -> src/session/store.ts',
+      reason: 'Cannot prove whether the interaction invokes or consumes.',
+    }];
+    await fs.writeFile(mapPath, stringifyYaml(map, { lineWidth: 0 }), 'utf-8');
+
+    await refreshBootstrapDerivedArtifacts(testDir);
+
+    const review = await fs.readFile(path.join(testDir, 'openspec', 'bootstrap', 'review.md'), 'utf-8');
+    expect(review).toContain('## Review Gaps');
+    expect(review).toContain('- [ ] dom.auth: import src/auth/login.ts -> src/session/store.ts');
+    expect(review).toContain('Cannot prove whether the interaction invokes or consumes.');
+    let promoteGate = await validateGate(testDir, 'review_to_promote');
+    expect(promoteGate.passed).toBe(false);
+    expect(promoteGate.errors).toEqual(expect.arrayContaining([
+      expect.stringContaining('Unchecked review item: - [ ] dom.auth: import src/auth/login.ts -> src/session/store.ts'),
+    ]));
+    await approveReview();
+    promoteGate = await validateGate(testDir, 'review_to_promote');
+    expect(promoteGate.passed, promoteGate.errors.join('\n')).toBe(true);
+
+    const relations = parseYaml(
+      await fs.readFile(path.join(testDir, 'openspec', 'bootstrap', 'candidate', 'project.opsx.relations.yaml'), 'utf-8')
+    ) as { relations: unknown[] };
+    expect(relations.relations).toEqual([{ from: 'cap.auth.login', to: 'dom.auth', type: 'belongs_to' }]);
+  });
+
+  it('derives bootstrap project identity and architecture metadata from current evidence', async () => {
     await fs.writeFile(
       path.join(testDir, 'package.json'),
       JSON.stringify({
@@ -526,8 +607,8 @@ code_refs:
       };
     };
 
-    expect(candidate.project.id).toBe('project');
-    expect(candidate.project.name).toBe('Project');
+    expect(candidate.project.id).toBe('acme-manifest-name');
+    expect(candidate.project.name).toBe('@acme/manifest-name');
     expect(candidate.project.intent).toContain('dom.auth boundary');
     expect(candidate.project.intent).toContain('dom.cli boundary');
     expect(candidate.project.intent).not.toContain('Manifest description');
@@ -535,6 +616,25 @@ code_refs:
     expect(candidate.project.scope).toContain('include=src, docs');
     expect(candidate.project.scope).toContain('exclude=vendor');
     expect(candidate.project.scope).toContain('mapped domains=dom.auth, dom.cli');
+  });
+
+  it('rejects obsolete code_refs in v2 domain maps instead of silently stripping them', async () => {
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
+    await writeEvidence(['dom.auth']);
+    await fs.writeFile(
+      path.join(testDir, 'openspec', 'bootstrap', 'domain-map', 'dom.auth.yaml'),
+      stringifyYaml({
+        domain: { id: 'dom.auth', type: 'domain', intent: 'Authentication boundary' },
+        capabilities: [{ id: 'cap.auth.login', type: 'capability', intent: 'Log in' }],
+        relations: [{ from: 'cap.auth.login', to: 'dom.auth', type: 'belongs_to' }],
+        code_refs: [{ id: 'cap.auth.login', refs: [{ path: 'src/auth/login.ts' }] }],
+      }),
+      'utf-8'
+    );
+
+    const state = await readBootstrapState(testDir);
+    expect(state.domainMaps.has('dom.auth')).toBe(false);
+    expect(state.invalidDomainMaps.get('dom.auth')?.error).toMatch(/code_refs|unrecognized/i);
   });
 
   it('leaves bootstrap project intent and scope undefined when workspace inputs are insufficient', async () => {
@@ -565,7 +665,7 @@ code_refs:
   });
 
   it('keeps existing formal OPSX files unchanged when a non-refresh mode is requested on a formal baseline', async () => {
-    const originalProjectOpsx = `schema_version: 1
+    const originalProjectOpsx = `schema_version: 2
 project:
   id: proj.demo
   name: Demo
@@ -573,8 +673,7 @@ project:
 `;
 
     await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), originalProjectOpsx, 'utf-8');
-    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'), 'schema_version: 1\nrelations: []\n', 'utf-8');
-    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.code-map.yaml'), 'schema_version: 1\nnodes: []\n', 'utf-8');
+    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'), 'schema_version: 2\nrelations: []\n', 'utf-8');
 
     await expect(initBootstrap(testDir, { mode: 'full', granularity: 'fine' })).rejects.toThrow(
       "Bootstrap mode 'full' is not supported for baseline 'formal-opsx'. Valid modes: refresh"
@@ -657,11 +756,7 @@ describe('bootstrap-utils spec_groups validation', () => {
     const data: Record<string, unknown> = {
       domain: { id: domainId, type: 'domain', intent: `${domainId} boundary` },
       capabilities,
-      relations: capabilityIds.map((id) => ({ from: id, to: domainId, type: 'contains' })),
-      code_refs: capabilityIds.map((id) => ({
-        id,
-        refs: [{ path: `src/${domainId.replace('dom.', '')}/index.ts`, line_start: 1 }],
-      })),
+      relations: capabilityIds.map((id) => ({ from: id, to: domainId, type: 'belongs_to' })),
     };
 
     if (specGroups) {
@@ -759,12 +854,7 @@ capabilities:
 relations:
   - from: cap.cli.init
     to: dom.cli
-    type: contains
-code_refs:
-  - id: cap.cli.init
-    refs:
-      - path: src/cli/index.ts
-        line_start: 1
+    type: belongs_to
 spec_groups:
   - folder: cli\\commands
     capabilities:
@@ -822,11 +912,7 @@ describe('bootstrap-utils coarse candidate spec compilation', () => {
         type: 'capability',
         intent: `${id} intent`,
       })),
-      relations: capabilityIds.map((id) => ({ from: id, to: domainId, type: 'contains' })),
-      code_refs: capabilityIds.map((id) => ({
-        id,
-        refs: [{ path: `src/${domainId.replace('dom.', '')}/index.ts`, line_start: 1 }],
-      })),
+      relations: capabilityIds.map((id) => ({ from: id, to: domainId, type: 'belongs_to' })),
       spec_groups: deps.map((dep) => ({
         folder: dep.folder,
         capabilities: dep.capabilities,

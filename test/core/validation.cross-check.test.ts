@@ -35,13 +35,24 @@ describe('validateChangeDeltaSpecs cross-check against main spec', () => {
     const capabilities = capIds.map(id => `  - id: ${id}
     type: capability
     intent: Test capability`).join('\n');
-    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), `schema_version: 1
+    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), `schema_version: 2
 project:
   id: proj.test
   name: Test
+domains:
+  - id: dom.test
+    type: domain
+    intent: Test domain
 capabilities:
 ${capabilities}
 `);
+    await fs.writeFile(
+      path.join(testDir, 'openspec', 'project.opsx.relations.yaml'),
+      `schema_version: 2
+relations:
+${capIds.map(id => `  - from: ${id}\n    type: belongs_to\n    to: dom.test`).join('\n')}
+`
+    );
   }
 
   const mainSpecWithHeaders = (headers: string[]) => {

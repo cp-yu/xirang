@@ -117,11 +117,12 @@ artifacts:
       - Use `ADDED`, `MODIFIED`, and `REMOVED` as YAML object keys, not Markdown headings
       - Delta nodes contain only `id`, `type`, `intent`, and optional `status`
       - Do NOT include `code_refs` or `spec_refs` in delta nodes
-      - Use OPSX node IDs and relation types that already exist in the project conventions
+      - Use only Registry relation types: belongs_to, invokes, consumes, precedes, constrains, validates
+      - If no precise type applies, omit the relation and record a review gap
 
       Minimal shape:
       ```yaml
-      schema_version: 1
+      schema_version: 2
       ADDED:
         capabilities:
           - id: cap.example.feature
@@ -129,7 +130,7 @@ artifacts:
             intent: Describe the new capability
         relations:
           - from: cap.example.feature
-            type: contains
+            type: belongs_to
             to: dom.example
 
       MODIFIED:

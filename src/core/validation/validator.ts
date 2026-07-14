@@ -10,9 +10,8 @@ import {
   OPSX_PATHS,
   readOpsxDelta,
   readProjectOpsx,
-  validateCodeMapIntegrity,
-  validateReferentialIntegrity,
 } from '../../utils/opsx-utils.js';
+import { validateRelationGraph } from '../relations/validator.js';
 import {
   MIN_PURPOSE_LENGTH,
   MAX_REQUIREMENT_TEXT_LENGTH,
@@ -343,21 +342,12 @@ export class Validator {
       }
 
       const result = applyOpsxDelta(projectBundle, delta);
-      const referentialIntegrity = validateReferentialIntegrity(result.bundle);
-      for (const error of referentialIntegrity.errors) {
+      const relationValidation = validateRelationGraph(result.bundle);
+      for (const error of relationValidation.errors) {
         issues.push({
           level: 'ERROR',
           path: 'opsx-delta.yaml',
-          message: `Referential integrity failed: ${error}`,
-        });
-      }
-
-      const codeMapIntegrity = validateCodeMapIntegrity(result.bundle);
-      for (const error of codeMapIntegrity.errors) {
-        issues.push({
-          level: 'ERROR',
-          path: 'opsx-delta.yaml',
-          message: `Code-map integrity failed: ${error}`,
+          message: `Relation validation failed: ${error}`,
         });
       }
     } catch (error) {

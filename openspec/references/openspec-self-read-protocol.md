@@ -11,6 +11,6 @@ Read context in this order:
 
 ## Dependency Expansion (One Hop)
 
-Expand direct imports, callers, and OPSX relations from project.opsx.relations.yaml through depends_on / relates_to neighbors. Stop after one hop. Use path.relative to reject paths outside projectRoot, apply gitignore filtering, and exclude node_modules, dist, build, and .git. If relations are missing, continue with imports and callers.
+Expand direct imports, callers, and directed OPSX semantic relations from project.opsx.relations.yaml. Interpret each relation by its Registry meaning and stop after one hop. Use path.relative to reject paths outside projectRoot, apply gitignore filtering, and exclude node_modules, dist, build, and .git. If relations are missing, continue with imports and callers.
 
 Expansion candidates MUST NOT be actionable finding targets. Actionable locations MUST remain inside base scope files only; report scope-outside opportunities as deferred.

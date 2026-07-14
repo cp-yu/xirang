@@ -50,7 +50,8 @@ describe('propose template post-validation flow', () => {
   it('aligns OPSX validation with downstream programmatic validation and graceful skip behavior', () => {
     for (const body of getProposeBodies()) {
       expect(body).toContain('openspec instructions opsx-delta --change "<name>" --json');
-      expect(body).toContain('schema_version: 1');
+      expect(body).toContain('schema_version: 2');
+      expect(body).not.toContain('schema_version: 1');
       expect(body).toContain('ADDED:');
       expect(body).toContain('MODIFIED:');
       expect(body).toContain('REMOVED:');
@@ -59,7 +60,8 @@ describe('propose template post-validation flow', () => {
       expect(body).toContain('applyOpsxDelta()');
       expect(body).toContain('Do NOT run `openspec sync`');
       expect(body).toContain('referential integrity');
-      expect(body).toContain('code-map integrity');
+      expect(body).toContain('relation semantic validation');
+      expect(body).not.toContain('code-map integrity');
       expect(body).toContain('skips this check');
     }
   });

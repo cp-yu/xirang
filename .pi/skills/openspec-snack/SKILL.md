@@ -46,25 +46,27 @@ Before reading other context files, check whether `openspec/project.opsx.yaml` e
    - A user-specified commit, commit range, or branch range given in natural language is an agent-parsed evidence selector (e.g. `git diff <range> --name-only`), not a formal OpenSpec CLI flag.
    - Exclude non-code files (`.md`, `.json`, `.yaml`, lock files) from spec inference.
    - Mark conflicts or uncertain mappings with `[REVIEW NEEDED]`.
-4. Reverse-map files to capabilities via code-map.
-   - Read `openspec/project.opsx.code-map.yaml` and map each modified path to its capability/domain node IDs.
-   - Files without a code-map entry are [REVIEW NEEDED] candidates for new capabilities.
+4. Map changed symbols/files to capabilities using current evidence.
+   - Use capability IDs/intents, OPSX relations, and spec coverage as semantic context.
+   - If CodeGraph is available, use symbol/call/import evidence as an optional accelerator; never read `.codegraph/codegraph.db`.
+   - Otherwise use ACE, `rg`, and `read`; uncertain mappings remain `[REVIEW NEEDED]` and MUST NOT silently create capabilities.
 5. Map capabilities to existing specs via spec registry.
    - Run `openspec list --specs --json` to get all specs with their `capabilities` field.
-   - For each capability ID from step 4 code-map reverse lookup:
+   - For each capability ID from step 4 evidence mapping:
      - If the capability ID appears in any spec's `capabilities` array → mark as **Modified Capability** and record the spec directory name.
      - If no existing spec covers it → mark as **New Capability**.
    - Use this mapping when reconciling the proposal's `## Capabilities` section.
-6. Use CLI-backed OPSX navigation after code-map reverse lookup.
+6. Use CLI-backed OPSX navigation after evidence mapping.
 After reading shared `project.opsx.yaml` context, use OpenSpec CLI query surfaces for node details.
 - Run `openspec list --specs --json` to get specs and their `capabilities` string arrays; specs without frontmatter return `capabilities: []`.
-- For known or affected OPSX node IDs, run `openspec opsx query <node-id...> --json` to get node details, relations and code-map refs in one batch; add `--depth 2` when broader related context is needed.
+- For known or affected OPSX node IDs, run `openspec opsx query <node-id...> --json` to get node details and directed semantic relations in one batch; add `--depth 2` when broader related context is needed.
+- Use optional CodeGraph or ACE/`rg`/`read` for current code locations; OPSX does not store code paths.
 - Treat CLI output as navigation context, not as a replacement for change artifacts.
 7. Reconcile `proposal.md`.
    - Run `openspec instructions proposal --change "<name>" --json`.
    - Use the returned `template`, `instruction`, `outputPath`, and `configProjection`; do not invent non-template sections.
    - Determine the `## Capabilities` list before specs generation and reuse the same list as specs input.
-   - Prefer code-map reverse lookup; files without code-map coverage may use evidence inference but MUST be marked `[REVIEW NEEDED]`.
+   - Reuse the confirmed evidence mapping; uncertain inference MUST be marked `[REVIEW NEEDED]`.
    - Preserve the template headings including `## Why`, `## What Changes`, `## Capabilities`, and `## Impact`.
    - If an existing proposal already matches the evidence and capability mapping, leave it current and report that no reconciliation was needed.
 8. Reconcile delta specs in `specs/<capability>/spec.md`.
@@ -93,7 +95,7 @@ After reading shared `project.opsx.yaml` context, use OpenSpec CLI query surface
 - Treat `ADDED`, `MODIFIED`, and `REMOVED` as YAML object keys, not Markdown headings
 - Follow a concrete YAML object structure such as:
   ```yaml
-  schema_version: 1
+  schema_version: 2
   ADDED:
     capabilities:
       - id: cap.example.feature
@@ -101,7 +103,7 @@ After reading shared `project.opsx.yaml` context, use OpenSpec CLI query surface
         intent: Describe the new capability
     relations:
       - from: cap.example.feature
-        type: contains
+        type: belongs_to
         to: dom.example
   MODIFIED:
     capabilities:
@@ -112,6 +114,14 @@ After reading shared `project.opsx.yaml` context, use OpenSpec CLI query surface
       - id: cap.example.legacy
   ```
 - Delta nodes contain only id, type, intent, status — no code_refs or spec_refs
+- Choose relations only from this Registry projection:
+- `belongs_to` (capability → domain): 记录 capability 的架构所有权。
+- `invokes` (caller → callee): 一个 capability 在运行时主动调用另一个 capability。
+- `consumes` (consumer → provider): 交互核心是读取或依赖提供内容。
+- `precedes` (earlier → later): 执行顺序是正确性合同。
+- `constrains` (constraint owner → constrained capability): 存在独立且稳定的行为约束。
+- `validates` (validator → subject): 交互结果是明确的有效性判定。
+- If no precise relation applies, omit it and record a review gap
 - Keep this agent-driven: capture merge intent in the YAML, not in programmatic code
    - Distinguish delta spec Markdown headings (`## ADDED Requirements`, `## MODIFIED Requirements`) from OPSX delta YAML keys (`ADDED`, `MODIFIED`, `REMOVED`).
 11. Do NOT generate `tasks.md` (code is already implemented).

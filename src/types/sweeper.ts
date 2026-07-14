@@ -1,5 +1,10 @@
 export interface ImpactSweepEvidenceItem {
   target: string;
+  relationPath: Array<{
+    from: string;
+    type: string;
+    to: string;
+  }>;
   reason: string;
   evidence: string[];
 }
@@ -25,8 +30,10 @@ export interface ImpactSweepReport {
     coverageGaps: string[];
   };
   mustChange: ImpactSweepEvidenceItem[];
-  mustCheck: ImpactSweepEvidenceItem[];
-  coverageGaps: string[];
+  mustVerify: ImpactSweepEvidenceItem[];
+  contextual: ImpactSweepEvidenceItem[];
+  unknown: ImpactSweepEvidenceItem[];
+  architectureDrift: ImpactSweepEvidenceItem[];
   questions: string[];
   /**
    * Terminology observation results, used to detect consistency between user input and spec terminology.

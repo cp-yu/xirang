@@ -7,13 +7,11 @@ import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import {
   getBootstrapStatus,
   initBootstrap,
-  mapChangedPathsToNodeIds,
   promoteBootstrap,
   refreshBootstrapDerivedArtifacts,
   readBootstrapState,
   type DomainMapFile,
 } from '../../src/utils/bootstrap-utils.js';
-import type { ProjectOpsxBundle } from '../../src/utils/opsx-utils.js';
 
 describe('bootstrap refresh utilities', () => {
   let testDir: string;
@@ -37,7 +35,7 @@ describe('bootstrap refresh utilities', () => {
     await writeFile('src/auth/login.ts', 'export function login() { return true; }\n');
     await writeFile('src/auth/session.ts', 'export function session() { return true; }\n');
     await writeFile('openspec/specs/auth/spec.md', '# Auth\n');
-    await writeFile('openspec/project.opsx.yaml', `schema_version: 1
+    await writeFile('openspec/project.opsx.yaml', `schema_version: 2
 project:
   id: proj.demo
   name: Demo
@@ -51,19 +49,11 @@ capabilities:
     type: capability
     intent: Existing login capability
 `);
-    await writeFile('openspec/project.opsx.relations.yaml', `schema_version: 1
+    await writeFile('openspec/project.opsx.relations.yaml', `schema_version: 2
 relations:
   - from: cap.auth.login
     to: dom.auth
-    type: contains
-`);
-    await writeFile('openspec/project.opsx.code-map.yaml', `schema_version: 1
-generated_at: "2026-04-18T00:00:00.000Z"
-nodes:
-  - id: cap.auth.login
-    refs:
-      - path: src/auth/login.ts
-        line_start: 1
+    type: belongs_to
 `);
   }
 
@@ -126,21 +116,15 @@ nodes:
         },
       ],
       relations: [
-        { from: 'cap.auth.login', to: 'dom.auth', type: 'contains' },
-      ],
-      code_refs: [
-        {
-          id: 'cap.auth.login',
-          refs: [{ path: 'src/auth/login.ts', line_start: 1 }],
-        },
+        { from: 'cap.auth.login', to: 'dom.auth', type: 'belongs_to' },
       ],
     });
 
     await refreshBootstrapDerivedArtifacts(testDir);
 
     const review = await fs.readFile(path.join(testDir, 'openspec', 'bootstrap', 'review.md'), 'utf-8');
-    expect(review).toContain('full-scan-fallback');
-    expect(review).toContain('Git unavailable');
+    expect(review).toContain('Strategy: full-rebuild');
+    expect(review).toContain('Rebuilding the complete candidate from current source, specs, config, and reviewed workspace evidence.');
   });
 
   it('fails refresh promote on spec conflicts before mutating formal outputs', async () => {
@@ -203,18 +187,8 @@ nodes:
         },
       ],
       relations: [
-        { from: 'cap.auth.login', to: 'dom.auth', type: 'contains' },
-        { from: 'cap.auth.session', to: 'dom.auth', type: 'contains' },
-      ],
-      code_refs: [
-        {
-          id: 'cap.auth.login',
-          refs: [{ path: 'src/auth/login.ts', line_start: 1 }],
-        },
-        {
-          id: 'cap.auth.session',
-          refs: [{ path: 'src/auth/session.ts', line_start: 1 }],
-        },
+        { from: 'cap.auth.login', to: 'dom.auth', type: 'belongs_to' },
+        { from: 'cap.auth.session', to: 'dom.auth', type: 'belongs_to' },
       ],
     });
 
@@ -225,54 +199,13 @@ nodes:
     await expect(fs.readFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), 'utf-8')).resolves.toBe(originalProjectOpsx);
   });
 
-  it('maps Windows-style changed paths to existing code-map refs', () => {
-    const bundle: ProjectOpsxBundle = {
-      schema_version: 1,
-      project: {
-        id: 'proj.demo',
-        name: 'Demo',
-      },
-      domains: [
-        {
-          id: 'dom.auth',
-          type: 'domain',
-          intent: 'Authentication boundary',
-        },
-      ],
-      capabilities: [
-        {
-          id: 'cap.auth.login',
-          type: 'capability',
-          intent: 'Authenticate a user',
-        },
-      ],
-      relations: [
-        {
-          from: 'cap.auth.login',
-          to: 'dom.auth',
-          type: 'contains',
-        },
-      ],
-      code_map: [
-        {
-          id: 'cap.auth.login',
-          refs: [{ path: 'src/auth/login.ts', line_start: 1 }],
-        },
-      ],
-    };
-
-    const mapping = mapChangedPathsToNodeIds(testDir, bundle, ['SRC\\AUTH\\LOGIN.TS']);
-    expect(mapping.mappedNodeIds).toEqual(['cap.auth.login']);
-    expect(mapping.unmappedPaths).toEqual([]);
-  });
-
   it('restarts a completed retained refresh workspace by snapshotting the old workspace and carrying forward stable inputs', async () => {
     await writeFormalBaseline();
     await initBootstrap(testDir, { mode: 'refresh', granularity: 'fine' });
 
     await writeFile('openspec/bootstrap/evidence.yaml', 'domains: []\n');
     await writeFile('openspec/bootstrap/review.md', '# Review\n');
-    await writeFile('openspec/bootstrap/candidate/project.opsx.yaml', 'schema_version: 1\nproject:\n  id: proj.demo\n  name: Demo\n');
+    await writeFile('openspec/bootstrap/candidate/project.opsx.yaml', 'schema_version: 2\nproject:\n  id: proj.demo\n  name: Demo\n');
     await writeFile('openspec/bootstrap/scope.yaml', stringifyYaml({
       mode: 'refresh',
       include: ['src/auth'],
@@ -340,22 +273,6 @@ nodes:
     await initBootstrap(testDir, { mode: 'refresh', restart: true });
     const restarted = await readBootstrapState(testDir);
     expect(restarted.metadata.refresh_anchor_commit).toBe('legacy-anchor');
-    expect(restarted.metadata.completed_at).toBeNull();
-  });
-
-  it('allows restart from a legacy completed full workspace and falls back to a refresh run without an anchor', async () => {
-    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
-    await writeFormalBaseline();
-    await rewriteBootstrapMetadata((metadata) => {
-      metadata.phase = 'promote';
-      delete metadata.completed_at;
-      delete metadata.refresh_anchor_commit;
-    });
-
-    await initBootstrap(testDir, { mode: 'refresh', restart: true });
-    const restarted = await readBootstrapState(testDir);
-    expect(restarted.metadata.mode).toBe('refresh');
-    expect(restarted.metadata.refresh_anchor_commit).toBeNull();
     expect(restarted.metadata.completed_at).toBeNull();
   });
 

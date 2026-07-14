@@ -1,4 +1,4 @@
-import { promises as fs } from 'fs';
+import { existsSync, promises as fs, readFileSync } from 'fs';
 import { createHash } from 'crypto';
 import path from 'path';
 import { promisify } from 'util';
@@ -13,21 +13,17 @@ import {
 } from '../core/config-projection.js';
 import { backfillSpecs, type BackfillSpecsResult } from '../core/backfill-specs.js';
 import { readProjectConfig } from '../core/project-config.js';
+import { validateRelationGraph } from '../core/relations/validator.js';
 import { Validator } from '../core/validation/validator.js';
 import {
   OPSX_SCHEMA_VERSION,
   OPSX_PATHS,
-  ProjectOpsxFileSchema,
-  ProjectOpsxRelationsFileSchema,
-  ProjectOpsxCodeMapFileSchema,
+  OpsxRelationSchema,
   applyOpsxDelta,
   readProjectOpsx,
-  validateReferentialIntegrity,
-  validateCodeMapIntegrity,
   writeProjectOpsx,
   type ProjectOpsxBundle,
   type OpsxRelation,
-  type CodeMapEntry,
   type OpsxDelta,
   type OpsxNode,
   type OpsxDeltaApplyResult,
@@ -51,7 +47,6 @@ export const BOOTSTRAP_CANDIDATE_SPECS_DIR = path.join(BOOTSTRAP_CANDIDATE_DIR, 
 export const BOOTSTRAP_CANDIDATE_FILE_NAMES = {
   project: 'project.opsx.yaml',
   relations: 'project.opsx.relations.yaml',
-  codeMap: 'project.opsx.code-map.yaml',
 } as const;
 const execFile = promisify(execFileCallback);
 
@@ -153,20 +148,7 @@ const DomainNodeSchema = z.object({
   boundary: z.string().optional(),
 });
 
-const DomainRelationSchema = z.object({
-  from: z.string(),
-  to: z.string(),
-  type: z.enum(['contains', 'depends_on', 'constrains', 'implemented_by', 'verified_by', 'relates_to']),
-});
-
-const DomainCodeRefSchema = z.object({
-  id: z.string(),
-  refs: z.array(z.object({
-    path: z.string(),
-    line_start: z.number().optional(),
-    line_end: z.number().optional(),
-  })),
-});
+const DomainRelationSchema = OpsxRelationSchema;
 
 const SpecGroupSchema = z.object({
   folder: z
@@ -189,13 +171,18 @@ const SpecGroupSchema = z.object({
   })).min(1).optional(),
 });
 
+const ReviewGapSchema = z.object({
+  evidence: z.string().min(1),
+  reason: z.string().min(1),
+}).strict();
+
 const DomainMapFileSchema = z.object({
   domain: DomainNodeSchema,
   capabilities: z.array(DomainCapabilitySchema).default([]),
   relations: z.array(DomainRelationSchema).default([]),
-  code_refs: z.array(DomainCodeRefSchema).default([]),
+  review_gaps: z.array(ReviewGapSchema).default([]),
   spec_groups: z.array(SpecGroupSchema).optional(),
-});
+}).strict();
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -239,16 +226,9 @@ interface CandidateSpecAssembly {
   validationErrors: string[];
 }
 
-type RefreshPlanStrategy = 'git-diff' | 'full-scan-fallback';
-
 interface RefreshPlan {
-  strategy: RefreshPlanStrategy;
+  strategy: 'full-rebuild';
   reason: string;
-  anchorCommit: string | null;
-  changedPaths: string[];
-  mappedNodeIds: string[];
-  neighborNodeIds: string[];
-  impactedNodeIds: string[];
   impactedDomainIds: string[];
 }
 
@@ -451,7 +431,7 @@ async function resolveBootstrapWorkspaceCompletion(
     };
   }
 
-  if (metadata.phase === 'promote' && await countExistingFormalOpsxFiles(projectRoot) === 3) {
+  if (metadata.phase === 'promote' && await countExistingFormalOpsxFiles(projectRoot) === 2) {
     return {
       state: 'completed',
       completedAt: metadata.created_at,
@@ -531,7 +511,6 @@ function formalOpsxPaths(projectRoot: string): string[] {
   return [
     FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.PROJECT_FILE),
     FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.RELATIONS_FILE),
-    FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.CODE_MAP_FILE),
   ];
 }
 
@@ -561,15 +540,7 @@ function normalizeBootstrapText(value: string | undefined): string | undefined {
   return normalized ? normalized : undefined;
 }
 
-function canDeriveBootstrapProjectMetadata(state: BootstrapState): boolean {
-  return state.metadata.baseline_type === 'raw' || state.metadata.baseline_type === 'specs-based';
-}
-
 function deriveProjectIntent(state: BootstrapState): string | undefined {
-  if (!canDeriveBootstrapProjectMetadata(state)) {
-    return undefined;
-  }
-
   const intentsByDomain = new Map<string, string>();
   for (const domain of state.evidence?.domains ?? []) {
     const normalizedIntent = normalizeBootstrapText(domain.intent);
@@ -596,7 +567,7 @@ function deriveProjectIntent(state: BootstrapState): string | undefined {
 }
 
 function deriveProjectScope(state: BootstrapState): string | undefined {
-  if (!canDeriveBootstrapProjectMetadata(state) || !state.scope) {
+  if (!state.scope) {
     return undefined;
   }
 
@@ -619,12 +590,35 @@ function deriveProjectScope(state: BootstrapState): string | undefined {
   return segments.join('; ');
 }
 
-function buildBootstrapProjectMetadata(state: BootstrapState): ProjectOpsxBundle['project'] {
+function inferBootstrapProjectName(projectRoot: string): string {
+  try {
+    const packagePath = path.join(projectRoot, 'package.json');
+    if (existsSync(packagePath)) {
+      const packageJson = JSON.parse(readFileSync(packagePath, 'utf-8')) as { name?: unknown };
+      if (typeof packageJson.name === 'string' && packageJson.name.trim()) {
+        return packageJson.name.trim();
+      }
+    }
+  } catch {
+    // Fall through to the project directory name.
+  }
+  return path.basename(projectRoot) || DEFAULT_BOOTSTRAP_PROJECT_NAME;
+}
+
+function toBootstrapProjectId(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || DEFAULT_BOOTSTRAP_PROJECT_ID;
+}
+
+function buildBootstrapProjectMetadata(projectRoot: string, state: BootstrapState): ProjectOpsxBundle['project'] {
+  const name = inferBootstrapProjectName(projectRoot);
   const intent = deriveProjectIntent(state);
   const scope = deriveProjectScope(state);
   return {
-    id: DEFAULT_BOOTSTRAP_PROJECT_ID,
-    name: DEFAULT_BOOTSTRAP_PROJECT_NAME,
+    id: toBootstrapProjectId(name),
+    name,
     ...(intent ? { intent } : {}),
     ...(scope ? { scope } : {}),
   };
@@ -651,17 +645,10 @@ function normalizeDomainMapForFingerprint(mapFile: DomainMapFile): DomainMapFile
       const typeComparison = a.type.localeCompare(b.type);
       return typeComparison !== 0 ? typeComparison : a.to.localeCompare(b.to);
     }),
-    code_refs: [...mapFile.code_refs]
-      .sort((a, b) => a.id.localeCompare(b.id))
-      .map((entry) => ({
-        ...entry,
-        refs: [...entry.refs].sort((a, b) => {
-          const pathComparison = a.path.localeCompare(b.path);
-          if (pathComparison !== 0) return pathComparison;
-          const startComparison = (a.line_start ?? 0) - (b.line_start ?? 0);
-          return startComparison !== 0 ? startComparison : (a.line_end ?? 0) - (b.line_end ?? 0);
-        }),
-      })),
+    review_gaps: [...mapFile.review_gaps].sort((a, b) => {
+      const evidenceComparison = a.evidence.localeCompare(b.evidence);
+      return evidenceComparison !== 0 ? evidenceComparison : a.reason.localeCompare(b.reason);
+    }),
   };
 }
 
@@ -682,35 +669,6 @@ function stableStringify(value: unknown): string {
 
 function fingerprintValue(value: unknown): string {
   return createHash('sha256').update(stableStringify(value)).digest('hex');
-}
-
-function toPathSegments(value: string): string[] {
-  return value.split(/[\\/]+/).filter(Boolean);
-}
-
-function looksWindowsLikePath(value: string): boolean {
-  return /^[A-Za-z]:[\\/]/.test(value) || value.includes('\\');
-}
-
-function normalizeRelativePath(value: string): string {
-  const segments = toPathSegments(value.trim());
-  return segments.length > 0 ? path.join(...segments) : '';
-}
-
-function normalizeComparableAbsolutePath(projectRoot: string, value: string): { comparable: string; absolute: string } {
-  const normalizedInput = normalizeRelativePath(value);
-  const absolute = path.normalize(path.resolve(projectRoot, normalizedInput));
-  const comparable = (process.platform === 'win32' || looksWindowsLikePath(value))
-    ? absolute.toLowerCase()
-    : absolute;
-  return { absolute, comparable };
-}
-
-function isPathCoveredByRef(projectRoot: string, changedPath: string, refPath: string): boolean {
-  const changed = normalizeComparableAbsolutePath(projectRoot, changedPath);
-  const ref = normalizeComparableAbsolutePath(projectRoot, refPath);
-  return changed.comparable === ref.comparable
-    || changed.comparable.startsWith(`${ref.comparable}${path.sep}`);
 }
 
 async function runGitCommand(projectRoot: string, args: string[]): Promise<{ ok: boolean; stdout: string; stderr: string }> {
@@ -741,188 +699,19 @@ async function resolveCurrentGitHead(projectRoot: string): Promise<string | null
   return result.ok && result.stdout ? result.stdout : null;
 }
 
-async function collectGitChangedPaths(projectRoot: string, anchorCommit: string | null): Promise<RefreshPlan> {
-  const workTree = await runGitCommand(projectRoot, ['rev-parse', '--is-inside-work-tree']);
-  if (!workTree.ok || workTree.stdout !== 'true') {
-    return {
-      strategy: 'full-scan-fallback',
-      reason: 'Git unavailable, or current directory is not in a git work tree.',
-      anchorCommit: null,
-      changedPaths: [],
-      mappedNodeIds: [],
-      neighborNodeIds: [],
-      impactedNodeIds: [],
-      impactedDomainIds: [],
-    };
-  }
-
-  if (!anchorCommit) {
-    return {
-      strategy: 'full-scan-fallback',
-      reason: 'Refresh anchor missing; cannot reliably narrow scan scope.',
-      anchorCommit: null,
-      changedPaths: [],
-      mappedNodeIds: [],
-      neighborNodeIds: [],
-      impactedNodeIds: [],
-      impactedDomainIds: [],
-    };
-  }
-
-  const anchorReachable = await runGitCommand(projectRoot, ['cat-file', '-e', `${anchorCommit}^{commit}`]);
-  if (!anchorReachable.ok) {
-    return {
-      strategy: 'full-scan-fallback',
-      reason: `Refresh anchor commit '${anchorCommit}' is unreachable. Falling back to full scan.`,
-      anchorCommit,
-      changedPaths: [],
-      mappedNodeIds: [],
-      neighborNodeIds: [],
-      impactedNodeIds: [],
-      impactedDomainIds: [],
-    };
-  }
-
-  const [committed, staged, unstaged, untracked] = await Promise.all([
-    runGitCommand(projectRoot, ['diff', '--name-only', '--diff-filter=ACDMRTUXB', `${anchorCommit}..HEAD`]),
-    runGitCommand(projectRoot, ['diff', '--name-only', '--cached', '--diff-filter=ACDMRTUXB']),
-    runGitCommand(projectRoot, ['diff', '--name-only', '--diff-filter=ACDMRTUXB']),
-    runGitCommand(projectRoot, ['ls-files', '--others', '--exclude-standard']),
-  ]);
-
-  if ([committed, staged, unstaged, untracked].some((result) => !result.ok)) {
-    return {
-      strategy: 'full-scan-fallback',
-      reason: 'Unable to reliably collect git diff results. Falling back to full scan.',
-      anchorCommit,
-      changedPaths: [],
-      mappedNodeIds: [],
-      neighborNodeIds: [],
-      impactedNodeIds: [],
-      impactedDomainIds: [],
-    };
-  }
-
-  const ignorePrefixes = [
-    `${path.normalize('openspec/bootstrap')}${path.sep}`,
-    `${path.normalize('openspec/specs')}${path.sep}`,
-  ];
-  const ignoreFiles = new Set([
-    path.normalize(OPSX_PATHS.PROJECT_FILE),
-    path.normalize(OPSX_PATHS.RELATIONS_FILE),
-    path.normalize(OPSX_PATHS.CODE_MAP_FILE),
-  ]);
-
-  const changedPaths = [...new Set(
-    [committed.stdout, staged.stdout, unstaged.stdout, untracked.stdout]
-      .flatMap((value) => value.split('\n'))
-      .map((entry) => normalizeRelativePath(entry))
-      .filter(Boolean)
-      .filter((entry) => !ignoreFiles.has(path.normalize(entry)))
-      .filter((entry) => !ignorePrefixes.some((prefix) => path.normalize(entry).startsWith(prefix)))
-  )].sort();
-
-  return {
-    strategy: 'git-diff',
-    reason: changedPaths.length > 0
-      ? 'Using git anchor plus worktree diff to narrow refresh scan scope.'
-      : 'Git anchor available, but no source path changes requiring code-map mapping were found.',
-    anchorCommit,
-    changedPaths,
-    mappedNodeIds: [],
-    neighborNodeIds: [],
-    impactedNodeIds: [],
-    impactedDomainIds: [],
-  };
-}
-
-export function mapChangedPathsToNodeIds(
-  projectRoot: string,
-  bundle: ProjectOpsxBundle,
-  changedPaths: string[]
-): { mappedNodeIds: string[]; unmappedPaths: string[] } {
-  const matched = new Set<string>();
-  const unmappedPaths: string[] = [];
-
-  for (const changedPath of changedPaths) {
-    let mapped = false;
-    for (const entry of bundle.code_map) {
-      if (entry.refs.some((ref) => isPathCoveredByRef(projectRoot, changedPath, ref.path))) {
-        matched.add(entry.id);
-        mapped = true;
-      }
-    }
-    if (!mapped) {
-      unmappedPaths.push(changedPath);
-    }
-  }
-
-  return {
-    mappedNodeIds: [...matched].sort(),
-    unmappedPaths,
-  };
-}
-
-function expandNeighborNodeIds(bundle: ProjectOpsxBundle, nodeIds: string[]): string[] {
-  const expanded = new Set(nodeIds);
-  for (const relation of bundle.relations) {
-    if (expanded.has(relation.from) || expanded.has(relation.to)) {
-      expanded.add(relation.from);
-      expanded.add(relation.to);
-    }
-  }
-  return [...expanded].sort();
-}
-
-function findDomainForNode(bundle: ProjectOpsxBundle, nodeId: string): string | null {
-  if (nodeId.startsWith('dom.')) {
-    return nodeId;
-  }
-
-  const containsRelation = bundle.relations.find((relation) => relation.from === nodeId && relation.type === 'contains' && relation.to.startsWith('dom.'));
-  if (containsRelation) {
-    return containsRelation.to;
-  }
-
-  const capabilityMatch = nodeId.match(/^cap\.([^.]+)\./);
-  return capabilityMatch ? `dom.${capabilityMatch[1]}` : null;
-}
-
-function collectDomainIdsForNodes(bundle: ProjectOpsxBundle, nodeIds: string[]): string[] {
-  const domainIds = new Set<string>();
-  for (const nodeId of nodeIds) {
-    const domainId = findDomainForNode(bundle, nodeId);
-    if (domainId) {
-      domainIds.add(domainId);
-    }
-  }
-  return [...domainIds].sort();
-}
-
 async function countExistingFormalOpsxFiles(projectRoot: string): Promise<number> {
   const results = await Promise.all(formalOpsxPaths(projectRoot).map((filePath) => FileSystemUtils.fileExists(filePath)));
   return results.filter(Boolean).length;
 }
 
-async function validateYamlFile(filePath: string, schema: z.ZodTypeAny): Promise<boolean> {
-  try {
-    const content = await fs.readFile(filePath, 'utf-8');
-    return schema.safeParse(parseYaml(content)).success;
-  } catch {
-    return false;
-  }
-}
-
 export async function detectBootstrapBaseline(projectRoot: string): Promise<BootstrapBaselineType> {
   const formalOpsxCount = await countExistingFormalOpsxFiles(projectRoot);
-  if (formalOpsxCount === 3) {
-    const [mainPath, relationsPath, codeMapPath] = formalOpsxPaths(projectRoot);
-    const [mainValid, relationsValid, codeMapValid] = await Promise.all([
-      validateYamlFile(mainPath, ProjectOpsxFileSchema),
-      validateYamlFile(relationsPath, ProjectOpsxRelationsFileSchema),
-      validateYamlFile(codeMapPath, ProjectOpsxCodeMapFileSchema),
-    ]);
-    return mainValid && relationsValid && codeMapValid ? 'formal-opsx' : 'invalid-partial-opsx';
+  if (formalOpsxCount === 2) {
+    try {
+      return await readProjectOpsx(projectRoot) ? 'formal-opsx' : 'invalid-partial-opsx';
+    } catch {
+      return 'invalid-partial-opsx';
+    }
   }
   if (formalOpsxCount > 0) {
     return 'invalid-partial-opsx';
@@ -955,7 +744,7 @@ export function getBootstrapBaselineReason(baselineType: BootstrapBaselineType):
     case 'specs-based':
       return 'Repository has spec content but no formal OPSX files.';
     case 'formal-opsx':
-      return 'Repository already has formal OPSX files. Use refresh to run an incremental bootstrap pass.';
+      return 'Repository already has both formal OPSX v2 files. Use refresh to rebuild a complete candidate from current evidence.';
     case 'invalid-partial-opsx':
       return 'Bootstrap does not support repositories with partial or invalid formal OPSX files.';
   }
@@ -1001,7 +790,6 @@ async function candidateFilesExist(projectRoot: string, candidateSpecs: Bootstra
   const results = await Promise.all([
     FileSystemUtils.fileExists(candidatePath(projectRoot, 'project.opsx.yaml')),
     FileSystemUtils.fileExists(candidatePath(projectRoot, 'project.opsx.relations.yaml')),
-    FileSystemUtils.fileExists(candidatePath(projectRoot, 'project.opsx.code-map.yaml')),
     ...candidateSpecs.map((spec) => FileSystemUtils.fileExists(candidateSpecPath(projectRoot, spec.folder))),
   ]);
   return results.every(Boolean);
@@ -1352,284 +1140,116 @@ function sortRelations(relations: OpsxRelation[]): OpsxRelation[] {
   });
 }
 
-function sortCodeMap(entries: CodeMapEntry[]): CodeMapEntry[] {
-  return [...entries]
-    .map((entry) => ({
-      ...entry,
-      refs: [...entry.refs].sort((left, right) => {
-        const pathComparison = left.path.localeCompare(right.path);
-        if (pathComparison !== 0) return pathComparison;
-        const startComparison = (left.line_start ?? 0) - (right.line_start ?? 0);
-        if (startComparison !== 0) return startComparison;
-        return (left.line_end ?? 0) - (right.line_end ?? 0);
-      }),
-    }))
-    .sort((left, right) => left.id.localeCompare(right.id));
-}
-
 function relationKey(relation: OpsxRelation): string {
   return `${relation.from}|${relation.to}|${relation.type}`;
-}
-
-function relationPairKey(relation: OpsxRelation): string {
-  return `${relation.from}|${relation.to}`;
 }
 
 function nodesEqual(left: OpsxNode, right: OpsxNode): boolean {
   return stableStringify(left) === stableStringify(right);
 }
 
-function codeMapEntryEqual(left: CodeMapEntry, right: CodeMapEntry): boolean {
-  return stableStringify({
-    ...left,
-    refs: sortCodeMap([left])[0]?.refs ?? left.refs,
-  }) === stableStringify({
-    ...right,
-    refs: sortCodeMap([right])[0]?.refs ?? right.refs,
-  });
-}
-
-function collectCapabilitiesForDomains(bundle: ProjectOpsxBundle, domainIds: Set<string>): string[] {
-  const capabilities = new Set<string>();
-  for (const relation of bundle.relations) {
-    if (relation.type === 'contains' && domainIds.has(relation.to) && relation.from.startsWith('cap.')) {
-      capabilities.add(relation.from);
-    }
-  }
-  for (const capability of bundle.capabilities) {
-    const domainId = findDomainForNode(bundle, capability.id);
-    if (domainId && domainIds.has(domainId)) {
-      capabilities.add(capability.id);
-    }
-  }
-  return [...capabilities].sort();
-}
-
-function buildRefreshFallbackPlan(reason: string, anchorCommit: string | null): RefreshPlan {
+function deriveRefreshPlan(state: BootstrapState): RefreshPlan {
   return {
-    strategy: 'full-scan-fallback',
-    reason,
-    anchorCommit,
-    changedPaths: [],
-    mappedNodeIds: [],
-    neighborNodeIds: [],
-    impactedNodeIds: [],
-    impactedDomainIds: [],
-  };
-}
-
-async function deriveRefreshPlan(projectRoot: string, state: BootstrapState, formalBundle: ProjectOpsxBundle): Promise<RefreshPlan> {
-  const rawPlan = await collectGitChangedPaths(projectRoot, state.metadata.refresh_anchor_commit);
-  if (rawPlan.strategy === 'full-scan-fallback') {
-    return rawPlan;
-  }
-
-  if (rawPlan.changedPaths.length === 0) {
-    return {
-      ...rawPlan,
-      impactedDomainIds: [...state.domainMaps.keys()].sort(),
-    };
-  }
-
-  const mapping = mapChangedPathsToNodeIds(projectRoot, formalBundle, rawPlan.changedPaths);
-  if (mapping.unmappedPaths.length > 0) {
-    return buildRefreshFallbackPlan(
-      `Changed paths cannot be reliably mapped to existing code-map: ${mapping.unmappedPaths.join(', ')}`,
-      rawPlan.anchorCommit
-    );
-  }
-
-  if (mapping.mappedNodeIds.length === 0) {
-    return buildRefreshFallbackPlan(
-      'git diff matched source paths, but none mapped to any formal OPSX node. Falling back to full scan.',
-      rawPlan.anchorCommit
-    );
-  }
-
-  const neighborNodeIds = expandNeighborNodeIds(formalBundle, mapping.mappedNodeIds);
-  return {
-    ...rawPlan,
-    mappedNodeIds: mapping.mappedNodeIds,
-    neighborNodeIds,
-    impactedNodeIds: neighborNodeIds,
-    impactedDomainIds: collectDomainIdsForNodes(formalBundle, neighborNodeIds),
+    strategy: 'full-rebuild',
+    reason: 'Rebuilding the complete candidate from current source, specs, config, and reviewed workspace evidence.',
+    impactedDomainIds: [...state.domainMaps.keys()].sort(),
   };
 }
 
 function assembleRefreshDelta(
   formalBundle: ProjectOpsxBundle,
-  partialBundle: ProjectOpsxBundle,
+  candidateBundle: ProjectOpsxBundle,
   refreshPlan: RefreshPlan
 ): RefreshDeltaSummary {
-  const partialDomainIds = new Set(partialBundle.domains.map((domain) => domain.id));
-  const affectedDomainIds = new Set(
-    refreshPlan.impactedDomainIds.length > 0
-      ? refreshPlan.impactedDomainIds
-      : [...partialDomainIds]
-  );
-  for (const domainId of partialDomainIds) {
-    affectedDomainIds.add(domainId);
-  }
-
-  const affectedCapabilityIds = new Set([
-    ...collectCapabilitiesForDomains(formalBundle, affectedDomainIds),
-    ...collectCapabilitiesForDomains(partialBundle, affectedDomainIds),
-  ]);
-  for (const capability of partialBundle.capabilities) {
-    affectedCapabilityIds.add(capability.id);
-  }
-
-  const affectedNodeIds = new Set<string>([
-    ...affectedDomainIds,
-    ...affectedCapabilityIds,
-  ]);
-  const preservedNodeIds = [
-    ...formalBundle.domains.map((domain) => domain.id),
-    ...formalBundle.capabilities.map((capability) => capability.id),
-  ].filter((nodeId) => !affectedNodeIds.has(nodeId)).sort();
-
-  const partialDomainsById = new Map(partialBundle.domains.map((domain) => [domain.id, domain]));
-  const formalDomainsById = new Map(formalBundle.domains.map((domain) => [domain.id, domain]));
-  const partialCapabilitiesById = new Map(partialBundle.capabilities.map((capability) => [capability.id, capability]));
-  const formalCapabilitiesById = new Map(formalBundle.capabilities.map((capability) => [capability.id, capability]));
-
   const addedDomains: ProjectOpsxBundle['domains'] = [];
   const modifiedDomains: ProjectOpsxBundle['domains'] = [];
   const removedDomains: ProjectOpsxBundle['domains'] = [];
-  for (const domainId of [...affectedDomainIds].sort()) {
-    const formalDomain = formalDomainsById.get(domainId);
-    const partialDomain = partialDomainsById.get(domainId);
-    if (!formalDomain && partialDomain) {
-      addedDomains.push(partialDomain);
-      continue;
-    }
-    if (formalDomain && !partialDomain) {
-      removedDomains.push(formalDomain);
-      continue;
-    }
-    if (formalDomain && partialDomain && !nodesEqual(formalDomain, partialDomain)) {
-      modifiedDomains.push(partialDomain);
-    }
-  }
-
   const addedCapabilities: ProjectOpsxBundle['capabilities'] = [];
   const modifiedCapabilities: ProjectOpsxBundle['capabilities'] = [];
   const removedCapabilities: ProjectOpsxBundle['capabilities'] = [];
-  for (const capabilityId of [...affectedCapabilityIds].sort()) {
-    const formalCapability = formalCapabilitiesById.get(capabilityId);
-    const partialCapability = partialCapabilitiesById.get(capabilityId);
-    if (!formalCapability && partialCapability) {
-      addedCapabilities.push(partialCapability);
-      continue;
-    }
-    if (formalCapability && !partialCapability) {
-      removedCapabilities.push(formalCapability);
-      continue;
-    }
-    if (formalCapability && partialCapability && !nodesEqual(formalCapability, partialCapability)) {
-      modifiedCapabilities.push(partialCapability);
-    }
-  }
 
-  const affectedRelationKeys = new Set<string>();
-  for (const relation of [...formalBundle.relations, ...partialBundle.relations]) {
-    if (affectedNodeIds.has(relation.from) || affectedNodeIds.has(relation.to)) {
-      affectedRelationKeys.add(relationKey(relation));
-    }
-  }
-  const formalRelations = formalBundle.relations.filter((relation) => affectedNodeIds.has(relation.from) || affectedNodeIds.has(relation.to));
-  const partialRelations = partialBundle.relations.filter((relation) => affectedNodeIds.has(relation.from) || affectedNodeIds.has(relation.to));
-  const formalRelationsByKey = new Map(formalRelations.map((relation) => [relationKey(relation), relation]));
-  const partialRelationsByKey = new Map(partialRelations.map((relation) => [relationKey(relation), relation]));
-  const formalRelationsByPair = new Map(formalRelations.map((relation) => [relationPairKey(relation), relation]));
-  const partialRelationsByPair = new Map(partialRelations.map((relation) => [relationPairKey(relation), relation]));
+  collectNodeDiff(formalBundle.domains, candidateBundle.domains, addedDomains, modifiedDomains, removedDomains);
+  collectNodeDiff(
+    formalBundle.capabilities,
+    candidateBundle.capabilities,
+    addedCapabilities,
+    modifiedCapabilities,
+    removedCapabilities,
+  );
 
-  const addedRelations: OpsxRelation[] = [];
-  const modifiedRelations: OpsxRelation[] = [];
-  const removedRelations: OpsxRelation[] = [];
-
-  for (const relation of partialRelations) {
-    const pairKey = relationPairKey(relation);
-    const formalRelation = formalRelationsByPair.get(pairKey);
-    if (!formalRelation) {
-      addedRelations.push(relation);
-      continue;
-    }
-    if (relationKey(formalRelation) !== relationKey(relation)) {
-      modifiedRelations.push(relation);
-    }
-  }
-
-  for (const relation of formalRelations) {
-    if (!partialRelationsByPair.has(relationPairKey(relation))) {
-      removedRelations.push(relation);
-    }
-  }
+  const formalRelationsByKey = new Map(formalBundle.relations.map((relation) => [relationKey(relation), relation]));
+  const candidateRelationsByKey = new Map(candidateBundle.relations.map((relation) => [relationKey(relation), relation]));
+  const addedRelations = candidateBundle.relations.filter((relation) => !formalRelationsByKey.has(relationKey(relation)));
+  const modifiedRelations = candidateBundle.relations.filter((relation) => {
+    const current = formalRelationsByKey.get(relationKey(relation));
+    return current !== undefined && stableStringify(current) !== stableStringify(relation);
+  });
+  const removedRelations = formalBundle.relations.filter((relation) => !candidateRelationsByKey.has(relationKey(relation)));
 
   const delta: OpsxDelta = {
-    ...(addedDomains.length || addedCapabilities.length || addedRelations.length
-      ? {
-          ADDED: {
-            ...(addedDomains.length ? { domains: sortNodes(addedDomains) } : {}),
-            ...(addedCapabilities.length ? { capabilities: sortNodes(addedCapabilities) } : {}),
-            ...(addedRelations.length ? { relations: sortRelations(addedRelations) } : {}),
-          },
-        }
-      : {}),
-    ...(modifiedDomains.length || modifiedCapabilities.length || modifiedRelations.length
-      ? {
-          MODIFIED: {
-            ...(modifiedDomains.length ? { domains: sortNodes(modifiedDomains) } : {}),
-            ...(modifiedCapabilities.length ? { capabilities: sortNodes(modifiedCapabilities) } : {}),
-            ...(modifiedRelations.length ? { relations: sortRelations(modifiedRelations) } : {}),
-          },
-        }
-      : {}),
-    ...(removedDomains.length || removedCapabilities.length || removedRelations.length
-      ? {
-          REMOVED: {
-            ...(removedDomains.length ? { domains: sortNodes(removedDomains) } : {}),
-            ...(removedCapabilities.length ? { capabilities: sortNodes(removedCapabilities) } : {}),
-            ...(removedRelations.length ? { relations: sortRelations(removedRelations) } : {}),
-          },
-        }
-      : {}),
+    ...(addedDomains.length || addedCapabilities.length || addedRelations.length ? {
+      ADDED: {
+        ...(addedDomains.length ? { domains: sortNodes(addedDomains) } : {}),
+        ...(addedCapabilities.length ? { capabilities: sortNodes(addedCapabilities) } : {}),
+        ...(addedRelations.length ? { relations: sortRelations(addedRelations) } : {}),
+      },
+    } : {}),
+    ...(modifiedDomains.length || modifiedCapabilities.length || modifiedRelations.length ? {
+      MODIFIED: {
+        ...(modifiedDomains.length ? { domains: sortNodes(modifiedDomains) } : {}),
+        ...(modifiedCapabilities.length ? { capabilities: sortNodes(modifiedCapabilities) } : {}),
+        ...(modifiedRelations.length ? { relations: sortRelations(modifiedRelations) } : {}),
+      },
+    } : {}),
+    ...(removedDomains.length || removedCapabilities.length || removedRelations.length ? {
+      REMOVED: {
+        ...(removedDomains.length ? { domains: sortNodes(removedDomains) } : {}),
+        ...(removedCapabilities.length ? { capabilities: sortNodes(removedCapabilities) } : {}),
+        ...(removedRelations.length ? { relations: sortRelations(removedRelations) } : {}),
+      },
+    } : {}),
   };
 
   const result = applyOpsxDelta(formalBundle, delta);
-  const removedNodeIds = new Set([
-    ...removedDomains.map((domain) => domain.id),
-    ...removedCapabilities.map((capability) => capability.id),
-  ]);
-  const mergedCodeMap = new Map<string, CodeMapEntry>();
-  for (const entry of formalBundle.code_map) {
-    if (!affectedNodeIds.has(entry.id)) {
-      mergedCodeMap.set(entry.id, entry);
-    }
-  }
-  for (const entry of partialBundle.code_map) {
-    if (!removedNodeIds.has(entry.id)) {
-      mergedCodeMap.set(entry.id, entry);
-    }
-  }
-
-  const mergedBundle: ProjectOpsxBundle = {
-    ...result.bundle,
-    project: formalBundle.project,
-    domains: sortNodes(result.bundle.domains),
-    capabilities: sortNodes(result.bundle.capabilities),
-    relations: sortRelations(result.bundle.relations),
-    code_map: sortCodeMap([...mergedCodeMap.values()]),
-  };
+  const affectedDomainIds = [...new Set([
+    ...formalBundle.domains.map(({ id }) => id),
+    ...candidateBundle.domains.map(({ id }) => id),
+  ])].sort();
+  const affectedNodeIds = [...new Set([
+    ...affectedDomainIds,
+    ...formalBundle.capabilities.map(({ id }) => id),
+    ...candidateBundle.capabilities.map(({ id }) => id),
+  ])].sort();
 
   return {
     delta,
     result,
-    mergedBundle,
-    affectedDomainIds: [...affectedDomainIds].sort(),
-    affectedNodeIds: [...affectedNodeIds].sort(),
-    preservedNodeIds,
+    mergedBundle: candidateBundle,
+    affectedDomainIds: refreshPlan.impactedDomainIds.length > 0
+      ? refreshPlan.impactedDomainIds
+      : affectedDomainIds,
+    affectedNodeIds,
+    preservedNodeIds: [],
   };
+}
+
+function collectNodeDiff<T extends OpsxNode>(
+  formalNodes: T[],
+  candidateNodes: T[],
+  added: T[],
+  modified: T[],
+  removed: T[],
+): void {
+  const formalById = new Map(formalNodes.map((node) => [node.id, node]));
+  const candidateById = new Map(candidateNodes.map((node) => [node.id, node]));
+  for (const node of candidateNodes) {
+    const current = formalById.get(node.id);
+    if (!current) added.push(node);
+    else if (!nodesEqual(current, node)) modified.push(node);
+  }
+  for (const node of formalNodes) {
+    if (!candidateById.has(node.id)) removed.push(node);
+  }
 }
 
 // ─── Core Functions ──────────────────────────────────────────────────────────
@@ -1949,14 +1569,6 @@ export async function validateGate(
             errors.push(`Capability ID '${cap.id}' does not follow cap.<domain>.<action> convention`);
           }
         }
-        for (const codeRef of mapFile.code_refs) {
-          for (const ref of codeRef.refs) {
-            const refPath = FileSystemUtils.joinPath(projectRoot, ref.path);
-            if (!await FileSystemUtils.fileExists(refPath)) {
-              errors.push(`Code-ref path does not exist: ${ref.path} (node: ${codeRef.id})`);
-            }
-          }
-        }
       }
       const derived = await deriveBootstrapArtifacts(projectRoot, state);
       errors.push(...derived.specErrors);
@@ -1992,10 +1604,7 @@ export async function validateGate(
       errors.push(...await validateFormalSpecTargets(projectRoot, state, derived.candidateSpecs));
 
       const bundle = derived.bundle;
-      const refResult = validateReferentialIntegrity(bundle);
-      errors.push(...refResult.errors);
-      const mapResult = validateCodeMapIntegrity(bundle);
-      errors.push(...mapResult.errors);
+      errors.push(...validateRelationGraph(bundle).errors);
       break;
     }
   }
@@ -2005,14 +1614,10 @@ export async function validateGate(
 
 // ─── Assemble & Promote ─────────────────────────────────────────────────────
 
-function assembleBundle(
-  state: BootstrapState,
-  options: { projectMetadata?: ProjectOpsxBundle['project'] } = {}
-): ProjectOpsxBundle {
+function assembleBundle(projectRoot: string, state: BootstrapState): ProjectOpsxBundle {
   const domains: ProjectOpsxBundle['domains'] = [];
   const capabilities: ProjectOpsxBundle['capabilities'] = [];
   const relations: OpsxRelation[] = [];
-  const code_map: CodeMapEntry[] = [];
 
   const sortedDomainMaps = [...state.domainMaps.entries()]
     .sort(([leftId], [rightId]) => leftId.localeCompare(rightId))
@@ -2041,28 +1646,18 @@ function assembleBundle(
         from: rel.from,
         type: rel.type,
         to: rel.to,
+        ...(rel.note !== undefined ? { note: rel.note } : {}),
       });
     }
 
-    for (const cr of mapFile.code_refs) {
-      code_map.push({
-        id: cr.id,
-        refs: cr.refs.map(r => ({
-          path: r.path,
-          ...(r.line_start != null ? { line_start: r.line_start } : {}),
-          ...(r.line_end != null ? { line_end: r.line_end } : {}),
-        })),
-      });
-    }
   }
 
   return {
     schema_version: OPSX_SCHEMA_VERSION,
-    project: options.projectMetadata ?? buildBootstrapProjectMetadata(state),
+    project: buildBootstrapProjectMetadata(projectRoot, state),
     domains: sortNodes(domains),
     capabilities: sortNodes(capabilities),
     relations: sortRelations(relations),
-    code_map: sortCodeMap(code_map),
   };
 }
 
@@ -2168,16 +1763,10 @@ async function writeCandidateFiles(
     ...(bundle.capabilities.length ? { capabilities: bundle.capabilities } : {}),
   };
   const relData = { schema_version: bundle.schema_version, relations: bundle.relations };
-  const mapData = {
-    schema_version: bundle.schema_version,
-    generated_at: new Date().toISOString(),
-    nodes: bundle.code_map,
-  };
 
   await Promise.all([
     writeYaml(candidatePath(projectRoot, BOOTSTRAP_CANDIDATE_FILE_NAMES.project), mainData),
     writeYaml(candidatePath(projectRoot, BOOTSTRAP_CANDIDATE_FILE_NAMES.relations), relData),
-    writeYaml(candidatePath(projectRoot, BOOTSTRAP_CANDIDATE_FILE_NAMES.codeMap), mapData),
     ...candidateSpecs.map((spec) => FileSystemUtils.writeFile(candidateSpecPath(projectRoot, spec.folder), spec.content)),
   ]);
 
@@ -2216,19 +1805,9 @@ function buildReviewContent(
       zh: `Strategy: ${derived.refreshPlan.strategy}`,
     })}`);
     lines.push(`- ${localizeBootstrapText(projection, {
-      en: `Anchor commit: ${derived.refreshPlan.anchorCommit ?? '(none)'}`,
-      zh: `Anchor commit: ${derived.refreshPlan.anchorCommit ?? '(none)'}`,
-    })}`);
-    lines.push(`- ${localizeBootstrapText(projection, {
       en: `Reason: ${derived.refreshPlan.reason}`,
       zh: `Reason: ${derived.refreshPlan.reason}`,
     })}`);
-    if (derived.refreshPlan.changedPaths.length > 0) {
-      lines.push(`- ${localizeBootstrapText(projection, {
-        en: `Changed paths: ${derived.refreshPlan.changedPaths.join(', ')}`,
-        zh: `Changed paths: ${derived.refreshPlan.changedPaths.join(', ')}`,
-      })}`);
-    }
     lines.push(`- ${localizeBootstrapText(projection, {
       en: `Impacted domains: ${derived.refreshDelta.affectedDomainIds.join(', ') || '(none)'}`,
       zh: `Impacted domains: ${derived.refreshDelta.affectedDomainIds.join(', ') || '(none)'}`,
@@ -2259,6 +1838,22 @@ function buildReviewContent(
         en: `Preserved baseline nodes: ${derived.refreshDelta.preservedNodeIds.join(', ')}`,
         zh: `Preserved baseline nodes: ${derived.refreshDelta.preservedNodeIds.join(', ')}`,
       })}`);
+    }
+    lines.push('');
+  }
+
+  const reviewGaps = [...state.domainMaps.values()]
+    .flatMap((mapFile) => mapFile.review_gaps.map((gap) => ({ domainId: mapFile.domain.id, ...gap })))
+    .sort((left, right) => {
+      const domainComparison = left.domainId.localeCompare(right.domainId);
+      if (domainComparison !== 0) return domainComparison;
+      const evidenceComparison = left.evidence.localeCompare(right.evidence);
+      return evidenceComparison !== 0 ? evidenceComparison : left.reason.localeCompare(right.reason);
+    });
+  if (reviewGaps.length > 0) {
+    lines.push('## Review Gaps', '');
+    for (const gap of reviewGaps) {
+      lines.push(`- [ ] ${gap.domainId}: ${gap.evidence} — ${gap.reason}`);
     }
     lines.push('');
   }
@@ -2324,8 +1919,8 @@ function buildReviewContent(
     zh: 'Referential integrity passes',
   })}`);
   lines.push(`- [ ] ${localizeBootstrapText(projection, {
-    en: 'Code-map paths exist on disk',
-    zh: 'Code-map paths exist on disk',
+    en: 'Relation semantic validation passes',
+    zh: 'Relation semantic validation passes',
   })}`);
   lines.push(`- [ ] ${localizeBootstrapText(projection, {
     en: 'Candidate spec set matches the bootstrap mode contract',
@@ -2333,8 +1928,8 @@ function buildReviewContent(
   })}`);
   if (state.metadata.mode === 'refresh') {
     lines.push(`- [ ] ${localizeBootstrapText(projection, {
-      en: 'Refresh delta matches the current formal OPSX baseline',
-      zh: 'Refresh delta matches the current formal OPSX baseline',
+      en: 'Fresh candidate diff matches the current formal OPSX baseline',
+      zh: 'Fresh candidate diff matches the current formal OPSX baseline',
     })}`);
   }
   lines.push(`- [ ] ${localizeBootstrapText(projection, {
@@ -2368,13 +1963,13 @@ async function deriveBootstrapArtifacts(projectRoot: string, state: BootstrapSta
       if (!formalBundle) {
         preSpecErrors.push('Refresh requires existing formal OPSX files.');
       } else {
-        refreshPlan = await deriveRefreshPlan(projectRoot, state, formalBundle);
-        const partialBundle = assembleBundle(state, { projectMetadata: formalBundle.project });
+        refreshPlan = deriveRefreshPlan(state);
+        const partialBundle = assembleBundle(projectRoot, state);
         refreshDelta = assembleRefreshDelta(formalBundle, partialBundle, refreshPlan);
         bundle = refreshDelta.mergedBundle;
       }
     } else {
-      bundle = assembleBundle(state);
+      bundle = assembleBundle(projectRoot, state);
     }
   }
 
@@ -2602,7 +2197,6 @@ export async function promoteBootstrap(projectRoot: string): Promise<PromoteBoot
     } else {
       await copyFile(candidatePath(projectRoot, BOOTSTRAP_CANDIDATE_FILE_NAMES.project), FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.PROJECT_FILE));
       await copyFile(candidatePath(projectRoot, BOOTSTRAP_CANDIDATE_FILE_NAMES.relations), FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.RELATIONS_FILE));
-      await copyFile(candidatePath(projectRoot, BOOTSTRAP_CANDIDATE_FILE_NAMES.codeMap), FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.CODE_MAP_FILE));
     }
 
     for (const spec of derived.candidateSpecs) {

@@ -9,13 +9,12 @@ import {
   readProjectOpsx,
   writeProjectOpsx,
   validateReferentialIntegrity,
-  validateCodeMapIntegrity,
   type ProjectOpsxBundle,
   type OpsxDelta,
 } from '../../src/utils/opsx-utils.js';
 
 function applyDelta(bundle: ProjectOpsxBundle, delta: OpsxDelta): ProjectOpsxBundle {
-  const b = { ...bundle, domains: [...bundle.domains], capabilities: [...bundle.capabilities], relations: [...bundle.relations], code_map: [...bundle.code_map] };
+  const b = { ...bundle, domains: [...bundle.domains], capabilities: [...bundle.capabilities], relations: [...bundle.relations] };
 
   if (delta.ADDED) {
     if (delta.ADDED.domains) b.domains.push(...delta.ADDED.domains);
@@ -80,13 +79,9 @@ describe('Integration: Multiple Changes on Real Project', () => {
       { id: 'cap.user.delete', type: 'capability', intent: 'Delete user accounts' },
     ],
     relations: [
-      { from: 'cap.core.init', to: 'dom.core', type: 'contains' },
-      { from: 'cap.user.create', to: 'dom.user', type: 'contains' },
-      { from: 'cap.user.delete', to: 'dom.user', type: 'contains' },
-    ],
-    code_map: [
-      { id: 'cap.core.init', refs: [{ path: 'src/core/init.ts', line_start: 1, line_end: 30 }] },
-      { id: 'cap.user.create', refs: [{ path: 'src/user/create.ts' }] },
+      { from: 'cap.core.init', to: 'dom.core', type: 'belongs_to' },
+      { from: 'cap.user.create', to: 'dom.user', type: 'belongs_to' },
+      { from: 'cap.user.delete', to: 'dom.user', type: 'belongs_to' },
     ],
   };
 
@@ -104,9 +99,9 @@ describe('Integration: Multiple Changes on Real Project', () => {
           { id: 'cap.auth.logout', type: 'capability', intent: 'User logout and session cleanup' },
         ],
         relations: [
-          { from: 'cap.auth.login', to: 'dom.auth', type: 'contains' },
-          { from: 'cap.auth.logout', to: 'dom.auth', type: 'contains' },
-          { from: 'cap.auth.login', to: 'cap.user.create', type: 'depends_on' },
+          { from: 'cap.auth.login', to: 'dom.auth', type: 'belongs_to' },
+          { from: 'cap.auth.logout', to: 'dom.auth', type: 'belongs_to' },
+          { from: 'cap.auth.login', to: 'cap.user.create', type: 'consumes' },
         ],
       },
     };
@@ -131,8 +126,8 @@ describe('Integration: Multiple Changes on Real Project', () => {
       ADDED: {
         capabilities: [{ id: 'cap.auth.2fa', type: 'capability', intent: 'Two-factor authentication' }],
         relations: [
-          { from: 'cap.auth.2fa', to: 'dom.auth', type: 'contains' },
-          { from: 'cap.auth.2fa', to: 'cap.auth.login', type: 'depends_on' },
+          { from: 'cap.auth.2fa', to: 'dom.auth', type: 'belongs_to' },
+          { from: 'cap.auth.2fa', to: 'cap.auth.login', type: 'consumes' },
         ],
       },
     };
@@ -152,14 +147,14 @@ describe('Integration: Multiple Changes on Real Project', () => {
       schema_version: OPSX_SCHEMA_VERSION,
       REMOVED: {
         capabilities: [{ id: 'cap.user.delete', type: 'capability' }],
-        relations: [{ from: 'cap.user.delete', to: 'dom.user', type: 'contains' }],
+        relations: [{ from: 'cap.user.delete', to: 'dom.user', type: 'belongs_to' }],
       },
       ADDED: {
         domains: [{ id: 'dom.notification', type: 'domain', intent: 'Notification delivery' }],
         capabilities: [{ id: 'cap.notification.send', type: 'capability', intent: 'Send notifications to users' }],
         relations: [
-          { from: 'cap.notification.send', to: 'dom.notification', type: 'contains' },
-          { from: 'cap.notification.send', to: 'cap.user.create', type: 'depends_on' },
+          { from: 'cap.notification.send', to: 'dom.notification', type: 'belongs_to' },
+          { from: 'cap.notification.send', to: 'cap.user.create', type: 'consumes' },
         ],
       },
     };
@@ -180,7 +175,6 @@ describe('Integration: Multiple Changes on Real Project', () => {
     expect(final.domains).toHaveLength(4);
     expect(final.capabilities).toHaveLength(6);
     expect(validateReferentialIntegrity(final).valid).toBe(true);
-    expect(validateCodeMapIntegrity(final).valid).toBe(true);
   });
 
   it('detects integrity violation when change creates dangling reference', async () => {
@@ -190,7 +184,7 @@ describe('Integration: Multiple Changes on Real Project', () => {
       schema_version: OPSX_SCHEMA_VERSION,
       ADDED: {
         relations: [
-          { from: 'cap.nonexistent', to: 'dom.core', type: 'contains' },
+          { from: 'cap.nonexistent', to: 'dom.core', type: 'belongs_to' },
         ],
       },
     };
@@ -212,7 +206,7 @@ describe('Integration: Multiple Changes on Real Project', () => {
       ADDED: {
         domains: [{ id: 'dom.api', type: 'domain', intent: 'API gateway' }],
         capabilities: [{ id: 'cap.api.route', type: 'capability', intent: 'Route API requests' }],
-        relations: [{ from: 'cap.api.route', to: 'dom.api', type: 'contains' }],
+        relations: [{ from: 'cap.api.route', to: 'dom.api', type: 'belongs_to' }],
       },
     };
 

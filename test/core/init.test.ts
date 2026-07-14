@@ -611,35 +611,26 @@ describe('OPSX skeleton generation', () => {
     vi.restoreAllMocks();
   });
 
-  it('should generate three OPSX skeleton files on first-time init', async () => {
+  it('should generate two OPSX v2 skeleton files on first-time init', async () => {
     const initCommand = new InitCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
     const opsxYaml = path.join(testDir, 'openspec', 'project.opsx.yaml');
     const relationsYaml = path.join(testDir, 'openspec', 'project.opsx.relations.yaml');
-    const codeMapYaml = path.join(testDir, 'openspec', 'project.opsx.code-map.yaml');
 
     expect(await fileExists(opsxYaml)).toBe(true);
     expect(await fileExists(relationsYaml)).toBe(true);
-    expect(await fileExists(codeMapYaml)).toBe(true);
+    expect(await fileExists(path.join(testDir, 'openspec', 'project.opsx.code-map.yaml'))).toBe(false);
 
-    // Verify opsx.yaml content
     const opsxContent = await fs.readFile(opsxYaml, 'utf-8');
-    expect(opsxContent).toContain('schema_version: 1');
+    expect(opsxContent).toContain('schema_version: 2');
     expect(opsxContent).toContain('project:');
     expect(opsxContent).toContain('domains: []');
     expect(opsxContent).toContain('capabilities: []');
 
-    // Verify relations.yaml content
     const relationsContent = await fs.readFile(relationsYaml, 'utf-8');
-    expect(relationsContent).toContain('schema_version: 1');
+    expect(relationsContent).toContain('schema_version: 2');
     expect(relationsContent).toContain('relations: []');
-
-    // Verify code-map.yaml content
-    const codeMapContent = await fs.readFile(codeMapYaml, 'utf-8');
-    expect(codeMapContent).toContain('schema_version: 1');
-    expect(codeMapContent).toContain('generated_at:');
-    expect(codeMapContent).toContain('nodes: []');
   });
 
   it('should infer project name from package.json', async () => {

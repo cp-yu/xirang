@@ -30,7 +30,6 @@ describe('syncCommand', () => {
     domains: [],
     capabilities: [],
     relations: [],
-    code_map: [],
     ...overrides,
   });
 
@@ -382,7 +381,7 @@ Then the system signs the user in`
       mkBundle({
         domains: [{ id: 'dom.core', type: 'domain', intent: 'Core domain' }],
         capabilities: [{ id: 'cap.core.init', type: 'capability', intent: 'Initialize app' }],
-        relations: [{ from: 'cap.core.init', to: 'dom.core', type: 'contains' }],
+        relations: [{ from: 'cap.core.init', to: 'dom.core', type: 'belongs_to' }],
       })
     );
 
@@ -393,7 +392,7 @@ Then the system signs the user in`
         ADDED: {
           domains: [{ id: 'dom.auth', type: 'domain', intent: 'Authentication domain' }],
           capabilities: [{ id: 'cap.auth.login', type: 'capability', intent: 'User login' }],
-          relations: [{ from: 'cap.auth.login', to: 'dom.auth', type: 'contains' }],
+          relations: [{ from: 'cap.auth.login', to: 'dom.auth', type: 'belongs_to' }],
         },
       })
     );
@@ -594,7 +593,7 @@ The system SHALL support login.
       mkBundle({
         domains: [{ id: 'dom.core', type: 'domain', intent: 'Core domain' }],
         capabilities: [{ id: 'cap.core.init', type: 'capability', intent: 'Initialize app' }],
-        relations: [{ from: 'cap.core.init', to: 'dom.core', type: 'contains' }],
+        relations: [{ from: 'cap.core.init', to: 'dom.core', type: 'belongs_to' }],
       })
     );
     await fs.writeFile(
@@ -604,7 +603,7 @@ The system SHALL support login.
         ADDED: {
           domains: [{ id: 'dom.auth', type: 'domain', intent: 'Auth domain' }],
           capabilities: [{ id: 'cap.auth.login', type: 'capability', intent: 'Login' }],
-          relations: [{ from: 'cap.auth.login', to: 'dom.auth', type: 'contains' }],
+          relations: [{ from: 'cap.auth.login', to: 'dom.auth', type: 'belongs_to' }],
         },
       }),
       'utf-8'
@@ -676,7 +675,7 @@ The system SHALL support login.
       mkBundle({
         domains: [{ id: 'dom.core', type: 'domain', intent: 'Core domain' }],
         capabilities: [{ id: 'cap.core.init', type: 'capability', intent: 'Initialize app' }],
-        relations: [{ from: 'cap.core.init', to: 'dom.core', type: 'contains' }],
+        relations: [{ from: 'cap.core.init', to: 'dom.core', type: 'belongs_to' }],
       })
     );
     await fs.writeFile(
@@ -686,7 +685,7 @@ The system SHALL support login.
         ADDED: {
           domains: [{ id: 'dom.sync', type: 'domain', intent: 'Sync domain' }],
           capabilities: [{ id: 'cap.sync.refresh', type: 'capability', intent: 'Refresh evidence' }],
-          relations: [{ from: 'cap.sync.refresh', to: 'dom.sync', type: 'contains' }],
+          relations: [{ from: 'cap.sync.refresh', to: 'dom.sync', type: 'belongs_to' }],
         },
       }),
       'utf-8'
@@ -741,7 +740,7 @@ The system SHALL support login.
       mkBundle({
         domains: [{ id: 'dom.core', type: 'domain', intent: 'Core domain' }],
         capabilities: [{ id: 'cap.core.init', type: 'capability', intent: 'Initialize app' }],
-        relations: [{ from: 'cap.core.init', to: 'dom.core', type: 'contains' }],
+        relations: [{ from: 'cap.core.init', to: 'dom.core', type: 'belongs_to' }],
       })
     );
     await fs.writeFile(
@@ -751,7 +750,7 @@ The system SHALL support login.
         ADDED: {
           domains: [{ id: 'dom.audit', type: 'domain', intent: 'Audit domain' }],
           capabilities: [{ id: 'cap.audit.log', type: 'capability', intent: 'Audit log' }],
-          relations: [{ from: 'cap.audit.log', to: 'dom.audit', type: 'contains' }],
+          relations: [{ from: 'cap.audit.log', to: 'dom.audit', type: 'belongs_to' }],
         },
       }),
       'utf-8'

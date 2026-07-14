@@ -13,19 +13,19 @@ import {
 import { generateSkillContent } from '../../../src/core/shared/skill-generation.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getExploreSkillTemplate: '01feef35c068d525208528b76ec6cf05cd783e0154ce6f2d397d70ca519ca9fb',
-  getApplyChangeSkillTemplate: '1a930e1e9b97670a92ecffa8273fa21ec38277e9ad78647da95b00e0661ba297',
+  getExploreSkillTemplate: '1cc788f56597f83f0dab15f3b21d74488043c0717abd9caeb5edb7033d190e75',
+  getApplyChangeSkillTemplate: '494790669826cbd6c5b7695adc67a96423eb6437526210d992077ed2e3b992c1',
   getArchiveChangeSkillTemplate: '64cd3ae62041b645ef0ebe1e9c537c65429ba81e651b763fb1e129aac508d998',
-  getOpsxProposeSkillTemplate: '28e46e796dd4239833e883cb43886b39ddcacdb01d8bcdc39564f9fc27e121a8',
+  getOpsxProposeSkillTemplate: '4529cae40570127b26abbbec2eb80be090102c8608aa23c408cd8a203dba8546',
   getFeedbackSkillTemplate: 'd7d83c5f7fc2b92fe8f4588a5bf2d9cb315e4c73ec19bcd5ef28270906319a0d',
-  getBootstrapOpsxSkillTemplate: '209db1505c18ba28eec49430ad1bc18cca6b48fa819e5ac7e7900cb2c9c92f87',
+  getBootstrapOpsxSkillTemplate: '77bf1d8c6c78f7fb4979e7694626ee71d9762eba7cbfcdf94061d66504e44ea5',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'openspec-explore': 'cf75c94928fbb498b02b6da41e3a0c3bccbc9016e5fa8342294a367c44346a28',
+  'openspec-explore': '8a5a6fffc8bdf443447eba5097c530308e1b89352f2bdef8b74bfbc6b96b3a46',
   'openspec-apply-change': 'e69abd8168f76d7c87f82c8db4a9491d050e2839466ba786dfb0428d7f30f682',
   'openspec-archive-change': 'bdb0a29e715879444e1945858752896180122431512afa67c9f2d187a3cbe38c',
-  'openspec-propose': 'c10467685866b2dd21f7f78e8952d5e638f6dc95ebc1da39c5192ff6da0771c0',
+  'openspec-propose': '5545fe0465e3fc1d0fabeb009686b6589445e8288111fec759cc97b9040cdd54',
 };
 
 function stableStringify(value: unknown): string {

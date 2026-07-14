@@ -117,9 +117,8 @@ describe('bootstrap command Phase 1 baseline contract', () => {
   });
 
   it('returns structured pre-init status for formal-opsx repositories with refresh as the only allowed mode', async () => {
-    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), 'schema_version: 1\nproject:\n  id: demo\n  name: Demo\n');
-    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'), 'schema_version: 1\nrelations: []\n');
-    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.code-map.yaml'), 'schema_version: 1\nnodes: []\n');
+    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), 'schema_version: 2\nproject:\n  id: demo\n  name: Demo\n');
+    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'), 'schema_version: 2\nrelations: []\n');
 
     const status = await withCwd(testDir, () => captureJsonOutput(() => bootstrapStatusCommand({ json: true })));
     expect(status).toMatchObject({
@@ -130,6 +129,25 @@ describe('bootstrap command Phase 1 baseline contract', () => {
       nextAction: 'init',
     });
     expect(status.reason).toContain('Use refresh');
+  });
+
+  it('rejects semantically invalid two-file graphs as bootstrap baselines', async () => {
+    await fs.writeFile(
+      path.join(testDir, 'openspec', 'project.opsx.yaml'),
+      'schema_version: 2\nproject:\n  id: demo\n  name: Demo\ncapabilities:\n  - id: cap.demo.run\n    type: capability\n'
+    );
+    await fs.writeFile(
+      path.join(testDir, 'openspec', 'project.opsx.relations.yaml'),
+      'schema_version: 2\nrelations: []\n'
+    );
+
+    const status = await withCwd(testDir, () => captureJsonOutput(() => bootstrapStatusCommand({ json: true })));
+    expect(status).toMatchObject({
+      initialized: false,
+      baselineType: 'invalid-partial-opsx',
+      supported: false,
+      allowedModes: [],
+    });
   });
 
   it('returns pre-init instructions json instead of init-first error', async () => {
@@ -153,9 +171,8 @@ describe('bootstrap command Phase 1 baseline contract', () => {
   });
 
   it('rejects unsupported mode on a formal-opsx baseline before creating bootstrap workspace', async () => {
-    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), 'schema_version: 1\nproject:\n  id: demo\n  name: Demo\n');
-    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'), 'schema_version: 1\nrelations: []\n');
-    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.code-map.yaml'), 'schema_version: 1\nnodes: []\n');
+    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), 'schema_version: 2\nproject:\n  id: demo\n  name: Demo\n');
+    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'), 'schema_version: 2\nrelations: []\n');
 
     await expect(initBootstrap(testDir, { mode: 'full', granularity: 'fine' })).rejects.toThrow(
       "Bootstrap mode 'full' is not supported for baseline 'formal-opsx'. Valid modes: refresh"
@@ -163,10 +180,46 @@ describe('bootstrap command Phase 1 baseline contract', () => {
     await expect(fs.stat(path.join(testDir, 'openspec', 'bootstrap'))).rejects.toThrow();
   });
 
+  it('keeps every refresh CLI guidance branch on complete-rebuild v2 semantics', async () => {
+    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), 'schema_version: 2\nproject:\n  id: demo\n  name: Demo\n');
+    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'), 'schema_version: 2\nrelations: []\n');
+
+    const preInit = await withCwd(
+      testDir,
+      () => captureJsonOutput(() => bootstrapInstructionsCommand(undefined, { json: true }))
+    );
+    expect(preInit.instruction).toContain('complete candidate');
+    expect(preInit.instruction).toContain('review diff');
+    expect(preInit.instruction).toContain('replaces both formal OPSX v2 files');
+
+    const initOutput = await withCwd(
+      testDir,
+      () => captureTextOutput(() => bootstrapInitCommand({ mode: 'refresh', granularity: 'fine' }))
+    );
+    expect(initOutput).toContain('complete candidate');
+    expect(initOutput).toContain('review-only baseline evidence');
+
+    for (const phase of ['scan', 'map', 'review']) {
+      const result = await withCwd(
+        testDir,
+        () => captureJsonOutput(() => bootstrapInstructionsCommand(phase, { json: true }))
+      );
+      expect(result.instruction).not.toMatch(/git diff|code refs|existing formal OPSX bundle and current specs as the baseline/i);
+    }
+
+    const scan = await withCwd(testDir, () => captureJsonOutput(() => bootstrapInstructionsCommand('scan', { json: true })));
+    expect(scan.instruction).toContain('all current source, specs, configuration, and package/build metadata');
+    const map = await withCwd(testDir, () => captureJsonOutput(() => bootstrapInstructionsCommand('map', { json: true })));
+    expect(map.instruction).toContain('semantic relations');
+    expect(map.instruction).toContain('review_gaps');
+    const review = await withCwd(testDir, () => captureJsonOutput(() => bootstrapInstructionsCommand('review', { json: true })));
+    expect(review.instruction).toContain('semantic relation type/direction');
+    expect(review.instruction).toContain('review gaps');
+  });
+
   it('allows formal-opsx repositories to initialize refresh mode', async () => {
-    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), 'schema_version: 1\nproject:\n  id: demo\n  name: Demo\n');
-    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'), 'schema_version: 1\nrelations: []\n');
-    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.code-map.yaml'), 'schema_version: 1\nnodes: []\n');
+    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), 'schema_version: 2\nproject:\n  id: demo\n  name: Demo\n');
+    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'), 'schema_version: 2\nrelations: []\n');
 
     await initBootstrap(testDir, { mode: 'refresh', granularity: 'fine' });
 
@@ -293,12 +346,7 @@ capabilities:
 relations:
   - from: cap.auth.login
     to: dom.auth
-    type: contains
-code_refs:
-  - id: cap.auth.login
-    refs:
-      - path: src/auth/index.ts
-        line_start: 1
+    type: belongs_to
 `,
       'utf-8'
     );
@@ -360,12 +408,7 @@ capabilities:
 relations:
   - from: cap.auth.login
     to: dom.auth
-    type: contains
-code_refs:
-  - id: cap.auth.login
-    refs:
-      - path: src/auth/index.ts
-        line_start: 1
+    type: belongs_to
 `,
       'utf-8'
     );
@@ -429,12 +472,7 @@ capabilities:
 relations:
   - from: cap.auth.login
     to: dom.auth
-    type: contains
-code_refs:
-  - id: cap.auth.login
-    refs:
-      - path: src/auth/index.ts
-        line_start: 1
+    type: belongs_to
 `,
       'utf-8'
     );
@@ -452,10 +490,26 @@ code_refs:
     );
   });
 
+  it('infers legacy completed non-refresh workspaces from the two formal OPSX v2 files', async () => {
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
+    await setBootstrapPhase(testDir, 'promote');
+    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), 'schema_version: 2\nproject:\n  id: demo\n  name: Demo\n', 'utf-8');
+    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'), 'schema_version: 2\nrelations: []\n', 'utf-8');
+
+    const metadataPath = path.join(testDir, 'openspec', 'bootstrap', '.bootstrap.yaml');
+    const metadata = parseYaml(await fs.readFile(metadataPath, 'utf-8')) as Record<string, unknown>;
+    delete metadata.completed_at;
+    await fs.writeFile(metadataPath, stringifyYaml(metadata, { lineWidth: 0 }), 'utf-8');
+
+    const statusJson = await withCwd(testDir, () => captureJsonOutput(() => bootstrapStatusCommand({ json: true })));
+    expect(statusJson.workspaceState).toBe('completed');
+    expect(statusJson.nextAction).toBe('restart');
+    expect(statusJson.restartCommand).toBe('openspec bootstrap init --mode refresh --restart');
+  });
+
   it('reports completed retained workspaces as restartable instead of resumable', async () => {
-    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), 'schema_version: 1\nproject:\n  id: demo\n  name: Demo\n', 'utf-8');
-    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'), 'schema_version: 1\nrelations: []\n', 'utf-8');
-    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.code-map.yaml'), 'schema_version: 1\nnodes: []\n', 'utf-8');
+    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), 'schema_version: 2\nproject:\n  id: demo\n  name: Demo\n', 'utf-8');
+    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'), 'schema_version: 2\nrelations: []\n', 'utf-8');
     await initBootstrap(testDir, { mode: 'refresh', granularity: 'fine' });
     await setBootstrapPhase(testDir, 'promote');
 

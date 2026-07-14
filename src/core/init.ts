@@ -469,9 +469,8 @@ export class InitCommand {
   private async writeOpsxSkeleton(projectPath: string, openspecPath: string): Promise<void> {
     const projectName = this.inferProjectName(projectPath);
     const projectId = this.toProjectId(projectName);
-    const timestamp = new Date().toISOString();
 
-    const opsxYaml = `schema_version: 1
+    const opsxYaml = `schema_version: 2
 project:
   id: ${projectId}
   name: ${projectName}
@@ -479,19 +478,13 @@ domains: []
 capabilities: []
 `;
 
-    const relationsYaml = `schema_version: 1
+    const relationsYaml = `schema_version: 2
 relations: []
-`;
-
-    const codeMapYaml = `schema_version: 1
-generated_at: "${timestamp}"
-nodes: []
 `;
 
     const files: Array<{ name: string; content: string }> = [
       { name: 'project.opsx.yaml', content: opsxYaml },
       { name: 'project.opsx.relations.yaml', content: relationsYaml },
-      { name: 'project.opsx.code-map.yaml', content: codeMapYaml },
     ];
 
     for (const file of files) {

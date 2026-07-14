@@ -31,7 +31,6 @@ describe('Edge Cases: OPSX Utils', () => {
     domains: [],
     capabilities: [],
     relations: [],
-    code_map: [],
     ...overrides,
   });
 
@@ -68,14 +67,12 @@ describe('Edge Cases: OPSX Utils', () => {
   });
 
   describe('Malformed YAML Handling', () => {
-    it('should return null for invalid YAML structure with schema_version', async () => {
+    it('should reject invalid v2 YAML structure', async () => {
       const opsxPath = path.join(testDir, OPSX_PATHS.PROJECT_FILE);
       await fs.mkdir(path.dirname(opsxPath), { recursive: true });
-      // Has schema_version but missing required project field
-      await fs.writeFile(opsxPath, 'schema_version: 1\ndomains:\n  - id: dom.core\n    type: domain\n');
+      await fs.writeFile(opsxPath, 'schema_version: 2\ndomains:\n  - id: dom.core\n    type: domain\n');
 
-      const result = await readProjectOpsx(testDir);
-      expect(result).toBeNull();
+      await expect(readProjectOpsx(testDir)).rejects.toThrow();
     });
 
     it('should handle corrupted YAML syntax', async () => {
@@ -173,7 +170,7 @@ describe('Edge Cases: OPSX Utils', () => {
       expect(result!.domains[0].intent).toBe(longIntent);
     });
 
-    it('should handle large data with fixed three-file layout', async () => {
+    it('should handle large data with fixed two-file layout', async () => {
       const domains = Array.from({ length: 1000 }, (_, i) => ({
         id: `dom.node${i}`,
         type: 'domain' as const,
@@ -186,11 +183,11 @@ describe('Edge Cases: OPSX Utils', () => {
       expect(result).not.toBeNull();
       expect(result!.domains).toHaveLength(1000);
 
-      // Verify still three files, no sharding
+      // Verify still two files, no sharding
       const opsxDir = path.join(testDir, 'openspec');
       const files = await fs.readdir(opsxDir);
       const opsxFiles = files.filter(f => f.startsWith('project.opsx'));
-      expect(opsxFiles).toHaveLength(3);
+      expect(opsxFiles).toHaveLength(2);
     });
 
     it('should handle special characters in metadata', async () => {

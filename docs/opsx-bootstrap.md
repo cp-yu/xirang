@@ -2,518 +2,172 @@
 
 ## Overview
 
-The bootstrap workflow upgrades an existing repository into formal OPSX tracking through a five-phase workspace under `openspec/bootstrap/`:
+Bootstrap upgrades an existing repository into formal OPSX v2 tracking through five phases:
 
 `init -> scan -> map -> review -> promote`
 
-On successful promotion it writes the formal OPSX three-file bundle:
+Promotion writes exactly two formal files:
 
 - `openspec/project.opsx.yaml`
 - `openspec/project.opsx.relations.yaml`
-- `openspec/project.opsx.code-map.yaml`
 
-This is useful for:
+The workspace under `openspec/bootstrap/` is retained as audit history.
 
-- **Existing projects** — add OPSX tracking to brownfield codebases
-- **Migration** — transition from manual documentation to automated tracking
-- **Onboarding** — help new team members understand system architecture
-
-## When to Use Bootstrap
-
-**Use bootstrap when:**
-- Starting with OpenSpec on an existing project
-- You have code but no formal OPSX structure
-- You want to document current architecture
-
-**Don't use bootstrap when:**
-- Starting a new project (use `/opsx:propose` instead)
-- You already have the formal OPSX bundle and do not need an incremental refresh
-- You prefer manual structure creation
-
-Supported upgrade paths:
+## Supported Paths
 
 - `specs-based -> full`
 - `raw -> full`
 - `raw -> opsx-first`
 - `formal-opsx -> refresh`
 
-`opsx-first` is intentionally narrow: it writes the formal OPSX bundle plus a README-only starter now, and leaves full behavior specs to be added later through normal change workflows.
-`refresh` is also intentionally narrow: it treats the existing formal OPSX bundle as the source-of-truth baseline, uses git diff only to narrow scan scope when possible, and merges reviewed deltas back into the existing formal files instead of overwriting them wholesale.
+`opsx-first` creates the formal OPSX model plus a README-only specs starter. `full` generates complete candidate specs. `refresh` rebuilds the entire candidate from current evidence; the previous formal model is used only to produce the review diff.
 
-## Running Bootstrap
+## Commands
 
-The user-facing agent command is `/opsx:bootstrap`.
-It is a CLI-backed workflow wrapper around the real `openspec bootstrap` subcommands shown below.
+The user-facing workflow is `/opsx:bootstrap`. It orchestrates these CLI commands:
 
 ```bash
-# Inspect the current repository baseline
 openspec bootstrap status --json
-
-# Initialize the workspace
 openspec bootstrap init --mode full
-
-# Or, on a raw repository only:
-openspec bootstrap init --mode opsx-first
-
-# Or, on a repository with an existing formal OPSX bundle:
-openspec bootstrap init --mode refresh
-
-# If a completed retained workspace already exists:
-openspec bootstrap init --mode refresh --restart
-
-# Follow phase instructions
 openspec bootstrap instructions --json
-
-# Rebuild candidate/review artifacts and validate gates
 openspec bootstrap validate
-
-# After review is current and approved
 openspec bootstrap promote -y
 ```
 
-Key behavior:
-1. `validate` regenerates `review.md`, candidate OPSX files, and candidate specs from current `evidence.yaml` and `domain-map/*.yaml`
-2. If evidence or mappings change, previous review approval becomes stale and must be redone
-3. `promote -y` re-checks scan, map, and review gates before any formal write; refresh merges reviewed deltas while the non-refresh modes write the reviewed candidate bundle
-4. Successful promote retains `openspec/bootstrap/` as audit history
-5. The next refresh run should use `openspec bootstrap init --mode refresh --restart`, which snapshots the retained workspace into `openspec/bootstrap-history/` before creating a fresh workspace
+For an existing formal v2 repository:
 
-## What Gets Generated
-
-- `opsx-first`
-  - Writes the formal OPSX bundle on promote
-  - Creates only `openspec/specs/README.md`
-  - You add full behavior specs later through normal OpenSpec changes
-- `full` on `raw`
-  - Writes the formal OPSX bundle
-  - Writes valid specs covering all mapped capabilities: per spec_groups grouping in coarse mode, per capability in fine mode
-- `full` on `specs-based`
-  - Preserves existing specs
-  - Adds only missing capability specs
-  - Fails fast if a generated target path already exists
-- `refresh` on `formal-opsx`
-  - Preserves the current formal OPSX bundle as the baseline
-  - Uses git diff only to narrow scan scope when the stored anchor commit is still reachable
-  - Falls back to a full scan when git is unavailable, the anchor is missing/unreachable, or changed paths cannot be mapped confidently through `project.opsx.code-map.yaml`
-  - Reviews ADDED / MODIFIED / REMOVED deltas instead of the whole system
-  - Merges reviewed OPSX deltas back into the existing formal files
-  - Preserves existing formal specs, writes only missing specs for newly added capabilities, and fails fast on conflicts
-  - Retains the completed workspace for audit history; restart is explicit via `--restart`, not manual deletion
-
-### Minimal Example
-
-For a simple project:
-
-```yaml
-# openspec/project.opsx.yaml
-schema_version: 1
-project:
-  id: proj.my-app
-  name: My App
-  intent: Core application and API surface discovered from the current bootstrap workspace
-
-domains:
-  - id: dom.core
-    type: domain
-    intent: Core application logic
-
-  - id: dom.api
-    type: domain
-    intent: API endpoints
+```bash
+openspec bootstrap init --mode refresh
 ```
 
-### Full Example
+If a completed workspace already exists:
 
-For a more complex project:
+```bash
+openspec bootstrap init --mode refresh --restart
+```
+
+Restart snapshots the retained workspace into `openspec/bootstrap-history/` before creating a fresh workspace.
+
+## Phases
+
+### 1. Init
+
+Init records mode, scope, and granularity without inferring architecture.
+
+### 2. Scan
+
+Scan collects current evidence from source files, package/build metadata, configuration, and formal specs. CodeGraph may accelerate symbol, import, and call discovery when already available. Otherwise use ACE, `rg`, `read`, and tracked-file search. Bootstrap never installs CodeGraph automatically.
+
+### 3. Map
+
+Map writes domains, capabilities, candidate relations, and optional spec source into `domain-map/*.yaml`.
 
 ```yaml
-project:
-  name: ecommerce-platform
-  version: 2.1.0
-  description: "[DRAFT] E-commerce platform with auth, products, orders"
-
-domains:
-  - id: dom.auth
-    type: domain
-    intent: User authentication and authorization
-    code_refs:
-      - path: src/auth/
-      - path: src/middleware/auth.ts
-
-  - id: dom.products
-    type: domain
-    intent: Product catalog and inventory
-    code_refs:
-      - path: src/products/
-      - path: src/inventory/
-
-  - id: dom.orders
-    type: domain
-    intent: Order processing and fulfillment
-    code_refs:
-      - path: src/orders/
-      - path: src/payments/
+domain:
+  id: dom.orders
+  type: domain
+  intent: Order processing
 
 capabilities:
-  - id: cap.auth.login
-    type: capability
-    intent: User login with email/password
-    code_refs:
-      - path: src/auth/login.ts
-        line_start: 15
-        line_end: 45
-
-  - id: cap.auth.register
-    type: capability
-    intent: New user registration
-    code_refs:
-      - path: src/auth/register.ts
-        line_start: 20
-        line_end: 80
-
-  - id: cap.products.search
-    type: capability
-    intent: Search products by name, category, price
-    code_refs:
-      - path: src/products/search.ts
-        line_start: 10
-        line_end: 120
-
   - id: cap.orders.create
     type: capability
-    intent: Create new order from cart
-    code_refs:
-      - path: src/orders/create.ts
-        line_start: 25
-        line_end: 150
+    intent: Create an order
+    spec:
+      folder: orders
+      purpose: Order behavior.
+      requirements:
+        - title: Create order
+          text: The system SHALL create an order.
+          scenarios:
+            - title: Order created
+              steps:
+                - keyword: WHEN
+                  text: a valid order is submitted
+                - keyword: THEN
+                  text: the order is created
 
 relations:
-  - from: cap.auth.login
-    to: dom.auth
-    type: contains
-
-  - from: cap.auth.register
-    to: dom.auth
-    type: contains
-
-  - from: cap.products.search
-    to: dom.products
-    type: contains
-
   - from: cap.orders.create
+    type: belongs_to
     to: dom.orders
-    type: contains
-
-  - from: cap.orders.create
-    to: cap.auth.login
-    type: depends_on
 ```
 
-## Review and Refinement
+Imports and calls form relation candidates only. Select a semantic relation from its interaction mechanism; unresolved candidates belong in review gaps rather than in the graph.
 
-The generated structure is marked `[DRAFT]` because:
+### 4. Review
 
-1. **AI inference is imperfect** — it guesses based on code patterns
-2. **Business context is missing** — only you know the true intent
-3. **Relations may be incomplete** — static analysis can't catch everything
+`openspec bootstrap validate` regenerates candidate files and `review.md`. Review checks:
 
-### Review Checklist
+- domain boundaries and capability intents
+- exactly one ownership edge per capability
+- endpoint direction, note policy, and duplicate edges
+- unsupported or weakly evidenced interactions
+- spec coverage and candidate completeness
+- refresh differences from the previous formal model
 
-- [ ] **Domain boundaries** — do they match your mental model?
-- [ ] **Capability intents** — are descriptions accurate?
-- [ ] **Code references** — do they point to the right files?
-- [ ] **Relations** — are dependencies captured correctly?
-- [ ] **Missing pieces** — what did the AI miss?
+Any evidence or mapping change makes prior approval stale.
 
-### Common Refinements
+### 5. Promote
 
-**1. Fix domain boundaries**
+`openspec bootstrap promote -y` rechecks every gate and atomically writes the two formal files. In refresh mode it replaces the complete two-file candidate; it does not merge a partial graph.
 
-```yaml
-# AI generated (too granular)
-domains:
-  - id: dom.user.auth
-  - id: dom.user.profile
-  - id: dom.user.settings
+## Mode Outputs
 
-# After refinement (better grouping)
-domains:
-  - id: dom.user
-    intent: User management including auth, profiles, settings
-```
+### `opsx-first`
 
-**2. Add missing relations**
+- writes the two formal OPSX files
+- creates `openspec/specs/README.md`
+- leaves behavior specs to normal change workflows
 
-```yaml
-# AI missed this dependency
-relations:
-  - from: cap.orders.create
-    to: cap.products.validate
-    type: depends_on
-```
+### `full` on `raw`
 
-**3. Link to existing specs**
+- writes the two formal OPSX files
+- writes valid specs for all mapped capabilities
 
-```yaml
-# Add spec_refs if you have documentation
-capabilities:
-  - id: cap.auth.login
-    spec_refs:
-      - path: docs/auth/login.md
-      - path: docs/api/auth-endpoints.md
-```
+### `full` on `specs-based`
 
-**4. Clarify intents**
+- preserves existing specs
+- adds missing capability specs
+- fails on target-path conflicts
 
-```yaml
-# AI generated (vague)
-intent: Handle user data
+### `refresh` on `formal-opsx`
 
-# After refinement (specific)
-intent: Manage user profiles including avatar, bio, preferences, and privacy settings
-```
+- scans current source, specs, config, and reviewed workspace evidence
+- builds a complete fresh candidate
+- uses the old formal model only for added/modified/removed review output
+- atomically replaces the two formal files after approval
+- produces deterministic output when inputs are unchanged
 
-## Incremental Bootstrap
+A git anchor may remain in workspace metadata for audit continuity, but it is not a candidate inference input.
 
-For large codebases, bootstrap incrementally by changing the supported CLI inputs and workspace artifacts between validation runs.
+## Cross-platform Behavior
 
-### Phase 1: Scoped initialization
-
-```bash
-# Focus on main business logic first
-openspec bootstrap init --mode full --scope src/core,src/api
-```
-
-### Phase 2: Refine evidence and domain maps
-
-After reviewing domains, update the bootstrap workspace artifacts and validate again:
-
-```bash
-# Recompute review artifacts from current workspace data
-openspec bootstrap validate
-```
-
-### Phase 3: Review and promote
-
-Once evidence and mappings are complete:
-
-```bash
-# Review current phase state, then promote after approval
-openspec bootstrap status
-openspec bootstrap promote -y
-```
-
-## Integration with Existing Specs
-
-If you already have documentation:
-
-### 1. Link Existing Specs
-
-```yaml
-domains:
-  - id: dom.auth
-    spec_refs:
-      - path: docs/architecture/auth.md
-      - path: docs/api/auth-api.md
-```
-
-### 2. Create Missing Specs
-
-For undocumented areas, create specs:
-
-```bash
-/opsx:propose document-orders-domain
-```
-
-### 3. Verify Alignment
-
-Check that specs match the structure:
-
-```bash
-openspec validate document-orders-domain --type change
-```
+Bootstrap builds paths with the Node.js `path` API. Full scans do not depend on slash style, path casing, or persisted path mappings, so Windows and POSIX repositories follow the same contract.
 
 ## After Bootstrap
 
-Once you've reviewed and refined:
-
-1. **Commit the structure** — `git add openspec/project.opsx*.yaml openspec/specs && git commit`
-2. **Start using OPSX** — new changes will now update this structure
-3. **For opsx-first repositories** — add specs incrementally later with normal `/opsx:propose` and `/opsx:archive` workflows
-4. **For future refresh runs** — keep the retained workspace as audit history and use `openspec bootstrap init --mode refresh --restart` instead of deleting `openspec/bootstrap/`
-
-## Maintenance
-
-### Keeping Structure Updated
-
-**During development:**
-- `/opsx:propose` generates deltas automatically
-- `/opsx:archive` merges deltas into `project.opsx.yaml`
-
-**Periodic review:**
 ```bash
-# Check for drift
 openspec validate --all
-
-# Rebuild bootstrap review artifacts from current workspace data when needed
-openspec bootstrap validate
+git add openspec/project.opsx.yaml openspec/project.opsx.relations.yaml openspec/specs
+git commit
 ```
 
-### Handling Refactors
-
-When you refactor code:
-
-1. **Update code_refs** — point to new file locations
-2. **Adjust relations** — reflect new dependencies
-3. **Validate** — ensure referential integrity
-
-```bash
-# After refactor
-openspec bootstrap validate
-```
+Use `/opsx:propose`, `/opsx:apply`, and `/opsx:archive` for later changes. Use refresh when the formal architecture must be rebuilt from current evidence.
 
 ## Troubleshooting
 
-### "Too many domains generated"
+### Invalid partial OPSX
 
-**Problem:** AI created 50+ domains for a medium project.
+Both formal v2 files are required. A missing file, wrong schema version, or invalid semantic relation graph blocks refresh.
 
-**Solution:** Consolidate related domains:
+### Missing capabilities
 
-```yaml
-# Before (too granular)
-- id: dom.user.auth
-- id: dom.user.profile
-- id: dom.user.settings
-- id: dom.user.preferences
+Add evidence and update `domain-map/*.yaml`, then rerun `openspec bootstrap validate`.
 
-# After (consolidated)
-- id: dom.user
-  intent: User management (auth, profile, settings, preferences)
-```
+### Unclear relations
 
-### "Missing key capabilities"
+Do not create a generic edge. Record the gap, inspect specs and live code evidence, and choose a canonical relation only when the interaction is established.
 
-**Problem:** AI didn't detect important functions.
+### Stale review
 
-**Solution:** Add them manually:
-
-```yaml
-capabilities:
-  - id: cap.payment.process
-    type: capability
-    intent: Process credit card payments via Stripe
-    code_refs:
-      - path: src/payments/stripe.ts
-        line_start: 45
-        line_end: 120
-```
-
-### "Relations are incomplete"
-
-**Problem:** Static analysis missed runtime dependencies.
-
-**Solution:** Add relations based on your knowledge:
-
-```yaml
-relations:
-  # AI missed this because it's a runtime dependency
-  - from: cap.orders.create
-    to: cap.inventory.reserve
-    type: depends_on
-```
-
-### "Code refs are wrong"
-
-**Problem:** AI pointed to wrong files or line numbers.
-
-**Solution:** Fix the references:
-
-```yaml
-# Before (wrong)
-code_refs:
-  - path: src/old-location/auth.ts
-
-# After (correct)
-code_refs:
-  - path: src/auth/login.ts
-    line_start: 15
-    line_end: 45
-```
-
-## Best Practices
-
-1. **Start small** — bootstrap core domains first, expand later
-2. **Review immediately** — don't let [DRAFT] structure sit unreviewed
-3. **Link existing docs** — add `spec_refs` to leverage current documentation
-4. **Validate often** — run `openspec validate --all` after changes
-5. **Iterate** — refine structure as you learn more about the codebase
-
-## Examples
-
-### Monorepo Bootstrap
-
-```yaml
-project:
-  name: my-monorepo
-  version: 1.0.0
-
-domains:
-  - id: dom.frontend
-    code_refs:
-      - path: packages/web/
-      - path: packages/mobile/
-
-  - id: dom.backend
-    code_refs:
-      - path: packages/api/
-      - path: packages/workers/
-
-  - id: dom.shared
-    code_refs:
-      - path: packages/common/
-      - path: packages/types/
-```
-
-### Microservices Bootstrap
-
-```yaml
-project:
-  name: microservices-platform
-  version: 2.0.0
-
-domains:
-  - id: dom.auth-service
-    code_refs:
-      - path: services/auth/
-
-  - id: dom.user-service
-    code_refs:
-      - path: services/users/
-
-  - id: dom.order-service
-    code_refs:
-      - path: services/orders/
-
-relations:
-  - from: dom.order-service
-    to: dom.user-service
-    type: depends_on
-
-  - from: dom.order-service
-    to: dom.auth-service
-    type: depends_on
-```
-
-## Next Steps
-
-After bootstrap:
-
-1. **Create your first change** — `/opsx:propose <feature>`
-2. **See delta generation** — check `openspec/changes/<name>/opsx-delta.yaml`
-3. **Implement and archive** — `/opsx:apply` then `/opsx:archive`
-4. **Watch structure grow** — `project.opsx.yaml` stays in sync
-
-## Feedback
-
-Bootstrap workflow is experimental. Found issues? Have ideas? Join us on [Discord](https://discord.gg/YctCnvvshC).
+Recheck `review.md` after any evidence, mapping, spec source, or candidate change.

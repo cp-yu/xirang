@@ -11,6 +11,7 @@ import { ArchiveCommand } from '../core/archive.js';
 import { ViewCommand } from '../core/view.js';
 import { registerSpecCommand } from '../commands/spec.js';
 import { registerOpsxCommand } from '../commands/opsx.js';
+import { registerHelpCommand } from '../commands/help.js';
 import { ChangeCommand } from '../commands/change.js';
 import { ValidateCommand } from '../commands/validate.js';
 import { ShowCommand } from '../commands/show.js';
@@ -315,6 +316,7 @@ program
 
 registerSpecCommand(program);
 registerOpsxCommand(program);
+registerHelpCommand(program);
 registerConfigCommand(program);
 registerSchemaCommand(program);
 
@@ -552,7 +554,7 @@ const bootstrapCmd = program
 bootstrapCmd
   .command('init')
   .description('Initialize bootstrap workspace')
-  .option('--mode <mode>', 'Bootstrap mode: full (complete specs), opsx-first (README-only starter), or refresh (delta-first formal OPSX refresh)')
+  .option('--mode <mode>', 'Bootstrap mode: full (complete specs), opsx-first (README-only starter), or refresh (complete rebuild of formal OPSX v2)')
   .option('--scope <paths>', 'Comma-separated paths to include in scan')
   .option('--restart', 'Start a new run from a completed retained workspace by snapshotting the previous openspec/bootstrap/')
   .option('--granularity <granularity>', 'Spec granularity: coarse (fewer grouped specs) or fine (per-capability specs)')

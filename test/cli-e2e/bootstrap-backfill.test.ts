@@ -37,17 +37,25 @@ async function checkAllReviewBoxes(projectDir: string): Promise<void> {
 }
 
 async function writeOpsxAndSpecs(projectDir: string): Promise<void> {
-  await writeFile(projectDir, 'openspec/project.opsx.yaml', `schema_version: 1
+  await writeFile(projectDir, 'openspec/project.opsx.yaml', `schema_version: 2
 project:
   id: proj.test
   name: Test
+domains:
+  - id: dom.cli
+    type: domain
+    intent: CLI commands
 capabilities:
   - id: cap.cli.archive
     type: capability
     intent: Archive changes
 `);
-  await writeFile(projectDir, 'openspec/project.opsx.relations.yaml', 'schema_version: 1\nrelations: []\n');
-  await writeFile(projectDir, 'openspec/project.opsx.code-map.yaml', 'schema_version: 1\nnodes: []\n');
+  await writeFile(projectDir, 'openspec/project.opsx.relations.yaml', `schema_version: 2
+relations:
+  - from: cap.cli.archive
+    type: belongs_to
+    to: dom.cli
+`);
   await writeFile(projectDir, 'openspec/specs/cli-archive/spec.md', '# CLI Archive\n');
   await writeFile(projectDir, 'openspec/specs/unknown-area/spec.md', '# Unknown\n');
 }
@@ -89,12 +97,7 @@ capabilities:
 relations:
   - from: cap.cli.bootstrap
     to: dom.cli
-    type: contains
-code_refs:
-  - id: cap.cli.bootstrap
-    refs:
-      - path: src/cli/index.ts
-        line_start: 1
+    type: belongs_to
 `);
   expect((await runCLI(['bootstrap', 'validate'], { cwd: projectDir })).exitCode).toBe(0);
   expect((await runCLI(['bootstrap', 'validate'], { cwd: projectDir })).exitCode).toBe(1);

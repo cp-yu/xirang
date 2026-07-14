@@ -73,7 +73,7 @@ describe('artifact-workflow CLI commands', () => {
     if (artifacts.includes('opsx-delta')) {
       await fs.writeFile(
         path.join(changeDir, 'opsx-delta.yaml'),
-        'schema_version: 1\nADDED:\n  capabilities: []\n'
+        'schema_version: 2\nADDED:\n  capabilities: []\n'
       );
     }
 

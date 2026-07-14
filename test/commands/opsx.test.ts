@@ -19,7 +19,7 @@ describe('opsx command', () => {
   async function writeOpsxProject(): Promise<void> {
     await fs.writeFile(
       path.join(tempDir, 'openspec', 'project.opsx.yaml'),
-      `schema_version: 1
+      `schema_version: 2
 project:
   id: proj.test
   name: Test
@@ -49,31 +49,26 @@ capabilities:
     );
     await fs.writeFile(
       path.join(tempDir, 'openspec', 'project.opsx.relations.yaml'),
-      `schema_version: 1
+      `schema_version: 2
 relations:
   - from: cap.cli.list
     to: dom.cli
-    type: contains
+    type: belongs_to
+  - from: cap.cli.opsx-query
+    to: dom.cli
+    type: belongs_to
   - from: cap.cli.opsx-query
     to: cap.cli.list
-    type: depends_on
+    type: consumes
+  - from: cap.cli.show
+    to: dom.cli
+    type: belongs_to
   - from: cap.cli.show
     to: cap.cli.list
-    type: depends_on
-`
-    );
-    await fs.writeFile(
-      path.join(tempDir, 'openspec', 'project.opsx.code-map.yaml'),
-      `schema_version: 1
-nodes:
-  - id: cap.cli.list
-    refs:
-      - path: src/core/list.ts
-        line_start: 1
-        line_end: 40
-  - id: cap.cli.show
-    refs:
-      - path: src/core/show.ts
+    type: consumes
+  - from: cap.cli.unused
+    to: dom.cli
+    type: belongs_to
 `
     );
   }
@@ -93,14 +88,11 @@ nodes:
       status: 'active',
     });
     expect(output.relations.incoming).toEqual([
-      { from: 'cap.cli.opsx-query', to: 'cap.cli.list', type: 'depends_on' },
-      { from: 'cap.cli.show', to: 'cap.cli.list', type: 'depends_on' },
+      { from: 'cap.cli.opsx-query', to: 'cap.cli.list', type: 'consumes' },
+      { from: 'cap.cli.show', to: 'cap.cli.list', type: 'consumes' },
     ]);
     expect(output.relations.outgoing).toEqual([
-      { from: 'cap.cli.list', to: 'dom.cli', type: 'contains' },
-    ]);
-    expect(output.codeMap).toEqual([
-      { path: 'src/core/list.ts', line_start: 1, line_end: 40 },
+      { from: 'cap.cli.list', to: 'dom.cli', type: 'belongs_to' },
     ]);
     expect(output).not.toHaveProperty('seeds');
     expect(output).not.toHaveProperty('nodes');
@@ -126,82 +118,29 @@ nodes:
     expect(result.stderr).toContain('openspec init');
   });
 
-  it('过滤参数按预期工作', async () => {
+  it('relations filter works and code-map option is rejected', async () => {
     await writeOpsxProject();
-
-    const relationsResult = await runCLI(
-      ['opsx', 'query', 'cap.cli.list', '--relations', '--json'],
-      { cwd: tempDir }
-    );
-    const relationsOutput = JSON.parse(relationsResult.stdout);
+    const relationsResult = await runCLI(['opsx', 'query', 'cap.cli.list', '--relations', '--json'], { cwd: tempDir });
     expect(relationsResult.exitCode).toBe(0);
-    expect(relationsOutput.node.id).toBe('cap.cli.list');
-    expect(relationsOutput.relations).toBeDefined();
-    expect(relationsOutput).not.toHaveProperty('codeMap');
+    expect(JSON.parse(relationsResult.stdout)).toHaveProperty('relations');
 
-    const codeMapResult = await runCLI(
-      ['opsx', 'query', 'cap.cli.list', '--code-map', '--json'],
-      { cwd: tempDir }
-    );
-    const codeMapOutput = JSON.parse(codeMapResult.stdout);
-    expect(codeMapResult.exitCode).toBe(0);
-    expect(codeMapOutput.node.id).toBe('cap.cli.list');
-    expect(codeMapOutput.codeMap).toEqual([
-      { path: 'src/core/list.ts', line_start: 1, line_end: 40 },
-    ]);
-    expect(codeMapOutput).not.toHaveProperty('relations');
-
-    const fullResult = await runCLI(
-      ['opsx', 'query', 'cap.cli.list', '--relations', '--code-map', '--json'],
-      { cwd: tempDir }
-    );
-    const fullOutput = JSON.parse(fullResult.stdout);
-    expect(fullResult.exitCode).toBe(0);
-    expect(fullOutput.relations).toBeDefined();
-    expect(fullOutput.codeMap).toBeDefined();
+    const codeMapResult = await runCLI(['opsx', 'query', 'cap.cli.list', '--code-map', '--json'], { cwd: tempDir });
+    expect(codeMapResult.exitCode).toBe(1);
+    expect(codeMapResult.stderr).toContain('unknown option');
   });
 
-  it('节点无关系或code-map引用时返回空数组', async () => {
+  it('节点仅有 ownership relation 时返回该 relation', async () => {
     await writeOpsxProject();
 
     const result = await runCLI(['opsx', 'query', 'cap.cli.unused', '--json'], { cwd: tempDir });
 
     expect(result.exitCode).toBe(0);
     const output = JSON.parse(result.stdout);
-    expect(output.relations).toEqual({ incoming: [], outgoing: [] });
-    expect(output.codeMap).toEqual([]);
-  });
-
-  it('批量查询返回去重子图并记录部分缺失', async () => {
-    await writeOpsxProject();
-
-    const result = await runCLI(
-      ['opsx', 'query', 'cap.cli.list', 'cap.cli.show', 'cap.missing', '--json'],
-      { cwd: tempDir }
-    );
-
-    expect(result.exitCode).toBe(0);
-    expect(result.stderr).toBe('');
-    const output = JSON.parse(result.stdout);
-    expect(output.seeds).toEqual(['cap.cli.list', 'cap.cli.show']);
-    expect(output.missing).toEqual(['cap.missing']);
-    expect(output.nodes.map((node: { id: string }) => node.id)).toEqual([
-      'cap.cli.list',
-      'cap.cli.show',
-      'dom.cli',
-      'cap.cli.opsx-query',
-    ]);
-    expect(output.relations).toEqual([
-      { from: 'cap.cli.list', to: 'dom.cli', type: 'contains' },
-      { from: 'cap.cli.opsx-query', to: 'cap.cli.list', type: 'depends_on' },
-      { from: 'cap.cli.show', to: 'cap.cli.list', type: 'depends_on' },
-    ]);
-    expect(output.codeMap).toEqual({
-      'cap.cli.list': [{ path: 'src/core/list.ts', line_start: 1, line_end: 40 }],
-      'cap.cli.show': [{ path: 'src/core/show.ts' }],
-      'dom.cli': [],
-      'cap.cli.opsx-query': [],
+    expect(output.relations).toEqual({
+      incoming: [],
+      outgoing: [{ from: 'cap.cli.unused', to: 'dom.cli', type: 'belongs_to' }],
     });
+    expect(output).not.toHaveProperty('codeMap');
   });
 
   it('批量查询全部缺失时报错并保留可用节点提示', async () => {
@@ -232,12 +171,15 @@ nodes:
     const relationKeys = output.relations.map((relation: { from: string; to: string; type: string }) => (
       `${relation.from}|${relation.type}|${relation.to}`
     ));
-    expect(nodeIds).toEqual(['cap.cli.opsx-query', 'cap.cli.list', 'dom.cli', 'cap.cli.show']);
+    expect(nodeIds).toEqual(['cap.cli.opsx-query', 'dom.cli', 'cap.cli.list', 'cap.cli.show', 'cap.cli.unused']);
     expect(new Set(nodeIds).size).toBe(nodeIds.length);
     expect(relationKeys).toEqual([
-      'cap.cli.list|contains|dom.cli',
-      'cap.cli.opsx-query|depends_on|cap.cli.list',
-      'cap.cli.show|depends_on|cap.cli.list',
+      'cap.cli.list|belongs_to|dom.cli',
+      'cap.cli.opsx-query|belongs_to|dom.cli',
+      'cap.cli.opsx-query|consumes|cap.cli.list',
+      'cap.cli.show|belongs_to|dom.cli',
+      'cap.cli.show|consumes|cap.cli.list',
+      'cap.cli.unused|belongs_to|dom.cli',
     ]);
     expect(new Set(relationKeys).size).toBe(relationKeys.length);
   });
@@ -267,41 +209,6 @@ nodes:
     expect(text.stderr).toContain('positive integer');
   });
 
-  it('子图过滤参数作用于整个输出', async () => {
-    await writeOpsxProject();
 
-    const relationsResult = await runCLI(
-      ['opsx', 'query', 'cap.cli.list', 'cap.cli.show', '--relations', '--json'],
-      { cwd: tempDir }
-    );
-    const relationsOutput = JSON.parse(relationsResult.stdout);
-    expect(relationsResult.exitCode).toBe(0);
-    expect(relationsOutput.seeds).toEqual(['cap.cli.list', 'cap.cli.show']);
-    expect(relationsOutput.nodes).toBeDefined();
-    expect(relationsOutput.missing).toEqual([]);
-    expect(relationsOutput.relations).toBeDefined();
-    expect(relationsOutput).not.toHaveProperty('codeMap');
 
-    const codeMapResult = await runCLI(
-      ['opsx', 'query', 'cap.cli.list', 'cap.cli.show', '--code-map', '--json'],
-      { cwd: tempDir }
-    );
-    const codeMapOutput = JSON.parse(codeMapResult.stdout);
-    expect(codeMapResult.exitCode).toBe(0);
-    expect(codeMapOutput.seeds).toEqual(['cap.cli.list', 'cap.cli.show']);
-    expect(codeMapOutput.nodes).toBeDefined();
-    expect(codeMapOutput.missing).toEqual([]);
-    expect(codeMapOutput.codeMap).toBeDefined();
-    expect(codeMapOutput).not.toHaveProperty('relations');
-  });
-
-  it('code-map文件不存在时报错', async () => {
-    await writeOpsxProject();
-    await fs.rm(path.join(tempDir, 'openspec', 'project.opsx.code-map.yaml'));
-
-    const result = await runCLI(['opsx', 'query', 'cap.cli.list', '--json'], { cwd: tempDir });
-
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('OPSX code-map file not found');
-  });
 });

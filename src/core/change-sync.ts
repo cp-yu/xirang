@@ -5,12 +5,11 @@ import {
   OPSX_PATHS,
   readOpsxDelta,
   readProjectOpsx,
-  validateCodeMapIntegrity,
-  validateReferentialIntegrity,
   writeProjectOpsx,
   type OpsxDeltaApplyResult,
   type ProjectOpsxBundle,
 } from '../utils/opsx-utils.js';
+import { validateRelationGraph } from './relations/validator.js';
 import {
   buildUpdatedSpec,
   findSpecUpdates,
@@ -202,19 +201,10 @@ export async function prepareChangeSync(
         opsx: null,
       };
     }
-    const referentialIntegrity = validateReferentialIntegrity(result.bundle);
-    if (!referentialIntegrity.valid) {
+    const relationValidation = validateRelationGraph(result.bundle);
+    if (!relationValidation.valid) {
       throw new Error(
-        `OPSX referential integrity validation failed:\n${referentialIntegrity.errors
-          .map((error) => `  ✗ ${error}`)
-          .join('\n')}`
-      );
-    }
-
-    const codeMapIntegrity = validateCodeMapIntegrity(result.bundle);
-    if (!codeMapIntegrity.valid) {
-      throw new Error(
-        `OPSX code-map integrity validation failed:\n${codeMapIntegrity.errors
+        `OPSX relation validation failed:\n${relationValidation.errors
           .map((error) => `  ✗ ${error}`)
           .join('\n')}`
       );
@@ -244,7 +234,7 @@ export async function applyPreparedChangeSync(
 
   if (prepared.opsx) {
     await writeProjectOpsx(projectRoot, prepared.opsx.mergedBundle);
-    syncedFiles.push(OPSX_PATHS.PROJECT_FILE, OPSX_PATHS.RELATIONS_FILE, OPSX_PATHS.CODE_MAP_FILE);
+    syncedFiles.push(OPSX_PATHS.PROJECT_FILE, OPSX_PATHS.RELATIONS_FILE);
     if (!silent) {
       console.log(formatOpsxSummary(prepared.opsx.result));
       console.log('OPSX updated successfully.');

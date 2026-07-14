@@ -1,0 +1,64 @@
+schema_version: 2
+ADDED:
+  capabilities:
+    - id: cap.opsx.semantic-relations
+      type: capability
+      intent: 以单一 RelationDefinitionRegistry 定义 OPSX v2 的六种精确 relation，并统一驱动 schema、语义验证、模板、reference、prompt 与 authoring help 投影。
+    - id: cap.cli.authoring-help
+      type: capability
+      intent: 通过 openspec help authoring 提供 OPSX 文件级编写帮助及稳定 JSON 输出，同时保持既有 Commander command help 行为。
+  relations:
+    - from: cap.opsx.semantic-relations
+      type: belongs_to
+      to: dom.opsx
+    - from: cap.cli.authoring-help
+      type: belongs_to
+      to: dom.cli
+    - from: cap.cli.authoring-help
+      type: consumes
+      to: cap.opsx.semantic-relations
+
+MODIFIED:
+  domains:
+    - id: dom.opsx
+      intent: OPSX 编程基础设施，用于架构追踪，包含两文件 YAML 操作、Registry 驱动的语义验证和 delta 合并
+  capabilities:
+    - id: cap.cli.init-opsx-skeleton
+      intent: init 命令首次运行时生成 schema_version 2 的 project.opsx.yaml 与 project.opsx.relations.yaml 两个最小骨架，并引导用户运行 bootstrap-opsx skill 完成架构映射。
+    - id: cap.cli.opsx-query
+      intent: 批量查询 OPSX v2 节点与有向语义 relations，支持 depth 展开和 relation path 证据，不提供 code-map 输入或输出 surface。
+    - id: cap.opsx.read-transparent
+      intent: 透明读取并合并 OPSX v2 project 与 relations 两文件模型，不依赖 code-map companion file。
+    - id: cap.opsx.delta-merge
+      intent: 将 opsx-delta.yaml 的 ADDED/MODIFIED/REMOVED nodes 与 canonical relations 合并到 OPSX v2 两文件模型，并执行 Registry-driven relation semantic validation。
+    - id: cap.validation.opsx-dry-run
+      intent: 对 opsx-delta.yaml 执行 v2 schema parse、dry-run merge、referential integrity 与 relation semantic validation，不执行 code-map 校验。
+    - id: cap.validation.opsx
+      intent: 基于 RelationDefinitionRegistry 验证 OPSX 两文件模型的引用完整性、relation endpoint 合法性和图语义约束
+    - id: cap.opsx.bootstrap
+      intent: 通过五阶段流程从当前源码、specs 与可选代码图证据完整生成、review 并 promote OPSX v2 project 与 relations 两文件模型。
+    - id: cap.opsx.bootstrap-refresh
+      intent: 从当前源码、specs 与配置完整重建 OPSX v2 candidate，以旧 formal OPSX 生成 review diff，审批后整体替换两份正式文件。
+    - id: cap.ai.impact-sweeper
+      intent: 以 OPSX capability relation paths、cap-to-spec contracts 与当前代码证据生成语义影响报告；CodeGraph 可选，不可用时回退 ACE、rg 与 read。
+    - id: cap.ai.workflow-templates
+      intent: 提供消费 Registry-generated relation reference、OPSX v2 两文件导航与实时代码证据分层规则的核心 workflow skill 模板。
+    - id: cap.ai.snack-skill
+      intent: snack 通过代码变更证据、OPSX intent/relations 与 spec registry 推断受影响 capabilities，使用可选 CodeGraph 或 ACE/rg fallback，不依赖 code-map 反查。
+    - id: cap.ai.references-home
+      intent: openspec/references/ 作为全部 skill reference 的唯一物理位置，并承载由 RelationDefinitionRegistry 确定性生成的 canonical relation authoring reference。
+
+REMOVED:
+  capabilities:
+    - id: cap.opsx.sharding
+    - id: cap.opsx.spec-refs-validation
+  relations:
+    - from: cap.opsx.sharding
+      type: belongs_to
+      to: dom.opsx
+    - from: cap.opsx.spec-refs-validation
+      type: belongs_to
+      to: dom.opsx
+    - from: cap.validation.opsx
+      type: invokes
+      to: cap.opsx.spec-refs-validation

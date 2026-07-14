@@ -23,7 +23,6 @@ const mkBundle = (overrides: Partial<ProjectOpsxBundle>): ProjectOpsxBundle => (
   domains: [],
   capabilities: [],
   relations: [],
-  code_map: [],
   ...overrides,
 });
 
@@ -39,7 +38,7 @@ describe('PBT: Relation Referential Integrity', () => {
             project,
             domains: domainIds.map(id => ({ id, type: 'domain' as const })),
             capabilities: capIds.map(id => ({ id, type: 'capability' as const })),
-            relations: [{ from: capIds[0], to: domainIds[0], type: 'contains' }],
+            relations: [{ from: capIds[0], to: domainIds[0], type: 'belongs_to' }],
           });
 
           const result = validateReferentialIntegrity(bundle);
@@ -61,7 +60,7 @@ describe('PBT: Relation Referential Integrity', () => {
           const bundle = mkBundle({
             project,
             domains: domainIds.map(id => ({ id, type: 'domain' as const })),
-            relations: [{ from: invalidCapId, to: domainIds[0], type: 'contains' }],
+            relations: [{ from: invalidCapId, to: domainIds[0], type: 'belongs_to' }],
           });
 
           const result = validateReferentialIntegrity(bundle);
@@ -84,7 +83,7 @@ describe('PBT: Relation Referential Integrity', () => {
           const bundle = mkBundle({
             project,
             capabilities: capIds.map(id => ({ id, type: 'capability' as const })),
-            relations: [{ from: capIds[0], to: invalidDomId, type: 'contains' }],
+            relations: [{ from: capIds[0], to: invalidDomId, type: 'belongs_to' }],
           });
 
           const result = validateReferentialIntegrity(bundle);

@@ -1,38 +1,107 @@
 # Bootstrap Review
 
-在提升为正式 OPSX 文件之前，先审阅当前映射出的架构。
+Review the mapped architecture before promoting to formal OPSX files.
 
-该文件由 evidence.yaml 和 domain-map/*.yaml 派生；任一内容变化后，都需要重新运行 `openspec bootstrap validate` 生成新的 review。
+This file is derived from evidence.yaml and domain-map/*.yaml. If either changes, regenerate review via `openspec bootstrap validate`.
 
 ## Refresh Scope
 
-- 策略：full-scan-fallback
-- 锚点提交：58b785e2af1fd7982228fd5d9928f7e8ec724ba2
-- 原因：变更路径无法可信映射到现有 code-map：temp
-- 受影响 domains：（空）
-- 保留的基线节点数：99
+- Strategy: full-rebuild
+- Reason: Rebuilding the complete candidate from current source, specs, config, and reviewed workspace evidence.
+- Impacted domains: dom.ai-integration, dom.apply, dom.artifact-graph, dom.change-workflow, dom.cli, dom.config, dom.opsx, dom.schema, dom.validation, dom.verify
+- Preserved baseline nodes: 0
 
 ## Delta Summary
 
-- ADDED：0 个节点，0 条关系
-- MODIFIED：0 个节点，0 条关系
-- REMOVED：0 个节点，0 条关系
-- 保留的基线节点：cap.ai.agent-docs, cap.ai.agent-prompt-guidance, cap.ai.command-generation, cap.ai.command-slugs, cap.ai.explore-brainstorming, cap.ai.impact-sweeper, cap.ai.internal-skill-installation, cap.ai.optimizer-skill, cap.ai.propose-smart-routing, cap.ai.reviewer-cleanliness-dimension, cap.ai.reviewer-skill, cap.ai.skill-generation, cap.ai.subagent-self-read, cap.ai.template-artifact-pipeline, cap.ai.tool-adapters, cap.ai.tool-invocation-references, cap.ai.verify-writeback, cap.ai.workflow-templates, cap.apply.branch-isolation, cap.apply.subagent-orchestration, cap.apply.task-decomposition, cap.apply.verify-integration, cap.archive.branch-merge, cap.artifact-graph.instruction-loader, cap.artifact-graph.parse, cap.artifact-graph.schema-resolution, cap.artifact-graph.state-tracking, cap.change.archive, cap.change.create, cap.change.discovery, cap.change.metadata, cap.change.specs-sync, cap.cli.archive, cap.cli.change, cap.cli.command-reference-consistency, cap.cli.completion, cap.cli.config, cap.cli.feedback, cap.cli.init, cap.cli.init-opsx-skeleton, cap.cli.instructions, cap.cli.list, cap.cli.new-change, cap.cli.opsx-query, cap.cli.schema, cap.cli.schemas, cap.cli.show, cap.cli.spec, cap.cli.status, cap.cli.sync, cap.cli.templates, cap.cli.update, cap.cli.validate, cap.cli.verify-aware-instructions, cap.cli.view, cap.config.apply-default-isolation, cap.config.global, cap.config.migration, cap.config.project, cap.config.schema-validation, cap.opsx.atomic-write, cap.opsx.bootstrap, cap.opsx.bootstrap-backfill-specs, cap.opsx.bootstrap-refresh, cap.opsx.delta-merge, cap.opsx.read-transparent, cap.opsx.referential-integrity, cap.opsx.sharding, cap.opsx.spec-refs-validation, cap.opsx.yaml-operations, cap.schema.fork, cap.schema.init, cap.schema.opsx-delta-artifact, cap.schema.parse, cap.schema.validate, cap.spec.frontmatter, cap.spec.registry, cap.sync.evidence-refresh, cap.validation.change, cap.validation.opsx, cap.validation.opsx-dry-run, cap.validation.spec, cap.validation.spec-section-type-cross-check, cap.verify.cli-gate, cap.verify.enforce-optimizer-invocation, cap.verify.execution-model-selection, cap.verify.freshness-engine, cap.verify.optimize, cap.verify.prompt-orchestration, dom.ai-integration, dom.apply, dom.artifact-graph, dom.change-workflow, dom.cli, dom.config, dom.opsx, dom.schema, dom.validation, dom.verify
+- ADDED: 0 nodes, 0 relations
+- MODIFIED: 0 nodes, 0 relations
+- REMOVED: 0 nodes, 0 relations
 
 ## Domain Checklist
 
+- [x] dom.ai-integration — 24 capabilities, confidence: high
+- [x] dom.apply — 7 capabilities, confidence: high
+- [x] dom.artifact-graph — 4 capabilities, confidence: high
+- [x] dom.change-workflow — 6 capabilities, confidence: high
+- [x] dom.cli — 28 capabilities, confidence: high
+- [x] dom.config — 7 capabilities, confidence: high
+- [x] dom.opsx — 9 capabilities, confidence: high
+- [x] dom.schema — 5 capabilities, confidence: high
+- [x] dom.validation — 8 capabilities, confidence: high
+- [x] dom.verify — 9 capabilities, confidence: high
 
 ## Candidate Specs
 
-- 当前不会写入 candidate spec
-- 除非新增 capability 缺少 formal spec，否则现有 formal specs 继续作为唯一真相来源。
+- No candidate specs will be written
+- Existing formal specs remain the source of truth unless a new capability requires a missing spec file.
+- preserved existing spec: openspec/specs/agent-prompt-guidance/spec.md
+- preserved existing spec: openspec/specs/ai-impact-sweeper/spec.md
+- preserved existing spec: openspec/specs/apply-branch-isolation/spec.md
+- preserved existing spec: openspec/specs/apply-preflight-scan/spec.md
+- preserved existing spec: openspec/specs/apply-recovery-protocol-enhanced/spec.md
+- preserved existing spec: openspec/specs/apply-task-decomposition/spec.md
+- preserved existing spec: openspec/specs/apply-verify-integration/spec.md
+- preserved existing spec: openspec/specs/bootstrap-backfill-specs/spec.md
+- preserved existing spec: openspec/specs/bootstrap/spec.md
+- preserved existing spec: openspec/specs/change-creation/spec.md
+- preserved existing spec: openspec/specs/cli-archive/spec.md
+- preserved existing spec: openspec/specs/cli-authoring-help/spec.md
+- preserved existing spec: openspec/specs/cli-change/spec.md
+- preserved existing spec: openspec/specs/cli-check-delta/spec.md
+- preserved existing spec: openspec/specs/cli-command-reference-consistency/spec.md
+- preserved existing spec: openspec/specs/cli-completion-introspect/spec.md
+- preserved existing spec: openspec/specs/cli-completion/spec.md
+- preserved existing spec: openspec/specs/cli-config/spec.md
+- preserved existing spec: openspec/specs/cli-feedback/spec.md
+- preserved existing spec: openspec/specs/cli-init/spec.md
+- preserved existing spec: openspec/specs/cli-list/spec.md
+- preserved existing spec: openspec/specs/cli-opsx-query/spec.md
+- preserved existing spec: openspec/specs/cli-scenario-labels/spec.md
+- preserved existing spec: openspec/specs/cli-show/spec.md
+- preserved existing spec: openspec/specs/cli-spec/spec.md
+- preserved existing spec: openspec/specs/cli-sync/spec.md
+- preserved existing spec: openspec/specs/cli-update/spec.md
+- preserved existing spec: openspec/specs/cli-validate/spec.md
+- preserved existing spec: openspec/specs/cli-view/spec.md
+- preserved existing spec: openspec/specs/config-apply-projection/spec.md
+- preserved existing spec: openspec/specs/config-projection/spec.md
+- preserved existing spec: openspec/specs/enforce-optimizer-invocation/spec.md
+- preserved existing spec: openspec/specs/explore-brainstorming/spec.md
+- preserved existing spec: openspec/specs/explore-terminology-decision/spec.md
+- preserved existing spec: openspec/specs/init-opsx-skeleton/spec.md
+- preserved existing spec: openspec/specs/instruction-loader/spec.md
+- preserved existing spec: openspec/specs/internal-subagent-generation/spec.md
+- preserved existing spec: openspec/specs/opsx-delta-artifact/spec.md
+- preserved existing spec: openspec/specs/opsx-delta-merge/spec.md
+- preserved existing spec: openspec/specs/opsx-semantic-relations/spec.md
+- preserved existing spec: openspec/specs/propose-workflow/spec.md
+- preserved existing spec: openspec/specs/propose-workflow/spec.md
+- preserved existing spec: openspec/specs/references-home/spec.md
+- preserved existing spec: openspec/specs/reviewer-cleanliness-dimension/spec.md
+- preserved existing spec: openspec/specs/schema-resolution/spec.md
+- preserved existing spec: openspec/specs/snack-skill-generation/spec.md
+- preserved existing spec: openspec/specs/snack-skill/spec.md
+- preserved existing spec: openspec/specs/snack-workflow-manifest/spec.md
+- preserved existing spec: openspec/specs/spec-frontmatter/spec.md
+- preserved existing spec: openspec/specs/spec-registry/spec.md
+- preserved existing spec: openspec/specs/subagent-self-read/spec.md
+- preserved existing spec: openspec/specs/sweeper-terminology-extraction/spec.md
+- preserved existing spec: openspec/specs/sweeper-terminology-reporting/spec.md
+- preserved existing spec: openspec/specs/sync-evidence-refresh/spec.md
+- preserved existing spec: openspec/specs/template-artifact-pipeline/spec.md
+- preserved existing spec: openspec/specs/tool-invocation-references/spec.md
+- preserved existing spec: openspec/specs/verify-cli-gate/spec.md
+- preserved existing spec: openspec/specs/verify-execution-model-selection/spec.md
+- preserved existing spec: openspec/specs/verify-freshness-engine/spec.md
+- preserved existing spec: openspec/specs/verify-prompt-orchestration/spec.md
+- preserved existing spec: openspec/specs/verify-writeback/spec.md
 
 ## Validation
 
-- [x] Review 内容与当前 candidate 输出一致
-- [x] 引用完整性校验通过
-- [x] Code-map 中的路径都存在于磁盘上
-- [x] Candidate spec 集合符合当前 bootstrap 模式约束
-- [x] Refresh delta 与当前 formal OPSX 基线一致
-- [x] Candidate spec 通过 OpenSpec 校验
-- [x] Domain 边界与预期心智模型一致
+- [x] Review matches current candidate output
+- [x] Referential integrity passes
+- [x] Relation semantic validation passes
+- [x] Candidate spec set matches the bootstrap mode contract
+- [x] Fresh candidate diff matches the current formal OPSX baseline
+- [x] Candidate specs pass OpenSpec validation
+- [x] Domain boundaries match mental model

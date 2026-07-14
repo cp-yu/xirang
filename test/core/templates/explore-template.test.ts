@@ -6,8 +6,10 @@ import { getExploreSkillTemplate } from '../../../src/core/templates/skill-templ
 describe('explore template impact sweeps', () => {
   const template = getExploreSkillTemplate().instructions;
 
-  it('includes the OPSX compilation philosophy', () => {
+  it('includes v2 OPSX context without code-map guidance', () => {
     expect(template).toContain(OPSX_COMPILATION_PHILOSOPHY);
+    expect(template).toContain('semantic relations');
+    expect(template).not.toContain('code-map refs');
   });
 
   it('invokes the sweeper before proposal readiness', () => {
