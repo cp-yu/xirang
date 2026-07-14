@@ -1,0 +1,137 @@
+domain:
+  id: dom.opsx
+  type: domain
+  intent: OPSX 编程基础设施，用于架构追踪，包含两文件 YAML 操作、Registry 驱动的语义验证和 delta 合并
+  status: active
+  boundary: 拥有 OPSX 文件 I/O、Schema 验证和 delta 合并。不拥有 OPSX 内容生成。
+capabilities:
+- id: cap.opsx.atomic-write
+  type: capability
+  intent: 使用临时文件 + 重命名模式实现原子写入
+  status: active
+- id: cap.opsx.bootstrap
+  type: capability
+  intent: 通过五阶段流程从当前源码、specs 与可选代码图证据完整生成、review 并 promote OPSX v2 project 与 relations 两文件模型。
+  status: active
+  spec:
+    preserve_existing: true
+    folder: bootstrap
+    purpose: 通过五阶段流程从当前源码、specs 与可选代码图证据完整生成、review 并 promote OPSX v2 project 与 relations 两文件模型。
+    requirements:
+    - title: Existing formal spec is preserved
+      text: The system SHALL preserve the existing formal spec content during OPSX refresh.
+      scenarios:
+      - title: Refresh preserves existing spec
+        steps:
+        - keyword: WHEN
+          text: the OPSX refresh promotes a candidate with an existing spec path
+        - keyword: THEN
+          text: the existing spec file remains unchanged
+- id: cap.opsx.bootstrap-backfill-specs
+  type: capability
+  intent: Backfill Engine——通过命名匹配和 LLM 语义推断为无 frontmatter 的 specs 批量补全 capabilities 关联声明
+  status: active
+  spec:
+    preserve_existing: true
+    folder: bootstrap-backfill-specs
+    purpose: Backfill Engine——通过命名匹配和 LLM 语义推断为无 frontmatter 的 specs 批量补全 capabilities 关联声明
+    requirements:
+    - title: Existing formal spec is preserved
+      text: The system SHALL preserve the existing formal spec content during OPSX refresh.
+      scenarios:
+      - title: Refresh preserves existing spec
+        steps:
+        - keyword: WHEN
+          text: the OPSX refresh promotes a candidate with an existing spec path
+        - keyword: THEN
+          text: the existing spec file remains unchanged
+- id: cap.opsx.bootstrap-refresh
+  type: capability
+  intent: 从当前源码、specs 与配置完整重建 OPSX v2 candidate，以旧 formal OPSX 生成 review diff，审批后整体替换两份正式文件。
+  status: active
+- id: cap.opsx.delta-merge
+  type: capability
+  intent: 将 opsx-delta.yaml 的 ADDED/MODIFIED/REMOVED nodes 与 canonical relations 合并到 OPSX v2 两文件模型，并执行 Registry-driven relation semantic validation。
+  status: active
+  spec:
+    preserve_existing: true
+    folder: opsx-delta-merge
+    purpose: 将 opsx-delta.yaml 的 ADDED/MODIFIED/REMOVED nodes 与 canonical relations 合并到 OPSX v2 两文件模型，并执行 Registry-driven relation semantic validation。
+    requirements:
+    - title: Existing formal spec is preserved
+      text: The system SHALL preserve the existing formal spec content during OPSX refresh.
+      scenarios:
+      - title: Refresh preserves existing spec
+        steps:
+        - keyword: WHEN
+          text: the OPSX refresh promotes a candidate with an existing spec path
+        - keyword: THEN
+          text: the existing spec file remains unchanged
+- id: cap.opsx.read-transparent
+  type: capability
+  intent: 透明读取并合并 OPSX v2 project 与 relations 两文件模型，不依赖 code-map companion file。
+  status: active
+- id: cap.opsx.referential-integrity
+  type: capability
+  intent: 验证所有关系的 from/to 引用是否存在
+  status: active
+- id: cap.opsx.semantic-relations
+  type: capability
+  intent: 以单一 RelationDefinitionRegistry 定义 OPSX v2 的六种精确 relation，并统一驱动 schema、语义验证、模板、reference、prompt 与 authoring help 投影。
+  status: active
+  spec:
+    preserve_existing: true
+    folder: opsx-semantic-relations
+    purpose: 以单一 RelationDefinitionRegistry 定义 OPSX v2 的六种精确 relation，并统一驱动 schema、语义验证、模板、reference、prompt 与 authoring help 投影。
+    requirements:
+    - title: Existing formal spec is preserved
+      text: The system SHALL preserve the existing formal spec content during OPSX refresh.
+      scenarios:
+      - title: Refresh preserves existing spec
+        steps:
+        - keyword: WHEN
+          text: the OPSX refresh promotes a candidate with an existing spec path
+        - keyword: THEN
+          text: the existing spec file remains unchanged
+- id: cap.opsx.yaml-operations
+  type: capability
+  intent: YAML 序列化/反序列化，支持注释保留和格式化
+  status: active
+relations:
+- from: cap.opsx.atomic-write
+  type: belongs_to
+  to: dom.opsx
+- from: cap.opsx.bootstrap
+  type: belongs_to
+  to: dom.opsx
+- from: cap.opsx.bootstrap-backfill-specs
+  type: belongs_to
+  to: dom.opsx
+- from: cap.opsx.bootstrap-refresh
+  type: belongs_to
+  to: dom.opsx
+- from: cap.opsx.delta-merge
+  type: belongs_to
+  to: dom.opsx
+- from: cap.opsx.read-transparent
+  type: belongs_to
+  to: dom.opsx
+- from: cap.opsx.referential-integrity
+  type: belongs_to
+  to: dom.opsx
+- from: cap.opsx.yaml-operations
+  type: belongs_to
+  to: dom.opsx
+- from: cap.opsx.bootstrap-refresh
+  type: invokes
+  to: cap.opsx.bootstrap
+- from: cap.opsx.delta-merge
+  type: invokes
+  to: cap.opsx.atomic-write
+- from: cap.opsx.referential-integrity
+  type: validates
+  to: cap.opsx.delta-merge
+- from: cap.opsx.semantic-relations
+  type: belongs_to
+  to: dom.opsx
+review_gaps: []

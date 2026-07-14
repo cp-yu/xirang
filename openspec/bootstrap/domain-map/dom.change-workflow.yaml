@@ -1,0 +1,76 @@
+domain:
+  id: dom.change-workflow
+  type: domain
+  intent: 管理完整变更生命周期 — 创建、增量规约操作、归档及合并到主规约
+  status: active
+  boundary: 拥有变更目录和增量合并逻辑。不拥有规约内容验证规则。
+capabilities:
+- id: cap.archive.branch-merge
+  type: capability
+  intent: 归档后的 git commit、merge 与 branch cleanup 由 agent 无条件继续处理；agent 先提交残余实现 diff（如有），再无条件创建 --allow-empty 的 semantic boundary commit 承载完整 change 总结（Why/Changes
+    + Implementation footer），随后提交归档制品；message 模板按 git.commitMessage.* 路径覆盖或 openspec/references/ 内置模板路由
+  status: active
+- id: cap.change.archive
+  type: capability
+  intent: 归档已完成的变更，移动变更到 archive；archive 在校验通过后将 change 目录移入 archive，不执行 spec 或 OPSX 写入操作；同步合并由 openspec sync 独立完成
+  status: active
+- id: cap.change.create
+  type: capability
+  intent: 变更创建和管理，支持新的 explore → propose 工作流和 apply 直接执行任务模型
+  status: active
+  spec:
+    preserve_existing: true
+    folder: change-creation
+    purpose: 变更创建和管理，支持新的 explore → propose 工作流和 apply 直接执行任务模型
+    requirements:
+    - title: Existing formal spec is preserved
+      text: The system SHALL preserve the existing formal spec content during OPSX refresh.
+      scenarios:
+      - title: Refresh preserves existing spec
+        steps:
+        - keyword: WHEN
+          text: the OPSX refresh promotes a candidate with an existing spec path
+        - keyword: THEN
+          text: the existing spec file remains unchanged
+- id: cap.change.discovery
+  type: capability
+  intent: 发现和列举项目中的变更和规约
+  status: active
+- id: cap.change.metadata
+  type: capability
+  intent: 管理变更元数据（创建时间、状态、描述）
+  status: active
+- id: cap.change.specs-sync
+  type: capability
+  intent: 将变更中的 delta specs 和 OPSX delta 同步到主规约与主 OPSX；sync 不写回 change-local scenario operation labels，写入 formal specs 前清洗已有 [ADDED]/[MODIFIED] labels 并省略已有 [REMOVED]
+    scenario blocks；重复 sync 对 normalized requirement 内容保持幂等
+  status: active
+relations:
+- from: cap.archive.branch-merge
+  type: belongs_to
+  to: dom.change-workflow
+- from: cap.change.archive
+  type: belongs_to
+  to: dom.change-workflow
+- from: cap.change.create
+  type: belongs_to
+  to: dom.change-workflow
+- from: cap.change.discovery
+  type: belongs_to
+  to: dom.change-workflow
+- from: cap.change.metadata
+  type: belongs_to
+  to: dom.change-workflow
+- from: cap.change.specs-sync
+  type: belongs_to
+  to: dom.change-workflow
+- from: cap.change.archive
+  type: precedes
+  to: cap.archive.branch-merge
+- from: cap.archive.branch-merge
+  type: consumes
+  to: cap.config.project
+- from: cap.change.create
+  type: invokes
+  to: cap.artifact-graph.schema-resolution
+review_gaps: []

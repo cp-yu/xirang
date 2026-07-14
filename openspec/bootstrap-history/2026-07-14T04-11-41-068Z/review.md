@@ -14,7 +14,7 @@ This file is derived from evidence.yaml and domain-map/*.yaml. If either changes
 ## Delta Summary
 
 - ADDED: 0 nodes, 0 relations
-- MODIFIED: 0 nodes, 0 relations
+- MODIFIED: 58 nodes, 0 relations
 - REMOVED: 0 nodes, 0 relations
 
 ## Domain Checklist

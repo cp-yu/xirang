@@ -1,0 +1,115 @@
+domain:
+  id: dom.validation
+  type: domain
+  intent: 变更、规约和 OPSX 完整性的验证系统
+  status: active
+  boundary: 拥有验证规则和错误报告。不拥有修复建议或自动修复。
+capabilities:
+- id: cap.spec.frontmatter
+  type: capability
+  intent: Spec 文件 YAML frontmatter 解析，提取 capabilities 关联声明
+  status: active
+  spec:
+    preserve_existing: true
+    folder: spec-frontmatter
+    purpose: Spec 文件 YAML frontmatter 解析，提取 capabilities 关联声明
+    requirements:
+    - title: Existing formal spec is preserved
+      text: The system SHALL preserve the existing formal spec content during OPSX refresh.
+      scenarios:
+      - title: Refresh preserves existing spec
+        steps:
+        - keyword: WHEN
+          text: the OPSX refresh promotes a candidate with an existing spec path
+        - keyword: THEN
+          text: the existing spec file remains unchanged
+- id: cap.spec.registry
+  type: capability
+  intent: 运行时 cap↔spec 双向映射注册表，提供 getSpecsForCap、getCapsForSpec、getOrphanedSpecs、getUncoveredCaps 查询 API
+  status: active
+  spec:
+    preserve_existing: true
+    folder: spec-registry
+    purpose: 运行时 cap↔spec 双向映射注册表，提供 getSpecsForCap、getCapsForSpec、getOrphanedSpecs、getUncoveredCaps 查询 API
+    requirements:
+    - title: Existing formal spec is preserved
+      text: The system SHALL preserve the existing formal spec content during OPSX refresh.
+      scenarios:
+      - title: Refresh preserves existing spec
+        steps:
+        - keyword: WHEN
+          text: the OPSX refresh promotes a candidate with an existing spec path
+        - keyword: THEN
+          text: the existing spec file remains unchanged
+- id: cap.validation.change
+  type: capability
+  intent: 验证变更的完整性和结构，包括 delta spec section-type 与主 spec header 存在性的交叉验证、scenario operation label 语法与位置校验（MODIFIED 下无标签 scenario 合法、ADDED 下禁止 [MODIFIED]/[REMOVED]、错误信息含语义解释）、surviving
+    scenario 校验（messages 按 section 区分），以及 tasks.md 中 Verifies 字段的确定性结构和 change-local spec 引用校验；Verifies 支持 REMOVED 锚定语法变体（无 Scenario），并以 label-free scenario title
+    匹配 change-local specs；新增 Preserves 字段校验（仅主 spec 路径白名单，不放宽 Verifies）
+  status: active
+- id: cap.validation.opsx
+  type: capability
+  intent: 基于 RelationDefinitionRegistry 验证 OPSX 两文件模型的引用完整性、relation endpoint 合法性和图语义约束
+  status: active
+- id: cap.validation.opsx-dry-run
+  type: capability
+  intent: 对 opsx-delta.yaml 执行 v2 schema parse、dry-run merge、referential integrity 与 relation semantic validation，不执行 code-map 校验。
+  status: active
+- id: cap.validation.skill-template-length
+  type: capability
+  intent: 验证所有生成的 `SKILL.md` 模板 instructions 不超过 200 行，并验证所有 `template.referenceFiles[]` 文件不超过 500 行；archive skill 的 commit message convention references 也纳入 reference
+    文件生成与一致性检查。
+  status: active
+- id: cap.validation.spec
+  type: capability
+  intent: 验证规约的格式和内容；formal specs SHALL NOT contain change-local scenario operation labels such as [ADDED], [MODIFIED], or [REMOVED] in Scenario headings；change-local
+    delta spec 校验只检查 scenario operation label 语法与 ADDED section 下非法 labels，不要求 MODIFIED scenarios 预先带 label
+  status: active
+- id: cap.validation.spec-section-type-cross-check
+  type: capability
+  intent: 在 change delta spec 验证中增加 section-type 与主 spec header 存在性的交叉验证；新增 frontmatter capabilities 存在性校验（cap 是否在 OPSX 中）和缺失 frontmatter 的 warning
+  status: active
+relations:
+- from: cap.spec.frontmatter
+  type: belongs_to
+  to: dom.validation
+- from: cap.spec.registry
+  type: belongs_to
+  to: dom.validation
+- from: cap.validation.change
+  type: belongs_to
+  to: dom.validation
+- from: cap.validation.opsx
+  type: belongs_to
+  to: dom.validation
+- from: cap.validation.opsx-dry-run
+  type: belongs_to
+  to: dom.validation
+- from: cap.validation.skill-template-length
+  type: belongs_to
+  to: dom.validation
+- from: cap.validation.spec
+  type: belongs_to
+  to: dom.validation
+- from: cap.validation.spec-section-type-cross-check
+  type: belongs_to
+  to: dom.validation
+- from: cap.spec.registry
+  type: invokes
+  to: cap.spec.frontmatter
+- from: cap.validation.opsx
+  type: invokes
+  to: cap.opsx.referential-integrity
+- from: cap.validation.opsx-dry-run
+  type: invokes
+  to: cap.opsx.delta-merge
+- from: cap.validation.opsx-dry-run
+  type: invokes
+  to: cap.opsx.referential-integrity
+- from: cap.validation.change
+  type: invokes
+  to: cap.validation.spec-section-type-cross-check
+- from: cap.validation.spec
+  type: precedes
+  to: cap.cli.scenario-labels
+review_gaps: []
