@@ -36,7 +36,7 @@ export const BOOTSTRAP_HISTORY_DIR = 'openspec/bootstrap-history';
 export const DEFAULT_BOOTSTRAP_PROJECT_ID = 'project';
 export const DEFAULT_BOOTSTRAP_PROJECT_NAME = 'Project';
 export const BOOTSTRAP_WORKSPACE_RETAINED_NOTICE =
-  'Bootstrap workspace retained at openspec/bootstrap/. To start the next refresh run, use `openspec bootstrap init --mode refresh --restart`; delete it only when you no longer need the audit trail.';
+  'Bootstrap workspace retained at openspec/bootstrap/. To start the next refresh run with retained granularity, use `openspec bootstrap init --mode refresh --restart`; pass `--granularity coarse|fine` to override it. Delete the workspace only when you no longer need the audit trail.';
 export const BOOTSTRAP_METADATA_FILE = '.bootstrap.yaml';
 export const BOOTSTRAP_SCOPE_FILE = 'scope.yaml';
 export const BOOTSTRAP_EVIDENCE_FILE = 'evidence.yaml';
@@ -266,6 +266,7 @@ export interface BootstrapInitializedStatus {
   completionSource: BootstrapCompletionSource;
   restartCommand: string | null;
   nextAction: BootstrapPhase | 'restart' | null;
+  transitionCommand: string | null;
   created_at: string;
   domains: DomainStatus[];
   totalDomains: number;
@@ -1463,6 +1464,9 @@ export async function getBootstrapStatus(projectRoot: string): Promise<Bootstrap
     completionSource: completion.source,
     restartCommand: completion.state === 'completed' ? buildBootstrapRestartCommand(currentBaselineType) : null,
     nextAction: completion.state === 'completed' ? 'restart' : getNextBootstrapAction(state.metadata.phase),
+    transitionCommand: completion.state === 'in-progress' && state.metadata.phase === 'init'
+      ? 'openspec bootstrap advance scan'
+      : null,
     created_at: state.metadata.created_at,
     domains,
     totalDomains: domains.length,

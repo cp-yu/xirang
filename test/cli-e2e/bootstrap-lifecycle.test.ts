@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
+import { parse as parseYaml } from 'yaml';
 import { tmpdir } from 'os';
 import { runCLI } from '../helpers/run-cli.js';
 import { getBootstrapStatus } from '../../src/utils/bootstrap-utils.js';
@@ -48,13 +48,6 @@ async function pathExists(projectDir: string, relativePath: string): Promise<boo
   }
 }
 
-async function setBootstrapPhase(projectDir: string, phase: string): Promise<void> {
-  const metadataPath = path.join(projectDir, 'openspec', 'bootstrap', '.bootstrap.yaml');
-  const metadata = parseYaml(await fs.readFile(metadataPath, 'utf-8')) as Record<string, unknown>;
-  metadata.phase = phase;
-  await fs.writeFile(metadataPath, stringifyYaml(metadata, { lineWidth: 0 }), 'utf-8');
-}
-
 async function getBootstrapPhase(projectDir: string): Promise<string> {
   const metadataPath = path.join(projectDir, 'openspec', 'bootstrap', '.bootstrap.yaml');
   const metadata = parseYaml(await fs.readFile(metadataPath, 'utf-8')) as Record<string, unknown>;
@@ -87,7 +80,9 @@ async function initWorkspace(
 
   const initResult = await runCLI(['bootstrap', 'init', '--mode', mode, '--granularity', 'fine'], { cwd: projectDir });
   expect(initResult.exitCode).toBe(0);
-  await setBootstrapPhase(projectDir, 'scan');
+  const advanceResult = await runCLI(['bootstrap', 'advance', 'scan', '--json'], { cwd: projectDir });
+  expect(advanceResult.exitCode).toBe(0);
+  expect(JSON.parse(advanceResult.stdout)).toEqual({ fromPhase: 'init', toPhase: 'scan' });
 }
 
 async function prepareReviewWorkspace(

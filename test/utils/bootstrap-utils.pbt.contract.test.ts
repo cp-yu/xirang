@@ -86,6 +86,11 @@ describe('Bootstrap contract parity', () => {
     expect(schema).toContain('formal-opsx -> refresh');
     expect(workflow).toContain('formal-opsx -> refresh');
     expect(docs).toContain('formal-opsx -> refresh');
+    expect(schema).toContain('restart inherits retained scope.yaml granularity');
+    expect(workflow).toContain('restart inherits retained granularity');
+    expect(docs).toContain('restart inherits it from the retained `scope.yaml`');
+    expect(command).toContain('inherits retained scope.yaml granularity');
+    expect(cli).toContain('restart inherits retained scope');
 
     for (const content of [schema, workflow, docs, command, cli, applyPreparation]) {
       expect(content).not.toMatch(/delta-first|git diff only to narrow|code-map refs|merges reviewed changes back/i);

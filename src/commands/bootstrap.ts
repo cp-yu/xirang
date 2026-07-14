@@ -1,3 +1,4 @@
+import path from 'path';
 import ora from 'ora';
 import chalk from 'chalk';
 import {
@@ -15,7 +16,7 @@ import {
   type BootstrapMode,
   type BootstrapStatus,
 } from '../utils/bootstrap-utils.js';
-import { backfillSpecs } from '../core/backfill-specs.js';
+import { backfillSpecs, readSemanticMappings } from '../core/backfill-specs.js';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -39,12 +40,17 @@ export interface BootstrapValidateOptions {
   json?: boolean;
 }
 
+export interface BootstrapAdvanceOptions {
+  json?: boolean;
+}
+
 export interface BootstrapPromoteOptions {
   yes?: boolean;
 }
 
 export interface BootstrapBackfillOptions {
   json?: boolean;
+  mappings?: string;
 }
 
 // ─── Init ────────────────────────────────────────────────────────────────────
@@ -99,10 +105,15 @@ function parseGranularity(value: string | undefined): 'coarse' | 'fine' {
 }
 
 async function resolveGranularity(
-  requested: string | undefined
-): Promise<'coarse' | 'fine'> {
+  requested: string | undefined,
+  restart: boolean | undefined
+): Promise<'coarse' | 'fine' | undefined> {
   if (requested) {
     return parseGranularity(requested);
+  }
+
+  if (restart) {
+    return undefined;
   }
 
   if (!isInteractive()) {
@@ -122,7 +133,7 @@ async function resolveGranularity(
 export async function bootstrapInitCommand(options: BootstrapInitOptions): Promise<void> {
   const projectRoot = process.cwd();
   const mode = await resolveBootstrapMode(projectRoot, options.mode);
-  const granularity = await resolveGranularity(options.granularity);
+  const granularity = await resolveGranularity(options.granularity, options.restart);
   const scope = options.scope ? options.scope.split(',').map(s => s.trim()) : undefined;
 
   const spinner = ora(`${options.restart ? 'Restarting' : 'Initializing'} bootstrap workspace (mode: ${mode})...`).start();
@@ -152,7 +163,8 @@ export async function bootstrapInitCommand(options: BootstrapInitOptions): Promi
       console.log('This run starts fresh from init while retaining the previous workspace as audit history.');
       console.log();
     }
-    console.log('Next: Run the scan phase to discover domains.');
+    console.log('Next: Advance to scan, then discover domains.');
+    console.log('  openspec bootstrap advance scan');
     console.log('  Use /opsx:bootstrap or openspec bootstrap instructions scan');
   } catch (error) {
     spinner.fail(`Failed to initialize bootstrap`);
@@ -213,6 +225,9 @@ function printBootstrapStatus(status: BootstrapStatus): void {
   }
 
   console.log(`Phase: ${status.phase} (${phaseIdx + 1}/${BOOTSTRAP_PHASES.length})`);
+  if (status.transitionCommand) {
+    console.log(`Transition: ${status.transitionCommand}`);
+  }
   console.log(`Candidate: ${status.candidateState}`);
   console.log(`Review: ${status.reviewState}${status.reviewApproved ? ' (approved)' : ''}`);
 
@@ -232,7 +247,7 @@ function printBootstrapStatus(status: BootstrapStatus): void {
     }
   } else if (phaseIdx < BOOTSTRAP_PHASES.indexOf('scan')) {
     console.log();
-    console.log('No domains discovered yet. Run scan phase next.');
+    console.log('No domains discovered yet. Run `openspec bootstrap advance scan` next.');
   }
 }
 
@@ -297,6 +312,7 @@ export async function bootstrapInstructionsCommand(
         completedAt: status.completedAt,
         restartCommand: status.restartCommand,
         nextAction: status.nextAction,
+        transitionCommand: status.transitionCommand,
         instruction: instructions,
       }, null, 2));
       return;
@@ -356,7 +372,7 @@ function getPreInitInstructions(status: Extract<BootstrapStatus, { initialized: 
   }
 
   lines.push('', `Allowed modes: ${status.allowedModes.join(', ')}`);
-  lines.push(`Run: openspec bootstrap init --mode ${status.allowedModes[0]}`);
+  lines.push(`Run: openspec bootstrap init --mode ${status.allowedModes[0]} --granularity coarse|fine`);
 
   if (status.baselineType === 'specs-based') {
     lines.push('', 'Bootstrap will preserve existing specs, add missing capability specs, and fail fast on target-path conflicts.');
@@ -385,9 +401,9 @@ function getPhaseInstructions(
     case 'init':
       return `Initialize the bootstrap workspace.
 
-Run: openspec bootstrap init --mode ${mode}
+Run: openspec bootstrap init --mode ${mode} --granularity coarse|fine
 
-This creates the workspace at openspec/bootstrap/ with scope configuration.
+This creates the workspace at openspec/bootstrap/ with scope configuration. Initial init requires explicit granularity; a completed workspace restart inherits retained scope.yaml granularity unless explicitly overridden.
 ${mode === 'opsx-first'
   ? 'This mode prepares the formal OPSX bundle plus a README-only specs starter. Add behavior specs incrementally later through normal change workflows.'
   : mode === 'refresh'
@@ -395,7 +411,7 @@ ${mode === 'opsx-first'
   : baselineType === 'specs-based'
     ? 'This mode preserves existing specs, adds missing capability specs, and fails fast if a generated target path already exists.'
     : 'This mode prepares the formal OPSX bundle plus complete valid candidate specs for each mapped capability.'}
-After init, advance to scan: the agent will analyze the codebase for domain candidates.`;
+After init, run \`openspec bootstrap advance scan\`; the agent can then analyze the codebase for domain candidates.`;
 
     case 'scan':
       return `Scan the codebase to discover candidate domains.
@@ -455,8 +471,40 @@ ${mode === 'opsx-first'
     : baselineType === 'specs-based'
     ? 'Full mode preserves your existing specs, adds only missing capability specs, and fails fast on target-path conflicts.'
     : 'Full mode writes the formal OPSX bundle plus valid specs covering all mapped capabilities (coarse: grouped via spec_groups, fine: one per capability).'}}
-After a completed retained workspace, start the next refresh run with: openspec bootstrap init --mode refresh --restart`;
+After a completed retained workspace, start the next refresh run with: openspec bootstrap init --mode refresh --restart. It inherits retained scope.yaml granularity; pass --granularity coarse|fine to override it.`;
   }
+}
+
+// ─── Phase Transition ───────────────────────────────────────────────────────
+
+export async function bootstrapAdvanceCommand(
+  targetPhase: string,
+  options: BootstrapAdvanceOptions
+): Promise<void> {
+  const projectRoot = process.cwd();
+  const status = await getBootstrapStatus(projectRoot);
+
+  if (!status.initialized) {
+    throw new Error('No bootstrap workspace found. Run `openspec bootstrap init` first.');
+  }
+  if (status.workspaceState === 'completed') {
+    throw new Error('Bootstrap workspace is complete. Start a new retained-workspace run with the reported restart command.');
+  }
+  if (status.phase !== 'init' || targetPhase !== 'scan') {
+    throw new Error(
+      `Public bootstrap advance only supports 'init' -> 'scan'. Current: '${status.phase}', target: '${targetPhase}'. Later transitions are gate-driven by \`openspec bootstrap validate\`.`
+    );
+  }
+
+  await advancePhase(projectRoot, 'scan');
+  const result = { fromPhase: 'init', toPhase: 'scan' } as const;
+  if (options.json) {
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
+  console.log('Bootstrap phase advanced: init -> scan');
+  console.log('Next: collect repository evidence in openspec/bootstrap/evidence.yaml, then run `openspec bootstrap validate`.');
 }
 
 // ─── Validate ────────────────────────────────────────────────────────────────
@@ -564,7 +612,10 @@ export async function bootstrapBackfillSpecsCommand(options: BootstrapBackfillOp
   const spinner = options.json ? null : ora('Backfilling spec frontmatter...').start();
 
   try {
-    const result = await backfillSpecs(projectRoot);
+    const semanticMappings = options.mappings
+      ? await readSemanticMappings(path.resolve(projectRoot, options.mappings))
+      : [];
+    const result = await backfillSpecs(projectRoot, semanticMappings);
     spinner?.succeed('Backfill specs complete');
 
     if (options.json) {
@@ -575,6 +626,12 @@ export async function bootstrapBackfillSpecsCommand(options: BootstrapBackfillOp
     console.log('Backfill specs complete');
     console.log(`  Written: ${result.written.length}`);
     console.log(`  Unmatched: ${result.unmatched.length}`);
+    for (const spec of result.unmatched) {
+      console.log(`    - ${spec}`);
+    }
+    if (result.unmatched.length > 0) {
+      console.log('  Run with --json for semantic handoff context and mapping format.');
+    }
   } catch (error) {
     spinner?.fail('Failed to backfill specs');
     throw error;

@@ -15,6 +15,7 @@ Bootstrap 文档、workflow templates 与生成的命令指引 SHALL 仅将 boot
   - `openspec bootstrap status`
   - `openspec bootstrap init`
   - `openspec bootstrap instructions`
+  - `openspec bootstrap advance scan`
   - `openspec bootstrap validate`
   - `openspec bootstrap promote`
   - `openspec bootstrap backfill-specs`
@@ -30,9 +31,9 @@ Bootstrap 文档、workflow templates 与生成的命令指引 SHALL 仅将 boot
 #### Scenario: Bootstrap skill 指令包含 subagent 语义匹配
 - **WHEN** bootstrap skill 模板被加载
 - **THEN** 指令 SHALL 描述 promote 后对 backfill 返回的 unmatched specs 启动 subagent
-- **AND** subagent SHALL 读取 spec 内容和 OPSX cap intent 进行语义匹配
-- **AND** 主 agent SHALL 按 subagent 结果写入 frontmatter
-- **AND** 最终报告 SHALL 列出仍无匹配的 specs
+- **AND** SHALL 使用 `semanticHandoff` 提供 spec 内容/路径、OPSX capability ID/intent 与 mapping result format
+- **AND** 主 agent SHALL 仅把证据充分的结果通过 `--mappings <file>` 写回 frontmatter
+- **AND** 最终报告 SHALL 列出仍无匹配的 specs，且不得静默猜测 capability 关联
 
 #### Scenario: Deprecated pseudo-command flags are removed from bootstrap docs
 - **WHEN** bootstrap docs are updated for the structured CLI-backed workflow
@@ -116,6 +117,7 @@ bootstrap SHALL 区分“仍在进行中的 retained workspace”和“已经完
 - **THEN** `openspec bootstrap status` SHALL 将该 workspace 描述为 completed，而不是当前 phase 的 resume 目标
 - **AND** `openspec bootstrap instructions` SHALL 提供显式 restart 指令
 - **AND** 提示 SHALL 使用 `openspec bootstrap init --mode refresh --restart` 作为下一轮 run 的标准入口
+- **AND** 提示 SHALL 说明该命令继承 retained `scope.yaml` granularity，并可用显式 `--granularity coarse|fine` 覆盖
 
 #### Scenario: in-progress retained workspace remains resume-only
 
@@ -148,6 +150,14 @@ Bootstrap candidate specs, review artifacts, and starter artifacts SHALL consume
 - **WHEN** an effective runtime projection field that changes generated bootstrap text is modified
 - **THEN** bootstrap fingerprinting SHALL treat that as source drift
 - **AND** review approval SHALL become stale until validate regenerates derived artifacts
+
+### Requirement: Bootstrap init-to-scan transition
+Bootstrap SHALL expose `openspec bootstrap advance scan` as the public, auditable transition from initialized workspace state to scan. Skill, instructions, CLI help, status, tests, and documentation SHALL use this command instead of metadata edits or internal API calls.
+
+#### Scenario: Init output exposes scan transition
+- **WHEN** `openspec bootstrap init` succeeds
+- **THEN** output SHALL direct the user to `openspec bootstrap advance scan`
+- **AND** `openspec bootstrap status --json` after the transition SHALL report `phase: scan`
 
 ### Requirement: Bootstrap granularity selection
 Bootstrap skill agent SHALL obtain an explicit `coarse` or `fine` granularity choice before initialization when no explicit choice exists, and CLI SHALL only persist that confirmed choice into bootstrap scope.

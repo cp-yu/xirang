@@ -24,12 +24,14 @@ import { registerScenarioLabelsCommand } from '../commands/scenario-labels.js';
 import { registerVerifyCommand } from '../commands/verify.js';
 import { registerCheckDeltaCommand } from '../commands/check-delta.js';
 import {
+  bootstrapAdvanceCommand,
   bootstrapInitCommand,
   bootstrapStatusCommand,
   bootstrapInstructionsCommand,
   bootstrapValidateCommand,
   bootstrapPromoteCommand,
   bootstrapBackfillSpecsCommand,
+  type BootstrapAdvanceOptions,
   type BootstrapInitOptions,
   type BootstrapStatusOptions,
   type BootstrapInstructionsOptions,
@@ -557,7 +559,7 @@ bootstrapCmd
   .option('--mode <mode>', 'Bootstrap mode: full (complete specs), opsx-first (README-only starter), or refresh (complete rebuild of formal OPSX v2)')
   .option('--scope <paths>', 'Comma-separated paths to include in scan')
   .option('--restart', 'Start a new run from a completed retained workspace by snapshotting the previous openspec/bootstrap/')
-  .option('--granularity <granularity>', 'Spec granularity: coarse (fewer grouped specs) or fine (per-capability specs)')
+  .option('--granularity <granularity>', 'Spec granularity: required for initial init; restart inherits retained scope when omitted (coarse: grouped, fine: per-capability)')
   .action(async (options: BootstrapInitOptions) => {
     try {
       await bootstrapInitCommand(options);
@@ -597,6 +599,20 @@ bootstrapCmd
   });
 
 bootstrapCmd
+  .command('advance <phase>')
+  .description('Advance the public init -> scan bootstrap phase transition')
+  .option('--json', 'Output transition result as JSON')
+  .action(async (phase: string, options: BootstrapAdvanceOptions) => {
+    try {
+      await bootstrapAdvanceCommand(phase, options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+bootstrapCmd
   .command('validate')
   .description('Run gate validation for current bootstrap phase')
   .option('--json', 'Output as JSON')
@@ -626,8 +642,9 @@ bootstrapCmd
 
 bootstrapCmd
   .command('backfill-specs')
-  .description('Backfill spec frontmatter capability mappings')
-  .option('--json', 'Output as JSON')
+  .description('Backfill deterministic matches and emit semantic handoff context for unmatched specs')
+  .option('--mappings <file>', 'Apply agent-reviewed semantic mappings from a JSON file')
+  .option('--json', 'Output matches, unmatched specs, semantic context, and mapping format as JSON')
   .action(async (options: BootstrapBackfillOptions) => {
     try {
       await bootstrapBackfillSpecsCommand(options);

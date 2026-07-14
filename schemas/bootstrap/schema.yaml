@@ -12,7 +12,7 @@ artifacts:
 
       Run: openspec bootstrap init [--mode full|opsx-first|refresh] --granularity coarse|fine [--scope src/]
 
-      **Granularity**: coarse produces fewer grouped specs via spec_groups; fine produces per-capability specs. The agent must confirm choice with user before init.
+      **Granularity**: coarse produces fewer grouped specs via spec_groups; fine produces per-capability specs. The agent must confirm choice before initial init. A completed workspace restart inherits retained scope.yaml granularity when omitted; an explicit value overrides it.
 
       This creates:
       - .bootstrap.yaml — metadata (phase, baseline, mode, fingerprints, created_at)
@@ -29,6 +29,7 @@ artifacts:
       Use refresh only when the repository already has both formal OPSX v2 files. Refresh rebuilds a complete candidate from current evidence; the old model is used only for review diff.
 
       Confirm the scope configuration with the user before proceeding.
+      After init, run openspec bootstrap advance scan and verify status reports phase scan. Do not edit .bootstrap.yaml or call internal APIs.
     requires: []
 
   - id: scan
@@ -122,10 +123,11 @@ artifacts:
       5. In raw + opsx-first, writes only openspec/specs/README.md
       6. In specs-based + full, preserves existing specs and writes only missing capability specs
       7. In formal-opsx + refresh, atomically replaces the two formal OPSX v2 files with the reviewed complete candidate
-      8. Runs spec frontmatter backfill automatically
+      8. Runs deterministic spec frontmatter backfill automatically
       9. Retains openspec/bootstrap/ workspace for audit history
 
-      After promote completes, run `openspec validate --all`. If validation fails, return to the relevant bootstrap source artifact for repair before claiming completion.
+      After promote, run openspec bootstrap backfill-specs --json. For every unmatched spec, use semanticHandoff spec content plus candidate capability intents with a subagent. Apply only reviewed mappings with --mappings <mapping-file> and report the remaining unmatched list; never guess capability associations.
+      Then run `openspec validate --all`. If validation fails, return to the relevant bootstrap source artifact for repair before claiming completion.
 
       Confirm before writing to formal OPSX files.
     requires:

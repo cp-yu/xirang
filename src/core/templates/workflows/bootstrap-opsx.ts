@@ -24,7 +24,7 @@ Treat \`openspec/config.yaml\` as the source of truth for authoring policy, but 
    \`\`\`
    - If no workspace exists, start with init
    - If workspace exists and is in progress, resume from the current phase
-   - If workspace exists and is completed, restart explicitly with \`openspec bootstrap init --mode refresh --restart\`
+   - If workspace exists and is completed, restart explicitly with \`openspec bootstrap init --mode refresh --restart\`; omitted \`--granularity\` inherits retained \`scope.yaml\`
 
 2. **Execute the current phase**
 
@@ -44,7 +44,7 @@ Treat \`openspec/config.yaml\` as the source of truth for authoring policy, but 
    \`\`\`bash
    openspec bootstrap init --mode full --granularity coarse
    \`\`\`
-   The CLI persists the confirmed granularity in \`scope.yaml\`. Missing or invalid \`--granularity\` fails fast.
+   The CLI persists the confirmed granularity in \`scope.yaml\`. Initial init requires \`--granularity\`; a completed workspace restart inherits retained granularity when the option is omitted, while an explicit value overrides it. Invalid values fail fast.
    Creates workspace at \`openspec/bootstrap/\` with scope configuration.
    Supported upgrade paths:
    - \`specs-based -> full\`
@@ -53,7 +53,12 @@ Treat \`openspec/config.yaml\` as the source of truth for authoring policy, but 
    - \`formal-opsx -> refresh\`
    Use \`opsx-first\` only for \`raw\` repositories when you want the formal OPSX bundle plus a README-only specs starter now, and full behavior specs later.
    Use \`refresh\` only for repositories that already have both formal OPSX v2 files. Rebuild a complete candidate from current evidence, use the existing bundle only for review diff, then atomically replace the two formal files after approval.
-   Use \`--restart\` only when a completed retained workspace already exists and you want a fresh run; it snapshots the old \`openspec/bootstrap/\` into \`openspec/bootstrap-history/\` first.
+   Use \`--restart\` only when a completed retained workspace already exists and you want a fresh run; it snapshots the old \`openspec/bootstrap/\` into \`openspec/bootstrap-history/\` first. Omit \`--granularity\` to inherit retained \`scope.yaml\`, or pass it explicitly to override the retained value.
+   After init, use the public, auditable transition before scanning:
+   \`\`\`bash
+   openspec bootstrap advance scan
+   \`\`\`
+   Confirm \`openspec bootstrap status --json\` reports \`phase: scan\`. Do not edit \`.bootstrap.yaml\` or call an internal API to advance the phase.
 
    **Phase: scan**
    - Read \`package.json\`, \`README\`, OpenSpec config, \`openspec/specs/\`
@@ -128,14 +133,14 @@ Treat \`openspec/config.yaml\` as the source of truth for authoring policy, but 
    \`\`\`bash
    openspec bootstrap backfill-specs --json
    \`\`\`
-   For unmatched specs, spawn a subagent to read the spec content and OPSX capability intents, return semantic matches, then write the returned frontmatter mappings; report any specs that still have no match.
+   The JSON \`semanticHandoff\` contains each unmatched spec's content/path, candidate capability IDs and intents, the exact mapping result format, and the apply command. Give that context to a subagent; it MUST return only evidence-backed mappings and MUST leave uncertain specs unmapped. Save the reviewed result, then run \`openspec bootstrap backfill-specs --mappings <mapping-file> --json\`. Report the returned \`unmatched\` list explicitly; never guess or silently associate capabilities.
    Retains the bootstrap workspace on success for audit history.
    After promote + backfill, run:
    \`\`\`bash
    openspec validate --all
    \`\`\`
    If validation fails, report the failing item and return to the relevant bootstrap source artifact for repair. Do NOT claim bootstrap completion while validation failures remain unresolved.
-   Start the next refresh run with \`openspec bootstrap init --mode refresh --restart\`, which snapshots the retained workspace into \`openspec/bootstrap-history/\`.
+   Start the next refresh run with \`openspec bootstrap init --mode refresh --restart\`, which snapshots the retained workspace into \`openspec/bootstrap-history/\` and inherits its granularity. Pass \`--granularity coarse|fine\` only to override the retained value.
 
 3. **After each phase action**
    - Run \`openspec bootstrap validate\` to verify gate conditions

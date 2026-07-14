@@ -11,7 +11,7 @@ capabilities:
   status: active
 - id: cap.opsx.bootstrap
   type: capability
-  intent: 通过五阶段流程从当前源码、specs 与可选代码图证据完整生成、review 并 promote OPSX v2 project 与 relations 两文件模型。
+  intent: 通过含公开 init → scan transition 的五阶段流程，从当前源码、specs 与可选代码图证据完整生成、review 并 promote OPSX v2 project 与 relations 两文件模型。
   status: active
   spec:
     preserve_existing: true
@@ -29,12 +29,12 @@ capabilities:
           text: the existing spec file remains unchanged
 - id: cap.opsx.bootstrap-backfill-specs
   type: capability
-  intent: Backfill Engine——通过命名匹配和 LLM 语义推断为无 frontmatter 的 specs 批量补全 capabilities 关联声明
+  intent: Backfill Engine 通过确定性名称匹配自动补全 spec frontmatter，并为 unmatched specs 输出内容、capability intent 与显式 agent-reviewed mapping 写回合同。
   status: active
   spec:
     preserve_existing: true
     folder: bootstrap-backfill-specs
-    purpose: Backfill Engine——通过命名匹配和 LLM 语义推断为无 frontmatter 的 specs 批量补全 capabilities 关联声明
+    purpose: Backfill Engine 通过确定性名称匹配自动补全 spec frontmatter，并为 unmatched specs 输出内容、capability intent 与显式 agent-reviewed mapping 写回合同。
     requirements:
     - title: Existing formal spec is preserved
       text: The system SHALL preserve the existing formal spec content during OPSX refresh.
@@ -47,7 +47,7 @@ capabilities:
           text: the existing spec file remains unchanged
 - id: cap.opsx.bootstrap-refresh
   type: capability
-  intent: 从当前源码、specs 与配置完整重建 OPSX v2 candidate，以旧 formal OPSX 生成 review diff，审批后整体替换两份正式文件。
+  intent: 从当前源码、specs 与配置完整重建 OPSX v2 candidate，以旧 formal OPSX 生成 review diff，审批后整体替换两份正式文件；重启 retained workspace 时继承 scope granularity，显式参数可覆盖。
   status: active
 - id: cap.opsx.delta-merge
   type: capability

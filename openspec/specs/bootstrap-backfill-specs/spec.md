@@ -59,7 +59,8 @@ Backfill Engine SHALL 提供 `writeSpecFrontmatter(specPath: string, capabilitie
 - **AND** SHALL 扫描所有 specs 的 frontmatter 状态
 - **AND** SHALL 对无 frontmatter 的 specs 执行命名匹配
 - **AND** SHALL 对匹配成功的 specs 写入 frontmatter
-- **AND** SHALL 返回 `{ written: [{spec, caps}], unmatched: [specId] }`
+- **AND** SHALL 返回确定性 `written`、明确 `unmatched` 与 `semanticHandoff`
+- **AND** `semanticHandoff` SHALL 包含 unmatched spec 内容和路径、候选 capability ID 与 intent、可写回 mapping 格式和 apply 命令
 
 #### Scenario: 无 OPSX 文件时
 
@@ -80,5 +81,28 @@ Backfill Engine SHALL 提供 `writeSpecFrontmatter(specPath: string, capabilitie
 #### Scenario: JSON 输出
 
 - **WHEN** 执行 `openspec bootstrap backfill-specs --json`
-- **THEN** SHALL 输出 `{ written: [...], unmatched: [...] }` JSON 结构
+- **THEN** SHALL 输出 `{ written, unmatched, semanticHandoff }` JSON 结构
+- **AND** 每个 unmatched spec SHALL 包含完整 Markdown 内容与稳定项目相对路径
+- **AND** candidate capabilities SHALL 包含 `id` 与 `intent`
+
+### Requirement: Semantic mapping SHALL require explicit reviewed writeback
+Backfill Engine SHALL preserve deterministic name matching and SHALL NOT infer semantic associations itself. Semantic mappings SHALL enter through an explicit, validated agent-produced mapping file.
+
+#### Scenario: Reviewed mapping is applied
+- **GIVEN** mapping JSON contains `{ mappings: [{ spec, capabilities }] }`
+- **WHEN** executing `openspec bootstrap backfill-specs --mappings <file> --json`
+- **THEN** CLI SHALL validate each spec and capability against current repository state
+- **AND** SHALL write valid mappings only after validation succeeds
+- **AND** SHALL return and expose every spec still unmatched
+
+#### Scenario: Unknown capability is rejected atomically
+- **WHEN** a mapping references a capability absent from current formal OPSX
+- **THEN** CLI SHALL fail before writing that mapping
+- **AND** SHALL identify the unknown capability
+
+#### Scenario: Uncertain semantic association remains unmatched
+- **WHEN** an agent cannot establish an evidence-backed capability association
+- **THEN** the mapping result SHALL omit that spec
+- **AND** the subsequent backfill result SHALL keep it in `unmatched`
+- **AND** no component SHALL silently guess an association
 

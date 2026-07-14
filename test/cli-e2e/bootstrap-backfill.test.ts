@@ -2,7 +2,6 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { tmpdir } from 'os';
-import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { runCLI } from '../helpers/run-cli.js';
 
 const tempRoots: string[] = [];
@@ -21,13 +20,6 @@ async function writeFile(projectDir: string, relativePath: string, content: stri
 
 async function readFile(projectDir: string, relativePath: string): Promise<string> {
   return fs.readFile(path.join(projectDir, relativePath), 'utf-8');
-}
-
-async function setBootstrapPhase(projectDir: string, phase: string): Promise<void> {
-  const metadataPath = path.join(projectDir, 'openspec', 'bootstrap', '.bootstrap.yaml');
-  const metadata = parseYaml(await fs.readFile(metadataPath, 'utf-8')) as Record<string, unknown>;
-  metadata.phase = phase;
-  await fs.writeFile(metadataPath, stringifyYaml(metadata, { lineWidth: 0 }), 'utf-8');
 }
 
 async function checkAllReviewBoxes(projectDir: string): Promise<void> {
@@ -64,7 +56,7 @@ async function preparePromoteWorkspace(projectDir: string): Promise<void> {
   await writeFile(projectDir, 'src/cli/index.ts', 'export const cli = true;\n');
 
   expect((await runCLI(['bootstrap', 'init', '--mode', 'full', '--granularity', 'fine'], { cwd: projectDir })).exitCode).toBe(0);
-  await setBootstrapPhase(projectDir, 'scan');
+  expect((await runCLI(['bootstrap', 'advance', 'scan'], { cwd: projectDir })).exitCode).toBe(0);
   await writeFile(projectDir, 'openspec/bootstrap/evidence.yaml', `domains:
   - id: dom.cli
     confidence: high
@@ -120,6 +112,8 @@ describe('openspec bootstrap backfill-specs', () => {
     expect(result.stdout).toContain('Backfill specs complete');
     expect(result.stdout).toContain('Written: 1');
     expect(result.stdout).toContain('Unmatched: 1');
+    expect(result.stdout).toContain('- unknown-area');
+    expect(result.stdout).toContain('Run with --json for semantic handoff context');
     await expect(readFile(projectDir, 'openspec/specs/cli-archive/spec.md')).resolves.toContain('cap.cli.archive');
   });
 
@@ -133,7 +127,66 @@ describe('openspec bootstrap backfill-specs', () => {
     expect(JSON.parse(result.stdout)).toEqual({
       written: [{ spec: 'cli-archive', caps: ['cap.cli.archive'] }],
       unmatched: ['unknown-area'],
+      semanticHandoff: {
+        unmatchedSpecs: [{
+          spec: 'unknown-area',
+          path: 'openspec/specs/unknown-area/spec.md',
+          content: '# Unknown\n',
+        }],
+        candidateCapabilities: [{ id: 'cap.cli.archive', intent: 'Archive changes' }],
+        mappingResultFormat: {
+          mappings: [{ spec: '<spec-id>', capabilities: ['<capability-id>'] }],
+        },
+        applyCommand: 'openspec bootstrap backfill-specs --mappings <mapping-file> --json',
+      },
     });
+  });
+
+  it('applies explicit semantic mappings and still reports unresolved specs', async () => {
+    const projectDir = await createTempProject();
+    await writeOpsxAndSpecs(projectDir);
+    await writeFile(projectDir, 'openspec/specs/still-unknown/spec.md', '# Still Unknown\n');
+    await writeFile(projectDir, 'semantic-mappings.json', JSON.stringify({
+      mappings: [{ spec: 'unknown-area', capabilities: ['cap.cli.archive'] }],
+    }));
+
+    const result = await runCLI([
+      'bootstrap',
+      'backfill-specs',
+      '--mappings',
+      'semantic-mappings.json',
+      '--json',
+    ], { cwd: projectDir });
+
+    expect(result.exitCode).toBe(0);
+    const output = JSON.parse(result.stdout);
+    expect(output.written).toEqual([
+      { spec: 'cli-archive', caps: ['cap.cli.archive'] },
+      { spec: 'unknown-area', caps: ['cap.cli.archive'] },
+    ]);
+    expect(output.unmatched).toEqual(['still-unknown']);
+    expect(output.semanticHandoff.unmatchedSpecs[0].content).toBe('# Still Unknown\n');
+    await expect(readFile(projectDir, 'openspec/specs/unknown-area/spec.md')).resolves.toContain('cap.cli.archive');
+  });
+
+  it('rejects semantic mappings to unknown capabilities without writing them', async () => {
+    const projectDir = await createTempProject();
+    await writeOpsxAndSpecs(projectDir);
+    await writeFile(projectDir, 'semantic-mappings.json', JSON.stringify({
+      mappings: [{ spec: 'unknown-area', capabilities: ['cap.cli.missing'] }],
+    }));
+
+    const result = await runCLI([
+      'bootstrap',
+      'backfill-specs',
+      '--mappings',
+      'semantic-mappings.json',
+      '--json',
+    ], { cwd: projectDir });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("Unknown capability 'cap.cli.missing'");
+    await expect(readFile(projectDir, 'openspec/specs/unknown-area/spec.md')).resolves.toBe('# Unknown\n');
   });
 
   it('runs backfill after promote and reports statistics', async () => {

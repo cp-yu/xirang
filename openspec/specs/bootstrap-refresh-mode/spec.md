@@ -78,6 +78,7 @@ Refresh review SHALL 展示 fresh candidate 相对旧 formal OPSX 的 domain、c
 - **GIVEN** 已完成 retained workspace 的 metadata 中存在上一轮 scope，且可能存在 `refresh_anchor_commit`
 - **WHEN** 用户执行 `openspec bootstrap init --mode refresh --restart`
 - **THEN** 新 workspace SHALL 继承上一轮 scope，除非用户显式传入新的 `--scope`
+- **AND** 未传 `--granularity` 时 SHALL 继承 retained `scope.yaml` 的 granularity，显式传入时 SHALL 覆盖 retained 值
 - **AND** 新 workspace SHALL 继承可用的 `refresh_anchor_commit`
 - **AND** `source_fingerprint`、`candidate_fingerprint`、`review_fingerprint` 与 `candidate_spec_paths` SHALL 被显式清空
 

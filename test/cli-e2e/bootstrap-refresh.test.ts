@@ -175,9 +175,7 @@ describe('openspec bootstrap refresh', () => {
 
     const initResult = await runCLI(['bootstrap', 'init', '--mode', 'refresh', '--granularity', 'fine'], { cwd: projectDir });
     expect(initResult.exitCode).toBe(0);
-    await setBootstrapMetadata(projectDir, (metadata) => {
-      metadata.phase = 'scan';
-    });
+    expect((await runCLI(['bootstrap', 'advance', 'scan'], { cwd: projectDir })).exitCode).toBe(0);
 
     await writeRefreshDomainMap(projectDir, { addSessionCapability: true });
 
@@ -220,8 +218,8 @@ describe('openspec bootstrap refresh', () => {
 
     const initResult = await runCLI(['bootstrap', 'init', '--mode', 'refresh', '--granularity', 'fine'], { cwd: projectDir });
     expect(initResult.exitCode).toBe(0);
+    expect((await runCLI(['bootstrap', 'advance', 'scan'], { cwd: projectDir })).exitCode).toBe(0);
     await setBootstrapMetadata(projectDir, (metadata) => {
-      metadata.phase = 'scan';
       metadata.refresh_anchor_commit = baselineHead;
     });
 
@@ -250,7 +248,7 @@ describe('openspec bootstrap refresh', () => {
     const projectDir = await createTempProject();
     await writeFormalBaseline(projectDir);
 
-    expect((await runCLI(['bootstrap', 'init', '--mode', 'refresh', '--granularity', 'fine'], { cwd: projectDir })).exitCode).toBe(0);
+    expect((await runCLI(['bootstrap', 'init', '--mode', 'refresh', '--granularity', 'coarse'], { cwd: projectDir })).exitCode).toBe(0);
     await writeFile(projectDir, 'openspec/bootstrap/evidence.yaml', 'domains: []\n');
     await writeFile(projectDir, 'openspec/bootstrap/review.md', '# Completed review\n');
     await writeFile(projectDir, 'openspec/bootstrap/candidate/project.opsx.yaml', 'schema_version: 2\nproject:\n  id: proj.demo\n  name: Demo\n');
@@ -258,7 +256,7 @@ describe('openspec bootstrap refresh', () => {
       mode: 'refresh',
       include: ['src/auth'],
       exclude: ['vendor'],
-      granularity: 'fine',
+      granularity: 'coarse',
     }, { lineWidth: 0 }));
     await setBootstrapMetadata(projectDir, (metadata) => {
       metadata.phase = 'promote';
@@ -270,7 +268,7 @@ describe('openspec bootstrap refresh', () => {
       metadata.candidate_spec_paths = ['openspec/bootstrap/candidate/specs/auth/spec.md'];
     });
 
-    const restartResult = await runCLI(['bootstrap', 'init', '--mode', 'refresh', '--granularity', 'fine', '--restart'], { cwd: projectDir });
+    const restartResult = await runCLI(['bootstrap', 'init', '--mode', 'refresh', '--restart'], { cwd: projectDir });
     expect(restartResult.exitCode).toBe(0);
     expect(restartResult.stdout).toContain('Previous workspace snapshot: openspec/bootstrap-history');
     expect(restartResult.stdout).toContain('This run starts fresh from init while retaining the previous workspace as audit history.');
@@ -295,7 +293,7 @@ describe('openspec bootstrap refresh', () => {
       mode: 'refresh',
       include: ['src/auth'],
       exclude: ['vendor'],
-      granularity: 'fine',
+      granularity: 'coarse',
     });
     await expect(fs.stat(historyDir)).resolves.toBeDefined();
   });

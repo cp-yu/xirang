@@ -27,6 +27,8 @@ describe('instruction-loader', () => {
       expect(initTemplate).toContain('formal-opsx -> refresh');
       expect(initTemplate).toContain('complete candidate from current evidence');
       expect(initTemplate).toContain('old formal OPSX v2 model is review-only evidence');
+      expect(initTemplate).toContain('completed workspace restart inherits retained `scope.yaml` granularity');
+      expect(initTemplate).toContain('openspec bootstrap advance scan');
       expect(reviewTemplate).toContain('Relation semantic validation passes');
       expect(reviewTemplate).toContain('Review gaps are resolved or explicitly accepted');
       expect(reviewTemplate).not.toMatch(/code-map/i);

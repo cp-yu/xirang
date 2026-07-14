@@ -28,7 +28,8 @@ The user-facing workflow is `/opsx:bootstrap`. It orchestrates these CLI command
 
 ```bash
 openspec bootstrap status --json
-openspec bootstrap init --mode full
+openspec bootstrap init --mode full --granularity coarse
+openspec bootstrap advance scan
 openspec bootstrap instructions --json
 openspec bootstrap validate
 openspec bootstrap promote -y
@@ -37,7 +38,7 @@ openspec bootstrap promote -y
 For an existing formal v2 repository:
 
 ```bash
-openspec bootstrap init --mode refresh
+openspec bootstrap init --mode refresh --granularity coarse
 ```
 
 If a completed workspace already exists:
@@ -46,13 +47,20 @@ If a completed workspace already exists:
 openspec bootstrap init --mode refresh --restart
 ```
 
-Restart snapshots the retained workspace into `openspec/bootstrap-history/` before creating a fresh workspace.
+Restart snapshots the retained workspace into `openspec/bootstrap-history/` before creating a fresh workspace. When `--granularity` is omitted, restart inherits it from the retained `scope.yaml`; pass `--granularity coarse|fine` to override it. Initial init always requires an explicit granularity.
 
 ## Phases
 
 ### 1. Init
 
-Init records mode, scope, and granularity without inferring architecture.
+Init records mode, scope, and granularity without inferring architecture. Enter scan through the public, auditable transition:
+
+```bash
+openspec bootstrap advance scan
+openspec bootstrap status --json
+```
+
+The transition only accepts `init -> scan`; later transitions remain gate-driven by `openspec bootstrap validate`. Do not edit `.bootstrap.yaml` or call internal APIs.
 
 ### 2. Scan
 
@@ -110,6 +118,20 @@ Any evidence or mapping change makes prior approval stale.
 ### 5. Promote
 
 `openspec bootstrap promote -y` rechecks every gate and atomically writes the two formal files. In refresh mode it replaces the complete two-file candidate; it does not merge a partial graph.
+
+After promote, deterministic name matching runs automatically. For remaining specs, request the semantic handoff:
+
+```bash
+openspec bootstrap backfill-specs --json
+```
+
+The JSON includes unmatched spec content/path, candidate capability IDs and intents, the required mapping result format, and the apply command. Give this context to an agent or subagent, retain only evidence-backed mappings, save them as JSON, then apply them:
+
+```bash
+openspec bootstrap backfill-specs --mappings semantic-mappings.json --json
+```
+
+The command validates every spec and capability before writing and returns the specs still unmatched. Report that list explicitly; never guess or silently associate a capability.
 
 ## Mode Outputs
 

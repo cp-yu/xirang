@@ -6,6 +6,7 @@ import { randomUUID } from 'crypto';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { bootstrapInstructionsCommand, bootstrapPromoteCommand, bootstrapStatusCommand } from '../../src/commands/bootstrap.js';
 import {
+  bootstrapAdvanceCommand,
   bootstrapInitCommand,
   bootstrapValidateCommand,
 } from '../../src/commands/bootstrap.js';
@@ -215,6 +216,49 @@ describe('bootstrap command Phase 1 baseline contract', () => {
     const review = await withCwd(testDir, () => captureJsonOutput(() => bootstrapInstructionsCommand('review', { json: true })));
     expect(review.instruction).toContain('semantic relation type/direction');
     expect(review.instruction).toContain('review gaps');
+  });
+
+  it('publicly advances init to scan and reports the transition', async () => {
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
+
+    const output = await withCwd(
+      testDir,
+      () => captureJsonOutput(() => bootstrapAdvanceCommand('scan', { json: true }))
+    );
+
+    expect(output).toEqual({ fromPhase: 'init', toPhase: 'scan' });
+    const status = await getBootstrapStatus(testDir);
+    expect(status.initialized && status.phase).toBe('scan');
+    expect(status.initialized && status.nextAction).toBe('map');
+    expect(status.initialized && status.transitionCommand).toBeNull();
+  });
+
+  it('reports the public transition while phase is init', async () => {
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
+
+    const status = await withCwd(
+      testDir,
+      () => captureJsonOutput(() => bootstrapStatusCommand({ json: true }))
+    );
+
+    expect(status).toMatchObject({
+      phase: 'init',
+      nextAction: 'scan',
+      transitionCommand: 'openspec bootstrap advance scan',
+    });
+  });
+
+  it('rejects public phase skips and transitions after init', async () => {
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
+
+    await expect(
+      withCwd(testDir, () => bootstrapAdvanceCommand('map', { json: true }))
+    ).rejects.toThrow("only supports 'init' -> 'scan'");
+
+    await withCwd(testDir, () => bootstrapAdvanceCommand('scan', { json: true }));
+    await expect(
+      withCwd(testDir, () => bootstrapAdvanceCommand('scan', { json: true }))
+    ).rejects.toThrow("only supports 'init' -> 'scan'");
   });
 
   it('allows formal-opsx repositories to initialize refresh mode', async () => {
@@ -486,7 +530,7 @@ relations:
     const output = await withCwd(testDir, () => captureTextOutput(() => bootstrapPromoteCommand({ yes: true })));
 
     expect(output).toContain(
-      'Bootstrap workspace retained at openspec/bootstrap/. To start the next refresh run, use `openspec bootstrap init --mode refresh --restart`; delete it only when you no longer need the audit trail.'
+      'Bootstrap workspace retained at openspec/bootstrap/. To start the next refresh run with retained granularity, use `openspec bootstrap init --mode refresh --restart`; pass `--granularity coarse|fine` to override it.'
     );
   });
 
@@ -554,5 +598,24 @@ relations:
       withCwd(testDir, () => bootstrapInitCommand({ mode: 'full', granularity: 'medium' }))
     ).rejects.toThrow();
     await expect(fs.stat(path.join(testDir, 'openspec', 'bootstrap', 'scope.yaml'))).rejects.toThrow();
+  });
+
+  it('refresh restart without --granularity inherits retained scope granularity', async () => {
+    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), 'schema_version: 2\nproject:\n  id: demo\n  name: Demo\n', 'utf-8');
+    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'), 'schema_version: 2\nrelations: []\n', 'utf-8');
+    await initBootstrap(testDir, { mode: 'refresh', granularity: 'coarse' });
+    await setBootstrapPhase(testDir, 'promote');
+
+    const metadataPath = path.join(testDir, 'openspec', 'bootstrap', '.bootstrap.yaml');
+    const metadata = parseYaml(await fs.readFile(metadataPath, 'utf-8')) as Record<string, unknown>;
+    metadata.completed_at = '2026-07-14T00:00:00.000Z';
+    await fs.writeFile(metadataPath, stringifyYaml(metadata, { lineWidth: 0 }), 'utf-8');
+
+    await withCwd(testDir, () => bootstrapInitCommand({ mode: 'refresh', restart: true }));
+
+    const scope = parseYaml(
+      await fs.readFile(path.join(testDir, 'openspec', 'bootstrap', 'scope.yaml'), 'utf-8')
+    ) as Record<string, unknown>;
+    expect(scope.granularity).toBe('coarse');
   });
 });

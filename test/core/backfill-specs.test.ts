@@ -118,12 +118,19 @@ describe('backfillSpecs', () => {
 
       const result = await backfillSpecs(root);
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         written: [
           { spec: 'change-creation', caps: ['cap.change.create'] },
           { spec: 'cli-archive', caps: ['cap.cli.archive'] },
         ],
         unmatched: ['unknown-area'],
+        semanticHandoff: {
+          unmatchedSpecs: [{
+            spec: 'unknown-area',
+            path: 'openspec/specs/unknown-area/spec.md',
+            content: '# Unknown\n',
+          }],
+        },
       });
       await expect(fs.readFile(path.join(root, 'openspec', 'specs', 'cli-archive', 'spec.md'), 'utf-8')).resolves.toContain(
         'capabilities:\n  - cap.cli.archive'
@@ -136,9 +143,16 @@ describe('backfillSpecs', () => {
       await writeSpec(root, 'cli-archive', '# CLI Archive\n');
       await writeSpec(root, 'change-creation', '# Change Creation\n');
 
-      await expect(backfillSpecs(root)).resolves.toEqual({
+      await expect(backfillSpecs(root)).resolves.toMatchObject({
         written: [],
         unmatched: ['change-creation', 'cli-archive'],
+        semanticHandoff: {
+          candidateCapabilities: [],
+          unmatchedSpecs: [
+            { spec: 'change-creation', content: '# Change Creation\n' },
+            { spec: 'cli-archive', content: '# CLI Archive\n' },
+          ],
+        },
       });
     });
   });

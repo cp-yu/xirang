@@ -7,7 +7,7 @@
 ## Command Syntax
 
 ```bash
-openspec bootstrap init [--mode <full|opsx-first|refresh>] [--scope <path>] [--restart]
+openspec bootstrap init [--mode <full|opsx-first|refresh>] [--scope <path>] [--restart] [--granularity <coarse|fine>]
 ```
 ## Requirements
 ### Requirement: TTY 环境下的模式提问
@@ -117,9 +117,30 @@ Bootstrap init SHALL require an explicit `granularity` value supplied by the age
 - **THEN** init SHALL fail fast with an error listing valid values `coarse` and `fine`
 - **AND** init SHALL NOT create or update `openspec/bootstrap/scope.yaml`
 
+#### Scenario: Restart inherits retained granularity
+- **GIVEN** a completed retained workspace has `granularity: coarse` in `scope.yaml`
+- **WHEN** the agent runs `openspec bootstrap init --mode refresh --restart` without `--granularity`
+- **THEN** the new workspace SHALL contain `granularity: coarse`
+- **AND** CLI SHALL NOT fail for a missing granularity option
+
 #### Scenario: Restart carries explicit granularity
 - **GIVEN** a completed retained workspace is restarted
 - **WHEN** the agent runs `openspec bootstrap init --mode refresh --restart --granularity fine`
 - **THEN** the new workspace SHALL contain `granularity: fine`
 - **AND** the explicit value SHALL override any retained workspace granularity
+
+### Requirement: Init SHALL expose a public scan transition
+After initialization, bootstrap SHALL expose an auditable CLI transition from `init` to `scan` without requiring metadata edits or internal API calls.
+
+#### Scenario: Public init to scan transition succeeds
+- **GIVEN** an initialized in-progress workspace whose current phase is `init`
+- **WHEN** the user runs `openspec bootstrap advance scan`
+- **THEN** CLI SHALL persist `phase: scan` in bootstrap metadata
+- **AND** status output SHALL report `phase: scan`
+- **AND** JSON output SHALL identify `fromPhase: init` and `toPhase: scan`
+
+#### Scenario: Public transition rejects skips and repeats
+- **WHEN** `openspec bootstrap advance <phase>` does not describe the current `init -> scan` transition
+- **THEN** CLI SHALL fail without modifying bootstrap metadata
+- **AND** later phase transitions SHALL remain gate-driven by `openspec bootstrap validate`
 
