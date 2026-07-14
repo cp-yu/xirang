@@ -1,0 +1,62 @@
+schema_version: 2
+ADDED:
+  capabilities:
+    - id: cap.artifact-graph.file-definitions
+      type: capability
+      intent: 为内置 change artifacts、bootstrap lifecycle files 与 formal OPSX files 提供结构化用途、编译职责、内容边界、写入策略和验证合同，并按 artifact 或 phase 向 Agent 投影
+      status: active
+  relations:
+    - from: cap.artifact-graph.file-definitions
+      type: belongs_to
+      to: dom.artifact-graph
+    - from: cap.artifact-graph.instruction-loader
+      type: consumes
+      to: cap.artifact-graph.file-definitions
+    - from: cap.cli.authoring-help
+      type: consumes
+      to: cap.artifact-graph.file-definitions
+    - from: cap.opsx.bootstrap
+      type: consumes
+      to: cap.artifact-graph.file-definitions
+MODIFIED:
+  domains:
+    - id: dom.schema
+      intent: 定义并解析固定内置 workflow Schema，控制 artifact/file definitions、依赖关系与构建顺序
+  capabilities:
+    - id: cap.artifact-graph.parse
+      intent: 解析内置 Schema 的 artifacts、file definitions 与依赖 DAG，校验 definition 结构、引用完整性、重复 ID 和循环
+    - id: cap.artifact-graph.instruction-loader
+      intent: 加载内置 Schema 的 file definition、instruction 与 template，并按 artifact 编译项目配置投影、依赖状态和验证上下文
+    - id: cap.artifact-graph.schema-resolution
+      intent: 从固定 package 内置集合解析和验证 spec-driven 与 bootstrap Schema
+    - id: cap.cli.instructions
+      intent: 向 Agent 投影 artifact definition、instruction、template、依赖、输出路径与 config projection，并要求 definition-first authoring；apply instructions 保持 verify-aware TDD 状态
+    - id: cap.cli.authoring-help
+      intent: 从内置 Schema file definitions 与 RelationDefinitionRegistry 生成文件级 authoring help 和稳定 JSON 输出
+    - id: cap.opsx.bootstrap
+      intent: 通过 init → scan → map → review → promote 五阶段从当前证据生成 OPSX v2，并按 phase 投影 source、derived、review 与 formal output 文件定义
+    - id: cap.cli.schema
+      intent: 检查固定内置 spec-driven 与 bootstrap Schema 的 package location、结构、templates、file definitions 和依赖 graph
+    - id: cap.cli.schemas
+      intent: 列出固定内置 workflow Schema 及其描述
+    - id: cap.cli.templates
+      intent: 显示固定内置 Schema 中所有 artifacts 的 package template paths
+    - id: cap.ai.workflow-templates
+      intent: 提供遵循 Specs + OPSX durable source、compilation scaffolding、definition-first authoring、OPSX v2 两文件导航与实时代码证据分层规则的核心 workflow skill templates
+    - id: cap.schema.opsx-delta-artifact
+      intent: 将 opsx-delta 注册为 spec-driven 正式 artifact，定义其以最小 reconciliation operations 表达目标架构稳态，并提供 Registry-derived template 与 instruction
+    - id: cap.ai.propose-smart-routing
+      intent: Propose 阶段复用 Design Summary 并按 resolved file definitions 生成 change artifacts；在写入 delta specs 前检查引用，validate 后生成 scenario labels review metadata
+    - id: cap.ai.snack-skill
+      intent: snack 通过代码变更证据、OPSX intent/relations 与 spec registry 推断受影响 capabilities，使用可选 CodeGraph 或 ACE/rg/read fallback，不依赖 code-map
+REMOVED:
+  capabilities:
+    - id: cap.schema.init
+    - id: cap.schema.fork
+  relations:
+    - from: cap.schema.init
+      type: belongs_to
+      to: dom.schema
+    - from: cap.schema.fork
+      type: belongs_to
+      to: dom.schema
