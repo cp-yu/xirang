@@ -52,30 +52,36 @@ describe('verify gate shared fragments', () => {
 });
 
 describe('OPSX compilation philosophy fragment', () => {
-  it('states the compilation metaphor mapping', () => {
+  it('distinguishes durable source, scaffolding, and reconciliation', () => {
     for (const token of [
       'compilation pipeline',
-      'source code',
+      'Specs + OPSX',
+      'durable semantic source',
+      'compilation scaffolding',
+      'change-local specs',
+      'opsx-delta',
+      'target steady state',
       'the agent is the compiler',
       'static analysis',
       'semantic-check pass',
       'optimization pass',
       'linking and release',
-      'symbol table',
+      'symbol table and module graph',
       'decompilation',
     ]) {
       expect(OPSX_COMPILATION_PHILOSOPHY).toContain(token);
     }
+    expect(OPSX_COMPILATION_PHILOSOPHY).toContain('MUST NOT override Specs or OPSX');
   });
 
   it('states all six derived rules and the iteration clause', () => {
     for (const token of [
       'MUST be elegant',
       'state each fact exactly once',
-      'faithful + elicited',
+      'key undefined decisions',
       'Never guess silently',
       'MUST NOT invent instructions',
-      'goes back into specs first',
+      'return to the relevant Specs or OPSX',
       'Syntax is contract',
       'No dead-code output',
       'Not compiled until gates pass',

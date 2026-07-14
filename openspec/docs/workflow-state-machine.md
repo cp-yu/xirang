@@ -63,9 +63,9 @@
    • 所有 delta specs 合并      • change 目录移动到
      到主 specs                    archive/YYYY-MM-DD-<name>/
    • OPSX delta (如有) 合并     • 所有 specs/OPSX 已同步
-     到三个 OPSX 文件            • 输出归档完成摘要
+     到 formal two-file bundle     • 输出归档完成摘要
    • 验证通过 (引用完整性,
-     代码映射完整性)
+     Registry semantic contract)
    • 变更目录保持活跃
 ```
 
@@ -163,7 +163,8 @@
     │                                      │
     │  读取 proposal.md → 提取能力列表     │
     │  读取 delta specs → 提取需求         │
-    │  读取 project.opsx.yaml → 当前系统   │
+    │  读取 formal OPSX two-file bundle    │
+    │  → project.opsx.yaml + relations     │
     │  生成 opsx-delta.yaml                │
     │  (ADDED / MODIFIED / REMOVED)        │
     └──────────────────┬───────────────────┘
@@ -172,14 +173,15 @@
     ┌──────────────────────────────────────┐
     │  P5. POST_VALIDATION (warning-only)  │
     │  ─────────────────                   │
-    │  openspec validate "<name>"          │
-    │    --type change --json              │
+    │  openspec validate --change "<name>" │
+    │    --artifacts opsx-delta --json      │
     │  → 验证 delta specs 结构            │
     │  → 验证 SHALL/MUST + Scenario 格式   │
     │                                      │
     │  Dry-run opsx-delta merge:           │
+    │  → formal two-file bundle            │
     │  → 引用完整性检查                    │
-    │  → 代码映射完整性检查                │
+    │  → Registry semantic validation      │
     │                                      │
     │  结构检查: proposal.md / design.md   │
     │            / tasks.md                │
@@ -286,8 +288,10 @@
                     ┌──────────────────────────────────────┐
                     │  A4. CONTEXT_LOAD                    │
                     │  ─────────────────                   │
-                    │  读取 project.opsx.yaml (如有)       │
-                    │  读取 project.opsx.code-map.yaml     │
+                    │  读取 formal OPSX two-file bundle    │
+                    │  → project.opsx.yaml + relations     │
+                    │  用 openspec opsx query 查询关系     │
+                    │  用 CodeGraph/ACE/rg/read 定位代码   │
                     │  读取 openspec/specs/                │
                     │  读取 contextFiles (proposal,        │
                     │    design, specs, tasks)             │
@@ -1001,8 +1005,8 @@ SYNC 可以是独立命令，也可以是 ARCHIVE 的内嵌步骤：
 | 条件 | 必须? | 说明 |
 |------|-------|------|
 | 所有 delta specs 合并到主 specs | ✅ (如有) | 无 delta 则跳过 |
-| OPSX delta 合并到三个 OPSX 文件 | ✅ (如有) | 无 delta 则跳过 |
-| 验证通过 (引用+代码映射完整性) | ✅ (如有) | 失败则中止 archive |
+| OPSX delta 合并到 formal two-file bundle | ✅ (如有) | 无 delta 则跳过 |
+| 验证通过 (引用完整性 + Registry semantic validation) | ✅ (如有) | 失败则中止 archive |
 | 变更目录仍为活跃状态 | ✅ 是 | 不移动目录 |
 
 ---
@@ -1154,7 +1158,7 @@ SYNC 可以是独立命令，也可以是 ARCHIVE 的内嵌步骤：
                     │  检查 OPSX delta:                    │
                     │  openspec/changes/<name>/            │
                     │  opsx-delta.yaml                     │
-                    │  → 存在? 与三个 OPSX 文件比较        │
+                    │  → 存在? 与 formal two-file bundle 比较 │
                     │                                      │
                     │  都不存在 → 跳过, 直接 AR6           │
                     │                                      │
@@ -1344,7 +1348,6 @@ SYNC 可以是独立命令，也可以是 ARCHIVE 的内嵌步骤：
   .verify-result.json     -         R         W         R         R
   project.opsx.yaml       R         R         R         R+W       R
   project.opsx.relations  R         R         R         R+W       R
-  project.opsx.code-map   R         R         R         R+W       R
   config.yaml             -         R         R         -         R
   源代码                   -         W         R         -         -
 

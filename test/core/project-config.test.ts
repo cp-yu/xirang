@@ -8,7 +8,6 @@ import {
   migrateProjectConfigDefaults,
   readProjectConfig,
   validateConfigRules,
-  suggestSchemas,
 } from '../../src/core/project-config.js';
 import {
   buildConfigProjectionBundle,
@@ -536,30 +535,18 @@ git:
         );
       });
 
-      it('should return partial config when schema is invalid', () => {
+      it('should fail fast when schema is invalid', () => {
         const configDir = path.join(tempDir, 'openspec');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: ""
+          `schema: custom-schema
 context: Valid context here
-rules:
-  proposal:
-    - Valid rule
 `
         );
 
-        const config = readProjectConfig(tempDir);
-
-        expect(config).toEqual({
-          context: 'Valid context here',
-          git: gitConfig(),
-          rules: {
-            proposal: ['Valid rule'],
-          },
-        });
-        expect(consoleWarnSpy).toHaveBeenCalledWith(
-          expect.stringContaining("Invalid 'schema' field")
+        expect(() => readProjectConfig(tempDir)).toThrow(
+          /Unsupported schema 'custom-schema'.*spec-driven, bootstrap/
         );
       });
 
@@ -912,12 +899,12 @@ context: |
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yml'),
-          'schema: custom-schema\ncontext: from yml\n'
+          'schema: bootstrap\ncontext: from yml\n'
         );
 
         const config = readProjectConfig(tempDir);
 
-        expect(config?.schema).toBe('custom-schema');
+        expect(config?.schema).toBe('bootstrap');
         expect(config?.context).toBe('from yml');
       });
 
@@ -1282,79 +1269,6 @@ rules:
       expect(runtimeProjection.fragments[0].lines.join('\n')).toContain('task titles, check names, Requirement titles, Scenario titles');
       expect(runtimeProjection.fragments[0].lines.join('\n')).toContain('ordinary English sentences');
       expect(runtimeProjection.fragments[0].lines.join('\n')).toContain('CRITICAL: All natural-language prose');
-    });
-  });
-
-  describe('suggestSchemas', () => {
-    const availableSchemas = [
-      { name: 'spec-driven', isBuiltIn: true },
-      { name: 'custom-workflow', isBuiltIn: false },
-      { name: 'team-process', isBuiltIn: false },
-    ];
-
-    it('should suggest close matches using fuzzy matching', () => {
-      const message = suggestSchemas('spec-drven', availableSchemas); // Missing 'i'
-
-      expect(message).toContain("Schema 'spec-drven' not found");
-      expect(message).toContain('Did you mean one of these?');
-      expect(message).toContain('spec-driven (built-in)');
-    });
-
-    it('should suggest custom-workflow for workflow typo', () => {
-      const message = suggestSchemas('custom-workflo', availableSchemas);
-
-      expect(message).toContain('Did you mean one of these?');
-      expect(message).toContain('custom-workflow');
-    });
-
-    it('should list all available schemas', () => {
-      const message = suggestSchemas('nonexistent', availableSchemas);
-
-      expect(message).toContain('Available schemas:');
-      expect(message).toContain('Built-in: spec-driven');
-      expect(message).toContain('Project-local: custom-workflow, team-process');
-    });
-
-    it('should handle case when no project-local schemas exist', () => {
-      const builtInOnly = [
-        { name: 'spec-driven', isBuiltIn: true },
-      ];
-      const message = suggestSchemas('invalid', builtInOnly);
-
-      expect(message).toContain('Built-in: spec-driven');
-      expect(message).toContain('Project-local: (none found)');
-    });
-
-    it('should include fix instruction', () => {
-      const message = suggestSchemas('wrong-schema', availableSchemas);
-
-      expect(message).toContain(
-        "Fix: Edit openspec/config.yaml and change 'schema: wrong-schema' to a valid schema name"
-      );
-    });
-
-    it('should limit suggestions to top 3 matches', () => {
-      const manySchemas = [
-        { name: 'test-a', isBuiltIn: true },
-        { name: 'test-b', isBuiltIn: true },
-        { name: 'test-c', isBuiltIn: true },
-        { name: 'test-d', isBuiltIn: true },
-        { name: 'test-e', isBuiltIn: true },
-      ];
-      const message = suggestSchemas('test', manySchemas);
-
-      // Should suggest at most 3
-      const suggestionCount = (message.match(/test-/g) || []).length;
-      expect(suggestionCount).toBeGreaterThanOrEqual(3);
-      expect(suggestionCount).toBeLessThanOrEqual(3 + 5); // 3 in suggestions + 5 in "Available" list
-    });
-
-    it('should not suggest schemas with distance > 3', () => {
-      const message = suggestSchemas('abcdefghijk', availableSchemas);
-
-      // 'abcdefghijk' has large Levenshtein distance from all schemas
-      expect(message).not.toContain('Did you mean');
-      expect(message).toContain('Available schemas:');
     });
   });
 });

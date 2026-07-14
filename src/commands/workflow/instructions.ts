@@ -106,6 +106,7 @@ export function printInstructionsText(instructions: ArtifactInstructions, isBloc
     changeDir,
     outputPath,
     description,
+    definition,
     instruction,
     context,
     rules,
@@ -135,6 +136,14 @@ export function printInstructionsText(instructions: ArtifactInstructions, isBloc
   console.log(description);
   console.log('</task>');
   console.log();
+
+  if (definition) {
+    console.log('<definition>');
+    console.log('Do not copy this definition into the artifact.');
+    console.log(JSON.stringify(definition, null, 2));
+    console.log('</definition>');
+    console.log();
+  }
 
   // Project context (AI constraint - do not include in output)
   if (context) {

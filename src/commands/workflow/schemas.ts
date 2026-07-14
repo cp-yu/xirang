@@ -32,13 +32,7 @@ export async function schemasCommand(options: SchemasOptions): Promise<void> {
   console.log();
 
   for (const schema of schemas) {
-    let sourceLabel = '';
-    if (schema.source === 'project') {
-      sourceLabel = chalk.cyan(' (project)');
-    } else if (schema.source === 'user') {
-      sourceLabel = chalk.dim(' (user override)');
-    }
-    console.log(`  ${chalk.bold(schema.name)}${sourceLabel}`);
+    console.log(`  ${chalk.bold(schema.name)}`);
     console.log(`    ${schema.description}`);
     console.log(`    Artifacts: ${schema.artifacts.join(' → ')}`);
     console.log();

@@ -11,7 +11,7 @@ The OpenSpec CLI (`openspec`) provides terminal commands for project setup, vali
 | **Validation** | `validate` | Check changes and specs for issues |
 | **Lifecycle** | `archive` | Finalize completed changes |
 | **Workflow** | `status`, `instructions`, `templates`, `schemas` | Artifact-driven workflow support |
-| **Schemas** | `schema init`, `schema fork`, `schema validate`, `schema which` | Create and manage custom workflows |
+| **Schemas** | `schema validate`, `schema which` | Inspect and validate built-in workflows |
 | **Config** | `config` | View and modify settings |
 | **Utility** | `feedback`, `completion` | Feedback and shell integration |
 
@@ -531,8 +531,8 @@ openspec templates [options]
 # Show template paths for default schema
 openspec templates
 
-# Show templates for custom schema
-openspec templates --schema my-workflow
+# Show templates for the bootstrap schema
+openspec templates --schema bootstrap
 
 # JSON for programmatic use
 openspec templates --json
@@ -544,10 +544,10 @@ openspec templates --json
 Schema: spec-driven
 
 Templates:
-  proposal  → ~/.openspec/schemas/spec-driven/templates/proposal.md
-  specs     → ~/.openspec/schemas/spec-driven/templates/specs.md
-  design    → ~/.openspec/schemas/spec-driven/templates/design.md
-  tasks     → ~/.openspec/schemas/spec-driven/templates/tasks.md
+  proposal  → <package>/schemas/spec-driven/templates/proposal.md
+  specs     → <package>/schemas/spec-driven/templates/spec.md
+  design    → <package>/schemas/spec-driven/templates/design.md
+  tasks     → <package>/schemas/spec-driven/templates/tasks.md
 ```
 
 ---
@@ -581,99 +581,16 @@ Available schemas:
     The default spec-driven development workflow
     Flow: proposal → specs → design → tasks
 
-  my-custom (project)
-    Custom workflow for this project
-    Flow: research → proposal → tasks
+  bootstrap (package)
+    The structured OPSX bootstrap workflow
+    Flow: init → scan → map → review → promote
 ```
 
 ---
 
 ## Schema Commands
 
-Commands for creating and managing custom workflow schemas.
-
-### `openspec schema init`
-
-Create a new project-local schema.
-
-```
-openspec schema init <name> [options]
-```
-
-**Arguments:**
-
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `name` | Yes | Schema name (kebab-case) |
-
-**Options:**
-
-| Option | Description |
-|--------|-------------|
-| `--description <text>` | Schema description |
-| `--artifacts <list>` | Comma-separated artifact IDs (default: `proposal,specs,design,tasks`) |
-| `--default` | Set as project default schema |
-| `--no-default` | Don't prompt to set as default |
-| `--force` | Overwrite existing schema |
-| `--json` | Output as JSON |
-
-**Examples:**
-
-```bash
-# Interactive schema creation
-openspec schema init research-first
-
-# Non-interactive with specific artifacts
-openspec schema init rapid \
-  --description "Rapid iteration workflow" \
-  --artifacts "proposal,tasks" \
-  --default
-```
-
-**What it creates:**
-
-```
-openspec/schemas/<name>/
-├── schema.yaml           # Schema definition
-└── templates/
-    ├── proposal.md       # Template for each artifact
-    ├── specs.md
-    ├── design.md
-    └── tasks.md
-```
-
----
-
-### `openspec schema fork`
-
-Copy an existing schema to your project for customization.
-
-```
-openspec schema fork <source> [name] [options]
-```
-
-**Arguments:**
-
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `source` | Yes | Schema to copy |
-| `name` | No | New schema name (default: `<source>-custom`) |
-
-**Options:**
-
-| Option | Description |
-|--------|-------------|
-| `--force` | Overwrite existing destination |
-| `--json` | Output as JSON |
-
-**Example:**
-
-```bash
-# Fork the built-in spec-driven schema
-openspec schema fork spec-driven my-workflow
-```
-
----
+OpenSpec ships exactly two package-owned schemas: `spec-driven` and `bootstrap`. Project-local and user override schemas are not resolved, and `schema init` and `schema fork` are not available.
 
 ### `openspec schema validate`
 
@@ -699,10 +616,10 @@ openspec schema validate [name] [options]
 **Example:**
 
 ```bash
-# Validate a specific schema
-openspec schema validate my-workflow
+# Validate a specific built-in schema
+openspec schema validate spec-driven
 
-# Validate all schemas
+# Validate both built-in schemas
 openspec schema validate
 ```
 
@@ -710,7 +627,7 @@ openspec schema validate
 
 ### `openspec schema which`
 
-Show where a schema resolves from (useful for debugging precedence).
+Show the package location of a built-in schema.
 
 ```
 openspec schema which [name] [options]
@@ -726,7 +643,7 @@ openspec schema which [name] [options]
 
 | Option | Description |
 |--------|-------------|
-| `--all` | List all schemas with their sources |
+| `--all` | List both built-in schemas |
 | `--json` | Output as JSON |
 
 **Example:**
@@ -740,14 +657,12 @@ openspec schema which spec-driven
 
 ```
 spec-driven resolves from: package
-  Source: /usr/local/lib/node_modules/@fission-ai/openspec/schemas/spec-driven
+  Source: <package>/schemas/spec-driven
 ```
 
-**Schema precedence:**
+**Resolution:**
 
-1. Project: `openspec/schemas/<name>/`
-2. User: `~/.local/share/openspec/schemas/<name>/`
-3. Package: Built-in schemas
+Both schemas resolve directly from the installed package. Project and user directories do not participate in lookup or shadowing.
 
 ---
 
@@ -898,5 +813,5 @@ openspec completion uninstall
 
 - [Commands](commands.md) - AI slash commands (`/opsx:propose`, `/opsx:apply`, etc.)
 - [Workflows](workflows.md) - Common patterns and when to use each command
-- [Customization](customization.md) - Create custom schemas and templates
+- [Schema Commands](#schema-commands) - Inspect built-in schemas and templates
 - [Getting Started](getting-started.md) - First-time setup guide

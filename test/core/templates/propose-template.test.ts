@@ -16,6 +16,21 @@ describe('propose template post-validation flow', () => {
     expect(getOpsxProposeSkillTemplate().instructions).toContain(OPSX_COMPILATION_PHILOSOPHY);
   });
 
+  it('loads the complete formal OPSX bundle before authoring', () => {
+    const instructions = getOpsxProposeSkillTemplate().instructions;
+    expect(instructions).toContain('openspec/project.opsx.yaml');
+    expect(instructions).toContain('openspec/project.opsx.relations.yaml');
+    expect(instructions).toContain('formal OPSX two-file bundle');
+  });
+
+  it('consumes artifact definitions before instructions and templates', () => {
+    const instructions = getOpsxProposeSkillTemplate().instructions;
+    expect(instructions).toContain('resolved `definition`');
+    expect(instructions).toContain('content boundary and write policy');
+    expect(instructions).toContain('MUST NOT copy definition');
+    expect(instructions.indexOf('resolved `definition`')).toBeLessThan(instructions.indexOf('`instruction` and `template`'));
+  });
+
   it('keeps post-propose validation warning-only with a single repair pass', () => {
     for (const body of getProposeBodies()) {
       expect(body).toContain('This validation is warning-only.');
@@ -62,6 +77,7 @@ describe('propose template post-validation flow', () => {
       expect(body).toContain('referential integrity');
       expect(body).toContain('relation semantic validation');
       expect(body).not.toContain('code-map integrity');
+      expect(body).not.toContain('project.opsx.code-map.yaml');
       expect(body).toContain('skips this check');
     }
   });

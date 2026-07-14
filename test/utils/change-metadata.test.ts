@@ -26,13 +26,13 @@ describe('ChangeMetadataSchema', () => {
       }
     });
 
-    it('should accept valid schema without created date', () => {
+    it('should accept the other built-in schema without created date', () => {
       const result = ChangeMetadataSchema.safeParse({
-        schema: 'custom-schema',
+        schema: 'bootstrap',
       });
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.schema).toBe('custom-schema');
+        expect(result.data.schema).toBe('bootstrap');
         expect(result.data.created).toBeUndefined();
       }
     });
@@ -160,7 +160,7 @@ describe('readChangeMetadata', () => {
     const metaPath = path.join(changeDir, '.openspec.yaml');
     await fs.writeFile(metaPath, 'schema: unknown-schema\n', 'utf-8');
 
-    expect(() => readChangeMetadata(changeDir)).toThrow(/Unknown schema/);
+    expect(() => readChangeMetadata(changeDir)).toThrow(/spec-driven.*bootstrap/s);
   });
 });
 
@@ -178,13 +178,13 @@ describe('resolveSchemaForChange', () => {
     await fs.rm(testDir, { recursive: true, force: true });
   });
 
-  it('should return explicit schema when provided', async () => {
-    // Even with metadata file, explicit schema wins
+  it('should reject unsupported explicit schema', async () => {
     const metaPath = path.join(changeDir, '.openspec.yaml');
     await fs.writeFile(metaPath, 'schema: spec-driven\n', 'utf-8');
 
-    const result = resolveSchemaForChange(changeDir, 'custom-schema');
-    expect(result).toBe('custom-schema');
+    expect(() => resolveSchemaForChange(changeDir, 'custom-schema')).toThrow(
+      /Available: spec-driven, bootstrap/
+    );
   });
 
   it('should return schema from metadata when no explicit schema', async () => {
@@ -200,14 +200,11 @@ describe('resolveSchemaForChange', () => {
     expect(result).toBe('spec-driven');
   });
 
-  it('should return default when metadata read fails', async () => {
-    // Create an invalid metadata file
+  it('should fail when metadata read fails', async () => {
     const metaPath = path.join(changeDir, '.openspec.yaml');
     await fs.writeFile(metaPath, '{ invalid yaml', 'utf-8');
 
-    // Should fall back to default, not throw
-    const result = resolveSchemaForChange(changeDir);
-    expect(result).toBe('spec-driven');
+    expect(() => resolveSchemaForChange(changeDir)).toThrow(ChangeMetadataError);
   });
 
   it('should use project config schema when no metadata exists', async () => {
@@ -216,12 +213,12 @@ describe('resolveSchemaForChange', () => {
     await fs.mkdir(configDir, { recursive: true });
     await fs.writeFile(
       path.join(configDir, 'config.yaml'),
-      'schema: custom-schema\n',
+      'schema: bootstrap\n',
       'utf-8'
     );
 
     const result = resolveSchemaForChange(changeDir);
-    expect(result).toBe('custom-schema');
+    expect(result).toBe('bootstrap');
   });
 
   it('should prefer change metadata over project config', async () => {
@@ -230,7 +227,7 @@ describe('resolveSchemaForChange', () => {
     await fs.mkdir(configDir, { recursive: true });
     await fs.writeFile(
       path.join(configDir, 'config.yaml'),
-      'schema: custom-schema\n',
+      'schema: bootstrap\n',
       'utf-8'
     );
 
@@ -248,7 +245,7 @@ describe('resolveSchemaForChange', () => {
     await fs.mkdir(configDir, { recursive: true });
     await fs.writeFile(
       path.join(configDir, 'config.yaml'),
-      'schema: custom-schema\n',
+      'schema: bootstrap\n',
       'utf-8'
     );
 
@@ -257,8 +254,8 @@ describe('resolveSchemaForChange', () => {
     await fs.writeFile(metaPath, 'schema: spec-driven\n', 'utf-8');
 
     // Explicit schema should win
-    const result = resolveSchemaForChange(changeDir, 'custom-schema');
-    expect(result).toBe('custom-schema');
+    const result = resolveSchemaForChange(changeDir, 'bootstrap');
+    expect(result).toBe('bootstrap');
   });
 
   it('should test full precedence order: CLI > metadata > config > default', async () => {
@@ -267,7 +264,7 @@ describe('resolveSchemaForChange', () => {
     await fs.mkdir(configDir, { recursive: true });
     await fs.writeFile(
       path.join(configDir, 'config.yaml'),
-      'schema: custom-schema\n',
+      'schema: bootstrap\n',
       'utf-8'
     );
 
@@ -275,12 +272,12 @@ describe('resolveSchemaForChange', () => {
     await fs.writeFile(metaPath, 'schema: spec-driven\n', 'utf-8');
 
     // Test each level
-    expect(resolveSchemaForChange(changeDir, 'custom-schema')).toBe('custom-schema'); // CLI wins
+    expect(resolveSchemaForChange(changeDir, 'bootstrap')).toBe('bootstrap'); // CLI wins
     expect(resolveSchemaForChange(changeDir)).toBe('spec-driven'); // Metadata wins when no CLI
 
     // Remove metadata, config should win
     await fs.unlink(metaPath);
-    expect(resolveSchemaForChange(changeDir)).toBe('custom-schema'); // Config wins
+    expect(resolveSchemaForChange(changeDir)).toBe('bootstrap'); // Config wins
 
     // Remove config, default should win
     await fs.unlink(path.join(configDir, 'config.yaml'));

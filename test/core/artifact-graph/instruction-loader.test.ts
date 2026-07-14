@@ -157,6 +157,27 @@ describe('instruction-loader', () => {
       expect(instructions.artifactId).toBe('proposal');
       expect(instructions.schemaName).toBe('spec-driven');
       expect(instructions.outputPath).toBe('proposal.md');
+      expect(instructions.definition).toEqual(expect.objectContaining({
+        purpose: expect.any(String),
+        compilationRole: expect.any(String),
+        writePolicy: 'agent-authored',
+      }));
+    });
+
+    it('rejects an unsupported project schema during instruction projection', () => {
+      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      fs.mkdirSync(changeDir, { recursive: true });
+      fs.writeFileSync(path.join(changeDir, '.openspec.yaml'), 'schema: spec-driven\n');
+      fs.writeFileSync(
+        path.join(tempDir, 'openspec', 'config.yaml'),
+        'schema: custom-schema\n'
+      );
+
+      const context = loadChangeContext(tempDir, 'my-change');
+
+      expect(() => generateInstructions(context, 'proposal')).toThrow(
+        /Unsupported schema 'custom-schema'.*spec-driven, bootstrap/
+      );
     });
 
     it('should include template content', () => {

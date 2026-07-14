@@ -9,6 +9,14 @@ import {
   type Node,
 } from 'yaml';
 import { z } from 'zod';
+import { BuiltInSchemaIdSchema } from './artifact-graph/types.js';
+
+export class ProjectConfigError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ProjectConfigError';
+  }
+}
 
 export const PROJECT_CONFIG_FUNCTIONAL_DEFAULTS = {
   optimization: {
@@ -66,11 +74,8 @@ const gitCommitMessagePathField = z
  * - Consistent with other OpenSpec schemas
  */
 export const ProjectConfigSchema = z.object({
-  // Required: which schema to use (e.g., "spec-driven", or project-local schema name)
-  schema: z
-    .string()
-    .min(1)
-    .describe('The workflow schema to use (e.g., "spec-driven")'),
+  // Required: which built-in workflow schema to use
+  schema: BuiltInSchemaIdSchema.describe('The built-in workflow schema to use'),
 
   // Optional: natural-language prose language for OpenSpec artifacts
   proseLanguage: z
@@ -338,13 +343,14 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
 
     const config: Partial<ProjectConfig> = {};
 
-    // Parse schema field using Zod
-    const schemaField = z.string().min(1);
-    const schemaResult = schemaField.safeParse(raw.schema);
+    // Schema binding is strict because selecting the wrong compiler is unsafe.
+    const schemaResult = BuiltInSchemaIdSchema.safeParse(raw.schema);
     if (schemaResult.success) {
       config.schema = schemaResult.data;
     } else if (raw.schema !== undefined) {
-      console.warn(`Invalid 'schema' field in config (must be non-empty string)`);
+      throw new ProjectConfigError(
+        `Unsupported schema '${String(raw.schema)}' in openspec/config.yaml. Available: spec-driven, bootstrap`
+      );
     }
 
     // Parse proseLanguage field using Zod, with docLanguage as a legacy fallback.
@@ -568,6 +574,9 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
     // Return partial config even if some fields failed
     return Object.keys(config).length > 0 ? (config as ProjectConfig) : null;
   } catch (error) {
+    if (error instanceof ProjectConfigError) {
+      throw error;
+    }
     console.warn(`Failed to parse openspec/config.yaml:`, error);
     return null;
   }
@@ -601,77 +610,4 @@ export function validateConfigRules(
   }
 
   return warnings;
-}
-
-/**
- * Suggest valid schema names when user provides invalid schema.
- * Uses fuzzy matching to find similar names.
- *
- * @param invalidSchemaName - The invalid schema name from config
- * @param availableSchemas - List of available schemas with their type (built-in or project-local)
- * @returns Error message with suggestions and available schemas
- */
-export function suggestSchemas(
-  invalidSchemaName: string,
-  availableSchemas: { name: string; isBuiltIn: boolean }[]
-): string {
-  // Simple fuzzy match: Levenshtein distance
-  function levenshtein(a: string, b: string): number {
-    const matrix: number[][] = [];
-    for (let i = 0; i <= b.length; i++) {
-      matrix[i] = [i];
-    }
-    for (let j = 0; j <= a.length; j++) {
-      matrix[0][j] = j;
-    }
-    for (let i = 1; i <= b.length; i++) {
-      for (let j = 1; j <= a.length; j++) {
-        if (b.charAt(i - 1) === a.charAt(j - 1)) {
-          matrix[i][j] = matrix[i - 1][j - 1];
-        } else {
-          matrix[i][j] = Math.min(
-            matrix[i - 1][j - 1] + 1,
-            matrix[i][j - 1] + 1,
-            matrix[i - 1][j] + 1
-          );
-        }
-      }
-    }
-    return matrix[b.length][a.length];
-  }
-
-  // Find closest matches (distance <= 3)
-  const suggestions = availableSchemas
-    .map((s) => ({ ...s, distance: levenshtein(invalidSchemaName, s.name) }))
-    .filter((s) => s.distance <= 3)
-    .sort((a, b) => a.distance - b.distance)
-    .slice(0, 3);
-
-  const builtIn = availableSchemas.filter((s) => s.isBuiltIn).map((s) => s.name);
-  const projectLocal = availableSchemas.filter((s) => !s.isBuiltIn).map((s) => s.name);
-
-  let message = `Schema '${invalidSchemaName}' not found in openspec/config.yaml\n\n`;
-
-  if (suggestions.length > 0) {
-    message += `Did you mean one of these?\n`;
-    suggestions.forEach((s) => {
-      const type = s.isBuiltIn ? 'built-in' : 'project-local';
-      message += `  - ${s.name} (${type})\n`;
-    });
-    message += '\n';
-  }
-
-  message += `Available schemas:\n`;
-  if (builtIn.length > 0) {
-    message += `  Built-in: ${builtIn.join(', ')}\n`;
-  }
-  if (projectLocal.length > 0) {
-    message += `  Project-local: ${projectLocal.join(', ')}\n`;
-  } else {
-    message += `  Project-local: (none found)\n`;
-  }
-
-  message += `\nFix: Edit openspec/config.yaml and change 'schema: ${invalidSchemaName}' to a valid schema name`;
-
-  return message;
 }

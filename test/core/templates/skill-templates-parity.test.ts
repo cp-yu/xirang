@@ -1,4 +1,6 @@
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -9,23 +11,25 @@ import {
   getFeedbackSkillTemplate,
   getOpsxProposeSkillTemplate,
   getBootstrapOpsxSkillTemplate,
+  getSnackSkillTemplate,
 } from '../../../src/core/templates/skill-templates.js';
 import { generateSkillContent } from '../../../src/core/shared/skill-generation.js';
+import { runTransforms } from '../../../src/core/templates/transforms/index.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getExploreSkillTemplate: '1cc788f56597f83f0dab15f3b21d74488043c0717abd9caeb5edb7033d190e75',
-  getApplyChangeSkillTemplate: '494790669826cbd6c5b7695adc67a96423eb6437526210d992077ed2e3b992c1',
-  getArchiveChangeSkillTemplate: '64cd3ae62041b645ef0ebe1e9c537c65429ba81e651b763fb1e129aac508d998',
-  getOpsxProposeSkillTemplate: '4529cae40570127b26abbbec2eb80be090102c8608aa23c408cd8a203dba8546',
+  getExploreSkillTemplate: 'f47a2e601d6dbf6116852f2997940ec195b39b1858bffd55a29f98a845910299',
+  getApplyChangeSkillTemplate: '1ad796c083e7d627d554fc52ac22e1f47280e67b016d15fda33866156464d57f',
+  getArchiveChangeSkillTemplate: '25b3dfafc5d2a617139024e789e255ad1dcd8bb8a130529bbbc2e14bb175d4b1',
+  getOpsxProposeSkillTemplate: '216a7bec1550f860acb7b41ae6d93912f0bced81f919e4df1652bdd3f39f050b',
   getFeedbackSkillTemplate: 'd7d83c5f7fc2b92fe8f4588a5bf2d9cb315e4c73ec19bcd5ef28270906319a0d',
-  getBootstrapOpsxSkillTemplate: 'adbb536e41f5916fab4a57dfca0cc8b14cb2b05abe9eeeb772f2a33e73cfbb45',
+  getBootstrapOpsxSkillTemplate: '4034689c02ed6fcd61c3f83386f51c8b510709a99f9edf3c360edbe7bdceb168',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'openspec-explore': '8a5a6fffc8bdf443447eba5097c530308e1b89352f2bdef8b74bfbc6b96b3a46',
-  'openspec-apply-change': 'e69abd8168f76d7c87f82c8db4a9491d050e2839466ba786dfb0428d7f30f682',
-  'openspec-archive-change': 'bdb0a29e715879444e1945858752896180122431512afa67c9f2d187a3cbe38c',
-  'openspec-propose': '5545fe0465e3fc1d0fabeb009686b6589445e8288111fec759cc97b9040cdd54',
+  'openspec-explore': '38425d9b575d5352c8690d12b51bbc75680fdba7c2d3a1f754f9c45d2709b50f',
+  'openspec-apply-change': 'eee3482ad9696cb0c5f0692be01fe15e7837c5f16786ca1f65b5d9d1ace7117d',
+  'openspec-archive-change': '58b6588cd32a52dda6f6e7fb48e7060187c5ec718afb7b2a6708cebd0247130a',
+  'openspec-propose': '0db5264ed99e282d49b0a8ae50e251750b0d1b9d4557464ed3c636ea8d94450d',
 };
 
 function stableStringify(value: unknown): string {
@@ -84,6 +88,26 @@ describe('skill templates split parity', () => {
     );
 
     expect(actualHashes).toEqual(EXPECTED_GENERATED_SKILL_CONTENT_HASHES);
+  });
+
+  it('keeps tracked Pi skills byte-identical to generated templates', () => {
+    const version = JSON.parse(readFileSync(path.resolve('package.json'), 'utf-8')).version as string;
+    const skillFactories: Array<[string, string, () => SkillTemplate]> = [
+      ['propose', 'openspec-propose', getOpsxProposeSkillTemplate],
+      ['explore', 'openspec-explore', getExploreSkillTemplate],
+      ['apply', 'openspec-apply-change', getApplyChangeSkillTemplate],
+      ['archive', 'openspec-archive-change', getArchiveChangeSkillTemplate],
+      ['bootstrap-opsx', 'openspec-bootstrap-opsx', getBootstrapOpsxSkillTemplate],
+      ['snack', 'openspec-snack', getSnackSkillTemplate],
+    ];
+
+    for (const [workflowId, dirName, createTemplate] of skillFactories) {
+      const expected = generateSkillContent(createTemplate(), version, (instructions) =>
+        runTransforms(instructions, { toolId: 'pi', workflowId, artifactType: 'skill' })
+      );
+      const actual = readFileSync(path.join('.pi', 'skills', dirName, 'SKILL.md'), 'utf-8');
+      expect(actual, dirName).toBe(expected);
+    }
   });
 
 });

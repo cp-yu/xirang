@@ -169,6 +169,10 @@ describe('bootstrap command Phase 1 baseline contract', () => {
       nextAction: 'init',
     });
     expect(instructions.instruction).toContain('Run: openspec bootstrap init --mode full');
+    expect(instructions.fileDefinitions.map((file: { id: string }) => file.id)).toEqual([
+      'metadata',
+      'scope',
+    ]);
   });
 
   it('rejects unsupported mode on a formal-opsx baseline before creating bootstrap workspace', async () => {
@@ -206,16 +210,28 @@ describe('bootstrap command Phase 1 baseline contract', () => {
         () => captureJsonOutput(() => bootstrapInstructionsCommand(phase, { json: true }))
       );
       expect(result.instruction).not.toMatch(/git diff|code refs|existing formal OPSX bundle and current specs as the baseline/i);
+      expect(result.fileDefinitions.length).toBeGreaterThan(0);
     }
+
+    const initDefinitions = await withCwd(
+      testDir,
+      () => captureJsonOutput(() => bootstrapInstructionsCommand('init', { json: true }))
+    );
+    expect(initDefinitions.fileDefinitions.map((file: { id: string }) => file.id)).toEqual(['metadata', 'scope']);
 
     const scan = await withCwd(testDir, () => captureJsonOutput(() => bootstrapInstructionsCommand('scan', { json: true })));
     expect(scan.instruction).toContain('all current source, specs, configuration, and package/build metadata');
+    expect(scan.fileDefinitions.map((file: { id: string }) => file.id)).toEqual(['metadata', 'scope', 'evidence']);
     const map = await withCwd(testDir, () => captureJsonOutput(() => bootstrapInstructionsCommand('map', { json: true })));
     expect(map.instruction).toContain('semantic relations');
     expect(map.instruction).toContain('review_gaps');
+    expect(map.fileDefinitions.map((file: { id: string }) => file.id)).toEqual(['scope', 'evidence', 'domain-map']);
     const review = await withCwd(testDir, () => captureJsonOutput(() => bootstrapInstructionsCommand('review', { json: true })));
     expect(review.instruction).toContain('semantic relation type/direction');
     expect(review.instruction).toContain('review gaps');
+    expect(review.fileDefinitions.map((file: { id: string }) => file.id)).toEqual([
+      'evidence', 'domain-map', 'candidate-project', 'candidate-relations', 'candidate-specs', 'review',
+    ]);
   });
 
   it('publicly advances init to scan and reports the transition', async () => {

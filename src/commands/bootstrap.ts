@@ -12,11 +12,12 @@ import {
   readBootstrapState,
   advancePhase,
   BOOTSTRAP_PHASES,
-  type BootstrapPhase,
   type BootstrapMode,
   type BootstrapStatus,
 } from '../utils/bootstrap-utils.js';
 import { backfillSpecs, readSemanticMappings } from '../core/backfill-specs.js';
+import { resolveSchema } from '../core/artifact-graph/resolver.js';
+import type { BootstrapPhase } from '../utils/bootstrap-utils.js';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -253,6 +254,16 @@ function printBootstrapStatus(status: BootstrapStatus): void {
 
 // ─── Instructions ────────────────────────────────────────────────────────────
 
+function getPhaseFileDefinitions(phase: BootstrapPhase) {
+  const schema = resolveSchema('bootstrap');
+  const artifact = schema.artifacts.find((candidate) => candidate.id === phase);
+  if (!artifact) {
+    throw new Error(`Bootstrap phase '${phase}' is not defined in the built-in schema.`);
+  }
+  const files = new Map((schema.files ?? []).map((file) => [file.id, file]));
+  return (artifact.files ?? []).map((fileId) => files.get(fileId)!);
+}
+
 export async function bootstrapInstructionsCommand(
   phase: string | undefined,
   options: BootstrapInstructionsOptions
@@ -285,6 +296,7 @@ export async function bootstrapInstructionsCommand(
           allowedModes: status.allowedModes,
           nextAction: status.nextAction,
           reason: status.reason,
+          fileDefinitions: getPhaseFileDefinitions('init'),
           instruction: instructions,
         }, null, 2));
         return;
@@ -313,6 +325,7 @@ export async function bootstrapInstructionsCommand(
         restartCommand: status.restartCommand,
         nextAction: status.nextAction,
         transitionCommand: status.transitionCommand,
+        fileDefinitions: getPhaseFileDefinitions(targetPhase),
         instruction: instructions,
       }, null, 2));
       return;

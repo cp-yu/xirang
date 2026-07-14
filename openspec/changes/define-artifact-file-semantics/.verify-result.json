@@ -1,0 +1,296 @@
+{
+  "timestamp": "2026-07-14T16:46:45.096Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "98984e410ff3db53f66f6daaad78adaeef363397a34d0038b2d574e8906ef125",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      "openspec/changes/define-artifact-file-semantics/design.md",
+      "openspec/changes/define-artifact-file-semantics/opsx-delta.yaml",
+      "openspec/changes/define-artifact-file-semantics/proposal.md",
+      "openspec/changes/define-artifact-file-semantics/tasks.md",
+      "openspec/docs/workflow-state-machine.md",
+      "openspec/references/openspec-apply-step-1-preparation.md",
+      "schemas/bootstrap/schema.yaml",
+      "schemas/spec-driven/schema.yaml",
+      "src/commands/bootstrap.ts",
+      "src/commands/help.ts",
+      "src/commands/schema.ts",
+      "src/core/artifact-graph/instruction-loader.ts",
+      "src/core/artifact-graph/resolver.ts",
+      "src/core/artifact-graph/schema.ts",
+      "src/core/artifact-graph/types.ts",
+      "src/core/project-config.ts",
+      "src/core/templates/fragments/opsx-fragments.ts",
+      "src/core/templates/workflows/propose.ts",
+      "src/core/templates/workflows/snack.ts",
+      "test/core/artifact-graph/instruction-loader.test.ts",
+      "test/core/artifact-graph/resolver.test.ts",
+      "test/core/artifact-graph/schema.test.ts",
+      "test/core/project-config.test.ts",
+      "test/core/templates/apply-change.test.ts",
+      "test/core/templates/propose-template.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts"
+    ],
+    "evidenceFingerprint": "f4b2e16d3bc08c8e1a417ec954633423c54b1cd95e46f34081557dc3a26280ec",
+    "evidenceFingerprintEntries": [
+      {
+        "path": "openspec/changes/define-artifact-file-semantics/design.md",
+        "hash": "d057806198a5d9b73c6408f951d8f99fc5767e9aa7f381e86e80e4cf85f5ac2b"
+      },
+      {
+        "path": "openspec/changes/define-artifact-file-semantics/opsx-delta.yaml",
+        "hash": "07d313ffa2ef388abb56e282b5c082c220e9f1e660252087afb1d3995a24e73c"
+      },
+      {
+        "path": "openspec/changes/define-artifact-file-semantics/proposal.md",
+        "hash": "1bbb5abf619792c32395a73bc275c64f107f2e0586fafa321cb2174c36512b05"
+      },
+      {
+        "path": "openspec/changes/define-artifact-file-semantics/tasks.md",
+        "hash": "98984e410ff3db53f66f6daaad78adaeef363397a34d0038b2d574e8906ef125"
+      },
+      {
+        "path": "openspec/docs/workflow-state-machine.md",
+        "hash": "719e7a6e20360a3c80d970aae7c6e3e7c53388cdfb0a42652443cab946c9d610"
+      },
+      {
+        "path": "openspec/references/openspec-apply-step-1-preparation.md",
+        "hash": "19333997641a0fe3f0b83348f68eeb1059dbca7964bfdd6742cdf96849d989b4"
+      },
+      {
+        "path": "schemas/bootstrap/schema.yaml",
+        "hash": "16946b4704a569bd9dc6c7a5ee1eb926e377d463ab9468782c506c37f39b033d"
+      },
+      {
+        "path": "schemas/spec-driven/schema.yaml",
+        "hash": "9b576c4f38c428d659948d3ddc5b396050df86a48c15a6e76295beccf30969a2"
+      },
+      {
+        "path": "src/commands/bootstrap.ts",
+        "hash": "20a3af8e7caeb91fad8f3132a62be7ccbf3349d4295a256ca20f70c1a15355c1"
+      },
+      {
+        "path": "src/commands/help.ts",
+        "hash": "7ae9a02f99cebb3abb8d176ebb34edb8fc9c90085cc9b7dbf5aa3212199004d1"
+      },
+      {
+        "path": "src/commands/schema.ts",
+        "hash": "603349e328e86d19d1f7a9b28cef4984419cdd545d018623f7572d01988b46ac"
+      },
+      {
+        "path": "src/core/artifact-graph/instruction-loader.ts",
+        "hash": "ffca95810bc8efaae75daf16f6a65ccb8749a622f5e4880993bb77b82d49817d"
+      },
+      {
+        "path": "src/core/artifact-graph/resolver.ts",
+        "hash": "05cc5df8d657bc56c888e23512d94fbe7b5f47b735f3c536c829183231f7adfb"
+      },
+      {
+        "path": "src/core/artifact-graph/schema.ts",
+        "hash": "bed70f0ada1a391b31f25b1d844d0b54c1fb34bfe1fb3da7040af47d30198267"
+      },
+      {
+        "path": "src/core/artifact-graph/types.ts",
+        "hash": "49fb70c8ead2337723c2acec5cf7f2a0cfafcc62a6be971864993afaf496f700"
+      },
+      {
+        "path": "src/core/project-config.ts",
+        "hash": "60b69a4fc2377eb6c02818db3af4007e7e61d7f68a80127c28c6fe38012be4e3"
+      },
+      {
+        "path": "src/core/templates/fragments/opsx-fragments.ts",
+        "hash": "a03643978a671e5ed9793dc4e584a5efd4ea96ff2794cfb63810772763ef3d0c"
+      },
+      {
+        "path": "src/core/templates/workflows/propose.ts",
+        "hash": "94bf30008451a01c507037ca682968c47a9c7109fd2a5f31cafb84a44c7c2edf"
+      },
+      {
+        "path": "src/core/templates/workflows/snack.ts",
+        "hash": "ccdcabf353f31712e378a2b42b12a2ced48a02ff8cfd6bc376d406d88caad2ac"
+      },
+      {
+        "path": "test/core/artifact-graph/instruction-loader.test.ts",
+        "hash": "a956edb8e5492cab462364d2e5528f9fc756cbcbaa601a3c09629f612a157d1f"
+      },
+      {
+        "path": "test/core/artifact-graph/resolver.test.ts",
+        "hash": "92ebe725aed3238a33e5059d8576bd3c02a67c3eaf7c798fe31f1653d7a943af"
+      },
+      {
+        "path": "test/core/artifact-graph/schema.test.ts",
+        "hash": "1476e61a415ef97d69f5e199f968c311c5913c9b5cd83ba3b14f72300ca3345d"
+      },
+      {
+        "path": "test/core/project-config.test.ts",
+        "hash": "6c7158763eeb06b25a036512d84c49ce43d7a9c5b211921ada20d658310b082d"
+      },
+      {
+        "path": "test/core/templates/apply-change.test.ts",
+        "hash": "1f10ee5d7246278ae6442574076da5af5d6f9669fb02eb851727fea35617666e"
+      },
+      {
+        "path": "test/core/templates/propose-template.test.ts",
+        "hash": "b0f9141d20d4fd47bd91849f7a14b6523d41ff9ef25e00c8cee93e348d708099"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "c9cb92d21ec893ad82955e6d57e22fdf3cf5619caaf91500cb8db4f58250b221"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "8d92f335ce54c8b52cb2d95437f05c16c858d8a9"
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-07-14T16:46:45.096Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "98984e410ff3db53f66f6daaad78adaeef363397a34d0038b2d574e8906ef125",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          "openspec/changes/define-artifact-file-semantics/design.md",
+          "openspec/changes/define-artifact-file-semantics/opsx-delta.yaml",
+          "openspec/changes/define-artifact-file-semantics/proposal.md",
+          "openspec/changes/define-artifact-file-semantics/tasks.md",
+          "openspec/docs/workflow-state-machine.md",
+          "openspec/references/openspec-apply-step-1-preparation.md",
+          "schemas/bootstrap/schema.yaml",
+          "schemas/spec-driven/schema.yaml",
+          "src/commands/bootstrap.ts",
+          "src/commands/help.ts",
+          "src/commands/schema.ts",
+          "src/core/artifact-graph/instruction-loader.ts",
+          "src/core/artifact-graph/resolver.ts",
+          "src/core/artifact-graph/schema.ts",
+          "src/core/artifact-graph/types.ts",
+          "src/core/project-config.ts",
+          "src/core/templates/fragments/opsx-fragments.ts",
+          "src/core/templates/workflows/propose.ts",
+          "src/core/templates/workflows/snack.ts",
+          "test/core/artifact-graph/instruction-loader.test.ts",
+          "test/core/artifact-graph/resolver.test.ts",
+          "test/core/artifact-graph/schema.test.ts",
+          "test/core/project-config.test.ts",
+          "test/core/templates/apply-change.test.ts",
+          "test/core/templates/propose-template.test.ts",
+          "test/core/templates/skill-templates-parity.test.ts"
+        ],
+        "evidenceFingerprint": "f4b2e16d3bc08c8e1a417ec954633423c54b1cd95e46f34081557dc3a26280ec",
+        "evidenceFingerprintEntries": [
+          {
+            "path": "openspec/changes/define-artifact-file-semantics/design.md",
+            "hash": "d057806198a5d9b73c6408f951d8f99fc5767e9aa7f381e86e80e4cf85f5ac2b"
+          },
+          {
+            "path": "openspec/changes/define-artifact-file-semantics/opsx-delta.yaml",
+            "hash": "07d313ffa2ef388abb56e282b5c082c220e9f1e660252087afb1d3995a24e73c"
+          },
+          {
+            "path": "openspec/changes/define-artifact-file-semantics/proposal.md",
+            "hash": "1bbb5abf619792c32395a73bc275c64f107f2e0586fafa321cb2174c36512b05"
+          },
+          {
+            "path": "openspec/changes/define-artifact-file-semantics/tasks.md",
+            "hash": "98984e410ff3db53f66f6daaad78adaeef363397a34d0038b2d574e8906ef125"
+          },
+          {
+            "path": "openspec/docs/workflow-state-machine.md",
+            "hash": "719e7a6e20360a3c80d970aae7c6e3e7c53388cdfb0a42652443cab946c9d610"
+          },
+          {
+            "path": "openspec/references/openspec-apply-step-1-preparation.md",
+            "hash": "19333997641a0fe3f0b83348f68eeb1059dbca7964bfdd6742cdf96849d989b4"
+          },
+          {
+            "path": "schemas/bootstrap/schema.yaml",
+            "hash": "16946b4704a569bd9dc6c7a5ee1eb926e377d463ab9468782c506c37f39b033d"
+          },
+          {
+            "path": "schemas/spec-driven/schema.yaml",
+            "hash": "9b576c4f38c428d659948d3ddc5b396050df86a48c15a6e76295beccf30969a2"
+          },
+          {
+            "path": "src/commands/bootstrap.ts",
+            "hash": "20a3af8e7caeb91fad8f3132a62be7ccbf3349d4295a256ca20f70c1a15355c1"
+          },
+          {
+            "path": "src/commands/help.ts",
+            "hash": "7ae9a02f99cebb3abb8d176ebb34edb8fc9c90085cc9b7dbf5aa3212199004d1"
+          },
+          {
+            "path": "src/commands/schema.ts",
+            "hash": "603349e328e86d19d1f7a9b28cef4984419cdd545d018623f7572d01988b46ac"
+          },
+          {
+            "path": "src/core/artifact-graph/instruction-loader.ts",
+            "hash": "ffca95810bc8efaae75daf16f6a65ccb8749a622f5e4880993bb77b82d49817d"
+          },
+          {
+            "path": "src/core/artifact-graph/resolver.ts",
+            "hash": "05cc5df8d657bc56c888e23512d94fbe7b5f47b735f3c536c829183231f7adfb"
+          },
+          {
+            "path": "src/core/artifact-graph/schema.ts",
+            "hash": "bed70f0ada1a391b31f25b1d844d0b54c1fb34bfe1fb3da7040af47d30198267"
+          },
+          {
+            "path": "src/core/artifact-graph/types.ts",
+            "hash": "49fb70c8ead2337723c2acec5cf7f2a0cfafcc62a6be971864993afaf496f700"
+          },
+          {
+            "path": "src/core/project-config.ts",
+            "hash": "60b69a4fc2377eb6c02818db3af4007e7e61d7f68a80127c28c6fe38012be4e3"
+          },
+          {
+            "path": "src/core/templates/fragments/opsx-fragments.ts",
+            "hash": "a03643978a671e5ed9793dc4e584a5efd4ea96ff2794cfb63810772763ef3d0c"
+          },
+          {
+            "path": "src/core/templates/workflows/propose.ts",
+            "hash": "94bf30008451a01c507037ca682968c47a9c7109fd2a5f31cafb84a44c7c2edf"
+          },
+          {
+            "path": "src/core/templates/workflows/snack.ts",
+            "hash": "ccdcabf353f31712e378a2b42b12a2ced48a02ff8cfd6bc376d406d88caad2ac"
+          },
+          {
+            "path": "test/core/artifact-graph/instruction-loader.test.ts",
+            "hash": "a956edb8e5492cab462364d2e5528f9fc756cbcbaa601a3c09629f612a157d1f"
+          },
+          {
+            "path": "test/core/artifact-graph/resolver.test.ts",
+            "hash": "92ebe725aed3238a33e5059d8576bd3c02a67c3eaf7c798fe31f1653d7a943af"
+          },
+          {
+            "path": "test/core/artifact-graph/schema.test.ts",
+            "hash": "1476e61a415ef97d69f5e199f968c311c5913c9b5cd83ba3b14f72300ca3345d"
+          },
+          {
+            "path": "test/core/project-config.test.ts",
+            "hash": "6c7158763eeb06b25a036512d84c49ce43d7a9c5b211921ada20d658310b082d"
+          },
+          {
+            "path": "test/core/templates/apply-change.test.ts",
+            "hash": "1f10ee5d7246278ae6442574076da5af5d6f9669fb02eb851727fea35617666e"
+          },
+          {
+            "path": "test/core/templates/propose-template.test.ts",
+            "hash": "b0f9141d20d4fd47bd91849f7a14b6523d41ff9ef25e00c8cee93e348d708099"
+          },
+          {
+            "path": "test/core/templates/skill-templates-parity.test.ts",
+            "hash": "c9cb92d21ec893ad82955e6d57e22fdf3cf5619caaf91500cb8db4f58250b221"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "8d92f335ce54c8b52cb2d95437f05c16c858d8a9"
+      }
+    }
+  }
+}

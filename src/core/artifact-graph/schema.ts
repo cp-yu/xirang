@@ -26,14 +26,39 @@ export function parseSchema(yamlContent: string): SchemaYaml {
   // Validate with Zod
   const result = SchemaYamlSchema.safeParse(parsed);
   if (!result.success) {
-    const errors = result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+    const errors = result.error.issues.map((issue) => {
+      const [collection, index, ...rest] = issue.path;
+      if ((collection === 'artifacts' || collection === 'files') && typeof index === 'number') {
+        const entries = parsed?.[collection];
+        const id = Array.isArray(entries) ? entries[index]?.id : undefined;
+        if (typeof id === 'string') {
+          const kind = collection === 'artifacts' ? 'artifact' : 'file';
+          return `${kind} '${id}'.${rest.join('.')}: ${issue.message}`;
+        }
+      }
+      return `${issue.path.join('.')}: ${issue.message}`;
+    }).join(', ');
     throw new SchemaValidationError(`Invalid schema: ${errors}`);
   }
 
   const schema = result.data;
 
+  if (schema.name === 'spec-driven') {
+    for (const artifact of schema.artifacts) {
+      if (!artifact.definition) {
+        throw new SchemaValidationError(
+          `Invalid built-in artifact '${artifact.id}': definition is required`
+        );
+      }
+    }
+  }
+  if (schema.name === 'bootstrap' && !schema.files) {
+    throw new SchemaValidationError('Invalid built-in bootstrap schema: files registry is required');
+  }
+
   // Check for duplicate artifact IDs
   validateNoDuplicateIds(schema.artifacts);
+  validateFileReferences(schema);
 
   // Check that all requires references are valid
   validateRequiresReferences(schema.artifacts);
@@ -54,6 +79,33 @@ function validateNoDuplicateIds(artifacts: Artifact[]): void {
       throw new SchemaValidationError(`Duplicate artifact ID: ${artifact.id}`);
     }
     seen.add(artifact.id);
+  }
+}
+
+function validateFileReferences(schema: SchemaYaml): void {
+  const ids = new Set<string>();
+  for (const file of schema.files ?? []) {
+    if (ids.has(file.id)) {
+      throw new SchemaValidationError(`Duplicate file ID: ${file.id}`);
+    }
+    ids.add(file.id);
+  }
+
+  for (const artifact of schema.artifacts) {
+    const referenced = new Set<string>();
+    for (const fileId of artifact.files ?? []) {
+      if (referenced.has(fileId)) {
+        throw new SchemaValidationError(
+          `Invalid file reference in artifact '${artifact.id}': duplicate '${fileId}'`
+        );
+      }
+      if (!ids.has(fileId)) {
+        throw new SchemaValidationError(
+          `Invalid file reference in artifact '${artifact.id}': '${fileId}' does not exist`
+        );
+      }
+      referenced.add(fileId);
+    }
   }
 }
 

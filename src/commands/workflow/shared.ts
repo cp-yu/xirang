@@ -152,7 +152,7 @@ export async function validateChangeExists(
  * Validates that a schema exists and returns available schemas if not.
  *
  * @param schemaName - The schema name to validate
- * @param projectRoot - Optional project root for project-local schema resolution
+ * @param projectRoot - Optional project root retained for API compatibility
  */
 export function validateSchemaExists(schemaName: string, projectRoot?: string): string {
   const schemaDir = getSchemaDir(schemaName, projectRoot);

@@ -1,8 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as yaml from 'yaml';
-import { ChangeMetadataSchema, type ChangeMetadata } from '../core/artifact-graph/types.js';
-import { listSchemas } from '../core/artifact-graph/resolver.js';
+import { BUILT_IN_SCHEMA_IDS, ChangeMetadataSchema, type BuiltInSchemaId, type ChangeMetadata } from '../core/artifact-graph/types.js';
 import { readProjectConfig } from '../core/project-config.js';
 
 const METADATA_FILENAME = '.openspec.yaml';
@@ -25,21 +24,20 @@ export class ChangeMetadataError extends Error {
  * Validates that a schema name is valid (exists in available schemas).
  *
  * @param schemaName - The schema name to validate
- * @param projectRoot - Optional project root for project-local schema resolution
+ * @param projectRoot - Optional project root retained for API compatibility
  * @returns The validated schema name
  * @throws Error if schema is not found
  */
 export function validateSchemaName(
   schemaName: string,
-  projectRoot?: string
-): string {
-  const availableSchemas = listSchemas(projectRoot);
-  if (!availableSchemas.includes(schemaName)) {
+  _projectRoot?: string
+): BuiltInSchemaId {
+  if (!(BUILT_IN_SCHEMA_IDS as readonly string[]).includes(schemaName)) {
     throw new Error(
-      `Unknown schema '${schemaName}'. Available: ${availableSchemas.join(', ')}`
+      `Unknown schema '${schemaName}'. Available: ${BUILT_IN_SCHEMA_IDS.join(', ')}`
     );
   }
-  return schemaName;
+  return schemaName as BuiltInSchemaId;
 }
 
 /**
@@ -47,7 +45,7 @@ export function validateSchemaName(
  *
  * @param changeDir - The path to the change directory
  * @param metadata - The metadata to write
- * @param projectRoot - Optional project root for project-local schema resolution
+ * @param projectRoot - Optional project root retained for API compatibility
  * @throws ChangeMetadataError if validation fails or write fails
  */
 export function writeChangeMetadata(
@@ -87,7 +85,7 @@ export function writeChangeMetadata(
  * Reads change metadata from .openspec.yaml in the change directory.
  *
  * @param changeDir - The path to the change directory
- * @param projectRoot - Optional project root for project-local schema resolution
+ * @param projectRoot - Optional project root retained for API compatibility
  * @returns The validated metadata, or null if no metadata file exists
  * @throws ChangeMetadataError if the file exists but is invalid
  */
@@ -134,15 +132,6 @@ export function readChangeMetadata(
     );
   }
 
-  // Validate that the schema exists
-  const availableSchemas = listSchemas(projectRoot);
-  if (!availableSchemas.includes(parseResult.data.schema)) {
-    throw new ChangeMetadataError(
-      `Unknown schema '${parseResult.data.schema}'. Available: ${availableSchemas.join(', ')}`,
-      metaPath
-    );
-  }
-
   return parseResult.data;
 }
 
@@ -162,33 +151,25 @@ export function readChangeMetadata(
 export function resolveSchemaForChange(
   changeDir: string,
   explicitSchema?: string
-): string {
+): BuiltInSchemaId {
   // Derive project root from changeDir (changeDir is typically projectRoot/openspec/changes/change-name)
   const projectRoot = path.resolve(changeDir, '../../..');
 
   // 1. Explicit override wins
   if (explicitSchema) {
-    return explicitSchema;
+    return validateSchemaName(explicitSchema);
   }
 
-  // 2. Try reading from metadata
-  try {
-    const metadata = readChangeMetadata(changeDir, projectRoot);
-    if (metadata?.schema) {
-      return metadata.schema;
-    }
-  } catch {
-    // If metadata read fails, continue to next option
+  // 2. Read metadata when present; invalid metadata is a workflow error.
+  const metadata = readChangeMetadata(changeDir, projectRoot);
+  if (metadata?.schema) {
+    return metadata.schema;
   }
 
-  // 3. Try reading from project config
-  try {
-    const config = readProjectConfig(projectRoot);
-    if (config?.schema) {
-      return config.schema;
-    }
-  } catch {
-    // If config read fails, fall back to default
+  // 3. Read project config when present; an invalid binding must not fall back.
+  const config = readProjectConfig(projectRoot);
+  if (config?.schema) {
+    return config.schema;
   }
 
   // 4. Default

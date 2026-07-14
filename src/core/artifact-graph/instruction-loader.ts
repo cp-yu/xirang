@@ -7,7 +7,7 @@ import { resolveSchemaForChange } from '../../utils/change-metadata.js';
 import { FileSystemUtils } from '../../utils/file-system.js';
 import { readProjectConfig, validateConfigRules } from '../project-config.js';
 import { buildConfigProjectionBundle, type ConfigProjectionBundle } from '../config-projection.js';
-import type { Artifact, CompletedSet } from './types.js';
+import type { Artifact, CompletedSet, FileDefinition } from './types.js';
 
 // Session-level cache for validation warnings (avoid repeating same warnings)
 const shownWarnings = new Set<string>();
@@ -59,6 +59,8 @@ export interface ArtifactInstructions {
   outputPath: string;
   /** Artifact description */
   description: string;
+  /** Resolved file semantics and authoring boundary. */
+  definition: FileDefinition | undefined;
   /** Guidance on how to create this artifact (from schema instruction field) */
   instruction: string | undefined;
   /** Project context from config (constraints/background for AI, not to be included in output) */
@@ -124,7 +126,7 @@ export interface ChangeStatus {
  *
  * @param schemaName - Schema name (e.g., "spec-driven")
  * @param templatePath - Relative path within the templates directory (e.g., "proposal.md")
- * @param projectRoot - Optional project root for project-local schema resolution
+ * @param projectRoot - Optional project root retained for API compatibility
  * @returns The template content
  * @throws TemplateLoadError if the template cannot be loaded
  */
@@ -233,15 +235,9 @@ export function generateInstructions(
   // Use projectRoot from context if not explicitly provided
   const effectiveProjectRoot = projectRoot ?? context.projectRoot;
 
-  // Try to read project config for context and rules
-  let projectConfig = null;
-  if (effectiveProjectRoot) {
-    try {
-      projectConfig = readProjectConfig(effectiveProjectRoot);
-    } catch {
-      // If config read fails, continue without config
-    }
-  }
+  const projectConfig = effectiveProjectRoot
+    ? readProjectConfig(effectiveProjectRoot)
+    : null;
 
   // Validate rules artifact IDs if config has rules (only once per session)
   if (projectConfig?.rules) {
@@ -278,6 +274,7 @@ export function generateInstructions(
     changeDir: context.changeDir,
     outputPath: artifact.generates,
     description: artifact.description,
+    definition: artifact.definition,
     instruction: artifact.instruction,
     context: configContext,
     rules: configRules,

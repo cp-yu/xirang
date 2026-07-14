@@ -2,8 +2,9 @@ import path from 'path';
 import { FileSystemUtils } from './file-system.js';
 import { writeChangeMetadata, validateSchemaName } from './change-metadata.js';
 import { readProjectConfig } from '../core/project-config.js';
+import type { BuiltInSchemaId } from '../core/artifact-graph/types.js';
 
-const DEFAULT_SCHEMA = 'spec-driven';
+const DEFAULT_SCHEMA: BuiltInSchemaId = 'spec-driven';
 
 /**
  * Options for creating a change.
@@ -18,7 +19,7 @@ export interface CreateChangeOptions {
  */
 export interface CreateChangeResult {
   /** The schema that was actually used (resolved from options, config, or default) */
-  schema: string;
+  schema: BuiltInSchemaId;
 }
 
 /**
@@ -105,9 +106,9 @@ export function validateChangeName(name: string): ValidationResult {
  * console.log(result.schema) // 'spec-driven' or value from config
  *
  * @example
- * // Creates openspec/changes/add-auth/ with custom schema
- * const result = await createChange('/path/to/project', 'add-auth', { schema: 'my-workflow' })
- * console.log(result.schema) // 'my-workflow'
+ * // Creates openspec/changes/add-auth/ with the bootstrap schema
+ * const result = await createChange('/path/to/project', 'add-auth', { schema: 'bootstrap' })
+ * console.log(result.schema) // 'bootstrap'
  */
 export async function createChange(
   projectRoot: string,
@@ -121,21 +122,15 @@ export async function createChange(
   }
 
   // Determine schema: explicit option → project config → hardcoded default
-  let schemaName: string;
+  let schemaName: BuiltInSchemaId;
   if (options.schema) {
-    schemaName = options.schema;
+    schemaName = validateSchemaName(options.schema, projectRoot);
   } else {
-    // Try to read from project config
-    try {
-      const config = readProjectConfig(projectRoot);
-      schemaName = config?.schema ?? DEFAULT_SCHEMA;
-    } catch {
-      // If config read fails, use default
-      schemaName = DEFAULT_SCHEMA;
-    }
+    const config = readProjectConfig(projectRoot);
+    schemaName = config?.schema ?? DEFAULT_SCHEMA;
   }
 
-  // Validate the resolved schema
+  // The explicit option was validated above; config is Zod-restricted.
   validateSchemaName(schemaName, projectRoot);
 
   // Build the change directory path

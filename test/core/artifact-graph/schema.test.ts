@@ -1,6 +1,17 @@
 import { describe, it, expect } from 'vitest';
 import { parseSchema, SchemaValidationError } from '../../../src/core/artifact-graph/schema.js';
 
+const definition = `
+    definition:
+      purpose: Define the file purpose
+      compilationRole: Durable behavior source
+      content:
+        includes: [Target behavior]
+        excludes: [Implementation notes]
+      writePolicy: agent-authored
+      validation: [openspec validate]
+`;
+
 describe('artifact-graph/schema', () => {
   describe('parseSchema', () => {
     it('should parse valid schema YAML', () => {
@@ -202,6 +213,90 @@ artifacts:
 `;
       const schema = parseSchema(yaml);
       expect(schema.artifacts[0].requires).toEqual([]);
+    });
+
+    it('parses a complete file definition', () => {
+      const schema = parseSchema(`
+name: test
+version: 1
+artifacts:
+  - id: proposal
+    generates: proposal.md
+    description: Proposal
+    template: proposal.md
+${definition}`);
+
+      expect(schema.artifacts[0].definition).toEqual({
+        purpose: 'Define the file purpose',
+        compilationRole: 'Durable behavior source',
+        content: {
+          includes: ['Target behavior'],
+          excludes: ['Implementation notes'],
+        },
+        writePolicy: 'agent-authored',
+        validation: ['openspec validate'],
+      });
+    });
+
+    it.each([
+      ['missing purpose', 'purpose: Define the file purpose', ''],
+      ['empty includes', 'includes: [Target behavior]', 'includes: []'],
+      ['empty excludes', 'excludes: [Implementation notes]', 'excludes: []'],
+      ['unknown write policy', 'writePolicy: agent-authored', 'writePolicy: arbitrary'],
+      ['unsupported read-only policy', 'writePolicy: agent-authored', 'writePolicy: read-only'],
+      ['empty validation', 'validation: [openspec validate]', 'validation: []'],
+    ])('rejects an incomplete definition: %s', (_name, current, replacement) => {
+      const yaml = `
+name: test
+version: 1
+artifacts:
+  - id: proposal
+    generates: proposal.md
+    description: Proposal
+    template: proposal.md
+${definition.replace(current, replacement)}`;
+
+      expect(() => parseSchema(yaml)).toThrow(SchemaValidationError);
+      if (current.startsWith('purpose:')) {
+        expect(() => parseSchema(yaml)).toThrow(/artifact 'proposal'\.definition\.purpose/);
+      }
+    });
+
+    it('requires definitions on every spec-driven artifact', () => {
+      expect(() => parseSchema(`
+name: spec-driven
+version: 1
+artifacts:
+  - id: proposal
+    generates: proposal.md
+    description: Proposal
+    template: proposal.md
+`)).toThrow(/artifact 'proposal'.*definition/);
+    });
+
+    it('validates bootstrap file IDs and artifact references', () => {
+      const valid = `
+name: bootstrap
+version: 1
+files:
+  - id: metadata
+    path: .bootstrap.yaml
+${definition}
+artifacts:
+  - id: init
+    generates: .bootstrap.yaml
+    description: Init
+    template: init.md
+${definition}
+    files: [metadata]
+`;
+      expect(parseSchema(valid).files?.[0].id).toBe('metadata');
+      expect(() => parseSchema(valid.replace('artifacts:', `  - id: metadata-copy
+    path: copy.yaml
+${definition}
+artifacts:`).replace('metadata-copy', 'metadata'))).toThrow(/Duplicate file ID: metadata/);
+      expect(() => parseSchema(valid.replace('files: [metadata]', 'files: [missing]'))).toThrow(/artifact 'init'.*missing/);
+      expect(() => parseSchema(valid.replace('files: [metadata]', 'files: [metadata, metadata]'))).toThrow(/artifact 'init'.*metadata/);
     });
   });
 });

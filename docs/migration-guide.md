@@ -502,21 +502,14 @@ List all available schemas:
 openspec schemas
 ```
 
-### Custom Schemas
+### Schema Bindings
 
-Create your own workflow:
-
-```bash
-openspec schema init my-workflow
-```
-
-Or fork an existing one:
+OpenSpec resolves only the package-owned `spec-driven` and `bootstrap` schemas. Existing project-local or user schemas must be migrated to one of these built-in workflows; unsupported bindings fail fast instead of falling back.
 
 ```bash
-openspec schema fork spec-driven my-workflow
+openspec schema which --all
+openspec schema validate
 ```
-
-See [Customization](customization.md) for details.
 
 ---
 

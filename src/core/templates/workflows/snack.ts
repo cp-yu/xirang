@@ -60,14 +60,14 @@ ${OPSX_SHARED_CONTEXT}
 ${OPSX_CLI_QUERY_CONTEXT}
 7. Reconcile \`proposal.md\`.
    - Run \`openspec instructions proposal --change "<name>" --json\`.
-   - Use the returned \`template\`, \`instruction\`, \`outputPath\`, and \`configProjection\`; do not invent non-template sections.
+   - Use the resolved \`definition\` first: apply its content boundary and write policy before the returned \`instruction\` and \`template\`. Then use \`outputPath\` and \`configProjection\`; MUST NOT copy definition, projection, context, rules, or reasoning into the artifact.
    - Determine the \`## Capabilities\` list before specs generation and reuse the same list as specs input.
    - Reuse the confirmed evidence mapping; uncertain inference MUST be marked \`[REVIEW NEEDED]\`.
    - Preserve the template headings including \`## Why\`, \`## What Changes\`, \`## Capabilities\`, and \`## Impact\`.
    - If an existing proposal already matches the evidence and capability mapping, leave it current and report that no reconciliation was needed.
 8. Reconcile delta specs in \`specs/<capability>/spec.md\`.
    - Run \`openspec instructions specs --change "<name>" --json\`.
-   - Use the returned \`template\`, \`instruction\`, \`outputPath\`, and \`configProjection\`; do not invent non-template sections.
+   - Use the resolved \`definition\` first: apply its content boundary and write policy before the returned \`instruction\` and \`template\`. Then use \`outputPath\` and \`configProjection\`; MUST NOT copy definition, projection, context, rules, or reasoning into the artifact.
    - Follow the returned \`instruction\` for ADDED/MODIFIED selection, spec directory naming, and MODIFIED requirement title matching.
    - Reuse an existing \`openspec/specs/<capability>/\` directory when the instruction says it applies; otherwise use the proposal capability name.
    - New concerns use \`## ADDED Requirements\`; changed existing behavior uses \`## MODIFIED Requirements\` with the exact existing Requirement title.
@@ -77,7 +77,7 @@ ${OPSX_CLI_QUERY_CONTEXT}
    - Mark uncertain inferences with \`[REVIEW NEEDED]\`.
 9. Reconcile simplified \`design.md\`.
    - Run \`openspec instructions design --change "<name>" --json\`.
-   - Use the returned \`template\`, \`instruction\`, \`outputPath\`, and \`configProjection\`; do not invent non-template sections.
+   - Use the resolved \`definition\` first: apply its content boundary and write policy before the returned \`instruction\` and \`template\`. Then use \`outputPath\` and \`configProjection\`; MUST NOT copy definition, projection, context, rules, or reasoning into the artifact.
    - Preserve the full template skeleton: Context, Goals / Non-Goals, Decisions, and Risks / Trade-offs.
    - Mark inferred content with \`[INFERRED FROM CODE]\`; mark unresolved risks or trade-offs with \`[REVIEW NEEDED]\`.
    - If an existing design is current against the evidence, leave unrelated design content unchanged and report that no reconciliation was needed.

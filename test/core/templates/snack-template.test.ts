@@ -34,6 +34,20 @@ describe('snack template artifact reconciliation', () => {
   const template = getSnackSkillTemplate();
   const instructions = template.instructions;
 
+  it('uses resolved definitions before reconciling artifacts', () => {
+    expect(instructions).toContain('resolved `definition`');
+    expect(instructions).toContain('content boundary and write policy');
+    expect(instructions).toContain('MUST NOT copy definition');
+  });
+
+  it('does not read an OPSX code-map', () => {
+    expect(instructions).not.toContain('project.opsx.code-map.yaml');
+    expect(instructions).toContain('CodeGraph');
+    expect(instructions).toContain('ACE');
+    expect(instructions).toContain('`rg`');
+    expect(instructions).toContain('`read`');
+  });
+
   it('frames snack as artifact reconciliation rather than unconditional generation', () => {
     expect(instructions).toMatch(/reconcil/i);
   });
