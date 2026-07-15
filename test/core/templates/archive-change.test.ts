@@ -8,6 +8,12 @@ describe('archive change workflow template', () => {
     expect(getArchiveChangeSkillTemplate().instructions).toContain(OPSX_COMPILATION_PHILOSOPHY);
   });
 
+  it('keeps definition-first discipline for workflow-managed writes', () => {
+    const instructions = getArchiveChangeSkillTemplate().instructions;
+    expect(instructions).toContain('resolved file definition');
+    expect(instructions).toContain('MUST NOT copy definitions');
+  });
+
   it('routes archive verification only from freshness.status', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
 

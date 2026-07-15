@@ -2,7 +2,10 @@
 export {
   ArtifactSchema,
   SchemaYamlSchema,
+  BUILT_IN_SCHEMA_IDS,
+  FileDefinitionSchema,
   type Artifact,
+  type FileDefinition,
   type SchemaYaml,
   type CompletedSet,
   type BlockedArtifacts,
@@ -25,7 +28,6 @@ export {
   listSchemasWithInfo,
   getSchemaDir,
   getPackageSchemasDir,
-  getUserSchemasDir,
   SchemaLoadError,
   type SchemaInfo,
 } from './resolver.js';

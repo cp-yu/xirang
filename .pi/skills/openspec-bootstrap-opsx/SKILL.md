@@ -12,14 +12,15 @@ metadata:
 Bootstrap the OPSX architecture map from the existing codebase.
 
 **OPSX Compilation Philosophy**:
-OpenSpec treats human intent → running code as a compilation pipeline: change artifacts (proposal/specs/design/tasks) are the source code; the agent is the compiler; `openspec validate` is static analysis; verify Phase 1 (reviewer) is the semantic-check pass; verify Phase 2 (optimizer) is the optimization pass; sync + archive is linking and release; OPSX YAML is the symbol table and module graph; snack is decompilation. Rules that follow:
-1. Artifacts are source code and MUST be elegant: every sentence is consumed downstream; redundant restatement is a code smell — state each fact exactly once.
-2. Complete = faithful + elicited: key decisions the user never stated are undefined behavior in the source, and implementations deviate exactly in those silent gaps. Make them explicit — ask, or record them as explicit assumptions. Never guess silently.
-3. Faithful translation: a compiler MUST NOT invent instructions. Do not exceed or deviate from specs; behavior not covered by specs goes back into specs first.
-4. Syntax is contract: keep canonical headings, IDs, schema keys, and normative keywords verbatim, or downstream parsers fail.
-5. No dead-code output: no placeholders, no empty template sections, no repeated narration — content either carries intent or does not exist.
-6. Not compiled until gates pass: validate/verify/seal are pipeline stages, not optional extras.
-A single compilation is faithful and deterministic; the source itself iterates freely and recompiles fast.
+OpenSpec treats human intent → running code as a compilation pipeline. Specs + OPSX are the durable semantic source: Specs define observable behavior; OPSX is the architecture symbol table and module graph. `proposal.md`, `design.md`, and `tasks.md` are compilation scaffolding and MUST NOT override Specs or OPSX. change-local specs and `opsx-delta.yaml` are semantic source deltas that express the target steady state; a change is the reconciliation unit. the agent is the compiler; `openspec validate` is static analysis; verify Phase 1 is the semantic-check pass; verify Phase 2 is the optimization pass; sync + archive is linking and release; snack is limited decompilation. Rules that follow:
+1. Source MUST be elegant: every sentence is consumed downstream; redundant restatement is a code smell — state each fact exactly once.
+2. Source completeness: key undefined decisions that change behavior or architecture return to the relevant Specs or OPSX. Make them explicit; Never guess silently.
+3. Faithful translation: a compiler MUST NOT invent instructions or exceed the declared source.
+4. Definition-first authoring: read the resolved `definition` (the resolved file definition), then dependencies/current state, then `instruction` and `template`; apply its content boundary and write policy. MUST NOT copy definitions, context, rules, projections, or reasoning into artifacts.
+5. Syntax is contract: preserve canonical headings, IDs, schema keys, normative keywords, paths, and commands.
+6. No dead-code output: no placeholders, empty sections, or repeated narration.
+7. Not compiled until gates pass: validate/verify/seal are required pipeline stages.
+A single compilation is faithful and deterministic; OpenSpec source iterates freely and recompiles fast.
 
 This is a **structured, multi-phase** workflow. Each phase produces intermediate artifacts in `openspec/bootstrap/` before writing formal OPSX files.
 
@@ -35,7 +36,7 @@ Treat `openspec/config.yaml` as the source of truth for authoring policy, but co
    ```
    - If no workspace exists, start with init
    - If workspace exists and is in progress, resume from the current phase
-   - If workspace exists and is completed, restart explicitly with `openspec bootstrap init --mode refresh --restart`
+   - If workspace exists and is completed, restart explicitly with `openspec bootstrap init --mode refresh --restart`; omitted `--granularity` inherits retained `scope.yaml`
 
 2. **Execute the current phase**
 
@@ -43,6 +44,7 @@ Treat `openspec/config.yaml` as the source of truth for authoring policy, but co
    ```bash
    openspec bootstrap instructions [phase] --json
    ```
+   Read the returned `fileDefinitions` before the phase instruction. Directly edit only files whose `writePolicy` permits Agent authoring, and MUST NOT copy definitions into those files.
 
    **Phase: init**
    
@@ -55,7 +57,7 @@ Treat `openspec/config.yaml` as the source of truth for authoring policy, but co
    ```bash
    openspec bootstrap init --mode full --granularity coarse
    ```
-   The CLI persists the confirmed granularity in `scope.yaml`. Missing or invalid `--granularity` fails fast.
+   The CLI persists the confirmed granularity in `scope.yaml`. Initial init requires `--granularity`; a completed workspace restart inherits retained granularity when the option is omitted, while an explicit value overrides it. Invalid values fail fast.
    Creates workspace at `openspec/bootstrap/` with scope configuration.
    Supported upgrade paths:
    - `specs-based -> full`
@@ -64,7 +66,12 @@ Treat `openspec/config.yaml` as the source of truth for authoring policy, but co
    - `formal-opsx -> refresh`
    Use `opsx-first` only for `raw` repositories when you want the formal OPSX bundle plus a README-only specs starter now, and full behavior specs later.
    Use `refresh` only for repositories that already have both formal OPSX v2 files. Rebuild a complete candidate from current evidence, use the existing bundle only for review diff, then atomically replace the two formal files after approval.
-   Use `--restart` only when a completed retained workspace already exists and you want a fresh run; it snapshots the old `openspec/bootstrap/` into `openspec/bootstrap-history/` first.
+   Use `--restart` only when a completed retained workspace already exists and you want a fresh run; it snapshots the old `openspec/bootstrap/` into `openspec/bootstrap-history/` first. Omit `--granularity` to inherit retained `scope.yaml`, or pass it explicitly to override the retained value.
+   After init, use the public, auditable transition before scanning:
+   ```bash
+   openspec bootstrap advance scan
+   ```
+   Confirm `openspec bootstrap status --json` reports `phase: scan`. Do not edit `.bootstrap.yaml` or call an internal API to advance the phase.
 
    **Phase: scan**
    - Read `package.json`, `README`, OpenSpec config, `openspec/specs/`
@@ -139,14 +146,14 @@ Treat `openspec/config.yaml` as the source of truth for authoring policy, but co
    ```bash
    openspec bootstrap backfill-specs --json
    ```
-   For unmatched specs, spawn a subagent to read the spec content and OPSX capability intents, return semantic matches, then write the returned frontmatter mappings; report any specs that still have no match.
+   The JSON `semanticHandoff` contains each unmatched spec's content/path, candidate capability IDs and intents, the exact mapping result format, and the apply command. Give that context to a subagent; it MUST return only evidence-backed mappings and MUST leave uncertain specs unmapped. Save the reviewed result, then run `openspec bootstrap backfill-specs --mappings <mapping-file> --json`. Report the returned `unmatched` list explicitly; never guess or silently associate capabilities.
    Retains the bootstrap workspace on success for audit history.
    After promote + backfill, run:
    ```bash
    openspec validate --all
    ```
    If validation fails, report the failing item and return to the relevant bootstrap source artifact for repair. Do NOT claim bootstrap completion while validation failures remain unresolved.
-   Start the next refresh run with `openspec bootstrap init --mode refresh --restart`, which snapshots the retained workspace into `openspec/bootstrap-history/`.
+   Start the next refresh run with `openspec bootstrap init --mode refresh --restart`, which snapshots the retained workspace into `openspec/bootstrap-history/` and inherits its granularity. Pass `--granularity coarse|fine` only to override the retained value.
 
 3. **After each phase action**
    - Run `openspec bootstrap validate` to verify gate conditions

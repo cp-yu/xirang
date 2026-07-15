@@ -29,14 +29,21 @@ describe('AuthoringHelpCommand', () => {
     expect(output).toContain('openspec validate --all');
   });
 
-  it('returns a stable JSON projection for relation topics', async () => {
+  it('returns Schema-backed definitions and Registry relation details', async () => {
     const output = await captureLogs(() => new AuthoringHelpCommand().execute('opsx-delta.yaml', { json: true }));
     const parsed = JSON.parse(output);
     expect(parsed).toMatchObject({
       file: 'opsx-delta.yaml',
-      purpose: expect.any(String),
-      structure: expect.anything(),
-      validationCommands: expect.any(Array),
+      definition: {
+        purpose: expect.any(String),
+        compilationRole: expect.any(String),
+        content: {
+          includes: expect.any(Array),
+          excludes: expect.any(Array),
+        },
+        writePolicy: 'agent-authored',
+        validation: expect.any(Array),
+      },
     });
     expect(parsed.relations).toHaveLength(6);
     expect(parsed.relations[0]).toEqual(expect.objectContaining({
@@ -57,9 +64,10 @@ describe('AuthoringHelpCommand', () => {
     await expect(new AuthoringHelpCommand().execute('unknown.yaml', {})).rejects.toThrow('project.opsx.yaml');
   });
 
-  it('resolves Windows-style file topics by explicit canonical basename', async () => {
-    const output = await captureLogs(() => new AuthoringHelpCommand().execute('C:\\repo\\openspec\\project.opsx.relations.yaml', {}));
-    expect(output).toContain('belongs_to');
+  it('requires an exact canonical topic', async () => {
+    await expect(
+      new AuthoringHelpCommand().execute('C:\\repo\\openspec\\project.opsx.relations.yaml', {})
+    ).rejects.toThrow('未知 authoring topic');
   });
 });
 

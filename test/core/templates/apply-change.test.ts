@@ -19,6 +19,20 @@ describe('apply change workflow template', () => {
     expect(getApplyChangeSkillTemplate().instructions).toContain(OPSX_COMPILATION_PHILOSOPHY);
   });
 
+  it('uses definition-first authoring without code-map navigation', () => {
+    const instructions = getApplyChangeSkillTemplate().instructions;
+    const preparation = applyReference('references/apply-step-1-preparation.md');
+    expect(instructions).toContain('resolved file definition');
+    expect(instructions).toContain('MUST NOT copy definitions');
+    expect(preparation).toContain('openspec opsx query');
+    expect(preparation).toContain('openspec/project.opsx.yaml');
+    expect(preparation).toContain('openspec/project.opsx.relations.yaml');
+    expect(preparation).toContain('formal OPSX two-file bundle');
+    expect(preparation).toContain('CodeGraph');
+    expect(preparation).toContain('ACE');
+    expect(preparation).not.toContain('project.opsx.code-map.yaml');
+  });
+
   it('keeps one reference file per apply workflow step', () => {
     const template = getApplyChangeSkillTemplate();
 

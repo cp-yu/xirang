@@ -9,6 +9,13 @@ describe('bootstrap OPSX templates', () => {
     expect(getBootstrapOpsxSkillTemplate().instructions).toContain(OPSX_COMPILATION_PHILOSOPHY);
   });
 
+  it('uses phase file definitions before authoring bootstrap sources', () => {
+    const skill = getBootstrapOpsxSkillTemplate().instructions;
+    expect(skill).toContain('`fileDefinitions`');
+    expect(skill).toContain('writePolicy');
+    expect(skill).toContain('MUST NOT copy definitions');
+  });
+
   it('documents backfill-specs and subagent semantic matching after promote', () => {
     const skill = getBootstrapOpsxSkillTemplate().instructions;
 

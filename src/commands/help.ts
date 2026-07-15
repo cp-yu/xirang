@@ -1,6 +1,8 @@
 import type { Command } from 'commander';
 import { RelationDefinitionRegistry } from '../core/relations/registry.js';
 import { renderRelationAuthoringReference } from '../core/relations/renderers.js';
+import { resolveSchema } from '../core/artifact-graph/resolver.js';
+import type { FileDefinition } from '../core/artifact-graph/types.js';
 
 const AUTHORING_TOPICS = [
   'project.opsx.yaml',
@@ -16,87 +18,73 @@ interface HelpOptions {
 
 interface AuthoringHelp {
   file: AuthoringTopic;
-  purpose: string;
-  structure: Record<string, unknown>;
-  validationCommands: string[];
+  definition: FileDefinition;
   relations?: typeof RelationDefinitionRegistry;
 }
+
+const FILE_LOOKUP: Record<AuthoringTopic, { schema: 'spec-driven' | 'bootstrap'; fileId?: string; artifactId?: string }> = {
+  'project.opsx.yaml': { schema: 'bootstrap', fileId: 'formal-project' },
+  'project.opsx.relations.yaml': { schema: 'bootstrap', fileId: 'formal-relations' },
+  'opsx-delta.yaml': { schema: 'spec-driven', artifactId: 'opsx-delta' },
+};
 
 export class AuthoringHelpCommand {
   async execute(file: string | undefined, options: HelpOptions): Promise<void> {
     if (!file) {
-      if (options.json) {
-        console.log(JSON.stringify({ topics: AUTHORING_TOPICS }, null, 2));
-      } else {
-        console.log(`可用 authoring topics:\n${AUTHORING_TOPICS.map((topic) => `  ${topic}`).join('\n')}\n运行 openspec help authoring <file> 获取详细帮助。`);
-      }
+      if (options.json) console.log(JSON.stringify({ topics: AUTHORING_TOPICS }, null, 2));
+      else console.log(`可用 authoring topics:\n${AUTHORING_TOPICS.map((topic) => `  ${topic}`).join('\n')}\n运行 openspec help authoring <file> 获取详细帮助。`);
       return;
     }
 
-    const topic = resolveTopic(file);
-    if (!topic) {
-      throw new Error(`未知 authoring topic '${file}'。合法 topics: ${AUTHORING_TOPICS.join(', ')}`);
-    }
+    const topic = AUTHORING_TOPICS.find((candidate) => candidate === file);
+    if (!topic) throw new Error(`未知 authoring topic '${file}'。合法 topics: ${AUTHORING_TOPICS.join(', ')}`);
 
     const help = buildHelp(topic);
-    if (options.json) {
-      console.log(JSON.stringify(help, null, 2));
-      return;
-    }
-
-    console.log(renderTextHelp(help));
+    if (options.json) console.log(JSON.stringify(help, null, 2));
+    else console.log(renderTextHelp(help));
   }
-}
-
-function resolveTopic(input: string): AuthoringTopic | undefined {
-  const canonical = input.replaceAll('\\', '/').split('/').at(-1);
-  return AUTHORING_TOPICS.find((topic) => topic === canonical);
 }
 
 function buildHelp(file: AuthoringTopic): AuthoringHelp {
-  if (file === 'project.opsx.yaml') {
-    return {
-      file,
-      purpose: '定义 OPSX v2 project metadata、domains 与 capabilities。',
-      structure: {
-        schema_version: 2,
-        project: { id: 'proj.example', name: 'Example', intent: '...', scope: '...' },
-        domains: [],
-        capabilities: [],
-      },
-      validationCommands: ['openspec validate --all', 'openspec opsx query <node-id> --json'],
-    };
-  }
+  const lookup = FILE_LOOKUP[file];
+  const schema = resolveSchema(lookup.schema);
+  const definition = lookup.fileId
+    ? schema.files?.find((candidate) => candidate.id === lookup.fileId)?.definition
+    : schema.artifacts.find((candidate) => candidate.id === lookup.artifactId)?.definition;
+  if (!definition) throw new Error(`Missing file definition for '${file}' in built-in schema '${lookup.schema}'.`);
 
   return {
     file,
-    purpose: file === 'project.opsx.relations.yaml'
-      ? '定义 OPSX v2 canonical semantic relations。'
-      : '声明 change 对 OPSX v2 nodes 与 relations 的 ADDED、MODIFIED、REMOVED 操作。',
-    structure: file === 'project.opsx.relations.yaml'
-      ? { schema_version: 2, relations: [] }
-      : { schema_version: 2, ADDED: {}, MODIFIED: {}, REMOVED: {} },
-    validationCommands: file === 'project.opsx.relations.yaml'
-      ? ['openspec validate --all', 'openspec opsx query <node-id...> --json']
-      : ['openspec validate --change <name> --artifacts opsx-delta --json', 'openspec validate --change <name> --json'],
-    relations: RelationDefinitionRegistry,
+    definition,
+    ...(file === 'project.opsx.yaml' ? {} : { relations: RelationDefinitionRegistry }),
   };
 }
 
 function renderTextHelp(help: AuthoringHelp): string {
+  const { definition } = help;
   const lines = [
     `# ${help.file}`,
     '',
-    help.purpose,
+    definition.purpose,
     '',
-    '## Structure',
+    '## Compilation role',
     '',
-    JSON.stringify(help.structure, null, 2),
+    definition.compilationRole,
+    '',
+    '## Includes',
+    '',
+    ...definition.content.includes.map((item) => `- ${item}`),
+    '',
+    '## Excludes',
+    '',
+    ...definition.content.excludes.map((item) => `- ${item}`),
+    '',
+    '## Write policy',
+    '',
+    definition.writePolicy,
   ];
-  if (help.relations) {
-    lines.push('', renderRelationAuthoringReference());
-  }
-  lines.push('', '## Validation commands', '', ...help.validationCommands.map((command) => `- ${command}`));
+  if (help.relations) lines.push('', renderRelationAuthoringReference());
+  lines.push('', '## Validation commands', '', ...definition.validation.map((command) => `- ${command}`));
   return lines.join('\n');
 }
 

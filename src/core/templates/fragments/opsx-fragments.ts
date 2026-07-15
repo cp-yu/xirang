@@ -15,14 +15,15 @@ import { renderRelationWorkflowSummary } from '../../relations/renderers.js';
  */
 export const OPSX_COMPILATION_PHILOSOPHY = `
 **OPSX Compilation Philosophy**:
-OpenSpec treats human intent → running code as a compilation pipeline: change artifacts (proposal/specs/design/tasks) are the source code; the agent is the compiler; \`openspec validate\` is static analysis; verify Phase 1 (reviewer) is the semantic-check pass; verify Phase 2 (optimizer) is the optimization pass; sync + archive is linking and release; OPSX YAML is the symbol table and module graph; snack is decompilation. Rules that follow:
-1. Artifacts are source code and MUST be elegant: every sentence is consumed downstream; redundant restatement is a code smell — state each fact exactly once.
-2. Complete = faithful + elicited: key decisions the user never stated are undefined behavior in the source, and implementations deviate exactly in those silent gaps. Make them explicit — ask, or record them as explicit assumptions. Never guess silently.
-3. Faithful translation: a compiler MUST NOT invent instructions. Do not exceed or deviate from specs; behavior not covered by specs goes back into specs first.
-4. Syntax is contract: keep canonical headings, IDs, schema keys, and normative keywords verbatim, or downstream parsers fail.
-5. No dead-code output: no placeholders, no empty template sections, no repeated narration — content either carries intent or does not exist.
-6. Not compiled until gates pass: validate/verify/seal are pipeline stages, not optional extras.
-A single compilation is faithful and deterministic; the source itself iterates freely and recompiles fast.
+OpenSpec treats human intent → running code as a compilation pipeline. Specs + OPSX are the durable semantic source: Specs define observable behavior; OPSX is the architecture symbol table and module graph. \`proposal.md\`, \`design.md\`, and \`tasks.md\` are compilation scaffolding and MUST NOT override Specs or OPSX. change-local specs and \`opsx-delta.yaml\` are semantic source deltas that express the target steady state; a change is the reconciliation unit. the agent is the compiler; \`openspec validate\` is static analysis; verify Phase 1 is the semantic-check pass; verify Phase 2 is the optimization pass; sync + archive is linking and release; snack is limited decompilation. Rules that follow:
+1. Source MUST be elegant: every sentence is consumed downstream; redundant restatement is a code smell — state each fact exactly once.
+2. Source completeness: key undefined decisions that change behavior or architecture return to the relevant Specs or OPSX. Make them explicit; Never guess silently.
+3. Faithful translation: a compiler MUST NOT invent instructions or exceed the declared source.
+4. Definition-first authoring: read the resolved \`definition\` (the resolved file definition), then dependencies/current state, then \`instruction\` and \`template\`; apply its content boundary and write policy. MUST NOT copy definitions, context, rules, projections, or reasoning into artifacts.
+5. Syntax is contract: preserve canonical headings, IDs, schema keys, normative keywords, paths, and commands.
+6. No dead-code output: no placeholders, empty sections, or repeated narration.
+7. Not compiled until gates pass: validate/verify/seal are required pipeline stages.
+A single compilation is faithful and deterministic; OpenSpec source iterates freely and recompiles fast.
 `.trim();
 
 /**
@@ -30,10 +31,12 @@ A single compilation is faithful and deterministic; the source itself iterates f
  * Used in: explore, propose, apply-change
  */
 export const OPSX_SHARED_CONTEXT = `
-Before reading other context files, check whether \`openspec/project.opsx.yaml\` exists.
-- If it exists, read it first for domains → capabilities structure
+Before reading other context files, check whether the formal OPSX two-file bundle exists:
+- \`openspec/project.opsx.yaml\` for project intent, domains, and capabilities
+- \`openspec/project.opsx.relations.yaml\` for the complete canonical semantic relation set
+- If the bundle exists, read both files as one architecture source; do not treat either file as complete alone
 - Read the \`project:\` block for project intent and scope
-- Treat it as navigation context, not as a replacement for change artifacts
+- Treat the bundle as navigation context, not as a replacement for change artifacts
 `.trim();
 
 /**
@@ -41,7 +44,7 @@ Before reading other context files, check whether \`openspec/project.opsx.yaml\`
  * Used in: propose, snack, apply-change
  */
 export const OPSX_CLI_QUERY_CONTEXT = `
-After reading shared \`project.opsx.yaml\` context, use OpenSpec CLI query surfaces for node details.
+After reading the formal OPSX two-file bundle, use OpenSpec CLI query surfaces for node details.
 - Run \`openspec list --specs --json\` to get specs and their \`capabilities\` string arrays; specs without frontmatter return \`capabilities: []\`.
 - For known or affected OPSX node IDs, run \`openspec opsx query <node-id...> --json\` to get node details and directed semantic relations in one batch; add \`--depth 2\` when broader related context is needed.
 - Use optional CodeGraph or ACE/\`rg\`/\`read\` for current code locations; OPSX does not store code paths.
@@ -55,7 +58,7 @@ After reading shared \`project.opsx.yaml\` context, use OpenSpec CLI query surfa
 export const OPSX_GENERATE_DELTA = `
 **Generate opsx-delta.yaml**:
 - Read \`openspec instructions opsx-delta --change "<name>" --json\`
-- Use the returned \`template\`, \`instruction\`, and \`outputPath\` to generate \`opsx-delta.yaml\`
+- Use the resolved \`definition\` first: apply its content boundary and write policy before \`instruction\` and \`template\`. Then use \`outputPath\`; MUST NOT copy definition or reasoning into \`opsx-delta.yaml\`
 - Read \`proposal.md\` to extract the capability list
 - Read all delta specs in \`openspec/changes/<name>/specs/*/spec.md\`
 - For existing capability or domain IDs, run \`openspec opsx query <node-id...> --json\` for current-system context in one batch; add \`--depth 2\` when related context is needed

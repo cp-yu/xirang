@@ -411,7 +411,7 @@ Schemas define the artifact types and their dependencies for a workflow.
 ### How Schemas Work
 
 ```yaml
-# openspec/schemas/spec-driven/schema.yaml
+# package schemas/spec-driven/schema.yaml
 name: spec-driven
 artifacts:
   - id: proposal
@@ -466,38 +466,11 @@ proposal → specs → design → tasks → implement
 
 Best for: Most feature work where you want to agree on specs before implementation.
 
-### Custom Schemas
+### Bootstrap Schema
 
-Create custom schemas for your team's workflow:
+`bootstrap` is the second built-in schema. It drives the structured `init → scan → map → review → promote` OPSX bootstrap lifecycle.
 
-```bash
-# Create from scratch
-openspec schema init research-first
-
-# Or fork an existing one
-openspec schema fork spec-driven research-first
-```
-
-**Example custom schema:**
-
-```yaml
-# openspec/schemas/research-first/schema.yaml
-name: research-first
-artifacts:
-  - id: research
-    generates: research.md
-    requires: []           # Do research first
-
-  - id: proposal
-    generates: proposal.md
-    requires: [research]   # Proposal informed by research
-
-  - id: tasks
-    generates: tasks.md
-    requires: [proposal]   # Skip specs/design, go straight to tasks
-```
-
-See [Customization](customization.md) for full details on creating and using custom schemas.
+OpenSpec resolves only the package-owned `spec-driven` and `bootstrap` schemas. Project-local and user override schemas are not supported. Use `openspec schema which --all` to inspect both built-ins and `openspec schema validate` to validate them.
 
 ## Archive
 
@@ -625,4 +598,4 @@ openspec/
 - [Getting Started](getting-started.md) - Practical first steps
 - [Workflows](workflows.md) - Common patterns and when to use each
 - [Commands](commands.md) - Full command reference
-- [Customization](customization.md) - Create custom schemas and configure your project
+- [Customization](customization.md) - Configure projects and inspect built-in schemas

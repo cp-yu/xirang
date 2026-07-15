@@ -153,6 +153,22 @@ describe('createChange', () => {
         /Unknown schema/
       );
     });
+
+    it('rejects an unsupported project schema without creating the change', async () => {
+      await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+      await fs.writeFile(
+        path.join(testDir, 'openspec', 'config.yaml'),
+        'schema: custom-schema\n',
+        'utf-8'
+      );
+
+      await expect(createChange(testDir, 'add-auth')).rejects.toThrow(
+        /Unsupported schema 'custom-schema'.*spec-driven, bootstrap/
+      );
+      await expect(
+        fs.stat(path.join(testDir, 'openspec', 'changes', 'add-auth'))
+      ).rejects.toMatchObject({ code: 'ENOENT' });
+    });
   });
 
   describe('duplicate change throws error', () => {
