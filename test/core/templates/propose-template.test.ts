@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { OPSX_COMPILATION_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
+import { OPENSPEC_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import {
   getOpsxProposeSkillTemplate,
 } from '../../../src/core/templates/workflows/propose.js';
@@ -12,8 +12,8 @@ function getProposeBodies(): string[] {
 }
 
 describe('propose template post-validation flow', () => {
-  it('includes the OPSX compilation philosophy in the skill surface', () => {
-    expect(getOpsxProposeSkillTemplate().instructions).toContain(OPSX_COMPILATION_PHILOSOPHY);
+  it('includes the OpenSpec philosophy in the skill surface', () => {
+    expect(getOpsxProposeSkillTemplate().instructions).toContain(OPENSPEC_PHILOSOPHY);
   });
 
   it('loads the complete formal OPSX bundle before authoring', () => {

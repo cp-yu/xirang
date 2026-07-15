@@ -9,7 +9,7 @@ Apply 阶段的 Master agent SHALL 读取 `tasks.md` 中的 pending task，并�
 
 Apply skill 的 `Implementation Discipline` 节 SHALL 以最多 8 条精简条目直接描述以上纪律，每条不超过两行。每个流程步骤（Preparation、Pre-flight Scan、Branch Isolation、Phase 1/2/3 verification、Output）SHALL 指向独立的 `openspec/references/openspec-apply-step-<N>-<name>.md` reference 文件，skill body 中该步骤只提供一行指引和文件路径。
 
-Subagent 委托 SHALL 使用 "delegate to the clean-context `openspec-reviewer` agent" 表述。Skill instructions 以 OPSX Compilation Philosophy 开头，后接 Flow Outline。
+Subagent 委托 SHALL 使用 "delegate to the clean-context `openspec-reviewer` agent" 表述。Skill instructions 以 OpenSpec Philosophy 开头，后接 definition-first authoring 规则与 Flow Outline。
 
 #### Scenario: 实现纪律为精简条目
 

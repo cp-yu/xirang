@@ -12,8 +12,8 @@ describe('impact sweeper template', () => {
     return reference!.content;
   }
 
-  it('excludes the OPSX compilation philosophy (read-only reporter role)', () => {
-    expect(instructions).not.toContain('OPSX Compilation Philosophy');
+  it('excludes the OpenSpec philosophy (read-only reporter role)', () => {
+    expect(instructions).not.toContain('OpenSpec Philosophy');
   });
 
   it('describes fast-model usage for the lightweight sweep', () => {

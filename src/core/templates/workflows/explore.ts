@@ -6,7 +6,7 @@
  */
 import type { SkillTemplate } from '../types.js';
 import {
-  OPSX_COMPILATION_PHILOSOPHY,
+  OPENSPEC_PHILOSOPHY,
   OPSX_NAVIGATION_GUIDANCE,
   OPSX_SHARED_CONTEXT,
 } from '../fragments/opsx-fragments.js';
@@ -211,7 +211,7 @@ export function getExploreSkillTemplate(): SkillTemplate {
     ],
     instructions: `Enter explore mode: investigate, clarify, compare, and help the user think before implementation.
 
-${OPSX_COMPILATION_PHILOSOPHY}
+${OPENSPEC_PHILOSOPHY}
 
 ## Workflow Stage
 

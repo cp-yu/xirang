@@ -7,7 +7,7 @@
 import type { SkillTemplate } from '../types.js';
 import {
   OPSX_CLI_QUERY_CONTEXT,
-  OPSX_COMPILATION_PHILOSOPHY,
+  OPENSPEC_PHILOSOPHY,
   OPSX_SHARED_CONTEXT,
   VERIFY_CLI_JSON_SCHEMA_REFERENCE,
   VERIFY_ERROR_RECOVERY_GUIDE,
@@ -108,7 +108,9 @@ export function getApplyChangeSkillTemplate(): SkillTemplate {
     description: 'Implement tasks from an OpenSpec change. Use when the user wants to start implementing, continue implementation, or work through tasks.',
     instructions: `Implement tasks from an OpenSpec change.
 
-${OPSX_COMPILATION_PHILOSOPHY}
+${OPENSPEC_PHILOSOPHY}
+
+For workflow-managed writes, read the resolved file definition before its instruction and template, and MUST NOT copy definitions, config projections, or reasoning into artifacts.
 
 ## Flow Outline
 

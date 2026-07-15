@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  OPSX_COMPILATION_PHILOSOPHY,
+  OPENSPEC_PHILOSOPHY,
   VERIFY_CLI_JSON_SCHEMA_REFERENCE,
   VERIFY_ERROR_RECOVERY_GUIDE,
   VERIFY_SIMPLE_CHANGE_FAST_PATH,
@@ -51,43 +51,43 @@ describe('verify gate shared fragments', () => {
   });
 });
 
-describe('OPSX compilation philosophy fragment', () => {
-  it('distinguishes durable source, scaffolding, and reconciliation', () => {
+describe('OpenSpec philosophy fragment', () => {
+  it('defines the durable source and scaffolding boundary', () => {
     for (const token of [
-      'compilation pipeline',
-      'Specs + OPSX',
-      'durable semantic source',
-      'compilation scaffolding',
-      'change-local specs',
-      'opsx-delta',
+      'human-intent programming layer',
+      'Specs and OPSX jointly form the durable semantic source',
+      'observable behavior',
+      'project intent, capabilities, ownership, boundaries, and semantic relations',
       'target steady state',
-      'the agent is the compiler',
-      'static analysis',
-      'semantic-check pass',
-      'optimization pass',
-      'linking and release',
-      'symbol table and module graph',
-      'decompilation',
+      'compilation scaffolding',
+      'not competing sources of truth',
     ]) {
-      expect(OPSX_COMPILATION_PHILOSOPHY).toContain(token);
+      expect(OPENSPEC_PHILOSOPHY).toContain(token);
     }
-    expect(OPSX_COMPILATION_PHILOSOPHY).toContain('MUST NOT override Specs or OPSX');
   });
 
-  it('states all six derived rules and the iteration clause', () => {
+  it('defines source completeness and faithful compilation', () => {
     for (const token of [
-      'MUST be elegant',
-      'state each fact exactly once',
-      'key undefined decisions',
-      'Never guess silently',
-      'MUST NOT invent instructions',
-      'return to the relevant Specs or OPSX',
-      'Syntax is contract',
-      'No dead-code output',
-      'Not compiled until gates pass',
-      'iterates freely',
+      'without guessing decisions that affect behavior or architecture',
+      'The Agent acts as a compiler',
+      'translate declared intent faithfully',
+      'Existing code is compiled output and current implementation evidence',
+      'MUST NOT silently override the declared semantic source',
     ]) {
-      expect(OPSX_COMPILATION_PHILOSOPHY).toContain(token);
+      expect(OPENSPEC_PHILOSOPHY).toContain(token);
+    }
+  });
+
+  it('does not mix operational workflow rules into the philosophy', () => {
+    for (const token of [
+      'Definition-first authoring',
+      'Syntax is contract',
+      'Not compiled until gates pass',
+      'static analysis',
+      'linking and release',
+      'decompilation',
+    ]) {
+      expect(OPENSPEC_PHILOSOPHY).not.toContain(token);
     }
   });
 });

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  OPSX_COMPILATION_PHILOSOPHY,
+  OPENSPEC_PHILOSOPHY,
 } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import {
   getApplyChangeSkillTemplate,
@@ -15,8 +15,8 @@ const applyReference = (path: string) => {
 };
 
 describe('apply change workflow template', () => {
-  it('keeps the OPSX compilation philosophy in the skill surface', () => {
-    expect(getApplyChangeSkillTemplate().instructions).toContain(OPSX_COMPILATION_PHILOSOPHY);
+  it('keeps the OpenSpec philosophy in the skill surface', () => {
+    expect(getApplyChangeSkillTemplate().instructions).toContain(OPENSPEC_PHILOSOPHY);
   });
 
   it('uses definition-first authoring without code-map navigation', () => {

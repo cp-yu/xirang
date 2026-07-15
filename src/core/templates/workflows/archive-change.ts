@@ -5,7 +5,7 @@
  * templates file into workflow-focused modules.
  */
 import type { SkillTemplate } from '../types.js';
-import { OPSX_COMPILATION_PHILOSOPHY } from '../fragments/opsx-fragments.js';
+import { OPENSPEC_PHILOSOPHY } from '../fragments/opsx-fragments.js';
 import {
   SUBAGENT_VERIFY_EXECUTION_MODEL,
   type VerifyExecutionModel,
@@ -131,7 +131,9 @@ function buildArchiveInstructions(
 ): string {
   return `Archive a completed change in the experimental workflow.
 
-${OPSX_COMPILATION_PHILOSOPHY}
+${OPENSPEC_PHILOSOPHY}
+
+For workflow-managed writes, read the resolved file definition before its instruction and template, and MUST NOT copy definitions, config projections, or reasoning into artifacts.
 
 **Input**: ${inputLine}
 

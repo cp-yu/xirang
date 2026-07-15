@@ -7,7 +7,7 @@
  * evidence, returns a structured assessment.
  */
 import type { SubagentTemplate } from '../../shared/subagent-generation.js';
-import { OPSX_COMPILATION_PHILOSOPHY } from '../fragments/opsx-fragments.js';
+import { OPENSPEC_PHILOSOPHY } from '../fragments/opsx-fragments.js';
 
 export function getReviewerSubagentTemplate(): SubagentTemplate {
   return {
@@ -18,7 +18,7 @@ export function getReviewerSubagentTemplate(): SubagentTemplate {
 
 You are the clean-context Phase 1 reviewer. Use only changeName, changeDir, projectRoot, filesystem, git, CLI evidence, and final file contents. Do not modify files or propose patches.
 
-${OPSX_COMPILATION_PHILOSOPHY}
+${OPENSPEC_PHILOSOPHY}
 
 ## Hard Constraints
 

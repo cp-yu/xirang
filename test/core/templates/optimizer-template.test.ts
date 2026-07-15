@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { OPSX_COMPILATION_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
+import { OPENSPEC_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import { getOptimizerSubagentTemplate } from '../../../src/core/templates/workflows/optimizer.js';
 
 describe('optimizer subagent template', () => {
@@ -8,7 +8,7 @@ describe('optimizer subagent template', () => {
     const template = getOptimizerSubagentTemplate();
     const prompt = template.prompt;
 
-    expect(prompt).toContain(OPSX_COMPILATION_PHILOSOPHY);
+    expect(prompt).toContain(OPENSPEC_PHILOSOPHY);
     expect(prompt).toContain('finding-first');
     expect(prompt).toContain('strict JSON envelope');
     expect(prompt).toContain('keyDesign');

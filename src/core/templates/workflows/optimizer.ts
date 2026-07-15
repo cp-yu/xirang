@@ -1,5 +1,5 @@
 import type { SubagentTemplate } from '../../shared/subagent-generation.js';
-import { OPSX_COMPILATION_PHILOSOPHY } from '../fragments/opsx-fragments.js';
+import { OPENSPEC_PHILOSOPHY } from '../fragments/opsx-fragments.js';
 
 const OPTIMIZER_SELF_READ_REFERENCE = `# Optimizer Self-Read Protocol
 
@@ -91,7 +91,7 @@ export function getOptimizerSubagentTemplate(): SubagentTemplate {
 
 You are OpenSpec's fresh-context finding-first optimization reviewer. Read current code and return a strict JSON envelope with evidence, recommendations, keyDesign, preservationConstraints, validation, and reconciliation actions. The master agent implements; you judge optimization value and design.
 
-${OPSX_COMPILATION_PHILOSOPHY}
+${OPENSPEC_PHILOSOPHY}
 
 ## Hard Constraints
 

@@ -192,19 +192,19 @@ Verify/apply/archive 三个模板中 delegate to reviewer subagent 的步骤 SHA
 
 ### Requirement: Workflow Skills 声明 Internal Subagents 约束
 
-Workflow skill 模板的 instructions SHALL 以 OPSX Compilation Philosophy 开头，直接后接 Flow Outline 或核心规则。Subagent 的描述和约束 SHALL 放在对应 subagent 自身的 agent prompt 中，而非在主 skill 模板中以独立协议节列出。
+Workflow skill 模板的 instructions SHALL 以共享 OpenSpec Philosophy 开头。具体 authoring、canonical syntax 与 gate 规则 SHALL 由对应 workflow surface 在需要处声明，不得重新扩写项目哲学。Subagent 的描述和约束 SHALL 放在对应 subagent 自身的 agent prompt 中，而非在主 skill 模板中以独立协议节列出。
 
 #### Scenario: Explore skill 的 instructions 结构
 
 - **WHEN** `getExploreSkillTemplate()` 生成 explore skill instructions
-- **THEN** instructions SHALL 以 OPSX Compilation Philosophy 开头，后接 Hard Rules、Required Context、Mandatory Exploration Flow
+- **THEN** instructions SHALL 以 OpenSpec Philosophy 开头，后接 Hard Rules、Required Context、Mandatory Exploration Flow
 - **AND** impact sweeper 的调用描述 SHALL 使用 "Delegate to the `openspec-impact-sweeper` agent" 表述
 - **AND** sweeper 调用参数 SHALL 包含 `projectRoot`、`concept`、`optionalChangeName`、`knownUserTerms`、`focus`
 
 #### Scenario: Apply skill 的 instructions 结构
 
 - **WHEN** `getApplyChangeSkillTemplate()` 生成 apply skill instructions
-- **THEN** instructions SHALL 以 OPSX Compilation Philosophy 开头，后接 Flow Outline 和 Implementation Discipline
+- **THEN** instructions SHALL 以 OpenSpec Philosophy 开头，后接 definition-first authoring 规则、Flow Outline 和 Implementation Discipline
 - **AND** 每个流程步骤 SHALL 指向独立的 `openspec/references/openspec-apply-step-<N>-<name>.md` 文件
 
 ### Requirement: Agent definition-first authoring

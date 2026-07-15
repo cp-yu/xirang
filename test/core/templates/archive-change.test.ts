@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { OPSX_COMPILATION_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
+import { OPENSPEC_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import { getArchiveChangeSkillTemplate } from '../../../src/core/templates/workflows/archive-change.js';
 
 describe('archive change workflow template', () => {
-  it('includes the OPSX compilation philosophy in the skill surface', () => {
-    expect(getArchiveChangeSkillTemplate().instructions).toContain(OPSX_COMPILATION_PHILOSOPHY);
+  it('includes the OpenSpec philosophy in the skill surface', () => {
+    expect(getArchiveChangeSkillTemplate().instructions).toContain(OPENSPEC_PHILOSOPHY);
   });
 
   it('keeps definition-first discipline for workflow-managed writes', () => {

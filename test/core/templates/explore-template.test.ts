@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { OPSX_COMPILATION_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
+import { OPENSPEC_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import { getExploreSkillTemplate } from '../../../src/core/templates/skill-templates.js';
 
 describe('explore template impact sweeps', () => {
   const template = getExploreSkillTemplate().instructions;
 
   it('includes v2 OPSX context without code-map guidance', () => {
-    expect(template).toContain(OPSX_COMPILATION_PHILOSOPHY);
+    expect(template).toContain(OPENSPEC_PHILOSOPHY);
     expect(template).toContain('semantic relations');
     expect(template).not.toContain('code-map refs');
   });

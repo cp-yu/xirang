@@ -11,16 +11,16 @@ metadata:
 
 Implement tasks from an OpenSpec change.
 
-**OPSX Compilation Philosophy**:
-OpenSpec treats human intent → running code as a compilation pipeline. Specs + OPSX are the durable semantic source: Specs define observable behavior; OPSX is the architecture symbol table and module graph. `proposal.md`, `design.md`, and `tasks.md` are compilation scaffolding and MUST NOT override Specs or OPSX. change-local specs and `opsx-delta.yaml` are semantic source deltas that express the target steady state; a change is the reconciliation unit. the agent is the compiler; `openspec validate` is static analysis; verify Phase 1 is the semantic-check pass; verify Phase 2 is the optimization pass; sync + archive is linking and release; snack is limited decompilation. Rules that follow:
-1. Source MUST be elegant: every sentence is consumed downstream; redundant restatement is a code smell — state each fact exactly once.
-2. Source completeness: key undefined decisions that change behavior or architecture return to the relevant Specs or OPSX. Make them explicit; Never guess silently.
-3. Faithful translation: a compiler MUST NOT invent instructions or exceed the declared source.
-4. Definition-first authoring: read the resolved `definition` (the resolved file definition), then dependencies/current state, then `instruction` and `template`; apply its content boundary and write policy. MUST NOT copy definitions, context, rules, projections, or reasoning into artifacts.
-5. Syntax is contract: preserve canonical headings, IDs, schema keys, normative keywords, paths, and commands.
-6. No dead-code output: no placeholders, empty sections, or repeated narration.
-7. Not compiled until gates pass: validate/verify/seal are required pipeline stages.
-A single compilation is faithful and deterministic; OpenSpec source iterates freely and recompiles fast.
+**OpenSpec Philosophy**
+
+OpenSpec is a human-intent programming layer between human intent and general-purpose programming languages.
+
+1. Specs and OPSX jointly form the durable semantic source. Specs define observable behavior; OPSX defines project intent, capabilities, ownership, boundaries, and semantic relations.
+2. A change reconciles semantic source deltas toward a target steady state. `proposal.md`, `design.md`, and `tasks.md` are compilation scaffolding, not competing sources of truth.
+3. Source is complete only when an Agent can compile it without guessing decisions that affect behavior or architecture.
+4. The Agent acts as a compiler: translate declared intent faithfully. Existing code is compiled output and current implementation evidence; it MUST NOT silently override the declared semantic source.
+
+For workflow-managed writes, read the resolved file definition before its instruction and template, and MUST NOT copy definitions, config projections, or reasoning into artifacts.
 
 ## Flow Outline
 

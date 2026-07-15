@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { OPSX_COMPILATION_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
+import { OPENSPEC_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import {
   getBootstrapOpsxSkillTemplate,
 } from '../../../src/core/templates/workflows/bootstrap-opsx.js';
 
 describe('bootstrap OPSX templates', () => {
-  it('includes the OPSX compilation philosophy in the skill surface', () => {
-    expect(getBootstrapOpsxSkillTemplate().instructions).toContain(OPSX_COMPILATION_PHILOSOPHY);
+  it('includes the OpenSpec philosophy in the skill surface', () => {
+    expect(getBootstrapOpsxSkillTemplate().instructions).toContain(OPENSPEC_PHILOSOPHY);
   });
 
   it('uses phase file definitions before authoring bootstrap sources', () => {

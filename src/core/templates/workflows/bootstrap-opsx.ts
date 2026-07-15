@@ -1,6 +1,6 @@
 import type { SkillTemplate } from '../types.js';
 import { renderRelationWorkflowSummary } from '../../relations/renderers.js';
-import { OPSX_COMPILATION_PHILOSOPHY } from '../fragments/opsx-fragments.js';
+import { OPENSPEC_PHILOSOPHY } from '../fragments/opsx-fragments.js';
 
 export function getBootstrapOpsxSkillTemplate(): SkillTemplate {
   return {
@@ -8,7 +8,7 @@ export function getBootstrapOpsxSkillTemplate(): SkillTemplate {
     description: 'Bootstrap OPSX architecture map from existing codebase using a structured five-phase workflow (init → scan → map → review → promote).',
     instructions: `Bootstrap the OPSX architecture map from the existing codebase.
 
-${OPSX_COMPILATION_PHILOSOPHY}
+${OPENSPEC_PHILOSOPHY}
 
 This is a **structured, multi-phase** workflow. Each phase produces intermediate artifacts in \`openspec/bootstrap/\` before writing formal OPSX files.
 

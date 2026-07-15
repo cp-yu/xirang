@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import { generateSubagentContent } from '../../../src/core/shared/subagent-generation.js';
-import { OPSX_COMPILATION_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
+import { OPENSPEC_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import { getReviewerSubagentTemplate } from '../../../src/core/templates/workflows/reviewer.js';
 
 describe('reviewer subagent template', () => {
   it('includes OPSX philosophy and concise quality discipline in the agent prompt', () => {
     const prompt = getReviewerSubagentTemplate().prompt;
 
-    expect(prompt).toContain(OPSX_COMPILATION_PHILOSOPHY);
+    expect(prompt).toContain(OPENSPEC_PHILOSOPHY);
     expect(prompt).toContain('Prefer direct evidence over inferred intent.');
     expect(prompt).toContain('Treat stale code, orphaned imports, half migrations, and unaccounted behavior changes as defects.');
     expect(prompt).toContain('OPSX semantic relation paths');
