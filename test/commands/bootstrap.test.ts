@@ -234,6 +234,69 @@ describe('bootstrap command Phase 1 baseline contract', () => {
     ]);
   });
 
+  it('projects bootstrap inputs, derived candidates, and durable sources with distinct semantics', async () => {
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
+
+    const scan = await withCwd(testDir, () =>
+      captureJsonOutput(() => bootstrapInstructionsCommand('scan', { json: true }))
+    );
+    const evidence = scan.fileDefinitions.find((file: { id: string }) => file.id === 'evidence');
+    expect(evidence.definition).toMatchObject({
+      compilationRole: 'Retained bootstrap authoring input for architecture discovery.',
+      content: {
+        includes: [
+          'Repository locations, candidate domains, confidence, provisional intents, and supporting evidence.',
+        ],
+        excludes: [
+          'Final architecture claims, derived candidates, review approval, and unsupported conclusions.',
+        ],
+      },
+    });
+
+    const map = await withCwd(testDir, () =>
+      captureJsonOutput(() => bootstrapInstructionsCommand('map', { json: true }))
+    );
+    const domainMap = map.fileDefinitions.find((file: { id: string }) => file.id === 'domain-map');
+    expect(domainMap.definition.compilationRole).toBe(
+      'Retained bootstrap authoring input compiled into candidate OPSX and Specs.'
+    );
+    expect(domainMap.definition.content.excludes[0]).toContain(
+      'mechanical import or call edges presented as semantic relations'
+    );
+
+    const promote = await withCwd(testDir, () =>
+      captureJsonOutput(() => bootstrapInstructionsCommand('promote', { json: true }))
+    );
+    expect(promote.fileDefinitions.map((file: { id: string }) => file.id)).toEqual([
+      'candidate-project',
+      'candidate-relations',
+      'candidate-specs',
+      'review',
+      'formal-project',
+      'formal-relations',
+      'formal-specs',
+    ]);
+    const formalProject = promote.fileDefinitions.find(
+      (file: { id: string }) => file.id === 'formal-project'
+    );
+    expect(formalProject.definition).toMatchObject({
+      purpose: 'Define the current project intent and durable non-relation architecture model.',
+      compilationRole: 'Durable architecture source in the formal OPSX bundle.',
+    });
+    const formalSpecs = promote.fileDefinitions.find(
+      (file: { id: string }) => file.id === 'formal-specs'
+    );
+    expect(formalSpecs).toMatchObject({
+      path: 'openspec/specs/**/*.md',
+      definition: {
+        purpose: 'Define the observable behavior the current program must continue to exhibit.',
+        compilationRole: 'Durable behavior source in the formal Specs collection.',
+        writePolicy: 'workflow-managed',
+        validation: ['openspec validate --specs --strict'],
+      },
+    });
+  });
+
   it('publicly advances init to scan and reports the transition', async () => {
     await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
 

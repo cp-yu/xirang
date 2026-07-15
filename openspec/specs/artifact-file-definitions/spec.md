@@ -66,12 +66,20 @@ Artifact authoring instructions SHALL 在 `instruction` 与 `template` 之前投
 
 ### Requirement: Bootstrap phase 文件定义投影
 
-Bootstrap Schema SHALL 使用显式 file ID registry 定义 bootstrap source、derived、review 与 formal output 文件，并 SHALL 由每个 phase artifact 引用相关 file IDs。`openspec bootstrap instructions <phase> --json` SHALL 仅返回当前 phase 相关的 `fileDefinitions`。
+Bootstrap Schema SHALL 使用显式 file ID registry 区分 workflow state、retained bootstrap authoring inputs、derived review projections 与 durable current-state source，并 SHALL 由每个 phase artifact 引用相关 file IDs。`openspec bootstrap instructions <phase> --json` SHALL 仅返回当前 phase 相关的 `fileDefinitions`。
+
+`evidence.yaml` 与 `domain-map/*.yaml` SHALL 被定义为 retained bootstrap authoring inputs，而不是 durable architecture source。Repository locations MAY 作为 evidence 保存，但 mechanical import/call edges MUST NOT 被定义为 semantic relations。`candidate/**` SHALL 被定义为 CLI-generated derived projection。Formal OPSX bundle 与 formal Specs SHALL 分别被定义为 durable architecture source 与 durable behavior source。
 
 #### Scenario: Phase 只返回相关文件
 - **WHEN** Agent 请求 scan、map、review 或 promote phase instructions
 - **THEN** `fileDefinitions` SHALL 仅包含该 phase 读取、编写、审查或发布的文件
 - **AND** SHALL NOT 注入全部 bootstrap lifecycle 定义
+
+#### Scenario: Bootstrap inputs 与 durable source 分层
+- **WHEN** Agent 请求 scan、map 或 promote instructions
+- **THEN** scan/map definitions SHALL 将 evidence 和 domain maps 标记为 retained bootstrap authoring inputs
+- **AND** promote definitions SHALL 将 formal OPSX bundle 标记为 durable architecture source
+- **AND** SHALL 将 `openspec/specs/**/*.md` 标记为 workflow-managed durable behavior source
 
 #### Scenario: Bootstrap file 引用可验证
 - **WHEN** bootstrap artifact 引用重复或不存在的 file ID

@@ -45,91 +45,91 @@ files:
   - id: metadata
     path: ".bootstrap.yaml"
     definition:
-      purpose: Store bootstrap phase, baseline, mode, fingerprints, and timestamps.
-      compilationRole: Workflow metadata controlling the retained bootstrap run.
+      purpose: Store bootstrap lifecycle state, baseline, mode, fingerprints, and timestamps.
+      compilationRole: Workflow-managed state for the retained bootstrap run.
       content:
         includes:
-          - CLI-owned lifecycle state.
+          - CLI-owned bootstrap phase and lifecycle metadata.
         excludes:
-          - Agent-authored evidence, architecture content, and review decisions.
+          - User scope decisions, repository evidence, architecture semantics, and review decisions.
       writePolicy: workflow-managed
       validation:
         - openspec bootstrap status --json
   - id: scope
     path: "scope.yaml"
     definition:
-      purpose: Persist user-approved bootstrap scope, mode, paths, and granularity.
-      compilationRole: User-decision source consumed by the bootstrap workflow.
+      purpose: Persist the user-approved bootstrap scope and discovery granularity.
+      compilationRole: Retained workflow input controlling bootstrap discovery.
       content:
         includes:
-          - Approved mode, include/exclude paths, and granularity.
+          - Approved mode, include and exclude paths, and granularity.
         excludes:
-          - Repository evidence, architecture nodes, relations, and generated state.
+          - Repository evidence, architecture semantics, derived candidates, and workflow state.
       writePolicy: cli-generated
       validation:
         - openspec bootstrap status --json
   - id: evidence
     path: "evidence.yaml"
     definition:
-      purpose: Record repository evidence and candidate domain boundaries.
-      compilationRole: Agent-authored source for architecture discovery.
+      purpose: Record repository evidence and evidence-backed candidate domain boundaries.
+      compilationRole: Retained bootstrap authoring input for architecture discovery.
       content:
         includes:
-          - Candidate domains, confidence, intents, and source evidence.
+          - Repository locations, candidate domains, confidence, provisional intents, and supporting evidence.
         excludes:
-          - Final architecture claims, generated candidates, review approval, and implementation-location data.
+          - Final architecture claims, derived candidates, review approval, and unsupported conclusions.
       writePolicy: agent-authored
       validation:
         - openspec bootstrap validate
   - id: domain-map
     path: "domain-map/*.yaml"
     definition:
-      purpose: Define reviewed domain, capability, relation, and review-gap source records.
-      compilationRole: Agent-authored architecture source compiled into candidate OPSX.
+      purpose: Interpret repository evidence into a provisional project architecture model.
+      compilationRole: Retained bootstrap authoring input compiled into candidate OPSX and Specs.
       content:
         includes:
-          - Domain and capability nodes, canonical relations, spec groups, and review gaps.
+          - Provisional domains, capabilities, canonical semantic relations, spec groups, and review gaps.
         excludes:
-          - Mechanical import/call graphs, generated candidates, and unsupported inferred relations.
+          - Derived candidates, final approval, unsupported architecture claims, and mechanical import or call edges presented as semantic relations.
       writePolicy: agent-authored
       validation:
         - openspec bootstrap validate
   - id: candidate-project
     path: "candidate/project.opsx.yaml"
     definition:
-      purpose: Materialize candidate project metadata and non-relation OPSX nodes.
-      compilationRole: CLI-generated derived candidate architecture symbol table.
+      purpose: Present the derived candidate project intent and non-relation architecture nodes.
+      compilationRole: CLI-generated review projection compiled from retained bootstrap inputs.
       content:
         includes:
-          - Project metadata, domains, capabilities, and other legal non-relation nodes.
+          - Candidate project intent, scope, domains, capabilities, and other legal non-relation nodes.
         excludes:
-          - Relations, delta operations, code paths, and review state.
+          - Semantic relations, delta operations, implementation locations, and review decisions.
       writePolicy: cli-generated
       validation:
         - openspec bootstrap validate
   - id: candidate-relations
     path: "candidate/project.opsx.relations.yaml"
     definition:
-      purpose: Materialize the complete candidate canonical semantic relation set.
-      compilationRole: CLI-generated derived candidate architecture module graph.
+      purpose: Present the derived candidate semantic relation set.
+      compilationRole: CLI-generated review projection compiled from retained bootstrap inputs.
       content:
         includes:
-          - Registry-defined semantic relations for the candidate nodes.
+          - Registry-defined semantic relations between candidate OPSX nodes.
         excludes:
-          - Node definitions, delta operations, mechanical call/import edges, and guesses.
+          - Node definitions, delta operations, mechanical import or call graphs, unsupported relations, and review decisions.
       writePolicy: cli-generated
       validation:
         - openspec bootstrap validate
   - id: candidate-specs
     path: "candidate/specs/**/*.md"
     definition:
-      purpose: Materialize candidate durable behavior Specs when the selected mode requires them.
-      compilationRole: CLI-generated derived behavior source awaiting promotion.
+      purpose: Present derived candidate behavior Specs when the selected bootstrap mode requires them.
+      compilationRole: CLI-generated behavior projection reviewed before controlled promotion.
       content:
         includes:
-          - Complete requirements and scenarios for mapped capabilities.
+          - Complete target-state requirements and scenarios for mapped capabilities.
         excludes:
-          - Architecture graph data, review state, and implementation notes.
+          - Architecture semantics, bootstrap evidence, implementation decisions, review state, and change-local delta operations.
       writePolicy: cli-generated
       validation:
         - openspec bootstrap validate
@@ -137,41 +137,54 @@ files:
     path: "review.md"
     definition:
       purpose: Present regenerated candidate findings and explicit approval controls.
-      compilationRole: Review-controlled gate over current generated candidates.
+      compilationRole: Review-controlled gate over the current derived candidates.
       content:
         includes:
-          - Candidate summary, gaps, diffs, and approval checkboxes.
+          - Candidate summaries, gaps, diffs, fingerprints, and approval checkboxes.
         excludes:
-          - Agent edits outside approval checkboxes and stale copied candidate content.
+          - Manually copied candidate content, edits outside approval controls, and approval of stale candidates.
       writePolicy: review-controlled
       validation:
         - openspec bootstrap validate
   - id: formal-project
     path: "openspec/project.opsx.yaml"
     definition:
-      purpose: Define project intent and the durable non-relation architecture node set.
-      compilationRole: Durable architecture source symbol table in the formal OPSX bundle.
+      purpose: Define the current project intent and durable non-relation architecture model.
+      compilationRole: Durable architecture source in the formal OPSX bundle.
       content:
         includes:
-          - Project intent and scope, domains, capabilities, and other legal non-relation nodes.
+          - Project intent, scope, domains, capabilities, ownership boundaries, and other legal non-relation nodes.
         excludes:
-          - Relations, delta operations, source paths, implementation-location data, and bootstrap review state.
+          - Semantic relations, delta operations, implementation locations, bootstrap evidence, and review state.
       writePolicy: workflow-managed
       validation:
         - openspec validate --all
   - id: formal-relations
     path: "openspec/project.opsx.relations.yaml"
     definition:
-      purpose: Define the complete durable canonical semantic relation set.
-      compilationRole: Durable architecture source module graph in the formal OPSX bundle.
+      purpose: Define the complete semantic relations that hold in the current project architecture.
+      compilationRole: Durable architecture source in the formal OPSX bundle.
       content:
         includes:
           - All Registry-defined semantic relations between formal OPSX nodes.
         excludes:
-          - Node definitions, delta operations, mechanical import/call graphs, and speculative relations.
+          - Node definitions, delta operations, mechanical import or call graphs, speculative relations, and bootstrap review state.
       writePolicy: workflow-managed
       validation:
         - openspec validate --all
+  - id: formal-specs
+    path: "openspec/specs/**/*.md"
+    definition:
+      purpose: Define the observable behavior the current program must continue to exhibit.
+      compilationRole: Durable behavior source in the formal Specs collection.
+      content:
+        includes:
+          - Complete target-state requirements and scenarios for project capabilities.
+        excludes:
+          - Bootstrap evidence, architecture semantics, implementation decisions, review state, and change-local delta operations.
+      writePolicy: workflow-managed
+      validation:
+        - openspec validate --specs --strict
 artifacts:
   - id: init
     generates: .bootstrap.yaml
@@ -302,6 +315,7 @@ ${renderRelationWorkflowSummary().split('\n').map((line) => `      ${line}`).joi
       - review
       - formal-project
       - formal-relations
+      - formal-specs
     instruction: |
       Run: openspec bootstrap promote -y
 
