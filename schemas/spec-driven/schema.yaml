@@ -7,13 +7,13 @@ artifacts:
     description: Initial proposal document outlining the change
     template: proposal.md
     definition:
-      purpose: State why the change is needed and bound its capability impact.
-      compilationRole: Compilation scaffolding for motivation and scope.
+      purpose: Explain why the change is needed and declare its scope.
+      compilationRole: Compilation scaffolding for motivation and capability impact.
       content:
         includes:
-          - Motivation, scope, capability impact, and affected surfaces.
+          - Motivation, scope boundaries, capability additions/modifications/removals, and affected surfaces.
         excludes:
-          - Behavioral requirements, lowering decisions, implementation steps, and architecture relations.
+          - Observable behavior requirements, lowering decisions, implementation work, and authoritative OPSX nodes or relations.
       writePolicy: agent-authored
       validation:
         - openspec validate --change <name> --json
@@ -43,17 +43,16 @@ artifacts:
     description: Detailed specifications for the change
     template: spec.md
     definition:
-      purpose: Define the durable observable behavior that the target program must exhibit.
+      purpose: Define the observable behavior the target program must exhibit.
       compilationRole: Behavior semantic source delta reconciled into formal Specs.
       content:
         includes:
-          - Complete target-state requirements and scenarios using delta sections.
+          - Complete target-state requirements and scenarios expressed through delta sections.
         excludes:
-          - Implementation choices, change-log narration, architecture relations, and agent reasoning.
+          - Implementation decisions, rationale, task planning, architecture semantics, change-log narration, and Agent reasoning.
       writePolicy: agent-authored
       validation:
         - openspec validate --change <name> --artifacts specs --json
-        - openspec scenario-labels <name> --write
     instruction: |
       Create specification files that define WHAT the system should do.
 
@@ -131,13 +130,13 @@ artifacts:
     description: Project OPSX delta describing architecture graph changes for this change
     template: opsx-delta.yaml
     definition:
-      purpose: Define the minimal architecture reconciliation operations for the target OPSX model.
+      purpose: Define the architecture source changes required by the target system.
       compilationRole: Architecture semantic source delta reconciled into formal OPSX.
       content:
         includes:
-          - Target-state node intents, statuses, and canonical semantic relations.
+          - Minimal target-state node and canonical relation reconciliation operations.
         excludes:
-          - Code paths, symbols, imports, calls, change-log narration, and mechanical code evidence.
+          - Observable behavior requirements, implementation evidence, code paths, symbols, imports, calls, and change-log narration.
       writePolicy: agent-authored
       validation:
         - openspec validate --change <name> --artifacts opsx-delta --json
@@ -186,13 +185,13 @@ artifacts:
     description: Technical design document with implementation details
     template: design.md
     definition:
-      purpose: Record lowering decisions the compiler must not guess.
-      compilationRole: Compilation scaffolding for technical decisions and constraints.
+      purpose: Record concrete lowering and architecture decisions that the Agent must not guess.
+      compilationRole: Compilation scaffolding for implementation strategy, architecture, and constraints.
       content:
         includes:
-          - Implementation strategy, rationale, alternatives, risks, and migration decisions.
+          - Solution architecture, implementation boundaries, technical decisions, rationale, alternatives, refactoring strategy, risks, trade-offs, and migration decisions.
         excludes:
-          - Behavioral requirements, architecture graph facts, task progress, and repeated motivation.
+          - Observable behavior requirements, task progress, repeated motivation, and durable architecture changes not reconciled through opsx-delta.yaml.
       writePolicy: agent-authored
       validation:
         - openspec validate --change <name> --json
@@ -226,13 +225,13 @@ artifacts:
     description: Coarse implementation tasks with verification checks
     template: tasks.md
     definition:
-      purpose: Decompose compilation into executable, evidence-gated work units.
-      compilationRole: Compilation scaffolding for implementation sequencing and verification evidence.
+      purpose: Decompose implementation into executable, evidence-gated work units.
+      compilationRole: Compilation scaffolding for sequencing and verification.
       content:
         includes:
-          - Coarse tasks, owned files, requirements, checks, commands, and evidence anchors.
+          - Coarse work units, affected files, implementation constraints, executable checks, commands, and evidence anchors.
         excludes:
-          - New product behavior, architecture source, duplicated design rationale, and untestable narration.
+          - New observable behavior, architecture semantics, repeated design rationale, and non-verifiable narration.
       writePolicy: agent-authored
       validation:
         - openspec validate --change <name> --json

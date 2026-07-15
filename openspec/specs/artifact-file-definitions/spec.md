@@ -17,6 +17,34 @@ This specification records behavior introduced by change define-artifact-file-se
 - **THEN** Schema parsing SHALL 失败
 - **AND** 错误 SHALL 指明对应 file/artifact ID 与字段路径
 
+#### Scenario: Validation contract 保持只读
+- **WHEN** definition 投影文件的 validation contract
+- **THEN** `validation` SHALL 只列出检查该文件有效性的只读命令
+- **AND** validation 后的程序化 metadata 写入 SHALL 由 artifact instruction 或 workflow 持有
+- **AND** `specs` definition SHALL NOT 将 `openspec scenario-labels <name> --write` 声明为 validation command
+
+### Requirement: Spec-driven 文件语义边界
+
+`spec-driven` Schema SHALL 通过 definitions 区分 behavior source、architecture source 与 compilation scaffolding。Proposal SHALL 声明动机、范围边界与 capability impact；Specs SHALL 定义 observable behavior；`opsx-delta.yaml` SHALL 定义目标系统所需的 architecture source reconciliation；design SHALL 承载当前 change 的具体 solution architecture、lowering、重构与技术决策；tasks SHALL 将实现分解为受证据门禁约束的工作单元。
+
+Design MAY 讨论并决定当前 change 的具体架构。会改变持久 project intent、capability、ownership、boundary 或 semantic relation 的 architecture decision SHALL 同时通过 `opsx-delta.yaml` reconciliation 到目标 OPSX source，MUST NOT 只存在于 design。
+
+#### Scenario: Specs 与 OPSX delta 不争夺语义所有权
+- **WHEN** Agent 获取 `specs` 与 `opsx-delta` definitions
+- **THEN** `specs` SHALL 包含 target-state requirements 与 scenarios，并排除 architecture semantics
+- **AND** `opsx-delta` SHALL 包含最小 target-state node/relation reconciliation operations，并排除 observable behavior requirements 与 implementation evidence
+
+#### Scenario: Design 承载具体架构与重构决策
+- **WHEN** 当前 change 需要 solution architecture、implementation boundaries 或 refactoring strategy
+- **THEN** design definition SHALL 允许记录这些具体 lowering decisions
+- **AND** SHALL 排除未通过 `opsx-delta.yaml` reconciliation 的 durable architecture changes
+
+#### Scenario: Tasks 不声明文件 ownership 或新行为
+- **WHEN** Agent 获取 tasks definition
+- **THEN** definition SHALL 将 `Files` 解释为 affected files 而非 owned files
+- **AND** SHALL 将 `Requirements` 内容约束为 implementation constraints
+- **AND** SHALL 排除 new observable behavior 与 architecture semantics
+
 ### Requirement: Agent definition-first authoring
 
 Artifact authoring instructions SHALL 在 `instruction` 与 `template` 之前投影 resolved file definition，并 SHALL 指示 Agent 先理解 definition，再读取 dependencies/current state、执行 instruction 和填充 template。Definition、context、rules、config projection 与 Agent reasoning MUST NOT 被复制进 artifact。

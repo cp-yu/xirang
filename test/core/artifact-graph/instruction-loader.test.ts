@@ -164,6 +164,47 @@ describe('instruction-loader', () => {
       }));
     });
 
+    it('projects precise semantic boundaries for spec-driven artifacts', () => {
+      const context = loadChangeContext(tempDir, 'my-change');
+      const proposal = generateInstructions(context, 'proposal').definition;
+      const specs = generateInstructions(context, 'specs').definition;
+      const opsxDelta = generateInstructions(context, 'opsx-delta').definition;
+      const design = generateInstructions(context, 'design').definition;
+      const tasks = generateInstructions(context, 'tasks').definition;
+
+      expect(proposal).toMatchObject({
+        purpose: 'Explain why the change is needed and declare its scope.',
+        content: {
+          includes: [
+            'Motivation, scope boundaries, capability additions/modifications/removals, and affected surfaces.',
+          ],
+        },
+      });
+      expect(specs).toMatchObject({
+        purpose: 'Define the observable behavior the target program must exhibit.',
+        validation: ['openspec validate --change <name> --artifacts specs --json'],
+      });
+      expect(specs?.validation).not.toContain('openspec scenario-labels <name> --write');
+      expect(opsxDelta?.content.excludes).toContain(
+        'Observable behavior requirements, implementation evidence, code paths, symbols, imports, calls, and change-log narration.'
+      );
+      expect(design).toMatchObject({
+        purpose: 'Record concrete lowering and architecture decisions that the Agent must not guess.',
+        content: {
+          includes: [
+            'Solution architecture, implementation boundaries, technical decisions, rationale, alternatives, refactoring strategy, risks, trade-offs, and migration decisions.',
+          ],
+          excludes: [
+            'Observable behavior requirements, task progress, repeated motivation, and durable architecture changes not reconciled through opsx-delta.yaml.',
+          ],
+        },
+      });
+      expect(tasks?.content.includes).toContain(
+        'Coarse work units, affected files, implementation constraints, executable checks, commands, and evidence anchors.'
+      );
+      expect(tasks?.content.includes.join(' ')).not.toContain('owned files');
+    });
+
     it('rejects an unsupported project schema during instruction projection', () => {
       const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
