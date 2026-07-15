@@ -420,12 +420,6 @@ relations:
   - from: cap.optimizer.tdd-smells
     type: belongs_to
     to: dom.ai-integration
-  - from: cap.schema.fork
-    type: belongs_to
-    to: dom.schema
-  - from: cap.schema.init
-    type: belongs_to
-    to: dom.schema
   - from: cap.schema.opsx-delta-artifact
     type: belongs_to
     to: dom.schema
@@ -522,3 +516,15 @@ relations:
   - from: cap.verify.prompt-orchestration
     type: belongs_to
     to: dom.verify
+  - from: cap.artifact-graph.file-definitions
+    type: belongs_to
+    to: dom.artifact-graph
+  - from: cap.artifact-graph.instruction-loader
+    type: consumes
+    to: cap.artifact-graph.file-definitions
+  - from: cap.cli.authoring-help
+    type: consumes
+    to: cap.artifact-graph.file-definitions
+  - from: cap.opsx.bootstrap
+    type: consumes
+    to: cap.artifact-graph.file-definitions

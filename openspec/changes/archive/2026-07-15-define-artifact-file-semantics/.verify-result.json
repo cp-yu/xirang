@@ -144,8 +144,14 @@
     "gitHeadCommit": "8d92f335ce54c8b52cb2d95437f05c16c858d8a9"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "status": "NOT_NEEDED",
+    "attempts": [
+      {
+        "timestamp": "2026-07-14T16:48:12.163Z",
+        "type": "optimization",
+        "status": "NO_OPTIMIZATION_NEEDED"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-07-14T16:46:45.096Z",
       "result": "PASS",
@@ -291,6 +297,10 @@
         "skippedEvidenceFiles": [],
         "gitHeadCommit": "8d92f335ce54c8b52cb2d95437f05c16c858d8a9"
       }
-    }
+    },
+    "findings": [],
+    "history": [],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
   }
 }

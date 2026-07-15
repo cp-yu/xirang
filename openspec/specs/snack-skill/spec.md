@@ -58,7 +58,7 @@ snack skill SHALL collect code-change evidence before artifact reconciliation. E
 
 ### Requirement: Code-map 反查
 
-snack skill SHALL 使用 code-change evidence、capability id/intent、spec coverage 与当前代码检索将 changed files/symbols 映射到 capabilities。CodeGraph 可用时 MAY 用于 symbol/call/import/blast-radius evidence；否则 SHALL 使用 ACE、`rg` 与 `read`。Skill MUST NOT 读取 `project.opsx.code-map.yaml`，无法唯一映射时 SHALL 标记 `[REVIEW NEEDED]`。
+Snack skill SHALL 使用 code-change evidence、capability id/intent、spec coverage 与当前代码检索将 changed files/symbols 映射到 capabilities。CodeGraph 可用时 MAY 用于 symbol/call/import/blast-radius evidence；否则 SHALL 使用 ACE、`rg` 与 `read`。Skill MUST NOT 读取 `project.opsx.code-map.yaml`，无法唯一映射时 SHALL 标记 `[REVIEW NEEDED]`。
 
 #### Scenario: CodeGraph 映射 changed symbols
 - **GIVEN** 项目有可用 CodeGraph index
