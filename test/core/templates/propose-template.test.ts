@@ -16,11 +16,16 @@ describe('propose template post-validation flow', () => {
     expect(getOpsxProposeSkillTemplate().instructions).toContain(OPENSPEC_PHILOSOPHY);
   });
 
-  it('fails closed when the requested change name already exists', () => {
+  it('resolves new and existing change identity without rename semantics', () => {
     const instructions = getOpsxProposeSkillTemplate().instructions;
-    expect(instructions).toContain('openspec list --json');
-    expect(instructions).toContain('ask whether to continue it or use a new name');
+    expect(instructions).toContain('explicitly requests a new change');
+    expect(instructions).toContain('ask for a different ID');
+    expect(instructions).toContain('explicitly requests an existing change');
+    expect(instructions).toContain('update that change in place');
+    expect(instructions).toContain('ask whether to update the existing change or create an independent new change');
     expect(instructions).toContain('in non-interactive mode, fail and request an explicit choice');
+    expect(instructions).not.toContain('use a new name');
+    expect(instructions).not.toContain('rename');
   });
 
   it('loads the complete formal OPSX bundle before authoring', () => {
@@ -41,63 +46,28 @@ describe('propose template post-validation flow', () => {
     expect(instructions).toContain('Do not copy definition');
   });
 
-  it('keeps post-propose validation warning-only with a single repair pass', () => {
+  it('uses one blocking combined validation with a single repair pass', () => {
     for (const body of getProposeBodies()) {
-      expect(body).toContain('This validation is warning-only.');
-      expect(body).toContain('Do NOT turn `/opsx:propose` into a blocking gate.');
-      expect(body).toContain('do exactly one repair pass');
+      expect(body.match(/openspec validate --change "<name>" --json/g)).toHaveLength(1);
+      expect(body).toContain('ERROR from either scaffolding checks or combined change validation blocks ready-for-apply');
+      expect(body).toContain('WARNING does not block');
+      expect(body).toContain('at most one repair pass');
       expect(body).toContain('re-check once');
-      expect(body).toContain('remaining warnings');
+      expect(body).toContain('Do NOT run `openspec sync`');
+      expect(body).not.toContain('--artifacts specs');
+      expect(body).not.toContain('--artifacts opsx-delta');
+      expect(body).not.toContain('Validator.validateChangeDeltaSpecs()');
+      expect(body).not.toContain('Validator.validateOpsxDelta()');
+      expect(body).not.toContain('applyOpsxDelta()');
     }
   });
 
-  it('guides agents to run check-delta before writing change-local specs', () => {
+  it('authors delta specs from formal requirement titles without check-delta', () => {
     const template = getOpsxProposeSkillTemplate();
-    expect(template.instructions.indexOf('openspec check-delta')).toBeGreaterThan(-1);
-    expect(template.instructions.indexOf('openspec check-delta')).toBeLessThan(template.instructions.indexOf('When creating `specs`'));
-    expect(template.instructions).toContain('--added');
-    expect(template.instructions).toContain('--modified');
-    expect(template.instructions).toContain('--removed');
-    expect(template.instructions).toContain('--renamed-from');
-    expect(template.instructions).toContain('Missing and Conflict results are blocking before writing specs');
+    expect(template.instructions).toMatch(/read the exact Requirement titles from the formal Spec/i);
+    expect(template.instructions).toContain('combined change validation');
+    expect(template.instructions).not.toContain('openspec check-delta');
     expect(template).not.toHaveProperty('referenceFiles');
-  });
-
-  it('aligns generated spec validation with the existing change delta validation contract', () => {
-    for (const body of getProposeBodies()) {
-      expect(body).toContain('openspec validate --change "<name>" --artifacts specs --json');
-      expect(body).toContain('Validator.validateChangeDeltaSpecs()');
-      expect(body).toContain('SHALL/MUST requirement text');
-      expect(body).toContain('required `#### Scenario:` blocks');
-    }
-  });
-
-  it('aligns OPSX validation with downstream programmatic validation and graceful skip behavior', () => {
-    for (const body of getProposeBodies()) {
-      expect(body).toContain('openspec instructions opsx-delta --change "<name>" --json');
-      expect(body).toContain('schema_version: 2');
-      expect(body).not.toContain('schema_version: 1');
-      expect(body).toContain('ADDED:');
-      expect(body).toContain('MODIFIED:');
-      expect(body).toContain('REMOVED:');
-      expect(body).toContain('openspec validate --change "<name>" --artifacts opsx-delta --json');
-      expect(body).toContain('Validator.validateOpsxDelta()');
-      expect(body).toContain('applyOpsxDelta()');
-      expect(body).toContain('Do NOT run `openspec sync`');
-      expect(body).toContain('referential integrity');
-      expect(body).toContain('relation semantic validation');
-      expect(body).not.toContain('code-map integrity');
-      expect(body).not.toContain('project.opsx.code-map.yaml');
-      expect(body).toContain('skips this check');
-    }
-  });
-
-  it('keeps full validation available as warning-only post-propose validation', () => {
-    for (const body of getProposeBodies()) {
-      expect(body).toContain('openspec validate --change "<name>" --json');
-      expect(body).toContain('This validation is warning-only.');
-      expect(body).toContain('Do NOT run `openspec sync`');
-    }
   });
 
   it('uses current schema templates for lightweight proposal/design/tasks checks', () => {
@@ -124,18 +94,42 @@ describe('propose template post-validation flow', () => {
     }
   });
 
-  it('documents smart explore routing decisions', () => {
+  it('uses Design Summary or semantic readiness without mechanical scoring', () => {
     for (const body of getProposeBodies()) {
-      expect(body).toContain('inspect the current conversation for an explore-generated `Design Summary`');
-      expect(body).toContain('propose.smartRouting: false');
-      expect(body).toContain('propose.requireExplore: false');
-      expect(body).toContain("score the user's input across 5 dimensions");
-      expect(body).toContain('Detect multi-subsystem scope');
-      expect(body).toContain('Design Summary found: proceed and show that Design Summary is being used');
-      expect(body).toContain('Input is sufficiently detailed. Skipping explore; generating artifacts directly.');
-      expect(body).toContain('This request spans multiple independent subsystems. Consider running `/opsx:explore` to decompose it first.');
-      expect(body).toContain('Show input length, detail score, multi-subsystem result, and final decision');
+      expect(body).toContain('confirmed `Design Summary`');
+      expect(body).toContain('architecture decisions to proposal Architecture Source, `design.md`, and `opsx-delta.yaml`');
+      expect(body).toContain('testing strategy to `design.md`');
+      expect(body).toContain('concrete test work to `tasks.md`');
+      expect(body).toContain('risk and trade-off decisions to `design.md`');
+      expect(body).toContain('problem');
+      expect(body).toContain('impact scope');
+      expect(body).toContain('approach');
+      expect(body).toContain('verification method');
+      expect(body).toContain('unresolved Behavior Source or Architecture Source decisions');
+      expect(body).toContain('explicitly overrides the readiness recommendation');
+      expect(body).toContain('does not authorize guessing source decisions');
+      expect(body).toMatch(/ask one focused question at a time/i);
+      expect(body).not.toContain('propose.smartRouting');
+      expect(body).not.toContain('propose.requireExplore');
+      expect(body).not.toContain('input length');
+      expect(body).not.toContain('detail score');
+      expect(body).not.toContain('score the user');
     }
+  });
+
+  it('checks readiness before creating a new change', () => {
+    const body = getOpsxProposeSkillTemplate().instructions;
+    expect(body.indexOf('Assess semantic readiness')).toBeGreaterThanOrEqual(0);
+    expect(body.indexOf('openspec new change "<name>"')).toBeGreaterThan(body.indexOf('Assess semantic readiness'));
+    expect(body).toContain('do not create a change directory or modify project files');
+    expect(body).toContain('existing artifacts, current input, the confirmed Design Summary, formal source, and implementation evidence');
+  });
+
+  it('keeps readiness and override state out of artifacts', () => {
+    const body = getOpsxProposeSkillTemplate().instructions;
+    expect(body).toContain('Keep readiness, missing-item, and override state in the conversation only');
+    expect(body).not.toContain('proposal HTML comment');
+    expect(body).not.toContain('<!--');
   });
 
   it('keeps Spec IDs separate from associated OPSX capability IDs', () => {
@@ -168,8 +162,8 @@ describe('propose template post-validation flow', () => {
   it('uses proposal Behavior Source as the delta Spec input', () => {
     const body = getOpsxProposeSkillTemplate().instructions;
     expect(body).toContain('create or modify only the Spec IDs declared under proposal `Behavior Source`');
-    expect(body).toContain('openspec check-delta');
-    expect(body).toContain('Missing and Conflict results block spec authoring');
+    expect(body).toMatch(/read the exact Requirement titles from the formal Spec/i);
+    expect(body).not.toContain('openspec check-delta');
   });
 
   it('reconciles Architecture Source after Specs and Design', () => {
@@ -190,22 +184,27 @@ describe('propose template post-validation flow', () => {
     expect(body).toContain('route non-behavior content to design/tasks/proposal/opsx-delta');
   });
 
-  it('delegates scenario operation labels to the CLI', () => {
+  it('previews and reviews scenario operations before writing labels', () => {
     for (const body of getProposeBodies()) {
-      const validationIndex = body.indexOf('Run warning-only post-propose validation');
-      const scenarioLabelsIndex = body.indexOf('openspec scenario-labels "<name>" --write');
+      const validationIndex = body.indexOf('openspec validate --change "<name>" --json');
+      const previewIndex = body.indexOf('openspec scenario-labels "<name>" --preview --json');
+      const writeIndex = body.indexOf('openspec scenario-labels "<name>" --write');
       expect(validationIndex).toBeGreaterThanOrEqual(0);
-      expect(scenarioLabelsIndex).toBeGreaterThan(validationIndex);
+      expect(previewIndex).toBeGreaterThan(validationIndex);
+      expect(writeIndex).toBeGreaterThan(previewIndex);
+      expect(body).toContain('Unexpected ADDED, MODIFIED, or REMOVED operations block label writing');
       expect(body).toContain('does not require a second validate pass');
-      expect(body).toContain('Labels remain change-local review metadata');
       expect(body).toContain('sync/archive consume and clean existing labels but do not generate them');
-      expect(body).not.toContain(
-        ['automatically handled by the OpenSpec CLI', 'after validation'].join(' ')
-      );
       expect(body).not.toContain('#### Scenario: [ADDED] <title>');
       expect(body).not.toContain('#### Scenario: [MODIFIED] <title>');
       expect(body).not.toContain('#### Scenario: [REMOVED] <title>');
     }
+  });
+
+  it('limits workflow status output to readiness, blockers, and final summary', () => {
+    const body = getOpsxProposeSkillTemplate().instructions;
+    expect(body).toContain('Report status only at readiness, blocker, and final-summary points');
+    expect(body).not.toContain('announce each artifact');
   });
 
   it('uses the shared document language contract for proseLanguage boundaries', () => {

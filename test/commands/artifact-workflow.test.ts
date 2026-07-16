@@ -591,7 +591,7 @@ rules: {}
 #### Checks
 
 - [x] C1 Verify Design Summary reuse
-  - Verifies: \`specs/propose-smart-routing/spec.md\` / Requirement "Propose 必须检测 explore 上下文" / Scenario "同会话 explore"
+  - Verifies: \`specs/propose-workflow/spec.md\` / Requirement "Propose smart routing" / Scenario "复用 Design Summary"
   - Command: \`npm run test -- test/core/templates/propose-template.test.ts\`
   - Expect: template mentions Design Summary reuse
 

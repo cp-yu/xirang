@@ -105,15 +105,6 @@ export const ProjectConfigSchema = z.object({
     .optional()
     .describe('Project-level Phase 2 optimization policy for verify workflows'),
 
-  // Optional: propose-stage smart routing policy
-  propose: z
-    .object({
-      smartRouting: z.boolean().optional().default(true),
-      requireExplore: z.boolean().optional(),
-    })
-    .optional()
-    .describe('Propose-stage explore routing policy'),
-
   // Optional: apply-stage implementation policy
   apply: z
     .object({
@@ -406,21 +397,6 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
         config.optimization = optimizationResult.data;
       } else {
         console.warn(`Invalid 'optimization' field in config (must be an object with boolean 'enabled' and optional integer 'optRetries')`);
-      }
-    }
-
-    // Parse propose field using Zod
-    if (raw.propose !== undefined) {
-      const proposeField = z.object({
-        smartRouting: z.boolean().optional().default(true),
-        requireExplore: z.boolean().optional(),
-      });
-      const proposeResult = proposeField.safeParse(raw.propose);
-
-      if (proposeResult.success) {
-        config.propose = proposeResult.data;
-      } else {
-        console.warn(`Invalid 'propose' field in config (must be an object with boolean 'smartRouting' and optional boolean 'requireExplore')`);
       }
     }
 

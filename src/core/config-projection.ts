@@ -8,10 +8,6 @@ export interface NormalizedProjectConfig {
     enabled: boolean;
     optRetries: number;
   };
-  propose?: {
-    smartRouting: boolean;
-    requireExplore?: boolean;
-  };
   apply?: {
     defaultIsolation: 'ask' | 'branch' | 'worktree' | 'none';
   };
@@ -126,12 +122,6 @@ export function normalizeProjectConfig(config: ProjectConfig | null): Normalized
       ? {
           enabled: config.optimization.enabled !== false,
           optRetries: config.optimization.optRetries ?? 2,
-        }
-      : undefined,
-    propose: config.propose
-      ? {
-          smartRouting: config.propose.smartRouting !== false,
-          requireExplore: config.propose.requireExplore,
         }
       : undefined,
     apply: config.apply

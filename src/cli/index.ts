@@ -22,7 +22,6 @@ import { registerSchemaCommand } from '../commands/schema.js';
 import { registerSyncCommand } from '../commands/sync.js';
 import { registerScenarioLabelsCommand } from '../commands/scenario-labels.js';
 import { registerVerifyCommand } from '../commands/verify.js';
-import { registerCheckDeltaCommand } from '../commands/check-delta.js';
 import {
   bootstrapAdvanceCommand,
   bootstrapInitCommand,
@@ -200,7 +199,6 @@ program
 registerSyncCommand(program);
 registerScenarioLabelsCommand(program);
 registerVerifyCommand(program);
-registerCheckDeltaCommand(program);
 
 program
   .command('list')

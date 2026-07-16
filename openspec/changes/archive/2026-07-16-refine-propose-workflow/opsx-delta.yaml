@@ -1,0 +1,17 @@
+schema_version: 2
+
+MODIFIED:
+  capabilities:
+    - id: cap.ai.propose-smart-routing
+      intent: Propose 阶段复用已确认的 Design Summary，或依据 problem、impact scope、approach、verification method 与 unresolved source decisions 判断 semantic readiness；区分 new/existing change identity，在 readiness 通过或用户明确 override 后按 resolved file definitions 生成 change artifacts；以 blocking combined semantic-source delta validation 和 preview-first scenario labels 建立 ready-for-apply gate
+
+REMOVED:
+  capabilities:
+    - id: cap.cli.check-delta
+  relations:
+    - from: cap.cli.check-delta
+      type: invokes
+      to: cap.validation.spec-section-type-cross-check
+    - from: cap.cli.check-delta
+      type: belongs_to
+      to: dom.cli

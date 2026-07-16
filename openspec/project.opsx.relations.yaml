@@ -228,12 +228,6 @@ relations:
   - from: cap.cli.change
     type: belongs_to
     to: dom.cli
-  - from: cap.cli.check-delta
-    type: invokes
-    to: cap.validation.spec-section-type-cross-check
-  - from: cap.cli.check-delta
-    type: belongs_to
-    to: dom.cli
   - from: cap.cli.command-reference-consistency
     type: validates
     to: cap.ai.workflow-templates

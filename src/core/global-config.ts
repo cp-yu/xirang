@@ -14,10 +14,6 @@ export interface GlobalConfig {
     enabled?: boolean;
     optRetries?: number;
   };
-  propose?: {
-    smartRouting?: boolean;
-    requireExplore?: boolean;
-  };
   apply?: {
     defaultIsolation?: 'ask' | 'branch' | 'worktree' | 'none';
   };
@@ -28,9 +24,6 @@ const DEFAULT_CONFIG: GlobalConfig = {
   optimization: {
     enabled: true,
     optRetries: 2,
-  },
-  propose: {
-    smartRouting: true,
   },
   apply: {
     defaultIsolation: 'ask',
@@ -120,6 +113,13 @@ export function getGlobalConfig(): GlobalConfig {
 
     const content = fs.readFileSync(configPath, 'utf-8');
     const parsed = JSON.parse(content);
+    const {
+      propose: _retiredPropose,
+      profile: _retiredProfile,
+      workflows: _retiredWorkflows,
+      delivery: _retiredDelivery,
+      ...activeConfig
+    } = parsed;
 
     // Warn about deprecated fields
     if ('profile' in parsed || 'workflows' in parsed || 'delivery' in parsed) {
@@ -129,7 +129,7 @@ export function getGlobalConfig(): GlobalConfig {
     // Merge with defaults (loaded values take precedence)
     const merged: GlobalConfig = {
       ...DEFAULT_CONFIG,
-      ...parsed,
+      ...activeConfig,
       // Deep merge featureFlags
       featureFlags: {
         ...DEFAULT_CONFIG.featureFlags,
@@ -139,27 +139,15 @@ export function getGlobalConfig(): GlobalConfig {
         ...DEFAULT_CONFIG.optimization,
         ...(parsed.optimization || {})
       },
-      propose: {
-        ...DEFAULT_CONFIG.propose,
-        ...(parsed.propose || {})
-      },
       apply: {
         ...DEFAULT_CONFIG.apply,
         ...(parsed.apply || {})
       }
     };
 
-    // Remove deprecated fields from merged config
-    delete (merged as any).profile;
-    delete (merged as any).workflows;
-    delete (merged as any).delivery;
-
     // Schema evolution: apply defaults for new fields if not present in loaded config
     if (parsed.optimization === undefined) {
       merged.optimization = DEFAULT_CONFIG.optimization;
-    }
-    if (parsed.propose === undefined) {
-      merged.propose = DEFAULT_CONFIG.propose;
     }
     if (parsed.apply === undefined) {
       merged.apply = DEFAULT_CONFIG.apply;

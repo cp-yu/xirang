@@ -386,33 +386,30 @@ optimization:
         });
       });
 
-      it('should parse propose and apply workflow policy when present', () => {
+      it('should silently ignore retired propose policy without rewriting the file', () => {
         const configDir = path.join(tempDir, 'openspec');
+        const configPath = path.join(configDir, 'config.yaml');
         fs.mkdirSync(configDir, { recursive: true });
-        fs.writeFileSync(
-          path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+        const source = `schema: spec-driven
 propose:
   smartRouting: false
   requireExplore: false
 apply:
   defaultIsolation: worktree
-`
-        );
+`;
+        fs.writeFileSync(configPath, source);
 
         const config = readProjectConfig(tempDir);
 
         expect(config).toEqual({
           schema: 'spec-driven',
-          propose: {
-            smartRouting: false,
-            requireExplore: false,
-          },
           apply: {
             defaultIsolation: 'worktree',
           },
           git: gitConfig(),
         });
+        expect(consoleWarnSpy).not.toHaveBeenCalled();
+        expect(fs.readFileSync(configPath, 'utf-8')).toBe(source);
       });
 
       it('should parse complete git archive policy when present', () => {
@@ -1077,7 +1074,7 @@ rules:
           proposal: ['  Rule 1  ', ' ', 'Rule 2'],
           '  ': ['ignored'],
         },
-      });
+      } as any);
 
       expect(normalized).toEqual({
         schema: 'spec-driven',
@@ -1086,10 +1083,6 @@ rules:
         optimization: {
           enabled: false,
           optRetries: 2,
-        },
-        propose: {
-          smartRouting: false,
-          requireExplore: false,
         },
         apply: {
           defaultIsolation: 'worktree',

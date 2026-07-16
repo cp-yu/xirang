@@ -3,6 +3,7 @@ import { Command } from 'commander';
 import { introspectCommands } from '../../../src/core/completions/introspect.js';
 import { ZshGenerator } from '../../../src/core/completions/generators/zsh-generator.js';
 import { BashGenerator } from '../../../src/core/completions/generators/bash-generator.js';
+import { runCLI } from '../../helpers/run-cli.js';
 
 // Import the actual CLI program builder to test against real structure
 async function buildRealProgram(): Promise<Command> {
@@ -45,6 +46,13 @@ async function buildRealProgram(): Promise<Command> {
 }
 
 describe('introspect-regression', () => {
+  it('真实 CLI 命令树不再暴露 check-delta', async () => {
+    const result = await runCLI(['--help']);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).not.toContain('check-delta');
+  });
+
   it('Zsh 补全脚本覆盖率：包含所有命令和 flags', async () => {
     const program = await buildRealProgram();
     const commands = introspectCommands(program);

@@ -1,0 +1,7 @@
+{
+  "method": "branch",
+  "branchName": "refine-propose-workflow",
+  "originalBranch": "main",
+  "baseCommit": "76277b0dd5b218785f353dfa630d74fae6858e0a",
+  "phase2BaselineCommit": "e667812003bb9b18122006177c18417243770e2e"
+}
