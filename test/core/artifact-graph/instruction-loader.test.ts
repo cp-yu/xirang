@@ -12,12 +12,30 @@ import {
 
 describe('instruction-loader', () => {
   describe('loadTemplate', () => {
-    it('should load template from schema directory', () => {
-      // Uses built-in spec-driven schema
+    it('loads the proposal source-impact template', () => {
       const template = loadTemplate('spec-driven', 'proposal.md');
 
-      expect(template).toContain('## Why');
-      expect(template).toContain('## What Changes');
+      for (const heading of [
+        '## Why',
+        '## What Changes',
+        '## Source Impact',
+        '### Behavior Source',
+        '#### New Specs',
+        '#### Modified Specs',
+        '### Architecture Source',
+        '#### Added OPSX Nodes',
+        '#### Modified OPSX Nodes',
+        '#### Removed OPSX Nodes',
+        '#### Architecture Relations',
+        '## Impact',
+      ]) {
+        expect(template).toContain(heading);
+      }
+      expect(template).toContain('Spec IDs');
+      expect(template).toContain('opsx-delta.yaml');
+      expect(template).not.toContain('## Capabilities');
+      expect(template).not.toContain('### New Capabilities');
+      expect(template).not.toContain('### Modified Capabilities');
     });
 
     it('loads bootstrap init and review templates with the complete v2 refresh contract', () => {
@@ -173,10 +191,14 @@ describe('instruction-loader', () => {
       const tasks = generateInstructions(context, 'tasks').definition;
 
       expect(proposal).toMatchObject({
-        purpose: 'Explain why the change is needed and declare its scope.',
+        purpose: 'Explain why the change is needed and declare its semantic source scope.',
+        compilationRole: 'Compilation scaffolding for motivation and source impact.',
         content: {
           includes: [
-            'Motivation, scope boundaries, capability additions/modifications/removals, and affected surfaces.',
+            'Motivation, scope boundaries, Behavior Source impact, Architecture Source impact, and affected surfaces.',
+          ],
+          excludes: [
+            'Complete observable behavior requirements, authoritative OPSX node or relation operations, lowering decisions, and implementation work.',
           ],
         },
       });
@@ -203,6 +225,47 @@ describe('instruction-loader', () => {
         'Coarse work units, affected files, implementation constraints, executable checks, commands, and evidence anchors.'
       );
       expect(tasks?.content.includes.join(' ')).not.toContain('owned files');
+    });
+
+    it('projects separate proposal source impact guidance', () => {
+      const context = loadChangeContext(tempDir, 'my-change');
+      const body = generateInstructions(context, 'proposal').instruction ?? '';
+
+      for (const token of [
+        'Behavior Source',
+        'Architecture Source',
+        'New Specs',
+        'Modified Specs',
+        'specs/<spec-id>/spec.md',
+        'cap.<domain>.<name>',
+        'do not assume a one-to-one mapping',
+        'Write `None`',
+        'Complete observable behavior belongs in delta Specs',
+        'Complete target-state OPSX nodes and relations belong in `opsx-delta.yaml`',
+        'Lowering and architecture decisions belong in `design.md`',
+        'Implementation work and verification belong in `tasks.md`',
+        'Every New or Modified Spec entry must be reconciled by a corresponding change-local delta Spec',
+        'Every declared durable architecture impact must be reconciled through `opsx-delta.yaml`',
+      ]) {
+        expect(body).toContain(token);
+      }
+    });
+
+    it('projects Behavior Source driven delta Spec guidance', () => {
+      const context = loadChangeContext(tempDir, 'my-change');
+      const body = generateInstructions(context, 'specs').instruction ?? '';
+
+      for (const token of [
+        '`Source Impact`',
+        '`Behavior Source`',
+        'specs/<spec-id>/spec.md',
+        'Spec IDs and OPSX capability IDs are different identifiers',
+        'A `Modified Specs` file may contain any combination',
+        'Agent MUST NOT author scenario operation labels',
+      ]) {
+        expect(body).toContain(token);
+      }
+      expect(body).not.toContain('The system SHALL allow users to export their data');
     });
 
     it('rejects an unsupported project schema during instruction projection', () => {

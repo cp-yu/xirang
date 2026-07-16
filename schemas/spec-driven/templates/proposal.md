@@ -1,23 +1,47 @@
 ## Why
 
-<!-- Explain the motivation for this change. What problem does this solve? Why now? -->
+<!-- Explain the problem or opportunity and why it matters now. -->
 
 ## What Changes
 
-<!-- Describe what will change. Be specific about new capabilities, modifications, or removals. -->
+<!-- Summarize the intended scope and outcomes. Do not define detailed requirements or implementation steps. Mark breaking changes with **BREAKING**. -->
 
-## Capabilities
+## Source Impact
 
-### New Capabilities
-<!-- Capabilities being introduced. Replace <name> with kebab-case identifier (e.g., user-auth, data-export, api-rate-limiting). Each creates specs/<name>/spec.md -->
-- `<name>`: <brief description of what this capability covers>
+### Behavior Source
 
-### Modified Capabilities
-<!-- Existing capabilities whose REQUIREMENTS are changing (not just implementation).
-     Only list here if spec-level behavior changes. Each needs a delta spec file.
-     Use existing spec names from openspec/specs/. Leave empty if no requirement changes. -->
-- `<existing-name>`: <what requirement is changing>
+#### New Specs
+
+<!-- List new Spec IDs. Each creates specs/<spec-id>/spec.md. Use None when no new Specs are required. -->
+- `<spec-id>`: <observable behavior covered by the new Spec>
+
+#### Modified Specs
+
+<!-- List existing Spec IDs whose observable requirements change. Use None when no existing Specs change. -->
+- `<existing-spec-id>`: <observable behavior that changes>
+
+### Architecture Source
+
+#### Added OPSX Nodes
+
+<!-- List new canonical OPSX node IDs when known. Define exact target-state nodes and relations in opsx-delta.yaml. Use None when no nodes are added. -->
+- `cap.<domain>.<name>`: <new architectural responsibility>
+
+#### Modified OPSX Nodes
+
+<!-- List existing OPSX node IDs whose intent, ownership, or boundary changes. Use None when no nodes change. -->
+- `cap.<domain>.<name>`: <architecture responsibility or boundary that changes>
+
+#### Removed OPSX Nodes
+
+<!-- List OPSX node IDs removed from the target architecture. Use None when no nodes are removed. -->
+- `cap.<domain>.<name>`: <why the architecture no longer contains this node>
+
+#### Architecture Relations
+
+<!-- Summarize affected semantic collaboration without defining authoritative from/type/to records here. Exact relations belong in opsx-delta.yaml. Use None when relations do not change. -->
+- <relationship or collaboration impact>
 
 ## Impact
 
-<!-- Affected code, APIs, dependencies, systems -->
+<!-- List affected code, APIs, dependencies, data, operations, or systems. -->

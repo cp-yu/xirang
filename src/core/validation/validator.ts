@@ -7,6 +7,7 @@ import { ChangeParser } from '../parsers/change-parser.js';
 import { ValidationReport, ValidationIssue, ValidationLevel } from './types.js';
 import {
   applyOpsxDelta,
+  hasOpsxDeltaOperations,
   OPSX_PATHS,
   readOpsxDelta,
   readProjectOpsx,
@@ -128,6 +129,7 @@ export class Validator {
   async validateChangeDeltaSpecs(changeDir: string): Promise<ValidationReport> {
     const issues: ValidationIssue[] = [];
     const specsDir = path.join(changeDir, 'specs');
+    const noOpMarker = path.join(changeDir, '.specs-noop');
     let totalDeltas = 0;
     const missingHeaderSpecs: string[] = [];
     const emptySectionSpecs: Array<{ path: string; sections: string[] }> = [];
@@ -306,8 +308,15 @@ export class Validator {
       });
     }
 
-    if (totalDeltas === 0) {
+    const hasNoOpMarker = await fs.access(noOpMarker).then(() => true, () => false);
+    if (totalDeltas === 0 && !hasNoOpMarker) {
       issues.push({ level: 'ERROR', path: 'file', message: this.enrichTopLevelError('change', VALIDATION_MESSAGES.CHANGE_NO_DELTAS) });
+    } else if (totalDeltas > 0 && hasNoOpMarker) {
+      issues.push({
+        level: 'ERROR',
+        path: '.specs-noop',
+        message: 'Remove the stale Specs no-op marker when delta Specs exist.',
+      });
     }
 
     await this.validateMainSpecFrontmatter(changeDir, issues);
@@ -319,8 +328,24 @@ export class Validator {
     const issues: ValidationIssue[] = [];
     const projectRoot = path.resolve(changeDir, '..', '..', '..');
     const changeName = path.basename(changeDir);
-    const projectOpsxPath = FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.PROJECT_FILE);
 
+    let delta;
+    try {
+      delta = await readOpsxDelta(projectRoot, changeName);
+    } catch (error) {
+      issues.push({
+        level: 'ERROR',
+        path: 'opsx-delta.yaml',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
+      return this.createReport(issues);
+    }
+
+    if (!delta || !hasOpsxDeltaOperations(delta)) {
+      return this.createReport(issues);
+    }
+
+    const projectOpsxPath = FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.PROJECT_FILE);
     if (!await FileSystemUtils.fileExists(projectOpsxPath)) {
       return this.createReport(issues);
     }
@@ -333,11 +358,6 @@ export class Validator {
           path: 'openspec/project.opsx.yaml',
           message: 'Unable to read openspec/project.opsx.yaml for OPSX dry-run validation',
         });
-        return this.createReport(issues);
-      }
-
-      const delta = await readOpsxDelta(projectRoot, changeName);
-      if (!delta) {
         return this.createReport(issues);
       }
 

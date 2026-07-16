@@ -20,7 +20,7 @@ export function detectCompleted(graph: ArtifactGraph, changeDir: string): Comple
   }
 
   for (const artifact of graph.getAllArtifacts()) {
-    if (isArtifactComplete(artifact.generates, changeDir)) {
+    if (isArtifactComplete(artifact.generates, artifact.completionMarker, changeDir)) {
       completed.add(artifact.id);
     }
   }
@@ -32,6 +32,11 @@ export function detectCompleted(graph: ArtifactGraph, changeDir: string): Comple
  * Checks if an artifact is complete by checking if its generated file(s) exist.
  * Supports both simple paths and glob patterns.
  */
-function isArtifactComplete(generates: string, changeDir: string): boolean {
-  return artifactOutputExists(changeDir, generates);
+function isArtifactComplete(
+  generates: string,
+  completionMarker: string | undefined,
+  changeDir: string
+): boolean {
+  return artifactOutputExists(changeDir, generates)
+    || (completionMarker !== undefined && artifactOutputExists(changeDir, completionMarker));
 }

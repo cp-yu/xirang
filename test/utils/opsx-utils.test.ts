@@ -11,6 +11,7 @@ import {
   OpsxDeltaSchema,
   validateReferentialIntegrity,
   applyOpsxDelta,
+  hasOpsxDeltaOperations,
   readProjectOpsx,
   writeProjectOpsx,
   readOpsxDelta,
@@ -520,6 +521,55 @@ domains:
       expect(OpsxDeltaSchema.safeParse(parseYaml(yaml)).success).toBe(false);
     });
 
+    it('accepts only schema_version as the canonical no-op delta', () => {
+      const result = OpsxDeltaSchema.safeParse(parseYaml('schema_version: 2\n'));
+      expect(result.success).toBe(true);
+      if (result.success) expect(hasOpsxDeltaOperations(result.data)).toBe(false);
+    });
+
+    it.each([
+      ['empty ADDED', 'schema_version: 2\nADDED: {}\n'],
+      ['empty capability collection', 'schema_version: 2\nADDED:\n  capabilities: []\n'],
+      ['all empty collections', 'schema_version: 2\nREMOVED:\n  domains: []\n  capabilities: []\n  relations: []\n'],
+    ])('rejects non-canonical no-op form: %s', (_name, yaml) => {
+      expect(OpsxDeltaSchema.safeParse(parseYaml(yaml)).success).toBe(false);
+    });
+
+    it('rejects empty collections beside real operations', () => {
+      const data = parseYaml(`
+schema_version: 2
+ADDED:
+  capabilities:
+    - id: cap.example.feature
+      type: capability
+      intent: 示例能力
+  relations: []
+`);
+      expect(OpsxDeltaSchema.safeParse(data).success).toBe(false);
+    });
+
+    it('applies the canonical no-op without changing the bundle', () => {
+      const bundle = mkBundle();
+      const result = applyOpsxDelta(bundle, { schema_version: 2 });
+      expect(result.changed).toBe(false);
+      expect(result.bundle).toEqual(bundle);
+      expect(result.counts).toEqual({
+        added: { domains: 0, capabilities: 0, relations: 0 },
+        modified: { domains: 0, capabilities: 0, relations: 0 },
+        removed: { domains: 0, capabilities: 0, relations: 0 },
+      });
+    });
+
+    it('rejects id-only MODIFIED nodes', () => {
+      const data = parseYaml(`
+        schema_version: 2
+        MODIFIED:
+          capabilities:
+            - id: cap.xxx
+      `);
+      expect(OpsxDeltaSchema.safeParse(data).success).toBe(false);
+    });
+
     it('should pass MODIFIED without type field', () => {
       const data = parseYaml(`
         schema_version: 2
@@ -531,6 +581,20 @@ domains:
       const result = OpsxDeltaSchema.safeParse(data);
       expect(result.success).toBe(true);
     });
+
+    it.each(['ADDED', 'MODIFIED', 'REMOVED'])('rejects implementation evidence fields in %s nodes', (operation) => {
+      const data = parseYaml(`
+        schema_version: 2
+        ${operation}:
+          capabilities:
+            - id: cap.xxx
+              ${operation === 'REMOVED' ? '' : 'intent: updated'}
+              code_refs:
+                - src/example.ts
+      `);
+      expect(OpsxDeltaSchema.safeParse(data).success).toBe(false);
+    });
+
 
     it('should fail MODIFIED without id field', () => {
       const data = parseYaml(`

@@ -50,40 +50,28 @@ After reading the formal OPSX two-file bundle, use OpenSpec CLI query surfaces f
 
 /**
  * Fragment: Generate opsx-delta.yaml
- * Used in: propose, snack
+ * Used in: snack
  */
 export const OPSX_GENERATE_DELTA = `
 **Generate opsx-delta.yaml**:
 - Read \`openspec instructions opsx-delta --change "<name>" --json\`
-- Use the resolved \`definition\` first: apply its content boundary and write policy before \`instruction\` and \`template\`. Then use \`outputPath\`; MUST NOT copy definition or reasoning into \`opsx-delta.yaml\`
-- Read \`proposal.md\` to extract the capability list
-- Read all delta specs in \`openspec/changes/<name>/specs/*/spec.md\`
-- For existing capability or domain IDs, run \`openspec opsx query <node-id...> --json\` for current-system context in one batch; add \`--depth 2\` when related context is needed
-- Treat \`ADDED\`, \`MODIFIED\`, and \`REMOVED\` as YAML object keys, not Markdown headings
-- Follow a concrete YAML object structure such as:
-  \`\`\`yaml
-  schema_version: 2
-  ADDED:
-    capabilities:
-      - id: cap.example.feature
-        type: capability
-        intent: Describe the new capability
-    relations:
-      - from: cap.example.feature
-        type: belongs_to
-        to: dom.example
-  MODIFIED:
-    capabilities:
-      - id: cap.example.existing
-        intent: Updated intent text
-  REMOVED:
-    capabilities:
-      - id: cap.example.legacy
-  \`\`\`
-- Delta nodes contain only id, type, intent, status — no code_refs or spec_refs
-- Choose relations only from this Registry projection:\n${renderRelationWorkflowSummary()}
-- If no precise relation applies, omit it and record a review gap
-- Keep this agent-driven: capture merge intent in the YAML, not in programmatic code
+- Read the resolved \`definition\` first. Before writing:
+  - use \`content.includes\` and \`content.excludes\` to decide what belongs in \`opsx-delta.yaml\`
+  - obey \`writePolicy\`
+  - then follow \`instruction\` and fill the canonical structure from \`template\`
+  - MUST NOT copy the definition or Agent reasoning into the artifact
+- Read \`proposal.md\` → \`Source Impact\`:
+  - use \`Architecture Source\` as the declared architecture scope
+  - use \`Behavior Source\` to locate related change-local Specs; Spec IDs are not OPSX capability IDs
+- Read the completed change-local Specs as target behavior context. Observable behavior does not by itself prove an OPSX node or relation change
+- Read \`design.md\` when present for concrete architecture and lowering decisions
+- Read the formal OPSX two-file bundle as the current architecture state
+- Use current code only as implementation evidence; it MUST NOT override declared target source
+- Treat proposal architecture entries as scope declarations, not authoritative OPSX records. Derive exact target-state nodes and canonical relations into \`opsx-delta.yaml\`
+- If Architecture Source is \`None\`, write only \`schema_version: 2\`; do not emit empty operation sections; do not invent architecture changes from behavior changes alone
+- Otherwise omit unused \`ADDED\`, \`MODIFIED\`, or \`REMOVED\` sections and follow the Registry relation contract below
+${renderRelationWorkflowSummary()}
+- Imports/calls are evidence only. If no precise relation applies, omit it and keep the unresolved decision for review
 `.trim();
 
 

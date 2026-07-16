@@ -120,3 +120,18 @@
 - **THEN** 最终总结 SHALL 说明 post-propose validation 已通过
 - **AND** SHALL 输出 ready for apply
 
+
+### Requirement: OPSX delta validation 先解析后执行 formal merge
+
+Post-propose OPSX validation SHALL 始终先通过 `OpsxDeltaSchema` 解析 `opsx-delta.yaml`。只有包含实际 operations 时，formal OPSX bundle 才用于 dry-run merge；缺少 formal OPSX SHALL 只跳过 merge，不得跳过 Schema parsing。
+
+#### Scenario: Canonical no-op 独立通过解析
+- **WHEN** delta 只包含 `schema_version: 2`
+- **THEN** validation SHALL 通过 Schema parsing
+- **AND** SHALL NOT 要求 formal OPSX bundle
+
+#### Scenario: 缺少 formal OPSX 不隐藏非法 delta
+- **WHEN** formal OPSX 不存在
+- **AND** delta 包含 legacy empty section 或 collection
+- **THEN** validation SHALL 报告 delta Schema error
+- **AND** SHALL NOT 将整个 artifact validation 静默跳过

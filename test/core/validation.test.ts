@@ -465,6 +465,38 @@ Then result`;
     });
   });
 
+  describe('validateChangeDeltaSpecs no-op marker', () => {
+    it('accepts .specs-noop without delta Specs', async () => {
+      const changeDir = path.join(testDir, 'specs-noop');
+      await fs.mkdir(changeDir, { recursive: true });
+      await fs.writeFile(path.join(changeDir, '.specs-noop'), '');
+
+      const report = await new Validator(true).validateChangeDeltaSpecs(changeDir);
+
+      expect(report.valid).toBe(true);
+    });
+
+    it('rejects a stale .specs-noop alongside delta Specs', async () => {
+      const changeDir = path.join(testDir, 'stale-specs-noop');
+      const specsDir = path.join(changeDir, 'specs', 'test-spec');
+      await fs.mkdir(specsDir, { recursive: true });
+      await fs.writeFile(path.join(changeDir, '.specs-noop'), '');
+      await fs.writeFile(path.join(specsDir, 'spec.md'), `## ADDED Requirements
+
+### Requirement: Test
+The system SHALL work.
+
+#### Scenario: Test
+- **WHEN** invoked
+- **THEN** it works`);
+
+      const report = await new Validator(true).validateChangeDeltaSpecs(changeDir);
+
+      expect(report.valid).toBe(false);
+      expect(report.issues.some(issue => issue.path === '.specs-noop')).toBe(true);
+    });
+  });
+
   describe('validateChangeDeltaSpecs with metadata', () => {
     it('should validate requirement with metadata before SHALL/MUST text', async () => {
       const changeDir = path.join(testDir, 'test-change');
@@ -801,7 +833,7 @@ ADDED:
       expect(report.issues).toEqual([]);
     });
 
-    it('should skip when project opsx is missing', async () => {
+    it('parses a real delta but skips only the formal merge when OPSX is missing', async () => {
       const changeDir = await writeChangeDelta(
         testDir,
         'missing-project',
@@ -818,6 +850,26 @@ ADDED:
 
       expect(report.valid).toBe(true);
       expect(report.issues).toEqual([]);
+    });
+
+    it('validates a canonical no-op without formal OPSX', async () => {
+      const changeDir = await writeChangeDelta(testDir, 'no-op-without-project', 'schema_version: 2\n');
+      const report = await new Validator().validateOpsxDelta(changeDir);
+      expect(report.valid).toBe(true);
+      expect(report.issues).toEqual([]);
+    });
+
+    it('rejects legacy empty operations without formal OPSX', async () => {
+      const changeDir = await writeChangeDelta(
+        testDir,
+        'invalid-empty-without-project',
+        'schema_version: 2\nADDED: {}\n',
+      );
+      const report = await new Validator().validateOpsxDelta(changeDir);
+      expect(report.valid).toBe(false);
+      expect(report.issues).toEqual(expect.arrayContaining([
+        expect.objectContaining({ level: 'ERROR', path: 'opsx-delta.yaml' }),
+      ]));
     });
 
     it('should skip when opsx delta is missing', async () => {

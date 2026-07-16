@@ -2,6 +2,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import {
   applyOpsxDelta,
+  hasOpsxDeltaOperations,
   OPSX_PATHS,
   readOpsxDelta,
   readProjectOpsx,
@@ -72,15 +73,8 @@ export async function assessChangeSyncState(
   const changeDir = path.join(projectRoot, 'openspec', 'changes', changeName);
   const mainSpecsDir = path.join(projectRoot, 'openspec', 'specs');
   const specUpdates = await findSpecUpdates(changeDir, mainSpecsDir);
-  const opsxDeltaPath = path.join(changeDir, 'opsx-delta.yaml');
-
-  let hasOpsxDelta = false;
-  try {
-    await fs.access(opsxDeltaPath);
-    hasOpsxDelta = true;
-  } catch {
-    hasOpsxDelta = false;
-  }
+  const opsxDelta = await readOpsxDelta(projectRoot, changeName);
+  const hasOpsxDelta = opsxDelta !== null && hasOpsxDeltaOperations(opsxDelta);
 
   return {
     changeName,

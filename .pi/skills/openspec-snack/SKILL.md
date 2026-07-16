@@ -20,7 +20,7 @@ OpenSpec is a human-intent programming layer between human intent and general-pu
 3. Source is complete only when an Agent can compile it without guessing decisions that affect behavior or architecture.
 4. The Agent acts as a compiler: translate declared intent faithfully. Existing code is compiled output and current implementation evidence; it MUST NOT silently override the declared semantic source.
 
-snack performs artifact reconciliation, not unconditional regeneration. Treat `proposal.md`, `design.md`, `specs/*/spec.md`, and `opsx-delta.yaml` as conditional artifacts: create them when missing, update them when stale or inconsistent, and leave them unchanged when current.
+Treat `proposal.md`, `design.md`, `specs/*/spec.md`, and `opsx-delta.yaml` as conditional artifacts: create them when missing, update them when stale or inconsistent, and leave them unchanged when current.
 
 ## Input
 
@@ -30,112 +30,79 @@ snack performs artifact reconciliation, not unconditional regeneration. Treat `p
 ## Flow
 
 1. Resolve change name and reconcile mode.
-   - If `openspec/changes/<name>/` does not exist (no matching change), run `openspec new change "<name>"`, then create only the artifacts required by the evidence.
-   - If the change already exists (existing change, possibly stale), read its current `proposal.md`, `design.md`, `specs/`, and `opsx-delta.yaml` before writing anything; do not recreate a valid proposal.
-   - Classify each artifact as **missing**, **stale**, **inconsistent**, or **current** against the collected evidence, and reconcile only the missing, stale, or inconsistent ones.
-2. Load shared OPSX context before generating artifacts.
+   - If `openspec/changes/<name>/` does not exist, run `openspec new change "<name>"` and create only artifacts required by evidence.
+   - Otherwise read current proposal, design, Specs, and OPSX delta; classify each as **missing**, **stale**, **inconsistent**, or **current** and preserve unrelated human-authored content.
+2. Load shared OPSX context.
 Before reading other context files, check whether the formal OPSX two-file bundle exists:
 - `openspec/project.opsx.yaml` for project intent, domains, and capabilities
 - `openspec/project.opsx.relations.yaml` for the complete canonical semantic relation set
 - If the bundle exists, read both files as one architecture source; do not treat either file as complete alone
 - Read the `project:` block for project intent and scope
 - Treat the bundle as navigation context, not as a replacement for change artifacts
-3. Collect code-change evidence from all available sources (conversation-guided union).
-   - Use conversation context to guide scope and intent; treat code evidence as concrete file and behavior facts.
-   - Collect changed files and symbol-level changes from applicable git commands: `git diff --name-only`, `git diff`, `git diff --cached --name-only`, `git diff --cached`, `git diff HEAD --name-only`, and `git diff HEAD`.
-   - `git diff` is one evidence source among several; it MUST NOT be treated as the only valid source.
-   - A user-specified commit, commit range, or branch range given in natural language is an agent-parsed evidence selector (e.g. `git diff <range> --name-only`), not a formal OpenSpec CLI flag.
-   - Exclude non-code files (`.md`, `.json`, `.yaml`, lock files) from spec inference.
-   - Mark conflicts or uncertain mappings with `[REVIEW NEEDED]`.
-4. Map changed symbols/files to capabilities using current evidence.
-   - Use capability IDs/intents, OPSX relations, and spec coverage as semantic context.
-   - If CodeGraph is available, use symbol/call/import evidence as an optional accelerator; never read `.codegraph/codegraph.db`.
-   - Otherwise use ACE, `rg`, and `read`; uncertain mappings remain `[REVIEW NEEDED]` and MUST NOT silently create capabilities.
-5. Map capabilities to existing specs via spec registry.
-   - Run `openspec list --specs --json` to get all specs with their `capabilities` field.
-   - For each capability ID from step 4 evidence mapping:
-     - If the capability ID appears in any spec's `capabilities` array → mark as **Modified Capability** and record the spec directory name.
-     - If no existing spec covers it → mark as **New Capability**.
-   - Use this mapping when reconciling the proposal's `## Capabilities` section.
-6. Use CLI-backed OPSX navigation after evidence mapping.
+3. Collect code-change evidence from conversation context plus `git diff --cached`, `git diff HEAD`, other available working-tree/staged diffs, and user-selected commit/range diffs. `git diff` is one evidence source among several and MUST NOT be treated as the only valid source. Treat natural-language commit/range selectors as agent-parsed evidence selectors, not OpenSpec CLI flags. Mark conflicts or uncertainty `[REVIEW NEEDED]`.
+4. Map changed symbols/files to current architecture context.
+   - Use formal OPSX capability IDs, intents, ownership, boundaries, and relations.
+   - CodeGraph MAY accelerate symbol/call/import discovery; otherwise use ACE, `rg`, and `read`. Never read `.codegraph/codegraph.db`.
+   - Treat code locations and call/import edges as implementation evidence, not as proof that OPSX must change. Do not create capabilities from uncertain file-name inference.
+5. Determine Behavior Source impact.
+   - Run `openspec list --specs --json` and keep each Spec ID separate from its `capabilities` string array.
+   - Add an existing Spec ID to **Modified Specs** only when its observable requirements change. Add a **New Spec** only for genuinely new observable behavior not governed by an existing Spec.
+   - An OPSX capability absent from every Spec's `capabilities` array does not by itself require a New Spec; mark missing coverage `[REVIEW NEEDED]`.
+   - Behavior-preserving refactors create no delta Spec; later Checks use `Preserves:` against formal Specs.
+6. Determine Architecture Source impact.
+   - Declare impact only when durable capability responsibility, domain boundary, ownership, or semantic relation changes.
+   - Implementation-only movement, symbol renaming, helper extraction, and mechanical call/import changes do not by themselves change OPSX.
+   - If no durable architecture fact changes, set Architecture Source to `None`. If impact remains unresolved, stop and ask one focused question; do not write `opsx-delta.yaml` or claim reconciliation complete.
+7. Use CLI-backed OPSX navigation.
 After reading the formal OPSX two-file bundle, use OpenSpec CLI query surfaces for node details.
 - Run `openspec list --specs --json` to get specs and their `capabilities` string arrays; specs without frontmatter return `capabilities: []`.
 - For known or affected OPSX node IDs, run `openspec opsx query <node-id...> --json` to get node details and directed semantic relations in one batch; add `--depth 2` when broader related context is needed.
 - Use optional CodeGraph or ACE/`rg`/`read` for current code locations; OPSX does not store code paths.
 - Treat CLI output as navigation context, not as a replacement for change artifacts.
-7. Reconcile `proposal.md`.
-   - Run `openspec instructions proposal --change "<name>" --json`.
-   - Use the resolved `definition` first: apply its content boundary and write policy before the returned `instruction` and `template`. Then use `outputPath` and `configProjection`; MUST NOT copy definition, projection, context, rules, or reasoning into the artifact.
-   - Determine the `## Capabilities` list before specs generation and reuse the same list as specs input.
-   - Reuse the confirmed evidence mapping; uncertain inference MUST be marked `[REVIEW NEEDED]`.
-   - Preserve the template headings including `## Why`, `## What Changes`, `## Capabilities`, and `## Impact`.
-   - If an existing proposal already matches the evidence and capability mapping, leave it current and report that no reconciliation was needed.
-8. Reconcile delta specs in `specs/<capability>/spec.md`.
-   - Run `openspec instructions specs --change "<name>" --json`.
-   - Use the resolved `definition` first: apply its content boundary and write policy before the returned `instruction` and `template`. Then use `outputPath` and `configProjection`; MUST NOT copy definition, projection, context, rules, or reasoning into the artifact.
-   - Follow the returned `instruction` for ADDED/MODIFIED selection, spec directory naming, and MODIFIED requirement title matching.
-   - Reuse an existing `openspec/specs/<capability>/` directory when the instruction says it applies; otherwise use the proposal capability name.
-   - New concerns use `## ADDED Requirements`; changed existing behavior uses `## MODIFIED Requirements` with the exact existing Requirement title.
-   - Requirement text MUST contain SHALL/MUST language and at least one `#### Scenario:` block with WHEN/THEN style.
-   - Do not author scenario operation labels during reconciliation; they are generated only after final validation by the explicit CLI step below and remain change-local review metadata.
-   - Preserve unrelated existing delta requirements unless the evidence makes them stale or inconsistent.
-   - Mark uncertain inferences with `[REVIEW NEEDED]`.
-9. Reconcile simplified `design.md`.
-   - Run `openspec instructions design --change "<name>" --json`.
-   - Use the resolved `definition` first: apply its content boundary and write policy before the returned `instruction` and `template`. Then use `outputPath` and `configProjection`; MUST NOT copy definition, projection, context, rules, or reasoning into the artifact.
-   - Preserve the full template skeleton: Context, Goals / Non-Goals, Decisions, and Risks / Trade-offs.
-   - Mark inferred content with `[INFERRED FROM CODE]`; mark unresolved risks or trade-offs with `[REVIEW NEEDED]`.
-   - If an existing design is current against the evidence, leave unrelated design content unchanged and report that no reconciliation was needed.
-10. Reconcile `opsx-delta.yaml` ONLY when evidence shows new/deleted exports or new files; otherwise skip and log "No architecture-level changes detected. Skipping OPSX delta reconciliation".
+8. Reconcile `proposal.md`.
+   - Run `openspec instructions proposal --change "<name>" --json`. Read the resolved `definition` first. Before writing, use `content.includes` and `content.excludes` to decide what belongs in the artifact, obey `writePolicy`, then follow `instruction` and fill the canonical structure from `template`. Use `outputPath` and `configProjection`; MUST NOT copy definition, projection, context, rules, or reasoning into the artifact.
+   - Reconcile `## Source Impact` from independently determined Behavior Source and Architecture Source impact. Keep Spec IDs distinct from OPSX node IDs.
+   - Reuse the confirmed Behavior Source list as the delta Spec input; preserve `## Why`, `## What Changes`, `## Source Impact`, and `## Impact`.
+   - If the proposal already matches evidence and source impact, leave it unchanged.
+9. Reconcile delta Specs in `specs/<spec-id>/spec.md`.
+   - Run `openspec instructions specs --change "<name>" --json`. Read the resolved `definition` first. Before writing, use `content.includes` and `content.excludes` to decide what belongs in the artifact, obey `writePolicy`, then follow `instruction` and fill the canonical structure from `template`. Use `outputPath` and `configProjection`; MUST NOT copy definition, projection, context, rules, or reasoning into the artifact.
+   - Create or update only Specs declared under Behavior Source. Do not derive the directory name directly from an OPSX capability ID.
+   - Follow returned `## ADDED Requirements`, `## MODIFIED Requirements`, REMOVED/RENAMED rules, exact title matching, canonical Requirement/Scenario syntax, and label guidance. Preserve unrelated current delta content.
+10. Reconcile simplified `design.md`.
+   - Run `openspec instructions design --change "<name>" --json`. Read the resolved `definition` first. Before writing, use `content.includes` and `content.excludes` to decide what belongs in the artifact, obey `writePolicy`, then follow `instruction` and fill the canonical structure from `template`. Use `outputPath` and `configProjection`; MUST NOT copy definition, projection, context, rules, or reasoning into the artifact.
+   - Preserve Context, Goals / Non-Goals, Decisions, and Risks / Trade-offs. Mark inferred content `[INFERRED FROM CODE]` and unresolved decisions `[REVIEW NEEDED]`.
+11. Reconcile `opsx-delta.yaml` only after Architecture Source is resolved. Create a canonical no-op containing only `schema_version: 2` when architecture is confirmed unchanged; a real delta otherwise.
    **Generate opsx-delta.yaml**:
 - Read `openspec instructions opsx-delta --change "<name>" --json`
-- Use the resolved `definition` first: apply its content boundary and write policy before `instruction` and `template`. Then use `outputPath`; MUST NOT copy definition or reasoning into `opsx-delta.yaml`
-- Read `proposal.md` to extract the capability list
-- Read all delta specs in `openspec/changes/<name>/specs/*/spec.md`
-- For existing capability or domain IDs, run `openspec opsx query <node-id...> --json` for current-system context in one batch; add `--depth 2` when related context is needed
-- Treat `ADDED`, `MODIFIED`, and `REMOVED` as YAML object keys, not Markdown headings
-- Follow a concrete YAML object structure such as:
-  ```yaml
-  schema_version: 2
-  ADDED:
-    capabilities:
-      - id: cap.example.feature
-        type: capability
-        intent: Describe the new capability
-    relations:
-      - from: cap.example.feature
-        type: belongs_to
-        to: dom.example
-  MODIFIED:
-    capabilities:
-      - id: cap.example.existing
-        intent: Updated intent text
-  REMOVED:
-    capabilities:
-      - id: cap.example.legacy
-  ```
-- Delta nodes contain only id, type, intent, status — no code_refs or spec_refs
-- Choose relations only from this Registry projection:
+- Read the resolved `definition` first. Before writing:
+  - use `content.includes` and `content.excludes` to decide what belongs in `opsx-delta.yaml`
+  - obey `writePolicy`
+  - then follow `instruction` and fill the canonical structure from `template`
+  - MUST NOT copy the definition or Agent reasoning into the artifact
+- Read `proposal.md` → `Source Impact`:
+  - use `Architecture Source` as the declared architecture scope
+  - use `Behavior Source` to locate related change-local Specs; Spec IDs are not OPSX capability IDs
+- Read the completed change-local Specs as target behavior context. Observable behavior does not by itself prove an OPSX node or relation change
+- Read `design.md` when present for concrete architecture and lowering decisions
+- Read the formal OPSX two-file bundle as the current architecture state
+- Use current code only as implementation evidence; it MUST NOT override declared target source
+- Treat proposal architecture entries as scope declarations, not authoritative OPSX records. Derive exact target-state nodes and canonical relations into `opsx-delta.yaml`
+- If Architecture Source is `None`, write only `schema_version: 2`; do not emit empty operation sections; do not invent architecture changes from behavior changes alone
+- Otherwise omit unused `ADDED`, `MODIFIED`, or `REMOVED` sections and follow the Registry relation contract below
 - `belongs_to` (capability → domain): 记录 capability 的架构所有权。
 - `invokes` (caller → callee): 一个 capability 在运行时主动调用另一个 capability。
 - `consumes` (consumer → provider): 交互核心是读取或依赖提供内容。
 - `precedes` (earlier → later): 执行顺序是正确性合同。
 - `constrains` (constraint owner → constrained capability): 存在独立且稳定的行为约束。
 - `validates` (validator → subject): 交互结果是明确的有效性判定。
-- If no precise relation applies, omit it and record a review gap
-- Keep this agent-driven: capture merge intent in the YAML, not in programmatic code
-   - Distinguish delta spec Markdown headings (`## ADDED Requirements`, `## MODIFIED Requirements`) from OPSX delta YAML keys (`ADDED`, `MODIFIED`, `REMOVED`).
-11. Do NOT generate `tasks.md` (code is already implemented).
-12. Run `openspec validate "<name>" --type change --json` after all reconciled artifacts are written.
-   - If validation returns ERROR or WARNING, run one repair pass using the relevant artifact `instruction` rules, then run `openspec validate "<name>" --type change --json` once more.
-   - Treat the second validation result as final evidence.
-   - Output validate result: if passed, indicate self-check passed; if ERROR/WARNING remain, list each and advise user review.
-13. Run `openspec scenario-labels "<name>" --write` after validate to add deterministic change-local scenario operation labels. Treat this as trusted programmatic metadata generation and SHALL NOT run validate again only because scenario labels were added.
-14. Finish with the output hints below, including the validate result.
+- Imports/calls are evidence only. If no precise relation applies, omit it and keep the unresolved decision for review
+   - Distinguish delta Spec Markdown headings from OPSX delta YAML keys (`ADDED`, `MODIFIED`, `REMOVED`).
+12. Do NOT generate `tasks.md` (code is already implemented).
+13. Run `openspec validate "<name>" --type change --json`. On ERROR/WARNING, repair once from artifact instructions, validate once more, and report the final result.
+14. Run `openspec scenario-labels "<name>" --write` after validate to add deterministic change-local scenario operation labels. SHALL NOT run validate again only because scenario labels were added.
+15. Finish with the output hints.
 
 ## Output Hints
-
-After artifacts are reconciled, output:
 
 ⚠️ Generated specs are based on code inference. Review items marked [REVIEW NEEDED]
 
@@ -156,4 +123,4 @@ After artifacts are reconciled, output:
 - English project terminology may remain embedded in prose, but ordinary English sentences and titles still follow `proseLanguage`
 - If no `proseLanguage` projection is present, keep the default writing behavior for prose
 
-Keep generated specs coarse and behavior-focused; preserve template headings, canonical IDs, schema keys, BDD keywords, paths, commands, and code identifiers.
+Preserve canonical headings, IDs, schema keys, BDD keywords, paths, commands, and code identifiers.

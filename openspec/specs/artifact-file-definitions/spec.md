@@ -25,14 +25,27 @@ This specification records behavior introduced by change define-artifact-file-se
 
 ### Requirement: Spec-driven 文件语义边界
 
-`spec-driven` Schema SHALL 通过 definitions 区分 behavior source、architecture source 与 compilation scaffolding。Proposal SHALL 声明动机、范围边界与 capability impact；Specs SHALL 定义 observable behavior；`opsx-delta.yaml` SHALL 定义目标系统所需的 architecture source reconciliation；design SHALL 承载当前 change 的具体 solution architecture、lowering、重构与技术决策；tasks SHALL 将实现分解为受证据门禁约束的工作单元。
+`spec-driven` Schema SHALL 通过 definitions 区分 behavior source、architecture source 与 compilation scaffolding。Proposal SHALL 声明动机、范围边界，以及分离的 behavior-source 与 architecture-source impact；Specs SHALL 定义 observable behavior；`opsx-delta.yaml` SHALL 定义目标系统所需的 architecture source reconciliation；design SHALL 承载当前 change 的具体 solution architecture、lowering、重构与技术决策；tasks SHALL 将实现分解为受证据门禁约束的工作单元。Proposal 中的 Spec IDs 与 OPSX node IDs MUST NOT 被视为同一标识符或默认一一对应。
 
 Design MAY 讨论并决定当前 change 的具体架构。会改变持久 project intent、capability、ownership、boundary 或 semantic relation 的 architecture decision SHALL 同时通过 `opsx-delta.yaml` reconciliation 到目标 OPSX source，MUST NOT 只存在于 design。
+
+#### Scenario: Proposal 分离 source impact
+- **WHEN** Agent 获取 proposal definition 与 template
+- **THEN** proposal SHALL 使用 Behavior Source 声明 new/modified Spec IDs
+- **AND** SHALL 使用 Architecture Source 声明受影响的 OPSX nodes、ownership、boundaries 或 relations
+- **AND** SHALL 将精确 requirements 留给 delta Specs，将精确 target-state OPSX records 留给 `opsx-delta.yaml`
 
 #### Scenario: Specs 与 OPSX delta 不争夺语义所有权
 - **WHEN** Agent 获取 `specs` 与 `opsx-delta` definitions
 - **THEN** `specs` SHALL 包含 target-state requirements 与 scenarios，并排除 architecture semantics
 - **AND** `opsx-delta` SHALL 包含最小 target-state node/relation reconciliation operations，并排除 observable behavior requirements 与 implementation evidence
+
+#### Scenario: Behavior Source 无变化时完成 Specs artifact
+- **WHEN** proposal Behavior Source 经确认为 `None`
+- **THEN** workflow SHALL 创建空的 `.specs-noop` completion marker，而 MUST NOT 伪造 delta Spec
+- **AND** 该 marker SHALL NOT 承载 behavior semantics、参与 sync 或进入 archive
+- **AND** Specs-scoped 与 full change validation SHALL 接受 marker-only Specs no-op
+- **AND** 后续出现 behavior delta 时 SHALL 删除 stale marker，validation SHALL 拒绝 marker 与 delta Specs 并存
 
 #### Scenario: Design 承载具体架构与重构决策
 - **WHEN** 当前 change 需要 solution architecture、implementation boundaries 或 refactoring strategy

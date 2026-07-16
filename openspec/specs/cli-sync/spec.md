@@ -189,3 +189,43 @@ openspec sync [change-name] [--no-validate]
 - **AND** 不调用 `checkFreshness` 或 `checkArchiveCompatibility`
 - **AND** 同步照常执行
 
+
+### Requirement: Sync 按实际 OPSX operations 判断同步需求
+
+`change-sync` SHALL 通过 `readOpsxDelta()` 解析 `opsx-delta.yaml`，并根据解析后的实际 operations 判断 OPSX sync 工作。`ChangeSyncState.hasOpsxDelta` SHALL 表示存在至少一个实际 operation，而不是表示文件存在。
+
+#### Scenario: 只有 canonical no-op delta
+- **GIVEN** `opsx-delta.yaml` 只包含 `schema_version: 2`
+- **AND** change 没有待同步 delta Specs
+- **WHEN** 执行 `openspec sync <change-name> --no-verify`
+- **THEN** SHALL 输出 `No sync required.`
+- **AND** SHALL NOT 要求 formal OPSX bundle 或写入 OPSX
+
+#### Scenario: Specs 与 canonical no-op 并存
+- **GIVEN** change 包含待同步 delta Specs 与 canonical no-op OPSX delta
+- **AND** formal OPSX bundle 不存在
+- **WHEN** 执行 sync
+- **THEN** SHALL 只同步 Specs
+- **AND** summary SHALL 输出 `opsx: no-delta`
+
+#### Scenario: Real delta 仍要求 formal OPSX
+- **GIVEN** OPSX delta 包含至少一个实际 operation
+- **AND** formal OPSX bundle 不存在
+- **WHEN** 执行 sync
+- **THEN** SHALL 失败并报告无法应用 OPSX delta
+
+### Requirement: Sync 拒绝非 canonical 空 OPSX delta
+
+Sync SHALL 始终使用 `OpsxDeltaSchema` 解析存在的 delta。`--no-validate` MUST NOT 跳过安全解析。Legacy empty mappings 或 collections MUST NOT 被清洗、忽略或迁移为 no-op。
+
+#### Scenario: 空 section fail-fast
+- **GIVEN** delta 包含 `ADDED: {}`
+- **WHEN** 执行 `openspec sync <change-name> --no-validate --no-verify`
+- **THEN** sync SHALL 以 `Invalid opsx-delta.yaml` 失败
+- **AND** SHALL NOT 写入 formal Specs 或 OPSX
+
+#### Scenario: 空 collection fail-fast
+- **GIVEN** delta 包含 `MODIFIED.capabilities: []`
+- **WHEN** sync 评估 change state
+- **THEN** `readOpsxDelta()` SHALL 拒绝该文件
+- **AND** SHALL NOT 报告为 `no-delta`

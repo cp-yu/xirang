@@ -11,13 +11,24 @@ import {
   renderRelationWorkflowSummary,
 } from '../../../src/core/relations/renderers.js';
 import { RELATION_TYPES } from '../../../src/core/relations/registry.js';
+import { OpsxDeltaSchema } from '../../../src/utils/opsx-utils.js';
 
 const projectRoot = path.resolve(import.meta.dirname, '..', '..', '..');
 
 describe('relation renderers', () => {
-  it('renders a parseable v2 opsx-delta template with canonical relations', () => {
+  it('renders a parseable strict real-delta template with canonical relations', () => {
     const rendered = renderOpsxDeltaTemplate();
-    expect(parseYaml(rendered)).toMatchObject({ schema_version: 2 });
+    const parsed = parseYaml(rendered);
+    expect(OpsxDeltaSchema.safeParse(parsed).success).toBe(true);
+    expect(parsed).toMatchObject({ schema_version: 2 });
+    expect(rendered).toContain('Canonical no-op');
+    expect(rendered).toContain('ADDED: {}');
+    expect(rendered).toContain('relations: []');
+    expect(rendered).toContain('不要求所有 section 同时存在');
+    expect(parsed.ADDED.capabilities.length).toBeGreaterThan(0);
+    expect(parsed.ADDED.relations.length).toBeGreaterThan(0);
+    expect(parsed.MODIFIED.capabilities.length).toBeGreaterThan(0);
+    expect(parsed.REMOVED.capabilities.length).toBeGreaterThan(0);
     for (const type of RELATION_TYPES) expect(rendered).toContain(type);
   });
 

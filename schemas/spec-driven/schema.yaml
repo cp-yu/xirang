@@ -7,39 +7,48 @@ artifacts:
     description: Initial proposal document outlining the change
     template: proposal.md
     definition:
-      purpose: Explain why the change is needed and declare its scope.
-      compilationRole: Compilation scaffolding for motivation and capability impact.
+      purpose: Explain why the change is needed and declare its semantic source scope.
+      compilationRole: Compilation scaffolding for motivation and source impact.
       content:
         includes:
-          - Motivation, scope boundaries, capability additions/modifications/removals, and affected surfaces.
+          - Motivation, scope boundaries, Behavior Source impact, Architecture Source impact, and affected surfaces.
         excludes:
-          - Observable behavior requirements, lowering decisions, implementation work, and authoritative OPSX nodes or relations.
+          - Complete observable behavior requirements, authoritative OPSX node or relation operations, lowering decisions, and implementation work.
       writePolicy: agent-authored
       validation:
         - openspec validate --change <name> --json
     instruction: |
-      Create the proposal document that establishes WHY this change is needed.
+      Create `proposal.md` to explain why the change is needed and bound its semantic source impact.
 
-      Sections:
-      - **Why**: 1-2 sentences on the problem or opportunity. What problem does this solve? Why now?
-      - **What Changes**: Bullet list of changes. Be specific about new capabilities, modifications, or removals. Mark breaking changes with **BREAKING**.
-      - **Capabilities**: Identify which specs will be created or modified:
-        - **New Capabilities**: List capabilities being introduced. Each becomes a new `specs/<name>/spec.md`. Use kebab-case names (e.g., `user-auth`, `data-export`).
-        - **Modified Capabilities**: List existing capabilities whose REQUIREMENTS are changing. Only include if spec-level behavior changes (not just implementation details). Each needs a delta spec file. Check `openspec/specs/` for existing spec names. Leave empty if no requirement changes.
-      - **Impact**: Affected code, APIs, dependencies, or systems.
+      Use the template sections:
+      - **Why**: State the problem or opportunity and why it matters now in 1-2 sentences.
+      - **What Changes**: Summarize intended outcomes and scope, not detailed requirements or implementation steps. Mark breaking changes with **BREAKING**.
+      - **Source Impact**:
+        - **Behavior Source**: List `New Specs` and `Modified Specs` by Spec ID. Write `None` when behavior source does not change.
+        - **Architecture Source**: List affected OPSX node IDs when known and summarize responsibility, ownership, boundary, or relation impact. Write `None` when architecture source does not change.
+      - **Impact**: List affected code, APIs, dependencies, data, operations, or systems.
 
-      IMPORTANT: The Capabilities section is critical. It creates the contract between
-      proposal and specs phases. Research existing specs before filling this in.
-      Each capability listed here will need a corresponding spec file.
+      Keep Spec IDs and OPSX IDs distinct:
+      - A Spec ID is the folder name used by `specs/<spec-id>/spec.md`.
+      - An OPSX capability ID uses the canonical `cap.<domain>.<name>` form.
+      - A Spec may cover multiple OPSX capabilities; do not assume a one-to-one mapping.
 
-      Keep it concise (1-2 pages). Focus on the "why" not the "how" -
-      implementation details belong in design.md.
+      Use existing Spec and OPSX IDs when they already describe the affected behavior or architecture. Introduce a new ID only for genuinely new behavior source or architecture concepts.
 
-      This is the foundation - specs, design, and tasks all build on this.
+      The proposal declares source impact; it does not define the source:
+      - Complete observable behavior belongs in delta Specs.
+      - Complete target-state OPSX nodes and relations belong in `opsx-delta.yaml`.
+      - Lowering and architecture decisions belong in `design.md`.
+      - Implementation work and verification belong in `tasks.md`.
+
+      Every New or Modified Spec entry must be reconciled by a corresponding change-local delta Spec. Every declared durable architecture impact must be reconciled through `opsx-delta.yaml`.
+
+      Keep the proposal concise. Do not repeat detailed requirements, architecture definitions, design rationale, or task steps.
     requires: []
 
   - id: specs
     generates: "specs/**/*.md"
+    completionMarker: ".specs-noop"
     description: Detailed specifications for the change
     template: spec.md
     definition:
@@ -54,74 +63,45 @@ artifacts:
       validation:
         - openspec validate --change <name> --artifacts specs --json
     instruction: |
-      Create specification files that define WHAT the system should do.
+      Create or reconcile the change-local delta Specs declared in `proposal.md` → `Source Impact` → `Behavior Source`.
 
-      Spec content boundary:
-      - Allowed in specs: externally observable behavior, CLI/API inputs and outputs, errors, validation, permissions, persistence, compatibility, and testable constraints.
-      - Forbidden in specs: implementation path or call graph, refactor rationale, rejected approaches, exploration/process notes, code organization, helper/library choices, and agent reasoning.
-      - Route forbidden content to the right artifact: technical decisions and refactor rationale go in `design.md`; concrete implementation steps and checks go in `tasks.md`; motivation and scope go in `proposal.md`; architecture graph intent changes go in `opsx-delta.yaml`.
-      - If "do not call/use the old path" is not externally observable, write it in `design.md`, not in a requirement. In specs, express the preserved or changed observable behavior instead.
+      If Behavior Source is confirmed as `None`, create only the empty `.specs-noop` completion marker in the change root. Otherwise remove a stale `.specs-noop` marker before authoring delta Specs. The marker carries no behavior semantics and MUST NOT be synced or archived.
 
-      Requirement framing rules:
-      - Requirement names MUST be durable capability names. FORBIDDEN: change-action names such as gap-closure, restore, unify, replace, or migrate.
-      - One requirement covers one capability concern. Do not bundle multiple unrelated commands or features into one requirement - split them.
-      - Behavior definitions MUST NOT reference change context such as "as promised", "the deprecated X", or "the original Y". State the behavior as it will be.
-      - Litmus test: a reader two years later, unaware of this change, must understand the requirement standalone. When existing capability behavior changes, prefer MODIFIED on the existing requirement over ADDED of a change-named requirement.
+      Identify target files:
+      - Each `New Specs` entry uses its Spec ID at `specs/<spec-id>/spec.md`.
+      - Each `Modified Specs` entry reuses the exact existing Spec ID from `openspec/specs/<spec-id>/spec.md`.
+      - Spec IDs and OPSX capability IDs are different identifiers. Do not use a `cap.<domain>.<name>` ID as a Spec directory name unless that exact string is independently the declared Spec ID.
+      - Do not create a delta Spec for Architecture Source impact alone.
 
-      Before writing or modifying a requirement, classify each candidate statement:
-      - Observable behavior or constraint -> keep in specs.
-      - Why this approach, why not the old approach, or how to implement it -> move to design/tasks/proposal/opsx-delta.
+      Use Requirement-level delta operations:
+      - `## ADDED Requirements`: requirements absent from the formal Spec.
+      - `## MODIFIED Requirements`: existing requirements whose observable behavior changes. Copy the complete formal Requirement block, then edit it into the target state.
+      - `## REMOVED Requirements`: existing requirements removed from the target behavior. Include `Reason` and `Migration`.
+      - `## RENAMED Requirements`: title-only changes using `FROM:` and `TO:`.
+      - A `Modified Specs` file may contain any combination of these operations. Do not infer the Requirement operation from the Spec classification alone.
 
-      Create one spec file per capability listed in the proposal's Capabilities section.
-      - New capabilities: use the exact kebab-case name from the proposal (specs/<capability>/spec.md).
-      - Modified capabilities: use the existing spec folder name from openspec/specs/<capability>/ when creating the delta spec at specs/<capability>/spec.md.
+      Before writing an operation against an existing Spec:
+      - read `openspec/specs/<spec-id>/spec.md`;
+      - use the exact existing Requirement title for `MODIFIED`, `REMOVED`, or `RENAMED`;
+      - keep a `MODIFIED` Requirement complete, including all surviving scenarios;
+      - use `ADDED` when existing behavior remains unchanged and the target Spec gains a separate requirement.
 
-      Delta operations (use ## headers):
-      - **ADDED Requirements**: New capabilities
-      - **MODIFIED Requirements**: Changed behavior - MUST include full updated content
-      - **REMOVED Requirements**: Deprecated features - MUST include **Reason** and **Migration**
-      - **RENAMED Requirements**: Name changes only - use FROM:/TO: format
+      Author canonical behavior:
+      - `### Requirement:` and `#### Scenario:` markers remain canonical. Each requirement uses `### Requirement: <name>`.
+      - Normative text uses `SHALL` or `MUST`.
+      - Each surviving requirement has at least one `#### Scenario: <name>` with observable `WHEN`/`THEN` outcomes.
+      - Requirements describe the target steady state without change-history narration.
+      - Existing Requirement titles under `MODIFIED Requirements` remain exact for matching. New Requirement titles and new Scenario titles follow `proseLanguage`.
 
-      Format requirements:
-      - Each requirement: `### Requirement: <name>` followed by description
-      - Use SHALL/MUST for normative requirements (avoid should/may)
-      - Each scenario: `#### Scenario: <name>` with WHEN/THEN format
-      - Do not author scenario operation labels before validation. Run `openspec scenario-labels "<change>" --write` after validation to generate deterministic change-local review metadata; sync/archive consume and clean existing labels but do not generate them.
-      - **CRITICAL**: Scenarios MUST use exactly 4 hashtags (`####`). Using 3 hashtags or bullets will fail silently.
-      - Every requirement MUST have at least one scenario.
-      - `### Requirement:` and `#### Scenario:` markers remain canonical.
-      - New Requirement titles and new Scenario titles follow `proseLanguage` when configured.
-      - Existing Requirement titles under `MODIFIED Requirements` remain exact for matching.
+      Route content that does not belong in Specs:
+      - motivation or scope → `proposal.md`;
+      - solution architecture, lowering decisions, rationale, or refactoring strategy → `design.md`;
+      - implementation work and verification → `tasks.md`;
+      - durable architecture nodes, ownership, boundaries, or semantic relations → `opsx-delta.yaml`.
 
-      MODIFIED requirements workflow:
-      1. Locate the existing requirement in openspec/specs/<capability>/spec.md
-      2. Copy the ENTIRE requirement block (from `### Requirement:` through all scenarios)
-      3. Paste under `## MODIFIED Requirements` and edit to reflect new behavior
-      4. Ensure header text matches exactly (whitespace-insensitive)
+      Agent MUST NOT author scenario operation labels. Run `openspec scenario-labels "<change>" --write` after validation passes to derive deterministic change-local review metadata. Sync and archive remove that metadata from formal Specs.
 
-      Common pitfall: Using MODIFIED with partial content loses detail at archive time.
-      If adding new concerns without changing existing behavior, use ADDED instead.
-
-      Example:
-      ```
-      ## ADDED Requirements
-
-      ### Requirement: User can export data
-      The system SHALL allow users to export their data in CSV format.
-
-      #### Scenario: Successful export
-      - **WHEN** user clicks "Export" button
-      - **THEN** system downloads a CSV file with all user data
-
-      ## REMOVED Requirements
-
-      ### Requirement: Legacy export
-      **Reason**: Replaced by new export system
-      **Migration**: Use new export endpoint at /api/v2/export
-      ```
-
-      Examples show structure only. When `proseLanguage` is configured, do not carry over ordinary English example prose into generated artifacts.
-      Specs should be testable - each scenario is a potential test case.
+      Follow the returned template structure. Do not add placeholders, empty delta sections, examples, or process notes to the artifact.
     requires:
       - proposal
 
@@ -141,42 +121,36 @@ artifacts:
       validation:
         - openspec validate --change <name> --artifacts opsx-delta --json
     instruction: |
-      Create the OPSX delta document that captures project architecture graph changes for this change.
+      Create `opsx-delta.yaml` as the architecture source reconciliation for this change.
 
-      Use `openspec/project.opsx.yaml` as current-system context when it exists.
+      Read the resolved `definition` first. Before writing:
+      - use `content.includes` and `content.excludes` to decide what belongs in `opsx-delta.yaml`;
+      - obey `writePolicy`;
+      - then follow this `instruction` and fill the canonical structure from `template`.
+      Do not copy the definition, project config, evidence, or Agent reasoning into the artifact.
 
-      Output requirements:
-      - The file MUST be valid YAML
-      - Use `ADDED`, `MODIFIED`, and `REMOVED` as YAML object keys, not Markdown headings
-      - Delta nodes contain only `id`, `type`, `intent`, and optional `status`
-      - Do NOT include `code_refs` or `spec_refs` in delta nodes
-      - Use only Registry relation types: belongs_to, invokes, consumes, precedes, constrains, validates
-      - If no precise type applies, omit the relation and record a review gap
+      Determine the target architecture from proposal `Architecture Source`, completed change-local Specs, `design.md` when present, the formal OPSX two-file bundle, and current code as implementation evidence.
 
-      Minimal shape:
-      ```yaml
-      schema_version: 2
-      ADDED:
-        capabilities:
-          - id: cap.example.feature
-            type: capability
-            intent: Describe the new capability
-        relations:
-          - from: cap.example.feature
-            type: belongs_to
-            to: dom.example
+      Keep source identities separate:
+      - Spec IDs under proposal `Behavior Source` are not OPSX capability IDs.
+      - Proposal Architecture Source entries declare scope, not authoritative OPSX records.
+      - Only `opsx-delta.yaml` defines exact target-state node and canonical relation reconciliation.
 
-      MODIFIED:
-        capabilities:
-          - id: cap.example.existing
-            intent: Updated intent text
+      Handle no-op architecture explicitly:
+      - If Architecture Source is `None` and available source and evidence confirm no durable architecture change, write only `schema_version: 2`.
+      - Do not emit empty `ADDED`, `MODIFIED`, or `REMOVED` mappings.
+      - Do not use a no-op delta while architecture impact is unresolved.
+      - Observable behavior changes alone do not require OPSX operations.
 
-      REMOVED:
-        capabilities:
-          - id: cap.example.legacy
-      ```
+      When architecture changes, write the minimum operations required for the target state:
+      - `ADDED`: new domains, capabilities, or canonical semantic relations.
+      - `MODIFIED`: existing node intent or status, and supported relation reconciliation.
+      - `REMOVED`: nodes or relations absent from the target architecture.
+      - Use YAML object keys, not Markdown headings, and omit unused sections.
 
-      Keep the delta focused on architecture intent, not implementation details.
+      Use canonical node IDs and Registry relation types: `belongs_to`, `invokes`, `consumes`, `precedes`, `constrains`, and `validates`. Preserve direction and endpoint contracts. Reconcile relations for removed nodes so no dangling endpoints remain. Imports and calls are evidence only. Do not include code paths, symbols, imports, calls, `code_refs`, or `spec_refs`.
+
+      Validate with `openspec validate --change "<name>" --artifacts opsx-delta --json`.
     requires:
       - specs
 

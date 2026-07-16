@@ -108,6 +108,20 @@ describe('top-level validate command', () => {
     expect(explicitJson.items[0].issues).toEqual(legacyJson.items[0].issues);
   });
 
+  it('accepts a canonical Specs no-op in scoped and full validation', async () => {
+    const changeDir = path.join(changesDir, 'specs-noop');
+    await fs.mkdir(changeDir, { recursive: true });
+    await fs.writeFile(path.join(changeDir, 'proposal.md'), `# No-op\n\n## Why\nArchitecture-only change with no behavior delta.\n\n## What Changes\n- Update architecture source only.`);
+    await fs.writeFile(path.join(changeDir, '.specs-noop'), '');
+    await fs.writeFile(path.join(changeDir, 'opsx-delta.yaml'), 'schema_version: 2\n');
+
+    const scoped = await runCLI(['validate', '--change', 'specs-noop', '--artifacts', 'specs', '--json'], { cwd: testDir });
+    const full = await runCLI(['validate', '--change', 'specs-noop', '--json'], { cwd: testDir });
+
+    expect(scoped.exitCode).toBe(0);
+    expect(full.exitCode).toBe(0);
+  });
+
   it('validates only delta specs for --artifacts specs', async () => {
     await writeProjectOpsx();
     await fs.writeFile(path.join(changesDir, 'c1', 'opsx-delta.yaml'), [

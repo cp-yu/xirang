@@ -142,6 +142,7 @@ export class ArchiveCommand {
       if (error.code !== 'ENOENT') throw error;
     }
 
+    await fs.rm(path.join(changeDir, '.specs-noop'), { force: true });
     await fs.mkdir(archiveDir, { recursive: true });
     await moveDirectory(changeDir, archivePath);
 

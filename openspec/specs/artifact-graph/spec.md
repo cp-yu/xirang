@@ -65,6 +65,10 @@ The system SHALL detect artifact completion state by scanning the filesystem.
 - **WHEN** an artifact generates "specs/*.md" and the specs/ directory is empty or missing
 - **THEN** the artifact is not marked as completed
 
+#### Scenario: Completion marker exists
+- **WHEN** glob artifact 声明 `completionMarker` 且该文件存在
+- **THEN** artifact SHALL 标记为 completed，即使 glob 没有匹配文件
+
 #### Scenario: Missing change directory
 - **WHEN** the change directory does not exist
 - **THEN** all artifacts are marked as not completed (empty state)

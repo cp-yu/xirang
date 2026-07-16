@@ -86,7 +86,7 @@ export const OpsxRelationSchema = z.object({
   type: RelationTypeSchema,
   to: NodeIdSchema,
   note: z.string().optional(),
-}).superRefine((relation, context) => {
+}).strict().superRefine((relation, context) => {
   const policy = getRelationDefinition(relation.type).notePolicy;
   if (relation.note === undefined) return;
   if (!policy.allowed) {
@@ -147,44 +147,64 @@ export interface ProjectOpsxBundle {
   relations: z.infer<typeof OpsxRelationSchema>[];
 }
 
-const DeltaCollectionSchema = z.object({
-  domains: z.array(DomainNodeSchema).optional(),
-  capabilities: z.array(CapabilityNodeSchema).optional(),
-  relations: z.array(OpsxRelationSchema).optional(),
-});
+function requireOperationCollection<T extends z.ZodRawShape>(schema: z.ZodObject<T>) {
+  return schema.strict().refine(
+    value => Object.keys(value).length > 0,
+    { message: 'operation section must contain at least one non-empty collection' }
+  );
+}
 
-// MODIFIED: only id is required; intent/status are the mutable fields.
-// .passthrough() preserves extra fields (domain, boundary, etc.) so they
-// reach applyOpsxDelta for shallow merge.
-const ModifiedNodeSchema = z.object({
+const DeltaCollectionSchema = requireOperationCollection(z.object({
+  domains: z.array(DomainNodeSchema.strict()).min(1).optional(),
+  capabilities: z.array(CapabilityNodeSchema.strict()).min(1).optional(),
+  relations: z.array(OpsxRelationSchema).min(1).optional(),
+}));
+
+const ModifiedNodeBaseSchema = z.object({
   id: NodeIdSchema,
   intent: z.string().optional(),
   status: z.enum(['draft', 'active']).optional(),
-}).passthrough();
+  progress: ProgressSchema,
+}).strict();
+
+function requireModifiedField<T extends z.ZodRawShape>(schema: z.ZodObject<T>) {
+  return schema.strict().refine(
+    value => Object.keys(value).some(key => key !== 'id'),
+    { message: 'modified node must contain at least one mutable field' }
+  );
+}
+
+const ModifiedDomainSchema = requireModifiedField(ModifiedNodeBaseSchema.extend({
+  boundary: z.string().optional(),
+}));
+
+const ModifiedCapabilitySchema = requireModifiedField(ModifiedNodeBaseSchema.extend({
+  domain: z.string().optional(),
+}));
 
 // REMOVED: only id is needed to identify the node to delete
 const RemovedNodeSchema = z.object({
   id: NodeIdSchema,
-});
+}).strict();
 
-const ModifiedDeltaCollectionSchema = z.object({
-  domains: z.array(ModifiedNodeSchema).optional(),
-  capabilities: z.array(ModifiedNodeSchema).optional(),
-  relations: z.array(OpsxRelationSchema).optional(),
-});
+const ModifiedDeltaCollectionSchema = requireOperationCollection(z.object({
+  domains: z.array(ModifiedDomainSchema).min(1).optional(),
+  capabilities: z.array(ModifiedCapabilitySchema).min(1).optional(),
+  relations: z.array(OpsxRelationSchema).min(1).optional(),
+}));
 
-const RemovedDeltaCollectionSchema = z.object({
-  domains: z.array(RemovedNodeSchema).optional(),
-  capabilities: z.array(RemovedNodeSchema).optional(),
-  relations: z.array(OpsxRelationSchema).optional(),
-});
+const RemovedDeltaCollectionSchema = requireOperationCollection(z.object({
+  domains: z.array(RemovedNodeSchema).min(1).optional(),
+  capabilities: z.array(RemovedNodeSchema).min(1).optional(),
+  relations: z.array(OpsxRelationSchema).min(1).optional(),
+}));
 
 export const OpsxDeltaSchema = z.object({
   schema_version: z.literal(OPSX_SCHEMA_VERSION),
   ADDED: DeltaCollectionSchema.optional(),
   MODIFIED: ModifiedDeltaCollectionSchema.optional(),
   REMOVED: RemovedDeltaCollectionSchema.optional(),
-});
+}).strict();
 
 // TypeScript types
 export type OpsxNode = z.infer<typeof OpsxNodeSchema>;
@@ -378,6 +398,14 @@ export async function readOpsxDelta(projectRoot: string, changeName: string): Pr
     throw new Error(`Invalid opsx-delta.yaml for change '${changeName}':\n${formatZodIssues(result.error.issues, data)}`);
   }
   return result.data;
+}
+
+export function hasOpsxDeltaOperations(delta: OpsxDelta): boolean {
+  return [delta.ADDED, delta.MODIFIED, delta.REMOVED].some(
+    section => section !== undefined && Object.values(section).some(
+      entries => entries !== undefined && entries.length > 0
+    )
+  );
 }
 
 export function applyOpsxDelta(bundle: ProjectOpsxBundle, delta: OpsxDelta): OpsxDeltaApplyResult {

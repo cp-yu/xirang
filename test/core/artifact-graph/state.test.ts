@@ -108,6 +108,24 @@ describe('artifact-graph/state', () => {
       expect(completed.has('specs')).toBe(true);
     });
 
+    it('marks a glob artifact complete when its completion marker exists', () => {
+      const schema = createSchema([
+        {
+          id: 'specs',
+          generates: 'specs/*.md',
+          completionMarker: '.specs-noop',
+          description: 'Specs',
+          template: 't.md',
+          requires: [],
+        },
+      ]);
+      const graph = ArtifactGraph.fromSchema(schema);
+
+      fs.writeFileSync(path.join(tempDir, '.specs-noop'), '');
+
+      expect(detectCompleted(graph, tempDir).has('specs')).toBe(true);
+    });
+
     it('should not mark glob pattern complete when directory is empty', () => {
       const schema = createSchema([
         { id: 'specs', generates: 'specs/*.md', description: 'Specs', template: 't.md', requires: [] },

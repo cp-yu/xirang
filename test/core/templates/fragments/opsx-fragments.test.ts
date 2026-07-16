@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   OPENSPEC_PHILOSOPHY,
+  OPSX_GENERATE_DELTA,
   VERIFY_CLI_JSON_SCHEMA_REFERENCE,
   VERIFY_ERROR_RECOVERY_GUIDE,
   VERIFY_SIMPLE_CHANGE_FAST_PATH,
@@ -48,6 +49,48 @@ describe('verify gate shared fragments', () => {
     ]) {
       expect(VERIFY_STATE_MACHINE_DIAGRAM).toContain(token);
     }
+  });
+});
+
+describe('OPSX delta generation fragment', () => {
+  it('consumes artifact instructions in concrete definition-first order', () => {
+    for (const token of [
+      'content.includes',
+      'content.excludes',
+      'writePolicy',
+      'instruction',
+      'canonical structure from `template`',
+      'MUST NOT copy the definition or Agent reasoning',
+    ]) {
+      expect(OPSX_GENERATE_DELTA).toContain(token);
+    }
+  });
+
+  it('separates proposal scope, target behavior, architecture decisions, and evidence', () => {
+    for (const token of [
+      '`Source Impact`',
+      '`Architecture Source` as the declared architecture scope',
+      '`Behavior Source` to locate related change-local Specs',
+      'Spec IDs are not OPSX capability IDs',
+      'completed change-local Specs as target behavior context',
+      '`design.md` when present',
+      'formal OPSX two-file bundle as the current architecture state',
+      'current code only as implementation evidence',
+    ]) {
+      expect(OPSX_GENERATE_DELTA).toContain(token);
+    }
+  });
+
+  it('keeps exact target-state OPSX records owned by opsx-delta', () => {
+    for (const token of [
+      'do not invent architecture changes from behavior changes alone',
+      'does not by itself prove an OPSX node or relation change',
+      'scope declarations, not authoritative OPSX records',
+      'Derive exact target-state nodes and canonical relations',
+    ]) {
+      expect(OPSX_GENERATE_DELTA).toContain(token);
+    }
+    expect(OPSX_GENERATE_DELTA).not.toContain('extract the capability list');
   });
 });
 

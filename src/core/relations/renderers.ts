@@ -15,13 +15,18 @@ export function renderOpsxDeltaTemplate(): string {
     .join('\n');
 
   return `schema_version: 2
-# Relation 只能从以下 Registry 定义中选择；无法精确分类时不要创建 relation，并记录 review gap。
+
+# Canonical no-op: 确认 Architecture Source 无变化时，最终文件只保留 schema_version。
+# Real delta: 仅保留至少包含一项 operation 的 section；不得保留 ADDED: {} 或 relations: []。
+# 以下是 real delta 的结构示例，不要求所有 section 同时存在。
+# Relation 只能从 Registry 定义中选择；无法精确分类时不要创建 relation，并记录 review gap。
+# import/call edge 只是 evidence，不自动构成 semantic relation。
 ${relationHelp}
 ADDED:
   capabilities:
     - id: cap.example.feature
       type: capability
-      intent: 描述新增 capability
+      intent: 描述目标架构中持续成立的 capability 职责
   relations:
     - from: cap.example.feature
       type: belongs_to
@@ -29,7 +34,7 @@ ADDED:
 MODIFIED:
   capabilities:
     - id: cap.example.existing
-      intent: 更新后的 intent
+      intent: 描述修改后完整、稳定的 capability 职责
 REMOVED:
   capabilities:
     - id: cap.example.legacy

@@ -107,6 +107,7 @@ describe('ArchiveCommand', () => {
       // Create tasks.md with completed tasks
       const tasksContent = '- [x] Task 1\n- [x] Task 2';
       await fs.writeFile(path.join(changeDir, 'tasks.md'), tasksContent);
+      await fs.writeFile(path.join(changeDir, '.specs-noop'), '');
       
       // Execute archive with --yes flag
       await archiveCommand.execute(changeName, { yes: true, noVerify: true });
@@ -117,6 +118,7 @@ describe('ArchiveCommand', () => {
       
       expect(archives.length).toBe(1);
       expect(archives[0]).toMatch(new RegExp(`\\d{4}-\\d{2}-\\d{2}-${changeName}`));
+      await expect(fs.access(path.join(archiveDir, archives[0], '.specs-noop'))).rejects.toThrow();
       
       // Verify original change directory no longer exists
       await expect(fs.access(changeDir)).rejects.toThrow();

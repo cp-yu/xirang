@@ -110,6 +110,50 @@ Then the system signs the user in`
     expect(console.log).toHaveBeenCalledWith('opsx: no-delta');
   });
 
+  it('treats a canonical no-op OPSX delta as no sync required', async () => {
+    const syncCommand = await loadSyncCommand();
+    const changeDir = await createChange('no-op-opsx');
+    await fs.writeFile(path.join(changeDir, 'opsx-delta.yaml'), 'schema_version: 2\n', 'utf-8');
+
+    await syncCommand('no-op-opsx', { noValidate: true, noVerify: true });
+
+    expect(console.log).toHaveBeenCalledWith('No sync required.');
+  });
+
+  it('syncs Specs without requiring formal OPSX for a no-op delta', async () => {
+    const syncCommand = await loadSyncCommand();
+    const changeDir = await createChange('specs-with-no-op-opsx');
+    const specDir = path.join(changeDir, 'specs', 'auth');
+    await fs.mkdir(specDir, { recursive: true });
+    await fs.writeFile(path.join(specDir, 'spec.md'), `## ADDED Requirements
+
+### Requirement: 登录
+系统 SHALL 支持登录。
+
+#### Scenario: 登录成功
+- **WHEN** 用户提交有效凭证
+- **THEN** 系统完成登录
+`, 'utf-8');
+    await fs.writeFile(path.join(changeDir, 'opsx-delta.yaml'), 'schema_version: 2\n', 'utf-8');
+
+    await syncCommand('specs-with-no-op-opsx', { noValidate: true, noVerify: true });
+
+    await expect(fs.readFile(path.join(tempDir, 'openspec', 'specs', 'auth', 'spec.md'), 'utf-8'))
+      .resolves.toContain('### Requirement: 登录');
+    expect(console.log).toHaveBeenCalledWith("Sync complete for 'specs-with-no-op-opsx'.");
+    expect(console.log).toHaveBeenCalledWith('specs: synced');
+    expect(console.log).toHaveBeenCalledWith('opsx: no-delta');
+  });
+
+  it('rejects legacy empty OPSX operation mappings even without full validation', async () => {
+    const syncCommand = await loadSyncCommand();
+    const changeDir = await createChange('invalid-empty-opsx');
+    await fs.writeFile(path.join(changeDir, 'opsx-delta.yaml'), 'schema_version: 2\nADDED: {}\n', 'utf-8');
+
+    await expect(syncCommand('invalid-empty-opsx', { noValidate: true, noVerify: true }))
+      .rejects.toThrow('Invalid opsx-delta.yaml');
+  });
+
   it('blocks sync when the verify gate is missing', async () => {
     const syncCommand = await loadSyncCommand();
     await createChange('blocked-sync');

@@ -16,6 +16,13 @@ describe('propose template post-validation flow', () => {
     expect(getOpsxProposeSkillTemplate().instructions).toContain(OPENSPEC_PHILOSOPHY);
   });
 
+  it('fails closed when the requested change name already exists', () => {
+    const instructions = getOpsxProposeSkillTemplate().instructions;
+    expect(instructions).toContain('openspec list --json');
+    expect(instructions).toContain('ask whether to continue it or use a new name');
+    expect(instructions).toContain('in non-interactive mode, fail and request an explicit choice');
+  });
+
   it('loads the complete formal OPSX bundle before authoring', () => {
     const instructions = getOpsxProposeSkillTemplate().instructions;
     expect(instructions).toContain('openspec/project.opsx.yaml');
@@ -26,9 +33,12 @@ describe('propose template post-validation flow', () => {
   it('consumes artifact definitions before instructions and templates', () => {
     const instructions = getOpsxProposeSkillTemplate().instructions;
     expect(instructions).toContain('resolved `definition`');
-    expect(instructions).toContain('content boundary and write policy');
-    expect(instructions).toContain('MUST NOT copy definition');
-    expect(instructions.indexOf('resolved `definition`')).toBeLessThan(instructions.indexOf('`instruction` and `template`'));
+    expect(instructions).toContain('`content.includes`');
+    expect(instructions).toContain('`content.excludes`');
+    expect(instructions).toContain('obey `writePolicy`');
+    expect(instructions).toContain('follow `instruction`');
+    expect(instructions).toContain('canonical structure from `template`');
+    expect(instructions).toContain('Do not copy definition');
   });
 
   it('keeps post-propose validation warning-only with a single repair pass', () => {
@@ -128,29 +138,67 @@ describe('propose template post-validation flow', () => {
     }
   });
 
-  it('uses list --specs JSON for capability-aware spec discovery', () => {
+  it('keeps Spec IDs separate from associated OPSX capability IDs', () => {
     for (const body of getProposeBodies()) {
       expect(body).toContain('openspec list --specs --json');
-      expect(body).toContain("capabilities` string array");
-      expect(body).toContain('capabilities: []');
+      expect(body).toContain('Spec ID');
+      expect(body).toContain('`capabilities` string array');
+      expect(body).toContain('canonical OPSX capability ID');
+      expect(body).toContain('does not by itself require a New Spec');
+      expect(body).toContain('genuinely new observable behavior');
       expect(body).not.toContain('openspec spec list');
     }
   });
 
-  it('applies the schema-provided spec content boundary when creating specs', () => {
-    for (const body of getProposeBodies()) {
-      expect(body).toContain('When creating `specs`, apply the returned `Spec content boundary`');
-      expect(body).toContain('route non-behavior content to design/tasks/proposal/opsx-delta instead of requirements');
+  it('determines Behavior Source and Architecture Source independently', () => {
+    const body = getOpsxProposeSkillTemplate().instructions;
+    for (const token of [
+      'Behavior Source',
+      'Architecture Source',
+      'New Specs',
+      'Modified Specs',
+      'Spec IDs',
+      'OPSX node IDs',
+      'Use `None` only when that source truly does not change',
+    ]) {
+      expect(body).toContain(token);
     }
+  });
+
+  it('uses proposal Behavior Source as the delta Spec input', () => {
+    const body = getOpsxProposeSkillTemplate().instructions;
+    expect(body).toContain('create or modify only the Spec IDs declared under proposal `Behavior Source`');
+    expect(body).toContain('openspec check-delta');
+    expect(body).toContain('Missing and Conflict results block spec authoring');
+  });
+
+  it('reconciles Architecture Source after Specs and Design', () => {
+    const body = getOpsxProposeSkillTemplate().instructions;
+    const designIndex = body.indexOf('After Specs and Design are complete');
+    const deltaIndex = body.indexOf('openspec instructions opsx-delta --change "<name>" --json');
+    expect(designIndex).toBeGreaterThanOrEqual(0);
+    expect(deltaIndex).toBeGreaterThan(designIndex);
+    expect(body).toContain('update only proposal `Architecture Source`');
+    expect(body).toContain('only `opsx-delta.yaml` defines exact target-state node operations');
+    expect(body).toContain('do not invent OPSX operations from behavior changes alone');
+  });
+
+  it('uses the resolved specs definition to route content', () => {
+    const body = getOpsxProposeSkillTemplate().instructions;
+    expect(body).toContain('`content.includes`');
+    expect(body).toContain('`content.excludes`');
+    expect(body).toContain('route non-behavior content to design/tasks/proposal/opsx-delta');
   });
 
   it('delegates scenario operation labels to the CLI', () => {
     for (const body of getProposeBodies()) {
-      const validationIndex = body.indexOf('10. Run warning-only post-propose validation');
+      const validationIndex = body.indexOf('Run warning-only post-propose validation');
       const scenarioLabelsIndex = body.indexOf('openspec scenario-labels "<name>" --write');
       expect(validationIndex).toBeGreaterThanOrEqual(0);
       expect(scenarioLabelsIndex).toBeGreaterThan(validationIndex);
       expect(body).toContain('does not require a second validate pass');
+      expect(body).toContain('Labels remain change-local review metadata');
+      expect(body).toContain('sync/archive consume and clean existing labels but do not generate them');
       expect(body).not.toContain(
         ['automatically handled by the OpenSpec CLI', 'after validation'].join(' ')
       );
@@ -176,6 +224,12 @@ describe('propose template post-validation flow', () => {
       expect(body).not.toContain('ordinary English prose scan');
       expect(body).not.toContain('per-artifact self-check');
     }
+  });
+
+  it('routes Test Maintenance across design and tasks', () => {
+    const body = getOpsxProposeSkillTemplate().instructions;
+    expect(body).toContain('obsolete-test rationale from **Test Maintenance** to `design.md`');
+    expect(body).toContain('concrete test updates/removals to `tasks.md`');
   });
 
   it('routes one-time verification items to evidence-only checks without test files', () => {

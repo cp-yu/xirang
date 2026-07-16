@@ -33,6 +33,7 @@ export const ManagedFileSchema = z.object({
 export const ArtifactSchema = z.object({
   id: z.string().min(1, { error: 'Artifact ID is required' }),
   generates: z.string().min(1, { error: 'generates field is required' }),
+  completionMarker: z.string().min(1).optional(),
   description: z.string(),
   template: z.string().min(1, { error: 'template field is required' }),
   instruction: z.string().optional(),

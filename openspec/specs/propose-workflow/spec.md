@@ -5,156 +5,168 @@ capabilities:
 ---
 ## Purpose
 
-The propose workflow SHALL combine change creation and artifact generation into a single command, reducing friction for new users while teaching them the OpenSpec workflow through embedded guidance.
+定义 propose workflow 创建 change、分离 behavior/architecture source impact、生成完整制品并执行轻量验证的行为。
+
 ## Requirements
-### Requirement: Propose workflow creation
 
-The system SHALL provide a `propose` workflow that creates a change and generates all artifacts in one step. 生成的 propose skill 内容 SHALL 在正文开头通过 `## Workflow Stage` 表格声明制品生成边界，包含 Stage、Allowed、Forbidden 三行。当 Smart Routing 读取 Design Summary 且其 Testing Strategy 包含过时测试信息时，系统 SHALL 将 Test Maintenance 分发到 design.md（过时原因）和 tasks.md（具体更新/删除操作）。当 Design Summary 的 Testing Strategy 包含 One-time Verification 子节时，系统 SHALL 将这些项分发为 tasks.md 中不创建 persistent 测试文件的 evidence-only Check。
+### Requirement: Propose 创建完整 change 制品
 
-#### Scenario: Basic propose invocation
-- **WHEN** user invokes `/opsx:propose "add user authentication"`
-- **THEN** the system SHALL create a change directory with kebab-case name
-- **THEN** the system SHALL create `.openspec.yaml` in the change directory (via `openspec new change`)
-- **THEN** the system SHALL generate all artifacts needed for implementation: proposal.md, design.md, specs/, tasks.md
+系统 SHALL 提供 propose workflow，在不实施代码的前提下创建 change，并生成 `proposal.md`、delta Specs、`design.md`、`tasks.md` 与 `opsx-delta.yaml`。
 
-#### Scenario: Propose with existing change name
-- **WHEN** user invokes `/opsx:propose` with a name that already exists
-- **THEN** the system SHALL ask if user wants to continue existing change or create new
-- **THEN** if "continue": the system SHALL resume artifact generation from last completed state
-- **THEN** if "create new": the system SHALL prompt for a new name
-- **THEN** in non-interactive mode: the system SHALL fail with error suggesting to use a different name
+#### Scenario: 创建新 change
+- **WHEN** 用户调用 propose 并提供 change 名称或充分描述
+- **THEN** workflow SHALL 派生 kebab-case 名称并执行 `openspec new change`
+- **AND** SHALL 按 artifact dependency order 生成 apply 所需制品
 
-#### Scenario: Propose skill 声明制品生成阶段边界表格
+#### Scenario: 已有 change
+- **WHEN** 目标 change 已存在
+- **THEN** workflow SHALL 询问继续现有 change 或使用新名称
+- **AND** 非交互环境 SHALL fail fast 并要求明确选择
 
-- **WHEN** 生成 `openspec-propose` skill 内容
-- **THEN** 输出 SHALL 在正文首个章节包含 `## Workflow Stage` 表格
-- **AND** 表格 SHALL 包含 Stage 行标记为 `PROPOSE` 并说明为制品生成阶段（不实施代码）
-- **AND** 表格 SHALL 包含 Forbidden 行声明禁止实施代码、修改现有项目文件
-- **AND** 表格 SHALL 位于 `## Flow` 等其他章节之前
+#### Scenario: Workflow stage 边界
+- **WHEN** 生成 `openspec-propose` skill
+- **THEN** 正文首个章节 SHALL 包含 `## Workflow Stage`
+- **AND** SHALL 声明 Stage 为 `PROPOSE`、允许生成 change artifacts、禁止实施代码或修改现有项目文件
 
-#### Scenario: Design Summary 过时测试分发
+### Requirement: Propose onboarding UX
 
-- **WHEN** Smart Routing 检测到 Design Summary 的 Testing Strategy 包含 "Test Maintenance" 子节
-- **THEN** 系统 SHALL 将过时原因（哪个架构变更导致）写入 design.md 的 Testing Strategy 部分
-- **AND** 系统 SHALL 将具体操作（文件的更新/删除动作）生成为 tasks.md 中的独立需求
-- **AND** 若 Design Summary 不包含过时测试信息，系统 SHALL 正常跳过此步骤
+Propose SHALL 在首次使用时说明将生成的 artifacts 与下一步 apply handoff，并 SHALL 在生成过程中报告 artifact progress。
 
-#### Scenario: Design Summary One-time Verification 分发
+#### Scenario: 首次使用指引
+- **WHEN** 用户调用 propose
+- **THEN** workflow SHALL 说明将创建 proposal、design、Specs、tasks 与 OPSX delta
+- **AND** SHALL 指示下一步使用 apply 实施
 
-- **WHEN** Smart Routing 检测到 Design Summary 的 Testing Strategy 包含 `One-time Verification` 子节
-- **THEN** 系统 SHALL 将这些项生成为 tasks.md 中的 evidence-only Check，且 SHALL NOT 创建 persistent 测试文件
-- **AND** absence 断言 SHALL 通过 `Verifies: <path> REMOVED Requirement "<name>"` 锁定，一次性 smoke 命令 SHALL 通过普通 `Verifies:` 锁定
+#### Scenario: Artifact progress
+- **WHEN** workflow 完成一个 artifact
+- **THEN** SHALL 报告该 artifact 已创建
 
-### Requirement: Propose workflow onboarding UX
-The `propose` workflow SHALL include explanatory output to help new users understand the process.
+### Requirement: Propose 生成完整 planning set
 
-#### Scenario: First-time user guidance
-- **WHEN** user invokes `/opsx:propose`
-- **THEN** the system SHALL explain what artifacts will be created (proposal.md, design.md, specs/, tasks.md)
-- **THEN** the system SHALL indicate next step (`/opsx:apply` to implement)
+Propose SHALL 生成与既有 scaffold-plus-generation 流程等价的 change 目录与 planning artifacts；console output MAY 不同。
 
-#### Scenario: Artifact creation progress
-- **WHEN** the system creates each artifact
-- **THEN** the system SHALL show progress (e.g., "✓ Created proposal.md")
+#### Scenario: 等价 artifact 结果
+- **WHEN** 用户调用 propose
+- **THEN** change directory 与 planning artifact set SHALL 完整创建
 
-### Requirement: Propose workflow creates the full planning set
-The `propose` workflow SHALL create the same planning artifacts that were previously produced by scaffold-plus-generation flows.
+### Requirement: Propose smart routing
 
-#### Scenario: Equivalent artifact result
-- **WHEN** user invokes `/opsx:propose "feature name"`
-- **THEN** the result SHALL create the change directory and the planning artifacts in one step
-- **THEN** the same directory structure and artifacts SHALL be created
-- **THEN** console output MAY differ (propose includes onboarding explanations)
+Propose SHALL 优先复用 conversation 中已确认的 `Design Summary`。没有 summary 时，SHALL 根据项目配置与输入细节判断直接生成或建议 explore。多 subsystem scope SHALL 被显式报告。
 
-### Requirement: Propose applies spec content boundary
+#### Scenario: 复用 Design Summary
+- **WHEN** conversation 包含 explore 生成的 `Design Summary`
+- **THEN** propose SHALL 说明正在复用该 summary
+- **AND** SHALL 将其中的 architecture、testing、risk 与 trade-off decisions 路由到对应 artifacts
 
-`propose` workflow SHALL 在生成 `specs` artifact 时应用 schema 提供的 `Spec content boundary`。Scenario operation labels SHALL be generated only by the explicit `openspec scenario-labels "<name>" --write` command after post-write validation, and remain change-local review metadata for sync/archive review.
+#### Scenario: Test Maintenance 分发
+- **WHEN** Testing Strategy 包含过时测试信息
+- **THEN** 过时原因 SHALL 进入 `design.md`
+- **AND** 具体更新或删除操作 SHALL 进入 `tasks.md`
 
-#### Scenario: Specs generation routes non-behavior content
+#### Scenario: One-time Verification 分发
+- **WHEN** Testing Strategy 包含 `One-time Verification`
+- **THEN** 项目 SHALL 生成 evidence-only Check 且 SHALL NOT 创建 persistent test file
+- **AND** absence assertion SHALL 锚定 REMOVED Requirement
 
-- **WHEN** `/opsx:propose` 创建 `specs` artifact
-- **THEN** prompt SHALL 指示 agent 应用返回的 `Spec content boundary`
-- **AND** 非行为内容 SHALL 分发到 `design.md`、`tasks.md`、`proposal.md` 或 `opsx-delta.yaml`，而不是 requirements
+### Requirement: Proposal 分离 behavior 与 architecture source impact
 
-#### Scenario: Propose does not duplicate boundary rules
+Proposal SHALL 使用 canonical `## Source Impact`，分别声明 `### Behavior Source` 与 `### Architecture Source`。Behavior Source SHALL 使用 Spec ID；Architecture Source SHALL 使用 canonical OPSX node ID。Proposal MUST NOT 假设 Spec 与 OPSX capability 一一对应。
 
-- **WHEN** `/opsx:propose` 引用 spec content boundary
-- **THEN** 应依赖 `openspec instructions specs --change "<name>" --json` 返回的 boundary
-- **AND** SHALL NOT 在 propose workflow template 中定义独立冲突分类表
+#### Scenario: Behavior Source 使用 Spec ID
+- **WHEN** observable behavior 发生变化
+- **THEN** `New Specs` 与 `Modified Specs` SHALL 使用 `specs/<spec-id>/spec.md` 对应的 Spec ID
+- **AND** change-local Specs SHALL 只为这些 entries 创建或修改
 
-#### Scenario: Propose guidance delegates scenario labels to explicit CLI command
+#### Scenario: Architecture Source 使用 OPSX ID
+- **WHEN** durable architecture 发生变化
+- **THEN** Architecture Source SHALL 声明受影响的 OPSX nodes、responsibilities、ownership、boundaries 或 relation scope
+- **AND** exact target-state operations SHALL 只定义在 `opsx-delta.yaml`
 
-- **WHEN** `/opsx:propose` 在 specs 生成指引中说明 scenario operation labels
-- **THEN** the guidance SHALL instruct agents to run `openspec scenario-labels "<name>" --write` after post-write validation
-- **AND** SHALL NOT describe scenario labels as automatically handled by `validate` or `sync`
+#### Scenario: Source 不变化
+- **WHEN** 某类 source 经确认不变化
+- **THEN** 对应 section SHALL 写 `None`
+- **AND** unresolved impact MUST NOT 被表示为 `None`
 
-#### Scenario: ADDED requirement 下不加标签
+#### Scenario: 缺失 capability coverage 不创建 Spec
+- **WHEN** OPSX capability 不在任何 Spec frontmatter 的 `capabilities` 数组中
+- **THEN** propose MUST NOT 仅凭该缺口创建 New Spec
+- **AND** 只有 genuinely new observable behavior 才 SHALL 产生 New Spec
 
-- **WHEN** `/opsx:propose` 生成 `## ADDED Requirements` block
-- **THEN** scenario 标题 SHALL 不加 operation label
-- **AND** 隐式语义为全部新增
+### Requirement: Propose 使用 definition-first authoring
 
-#### Scenario: Scenario labels 保持 change-local
+每个 artifact 写入前，workflow SHALL 读取 resolved `definition`，使用 `content.includes` 与 `content.excludes` 判断内容归属，遵守 `writePolicy`，再执行 `instruction` 并填充 `template`。Definition、context、rules、config projection 与 Agent reasoning MUST NOT 被复制进 artifact。
 
-- **WHEN** `/opsx:propose` 在生成的 instructions 或 artifacts 中说明 scenario operation labels
-- **THEN** 应说明 labels 是 change-local metadata
-- **AND** 应说明 sync/archive 消费并清洗已有 labels，但不生成 labels
+#### Scenario: Specs 按 Behavior Source 生成
+- **WHEN** propose 创建 change-local Specs
+- **THEN** SHALL 只消费 proposal Behavior Source 中的 Spec IDs
+- **AND** SHALL 使用返回的 definition 路由非 behavior 内容到 proposal、design、tasks 或 OPSX delta
 
-### Requirement: Propose 消费共享 artifact language contract
-`$openspec-propose` workflow SHALL 在生成 proposal、specs、design 和 tasks 时消费共享 `Document Language Contract` 与 artifact instructions 中的 `configProjection.prompt.fragments`，使新写或改写的 natural-language prose 跟随 `proseLanguage`。
+#### Scenario: Specs boundary 不重复定义
+- **WHEN** workflow 生成 Specs
+- **THEN** SHALL 依赖 `openspec instructions specs --change "<name>" --json` 返回的 definition boundary
+- **AND** SHALL NOT 在 workflow template 中维护独立的内容分类合同
 
-#### Scenario: Propose template 包含共享语言契约
-- **WHEN** propose skill template 被组装
-- **THEN** template SHALL 包含共享 `Document Language Contract`
-- **AND** contract SHALL 指示 agent 保留 canonical tokens，同时让 artifact prose fields 跟随 `proseLanguage`
+#### Scenario: Scenario labels 程序化生成
+- **WHEN** Agent 编写 Specs
+- **THEN** Agent MUST NOT 手写 scenario operation labels
+- **AND** validation 后 SHALL 执行 `openspec scenario-labels "<name>" --write`
+- **AND** labels SHALL 保持 change-local review metadata
+- **AND** sync/archive SHALL 消费并清理已有 labels，但 MUST NOT 生成 labels
+- **AND** SHALL NOT 仅因程序化 labels 再运行一次 validate
 
-#### Scenario: Propose 不增加额外语言自检流程
-- **WHEN** propose workflow 创建 artifact
-- **THEN** workflow SHALL 根据 artifact instructions 和共享 language contract 撰写 artifact
-- **AND** workflow SHALL NOT 要求每个 artifact 完成前执行额外 non-canonical English prose scan
+### Requirement: Propose 在写 Specs 前检查 delta references
 
-### Requirement: Post-propose staged validation guidance
+Propose SHALL 在写入 change-local Specs 前运行 `openspec check-delta`，传入目标 Spec IDs 与 planned `--added`、`--modified`、`--removed`、`--renamed-from` headers。Missing 与 Conflict 结果 SHALL 阻塞 spec authoring。
 
-The propose workflow SHALL guide agents to validate generated specs and OPSX delta through artifact-scoped validate commands while keeping post-propose validation warning-only. After validation and the single repair pass, the workflow SHALL instruct agents to run `openspec scenario-labels "<name>" --write` and SHALL NOT require a second validation after that command.
+#### Scenario: Check-delta 先于写入
+- **WHEN** workflow 准备写 delta Specs
+- **THEN** `openspec check-delta` SHALL 在文件写入前执行
+- **AND** post-write validation 仍 SHALL 保持 warning-only
 
-#### Scenario: Propose guidance includes staged validation commands
+#### Scenario: 简短 guidance 保留在主 Skill
+- **WHEN** propose 没有既有 Specs authoring `referenceFiles` entry
+- **THEN** `check-delta` guidance SHALL 简洁保留在主 Skill instructions
+- **AND** SHALL NOT 仅为该命令 synopsis 新增 reference file
 
-- **WHEN** the generated `openspec-propose` skill describes post-propose validation
-- **THEN** it SHALL include `openspec validate --change "<name>" --artifacts specs --json`
-- **AND** SHALL include `openspec validate --change "<name>" --artifacts opsx-delta --json`
-- **AND** SHALL describe these commands as staged checks for generated specs and `opsx-delta.yaml`
+### Requirement: Propose 在 OPSX delta 前 reconcile architecture scope
 
-#### Scenario: Propose guidance keeps full validation available
+Specs 与 `design.md` 完成后，propose SHALL 重新读取 proposal Architecture Source、design decisions、formal OPSX 与 implementation evidence，再生成 `opsx-delta.yaml`。
 
-- **WHEN** the generated `openspec-propose` skill describes final post-propose validation
-- **THEN** it SHALL include `openspec validate --change "<name>" --json` as the full change validation command
-- **AND** SHALL keep validation warning-only for the propose workflow
-- **AND** SHALL NOT instruct agents to run `openspec sync` during post-propose validation
+#### Scenario: Design 改变架构判断
+- **WHEN** design 确认 durable architecture impact 与 proposal 初稿不同
+- **THEN** workflow SHALL 更新 proposal Architecture Source
+- **AND** exact reconciliation SHALL 写入 `opsx-delta.yaml`
 
-#### Scenario: Propose runs scenario-labels after validation
+#### Scenario: 无架构变化生成 canonical no-op
+- **WHEN** Architecture Source 为 `None`
+- **THEN** `opsx-delta.yaml` SHALL 只包含 `schema_version: 2`
+- **AND** SHALL NOT 从 behavior changes 发明 OPSX operations
 
-- **WHEN** post-propose validation and the optional single repair pass are complete
-- **THEN** the generated `openspec-propose` skill SHALL instruct agents to run `openspec scenario-labels "<name>" --write`
-- **AND** SHALL state that this command is trusted programmatic metadata generation and does not require a second validate pass
+### Requirement: Propose 消费共享语言合同
 
-### Requirement: Propose pre-write delta reference guidance
+Propose SHALL 消费 artifact instructions 的 config projection，使新写或修改的 natural-language prose 跟随 `proseLanguage`，同时保持 headings、normative keywords、BDD keywords、IDs、schema keys、paths、commands 与 code identifiers canonical。
 
-The propose workflow SHALL mention `openspec check-delta` before writing change-local specs when the workflow guidance describes spec artifact generation. The guidance SHALL instruct agents to run the command with target spec ids and planned `--added`, `--modified`, `--removed`, and `--renamed-from` requirement headers, and SHALL treat Missing existing-reference checks and duplicate ADDED checks as blocking before writing specs.
+#### Scenario: 不增加额外语言扫描
+- **WHEN** artifact 已消费共享 language contract
+- **THEN** workflow SHALL NOT 增加独立的 per-artifact English prose scan
 
-#### Scenario: Propose guidance includes check-delta before writing specs
-- **WHEN** the generated `openspec-propose` skill describes the specs generation flow
-- **THEN** it SHALL include `openspec check-delta`
-- **AND** SHALL mention `--added`, `--modified`, `--removed`, and `--renamed-from`
-- **AND** SHALL place the guidance before writing change-local specs
+### Requirement: Post-propose validation 保持 warning-only
 
-#### Scenario: Propose guidance distinguishes pre-write blocking from post-write validation
-- **WHEN** the generated `openspec-propose` skill describes validation around specs
-- **THEN** it SHALL treat `openspec check-delta` Missing and Conflict results as blocking before writing specs
-- **AND** SHALL keep post-propose validation warning-only
-- **AND** SHALL continue to mention `openspec validate --change "<name>" --artifacts specs --json` for post-write specs validation
+Artifact 生成后，workflow SHALL 依次运行 Specs-scoped、OPSX-delta-scoped 与 full change validation。发现 warning 时 SHALL 只修复一轮并复检一次，最终总结 SHALL 区分 fixed、remaining 与 skipped checks。
 
-#### Scenario: Propose does not create a reference file only for short check-delta guidance
-- **WHEN** `openspec-propose` has no existing `referenceFiles` entry for specs authoring guidance
-- **THEN** the check-delta guidance SHALL remain concise in the main skill instructions
-- **AND** SHALL NOT require adding a new `referenceFiles` entry only to hold the command synopsis
+#### Scenario: Staged validation
+- **WHEN** artifacts 已生成
+- **THEN** SHALL 运行 `openspec validate --change "<name>" --artifacts specs --json`
+- **AND** SHALL 运行 `openspec validate --change "<name>" --artifacts opsx-delta --json`
+- **AND** SHALL 运行 `openspec validate --change "<name>" --json`
+- **AND** MUST NOT 在该检查中执行 `openspec sync`
 
+#### Scenario: Lightweight auxiliary checks
+- **WHEN** 检查 proposal、design 与 tasks
+- **THEN** SHALL 使用当前 Schema instructions/templates 与 `validateTaskStructure`
+- **AND** SHALL NOT 发明额外 semantic lint 或判断 Check 语义充分性
+
+#### Scenario: Validation 不阻塞 propose handoff
+- **WHEN** 单轮修复后仍有 warnings
+- **THEN** summary SHALL 披露 remaining warnings
+- **AND** workflow MAY 继续声明 apply-ready
