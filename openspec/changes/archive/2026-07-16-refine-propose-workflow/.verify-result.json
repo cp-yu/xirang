@@ -171,7 +171,7 @@
     "timestamp": "2026-07-16T12:33:17.889Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
         "timestamp": "2026-07-16T12:24:54.883Z",
@@ -182,6 +182,11 @@
         "timestamp": "2026-07-16T12:33:17.874Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-07-16T12:36:33.002Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
@@ -358,7 +363,7 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "src/core/global-config.ts"
@@ -446,9 +451,16 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-07-16T12:33:17.874Z",
         "findingId": "OPT-20260716T122454882Z-01"
+      },
+      {
+        "sequence": 5,
+        "action": "resolve",
+        "reason": "Implemented and verified at checkpoint 4907d5ac12342ada500d9dada27960d6eab9c938. getGlobalConfig now excludes all four retired keys at the existing destructuring boundary and removes the three post-merge unsafe deletions. Focused config tests passed 113/113, lint and diff checks passed, and no further worthwhile statically closed optimization was found.",
+        "timestamp": "2026-07-16T12:36:33.002Z",
+        "findingId": "OPT-20260716T122454882Z-01"
       }
     ],
-    "reconciliationSignature": "bcdfc6f6aea57920b8ce72eef559d1d7aa0d7d5b0b1d56a3aad3f3bec4bdd315",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }

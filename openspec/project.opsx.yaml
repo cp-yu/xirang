@@ -87,7 +87,7 @@ capabilities:
     status: active
     type: capability
   - id: cap.ai.propose-smart-routing
-    intent: Propose 阶段复用 Design Summary 并按 resolved file definitions 生成 change artifacts；在写入 delta specs 前检查引用，validate 后生成 scenario labels review metadata
+    intent: Propose 阶段复用已确认的 Design Summary，或依据 problem、impact scope、approach、verification method 与 unresolved source decisions 判断 semantic readiness；区分 new/existing change identity，在 readiness 通过或用户明确 override 后按 resolved file definitions 生成 change artifacts；以 blocking combined semantic-source delta validation 和 preview-first scenario labels 建立 ready-for-apply gate
     status: active
     type: capability
   - id: cap.ai.references-home
@@ -228,10 +228,6 @@ capabilities:
     type: capability
   - id: cap.cli.change
     intent: 管理变更提案，包含创建、列表和操作的子命令
-    status: active
-    type: capability
-  - id: cap.cli.check-delta
-    intent: 提供 `openspec check-delta` 写入前检查命令，按 spec id 列出 main spec requirement headers，并按 `--added`、`--modified`、`--removed`、`--renamed-from` 聚合校验计划引用
     status: active
     type: capability
   - id: cap.cli.command-reference-consistency
