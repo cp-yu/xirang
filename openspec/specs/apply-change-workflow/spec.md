@@ -1,71 +1,80 @@
 # apply-change-workflow Specification
 
 ## Purpose
-此规约记录变更 fix-apply-instructions-verify-gate 引入的行为，请在后续同步或归档前补全正式 Purpose。
-## Requirements
-### Requirement: apply 模板处理中间验证状态
+定义 `openspec-apply-change` 如何处理工作流状态，并由 Master agent 串行完成 Phase 0 后进入 clean-context 验证阶段。
 
-`openspec-apply-change` 技能模板 SHALL 对 `needs_verify` 和 `needs_seal` 状态提供正确的处理分支，无缝进入对应的验证阶段。
+## Requirements
+### Requirement: Apply 模板 SHALL 处理中间验证状态
+
+`openspec-apply-change` 技能模板 SHALL 对 `needs_verify` 和 `needs_seal` 状态提供正确分支，无缝进入对应验证阶段。
 
 #### Scenario: needs_verify 状态进入 Phase 1
 
 - **WHEN** `instructions apply --json` 返回 `state: 'needs_verify'`
-- **THEN** 模板 SHALL 指示 agent 进入 Phase 1 验证流程（启动 reviewer subagent）
-- **AND** 不打断用户或请求用户手动触发 verify
+- **THEN** 模板 SHALL 指示 Agent 进入 Phase 1 验证流程并启动 reviewer subagent
+- **AND** SHALL NOT 中断流程或要求用户手动触发 verify
 
 #### Scenario: needs_seal 状态进入 Phase 2/3
 
 - **WHEN** `instructions apply --json` 返回 `state: 'needs_seal'`
-- **THEN** 模板 SHALL 指示 agent 进入 Phase 2/3 流程（optimize + seal）
-- **AND** 不打断用户或请求用户手动触发
+- **THEN** 模板 SHALL 指示 Agent 进入 Phase 2/3 流程
+- **AND** SHALL NOT 中断流程或要求用户手动触发
 
-#### Scenario: view Dashboard 分类标签不声称完成
+#### Scenario: Dashboard 分类标签不声称完成
 
 - **WHEN** Dashboard 展示 task 全部完成的 change
 - **THEN** 分类标签 SHALL 显示为 "Tasks Done" 而非 "Completed Changes"
 
-### Requirement: apply Phase 0 由 Master agent 直接执行
-`openspec-apply-change` workflow SHALL make the Master agent execute pending `tasks.md` Checks through strict TDD during Phase 0. The workflow SHALL NOT generate `.apply-steps`, SHALL NOT read `.apply-steps`, and SHALL NOT dispatch `openspec-implementer` for coding execution.
+### Requirement: Apply Phase 0 SHALL 由 Master agent 直接执行
+
+`openspec-apply-change` workflow SHALL 要求 Master agent 在 Phase 0 通过严格 TDD 执行 `tasks.md` 中的 pending Checks。Workflow SHALL NOT 生成或读取 `.apply-steps`，也 SHALL NOT 委托 `openspec-implementer` 执行编码。
 
 #### Scenario: Master agent 串行执行任务
-- **WHEN** `openspec instructions apply --change "<name>" --json` returns multiple pending tasks
-- **THEN** the apply workflow SHALL instruct the Master agent to execute tasks sequentially
-- **AND** the Master agent SHALL complete the current task's all Checks before proceeding to the next task
-- **AND** the Master agent SHALL NOT process multiple tasks in parallel
+
+- **WHEN** `openspec instructions apply --change "<name>" --json` 返回多个 pending tasks
+- **THEN** Apply workflow SHALL 指示 Master agent 串行执行 task
+- **AND** Master agent SHALL 完成当前 task 的全部 Checks 后再进入下一 task
+- **AND** Master agent SHALL NOT 并行处理多个 tasks
 
 #### Scenario: Master agent 严格 TDD 实现 pending Check
-- **WHEN** `openspec instructions apply --change "<name>" --json` returns implementation work to perform
-- **THEN** the apply workflow SHALL instruct the Master agent to read `tasks.md`, change-local specs, design, related project files, and tests
-- **AND** for each behavior or code Check, the Master agent SHALL add or update the targeted test before implementation
-- **AND** the Master agent SHALL run the declared Check command or equivalent targeted command and confirm the expected failure before implementation
-- **AND** the Master agent SHALL make the minimal implementation needed for that Check
-- **AND** the Master agent SHALL rerun the same or equivalent Check command and confirm pass before updating task or remediation checkboxes
 
-#### Scenario: 非运行时文本制品不伪造 red failure
-- **WHEN** a pending Check only changes non-runtime text or non-runtime artifacts
-- **THEN** the apply workflow SHALL NOT require an artificial failing test
-- **AND** the Master agent SHALL run the declared verification command or inspect the declared `Evidence:` / `Expect:` fields
-- **AND** the Master agent SHALL update task or remediation checkboxes only after final evidence passes
+- **WHEN** `openspec instructions apply --change "<name>" --json` 返回待实现工作
+- **THEN** Apply workflow SHALL 指示 Master agent 读取 `tasks.md`、change-local specs、design、相关项目文件与测试
+- **AND** 对每个行为或代码 Check，Master agent SHALL 先新增或更新 targeted test
+- **AND** Master agent SHALL 在实现前运行声明的 Check 命令或等价 targeted command，并确认预期失败
+- **AND** Master agent SHALL 只实现该 Check 所需的最小改动
+- **AND** Master agent SHALL 重跑同一命令或等价命令并确认通过后，才更新 task 或 remediation checkbox
 
-#### Scenario: config schema template 默认按行为变更处理
-- **WHEN** a pending Check changes config, schema, generated templates, workflow templates, or agent instruction templates
-- **THEN** the apply workflow SHALL classify the Check as a behavior or code Check by default
-- **AND** the apply workflow SHALL allow non-runtime text handling only when the Check explicitly establishes that the edited content has no runtime or generated-surface consumer
+#### Scenario: 非运行时文本制品不伪造 RED failure
 
-#### Scenario: apply workflow 不生成 apply-steps
-- **WHEN** the apply workflow enters Phase 0 implementation
-- **THEN** it SHALL NOT create files under `openspec/changes/<change-name>/.apply-steps/`
-- **AND** it SHALL NOT use `.apply-steps` as a recovery or dispatch input
-- **AND** any implementation planning SHALL remain in the current Master agent context or in `tasks.md` remediation entries
+- **WHEN** pending Check 只修改非运行时文本或非运行时制品
+- **THEN** Apply workflow SHALL NOT 要求人为制造失败测试
+- **AND** Master agent SHALL 运行声明的验证命令或检查 `Evidence:` / `Expect:`
+- **AND** Master agent SHALL 只在最终证据通过后更新 task 或 remediation checkbox
 
-#### Scenario: apply workflow 不 dispatch implementer
-- **WHEN** a pending task is ready for implementation
-- **THEN** the apply workflow SHALL NOT spawn an implementer subagent
-- **AND** it SHALL NOT instruct any subagent to invoke `openspec-implementer`
-- **AND** it SHALL NOT request a cheap model for coding execution
+#### Scenario: Config、Schema 与模板默认按行为变更处理
 
-#### Scenario: clean-context verify gate 保持不变
-- **WHEN** all Phase 0 implementation and remediation work is complete
-- **THEN** the apply workflow SHALL continue to spawn `openspec-reviewer` for Phase 1
-- **AND** SHALL continue to spawn `openspec-optimizer` for Phase 2 when optimization is enabled
-- **AND** the Master agent SHALL NOT replace reviewer or optimizer judgment
+- **WHEN** pending Check 修改 config、schema、generated template、workflow template 或 agent instruction template
+- **THEN** Apply workflow SHALL 默认将其归类为行为或代码 Check
+- **AND** 只有 Check 明确证明编辑内容不存在运行时或生成 surface consumer 时，才 SHALL 允许按非运行时文本处理
+
+#### Scenario: Apply workflow 不生成 apply-steps
+
+- **WHEN** Apply workflow 进入 Phase 0 implementation
+- **THEN** SHALL NOT 在 `openspec/changes/<change-name>/.apply-steps/` 下创建文件
+- **AND** SHALL NOT 使用 `.apply-steps` 作为恢复或委托输入
+- **AND** 实现计划 SHALL 保留在当前 Master agent context 或 `tasks.md` remediation entries 中
+
+#### Scenario: Apply workflow 不委托 implementer
+
+- **WHEN** pending task 已可实现
+- **THEN** Apply workflow SHALL NOT 启动 implementer subagent
+- **AND** SHALL NOT 指示任何 subagent 调用 `openspec-implementer`
+- **AND** SHALL NOT 为编码执行请求低价 model
+
+#### Scenario: Clean-context verify gate 保持不变
+
+- **WHEN** Phase 0 implementation 与 remediation 全部完成
+- **THEN** Apply workflow SHALL 在 Phase 1 继续启动 `openspec-reviewer`
+- **AND** optimization 启用时 SHALL 在 Phase 2 继续启动 `openspec-optimizer`
+- **AND** Master agent SHALL NOT 替代 reviewer 或 optimizer 的判断

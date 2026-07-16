@@ -33,23 +33,41 @@ describe('apply change workflow template', () => {
     expect(preparation).not.toContain('project.opsx.code-map.yaml');
   });
 
-  it('keeps one reference file per apply workflow step', () => {
+  it('keeps one reference file per apply workflow step and one per isolation method', () => {
     const template = getApplyChangeSkillTemplate();
 
     expect(template.referenceFiles?.map((file) => file.path)).toEqual([
       'references/apply-step-1-preparation.md',
       'references/apply-step-2-preflight-scan.md',
       'references/apply-step-3-branch-isolation.md',
+      'references/apply-step-3-worktree-isolation.md',
+      'references/apply-step-3-current-branch.md',
       'references/apply-step-4-phase1-verification.md',
       'references/apply-step-5-phase2-optimization.md',
       'references/apply-step-6-phase3-seal.md',
       'references/apply-step-7-output.md',
     ]);
 
-    for (const reference of template.referenceFiles ?? []) {
+    for (const reference of template.referenceFiles?.filter((file) => !file.path.includes('apply-step-3-')) ?? []) {
       const sharedPath = `openspec/references/openspec-${reference.path.replace('references/', '')}`;
       expect(template.instructions).toContain(sharedPath);
     }
+  });
+
+  it('routes isolation without loading mutually exclusive method references', () => {
+    const instructions = getApplyChangeSkillTemplate().instructions;
+    const preparation = applyReference('references/apply-step-1-preparation.md');
+
+    expect(instructions).toContain('Step 3: Isolation router');
+    expect(instructions).not.toContain('openspec-apply-step-3-branch-isolation.md');
+    expect(instructions).not.toContain('openspec-apply-step-3-worktree-isolation.md');
+    expect(instructions).not.toContain('openspec-apply-step-3-current-branch.md');
+    expect(preparation).toContain('At Step 3, read exactly one');
+    expect(preparation).toContain('openspec-apply-step-3-branch-isolation.md');
+    expect(preparation).toContain('openspec-apply-step-3-worktree-isolation.md');
+    expect(preparation).toContain('openspec-apply-step-3-current-branch.md');
+    expect(preparation).toContain('MUST NOT read the other two');
+    expect(preparation).toContain('Do not read the selected reference during Preparation');
   });
 
   it('keeps flow details in step references instead of the skill outline', () => {
@@ -76,13 +94,26 @@ describe('apply change workflow template', () => {
     expect(instructions).not.toContain('/skills/openspec-optimizer/SKILL.md');
   });
 
-  it('keeps concise implementation discipline directly in the apply skill without borrowed framework names', () => {
+  it('keeps Phase 0 execution discipline directly in the apply skill', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
+    const discipline = instructions
+      .split('## Implementation Discipline\n\n')[1]
+      .split('\n\nWhen Phase 3 seal passes')[0];
+    const rules = discipline.split('\n').filter((line) => line.startsWith('- '));
 
-    expect(instructions).toContain('Write or update targeted tests before behavior/code changes.');
-    expect(instructions).toContain('Verify the expected failure before implementation, then rerun the same check after the minimal fix.');
-    expect(instructions).toContain('Prefer deletion, standard library, native platform support, installed dependencies, and direct expressions before adding new code.');
-    expect(instructions).toContain('Exercise public behavior; mock only system boundaries injected through parameters.');
+    expect(rules).toHaveLength(8);
+    expect(instructions).toContain('Phase 0 implementation — Master executes pending tasks serially');
+    expect(discipline).toContain('unfinished `## Remediation` `[code_fix]` and `[artifact_fix]` items before pending tasks');
+    expect(discipline).toContain('Finish every Check in the current task before starting the next; never execute tasks in parallel');
+    expect(discipline).toContain('Assess interface testability before writing tests');
+    expect(discipline).toContain('Exercise public behavior; mock only injected system boundaries, never internal collaborators');
+    expect(discipline).toContain('confirm the expected RED');
+    expect(discipline).toContain('rerun the same check for GREEN');
+    expect(discipline).toContain('Non-runtime text/artifact Checks do not require an artificial RED');
+    expect(discipline).toContain('Update Check and remediation checkboxes only after their evidence passes');
+    expect(discipline).toContain('two consecutive identical normalized errors');
+    expect(discipline).toContain('three failed fixes in one task');
+    expect(discipline).toContain('deletion, standard library, native platform support, installed dependencies, direct expressions');
     expect(instructions).not.toContain('Ponytail');
     expect(instructions).not.toContain('Superpowers');
     expect(instructions).not.toContain('Pocock');
@@ -100,6 +131,103 @@ describe('apply change workflow template', () => {
     expect(reference).not.toContain('git stash push');
     expect(reference).not.toContain('git stash apply');
     expect(reference).not.toContain('git tag apply-opt-checkpoint');
+    expect(reference).not.toContain('--allow-empty');
+  });
+
+  it('defines native git isolation and keeps dirty-state routing out of method references', () => {
+    const preparation = applyReference('references/apply-step-1-preparation.md');
+    const branch = applyReference('references/apply-step-3-branch-isolation.md');
+    const worktree = applyReference('references/apply-step-3-worktree-isolation.md');
+    const current = applyReference('references/apply-step-3-current-branch.md');
+
+    expect(preparation).toContain('switch to worktree isolation');
+    expect(preparation).toContain('include the existing dirty state in the baseline');
+    expect(preparation).toContain('stop Apply');
+    expect(preparation).toContain('Finalize the isolation method only after this gate');
+
+    const branchCaptureIndex = branch.indexOf('Record the current branch as `originalBranch` and resolve the current `HEAD` SHA as `baseCommit` before switching');
+    const branchDetectionIndex = branch.indexOf('git show-ref --verify --quiet');
+
+    expect(branchCaptureIndex).toBeGreaterThan(-1);
+    expect(branchDetectionIndex).toBeGreaterThan(branchCaptureIndex);
+    expect(branch).toContain('explicit confirmation before `git switch <change-name>`');
+    expect(branch).toContain('git switch -c');
+    expect(branch).toContain('verify `git branch --show-current` equals `branchName`');
+    expect(branch).toContain('dirty-state gate is resolved');
+    expect(branch).not.toContain('worktree isolation');
+    expect(branch).not.toContain('git worktree add');
+
+    expect(worktree).toContain('git worktree add');
+    expect(worktree).toContain('current `HEAD`');
+    expect(worktree).toContain('changed file set');
+    expect(worktree).toContain('task `Files`');
+    expect(worktree).toContain('Check-referenced paths');
+    expect(worktree).toContain('unfinished Remediation paths');
+    expect(worktree).toContain('user-confirmed paths');
+    expect(worktree).toContain('SHA-256');
+    expect(worktree).toContain('`sourceState: "deleted"` and `sourceHash: null`');
+    expect(worktree).toContain('tracked modifications and deletions');
+    expect(worktree).toContain('untracked files only when their hash still matches');
+    expect(worktree).toContain('entire file');
+    expect(worktree).toContain('split it manually');
+    expect(worktree).not.toContain('using-git-worktrees');
+    expect(worktree).not.toContain('git stash');
+
+    expect(current).toContain('dirty-state gate is resolved');
+    expect(current).not.toContain('worktree isolation');
+    expect(current).not.toContain('git switch -c');
+    expect(current).not.toContain('git worktree add');
+  });
+
+  it('persists separate navigation and immutable evidence baselines', () => {
+    const isolationReferences = [
+      applyReference('references/apply-step-3-branch-isolation.md'),
+      applyReference('references/apply-step-3-worktree-isolation.md'),
+      applyReference('references/apply-step-3-current-branch.md'),
+    ].join('\n');
+
+    expect(isolationReferences).toContain('originalBranch');
+    expect(isolationReferences).toContain('baseCommit');
+    expect(isolationReferences).toContain('immutable evidence baseline');
+    expect(isolationReferences).toContain('git status --short');
+  });
+
+  it('waits for pre-flight finding decisions and matches label-free scenario titles', () => {
+    const reference = applyReference('references/apply-step-2-preflight-scan.md');
+
+    expect(reference).toContain('remove the scenario operation label');
+    expect(reference).toContain('modify `tasks.md`');
+    expect(reference).toContain('explicitly confirm that the findings are ignored');
+    expect(reference).toContain('proceed silently when the scan is clean');
+  });
+
+  it('applies critical Phase 1 writeback before recording the reviewer payload', () => {
+    const reference = applyReference('references/apply-step-4-phase1-verification.md');
+    const validationIndex = reference.indexOf('Validate the reviewer payload');
+    const writebackIndex = reference.indexOf('Apply only CRITICAL `writeBackPlan` entries');
+    const recordIndex = reference.indexOf('openspec verify phase1 "<change-name>"');
+
+    expect(validationIndex).toBeGreaterThan(-1);
+    expect(writebackIndex).toBeGreaterThan(validationIndex);
+    expect(recordIndex).toBeGreaterThan(writebackIndex);
+    expect(reference).toContain('tasksFileHash');
+  });
+
+  it('preserves persistent failed-direction state across speculative rollback', () => {
+    const reference = applyReference('references/apply-step-5-phase2-optimization.md');
+    const verificationIndex = reference.indexOf('--type=verification');
+    const snapshotIndex = reference.indexOf('repository-external temporary file');
+    const rollbackIndex = reference.indexOf('git reset --hard HEAD');
+    const restoreIndex = reference.indexOf('atomically restore `.verify-result.json`');
+
+    expect(snapshotIndex).toBeGreaterThan(verificationIndex);
+    expect(rollbackIndex).toBeGreaterThan(snapshotIndex);
+    expect(restoreIndex).toBeGreaterThan(rollbackIndex);
+    expect(reference).toContain('SHA-256');
+    expect(reference).toContain('failedDirections');
+    expect(reference).toContain('`.apply-isolation.json`');
+    expect(reference).toContain('both persistent state files');
+    expect(reference).toContain('Stop if restoration or hash verification fails');
   });
 
   it('orders finding reconciliation, freshness gate, master implementation, and reviewer verification', () => {
@@ -153,6 +281,15 @@ describe('apply change workflow template', () => {
 
     expect(instructions).toContain('Archive ready. Run /opsx:archive <change-name> to complete the workflow.');
     expect(instructions).not.toContain('Archive ready. Run /opsx-archive');
+  });
+
+  it('leaves branch and worktree cleanup to archive in the active apply workspace', () => {
+    const output = applyReference('references/apply-step-7-output.md');
+
+    expect(output).toContain('same Apply workspace');
+    expect(output).toContain('MUST NOT switch branches');
+    expect(output).toContain('MUST NOT remove the worktree');
+    expect(output).toContain('Archive workflow');
   });
 
   it('allows archive-ready handoff to be adapted per tool', () => {

@@ -1,3 +1,7 @@
 # Apply Step 4: Phase 1 Verification
 
-Delegate to the clean-context `openspec-reviewer` agent with `context: "fresh"`; persist `openspec verify phase1 "<change-name>" --input '<json>' --json`, and write back only CRITICAL remediation.
+1. Delegate to the clean-context `openspec-reviewer` agent with `context: "fresh"` and the current changeName, absolute changeDir, and absolute projectRoot.
+2. Validate the reviewer payload against the Phase 1 input contract. Reject malformed or incomplete payloads rather than repairing them by inference.
+3. Apply only CRITICAL `writeBackPlan` entries to `tasks.md`; do not write back WARNING or SUGGESTION items.
+4. After writeback completes, persist the validated reviewer payload with `openspec verify phase1 "<change-name>" --input '<json>' --json`. This ordering ensures the CLI records `tasksFileHash` from the final written tasks file.
+5. On FAIL_NEEDS_REMEDIATION, return to Phase 0. On PASS or PASS_WITH_WARNINGS, continue to Phase 2.

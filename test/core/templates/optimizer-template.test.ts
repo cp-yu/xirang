@@ -33,4 +33,15 @@ describe('optimizer subagent template', () => {
     ]);
     expect(template.disallowedTools).toEqual(expect.arrayContaining(['write', 'edit']));
   });
+
+  it('uses the immutable apply baseline plus uncommitted files for base scope', () => {
+    const selfRead = getOptimizerSubagentTemplate().referenceFiles?.find(
+      (file) => file.path === 'references/self-read-protocol.md'
+    )?.content ?? '';
+
+    expect(selfRead).toContain('baseCommit');
+    expect(selfRead).toContain('git diff <baseCommit>...HEAD --name-only');
+    expect(selfRead).toContain('git status --short');
+    expect(selfRead).not.toContain('git diff <originalBranch>...HEAD');
+  });
 });

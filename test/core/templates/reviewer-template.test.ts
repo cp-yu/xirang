@@ -31,4 +31,13 @@ describe('reviewer subagent template', () => {
     expect(generateSubagentContent(template, 'opencode', 'TEST')).toContain('edit: deny');
     expect(generateSubagentContent(template, 'codex', 'TEST')).toContain('sandbox_mode = "read-only"');
   });
+
+  it('uses the immutable apply baseline plus uncommitted files for scope navigation', () => {
+    const prompt = getReviewerSubagentTemplate().prompt;
+
+    expect(prompt).toContain('baseCommit');
+    expect(prompt).toContain('git diff <baseCommit>...HEAD --name-only');
+    expect(prompt).toContain('git status --short');
+    expect(prompt).not.toContain('git diff <originalBranch>...HEAD');
+  });
 });

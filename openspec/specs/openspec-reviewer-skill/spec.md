@@ -38,8 +38,8 @@
 
 Reviewer SHALL 自主完成以下信息获取：
 - **changeArtifacts**: 从 `changeDir` 读取 proposal.md、specs/*/spec.md、design.md、tasks.md
-- **scopeFiles**: 通过 `git diff <originalBranch>...HEAD --name-only` 拿到 feature 分支整体变更文件列表，仅作为定位锚点；`originalBranch` 优先从 `path.join(changeDir, '.apply-isolation.json').originalBranch` 读取，缺失时回退到 `git symbolic-ref refs/remotes/origin/HEAD --short` 解析的远程默认分支
-- **finalFileContents**: 对 scopeFiles、`.verify-result.json` 中的 `verificationContext.evidenceFiles` 与 OPSX `code-map` 推断的候选文件，SHALL 通过 Read 读取最终磁盘内容作为唯一权威证据
+- **scopeFiles**: 从 `path.join(changeDir, '.apply-isolation.json').baseCommit` 读取不可变证据基线，并取 `git diff <baseCommit>...HEAD --name-only` 与 `git status --short` 的并集作为定位锚点
+- **finalFileContents**: 对 scopeFiles、`.verify-result.json` 中的 `verificationContext.evidenceFiles`、OPSX semantic relation paths 与项目搜索推断的候选文件，SHALL 通过 Read 读取最终磁盘内容作为唯一权威证据
 - **priorVerifyResult**: 自行读取 `changeDir/.verify-result.json`（如存在）
 - **opsxContext**: 自行读取 `changeDir/opsx-delta.yaml` 和 `projectRoot/openspec/project.opsx.yaml`
 
@@ -62,7 +62,7 @@ Reviewer MUST NOT 把 `git diff` 的内容级输出（hunks、行变更）作为
 #### Scenario: 首次 verify 无 prior .verify-result.json
 
 - **WHEN** `changeDir/.verify-result.json` 不存在
-- **THEN** reviewer SHALL 通过 `git diff <originalBranch>...HEAD --name-only` 与 change artifacts 关键词推断候选实现文件
+- **THEN** reviewer SHALL 通过 `git diff <baseCommit>...HEAD --name-only`、`git status --short` 与 change artifacts 关键词推断候选实现文件
 - **AND** SHALL Read 推断出的候选文件最终内容
 - **AND** SHALL 将 priorVerifyResult 视为 null 继续验证
 
@@ -70,7 +70,7 @@ Reviewer MUST NOT 把 `git diff` 的内容级输出（hunks、行变更）作为
 
 - **WHEN** `changeDir/.verify-result.json` 存在且包含 `verificationContext.evidenceFiles`
 - **THEN** reviewer SHALL Read evidenceFiles 列表中的每个文件最终内容作为候选
-- **AND** SHALL 结合 `git diff <originalBranch>...HEAD --name-only` 的结果补充列表中未覆盖的新增文件
+- **AND** SHALL 结合 `git diff <baseCommit>...HEAD --name-only` 与 `git status --short` 补充列表中未覆盖的文件
 
 #### Scenario: 不依赖 diff 内容判断行为
 
@@ -78,17 +78,17 @@ Reviewer MUST NOT 把 `git diff` 的内容级输出（hunks、行变更）作为
 - **THEN** SHALL 仅以 Read 到的最终文件内容作为证据
 - **AND** SHALL NOT 引用 `git diff` hunk 或某次 commit 的局部变化作为判断依据
 
-#### Scenario: originalBranch 不可解析时降级
+#### Scenario: baseCommit 缺失或无效时关闭验证
 
-- **WHEN** `.apply-isolation.json` 缺失且 `git symbolic-ref refs/remotes/origin/HEAD` 失败
-- **THEN** reviewer SHALL 回退到 `git ls-files --modified --others --exclude-standard` 与 `evidenceFiles` 联合作为 scope
-- **AND** SHALL 在 `gitDiffSummary` 中以 WARNING 形式注明 scope 推断退化
+- **WHEN** `.apply-isolation.json` 缺少 `baseCommit` 或 Git 无法解析该 SHA
+- **THEN** reviewer SHALL 返回包含 CRITICAL issue 的 `FAIL_NEEDS_REMEDIATION`
+- **AND** SHALL NOT 以可移动 branch ref 猜测证据基线
 
 ### Requirement: 6 步验证协议
 
 `openspec-reviewer` skill SHALL 为每个 delta spec requirement 定义并强制执行 6 步客观验证循环：
 
-1. **Locate** — 从 requirement 关键词与 `git diff <originalBranch>...HEAD --name-only` 输出识别候选文件
+1. **Locate** — 从 requirement 关键词、`git diff <baseCommit>...HEAD --name-only` 与 `git status --short` 输出识别候选文件
 2. **Read** — 通过 Read 工具检查候选文件的最终磁盘内容，不依赖搜索结果或 diff 内容
 3. **Analyze** — 将实现细节与 requirement 意图和所有 Scenario: 块进行比较
 4. **Cite** — 记录具体文件路径和行范围作为证据
@@ -158,7 +158,7 @@ Reviewer MUST NOT 把 `git diff` 的内容级输出（hunks、行变更）作为
 ### Requirement: 三个验证维度
 `openspec-reviewer` skill SHALL 覆盖四个验证维度及可选的 OPSX 对齐检查，并按 Check 的锚点类型分派判定模式：`Verifies`（普通 requirement）执行存在性判定，`Verifies ... REMOVED Requirement` 执行缺失性判定，`Preserves` 执行等价性判定。
 
-**Completeness（完整性）**: 检查 tasks.md 复选框和 spec requirement 实现证据。每项未完成任务 = CRITICAL，每个未实现 requirement = CRITICAL。`Files` 中 `Delete:` 声明的文件 SHALL 与 `git diff <originalBranch>...HEAD` 逐项核对，声明已删除但文件仍存在 = CRITICAL。
+**Completeness（完整性）**: 检查 tasks.md 复选框和 spec requirement 实现证据。每项未完成任务 = CRITICAL，每个未实现 requirement = CRITICAL。`Files` 中 `Delete:` 声明的文件 SHALL 与 `git diff <baseCommit>...HEAD` 和 `git status --short` 逐项核对，声明已删除但文件仍存在 = CRITICAL。
 
 **Correctness（正确性）**: Requirement 到实现映射 + Scenario 覆盖。直接矛盾或证据不足 = CRITICAL，装饰性 drift = WARNING（需明确判断）。Scenario 未覆盖 = CRITICAL。缺失性判定（REMOVED 锚点）：reviewer SHALL 自主搜索符号、文件与 import 路径并引用搜索证据，发现任何残留引用 = CRITICAL。等价性判定（Preserves 锚点）SHALL 双支：行为不变（测试证据）∧ 旧形态消失（缺失断言），新旧实现并存 = CRITICAL。
 
@@ -210,7 +210,7 @@ Reviewer MUST NOT 把 `git diff` 的内容级输出（hunks、行变更）作为
 
 - **WHEN** 某 task 的 `Files` 包含 `Delete:` 条目
 - **AND** 该 task 的 Check 已勾选
-- **THEN** reviewer SHALL 在 `git diff <originalBranch>...HEAD` 中确认该文件已删除
+- **THEN** reviewer SHALL 在 `git diff <baseCommit>...HEAD` 与 `git status --short` scope 中确认该文件已删除
 - **AND** 文件仍存在时 SHALL 判定为 CRITICAL 并将该 Check 列入 writeBackPlan
 
 ### Requirement: 结构化输出合约

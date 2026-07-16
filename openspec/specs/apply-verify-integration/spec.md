@@ -3,15 +3,31 @@
 ## Purpose
 此规约记录变更 unify-apply-verify 引入的行为，请在后续同步或归档前补全正式 Purpose。
 ## Requirements
+### Requirement: Apply Phase 1 SHALL 先写回再持久化
+
+`openspec-apply-change` SHALL 先委托 fresh reviewer，再校验其结构化 payload，并只应用 CRITICAL `writeBackPlan`，最后调用 `openspec verify phase1` 持久化 payload。CLI 持久化 SHALL 发生在 writeback 之后，使 `tasksFileHash` 对应最终写入的 `tasks.md`。
+
+#### Scenario: CRITICAL writeback 先于 Phase 1 record
+
+- **WHEN** reviewer 返回包含 CRITICAL `writeBackPlan` 的合法 payload
+- **THEN** Apply SHALL 先更新 `tasks.md`
+- **AND** SHALL 在更新完成后调用 `openspec verify phase1 "<change-name>" --input '<json>' --json`
+- **AND** CLI SHALL 从最终 `tasks.md` 计算 `tasksFileHash`
+
+#### Scenario: 非 CRITICAL finding 不写回
+
+- **WHEN** reviewer payload 只包含 WARNING 或 SUGGESTION
+- **THEN** Apply SHALL NOT 将这些 finding 写入 `tasks.md`
+
 ### Requirement: apply 作为编译步骤
 
-`openspec-apply-change` SHALL 从生成 reference 读取 finding-driven Phase 2 协议。Phase 2 SHALL 创建 baseline commit，调用 fresh optimizer 生成或 reconciliation 全部 findings，只实现最新排序中的首个 actionable finding，调用 CLI 记录 pre-implementation hashes，由 master 按 TDD 编码，再由 fresh reviewer 验证。
+`openspec-apply-change` SHALL 从生成 reference 读取 finding-driven Phase 2 协议。Phase 2 SHALL 创建非空 baseline commit，调用 fresh optimizer 生成或 reconciliation 全部 findings，只实现最新排序中的首个 actionable finding，调用 CLI 记录 pre-implementation hashes，由 master 按 TDD 编码，再由 fresh reviewer 验证。
 
-每个波次通过或失败后 SHALL 重新调用 optimizer。Checkpoint SHALL 使用 git commit；失败回滚 SHALL 使用 `git reset --hard HEAD` 和 `git clean -fd`，不得使用 stash 或 tag。
+Phase 0 与 Phase 1 SHALL NOT 创建 commit。正常情况下，Phase 2 baseline SHALL 是本次 Apply 的首个 commit，且 MUST NOT 使用 `--allow-empty`。每个波次通过或失败后 SHALL 重新调用 optimizer。Checkpoint SHALL 使用 git commit；失败回滚 SHALL 使用 `git reset --hard HEAD` 和 `git clean -fd`，不得使用 stash 或 tag。
 
 #### Scenario: finding 驱动的优化循环
 - **WHEN** Phase 2 启动
-- **THEN** apply SHALL 创建 baseline checkpoint
+- **THEN** apply SHALL 创建非空 baseline checkpoint，并将其 SHA 写入 `.apply-isolation.json.phase2BaselineCommit`
 - **AND** SHALL spawn fresh optimizer 获取完整 findings
 - **AND** SHALL 只实现唯一 selected finding
 - **AND** SHALL spawn fresh reviewer 执行 speculative re-verify
@@ -22,10 +38,15 @@
 - **THEN** apply SHALL 创建包含 finding ID 的增量 checkpoint commit
 - **AND** SHALL 保留该 commit供后续波次作为最近成功状态
 
-#### Scenario: 失败回滚不残留 speculative edits
+#### Scenario: 失败回滚保留 verify state 且不残留 speculative edits
 - **WHEN** reviewer 返回 FAIL
-- **THEN** apply SHALL 执行 `git reset --hard HEAD` 和 `git clean -fd`
-- **AND** 下一轮 SHALL 从最近成功 checkpoint 读取当前代码
+- **AND** Phase 2 CLI 已将 failed event 与 `failedDirections` 写入 `.verify-result.json`
+- **THEN** Apply SHALL 将 `.verify-result.json` 与 `.apply-isolation.json` 快照到 repository 外并分别记录 SHA-256
+- **AND** isolation snapshot SHALL 保留未提交的 `phase2BaselineCommit`
+- **AND** SHALL 在确认当前 `HEAD` 为最近成功 checkpoint 后执行 `git reset --hard HEAD` 和 `git clean -fd`
+- **AND** SHALL 原子恢复两个持久状态文件并校验各自 SHA-256
+- **AND** 下一轮 SHALL 从最近成功 checkpoint 代码及恢复后的持久失败状态重新 reconciliation
+- **AND** 恢复失败、hash 不匹配或仍有 speculative file 时 SHALL 停止
 
 #### Scenario: 终局状态保持兼容
 - **WHEN** Phase 2 终止

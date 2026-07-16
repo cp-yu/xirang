@@ -26,8 +26,8 @@ For workflow-managed writes, read the resolved file definition before its instru
 
 1. Step 1: Preparation — read `openspec/references/openspec-apply-step-1-preparation.md`.
 2. Step 2: Pre-flight scan — read `openspec/references/openspec-apply-step-2-preflight-scan.md`.
-3. Step 3: Branch isolation — read `openspec/references/openspec-apply-step-3-branch-isolation.md`.
-4. Execute tasks with the implementation discipline below.
+3. Step 3: Isolation router — read the one method reference selected by Step 1; do not load mutually exclusive methods.
+4. Phase 0 implementation — Master executes pending tasks serially with the implementation discipline below.
 5. Step 4: Phase 1 verification — read `openspec/references/openspec-apply-step-4-phase1-verification.md` and delegate to the clean-context `openspec-reviewer` agent.
 6. Step 5: Phase 2 optimization — read `openspec/references/openspec-apply-step-5-phase2-optimization.md` and delegate to the clean-context `openspec-optimizer` agent when eligible.
 7. Step 6: Phase 3 seal — read `openspec/references/openspec-apply-step-6-phase3-seal.md`.
@@ -35,13 +35,13 @@ For workflow-managed writes, read the resolved file definition before its instru
 
 ## Implementation Discipline
 
-- Write or update targeted tests before behavior/code changes.
-- Verify the expected failure before implementation, then rerun the same check after the minimal fix.
-- Prefer deletion, standard library, native platform support, installed dependencies, and direct expressions before adding new code.
-- Do not add abstractions, dependencies, or files unless the spec or failing test requires them.
-- Exercise public behavior; mock only system boundaries injected through parameters.
-- Preserve canonical artifact headings, schema keys, IDs, commands, and template tokens exactly.
-- Treat failures as recovery feedback: read the full error, isolate the layer, compare a working pattern, state one hypothesis, change one variable, and rerun the same check.
-- Pause after repeated identical failures or three failed fix attempts.
+- Process unfinished `## Remediation` `[code_fix]` and `[artifact_fix]` items before pending tasks. Finish every Check in the current task before starting the next; never execute tasks in parallel.
+- Assess interface testability before writing tests for each behavior/code Check: inject external dependencies, prefer returned results over hidden side effects, and keep the public interface minimal.
+- Write or update a targeted test first. Exercise public behavior; mock only injected system boundaries, never internal collaborators.
+- Run the declared or equivalent targeted command and confirm the expected RED before implementation; make the minimal fix, then rerun the same check for GREEN.
+- Non-runtime text/artifact Checks do not require an artificial RED; run their declared command or inspect `Evidence:` and `Expect:` for final proof.
+- Prefer deletion, standard library, native platform support, installed dependencies, direct expressions, then minimal new code. Add no abstraction, dependency, or file unless required.
+- Update Check and remediation checkboxes only after their evidence passes. Preserve canonical headings, schema keys, IDs, commands, template tokens, and document-language projection.
+- For unexpected failures, read the full error, classify the layer, compare a working pattern, state one hypothesis, change one variable, and rerun the same check. Pause after two consecutive identical normalized errors or three failed fixes in one task.
 
 When Phase 3 seal passes, end with an explicit call-to-action: `Archive ready. Run /skill:openspec-archive-change <change-name> to complete the workflow.`

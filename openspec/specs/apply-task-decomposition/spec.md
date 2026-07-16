@@ -7,7 +7,7 @@
 
 Apply 阶段的 Master agent SHALL 读取 `tasks.md` 中的 pending task，并在当前上下文中按 Check 执行严格 TDD、证据收集和任务勾选。实现 specs 未覆盖的细节时，agent SHALL 按"删除 > 标准库 > 平台原生 > 已安装依赖 > 直接表达式 > 最小实现"优先顺序选择方案。Agent SHALL NOT 质疑或简化 specs 明确要求的行为。
 
-Apply skill 的 `Implementation Discipline` 节 SHALL 以最多 8 条精简条目直接描述以上纪律，每条不超过两行。每个流程步骤（Preparation、Pre-flight Scan、Branch Isolation、Phase 1/2/3 verification、Output）SHALL 指向独立的 `openspec/references/openspec-apply-step-<N>-<name>.md` reference 文件，skill body 中该步骤只提供一行指引和文件路径。
+Apply skill 的 `Implementation Discipline` 节 SHALL 以最多 8 条精简条目直接描述以上纪律，每条不超过两行。Preparation、Pre-flight Scan、Phase 1/2/3 verification 与 Output SHALL 各指向一个独立的 `openspec/references/openspec-apply-step-<N>-<name>.md` reference。Step 3 SHALL 在 Skill body 中只保留一行 isolation router。Preparation SHALL 在 branch、worktree 与 current-branch 中选择方法但不读取方法 reference；pre-flight 完成后，Step 3 SHALL 只读取所选的一个互斥 reference。Apply 总计 SHALL 提供 9 个 reference 文件。
 
 Subagent 委托 SHALL 使用 "delegate to the clean-context `openspec-reviewer` agent" 表述。Skill instructions 以 OpenSpec Philosophy 开头，后接 definition-first authoring 规则与 Flow Outline。
 
@@ -17,11 +17,17 @@ Subagent 委托 SHALL 使用 "delegate to the clean-context `openspec-reviewer` 
 - **THEN** skill SHALL 以 `Implementation Discipline` 节列出编码纪律
 - **AND** 每条 SHALL 使用中性术语，不使用外部框架名称
 
-#### Scenario: 流程步骤指向 reference
+#### Scenario: 非隔离流程步骤指向 reference
 
-- **WHEN** apply agent 执行到某个流程步骤
+- **WHEN** apply agent 执行到 Preparation、Pre-flight Scan、Phase 1/2/3 verification 或 Output
 - **THEN** agent SHALL 读取对应的 `openspec/references/openspec-apply-step-<N>-<name>.md`
 - **AND** skill body 中该步骤 SHALL 只提供一行描述和文件路径
+
+#### Scenario: 隔离方法只读取一个 reference
+
+- **WHEN** Preparation 已选择 branch、worktree 或 current-branch 方法
+- **THEN** agent SHALL 只读取所选方法的 Step 3 reference
+- **AND** MUST NOT 读取另外两个互斥方法 reference
 
 ### Requirement: Checks 是任务进度源
 

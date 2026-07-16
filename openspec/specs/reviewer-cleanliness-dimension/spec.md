@@ -15,7 +15,7 @@ Reviewer SHALL 在 Coherence 维度之后、OPSX Alignment 之前增加 Cleanlin
 4. **半迁移状态**：旧模式和新模式在本次变更中并存
 5. **不可达代码路径**：本次变更导致的逻辑不可达代码
 
-Scope SHALL 限定为 `git diff <originalBranch>...HEAD` 范围内的文件，SHALL NOT 检查本次变更之外的历史技术债。
+Scope SHALL 限定为 `git diff <baseCommit>...HEAD --name-only` 与 `git status --short` 的文件并集，SHALL NOT 检查本次变更之外的历史技术债。
 
 #### Scenario: 检测重构后的孤儿代码
 
@@ -157,7 +157,7 @@ Reviewer SHALL 在 Cleanliness 维度内检测 diff 中无法归因到任何 tas
 2. 各 Check `Command:` 涉及的测试与证据文件
 3. change 工件自身（`openspec/changes/<name>/` 目录下所有文件）
 
-Scope SHALL 限定为 `git diff <originalBranch>...HEAD` 范围内的文件；本次变更之外的历史技术债 SHALL NOT 由该检测报告。
+Scope SHALL 限定为 `git diff <baseCommit>...HEAD --name-only` 与 `git status --short` 的文件并集；本次变更之外的历史技术债 SHALL NOT 由该检测报告。
 
 #### Scenario: 无法归因的行为代码升级为 CRITICAL
 

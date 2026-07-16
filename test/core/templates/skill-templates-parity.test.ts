@@ -18,8 +18,8 @@ import { runTransforms } from '../../../src/core/templates/transforms/index.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
   getExploreSkillTemplate: 'cb37ee811293264f322c94013ac5ce36d8b6fcb951435b528dabd749a7e71146',
-  getApplyChangeSkillTemplate: '23bb2f25b6eca9bf4416cb8dfed42eacceaded7a8e894e30394b9b5258440ad7',
-  getArchiveChangeSkillTemplate: '7c24166bf8ce0e7d0f1b38a74e1a864e0c5d399da1d55fe33c298d8c604e1eac',
+  getApplyChangeSkillTemplate: 'a3e060b441aade22bbd5a82cd3218ce864ae733e4df57ea9cc1802aa2ac87e6c',
+  getArchiveChangeSkillTemplate: '53545abdd6b41eec03b04c72e9184ef2a8ed21ac7cbbf24cabce83f8b8cbfe20',
   getOpsxProposeSkillTemplate: '845f43ab0b89a5a6caa40c94538edb11a5fcc22a6231e292fe9030cf87be7e50',
   getFeedbackSkillTemplate: 'd7d83c5f7fc2b92fe8f4588a5bf2d9cb315e4c73ec19bcd5ef28270906319a0d',
   getBootstrapOpsxSkillTemplate: 'fc81199c17932e363f777f8fecf8e47890ab82d61756b5ceb2004142da26e4f8',
@@ -27,8 +27,8 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
   'openspec-explore': '5f9d58aaefc2de81777edaa1cc0e067d9c81fc1dfe8b5a4172f18e810dd83987',
-  'openspec-apply-change': '88112aa3fc4b4b29992e9455b26afb6ff2ada67eaf7c83d05a7b053ed302e3e1',
-  'openspec-archive-change': 'a2ef22710b4d6df989b182e927787581c4385a68df95c1e72429fa358bf6ddac',
+  'openspec-apply-change': 'bbe2363e995932a7e2e928413142dfba11400442254d447b8805bdec7834e339',
+  'openspec-archive-change': '983a0328765df00490cd3d8c4a3f9da730e1f60a6658e7cef0fae8dd030be9ba',
   'openspec-propose': 'd42545a7c5c4e2bd4235bc44b8c936ce518a3b31d2c8925fc7a781f5d66ddeff',
 };
 

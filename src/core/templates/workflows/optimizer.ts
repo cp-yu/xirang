@@ -7,8 +7,8 @@ Read context in this order:
 1. Validate changeName, changeDir, and projectRoot.
 2. Read changeDir/.verify-result.json, including Phase 1, findings, history, and failedDirections.
 3. Read proposal.md, specs/*/spec.md, design.md, and optimization config.
-4. Resolve originalBranch from changeDir/.apply-isolation.json; if absent run git symbolic-ref refs/remotes/origin/HEAD --short; fail closed if unresolved.
-5. Run git diff <originalBranch>...HEAD --name-only to build the base scope; use it only for navigation.
+4. Read \`baseCommit\` from changeDir/.apply-isolation.json and validate that Git resolves it; fail closed if the immutable evidence baseline is absent or invalid.
+5. Run \`git diff <baseCommit>...HEAD --name-only\` and \`git status --short\`; their union is the base scope and is used only for navigation.
 6. Read final contents of implementation evidence and base scope files.
 7. Apply Dependency Expansion (One Hop).
 

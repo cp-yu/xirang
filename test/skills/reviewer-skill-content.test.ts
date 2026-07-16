@@ -47,29 +47,30 @@ describe('openspec reviewer skill content', () => {
     const instructions = getReviewerSubagentTemplate().prompt;
 
     expect(instructions).toContain('Delete:');
-    expect(instructions).toContain('git diff <originalBranch>...HEAD');
+    expect(instructions).toContain('git diff <baseCommit>...HEAD');
+    expect(instructions).toContain('git status --short');
     expect(instructions).toContain('still exists');
   });
 
-  it('uses branch-aware name-only git scope instead of diff content', () => {
+  it('uses immutable baseline and uncommitted name-only scope instead of diff content', () => {
     const instructions = getReviewerSubagentTemplate().prompt;
 
-    expect(instructions).toContain('git diff <originalBranch>...HEAD --name-only');
-    expect(instructions).toContain('name-only output');
+    expect(instructions).toContain('git diff <baseCommit>...HEAD --name-only');
+    expect(instructions).toContain('git status --short');
+    expect(instructions).toContain('name-only scope');
     expect(instructions).toContain('final file contents');
-    expect(instructions).not.toContain('git diff --name-only');
+    expect(instructions).not.toContain('git diff <originalBranch>...HEAD');
     expect(instructions).not.toContain('git log -5 --oneline');
   });
 
-  it('documents originalBranch resolution fallback chain', () => {
+  it('fails closed when the immutable baseline is missing or invalid', () => {
     const instructions = getReviewerSubagentTemplate().prompt;
 
     expect(instructions).toContain('changeDir/.apply-isolation.json');
-    expect(instructions).toContain('originalBranch');
-    expect(instructions).toContain('git symbolic-ref refs/remotes/origin/HEAD --short');
-    expect(instructions).toContain('git ls-files --modified --others --exclude-standard');
-    expect(instructions).toContain('evidenceFiles');
-    expect(instructions).toContain('WARNING in gitDiffSummary');
+    expect(instructions).toContain('baseCommit');
+    expect(instructions).toContain('immutable evidence baseline is absent or invalid');
+    expect(instructions).toContain('CRITICAL');
+    expect(instructions).not.toContain('git symbolic-ref refs/remotes/origin/HEAD --short');
   });
 
   it('keeps codex and claude reviewer subagent self-read sections equivalent', () => {

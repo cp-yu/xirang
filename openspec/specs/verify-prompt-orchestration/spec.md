@@ -46,12 +46,12 @@ verify 工作流提示词 SHALL 使用 mode label 标记主要阶段切换，以
 | `[Mode: Validate Payload]` | 验证 reviewer payload 结构和证据引用 | Step 6 |
 | `[Mode: Writeback]` | 将 writeBackPlan 应用到 tasks.md | Step 7 |
 | `[Mode: Record]` | 通过 CLI 持久化 canonical Phase 1 result | Step 8/10 |
-| `[Mode: Checkpoint]` | Phase 2 安全保护的 git stash 生命周期 | Phase 2 entry |
+| `[Mode: Checkpoint]` | Phase 2 commit checkpoint 与 verify-state rollback fence | Phase 2 entry |
 | `[Mode: Optimize]` | 启动 optimizer subagent 并应用 Search/Replace 块 | Phase 2 optimization |
 | `[Mode: Speculative Verify]` | 不触碰 canonical result 的 P1_SPECULATIVE_FENCE re-verify | Step 10/12 |
 | `[Mode: Seal]` | 最终验证和 seal hash | Step 11/13 |
 
-Mode label SHALL NOT 应用于 checkpoint 子状态（CREATED、BASELINE_RESTORED_FOR_RETRY、TERMINAL_ACCEPTED、TERMINAL_RESTORED）；这些只是单一 `[Mode: Checkpoint]` 认知模式内的实现分支。
+Mode label SHALL NOT 应用于 checkpoint 子状态（BASELINE_COMMITTED、SUCCESS_COMMITTED、FAILED_STATE_SNAPSHOTTED、FAILURE_ROLLED_BACK）；这些只是单一 `[Mode: Checkpoint]` 认知模式内的实现分支。
 
 #### Scenario: 主要阶段切换带有 mode label
 
@@ -62,7 +62,7 @@ Mode label SHALL NOT 应用于 checkpoint 子状态（CREATED、BASELINE_RESTORE
 #### Scenario: Checkpoint 子状态不单独使用 mode label
 
 - **WHEN** verify 工作流处于 Phase 2 checkpoint management
-- **THEN** 单个 stash 状态（CREATED、BASELINE_RESTORED_FOR_RETRY 等）SHALL NOT 获得独立 mode label
+- **THEN** 单个 checkpoint 状态（BASELINE_COMMITTED、SUCCESS_COMMITTED 等）SHALL NOT 获得独立 mode label
 - **AND** SHALL 在 `[Mode: Checkpoint]` section 内描述
 
 ### Requirement: Explicit subagent delegation instructions
@@ -129,26 +129,17 @@ timeout rules SHALL 指定工具无关约束：
 - **THEN** coordinator SHALL 询问用户是否继续等待或终止
 - **AND** SHALL NOT 在未经用户确认时 kill subagent
 
-### Requirement: Checkpoint 状态机块格式
+### Requirement: Checkpoint 协议 SHALL 使用有序执行步骤
 
-Phase 2 prompt SHALL 将 checkpoint state machine description 从连续段落重构为表格格式，并追加 hard rules 列表。
+Phase 2 prompt SHALL 以有序步骤描述 commit checkpoint 与 rollback fence：先创建非空 baseline commit；每个成功 finding 创建含 finding ID 的 commit；失败 CLI record 后把 `.verify-result.json` 与 `.apply-isolation.json` 快照到 repository 外并记录 SHA-256；最后回滚 speculative code、原子恢复两个状态文件并校验 hash。
 
-表格 SHALL 将每个 checkpoint state 映射到 trigger condition 和对应 git operation：
+协议 SHALL 明确禁止空 baseline、stash 与 tag，并要求状态恢复异常时停止。
 
-| 状态 | 触发条件 | Git 操作 |
-|-------|---------|---------------|
-| CREATED | 执行任何 optimization edits 之前 | `git stash push -u -m "verify-phase2-checkpoint"` |
-| BASELINE_RESTORED_FOR_RETRY | reverify 失败后的 retry | `git stash apply <ref>`（保留 checkpoint） |
-| TERMINAL_ACCEPTED | optimization 被接受 | `git stash drop <ref>`（消耗 checkpoint） |
-| TERMINAL_RESTORED | rollback | `git stash pop <ref>`（恢复并消耗 checkpoint） |
+#### Scenario: Agent 执行失败回滚
 
-Hard rules SHALL 以 bullet list 形式跟在表格之后。
-
-#### Scenario: Agent 查找 checkpoint state trigger
-
-- **WHEN** coordinator 需要确定 BASELINE_RESTORED_FOR_RETRY 状态对应的 git operation
-- **THEN** 表格 SHALL 直接显示：触发条件 = `reverify 失败后的 retry`，Git 操作 = `git stash apply <ref>`
-- **AND** SHALL 注明该操作保留而不是消耗 checkpoint
+- **WHEN** coordinator 处理 speculative verification 失败
+- **THEN** prompt SHALL 先指示持久化两个状态文件的 snapshot
+- **AND** SHALL 再指示回滚 speculative code 并原子恢复两个状态文件
 
 ### Requirement: 语言一致性
 

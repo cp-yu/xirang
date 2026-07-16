@@ -224,6 +224,37 @@ archive skill 的输出 SHALL 区分 CLI 归档结果与归档后的 git 处理�
 - **AND** SHALL NOT 声称 CLI 执行了 merge
 - **AND** SHALL NOT 声称 CLI 删除了 feature branch
 
+### Requirement: Archive SHALL 消费 Apply isolation metadata
+
+Archive skill SHALL 在调用 archive CLI 前读取并保留 active change 的 `.apply-isolation.json`，因为 CLI 会把 change directory 移入 archive。归档 commits 完成后，Archive SHALL 按 `method` 执行后续导航、merge 与 cleanup；CLI 本身 SHALL NOT 执行这些 Git 操作。
+
+#### Scenario: Branch isolation 返回原分支合并
+
+- **WHEN** retained metadata 的 `method` 为 `branch`
+- **THEN** Archive SHALL 在归档 commits 完成后切换到 `originalBranch`
+- **AND** SHALL 按投影的 merge strategy 合并 `branchName`
+
+#### Scenario: Worktree isolation 从 sourceRoot 合并并清理
+
+- **WHEN** retained metadata 的 `method` 为 `worktree`
+- **THEN** Archive SHALL 在 `worktreePath` 中完成归档 commits
+- **AND** SHALL 验证 `sourceRoot` 当前分支为 `originalBranch`
+- **AND** SHALL 使用 `git -C <sourceRoot>` 按投影策略合并 `branchName`
+- **AND** 成功合并且 Apply worktree clean 后 SHALL 执行 `git worktree remove <worktreePath>`
+- **AND** 配置要求删除 branch 时 SHALL 在 worktree 删除后确认 merged 再删除 `branchName`
+
+#### Scenario: Source workspace 的无关修改受保护
+
+- **WHEN** worktree archive 访问 `sourceRoot`
+- **THEN** Archive MUST NOT reset、clean、stash 或 commit 无关 source-workspace 修改
+- **AND** metadata 与当前状态不匹配时 SHALL 停止并报告，不得猜测
+
+#### Scenario: Current branch 不执行隔离 cleanup
+
+- **WHEN** retained metadata 的 `method` 为 `none`
+- **THEN** Archive SHALL NOT 切换或合并当前 branch
+- **AND** SHALL NOT 删除 worktree 或当前 branch
+
 ### Requirement: Archive 通过 prompt projection 消费 git 配置
 
 archive skill 在归档后的 git 流程中 SHALL 通过统一 prompt/runtime projection 消费 `git` 配置节点，而非直接读取 raw YAML 键。

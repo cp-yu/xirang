@@ -1,14 +1,15 @@
 # Apply Step 5: Phase 2 Optimization
 
-Use git commits as checkpoints; never use stash or tags.
+Use git commits as checkpoints; never use stash or tags. Phase 0 and Phase 1 create no commits.
 
 1. Skip only for `--skip-optimization` or `optimization.enabled: false`; record `SKIPPED`.
 2. Read `optimization.optRetries`; it limits failures of one finding direction. Successful findings do not consume optRetries.
-3. Save the Phase 1 baseline:
+3. Establish the Phase 1 baseline. If the workspace contains this Apply's changes, save them as the first Apply commit:
    ```bash
    git add -A
    git commit -m "wip: opt-checkpoint-r0 (baseline)"
    ```
+   Do not use an empty commit. If the workspace is clean, reuse only an already verified baseline or an explicitly recorded user-owned complete implementation commit; otherwise stop. Persist its SHA as `phase2BaselineCommit` in `.apply-isolation.json`.
 4. Delegate to fresh `openspec-optimizer` with changeName, absolute changeDir, and absolute projectRoot. Submit its strict optimizer reconciliation envelope:
    ```bash
    openspec verify phase2 "<change-name>" --type=optimization --input '<json>' --json
@@ -20,7 +21,7 @@ Use git commits as checkpoints; never use stash or tags.
    openspec verify phase2 "<change-name>" --type=optimization --input '{"status":"OPTIMIZATION_PROPOSED","mode":"begin-implementation","findingId":"<finding-id>"}' --json
    ```
 8. Master implements only the selected finding with TDD. Preserve the finding's constraints and record any non-substantive implementation differences.
-9. Delegate to fresh `openspec-reviewer` for speculative verification. It verifies specs and preservationConstraints, not optimization value. Persist its verdict:
+9. Delegate to fresh `openspec-reviewer` for speculative verification. It verifies specs and preservationConstraints, not optimization value. Persist its verdict first so failed history and `failedDirections` become durable:
    ```bash
    openspec verify phase2 "<change-name>" --type=verification --input '{"result":"PASS","findingId":"<finding-id>","issues":[]}' --json
    ```
@@ -29,7 +30,7 @@ Use git commits as checkpoints; never use stash or tags.
     git add -A
     git commit -m "wip: opt-r${N} (${findingId}: ${description})"
     ```
-11. On FAIL, restore the latest successful checkpoint with `git reset --hard HEAD` and `git clean -fd`, then re-run optimizer reconciliation. A direction reaching optRetries becomes rejected; other findings continue.
+11. On FAIL, copy the updated `.verify-result.json` and `.apply-isolation.json` to repository-external temporary files and record each SHA-256. These are both persistent state files: the verify result preserves failed history and `failedDirections`, while isolation metadata preserves `phase2BaselineCommit`. Confirm the current workspace matches the selected isolation and `HEAD` is the latest successful checkpoint, then discard only speculative code with `git reset --hard HEAD` and `git clean -fd`. Copy each snapshot to a sibling temporary path, atomically restore `.verify-result.json` and `.apply-isolation.json`, and verify both hashes before re-running optimizer reconciliation. Stop if restoration or hash verification fails, or if speculative files remain. A direction reaching optRetries becomes rejected; other findings continue.
 12. Stop on no actionable findings, all remaining findings terminal/deferred, skip/disabled, or STALLED. Keep all `wip: opt-*` commits.
 
 **Verify CLI JSON Schema Reference**:

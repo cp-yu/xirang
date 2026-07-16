@@ -1,205 +1,186 @@
 # apply-branch-isolation Specification
 
 ## Purpose
-此规约记录变更 merge-superpowers-capabilities 引入的行为，请在后续同步或归档前补全正式 Purpose。
+定义 Apply 在正常连续执行路径中选择 Git 隔离方式、保护初始工作区状态、迁移 worktree 改动文件集并持久化证据基线的行为。
+
 ## Requirements
-### Requirement: Apply 必须检测当前分支
+### Requirement: Apply SHALL 路由到唯一隔离方法
 
-Apply 阶段 SHALL 在开始实现前检测当前 git 分支，并 SHALL 使用 `openspec/config.yaml` 中的 `apply.defaultIsolation` 决定是否需要交互式选择。
+Apply SHALL 在实现前读取当前分支、`HEAD` 和 `git status --short`，并依据用户显式选择或 `apply.defaultIsolation` 选择 `branch`、`worktree` 或 `none`。`ask` SHALL 在方法未确定时要求用户选择。
 
-#### Scenario: 检测当前分支
+主 Skill SHALL 只描述 isolation router。Preparation SHALL 完成方法选择但不读取方法 reference；pre-flight scan 完成后的 Step 3 SHALL 只读取以下一个对应 reference，且 MUST NOT 读取另外两个：
 
-- **WHEN** 用户调用 `/opsx:apply`
-- **THEN** 系统执行 `git branch --show-current` 获取当前分支名
-- **THEN** 系统判断是否在 main 或 master 分支
+- `openspec/references/openspec-apply-step-3-branch-isolation.md`
+- `openspec/references/openspec-apply-step-3-worktree-isolation.md`
+- `openspec/references/openspec-apply-step-3-current-branch.md`
 
-#### Scenario: 在 main/master 分支且配置为 ask 时询问
+#### Scenario: 配置直接选择隔离方法
 
-- **WHEN** 当前分支是 main 或 master
-- **AND** `apply.defaultIsolation` 为 `ask` 或未配置
-- **THEN** 系统显示警告："建议在 feature 分支上工作。Apply 阶段会频繁 commit，直接在 main 分支工作可能污染历史。"
-- **THEN** 系统询问用户选择隔离方式
+- **WHEN** `apply.defaultIsolation` 为 `branch`、`worktree` 或 `none`
+- **AND** 用户未显式覆盖
+- **THEN** Apply SHALL 选择对应方法
+- **AND** SHALL 不要求额外选择
 
-#### Scenario: 在 main/master 分支且配置默认隔离方式时直接执行
+#### Scenario: ask 配置要求选择
 
-- **WHEN** 当前分支是 main 或 master
-- **AND** `apply.defaultIsolation` 为 `branch`、`worktree` 或 `none`
-- **THEN** 系统 SHALL 不询问用户
-- **AND** 系统 SHALL 直接执行配置指定的隔离方式
-- **AND** 系统 SHALL 将结果写入 `.apply-isolation.json`
+- **WHEN** `apply.defaultIsolation` 为 `ask` 或未配置
+- **AND** 用户未显式选择隔离方法
+- **THEN** Apply SHALL 要求用户在 branch、worktree 和 current branch 中选择
 
-#### Scenario: 在 feature 分支时直接继续
+#### Scenario: 隔离文档互斥读取
 
-- **WHEN** 当前分支不是 main 或 master
-- **THEN** 系统显示信息："当前在分支 <branch-name>，继续实现。"
-- **THEN** 系统直接进入实现阶段
+- **WHEN** 用户或配置选择 worktree
+- **AND** pre-flight scan 已完成
+- **THEN** Agent SHALL 在 Step 3 只读取 `openspec-apply-step-3-worktree-isolation.md`
+- **AND** MUST NOT 读取 branch 或 current-branch reference
 
-### Requirement: 提供三种隔离选项
+### Requirement: 非 worktree 初始 dirty state SHALL 经过 router 门禁
 
-系统 SHALL 提供三种隔离方式供用户选择。
+Isolation router 在 provisional method 为 branch 或 current branch 且初始 `git status --short` 非空时，SHALL 等待用户选择：改用 worktree、明确把已有 dirty state 纳入本次 baseline，或停止 Apply。Apply MUST NOT 自动 stash、commit、reset、clean 或丢弃已有修改。Router SHALL 在门禁解决后才最终确定方法并读取唯一方法 reference。
 
-#### Scenario: 隔离选项呈现
+#### Scenario: Branch provisional method 遇到已有修改
 
-- **WHEN** 系统询问隔离方式
-- **THEN** 系统提供以下选项：
-  1. 创建新分支 `<change-name>`（推荐，简单快速）
-  2. 创建 worktree（推荐，完全隔离，适合并行开发）
-  3. 当前分支继续（不推荐，除非你知道自己在做什么）
+- **WHEN** router 暂定 branch 且工作区非空
+- **THEN** Apply SHALL 展示改用 worktree、纳入 baseline 或停止三个选择
+- **AND** 未获得明确选择前 SHALL NOT 读取 branch reference 或创建分支
 
-#### Scenario: 选项说明
+#### Scenario: Current branch provisional method 遇到已有修改
 
-- **WHEN** 系统呈现选项
-- **THEN** 每个选项包含简短说明：
-  - 选项 1：在当前仓库创建新分支，切换到该分支工作
-  - 选项 2：创建独立的 worktree 目录，完全隔离，不影响当前工作区
-  - 选项 3：直接在 main/master 分支工作，所有 commit 直接进入主分支
+- **WHEN** router 暂定 current branch 且工作区非空
+- **THEN** Apply SHALL 展示改用 worktree、纳入 baseline 或停止三个选择
+- **AND** 门禁解决前 SHALL NOT 读取 current-branch reference
 
-### Requirement: 创建新分支
+#### Scenario: 门禁改选 worktree
 
-系统 SHALL 支持创建新分支并切换到该分支。
+- **WHEN** 用户在 dirty-state 门禁选择改用 worktree
+- **THEN** router SHALL 最终选择 worktree
+- **AND** Agent SHALL 只读取 worktree reference
 
-#### Scenario: 分支名称生成
+### Requirement: Branch isolation SHALL 使用原生 Git
 
-- **WHEN** 用户选择"创建新分支"
-- **THEN** 系统使用 change name 作为分支名（如 `merge-superpowers-capabilities`）
-- **THEN** 如果分支已存在，系统询问："分支 <name> 已存在，是否切换到该分支？"
+Branch 方法 SHALL 在任何 branch 检测、创建或切换操作前记录进入隔离时的分支为 `originalBranch`，并把当时的 `HEAD` SHA 记录为 `baseCommit`。随后 SHALL 使用原生 Git 检测目标 branch；目标不存在时以 `git switch -c <change-name>` 创建，已存在时经用户明确确认后以 `git switch <change-name>` 切换。任一路径完成后 SHALL 验证当前 branch 等于 `branchName`，不匹配时停止。该方法 SHALL NOT 创建 worktree，也 SHALL NOT 调用外部 worktree skill。
 
-#### Scenario: 执行分支创建
+#### Scenario: 创建 change branch
 
-- **WHEN** 系统创建新分支
-- **THEN** 系统执行 `git checkout -b <change-name>`
-- **THEN** 系统验证分支创建成功
-- **THEN** 系统显示："已切换到新分支 <change-name>。"
+- **WHEN** branch 方法已通过 dirty-state 门禁
+- **THEN** Apply SHALL 先记录 `originalBranch` 与 `baseCommit`
+- **AND** SHALL 使用原生 Git 创建 change branch
+- **AND** SHALL 验证当前分支为记录的 `branchName`
+- **AND** 不匹配时 SHALL 停止
 
-#### Scenario: 分支创建失败
+#### Scenario: 分支已存在
 
-- **WHEN** git checkout 失败（如有未提交的更改）
-- **THEN** 系统报告错误："无法创建分支：<error-message>"
-- **THEN** 系统建议："请先提交或 stash 当前更改。"
+- **WHEN** 目标 change branch 已存在
+- **THEN** Apply SHALL 在切换前已记录 `originalBranch` 与 `baseCommit`
+- **AND** SHALL 要求用户确认是否切换到已有分支
+- **AND** SHALL NOT 静默覆盖或重建该分支
+- **AND** 切换后 SHALL 验证当前 branch 等于 `branchName`
+- **AND** 不匹配时 SHALL 停止
 
-### Requirement: 创建 worktree
+### Requirement: Worktree isolation SHALL 迁移改动文件集
 
-系统 SHALL 支持创建 git worktree 进行完全隔离。
+Worktree 方法 SHALL 从当前 `HEAD` 创建干净 worktree，不隐式携带源工作区 dirty files。Apply SHALL 从以下显式来源构建“改动文件集”：
 
-#### Scenario: 调用 worktree skill
+- `openspec/changes/<name>/**`
+- task `Files` 路径
+- Check 引用路径
+- 未完成 Remediation 路径
+- 用户明确确认的路径
 
-- **WHEN** 用户选择"创建 worktree"
-- **THEN** 系统检查是否存在 `using-git-worktrees` skill
-- **THEN** 如果存在，系统调用该 skill
-- **THEN** 如果不存在，系统回退到手动创建 worktree
+Apply SHALL 在目标 worktree 重现改动文件集的最终文件状态：复制修改和新增文件，并重现删除；无需保留 staged 与 unstaged 区分。集合外 dirty files SHALL 留在源工作区。
 
-#### Scenario: 手动创建 worktree
+#### Scenario: 从 HEAD 创建干净 worktree
 
-- **WHEN** `using-git-worktrees` skill 不存在
-- **THEN** 系统执行以下步骤：
-  1. 检查 `.worktrees/` 目录是否存在，不存在则创建
-  2. 执行 `git worktree add .worktrees/<change-name> -b <change-name>`
-  3. 切换工作目录到 `.worktrees/<change-name>`
-  4. 显示："已创建 worktree 在 .worktrees/<change-name>。"
+- **WHEN** 用户选择 worktree
+- **THEN** Apply SHALL 使用原生 `git worktree add` 从当前 `HEAD` 创建 change worktree
+- **AND** SHALL NOT 调用或检测 `using-git-worktrees`
 
-#### Scenario: Worktree 路径跨平台
+#### Scenario: 迁移最终文件状态
 
-- **WHEN** 系统创建 worktree 路径
-- **THEN** 路径使用 `path.join()` 构建
-- **THEN** 在 Windows、macOS、Linux 上都能正确创建
+- **WHEN** 改动文件集包含修改、新增和删除路径
+- **THEN** Apply SHALL 在 worktree 中重现每个路径的最终状态
+- **AND** SHALL 不要求保留源工作区的暂存状态分类
 
-#### Scenario: Worktree 创建失败
+#### Scenario: 集合外修改保持原状
 
-- **WHEN** git worktree add 失败
-- **THEN** 系统报告错误："无法创建 worktree：<error-message>"
-- **THEN** 系统回退到"创建新分支"选项
+- **WHEN** 源工作区包含不在改动文件集中的 dirty path
+- **THEN** Apply SHALL NOT 复制、清理或更改该路径
 
-### Requirement: 当前分支继续
+### Requirement: Worktree 迁移 SHALL 验证后清理源状态
 
-系统 SHALL 支持在当前分支继续工作（不推荐）。
+迁移后 Apply SHALL 比较每个路径的文件状态；对存在的文件 SHALL 比较 SHA-256，对删除的最终状态 SHALL 记录 `sourceState: "deleted"` 与 `sourceHash: null`，不得为不存在的字节伪造 hash。Apply SHALL 在 worktree 中重新运行 status、apply instructions 及受影响 Check 声明的 targeted validation。只有全部验证通过后，Apply 才能清理源工作区中已迁移且状态未变化的修改。
 
-#### Scenario: 用户确认风险
+Tracked 修改与删除 SHALL 恢复到源工作区 `HEAD` 状态；untracked 文件仅在 hash 仍匹配时删除。清理期间任何源路径发生变化时 SHALL 停止清理。验证成功后 Phase 0–3 SHALL 只在 worktree 中执行。
 
-- **WHEN** 用户选择"当前分支继续"
-- **THEN** 系统再次警告："你选择在 main/master 分支直接工作。Apply 阶段会产生多个 commit，这些 commit 会直接进入主分支历史。确定继续吗？"
-- **THEN** 用户确认后，系统继续实现
+#### Scenario: Hash 或 validation 不匹配
 
-#### Scenario: 记录用户选择
+- **WHEN** 任一目标状态、SHA-256 或 targeted validation 不匹配
+- **THEN** Apply SHALL 停止迁移
+- **AND** SHALL NOT 清理源工作区对应状态
 
-- **WHEN** 用户选择在当前分支继续
-- **THEN** 系统记录该选择（用于后续提示）
-- **THEN** 系统在实现完成后提示："实现完成。注意：所有 commit 已进入 main/master 分支。"
+#### Scenario: 验证后清理已迁移状态
 
-### Requirement: 隔离状态持久化
+- **WHEN** 全部迁移检查通过
+- **AND** 源路径状态与迁移时一致
+- **THEN** Apply SHALL 只清理已迁移路径的源工作区修改状态
+- **AND** SHALL 不触碰改动文件集之外的路径
 
-系统 SHALL 记录隔离状态，便于后续操作。
+#### Scenario: 迁移期间源文件变化
 
-#### Scenario: 记录隔离方式
+- **WHEN** 清理前发现源文件状态或 hash 已变化
+- **THEN** Apply SHALL 停止清理该状态并报告冲突
 
-- **WHEN** 用户选择隔离方式并成功执行
-- **THEN** 系统在 change 目录下创建 `.apply-isolation.json` 文件
-- **THEN** 文件内容包含：
-  ```json
-  {
-    "method": "branch" | "worktree" | "none",
-    "branchName": "<branch-name>",
-    "worktreePath": "<path>" (if method is worktree),
-    "originalBranch": "<original-branch-name>"
-  }
-  ```
+### Requirement: 混合修改文件 SHALL 由用户决定
 
-#### Scenario: Archive 时清理 worktree
+当同一文件疑似同时包含当前 change 与无关修改时，Apply SHALL NOT 自动推测或拆分 hunks。Agent SHALL 要求用户选择整文件纳入、先手动拆分再重试，或放弃 worktree 方法。二进制文件 SHALL 始终按整文件处理。
 
-- **WHEN** 用户调用 `/opsx:archive`
-- **THEN** 系统读取 `.apply-isolation.json`
-- **THEN** 如果 method 是 worktree，系统询问："是否删除 worktree 目录？"
-- **THEN** 用户确认后，系统执行 `git worktree remove <path>`
+#### Scenario: 文本文件包含混合修改
 
-#### Scenario: 切换回原分支
+- **WHEN** Apply 无法确认一个文件的全部修改都属于当前 change
+- **THEN** SHALL 等待用户选择整文件纳入、手动拆分或放弃 worktree
+- **AND** SHALL NOT 自动执行 hunk 级迁移
 
-- **WHEN** Archive 完成
-- **THEN** 系统读取 `.apply-isolation.json` 中的 originalBranch
-- **THEN** 系统询问："是否切换回原分支 <original-branch>？"
-- **THEN** 用户确认后，系统执行 `git checkout <original-branch>`
+#### Scenario: 二进制文件迁移
 
-### Requirement: 集成 Superpowers worktree skill
+- **WHEN** 改动文件集包含二进制文件
+- **THEN** Apply SHALL 将其作为不可拆分的整文件单位
 
-系统 SHALL 集成 Superpowers 的 `using-git-worktrees` skill。
+### Requirement: 隔离元数据 SHALL 分离导航与证据基线
 
-#### Scenario: 检测 skill 存在
+成功选择方法后，Apply SHALL 在 change 目录写入 `.apply-isolation.json`。元数据至少包含 `method`、`branchName`、`originalBranch` 和 `baseCommit`；worktree 方法还 SHALL 包含绝对 `worktreePath`、绝对 `sourceRoot` 与带相对路径和源 hash 的 `transferredFiles`。
 
-- **WHEN** 系统需要创建 worktree
-- **THEN** 系统检查 `.claude/skills/using-git-worktrees/` 或 `skills/using-git-worktrees/` 是否存在
-- **THEN** 如果存在，系统优先使用该 skill
+`originalBranch` SHALL 只用于导航、返回与 archive cleanup。`baseCommit` SHALL 为不可变 Git SHA，用于 reviewer、optimizer 和 diff scope。未提交路径 SHALL 通过 `git status --short` 补充到 scope。
 
-#### Scenario: 调用 skill
+#### Scenario: 持久化 branch 隔离状态
 
-- **WHEN** 系统调用 `using-git-worktrees` skill
-- **THEN** 系统传递 change name 作为参数
-- **THEN** Skill 负责检测现有隔离、选择目录、创建 worktree
-- **THEN** Skill 返回 worktree 路径
+- **WHEN** branch 方法完成
+- **THEN** `.apply-isolation.json` SHALL 包含 `method: "branch"`、`branchName`、`originalBranch` 和 `baseCommit`
 
-#### Scenario: Skill 不存在时回退
+#### Scenario: 持久化 worktree 迁移清单
 
-- **WHEN** `using-git-worktrees` skill 不存在
-- **THEN** 系统使用内置的简化版 worktree 创建逻辑
-- **THEN** 系统显示提示："使用内置 worktree 支持。如需完整功能，请安装 using-git-worktrees skill。"
+- **WHEN** worktree 迁移验证完成
+- **THEN** `.apply-isolation.json` SHALL 包含 `worktreePath`、`sourceRoot` 和 `transferredFiles`
+- **AND** 每个 transferred entry SHALL 包含项目相对路径、源状态与源 hash
+- **AND** deleted entry 的源 hash SHALL 为 `null`
 
-### Requirement: 跨平台路径处理
+### Requirement: Apply SHALL 将 cleanup 交给 Archive
 
-系统 SHALL 确保所有路径操作在 Windows、macOS、Linux 上都能正确工作。
+Apply 完成 seal 后 SHALL 从同一 workspace 交接 Archive。Apply MUST NOT 切换回原分支，也 MUST NOT 删除 worktree；Archive workflow SHALL 在 CLI 移动 active change 前保留 `.apply-isolation.json`，并据此处理后续返回、merge 与 cleanup。
 
-#### Scenario: 分支名称中的路径分隔符
+#### Scenario: Worktree Apply 完成
 
-- **WHEN** Change name 包含路径分隔符（如 `feature/user-auth`）
-- **THEN** 系统在 Windows 上将 `/` 替换为 `-`（git 分支名不支持 `\`）
-- **THEN** 最终分支名为 `feature-user-auth`
+- **WHEN** Phase 3 seal 在 worktree 中通过
+- **THEN** Apply SHALL 从该 worktree 输出 archive-ready handoff
+- **AND** SHALL NOT 返回源工作区或删除 worktree
+- **AND** Archive SHALL 在 worktree 内完成归档 commits，从 `sourceRoot` 的 `originalBranch` 合并 `branchName`
+- **AND** Archive SHALL 在成功合并且 worktree clean 后删除 worktree
 
-#### Scenario: Worktree 路径构建
+### Requirement: 路径处理 SHALL 跨平台
 
-- **WHEN** 系统构建 worktree 路径
-- **THEN** 使用 `path.join(process.cwd(), '.worktrees', changeName)`
-- **THEN** 不硬编码 `/` 或 `\`
+Worktree 路径和元数据路径 SHALL 使用 Node.js path API 构建，持久化的项目内文件路径 SHALL 使用相对 POSIX 形式。
 
-#### Scenario: 路径显示
+#### Scenario: 构建 worktree 路径
 
-- **WHEN** 系统向用户显示路径
-- **THEN** 使用 `path.normalize()` 转换为平台原生格式
-- **THEN** Windows 显示 `C:\project\.worktrees\change-name`
-- **THEN** Unix 显示 `/project/.worktrees/change-name`
-
+- **WHEN** Apply 构建 `.worktrees/<change-name>` 路径
+- **THEN** SHALL 使用 Node.js path API
+- **AND** SHALL NOT 硬编码平台特定分隔符

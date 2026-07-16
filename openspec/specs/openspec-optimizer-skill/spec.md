@@ -23,7 +23,7 @@ Optimizer SHALL 仅对当前 change base scope 内实现文件提出 actionable 
 
 顶层 agent MUST 传入合法 `changeName`、绝对 `changeDir` 和绝对 `projectRoot`。Optimizer SHALL 自主读取 `.verify-result.json`、change artifacts、optimization findings/history/failedDirections、项目 optimization config、base scope 最终代码和一层关联上下文。
 
-Original branch SHALL 优先来自 `.apply-isolation.json`，回退到 `git symbolic-ref refs/remotes/origin/HEAD --short`。Optimizer SHALL 使用 `git diff <originalBranch>...HEAD --name-only` 导航 scope，不以 diff hunks 替代最终文件内容。
+Optimizer SHALL 从 `.apply-isolation.json.baseCommit` 读取不可变证据基线，并使用 `git diff <baseCommit>...HEAD --name-only` 与 `git status --short` 的并集导航 scope，不以 diff hunks 替代最终文件内容。`baseCommit` 缺失或 Git 无法解析时 SHALL fail closed，MUST NOT 回退到可移动 branch ref。
 
 #### Scenario: 后续波次读取持久 findings
 - **WHEN** `.verify-result.json` 已包含 findings 和 history
@@ -34,6 +34,11 @@ Original branch SHALL 优先来自 `.apply-isolation.json`，回退到 `git symb
 - **WHEN** `changeDir/.verify-result.json` 不存在
 - **THEN** optimizer SHALL 返回 `Phase 1 result not found — cannot optimize without baseline`
 - **AND** SHALL NOT 推断 Phase 1 状态
+
+#### Scenario: Git evidence baseline 缺失
+- **WHEN** `.apply-isolation.json.baseCommit` 缺失或无效
+- **THEN** optimizer SHALL fail closed
+- **AND** SHALL NOT 从 `originalBranch` 或远程默认分支推断 scope
 
 ### Requirement: 优化原则与禁止项
 

@@ -18,50 +18,94 @@ const APPLY_STEP_1_PREPARATION_REFERENCE = `
 # Apply Step 1: Preparation
 
 1. Select the change. If no clear name is provided, infer only from explicit context; otherwise run \`openspec list --json\` and ask. Always announce "Using change: <name>".
-2. Run \`openspec status --change "<name>" --json\` and \`openspec instructions apply --change "<name>" --json\`. Read \`configProjection.prompt.fragments\` for \`proseLanguage\` and \`apply.defaultIsolation\`. Handle \`state: "needs_verify"\` by skipping to Phase 1 and \`state: "needs_seal"\` by continuing with Phase 2/3.
+2. Run \`openspec status --change "<name>" --json\` and \`openspec instructions apply --change "<name>" --json\`. Read \`configProjection.prompt.fragments\` for \`proseLanguage\` and \`apply.defaultIsolation\`. Handle \`state: "needs_verify"\` by continuing at Phase 1 and \`state: "needs_seal"\` by continuing at Phase 2/3.
 3. Load shared OPSX context before reading change artifacts.
 ${OPSX_SHARED_CONTEXT}
 4. Read every context file listed by the CLI. Inspect \`changeDir/.verify-result.json\` and \`## Remediation\`; unresolved CRITICAL/code_fix/artifact_fix items take priority.
 5. Use CLI-backed OPSX navigation after shared context.
 ${OPSX_CLI_QUERY_CONTEXT}
+6. In a Git repository, run \`git branch --show-current\`, \`git rev-parse HEAD\`, and \`git status --short\`. Select branch, worktree, or current-branch isolation from explicit user input or \`apply.defaultIsolation\`; only \`ask\` prompts when no method was selected. If the provisional method is branch or current branch and the initial workspace is dirty, ask the user to switch to worktree isolation, include the existing dirty state in the baseline, or stop Apply. Never alter that state automatically. Finalize the isolation method only after this gate.
+7. Record the selected method for Step 3. Do not read the selected reference during Preparation. At Step 3, read exactly one matching reference:
+   - branch: \`openspec/references/openspec-apply-step-3-branch-isolation.md\`
+   - worktree: \`openspec/references/openspec-apply-step-3-worktree-isolation.md\`
+   - none/current branch: \`openspec/references/openspec-apply-step-3-current-branch.md\`
+   The selected reference is the complete method contract. You MUST NOT read the other two isolation references.
 `.trim();
 
 const APPLY_STEP_2_PREFLIGHT_SCAN_REFERENCE = `
 # Apply Step 2: Pre-flight Scan
 
-Before entering branch isolation, scan all tasks in tasks.md for contradictions and dependency-ordering issues across Goals, Files, Requirements, and Checks:
+Before isolation, scan all tasks in tasks.md for contradictions and dependency-ordering issues across Goals, Files, Requirements, and Checks:
 - Conflicting declarations on the same file or interface across different tasks
 - Task declarations that conflict with change-local specs or design.md
 - Earlier task depending on output of a later task, for example Task N's Files declares Modify on a path created by Task M's Files where M > N
-- Present all findings at once; proceed silently when the scan is clean
+- When matching a Check \`Verifies:\` anchor to a Scenario heading, remove the scenario operation label such as \`[ADDED]\`, \`[MODIFIED]\`, or \`[REMOVED]\` and compare the label-free title
+- Present all findings at once, then wait for the user to modify \`tasks.md\` or explicitly confirm that the findings are ignored
+- proceed silently when the scan is clean
 `.trim();
 
 const APPLY_STEP_3_BRANCH_ISOLATION_REFERENCE = `
 # Apply Step 3: Branch Isolation
 
-Run \`git branch --show-current\`. On main/master ask whether to Create branch \`<change-name>\`, Create worktree at \`.worktrees/<change-name>\`, or continue; config branch/worktree/none use that as the default choice without prompting; only \`ask\` is interactive and means prompt.
+Use this reference only after Step 1 selects branch isolation.
 
-Persist \`path.join(changeDir, '.apply-isolation.json')\` with \`method\`, \`branchName\`, optional \`worktreePath\`, and \`originalBranch\`. Use using-git-worktrees when present.
+1. Require that Step 1 finalized branch isolation and the dirty-state gate is resolved. Stop before editing if either prerequisite is missing.
+2. Record the current branch as \`originalBranch\` and resolve the current \`HEAD\` SHA as \`baseCommit\` before switching.
+3. Check \`git show-ref --verify --quiet refs/heads/<change-name>\`. If the branch exists, require explicit confirmation before \`git switch <change-name>\`; otherwise create it with \`git switch -c <change-name>\`.
+4. After switching, verify \`git branch --show-current\` equals \`branchName\`. Stop on mismatch.
+5. Persist \`path.join(changeDir, '.apply-isolation.json')\` with \`method: "branch"\`, \`branchName\`, \`originalBranch\`, and \`baseCommit\`. \`baseCommit\` is the immutable evidence baseline; \`originalBranch\` is only for navigation and archive cleanup.
+6. Keep \`git status --short\` files in verification scope in addition to \`git diff <baseCommit>...HEAD --name-only\`.
+`.trim();
+
+const APPLY_STEP_3_WORKTREE_ISOLATION_REFERENCE = `
+# Apply Step 3: Worktree Isolation
+
+Use this reference only after Step 1 selects worktree isolation. Use native Git; do not delegate worktree creation to another skill.
+
+1. Record \`originalBranch\`, resolve the current \`HEAD\` SHA as the immutable evidence baseline \`baseCommit\`, and create a clean worktree from the current \`HEAD\`, normally with \`git worktree add .worktrees/<change-name> -b <change-name> HEAD\`. Existing dirty files are not carried implicitly.
+2. Build the changed file set from all files under \`openspec/changes/<name>/\`, every task \`Files\` path, Check-referenced paths, unfinished Remediation paths, and user-confirmed paths. Do not infer ownership or add unrelated dirty files.
+3. If one file appears to mix this change with unrelated edits, do not split or infer hunks. Ask the user to include the entire file, split it manually and retry, or abandon worktree isolation. Treat binary files as entire-file units.
+4. Reproduce the final state of each changed file set entry in the worktree: copy modified and added files, and reproduce deletions. The transfer does not preserve staged versus unstaged status.
+5. Compare source and target file state and SHA-256 for every present transferred entry. Represent a deleted final state as \`sourceState: "deleted"\` and \`sourceHash: null\`; never invent a hash for absent bytes. In the worktree, rerun status, apply instructions, and the targeted validation named by the affected Checks. Stop on any mismatch or validation failure.
+6. Persist worktree \`changeDir/.apply-isolation.json\` with \`method: "worktree"\`, \`branchName\`, \`originalBranch\`, \`baseCommit\`, absolute \`worktreePath\`, absolute \`sourceRoot\`, and \`transferredFiles\` containing relative paths, source states, and source hashes.
+7. After all transfer checks pass, clean only transferred source-workspace state whose source state and hash have not changed: restore tracked modifications and deletions to source \`HEAD\`, and remove untracked files only when their hash still matches. Touch no path outside the changed file set. Stop cleanup if any source entry changed during transfer.
+8. Phase 0 through Phase 3 run only in the worktree. Add \`git status --short\` files to evidence scope alongside \`git diff <baseCommit>...HEAD --name-only\`.
+`.trim();
+
+const APPLY_STEP_3_CURRENT_BRANCH_REFERENCE = `
+# Apply Step 3: Current Branch
+
+Use this reference only after Step 1 selects current-branch isolation.
+
+1. Require that Step 1 finalized current-branch isolation and the dirty-state gate is resolved. Stop before editing if either prerequisite is missing.
+2. Record the current branch as both \`branchName\` and \`originalBranch\`, and resolve current \`HEAD\` as \`baseCommit\`.
+3. Persist \`path.join(changeDir, '.apply-isolation.json')\` with \`method: "none"\`, \`branchName\`, \`originalBranch\`, and \`baseCommit\`. \`baseCommit\` is the immutable evidence baseline; \`originalBranch\` is only for navigation and archive cleanup.
+4. Keep \`git status --short\` files in verification scope in addition to \`git diff <baseCommit>...HEAD --name-only\`.
 `.trim();
 
 const APPLY_STEP_4_PHASE1_VERIFICATION_REFERENCE = `
 # Apply Step 4: Phase 1 Verification
 
-Delegate to the clean-context \`openspec-reviewer\` agent with \`context: "fresh"\`; persist \`openspec verify phase1 "<change-name>" --input '<json>' --json\`, and write back only CRITICAL remediation.
+1. Delegate to the clean-context \`openspec-reviewer\` agent with \`context: "fresh"\` and the current changeName, absolute changeDir, and absolute projectRoot.
+2. Validate the reviewer payload against the Phase 1 input contract. Reject malformed or incomplete payloads rather than repairing them by inference.
+3. Apply only CRITICAL \`writeBackPlan\` entries to \`tasks.md\`; do not write back WARNING or SUGGESTION items.
+4. After writeback completes, persist the validated reviewer payload with \`openspec verify phase1 "<change-name>" --input '<json>' --json\`. This ordering ensures the CLI records \`tasksFileHash\` from the final written tasks file.
+5. On FAIL_NEEDS_REMEDIATION, return to Phase 0. On PASS or PASS_WITH_WARNINGS, continue to Phase 2.
 `.trim();
 
 const APPLY_STEP_5_PHASE2_OPTIMIZATION_REFERENCE = `
 # Apply Step 5: Phase 2 Optimization
 
-Use git commits as checkpoints; never use stash or tags.
+Use git commits as checkpoints; never use stash or tags. Phase 0 and Phase 1 create no commits.
 
 1. Skip only for \`--skip-optimization\` or \`optimization.enabled: false\`; record \`SKIPPED\`.
 2. Read \`optimization.optRetries\`; it limits failures of one finding direction. Successful findings do not consume optRetries.
-3. Save the Phase 1 baseline:
+3. Establish the Phase 1 baseline. If the workspace contains this Apply's changes, save them as the first Apply commit:
    \`\`\`bash
    git add -A
    git commit -m "wip: opt-checkpoint-r0 (baseline)"
    \`\`\`
+   Do not use an empty commit. If the workspace is clean, reuse only an already verified baseline or an explicitly recorded user-owned complete implementation commit; otherwise stop. Persist its SHA as \`phase2BaselineCommit\` in \`.apply-isolation.json\`.
 4. Delegate to fresh \`openspec-optimizer\` with changeName, absolute changeDir, and absolute projectRoot. Submit its strict optimizer reconciliation envelope:
    \`\`\`bash
    openspec verify phase2 "<change-name>" --type=optimization --input '<json>' --json
@@ -73,7 +117,7 @@ Use git commits as checkpoints; never use stash or tags.
    openspec verify phase2 "<change-name>" --type=optimization --input '{"status":"OPTIMIZATION_PROPOSED","mode":"begin-implementation","findingId":"<finding-id>"}' --json
    \`\`\`
 8. Master implements only the selected finding with TDD. Preserve the finding's constraints and record any non-substantive implementation differences.
-9. Delegate to fresh \`openspec-reviewer\` for speculative verification. It verifies specs and preservationConstraints, not optimization value. Persist its verdict:
+9. Delegate to fresh \`openspec-reviewer\` for speculative verification. It verifies specs and preservationConstraints, not optimization value. Persist its verdict first so failed history and \`failedDirections\` become durable:
    \`\`\`bash
    openspec verify phase2 "<change-name>" --type=verification --input '{"result":"PASS","findingId":"<finding-id>","issues":[]}' --json
    \`\`\`
@@ -82,7 +126,7 @@ Use git commits as checkpoints; never use stash or tags.
     git add -A
     git commit -m "wip: opt-r\${N} (\${findingId}: \${description})"
     \`\`\`
-11. On FAIL, restore the latest successful checkpoint with \`git reset --hard HEAD\` and \`git clean -fd\`, then re-run optimizer reconciliation. A direction reaching optRetries becomes rejected; other findings continue.
+11. On FAIL, copy the updated \`.verify-result.json\` and \`.apply-isolation.json\` to repository-external temporary files and record each SHA-256. These are both persistent state files: the verify result preserves failed history and \`failedDirections\`, while isolation metadata preserves \`phase2BaselineCommit\`. Confirm the current workspace matches the selected isolation and \`HEAD\` is the latest successful checkpoint, then discard only speculative code with \`git reset --hard HEAD\` and \`git clean -fd\`. Copy each snapshot to a sibling temporary path, atomically restore \`.verify-result.json\` and \`.apply-isolation.json\`, and verify both hashes before re-running optimizer reconciliation. Stop if restoration or hash verification fails, or if speculative files remain. A direction reaching optRetries becomes rejected; other findings continue.
 12. Stop on no actionable findings, all remaining findings terminal/deferred, skip/disabled, or STALLED. Keep all \`wip: opt-*\` commits.
 
 ${VERIFY_CLI_JSON_SCHEMA_REFERENCE}
@@ -99,7 +143,7 @@ Run \`openspec verify seal "<change-name>" --json\`. If seal fails, preserve dia
 const APPLY_STEP_7_OUTPUT_REFERENCE = `
 # Apply Step 7: Output
 
-Report schema, progress, current task, completed tasks this session, and final sealed/archive-ready status. Keep edits minimal, use Node path handling for generated paths, update task checkboxes only after evidence passes, and preserve canonical artifact headings/tokens and configured document language projection.
+Report schema, progress, current task, completed tasks this session, and final sealed/archive-ready status. Continue archive from the same Apply workspace. Apply MUST NOT switch branches and MUST NOT remove the worktree; the Archive workflow owns branch return and isolation cleanup. Keep edits minimal, use Node path handling for generated paths, update task checkboxes only after evidence passes, and preserve canonical artifact headings/tokens and configured document language projection.
 `.trim();
 
 export function getApplyChangeSkillTemplate(): SkillTemplate {
@@ -116,8 +160,8 @@ For workflow-managed writes, read the resolved file definition before its instru
 
 1. Step 1: Preparation — read \`openspec/references/openspec-apply-step-1-preparation.md\`.
 2. Step 2: Pre-flight scan — read \`openspec/references/openspec-apply-step-2-preflight-scan.md\`.
-3. Step 3: Branch isolation — read \`openspec/references/openspec-apply-step-3-branch-isolation.md\`.
-4. Execute tasks with the implementation discipline below.
+3. Step 3: Isolation router — read the one method reference selected by Step 1; do not load mutually exclusive methods.
+4. Phase 0 implementation — Master executes pending tasks serially with the implementation discipline below.
 5. Step 4: Phase 1 verification — read \`openspec/references/openspec-apply-step-4-phase1-verification.md\` and delegate to the clean-context \`openspec-reviewer\` agent.
 6. Step 5: Phase 2 optimization — read \`openspec/references/openspec-apply-step-5-phase2-optimization.md\` and delegate to the clean-context \`openspec-optimizer\` agent when eligible.
 7. Step 6: Phase 3 seal — read \`openspec/references/openspec-apply-step-6-phase3-seal.md\`.
@@ -125,14 +169,14 @@ For workflow-managed writes, read the resolved file definition before its instru
 
 ## Implementation Discipline
 
-- Write or update targeted tests before behavior/code changes.
-- Verify the expected failure before implementation, then rerun the same check after the minimal fix.
-- Prefer deletion, standard library, native platform support, installed dependencies, and direct expressions before adding new code.
-- Do not add abstractions, dependencies, or files unless the spec or failing test requires them.
-- Exercise public behavior; mock only system boundaries injected through parameters.
-- Preserve canonical artifact headings, schema keys, IDs, commands, and template tokens exactly.
-- Treat failures as recovery feedback: read the full error, isolate the layer, compare a working pattern, state one hypothesis, change one variable, and rerun the same check.
-- Pause after repeated identical failures or three failed fix attempts.
+- Process unfinished \`## Remediation\` \`[code_fix]\` and \`[artifact_fix]\` items before pending tasks. Finish every Check in the current task before starting the next; never execute tasks in parallel.
+- Assess interface testability before writing tests for each behavior/code Check: inject external dependencies, prefer returned results over hidden side effects, and keep the public interface minimal.
+- Write or update a targeted test first. Exercise public behavior; mock only injected system boundaries, never internal collaborators.
+- Run the declared or equivalent targeted command and confirm the expected RED before implementation; make the minimal fix, then rerun the same check for GREEN.
+- Non-runtime text/artifact Checks do not require an artificial RED; run their declared command or inspect \`Evidence:\` and \`Expect:\` for final proof.
+- Prefer deletion, standard library, native platform support, installed dependencies, direct expressions, then minimal new code. Add no abstraction, dependency, or file unless required.
+- Update Check and remediation checkboxes only after their evidence passes. Preserve canonical headings, schema keys, IDs, commands, template tokens, and document-language projection.
+- For unexpected failures, read the full error, classify the layer, compare a working pattern, state one hypothesis, change one variable, and rerun the same check. Pause after two consecutive identical normalized errors or three failed fixes in one task.
 
 When Phase 3 seal passes, end with an explicit call-to-action: \`Archive ready. Run /opsx:archive <change-name> to complete the workflow.\``,
     license: 'MIT',
@@ -142,6 +186,8 @@ When Phase 3 seal passes, end with an explicit call-to-action: \`Archive ready. 
       { path: 'references/apply-step-1-preparation.md', content: APPLY_STEP_1_PREPARATION_REFERENCE },
       { path: 'references/apply-step-2-preflight-scan.md', content: APPLY_STEP_2_PREFLIGHT_SCAN_REFERENCE },
       { path: 'references/apply-step-3-branch-isolation.md', content: APPLY_STEP_3_BRANCH_ISOLATION_REFERENCE },
+      { path: 'references/apply-step-3-worktree-isolation.md', content: APPLY_STEP_3_WORKTREE_ISOLATION_REFERENCE },
+      { path: 'references/apply-step-3-current-branch.md', content: APPLY_STEP_3_CURRENT_BRANCH_REFERENCE },
       { path: 'references/apply-step-4-phase1-verification.md', content: APPLY_STEP_4_PHASE1_VERIFICATION_REFERENCE },
       { path: 'references/apply-step-5-phase2-optimization.md', content: APPLY_STEP_5_PHASE2_OPTIMIZATION_REFERENCE },
       { path: 'references/apply-step-6-phase3-seal.md', content: APPLY_STEP_6_PHASE3_SEAL_REFERENCE },

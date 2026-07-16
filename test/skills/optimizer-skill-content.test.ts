@@ -30,14 +30,15 @@ function normalizeSelfRead(content: string): string {
 }
 
 describe('openspec optimizer skill content', () => {
-  it('uses original branch name-only scope and avoids diff hunk evidence', () => {
+  it('uses immutable baseline plus uncommitted name-only scope and avoids diff hunk evidence', () => {
     const instructions = readReference('references/self-read-protocol.md');
 
-    expect(instructions).toContain('git diff <originalBranch>...HEAD --name-only');
+    expect(instructions).toContain('git diff <baseCommit>...HEAD --name-only');
+    expect(instructions).toContain('git status --short');
     expect(instructions).toContain('base scope');
     expect(instructions).toContain('changeDir/.apply-isolation.json');
-    expect(instructions).toContain('git symbolic-ref refs/remotes/origin/HEAD --short');
-    expect(instructions).not.toMatch(/git diff(?! <originalBranch>\.\.\.HEAD --name-only)/);
+    expect(instructions).toContain('immutable evidence baseline');
+    expect(instructions).not.toContain('git diff <originalBranch>...HEAD');
   });
 
   it('documents one-hop dependency expansion through imports callers and OPSX relations', () => {

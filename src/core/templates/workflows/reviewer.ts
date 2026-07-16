@@ -32,9 +32,9 @@ ${OPENSPEC_PHILOSOPHY}
 ## Self-Read Protocol
 
 1. Read proposal.md, specs/*/spec.md, design.md, tasks.md, opsx-delta.yaml, and changeDir/.verify-result.json when present.
-2. Resolve originalBranch: read changeDir/.apply-isolation.json, then git symbolic-ref refs/remotes/origin/HEAD --short, else git ls-files --modified --others --exclude-standard plus prior verificationContext.evidenceFiles and record a WARNING in gitDiffSummary.
-3. Run git status and, when possible, git diff <originalBranch>...HEAD --name-only. Use name-only output only as navigation; final file contents are evidence.
-4. Build candidates from evidenceFiles, name-only output, OPSX semantic relation paths, live repository search, and requirement keywords.
+2. Read \`baseCommit\` from changeDir/.apply-isolation.json and validate that Git resolves it. Fail closed with one CRITICAL issue if the immutable evidence baseline is absent or invalid.
+3. Run \`git diff <baseCommit>...HEAD --name-only\` and \`git status --short\`. Use their union only as navigation; final file contents are evidence.
+4. Build candidates from evidenceFiles, committed and uncommitted name-only scope, OPSX semantic relation paths, live repository search, and requirement keywords.
 5. Read every candidate implementation/test file before positive or negative judgment.
 
 ## Verification Protocol
@@ -48,7 +48,7 @@ Default stance: Strict. When uncertain: Escalate to CRITICAL when claimed work h
 ### Completeness
 - Parse tasks.md checkboxes.
 - Incomplete tasks or unimplemented requirements produce CRITICAL issues with concrete next actions.
-- For each task whose \`Files\` section contains a \`Delete:\` entry: run \`git diff <originalBranch>...HEAD --name-only\` and confirm that declared file was deleted. If the file still exists, issue CRITICAL "Declared deletion not completed" and add to writeBackPlan.
+- For each task whose \`Files\` section contains a \`Delete:\` entry: inspect \`git diff <baseCommit>...HEAD --name-only\` and \`git status --short\`, then confirm that the declared file was deleted. If the file still exists, issue CRITICAL "Declared deletion not completed" and add to writeBackPlan.
 
 ### Correctness
 Judgment mode is dispatched by Check anchor type:
@@ -76,7 +76,7 @@ Judgment mode is dispatched by Check anchor type:
 - Significant pattern deviations produce SUGGESTION.
 
 ### Cleanliness
-- Scope checks to git diff <originalBranch>...HEAD --name-only plus prior evidenceFiles.
+- Scope checks to \`git diff <baseCommit>...HEAD --name-only\`, \`git status --short\`, and prior evidenceFiles.
 - Detect orphaned code after refactor, stale TODO/FIXME/HACK markers, dead imports introduced by this change, half migrations, and unreachable code paths introduced by this change.
 - Possible approaches: task-code cross-reference, diff-scoped search, static analysis when reliable, pattern matching, and task-verb heuristics.
 - Prioritize speed and reliability.
@@ -90,7 +90,7 @@ Attribution universe = union of the following sets (explicit list lookup; do not
 2. Test and evidence files referenced by each Check \`Command:\`
 3. Change artifacts themselves (all files under \`openspec/changes/<name>/\`)
 
-For each file in \`git diff <originalBranch>...HEAD --name-only\` scope and outside the attribution universe:
+For each file in the union of \`git diff <baseCommit>...HEAD --name-only\` and \`git status --short\` scope and outside the attribution universe:
 - Read the file, then determine its content nature.
 - Behavior code change → issue CRITICAL "Unaccounted change: <path>", offering two exits: supplement task/spec (artifact_fix) or remove the change (code_fix).
 - Mechanical benign changes (lockfile, pure generated artifacts, pure formatting) → WARNING or SUGGESTION, noting the classification reason.

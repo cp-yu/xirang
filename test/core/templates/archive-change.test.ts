@@ -32,4 +32,17 @@ describe('archive change workflow template', () => {
     expect(instructions).not.toContain('invoke `openspec-optimizer`');
     expect(instructions).not.toContain('/skills/openspec-reviewer/SKILL.md');
   });
+
+  it('retains apply isolation metadata before CLI move and owns safe cleanup', () => {
+    const instructions = getArchiveChangeSkillTemplate().instructions;
+    const readIndex = instructions.indexOf('Read `.apply-isolation.json` before running the archive CLI');
+    const cliIndex = instructions.indexOf('Run `openspec archive "<change-name>"`');
+
+    expect(readIndex).toBeGreaterThan(-1);
+    expect(cliIndex).toBeGreaterThan(readIndex);
+    expect(instructions).toContain('`git -C <sourceRoot>`');
+    expect(instructions).toContain('verify that `sourceRoot` is on `originalBranch`');
+    expect(instructions).toContain('git worktree remove <worktreePath>');
+    expect(instructions).toContain('MUST NOT reset, clean, stash, or commit unrelated source-workspace changes');
+  });
 });

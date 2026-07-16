@@ -28,11 +28,19 @@ Optimizer SHALL 返回合法 reconciliation envelope。若存在 `blockingObserv
 
 ### Requirement: Checkpoint 与回滚
 
-系统 SHALL 在 Phase 2 前以 git commit 保存 Phase 1 baseline，并在每个 selected finding 通过验证后创建增量 checkpoint。Speculative re-verify 失败时 SHALL 丢弃当前未提交修改并恢复最近成功 checkpoint；达到该 finding 方向的失败上限时 SHALL 将 finding 标记为 rejected，而不是终止其他 findings。
+系统 SHALL 在 Phase 2 前以非空 git commit 保存 Phase 1 baseline，并在每个 selected finding 通过验证后创建增量 checkpoint。Phase 0 与 Phase 1 SHALL NOT 创建 commit，baseline MUST NOT 使用 `--allow-empty`。Speculative re-verify 失败时 SHALL 丢弃当前未提交实现并恢复最近成功 checkpoint，同时保留 CLI 已写入的 append-only optimization state；达到该 finding 方向的失败上限时 SHALL 将 finding 标记为 rejected，而不是终止其他 findings。
 
 #### Scenario: 创建 baseline checkpoint
 - **WHEN** Phase 1 通过且 Phase 2 即将开始
+- **AND** 工作区包含本次 Apply 的未提交变更
 - **THEN** 系统 SHALL 执行 `git add -A && git commit -m "wip: opt-checkpoint-r0 (baseline)"`
+- **AND** SHALL 将 commit SHA 持久化为 `.apply-isolation.json.phase2BaselineCommit`
+
+#### Scenario: 干净工作区不得创建空 baseline
+- **WHEN** Phase 2 启动时工作区干净
+- **THEN** 系统 SHALL 只复用已验证 baseline 或用户明确记录的完整实现 commit
+- **AND** 缺少可复用 commit 时 SHALL 停止
+- **AND** MUST NOT 使用 `--allow-empty`
 
 #### Scenario: 以 finding ID 创建增量 checkpoint
 - **WHEN** `OPT-20260712T140523123Z-01` 通过 speculative re-verify
@@ -40,8 +48,11 @@ Optimizer SHALL 返回合法 reconciliation envelope。若存在 `blockingObserv
 
 #### Scenario: 失败波次回滚
 - **WHEN** speculative re-verify 返回 FAIL_NEEDS_REMEDIATION
-- **THEN** 系统 SHALL 执行 `git reset --hard HEAD` 和 `git clean -fd`
-- **AND** SHALL 从最近成功 checkpoint 重新 reconciliation
+- **AND** CLI 已更新 `.verify-result.json` 中的 history 与 `failedDirections`
+- **THEN** Apply SHALL 把更新后的 verify result 与包含 `phase2BaselineCommit` 的 `.apply-isolation.json` 快照到 repository 外，并分别记录 SHA-256
+- **AND** SHALL 执行 `git reset --hard HEAD` 和 `git clean -fd` 丢弃 speculative implementation
+- **AND** SHALL 原子恢复两个持久状态文件并验证各自 SHA-256
+- **AND** SHALL 从最近成功 checkpoint 与恢复后的 optimization state 重新 reconciliation
 
 #### Scenario: 优化完成后保留 checkpoints
 - **WHEN** Phase 2 终止
