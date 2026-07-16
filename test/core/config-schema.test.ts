@@ -259,6 +259,16 @@ describe('config-schema', () => {
       expect(result.success).toBe(true);
     });
 
+    it('should filter retired propose config while preserving other unknown fields', () => {
+      const result = GlobalConfigSchema.parse({
+        propose: { smartRouting: false, requireExplore: false },
+        futureOption: 123,
+      });
+
+      expect(result).not.toHaveProperty('propose');
+      expect(result.futureOption).toBe(123);
+    });
+
     it('should reject non-boolean values in featureFlags', () => {
       const result = validateConfig({ featureFlags: { test: 'string' } });
       expect(result.success).toBe(false);
@@ -337,9 +347,10 @@ describe('config-schema', () => {
       expect(result.featureFlags).toEqual({});
     });
 
-    it('should provide default optimization config', () => {
+    it('should provide default optimization config without retired propose policy', () => {
       const result = GlobalConfigSchema.parse({});
       expect(result.optimization).toEqual({ enabled: true, optRetries: 2 });
+      expect(result).not.toHaveProperty('propose');
     });
 
     it('should provide default git archive policy', () => {
@@ -379,8 +390,9 @@ describe('config-schema', () => {
       expect(DEFAULT_CONFIG.featureFlags).toEqual({});
     });
 
-    it('should enable optimization by default', () => {
+    it('should enable optimization without retired propose defaults', () => {
       expect(DEFAULT_CONFIG.optimization).toEqual({ enabled: true, optRetries: 2 });
+      expect(DEFAULT_CONFIG).not.toHaveProperty('propose');
     });
 
     it('should default git archive policy conservatively', () => {
@@ -405,6 +417,14 @@ describe('config-schema', () => {
     it('rejects unknown nested optimization keys', () => {
       expect(validateConfigKeyPath('optimization.mode').valid).toBe(false);
       expect(validateConfigKeyPath('optimization.enabled.extra').valid).toBe(false);
+    });
+
+    it('identifies retired propose paths separately from unknown keys', () => {
+      expect(validateConfigKeyPath('propose')).toMatchObject({ valid: false, retired: true });
+      expect(validateConfigKeyPath('propose.smartRouting')).toMatchObject({ valid: false, retired: true });
+      expect(validateConfigKeyPath('propose.requireExplore')).toMatchObject({ valid: false, retired: true });
+      expect(validateConfigKeyPath('futureOption')).toMatchObject({ valid: false });
+      expect(validateConfigKeyPath('futureOption')).not.toHaveProperty('retired', true);
     });
 
     it('allows git archive policy keys', () => {

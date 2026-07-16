@@ -1,0 +1,348 @@
+{
+  "timestamp": "2026-07-16T12:17:42.077Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "aa683a3ba84b7e09168d45767a0ed23b3ccff6a48ad2ee11950670184942d8aa",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".pi/skills/openspec-propose/SKILL.md",
+      "openspec/changes/refine-propose-workflow/.apply-isolation.json",
+      "openspec/changes/refine-propose-workflow/design.md",
+      "openspec/changes/refine-propose-workflow/opsx-delta.yaml",
+      "openspec/changes/refine-propose-workflow/proposal.md",
+      "openspec/changes/refine-propose-workflow/specs/cli-check-delta/spec.md",
+      "openspec/changes/refine-propose-workflow/specs/cli-config/spec.md",
+      "openspec/changes/refine-propose-workflow/specs/config-loading/spec.md",
+      "openspec/changes/refine-propose-workflow/specs/config-project-query/spec.md",
+      "openspec/changes/refine-propose-workflow/specs/global-config/spec.md",
+      "openspec/changes/refine-propose-workflow/specs/opsx-propose-skill/spec.md",
+      "openspec/changes/refine-propose-workflow/specs/propose-smart-routing/spec.md",
+      "openspec/changes/refine-propose-workflow/specs/propose-workflow/spec.md",
+      "openspec/changes/refine-propose-workflow/tasks.md",
+      "src/cli/index.ts",
+      "src/commands/config.ts",
+      "src/core/config-projection.ts",
+      "src/core/config-schema.ts",
+      "src/core/global-config.ts",
+      "src/core/project-config.ts",
+      "src/core/templates/workflows/propose.ts",
+      "test/commands/artifact-workflow.test.ts",
+      "test/commands/completion.test.ts",
+      "test/commands/config.test.ts",
+      "test/core/completions/introspect-regression.test.ts",
+      "test/core/config-schema.test.ts",
+      "test/core/global-config.test.ts",
+      "test/core/project-config.test.ts",
+      "test/core/templates/propose-template.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts",
+      "test/skills/skill-template-length-validation.test.ts"
+    ],
+    "evidenceFingerprint": "b666c5622ad827204718fc239719cabb0f38cf2e59bdbf2add4cb2604151beb1",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".pi/skills/openspec-propose/SKILL.md",
+        "hash": "7ac219fb8be36244a20b252fc7964d90cc1a1b6999ef1fcb1874c88182abf231"
+      },
+      {
+        "path": "openspec/changes/refine-propose-workflow/.apply-isolation.json",
+        "hash": "918a379d3a3697c83398cc1f95d3644ece939ff7029ba6440aecec92d069a0ad"
+      },
+      {
+        "path": "openspec/changes/refine-propose-workflow/design.md",
+        "hash": "0a7bc837836e823ebdac06b11961c5994a1d910ce3d987c778fe0b783108ac8f"
+      },
+      {
+        "path": "openspec/changes/refine-propose-workflow/opsx-delta.yaml",
+        "hash": "df2c388378cc8b8ee99cd1fba19dab9dd37e1eef54b71e5808ec43f76dd0aa3e"
+      },
+      {
+        "path": "openspec/changes/refine-propose-workflow/proposal.md",
+        "hash": "6a94012ce2e61c4b0a85b76cfa25b5924120adade92ce8f9530348b7412c6714"
+      },
+      {
+        "path": "openspec/changes/refine-propose-workflow/specs/cli-check-delta/spec.md",
+        "hash": "225c5fac929dc65994c321d86fde2d63be7b18cc094f7552685d96fdd837db61"
+      },
+      {
+        "path": "openspec/changes/refine-propose-workflow/specs/cli-config/spec.md",
+        "hash": "0073e1b5c2eb7a4e249d1f5d76a854dbae261f7a4165add60d21b4005acb744c"
+      },
+      {
+        "path": "openspec/changes/refine-propose-workflow/specs/config-loading/spec.md",
+        "hash": "66981293bd8331eb7780c3e2874b78dc39957899cf0474b8277224110af1caa8"
+      },
+      {
+        "path": "openspec/changes/refine-propose-workflow/specs/config-project-query/spec.md",
+        "hash": "48b59e3fcfef114f30540ed97273f6cc4f727d1795e4552850c2ed57e07475f6"
+      },
+      {
+        "path": "openspec/changes/refine-propose-workflow/specs/global-config/spec.md",
+        "hash": "c44a503cf46fd17c99f7fd0bb37246d8edf8f184a7c5a78e116c4cf11fd04c5f"
+      },
+      {
+        "path": "openspec/changes/refine-propose-workflow/specs/opsx-propose-skill/spec.md",
+        "hash": "96bf307b58329a2e20116812cd58989f3d3aa4439ae5a25f2c3c961c11479805"
+      },
+      {
+        "path": "openspec/changes/refine-propose-workflow/specs/propose-smart-routing/spec.md",
+        "hash": "2b8e37f5673476c3747b3d069c05bdf87fd143b78ff106f43be42cc16bff89c8"
+      },
+      {
+        "path": "openspec/changes/refine-propose-workflow/specs/propose-workflow/spec.md",
+        "hash": "a5dc83128e5cbc77334fa6f2b296dfb8d4d9a8a37a86522141cf63a338bb27f4"
+      },
+      {
+        "path": "openspec/changes/refine-propose-workflow/tasks.md",
+        "hash": "aa683a3ba84b7e09168d45767a0ed23b3ccff6a48ad2ee11950670184942d8aa"
+      },
+      {
+        "path": "src/cli/index.ts",
+        "hash": "fec7c6c5c3e89fde7606dacf3163f47aab4d4ab2a2635a04f1e569efec10f5ff"
+      },
+      {
+        "path": "src/commands/config.ts",
+        "hash": "24a8eaac7ca0b35d8b23a50823ff7c6a9235c3fc28eedaf26447db4d6365484b"
+      },
+      {
+        "path": "src/core/config-projection.ts",
+        "hash": "c142860ada6fb39cdd34663f95f53694123f1fd5f7a805b9d39971f2666ac6c7"
+      },
+      {
+        "path": "src/core/config-schema.ts",
+        "hash": "ce122331bee302d07c91f02d9c7e622d60183a95b7ad6f04f72eff8ed70d5f4f"
+      },
+      {
+        "path": "src/core/global-config.ts",
+        "hash": "61de8e8e6193f88b4fb0816aaa7a1e71f36a9c0a457119a9a24f5b1486a25437"
+      },
+      {
+        "path": "src/core/project-config.ts",
+        "hash": "d19c7350f456f58df39c29edcbc6932360efa41eadedad4c06634709ad8b2666"
+      },
+      {
+        "path": "src/core/templates/workflows/propose.ts",
+        "hash": "f103cba79c0a568cf0ddec12bc9f989fdad24e9645fccff495b1da486adca1cd"
+      },
+      {
+        "path": "test/commands/artifact-workflow.test.ts",
+        "hash": "36cc62048bdfc00a4d7bf3f51c944007ef7b87476857e9e531e828f81d0416a5"
+      },
+      {
+        "path": "test/commands/completion.test.ts",
+        "hash": "0cd0597a8863547e2b06af5a5ec2b3e08e40b45304824ead9c106193fb2dbfc1"
+      },
+      {
+        "path": "test/commands/config.test.ts",
+        "hash": "dbe4a4cdaa28856f200de5825531c7aebfe885af8f6b1e027c7ce66eab61ed56"
+      },
+      {
+        "path": "test/core/completions/introspect-regression.test.ts",
+        "hash": "d4586a086737f8d6031e8fd17a2a557b856d133ebde200d8cc1dedc8e0dcc259"
+      },
+      {
+        "path": "test/core/config-schema.test.ts",
+        "hash": "d760448b32f5803d58feb9014307b7a68acbfc198c06eaab3fc361b6152b11a3"
+      },
+      {
+        "path": "test/core/global-config.test.ts",
+        "hash": "134c9230ffdacf0bd5de7905cdf53a490759c9699d62f6c0a032ce4a91813a28"
+      },
+      {
+        "path": "test/core/project-config.test.ts",
+        "hash": "3456654ad25a6826e4593ecd58923d1395d05085762398b48b2b04c34e5dd503"
+      },
+      {
+        "path": "test/core/templates/propose-template.test.ts",
+        "hash": "ce0f8c7a2d3f2e1b976f0b0a9974784ae235027150eb949a53a1ffc695d87d62"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "c48cefeb057f6a777512d3397cada5d7ed3f4b305a7aa2d7ead48c67856df4e0"
+      },
+      {
+        "path": "test/skills/skill-template-length-validation.test.ts",
+        "hash": "8fd52579ff4d63dd63456e8dfd9cdfd7c38984511db9b732ef3c8fd5fdc87c2c"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "76277b0dd5b218785f353dfa630d74fae6858e0a",
+    "gitDiffSummary": "Validated immutable baseCommit 76277b0dd5b218785f353dfa630d74fae6858e0a and all 33 git status paths. Requirements 29/29 and scenarios 37/37 passed. Full tests 140 files/2079 tests, lint, build, strict Specs 110/110, target change validation, OPSX delta validation, scenario-label preview, absence checks, and diff checks passed. Initial staged baseline remained unchanged."
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-07-16T12:17:42.077Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "aa683a3ba84b7e09168d45767a0ed23b3ccff6a48ad2ee11950670184942d8aa",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".pi/skills/openspec-propose/SKILL.md",
+          "openspec/changes/refine-propose-workflow/.apply-isolation.json",
+          "openspec/changes/refine-propose-workflow/design.md",
+          "openspec/changes/refine-propose-workflow/opsx-delta.yaml",
+          "openspec/changes/refine-propose-workflow/proposal.md",
+          "openspec/changes/refine-propose-workflow/specs/cli-check-delta/spec.md",
+          "openspec/changes/refine-propose-workflow/specs/cli-config/spec.md",
+          "openspec/changes/refine-propose-workflow/specs/config-loading/spec.md",
+          "openspec/changes/refine-propose-workflow/specs/config-project-query/spec.md",
+          "openspec/changes/refine-propose-workflow/specs/global-config/spec.md",
+          "openspec/changes/refine-propose-workflow/specs/opsx-propose-skill/spec.md",
+          "openspec/changes/refine-propose-workflow/specs/propose-smart-routing/spec.md",
+          "openspec/changes/refine-propose-workflow/specs/propose-workflow/spec.md",
+          "openspec/changes/refine-propose-workflow/tasks.md",
+          "src/cli/index.ts",
+          "src/commands/config.ts",
+          "src/core/config-projection.ts",
+          "src/core/config-schema.ts",
+          "src/core/global-config.ts",
+          "src/core/project-config.ts",
+          "src/core/templates/workflows/propose.ts",
+          "test/commands/artifact-workflow.test.ts",
+          "test/commands/completion.test.ts",
+          "test/commands/config.test.ts",
+          "test/core/completions/introspect-regression.test.ts",
+          "test/core/config-schema.test.ts",
+          "test/core/global-config.test.ts",
+          "test/core/project-config.test.ts",
+          "test/core/templates/propose-template.test.ts",
+          "test/core/templates/skill-templates-parity.test.ts",
+          "test/skills/skill-template-length-validation.test.ts"
+        ],
+        "evidenceFingerprint": "b666c5622ad827204718fc239719cabb0f38cf2e59bdbf2add4cb2604151beb1",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".pi/skills/openspec-propose/SKILL.md",
+            "hash": "7ac219fb8be36244a20b252fc7964d90cc1a1b6999ef1fcb1874c88182abf231"
+          },
+          {
+            "path": "openspec/changes/refine-propose-workflow/.apply-isolation.json",
+            "hash": "918a379d3a3697c83398cc1f95d3644ece939ff7029ba6440aecec92d069a0ad"
+          },
+          {
+            "path": "openspec/changes/refine-propose-workflow/design.md",
+            "hash": "0a7bc837836e823ebdac06b11961c5994a1d910ce3d987c778fe0b783108ac8f"
+          },
+          {
+            "path": "openspec/changes/refine-propose-workflow/opsx-delta.yaml",
+            "hash": "df2c388378cc8b8ee99cd1fba19dab9dd37e1eef54b71e5808ec43f76dd0aa3e"
+          },
+          {
+            "path": "openspec/changes/refine-propose-workflow/proposal.md",
+            "hash": "6a94012ce2e61c4b0a85b76cfa25b5924120adade92ce8f9530348b7412c6714"
+          },
+          {
+            "path": "openspec/changes/refine-propose-workflow/specs/cli-check-delta/spec.md",
+            "hash": "225c5fac929dc65994c321d86fde2d63be7b18cc094f7552685d96fdd837db61"
+          },
+          {
+            "path": "openspec/changes/refine-propose-workflow/specs/cli-config/spec.md",
+            "hash": "0073e1b5c2eb7a4e249d1f5d76a854dbae261f7a4165add60d21b4005acb744c"
+          },
+          {
+            "path": "openspec/changes/refine-propose-workflow/specs/config-loading/spec.md",
+            "hash": "66981293bd8331eb7780c3e2874b78dc39957899cf0474b8277224110af1caa8"
+          },
+          {
+            "path": "openspec/changes/refine-propose-workflow/specs/config-project-query/spec.md",
+            "hash": "48b59e3fcfef114f30540ed97273f6cc4f727d1795e4552850c2ed57e07475f6"
+          },
+          {
+            "path": "openspec/changes/refine-propose-workflow/specs/global-config/spec.md",
+            "hash": "c44a503cf46fd17c99f7fd0bb37246d8edf8f184a7c5a78e116c4cf11fd04c5f"
+          },
+          {
+            "path": "openspec/changes/refine-propose-workflow/specs/opsx-propose-skill/spec.md",
+            "hash": "96bf307b58329a2e20116812cd58989f3d3aa4439ae5a25f2c3c961c11479805"
+          },
+          {
+            "path": "openspec/changes/refine-propose-workflow/specs/propose-smart-routing/spec.md",
+            "hash": "2b8e37f5673476c3747b3d069c05bdf87fd143b78ff106f43be42cc16bff89c8"
+          },
+          {
+            "path": "openspec/changes/refine-propose-workflow/specs/propose-workflow/spec.md",
+            "hash": "a5dc83128e5cbc77334fa6f2b296dfb8d4d9a8a37a86522141cf63a338bb27f4"
+          },
+          {
+            "path": "openspec/changes/refine-propose-workflow/tasks.md",
+            "hash": "aa683a3ba84b7e09168d45767a0ed23b3ccff6a48ad2ee11950670184942d8aa"
+          },
+          {
+            "path": "src/cli/index.ts",
+            "hash": "fec7c6c5c3e89fde7606dacf3163f47aab4d4ab2a2635a04f1e569efec10f5ff"
+          },
+          {
+            "path": "src/commands/config.ts",
+            "hash": "24a8eaac7ca0b35d8b23a50823ff7c6a9235c3fc28eedaf26447db4d6365484b"
+          },
+          {
+            "path": "src/core/config-projection.ts",
+            "hash": "c142860ada6fb39cdd34663f95f53694123f1fd5f7a805b9d39971f2666ac6c7"
+          },
+          {
+            "path": "src/core/config-schema.ts",
+            "hash": "ce122331bee302d07c91f02d9c7e622d60183a95b7ad6f04f72eff8ed70d5f4f"
+          },
+          {
+            "path": "src/core/global-config.ts",
+            "hash": "61de8e8e6193f88b4fb0816aaa7a1e71f36a9c0a457119a9a24f5b1486a25437"
+          },
+          {
+            "path": "src/core/project-config.ts",
+            "hash": "d19c7350f456f58df39c29edcbc6932360efa41eadedad4c06634709ad8b2666"
+          },
+          {
+            "path": "src/core/templates/workflows/propose.ts",
+            "hash": "f103cba79c0a568cf0ddec12bc9f989fdad24e9645fccff495b1da486adca1cd"
+          },
+          {
+            "path": "test/commands/artifact-workflow.test.ts",
+            "hash": "36cc62048bdfc00a4d7bf3f51c944007ef7b87476857e9e531e828f81d0416a5"
+          },
+          {
+            "path": "test/commands/completion.test.ts",
+            "hash": "0cd0597a8863547e2b06af5a5ec2b3e08e40b45304824ead9c106193fb2dbfc1"
+          },
+          {
+            "path": "test/commands/config.test.ts",
+            "hash": "dbe4a4cdaa28856f200de5825531c7aebfe885af8f6b1e027c7ce66eab61ed56"
+          },
+          {
+            "path": "test/core/completions/introspect-regression.test.ts",
+            "hash": "d4586a086737f8d6031e8fd17a2a557b856d133ebde200d8cc1dedc8e0dcc259"
+          },
+          {
+            "path": "test/core/config-schema.test.ts",
+            "hash": "d760448b32f5803d58feb9014307b7a68acbfc198c06eaab3fc361b6152b11a3"
+          },
+          {
+            "path": "test/core/global-config.test.ts",
+            "hash": "134c9230ffdacf0bd5de7905cdf53a490759c9699d62f6c0a032ce4a91813a28"
+          },
+          {
+            "path": "test/core/project-config.test.ts",
+            "hash": "3456654ad25a6826e4593ecd58923d1395d05085762398b48b2b04c34e5dd503"
+          },
+          {
+            "path": "test/core/templates/propose-template.test.ts",
+            "hash": "ce0f8c7a2d3f2e1b976f0b0a9974784ae235027150eb949a53a1ffc695d87d62"
+          },
+          {
+            "path": "test/core/templates/skill-templates-parity.test.ts",
+            "hash": "c48cefeb057f6a777512d3397cada5d7ed3f4b305a7aa2d7ead48c67856df4e0"
+          },
+          {
+            "path": "test/skills/skill-template-length-validation.test.ts",
+            "hash": "8fd52579ff4d63dd63456e8dfd9cdfd7c38984511db9b732ef3c8fd5fdc87c2c"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "76277b0dd5b218785f353dfa630d74fae6858e0a",
+        "gitDiffSummary": "Validated immutable baseCommit 76277b0dd5b218785f353dfa630d74fae6858e0a and all 33 git status paths. Requirements 29/29 and scenarios 37/37 passed. Full tests 140 files/2079 tests, lint, build, strict Specs 110/110, target change validation, OPSX delta validation, scenario-label preview, absence checks, and diff checks passed. Initial staged baseline remained unchanged."
+      }
+    }
+  }
+}

@@ -110,6 +110,7 @@ describe('global-config', () => {
       expect(config).not.toHaveProperty('profile');
       expect(config).not.toHaveProperty('workflows');
       expect(config).not.toHaveProperty('delivery');
+      expect(config).not.toHaveProperty('propose');
       expect(config.featureFlags).toEqual({});
       expect(config.apply).toHaveProperty('defaultIsolation');
       expect(config.optimization).toHaveProperty('enabled');
@@ -194,6 +195,27 @@ describe('global-config', () => {
 
       expect((config as any).unknownField).toBe('preserved');
       expect((config as any).futureOption).toBe(123);
+    });
+
+    it('should silently filter retired propose config while preserving other unknown fields', () => {
+      process.env.XDG_CONFIG_HOME = tempDir;
+      const configDir = path.join(tempDir, 'openspec');
+      const configPath = path.join(configDir, 'config.json');
+      const source = JSON.stringify({
+        featureFlags: { x: true },
+        propose: { smartRouting: false, requireExplore: false },
+        futureOption: 123,
+      });
+
+      fs.mkdirSync(configDir, { recursive: true });
+      fs.writeFileSync(configPath, source);
+
+      const config = getGlobalConfig();
+
+      expect(config).not.toHaveProperty('propose');
+      expect((config as any).futureOption).toBe(123);
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
+      expect(fs.readFileSync(configPath, 'utf-8')).toBe(source);
     });
 
     it('should merge loaded config with defaults', () => {

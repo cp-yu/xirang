@@ -59,13 +59,6 @@ export const GlobalConfigSchema = z
       })
       .optional()
       .default({ enabled: true, optRetries: 2 }),
-    propose: z
-      .object({
-        smartRouting: z.boolean().optional().default(true),
-        requireExplore: z.boolean().optional(),
-      })
-      .optional()
-      .default({ smartRouting: true }),
     apply: z
       .object({
         defaultIsolation: z.enum(['ask', 'branch', 'worktree', 'none']).optional().default('ask'),
@@ -74,7 +67,8 @@ export const GlobalConfigSchema = z
       .default({ defaultIsolation: 'ask' }),
     git: GitConfigSchema,
   })
-  .passthrough();
+  .passthrough()
+  .transform(({ propose: _retiredPropose, ...config }) => config);
 
 export type GlobalConfigType = z.infer<typeof GlobalConfigSchema>;
 
@@ -86,9 +80,6 @@ export const DEFAULT_CONFIG: GlobalConfigType = {
   optimization: {
     enabled: true,
     optRetries: 2,
-  },
-  propose: {
-    smartRouting: true,
   },
   apply: {
     defaultIsolation: 'ask',
@@ -109,7 +100,7 @@ const KNOWN_TOP_LEVEL_KEYS = new Set(Object.keys(DEFAULT_CONFIG));
  * Validate a config key path for CLI set operations.
  * Unknown top-level keys are rejected unless explicitly allowed by the caller.
  */
-export function validateConfigKeyPath(path: string): { valid: boolean; reason?: string } {
+export function validateConfigKeyPath(path: string): { valid: boolean; reason?: string; retired?: boolean } {
   const rawKeys = path.split('.');
 
   if (rawKeys.length === 0 || rawKeys.some((key) => key.trim() === '')) {
@@ -117,6 +108,9 @@ export function validateConfigKeyPath(path: string): { valid: boolean; reason?: 
   }
 
   const rootKey = rawKeys[0];
+  if (rootKey === 'propose') {
+    return { valid: false, retired: true, reason: 'The propose routing configuration has been retired' };
+  }
   if (!KNOWN_TOP_LEVEL_KEYS.has(rootKey)) {
     return { valid: false, reason: `Unknown top-level key "${rootKey}"` };
   }
@@ -138,19 +132,6 @@ export function validateConfigKeyPath(path: string): { valid: boolean; reason?: 
     return {
       valid: false,
       reason: 'optimization only supports the nested keys "enabled" and "optRetries"',
-    };
-  }
-
-  if (rootKey === 'propose') {
-    if (rawKeys.length === 1) {
-      return { valid: true };
-    }
-    if (rawKeys.length === 2 && (rawKeys[1] === 'smartRouting' || rawKeys[1] === 'requireExplore')) {
-      return { valid: true };
-    }
-    return {
-      valid: false,
-      reason: 'propose only supports the nested keys "smartRouting" and "requireExplore"',
     };
   }
 

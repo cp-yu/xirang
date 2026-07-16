@@ -90,6 +90,29 @@ describe('config command integration', () => {
     expect(config.featureFlags).toEqual({});
     expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid JSON'));
   });
+
+  it('should reject retired propose paths even with --allow-unknown', async () => {
+    const { registerConfigCommand } = await import('../../src/commands/config.js');
+    const { getGlobalConfigPath } = await import('../../src/core/global-config.js');
+    const program = new Command();
+    registerConfigCommand(program);
+
+    process.exitCode = undefined;
+    await program.parseAsync([
+      'node',
+      'openspec',
+      'config',
+      'set',
+      'propose.smartRouting',
+      'false',
+      '--allow-unknown',
+    ]);
+
+    expect(process.exitCode).toBe(1);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('retired'));
+    expect(fs.existsSync(getGlobalConfigPath())).toBe(false);
+    process.exitCode = undefined;
+  });
 });
 
 // NOTE: Shell completion registry tests moved to introspect-regression.test.ts
@@ -161,9 +184,6 @@ rules:
         enabled: false,
         optRetries: 1,
       },
-      propose: {
-        smartRouting: false,
-      },
       apply: {
         defaultIsolation: 'branch',
       },
@@ -208,6 +228,7 @@ rules: {}
     expect(output).toContain('schema: spec-driven');
     expect(output).toContain('proseLanguage: 中文');
     expect(output).toContain('rules: {}');
+    expect(output).not.toContain('propose');
   });
 });
 
@@ -240,6 +261,13 @@ describe('config key validation', () => {
   it('rejects profile key (removed field)', async () => {
     const { validateConfigKeyPath } = await import('../../src/core/config-schema.js');
     expect(validateConfigKeyPath('profile').valid).toBe(false);
+  });
+
+  it('rejects retired propose routing keys', async () => {
+    const { validateConfigKeyPath } = await import('../../src/core/config-schema.js');
+    expect(validateConfigKeyPath('propose')).toMatchObject({ valid: false, retired: true });
+    expect(validateConfigKeyPath('propose.smartRouting')).toMatchObject({ valid: false, retired: true });
+    expect(validateConfigKeyPath('propose.requireExplore')).toMatchObject({ valid: false, retired: true });
   });
 
   it('allows optimization.enabled key', async () => {
