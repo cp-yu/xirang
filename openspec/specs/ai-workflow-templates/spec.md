@@ -67,7 +67,7 @@ delegation instructions SHALL 指定：
 
 `openspec-explore` SHALL invoke `openspec-impact-sweeper` agent when exploration reaches a code-change concept that needs impact discovery, a user term does not clearly map to project terminology and affects scope, or the agent is preparing to say the discussion is ready for proposal/change artifacts.
 
-Explore agent SHALL 将 sweeper 视为可复用方法，在一次对话中可以多次调用，每次调用只处理一个 concept。Explore agent SHALL 在向用户总结影响面发现前读取 sweeper 返回的 JSON report path。Sweeper report 写入是内部 agent 例外，SHALL NOT 赋予 main explore agent 创建或修改项目文件、OpenSpec 制品的权限。
+Explore agent SHALL 将 sweeper 视为可复用方法，在一次对话中可以多次调用，每次调用只处理一个 concept。Sweeper SHALL 直接返回 canonical JSON object，Explore agent SHALL 在向用户总结影响面发现前直接解释该返回对象。Explore main agent 与 sweeper SHALL 保持只读，MUST NOT 创建或修改项目文件及 OpenSpec artifacts。
 
 #### Scenario: 委托使用 agent 表述
 
@@ -81,53 +81,6 @@ Explore agent SHALL 将 sweeper 视为可复用方法，在一次对话中可以
 - **THEN** 章节 SHALL 使用 "Simplicity Awareness" 标题
 - **AND** 规则列表 SHALL 称为 "simplicity filter"
 - **AND** SHALL 使用中性术语，不引用外部框架名称
-
-### Requirement: Impact sweeper report contract
-`openspec-impact-sweeper` SHALL 保持既有 input/report path 合同，并将 impact report 分类改为 `mustChange`、`mustVerify`、`contextual`、`unknown`、`architectureDrift`、`questions`。每个非 question finding SHALL 包含 target、relation path、reason 与 evidence；canonical JSON field names MUST 保持稳定。
-
-#### Scenario: Sweeper writes semantic impact report
-- **WHEN** sweeper 完成 concept analysis
-- **THEN** SHALL 写入既有 deterministic report path 并只返回该 path
-- **AND** findings SHALL 解释 capability relation path
-
-#### Scenario: 不确定性显式输出
-- **WHEN** OPSX/spec/code evidence 不足或冲突
-- **THEN** SHALL 使用 `unknown` 或 `architectureDrift`
-- **AND** MUST NOT 将模糊相关性输出为 `mustChange`
-
-### Requirement: Impact sweeper evidence collection
-`openspec-impact-sweeper` SHALL 以 OPSX v2 relation paths 和 cap→spec mapping 为主要语义证据，以 CodeGraph 为可选代码结构加速器，并以 ACE、`rg`、`read`、`git ls-files` 为 fallback。Sweeper MUST NOT 读取 code-map 或 `.codegraph/codegraph.db`。
-
-#### Scenario: Relation-specific propagation
-- **WHEN** seed capability 已确定
-- **THEN** `belongs_to` SHALL 只提供 domain context
-- **AND** 其他五种 relations SHALL 按 Registry propagation hint 选择需验证方向
-- **AND** relation 本身 MUST NOT 单独证明 `mustChange`
-
-#### Scenario: CodeGraph 缺失不阻塞
-- **WHEN** CodeGraph 不可用
-- **THEN** sweeper SHALL 使用 fallback tools 完成报告
-- **AND** SHALL 披露降低的 evidence coverage
-
-#### Scenario: OPSX 与代码冲突
-- **WHEN** semantic relation 与当前 call/import evidence 冲突
-- **THEN** report SHALL 记录 `architectureDrift`
-- **AND** SHALL 保留两侧 evidence
-
-### Requirement: Impact sweeper write and execution boundaries
-`openspec-impact-sweeper` SHALL perform read-only analysis except for its report directory writes. It MAY create `openspec/sweeper/`, create `openspec/sweeper/.gitignore` if missing, and write or overwrite its JSON report. It SHALL NOT modify source files, specs, change artifacts, OPSX files, config, package files, tests, or generated workflow files.
-
-The sweeper SHALL NOT run tests, builds, installs, `git diff`, `git status`, or `git log` as impact evidence. It MAY use `git ls-files`, file reads, and text search. Reports under `openspec/sweeper/` SHALL be treated as working notes, not proposal, design, tasks, specs, OPSX delta, sync input, or archive input.
-
-#### Scenario: No tests or git diff
-- **WHEN** the sweeper needs impact evidence
-- **THEN** it SHALL use OPSX files, main specs, optional selected change artifacts, git tracked file listing, and text search
-- **AND** SHALL NOT run `npm test`, build commands, `git diff`, `git status`, or `git log`
-
-#### Scenario: Only sweeper report files are written
-- **WHEN** the sweeper writes output
-- **THEN** it SHALL write only under `openspec/sweeper/`
-- **AND** SHALL NOT modify any formal OpenSpec artifact or implementation file
 
 ### Requirement: Propose 模板使用统一 CLI 查询接口
 

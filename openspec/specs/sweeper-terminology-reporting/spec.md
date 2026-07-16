@@ -26,7 +26,7 @@ Sweeper JSON 报告 SHALL 包含可选的 `terminologyObservations` 字段，结
 
 #### Scenario: 未发现相关术语时字段为空数组
 
-- **WHEN** sweeper 在所有 `mustCheck` specs 中未提取到与 concept 语义相近的术语
+- **WHEN** sweeper 在所有受影响 Specs 中未提取到与 concept 语义相近的术语
 - **THEN** `terminologyObservations.foundInSpecs` SHALL 为空数组 `[]`
 - **AND** `terminologyObservations.userInput` SHALL 仍然包含用户输入
 
@@ -38,7 +38,7 @@ Sweeper JSON 报告 SHALL 包含可选的 `terminologyObservations` 字段，结
 
 - **WHEN** 新版本 sweeper 生成包含 `terminologyObservations` 的 JSON 报告
 - **AND** master agent 为旧版本（不处理该字段）
-- **THEN** master agent SHALL 正常解析 `affectedCapabilities`、`mustCheck`、`questions` 等现有字段
+- **THEN** master agent SHALL 正常解析 `mustChange`、`mustVerify`、`contextual`、`unknown`、`architectureDrift` 与 `questions` 等现有字段
 - **AND** SHALL 不因新字段存在而报错或异常
 
 #### Scenario: 新版本 master agent 兼容旧 sweeper 报告

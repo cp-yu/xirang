@@ -18,7 +18,7 @@ const IMPACT_SWEEPER_EVIDENCE_REFERENCE = `# Impact Sweeper Evidence Protocol
 
 const IMPACT_SWEEPER_TERMINOLOGY_REFERENCE = `# Impact Sweeper Terminology Awareness
 
-Identify terms semantically related to user's \`concept\` input while reading mustCheck specs. Extract only domain terms close to that concept, not every noun in the file; if concept is 'workflow', extract 'process', 'pipeline', 'flow' etc. and ignore unrelated terms such as 'topological sort' or 'artifact'.
+Identify terms semantically related to user's \`concept\` input while reading affected specs. Extract only domain terms close to that concept, not every noun in the file; if concept is 'workflow', extract 'process', 'pipeline', 'flow' etc. and ignore unrelated terms such as 'topological sort' or 'artifact'.
 
 For each extracted term, count occurrences and record the spec names where it appears. Use the spec identifier returned by \`openspec list --specs --json\` when available; otherwise use the spec directory name without path prefixes or file extensions. Sort extracted terms by descending count, then by term.
 
@@ -63,7 +63,7 @@ const IMPACT_SWEEPER_REPORT_SCHEMA_REFERENCE = `# Impact Sweeper JSON Report Sch
 }
 \`\`\`
 
-Field names are canonical. Omit \`terminologyObservations\` only when extraction is unavailable. Reports under \`openspec/sweeper/\` are working notes, never sync/archive inputs.`;
+Field names are canonical. Omit \`terminologyObservations\` only when extraction is unavailable. Return this object directly to the caller; it is evidence for the current Explore conversation, never a sync/archive input.`;
 
 export function getImpactSweeperSubagentTemplate(): SubagentTemplate {
   return {
@@ -72,7 +72,7 @@ export function getImpactSweeperSubagentTemplate(): SubagentTemplate {
       'Generate a lightweight OPSX-grounded JSON impact report for one project concept. Use from explore before scope or proposal readiness claims. Prefer a fast model for this lightweight OPSX-grounded impact sweep.',
     prompt: `## Role
 
-You are an impact sweeper for OpenSpec explore. You receive one project concept, collect read-only evidence, write one JSON report under the project, and return only that report path.
+You are an impact sweeper for OpenSpec Explore. You receive one project concept, collect read-only evidence, and return one canonical JSON report directly to the caller.
 
 ## Input Contract
 
@@ -90,54 +90,25 @@ If projectRoot or concept is missing, stop and report the missing field instead 
 
 ## Required References
 
-Read these before collecting evidence or writing the report:
+Read these before collecting evidence or producing the report:
 
 - openspec/references/openspec-evidence-protocol.md (project-root relative)
 - openspec/references/openspec-terminology-awareness.md (project-root relative)
 - openspec/references/openspec-report-schema.md (project-root relative)
 
-## Write Boundary
+## Read-Only Boundary
 
-This subagent is read-only except for its report files. It MAY:
-
-- create openspec/sweeper/
-- create openspec/sweeper/.gitignore if missing
-- write or overwrite openspec/sweeper/impact-sweep-<english-project-term-slug>.json
-
-If openspec/sweeper/.gitignore already exists, do not modify it. When creating it, use:
-
-\`\`\`gitignore
-*
-!.gitignore
-\`\`\`
-
-Do not modify source files, tests, specs, change artifacts, OPSX files, config files, package files, generated workflow files, or any file outside openspec/sweeper/.
-
-Hard constraint: MAY 仅写 \`openspec/sweeper/\` reports and MUST NOT modify any other file.
+Do not create, modify, delete, or overwrite any file. Do not use Bash to bypass the read-only boundary. Bash is limited to the read-only evidence commands allowed below.
 
 ## Forbidden Commands
 
 Do not run tests, builds, installs, git diff, git status, or git log as impact evidence. You MAY use git ls-files, file reads, and text search.
 
-## Report Path
-
-Build the report path relative to projectRoot as:
-
-\`\`\`
-openspec/sweeper/impact-sweep-<english-project-term-slug>.json
-\`\`\`
-
-Use an English project-term slug when a project term is available. Repeated sweeps for the same concept overwrite the same path.
-
 ## Output Contract
 
-On success, return only the report path, for example:
+On success, return exactly one JSON object conforming to openspec/references/openspec-report-schema.md.
 
-\`\`\`
-openspec/sweeper/impact-sweep-explore-impact-sweep.json
-\`\`\`
-
-Do not emit a separate summary.`,
+Do not wrap the JSON in a Markdown code fence. Do not emit a report path or separate summary.`,
     tools: ['read', 'grep', 'find', 'bash'],
     disallowedTools: ['write', 'edit'],
     mode: 'read-only',

@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { getImpactSweeperSubagentTemplate } from '../../../src/core/templates/workflows/impact-sweeper.js';
@@ -27,9 +29,10 @@ describe('impact sweeper template', () => {
     expect(instructions).toContain('optionalChangeName');
     expect(instructions).toContain('knownUserTerms');
     expect(instructions).toContain('focus');
-    expect(instructions).toContain('openspec/sweeper/impact-sweep-<english-project-term-slug>.json');
-    expect(instructions).toContain('return only the report path');
-    expect(instructions).toContain('Do not emit a separate summary');
+    expect(instructions).toContain('return exactly one JSON object');
+    expect(instructions).toContain('Do not wrap the JSON in a Markdown code fence');
+    expect(instructions).toContain('Do not emit a report path or separate summary');
+    expect(instructions).not.toContain('openspec/sweeper/');
   });
 
   it('includes canonical JSON report fields', () => {
@@ -67,7 +70,7 @@ describe('impact sweeper template', () => {
     const terminology = readReference('references/terminology-awareness.md');
 
     expect(terminology).toContain('# Impact Sweeper Terminology Awareness');
-    expect(terminology).toContain("Identify terms semantically related to user's `concept` input");
+    expect(terminology).toContain("Identify terms semantically related to user's `concept` input while reading affected specs");
     expect(terminology).toContain("if concept is 'workflow', extract 'process', 'pipeline', 'flow' etc.");
     expect(terminology).toContain('Record in `terminologyObservations` field');
     expect(terminology).toContain('Report facts only, no judgment or recommendations');
@@ -102,14 +105,17 @@ describe('impact sweeper template', () => {
     expect(instructions).toContain('You MAY use git ls-files, file reads, and text search');
   });
 
-  it('limits writes to the ignored sweeper report directory', () => {
-    expect(instructions).toContain('create openspec/sweeper/');
-    expect(instructions).toContain('create openspec/sweeper/.gitignore if missing');
-    expect(instructions).toContain('write or overwrite openspec/sweeper/impact-sweep-<english-project-term-slug>.json');
-    expect(instructions).toContain('MAY 仅写 `openspec/sweeper/` reports and MUST NOT modify any other file');
-    expect(instructions).toContain('If openspec/sweeper/.gitignore already exists, do not modify it');
-    expect(instructions).toContain('*\n!.gitignore');
-    expect(instructions).toContain('Do not modify source files, tests, specs, change artifacts, OPSX files, config files, package files, generated workflow files');
+  it('is fully read-only and returns the report without writing files', () => {
+    expect(instructions).toContain('Do not create, modify, delete, or overwrite any file');
+    expect(instructions).toContain('Do not use Bash to bypass the read-only boundary');
+    expect(instructions).not.toContain('## Write Boundary');
+    expect(instructions).not.toContain('## Report Path');
+    expect(template.tools).toEqual(['read', 'grep', 'find', 'bash']);
     expect(template.disallowedTools).toEqual(expect.arrayContaining(['write', 'edit']));
+    expect(template.mode).toBe('read-only');
+  });
+
+  it('does not retain the legacy report persistence scaffold', () => {
+    expect(existsSync(path.resolve('openspec/sweeper/.gitignore'))).toBe(false);
   });
 });

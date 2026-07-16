@@ -89,6 +89,27 @@ describe('subagent generation', () => {
     expect(opencode).not.toHaveProperty('model');
   });
 
+  it('renders the impact sweeper as fully read-only for every tool', () => {
+    const sweeper = INTERNAL_SUBAGENT_TEMPLATES.find(
+      (template) => template.name === 'openspec-impact-sweeper'
+    );
+    expect(sweeper).toBeDefined();
+    expect(sweeper!.mode).toBe('read-only');
+    expect(sweeper!.tools).not.toContain('write');
+    expect(sweeper!.tools).not.toContain('edit');
+    expect(sweeper!.prompt).not.toContain('openspec/sweeper/');
+
+    const claude = markdownFrontmatter(generateSubagentContent(sweeper!, 'claude', 'TEST'));
+    const pi = markdownFrontmatter(generateSubagentContent(sweeper!, 'pi', 'TEST'));
+    const opencode = markdownFrontmatter(generateSubagentContent(sweeper!, 'opencode', 'TEST'));
+    const codex = generateSubagentContent(sweeper!, 'codex', 'TEST');
+
+    expect(String(claude.tools)).not.toMatch(/Write|Edit/);
+    expect(String(pi.tools)).not.toMatch(/write|edit/);
+    expect(opencode).toMatchObject({ permission: { edit: 'deny' } });
+    expect(codex).toContain('sandbox_mode = "read-only"');
+  });
+
   it('adds Pi-only foreground/no-timeout guidance to all internal subagent descriptions', () => {
     const suffix = ' Pi callers: run foreground and omit timeoutMs/maxRuntimeMs.';
 

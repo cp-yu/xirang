@@ -27,7 +27,6 @@ export interface ImpactSweepReport {
       to: string;
       type: string;
     }>;
-    coverageGaps: string[];
   };
   mustChange: ImpactSweepEvidenceItem[];
   mustVerify: ImpactSweepEvidenceItem[];

@@ -30,8 +30,19 @@ Subagent MUST NOT 通过 Bash 绕过 Edit/Write 限制（如 `echo >`, `sed -i`,
 - **THEN** 该行为违反 hard constraint
 - **AND** 用户审批层 SHALL 拒绝该命令
 
+### Requirement: Impact Sweeper 保持只读
+
+`openspec-impact-sweeper` SHALL 允许 Read、只读搜索与 `git ls-files`，并 SHALL 拒绝 Edit/Write。它 SHALL 直接返回 canonical JSON object，MUST NOT 创建 report file，也 MUST NOT 通过 Bash 修改任何文件。
+
+#### Scenario: Sweeper 返回影响面报告
+
+- **WHEN** impact sweeper 完成 evidence collection
+- **THEN** SHALL 直接返回 canonical JSON object
+- **AND** SHALL NOT 写入项目文件
+- **AND** SHALL NOT 通过 Bash 绕过 Edit/Write 限制
+
 ### Requirement: Subagent Bash 允许命令范围
-Subagent 的 Bash 使用 SHALL 限定于以下类别：
+Reviewer 与 Optimizer 的 Bash 使用 SHALL 限定于以下类别：
 
 1. **测试执行**: `pnpm test`、`pnpm test <path>`、`vitest run <path>`
 2. **Git 只读**: `git status`、`git diff`、`git log`、`git show`、`git diff --name-only`

@@ -22,4 +22,4 @@
 }
 ```
 
-Field names are canonical. Omit `terminologyObservations` only when extraction is unavailable. Reports under `openspec/sweeper/` are working notes, never sync/archive inputs.
+Field names are canonical. Omit `terminologyObservations` only when extraction is unavailable. Return this object directly to the caller; it is evidence for the current Explore conversation, never a sync/archive input.

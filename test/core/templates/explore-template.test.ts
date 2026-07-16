@@ -15,8 +15,8 @@ describe('explore template impact sweeps', () => {
   it('invokes the sweeper before proposal readiness', () => {
     expect(template).toContain('Delegate to the `openspec-impact-sweeper` agent');
     expect(template).toContain('preparing to say the discussion is ready for proposal/change artifacts');
-    expect(template).toContain('After the agent returns the JSON report path');
-    expect(template).toContain('read that JSON report and interpret the findings in the explore conversation');
+    expect(template).toContain('After the agent returns the canonical JSON report');
+    expect(template).toContain('interpret that returned object directly in the explore conversation');
     expect(template).toContain('Do not claim proposal readiness until those scope-affecting questions are resolved or explicitly deferred by the user');
   });
 
@@ -99,10 +99,11 @@ describe('explore template impact sweeps', () => {
     expect(template).toContain('User confirmations ("ok", "option 2") approve design direction only, not file modification');
   });
 
-  it('keeps the sweeper report as the only explore write exception', () => {
-    expect(template).toContain('Subagent Exception');
-    expect(template).toContain('The `openspec-impact-sweeper` subagent may write JSON reports to `openspec/sweeper/`');
-    expect(template).toContain('The main explore agent remains read-only');
+  it('keeps both explore and its sweeper fully read-only', () => {
+    expect(template).toContain('The main explore agent and `openspec-impact-sweeper` subagent are both read-only');
+    expect(template).toContain('The sweeper returns its canonical JSON report directly and MUST NOT write it to the project');
+    expect(template).not.toContain('Subagent Exception');
+    expect(template).not.toContain('openspec/sweeper/');
   });
 
   it('routes active-change insights to future capture targets', () => {

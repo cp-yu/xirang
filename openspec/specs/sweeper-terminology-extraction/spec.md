@@ -5,12 +5,12 @@
 ## Requirements
 ### Requirement: 术语提取触发条件
 
-Impact-sweeper subagent SHALL 在读取 `mustCheck` specs 时自动执行术语提取步骤，无需额外配置或命令行参数。
+Impact-sweeper subagent SHALL 在读取受影响 Specs 时自动执行术语提取步骤，无需额外配置或命令行参数。
 
 #### Scenario: Explore 调用 sweeper 时自动提取术语
 
 - **WHEN** master agent 调用 impact-sweeper 并传入用户的 `concept` 输入
-- **AND** sweeper 通过 `openspec list --specs --json` 确定 `mustCheck` specs 列表
+- **AND** sweeper 通过 `openspec list --specs --json` 确定与候选 capabilities 关联的 Specs
 - **THEN** sweeper SHALL 在读取每个 spec 文件时执行术语提取
 - **AND** SHALL 将提取结果汇总到 `terminologyObservations` 字段
 
@@ -88,6 +88,6 @@ Sweeper skill prompt SHALL 包含明确的术语提取指令，定义提取策�
 
 - **WHEN** sweeper 在术语提取过程中遇到 LLM 错误或超时
 - **THEN** sweeper SHALL 生成不含 `terminologyObservations` 字段的 JSON 报告
-- **AND** SHALL 包含正常的 `affectedCapabilities`、`mustCheck`、`questions` 字段
+- **AND** SHALL 包含正常的 `mustChange`、`mustVerify`、`contextual`、`unknown`、`architectureDrift` 与 `questions` 字段
 - **AND** master agent SHALL 将缺失该字段视为"无术语观察结果"，继续正常流程
 

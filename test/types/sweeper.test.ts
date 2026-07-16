@@ -13,11 +13,12 @@ describe('ImpactSweepReport', () => {
       opsx: {
         nodes: [],
         relationsExpanded: [],
-        coverageGaps: [],
       },
       mustChange: [],
-      mustCheck: [],
-      coverageGaps: [],
+      mustVerify: [],
+      contextual: [],
+      unknown: [],
+      architectureDrift: [],
       questions: [],
       terminologyObservations: {
         userInput: '流程',

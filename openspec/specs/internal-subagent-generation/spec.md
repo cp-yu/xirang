@@ -63,7 +63,7 @@ Renderer SHALL NOT 复用 workflow invocation transform 管线（如 `/opsx:<slu
 - **WHEN** 调用 `generateSubagentContent(template, 'opencode', version)`
 - **THEN** frontmatter SHALL 包含 `mode: subagent`
 - **AND** SHALL 包含 `permission` 块，至少声明 `edit: deny`
-- **AND** impact-sweeper 的 renderer 输出 SHALL 通过 prompt body 表达 "只允许写 `openspec/sweeper/`" 的硬约束
+- **AND** impact-sweeper 的 renderer 输出 SHALL 通过工具权限与 prompt body 共同表达全程只读约束
 
 #### Scenario: Codex renderer 输出 TOML
 
@@ -181,9 +181,9 @@ Subagent artifact 目录名与文件名 SHALL 定义为显式常量，MUST NOT �
 Generated subagent artifact SHALL 在工具原生字段中声明式编码 `subagent-self-read` 规约定义的权限模型。具体编码由 per-tool renderer 负责映射：
 
 - reviewer 与 optimizer：read/search/bash 允许，edit/write 拒绝
-- impact-sweeper：read/search/git ls-files 允许，edit/write 拒绝，仅允许写 `openspec/sweeper/` 报告（通过 prompt body hard constraint 表达）
+- impact-sweeper：read/search/git ls-files 允许，edit/write 拒绝，直接返回 canonical JSON object
 
-当工具原生字段无法表达某项权限时（如 impact-sweeper 的 "只写 sweeper/" 限制），renderer SHALL 在 prompt body 中以 hard constraint 文案表达。
+Renderer SHALL 在 prompt body 中明确 impact-sweeper MUST NOT 通过 Bash 绕过只读边界。
 
 #### Scenario: Reviewer artifact 声明 read-only 权限
 
@@ -191,11 +191,12 @@ Generated subagent artifact SHALL 在工具原生字段中声明式编码 `subag
 - **THEN** artifact SHALL 在工具原生字段中声明 edit/write 拒绝（或等价 sandbox_mode）
 - **AND** SHALL 允许 read/search/bash
 
-#### Scenario: Impact sweeper 限制写范围
+#### Scenario: Impact sweeper 全程只读
 
 - **WHEN** 渲染 `openspec-impact-sweeper` artifact
 - **THEN** artifact SHALL 通过工具原生字段声明 edit/write 拒绝
-- **AND** SHALL 在 prompt body 中表达 "MAY 仅写 `openspec/sweeper/` 报告，MUST NOT 修改其他文件" 的 hard constraint
+- **AND** SHALL 在 prompt body 中声明不得创建、修改、删除或覆盖任何文件
+- **AND** SHALL 声明不得通过 Bash 绕过只读边界
 
 #### Scenario: 权限模型与 subagent-self-read 一致
 

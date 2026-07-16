@@ -1,7 +1,7 @@
 # ai-impact-sweeper Specification
 
 ## Purpose
-此规约记录变更 unify-cli-query-interface 引入的行为，请在后续同步或归档前补全正式 Purpose。
+定义 `openspec-impact-sweeper` 的输入、只读证据收集、canonical JSON 输出与降级行为，使 Explore 能在不修改项目文件的前提下获得 OPSX-grounded 影响面报告。
 ## Requirements
 ### Requirement: Evidence Protocol 使用 CLI 查询接口
 
@@ -11,6 +11,8 @@ Impact sweeper SHALL 先通过 `openspec opsx query <node-id...> --json` 获取 
 - **WHEN** concept 映射到一个或多个 capability seeds
 - **THEN** sweeper SHALL 批量查询 seeds 及必要深度的 relations
 - **AND** SHALL 按 `belongs_to`、`invokes`、`consumes`、`precedes`、`constrains`、`validates` 的 propagation hint 构建候选路径
+- **AND** `belongs_to` SHALL 只提供 domain context
+- **AND** relation 本身 MUST NOT 单独证明 `mustChange`
 - **AND** MUST NOT 将无解释的邻居集合直接声明为影响结论
 
 #### Scenario: 查询 cap→spec 映射
@@ -30,10 +32,50 @@ Impact sweeper SHALL 先通过 `openspec opsx query <node-id...> --json` 获取 
 - **AND** SHALL 将降低的代码图覆盖记录到 `unknown` 或 evidence gap
 - **AND** MUST NOT 因缺少 CodeGraph 凭猜测升级为 `mustChange`
 
-#### Scenario: 读取 specs 时执行术语提取
-- **WHEN** sweeper 读取相关 specs 且 caller 提供 concept
+#### Scenario: OPSX 与代码 evidence 冲突
+
+- **WHEN** semantic relation 与当前 call、import 或 symbol evidence 冲突
+- **THEN** report SHALL 记录 `architectureDrift`
+- **AND** SHALL 保留两侧 evidence
+
+#### Scenario: 读取 Specs 时执行术语提取
+
+- **WHEN** sweeper 读取相关 Specs 且 caller 提供 concept
 - **THEN** SHALL 继续提取语义相近术语及分布
 - **AND** SHALL 汇总到 `terminologyObservations`
+
+### Requirement: 直接返回 canonical JSON report
+
+`openspec-impact-sweeper` SHALL 在成功时直接返回一个符合 `openspec-report-schema.md` 的 JSON object。该对象 SHALL 使用 `mustChange`、`mustVerify`、`contextual`、`unknown`、`architectureDrift` 与 `questions` canonical fields；每个非 question finding SHALL 包含 `target`、`relationPath`、`reason` 与 `evidence`。Sweeper MUST NOT 返回 report path、Markdown code fence 或额外 summary。
+
+#### Scenario: 成功返回影响面报告
+
+- **WHEN** sweeper 完成一个 concept 的分析
+- **THEN** SHALL 直接返回一个 canonical JSON object
+- **AND** SHALL NOT 创建 report file
+- **AND** SHALL NOT 返回 path 或 JSON 之外的说明文字
+
+#### Scenario: 不确定性显式输出
+
+- **WHEN** OPSX、Spec 或代码证据不足或相互冲突
+- **THEN** SHALL 使用 `unknown` 或 `architectureDrift`
+- **AND** MUST NOT 将模糊相关性升级为 `mustChange`
+
+### Requirement: Sweeper 全程只读
+
+`openspec-impact-sweeper` SHALL NOT 创建、修改、删除或覆盖任何文件，也 MUST NOT 通过 Bash 绕过只读边界。Sweeper SHALL NOT 运行 tests、builds、installs、`git diff`、`git status` 或 `git log` 作为 impact evidence；它 MAY 使用 `git ls-files`、文件读取与文本搜索。
+
+#### Scenario: 只读收集 evidence
+
+- **WHEN** sweeper 收集 impact evidence
+- **THEN** SHALL 只使用只读 OPSX CLI、Spec/code reads、`git ls-files` 与文本搜索
+- **AND** SHALL NOT 产生任何项目文件或 OpenSpec artifact
+
+#### Scenario: Report 仅属于当前 Explore 对话
+
+- **WHEN** Explore 消费 sweeper 返回的 JSON object
+- **THEN** 该 object SHALL 仅作为当前对话的 impact evidence
+- **AND** SHALL NOT 成为 sync 或 archive input
 
 ### Requirement: Impact sweeper description 提示 fast model
 

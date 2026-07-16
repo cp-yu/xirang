@@ -43,7 +43,7 @@ Master agent SHALL 根据 `terminologyObservations` 执行四态判断，决定�
 
 - **WHEN** sweeper JSON 报告不包含 `terminologyObservations` 字段
 - **THEN** master agent SHALL 直接跳过四态判断逻辑
-- **AND** SHALL 按现有流程处理 `affectedCapabilities`、`mustCheck`、`questions`
+- **AND** SHALL 按现有流程处理 `mustChange`、`mustVerify`、`contextual`、`unknown`、`architectureDrift` 与 `questions`
 
 #### Scenario: 术语提取失败时的降级
 

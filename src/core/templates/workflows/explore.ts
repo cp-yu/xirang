@@ -11,22 +11,6 @@ import {
   OPSX_SHARED_CONTEXT,
 } from '../fragments/opsx-fragments.js';
 
-const IMPACT_SWEEP_GUIDANCE = `### Impact Sweeps
-
-Delegate to the \`openspec-impact-sweeper\` agent when the user introduces a new module, workflow, command, configuration key, project concept, or unfamiliar domain term, or when preparing to say the discussion is ready for proposal/change artifacts. Pass \`projectRoot\`, \`concept\`, optional \`optionalChangeName\`, optional \`knownUserTerms\`, and optional \`focus\`, and return only the JSON report path. Treat each new concept as an independent sweep, even if another concept was already swept earlier in the conversation. After the agent returns the JSON report path, read that JSON report and interpret the findings in the explore conversation.
-
-If the report contains terminology observations, decide before impact questions:
-- If related specs use terms but none equals the user's term, ask: "you used'{userInput}'，related specs found:\\n  - '{term1}'({count1} occurrences, see {specs1})\\nare they the same concept?"
-- If specs use multiple terms and one equals the user's term, ask: "terminology inconsistency detected:\\n  - '{term1}'({count1} occurrences)\\n  - '{term2}'({count2} occurrences)\\nsuggest choosing a unified term"
-- If exactly one found term equals the user's term, or no related terms were found, continue silently.
-- If the terminology field is missing, treat it as an old sweeper report and continue silently.
-
-For terminology questions, show at most five terms and at most two spec names per term, appending "etc." when truncated. Keep the question natural and do not expose JSON keys, subagent names, or implementation terms.
-
-When the user confirms the terms mean the same concept, record that term group in conversation state and continue the explore flow. When the user chooses a canonical term, record that canonical term and prefer it in later proposal/spec prose. When the user says the terms are different concepts, record the rejected term group. For any recorded same-concept, canonical-term, or rejected term group, do not ask again for that same group. These decisions guide later exploration and artifact drafting; they do not rewrite existing specs automatically.
-
-If the report contains questions that affect scope or proposal readiness, ask the user instead of choosing silently. Do not claim proposal readiness until those scope-affecting questions are resolved or explicitly deferred by the user.`;
-
 const CONVERSATION_LANGUAGE_GUIDANCE = `Output language: use the user's main language for prose and non-canonical section labels; keep commands, paths, artifact names, schema keys, and OpenSpec tokens unchanged.`;
 
 const BRAINSTORMING_GUIDANCE = `## Brainstorming Checklist
@@ -232,7 +216,7 @@ ${OPENSPEC_PHILOSOPHY}
 - Ask one clarification question at a time; do not auto-capture decisions into artifacts.
 - When ready, produce a conversation-only \`Design Summary\` and instruct the user to call \`/opsx:propose <change-name>\`.
 
-**Subagent Exception**: The \`openspec-impact-sweeper\` subagent may write JSON reports to \`openspec/sweeper/\`. The main explore agent remains read-only.
+The main explore agent and \`openspec-impact-sweeper\` subagent are both read-only. The sweeper returns its canonical JSON report directly and MUST NOT write it to the project.
 
 ## Required Context
 
@@ -260,7 +244,7 @@ If todo is available, track this flow before context reads and tick stages as co
 
 ## Impact Sweeps
 
-Delegate to the \`openspec-impact-sweeper\` agent when the user introduces a new module, workflow, command, configuration key, project concept, or unfamiliar domain term, or when preparing to say the discussion is ready for proposal/change artifacts. Pass \`projectRoot\`, \`concept\`, optional \`optionalChangeName\`, optional \`knownUserTerms\`, and optional \`focus\`, and return only the JSON report path. Treat each new concept as an independent sweep, even if another concept was already swept earlier in the conversation. After the agent returns the JSON report path, read that JSON report and interpret the findings in the explore conversation.
+Delegate to the \`openspec-impact-sweeper\` agent when the user introduces a new module, workflow, command, configuration key, project concept, or unfamiliar domain term, or when preparing to say the discussion is ready for proposal/change artifacts. Pass \`projectRoot\`, \`concept\`, optional \`optionalChangeName\`, optional \`knownUserTerms\`, and optional \`focus\`. Treat each new concept as an independent sweep, even if another concept was already swept earlier in the conversation. After the agent returns the canonical JSON report, interpret that returned object directly in the explore conversation.
 
 If the report contains terminology observations, decide before impact questions. When the user confirms the terms mean the same concept, record that term group and continue the explore flow. When the user chooses a canonical term, record that canonical term. When the user says the terms are different concepts, record the rejected term group. For any recorded same-concept, canonical-term, or rejected term group, do not ask again for that same group. Do not claim proposal readiness until those scope-affecting questions are resolved or explicitly deferred by the user.
 
