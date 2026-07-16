@@ -1,9 +1,5 @@
-# explore-terminology-decision Specification
+## MODIFIED Requirements
 
-## Purpose
-定义 Explore 对 Impact Sweeper `terminologyObservations` 的确定性解释、提问顺序和对话内决策记录，使术语不确定性在影响范围讨论前解决，而不向用户暴露内部报告结构。
-
-## Requirements
 ### Requirement: Explore 执行四态术语判断
 
 Explore main agent SHALL 根据 `terminologyObservations` 执行四态判断。

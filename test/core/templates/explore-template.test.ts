@@ -43,29 +43,40 @@ describe('explore template impact sweeps', () => {
     expect(template).toContain('optional `focus`');
   });
 
-  it('handles terminology decisions before impact questions', () => {
-    expect(template).toContain('If the report contains terminology observations, decide before impact questions');
+  it('defines the complete terminology decision protocol in the active prompt', () => {
+    expect(template).toContain('Treat `terminologyObservations` with this decision table');
+    expect(template).toContain('Missing, extraction unavailable, or `foundInSpecs` empty');
+    expect(template).toContain('Exactly one found term equals `userInput`');
+    expect(template).toContain('No found term equals `userInput`');
+    expect(template).toContain('Multiple found terms, including `userInput`');
+    expect(template).toContain('Ask whether they are distinct concepts or which term is canonical');
+    expect(template).toContain('Ask a terminology question before any report `questions`');
+    expect(template).toContain('Ask at most one question per turn');
+    expect(template).toContain("Use the user's main language");
+    expect(template).toContain('Show at most five terms and state the remaining count');
+    expect(template).toContain('MUST NOT expose JSON field names or internal agent details');
     expect(template).toContain('When the user confirms the terms mean the same concept, record that term group');
     expect(template).toContain('When the user chooses a canonical term, record that canonical term');
     expect(template).toContain('When the user says the terms are different concepts, record the rejected term group');
-    expect(template).toContain('For any recorded same-concept, canonical-term, or rejected term group, do not ask again for that same group');
-    expect(template).toContain('continue the explore flow');
+    expect(template).toContain('do not ask again for that same group');
   });
 
-  it('documents the mandatory six-step brainstorming checklist', () => {
-    expect(template).toContain('## Brainstorming Checklist');
+  it('keeps one compact six-step brainstorming checklist', () => {
+    expect(template.match(/^## Brainstorming Checklist$/gm)).toHaveLength(1);
+    expect(template).not.toContain('## Mandatory Exploration Flow');
     expect(template).toContain('Explore MUST run this sequence before saying a proposal is ready');
     expect(template).toContain('1. **Explore project context**');
     expect(template).toContain('If the request spans multiple independent subsystems');
     expect(template).toContain('recommend an implementation order');
-    expect(template).toContain('2. **Visual companion when useful**');
+    expect(template).toContain('2. **Decide whether a visual companion helps**');
     expect(template).toContain('3. **Clarify one question at a time**');
     expect(template).toContain('Ask exactly one question, then wait for the answer');
     expect(template).toContain('4. **Compare 2-3 options**');
     expect(template).toContain('Present 2-3 viable approaches');
-    expect(template).toContain('5. **Confirm design in sections**');
+    expect(template).toContain('5. **Confirm the applicable design sections**');
     expect(template).toContain('architecture, core components, data flow, technology stack, testing strategy, risks and trade-offs');
-    expect(template).toContain('6. **Generate Design Summary**');
+    expect(template).toContain('For a narrow change, confirm at least the problem, impact scope, approach, and verification method');
+    expect(template).toContain('6. **Self-review and generate Design Summary**');
     expect(template).toContain('Present the Design Summary, then end with');
     expect(template).not.toContain('visible content block');
     expect(template).toContain('After presenting the Design Summary, STOP');
@@ -83,7 +94,7 @@ describe('explore template impact sweeps', () => {
   it('tracks the explore flow with todo when available', () => {
     const ref = getExploreSkillTemplate().referenceFiles?.find(f => f.path === 'references/explore-supperpowers-style.md');
 
-    expect(template).toContain('If todo is available, track this flow before context reads and tick stages as completed');
+    expect(template).toContain('If todo is available, create this checklist before context reads and tick each stage as completed');
     expect(ref?.content).toContain('If todo is available, track these stages as a checklist and tick each completed stage');
     expect(ref?.content).toContain('Before context reads, create the todo checklist');
   });
@@ -102,6 +113,8 @@ describe('explore template impact sweeps', () => {
   it('keeps both explore and its sweeper fully read-only', () => {
     expect(template).toContain('The main explore agent and `openspec-impact-sweeper` subagent are both read-only');
     expect(template).toContain('The sweeper returns its canonical JSON report directly and MUST NOT write it to the project');
+    expect(template).toContain('If delegation fails or returns no usable object, disclose the evidence gap');
+    expect(template).toContain('MUST NOT infer missing impact evidence');
     expect(template).not.toContain('Subagent Exception');
     expect(template).not.toContain('openspec/sweeper/');
   });
@@ -161,6 +174,8 @@ describe('explore supperpowers-style reference', () => {
     expect(ref).toBeDefined();
     expect(ref?.content).toContain('Do not implement before design confirmation is complete');
     expect(ref?.content).toContain('Simple changes still require design confirmation');
+    expect(ref?.content).toContain('confirm only the applicable design sections');
+    expect(ref?.content).toContain('at minimum confirm the problem, impact scope, approach, and verification method');
     expect(ref?.content).toContain('Only route to openspec-propose after the user reviews and accepts the Design Summary');
   });
 

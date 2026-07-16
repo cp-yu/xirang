@@ -63,18 +63,6 @@ delegation instructions SHALL 指定：
 - **AND** 每一行 SHALL 显示 state name、trigger condition 和 git operation
 - **AND** 表格前 SHALL 出现 `[Mode: Checkpoint]` label
 
-### Requirement: Explore invokes impact sweeper
-
-`openspec-explore` SHALL invoke `openspec-impact-sweeper` agent when exploration reaches a code-change concept that needs impact discovery, a user term does not clearly map to project terminology and affects scope, or the agent is preparing to say the discussion is ready for proposal/change artifacts.
-
-Explore agent SHALL 将 sweeper 视为可复用方法，在一次对话中可以多次调用，每次调用只处理一个 concept。Sweeper SHALL 直接返回 canonical JSON object，Explore agent SHALL 在向用户总结影响面发现前直接解释该返回对象。Explore main agent 与 sweeper SHALL 保持只读，MUST NOT 创建或修改项目文件及 OpenSpec artifacts。
-
-#### Scenario: 委托使用 agent 表述
-
-- **WHEN** explore 指令描述 sweeper 调用
-- **THEN** 指令 SHALL 使用 "Delegate to the `openspec-impact-sweeper` agent" 表述
-- **AND** SHALL 传递 `projectRoot`、`concept`、`optionalChangeName`、`knownUserTerms`、`focus` 参数
-
 #### Scenario: 简洁意识使用中性术语
 
 - **WHEN** explore 指令描述简单性检查
@@ -150,9 +138,8 @@ Workflow skill 模板的 instructions SHALL 以共享 OpenSpec Philosophy 开头
 #### Scenario: Explore skill 的 instructions 结构
 
 - **WHEN** `getExploreSkillTemplate()` 生成 explore skill instructions
-- **THEN** instructions SHALL 以 OpenSpec Philosophy 开头，后接 Hard Rules、Required Context、Mandatory Exploration Flow
-- **AND** impact sweeper 的调用描述 SHALL 使用 "Delegate to the `openspec-impact-sweeper` agent" 表述
-- **AND** sweeper 调用参数 SHALL 包含 `projectRoot`、`concept`、`optionalChangeName`、`knownUserTerms`、`focus`
+- **THEN** instructions SHALL 包含 OpenSpec Philosophy、只读 workflow stage、Required References、Hard Rules、Required Context、Impact Sweeps 与唯一的 Brainstorming Checklist
+- **AND** SHALL NOT 重复完整的 brainstorming flow
 
 #### Scenario: Apply skill 的 instructions 结构
 

@@ -13,44 +13,6 @@ import {
 
 const CONVERSATION_LANGUAGE_GUIDANCE = `Output language: use the user's main language for prose and non-canonical section labels; keep commands, paths, artifact names, schema keys, and OpenSpec tokens unchanged.`;
 
-const BRAINSTORMING_GUIDANCE = `## Brainstorming Checklist
-
-Explore MUST run this sequence before saying a proposal is ready:
-
-1. **Explore project context**
-   - Run \`openspec list --json\`.
-   - Read relevant change artifacts when a change name is present.
-   - Search or read relevant project files and git evidence when the idea maps to code.
-   - If the request spans multiple independent subsystems, say so immediately, identify the subsystems, and recommend an implementation order.
-
-2. **Visual companion when useful**
-   - Use ASCII diagrams, flow charts, or comparison tables when the topic benefits from visual structure.
-   - Skip this step for non-visual work such as backend APIs, data processing, CLI behavior, or narrow fixes.
-
-3. **Clarify one question at a time**
-   - Ask exactly one question, then wait for the answer.
-   - Prefer a multiple-choice question when the choice set is clear.
-   - Do not bundle unrelated questions.
-
-4. **Compare 2-3 options**
-   - Present 2-3 viable approaches.
-   - For each option include description, strengths, weaknesses, and best fit.
-   - Recommend one option and explain why.
-   - If a simpler alternative exists (unnecessary abstraction, new dependency, platform-native replacement), name it in one line and let the user choose. Skip when nothing triggers.
-
-5. **Confirm design in sections**
-   - Present and confirm these sections one at a time: architecture, core components, data flow, technology stack, testing strategy, risks and trade-offs.
-   - Testing strategy: Classify each item as persistent or one-time verification (no persistent test file; e.g. import boundary grep, smoke commands). One-time items get a \`One-time Verification\` subsection.
-   - If the user asks for a change, revise that section and reconfirm it before continuing.
-   - When discussing a single section, if you spot over-engineering that a simpler alternative would address, name the lazier path in one line. Do not force this when nothing triggers.
-
-6. **Generate Design Summary**
-   - Produce a \`Design Summary\` in the conversation, not in a file.
-   - Include: architecture, core components, data flow, technology stack, testing strategy, risks and trade-offs.
-   - Present the Design Summary.
-   - End with: "Design Summary complete. Review the above design. If confirmed, call \`/opsx:propose <change-name>\` generate artifacts."
-   - After presenting the Design Summary, STOP — do not offer to run any workflow or ask follow-up questions. Only the user triggers the next workflow.`;
-
 const ACTIVE_CHANGE_CAPTURE_GUIDANCE = `### Capture Boundary for Existing Changes
 
 When exploring an active change, read proposal/design/specs/tasks, reference them naturally, and classify insights by where a future workflow should capture them. Do not update those artifacts in explore.
@@ -103,7 +65,7 @@ Do not implement before design confirmation is complete.
 
 Do not start coding, generate patches, update artifacts, or interpret design confirmations as write authorization during Explore. Even if the user says "ok", "that works", or chooses an option, it only confirms the design direction.
 
-Simple changes still require design confirmation. Simple changes can shorten the design process, but cannot skip it: at minimum confirm the problem, impact scope, approach, and verification method.
+Simple changes still require design confirmation. For a narrow change, confirm only the applicable design sections, but do not skip the process: at minimum confirm the problem, impact scope, approach, and verification method.
 
 ## Project context exploration
 
@@ -152,7 +114,7 @@ Advance the design by section; do not dump a complete solution all at once. Comm
 - Testing strategy。
 - Risks and trade-offs。
 
-Wait for user confirmation at the end of each section. When the user requests changes, revise only the current section and reconfirm before continuing.
+Confirm only the applicable design sections. Complex changes usually need all six; narrow changes may omit sections that have no decision to make, but still require problem, impact scope, approach, and verification confirmation. Wait for user confirmation at the end of each section. When the user requests changes, revise only the current section and reconfirm before continuing.
 
 **Testing Strategy**: When architectural changes affect existing tests, identify obsolete tests (update/delete/add), note which test suite is authoritative if multiple exist, and document in Design Summary. Classify each item as persistent (test suite) or one-time verification (no persistent test file). When one-time items exist, add a \`One-time Verification\` subsection.
 
@@ -231,22 +193,22 @@ ${OPSX_NAVIGATION_GUIDANCE}
 
 ${CONVERSATION_LANGUAGE_GUIDANCE}
 
-## Mandatory Exploration Flow
-
-If todo is available, track this flow before context reads and tick stages as completed.
-
-1. Explore project context and identify affected subsystems.
-2. Use a compact visual companion when it clarifies architecture, state, data flow, or trade-offs.
-3. Ask exactly one scope/design question at a time.
-4. Compare 2-3 viable options with strengths, weaknesses, best fit, and a recommendation when appropriate.
-5. Confirm design sections one by one: architecture, components, data flow, tech stack, test strategy, risks/trade-offs.
-6. Generate a conversation-only \`Design Summary\` that recaps architecture, core components, data flow, technology stack, testing strategy, and risks/trade-offs. Present the Design Summary, then end with: "Design Summary complete. Review the above design. If confirmed, call \`/opsx:propose <change-name>\` generate artifacts." After this message, STOP — do not offer to run any workflow, do not ask follow-up questions. Only the user can trigger the next workflow.
-
 ## Impact Sweeps
 
-Delegate to the \`openspec-impact-sweeper\` agent when the user introduces a new module, workflow, command, configuration key, project concept, or unfamiliar domain term, or when preparing to say the discussion is ready for proposal/change artifacts. Pass \`projectRoot\`, \`concept\`, optional \`optionalChangeName\`, optional \`knownUserTerms\`, and optional \`focus\`. Treat each new concept as an independent sweep, even if another concept was already swept earlier in the conversation. After the agent returns the canonical JSON report, interpret that returned object directly in the explore conversation.
+Delegate to the \`openspec-impact-sweeper\` agent when the user introduces a new module, workflow, command, configuration key, project concept, or unfamiliar domain term, or when preparing to say the discussion is ready for proposal/change artifacts. Pass \`projectRoot\`, \`concept\`, optional \`optionalChangeName\`, optional \`knownUserTerms\`, and optional \`focus\`. Treat each new concept as an independent sweep, even if another concept was already swept earlier in the conversation. After the agent returns the canonical JSON report, interpret that returned object directly in the explore conversation. If delegation fails or returns no usable object, disclose the evidence gap and continue only with available read-only evidence; MUST NOT infer missing impact evidence.
 
-If the report contains terminology observations, decide before impact questions. When the user confirms the terms mean the same concept, record that term group and continue the explore flow. When the user chooses a canonical term, record that canonical term. When the user says the terms are different concepts, record the rejected term group. For any recorded same-concept, canonical-term, or rejected term group, do not ask again for that same group. Do not claim proposal readiness until those scope-affecting questions are resolved or explicitly deferred by the user.
+Treat \`terminologyObservations\` with this decision table:
+
+| Observation | Action |
+|---|---|
+| Missing, extraction unavailable, or \`foundInSpecs\` empty | Ask no terminology question; continue with the other impact fields. |
+| Exactly one found term equals \`userInput\` | Ask no terminology question. |
+| No found term equals \`userInput\` | Ask whether the user term and found terms mean the same concept. |
+| Multiple found terms, including \`userInput\` | Ask whether they are distinct concepts or which term is canonical. |
+
+Ask a terminology question before any report \`questions\`. Ask at most one question per turn. Treat report \`questions\` as candidates and select the highest-priority unresolved scope question. Use the user's main language and preserve terms and Spec IDs verbatim. Show at most two Spec IDs per term. Show at most five terms and state the remaining count. User-facing questions MUST NOT expose JSON field names or internal agent details.
+
+When the user confirms the terms mean the same concept, record that term group and continue the explore flow. When the user chooses a canonical term, record that canonical term. When the user says the terms are different concepts, record the rejected term group. For any recorded same-concept, canonical-term, or rejected term group, do not ask again for that same group. Keep these decisions in the conversation only. Do not claim proposal readiness until those scope-affecting questions are resolved or explicitly deferred by the user.
 
 ## Simplicity Awareness
 
@@ -262,13 +224,13 @@ The simplicity filter (for reference):
 
 ## Brainstorming Checklist
 
-Explore MUST run this sequence before saying a proposal is ready:
-1. **Explore project context**. If the request spans multiple independent subsystems, identify them and recommend an implementation order.
-2. **Visual companion when useful**.
-3. **Clarify one question at a time**. Ask exactly one question, then wait for the answer.
-4. **Compare 2-3 options**. Present 2-3 viable approaches. If a simpler alternative exists (unnecessary abstraction, new dependency, platform-native replacement), name it in one line and let the user choose. Skip when nothing triggers.
-5. **Confirm design in sections**: architecture, core components, data flow, technology stack, testing strategy, risks and trade-offs. For testing strategy, classify each item as persistent or one-time verification (one-time: no persistent test file, e.g. import boundary grep); when one-time items exist, add a \`One-time Verification\` subsection. When discussing a single section, if you spot over-engineering that a simpler alternative would address, name the lazier path in one line. Do not force this when nothing triggers.
-6. **Generate Design Summary**. Produce a \`Design Summary\` in the conversation, not in a file. Present the Design Summary, then end with: "Design Summary complete. Review the above design. If confirmed, call \`/opsx:propose <change-name>\` generate artifacts." After presenting the Design Summary, STOP — do not offer to run any workflow or ask follow-up questions. Only the user triggers the next workflow.
+If todo is available, create this checklist before context reads and tick each stage as completed. Explore MUST run this sequence before saying a proposal is ready:
+1. **Explore project context**. Run \`openspec list --json\`, inspect relevant source and current implementation evidence, and identify affected subsystems. If the request spans multiple independent subsystems, identify them and recommend an implementation order.
+2. **Decide whether a visual companion helps**. Use one only when it clarifies architecture, state, data flow, or trade-offs.
+3. **Clarify one question at a time**. Ask exactly one question, then wait for the answer; resolve terminology before impact and design questions.
+4. **Compare 2-3 options**. Present 2-3 viable approaches with strengths, weaknesses, best fit, and a recommendation when a real design choice exists. Name a simpler alternative in one line when applicable.
+5. **Confirm the applicable design sections**. For a complex change, consider architecture, core components, data flow, technology stack, testing strategy, risks and trade-offs. For a narrow change, confirm at least the problem, impact scope, approach, and verification method. Classify testing items as persistent or one-time verification (no persistent test file); when one-time items exist, add a \`One-time Verification\` subsection.
+6. **Self-review and generate Design Summary**. Resolve or explicitly defer scope-affecting questions, run the final concept sweep, and check for contradictions and vague boundaries. Produce the conversation-only \`Design Summary\`. Present the Design Summary, then end with: "Design Summary complete. Review the above design. If confirmed, call \`/opsx:propose <change-name>\` generate artifacts." After presenting the Design Summary, STOP — do not offer to run a workflow or ask follow-up questions. Only the user triggers the next workflow.
 
 ## Existing Changes
 

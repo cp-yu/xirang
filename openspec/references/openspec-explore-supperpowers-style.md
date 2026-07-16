@@ -29,7 +29,7 @@ Do not implement before design confirmation is complete.
 
 Do not start coding, generate patches, update artifacts, or interpret design confirmations as write authorization during Explore. Even if the user says "ok", "that works", or chooses an option, it only confirms the design direction.
 
-Simple changes still require design confirmation. Simple changes can shorten the design process, but cannot skip it: at minimum confirm the problem, impact scope, approach, and verification method.
+Simple changes still require design confirmation. For a narrow change, confirm only the applicable design sections, but do not skip the process: at minimum confirm the problem, impact scope, approach, and verification method.
 
 ## Project context exploration
 
@@ -78,7 +78,7 @@ Advance the design by section; do not dump a complete solution all at once. Comm
 - Testing strategy。
 - Risks and trade-offs。
 
-Wait for user confirmation at the end of each section. When the user requests changes, revise only the current section and reconfirm before continuing.
+Confirm only the applicable design sections. Complex changes usually need all six; narrow changes may omit sections that have no decision to make, but still require problem, impact scope, approach, and verification confirmation. Wait for user confirmation at the end of each section. When the user requests changes, revise only the current section and reconfirm before continuing.
 
 **Testing Strategy**: When architectural changes affect existing tests, identify obsolete tests (update/delete/add), note which test suite is authoritative if multiple exist, and document in Design Summary. Classify each item as persistent (test suite) or one-time verification (no persistent test file). When one-time items exist, add a `One-time Verification` subsection.
 
