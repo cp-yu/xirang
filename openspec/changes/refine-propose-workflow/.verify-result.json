@@ -38,7 +38,7 @@
       "test/core/templates/skill-templates-parity.test.ts",
       "test/skills/skill-template-length-validation.test.ts"
     ],
-    "evidenceFingerprint": "b666c5622ad827204718fc239719cabb0f38cf2e59bdbf2add4cb2604151beb1",
+    "evidenceFingerprint": "3fcc94c4904e785cb5826d76c9096d684ede578aa45fceb6b198cdc58867a1c4",
     "evidenceFingerprintEntries": [
       {
         "path": ".pi/skills/openspec-propose/SKILL.md",
@@ -46,7 +46,7 @@
       },
       {
         "path": "openspec/changes/refine-propose-workflow/.apply-isolation.json",
-        "hash": "918a379d3a3697c83398cc1f95d3644ece939ff7029ba6440aecec92d069a0ad"
+        "hash": "53d61f56655b23797250dd72bb5d466053943029765021e31b4168f4dece6d53"
       },
       {
         "path": "openspec/changes/refine-propose-workflow/design.md",
@@ -114,7 +114,7 @@
       },
       {
         "path": "src/core/global-config.ts",
-        "hash": "61de8e8e6193f88b4fb0816aaa7a1e71f36a9c0a457119a9a24f5b1486a25437"
+        "hash": "97f75ac57a18e4ba614d8fa3c1769a98bcb6ea9edbbbfc16dbba6770b192707d"
       },
       {
         "path": "src/core/project-config.ts",
@@ -166,12 +166,24 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "76277b0dd5b218785f353dfa630d74fae6858e0a",
-    "gitDiffSummary": "Validated immutable baseCommit 76277b0dd5b218785f353dfa630d74fae6858e0a and all 33 git status paths. Requirements 29/29 and scenarios 37/37 passed. Full tests 140 files/2079 tests, lint, build, strict Specs 110/110, target change validation, OPSX delta validation, scenario-label preview, absence checks, and diff checks passed. Initial staged baseline remained unchanged."
+    "gitHeadCommit": "e667812003bb9b18122006177c18417243770e2e",
+    "gitDiffSummary": "Validated immutable baseCommit 76277b0dd5b218785f353dfa630d74fae6858e0a and all 33 git status paths. Requirements 29/29 and scenarios 37/37 passed. Full tests 140 files/2079 tests, lint, build, strict Specs 110/110, target change validation, OPSX delta validation, scenario-label preview, absence checks, and diff checks passed. Initial staged baseline remained unchanged.",
+    "timestamp": "2026-07-16T12:33:17.889Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-07-16T12:24:54.883Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-16T12:33:17.874Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-07-16T12:17:42.077Z",
       "result": "PASS",
@@ -343,6 +355,100 @@
         "gitHeadCommit": "76277b0dd5b218785f353dfa630d74fae6858e0a",
         "gitDiffSummary": "Validated immutable baseCommit 76277b0dd5b218785f353dfa630d74fae6858e0a and all 33 git status paths. Requirements 29/29 and scenarios 37/37 passed. Full tests 140 files/2079 tests, lint, build, strict Specs 110/110, target change validation, OPSX delta validation, scenario-label preview, absence checks, and diff checks passed. Initial staged baseline remained unchanged."
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "src/core/global-config.ts"
+          ],
+          "symbols": [
+            "getGlobalConfig"
+          ]
+        },
+        "opportunity": "The global config loader excludes the newly retired propose key before merging, but still copies the older retired profile, workflows, and delivery keys into merged and then removes them through three post-merge mutations using as any.",
+        "impact": "Filtering every retired top-level key at the existing destructuring boundary removes temporary property copies, three mutations, and the only unsafe type assertions in this loading path while leaving one explicit active-config object for the merge.",
+        "evidence": [
+          "src/core/global-config.ts:116 already creates activeConfig by excluding propose before the merge.",
+          "src/core/global-config.ts:124-140 spreads activeConfig into merged, so profile, workflows, and delivery are needlessly copied when present.",
+          "src/core/global-config.ts:142-145 immediately deletes those three copied properties through merged as any.",
+          "src/core/global-config.ts:118-121 retains the original parsed object independently for deprecated-field warning detection, so excluding the keys from activeConfig does not require changing warning behavior.",
+          "test/core/global-config.test.ts covers silent propose filtering, unknown-field preservation, removal of profile/workflows/delivery, and their warning behavior.",
+          "The focused verification set passed with 7 test files and 212 tests against the current Phase 2 baseline."
+        ],
+        "recommendation": "Expand the existing destructuring of parsed to exclude profile, workflows, and delivery together with propose, continue using the untouched parsed value for warning and nested-default logic, and delete the three post-merge cleanup statements.",
+        "keyDesign": "Establish one top-level filtering boundary immediately after JSON parsing: retain parsed as immutable input evidence for warnings and nested merges, derive activeConfig by rest-destructuring all four retired keys, and spread only activeConfig into the returned configuration.",
+        "preservationConstraints": [
+          "Valid global config inputs must return the same values and property ordering for all active known fields and all forward-compatible unknown fields.",
+          "The returned configuration must omit exactly the retired top-level propose, profile, workflows, and delivery fields under the existing compatibility rules.",
+          "A propose field alone must remain silently ignored without warnings and without modifying the source config file.",
+          "Presence of profile, workflows, or delivery must continue to emit the existing obsolete-fields warning with the same timing and multiplicity.",
+          "Default merging for featureFlags, optimization, and apply must remain unchanged, including handling of absent nested configuration.",
+          "Missing files, invalid JSON, non-object JSON values, filesystem errors, and their existing fallback or diagnostic behavior must remain unchanged.",
+          "The loader must perform no new writes, preserve existing error timing, and retain compatibility for all callers of getGlobalConfig."
+        ],
+        "implementationOutline": [
+          "Extend the current rest destructuring after JSON.parse to bind and exclude profile, workflows, and delivery in addition to propose.",
+          "Keep the warning predicate and nested default merges based on the original parsed object.",
+          "Remove the three post-merge delete merged as any statements and leave unrelated schema-evolution logic unchanged.",
+          "Run the focused global-config tests, then lint and the broader config test set."
+        ],
+        "validation": [
+          "Run pnpm exec vitest run test/core/global-config.test.ts to prove retired-key omission, silent propose handling, deprecated-key warnings, unknown-field preservation, defaults, and invalid-input behavior remain intact.",
+          "Run pnpm exec vitest run test/core/config-schema.test.ts test/commands/config.test.ts to confirm the loader simplification does not alter schema filtering or CLI config contracts.",
+          "Run pnpm lint to prove the consolidated filtering introduces no unused bindings or type-safety regressions.",
+          "Inspect git diff --check and the scoped diff to confirm only the loader filtering structure changed."
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "This is the only worthwhile statically closed optimization in the current implementation scope: it directly consolidates the change's retired-config handling, has complete existing behavioral coverage, and removes unsafe mutation at low cost without touching public contracts.",
+        "id": "OPT-20260716T122454882Z-01",
+        "targetFileHashes": {
+          "src/core/global-config.ts": "61de8e8e6193f88b4fb0816aaa7a1e71f36a9c0a457119a9a24f5b1486a25437"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-16T12:24:54.882Z",
+        "findingId": "OPT-20260716T122454882Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "select",
+        "reason": "This is the only worthwhile statically closed optimization in the current implementation scope: it directly consolidates the change's retired-config handling, has complete existing behavioral coverage, and removes unsafe mutation at low cost without touching public contracts.",
+        "timestamp": "2026-07-16T12:24:54.883Z",
+        "findingId": "OPT-20260716T122454882Z-01",
+        "hashes": {
+          "src/core/global-config.ts": "61de8e8e6193f88b4fb0816aaa7a1e71f36a9c0a457119a9a24f5b1486a25437"
+        }
+      },
+      {
+        "sequence": 3,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-16T12:25:09.733Z",
+        "findingId": "OPT-20260716T122454882Z-01",
+        "hashes": {
+          "src/core/global-config.ts": "61de8e8e6193f88b4fb0816aaa7a1e71f36a9c0a457119a9a24f5b1486a25437"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-16T12:33:17.874Z",
+        "findingId": "OPT-20260716T122454882Z-01"
+      }
+    ],
+    "reconciliationSignature": "bcdfc6f6aea57920b8ce72eef559d1d7aa0d7d5b0b1d56a3aad3f3bec4bdd315",
+    "unchangedReconciliations": 0
   }
 }

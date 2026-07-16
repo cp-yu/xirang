@@ -113,7 +113,13 @@ export function getGlobalConfig(): GlobalConfig {
 
     const content = fs.readFileSync(configPath, 'utf-8');
     const parsed = JSON.parse(content);
-    const { propose: _retiredPropose, ...activeConfig } = parsed;
+    const {
+      propose: _retiredPropose,
+      profile: _retiredProfile,
+      workflows: _retiredWorkflows,
+      delivery: _retiredDelivery,
+      ...activeConfig
+    } = parsed;
 
     // Warn about deprecated fields
     if ('profile' in parsed || 'workflows' in parsed || 'delivery' in parsed) {
@@ -138,11 +144,6 @@ export function getGlobalConfig(): GlobalConfig {
         ...(parsed.apply || {})
       }
     };
-
-    // Remove deprecated fields from merged config
-    delete (merged as any).profile;
-    delete (merged as any).workflows;
-    delete (merged as any).delivery;
 
     // Schema evolution: apply defaults for new fields if not present in loaded config
     if (parsed.optimization === undefined) {
