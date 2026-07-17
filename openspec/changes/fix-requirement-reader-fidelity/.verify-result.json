@@ -1,0 +1,158 @@
+{
+  "timestamp": "2026-07-17T07:43:38.896Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "7584ab637f7c01a1324b9f8c7fedcd2e99f1607d4df33dc9f4c54d43069ffcea",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      "openspec/changes/fix-requirement-reader-fidelity/.apply-isolation.json",
+      "openspec/changes/fix-requirement-reader-fidelity/design.md",
+      "openspec/changes/fix-requirement-reader-fidelity/opsx-delta.yaml",
+      "openspec/changes/fix-requirement-reader-fidelity/proposal.md",
+      "openspec/changes/fix-requirement-reader-fidelity/specs/cli-validate/spec.md",
+      "openspec/changes/fix-requirement-reader-fidelity/tasks.md",
+      "src/core/parsers/markdown-parser.ts",
+      "src/core/parsers/requirement-text.ts",
+      "src/core/schemas/base.schema.ts",
+      "src/core/validation/validator.ts",
+      "test/core/parsers/markdown-parser.test.ts",
+      "test/core/validation.test.ts"
+    ],
+    "evidenceFingerprint": "a74d308df12bbaf3a6c152a71cbf2f1f3520ce7bda75e30fb3eb4f1d4a23d79f",
+    "evidenceFingerprintEntries": [
+      {
+        "path": "openspec/changes/fix-requirement-reader-fidelity/.apply-isolation.json",
+        "hash": "02f3883c6f1170fa15b4644a39179c5721ecd005690a51bd3709868d383b5dfb"
+      },
+      {
+        "path": "openspec/changes/fix-requirement-reader-fidelity/design.md",
+        "hash": "77bce9b0f48595bd5b585c709f84877e0a85f5af741c249c0d8510bbff007a28"
+      },
+      {
+        "path": "openspec/changes/fix-requirement-reader-fidelity/opsx-delta.yaml",
+        "hash": "85c8762a36d1ad5fe45af4fab6fb8e6ebc0f5646dc60c76b33e37c32f4f49b8c"
+      },
+      {
+        "path": "openspec/changes/fix-requirement-reader-fidelity/proposal.md",
+        "hash": "5f8a6e8be9c8f667f640456f98adaf82eb06a988cc31840063aa89ea3e992577"
+      },
+      {
+        "path": "openspec/changes/fix-requirement-reader-fidelity/specs/cli-validate/spec.md",
+        "hash": "b6b64614e261958c9d3b95cb49082896cde54bd13b1fc26e89dc3d80c4d50dc1"
+      },
+      {
+        "path": "openspec/changes/fix-requirement-reader-fidelity/tasks.md",
+        "hash": "7584ab637f7c01a1324b9f8c7fedcd2e99f1607d4df33dc9f4c54d43069ffcea"
+      },
+      {
+        "path": "src/core/parsers/markdown-parser.ts",
+        "hash": "4d71bd42ffcdf51d5b950bb3b9a2ad8d5bab2a05b7e5e7fecdf0663d3fb5e5e0"
+      },
+      {
+        "path": "src/core/parsers/requirement-text.ts",
+        "hash": "d0b459497a0e9408294dfb200340f9e43ad3f59a1f3e91987d7d378db6f29609"
+      },
+      {
+        "path": "src/core/schemas/base.schema.ts",
+        "hash": "2d1ea85b1a34e067889f6d7c6723e98b9b26203b96d2467e7f78adea6a3ce813"
+      },
+      {
+        "path": "src/core/validation/validator.ts",
+        "hash": "42801498c15a98e937f1a0be552ea9315b01fc88d42bf341b71cc4c388d63b7a"
+      },
+      {
+        "path": "test/core/parsers/markdown-parser.test.ts",
+        "hash": "ee495c328226d816970a83d1711c2346a63f68174ffe8fefe00fb289208a29da"
+      },
+      {
+        "path": "test/core/validation.test.ts",
+        "hash": "5011521a9dd4e02922d2462ec579e4dc0eb78eb17ca10bbfa42e3cbb3b448f6f"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "2e7698bf95b376ab2785c76b224757651eb9efcb",
+    "gitDiffSummary": "baseCommit 2e7698bf95b376ab2785c76b224757651eb9efcb; working tree: M markdown-parser.ts, base.schema.ts, validator.ts, validation.test.ts, markdown-parser.test.ts; ?? requirement-text.ts + change dir; vitest 98 passed; validate valid:true"
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-07-17T07:43:38.896Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "7584ab637f7c01a1324b9f8c7fedcd2e99f1607d4df33dc9f4c54d43069ffcea",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          "openspec/changes/fix-requirement-reader-fidelity/.apply-isolation.json",
+          "openspec/changes/fix-requirement-reader-fidelity/design.md",
+          "openspec/changes/fix-requirement-reader-fidelity/opsx-delta.yaml",
+          "openspec/changes/fix-requirement-reader-fidelity/proposal.md",
+          "openspec/changes/fix-requirement-reader-fidelity/specs/cli-validate/spec.md",
+          "openspec/changes/fix-requirement-reader-fidelity/tasks.md",
+          "src/core/parsers/markdown-parser.ts",
+          "src/core/parsers/requirement-text.ts",
+          "src/core/schemas/base.schema.ts",
+          "src/core/validation/validator.ts",
+          "test/core/parsers/markdown-parser.test.ts",
+          "test/core/validation.test.ts"
+        ],
+        "evidenceFingerprint": "a74d308df12bbaf3a6c152a71cbf2f1f3520ce7bda75e30fb3eb4f1d4a23d79f",
+        "evidenceFingerprintEntries": [
+          {
+            "path": "openspec/changes/fix-requirement-reader-fidelity/.apply-isolation.json",
+            "hash": "02f3883c6f1170fa15b4644a39179c5721ecd005690a51bd3709868d383b5dfb"
+          },
+          {
+            "path": "openspec/changes/fix-requirement-reader-fidelity/design.md",
+            "hash": "77bce9b0f48595bd5b585c709f84877e0a85f5af741c249c0d8510bbff007a28"
+          },
+          {
+            "path": "openspec/changes/fix-requirement-reader-fidelity/opsx-delta.yaml",
+            "hash": "85c8762a36d1ad5fe45af4fab6fb8e6ebc0f5646dc60c76b33e37c32f4f49b8c"
+          },
+          {
+            "path": "openspec/changes/fix-requirement-reader-fidelity/proposal.md",
+            "hash": "5f8a6e8be9c8f667f640456f98adaf82eb06a988cc31840063aa89ea3e992577"
+          },
+          {
+            "path": "openspec/changes/fix-requirement-reader-fidelity/specs/cli-validate/spec.md",
+            "hash": "b6b64614e261958c9d3b95cb49082896cde54bd13b1fc26e89dc3d80c4d50dc1"
+          },
+          {
+            "path": "openspec/changes/fix-requirement-reader-fidelity/tasks.md",
+            "hash": "7584ab637f7c01a1324b9f8c7fedcd2e99f1607d4df33dc9f4c54d43069ffcea"
+          },
+          {
+            "path": "src/core/parsers/markdown-parser.ts",
+            "hash": "4d71bd42ffcdf51d5b950bb3b9a2ad8d5bab2a05b7e5e7fecdf0663d3fb5e5e0"
+          },
+          {
+            "path": "src/core/parsers/requirement-text.ts",
+            "hash": "d0b459497a0e9408294dfb200340f9e43ad3f59a1f3e91987d7d378db6f29609"
+          },
+          {
+            "path": "src/core/schemas/base.schema.ts",
+            "hash": "2d1ea85b1a34e067889f6d7c6723e98b9b26203b96d2467e7f78adea6a3ce813"
+          },
+          {
+            "path": "src/core/validation/validator.ts",
+            "hash": "42801498c15a98e937f1a0be552ea9315b01fc88d42bf341b71cc4c388d63b7a"
+          },
+          {
+            "path": "test/core/parsers/markdown-parser.test.ts",
+            "hash": "ee495c328226d816970a83d1711c2346a63f68174ffe8fefe00fb289208a29da"
+          },
+          {
+            "path": "test/core/validation.test.ts",
+            "hash": "5011521a9dd4e02922d2462ec579e4dc0eb78eb17ca10bbfa42e3cbb3b448f6f"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "2e7698bf95b376ab2785c76b224757651eb9efcb",
+        "gitDiffSummary": "baseCommit 2e7698bf95b376ab2785c76b224757651eb9efcb; working tree: M markdown-parser.ts, base.schema.ts, validator.ts, validation.test.ts, markdown-parser.test.ts; ?? requirement-text.ts + change dir; vitest 98 passed; validate valid:true"
+      }
+    }
+  }
+}

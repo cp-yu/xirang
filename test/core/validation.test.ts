@@ -771,6 +771,247 @@ The system SHALL validate labels.
     });
   });
 
+  describe('requirement reader fidelity (fence, multi-line, metadata, whole-word)', () => {
+    async function writeChangeDelta(name: string, deltaSpec: string): Promise<string> {
+      const changeDir = path.join(testDir, name);
+      const specsDir = path.join(changeDir, 'specs', 'test-spec');
+      await fs.mkdir(specsDir, { recursive: true });
+      await fs.writeFile(path.join(specsDir, 'spec.md'), deltaSpec);
+      return changeDir;
+    }
+
+    it('multi-line: SHALL on a later body line is recognized', async () => {
+      const changeDir = await writeChangeDelta(
+        'fidelity-multi-line',
+        `## ADDED Requirements
+
+### Requirement: Wrapped keyword
+The system performs the described behavior and it
+continues onto a second line where SHALL appears in full.
+
+#### Scenario: Wrapped
+- **WHEN** handled
+- **THEN** accepted`,
+      );
+
+      const report = await new Validator(true).validateChangeDeltaSpecs(changeDir);
+      expect(report.valid).toBe(true);
+      expect(report.summary.errors).toBe(0);
+    });
+
+    it('metadata-only body carrying MUST is accepted', async () => {
+      const changeDir = await writeChangeDelta(
+        'fidelity-metadata-only',
+        `## ADDED Requirements
+
+### Requirement: Constraint only
+**Constraint**: The system MUST enforce the limit.
+
+#### Scenario: Enforced
+- **WHEN** limit exceeded
+- **THEN** rejected`,
+      );
+
+      const report = await new Validator(true).validateChangeDeltaSpecs(changeDir);
+      expect(report.valid).toBe(true);
+      expect(report.summary.errors).toBe(0);
+    });
+
+    it('fence-after-body: prose after fenced block supplies keyword', async () => {
+      const changeDir = await writeChangeDelta(
+        'fidelity-fence-after-body',
+        `## ADDED Requirements
+
+### Requirement: Fence first
+\`\`\`bash
+# not the requirement text
+echo hello
+\`\`\`
+The system SHALL handle fenced examples before the prose line.
+
+#### Scenario: Handled
+- **WHEN** read
+- **THEN** prose is used`,
+      );
+
+      const report = await new Validator(true).validateChangeDeltaSpecs(changeDir);
+      expect(report.valid).toBe(true);
+      expect(report.summary.errors).toBe(0);
+    });
+
+    it('fence: Scenario inside fence is not a surviving scenario', async () => {
+      const changeDir = await writeChangeDelta(
+        'fidelity-fence-scenario',
+        `## ADDED Requirements
+
+### Requirement: Fenced scenario only
+The system SHALL do something real.
+
+\`\`\`markdown
+#### Scenario: not a real scenario
+- **WHEN** example
+- **THEN** stays fenced
+\`\`\``,
+      );
+
+      const report = await new Validator(true).validateChangeDeltaSpecs(changeDir);
+      expect(report.valid).toBe(false);
+      expect(
+        report.issues.some(i =>
+          i.message.includes('at least one unlabeled, [ADDED], or [MODIFIED] scenario'),
+        ),
+      ).toBe(true);
+    });
+
+    it('surviving: unlabeled real scenario coexists with fenced example', async () => {
+      const changeDir = await writeChangeDelta(
+        'fidelity-surviving-mixed',
+        `## ADDED Requirements
+
+### Requirement: Mixed scenarios
+The system SHALL accept real scenarios only.
+
+#### Scenario: Real one
+- **WHEN** real
+- **THEN** counts
+
+\`\`\`markdown
+#### Scenario: example only
+- **WHEN** fenced
+- **THEN** ignored
+\`\`\``,
+      );
+
+      const report = await new Validator(true).validateChangeDeltaSpecs(changeDir);
+      expect(report.valid).toBe(true);
+      expect(report.summary.errors).toBe(0);
+    });
+
+    it('surviving: all real scenarios REMOVED still fails even with fenced Scenario', async () => {
+      const changeDir = await writeChangeDelta(
+        'fidelity-surviving-removed',
+        `## MODIFIED Requirements
+
+### Requirement: Only removed
+The system SHALL keep label semantics.
+
+#### Scenario: [REMOVED] 旧场景
+- **WHEN** old
+- **THEN** gone
+
+\`\`\`markdown
+#### Scenario: example
+- **WHEN** fenced
+- **THEN** ignored
+\`\`\``,
+      );
+
+      const report = await new Validator(true).validateChangeDeltaSpecs(changeDir);
+      expect(report.valid).toBe(false);
+      expect(
+        report.issues.some(i =>
+          i.message.includes('at least one unlabeled, [ADDED], or [MODIFIED] scenario'),
+        ),
+      ).toBe(true);
+    });
+
+    it('whole-word: SHALL substring inside MARSHALL is not a keyword', async () => {
+      const changeDir = await writeChangeDelta(
+        'fidelity-whole-word',
+        `## ADDED Requirements
+
+### Requirement: Marshalling
+The MARSHALL coordinates parade logistics.
+
+#### Scenario: Coordinated
+- **WHEN** parade begins
+- **THEN** coordinated`,
+      );
+
+      const report = await new Validator(true).validateChangeDeltaSpecs(changeDir);
+      expect(report.valid).toBe(false);
+      expect(report.issues.some(i => i.message.includes('must contain SHALL or MUST'))).toBe(true);
+    });
+
+    it('main multi-line: SHALL on later body line passes validateSpec', async () => {
+      const specPath = path.join(testDir, 'main-multi-line.md');
+      await fs.writeFile(
+        specPath,
+        `# Test Spec
+
+## Purpose
+This purpose is long enough to avoid the brief-purpose warning path in strict mode.
+
+## Requirements
+
+### Requirement: Wrapped keyword
+The system performs the described behavior and it
+continues onto a second line where SHALL appears in full.
+
+#### Scenario: Wrapped
+- **WHEN** handled
+- **THEN** accepted`,
+      );
+
+      const report = await new Validator(true).validateSpec(specPath);
+      expect(report.valid).toBe(true);
+      expect(report.summary.errors).toBe(0);
+    });
+
+    it('main whole-word: MARSHALL substring fails validateSpec like delta', async () => {
+      const specPath = path.join(testDir, 'main-whole-word.md');
+      await fs.writeFile(
+        specPath,
+        `# Test Spec
+
+## Purpose
+This purpose is long enough to avoid the brief-purpose warning path in strict mode.
+
+## Requirements
+
+### Requirement: Marshalling
+The MARSHALL coordinates parade logistics.
+
+#### Scenario: Coordinated
+- **WHEN** parade begins
+- **THEN** coordinated`,
+      );
+
+      const report = await new Validator(true).validateSpec(specPath);
+      expect(report.valid).toBe(false);
+      expect(report.issues.some(i => i.message.includes('SHALL') || i.message.includes('MUST'))).toBe(true);
+    });
+
+    it('CRLF multi-line and fence behavior matches LF', async () => {
+      const lf = `## ADDED Requirements
+
+### Requirement: CRLF parity
+Line one of the body
+continues with SHALL on line two.
+
+\`\`\`markdown
+#### Scenario: fenced
+- **WHEN** example
+- **THEN** ignored
+\`\`\`
+
+#### Scenario: Real
+- **WHEN** real
+- **THEN** counts`;
+      const crlf = lf.replace(/\n/g, '\r\n');
+
+      const lfDir = await writeChangeDelta('fidelity-crlf-lf', lf);
+      const crlfDir = await writeChangeDelta('fidelity-crlf-crlf', crlf);
+
+      const lfReport = await new Validator(true).validateChangeDeltaSpecs(lfDir);
+      const crlfReport = await new Validator(true).validateChangeDeltaSpecs(crlfDir);
+
+      expect(lfReport.valid).toBe(true);
+      expect(crlfReport.valid).toBe(lfReport.valid);
+      expect(crlfReport.summary.errors).toBe(lfReport.summary.errors);
+    });
+  });
+
   describe('validateOpsxDelta', () => {
     async function writeProjectOpsxFixture(rootDir: string): Promise<void> {
       const openspecDir = path.join(rootDir, 'openspec');

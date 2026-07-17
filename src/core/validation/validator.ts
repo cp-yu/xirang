@@ -26,6 +26,12 @@ import {
 } from '../parsers/requirement-blocks.js';
 import { parseSpecFrontmatter } from '../parsers/spec-frontmatter.js';
 import { findMainSpecStructureIssues } from '../parsers/spec-structure.js';
+import {
+  buildCodeFenceMask,
+  containsShallOrMust as containsShallOrMustShared,
+  extractRequirementBody,
+  listNonFencedScenarioHeaders,
+} from '../parsers/requirement-text.js';
 import { FileSystemUtils } from '../../utils/file-system.js';
 
 export class Validator {
@@ -41,17 +47,15 @@ export class Validator {
     try {
       const content = readFileSync(filePath, 'utf-8');
       const parser = new MarkdownParser(content);
-      
       const spec = parser.parseSpec(specName);
-      
-      const result = SpecSchema.safeParse(spec);
-      
+      const forSchema = this.specWithKeywordBodies(spec, parser.getRequirementKeywordTexts());
+      const result = SpecSchema.safeParse(forSchema);
+
       if (!result.success) {
         issues.push(...this.convertZodErrors(result.error));
       }
-      
-      issues.push(...this.applySpecRules(spec, content));
-      
+
+      issues.push(...this.applySpecRules(forSchema, content));
     } catch (error) {
       const baseMessage = error instanceof Error ? error.message : 'Unknown error';
       const enriched = this.enrichTopLevelError(specName, baseMessage);
@@ -73,17 +77,29 @@ export class Validator {
     try {
       const parser = new MarkdownParser(content);
       const spec = parser.parseSpec(specName);
-      const result = SpecSchema.safeParse(spec);
+      const forSchema = this.specWithKeywordBodies(spec, parser.getRequirementKeywordTexts());
+      const result = SpecSchema.safeParse(forSchema);
       if (!result.success) {
         issues.push(...this.convertZodErrors(result.error));
       }
-      issues.push(...this.applySpecRules(spec, content));
+      issues.push(...this.applySpecRules(forSchema, content));
     } catch (error) {
       const baseMessage = error instanceof Error ? error.message : 'Unknown error';
       const enriched = this.enrichTopLevelError(specName, baseMessage);
       issues.push({ level: 'ERROR', path: 'file', message: enriched });
     }
     return this.createReport(issues);
+  }
+
+  /** Feed full fence-aware bodies into schema/rules while parse display stays first-line. */
+  private specWithKeywordBodies(spec: Spec, keywordTexts: string[]): Spec {
+    return {
+      ...spec,
+      requirements: spec.requirements.map((req, index) => ({
+        ...req,
+        text: keywordTexts[index] ?? req.text,
+      })),
+    };
   }
 
   async validateChange(filePath: string): Promise<ValidationReport> {
@@ -562,35 +578,13 @@ export class Validator {
   }
 
   private extractRequirementText(blockRaw: string): string | undefined {
-    const lines = blockRaw.split('\n');
-    // Skip header line (index 0)
-    let i = 1;
-
-    // Find the first substantial text line, skipping metadata and blank lines
-    for (; i < lines.length; i++) {
-      const line = lines[i];
-
-      // Stop at scenario headers
-      if (/^####\s+/.test(line)) break;
-
-      const trimmed = line.trim();
-
-      // Skip blank lines
-      if (trimmed.length === 0) continue;
-
-      // Skip metadata lines (lines starting with ** like **ID**, **Priority**, etc.)
-      if (/^\*\*[^*]+\*\*:/.test(trimmed)) continue;
-
-      // Found first non-metadata, non-blank line - this is the requirement text
-      return trimmed;
-    }
-
-    // No requirement text found
-    return undefined;
+    // Line 0 is the requirement header; body is fence/metadata/multi-line aware.
+    const bodyLines = blockRaw.replace(/\r\n?/g, '\n').split('\n').slice(1);
+    return extractRequirementBody(bodyLines) || undefined;
   }
 
   private containsShallOrMust(text: string): boolean {
-    return /\b(SHALL|MUST)\b/.test(text);
+    return containsShallOrMustShared(text);
   }
 
   private findFormalScenarioOperationLabels(content: string): ValidationIssue[] {
@@ -616,7 +610,11 @@ export class Validator {
     blockName: string,
     issues: ValidationIssue[],
   ): void {
-    for (const line of blockRaw.replace(/\r\n?/g, '\n').split('\n')) {
+    const lines = blockRaw.replace(/\r\n?/g, '\n').split('\n');
+    const fenceMask = buildCodeFenceMask(lines);
+    for (let i = 0; i < lines.length; i++) {
+      if (fenceMask[i]) continue;
+      const line = lines[i];
       // Only process lines that look like scenario headers
       if (!/^####\s+/.test(line)) continue;
 
@@ -650,9 +648,9 @@ export class Validator {
   }
 
   private countSurvivingScenarios(blockRaw: string): number {
+    const lines = blockRaw.replace(/\r\n?/g, '\n').split('\n');
     let count = 0;
-    for (const line of blockRaw.replace(/\r\n?/g, '\n').split('\n')) {
-      if (!/^####\s+Scenario:\s+/.test(line)) continue;
+    for (const line of listNonFencedScenarioHeaders(lines)) {
       if (parseScenarioOperationLabel(line)?.operation === 'REMOVED') continue;
       count++;
     }

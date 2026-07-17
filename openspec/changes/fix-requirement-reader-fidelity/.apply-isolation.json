@@ -1,0 +1,7 @@
+{
+  "method": "branch",
+  "branchName": "fix-requirement-reader-fidelity",
+  "originalBranch": "main",
+  "baseCommit": "2e7698bf95b376ab2785c76b224757651eb9efcb",
+  "phase2BaselineCommit": "6f4a8b2094065165455e0948111932209e79613b"
+}
