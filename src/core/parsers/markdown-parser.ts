@@ -172,7 +172,7 @@ export class MarkdownParser {
       const bodyLines = child.content ? child.content.split('\n') : [];
       const body = extractRequirementBody(bodyLines);
       this.lastRequirementKeywordTexts.push(body || child.title.trim());
-      const text = extractRequirementDisplayText(child.title, bodyLines);
+      const text = extractRequirementDisplayText(child.title, body);
       
       const scenarios = this.parseScenarios(child);
       

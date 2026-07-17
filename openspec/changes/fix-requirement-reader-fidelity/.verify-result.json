@@ -19,11 +19,11 @@
       "test/core/parsers/markdown-parser.test.ts",
       "test/core/validation.test.ts"
     ],
-    "evidenceFingerprint": "a74d308df12bbaf3a6c152a71cbf2f1f3520ce7bda75e30fb3eb4f1d4a23d79f",
+    "evidenceFingerprint": "96130bca21dcaa40ce3b37e6e06abe5cd49154a98fb00c346287025dfdf076f1",
     "evidenceFingerprintEntries": [
       {
         "path": "openspec/changes/fix-requirement-reader-fidelity/.apply-isolation.json",
-        "hash": "02f3883c6f1170fa15b4644a39179c5721ecd005690a51bd3709868d383b5dfb"
+        "hash": "e46c2965ff8df076269c3ad48da7c17bfdfda4e95000bb610d45254a4d7cb9b6"
       },
       {
         "path": "openspec/changes/fix-requirement-reader-fidelity/design.md",
@@ -47,11 +47,11 @@
       },
       {
         "path": "src/core/parsers/markdown-parser.ts",
-        "hash": "4d71bd42ffcdf51d5b950bb3b9a2ad8d5bab2a05b7e5e7fecdf0663d3fb5e5e0"
+        "hash": "b1807e86704474c0a5fc9363fa70f55968ae0ebe44f4948003e2f1c324ad456c"
       },
       {
         "path": "src/core/parsers/requirement-text.ts",
-        "hash": "d0b459497a0e9408294dfb200340f9e43ad3f59a1f3e91987d7d378db6f29609"
+        "hash": "fa45720e24d617ef863923d8e67b32e096c84f35aaef5584a8f3a3f22aac4694"
       },
       {
         "path": "src/core/schemas/base.schema.ts",
@@ -71,12 +71,24 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "2e7698bf95b376ab2785c76b224757651eb9efcb",
-    "gitDiffSummary": "baseCommit 2e7698bf95b376ab2785c76b224757651eb9efcb; working tree: M markdown-parser.ts, base.schema.ts, validator.ts, validation.test.ts, markdown-parser.test.ts; ?? requirement-text.ts + change dir; vitest 98 passed; validate valid:true"
+    "gitHeadCommit": "168258b69f7222fc78f72fc0917aa53a9b5de236",
+    "gitDiffSummary": "baseCommit 2e7698bf95b376ab2785c76b224757651eb9efcb; working tree: M markdown-parser.ts, base.schema.ts, validator.ts, validation.test.ts, markdown-parser.test.ts; ?? requirement-text.ts + change dir; vitest 98 passed; validate valid:true",
+    "timestamp": "2026-07-17T07:56:51.647Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-07-17T07:50:00.545Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-17T07:56:51.637Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-07-17T07:43:38.896Z",
       "result": "PASS",
@@ -153,6 +165,147 @@
         "gitHeadCommit": "2e7698bf95b376ab2785c76b224757651eb9efcb",
         "gitDiffSummary": "baseCommit 2e7698bf95b376ab2785c76b224757651eb9efcb; working tree: M markdown-parser.ts, base.schema.ts, validator.ts, validation.test.ts, markdown-parser.test.ts; ?? requirement-text.ts + change dir; vitest 98 passed; validate valid:true"
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "src/core/parsers/markdown-parser.ts",
+            "src/core/parsers/requirement-text.ts"
+          ],
+          "symbols": [
+            "MarkdownParser.parseRequirements",
+            "extractRequirementDisplayText",
+            "extractRequirementBody"
+          ]
+        },
+        "opportunity": "parseRequirements already computes extractRequirementBody(bodyLines) for keyword texts, then immediately calls extractRequirementDisplayText which recomputes the same full body extraction solely to take first line.",
+        "impact": "Removes guaranteed duplicate body/fence work on every formal requirement parse; keeps display/validation split without extra cost.",
+        "evidence": [
+          "src/core/parsers/markdown-parser.ts parseRequirements calls extractRequirementBody then extractRequirementDisplayText(bodyLines)",
+          "src/core/parsers/requirement-text.ts extractRequirementDisplayText re-runs extractRequirementBody",
+          "extractRequirementDisplayText has a single call site"
+        ],
+        "recommendation": "Derive display text from the already-computed body (first line or header fallback).",
+        "keyDesign": "Single extractRequirementBody per requirement child. Display = body ? firstLine(body) : headerTitle.trim(). Keyword channel remains body || headerTitle.trim(). Prefer extractRequirementDisplayText(headerTitle, body: string).",
+        "preservationConstraints": [
+          "parseSpec Requirement.text display remains first fence-aware prose line (or header fallback when body empty).",
+          "getRequirementKeywordTexts() remains full fence-aware body (or header fallback), aligned 1:1 with requirements order.",
+          "Metadata-only, multi-line, leading-fence, and empty-body display cases keep current outcomes covered by markdown-parser tests.",
+          "No change to Spec/Requirement public shape, schema rules, or formal write paths."
+        ],
+        "implementationOutline": [
+          "Update extractRequirementDisplayText to take precomputed body string.",
+          "In parseRequirements, call extractRequirementBody once; push keyword text; derive display from that body.",
+          "Re-run existing display first-line / leading-fence parser tests."
+        ],
+        "validation": [
+          "pnpm exec vitest run test/core/parsers/markdown-parser.test.ts -t \"display text|first non-empty|heading as fallback\"",
+          "pnpm exec vitest run test/core/validation.test.ts -t \"main multi-line|main whole-word\""
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Statically proven always-on duplicate work with a one-site fix and zero intended behavior change.",
+        "id": "OPT-20260717T075000542Z-01",
+        "targetFileHashes": {
+          "src/core/parsers/markdown-parser.ts": "4d71bd42ffcdf51d5b950bb3b9a2ad8d5bab2a05b7e5e7fecdf0663d3fb5e5e0",
+          "src/core/parsers/requirement-text.ts": "d0b459497a0e9408294dfb200340f9e43ad3f59a1f3e91987d7d378db6f29609"
+        }
+      },
+      {
+        "status": "pending",
+        "location": {
+          "files": [
+            "src/core/validation/validator.ts",
+            "src/core/parsers/requirement-text.ts"
+          ],
+          "symbols": [
+            "Validator.validateDeltaRequirementBlocks",
+            "Validator.extractRequirementText",
+            "Validator.validateScenarioOperationLabels",
+            "Validator.countSurvivingScenarios"
+          ]
+        },
+        "opportunity": "Each ADDED/MODIFIED delta block is independently re-normalized and re-scanned three times for body, labels, and surviving scenarios.",
+        "impact": "One normalize/fence-mask pass per delta block reduces repeated allocation and drift risk.",
+        "evidence": [
+          "validateDeltaRequirementBlocks calls extractRequirementText, validateScenarioOperationLabels, and countSurvivingScenarios sequentially",
+          "each helper re-normalizes and rebuilds fence mask"
+        ],
+        "recommendation": "Normalize each block once, build one fence mask, and feed that shared view into body extraction, label validation, and surviving-scenario counting.",
+        "keyDesign": "Inside the per-block loop: lines = normalize(block.raw); mask = buildCodeFenceMask(lines). Body from lines[1..] using the same mask. Keep issue messages and ADDED/MODIFIED label rules in Validator.",
+        "preservationConstraints": [
+          "Missing body, SHALL/MUST whole-word, surviving-scenario, and label errors remain identical",
+          "Fence-open/close semantics unchanged",
+          "CRLF/LF/CR normalization remains replace(/\\r\\n?/g, '\\n') before split",
+          "No change to public CLI contracts or formal write/sync paths"
+        ],
+        "implementationOutline": [
+          "Refactor validateScenarioOperationLabels and countSurvivingScenarios to consume pre-split lines + mask",
+          "In validateDeltaRequirementBlocks, build lines/mask once and reuse"
+        ],
+        "validation": [
+          "pnpm exec vitest run test/core/validation.test.ts -t \"requirement reader fidelity|fence|multi-line|metadata|whole-word|surviving|REMOVED|label\""
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "medium",
+        "dependencies": [],
+        "priorityReason": "Higher structural payoff but larger edit surface than the parseRequirements double-extract fix.",
+        "id": "OPT-20260717T075000542Z-02"
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-17T07:50:00.542Z",
+        "findingId": "OPT-20260717T075000542Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-17T07:50:00.542Z",
+        "findingId": "OPT-20260717T075000542Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "select",
+        "reason": "Statically proven always-on duplicate work with a one-site fix and zero intended behavior change.",
+        "timestamp": "2026-07-17T07:50:00.545Z",
+        "findingId": "OPT-20260717T075000542Z-01",
+        "hashes": {
+          "src/core/parsers/markdown-parser.ts": "4d71bd42ffcdf51d5b950bb3b9a2ad8d5bab2a05b7e5e7fecdf0663d3fb5e5e0",
+          "src/core/parsers/requirement-text.ts": "d0b459497a0e9408294dfb200340f9e43ad3f59a1f3e91987d7d378db6f29609"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-17T07:50:29.091Z",
+        "findingId": "OPT-20260717T075000542Z-01",
+        "hashes": {
+          "src/core/parsers/markdown-parser.ts": "4d71bd42ffcdf51d5b950bb3b9a2ad8d5bab2a05b7e5e7fecdf0663d3fb5e5e0",
+          "src/core/parsers/requirement-text.ts": "d0b459497a0e9408294dfb200340f9e43ad3f59a1f3e91987d7d378db6f29609"
+        }
+      },
+      {
+        "sequence": 5,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-17T07:56:51.637Z",
+        "findingId": "OPT-20260717T075000542Z-01"
+      }
+    ],
+    "reconciliationSignature": "98f2c0814f3b64cadeb4ef4dcf4943dc71569df7cc6b830ccf9a0d51700a34fa",
+    "unchangedReconciliations": 0
   }
 }

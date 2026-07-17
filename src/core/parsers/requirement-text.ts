@@ -89,11 +89,10 @@ export function extractRequirementBody(bodyLines: string[]): string {
 }
 
 /**
- * Display helper: first body line, else header title.
- * Validation must call extractRequirementBody directly.
+ * Display helper from a precomputed body: first line, else header title.
+ * Callers must pass extractRequirementBody output (no second extraction).
  */
-export function extractRequirementDisplayText(headerTitle: string, bodyLines: string[]): string {
-  const body = extractRequirementBody(bodyLines);
+export function extractRequirementDisplayText(headerTitle: string, body: string): string {
   if (!body) return headerTitle.trim();
   return body.split('\n')[0] ?? headerTitle.trim();
 }
