@@ -351,5 +351,53 @@ Then result`;
       
       expect(spec.requirements[0].text).toBe('This is the actual requirement text.');
     });
+
+    it('display text stays first-line when body is multi-line', () => {
+      const content = `# Test Spec
+
+## Purpose
+Test overview
+
+## Requirements
+
+### Requirement: Multi-line body
+First line of the requirement body.
+Second line continues with SHALL for validation paths.
+
+#### Scenario: Test
+Given test
+When action
+Then result`;
+
+      const parser = new MarkdownParser(content);
+      const spec = parser.parseSpec('test');
+
+      expect(spec.requirements[0].text).toBe('First line of the requirement body.');
+    });
+
+    it('display text skips leading fenced block and uses first prose line', () => {
+      const content = `# Test Spec
+
+## Purpose
+Test overview
+
+## Requirements
+
+### Requirement: Fence first
+\`\`\`bash
+echo example
+\`\`\`
+The system SHALL use the prose line after the fence.
+
+#### Scenario: Test
+Given test
+When action
+Then result`;
+
+      const parser = new MarkdownParser(content);
+      const spec = parser.parseSpec('test');
+
+      expect(spec.requirements[0].text).toBe('The system SHALL use the prose line after the fence.');
+    });
   });
 });
