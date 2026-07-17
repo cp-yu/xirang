@@ -1,6 +1,6 @@
 {
   "timestamp": "2026-07-17T07:43:38.896Z",
-  "result": "PASS",
+  "result": "PASS_WITH_WARNINGS",
   "issues": [],
   "tasksFileHash": "7584ab637f7c01a1324b9f8c7fedcd2e99f1607d4df33dc9f4c54d43069ffcea",
   "verificationContext": {
@@ -76,7 +76,7 @@
     "timestamp": "2026-07-17T07:56:51.647Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "DEGRADED",
     "attempts": [
       {
         "timestamp": "2026-07-17T07:50:00.545Z",
@@ -87,6 +87,11 @@
         "timestamp": "2026-07-17T07:56:51.637Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-07-17T08:04:52.118Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
@@ -168,7 +173,7 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "src/core/parsers/markdown-parser.ts",
@@ -217,7 +222,7 @@
         }
       },
       {
-        "status": "pending",
+        "status": "rejected",
         "location": {
           "files": [
             "src/core/validation/validator.ts",
@@ -303,9 +308,23 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-07-17T07:56:51.637Z",
         "findingId": "OPT-20260717T075000542Z-01"
+      },
+      {
+        "sequence": 6,
+        "action": "resolve",
+        "reason": "Verified and committed: parseRequirements now runs extractRequirementBody once and passes the precomputed body into extractRequirementDisplayText; no residual work remains on this finding.",
+        "timestamp": "2026-07-17T08:04:52.118Z",
+        "findingId": "OPT-20260717T075000542Z-01"
+      },
+      {
+        "sequence": 7,
+        "action": "reject",
+        "reason": "Evidence still holds but fails high-value/low-cost bar: cold-path validation of small delta blocks, shared fence helpers already eliminate semantic drift, medium cost with alignment risk. Prefer empty selection over micro-opt churn.",
+        "timestamp": "2026-07-17T08:04:52.118Z",
+        "findingId": "OPT-20260717T075000542Z-02"
       }
     ],
-    "reconciliationSignature": "98f2c0814f3b64cadeb4ef4dcf4943dc71569df7cc6b830ccf9a0d51700a34fa",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }
