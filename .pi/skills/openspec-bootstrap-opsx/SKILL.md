@@ -42,7 +42,7 @@ Treat `openspec/config.yaml` as the source of truth for authoring policy, but co
    ```bash
    openspec bootstrap instructions [phase] --json
    ```
-   Read the returned `fileDefinitions` before the phase instruction. Directly edit only files whose `writePolicy` permits Agent authoring, and MUST NOT copy definitions into those files.
+   For each phase, follow the authoring order in the returned `instruction`. Keep `fileDefinitions` separate from current workspace state and phase guidance; do not copy non-source inputs into authored files.
 
    **Phase: init**
    

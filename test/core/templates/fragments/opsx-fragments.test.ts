@@ -53,17 +53,11 @@ describe('verify gate shared fragments', () => {
 });
 
 describe('OPSX delta generation fragment', () => {
-  it('consumes artifact instructions in concrete definition-first order', () => {
-    for (const token of [
-      'content.includes',
-      'content.excludes',
-      'writePolicy',
-      'instruction',
-      'canonical structure from `template`',
-      'MUST NOT copy the definition or Agent reasoning',
-    ]) {
-      expect(OPSX_GENERATE_DELTA).toContain(token);
-    }
+  it('defers definition-first ordering to the artifact instruction projection', () => {
+    expect(OPSX_GENERATE_DELTA).toContain('follow the authoring order in the returned `instruction`');
+    expect(OPSX_GENERATE_DELTA).toContain('`definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs');
+    expect(OPSX_GENERATE_DELTA).not.toContain('content.includes');
+    expect(OPSX_GENERATE_DELTA).not.toContain('content.excludes');
   });
 
   it('separates proposal scope, target behavior, architecture decisions, and evidence', () => {

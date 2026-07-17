@@ -60,25 +60,21 @@ After reading the formal OPSX two-file bundle, use OpenSpec CLI query surfaces f
 - Use optional CodeGraph or ACE/`rg`/`read` for current code locations; OPSX does not store code paths.
 - Treat CLI output as navigation context, not as a replacement for change artifacts.
 8. Reconcile `proposal.md`.
-   - Run `openspec instructions proposal --change "<name>" --json`. Read the resolved `definition` first. Before writing, use `content.includes` and `content.excludes` to decide what belongs in the artifact, obey `writePolicy`, then follow `instruction` and fill the canonical structure from `template`. Use `outputPath` and `configProjection`; MUST NOT copy definition, projection, context, rules, or reasoning into the artifact.
+   - Run `openspec instructions proposal --change "<name>" --json`. For each response, follow the authoring order in the returned `instruction`. Keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs; do not copy non-artifact inputs into the artifact.
    - Reconcile `## Source Impact` from independently determined Behavior Source and Architecture Source impact. Keep Spec IDs distinct from OPSX node IDs.
    - Reuse the confirmed Behavior Source list as the delta Spec input; preserve `## Why`, `## What Changes`, `## Source Impact`, and `## Impact`.
    - If the proposal already matches evidence and source impact, leave it unchanged.
 9. Reconcile delta Specs in `specs/<spec-id>/spec.md`.
-   - Run `openspec instructions specs --change "<name>" --json`. Read the resolved `definition` first. Before writing, use `content.includes` and `content.excludes` to decide what belongs in the artifact, obey `writePolicy`, then follow `instruction` and fill the canonical structure from `template`. Use `outputPath` and `configProjection`; MUST NOT copy definition, projection, context, rules, or reasoning into the artifact.
+   - Run `openspec instructions specs --change "<name>" --json`. For each response, follow the authoring order in the returned `instruction`. Keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs; do not copy non-artifact inputs into the artifact.
    - Create or update only Specs declared under Behavior Source. Do not derive the directory name directly from an OPSX capability ID.
    - Follow returned `## ADDED Requirements`, `## MODIFIED Requirements`, REMOVED/RENAMED rules, exact title matching, canonical Requirement/Scenario syntax, and label guidance. Preserve unrelated current delta content.
 10. Reconcile simplified `design.md`.
-   - Run `openspec instructions design --change "<name>" --json`. Read the resolved `definition` first. Before writing, use `content.includes` and `content.excludes` to decide what belongs in the artifact, obey `writePolicy`, then follow `instruction` and fill the canonical structure from `template`. Use `outputPath` and `configProjection`; MUST NOT copy definition, projection, context, rules, or reasoning into the artifact.
+   - Run `openspec instructions design --change "<name>" --json`. For each response, follow the authoring order in the returned `instruction`. Keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs; do not copy non-artifact inputs into the artifact.
    - Preserve Context, Goals / Non-Goals, Decisions, and Risks / Trade-offs. Mark inferred content `[INFERRED FROM CODE]` and unresolved decisions `[REVIEW NEEDED]`.
 11. Reconcile `opsx-delta.yaml` only after Architecture Source is resolved. Create a canonical no-op containing only `schema_version: 2` when architecture is confirmed unchanged; a real delta otherwise.
    **Generate opsx-delta.yaml**:
 - Read `openspec instructions opsx-delta --change "<name>" --json`
-- Read the resolved `definition` first. Before writing:
-  - use `content.includes` and `content.excludes` to decide what belongs in `opsx-delta.yaml`
-  - obey `writePolicy`
-  - then follow `instruction` and fill the canonical structure from `template`
-  - MUST NOT copy the definition or Agent reasoning into the artifact
+- For that response, follow the authoring order in the returned `instruction`; keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs
 - Read `proposal.md` → `Source Impact`:
   - use `Architecture Source` as the declared architecture scope
   - use `Behavior Source` to locate related change-local Specs; Spec IDs are not OPSX capability IDs

@@ -9,11 +9,11 @@ describe('bootstrap OPSX templates', () => {
     expect(getBootstrapOpsxSkillTemplate().instructions).toContain(OPENSPEC_PHILOSOPHY);
   });
 
-  it('uses phase file definitions before authoring bootstrap sources', () => {
+  it('defers phase authoring order to bootstrap instruction projection', () => {
     const skill = getBootstrapOpsxSkillTemplate().instructions;
-    expect(skill).toContain('`fileDefinitions`');
-    expect(skill).toContain('writePolicy');
-    expect(skill).toContain('MUST NOT copy definitions');
+    expect(skill).toContain('follow the authoring order in the returned `instruction`');
+    expect(skill).toContain('Keep `fileDefinitions` separate from current workspace state');
+    expect(skill).not.toContain('Directly edit only files whose `writePolicy` permits Agent authoring');
   });
 
   it('documents backfill-specs and subagent semantic matching after promote', () => {

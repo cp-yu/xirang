@@ -10,7 +10,7 @@ import {
   OPSX_SHARED_CONTEXT,
 } from '../fragments/opsx-fragments.js';
 
-const DEFINITION_FIRST = `Read the resolved \`definition\` first. Before writing, use \`content.includes\` and \`content.excludes\` to decide what belongs in the artifact, obey \`writePolicy\`, then follow \`instruction\` and fill the canonical structure from \`template\`. Use \`outputPath\` and \`configProjection\`; MUST NOT copy definition, projection, context, rules, or reasoning into the artifact.`;
+const ARTIFACT_INSTRUCTION_CONTRACT = `For each response, follow the authoring order in the returned \`instruction\`. Keep \`definition\`, dependencies, \`currentState\`, \`configProjection\`, and \`template\` as separate inputs; do not copy non-artifact inputs into the artifact.`;
 
 export function getSnackSkillTemplate(): SkillTemplate {
   return {
@@ -52,16 +52,16 @@ ${OPSX_SHARED_CONTEXT}
 7. Use CLI-backed OPSX navigation.
 ${OPSX_CLI_QUERY_CONTEXT}
 8. Reconcile \`proposal.md\`.
-   - Run \`openspec instructions proposal --change "<name>" --json\`. ${DEFINITION_FIRST}
+   - Run \`openspec instructions proposal --change "<name>" --json\`. ${ARTIFACT_INSTRUCTION_CONTRACT}
    - Reconcile \`## Source Impact\` from independently determined Behavior Source and Architecture Source impact. Keep Spec IDs distinct from OPSX node IDs.
    - Reuse the confirmed Behavior Source list as the delta Spec input; preserve \`## Why\`, \`## What Changes\`, \`## Source Impact\`, and \`## Impact\`.
    - If the proposal already matches evidence and source impact, leave it unchanged.
 9. Reconcile delta Specs in \`specs/<spec-id>/spec.md\`.
-   - Run \`openspec instructions specs --change "<name>" --json\`. ${DEFINITION_FIRST}
+   - Run \`openspec instructions specs --change "<name>" --json\`. ${ARTIFACT_INSTRUCTION_CONTRACT}
    - Create or update only Specs declared under Behavior Source. Do not derive the directory name directly from an OPSX capability ID.
    - Follow returned \`## ADDED Requirements\`, \`## MODIFIED Requirements\`, REMOVED/RENAMED rules, exact title matching, canonical Requirement/Scenario syntax, and label guidance. Preserve unrelated current delta content.
 10. Reconcile simplified \`design.md\`.
-   - Run \`openspec instructions design --change "<name>" --json\`. ${DEFINITION_FIRST}
+   - Run \`openspec instructions design --change "<name>" --json\`. ${ARTIFACT_INSTRUCTION_CONTRACT}
    - Preserve Context, Goals / Non-Goals, Decisions, and Risks / Trade-offs. Mark inferred content \`[INFERRED FROM CODE]\` and unresolved decisions \`[REVIEW NEEDED]\`.
 11. Reconcile \`opsx-delta.yaml\` only after Architecture Source is resolved. Create a canonical no-op containing only \`schema_version: 2\` when architecture is confirmed unchanged; a real delta otherwise.
    ${OPSX_GENERATE_DELTA}

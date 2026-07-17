@@ -168,11 +168,29 @@ describe('bootstrap command Phase 1 baseline contract', () => {
       allowedModes: ['full'],
       nextAction: 'init',
     });
+    expect(instructions.instruction).toContain('Read `fileDefinitions` first');
+    expect(instructions.instruction).toContain('MUST NOT copy file definitions');
     expect(instructions.instruction).toContain('Run: openspec bootstrap init --mode full');
     expect(instructions.fileDefinitions.map((file: { id: string }) => file.id)).toEqual([
       'metadata',
       'scope',
     ]);
+  });
+
+  it('prints file definitions before bootstrap phase instructions in text mode', async () => {
+    await fs.mkdir(path.join(testDir, 'openspec', 'specs'), { recursive: true });
+
+    const output = await withCwd(
+      testDir,
+      () => captureTextOutput(() => bootstrapInstructionsCommand(undefined, { json: false }))
+    );
+
+    const definitionsIndex = output.indexOf('<file_definitions>');
+    const instructionIndex = output.indexOf('<instruction>');
+    expect(definitionsIndex).toBeGreaterThanOrEqual(0);
+    expect(instructionIndex).toBeGreaterThan(definitionsIndex);
+    expect(output).toContain('"id": "metadata"');
+    expect(output).toContain('"id": "scope"');
   });
 
   it('rejects unsupported mode on a formal-opsx baseline before creating bootstrap workspace', async () => {
@@ -652,6 +670,12 @@ relations:
       () => captureTextOutput(() => bootstrapInstructionsCommand(undefined, { json: false }))
     );
     expect(instructions).toContain('## Bootstrap: completed workspace');
+    expect(instructions).toContain('<file_definitions>');
+    expect(instructions).toContain('"id": "candidate-project"');
+    expect(instructions.indexOf('<file_definitions>')).toBeLessThan(instructions.indexOf('<instruction>'));
+    expect(instructions.indexOf('Read `fileDefinitions` first.')).toBeLessThan(
+      instructions.indexOf('openspec bootstrap init --mode refresh --restart')
+    );
     expect(instructions).toContain('openspec bootstrap init --mode refresh --restart');
     expect(instructions).not.toContain('## Bootstrap: promote phase');
   });

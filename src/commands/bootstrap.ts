@@ -17,6 +17,7 @@ import {
 } from '../utils/bootstrap-utils.js';
 import { backfillSpecs, readSemanticMappings } from '../core/backfill-specs.js';
 import { resolveSchema } from '../core/artifact-graph/resolver.js';
+import { buildFileDefinitionAuthoringInstruction } from '../core/artifact-graph/instruction-loader.js';
 import type { BootstrapPhase } from '../utils/bootstrap-utils.js';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -264,6 +265,22 @@ function getPhaseFileDefinitions(phase: BootstrapPhase) {
   return (artifact.files ?? []).map((fileId) => files.get(fileId)!);
 }
 
+function printBootstrapInstructionText(
+  heading: string,
+  fileDefinitions: ReturnType<typeof getPhaseFileDefinitions>,
+  instruction: string
+): void {
+  console.log(heading);
+  console.log();
+  console.log('<file_definitions>');
+  console.log(JSON.stringify(fileDefinitions, null, 2));
+  console.log('</file_definitions>');
+  console.log();
+  console.log('<instruction>');
+  console.log(instruction);
+  console.log('</instruction>');
+}
+
 export async function bootstrapInstructionsCommand(
   phase: string | undefined,
   options: BootstrapInstructionsOptions
@@ -283,7 +300,10 @@ export async function bootstrapInstructionsCommand(
     spinner?.stop();
 
     if (!status.initialized) {
-      const instructions = getPreInitInstructions(status, requestedPhase);
+      const fileDefinitions = getPhaseFileDefinitions('init');
+      const instruction = buildFileDefinitionAuthoringInstruction(
+        getPreInitInstructions(status, requestedPhase)
+      );
 
       if (options.json) {
         console.log(JSON.stringify({
@@ -296,22 +316,22 @@ export async function bootstrapInstructionsCommand(
           allowedModes: status.allowedModes,
           nextAction: status.nextAction,
           reason: status.reason,
-          fileDefinitions: getPhaseFileDefinitions('init'),
-          instruction: instructions,
+          fileDefinitions,
+          instruction,
         }, null, 2));
         return;
       }
 
-      console.log('## Bootstrap: init phase');
-      console.log();
-      console.log(instructions);
+      printBootstrapInstructionText('## Bootstrap: init phase', fileDefinitions, instruction);
       return;
     }
 
     const targetPhase = (phase ?? status.phase) as BootstrapPhase;
-    const instructions = status.workspaceState === 'completed'
+    const fileDefinitions = getPhaseFileDefinitions(targetPhase);
+    const phaseInstruction = status.workspaceState === 'completed'
       ? getCompletedWorkspaceInstructions(status)
       : getPhaseInstructions(targetPhase, status.mode, status.baselineType);
+    const instruction = buildFileDefinitionAuthoringInstruction(phaseInstruction);
 
     if (options.json) {
       console.log(JSON.stringify({
@@ -325,17 +345,19 @@ export async function bootstrapInstructionsCommand(
         restartCommand: status.restartCommand,
         nextAction: status.nextAction,
         transitionCommand: status.transitionCommand,
-        fileDefinitions: getPhaseFileDefinitions(targetPhase),
-        instruction: instructions,
+        fileDefinitions,
+        instruction,
       }, null, 2));
       return;
     }
 
-    console.log(status.workspaceState === 'completed'
-      ? '## Bootstrap: completed workspace'
-      : `## Bootstrap: ${targetPhase} phase`);
-    console.log();
-    console.log(instructions);
+    printBootstrapInstructionText(
+      status.workspaceState === 'completed'
+        ? '## Bootstrap: completed workspace'
+        : `## Bootstrap: ${targetPhase} phase`,
+      fileDefinitions,
+      instruction
+    );
   } catch (error) {
     spinner?.stop();
     throw error;

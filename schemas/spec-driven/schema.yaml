@@ -99,7 +99,7 @@ artifacts:
       - implementation work and verification → `tasks.md`;
       - durable architecture nodes, ownership, boundaries, or semantic relations → `opsx-delta.yaml`.
 
-      Agent MUST NOT author scenario operation labels. Run `openspec scenario-labels "<change>" --write` after validation passes to derive deterministic change-local review metadata. Sync and archive remove that metadata from formal Specs.
+      Agent MUST NOT author scenario operation labels. The invoking workflow owns scenario label preview and write orchestration. Sync and archive consume and remove existing change-local labels but MUST NOT generate them.
 
       Follow the returned template structure. Do not add placeholders, empty delta sections, examples, or process notes to the artifact.
     requires:
@@ -122,12 +122,6 @@ artifacts:
         - openspec validate --change <name> --artifacts opsx-delta --json
     instruction: |
       Create `opsx-delta.yaml` as the architecture source reconciliation for this change.
-
-      Read the resolved `definition` first. Before writing:
-      - use `content.includes` and `content.excludes` to decide what belongs in `opsx-delta.yaml`;
-      - obey `writePolicy`;
-      - then follow this `instruction` and fill the canonical structure from `template`.
-      Do not copy the definition, project config, evidence, or Agent reasoning into the artifact.
 
       Determine the target architecture from proposal `Architecture Source`, completed change-local Specs, `design.md` when present, the formal OPSX two-file bundle, and current code as implementation evidence.
 

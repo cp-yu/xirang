@@ -37,14 +37,10 @@ describe('snack template artifact reconciliation', () => {
   const template = getSnackSkillTemplate();
   const instructions = template.instructions;
 
-  it('uses resolved definitions before reconciling artifacts', () => {
-    expect(instructions).toContain('resolved `definition`');
-    expect(instructions).toContain('`content.includes`');
-    expect(instructions).toContain('`content.excludes`');
-    expect(instructions).toContain('obey `writePolicy`');
-    expect(instructions).toContain('follow `instruction`');
-    expect(instructions).toContain('canonical structure from `template`');
-    expect(instructions).toContain('MUST NOT copy definition');
+  it('defers definition-first ordering to each artifact instruction projection', () => {
+    expect(instructions).toContain('follow the authoring order in the returned `instruction`');
+    expect(instructions).toContain('Keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs');
+    expect(instructions).not.toContain('use `content.includes` and `content.excludes` to decide');
   });
 
   it('does not read an OPSX code-map', () => {

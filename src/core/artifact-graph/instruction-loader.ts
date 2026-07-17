@@ -3,14 +3,37 @@ import * as path from 'node:path';
 import { getSchemaDir, resolveSchema } from './resolver.js';
 import { ArtifactGraph } from './graph.js';
 import { detectCompleted } from './state.js';
+import { resolveArtifactOutputs } from './outputs.js';
 import { resolveSchemaForChange } from '../../utils/change-metadata.js';
 import { FileSystemUtils } from '../../utils/file-system.js';
 import { readProjectConfig, validateConfigRules } from '../project-config.js';
 import { buildConfigProjectionBundle, type ConfigProjectionBundle } from '../config-projection.js';
-import type { Artifact, CompletedSet, FileDefinition } from './types.js';
+import type { Artifact, CompletedSet, FileDefinition, ManagedFile } from './types.js';
 
 // Session-level cache for validation warnings (avoid repeating same warnings)
 const shownWarnings = new Set<string>();
+
+const DEFINITION_FIRST_AUTHORING = `Authoring order:
+1. Read the resolved \`definition\` and use \`content.includes\`, \`content.excludes\`, and \`writePolicy\` to establish the file boundary.
+2. Read dependencies and current artifact state as context.
+3. Follow the artifact-specific instruction below.
+4. Fill the canonical structure from \`template\`.
+MUST NOT copy \`definition\`, context, rules, \`configProjection\`, or Agent reasoning into the artifact.`;
+
+const FILE_DEFINITION_AUTHORING = `Read \`fileDefinitions\` first. Use each resolved definition to understand its purpose, compilation role, content boundary, and \`writePolicy\` before reading current workspace state and the phase instruction. Write only files whose \`writePolicy\` permits Agent authoring. MUST NOT copy file definitions or Agent reasoning into authored files.`;
+
+function appendSpecificInstruction(guidance: string, label: string, instruction?: string): string {
+  const specificInstruction = instruction?.trim();
+  return specificInstruction ? `${guidance}\n\n${label}:\n${specificInstruction}` : guidance;
+}
+
+export function buildArtifactAuthoringInstruction(instruction?: string): string {
+  return appendSpecificInstruction(DEFINITION_FIRST_AUTHORING, 'Artifact-specific instruction', instruction);
+}
+
+export function buildFileDefinitionAuthoringInstruction(instruction?: string): string {
+  return appendSpecificInstruction(FILE_DEFINITION_AUTHORING, 'Phase instruction', instruction);
+}
 
 /**
  * Error thrown when loading a template fails.
@@ -46,6 +69,15 @@ export interface ChangeContext {
 /**
  * Enriched instructions for creating an artifact.
  */
+export interface ArtifactCurrentState {
+  completed: boolean;
+  outputs: string[];
+  completionMarker?: {
+    path: string;
+    present: boolean;
+  };
+}
+
 export interface ArtifactInstructions {
   /** Change name */
   changeName: string;
@@ -57,22 +89,26 @@ export interface ArtifactInstructions {
   changeDir: string;
   /** Output path pattern (e.g., "proposal.md") */
   outputPath: string;
+  /** Existing output and completion-marker state; file content is never embedded. */
+  currentState: ArtifactCurrentState;
   /** Artifact description */
   description: string;
-  /** Resolved file semantics and authoring boundary. */
+  /** Resolved artifact semantics and authoring boundary. */
   definition: FileDefinition | undefined;
-  /** Guidance on how to create this artifact (from schema instruction field) */
-  instruction: string | undefined;
+  /** Resolved phase file semantics for artifacts that coordinate managed files. */
+  fileDefinitions: ManagedFile[] | undefined;
+  /** Dependencies with completion status and paths */
+  dependencies: DependencyInfo[];
   /** Project context from config (constraints/background for AI, not to be included in output) */
   context: string | undefined;
   /** Artifact-specific rules from config (constraints for AI, not to be included in output) */
   rules: string[] | undefined;
   /** Compiled project config projection for prompt consumers. */
   configProjection: ConfigProjectionBundle;
+  /** Definition-first authoring contract followed by artifact guidance from the schema. */
+  instruction: string;
   /** Template content (structure to follow - this IS the output format) */
   template: string;
-  /** Dependencies with completion status and paths */
-  dependencies: DependencyInfo[];
   /** Artifacts that become available after completing this one */
   unlocks: string[];
 }
@@ -183,12 +219,14 @@ export function loadChangeContext(
   changeName: string,
   schemaName?: string
 ): ChangeContext {
-  const changeDir = FileSystemUtils.canonicalizeExistingPath(
-    path.join(projectRoot, 'openspec', 'changes', changeName)
-  );
+  const changePath = path.join(projectRoot, 'openspec', 'changes', changeName);
 
   // Resolve schema: explicit > metadata > default
-  const resolvedSchemaName = resolveSchemaForChange(changeDir, schemaName);
+  const resolvedSchemaName = resolveSchemaForChange(changePath, schemaName);
+  const workspacePath = resolvedSchemaName === 'bootstrap'
+    ? path.join(projectRoot, 'openspec', 'bootstrap')
+    : changePath;
+  const changeDir = FileSystemUtils.canonicalizeExistingPath(workspacePath);
 
   const schema = resolveSchema(resolvedSchemaName, projectRoot);
   const graph = ArtifactGraph.fromSchema(schema);
@@ -207,10 +245,13 @@ export function loadChangeContext(
 /**
  * Generates enriched instructions for creating an artifact.
  *
- * Instruction projection order:
- * 1. configProjection.prompt - compiled whitelist projection from config
- * 2. context/rules - compatibility fields derived from the same projection inputs
- * 3. template - Schema's template content
+ * Instruction projection contract:
+ * 1. definition or fileDefinitions - file semantics and write boundary
+ * 2. dependencies/current state - authoring context
+ * 3. instruction - shared definition-first order plus artifact-specific guidance
+ * 4. template - canonical output structure
+ *
+ * Config projection and compatibility fields remain separate constraints and are never artifact content.
  *
  * @param context - Change context
  * @param artifactId - Artifact ID to generate instructions for
@@ -229,8 +270,41 @@ export function generateInstructions(
   }
 
   const templateContent = loadTemplate(context.schemaName, artifact.template, context.projectRoot);
+  const outputs = resolveArtifactOutputs(context.changeDir, artifact.generates);
+  const markerPath = artifact.completionMarker
+    ? path.join(context.changeDir, artifact.completionMarker)
+    : undefined;
+  const markerPresent = markerPath ? fs.existsSync(markerPath) : false;
+  const currentState: ArtifactCurrentState = {
+    completed: context.completed.has(artifact.id),
+    outputs,
+    ...(markerPath
+      ? {
+          completionMarker: {
+            path: markerPresent
+              ? FileSystemUtils.canonicalizeExistingPath(markerPath)
+              : markerPath,
+            present: markerPresent,
+          },
+        }
+      : {}),
+  };
   const dependencies = getDependencyInfo(artifact, context.graph, context.completed);
   const unlocks = getUnlockedArtifacts(context.graph, artifactId);
+  const schema = resolveSchema(context.schemaName, context.projectRoot);
+  const managedFiles = new Map((schema.files ?? []).map((file) => [file.id, file]));
+  const fileDefinitions = artifact.files?.map((fileId) => {
+    const file = managedFiles.get(fileId);
+    if (!file) {
+      throw new Error(`Artifact '${artifact.id}' references unknown managed file '${fileId}'`);
+    }
+    return file;
+  });
+  const instruction = artifact.definition
+    ? buildArtifactAuthoringInstruction(artifact.instruction)
+    : fileDefinitions && fileDefinitions.length > 0
+      ? buildFileDefinitionAuthoringInstruction(artifact.instruction)
+      : artifact.instruction?.trim() ?? '';
 
   // Use projectRoot from context if not explicitly provided
   const effectiveProjectRoot = projectRoot ?? context.projectRoot;
@@ -273,14 +347,16 @@ export function generateInstructions(
     schemaName: context.schemaName,
     changeDir: context.changeDir,
     outputPath: artifact.generates,
+    currentState,
     description: artifact.description,
     definition: artifact.definition,
-    instruction: artifact.instruction,
+    fileDefinitions,
+    dependencies,
     context: configContext,
     rules: configRules,
     configProjection,
+    instruction,
     template: templateContent,
-    dependencies,
     unlocks,
   };
 }

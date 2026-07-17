@@ -55,11 +55,7 @@ After reading the formal OPSX two-file bundle, use OpenSpec CLI query surfaces f
 export const OPSX_GENERATE_DELTA = `
 **Generate opsx-delta.yaml**:
 - Read \`openspec instructions opsx-delta --change "<name>" --json\`
-- Read the resolved \`definition\` first. Before writing:
-  - use \`content.includes\` and \`content.excludes\` to decide what belongs in \`opsx-delta.yaml\`
-  - obey \`writePolicy\`
-  - then follow \`instruction\` and fill the canonical structure from \`template\`
-  - MUST NOT copy the definition or Agent reasoning into the artifact
+- For that response, follow the authoring order in the returned \`instruction\`; keep \`definition\`, dependencies, \`currentState\`, \`configProjection\`, and \`template\` as separate inputs
 - Read \`proposal.md\` → \`Source Impact\`:
   - use \`Architecture Source\` as the declared architecture scope
   - use \`Behavior Source\` to locate related change-local Specs; Spec IDs are not OPSX capability IDs

@@ -105,8 +105,10 @@ export function printInstructionsText(instructions: ArtifactInstructions, isBloc
     schemaName,
     changeDir,
     outputPath,
+    currentState,
     description,
     definition,
+    fileDefinitions,
     instruction,
     context,
     rules,
@@ -145,6 +147,45 @@ export function printInstructionsText(instructions: ArtifactInstructions, isBloc
     console.log();
   }
 
+  if (fileDefinitions && fileDefinitions.length > 0) {
+    console.log('<file_definitions>');
+    console.log('Read these definitions before following the phase instruction.');
+    console.log(JSON.stringify(fileDefinitions, null, 2));
+    console.log('</file_definitions>');
+    console.log();
+  }
+
+  // Dependencies (files to read for context)
+  if (dependencies.length > 0) {
+    console.log('<dependencies>');
+    console.log('Read these files for context before creating this artifact:');
+    console.log();
+    for (const dep of dependencies) {
+      const status = dep.done ? 'done' : 'missing';
+      const fullPath = path.join(changeDir, dep.path);
+      console.log(`<dependency id="${dep.id}" status="${status}">`);
+      console.log(`  <path>${fullPath}</path>`);
+      console.log(`  <description>${dep.description}</description>`);
+      console.log('</dependency>');
+    }
+    console.log('</dependencies>');
+    console.log();
+  }
+
+  console.log(`<current_state completed="${currentState.completed}">`);
+  if (currentState.outputs.length === 0) {
+    console.log('No current artifact outputs.');
+  } else {
+    for (const currentOutput of currentState.outputs) {
+      console.log(`<output>${currentOutput}</output>`);
+    }
+  }
+  if (currentState.completionMarker) {
+    console.log(`<completion_marker present="${currentState.completionMarker.present}">${currentState.completionMarker.path}</completion_marker>`);
+  }
+  console.log('</current_state>');
+  console.log();
+
   // Project context (AI constraint - do not include in output)
   if (context) {
     console.log('<project_context>');
@@ -180,23 +221,6 @@ export function printInstructionsText(instructions: ArtifactInstructions, isBloc
       console.log('</fragment>');
     }
     console.log('</config_projection>');
-    console.log();
-  }
-
-  // Dependencies (files to read for context)
-  if (dependencies.length > 0) {
-    console.log('<dependencies>');
-    console.log('Read these files for context before creating this artifact:');
-    console.log();
-    for (const dep of dependencies) {
-      const status = dep.done ? 'done' : 'missing';
-      const fullPath = path.join(changeDir, dep.path);
-      console.log(`<dependency id="${dep.id}" status="${status}">`);
-      console.log(`  <path>${fullPath}</path>`);
-      console.log(`  <description>${dep.description}</description>`);
-      console.log('</dependency>');
-    }
-    console.log('</dependencies>');
     console.log();
   }
 
@@ -370,6 +394,7 @@ export async function generateApplyInstructions(
   const requiredArtifactIds = applyConfig?.requires ?? schema.artifacts.map((a) => a.id);
   const tracksFile = applyConfig?.tracks ?? null;
   const schemaInstruction = applyConfig?.instruction ?? null;
+  const prerequisiteWorkflow = context.schemaName === 'bootstrap' ? 'Bootstrap' : 'Propose';
 
   // Check which required artifacts are missing
   const missingArtifacts: string[] = [];
@@ -412,17 +437,17 @@ export async function generateApplyInstructions(
 
   if (missingArtifacts.length > 0) {
     state = 'blocked';
-    instruction = `Cannot apply this change yet. Missing artifacts: ${missingArtifacts.join(', ')}.\nUse the openspec-apply-change skill to create the missing artifacts first.`;
+    instruction = `Cannot apply this change yet. Missing artifacts: ${missingArtifacts.join(', ')}.\nReturn to the ${prerequisiteWorkflow} workflow to complete the missing artifacts before Apply.`;
   } else if (tracksFile && !tracksFileExists) {
     // Tracking file configured but doesn't exist yet
     const tracksFilename = path.basename(tracksFile);
     state = 'blocked';
-    instruction = `The ${tracksFilename} file is missing and must be created.\nUse openspec-apply-change to generate the tracking file.`;
+    instruction = `The ${tracksFilename} file is missing and must be created.\nReturn to the ${prerequisiteWorkflow} workflow to create ${tracksFilename} before Apply.`;
   } else if (tracksFile && tracksFileExists && total === 0) {
     // Tracking file exists but contains no tasks
     const tracksFilename = path.basename(tracksFile);
     state = 'blocked';
-    instruction = `The ${tracksFilename} file exists but contains no tasks.\nAdd tasks to ${tracksFilename} or regenerate it with openspec-apply-change.`;
+    instruction = `The ${tracksFilename} file exists but contains no tasks.\nReturn to the ${prerequisiteWorkflow} workflow to reconcile ${tracksFilename} before Apply.`;
   } else if (tracksFile && remaining === 0 && total > 0) {
     ({ state, instruction } = await resolveCompletedApplyState(changeDir, projectRoot));
   } else if (!tracksFile) {
@@ -489,7 +514,6 @@ export function printApplyInstructionsText(instructions: ApplyInstructions): voi
     console.log('### ⚠️ Blocked');
     console.log();
     console.log(`Missing artifacts: ${missingArtifacts.join(', ')}`);
-    console.log('Use the openspec-apply-change skill to create these first.');
     console.log();
   }
 

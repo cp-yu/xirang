@@ -175,11 +175,65 @@ describe('instruction-loader', () => {
       expect(instructions.artifactId).toBe('proposal');
       expect(instructions.schemaName).toBe('spec-driven');
       expect(instructions.outputPath).toBe('proposal.md');
+      expect(instructions.currentState).toEqual({ completed: false, outputs: [] });
       expect(instructions.definition).toEqual(expect.objectContaining({
         purpose: expect.any(String),
         compilationRole: expect.any(String),
         writePolicy: 'agent-authored',
       }));
+    });
+
+    it('projects existing artifact paths as current state without embedding content', () => {
+      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const proposalPath = path.join(changeDir, 'proposal.md');
+      fs.mkdirSync(changeDir, { recursive: true });
+      fs.writeFileSync(proposalPath, 'private proposal content');
+
+      const context = loadChangeContext(tempDir, 'my-change');
+      const instructions = generateInstructions(context, 'proposal');
+
+      expect(instructions.currentState).toEqual({
+        completed: true,
+        outputs: [fs.realpathSync(proposalPath)],
+      });
+      expect(JSON.stringify(instructions)).not.toContain('private proposal content');
+    });
+
+    it('projects completion-marker state without claiming a semantic output exists', () => {
+      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const markerPath = path.join(changeDir, '.specs-noop');
+      fs.mkdirSync(changeDir, { recursive: true });
+      fs.writeFileSync(markerPath, '');
+
+      const context = loadChangeContext(tempDir, 'my-change');
+      const instructions = generateInstructions(context, 'specs');
+
+      expect(instructions.currentState).toEqual({
+        completed: true,
+        outputs: [],
+        completionMarker: {
+          path: fs.realpathSync(markerPath),
+          present: true,
+        },
+      });
+    });
+
+    it('projects the expected completion-marker path when the marker is absent', () => {
+      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const markerPath = path.join(changeDir, '.specs-noop');
+      fs.mkdirSync(changeDir, { recursive: true });
+
+      const context = loadChangeContext(tempDir, 'my-change');
+      const instructions = generateInstructions(context, 'specs');
+
+      expect(instructions.currentState).toEqual({
+        completed: false,
+        outputs: [],
+        completionMarker: {
+          path: markerPath,
+          present: false,
+        },
+      });
     });
 
     it('projects precise semantic boundaries for spec-driven artifacts', () => {
@@ -268,6 +322,45 @@ describe('instruction-loader', () => {
       expect(body).not.toContain('The system SHALL allow users to export their data');
     });
 
+    it('projects one definition-first authoring order for every spec-driven artifact', () => {
+      const context = loadChangeContext(tempDir, 'my-change');
+
+      for (const artifactId of ['proposal', 'specs', 'opsx-delta', 'design', 'tasks']) {
+        const body = generateInstructions(context, artifactId).instruction ?? '';
+        const definitionIndex = body.indexOf('1. Read the resolved `definition`');
+        const currentStateIndex = body.indexOf('2. Read dependencies and current artifact state');
+        const instructionIndex = body.indexOf('3. Follow the artifact-specific instruction');
+        const templateIndex = body.indexOf('4. Fill the canonical structure from `template`');
+
+        expect(definitionIndex).toBeGreaterThanOrEqual(0);
+        expect(currentStateIndex).toBeGreaterThan(definitionIndex);
+        expect(instructionIndex).toBeGreaterThan(currentStateIndex);
+        expect(templateIndex).toBeGreaterThan(instructionIndex);
+        expect(body).toContain('MUST NOT copy `definition`, context, rules, `configProjection`, or Agent reasoning into the artifact');
+      }
+    });
+
+    it('projects phase file definitions and workspace state for generic bootstrap instructions', () => {
+      const bootstrapDir = path.join(tempDir, 'openspec', 'bootstrap');
+      const evidencePath = path.join(bootstrapDir, 'evidence.yaml');
+      fs.mkdirSync(bootstrapDir, { recursive: true });
+      fs.writeFileSync(evidencePath, 'domains: []\n');
+
+      const context = loadChangeContext(tempDir, 'my-change', 'bootstrap');
+      const instructions = generateInstructions(context, 'scan');
+
+      expect(context.changeDir).toBe(fs.realpathSync(bootstrapDir));
+      expect(instructions.definition).toBeUndefined();
+      expect(instructions.fileDefinitions?.map((file) => file.id)).toEqual([
+        'metadata',
+        'scope',
+        'evidence',
+      ]);
+      expect(instructions.currentState.outputs).toEqual([fs.realpathSync(evidencePath)]);
+      expect(instructions.instruction).toContain('Read `fileDefinitions` first');
+      expect(instructions.instruction).not.toContain('Read the resolved `definition`');
+    });
+
     it('rejects an unsupported project schema during instruction projection', () => {
       const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
@@ -333,16 +426,13 @@ describe('instruction-loader', () => {
       expect(instructions.instruction).toContain('proseLanguage');
     });
 
-    it('should expose explicit scenario operation label handling for specs', () => {
+    it('leaves scenario label orchestration to the invoking workflow', () => {
       const context = loadChangeContext(tempDir, 'my-change');
       const instructions = generateInstructions(context, 'specs');
 
-      expect(instructions.instruction).toContain('openspec scenario-labels "<change>" --write');
-      expect(instructions.instruction).toContain('after validation');
-      expect(instructions.instruction).not.toContain(
-        ['automatically handled by the OpenSpec CLI', 'after validation'].join(' ')
-      );
-      expect(instructions.instruction).not.toContain('Only scenarios whose behavior changed need labels');
+      expect(instructions.instruction).toContain('Agent MUST NOT author scenario operation labels');
+      expect(instructions.instruction).toContain('The invoking workflow owns scenario label preview and write orchestration');
+      expect(instructions.instruction).not.toContain('openspec scenario-labels');
       expect(instructions.instruction).not.toContain('use `[ADDED]`');
       expect(instructions.instruction).not.toContain('use `[MODIFIED]`');
       expect(instructions.instruction).not.toContain('use `[REMOVED]`');

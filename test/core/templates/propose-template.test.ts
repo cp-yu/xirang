@@ -35,15 +35,11 @@ describe('propose template post-validation flow', () => {
     expect(instructions).toContain('formal OPSX two-file bundle');
   });
 
-  it('consumes artifact definitions before instructions and templates', () => {
+  it('defers definition-first ordering to the artifact instruction projection', () => {
     const instructions = getOpsxProposeSkillTemplate().instructions;
-    expect(instructions).toContain('resolved `definition`');
-    expect(instructions).toContain('`content.includes`');
-    expect(instructions).toContain('`content.excludes`');
-    expect(instructions).toContain('obey `writePolicy`');
-    expect(instructions).toContain('follow `instruction`');
-    expect(instructions).toContain('canonical structure from `template`');
-    expect(instructions).toContain('Do not copy definition');
+    expect(instructions).toContain('follow the authoring order in the returned `instruction`');
+    expect(instructions).toContain('Keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs');
+    expect(instructions).not.toContain('Use `content.includes` and `content.excludes` to decide');
   });
 
   it('uses one blocking combined validation with a single repair pass', () => {
@@ -177,11 +173,10 @@ describe('propose template post-validation flow', () => {
     expect(body).toContain('do not invent OPSX operations from behavior changes alone');
   });
 
-  it('uses the resolved specs definition to route content', () => {
+  it('does not duplicate the resolved Specs content boundary', () => {
     const body = getOpsxProposeSkillTemplate().instructions;
-    expect(body).toContain('`content.includes`');
-    expect(body).toContain('`content.excludes`');
-    expect(body).toContain('route non-behavior content to design/tasks/proposal/opsx-delta');
+    expect(body).toContain('Follow the returned Specs authoring contract');
+    expect(body).not.toContain('route non-behavior content to design/tasks/proposal/opsx-delta');
   });
 
   it('previews and reviews scenario operations before writing labels', () => {

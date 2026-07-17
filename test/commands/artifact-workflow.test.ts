@@ -291,6 +291,8 @@ describe('artifact-workflow CLI commands', () => {
       expect(result.stdout.indexOf('<definition>')).toBeLessThan(result.stdout.indexOf('<instruction>'));
       expect(result.stdout.indexOf('<definition>')).toBeLessThan(result.stdout.indexOf('<template>'));
       expect(result.stdout).toContain('Do not copy this definition into the artifact.');
+      expect(result.stdout).toContain('<current_state completed="false">');
+      expect(result.stdout).toContain('No current artifact outputs.');
       expect(result.stdout).toContain('<template>');
     });
 
@@ -319,7 +321,7 @@ describe('artifact-workflow CLI commands', () => {
     });
 
     it('outputs JSON for instructions', async () => {
-      await createTestChange('json-instr', ['proposal']);
+      await createTestChange('json-instr', ['proposal', 'design']);
 
       const result = await runCLI(['instructions', 'design', '--change', 'json-instr', '--json'], {
         cwd: tempDir,
@@ -339,6 +341,10 @@ describe('artifact-workflow CLI commands', () => {
         validation: expect.any(Array),
       }));
       expect(Array.isArray(json.dependencies)).toBe(true);
+      expect(json.currentState).toEqual({
+        completed: true,
+        outputs: [expect.stringContaining('design.md')],
+      });
     });
 
     it('outputs the coarse task template for tasks instructions', async () => {
@@ -496,6 +502,24 @@ describe('artifact-workflow CLI commands', () => {
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('Blocked');
       expect(result.stdout).toContain('Missing artifacts: tasks');
+      expect(result.stdout).toContain('Return to the Propose workflow');
+      expect(result.stdout).not.toContain('Use the openspec-apply-change skill to create');
+    });
+
+    it('routes bootstrap blockers back to the Bootstrap workflow', async () => {
+      await createTestChange('blocked-bootstrap');
+
+      const result = await runCLI(
+        ['instructions', 'apply', '--change', 'blocked-bootstrap', '--schema', 'bootstrap', '--json'],
+        { cwd: tempDir }
+      );
+      expect(result.exitCode).toBe(0);
+
+      const json = JSON.parse(result.stdout);
+      expect(json.state).toBe('blocked');
+      expect(json.missingArtifacts).toEqual(['review']);
+      expect(json.instruction).toContain('Return to the Bootstrap workflow');
+      expect(json.instruction).not.toContain('Propose workflow');
     });
 
     it('outputs JSON for apply instructions', async () => {
