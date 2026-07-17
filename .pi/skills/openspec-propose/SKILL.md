@@ -6,7 +6,7 @@ compatibility: "Requires openspec CLI."
 metadata:
   author: "openspec"
   version: "1.0"
-  generatedBy: "1.4.1-cpyu.1"
+  generatedBy: "1.4.1-cpyu.5"
 ---
 
 Propose a new change or update an existing change, generating all artifacts needed for implementation.

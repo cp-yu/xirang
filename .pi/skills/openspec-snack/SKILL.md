@@ -6,7 +6,7 @@ compatibility: "Requires openspec CLI."
 metadata:
   author: "openspec"
   version: "1.0"
-  generatedBy: "1.4.1-cpyu.1"
+  generatedBy: "1.4.1-cpyu.5"
 ---
 
 Reconcile OpenSpec artifacts from already-written code (code-first artifact reconciliation, reverse of propose/apply).
