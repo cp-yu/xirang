@@ -223,5 +223,41 @@ model {
         status 'active'
       }
     }
+
+    arch_query = capability 'Architecture Query' {
+          description '查询 LikeC4 elements 和 directed relations'
+          metadata {
+            capabilityId 'cap.cli.arch-query'
+            status 'active'
+            specs ['openspec/specs/arch-query-command/spec.md']
+          }
+        }
+
+        arch_validate = capability 'Architecture Validate' {
+          description '验证 formal LikeC4 model 或 change-local architecture delta'
+          metadata {
+            capabilityId 'cap.cli.arch-validate'
+            status 'active'
+            specs ['openspec/specs/arch-validate-command/spec.md']
+          }
+        }
+
+        arch_preview = capability 'Architecture Preview' {
+          description '启动 LikeC4 web preview server'
+          metadata {
+            capabilityId 'cap.cli.arch-preview'
+            status 'active'
+            specs ['openspec/specs/arch-preview-command/spec.md']
+          }
+        }
+
+        arch_export = capability 'Architecture Export' {
+          description '导出 LikeC4 architecture diagrams'
+          metadata {
+            capabilityId 'cap.cli.arch-export'
+            status 'active'
+            specs ['openspec/specs/arch-export-command/spec.md']
+          }
+        }
   }
 }

@@ -80,7 +80,7 @@
       "test/unit/utils/likec4-reader.test.ts",
       "tests/e2e/bootstrap-test.sh"
     ],
-    "evidenceFingerprint": "897ec64b0dfd0956142dcd79023d25651f4f8c83f13ddfa8238eb731d0b7a0e2",
+    "evidenceFingerprint": "e778b56f58722429bad983994c9fbd619e681e017326ef45546ec0085ed9bd92",
     "evidenceFingerprintEntries": [
       {
         "path": ".pi/skills/openspec-bootstrap-arch/SKILL.md",
@@ -96,7 +96,7 @@
       },
       {
         "path": "openspec/architecture/relations.c4",
-        "hash": "872bca4916f3799ff1ffd1b1359263400d72b82438778dd88100d6c58a57cd15"
+        "hash": "4987fd4b0d6d9d86f1445301b1826b0eb9c4fb3bd2b1f9d2de1d87373282f0a0"
       },
       {
         "path": "openspec/architecture/specification.c4",

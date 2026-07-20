@@ -5,23 +5,23 @@ model {
 
   ai_integration.impact_sweeper -[invokes]-> ai_integration.sweeper_terminology_extraction
 
-  ai_integration.internal_subagent_generation -[consumes]-> verify.subagent_self_read
-
   ai_integration.internal_subagent_generation -[consumes]-> ai_integration.tool_adapters
 
-  ai_integration.optimizer_skill -[consumes]-> verify.subagent_self_read
+  ai_integration.internal_subagent_generation -[consumes]-> verify.subagent_self_read
 
   ai_integration.optimizer_skill -[consumes]-> verify.prompt_orchestration
 
-  ai_integration.propose_smart_routing -[consumes]-> ai_integration.explore_brainstorming
+  ai_integration.optimizer_skill -[consumes]-> verify.subagent_self_read
 
-  ai_integration.reviewer_skill -[consumes]-> verify.subagent_self_read
+  ai_integration.propose_smart_routing -[consumes]-> ai_integration.explore_brainstorming
 
   ai_integration.reviewer_skill -[consumes]-> verify.prompt_orchestration
 
-  ai_integration.skill_generation -[invokes]-> ai_integration.tool_invocation_references
+  ai_integration.reviewer_skill -[consumes]-> verify.subagent_self_read
 
   ai_integration.skill_generation -[consumes]-> ai_integration.workflow_templates
+
+  ai_integration.skill_generation -[invokes]-> ai_integration.tool_invocation_references
 
   ai_integration.sweeper_terminology_reporting -[consumes]-> ai_integration.sweeper_terminology_extraction
 
@@ -39,25 +39,41 @@ model {
 
   apply.branch_isolation -[consumes]-> config.apply_default_isolation
 
+  apply.verify_integration -[consumes]-> verify.optimizer_findings
+
   apply.verify_integration -[invokes]-> cli.verify_aware_instructions
 
   apply.verify_integration -[invokes]-> verify.cli_gate
 
   apply.verify_integration -[invokes]-> verify.optimize
 
-  apply.verify_integration -[consumes]-> verify.optimizer_findings
+  architecture.delta_merger -[invokes]-> architecture.likec4_reader
 
-  change_workflow.branch_merge -[consumes]-> config.project_element
+  architecture.delta_merger -[validates]-> architecture.semantic_validator
 
-  artifact_graph.instruction_loader -[invokes]-> artifact_graph.parse
+  artifact_graph.instruction_loader -[consumes]-> artifact_graph.file_definitions
 
   artifact_graph.instruction_loader -[consumes]-> config.project_element
 
   artifact_graph.instruction_loader -[consumes]-> config.projection_element
 
+  artifact_graph.instruction_loader -[invokes]-> artifact_graph.parse
+
   change_workflow.archive -[precedes]-> change_workflow.branch_merge
 
+  change_workflow.branch_merge -[consumes]-> config.project_element
+
   change_workflow.create -[invokes]-> artifact_graph.schema_resolution
+
+  cli.arch_preview -[invokes]-> architecture.likec4_reader
+
+  cli.arch_query -[invokes]-> architecture.likec4_reader
+
+  cli.arch_validate -[invokes]-> architecture.likec4_reader
+
+  cli.arch_validate -[invokes]-> architecture.semantic_validator
+
+  cli.authoring_help -[consumes]-> artifact_graph.file_definitions
 
   cli.command_reference_consistency -[validates]-> ai_integration.workflow_templates
 
@@ -67,11 +83,11 @@ model {
 
   cli.config -[invokes]-> cli.project_element
 
-  cli.init -[invokes]-> ai_integration.skill_generation
-
   cli.init -[consumes]-> ai_integration.tool_adapters
 
   cli.init -[consumes]-> config.project_element
+
+  cli.init -[invokes]-> ai_integration.skill_generation
 
   cli.instructions -[invokes]-> artifact_graph.instruction_loader
 
@@ -79,9 +95,11 @@ model {
 
   cli.status -[invokes]-> artifact_graph.parse
 
-  cli.update -[invokes]-> config.migration_element
+  cli.sync -[invokes]-> architecture.delta_merger
 
   cli.update -[consumes]-> config.project_element
+
+  cli.update -[invokes]-> config.migration_element
 
   cli.validate -[invokes]-> cli.command_reference_consistency
 
@@ -91,21 +109,27 @@ model {
 
   config.apply_default_isolation -[consumes]-> config.project_element
 
+  migration.opsx_to_likec4_converter -[invokes]-> migration.likec4_file_generator
+
+  migration.opsx_to_likec4_converter -[invokes]-> migration.spec_path_inference
+
+  opsx_element.bootstrap -[consumes]-> artifact_graph.file_definitions
+
   opsx_element.bootstrap_refresh -[invokes]-> opsx_element.bootstrap
 
   opsx_element.delta_merge -[invokes]-> opsx_element.atomic_write
 
   opsx_element.referential_integrity -[validates]-> opsx_element.delta_merge
 
-  validation.registry -[invokes]-> validation.frontmatter
-
   validation.change -[invokes]-> validation.spec_section_type_cross_check
-
-  validation.opsx_element -[invokes]-> opsx_element.referential_integrity
 
   validation.opsx_dry_run -[invokes]-> opsx_element.delta_merge
 
   validation.opsx_dry_run -[invokes]-> opsx_element.referential_integrity
+
+  validation.opsx_element -[invokes]-> opsx_element.referential_integrity
+
+  validation.registry -[invokes]-> validation.frontmatter
 
   validation.spec -[precedes]-> cli.scenario_labels
 
@@ -122,10 +146,4 @@ model {
   verify.optimize -[consumes]-> ai_integration.workflow_templates
 
   verify.optimize -[consumes]-> verify.optimizer_findings
-
-  artifact_graph.instruction_loader -[consumes]-> artifact_graph.file_definitions
-
-  cli.authoring_help -[consumes]-> artifact_graph.file_definitions
-
-  opsx_element.bootstrap -[consumes]-> artifact_graph.file_definitions
 }

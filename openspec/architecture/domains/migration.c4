@@ -1,0 +1,45 @@
+model {
+  migration = domain 'Migration' {
+      description 'OPSX YAML 到 LikeC4 的迁移转换、生成与验证流程'
+      metadata {
+        boundary '拥有 legacy architecture migration；不拥有目标模型的持续查询与合并'
+        status 'active'
+      }
+
+      opsx_to_likec4_converter = capability 'OPSX to LikeC4 Converter' {
+        description '将 OPSX YAML 两文件模型转换为 LikeC4 多文件模型'
+        metadata {
+          capabilityId 'cap.migration.opsx-to-likec4-converter'
+          status 'active'
+          specs ['openspec/specs/migrate-opsx-to-likec4/spec.md']
+        }
+      }
+
+      likec4_file_generator = capability 'LikeC4 File Generator' {
+        description '生成 specification、domain、relation 与 view 文件'
+        metadata {
+          capabilityId 'cap.migration.likec4-file-generator'
+          status 'active'
+          specs ['openspec/specs/migrate-opsx-to-likec4/spec.md']
+        }
+      }
+
+      spec_path_inference = capability 'Spec Path Inference' {
+        description '从 formal Specs 推断 capability metadata 的 spec 路径'
+        metadata {
+          capabilityId 'cap.migration.spec-path-inference'
+          status 'active'
+          specs ['openspec/specs/migrate-opsx-to-likec4/spec.md']
+        }
+      }
+
+      agent_verification_workflow = capability 'Agent Verification Workflow' {
+        description '请求 Agent 审查迁移结果的完整性和正确性'
+        metadata {
+          capabilityId 'cap.migration.agent-verification-workflow'
+          status 'active'
+          specs ['openspec/specs/migrate-opsx-to-likec4/spec.md']
+        }
+      }
+    }
+}
