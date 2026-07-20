@@ -80,7 +80,7 @@
       "test/unit/utils/likec4-reader.test.ts",
       "tests/e2e/bootstrap-test.sh"
     ],
-    "evidenceFingerprint": "25aa9e47bdb96e2b960f70f6d208f39a0e444918ada0d8efbd392fbebaf37709",
+    "evidenceFingerprint": "c6d1c6768b52cd0aacc9b52fd71301b0362d61e5df834d328ca46e22ca4050ea",
     "evidenceFingerprintEntries": [
       {
         "path": ".pi/skills/openspec-bootstrap-arch/SKILL.md",
@@ -288,7 +288,7 @@
       },
       {
         "path": "src/utils/architecture-delta-merger.ts",
-        "hash": "8c362e89464d5d653d2160b7c503385593f8716cf5ab3304af3d54bc1909602c"
+        "hash": "ee778aa7db1c211ed2f80441ff05e357c7349b7c792dd9d70179a1e54febf913"
       },
       {
         "path": "src/utils/architecture-reader.ts",
@@ -356,7 +356,7 @@
       },
       {
         "path": "test/unit/utils/architecture-delta-merger.test.ts",
-        "hash": "65ea7d1b8bb23a25c38e997684e966e3a1360357844aee1fdd5f89b52e5f7dbe"
+        "hash": "7269fd3b7903c174197238b9db8159251486a4fcda14099ebbc040d68b0ff17c"
       },
       {
         "path": "test/unit/utils/architecture-validator.test.ts",
@@ -374,9 +374,9 @@
     "skippedEvidenceFiles": [
       "openspec/changes/opsx-to-likec4-mega-refactor/.verify-result.json"
     ],
-    "gitHeadCommit": "3ac4b2323075d7805b6c2f4b28326ea2241663b0",
+    "gitHeadCommit": "68dd8cc0e9bc65a71f53a9745d9c35a4b1ebb989",
     "gitDiffSummary": "Validated projectRoot, changeDir, and changeName. Immutable baseCommit 5f600da0a38665e231a29597ccd0fd5c2c5f638b resolves; final HEAD fa272ae2ae9d150feced86385718c4e2a9b5e9c3. Considered git diff 5f600da0a38665e231a29597ccd0fd5c2c5f638b...HEAD --name-only together with git status --short; all scoped changes are attributed by task Files, command Check evidence, or change artifacts. No staged files exist. Declared deletions were confirmed, including active opsx-delta templates, legacy bootstrap skill/template tests, and original OPSX files renamed to backups. git diff --check passed. pnpm lint passed with only the documented local Node 22.21.1 engine warning. pnpm run build passed. Full pnpm test passed: 153 files and 2150 tests. Formal LikeC4 validation passed 14 files; formal plus architecture delta validation passed 15 files. openspec arch validate passed. openspec validate --all passed 108/108. E2E bootstrap passed. Formal self-host arch query with relations, depth, and JSON output passed. Performance migration test passed at approximately 203ms for 1000 capabilities. Latest sync remediation was verified in final code and integration tests: semantic comparison includes domain and capability properties, normalized Specs paths, relation source/kind/target, and descriptions; extension capabilities are assigned to their target domain without double counting; collision and idempotence workflows pass; successful sync remains archiveable without losing formal content. Legacy OPSX references are confined to deprecated, migration, historical, or compatibility surfaces.",
-    "timestamp": "2026-07-20T14:21:08.782Z"
+    "timestamp": "2026-07-20T14:32:39.700Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
@@ -388,6 +388,16 @@
       },
       {
         "timestamp": "2026-07-20T14:21:08.757Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-07-20T14:26:45.049Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-20T14:32:39.677Z",
         "type": "verification",
         "result": "PASS"
       }
@@ -774,7 +784,7 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "src/commands/arch/query.ts"
@@ -786,46 +796,44 @@
         "opportunity": "Bounded relation traversal scans the complete architecture.relations array for every dequeued element during breadth-first search.",
         "impact": "Build an adjacency index once so traversal changes from O(V×E) in the reachable subgraph to O(V+E), improving arch query latency for large LikeC4 models without changing the query contract.",
         "evidence": [
-          "src/commands/arch/query.ts:31-40 loops through every architecture.relations entry for each queue element.",
-          "The same command supports arbitrary architecture depth and the formal model already contains many cross-capability relations.",
-          "The existing result sorting at src/commands/arch/query.ts:43-50 is independent of traversal discovery order, so indexing can preserve output ordering while eliminating repeated full scans."
+          "Checkpoint 68dd8cc0 replaces the per-dequeued-element full relation scan with a single adjacency-index construction at src/commands/arch/query.ts:29-36 and per-node incident-list traversal at lines 43-48.",
+          "test/integration/arch-command.test.ts verifies one iteration of the source relation collection while preserving incoming traversal, depth-two reachability, duplicate relation records, and exclusion of unrelated relations.",
+          "Persisted speculative verification passed after the implementation, including 153 test files and 2150 tests, lint, build, formal and delta LikeC4 validation, OpenSpec validation, self-host architecture query, and performance validation."
         ],
-        "recommendation": "Construct a Map<string, ArchitectureRelation[]> keyed by both relation endpoints before BFS, preserving relation-array order in each adjacency list, and traverse only the current element's incident relations.",
-        "keyDesign": "Use an undirected adjacency index because the current implementation traverses both incoming and outgoing relations. For every relation, append the opposite endpoint and relation reference to both endpoint buckets in source-array order. Keep the existing depth map, visited semantics, related-element sorting, relation filtering, relation depth calculation, and final sort unchanged.",
+        "recommendation": "Preserve the verified adjacency index and close this finding; do not replace it with repeated relation filtering or deduplicate adjacency entries.",
+        "keyDesign": "Keep the undirected adjacency Map keyed by both relation endpoints. Each source relation is appended to both endpoint buckets in source-array order, while the existing depth map, queue semantics, final relation filtering, depth annotation, duplicate preservation, and deterministic sorting remain unchanged.",
         "preservationConstraints": [
           "Traversal remains undirected and includes both incoming and outgoing relations.",
           "The root element remains at depth 0 and only elements reachable within maxDepth are included.",
-          "Duplicate architecture relations remain represented in the returned relations array; indexing must only prevent duplicate queue insertion, as the current depths Set does.",
-          "The existing maxDepth normalization and all text/JSON output fields remain unchanged.",
-          "Relation depth annotations and deterministic sorting remain exactly as currently produced."
+          "Duplicate architecture relations remain represented in the returned relations array.",
+          "The existing maxDepth normalization and all text and JSON output fields remain unchanged.",
+          "Relation depth annotations and deterministic sorting remain exactly as verified.",
+          "Subsequent optimizations must not remove or bypass the adjacency index."
         ],
         "implementationOutline": [
-          "Create an adjacency map from architecture.relations before initializing the BFS queue.",
-          "Append each relation to both endpoint buckets without deduplicating relation records.",
-          "Replace the inner full-array scan with iteration over the current node's adjacency bucket.",
-          "Retain the existing final relation filter and sort to avoid changing observable ordering.",
-          "Add an integration test with a multi-hop graph and unrelated relations asserting identical related elements, depths, relations, and ordering."
+          "No further implementation is required for this finding.",
+          "Preserve the adjacency construction and incident-list BFS in later query formatter work.",
+          "Retain the regression test that observes one source-relation iteration and duplicate preservation."
         ],
         "validation": [
-          "Run the existing arch command integration test suite.",
-          "Add a test proving incoming and outgoing relations are both traversed to the requested depth.",
-          "Add a test proving duplicate relation records remain in the returned relations array.",
-          "Run pnpm test -- arch-command.test.ts.",
-          "Run pnpm lint and pnpm run build."
+          "Persisted Phase 2 verification passed for checkpoint 68dd8cc0.",
+          "Focused Vitest validation passed test/integration/arch-command.test.ts.",
+          "Current worktree remains clean with no staged files.",
+          "git diff --check passed."
         ],
         "impactLevel": "high",
         "confidence": "high",
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "This is the highest-value optimization because it removes a statically provable repeated full-graph scan from a public query path while preserving the existing result assembly and ordering contracts.",
+        "priorityReason": "This optimization is implemented and verified; resolving it records completion while explicitly preserving it as a constraint on the next query-path optimization.",
         "id": "OPT-20260720T135027878Z-01",
         "targetFileHashes": {
           "src/commands/arch/query.ts": "6bc106cef784f5dd55af52e557b268d452c8aefdf73b85dc0ab4254195f79649"
         }
       },
       {
-        "status": "pending",
+        "status": "verified",
         "location": {
           "files": [
             "src/utils/architecture-delta-merger.ts"
@@ -834,46 +842,59 @@
             "mergeArchitectureDelta"
           ]
         },
-        "opportunity": "Delta merging reads every domain file into contents and then writes every domain file even when only one domain or relations.c4 changed.",
-        "impact": "Avoid unnecessary atomic writes, filesystem metadata updates, and rollback bookkeeping for unchanged domain files; sync cost becomes proportional to changed architecture files rather than the entire domain-file set.",
+        "opportunity": "Delta merging loads every domain into the proposed contents map and then invokes the production write function for every domain, including domains whose exact content was not changed by the delta.",
+        "impact": "Avoid redundant atomic writes, filesystem metadata churn, and rollback entries for unchanged formal domain files. Production writes and production rollback work become proportional to files whose proposed content actually differs, while complete-tree staging and validation remain unchanged.",
         "evidence": [
-          "src/utils/architecture-delta-merger.ts:67-72 loads all domain files into contents.",
-          "src/utils/architecture-delta-merger.ts:116-122 records originals and invokes the write function for every entry in contents, including unchanged domain contents.",
-          "The current project has 10 domain files, and the implementation is intended for arbitrary OpenSpec projects with potentially many domains.",
-          "The staged validation at src/utils/architecture-delta-merger.ts:103-111 already copies the complete architecture tree before applying proposed contents, so unchanged files do not need to be rewritten for validation."
+          "src/utils/architecture-delta-merger.ts:67-72 loads every .c4 domain file into contents for discovery.",
+          "Only new-domain handling at lines 74-82, matching extend targets at lines 84-89, and relation additions at lines 91-101 can change proposed contents.",
+          "src/utils/architecture-delta-merger.ts:116-124 rereads originals and invokes the write abstraction for every contents entry without comparing proposed and original strings.",
+          "The formal project currently contains 10 domain files, so a one-domain extension causes production writes for all 10 domains.",
+          "src/utils/architecture-delta-merger.ts:103-114 already validates the complete copied architecture tree before any production write, so excluding exact-content-equal files from the later write set does not weaken validation.",
+          "Focused current-code validation passed 24 tests across architecture-delta-merger, sync-workflow, and arch-command suites; the worktree was clean and had no staged files."
         ],
-        "recommendation": "Track original contents separately and derive a changed-files map after applying new-domain, extend, and relation transformations. Validate the complete staged tree as today, but atomically write and rollback only files whose exact content differs from their original or newly created files.",
-        "keyDesign": "Maintain the full contents map for domain discovery and staging. Maintain an originals map for existing files. Before the write phase, filter entries by original content equality, treating absent originals as changed. Preserve the current insertion order for changed files, write new domain files and relations.c4 when changed, and leave unchanged files untouched.",
+        "recommendation": "Preserve the full proposed contents map for domain discovery and staged validation, but capture existing domain contents as originals when initially read, capture the original relations content when relevant, derive an ordered changed-files map by exact string comparison, and use only that map for production writes and rollback.",
+        "keyDesign": "Separate complete proposed-tree state from the production mutation set. Keep contents as the full domain proposal used to populate the staging copy. Keep originals for existing candidates, using null only for newly created files. After all transformations and successful staged validation, filter contents in insertion order to entries whose original is absent or differs exactly. Write only those entries and rollback only those attempted transaction files.",
         "preservationConstraints": [
           "The complete staged architecture tree must still be validated before any production write.",
-          "New domain files must always be written and removed during rollback if a later write fails.",
-          "Changed existing domain and relations files must retain current atomicWrite behavior.",
+          "All existing domain files must remain available for domain discovery and extend-target resolution.",
+          "New domain files must always be treated as changed and removed during rollback if a later production write fails.",
+          "Changed existing domain and relations files must retain the current write abstraction and atomicWrite behavior.",
           "Rollback must restore every changed existing file and remove every changed newly created file.",
-          "No relation ordering, domain insertion, path normalization, validation, or sync summary behavior may change.",
-          "Exact content comparison must be used so formatting-only changes generated by the merger are not incorrectly suppressed."
+          "A production write failure must still reject the merge and leave the formal architecture byte-for-byte equivalent to its pre-merge state.",
+          "No relation ordering, domain insertion, path formalization, validation timing, error timing before writes, or sync summary behavior may change.",
+          "Exact string equality must determine whether a proposed file is unchanged; semantic or formatting normalization must not suppress generated formatting changes.",
+          "The verified query adjacency-index optimization in src/commands/arch/query.ts must remain untouched."
         ],
         "implementationOutline": [
-          "Capture original content for all existing candidate files before the write phase.",
-          "After constructing proposed contents, compute a changed-files map using exact string comparison.",
-          "Use the unchanged complete contents tree for staging validation.",
-          "Write only changed files through the existing write abstraction.",
-          "Rollback only the changed-files map, restoring originals or removing newly created files.",
-          "Extend the merger unit test to assert unchanged domain files are not passed to an injected write function."
+          "When reading existing domains, populate both the complete proposed contents map and an originals map from the same read results.",
+          "For a newly declared domain, record a null original when adding its proposed file.",
+          "When relation additions exist, retain current relation parsing and sorting, add the proposed relations content, and record the existing relations content or null if the file was absent.",
+          "Keep copying the complete formal architecture and overlaying the complete proposed contents map in staging before LikeC4 validation.",
+          "After validation succeeds, derive changed entries in existing Map insertion order using original === null or original !== proposedContent.",
+          "Invoke the existing write abstraction only for changed entries.",
+          "On write failure, restore or remove only transaction entries, while preserving the existing all-or-nothing formal state guarantee.",
+          "Add a unit test with at least two formal domain files and a delta extending only one, asserting the injected writer receives only the changed domain.",
+          "Retain and adapt failure-injection coverage so rollback is exercised across two genuinely changed files."
         ],
         "validation": [
-          "Run architecture-delta-merger unit tests, including injected write failure rollback.",
-          "Add a test with two formal domains and a delta affecting only one domain, asserting the untouched domain is not written.",
-          "Run sync workflow integration tests to prove formal architecture and later Specs rollback remain intact.",
-          "Run pnpm test -- architecture-delta-merger.test.ts sync-workflow.test.ts.",
-          "Run pnpm lint and pnpm run build."
+          "Add or update test/unit/utils/architecture-delta-merger.test.ts to prove an untouched domain is not passed to the injected writer.",
+          "Keep coverage proving new domains are written and removed if a later changed-file write fails.",
+          "Keep coverage proving changed existing domain and relations files are restored after an injected write failure.",
+          "Run pnpm exec vitest run test/unit/utils/architecture-delta-merger.test.ts test/integration/sync-workflow.test.ts.",
+          "Run pnpm lint.",
+          "Run pnpm run build.",
+          "Run git diff --check and confirm git diff --cached --name-only is empty."
         ],
         "impactLevel": "medium",
         "confidence": "high",
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "This is a narrowly scoped I/O optimization with direct evidence of redundant writes and a clear preservation strategy; it ranks after traversal because its benefit is proportional to the number of formal domain files touched by sync.",
-        "id": "OPT-20260720T135027878Z-02"
+        "priorityReason": "This is the next selected opportunity: redundant production writes are directly visible, exact-content filtering closes behavior and rollback constraints, and the change is isolated to an existing base-scope implementation file. It outranks the formatter reread because its avoided work scales with formal domain count and includes atomic-write and rollback overhead.",
+        "id": "OPT-20260720T135027878Z-02",
+        "targetFileHashes": {
+          "src/utils/architecture-delta-merger.ts": "8c362e89464d5d653d2160b7c503385593f8716cf5ab3304af3d54bc1909602c"
+        }
       },
       {
         "status": "pending",
@@ -885,42 +906,51 @@
             "formatArchitectureQueryText"
           ]
         },
-        "opportunity": "Text formatting rereads the entire LikeC4 architecture after queryArchitecture has already loaded and resolved the same model.",
-        "impact": "Eliminate a second directory scan and parse of all architecture files for every non-JSON text query, reducing filesystem I/O and parser allocations while keeping the public text contract unchanged.",
+        "opportunity": "Text formatting rereads and reparses the complete LikeC4 architecture after queryArchitecture has already loaded and resolved the same model.",
+        "impact": "Eliminate one complete architecture directory scan and parse for every non-JSON query, reducing filesystem I/O and parser allocations while preserving the public text and JSON contracts.",
         "evidence": [
-          "src/commands/arch/query.ts:18-19 reads the complete architecture in queryArchitecture.",
-          "src/commands/arch/query.ts:59-60 reads the complete architecture again in formatArchitectureQueryText.",
-          "The formatter only uses the second read to map relation endpoint IDs to canonical capability IDs at src/commands/arch/query.ts:54-57.",
-          "All endpoints in result.relations are guaranteed to be present in the BFS depth map and therefore represented by the root element or result.relatedElements."
+          "src/commands/arch/query.ts:18-22 reads the architecture and resolves the root element in queryArchitecture.",
+          "src/commands/arch/query.ts:67-68 calls readLikeC4Architecture again in formatArchitectureQueryText.",
+          "The second architecture value is used only by relationEndpoint at lines 62-64 and relation rendering at line 80.",
+          "queryArchitecture includes every returned relation endpoint in its depths map and returns the root plus all positive-depth related elements, so the formatter already receives the elements needed for canonical endpoint labels.",
+          "src/commands/arch/index.ts invokes queryArchitecture and then immediately invokes formatArchitectureQueryText with the returned result for non-JSON output.",
+          "The verified adjacency index remains present in queryArchitecture and is independent of formatter endpoint canonicalization."
         ],
-        "recommendation": "Format canonical relation endpoints from the already returned root and related elements instead of rereading the architecture. Build a local element-id-to-canonical-id map from result.element and result.relatedElements, with the raw endpoint as a safe fallback.",
-        "keyDesign": "Keep queryArchitecture's return shape unchanged. In formatArchitectureQueryText, initialize a Map with the root element and, when relations are present, every related element. Resolve each relation endpoint through this map and fall back to its LikeC4 ID if absent. Remove the second readLikeC4Architecture call.",
+        "recommendation": "Build a local element-ID-to-canonical-ID map from result.element and result.relatedElements inside the formatter, resolve relation endpoints from that map with the raw LikeC4 ID as a defensive fallback, and remove the redundant architecture read without changing queryArchitecture's returned JSON shape.",
+        "keyDesign": "Keep queryArchitecture and its verified adjacency index unchanged. In formatArchitectureQueryText, seed a Map with the root element's LikeC4 ID and canonical ID, add every related element when present, and render each relation endpoint from this map. Raw endpoint fallback preserves domain labels and defensive handling without adding internal architecture data to the result.",
         "preservationConstraints": [
-          "The JSON result contract must not gain an architecture payload or internal fields.",
-          "Text output labels, descriptions, Specs lines, relation descriptions, depth annotations, and ordering remain unchanged.",
-          "Capability IDs must continue to be shown instead of qualified LikeC4 IDs when metadata.capabilityId exists.",
-          "Domain endpoints and unresolved defensive fallback behavior must remain supported.",
-          "Queries without --relations must not perform any architecture read beyond queryArchitecture's initial read."
+          "The verified undirected adjacency index and its regression test must remain unchanged.",
+          "The JSON result contract must not gain an architecture payload, endpoint map, or other formatter-only fields.",
+          "Text output labels, descriptions, Specs lines, relation descriptions, depth annotations, whitespace, and ordering must remain unchanged.",
+          "Capability endpoints must continue to display metadata capabilityId when present.",
+          "Domain endpoints must continue to display their LikeC4 IDs.",
+          "A missing endpoint-map entry must fall back to the raw relation endpoint ID.",
+          "Queries without --relations must retain their existing text output and must not introduce any additional architecture read.",
+          "Error timing and element-not-found behavior in queryArchitecture must remain unchanged."
         ],
         "implementationOutline": [
-          "Create a canonical endpoint map from result.element.",
-          "Add result.relatedElements to the map when present.",
-          "Resolve relation source and target through the map in the formatter.",
-          "Delete the redundant architecture read and architecture-specific endpoint lookup.",
-          "Add a test spying on the reader or equivalent fixture behavior to assert formatting does not trigger a second parse."
+          "Remove the architecture reread from formatArchitectureQueryText while retaining its public signature unless a separate public-contract decision explicitly permits changing it.",
+          "Create an endpoint label map from result.element.",
+          "Add each result.relatedElements entry to the map when related elements are present.",
+          "Replace relationEndpoint's architecture scan with map lookup and raw-ID fallback.",
+          "Keep relation and related-element loops and ordering unchanged.",
+          "Add focused coverage for capability canonical IDs, domain endpoints, and the absence of a second reader invocation."
         ],
         "validation": [
-          "Run existing arch command integration tests covering text formatting, descriptions, Specs, relations, and depth.",
-          "Add a regression test for domain and capability endpoint canonicalization without a second read.",
-          "Run pnpm test -- arch-command.test.ts.",
-          "Run pnpm lint and pnpm run build."
+          "Add a regression test that spies on or mocks readLikeC4Architecture and proves query plus text formatting performs one architecture read.",
+          "Assert existing text output remains byte-for-byte stable for descriptions, Specs paths, relation descriptions, canonical capability IDs, and depths.",
+          "Add or retain a domain-endpoint case proving raw domain IDs remain rendered.",
+          "Run pnpm exec vitest run test/integration/arch-command.test.ts.",
+          "Run pnpm lint.",
+          "Run pnpm run build.",
+          "Run git diff --check and confirm git diff --cached --name-only is empty."
         ],
         "impactLevel": "medium",
         "confidence": "high",
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "This is a safe same-request I/O elimination in the same public query path, but it ranks after the adjacency optimization because it removes one fixed read while adjacency removes repeated work proportional to graph size.",
+        "priorityReason": "The opportunity remains statically valid and low risk, but it is not the next selected finding because it removes one fixed reread per text query, whereas OPT-20260720T135027878Z-02 removes production write and rollback overhead that scales with formal architecture size.",
         "id": "OPT-20260720T135027878Z-03"
       }
     ],
@@ -972,9 +1002,57 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-07-20T14:21:08.757Z",
         "findingId": "OPT-20260720T135027878Z-01"
+      },
+      {
+        "sequence": 7,
+        "action": "resolve",
+        "reason": "Checkpoint 68dd8cc0 implemented and fresh Phase 2 verification passed the adjacency-index optimization. Current queryArchitecture builds one undirected adjacency index, preserves relation-array order and duplicates, retains bounded BFS depth and deterministic result sorting, and the focused regression test confirms a single source-relation iteration with incoming traversal, multi-hop traversal, duplicate relations, and unrelated-edge exclusion.",
+        "timestamp": "2026-07-20T14:26:45.047Z",
+        "findingId": "OPT-20260720T135027878Z-01"
+      },
+      {
+        "sequence": 8,
+        "action": "retain",
+        "reason": "Fresh code still writes every loaded domain through the production write abstraction at src/utils/architecture-delta-merger.ts:116-124, even though delta transformations commonly change only one domain and optionally relations.c4. Exact-content filtering after complete staged validation remains statically behavior-preserving and is the highest-value remaining low-risk optimization.",
+        "timestamp": "2026-07-20T14:26:45.047Z",
+        "findingId": "OPT-20260720T135027878Z-02"
+      },
+      {
+        "sequence": 9,
+        "action": "retain",
+        "reason": "Fresh code still performs a second complete readLikeC4Architecture call in formatArchitectureQueryText at src/commands/arch/query.ts:67-80. The opportunity remains valid, but it ranks behind OPT-20260720T135027878Z-02 because it removes one fixed parse per text query while the merger finding avoids redundant production writes proportional to the number of formal domain files.",
+        "timestamp": "2026-07-20T14:26:45.047Z",
+        "findingId": "OPT-20260720T135027878Z-03"
+      },
+      {
+        "sequence": 10,
+        "action": "select",
+        "reason": "This is the next selected opportunity: redundant production writes are directly visible, exact-content filtering closes behavior and rollback constraints, and the change is isolated to an existing base-scope implementation file. It outranks the formatter reread because its avoided work scales with formal domain count and includes atomic-write and rollback overhead.",
+        "timestamp": "2026-07-20T14:26:45.049Z",
+        "findingId": "OPT-20260720T135027878Z-02",
+        "hashes": {
+          "src/utils/architecture-delta-merger.ts": "8c362e89464d5d653d2160b7c503385593f8716cf5ab3304af3d54bc1909602c"
+        }
+      },
+      {
+        "sequence": 11,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-20T14:26:56.285Z",
+        "findingId": "OPT-20260720T135027878Z-02",
+        "hashes": {
+          "src/utils/architecture-delta-merger.ts": "8c362e89464d5d653d2160b7c503385593f8716cf5ab3304af3d54bc1909602c"
+        }
+      },
+      {
+        "sequence": 12,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-20T14:32:39.677Z",
+        "findingId": "OPT-20260720T135027878Z-02"
       }
     ],
-    "reconciliationSignature": "f3835e4c18d0786dc6ee0b7bb51beba9018e95c030bc7013e193f49d7763a56b",
+    "reconciliationSignature": "da876a57102f33d3bd486966d94eaedec6e8dbcfd0c6fb41f9726c026544ce89",
     "unchangedReconciliations": 0
   }
 }

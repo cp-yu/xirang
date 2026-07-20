@@ -66,6 +66,7 @@ export async function mergeArchitectureDelta(projectRoot: string, deltaPath: str
   const domainsDir = path.join(architectureDir, 'domains');
   const names = (await fs.readdir(domainsDir)).filter(name => name.endsWith('.c4'));
   const contents = new Map(await Promise.all(names.map(async name => [path.join(domainsDir, name), await fs.readFile(path.join(domainsDir, name), 'utf8')] as const)));
+  const originals = new Map<string, string | null>(contents);
   const domainFile = new Map<string, string>();
   for (const [file, content] of contents) {
     for (const match of content.matchAll(/([A-Za-z_][\w-]*)\s*=\s*domain\b/g)) domainFile.set(match[1], file);
@@ -79,6 +80,7 @@ export async function mergeArchitectureDelta(projectRoot: string, deltaPath: str
     const file = path.join(domainsDir, `${domain.replaceAll('_', '-')}.c4`);
     domainFile.set(domain, file);
     contents.set(file, `model {\n  ${declaration.trim().split('\n').join('\n  ')}\n}\n`);
+    originals.set(file, null);
   }
 
   for (const match of delta.matchAll(/\bextend\s+([A-Za-z_][\w-]*)\s*\{/g)) {
@@ -98,7 +100,13 @@ export async function mergeArchitectureDelta(projectRoot: string, deltaPath: str
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return 'model {\n}\n';
     throw error;
   });
-  if (relations.length) contents.set(relationsPath, mergeRelations(currentRelations, relations));
+  if (relations.length) {
+    contents.set(relationsPath, mergeRelations(currentRelations, relations));
+    originals.set(relationsPath, await fs.readFile(relationsPath, 'utf8').catch(error => {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+      throw error;
+    }));
+  }
 
   const staging = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-likec4-merge-'));
   try {
@@ -113,15 +121,14 @@ export async function mergeArchitectureDelta(projectRoot: string, deltaPath: str
     await fs.rm(staging, { recursive: true, force: true });
   }
 
-  const originals = new Map<string, string | null>();
-  for (const file of contents.keys()) originals.set(file, await fs.readFile(file, 'utf8').catch(error => {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
-    throw error;
-  }));
+  const changed = new Map([...contents].filter(([file, content]) => originals.get(file) !== content));
   try {
-    for (const [file, content] of contents) await (options.write ?? atomicWrite)(file, content);
+    for (const [file, content] of changed) await (options.write ?? atomicWrite)(file, content);
   } catch (error) {
-    await Promise.all([...originals].map(([file, content]) => content === null ? fs.rm(file, { force: true }) : fs.writeFile(file, content)));
+    await Promise.all([...changed.keys()].map(file => {
+      const content = originals.get(file);
+      return content === null ? fs.rm(file, { force: true }) : fs.writeFile(file, content!);
+    }));
     throw error;
   }
 }

@@ -72,6 +72,24 @@ describe('architecture delta merger', () => {
     expect(content.indexOf('-[invokes]->')).toBeLessThan(content.indexOf('-[validates]->'));
   });
 
+  it('should not write unchanged domain files', async () => {
+    const domains = path.join(root, 'openspec', 'architecture', 'domains');
+    const untouched = path.join(domains, 'untouched.c4');
+    await fs.writeFile(untouched, `model { untouched = domain 'Untouched' }\n`);
+    await fs.writeFile(delta, `model { extend core { added = capability 'Added' } }`);
+    const writes: string[] = [];
+
+    await mergeArchitectureDelta(root, delta, {
+      runLikeC4: async () => undefined,
+      write: async (file, content) => {
+        writes.push(file);
+        await fs.writeFile(file, content);
+      },
+    });
+
+    expect(writes).toEqual([path.join(domains, 'core.c4')]);
+  });
+
   it('should rollback every file when a write fails after the first write', async () => {
     await fs.writeFile(delta, `model { extend core { added = capability 'Added' } core.existing -[invokes]-> core.existing }`);
     let writes = 0;
@@ -84,6 +102,26 @@ describe('architecture delta merger', () => {
       },
     })).rejects.toThrow('injected write failure');
     expect(await fs.readFile(path.join(root, 'openspec', 'architecture', 'domains', 'core.c4'), 'utf8')).toBe(formal);
+    expect(await fs.readFile(path.join(root, 'openspec', 'architecture', 'relations.c4'), 'utf8')).toBe('model {\n}\n');
+  });
+
+  it('should remove a new domain when a later changed-file write fails', async () => {
+    await fs.writeFile(delta, `model {
+  added = domain 'Added' { run = capability 'Run' }
+  added.run -[invokes]-> core.existing
+}`);
+    let writes = 0;
+
+    await expect(mergeArchitectureDelta(root, delta, {
+      runLikeC4: async () => undefined,
+      write: async (file, content) => {
+        writes += 1;
+        if (writes === 2) throw new Error('injected write failure');
+        await fs.writeFile(file, content);
+      },
+    })).rejects.toThrow('injected write failure');
+
+    await expect(fs.access(path.join(root, 'openspec', 'architecture', 'domains', 'added.c4'))).rejects.toThrow();
     expect(await fs.readFile(path.join(root, 'openspec', 'architecture', 'relations.c4'), 'utf8')).toBe('model {\n}\n');
   });
 
