@@ -62,7 +62,7 @@ OpenSpec installs the fixed managed workflow skills:
 - `openspec-explore`
 - `openspec-apply-change`
 - `openspec-archive-change`
-- `openspec-bootstrap-opsx`
+- `openspec-bootstrap-arch`
 - `openspec-snack`
 
 ## Generated Skill Names

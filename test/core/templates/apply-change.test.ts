@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -15,6 +17,21 @@ const applyReference = (path: string) => {
 };
 
 describe('apply change workflow template', () => {
+  it('keeps project-root shared references byte-identical to the template', () => {
+    for (const reference of getApplyChangeSkillTemplate().referenceFiles ?? []) {
+      if (reference.path.includes('apply-step-3-')) continue;
+      const sharedPath = path.resolve(`openspec/references/openspec-${path.posix.basename(reference.path)}`);
+      expect(readFileSync(sharedPath, 'utf8')).toBe(reference.content);
+    }
+  });
+
+  it('queries LikeC4 architecture and explains element IDs before implementation', () => {
+    const instructions = getApplyChangeSkillTemplate().instructions;
+    expect(instructions).toContain('openspec arch query');
+    expect(instructions).toContain('element ID');
+    expect(instructions).toContain('domain_name.capability_name');
+  });
+
   it('keeps the OpenSpec philosophy in the skill surface', () => {
     expect(getApplyChangeSkillTemplate().instructions).toContain(OPENSPEC_PHILOSOPHY);
   });
@@ -24,10 +41,9 @@ describe('apply change workflow template', () => {
     const preparation = applyReference('references/apply-step-1-preparation.md');
     expect(instructions).toContain('resolved file definition');
     expect(instructions).toContain('MUST NOT copy definitions');
-    expect(preparation).toContain('openspec opsx query');
-    expect(preparation).toContain('openspec/project.opsx.yaml');
-    expect(preparation).toContain('openspec/project.opsx.relations.yaml');
-    expect(preparation).toContain('formal OPSX two-file bundle');
+    expect(preparation).toContain('openspec arch query');
+    expect(preparation).toContain('openspec/architecture/');
+    expect(preparation).toContain('formal LikeC4 source');
     expect(preparation).toContain('CodeGraph');
     expect(preparation).toContain('ACE');
     expect(preparation).not.toContain('project.opsx.code-map.yaml');
@@ -79,7 +95,7 @@ describe('apply change workflow template', () => {
     expect(instructions).not.toContain('openspec list --specs --json');
     expect(instructions).not.toContain('capabilities: []');
     expect(preparation).toContain('openspec list --specs --json');
-    expect(preparation).toContain('capabilities: []');
+    expect(preparation).toContain('Spec coverage');
   });
 
   it('does not carry obsolete generated subagent artifact warnings', () => {
@@ -101,7 +117,7 @@ describe('apply change workflow template', () => {
       .split('\n\nWhen Phase 3 seal passes')[0];
     const rules = discipline.split('\n').filter((line) => line.startsWith('- '));
 
-    expect(rules).toHaveLength(8);
+    expect(rules).toHaveLength(9);
     expect(instructions).toContain('Phase 0 implementation — Master executes pending tasks serially');
     expect(discipline).toContain('unfinished `## Remediation` `[code_fix]` and `[artifact_fix]` items before pending tasks');
     expect(discipline).toContain('Finish every Check in the current task before starting the next; never execute tasks in parallel');

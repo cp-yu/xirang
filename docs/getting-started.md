@@ -12,7 +12,7 @@ OpenSpec helps you and your AI coding assistant agree on what to build before an
 /opsx:propose ──► /opsx:apply ──► /opsx:archive
 ```
 
-OpenSpec installs a fixed managed workflow surface. `/opsx:archive` syncs delta specs and `opsx-delta` inline before archiving, and it runs a full verify gate before archive.
+OpenSpec installs a fixed managed workflow surface. `/opsx:archive` syncs delta Specs and `architecture-delta.c4` into the formal LikeC4 model before archiving, and it runs a full verify gate before archive.
 
 ## What OpenSpec Creates
 
@@ -36,9 +36,11 @@ openspec/
 
 **Two key directories:**
 
-- **`specs/`** - The source of truth for behavioral specs. These specs describe how your system currently behaves. Together with `project.opsx.yaml` (if present), they form the accepted current truth. Organized by domain (e.g., `specs/auth/`, `specs/payments/`).
+- **`specs/`** - The source of truth for observable behavior. Together with `architecture/**/*.c4`, Specs form the durable semantic source.
 
-- **`changes/`** - Proposed modifications. Each change gets its own folder with all related artifacts. When a change is complete, its delta specs merge into the main `specs/` directory (and opsx-delta merges into `project.opsx.yaml`).
+- **`architecture/`** - The formal LikeC4 model for project intent, domains, capabilities, ownership, boundaries, and typed relations.
+
+- **`changes/`** - Proposed modifications. On sync/archive, delta Specs merge into `specs/` and `architecture-delta.c4` merges into the formal LikeC4 model.
 
 ## Understanding Artifacts
 
@@ -126,7 +128,7 @@ AI:  Created openspec/changes/add-dark-mode/
      ✓ tasks.md     — implementation checklist
      Post-propose check:
      - Fixed: tasks.md checkbox structure
-     - Skipped: OPSX merge validation (no openspec/project.opsx.yaml)
+     - Architecture: no delta
      Ready for implementation!
 ```
 

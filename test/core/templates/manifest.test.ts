@@ -9,7 +9,7 @@ describe('Workflow Manifest', () => {
       expect(ids).toContain('explore');
       expect(ids).toContain('apply');
       expect(ids).toContain('archive');
-      expect(ids).toContain('bootstrap-opsx');
+      expect(ids).toContain('bootstrap-arch');
       expect(ids).toContain('snack');
       expect(ids).toHaveLength(6);
     });

@@ -1,0 +1,66 @@
+model {
+  config = domain 'Config' {
+    description '项目级和用户级配置管理，带 Schema 验证'
+
+    metadata {
+      boundary '拥有配置加载、验证和合并。不拥有配置 UI 或交互式提示。'
+      status 'active'
+    }
+
+    apply_default_isolation = capability 'Apply Default Isolation' {
+      description '将 apply.defaultIsolation 作为项目配置的功能性磁盘默认值物化；init 生成配置时写出 ask 默认与允许值注释，update 以 missing-only 方式补齐旧配置且不覆盖用户值。'
+      metadata {
+        capabilityId 'cap.config.apply-default-isolation'
+        status 'active'
+      }
+    }
+
+    apply_projection = capability 'Apply Projection' {
+      description 'openspec instructions apply 命令输出包含 configProjection，使 apply skill 能读取项目级配置'
+      metadata {
+        capabilityId 'cap.config.apply-projection'
+        status 'active'
+      }
+    }
+
+    global_element = capability 'Global Element' {
+      description '加载和验证用户全局配置，配置结构不再包含 profile、workflows 或 delivery 字段。'
+      metadata {
+        capabilityId 'cap.config.global'
+        status 'active'
+      }
+    }
+
+    migration_element = capability 'Migration Element' {
+      description '处理配置格式迁移和破坏性字段清理，包括全局 profile 迁移与项目 config.yaml/config.yml 的默认值补齐；更新时删除陈旧 git.merge.messageFrom、git.autoCommit 与 commitMessage convention 节点并写入新的 git 功能性默认结构'
+      metadata {
+        capabilityId 'cap.config.migration'
+        status 'active'
+      }
+    }
+
+    project_element = capability 'Project Element' {
+      description '加载、验证、合并并物化项目级配置 openspec/config.yaml；将 git.commitMessage.{boundary,archive,merge} 路径覆盖、merge strategy 与 branch cleanup 字段经 prompt/runtime projection 暴露为 agent 归档后 git 流程上下文，对残留 autoCommit 与 convention 字段输出废弃 warning'
+      metadata {
+        capabilityId 'cap.config.project'
+        status 'active'
+      }
+    }
+
+    projection_element = capability 'Projection Element' {
+      description '将 config.yaml 编译为 prompt/runtime projections，确保所有 artifact-writing surfaces 共享统一的 prose/canonical/rules 语义边界'
+      metadata {
+        capabilityId 'cap.config.projection'
+        status 'active'
+      }
+    }
+
+    schema_validation = capability 'Schema Validation' {
+      description '使用 Zod Schema 验证配置结构，并拒绝 active delivery 配置语义。'
+      metadata {
+        capabilityId 'cap.config.schema-validation'
+        status 'active'
+      }
+    }
+  }
+}

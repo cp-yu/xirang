@@ -1,3 +1,4 @@
+import { promises as fs } from 'node:fs';
 import ora from 'ora';
 import path from 'path';
 import { Validator } from '../core/validation/validator.js';
@@ -5,9 +6,10 @@ import { isInteractive, resolveNoInteractive } from '../utils/interactive.js';
 import { getActiveChangeIds, getSpecIds } from '../utils/item-discovery.js';
 import { nearestMatches } from '../utils/match.js';
 import type { ValidationReport } from '../core/validation/types.js';
+import { validateArchitectureCommand } from './arch/validate.js';
 
 type ItemType = 'change' | 'spec';
-type ArtifactScope = 'specs' | 'opsx-delta';
+type ArtifactScope = 'specs' | 'architecture-delta';
 
 interface ExecuteOptions {
   all?: boolean;
@@ -46,7 +48,7 @@ export class ValidateCommand {
     }
 
     if (options.artifacts) {
-      console.error('--artifacts requires --change <name>. Supported artifact scopes: specs, opsx-delta');
+      console.error('--artifacts requires --change <name>. Supported artifact scopes: specs, architecture-delta');
       process.exitCode = 1;
       return;
     }
@@ -86,7 +88,7 @@ export class ValidateCommand {
   private normalizeArtifactScope(value?: string): ArtifactScope | undefined {
     if (!value) return undefined;
     const v = value.toLowerCase();
-    if (v === 'specs' || v === 'opsx-delta') return v;
+    if (v === 'specs' || v === 'architecture-delta') return v;
     return undefined;
   }
 
@@ -156,7 +158,7 @@ export class ValidateCommand {
 
   private async validateExplicitChange(id: string, opts: { artifactScope?: ArtifactScope; rawArtifactScope?: string; strict: boolean; json: boolean }): Promise<void> {
     if (opts.rawArtifactScope && !opts.artifactScope) {
-      console.error(`Unknown artifact scope '${opts.rawArtifactScope}'. Supported artifact scopes: specs, opsx-delta`);
+      console.error(`Unknown artifact scope '${opts.rawArtifactScope}'. Supported artifact scopes: specs, architecture-delta`);
       process.exitCode = 1;
       return;
     }
@@ -348,14 +350,28 @@ export class ValidateCommand {
 
   private async validateChangeReports(validator: Validator, changeDir: string, artifactScope?: ArtifactScope): Promise<ValidationReport> {
     if (artifactScope === 'specs') return validator.validateChangeDeltaSpecs(changeDir);
-    if (artifactScope === 'opsx-delta') return validator.validateOpsxDelta(changeDir);
+    if (artifactScope === 'architecture-delta') return this.validateArchitectureDeltaReport(changeDir);
 
-    const [specReport, opsxReport] = await Promise.all([
-      validator.validateChangeDeltaSpecs(changeDir),
-      validator.validateOpsxDelta(changeDir),
-    ]);
-    return mergeValidationReports(specReport, opsxReport);
+    const specsReport = await validator.validateChangeDeltaSpecs(changeDir);
+    const architectureDelta = path.join(changeDir, 'architecture-delta.c4');
+    if (!await fileExists(architectureDelta)) return specsReport;
+    return mergeValidationReports(specsReport, await this.validateArchitectureDeltaReport(changeDir));
   }
+
+  private async validateArchitectureDeltaReport(changeDir: string): Promise<ValidationReport> {
+    try {
+      const result = await validateArchitectureCommand(process.cwd(), { deltaPath: path.join(changeDir, 'architecture-delta.c4') });
+      const issues = result.errors.map(error => ({ level: 'ERROR' as const, path: 'architecture-delta.c4', message: error.message }));
+      return { valid: result.success, issues, summary: { errors: issues.length, warnings: 0, info: 0 } };
+    } catch (error) {
+      const issues = [{ level: 'ERROR' as const, path: 'architecture-delta.c4', message: (error as Error).message }];
+      return { valid: false, issues, summary: { errors: 1, warnings: 0, info: 0 } };
+    }
+  }
+}
+
+async function fileExists(file: string): Promise<boolean> {
+  try { await fs.access(file); return true; } catch { return false; }
 }
 
 function mergeValidationReports(...reports: ValidationReport[]): ValidationReport {

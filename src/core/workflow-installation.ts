@@ -35,7 +35,7 @@ export function resolveEffectiveWorkflows(
 
   try {
     if (fs.statSync(bootstrapDir).isDirectory()) {
-      effective.add('bootstrap-opsx');
+      effective.add('bootstrap-arch');
     }
   } catch {
     // No bootstrap workspace; keep the requested workflows unchanged.

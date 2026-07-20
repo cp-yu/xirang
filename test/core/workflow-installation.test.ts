@@ -46,7 +46,7 @@ describe('workflow installation planning', () => {
     ]);
   });
 
-  it('adds bootstrap-opsx to effective workflows when bootstrap workspace exists', async () => {
+  it('adds bootstrap-arch to effective workflows when bootstrap workspace exists', async () => {
     await fs.mkdir(path.join(testDir, 'openspec', 'bootstrap'), { recursive: true });
 
     const effective = resolveEffectiveWorkflows(testDir, ['propose', 'explore', 'apply', 'archive']);
@@ -55,12 +55,12 @@ describe('workflow installation planning', () => {
       'explore',
       'apply',
       'archive',
-      'bootstrap-opsx',
+      'bootstrap-arch',
     ]);
 
     const plan = createWorkflowArtifactPlan(['propose', 'explore', 'apply', 'archive'], testDir);
-    expect(plan.workflows).toContain('bootstrap-opsx');
-    expect(plan.expectedSkillDirNames).toContain('openspec-bootstrap-opsx');
+    expect(plan.workflows).toContain('bootstrap-arch');
+    expect(plan.expectedSkillDirNames).toContain('openspec-bootstrap-arch');
   });
 
   it('treats codex as skills-only for workflow skills and plans subagent artifacts separately', () => {
@@ -79,6 +79,7 @@ describe('workflow installation planning', () => {
       'openspec-reviewer',
       'openspec-optimizer',
       'openspec-impact-sweeper',
+      'openspec-bootstrap-opsx',
     ]);
 
     const plan = createToolWorkflowArtifactPlan('claude', ['propose', 'explore'], testDir);

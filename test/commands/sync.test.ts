@@ -107,7 +107,7 @@ Then the system signs the user in`
     expect(mainSpec).toContain('### Requirement: The system SHALL support login');
     await expect(fs.access(changeDir)).resolves.not.toThrow();
     expect(console.log).toHaveBeenCalledWith("Sync complete for 'direct-sync'.");
-    expect(console.log).toHaveBeenCalledWith('opsx: no-delta');
+    expect(console.log).toHaveBeenCalledWith('architecture: no-delta');
   });
 
   it('treats a canonical no-op OPSX delta as no sync required', async () => {
@@ -142,16 +142,16 @@ Then the system signs the user in`
       .resolves.toContain('### Requirement: 登录');
     expect(console.log).toHaveBeenCalledWith("Sync complete for 'specs-with-no-op-opsx'.");
     expect(console.log).toHaveBeenCalledWith('specs: synced');
-    expect(console.log).toHaveBeenCalledWith('opsx: no-delta');
+    expect(console.log).toHaveBeenCalledWith('architecture: no-delta');
   });
 
-  it('rejects legacy empty OPSX operation mappings even without full validation', async () => {
+  it('ignores deprecated OPSX deltas in the active sync path', async () => {
     const syncCommand = await loadSyncCommand();
-    const changeDir = await createChange('invalid-empty-opsx');
+    const changeDir = await createChange('legacy-opsx');
     await fs.writeFile(path.join(changeDir, 'opsx-delta.yaml'), 'schema_version: 2\nADDED: {}\n', 'utf-8');
 
-    await expect(syncCommand('invalid-empty-opsx', { noValidate: true, noVerify: true }))
-      .rejects.toThrow('Invalid opsx-delta.yaml');
+    await expect(syncCommand('legacy-opsx', { noValidate: true, noVerify: true })).resolves.toBeUndefined();
+    expect(console.log).toHaveBeenCalledWith('No sync required.');
   });
 
   it('blocks sync when the verify gate is missing', async () => {
@@ -617,7 +617,7 @@ The system SHALL support login.
     expect(console.log).toHaveBeenCalledWith('No sync required.');
   });
 
-  it('refreshes evidence fingerprint after OPSX sync writes', async () => {
+  it('refreshes evidence fingerprint after architecture sync writes', async () => {
     const syncCommand = await loadSyncCommand();
     const changeName = 'refresh-evidence-sync';
     const changeDir = await createChange(changeName);
@@ -632,29 +632,15 @@ The system SHALL support login.
 ### Requirement: Sync refreshes evidence`
     );
 
-    await writeProjectOpsx(
-      tempDir,
-      mkBundle({
-        domains: [{ id: 'dom.core', type: 'domain', intent: 'Core domain' }],
-        capabilities: [{ id: 'cap.core.init', type: 'capability', intent: 'Initialize app' }],
-        relations: [{ from: 'cap.core.init', to: 'dom.core', type: 'belongs_to' }],
-      })
-    );
-    await fs.writeFile(
-      path.join(changeDir, 'opsx-delta.yaml'),
-      stringifyYaml({
-        schema_version: OPSX_SCHEMA_VERSION,
-        ADDED: {
-          domains: [{ id: 'dom.auth', type: 'domain', intent: 'Auth domain' }],
-          capabilities: [{ id: 'cap.auth.login', type: 'capability', intent: 'Login' }],
-          relations: [{ from: 'cap.auth.login', to: 'dom.auth', type: 'belongs_to' }],
-        },
-      }),
-      'utf-8'
-    );
+    const architecture = path.join(tempDir, 'openspec', 'architecture');
+    await fs.mkdir(path.join(architecture, 'domains'), { recursive: true });
+    await fs.writeFile(path.join(architecture, 'specification.c4'), 'specification { element domain element capability }');
+    await fs.writeFile(path.join(architecture, 'views.c4'), 'views { view index { include * } }');
+    await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), "model { core = domain 'Core' { init = capability 'Init' } }");
+    await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), "model { extend core { login = capability 'Login' } }");
 
     const evidenceFiles = [
-      'openspec/project.opsx.yaml',
+      'openspec/architecture/domains/core.c4',
       `openspec/changes/${changeName}/specs/auth/spec.md`,
     ];
     const before = await computeEvidenceFingerprint(evidenceFiles, tempDir);
@@ -685,9 +671,9 @@ The system SHALL support login.
     expect(refreshed.verificationContext.evidenceFingerprint).not.toBe(before.hash);
     expect(
       refreshed.verificationContext.evidenceFingerprintEntries?.find(
-        (entry) => entry.path === 'openspec/project.opsx.yaml'
+        (entry) => entry.path === 'openspec/architecture/domains/core.c4'
       )?.hash
-    ).not.toBe(before.entries.find((entry) => entry.path === 'openspec/project.opsx.yaml')?.hash);
+    ).not.toBe(before.entries.find((entry) => entry.path === 'openspec/architecture/domains/core.c4')?.hash);
     expect(
       refreshed.verificationContext.evidenceFingerprintEntries?.find(
         (entry) => entry.path === `openspec/changes/${changeName}/specs/auth/spec.md`

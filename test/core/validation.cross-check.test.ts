@@ -31,28 +31,17 @@ describe('validateChangeDeltaSpecs cross-check against main spec', () => {
     await fs.writeFile(path.join(dir, 'spec.md'), content);
   }
 
-  async function writeProjectOpsx(capIds: string[]) {
-    const capabilities = capIds.map(id => `  - id: ${id}
-    type: capability
-    intent: Test capability`).join('\n');
-    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), `schema_version: 2
-project:
-  id: proj.test
-  name: Test
-domains:
-  - id: dom.test
-    type: domain
-    intent: Test domain
-capabilities:
-${capabilities}
+  async function writeArchitecture(capIds: string[]) {
+    const architectureDir = path.join(testDir, 'openspec', 'architecture');
+    await fs.mkdir(path.join(architectureDir, 'domains'), { recursive: true });
+    await fs.writeFile(path.join(architectureDir, 'domains', 'test.c4'), `model {
+  test = domain 'Test' {
+${capIds.map((id, index) => `    capability_${index} = capability 'Test capability ${index}' {
+      metadata { capabilityId '${id}' }
+    }`).join('\n')}
+  }
+}
 `);
-    await fs.writeFile(
-      path.join(testDir, 'openspec', 'project.opsx.relations.yaml'),
-      `schema_version: 2
-relations:
-${capIds.map(id => `  - from: ${id}\n    type: belongs_to\n    to: dom.test`).join('\n')}
-`
-    );
   }
 
   const mainSpecWithHeaders = (headers: string[]) => {
@@ -202,8 +191,8 @@ The system SHALL do something.
     expect(crossCheckErrors).toHaveLength(0);
   });
 
-  it('should warn when frontmatter capability does not exist in OPSX', async () => {
-    await writeProjectOpsx(['cap.cli.archive']);
+  it('should warn when frontmatter capability does not exist in LikeC4', async () => {
+    await writeArchitecture(['cap.cli.archive']);
     await writeMainSpec('foo', `---
 capabilities:
   - cap.cli.archive
@@ -220,7 +209,7 @@ ${mainSpecWithHeaders(['Existing'])}`);
   });
 
   it('should warn when main spec has no frontmatter capabilities', async () => {
-    await writeProjectOpsx(['cap.cli.archive']);
+    await writeArchitecture(['cap.cli.archive']);
     await writeMainSpec('foo', mainSpecWithHeaders(['Existing']));
     await writeMainSpec('empty-caps', `---
 capabilities: []
@@ -235,7 +224,7 @@ ${mainSpecWithHeaders(['Existing'])}`);
     expect(warnings.some(i => i.message.includes('empty-caps') && i.message.includes('capabilities frontmatter'))).toBe(true);
   });
 
-  it('should skip capability existence check when OPSX file is missing', async () => {
+  it('should skip capability existence check when LikeC4 architecture is missing', async () => {
     await writeMainSpec('foo', `---
 capabilities:
   - cap.nonexistent

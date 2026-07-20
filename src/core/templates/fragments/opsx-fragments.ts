@@ -1,15 +1,8 @@
-import { renderRelationWorkflowSummary } from '../../relations/renderers.js';
-
-/**
- * Shared OPSX instruction fragments for workflow templates
- *
- * These fragments reduce duplication across workflow templates and ensure
- * consistent OPSX integration patterns.
- */
+/** Shared architecture instruction fragments for workflow templates. */
 
 /**
  * Fragment: OpenSpec philosophy
- * Used in: propose, explore, apply-change, archive-change, bootstrap-opsx, snack, reviewer, optimizer
+ * Used in: propose, explore, apply-change, archive-change, bootstrap-arch, snack, reviewer, optimizer
  * Excluded by decision: impact-sweeper (read-only reporter), feedback (writes no artifacts)
  */
 export const OPENSPEC_PHILOSOPHY = `
@@ -17,57 +10,53 @@ export const OPENSPEC_PHILOSOPHY = `
 
 OpenSpec is a human-intent programming layer between human intent and general-purpose programming languages.
 
-1. Specs and OPSX jointly form the durable semantic source. Specs define observable behavior; OPSX defines project intent, capabilities, ownership, boundaries, and semantic relations.
+1. Specs and LikeC4 jointly form the durable semantic source. Specs define observable behavior; LikeC4 defines project intent, capabilities, ownership, boundaries, and semantic relations.
 2. A change reconciles semantic source deltas toward a target steady state. \`proposal.md\`, \`design.md\`, and \`tasks.md\` are compilation scaffolding, not competing sources of truth.
 3. Source is complete only when an Agent can compile it without guessing decisions that affect behavior or architecture.
 4. The Agent acts as a compiler: translate declared intent faithfully. Existing code is compiled output and current implementation evidence; it MUST NOT silently override the declared semantic source.
 `.trim();
 
 /**
- * Fragment: Shared OPSX read context
+ * Fragment: Shared LikeC4 read context
  * Used in: explore, propose, apply-change
  */
-export const OPSX_SHARED_CONTEXT = `
-Before reading other context files, check whether the formal OPSX two-file bundle exists:
-- \`openspec/project.opsx.yaml\` for project intent, domains, and capabilities
-- \`openspec/project.opsx.relations.yaml\` for the complete canonical semantic relation set
-- If the bundle exists, read both files as one architecture source; do not treat either file as complete alone
-- Read the \`project:\` block for project intent and scope
-- Treat the bundle as navigation context, not as a replacement for change artifacts
+export const ARCHITECTURE_SHARED_CONTEXT = `
+Before reading implementation files, load the formal LikeC4 source under \`openspec/architecture/\`.
+- Use \`openspec arch query <element-id> --relations --depth 2\` for architecture navigation
+- Read linked Specs from capability metadata
+- Treat code paths, imports, calls, and symbols as implementation evidence only
+- Do not read legacy OPSX YAML as active architecture source
 `.trim();
 
 /**
- * Fragment: CLI-backed OPSX query context
+ * Fragment: CLI-backed LikeC4 query context
  * Used in: propose, snack, apply-change
  */
-export const OPSX_CLI_QUERY_CONTEXT = `
-After reading the formal OPSX two-file bundle, use OpenSpec CLI query surfaces for node details.
-- Run \`openspec list --specs --json\` to get specs and their \`capabilities\` string arrays; specs without frontmatter return \`capabilities: []\`.
-- For known or affected OPSX node IDs, run \`openspec opsx query <node-id...> --json\` to get node details and directed semantic relations in one batch; add \`--depth 2\` when broader related context is needed.
-- Use optional CodeGraph or ACE/\`rg\`/\`read\` for current code locations; OPSX does not store code paths.
-- Treat CLI output as navigation context, not as a replacement for change artifacts.
+export const ARCHITECTURE_CLI_QUERY_CONTEXT = `
+Use OpenSpec LikeC4 query surfaces for architecture details.
+- Run \`openspec list --specs --json\` for Spec coverage.
+- Run \`openspec arch query <element-id> --relations --depth 2 --json\` for affected elements and directed semantic relations.
+- LikeC4 element IDs are semantic locations, not source paths.
+- Use CodeGraph or ACE/\`rg\`/\`read\` only for current implementation evidence.
 `.trim();
 
 /**
- * Fragment: Generate opsx-delta.yaml
+ * Fragment: Generate architecture-delta.c4
  * Used in: snack
  */
-export const OPSX_GENERATE_DELTA = `
-**Generate opsx-delta.yaml**:
-- Read \`openspec instructions opsx-delta --change "<name>" --json\`
-- For that response, follow the authoring order in the returned \`instruction\`; keep \`definition\`, dependencies, \`currentState\`, \`configProjection\`, and \`template\` as separate inputs
-- Read \`proposal.md\` → \`Source Impact\`:
-  - use \`Architecture Source\` as the declared architecture scope
-  - use \`Behavior Source\` to locate related change-local Specs; Spec IDs are not OPSX capability IDs
-- Read the completed change-local Specs as target behavior context. Observable behavior does not by itself prove an OPSX node or relation change
-- Read \`design.md\` when present for concrete architecture and lowering decisions
-- Read the formal OPSX two-file bundle as the current architecture state
-- Use current code only as implementation evidence; it MUST NOT override declared target source
-- Treat proposal architecture entries as scope declarations, not authoritative OPSX records. Derive exact target-state nodes and canonical relations into \`opsx-delta.yaml\`
-- If Architecture Source is \`None\`, write only \`schema_version: 2\`; do not emit empty operation sections; do not invent architecture changes from behavior changes alone
-- Otherwise omit unused \`ADDED\`, \`MODIFIED\`, or \`REMOVED\` sections and follow the Registry relation contract below
-${renderRelationWorkflowSummary()}
-- Imports/calls are evidence only. If no precise relation applies, omit it and keep the unresolved decision for review
+export const ARCHITECTURE_GENERATE_DELTA = `
+**Generate architecture-delta.c4**:
+- Before writing, follow the authoring order in the returned \`instruction\`; keep \`definition\`, dependencies, \`currentState\`, \`configProjection\`, and \`template\` as separate inputs
+- Read proposal \`Source Impact\`: use \`Architecture Source\` as declared scope and \`Behavior Source\` to locate related change-local Specs; Spec IDs are not LikeC4 element IDs
+- Read completed change-local Specs as target behavior context, \`design.md\` for architecture decisions, and the formal LikeC4 model as current architecture state
+- Treat proposal entries as scope declarations, not authoritative LikeC4 records; derive exact target-state elements and typed relations
+- Read \`openspec/references/likec4-authoring.md\`
+- Extend existing domains with \`extend <domain> { ... }\`; define genuinely new domains directly
+- Express ownership by nesting and relations with typed syntax such as \`source -[invokes]-> target\`
+- Link new capabilities to change-local Specs paths
+- If Architecture Source is \`None\`, omit \`architecture-delta.c4\`; do not invent architecture changes from behavior changes alone
+- Run \`openspec arch validate --delta openspec/changes/<name>/architecture-delta.c4\`
+- Use current code only as implementation evidence; it MUST NOT override declared semantic source
 `.trim();
 
 
@@ -75,17 +64,11 @@ ${renderRelationWorkflowSummary()}
  * Fragment: Post-propose warning validation
  * Used in: propose
  */
-export const OPSX_POST_PROPOSE_VALIDATION = `
-**Run post-propose warning validation**:
-- This validation is warning-only. Do NOT turn \`/opsx:propose\` into a blocking gate.
-- Validate generated change specs against the same contract used by downstream change delta validation:
-  - Prefer \`openspec validate "<name>" --type change --json\` when available
-  - Align with \`Validator.validateChangeDeltaSpecs()\` semantics for delta sections, SHALL/MUST requirement text, and required \`#### Scenario:\` blocks
-- Validate \`opsx-delta.yaml\` through the same programmatic CLI path used by downstream change validation:
-  - Prefer \`openspec validate "<name>" --type change --json\` when available
-  - Align with \`Validator.validateOpsxDelta()\` semantics for Zod parsing, dry-run \`applyOpsxDelta()\`, referential integrity, and Registry-driven semantic validation
-  - Do NOT run \`openspec sync\` for this check because it mutates project files
-  - If \`openspec/project.opsx.yaml\` does not exist, \`Validator.validateOpsxDelta()\` skips this check and the final summary must report the skip
+export const ARCHITECTURE_POST_PROPOSE_VALIDATION = `
+**Run post-propose validation**:
+- Validate generated change specs with \`openspec validate --change "<name>" --json\`.
+- Validate \`architecture-delta.c4\` with \`openspec arch validate --delta openspec/changes/<name>/architecture-delta.c4\`.
+- Do NOT run \`openspec sync\` because validation must not mutate formal source
 - Run lightweight structure checks for \`proposal.md\`, \`design.md\`, and \`tasks.md\` against the current schema templates, not scattered examples:
   - Read \`openspec instructions proposal --change "<name>" --json\`, \`openspec instructions design --change "<name>" --json\`, and \`openspec instructions tasks --change "<name>" --json\`
   - Check only key required headings and checkbox structure
@@ -176,17 +159,15 @@ export const VERIFY_SIMPLE_CHANGE_FAST_PATH = `
 `.trim();
 
 /**
- * Fragment: OPSX-first navigation guidance
+ * Fragment: LikeC4-first navigation guidance
  * Used in: explore
  */
-export const OPSX_NAVIGATION_GUIDANCE = `
-**OPSX-first navigation**:
-If \`openspec/project.opsx.yaml\` exists:
-- Use \`project.opsx.yaml\` for domains → capabilities structure
-- Use \`openspec opsx query <node-id...> --json\` for directed semantic relations
-- Use optional CodeGraph or ACE/\`rg\`/\`read\` for current implementation evidence
-- Use \`openspec/specs/\` for behavior documentation
-- Cross-reference domains to understand system boundaries
+export const ARCHITECTURE_NAVIGATION_GUIDANCE = `
+**LikeC4-first navigation**:
+- Use \`openspec arch query <element-id> --relations --depth 2 --json\` for domains, capabilities, and directed semantic relations
+- Read linked files under \`openspec/specs/\` for behavior contracts
+- Use optional CodeGraph or ACE/\`rg\`/\`read\` only for current implementation evidence
+- Cross-reference nested domains to understand ownership and boundaries
 `.trim();
 
 /**

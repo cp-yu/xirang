@@ -3,15 +3,15 @@ import { describe, expect, it } from 'vitest';
 import { getReviewerSubagentTemplate } from '../../src/core/templates/workflows/reviewer.js';
 
 describe('reviewer cleanliness dimension contract', () => {
-  it('defines cleanliness checks after coherence and before OPSX alignment', () => {
+  it('defines cleanliness checks after coherence and before architecture alignment', () => {
     const instructions = getReviewerSubagentTemplate().prompt;
     const coherence = instructions.indexOf('### Coherence');
     const cleanliness = instructions.indexOf('### Cleanliness');
-    const opsx = instructions.indexOf('### OPSX Alignment');
+    const architecture = instructions.indexOf('### Architecture Alignment');
 
     expect(coherence).toBeGreaterThanOrEqual(0);
     expect(cleanliness).toBeGreaterThan(coherence);
-    expect(opsx).toBeGreaterThan(cleanliness);
+    expect(architecture).toBeGreaterThan(cleanliness);
     expect(instructions).toContain('orphaned code after refactor');
     expect(instructions).toContain('stale TODO/FIXME/HACK markers');
     expect(instructions).toContain('dead imports introduced by this change');

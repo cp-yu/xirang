@@ -242,6 +242,7 @@ export interface ValidationResult {
 /**
  * Read and assemble the full OPSX v2 bundle from two files.
  */
+/** @deprecated Legacy YAML reader. Use readArchitecture for LikeC4-first access. */
 export async function readProjectOpsx(
   projectRoot: string
 ): Promise<ProjectOpsxBundle | null> {
@@ -288,6 +289,7 @@ export async function readProjectOpsx(
 
 /**
  * Write the full OPSX bundle atomically to two files.
+ * @deprecated Legacy YAML writer retained for migration compatibility.
  */
 export async function writeProjectOpsx(
   projectRoot: string,
@@ -387,6 +389,7 @@ function getValueAtPath(data: unknown, path: (string | number)[]): unknown {
   return current;
 }
 
+/** @deprecated Use architecture-delta.c4 and validateArchitectureDelta. */
 export async function readOpsxDelta(projectRoot: string, changeName: string): Promise<OpsxDelta | null> {
   const deltaPath = FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.deltaPath(changeName));
   if (!await FileSystemUtils.fileExists(deltaPath)) return null;
@@ -408,6 +411,7 @@ export function hasOpsxDeltaOperations(delta: OpsxDelta): boolean {
   );
 }
 
+/** @deprecated Use mergeArchitectureDelta for LikeC4 models. */
 export function applyOpsxDelta(bundle: ProjectOpsxBundle, delta: OpsxDelta): OpsxDeltaApplyResult {
   const next: ProjectOpsxBundle = {
     ...bundle,

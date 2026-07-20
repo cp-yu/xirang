@@ -1,0 +1,1123 @@
+{
+  "timestamp": "2026-07-20T13:32:08.216Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "fb6b5bb803d626bf566e186485193cc5e1218627a265d52bc934a9c44b9eeb42",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".pi/skills/openspec-bootstrap-arch/SKILL.md",
+      "openspec/architecture/migration-report.json",
+      "openspec/architecture/project.c4",
+      "openspec/architecture/relations.c4",
+      "openspec/architecture/specification.c4",
+      "openspec/architecture/views.c4",
+      "openspec/changes/opsx-to-likec4-mega-refactor/.apply-isolation.json",
+      "openspec/changes/opsx-to-likec4-mega-refactor/.verify-result.json",
+      "openspec/changes/opsx-to-likec4-mega-refactor/architecture-delta.c4",
+      "openspec/changes/opsx-to-likec4-mega-refactor/design.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/proposal.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-export-command/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-preview-command/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-query-command/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-validate-command/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/architecture-delta-artifact/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/archive-sync-workflow/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/init-project-structure/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/likec4-semantic-validator/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/migrate-opsx-to-likec4/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-apply-skill/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-bootstrap-opsx/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-impact-sweeper/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-propose-skill/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/spec-pseudocode-support/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/validate-change/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/tasks.md",
+      "openspec/project.opsx.relations.yaml.backup",
+      "openspec/project.opsx.yaml.backup",
+      "schemas/spec-driven/schema.yaml",
+      "schemas/spec-driven/templates/architecture-delta.c4",
+      "src/commands/arch/export.ts",
+      "src/commands/arch/index.ts",
+      "src/commands/arch/preview.ts",
+      "src/commands/arch/query.ts",
+      "src/commands/arch/runner.ts",
+      "src/commands/arch/validate.ts",
+      "src/commands/migrate/opsx-to-likec4.ts",
+      "src/commands/sync.ts",
+      "src/core/archive.ts",
+      "src/core/change-sync.ts",
+      "src/core/templates/workflows/bootstrap-arch.ts",
+      "src/migration/converters/element-mapper.ts",
+      "src/migration/converters/opsx-to-likec4.ts",
+      "src/migration/converters/relation-mapper.ts",
+      "src/migration/generators/domain-file-generator.ts",
+      "src/migration/generators/likec4-file-generator.ts",
+      "src/migration/generators/relation-file-generator.ts",
+      "src/migration/generators/specification-generator.ts",
+      "src/migration/generators/views-generator.ts",
+      "src/migration/migration-verifier.ts",
+      "src/migration/utils/spec-path-inference.ts",
+      "src/utils/architecture-delta-merger.ts",
+      "src/utils/architecture-reader.ts",
+      "src/utils/architecture-validator.ts",
+      "src/utils/likec4-parser.ts",
+      "src/utils/likec4-reader.ts",
+      "src/utils/likec4-writer.ts",
+      "src/utils/semantic-checks/cycle-detector.ts",
+      "src/utils/semantic-checks/metadata-validator.ts",
+      "src/utils/semantic-checks/ownership-validator.ts",
+      "src/validation/architecture-delta-validator.ts",
+      "test/integration/arch-command.test.ts",
+      "test/integration/archive-workflow.test.ts",
+      "test/integration/migrate-command.test.ts",
+      "test/integration/sync-workflow.test.ts",
+      "test/integration/validate-command.test.ts",
+      "test/performance/large-project.test.ts",
+      "test/unit/migration/migration-verifier.test.ts",
+      "test/unit/utils/architecture-delta-merger.test.ts",
+      "test/unit/utils/architecture-validator.test.ts",
+      "test/unit/utils/likec4-reader.test.ts",
+      "tests/e2e/bootstrap-test.sh"
+    ],
+    "evidenceFingerprint": "e778b56f58722429bad983994c9fbd619e681e017326ef45546ec0085ed9bd92",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".pi/skills/openspec-bootstrap-arch/SKILL.md",
+        "hash": "aa27d030fd55ccc6d7b9861ea4c2d603447ad01d3b6ed81430a418ba4daf5d20"
+      },
+      {
+        "path": "openspec/architecture/migration-report.json",
+        "hash": "36616b58afbdba226810b5cc5119f27c4108270d88a465d7ce7c062744e698ec"
+      },
+      {
+        "path": "openspec/architecture/project.c4",
+        "hash": "7edbc86c3c3190e0a2577cab3e15aaeefc73a017b2685d9edd292d33b231d90d"
+      },
+      {
+        "path": "openspec/architecture/relations.c4",
+        "hash": "4987fd4b0d6d9d86f1445301b1826b0eb9c4fb3bd2b1f9d2de1d87373282f0a0"
+      },
+      {
+        "path": "openspec/architecture/specification.c4",
+        "hash": "566865167084ec21464427ce173f0ba19d04a6042b499da6010bbf86cbb325c3"
+      },
+      {
+        "path": "openspec/architecture/views.c4",
+        "hash": "3e87607cc7c04d41eef71586107dff48b9a159341972fac10efd09bb8819cf3d"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/.apply-isolation.json",
+        "hash": "d90461bd73cc1b81ce2a2719214fdb4cdfac5913364b76e2291c3ff423fb3d6a"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/architecture-delta.c4",
+        "hash": "dcb90de121b474c2cc5467a929ea12fc4351817f93e7ef2de6a2b035af17bf51"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/design.md",
+        "hash": "0fd92e55ae56b274bd6614562ae33b2be4adceef7153cd67b5729cfc76e13493"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/proposal.md",
+        "hash": "0de0d23636411c499b8e5e55826a15b99142dd4836cdafbcf66aa415a9db5576"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-export-command/spec.md",
+        "hash": "4e153213f45b9fedbd1d524728a1b4c85f851efc32874e0b224769a9764ce2da"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-preview-command/spec.md",
+        "hash": "324c47821722637226ca437556ff028ff2751e358edae645b60c5c4a54da3ea7"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-query-command/spec.md",
+        "hash": "48a1f2686b998635bf86a35241235f32c5d3dd05dc0e9bcb9de5281ecd15908c"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-validate-command/spec.md",
+        "hash": "5a417fd15ce62e454e5c8b5beeb4c5e46b2f6b37b9e0ce863ae369d88aaf6f11"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/architecture-delta-artifact/spec.md",
+        "hash": "085a1d0b38cf395e9cb9aa28e52857bb9a71365fd48c4993ad81cd24cd5f9e87"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/archive-sync-workflow/spec.md",
+        "hash": "be367547cc811238aa610893d7456b4b6718c92a41549476e726cf20f3420993"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/init-project-structure/spec.md",
+        "hash": "6f4993121b32f43d1e1e099d3ae5011b70bf42ffd55b4ebff3ea608734b61a6f"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/likec4-semantic-validator/spec.md",
+        "hash": "d7dca442a83a9c1c674bb3fb967fd0b70842576062bb068782bb5887094c2301"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/migrate-opsx-to-likec4/spec.md",
+        "hash": "2af86228633c8a37193324c6ec37a3b901ccc5de68e675acdebc75547c562d33"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-apply-skill/spec.md",
+        "hash": "3f2fb47a8ff29fa2af619bc0dad39d60ac332136f2e877d825cfa6814a30ec5c"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-bootstrap-opsx/spec.md",
+        "hash": "9a05a42bdd3f41b0bb8343e9913ac3122154c57567f589c2f08737faf9ecb624"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-impact-sweeper/spec.md",
+        "hash": "1a278cf626c6707c235e5756e0963ee180f4cd91e90563b0d270877b4e73cd2f"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-propose-skill/spec.md",
+        "hash": "c70d3a6e95b7bb7965708beb0048cb59a9d4bd79d856908ec881ef7e74bb0a61"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/spec-pseudocode-support/spec.md",
+        "hash": "406d47e3f32b6fefd51db8adce6c1cacd8b9b4fb8c9d3549d49acd550e9d5b2b"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/validate-change/spec.md",
+        "hash": "74b78e82fa2e954428f75d7089d0ced732cd67325b9d02c48c1ba59c43eed074"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/tasks.md",
+        "hash": "fb6b5bb803d626bf566e186485193cc5e1218627a265d52bc934a9c44b9eeb42"
+      },
+      {
+        "path": "openspec/project.opsx.relations.yaml.backup",
+        "hash": "df5cca67b7c16bdd929e692fef5e51b2101489644b80c3578a39efe584e4795a"
+      },
+      {
+        "path": "openspec/project.opsx.yaml.backup",
+        "hash": "a511ef2c20b6d442deba7e63f82ea7059cc5ce5a1c695c5d476b616a34e4842b"
+      },
+      {
+        "path": "schemas/spec-driven/schema.yaml",
+        "hash": "420b50f22671b7130914378b20426983f17339a94a3a7f0fe57231b59a295e88"
+      },
+      {
+        "path": "schemas/spec-driven/templates/architecture-delta.c4",
+        "hash": "1c0ca8c1ad44fd6b821308cccfd591feb790fcd17c4da52d6005a4d83229643c"
+      },
+      {
+        "path": "src/commands/arch/export.ts",
+        "hash": "1e19058b4fc961f99e746e97765944855d22be608d47876a412c46ab7f0439c9"
+      },
+      {
+        "path": "src/commands/arch/index.ts",
+        "hash": "4c60bfb866d42c51766b42aedc197cac36921ea5e33c40010762b1281b7f5c4b"
+      },
+      {
+        "path": "src/commands/arch/preview.ts",
+        "hash": "43915c694d463f35c9ad71b2d3ef1b9942773b2e65766a65f1843915f4de628e"
+      },
+      {
+        "path": "src/commands/arch/query.ts",
+        "hash": "61a8b8734e5fb4708efc4c79837c433471e1fe0f1427b4e18e4efed58bb37be4"
+      },
+      {
+        "path": "src/commands/arch/runner.ts",
+        "hash": "ff967e030f53a519c788b747857801d7a4cb63401cd2c24e7994c958d2f7e02f"
+      },
+      {
+        "path": "src/commands/arch/validate.ts",
+        "hash": "1eb221b93a711868f47bbed72f5811bc63ce8809a8865948243f04ceaf88e48b"
+      },
+      {
+        "path": "src/commands/migrate/opsx-to-likec4.ts",
+        "hash": "ec7bdb68208cc7a7b060538ce23bacfdd3c9445ab152bc169c1013a02427cdd8"
+      },
+      {
+        "path": "src/commands/sync.ts",
+        "hash": "5cf7aeb0a443374eaf9911816f469b075ac762d77fcc361f9a05146693088eb9"
+      },
+      {
+        "path": "src/core/archive.ts",
+        "hash": "50adaee9b321a8ef1be954a905916dfbcb3cce50b2e60ebecebaa1fd15b33413"
+      },
+      {
+        "path": "src/core/change-sync.ts",
+        "hash": "69c4b17665148a0f6406e570e53f54702ce2966f7834d3855ff5e486051ebe60"
+      },
+      {
+        "path": "src/core/templates/workflows/bootstrap-arch.ts",
+        "hash": "eb259865e75b2015292ebaf86868d2af7ab46160b89bf9a5dbabfc22bb911611"
+      },
+      {
+        "path": "src/migration/converters/element-mapper.ts",
+        "hash": "ed1607ebffb99e94b59adb813c4120f8555c41ccb17e80421c94633e73dd667b"
+      },
+      {
+        "path": "src/migration/converters/opsx-to-likec4.ts",
+        "hash": "d79ab3f08563041729e9f2ef0adedba72feb7c0a1c00a19ee9a60f397820ed7d"
+      },
+      {
+        "path": "src/migration/converters/relation-mapper.ts",
+        "hash": "692fd5338f33a4f5d79ee1d7a0324d5beca29bdb7fa46ad97333ed828d762b47"
+      },
+      {
+        "path": "src/migration/generators/domain-file-generator.ts",
+        "hash": "75f785fbb684d18c0daff56a4d3f5ccdec0c7ce6f45307d88f3470da4d802ae5"
+      },
+      {
+        "path": "src/migration/generators/likec4-file-generator.ts",
+        "hash": "ddc9bc2c67956ebbdbfd7f7924d3b89f5ad6d9f7a5f0e1782327a4772e98aaac"
+      },
+      {
+        "path": "src/migration/generators/relation-file-generator.ts",
+        "hash": "c22ff2221aed4d3ef362d6933feaff56d5eb2b88dbae4b3300f6d6cf941e23e5"
+      },
+      {
+        "path": "src/migration/generators/specification-generator.ts",
+        "hash": "cdc4174539ae3349ecb214bb48bd3babdc37d09455b6bc3a85228d7883064273"
+      },
+      {
+        "path": "src/migration/generators/views-generator.ts",
+        "hash": "71e4b11f89c56d8c40f693c2922290bf8dbb4d886a785378ef166ccd6f69ff12"
+      },
+      {
+        "path": "src/migration/migration-verifier.ts",
+        "hash": "227cdd11e59937f2cf5bb05297eeebe0d20a2a44398c7567d9f5a5119df9d3c8"
+      },
+      {
+        "path": "src/migration/utils/spec-path-inference.ts",
+        "hash": "681a5471efc4332e6038541e5225ad0401685a12d4d1142faa7cd9c62bfeb809"
+      },
+      {
+        "path": "src/utils/architecture-delta-merger.ts",
+        "hash": "ee778aa7db1c211ed2f80441ff05e357c7349b7c792dd9d70179a1e54febf913"
+      },
+      {
+        "path": "src/utils/architecture-reader.ts",
+        "hash": "377f247632859bc01b0c960b851e519f62497b6ffe9efe54e0da300c1e045253"
+      },
+      {
+        "path": "src/utils/architecture-validator.ts",
+        "hash": "3556f47c64c01f11d6f4c1f5e28391e69d0058267644f404105904e2c09dc0be"
+      },
+      {
+        "path": "src/utils/likec4-parser.ts",
+        "hash": "27d4cf5d32e1613b8e926aed503594386b0197548cea20d4a6cc55fa02361bd6"
+      },
+      {
+        "path": "src/utils/likec4-reader.ts",
+        "hash": "d1034b247299255be058d98e64fbd698aed05cd44ddae1385ea0008f0433bca0"
+      },
+      {
+        "path": "src/utils/likec4-writer.ts",
+        "hash": "c60e265a6fff44008401460e10ce027750dee2cb34769178105ae9f929a3e9f0"
+      },
+      {
+        "path": "src/utils/semantic-checks/cycle-detector.ts",
+        "hash": "bc5f736fe8916b1ff6f14075c5bace0a058e1c6854564f7a04e4e5887e14f36c"
+      },
+      {
+        "path": "src/utils/semantic-checks/metadata-validator.ts",
+        "hash": "c6c19ab30ebc1599f271fcc5d9c3a3af8e9f389fb1cfb80424b1aa72059cea11"
+      },
+      {
+        "path": "src/utils/semantic-checks/ownership-validator.ts",
+        "hash": "c848f40bbd1d12e3b1cbc5176411fbf22bfe2f2d253b20c69cedc2c2a25a8f53"
+      },
+      {
+        "path": "src/validation/architecture-delta-validator.ts",
+        "hash": "b65f2892c9b85bb431c7f08e31e61e5a0c748d8fad2a744f7fd856fa7ee289da"
+      },
+      {
+        "path": "test/integration/arch-command.test.ts",
+        "hash": "97a7f6336047594d90e19cbbb88dcce4e9960ccf890d1466caaf1c206c1b108c"
+      },
+      {
+        "path": "test/integration/archive-workflow.test.ts",
+        "hash": "2d5776c0e29a8008b7a0ff8382ec9dba03f4243d12c65ae4abdddf589d1a44e1"
+      },
+      {
+        "path": "test/integration/migrate-command.test.ts",
+        "hash": "64577ec4cb67739fd0bbac9e7e3e3daab4af6469a5b725c53ba845ce942d5030"
+      },
+      {
+        "path": "test/integration/sync-workflow.test.ts",
+        "hash": "020e8e03c9167b73bcbaba7c5377fb46a2964427285aa3e2f05718c68815947e"
+      },
+      {
+        "path": "test/integration/validate-command.test.ts",
+        "hash": "7ce8df32d307b5f8062f72f44e40361747e0a95089d5dc9471ba644bd3e958c4"
+      },
+      {
+        "path": "test/performance/large-project.test.ts",
+        "hash": "ce2cd05815872a3aa60010ae40ec4d2926ee9e347f38905db6673f010d096fbd"
+      },
+      {
+        "path": "test/unit/migration/migration-verifier.test.ts",
+        "hash": "f1fd773960d17c5fe1e1c1ae1784c476293187bbcc770e7f602e123fa093fd18"
+      },
+      {
+        "path": "test/unit/utils/architecture-delta-merger.test.ts",
+        "hash": "7269fd3b7903c174197238b9db8159251486a4fcda14099ebbc040d68b0ff17c"
+      },
+      {
+        "path": "test/unit/utils/architecture-validator.test.ts",
+        "hash": "c90044021893addab044dcfbc7eb29ea021f5258374e3b3e8fb5281ae725347a"
+      },
+      {
+        "path": "test/unit/utils/likec4-reader.test.ts",
+        "hash": "2fa5bbf25b0c68c65f9bd3ede6eb2775229b42642c992edc0e2742f5b0aae395"
+      },
+      {
+        "path": "tests/e2e/bootstrap-test.sh",
+        "hash": "3472f4313d5fe46c7f4e03b35bd7a4f0c724369503f722e190d5b6104798186d"
+      }
+    ],
+    "skippedEvidenceFiles": [
+      "openspec/changes/opsx-to-likec4-mega-refactor/.verify-result.json"
+    ],
+    "gitHeadCommit": "8151dec200a1012bc41bf765be53213de555602e",
+    "gitDiffSummary": "Validated projectRoot, changeDir, and changeName. Immutable baseCommit 5f600da0a38665e231a29597ccd0fd5c2c5f638b resolves; final HEAD fa272ae2ae9d150feced86385718c4e2a9b5e9c3. Considered git diff 5f600da0a38665e231a29597ccd0fd5c2c5f638b...HEAD --name-only together with git status --short; all scoped changes are attributed by task Files, command Check evidence, or change artifacts. No staged files exist. Declared deletions were confirmed, including active opsx-delta templates, legacy bootstrap skill/template tests, and original OPSX files renamed to backups. git diff --check passed. pnpm lint passed with only the documented local Node 22.21.1 engine warning. pnpm run build passed. Full pnpm test passed: 153 files and 2150 tests. Formal LikeC4 validation passed 14 files; formal plus architecture delta validation passed 15 files. openspec arch validate passed. openspec validate --all passed 108/108. E2E bootstrap passed. Formal self-host arch query with relations, depth, and JSON output passed. Performance migration test passed at approximately 203ms for 1000 capabilities. Latest sync remediation was verified in final code and integration tests: semantic comparison includes domain and capability properties, normalized Specs paths, relation source/kind/target, and descriptions; extension capabilities are assigned to their target domain without double counting; collision and idempotence workflows pass; successful sync remains archiveable without losing formal content. Legacy OPSX references are confined to deprecated, migration, historical, or compatibility surfaces.",
+    "timestamp": "2026-07-20T14:41:26.599Z"
+  },
+  "optimization": {
+    "status": "IMPROVED",
+    "attempts": [
+      {
+        "timestamp": "2026-07-20T13:50:27.880Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-20T14:21:08.757Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-07-20T14:26:45.049Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-20T14:32:39.677Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-07-20T14:37:58.663Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-20T14:41:26.575Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-07-20T14:44:25.259Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-07-20T13:32:08.216Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "fb6b5bb803d626bf566e186485193cc5e1218627a265d52bc934a9c44b9eeb42",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".pi/skills/openspec-bootstrap-arch/SKILL.md",
+          "openspec/architecture/migration-report.json",
+          "openspec/architecture/project.c4",
+          "openspec/architecture/relations.c4",
+          "openspec/architecture/specification.c4",
+          "openspec/architecture/views.c4",
+          "openspec/changes/opsx-to-likec4-mega-refactor/.apply-isolation.json",
+          "openspec/changes/opsx-to-likec4-mega-refactor/.verify-result.json",
+          "openspec/changes/opsx-to-likec4-mega-refactor/architecture-delta.c4",
+          "openspec/changes/opsx-to-likec4-mega-refactor/design.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/proposal.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-export-command/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-preview-command/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-query-command/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-validate-command/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/architecture-delta-artifact/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/archive-sync-workflow/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/init-project-structure/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/likec4-semantic-validator/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/migrate-opsx-to-likec4/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-apply-skill/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-bootstrap-opsx/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-impact-sweeper/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-propose-skill/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/spec-pseudocode-support/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/validate-change/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/tasks.md",
+          "openspec/project.opsx.relations.yaml.backup",
+          "openspec/project.opsx.yaml.backup",
+          "schemas/spec-driven/schema.yaml",
+          "schemas/spec-driven/templates/architecture-delta.c4",
+          "src/commands/arch/export.ts",
+          "src/commands/arch/index.ts",
+          "src/commands/arch/preview.ts",
+          "src/commands/arch/query.ts",
+          "src/commands/arch/runner.ts",
+          "src/commands/arch/validate.ts",
+          "src/commands/migrate/opsx-to-likec4.ts",
+          "src/commands/sync.ts",
+          "src/core/archive.ts",
+          "src/core/change-sync.ts",
+          "src/core/templates/workflows/bootstrap-arch.ts",
+          "src/migration/converters/element-mapper.ts",
+          "src/migration/converters/opsx-to-likec4.ts",
+          "src/migration/converters/relation-mapper.ts",
+          "src/migration/generators/domain-file-generator.ts",
+          "src/migration/generators/likec4-file-generator.ts",
+          "src/migration/generators/relation-file-generator.ts",
+          "src/migration/generators/specification-generator.ts",
+          "src/migration/generators/views-generator.ts",
+          "src/migration/migration-verifier.ts",
+          "src/migration/utils/spec-path-inference.ts",
+          "src/utils/architecture-delta-merger.ts",
+          "src/utils/architecture-reader.ts",
+          "src/utils/architecture-validator.ts",
+          "src/utils/likec4-parser.ts",
+          "src/utils/likec4-reader.ts",
+          "src/utils/likec4-writer.ts",
+          "src/utils/semantic-checks/cycle-detector.ts",
+          "src/utils/semantic-checks/metadata-validator.ts",
+          "src/utils/semantic-checks/ownership-validator.ts",
+          "src/validation/architecture-delta-validator.ts",
+          "test/integration/arch-command.test.ts",
+          "test/integration/archive-workflow.test.ts",
+          "test/integration/migrate-command.test.ts",
+          "test/integration/sync-workflow.test.ts",
+          "test/integration/validate-command.test.ts",
+          "test/performance/large-project.test.ts",
+          "test/unit/migration/migration-verifier.test.ts",
+          "test/unit/utils/architecture-delta-merger.test.ts",
+          "test/unit/utils/architecture-validator.test.ts",
+          "test/unit/utils/likec4-reader.test.ts",
+          "tests/e2e/bootstrap-test.sh"
+        ],
+        "evidenceFingerprint": "b852ed491f2c03ae8d054c01eb250cde55db0558c2f1809d686c27fcbb5a6dbe",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".pi/skills/openspec-bootstrap-arch/SKILL.md",
+            "hash": "aa27d030fd55ccc6d7b9861ea4c2d603447ad01d3b6ed81430a418ba4daf5d20"
+          },
+          {
+            "path": "openspec/architecture/migration-report.json",
+            "hash": "36616b58afbdba226810b5cc5119f27c4108270d88a465d7ce7c062744e698ec"
+          },
+          {
+            "path": "openspec/architecture/project.c4",
+            "hash": "7edbc86c3c3190e0a2577cab3e15aaeefc73a017b2685d9edd292d33b231d90d"
+          },
+          {
+            "path": "openspec/architecture/relations.c4",
+            "hash": "872bca4916f3799ff1ffd1b1359263400d72b82438778dd88100d6c58a57cd15"
+          },
+          {
+            "path": "openspec/architecture/specification.c4",
+            "hash": "566865167084ec21464427ce173f0ba19d04a6042b499da6010bbf86cbb325c3"
+          },
+          {
+            "path": "openspec/architecture/views.c4",
+            "hash": "3e87607cc7c04d41eef71586107dff48b9a159341972fac10efd09bb8819cf3d"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/.apply-isolation.json",
+            "hash": "18072e3b8fb795b6a62c09585402cd4e5b633ee35a2f1fdf679e59b252830f48"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/architecture-delta.c4",
+            "hash": "dcb90de121b474c2cc5467a929ea12fc4351817f93e7ef2de6a2b035af17bf51"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/design.md",
+            "hash": "0fd92e55ae56b274bd6614562ae33b2be4adceef7153cd67b5729cfc76e13493"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/proposal.md",
+            "hash": "0de0d23636411c499b8e5e55826a15b99142dd4836cdafbcf66aa415a9db5576"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-export-command/spec.md",
+            "hash": "4e153213f45b9fedbd1d524728a1b4c85f851efc32874e0b224769a9764ce2da"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-preview-command/spec.md",
+            "hash": "324c47821722637226ca437556ff028ff2751e358edae645b60c5c4a54da3ea7"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-query-command/spec.md",
+            "hash": "48a1f2686b998635bf86a35241235f32c5d3dd05dc0e9bcb9de5281ecd15908c"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-validate-command/spec.md",
+            "hash": "5a417fd15ce62e454e5c8b5beeb4c5e46b2f6b37b9e0ce863ae369d88aaf6f11"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/architecture-delta-artifact/spec.md",
+            "hash": "085a1d0b38cf395e9cb9aa28e52857bb9a71365fd48c4993ad81cd24cd5f9e87"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/archive-sync-workflow/spec.md",
+            "hash": "be367547cc811238aa610893d7456b4b6718c92a41549476e726cf20f3420993"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/init-project-structure/spec.md",
+            "hash": "6f4993121b32f43d1e1e099d3ae5011b70bf42ffd55b4ebff3ea608734b61a6f"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/likec4-semantic-validator/spec.md",
+            "hash": "d7dca442a83a9c1c674bb3fb967fd0b70842576062bb068782bb5887094c2301"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/migrate-opsx-to-likec4/spec.md",
+            "hash": "2af86228633c8a37193324c6ec37a3b901ccc5de68e675acdebc75547c562d33"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-apply-skill/spec.md",
+            "hash": "3f2fb47a8ff29fa2af619bc0dad39d60ac332136f2e877d825cfa6814a30ec5c"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-bootstrap-opsx/spec.md",
+            "hash": "9a05a42bdd3f41b0bb8343e9913ac3122154c57567f589c2f08737faf9ecb624"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-impact-sweeper/spec.md",
+            "hash": "1a278cf626c6707c235e5756e0963ee180f4cd91e90563b0d270877b4e73cd2f"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-propose-skill/spec.md",
+            "hash": "c70d3a6e95b7bb7965708beb0048cb59a9d4bd79d856908ec881ef7e74bb0a61"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/spec-pseudocode-support/spec.md",
+            "hash": "406d47e3f32b6fefd51db8adce6c1cacd8b9b4fb8c9d3549d49acd550e9d5b2b"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/validate-change/spec.md",
+            "hash": "74b78e82fa2e954428f75d7089d0ced732cd67325b9d02c48c1ba59c43eed074"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/tasks.md",
+            "hash": "fb6b5bb803d626bf566e186485193cc5e1218627a265d52bc934a9c44b9eeb42"
+          },
+          {
+            "path": "openspec/project.opsx.relations.yaml.backup",
+            "hash": "df5cca67b7c16bdd929e692fef5e51b2101489644b80c3578a39efe584e4795a"
+          },
+          {
+            "path": "openspec/project.opsx.yaml.backup",
+            "hash": "a511ef2c20b6d442deba7e63f82ea7059cc5ce5a1c695c5d476b616a34e4842b"
+          },
+          {
+            "path": "schemas/spec-driven/schema.yaml",
+            "hash": "420b50f22671b7130914378b20426983f17339a94a3a7f0fe57231b59a295e88"
+          },
+          {
+            "path": "schemas/spec-driven/templates/architecture-delta.c4",
+            "hash": "1c0ca8c1ad44fd6b821308cccfd591feb790fcd17c4da52d6005a4d83229643c"
+          },
+          {
+            "path": "src/commands/arch/export.ts",
+            "hash": "1e19058b4fc961f99e746e97765944855d22be608d47876a412c46ab7f0439c9"
+          },
+          {
+            "path": "src/commands/arch/index.ts",
+            "hash": "4c60bfb866d42c51766b42aedc197cac36921ea5e33c40010762b1281b7f5c4b"
+          },
+          {
+            "path": "src/commands/arch/preview.ts",
+            "hash": "43915c694d463f35c9ad71b2d3ef1b9942773b2e65766a65f1843915f4de628e"
+          },
+          {
+            "path": "src/commands/arch/query.ts",
+            "hash": "6bc106cef784f5dd55af52e557b268d452c8aefdf73b85dc0ab4254195f79649"
+          },
+          {
+            "path": "src/commands/arch/runner.ts",
+            "hash": "ff967e030f53a519c788b747857801d7a4cb63401cd2c24e7994c958d2f7e02f"
+          },
+          {
+            "path": "src/commands/arch/validate.ts",
+            "hash": "1eb221b93a711868f47bbed72f5811bc63ce8809a8865948243f04ceaf88e48b"
+          },
+          {
+            "path": "src/commands/migrate/opsx-to-likec4.ts",
+            "hash": "ec7bdb68208cc7a7b060538ce23bacfdd3c9445ab152bc169c1013a02427cdd8"
+          },
+          {
+            "path": "src/commands/sync.ts",
+            "hash": "5cf7aeb0a443374eaf9911816f469b075ac762d77fcc361f9a05146693088eb9"
+          },
+          {
+            "path": "src/core/archive.ts",
+            "hash": "50adaee9b321a8ef1be954a905916dfbcb3cce50b2e60ebecebaa1fd15b33413"
+          },
+          {
+            "path": "src/core/change-sync.ts",
+            "hash": "69c4b17665148a0f6406e570e53f54702ce2966f7834d3855ff5e486051ebe60"
+          },
+          {
+            "path": "src/core/templates/workflows/bootstrap-arch.ts",
+            "hash": "eb259865e75b2015292ebaf86868d2af7ab46160b89bf9a5dbabfc22bb911611"
+          },
+          {
+            "path": "src/migration/converters/element-mapper.ts",
+            "hash": "ed1607ebffb99e94b59adb813c4120f8555c41ccb17e80421c94633e73dd667b"
+          },
+          {
+            "path": "src/migration/converters/opsx-to-likec4.ts",
+            "hash": "d79ab3f08563041729e9f2ef0adedba72feb7c0a1c00a19ee9a60f397820ed7d"
+          },
+          {
+            "path": "src/migration/converters/relation-mapper.ts",
+            "hash": "692fd5338f33a4f5d79ee1d7a0324d5beca29bdb7fa46ad97333ed828d762b47"
+          },
+          {
+            "path": "src/migration/generators/domain-file-generator.ts",
+            "hash": "75f785fbb684d18c0daff56a4d3f5ccdec0c7ce6f45307d88f3470da4d802ae5"
+          },
+          {
+            "path": "src/migration/generators/likec4-file-generator.ts",
+            "hash": "ddc9bc2c67956ebbdbfd7f7924d3b89f5ad6d9f7a5f0e1782327a4772e98aaac"
+          },
+          {
+            "path": "src/migration/generators/relation-file-generator.ts",
+            "hash": "c22ff2221aed4d3ef362d6933feaff56d5eb2b88dbae4b3300f6d6cf941e23e5"
+          },
+          {
+            "path": "src/migration/generators/specification-generator.ts",
+            "hash": "cdc4174539ae3349ecb214bb48bd3babdc37d09455b6bc3a85228d7883064273"
+          },
+          {
+            "path": "src/migration/generators/views-generator.ts",
+            "hash": "71e4b11f89c56d8c40f693c2922290bf8dbb4d886a785378ef166ccd6f69ff12"
+          },
+          {
+            "path": "src/migration/migration-verifier.ts",
+            "hash": "227cdd11e59937f2cf5bb05297eeebe0d20a2a44398c7567d9f5a5119df9d3c8"
+          },
+          {
+            "path": "src/migration/utils/spec-path-inference.ts",
+            "hash": "681a5471efc4332e6038541e5225ad0401685a12d4d1142faa7cd9c62bfeb809"
+          },
+          {
+            "path": "src/utils/architecture-delta-merger.ts",
+            "hash": "8c362e89464d5d653d2160b7c503385593f8716cf5ab3304af3d54bc1909602c"
+          },
+          {
+            "path": "src/utils/architecture-reader.ts",
+            "hash": "377f247632859bc01b0c960b851e519f62497b6ffe9efe54e0da300c1e045253"
+          },
+          {
+            "path": "src/utils/architecture-validator.ts",
+            "hash": "3556f47c64c01f11d6f4c1f5e28391e69d0058267644f404105904e2c09dc0be"
+          },
+          {
+            "path": "src/utils/likec4-parser.ts",
+            "hash": "27d4cf5d32e1613b8e926aed503594386b0197548cea20d4a6cc55fa02361bd6"
+          },
+          {
+            "path": "src/utils/likec4-reader.ts",
+            "hash": "d1034b247299255be058d98e64fbd698aed05cd44ddae1385ea0008f0433bca0"
+          },
+          {
+            "path": "src/utils/likec4-writer.ts",
+            "hash": "c60e265a6fff44008401460e10ce027750dee2cb34769178105ae9f929a3e9f0"
+          },
+          {
+            "path": "src/utils/semantic-checks/cycle-detector.ts",
+            "hash": "bc5f736fe8916b1ff6f14075c5bace0a058e1c6854564f7a04e4e5887e14f36c"
+          },
+          {
+            "path": "src/utils/semantic-checks/metadata-validator.ts",
+            "hash": "c6c19ab30ebc1599f271fcc5d9c3a3af8e9f389fb1cfb80424b1aa72059cea11"
+          },
+          {
+            "path": "src/utils/semantic-checks/ownership-validator.ts",
+            "hash": "c848f40bbd1d12e3b1cbc5176411fbf22bfe2f2d253b20c69cedc2c2a25a8f53"
+          },
+          {
+            "path": "src/validation/architecture-delta-validator.ts",
+            "hash": "b65f2892c9b85bb431c7f08e31e61e5a0c748d8fad2a744f7fd856fa7ee289da"
+          },
+          {
+            "path": "test/integration/arch-command.test.ts",
+            "hash": "647aac6c8794a111c38c273564798e6c7fce0ef93b5b886eaf94fd3dd35efc55"
+          },
+          {
+            "path": "test/integration/archive-workflow.test.ts",
+            "hash": "2d5776c0e29a8008b7a0ff8382ec9dba03f4243d12c65ae4abdddf589d1a44e1"
+          },
+          {
+            "path": "test/integration/migrate-command.test.ts",
+            "hash": "64577ec4cb67739fd0bbac9e7e3e3daab4af6469a5b725c53ba845ce942d5030"
+          },
+          {
+            "path": "test/integration/sync-workflow.test.ts",
+            "hash": "020e8e03c9167b73bcbaba7c5377fb46a2964427285aa3e2f05718c68815947e"
+          },
+          {
+            "path": "test/integration/validate-command.test.ts",
+            "hash": "7ce8df32d307b5f8062f72f44e40361747e0a95089d5dc9471ba644bd3e958c4"
+          },
+          {
+            "path": "test/performance/large-project.test.ts",
+            "hash": "ce2cd05815872a3aa60010ae40ec4d2926ee9e347f38905db6673f010d096fbd"
+          },
+          {
+            "path": "test/unit/migration/migration-verifier.test.ts",
+            "hash": "f1fd773960d17c5fe1e1c1ae1784c476293187bbcc770e7f602e123fa093fd18"
+          },
+          {
+            "path": "test/unit/utils/architecture-delta-merger.test.ts",
+            "hash": "65ea7d1b8bb23a25c38e997684e966e3a1360357844aee1fdd5f89b52e5f7dbe"
+          },
+          {
+            "path": "test/unit/utils/architecture-validator.test.ts",
+            "hash": "c90044021893addab044dcfbc7eb29ea021f5258374e3b3e8fb5281ae725347a"
+          },
+          {
+            "path": "test/unit/utils/likec4-reader.test.ts",
+            "hash": "2fa5bbf25b0c68c65f9bd3ede6eb2775229b42642c992edc0e2742f5b0aae395"
+          },
+          {
+            "path": "tests/e2e/bootstrap-test.sh",
+            "hash": "3472f4313d5fe46c7f4e03b35bd7a4f0c724369503f722e190d5b6104798186d"
+          }
+        ],
+        "skippedEvidenceFiles": [
+          "openspec/changes/opsx-to-likec4-mega-refactor/.verify-result.json"
+        ],
+        "gitHeadCommit": "fa272ae2ae9d150feced86385718c4e2a9b5e9c3",
+        "gitDiffSummary": "Validated projectRoot, changeDir, and changeName. Immutable baseCommit 5f600da0a38665e231a29597ccd0fd5c2c5f638b resolves; final HEAD fa272ae2ae9d150feced86385718c4e2a9b5e9c3. Considered git diff 5f600da0a38665e231a29597ccd0fd5c2c5f638b...HEAD --name-only together with git status --short; all scoped changes are attributed by task Files, command Check evidence, or change artifacts. No staged files exist. Declared deletions were confirmed, including active opsx-delta templates, legacy bootstrap skill/template tests, and original OPSX files renamed to backups. git diff --check passed. pnpm lint passed with only the documented local Node 22.21.1 engine warning. pnpm run build passed. Full pnpm test passed: 153 files and 2150 tests. Formal LikeC4 validation passed 14 files; formal plus architecture delta validation passed 15 files. openspec arch validate passed. openspec validate --all passed 108/108. E2E bootstrap passed. Formal self-host arch query with relations, depth, and JSON output passed. Performance migration test passed at approximately 203ms for 1000 capabilities. Latest sync remediation was verified in final code and integration tests: semantic comparison includes domain and capability properties, normalized Specs paths, relation source/kind/target, and descriptions; extension capabilities are assigned to their target domain without double counting; collision and idempotence workflows pass; successful sync remains archiveable without losing formal content. Legacy OPSX references are confined to deprecated, migration, historical, or compatibility surfaces."
+      }
+    },
+    "findings": [
+      {
+        "status": "resolved",
+        "location": {
+          "files": [
+            "src/commands/arch/query.ts"
+          ],
+          "symbols": [
+            "queryArchitecture"
+          ]
+        },
+        "opportunity": "Bounded relation traversal scans the complete architecture.relations array for every dequeued element during breadth-first search.",
+        "impact": "Build an adjacency index once so traversal changes from O(V×E) in the reachable subgraph to O(V+E), improving arch query latency for large LikeC4 models without changing the query contract.",
+        "evidence": [
+          "Checkpoint 68dd8cc0 replaces the per-dequeued-element full relation scan with a single adjacency-index construction at src/commands/arch/query.ts:29-36 and per-node incident-list traversal at lines 43-48.",
+          "test/integration/arch-command.test.ts verifies one iteration of the source relation collection while preserving incoming traversal, depth-two reachability, duplicate relation records, and exclusion of unrelated relations.",
+          "Persisted speculative verification passed after the implementation, including 153 test files and 2150 tests, lint, build, formal and delta LikeC4 validation, OpenSpec validation, self-host architecture query, and performance validation."
+        ],
+        "recommendation": "Preserve the verified adjacency index and close this finding; do not replace it with repeated relation filtering or deduplicate adjacency entries.",
+        "keyDesign": "Keep the undirected adjacency Map keyed by both relation endpoints. Each source relation is appended to both endpoint buckets in source-array order, while the existing depth map, queue semantics, final relation filtering, depth annotation, duplicate preservation, and deterministic sorting remain unchanged.",
+        "preservationConstraints": [
+          "Traversal remains undirected and includes both incoming and outgoing relations.",
+          "The root element remains at depth 0 and only elements reachable within maxDepth are included.",
+          "Duplicate architecture relations remain represented in the returned relations array.",
+          "The existing maxDepth normalization and all text and JSON output fields remain unchanged.",
+          "Relation depth annotations and deterministic sorting remain exactly as verified.",
+          "Subsequent optimizations must not remove or bypass the adjacency index."
+        ],
+        "implementationOutline": [
+          "No further implementation is required for this finding.",
+          "Preserve the adjacency construction and incident-list BFS in later query formatter work.",
+          "Retain the regression test that observes one source-relation iteration and duplicate preservation."
+        ],
+        "validation": [
+          "Persisted Phase 2 verification passed for checkpoint 68dd8cc0.",
+          "Focused Vitest validation passed test/integration/arch-command.test.ts.",
+          "Current worktree remains clean with no staged files.",
+          "git diff --check passed."
+        ],
+        "impactLevel": "high",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "This optimization is implemented and verified; resolving it records completion while explicitly preserving it as a constraint on the next query-path optimization.",
+        "id": "OPT-20260720T135027878Z-01",
+        "targetFileHashes": {
+          "src/commands/arch/query.ts": "6bc106cef784f5dd55af52e557b268d452c8aefdf73b85dc0ab4254195f79649"
+        }
+      },
+      {
+        "status": "resolved",
+        "location": {
+          "files": [
+            "src/utils/architecture-delta-merger.ts"
+          ],
+          "symbols": [
+            "mergeArchitectureDelta"
+          ]
+        },
+        "opportunity": "Delta merging previously invoked the production write abstraction for every loaded domain, including exact-content-unchanged files.",
+        "impact": "The verified implementation makes production writes and rollback work proportional to files whose proposed contents differ, avoiding redundant atomic writes and filesystem metadata churn while preserving full-tree staged validation.",
+        "evidence": [
+          "Checkpoint 8151dec2 is HEAD and records existing contents in originals at src/utils/architecture-delta-merger.ts:68-69, records null for new domains at lines 80-83, and records the original relations file at lines 103-108.",
+          "src/utils/architecture-delta-merger.ts:111-122 still copies and overlays the complete proposed architecture tree and validates it before any production write.",
+          "src/utils/architecture-delta-merger.ts:124-131 derives the changed Map using exact string inequality, writes only changed entries, and restores or removes only changed transaction files on failure.",
+          "test/unit/utils/architecture-delta-merger.test.ts:75-91 proves an untouched domain is not written.",
+          "test/unit/utils/architecture-delta-merger.test.ts:93-126 proves rollback restores changed existing files and removes a newly created domain after a later changed-file write fails.",
+          "Persisted fresh verification passed for checkpoint 8151dec2, and focused current validation passes all 20 selected tests."
+        ],
+        "recommendation": "Resolve this verified finding and preserve its separation between the complete staged proposal and the exact-content-changed production mutation set.",
+        "keyDesign": "Keep contents as the complete proposed architecture used for domain discovery and staging. Keep originals for existing candidates and null for new files. After successful staged validation, filter entries in Map insertion order by exact string inequality, write only those entries, and rollback only changed transaction files.",
+        "preservationConstraints": [
+          "The complete proposed architecture tree must be validated before any production write.",
+          "All existing domains remain available for discovery and extend-target resolution.",
+          "New files remain changed entries and are removed on rollback after a later production failure.",
+          "Changed existing domains and relations retain the existing write abstraction and atomic-write behavior.",
+          "Production failure must leave formal architecture byte-for-byte equivalent to its pre-merge state.",
+          "Exact string equality, not semantic normalization, determines unchanged files.",
+          "Relation ordering, domain insertion, spec-path formalization, validation timing, and pre-write error timing remain unchanged.",
+          "Subsequent query formatter work must not modify this file or weaken its tests."
+        ],
+        "implementationOutline": [
+          "No further implementation is required.",
+          "Retain unchanged-domain write suppression coverage.",
+          "Retain existing-file restoration and new-file removal rollback coverage.",
+          "Treat the complete-proposal versus changed-mutation separation as a preservation constraint."
+        ],
+        "validation": [
+          "Persisted Phase 2 verification passed for checkpoint 8151dec2.",
+          "Current focused command pnpm exec vitest run test/integration/arch-command.test.ts test/unit/utils/architecture-delta-merger.test.ts passes 2 files and 20 tests.",
+          "Current HEAD is 8151dec200a1012bc41bf765be53213de555602e.",
+          "Current worktree and staged-file list are empty.",
+          "git diff --check passes."
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Checkpoint 8151dec2 implemented the finding and fresh verification closed all preservation constraints; resolution records completion before selecting the sole remaining query-path opportunity.",
+        "id": "OPT-20260720T135027878Z-02",
+        "targetFileHashes": {
+          "src/utils/architecture-delta-merger.ts": "8c362e89464d5d653d2160b7c503385593f8716cf5ab3304af3d54bc1909602c"
+        }
+      },
+      {
+        "status": "resolved",
+        "location": {
+          "files": [
+            "src/commands/arch/query.ts"
+          ],
+          "symbols": [
+            "formatArchitectureQueryText",
+            "relationEndpoint"
+          ]
+        },
+        "opportunity": "Text formatting rereads and reparses the complete LikeC4 architecture immediately after queryArchitecture has already loaded and resolved the same model.",
+        "impact": "Eliminate one complete architecture directory scan, all associated .c4 file reads, and parser allocations for every non-JSON arch query. Text queries without --relations also fall from two architecture reads to one.",
+        "evidence": [
+          "src/commands/arch/query.ts:18-22 loads the complete architecture and resolves the requested root element in queryArchitecture.",
+          "src/commands/arch/query.ts:67-68 unconditionally calls readLikeC4Architecture again in formatArchitectureQueryText, including when result has no relations.",
+          "src/commands/arch/query.ts:62-64 shows that the second model is used only to translate relation endpoint LikeC4 IDs to capabilityId metadata.",
+          "src/commands/arch/query.ts:51-59 returns the root element plus every positive-depth element whose endpoint can occur in the returned relation set; every returned relation has both endpoints in the depths map.",
+          "src/commands/arch/index.ts:12-14 invokes queryArchitecture and then immediately invokes formatArchitectureQueryText for non-JSON output, proving the duplicate read occurs in one command execution.",
+          "The only production caller is src/commands/arch/index.ts; no caller depends on formatter-side observation of a separately refreshed architecture model.",
+          "Focused current validation passed test/integration/arch-command.test.ts and test/unit/utils/architecture-delta-merger.test.ts: 2 files and 20 tests.",
+          "Current HEAD is 8151dec200a1012bc41bf765be53213de555602e; git status and the staged-file list are empty, and git diff --check passes."
+        ],
+        "recommendation": "Build an element-ID-to-canonical-label map from result.element and result.relatedElements inside the formatter, use raw endpoint IDs as a defensive fallback, and remove the redundant architecture read while retaining the formatter call shape and queryArchitecture JSON result shape.",
+        "keyDesign": "Keep queryArchitecture and its verified adjacency traversal unchanged. Seed a local Map with result.element.id mapped through canonicalId, add each related.element.id mapped through canonicalId, and render relation source and target labels from that Map with the raw LikeC4 endpoint ID as fallback. Retain the projectRoot parameter for call compatibility if desired, but do not use it to reread architecture state.",
+        "preservationConstraints": [
+          "Preserve checkpoint 68dd8cc0's undirected adjacency Map and incident-list BFS exactly; do not restore per-node full relation scans or deduplicate relation records.",
+          "Preserve checkpoint 8151dec2's exact-string changed-file filtering, complete-tree staged validation, changed-entry production writes, and rollback behavior; this direction must not touch src/utils/architecture-delta-merger.ts.",
+          "Do not add formatter-only architecture data, endpoint maps, or other fields to queryArchitecture's JSON-serializable result.",
+          "Text output must remain byte-for-byte equivalent for element labels, type labels, descriptions, Specs sections, Relations headings, relation descriptions, depth annotations, whitespace, and ordering.",
+          "Capability endpoints must continue to display capabilityId metadata when present; capability endpoints without capabilityId must display their raw LikeC4 IDs.",
+          "Domain endpoints must continue to display their raw LikeC4 domain IDs.",
+          "Any unexpected endpoint absent from the local map must fall back to its raw relation endpoint ID.",
+          "Queries without --relations must preserve their current text output while performing only the original queryArchitecture read.",
+          "Element-not-found behavior and error timing in queryArchitecture must remain unchanged.",
+          "The formatter must not perform asynchronous I/O after this change, even if its existing Promise-based public signature is retained for compatibility."
+        ],
+        "implementationOutline": [
+          "Leave queryArchitecture lines 18-59 and the verified adjacency-index regression test unchanged.",
+          "Replace relationEndpoint's architecture scan with lookup against a formatter-local Map<string, string>.",
+          "Seed the map from result.element using canonicalId.",
+          "When result.relatedElements exists, add every related element using its LikeC4 element ID as the key and canonicalId as the rendered value.",
+          "Remove the readLikeC4Architecture invocation from formatArchitectureQueryText and use raw endpoint IDs when a map entry is absent.",
+          "Retain existing relation and related-element loops without reordering or deduplication.",
+          "Add focused regression coverage proving a query followed by text formatting invokes readLikeC4Architecture once, not twice.",
+          "Add byte-for-byte text assertions covering canonical capability endpoints, a raw domain endpoint, description and Specs lines, relation descriptions, depths, and ordering."
+        ],
+        "validation": [
+          "Update test/integration/arch-command.test.ts with a mocked-reader regression proving query plus text formatting performs exactly one architecture read.",
+          "Assert full expected text equality for an existing capability-to-capability relation, rather than only substring checks.",
+          "Add a domain-endpoint relation case proving domains retain raw LikeC4 IDs and capabilities retain canonical capabilityId labels.",
+          "Retain the relation-iteration regression proving checkpoint 68dd8cc0 still iterates the source relation collection once while preserving incoming traversal, depth-two reachability, duplicates, and unrelated-edge exclusion.",
+          "Run pnpm exec vitest run test/integration/arch-command.test.ts test/unit/utils/architecture-delta-merger.test.ts.",
+          "Run pnpm lint and pnpm run build.",
+          "Run git diff --check, verify git diff --cached --name-only is empty, and confirm only the selected base-scope query implementation and its focused test changed."
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "This is the only non-terminal optimization left. Its avoided work is statically guaranteed on every text query, the formatter already receives a closed set of returned relation endpoints, and the change is isolated to one base-scope implementation file while explicitly preserving both verified optimizations.",
+        "id": "OPT-20260720T135027878Z-03",
+        "targetFileHashes": {
+          "src/commands/arch/query.ts": "047e392b993673386a3b3706731b7a620da54c49d6ec9c0d4c9acd95aef2efe3"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-20T13:50:27.878Z",
+        "findingId": "OPT-20260720T135027878Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-20T13:50:27.878Z",
+        "findingId": "OPT-20260720T135027878Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-20T13:50:27.878Z",
+        "findingId": "OPT-20260720T135027878Z-03"
+      },
+      {
+        "sequence": 4,
+        "action": "select",
+        "reason": "This is the highest-value optimization because it removes a statically provable repeated full-graph scan from a public query path while preserving the existing result assembly and ordering contracts.",
+        "timestamp": "2026-07-20T13:50:27.880Z",
+        "findingId": "OPT-20260720T135027878Z-01",
+        "hashes": {
+          "src/commands/arch/query.ts": "6bc106cef784f5dd55af52e557b268d452c8aefdf73b85dc0ab4254195f79649"
+        }
+      },
+      {
+        "sequence": 5,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-20T13:50:38.162Z",
+        "findingId": "OPT-20260720T135027878Z-01",
+        "hashes": {
+          "src/commands/arch/query.ts": "6bc106cef784f5dd55af52e557b268d452c8aefdf73b85dc0ab4254195f79649"
+        }
+      },
+      {
+        "sequence": 6,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-20T14:21:08.757Z",
+        "findingId": "OPT-20260720T135027878Z-01"
+      },
+      {
+        "sequence": 7,
+        "action": "resolve",
+        "reason": "Checkpoint 68dd8cc0 implemented and fresh Phase 2 verification passed the adjacency-index optimization. Current queryArchitecture builds one undirected adjacency index, preserves relation-array order and duplicates, retains bounded BFS depth and deterministic result sorting, and the focused regression test confirms a single source-relation iteration with incoming traversal, multi-hop traversal, duplicate relations, and unrelated-edge exclusion.",
+        "timestamp": "2026-07-20T14:26:45.047Z",
+        "findingId": "OPT-20260720T135027878Z-01"
+      },
+      {
+        "sequence": 8,
+        "action": "retain",
+        "reason": "Fresh code still writes every loaded domain through the production write abstraction at src/utils/architecture-delta-merger.ts:116-124, even though delta transformations commonly change only one domain and optionally relations.c4. Exact-content filtering after complete staged validation remains statically behavior-preserving and is the highest-value remaining low-risk optimization.",
+        "timestamp": "2026-07-20T14:26:45.047Z",
+        "findingId": "OPT-20260720T135027878Z-02"
+      },
+      {
+        "sequence": 9,
+        "action": "retain",
+        "reason": "Fresh code still performs a second complete readLikeC4Architecture call in formatArchitectureQueryText at src/commands/arch/query.ts:67-80. The opportunity remains valid, but it ranks behind OPT-20260720T135027878Z-02 because it removes one fixed parse per text query while the merger finding avoids redundant production writes proportional to the number of formal domain files.",
+        "timestamp": "2026-07-20T14:26:45.047Z",
+        "findingId": "OPT-20260720T135027878Z-03"
+      },
+      {
+        "sequence": 10,
+        "action": "select",
+        "reason": "This is the next selected opportunity: redundant production writes are directly visible, exact-content filtering closes behavior and rollback constraints, and the change is isolated to an existing base-scope implementation file. It outranks the formatter reread because its avoided work scales with formal domain count and includes atomic-write and rollback overhead.",
+        "timestamp": "2026-07-20T14:26:45.049Z",
+        "findingId": "OPT-20260720T135027878Z-02",
+        "hashes": {
+          "src/utils/architecture-delta-merger.ts": "8c362e89464d5d653d2160b7c503385593f8716cf5ab3304af3d54bc1909602c"
+        }
+      },
+      {
+        "sequence": 11,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-20T14:26:56.285Z",
+        "findingId": "OPT-20260720T135027878Z-02",
+        "hashes": {
+          "src/utils/architecture-delta-merger.ts": "8c362e89464d5d653d2160b7c503385593f8716cf5ab3304af3d54bc1909602c"
+        }
+      },
+      {
+        "sequence": 12,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-20T14:32:39.677Z",
+        "findingId": "OPT-20260720T135027878Z-02"
+      },
+      {
+        "sequence": 13,
+        "action": "resolve",
+        "reason": "Checkpoint 8151dec2 implemented the exact-content production-write filter and persisted fresh verification passed. Current mergeArchitectureDelta retains the complete proposed contents map for staging, records existing and new-file originals, validates the complete staged architecture before production mutation, writes only exact-string-changed entries, and rolls back only changed existing or newly created files. Focused current validation passed all 20 arch-query and delta-merger tests, git diff --check passed, and the worktree and index are clean.",
+        "timestamp": "2026-07-20T14:37:58.663Z",
+        "findingId": "OPT-20260720T135027878Z-02"
+      },
+      {
+        "sequence": 14,
+        "action": "reprioritize",
+        "reason": "This is now the sole remaining actionable direction. Current formatArchitectureQueryText still performs a second complete readLikeC4Architecture call for every text query, including queries without --relations, although queryArchitecture already returns the root and every endpoint needed to render returned relations. Replacing that reread with a result-local canonical endpoint map removes a full directory scan, file-read batch, and parse batch with low implementation risk and without changing the JSON or text contracts.",
+        "timestamp": "2026-07-20T14:37:58.663Z",
+        "findingId": "OPT-20260720T135027878Z-03"
+      },
+      {
+        "sequence": 15,
+        "action": "select",
+        "reason": "This is the only non-terminal optimization left. Its avoided work is statically guaranteed on every text query, the formatter already receives a closed set of returned relation endpoints, and the change is isolated to one base-scope implementation file while explicitly preserving both verified optimizations.",
+        "timestamp": "2026-07-20T14:37:58.663Z",
+        "findingId": "OPT-20260720T135027878Z-03",
+        "hashes": {
+          "src/commands/arch/query.ts": "047e392b993673386a3b3706731b7a620da54c49d6ec9c0d4c9acd95aef2efe3"
+        }
+      },
+      {
+        "sequence": 16,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-20T14:38:07.193Z",
+        "findingId": "OPT-20260720T135027878Z-03",
+        "hashes": {
+          "src/commands/arch/query.ts": "047e392b993673386a3b3706731b7a620da54c49d6ec9c0d4c9acd95aef2efe3"
+        }
+      },
+      {
+        "sequence": 17,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-20T14:41:26.576Z",
+        "findingId": "OPT-20260720T135027878Z-03"
+      },
+      {
+        "sequence": 18,
+        "action": "resolve",
+        "reason": "Checkpoint 51be3795 implemented the result-local endpoint label map and persisted fresh Phase 2 verification passed. Current formatArchitectureQueryText no longer rereads or reparses the LikeC4 architecture, preserves canonical capability labels and raw domain or unknown endpoint fallbacks, and leaves queryArchitecture's verified adjacency traversal and JSON result contract unchanged. Focused current validation passed 2 files and 21 tests, lint and build passed, git diff --check passed, and the worktree and index are clean. All three optimization findings are now implemented and verified, so terminal reconciliation adds no speculative directions.",
+        "timestamp": "2026-07-20T14:44:25.259Z",
+        "findingId": "OPT-20260720T135027878Z-03"
+      }
+    ],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}

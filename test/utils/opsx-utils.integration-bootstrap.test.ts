@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { randomUUID } from 'crypto';
+import { readArchitecture } from '../../src/utils/architecture-reader.js';
 import {
   OPSX_SCHEMA_VERSION,
   readProjectOpsx,
@@ -124,12 +125,13 @@ describe('Integration: Bootstrap Workflow', () => {
   });
 
   describe('Regression: Real repo file', () => {
-    it('should read actual openspec/project.opsx.yaml from repo', async () => {
+    it('should read the repository LikeC4 architecture', async () => {
       const repoRoot = path.resolve(__dirname, '..', '..');
-      const result = await readProjectOpsx(repoRoot);
-      expect(result).not.toBeNull();
-      expect(result!.project).toBeDefined();
-      expect(result!.domains.length).toBeGreaterThan(0);
+      const result = await readArchitecture(repoRoot);
+      expect(result.source).toBe('likec4');
+      if (result.source === 'likec4') {
+        expect(result.domains.length).toBeGreaterThan(0);
+      }
     });
   });
 

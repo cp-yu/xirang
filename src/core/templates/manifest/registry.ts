@@ -10,7 +10,7 @@ import {
   getApplyChangeSkillTemplate,
   getArchiveChangeSkillTemplate,
   getOpsxProposeSkillTemplate,
-  getBootstrapOpsxSkillTemplate,
+  getBootstrapArchSkillTemplate,
   getSnackSkillTemplate,
 } from '../skill-templates.js';
 
@@ -70,16 +70,16 @@ const MANIFEST_ENTRIES: readonly WorkflowManifestEntry[] = [
     getSkillTemplate: getArchiveChangeSkillTemplate,
   },
   {
-    workflowId: 'bootstrap-opsx',
+    workflowId: 'bootstrap-arch',
     modeMembership: [],
-    skillDirName: 'openspec-bootstrap-opsx',
-    skillName: 'openspec-bootstrap-opsx',
+    skillDirName: 'openspec-bootstrap-arch',
+    skillName: 'openspec-bootstrap-arch',
     commandSlug: 'bootstrap',
     promptMeta: {
-      name: 'Bootstrap OPSX',
-      description: 'Bootstrap project OPSX structure for architecture tracking',
+      name: 'Bootstrap architecture',
+      description: 'Bootstrap project LikeC4 architecture structure',
     },
-    getSkillTemplate: getBootstrapOpsxSkillTemplate,
+    getSkillTemplate: getBootstrapArchSkillTemplate,
   },
   {
     workflowId: 'snack',

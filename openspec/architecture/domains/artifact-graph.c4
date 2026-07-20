@@ -1,0 +1,52 @@
+model {
+  artifact_graph = domain 'Artifact Graph' {
+    description '制品依赖解析、拓扑排序和指令组装的核心引擎'
+
+    metadata {
+      boundary '拥有图解析和指令加载。不拥有 CLI 输出格式化或技能编排。'
+      status 'active'
+    }
+
+    instruction_loader = capability 'Instruction Loader' {
+      description '加载内置 Schema 的 file definition、instruction 与 template，并按 artifact 编译项目配置投影、依赖状态和验证上下文'
+      metadata {
+        capabilityId 'cap.artifact-graph.instruction-loader'
+        status 'active'
+        specs ['openspec/specs/instruction-loader/spec.md']
+      }
+    }
+
+    parse = capability 'Parse' {
+      description '解析内置 Schema 的 artifacts、file definitions 与依赖 DAG，校验 definition 结构、引用完整性、重复 ID 和循环'
+      metadata {
+        capabilityId 'cap.artifact-graph.parse'
+        status 'active'
+      }
+    }
+
+    schema_resolution = capability 'Schema Resolution' {
+      description '从固定 package 内置集合解析和验证 spec-driven 与 bootstrap Schema'
+      metadata {
+        capabilityId 'cap.artifact-graph.schema-resolution'
+        status 'active'
+        specs ['openspec/specs/schema-resolution/spec.md']
+      }
+    }
+
+    state_tracking = capability 'State Tracking' {
+      description '通过文件系统追踪制品完成状态'
+      metadata {
+        capabilityId 'cap.artifact-graph.state-tracking'
+        status 'active'
+      }
+    }
+
+    file_definitions = capability 'File Definitions' {
+      description '为内置 change artifacts、bootstrap lifecycle files、formal Specs 与 LikeC4 files 提供结构化用途、编译职责、内容边界、写入策略和验证合同，并按 artifact 或 phase 向 Agent 投影'
+      metadata {
+        capabilityId 'cap.artifact-graph.file-definitions'
+        status 'active'
+      }
+    }
+  }
+}

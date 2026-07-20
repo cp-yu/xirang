@@ -1,5 +1,9 @@
 # OPSX Bootstrap Workflow
 
+> [!WARNING]
+> Deprecated legacy bootstrap CLI reference retained for the compatibility window. Use `/opsx:bootstrap-arch` for LikeC4.
+
+
 ## Overview
 
 Bootstrap upgrades an existing repository into formal OPSX v2 tracking through five phases:

@@ -1,0 +1,16 @@
+{
+  "method": "worktree",
+  "branchName": "opsx-to-likec4-mega-refactor",
+  "originalBranch": "main",
+  "baseCommit": "5f600da0a38665e231a29597ccd0fd5c2c5f638b",
+  "worktreePath": "/home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec/.worktrees/opsx-to-likec4-mega-refactor",
+  "sourceRoot": "/home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec",
+  "phase2BaselineCommit": "fa272ae2ae9d150feced86385718c4e2a9b5e9c3",
+  "transferredFiles": [
+    {
+      "path": "openspec/changes/opsx-to-likec4-mega-refactor/tasks.md",
+      "sourceState": "modified",
+      "sourceHash": "a8ae5382b4ce614f71f0051d2159a674bd0c6a11ca714b3c91bec3c127c43234"
+    }
+  ]
+}

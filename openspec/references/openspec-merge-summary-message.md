@@ -20,6 +20,6 @@ Body:
 ```
 
 Rules:
-- Build the summary from the archived `proposal.md`, `design.md`, `tasks.md`, and `opsx-delta.yaml`.
+- Build the summary from the archived `proposal.md`, `design.md`, `tasks.md`, and `architecture-delta.c4`.
 - Use `git commit -F -` for no-ff merge commits and squash commits that require a message.
 - Do not generate this message for `ff-only` merges.

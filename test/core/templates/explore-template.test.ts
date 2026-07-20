@@ -125,7 +125,7 @@ describe('explore template impact sweeps', () => {
     expect(template).toContain('Observable behavior changed');
     expect(template).toContain('Refactor rationale or rejected path');
     expect(template).toContain('Implementation strategy');
-    expect(template).toContain('OPSX graph intent changed');
+    expect(template).toContain('LikeC4 architecture intent changed');
     expect(template).toContain('This is observable behavior for `specs/<capability>/spec.md`; include it in the Design Summary');
     expect(template).toContain('That is a design decision for `design.md`; include it in the Design Summary');
     expect(template).toContain('This changes scope for `proposal.md`; include it in the Design Summary');

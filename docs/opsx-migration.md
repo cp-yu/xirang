@@ -1,5 +1,9 @@
 # OPSX Migration Guide
 
+> [!WARNING]
+> Historical OPSX path migration reference. For the active OPSX YAML → LikeC4 migration, see [Migration Guide](migration-guide.md).
+
+
 ## Overview
 
 This guide helps you migrate from the old OPSX path structure to the new standardized location.

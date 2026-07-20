@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- **Node.js 20.19.0 or higher** — Check your version: `node --version`
+- **Node.js 22.22.3 or higher** — Check your version: `node --version`
 
 ## GitHub Release Install
 

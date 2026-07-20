@@ -5,14 +5,7 @@ import { SpecSchema, ChangeSchema, Spec, Change } from '../schemas/index.js';
 import { MarkdownParser } from '../parsers/markdown-parser.js';
 import { ChangeParser } from '../parsers/change-parser.js';
 import { ValidationReport, ValidationIssue, ValidationLevel } from './types.js';
-import {
-  applyOpsxDelta,
-  hasOpsxDeltaOperations,
-  OPSX_PATHS,
-  readOpsxDelta,
-  readProjectOpsx,
-} from '../../utils/opsx-utils.js';
-import { validateRelationGraph } from '../relations/validator.js';
+import { readLikeC4Architecture } from '../../utils/likec4-reader.js';
 import {
   MIN_PURPOSE_LENGTH,
   MAX_REQUIREMENT_TEXT_LENGTH,
@@ -340,64 +333,6 @@ export class Validator {
     return this.createReport(issues);
   }
 
-  async validateOpsxDelta(changeDir: string): Promise<ValidationReport> {
-    const issues: ValidationIssue[] = [];
-    const projectRoot = path.resolve(changeDir, '..', '..', '..');
-    const changeName = path.basename(changeDir);
-
-    let delta;
-    try {
-      delta = await readOpsxDelta(projectRoot, changeName);
-    } catch (error) {
-      issues.push({
-        level: 'ERROR',
-        path: 'opsx-delta.yaml',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      });
-      return this.createReport(issues);
-    }
-
-    if (!delta || !hasOpsxDeltaOperations(delta)) {
-      return this.createReport(issues);
-    }
-
-    const projectOpsxPath = FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.PROJECT_FILE);
-    if (!await FileSystemUtils.fileExists(projectOpsxPath)) {
-      return this.createReport(issues);
-    }
-
-    try {
-      const projectBundle = await readProjectOpsx(projectRoot);
-      if (!projectBundle) {
-        issues.push({
-          level: 'ERROR',
-          path: 'openspec/project.opsx.yaml',
-          message: 'Unable to read openspec/project.opsx.yaml for OPSX dry-run validation',
-        });
-        return this.createReport(issues);
-      }
-
-      const result = applyOpsxDelta(projectBundle, delta);
-      const relationValidation = validateRelationGraph(result.bundle);
-      for (const error of relationValidation.errors) {
-        issues.push({
-          level: 'ERROR',
-          path: 'opsx-delta.yaml',
-          message: `Relation validation failed: ${error}`,
-        });
-      }
-    } catch (error) {
-      const baseMessage = error instanceof Error ? error.message : 'Unknown error';
-      issues.push({
-        level: 'ERROR',
-        path: 'opsx-delta.yaml',
-        message: `OPSX dry-run merge failed: ${baseMessage}`,
-      });
-    }
-
-    return this.createReport(issues);
-  }
-
   private convertZodErrors(error: ZodError): ValidationIssue[] {
     return error.issues.map(err => {
       let message = err.message;
@@ -668,9 +603,12 @@ export class Validator {
   private async validateMainSpecFrontmatter(changeDir: string, issues: ValidationIssue[]): Promise<void> {
     const projectRoot = path.resolve(changeDir, '..', '..', '..');
     const mainSpecsDir = path.join(projectRoot, 'openspec', 'specs');
-    const projectBundle = await readProjectOpsx(projectRoot);
-    const knownCaps = projectBundle
-      ? new Set(projectBundle.capabilities.map(capability => capability.id))
+    const architecture = await readLikeC4Architecture(projectRoot).catch((error: NodeJS.ErrnoException) => {
+      if (error.code === 'ENOENT') return null;
+      throw error;
+    });
+    const knownCaps = architecture
+      ? new Set(architecture.capabilities.flatMap(capability => capability.capabilityId ?? []))
       : null;
 
     let entries;
@@ -698,7 +636,7 @@ export class Validator {
         issues.push({
           level: 'WARNING',
           path: issuePath,
-          message: `Spec "${specName}" has no capabilities frontmatter. Add capabilities frontmatter to map it to OPSX capabilities.`,
+          message: `Spec "${specName}" has no capabilities frontmatter. Add capabilities frontmatter to map it to architecture capabilities.`,
         });
         continue;
       }

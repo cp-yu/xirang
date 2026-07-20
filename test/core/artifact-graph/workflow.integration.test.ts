@@ -52,7 +52,7 @@ describe('artifact-graph workflow integration', () => {
       expect(normalizeBlocked(graph.getBlocked(completed))).toEqual({
         specs: ['proposal'],
         design: ['proposal'],
-        'opsx-delta': ['specs'],
+        'architecture-delta': ['specs'],
         tasks: ['design', 'specs'],
       });
 
@@ -62,7 +62,7 @@ describe('artifact-graph workflow integration', () => {
       expect(completed).toEqual(new Set(['proposal']));
       expect(graph.getNextArtifacts(completed).sort()).toEqual(['design', 'specs']);
       expect(normalizeBlocked(graph.getBlocked(completed))).toEqual({
-        'opsx-delta': ['specs'],
+        'architecture-delta': ['specs'],
         tasks: ['design', 'specs'],
       });
 
@@ -72,7 +72,7 @@ describe('artifact-graph workflow integration', () => {
       expect(completed).toEqual(new Set(['proposal', 'design']));
       expect(graph.getNextArtifacts(completed)).toEqual(['specs']);
       expect(graph.getBlocked(completed)).toEqual({
-        'opsx-delta': ['specs'],
+        'architecture-delta': ['specs'],
         tasks: ['specs'],
       });
 
@@ -82,14 +82,14 @@ describe('artifact-graph workflow integration', () => {
       fs.writeFileSync(path.join(specsDir, 'feature-auth.md'), '# Auth Spec\n\nAuthentication specification.');
       completed = detectCompleted(graph, tempDir);
       expect(completed).toEqual(new Set(['proposal', 'design', 'specs']));
-      expect(graph.getNextArtifacts(completed).sort()).toEqual(['opsx-delta', 'tasks']);
+      expect(graph.getNextArtifacts(completed).sort()).toEqual(['architecture-delta', 'tasks']);
       expect(graph.getBlocked(completed)).toEqual({});
 
-      // 6. Create opsx-delta.yaml and tasks.md - workflow complete
-      fs.writeFileSync(path.join(tempDir, 'opsx-delta.yaml'), 'schema_version: 2\nADDED:\n  capabilities: []\n');
+      // 6. Create architecture-delta.c4 and tasks.md - workflow complete
+      fs.writeFileSync(path.join(tempDir, 'architecture-delta.c4'), 'model {}\n');
       fs.writeFileSync(path.join(tempDir, 'tasks.md'), '# Tasks\n\n- [ ] Implement feature');
       completed = detectCompleted(graph, tempDir);
-      expect(completed).toEqual(new Set(['proposal', 'design', 'specs', 'opsx-delta', 'tasks']));
+      expect(completed).toEqual(new Set(['proposal', 'design', 'specs', 'architecture-delta', 'tasks']));
       expect(graph.getNextArtifacts(completed)).toEqual([]);
       expect(graph.isComplete(completed)).toBe(true);
       expect(graph.getBlocked(completed)).toEqual({});

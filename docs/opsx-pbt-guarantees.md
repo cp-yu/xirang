@@ -1,5 +1,9 @@
 # OPSX Property-Based Testing Guarantees
 
+> [!WARNING]
+> Legacy OPSX YAML test-contract history; not active architecture authoring guidance.
+
+
 ## Overview
 
 OPSX uses [fast-check](https://github.com/dubzzz/fast-check) to exercise the v2 two-file runtime across generated graph sizes and failure cases. The tests generate valid semantic graphs rather than arbitrary endpoint pairs.

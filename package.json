@@ -57,7 +57,7 @@
     "changeset": "changeset"
   },
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=22.22.3"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.2",
@@ -65,13 +65,14 @@
     "@vitest/ui": "^3.2.4",
     "eslint": "^9.39.2",
     "fast-check": "^4.6.0",
+    "likec4": "1.59.0",
     "typescript-eslint": "^8.50.1",
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@types/node": "^24.2.0",
     "@inquirer/core": "^10.2.2",
     "@inquirer/prompts": "^7.8.0",
+    "@types/node": "^24.2.0",
     "chalk": "^5.5.0",
     "commander": "^14.0.0",
     "fast-glob": "^3.3.3",

@@ -79,7 +79,7 @@ AI:  Running full verify gate...
 
 ## Quick Start
 
-**Requires Node.js 20.19.0 or higher.**
+**Requires Node.js 22.22.3 or higher.**
 
 Install the packaged release tarball from GitHub Releases:
 
@@ -102,7 +102,7 @@ For vague or multi-subsystem ideas, start with `/opsx:explore`. Explore now runs
 
 `/opsx:apply` now reads coarse `tasks.md` entries and has the current agent execute pending behavior checks through strict red/green TDD before marking evidence-backed progress. When run on `main` or `master`, it asks whether to create a feature branch, create a worktree, or continue on the current branch.
 
-OpenSpec installs managed workflow skills by default, including `/opsx:propose`, `/opsx:explore`, `/opsx:apply`, `/opsx:archive`, `/opsx:bootstrap-opsx`, and `/opsx:snack`. `/opsx:archive` runs the full verify gate before archive and then performs spec + OPSX sync inline.
+OpenSpec installs managed workflow skills by default, including `/opsx:propose`, `/opsx:explore`, `/opsx:apply`, `/opsx:archive`, `/opsx:bootstrap-arch`, and `/opsx:snack`. Specs and LikeC4 form the durable semantic source; `/opsx:archive` verifies and synchronizes behavior plus architecture deltas.
 
 > [!NOTE]
 > OpenSpec's managed workflow surface is **skills-only**. `openspec init` and `openspec update` install and refresh skill files under `.<tool>/skills/`. Slash command files may still exist from older installations; they remain on disk as legacy artifacts and OpenSpec no longer generates, refreshes, or removes them.
@@ -118,7 +118,8 @@ OpenSpec installs managed workflow skills by default, including `/opsx:propose`,
 → **[Workflows](docs/workflows.md)**: combos and patterns<br>
 → **[Commands](docs/commands.md)**: workflow entry points & skills<br>
 → **[CLI](docs/cli.md)**: terminal reference<br>
-→ **[OPSX Integration](docs/opsx-integration.md)**: programmatic architecture tracking<br>
+→ **[LikeC4 Architecture](docs/architecture-integration.md)**: architecture model, commands, and change deltas<br>
+→ **[Migration Guide](docs/migration-guide.md)**: migrate legacy OPSX YAML to LikeC4<br>
 → **[Supported Tools](docs/supported-tools.md)**: tool integrations & install paths<br>
 → **[Concepts](docs/concepts.md)**: how it all fits<br>
 → **[Multi-Language](docs/multi-language.md)**: multi-language support<br>

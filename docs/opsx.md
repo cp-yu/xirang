@@ -8,7 +8,7 @@ OpenSpec's managed workflow surface is skills-only.
 - `/opsx:explore`
 - `/opsx:apply`
 - `/opsx:archive`
-- `/opsx:bootstrap-opsx`
+- `/opsx:bootstrap-arch`
 - `/opsx:snack`
 
 `/opsx:archive` runs the full verify gate before archive and performs archive-time sync inline.

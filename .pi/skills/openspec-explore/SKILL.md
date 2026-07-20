@@ -15,7 +15,7 @@ Enter explore mode: investigate, clarify, compare, and help the user think befor
 
 OpenSpec is a human-intent programming layer between human intent and general-purpose programming languages.
 
-1. Specs and OPSX jointly form the durable semantic source. Specs define observable behavior; OPSX defines project intent, capabilities, ownership, boundaries, and semantic relations.
+1. Specs and LikeC4 jointly form the durable semantic source. Specs define observable behavior; LikeC4 defines project intent, capabilities, ownership, boundaries, and semantic relations.
 2. A change reconciles semantic source deltas toward a target steady state. `proposal.md`, `design.md`, and `tasks.md` are compilation scaffolding, not competing sources of truth.
 3. Source is complete only when an Agent can compile it without guessing decisions that affect behavior or architecture.
 4. The Agent acts as a compiler: translate declared intent faithfully. Existing code is compiled output and current implementation evidence; it MUST NOT silently override the declared semantic source.
@@ -45,23 +45,20 @@ The main explore agent and `openspec-impact-sweeper` subagent are both read-only
 
 - Start with `openspec list --json`.
 - Read relevant change artifacts when a change name is present.
-- Use OPSX as navigation: project domains/capabilities, semantic relations, specs, and CLI query guidance; use live repository tools for code evidence.
+- Use LikeC4 as navigation: project domains/capabilities, semantic relations, Specs, and CLI query guidance; use live repository tools for code evidence.
 - Ground claims in project files and git evidence when the idea maps to code.
 
-Before reading other context files, check whether the formal OPSX two-file bundle exists:
-- `openspec/project.opsx.yaml` for project intent, domains, and capabilities
-- `openspec/project.opsx.relations.yaml` for the complete canonical semantic relation set
-- If the bundle exists, read both files as one architecture source; do not treat either file as complete alone
-- Read the `project:` block for project intent and scope
-- Treat the bundle as navigation context, not as a replacement for change artifacts
+Before reading implementation files, load the formal LikeC4 source under `openspec/architecture/`.
+- Use `openspec arch query <element-id> --relations --depth 2` for architecture navigation
+- Read linked Specs from capability metadata
+- Treat code paths, imports, calls, and symbols as implementation evidence only
+- Do not read legacy OPSX YAML as active architecture source
 
-**OPSX-first navigation**:
-If `openspec/project.opsx.yaml` exists:
-- Use `project.opsx.yaml` for domains → capabilities structure
-- Use `openspec opsx query <node-id...> --json` for directed semantic relations
-- Use optional CodeGraph or ACE/`rg`/`read` for current implementation evidence
-- Use `openspec/specs/` for behavior documentation
-- Cross-reference domains to understand system boundaries
+**LikeC4-first navigation**:
+- Use `openspec arch query <element-id> --relations --depth 2 --json` for domains, capabilities, and directed semantic relations
+- Read linked files under `openspec/specs/` for behavior contracts
+- Use optional CodeGraph or ACE/`rg`/`read` only for current implementation evidence
+- Cross-reference nested domains to understand ownership and boundaries
 
 Output language: use the user's main language for prose and non-canonical section labels; keep commands, paths, artifact names, schema keys, and OpenSpec tokens unchanged.
 
@@ -118,7 +115,7 @@ When exploring an active change, read proposal/design/specs/tasks, reference the
 | Implementation strategy              | `design.md`                  |
 | Scope changed                        | `proposal.md`                |
 | New work or verification identified  | `tasks.md`                   |
-| OPSX graph intent changed            | `opsx-delta.yaml`            |
+| LikeC4 architecture intent changed   | `architecture-delta.c4`      |
 | Assumption invalidated               | Relevant artifact              |
 | Test needs update or deletion        | `tasks.md` + `design.md`   |
 

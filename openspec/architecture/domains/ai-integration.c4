@@ -1,0 +1,216 @@
+model {
+  ai_integration = domain 'Ai Integration' {
+    description '多工具 AI 支持 — 为 25+ AI 工具生成特定工具的技能文件和面向 Agent 的 workflow skills'
+
+    metadata {
+      boundary '拥有工具元数据、技能定义和 skills-only workflow surface。不拥有核心规约/变更逻辑。'
+      status 'active'
+    }
+
+    agent_prompt_guidance = capability 'Agent Prompt Guidance' {
+      description '面向 Agent 的 verify gate 提示词指引系统。VERIFY_SIMPLE_CHANGE_FAST_PATH 从"允许 master agent 自主跳过"改为"强制委托 optimizer subagent"语义。共享片段（状态机流程图、JSON schema 速查表、CLI 错误恢复决策树）中 OPTIMIZATION_PROPOSED 行补全 --files 参数，错误恢复增加 FILES_REQUIRED 条目。'
+      metadata {
+        capabilityId 'cap.ai.agent-prompt-guidance'
+        status 'active'
+        specs ['openspec/specs/agent-prompt-guidance/spec.md']
+      }
+    }
+
+    command_generation = capability 'Command Generation' {
+      description '管理 AI 工具命令生成管线的能力——将 workflow templates 编译为各 AI 工具平台的 command instructions'
+      metadata {
+        capabilityId 'cap.ai.command-generation'
+        status 'active'
+      }
+    }
+
+    command_slugs = capability 'Command Slugs' {
+      description '管理 OpenSpec CLI 命令的 slug 映射与工具检测，确保跨工具 workflow surface 的命名一致性'
+      metadata {
+        capabilityId 'cap.ai.command-slugs'
+        status 'active'
+      }
+    }
+
+    explore_brainstorming = capability 'Explore Brainstorming' {
+      description 'Explore 阶段的 brainstorming 流程，包含 6 步 checklist、一次一问纪律、2-3 方案对比、Design Summary 生成；todo 可用时必须在读取 context 前将 Superpowers 阶段记录为 checklist 并逐步 tick；main explore agent 严格 read-only，用户设计确认不构成文件写入授权；已有 change 的 insight 仅分类为 future capture target，不在 explore 中更新 artifacts；Superpowers 行为引导通过 referenceFiles 暴露为 OpenSpec-adapted brainstorming protocol，以原始 Superpowers brainstorming 的 hard gate、上下文探索、just-in-time visual 判断、分段设计确认、自检和用户审查 gate 为行为来源，并映射到 conversation-only Design Summary 与 openspec-propose 路由；主 instructions 中的 workflow 引用使用规范形 /opsx:<slug>，经 transform 管线按工具适配渲染'
+      metadata {
+        capabilityId 'cap.ai.explore-brainstorming'
+        status 'active'
+        specs ['openspec/specs/explore-brainstorming/spec.md']
+      }
+    }
+
+    explore_terminology_decision = capability 'Explore Terminology Decision' {
+      description 'Explore master agent 解读 terminologyObservations，根据四态判断逻辑决定是否向用户提示术语不一致'
+      metadata {
+        capabilityId 'cap.ai.explore-terminology-decision'
+        status 'active'
+        specs ['openspec/specs/explore-terminology-decision/spec.md']
+      }
+    }
+
+    impact_sweeper = capability 'Impact Sweeper' {
+      description '以 LikeC4 element relation paths、cap-to-Spec contracts 与当前代码证据生成语义影响报告；通过 openspec arch query 导航，CodeGraph 可选，不可用时回退 ACE、rg 与 read。'
+      metadata {
+        capabilityId 'cap.ai.impact-sweeper'
+        status 'active'
+      }
+    }
+
+    internal_subagent_generation = capability 'Internal Subagent Generation' {
+      description 'Internal subagent artifact generation framework。为 openspec-reviewer、 openspec-optimizer、openspec-impact-sweeper 等 internal 执行角色生成 tool-native subagent artifact：Claude Code / Pi / OpenCode 写入 <toolDir>/agents/<name>.md，Codex 写入 <toolDir>/agents/<name>.toml。 提供统一 SubagentTemplate 源模型与 per-tool renderer（markdown / toml）， 与 ArtifactSyncEngine 集成，在 init / update 时与 workflow skills 并列生成， 并按显式名 list 清理旧 internal skill 目录；不暴露为用户可调用 workflow surface。'
+      metadata {
+        capabilityId 'cap.ai.internal-subagent-generation'
+        status 'active'
+        specs ['openspec/specs/internal-subagent-generation/spec.md']
+      }
+    }
+
+    optimizer_skill = capability 'Optimizer Skill' {
+      description 'Phase 2 finding-first 通用优化审查者；基于当前代码输出多个证据化 findings、修改意见、关键设计、保持约束和验证建议，不修改文件、不输出逐字补丁、不受固定优化 taxonomy 限制'
+      metadata {
+        capabilityId 'cap.ai.optimizer-skill'
+        status 'active'
+      }
+    }
+
+    propose_smart_routing = capability 'Propose Smart Routing' {
+      description 'Propose 阶段复用已确认的 Design Summary，或依据 problem、impact scope、approach、verification method 与 unresolved source decisions 判断 semantic readiness；区分 new/existing change identity，在 readiness 通过或用户明确 override 后按 resolved file definitions 生成 change artifacts；以 blocking combined semantic-source delta validation 和 preview-first scenario labels 建立 ready-for-apply gate'
+      metadata {
+        capabilityId 'cap.ai.propose-smart-routing'
+        status 'active'
+      }
+    }
+
+    references_home = capability 'References Home' {
+      description 'openspec/references/ 作为全部 skill reference 的唯一物理位置，并承载由 RelationDefinitionRegistry 确定性生成的 canonical relation authoring reference。'
+      metadata {
+        capabilityId 'cap.ai.references-home'
+        status 'active'
+        specs ['openspec/specs/references-home/spec.md']
+      }
+    }
+
+    reviewer_cleanliness_dimension = capability 'Reviewer Cleanliness Dimension' {
+      description 'Cleanliness 维度的检测逻辑、severity 映射和跨语言工具适配策略，用于检测重构残留、孤儿代码、过时 TODO、半迁移等遗留物；新增规格外改动检测——以 task Files 声明（含目录条目）、Check 证据文件与 change 工件构成归因宇宙，diff 中无法归因的行为代码升级 CRITICAL，机械性良性改动降级'
+      metadata {
+        capabilityId 'cap.ai.reviewer-cleanliness-dimension'
+        status 'active'
+        specs ['openspec/specs/reviewer-cleanliness-dimension/spec.md']
+      }
+    }
+
+    reviewer_skill = capability 'Reviewer Skill' {
+      description 'Phase 1 验证审查 subagent skill。元规则从"不确定时降级"反转为"不确定时升级"，Correctness/Coherence trigger 强化（spec 偏离和设计违背升为 CRITICAL），新增 Cleanliness 维度检测，summary schema 扩展包含 cleanliness 指标。判定模式按 Check 锚点类型分派：Verifies 普通 requirement 执行存在性判定，REMOVED 锚点执行缺失性判定（残留即 CRITICAL），Preserves 锚点执行双支等价性判定（行为不变 ∧ 旧形态消失）；Completeness 对 Files Delete 声明与 git diff 逐项核对'
+      metadata {
+        capabilityId 'cap.ai.reviewer-skill'
+        status 'active'
+      }
+    }
+
+    skill_generation = capability 'Skill Generation' {
+      description 'AI 技能文件生成是唯一受管 workflow surface，通过 manifest registry 生成 SkillTemplate 制品，暴露 skills-only workflow surface。为 propose、explore、apply-change、archive-change、bootstrap-arch、snack 等 workflow 生成 SkillTemplate。'
+      metadata {
+        capabilityId 'cap.ai.skill-generation'
+        status 'active'
+      }
+    }
+
+    snack_skill = capability 'Snack Skill' {
+      description 'snack 通过代码变更证据、LikeC4 intent/relations 与 Spec registry 推断受影响 capabilities，使用可选 CodeGraph 或 ACE/rg/read fallback，不依赖 code-map'
+      metadata {
+        capabilityId 'cap.ai.snack-skill'
+        status 'active'
+        specs ['openspec/specs/snack-skill/spec.md']
+      }
+    }
+
+    snack_skill_generation = capability 'Snack Skill Generation' {
+      description '将 snack skill 纳入 skill 生成管线，与现有 5 个核心工作流一致；生成文本必须表达 artifact reconciliation、broader code-change evidence sources、conditional artifact updates、三条 fast path 和 no tasks.md 边界'
+      metadata {
+        capabilityId 'cap.ai.snack-skill-generation'
+        status 'active'
+        specs ['openspec/specs/snack-skill-generation/spec.md']
+      }
+    }
+
+    snack_workflow_manifest = capability 'Snack Workflow Manifest' {
+      description '在 WorkflowManifestRegistry 中注册 snack 工作流，modeMembership 标记为 flexible（过渡能力标签），运行时安装行为不受标签影响（所有 6 个工作流仍被全量安装）'
+      metadata {
+        capabilityId 'cap.ai.snack-workflow-manifest'
+        status 'active'
+        specs ['openspec/specs/snack-workflow-manifest/spec.md']
+      }
+    }
+
+    sweeper_terminology_extraction = capability 'Sweeper Terminology Extraction' {
+      description 'Impact sweeper 在读取相关 specs 时提取与用户 concept 语义相近的术语，记录术语、出现次数和分布 specs'
+      metadata {
+        capabilityId 'cap.ai.sweeper-terminology-extraction'
+        status 'active'
+        specs ['openspec/specs/sweeper-terminology-extraction/spec.md']
+      }
+    }
+
+    sweeper_terminology_reporting = capability 'Sweeper Terminology Reporting' {
+      description '在 sweeper JSON 报告中通过 terminologyObservations 字段返回术语观察结果，支持向后兼容'
+      metadata {
+        capabilityId 'cap.ai.sweeper-terminology-reporting'
+        status 'active'
+        specs ['openspec/specs/sweeper-terminology-reporting/spec.md']
+      }
+    }
+
+    template_artifact_pipeline = capability 'Template Artifact Pipeline' {
+      description '统一的 skills-only artifact 生成管线，基于固定 workflow manifest entries 生成 skill 制品，modeMembership 作为标签系统而非 profile 过滤条件。'
+      metadata {
+        capabilityId 'cap.ai.template-artifact-pipeline'
+        status 'active'
+        specs ['openspec/specs/template-artifact-pipeline/spec.md']
+      }
+    }
+
+    tool_adapters = capability 'Tool Adapters' {
+      description '为支持的 AI 工具提供 skills 路径、transform 与 invocation guidance 元数据；不再维护 adapter-backed command generation 能力。'
+      metadata {
+        capabilityId 'cap.ai.tool-adapters'
+        status 'active'
+      }
+    }
+
+    tool_invocation_references = capability 'Tool Invocation References' {
+      description '基于共享 workflow surface 元数据渲染不同 AI 工具的用户可调用 skill 引用；Codex 使用 $<skillDirName>，Claude Code 使用 /<skillDirName>，Pi 使用 /skill:<skillDirName>，OpenCode 使用 /opsx-<commandSlug>；没有精确工具语法时使用中性 skill invocation 文案。'
+      metadata {
+        capabilityId 'cap.ai.tool-invocation-references'
+        status 'active'
+        specs ['openspec/specs/tool-invocation-references/spec.md']
+      }
+    }
+
+    verify_writeback = capability 'Verify Writeback' {
+      description '验证结果回写 tasks.md（unmark 未真正完成的任务）并生成分类 remediation 清单（code_fix / artifact_fix），同时让 write-back prose 遵守统一 runtime projection'
+      metadata {
+        capabilityId 'cap.ai.verify-writeback'
+        status 'active'
+        specs ['openspec/specs/verify-writeback/spec.md']
+      }
+    }
+
+    workflow_templates = capability 'Workflow Templates' {
+      description '提供遵循 Specs + LikeC4 durable source、compilation scaffolding、definition-first authoring、openspec arch query 导航与实时代码证据分层规则的核心 workflow skill templates'
+      metadata {
+        capabilityId 'cap.ai.workflow-templates'
+        status 'active'
+      }
+    }
+
+    tdd_smells = capability 'Tdd Smells' {
+      description '为 optimizer 提供非穷尽候选信号；长方法、浅模块、原始类型、重复、局部性和控制流阈值只触发分析，不强制产生 finding，也不限制算法、数据结构和资源优化'
+      metadata {
+        capabilityId 'cap.optimizer.tdd-smells'
+        status 'active'
+      }
+    }
+  }
+}

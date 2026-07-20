@@ -112,7 +112,7 @@ function resolveEffectiveWorkflows(
 
   try {
     if (fs.statSync(bootstrapDir).isDirectory()) {
-      effective.add('bootstrap-opsx' as WorkflowId);
+      effective.add('bootstrap-arch' as WorkflowId);
     }
   } catch {
     // No bootstrap workspace; keep the requested workflows unchanged.

@@ -63,17 +63,16 @@ describe('PBT: Bootstrap mode contract', () => {
 });
 
 describe('Bootstrap contract parity', () => {
-  it('keeps schema, workflow template, and docs on approved mode names', async () => {
-    const [schema, workflow, docs, command, cli, applyPreparation] = await Promise.all([
+  it('keeps the legacy bootstrap CLI and docs on approved mode names', async () => {
+    const [schema, docs, command, cli, applyPreparation] = await Promise.all([
       fs.readFile(path.join(projectRoot, 'schemas/bootstrap/schema.yaml'), 'utf-8'),
-      fs.readFile(path.join(projectRoot, 'src/core/templates/workflows/bootstrap-opsx.ts'), 'utf-8'),
       fs.readFile(path.join(projectRoot, 'docs/opsx-bootstrap.md'), 'utf-8'),
       fs.readFile(path.join(projectRoot, 'src/commands/bootstrap.ts'), 'utf-8'),
       fs.readFile(path.join(projectRoot, 'src/cli/index.ts'), 'utf-8'),
       fs.readFile(path.join(projectRoot, 'openspec/references/openspec-apply-step-1-preparation.md'), 'utf-8'),
     ]);
 
-    for (const content of [schema, workflow, docs]) {
+    for (const content of [schema, docs]) {
       expect(content).toContain('opsx-first');
       expect(content).toContain('full');
       expect(content).toContain('refresh');
@@ -81,22 +80,18 @@ describe('Bootstrap contract parity', () => {
     }
 
     expect(schema).toContain('specs later');
-    expect(workflow).toContain('specs later');
     expect(docs).toContain('normal change workflows');
     expect(schema).toContain('formal-opsx -> refresh');
-    expect(workflow).toContain('formal-opsx -> refresh');
     expect(docs).toContain('formal-opsx -> refresh');
     expect(schema).toContain('restart inherits retained scope.yaml granularity');
-    expect(workflow).toContain('restart inherits retained granularity');
     expect(docs).toContain('restart inherits it from the retained `scope.yaml`');
     expect(command).toContain('inherits retained scope.yaml granularity');
     expect(cli).toContain('restart inherits retained scope');
 
-    for (const content of [schema, workflow, docs, command, cli, applyPreparation]) {
+    for (const content of [schema, docs, command, cli, applyPreparation]) {
       expect(content).not.toMatch(/delta-first|git diff only to narrow|code-map refs|merges reviewed changes back/i);
     }
     expect(schema).toContain('complete candidate from current evidence');
-    expect(workflow).toContain('complete candidate');
     expect(command).toContain('complete candidate');
     expect(cli).toContain('complete rebuild');
     expect(applyPreparation).toContain('semantic relations');

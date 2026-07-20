@@ -6,9 +6,9 @@
  */
 import type { SkillTemplate } from '../types.js';
 import {
-  OPSX_CLI_QUERY_CONTEXT,
+  ARCHITECTURE_CLI_QUERY_CONTEXT,
+  ARCHITECTURE_SHARED_CONTEXT,
   OPENSPEC_PHILOSOPHY,
-  OPSX_SHARED_CONTEXT,
   VERIFY_CLI_JSON_SCHEMA_REFERENCE,
   VERIFY_ERROR_RECOVERY_GUIDE,
   VERIFY_STATE_MACHINE_DIAGRAM,
@@ -19,11 +19,11 @@ const APPLY_STEP_1_PREPARATION_REFERENCE = `
 
 1. Select the change. If no clear name is provided, infer only from explicit context; otherwise run \`openspec list --json\` and ask. Always announce "Using change: <name>".
 2. Run \`openspec status --change "<name>" --json\` and \`openspec instructions apply --change "<name>" --json\`. Read \`configProjection.prompt.fragments\` for \`proseLanguage\` and \`apply.defaultIsolation\`. Handle \`state: "needs_verify"\` by continuing at Phase 1 and \`state: "needs_seal"\` by continuing at Phase 2/3.
-3. Load shared OPSX context before reading change artifacts.
-${OPSX_SHARED_CONTEXT}
+3. Load shared LikeC4 context before reading change artifacts.
+${ARCHITECTURE_SHARED_CONTEXT}
 4. Read every context file listed by the CLI. Inspect \`changeDir/.verify-result.json\` and \`## Remediation\`; unresolved CRITICAL/code_fix/artifact_fix items take priority.
-5. Use CLI-backed OPSX navigation after shared context.
-${OPSX_CLI_QUERY_CONTEXT}
+5. Use CLI-backed LikeC4 navigation after shared context.
+${ARCHITECTURE_CLI_QUERY_CONTEXT}
 6. In a Git repository, run \`git branch --show-current\`, \`git rev-parse HEAD\`, and \`git status --short\`. Select branch, worktree, or current-branch isolation from explicit user input or \`apply.defaultIsolation\`; only \`ask\` prompts when no method was selected. If the provisional method is branch or current branch and the initial workspace is dirty, ask the user to switch to worktree isolation, include the existing dirty state in the baseline, or stop Apply. Never alter that state automatically. Finalize the isolation method only after this gate.
 7. Record the selected method for Step 3. Do not read the selected reference during Preparation. At Step 3, read exactly one matching reference:
    - branch: \`openspec/references/openspec-apply-step-3-branch-isolation.md\`
@@ -169,6 +169,7 @@ For workflow-managed writes, read the resolved file definition before its instru
 
 ## Implementation Discipline
 
+- Before implementation, run \`openspec arch query <capability-id> --relations --depth 2\`, then read referenced specs and current code. In pseudocode, a LikeC4 element ID uses \`domain_name.capability_name\`; treat it as semantic location guidance, not a source path.
 - Process unfinished \`## Remediation\` \`[code_fix]\` and \`[artifact_fix]\` items before pending tasks. Finish every Check in the current task before starting the next; never execute tasks in parallel.
 - Assess interface testability before writing tests for each behavior/code Check: inject external dependencies, prefer returned results over hidden side effects, and keep the public interface minimal.
 - Write or update a targeted test first. Exercise public behavior; mock only injected system boundaries, never internal collaborators.

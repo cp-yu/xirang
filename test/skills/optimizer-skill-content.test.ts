@@ -41,13 +41,13 @@ describe('openspec optimizer skill content', () => {
     expect(instructions).not.toContain('git diff <originalBranch>...HEAD');
   });
 
-  it('documents one-hop dependency expansion through imports callers and OPSX relations', () => {
+  it('documents one-hop dependency expansion through imports callers and LikeC4 relations', () => {
     const instructions = readReference('references/self-read-protocol.md');
 
     expect(instructions).toContain('## Dependency Expansion (One Hop)');
     expect(instructions).toContain('imports');
     expect(instructions).toContain('callers');
-    expect(instructions).toContain('OPSX semantic relations');
+    expect(instructions).toContain('LikeC4 semantic relations');
     expect(instructions).toContain('Registry meaning');
     expect(instructions).not.toMatch(/\bdepends_on\b|\brelates_to\b/);
     expect(instructions).toContain('one hop');
@@ -70,7 +70,7 @@ describe('openspec optimizer skill content', () => {
     expect(instructions).toContain('dist');
     expect(instructions).toContain('build');
     expect(instructions).toContain('.git');
-    expect(instructions).toContain('project.opsx.relations.yaml');
+    expect(instructions).toContain('openspec arch query');
     expect(instructions).toContain('If relations are missing');
   });
 

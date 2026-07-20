@@ -10,7 +10,7 @@
  * Represents the content of a command without any tool-specific formatting.
  */
 export interface CommandContent {
-  /** Internal workflow-linked identifier (e.g., 'explore', 'bootstrap-opsx') */
+  /** Internal workflow-linked identifier (e.g., 'explore', 'bootstrap-arch') */
   id: string;
   /** External user-facing command slug used for command file generation */
   commandSlug: string;

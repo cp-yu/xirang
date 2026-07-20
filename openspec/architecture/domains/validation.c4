@@ -1,0 +1,74 @@
+model {
+  validation = domain 'Validation' {
+    description '变更、Specs、LikeC4 architecture 与 deprecated OPSX compatibility 的验证系统'
+
+    metadata {
+      boundary '拥有验证规则和错误报告。不拥有修复建议或自动修复。'
+      status 'active'
+    }
+
+    frontmatter = capability 'Frontmatter' {
+      description 'Spec 文件 YAML frontmatter 解析，提取 capabilities 关联声明'
+      metadata {
+        capabilityId 'cap.spec.frontmatter'
+        status 'active'
+      }
+    }
+
+    registry = capability 'Registry' {
+      description '运行时 cap↔spec 双向映射注册表，提供 getSpecsForCap、getCapsForSpec、getOrphanedSpecs、getUncoveredCaps 查询 API'
+      metadata {
+        capabilityId 'cap.spec.registry'
+        status 'active'
+      }
+    }
+
+    change = capability 'Change' {
+      description '验证 change-local delta Specs、tasks anchors 与 architecture-delta.c4；architecture delta 通过 formal model 加 delta 的 staged native LikeC4 validation，并执行 OpenSpec semantic checks'
+      metadata {
+        capabilityId 'cap.validation.change'
+        status 'active'
+      }
+    }
+
+    opsx_element = capability 'Opsx Element' {
+      description 'Deprecated compatibility validation for legacy OPSX two-file models.'
+      metadata {
+        capabilityId 'cap.validation.opsx'
+        status 'deprecated'
+      }
+    }
+
+    opsx_dry_run = capability 'Opsx Dry Run' {
+      description 'Deprecated compatibility validation for legacy opsx-delta.yaml migration APIs.'
+      metadata {
+        capabilityId 'cap.validation.opsx-dry-run'
+        status 'deprecated'
+      }
+    }
+
+    skill_template_length = capability 'Skill Template Length' {
+      description '验证所有生成的 `SKILL.md` 模板 instructions 不超过 200 行，并验证所有 `template.referenceFiles[]` 文件不超过 500 行；archive skill 的 commit message convention references 也纳入 reference 文件生成与一致性检查。'
+      metadata {
+        capabilityId 'cap.validation.skill-template-length'
+        status 'active'
+      }
+    }
+
+    spec = capability 'Spec' {
+      description '验证规约的格式和内容；formal specs SHALL NOT contain change-local scenario operation labels such as [ADDED], [MODIFIED], or [REMOVED] in Scenario headings；change-local delta spec 校验只检查 scenario operation label 语法与 ADDED section 下非法 labels，不要求 MODIFIED scenarios 预先带 label'
+      metadata {
+        capabilityId 'cap.validation.spec'
+        status 'active'
+      }
+    }
+
+    spec_section_type_cross_check = capability 'Spec Section Type Cross Check' {
+      description '在 change delta Spec 验证中增加 section-type 与 formal Spec header 交叉验证；frontmatter capabilities 通过 LikeC4 metadata.capabilityId 校验，并对缺失 frontmatter 发出 warning'
+      metadata {
+        capabilityId 'cap.validation.spec-section-type-cross-check'
+        status 'active'
+      }
+    }
+  }
+}

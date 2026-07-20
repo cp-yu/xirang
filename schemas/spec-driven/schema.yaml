@@ -13,7 +13,7 @@ artifacts:
         includes:
           - Motivation, scope boundaries, Behavior Source impact, Architecture Source impact, and affected surfaces.
         excludes:
-          - Complete observable behavior requirements, authoritative OPSX node or relation operations, lowering decisions, and implementation work.
+          - Complete observable behavior requirements, authoritative LikeC4 element or relation declarations, lowering decisions, and implementation work.
       writePolicy: agent-authored
       validation:
         - openspec validate --change <name> --json
@@ -25,23 +25,23 @@ artifacts:
       - **What Changes**: Summarize intended outcomes and scope, not detailed requirements or implementation steps. Mark breaking changes with **BREAKING**.
       - **Source Impact**:
         - **Behavior Source**: List `New Specs` and `Modified Specs` by Spec ID. Write `None` when behavior source does not change.
-        - **Architecture Source**: List affected OPSX node IDs when known and summarize responsibility, ownership, boundary, or relation impact. Write `None` when architecture source does not change.
+        - **Architecture Source**: List affected LikeC4 element IDs when known and summarize responsibility, ownership, boundary, or relation impact. Write `None` when architecture source does not change.
       - **Impact**: List affected code, APIs, dependencies, data, operations, or systems.
 
-      Keep Spec IDs and OPSX IDs distinct:
+      Keep Spec IDs and LikeC4 element IDs distinct:
       - A Spec ID is the folder name used by `specs/<spec-id>/spec.md`.
-      - An OPSX capability ID uses the canonical `cap.<domain>.<name>` form.
-      - A Spec may cover multiple OPSX capabilities; do not assume a one-to-one mapping.
+      - A LikeC4 element ID uses the generated `domain_name.capability_name` form; canonical capability identity remains in metadata.capabilityId.
+      - A Spec may cover multiple architecture capabilities; do not assume a one-to-one mapping.
 
-      Use existing Spec and OPSX IDs when they already describe the affected behavior or architecture. Introduce a new ID only for genuinely new behavior source or architecture concepts.
+      Use existing Spec and LikeC4 element IDs when they already describe the affected behavior or architecture. Introduce a new ID only for genuinely new behavior source or architecture concepts.
 
       The proposal declares source impact; it does not define the source:
       - Complete observable behavior belongs in delta Specs.
-      - Complete target-state OPSX nodes and relations belong in `opsx-delta.yaml`.
+      - Complete target-state LikeC4 elements and relations belong in `architecture-delta.c4`.
       - Lowering and architecture decisions belong in `design.md`.
       - Implementation work and verification belong in `tasks.md`.
 
-      Every New or Modified Spec entry must be reconciled by a corresponding change-local delta Spec. Every declared durable architecture impact must be reconciled through `opsx-delta.yaml`.
+      Every New or Modified Spec entry must be reconciled by a corresponding change-local delta Spec. Every declared durable architecture impact must be reconciled through `architecture-delta.c4`.
 
       Keep the proposal concise. Do not repeat detailed requirements, architecture definitions, design rationale, or task steps.
     requires: []
@@ -70,7 +70,7 @@ artifacts:
       Identify target files:
       - Each `New Specs` entry uses its Spec ID at `specs/<spec-id>/spec.md`.
       - Each `Modified Specs` entry reuses the exact existing Spec ID from `openspec/specs/<spec-id>/spec.md`.
-      - Spec IDs and OPSX capability IDs are different identifiers. Do not use a `cap.<domain>.<name>` ID as a Spec directory name unless that exact string is independently the declared Spec ID.
+      - Spec IDs and architecture capability IDs are different identifiers. Do not use a `cap.<domain>.<name>` ID as a Spec directory name unless that exact string is independently the declared Spec ID.
       - Do not create a delta Spec for Architecture Source impact alone.
 
       Use Requirement-level delta operations:
@@ -97,7 +97,7 @@ artifacts:
       - motivation or scope → `proposal.md`;
       - solution architecture, lowering decisions, rationale, or refactoring strategy → `design.md`;
       - implementation work and verification → `tasks.md`;
-      - durable architecture nodes, ownership, boundaries, or semantic relations → `opsx-delta.yaml`.
+      - durable architecture elements, ownership, boundaries, or semantic relations → `architecture-delta.c4`.
 
       Agent MUST NOT author scenario operation labels. The invoking workflow owns scenario label preview and write orchestration. Sync and archive consume and remove existing change-local labels but MUST NOT generate them.
 
@@ -105,46 +105,45 @@ artifacts:
     requires:
       - proposal
 
-  - id: opsx-delta
-    generates: opsx-delta.yaml
-    description: Project OPSX delta describing architecture graph changes for this change
-    template: opsx-delta.yaml
+  - id: architecture-delta
+    generates: architecture-delta.c4
+    description: LikeC4 architecture source delta for this change
+    template: architecture-delta.c4
     definition:
       purpose: Define the architecture source changes required by the target system.
-      compilationRole: Architecture semantic source delta reconciled into formal OPSX.
+      compilationRole: Architecture semantic source delta reconciled into formal LikeC4.
       content:
         includes:
-          - Minimal target-state node and canonical relation reconciliation operations.
+          - Minimal target-state LikeC4 element and typed relation reconciliation.
         excludes:
           - Observable behavior requirements, implementation evidence, code paths, symbols, imports, calls, and change-log narration.
       writePolicy: agent-authored
       validation:
-        - openspec validate --change <name> --artifacts opsx-delta --json
+        - openspec validate --change <name> --artifacts architecture-delta --json
     instruction: |
-      Create `opsx-delta.yaml` as the architecture source reconciliation for this change.
+      Create `architecture-delta.c4` as the architecture source reconciliation for this change.
 
-      Determine the target architecture from proposal `Architecture Source`, completed change-local Specs, `design.md` when present, the formal OPSX two-file bundle, and current code as implementation evidence.
+      Determine the target architecture from proposal `Architecture Source`, completed change-local Specs, `design.md` when present, the formal model under `openspec/architecture/`, and current code as implementation evidence.
 
       Keep source identities separate:
-      - Spec IDs under proposal `Behavior Source` are not OPSX capability IDs.
-      - Proposal Architecture Source entries declare scope, not authoritative OPSX records.
-      - Only `opsx-delta.yaml` defines exact target-state node and canonical relation reconciliation.
+      - Spec IDs under proposal `Behavior Source` are not LikeC4 element IDs.
+      - Proposal Architecture Source entries declare scope, not authoritative LikeC4 declarations.
+      - Only `architecture-delta.c4` defines exact target-state element and typed relation reconciliation.
 
       Handle no-op architecture explicitly:
-      - If Architecture Source is `None` and available source and evidence confirm no durable architecture change, write only `schema_version: 2`.
-      - Do not emit empty `ADDED`, `MODIFIED`, or `REMOVED` mappings.
+      - If Architecture Source is `None` and available source and evidence confirm no durable architecture change, write `model {}`.
       - Do not use a no-op delta while architecture impact is unresolved.
-      - Observable behavior changes alone do not require OPSX operations.
+      - Observable behavior changes alone do not require architecture operations.
 
-      When architecture changes, write the minimum operations required for the target state:
-      - `ADDED`: new domains, capabilities, or canonical semantic relations.
-      - `MODIFIED`: existing node intent or status, and supported relation reconciliation.
-      - `REMOVED`: nodes or relations absent from the target architecture.
-      - Use YAML object keys, not Markdown headings, and omit unused sections.
+      When architecture changes, use the minimum LikeC4 declarations required for the target state:
+      - `extend existing_domain { ... }` for capabilities added to existing domains.
+      - Complete `domain` declarations for new domains.
+      - Typed relations using `source -[kind]-> target`, with canonical kinds `invokes`, `consumes`, `precedes`, `constrains`, and `validates`.
+      - Capability metadata preserves canonical `capabilityId`, status, and change-local Specs paths.
 
-      Use canonical node IDs and Registry relation types: `belongs_to`, `invokes`, `consumes`, `precedes`, `constrains`, and `validates`. Preserve direction and endpoint contracts. Reconcile relations for removed nodes so no dangling endpoints remain. Imports and calls are evidence only. Do not include code paths, symbols, imports, calls, `code_refs`, or `spec_refs`.
+      Preserve relation direction and endpoint contracts. Element nesting expresses ownership, so do not emit explicit `belongs_to` relations. Imports and calls are evidence only. Do not include code paths, symbols, imports, calls, or Agent reasoning.
 
-      Validate with `openspec validate --change "<name>" --artifacts opsx-delta --json`.
+      Validate with `openspec validate --change "<name>" --artifacts architecture-delta --json`.
     requires:
       - specs
 
@@ -159,7 +158,7 @@ artifacts:
         includes:
           - Solution architecture, implementation boundaries, technical decisions, rationale, alternatives, refactoring strategy, risks, trade-offs, and migration decisions.
         excludes:
-          - Observable behavior requirements, task progress, repeated motivation, and durable architecture changes not reconciled through opsx-delta.yaml.
+          - Observable behavior requirements, task progress, repeated motivation, and durable architecture changes not reconciled through architecture-delta.c4.
       writePolicy: agent-authored
       validation:
         - openspec validate --change <name> --json

@@ -10,26 +10,26 @@ import {
   getExploreSkillTemplate,
   getFeedbackSkillTemplate,
   getOpsxProposeSkillTemplate,
-  getBootstrapOpsxSkillTemplate,
+  getBootstrapArchSkillTemplate,
   getSnackSkillTemplate,
 } from '../../../src/core/templates/skill-templates.js';
 import { generateSkillContent } from '../../../src/core/shared/skill-generation.js';
 import { runTransforms } from '../../../src/core/templates/transforms/index.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getExploreSkillTemplate: 'b35f3b44d5613dbb28e7e52a8407633e9b0873db3f1db40e919e22b0582a436c',
-  getApplyChangeSkillTemplate: 'a3e060b441aade22bbd5a82cd3218ce864ae733e4df57ea9cc1802aa2ac87e6c',
-  getArchiveChangeSkillTemplate: '53545abdd6b41eec03b04c72e9184ef2a8ed21ac7cbbf24cabce83f8b8cbfe20',
-  getOpsxProposeSkillTemplate: 'c902f1c3796e4aed3beea4ad4bca08074ec14360684036f59ce77bf080652786',
+  getExploreSkillTemplate: 'c6265ca20cc3d6ea10e1f7bba827bf37a002340772386cbc4c19a36ffbe0b996',
+  getApplyChangeSkillTemplate: '1cc197a017610c70a2bae8ecd6cdc68e438492ea5d64d91e12e25ea9e0185dad',
+  getArchiveChangeSkillTemplate: '424b276444965bcb87ac78c6b7b6edb86f9b532c1193c12c26205017f5ba848f',
+  getOpsxProposeSkillTemplate: 'aa9b29bc848426e8907a6d151ea68830aef67ad408ad01db50e8b474bc3baecf',
   getFeedbackSkillTemplate: 'd7d83c5f7fc2b92fe8f4588a5bf2d9cb315e4c73ec19bcd5ef28270906319a0d',
-  getBootstrapOpsxSkillTemplate: '9bd371a032c3f9d2feaec9041fdac6bda8b14c33f4bfca8290119889aaf98fc9',
+  getBootstrapArchSkillTemplate: '07276d70301179208c6b6a137226d4f626a3174022a3dc57722df868fe2ce33e',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'openspec-explore': '589d868cc15d2d934bcc5e2dae1dbbb23643bb173d15165f3b8d0a4df8708743',
-  'openspec-apply-change': 'bbe2363e995932a7e2e928413142dfba11400442254d447b8805bdec7834e339',
-  'openspec-archive-change': '983a0328765df00490cd3d8c4a3f9da730e1f60a6658e7cef0fae8dd030be9ba',
-  'openspec-propose': 'ad3c8a72a8a760ff9118f9f0501f07e741e4145c4aa5144dc1906fe2a1e54915',
+  'openspec-explore': 'e8ee04fffe31c0969ca2f70fe67aa7faa33cbdffc798c967913dd5507a21ce67',
+  'openspec-apply-change': 'eaf137e7d2a9f27ffd97a311e331292df659a50c7e4d892e173a31861091d12d',
+  'openspec-archive-change': '37525c258f7872186cfe673d9c8f183def81a1b1bdb4761778173ae0ea4b90ea',
+  'openspec-propose': 'e5909bccfa23a182eb0a7b254b11928748994c46ae07129830302b6b8cf50a46',
 };
 
 function stableStringify(value: unknown): string {
@@ -60,7 +60,7 @@ describe('skill templates split parity', () => {
       getArchiveChangeSkillTemplate,
       getOpsxProposeSkillTemplate,
       getFeedbackSkillTemplate,
-      getBootstrapOpsxSkillTemplate,
+      getBootstrapArchSkillTemplate,
     };
 
     const actualHashes = Object.fromEntries(
@@ -97,7 +97,7 @@ describe('skill templates split parity', () => {
       ['explore', 'openspec-explore', getExploreSkillTemplate],
       ['apply', 'openspec-apply-change', getApplyChangeSkillTemplate],
       ['archive', 'openspec-archive-change', getArchiveChangeSkillTemplate],
-      ['bootstrap-opsx', 'openspec-bootstrap-opsx', getBootstrapOpsxSkillTemplate],
+      ['bootstrap-arch', 'openspec-bootstrap-arch', getBootstrapArchSkillTemplate],
       ['snack', 'openspec-snack', getSnackSkillTemplate],
     ];
 

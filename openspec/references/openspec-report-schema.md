@@ -13,7 +13,7 @@
   "mustVerify": [{ "target": "string", "relationPath": [], "reason": "string", "evidence": ["string"] }],
   "contextual": [{ "target": "string", "relationPath": [], "reason": "string", "evidence": ["string"] }],
   "unknown": [{ "target": "string", "relationPath": [], "reason": "string", "evidence": ["string"] }],
-  "architectureDrift": [{ "target": "string", "relationPath": [], "reason": "string", "evidence": ["OPSX evidence", "code evidence"] }],
+  "architectureDrift": [{ "target": "string", "relationPath": [], "reason": "string", "evidence": ["LikeC4 evidence", "code evidence"] }],
   "questions": ["string"],
   "terminologyObservations": {
     "userInput": "string",

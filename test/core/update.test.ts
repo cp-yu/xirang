@@ -263,7 +263,7 @@ git:
       });
 
       await updateCommand.execute(testDir);
-      const bootstrapSkill = path.join(testDir, '.claude', 'skills', 'openspec-bootstrap-opsx', 'SKILL.md');
+      const bootstrapSkill = path.join(testDir, '.claude', 'skills', 'openspec-bootstrap-arch', 'SKILL.md');
       expect(await FileSystemUtils.fileExists(bootstrapSkill)).toBe(true);
 
       await updateCommand.execute(testDir);
@@ -429,7 +429,7 @@ Old instructions content
       await fs.writeFile(path.join(skillsDir, 'openspec-explore', 'SKILL.md'), 'old content');
 
       // Pre-existing command file remains untouched
-      const bootstrapCmd = path.join(testDir, '.claude', 'commands', 'opsx', getCommandSlug('bootstrap-opsx') + '.md');
+      const bootstrapCmd = path.join(testDir, '.claude', 'commands', 'opsx', getCommandSlug('bootstrap-arch') + '.md');
       await fs.mkdir(path.dirname(bootstrapCmd), { recursive: true });
       const legacyContent = 'legacy bootstrap command';
       await fs.writeFile(bootstrapCmd, legacyContent);
@@ -1606,7 +1606,7 @@ More user content after markers.
       const skillsDir = path.join(testDir, '.claude', 'skills');
       const expectedSkills = [
         'openspec-explore', 'openspec-propose', 'openspec-apply-change',
-        'openspec-archive-change', 'openspec-bootstrap-opsx', 'openspec-snack',
+        'openspec-archive-change', 'openspec-bootstrap-arch', 'openspec-snack',
       ];
       for (const skill of expectedSkills) {
         expect(await FileSystemUtils.fileExists(
@@ -1642,7 +1642,7 @@ More user content after markers.
       // All 6 registry workflows should be created (snack is skill-only)
       const expectedSkills = [
         'openspec-explore', 'openspec-propose', 'openspec-apply-change',
-        'openspec-archive-change', 'openspec-bootstrap-opsx', 'openspec-snack',
+        'openspec-archive-change', 'openspec-bootstrap-arch', 'openspec-snack',
       ];
       for (const skill of expectedSkills) {
         expect(await FileSystemUtils.fileExists(

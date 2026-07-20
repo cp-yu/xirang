@@ -73,7 +73,7 @@ export async function syncCommand(
   }
 
   const prepared = await prepareChangeSync(projectRoot, syncState, { skipValidation });
-  if (prepared.specs.writes.length === 0 && !prepared.opsx) {
+  if (prepared.specs.writes.length === 0 && !prepared.architecture) {
     console.log('No sync required.');
     return;
   }
@@ -81,13 +81,13 @@ export async function syncCommand(
   const summary = await applyPreparedChangeSync(projectRoot, prepared);
   console.log(`Sync complete for '${validatedChangeName}'.`);
   console.log(`specs: ${summary.specs}`);
-  console.log(`opsx: ${summary.opsx}`);
+  console.log(`architecture: ${summary.architecture}`);
 }
 
 export function registerSyncCommand(program: Command): void {
   program
     .command('sync [change-name]')
-    .description('Sync a change into main specs and OPSX files without archiving')
+    .description('Sync a change into formal Specs and LikeC4 architecture without archiving')
     .option('--no-validate', 'Skip validation while preparing sync output')
     .option('--no-verify', 'Skip verify gate before syncing')
     .action(async (changeName?: string, options: SyncOptions = {}) => {
