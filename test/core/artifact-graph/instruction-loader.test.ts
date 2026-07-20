@@ -10,6 +10,10 @@ import {
   TemplateLoadError,
 } from '../../../src/core/artifact-graph/instruction-loader.js';
 
+function canonicalPath(filePath: string): string {
+  return fs.realpathSync.native(filePath);
+}
+
 describe('instruction-loader', () => {
   describe('loadTemplate', () => {
     it('loads the proposal source-impact template', () => {
@@ -194,7 +198,7 @@ describe('instruction-loader', () => {
 
       expect(instructions.currentState).toEqual({
         completed: true,
-        outputs: [fs.realpathSync(proposalPath)],
+        outputs: [canonicalPath(proposalPath)],
       });
       expect(JSON.stringify(instructions)).not.toContain('private proposal content');
     });
@@ -212,7 +216,7 @@ describe('instruction-loader', () => {
         completed: true,
         outputs: [],
         completionMarker: {
-          path: fs.realpathSync(markerPath),
+          path: canonicalPath(markerPath),
           present: true,
         },
       });
@@ -230,7 +234,7 @@ describe('instruction-loader', () => {
         completed: false,
         outputs: [],
         completionMarker: {
-          path: markerPath,
+          path: path.join(context.changeDir, '.specs-noop'),
           present: false,
         },
       });
@@ -349,14 +353,14 @@ describe('instruction-loader', () => {
       const context = loadChangeContext(tempDir, 'my-change', 'bootstrap');
       const instructions = generateInstructions(context, 'scan');
 
-      expect(context.changeDir).toBe(fs.realpathSync(bootstrapDir));
+      expect(context.changeDir).toBe(canonicalPath(bootstrapDir));
       expect(instructions.definition).toBeUndefined();
       expect(instructions.fileDefinitions?.map((file) => file.id)).toEqual([
         'metadata',
         'scope',
         'evidence',
       ]);
-      expect(instructions.currentState.outputs).toEqual([fs.realpathSync(evidencePath)]);
+      expect(instructions.currentState.outputs).toEqual([canonicalPath(evidencePath)]);
       expect(instructions.instruction).toContain('Read `fileDefinitions` first');
       expect(instructions.instruction).not.toContain('Read the resolved `definition`');
     });
