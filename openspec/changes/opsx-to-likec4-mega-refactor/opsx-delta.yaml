@@ -1,0 +1,146 @@
+schema_version: 2
+ADDED:
+  domains:
+    - id: dom.migration
+      type: domain
+      intent: OPSX 到 LikeC4 的迁移工具和验证流程
+      boundary: 拥有迁移转换逻辑和 Agent 验证工作流。不拥有目标 LikeC4 模型的持久化或查询。
+      status: active
+    - id: dom.architecture
+      type: domain
+      intent: LikeC4 架构模型读取、验证和合并
+      boundary: 拥有 LikeC4 文件 I/O、语义验证和 delta 合并。不拥有架构内容生成。
+      status: active
+  capabilities:
+    - id: cap.migration.opsx-to-likec4-converter
+      type: capability
+      intent: 将 OPSX YAML 两文件模型转换为 LikeC4 多文件结构
+      status: active
+    - id: cap.migration.likec4-file-generator
+      type: capability
+      intent: 生成 LikeC4 多文件结构（specification.c4, domains/*.c4, views.c4）
+      status: active
+    - id: cap.migration.spec-path-inference
+      type: capability
+      intent: 从现有 specs 目录推断 spec 文件路径
+      status: active
+    - id: cap.migration.agent-verification-workflow
+      type: capability
+      intent: Agent 逐一验证迁移结果的完整性和正确性
+      status: active
+    - id: cap.cli.arch-query
+      type: capability
+      intent: 查询 LikeC4 模型中的 elements 和 directed relations
+      status: active
+    - id: cap.cli.arch-validate
+      type: capability
+      intent: 验证 LikeC4 语法和 OpenSpec 语义约束
+      status: active
+    - id: cap.cli.arch-preview
+      type: capability
+      intent: 启动 likec4 预览服务器
+      status: active
+    - id: cap.cli.arch-export
+      type: capability
+      intent: 导出架构图
+      status: active
+    - id: cap.architecture.likec4-reader
+      type: capability
+      intent: 读取和解析 LikeC4 多文件模型
+      status: active
+    - id: cap.architecture.semantic-validator
+      type: capability
+      intent: OpenSpec 特有的语义验证（ownership、cycle 检测）
+      status: active
+    - id: cap.architecture.delta-merger
+      type: capability
+      intent: 合并 architecture-delta.c4 到 formal LikeC4 模型
+      status: active
+  relations:
+    - from: cap.migration.opsx-to-likec4-converter
+      type: belongs_to
+      to: dom.migration
+    - from: cap.migration.likec4-file-generator
+      type: belongs_to
+      to: dom.migration
+    - from: cap.migration.spec-path-inference
+      type: belongs_to
+      to: dom.migration
+    - from: cap.migration.agent-verification-workflow
+      type: belongs_to
+      to: dom.migration
+    - from: cap.cli.arch-query
+      type: belongs_to
+      to: dom.cli
+    - from: cap.cli.arch-validate
+      type: belongs_to
+      to: dom.cli
+    - from: cap.cli.arch-preview
+      type: belongs_to
+      to: dom.cli
+    - from: cap.cli.arch-export
+      type: belongs_to
+      to: dom.cli
+    - from: cap.architecture.likec4-reader
+      type: belongs_to
+      to: dom.architecture
+    - from: cap.architecture.semantic-validator
+      type: belongs_to
+      to: dom.architecture
+    - from: cap.architecture.delta-merger
+      type: belongs_to
+      to: dom.architecture
+    - from: cap.migration.opsx-to-likec4-converter
+      type: invokes
+      to: cap.migration.likec4-file-generator
+    - from: cap.migration.opsx-to-likec4-converter
+      type: invokes
+      to: cap.migration.spec-path-inference
+    - from: cap.cli.arch-query
+      type: invokes
+      to: cap.architecture.likec4-reader
+    - from: cap.cli.arch-validate
+      type: invokes
+      to: cap.architecture.likec4-reader
+    - from: cap.cli.arch-validate
+      type: invokes
+      to: cap.architecture.semantic-validator
+    - from: cap.cli.arch-preview
+      type: invokes
+      to: cap.architecture.likec4-reader
+    - from: cap.cli.sync
+      type: invokes
+      to: cap.architecture.delta-merger
+    - from: cap.architecture.delta-merger
+      type: invokes
+      to: cap.architecture.likec4-reader
+    - from: cap.architecture.delta-merger
+      type: invokes
+      to: cap.architecture.semantic-validator
+MODIFIED:
+  capabilities:
+    - id: cap.cli.init
+      intent: 初始化 OpenSpec 项目结构，生成 LikeC4 架构目录而非 OPSX YAML
+    - id: cap.cli.validate
+      intent: 验证 OpenSpec 项目完整性，包括 LikeC4 模型验证
+    - id: cap.ai.propose-smart-routing
+      intent: 指导 Agent 生成 architecture-delta.c4 而非 opsx-delta.yaml
+    - id: cap.ai.skill-generation
+      intent: 更新 propose/apply/bootstrap/sweeper skills 的 LikeC4 相关指令
+    - id: cap.cli.sync
+      intent: 合并 architecture-delta.c4 到 formal LikeC4 模型
+    - id: cap.validation.change
+      intent: 验证 change artifacts 包括 architecture-delta.c4 语法和语义
+REMOVED:
+  capabilities:
+    - id: cap.opsx.yaml-reader
+    - id: cap.opsx.yaml-writer
+    - id: cap.opsx.relation-definition-registry
+    - id: cap.opsx.delta-yaml-merger
+  relations:
+    - from: cap.cli.validate
+      type: invokes
+      to: cap.opsx.yaml-reader
+    - from: cap.cli.sync
+      type: invokes
+      to: cap.opsx.delta-yaml-merger
