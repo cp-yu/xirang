@@ -15,8 +15,16 @@ export function registerArchCommand(program: Command): void {
     } catch (error) { console.error((error as Error).message); process.exitCode = 1; }
   });
   arch.command('validate').option('--delta <path>').option('--json').action(async options => {
-    try { const result = await validateArchitectureCommand(process.cwd(), { deltaPath: options.delta ? path.resolve(options.delta) : undefined }); options.json ? console.log(JSON.stringify(result, null, 2)) : console.log(result.success ? '✓ LikeC4 syntax validation passed' : result.errors.map(error => error.message).join('\n')); if (!result.success) process.exitCode = 1; }
-    catch (error) { console.error((error as Error).message); process.exitCode = 1; }
+    try {
+      const result = await validateArchitectureCommand(process.cwd(), { deltaPath: options.delta ? path.resolve(options.delta) : undefined });
+      if (options.json) console.log(JSON.stringify(result, null, 2));
+      else if (result.success) console.log('✓ LikeC4 syntax validation passed');
+      else console.log(result.errors.map(error => error.message).join('\n'));
+      if (!result.success) process.exitCode = 1;
+    } catch (error) {
+      console.error((error as Error).message);
+      process.exitCode = 1;
+    }
   });
   arch.command('preview').option('--port <n>').action(options => previewArchitecture(process.cwd(), { port: options.port ? Number(options.port) : undefined }));
   arch.command('export').option('--format <format>', 'png, svg, or pdf', 'png').option('--output <dir>', 'output directory', 'docs/architecture').action(options => exportArchitecture(process.cwd(), { format: options.format as ExportFormat, output: path.resolve(options.output) }));

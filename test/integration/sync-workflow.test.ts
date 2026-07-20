@@ -63,10 +63,46 @@ describe('architecture sync workflow', () => {
     await expect(fs.access(path.join(root, 'openspec', 'specs', 'added', 'spec.md'))).resolves.toBeUndefined();
   });
 
+  it('should keep a colliding capability delta pending when its content differs', async () => {
+    await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), `model {
+  extend core {
+    existing = capability 'Changed Existing' {
+      description 'The delta has different content.'
+      metadata { capabilityId 'cap.core.existing' }
+    }
+  }
+}
+`);
+    const state = await assessChangeSyncState(root, 'add');
+
+    expect((await getPendingChangeSync(root, state)).architecture).toBe(true);
+    expect((await prepareChangeSync(root, state, { skipValidation: true })).architecture).not.toBeNull();
+  });
+
+  it('should keep a colliding relation delta pending when its description differs', async () => {
+    await fs.writeFile(path.join(root, 'openspec', 'architecture', 'relations.c4'), `model {
+  core.existing -[invokes]-> core.existing { description 'Formal description.' }
+}
+`);
+    await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), `model {
+  core.existing -[invokes]-> core.existing { description 'Changed description.' }
+}
+`);
+
+    expect((await getPendingChangeSync(root, await assessChangeSyncState(root, 'add'))).architecture).toBe(true);
+  });
+
   it('should archive a successfully synced architecture delta without losing formal content', async () => {
     await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), `model {
   extend core {
-    added = capability 'Added' { metadata { capabilityId 'cap.core.added' } }
+    added = capability 'Added' {
+      description 'Added by the change.'
+      metadata {
+        capabilityId 'cap.core.added'
+        status 'active'
+        specs ['openspec/changes/add/specs/added/spec.md']
+      }
+    }
   }
 }
 `);

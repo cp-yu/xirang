@@ -102,6 +102,7 @@ export async function getPendingChangeSync(
   const architecture = state.hasArchitectureDelta && !await isArchitectureDeltaApplied(
     projectRoot,
     path.join(state.changeDir, 'architecture-delta.c4'),
+    state.changeName,
   );
   return { specs: pendingSpecs, architecture };
 }
@@ -165,7 +166,7 @@ export async function prepareChangeSync(
   let architecture: PreparedArchitectureWrite | null = null;
   if (state.hasArchitectureDelta) {
     const deltaPath = path.join(state.changeDir, 'architecture-delta.c4');
-    if (!await isArchitectureDeltaApplied(projectRoot, deltaPath)) {
+    if (!await isArchitectureDeltaApplied(projectRoot, deltaPath, state.changeName)) {
       const architectureDir = path.join(projectRoot, 'openspec', 'architecture');
       architecture = {
         architectureDir,
@@ -230,20 +231,94 @@ export async function applyPreparedChangeSync(
   };
 }
 
-async function isArchitectureDeltaApplied(projectRoot: string, deltaPath: string): Promise<boolean> {
-  const delta = parseLikeC4Domain(await fs.readFile(deltaPath, 'utf8'));
+async function isArchitectureDeltaApplied(
+  projectRoot: string,
+  deltaPath: string,
+  changeName: string,
+): Promise<boolean> {
+  const delta = parseArchitectureDelta(await fs.readFile(deltaPath, 'utf8'), changeName);
   const formal = await readLikeC4Architecture(projectRoot).catch((error: NodeJS.ErrnoException) => {
     if (error.code === 'ENOENT') return null;
     throw error;
   });
   if (!formal) return false;
-  const domains = new Set(formal.domains.map(domain => domain.id));
-  const capabilities = new Set(formal.capabilities.flatMap(capability => capability.capabilityId ?? []));
-  const relations = new Set(formal.relations.map(relation => `${relation.source}|${relation.kind}|${relation.target}`));
 
-  return delta.domains.every(domain => domains.has(domain.id))
-    && delta.capabilities.every(capability => capability.capabilityId && capabilities.has(capability.capabilityId))
-    && delta.relations.every(relation => relations.has(`${relation.source}|${relation.kind}|${relation.target}`));
+  return delta.domains.every(domain => {
+    const current = formal.domains.find(candidate => candidate.id === domain.id);
+    return current !== undefined && sameDomain(current, domain);
+  })
+    && delta.capabilities.every(capability => {
+      const current = formal.capabilities.find(candidate => candidate.id === capability.id);
+      return current !== undefined && sameCapability(current, capability);
+    })
+    && delta.relations.every(relation => formal.relations.some(candidate =>
+      candidate.source === relation.source &&
+      candidate.kind === relation.kind &&
+      candidate.target === relation.target &&
+      (candidate.description ?? '') === (relation.description ?? ''),
+    ));
+}
+
+function parseArchitectureDelta(content: string, changeName: string) {
+  const normalized = formalizeSpecPaths(content, changeName);
+  const extensionRanges: Array<[number, number]> = [];
+  const capabilities = [];
+  for (const match of normalized.matchAll(/\bextend\s+([A-Za-z_][\w-]*)\s*\{/g)) {
+    const block = blockAt(normalized, match.index + match[0].lastIndexOf('{'));
+    extensionRanges.push([match.index, block.end + 1]);
+    capabilities.push(...parseLikeC4Domain(
+      `model { ${match[1]} = domain '${match[1]}' {${block.body}} }`,
+    ).capabilities);
+  }
+  const base = parseLikeC4Domain(maskRanges(normalized, extensionRanges));
+  return {
+    ...base,
+    capabilities: [...base.capabilities, ...capabilities],
+    relations: parseLikeC4Domain(normalized).relations,
+  };
+}
+
+function maskRanges(content: string, ranges: Array<[number, number]>): string {
+  const characters = [...content];
+  for (const [start, end] of ranges) {
+    for (let index = start; index < end; index += 1) {
+      if (characters[index] !== '\n') characters[index] = ' ';
+    }
+  }
+  return characters.join('');
+}
+
+function sameDomain(left: { id: string; title: string; description?: string; boundary?: string; status?: string }, right: typeof left): boolean {
+  return left.title === right.title
+    && (left.description ?? '') === (right.description ?? '')
+    && (left.boundary ?? '') === (right.boundary ?? '')
+    && (left.status ?? '') === (right.status ?? '');
+}
+
+function sameCapability(left: { id: string; title: string; description?: string; capabilityId?: string; status?: string; specs: string[]; domain?: string }, right: typeof left): boolean {
+  return left.title === right.title
+    && (left.description ?? '') === (right.description ?? '')
+    && (left.capabilityId ?? '') === (right.capabilityId ?? '')
+    && (left.status ?? '') === (right.status ?? '')
+    && (left.domain ?? '') === (right.domain ?? '')
+    && JSON.stringify([...left.specs].sort()) === JSON.stringify([...right.specs].sort());
+}
+
+function formalizeSpecPaths(content: string, changeName: string): string {
+  return content.replaceAll(`openspec/changes/${changeName}/specs/`, 'openspec/specs/');
+}
+
+function blockAt(content: string, openBrace: number): { body: string; end: number } {
+  let depth = 0;
+  let quote = false;
+  for (let index = openBrace; index < content.length; index += 1) {
+    const char = content[index];
+    if (char === "'" && content[index - 1] !== '\\') quote = !quote;
+    if (quote) continue;
+    if (char === '{') depth += 1;
+    if (char === '}' && --depth === 0) return { body: content.slice(openBrace + 1, index), end: index };
+  }
+  throw new Error('Unclosed LikeC4 block');
 }
 
 async function fileExists(filePath: string): Promise<boolean> {

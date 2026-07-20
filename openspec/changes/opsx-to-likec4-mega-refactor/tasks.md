@@ -994,5 +994,5 @@
 - [x] [code_fix] Legacy validator residue：已删除无 production caller 的 `validateOpsxDelta`、独占 imports 与仅维护孤儿 API 的测试。
 - [x] [artifact_fix] Formal active relation cleanup：formal graph 已无 active-source → deprecated-target relation；deprecated compatibility 子图保留，formal/delta validation 通过。
 - [x] [code_fix] LikeC4-first frontmatter validation：active capability existence 校验通过 formal LikeC4 metadata 读取，不再调用 legacy `readProjectOpsx`。
-- [x] [code_fix] Synced architecture pending detection：成功 merge 后 surviving `architecture-delta.c4` 不再阻塞 normal archive；E2E 证明 archive 删除 delta 且保留 formal merge。
+- [x] [code_fix] Synced architecture pending detection：完整比较 domain/capability metadata、正规化 specs 路径与 relation description；碰撞 delta 保持 pending，成功 merge 后 E2E 可正常 archive。
 
