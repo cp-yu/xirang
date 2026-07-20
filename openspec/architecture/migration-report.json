@@ -1,0 +1,20 @@
+{
+  "skill": "openspec-verify-migration",
+  "valid": true,
+  "expected": {
+    "domains": 10,
+    "capabilities": 105,
+    "relations": 69
+  },
+  "actual": {
+    "domains": 10,
+    "capabilities": 105,
+    "relations": 69
+  },
+  "missing": {
+    "domains": [],
+    "capabilities": [],
+    "relations": []
+  },
+  "metadataMismatches": []
+}

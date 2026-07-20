@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  ARCHITECTURE_GENERATE_DELTA,
   OPENSPEC_PHILOSOPHY,
-  OPSX_GENERATE_DELTA,
   VERIFY_CLI_JSON_SCHEMA_REFERENCE,
   VERIFY_ERROR_RECOVERY_GUIDE,
   VERIFY_SIMPLE_CHANGE_FAST_PATH,
@@ -52,39 +52,38 @@ describe('verify gate shared fragments', () => {
   });
 });
 
-describe('OPSX delta generation fragment', () => {
+describe('LikeC4 delta generation fragment', () => {
   it('defers definition-first ordering to the artifact instruction projection', () => {
-    expect(OPSX_GENERATE_DELTA).toContain('follow the authoring order in the returned `instruction`');
-    expect(OPSX_GENERATE_DELTA).toContain('`definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs');
-    expect(OPSX_GENERATE_DELTA).not.toContain('content.includes');
-    expect(OPSX_GENERATE_DELTA).not.toContain('content.excludes');
+    expect(ARCHITECTURE_GENERATE_DELTA).toContain('follow the authoring order in the returned `instruction`');
+    expect(ARCHITECTURE_GENERATE_DELTA).toContain('`definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs');
+    expect(ARCHITECTURE_GENERATE_DELTA).not.toContain('content.includes');
+    expect(ARCHITECTURE_GENERATE_DELTA).not.toContain('content.excludes');
   });
 
   it('separates proposal scope, target behavior, architecture decisions, and evidence', () => {
     for (const token of [
       '`Source Impact`',
-      '`Architecture Source` as the declared architecture scope',
+      '`Architecture Source` as declared scope',
       '`Behavior Source` to locate related change-local Specs',
-      'Spec IDs are not OPSX capability IDs',
+      'Spec IDs are not LikeC4 element IDs',
       'completed change-local Specs as target behavior context',
-      '`design.md` when present',
-      'formal OPSX two-file bundle as the current architecture state',
+      '`design.md` for architecture decisions',
+      'formal LikeC4 model as current architecture state',
       'current code only as implementation evidence',
     ]) {
-      expect(OPSX_GENERATE_DELTA).toContain(token);
+      expect(ARCHITECTURE_GENERATE_DELTA).toContain(token);
     }
   });
 
-  it('keeps exact target-state OPSX records owned by opsx-delta', () => {
+  it('keeps exact target-state LikeC4 elements owned by architecture delta', () => {
     for (const token of [
       'do not invent architecture changes from behavior changes alone',
-      'does not by itself prove an OPSX node or relation change',
-      'scope declarations, not authoritative OPSX records',
-      'Derive exact target-state nodes and canonical relations',
+      'scope declarations, not authoritative LikeC4 records',
+      'derive exact target-state elements and typed relations',
     ]) {
-      expect(OPSX_GENERATE_DELTA).toContain(token);
+      expect(ARCHITECTURE_GENERATE_DELTA).toContain(token);
     }
-    expect(OPSX_GENERATE_DELTA).not.toContain('extract the capability list');
+    expect(ARCHITECTURE_GENERATE_DELTA).not.toContain('extract the capability list');
   });
 });
 
@@ -92,7 +91,7 @@ describe('OpenSpec philosophy fragment', () => {
   it('defines the durable source and scaffolding boundary', () => {
     for (const token of [
       'human-intent programming layer',
-      'Specs and OPSX jointly form the durable semantic source',
+      'Specs and LikeC4 jointly form the durable semantic source',
       'observable behavior',
       'project intent, capabilities, ownership, boundaries, and semantic relations',
       'target steady state',

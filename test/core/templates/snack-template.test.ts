@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  ARCHITECTURE_GENERATE_DELTA,
   OPENSPEC_PHILOSOPHY,
-  OPSX_GENERATE_DELTA,
 } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import { getSnackSkillTemplate } from '../../../src/core/templates/skill-templates.js';
 
@@ -71,7 +71,7 @@ describe('snack template artifact reconciliation', () => {
     expect(instructions).toContain('proposal.md');
     expect(instructions).toContain('design.md');
     expect(instructions).toContain('specs/*/spec.md');
-    expect(instructions).toContain('opsx-delta.yaml');
+    expect(instructions).toContain('architecture-delta.c4');
   });
 
   it('preserves unrelated human-authored content during reconciliation', () => {
@@ -99,7 +99,7 @@ describe('snack template artifact reconciliation', () => {
 
   it('stops before writing artifacts when architecture impact is unresolved', () => {
     expect(instructions).toContain('stop and ask one focused question');
-    expect(instructions).toContain('do not write `opsx-delta.yaml` or claim reconciliation complete');
+    expect(instructions).toContain('do not write `architecture-delta.c4` or claim reconciliation complete');
     expect(instructions).toContain('only after Architecture Source is resolved');
   });
 
@@ -112,16 +112,16 @@ describe('snack template artifact reconciliation', () => {
   it('uses Spec IDs for delta Spec paths', () => {
     expect(instructions).toContain('specs/<spec-id>/spec.md');
     expect(instructions).toContain('Spec IDs');
-    expect(instructions).toContain('OPSX capability ID');
-    expect(instructions).toContain('Do not derive the directory name directly from an OPSX capability ID');
+    expect(instructions).toContain('LikeC4 element ID');
+    expect(instructions).toContain('Do not derive the directory name directly from an LikeC4 element ID');
     expect(instructions).not.toContain('specs/<capability>/spec.md');
     expect(instructions).not.toContain('proposal capability name');
   });
 
-  it('does not promote mechanical code evidence to OPSX changes', () => {
-    expect(instructions).toContain('implementation evidence, not as proof that OPSX must change');
+  it('does not promote mechanical code evidence to LikeC4 changes', () => {
+    expect(instructions).toContain('implementation evidence, not as proof that LikeC4 must change');
     expect(instructions).toContain('Implementation-only movement, symbol renaming, helper extraction');
-    expect(instructions).toContain('mechanical call/import changes do not by themselves change OPSX');
+    expect(instructions).toContain('mechanical call/import changes do not by themselves change LikeC4');
   });
 
   it('reconciles proposal Source Impact from separate decisions', () => {
@@ -136,18 +136,18 @@ describe('snack template artifact reconciliation', () => {
   });
 });
 
-describe('snack OPSX delta input boundary', () => {
-  it('uses proposal scope, completed Specs, Design, and formal OPSX for reconciliation', () => {
+describe('snack architecture delta input boundary', () => {
+  it('uses proposal scope, completed Specs, Design, and formal LikeC4 for reconciliation', () => {
     for (const token of [
       '`Source Impact`',
       '`Architecture Source`',
       '`Behavior Source`',
       'completed change-local Specs',
-      '`design.md` when present',
-      'formal OPSX two-file bundle',
-      'scope declarations, not authoritative OPSX records',
+      '`design.md` for architecture decisions',
+      'formal LikeC4 model as current architecture state',
+      'scope declarations, not authoritative LikeC4 records',
     ]) {
-      expect(OPSX_GENERATE_DELTA).toContain(token);
+      expect(ARCHITECTURE_GENERATE_DELTA).toContain(token);
     }
   });
 });
@@ -156,10 +156,10 @@ describe('snack template evidence/artifact terminology', () => {
   const template = getSnackSkillTemplate();
   const instructions = template.instructions;
 
-  it('distinguishes delta spec Markdown headings from OPSX delta YAML keys', () => {
+  it('distinguishes delta Spec Markdown headings from LikeC4 delta syntax', () => {
     expect(instructions).toContain('## ADDED Requirements');
     expect(instructions).toContain('## MODIFIED Requirements');
-    expect(instructions).toMatch(/YAML.*keys|ADDED.*MODIFIED.*REMOVED.*YAML/i);
+    expect(instructions).toContain('LikeC4 model declarations and typed relations');
   });
 });
 

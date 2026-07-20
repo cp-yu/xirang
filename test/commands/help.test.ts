@@ -17,7 +17,7 @@ describe('AuthoringHelpCommand', () => {
     const output = await captureLogs(() => new AuthoringHelpCommand().execute(undefined, {}));
     expect(output).toContain('project.opsx.yaml');
     expect(output).toContain('project.opsx.relations.yaml');
-    expect(output).toContain('opsx-delta.yaml');
+    expect(output).toContain('architecture-delta.c4');
   });
 
   it('renders complete relation help from the Registry', async () => {
@@ -30,10 +30,10 @@ describe('AuthoringHelpCommand', () => {
   });
 
   it('returns Schema-backed definitions and Registry relation details', async () => {
-    const output = await captureLogs(() => new AuthoringHelpCommand().execute('opsx-delta.yaml', { json: true }));
+    const output = await captureLogs(() => new AuthoringHelpCommand().execute('architecture-delta.c4', { json: true }));
     const parsed = JSON.parse(output);
     expect(parsed).toMatchObject({
-      file: 'opsx-delta.yaml',
+      file: 'architecture-delta.c4',
       definition: {
         purpose: expect.any(String),
         compilationRole: expect.any(String),

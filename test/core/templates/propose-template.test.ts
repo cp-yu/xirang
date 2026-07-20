@@ -12,6 +12,14 @@ function getProposeBodies(): string[] {
 }
 
 describe('propose template post-validation flow', () => {
+  it('authors and validates LikeC4 architecture deltas', () => {
+    const instructions = getOpsxProposeSkillTemplate().instructions;
+    expect(instructions).toContain('architecture-delta.c4');
+    expect(instructions).toContain('extend existing_domain');
+    expect(instructions).toContain('-[invokes]->');
+    expect(instructions).toContain('openspec arch validate --delta');
+  });
+
   it('includes the OpenSpec philosophy in the skill surface', () => {
     expect(getOpsxProposeSkillTemplate().instructions).toContain(OPENSPEC_PHILOSOPHY);
   });
@@ -28,11 +36,11 @@ describe('propose template post-validation flow', () => {
     expect(instructions).not.toContain('rename');
   });
 
-  it('loads the complete formal OPSX bundle before authoring', () => {
+  it('navigates the formal LikeC4 model before authoring', () => {
     const instructions = getOpsxProposeSkillTemplate().instructions;
-    expect(instructions).toContain('openspec/project.opsx.yaml');
-    expect(instructions).toContain('openspec/project.opsx.relations.yaml');
-    expect(instructions).toContain('formal OPSX two-file bundle');
+    expect(instructions).toContain('openspec/architecture/');
+    expect(instructions).toContain('openspec arch query <element-id> --relations --depth 2');
+    expect(instructions).not.toContain('openspec/project.opsx.yaml');
   });
 
   it('defers definition-first ordering to the artifact instruction projection', () => {
@@ -93,7 +101,7 @@ describe('propose template post-validation flow', () => {
   it('uses Design Summary or semantic readiness without mechanical scoring', () => {
     for (const body of getProposeBodies()) {
       expect(body).toContain('confirmed `Design Summary`');
-      expect(body).toContain('architecture decisions to proposal Architecture Source, `design.md`, and `opsx-delta.yaml`');
+      expect(body).toContain('architecture decisions to proposal Architecture Source, `design.md`, and `architecture-delta.c4`');
       expect(body).toContain('testing strategy to `design.md`');
       expect(body).toContain('concrete test work to `tasks.md`');
       expect(body).toContain('risk and trade-off decisions to `design.md`');
@@ -128,12 +136,12 @@ describe('propose template post-validation flow', () => {
     expect(body).not.toContain('<!--');
   });
 
-  it('keeps Spec IDs separate from associated OPSX capability IDs', () => {
+  it('keeps Spec IDs separate from associated capability IDs', () => {
     for (const body of getProposeBodies()) {
       expect(body).toContain('openspec list --specs --json');
       expect(body).toContain('Spec ID');
       expect(body).toContain('`capabilities` string array');
-      expect(body).toContain('canonical OPSX capability ID');
+      expect(body).toContain('canonical capability ID');
       expect(body).toContain('does not by itself require a New Spec');
       expect(body).toContain('genuinely new observable behavior');
       expect(body).not.toContain('openspec spec list');
@@ -148,7 +156,7 @@ describe('propose template post-validation flow', () => {
       'New Specs',
       'Modified Specs',
       'Spec IDs',
-      'OPSX node IDs',
+      'LikeC4 element IDs',
       'Use `None` only when that source truly does not change',
     ]) {
       expect(body).toContain(token);
@@ -165,12 +173,12 @@ describe('propose template post-validation flow', () => {
   it('reconciles Architecture Source after Specs and Design', () => {
     const body = getOpsxProposeSkillTemplate().instructions;
     const designIndex = body.indexOf('After Specs and Design are complete');
-    const deltaIndex = body.indexOf('openspec instructions opsx-delta --change "<name>" --json');
+    const deltaIndex = body.indexOf('architecture-delta.c4', designIndex);
     expect(designIndex).toBeGreaterThanOrEqual(0);
     expect(deltaIndex).toBeGreaterThan(designIndex);
     expect(body).toContain('update only proposal `Architecture Source`');
-    expect(body).toContain('only `opsx-delta.yaml` defines exact target-state node operations');
-    expect(body).toContain('do not invent OPSX operations from behavior changes alone');
+    expect(body).toContain('formal LikeC4 model');
+    expect(body).toContain('do not invent architecture operations from behavior changes alone');
   });
 
   it('does not duplicate the resolved Specs content boundary', () => {

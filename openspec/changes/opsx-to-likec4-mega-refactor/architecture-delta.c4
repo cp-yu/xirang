@@ -1,0 +1,128 @@
+model {
+  migration = domain 'Migration' {
+    description 'OPSX YAML 到 LikeC4 的迁移转换、生成与验证流程'
+    metadata {
+      boundary '拥有 legacy architecture migration；不拥有目标模型的持续查询与合并'
+      status 'active'
+    }
+
+    opsx_to_likec4_converter = capability 'OPSX to LikeC4 Converter' {
+      description '将 OPSX YAML 两文件模型转换为 LikeC4 多文件模型'
+      metadata {
+        capabilityId 'cap.migration.opsx-to-likec4-converter'
+        status 'active'
+        specs ['openspec/changes/opsx-to-likec4-mega-refactor/specs/migrate-opsx-to-likec4/spec.md']
+      }
+    }
+
+    likec4_file_generator = capability 'LikeC4 File Generator' {
+      description '生成 specification、domain、relation 与 view 文件'
+      metadata {
+        capabilityId 'cap.migration.likec4-file-generator'
+        status 'active'
+        specs ['openspec/changes/opsx-to-likec4-mega-refactor/specs/migrate-opsx-to-likec4/spec.md']
+      }
+    }
+
+    spec_path_inference = capability 'Spec Path Inference' {
+      description '从 formal Specs 推断 capability metadata 的 spec 路径'
+      metadata {
+        capabilityId 'cap.migration.spec-path-inference'
+        status 'active'
+        specs ['openspec/changes/opsx-to-likec4-mega-refactor/specs/migrate-opsx-to-likec4/spec.md']
+      }
+    }
+
+    agent_verification_workflow = capability 'Agent Verification Workflow' {
+      description '请求 Agent 审查迁移结果的完整性和正确性'
+      metadata {
+        capabilityId 'cap.migration.agent-verification-workflow'
+        status 'active'
+        specs ['openspec/changes/opsx-to-likec4-mega-refactor/specs/migrate-opsx-to-likec4/spec.md']
+      }
+    }
+  }
+
+  architecture = domain 'Architecture' {
+    description 'LikeC4 架构模型读取、语义验证和 delta 合并'
+    metadata {
+      boundary '拥有 LikeC4 file I/O、OpenSpec semantic validation 与 architecture delta merge'
+      status 'active'
+    }
+
+    likec4_reader = capability 'LikeC4 Reader' {
+      description '读取和解析 LikeC4 多文件模型'
+      metadata {
+        capabilityId 'cap.architecture.likec4-reader'
+        status 'active'
+        specs ['openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-query-command/spec.md']
+      }
+    }
+
+    semantic_validator = capability 'Semantic Validator' {
+      description '验证 ownership、precedes cycle 与 metadata'
+      metadata {
+        capabilityId 'cap.architecture.semantic-validator'
+        status 'active'
+        specs ['openspec/changes/opsx-to-likec4-mega-refactor/specs/likec4-semantic-validator/spec.md']
+      }
+    }
+
+    delta_merger = capability 'Architecture Delta Merger' {
+      description '原子合并 architecture-delta.c4 到 formal LikeC4 model'
+      metadata {
+        capabilityId 'cap.architecture.delta-merger'
+        status 'active'
+        specs ['openspec/changes/opsx-to-likec4-mega-refactor/specs/architecture-delta-artifact/spec.md']
+      }
+    }
+  }
+
+  extend cli {
+    arch_query = capability 'Architecture Query' {
+      description '查询 LikeC4 elements 和 directed relations'
+      metadata {
+        capabilityId 'cap.cli.arch-query'
+        status 'active'
+        specs ['openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-query-command/spec.md']
+      }
+    }
+
+    arch_validate = capability 'Architecture Validate' {
+      description '验证 formal LikeC4 model 或 change-local architecture delta'
+      metadata {
+        capabilityId 'cap.cli.arch-validate'
+        status 'active'
+        specs ['openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-validate-command/spec.md']
+      }
+    }
+
+    arch_preview = capability 'Architecture Preview' {
+      description '启动 LikeC4 web preview server'
+      metadata {
+        capabilityId 'cap.cli.arch-preview'
+        status 'active'
+        specs ['openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-preview-command/spec.md']
+      }
+    }
+
+    arch_export = capability 'Architecture Export' {
+      description '导出 LikeC4 architecture diagrams'
+      metadata {
+        capabilityId 'cap.cli.arch-export'
+        status 'active'
+        specs ['openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-export-command/spec.md']
+      }
+    }
+  }
+
+  migration.opsx_to_likec4_converter -[invokes]-> migration.likec4_file_generator
+  migration.opsx_to_likec4_converter -[invokes]-> migration.spec_path_inference
+  cli.arch_query -[invokes]-> architecture.likec4_reader
+  cli.arch_validate -[invokes]-> architecture.likec4_reader
+  cli.arch_validate -[invokes]-> architecture.semantic_validator
+  cli.arch_preview -[invokes]-> architecture.likec4_reader
+  cli.sync -[invokes]-> architecture.delta_merger
+  architecture.delta_merger -[invokes]-> architecture.likec4_reader
+  architecture.delta_merger -[validates]-> architecture.semantic_validator
+}

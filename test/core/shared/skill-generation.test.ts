@@ -28,7 +28,7 @@ describe('skill-generation', () => {
       expect(dirNames).toContain('openspec-apply-change');
       expect(dirNames).toContain('openspec-archive-change');
       expect(dirNames).toContain('openspec-propose');
-      expect(dirNames).toContain('openspec-bootstrap-opsx');
+      expect(dirNames).toContain('openspec-bootstrap-arch');
       expect(dirNames).toContain('openspec-snack');
       expect(dirNames).not.toContain('openspec-reviewer');
       expect(dirNames).not.toContain('openspec-optimizer');

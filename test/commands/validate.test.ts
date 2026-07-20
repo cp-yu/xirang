@@ -140,30 +140,12 @@ describe('top-level validate command', () => {
     expect(json.items[0].issues.some((issue: any) => issue.message.includes('OPSX dry-run merge failed'))).toBe(false);
   });
 
-  it('validates only opsx-delta for --artifacts opsx-delta', async () => {
-    await writeProjectOpsx();
-    const badChange = path.join(changesDir, 'bad-spec-good-opsx');
-    await fs.mkdir(path.join(badChange, 'specs', 'alpha'), { recursive: true });
-    await fs.writeFile(path.join(badChange, 'proposal.md'), '# Bad spec\n\n## Why\nInvalid specs.\n\n## What Changes\n- Bad spec');
-    await fs.writeFile(path.join(badChange, 'specs', 'alpha', 'spec.md'), [
-      '## ADDED Requirements',
-      '### Requirement: Missing scenarios',
-      'This requirement SHALL be invalid without scenarios.',
-    ].join('\n'), 'utf-8');
-    await fs.writeFile(path.join(badChange, 'opsx-delta.yaml'), [
-      'schema_version: 2',
-      'MODIFIED:',
-      '  capabilities:',
-      '    - id: cap.alpha',
-      '      intent: Updated alpha capability',
-    ].join('\n'), 'utf-8');
+  it('rejects deprecated opsx-delta artifact scope', async () => {
+    const result = await runCLI(['validate', '--change', 'c1', '--artifacts', 'opsx-delta'], { cwd: testDir });
 
-    const result = await runCLI(['validate', '--change', 'bad-spec-good-opsx', '--artifacts', 'opsx-delta', '--json'], { cwd: testDir });
-
-    expect(result.exitCode).toBe(0);
-    const json = JSON.parse(result.stdout.trim());
-    expect(json.items[0]).toMatchObject({ id: 'bad-spec-good-opsx', type: 'change', valid: true });
-    expect(json.items[0].issues).toEqual([]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("Unknown artifact scope 'opsx-delta'");
+    expect(result.stderr).toContain('architecture-delta');
   });
 
   it('rejects invalid artifact scope before running validation', async () => {
@@ -172,7 +154,7 @@ describe('top-level validate command', () => {
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain('Unknown artifact scope');
     expect(result.stderr).toContain('specs');
-    expect(result.stderr).toContain('opsx-delta');
+    expect(result.stderr).toContain('architecture-delta');
   });
 
   it('rejects missing explicit changes deterministically', async () => {

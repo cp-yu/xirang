@@ -23,16 +23,16 @@ describe('instruction-loader', () => {
         '#### New Specs',
         '#### Modified Specs',
         '### Architecture Source',
-        '#### Added OPSX Nodes',
-        '#### Modified OPSX Nodes',
-        '#### Removed OPSX Nodes',
+        '#### Added LikeC4 Elements',
+        '#### Modified LikeC4 Elements',
+        '#### Removed LikeC4 Elements',
         '#### Architecture Relations',
         '## Impact',
       ]) {
         expect(template).toContain(heading);
       }
       expect(template).toContain('Spec IDs');
-      expect(template).toContain('opsx-delta.yaml');
+      expect(template).toContain('architecture-delta.c4');
       expect(template).not.toContain('## Capabilities');
       expect(template).not.toContain('### New Capabilities');
       expect(template).not.toContain('### Modified Capabilities');
@@ -240,7 +240,7 @@ describe('instruction-loader', () => {
       const context = loadChangeContext(tempDir, 'my-change');
       const proposal = generateInstructions(context, 'proposal').definition;
       const specs = generateInstructions(context, 'specs').definition;
-      const opsxDelta = generateInstructions(context, 'opsx-delta').definition;
+      const architectureDelta = generateInstructions(context, 'architecture-delta').definition;
       const design = generateInstructions(context, 'design').definition;
       const tasks = generateInstructions(context, 'tasks').definition;
 
@@ -252,7 +252,7 @@ describe('instruction-loader', () => {
             'Motivation, scope boundaries, Behavior Source impact, Architecture Source impact, and affected surfaces.',
           ],
           excludes: [
-            'Complete observable behavior requirements, authoritative OPSX node or relation operations, lowering decisions, and implementation work.',
+            'Complete observable behavior requirements, authoritative LikeC4 element or relation declarations, lowering decisions, and implementation work.',
           ],
         },
       });
@@ -261,7 +261,7 @@ describe('instruction-loader', () => {
         validation: ['openspec validate --change <name> --artifacts specs --json'],
       });
       expect(specs?.validation).not.toContain('openspec scenario-labels <name> --write');
-      expect(opsxDelta?.content.excludes).toContain(
+      expect(architectureDelta?.content.excludes).toContain(
         'Observable behavior requirements, implementation evidence, code paths, symbols, imports, calls, and change-log narration.'
       );
       expect(design).toMatchObject({
@@ -271,7 +271,7 @@ describe('instruction-loader', () => {
             'Solution architecture, implementation boundaries, technical decisions, rationale, alternatives, refactoring strategy, risks, trade-offs, and migration decisions.',
           ],
           excludes: [
-            'Observable behavior requirements, task progress, repeated motivation, and durable architecture changes not reconciled through opsx-delta.yaml.',
+            'Observable behavior requirements, task progress, repeated motivation, and durable architecture changes not reconciled through architecture-delta.c4.',
           ],
         },
       });
@@ -291,15 +291,15 @@ describe('instruction-loader', () => {
         'New Specs',
         'Modified Specs',
         'specs/<spec-id>/spec.md',
-        'cap.<domain>.<name>',
+        'domain_name.capability_name',
         'do not assume a one-to-one mapping',
         'Write `None`',
         'Complete observable behavior belongs in delta Specs',
-        'Complete target-state OPSX nodes and relations belong in `opsx-delta.yaml`',
+        'Complete target-state LikeC4 elements and relations belong in `architecture-delta.c4`',
         'Lowering and architecture decisions belong in `design.md`',
         'Implementation work and verification belong in `tasks.md`',
         'Every New or Modified Spec entry must be reconciled by a corresponding change-local delta Spec',
-        'Every declared durable architecture impact must be reconciled through `opsx-delta.yaml`',
+        'Every declared durable architecture impact must be reconciled through `architecture-delta.c4`',
       ]) {
         expect(body).toContain(token);
       }
@@ -313,7 +313,7 @@ describe('instruction-loader', () => {
         '`Source Impact`',
         '`Behavior Source`',
         'specs/<spec-id>/spec.md',
-        'Spec IDs and OPSX capability IDs are different identifiers',
+        'Spec IDs and architecture capability IDs are different identifiers',
         'A `Modified Specs` file may contain any combination',
         'Agent MUST NOT author scenario operation labels',
       ]) {
@@ -325,7 +325,7 @@ describe('instruction-loader', () => {
     it('projects one definition-first authoring order for every spec-driven artifact', () => {
       const context = loadChangeContext(tempDir, 'my-change');
 
-      for (const artifactId of ['proposal', 'specs', 'opsx-delta', 'design', 'tasks']) {
+      for (const artifactId of ['proposal', 'specs', 'architecture-delta', 'design', 'tasks']) {
         const body = generateInstructions(context, artifactId).instruction ?? '';
         const definitionIndex = body.indexOf('1. Read the resolved `definition`');
         const currentStateIndex = body.indexOf('2. Read dependencies and current artifact state');
@@ -883,8 +883,9 @@ rules:
       const specs = status.artifacts.find(a => a.id === 'specs');
       expect(specs?.outputPath).toBe('specs/**/*.md');
 
-      const opsxDelta = status.artifacts.find(a => a.id === 'opsx-delta');
-      expect(opsxDelta?.outputPath).toBe('opsx-delta.yaml');
+      const architectureDelta = status.artifacts.find(a => a.id === 'architecture-delta');
+      expect(architectureDelta?.outputPath).toBe('architecture-delta.c4');
+      expect(status.artifacts.some(a => a.id === 'opsx-delta')).toBe(false);
     });
 
     it('should report isComplete true when all done', () => {
@@ -896,7 +897,7 @@ rules:
       fs.writeFileSync(path.join(changeDir, 'proposal.md'), '# Proposal');
       fs.writeFileSync(path.join(changeDir, 'specs', 'test.md'), '# Spec');
       fs.writeFileSync(path.join(changeDir, 'design.md'), '# Design');
-      fs.writeFileSync(path.join(changeDir, 'opsx-delta.yaml'), 'schema_version: 2\nADDED:\n  capabilities: []\n');
+      fs.writeFileSync(path.join(changeDir, 'architecture-delta.c4'), 'model {}\n');
       fs.writeFileSync(path.join(changeDir, 'tasks.md'), '# Tasks');
 
       const context = loadChangeContext(tempDir, 'my-change');

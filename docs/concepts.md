@@ -468,13 +468,13 @@ Best for: Most feature work where you want to agree on specs before implementati
 
 ### Bootstrap Schema
 
-`bootstrap` is the second built-in schema. It drives the structured `init → scan → map → review → promote` OPSX bootstrap lifecycle.
+`bootstrap` is the retained legacy schema for the deprecated OPSX bootstrap CLI. New architecture bootstrapping uses the managed `bootstrap-arch` skill and produces reviewed LikeC4 candidates.
 
 OpenSpec resolves only the package-owned `spec-driven` and `bootstrap` schemas. Project-local and user override schemas are not supported. Use `openspec schema which --all` to inspect both built-ins and `openspec schema validate` to validate them.
 
 ## Archive
 
-Archiving completes a change by merging its delta specs into the main specs, merging opsx-delta into `project.opsx.yaml` (if present), and preserving the change for history.
+Archiving completes a change by merging delta Specs into formal Specs, merging `architecture-delta.c4` into the formal LikeC4 model, and preserving the change for history.
 
 ### What Happens When You Archive
 
@@ -514,7 +514,7 @@ openspec/
 
 ### The Archive Process
 
-1. **Merge deltas.** Each delta spec section (ADDED/MODIFIED/REMOVED) is applied to the corresponding main spec. If `opsx-delta.yaml` exists, it is also merged into `project.opsx.yaml`.
+1. **Merge deltas.** Each delta Spec section is applied to the corresponding formal Spec. If `architecture-delta.c4` exists, it is validated and merged into `openspec/architecture/`.
 
 2. **Move to archive.** The change folder moves to `changes/archive/` with a date prefix for chronological ordering.
 

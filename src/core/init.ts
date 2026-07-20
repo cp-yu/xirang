@@ -44,6 +44,8 @@ import {
 } from './workflow-installation.js';
 import { isMap, parseDocument } from 'yaml';
 import { ArtifactSyncEngine } from './templates/sync-engine.js';
+import { generateSpecification } from '../migration/generators/specification-generator.js';
+import { generateViews } from '../migration/generators/views-generator.js';
 
 const require = createRequire(import.meta.url);
 const { version: OPENSPEC_VERSION } = require('../../package.json');
@@ -126,9 +128,9 @@ export class InitCommand {
     // Create directory structure and config
     await this.createDirectoryStructure(openspecPath, extendMode);
 
-    // Generate OPSX skeleton files on first-time init (non-extend mode)
+    // Generate LikeC4 skeleton files on first-time init (non-extend mode)
     if (!extendMode) {
-      await this.writeOpsxSkeleton(projectPath, openspecPath);
+      await this.writeArchitectureSkeleton(projectPath, openspecPath);
     }
 
     // Generate skills and commands for each tool
@@ -463,35 +465,18 @@ export class InitCommand {
   }
 
   // ═══════════════════════════════════════════════════════════
-  // OPSX SKELETON GENERATION
+  // LIKEC4 SKELETON GENERATION
   // ═══════════════════════════════════════════════════════════
 
-  private async writeOpsxSkeleton(projectPath: string, openspecPath: string): Promise<void> {
-    const projectName = this.inferProjectName(projectPath);
-    const projectId = this.toProjectId(projectName);
-
-    const opsxYaml = `schema_version: 2
-project:
-  id: ${projectId}
-  name: ${projectName}
-domains: []
-capabilities: []
-`;
-
-    const relationsYaml = `schema_version: 2
-relations: []
-`;
-
-    const files: Array<{ name: string; content: string }> = [
-      { name: 'project.opsx.yaml', content: opsxYaml },
-      { name: 'project.opsx.relations.yaml', content: relationsYaml },
+  private async writeArchitectureSkeleton(projectPath: string, openspecPath: string): Promise<void> {
+    const architecturePath = path.join(openspecPath, 'architecture');
+    await FileSystemUtils.createDirectory(path.join(architecturePath, 'domains'));
+    const files = [
+      { path: path.join(architecturePath, 'specification.c4'), content: generateSpecification() },
+      { path: path.join(architecturePath, 'views.c4'), content: generateViews(this.inferProjectName(projectPath)) },
     ];
-
     for (const file of files) {
-      const filePath = path.join(openspecPath, file.name);
-      if (!fs.existsSync(filePath)) {
-        await FileSystemUtils.writeFile(filePath, file.content);
-      }
+      if (!fs.existsSync(file.path)) await FileSystemUtils.writeFile(file.path, file.content);
     }
   }
 
@@ -741,11 +726,11 @@ relations: []
       console.log("Done. Run 'openspec init' to configure your workflows.");
     }
 
-    // Bootstrap guidance: only when bootstrap-opsx is in active profile and first-time init
-    if (!extendMode && activeWorkflows.includes('bootstrap-opsx')) {
+    // Bootstrap guidance: only when bootstrap-arch is active and this is first-time init
+    if (!extendMode && activeWorkflows.includes('bootstrap-arch')) {
       const bootstrapRef = guidanceToolId
-        ? renderWorkflowInvocation(guidanceToolId, 'bootstrap-opsx' as WorkflowId)
-        : '/opsx:bootstrap-opsx';
+        ? renderWorkflowInvocation(guidanceToolId, 'bootstrap-arch' as WorkflowId)
+        : '/opsx:bootstrap-arch';
       console.log(`  Next: run ${bootstrapRef} to map your architecture`);
     }
 

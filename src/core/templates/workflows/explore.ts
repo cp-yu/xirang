@@ -7,8 +7,8 @@
 import type { SkillTemplate } from '../types.js';
 import {
   OPENSPEC_PHILOSOPHY,
-  OPSX_NAVIGATION_GUIDANCE,
-  OPSX_SHARED_CONTEXT,
+  ARCHITECTURE_NAVIGATION_GUIDANCE,
+  ARCHITECTURE_SHARED_CONTEXT,
 } from '../fragments/opsx-fragments.js';
 
 const CONVERSATION_LANGUAGE_GUIDANCE = `Output language: use the user's main language for prose and non-canonical section labels; keep commands, paths, artifact names, schema keys, and OpenSpec tokens unchanged.`;
@@ -25,7 +25,7 @@ When exploring an active change, read proposal/design/specs/tasks, reference the
 | Implementation strategy              | \`design.md\`                  |
 | Scope changed                        | \`proposal.md\`                |
 | New work or verification identified  | \`tasks.md\`                   |
-| OPSX graph intent changed            | \`opsx-delta.yaml\`            |
+| LikeC4 architecture intent changed   | \`architecture-delta.c4\`      |
 | Assumption invalidated               | Relevant artifact              |
 | Test needs update or deletion        | \`tasks.md\` + \`design.md\`   |
 
@@ -184,12 +184,12 @@ The main explore agent and \`openspec-impact-sweeper\` subagent are both read-on
 
 - Start with \`openspec list --json\`.
 - Read relevant change artifacts when a change name is present.
-- Use OPSX as navigation: project domains/capabilities, semantic relations, specs, and CLI query guidance; use live repository tools for code evidence.
+- Use LikeC4 as navigation: project domains/capabilities, semantic relations, Specs, and CLI query guidance; use live repository tools for code evidence.
 - Ground claims in project files and git evidence when the idea maps to code.
 
-${OPSX_SHARED_CONTEXT}
+${ARCHITECTURE_SHARED_CONTEXT}
 
-${OPSX_NAVIGATION_GUIDANCE}
+${ARCHITECTURE_NAVIGATION_GUIDANCE}
 
 ${CONVERSATION_LANGUAGE_GUIDANCE}
 

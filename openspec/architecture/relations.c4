@@ -1,0 +1,139 @@
+model {
+  ai_integration.agent_prompt_guidance -[consumes]-> verify.cli_gate
+
+  ai_integration.explore_terminology_decision -[consumes]-> ai_integration.sweeper_terminology_reporting
+
+  ai_integration.impact_sweeper -[invokes]-> ai_integration.sweeper_terminology_extraction
+
+  ai_integration.internal_subagent_generation -[consumes]-> verify.subagent_self_read
+
+  ai_integration.internal_subagent_generation -[consumes]-> ai_integration.tool_adapters
+
+  ai_integration.optimizer_skill -[consumes]-> verify.subagent_self_read
+
+  ai_integration.optimizer_skill -[consumes]-> verify.prompt_orchestration
+
+  ai_integration.propose_smart_routing -[consumes]-> ai_integration.explore_brainstorming
+
+  ai_integration.reviewer_skill -[consumes]-> verify.subagent_self_read
+
+  ai_integration.reviewer_skill -[consumes]-> verify.prompt_orchestration
+
+  ai_integration.skill_generation -[invokes]-> ai_integration.tool_invocation_references
+
+  ai_integration.skill_generation -[consumes]-> ai_integration.workflow_templates
+
+  ai_integration.sweeper_terminology_reporting -[consumes]-> ai_integration.sweeper_terminology_extraction
+
+  ai_integration.template_artifact_pipeline -[consumes]-> ai_integration.snack_workflow_manifest
+
+  ai_integration.workflow_templates -[consumes]-> ai_integration.agent_prompt_guidance
+
+  ai_integration.workflow_templates -[consumes]-> ai_integration.internal_subagent_generation
+
+  ai_integration.workflow_templates -[consumes]-> ai_integration.verify_writeback
+
+  ai_integration.workflow_templates -[consumes]-> verify.prompt_orchestration
+
+  apply.branch_isolation -[constrains]-> change_workflow.branch_merge
+
+  apply.branch_isolation -[consumes]-> config.apply_default_isolation
+
+  apply.verify_integration -[invokes]-> cli.verify_aware_instructions
+
+  apply.verify_integration -[invokes]-> verify.cli_gate
+
+  apply.verify_integration -[invokes]-> verify.optimize
+
+  apply.verify_integration -[consumes]-> verify.optimizer_findings
+
+  change_workflow.branch_merge -[consumes]-> config.project_element
+
+  artifact_graph.instruction_loader -[invokes]-> artifact_graph.parse
+
+  artifact_graph.instruction_loader -[consumes]-> config.project_element
+
+  artifact_graph.instruction_loader -[consumes]-> config.projection_element
+
+  artifact_graph.parse -[consumes]-> schema.opsx_delta_artifact
+
+  change_workflow.archive -[precedes]-> change_workflow.branch_merge
+
+  change_workflow.create -[invokes]-> artifact_graph.schema_resolution
+
+  cli.authoring_help -[consumes]-> opsx_element.semantic_relations
+
+  cli.command_reference_consistency -[validates]-> ai_integration.workflow_templates
+
+  cli.command_reference_consistency -[validates]-> opsx_element.bootstrap
+
+  cli.command_reference_consistency -[validates]-> verify.cli_gate
+
+  cli.completion -[invokes]-> cli.completion_introspect
+
+  cli.config -[invokes]-> cli.project_element
+
+  cli.init -[invokes]-> ai_integration.skill_generation
+
+  cli.init -[consumes]-> ai_integration.tool_adapters
+
+  cli.init -[consumes]-> config.project_element
+
+  cli.instructions -[invokes]-> artifact_graph.instruction_loader
+
+  cli.opsx_query -[invokes]-> opsx_element.read_transparent
+
+  cli.status -[invokes]-> artifact_graph.parse
+
+  cli.update -[invokes]-> config.migration_element
+
+  cli.update -[consumes]-> config.project_element
+
+  cli.validate -[invokes]-> cli.command_reference_consistency
+
+  cli.validate -[invokes]-> validation.opsx_dry_run
+
+  cli.validate -[invokes]-> validation.spec_section_type_cross_check
+
+  cli.verify_aware_instructions -[invokes]-> verify.freshness_engine
+
+  config.apply_default_isolation -[consumes]-> config.project_element
+
+  opsx_element.bootstrap_refresh -[invokes]-> opsx_element.bootstrap
+
+  opsx_element.delta_merge -[invokes]-> opsx_element.atomic_write
+
+  opsx_element.referential_integrity -[validates]-> opsx_element.delta_merge
+
+  validation.registry -[invokes]-> validation.frontmatter
+
+  validation.change -[invokes]-> validation.spec_section_type_cross_check
+
+  validation.opsx_element -[invokes]-> opsx_element.referential_integrity
+
+  validation.opsx_dry_run -[invokes]-> opsx_element.delta_merge
+
+  validation.opsx_dry_run -[invokes]-> opsx_element.referential_integrity
+
+  validation.spec -[precedes]-> cli.scenario_labels
+
+  verify.cli_gate -[invokes]-> verify.freshness_engine
+
+  verify.cli_gate -[validates]-> verify.optimizer_findings
+
+  verify.enforce_optimizer_invocation -[constrains]-> ai_integration.agent_prompt_guidance
+
+  verify.enforce_optimizer_invocation -[constrains]-> verify.optimize
+
+  verify.execution_model_selection -[constrains]-> apply.verify_integration
+
+  verify.optimize -[consumes]-> ai_integration.workflow_templates
+
+  verify.optimize -[consumes]-> verify.optimizer_findings
+
+  artifact_graph.instruction_loader -[consumes]-> artifact_graph.file_definitions
+
+  cli.authoring_help -[consumes]-> artifact_graph.file_definitions
+
+  opsx_element.bootstrap -[consumes]-> artifact_graph.file_definitions
+}

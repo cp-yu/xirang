@@ -43,7 +43,7 @@ describe('artifact-workflow CLI commands', () => {
    */
   async function createTestChange(
     changeName: string,
-    artifacts: ('proposal' | 'design' | 'specs' | 'opsx-delta' | 'tasks')[] = []
+    artifacts: ('proposal' | 'design' | 'specs' | 'architecture-delta' | 'tasks')[] = []
   ): Promise<string> {
     const changeDir = path.join(changesDir, changeName);
     await fs.mkdir(changeDir, { recursive: true });
@@ -70,11 +70,8 @@ describe('artifact-workflow CLI commands', () => {
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Tasks\n- [ ] Task 1');
     }
 
-    if (artifacts.includes('opsx-delta')) {
-      await fs.writeFile(
-        path.join(changeDir, 'opsx-delta.yaml'),
-        'schema_version: 2\nADDED:\n  capabilities: []\n'
-      );
+    if (artifacts.includes('architecture-delta')) {
+      await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), 'model {}\n');
     }
 
     return changeDir;
@@ -188,7 +185,7 @@ describe('artifact-workflow CLI commands', () => {
     });
 
     it('shows complete status when all artifacts are done', async () => {
-      await createTestChange('complete-change', ['proposal', 'design', 'specs', 'opsx-delta', 'tasks']);
+      await createTestChange('complete-change', ['proposal', 'design', 'specs', 'architecture-delta', 'tasks']);
 
       const result = await runCLI(['status', '--change', 'complete-change'], { cwd: tempDir });
       expect(result.exitCode).toBe(0);

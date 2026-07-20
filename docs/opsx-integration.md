@@ -1,5 +1,9 @@
 # OPSX Programmatic Integration
 
+> [!WARNING]
+> Deprecated legacy OPSX YAML reference. LikeC4 is the active architecture source. See [LikeC4 Architecture Integration](architecture-integration.md) and [Migration Guide](migration-guide.md).
+
+
 ## Overview
 
 OPSX v2 stores the project architecture in exactly two files:

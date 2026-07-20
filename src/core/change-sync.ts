@@ -1,17 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import {
-  applyOpsxDelta,
-  hasOpsxDeltaOperations,
-  OPSX_PATHS,
-  readOpsxDelta,
-  readProjectOpsx,
-  writeProjectOpsx,
-  type OpsxDeltaApplyResult,
-  type ProjectOpsxBundle,
-} from '../utils/opsx-utils.js';
-import { validateRelationGraph } from './relations/validator.js';
-import {
   buildUpdatedSpec,
   findSpecUpdates,
   isDeltaSpecAlreadyApplied,
@@ -20,6 +9,7 @@ import {
 import { refreshVerifyEvidenceAfterSync } from './verify/freshness.js';
 import { Validator } from './validation/validator.js';
 import { extractRequirementsSection, parseDeltaSpec } from './parsers/requirement-blocks.js';
+import { mergeArchitectureDelta } from '../utils/architecture-delta-merger.js';
 
 type SpecCounts = { added: number; modified: number; removed: number; renamed: number };
 
@@ -28,7 +18,7 @@ export interface ChangeSyncState {
   changeDir: string;
   specUpdates: SpecUpdate[];
   hasDeltaSpecs: boolean;
-  hasOpsxDelta: boolean;
+  hasArchitectureDelta: boolean;
   requiresSync: boolean;
 }
 
@@ -40,10 +30,9 @@ interface PreparedSpecWrite {
   action: 'write' | 'delete';
 }
 
-interface PreparedOpsxWrite {
-  originalBundle: ProjectOpsxBundle;
-  mergedBundle: ProjectOpsxBundle;
-  result: OpsxDeltaApplyResult;
+interface PreparedArchitectureWrite {
+  deltaPath: string;
+  originalFiles: Map<string, string>;
 }
 
 export interface PreparedChangeSync {
@@ -52,7 +41,7 @@ export interface PreparedChangeSync {
     writes: PreparedSpecWrite[];
     totals: SpecCounts;
   };
-  opsx: PreparedOpsxWrite | null;
+  architecture: PreparedArchitectureWrite | null;
 }
 
 export interface AppliedChangeSyncSummary {
@@ -73,16 +62,16 @@ export async function assessChangeSyncState(
   const changeDir = path.join(projectRoot, 'openspec', 'changes', changeName);
   const mainSpecsDir = path.join(projectRoot, 'openspec', 'specs');
   const specUpdates = await findSpecUpdates(changeDir, mainSpecsDir);
-  const opsxDelta = await readOpsxDelta(projectRoot, changeName);
-  const hasOpsxDelta = opsxDelta !== null && hasOpsxDeltaOperations(opsxDelta);
+  const architectureDelta = path.join(changeDir, 'architecture-delta.c4');
+  const hasArchitectureDelta = await fileExists(architectureDelta);
 
   return {
     changeName,
     changeDir,
     specUpdates,
     hasDeltaSpecs: specUpdates.length > 0,
-    hasOpsxDelta,
-    requiresSync: specUpdates.length > 0 || hasOpsxDelta,
+    hasArchitectureDelta,
+    requiresSync: specUpdates.length > 0 || hasArchitectureDelta,
   };
 }
 
@@ -107,14 +96,8 @@ export async function getPendingChangeSync(
     pendingSpecs += 1;
   }
 
-  let pendingOpsx = false;
-  if (state.hasOpsxDelta) {
-    const originalBundle = await readProjectOpsx(projectRoot);
-    const delta = await readOpsxDelta(projectRoot, state.changeName);
-    pendingOpsx = !originalBundle || !delta || applyOpsxDelta(originalBundle, delta).changed;
-  }
 
-  return { specs: pendingSpecs, opsx: pendingOpsx };
+  return { specs: pendingSpecs, opsx: state.hasArchitectureDelta };
 }
 
 export async function prepareChangeSync(
@@ -173,48 +156,24 @@ export async function prepareChangeSync(
     totals.renamed += built.counts.renamed;
   }
 
-  let opsx: PreparedOpsxWrite | null = null;
-  if (state.hasOpsxDelta) {
-    const originalBundle = await readProjectOpsx(projectRoot);
-    if (!originalBundle) {
-      throw new Error(
-        `Cannot apply opsx-delta for change '${state.changeName}': openspec/project.opsx.yaml not found.`
-      );
-    }
-
-    const delta = await readOpsxDelta(projectRoot, state.changeName);
-    if (!delta) {
-      throw new Error(`opsx-delta.yaml disappeared while preparing change '${state.changeName}'.`);
-    }
-
-    const result = applyOpsxDelta(originalBundle, delta);
-    if (!result.changed) {
-      return {
-        state,
-        specs: { writes, totals },
-        opsx: null,
-      };
-    }
-    const relationValidation = validateRelationGraph(result.bundle);
-    if (!relationValidation.valid) {
-      throw new Error(
-        `OPSX relation validation failed:\n${relationValidation.errors
-          .map((error) => `  ✗ ${error}`)
-          .join('\n')}`
-      );
-    }
-
-    opsx = {
-      originalBundle,
-      mergedBundle: result.bundle,
-      result,
+  let architecture: PreparedArchitectureWrite | null = null;
+  if (state.hasArchitectureDelta) {
+    const domainsDir = path.join(projectRoot, 'openspec', 'architecture', 'domains');
+    const names = (await fs.readdir(domainsDir)).filter(name => name.endsWith('.c4'));
+    architecture = {
+      deltaPath: path.join(state.changeDir, 'architecture-delta.c4'),
+      originalFiles: new Map(await Promise.all(names.map(async name => {
+        const file = path.join(domainsDir, name);
+        return [file, await fs.readFile(file, 'utf8')] as const;
+      }))),
     };
   }
+
 
   return {
     state,
     specs: { writes, totals },
-    opsx,
+    architecture,
   };
 }
 
@@ -226,14 +185,13 @@ export async function applyPreparedChangeSync(
   const silent = options.silent ?? false;
   const syncedFiles: string[] = [];
 
-  if (prepared.opsx) {
-    await writeProjectOpsx(projectRoot, prepared.opsx.mergedBundle);
-    syncedFiles.push(OPSX_PATHS.PROJECT_FILE, OPSX_PATHS.RELATIONS_FILE);
-    if (!silent) {
-      console.log(formatOpsxSummary(prepared.opsx.result));
-      console.log('OPSX updated successfully.');
-    }
+  if (prepared.architecture) {
+    await mergeArchitectureDelta(projectRoot, prepared.architecture.deltaPath, { changeName: prepared.state.changeName });
+    syncedFiles.push(...Array.from(prepared.architecture.originalFiles.keys(), file => toPosixProjectRelative(projectRoot, file)));
+    if (!silent) console.log('Architecture updated successfully.');
   }
+
+
 
   try {
     if (prepared.specs.writes.length > 0) {
@@ -249,8 +207,8 @@ export async function applyPreparedChangeSync(
       }
     }
   } catch (error) {
-    if (prepared.opsx) {
-      await writeProjectOpsx(projectRoot, prepared.opsx.originalBundle).catch(() => undefined);
+    if (prepared.architecture) {
+      await Promise.all([...prepared.architecture.originalFiles].map(([file, content]) => fs.writeFile(file, content))).catch(() => undefined);
     }
     throw error;
   }
@@ -259,9 +217,13 @@ export async function applyPreparedChangeSync(
 
   return {
     specs: prepared.specs.writes.length > 0 ? 'synced' : 'no-delta',
-    opsx: prepared.opsx ? 'synced' : 'no-delta',
+    opsx: prepared.architecture ? 'synced' : 'no-delta',
     files: syncedFiles,
   };
+}
+
+async function fileExists(filePath: string): Promise<boolean> {
+  try { await fs.access(filePath); return true; } catch { return false; }
 }
 
 async function readOptionalFile(filePath: string): Promise<string | null> {
@@ -319,14 +281,6 @@ function isRemovalOnlyDelta(content: string): boolean {
     plan.added.length === 0 &&
     plan.modified.length === 0 &&
     plan.renamed.length === 0;
-}
-
-function formatOpsxSummary(result: OpsxDeltaApplyResult): string {
-  const nodeAdded = result.counts.added.domains + result.counts.added.capabilities;
-  const nodeModified = result.counts.modified.domains + result.counts.modified.capabilities;
-  const nodeRemoved = result.counts.removed.domains + result.counts.removed.capabilities;
-
-  return `OPSX delta applied: + ${nodeAdded} nodes, ~ ${nodeModified} nodes, - ${nodeRemoved} nodes; + ${result.counts.added.relations} relations, ~ ${result.counts.modified.relations} relations, - ${result.counts.removed.relations} relations.`;
 }
 
 function toPosixProjectRelative(projectRoot: string, filePath: string): string {

@@ -422,23 +422,18 @@ The system SHALL keep this requirement.`,
       expect(console.log).toHaveBeenCalledWith('Archive cancelled.');
     });
 
-    it('should block archive when OPSX delta is pending', async () => {
-      const changeName = 'pending-opsx';
+    it('should block archive when architecture delta is pending', async () => {
+      const changeName = 'pending-architecture';
       const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
 
-      await writeProjectOpsx(tempDir, mkBundle({
-        domains: [{ id: 'dom.core', type: 'domain', intent: 'Core domain' }],
-        capabilities: [{ id: 'cap.core.init', type: 'capability', intent: 'Init' }],
-        relations: [{ from: 'cap.core.init', to: 'dom.core', type: 'belongs_to' }],
-      }));
-      await fs.writeFile(path.join(changeDir, 'opsx-delta.yaml'), stringifyYaml({
-        schema_version: OPSX_SCHEMA_VERSION,
-        ADDED: {
-          domains: [{ id: 'dom.ops', type: 'domain', intent: 'Ops domain' }],
-        },
-      }), 'utf-8');
+      const architecture = path.join(tempDir, 'openspec', 'architecture');
+      await fs.mkdir(path.join(architecture, 'domains'), { recursive: true });
+      await fs.writeFile(path.join(architecture, 'specification.c4'), 'specification { element domain element capability }');
+      await fs.writeFile(path.join(architecture, 'views.c4'), 'views { view index { include * } }');
+      await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), "model { core = domain 'Core' }");
+      await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), "model { extend core { init = capability 'Init' } }");
 
       await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow('Sync gate');
     });

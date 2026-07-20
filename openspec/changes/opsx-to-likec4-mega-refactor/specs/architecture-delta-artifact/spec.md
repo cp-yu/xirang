@@ -2,7 +2,7 @@
 
 ### Requirement: Change SHALL 使用 architecture-delta.c4 表达架构增量
 
-Change 目录中的架构增量 SHALL 使用 `architecture-delta.c4` 文件，而非 `opsx-delta.yaml`。
+Change 目录中的架构增量 SHALL 使用 `architecture-delta.c4` 文件，而非 `opsx-delta.yaml`。Active spec-driven artifact graph、authoring help 与 validation scope SHALL 仅暴露 `architecture-delta`；legacy OPSX delta readers MAY remain as explicitly deprecated migration compatibility APIs。
 
 #### Scenario: 创建 architecture-delta.c4
 
@@ -10,6 +10,13 @@ Change 目录中的架构增量 SHALL 使用 `architecture-delta.c4` 文件，�
 - **WHEN** propose 生成 change artifacts
 - **THEN** SHALL 创建 `openspec/changes/<name>/architecture-delta.c4`
 - **AND** MUST NOT 创建 `opsx-delta.yaml`
+
+#### Scenario: Spec-driven artifact graph 使用 LikeC4 delta
+
+- **WHEN** Agent 查询 spec-driven artifact status 或 instructions
+- **THEN** SHALL 暴露 artifact ID `architecture-delta` 与 output `architecture-delta.c4`
+- **AND** MUST NOT 暴露 active artifact ID `opsx-delta`
+- **AND** `openspec validate --change <name> --artifacts opsx-delta` SHALL 返回 unsupported scope error
 
 ### Requirement: Delta 文件 SHALL 使用 LikeC4 extend 语法
 
@@ -37,12 +44,12 @@ Delta SHALL 使用 `extend` 关键字扩展已有 domains，或定义新 domains
 
 #### Scenario: 添加新 relation
 
-- **GIVEN** change 添加 relation: `cap.a.feature1 -> cap.b.feature2 'invokes'`
+- **GIVEN** change 添加 relation: `cap.a.feature1 -[invokes]-> cap.b.feature2`
 - **WHEN** 生成 architecture-delta.c4
 - **THEN** SHALL 包含：
   ```likec4
   model {
-    domain_a.feature1 -> domain_b.feature2 'invokes' {
+    domain_a.feature1 -[invokes]-> domain_b.feature2 {
       description '...'
     }
   }

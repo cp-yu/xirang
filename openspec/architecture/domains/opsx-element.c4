@@ -1,0 +1,84 @@
+model {
+  opsx_element = domain 'Opsx Element' {
+    description 'Deprecated OPSX YAML compatibility infrastructure retained during the one-month migration window'
+
+    metadata {
+      boundary '仅拥有 legacy OPSX migration compatibility；active architecture ownership belongs to LikeC4 capabilities.'
+      status 'deprecated'
+    }
+
+    atomic_write = capability 'Atomic Write' {
+      description '使用临时文件 + 重命名模式实现 legacy OPSX 原子写入'
+      metadata {
+        capabilityId 'cap.opsx.atomic-write'
+        status 'deprecated'
+      }
+    }
+
+    bootstrap = capability 'Bootstrap' {
+      description 'Deprecated legacy init → scan → map → review → promote OPSX v2 workflow'
+      metadata {
+        capabilityId 'cap.opsx.bootstrap'
+        status 'deprecated'
+        specs ['openspec/specs/bootstrap/spec.md']
+      }
+    }
+
+    bootstrap_backfill_specs = capability 'Bootstrap Backfill Specs' {
+      description 'Deprecated legacy backfill engine for OPSX capability mappings'
+      metadata {
+        capabilityId 'cap.opsx.bootstrap-backfill-specs'
+        status 'deprecated'
+        specs ['openspec/specs/bootstrap-backfill-specs/spec.md']
+      }
+    }
+
+    bootstrap_refresh = capability 'Bootstrap Refresh' {
+      description 'Deprecated legacy OPSX candidate refresh and replacement workflow'
+      metadata {
+        capabilityId 'cap.opsx.bootstrap-refresh'
+        status 'deprecated'
+      }
+    }
+
+    delta_merge = capability 'Delta Merge' {
+      description 'Deprecated legacy opsx-delta.yaml merge retained for migration compatibility only'
+      metadata {
+        capabilityId 'cap.opsx.delta-merge'
+        status 'deprecated'
+      }
+    }
+
+    read_transparent = capability 'Read Transparent' {
+      description 'Deprecated fallback reader for the legacy OPSX two-file bundle'
+      metadata {
+        capabilityId 'cap.opsx.read-transparent'
+        status 'deprecated'
+      }
+    }
+
+    referential_integrity = capability 'Referential Integrity' {
+      description 'Deprecated legacy OPSX endpoint integrity validation'
+      metadata {
+        capabilityId 'cap.opsx.referential-integrity'
+        status 'deprecated'
+      }
+    }
+
+    semantic_relations = capability 'Semantic Relations' {
+      description 'Deprecated legacy OPSX RelationDefinitionRegistry compatibility'
+      metadata {
+        capabilityId 'cap.opsx.semantic-relations'
+        status 'deprecated'
+      }
+    }
+
+    yaml_operations = capability 'Yaml Operations' {
+      description 'Deprecated OPSX YAML serialization and parsing compatibility'
+      metadata {
+        capabilityId 'cap.opsx.yaml-operations'
+        status 'deprecated'
+      }
+    }
+  }
+}

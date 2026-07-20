@@ -8,14 +8,14 @@ describe('WorkflowManifestRegistry', () => {
       expect(entries).toHaveLength(6);
     });
 
-    it('should contain propose, explore, apply, archive, bootstrap-opsx, snack', () => {
+    it('should contain propose, explore, apply, archive, bootstrap-arch, snack', () => {
       const workflowIds = WorkflowManifestRegistry.getAllWorkflowIds();
       expect(workflowIds).toEqual([
         'propose',
         'explore',
         'apply',
         'archive',
-        'bootstrap-opsx',
+        'bootstrap-arch',
         'snack',
       ]);
     });
@@ -42,8 +42,8 @@ describe('WorkflowManifestRegistry', () => {
       expect(entry?.modeMembership).toEqual(['flexible']);
     });
 
-    it('bootstrap-opsx should have empty modeMembership', () => {
-      const entry = WorkflowManifestRegistry.get('bootstrap-opsx');
+    it('bootstrap-arch should have empty modeMembership', () => {
+      const entry = WorkflowManifestRegistry.get('bootstrap-arch');
       expect(entry?.modeMembership).toEqual([]);
     });
   });
@@ -64,7 +64,7 @@ describe('WorkflowManifestRegistry', () => {
       expect(skillNames).toContain('openspec-explore');
       expect(skillNames).toContain('openspec-apply-change');
       expect(skillNames).toContain('openspec-archive-change');
-      expect(skillNames).toContain('openspec-bootstrap-opsx');
+      expect(skillNames).toContain('openspec-bootstrap-arch');
       expect(skillNames).toContain('openspec-snack');
     });
   });
@@ -77,7 +77,7 @@ describe('WorkflowManifestRegistry', () => {
         'explore': 'explore',
         'apply': 'apply',
         'archive': 'archive',
-        'bootstrap-opsx': 'bootstrap',
+        'bootstrap-arch': 'bootstrap',
         'snack': 'snack',
       });
     });

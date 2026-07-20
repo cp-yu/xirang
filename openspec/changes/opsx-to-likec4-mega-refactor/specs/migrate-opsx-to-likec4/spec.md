@@ -1,5 +1,21 @@
 ## ADDED Requirements
 
+### Requirement: LikeC4 工具链 SHALL 使用兼容的 Node.js runtime
+
+OpenSpec SHALL 要求 Node.js `>=22.22.3`，与锁定的 `likec4@1.59.0` engine 合同一致。
+
+#### Scenario: package 声明兼容的最低版本
+
+- **WHEN** 安装 OpenSpec package
+- **THEN** `package.json` 的 `engines.node` SHALL 为 `>=22.22.3`
+- **AND** 安装文档 SHALL 声明相同最低版本
+
+#### Scenario: 跨平台 CI 使用兼容 runtime
+
+- **WHEN** Linux、macOS 或 Windows CI 安装依赖并运行 LikeC4 检查
+- **THEN** CI SHALL 配置 Node.js `22.22.3` 或更高版本
+- **AND** MUST NOT 使用低于 LikeC4 engine 合同的 Node.js runtime
+
 ### Requirement: 迁移命令 SHALL 读取 OPSX 两文件模型
 
 迁移工具 SHALL 读取 `openspec/project.opsx.yaml` 和 `openspec/project.opsx.relations.yaml` 作为源架构模型。
@@ -112,7 +128,7 @@
 
 - **GIVEN** OPSX relation: `{from: 'cap.a.feature1', type: 'invokes', to: 'cap.b.feature2', note: 'Feature1 calls feature2'}`
 - **WHEN** 转换
-- **THEN** SHALL 生成 `feature1 -> feature2 'invokes' { description 'Feature1 calls feature2' }`
+- **THEN** SHALL 生成 `feature1 -[invokes]-> feature2 { description 'Feature1 calls feature2' }`
 - **AND** 使用 snake_case element IDs
 
 #### Scenario: 跳过 belongs_to（隐式通过嵌套）
@@ -126,8 +142,9 @@
 
 - **GIVEN** OPSX relation: `{from: 'cap.domain-a.feature-a', type: 'consumes', to: 'cap.domain-b.feature-b'}`
 - **WHEN** 转换且两个 capabilities 属于不同 domains
-- **THEN** SHALL 生成 `domain_a.feature_a -> domain_b.feature_b 'consumes'`
-- **AND** relation SHALL 写在源 domain 文件（domain_a.c4）
+- **THEN** SHALL 生成 `domain_a.feature_a -[consumes]-> domain_b.feature_b`
+- **AND** relation SHALL 写入 canonical `openspec/architecture/relations.c4`
+- **AND** standalone relation storage SHALL avoid LikeC4 lexical shadowing by same-named nested capabilities
 
 ### Requirement: 迁移 SHALL 生成基础 views
 
@@ -171,15 +188,16 @@
 
 ### Requirement: 迁移命令 SHALL 支持 agent-verify 选项
 
-迁移命令 SHALL 提供 `--agent-verify` 选项，启动 Agent 逐一验证迁移结果。
+迁移命令 SHALL 提供 `--agent-verify` 选项，生成供 Pi 调用 `openspec-verify-migration` skill 的确定性验证 handoff。CLI 进程本身不拥有 Pi subagent runtime。
 
 #### Scenario: Agent 验证完整性
 
 - **WHEN** 运行 `openspec migrate opsx-to-likec4 --agent-verify`
-- **THEN** SHALL 调用 `openspec-verify-migration` skill
-- **AND** Agent SHALL 检查所有 domains/capabilities 已迁移
-- **AND** Agent SHALL 检查所有 relations 正确转换
-- **AND** Agent SHALL 生成迁移对比报告
+- **THEN** SHALL 持久化声明 `skill: 'openspec-verify-migration'` 的结构化 handoff 到 `openspec/architecture/migration-report.json`
+- **AND** handoff SHALL 比较所有 domains 的 intent、boundary 与 status
+- **AND** handoff SHALL 比较所有 capabilities 的 intent、status 与 Specs metadata
+- **AND** handoff SHALL 比较所有 relations 的 direction、type 与 description
+- **AND** Pi workflow SHALL 使用该 handoff 调用 `openspec-verify-migration` skill
 
 ### Requirement: 迁移 SHALL 保留原始 OPSX 文件为 backup
 

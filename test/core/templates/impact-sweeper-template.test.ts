@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -14,12 +14,19 @@ describe('impact sweeper template', () => {
     return reference!.content;
   }
 
+  it('keeps project-root shared references byte-identical to the template', () => {
+    for (const reference of template.referenceFiles ?? []) {
+      const sharedPath = path.resolve(`openspec/references/openspec-${path.posix.basename(reference.path)}`);
+      expect(readFileSync(sharedPath, 'utf8')).toBe(reference.content);
+    }
+  });
+
   it('excludes the OpenSpec philosophy (read-only reporter role)', () => {
     expect(instructions).not.toContain('OpenSpec Philosophy');
   });
 
   it('describes fast-model usage for the lightweight sweep', () => {
-    expect(template.description).toContain('Prefer a fast model for this lightweight OPSX-grounded impact sweep.');
+    expect(template.description).toContain('Prefer a fast model for this lightweight architecture impact sweep.');
   });
 
   it('defines the report input and output contract', () => {
@@ -77,13 +84,12 @@ describe('impact sweeper template', () => {
     expect(terminology).toContain('If terminology extraction fails, omit `terminologyObservations` and keep the report usable');
   });
 
-  it('requires CLI-backed OPSX evidence and bounded reverse search', () => {
+  it('requires CLI-backed LikeC4 evidence and bounded reverse search', () => {
     const evidence = readReference('references/evidence-protocol.md');
 
-    expect(evidence).toContain('openspec opsx query <node-id...> --json');
-    expect(evidence).toContain('use `--depth 2` when');
-    expect(evidence).toContain("Preserve each relation's canonical from/type/to direction");
-    expect(evidence).toContain('`belongs_to` supplies domain context only');
+    expect(evidence).toContain('openspec arch query <element-id> --relations --depth 2');
+    expect(evidence).toContain("Preserve each relation's canonical source/kind/target direction");
+    expect(evidence).toContain('Element nesting supplies domain context only');
     expect(evidence).toContain('openspec list --specs --json');
     expect(evidence).toContain('CodeGraph is available');
     expect(evidence).toContain('never read `.codegraph/codegraph.db`');

@@ -22,6 +22,8 @@ import { registerSchemaCommand } from '../commands/schema.js';
 import { registerSyncCommand } from '../commands/sync.js';
 import { registerScenarioLabelsCommand } from '../commands/scenario-labels.js';
 import { registerVerifyCommand } from '../commands/verify.js';
+import { registerMigrateCommand } from '../commands/migrate/index.js';
+import { registerArchCommand } from '../commands/arch/index.js';
 import {
   bootstrapAdvanceCommand,
   bootstrapInitCommand,
@@ -199,6 +201,8 @@ program
 registerSyncCommand(program);
 registerScenarioLabelsCommand(program);
 registerVerifyCommand(program);
+registerMigrateCommand(program);
+registerArchCommand(program);
 
 program
   .command('list')
@@ -328,7 +332,7 @@ program
   .option('--changes', 'Validate all changes')
   .option('--specs', 'Validate all specs')
   .option('--change <name>', 'Validate an explicit change')
-  .option('--artifacts <scope>', 'Validate a change artifact scope: specs|opsx-delta')
+  .option('--artifacts <scope>', 'Validate a change artifact scope: specs|architecture-delta')
   .option('--type <type>', 'Specify item type when ambiguous: change|spec')
   .option('--strict', 'Enable strict validation mode')
   .option('--json', 'Output validation results as JSON')
@@ -549,7 +553,11 @@ newCmd
 
 const bootstrapCmd = program
   .command('bootstrap')
-  .description('Structured bootstrap workflow — discover and map existing architecture');
+  .description('Deprecated legacy OPSX bootstrap CLI; use the bootstrap-arch skill for LikeC4');
+
+bootstrapCmd.hook('preAction', () => {
+  console.warn('Deprecated: openspec bootstrap writes legacy OPSX YAML. Use the bootstrap-arch skill for LikeC4.');
+});
 
 bootstrapCmd
   .command('init')

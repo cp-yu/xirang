@@ -18,10 +18,10 @@ sync workflow SHALL 合并 change-local `architecture-delta.c4` 到 formal LikeC
 
 #### Scenario: 合并新 relations
 
-- **GIVEN** delta 包含新 relation: `a.cap1 -> b.cap2 'invokes'`
+- **GIVEN** delta 包含新 relation: `a.cap1 -[invokes]-> b.cap2`
 - **WHEN** sync
-- **THEN** SHALL 将 relation 添加到源 domain 文件（a.c4）
-- **AND** SHALL 保持 relations 按字母顺序排列
+- **THEN** SHALL 将 relation 添加到 canonical `openspec/architecture/relations.c4`
+- **AND** SHALL 保持 relations 按 source、kind、target 字母顺序排列
 
 #### Scenario: 更新 change-local specs 路径为 formal 路径
 

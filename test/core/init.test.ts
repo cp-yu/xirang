@@ -138,13 +138,13 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      // All 6 registry workflows: propose, explore, apply, archive, bootstrap-opsx, snack
+      // All 6 registry workflows: propose, explore, apply, archive, bootstrap-arch, snack
       const expectedSkillNames = [
         'openspec-propose',
         'openspec-explore',
         'openspec-apply-change',
         'openspec-archive-change',
-        'openspec-bootstrap-opsx',
+        'openspec-bootstrap-arch',
         'openspec-snack',
       ];
 
@@ -499,8 +499,8 @@ context: |
       const initCommand = new InitCommand({ tools: 'claude', force: true });
       await initCommand.execute(testDir);
 
-      const bootstrapCmd = path.join(testDir, '.claude', 'commands', 'opsx', getCommandSlug('bootstrap-opsx') + '.md');
-      const legacyBootstrapCmd = path.join(testDir, '.claude', 'commands', 'opsx', 'bootstrap-opsx.md');
+      const bootstrapCmd = path.join(testDir, '.claude', 'commands', 'opsx', getCommandSlug('bootstrap-arch') + '.md');
+      const legacyBootstrapCmd = path.join(testDir, '.claude', 'commands', 'opsx', 'bootstrap-arch.md');
       expect(await fileExists(bootstrapCmd)).toBe(false);
       expect(await fileExists(legacyBootstrapCmd)).toBe(false);
     });
@@ -611,84 +611,52 @@ describe('OPSX skeleton generation', () => {
     vi.restoreAllMocks();
   });
 
-  it('should generate two OPSX v2 skeleton files on first-time init', async () => {
+  it('should generate LikeC4 architecture structure on first-time init', async () => {
     const initCommand = new InitCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
-    const opsxYaml = path.join(testDir, 'openspec', 'project.opsx.yaml');
-    const relationsYaml = path.join(testDir, 'openspec', 'project.opsx.relations.yaml');
+    const architecture = path.join(testDir, 'openspec', 'architecture');
+    expect(await fileExists(path.join(architecture, 'specification.c4'))).toBe(true);
+    expect(await fileExists(path.join(architecture, 'views.c4'))).toBe(true);
+    expect((await fs.stat(path.join(architecture, 'domains'))).isDirectory()).toBe(true);
 
-    expect(await fileExists(opsxYaml)).toBe(true);
-    expect(await fileExists(relationsYaml)).toBe(true);
-    expect(await fileExists(path.join(testDir, 'openspec', 'project.opsx.code-map.yaml'))).toBe(false);
-
-    const opsxContent = await fs.readFile(opsxYaml, 'utf-8');
-    expect(opsxContent).toContain('schema_version: 2');
-    expect(opsxContent).toContain('project:');
-    expect(opsxContent).toContain('domains: []');
-    expect(opsxContent).toContain('capabilities: []');
-
-    const relationsContent = await fs.readFile(relationsYaml, 'utf-8');
-    expect(relationsContent).toContain('schema_version: 2');
-    expect(relationsContent).toContain('relations: []');
+    const specification = await fs.readFile(path.join(architecture, 'specification.c4'), 'utf-8');
+    expect(specification).toContain('element domain');
+    expect(specification).toContain('element capability');
+    expect(specification).toContain('relationship invokes');
+    expect(specification).not.toContain('relationship belongs_to');
   });
 
-  it('should infer project name from package.json', async () => {
-    const pkgPath = path.join(testDir, 'package.json');
-    await fs.writeFile(pkgPath, JSON.stringify({ name: '@scope/my-awesome-project' }));
-
+  it('should not generate OPSX YAML files', async () => {
     const initCommand = new InitCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
-    const opsxContent = await fs.readFile(
-      path.join(testDir, 'openspec', 'project.opsx.yaml'),
-      'utf-8',
-    );
-    expect(opsxContent).toContain("id: scope-my-awesome-project");
-    expect(opsxContent).toContain("name: @scope/my-awesome-project");
+    expect(await fileExists(path.join(testDir, 'openspec', 'project.opsx.yaml'))).toBe(false);
+    expect(await fileExists(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'))).toBe(false);
   });
 
-  it('should fall back to directory basename when no package.json', async () => {
+  it('should infer the architecture title from package.json', async () => {
+    await fs.writeFile(path.join(testDir, 'package.json'), JSON.stringify({ name: '@scope/my-awesome-project' }));
     const initCommand = new InitCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
-    const opsxContent = await fs.readFile(
-      path.join(testDir, 'openspec', 'project.opsx.yaml'),
-      'utf-8',
-    );
-    const dirBasename = path.basename(testDir);
-    const expectedId = dirBasename.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-    expect(opsxContent).toContain(`id: ${expectedId}`);
-    expect(opsxContent).toContain(`name: ${dirBasename}`);
+    const views = await fs.readFile(path.join(testDir, 'openspec', 'architecture', 'views.c4'), 'utf-8');
+    expect(views).toContain("title '@scope/my-awesome-project Architecture'");
   });
 
-  it('should not overwrite existing OPSX files in extend mode', async () => {
-    // Pre-create openspec directory with an existing project.opsx.yaml
-    const openspecDir = path.join(testDir, 'openspec');
-    await fs.mkdir(openspecDir, { recursive: true });
-    const existingContent = `schema_version: 1
-project:
-  id: my-project
-  name: my-project
-domains:
-  - id: dom.auth
-    type: domain
-    intent: Custom domain
-capabilities: []
-`;
-    await fs.writeFile(path.join(openspecDir, 'project.opsx.yaml'), existingContent);
+  it('should not overwrite existing LikeC4 files in extend mode', async () => {
+    const architecture = path.join(testDir, 'openspec', 'architecture');
+    await fs.mkdir(architecture, { recursive: true });
+    const existingContent = "specification { element existing }\n";
+    await fs.writeFile(path.join(architecture, 'specification.c4'), existingContent);
 
     const initCommand = new InitCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
-    const opsxContent = await fs.readFile(
-      path.join(testDir, 'openspec', 'project.opsx.yaml'),
-      'utf-8',
-    );
-    expect(opsxContent).toBe(existingContent);
+    expect(await fs.readFile(path.join(architecture, 'specification.c4'), 'utf-8')).toBe(existingContent);
   });
 
-  it('should show bootstrap guidance when bootstrap-opsx is installed and non-extend mode', async () => {
+  it('should show bootstrap guidance when bootstrap-arch is installed and non-extend mode', async () => {
     saveGlobalConfig({
       featureFlags: {},
     });
@@ -703,11 +671,11 @@ capabilities: []
     );
     expect(bootstrapLine).toBeDefined();
     // Claude has precise skill invocation metadata.
-    expect(bootstrapLine).toContain('/openspec-bootstrap-opsx');
+    expect(bootstrapLine).toContain('/openspec-bootstrap-arch');
     expect(bootstrapLine).toContain('map your architecture');
   });
 
-  it('should show bootstrap guidance for all 5 workflows including bootstrap-opsx', async () => {
+  it('should show bootstrap guidance for all 5 workflows including bootstrap-arch', async () => {
     saveGlobalConfig({
       featureFlags: {},
     });
@@ -788,7 +756,7 @@ describe('InitCommand - profile and detection features', () => {
       'openspec-explore',
       'openspec-apply-change',
       'openspec-archive-change',
-      'openspec-bootstrap-opsx',
+      'openspec-bootstrap-arch',
       'openspec-snack',
     ];
 
@@ -915,7 +883,7 @@ describe('InitCommand - profile and detection features', () => {
       'openspec-explore',
       'openspec-apply-change',
       'openspec-archive-change',
-      'openspec-bootstrap-opsx',
+      'openspec-bootstrap-arch',
       'openspec-snack',
     ];
 
@@ -946,7 +914,7 @@ describe('InitCommand - profile and detection features', () => {
     // All 6 skills should exist (includes skill-only snack)
     const expectedSkills = [
       'openspec-explore', 'openspec-propose', 'openspec-apply-change',
-      'openspec-archive-change', 'openspec-bootstrap-opsx', 'openspec-snack',
+      'openspec-archive-change', 'openspec-bootstrap-arch', 'openspec-snack',
     ];
     for (const skill of expectedSkills) {
       expect(await fileExists(path.join(testDir, '.claude', 'skills', skill, 'SKILL.md'))).toBe(true);
@@ -970,7 +938,7 @@ describe('InitCommand - profile and detection features', () => {
     // All 6 workflows should be installed
     const expectedSkills = [
       'openspec-explore', 'openspec-propose', 'openspec-apply-change',
-      'openspec-archive-change', 'openspec-bootstrap-opsx', 'openspec-snack',
+      'openspec-archive-change', 'openspec-bootstrap-arch', 'openspec-snack',
     ];
     for (const skill of expectedSkills) {
       expect(await fileExists(path.join(testDir, '.claude', 'skills', skill, 'SKILL.md'))).toBe(true);

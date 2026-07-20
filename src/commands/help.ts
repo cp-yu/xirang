@@ -7,7 +7,7 @@ import type { FileDefinition } from '../core/artifact-graph/types.js';
 const AUTHORING_TOPICS = [
   'project.opsx.yaml',
   'project.opsx.relations.yaml',
-  'opsx-delta.yaml',
+  'architecture-delta.c4',
 ] as const;
 
 type AuthoringTopic = typeof AUTHORING_TOPICS[number];
@@ -25,7 +25,7 @@ interface AuthoringHelp {
 const FILE_LOOKUP: Record<AuthoringTopic, { schema: 'spec-driven' | 'bootstrap'; fileId?: string; artifactId?: string }> = {
   'project.opsx.yaml': { schema: 'bootstrap', fileId: 'formal-project' },
   'project.opsx.relations.yaml': { schema: 'bootstrap', fileId: 'formal-relations' },
-  'opsx-delta.yaml': { schema: 'spec-driven', artifactId: 'opsx-delta' },
+  'architecture-delta.c4': { schema: 'spec-driven', artifactId: 'architecture-delta' },
 };
 
 export class AuthoringHelpCommand {

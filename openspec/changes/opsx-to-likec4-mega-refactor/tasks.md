@@ -7,43 +7,55 @@
 **Files**:
 - `package.json`
 - `pnpm-lock.yaml`
+- `package-lock.json`
+- `README.md`
+- `docs/installation.md`
+- `.devcontainer/README.md`
+- `.github/workflows/opsx-v2-cross-platform.yml`
+- `openspec/config.yaml`
 - `openspec/architecture/specification.c4` (new)
 - `openspec/architecture/views.c4` (new)
 - `openspec/architecture/domains/` (new directory)
 
 **Requirements**:
 - 安装 likec4@1.59.0
+- 将 package、文档、project context 与跨平台 CI 的最低 Node.js runtime 统一为 `>=22.22.3`
 - 创建 architecture 目录结构
-- 生成 specification.c4 模板
-- 生成 views.c4 模板
+- 生成 specification.c4 和 views.c4 模板
 
 **Checks**:
 
-- [ ] **依赖安装**
+- [x] **依赖安装**
   - Command: `pnpm list likec4`
   - Expect: `likec4 1.59.0`
 
-- [ ] **目录结构创建**
+- [x] **Node.js runtime 合同一致**
+  - Covers: migrate-opsx-to-likec4.md
+  - Verifies: "LikeC4 工具链 SHALL 使用兼容的 Node.js runtime"
+  - Command: `node -e "const p=require('./package.json'); if (p.engines.node !== '>=22.22.3') process.exit(1)" && grep -q "22.22.3" README.md docs/installation.md .devcontainer/README.md .github/workflows/opsx-v2-cross-platform.yml openspec/config.yaml && echo "OK"`
+  - Expect: `OK`
+
+- [x] **目录结构创建**
   - Command: `test -d openspec/architecture && test -d openspec/architecture/domains && echo "OK"`
   - Expect: `OK`
 
-- [ ] **specification.c4 存在**
+- [x] **specification.c4 存在**
   - Command: `test -f openspec/architecture/specification.c4 && echo "OK"`
   - Expect: `OK`
 
-- [ ] **specification.c4 定义 element kinds**
+- [x] **specification.c4 定义 element kinds**
   - Command: `grep -q "element domain" openspec/architecture/specification.c4 && grep -q "element capability" openspec/architecture/specification.c4 && echo "OK"`
   - Expect: `OK`
 
-- [ ] **specification.c4 定义 relationship kinds**
+- [x] **specification.c4 定义 relationship kinds**
   - Command: `grep -q "relationship invokes" openspec/architecture/specification.c4 && grep -q "relationship consumes" openspec/architecture/specification.c4 && grep -q "relationship precedes" openspec/architecture/specification.c4 && echo "OK"`
   - Expect: `OK`
 
-- [ ] **views.c4 存在**
+- [x] **views.c4 存在**
   - Command: `test -f openspec/architecture/views.c4 && echo "OK"`
   - Expect: `OK`
 
-- [ ] **LikeC4 验证通过**
+- [x] **LikeC4 验证通过**
   - Command: `npx likec4 validate openspec/architecture/`
   - Expect: 退出码 0
 
@@ -69,37 +81,37 @@
 
 **Checks**:
 
-- [ ] **转换器读取 OPSX 模型**
+- [x] **转换器读取 OPSX 模型**
   - Covers: migrate-opsx-to-likec4.md
   - Verifies: "迁移命令 SHALL 读取 OPSX 两文件模型"
   - Command: `pnpm test -- opsx-to-likec4.test.ts -t "should read complete OPSX model"`
   - Expect: 测试通过
 
-- [ ] **Domain 转换保留 metadata**
+- [x] **Domain 转换保留 metadata**
   - Covers: migrate-opsx-to-likec4.md
   - Verifies: "转换 SHALL 保留所有 metadata"
   - Command: `pnpm test -- opsx-to-likec4.test.ts -t "should convert domain with intent and boundary"`
   - Expect: 测试通过
 
-- [ ] **Capability 嵌套在 domain 内**
+- [x] **Capability 嵌套在 domain 内**
   - Covers: migrate-opsx-to-likec4.md
   - Verifies: "Domain 文件 SHALL 包含嵌套的 capabilities"
   - Command: `pnpm test -- opsx-to-likec4.test.ts -t "should nest capabilities in domain"`
   - Expect: 测试通过
 
-- [ ] **belongs_to 通过嵌套表达**
+- [x] **belongs_to 通过嵌套表达**
   - Covers: migrate-opsx-to-likec4.md
   - Verifies: "Domain 文件 SHALL 包含嵌套的 capabilities"
   - Command: `pnpm test -- opsx-to-likec4.test.ts -t "should skip belongs_to relation"`
   - Expect: 测试通过
 
-- [ ] **其他 relations 正确转换**
+- [x] **其他 relations 正确转换**
   - Covers: migrate-opsx-to-likec4.md
   - Verifies: "转换 SHALL 映射 semantic relations"
   - Command: `pnpm test -- opsx-to-likec4.test.ts -t "should convert invokes relation"`
   - Expect: 测试通过
 
-- [ ] **Cross-domain relations 使用全限定名**
+- [x] **Cross-domain relations 使用全限定名**
   - Covers: migrate-opsx-to-likec4.md
   - Verifies: "转换 SHALL 映射 semantic relations"
   - Command: `pnpm test -- opsx-to-likec4.test.ts -t "should use qualified names for cross-domain relations"`
@@ -115,6 +127,8 @@
 - `src/migration/generators/likec4-file-generator.ts` (new)
 - `src/migration/generators/specification-generator.ts` (new)
 - `src/migration/generators/domain-file-generator.ts` (new)
+- `src/migration/generators/project-file-generator.ts` (new)
+- `src/migration/generators/relation-file-generator.ts` (new)
 - `src/migration/generators/views-generator.ts` (new)
 - `src/migration/generators/formatting-utils.ts` (new)
 - `tests/unit/migration/likec4-generator.test.ts` (new)
@@ -127,25 +141,25 @@
 
 **Checks**:
 
-- [ ] **生成有效的 specification.c4**
+- [x] **生成有效的 specification.c4**
   - Covers: migrate-opsx-to-likec4.md
   - Verifies: "Specification 文件 SHALL 定义 element 和 relationship kinds"
   - Command: `pnpm test -- likec4-generator.test.ts -t "should generate valid specification"`
   - Expect: 测试通过
 
-- [ ] **每个 domain 生成独立文件**
+- [x] **每个 domain 生成独立文件**
   - Covers: migrate-opsx-to-likec4.md
   - Verifies: "迁移 SHALL 生成 LikeC4 多文件结构"
   - Command: `pnpm test -- likec4-generator.test.ts -t "should generate domain file with proper nesting"`
   - Expect: 测试通过
 
-- [ ] **生成 views.c4**
+- [x] **生成 views.c4**
   - Covers: migrate-opsx-to-likec4.md
   - Verifies: "迁移 SHALL 生成基础 views"
   - Command: `pnpm test -- likec4-generator.test.ts -t "should generate views with index view"`
   - Expect: 测试通过
 
-- [ ] **跨平台路径处理**
+- [x] **跨平台路径处理**
   - Covers: migrate-opsx-to-likec4.md
   - Command: `pnpm test -- likec4-generator.test.ts -t "should use path.join for all paths"`
   - Expect: 测试通过
@@ -168,19 +182,19 @@
 
 **Checks**:
 
-- [ ] **推断旧格式 spec.md**
+- [x] **推断旧格式 spec.md**
   - Covers: migrate-opsx-to-likec4.md
   - Verifies: "转换 SHALL 推断 specs 路径"
   - Command: `pnpm test -- spec-path-inference.test.ts -t "should find old format spec.md"`
   - Expect: 测试通过
 
-- [ ] **推断新格式多文件**
+- [x] **推断新格式多文件**
   - Covers: migrate-opsx-to-likec4.md
   - Verifies: "转换 SHALL 推断 specs 路径"
   - Command: `pnpm test -- spec-path-inference.test.ts -t "should find new format multiple md files"`
   - Expect: 测试通过
 
-- [ ] **不存在时返回空数组**
+- [x] **不存在时返回空数组**
   - Covers: migrate-opsx-to-likec4.md
   - Verifies: "转换 SHALL 推断 specs 路径"
   - Command: `pnpm test -- spec-path-inference.test.ts -t "should return empty array if spec dir does not exist"`
@@ -195,7 +209,10 @@
 **Files**:
 - `src/commands/migrate/index.ts` (new)
 - `src/commands/migrate/opsx-to-likec4.ts` (new)
-- `tests/integration/migrate-command.test.ts` (new)
+- `src/migration/migration-verifier.ts` (new)
+- `src/cli/index.ts` (modify, command registration)
+- `test/integration/migrate-command.test.ts` (new)
+- `test/unit/migration/migration-verifier.test.ts` (new)
 
 **Requirements**:
 - 读取 OPSX 模型
@@ -207,25 +224,25 @@
 
 **Checks**:
 
-- [ ] **迁移完整项目结构**
+- [x] **迁移完整项目结构**
   - Covers: migrate-opsx-to-likec4.md
   - Verifies: "迁移 SHALL 生成 LikeC4 多文件结构"
   - Command: `pnpm test -- migrate-command.test.ts -t "should migrate complete project structure"`
   - Expect: 测试通过
 
-- [ ] **生成的模型通过 likec4 验证**
+- [x] **生成的模型通过 likec4 验证**
   - Covers: migrate-opsx-to-likec4.md
   - Verifies: "迁移 SHALL 验证生成的 LikeC4 模型"
   - Command: `pnpm test -- migrate-command.test.ts -t "should generate valid LikeC4 model"`
   - Expect: 测试通过
 
-- [ ] **dry-run 不写入文件**
+- [x] **dry-run 不写入文件**
   - Covers: migrate-opsx-to-likec4.md
   - Verifies: "迁移命令 SHALL 支持 dry-run 模式"
   - Command: `pnpm test -- migrate-command.test.ts -t "should handle dry-run without writing files"`
   - Expect: 测试通过
 
-- [ ] **保留原始文件为 backup**
+- [x] **保留原始文件为 backup**
   - Covers: migrate-opsx-to-likec4.md
   - Verifies: "迁移 SHALL 保留原始 OPSX 文件为 backup"
   - Command: `pnpm test -- migrate-command.test.ts -t "should preserve original OPSX as backup"`
@@ -242,7 +259,7 @@
 - `src/utils/likec4-reader.ts` (new)
 - `src/utils/likec4-parser.ts` (new)
 - `src/utils/architecture-reader.ts` (new)
-- `tests/unit/utils/likec4-reader.test.ts` (new)
+- `test/unit/utils/likec4-reader.test.ts` (new)
 
 **Requirements**:
 - 读取 specification.c4
@@ -254,19 +271,19 @@
 
 **Checks**:
 
-- [ ] **读取多文件 LikeC4 模型**
+- [x] **读取多文件 LikeC4 模型**
   - Command: `pnpm test -- likec4-reader.test.ts -t "should read multi-file LikeC4 model"`
   - Expect: 测试通过
 
-- [ ] **解析 element 定义**
+- [x] **解析 element 定义**
   - Command: `pnpm test -- likec4-reader.test.ts -t "should parse element definitions"`
   - Expect: 测试通过
 
-- [ ] **解析 relationship 定义**
+- [x] **解析 relationship 定义**
   - Command: `pnpm test -- likec4-reader.test.ts -t "should parse relationships"`
   - Expect: 测试通过
 
-- [ ] **回退到 OPSX YAML**
+- [x] **回退到 OPSX YAML**
   - Command: `pnpm test -- architecture-reader.test.ts -t "should fallback to OPSX when LikeC4 not present"`
   - Expect: 测试通过
 
@@ -292,25 +309,25 @@
 
 **Checks**:
 
-- [ ] **检测缺失 ownership**
+- [x] **检测缺失 ownership**
   - Covers: likec4-semantic-validator.md
   - Verifies: "语义验证器 SHALL 检查 ownership cardinality"
   - Command: `pnpm test -- architecture-validator.test.ts -t "should detect missing ownership"`
   - Expect: 测试通过
 
-- [ ] **检测 precedes cycle**
+- [x] **检测 precedes cycle**
   - Covers: likec4-semantic-validator.md
   - Verifies: "验证器 SHALL 检测 precedes cycle"
   - Command: `pnpm test -- architecture-validator.test.ts -t "should detect precedes cycle"`
   - Expect: 测试通过
 
-- [ ] **检查 specs 路径存在性**
+- [x] **检查 specs 路径存在性**
   - Covers: likec4-semantic-validator.md
   - Verifies: "验证器 SHALL 检查 metadata 完整性"
   - Command: `pnpm test -- architecture-validator.test.ts -t "should check spec file existence"`
   - Expect: 测试通过
 
-- [ ] **返回结构化验证结果**
+- [x] **返回结构化验证结果**
   - Covers: likec4-semantic-validator.md
   - Verifies: "验证器 SHALL 提供结构化错误输出"
   - Command: `pnpm test -- architecture-validator.test.ts -t "should return structured validation result"`
@@ -328,6 +345,8 @@
 - `src/commands/arch/validate.ts` (new)
 - `src/commands/arch/preview.ts` (new)
 - `src/commands/arch/export.ts` (new)
+- `src/commands/arch/runner.ts` (new)
+- `src/cli/index.ts` (modify, command registration)
 - `tests/integration/arch-command.test.ts` (new)
 
 **Requirements**:
@@ -335,41 +354,41 @@
 - arch validate: LikeC4 + OpenSpec 语义验证
 - arch preview: 启动 likec4 预览服务器
 - arch export: 导出架构图
-- 所有命令支持 --json 输出
+- arch query 与 arch validate 支持 --json 输出（preview/export Specs 未声明 JSON contract）
 
 **Checks**:
 
-- [ ] **arch query 查询 element**
+- [x] **arch query 查询 element**
   - Covers: arch-query-command.md
   - Verifies: "arch query 命令 SHALL 查询 LikeC4 element 详情"
   - Command: `pnpm test -- arch-command.test.ts -t "should query element by ID"`
   - Expect: 测试通过
 
-- [ ] **arch query --relations**
+- [x] **arch query --relations**
   - Covers: arch-query-command.md
   - Verifies: "arch query SHALL 支持 --relations 选项"
   - Command: `pnpm test -- arch-command.test.ts -t "should query element with relations"`
   - Expect: 测试通过
 
-- [ ] **arch validate 验证模型**
+- [x] **arch validate 验证模型**
   - Covers: arch-validate-command.md
   - Verifies: "arch validate 命令 SHALL 验证 LikeC4 语法"
   - Command: `pnpm test -- arch-command.test.ts -t "should validate architecture"`
   - Expect: 测试通过
 
-- [ ] **arch validate 补充语义检查**
+- [x] **arch validate 补充语义检查**
   - Covers: arch-validate-command.md
   - Verifies: "arch validate SHALL 补充 OpenSpec 语义验证"
   - Command: `pnpm test -- arch-command.test.ts -t "should perform semantic validation"`
   - Expect: 测试通过
 
-- [ ] **arch preview 启动服务器**
+- [x] **arch preview 启动服务器**
   - Covers: arch-preview-command.md
   - Verifies: "arch preview 命令 SHALL 启动 LikeC4 web 服务器"
   - Command: `pnpm test -- arch-command.test.ts -t "should start preview server"`
   - Expect: 测试通过
 
-- [ ] **arch export 导出图片**
+- [x] **arch export 导出图片**
   - Covers: arch-export-command.md
   - Verifies: "arch export 命令 SHALL 导出架构图"
   - Command: `pnpm test -- arch-command.test.ts -t "should export diagrams"`
@@ -393,13 +412,13 @@
 
 **Checks**:
 
-- [ ] **init 生成 LikeC4 目录**
+- [x] **init 生成 LikeC4 目录**
   - Covers: init-project-structure.md
   - Verifies: "init SHALL 生成 LikeC4 架构目录"
   - Command: `pnpm test -- init-command.test.ts -t "should generate LikeC4 architecture structure"`
   - Expect: 测试通过
 
-- [ ] **init 不生成 OPSX YAML**
+- [x] **init 不生成 OPSX YAML**
   - Covers: init-project-structure.md
   - Verifies: "init SHALL 生成 LikeC4 架构目录"
   - Command: `pnpm test -- init-command.test.ts -t "should not generate OPSX YAML files"`
@@ -413,8 +432,20 @@
 
 **Files**:
 - `src/commands/validate.ts` (modify)
+- `src/commands/help.ts` (modify active authoring topic)
+- `src/cli/index.ts` (modify validation help)
 - `src/validation/architecture-delta-validator.ts` (new)
-- `tests/integration/validate-command.test.ts` (modify)
+- `schemas/spec-driven/schema.yaml` (modify active artifact graph)
+- `schemas/spec-driven/templates/architecture-delta.c4` (new)
+- `schemas/spec-driven/templates/opsx-delta.yaml` (delete)
+- `schemas/spec-driven/templates/proposal.md` (modify LikeC4 headings)
+- `src/core/relations/renderers.ts` (modify generated file registry)
+- `test/integration/validate-command.test.ts` (modify)
+- `test/commands/validate.test.ts` (modify)
+- `test/commands/help.test.ts` (modify)
+- `test/commands/artifact-workflow.test.ts` (modify)
+- `test/core/artifact-graph/` (modify active artifact graph coverage)
+- `test/core/relations/renderers.test.ts` (verify generated registry)
 
 **Requirements**:
 - 检测 LikeC4 架构存在时验证
@@ -424,19 +455,19 @@
 
 **Checks**:
 
-- [ ] **validate 验证 LikeC4 模型**
+- [x] **validate 验证 LikeC4 模型**
   - Covers: validate-change.md
   - Verifies: "validate change SHALL 支持 architecture-delta.c4"
   - Command: `pnpm test -- validate-command.test.ts -t "should validate LikeC4 architecture"`
   - Expect: 测试通过
 
-- [ ] **validate 验证 delta 文件**
+- [x] **validate 验证 delta 文件**
   - Covers: validate-change.md
   - Verifies: "validate change SHALL 支持 architecture-delta.c4"
   - Command: `pnpm test -- validate-command.test.ts -t "should validate architecture-delta.c4"`
   - Expect: 测试通过
 
-- [ ] **validate 检查 extend 目标**
+- [x] **validate 检查 extend 目标**
   - Covers: validate-change.md
   - Verifies: "Delta 验证 SHALL 检查 extend 目标存在"
   - Command: `pnpm test -- validate-command.test.ts -t "should check extend target exists"`
@@ -451,36 +482,36 @@
 **Files**:
 - `src/utils/architecture-delta-merger.ts` (new)
 - `src/utils/likec4-writer.ts` (new)
-- `tests/unit/utils/architecture-delta-merger.test.ts` (new)
+- `test/unit/utils/architecture-delta-merger.test.ts` (new)
 
 **Requirements**:
 - 解析 architecture-delta.c4
 - 合并新 capabilities 到对应 domain 文件
-- 合并新 relations 到源 domain 文件
+- 合并新 relations 到 canonical `openspec/architecture/relations.c4`
 - 更新 specs 路径（change-local → formal）
 - 原子性事务（成功或回滚）
 
 **Checks**:
 
-- [ ] **合并新 capability**
+- [x] **合并新 capability**
   - Covers: architecture-delta-artifact.md
   - Verifies: "Delta 合并 SHALL 原子性更新 formal 模型"
   - Command: `pnpm test -- architecture-delta-merger.test.ts -t "should merge new capability to domain file"`
   - Expect: 测试通过
 
-- [ ] **合并新 relations**
+- [x] **合并新 relations**
   - Covers: architecture-delta-artifact.md
   - Verifies: "Delta 合并 SHALL 原子性更新 formal 模型"
   - Command: `pnpm test -- architecture-delta-merger.test.ts -t "should merge new relations"`
   - Expect: 测试通过
 
-- [ ] **更新 specs 路径**
+- [x] **更新 specs 路径**
   - Covers: archive-sync-workflow.md
   - Verifies: "sync SHALL 合并 architecture-delta.c4"
   - Command: `pnpm test -- architecture-delta-merger.test.ts -t "should update specs paths to formal"`
   - Expect: 测试通过
 
-- [ ] **失败时回滚**
+- [x] **失败时回滚**
   - Covers: architecture-delta-artifact.md
   - Verifies: "Delta 合并 SHALL 原子性更新 formal 模型"
   - Command: `pnpm test -- architecture-delta-merger.test.ts -t "should rollback on failure"`
@@ -494,10 +525,13 @@
 **Goal**: 修改 sync 和 archive 使用 architecture-delta.c4
 
 **Files**:
-- `src/workflows/sync.ts` (modify)
-- `src/workflows/archive.ts` (modify)
-- `tests/integration/sync-workflow.test.ts` (modify)
-- `tests/integration/archive-workflow.test.ts` (modify)
+- `src/commands/sync.ts` (modify)
+- `src/core/change-sync.ts` (modify)
+- `src/core/archive.ts` (modify)
+- `test/commands/sync.test.ts` (modify)
+- `test/core/archive.test.ts` (modify)
+- `test/integration/sync-workflow.test.ts` (modify)
+- `test/integration/archive-workflow.test.ts` (modify)
 
 **Requirements**:
 - sync 调用 delta merger 合并 architecture-delta.c4
@@ -506,19 +540,19 @@
 
 **Checks**:
 
-- [ ] **sync 合并 architecture-delta**
+- [x] **sync 合并 architecture-delta**
   - Covers: archive-sync-workflow.md
   - Verifies: "sync SHALL 合并 architecture-delta.c4"
   - Command: `pnpm test -- sync-workflow.test.ts -t "should merge architecture-delta.c4"`
   - Expect: 测试通过
 
-- [ ] **sync 移动 change-local specs**
+- [x] **sync 移动 change-local specs**
   - Covers: archive-sync-workflow.md
   - Verifies: "sync SHALL 合并 architecture-delta.c4"
   - Command: `pnpm test -- sync-workflow.test.ts -t "should move change-local specs to formal"`
   - Expect: 测试通过
 
-- [ ] **archive 删除 delta 文件**
+- [x] **archive 删除 delta 文件**
   - Covers: archive-sync-workflow.md
   - Verifies: "archive SHALL 删除 architecture-delta.c4"
   - Command: `pnpm test -- archive-workflow.test.ts -t "should delete architecture-delta.c4"`
@@ -531,8 +565,11 @@
 **Goal**: 更新 openspec-propose skill 指导生成 architecture-delta.c4
 
 **Files**:
-- `.pi/skills/openspec-propose/SKILL.md` (modify)
+- `src/core/templates/workflows/propose.ts` (modify, authoritative template)
+- `.pi/skills/openspec-propose/` (regenerate)
 - `openspec/references/likec4-authoring.md` (new)
+- `test/core/templates/propose-template.test.ts` (modify)
+- `test/core/templates/skill-templates-parity.test.ts` (modify)
 
 **Requirements**:
 - 指导生成 architecture-delta.c4 而非 opsx-delta.yaml
@@ -543,27 +580,27 @@
 
 **Checks**:
 
-- [ ] **Skill 指导生成 LikeC4 delta**
+- [x] **Skill 指导生成 LikeC4 delta**
   - Covers: openspec-propose-skill.md
   - Verifies: "propose skill SHALL 生成 architecture-delta.c4"
   - Evidence: `.pi/skills/openspec-propose/SKILL.md` 包含 "architecture-delta.c4" 指令
   - Command: `grep -q "architecture-delta.c4" .pi/skills/openspec-propose/SKILL.md && echo "OK"`
   - Expect: `OK`
 
-- [ ] **Skill 提供 extend 语法示例**
+- [x] **Skill 提供 extend 语法示例**
   - Covers: openspec-propose-skill.md
   - Verifies: "propose skill SHALL 生成 architecture-delta.c4"
   - Evidence: Skill 包含 extend 语法示例
   - Command: `grep -q "extend" .pi/skills/openspec-propose/SKILL.md && echo "OK"`
   - Expect: `OK`
 
-- [ ] **参考文档存在**
+- [x] **参考文档存在**
   - Covers: openspec-propose-skill.md
   - Evidence: 创建了 likec4-authoring.md
   - Command: `test -f openspec/references/likec4-authoring.md && echo "OK"`
   - Expect: `OK`
 
-- [ ] **参考文档包含 relationship kinds**
+- [x] **参考文档包含 relationship kinds**
   - Covers: openspec-propose-skill.md
   - Verifies: "propose skill SHALL 指导 relationship 类型选择"
   - Command: `grep -q "relationship invokes" openspec/references/likec4-authoring.md && grep -q "relationship precedes" openspec/references/likec4-authoring.md && echo "OK"`
@@ -576,7 +613,12 @@
 **Goal**: 更新 openspec-apply skill 指导读取 LikeC4 上下文
 
 **Files**:
-- `.pi/skills/openspec-apply/SKILL.md` (modify)
+- `src/core/templates/workflows/apply-change.ts` (modify, authoritative template)
+- `src/core/templates/fragments/opsx-fragments.ts` (modify shared LikeC4 context)
+- `.pi/skills/openspec-apply-change/` (regenerate)
+- `openspec/references/openspec-apply-step-1-preparation.md` (regenerate)
+- `test/core/templates/apply-change.test.ts` (modify final-file parity)
+- `test/core/templates/skill-templates-parity.test.ts` (modify)
 
 **Requirements**:
 - 指导使用 openspec arch query 读取架构
@@ -585,18 +627,18 @@
 
 **Checks**:
 
-- [ ] **Skill 指导使用 arch query**
+- [x] **Skill 指导使用 arch query**
   - Covers: openspec-apply-skill.md
   - Verifies: "apply skill SHALL 读取 LikeC4 架构上下文"
   - Evidence: Skill 包含 "openspec arch query" 指令
-  - Command: `grep -q "openspec arch query" .pi/skills/openspec-apply/SKILL.md && echo "OK"`
+  - Command: `grep -q "openspec arch query" .pi/skills/openspec-apply-change/SKILL.md && echo "OK"`
   - Expect: `OK`
 
-- [ ] **Skill 说明 element IDs**
+- [x] **Skill 说明 element IDs**
   - Covers: openspec-apply-skill.md
   - Verifies: "apply skill SHALL 指导理解伪代码"
   - Evidence: Skill 解释 LikeC4 element ID 格式
-  - Command: `grep -q "element ID" .pi/skills/openspec-apply/SKILL.md && echo "OK"`
+  - Command: `grep -q "element ID" .pi/skills/openspec-apply-change/SKILL.md && echo "OK"`
   - Expect: `OK`
 
 ---
@@ -606,7 +648,29 @@
 **Goal**: 重命名和更新 openspec-bootstrap-opsx 为 openspec-bootstrap-arch
 
 **Files**:
-- `.pi/skills/openspec-bootstrap-arch/SKILL.md` (rename from openspec-bootstrap-opsx)
+- `src/core/templates/workflows/bootstrap-arch.ts` (rename from `bootstrap-opsx.ts`, authoritative template)
+- `src/core/templates/workflows/bootstrap-opsx.ts` (delete legacy template)
+- `src/core/command-generation/types.ts` (modify workflow metadata)
+- `src/core/templates/manifest/registry.ts` (modify)
+- `src/core/templates/skill-templates.ts` (modify)
+- `src/core/workflow-surface.ts` (modify as required by manifest types)
+- `src/core/init.ts` (modify workflow guidance)
+- `src/core/workflow-installation.ts` (modify workflow resolution)
+- `src/core/templates/sync-engine.ts` (modify bootstrap workspace detection)
+- `src/core/shared/skill-generation.ts` (modify stale skill cleanup)
+- `.pi/skills/openspec-bootstrap-arch/` (regenerate)
+- `.pi/skills/openspec-bootstrap-opsx/` (delete generated legacy skill)
+- `test/core/templates/manifest/registry.test.ts` (modify)
+- `test/core/templates/manifest.test.ts` (modify)
+- `test/core/templates/bootstrap-arch.test.ts` (new)
+- `test/core/templates/bootstrap-opsx.test.ts` (delete)
+- `test/core/shared/skill-generation.test.ts` (modify)
+- `test/core/shared/tool-detection.test.ts` (modify)
+- `test/core/templates/skill-templates-parity.test.ts` (modify)
+- `test/core/update.test.ts` (modify)
+- `test/core/workflow-installation.test.ts` (modify)
+- `test/core/workflow-surface.test.ts` (modify)
+- `test/core/init.test.ts` (modify)
 - 相关文档中的引用
 
 **Requirements**:
@@ -616,18 +680,18 @@
 
 **Checks**:
 
-- [ ] **Skill 文件已重命名**
+- [x] **Skill 文件已重命名**
   - Covers: openspec-bootstrap-opsx.md
   - Verifies: "Bootstrap skill 名称 SHALL 改为 bootstrap-arch"
   - Command: `test -f .pi/skills/openspec-bootstrap-arch/SKILL.md && echo "OK"`
   - Expect: `OK`
 
-- [ ] **旧 skill 已删除**
+- [x] **旧 skill 已删除**
   - Covers: openspec-bootstrap-opsx.md
   - Command: `test ! -f .pi/skills/openspec-bootstrap-opsx/SKILL.md && echo "OK"`
   - Expect: `OK`
 
-- [ ] **Skill 指导生成 LikeC4**
+- [x] **Skill 指导生成 LikeC4**
   - Covers: openspec-bootstrap-opsx.md
   - Verifies: "Bootstrap SHALL 输出 LikeC4 候选模型"
   - Command: `grep -q ".c4" .pi/skills/openspec-bootstrap-arch/SKILL.md && echo "OK"`
@@ -640,7 +704,24 @@
 **Goal**: 修改 impact-sweeper 使用 arch query 导航架构
 
 **Files**:
-- `.pi/skills/openspec-impact-sweeper/SKILL.md` (modify)
+- `src/core/templates/workflows/impact-sweeper.ts` (modify, authoritative template)
+- `src/core/templates/workflows/archive-change.ts` (modify active LikeC4 archive guidance)
+- `src/core/templates/workflows/explore.ts` (modify active LikeC4 guidance)
+- `src/core/templates/workflows/optimizer.ts` (modify active LikeC4 guidance)
+- `src/core/templates/workflows/reviewer.ts` (modify active LikeC4 guidance)
+- `src/core/templates/workflows/snack.ts` (modify active LikeC4 guidance)
+- `.pi/agents/` (regenerate managed agents)
+- `.pi/skills/` (regenerate managed skills)
+- `.codex/agents/openspec-reviewer.toml` (regenerate reviewer fixture)
+- `.claude/agents/openspec-reviewer.md` (regenerate reviewer fixture)
+- `openspec/references/` (regenerate managed shared references)
+- `test/core/templates/impact-sweeper-template.test.ts` (modify final-file parity)
+- `test/core/templates/reviewer-template.test.ts` (modify reviewer contract)
+- `test/core/templates/explore-template.test.ts` (modify LikeC4 guidance)
+- `test/core/templates/snack-template.test.ts` (modify LikeC4 guidance)
+- `test/core/templates/fragments/opsx-fragments.test.ts` (modify architecture fragments)
+- `test/core/shared/subagent-generation.test.ts` (modify)
+- `test/skills/` (modify generated reviewer/optimizer assertions)
 
 **Requirements**:
 - 指导使用 openspec arch query
@@ -648,10 +729,10 @@
 
 **Checks**:
 
-- [ ] **Sweeper 使用 arch query**
+- [x] **Sweeper 使用 arch query**
   - Covers: openspec-impact-sweeper.md
   - Verifies: "Impact sweeper SHALL 使用 LikeC4 导航架构"
-  - Command: `grep -q "openspec arch query" .pi/skills/openspec-impact-sweeper/SKILL.md && echo "OK"`
+  - Command: `grep -q "openspec arch query" .pi/agents/openspec-impact-sweeper.md && echo "OK"`
   - Expect: `OK`
 
 ---
@@ -661,7 +742,10 @@
 **Goal**: 使用迁移工具将 OpenSpec 项目自身迁移到 LikeC4
 
 **Files**:
-- `openspec/architecture/` (new, 替代 project.opsx.yaml)
+- `openspec/architecture/` (new, 替代 project.opsx.yaml；包含 self-host target-state reconciliation)
+- `openspec/changes/opsx-to-likec4-mega-refactor/architecture-delta.c4` (new)
+- `openspec/project.opsx.yaml` (delete after migration)
+- `openspec/project.opsx.relations.yaml` (delete after migration)
 - `openspec/project.opsx.yaml.backup` (renamed)
 - `openspec/project.opsx.relations.yaml.backup` (renamed)
 
@@ -673,27 +757,27 @@
 
 **Checks**:
 
-- [ ] **运行迁移命令**
+- [x] **运行迁移命令**
   - Command: `openspec migrate opsx-to-likec4`
-  - Expect: 退出码 0，输出包含 "✓ Migrated 9 domains"
+  - Expect: 退出码 0，输出中的 domains、capabilities、relations 数量与迁移前 OPSX 源模型一致
 
-- [ ] **LikeC4 目录存在**
+- [x] **LikeC4 目录存在**
   - Command: `test -d openspec/architecture && test -d openspec/architecture/domains && echo "OK"`
   - Expect: `OK`
 
-- [ ] **生成的模型验证通过**
+- [x] **生成的模型验证通过**
   - Command: `npx likec4 validate openspec/architecture/`
   - Expect: 退出码 0
 
-- [ ] **OpenSpec 语义验证通过**
+- [x] **OpenSpec 语义验证通过**
   - Command: `openspec arch validate`
   - Expect: 退出码 0
 
-- [ ] **所有 domains 已迁移**
-  - Command: `ls openspec/architecture/domains/*.c4 | wc -l`
-  - Expect: 9
+- [x] **所有 domains 已迁移**
+  - Command: `node -e "const fs=require('node:fs');const path=require('node:path');const yaml=require('yaml');const source=yaml.parse(fs.readFileSync(path.join('openspec','project.opsx.yaml.backup'),'utf8'));const actual=fs.readdirSync(path.join('openspec','architecture','domains')).filter(name=>name.endsWith('.c4')).length;if(actual!==source.domains.length){throw new Error('domain count mismatch: '+actual+' != '+source.domains.length)}console.log(actual)"`
+  - Expect: 输出迁移后的 domain 文件数，且与 backup OPSX 的 domain 数量相等
 
-- [ ] **OPSX 文件保留为 backup**
+- [x] **OPSX 文件保留为 backup**
   - Command: `test -f openspec/project.opsx.yaml.backup && test -f openspec/project.opsx.relations.yaml.backup && echo "OK"`
   - Expect: `OK`
 
@@ -714,31 +798,31 @@
 
 **Checks**:
 
-- [ ] **构建成功**
+- [x] **构建成功**
   - Command: `pnpm run build`
   - Expect: 退出码 0
 
-- [ ] **测试通过**
+- [x] **测试通过**
   - Command: `pnpm test`
   - Expect: 退出码 0
 
-- [ ] **validate 全部通过**
+- [x] **validate 全部通过**
   - Command: `openspec validate --all`
   - Expect: 退出码 0
 
-- [ ] **能创建测试 change**
+- [x] **能创建测试 change**
   - Command: `openspec new change "test-likec4-bootstrap" && test -d openspec/changes/test-likec4-bootstrap && echo "OK"`
   - Expect: `OK`
 
-- [ ] **arch query 可用**
+- [x] **arch query 可用**
   - Command: `openspec arch query cap.ai.skill-generation`
   - Expect: 退出码 0，输出包含 "Element: cap.ai.skill-generation"
 
-- [ ] **arch preview 可启动**
+- [x] **arch preview 可启动**
   - Command: `timeout 5 openspec arch preview || echo "OK"`
   - Expect: 输出包含 "localhost" 或超时（正常，说明服务器启动）
 
-- [ ] **清理测试 change**
+- [x] **清理测试 change**
   - Command: `rm -rf openspec/changes/test-likec4-bootstrap && echo "OK"`
   - Expect: `OK`
 
@@ -750,11 +834,9 @@
 
 **Files**:
 - `AGENTS.md` (modify)
-- `docs/architecture-integration.md` (new)
-- `docs/workflows.md` (modify)
-- `docs/commands.md` (modify)
 - `README.md` (modify)
-- `docs/migration-guide.md` (new)
+- `docs/` (modify LikeC4-first guidance; legacy OPSX docs explicitly deprecated)
+- `openspec/references/likec4-authoring.md` (new)
 
 **Requirements**:
 - 更新 AGENTS.md: Specs + LikeC4 为语义源码
@@ -765,20 +847,20 @@
 
 **Checks**:
 
-- [ ] **AGENTS.md 更新**
+- [x] **AGENTS.md 更新**
   - Evidence: AGENTS.md 提及 LikeC4
   - Command: `grep -q "LikeC4" AGENTS.md && echo "OK"`
   - Expect: `OK`
 
-- [ ] **架构集成文档存在**
+- [x] **架构集成文档存在**
   - Command: `test -f docs/architecture-integration.md && echo "OK"`
   - Expect: `OK`
 
-- [ ] **迁移指南存在**
+- [x] **迁移指南存在**
   - Command: `test -f docs/migration-guide.md && echo "OK"`
   - Expect: `OK`
 
-- [ ] **commands.md 包含 arch 命令**
+- [x] **commands.md 包含 arch 命令**
   - Command: `grep -q "openspec arch" docs/commands.md && echo "OK"`
   - Expect: `OK`
 
@@ -790,6 +872,21 @@
 
 **Files**:
 - `src/utils/opsx-utils.ts` (modify)
+- `src/commands/opsx.ts` (retain deprecated compatibility command)
+- `src/commands/arch/` (new LikeC4 command group)
+- `src/commands/migrate/` (new migration command group)
+- `src/migration/` (new migration implementation)
+- `src/utils/semantic-checks/` (new LikeC4 semantic checks)
+- `src/validation/` (new architecture delta validation)
+- `test/unit/` (new migration, parser, validator, merger tests)
+- `test/integration/` (new architecture, migration, sync, archive, validation tests)
+- `test/performance/` (new migration performance test)
+- `tests/` (new E2E scripts)
+- `src/commands/bootstrap.ts` (retain deprecated compatibility command)
+- `src/utils/bootstrap-utils.ts` (retain deprecated compatibility implementation)
+- `.github/workflows/opsx-v2-cross-platform.yml` (legacy compatibility CI)
+- `test/utils/bootstrap-utils.pbt.contract.test.ts` (deprecated compatibility contract)
+- `test/utils/opsx-utils.integration-bootstrap.test.ts` (deprecated compatibility contract)
 - 其他 OPSX 相关文件
 
 **Requirements**:
@@ -799,12 +896,12 @@
 
 **Checks**:
 
-- [ ] **opsx-utils 标记 deprecated**
+- [x] **opsx-utils 标记 deprecated**
   - Evidence: 函数包含 @deprecated JSDoc
   - Command: `grep -q "@deprecated" src/utils/opsx-utils.ts && echo "OK"`
   - Expect: `OK`
 
-- [ ] **architecture-reader 优先使用 LikeC4**
+- [x] **architecture-reader 优先使用 LikeC4**
   - Evidence: readArchitecture 先检查 LikeC4
   - Command: `grep -A 5 "readArchitecture" src/utils/architecture-reader.ts | grep -q "likec4" && echo "OK"`
   - Expect: `OK`
@@ -826,7 +923,7 @@
 
 **Checks**:
 
-- [ ] **Windows CI 配置存在**
+- [x] **Windows CI 配置存在**
   - Command: `test -f .github/workflows/test-windows.yml && echo "OK"`
   - Expect: `OK`
 
@@ -842,7 +939,7 @@
 
 **Files**:
 - `tests/e2e/bootstrap-test.sh` (new)
-- `tests/performance/large-project.test.ts` (new)
+- `test/performance/large-project.test.ts` (new; Vitest includes `test/**/*.test.ts`)
 
 **Requirements**:
 - 完整自举流程测试
@@ -850,15 +947,40 @@
 
 **Checks**:
 
-- [ ] **自举测试脚本存在**
+- [x] **自举测试脚本存在**
   - Command: `test -f tests/e2e/bootstrap-test.sh && echo "OK"`
   - Expect: `OK`
 
-- [ ] **自举测试通过**
+- [x] **自举测试通过**
   - Command: `bash tests/e2e/bootstrap-test.sh`
   - Expect: 退出码 0，输出 "Bootstrap Test PASSED"
 
-- [ ] **性能测试通过**
+- [x] **性能测试通过**
   - Command: `pnpm test -- large-project.test.ts`
   - Expect: 测试通过，迁移 1000 capabilities < 60秒
+
+---
+
+## Remediation
+
+- [ ] [code_fix] Windows CI verification：运行 `.github/workflows/test-windows.yml` 并记录 passing run；本地不得代替 GitHub-hosted Windows 证据。
+- [x] [code_fix] Relation visibility：reader 读取 standalone `relations.c4`，migrated-model query E2E 通过。
+- [x] [code_fix] Arch query contract：已实现 bounded traversal、depth annotation、text/JSON fields 与 missing-element coverage。
+- [x] [code_fix] Agent verification：`--agent-verify` 已比较 domains、capabilities、relations、metadata 并持久化 structured report。
+- [x] [code_fix] Ownership cardinality：已检测 canonical capabilityId 多 domain 重复与 precedes self-loop。
+- [x] [code_fix] Change validation：已复用 native LikeC4 delta validation，并移除 active OPSX delta fallback。
+- [x] [code_fix] Delta transaction：已实现 post-merge native validation、multi-file rollback、deterministic relation ordering 与 injected failure test。
+- [x] [artifact_fix] Bootstrap boundary：change-local Spec 仅修改 managed `bootstrap-arch` skill；legacy `openspec bootstrap` CLI 按 Task 20 保留一个月并明确 deprecated，不属于 active workflow。
+- [x] [artifact_fix] Change architecture source：已用 `architecture-delta.c4` 替换 `opsx-delta.yaml`，native/change validation 通过。
+- [x] [code_fix] Migration layout：domain filename 使用 kebab-case，`project.c4` 持久化 project intent/metadata。
+- [x] [artifact_fix] Arch JSON scope：已按 Specs 将 JSON contract 收敛到 query/validate。
+- [x] [artifact_fix] Sweeper evidence：已修正为 `.pi/agents/openspec-impact-sweeper.md` 并重跑生成证据。
+- [x] [code_fix] Active legacy guidance：managed workflows/sync 已 LikeC4-only；legacy reader/bootstrap CLI 仅保留 deprecated migration compatibility。
+- [x] [artifact_fix] Files attribution：已补充 CLI registration、init、workflow resolution、stale cleanup、runner 与 generators。
+- [x] [artifact_fix] Relation ownership：统一 delta Specs 与 Design 2 的 canonical standalone `relations.c4` contract，并复验 migration/sync。
+- [x] [code_fix] Agent verification completeness：将 CLI/Pi orchestration 边界写入 source，并覆盖 domain/capability/relation 全量 metadata 比较。
+- [x] [code_fix] Spec-driven architecture artifact：将 active schema、templates、instructions、validation scope 从 `opsx-delta` 迁移到 `architecture-delta`。
+- [x] [code_fix] Generated workflow references：重生成 apply preparation 与 impact evidence protocol，并增加 final project-root parity coverage。
+- [x] [artifact_fix] Formal architecture reconciliation：formal LikeC4 source 已声明 modified LikeC4-first capabilities 与 deprecated retained OPSX capabilities；LikeC4 property-level extend 限制已记录于 design.md。
+- [x] [artifact_fix] Complete Files attribution：已为 intended templates、generated references、docs、tests、migration、CLI 与 compatibility paths 补齐 task ownership。
 

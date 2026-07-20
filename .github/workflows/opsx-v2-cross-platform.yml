@@ -23,7 +23,7 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          node-version: '20.19.0'
+          node-version: '22.22.3'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm vitest run test/core/init.test.ts test/commands/help.test.ts test/utils/bootstrap-refresh-utils.test.ts test/core/artifact-graph/resolver.test.ts test/core/artifact-graph/instruction-loader.test.ts test/commands/schema.test.ts

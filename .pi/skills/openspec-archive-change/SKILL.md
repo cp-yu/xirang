@@ -15,7 +15,7 @@ Archive a completed change in the experimental workflow.
 
 OpenSpec is a human-intent programming layer between human intent and general-purpose programming languages.
 
-1. Specs and OPSX jointly form the durable semantic source. Specs define observable behavior; OPSX defines project intent, capabilities, ownership, boundaries, and semantic relations.
+1. Specs and LikeC4 jointly form the durable semantic source. Specs define observable behavior; LikeC4 defines project intent, capabilities, ownership, boundaries, and semantic relations.
 2. A change reconciles semantic source deltas toward a target steady state. `proposal.md`, `design.md`, and `tasks.md` are compilation scaffolding, not competing sources of truth.
 3. Source is complete only when an Agent can compile it without guessing decisions that affect behavior or architecture.
 4. The Agent acts as a compiler: translate declared intent faithfully. Existing code is compiled output and current implementation evidence; it MUST NOT silently override the declared semantic source.
@@ -52,13 +52,13 @@ Before archiving, run `openspec config project --json` and consume git policy fr
    Read `tasks.md`; warn and confirm before proceeding if incomplete checkboxes remain. Missing tasks are not a task-related blocker.
 
 5. **Assess delta sync state**
-   If delta specs or `opsx-delta.yaml` exist, assess whether sync is required. The archive CLI performs verify, sync, and move-to-archive; do not duplicate sync writes manually.
+   If delta specs or `architecture-delta.c4` exist, assess whether sync is required. The archive CLI performs verify, sync, and move-to-archive; do not duplicate sync writes manually.
 
 6. **Run archive CLI**
    Run `openspec archive "<change-name>"` after the verify gate is fresh. CLI only verifies, syncs, moves the change to archive, and prints the git handoff reminder. CLI MUST NOT create commits, merge branches, switch branches, delete branches, remove worktrees, or generate commit messages.
 
 7. **Git handoff**
-   Read the archive CLI output and the projected git policy from `openspec config project --json`. Summary fields include change name, schema, archive location, verify gate result, specs / OPSX sync result, agent-owned git follow-up status, and merge strategy.
+   Read the archive CLI output and the projected git policy from `openspec config project --json`. Summary fields include change name, schema, archive location, verify gate result, specs / architecture sync result, agent-owned git follow-up status, and merge strategy.
 
 8. **Agent git flow**
    The agent continues the post-archive git flow. First handle the implementation boundary before OpenSpec/docs archive artifacts. If uncommitted real project implementation changes remain, create a normal implementation commit that contains only those changes. Then always create a semantic boundary commit with `git commit --allow-empty`; this boundary commit may be intentionally empty when the effective implementation diff is already carried by retained `wip: opt-*` checkpoint commits. If `git.commitMessage.boundary` is set, read that project-relative path; otherwise read the project-root file `openspec/references/openspec-boundary-commit-message.md`. Use that template to build the boundary commit message and run `git commit -F -` for the boundary commit. If `git.commitMessage.archive` is set, read that project-relative path; otherwise read the project-root file `openspec/references/openspec-archive-commit-message.md`. Use that template before creating the OpenSpec/docs archive commit, add only archive/synced paths, and run `git commit -F -`. If a merge or squash commit message is needed, prepare it from the configured or built-in merge template. If `git.commitMessage.merge` is set, read that project-relative path; otherwise read the project-root file `openspec/references/openspec-merge-summary-message.md`.
@@ -66,7 +66,7 @@ Before archiving, run `openspec config project --json` and consume git policy fr
    Apply the retained isolation metadata after archive commits are complete. Map the projected strategy to `git merge --no-ff`, `git merge --ff-only`, or `git merge --squash`. For `method: "branch"`, switch to `originalBranch`, then merge `branchName` with the projected strategy. For `method: "worktree"`, keep commits in `worktreePath`; before merging, verify that `sourceRoot` is on `originalBranch`, then run the projected merge from `sourceRoot` using `git -C <sourceRoot>`. The agent MUST NOT reset, clean, stash, or commit unrelated source-workspace changes. After a successful merge, require the Apply worktree to be clean, run `git worktree remove <worktreePath>` from `sourceRoot`, and only then delete `branchName` when `git.branch.deleteAfterArchive` is true and `git branch --merged` confirms it is merged. For `method: "none"`, do not switch, merge, remove a worktree, or delete the current branch. Stop and report the retained metadata/current state mismatch instead of guessing. Build paths with `path.join()`, `path.resolve()`, and `path.normalize()`.
 
 9. **Display summary**
-   Include change, schema, archive location, verify gate result, specs / OPSX sync result, agent-owned git follow-up status, Merge Strategy, cleanup responsibility, verify reuse/reexecution, and warnings. Do not report that CLI created an archive commit, performed a merge, or deleted a feature branch.
+   Include change, schema, archive location, verify gate result, specs / architecture sync result, agent-owned git follow-up status, Merge Strategy, cleanup responsibility, verify reuse/reexecution, and warnings. Do not report that CLI created an archive commit, performed a merge, or deleted a feature branch.
 
 **Output On Success**
 
@@ -77,7 +77,7 @@ Before archiving, run `openspec config project --json` and consume git policy fr
 **Schema:** <schema-name>
 **Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
 **Verify Gate:** Fresh PASS or PASS_WITH_WARNINGS result confirmed
-**Specs / OPSX:** ✓ Synced to main specs and project OPSX (or "No deltas" or "Sync gate bypassed with --no-sync")
+**Specs / architecture:** ✓ Synced to main specs and formal LikeC4 architecture (or "No deltas" or "Sync gate bypassed with --no-sync")
 **Agent Git Follow-up:** <completed / pending with reason>
 **Merge Strategy:** <git.merge.strategy>
 **Cleanup Responsibility:** <agent>
@@ -90,4 +90,4 @@ Archive completed after satisfying the unified full verify gate.
 - Prioritize the standard verify gate; only pass `--no-verify` to the archive CLI when the user explicitly requests it (the CLI provides its own confirmation prompt)
 - Show clearly whether verify was reused or re-executed
 - In `core`, use `openspec sync "<change-name>"` rather than manual inline sync
-- If delta specs or `opsx-delta.yaml` exist, always run the shared sync assessment before moving the change directory
+- If delta specs or `architecture-delta.c4` exist, always run the shared sync assessment before moving the change directory

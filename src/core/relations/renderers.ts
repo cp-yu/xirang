@@ -456,10 +456,6 @@ ${definitions}
 
 export const GENERATED_RELATION_FILES = [
   {
-    path: 'schemas/spec-driven/templates/opsx-delta.yaml',
-    render: renderOpsxDeltaTemplate,
-  },
-  {
     path: 'schemas/bootstrap/schema.yaml',
     render: renderBootstrapSchema,
   },

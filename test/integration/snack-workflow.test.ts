@@ -83,7 +83,7 @@ describe('snack workflow integration', () => {
       'openspec-explore',
       'openspec-apply-change',
       'openspec-archive-change',
-      'openspec-bootstrap-opsx',
+      'openspec-bootstrap-arch',
       'openspec-snack',
     ];
 

@@ -37,7 +37,7 @@ Specs 中 SHALL 允许使用伪代码块表达调用序列和算法流程。
 
 #### Scenario: 引用关系语义
 
-- **GIVEN** LikeC4 包含 `task_executor -> reviewer 'precedes'`
+- **GIVEN** LikeC4 包含 `task_executor -[precedes]-> reviewer`
 - **WHEN** 伪代码表达时序
 - **THEN** SHALL 在注释中引用：`// task_executor precedes reviewer`
 

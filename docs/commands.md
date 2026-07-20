@@ -1,70 +1,57 @@
 # Commands
 
-OpenSpec's active workflow surface is skills-only. Older slash command files may still exist on disk, but OpenSpec no longer generates or refreshes them.
+OpenSpec's managed workflow surface is skills-only. Older slash command files may remain as legacy artifacts.
 
-## Current Surface
+## Workflow Surface
 
 | Command | Purpose |
 |---|---|
-| `/opsx:propose` | Create a change and generate planning artifacts in one step |
-| `/opsx:explore` | Think through ideas before committing to a change |
-| `/opsx:apply` | Implement tasks from the change |
-| `/opsx:archive` | Archive a completed change |
-| `/opsx:bootstrap-opsx` | Bootstrap OPSX architecture tracking from an existing codebase |
-| `/opsx:snack` | Back-fill specs and OPSX delta from code changes |
+| `/opsx:propose` | Create or update a change and author its semantic deltas |
+| `/opsx:explore` | Investigate requirements before proposing a change |
+| `/opsx:apply` | Implement tasks with architecture-first TDD |
+| `/opsx:archive` | Verify, sync, and archive a completed change |
+| `/opsx:bootstrap-arch` | Bootstrap a LikeC4 model from repository evidence |
+| `/opsx:snack` | Reconcile existing code into OpenSpec artifacts |
 
-`/opsx:archive` runs the full verify gate before archive and performs archive-time sync inline.
+## Architecture CLI
 
-## Current Commands
+### Query
 
-### `/opsx:propose`
-
-Create a new change and generate planning artifacts in one step.
-
-```text
-/opsx:propose [change-name-or-description]
+```bash
+openspec arch query <element-id> [--relations] [--depth <n>] [--json]
 ```
 
-### `/opsx:explore`
+Queries a LikeC4 domain or capability. Canonical capability IDs in metadata are also accepted.
 
-Think through ideas, investigate problems, and clarify requirements.
+### Validate
 
-```text
-/opsx:explore [topic]
+```bash
+openspec arch validate [--json]
+openspec arch validate --delta <architecture-delta.c4> [--json]
 ```
 
-### `/opsx:apply`
+Validates the formal model or a change-local delta against the formal model.
 
-Implement tasks from the change.
+### Preview
 
-```text
-/opsx:apply [change-name]
+```bash
+openspec arch preview [--port <n>]
 ```
 
-### `/opsx:archive`
+Starts the LikeC4 browser preview.
 
-Archive a completed change.
+### Export
 
-```text
-/opsx:archive [change-name]
+```bash
+openspec arch export [--format png|svg|pdf] [--output <directory>]
 ```
 
-### `/opsx:bootstrap-opsx`
+Exports diagrams to `docs/architecture` by default.
 
-Bootstrap OPSX architecture tracking from an existing codebase.
+## Migration CLI
 
-```text
-/opsx:bootstrap-opsx
+```bash
+openspec migrate opsx-to-likec4 [--dry-run]
 ```
 
-### `/opsx:snack`
-
-Back-fill specs and OPSX delta from code changes.
-
-```text
-/opsx:snack [change-name]
-```
-
-## Legacy Files
-
-Older workflow command files may still exist on disk as historical artifacts only.
+Converts the legacy OPSX YAML bundle to `openspec/architecture/`. A successful migration validates the generated LikeC4 and renames the source YAML files with `.backup` suffixes.

@@ -5,13 +5,13 @@ import { OPENSPEC_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-
 import { getReviewerSubagentTemplate } from '../../../src/core/templates/workflows/reviewer.js';
 
 describe('reviewer subagent template', () => {
-  it('includes OPSX philosophy and concise quality discipline in the agent prompt', () => {
+  it('includes OpenSpec philosophy and concise quality discipline in the agent prompt', () => {
     const prompt = getReviewerSubagentTemplate().prompt;
 
     expect(prompt).toContain(OPENSPEC_PHILOSOPHY);
     expect(prompt).toContain('Prefer direct evidence over inferred intent.');
     expect(prompt).toContain('Treat stale code, orphaned imports, half migrations, and unaccounted behavior changes as defects.');
-    expect(prompt).toContain('OPSX semantic relation paths');
+    expect(prompt).toContain('LikeC4 semantic relation paths');
     expect(prompt).not.toContain('OPSX code-map refs');
     expect(prompt).not.toContain('Ponytail');
     expect(prompt).not.toContain('Superpowers');

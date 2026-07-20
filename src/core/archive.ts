@@ -51,6 +51,10 @@ async function moveDirectory(src: string, dest: string): Promise<void> {
   }
 }
 
+export async function removeArchitectureDeltaBeforeArchive(changeDir: string): Promise<void> {
+  await fs.rm(path.join(changeDir, 'architecture-delta.c4'), { force: true });
+}
+
 async function findArchivedChangePathAsync(archiveDir: string, changeName: string): Promise<string | null> {
   try {
     const entries = await fs.readdir(archiveDir, { withFileTypes: true });
@@ -143,6 +147,7 @@ export class ArchiveCommand {
     }
 
     await fs.rm(path.join(changeDir, '.specs-noop'), { force: true });
+    await removeArchitectureDeltaBeforeArchive(changeDir);
     await fs.mkdir(archiveDir, { recursive: true });
     await moveDirectory(changeDir, archivePath);
 

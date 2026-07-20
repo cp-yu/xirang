@@ -42,7 +42,7 @@
 
 ### Architecture Source
 
-#### Added OPSX Nodes
+#### Added LikeC4 Elements
 
 - `cap.migration.opsx-to-likec4-converter`: 核心转换逻辑，将 OPSX domains/capabilities/relations 映射为 LikeC4 elements/relationships
 - `cap.migration.likec4-file-generator`: 生成多文件 LikeC4 结构（specification.c4, domains/*.c4, views.c4）
@@ -56,21 +56,16 @@
 - `cap.architecture.semantic-validator`: OpenSpec 特有的语义验证（ownership、cycle 检测）
 - `cap.architecture.delta-merger`: 合并 architecture-delta.c4 到 formal LikeC4 模型
 
-#### Modified OPSX Nodes
+#### Modified LikeC4 Elements
 
-- `cap.cli.init-command`: 生成 LikeC4 架构目录结构而非 OPSX YAML
-- `cap.cli.validate-command`: 增加 LikeC4 模型验证
+- `cap.cli.init`: 生成 LikeC4 架构目录结构而非 OPSX YAML
+- `cap.cli.validate`: 增加 LikeC4 模型验证
 - `cap.ai.propose-smart-routing`: 指导 Agent 生成 architecture-delta.c4
 - `cap.ai.skill-generation`: 更新 propose/apply/bootstrap/sweeper skills 的 LikeC4 相关指令
-- `cap.change-workflow.sync-reconciliation`: 合并 architecture-delta.c4 而非 opsx-delta.yaml
-- `cap.validation.change-validation`: 验证 architecture-delta.c4 语法和语义
+- `cap.cli.sync`: 合并 architecture-delta.c4 而非 opsx-delta.yaml
+- `cap.validation.change`: 验证 architecture-delta.c4 语法和语义
 
-#### Removed OPSX Nodes
-
-- `cap.opsx.yaml-reader`: LikeC4 reader 替代 OPSX YAML reader
-- `cap.opsx.yaml-writer`: LikeC4 writer 替代 OPSX YAML writer
-- `cap.opsx.relation-definition-registry`: LikeC4 specification.c4 定义 relationship kinds
-- `cap.opsx.delta-yaml-merger`: 被 architecture-delta merger 替代
+Legacy OPSX YAML capabilities remain during the migration window and are marked deprecated; this change does not remove them.
 
 #### Architecture Relations
 
@@ -95,8 +90,9 @@
 - 修改 `src/utils/change-manager.ts`：处理 architecture-delta.c4
 - 标记 deprecated：`src/utils/opsx-utils.ts` 中的 YAML 读写函数
 
-**依赖变更**：
+**依赖与 runtime 变更**：
 - 新增：`likec4@1.59.0` (devDependencies)
+- **BREAKING**：最低 Node.js 版本从 `>=20.19.0` 提升到 `>=22.22.3`，与 LikeC4 engine 合同一致
 
 **数据影响**：
 - 新架构源码位置：`openspec/architecture/`（多文件 .c4）

@@ -23,6 +23,7 @@ export const MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES = [
   'openspec-reviewer',
   'openspec-optimizer',
   'openspec-impact-sweeper',
+  'openspec-bootstrap-opsx',
 ] as const;
 
 export function getManagedSkillDirNames(): string[] {

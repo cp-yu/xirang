@@ -22,24 +22,24 @@
 
 ### Architecture Source
 
-#### Added OPSX Nodes
+#### Added LikeC4 Elements
 
-<!-- List new canonical OPSX node IDs when known. Define exact target-state nodes and relations in opsx-delta.yaml. Use None when no nodes are added. -->
-- `cap.<domain>.<name>`: <new architectural responsibility>
+<!-- List new LikeC4 element IDs when known. Define exact target-state elements and relations in architecture-delta.c4. Use None when no elements are added. -->
+- `domain_name.capability_name`: <new architectural responsibility>
 
-#### Modified OPSX Nodes
+#### Modified LikeC4 Elements
 
-<!-- List existing OPSX node IDs whose intent, ownership, or boundary changes. Use None when no nodes change. -->
-- `cap.<domain>.<name>`: <architecture responsibility or boundary that changes>
+<!-- List existing LikeC4 element IDs whose responsibility, ownership, or boundary changes. Use None when no elements change. -->
+- `domain_name.capability_name`: <architecture responsibility or boundary that changes>
 
-#### Removed OPSX Nodes
+#### Removed LikeC4 Elements
 
-<!-- List OPSX node IDs removed from the target architecture. Use None when no nodes are removed. -->
-- `cap.<domain>.<name>`: <why the architecture no longer contains this node>
+<!-- List LikeC4 element IDs removed from the target architecture. Use None when no elements are removed. -->
+- `domain_name.capability_name`: <why the architecture no longer contains this element>
 
 #### Architecture Relations
 
-<!-- Summarize affected semantic collaboration without defining authoritative from/type/to records here. Exact relations belong in opsx-delta.yaml. Use None when relations do not change. -->
+<!-- Summarize affected semantic collaboration without defining authoritative typed relations here. Exact relations belong in architecture-delta.c4. Use None when relations do not change. -->
 - <relationship or collaboration impact>
 
 ## Impact

@@ -7,7 +7,7 @@
 - 通用性：迁移工具需要适用于所有 OpenSpec 项目
 - 跨平台：所有路径操作必须使用 `path.join()` 而非硬编码斜杠
 
-技术栈：TypeScript + Node.js (≥20.19.0) + ESM + pnpm + Commander.js
+技术栈：TypeScript + Node.js (≥22.22.3) + ESM + pnpm + Commander.js；该最低版本与锁定的 `likec4@1.59.0` engine 合同一致。
 
 ## Goals / Non-Goals
 
@@ -51,10 +51,12 @@
 ```
 openspec/architecture/
 ├── specification.c4       # Element/relationship kinds
+├── project.c4             # Project identity and intent
 ├── domains/
 │   ├── ai-integration.c4
 │   ├── apply.c4
 │   └── ...
+├── relations.c4           # Canonical typed relations
 └── views.c4
 ```
 
@@ -68,9 +70,11 @@ openspec/architecture/
 - 符合 domain 边界的架构原则
 
 **实现细节**：
-- 每个 domain 文件包含该 domain 内部的 capabilities 和 internal relations
-- Cross-domain relations 写在源 domain 文件中（from 所在的 domain）
+- 每个 domain 文件只包含该 domain 与嵌套 capabilities
+- 所有 typed relations 集中在 `relations.c4`；这避免 relation endpoint 被同名 local capability 遮蔽 global domain
+- `project.c4` 使用 `project` element kind 保留 project ID、name 与 intent
 - 使用 `path.join('openspec', 'architecture', 'domains', `${kebabCase(domainId)}.c4`)` 生成路径
+- LikeC4 1.59.0 的 `extend` 仅支持向 domain 添加 nested elements；property-level `extend cli.init { description ... }` 无法通过 native validation。因此 OpenSpec 自迁移时，modified responsibilities 与 deprecated status 直接写入 migrated formal `.c4` files，change-local delta 只承载 grammar 可表达的新增 elements 和 relations。
 
 ### Decision 3: belongs_to 通过嵌套隐式表达
 
@@ -98,11 +102,11 @@ model {
 | OPSX Relation | LikeC4 Representation | 说明 |
 |---------------|----------------------|------|
 | `belongs_to` | 嵌套结构 | 隐式 |
-| `invokes` | `A -> B 'invokes'` | 主动调用 |
-| `consumes` | `A -> B 'consumes'` | 消费输出或合同 |
-| `precedes` | `A -> B 'precedes'` | 时序依赖，用于数据流视图 |
-| `constrains` | `A -> B 'constrains'` | 约束限制 |
-| `validates` | `A -> B 'validates'` | 有效性判定 |
+| `invokes` | `A -[invokes]-> B` | 主动调用 |
+| `consumes` | `A -[consumes]-> B` | 消费输出或合同 |
+| `precedes` | `A -[precedes]-> B` | 时序依赖，用于数据流视图 |
+| `constrains` | `A -[constrains]-> B` | 约束限制 |
+| `validates` | `A -[validates]-> B` | 有效性判定 |
 
 **Note 字段处理**：OPSX relation 的 `note` 映射为 LikeC4 relationship 的 `description`
 
@@ -177,10 +181,10 @@ export async function readArchitecture(projectRoot: string): Promise<Architectur
 ```likec4
 model {
   // 空间关系
-  task_executor -> reviewer 'invokes'
+  task_executor -[invokes]-> reviewer
   
   // 时间关系
-  task_executor -> reviewer 'precedes' {
+  task_executor -[precedes]-> reviewer {
     description 'Phase 0 完成后才能进入 Phase 1'
     metadata {
       phase_transition 'phase0_to_phase1'
@@ -256,7 +260,7 @@ apply.master_agent.start() {
 **缓解措施**：
 - 阶段性验证：每个 Phase 完成后立即运行 `npm run build && npm test`
 - 回滚点：每个 Phase 创建 git tag
-- 并行支持：Phase 4-5 期间同时支持 OPSX 和 LikeC4
+- 兼容窗口：legacy OPSX reader/bootstrap CLI 保留一个月并明确 deprecated；managed workflows 与 sync 仅使用 LikeC4
 - 快速原型：在正式迁移前用小项目验证完整流程
 
 ### Risk 4: Agent 学习曲线

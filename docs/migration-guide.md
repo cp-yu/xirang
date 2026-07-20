@@ -1,6 +1,25 @@
-# Migrating to OPSX
+# Migration Guide
 
-This guide helps you transition from the legacy OpenSpec workflow to OPSX. The migration is designed to be smooth—your existing work is preserved, and the new system offers more flexibility.
+## Migrating OPSX YAML to LikeC4
+
+Requires Node.js 22.22.3 or newer. Commit or back up the repository first, then run:
+
+```bash
+openspec migrate opsx-to-likec4 --dry-run
+openspec migrate opsx-to-likec4
+openspec arch validate
+```
+
+The migration converts domains, capabilities, metadata, linked Spec paths, and semantic relations into `openspec/architecture/`. It validates the generated LikeC4 before renaming the legacy files to:
+
+- `openspec/project.opsx.yaml.backup`
+- `openspec/project.opsx.relations.yaml.backup`
+
+Review the generated domain files and relationships, then use `openspec arch query <element-id> --relations --depth 2` to inspect the result. Restore the `.backup` files only if the migration must be rolled back.
+
+## Migrating to the OPSX Workflow
+
+This section covers transition from the older phase-locked OpenSpec workflow to the current fluid workflow. Existing work is preserved.
 
 ## What's Changing?
 
@@ -8,7 +27,7 @@ OPSX replaces the old phase-locked workflow with a fluid, action-based approach.
 
 | Aspect | Legacy | OPSX |
 |--------|--------|------|
-| **Commands** | `/openspec:proposal`, `/openspec:apply`, `/openspec:archive` | `/opsx:propose`, `/opsx:explore`, `/opsx:apply`, `/opsx:archive`, `/opsx:bootstrap-opsx` |
+| **Commands** | `/openspec:proposal`, `/openspec:apply`, `/openspec:archive` | `/opsx:propose`, `/opsx:explore`, `/opsx:apply`, `/opsx:archive`, `/opsx:bootstrap-arch` |
 | **Workflow** | Create all artifacts at once | Create incrementally or all at once—your choice |
 | **Going back** | Awkward phase gates | Natural—update any artifact anytime |
 | **Customization** | Fixed structure | Schema-driven, fully hackable |
@@ -331,7 +350,7 @@ OpenSpec now installs one fixed managed workflow surface:
 | `/opsx:explore` | Think through ideas with no structure |
 | `/opsx:apply` | Implement tasks from tasks.md |
 | `/opsx:archive` | Finalize and archive the change |
-| `/opsx:bootstrap-opsx` | Bootstrap project OPSX structure for architecture tracking |
+| `/opsx:bootstrap-arch` | Bootstrap project OPSX structure for architecture tracking |
 
 ### Command Mapping from Legacy
 
@@ -376,7 +395,7 @@ OPSX uses actions, not phases:
          │   propose ◄──► explore ◄──► apply ◄──► archive│
          │         │                          │           │
          │         └──────────────┬───────────┘           │
-         │              bootstrap-opsx / snack            │
+         │              bootstrap-arch / snack            │
          └───────────────────────────────────────────────┘
 ```
 
@@ -424,7 +443,7 @@ OPSX uses the emerging **skills** standard:
 ├── openspec-propose/SKILL.md
 ├── openspec-apply-change/SKILL.md
 ├── openspec-archive-change/SKILL.md
-├── openspec-bootstrap-opsx/SKILL.md
+├── openspec-bootstrap-arch/SKILL.md
 └── openspec-snack/SKILL.md
 ```
 
@@ -572,7 +591,7 @@ project/
 │       ├── openspec-explore/
 │       ├── openspec-apply-change/
 │       ├── openspec-archive-change/
-│       └── openspec-bootstrap-opsx/
+│       └── openspec-bootstrap-arch/
 ├── CLAUDE.md                     # OpenSpec markers removed, your content preserved
 └── AGENTS.md                     # OpenSpec markers removed, your content preserved
 ```
@@ -592,7 +611,7 @@ project/
 /opsx:explore        Think through ideas
 /opsx:apply          Implement tasks
 /opsx:archive        Finish and archive
-/opsx:bootstrap-opsx Map your architecture
+/opsx:bootstrap-arch Map your architecture
 ```
 
 ---

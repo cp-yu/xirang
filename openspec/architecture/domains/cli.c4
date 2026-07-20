@@ -1,0 +1,227 @@
+model {
+  cli = domain 'Cli' {
+    description '命令行界面，将所有 OpenSpec 操作暴露为可组合的子命令'
+
+    metadata {
+      boundary '拥有终端 I/O 和命令路由。将所有领域逻辑委托给核心模块。'
+      status 'active'
+    }
+
+    archive = capability 'Archive' {
+      description '归档已完成的变更并将规约合并到主规约目录；输出 agent 接管后续 git 工作的 handoff 提醒，不读取 handoff 模式配置，不执行 git 写操作或生成推荐 commit message；sync gate 检查未合并 delta，--no-sync flag 可跳过'
+      metadata {
+        capabilityId 'cap.cli.archive'
+        status 'active'
+      }
+    }
+
+    authoring_help = capability 'Authoring Help' {
+      description '从内置 Schema file definitions 与 RelationDefinitionRegistry 生成文件级 authoring help 和稳定 JSON 输出'
+      metadata {
+        capabilityId 'cap.cli.authoring-help'
+        status 'active'
+      }
+    }
+
+    change = capability 'Change' {
+      description '管理变更提案，包含创建、列表和操作的子命令'
+      metadata {
+        capabilityId 'cap.cli.change'
+        status 'active'
+      }
+    }
+
+    command_reference_consistency = capability 'Command Reference Consistency' {
+      description 'Ensure active documentation, generated Agent instructions, skills, prompts, and workflow templates reference only supported OpenSpec CLI command forms and report historical archive-only stale references separately.'
+      metadata {
+        capabilityId 'cap.cli.command-reference-consistency'
+        status 'active'
+      }
+    }
+
+    completion = capability 'Completion' {
+      description '管理 OpenSpec CLI 的 shell 补全，通过运行时反射 Commander.js 命令树自动派生补全数据，不再依赖静态 COMMAND_REGISTRY'
+      metadata {
+        capabilityId 'cap.cli.completion'
+        status 'active'
+      }
+    }
+
+    completion_introspect = capability 'Completion Introspect' {
+      description '从 Commander.js 命令树运行时反射派生 CommandDefinition[]，通过 POSITIONAL_TYPE_MAP 补充补全语义注解，消除静态 COMMAND_REGISTRY 的手工同步负担'
+      metadata {
+        capabilityId 'cap.cli.completion-introspect'
+        status 'active'
+      }
+    }
+
+    config = capability 'Config' {
+      description '查看和修改全局 OpenSpec 配置（不含 profile 子命令），查询归一化项目配置'
+      metadata {
+        capabilityId 'cap.cli.config'
+        status 'active'
+      }
+    }
+
+    project_element = capability 'Project Element' {
+      description '通过 CLI 查询归一化项目配置（openspec config project --json），供 skill agent 获取配置投影'
+      metadata {
+        capabilityId 'cap.cli.config.project'
+        status 'active'
+      }
+    }
+
+    feedback = capability 'Feedback' {
+      description '提交关于 OpenSpec 的反馈'
+      metadata {
+        capabilityId 'cap.cli.feedback'
+        status 'active'
+      }
+    }
+
+    init = capability 'Init' {
+      description '在项目中初始化 OpenSpec 与 openspec/architecture LikeC4 基础模型，固定安装 workflow skills，无需 profile 或 delivery 配置，且不生成 slash command workflow artifacts。'
+      metadata {
+        capabilityId 'cap.cli.init'
+        status 'active'
+      }
+    }
+
+    init_opsx_skeleton = capability 'Init Opsx Skeleton' {
+      description 'Deprecated compatibility capability for historical init generation of project.opsx.yaml and project.opsx.relations.yaml; active init generates LikeC4 architecture files.'
+      metadata {
+        capabilityId 'cap.cli.init-opsx-skeleton'
+        status 'deprecated'
+        specs ['openspec/specs/init-opsx-skeleton/spec.md']
+      }
+    }
+
+    instructions = capability 'Instructions' {
+      description '向 Agent 投影 artifact definition、instruction、template、依赖、输出路径与 config projection，并要求 definition-first authoring；apply instructions 保持 verify-aware TDD 状态'
+      metadata {
+        capabilityId 'cap.cli.instructions'
+        status 'active'
+      }
+    }
+
+    list = capability 'List' {
+      description '列出变更或 specs，specs 模式支持 JSON 输出包含 capabilities 字段与 requirement header 名称列表'
+      metadata {
+        capabilityId 'cap.cli.list'
+        status 'active'
+      }
+    }
+
+    new_change = capability 'New Change' {
+      description '创建新的变更目录'
+      metadata {
+        capabilityId 'cap.cli.new-change'
+        status 'active'
+      }
+    }
+
+    opsx_query = capability 'Opsx Query' {
+      description 'Deprecated compatibility query for legacy OPSX v2 YAML; active architecture navigation uses openspec arch query.'
+      metadata {
+        capabilityId 'cap.cli.opsx-query'
+        status 'deprecated'
+      }
+    }
+
+    scenario_labels = capability 'Scenario Labels' {
+      description '提供 `openspec scenario-labels` preview/write 命令，在 validate 之后显式生成 change-local MODIFIED requirements 的 scenario operation labels；不使用 fix 语义'
+      metadata {
+        capabilityId 'cap.cli.scenario-labels'
+        status 'active'
+      }
+    }
+
+    schema = capability 'Schema' {
+      description '检查固定内置 spec-driven 与 bootstrap Schema 的 package location、结构、templates、file definitions 和依赖 graph'
+      metadata {
+        capabilityId 'cap.cli.schema'
+        status 'active'
+      }
+    }
+
+    schemas = capability 'Schemas' {
+      description '列出固定内置 workflow Schema 及其描述'
+      metadata {
+        capabilityId 'cap.cli.schemas'
+        status 'active'
+      }
+    }
+
+    show = capability 'Show' {
+      description '显示变更或规约的详细信息'
+      metadata {
+        capabilityId 'cap.cli.show'
+        status 'active'
+      }
+    }
+
+    spec = capability 'Spec' {
+      description '使用 show 和 validate 子命令管理和查看 OpenSpec 规约；list 功能已迁移到 openspec list --specs'
+      metadata {
+        capabilityId 'cap.cli.spec'
+        status 'active'
+      }
+    }
+
+    status = capability 'Status' {
+      description '显示变更的制品完成状态'
+      metadata {
+        capabilityId 'cap.cli.status'
+        status 'active'
+      }
+    }
+
+    sync = capability 'Sync' {
+      description '顶层 CLI 命令，将 change 中的 delta specs 和 architecture-delta.c4 同步到 formal Specs 与 LikeC4 模型，不执行归档；sync 允许未标注的 change-local scenarios，消费并清洗已有 labels，但不生成或写回 scenario operation labels'
+      metadata {
+        capabilityId 'cap.cli.sync'
+        status 'active'
+      }
+    }
+
+    templates = capability 'Templates' {
+      description '显示固定内置 Schema 中所有 artifacts 的 package template paths'
+      metadata {
+        capabilityId 'cap.cli.templates'
+        status 'active'
+      }
+    }
+
+    update = capability 'Update' {
+      description '刷新 OpenSpec skills，固定更新 workflow skills，自动清理过时的 profile/workflows/delivery 配置字段，不生成、刷新或清理旧 command workflow artifacts。'
+      metadata {
+        capabilityId 'cap.cli.update'
+        status 'active'
+      }
+    }
+
+    validate = capability 'Validate' {
+      description '验证变更和规约的完整性，支持显式 change scope 与 specs/architecture-delta artifact scope 分阶段验证，并复用 native LikeC4 staged validation'
+      metadata {
+        capabilityId 'cap.cli.validate'
+        status 'active'
+      }
+    }
+
+    verify_aware_instructions = capability 'Verify Aware Instructions' {
+      description 'instructions apply 命令在判定 change 完成状态时集成 verify freshness 检查，返回 needs_verify/needs_seal/all_done 三态而非仅基于 task checkbox'
+      metadata {
+        capabilityId 'cap.cli.verify-aware-instructions'
+        status 'active'
+      }
+    }
+
+    view_element = capability 'View Element' {
+      description '显示规约和变更的交互式仪表板，task 全部完成的分类标签改为 "Tasks Done"'
+      metadata {
+        capabilityId 'cap.cli.view'
+        status 'active'
+      }
+    }
+  }
+}

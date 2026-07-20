@@ -73,7 +73,7 @@ export async function syncCommand(
   }
 
   const prepared = await prepareChangeSync(projectRoot, syncState, { skipValidation });
-  if (prepared.specs.writes.length === 0 && !prepared.opsx) {
+  if (prepared.specs.writes.length === 0 && !prepared.architecture) {
     console.log('No sync required.');
     return;
   }
