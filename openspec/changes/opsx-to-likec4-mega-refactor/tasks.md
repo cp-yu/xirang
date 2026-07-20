@@ -927,9 +927,10 @@
   - Command: `test -f .github/workflows/test-windows.yml && echo "OK"`
   - Expect: `OK`
 
-- [ ] **Windows 测试通过**
-  - Command: `echo "Manual verification: Check GitHub Actions Windows workflow"`
-  - Expect: GitHub Actions badge 显示通过
+- [x] **Windows 测试通过**
+  - Evidence: GitHub Actions run `29735539977`, job `88329862412`, head `9413ea38`, conclusion `success`
+  - Command: `gh run view 29735539977 --repo cp-yu/opsx --json conclusion,headSha,jobs,url`
+  - Expect: `conclusion` 为 `success`，`likec4` job 在 `windows-latest` 完成
 
 ---
 
@@ -963,7 +964,7 @@
 
 ## Remediation
 
-- [ ] [code_fix] Windows CI verification：运行 `.github/workflows/test-windows.yml` 并记录 passing run；本地不得代替 GitHub-hosted Windows 证据。
+- [x] [code_fix] Windows CI verification：GitHub-hosted Windows run `29735539977` / job `88329862412` 在 head `9413ea38` 通过。
 - [x] [code_fix] Relation visibility：reader 读取 standalone `relations.c4`，migrated-model query E2E 通过。
 - [x] [code_fix] Arch query contract：已实现 bounded traversal、depth annotation、text/JSON fields 与 missing-element coverage。
 - [x] [code_fix] Agent verification：`--agent-verify` 已比较 domains、capabilities、relations、metadata 并持久化 structured report。
