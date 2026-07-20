@@ -4,11 +4,7 @@ import { renderRelationAuthoringReference } from '../core/relations/renderers.js
 import { resolveSchema } from '../core/artifact-graph/resolver.js';
 import type { FileDefinition } from '../core/artifact-graph/types.js';
 
-const AUTHORING_TOPICS = [
-  'project.opsx.yaml',
-  'project.opsx.relations.yaml',
-  'architecture-delta.c4',
-] as const;
+const AUTHORING_TOPICS = ['architecture-delta.c4'] as const;
 
 type AuthoringTopic = typeof AUTHORING_TOPICS[number];
 
@@ -22,9 +18,7 @@ interface AuthoringHelp {
   relations?: typeof RelationDefinitionRegistry;
 }
 
-const FILE_LOOKUP: Record<AuthoringTopic, { schema: 'spec-driven' | 'bootstrap'; fileId?: string; artifactId?: string }> = {
-  'project.opsx.yaml': { schema: 'bootstrap', fileId: 'formal-project' },
-  'project.opsx.relations.yaml': { schema: 'bootstrap', fileId: 'formal-relations' },
+const FILE_LOOKUP: Record<AuthoringTopic, { schema: 'spec-driven'; artifactId: string }> = {
   'architecture-delta.c4': { schema: 'spec-driven', artifactId: 'architecture-delta' },
 };
 
@@ -48,16 +42,10 @@ export class AuthoringHelpCommand {
 function buildHelp(file: AuthoringTopic): AuthoringHelp {
   const lookup = FILE_LOOKUP[file];
   const schema = resolveSchema(lookup.schema);
-  const definition = lookup.fileId
-    ? schema.files?.find((candidate) => candidate.id === lookup.fileId)?.definition
-    : schema.artifacts.find((candidate) => candidate.id === lookup.artifactId)?.definition;
+  const definition = schema.artifacts.find((candidate) => candidate.id === lookup.artifactId)?.definition;
   if (!definition) throw new Error(`Missing file definition for '${file}' in built-in schema '${lookup.schema}'.`);
 
-  return {
-    file,
-    definition,
-    ...(file === 'project.opsx.yaml' ? {} : { relations: RelationDefinitionRegistry }),
-  };
+  return { file, definition, relations: RelationDefinitionRegistry };
 }
 
 function renderTextHelp(help: AuthoringHelp): string {

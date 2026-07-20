@@ -55,13 +55,9 @@ model {
 
   artifact_graph.instruction_loader -[consumes]-> config.projection_element
 
-  artifact_graph.parse -[consumes]-> schema.opsx_delta_artifact
-
   change_workflow.archive -[precedes]-> change_workflow.branch_merge
 
   change_workflow.create -[invokes]-> artifact_graph.schema_resolution
-
-  cli.authoring_help -[consumes]-> opsx_element.semantic_relations
 
   cli.command_reference_consistency -[validates]-> ai_integration.workflow_templates
 
@@ -90,8 +86,6 @@ model {
   cli.update -[consumes]-> config.project_element
 
   cli.validate -[invokes]-> cli.command_reference_consistency
-
-  cli.validate -[invokes]-> validation.opsx_dry_run
 
   cli.validate -[invokes]-> validation.spec_section_type_cross_check
 

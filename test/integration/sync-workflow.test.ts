@@ -11,6 +11,20 @@ const formal = `model {
 }
 `;
 
+async function architectureSnapshot(root: string): Promise<Map<string, string>> {
+  const architecture = path.join(root, 'openspec', 'architecture');
+  const files = new Map<string, string>();
+  const visit = async (directory: string): Promise<void> => {
+    for (const entry of await fs.readdir(directory, { withFileTypes: true })) {
+      const file = path.join(directory, entry.name);
+      if (entry.isDirectory()) await visit(file);
+      else files.set(path.relative(architecture, file), await fs.readFile(file, 'utf8'));
+    }
+  };
+  await visit(architecture);
+  return files;
+}
+
 describe('architecture sync workflow', () => {
   let root: string;
   let changeDir: string;
@@ -20,8 +34,9 @@ describe('architecture sync workflow', () => {
     await fs.mkdir(path.join(root, 'openspec', 'architecture', 'domains'), { recursive: true });
     await fs.mkdir(changeDir, { recursive: true });
     const architecture = path.join(root, 'openspec', 'architecture');
-    await fs.writeFile(path.join(architecture, 'specification.c4'), 'specification { element domain element capability }');
+    await fs.writeFile(path.join(architecture, 'specification.c4'), 'specification { element domain element capability relationship invokes }');
     await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), formal);
+    await fs.writeFile(path.join(architecture, 'relations.c4'), 'model {\n}\n');
     await fs.writeFile(path.join(architecture, 'views.c4'), 'views { view index { include * } }');
   });
   afterEach(async () => fs.rm(root, { recursive: true, force: true }));
@@ -40,5 +55,35 @@ describe('architecture sync workflow', () => {
     const state = await assessChangeSyncState(root, 'add');
     await applyPreparedChangeSync(root, await prepareChangeSync(root, state, { skipValidation: true }));
     await expect(fs.access(path.join(root, 'openspec', 'specs', 'added', 'spec.md'))).resolves.toBeUndefined();
+  });
+
+  it('should restore the complete architecture when a later spec write fails', async () => {
+    await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), `model {
+  added = domain 'Added' {
+    run = capability 'Run' { metadata { capabilityId 'cap.added.run' } }
+  }
+  added.run -[invokes]-> core.existing
+}
+`);
+    const specDir = path.join(changeDir, 'specs', 'broken');
+    await fs.mkdir(specDir, { recursive: true });
+    await fs.writeFile(path.join(specDir, 'spec.md'), `## ADDED Requirements
+### Requirement: Broken target
+The system SHALL expose a broken target.
+
+#### Scenario: Write fails
+- **WHEN** sync writes the spec
+- **THEN** the transaction rolls back
+`);
+    const before = await architectureSnapshot(root);
+    const state = await assessChangeSyncState(root, 'add');
+    const prepared = await prepareChangeSync(root, state, { skipValidation: true });
+    const targetParent = path.join(root, 'openspec', 'specs', 'broken');
+    await fs.mkdir(path.dirname(targetParent), { recursive: true });
+    await fs.writeFile(targetParent, 'blocks mkdir');
+
+    await expect(applyPreparedChangeSync(root, prepared)).rejects.toThrow();
+    expect(await architectureSnapshot(root)).toEqual(before);
+    await expect(fs.access(path.join(root, 'openspec', 'architecture', 'domains', 'added.c4'))).rejects.toThrow();
   });
 });

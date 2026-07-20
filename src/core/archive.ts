@@ -82,8 +82,8 @@ interface ArchiveOptions {
 export class ArchiveCommand {
   /**
    * Archive a completed change. Enforces verify gate, sync gate, validation gate,
-   * and task gate before moving the change to archive. Does NOT write main specs
-   * or OPSX files — sync is handled by `openspec sync`.
+   * and task gate before moving the change to archive. Does NOT write formal Specs
+   * or LikeC4 architecture files; sync is handled by `openspec sync`.
    */
   async execute(changeName?: string, options: ArchiveOptions = {}): Promise<void> {
     const targetPath = '.';
@@ -240,9 +240,9 @@ export class ArchiveCommand {
         `Run openspec sync ${changeName} first, or pass --no-sync to bypass.`,
       );
     }
-    if (pendingSync.opsx) {
+    if (pendingSync.architecture) {
       throw new Error(
-        `Sync gate failed: pending OPSX delta.\n` +
+        `Sync gate failed: pending architecture delta.\n` +
         `Run openspec sync ${changeName} first, or pass --no-sync to bypass.`,
       );
     }

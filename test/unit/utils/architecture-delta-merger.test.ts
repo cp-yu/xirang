@@ -39,6 +39,20 @@ describe('architecture delta merger', () => {
     expect(await fs.readFile(path.join(root, 'openspec', 'architecture', 'domains', 'core.c4'), 'utf8')).not.toContain('core.existing -[invokes]-> core.existing');
   });
 
+  it('should preserve multiline relation blocks', async () => {
+    await fs.writeFile(delta, `model {
+  core.existing -[invokes]-> core.existing {
+    description 'Calls the existing capability'
+  }
+}
+`);
+    await mergeArchitectureDelta(root, delta, { runLikeC4: async () => undefined });
+    const content = await fs.readFile(path.join(root, 'openspec', 'architecture', 'relations.c4'), 'utf8');
+    expect(content).toContain(`core.existing -[invokes]-> core.existing {
+    description 'Calls the existing capability'
+  }`);
+  });
+
   it('should add a new domain file', async () => {
     await fs.writeFile(delta, `model { added = domain 'Added' { run = capability 'Run' { metadata { capabilityId 'cap.added.run' } } } }`);
     await mergeArchitectureDelta(root, delta, { runLikeC4: async () => undefined });

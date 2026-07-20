@@ -107,7 +107,7 @@ Then the system signs the user in`
     expect(mainSpec).toContain('### Requirement: The system SHALL support login');
     await expect(fs.access(changeDir)).resolves.not.toThrow();
     expect(console.log).toHaveBeenCalledWith("Sync complete for 'direct-sync'.");
-    expect(console.log).toHaveBeenCalledWith('opsx: no-delta');
+    expect(console.log).toHaveBeenCalledWith('architecture: no-delta');
   });
 
   it('treats a canonical no-op OPSX delta as no sync required', async () => {
@@ -142,7 +142,7 @@ Then the system signs the user in`
       .resolves.toContain('### Requirement: 登录');
     expect(console.log).toHaveBeenCalledWith("Sync complete for 'specs-with-no-op-opsx'.");
     expect(console.log).toHaveBeenCalledWith('specs: synced');
-    expect(console.log).toHaveBeenCalledWith('opsx: no-delta');
+    expect(console.log).toHaveBeenCalledWith('architecture: no-delta');
   });
 
   it('ignores deprecated OPSX deltas in the active sync path', async () => {

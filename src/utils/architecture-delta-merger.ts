@@ -37,6 +37,23 @@ function mergeRelations(content: string, additions: string[]): string {
   return `${content.slice(0, open + 1)}\n${relations.map(relation => relation.split('\n').map(line => `  ${line}`).join('\n')).join('\n\n')}\n${content.slice(block.end)}`;
 }
 
+function extractRelations(content: string): string[] {
+  const pattern = /([A-Za-z_][\w.-]*\.[A-Za-z_][\w-]*)\s+-\[([\w-]+)\]->\s+([A-Za-z_][\w.-]*)/g;
+  const relations: string[] = [];
+  for (const match of content.matchAll(pattern)) {
+    let end = match.index + match[0].length;
+    while (end < content.length && /[ \t]/.test(content[end])) end += 1;
+    if (content[end] === '{') end = blockAt(content, end).end + 1;
+    else while (end < content.length && content[end] !== '\n' && content[end] !== '}') end += 1;
+    const lines = content.slice(match.index, end).trim().split('\n');
+    const continuationIndent = Math.min(...lines.slice(1)
+      .filter(line => line.trim())
+      .map(line => line.match(/^\s*/)![0].length));
+    relations.push(lines.map((line, index) => index === 0 ? line : line.slice(continuationIndent)).join('\n'));
+  }
+  return relations;
+}
+
 export interface MergeArchitectureDeltaOptions {
   changeName?: string;
   runLikeC4?: LikeC4Runner;
@@ -71,7 +88,7 @@ export async function mergeArchitectureDelta(projectRoot: string, deltaPath: str
     contents.set(file, insertIntoDomain(contents.get(file)!, match[1], blockAt(delta, open).body));
   }
 
-  const relations = [...delta.matchAll(/([A-Za-z_][\w.-]*\.[A-Za-z_][\w-]*)\s+-\[([\w-]+)\]->\s+([A-Za-z_][\w.-]*)[^\n}]*(?:\{[\s\S]*?\})?/g)].map(match => match[0].trim());
+  const relations = extractRelations(delta);
   for (const relation of relations) {
     const sourceDomain = relation.split('.')[0];
     if (!domainFile.has(sourceDomain)) throw new Error(`Cannot find source domain: ${sourceDomain}`);

@@ -350,7 +350,7 @@ Validating add-dark-mode...
 
 ### `openspec archive`
 
-Archive a completed change and reconcile delta specs plus `opsx-delta` before moving the change.
+Archive a completed change after verify, sync, validation, and task gates pass. Archive does not write formal Specs or architecture; run `openspec sync` first when the change contains delta Specs or `architecture-delta.c4`.
 
 ```
 openspec archive [change-name] [options]
@@ -367,8 +367,9 @@ openspec archive [change-name] [options]
 | Option | Description |
 |--------|-------------|
 | `-y, --yes` | Skip confirmation prompts |
-| `--skip-specs` | Skip all archive-time sync writes, including main specs and OPSX updates |
+| `--no-sync` | Bypass the pending delta sync gate with explicit authorization |
 | `--no-validate` | Skip validation (requires confirmation) |
+| `--no-verify` | Bypass the verify gate with explicit authorization |
 
 **Examples:**
 
@@ -382,17 +383,17 @@ openspec archive add-dark-mode
 # Archive without prompts (CI/scripts)
 openspec archive add-dark-mode --yes
 
-# Archive a tooling change that does not require archive-time sync writes
-openspec archive update-ci-config --skip-specs
+# Explicitly bypass the sync gate for a change with no formal-source reconciliation
+openspec archive update-ci-config --no-sync --yes
 ```
 
 **What it does:**
 
-1. Validates the change (unless `--no-validate`)
-2. Prompts for confirmation (unless `--yes`)
-3. Unless `--skip-specs` is set, merges delta specs into `openspec/specs/`
-4. Unless `--skip-specs` is set, applies `opsx-delta` to the project OPSX files when present
-5. Moves change folder to `openspec/changes/archive/YYYY-MM-DD-<name>/`
+1. Requires a fresh, archive-compatible verify result unless `--no-verify` is explicitly authorized
+2. Requires all delta Specs and `architecture-delta.c4` changes to be synced unless `--no-sync` is explicitly authorized
+3. Validates the change unless `--no-validate` is explicitly authorized
+4. Checks task completion and prompts when required
+5. Removes the consumed `architecture-delta.c4` and moves the change to `openspec/changes/archive/YYYY-MM-DD-<name>/`
 
 ---
 

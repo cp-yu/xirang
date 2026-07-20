@@ -981,7 +981,11 @@
 - [x] [artifact_fix] Relation ownership：统一 delta Specs 与 Design 2 的 canonical standalone `relations.c4` contract，并复验 migration/sync。
 - [x] [code_fix] Agent verification completeness：将 CLI/Pi orchestration 边界写入 source，并覆盖 domain/capability/relation 全量 metadata 比较。
 - [x] [code_fix] Spec-driven architecture artifact：将 active schema、templates、instructions、validation scope 从 `opsx-delta` 迁移到 `architecture-delta`。
+- [x] [code_fix] Active authoring help：仅暴露 `architecture-delta.c4` 为 active architecture artifact topic，并增加 legacy OPSX topic absence assertion。
 - [x] [code_fix] Generated workflow references：重生成 apply preparation 与 impact evidence protocol，并增加 final project-root parity coverage。
 - [x] [artifact_fix] Formal architecture reconciliation：formal LikeC4 source 已声明 modified LikeC4-first capabilities 与 deprecated retained OPSX capabilities；LikeC4 property-level extend 限制已记录于 design.md。
 - [x] [artifact_fix] Complete Files attribution：已为 intended templates、generated references、docs、tests、migration、CLI 与 compatibility paths 补齐 task ownership。
+- [x] [code_fix] Cross-stage sync rollback：完整快照 architecture files，并在后续 Specs 写失败时恢复旧文件、删除新文件，增加 injected failure integration test。
+- [x] [artifact_fix] Active documentation reconciliation：校准 `docs/cli.md` 与 `docs/migration-guide.md` 的 architecture delta、sync/archive flags 和 bootstrap-arch LikeC4 语义。
+- [x] [code_fix] Legacy validator residue：已删除无 production caller 的 `validateOpsxDelta`、独占 imports 与仅维护孤儿 API 的测试。
 

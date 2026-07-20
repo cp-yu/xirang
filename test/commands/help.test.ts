@@ -13,20 +13,20 @@ const captureLogs = async (run: () => Promise<void>): Promise<string> => {
 };
 
 describe('AuthoringHelpCommand', () => {
-  it('lists the three canonical topics', async () => {
+  it('lists only the active architecture authoring topic', async () => {
     const output = await captureLogs(() => new AuthoringHelpCommand().execute(undefined, {}));
-    expect(output).toContain('project.opsx.yaml');
-    expect(output).toContain('project.opsx.relations.yaml');
     expect(output).toContain('architecture-delta.c4');
+    expect(output).not.toContain('project.opsx.yaml');
+    expect(output).not.toContain('project.opsx.relations.yaml');
   });
 
   it('renders complete relation help from the Registry', async () => {
-    const output = await captureLogs(() => new AuthoringHelpCommand().execute('project.opsx.relations.yaml', {}));
+    const output = await captureLogs(() => new AuthoringHelpCommand().execute('architecture-delta.c4', {}));
     for (const type of ['belongs_to', 'invokes', 'consumes', 'precedes', 'constrains', 'validates']) {
       expect(output).toContain(type);
     }
     expect(output).toContain('选择规则');
-    expect(output).toContain('openspec validate --all');
+    expect(output).toContain('openspec validate --change <name> --artifacts architecture-delta --json');
   });
 
   it('returns Schema-backed definitions and Registry relation details', async () => {
@@ -60,13 +60,15 @@ describe('AuthoringHelpCommand', () => {
     }));
   });
 
-  it('rejects unknown topics and lists valid choices', async () => {
-    await expect(new AuthoringHelpCommand().execute('unknown.yaml', {})).rejects.toThrow('project.opsx.yaml');
+  it('rejects unknown and legacy OPSX topics', async () => {
+    await expect(new AuthoringHelpCommand().execute('unknown.yaml', {})).rejects.toThrow('architecture-delta.c4');
+    await expect(new AuthoringHelpCommand().execute('project.opsx.yaml', {})).rejects.toThrow('未知 authoring topic');
+    await expect(new AuthoringHelpCommand().execute('project.opsx.relations.yaml', {})).rejects.toThrow('未知 authoring topic');
   });
 
   it('requires an exact canonical topic', async () => {
     await expect(
-      new AuthoringHelpCommand().execute('C:\\repo\\openspec\\project.opsx.relations.yaml', {})
+      new AuthoringHelpCommand().execute('C:\\repo\\architecture-delta.c4', {})
     ).rejects.toThrow('未知 authoring topic');
   });
 });

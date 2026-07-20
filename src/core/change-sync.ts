@@ -31,6 +31,7 @@ interface PreparedSpecWrite {
 }
 
 interface PreparedArchitectureWrite {
+  architectureDir: string;
   deltaPath: string;
   originalFiles: Map<string, string>;
 }
@@ -46,13 +47,13 @@ export interface PreparedChangeSync {
 
 export interface AppliedChangeSyncSummary {
   specs: 'no-delta' | 'synced';
-  opsx: 'no-delta' | 'synced';
+  architecture: 'no-delta' | 'synced';
   files: string[];
 }
 
 export interface PendingChangeSync {
   specs: number;
-  opsx: boolean;
+  architecture: boolean;
 }
 
 export async function assessChangeSyncState(
@@ -97,7 +98,7 @@ export async function getPendingChangeSync(
   }
 
 
-  return { specs: pendingSpecs, opsx: state.hasArchitectureDelta };
+  return { specs: pendingSpecs, architecture: state.hasArchitectureDelta };
 }
 
 export async function prepareChangeSync(
@@ -158,14 +159,11 @@ export async function prepareChangeSync(
 
   let architecture: PreparedArchitectureWrite | null = null;
   if (state.hasArchitectureDelta) {
-    const domainsDir = path.join(projectRoot, 'openspec', 'architecture', 'domains');
-    const names = (await fs.readdir(domainsDir)).filter(name => name.endsWith('.c4'));
+    const architectureDir = path.join(projectRoot, 'openspec', 'architecture');
     architecture = {
+      architectureDir,
       deltaPath: path.join(state.changeDir, 'architecture-delta.c4'),
-      originalFiles: new Map(await Promise.all(names.map(async name => {
-        const file = path.join(domainsDir, name);
-        return [file, await fs.readFile(file, 'utf8')] as const;
-      }))),
+      originalFiles: await readFileTree(architectureDir),
     };
   }
 
@@ -187,11 +185,13 @@ export async function applyPreparedChangeSync(
 
   if (prepared.architecture) {
     await mergeArchitectureDelta(projectRoot, prepared.architecture.deltaPath, { changeName: prepared.state.changeName });
-    syncedFiles.push(...Array.from(prepared.architecture.originalFiles.keys(), file => toPosixProjectRelative(projectRoot, file)));
+    const mergedFiles = await readFileTree(prepared.architecture.architectureDir);
+    const allFiles = new Set([...prepared.architecture.originalFiles.keys(), ...mergedFiles.keys()]);
+    syncedFiles.push(...[...allFiles]
+      .filter(file => prepared.architecture!.originalFiles.get(file) !== mergedFiles.get(file))
+      .map(file => toPosixProjectRelative(projectRoot, file)));
     if (!silent) console.log('Architecture updated successfully.');
   }
-
-
 
   try {
     if (prepared.specs.writes.length > 0) {
@@ -208,7 +208,7 @@ export async function applyPreparedChangeSync(
     }
   } catch (error) {
     if (prepared.architecture) {
-      await Promise.all([...prepared.architecture.originalFiles].map(([file, content]) => fs.writeFile(file, content))).catch(() => undefined);
+      await restoreFileTree(prepared.architecture.architectureDir, prepared.architecture.originalFiles);
     }
     throw error;
   }
@@ -217,13 +217,37 @@ export async function applyPreparedChangeSync(
 
   return {
     specs: prepared.specs.writes.length > 0 ? 'synced' : 'no-delta',
-    opsx: prepared.architecture ? 'synced' : 'no-delta',
+    architecture: prepared.architecture ? 'synced' : 'no-delta',
     files: syncedFiles,
   };
 }
 
 async function fileExists(filePath: string): Promise<boolean> {
   try { await fs.access(filePath); return true; } catch { return false; }
+}
+
+async function readFileTree(root: string): Promise<Map<string, string>> {
+  const files = new Map<string, string>();
+  const visit = async (directory: string): Promise<void> => {
+    for (const entry of await fs.readdir(directory, { withFileTypes: true })) {
+      const file = path.join(directory, entry.name);
+      if (entry.isDirectory()) await visit(file);
+      else files.set(file, await fs.readFile(file, 'utf8'));
+    }
+  };
+  await visit(root);
+  return files;
+}
+
+async function restoreFileTree(root: string, snapshot: Map<string, string>): Promise<void> {
+  const current = await readFileTree(root);
+  await Promise.all([...current.keys()]
+    .filter(file => !snapshot.has(file))
+    .map(file => fs.rm(file, { force: true })));
+  for (const [file, content] of snapshot) {
+    await fs.mkdir(path.dirname(file), { recursive: true });
+    await fs.writeFile(file, content, 'utf8');
+  }
 }
 
 async function readOptionalFile(filePath: string): Promise<string | null> {

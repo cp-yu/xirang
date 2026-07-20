@@ -5,14 +5,7 @@ import { SpecSchema, ChangeSchema, Spec, Change } from '../schemas/index.js';
 import { MarkdownParser } from '../parsers/markdown-parser.js';
 import { ChangeParser } from '../parsers/change-parser.js';
 import { ValidationReport, ValidationIssue, ValidationLevel } from './types.js';
-import {
-  applyOpsxDelta,
-  hasOpsxDeltaOperations,
-  OPSX_PATHS,
-  readOpsxDelta,
-  readProjectOpsx,
-} from '../../utils/opsx-utils.js';
-import { validateRelationGraph } from '../relations/validator.js';
+import { readProjectOpsx } from '../../utils/opsx-utils.js';
 import {
   MIN_PURPOSE_LENGTH,
   MAX_REQUIREMENT_TEXT_LENGTH,
@@ -336,64 +329,6 @@ export class Validator {
     }
 
     await this.validateMainSpecFrontmatter(changeDir, issues);
-
-    return this.createReport(issues);
-  }
-
-  async validateOpsxDelta(changeDir: string): Promise<ValidationReport> {
-    const issues: ValidationIssue[] = [];
-    const projectRoot = path.resolve(changeDir, '..', '..', '..');
-    const changeName = path.basename(changeDir);
-
-    let delta;
-    try {
-      delta = await readOpsxDelta(projectRoot, changeName);
-    } catch (error) {
-      issues.push({
-        level: 'ERROR',
-        path: 'opsx-delta.yaml',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      });
-      return this.createReport(issues);
-    }
-
-    if (!delta || !hasOpsxDeltaOperations(delta)) {
-      return this.createReport(issues);
-    }
-
-    const projectOpsxPath = FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.PROJECT_FILE);
-    if (!await FileSystemUtils.fileExists(projectOpsxPath)) {
-      return this.createReport(issues);
-    }
-
-    try {
-      const projectBundle = await readProjectOpsx(projectRoot);
-      if (!projectBundle) {
-        issues.push({
-          level: 'ERROR',
-          path: 'openspec/project.opsx.yaml',
-          message: 'Unable to read openspec/project.opsx.yaml for OPSX dry-run validation',
-        });
-        return this.createReport(issues);
-      }
-
-      const result = applyOpsxDelta(projectBundle, delta);
-      const relationValidation = validateRelationGraph(result.bundle);
-      for (const error of relationValidation.errors) {
-        issues.push({
-          level: 'ERROR',
-          path: 'opsx-delta.yaml',
-          message: `Relation validation failed: ${error}`,
-        });
-      }
-    } catch (error) {
-      const baseMessage = error instanceof Error ? error.message : 'Unknown error';
-      issues.push({
-        level: 'ERROR',
-        path: 'opsx-delta.yaml',
-        message: `OPSX dry-run merge failed: ${baseMessage}`,
-      });
-    }
 
     return this.createReport(issues);
   }

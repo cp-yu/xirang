@@ -350,7 +350,7 @@ OpenSpec now installs one fixed managed workflow surface:
 | `/opsx:explore` | Think through ideas with no structure |
 | `/opsx:apply` | Implement tasks from tasks.md |
 | `/opsx:archive` | Finalize and archive the change |
-| `/opsx:bootstrap-arch` | Bootstrap project OPSX structure for architecture tracking |
+| `/opsx:bootstrap-arch` | Bootstrap the project LikeC4 architecture model |
 
 ### Command Mapping from Legacy
 
