@@ -379,7 +379,7 @@
     "timestamp": "2026-07-20T14:41:26.599Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
         "timestamp": "2026-07-20T13:50:27.880Z",
@@ -410,6 +410,11 @@
         "timestamp": "2026-07-20T14:41:26.575Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-07-20T14:44:25.259Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
@@ -899,7 +904,7 @@
         }
       },
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "src/commands/arch/query.ts"
@@ -1103,9 +1108,16 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-07-20T14:41:26.576Z",
         "findingId": "OPT-20260720T135027878Z-03"
+      },
+      {
+        "sequence": 18,
+        "action": "resolve",
+        "reason": "Checkpoint 51be3795 implemented the result-local endpoint label map and persisted fresh Phase 2 verification passed. Current formatArchitectureQueryText no longer rereads or reparses the LikeC4 architecture, preserves canonical capability labels and raw domain or unknown endpoint fallbacks, and leaves queryArchitecture's verified adjacency traversal and JSON result contract unchanged. Focused current validation passed 2 files and 21 tests, lint and build passed, git diff --check passed, and the worktree and index are clean. All three optimization findings are now implemented and verified, so terminal reconciliation adds no speculative directions.",
+        "timestamp": "2026-07-20T14:44:25.259Z",
+        "findingId": "OPT-20260720T135027878Z-03"
       }
     ],
-    "reconciliationSignature": "6915a3c1eed36af903c395fd820832161f67e0c16bd37067a724020f1869c356",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }
