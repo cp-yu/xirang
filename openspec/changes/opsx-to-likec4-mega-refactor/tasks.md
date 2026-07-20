@@ -931,8 +931,8 @@
   - Expect: `OK`
 
 - [x] **Windows 测试通过**
-  - Evidence: GitHub Actions run `29740790823`, job `88346829738`, head `d6d12012`, conclusion `success`
-  - Command: `gh run view 29740790823 --repo cp-yu/opsx --json conclusion,headSha,jobs,url`
+  - Evidence: GitHub Actions run `29745729421`, job `88363073932`, head `b379378a`, conclusion `success`
+  - Command: `gh run view 29745729421 --repo cp-yu/opsx --json conclusion,headSha,jobs,url`
   - Expect: `conclusion` 为 `success`，`likec4` job 在 `windows-latest` 完成
 
 ---
@@ -967,7 +967,7 @@
 
 ## Remediation
 
-- [x] [code_fix] Windows CI verification：GitHub-hosted Windows run `29740790823` / job `88346829738` 在 implementation head `d6d12012` 通过。
+- [x] [code_fix] Windows CI verification：GitHub-hosted Windows run `29745729421` / job `88363073932` 在 implementation head `b379378a` 通过。
 - [x] [code_fix] Relation visibility：reader 读取 standalone `relations.c4`，migrated-model query E2E 通过。
 - [x] [code_fix] Arch query contract：已实现 bounded traversal、depth annotation、text/JSON fields 与 missing-element coverage。
 - [x] [code_fix] Agent verification：`--agent-verify` 已比较 domains、capabilities、relations、metadata 并持久化 structured report。
