@@ -432,6 +432,7 @@
 
 **Files**:
 - `src/commands/validate.ts` (modify)
+- `src/core/validation/validator.ts` (modify LikeC4-first frontmatter validation; remove orphan legacy validator)
 - `src/commands/help.ts` (modify active authoring topic)
 - `src/cli/index.ts` (modify validation help)
 - `src/validation/architecture-delta-validator.ts` (new)
@@ -442,6 +443,8 @@
 - `src/core/relations/renderers.ts` (modify generated file registry)
 - `test/integration/validate-command.test.ts` (modify)
 - `test/commands/validate.test.ts` (modify)
+- `test/core/validation.cross-check.test.ts` (modify LikeC4-only frontmatter coverage)
+- `test/core/validation.test.ts` (modify orphan validator coverage removal)
 - `test/commands/help.test.ts` (modify)
 - `test/commands/artifact-workflow.test.ts` (modify)
 - `test/core/artifact-graph/` (modify active artifact graph coverage)
@@ -968,6 +971,7 @@
 - [x] [code_fix] Relation visibility：reader 读取 standalone `relations.c4`，migrated-model query E2E 通过。
 - [x] [code_fix] Arch query contract：已实现 bounded traversal、depth annotation、text/JSON fields 与 missing-element coverage。
 - [x] [code_fix] Agent verification：`--agent-verify` 已比较 domains、capabilities、relations、metadata 并持久化 structured report。
+- [x] [artifact_fix] Migration report freshness：`migration-report.json` 已声明 immutable pre-formal-reconciliation baseline，只证明 OPSX source 与即时生成 LikeC4 等价。
 - [x] [code_fix] Ownership cardinality：已检测 canonical capabilityId 多 domain 重复与 precedes self-loop。
 - [x] [code_fix] Change validation：已复用 native LikeC4 delta validation，并移除 active OPSX delta fallback。
 - [x] [code_fix] Delta transaction：已实现 post-merge native validation、multi-file rollback、deterministic relation ordering 与 injected failure test。
@@ -984,10 +988,11 @@
 - [x] [code_fix] Active authoring help：仅暴露 `architecture-delta.c4` 为 active architecture artifact topic，并增加 legacy OPSX topic absence assertion。
 - [x] [code_fix] Generated workflow references：重生成 apply preparation 与 impact evidence protocol，并增加 final project-root parity coverage。
 - [x] [artifact_fix] Formal architecture reconciliation：formal LikeC4 source 已声明 modified LikeC4-first capabilities 与 deprecated retained OPSX capabilities；LikeC4 property-level extend 限制已记录于 design.md。
-- [x] [artifact_fix] Complete Files attribution：已为 intended templates、generated references、docs、tests、migration、CLI 与 compatibility paths 补齐 task ownership。
+- [x] [artifact_fix] Complete Files attribution：已为 intended templates、generated references、docs、tests、migration、CLI、validation remediation 与 compatibility paths 补齐 task ownership。
 - [x] [code_fix] Cross-stage sync rollback：完整快照 architecture files，并在后续 Specs 写失败时恢复旧文件、删除新文件，增加 injected failure integration test。
 - [x] [artifact_fix] Active documentation reconciliation：校准 `docs/cli.md` 与 `docs/migration-guide.md` 的 architecture delta、sync/archive flags 和 bootstrap-arch LikeC4 语义。
 - [x] [code_fix] Legacy validator residue：已删除无 production caller 的 `validateOpsxDelta`、独占 imports 与仅维护孤儿 API 的测试。
 - [x] [artifact_fix] Formal active relation cleanup：formal graph 已无 active-source → deprecated-target relation；deprecated compatibility 子图保留，formal/delta validation 通过。
 - [x] [code_fix] LikeC4-first frontmatter validation：active capability existence 校验通过 formal LikeC4 metadata 读取，不再调用 legacy `readProjectOpsx`。
+- [x] [code_fix] Synced architecture pending detection：成功 merge 后 surviving `architecture-delta.c4` 不再阻塞 normal archive；E2E 证明 archive 删除 delta 且保留 formal merge。
 

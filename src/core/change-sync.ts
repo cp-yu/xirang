@@ -10,6 +10,8 @@ import { refreshVerifyEvidenceAfterSync } from './verify/freshness.js';
 import { Validator } from './validation/validator.js';
 import { extractRequirementsSection, parseDeltaSpec } from './parsers/requirement-blocks.js';
 import { mergeArchitectureDelta } from '../utils/architecture-delta-merger.js';
+import { readLikeC4Architecture } from '../utils/likec4-reader.js';
+import { parseLikeC4Domain } from '../utils/likec4-parser.js';
 
 type SpecCounts = { added: number; modified: number; removed: number; renamed: number };
 
@@ -97,8 +99,11 @@ export async function getPendingChangeSync(
     pendingSpecs += 1;
   }
 
-
-  return { specs: pendingSpecs, architecture: state.hasArchitectureDelta };
+  const architecture = state.hasArchitectureDelta && !await isArchitectureDeltaApplied(
+    projectRoot,
+    path.join(state.changeDir, 'architecture-delta.c4'),
+  );
+  return { specs: pendingSpecs, architecture };
 }
 
 export async function prepareChangeSync(
@@ -159,12 +164,15 @@ export async function prepareChangeSync(
 
   let architecture: PreparedArchitectureWrite | null = null;
   if (state.hasArchitectureDelta) {
-    const architectureDir = path.join(projectRoot, 'openspec', 'architecture');
-    architecture = {
-      architectureDir,
-      deltaPath: path.join(state.changeDir, 'architecture-delta.c4'),
-      originalFiles: await readFileTree(architectureDir),
-    };
+    const deltaPath = path.join(state.changeDir, 'architecture-delta.c4');
+    if (!await isArchitectureDeltaApplied(projectRoot, deltaPath)) {
+      const architectureDir = path.join(projectRoot, 'openspec', 'architecture');
+      architecture = {
+        architectureDir,
+        deltaPath,
+        originalFiles: await readFileTree(architectureDir),
+      };
+    }
   }
 
 
@@ -220,6 +228,22 @@ export async function applyPreparedChangeSync(
     architecture: prepared.architecture ? 'synced' : 'no-delta',
     files: syncedFiles,
   };
+}
+
+async function isArchitectureDeltaApplied(projectRoot: string, deltaPath: string): Promise<boolean> {
+  const delta = parseLikeC4Domain(await fs.readFile(deltaPath, 'utf8'));
+  const formal = await readLikeC4Architecture(projectRoot).catch((error: NodeJS.ErrnoException) => {
+    if (error.code === 'ENOENT') return null;
+    throw error;
+  });
+  if (!formal) return false;
+  const domains = new Set(formal.domains.map(domain => domain.id));
+  const capabilities = new Set(formal.capabilities.flatMap(capability => capability.capabilityId ?? []));
+  const relations = new Set(formal.relations.map(relation => `${relation.source}|${relation.kind}|${relation.target}`));
+
+  return delta.domains.every(domain => domains.has(domain.id))
+    && delta.capabilities.every(capability => capability.capabilityId && capabilities.has(capability.capabilityId))
+    && delta.relations.every(relation => relations.has(`${relation.source}|${relation.kind}|${relation.target}`));
 }
 
 async function fileExists(filePath: string): Promise<boolean> {

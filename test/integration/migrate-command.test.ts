@@ -78,7 +78,10 @@ describe('migrate opsx-to-likec4 command', () => {
     expect(result.stdout).toContain('"valid": true');
     const report = JSON.parse(await fs.readFile(path.join(root, 'openspec', 'architecture', 'migration-report.json'), 'utf8'));
     expect(report).toMatchObject({
-      skill: 'openspec-verify-migration', valid: true,
+      skill: 'openspec-verify-migration',
+      scope: 'opsx-source-to-generated-likec4',
+      baseline: 'pre-formal-reconciliation',
+      valid: true,
       expected: { domains: 1, capabilities: 2, relations: 1 },
       actual: { domains: 1, capabilities: 2, relations: 1 },
     });

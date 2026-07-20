@@ -2,7 +2,13 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { assessChangeSyncState, prepareChangeSync, applyPreparedChangeSync } from '../../src/core/change-sync.js';
+import {
+  assessChangeSyncState,
+  applyPreparedChangeSync,
+  getPendingChangeSync,
+  prepareChangeSync,
+} from '../../src/core/change-sync.js';
+import { ArchiveCommand } from '../../src/core/archive.js';
 
 const formal = `model {
   core = domain 'Core' {
@@ -55,6 +61,33 @@ describe('architecture sync workflow', () => {
     const state = await assessChangeSyncState(root, 'add');
     await applyPreparedChangeSync(root, await prepareChangeSync(root, state, { skipValidation: true }));
     await expect(fs.access(path.join(root, 'openspec', 'specs', 'added', 'spec.md'))).resolves.toBeUndefined();
+  });
+
+  it('should archive a successfully synced architecture delta without losing formal content', async () => {
+    await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), `model {
+  extend core {
+    added = capability 'Added' { metadata { capabilityId 'cap.core.added' } }
+  }
+}
+`);
+    await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] synced architecture\n');
+    const state = await assessChangeSyncState(root, 'add');
+    await applyPreparedChangeSync(root, await prepareChangeSync(root, state, { skipValidation: true }), { silent: true });
+
+    expect((await getPendingChangeSync(root, await assessChangeSyncState(root, 'add'))).architecture).toBe(false);
+    const originalCwd = process.cwd();
+    process.chdir(root);
+    try {
+      await new ArchiveCommand().execute('add', { yes: true, noVerify: true });
+    } finally {
+      process.chdir(originalCwd);
+    }
+
+    const archiveNames = await fs.readdir(path.join(root, 'openspec', 'changes', 'archive'));
+    const archived = path.join(root, 'openspec', 'changes', 'archive', archiveNames.find(name => name.endsWith('-add'))!);
+    await expect(fs.access(path.join(archived, 'architecture-delta.c4'))).rejects.toThrow();
+    await expect(fs.readFile(path.join(root, 'openspec', 'architecture', 'domains', 'core.c4'), 'utf8'))
+      .resolves.toContain("added = capability 'Added'");
   });
 
   it('should restore the complete architecture when a later spec write fails', async () => {

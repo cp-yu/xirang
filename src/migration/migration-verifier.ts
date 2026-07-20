@@ -5,6 +5,9 @@ import { readLikeC4Architecture } from '../utils/likec4-reader.js';
 
 export interface MigrationVerificationReport {
   skill: 'openspec-verify-migration';
+  scope: 'opsx-source-to-generated-likec4';
+  baseline: 'pre-formal-reconciliation';
+  description: string;
   valid: boolean;
   expected: { domains: number; capabilities: number; relations: number };
   actual: { domains: number; capabilities: number; relations: number };
@@ -55,6 +58,9 @@ export async function verifyMigration(projectRoot: string, model: LikeC4Model): 
   };
   const report: MigrationVerificationReport = {
     skill: 'openspec-verify-migration',
+    scope: 'opsx-source-to-generated-likec4',
+    baseline: 'pre-formal-reconciliation',
+    description: 'Compares the legacy OPSX source with its immediate generated LikeC4 output; subsequent formal reconciliation is outside this report.',
     valid: !missing.domains.length && !missing.capabilities.length && !missing.relations.length && !metadataMismatches.length,
     expected: {
       domains: model.domains.length,
