@@ -59,14 +59,16 @@ export async function queryArchitecture(projectRoot: string, id: string, options
   return { element, relations, relatedElements };
 }
 
-function relationEndpoint(id: string, architecture: LikeC4Architecture): string {
-  const element = architecture.capabilities.find(capability => capability.id === id);
-  return element?.capabilityId ?? id;
+function relationEndpoint(id: string, endpointLabels: Map<string, string>): string {
+  return endpointLabels.get(id) ?? id;
 }
 
-export async function formatArchitectureQueryText(projectRoot: string, result: Awaited<ReturnType<typeof queryArchitecture>>): Promise<string> {
-  const architecture = await readLikeC4Architecture(projectRoot);
+export async function formatArchitectureQueryText(_projectRoot: string, result: Awaited<ReturnType<typeof queryArchitecture>>): Promise<string> {
   const element = result.element;
+  const endpointLabels = new Map([[element.id, canonicalId(element)]]);
+  for (const related of result.relatedElements ?? []) {
+    endpointLabels.set(related.element.id, canonicalId(related.element));
+  }
   const lines = [
     `Element: ${canonicalId(element)}`,
     `Type: ${'capabilityId' in element ? 'capability' : 'domain'}`,
@@ -77,7 +79,7 @@ export async function formatArchitectureQueryText(projectRoot: string, result: A
     lines.push('Relations:');
     for (const relation of result.relations) {
       const description = relation.description ? ` - ${relation.description}` : '';
-      lines.push(`  [depth ${relation.depth}] ${relationEndpoint(relation.source, architecture)} --${relation.kind}--> ${relationEndpoint(relation.target, architecture)}${description}`);
+      lines.push(`  [depth ${relation.depth}] ${relationEndpoint(relation.source, endpointLabels)} --${relation.kind}--> ${relationEndpoint(relation.target, endpointLabels)}${description}`);
     }
     for (const related of result.relatedElements) lines.push(`  [depth ${related.depth}] Element: ${canonicalId(related.element)}`);
   }

@@ -89,6 +89,49 @@ describe('arch commands', () => {
     await expect(fs.stat(output)).resolves.toMatchObject({});
   });
 
+  it('should format query results without rereading the architecture', async () => {
+    const read = vi.fn().mockResolvedValue({
+      source: 'likec4',
+      files: [],
+      domains: [{ id: 'core', title: 'Core' }],
+      capabilities: [{
+        id: 'core.root',
+        title: 'Root',
+        domain: 'core',
+        description: 'Runs root',
+        specs: ['openspec/specs/root/spec.md'],
+        capabilityId: 'cap.core.root',
+      }],
+      relations: [{
+        source: 'core.root',
+        kind: 'invokes',
+        target: 'core',
+        description: 'Calls domain',
+      }],
+    });
+    vi.resetModules();
+    vi.doMock('../../src/utils/likec4-reader.js', () => ({ readLikeC4Architecture: read }));
+
+    try {
+      const query = await import('../../src/commands/arch/query.js');
+      const result = await query.queryArchitecture('/project', 'cap.core.root', { relations: true });
+      const output = await query.formatArchitectureQueryText('/project', result);
+
+      expect(read).toHaveBeenCalledTimes(1);
+      expect(output).toBe(`Element: cap.core.root
+Type: capability
+Description: Runs root
+Specs:
+  openspec/specs/root/spec.md
+Relations:
+  [depth 1] cap.core.root --invokes--> core - Calls domain
+  [depth 1] Element: core`);
+    } finally {
+      vi.doUnmock('../../src/utils/likec4-reader.js');
+      vi.resetModules();
+    }
+  });
+
   it('should index relations once while preserving traversal semantics', async () => {
     const capability = (id: string) => ({
       id: `core.${id}`,
