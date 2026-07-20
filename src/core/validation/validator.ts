@@ -5,7 +5,7 @@ import { SpecSchema, ChangeSchema, Spec, Change } from '../schemas/index.js';
 import { MarkdownParser } from '../parsers/markdown-parser.js';
 import { ChangeParser } from '../parsers/change-parser.js';
 import { ValidationReport, ValidationIssue, ValidationLevel } from './types.js';
-import { readProjectOpsx } from '../../utils/opsx-utils.js';
+import { readLikeC4Architecture } from '../../utils/likec4-reader.js';
 import {
   MIN_PURPOSE_LENGTH,
   MAX_REQUIREMENT_TEXT_LENGTH,
@@ -603,9 +603,12 @@ export class Validator {
   private async validateMainSpecFrontmatter(changeDir: string, issues: ValidationIssue[]): Promise<void> {
     const projectRoot = path.resolve(changeDir, '..', '..', '..');
     const mainSpecsDir = path.join(projectRoot, 'openspec', 'specs');
-    const projectBundle = await readProjectOpsx(projectRoot);
-    const knownCaps = projectBundle
-      ? new Set(projectBundle.capabilities.map(capability => capability.id))
+    const architecture = await readLikeC4Architecture(projectRoot).catch((error: NodeJS.ErrnoException) => {
+      if (error.code === 'ENOENT') return null;
+      throw error;
+    });
+    const knownCaps = architecture
+      ? new Set(architecture.capabilities.flatMap(capability => capability.capabilityId ?? []))
       : null;
 
     let entries;
@@ -633,7 +636,7 @@ export class Validator {
         issues.push({
           level: 'WARNING',
           path: issuePath,
-          message: `Spec "${specName}" has no capabilities frontmatter. Add capabilities frontmatter to map it to OPSX capabilities.`,
+          message: `Spec "${specName}" has no capabilities frontmatter. Add capabilities frontmatter to map it to architecture capabilities.`,
         });
         continue;
       }

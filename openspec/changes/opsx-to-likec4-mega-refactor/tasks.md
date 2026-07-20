@@ -988,4 +988,6 @@
 - [x] [code_fix] Cross-stage sync rollback：完整快照 architecture files，并在后续 Specs 写失败时恢复旧文件、删除新文件，增加 injected failure integration test。
 - [x] [artifact_fix] Active documentation reconciliation：校准 `docs/cli.md` 与 `docs/migration-guide.md` 的 architecture delta、sync/archive flags 和 bootstrap-arch LikeC4 语义。
 - [x] [code_fix] Legacy validator residue：已删除无 production caller 的 `validateOpsxDelta`、独占 imports 与仅维护孤儿 API 的测试。
+- [x] [artifact_fix] Formal active relation cleanup：formal graph 已无 active-source → deprecated-target relation；deprecated compatibility 子图保留，formal/delta validation 通过。
+- [x] [code_fix] LikeC4-first frontmatter validation：active capability existence 校验通过 formal LikeC4 metadata 读取，不再调用 legacy `readProjectOpsx`。
 

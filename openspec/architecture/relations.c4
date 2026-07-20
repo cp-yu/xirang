@@ -61,8 +61,6 @@ model {
 
   cli.command_reference_consistency -[validates]-> ai_integration.workflow_templates
 
-  cli.command_reference_consistency -[validates]-> opsx_element.bootstrap
-
   cli.command_reference_consistency -[validates]-> verify.cli_gate
 
   cli.completion -[invokes]-> cli.completion_introspect
