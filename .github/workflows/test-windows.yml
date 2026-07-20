@@ -1,0 +1,26 @@
+name: LikeC4 Windows
+
+on:
+  pull_request:
+  push:
+    branches: [main, opsx-to-likec4-mega-refactor]
+
+permissions:
+  contents: read
+
+jobs:
+  likec4:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.22.3'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+      - name: Verify migration and architecture commands
+        run: pnpm exec vitest run test/integration/migrate-command.test.ts test/integration/arch-command.test.ts test/unit/migration/likec4-generator.test.ts test/unit/utils/likec4-reader.test.ts
