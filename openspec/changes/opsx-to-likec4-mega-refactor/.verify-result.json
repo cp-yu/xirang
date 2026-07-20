@@ -1,0 +1,764 @@
+{
+  "timestamp": "2026-07-20T13:32:08.216Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "fb6b5bb803d626bf566e186485193cc5e1218627a265d52bc934a9c44b9eeb42",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".pi/skills/openspec-bootstrap-arch/SKILL.md",
+      "openspec/architecture/migration-report.json",
+      "openspec/architecture/project.c4",
+      "openspec/architecture/relations.c4",
+      "openspec/architecture/specification.c4",
+      "openspec/architecture/views.c4",
+      "openspec/changes/opsx-to-likec4-mega-refactor/.apply-isolation.json",
+      "openspec/changes/opsx-to-likec4-mega-refactor/.verify-result.json",
+      "openspec/changes/opsx-to-likec4-mega-refactor/architecture-delta.c4",
+      "openspec/changes/opsx-to-likec4-mega-refactor/design.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/proposal.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-export-command/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-preview-command/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-query-command/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-validate-command/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/architecture-delta-artifact/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/archive-sync-workflow/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/init-project-structure/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/likec4-semantic-validator/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/migrate-opsx-to-likec4/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-apply-skill/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-bootstrap-opsx/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-impact-sweeper/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-propose-skill/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/spec-pseudocode-support/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/specs/validate-change/spec.md",
+      "openspec/changes/opsx-to-likec4-mega-refactor/tasks.md",
+      "openspec/project.opsx.relations.yaml.backup",
+      "openspec/project.opsx.yaml.backup",
+      "schemas/spec-driven/schema.yaml",
+      "schemas/spec-driven/templates/architecture-delta.c4",
+      "src/commands/arch/export.ts",
+      "src/commands/arch/index.ts",
+      "src/commands/arch/preview.ts",
+      "src/commands/arch/query.ts",
+      "src/commands/arch/runner.ts",
+      "src/commands/arch/validate.ts",
+      "src/commands/migrate/opsx-to-likec4.ts",
+      "src/commands/sync.ts",
+      "src/core/archive.ts",
+      "src/core/change-sync.ts",
+      "src/core/templates/workflows/bootstrap-arch.ts",
+      "src/migration/converters/element-mapper.ts",
+      "src/migration/converters/opsx-to-likec4.ts",
+      "src/migration/converters/relation-mapper.ts",
+      "src/migration/generators/domain-file-generator.ts",
+      "src/migration/generators/likec4-file-generator.ts",
+      "src/migration/generators/relation-file-generator.ts",
+      "src/migration/generators/specification-generator.ts",
+      "src/migration/generators/views-generator.ts",
+      "src/migration/migration-verifier.ts",
+      "src/migration/utils/spec-path-inference.ts",
+      "src/utils/architecture-delta-merger.ts",
+      "src/utils/architecture-reader.ts",
+      "src/utils/architecture-validator.ts",
+      "src/utils/likec4-parser.ts",
+      "src/utils/likec4-reader.ts",
+      "src/utils/likec4-writer.ts",
+      "src/utils/semantic-checks/cycle-detector.ts",
+      "src/utils/semantic-checks/metadata-validator.ts",
+      "src/utils/semantic-checks/ownership-validator.ts",
+      "src/validation/architecture-delta-validator.ts",
+      "test/integration/arch-command.test.ts",
+      "test/integration/archive-workflow.test.ts",
+      "test/integration/migrate-command.test.ts",
+      "test/integration/sync-workflow.test.ts",
+      "test/integration/validate-command.test.ts",
+      "test/performance/large-project.test.ts",
+      "test/unit/migration/migration-verifier.test.ts",
+      "test/unit/utils/architecture-delta-merger.test.ts",
+      "test/unit/utils/architecture-validator.test.ts",
+      "test/unit/utils/likec4-reader.test.ts",
+      "tests/e2e/bootstrap-test.sh"
+    ],
+    "evidenceFingerprint": "b852ed491f2c03ae8d054c01eb250cde55db0558c2f1809d686c27fcbb5a6dbe",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".pi/skills/openspec-bootstrap-arch/SKILL.md",
+        "hash": "aa27d030fd55ccc6d7b9861ea4c2d603447ad01d3b6ed81430a418ba4daf5d20"
+      },
+      {
+        "path": "openspec/architecture/migration-report.json",
+        "hash": "36616b58afbdba226810b5cc5119f27c4108270d88a465d7ce7c062744e698ec"
+      },
+      {
+        "path": "openspec/architecture/project.c4",
+        "hash": "7edbc86c3c3190e0a2577cab3e15aaeefc73a017b2685d9edd292d33b231d90d"
+      },
+      {
+        "path": "openspec/architecture/relations.c4",
+        "hash": "872bca4916f3799ff1ffd1b1359263400d72b82438778dd88100d6c58a57cd15"
+      },
+      {
+        "path": "openspec/architecture/specification.c4",
+        "hash": "566865167084ec21464427ce173f0ba19d04a6042b499da6010bbf86cbb325c3"
+      },
+      {
+        "path": "openspec/architecture/views.c4",
+        "hash": "3e87607cc7c04d41eef71586107dff48b9a159341972fac10efd09bb8819cf3d"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/.apply-isolation.json",
+        "hash": "18072e3b8fb795b6a62c09585402cd4e5b633ee35a2f1fdf679e59b252830f48"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/architecture-delta.c4",
+        "hash": "dcb90de121b474c2cc5467a929ea12fc4351817f93e7ef2de6a2b035af17bf51"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/design.md",
+        "hash": "0fd92e55ae56b274bd6614562ae33b2be4adceef7153cd67b5729cfc76e13493"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/proposal.md",
+        "hash": "0de0d23636411c499b8e5e55826a15b99142dd4836cdafbcf66aa415a9db5576"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-export-command/spec.md",
+        "hash": "4e153213f45b9fedbd1d524728a1b4c85f851efc32874e0b224769a9764ce2da"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-preview-command/spec.md",
+        "hash": "324c47821722637226ca437556ff028ff2751e358edae645b60c5c4a54da3ea7"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-query-command/spec.md",
+        "hash": "48a1f2686b998635bf86a35241235f32c5d3dd05dc0e9bcb9de5281ecd15908c"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-validate-command/spec.md",
+        "hash": "5a417fd15ce62e454e5c8b5beeb4c5e46b2f6b37b9e0ce863ae369d88aaf6f11"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/architecture-delta-artifact/spec.md",
+        "hash": "085a1d0b38cf395e9cb9aa28e52857bb9a71365fd48c4993ad81cd24cd5f9e87"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/archive-sync-workflow/spec.md",
+        "hash": "be367547cc811238aa610893d7456b4b6718c92a41549476e726cf20f3420993"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/init-project-structure/spec.md",
+        "hash": "6f4993121b32f43d1e1e099d3ae5011b70bf42ffd55b4ebff3ea608734b61a6f"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/likec4-semantic-validator/spec.md",
+        "hash": "d7dca442a83a9c1c674bb3fb967fd0b70842576062bb068782bb5887094c2301"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/migrate-opsx-to-likec4/spec.md",
+        "hash": "2af86228633c8a37193324c6ec37a3b901ccc5de68e675acdebc75547c562d33"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-apply-skill/spec.md",
+        "hash": "3f2fb47a8ff29fa2af619bc0dad39d60ac332136f2e877d825cfa6814a30ec5c"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-bootstrap-opsx/spec.md",
+        "hash": "9a05a42bdd3f41b0bb8343e9913ac3122154c57567f589c2f08737faf9ecb624"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-impact-sweeper/spec.md",
+        "hash": "1a278cf626c6707c235e5756e0963ee180f4cd91e90563b0d270877b4e73cd2f"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-propose-skill/spec.md",
+        "hash": "c70d3a6e95b7bb7965708beb0048cb59a9d4bd79d856908ec881ef7e74bb0a61"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/spec-pseudocode-support/spec.md",
+        "hash": "406d47e3f32b6fefd51db8adce6c1cacd8b9b4fb8c9d3549d49acd550e9d5b2b"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/validate-change/spec.md",
+        "hash": "74b78e82fa2e954428f75d7089d0ced732cd67325b9d02c48c1ba59c43eed074"
+      },
+      {
+        "path": "openspec/changes/opsx-to-likec4-mega-refactor/tasks.md",
+        "hash": "fb6b5bb803d626bf566e186485193cc5e1218627a265d52bc934a9c44b9eeb42"
+      },
+      {
+        "path": "openspec/project.opsx.relations.yaml.backup",
+        "hash": "df5cca67b7c16bdd929e692fef5e51b2101489644b80c3578a39efe584e4795a"
+      },
+      {
+        "path": "openspec/project.opsx.yaml.backup",
+        "hash": "a511ef2c20b6d442deba7e63f82ea7059cc5ce5a1c695c5d476b616a34e4842b"
+      },
+      {
+        "path": "schemas/spec-driven/schema.yaml",
+        "hash": "420b50f22671b7130914378b20426983f17339a94a3a7f0fe57231b59a295e88"
+      },
+      {
+        "path": "schemas/spec-driven/templates/architecture-delta.c4",
+        "hash": "1c0ca8c1ad44fd6b821308cccfd591feb790fcd17c4da52d6005a4d83229643c"
+      },
+      {
+        "path": "src/commands/arch/export.ts",
+        "hash": "1e19058b4fc961f99e746e97765944855d22be608d47876a412c46ab7f0439c9"
+      },
+      {
+        "path": "src/commands/arch/index.ts",
+        "hash": "4c60bfb866d42c51766b42aedc197cac36921ea5e33c40010762b1281b7f5c4b"
+      },
+      {
+        "path": "src/commands/arch/preview.ts",
+        "hash": "43915c694d463f35c9ad71b2d3ef1b9942773b2e65766a65f1843915f4de628e"
+      },
+      {
+        "path": "src/commands/arch/query.ts",
+        "hash": "6bc106cef784f5dd55af52e557b268d452c8aefdf73b85dc0ab4254195f79649"
+      },
+      {
+        "path": "src/commands/arch/runner.ts",
+        "hash": "ff967e030f53a519c788b747857801d7a4cb63401cd2c24e7994c958d2f7e02f"
+      },
+      {
+        "path": "src/commands/arch/validate.ts",
+        "hash": "1eb221b93a711868f47bbed72f5811bc63ce8809a8865948243f04ceaf88e48b"
+      },
+      {
+        "path": "src/commands/migrate/opsx-to-likec4.ts",
+        "hash": "ec7bdb68208cc7a7b060538ce23bacfdd3c9445ab152bc169c1013a02427cdd8"
+      },
+      {
+        "path": "src/commands/sync.ts",
+        "hash": "5cf7aeb0a443374eaf9911816f469b075ac762d77fcc361f9a05146693088eb9"
+      },
+      {
+        "path": "src/core/archive.ts",
+        "hash": "50adaee9b321a8ef1be954a905916dfbcb3cce50b2e60ebecebaa1fd15b33413"
+      },
+      {
+        "path": "src/core/change-sync.ts",
+        "hash": "69c4b17665148a0f6406e570e53f54702ce2966f7834d3855ff5e486051ebe60"
+      },
+      {
+        "path": "src/core/templates/workflows/bootstrap-arch.ts",
+        "hash": "eb259865e75b2015292ebaf86868d2af7ab46160b89bf9a5dbabfc22bb911611"
+      },
+      {
+        "path": "src/migration/converters/element-mapper.ts",
+        "hash": "ed1607ebffb99e94b59adb813c4120f8555c41ccb17e80421c94633e73dd667b"
+      },
+      {
+        "path": "src/migration/converters/opsx-to-likec4.ts",
+        "hash": "d79ab3f08563041729e9f2ef0adedba72feb7c0a1c00a19ee9a60f397820ed7d"
+      },
+      {
+        "path": "src/migration/converters/relation-mapper.ts",
+        "hash": "692fd5338f33a4f5d79ee1d7a0324d5beca29bdb7fa46ad97333ed828d762b47"
+      },
+      {
+        "path": "src/migration/generators/domain-file-generator.ts",
+        "hash": "75f785fbb684d18c0daff56a4d3f5ccdec0c7ce6f45307d88f3470da4d802ae5"
+      },
+      {
+        "path": "src/migration/generators/likec4-file-generator.ts",
+        "hash": "ddc9bc2c67956ebbdbfd7f7924d3b89f5ad6d9f7a5f0e1782327a4772e98aaac"
+      },
+      {
+        "path": "src/migration/generators/relation-file-generator.ts",
+        "hash": "c22ff2221aed4d3ef362d6933feaff56d5eb2b88dbae4b3300f6d6cf941e23e5"
+      },
+      {
+        "path": "src/migration/generators/specification-generator.ts",
+        "hash": "cdc4174539ae3349ecb214bb48bd3babdc37d09455b6bc3a85228d7883064273"
+      },
+      {
+        "path": "src/migration/generators/views-generator.ts",
+        "hash": "71e4b11f89c56d8c40f693c2922290bf8dbb4d886a785378ef166ccd6f69ff12"
+      },
+      {
+        "path": "src/migration/migration-verifier.ts",
+        "hash": "227cdd11e59937f2cf5bb05297eeebe0d20a2a44398c7567d9f5a5119df9d3c8"
+      },
+      {
+        "path": "src/migration/utils/spec-path-inference.ts",
+        "hash": "681a5471efc4332e6038541e5225ad0401685a12d4d1142faa7cd9c62bfeb809"
+      },
+      {
+        "path": "src/utils/architecture-delta-merger.ts",
+        "hash": "8c362e89464d5d653d2160b7c503385593f8716cf5ab3304af3d54bc1909602c"
+      },
+      {
+        "path": "src/utils/architecture-reader.ts",
+        "hash": "377f247632859bc01b0c960b851e519f62497b6ffe9efe54e0da300c1e045253"
+      },
+      {
+        "path": "src/utils/architecture-validator.ts",
+        "hash": "3556f47c64c01f11d6f4c1f5e28391e69d0058267644f404105904e2c09dc0be"
+      },
+      {
+        "path": "src/utils/likec4-parser.ts",
+        "hash": "27d4cf5d32e1613b8e926aed503594386b0197548cea20d4a6cc55fa02361bd6"
+      },
+      {
+        "path": "src/utils/likec4-reader.ts",
+        "hash": "d1034b247299255be058d98e64fbd698aed05cd44ddae1385ea0008f0433bca0"
+      },
+      {
+        "path": "src/utils/likec4-writer.ts",
+        "hash": "c60e265a6fff44008401460e10ce027750dee2cb34769178105ae9f929a3e9f0"
+      },
+      {
+        "path": "src/utils/semantic-checks/cycle-detector.ts",
+        "hash": "bc5f736fe8916b1ff6f14075c5bace0a058e1c6854564f7a04e4e5887e14f36c"
+      },
+      {
+        "path": "src/utils/semantic-checks/metadata-validator.ts",
+        "hash": "c6c19ab30ebc1599f271fcc5d9c3a3af8e9f389fb1cfb80424b1aa72059cea11"
+      },
+      {
+        "path": "src/utils/semantic-checks/ownership-validator.ts",
+        "hash": "c848f40bbd1d12e3b1cbc5176411fbf22bfe2f2d253b20c69cedc2c2a25a8f53"
+      },
+      {
+        "path": "src/validation/architecture-delta-validator.ts",
+        "hash": "b65f2892c9b85bb431c7f08e31e61e5a0c748d8fad2a744f7fd856fa7ee289da"
+      },
+      {
+        "path": "test/integration/arch-command.test.ts",
+        "hash": "647aac6c8794a111c38c273564798e6c7fce0ef93b5b886eaf94fd3dd35efc55"
+      },
+      {
+        "path": "test/integration/archive-workflow.test.ts",
+        "hash": "2d5776c0e29a8008b7a0ff8382ec9dba03f4243d12c65ae4abdddf589d1a44e1"
+      },
+      {
+        "path": "test/integration/migrate-command.test.ts",
+        "hash": "64577ec4cb67739fd0bbac9e7e3e3daab4af6469a5b725c53ba845ce942d5030"
+      },
+      {
+        "path": "test/integration/sync-workflow.test.ts",
+        "hash": "020e8e03c9167b73bcbaba7c5377fb46a2964427285aa3e2f05718c68815947e"
+      },
+      {
+        "path": "test/integration/validate-command.test.ts",
+        "hash": "7ce8df32d307b5f8062f72f44e40361747e0a95089d5dc9471ba644bd3e958c4"
+      },
+      {
+        "path": "test/performance/large-project.test.ts",
+        "hash": "ce2cd05815872a3aa60010ae40ec4d2926ee9e347f38905db6673f010d096fbd"
+      },
+      {
+        "path": "test/unit/migration/migration-verifier.test.ts",
+        "hash": "f1fd773960d17c5fe1e1c1ae1784c476293187bbcc770e7f602e123fa093fd18"
+      },
+      {
+        "path": "test/unit/utils/architecture-delta-merger.test.ts",
+        "hash": "65ea7d1b8bb23a25c38e997684e966e3a1360357844aee1fdd5f89b52e5f7dbe"
+      },
+      {
+        "path": "test/unit/utils/architecture-validator.test.ts",
+        "hash": "c90044021893addab044dcfbc7eb29ea021f5258374e3b3e8fb5281ae725347a"
+      },
+      {
+        "path": "test/unit/utils/likec4-reader.test.ts",
+        "hash": "2fa5bbf25b0c68c65f9bd3ede6eb2775229b42642c992edc0e2742f5b0aae395"
+      },
+      {
+        "path": "tests/e2e/bootstrap-test.sh",
+        "hash": "3472f4313d5fe46c7f4e03b35bd7a4f0c724369503f722e190d5b6104798186d"
+      }
+    ],
+    "skippedEvidenceFiles": [
+      "openspec/changes/opsx-to-likec4-mega-refactor/.verify-result.json"
+    ],
+    "gitHeadCommit": "fa272ae2ae9d150feced86385718c4e2a9b5e9c3",
+    "gitDiffSummary": "Validated projectRoot, changeDir, and changeName. Immutable baseCommit 5f600da0a38665e231a29597ccd0fd5c2c5f638b resolves; final HEAD fa272ae2ae9d150feced86385718c4e2a9b5e9c3. Considered git diff 5f600da0a38665e231a29597ccd0fd5c2c5f638b...HEAD --name-only together with git status --short; all scoped changes are attributed by task Files, command Check evidence, or change artifacts. No staged files exist. Declared deletions were confirmed, including active opsx-delta templates, legacy bootstrap skill/template tests, and original OPSX files renamed to backups. git diff --check passed. pnpm lint passed with only the documented local Node 22.21.1 engine warning. pnpm run build passed. Full pnpm test passed: 153 files and 2150 tests. Formal LikeC4 validation passed 14 files; formal plus architecture delta validation passed 15 files. openspec arch validate passed. openspec validate --all passed 108/108. E2E bootstrap passed. Formal self-host arch query with relations, depth, and JSON output passed. Performance migration test passed at approximately 203ms for 1000 capabilities. Latest sync remediation was verified in final code and integration tests: semantic comparison includes domain and capability properties, normalized Specs paths, relation source/kind/target, and descriptions; extension capabilities are assigned to their target domain without double counting; collision and idempotence workflows pass; successful sync remains archiveable without losing formal content. Legacy OPSX references are confined to deprecated, migration, historical, or compatibility surfaces."
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-07-20T13:32:08.216Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "fb6b5bb803d626bf566e186485193cc5e1218627a265d52bc934a9c44b9eeb42",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".pi/skills/openspec-bootstrap-arch/SKILL.md",
+          "openspec/architecture/migration-report.json",
+          "openspec/architecture/project.c4",
+          "openspec/architecture/relations.c4",
+          "openspec/architecture/specification.c4",
+          "openspec/architecture/views.c4",
+          "openspec/changes/opsx-to-likec4-mega-refactor/.apply-isolation.json",
+          "openspec/changes/opsx-to-likec4-mega-refactor/.verify-result.json",
+          "openspec/changes/opsx-to-likec4-mega-refactor/architecture-delta.c4",
+          "openspec/changes/opsx-to-likec4-mega-refactor/design.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/proposal.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-export-command/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-preview-command/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-query-command/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-validate-command/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/architecture-delta-artifact/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/archive-sync-workflow/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/init-project-structure/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/likec4-semantic-validator/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/migrate-opsx-to-likec4/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-apply-skill/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-bootstrap-opsx/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-impact-sweeper/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-propose-skill/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/spec-pseudocode-support/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/specs/validate-change/spec.md",
+          "openspec/changes/opsx-to-likec4-mega-refactor/tasks.md",
+          "openspec/project.opsx.relations.yaml.backup",
+          "openspec/project.opsx.yaml.backup",
+          "schemas/spec-driven/schema.yaml",
+          "schemas/spec-driven/templates/architecture-delta.c4",
+          "src/commands/arch/export.ts",
+          "src/commands/arch/index.ts",
+          "src/commands/arch/preview.ts",
+          "src/commands/arch/query.ts",
+          "src/commands/arch/runner.ts",
+          "src/commands/arch/validate.ts",
+          "src/commands/migrate/opsx-to-likec4.ts",
+          "src/commands/sync.ts",
+          "src/core/archive.ts",
+          "src/core/change-sync.ts",
+          "src/core/templates/workflows/bootstrap-arch.ts",
+          "src/migration/converters/element-mapper.ts",
+          "src/migration/converters/opsx-to-likec4.ts",
+          "src/migration/converters/relation-mapper.ts",
+          "src/migration/generators/domain-file-generator.ts",
+          "src/migration/generators/likec4-file-generator.ts",
+          "src/migration/generators/relation-file-generator.ts",
+          "src/migration/generators/specification-generator.ts",
+          "src/migration/generators/views-generator.ts",
+          "src/migration/migration-verifier.ts",
+          "src/migration/utils/spec-path-inference.ts",
+          "src/utils/architecture-delta-merger.ts",
+          "src/utils/architecture-reader.ts",
+          "src/utils/architecture-validator.ts",
+          "src/utils/likec4-parser.ts",
+          "src/utils/likec4-reader.ts",
+          "src/utils/likec4-writer.ts",
+          "src/utils/semantic-checks/cycle-detector.ts",
+          "src/utils/semantic-checks/metadata-validator.ts",
+          "src/utils/semantic-checks/ownership-validator.ts",
+          "src/validation/architecture-delta-validator.ts",
+          "test/integration/arch-command.test.ts",
+          "test/integration/archive-workflow.test.ts",
+          "test/integration/migrate-command.test.ts",
+          "test/integration/sync-workflow.test.ts",
+          "test/integration/validate-command.test.ts",
+          "test/performance/large-project.test.ts",
+          "test/unit/migration/migration-verifier.test.ts",
+          "test/unit/utils/architecture-delta-merger.test.ts",
+          "test/unit/utils/architecture-validator.test.ts",
+          "test/unit/utils/likec4-reader.test.ts",
+          "tests/e2e/bootstrap-test.sh"
+        ],
+        "evidenceFingerprint": "b852ed491f2c03ae8d054c01eb250cde55db0558c2f1809d686c27fcbb5a6dbe",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".pi/skills/openspec-bootstrap-arch/SKILL.md",
+            "hash": "aa27d030fd55ccc6d7b9861ea4c2d603447ad01d3b6ed81430a418ba4daf5d20"
+          },
+          {
+            "path": "openspec/architecture/migration-report.json",
+            "hash": "36616b58afbdba226810b5cc5119f27c4108270d88a465d7ce7c062744e698ec"
+          },
+          {
+            "path": "openspec/architecture/project.c4",
+            "hash": "7edbc86c3c3190e0a2577cab3e15aaeefc73a017b2685d9edd292d33b231d90d"
+          },
+          {
+            "path": "openspec/architecture/relations.c4",
+            "hash": "872bca4916f3799ff1ffd1b1359263400d72b82438778dd88100d6c58a57cd15"
+          },
+          {
+            "path": "openspec/architecture/specification.c4",
+            "hash": "566865167084ec21464427ce173f0ba19d04a6042b499da6010bbf86cbb325c3"
+          },
+          {
+            "path": "openspec/architecture/views.c4",
+            "hash": "3e87607cc7c04d41eef71586107dff48b9a159341972fac10efd09bb8819cf3d"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/.apply-isolation.json",
+            "hash": "18072e3b8fb795b6a62c09585402cd4e5b633ee35a2f1fdf679e59b252830f48"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/architecture-delta.c4",
+            "hash": "dcb90de121b474c2cc5467a929ea12fc4351817f93e7ef2de6a2b035af17bf51"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/design.md",
+            "hash": "0fd92e55ae56b274bd6614562ae33b2be4adceef7153cd67b5729cfc76e13493"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/proposal.md",
+            "hash": "0de0d23636411c499b8e5e55826a15b99142dd4836cdafbcf66aa415a9db5576"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-export-command/spec.md",
+            "hash": "4e153213f45b9fedbd1d524728a1b4c85f851efc32874e0b224769a9764ce2da"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-preview-command/spec.md",
+            "hash": "324c47821722637226ca437556ff028ff2751e358edae645b60c5c4a54da3ea7"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-query-command/spec.md",
+            "hash": "48a1f2686b998635bf86a35241235f32c5d3dd05dc0e9bcb9de5281ecd15908c"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/arch-validate-command/spec.md",
+            "hash": "5a417fd15ce62e454e5c8b5beeb4c5e46b2f6b37b9e0ce863ae369d88aaf6f11"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/architecture-delta-artifact/spec.md",
+            "hash": "085a1d0b38cf395e9cb9aa28e52857bb9a71365fd48c4993ad81cd24cd5f9e87"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/archive-sync-workflow/spec.md",
+            "hash": "be367547cc811238aa610893d7456b4b6718c92a41549476e726cf20f3420993"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/init-project-structure/spec.md",
+            "hash": "6f4993121b32f43d1e1e099d3ae5011b70bf42ffd55b4ebff3ea608734b61a6f"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/likec4-semantic-validator/spec.md",
+            "hash": "d7dca442a83a9c1c674bb3fb967fd0b70842576062bb068782bb5887094c2301"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/migrate-opsx-to-likec4/spec.md",
+            "hash": "2af86228633c8a37193324c6ec37a3b901ccc5de68e675acdebc75547c562d33"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-apply-skill/spec.md",
+            "hash": "3f2fb47a8ff29fa2af619bc0dad39d60ac332136f2e877d825cfa6814a30ec5c"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-bootstrap-opsx/spec.md",
+            "hash": "9a05a42bdd3f41b0bb8343e9913ac3122154c57567f589c2f08737faf9ecb624"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-impact-sweeper/spec.md",
+            "hash": "1a278cf626c6707c235e5756e0963ee180f4cd91e90563b0d270877b4e73cd2f"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/openspec-propose-skill/spec.md",
+            "hash": "c70d3a6e95b7bb7965708beb0048cb59a9d4bd79d856908ec881ef7e74bb0a61"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/spec-pseudocode-support/spec.md",
+            "hash": "406d47e3f32b6fefd51db8adce6c1cacd8b9b4fb8c9d3549d49acd550e9d5b2b"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/specs/validate-change/spec.md",
+            "hash": "74b78e82fa2e954428f75d7089d0ced732cd67325b9d02c48c1ba59c43eed074"
+          },
+          {
+            "path": "openspec/changes/opsx-to-likec4-mega-refactor/tasks.md",
+            "hash": "fb6b5bb803d626bf566e186485193cc5e1218627a265d52bc934a9c44b9eeb42"
+          },
+          {
+            "path": "openspec/project.opsx.relations.yaml.backup",
+            "hash": "df5cca67b7c16bdd929e692fef5e51b2101489644b80c3578a39efe584e4795a"
+          },
+          {
+            "path": "openspec/project.opsx.yaml.backup",
+            "hash": "a511ef2c20b6d442deba7e63f82ea7059cc5ce5a1c695c5d476b616a34e4842b"
+          },
+          {
+            "path": "schemas/spec-driven/schema.yaml",
+            "hash": "420b50f22671b7130914378b20426983f17339a94a3a7f0fe57231b59a295e88"
+          },
+          {
+            "path": "schemas/spec-driven/templates/architecture-delta.c4",
+            "hash": "1c0ca8c1ad44fd6b821308cccfd591feb790fcd17c4da52d6005a4d83229643c"
+          },
+          {
+            "path": "src/commands/arch/export.ts",
+            "hash": "1e19058b4fc961f99e746e97765944855d22be608d47876a412c46ab7f0439c9"
+          },
+          {
+            "path": "src/commands/arch/index.ts",
+            "hash": "4c60bfb866d42c51766b42aedc197cac36921ea5e33c40010762b1281b7f5c4b"
+          },
+          {
+            "path": "src/commands/arch/preview.ts",
+            "hash": "43915c694d463f35c9ad71b2d3ef1b9942773b2e65766a65f1843915f4de628e"
+          },
+          {
+            "path": "src/commands/arch/query.ts",
+            "hash": "6bc106cef784f5dd55af52e557b268d452c8aefdf73b85dc0ab4254195f79649"
+          },
+          {
+            "path": "src/commands/arch/runner.ts",
+            "hash": "ff967e030f53a519c788b747857801d7a4cb63401cd2c24e7994c958d2f7e02f"
+          },
+          {
+            "path": "src/commands/arch/validate.ts",
+            "hash": "1eb221b93a711868f47bbed72f5811bc63ce8809a8865948243f04ceaf88e48b"
+          },
+          {
+            "path": "src/commands/migrate/opsx-to-likec4.ts",
+            "hash": "ec7bdb68208cc7a7b060538ce23bacfdd3c9445ab152bc169c1013a02427cdd8"
+          },
+          {
+            "path": "src/commands/sync.ts",
+            "hash": "5cf7aeb0a443374eaf9911816f469b075ac762d77fcc361f9a05146693088eb9"
+          },
+          {
+            "path": "src/core/archive.ts",
+            "hash": "50adaee9b321a8ef1be954a905916dfbcb3cce50b2e60ebecebaa1fd15b33413"
+          },
+          {
+            "path": "src/core/change-sync.ts",
+            "hash": "69c4b17665148a0f6406e570e53f54702ce2966f7834d3855ff5e486051ebe60"
+          },
+          {
+            "path": "src/core/templates/workflows/bootstrap-arch.ts",
+            "hash": "eb259865e75b2015292ebaf86868d2af7ab46160b89bf9a5dbabfc22bb911611"
+          },
+          {
+            "path": "src/migration/converters/element-mapper.ts",
+            "hash": "ed1607ebffb99e94b59adb813c4120f8555c41ccb17e80421c94633e73dd667b"
+          },
+          {
+            "path": "src/migration/converters/opsx-to-likec4.ts",
+            "hash": "d79ab3f08563041729e9f2ef0adedba72feb7c0a1c00a19ee9a60f397820ed7d"
+          },
+          {
+            "path": "src/migration/converters/relation-mapper.ts",
+            "hash": "692fd5338f33a4f5d79ee1d7a0324d5beca29bdb7fa46ad97333ed828d762b47"
+          },
+          {
+            "path": "src/migration/generators/domain-file-generator.ts",
+            "hash": "75f785fbb684d18c0daff56a4d3f5ccdec0c7ce6f45307d88f3470da4d802ae5"
+          },
+          {
+            "path": "src/migration/generators/likec4-file-generator.ts",
+            "hash": "ddc9bc2c67956ebbdbfd7f7924d3b89f5ad6d9f7a5f0e1782327a4772e98aaac"
+          },
+          {
+            "path": "src/migration/generators/relation-file-generator.ts",
+            "hash": "c22ff2221aed4d3ef362d6933feaff56d5eb2b88dbae4b3300f6d6cf941e23e5"
+          },
+          {
+            "path": "src/migration/generators/specification-generator.ts",
+            "hash": "cdc4174539ae3349ecb214bb48bd3babdc37d09455b6bc3a85228d7883064273"
+          },
+          {
+            "path": "src/migration/generators/views-generator.ts",
+            "hash": "71e4b11f89c56d8c40f693c2922290bf8dbb4d886a785378ef166ccd6f69ff12"
+          },
+          {
+            "path": "src/migration/migration-verifier.ts",
+            "hash": "227cdd11e59937f2cf5bb05297eeebe0d20a2a44398c7567d9f5a5119df9d3c8"
+          },
+          {
+            "path": "src/migration/utils/spec-path-inference.ts",
+            "hash": "681a5471efc4332e6038541e5225ad0401685a12d4d1142faa7cd9c62bfeb809"
+          },
+          {
+            "path": "src/utils/architecture-delta-merger.ts",
+            "hash": "8c362e89464d5d653d2160b7c503385593f8716cf5ab3304af3d54bc1909602c"
+          },
+          {
+            "path": "src/utils/architecture-reader.ts",
+            "hash": "377f247632859bc01b0c960b851e519f62497b6ffe9efe54e0da300c1e045253"
+          },
+          {
+            "path": "src/utils/architecture-validator.ts",
+            "hash": "3556f47c64c01f11d6f4c1f5e28391e69d0058267644f404105904e2c09dc0be"
+          },
+          {
+            "path": "src/utils/likec4-parser.ts",
+            "hash": "27d4cf5d32e1613b8e926aed503594386b0197548cea20d4a6cc55fa02361bd6"
+          },
+          {
+            "path": "src/utils/likec4-reader.ts",
+            "hash": "d1034b247299255be058d98e64fbd698aed05cd44ddae1385ea0008f0433bca0"
+          },
+          {
+            "path": "src/utils/likec4-writer.ts",
+            "hash": "c60e265a6fff44008401460e10ce027750dee2cb34769178105ae9f929a3e9f0"
+          },
+          {
+            "path": "src/utils/semantic-checks/cycle-detector.ts",
+            "hash": "bc5f736fe8916b1ff6f14075c5bace0a058e1c6854564f7a04e4e5887e14f36c"
+          },
+          {
+            "path": "src/utils/semantic-checks/metadata-validator.ts",
+            "hash": "c6c19ab30ebc1599f271fcc5d9c3a3af8e9f389fb1cfb80424b1aa72059cea11"
+          },
+          {
+            "path": "src/utils/semantic-checks/ownership-validator.ts",
+            "hash": "c848f40bbd1d12e3b1cbc5176411fbf22bfe2f2d253b20c69cedc2c2a25a8f53"
+          },
+          {
+            "path": "src/validation/architecture-delta-validator.ts",
+            "hash": "b65f2892c9b85bb431c7f08e31e61e5a0c748d8fad2a744f7fd856fa7ee289da"
+          },
+          {
+            "path": "test/integration/arch-command.test.ts",
+            "hash": "647aac6c8794a111c38c273564798e6c7fce0ef93b5b886eaf94fd3dd35efc55"
+          },
+          {
+            "path": "test/integration/archive-workflow.test.ts",
+            "hash": "2d5776c0e29a8008b7a0ff8382ec9dba03f4243d12c65ae4abdddf589d1a44e1"
+          },
+          {
+            "path": "test/integration/migrate-command.test.ts",
+            "hash": "64577ec4cb67739fd0bbac9e7e3e3daab4af6469a5b725c53ba845ce942d5030"
+          },
+          {
+            "path": "test/integration/sync-workflow.test.ts",
+            "hash": "020e8e03c9167b73bcbaba7c5377fb46a2964427285aa3e2f05718c68815947e"
+          },
+          {
+            "path": "test/integration/validate-command.test.ts",
+            "hash": "7ce8df32d307b5f8062f72f44e40361747e0a95089d5dc9471ba644bd3e958c4"
+          },
+          {
+            "path": "test/performance/large-project.test.ts",
+            "hash": "ce2cd05815872a3aa60010ae40ec4d2926ee9e347f38905db6673f010d096fbd"
+          },
+          {
+            "path": "test/unit/migration/migration-verifier.test.ts",
+            "hash": "f1fd773960d17c5fe1e1c1ae1784c476293187bbcc770e7f602e123fa093fd18"
+          },
+          {
+            "path": "test/unit/utils/architecture-delta-merger.test.ts",
+            "hash": "65ea7d1b8bb23a25c38e997684e966e3a1360357844aee1fdd5f89b52e5f7dbe"
+          },
+          {
+            "path": "test/unit/utils/architecture-validator.test.ts",
+            "hash": "c90044021893addab044dcfbc7eb29ea021f5258374e3b3e8fb5281ae725347a"
+          },
+          {
+            "path": "test/unit/utils/likec4-reader.test.ts",
+            "hash": "2fa5bbf25b0c68c65f9bd3ede6eb2775229b42642c992edc0e2742f5b0aae395"
+          },
+          {
+            "path": "tests/e2e/bootstrap-test.sh",
+            "hash": "3472f4313d5fe46c7f4e03b35bd7a4f0c724369503f722e190d5b6104798186d"
+          }
+        ],
+        "skippedEvidenceFiles": [
+          "openspec/changes/opsx-to-likec4-mega-refactor/.verify-result.json"
+        ],
+        "gitHeadCommit": "fa272ae2ae9d150feced86385718c4e2a9b5e9c3",
+        "gitDiffSummary": "Validated projectRoot, changeDir, and changeName. Immutable baseCommit 5f600da0a38665e231a29597ccd0fd5c2c5f638b resolves; final HEAD fa272ae2ae9d150feced86385718c4e2a9b5e9c3. Considered git diff 5f600da0a38665e231a29597ccd0fd5c2c5f638b...HEAD --name-only together with git status --short; all scoped changes are attributed by task Files, command Check evidence, or change artifacts. No staged files exist. Declared deletions were confirmed, including active opsx-delta templates, legacy bootstrap skill/template tests, and original OPSX files renamed to backups. git diff --check passed. pnpm lint passed with only the documented local Node 22.21.1 engine warning. pnpm run build passed. Full pnpm test passed: 153 files and 2150 tests. Formal LikeC4 validation passed 14 files; formal plus architecture delta validation passed 15 files. openspec arch validate passed. openspec validate --all passed 108/108. E2E bootstrap passed. Formal self-host arch query with relations, depth, and JSON output passed. Performance migration test passed at approximately 203ms for 1000 capabilities. Latest sync remediation was verified in final code and integration tests: semantic comparison includes domain and capability properties, normalized Specs paths, relation source/kind/target, and descriptions; extension capabilities are assigned to their target domain without double counting; collision and idempotence workflows pass; successful sync remains archiveable without losing formal content. Legacy OPSX references are confined to deprecated, migration, historical, or compatibility surfaces."
+      }
+    }
+  }
+}
