@@ -88,4 +88,53 @@ describe('arch commands', () => {
     expect(runner).toHaveBeenCalledWith(['export', 'png', '-o', output, path.join(root, 'openspec', 'architecture')]);
     await expect(fs.stat(output)).resolves.toMatchObject({});
   });
+
+  it('should index relations once while preserving traversal semantics', async () => {
+    const capability = (id: string) => ({
+      id: `core.${id}`,
+      title: id,
+      domain: 'core',
+      specs: [],
+      capabilityId: `cap.core.${id}`,
+    });
+    const relations = [
+      { source: 'core.a', kind: 'invokes', target: 'core.root' },
+      { source: 'core.a', kind: 'precedes', target: 'core.b' },
+      { source: 'core.a', kind: 'precedes', target: 'core.b' },
+      { source: 'core.unrelated', kind: 'invokes', target: 'core.other' },
+    ];
+    let iterations = 0;
+    const observedRelations = new Proxy(relations, {
+      get(target, property, receiver) {
+        if (property === Symbol.iterator) iterations += 1;
+        return Reflect.get(target, property, receiver);
+      },
+    });
+    vi.resetModules();
+    vi.doMock('../../src/utils/likec4-reader.js', () => ({
+      readLikeC4Architecture: vi.fn().mockResolvedValue({
+        source: 'likec4',
+        files: [],
+        domains: [],
+        capabilities: [capability('root'), capability('a'), capability('b'), capability('unrelated'), capability('other')],
+        relations: observedRelations,
+      }),
+    }));
+
+    try {
+      const { queryArchitecture: queryWithObservedRelations } = await import('../../src/commands/arch/query.js');
+      const result = await queryWithObservedRelations('/project', 'cap.core.root', { relations: true, depth: 2 });
+
+      expect(iterations).toBe(1);
+      expect(result.relatedElements).toEqual([
+        expect.objectContaining({ element: expect.objectContaining({ id: 'core.a' }), depth: 1 }),
+        expect.objectContaining({ element: expect.objectContaining({ id: 'core.b' }), depth: 2 }),
+      ]);
+      expect(result.relations).toHaveLength(3);
+      expect(result.relations?.filter(relation => relation.kind === 'precedes')).toHaveLength(2);
+    } finally {
+      vi.doUnmock('../../src/utils/likec4-reader.js');
+      vi.resetModules();
+    }
+  });
 });

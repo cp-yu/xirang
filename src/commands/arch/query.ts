@@ -26,15 +26,23 @@ export async function queryArchitecture(projectRoot: string, id: string, options
     ...architecture.domains.map(domain => [domain.id, domain] as const),
     ...architecture.capabilities.map(capability => [capability.id, capability] as const),
   ]);
+  const adjacency = new Map<string, ArchitectureRelation[]>();
+  for (const relation of architecture.relations) {
+    for (const endpoint of [relation.source, relation.target]) {
+      const adjacent = adjacency.get(endpoint);
+      if (adjacent) adjacent.push(relation);
+      else adjacency.set(endpoint, [relation]);
+    }
+  }
   const depths = new Map([[element.id, 0]]);
   const queue = [element.id];
   for (let index = 0; index < queue.length; index += 1) {
     const current = queue[index];
     const depth = depths.get(current)!;
     if (depth >= maxDepth) continue;
-    for (const relation of architecture.relations) {
-      const adjacent = relation.source === current ? relation.target : relation.target === current ? relation.source : undefined;
-      if (!adjacent || depths.has(adjacent) || !elementById.has(adjacent)) continue;
+    for (const relation of adjacency.get(current) ?? []) {
+      const adjacent = relation.source === current ? relation.target : relation.source;
+      if (depths.has(adjacent) || !elementById.has(adjacent)) continue;
       depths.set(adjacent, depth + 1);
       queue.push(adjacent);
     }
