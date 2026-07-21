@@ -1,0 +1,330 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2023-2026 Denis Davydkov
+// Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+//
+// Portions of this file have been modified by NVIDIA CORPORATION & AFFILIATES.
+
+import { type EdgeId, type NodeId, nonNullable } from '@likec4/core'
+import { cx } from '@likec4/styles/css'
+import { useDebouncedCallback, useTimeout } from '@mantine/hooks'
+import { useCustomCompareMemo } from '@react-hookz/web'
+import { Controls as XYFlowControls } from '@xyflow/react'
+import type { OnMove, OnMoveEnd, Viewport } from '@xyflow/system'
+import { shallowEqual } from 'fast-equals'
+import type { MouseEvent as ReactMouseEvent, PropsWithChildren } from 'react'
+import type { JSX } from 'react/jsx-runtime'
+import { isEmpty } from 'remeda'
+import type { Simplify } from 'type-fest'
+import { BaseXYFlow } from '../base/BaseXYFlow'
+import { MinZoom } from '../base/const'
+import { useDiagramEventHandlers } from '../context'
+import { useRootContainer } from '../context/RootContainerContext'
+import {
+  selectDiagramSnapshot,
+  useCallbackRef,
+  useDiagramSelector,
+  useUpdateEffect,
+} from '../hooks'
+import { useDiagram } from '../hooks/useDiagram'
+import { depsShallowEqual } from '../hooks/useUpdateEffect'
+import type { LikeC4DiagramProperties, NodeRenderers, ViewPadding, ViewPaddings } from '../LikeC4Diagram.props'
+import { BuiltinEdges, BuiltinNodes } from './custom'
+import { deriveToggledFeatures } from './state/machine.setup'
+import type { DiagramContext } from './state/types'
+import { viewBounds } from './state/utils'
+import type { Types } from './types'
+import { useLayoutConstraints } from './useLayoutConstraints'
+
+const edgeTypes = {
+  relationship: BuiltinEdges.RelationshipEdge,
+  'seq-step': BuiltinEdges.SequenceStepEdge,
+}
+
+const builtinNodes = {
+  element: BuiltinNodes.ElementNode,
+  deployment: BuiltinNodes.DeploymentNode,
+  'compound-element': BuiltinNodes.CompoundElementNode,
+  'compound-deployment': BuiltinNodes.CompoundDeploymentNode,
+  'view-group': BuiltinNodes.ViewGroupNode,
+  'seq-actor': BuiltinNodes.SequenceActorNode,
+  'seq-parallel': BuiltinNodes.SequenceParallelArea,
+  'seq-subflow': BuiltinNodes.SequenceSubflowArea,
+}
+function prepareNodeTypes(nodeTypes?: NodeRenderers): Types.NodeRenderers {
+  if (!nodeTypes || isEmpty(nodeTypes)) {
+    return builtinNodes
+  }
+  return {
+    element: nodeTypes.element ?? builtinNodes.element,
+    deployment: nodeTypes.deployment ?? builtinNodes.deployment,
+    'compound-element': nodeTypes.compoundElement ?? builtinNodes['compound-element'],
+    'compound-deployment': nodeTypes.compoundDeployment ?? builtinNodes['compound-deployment'],
+    'view-group': nodeTypes.viewGroup ?? builtinNodes['view-group'],
+    'seq-actor': nodeTypes.seqActor ?? builtinNodes['seq-actor'],
+    'seq-parallel': nodeTypes.seqParallel ?? builtinNodes['seq-parallel'],
+    'seq-subflow': nodeTypes.seqSubflow ?? builtinNodes['seq-subflow'],
+  }
+}
+
+const viewportToTopLeft = (ctx: DiagramContext): Viewport => {
+  const bounds = viewBounds(ctx)
+  return {
+    x: -bounds.x,
+    y: -bounds.y,
+    zoom: 1,
+  }
+}
+
+const selectXYProps = selectDiagramSnapshot(({ context: ctx, children }) => {
+  const { enableReadOnly } = deriveToggledFeatures(ctx)
+
+  const editorSnapshot = enableReadOnly ? null : children.editor?.getSnapshot()
+
+  const isNotEditingEdge = enableReadOnly || editorSnapshot?.context.editing?.subject !== 'edge'
+
+  const isEditorBusy = editorSnapshot?.hasTag('busy') ?? false
+
+  let nodesDraggable = !enableReadOnly && ctx.nodesDraggable && !isEditorBusy
+  // if dynamic view display mode is sequence, disable nodes draggable
+  if ((ctx.dynamicViewVariant === 'sequence' && ctx.view._type === 'dynamic')) {
+    nodesDraggable = false
+  }
+
+  return ({
+    enableReadOnly,
+    initialized: ctx.initialized.xydata && ctx.initialized.xyflow,
+    nodes: ctx.xynodes,
+    edges: ctx.xyedges,
+    pannable: ctx.pannable,
+    zoomable: ctx.zoomable,
+    nodesDraggable,
+    nodesSelectable: ctx.nodesSelectable && isNotEditingEdge && !isEditorBusy,
+    fitViewPadding: ctx.fitViewPadding,
+    enableFitView: ctx.features.enableFitView,
+    enableControls: ctx.features.enableControls && ctx.features.enableFitView,
+    ...(!ctx.features.enableFitView && {
+      viewport: viewportToTopLeft(ctx),
+    }),
+  })
+}, ({ nodes: aNodes, edges: aEdges, ...a }, { nodes: bNodes, edges: bEdges, ...b }) => {
+  return shallowEqual(a, b) && shallowEqual(aNodes, bNodes) && shallowEqual(aEdges, bEdges)
+})
+
+export type LikeC4DiagramXYFlowProps = PropsWithChildren<
+  Simplify<
+    Pick<
+      LikeC4DiagramProperties<any>,
+      | 'background'
+      | 'reactFlowProps'
+      | 'renderNodes'
+    >
+  >
+>
+export function LikeC4DiagramXYFlow({
+  background = 'dots',
+  reactFlowProps = {},
+  children,
+  renderNodes,
+}: LikeC4DiagramXYFlowProps): JSX.Element {
+  const diagram = useDiagram()
+  let {
+    enableReadOnly,
+    initialized,
+    nodes,
+    edges,
+    enableFitView,
+    nodesDraggable,
+    nodesSelectable,
+    enableControls,
+    ...props
+  } = useDiagramSelector(selectXYProps)
+
+  const {
+    onNodeContextMenu,
+    onCanvasContextMenu,
+    onEdgeContextMenu,
+    onNodeClick,
+    onEdgeClick,
+    onCanvasClick,
+    onCanvasDblClick,
+  } = useDiagramEventHandlers()
+
+  const { reducedGraphics, $panning } = useRootContainer()
+
+  const isReducedGraphics = reducedGraphics,
+    layoutConstraints = useLayoutConstraints(),
+    $isPanning = $panning,
+    isPanning = useTimeout(() => {
+      $isPanning.set(true)
+    }, isReducedGraphics ? 200 : 1000),
+    notPanning = useDebouncedCallback(() => {
+      isPanning.clear()
+      $isPanning.set(false)
+    }, 200),
+    onMove: OnMove = useCallbackRef((event) => {
+      if (!event) {
+        $isPanning.set(false)
+        isPanning.clear()
+        return
+      }
+      if (!$isPanning.get()) {
+        isPanning.start()
+      } else {
+        notPanning()
+      }
+    }),
+    onMoveEnd: OnMoveEnd = useCallbackRef((event, viewport) => {
+      if (!event) {
+        $isPanning.set(false)
+        isPanning.clear()
+        notPanning.cancel()
+      } else {
+        notPanning()
+      }
+      diagram.send({
+        type: 'xyflow.viewportMoved',
+        viewport,
+        manually: !!event,
+      })
+    }),
+    onViewportResize = useCallbackRef(() => {
+      diagram.send({ type: 'xyflow.resized' })
+    }),
+    nodeTypes = useCustomCompareMemo(
+      () => prepareNodeTypes(renderNodes),
+      [renderNodes],
+      depsShallowEqual,
+    )
+
+  useUpdateEffect(() => {
+    console.warn('renderNodes changed - this might degrade performance')
+  }, [nodeTypes])
+
+  return (
+    <BaseXYFlow<Types.AnyNode, Types.AnyEdge>
+      nodes={nodes}
+      edges={edges}
+      className={cx(initialized ? 'initialized' : 'not-initialized')}
+      nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
+      onNodesChange={useCallbackRef((changes) => {
+        diagram.send({ type: 'xyflow.applyChanges', nodes: changes })
+      })}
+      onEdgesChange={useCallbackRef((changes) => {
+        diagram.send({ type: 'xyflow.applyChanges', edges: changes })
+      })}
+      background={initialized ? background : 'transparent'}
+      // Fitview is handled in onInit
+      fitView={false}
+      onNodeClick={useCallbackRef((e, node) => {
+        if (e.isPropagationStopped()) {
+          return
+        }
+        e.stopPropagation()
+        diagram.send({ type: 'xyflow.nodeClick', node })
+        onNodeClick?.(diagram.findDiagramNode(node.id as NodeId)!, e)
+      })}
+      onEdgeClick={useCallbackRef((e, edge) => {
+        if (e.isPropagationStopped()) {
+          return
+        }
+        e.stopPropagation()
+        diagram.send({ type: 'xyflow.edgeClick', edge })
+        onEdgeClick?.(diagram.findDiagramEdge(edge.id as EdgeId)!, e)
+      })}
+      onEdgeDoubleClick={useCallbackRef((e, edge) => {
+        if (e.isPropagationStopped()) {
+          return
+        }
+        e.stopPropagation()
+        diagram.send({ type: 'xyflow.edgeDoubleClick', edge })
+      })}
+      onDelete={useCallbackRef(({ nodes, edges }) => {
+        if (enableReadOnly) {
+          return
+        }
+        diagram.editorActor().send({
+          type: 'delete.nodes-edges',
+          nodeIds: nodes.map(node => node.data.id),
+          edgeIds: edges.map(edge => edge.data.id),
+        })
+      })}
+      onPaneClick={useCallbackRef((e) => {
+        e.stopPropagation()
+        diagram.send({ type: 'xyflow.paneClick' })
+        onCanvasClick?.(e as any)
+      })}
+      onDoubleClick={useCallbackRef(e => {
+        e.stopPropagation()
+        e.preventDefault()
+        diagram.send({ type: 'xyflow.paneDblClick' })
+        onCanvasDblClick?.(e as any)
+      })}
+      onNodeMouseEnter={useCallbackRef((event, node) => {
+        event.stopPropagation()
+        diagram.send({ type: 'xyflow.nodeMouseEnter', node })
+      })}
+      onNodeMouseLeave={useCallbackRef((event, node) => {
+        event.stopPropagation()
+        diagram.send({ type: 'xyflow.nodeMouseLeave', node })
+      })}
+      onEdgeMouseEnter={useCallbackRef((event, edge) => {
+        event.stopPropagation()
+        diagram.send({ type: 'xyflow.edgeMouseEnter', edge, event })
+      })}
+      onEdgeMouseLeave={useCallbackRef((event, edge) => {
+        event.stopPropagation()
+        diagram.send({ type: 'xyflow.edgeMouseLeave', edge, event })
+      })}
+      onMove={onMove}
+      onMoveEnd={onMoveEnd}
+      onInit={useCallbackRef((instance) => {
+        diagram.send({ type: 'xyflow.init', instance })
+      })}
+      onNodeContextMenu={useCallbackRef((event, node) => {
+        const diagramNode = diagram.findDiagramNode(node.data.id)
+        if (diagramNode) {
+          onNodeContextMenu?.(diagramNode, event)
+        }
+      })}
+      onEdgeContextMenu={useCallbackRef((event, edge) => {
+        const diagramEdge = nonNullable(
+          diagram.findDiagramEdge(edge.id as EdgeId),
+          `diagramEdge ${edge.id} not found`,
+        )
+        onEdgeContextMenu?.(diagramEdge, event)
+      })}
+      {...onCanvasContextMenu && {
+        onPaneContextMenu: onCanvasContextMenu as ((event: ReactMouseEvent | MouseEvent) => void),
+      }}
+      {...enableFitView && {
+        onViewportResize,
+      }}
+      nodesDraggable={nodesDraggable}
+      nodesSelectable={nodesSelectable}
+      nodesFocusable
+      edgesFocusable
+      elevateEdgesOnSelect={!enableReadOnly}
+      zIndexMode="manual"
+      {...(nodesDraggable && layoutConstraints)}
+      {...props}
+      {...reactFlowProps}>
+      {enableControls && <Controls padding={props.fitViewPadding} />}
+      {children}
+    </BaseXYFlow>
+  )
+}
+
+const Controls = ({ padding }: { padding: ViewPaddings }) => (
+  <XYFlowControls
+    showInteractive={false}
+    fitViewOptions={{
+      padding,
+      minZoom: MinZoom,
+      maxZoom: 1,
+      duration: 350,
+    }}
+    position="bottom-left"
+  />
+)

@@ -1,0 +1,40 @@
+{
+  "name": "@likec4/devops",
+  "version": "1.59.0",
+  "type": "module",
+  "private": true,
+  "sideEffects": false,
+  "scripts": {
+    "typecheck": "tsc -b"
+  },
+  "bin": {
+    "likec4ops": "./likec4ops.ts"
+  },
+  "exports": {
+    ".": "./likec4ops.ts",
+    "./utils": "./utils.ts",
+    "./vitest": "./vitest.ts",
+    "./tsdown": "./tsdown.ts"
+  },
+  "dependencies": {
+    "parse-gitignore": "^2.0.0",
+    "citty": "catalog:utils",
+    "remeda": "catalog:utils",
+    "std-env": "catalog:externals",
+    "indent-string": "catalog:utils",
+    "vitest": "catalog:vitest",
+    "defu": "catalog:utils",
+    "pathe": "catalog:utils",
+    "tsx": "catalog:",
+    "tsdown": "catalog:tsdown",
+    "zx": "catalog:"
+  },
+  "devDependencies": {
+    "@likec4/tsconfig": "workspace:*",
+    "@types/parse-gitignore": "^1.0.2",
+    "type-fest": "catalog:externals",
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

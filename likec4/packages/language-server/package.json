@@ -1,0 +1,214 @@
+{
+  "name": "@likec4/language-server",
+  "description": "LikeC4 Language Server",
+  "version": "1.59.0",
+  "license": "MIT",
+  "bugs": "https://github.com/likec4/likec4/issues",
+  "homepage": "https://likec4.dev",
+  "author": "Denis Davydkov <denis@davydkov.com>",
+  "files": [
+    "bin",
+    "dist",
+    "src/test",
+    "**/package.json",
+    "!**/__mocks__/",
+    "!**/__tests__/",
+    "!**/*.spec.*",
+    "!**/*.map"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/likec4/likec4.git",
+    "directory": "packages/language-server"
+  },
+  "engines": {
+    "node": ">=22.22.3"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "bin": {
+    "likec4-language-server": "./bin/likec4-language-server.mjs"
+  },
+  "exports": {
+    ".": {
+      "sources": "./src/index.ts",
+      "browser": {
+        "sources": "./src/browser/index.ts",
+        "default": {
+          "types": "./dist/browser/index.d.mts",
+          "import": "./dist/browser/index.mjs",
+          "default": "./dist/browser/index.mjs"
+        }
+      },
+      "node": {
+        "sources": "./src/index.ts",
+        "default": {
+          "types": "./dist/index.d.mts",
+          "import": "./dist/index.mjs",
+          "default": "./dist/index.mjs"
+        }
+      },
+      "default": {
+        "types": "./dist/index.d.mts",
+        "import": "./dist/index.mjs",
+        "default": "./dist/index.mjs"
+      }
+    },
+    "./likec4lib": {
+      "sources": "./src/likec4lib.ts",
+      "default": {
+        "types": "./dist/likec4lib.d.mts",
+        "import": "./dist/likec4lib.mjs",
+        "default": "./dist/likec4lib.mjs"
+      }
+    },
+    "./icons": {
+      "sources": "./src/icons.ts",
+      "default": {
+        "types": "./dist/icons.d.mts",
+        "import": "./dist/icons.mjs",
+        "default": "./dist/icons.mjs"
+      }
+    },
+    "./browser-worker": {
+      "sources": "./src/browser/worker.ts",
+      "default": {
+        "types": "./dist/browser/worker.d.mts",
+        "import": "./dist/browser/worker.mjs",
+        "default": "./dist/browser/worker.mjs"
+      }
+    },
+    "./browser": {
+      "sources": "./src/browser/index.ts",
+      "default": {
+        "types": "./dist/browser/index.d.mts",
+        "import": "./dist/browser/index.mjs",
+        "default": "./dist/browser/index.mjs"
+      }
+    },
+    "./protocol": {
+      "sources": "./src/protocol.ts",
+      "default": {
+        "types": "./dist/protocol.d.mts",
+        "import": "./dist/protocol.mjs",
+        "default": "./dist/protocol.mjs"
+      }
+    },
+    "./module": {
+      "sources": "./src/module.ts",
+      "default": {
+        "types": "./dist/module.d.mts",
+        "import": "./dist/module.mjs",
+        "default": "./dist/module.mjs"
+      }
+    },
+    "./filesystem": {
+      "sources": "./src/filesystem/index.ts",
+      "default": {
+        "types": "./dist/filesystem/index.d.mts",
+        "import": "./dist/filesystem/index.mjs",
+        "default": "./dist/filesystem/index.mjs"
+      }
+    },
+    "./test": "./src/test/index.ts",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public",
+    "types": "dist/index.d.mts",
+    "module": "dist/index.mjs",
+    "browser": {
+      "dist/index.mjs": "dist/browser/index.mjs"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc -b --verbose",
+    "build": "tsdown",
+    "prepack": "likec4ops prepack",
+    "pack": "pnpm pack",
+    "postpack": "likec4ops postpack",
+    "pregenerate": "node -e \"const fs=require('fs');const p=require('path');const d='src/generated';if(fs.existsSync(d)){fs.readdirSync(d).forEach(f=>{try{fs.unlinkSync(p.join(d,f))}catch(e){}})}\"",
+    "watch:langium": "langium generate --watch",
+    "watch:ts": "tsc --watch",
+    "generate": "langium generate && tsx scripts/generate-icons.ts",
+    "dev": "run-p \"watch:*\"",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --type-aware --fix",
+    "lint:package": "pnpx publint ./package.tgz",
+    "clean": "likec4ops clean contrib src/generated src/generated-lib",
+    "test": "vitest run --no-isolate",
+    "test-dbg": "vitest run --no-isolate -t formating",
+    "vitest:ui": "vitest --no-isolate --ui",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@hpcc-js/wasm-graphviz": "catalog:externals",
+    "@likec4/config": "workspace:*",
+    "@likec4/core": "workspace:*",
+    "@likec4/generators": "workspace:*",
+    "@likec4/layouts": "workspace:*",
+    "@likec4/log": "workspace:*",
+    "chokidar": "catalog:externals",
+    "defu": "catalog:utils",
+    "fast-equals": "catalog:utils",
+    "fdir": "catalog:externals",
+    "immer": "catalog:utils",
+    "indent-string": "^5.0.0",
+    "json5": "catalog:utils",
+    "langium": "catalog:langium",
+    "nano-spawn": "catalog:externals",
+    "p-limit": "catalog:utils",
+    "p-queue": "catalog:utils",
+    "p-timeout": "catalog:utils",
+    "pathe": "catalog:utils",
+    "picomatch": "catalog:externals",
+    "pretty-ms": "^9.3.0",
+    "remeda": "catalog:utils",
+    "std-env": "catalog:externals",
+    "strip-indent": "catalog:utils",
+    "type-fest": "catalog:externals",
+    "ufo": "catalog:utils",
+    "unstorage": "catalog:utils",
+    "vscode-jsonrpc": "catalog:vscode",
+    "vscode-languageserver": "catalog:vscode",
+    "vscode-languageserver-protocol": "catalog:vscode",
+    "vscode-languageserver-textdocument": "catalog:vscode",
+    "vscode-languageserver-types": "catalog:vscode",
+    "vscode-uri": "catalog:vscode",
+    "which": "^5.0.0",
+    "zod": "catalog:externals"
+  },
+  "peerDependencies": {
+    "bundle-require": "catalog:externals",
+    "esbuild": "catalog:esbuild"
+  },
+  "peerDependenciesMeta": {
+    "esbuild": {
+      "optional": true
+    },
+    "bundle-require": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@likec4/devops": "workspace:*",
+    "@likec4/icons": "workspace:*",
+    "@likec4/tsconfig": "workspace:*",
+    "@types/natural-compare-lite": "catalog:utils",
+    "@types/node": "catalog:",
+    "@types/picomatch": "catalog:externals",
+    "@types/vscode": "catalog:vscode",
+    "@types/which": "^3.0.4",
+    "bundle-require": "catalog:externals",
+    "esbuild": "catalog:esbuild",
+    "langium-cli": "catalog:langium",
+    "memfs": "catalog:",
+    "tsdown": "catalog:tsdown",
+    "oxlint": "catalog:",
+    "tsx": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:vitest"
+  }
+}

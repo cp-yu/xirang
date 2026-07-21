@@ -1,0 +1,292 @@
+name: checks
+
+on:
+  workflow_call:
+
+# Default: checkout + build only. Jobs that use actions/upload-artifact or
+# actions/download-artifact need actions: write (GitHub token scope for artifacts).
+permissions:
+  contents: read
+
+env:
+  NODE_ENV: production
+  CLOUDFLARE_ENV: 'production'
+  FORCE_COLOR: true
+  DO_NOT_TRACK: '1'
+
+jobs:
+  check-types:
+    name: ʦ typescript
+    timeout-minutes: 5
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: 🛠️ bootstrap
+        uses: ./.github/actions/bootstrap
+
+      - name: 🤖 agent instructions
+        run: pnpm check:agent-instructions
+
+      - name: ʦ typecheck
+        run: pnpm ci:typecheck
+
+      - name: type tests
+        working-directory: packages/core
+        run: pnpm vitest --typecheck.only
+
+      # https://oxc.rs/docs/guide/usage/linter/type-aware.html#monorepos-and-build-outputs
+      # Temporarily disabled - need to fix oxc issues, not reproducible
+      # - name: 🧹 lint
+      #   run: pnpm ci:lint
+
+  check-build:
+    name: 🛠️ build
+    timeout-minutes: 5
+    runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: 🛠️ bootstrap
+        uses: ./.github/actions/bootstrap
+
+      - name: ⚙️ build
+        run: pnpm ci:build
+
+      - name: ⚙️ lint:package
+        run: |
+          pnpm lint:package
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: tarballs
+          compression-level: 0
+          path: |
+            packages/*/package.tgz
+          if-no-files-found: error
+
+  check-on-windows:
+    name: ⊞ windows build
+    timeout-minutes: 20
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: 🛠️ bootstrap
+        uses: ./.github/actions/bootstrap
+
+      - name: ⚙️ generate
+        run: pnpm ci:generate
+
+      - name: 🔬 test
+        env:
+          NODE_ENV: test
+        run: pnpm ci:test
+
+  check-tests:
+    name: 🔬 tests
+    timeout-minutes: 5
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: 🛠️ bootstrap
+        uses: ./.github/actions/bootstrap
+
+      - name: ⚙️ generate
+        run: pnpm generate
+
+      - name: 🔬 test
+        env:
+          NODE_ENV: test
+        run: pnpm ci:test
+
+  check-docs-astro:
+    name: 📖 docs
+    timeout-minutes: 5
+    runs-on: ubuntu-24.04-arm
+    needs:
+      - check-build
+      - check-types
+      - check-tests
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: 🛠️ bootstrap
+        uses: ./.github/actions/bootstrap
+
+      - name: ʦ typecheck
+        run: |
+          pnpm turbo run typecheck --filter='@likec4/docs-astro'
+
+      - name: ⚙️ build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pnpm turbo run build --filter='@likec4/docs-astro'
+
+  check-playground:
+    name: 🎮 playground
+    timeout-minutes: 5
+    runs-on: ubuntu-24.04-arm
+    needs:
+      - check-build
+      - check-types
+      - check-tests
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: 🛠️ bootstrap
+        uses: ./.github/actions/bootstrap
+
+      - name: ʦ typecheck
+        run: |
+          pnpm turbo run typecheck --filter='@likec4/playground'
+
+      - name: ⚙️ build
+        run: |
+          pnpm turbo run build --filter='@likec4/playground'
+
+  check-e2e-tests:
+    name: 🔬 e2e tests
+    timeout-minutes: 10
+    runs-on: ubuntu-24.04-arm
+    needs:
+      - check-build
+      - check-types
+      - check-tests
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: 🛠️ Setup pnpm
+        uses: pnpm/action-setup@v6
+        env:
+          NODE_ENV: development
+
+      - name: 🛠️ Setup node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .tool-versions
+          cache: 'pnpm'
+
+      - name: 📦 download tarballs
+        uses: actions/download-artifact@v8
+        with:
+          name: tarballs
+          path: packages
+
+      - name: 🛠️ install e2e dependencies
+        working-directory: e2e
+        run: |
+          pnpm install
+          pnpm add \
+            ../packages/core/package.tgz \
+            ../packages/icons/package.tgz \
+            ../packages/likec4/package.tgz
+          pnpm install:chromium
+          pnpm bootstrap
+
+      - name: ⚙️ run playwright tests
+        working-directory: e2e
+        run: pnpm test
+
+      - id: cloudflare
+        if: ${{ failure() && github.repository_owner == 'likec4' }}
+        name: ⚙️ publish playwright-report
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy playwright-report --project-name=likec4-e2e --commit-dirty --branch preview
+          workingDirectory: e2e
+          packageManager: pnpm
+
+      - name: print url to published report
+        if: ${{ failure() && github.repository_owner == 'likec4' }}
+        run: |
+          echo "::warning::Report published at ${{ steps.cloudflare.outputs.deployment-url }}"
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          compression-level: 9
+          retention-days: 5
+
+  check-e2e-types:
+    name: 🔬 e2e types
+    timeout-minutes: 10
+    runs-on: ubuntu-24.04-arm
+    needs:
+      - check-build
+      - check-types
+      - check-tests
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: 🛠️ Setup pnpm
+        uses: pnpm/action-setup@v6
+        env:
+          NODE_ENV: development
+
+      - name: 🛠️ Setup node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .tool-versions
+          cache: 'pnpm'
+
+      - name: 📦 download tarballs
+        uses: actions/download-artifact@v8
+        with:
+          name: tarballs
+          path: packages
+
+      - name: 🛠️ install e2e dependencies
+        working-directory: e2e
+        run: |
+          pnpm install
+          pnpm add \
+            ../packages/core/package.tgz \
+            ../packages/icons/package.tgz \
+            ../packages/likec4/package.tgz
+          pnpm bootstrap
+
+      - name: ʦ typecheck test
+        working-directory: e2e
+        run: pnpm typecheck
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ failure() }}
+        with:
+          name: generated-e2e-types
+          path: e2e/src/*.ts
+          compression-level: 9
+          retention-days: 5
+
+  # This job depends on all the previous jobs to ensure the quality gate
+  check-quality-gate:
+    name: 🚦 quality gate
+    runs-on: ubuntu-24.04-arm
+    needs:
+      - check-types
+      - check-build
+      - check-on-windows
+      - check-tests
+      - check-docs-astro
+      - check-playground
+      - check-e2e-tests
+      - check-e2e-types
+    steps:
+      - run: |
+          echo "### Quality Gate Passed :rocket:" >> $GITHUB_STEP_SUMMARY

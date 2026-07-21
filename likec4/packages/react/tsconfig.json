@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@likec4/tsconfig/base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "target": "esnext",
+    "verbatimModuleSyntax": true,
+    "composite": true,
+    "lib": [
+      "ESNext",
+      "DOM"
+    ]
+  },
+  "files": [
+    "src/index.ts"
+  ],
+  "references": [
+    {
+      "path": "../core/"
+    },
+    {
+      "path": "../diagram/"
+    }
+  ]
+}

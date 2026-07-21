@@ -1,0 +1,352 @@
+# @likec4/language-server
+
+## 1.59.0
+
+### Minor Changes
+
+- [#3053](https://github.com/likec4/likec4/pull/3053) [`d0a05fe`](https://github.com/likec4/likec4/commit/d0a05fe8e29105444762542c78c9861a13bfaff0) Thanks [@farhan523](https://github.com/farhan523)! - Allow defining `title`, `description` and links on relationship kinds in the `specification`, the same way as for element kinds. These properties are inherited by every relationship of that kind and can be overridden per relationship.
+
+  ```likec4
+  specification {
+    relationship async {
+      title 'Asynchronous'
+      description 'Communication over a message broker'
+      link https://example.com/async
+    }
+  }
+  ```
+
+  Closes [#2260](https://github.com/likec4/likec4/issues/2260)
+
+- [#3083](https://github.com/likec4/likec4/pull/3083) [`1814846`](https://github.com/likec4/likec4/commit/1814846f629971cec2a392222ab00c42abea47ed) Thanks [@farhan523](https://github.com/farhan523)! - Allow defining tags on relationship kinds in the `specification`, the same way as for element kinds. Tags are inherited by every relationship of that kind (merged with the relationship's own tags), so they can be used in view predicates like `where tag is #tcp`.
+
+  ```likec4
+  specification {
+    relationship https {
+      #tcp
+      head diamond
+    }
+    tag tcp
+  }
+  ```
+
+  Closes [#2533](https://github.com/likec4/likec4/issues/2533)
+
+### Patch Changes
+
+- [#3084](https://github.com/likec4/likec4/pull/3084) [`76ef007`](https://github.com/likec4/likec4/commit/76ef007fd2fb0c6d52cedcdb3ef048a9f2a624c4) Thanks [@davydkov](https://github.com/davydkov)! - Flow control in dynamic views. Besides `parallel`, steps can now be grouped into flow blocks (each with an optional title):
+
+  - `opt`, `loop` and `break` blocks
+  - `alt` with `when` / `else` branches
+  - `try` / `catch` / `finally` blocks
+
+  ```likec4
+  dynamic view example {
+    customer -> app 'opens app'
+    alt {
+      when 'authorized' {
+        app -> api 'requests data'
+      }
+      else 'not authorized' {
+        app -> customer 'shows login'
+      }
+    }
+  }
+  ```
+
+  Sequence diagrams render these blocks as nested frames, and actors stay visible when zoomed in (fixes [#3074](https://github.com/likec4/likec4/issues/3074)). During a walkthrough, a docked Sequence Outline panel shows the flow as a collapsible tree that mirrors the block nesting — each step is numbered and every operator carries a colored type tag and step count, so you can jump to any step and keep your place.
+
+  > [!NOTE]
+  > Flow control blocks are experimental — syntax and rendering may change. We are looking for your feedback in [discussions](https://github.com/likec4/likec4/discussions)!
+
+  Resolved issues:
+
+  - [#2745](https://github.com/likec4/likec4/issues/2745)
+  - [#2993](https://github.com/likec4/likec4/issues/2993)
+  - [#3074](https://github.com/likec4/likec4/issues/3074)
+
+- [#3093](https://github.com/likec4/likec4/pull/3093) [`196988d`](https://github.com/likec4/likec4/commit/196988d8a8fbbc3841200971233be6bda2b517be) Thanks [@ckeller42](https://github.com/ckeller42)! - Fix project `exclude` patterns so they also filter matching files loaded through `include.paths`.
+
+- [#3058](https://github.com/likec4/likec4/pull/3058) [`56d26c1`](https://github.com/likec4/likec4/commit/56d26c1baec4b2ce78a31d22339b90d62452c901) Thanks [@Vinceveve](https://github.com/Vinceveve)! - Fix `EMFILE: too many open files, watch` crash in `likec4 serve`/`dev` on large repositories.
+
+  The file watcher now honors the project's `exclude` patterns from `likec4.config.json`, consistent with how the source scan already filters files. Previously the watcher descended into every directory regardless of `exclude` (it only skipped `node_modules`/`.git` and non-`.c4` files), so on repositories where `.c4` files are a small fraction of a large tree it could exhaust the OS file-watch limit and crash on startup.
+
+- Updated dependencies [[`76ef007`](https://github.com/likec4/likec4/commit/76ef007fd2fb0c6d52cedcdb3ef048a9f2a624c4), [`0994577`](https://github.com/likec4/likec4/commit/09945775fb0c4c64b79eae6f17ee0abce92ef8f1), [`9b9727f`](https://github.com/likec4/likec4/commit/9b9727fcd1201296c4d7e09f7446edd38669328a), [`d0a05fe`](https://github.com/likec4/likec4/commit/d0a05fe8e29105444762542c78c9861a13bfaff0), [`1814846`](https://github.com/likec4/likec4/commit/1814846f629971cec2a392222ab00c42abea47ed), [`061e687`](https://github.com/likec4/likec4/commit/061e6872ee80b1381d3ec047663a22d1ebe6bab5)]:
+  - @likec4/core@1.59.0
+  - @likec4/layouts@1.59.0
+  - @likec4/generators@1.59.0
+  - @likec4/config@1.59.0
+  - @likec4/log@1.59.0
+
+## 1.57.1
+
+### Patch Changes
+
+- [#2985](https://github.com/likec4/likec4/pull/2985) [`e2ad89e`](https://github.com/likec4/likec4/commit/e2ad89e6206af2ea51ac5b6dcf4aceee2e1e4dfc) Thanks [@farhan523](https://github.com/farhan523)! - Nested `parallel` blocks in dynamic views now produce a clear validation error (`Nested parallel blocks are not allowed`) instead of a cryptic parser error. The grammar is loosened to accept the nested form so the validator can attach a diagnostic to the inner block. Resolves [#988](https://github.com/likec4/likec4/issues/988).
+
+- Updated dependencies [[`f2c0b57`](https://github.com/likec4/likec4/commit/f2c0b57485e912e85a986d5f89408a6039538ecc), [`8ad28c7`](https://github.com/likec4/likec4/commit/8ad28c777c76f294483c352180c7e3ea037eddfd), [`75e1510`](https://github.com/likec4/likec4/commit/75e1510def804bf9931bf222b03d1034e1181d04)]:
+  - @likec4/core@1.57.1
+  - @likec4/config@1.57.1
+  - @likec4/generators@1.57.1
+  - @likec4/layouts@1.57.1
+  - @likec4/log@1.57.1
+
+## 1.57.0
+
+### Minor Changes
+
+- [#2939](https://github.com/likec4/likec4/pull/2939) [`311b93d`](https://github.com/likec4/likec4/commit/311b93de360556b9583b901c5ad3d6692b9c9f03) Thanks [@galuszkak](https://github.com/galuszkak)! - Support expanding merged relationships into separate edges with the `multiple` flag. Set `multiple true` on a relationship kind in `specification`, or per-view via `with { multiple true }`, to show each relationship as its own edge with its own label instead of merging them into a single `[...]` edge. Resolves [#663](https://github.com/likec4/likec4/issues/663).
+
+- [#2935](https://github.com/likec4/likec4/pull/2935) [`35ba3f6`](https://github.com/likec4/likec4/commit/35ba3f637e45fc1072646f646b3442b3235cc29d) Thanks [@Kiiv](https://github.com/Kiiv)! - feat: add `includeAncestors` property to deployment views to include all ancestors of visible nodes. Fix https://github.com/likec4/likec4/issues/1483
+
+### Patch Changes
+
+- [#2944](https://github.com/likec4/likec4/pull/2944) [`1c70ea0`](https://github.com/likec4/likec4/commit/1c70ea023adb628457269d8a9d932b88d4bc2887) Thanks [@ckeller42](https://github.com/ckeller42)! - Fix formatter preserving metadata arrays instead of converting them to strings.
+
+- [#2948](https://github.com/likec4/likec4/pull/2948) [`9637876`](https://github.com/likec4/likec4/commit/96378760c468d10810d769fcfc7dcf6fef0dfc03) Thanks [@ckeller42](https://github.com/ckeller42)! - Fixes [#2932](https://github.com/likec4/likec4/issues/2932) by allowing reserved keywords such as `group` as metadata keys.
+
+- Updated dependencies [[`b7ff481`](https://github.com/likec4/likec4/commit/b7ff48171a0812978857af3f9edbffc6bdfeac9f), [`783155b`](https://github.com/likec4/likec4/commit/783155bba49ec60485af2c7f420fbb28e893955c), [`311b93d`](https://github.com/likec4/likec4/commit/311b93de360556b9583b901c5ad3d6692b9c9f03), [`35ba3f6`](https://github.com/likec4/likec4/commit/35ba3f637e45fc1072646f646b3442b3235cc29d)]:
+  - @likec4/layouts@1.57.0
+  - @likec4/generators@1.57.0
+  - @likec4/core@1.57.0
+  - @likec4/config@1.57.0
+  - @likec4/log@1.57.0
+
+## 1.56.0
+
+### Minor Changes
+
+- [#2912](https://github.com/likec4/likec4/pull/2912) [`ace5b2e`](https://github.com/likec4/likec4/commit/ace5b2e5cd261f47bd2e93b6f495e2122ceef16d) Thanks [@Kiiv](https://github.com/Kiiv)! - Improve color palette used for element rendering to be more accurate with the color specified by the user. Fix https://github.com/likec4/likec4/issues/2101
+
+### Patch Changes
+
+- [#2904](https://github.com/likec4/likec4/pull/2904) [`935f6bb`](https://github.com/likec4/likec4/commit/935f6bb3fc42b88669bd8af65947a201f8e3d490) Thanks [@davydkov](https://github.com/davydkov)! - Support applying view changes without LSP connection (e.g. in vite-plugin/CLI mode)
+
+- Updated dependencies [[`af34764`](https://github.com/likec4/likec4/commit/af3476421fd8938a897240ad6fd1c70068d1e070), [`ace5b2e`](https://github.com/likec4/likec4/commit/ace5b2e5cd261f47bd2e93b6f495e2122ceef16d), [`5f46082`](https://github.com/likec4/likec4/commit/5f460821526d851ef3bbf8be5a2bd749c2df6a8a)]:
+  - @likec4/log@1.56.0
+  - @likec4/core@1.56.0
+  - @likec4/config@1.56.0
+  - @likec4/layouts@1.56.0
+
+## 1.55.1
+
+### Patch Changes
+
+- [#2897](https://github.com/likec4/likec4/pull/2897) [`41ee8b7`](https://github.com/likec4/likec4/commit/41ee8b715fabecf8022a3440c971adeea1e8f9a3) Thanks [@davydkov](https://github.com/davydkov)! - Allow using reserved keyword `relationship` as an identifier in LikeC4 DSL (i.e. as element kind)
+
+- Updated dependencies []:
+  - @likec4/core@1.55.1
+  - @likec4/config@1.55.1
+  - @likec4/layouts@1.55.1
+  - @likec4/log@1.55.1
+
+## 1.55.0
+
+### Patch Changes
+
+- [#2877](https://github.com/likec4/likec4/pull/2877) [`51adb85`](https://github.com/likec4/likec4/commit/51adb85ad1097cdd4c95f9082533c8b33b124a42) Thanks [@davydkov](https://github.com/davydkov)! - Extract MCP server and tools to `@likec4/mcp` package. This will allow us to reuse MCP server and tools in other projects, and also will make the codebase cleaner and more modular.
+
+- [#2861](https://github.com/likec4/likec4/pull/2861) [`9687f89`](https://github.com/likec4/likec4/commit/9687f8974309de08001db3699e8712c7beac2b07) Thanks [@davydkov](https://github.com/davydkov)! - Add `likec4.exclude` VS Code setting to exclude files and folders from LikeC4 processing via glob patterns
+
+- Updated dependencies [[`6b87578`](https://github.com/likec4/likec4/commit/6b87578486c821fdc1060d69867a10f3c7e6ca9b), [`f684e2f`](https://github.com/likec4/likec4/commit/f684e2fb59745fe62ac2b43c68f1e453ab884cc8), [`347b48f`](https://github.com/likec4/likec4/commit/347b48f7bb67e0a480e231d57c4feeca09b32383), [`9834ebb`](https://github.com/likec4/likec4/commit/9834ebbfa32bdcb40710aac9038839e9da70031e), [`c0048b6`](https://github.com/likec4/likec4/commit/c0048b6ca156508c893e072dfbf9d75bbe4dd8ad)]:
+  - @likec4/core@1.55.0
+  - @likec4/config@1.55.0
+  - @likec4/layouts@1.55.0
+  - @likec4/log@1.55.0
+
+## 1.54.0
+
+### Patch Changes
+
+- [#2832](https://github.com/likec4/likec4/pull/2832) [`302f020`](https://github.com/likec4/likec4/commit/302f020e4e892d94159255a876da0119f9c8d9c9) Thanks [@davydkov](https://github.com/davydkov)! - Add `list-icons` CLI command to list all available built-in icons with `--format text|json` and `--group` filter options
+
+- [#2845](https://github.com/likec4/likec4/pull/2845) [`06ca18f`](https://github.com/likec4/likec4/commit/06ca18f9f0d69602917ff90b65e165bd8edffb25) Thanks [@davydkov](https://github.com/davydkov)! - Fix element names starting with underscore followed by digit (e.g. `_1password`) being incorrectly rejected by the parser
+
+  Fixes [#2836](https://github.com/likec4/likec4/issues/2836)
+
+- Updated dependencies []:
+  - @likec4/config@1.54.0
+  - @likec4/core@1.54.0
+  - @likec4/layouts@1.54.0
+  - @likec4/log@1.54.0
+
+## 1.53.0
+
+### Minor Changes
+
+- [#2769](https://github.com/likec4/likec4/pull/2769) [`39df42e`](https://github.com/likec4/likec4/commit/39df42e69d11a74cfbda94258321860d9437a3f7) Thanks [@galuszkak](https://github.com/galuszkak)! - Support `metadata` filtering in view predicates
+
+  - Filter elements and relations by metadata key existence (`where metadata.key`) or value (`where metadata.key = 'value'`)
+  - Works with `!=` for negation and supports `source.metadata` / `target.metadata` for relation participants
+
+### Patch Changes
+
+- Updated dependencies [[`22cde07`](https://github.com/likec4/likec4/commit/22cde07331a7d375d30c1220a1603576e8438735), [`39df42e`](https://github.com/likec4/likec4/commit/39df42e69d11a74cfbda94258321860d9437a3f7)]:
+  - @likec4/config@1.53.0
+  - @likec4/core@1.53.0
+  - @likec4/layouts@1.53.0
+  - @likec4/log@1.53.0
+
+## 1.52.0
+
+### Minor Changes
+
+- [#2667](https://github.com/likec4/likec4/pull/2667) [`2c6a43d`](https://github.com/likec4/likec4/commit/2c6a43da4552dbd40473effba65c7b04e165a7f3) Thanks [@m9810223](https://github.com/m9810223)! - Add `likec4 format` (alias `fmt`) CLI command for formatting `.c4` source files
+
+  - `@likec4/language-server` — add `format()` method to `LikeC4LanguageServices` with `projectIds`/`documentUris` filtering and LSP formatting options
+  - `@likec4/language-services` — add `format()` method to `LikeC4` facade, translating project name strings to `ProjectId`
+  - `likec4` — add `format` CLI command with `--check` mode for CI, `--project` and `--files` filtering
+
+### Patch Changes
+
+- [#2705](https://github.com/likec4/likec4/pull/2705) [`4d579d6`](https://github.com/likec4/likec4/commit/4d579d6990bd3f59fb8420d2adb0e246fd9dfdcc) Thanks [@davydkov](https://github.com/davydkov)! - Disable implicit views by default. Auto-generated scoped views for elements without explicit views are no longer created unless `"implicitViews": true` is set in the project config. To restore the previous behavior, add `"implicitViews": true` to your `likec4.json` configuration.
+
+- [#2713](https://github.com/likec4/likec4/pull/2713) [`bc47423`](https://github.com/likec4/likec4/commit/bc474235cf31a7d42e8c4f25328a698bb7edefe3) Thanks [@davydkov](https://github.com/davydkov)! - Remove deprecated ManualLayoutV1 and related migration command
+
+- Updated dependencies [[`4d579d6`](https://github.com/likec4/likec4/commit/4d579d6990bd3f59fb8420d2adb0e246fd9dfdcc), [`bc47423`](https://github.com/likec4/likec4/commit/bc474235cf31a7d42e8c4f25328a698bb7edefe3)]:
+  - @likec4/config@1.52.0
+  - @likec4/core@1.52.0
+  - @likec4/layouts@1.52.0
+  - @likec4/log@1.52.0
+
+## 1.51.0
+
+### Patch Changes
+
+- [#2681](https://github.com/likec4/likec4/pull/2681) [`70e0f7d`](https://github.com/likec4/likec4/commit/70e0f7db20c0945d37a6b2f77ad9722abf4706ce) Thanks [@davydkov](https://github.com/davydkov)! - Deprecate `likec4-language-server` from `@likec4/language-server` package. Use `likec4 lsp` instead.
+
+- [#2683](https://github.com/likec4/likec4/pull/2683) [`026ef4a`](https://github.com/likec4/likec4/commit/026ef4ab673f07669f460d4b075918f5045ecddd) Thanks [@davydkov](https://github.com/davydkov)! - Fix "View title cannot contain newlines" error when using implicit views with elements that have multi-line titles
+
+  Fixes [#2669](https://github.com/likec4/likec4/issues/2669), [#2672](https://github.com/likec4/likec4/issues/2672)
+
+- Updated dependencies []:
+  - @likec4/core@1.51.0
+  - @likec4/config@1.51.0
+  - @likec4/layouts@1.51.0
+  - @likec4/log@1.51.0
+
+## 1.50.0
+
+### Minor Changes
+
+- [#2638](https://github.com/likec4/likec4/pull/2638) [`0587b66`](https://github.com/likec4/likec4/commit/0587b6609ec9eb372aa3ff8eae2fd3a82c789144) Thanks [@ckeller42](https://github.com/ckeller42)! - Add new MCP query tools: `query-graph`, `query-incomers-graph`, `query-outgoers-graph`, `query-by-metadata`, `query-by-tags`, `query-by-tag-pattern`, `find-relationship-paths`, `batch-read-elements`, `subgraph-summary`, and `element-diff`.
+
+  Enhance `read-project-summary` to include serialized project `config` and extend project config schema with optional `metadata` field.
+
+### Patch Changes
+
+- [#2642](https://github.com/likec4/likec4/pull/2642) [`fe468d8`](https://github.com/likec4/likec4/commit/fe468d830544e6f0051ea2203ab137d46932d11e) Thanks [@davydkov](https://github.com/davydkov)! - Automatically derive element technology from icon name when not set explicitly.
+  Elements with `aws:`, `azure:`, `gcp:`, or `tech:` icons will get a human-readable technology label
+  (e.g. `tech:apache-flink` → "Apache Flink"). Can be disabled via `inferTechnologyFromIcon: false` in project config.
+
+- [#2630](https://github.com/likec4/likec4/pull/2630) [`68ab5f6`](https://github.com/likec4/likec4/commit/68ab5f6652b43f2f6e52fd3cd2736cdc3672e3cf) Thanks [@sraphaz](https://github.com/sraphaz)! - Draw.io export alignment; cross-platform postpack; language-server worker.
+
+  - **Draw.io export:** Generators and CLI export views to Draw.io (.drawio); round-trip comment blocks (layout, stroke, waypoints) and postpack behavior only. No import/parser in this PR.
+  - **Postpack:** `likec4ops postpack` copies packed tgz to package.tgz (cross-platform); all packages use it instead of `cp` so pack/lint:package works on Windows.
+  - **Language-server:** Safe error stringification in browser worker for oxlint.
+
+- [#2648](https://github.com/likec4/likec4/pull/2648) [`5ce02f8`](https://github.com/likec4/likec4/commit/5ce02f8e1fa437c3f7597a546ae3b08515712ac1) Thanks [@davydkov](https://github.com/davydkov)! - Auto-generate scoped views for elements without explicit views, enabling drill-down navigation out of the box. Configurable via `implicitViews` option in project config (enabled by default).
+
+- Updated dependencies [[`fe468d8`](https://github.com/likec4/likec4/commit/fe468d830544e6f0051ea2203ab137d46932d11e), [`5ce02f8`](https://github.com/likec4/likec4/commit/5ce02f8e1fa437c3f7597a546ae3b08515712ac1), [`0587b66`](https://github.com/likec4/likec4/commit/0587b6609ec9eb372aa3ff8eae2fd3a82c789144)]:
+  - @likec4/core@1.50.0
+  - @likec4/config@1.50.0
+  - @likec4/layouts@1.50.0
+  - @likec4/log@1.50.0
+
+## 1.49.0
+
+### Patch Changes
+
+- [#2624](https://github.com/likec4/likec4/pull/2624) [`507bab3`](https://github.com/likec4/likec4/commit/507bab30cf9e30450cedfc4b27f67718a387b2e7) Thanks [@davydkov](https://github.com/davydkov)! - Enhanced hover tooltips in editor now show relationship counts and clickable links to views containing the element
+
+- [#2620](https://github.com/likec4/likec4/pull/2620) [`39447c5`](https://github.com/likec4/likec4/commit/39447c5f59ce2466cc7a01f7bc5aaef4cb6fcb45) Thanks [@davydkov](https://github.com/davydkov)! - Internal restructuring for better maintainability:
+
+  - `@likec4/language-services` - for cross-platform language services initialization
+  - `@likec4/react` - bundled version of `@likec4/diagram`
+  - `@likec4/vite-plugin` - to separate concerns
+
+- [`12d472b`](https://github.com/likec4/likec4/commit/12d472b19f75a400fb4452cfb9d1be9392792118) Thanks [@davydkov](https://github.com/davydkov)! - Fix title inheritance from specification, closes [#2580](https://github.com/likec4/likec4/issues/2580)
+
+- [`731a6cb`](https://github.com/likec4/likec4/commit/731a6cb278ef6bc06280bf1ba3b2d8f79c7d7fe6) Thanks [@davydkov](https://github.com/davydkov)! - Add notes to the elements and relationships using `with`. Example:
+
+  ```likec4
+  view {
+    include
+      some.element with {
+        notes '''
+          This is a note for some.element.
+          It can contain multiple lines and **markdown** formatting.
+        '''
+      }
+  }
+  ```
+
+  Relates to [#2567](https://github.com/likec4/likec4/issues/2567)
+
+- [`1c6e427`](https://github.com/likec4/likec4/commit/1c6e4273d96774b5c5c7ee52047539e15bb265e2) Thanks [@davydkov](https://github.com/davydkov)! - Fix MCP server initialization and be stateless (according to suggestion in https://github.com/likec4/likec4/security/dependabot/179)
+
+- Updated dependencies [[`3f28e65`](https://github.com/likec4/likec4/commit/3f28e65162d895a5afd3b61e3dcf1c0c9d67c661), [`f42c046`](https://github.com/likec4/likec4/commit/f42c046cd4bf1a3f4037cb2020268e729f018300), [`507bab3`](https://github.com/likec4/likec4/commit/507bab30cf9e30450cedfc4b27f67718a387b2e7), [`39447c5`](https://github.com/likec4/likec4/commit/39447c5f59ce2466cc7a01f7bc5aaef4cb6fcb45), [`e10ea04`](https://github.com/likec4/likec4/commit/e10ea04bd2119b83cbd4c625640e63cd6e3f2e96), [`731a6cb`](https://github.com/likec4/likec4/commit/731a6cb278ef6bc06280bf1ba3b2d8f79c7d7fe6)]:
+  - @likec4/config@1.49.0
+  - @likec4/core@1.49.0
+  - @likec4/layouts@1.49.0
+  - @likec4/log@1.49.0
+
+## 1.48.0
+
+### Minor Changes
+
+- [`68c6bf2`](https://github.com/likec4/likec4/commit/68c6bf286536e39ec316db906a425e2bfc852a83) Thanks [@davydkov](https://github.com/davydkov)! - Add icon customization options
+
+  - Add iconColor, iconSize, and iconPosition properties to element styles
+  - Support icon positioning (left, right, top, bottom) in diagrams and layouts
+  - Enable custom icon colors and sizes in element specifications
+
+### Patch Changes
+
+- [`545b58a`](https://github.com/likec4/likec4/commit/545b58a34a44cff906f8a1b5335e32f662272c0c) Thanks [@davydkov](https://github.com/davydkov)! - Fix issue where including additional directories in project stopped working, closing #2555
+
+- [`fdcfb0e`](https://github.com/likec4/likec4/commit/fdcfb0e75c10b9253b85c05fabeace9efae74c74) Thanks [@davydkov](https://github.com/davydkov)! - Improve cache management in ProjectsManager and ManualLayouts
+
+- [`46938b1`](https://github.com/likec4/likec4/commit/46938b10aa189a8faf7338ff7ea845d92fc4d9dc) Thanks [@davydkov](https://github.com/davydkov)! - Add project update listeners and notifications to ProjectsManager. Introduced `DidChangeProjectsNotification` to LSP Protocol.
+
+- Updated dependencies [[`c333592`](https://github.com/likec4/likec4/commit/c333592b6342dc4a726864e970c8056bc65fafa8), [`68c6bf2`](https://github.com/likec4/likec4/commit/68c6bf286536e39ec316db906a425e2bfc852a83), [`9aa59c8`](https://github.com/likec4/likec4/commit/9aa59c81f40ac948b32842a265bfdfe48d21bddf), [`c186a08`](https://github.com/likec4/likec4/commit/c186a082c6fbb26d2b5169a9c28ca51e540622f6), [`6677d12`](https://github.com/likec4/likec4/commit/6677d124aaf6c45fb1456ce66a5c538634fe5fa0), [`c12f7a1`](https://github.com/likec4/likec4/commit/c12f7a108c19418403f5afc0c06c1e25565f6bf2), [`6ab5089`](https://github.com/likec4/likec4/commit/6ab5089fc2c1ce472fa5f5a471061056676e5546)]:
+  - @likec4/core@1.48.0
+  - @likec4/layouts@1.48.0
+  - @likec4/config@1.48.0
+  - @likec4/log@1.48.0
+
+## 1.47.0
+
+### Patch Changes
+
+- [`817d159`](https://github.com/likec4/likec4/commit/817d159df509b50963ef135c218936c35c460ab1) Thanks [@davydkov](https://github.com/davydkov)! - Completions for project name in `import` statements
+
+- [`be5326a`](https://github.com/likec4/likec4/commit/be5326a029c4f295cdd2bcf34dfa4a928dd9b948) Thanks [@davydkov](https://github.com/davydkov)! - Updated MCP SDK
+
+- [#2521](https://github.com/likec4/likec4/pull/2521) [`de2b294`](https://github.com/likec4/likec4/commit/de2b2942322f1a1b0ce4822e40c997ba3fff9e15) Thanks [@davydkov](https://github.com/davydkov)! - - Add two new shapes: `document` and `bucket`
+
+  - Apply border style to element node (previously it was applied to compound nodes and groups), closes [#2502](https://github.com/likec4/likec4/issues/2502)
+
+- [#2521](https://github.com/likec4/likec4/pull/2521) [`8a15bb6`](https://github.com/likec4/likec4/commit/8a15bb6acde616eae65891d3dc73ff19eb0d5ffc) Thanks [@davydkov](https://github.com/davydkov)! - Improve reloading and updating projects
+
+## 1.46.4
+
+### Patch Changes
+
+- [#2506](https://github.com/likec4/likec4/pull/2506) [`39dcb77`](https://github.com/likec4/likec4/commit/39dcb77328310970f5d254e5a55f84a7a534524f) - Fixed "exclude" option in project configuration (it was working only with "\*\*/" prefix)
+
+## 1.46.3
+
+### Patch Changes
+
+- [#2495](https://github.com/likec4/likec4/pull/2495) [`d91e69c`](https://github.com/likec4/likec4/commit/d91e69c988b0e430215ada8b38d40f63821750db) Thanks [@davydkov](https://github.com/davydkov)! - Corrected resolution of project's included documents
+
+- [#2493](https://github.com/likec4/likec4/pull/2493) [`5c5c33c`](https://github.com/likec4/likec4/commit/5c5c33ca615bb8b79592c688b9ab0e53bf9d55dc) Thanks [@renovate](https://github.com/apps/renovate)! - update chokidar to v5
+
+- [#2495](https://github.com/likec4/likec4/pull/2495) [`aa7340c`](https://github.com/likec4/likec4/commit/aa7340c882a147cf7f659a1f93d10e1d137711d5) Thanks [@davydkov](https://github.com/davydkov)! - Remove workspace locks in ProjectsManager, as they lead to race conditions during extension activation. Fixes [#2466](https://github.com/likec4/likec4/issues/2466)
+
+## 1.46.2
+
+### Patch Changes
+
+- [#2476](https://github.com/likec4/likec4/pull/2476) [`9c5779d`](https://github.com/likec4/likec4/commit/9c5779d872d8de353adf706d1a0edbbcd8bb9671) Thanks [@davydkov](https://github.com/davydkov)! - Deployment nodes name is wrong derived from instanceOf, fixes #2387

@@ -1,0 +1,91 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+{
+  "name": "LikeC4 Dev",
+  // Base image - asdf features will install tools from .tool-versions
+  "image": "mcr.microsoft.com/devcontainers/base:debian",
+  "features": {
+    // Install asdf version manager first. The postCreateCommand will install Node.js, pnpm, and dprint.
+    "ghcr.io/devcontainer-community/devcontainer-features/asdf-vm.com:1": {},
+    "ghcr.io/devcontainers-extra/features/tsx:1": {},
+    "ghcr.io/devcontainers-extra/features/turborepo-npm:1": {}
+
+  },
+  "containerEnv": {
+    "TURBO_CACHE_DIR": "/workspace/.turbo",
+    "NODE_ENV": "development",
+    // Prevent husky from installing git hooks during container setup
+    "HUSKY": "0"
+  },
+  "runArgs": [
+    // This enables the host to communicate with the container over localhost.
+    "--network=host"
+  ],
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  "forwardPorts": [5173, 24678, 24679, 51204, 61000, 61001, 62001, 62002],
+  "portsAttributes": {
+    "5173": {
+      "label": "likec4 cli - dev",
+      "onAutoForward": "notify"
+    },
+    "24678": {
+      "label": "likec4 cli - websocket"
+    },
+    "24679": {
+      "label": "likec4 cli - HMR",
+      "onAutoForward": "silent"
+    },
+    "51204": {
+      "label": "vitest",
+      "onAutoForward": "notify"
+    },
+    "61000": {
+      "label": "examples-dev"
+    },
+    "61001": {
+      "label": "examples-dev - HMR",
+      "onAutoForward": "silent"
+    },
+    "62001": {
+      "label": "likec4 cli - preview"
+    },
+    "62002": {
+      "label": "likec4 cli - preview - HMR",
+      "onAutoForward": "silent"
+    }
+  },
+  // Use 'onCreateCommand' to run commands when creating the container for the first time.
+  "onCreateCommand": "sudo chown -R root:root .pnpm-store node_modules .turbo",
+  // Use 'postCreateCommand' to run commands after the container is created.
+  // Using asdf to install nodejs, pnpm, and dprint as per .tool-versions, then install dependencies.
+  "postCreateCommand": "bash -c 'asdf plugin add nodejs || true && asdf plugin add pnpm || true && asdf plugin add dprint || true && asdf install && pnpm install --prefer-offline'",
+  // Configure tool-specific properties.
+  "customizations": {
+    // Configure properties specific to VS Code.
+    "vscode": {
+      // Add the IDs of extensions you want installed when the container is created.
+      "extensions": [
+        "langium.langium-vscode",
+        "editorconfig.editorconfig",
+        "meganrogge.template-string-converter",
+        "redhat.vscode-yaml",
+        "github.copilot",
+        "dprint.dprint",
+        "vitest.explorer"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.osx": "zsh",
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      }
+    }
+  },
+  "mounts": [
+    "source=pnpm-store,target=${containerWorkspaceFolder}/.pnpm-store,type=volume",
+    "source=likec4-turbo-cache,target=${containerWorkspaceFolder}/.turbo,type=volume",
+    "source=${devcontainerId}-node-modules,target=${containerWorkspaceFolder}/node_modules,type=volume"
+  ],
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+  "workspaceFolder": "/workspace",
+  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+  // Doesn't work on Windows due to file permission issues with bind mounts unless it's a root user.
+  "remoteUser": "root"
+}

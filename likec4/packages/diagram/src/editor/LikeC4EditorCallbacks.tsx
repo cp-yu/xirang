@@ -1,0 +1,29 @@
+import type * as t from '@likec4/core/types'
+
+/**
+ * Callbacks from LikeC4 Editor.
+ */
+export interface LikeC4EditorCallbacks {
+  /**
+   * Apply semantic layout to a view (if AI is available)
+   * See vite-plugin settings for more details
+   */
+  applySemanticLayout?: undefined | ((viewId: t.ViewId) => Promise<void>)
+
+  /**
+   * Fetch a view by its ID and layout type.
+   *
+   * @param viewId - The ID of the view to fetch.
+   * @param layout - The layout type to use when fetching the view.
+   */
+  fetchView(viewId: t.ViewId, layout?: t.LayoutType): t.LayoutedView | Promise<t.LayoutedView>
+
+  /**
+   * Callback invoked when the view changes.
+   */
+  handleChange(viewId: t.ViewId, change: t.ViewChange): void | Promise<void>
+}
+
+export function createLikeC4Editor(callbacks: LikeC4EditorCallbacks): LikeC4EditorCallbacks {
+  return callbacks
+}

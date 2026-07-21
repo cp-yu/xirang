@@ -1,0 +1,309 @@
+import { filter, isArray, map, pick, pipe } from 'remeda'
+import type {
+  DeploymentElementModel,
+  DeploymentRelationEndpoint,
+  DeploymentRelationModel,
+  RelationshipModel,
+} from '../../../model'
+import {
+  type DeploymentConnectionModel,
+  ElementModel,
+  isDeployedInstanceModel as isDeployedInstance,
+  isDeploymentElementModel,
+  isDeploymentNodeModel as isDeploymentNode,
+  isElementModel,
+  isNestedElementOfDeployedInstanceModel,
+} from '../../../model'
+import type { AnyAux } from '../../../types'
+import { type Filterable, type OperatorPredicate, FqnExpr, RelationExpr } from '../../../types'
+import { nonexhaustive } from '../../../utils'
+import { hasIntersection, intersection } from '../../../utils/set'
+import type { ExcludePredicateCtx, PredicateCtx } from '../_types'
+import type { StageExclude, StageInclude } from '../memory'
+import { DeploymentRefPredicate } from './deploymentRefs'
+import { WhereDeploymentRefPredicate } from './deploymentRefs-where'
+import { DirectRelationPredicate } from './relation-direct'
+import { InOutRelationPredicate } from './relation-in-out'
+import { IncomingRelationPredicate } from './relation-incoming'
+import { OutgoingRelationPredicate } from './relation-outgoing'
+import { WhereRelationPredicate } from './relation-where'
+import { WildcardPredicate } from './wildcard'
+
+/**
+ * Builds a patch object from an expression
+ */
+export function predicateToPatch(op: 'include', ctx: PredicateCtx): StageInclude | undefined
+export function predicateToPatch(op: 'exclude', ctx: PredicateCtx): StageExclude | undefined
+export function predicateToPatch(op: 'include' | 'exclude', ctx: PredicateCtx): StageInclude | StageExclude | undefined
+export function predicateToPatch(
+  op: 'include' | 'exclude',
+  { expr, where, ...ctx }: PredicateCtx,
+): StageExclude | StageInclude | undefined {
+  switch (true) {
+    case FqnExpr.isElementTagExpr(expr):
+    case FqnExpr.isElementKindExpr(expr):
+      throw new Error('element kind and tag expressions are not supported in deployment view rules')
+    case RelationExpr.isCustom(expr):
+    case FqnExpr.isCustom(expr):
+    case FqnExpr.isModelRef(expr):
+      // Ignore model refs in deployment view
+      return undefined
+    case FqnExpr.isWhere(expr):
+      return WhereDeploymentRefPredicate[op]({ ...ctx, expr, where } as any)
+    case RelationExpr.isWhere(expr):
+      return WhereRelationPredicate[op]({ ...ctx, expr, where } as any)
+    case FqnExpr.isDeploymentRef(expr):
+      return DeploymentRefPredicate[op]({ ...ctx, expr, where } as any)
+    case FqnExpr.isWildcard(expr):
+      return WildcardPredicate[op]({ ...ctx, expr, where } as any)
+    case RelationExpr.isDirect(expr):
+      return DirectRelationPredicate[op]({ ...ctx, expr, where } as any)
+    case RelationExpr.isInOut(expr):
+      return InOutRelationPredicate[op]({ ...ctx, expr, where } as any)
+    case RelationExpr.isOutgoing(expr):
+      return OutgoingRelationPredicate[op]({ ...ctx, expr, where } as any)
+    case RelationExpr.isIncoming(expr):
+      return IncomingRelationPredicate[op]({ ...ctx, expr, where } as any)
+    default:
+      nonexhaustive(expr)
+  }
+}
+
+export function excludeModelRelations<M extends AnyAux>(
+  relationsToExclude: ReadonlySet<RelationshipModel<M>>,
+  { stage, memory }: Pick<ExcludePredicateCtx, 'stage' | 'memory'>,
+  where: OperatorPredicate<M> | null,
+  // Optional filter to scope the connections to exclude
+  filterConnections: (c: DeploymentConnectionModel<M>) => boolean = () => true,
+): StageExclude {
+  if (relationsToExclude.size === 0) {
+    return stage
+  }
+  const toExclude = pipe(
+    memory.connections as unknown as readonly DeploymentConnectionModel<M>[],
+    filter(c => filterConnections(c)),
+    // Find connections that have at least one relation in common with the excluded relations
+    filter(c => hasIntersection(c.relations.model, relationsToExclude)),
+    map(c =>
+      c.update({
+        deployment: null,
+        model: intersection(c.relations.model, relationsToExclude),
+      })
+    ),
+    applyPredicate(where),
+    filter(c => c.nonEmpty()),
+  )
+  if (toExclude.length === 0) {
+    return stage
+  }
+  return stage.excludeConnections(toExclude as unknown as DeploymentConnectionModel[])
+}
+
+export function matchConnection<M extends AnyAux>(
+  c: DeploymentConnectionModel<M>,
+  where: OperatorPredicate<M> | null,
+): boolean {
+  return applyPredicate(c, where).nonEmpty()
+}
+
+/**
+ * Filters relations of the provided connections using the provided predicate.
+ * And copy of the connection with the filtered relations will be created.
+ * Connections left without relations are removed from resulting collection.
+ *
+ * @param c The connection to apply the predicate to
+ * @param where The predicate
+ * @returns A copy of the connection with the filtered relations
+ */
+export function applyPredicate<M extends AnyAux>(
+  c: readonly DeploymentConnectionModel<M>[],
+  where: OperatorPredicate<M> | null,
+): readonly DeploymentConnectionModel<M>[]
+/**
+ * Filters relations of the connection using the provided predicate.
+ *
+ * @param c The connection to apply the predicate to
+ * @param where The predicate
+ * @returns A deep copy of the original collection with the filtered relations
+ */
+export function applyPredicate<M extends AnyAux>(
+  c: DeploymentConnectionModel<M>,
+  where: OperatorPredicate<M> | null,
+): DeploymentConnectionModel<M>
+/**
+ * Creates a function that filters relations of the provided connections using the provided predicate.
+ * Connections left without relations are removed from resulting collection.
+ *
+ * @param c The connection to apply the predicate to
+ * @param where The predicate
+ * @returns A function to create a filtered copy of connections
+ */
+export function applyPredicate<M extends AnyAux>(
+  where: OperatorPredicate<M> | null,
+): (data: readonly DeploymentConnectionModel<M>[]) => readonly DeploymentConnectionModel<M>[]
+export function applyPredicate<M extends AnyAux>(
+  ...args:
+    | [readonly DeploymentConnectionModel<M>[], OperatorPredicate<M> | null]
+    | [OperatorPredicate<M> | null]
+    | [c: DeploymentConnectionModel<M>, OperatorPredicate<M> | null]
+):
+  | DeploymentConnectionModel<M>
+  | readonly DeploymentConnectionModel<M>[]
+  | ((data: readonly DeploymentConnectionModel<M>[]) => readonly DeploymentConnectionModel<M>[])
+{
+  if (args.length === 1) {
+    return x => applyPredicate(x, args[0])
+  }
+
+  const [c, where] = args
+  if (where === null) {
+    return c
+  }
+
+  if (isArray(c)) {
+    return c
+      .map(x => applyPredicate(x, where))
+      .filter(x => x.nonEmpty())
+  }
+
+  return c.update({
+    model: new Set([...c.relations.model.values()].filter(r => where(toFilterableRelation(c)(r)))),
+    deployment: new Set([...c.relations.deployment.values()].filter(r => where(toFilterableRelation(c)(r)))),
+  })
+}
+
+/**
+ * Checks elements using the provided predicate.
+ *
+ * @param c The collection of element to apply the predicate to
+ * @param where The predicate
+ * @returns Returns array of elements those match the predicate
+ */
+export function applyElementPredicate<M extends AnyAux>(
+  c: readonly DeploymentElementModel<M>[],
+  where: OperatorPredicate<M> | null,
+): readonly DeploymentElementModel<M>[]
+/**
+ * Checks element using the provided predicate.
+ *
+ * @param c The element to apply the predicate to
+ * @param where The predicate
+ * @returns The result of the check
+ */
+export function applyElementPredicate<M extends AnyAux, E extends DeploymentElementModel<M>>(
+  c: E,
+  where: OperatorPredicate<M> | null,
+): boolean
+/**
+ * Creates a function that filters elemetns using the provided predicate.
+ *
+ * @param where The predicate
+ * @returns A function to filter elements
+ */
+export function applyElementPredicate<M extends AnyAux, E extends DeploymentElementModel<M>>(
+  where: OperatorPredicate<M> | null,
+): (data: readonly E[]) => E[]
+export function applyElementPredicate<M extends AnyAux, E extends DeploymentElementModel<M>>(
+  ...args:
+    | [readonly E[], OperatorPredicate<M> | null]
+    | [OperatorPredicate<M> | null]
+    | [c: E, OperatorPredicate<M> | null]
+):
+  | boolean
+  | readonly E[]
+  | ((data: readonly E[]) => E[])
+{
+  if (args.length === 1) {
+    const where = args[0]
+    if (where == null) {
+      return (x: readonly E[]) => x as E[]
+    }
+    return (x: readonly E[]) => x.filter(y => where(toFilterable(y, y)))
+  }
+
+  const [c, where] = args
+
+  if (isArray(c)) {
+    if (where == null) {
+      return c as E[]
+    }
+    return c.filter(x => where(toFilterable(x, x)))
+  }
+
+  return where?.(toFilterable(c, c)) ?? true
+}
+
+export function matchConnections<M extends AnyAux>(
+  connections: readonly DeploymentConnectionModel<M>[],
+  where: OperatorPredicate<M> | null,
+): readonly DeploymentConnectionModel<M>[] {
+  if (!where) {
+    return connections
+  }
+
+  return pipe(
+    connections,
+    filter(c => matchConnection(c, where)),
+  )
+}
+
+/**
+ * Builds filterable presentation for relation endpoint. Enriches model properties with deployment properties when needed.
+ * @param relationEndpoint Endpoint for which to build presentation
+ * @param connectionEndpoint Endpoint of connection which was build from the relation.
+ * @returns Presentation of the endpoint for usage in predicates
+ */
+function toFilterable<M extends AnyAux>(
+  relationEndpoint: ElementModel<M> | DeploymentRelationEndpoint<M>,
+  connectionEndpoint: DeploymentRelationEndpoint<M>,
+): Filterable<M> {
+  if (isElementModel<M>(relationEndpoint)) {
+    const deployedInstance = isDeploymentElementModel<M>(connectionEndpoint) && isDeployedInstance(connectionEndpoint)
+      ? connectionEndpoint
+      : null
+    return {
+      kind: relationEndpoint.kind,
+      tags: [...relationEndpoint.tags, ...(deployedInstance?.tags ?? [])],
+      // Deployed instance metadata intentionally replaces, not merges with, model element metadata.
+      metadata: deployedInstance?.metadata ?? relationEndpoint.metadata,
+    }
+  }
+  if (isNestedElementOfDeployedInstanceModel(relationEndpoint)) { // Nested element. Has no own instance. No need to extend
+    return pick(relationEndpoint.element, ['tags', 'kind', 'metadata'])
+  }
+  if (isDeployedInstance(relationEndpoint)) { // Deployed instance. Extend with tags of the model element
+    return {
+      kind: relationEndpoint.element.kind,
+      tags: [...relationEndpoint.tags, ...relationEndpoint.element.tags],
+      metadata: relationEndpoint.metadata,
+    }
+  }
+  if (isDeploymentNode(relationEndpoint)) { // Deployment node. Has no representation in model. No need to extend
+    return pick(relationEndpoint, ['tags', 'kind', 'metadata'])
+  }
+
+  nonexhaustive(relationEndpoint)
+}
+
+function toFilterableRelation<M extends AnyAux>(c: DeploymentConnectionModel<M>) {
+  return (relation: RelationshipModel<M> | DeploymentRelationModel<M>) => ({
+    tags: relation.tags,
+    kind: relation.kind,
+    metadata: relation.metadata,
+    source: toFilterable(relation.source, c.source),
+    target: toFilterable(relation.target, c.target),
+  })
+}
+
+export function resolveAscendingSiblings(element: DeploymentElementModel): Set<DeploymentElementModel> {
+  const siblings = new Set<DeploymentElementModel>()
+  for (let sibling of element.descendingSiblings()) {
+    // TODO: investigate if this is necessary
+    // if (element.isInstance() && sibling.isDeploymentNode()) {
+    //   // we flatten nodes that contain only one instance
+    //   sibling = sibling.onlyOneInstance() ?? sibling
+    // }
+    siblings.add(sibling)
+  }
+  return siblings
+}

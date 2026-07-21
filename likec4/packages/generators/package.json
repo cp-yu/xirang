@@ -1,0 +1,83 @@
+{
+  "name": "@likec4/generators",
+  "version": "1.59.0",
+  "license": "MIT",
+  "bugs": "https://github.com/likec4/likec4/issues",
+  "homepage": "https://likec4.dev",
+  "author": "Denis Davydkov <denis@davydkov.com>",
+  "description": "Converts LikeC4 Model to other formats, like Mermaid, PlantUML, SVG, etc. Also generates typings for Model API and React",
+  "files": [
+    "dist",
+    "src",
+    "**/package.json",
+    "!**/__*/**",
+    "!**/*.spec.*",
+    "!**/*.snap",
+    "!**/*.map"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/likec4/likec4.git",
+    "directory": "packages/generators"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "sources": "./src/index.ts",
+      "default": {
+        "types": "./dist/index.d.mts",
+        "import": "./dist/index.mjs",
+        "default": "./dist/index.mjs"
+      }
+    },
+    "./likec4": {
+      "sources": "./src/likec4/index.ts",
+      "default": {
+        "types": "./dist/likec4/index.d.mts",
+        "import": "./dist/likec4/index.mjs",
+        "default": "./dist/likec4/index.mjs"
+      }
+    }
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public",
+    "types": "dist/index.d.mts",
+    "module": "dist/index.mjs"
+  },
+  "scripts": {
+    "typecheck": "tsc -b --verbose",
+    "build": "tsdown",
+    "lint": "run -T eslint src/ --fix",
+    "clean": "likec4ops clean",
+    "prepack": "likec4ops prepack",
+    "pack": "pnpm pack",
+    "postpack": "likec4ops postpack",
+    "test": "vitest run --no-isolate",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@likec4/core": "workspace:*",
+    "@likec4/config": "workspace:*",
+    "@likec4/log": "workspace:*",
+    "langium": "catalog:langium",
+    "pako": "catalog:",
+    "remeda": "catalog:utils",
+    "immer": "catalog:utils",
+    "json5": "catalog:utils",
+    "type-fest": "catalog:externals",
+    "indent-string": "catalog:utils",
+    "strip-indent": "catalog:utils",
+    "zod": "catalog:externals"
+  },
+  "devDependencies": {
+    "@likec4/tsconfig": "workspace:*",
+    "@likec4/devops": "workspace:*",
+    "@types/node": "catalog:",
+    "@types/pako": "catalog:",
+    "typescript": "catalog:",
+    "tsdown": "catalog:tsdown",
+    "vitest": "catalog:vitest"
+  }
+}

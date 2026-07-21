@@ -1,0 +1,140 @@
+{
+  "name": "@likec4/playground",
+  "version": "1.59.0",
+  "private": true,
+  "scripts": {
+    "generate": "tsx scripts/generate.mts",
+    "dev": "vite dev",
+    "typecheck": "tsc --build --verbose",
+    "build": "vite build",
+    "preview": "vite preview",
+    "clean": "pnpm rimraf dist lib node_modules/.vite",
+    "wrangler:deploy": "CLOUDFLARE_ENV=production wrangler deploy",
+    "wrangler:preview": "CLOUDFLARE_ENV=production wrangler versions upload",
+    "deploy:prod": "wireit",
+    "deploy:preview": "wireit"
+  },
+  "wireit": {
+    "build-with-turbo": {
+      "command": "turbo run build"
+    },
+    "build-and-preview": {
+      "dependencies": [
+        "build-with-turbo",
+        "wrangler:preview"
+      ]
+    },
+    "deploy:prod": {
+      "dependencies": [
+        "build-with-turbo"
+      ],
+      "command": "wrangler deploy",
+      "env": {
+        "NODE_ENV": "production",
+        "CLOUDFLARE_ENV": "production"
+      }
+    },
+    "deploy:preview": {
+      "dependencies": [
+        "build-with-turbo"
+      ],
+      "command": "wrangler versions upload",
+      "env": {
+        "NODE_ENV": "production",
+        "CLOUDFLARE_ENV": "production"
+      }
+    }
+  },
+  "imports": {
+    "#worker": "./worker/index.ts",
+    "#worker/client": "./worker/client.ts",
+    "#worker/types": "./worker/types.ts"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "dependencies": {
+    "@cloudflare/vite-plugin": "catalog:cloudflare",
+    "miniflare": "4.20260305.0",
+    "@codingame/monaco-vscode-editor-api": "16.1.1",
+    "@codingame/monaco-vscode-editor-service-override": "16.1.1",
+    "@codingame/monaco-vscode-files-service-override": "16.1.1",
+    "@codingame/monaco-vscode-keybindings-service-override": "16.1.1",
+    "@codingame/monaco-vscode-lifecycle-service-override": "16.1.1",
+    "@codingame/monaco-vscode-textmate-service-override": "16.1.1",
+    "@codingame/monaco-vscode-theme-defaults-default-extension": "16.1.1",
+    "@codingame/monaco-vscode-theme-service-override": "16.1.1",
+    "@codingame/monaco-vscode-views-service-override": "16.1.1",
+    "@hono/oauth-providers": "catalog:hono",
+    "@hono/zod-validator": "catalog:hono",
+    "@hpcc-js/wasm-graphviz": "catalog:externals",
+    "@likec4/core": "workspace:*",
+    "@likec4/diagram": "workspace:*",
+    "@likec4/generators": "workspace:*",
+    "@likec4/icons": "workspace:*",
+    "@likec4/language-server": "workspace:*",
+    "@likec4/log": "workspace:*",
+    "@likec4/style-preset": "workspace:*",
+    "@likec4/styles": "workspace:*",
+    "@likec4/tsconfig": "workspace:*",
+    "@mantine/core": "catalog:mantine",
+    "@mantine/hooks": "catalog:mantine",
+    "@mantine/modals": "catalog:mantine",
+    "@mantine/notifications": "catalog:mantine",
+    "@nanostores/react": "catalog:react",
+    "@pandacss/dev": "catalog:css",
+    "@react-hookz/web": "catalog:react",
+    "@statelyai/inspect": "^0.4.0",
+    "@tabler/icons-react": "catalog:react",
+    "@tanstack/react-router": "catalog:tanstack",
+    "@tanstack/router-cli": "catalog:tanstack",
+    "@tanstack/router-vite-plugin": "catalog:tanstack",
+    "@typefox/monaco-editor-react": "6.7.0",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:react",
+    "@types/react-dom": "catalog:react",
+    "@vitejs/plugin-react": "catalog:vite",
+    "@xstate/react": "catalog:xstate",
+    "@xyflow/react": "catalog:xyflow",
+    "@xyflow/system": "catalog:xyflow",
+    "date-fns": "catalog:utils",
+    "fast-equals": "catalog:utils",
+    "hono": "catalog:hono",
+    "hono-sessions": "catalog:hono",
+    "langium": "catalog:langium",
+    "monaco-editor-wrapper": "6.7.0",
+    "monaco-languageclient": "9.6.0",
+    "motion": "catalog:react",
+    "nanoid": "catalog:utils",
+    "nanostores": "catalog:react",
+    "postcss": "catalog:css",
+    "react": "catalog:react",
+    "react-dom": "catalog:react",
+    "react-error-boundary": "catalog:react",
+    "react-resizable-panels": "catalog:react",
+    "remeda": "catalog:utils",
+    "std-env": "catalog:externals",
+    "strip-indent": "catalog:utils",
+    "tsx": "catalog:",
+    "turbo": "catalog:",
+    "type-fest": "catalog:externals",
+    "typescript": "catalog:",
+    "ufo": "catalog:utils",
+    "vite": "catalog:vite",
+    "vite-plugin-node-polyfills": "catalog:vite",
+    "vscode": "npm:@codingame/monaco-vscode-extension-api@16.1.1",
+    "vscode-jsonrpc": "catalog:vscode",
+    "vscode-languageclient": "catalog:vscode",
+    "vscode-languageserver": "catalog:vscode",
+    "vscode-languageserver-protocol": "catalog:vscode",
+    "vscode-languageserver-types": "catalog:vscode",
+    "vscode-oniguruma": "catalog:vscode",
+    "vscode-textmate": "catalog:vscode",
+    "vscode-uri": "catalog:vscode",
+    "wireit": "catalog:",
+    "wrangler": "catalog:cloudflare",
+    "xstate": "catalog:xstate",
+    "import-meta-resolve": "^4.2.0",
+    "zod": "catalog:externals",
+    "zx": "catalog:"
+  }
+}

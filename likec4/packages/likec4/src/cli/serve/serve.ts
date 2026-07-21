@@ -1,0 +1,155 @@
+import { fromWorkspace } from '@likec4/language-services/node'
+import { mkdtemp } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { printServerUrls } from '../../vite/printServerUrls'
+import { viteDev } from '../../vite/vite-dev'
+
+type HandlerParams = {
+  /**
+   * The directory where c4 files are located.
+   */
+  path: string
+  useDotBin: boolean
+  /**
+   * base url the app is being served from
+   * @default '/'
+   */
+  base?: string | undefined
+
+  useHashHistory: boolean | undefined
+
+  webcomponentPrefix: string
+
+  /*
+   * base title of the app pages
+   */
+  title: string | undefined
+
+  /**
+   * ip address of the network interface to listen on
+   * @default '127.0.0.1'
+   */
+  listen?: string | undefined
+
+  /**
+   * port number for the dev server
+   * @default 5173
+   */
+  port?: number | undefined
+
+  /**
+   * Enable webcomponent build
+   * @default true
+   */
+  enableWebcomponent?: boolean | undefined
+
+  /**
+   * Enable HMR
+   * @default true
+   */
+  enableHMR?: boolean | undefined
+
+  /**
+   * port number for the HMR WebSocket server
+   * @default auto-discovered from 24678-24690
+   */
+  hmrPort?: number | undefined
+
+  /**
+   * Optional user-provided directory whose files are copied to the dev server
+   * (Vite publicDir).
+   */
+  userPublicDir?: string | undefined
+
+  /**
+   * Hostnames allowed to access the dev server (maps to Vite's
+   * `server.allowedHosts`). When omitted, all hosts are allowed.
+   * @see https://vite.dev/config/server-options#server-allowedhosts
+   */
+  allowedHosts?: string[] | undefined
+}
+
+/** Starts the LikeC4 dev server (Vite) for the given workspace path. */
+export async function handler({
+  path,
+  useDotBin,
+  webcomponentPrefix,
+  title,
+  useHashHistory,
+  enableWebcomponent = true,
+  enableHMR = true,
+  base,
+  listen,
+  port,
+  hmrPort,
+  userPublicDir,
+  allowedHosts,
+}: HandlerParams) {
+  // Explicitly set NODE_ENV to development
+  if (enableHMR) {
+    process.env['NODE_ENV'] = 'development'
+  }
+  const languageServices = await fromWorkspace(path, {
+    graphviz: useDotBin ? 'binary' : 'wasm',
+    watch: enableHMR,
+  })
+  const likec4AssetsDir = await mkdtemp(join(tmpdir(), '.likec4-assets-'))
+  // const likec4AssetsDir = join(languageServices.workspace, '.likec4-assets')
+  // await mkdir(likec4AssetsDir, { recursive: true })
+
+  const server = await viteDev({
+    buildWebcomponent: enableWebcomponent,
+    hmr: enableHMR,
+    base,
+    webcomponentPrefix,
+    title,
+    languageServices,
+    useHashHistory,
+    likec4AssetsDir,
+    listen,
+    port,
+    hmrPort,
+    userPublicDir,
+    allowedHosts,
+  })
+
+  server.config.logger.clearScreen('info')
+  printServerUrls(server)
+
+  // if (!useOverview) {
+  //   return
+  // }
+  // const views = await languageServices.diagrams()
+
+  // if (hasAtLeast(views, 1)) {
+  //   const logger = createLikeC4Logger('c4:export')
+  //   const serverUrl = resolveServerUrl(server)
+  //   if (!serverUrl) {
+  //     logger.error('no preview server url')
+  //     return
+  //   }
+  //   logger.info(k.cyan(`wait 5sec before generating previews`))
+  //   await delay(5000)
+
+  //   try {
+  //     await exportViewsToPNG({
+  //       serverUrl,
+  //       logger,
+  //       views,
+  //       theme: 'light',
+  //       output: likec4AssetsDir,
+  //       outputType: 'flat',
+  //     })
+
+  //     await delay(1000)
+
+  //     logger.info(k.yellow(`Note: changes in sources do not trigger preview updates, restart is required`))
+  //   } catch (error) {
+  //     logger.error(k.red('Failed to generate previews'))
+  //     logger.error(error)
+  //   }
+  // } else {
+  //   server.config.logger.warn('no views found, no previews generated')
+  // }
+}

@@ -1,0 +1,62 @@
+import type { NonEmptyArray } from './_common'
+import type * as scalar from './scalar'
+import type { BorderStyle, ElementShape, ThemeColor } from './styles'
+import type { LayoutedView } from './view'
+import type { AutoLayoutDirection } from './view-common'
+
+export namespace ViewChange {
+  export interface ChangeElementStyle {
+    op: 'change-element-style'
+    style: {
+      border?: BorderStyle
+      opacity?: number
+      shape?: ElementShape
+      color?: ThemeColor
+    }
+    targets: NonEmptyArray<scalar.Fqn | scalar.DeploymentFqn>
+  }
+
+  export interface SaveViewSnapshot {
+    op: 'save-view-snapshot'
+    layout: LayoutedView
+  }
+
+  export interface ResetManualLayout {
+    op: 'reset-manual-layout'
+  }
+
+  export interface ChangeAutoLayout {
+    op: 'change-autolayout'
+    layout: {
+      direction: AutoLayoutDirection
+      nodeSep?: number | null
+      rankSep?: number | null
+    }
+  }
+
+  export interface ChangeProperty {
+    op: 'change-property'
+    /**
+     * Change title
+     */
+    title?: string
+    /**
+     * Change description
+     */
+    description?: scalar.MarkdownOrString
+    /**
+     * Add or remove tags
+     */
+    tag?: {
+      add?: scalar.Tag | scalar.Tag[]
+      remove?: scalar.Tag | scalar.Tag[]
+    }
+  }
+}
+
+export type ViewChange =
+  | ViewChange.ChangeElementStyle
+  | ViewChange.SaveViewSnapshot
+  | ViewChange.ResetManualLayout
+  | ViewChange.ChangeAutoLayout
+  | ViewChange.ChangeProperty

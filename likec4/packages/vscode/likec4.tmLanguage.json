@@ -1,0 +1,191 @@
+{
+  "name": "likec4",
+  "scopeName": "source.likec4",
+  "fileTypes": [
+    "likec4",
+    "c4"
+  ],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#markdown-string" },
+    { "include": "#link-or-icon" },
+    { "include": "#string" },
+    { "include": "#relationship" },
+    {
+      "name": "keyword.control.likec4",
+      "match": "\\b(specification|model|views)\\b"
+    },
+    {
+      "match": "\\b(tag|kind)\\s+is(\\s+not)?\\b",
+      "name": "keyword.control.likec4"
+    },
+    {
+      "match": "\\b(metadata)\\.([a-zA-Z_]\\w*)(?:\\s+(is(\\s+not)?))?",
+      "captures": {
+        "1": { "name": "keyword.control.likec4" },
+        "2": { "name": "variable.other.property.likec4" },
+        "3": { "name": "keyword.control.likec4" }
+      }
+    },
+    {
+      "match": "\\b(true|false)\\b",
+      "name": "constant.language.likec4"
+    },
+    {
+      "match": "\\b(element|tag|relationship)\\s+([^\\s]+)\\b",
+      "captures": {
+        "1": { "name": "keyword.control.likec4" },
+        "2": { "name": "entity.name.type.enum.likec4" }
+      }
+    },
+    {
+      "match": "\\b(rank)\\s+(same|source|sink|min|max)\\b",
+      "captures": {
+        "1": { "name": "keyword.control.likec4" },
+        "2": { "name": "entity.name.type.enum.likec4" }
+      }
+    },
+    {
+      "match": "#[a-fA-F0-9]{3,8}",
+      "name": "constant.other.color.likec4"
+    },
+    {
+      "match": "#[a-zA-Z0-9]+",
+      "name": "entity.name.type.enum.likec4"
+    },
+    {
+      "match": "\\b(shape|head|tail|line|border|variant|size|padding|textSize|iconColor|iconPosition|iconSize):?\\s+([-\\w]+)\\b",
+      "captures": {
+        "1": { "name": "variable.other.property.likec4" },
+        "2": { "name": "entity.name.type.enum.likec4" }
+      }
+    },
+    {
+      "name": "entity.name.variable.likec4",
+      "match": "\\b\\.(\\*|_){1,2}(?!\\S)"
+    },
+    {
+      "name": "entity.name.type.enum.likec4",
+      "match": "\\b(TopBottom|LeftRight|BottomTop|RightLeft|xsmall|xs|small|sm|medium|md|large|lg|xl|xlarge|diagram|sequence)\\b"
+    },
+    {
+      "name": "variable.other.property.likec4",
+      "match": "\\b(title|color|description|technology|navigateTo|notation|multiple|size|padding|textSize|opacity|variant|iconColor|iconPosition|iconSize)\\b"
+    },
+    {
+      "name": "keyword.control.likec4",
+      "match": "\\belement(\\.(kind|tag)?)?\\b"
+    },
+    { "include": "#shapes" },
+    { "include": "#colors" },
+    {
+      "name": "keyword.control.likec4",
+      "match": "\\b(alt|and|as|autoLayout|border|break|catch|color|crow|dashed|description|deployment|deploymentNode|diamond|dot|dotted|dynamic|else|finally|from|global|group|element|exclude|extend|extends|head|icon|iconColor|iconPosition|iconSize|icons|if|import|include|includeAncestors|instance(Of)?|it|kind|line|likec4lib|link|loop|metadata|model|navigateTo|node|none|not|normal|odiamond|odot|of|onormal|opacity|open|opt|or|parallel|par|predicateGroup|predicate|rank|relationship|shape|solid|specification|styleGroup|style|tag|tail|technology|this|title|try|vee|view|views|when|where|source|target|with)\\b"
+    },
+    {
+      "name": "keyword.symbol.likec4",
+      "match": "\\{|\\}|\\(|\\)|\\:|\\,|\\;|\\!|\\=+"
+    },
+    {
+      "name": "entity.name.function.likec4",
+      "match": "\\b(rgba|rgb)"
+    },
+    {
+      "name": "constant.numeric.likec4",
+      "match": "\\b\\d+(\\.\\d+|%)?"
+    }
+  ],
+  "repository": {
+    "link-or-icon": {
+      "match": "\\b(link|icon):?\\s+([^\\s]+)",
+      "captures": {
+        "1": { "name": "variable.other.property.likec4" },
+        "2": {
+          "name": "string.quoted.single.likec4",
+          "patterns": [
+            {
+              "match": "none|(aws|azure|bootstrap|gcp|tech):([-\\w]+)",
+              "name": "entity.name.type.enum.likec4"
+            }
+          ]
+        }
+      }
+    },
+    "relationship": {
+      "patterns": [
+        {
+          "match": "(-\\[)([^\\]]*)(\\]->)",
+          "captures": {
+            "1": { "name": "keyword.operator.likec4" },
+            "2": { "name": "entity.name.function.likec4" },
+            "3": { "name": "keyword.operator.likec4" }
+          }
+        },
+        {
+          "name": "storage.type.function.likec4",
+          "begin": "(-\\[)",
+          "end": "(\\]->)"
+        },
+        {
+          "name": "storage.type.function.likec4",
+          "match": "(<->|<-|->)"
+        }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.block.likec4",
+          "begin": "/\\*",
+          "beginCaptures": { "0": { "name": "punctuation.definition.comment.likec4" } },
+          "end": "\\*/",
+          "endCaptures": { "0": { "name": "punctuation.definition.comment.likec4" } }
+        },
+        {
+          "begin": "//",
+          "beginCaptures": { "0": { "name": "punctuation.definition.comment.likec4" } },
+          "end": "(?=$)",
+          "name": "comment.line.likec4"
+        }
+      ]
+    },
+    "markdown-string": {
+      "begin": "(?=(^|\\G)(\\s*)\\S*(:|\\b)\\s*('{3}|\"{3})\\s*$)",
+      "end": "(^|\\G)(\\s*)(\\4)(.*$)",
+      "endCaptures": { "3": { "name": "punctuation.definition.string.end.likec4" } },
+      "applyEndPatternLast": 1,
+      "patterns": [
+        {
+          "begin": "(^|\\G)(\\s*)(\\S*)(:|\\b)\\s*('{3}|\"{3})\\s*$",
+          "beginCaptures": {
+            "3": { "name": "variable.other.property.likec4" },
+            "5": { "name": "punctuation.definition.string.begin.likec4" }
+          },
+          "while": "(^|\\G)(\\2([ ]{,3}|\\t)(?!\\s*\\5)|\\s*$)",
+          "contentName": "meta.embedded.block.markdown",
+          "patterns": [{ "include": "text.html.markdown" }]
+        }
+      ]
+    },
+    "string": {
+      "name": "string.quoted.likec4",
+      "begin": "(\"|')",
+      "end": "(\\1)",
+      "beginCaptures": { "1": { "name": "punctuation.definition.string.begin.likec4" } },
+      "endCaptures": { "1": { "name": "punctuation.definition.string.likec4" } },
+      "patterns": [{ "include": "#string-character-escape" }]
+    },
+    "string-character-escape": {
+      "name": "constant.character.escape.likec4",
+      "match": "\\\\(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|u\\{[0-9A-Fa-f]+\\}|[0-2][0-7]{0,2}|3[0-6][0-7]?|37[0-7]?|[4-7][0-7]?|.|$)"
+    },
+    "shapes": {
+      "name": "keyword.control.likec4",
+      "match": "\\b(rectangle|component|person|browser|mobile|cylinder|storage|queue|bucket|document)\\b"
+    },
+    "colors": {
+      "name": "entity.name.type.enum.likec4",
+      "match": "\\b(amber|blue|gray|green|indigo|muted|primary|secondary|red|sky|slate|none)\\b"
+    }
+  }
+}

@@ -1,0 +1,122 @@
+// A launch configuration that launches the extension inside a new window
+// Use IntelliSense to learn about possible attributes.
+// Hover to view descriptions of existing attributes.
+// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "name": "Launch Playground",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "preLaunchTask": "npm: dev - apps/playground"
+    },
+    {
+      "name": "Run Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--disable-updates",
+        "--disable-workspace-trust",
+        "--skip-release-notes",
+        "--skip-welcome",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode",
+        "${workspaceFolder}/examples",
+      ],
+      "outFiles": [
+        "${workspaceFolder}/packages/vscode/dist/**/*"
+      ],
+      "sourceMaps": true,
+      "autoAttachChildProcesses": true,
+      "preLaunchTask": "build_extension",
+    },
+    {
+      "name": "Attach to Extension",
+      "port": 9229,
+      "request": "attach",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "node"
+    },
+    // Before launching the extension, make sure to add the following to your package.json of the extension:
+    // "extensionKind": [
+    //    "ui"
+    // ],
+    {
+      "name": "Run Web Extension in VS Code",
+      "type": "extensionHost",
+      "debugWebviews": true,
+      "debugWebWorkerHost": true,
+      "request": "launch",
+      "args": [
+        "--disable-extensions",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode",
+        "--extensionDevelopmentKind=web",
+        "${workspaceFolder}/examples",
+      ],
+      "sourceMaps": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/packages/**",
+        "!${workspaceFolder}/packages/*/dist/",
+        "!**/node_modules/**"
+      ],
+      "autoAttachChildProcesses": true,
+      "preLaunchTask": "build_extension"
+    },
+    {
+      "name": "Run tests",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "vitest",
+      "args": [
+        "run",
+      ],
+      "sourceMaps": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/packages/**",
+        "!${workspaceFolder}/packages/*/dist/",
+        "!**/node_modules/**"
+      ],
+      "autoAttachChildProcesses": true,
+      "preLaunchTask": "build_extension"
+    },
+    {
+      "name": "tsx",
+      "type": "node",
+      "request": "launch",
+      // Debug current file in VSCode
+      "program": "${file}",
+      "args": [
+        "--conditions=sources"
+      ],
+      "runtimeExecutable": "tsx",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      // Files to exclude from debugger (e.g. call stack)
+      "skipFiles": [
+        // Node.js internal core modules
+        "<node_internals>/**",
+        // Ignore all dependencies (optional)
+        "${workspaceFolder}/node_modules/**",
+      ],
+    },
+    {
+      "name": "Attach to process",
+      "type": "node",
+      "request": "attach",
+      "port": 9229,
+      "skipFiles": [
+        // Node.js internal core modules
+        "<node_internals>/**",
+        // Ignore all dependencies (optional)
+        "${workspaceFolder}/node_modules/**",
+      ],
+    }
+  ]
+}

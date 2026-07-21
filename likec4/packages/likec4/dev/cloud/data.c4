@@ -1,0 +1,48 @@
+model {
+
+  extend cloud.data {
+
+    hitsAnomalies = app 'Hits Anomalies' {
+      description '
+        Process page hits.
+        Search for anomalies.
+      '
+      icon ../images/hits-anomalies.svg
+
+      -[pull]-> amazon.sqs.hits 'pull and process hits data'
+      -> cloud.backend.graphql 'read tenants'
+    }
+
+  }
+
+}
+
+views {
+
+  view cloud_data of cloud.data {
+    title 'Context / Data Services'
+    description '
+        Process page hits.
+        Search for anomalies.
+      '
+    include
+      *,
+      cloud,
+      amazon,
+      amazon.kinesis,
+      amazon.sqs,
+      amazon.sqs.*
+
+    style * {
+      color secondary
+    }
+
+    style cloud, amazon {
+      color muted
+    }
+    style cloud.data, cloud.data.* {
+      color green
+    }
+  }
+
+}

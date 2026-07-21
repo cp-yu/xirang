@@ -1,0 +1,75 @@
+name: playground
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        default: 'preview'
+        required: true
+        type: string
+    # Map the workflow outputs to job outputs
+    outputs:
+      playground_url:
+        description: 'playground url'
+        value: ${{ jobs.deploy-playground.outputs.url }}
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deploy to'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+          - preview
+          - production
+
+permissions:
+  actions: write
+  contents: read
+  checks: write
+  statuses: write
+  deployments: write
+
+env:
+  NODE_ENV: production
+  FORCE_COLOR: true
+  DO_NOT_TRACK: '1'
+  CLOUDFLARE_ENV: 'production'
+
+concurrency:
+  group: playground-${{ github.event_name }}-${{ github.ref_name }}-${{ inputs.environment }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-playground:
+    name: playground
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
+    if: ${{ github.repository_owner == 'likec4' }}
+    environment:
+      name: 'playground-${{ inputs.environment }}'
+      url: "${{ inputs.environment == 'production' && 'https://playground.likec4.dev' || steps.cloudflare.outputs.deployment-url }}"
+    outputs:
+      url: "${{ inputs.environment == 'production' && 'https://playground.likec4.dev' || steps.cloudflare.outputs.deployment-url }}"
+    env:
+      CLOUDFLARE_ENV: 'production'
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: 🛠️ bootstrap
+        uses: ./.github/actions/bootstrap
+
+      - name: ⚙️ build
+        run: |
+          pnpm turbo run build --filter='@likec4/playground'
+
+      - id: cloudflare
+        name: publish to cloudflare
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: "${{ inputs.environment == 'production' && 'deploy' || 'versions upload' }}"
+          workingDirectory: apps/playground
+          packageManager: pnpm

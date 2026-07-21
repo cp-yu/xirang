@@ -1,0 +1,351 @@
+import { onNextTick } from '@likec4/core/utils'
+import { type GraphvizPort, QueueGraphvizLayoter } from '@likec4/layouts'
+import type { Module } from 'langium'
+import { DocumentState, inject, WorkspaceCache } from 'langium'
+import type {
+  DefaultSharedModuleContext,
+  LangiumServices,
+  LangiumSharedServices,
+  PartialLangiumServices,
+  PartialLangiumSharedServices,
+} from 'langium/lsp'
+import { createDefaultModule, createDefaultSharedModule } from 'langium/lsp'
+import { LikeC4DocumentationProvider } from './documentation'
+import type {
+  FileSystemModuleContext,
+  FileSystemProvider,
+  FileSystemWatcher,
+  LikeC4ManualLayouts,
+  LikeC4ManualLayoutsModuleContext,
+} from './filesystem'
+import { NoFileSystem, NoLikeC4ManualLayouts } from './filesystem/noop'
+import { LikeC4Formatter } from './formatting/LikeC4Formatter'
+import {
+  LikeC4GeneratedModule,
+  LikeC4GeneratedSharedModule,
+} from './generated/module'
+import { type LikeC4LanguageServices, DefaultLikeC4LanguageServices } from './LikeC4LanguageServices'
+import {
+  LikeC4CodeActionProvider,
+  LikeC4CodeLensProvider,
+  LikeC4CompletionProvider,
+  LikeC4DocumentHighlightProvider,
+  LikeC4DocumentLinkProvider,
+  LikeC4DocumentSymbolProvider,
+  LikeC4HoverProvider,
+  LikeC4SemanticTokenProvider,
+} from './lsp'
+import {
+  type LikeC4ModelBuilder,
+  DefaultLikeC4ModelBuilder,
+  DeploymentsIndex,
+  FqnIndex,
+  LastSeenArtifacts,
+  LikeC4ModelLocator,
+  LikeC4ModelParser,
+  LikeC4ValueConverter,
+} from './model'
+import { LikeC4ModelChanges } from './model-change/ModelChanges'
+import {
+  LikeC4NameProvider,
+  LikeC4ScopeComputation,
+  LikeC4ScopeProvider,
+} from './references'
+import { Rpc } from './Rpc'
+import {
+  NodeKindProvider,
+  WorkspaceSymbolProvider,
+} from './shared'
+import { LikeC4DocumentValidator, registerValidationChecks } from './validation'
+import type { LikeC4Views, LikeC4ViewsModuleContext } from './views'
+import { DefaultLikeC4Views, WithWasmGraphviz } from './views'
+import {
+  IndexManager,
+  LangiumDocuments,
+  LikeC4WorkspaceManager,
+  ProjectsManager,
+} from './workspace'
+
+export { NoFileSystem, NoLikeC4ManualLayouts } from './filesystem/noop'
+export { WithGraphviz, WithWasmGraphviz } from './views'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Constructor<T, Arguments extends unknown[] = any[]> = new(...arguments_: Arguments) => T
+
+interface LikeC4AddedSharedServices {
+  lsp: {
+    NodeKindProvider: NodeKindProvider
+    WorkspaceSymbolProvider: WorkspaceSymbolProvider
+  }
+  workspace: {
+    // WorkspaceCache on Validated state
+    Cache: WorkspaceCache<string, any>
+    ProjectsManager: ProjectsManager
+    IndexManager: IndexManager
+    LangiumDocuments: LangiumDocuments
+    WorkspaceManager: LikeC4WorkspaceManager
+    FileSystemProvider: FileSystemProvider
+    FileSystemWatcher: FileSystemWatcher
+    ManualLayouts: LikeC4ManualLayouts
+  }
+}
+
+export type LikeC4SharedServices = LangiumSharedServices & LikeC4AddedSharedServices
+export type LikeC4SharedModuleContext =
+  & Omit<DefaultSharedModuleContext, 'fileSystemProvider'>
+  & FileSystemModuleContext
+  & LikeC4ManualLayoutsModuleContext
+
+function createLikeC4SharedModule(context: LikeC4SharedModuleContext): Module<
+  LikeC4SharedServices,
+  PartialLangiumSharedServices & LikeC4AddedSharedServices
+> {
+  return ({
+    lsp: {
+      NodeKindProvider: services => new NodeKindProvider(services),
+      WorkspaceSymbolProvider: services => new WorkspaceSymbolProvider(services),
+    },
+    workspace: {
+      Cache: services => new WorkspaceCache(services, DocumentState.Validated),
+      IndexManager: services => new IndexManager(services),
+      LangiumDocuments: services => new LangiumDocuments(services),
+      ProjectsManager: services => new ProjectsManager(services),
+      WorkspaceManager: services => new LikeC4WorkspaceManager(services),
+      FileSystemProvider: () => context.fileSystemProvider(),
+      FileSystemWatcher: services => context.fileSystemWatcher(services),
+      ManualLayouts: services => context.manualLayouts(services),
+    },
+  })
+}
+
+/**
+ * Declaration of custom services - add your own service classes here.
+ */
+export interface LikeC4AddedServices {
+  documentation: {
+    DocumentationProvider: LikeC4DocumentationProvider
+  }
+  validation: {
+    DocumentValidator: LikeC4DocumentValidator
+  }
+  Rpc: Rpc
+  likec4: {
+    LanguageServices: LikeC4LanguageServices
+    Views: LikeC4Views
+    Graphviz: GraphvizPort
+    Layouter: QueueGraphvizLayoter
+    DeploymentsIndex: DeploymentsIndex
+    FqnIndex: FqnIndex
+    ModelParser: LikeC4ModelParser
+    ModelBuilder: LikeC4ModelBuilder
+    ModelLocator: LikeC4ModelLocator
+    ModelChanges: LikeC4ModelChanges
+    LastSeen: LastSeenArtifacts
+  }
+  lsp: {
+    // RenameProvider: LikeC4RenameProvider
+    CompletionProvider: LikeC4CompletionProvider
+    DocumentHighlightProvider: LikeC4DocumentHighlightProvider
+    DocumentSymbolProvider: LikeC4DocumentSymbolProvider
+    SemanticTokenProvider: LikeC4SemanticTokenProvider
+    HoverProvider: LikeC4HoverProvider
+    CodeLensProvider: LikeC4CodeLensProvider
+    DocumentLinkProvider: LikeC4DocumentLinkProvider
+    Formatter: LikeC4Formatter
+    CodeActionProvider: LikeC4CodeActionProvider
+  }
+  references: {
+    NameProvider: LikeC4NameProvider
+    ScopeComputation: LikeC4ScopeComputation
+    ScopeProvider: LikeC4ScopeProvider
+  }
+  shared?: LikeC4SharedServices
+  parser: {
+    ValueConverter: LikeC4ValueConverter
+  }
+}
+
+export type LikeC4Services = LangiumServices & LikeC4AddedServices
+
+export type LikeC4ServicesContext = LikeC4ViewsModuleContext
+
+function bind<T>(Type: Constructor<T, [LikeC4Services]>) {
+  return (services: LikeC4Services) => new Type(services)
+}
+
+/**
+ * Most probably you don't need to use this function directly.
+ * Use {@link createLanguageServices} instead.
+ * @internal
+ */
+export function createLikeC4Module(
+  context: LikeC4ServicesContext,
+): Module<LikeC4Services, PartialLangiumServices & LikeC4AddedServices> {
+  return ({
+    documentation: {
+      DocumentationProvider: bind(LikeC4DocumentationProvider),
+    },
+    validation: {
+      DocumentValidator: bind(LikeC4DocumentValidator),
+    },
+    Rpc: bind(Rpc),
+    likec4: {
+      LanguageServices: bind(DefaultLikeC4LanguageServices),
+      Graphviz: (services: LikeC4Services) => context.graphviz(services),
+      Layouter: (services: LikeC4Services) => {
+        return new QueueGraphvizLayoter({
+          graphviz: services.likec4.Graphviz,
+        })
+      },
+      Views: bind(DefaultLikeC4Views),
+      DeploymentsIndex: bind(DeploymentsIndex),
+      ModelChanges: bind(LikeC4ModelChanges),
+      FqnIndex: bind(FqnIndex),
+      ModelParser: bind(LikeC4ModelParser),
+      ModelBuilder: bind(DefaultLikeC4ModelBuilder),
+      ModelLocator: bind(LikeC4ModelLocator),
+      LastSeen: bind(LastSeenArtifacts),
+    },
+    lsp: {
+      // RenameProvider: bind(LikeC4RenameProvider),
+      CompletionProvider: bind(LikeC4CompletionProvider),
+      DocumentHighlightProvider: bind(LikeC4DocumentHighlightProvider),
+      DocumentSymbolProvider: bind(LikeC4DocumentSymbolProvider),
+      SemanticTokenProvider: bind(LikeC4SemanticTokenProvider),
+      HoverProvider: bind(LikeC4HoverProvider),
+      CodeLensProvider: bind(LikeC4CodeLensProvider),
+      DocumentLinkProvider: bind(LikeC4DocumentLinkProvider),
+      Formatter: bind(LikeC4Formatter),
+      CodeActionProvider: bind(LikeC4CodeActionProvider),
+    },
+    references: {
+      NameProvider: bind(LikeC4NameProvider),
+      ScopeComputation: bind(LikeC4ScopeComputation),
+      ScopeProvider: bind(LikeC4ScopeProvider),
+    },
+    parser: {
+      ValueConverter: bind(LikeC4ValueConverter),
+    },
+  })
+}
+
+export type LanguageServicesContext = LikeC4SharedModuleContext & LikeC4ServicesContext
+
+/**
+ * Create and initialize likec4 language services with the given context
+ * @example
+ * ```ts
+ * const { shared, likec4 } = createLanguageServices({
+ *   ...WithFileSystem(enableWatcher = true),
+ *   ...WithLikeC4ManualLayouts(),
+ * });
+ * ```
+ *
+ * It is possible to extend/override the context with additional modules
+ * See Langium documentation for more details (or at the CliContext in packages/likec4/src/language/module.ts).
+ */
+export function createLanguageServices(): { shared: LikeC4SharedServices; likec4: LikeC4Services }
+export function createLanguageServices(
+  context: Partial<LanguageServicesContext>,
+): { shared: LikeC4SharedServices; likec4: LikeC4Services }
+export function createLanguageServices(
+  context: Partial<LanguageServicesContext>,
+): { shared: LikeC4SharedServices; likec4: LikeC4Services }
+export function createLanguageServices<I1, I extends I1 & LikeC4Services>(
+  context: Partial<LanguageServicesContext>,
+  module: Module<I, I1> | undefined,
+): { shared: LikeC4SharedServices; likec4: I }
+export function createLanguageServices<I1, I2, I extends I1 & I2 & LikeC4Services>(
+  context: Partial<LanguageServicesContext>,
+  module: Module<I, I1>,
+  module2: Module<I, I2>,
+): { shared: LikeC4SharedServices; likec4: I }
+export function createLanguageServices<I1, I2, I3, I extends I1 & I2 & I3 & LikeC4Services>(
+  context: Partial<LanguageServicesContext>,
+  module: Module<I, I1>,
+  module2: Module<I, I2>,
+  module3: Module<I, I3>,
+): { shared: LikeC4SharedServices; likec4: I }
+export function createLanguageServices<I1, I2, I3, I extends I1 & I2 & I3 & LikeC4Services>(
+  context: Partial<LanguageServicesContext> = {},
+  module?: Module<I, I1>,
+  module2?: Module<I, I2>,
+  module3?: Module<I, I3>,
+): { shared: LikeC4SharedServices; likec4: I } {
+  const shared = createSharedServices(context)
+  const modules = [
+    createDefaultModule({ shared }),
+    LikeC4GeneratedModule,
+    createLikeC4Module({
+      ...NoFileSystem,
+      ...NoLikeC4ManualLayouts,
+      ...WithWasmGraphviz,
+      ...context,
+    }),
+    module,
+    module2,
+    module3,
+  ].reduce(_merge, {}) as unknown as Module<I>
+
+  const likec4 = inject(modules)
+  shared.ServiceRegistry.register(likec4)
+  registerValidationChecks(likec4)
+
+  if (!context.connection) {
+    // We don't run inside a language server
+    // Therefore, initialize the configuration provider instantly
+    void shared.workspace.ConfigurationProvider.initialized({})
+  } else {
+    onNextTick(() => shared.workspace.WorkspaceManager.ready.then(() => likec4.Rpc.init()))
+  }
+
+  return { shared, likec4 }
+}
+
+/**
+ * Most probably you don't need to use this function directly.
+ * Use {@link createLanguageServices} instead.
+ * @internal
+ */
+export function createSharedServices(context: Partial<LanguageServicesContext> = {}): LikeC4SharedServices {
+  const moduleContext = {
+    ...NoFileSystem,
+    ...NoLikeC4ManualLayouts,
+    ...context,
+  }
+  return inject(
+    createDefaultSharedModule(moduleContext),
+    LikeC4GeneratedSharedModule,
+    createLikeC4SharedModule(moduleContext),
+  )
+}
+
+// Copied from langium/src/dependency-injection.ts as it is not exported.
+// Hardened for CodeQL js/prototype-pollution-utility: block dangerous keys and only
+// recurse when the key is an own property of target (see CodeQL CWE-915 guidance).
+function _merge(target: Module<any>, source?: Module<any>): Module<unknown> {
+  if (source) {
+    for (const [key, value2] of Object.entries(source)) {
+      if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+        continue
+      }
+      if (value2 === undefined) {
+        continue
+      }
+      const ownOnTarget = Object.hasOwn(target, key)
+      const value1 = target[key]
+      if (
+        ownOnTarget &&
+        value1 !== null &&
+        value2 !== null &&
+        typeof value1 === 'object' &&
+        typeof value2 === 'object'
+      ) {
+        target[key] = _merge(value1, value2)
+      } else {
+        target[key] = value2
+      }
+    }
+  }
+  return target
+}

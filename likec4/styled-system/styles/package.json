@@ -1,0 +1,93 @@
+{
+  "name": "@likec4/styles",
+  "description": "Shared PandaCSS preset and generated styles, used in LikeC4",
+  "license": "MIT",
+  "version": "1.59.0",
+  "bugs": "https://github.com/likec4/likec4/issues",
+  "homepage": "https://likec4.dev",
+  "author": "Denis Davydkov <denis@davydkov.com>",
+  "files": [
+    "dist",
+    "dev.mjs",
+    "**/package.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/likec4/likec4.git",
+    "directory": "styled-system/styles"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "scripts": {
+    "sources": "pandacss codegen --clean",
+    "emit-pkg": "pandacss emit-pkg --base dist",
+    "clean": "likec4ops clean",
+    "prepack": "likec4ops prepack",
+    "build": "",
+    "pack": "pnpm pack",
+    "postpack": "likec4ops postpack",
+    "lint:package": "pnpx publint ./package.tgz"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./dev.mjs",
+    "./css": {
+      "types": "./dist/css/index.d.mts",
+      "import": "./dist/css/index.mjs",
+      "default": "./dist/css/index.mjs"
+    },
+    "./tokens": {
+      "types": "./dist/tokens/index.d.mts",
+      "import": "./dist/tokens/index.mjs",
+      "default": "./dist/tokens/index.mjs"
+    },
+    "./types": "./dist/types/index.d.mts",
+    "./patterns": {
+      "types": "./dist/patterns/index.d.mts",
+      "import": "./dist/patterns/index.mjs",
+      "default": "./dist/patterns/index.mjs"
+    },
+    "./recipes": {
+      "types": "./dist/recipes/index.d.mts",
+      "import": "./dist/recipes/index.mjs",
+      "default": "./dist/recipes/index.mjs"
+    },
+    "./jsx": {
+      "types": "./dist/jsx/index.d.mts",
+      "import": "./dist/jsx/index.mjs",
+      "default": "./dist/jsx/index.mjs"
+    },
+    "./dev": "./dev.mjs"
+  },
+  "dependencies": {
+    "@likec4/style-preset": "workspace:*",
+    "@pandacss/dev": "catalog:css"
+  },
+  "peerDependencies": {
+    "react": "^19.2.x"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@pandacss/types": "catalog:css",
+    "@types/node": "catalog:",
+    "@likec4/devops": "workspace:*",
+    "@types/picomatch": "catalog:externals",
+    "@pandabox/panda-plugins": "^0.0.8",
+    "@pandabox/utils": "^0.0.5",
+    "@likec4/tsconfig": "workspace:*",
+    "@types/react": "catalog:react",
+    "react": "catalog:react",
+    "postcss": "catalog:css",
+    "remeda": "catalog:utils",
+    "nano-spawn": "catalog:externals",
+    "typescript": "catalog:",
+    "tsdown": "catalog:tsdown"
+  }
+}

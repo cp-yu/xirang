@@ -1,0 +1,82 @@
+// Define deployment node kinds
+specification {
+  deploymentNode node
+  deploymentNode region {
+    notation 'Geo Region'
+  }
+  deploymentNode zone
+  deploymentNode group
+  deploymentNode environment {
+    notation 'Environment'
+    style {
+      color gray
+    }
+  }
+}
+
+// Deployment model
+deployment {
+
+  node customer {
+    instanceOf customer
+  }
+
+  environment prod {
+    title 'Production environment'
+    technology 'OpenTofu'
+
+    region eu 'EU' {
+
+      zone zone1 {
+        node server1 {
+          instanceOf cloud.ui.dashboard
+          instanceOf cloud.backend.graphql
+        }
+        node server2 {
+          instanceOf cloud.ui.dashboard
+          instanceOf cloud.backend.graphql
+        }
+        node server3 {
+          instanceOf cloud.backend.cms
+          instanceOf cloud.data
+        }
+
+        group amazon {
+          instanceOf amazon.rds
+          instanceOf amazon.sqs
+        }
+      }
+    }
+  }
+}
+
+views {
+
+  deployment view production {
+    title 'Deployment / Production'
+
+    include
+      customer.customer,
+      eu.**
+
+    exclude
+      amazon,
+
+    style eu._ {
+      color muted
+    }
+
+    style server1._, server2._ {
+      color green
+    }
+    style server3._ {
+      color indigo
+    }
+
+    style amazon._ {
+      color amber
+    }
+    autoLayout TopBottom 100 100
+  }
+
+}

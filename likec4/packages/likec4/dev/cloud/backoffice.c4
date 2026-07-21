@@ -1,0 +1,68 @@
+model {
+
+  extend cloud.backoffice {
+
+    billingDashboard = app 'Billing Dashboard' {
+      description 'Billing Backoffice'
+      style {
+        shape browser
+      }
+
+      -> cloud.billing.subscriptions '
+        manage tarrifs, payments
+        and subscriptions
+      ' {
+        technology 'API'
+
+        description '''
+          Manage **subscriptions**, payments and tarrifs
+        '''
+
+      }
+
+    }
+
+    tenantsDashboard = app 'Tenants Dashboard' {
+      description 'Manage tenants and data'
+      style {
+        shape browser
+      }
+
+      -> cloud.backend.graphql 'manage tenants'
+      -> cloud.backend.cms 'manage data'
+    }
+
+    reports = app 'Reports Dashboard' {
+      description 'Show reports from Power BI'
+
+      style {
+        shape browser
+      }
+
+      -> cloud.report_subscriptions 'display subscriptions report'
+    }
+  }
+
+}
+
+views {
+
+  view backoffice of cloud.backoffice {
+    title 'Context / Back Office'
+    include
+      *,
+      cloud
+
+    style * {
+      color secondary
+    }
+    style cloud, cloud.backoffice {
+      color muted
+    }
+    style cloud.backoffice.* {
+      color green
+    }
+  }
+
+
+}

@@ -1,0 +1,61 @@
+
+model {
+  xs = rectangle 'xsmall' {
+    style {
+      size xs
+    }
+  }
+  sm = rectangle 'small' {
+    description '
+      Small description
+      Technology is hidden
+    '
+    style {
+      size sm
+    }
+  }
+  md = rectangle 'medium' {
+    technology '[ size: medium ]'
+    description 'Medium description'
+    style {
+
+      size md
+    }
+  }
+  lg = rectangle 'large' {
+    technology '[ size: large ]'
+    description 'Large description'
+    style {
+      size lg
+    }
+  }
+  xl = rectangle 'xlarge' {
+    technology '[ size: xlarge ]'
+    description 'XLarge  description'
+    style {
+      size xl
+    }
+  }
+}
+
+views {
+
+  view sizes1_example {
+    include xs, sm, md
+
+    style * {
+      icon tech:github-icon
+      color muted
+    }
+
+    autoLayout LeftRight
+  }
+  view sizes2_example {
+    include lg, xl
+    style * {
+      icon tech:github-icon
+      color muted
+    }
+    autoLayout LeftRight
+  }
+}

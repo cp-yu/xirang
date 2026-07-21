@@ -1,0 +1,87 @@
+digraph {
+  likec4_viewId = "index";
+  bgcolor = "transparent";
+  layout = "dot";
+  compound = true;
+  rankdir = "TB";
+  TBbalance = "min";
+  splines = "spline";
+  outputorder = "nodesfirst";
+  nodesep = 1.528;
+  ranksep = 1.667;
+  pad = 0.209;
+  fontname = "Arial";
+  graph [
+    fontsize = 20;
+    labeljust = "l";
+    labelloc = "t";
+    margin = 50.1;
+  ];
+  edge [
+    arrowsize = 0.75;
+    fontname = "Arial";
+    fontsize = 14;
+    penwidth = 2;
+    color = "#8D8D8D";
+    fontcolor = "#C9C9C9";
+    style = "dashed";
+  ];
+  node [
+    fontname = "Arial";
+    shape = "rect";
+    fillcolor = "#3b82f6";
+    fontcolor = "#eff6ff";
+    color = "#2563eb";
+    style = "filled";
+    penwidth = 0;
+  ];
+  "customer" [
+    likec4_id = "customer";
+    likec4_level = 0;
+    label = <<FONT POINT-SIZE="20">customer</FONT>>;
+    margin = "0.223,0.223";
+    width = 4.445;
+    height = 2.5;
+  ];
+  "support" [
+    likec4_id = "support";
+    likec4_level = 0;
+    label = <<TABLE BORDER="0" CELLPADDING="0" CELLSPACING="4"><TR><TD><FONT POINT-SIZE="20">Support Engineer</FONT></TD></TR><TR><TD><FONT POINT-SIZE="15" COLOR="#bfdbfe">Support engineers are responsible for<BR/>supporting customers</FONT></TD></TR></TABLE>>;
+    margin = "0.223,0.223";
+    width = 4.445;
+    height = 2.5;
+  ];
+  "cloud" [
+    likec4_id = "cloud";
+    likec4_level = 0;
+    label = <<FONT POINT-SIZE="20">cloud</FONT>>;
+    margin = "0.223,0.223";
+    width = 4.445;
+    height = 2.5;
+  ];
+  "amazon" [
+    likec4_id = "amazon";
+    likec4_level = 0;
+    label = <<TABLE BORDER="0" CELLPADDING="0" CELLSPACING="4"><TR><TD><FONT POINT-SIZE="20">Amazon</FONT></TD></TR><TR><TD><FONT POINT-SIZE="15" COLOR="#bfdbfe">Amazon is a cloud provider</FONT></TD></TR></TABLE>>;
+    margin = "0.223,0.223";
+    width = 4.445;
+    height = 2.5;
+  ];
+  "cloud" -> "amazon" [
+    likec4_id = "cloud:amazon";
+    label = <<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="0" BGCOLOR="#18191BA0"><TR><TD ALIGN="TEXT" BALIGN="LEFT"><FONT POINT-SIZE="14">persists artifacts</FONT></TD></TR></TABLE>>;
+    arrowhead = "normal";
+    arrowtail = "odiamond";
+    dir = "both";
+  ];
+  "customer" -> "cloud" [
+    likec4_id = "customer:cloud";
+    label = <<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="0" BGCOLOR="#18191BA0"><TR><TD ALIGN="TEXT" BALIGN="LEFT"><FONT POINT-SIZE="14">opens in browser</FONT></TD></TR></TABLE>>;
+    arrowhead = "normal";
+  ];
+  "support" -> "cloud" [
+    likec4_id = "support:cloud";
+    label = <<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="0" BGCOLOR="#18191BA0"><TR><TD ALIGN="TEXT" BALIGN="LEFT"><FONT POINT-SIZE="14">manages</FONT></TD></TR></TABLE>>;
+    arrowhead = "normal";
+  ];
+}

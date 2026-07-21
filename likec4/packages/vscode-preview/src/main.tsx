@@ -1,0 +1,52 @@
+import { LoadingOverlay, MantineProvider } from '@mantine/core'
+import { useDebouncedValue } from '@mantine/hooks'
+import { QueryClientProvider, useIsFetching } from '@tanstack/react-query'
+import ReactDOM from 'react-dom/client'
+import { App } from './App'
+import { IconsProvider } from './IconRenderer'
+import { interceptExternalLinks } from './interceptExternalLinks'
+import { queryClient } from './queries'
+import { QueryErrorBoundary } from './QueryErrorBoundary'
+import { useShowSpinner } from './state'
+import { theme } from './theme'
+import { ExtensionApi } from './vscode'
+
+const cleanupLinks = interceptExternalLinks(ExtensionApi.openExternalUrl)
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => cleanupLinks())
+}
+
+const root = document.getElementById('root') as HTMLDivElement
+const scheme = document.body.classList.contains('dark') ? 'dark' : 'light'
+const nonce = root.getAttribute('nonce') || undefined
+const getStyleNonce = nonce ? () => nonce : undefined
+
+const overlayProps = {
+  blur: 1,
+  backgroundOpacity: 0.1,
+}
+const Loader = () => {
+  const isFetching = useIsFetching({ type: 'active' }) > 0
+  let isSpinnerVisible = useShowSpinner() || isFetching
+  // Debounce loading state to prevent flickering
+  const [isLoading] = useDebouncedValue(isSpinnerVisible, isSpinnerVisible ? 500 : 100)
+  return (
+    <LoadingOverlay
+      visible={isLoading}
+      zIndex={1000}
+      overlayProps={overlayProps} />
+  )
+}
+
+ReactDOM.createRoot(root).render(
+  <MantineProvider theme={theme} forceColorScheme={scheme} {...(getStyleNonce && { getStyleNonce })}>
+    <QueryClientProvider client={queryClient}>
+      <IconsProvider>
+        <QueryErrorBoundary>
+          <App />
+        </QueryErrorBoundary>
+      </IconsProvider>
+      <Loader />
+    </QueryClientProvider>
+  </MantineProvider>,
+)

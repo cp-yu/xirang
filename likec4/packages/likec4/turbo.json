@@ -1,0 +1,23 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": [
+    "//"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": [
+        "^build",
+        "sources",
+        "generate"
+      ],
+      "outputs": [
+        "dist/**",
+        "react/**",
+        "__app__/**",
+        "config/schema.json",
+        "vite-plugin-modules.d.ts"
+      ],
+      "outputLogs": "new-only"
+    }
+  }
+}

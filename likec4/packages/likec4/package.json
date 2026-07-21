@@ -1,0 +1,248 @@
+{
+  "name": "likec4",
+  "description": "Toolchain for your architecture diagrams",
+  "version": "1.59.0",
+  "license": "MIT",
+  "homepage": "https://likec4.dev",
+  "author": "Denis Davydkov <denis@davydkov.com>",
+  "sponsor": {
+    "url": "https://github.com/sponsors/davydkov"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/likec4/likec4.git",
+    "directory": "packages/likec4"
+  },
+  "keywords": [
+    "likec4",
+    "architecture",
+    "diagrams",
+    "graph"
+  ],
+  "engines": {
+    "node": ">=22.22.3"
+  },
+  "bugs": "https://github.com/likec4/likec4/issues",
+  "type": "module",
+  "bin": "./bin/likec4.mjs",
+  "exports": {
+    ".": {
+      "sources": "./src/index.ts",
+      "default": {
+        "types": "./dist/index.d.mts",
+        "import": "./dist/index.mjs",
+        "default": "./dist/index.mjs"
+      }
+    },
+    "./config/schema.json": "./config/schema.json",
+    "./config": {
+      "sources": "./src/config/index.ts",
+      "default": {
+        "types": "./dist/config/index.d.mts",
+        "import": "./dist/config/index.mjs",
+        "default": "./dist/config/index.mjs"
+      }
+    },
+    "./model/builder": {
+      "sources": "./src/model/builder.ts",
+      "default": {
+        "types": "./dist/model/builder.d.mts",
+        "import": "./dist/model/builder.mjs",
+        "default": "./dist/model/builder.mjs"
+      }
+    },
+    "./model": {
+      "sources": "./src/model/index.ts",
+      "default": {
+        "types": "./dist/model/index.d.mts",
+        "import": "./dist/model/index.mjs",
+        "default": "./dist/model/index.mjs"
+      }
+    },
+    "./react": {
+      "types": "./react/index.d.mts",
+      "import": "./react/index.mjs",
+      "default": "./react/index.mjs"
+    },
+    "./vite-plugin-modules": {
+      "types": "./vite-plugin-modules.d.ts"
+    },
+    "./vite-plugin/internal": {
+      "sources": "./src/vite-plugin/internal.ts",
+      "default": {
+        "types": "./dist/vite-plugin/internal/index.d.mts",
+        "import": "./dist/vite-plugin/internal/index.mjs",
+        "default": "./dist/vite-plugin/internal/index.mjs"
+      }
+    },
+    "./vite-plugin": {
+      "sources": "./src/vite-plugin/index.ts",
+      "default": {
+        "types": "./dist/vite-plugin/index.d.mts",
+        "import": "./dist/vite-plugin/index.mjs",
+        "default": "./dist/vite-plugin/index.mjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public",
+    "types": "dist/index.d.mts",
+    "module": "dist/index.mjs"
+  },
+  "scripts": {
+    "typecheck": "tsc --build --verbose",
+    "build": "tsdown",
+    "prepack": "likec4ops prepack",
+    "pack": "pnpm pack",
+    "postpack": "likec4ops postpack",
+    "lint:package": "pnpx publint ./package.tgz",
+    "clean": "pnpm rimraf --glob lib dist app/dist dev/.export dev/dist node_modules/.vite react/* __app__",
+    "start": "tsx --conditions=sources src/cli/index.ts",
+    "dev": "pnpm cli:serve dev",
+    "dev:docs": "pnpm cli:serve ../../apps/docs/src",
+    "dev:playground:deployment": "pnpm cli:serve ../../apps/playground/src/examples/deployment",
+    "dev:playground:dynamic": "pnpm cli:serve ../../apps/playground/src/examples/dynamic",
+    "dev:template": "pnpm cli:serve ../create-likec4/template",
+    "dev:e2e": "pnpm cli:serve ../../e2e/src",
+    "dev:example-cloud": "pnpm cli:serve ../../examples/cloud-system",
+    "dev:failed": "pnpm cli:serve ../../examples/failed",
+    "dev:example-dev": "pnpm cli:serve ../../examples/diagrams-dev/likec4",
+    "dev:examples": "pnpm cli:serve ../../examples",
+    "cli": "tsx --conditions=sources src/cli/index.ts",
+    "cli:serve": "tsx watch --conditions=sources --exclude=\"./../../{examples,e2e}/**/*.{js,ts,mjs}\" --exclude=\"./../core/src/styles/**/*.{js,ts,mjs}\" src/cli/index.ts serve",
+    "cli:build": "pnpm cli build -o dev/dist dev",
+    "cli:preview": "pnpm cli preview -o dev/dist dev",
+    "cli:export": "pnpm cli export png -o dev/export dev",
+    "cli:export:json": "pnpm cli export json -o dev/export/likec4.json dev",
+    "test": "vitest run --no-isolate",
+    "vitest:ui": "vitest --no-isolate --ui",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@hpcc-js/wasm-graphviz": "catalog:externals",
+    "@likec4/core": "workspace:*",
+    "@likec4/icons": "workspace:*",
+    "@vitejs/plugin-react": "catalog:vite",
+    "bundle-require": "catalog:externals",
+    "esbuild": "catalog:esbuild",
+    "fdir": "catalog:externals",
+    "playwright": "catalog:",
+    "chokidar": "catalog:externals",
+    "immer": "catalog:utils",
+    "std-env": "catalog:externals",
+    "type-fest": "catalog:externals",
+    "vite-plugin-singlefile": "^2.3.3",
+    "vite": "catalog:vite",
+    "yargs": "17.7.2",
+    "nano-spawn": "catalog:externals",
+    "use-sync-external-store": "catalog:react"
+  },
+  "peerDependencies": {
+    "@tanstack/ai": "catalog:ai",
+    "@tanstack/ai-anthropic": "catalog:ai",
+    "@tanstack/ai-gemini": "catalog:ai",
+    "@tanstack/ai-openai": "catalog:ai",
+    "@tanstack/ai-ollama": "catalog:ai",
+    "@tanstack/ai-openrouter": "catalog:ai",
+    "react": "^19.2.x",
+    "react-dom": "^19.2.x"
+  },
+  "peerDependenciesMeta": {
+    "@tanstack/ai": {
+      "optional": true
+    },
+    "@tanstack/ai-anthropic": {
+      "optional": true
+    },
+    "@tanstack/ai-gemini": {
+      "optional": true
+    },
+    "@tanstack/ai-openai": {
+      "optional": true
+    },
+    "@tanstack/ai-ollama": {
+      "optional": true
+    },
+    "@tanstack/ai-openrouter": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "langium": "catalog:langium",
+    "@likec4/config": "workspace:*",
+    "@likec4/leanix-bridge": "workspace:*",
+    "@likec4/log": "workspace:*",
+    "@likec4/language-server": "workspace:*",
+    "@likec4/language-services": "workspace:*",
+    "@likec4/mcp": "workspace:*",
+    "@dagrejs/dagre": "catalog:",
+    "@fontsource-variable/ibm-plex-sans": "catalog:",
+    "@likec4/devops": "workspace:*",
+    "@likec4/diagram": "workspace:*",
+    "@likec4/layouts": "workspace:*",
+    "@likec4/vite-plugin": "workspace:*",
+    "@likec4/react": "workspace:*",
+    "@likec4/spa": "workspace:*",
+    "@likec4/generators": "workspace:*",
+    "@likec4/style-preset": "workspace:*",
+    "@likec4/styles": "workspace:*",
+    "@likec4/tsconfig": "workspace:*",
+    "@pandacss/dev": "catalog:css",
+    "@tanstack/ai": "catalog:ai",
+    "@types/node": "catalog:",
+    "@types/picomatch": "catalog:externals",
+    "@types/react": "catalog:react",
+    "@types/react-dom": "catalog:react",
+    "@types/semver": "^7.7.1",
+    "@types/yargs": "^17.0.33",
+    "autoprefixer": "^10.5.3",
+    "picomatch": "catalog:externals",
+    "birpc": "catalog:vite",
+    "boxen": "^8.0.1",
+    "clsx": "catalog:react",
+    "conf": "^15.1.0",
+    "defu": "catalog:utils",
+    "esbuild-node-externals": "catalog:esbuild",
+    "esm-env": "catalog:utils",
+    "fast-equals": "catalog:utils",
+    "get-port": "^7.2.0",
+    "is-inside-container": "^1.0.0",
+    "json5": "catalog:utils",
+    "ky": "^1.14.3",
+    "mkdirp": "^3.0.1",
+    "npm-run-all2": "^8.0.4",
+    "p-limit": "catalog:utils",
+    "nanostores": "catalog:react",
+    "@nanostores/react": "catalog:react",
+    "oxlint": "catalog:",
+    "package-manager-detector": "catalog:utils",
+    "package-up": "catalog:utils",
+    "postcss": "catalog:css",
+    "pretty-ms": "^9.3.0",
+    "react": "catalog:react",
+    "react-dom": "catalog:react",
+    "react-error-boundary": "catalog:react",
+    "react-resizable-panels": "catalog:react",
+    "remeda": "catalog:utils",
+    "semver": "^7.8.1",
+    "strip-indent": "catalog:utils",
+    "tinyrainbow": "catalog:utils",
+    "tsx": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:",
+    "ufo": "catalog:utils",
+    "tsdown": "catalog:tsdown",
+    "vite-plugin-dts": "catalog:vite",
+    "vitest": "catalog:vitest",
+    "vscode-jsonrpc": "catalog:vscode",
+    "vscode-languageserver": "catalog:vscode",
+    "vscode-languageserver-types": "catalog:vscode",
+    "vscode-uri": "catalog:vscode",
+    "which": "^5.0.0",
+    "wireit": "catalog:",
+    "zod": "catalog:externals",
+    "zx": "catalog:"
+  }
+}

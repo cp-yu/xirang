@@ -1,0 +1,97 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [
+    "NODE_ENV",
+    "CLOUDFLARE_ENV"
+  ],
+  "globalPassThroughEnv": [
+    "CLOUDFLARE_API_TOKEN",
+    "CLOUDFLARE_ACCOUNT_ID",
+    "GITHUB_TOKEN"
+  ],
+  "globalDependencies": [
+    ".tool-versions",
+    "package.json",
+    "pnpm-workspace.yaml",
+    "pnpm-lock.yaml"
+  ],
+  "ui": "tui",
+  "tasks": {
+    "generate": {
+      "dependsOn": [
+        "^generate"
+      ],
+      "outputs": [
+        "src/generated/**",
+        "src/generated-lib/**",
+        "all.js",
+        "all.d.ts",
+        "schema.json"
+      ],
+      "outputLogs": "new-only"
+    },
+    "sources": {
+      "dependsOn": [
+        "^sources"
+      ]
+    },
+    "typecheck": {
+      "dependsOn": [
+        "^typecheck",
+        "sources",
+        "generate"
+      ],
+      "outputs": [
+        "lib/**",
+        "*.tsbuildinfo"
+      ],
+      "outputLogs": "new-only"
+    },
+    "test": {
+      "dependsOn": [
+        "generate",
+        "^generate"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$"
+      ],
+      "cache": false,
+      "outputLogs": "new-only"
+    },
+    "build": {
+      "dependsOn": [
+        "^build",
+        "sources",
+        "generate"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "!**/*.spec.ts",
+        "!**/*.test-d.ts",
+        "!**/__test*/**",
+        "!**/__snapshots__/**",
+        "!**/__fixtures__/**"
+      ],
+      "outputs": [
+        "dist/**"
+      ],
+      "outputLogs": "new-only"
+    },
+    "pack": {
+      "dependsOn": [
+        "build"
+      ],
+      "outputs": [
+        "package.tgz"
+      ],
+      "outputLogs": "new-only"
+    },
+    "lint:package": {
+      "dependsOn": [
+        "pack"
+      ],
+      "cache": false,
+      "outputLogs": "new-only"
+    }
+  }
+}

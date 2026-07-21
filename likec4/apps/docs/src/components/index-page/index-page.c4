@@ -1,0 +1,74 @@
+specification { // define "types", allowed in model
+  element actor {
+    style {
+      shape person // how to render
+    }
+  }
+  element system {
+    style {
+      opacity 40%
+    }
+  }
+  element component
+  relationship async // allow "typed" relationship
+}
+
+// describe architecture
+model {
+  customer = actor 'Customer' {
+    description 'A user of our product with active subscription'
+  }
+
+  cloud = system 'Our SaaS' {
+    description 'Our product allows customers to manage their data'
+
+    backend = component 'Backend' {
+      icon tech:graphql
+      description '
+        Implements business logic
+        and provides GraphQL API
+      '
+    }
+
+    ui = component 'Frontend' {
+      description 'NextJS application'
+      style {
+        icon tech:nextjs-icon
+        shape browser
+      }
+    }
+
+    ui -[async]-> backend 'requests via HTTPS'
+
+  }
+
+  customer -> cloud 'uses to manage data'
+  customer -> ui 'opens in browser'
+}
+
+// generate diagrams
+views {
+
+  view index {
+    title 'Landscape view'
+    include customer, cloud, cloud.*
+    style cloud {
+      color muted
+    }
+    style cloud.* {
+      color green
+    }
+  }
+
+  view view1 {
+    include customer, cloud
+  }
+
+  view view2 {
+    include customer, cloud, ui
+  }
+
+  view view3 {
+    include customer, cloud, ui, backend
+  }
+}

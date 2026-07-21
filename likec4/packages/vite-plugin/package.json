@@ -1,0 +1,142 @@
+{
+  "name": "@likec4/vite-plugin",
+  "description": "LikeC4 Vite Plugin",
+  "private": true,
+  "version": "1.59.0",
+  "license": "MIT",
+  "bugs": "https://github.com/likec4/likec4/issues",
+  "homepage": "https://likec4.dev",
+  "author": "Denis Davydkov <denis@davydkov.com>",
+  "files": [
+    "dist",
+    "src",
+    "**/package.json",
+    "!**/__mocks__/",
+    "!**/__tests__/",
+    "!**/*.spec.*",
+    "!**/*.map"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/likec4/likec4.git",
+    "directory": "packages/vite-plugin"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "sources": "./src/index.ts",
+      "default": {
+        "types": "./dist/index.d.mts",
+        "import": "./dist/index.mjs",
+        "default": "./dist/index.mjs"
+      }
+    },
+    "./internal": {
+      "sources": "./src/internal.ts",
+      "default": {
+        "types": "./dist/internal/index.d.mts",
+        "import": "./dist/internal/index.mjs",
+        "default": "./dist/internal/index.mjs"
+      }
+    },
+    "./ai/tools": "./src/ai/tools.ts",
+    "./modules": "./src/modules.d.ts",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public",
+    "types": "dist/index.d.mts",
+    "module": "dist/index.mjs"
+  },
+  "scripts": {
+    "typecheck": "tsc -b --verbose",
+    "build": "tsdown",
+    "prepack": "likec4ops prepack",
+    "pack": "pnpm pack",
+    "postpack": "likec4ops postpack",
+    "lint:package": "pnpx publint ./package.tgz",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --type-aware --fix",
+    "clean": "likec4ops clean",
+    "test": "vitest run --no-isolate",
+    "vitest:ui": "vitest --no-isolate --ui"
+  },
+  "dependencies": {
+    "@likec4/config": "workspace:*",
+    "@likec4/core": "workspace:*",
+    "@likec4/generators": "workspace:*",
+    "@likec4/icons": "workspace:*",
+    "@likec4/language-services": "workspace:*",
+    "@likec4/layouts": "workspace:*",
+    "@likec4/log": "workspace:*",
+    "defu": "catalog:utils",
+    "json5": "catalog:utils",
+    "langium": "catalog:langium",
+    "nano-spawn": "catalog:externals",
+    "p-debounce": "catalog:utils",
+    "package-manager-detector": "catalog:utils",
+    "pathe": "catalog:utils",
+    "remeda": "catalog:utils",
+    "std-env": "catalog:externals",
+    "strip-indent": "catalog:utils",
+    "tinyrainbow": "catalog:utils",
+    "type-fest": "catalog:externals",
+    "ufo": "catalog:utils",
+    "ws": "catalog:ai",
+    "zod": "catalog:externals"
+  },
+  "peerDependencies": {
+    "@tanstack/ai": "catalog:ai",
+    "@tanstack/ai-anthropic": "catalog:ai",
+    "@tanstack/ai-gemini": "catalog:ai",
+    "@tanstack/ai-ollama": "catalog:ai",
+    "@tanstack/ai-openai": "catalog:ai",
+    "@tanstack/ai-openrouter": "catalog:ai",
+    "react": "catalog:react",
+    "vite": "catalog:vite"
+  },
+  "peerDependenciesMeta": {
+    "@tanstack/ai": {
+      "optional": true
+    },
+    "@tanstack/ai-anthropic": {
+      "optional": true
+    },
+    "@tanstack/ai-gemini": {
+      "optional": true
+    },
+    "@tanstack/ai-openai": {
+      "optional": true
+    },
+    "@tanstack/ai-ollama": {
+      "optional": true
+    },
+    "@tanstack/ai-openrouter": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@likec4/devops": "workspace:*",
+    "@likec4/react": "workspace:*",
+    "@likec4/tsconfig": "workspace:*",
+    "@nanostores/react": "catalog:react",
+    "@tanstack/ai": "catalog:ai",
+    "@tanstack/ai-anthropic": "catalog:ai",
+    "@tanstack/ai-openai": "catalog:ai",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:react",
+    "@types/ws": "catalog:ai",
+    "birpc": "catalog:vite",
+    "fast-equals": "catalog:utils",
+    "nanostores": "catalog:react",
+    "oxlint": "catalog:",
+    "rolldown": "catalog:tsdown",
+    "tsdown": "catalog:tsdown",
+    "tsx": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:vitest"
+  }
+}

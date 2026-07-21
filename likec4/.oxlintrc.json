@@ -1,0 +1,101 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "env": {
+    "es2024": true
+  },
+  "options": {
+    "typeAware": true
+  },
+  "plugins": [
+    "eslint",
+    "typescript",
+    "unicorn",
+    "react",
+    "react-perf",
+    "oxc",
+    "import",
+    "node",
+    "vitest"
+  ],
+  "ignorePatterns": [
+    "packages/create-likec4/",
+    "packages/icons/",
+    "apps/docs/",
+    "styled-system/styles/",
+    "examples/"
+  ],
+  "rules": {
+    "max-dependencies": "off",
+    "max-lines-per-function": "off",
+    "no-optional-chaining": "off",
+    "no-undefined": "off",
+    "no-inline-comments": "off",
+    "no-named-as-default-member": "off",
+    "no-accumulating-spread": "error",
+    "no-array-reverse": "off",
+    "no-await-in-loop": "off",
+    "no-commonjs": "error",
+    // TODO: Enable these rules later
+    "no-cycle": "off",
+    "import/consistent-type-specifier-style": "off",
+    // "import/consistent-type-specifier-style": [
+    //   "warn",
+    //   {
+    //     "prefer-top-level": true
+    //   }
+    // ],
+    "import/first": "warn",
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "type-fest",
+            "allowTypeImports": true
+          },
+          {
+            "name": "."
+          }
+        ]
+      }
+    ],
+    "react_perf/jsx-no-jsx-as-prop": "warn",
+    "promise/no-new-statics": "error",
+    "react/exhaustive-deps": "warn",
+    "no-unused-expressions": "off",
+    "typescript/no-base-to-string": "error",
+    "typescript/no-import-type-side-effects": "error",
+    "typescript/require-array-sort-compare": "off",
+    "typescript/restrict-template-expressions": "off",
+    "typescript/no-duplicate-type-constituents": "off",
+    "typescript/no-misused-spread": "off",
+    "typescript/no-unsafe-type-assertion": "off",
+    "typescript/unbound-method": "off",
+    "typescript/explicit-function-return-type": "off",
+    "typescript/no-non-null-asserted-optional-chain": "error",
+    "typescript/no-unnecessary-type-arguments": "off",
+    "typescript/no-redundant-type-constituents": "off"
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/*.spec.ts",
+        "**/*.test-d.ts",
+        "**/*.spec.tsx",
+        "**/__*/**"
+      ],
+      "rules": {
+        "vitest/expect-expect": "off",
+        "import/consistent-type-specifier-style": "off",
+        "typescript/no-unsafe-member-access": "off",
+        "typescript/no-unnecessary-type-assertion": "off",
+        "typescript/no-unnecessary-template-expression": "off",
+        "typescript/no-unsafe-assignment": "off",
+        "typescript/no-unsafe-type-assertion": "off",
+        "typescript/no-non-null-assertion": "off",
+        "typescript/no-non-null-asserted-optional-chain": "off",
+        "no-unused-vars": "off"
+      }
+    }
+  ]
+}

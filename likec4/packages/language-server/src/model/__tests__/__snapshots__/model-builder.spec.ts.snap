@@ -1,0 +1,960 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`LikeC4ModelBuilder > builds model with description, summary and technology 1`] = `
+{
+  "_stage": "computed",
+  "deployments": {
+    "elements": {},
+    "relations": {},
+  },
+  "elements": {
+    "client": {
+      "id": "client",
+      "kind": "user",
+      "style": {
+        "opacity": 40,
+        "shape": "person",
+      },
+      "title": "client",
+    },
+    "system": {
+      "id": "system",
+      "kind": "component",
+      "style": {},
+      "title": "system",
+    },
+    "system.backend": {
+      "id": "system.backend",
+      "kind": "component",
+      "style": {
+        "border": "dashed",
+        "color": "secondary",
+      },
+      "summary": {
+        "txt": "Backend summary",
+      },
+      "technology": "NodeJS",
+      "title": "Backend",
+    },
+    "system.frontend": {
+      "description": {
+        "txt": "Frontend description",
+      },
+      "id": "system.frontend",
+      "kind": "component",
+      "style": {
+        "color": "muted",
+        "shape": "browser",
+      },
+      "title": "frontend",
+    },
+  },
+  "globals": {
+    "dynamicPredicates": {},
+    "predicates": {},
+    "styles": {},
+  },
+  "imports": {},
+  "manualLayouts": {},
+  "project": {
+    "id": "default",
+    "title": "default",
+  },
+  "projectId": "default",
+  "relations": {
+    "rii7wh": {
+      "id": "rii7wh",
+      "source": {
+        "model": "system.frontend",
+      },
+      "target": {
+        "model": "system.backend",
+      },
+      "title": "requests",
+    },
+    "yf1iba": {
+      "id": "yf1iba",
+      "source": {
+        "model": "client",
+      },
+      "target": {
+        "model": "system.frontend",
+      },
+      "title": "",
+    },
+  },
+  "specification": {
+    "customColors": {},
+    "deployments": {},
+    "elements": {
+      "component": {
+        "style": {},
+      },
+      "user": {
+        "style": {
+          "opacity": 40,
+          "shape": "person",
+        },
+      },
+    },
+    "relationships": {},
+    "tags": {},
+  },
+  "views": {
+    "index": {
+      "_stage": "computed",
+      "_type": "element",
+      "autoLayout": {
+        "direction": "TB",
+      },
+      "description": null,
+      "edges": [
+        {
+          "color": "gray",
+          "head": "normal",
+          "id": "client:system",
+          "label": null,
+          "line": "dashed",
+          "parent": null,
+          "relations": [
+            "yf1iba",
+          ],
+          "source": "client",
+          "target": "system",
+        },
+      ],
+      "hash": "CBRGwMjWi0nxLeDoxOw4ky6wz6iN6kP4wF3STzDCnl0",
+      "id": "index",
+      "nodes": [
+        {
+          "children": [],
+          "color": "primary",
+          "id": "client",
+          "inEdges": [],
+          "kind": "user",
+          "level": 0,
+          "modelRef": "client",
+          "outEdges": [
+            "client:system",
+          ],
+          "parent": null,
+          "shape": "person",
+          "style": {
+            "opacity": 40,
+            "size": "md",
+          },
+          "tags": [],
+          "title": "client",
+        },
+        {
+          "children": [],
+          "color": "primary",
+          "id": "system",
+          "inEdges": [
+            "client:system",
+          ],
+          "kind": "component",
+          "level": 0,
+          "modelRef": "system",
+          "outEdges": [],
+          "parent": null,
+          "shape": "rectangle",
+          "style": {
+            "opacity": 15,
+            "size": "md",
+          },
+          "tags": [],
+          "title": "system",
+        },
+      ],
+      "title": "Landscape view",
+    },
+  },
+}
+`;
+
+exports[`LikeC4ModelBuilder > builds model with extend 1`] = `
+{
+  "_stage": "computed",
+  "deployments": {
+    "elements": {},
+    "relations": {},
+  },
+  "elements": {
+    "client": {
+      "id": "client",
+      "kind": "user",
+      "style": {},
+      "title": "client",
+    },
+    "system": {
+      "id": "system",
+      "kind": "component",
+      "style": {},
+      "title": "system",
+    },
+    "system.backend": {
+      "id": "system.backend",
+      "kind": "component",
+      "style": {},
+      "title": "backend",
+    },
+    "system.backend.api": {
+      "id": "system.backend.api",
+      "kind": "component",
+      "style": {},
+      "title": "api",
+    },
+    "system.frontend": {
+      "id": "system.frontend",
+      "kind": "component",
+      "style": {},
+      "title": "frontend",
+    },
+  },
+  "globals": {
+    "dynamicPredicates": {},
+    "predicates": {},
+    "styles": {},
+  },
+  "imports": {},
+  "manualLayouts": {},
+  "project": {
+    "id": "default",
+    "title": "default",
+  },
+  "projectId": "default",
+  "relations": {
+    "10nwedx": {
+      "id": "10nwedx",
+      "source": {
+        "model": "system.frontend",
+      },
+      "target": {
+        "model": "system.backend.api",
+      },
+      "title": "requests",
+    },
+    "1fsbcae": {
+      "id": "1fsbcae",
+      "source": {
+        "model": "client",
+      },
+      "target": {
+        "model": "system.frontend",
+      },
+      "title": "opens",
+    },
+  },
+  "specification": {
+    "customColors": {},
+    "deployments": {},
+    "elements": {
+      "component": {
+        "style": {},
+      },
+      "user": {
+        "style": {},
+      },
+    },
+    "relationships": {},
+    "tags": {
+      "deprecated": {
+        "color": "tomato",
+      },
+    },
+  },
+  "views": {
+    "frontend": {
+      "_stage": "computed",
+      "_type": "element",
+      "autoLayout": {
+        "direction": "TB",
+      },
+      "description": null,
+      "edges": [
+        {
+          "color": "gray",
+          "head": "normal",
+          "id": "client:system.frontend",
+          "label": "opens",
+          "line": "dashed",
+          "parent": null,
+          "relations": [
+            "1fsbcae",
+          ],
+          "source": "client",
+          "target": "system.frontend",
+        },
+        {
+          "color": "gray",
+          "head": "normal",
+          "id": "system.frontend:system.backend",
+          "label": "requests",
+          "line": "dashed",
+          "parent": null,
+          "relations": [
+            "10nwedx",
+          ],
+          "source": "system.frontend",
+          "target": "system.backend",
+        },
+      ],
+      "hash": "dQ8XFgoVNGsYOBrKsbtip7Yb2oCWLFP7BZKvBSPBXJk",
+      "id": "frontend",
+      "links": null,
+      "nodes": [
+        {
+          "children": [],
+          "color": "primary",
+          "id": "client",
+          "inEdges": [],
+          "kind": "user",
+          "level": 0,
+          "modelRef": "client",
+          "outEdges": [
+            "client:system.frontend",
+          ],
+          "parent": null,
+          "shape": "rectangle",
+          "style": {
+            "opacity": 15,
+            "size": "md",
+          },
+          "tags": [],
+          "title": "client",
+        },
+        {
+          "children": [],
+          "color": "primary",
+          "id": "system.frontend",
+          "inEdges": [
+            "client:system.frontend",
+          ],
+          "kind": "component",
+          "level": 0,
+          "modelRef": "system.frontend",
+          "outEdges": [
+            "system.frontend:system.backend",
+          ],
+          "parent": null,
+          "shape": "rectangle",
+          "style": {
+            "opacity": 15,
+            "size": "md",
+          },
+          "tags": [],
+          "title": "frontend",
+        },
+        {
+          "children": [],
+          "color": "primary",
+          "id": "system.backend",
+          "inEdges": [
+            "system.frontend:system.backend",
+          ],
+          "kind": "component",
+          "level": 0,
+          "modelRef": "system.backend",
+          "outEdges": [],
+          "parent": null,
+          "shape": "rectangle",
+          "style": {
+            "opacity": 15,
+            "size": "md",
+          },
+          "tags": [],
+          "title": "backend",
+        },
+      ],
+      "sourcePath": "src/2.c4",
+      "tags": null,
+      "title": "frontend",
+      "viewOf": "system.frontend",
+    },
+    "index": {
+      "_stage": "computed",
+      "_type": "element",
+      "autoLayout": {
+        "direction": "TB",
+      },
+      "description": null,
+      "edges": [
+        {
+          "color": "gray",
+          "head": "normal",
+          "id": "client:system",
+          "label": "opens",
+          "line": "dashed",
+          "parent": null,
+          "relations": [
+            "1fsbcae",
+          ],
+          "source": "client",
+          "target": "system",
+        },
+      ],
+      "hash": "AYIntdCK_C2MBgIkSX8XYyPBFdyGfefACh-ZPXFHPSA",
+      "id": "index",
+      "links": null,
+      "nodes": [
+        {
+          "children": [],
+          "color": "primary",
+          "id": "client",
+          "inEdges": [],
+          "kind": "user",
+          "level": 0,
+          "modelRef": "client",
+          "outEdges": [
+            "client:system",
+          ],
+          "parent": null,
+          "shape": "rectangle",
+          "style": {
+            "opacity": 15,
+            "size": "md",
+          },
+          "tags": [],
+          "title": "client",
+        },
+        {
+          "children": [],
+          "color": "primary",
+          "id": "system",
+          "inEdges": [
+            "client:system",
+          ],
+          "kind": "component",
+          "level": 0,
+          "modelRef": "system",
+          "outEdges": [],
+          "parent": null,
+          "shape": "rectangle",
+          "style": {
+            "opacity": 15,
+            "size": "md",
+          },
+          "tags": [],
+          "title": "system",
+        },
+      ],
+      "sourcePath": "src/2.c4",
+      "tags": null,
+      "title": "Index",
+    },
+    "v1": {
+      "_stage": "computed",
+      "_type": "element",
+      "autoLayout": {
+        "direction": "LR",
+      },
+      "description": null,
+      "edges": [
+        {
+          "color": "gray",
+          "head": "normal",
+          "id": "system.frontend:system.backend.api",
+          "label": "requests",
+          "line": "dashed",
+          "parent": null,
+          "relations": [
+            "10nwedx",
+          ],
+          "source": "system.frontend",
+          "target": "system.backend.api",
+        },
+      ],
+      "hash": "K49Cl1WPQ1Xyu0RLVuvUZDRCrNPdRwIiFoTcBTvC6Uk",
+      "id": "v1",
+      "links": null,
+      "nodes": [
+        {
+          "children": [],
+          "color": "primary",
+          "id": "system.frontend",
+          "inEdges": [],
+          "kind": "component",
+          "level": 0,
+          "modelRef": "system.frontend",
+          "navigateTo": "frontend",
+          "outEdges": [
+            "system.frontend:system.backend.api",
+          ],
+          "parent": null,
+          "shape": "rectangle",
+          "style": {
+            "opacity": 15,
+            "size": "md",
+          },
+          "tags": [],
+          "title": "frontend",
+        },
+        {
+          "children": [
+            "system.backend.api",
+          ],
+          "color": "primary",
+          "depth": 1,
+          "id": "system.backend",
+          "inEdges": [
+            "system.frontend:system.backend.api",
+          ],
+          "kind": "component",
+          "level": 0,
+          "modelRef": "system.backend",
+          "outEdges": [],
+          "parent": null,
+          "shape": "rectangle",
+          "style": {
+            "opacity": 15,
+            "size": "md",
+          },
+          "tags": [],
+          "title": "backend",
+        },
+        {
+          "children": [],
+          "color": "primary",
+          "id": "system.backend.api",
+          "inEdges": [
+            "system.frontend:system.backend.api",
+          ],
+          "kind": "component",
+          "level": 1,
+          "modelRef": "system.backend.api",
+          "outEdges": [],
+          "parent": "system.backend",
+          "shape": "rectangle",
+          "style": {
+            "opacity": 15,
+            "size": "md",
+          },
+          "tags": [],
+          "title": "api",
+        },
+      ],
+      "sourcePath": "src/2.c4",
+      "tags": null,
+      "title": "api",
+      "viewOf": "system.backend.api",
+    },
+  },
+}
+`;
+
+exports[`LikeC4ModelBuilder > builds model with relationship spec and tag 1`] = `
+{
+  "_stage": "computed",
+  "deployments": {
+    "elements": {},
+    "relations": {},
+  },
+  "elements": {
+    "user1": {
+      "id": "user1",
+      "kind": "person",
+      "style": {},
+      "title": "user1",
+    },
+    "user2": {
+      "id": "user2",
+      "kind": "person",
+      "style": {},
+      "title": "user2",
+    },
+  },
+  "globals": {
+    "dynamicPredicates": {},
+    "predicates": {},
+    "styles": {},
+  },
+  "imports": {},
+  "manualLayouts": {},
+  "project": {
+    "id": "default",
+    "title": "default",
+  },
+  "projectId": "default",
+  "relations": {
+    "lso3oq": {
+      "id": "lso3oq",
+      "kind": "async",
+      "source": {
+        "model": "user1",
+      },
+      "tags": [
+        "next",
+      ],
+      "target": {
+        "model": "user2",
+      },
+      "title": "",
+    },
+  },
+  "specification": {
+    "customColors": {},
+    "deployments": {},
+    "elements": {
+      "person": {
+        "style": {},
+      },
+    },
+    "relationships": {
+      "async": {
+        "style": {},
+      },
+    },
+    "tags": {
+      "next": {
+        "color": "tomato",
+      },
+    },
+  },
+  "views": {
+    "index": {
+      "_stage": "computed",
+      "_type": "element",
+      "autoLayout": {
+        "direction": "TB",
+      },
+      "description": null,
+      "edges": [
+        {
+          "color": "gray",
+          "head": "normal",
+          "id": "user1:user2",
+          "kind": "async",
+          "label": null,
+          "line": "dashed",
+          "parent": null,
+          "relations": [
+            "lso3oq",
+          ],
+          "source": "user1",
+          "tags": [
+            "next",
+          ],
+          "target": "user2",
+        },
+      ],
+      "hash": "-KIIzVCeeYHtEYQn2yVzOEGXsmYMxTVKm_TarLfTSLU",
+      "id": "index",
+      "nodes": [
+        {
+          "children": [],
+          "color": "primary",
+          "id": "user1",
+          "inEdges": [],
+          "kind": "person",
+          "level": 0,
+          "modelRef": "user1",
+          "outEdges": [
+            "user1:user2",
+          ],
+          "parent": null,
+          "shape": "rectangle",
+          "style": {
+            "opacity": 15,
+            "size": "md",
+          },
+          "tags": [],
+          "title": "user1",
+        },
+        {
+          "children": [],
+          "color": "primary",
+          "id": "user2",
+          "inEdges": [
+            "user1:user2",
+          ],
+          "kind": "person",
+          "level": 0,
+          "modelRef": "user2",
+          "outEdges": [],
+          "parent": null,
+          "shape": "rectangle",
+          "style": {
+            "opacity": 15,
+            "size": "md",
+          },
+          "tags": [],
+          "title": "user2",
+        },
+      ],
+      "title": "Landscape view",
+    },
+  },
+}
+`;
+
+exports[`LikeC4ModelBuilder > builds model with relationship spec with technology 1`] = `
+{
+  "_stage": "computed",
+  "deployments": {
+    "elements": {},
+    "relations": {},
+  },
+  "elements": {
+    "user1": {
+      "id": "user1",
+      "kind": "person",
+      "style": {},
+      "title": "user1",
+    },
+    "user2": {
+      "id": "user2",
+      "kind": "person",
+      "style": {},
+      "title": "user2",
+    },
+  },
+  "globals": {
+    "dynamicPredicates": {},
+    "predicates": {},
+    "styles": {},
+  },
+  "imports": {},
+  "manualLayouts": {},
+  "project": {
+    "id": "default",
+    "title": "default",
+  },
+  "projectId": "default",
+  "relations": {
+    "lso3oq": {
+      "id": "lso3oq",
+      "kind": "async",
+      "source": {
+        "model": "user1",
+      },
+      "target": {
+        "model": "user2",
+      },
+      "technology": "Async",
+      "title": "",
+    },
+  },
+  "specification": {
+    "customColors": {},
+    "deployments": {},
+    "elements": {
+      "person": {
+        "style": {},
+      },
+    },
+    "relationships": {
+      "async": {
+        "style": {},
+        "technology": "Async",
+      },
+    },
+    "tags": {},
+  },
+  "views": {
+    "index": {
+      "_stage": "computed",
+      "_type": "element",
+      "autoLayout": {
+        "direction": "TB",
+      },
+      "description": null,
+      "edges": [
+        {
+          "color": "gray",
+          "head": "normal",
+          "id": "user1:user2",
+          "kind": "async",
+          "label": "[Async]",
+          "line": "dashed",
+          "parent": null,
+          "relations": [
+            "lso3oq",
+          ],
+          "source": "user1",
+          "target": "user2",
+        },
+      ],
+      "hash": "rEALiyLTu4UOAPXAUvmGrlLDH4N3q-ebPJ_TeKwQ4js",
+      "id": "index",
+      "nodes": [
+        {
+          "children": [],
+          "color": "primary",
+          "id": "user1",
+          "inEdges": [],
+          "kind": "person",
+          "level": 0,
+          "modelRef": "user1",
+          "outEdges": [
+            "user1:user2",
+          ],
+          "parent": null,
+          "shape": "rectangle",
+          "style": {
+            "opacity": 15,
+            "size": "md",
+          },
+          "tags": [],
+          "title": "user1",
+        },
+        {
+          "children": [],
+          "color": "primary",
+          "id": "user2",
+          "inEdges": [
+            "user1:user2",
+          ],
+          "kind": "person",
+          "level": 0,
+          "modelRef": "user2",
+          "outEdges": [],
+          "parent": null,
+          "shape": "rectangle",
+          "style": {
+            "opacity": 15,
+            "size": "md",
+          },
+          "tags": [],
+          "title": "user2",
+        },
+      ],
+      "title": "Landscape view",
+    },
+  },
+}
+`;
+
+exports[`LikeC4ModelBuilder > builds model with styled relationship 1`] = `
+{
+  "_stage": "computed",
+  "deployments": {
+    "elements": {},
+    "relations": {},
+  },
+  "elements": {
+    "user1": {
+      "id": "user1",
+      "kind": "person",
+      "style": {},
+      "title": "user1",
+    },
+    "user2": {
+      "id": "user2",
+      "kind": "person",
+      "style": {},
+      "title": "user2",
+    },
+  },
+  "globals": {
+    "dynamicPredicates": {},
+    "predicates": {},
+    "styles": {},
+  },
+  "imports": {},
+  "manualLayouts": {},
+  "project": {
+    "id": "default",
+    "title": "default",
+  },
+  "projectId": "default",
+  "relations": {
+    "lso3oq": {
+      "color": "red",
+      "head": "diamond",
+      "id": "lso3oq",
+      "line": "dotted",
+      "source": {
+        "model": "user1",
+      },
+      "tail": "none",
+      "target": {
+        "model": "user2",
+      },
+      "title": "",
+    },
+  },
+  "specification": {
+    "customColors": {},
+    "deployments": {},
+    "elements": {
+      "person": {
+        "style": {},
+      },
+    },
+    "relationships": {},
+    "tags": {},
+  },
+  "views": {
+    "index": {
+      "_stage": "computed",
+      "_type": "element",
+      "autoLayout": {
+        "direction": "TB",
+      },
+      "description": null,
+      "edges": [
+        {
+          "color": "red",
+          "head": "diamond",
+          "id": "user1:user2",
+          "label": null,
+          "line": "dotted",
+          "parent": null,
+          "relations": [
+            "lso3oq",
+          ],
+          "source": "user1",
+          "tail": "none",
+          "target": "user2",
+        },
+      ],
+      "hash": "xoQPEsJD5qkDT6l3hkv9nI9pAOMfoQUoQOXc2w_AthM",
+      "id": "index",
+      "nodes": [
+        {
+          "children": [],
+          "color": "primary",
+          "id": "user1",
+          "inEdges": [],
+          "kind": "person",
+          "level": 0,
+          "modelRef": "user1",
+          "outEdges": [
+            "user1:user2",
+          ],
+          "parent": null,
+          "shape": "rectangle",
+          "style": {
+            "opacity": 15,
+            "size": "md",
+          },
+          "tags": [],
+          "title": "user1",
+        },
+        {
+          "children": [],
+          "color": "primary",
+          "id": "user2",
+          "inEdges": [
+            "user1:user2",
+          ],
+          "kind": "person",
+          "level": 0,
+          "modelRef": "user2",
+          "outEdges": [],
+          "parent": null,
+          "shape": "rectangle",
+          "style": {
+            "opacity": 15,
+            "size": "md",
+          },
+          "tags": [],
+          "title": "user2",
+        },
+      ],
+      "title": "Landscape view",
+    },
+  },
+}
+`;

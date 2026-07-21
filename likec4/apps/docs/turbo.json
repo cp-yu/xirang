@@ -1,0 +1,27 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": [
+    "//"
+  ],
+  "tasks": {
+    "generate": {
+      "dependsOn": [
+        "^generate",
+        "@likec4/react#build",
+        "likec4#build"
+      ],
+      "outputs": [
+        ".astro/**"
+      ]
+    },
+    "build": {
+      "dependsOn": [
+        "generate"
+      ],
+      "outputs": [
+        ".astro/**",
+        "dist/**"
+      ]
+    }
+  }
+}

@@ -1,0 +1,44 @@
+---
+import SocialIcons from '@astrojs/starlight/components/SocialIcons.astro'
+import Logo from '../Logo.astro'
+const currentYear = new Date().getFullYear()
+
+const footerLinks = [
+  { label: 'Docs', href: '/tutorial/' },
+  { label: 'Playground', href: 'https://playground.likec4.dev/w/tutorial/' },
+  { label: 'Language Reference', href: '/dsl/intro/' },
+  { label: 'GitHub', href: 'https://github.com/likec4/likec4' },
+  { label: 'Discord', href: 'https://discord.gg/86ZSpjKAdA' },
+]
+---
+
+<footer class="border-t border-stone-200 dark:border-zinc-800/80 px-6 py-8">
+  <div class="max-w-5xl mx-auto">
+    <!-- Top row -->
+    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-4">
+        <Logo loading="lazy" />
+      </div>
+      <nav class="flex flex-wrap items-center justify-center gap-5">
+        {footerLinks.map((link) => (
+          <a
+            href={link.href}
+            class="text-sm font-medium text-stone-500 dark:text-zinc-400 hover:text-stone-700 dark:hover:text-zinc-300 no-underline transition-colors duration-200"
+          >
+            {link.label}
+          </a>
+        ))}
+      </nav>
+    </div>
+
+    <!-- Bottom row -->
+    <div class="mt-6 pt-4 border-t border-stone-200/40 dark:border-zinc-800/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p class="text-sm font-medium text-stone-400 dark:text-zinc-400 text-center sm:text-left">
+        &copy; 2023-{currentYear} LikeC4. Released under the MIT License.
+      </p>
+      <div class="flex items-center gap-3">
+        <SocialIcons />
+      </div>
+    </div>
+  </div>
+</footer>

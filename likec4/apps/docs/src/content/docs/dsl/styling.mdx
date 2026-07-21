@@ -1,0 +1,511 @@
+---
+title: Styling
+description: How to customize styles of your diagrams to match your brand and guidelines.
+sidebar: 
+  label: Styling
+  order: 7
+---
+
+import { Aside, LinkCard } from '@astrojs/starlight/components';
+import LikeC4ThemeView from '@components/likec4-theme/LikeC4ThemeView.astro';
+
+LikeC4 provides advanced customization capabilities. You can change colors, shapes, sizes, and icons of elements and relationships.
+
+## Element
+
+There are multiple ways to style elements:
+- Style all elements of a kind in `specification`
+- Specific for an element in `model` or `deployment`
+- Override styles in `view` (more on this in [next section](/dsl/views/predicates/#style-predicates))
+
+### Elements of a kind
+
+To style all elements of a kind, use the `style` block in the `specification`:
+
+```likec4 copy
+specification {
+  element user {
+    style {
+      // every element of 'user' kind
+      shape person // has 'person' shape
+      color amber  // and amber color
+    }
+  }
+
+  element frontend {    
+    style {
+      // every 'frontend' displayed as browser
+      shape: browser // ':' is optional, but if you prefer
+    }
+  }
+}
+```
+
+### Single element
+
+To style a specific element, use the nested `style` block.  
+Element styles override ones from the kind:
+
+```likec4 copy
+specification {
+  element actor {
+    style {
+      shape person
+      color red
+    }
+  }
+}
+
+model {
+  customer = actor 'Customer' {
+    style {
+      // inherits shape and overrides color
+      color green                   
+    }
+  }
+}
+```
+
+### Per view
+
+The [next section](/dsl/views/predicates/#style-predicates) explains how to customize elements per view.
+
+## Style properties
+
+### Shape
+
+```likec4 "shape person" copy
+specification {
+  element actor {
+    style {
+      shape person
+    }
+  }
+}
+```
+
+Available shapes: `rectangle` (default), `component`, `storage`, `cylinder`, `browser`, `mobile`, `person`, `queue`, `bucket`, and `document`.  
+
+<LikeC4ThemeView viewId="allshapes"/>
+
+### Color
+
+
+```likec4 "color red" copy
+specification {
+  element actor {
+    style {
+      color red
+    }
+  }
+}
+```
+
+Available colors: `primary` (default), `secondary`, `muted`, `amber`, `gray`, `green`, `indigo`, `red`.
+
+<LikeC4ThemeView viewId="index"/>
+
+:::tip
+It's also possible to use custom colors defined in [specification](/dsl/specification/#color).
+:::
+
+### Size
+
+Size of an element is controlled by following properties:
+
+| property  | explanation |
+| :-------- | :----- |
+| size      | size of the shape |
+| padding   | space around element's title |
+| textSize  | font size of element's title  |
+
+Each property accepts: `xsmall`, `small`, `medium`, `large`, or `xlarge`  
+(or short `xs`, `sm`, `md`, `lg`, `xl`).  
+Default size is `medium`.
+
+When shape size is `xsmall`, only element's title is displayed.
+
+```likec4 "size large" "textSize xl"
+specification {
+  element element {
+    style {
+      size large
+      textSize xl
+    }
+  }
+}
+```
+<LikeC4ThemeView viewId="sizes1_example" interactive={false}/>
+<LikeC4ThemeView viewId="sizes2_example" interactive={false}/>
+
+### Opacity
+
+If an element is displayed as a group (like a container), you can set its opacity:
+
+```likec4 "opacity 10%"
+specification {
+  element element {
+    style {
+      opacity 10%
+    }
+  }
+}
+```
+
+
+<LikeC4ThemeView viewId="opacity_example"/>
+
+### Border
+
+If an element is displayed as a group (like a container), you can change its border style:
+
+```likec4 "border dotted"
+specification {
+  element element {
+    style {
+      opacity 10%
+      border dotted
+    }
+  }
+}
+```
+
+Supported values: `dashed` (default), `dotted`, `solid`, `none`
+
+<LikeC4ThemeView viewId="border_example"/>
+
+### Multiple
+
+To display element as multiple instances, set `multiple` to `true`:
+
+```likec4
+specification {
+  element element {
+    style {
+      multiple true
+    }
+  }
+}
+
+```
+
+<LikeC4ThemeView viewId="multiple_example" interactive={false} fitViewPadding={'16px'}/>
+
+### Icon
+
+Elements may have an icon - any browser-supported image format (png, svg, webp, etc.):
+
+```likec4 copy
+model {
+  pg = service 'PostgreSQL' {
+    style {
+      // Publicly available with `https://`
+      icon https://icons.terrastruct.com/dev%2Fpostgresql.svg
+
+      // or local image, relative to current file
+      icon ../postgresql.svg
+    }
+  }
+}
+```
+
+:::tip
+`icon` can be defined as a property and skip `style` block
+
+```likec4 copy
+model {
+  pg = service 'PostgreSQL' {
+    icon https://icons.terrastruct.com/dev%2Fpostgresql.svg
+  }
+}
+```
+:::
+
+:::tip
+Use `none` to unset `icon`
+
+```likec4 copy
+pg = service 'PostgreSQL' {
+  icon none
+}
+```
+:::
+
+:::tip[Light and Dark mode SVG support]
+When using SVGs, you can bake the light and dark modes into a single file and use a `prefers-color-scheme` media query to switch between them.
+
+LikeC4 will render the correct version based on the current theme.
+
+```xml
+  <style>
+    .svg-dark { display: none; }
+    @media (prefers-color-scheme: dark) {
+      .svg-light { display: none; }
+      .svg-dark  { display: inline; }
+    }
+  </style>
+  <g class="svg-light">
+    <!-- Light mode icon version here -->
+  </g>
+  <g class="svg-dark">
+    <!-- Dark mode icon version here -->
+  </g>
+```
+
+Try changing the theme to see it in action!
+
+![Example of an icon with light and dark mode baked in](../../../assets/logo.svg)
+:::
+
+### Bundled icons
+
+LikeC4 includes icons (over 5,000 in total) from these packs:
+- `aws:` from <a href="https://aws-icons.com" target='_blank'>aws-icons.com</a>
+- `azure:` from <a href="https://learn.microsoft.com/en-us/azure/architecture/icons/" target='_blank'>microsoft.com</a>
+- `bootstrap:` from <a href="https://icons.getbootstrap.com/" target='_blank'>Bootstrap Icons</a> (2,000+ icons)
+- `gcp:` from <a href="https://gcpicons.com" target='_blank'>gcpicons.com</a>
+- `tech:` from <a href="https://techicons.dev" target='_blank'>techicons.dev</a> and <a href="https://svglogos.dev/" target='_blank'>svglogos.dev</a>
+
+Example:
+
+```likec4 copy
+model {
+  fn = service 'Lambda Function' {
+    icon aws:lambda
+  }
+  k8s = service 'K8s Service' {
+    icon gcp:google-kubernetes-engine
+  }
+  pg = storage 'PostgreSQL' {
+    icon tech:postgresql
+  }
+  ui = component 'User Interface' {
+    icon bootstrap:house
+  }
+}
+```
+
+<br/>
+
+<LikeC4ThemeView viewId="icons_example"/>
+
+<br/>
+
+:::note[Auto-derived technology]
+Bundled icons (except `bootstrap:`) automatically set the element's `technology` if not already defined.
+For example, `icon tech:docker` sets technology to **"Docker"**. See [Technology](/dsl/model#technology) for details.
+:::
+
+:::tip
+Use VS Code's code completion to explore available icons.
+:::
+
+
+### Icon color
+
+Use `iconColor` to override the icon color independently of the element fill.  
+Applies to bundled `bootstrap:*` icons.
+
+```likec4 copy
+model {
+  api = service 'API' {
+    style {
+      icon tech:nodejs    // ⛔️ Not applied
+      icon bootstrap:gear // ✅ Applies to `bootstrap:*` icons.
+      iconColor indigo
+    }
+  }
+}
+```
+
+`iconColor` accepts theme colors or custom colors defined in the [specification](/dsl/specification/#color).  
+
+
+
+### Icon size
+
+Use `iconSize` to resize the icon without changing the element size:
+
+```likec4 copy
+model {
+  api = service 'API' {
+    style {
+      icon tech:nodejs
+      iconSize sm
+    }
+  }
+}
+```
+
+`iconSize` uses the same values as [size](/dsl/styling/#size) and defaults to the element `size` (i.e. if not specified, but size is 'large', icon will be 'large').
+
+### Icon position
+
+Use `iconPosition` to place the icon around the element text:
+
+```likec4 copy
+model {
+  api = service 'API' {
+    style {
+      icon tech:nodejs
+      iconPosition top
+    }
+  }
+}
+```
+
+Supported values: `left` (default), `right`, `top`, `bottom`.
+
+
+<LikeC4ThemeView viewId="icons_position_example" keepAspectRatio={false} style={{ '--likec4-view-max-height': '250px', minHeight: '250px' }}/>
+
+### Aliased icons
+
+With `@` prefix, you can use aliased folders (learn more in [configuration](/dsl/config/#image-aliases)):
+
+```likec4 copy
+model {
+  pg = service 'PostgreSQL' {
+    style {
+      // local images, based on aliased folders
+      icon @/postgresql.svg
+    }
+  }
+}
+```
+
+
+## Relationship
+
+There are multiple ways to style relationships:
+- Style all relationships of a kind in `specification`
+- Specific relationship in `model`
+- Customize per `view` ([explained here](/dsl/views/predicates/#relationship-customization))
+
+### Relationships of a kind
+
+Relationships can be styled in [specification](/dsl/relationships/#relationship-kinds):
+
+```likec4
+specification {
+  relationship async {
+    color amber
+    line dotted
+    head diamond
+    tail vee
+  }
+}
+```
+
+### Specific Relationship
+
+```likec4
+model {
+  customer -> ui 'opens in browser' {
+    style {
+      line solid
+      color amber
+    }
+  }
+}
+```
+
+### Relationship per view
+
+The [next section](/dsl/views/predicates/#relationship-customization) explains how to customize relationships per view.
+
+## Relationship properties
+
+Besides `color`, relationships may have the following properties:  
+
+### Line
+
+| line   | example |
+| :----- | :-----: |
+| dashed |   ..    |
+| solid  |   ..    |
+| dotted |   ..    |
+
+By default, the line is `dashed`.
+
+### Arrow type
+
+The arrow type can be set for the head and the tail of the relationship:
+
+| type      | example |
+| :-------- | :-----: |
+| normal    |   ..    |
+| onormal   |   ..    |
+| diamond   |   ..    |
+| odiamond  |   ..    |
+| crow      |   ..    |
+| vee       |   ..    |
+| open      |   ..    |
+| none      |   ..    |
+
+> `onormal` means "outlined normal", i.e. no fill  
+> `odiamond` - "outlined diamond"
+
+By default, the head is `normal` and the tail is `none`.
+
+```likec4
+model {
+  customer -> ui 'opens in browser' {
+    style {
+      head diamond
+      tail crow
+    }
+  }
+}
+```
+
+### Multiple
+
+By default, multiple relationships between the same two elements are merged into a single edge.
+If the titles differ, the merged label becomes `[...]`.
+
+Set `multiple` to `true` to render each relationship as its own separate edge with its own label:
+
+```likec4
+specification {
+  relationship async {
+    multiple true
+    line dotted
+    color amber
+  }
+}
+```
+
+You can also enable it per-view on individual relationships:
+
+```likec4
+views {
+  view flows {
+    include *
+    include customer -> api with {
+      multiple true
+    }
+  }
+}
+```
+
+:::note
+- `multiple true` splits matching relationships into individual edges; non-matching
+  relationships in the same connection remain merged.
+- Per-view rules (`with { ... }`) take precedence over specification-level settings.
+  Set `multiple false` to disable expansion for specific relationships in a view.
+- Expanded edges are never merged into bidirectional edges; only non-expanded
+  (merged) edges participate in bidirectional merging.
+- Expansion from nested elements is supported — each relationship becomes its own edge
+  at the correct element level.
+:::
+
+## Styles customization
+
+How to override default styles is explained in project configuration
+
+<LinkCard
+  title="Project configuration"
+  description="Learn how to customize styles in your project"
+  href="/dsl/config/#styles-customization"
+/>

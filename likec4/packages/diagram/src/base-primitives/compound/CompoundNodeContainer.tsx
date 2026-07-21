@@ -1,0 +1,88 @@
+import type { Color, ElementStyle } from '@likec4/core/types'
+import { cx } from '@likec4/styles/css'
+import { compoundNode } from '@likec4/styles/recipes'
+import type { MotionStyle } from 'motion/react'
+import * as m from 'motion/react-m'
+import type { HTMLAttributes, PropsWithChildren } from 'react'
+import { clamp } from 'remeda'
+import { MAX_COMPOUND_DEPTH } from '../../base/const'
+import type { BaseNode, BaseNodeProps } from '../../base/types'
+import { useLikeC4Styles } from '../../hooks/useLikeC4Styles'
+
+export type RequiredData = {
+  color: Color
+  depth: number
+  style: ElementStyle
+}
+
+type CompoundNodeContainerProps = // & Omit<HTMLMotionProps<'div'>, 'children'>
+  PropsWithChildren<
+    HTMLAttributes<HTMLDivElement> & {
+      layout?: boolean | 'position' | 'size' | 'preserve-aspect'
+      layoutId?: string | undefined // from motion
+      nodeProps: BaseNodeProps<BaseNode<RequiredData>>
+    }
+  >
+
+export function CompoundNodeContainer({
+  nodeProps: {
+    data: {
+      hovered: isHovered = false,
+      dimmed: isDimmed = false,
+      ...data
+    },
+  },
+  className,
+  children,
+  style,
+  ...rest
+}: CompoundNodeContainerProps) {
+  const styles = useLikeC4Styles()
+  let opacity = clamp(data.style.opacity ?? 100, {
+    min: 0,
+    max: 100,
+  })
+  const isTransparent = opacity < 98
+
+  const MIN_OPACITY = 50
+  const borderOpacity = MIN_OPACITY + clamp((100 - MIN_OPACITY) * (opacity / 100), {
+    min: 0,
+    max: 100 - MIN_OPACITY,
+  })
+
+  const compoundClass = compoundNode({
+    isTransparent,
+    inverseColor: opacity < 70,
+    borderStyle: data.style.border ?? (isTransparent ? styles.defaults.group.border : 'none'),
+  })
+
+  const depth = clamp(data.depth ?? 1, {
+    min: 1,
+    max: MAX_COMPOUND_DEPTH,
+  })
+
+  return (
+    <m.div
+      className={cx(
+        compoundClass,
+        className,
+      )}
+      initial={false}
+      data-likec4-hovered={isHovered}
+      data-likec4-color={data.color}
+      data-compound-depth={depth}
+      {...isDimmed !== false && {
+        'data-likec4-dimmed': isDimmed,
+      }}
+      tabIndex={-1}
+      animate={{
+        ['--_border-transparency']: `${borderOpacity}%`,
+        ['--_compound-transparency']: `${opacity}%`,
+      }}
+      style={style as MotionStyle}
+      {...rest as any}
+    >
+      {children}
+    </m.div>
+  )
+}

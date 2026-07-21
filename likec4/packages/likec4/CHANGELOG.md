@@ -1,0 +1,355 @@
+# likec4
+
+## 1.59.0
+
+### Minor Changes
+
+- [#2984](https://github.com/likec4/likec4/pull/2984) [`061e687`](https://github.com/likec4/likec4/commit/061e6872ee80b1381d3ec047663a22d1ebe6bab5) Thanks [@davydkov](https://github.com/davydkov)! - Add programmatic enrichment + DSL writeback for loaded workspaces (resolves [#2833](https://github.com/likec4/likec4/issues/2833)).
+
+  - `Builder.fromParsed(data, mode?)` — seed a `Builder` from an existing `ParsedLikeC4ModelData`. The returned builder is `Builder<AnyTypes>` (kinds/FQNs unknown at compile time); pass an explicit generic to opt back into a typed Builder. `mode` (`'strict'` | `'editable'`, default `'editable'`) controls duplicate handling: in `editable` mode re-declaring an existing FQN with the same kind edits it in place; pass `'strict'` to throw on duplicates instead.
+  - `LikeC4.parsedModel(project?)` — exposes the parsed model on the public `LikeC4` instance.
+  - `LikeC4.toBuilder(mode?, project?)` — returns a Builder seeded from the parsed workspace; chain `.model(...)` / `.deployment(...)` / `.views(...)` to extend it. Defaults to `editable` (re-declaring a loaded element edits it); pass `'strict'` for a builder where duplicate FQNs throw.
+  - `LikeC4.toTypedBuilder({ specification, mode?, project? })` — validates the given specification against the loaded model (subset semantics — every declared kind/tag/metadata key must exist) and returns a Builder typed by it (`Builder<Types.FromSpecification<Spec>>`), replacing the unchecked `as unknown as Builder<...>` cast. Backed by the new `assertSpecificationCompatible` helper exported from `@likec4/core/builder`.
+  - `LikeC4.toDSL(project?)` — renders the parsed model back to `.c4` DSL source via `@likec4/generators/likec4`.
+  - `writeDSL(likec4, targetDir, options?)` — Node-only helper exported from `likec4` (and `@likec4/language-services/node`) that writes the rendered DSL to disk.
+
+  The DSL round-trip is intentionally LOSSY: comments, source positions and original formatting are not preserved.
+
+### Patch Changes
+
+- [#3094](https://github.com/likec4/likec4/pull/3094) [`b67f2b4`](https://github.com/likec4/likec4/commit/b67f2b432b89e78ac3cdfef7618612821b49d341) Thanks [@ckeller42](https://github.com/ckeller42)! - Keep generated `dot`, `d2`, `mermaid`, and `plantuml` files inside the requested output directory when views come from external include paths.
+
+- [#3097](https://github.com/likec4/likec4/pull/3097) [`a862f7f`](https://github.com/likec4/likec4/commit/a862f7f72ab63e635881eb0c5bb1ceab5296df6f) Thanks [@ckeller42](https://github.com/ckeller42)! - Stop stdio MCP servers when the client closes stdin so file watchers are cleaned up instead of leaving orphaned processes.
+
+- Updated dependencies [[`76ef007`](https://github.com/likec4/likec4/commit/76ef007fd2fb0c6d52cedcdb3ef048a9f2a624c4), [`0994577`](https://github.com/likec4/likec4/commit/09945775fb0c4c64b79eae6f17ee0abce92ef8f1), [`9b9727f`](https://github.com/likec4/likec4/commit/9b9727fcd1201296c4d7e09f7446edd38669328a), [`d0a05fe`](https://github.com/likec4/likec4/commit/d0a05fe8e29105444762542c78c9861a13bfaff0), [`1814846`](https://github.com/likec4/likec4/commit/1814846f629971cec2a392222ab00c42abea47ed), [`061e687`](https://github.com/likec4/likec4/commit/061e6872ee80b1381d3ec047663a22d1ebe6bab5)]:
+  - @likec4/core@1.59.0
+  - @likec4/icons@1.46.4
+
+## 1.57.1
+
+### Patch Changes
+
+- [#3032](https://github.com/likec4/likec4/pull/3032) [`5cd3a43`](https://github.com/likec4/likec4/commit/5cd3a43269962d36d635d11c780f6a09a96b524d) Thanks [@davydkov](https://github.com/davydkov)! - Fix `export png`/`export jpg` failing in the Docker image with `browserType.launch: Executable doesn't exist`. The bundled Playwright and the installed Chromium browsers are now kept in sync. Fixes [#2961](https://github.com/likec4/likec4/issues/2961)
+
+- [#3030](https://github.com/likec4/likec4/pull/3030) [`55dc799`](https://github.com/likec4/likec4/commit/55dc79971ca2fcb60a776399f0d624e2b0a42ca0) Thanks [@MichaelMcCodington](https://github.com/MichaelMcCodington)! - Fix favicon 404 in `likec4 build --output-single-file`. The single-file build inlines JS/CSS but left the favicon `<link rel="icon">` as an external reference to a hashed asset, which the post-build cleanup then removed — leaving a dangling reference that 404s wherever the standalone HTML is served. The favicon is now inlined as a base64 data URI before cleanup, so the single HTML file stays self-contained. Only `--output-single-file` is affected; the regular multi-file build is unchanged.
+
+- Updated dependencies [[`f2c0b57`](https://github.com/likec4/likec4/commit/f2c0b57485e912e85a986d5f89408a6039538ecc), [`8ad28c7`](https://github.com/likec4/likec4/commit/8ad28c777c76f294483c352180c7e3ea037eddfd), [`75e1510`](https://github.com/likec4/likec4/commit/75e1510def804bf9931bf222b03d1034e1181d04)]:
+  - @likec4/core@1.57.1
+  - @likec4/icons@1.46.4
+
+## 1.57.0
+
+### Minor Changes
+
+- [#2968](https://github.com/likec4/likec4/pull/2968) [`590864d`](https://github.com/likec4/likec4/commit/590864db3d43c3657eb5736831f95643245cd600) Thanks [@farhan523](https://github.com/farhan523)! - Add `--public` option (alias `--public-dir`) to `likec4 build` and `likec4 start` for specifying a directory that Vite serves and copies as-is into the output (Vite's `publicDir`). Files in this directory are preserved in the build output, including when `--output-single-file` is used. Resolves [#1941](https://github.com/likec4/likec4/issues/1941).
+
+- [#2935](https://github.com/likec4/likec4/pull/2935) [`35ba3f6`](https://github.com/likec4/likec4/commit/35ba3f637e45fc1072646f646b3442b3235cc29d) Thanks [@Kiiv](https://github.com/Kiiv)! - feat: add `includeAncestors` property to deployment views to include all ancestors of visible nodes. Fix https://github.com/likec4/likec4/issues/1483
+
+### Patch Changes
+
+- [#2971](https://github.com/likec4/likec4/pull/2971) [`3e0d071`](https://github.com/likec4/likec4/commit/3e0d071a7b080fac7f19656f52dabde5338a73d3) Thanks [@farhan523](https://github.com/farhan523)! - Add `--allowed-host` option to `likec4 start` (`serve` / `dev`) for scoping which hostnames are allowed to access the dev server (Vite's `server.allowedHosts`). Can be repeated. When omitted, all hosts are allowed (current behaviour). Resolves [#1650](https://github.com/likec4/likec4/issues/1650).
+
+- [#2950](https://github.com/likec4/likec4/pull/2950) [`dcbf674`](https://github.com/likec4/likec4/commit/dcbf6745b9804be7de82a88ed7a78c19986c524d) Thanks [@ckeller42](https://github.com/ckeller42)! - Add `--description` to PNG and JPEG exports to include the view title and Markdown description in generated images.
+
+- [#2950](https://github.com/likec4/likec4/pull/2950) [`dcbf674`](https://github.com/likec4/likec4/commit/dcbf6745b9804be7de82a88ed7a78c19986c524d) Thanks [@ckeller42](https://github.com/ckeller42)! - Add `--notation` to PNG and JPEG exports to include non-overlapping view notation in generated images.
+
+- [#2952](https://github.com/likec4/likec4/pull/2952) [`0a1b751`](https://github.com/likec4/likec4/commit/0a1b75166af24dc1024209b276cc984d428b751e) Thanks [@kieronlanning](https://github.com/kieronlanning)! - Fix single-project overview page always showing the CLI `--title` value instead of the `title` from `likec4.config.json`
+
+- [#2969](https://github.com/likec4/likec4/pull/2969) [`116f482`](https://github.com/likec4/likec4/commit/116f482daca0c09c3ae25018a82c06bb0cee355e) Thanks [@ckeller42](https://github.com/ckeller42)! - Fixes [#2962](https://github.com/likec4/likec4/issues/2962) by showing relationship popovers in static embedded views generated with `likec4 build`.
+
+- [`1540465`](https://github.com/likec4/likec4/commit/1540465bc6a5b777d9611e08eba7a015aaa81bf6) Thanks [@davydkov](https://github.com/davydkov)! - Fix css bundling for react/webcomponents (when rendered in shadow root)
+
+- [#2976](https://github.com/likec4/likec4/pull/2976) [`783155b`](https://github.com/likec4/likec4/commit/783155bba49ec60485af2c7f420fbb28e893955c) Thanks [@davydkov](https://github.com/davydkov)! - Drop the `react-shadow` dependency and inline shadow-root rendering directly. Mark `use-sync-external-store` as external to avoid duplicate React internals.
+
+- [#2947](https://github.com/likec4/likec4/pull/2947) [`3726863`](https://github.com/likec4/likec4/commit/3726863ba5cbd3b434f50a7f8f90ccb436c76b03) Thanks [@kieronlanning](https://github.com/kieronlanning)! - Add `--hmr-port` option to the `start` CLI command for specifying the HMR WebSocket port.
+
+  The port can also be set via the `HMR_PORT` environment variable. If neither is provided, a free port is auto-discovered in the range 24678–24690.
+
+- [`2e41ccf`](https://github.com/likec4/likec4/commit/2e41ccf24ad31d40c69cb545f8438db08f40ec89) Thanks [@davydkov](https://github.com/davydkov)! - Fix validation of `browser` property in webcomponent (accepts string values "true"/"false"/"yes"/"no")
+
+  Closes [#2936](https://github.com/likec4/likec4/issues/2936)
+
+- [#2976](https://github.com/likec4/likec4/pull/2976) [`783155b`](https://github.com/likec4/likec4/commit/783155bba49ec60485af2c7f420fbb28e893955c) Thanks [@davydkov](https://github.com/davydkov)! - Chore (contributors): upgrade to pnpm 11.
+
+  `packageManager` is now `pnpm@11.2.2` and `.tool-versions` was bumped accordingly. Workspace overrides, `allowBuilds`, and `patchedDependencies` were moved from the root `package.json` into `pnpm-workspace.yaml` (pnpm 11 layout).
+
+- Updated dependencies [[`311b93d`](https://github.com/likec4/likec4/commit/311b93de360556b9583b901c5ad3d6692b9c9f03), [`35ba3f6`](https://github.com/likec4/likec4/commit/35ba3f637e45fc1072646f646b3442b3235cc29d)]:
+  - @likec4/core@1.57.0
+  - @likec4/icons@1.46.4
+
+## 1.56.0
+
+### Patch Changes
+
+- [#2904](https://github.com/likec4/likec4/pull/2904) [`935f6bb`](https://github.com/likec4/likec4/commit/935f6bb3fc42b88669bd8af65947a201f8e3d490) Thanks [@davydkov](https://github.com/davydkov)! - Support applying view changes without LSP connection (e.g. in vite-plugin/CLI mode)
+
+- [`ab726ed`](https://github.com/likec4/likec4/commit/ab726eda9ec87b75fd72e056fb5f89ef78fe71e0) Thanks [@davydkov](https://github.com/davydkov)! - Extract web app into a separate `@likec4/spa` package, decoupling it from the CLI for better modularity, faster builds and smaller bundles — resolves [#2689](https://github.com/likec4/likec4/issues/2689)
+
+  The new package also improves DX by eliminating the dependency "magic" that existed in the CLI package
+
+- [#2906](https://github.com/likec4/likec4/pull/2906) [`af34764`](https://github.com/likec4/likec4/commit/af3476421fd8938a897240ad6fd1c70068d1e070) Thanks [@davydkov](https://github.com/davydkov)! - Load icons on demand from CDN instead of bundling all icon components, reducing bundle size. Icons are resolved from local cache, then `@likec4/icons` package, then fetched from `icons.like-c4.dev`.
+
+- [#2921](https://github.com/likec4/likec4/pull/2921) [`5f46082`](https://github.com/likec4/likec4/commit/5f460821526d851ef3bbf8be5a2bd749c2df6a8a) Thanks [@davydkov](https://github.com/davydkov)! - Update Mantine to 9.1.0. The `light` variant of Buttons, Alerts, and ActionIcons now uses solid colors instead of transparency.
+
+- Updated dependencies [[`ace5b2e`](https://github.com/likec4/likec4/commit/ace5b2e5cd261f47bd2e93b6f495e2122ceef16d), [`5f46082`](https://github.com/likec4/likec4/commit/5f460821526d851ef3bbf8be5a2bd749c2df6a8a)]:
+  - @likec4/core@1.56.0
+
+## 1.55.1
+
+### Patch Changes
+
+- [#2899](https://github.com/likec4/likec4/pull/2899) [`6933db3`](https://github.com/likec4/likec4/commit/6933db38add4067619a16ddebc48f7666df01e87) Thanks [@copilot-swe-agent](https://github.com/apps/copilot-swe-agent)! - Add JPEG export support for architecture diagrams:
+
+  - New "Export as .jpg" option in the web UI Export menu
+  - New `likec4 export jpg` CLI command with `--quality` option (1–100, default 80)
+  - JPEG export renders with a solid background (adapts to light/dark theme), making it convenient for pasting into documents and chats
+
+  Resolves [#2892](https://github.com/likec4/likec4/issues/2892)
+
+- Updated dependencies []:
+  - @likec4/core@1.55.1
+
+## 1.55.0
+
+### Minor Changes
+
+- [#2874](https://github.com/likec4/likec4/pull/2874) [`54e8435`](https://github.com/likec4/likec4/commit/54e8435a0f9e888f72fe2fcbe1dfe1f72c155dd6) Thanks [@ckeller42](https://github.com/ckeller42)! - Add `--theme` option to `likec4 build` command to set the default color scheme (light/dark) for the generated static website
+
+### Patch Changes
+
+- [#2828](https://github.com/likec4/likec4/pull/2828) [`75fa6d2`](https://github.com/likec4/likec4/commit/75fa6d2b066b42970892bfc8fac407618af160e3) Thanks [@sraphaz](https://github.com/sraphaz)! - - MCP README: clarify MCP vs LeanIX bridge and Draw.io `--profile leanix`.
+
+  - LikeC4 DSL Agent Skill: LeanIX + Draw.io reference (`bridge-leanix-drawio.md`), CLI reference (`cli.md`), and `SKILL.md` alignment.
+  - AGENTS.md: pointers for agent-facing docs and the LeanIX bridge workflow.
+
+- [#2877](https://github.com/likec4/likec4/pull/2877) [`51adb85`](https://github.com/likec4/likec4/commit/51adb85ad1097cdd4c95f9082533c8b33b124a42) Thanks [@davydkov](https://github.com/davydkov)! - Extract MCP server and tools to `@likec4/mcp` package. This will allow us to reuse MCP server and tools in other projects, and also will make the codebase cleaner and more modular.
+
+- Updated dependencies [[`6b87578`](https://github.com/likec4/likec4/commit/6b87578486c821fdc1060d69867a10f3c7e6ca9b), [`f684e2f`](https://github.com/likec4/likec4/commit/f684e2fb59745fe62ac2b43c68f1e453ab884cc8), [`347b48f`](https://github.com/likec4/likec4/commit/347b48f7bb67e0a480e231d57c4feeca09b32383), [`9834ebb`](https://github.com/likec4/likec4/commit/9834ebbfa32bdcb40710aac9038839e9da70031e), [`c0048b6`](https://github.com/likec4/likec4/commit/c0048b6ca156508c893e072dfbf9d75bbe4dd8ad)]:
+  - @likec4/core@1.55.0
+
+## 1.54.0
+
+### Patch Changes
+
+- [#2832](https://github.com/likec4/likec4/pull/2832) [`302f020`](https://github.com/likec4/likec4/commit/302f020e4e892d94159255a876da0119f9c8d9c9) Thanks [@davydkov](https://github.com/davydkov)! - Add `list-icons` CLI command to list all available built-in icons with `--format text|json` and `--group` filter options
+
+- [#2782](https://github.com/likec4/likec4/pull/2782) [`d0f38c7`](https://github.com/likec4/likec4/commit/d0f38c7422a4b46879ab744e514ea4d70f546e05) Thanks [@davydkov](https://github.com/davydkov)! - Add LikeC4 DSL Agent Skill enabling AI agents to write correct LikeC4 code without hallucinating syntax, resolves [#2636](https://github.com/likec4/likec4/issues/2636)
+
+  To install LikeC4 skills into any project:
+
+  ```bash
+  npx skills add https://likec4.dev/
+  ```
+
+- [#2831](https://github.com/likec4/likec4/pull/2831) [`b442a71`](https://github.com/likec4/likec4/commit/b442a71cb4ae9614eecd472f36c43faabc793099) Thanks [@sraphaz](https://github.com/sraphaz)! - Harden `likec4:icons` virtual module literals for CodeQL (embedded dynamic `import`). Raise floors for transitive dependencies via root `pnpm.overrides` (lodash, path-to-regexp, picomatch, brace-expansion, bn.js, yaml, smol-toml, ajv, crypto-browserify chain, etc.).
+
+- Updated dependencies []:
+  - @likec4/core@1.54.0
+
+## 1.53.0
+
+### Minor Changes
+
+- [#2768](https://github.com/likec4/likec4/pull/2768) [`cf5acbc`](https://github.com/likec4/likec4/commit/cf5acbcb8410cd66342e39a490fcfd9d91619916) Thanks [@sraphaz](https://github.com/sraphaz)! - feat(leanix-bridge): Phase 2 & 3, CLI, tooling docs (Draw.io + CLI)
+
+  **@likec4/leanix-bridge**
+
+  - Phase 2: `fetchLeanixInventorySnapshot`, `reconcileInventoryWithManifest` (inbound)
+  - Phase 3: `buildDriftReport`, `impactReportFromSyncPlan`, `generateAdrFromReconciliation`, `generateAdrFromDriftReport`, `runGovernanceChecks`
+  - Refactors: sync-to-leanix, to-bridge-manifest, to-leanix-inventory-dry-run, report, leanix-api-client, drawio-leanix-roundtrip
+
+  **likec4 (CLI)**
+
+  - `gen leanix-inventory-snapshot`, `gen leanix-reconcile`; `sync leanix` (dry-run / apply)
+  - Shared LeanIX API client for snapshot and sync
+
+  **@likec4/docs-astro**
+
+  - Draw.io: Export profiles (default / leanix), bridge-managed metadata
+  - CLI: `--profile` option for Export to DrawIO
+
+  **@likec4/generators**
+
+  - Parse Draw.io: compatibility with bridge-managed metadata
+
+### Patch Changes
+
+- [#2785](https://github.com/likec4/likec4/pull/2785) [`eddfe46`](https://github.com/likec4/likec4/commit/eddfe462b49d8dd598db443259bc2ba0820b76f1) Thanks [@davydkov](https://github.com/davydkov)! - Fix logger initialization defaults and environment detection
+
+- [#2790](https://github.com/likec4/likec4/pull/2790) [`9a3fa0b`](https://github.com/likec4/likec4/commit/9a3fa0bfd78dfbbd0fa9b26f2f872445c5b9ddcf) Thanks [@davydkov](https://github.com/davydkov)! - Improve `likec4 validate` CLI command:
+
+  - Fix exit code (now properly exits with 1 on validation failure)
+  - Add `--json` flag for structured JSON output
+  - Add `--file` flag to filter errors to specific files
+  - Add `--no-layout` flag to skip layout drift checks
+  - Add success/failure summary messages
+  - Add `--project` support for multi-project workspaces
+
+- [#2733](https://github.com/likec4/likec4/pull/2733) [`22cde07`](https://github.com/likec4/likec4/commit/22cde07331a7d375d30c1220a1603576e8438735) Thanks [@purple52](https://github.com/purple52)! - Add `landingPage` configuration option to control the landing page behavior:
+
+  - `redirect: true` to skip the landing page and go directly to the index view
+  - `include` / `exclude` selectors to filter which views appear in the landing page grid
+
+- [#2746](https://github.com/likec4/likec4/pull/2746) [`bb95d5a`](https://github.com/likec4/likec4/commit/bb95d5a601f630b0d8deb73ac4e83191b00a33c1) Thanks [@sraphaz](https://github.com/sraphaz)! - LeanIX bridge (dry-run) and Draw.io bridge-managed export profile
+
+  **@likec4/leanix-bridge (new package)**
+
+  - Identity manifest and LeanIX-shaped dry-run artifacts (no live sync)
+  - Pure functions: `toBridgeManifest`, `toLeanixInventoryDryRun`, `toReport`
+  - Configurable mapping (kinds → fact sheet types, relation kinds → relation types)
+  - Outputs: manifest.json, leanix-dry-run.json, report.json
+  - Use via custom generator; see package README
+
+  **@likec4/generators**
+
+  - Draw.io export profile `leanix`: adds bridge-managed metadata (bridgeManaged, likec4Id, likec4Kind, likec4ViewId, likec4ProjectId, likec4RelationId, optional leanixFactSheetType) for round-trip and LeanIX interoperability
+  - New options: `profile`, `projectId`, `leanixFactSheetTypeByKind`
+  - Export type `DrawioExportProfile`
+
+  **likec4**
+
+  - CLI: `likec4 export drawio --profile leanix` to emit bridge-managed .drawio files
+
+- Updated dependencies [[`39df42e`](https://github.com/likec4/likec4/commit/39df42e69d11a74cfbda94258321860d9437a3f7)]:
+  - @likec4/core@1.53.0
+
+## 1.52.0
+
+### Minor Changes
+
+- [#2667](https://github.com/likec4/likec4/pull/2667) [`2c6a43d`](https://github.com/likec4/likec4/commit/2c6a43da4552dbd40473effba65c7b04e165a7f3) Thanks [@m9810223](https://github.com/m9810223)! - Add `likec4 format` (alias `fmt`) CLI command for formatting `.c4` source files
+
+  - `@likec4/language-server` — add `format()` method to `LikeC4LanguageServices` with `projectIds`/`documentUris` filtering and LSP formatting options
+  - `@likec4/language-services` — add `format()` method to `LikeC4` facade, translating project name strings to `ProjectId`
+  - `likec4` — add `format` CLI command with `--check` mode for CI, `--project` and `--files` filtering
+
+### Patch Changes
+
+- [#2705](https://github.com/likec4/likec4/pull/2705) [`4d579d6`](https://github.com/likec4/likec4/commit/4d579d6990bd3f59fb8420d2adb0e246fd9dfdcc) Thanks [@davydkov](https://github.com/davydkov)! - Disable implicit views by default. Auto-generated scoped views for elements without explicit views are no longer created unless `"implicitViews": true` is set in the project config. To restore the previous behavior, add `"implicitViews": true` to your `likec4.json` configuration.
+
+- [#2731](https://github.com/likec4/likec4/pull/2731) [`7e0ac9b`](https://github.com/likec4/likec4/commit/7e0ac9bf1b61831287d444643230bb6196498a92) Thanks [@davydkov](https://github.com/davydkov)! - Add `--output` alias to all `likec4 gen` subcommands for consistency with `build` and `export` commands. Fixes [#2706](https://github.com/likec4/likec4/issues/2706)
+
+- [#2665](https://github.com/likec4/likec4/pull/2665) [`6257147`](https://github.com/likec4/likec4/commit/6257147265d69972b4b4f2dc472d0b58a03bc607) Thanks [@ckeller42](https://github.com/ckeller42)! - Add search bar, navigation drawer, and theme toggle to overview page
+
+  - Search for elements and views directly from the overview page via visible search bar or ⌘K
+  - Browse all diagrams through sidebar navigation drawer with file/folder/list grouping
+  - Toggle dark/light mode from the overview header
+  - Navigate from search results to a diagram view with element focus
+
+  Fixes [#1679](https://github.com/likec4/likec4/issues/1679)
+
+- Updated dependencies [[`bc47423`](https://github.com/likec4/likec4/commit/bc474235cf31a7d42e8c4f25328a698bb7edefe3)]:
+  - @likec4/core@1.52.0
+
+## 1.51.0
+
+### Minor Changes
+
+- [#2645](https://github.com/likec4/likec4/pull/2645) [`225d1a7`](https://github.com/likec4/likec4/commit/225d1a7163c6b6d8e50b0168be34679d4b52c537) Thanks [@m9810223](https://github.com/m9810223)! - Use MantineProvider's `forceColorScheme` for the `?theme=` URL parameter instead of `setColorScheme`.
+
+  Theme preferences specified via the URL are no longer persisted to localStorage — the forced
+  color scheme applies only while the `?theme=` parameter is present in the URL.
+
+  The `theme` search param default changed from `'auto'` to `undefined`; the parameter is now
+  optional and omitted from URLs when not explicitly set.
+
+### Patch Changes
+
+- [#2681](https://github.com/likec4/likec4/pull/2681) [`70e0f7d`](https://github.com/likec4/likec4/commit/70e0f7db20c0945d37a6b2f77ad9722abf4706ce) Thanks [@davydkov](https://github.com/davydkov)! - Add `likec4 lsp` CLI command to start the LikeC4 language server
+
+- Updated dependencies []:
+  - @likec4/core@1.51.0
+
+## 1.50.0
+
+### Patch Changes
+
+- [#2630](https://github.com/likec4/likec4/pull/2630) [`68ab5f6`](https://github.com/likec4/likec4/commit/68ab5f6652b43f2f6e52fd3cd2736cdc3672e3cf) Thanks [@sraphaz](https://github.com/sraphaz)! - Draw.io: CLI --roundtrip, Playground E2E, DrawioContextMenu getSourceContent
+
+  - **CLI:** `likec4 export drawio --roundtrip` reads all `.c4`/`.likec4` files in the workspace, parses round-trip comment blocks (layout, stroke colors/widths, edge waypoints), and applies them when generating each view's `.drawio` file.
+  - **Docs:** CLI reference updated with `--roundtrip` and `--all-in-one` options.
+  - **Playground:** `DrawioContextMenu` component accepts optional `getSourceContent` for round-trip export when used outside the provider.
+  - **E2E:** New Playwright config and test for Draw.io context menu in the Playground (`pnpm test:playground` from e2e/).
+
+- [#2639](https://github.com/likec4/likec4/pull/2639) [`871f134`](https://github.com/likec4/likec4/commit/871f134911d3a1313c62fb002f2834e94dc305d0) Thanks [@davydkov](https://github.com/davydkov)! - Enable "Export to Draw.io" in the app's export menu — opens app.diagrams.net with the current diagram pre-loaded
+
+- [#2630](https://github.com/likec4/likec4/pull/2630) [`68ab5f6`](https://github.com/likec4/likec4/commit/68ab5f6652b43f2f6e52fd3cd2736cdc3672e3cf) Thanks [@sraphaz](https://github.com/sraphaz)! - Draw.io export alignment; cross-platform postpack; language-server worker.
+
+  - **Draw.io export:** Generators and CLI export views to Draw.io (.drawio); round-trip comment blocks (layout, stroke, waypoints) and postpack behavior only. No import/parser in this PR.
+  - **Postpack:** `likec4ops postpack` copies packed tgz to package.tgz (cross-platform); all packages use it instead of `cp` so pack/lint:package works on Windows.
+  - **Language-server:** Safe error stringification in browser worker for oxlint.
+
+- Updated dependencies [[`fe468d8`](https://github.com/likec4/likec4/commit/fe468d830544e6f0051ea2203ab137d46932d11e)]:
+  - @likec4/core@1.50.0
+
+## 1.49.0
+
+### Patch Changes
+
+- [#2616](https://github.com/likec4/likec4/pull/2616) [`4a7c01c`](https://github.com/likec4/likec4/commit/4a7c01c9ee1e2d006f9002b0fed79cb5fdda9a6f) Thanks [@davydkov](https://github.com/davydkov)! - Add new `component` element shape
+
+- [#2620](https://github.com/likec4/likec4/pull/2620) [`39447c5`](https://github.com/likec4/likec4/commit/39447c5f59ce2466cc7a01f7bc5aaef4cb6fcb45) Thanks [@davydkov](https://github.com/davydkov)! - Internal restructuring for better maintainability:
+
+  - `@likec4/language-services` - for cross-platform language services initialization
+  - `@likec4/react` - bundled version of `@likec4/diagram`
+  - `@likec4/vite-plugin` - to separate concerns
+
+- [`f42c046`](https://github.com/likec4/likec4/commit/f42c046cd4bf1a3f4037cb2020268e729f018300) Thanks [@davydkov](https://github.com/davydkov)! - Add review drifts feature to the compare panel, highlight drifts in the diagram and add drifts summary panel.
+
+- Updated dependencies [[`f42c046`](https://github.com/likec4/likec4/commit/f42c046cd4bf1a3f4037cb2020268e729f018300), [`507bab3`](https://github.com/likec4/likec4/commit/507bab30cf9e30450cedfc4b27f67718a387b2e7), [`e10ea04`](https://github.com/likec4/likec4/commit/e10ea04bd2119b83cbd4c625640e63cd6e3f2e96), [`731a6cb`](https://github.com/likec4/likec4/commit/731a6cb278ef6bc06280bf1ba3b2d8f79c7d7fe6)]:
+  - @likec4/core@1.49.0
+
+## 1.48.0
+
+### Minor Changes
+
+- [`cd71c00`](https://github.com/likec4/likec4/commit/cd71c00a36cfe3a065a578befe87f6b1d2d26a6d) Thanks [@ckeller42](https://github.com/ckeller42)! - Direct links to Relationship Views, thanks to @ckeller42 in [#2547](https://github.com/ckeller/likec4/pull/2547)
+
+### Patch Changes
+
+- [`ee4cdc2`](https://github.com/likec4/likec4/commit/ee4cdc29db81fddc54b401a8af954a352fdbb142) Thanks [@davydkov](https://github.com/davydkov)! - Enable D2/DOT/MMD/PUML pages when viewing multiple projects.
+  Improve export page behavior.
+
+- [`ec06c45`](https://github.com/likec4/likec4/commit/ec06c4530ef92bf466a54764d21dccad7c50cb59) Thanks [@davydkov](https://github.com/davydkov)! - Fix export to PNG of sequence diagrams, closes [#2532](https://github.com/likec4/likec4/issues/2532)
+
+- [`6ab5089`](https://github.com/likec4/likec4/commit/6ab5089fc2c1ce472fa5f5a471061056676e5546) Thanks [@davydkov](https://github.com/davydkov)! - Improved font loading performance by migrating to variable fonts and enhanced diagram bounds calculation with better edge handling
+
+- Updated dependencies [[`c333592`](https://github.com/likec4/likec4/commit/c333592b6342dc4a726864e970c8056bc65fafa8), [`68c6bf2`](https://github.com/likec4/likec4/commit/68c6bf286536e39ec316db906a425e2bfc852a83), [`9aa59c8`](https://github.com/likec4/likec4/commit/9aa59c81f40ac948b32842a265bfdfe48d21bddf), [`c186a08`](https://github.com/likec4/likec4/commit/c186a082c6fbb26d2b5169a9c28ca51e540622f6), [`6677d12`](https://github.com/likec4/likec4/commit/6677d124aaf6c45fb1456ce66a5c538634fe5fa0), [`c12f7a1`](https://github.com/likec4/likec4/commit/c12f7a108c19418403f5afc0c06c1e25565f6bf2), [`6ab5089`](https://github.com/likec4/likec4/commit/6ab5089fc2c1ce472fa5f5a471061056676e5546)]:
+  - @likec4/core@1.48.0
+
+## 1.47.0
+
+### Patch Changes
+
+- [`be5326a`](https://github.com/likec4/likec4/commit/be5326a029c4f295cdd2bcf34dfa4a928dd9b948) Thanks [@davydkov](https://github.com/davydkov)! - Updated MCP SDK
+
+- [#2520](https://github.com/likec4/likec4/pull/2520) [`37f2777`](https://github.com/likec4/likec4/commit/37f27773e68cd28484930cd07f0e02ca36ac4532) Thanks [@davydkov](https://github.com/davydkov)! - Export to json format supports multiple projects, plus:
+
+  - Added `--pretty` option for exporting indented JSON
+  - Added `--skip-layout` option to skip layouts and return only computed models
+
+- Updated dependencies [[`dbaae67`](https://github.com/likec4/likec4/commit/dbaae67a2f00b6cacf1a0391cd8132b1d5f0e2ee), [`de2b294`](https://github.com/likec4/likec4/commit/de2b2942322f1a1b0ce4822e40c997ba3fff9e15), [`5e38c9b`](https://github.com/likec4/likec4/commit/5e38c9b2fced5fc43aee0326204a443d889a9d37)]:
+  - @likec4/core@1.47.0
+
+## 1.46.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @likec4/core@1.46.4
+
+## 1.46.3
+
+### Patch Changes
+
+- [#2495](https://github.com/likec4/likec4/pull/2495) [`faa3b86`](https://github.com/likec4/likec4/commit/faa3b86ac9a44d179e637ef65474410bd5f23524) Thanks [@davydkov](https://github.com/davydkov)! - Fallback to the first project in vite plugin, if `projectId` is not found, instead of erroring out. Closes [#2472](https://github.com/like-c4/likec4/issues/2472)
+
+- Updated dependencies []:
+  - @likec4/core@1.46.3
+
+## 1.46.2
+
+### Patch Changes
+
+- Updated dependencies [[`9c5779d`](https://github.com/likec4/likec4/commit/9c5779d872d8de353adf706d1a0edbbcd8bb9671)]:
+  - @likec4/core@1.46.2

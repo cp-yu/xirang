@@ -1,0 +1,58 @@
+import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { $, cd } from 'zx'
+
+$.verbose = true
+
+await $({ stdio: 'inherit' })`pnpm build`
+
+/**
+ * vsce tool does not work with pnpm
+ * so we need to prepare package.json for NPM
+ */
+const [{ dependencies }] = await $`pnpm ls -P --json --filter likec4-vscode`.json<[{
+  dependencies: Record<string, {
+    from: string
+    version: string
+    resolved: string
+    path: string
+  }>
+}]>()
+
+// Replace esbuild with esbuild-wasm
+const packageJson = JSON.parse(await readFile('package.json', 'utf-8'))
+packageJson.dependencies = Object.fromEntries(
+  Object.entries(dependencies)
+    .map(([name, { version }]) => {
+      if (name === 'esbuild') {
+        return [name, `npm:esbuild-wasm@${version}`]
+      }
+      return [name, version]
+    }),
+)
+packageJson.devDependencies = {}
+
+const outdir = await mkdtemp(join(tmpdir(), 'likec4-extension'))
+console.log(outdir)
+
+await cp('.', outdir, {
+  recursive: true,
+  filter: source => !source.includes('node_modules'),
+})
+
+const cwd = process.cwd()
+
+cd(outdir)
+await writeFile('package.json', JSON.stringify(packageJson, null, 2))
+// Output npm version for debugging
+await $`npm -v`
+await $`npm install --omit=dev`
+await $`npx @vscode/vsce package --out likec4.vsix`
+
+const outvsix = join(cwd, 'likec4.vsix')
+await cp('likec4.vsix', outvsix)
+
+console.log(` 📦 VSIX file created: ${outvsix}`)
+
+await rm(outdir, { recursive: true }).catch(() => {})
