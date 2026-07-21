@@ -1,0 +1,355 @@
+---
+title: Extending model
+description: How to extend the model with additional elements, relations and properties from other files
+sidebar: 
+  label: Extending model
+  order: 6
+---
+
+import { Aside, FileTree, TabItem, Tabs } from '@astrojs/starlight/components';
+
+You can extend the model by creating new files and folders.  
+When LikeC4 source files are parsed, they are _merged_ into a single architecture model.
+
+You are free to organize the workspace as you want.
+
+
+## Example
+
+Assume we have the following workspace:
+
+<FileTree>
+- cloud
+  - service1.c4
+  - service2.c4
+  - ...
+- externals
+  - amazon.c4
+- landscape.c4
+- specs.c4
+</FileTree>
+
+
+<Tabs>
+  <TabItem label="specs.c4">
+    This file defines the specification:
+
+    ```likec4
+    specification {
+      element actor {
+        style {
+          shape person
+        }
+      }
+      element system
+      element service
+    }
+    ```
+  </TabItem>
+  <TabItem label="landscape.c4">
+    This file defines the top-level elements and landscape view:
+
+    ```likec4
+    model {
+      customer = actor 'Customer'
+      cloud = system 'Cloud System'
+    }
+    views {
+      view index of cloud {
+        title "Cloud System - Landscape"
+        include *
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="externals/amazon.c4">
+    We keep definitions of external systems separately, inside the `externals/` folder:
+    
+    ```likec4
+    model {
+      amazon = system 'Amazon Web Services' {
+        rds = service 'Database'
+      }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+## Extend element
+
+`extend` is a way to enrich the model and define nested elements in a separate file.
+
+
+We don't want to mess up the _landscape.c4_ file with the internals of the `cloud`.  
+In a separate file we extend `cloud` and define `cloud.service1`:
+
+```likec4
+// cloud/service1.c4
+model {
+  // cloud is defined in landscape.c4
+  extend cloud {
+    // extend and define cloud.service1
+    service1 = service 'Service 1'
+  }
+}
+```
+
+The element extension inherits the scope of the target (or, more accurately, the _**parent**_).  
+For example:
+
+```likec4
+// cloud/service2.c4
+model {
+  // cloud is defined in landscape.c4
+  extend cloud {
+    // extend and define cloud.service2
+    service2 = service 'Some Service 2'
+
+    service2 -> service1 // ✅ service1 is known inside 'cloud'
+  }
+}
+```
+
+<Aside type='caution'>
+An extended element must be referenced by its fully qualified name.  
+
+Example:
+
+```likec4
+model {
+  extend service2       // ⛔️ Error: service2 not found in the global scope
+  extend cloud.service2 // ✅ Resolved by fully qualified name
+}
+```
+</Aside>
+
+### Additional properties
+
+You can extend element with additional tags, links and metadata:
+
+```likec4
+model {
+  extend cloud {
+    // Add tags
+    #additional-tag, #another-tag
+
+    // Add metadata
+    metadata {
+      prop1 'value1'
+    }
+
+    // Add links
+    link ../src/index.ts#L1-L10
+  }
+}
+```
+
+#### Metadata Merging
+
+When extending elements with metadata, duplicate keys from both the original element and the extension are merged into arrays:
+
+```likec4
+model {
+  component api {
+    metadata {
+      version '1.0.0'
+      tags 'backend'
+      regions 'us-east-1'
+    }
+  }
+}
+
+// In another file
+model {
+  extend api {
+    metadata {
+      tags 'microservice'        // Merges with existing 'backend'
+      regions ['eu-west-1']      // Merges with existing 'us-east-1'
+      owner 'platform-team'      // New key
+    }
+  }
+}
+
+// Result:
+{
+  version: '1.0.0',
+  tags: ['backend', 'microservice'],     // Merged and kept as array
+   regions: ['us-east-1', 'eu-west-1'],   // Merged and kept as array
+   owner: 'platform-team'
+}
+```
+
+**Merging behavior:**
+- Duplicate values are automatically de-duplicated
+- If after de-duplication there's only one unique value, it's stored as a string (not an array)
+- Arrays from both sides are merged and de-duplicated
+
+```likec4
+model {
+  component api {
+    metadata {
+      environment 'production'
+      tags ['backend', 'api']
+    }
+  }
+}
+
+model {
+  extend api {
+    metadata {
+      environment 'production'   // Duplicate value
+      tags ['api', 'critical']   // 'api' is duplicate
+    }
+  }
+}
+
+// Result:
+{
+  environment: 'production',           // Single value (de-duplicated)
+  tags: ['backend', 'api', 'critical'] // Merged and de-duplicated
+}
+```
+
+You can extend the same element multiple times across different files, and all metadata will be properly merged:
+
+```likec4
+// file1.c4
+model {
+  component api {
+    metadata {
+      version '2.0.0'
+      tags 'backend'
+    }
+  }
+}
+
+// file2.c4
+model {
+  extend api {
+    metadata {
+      tags 'rest'
+      owner 'team-a'
+    }
+  }
+}
+
+// file3.c4
+model {
+  extend api {
+    metadata {
+      tags 'microservice'
+      regions ['us', 'eu']
+    }
+  }
+}
+
+// Result:
+{
+  version: '2.0.0',
+  tags: ['backend', 'rest', 'microservice'],
+  owner: 'team-a',
+  regions: ['us', 'eu']
+}
+```
+
+## Extend Relationship
+
+Similar to extending elements, you can extend relationships to add metadata, tags, and links from separate files.
+
+<Aside type='caution'>
++**Deployment model limitation**: Extending relationships is currently only supported for the logical model.  
+Deployment model relationships cannot be extended at this time.
+</Aside>
+
+Relations are uniquely identified by:
+- Source element
+- Target element
+- Relationship kind (if specified)
+- Title (if specified)
+
+```likec4
+// base.c4
+specification {
+  element component
+  relationship sync
+}
+
+model {
+  component frontend
+  component api
+  
+  // Untyped relation with title
+  frontend -> api "Makes requests"
+  
+  // Typed relation with same title (different relation!)
+  frontend -[sync]-> api "Makes requests"
+}
+
+// extend-ops.c4
+model {
+  // Extend the untyped relation
+  extend frontend -> api "Makes requests" {
+    metadata {
+      latency_p95 '150ms'
+      rate_limit '1000req/s'
+    }
+  }
+  
+  // Extend the sync relation (different from above!)
+  extend frontend -[sync]-> api "Makes requests" {
+    metadata {
+      latency_p95 '80ms'
+      cache_enabled 'true'
+    }
+  }
+}
+```
+
+<Aside type='note'>
+**Title normalization**: Relations without a title and relations with an empty string title (`""`) are treated identically. Both are normalized to an empty string internally. This means `extend a -> b` will match both `a -> b` and `a -> b ""`.
+</Aside>
+
+### Metadata Merging
+
+Relationship extends follow the same metadata merging rules as element extends:
+- New keys are added
+- Duplicate keys with different values become arrays
+- Duplicate keys with the same value are de-duplicated
+
+```likec4
+// base.c4
+model {
+  api -> database "Queries data" {
+    metadata {
+      protocol 'TCP'
+    }
+  }
+}
+
+// extend-1.c4
+model {
+  extend api -> database "Queries data" {
+    metadata {
+      protocol 'SSL'        // Creates array
+      timeout '5s'          // New key
+    }
+  }
+}
+
+// extend-2.c4
+model {
+  extend api -> database "Queries data" {
+    metadata {
+      protocol 'TLS'        // Adds to array
+      retry_policy 'exponential'  // New key
+    }
+  }
+}
+
+// Result:
+{
+  protocol: ['TCP', 'SSL', 'TLS'],
+  timeout: '5s',
+  retry_policy: 'exponential'
+}
+```

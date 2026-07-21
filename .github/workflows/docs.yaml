@@ -1,0 +1,83 @@
+name: docs
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        default: 'preview'
+        required: true
+        type: string
+    # Map the workflow outputs to job outputs
+    outputs:
+      docs_url:
+        description: 'docs url'
+        value: ${{ jobs.deploy-docs.outputs.url }}
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deploy to'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+          - preview
+          - production
+
+permissions:
+  actions: write
+  contents: read
+  checks: write
+  statuses: write
+  deployments: write
+
+env:
+  NODE_ENV: production
+  CLOUDFLARE_ENV: production
+  DO_NOT_TRACK: '1'
+  FORCE_COLOR: true
+
+concurrency:
+  group: docs-${{ github.event_name }}-${{ github.ref_name }}-${{ inputs.environment }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-docs:
+    name: docs
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
+    if: ${{ github.repository_owner == 'likec4' }}
+    environment:
+      name: 'docs-${{ inputs.environment }}'
+      url: "${{ inputs.environment == 'production' && 'https://likec4.dev' || steps.cloudflare.outputs.deployment-url }}"
+    outputs:
+      url: "${{ inputs.environment == 'production' && 'https://likec4.dev' || steps.cloudflare.outputs.deployment-url }}"
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: 🛠️ bootstrap
+        uses: ./.github/actions/bootstrap
+
+      - name: ⚙️ build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pnpm turbo run build --filter='@likec4/docs-astro'
+
+      - name: upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: docs-astro
+          if-no-files-found: error
+          retention-days: 5
+          path: apps/docs/dist/
+
+      - id: cloudflare
+        name: publish to cloudflare
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: "pages deploy dist --project-name likec4-docs-astro --commit-dirty --branch ${{ inputs.environment == 'production' && 'main' || 'preview' }}"
+          workingDirectory: apps/docs
+          packageManager: pnpm

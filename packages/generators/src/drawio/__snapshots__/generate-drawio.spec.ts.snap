@@ -1,0 +1,41 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`generate DrawIO - element view 1`] = `
+"<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="LikeC4" modified="FIXED-DATE" agent="LikeC4" version="1.0" etag="" type="device">
+  <diagram name="v1" id="likec4-v1">LAYOUT</diagram>
+</mxfile>
+"
+`;
+
+exports[`generate DrawIO - fakeComputedView 3 Levels 1`] = `
+"<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="LikeC4" modified="FIXED-DATE" agent="LikeC4" version="1.0" etag="" type="device">
+  <diagram name="Context: Cloud" id="likec4-cloud3levels">LAYOUT</diagram>
+</mxfile>
+"
+`;
+
+exports[`generate DrawIO - fakeDiagram 1`] = `
+"<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="LikeC4" modified="FIXED-DATE" agent="LikeC4" version="1.0" etag="" type="device">
+  <diagram name="fakeView" id="likec4-fakeView">LAYOUT</diagram>
+</mxfile>
+"
+`;
+
+exports[`generate DrawIO - fakeDiagram2 1`] = `
+"<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="LikeC4" modified="FIXED-DATE" agent="LikeC4" version="1.0" etag="" type="device">
+  <diagram name="frontend" id="likec4-74f5364fa4b">LAYOUT</diagram>
+</mxfile>
+"
+`;
+
+exports[`generate DrawIO - landscape 1`] = `
+"<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="LikeC4" modified="FIXED-DATE" agent="LikeC4" version="1.0" etag="" type="device">
+  <diagram name="Layout" id="likec4-index">LAYOUT</diagram>
+</mxfile>
+"
+`;

@@ -1,0 +1,192 @@
+model {
+
+  amazon = externalSystem 'Amazon' {
+    description: 'Cloud and managed services provider'
+    icon tech:amazon-web-services
+    style {
+      color amber
+    }
+
+    s3 = container 'S3' {
+      description: 'Object Storage'
+      icon aws:simple-storage-service
+      style {
+        color amber
+        shape bucket
+      }
+
+      bucket1 = component 'Bucket 1' {
+        icon aws:simple-storage-service
+        technology 's3 bucket'
+        description '''
+          Markdown Description  \
+          of Object _**Storage 1**_
+        '''
+        style {
+          color amber
+          shape bucket
+        }
+      }
+
+
+      bucket2 = component 'Bucket 2 with small size' {
+        description '''
+          Object **Storage 2**
+        '''
+        style {
+          color amber
+          shape bucket
+          size small
+        }
+      }
+    }
+
+    rds = container 'RDS' {
+      description: 'Relational Database Service'
+      icon aws:rds
+      style {
+        shape storage
+      }
+
+      pg = component 'PostgreSQL' {
+        #db
+        icon tech:postgresql
+
+        tblUsers = table 'Users Table' {
+          #deprecated
+          description: '
+            Table with registered users. Contains references to Identity provider.
+            [deprecated, moving to Aurora]
+          '
+          icon https://icons.terrastruct.com/dev%2Fpostgresql.svg
+        }
+      }
+
+    }
+
+    sqs = container {
+      title: 'SQS'
+      description: 'Simple Queue Service'
+      icon aws:simple-queue-service
+
+      queue queue1 'Raw Data' {
+        description: 'Queue with raw data'
+      }
+
+      queue queue2 'Enriched Data' {
+        description: '
+          Filtered and preprocessed data
+          Ready for further processing
+        '
+      }
+    }
+
+    lambdas = container {
+      #db, #deprecated #api
+      title: 'Lambdas'
+      description: 'Serverless compute'
+      icon tech:aws-lambda
+
+      fn_enrich = lambda 'Enrichment' {
+        description: '
+          Enriches raw data
+          by adding additional information
+        '
+      }
+
+      fn_enrich -> queue1 'reads raw data'
+      fn_enrich -> queue2 'writes enriched data'
+    }
+  }
+
+}
+
+views {
+
+  view amazon of amazon {
+    title 'Overview Amazon'
+
+    include
+      *,
+      cloud,
+      cloud.* -> amazon.*,
+
+    style * {
+      color secondary
+    }
+    style amazon, cloud {
+      color muted
+    }
+    style amazon.* {
+      color green
+    }
+  }
+
+  view amazon_sqs of sqs {
+    title 'Overview Amazon SQS'
+
+    include
+      *,
+      amazon
+
+    style amazon {
+      border dotted
+      color muted
+      opacity 29%
+    }
+    style amazon.sqs {
+      opacity 100%
+    }
+  }
+
+  view amazon_lambdas of lambdas {
+    title: 'Overview Amazon Lambdas'
+
+    include
+      *,
+      amazon,
+      amazon.sqs,
+      -> amazon.sqs.*
+
+    style * {
+      color secondary
+    }
+    style amazon {
+      color muted
+    }
+    style lambdas, lambdas.* {
+      color green
+    }
+  }
+
+  view amazon_rds of amazon.rds {
+    title 'Overview Amazon RDS'
+
+    include
+      *,
+      cloud,
+      cloud.* -> amazon.rds.pg.*,
+      cloud.* -> amazon.rds.aurora.*,
+
+    style * {
+      color muted
+    }
+    style cloud.* {
+      color secondary
+    }
+    style amazon.rds.* {
+      color green
+    }
+  }
+
+  view amazon_s3 of amazon.s3 {
+    title 'Overview Amazon S3'
+
+    include
+      cloud.* -> amazon.s3.*,
+      *,
+      amazon
+
+  }
+
+}

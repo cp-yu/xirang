@@ -1,0 +1,137 @@
+{
+  "comments": {
+    // symbol used for single line comment. Remove this entry if your language does not support line comments
+    "lineComment": "//",
+    // symbols used for start and end a block comment. Remove this entry if your language does not support block comments
+    "blockComment": [
+      "/*",
+      "*/"
+    ]
+  },
+  // symbols used as brackets
+  "brackets": [
+    [
+      "{",
+      "}"
+    ],
+    [
+      "(",
+      ")"
+    ]
+  ],
+  // symbols that are auto closed when typing
+  "autoClosingPairs": [
+    {
+      "open": "-[",
+      "close": " ]->"
+    },
+    {
+      "open": "'''",
+      "close": "'''"
+    },
+    {
+      "open": "'",
+      "close": "'",
+      "notIn": [
+        "string"
+      ]
+    },
+    {
+      "open": "\"\"\"",
+      "close": "\"\"\""
+    },
+    {
+      "open": "\"",
+      "close": "\"",
+      "notIn": [
+        "string",
+        "comment"
+      ]
+    },
+    {
+      "open": "/*",
+      "close": " */",
+      "notIn": [
+        "string",
+        "comment"
+      ]
+    },
+    {
+      "open": "{",
+      "close": "}"
+    },
+    {
+      "open": "[",
+      "close": "]"
+    },
+    {
+      "open": "(",
+      "close": ")"
+    }
+  ],
+  "autoCloseBefore": "'\";:,=}])>` \n\t",
+  // symbols that can be used to surround a selection
+  "surroundingPairs": [
+    {
+      "open": "{",
+      "close": "}"
+    },
+    {
+      "open": "[",
+      "close": "]"
+    },
+    {
+      "open": "(",
+      "close": ")"
+    },
+    {
+      "open": "\"",
+      "close": "\""
+    },
+    {
+      "open": "'",
+      "close": "'"
+    }
+  ],
+  "colorizedBracketPairs": [
+    [
+      "{",
+      "}"
+    ]
+  ],
+  "onEnterRules": [
+    // If enter is pressed inside a triple-quoted string
+    {
+      "beforeText": "\\s*('{3}|\"{3})[^'\"]*$",
+      "afterText": "^\\s*('{3}|\"{3})\\s*$",
+      "action": {
+        "indent": "indentOutdent"
+      }
+    },
+    // If enter is pressed inside a single-quoted string
+    {
+      "beforeText": "\\s*('|\")[^'\"]*$",
+      "afterText": "^\\s*('|\")\\s*$",
+      "action": {
+        "indent": "indentOutdent"
+      }
+    },
+    {
+      "beforeText": "^\\s*(include|exclude)\\s*$",
+      "action": {
+        "indent": "indent"
+      }
+    },
+    {
+      "beforeText": ":\\s*$",
+      "afterText": "^\\s*$",
+      "action": {
+        "indent": "indent"
+      }
+    }
+  ],
+  "indentationRules": {
+    "increaseIndentPattern": "^((?!\\/\\/).)*(\\{[^}\"'`]*|\\([^)\"'`]*|\\[[^\\]\"'`]*)$",
+    "decreaseIndentPattern": "^((?!.*?\\/\\*).*\\*/)?\\s*[\\)\\}\\]].*$"
+  }
+}

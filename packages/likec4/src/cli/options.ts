@@ -1,0 +1,151 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2023-2026 Denis Davydkov
+// Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+//
+// Portions of this file have been modified by NVIDIA CORPORATION & AFFILIATES.
+
+import isInsideContainer from 'is-inside-container'
+import { resolve } from 'node:path'
+import { env, isDevelopment } from 'std-env'
+import type { Options, PositionalOptions } from 'yargs'
+
+export const path = {
+  type: 'string',
+  desc: '<directory> with LikeC4 sources (default is current directory or \'LIKEC4_WORKSPACE\' env)',
+  normalize: true,
+  default: env['LIKEC4_WORKSPACE'] || '.',
+  coerce: resolve,
+} as const satisfies PositionalOptions
+
+export const useDotBin = {
+  alias: 'use-dot-bin',
+  boolean: true,
+  type: 'boolean',
+  desc: isInsideContainer()
+    ? 'enabled in container, disable by --no-use-dot'
+    : 'use graphviz binaries ("dot" should be on PATH)',
+  default: isInsideContainer(),
+} as const satisfies Options
+
+export const useCorePackage = {
+  boolean: true,
+  type: 'boolean',
+  desc: 'use `@likec4/core` package in types',
+  default: false,
+} as const satisfies Options
+
+export const useHashHistory = {
+  boolean: true,
+  type: 'boolean',
+  desc: 'use hash history for navigation, e.g. "/#/view" instead of "/view"',
+} as const satisfies Options
+
+export const outdir = {
+  alias: ['o', 'output'],
+  string: true,
+  desc: 'output directory',
+  normalize: true,
+  nargs: 1,
+  coerce: resolve,
+} as const satisfies Options
+
+export const webcomponentPrefix = {
+  alias: 'w',
+  string: true,
+  desc: 'prefix for Webcomponents, e.g "c4" generates <c4-view ../>',
+  default: 'likec4',
+  nargs: 1,
+} as const satisfies Options
+
+export const title = {
+  alias: 't',
+  string: true,
+  desc: 'base title of the app pages (default is "LikeC4")',
+  default: 'LikeC4',
+  nargs: 1,
+} as const satisfies Options
+
+export const theme = {
+  choices: ['light', 'dark'] as const,
+  desc: 'default color scheme for the built website (default: auto, follows system preference)',
+  nargs: 1,
+} as const satisfies Options
+
+export const base = {
+  alias: ['base-url'],
+  string: true,
+  desc: 'base url the app is being served from, e.g. "/" or "/pages/"',
+  nargs: 1,
+} as const satisfies Options
+
+export const outputSingleFile = {
+  boolean: true,
+  desc: 'outputs a single self-contained HTML file with all required resources inlined',
+} as const satisfies Options
+
+export const publicDir = {
+  alias: 'public-dir',
+  string: true,
+  desc: 'directory whose files are copied to the output as-is (Vite publicDir, e.g. images linked from views)',
+  normalize: true,
+  nargs: 1,
+  coerce: resolve,
+} as const satisfies Options
+
+export const allowedHost = {
+  array: true,
+  string: true,
+  desc: 'hostname allowed to respond to (Vite server.allowedHosts); can be repeated. Defaults to allowing all hosts.',
+  requiresArg: true,
+} as const satisfies Options
+
+export const listen = {
+  alias: 'l',
+  string: true,
+  ...(isInsideContainer()
+    ? {
+      desc: 'listen 0.0.0.0 by default in container',
+      default: '0.0.0.0',
+    }
+    : {
+      desc: 'ip address of the network interface to listen on',
+    }),
+  nargs: 1,
+} as const satisfies Options
+
+export const port = {
+  number: true,
+  desc: 'port number for the dev server (default is 5173, or PORT environment variable)',
+  nargs: 1,
+} as const satisfies Options
+
+export const hmrPort = {
+  number: true,
+  desc:
+    'port number for the HMR WebSocket server (default is auto-discovered from 24678-24690, or HMR_PORT environment variable)',
+  nargs: 1,
+} as const satisfies Options
+
+export const project = {
+  alias: 'p',
+  string: true,
+  desc: 'select LikeC4 project by name (e.g. "my-project") or by path',
+  nargs: 1,
+} as const satisfies Options
+
+export const logLevel = {
+  hidden: true,
+  nargs: 1,
+  desc: 'force log level',
+  choices: ['trace', 'debug', 'info', 'warning', 'error'],
+  conflicts: ['verbose'],
+} as const satisfies Options
+
+export const verbose = {
+  boolean: true,
+  desc: 'verbose logging',
+  conflicts: ['log-level'],
+} as const satisfies Options
+
+export const verboseLogLevel = isDevelopment ? 'trace' : 'debug' as const

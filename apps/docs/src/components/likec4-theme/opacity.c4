@@ -1,0 +1,85 @@
+// DO NOT EDIT MANUALLY
+
+specification {
+
+  element group
+  element element
+
+}
+model {
+
+  opacity10 = group "Group" {
+    style {
+      opacity 10%
+    }
+    element child "Opacity 10%"
+  }
+
+  opacity30 = group "Group" {
+    style {
+      opacity 30%
+    }
+    element child "Opacity 30%"
+  }
+
+  opacity60 = group "Group" {
+    style {
+      opacity 60%
+    }
+    element child "Opacity 60%"
+  }
+
+  opacity100 = group "Group" {
+    style {
+      opacity 100%
+    }
+    element child "Opacity 100%"
+  }
+
+}
+
+views {
+
+  view opacity_example {
+    title "Opacity and border"
+    include
+      element.kind == group,
+      element.kind == element
+
+    style * {
+      color green
+    }
+
+    autoLayout LeftRight
+  }
+
+  view border_example {
+    title "Opacity and border"
+    include
+      opacity10 with {
+        border solid
+      },
+      opacity10.child with {
+        title 'Solid'
+      },
+      opacity30 with {
+        border dashed
+      },
+      opacity30.child with {
+        title 'Dashed'
+      },
+      opacity60 with {
+        border dotted
+      },
+      opacity60.child with {
+        title 'Dotted'
+      },
+
+    style * {
+      color amber
+      opacity 30%
+    }
+
+    autoLayout LeftRight
+  }
+}

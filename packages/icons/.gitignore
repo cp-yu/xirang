@@ -1,0 +1,5 @@
+dist/
+.tmp/
+all.*
+*/*.d.ts
+*/*.js

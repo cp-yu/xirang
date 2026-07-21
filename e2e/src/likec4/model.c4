@@ -1,0 +1,229 @@
+model {
+
+  customer = actor 'Cloud System Customer' {
+    icon @root/test-tube.svg
+    description '
+      The regular customer of the system
+    '
+  }
+
+  cloud = system 'Cloud System' {
+    description '''
+      > [!NOTE]
+      > Helpful advice for better results.
+
+      Our SaaS platform that allows
+      customers to interact with
+      the latest technologies
+
+      ![LikeC4 Logo](https://likec4.dev/favicon.svg)
+    '''
+
+    ui = container 'Frontends' {
+      description '
+        All the frontend applications
+        of Cloud System
+      '
+
+      style {
+        icon @nested/test-tube-chemistry.svg
+      }
+
+      metadata {
+        version '2.1.1'
+      }
+    }
+
+    legacy = container 'Cloud Legacy' {
+      description '
+        The legacy version of our SaaS
+        MVP as was presented to the first customers
+      '
+      icon ./images/cloud.svg
+      link ./.github/workflows/update-diagrams.yml#L19-L25 'L19-L25'
+    }
+
+    next = container 'Cloud Next' {
+      description 'Cloud Next is the next version of our cloud systems'
+      icon ./images/cloud-next.svg
+    }
+
+    supportUser = actor 'Support User' {
+      description '
+        A emploere from the support team
+        Has limited access to the system
+      '
+      icon ../root-level-images/user.svg
+
+      -> customer 'helps with questions' {
+        metadata {
+          rps '1000'
+        }
+      }
+    }
+  }
+  customer .uses cloud 'uses and pays' {
+    navigateTo dynamic-view-1
+  }
+  cloud .uses amazon 'uses' {
+    navigateTo cloud-to-amazon
+  }
+
+}
+
+views {
+
+  view index {
+    title "Landscape"
+    description '''
+      > [!NOTE]
+      > Information that users should know.
+
+      > [!TIP]
+      > Helpful advice for better results.
+
+      > [!IMPORTANT]
+      > Key information for success.
+
+      > [!WARNING]
+      > Urgent information to avoid problems.
+
+      > [!CAUTION]
+      > Risks or negative outcomes.
+    '''
+
+    group {
+      color green
+      opacity 40%
+      include
+        customer with {
+          color green
+          size small
+        }
+    }
+
+    group 'System' {
+      color primary
+      opacity 100%
+      border dotted
+
+      include *
+      include
+        cloud with {
+          description 'Test multiline
+
+              non-markdown description
+
+              with  line breaks
+            '
+        }
+      exclude -> customer
+    }
+  }
+
+  view customer of customer {
+    include customer
+
+    group {
+      include
+        *,
+        customer -> cloud.ui with {
+          color red
+        },
+        supportUser
+    }
+
+    style supportUser {
+      color indigo
+    }
+    autoLayout BottomTop
+  }
+
+  dynamic view dynamic-view-1 {
+    title 'Dynamic Views / Dynamic View Example'
+
+    link https://docs.likec4.dev/dsl/views/dynamic/ 'Docs'
+
+    customer -> ui.mobile 'opens' {
+      notes '
+        Customer opens dashboard in Browser
+      '
+      color green
+    }
+    ui.mobile -> cloud.myAccount {
+      title '
+        requests data over rest
+        for dashboard
+      '
+      notes '
+        Next notes
+        Multi line
+      '
+    }
+
+    cloud.myAccount -> next.backend
+
+    opt {
+      next.backend -> amazon.pg {
+        color amber
+        title 'selects user data'
+        technology 'SQL'
+      }
+    }
+    next.backend <- amazon.pg {
+      color amber
+    }
+
+    next.backend -> next.backend
+
+    next.backend -> cloud.myAccount
+
+    ui.mobile <- cloud.myAccount 'returns' {
+      technology 'unknown'
+      navigateTo cloud-to-amazon
+    }
+
+
+    include cloud.ui, cloud.next, amazon
+
+    autoLayout TopBottom
+
+
+    style customer {
+      color green
+      icon none
+    }
+
+    style amazon.* {
+      color amber
+    }
+    style cloud.ui, cloud.next {
+      opacity 20%
+      color muted
+      border solid
+    }
+  }
+
+  dynamic view cloud-to-amazon {
+    title 'Dynamic Views / Cloud to amazon'
+
+    next.backend -> next.events
+
+    parallel {
+      next.backend -> amazon.aurora
+      ui.supportPanel -> amazon.aurora
+    }
+    opt {
+      next.events -> amazon.sqs
+    }
+
+    include next, ui, amazon
+
+    style next, ui, amazon {
+      opacity 40%
+    }
+
+    autoLayout TopBottom
+  }
+
+}

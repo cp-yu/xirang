@@ -1,0 +1,20 @@
+{
+  "extends": "@likec4/tsconfig/base.json",
+  "compilerOptions": {
+    "customConditions": [
+      "sources"
+    ],
+    "rootDir": "src",
+    "lib": [
+      "esnext",
+      "DOM"
+    ],
+    "target": "es2024",
+    "incremental": true,
+    "composite": true
+  },
+  "include": [
+    "src/",
+    "src/**/*.json"
+  ]
+}

@@ -1,0 +1,213 @@
+# @likec4/playground
+
+## 1.59.0
+
+### Patch Changes
+
+- Updated dependencies [[`76ef007`](https://github.com/likec4/likec4/commit/76ef007fd2fb0c6d52cedcdb3ef048a9f2a624c4), [`fe33144`](https://github.com/likec4/likec4/commit/fe33144ee9e055371150b70a3db093d22a240626), [`0994577`](https://github.com/likec4/likec4/commit/09945775fb0c4c64b79eae6f17ee0abce92ef8f1), [`196988d`](https://github.com/likec4/likec4/commit/196988d8a8fbbc3841200971233be6bda2b517be), [`31e3671`](https://github.com/likec4/likec4/commit/31e3671c2d94d6f5f057c806868865c660eac23f), [`9b9727f`](https://github.com/likec4/likec4/commit/9b9727fcd1201296c4d7e09f7446edd38669328a), [`d0a05fe`](https://github.com/likec4/likec4/commit/d0a05fe8e29105444762542c78c9861a13bfaff0), [`1814846`](https://github.com/likec4/likec4/commit/1814846f629971cec2a392222ab00c42abea47ed), [`061e687`](https://github.com/likec4/likec4/commit/061e6872ee80b1381d3ec047663a22d1ebe6bab5), [`c830215`](https://github.com/likec4/likec4/commit/c83021565c2fced17d544177f7acfa52e08451f9), [`56d26c1`](https://github.com/likec4/likec4/commit/56d26c1baec4b2ce78a31d22339b90d62452c901)]:
+  - @likec4/language-server@1.59.0
+  - @likec4/core@1.59.0
+  - @likec4/diagram@1.59.0
+  - @likec4/generators@1.59.0
+  - @likec4/log@1.59.0
+  - @likec4/tsconfig@1.59.0
+  - @likec4/style-preset@1.59.0
+  - @likec4/styles@1.59.0
+  - @likec4/icons@1.46.4
+
+## 1.57.1
+
+### Patch Changes
+
+- Updated dependencies [[`f2c0b57`](https://github.com/likec4/likec4/commit/f2c0b57485e912e85a986d5f89408a6039538ecc), [`f2c0b57`](https://github.com/likec4/likec4/commit/f2c0b57485e912e85a986d5f89408a6039538ecc), [`e14bc24`](https://github.com/likec4/likec4/commit/e14bc24f4337de29c35fac6f7532fc99dd2904ad), [`8ad28c7`](https://github.com/likec4/likec4/commit/8ad28c777c76f294483c352180c7e3ea037eddfd), [`e2ad89e`](https://github.com/likec4/likec4/commit/e2ad89e6206af2ea51ac5b6dcf4aceee2e1e4dfc), [`75e1510`](https://github.com/likec4/likec4/commit/75e1510def804bf9931bf222b03d1034e1181d04)]:
+  - @likec4/diagram@1.57.1
+  - @likec4/core@1.57.1
+  - @likec4/language-server@1.57.1
+  - @likec4/generators@1.57.1
+  - @likec4/styles@1.57.1
+  - @likec4/log@1.57.1
+  - @likec4/tsconfig@1.57.1
+  - @likec4/icons@1.46.4
+
+## 1.57.0
+
+### Patch Changes
+
+- Updated dependencies [[`c46e33e`](https://github.com/likec4/likec4/commit/c46e33e493cd2dd2079246a276e22bd2d6d775e9), [`1c70ea0`](https://github.com/likec4/likec4/commit/1c70ea023adb628457269d8a9d932b88d4bc2887), [`9637876`](https://github.com/likec4/likec4/commit/96378760c468d10810d769fcfc7dcf6fef0dfc03), [`783155b`](https://github.com/likec4/likec4/commit/783155bba49ec60485af2c7f420fbb28e893955c), [`783155b`](https://github.com/likec4/likec4/commit/783155bba49ec60485af2c7f420fbb28e893955c), [`311b93d`](https://github.com/likec4/likec4/commit/311b93de360556b9583b901c5ad3d6692b9c9f03), [`35ba3f6`](https://github.com/likec4/likec4/commit/35ba3f637e45fc1072646f646b3442b3235cc29d)]:
+  - @likec4/diagram@1.57.0
+  - @likec4/language-server@1.57.0
+  - @likec4/generators@1.57.0
+  - @likec4/core@1.57.0
+  - @likec4/log@1.57.0
+  - @likec4/tsconfig@1.57.0
+  - @likec4/styles@1.57.0
+  - @likec4/icons@1.46.4
+
+## 1.56.0
+
+### Patch Changes
+
+- Updated dependencies [[`935f6bb`](https://github.com/likec4/likec4/commit/935f6bb3fc42b88669bd8af65947a201f8e3d490), [`af34764`](https://github.com/likec4/likec4/commit/af3476421fd8938a897240ad6fd1c70068d1e070), [`ace5b2e`](https://github.com/likec4/likec4/commit/ace5b2e5cd261f47bd2e93b6f495e2122ceef16d), [`5f46082`](https://github.com/likec4/likec4/commit/5f460821526d851ef3bbf8be5a2bd749c2df6a8a)]:
+  - @likec4/language-server@1.56.0
+  - @likec4/log@1.56.0
+  - @likec4/core@1.56.0
+  - @likec4/diagram@1.56.0
+  - @likec4/generators@1.56.0
+  - @likec4/styles@1.56.0
+  - @likec4/tsconfig@1.56.0
+
+## 1.55.1
+
+### Patch Changes
+
+- Updated dependencies [[`41ee8b7`](https://github.com/likec4/likec4/commit/41ee8b715fabecf8022a3440c971adeea1e8f9a3), [`b5e33d1`](https://github.com/likec4/likec4/commit/b5e33d12c548e34f820e565182b0b057505c2f64), [`0b8825b`](https://github.com/likec4/likec4/commit/0b8825b8c4053a7908d0ba96145687824e2bc597), [`36d5627`](https://github.com/likec4/likec4/commit/36d5627ccadda9d80488eaf7695cdde25b61d7df)]:
+  - @likec4/language-server@1.55.1
+  - @likec4/styles@1.55.1
+  - @likec4/diagram@1.55.1
+  - @likec4/core@1.55.1
+  - @likec4/generators@1.55.1
+  - @likec4/log@1.55.1
+  - @likec4/tsconfig@1.55.1
+
+## 1.55.0
+
+### Patch Changes
+
+- Updated dependencies [[`6b87578`](https://github.com/likec4/likec4/commit/6b87578486c821fdc1060d69867a10f3c7e6ca9b), [`f684e2f`](https://github.com/likec4/likec4/commit/f684e2fb59745fe62ac2b43c68f1e453ab884cc8), [`347b48f`](https://github.com/likec4/likec4/commit/347b48f7bb67e0a480e231d57c4feeca09b32383), [`9834ebb`](https://github.com/likec4/likec4/commit/9834ebbfa32bdcb40710aac9038839e9da70031e), [`c0048b6`](https://github.com/likec4/likec4/commit/c0048b6ca156508c893e072dfbf9d75bbe4dd8ad), [`51adb85`](https://github.com/likec4/likec4/commit/51adb85ad1097cdd4c95f9082533c8b33b124a42), [`9687f89`](https://github.com/likec4/likec4/commit/9687f8974309de08001db3699e8712c7beac2b07)]:
+  - @likec4/core@1.55.0
+  - @likec4/language-server@1.55.0
+  - @likec4/diagram@1.55.0
+  - @likec4/generators@1.55.0
+  - @likec4/log@1.55.0
+  - @likec4/tsconfig@1.55.0
+  - @likec4/styles@1.55.0
+
+## 1.54.0
+
+### Patch Changes
+
+- Updated dependencies [[`302f020`](https://github.com/likec4/likec4/commit/302f020e4e892d94159255a876da0119f9c8d9c9), [`1ae3eb6`](https://github.com/likec4/likec4/commit/1ae3eb6b19a9736f683a8b50c2c883eeb4204885), [`b6f6a35`](https://github.com/likec4/likec4/commit/b6f6a35aff00e141c8f0a04686579b08773c2d7b), [`6d6cdd2`](https://github.com/likec4/likec4/commit/6d6cdd2857f6e804a40c3963f6a4841dfa13bd6c), [`06ca18f`](https://github.com/likec4/likec4/commit/06ca18f9f0d69602917ff90b65e165bd8edffb25)]:
+  - @likec4/language-server@1.54.0
+  - @likec4/diagram@1.54.0
+  - @likec4/generators@1.54.0
+  - @likec4/core@1.54.0
+  - @likec4/log@1.54.0
+  - @likec4/tsconfig@1.54.0
+  - @likec4/styles@1.54.0
+
+## 1.53.0
+
+### Patch Changes
+
+- Updated dependencies [[`d4aa31a`](https://github.com/likec4/likec4/commit/d4aa31ac1c1f14381a35f59d00880e75c7a4332e), [`eddfe46`](https://github.com/likec4/likec4/commit/eddfe462b49d8dd598db443259bc2ba0820b76f1), [`16386c5`](https://github.com/likec4/likec4/commit/16386c52e0285e6b8a5c859dc45726a7cb1869d4), [`bb95d5a`](https://github.com/likec4/likec4/commit/bb95d5a601f630b0d8deb73ac4e83191b00a33c1), [`cf5acbc`](https://github.com/likec4/likec4/commit/cf5acbcb8410cd66342e39a490fcfd9d91619916), [`39df42e`](https://github.com/likec4/likec4/commit/39df42e69d11a74cfbda94258321860d9437a3f7)]:
+  - @likec4/generators@1.53.0
+  - @likec4/diagram@1.53.0
+  - @likec4/core@1.53.0
+  - @likec4/language-server@1.53.0
+  - @likec4/log@1.53.0
+  - @likec4/tsconfig@1.53.0
+  - @likec4/styles@1.53.0
+
+## 1.52.0
+
+### Patch Changes
+
+- Updated dependencies [[`2c6a43d`](https://github.com/likec4/likec4/commit/2c6a43da4552dbd40473effba65c7b04e165a7f3), [`4d579d6`](https://github.com/likec4/likec4/commit/4d579d6990bd3f59fb8420d2adb0e246fd9dfdcc), [`a80d2e8`](https://github.com/likec4/likec4/commit/a80d2e85c8c508236262156d4ef45e28750c295c), [`aab9343`](https://github.com/likec4/likec4/commit/aab9343f0e149d978915a13429ff367dc284937b), [`6257147`](https://github.com/likec4/likec4/commit/6257147265d69972b4b4f2dc472d0b58a03bc607), [`bc47423`](https://github.com/likec4/likec4/commit/bc474235cf31a7d42e8c4f25328a698bb7edefe3)]:
+  - @likec4/language-server@1.52.0
+  - @likec4/generators@1.52.0
+  - @likec4/diagram@1.52.0
+  - @likec4/core@1.52.0
+  - @likec4/log@1.52.0
+  - @likec4/tsconfig@1.52.0
+  - @likec4/styles@1.52.0
+
+## 1.51.0
+
+### Patch Changes
+
+- Updated dependencies [[`70e0f7d`](https://github.com/likec4/likec4/commit/70e0f7db20c0945d37a6b2f77ad9722abf4706ce), [`026ef4a`](https://github.com/likec4/likec4/commit/026ef4ab673f07669f460d4b075918f5045ecddd), [`41ff551`](https://github.com/likec4/likec4/commit/41ff551974838696fdf4adfcd92edc30afd245c5)]:
+  - @likec4/language-server@1.51.0
+  - @likec4/styles@1.51.0
+  - @likec4/core@1.51.0
+  - @likec4/diagram@1.51.0
+  - @likec4/generators@1.51.0
+  - @likec4/log@1.51.0
+  - @likec4/tsconfig@1.51.0
+
+## 1.50.0
+
+### Patch Changes
+
+- Updated dependencies [[`fe468d8`](https://github.com/likec4/likec4/commit/fe468d830544e6f0051ea2203ab137d46932d11e), [`871f134`](https://github.com/likec4/likec4/commit/871f134911d3a1313c62fb002f2834e94dc305d0), [`68ab5f6`](https://github.com/likec4/likec4/commit/68ab5f6652b43f2f6e52fd3cd2736cdc3672e3cf), [`68ab5f6`](https://github.com/likec4/likec4/commit/68ab5f6652b43f2f6e52fd3cd2736cdc3672e3cf), [`7f43ca1`](https://github.com/likec4/likec4/commit/7f43ca19d90f4db0b02c44a72c7eae66dfc76942), [`5ce02f8`](https://github.com/likec4/likec4/commit/5ce02f8e1fa437c3f7597a546ae3b08515712ac1), [`0587b66`](https://github.com/likec4/likec4/commit/0587b6609ec9eb372aa3ff8eae2fd3a82c789144)]:
+  - @likec4/core@1.50.0
+  - @likec4/language-server@1.50.0
+  - @likec4/generators@1.50.0
+  - @likec4/diagram@1.50.0
+  - @likec4/log@1.50.0
+  - @likec4/tsconfig@1.50.0
+  - @likec4/styles@1.50.0
+
+## 1.49.0
+
+### Patch Changes
+
+- Updated dependencies [[`4a7c01c`](https://github.com/likec4/likec4/commit/4a7c01c9ee1e2d006f9002b0fed79cb5fdda9a6f), [`ceeb0c7`](https://github.com/likec4/likec4/commit/ceeb0c711f99bbd3de63a0ed5c43574c7bde7120), [`f42c046`](https://github.com/likec4/likec4/commit/f42c046cd4bf1a3f4037cb2020268e729f018300), [`507bab3`](https://github.com/likec4/likec4/commit/507bab30cf9e30450cedfc4b27f67718a387b2e7), [`39447c5`](https://github.com/likec4/likec4/commit/39447c5f59ce2466cc7a01f7bc5aaef4cb6fcb45), [`12d472b`](https://github.com/likec4/likec4/commit/12d472b19f75a400fb4452cfb9d1be9392792118), [`e10ea04`](https://github.com/likec4/likec4/commit/e10ea04bd2119b83cbd4c625640e63cd6e3f2e96), [`c05757e`](https://github.com/likec4/likec4/commit/c05757e94fbb791750c897b152b9b631f7ce906c), [`e10ea04`](https://github.com/likec4/likec4/commit/e10ea04bd2119b83cbd4c625640e63cd6e3f2e96), [`fa87d71`](https://github.com/likec4/likec4/commit/fa87d7138b5c17e5fec037eb408fb9abf4cb6799), [`731a6cb`](https://github.com/likec4/likec4/commit/731a6cb278ef6bc06280bf1ba3b2d8f79c7d7fe6), [`9e7807b`](https://github.com/likec4/likec4/commit/9e7807b5157a355d23b9f3a2ddff7a10bb1d01a1), [`f42c046`](https://github.com/likec4/likec4/commit/f42c046cd4bf1a3f4037cb2020268e729f018300), [`1c6e427`](https://github.com/likec4/likec4/commit/1c6e4273d96774b5c5c7ee52047539e15bb265e2)]:
+  - @likec4/diagram@1.49.0
+  - @likec4/core@1.49.0
+  - @likec4/language-server@1.49.0
+  - @likec4/styles@1.49.0
+  - @likec4/generators@1.49.0
+  - @likec4/log@1.49.0
+  - @likec4/tsconfig@1.49.0
+
+## 1.48.0
+
+### Patch Changes
+
+- Updated dependencies [[`c333592`](https://github.com/likec4/likec4/commit/c333592b6342dc4a726864e970c8056bc65fafa8), [`545b58a`](https://github.com/likec4/likec4/commit/545b58a34a44cff906f8a1b5335e32f662272c0c), [`68c6bf2`](https://github.com/likec4/likec4/commit/68c6bf286536e39ec316db906a425e2bfc852a83), [`9aa59c8`](https://github.com/likec4/likec4/commit/9aa59c81f40ac948b32842a265bfdfe48d21bddf), [`3049b78`](https://github.com/likec4/likec4/commit/3049b78701df485fff6fae2f0ac9ee08873872c2), [`fdcfb0e`](https://github.com/likec4/likec4/commit/fdcfb0e75c10b9253b85c05fabeace9efae74c74), [`c186a08`](https://github.com/likec4/likec4/commit/c186a082c6fbb26d2b5169a9c28ca51e540622f6), [`46938b1`](https://github.com/likec4/likec4/commit/46938b10aa189a8faf7338ff7ea845d92fc4d9dc), [`6677d12`](https://github.com/likec4/likec4/commit/6677d124aaf6c45fb1456ce66a5c538634fe5fa0), [`cd71c00`](https://github.com/likec4/likec4/commit/cd71c00a36cfe3a065a578befe87f6b1d2d26a6d), [`c12f7a1`](https://github.com/likec4/likec4/commit/c12f7a108c19418403f5afc0c06c1e25565f6bf2), [`6ab5089`](https://github.com/likec4/likec4/commit/6ab5089fc2c1ce472fa5f5a471061056676e5546), [`e9d70f0`](https://github.com/likec4/likec4/commit/e9d70f0e70c0df8ffa92accea156ecc4c8c20f35)]:
+  - @likec4/core@1.48.0
+  - @likec4/diagram@1.48.0
+  - @likec4/styles@1.48.0
+  - @likec4/language-server@1.48.0
+  - @likec4/log@1.48.0
+  - @likec4/tsconfig@1.48.0
+
+## 1.47.0
+
+### Patch Changes
+
+- Updated dependencies [[`dbaae67`](https://github.com/likec4/likec4/commit/dbaae67a2f00b6cacf1a0391cd8132b1d5f0e2ee), [`817d159`](https://github.com/likec4/likec4/commit/817d159df509b50963ef135c218936c35c460ab1), [`0112f3d`](https://github.com/likec4/likec4/commit/0112f3deb18d065ce1d97872095b8496cf2dfc97), [`be5326a`](https://github.com/likec4/likec4/commit/be5326a029c4f295cdd2bcf34dfa4a928dd9b948), [`de2b294`](https://github.com/likec4/likec4/commit/de2b2942322f1a1b0ce4822e40c997ba3fff9e15), [`5e38c9b`](https://github.com/likec4/likec4/commit/5e38c9b2fced5fc43aee0326204a443d889a9d37), [`8a15bb6`](https://github.com/likec4/likec4/commit/8a15bb6acde616eae65891d3dc73ff19eb0d5ffc)]:
+  - @likec4/core@1.47.0
+  - @likec4/language-server@1.47.0
+  - @likec4/diagram@1.47.0
+  - @likec4/styles@1.47.0
+
+## 1.46.4
+
+### Patch Changes
+
+- Updated dependencies [[`39dcb77`](https://github.com/likec4/likec4/commit/39dcb77328310970f5d254e5a55f84a7a534524f), [`6e65818`](https://github.com/likec4/likec4/commit/6e658182dfb50a3366873f90831b1406178891b0)]:
+  - @likec4/language-server@1.46.4
+  - @likec4/icons@1.46.4
+  - @likec4/core@1.46.4
+  - @likec4/diagram@1.46.4
+  - @likec4/styles@1.46.4
+
+## 1.46.3
+
+### Patch Changes
+
+- Updated dependencies [[`d91e69c`](https://github.com/likec4/likec4/commit/d91e69c988b0e430215ada8b38d40f63821750db), [`5c5c33c`](https://github.com/likec4/likec4/commit/5c5c33ca615bb8b79592c688b9ab0e53bf9d55dc), [`aa7340c`](https://github.com/likec4/likec4/commit/aa7340c882a147cf7f659a1f93d10e1d137711d5)]:
+  - @likec4/language-server@1.46.3
+  - @likec4/styles@1.46.3
+  - @likec4/core@1.46.3
+  - @likec4/diagram@1.46.3
+
+## 1.46.2
+
+### Patch Changes
+
+- Updated dependencies [[`9c5779d`](https://github.com/likec4/likec4/commit/9c5779d872d8de353adf706d1a0edbbcd8bb9671)]:
+  - @likec4/core@1.46.2
+  - @likec4/language-server@1.46.2
+  - @likec4/diagram@1.46.2

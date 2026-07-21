@@ -1,0 +1,151 @@
+---
+import SocialIcons from '@astrojs/starlight/components/SocialIcons.astro'
+import ThemeSelect from '@astrojs/starlight/components/ThemeSelect.astro'
+import Logo from '../Logo.astro'
+
+const navLinks = [
+  { href: '/#features', label: 'Features' },
+  { href: '/tutorial', label: 'Docs' },
+  { href: 'https://playground.likec4.dev/w/tutorial/', label: 'Playground', target: '_blank' },
+  { href: '/sponsor', label: 'For Teams' },
+  { href: 'https://github.com/likec4/likec4/discussions', label: 'Community', target: '_blank' },
+]
+---
+
+<nav id="main-navigation" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+  <div
+    id="nav-bg"
+    class="absolute inset-0 bg-stone-50/90 dark:bg-zinc-950/90 backdrop-blur-xl border-b border-stone-200 dark:border-zinc-800/50 opacity-0 transition-opacity duration-300 pointer-events-none"
+  >
+  </div>
+
+  <div class="relative max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <Logo />
+
+    <div class="hidden md:flex items-center gap-7">
+      {navLinks.map(({ label, ...props }) => (
+        <a
+          class="nav-link text-md font-medium tracking-wide text-stone-500 dark:text-zinc-500 hover:text-stone-800 dark:hover:text-zinc-200 no-underline transition-colors duration-200"
+          {...props}
+        >
+          {label}
+        </a>
+      ))}
+    </div>
+
+    <div class="flex items-center gap-3">
+      <SocialIcons />
+      <ThemeSelect />
+      <button
+        id="mobile-menu-toggle"
+        class="md:hidden p-2 text-stone-500 dark:text-zinc-400 hover:text-stone-700 dark:hover:text-zinc-200 transition-colors"
+        aria-label="Toggle menu"
+      >
+        <svg
+          id="menu-icon"
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          viewBox="0 0 24 24"
+        >
+          <line x1="4" y1="7" x2="20" y2="7"></line>
+          <line x1="4" y1="12" x2="20" y2="12"></line>
+          <line x1="4" y1="17" x2="20" y2="17"></line>
+        </svg>
+        <svg
+          id="close-icon"
+          class="w-5 h-5 hidden"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          viewBox="0 0 24 24"
+        >
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="mobile-menu" class="relative md:hidden hidden px-6 pb-4">
+    <div class="flex flex-col gap-1 pt-3 border-t border-stone-200/40 dark:border-zinc-800/40">
+      {navLinks.map((link) => (
+        <a
+          href={link.href}
+          class="mobile-nav-link text-sm font-medium text-stone-500 dark:text-zinc-500 hover:text-stone-800 dark:hover:text-zinc-200 no-underline py-2.5 transition-colors"
+        >
+          {link.label}
+        </a>
+      ))}
+    </div>
+  </div>
+</nav>
+
+<style>
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: #06b6d4;
+  transition: width 0.25s cubic-bezier(0.33, 1, 0.68, 1);
+}
+.nav-link:hover::after {
+  width: 100%;
+}
+</style>
+
+<script>
+function handleScroll(): void {
+  const navBg = document.getElementById('nav-bg')
+  const mobileMenu = document.getElementById('mobile-menu')
+  if (!navBg || !mobileMenu) return
+
+  const shouldShow = window.scrollY > 30 || !mobileMenu.classList.contains('hidden')
+  navBg.classList.toggle('opacity-0', !shouldShow)
+  navBg.classList.toggle('opacity-100', shouldShow)
+}
+
+function toggleMobileMenu(): void {
+  const mobileMenu = document.getElementById('mobile-menu')
+  const menuIcon = document.getElementById('menu-icon')
+  const closeIcon = document.getElementById('close-icon')
+  if (!mobileMenu || !menuIcon || !closeIcon) return
+
+  const isHidden = mobileMenu.classList.contains('hidden')
+  mobileMenu.classList.toggle('hidden', !isHidden)
+  menuIcon.classList.toggle('hidden', isHidden)
+  closeIcon.classList.toggle('hidden', !isHidden)
+  handleScroll()
+}
+
+function closeMobileMenu(): void {
+  const mobileMenu = document.getElementById('mobile-menu')
+  const menuIcon = document.getElementById('menu-icon')
+  const closeIcon = document.getElementById('close-icon')
+  if (!mobileMenu || !menuIcon || !closeIcon) return
+
+  mobileMenu.classList.add('hidden')
+  menuIcon.classList.remove('hidden')
+  closeIcon.classList.add('hidden')
+  handleScroll()
+}
+
+function initNav(): void {
+  document.getElementById('mobile-menu-toggle')?.addEventListener('click', toggleMobileMenu)
+  document.querySelectorAll('.mobile-nav-link').forEach((link) => {
+    link.addEventListener('click', closeMobileMenu)
+  })
+  window.addEventListener('scroll', handleScroll, { passive: true })
+  handleScroll()
+}
+
+document.addEventListener('DOMContentLoaded', initNav)
+document.addEventListener('astro:page-load', initNav)
+</script>

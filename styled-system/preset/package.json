@@ -1,0 +1,70 @@
+{
+  "name": "@likec4/style-preset",
+  "description": "Shared PandaCSS preset used in LikeC4",
+  "license": "MIT",
+  "version": "1.59.0",
+  "bugs": "https://github.com/likec4/likec4/issues",
+  "homepage": "https://likec4.dev",
+  "author": "Denis Davydkov <denis@davydkov.com>",
+  "type": "module",
+  "sideEffects": false,
+  "scripts": {
+    "sources": "tsdown",
+    "typecheck": "tsc",
+    "pack": "pnpm pack",
+    "postpack": "likec4ops postpack",
+    "lint:package": "pnpx publint ./package.tgz",
+    "clean": "likec4ops clean"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/likec4/likec4.git",
+    "directory": "styled-system/preset"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "types": "dist/index.d.mts",
+  "module": "dist/index.mjs",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    },
+    "./defaults": {
+      "types": "./dist/defaults/index.d.mts",
+      "import": "./dist/defaults/index.mjs",
+      "default": "./dist/defaults/index.mjs"
+    },
+    "./src": "./src/index.ts"
+  },
+  "dependencies": {
+    "remeda": "catalog:utils",
+    "@radix-ui/colors": "catalog:css"
+  },
+  "peerDependencies": {
+    "@pandacss/dev": "catalog:css",
+    "@pandacss/types": "catalog:css"
+  },
+  "devDependencies": {
+    "@pandacss/dev": "catalog:css",
+    "@pandacss/types": "catalog:css",
+    "@types/react": "catalog:react",
+    "@types/node": "catalog:",
+    "@types/react-dom": "catalog:react",
+    "@likec4/devops": "workspace:*",
+    "@likec4/tsconfig": "workspace:*",
+    "@mantine/core": "catalog:mantine",
+    "@mantine/vanilla-extract": "catalog:mantine",
+    "json5": "catalog:utils",
+    "nano-spawn": "catalog:externals",
+    "typescript": "catalog:",
+    "tsdown": "catalog:tsdown"
+  }
+}

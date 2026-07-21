@@ -1,0 +1,107 @@
+name: main
+
+on:
+  push:
+    branches:
+      - "main"
+    tags-ignore:
+      - "**"
+
+permissions:
+  id-token: write
+  actions: write
+  checks: write
+  contents: write
+  statuses: write
+  deployments: write
+
+env:
+  NODE_ENV: production
+  CLOUDFLARE_ENV: production
+  FORCE_COLOR: true
+  DO_NOT_TRACK: "1"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    uses: ./.github/workflows/checks.yaml
+    secrets: inherit
+
+  release-pr:
+    name: prepare release pr
+    runs-on: ubuntu-24.04-arm
+    needs: checks
+    timeout-minutes: 5
+    if: "github.repository_owner == 'likec4' && !contains(github.event.head_commit.message, 'release: v')"
+    steps:
+      - name: Decode the GitHub App Private Key
+        id: decode
+        run: |
+          private_key=$(echo "${{ secrets.BOT_APP_PRIVATE_KEY }}" | base64 -d | awk 'BEGIN {ORS="\\n"} {print}' | head -c -2) &> /dev/null
+          echo "::add-mask::$private_key"
+          echo "private-key=$private_key" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ steps.decode.outputs.private-key }}
+
+      - uses: actions/checkout@v6
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          fetch-depth: 0
+
+      - name: Get GitHub App User ID
+        id: get-user-id
+        run: echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      - run: |
+          git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
+          git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
+
+      - name: 🛠️ bootstrap
+        uses: ./.github/actions/bootstrap
+
+      - name: create release pull request
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          title: "prepare release"
+          commit: "chore: prepare next release"
+          setupGitUser: false
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+
+  # release:
+  #   name: 📦 release
+  #   uses: ./.github/workflows/release.yaml
+  #   if: "github.repository_owner == 'likec4' && contains(github.event.head_commit.message, 'release: v')"
+  #   needs: checks
+  #   secrets: inherit
+  #   concurrency:
+  #     group: ${{ github.workflow }}-${{ github.ref }}-release
+  #     cancel-in-progress: false
+
+  deploy-playground:
+    if: ${{ github.repository_owner == 'likec4' }}
+    needs: checks
+    name: deploy
+    uses: ./.github/workflows/playground.yaml
+    secrets: inherit
+    with:
+      environment: "${{ contains(github.event.head_commit.message, 'release: v') && 'production' || 'preview' }}"
+
+  deploy-docs:
+    if: ${{ github.repository_owner == 'likec4' }}
+    needs: checks
+    name: deploy
+    uses: ./.github/workflows/docs.yaml
+    secrets: inherit
+    with:
+      environment: "${{ contains(github.event.head_commit.message, 'release: v') && 'production' || 'preview' }}"

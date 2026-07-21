@@ -1,0 +1,61 @@
+{
+  // This file is used by VSCode task runner
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "./packages/config/"
+    },
+    {
+      "path": "./packages/core/"
+    },
+    {
+      "path": "./packages/diagram/"
+    },
+    {
+      "path": "./packages/generators/"
+    },
+    {
+      "path": "./packages/language-server/"
+    },
+    {
+      "path": "./packages/language-services/"
+    },
+    {
+      "path": "./packages/vite-plugin/"
+    },
+    {
+      "path": "./packages/layouts/"
+    },
+    {
+      "path": "./packages/leanix-bridge/"
+    },
+    {
+      "path": "./packages/likec4/"
+    },
+    {
+      "path": "./packages/likec4-spa/"
+    },
+    {
+      "path": "./packages/log/"
+    },
+    {
+      "path": "./packages/lsp/"
+    },
+    {
+      "path": "./packages/vscode/"
+    },
+    {
+      "path": "./packages/mcp/"
+    },
+    {
+      "path": "./packages/vscode-preview/"
+    },
+    {
+      "path": "./styled-system/preset/"
+    },
+    {
+      "path": "./devops/"
+    }
+  ]
+}

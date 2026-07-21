@@ -1,0 +1,60 @@
+import { first } from 'remeda'
+import { logGenerating } from '../logger'
+import { type ProjectVirtualModule, type VirtualModule, generateMatches } from './_shared'
+
+const projectCode = (id: string) => `
+import { jsx as _jsx } from "react/jsx-runtime";
+import { LikeC4ModelProvider as Provider, LikeC4View as GenericView, ReactLikeC4 as GenericReactLikeC4 } from 'likec4/react';
+import { IconRenderer } from 'likec4:icons/${id}'
+
+import { useLikeC4Model, useLikeC4Views, useLikeC4View } from 'likec4:model/${id}'
+
+export function LikeC4ModelProvider({ children }) {
+  const likeC4Model = useLikeC4Model()
+  return (_jsx(Provider, { likec4model: likeC4Model, children: children }));
+}
+export function LikeC4View(props) {
+  return (_jsx(LikeC4ModelProvider, { children: _jsx(GenericView, { renderIcon: IconRenderer, ...props }) }));
+}
+export function ReactLikeC4(props) {
+  return (_jsx(LikeC4ModelProvider, { children: _jsx(GenericReactLikeC4, { renderIcon: IconRenderer, ...props }) }));
+}
+
+export {
+  useLikeC4Model,
+  useLikeC4View,
+  useLikeC4Views
+}
+`
+
+export const projectReactModule: ProjectVirtualModule = {
+  ...generateMatches('react'),
+  async load({ project }) {
+    logGenerating('react', project.id)
+    return {
+      code: projectCode(project.id),
+      moduleType: 'js',
+    }
+  },
+}
+
+export const singleProjectReactModule: VirtualModule = {
+  id: 'likec4:react',
+  virtualId: 'likec4:plugin/react.js',
+  async load({ projects }) {
+    const project = first(projects)
+    logGenerating('react-default-project')
+    const code = `export {
+  useLikeC4Model,
+  useLikeC4View,
+  useLikeC4Views,
+  LikeC4ModelProvider,
+  LikeC4View,
+  ReactLikeC4
+} from 'likec4:react/${project.id}'`
+    return {
+      code,
+      moduleType: 'js',
+    }
+  },
+}

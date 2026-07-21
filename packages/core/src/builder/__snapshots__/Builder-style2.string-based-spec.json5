@@ -1,0 +1,102 @@
+{
+  "_stage": "computed",
+  "deployments": {
+    "elements": {
+      "prod": {
+        "id": "prod",
+        "kind": "env",
+        "style": {},
+        "title": "prod",
+      },
+      "prod.eu": {
+        "id": "prod.eu",
+        "kind": "node",
+        "style": {},
+        "title": "eu",
+      },
+      "prod.eu.ui": {
+        "element": "cloud.ui",
+        "id": "prod.eu.ui",
+        "style": {},
+      },
+    },
+    "relations": {},
+  },
+  "elements": {
+    "cloud": {
+      "id": "cloud",
+      "kind": "system",
+      "style": {},
+      "tags": [
+        "tag2",
+      ],
+      "title": "cloud",
+    },
+    "cloud.ui": {
+      "id": "cloud.ui",
+      "kind": "component",
+      "style": {},
+      "title": "ui",
+    },
+    "customer": {
+      "id": "customer",
+      "kind": "actor",
+      "style": {},
+      "tags": [
+        "tag1",
+      ],
+      "title": "customer",
+    },
+  },
+  "globals": {
+    "dynamicPredicates": {},
+    "predicates": {},
+    "styles": {},
+  },
+  "imports": {},
+  "project": {
+    "id": "from-builder",
+  },
+  "projectId": "from-builder",
+  "relations": {
+    "rel1": {
+      "id": "rel1",
+      "kind": "like",
+      "source": {
+        "model": "customer",
+      },
+      "tags": [
+        "tag1",
+      ],
+      "target": {
+        "model": "cloud.ui",
+      },
+      "title": null,
+    },
+  },
+  "specification": {
+    "customColors": {},
+    "deployments": {
+      "env": {},
+      "node": {},
+    },
+    "elements": {
+      "actor": {},
+      "component": {},
+      "system": {},
+    },
+    "relationships": {
+      "dislike": {},
+      "like": {},
+    },
+    "tags": {
+      "tag1": {
+        "color": "tomato",
+      },
+      "tag2": {
+        "color": "grass",
+      },
+    },
+  },
+  "views": {},
+}

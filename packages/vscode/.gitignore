@@ -1,0 +1,6 @@
+contrib/
+dist/
+*.vsix
+data/config.schema.json
+.vscode-test-web/
+data/skills/

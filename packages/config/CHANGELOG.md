@@ -1,0 +1,172 @@
+# @likec4/config
+
+## 1.59.0
+
+### Patch Changes
+
+- Updated dependencies [[`76ef007`](https://github.com/likec4/likec4/commit/76ef007fd2fb0c6d52cedcdb3ef048a9f2a624c4), [`0994577`](https://github.com/likec4/likec4/commit/09945775fb0c4c64b79eae6f17ee0abce92ef8f1), [`9b9727f`](https://github.com/likec4/likec4/commit/9b9727fcd1201296c4d7e09f7446edd38669328a), [`d0a05fe`](https://github.com/likec4/likec4/commit/d0a05fe8e29105444762542c78c9861a13bfaff0), [`1814846`](https://github.com/likec4/likec4/commit/1814846f629971cec2a392222ab00c42abea47ed), [`061e687`](https://github.com/likec4/likec4/commit/061e6872ee80b1381d3ec047663a22d1ebe6bab5)]:
+  - @likec4/core@1.59.0
+  - @likec4/log@1.59.0
+
+## 1.57.1
+
+### Patch Changes
+
+- Updated dependencies [[`f2c0b57`](https://github.com/likec4/likec4/commit/f2c0b57485e912e85a986d5f89408a6039538ecc), [`8ad28c7`](https://github.com/likec4/likec4/commit/8ad28c777c76f294483c352180c7e3ea037eddfd), [`75e1510`](https://github.com/likec4/likec4/commit/75e1510def804bf9931bf222b03d1034e1181d04)]:
+  - @likec4/core@1.57.1
+  - @likec4/log@1.57.1
+
+## 1.57.0
+
+### Patch Changes
+
+- Updated dependencies [[`311b93d`](https://github.com/likec4/likec4/commit/311b93de360556b9583b901c5ad3d6692b9c9f03), [`35ba3f6`](https://github.com/likec4/likec4/commit/35ba3f637e45fc1072646f646b3442b3235cc29d)]:
+  - @likec4/core@1.57.0
+  - @likec4/log@1.57.0
+
+## 1.56.0
+
+### Patch Changes
+
+- Updated dependencies [[`af34764`](https://github.com/likec4/likec4/commit/af3476421fd8938a897240ad6fd1c70068d1e070), [`ace5b2e`](https://github.com/likec4/likec4/commit/ace5b2e5cd261f47bd2e93b6f495e2122ceef16d), [`5f46082`](https://github.com/likec4/likec4/commit/5f460821526d851ef3bbf8be5a2bd749c2df6a8a)]:
+  - @likec4/log@1.56.0
+  - @likec4/core@1.56.0
+
+## 1.55.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @likec4/core@1.55.1
+  - @likec4/log@1.55.1
+
+## 1.55.0
+
+### Patch Changes
+
+- Updated dependencies [[`6b87578`](https://github.com/likec4/likec4/commit/6b87578486c821fdc1060d69867a10f3c7e6ca9b), [`f684e2f`](https://github.com/likec4/likec4/commit/f684e2fb59745fe62ac2b43c68f1e453ab884cc8), [`347b48f`](https://github.com/likec4/likec4/commit/347b48f7bb67e0a480e231d57c4feeca09b32383), [`9834ebb`](https://github.com/likec4/likec4/commit/9834ebbfa32bdcb40710aac9038839e9da70031e), [`c0048b6`](https://github.com/likec4/likec4/commit/c0048b6ca156508c893e072dfbf9d75bbe4dd8ad)]:
+  - @likec4/core@1.55.0
+  - @likec4/log@1.55.0
+
+## 1.54.0
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @likec4/core@1.54.0
+  - @likec4/log@1.54.0
+
+## 1.53.0
+
+### Patch Changes
+
+- [#2733](https://github.com/likec4/likec4/pull/2733) [`22cde07`](https://github.com/likec4/likec4/commit/22cde07331a7d375d30c1220a1603576e8438735) Thanks [@purple52](https://github.com/purple52)! - Add `landingPage` configuration option to control the landing page behavior:
+
+  - `redirect: true` to skip the landing page and go directly to the index view
+  - `include` / `exclude` selectors to filter which views appear in the landing page grid
+
+- Updated dependencies [[`39df42e`](https://github.com/likec4/likec4/commit/39df42e69d11a74cfbda94258321860d9437a3f7)]:
+  - @likec4/core@1.53.0
+  - @likec4/log@1.53.0
+
+## 1.52.0
+
+### Patch Changes
+
+- [#2705](https://github.com/likec4/likec4/pull/2705) [`4d579d6`](https://github.com/likec4/likec4/commit/4d579d6990bd3f59fb8420d2adb0e246fd9dfdcc) Thanks [@davydkov](https://github.com/davydkov)! - Disable implicit views by default. Auto-generated scoped views for elements without explicit views are no longer created unless `"implicitViews": true` is set in the project config. To restore the previous behavior, add `"implicitViews": true` to your `likec4.json` configuration.
+
+- Updated dependencies [[`bc47423`](https://github.com/likec4/likec4/commit/bc474235cf31a7d42e8c4f25328a698bb7edefe3)]:
+  - @likec4/core@1.52.0
+  - @likec4/log@1.52.0
+
+## 1.51.0
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @likec4/core@1.51.0
+  - @likec4/log@1.51.0
+
+## 1.50.0
+
+### Minor Changes
+
+- [#2638](https://github.com/likec4/likec4/pull/2638) [`0587b66`](https://github.com/likec4/likec4/commit/0587b6609ec9eb372aa3ff8eae2fd3a82c789144) Thanks [@ckeller42](https://github.com/ckeller42)! - Add new MCP query tools: `query-graph`, `query-incomers-graph`, `query-outgoers-graph`, `query-by-metadata`, `query-by-tags`, `query-by-tag-pattern`, `find-relationship-paths`, `batch-read-elements`, `subgraph-summary`, and `element-diff`.
+
+  Enhance `read-project-summary` to include serialized project `config` and extend project config schema with optional `metadata` field.
+
+### Patch Changes
+
+- [#2642](https://github.com/likec4/likec4/pull/2642) [`fe468d8`](https://github.com/likec4/likec4/commit/fe468d830544e6f0051ea2203ab137d46932d11e) Thanks [@davydkov](https://github.com/davydkov)! - Automatically derive element technology from icon name when not set explicitly.
+  Elements with `aws:`, `azure:`, `gcp:`, or `tech:` icons will get a human-readable technology label
+  (e.g. `tech:apache-flink` → "Apache Flink"). Can be disabled via `inferTechnologyFromIcon: false` in project config.
+
+- [#2648](https://github.com/likec4/likec4/pull/2648) [`5ce02f8`](https://github.com/likec4/likec4/commit/5ce02f8e1fa437c3f7597a546ae3b08515712ac1) Thanks [@davydkov](https://github.com/davydkov)! - Auto-generate scoped views for elements without explicit views, enabling drill-down navigation out of the box. Configurable via `implicitViews` option in project config (enabled by default).
+
+- Updated dependencies [[`fe468d8`](https://github.com/likec4/likec4/commit/fe468d830544e6f0051ea2203ab137d46932d11e)]:
+  - @likec4/core@1.50.0
+  - @likec4/log@1.50.0
+
+## 1.49.0
+
+### Patch Changes
+
+- [`3f28e65`](https://github.com/likec4/likec4/commit/3f28e65162d895a5afd3b61e3dcf1c0c9d67c661) Thanks [@davydkov](https://github.com/davydkov)! - Allow JSON configs to extend other configs and merge styles from them. Closes [#2573](https://github.com/likec4/likec4/issues/2573)
+
+  ```json
+  {
+    "name": "project-name",
+    "extends": ["../shared/base-config.json", "../shared/theme-config.json"],
+    "styles": {
+      "defaults": {
+        "relationship": {
+          "arrow": "vee"
+        }
+      }
+    }
+  }
+  ```
+
+- [#2620](https://github.com/likec4/likec4/pull/2620) [`39447c5`](https://github.com/likec4/likec4/commit/39447c5f59ce2466cc7a01f7bc5aaef4cb6fcb45) Thanks [@davydkov](https://github.com/davydkov)! - Internal restructuring for better maintainability:
+  - `@likec4/language-services` - for cross-platform language services initialization
+  - `@likec4/react` - bundled version of `@likec4/diagram`
+  - `@likec4/vite-plugin` - to separate concerns
+- Updated dependencies [[`f42c046`](https://github.com/likec4/likec4/commit/f42c046cd4bf1a3f4037cb2020268e729f018300), [`507bab3`](https://github.com/likec4/likec4/commit/507bab30cf9e30450cedfc4b27f67718a387b2e7), [`e10ea04`](https://github.com/likec4/likec4/commit/e10ea04bd2119b83cbd4c625640e63cd6e3f2e96), [`731a6cb`](https://github.com/likec4/likec4/commit/731a6cb278ef6bc06280bf1ba3b2d8f79c7d7fe6)]:
+  - @likec4/core@1.49.0
+  - @likec4/log@1.49.0
+
+## 1.48.0
+
+### Patch Changes
+
+- Updated dependencies [[`c333592`](https://github.com/likec4/likec4/commit/c333592b6342dc4a726864e970c8056bc65fafa8), [`68c6bf2`](https://github.com/likec4/likec4/commit/68c6bf286536e39ec316db906a425e2bfc852a83), [`9aa59c8`](https://github.com/likec4/likec4/commit/9aa59c81f40ac948b32842a265bfdfe48d21bddf), [`c186a08`](https://github.com/likec4/likec4/commit/c186a082c6fbb26d2b5169a9c28ca51e540622f6), [`6677d12`](https://github.com/likec4/likec4/commit/6677d124aaf6c45fb1456ce66a5c538634fe5fa0), [`c12f7a1`](https://github.com/likec4/likec4/commit/c12f7a108c19418403f5afc0c06c1e25565f6bf2), [`6ab5089`](https://github.com/likec4/likec4/commit/6ab5089fc2c1ce472fa5f5a471061056676e5546)]:
+  - @likec4/core@1.48.0
+  - @likec4/log@1.48.0
+
+## 1.47.0
+
+### Patch Changes
+
+- Updated dependencies [[`dbaae67`](https://github.com/likec4/likec4/commit/dbaae67a2f00b6cacf1a0391cd8132b1d5f0e2ee), [`de2b294`](https://github.com/likec4/likec4/commit/de2b2942322f1a1b0ce4822e40c997ba3fff9e15), [`5e38c9b`](https://github.com/likec4/likec4/commit/5e38c9b2fced5fc43aee0326204a443d889a9d37)]:
+  - @likec4/core@1.47.0
+
+## 1.46.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @likec4/core@1.46.4
+
+## 1.46.3
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @likec4/core@1.46.3
+
+## 1.46.2
+
+### Patch Changes
+
+- Updated dependencies [[`9c5779d`](https://github.com/likec4/likec4/commit/9c5779d872d8de353adf706d1a0edbbcd8bb9671)]:
+  - @likec4/core@1.46.2

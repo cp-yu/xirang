@@ -1,0 +1,108 @@
+import { type Color, type ComputedNodeStyle, type ElementShape, ensureSizes } from '@likec4/core/types'
+import { cx } from '@likec4/styles/css'
+import { elementNode } from '@likec4/styles/recipes'
+import type { MotionNodeLayoutOptions, MotionStyle, Variants } from 'motion/react'
+import * as m from 'motion/react-m'
+import { type PropsWithChildren, forwardRef } from 'react'
+import type { BaseNodePropsWithData } from '../../base/types'
+
+type RequiredData = {
+  color: Color
+  shape: ElementShape
+  style?: ComputedNodeStyle
+}
+
+type ElementNodeContainerProps = PropsWithChildren<
+  & {
+    nodeProps: BaseNodePropsWithData<RequiredData>
+    className?: string | undefined
+    style?: MotionStyle | undefined
+    [key: `data-${string}`]: string | undefined
+  }
+  & MotionNodeLayoutOptions
+>
+
+const variants = {
+  normal: {
+    scale: 1,
+  },
+  hovered: {
+    scale: 1.05,
+  },
+  selected: {
+    scale: 1.02,
+  },
+  tap: {
+    scale: 0.98,
+  },
+} satisfies Variants
+
+/**
+ * Top-level primitive to compose leaf nodes renderers.
+ * This container provides the state via data-* attributes
+ */
+export const ElementNodeContainer = forwardRef<HTMLDivElement, ElementNodeContainerProps>(({
+  nodeProps: {
+    selected = false,
+    selectable = false,
+    data: {
+      hovered: isHovered = false,
+      dimmed: isDimmed = false,
+      ...data
+    },
+  },
+  className,
+  style,
+  children,
+  ...rest
+}, ref) => {
+  let variant: keyof typeof variants
+  switch (true) {
+    case isHovered:
+      variant = 'hovered'
+      break
+    case selected:
+      variant = 'selected'
+      break
+    default:
+      variant = 'normal'
+  }
+
+  const {
+    size,
+    padding,
+    textSize,
+  } = ensureSizes(data.style ?? {})
+
+  return (
+    <m.div
+      ref={ref}
+      className={cx(
+        elementNode(),
+        'group',
+        className,
+      )}
+      variants={variants}
+      initial={false}
+      {...selectable && {
+        animate: variant,
+        whileTap: 'tap',
+      }}
+      data-likec4-hovered={isHovered}
+      data-likec4-color={data.color}
+      data-likec4-shape={data.shape}
+      data-likec4-shape-size={size}
+      data-likec4-spacing={padding}
+      data-likec4-text-size={textSize}
+      {...(isDimmed !== false && {
+        'data-likec4-dimmed': isDimmed,
+      })}
+      style={style as MotionStyle}
+      tabIndex={-1}
+      {...rest}
+    >
+      {children}
+    </m.div>
+  )
+})
+ElementNodeContainer.displayName = 'ElementNodeContainer'

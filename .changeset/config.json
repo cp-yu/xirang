@@ -1,0 +1,24 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config/schema.json",
+  "changelog": ["@changesets/changelog-github", { "repo": "likec4/likec4" }],
+  "commit": false,
+  "fixed": [
+    [
+      "likec4",
+      "likec4-vscode",
+      "@likec4/*",
+      "!@likec4/icons"
+    ]
+  ],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "privatePackages": {
+    "version": true,
+    "tag": false
+  },
+  "updateInternalDependencies": "patch",
+  "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
+    "updateInternalDependencies": "always"
+  }
+}

@@ -1,0 +1,430 @@
+{
+  "name": "likec4",
+  "scopeName": "source.likec4",
+  "fileTypes": [".c4", ".likec4", ".like-c4"],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "match": "\\b(link|icon):?\\s+([^\\s]+)",
+      "captures": {
+        "1": {
+          "name": "variable.parameter.function.likec4"
+        },
+        "2": {
+          "name": "constant.other.reference.link.likec4"
+        }
+      }
+    },
+    {
+      "match": "\\b(true|false)\\b",
+      "name": "constant.language.likec4"
+    },
+    {
+      "match": "\\b(tag)\\s+(is|==)(\\s+not)?\\b",
+      "name": "keyword.control.likec4"
+    },
+    {
+      "match": "\\b(metadata)\\.([a-zA-Z_]\\w*)(?:\\s+(is(\\s+not)?))?",
+      "captures": {
+        "1": { "name": "keyword.control.likec4" },
+        "2": { "name": "variable.other.property.likec4" },
+        "3": { "name": "keyword.control.likec4" }
+      }
+    },
+    {
+      "match": "\\b(kind)\\s+(is\\s+not)\\s+([^\\s]+)\\b",
+      "captures": {
+        "1": {
+          "name": "keyword.control.likec4"
+        },
+        "2": {
+          "name": "keyword.control.likec4"
+        },
+        "3": {
+          "name": "variable.other.constant.likec4"
+        }
+      }
+    },
+    {
+      "match": "\\b(kind)\\s+(is|==)\\s+([^\\s]+)\\b",
+      "captures": {
+        "1": {
+          "name": "keyword.control.likec4"
+        },
+        "2": {
+          "name": "keyword.control.likec4"
+        },
+        "3": {
+          "name": "variable.other.constant.likec4"
+        }
+      }
+    },
+    {
+      "match": "\\b(global)\\s+(style)\\s+([^\\s]+)\\b",
+      "captures": {
+        "1": {
+          "name": "keyword.control.likec4"
+        },
+        "2": {
+          "name": "keyword.control.likec4"
+        },
+        "3": {
+          "name": "variable.other.constant.likec4"
+        }
+      }
+    },
+    {
+      "match": "\\b(element|tag|relationship|deploymentNode)\\s+([^\\s]+)\\b",
+      "captures": {
+        "1": {
+          "name": "keyword.control.likec4"
+        },
+        "2": {
+          "name": "variable.other.constant.likec4"
+        }
+      }
+    },
+    {
+      "match": "#[a-fA-F0-9]+\\b",
+      "name": "constant.other.color.likec4"
+    },
+    {
+      "match": "\\b(opacity):?\\s+([^\\s]+)",
+      "captures": {
+        "1": {
+          "name": "variable.parameter.function.likec4"
+        },
+        "2": {
+          "name": "constant.numeric.likec4"
+        }
+      }
+    },
+    {
+      "match": "\\b(include|exclude)\\s+(element\\.kind|element\\.tag)\\s+(\\!=|==?)\\s+([#_\\*\\.\\w]+)\\b",
+      "captures": {
+        "1": {
+          "name": "keyword.control.likec4"
+        },
+        "2": {
+          "name": "keyword.control.likec4"
+        },
+        "3": {
+          "name": "keyword.symbol.likec4"
+        },
+        "4": {
+          "name": "variable.other.constant.likec4"
+        }
+      }
+    },
+    {
+      "match": "\\b(element\\.kind|element\\.tag)\\s+(\\!=|==?)\\s+([#_\\*\\.\\w]+)\\b",
+      "captures": {
+        "1": {
+          "name": "keyword.control.likec4"
+        },
+        "2": {
+          "name": "keyword.symbol.likec4"
+        },
+        "3": {
+          "name": "variable.other.constant.likec4"
+        }
+      }
+    },
+    {
+      "match": "#[^\\s]+\\b",
+      "name": "variable.other.likec4"
+    },
+    {
+      "match": "\\b(actor|component|system|container|service|include|exclude|extend|instanceOf)\\s+([a-zA-Z][_\\*\\.\\w]*)\\b",
+      "captures": {
+        "1": {
+          "name": "keyword.control.likec4"
+        },
+        "2": {
+          "name": "variable.other.constant.likec4"
+        }
+      }
+    },
+    {
+      "match": "\\b(navigateTo)\\s+([_\\-\\*\\.\\w]+)\\b",
+      "captures": {
+        "1": {
+          "name": "variable.parameter.function.likec4"
+        },
+        "2": {
+          "name": "variable.other.constant.likec4"
+        }
+      }
+    },
+    {
+      "name": "keyword.control.likec4",
+      "match": "\\b(include|exclude)\\b"
+    },
+    {
+      "match": "\\b(shape|color|head|tail|line|border|icon|mode|iconColor|iconPosition|iconSize):?\\s+([^\\s]+)\\b",
+      "captures": {
+        "1": {
+          "name": "variable.parameter.function.likec4"
+        },
+        "2": {
+          "name": "variable.other.likec4"
+        }
+      }
+    },
+    {
+      "match": "\\b(rank)\\s+(same|source|sink|min|max)\\b",
+      "captures": {
+        "1": { "name": "keyword.control.likec4" },
+        "2": { "name": "variable.other.likec4" }
+      }
+    },
+    {
+      "match": "\\b(title|description|summary|technology|notation|multiple|padding|size|textSize|prop\\d*):?\\b",
+      "name": "variable.parameter.function.likec4"
+    },
+    {
+      "name": "variable.other.likec4",
+      "match": "\\b(TopBottom|LeftRight|BottomTop|RightLeft|xsmall|xs|small|sm|medium|md|large|lg|xl|xlarge)\\b"
+    },
+    {
+      "name": "variable.other.likec4",
+      "match": "\\b(amber|blue|gray|green|indigo|muted|primary|secondary|red|sky|slate|none)\\b"
+    },
+    {
+      "match": "\\b(import \\{)\\s+([^\\W]+)\\s+(\\} from)",
+      "captures": {
+        "1": {
+          "name": "keyword.control.likec4"
+        },
+        "2": {
+          "name": "variable.other.constant.likec4"
+        },
+        "3": {
+          "name": "keyword.control.likec4"
+        }
+      }
+    },
+    {
+      "match": "\\b([^\\W]+)\\s+(=)\\s+([^\\W]+)\\s+([a-zA-Z][_\\.\\w]*)\\b",
+      "captures": {
+        "1": {
+          "name": "variable.other.constant.likec4"
+        },
+        "2": {
+          "name": "keyword.operator.likec4"
+        },
+        "3": {
+          "name": "keyword.control.likec4"
+        },
+        "4": {
+          "name": "variable.other.constant.likec4"
+        }
+      }
+    },
+    {
+      "match": "\\b([^\\W]+)\\s*(=)\\s*([^\\W]+)\\b",
+      "captures": {
+        "1": {
+          "name": "variable.other.constant.likec4"
+        },
+        "2": {
+          "name": "keyword.operator.likec4"
+        },
+        "3": {
+          "name": "keyword.control.likec4"
+        }
+      }
+    },
+    {
+      "match": "\\b(view)\\s+([^\\W]+)\\s+(of|extends)\\s+([a-zA-Z][_\\.\\w]*)\\b",
+      "captures": {
+        "1": {
+          "name": "keyword.control.likec4"
+        },
+        "2": {
+          "name": "variable.other.constant.likec4"
+        },
+        "3": {
+          "name": "keyword.control.likec4"
+        },
+        "4": {
+          "name": "variable.other.constant.likec4"
+        }
+      }
+    },
+    {
+      "match": "\\b(view)\\s+(of)\\s+([a-zA-Z][_\\.\\w]*)\\b",
+      "captures": {
+        "1": {
+          "name": "keyword.control.likec4"
+        },
+        "2": {
+          "name": "keyword.control.likec4"
+        },
+        "3": {
+          "name": "variable.other.constant.likec4"
+        }
+      }
+    },
+    {
+      "match": "\\b(view)\\s+([_\\.\\w]*)\\b",
+      "captures": {
+        "1": {
+          "name": "keyword.control.likec4"
+        },
+        "2": {
+          "name": "variable.other.constant.likec4"
+        }
+      }
+    },
+    {
+      "match": "\\b(it|this)\\s+(->|-\\[\\w+\\]->|\\.\\w+)\\s+([^\\W]+)",
+      "captures": {
+        "1": {
+          "name": "keyword.control.likec4"
+        },
+        "2": {
+          "name": "storage.type.function.likec4"
+        },
+        "3": {
+          "name": "variable.other.constant.likec4"
+        }
+      }
+    },
+    {
+      "match": "(\\b[_\\.\\w]+|\\*)\\s+(<-|<?->|-\\[\\w+\\]->|\\.\\w+)\\s+([_\\.\\w]+)\\b",
+      "captures": {
+        "1": {
+          "name": "variable.other.constant.likec4"
+        },
+        "2": {
+          "name": "storage.type.function.likec4"
+        },
+        "3": {
+          "name": "variable.other.constant.likec4"
+        }
+      }
+    },
+    {
+      "match": "\\b([\\.\\w]+)\\s+(with)\\s+\\{",
+      "captures": {
+        "1": {
+          "name": "variable.other.constant.likec4"
+        },
+        "2": {
+          "name": "keyword.control.likec4"
+        }
+      }
+    },
+    {
+      "match": "\\s+(<-|<?->|-\\[\\w+\\]->|\\.\\w+)\\s+([a-zA-Z][_\\.\\w]*)\\b",
+      "captures": {
+        "1": {
+          "name": "storage.type.function.likec4"
+        },
+        "2": {
+          "name": "variable.other.constant.likec4"
+        }
+      }
+    },
+    {
+      "name": "storage.type.function.likec4",
+      "match": "(<-|<?->)"
+    },
+    {
+      "name": "variable.other.constant.likec4",
+      "match": "\\b(customer|bigbank|singlePageApplication|mobileApp|apiApplication|mainframe|email|internetBankingSystem|cloud|ui|backend|auth|web|frontend|api|webApp|authService|messageBroker|prod|eu|us|zone\\d+|vm\\d+|microservice\\w*|system|theme|common_styles|mute_\\w+|applications)_?\\d*\\b"
+    },
+    {
+      "name": "keyword.control.likec4",
+      "match": "\\b(alt|and|autoLayout|border|break|browser|bucket|catch|color|component|crow|cylinder|dashed|description|diamond|document|dot|dotted|dynamic|deployment|else|finally|global|group|element|environment|exclude|extend|extends|head|icon|icons|if|include|includeAncestors|it|kind|line|likec4lib|link|loop|metadata|mobile|model|navigateTo|none|not|normal|notes|odiamond|odot|of|onormal|opacity|open|opt|or|parallel|par|person|predicateGroup|predicate|queue|rank|rectangle|relationship|shape|solid|specification|storage|styleGroup|style|tag|tail|technology|this|title|try|vee|view|views|when|where|source|target|with|zone|vm)\\b"
+    },
+    {
+      "match": "(\\b\\.)?(\\*|_),?",
+      "captures": {
+        "1": {
+          "name": "variable.other.constant.likec4"
+        },
+        "2": {
+          "name": "variable.other.constant.likec4"
+        }
+      }
+    },
+    {
+      "name": "keyword.symbol.likec4",
+      "match": "(\\{|\\}|\\:|\\]->|-\\[|<?->|<-|\\,|\\;|\\!|\\=)"
+    },
+    {
+      "name": "entity.name.function.likec4",
+      "match": "\\b(rgba|rgb)"
+    },
+    {
+      "name": "constant.numeric.likec4",
+      "match": "\\b\\d+(\\.\\d+|%)?"
+    },
+    {
+      "include": "#string"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.block.likec4",
+          "begin": "/\\*",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.likec4"
+            }
+          },
+          "end": "\\*/",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.likec4"
+            }
+          }
+        },
+        {
+          "begin": "//",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.whitespace.comment.leading.likec4"
+            }
+          },
+          "end": "(?=$)",
+          "name": "comment.line.likec4"
+        }
+      ]
+    },
+    "string": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.likec4",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "include": "#string-character-escape"
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.likec4",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "include": "#string-character-escape"
+            }
+          ]
+        }
+      ]
+    },
+    "string-character-escape": {
+      "name": "constant.character.escape.likec4",
+      "match": "\\\\(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|u\\{[0-9A-Fa-f]+\\}|[0-2][0-7]{0,2}|3[0-6][0-7]?|37[0-7]?|[4-7][0-7]?|.|$)"
+    }
+  }
+}

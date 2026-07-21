@@ -1,0 +1,277 @@
+# @likec4/diagram
+
+## 1.59.0
+
+### Patch Changes
+
+- [#3084](https://github.com/likec4/likec4/pull/3084) [`76ef007`](https://github.com/likec4/likec4/commit/76ef007fd2fb0c6d52cedcdb3ef048a9f2a624c4) Thanks [@davydkov](https://github.com/davydkov)! - Flow control in dynamic views. Besides `parallel`, steps can now be grouped into flow blocks (each with an optional title):
+
+  - `opt`, `loop` and `break` blocks
+  - `alt` with `when` / `else` branches
+  - `try` / `catch` / `finally` blocks
+
+  ```likec4
+  dynamic view example {
+    customer -> app 'opens app'
+    alt {
+      when 'authorized' {
+        app -> api 'requests data'
+      }
+      else 'not authorized' {
+        app -> customer 'shows login'
+      }
+    }
+  }
+  ```
+
+  Sequence diagrams render these blocks as nested frames, and actors stay visible when zoomed in (fixes [#3074](https://github.com/likec4/likec4/issues/3074)). During a walkthrough, a docked Sequence Outline panel shows the flow as a collapsible tree that mirrors the block nesting — each step is numbered and every operator carries a colored type tag and step count, so you can jump to any step and keep your place.
+
+  > [!NOTE]
+  > Flow control blocks are experimental — syntax and rendering may change. We are looking for your feedback in [discussions](https://github.com/likec4/likec4/discussions)!
+
+  Resolved issues:
+
+  - [#2745](https://github.com/likec4/likec4/issues/2745)
+  - [#2993](https://github.com/likec4/likec4/issues/2993)
+  - [#3074](https://github.com/likec4/likec4/issues/3074)
+
+- [#2990](https://github.com/likec4/likec4/pull/2990) [`fe33144`](https://github.com/likec4/likec4/commit/fe33144ee9e055371150b70a3db093d22a240626) Thanks [@ckeller42](https://github.com/ckeller42)! - Fixes [#2988](https://github.com/likec4/likec4/issues/2988): diagrams now expose LikeC4 node and relationship text to assistive technologies and allow focused nodes and relationships to be activated from the keyboard.
+
+- [#3056](https://github.com/likec4/likec4/pull/3056) [`31e3671`](https://github.com/likec4/likec4/commit/31e3671c2d94d6f5f057c806868865c660eac23f) Thanks [@ckeller42](https://github.com/ckeller42)! - Add keyboard zoom shortcuts for focused diagrams and make zoomable diagrams keyboard-focusable.
+
+  Fixes [#2915](https://github.com/likec4/likec4/issues/2915)
+
+- [#3060](https://github.com/likec4/likec4/pull/3060) [`c830215`](https://github.com/likec4/likec4/commit/c83021565c2fced17d544177f7acfa52e08451f9) Thanks [@farhan523](https://github.com/farhan523)! - Navigation panel: show the full view description in a tooltip on hover.
+
+  View descriptions in the navigation menu are truncated to fit the item, so long descriptions were not fully readable without opening the view. Hovering a view now reveals its complete description in a tooltip.
+
+  Closes [#2933](https://github.com/likec4/likec4/issues/2933)
+
+- Updated dependencies [[`76ef007`](https://github.com/likec4/likec4/commit/76ef007fd2fb0c6d52cedcdb3ef048a9f2a624c4), [`0994577`](https://github.com/likec4/likec4/commit/09945775fb0c4c64b79eae6f17ee0abce92ef8f1), [`9b9727f`](https://github.com/likec4/likec4/commit/9b9727fcd1201296c4d7e09f7446edd38669328a), [`d0a05fe`](https://github.com/likec4/likec4/commit/d0a05fe8e29105444762542c78c9861a13bfaff0), [`1814846`](https://github.com/likec4/likec4/commit/1814846f629971cec2a392222ab00c42abea47ed), [`061e687`](https://github.com/likec4/likec4/commit/061e6872ee80b1381d3ec047663a22d1ebe6bab5)]:
+  - @likec4/core@1.59.0
+  - @likec4/styles@1.59.0
+
+## 1.57.1
+
+### Patch Changes
+
+- [`f2c0b57`](https://github.com/likec4/likec4/commit/f2c0b57485e912e85a986d5f89408a6039538ecc) Thanks [@davydkov](https://github.com/davydkov)! - Support deleting elements/edges in the diagram editor (except dynamic views). Selecting nodes (and/or edges) and pressing delete now removes them from the view, automatically dropping any edges connected to a deleted node. The change is added to undo/redo history.
+
+- [`f2c0b57`](https://github.com/likec4/likec4/commit/f2c0b57485e912e85a986d5f89408a6039538ecc) Thanks [@davydkov](https://github.com/davydkov)! - Edit edge label positions in the diagram editor. Select a relationship edge and drag its label to reposition it; the position is saved to the manual layout with undo/redo. A manually placed label moves together with the edge when its curve is reshaped, keeping its offset.
+
+- [#2995](https://github.com/likec4/likec4/pull/2995) [`e14bc24`](https://github.com/likec4/likec4/commit/e14bc24f4337de29c35fac6f7532fc99dd2904ad) Thanks [@davydkov](https://github.com/davydkov)! - fix: "apply latest" action tries to run the new AI layout enhancement
+
+- [#2978](https://github.com/likec4/likec4/pull/2978) [`75e1510`](https://github.com/likec4/likec4/commit/75e1510def804bf9931bf222b03d1034e1181d04) Thanks [@farhan523](https://github.com/farhan523)! - Tags with custom hex / rgb colors now get an accurate text color derived from the background via APCA contrast, instead of the previous CSS-filter workaround. `TagStylesProvider` emits `--colors-likec4-tag-text` for all tags (custom-colored and named), and the `autoTextColor` variant is removed from the `likec4tag` recipe. `getContrastedColorsAPCA` is now exported from `@likec4/core/styles`. Resolves [#2143](https://github.com/likec4/likec4/issues/2143).
+
+- Updated dependencies [[`f2c0b57`](https://github.com/likec4/likec4/commit/f2c0b57485e912e85a986d5f89408a6039538ecc), [`8ad28c7`](https://github.com/likec4/likec4/commit/8ad28c777c76f294483c352180c7e3ea037eddfd), [`75e1510`](https://github.com/likec4/likec4/commit/75e1510def804bf9931bf222b03d1034e1181d04)]:
+  - @likec4/core@1.57.1
+  - @likec4/styles@1.57.1
+
+## 1.57.0
+
+### Patch Changes
+
+- [#2967](https://github.com/likec4/likec4/pull/2967) [`c46e33e`](https://github.com/likec4/likec4/commit/c46e33e493cd2dd2079246a276e22bd2d6d775e9) Thanks [@ckeller42](https://github.com/ckeller42)! - Fix expanded embedded LikeC4 views rendering with a transparent overlay background.
+
+  Fixes [#2965](https://github.com/likec4/likec4/issues/2965).
+
+- [#2976](https://github.com/likec4/likec4/pull/2976) [`783155b`](https://github.com/likec4/likec4/commit/783155bba49ec60485af2c7f420fbb28e893955c) Thanks [@davydkov](https://github.com/davydkov)! - Fix overlay animations (relationships browser, element details, search) glitching on open/close.
+
+- Updated dependencies [[`311b93d`](https://github.com/likec4/likec4/commit/311b93de360556b9583b901c5ad3d6692b9c9f03), [`35ba3f6`](https://github.com/likec4/likec4/commit/35ba3f637e45fc1072646f646b3442b3235cc29d)]:
+  - @likec4/core@1.57.0
+  - @likec4/styles@1.57.0
+
+## 1.56.0
+
+### Patch Changes
+
+- [#2921](https://github.com/likec4/likec4/pull/2921) [`5f46082`](https://github.com/likec4/likec4/commit/5f460821526d851ef3bbf8be5a2bd749c2df6a8a) Thanks [@davydkov](https://github.com/davydkov)! - Update Mantine to 9.1.0. The `light` variant of Buttons, Alerts, and ActionIcons now uses solid colors instead of transparency.
+
+- Updated dependencies [[`ace5b2e`](https://github.com/likec4/likec4/commit/ace5b2e5cd261f47bd2e93b6f495e2122ceef16d), [`5f46082`](https://github.com/likec4/likec4/commit/5f460821526d851ef3bbf8be5a2bd749c2df6a8a)]:
+  - @likec4/core@1.56.0
+  - @likec4/styles@1.56.0
+
+## 1.55.1
+
+### Patch Changes
+
+- [#2894](https://github.com/likec4/likec4/pull/2894) [`0b8825b`](https://github.com/likec4/likec4/commit/0b8825b8c4053a7908d0ba96145687824e2bc597) Thanks [@ckeller42](https://github.com/ckeller42)! - Fix text overflow in relationship popover and element details card when displaying long element names, relationship titles, and technology strings
+
+- [#2875](https://github.com/likec4/likec4/pull/2875) [`36d5627`](https://github.com/likec4/likec4/commit/36d5627ccadda9d80488eaf7695cdde25b61d7df) Thanks [@ckeller42](https://github.com/ckeller42)! - Fix search overlay persisting after navigating to a view via Ctrl+K search
+
+- Updated dependencies [[`b5e33d1`](https://github.com/likec4/likec4/commit/b5e33d12c548e34f820e565182b0b057505c2f64)]:
+  - @likec4/styles@1.55.1
+  - @likec4/core@1.55.1
+
+## 1.55.0
+
+### Patch Changes
+
+- Updated dependencies [[`6b87578`](https://github.com/likec4/likec4/commit/6b87578486c821fdc1060d69867a10f3c7e6ca9b), [`f684e2f`](https://github.com/likec4/likec4/commit/f684e2fb59745fe62ac2b43c68f1e453ab884cc8), [`347b48f`](https://github.com/likec4/likec4/commit/347b48f7bb67e0a480e231d57c4feeca09b32383), [`9834ebb`](https://github.com/likec4/likec4/commit/9834ebbfa32bdcb40710aac9038839e9da70031e), [`c0048b6`](https://github.com/likec4/likec4/commit/c0048b6ca156508c893e072dfbf9d75bbe4dd8ad)]:
+  - @likec4/core@1.55.0
+  - @likec4/styles@1.55.0
+
+## 1.54.0
+
+### Patch Changes
+
+- [#2827](https://github.com/likec4/likec4/pull/2827) [`1ae3eb6`](https://github.com/likec4/likec4/commit/1ae3eb6b19a9736f683a8b50c2c883eeb4204885) Thanks [@kavishkartha05](https://github.com/kavishkartha05)! - Fix dynamic view variant setting not being honored when navigating to a dynamic view
+  Fixes [#2802](https://github.com/likec4/likec4/issues/2802)
+
+- [#2791](https://github.com/likec4/likec4/pull/2791) [`6d6cdd2`](https://github.com/likec4/likec4/commit/6d6cdd2857f6e804a40c3963f6a4841dfa13bd6c) Thanks [@davydkov](https://github.com/davydkov)! - Fix manual layout alignment tools (Align Left, Right, Center, Top, Middle, Bottom) not working
+
+  Fixes [#2771](https://github.com/likec4/likec4/issues/2771)
+
+- Updated dependencies []:
+  - @likec4/core@1.54.0
+  - @likec4/styles@1.54.0
+
+## 1.53.0
+
+### Patch Changes
+
+- [#2785](https://github.com/likec4/likec4/pull/2785) [`eddfe46`](https://github.com/likec4/likec4/commit/eddfe462b49d8dd598db443259bc2ba0820b76f1) Thanks [@davydkov](https://github.com/davydkov)! - Fix drag behavior for group nodes
+
+- [#2784](https://github.com/likec4/likec4/pull/2784) [`16386c5`](https://github.com/likec4/likec4/commit/16386c52e0285e6b8a5c859dc45726a7cb1869d4) Thanks [@davydkov](https://github.com/davydkov)! - Fix scroll in walkthrough notes panel. Fixes [#2729](https://github.com/likec4/likec4/issues/2729)
+
+- Updated dependencies [[`39df42e`](https://github.com/likec4/likec4/commit/39df42e69d11a74cfbda94258321860d9437a3f7)]:
+  - @likec4/core@1.53.0
+  - @likec4/styles@1.53.0
+
+## 1.52.0
+
+### Patch Changes
+
+- [#2665](https://github.com/likec4/likec4/pull/2665) [`6257147`](https://github.com/likec4/likec4/commit/6257147265d69972b4b4f2dc472d0b58a03bc607) Thanks [@ckeller42](https://github.com/ckeller42)! - Add search bar, navigation drawer, and theme toggle to overview page
+
+  - Search for elements and views directly from the overview page via visible search bar or ⌘K
+  - Browse all diagrams through sidebar navigation drawer with file/folder/list grouping
+  - Toggle dark/light mode from the overview header
+  - Navigate from search results to a diagram view with element focus
+
+  Fixes [#1679](https://github.com/likec4/likec4/issues/1679)
+
+- Updated dependencies [[`bc47423`](https://github.com/likec4/likec4/commit/bc474235cf31a7d42e8c4f25328a698bb7edefe3)]:
+  - @likec4/core@1.52.0
+  - @likec4/styles@1.52.0
+
+## 1.51.0
+
+### Patch Changes
+
+- Updated dependencies [[`41ff551`](https://github.com/likec4/likec4/commit/41ff551974838696fdf4adfcd92edc30afd245c5)]:
+  - @likec4/styles@1.51.0
+  - @likec4/core@1.51.0
+
+## 1.50.0
+
+### Patch Changes
+
+- [#2656](https://github.com/likec4/likec4/pull/2656) [`7f43ca1`](https://github.com/likec4/likec4/commit/7f43ca19d90f4db0b02c44a72c7eae66dfc76942) Thanks [@copilot-swe-agent](https://github.com/apps/copilot-swe-agent)! - Fix O-version edge markers (odiamond, oarrow, odot) to display as hollow with background fill instead of solid fill
+
+  Fixes [#2634](https://github.com/likec4/likec4/issues/2634)
+
+- Updated dependencies [[`fe468d8`](https://github.com/likec4/likec4/commit/fe468d830544e6f0051ea2203ab137d46932d11e)]:
+  - @likec4/core@1.50.0
+  - @likec4/styles@1.50.0
+
+## 1.49.0
+
+### Minor Changes
+
+- [#2620](https://github.com/likec4/likec4/pull/2620) [`9e7807b`](https://github.com/likec4/likec4/commit/9e7807b5157a355d23b9f3a2ddff7a10bb1d01a1) Thanks [@davydkov](https://github.com/davydkov)! - Do not build diagram bundle, as components are now exported directly from the package.
+
+### Patch Changes
+
+- [#2616](https://github.com/likec4/likec4/pull/2616) [`4a7c01c`](https://github.com/likec4/likec4/commit/4a7c01c9ee1e2d006f9002b0fed79cb5fdda9a6f) Thanks [@davydkov](https://github.com/davydkov)! - Add new `component` element shape
+
+- [`ceeb0c7`](https://github.com/likec4/likec4/commit/ceeb0c711f99bbd3de63a0ed5c43574c7bde7120) Thanks [@davydkov](https://github.com/davydkov)! - Clean up drifts display
+
+- [`f42c046`](https://github.com/likec4/likec4/commit/f42c046cd4bf1a3f4037cb2020268e729f018300) Thanks [@davydkov](https://github.com/davydkov)! - First iteration of element notes feature to diagrams
+
+  - Add notes property to NodeModel for element annotations
+  - Add enableNotes prop to diagram components for controlling notes display
+  - Implement visual notes indicator with paper-like styling
+  - Support notes in all node types (elements, deployment, sequence actors)
+  - Add hover effects and animations for notes indicators
+
+- [`e10ea04`](https://github.com/likec4/likec4/commit/e10ea04bd2119b83cbd4c625640e63cd6e3f2e96) Thanks [@davydkov](https://github.com/davydkov)! - Fix compound nodes not respecting border style from defaults
+  Closes [#2501](https://github.com/like-c4/like-c4/issues/2501)
+
+- [#2591](https://github.com/likec4/likec4/pull/2591) [`c05757e`](https://github.com/likec4/likec4/commit/c05757e94fbb791750c897b152b9b631f7ce906c) Thanks [@kaigritun](https://github.com/kaigritun)! - Fix iconColor for custom SVG icons from data URLs by inlining SVG content to enable CSS color inheritance via currentColor
+
+- [`e10ea04`](https://github.com/likec4/likec4/commit/e10ea04bd2119b83cbd4c625640e63cd6e3f2e96) Thanks [@davydkov](https://github.com/davydkov)! - Set fixed icon sizes for consistent rendering
+
+- [`fa87d71`](https://github.com/likec4/likec4/commit/fa87d7138b5c17e5fec037eb408fb9abf4cb6799) Thanks [@davydkov](https://github.com/davydkov)! - Improve compare panel:
+
+  - Add reset manual layout button with tooltip guidance
+  - Improve processing state handling with better animation timing
+  - Add tooltips for better user guidance on layout restrictions
+
+- [`f42c046`](https://github.com/likec4/likec4/commit/f42c046cd4bf1a3f4037cb2020268e729f018300) Thanks [@davydkov](https://github.com/davydkov)! - Add review drifts feature to the compare panel, highlight drifts in the diagram and add drifts summary panel.
+
+- Updated dependencies [[`f42c046`](https://github.com/likec4/likec4/commit/f42c046cd4bf1a3f4037cb2020268e729f018300), [`507bab3`](https://github.com/likec4/likec4/commit/507bab30cf9e30450cedfc4b27f67718a387b2e7), [`e10ea04`](https://github.com/likec4/likec4/commit/e10ea04bd2119b83cbd4c625640e63cd6e3f2e96), [`e10ea04`](https://github.com/likec4/likec4/commit/e10ea04bd2119b83cbd4c625640e63cd6e3f2e96), [`731a6cb`](https://github.com/likec4/likec4/commit/731a6cb278ef6bc06280bf1ba3b2d8f79c7d7fe6)]:
+  - @likec4/core@1.49.0
+  - @likec4/styles@1.49.0
+
+## 1.48.0
+
+### Minor Changes
+
+- [`68c6bf2`](https://github.com/likec4/likec4/commit/68c6bf286536e39ec316db906a425e2bfc852a83) Thanks [@davydkov](https://github.com/davydkov)! - Add icon customization options
+
+  - Add iconColor, iconSize, and iconPosition properties to element styles
+  - Support icon positioning (left, right, top, bottom) in diagrams and layouts
+  - Enable custom icon colors and sizes in element specifications
+
+- [`cd71c00`](https://github.com/likec4/likec4/commit/cd71c00a36cfe3a065a578befe87f6b1d2d26a6d) Thanks [@ckeller42](https://github.com/ckeller42)! - Direct links to Relationship Views, thanks to @ckeller42 in [#2547](https://github.com/ckeller/likec4/pull/2547)
+
+### Patch Changes
+
+- [`c333592`](https://github.com/likec4/likec4/commit/c333592b6342dc4a726864e970c8056bc65fafa8) Thanks [@davydkov](https://github.com/davydkov)! - Fix compound node colors (based on element color and depth)
+
+- [`9aa59c8`](https://github.com/likec4/likec4/commit/9aa59c81f40ac948b32842a265bfdfe48d21bddf) Thanks [@davydkov](https://github.com/davydkov)! - Improved color contrast and visual appearance for compound nodes (nested elements)
+
+- [`6ab5089`](https://github.com/likec4/likec4/commit/6ab5089fc2c1ce472fa5f5a471061056676e5546) Thanks [@davydkov](https://github.com/davydkov)! - Improved font loading performance by migrating to variable fonts and enhanced diagram bounds calculation with better edge handling
+
+- [`e9d70f0`](https://github.com/likec4/likec4/commit/e9d70f0e70c0df8ffa92accea156ecc4c8c20f35) Thanks [@davydkov](https://github.com/davydkov)! - Fix regression with centering dynamic views on switching between `diagram`/`sequence`
+
+- Updated dependencies [[`c333592`](https://github.com/likec4/likec4/commit/c333592b6342dc4a726864e970c8056bc65fafa8), [`68c6bf2`](https://github.com/likec4/likec4/commit/68c6bf286536e39ec316db906a425e2bfc852a83), [`9aa59c8`](https://github.com/likec4/likec4/commit/9aa59c81f40ac948b32842a265bfdfe48d21bddf), [`3049b78`](https://github.com/likec4/likec4/commit/3049b78701df485fff6fae2f0ac9ee08873872c2), [`c186a08`](https://github.com/likec4/likec4/commit/c186a082c6fbb26d2b5169a9c28ca51e540622f6), [`6677d12`](https://github.com/likec4/likec4/commit/6677d124aaf6c45fb1456ce66a5c538634fe5fa0), [`c12f7a1`](https://github.com/likec4/likec4/commit/c12f7a108c19418403f5afc0c06c1e25565f6bf2), [`6ab5089`](https://github.com/likec4/likec4/commit/6ab5089fc2c1ce472fa5f5a471061056676e5546)]:
+  - @likec4/core@1.48.0
+  - @likec4/styles@1.48.0
+
+## 1.47.0
+
+### Patch Changes
+
+- [#2520](https://github.com/likec4/likec4/pull/2520) [`0112f3d`](https://github.com/likec4/likec4/commit/0112f3deb18d065ce1d97872095b8496cf2dfc97) Thanks [@davydkov](https://github.com/davydkov)! - - Change in LikeC4View React: callback `onBurgerMenuClick` renamed to `onLogoClick`
+
+- [#2521](https://github.com/likec4/likec4/pull/2521) [`de2b294`](https://github.com/likec4/likec4/commit/de2b2942322f1a1b0ce4822e40c997ba3fff9e15) Thanks [@davydkov](https://github.com/davydkov)! - - Add two new shapes: `document` and `bucket`
+  - Apply border style to element node (previously it was applied to compound nodes and groups), closes [#2502](https://github.com/likec4/likec4/issues/2502)
+- Updated dependencies [[`dbaae67`](https://github.com/likec4/likec4/commit/dbaae67a2f00b6cacf1a0391cd8132b1d5f0e2ee), [`de2b294`](https://github.com/likec4/likec4/commit/de2b2942322f1a1b0ce4822e40c997ba3fff9e15), [`5e38c9b`](https://github.com/likec4/likec4/commit/5e38c9b2fced5fc43aee0326204a443d889a9d37)]:
+  - @likec4/core@1.47.0
+  - @likec4/styles@1.47.0
+
+## 1.46.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @likec4/core@1.46.4
+  - @likec4/styles@1.46.4
+
+## 1.46.3
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @likec4/styles@1.46.3
+  - @likec4/core@1.46.3
+
+## 1.46.2
+
+### Patch Changes
+
+- Fixed transparent background of the properties window ([#2473](https://github.com/likec4/likec4/issues/2473))
+- Updated dependencies [[`9c5779d`](https://github.com/likec4/likec4/commit/9c5779d872d8de353adf706d1a0edbbcd8bb9671)]:
+  - @likec4/core@1.46.2

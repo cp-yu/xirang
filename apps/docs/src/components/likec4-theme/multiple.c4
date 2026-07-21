@@ -1,0 +1,35 @@
+// DO NOT EDIT MANUALLY
+
+specification {
+
+  element multipleService {
+    style {
+      color secondary
+      //icon aws:lambda
+    }
+  }
+
+}
+model {
+  lambda = multipleService 'Default' {
+    description "
+      multiple false
+    "
+  }
+  lambdas = multipleService 'Multiple' {
+    description "
+      multiple true
+    "
+    style {
+      multiple true
+    }
+  }
+}
+
+views {
+
+  view multiple_example {
+    include * where kind is multipleService
+    autoLayout LeftRight
+  }
+}

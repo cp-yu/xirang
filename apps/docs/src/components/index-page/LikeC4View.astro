@@ -1,0 +1,12 @@
+---
+import { type LikeC4ViewId, LikeC4View as C4View } from 'likec4:react/index-page'
+interface Props {
+  viewId: LikeC4ViewId
+}
+const { viewId } = Astro.props
+---
+
+<C4View
+  viewId={viewId}
+  client:only="react"
+/>

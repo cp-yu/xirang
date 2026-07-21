@@ -1,0 +1,261 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2023-2026 Denis Davydkov
+// Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+//
+// Portions of this file have been modified by NVIDIA CORPORATION & AFFILIATES.
+
+import { first, flatMap, hasAtLeast, isDeepEqual, isTruthy, map, only, pipe, reduce, unique } from 'remeda'
+import type { ElementModel } from '../../model'
+import { findConnection } from '../../model/connection/model'
+import type { LikeC4Model } from '../../model/LikeC4Model'
+import {
+  type Any,
+  type aux,
+  type Color,
+  type DynamicViewRule,
+  type MarkdownOrString,
+  type NonEmptyArray,
+  type RelationshipArrowType,
+  type RelationshipLineType,
+  type Step,
+  type ViewRuleGlobalStyle,
+  exact,
+  isViewRulePredicate,
+  stepGuards,
+} from '../../types'
+import { compareRelations, isNonEmptyArray, nonexhaustive } from '../../utils'
+import { elementExprToPredicate } from '../utils/elementExpressionToPredicate'
+
+export function elementsFromIncludeProperties<A extends Any>(
+  model: LikeC4Model<A>,
+  resolvedRules: Array<Exclude<DynamicViewRule<A>, ViewRuleGlobalStyle>>,
+): Set<ElementModel<A>> {
+  const explicits = new Set<ElementModel<A>>()
+  for (const rule of resolvedRules) {
+    if (isViewRulePredicate(rule)) {
+      for (const expr of rule.include) {
+        const satisfies = elementExprToPredicate(expr)
+        for (const e of model.elements()) {
+          if (satisfies(e)) {
+            explicits.add(e)
+          }
+        }
+      }
+    }
+  }
+  return explicits
+}
+
+export const flattenSteps = <A extends Any>(s: Step.Any<A>): Step<A>[] => {
+  switch (true) {
+    case stepGuards.isStep(s): {
+      return [s]
+    }
+    case stepGuards.isParallel(s): {
+      // Parallel steps are flattened by taking the first step of each parallel step and the rest of the steps
+      const heads = [] as Step<A>[]
+      const tails = [] as Step<A>[]
+      for (const nested of s.steps) {
+        const [head, ...tail] = flattenSteps(nested)
+        if (head) {
+          heads.push(head)
+        }
+        tails.push(...tail)
+      }
+      return [...heads, ...tails]
+    }
+    case stepGuards.isSeries(s): {
+      return [...s.steps]
+    }
+    case stepGuards.isBreak(s):
+    case stepGuards.isLoop(s):
+    case stepGuards.isOpt(s): {
+      return flatMap(s.steps, flattenSteps)
+    }
+    case stepGuards.isAlt(s):
+    case stepGuards.isTry(s): {
+      // Take heads from each branch
+      const heads = [] as Step<A>[]
+      const tails = [] as Step<A>[]
+
+      const branches: Array<undefined | { steps: readonly Step.Any<any>[] }> = s._type === 'try' ?
+        [
+          s.try,
+          s.catch,
+          s.finally,
+        ] :
+        [...s.branches]
+
+      for (const branch of branches) {
+        if (!branch) continue
+        const [head, ...tail] = flatMap(branch.steps, flattenSteps)
+        if (head) {
+          heads.push(head)
+          tails.push(...tail)
+        }
+      }
+      return [...heads, ...tails]
+    }
+    default:
+      nonexhaustive(s)
+  }
+}
+
+export function elementsFromSteps<A extends Any>(
+  model: LikeC4Model<A>,
+  steps: Step.Any<A>[],
+): Set<ElementModel<A>> {
+  const actors = [] as Array<ElementModel<A>>
+
+  const addActor = (...[source, target]: [ElementModel<A>, ElementModel<A>]) => {
+    // source actor not yet added
+    if (!actors.includes(source)) {
+      const indexOfTarget = actors.indexOf(target)
+      if (indexOfTarget > 0) {
+        // place source before target
+        actors.splice(indexOfTarget, 0, source)
+        return
+      } else {
+        actors.push(source)
+      }
+    }
+    if (!actors.includes(target)) {
+      actors.push(target)
+    }
+  }
+
+  for (const step of flatMap(steps, flattenSteps)) {
+    const source = model.element(step.source)
+    const target = model.element(step.target)
+
+    let sourceColumn = actors.indexOf(source)
+    let targetColumn = actors.indexOf(target)
+
+    const alreadyAdded = sourceColumn >= 0 && targetColumn >= 0
+    if (alreadyAdded) {
+      continue
+    }
+
+    if (step.isBackward) {
+      addActor(target, source)
+    } else {
+      addActor(source, target)
+    }
+  }
+
+  return new Set(actors)
+}
+
+export function findRelations<A extends Any>(
+  source: ElementModel<A>,
+  target: ElementModel<A>,
+  currentViewId: aux.StrictViewId<A>,
+): {
+  title?: string
+  kind?: aux.RelationKind<A>
+  tags?: aux.Tags<A>
+  relations?: NonEmptyArray<aux.RelationId>
+  navigateTo?: aux.StrictViewId<A>
+  color?: Color
+  line?: RelationshipLineType
+  head?: RelationshipArrowType
+  tail?: RelationshipArrowType
+  technology?: string
+  description?: MarkdownOrString
+} {
+  const relationships = findConnection(source, target, 'directed')
+    .flatMap(r => [...r.relations])
+    .sort(compareRelations)
+  if (!isNonEmptyArray(relationships)) {
+    return {}
+  }
+  const specificationOf = (kind: aux.RelationKind<A> | null | undefined) =>
+    kind ? source.$model.specification.relationships[kind] : undefined
+  if (relationships.length === 1) {
+    const relation = relationships[0]
+    const spec = specificationOf(relation.kind)
+    return exact({
+      title: relation.title ?? undefined,
+      kind: relation.kind ?? undefined,
+      tags: relation.tags,
+      relations: [relation.id],
+      navigateTo: relation.$relationship.navigateTo,
+      color: relation.$relationship.color ?? spec?.color,
+      line: relation.$relationship.line ?? spec?.line,
+      head: relation.$relationship.head ?? spec?.head,
+      tail: relation.$relationship.tail ?? spec?.tail,
+      technology: relation.technology ?? undefined,
+      description: relation.$relationship.description ?? undefined,
+    })
+  }
+  const alltags = pipe(
+    relationships,
+    flatMap(r => r.tags),
+    unique(),
+  ) as aux.Tags<A>
+  const tags = hasAtLeast(alltags, 1) ? alltags : undefined
+  const relations = map(relationships, r => r.id)
+
+  // Most closest relation
+  const relation = first(relationships)
+  let navigateTo = relation.$relationship.navigateTo
+  if (navigateTo === currentViewId) {
+    navigateTo = undefined
+  }
+  if (!navigateTo) {
+    navigateTo = pipe(
+      relationships,
+      flatMap(r =>
+        r.$relationship.navigateTo && r.$relationship.navigateTo !== currentViewId ? r.$relationship.navigateTo : []
+      ),
+      unique(),
+      only(),
+    )
+  }
+
+  const commonProperties = pipe(
+    relationships,
+    reduce((acc, { title, technology, kind, $relationship: r }) => {
+      const spec = specificationOf(kind)
+      const color = r.color ?? spec?.color
+      const line = r.line ?? spec?.line
+      const head = r.head ?? spec?.head
+      const tail = r.tail ?? spec?.tail
+      isTruthy(title) && acc.title.add(title)
+      isTruthy(color) && acc.color.add(color)
+      isTruthy(line) && acc.line.add(line)
+      isTruthy(head) && acc.head.add(head)
+      isTruthy(tail) && acc.tail.add(tail)
+      isTruthy(kind) && acc.kind.add(kind)
+      isTruthy(technology) && acc.technology.add(technology)
+      if (isTruthy(r.description) && !acc.description.some(isDeepEqual(r.description))) {
+        acc.description.push(r.description)
+      }
+      return acc
+    }, {
+      kind: new Set<aux.RelationKind<A>>(),
+      color: new Set<Color>(),
+      line: new Set<RelationshipLineType>(),
+      head: new Set<RelationshipArrowType>(),
+      tail: new Set<RelationshipArrowType>(),
+      title: new Set<string>(),
+      technology: new Set<string>(),
+      description: [] as MarkdownOrString[],
+    }),
+  )
+
+  return exact({
+    tags: tags ?? undefined,
+    relations,
+    navigateTo,
+    kind: only([...commonProperties.kind]),
+    title: only([...commonProperties.title]),
+    color: only([...commonProperties.color]),
+    line: only([...commonProperties.line]),
+    head: only([...commonProperties.head]),
+    tail: only([...commonProperties.tail]),
+    technology: only([...commonProperties.technology]),
+    description: only(commonProperties.description),
+  })
+}

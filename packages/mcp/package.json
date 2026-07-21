@@ -1,0 +1,95 @@
+{
+  "name": "@likec4/mcp",
+  "description": "Model Context Protocol server for LikeC4",
+  "license": "MIT",
+  "version": "1.59.0",
+  "bugs": "https://github.com/likec4/likec4/issues",
+  "homepage": "https://likec4.dev",
+  "author": "Denis Davydkov <denis@davydkov.com>",
+  "type": "module",
+  "bin": {
+    "likec4-mcp": "bin/likec4-mcp.mjs"
+  },
+  "engines": {
+    "node": ">=22.22.3"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "**/package.json",
+    "!**/__*/**",
+    "!**/*.spec.*",
+    "!**/*.map"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/likec4/likec4.git",
+    "directory": "packages/mcp"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public",
+    "exports": {
+      ".": "./dist/index.mjs",
+      "./package.json": "./package.json"
+    }
+  },
+  "keywords": [
+    "likec4",
+    "mcp",
+    "model context protocol",
+    "server"
+  ],
+  "scripts": {
+    "typecheck": "tsc -b --verbose",
+    "build": "tsdown",
+    "preinspector": "tsdown",
+    "inspector": "DANGEROUSLY_OMIT_AUTH=1 LIKEC4_WORKSPACE=../../examples pnpx @modelcontextprotocol/inspector node bin/likec4-mcp.mjs",
+    "pack": "pnpm pack",
+    "postpack": "likec4ops postpack",
+    "clean": "likec4ops clean",
+    "test": "vitest run --no-isolate",
+    "vitest:ui": "vitest --no-isolate --ui",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@hpcc-js/wasm-graphviz": "catalog:externals",
+    "bundle-require": "catalog:externals",
+    "esbuild": "catalog:esbuild",
+    "std-env": "catalog:externals"
+  },
+  "devDependencies": {
+    "@hono/mcp": "catalog:hono",
+    "@hono/node-server": "catalog:hono",
+    "@likec4/config": "workspace:*",
+    "@likec4/core": "workspace:*",
+    "@likec4/devops": "workspace:*",
+    "@likec4/language-server": "workspace:*",
+    "@likec4/language-services": "workspace:*",
+    "@likec4/layouts": "workspace:*",
+    "@likec4/log": "workspace:*",
+    "@likec4/tsconfig": "workspace:*",
+    "@modelcontextprotocol/sdk": "catalog:mcp",
+    "@types/node": "catalog:",
+    "@vitest/ui": "catalog:vitest",
+    "citty": "catalog:utils",
+    "defu": "catalog:utils",
+    "hono": "catalog:hono",
+    "langium": "catalog:langium",
+    "remeda": "catalog:utils",
+    "tinyrainbow": "catalog:utils",
+    "tsdown": "catalog:tsdown",
+    "tsx": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:",
+    "type-fest": "catalog:externals",
+    "unctx": "catalog:utils",
+    "vitest": "catalog:vitest",
+    "vscode-uri": "catalog:vscode",
+    "zod": "catalog:externals"
+  }
+}

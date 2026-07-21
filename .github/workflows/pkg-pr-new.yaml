@@ -1,0 +1,43 @@
+name: pkg-pr-new
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  NODE_ENV: production
+  CLOUDFLARE_ENV: production
+  FORCE_COLOR: true
+  DO_NOT_TRACK: '1'
+
+jobs:
+  publish:
+    timeout-minutes: 5
+    runs-on: ubuntu-24.04-arm
+    if: ${{ github.repository_owner == 'likec4'}}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: 🛠️ bootstrap
+        uses: ./.github/actions/bootstrap
+
+      - name: ⚙️ build
+        run: |
+          pnpm turbo run pack --filter="!./apps/*"
+
+      - name: publish
+        run: |
+          pnpx pkg-pr-new publish --pnpm --comment=update \
+            './packages/core' \
+            './packages/config' \
+            './packages/icons' \
+            './packages/log' \
+            './packages/layouts' \
+            './packages/diagram' \
+            './packages/language-server' \
+            './packages/likec4' \
+            './packages/mcp' \
+            './styled-system/styles'

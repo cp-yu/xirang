@@ -1,0 +1,148 @@
+---
+title: Specification
+description: How to tailor LikeC4 to your context, terms and needs
+sidebar: 
+  label: Specification
+  order: 2
+tableOfContents:
+  maxHeadingLevel: 6  
+---
+
+In the `specification`, you define your notation.
+
+## Element kind
+
+Defines element kinds that are used in the model:
+
+```likec4 copy
+specification {
+  // Define whatever you want
+  element user
+  element cloud
+  element system
+  element application
+  element component
+  element controller
+  element microservice
+  element queue
+  element restapi
+  element graphqlMutation
+  element repository
+  element database
+  element pgTable
+}
+```
+
+You'll learn later that element kinds may have properties and define styles:
+
+```likec4
+specification {
+  element queue {
+    title 'Kafka'
+    description 'Kafka queue'
+    technology 'kafka topic'
+    notation 'Kafka Topic'
+    style {
+      shape queue
+    }
+  }
+}
+```
+
+## Relationship
+
+Relationship kinds may define tags, properties (`title`, `description`, `technology`, `notation`, links) and visual styles:
+
+```likec4
+specification {
+  relationship async {
+    #tcp
+    title 'Asynchronous'
+    description 'Communication over a message broker'
+    technology 'Kafka'
+    notation 'Async'
+    link https://example.com/async
+    multiple true
+    line dotted
+    color amber
+  }
+  relationship subscribes
+  relationship is-downstream-of
+
+  tag tcp
+}
+```
+
+These properties are inherited by every relationship of that kind, unless the relationship overrides them (tags are merged):
+
+```likec4
+model {
+  // inherits the title and style defined for the 'async' kind
+  ui .async backend
+
+  // overrides the title, keeps the inherited style
+  ui .async db 'reads from'
+}
+```
+
+More in the [relationships](/dsl/relationships/#relationship-kinds)
+
+## Tag
+
+Tags can be used to mark, group, or filter elements/relationships/views, or to add additional semantics, like `#deprecated`, `#epic-123`, or `#team2`.
+
+```likec4
+specification {
+  tag deprecated
+  tag epic-123
+  tag team2
+}
+```
+
+You can assign colors:
+
+```likec4
+specification {
+  tag deprecated {
+    color #FF0000 // or `rgb(255 0 0)` see below
+  }
+}
+```
+
+You can add tags to element kinds:
+
+```likec4
+specification {
+  // Now every kafka-topic will be marked with the infra and data-lake tags
+  element kafka-topic {
+    #infra #data-lake
+  }
+  tag infra
+  tag data-lake
+}
+```
+
+## Color
+
+Custom colors can be defined to extend built-in themes. Once defined in the specification, they can be used alongside the theme colors.
+
+```likec4
+specification {
+  color custom-color1 #F00
+  color custom-color2 #AABBCC
+  color custom-color3 rgb(255, 0, 0)
+  color custom-color4 rgb(100 150 200)
+  color custom-color5 rgba(44, 8, 128, 0.9)
+  color custom-color6 rgba(255, 200, 100, 50%) 
+
+  element person {
+    style {
+      color custom-color1
+    }
+  }
+}
+``` 
+
+:::note
+Only base colors with 3, 6, or 8-character hex codes, and `rgb()`/`rgba()` formats are supported. The reason is that to draw a node, we need not only a fill color but also a border color and text color. The same applies to the color of edges, where a line color, label background color, and text color are required. Therefore, LikeC4 generates a color palette used to build a color scheme from the provided base color.
+:::

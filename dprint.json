@@ -1,0 +1,67 @@
+{
+  "lineWidth": 120,
+  "newLineKind": "lf",
+  "incremental": true,
+  "useTabs": false,
+  "typescript": {
+    "semiColons": "asi",
+    "operatorPosition": "maintain",
+    "bracePosition": "maintain",
+    "trailingCommas": "onlyMultiLine",
+    "conditionalType.operatorPosition": "maintain",
+    "binaryExpression.operatorPosition": "maintain",
+    "importDeclaration.sortTypeOnlyImports": "first",
+    "importDeclaration.preferSingleLine": false,
+    "exportDeclaration.preferSingleLine": false,
+    "quoteStyle": "alwaysSingle",
+    "nextControlFlowPosition": "maintain",
+    "jsxOpeningElement.bracketPosition": "maintain",
+    "jsx.quoteStyle": "preferDouble",
+    "jsxSelfClosingElement.bracketPosition": "maintain",
+    "jsx.bracketPosition": "maintain",
+    "unionAndIntersectionType.preferHanging": false,
+    "unionAndIntersectionType.preferSingleLine": false
+  },
+  "json": {
+  },
+  "excludes": [
+    "**/node_modules",
+    "**/*-lock.json",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+    ".changeset",
+    ".turbo",
+    ".astro",
+    ".vscode",
+    ".vscode-test-web",
+    ".next",
+    ".fleet",
+    "dist",
+    "packages/icons/**",
+    "packages/*/contrib",
+    "packages/*/lib",
+    "**/routeTree.gen.ts",
+    "packages/vscode/src/meta.ts",
+    "packages/*/src/generated",
+    "packages/layouts/src/graphviz/ai/prompt-system.md",
+    "styled-system/preset/src/generated.ts",
+    "schemas/likec4-config.schema.json"
+  ],
+  "markdown": {
+  },
+  "toml": {},
+  "yaml": {
+    "quotes": "preferSingle"
+  },
+  "malva": {},
+  "markup": {},
+  "plugins": [
+    "https://plugins.dprint.dev/typescript-0.96.0.wasm",
+    "https://plugins.dprint.dev/json-0.21.3.wasm",
+    "https://plugins.dprint.dev/markdown-0.21.1.wasm",
+    "https://plugins.dprint.dev/toml-0.7.0.wasm",
+    "https://plugins.dprint.dev/g-plane/malva-v0.15.3.wasm",
+    "https://plugins.dprint.dev/g-plane/markup_fmt-v0.27.0.wasm",
+    "https://plugins.dprint.dev/g-plane/pretty_yaml-v0.6.0.wasm"
+  ]
+}

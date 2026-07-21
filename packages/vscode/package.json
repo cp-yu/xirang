@@ -1,0 +1,392 @@
+{
+  "name": "likec4-vscode",
+  "version": "1.59.0",
+  "private": true,
+  "pricing": "Free",
+  "publisher": "likec4",
+  "displayName": "LikeC4",
+  "description": "Support for the LikeC4 modeling language",
+  "homepage": "https://likec4.dev",
+  "author": "Denis Davydkov <denis@davydkov.com>",
+  "license": "MIT",
+  "sponsor": {
+    "url": "https://github.com/sponsors/davydkov"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/likec4/likec4.git",
+    "directory": "packages/vscode"
+  },
+  "qna": false,
+  "bugs": {
+    "url": "https://github.com/likec4/likec4/issues",
+    "email": "denis@davydkov.com"
+  },
+  "vsce": {
+    "dependencies": true
+  },
+  "scripts": {
+    "generate": "vscode-ext-gen --scope likec4 --output src/meta.ts",
+    "open-web": "turbo run build && pnpx @vscode/test-web --open-devtools --extensionDevelopmentPath=. ../likec4/dev",
+    "typecheck": "tsc -b --verbose",
+    "build:turbo": "turbo run build --log-prefix=none --log-order=grouped",
+    "build": "tsdown",
+    "lint": "run -T eslint src/ --fix",
+    "clean": "pnpm rimraf lib contrib dist src/generated",
+    "package-vsix": "tsx scripts/package-vsix.mts",
+    "package": "pnpm run package-vsix",
+    "vsce:pack": "pnpx vsce package",
+    "vsce:publish": "pnpx vsce publish --skip-duplicate"
+  },
+  "engines": {
+    "vscode": "^1.110.0"
+  },
+  "keywords": [
+    "architecture",
+    "architecture-as-a-code",
+    "diagram",
+    "c4"
+  ],
+  "categories": [
+    "Programming Languages",
+    "Visualization"
+  ],
+  "type": "module",
+  "icon": "data/logo256.png",
+  "galleryBanner": {
+    "color": "#111111",
+    "theme": "dark"
+  },
+  "capabilities": {
+    "virtualWorkspaces": true,
+    "untrustedWorkspaces": {
+      "supported": true
+    }
+  },
+  "contributes": {
+    "jsonValidation": [
+      {
+        "fileMatch": [
+          ".likec4rc",
+          ".likec4.config.json",
+          "likec4.config.json"
+        ],
+        "url": "./data/config.schema.json"
+      }
+    ],
+    "languages": [
+      {
+        "id": "json5",
+        "filenames": [
+          ".likec4rc",
+          ".likec4.config.json",
+          "likec4.config.json"
+        ],
+        "icon": {
+          "light": "data/icon-rc-256.png",
+          "dark": "data/icon-rc-256.png"
+        }
+      },
+      {
+        "id": "json5",
+        "filenamePatterns": [
+          "**/*.likec4.snap"
+        ],
+        "icon": {
+          "light": "data/icon-snap-256.png",
+          "dark": "data/icon-snap-256.png"
+        }
+      },
+      {
+        "id": "likec4",
+        "aliases": [
+          "LikeC4",
+          "Like C4"
+        ],
+        "extensions": [
+          ".c4",
+          ".likec4",
+          ".like-c4"
+        ],
+        "configuration": "language-configuration.json",
+        "icon": {
+          "light": "data/icon-256-light.png",
+          "dark": "data/icon-256-dark.png"
+        }
+      }
+    ],
+    "snippets": [
+      {
+        "language": "likec4",
+        "path": "data/likec4-snippets.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "likec4",
+        "scopeName": "source.likec4",
+        "path": "likec4.tmLanguage.json",
+        "embeddedLanguages": {
+          "meta.embedded.block.markdown": "markdown"
+        }
+      }
+    ],
+    "configuration": {
+      "title": "%ext.title%",
+      "properties": {
+        "likec4.graphviz.mode": {
+          "markdownDescription": "If you are experiencing issues with the bundled WASM Graphviz, try switch to local binary.  \nThe local binary mode is slower, but more stable and supports larger diagrams.  \n(`dot` must be installed and available in PATH or configured via `#likec4.graphviz.path#`)",
+          "type": "string",
+          "enum": [
+            "wasm",
+            "binary"
+          ],
+          "default": "wasm",
+          "enumDescriptions": [
+            "Bundled wasm (faster)",
+            "Local binary (slower)"
+          ]
+        },
+        "likec4.graphviz.path": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Path to the Graphviz `dot` executable.\nIf empty, extension will try to find it in the PATH."
+        },
+        "likec4.trace.extension": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Enable trace logging for the LikeC4 extension."
+        },
+        "likec4.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VS Code and the LikeC4 language server."
+        },
+        "likec4.formatting.quoteStyle": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "single",
+            "double",
+            "ignore"
+          ],
+          "default": "auto",
+          "markdownDescription": "Default quote style to use for the LikeC4 formatter. If `ignore`, the formatter will not change the quote style. If `auto`, the formatter will use the quote style of the file it is formatting."
+        },
+        "likec4.node.path": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Path to the Node.js executable used to run the language server. If empty, uses `node` from PATH."
+        },
+        "likec4.exclude": {
+          "type": "array",
+          "default": [],
+          "markdownDescription": "Configure glob patterns for excluding files and folders from LikeC4 processing.  \nThe pattern format is the same as `exclude` in `likec4.config.json`.  \nExample:\n```js\n\"**/generated/**\"\n\"**/.worktrees/**\"\n```",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "menus": {
+      "webview/context": [
+        {
+          "command": "likec4.preview-context-open-source",
+          "when": "activeWebviewPanelId == 'likec4-preview'"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "likec4.preview-context-open-source",
+          "when": "activeWebviewPanelId == 'likec4-preview'"
+        },
+        {
+          "command": "likec4.locate",
+          "when": "activeWebviewPanelId == 'likec4-preview'"
+        },
+        {
+          "command": "likec4.semantic-layout-with-ai",
+          "when": "chatIsEnabled && (resourceLangId == likec4 || activeWebviewPanelId == 'likec4-preview')"
+        },
+        {
+          "command": "likec4.restart",
+          "when": "likec4.activated"
+        },
+        {
+          "command": "likec4.reload-projects",
+          "when": "likec4.activated"
+        },
+        {
+          "command": "likec4.validate-layout",
+          "when": "likec4.activated"
+        },
+        {
+          "command": "likec4.open-projects-overview",
+          "when": "likec4.activated"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "likec4.open-preview",
+        "title": "%ext.cmd.open-preview%",
+        "category": "%ext.title%"
+      },
+      {
+        "command": "likec4.restart",
+        "title": "%ext.cmd.restart%",
+        "category": "%ext.title%"
+      },
+      {
+        "command": "likec4.reload-projects",
+        "title": "%ext.cmd.reload-projects%",
+        "category": "%ext.title%"
+      },
+      {
+        "command": "likec4.preview-context-open-source",
+        "title": "%ext.cmd.preview-context-open-source%",
+        "category": "%ext.title%"
+      },
+      {
+        "command": "likec4.locate",
+        "title": "%ext.cmd.locate%",
+        "category": "%ext.title%"
+      },
+      {
+        "command": "likec4.print-dot-of-currentview",
+        "title": "%ext.cmd.print-dot-of-currentview%",
+        "category": "%ext.title%"
+      },
+      {
+        "command": "likec4.validate-layout",
+        "title": "%ext.cmd.validate-layout%",
+        "category": "%ext.title%"
+      },
+      {
+        "command": "likec4.open-projects-overview",
+        "title": "%ext.cmd.open-projects-overview%",
+        "category": "%ext.title%"
+      },
+      {
+        "command": "likec4.semantic-layout-with-ai",
+        "title": "%ext.cmd.semantic-layout-with-ai%",
+        "category": "%ext.title%"
+      }
+    ],
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "likec4",
+        "label": "LikeC4"
+      }
+    ],
+    "chatSkills": [
+      {
+        "path": "./data/skills/likec4-dsl/SKILL.md",
+        "when": "resourceLangId == likec4"
+      }
+    ],
+    "chatParticipants": [
+      {
+        "id": "likec4.layout-assistant",
+        "fullName": "LikeC4 Layout Assistant",
+        "name": "likec4-layout",
+        "description": "What view would you like to enhance?",
+        "isSticky": true,
+        "when": "resourceLangId == likec4 || activeWebviewPanelId == 'likec4-preview'",
+        "commands": [
+          {
+            "name": "semantic",
+            "description": "Suggest improvements to the diagram layout based on its semantics"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledApiProposals": [
+    "chatParticipantAdditions"
+  ],
+  "activationEvents": [
+    "workspaceContains:**/*.{c4,likec4,like-c4}",
+    "onWebviewPanel:likec4-preview"
+  ],
+  "main": "dist/node/extension.cjs",
+  "browser": "dist/browser/extension.cjs",
+  "imports": {
+    "#useDocumentSelector": {
+      "browser": "./src/browser/useDocumentSelector.ts",
+      "default": "./src/node/useDocumentSelector.ts"
+    },
+    "#useLanguageClient": {
+      "browser": "./src/browser/useLanguageClient.ts",
+      "default": "./src/node/useLanguageClient.ts"
+    },
+    "#useTelemetry": {
+      "browser": "./src/browser/useTelemetry.ts",
+      "default": "./src/node/useTelemetry.ts"
+    }
+  },
+  "dependencies": {
+    "bundle-require": "catalog:externals",
+    "esbuild": "catalog:esbuild-wasm",
+    "fdir": "catalog:externals",
+    "std-env": "catalog:externals"
+  },
+  "devDependencies": {
+    "@hpcc-js/wasm-graphviz": "catalog:externals",
+    "@likec4/config": "workspace:*",
+    "@likec4/core": "workspace:*",
+    "@likec4/language-server": "workspace:*",
+    "@likec4/language-services": "workspace:*",
+    "@likec4/mcp": "workspace:*",
+    "@likec4/layouts": "workspace:*",
+    "@likec4/log": "workspace:*",
+    "@likec4/tsconfig": "workspace:*",
+    "@likec4/vscode-preview": "workspace:*",
+    "@reactive-vscode/vueuse": "^0.4.1",
+    "@types/node": "catalog:",
+    "@types/which": "^3.0.4",
+    "@types/vscode": "catalog:vscode",
+    "@vscode/extension-telemetry": "^1.5.2",
+    "@rolldown/plugin-node-polyfills": "catalog:tsdown",
+    "esm-env": "catalog:utils",
+    "execa": "^9.5.3",
+    "pathe": "catalog:utils",
+    "fast-equals": "catalog:utils",
+    "langium": "catalog:langium",
+    "nanoid": "catalog:utils",
+    "obuild": "catalog:obuild",
+    "p-queue": "catalog:utils",
+    "p-timeout": "catalog:utils",
+    "playwright": "catalog:",
+    "pretty-ms": "^9.3.0",
+    "reactive-vscode": "^0.4.1",
+    "remeda": "catalog:utils",
+    "tsdown": "catalog:tsdown",
+    "tslib": "^2.8.1",
+    "tsx": "catalog:",
+    "turbo": "catalog:",
+    "type-fest": "catalog:externals",
+    "typescript": "catalog:",
+    "ufo": "catalog:utils",
+    "vscode-ext-gen": "^1.0.2",
+    "vscode-jsonrpc": "catalog:vscode",
+    "vscode-languageclient": "catalog:vscode",
+    "vscode-languageserver": "catalog:vscode",
+    "vscode-languageserver-types": "catalog:vscode",
+    "vscode-messenger": "^0.5.1",
+    "vscode-messenger-common": "^0.5.1",
+    "vscode-uri": "catalog:vscode",
+    "zod": "catalog:externals",
+    "zx": "catalog:"
+  }
+}
