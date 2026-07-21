@@ -1,9 +1,9 @@
 ## Context
 
-当前仓库仍以 OPSX 为产品身份，使用 `opsx` CLI 命令和 `opsx/` 工作区；LikeC4 通过 `npx likec4` 独立启动，只能在元素详情中看到 Spec 路径而不能直接浏览内容。用户需要同时理解两个命令、两个工具和目录契约。新目标是建立统一的 OPSX 开发框架产品身份，使 CLI、工作区和内置语义浏览器成为单一安装与单一命令体验。
+当前仓库仍以 OpenSpec 为产品身份，使用 `openspec` CLI 命令和 `openspec/` 工作区；LikeC4 通过 `npx likec4` 独立启动，只能在元素详情中看到 Spec 路径而不能直接浏览内容。用户需要同时理解两个命令、两个工具和目录契约。新目标是建立统一的 OPSX 开发框架产品身份，使 CLI、工作区和内置语义浏览器成为单一安装与单一命令体验。
 
 已确认约束：
-- 这是一次性产品切换，不提供 `opsx` 命令别名或 `opsx/` 回退。
+- 这是一次性产品切换，不提供 `openspec` 命令别名或 `openspec/` 回退。
 - LikeC4 成为 OPSX 内置组件，不再作为独立用户依赖暴露。
 - 第一阶段只支持本地交互 Web，不支持 Spec 编辑或静态站点构建。
 - Spec 内容按需读取，不进入 LikeC4 模型或持久快照。
@@ -12,8 +12,8 @@
 
 **Goals:**
 
-- 一次性将 CLI 可执行命令、帮助、completion 和所有 active command references 从 `opsx` 切换到 `opsx`。
-- 一次性将项目路径常量、发现、init/update、config、change、spec、sync/archive、validate、bootstrap 和 workflow artifact generation 从 `opsx/` 切换到 `.opsx/`。
+- 一次性将 CLI 可执行命令、帮助、completion 和所有 active command references 从 `openspec` 切换到 `opsx`。
+- 一次性将项目路径常量、发现、init/update、config、change、spec、sync/archive、validate、bootstrap 和 workflow artifact generation 从 `openspec/` 切换到 `.opsx/`。
 - 将 LikeC4 `v1.59.0` 完整源码通过 Git subtree 纳入 `likec4/`，保留其 monorepo 包边界，并明确 upstream tag/commit 与 MIT License。
 - 用顶层 `opsx view` 统一启动项目语义浏览器，替代独立 `arch preview` 和终端 dashboard。
 - 在元素详情的条件式 `Specs` 标签页中按需安全读取并渲染一个或多个 `.opsx/specs/**/*.md` 全文。
@@ -21,19 +21,19 @@
 
 **Non-Goals:**
 
-- 不提供 `opsx` 到 `opsx` 的命令别名或逐步迁移路径。
-- 不在 `opsx/` 和 `.opsx/` 之间提供双读、双写或自动迁移工具。
+- 不提供 `openspec` 到 `opsx` 的命令别名或逐步迁移路径。
+- 不在 `openspec/` 和 `.opsx/` 之间提供双读、双写或自动迁移工具。
 - 不把 Spec 内容投影进 LikeC4 model 或生成快照文件。
 - 不在元素详情中编辑 Spec 或提交修改。
 - 不在第一阶段提供静态网站构建或离线 Spec 内容打包。
 - 不改变 LikeC4 DSL、模型结构或现有架构导航逻辑。
-- 不支持 npm 发布或向 `@fission-ai/opsx` 回移功能。
+- 不支持 npm 发布或向 `@fission-ai/openspec` 回移功能。
 
 ## Decisions
 
 ### 1. 产品身份切换：一次性无兼容层
 
-**决策**：CLI、工作区和所有 active 引用一次性切换到 OPSX 身份，不提供 `opsx` 别名或 `opsx/` 回退。
+**决策**：CLI、工作区和所有 active 引用一次性切换到 OPSX 身份，不提供 `openspec` 别名或 `openspec/` 回退。
 
 **理由**：
 - 双产品身份会造成长期歧义：用户不知道该用哪个命令，文档和 Agent 指令需要同时维护两套路径。
@@ -41,8 +41,8 @@
 - 一次性切换使 durable source、CLI 表面和生成制品立即达成一致，避免中间态冲突。
 
 **替代方案**：
-- **逐步迁移**：CLI 同时支持 `opsx` 和 `opsx`，工作区双读 `opsx/` 与 `.opsx/`。被拒绝，因为增加状态机复杂度且无明确外部迁移需求。
-- **只改工作区**：保留 `opsx` 命令，只迁移 `opsx/` → `.opsx/`。被拒绝，因为 CLI 名称与产品身份不一致。
+- **逐步迁移**：CLI 同时支持 `openspec` 和 `opsx`，工作区双读 `openspec/` 与 `.opsx/`。被拒绝，因为增加状态机复杂度且无明确外部迁移需求。
+- **只改工作区**：保留 `openspec` 命令，只迁移 `openspec/` → `.opsx/`。被拒绝，因为 CLI 名称与产品身份不一致。
 
 ### 2. LikeC4 源码位置：根目录完整 subtree
 

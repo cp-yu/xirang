@@ -10,22 +10,21 @@ OPSX 项目 SHALL 保持一致的目录结构用于 specifications 和 changes�
 - **THEN** 它 SHALL 拥有此结构：
 ```
 .opsx/
-├── project.md              # 项目特定上下文
-├── AGENTS.md               # AI assistant 指令
-├── specs/                  # 当前部署的 capabilities
-│   └── [capability]/       # 单一、聚焦的 capability
-│       ├── spec.md         # WHAT: 行为契约
-│       └── design.md       # HOW（可选，用于已建立模式）
-└── changes/                # 提议的 changes
-    ├── [change-name]/      # 描述性 change 标识符
-    │   ├── proposal.md     # 为什么、什么和影响
-    │   ├── tasks.md        # 实现清单
-    │   ├── design.md       # 技术决策（可选）
-    │   └── specs/          # Delta requirements
-    │       └── [capability]/
-    │           └── spec.md # ADDED/MODIFIED/REMOVED/RENAMED requirements
-    └── archive/            # 已完成的 changes
-        └── YYYY-MM-DD-[name]/
+├── architecture/          # LikeC4 architecture intent and Spec indexes
+├── specs/                 # Durable behavior source
+│   └── [capability]/
+│       ├── spec.md         # WHAT: behavior contract
+│       └── design.md       # HOW (optional established pattern)
+├── changes/               # Change-local compilation scaffolding
+│   ├── [change-name]/
+│   │   ├── proposal.md
+│   │   ├── tasks.md
+│   │   ├── design.md       # Optional lowering decisions
+│   │   └── specs/
+│   │       └── [capability]/spec.md
+│   └── archive/            # Completed change history
+├── references/            # Managed Agent workflow protocols
+└── config.yaml            # Project configuration
 ```
 
 #### Scenario: [REMOVED] Initializing project structure

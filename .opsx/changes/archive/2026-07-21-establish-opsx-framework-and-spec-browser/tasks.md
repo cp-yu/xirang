@@ -7,19 +7,32 @@
 **Files**:
 - Modify: `package.json`
 - Create: `bin/opsx.js`
-- Delete: `bin/opsx.js`
+- Delete: `bin/openspec.js`
 - Modify: `src/core/config.ts`
+- Modify: `src/core/global-config.ts`
+- Modify: `src/telemetry/**/*.ts`
+- Modify: `src/ui/**/*.ts`
+- Modify: `scripts/**/*`
+- Modify: `build.js`
+- Modify: `flake.nix`
+- Modify: `LICENSE`
+- Modify: `MAINTAINERS.md`
+- Modify: `eslint.config.js`
+- Modify: `AGENTS.md`
+- Delete: `package-lock.json`
+- Move: `assets/openspec_*` → `assets/opsx_*`
 - Modify: `src/cli/index.ts`
 - Modify: `src/commands/completion.ts`
 - Modify: `src/core/completions/**/*`
 - Test: `test/cli-e2e/basic.test.ts`
 - Test: `test/core/completions/**/*.test.ts`
+- Test: `test/ui/welcome-screen.test.ts`
 
 **Requirements**:
 - 唯一项目常量为 `OPSX_DIR_NAME = '.opsx'`
 - npm bin 与 Commander root name 仅为 `opsx`
 - completion scripts 与安装路径仅注册 `opsx`
-- 不提供 `opsx` bin、alias 或 legacy project root constant
+- 不提供 `openspec` bin、alias 或 legacy project root constant
 
 #### Checks
 
@@ -31,8 +44,8 @@
 
 - [x] C2 验证无旧命令入口
   - Verifies: `specs/opsx-framework-identity/spec.md` / Requirement "不提供迁移兼容层" / Scenario "无命令别名"
-  - Command: `test ! -e bin/opsx.js && node -e "const p=require('./package.json'); if ('opsx' in p.bin) process.exit(1)"`
-  - Expect: 仓库不再提供 `opsx` 可执行入口
+  - Command: `test ! -e bin/openspec.js && node -e "const p=require('./package.json'); if ('openspec' in p.bin) process.exit(1)"`
+  - Expect: 仓库不再提供 `openspec` 可执行入口
 
 - [x] C3 验证 shell completion identity
   - Verifies: `specs/opsx-framework-identity/spec.md` / Requirement "CLI 可执行命令 SHALL 为 opsx" / Scenario "Shell completion"
@@ -47,6 +60,8 @@
 - Modify: `src/core/init.ts`
 - Modify: `src/core/update.ts`
 - Modify: `src/core/project-config.ts`
+- Modify: `src/core/legacy-cleanup.ts`
+- Modify: `src/core/**/*.ts`
 - Modify: `src/core/{archive,backfill-specs,change-sync,list,scenario-labels,spec-registry,specs-apply,workflow-installation}.ts`
 - Modify: `src/commands/**/*.ts`
 - Modify: `src/utils/**/*.ts`
@@ -83,12 +98,14 @@
 
 ### Task 3: 迁移 workflow、subagent 与 reference 生成 surface
 
-**Goal**: 从源模板消除 active `opsx` 命令和 `opsx/` 路径，并将受管 reference 文件改为 `opsx-*`。
+**Goal**: 从源模板消除 active `openspec` 命令和 `openspec/` 路径，并将受管 reference 文件改为 `opsx-*`。
 
 **Files**:
 - Modify: `src/core/templates/**/*`
 - Modify: `src/core/shared/{skill-generation,subagent-generation}.ts`
 - Modify: `src/core/{relations,workflow-installation,workflow-surface}.ts`
+- Modify: `src/core/relations/**/*.ts`
+- Modify: `src/core/command-generation/**/*.ts`
 - Modify: `schemas/**/*`
 - Modify: `test/core/templates/**/*.test.ts`
 - Modify: `test/core/shared/**/*.test.ts`
@@ -155,6 +172,7 @@
 - Move: `opsx/` → `.opsx/`
 - Modify: `.gitignore`
 - Modify: `.opsx/architecture/**/*.c4`
+- Modify: `.opsx/architecture/migration-report.json`
 - Modify: `.opsx/specs/**/*.md`
 - Modify: `.opsx/references/**/*.md`
 - Modify: `.pi/skills/**/*`
@@ -170,7 +188,7 @@
 
 - [x] C1 验证完整工作区结构
   - Verifies: `specs/opsx-framework-identity/spec.md` / Requirement "工作区目录结构 SHALL 完整" / Scenario "标准工作区结构"
-  - Command: `test -d .opsx/architecture && test -d .opsx/specs && test -d .opsx/changes && test -d .opsx/references && test ! -d opsx`
+  - Command: `test -d .opsx/architecture && test -d .opsx/specs && test -d .opsx/changes && test -d .opsx/references && test -f .opsx/config.yaml && test ! -d openspec`
   - Expect: durable source 仅位于 `.opsx/`
 
 - [x] C2 验证版本控制边界
@@ -180,8 +198,8 @@
 
 - [x] C3 验证 active source identity
   - Verifies: `specs/cli-command-reference-consistency/spec.md` / Requirement "Cleanup verification reports remaining stale references by class" / Scenario "清理后审计"
-  - Command: `node bin/opsx.js validate establish-opsx-framework-and-spec-browser --strict`
-  - Expect: 当前 change 在 `.opsx/` steady state 下通过严格验证
+  - Command: `node scripts/audit-opsx-identity.mjs && node bin/opsx.js validate --specs --strict && node bin/opsx.js arch validate && node bin/opsx.js sync establish-opsx-framework-and-spec-browser --no-verify`
+  - Expect: active identity clean，formal Specs 与 LikeC4 valid，且已同步 change 无待处理 delta
 
 ### Task 6: 纳入 LikeC4 v1.59.0 完整源码 subtree
 
@@ -317,11 +335,13 @@
 
 **Files**:
 - Create: `test/e2e/spec-browser.spec.ts`
+- Create: `test/fixtures/spec-browser/**/*`
 - Create: `playwright.config.ts`
 - Modify: `README.md`
 - Modify: `docs/**/*.md`
 - Modify: `.github/workflows/opsx-v2-cross-platform.yml`
 - Modify: `package.json`
+- Modify: `pnpm-lock.yaml`
 
 **Requirements**:
 - E2E 覆盖无 Spec、单 Spec、多 Spec、长文滚动和文件热更新
@@ -331,24 +351,24 @@
 
 #### Checks
 
-- [ ] C1 验证浏览器交互与响应式布局
+- [x] C1 验证浏览器交互与响应式布局
   - Verifies: `specs/spec-content-browser/spec.md` / Requirement "桌面与移动视口兼容" / Scenario "桌面视口"
   - Verifies: `specs/spec-content-browser/spec.md` / Requirement "桌面与移动视口兼容" / Scenario "移动视口"
   - Verifies: `specs/spec-content-browser/spec.md` / Requirement "文件监听与热更新" / Scenario "Spec 文件修改"
   - Command: `pnpm exec playwright test test/e2e/spec-browser.spec.ts`
   - Expect: 桌面与移动截图、滚动、切换和热更新通过
 
-- [ ] C2 验证完整工程
+- [x] C2 验证完整工程
   - Verifies: `specs/opsx-framework-identity/spec.md` / Requirement "CLI 可执行命令 SHALL 为 opsx" / Scenario "运行 CLI 命令"
   - Command: `pnpm lint && pnpm build && pnpm test && pnpm --dir likec4 build && pnpm --dir likec4 test`
   - Expect: 根项目与内置 LikeC4 全部通过
 
-- [ ] C3 验证 active source 与文档清洁度
+- [x] C3 验证 active source 与文档清洁度
   - Verifies: `specs/cli-command-reference-consistency/spec.md` / Requirement "Cleanup verification reports remaining stale references by class" / Scenario "清理后审计"
   - Command: `node scripts/audit-opsx-identity.mjs`
   - Expect: active source 不含旧 identity；archive history 单独报告且不作为失败
 
-- [ ] C4 验证 Windows CI 配置
+- [x] C4 验证 Windows CI 配置
   - Verifies: `specs/opsx-framework-identity/spec.md` / Requirement "项目工作区 SHALL 为 .opsx" / Scenario "跨平台路径处理"
   - Evidence: `.github/workflows/opsx-v2-cross-platform.yml`
   - Expect: Linux、macOS、Windows jobs 使用 Node.js >=22.22.3 执行完整检查

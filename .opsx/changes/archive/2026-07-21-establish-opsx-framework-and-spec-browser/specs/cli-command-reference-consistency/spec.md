@@ -7,7 +7,7 @@ OPSX SHALL 保持 active user-facing documentation、generated workflow template
 #### Scenario: [ADDED] Active surfaces 不引用已移除命令
 
 - **WHEN** 审计 active 命令引用
-- **THEN** 当前 user-facing documentation 和生成的 Agent instruction surfaces SHALL NOT 引用已移除的命令如 `opsx` 或 `opsx arch preview`
+- **THEN** 当前 user-facing documentation 和生成的 Agent instruction surfaces SHALL NOT 引用任何未出现在当前 `opsx --help` 命令表面的入口
 - **AND** 架构浏览引用 SHALL 使用 `opsx view`
 - **AND** 项目路径引用 SHALL 使用 `.opsx/`
 
@@ -80,9 +80,9 @@ OPSX SHALL 在生成 stale 命令引用的源头清理它们，而不仅在生�
 #### Scenario: [ADDED] 清理后审计
 
 - **WHEN** 清理实现完成
-- **THEN** 仓库搜索 SHALL 确认没有 active surface 仍包含 `opsx` 命令或 `opsx/` 路径引用
+- **THEN** 仓库搜索 SHALL 确认没有 active surface 仍包含 retired product identity 或 non-hidden legacy workspace 路径引用
 - **AND** archive history 下的任何剩余出现 SHALL 与 active 失败分开报告
-- **AND** 验证输出 SHALL 区分有效的 `opsx` 命令引用与 stale `opsx` 引用
+- **AND** 验证输出 SHALL 区分有效的 `opsx` 命令引用与 stale legacy identity 引用
 
 #### Scenario: [REMOVED] Audit after cleanup
 - **WHEN** the cleanup implementation is complete

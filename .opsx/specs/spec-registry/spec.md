@@ -67,6 +67,6 @@ capabilities:
 #### Scenario: Windows 路径处理
 
 - **WHEN** 在 Windows 平台执行 `buildSpecRegistry`
-- **THEN** SHALL 使用 `path.join(projectRoot, 'opsx', 'specs')` 构建基础路径
+- **THEN** SHALL 使用 `path.join(projectRoot, '.opsx', 'specs')` 构建基础路径
 - **AND** SHALL 正确处理反斜杠路径分隔符
 

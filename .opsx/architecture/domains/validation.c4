@@ -16,10 +16,11 @@ model {
     }
 
     registry = capability 'Registry' {
-      description '运行时 cap↔spec 双向映射注册表，提供 getSpecsForCap、getCapsForSpec、getOrphanedSpecs、getUncoveredCaps 查询 API'
-      metadata {
+      description '从 .opsx/specs/ 构建 capability↔Spec registry'
+            metadata {
         capabilityId 'cap.spec.registry'
         status 'active'
+        specs ['.opsx/specs/spec-registry/spec.md']
       }
     }
 

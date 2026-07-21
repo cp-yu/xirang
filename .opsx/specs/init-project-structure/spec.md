@@ -14,8 +14,8 @@ This specification records behavior introduced by change opsx-to-likec4-mega-ref
 - **AND** SHALL 创建 `.opsx/architecture/specification.c4` 模板
 - **AND** SHALL 创建 `.opsx/architecture/domains/` 目录
 - **AND** SHALL 创建 `.opsx/architecture/views.c4` 模板
-- **AND** MUST NOT 创建 `opsx/project.opsx.yaml`
-- **AND** MUST NOT 创建 `opsx/project.opsx.relations.yaml`
+- **AND** MUST NOT 创建 `.opsx/project.opsx.yaml`
+- **AND** MUST NOT 创建 `.opsx/project.opsx.relations.yaml`
 
 #### Scenario: specification.c4 模板内容
 
@@ -23,7 +23,7 @@ This specification records behavior introduced by change opsx-to-likec4-mega-ref
 - **THEN** SHALL 包含 `specification { }`
 - **AND** SHALL 定义 `element domain`
 - **AND** SHALL 定义 `element capability`
-- **AND** SHALL 定义所有 6 种 relationship kinds（invokes, consumes, precedes, constrains, validates）
+- **AND** SHALL 定义所有 5 种 relationship kinds（invokes, consumes, precedes, constrains, validates）
 - **AND** MUST NOT 定义 `relationship belongs_to`
 
 #### Scenario: views.c4 模板内容
@@ -35,5 +35,5 @@ This specification records behavior introduced by change opsx-to-likec4-mega-ref
 #### Scenario: 跨平台路径处理
 
 - **WHEN** 创建目录和文件
-- **THEN** 所有路径 SHALL 使用 `path.join('opsx', 'architecture', ...)`
+- **THEN** 所有路径 SHALL 使用 `path.join('.opsx', 'architecture', ...)`
 - **AND** MUST NOT 硬编码斜杠

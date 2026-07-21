@@ -85,7 +85,7 @@ opsx/
 
 #### Scenario: [MODIFIED] 显示成功摘要
 
-- **WHEN** 初始化成功完成
+- **WHEN** 初始化成功完成且至少配置一个 AI 工具
 - **THEN** 显示摘要，包括：
   - OPSX 结构创建确认
   - 已配置的 AI 工具列表
@@ -94,10 +94,17 @@ opsx/
 - **AND** SHALL NOT 将 `/opsx:*` 作为 getting started 入口
 - **AND** SHALL NOT 展示 commands 或 both 作为生成制品类型
 
+#### Scenario: 未配置工具的成功摘要
+
+- **WHEN** 初始化成功完成但未配置 AI 工具
+- **THEN** 输出 SHALL 确认 `.opsx/` durable core 已创建
+- **AND** SHALL 提示用户再次运行 `opsx init` 配置 workflows
+- **AND** SHALL NOT 输出任何 workflow invocation
+
 #### Scenario: Bootstrap workflow 引导
 
-- **WHEN** `bootstrap-opsx` workflow 包含在固定工作流中且非 extend 模式时
-- **THEN** 成功输出 SHALL 在 getting started 区块之后包含显式的 bootstrap 引导行
+- **WHEN** `bootstrap-arch` workflow 包含在固定工作流中、非 extend 模式且至少配置一个 AI 工具
+- **THEN** 成功输出 SHALL 在 getting started 区块之后包含该工具适配的 bootstrap skill invocation
 
 ### Requirement: Config File Generation
 

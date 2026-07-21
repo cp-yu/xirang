@@ -20,7 +20,7 @@
 - **THEN** SHALL 包含 `specification { }`
 - **AND** SHALL 定义 `element domain`
 - **AND** SHALL 定义 `element capability`
-- **AND** SHALL 定义所有 6 种 relationship kinds（invokes, consumes, precedes, constrains, validates）
+- **AND** SHALL 定义所有 5 种 relationship kinds（invokes, consumes, precedes, constrains, validates）
 - **AND** MUST NOT 定义 `relationship belongs_to`
 
 #### Scenario: views.c4 模板内容

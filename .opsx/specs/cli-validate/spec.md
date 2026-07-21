@@ -101,7 +101,7 @@ The CLI SHALL provide a top-level `validate` command for validating changes and 
 
 #### Scenario: Non-interactive environments do not prompt
 
-- **GIVEN** stdin is not a TTY or `--no-interactive` is provided or environment variable `OPEN_SPEC_INTERACTIVE=0`
+- **GIVEN** stdin is not a TTY or `--no-interactive` is provided or environment variable `OPSX_INTERACTIVE=0`
 - **WHEN** executing `opsx validate` without arguments
 - **THEN** do not prompt interactively
 - **AND** print a helpful hint listing available commands/flags and exit with code 1
@@ -225,12 +225,12 @@ The validate command SHALL handle ambiguous names and explicit type overrides to
 ### Requirement: Interactivity controls
 
 - The CLI SHALL respect `--no-interactive` to disable prompts.
-- The CLI SHALL respect `OPEN_SPEC_INTERACTIVE=0` to disable prompts globally.
+- The CLI SHALL respect `OPSX_INTERACTIVE=0` to disable prompts globally.
 - Interactive prompts SHALL only be shown when stdin is a TTY and interactivity is not disabled.
 
 #### Scenario: Disabling prompts via flags or environment
 
-- **WHEN** `opsx validate` is executed with `--no-interactive` or with environment `OPEN_SPEC_INTERACTIVE=0`
+- **WHEN** `opsx validate` is executed with `--no-interactive` or with environment `OPSX_INTERACTIVE=0`
 - **THEN** the CLI SHALL not display interactive prompts
 - **AND** SHALL print non-interactive hints or chosen outputs as appropriate
 

@@ -1,11 +1,11 @@
 ## Why
 
-当前仓库仍以 OPSX 产品身份、`opsx` 命令和 `opsx/` 工作区运行，而新的目标是一个独立 OPSX 开发框架；同时，LikeC4 仅能展示架构元素的 Spec 路径，不能在元素详情中直接浏览行为规约全文。需要一次性建立统一的 OPSX 身份、`.opsx/` durable workspace 和 CLI 内置语义浏览器，消除双产品、双目录与额外 LikeC4 安装。
+当前仓库仍以 OpenSpec 产品身份、`openspec` 命令和 `openspec/` 工作区运行，而新的目标是一个独立 OPSX 开发框架；同时，LikeC4 仅能展示架构元素的 Spec 路径，不能在元素详情中直接浏览行为规约全文。需要一次性建立统一的 OPSX 身份、`.opsx/` durable workspace 和 CLI 内置语义浏览器，消除双产品、双目录与额外 LikeC4 安装。
 
 ## What Changes
 
-- **BREAKING**：CLI 可执行命令从 `opsx` 一次性切换为 `opsx`，不提供旧命令别名。
-- **BREAKING**：目标项目工作区从 `opsx/` 完整切换为 `.opsx/`；CLI 的发现、读取、生成、验证、同步、归档、bootstrap、配置和 Agent 指令不再回退或双写旧目录。
+- **BREAKING**：CLI 可执行命令从 `openspec` 一次性切换为 `opsx`，不提供旧命令别名。
+- **BREAKING**：目标项目工作区从 `openspec/` 完整切换为 `.opsx/`；CLI 的发现、读取、生成、验证、同步、归档、bootstrap、配置和 Agent 指令不再回退或双写旧目录。
 - 将 LikeC4 `v1.59.0` 完整源码以 Git subtree 纳入根目录 `likec4/`，作为 OPSX 的内置呈现引擎而非独立用户依赖。
 - 用顶层 `opsx view [--port <n>]` 启动内置 Web，替代旧架构专用 preview 和终端 dashboard 语义。
 - 在元素详情中按 `metadata.specs` 索引按需读取并安全渲染一个或多个 `.opsx/specs/**/*.md` 全文；Architecture 继续只保存索引，不复制 Spec 内容。
@@ -38,6 +38,7 @@
 
 #### Added LikeC4 Elements
 
+- `framework.identity`: OPSX 单一产品、CLI identity 与 `.opsx/` durable workspace 合同。
 - `presentation.likec4_engine`: OPSX 内置的 LikeC4 DSL 与交互式 Web 呈现引擎。
 - `presentation.spec_content_gateway`: 依据元素索引受控读取 `.opsx/specs/**/*.md` 的 Preview 数据边界。
 - `presentation.spec_content_panel`: 在元素详情中按需呈现一个或多个 Spec 的只读 UI。
@@ -56,6 +57,7 @@
 
 #### Architecture Relations
 
+- `framework.identity` 约束 CLI init/update 与 Agent workflow templates 仅生成 OPSX identity 和 `.opsx/` 路径。
 - `cli.view_element` 启动内置呈现引擎；呈现引擎消费正式 LikeC4 模型并通过受控 gateway 为 Spec 面板提供内容。
 - Spec 内容加载保持在呈现/Preview 边界内，不进入 Architecture model 或持久化快照。
 
@@ -63,7 +65,7 @@
 
 - CLI 注册、bin 名称、帮助、completion、telemetry command identity 与全部 active command references。
 - 项目路径常量、项目发现、init/update、config、change、spec、sync/archive、validate、bootstrap 和 workflow artifact generation。
-- 当前仓库的 durable source 从 `opsx/` 迁移到 `.opsx/`，包括活动 change 自举迁移。
+- 当前仓库的 durable source 从 `openspec/` 迁移到 `.opsx/`，包括活动 change 自举迁移。
 - 新增根目录 `likec4/` subtree 及其 build/test 编排；修改 LikeC4 `packages/diagram`、`packages/likec4-spa` 与 `packages/vite-plugin`。
 - 增加本地 Preview API、Spec 文件监听、Markdown 渲染、安全路径校验及浏览器测试。
 - 保留 LikeC4 上游来源、固定 tag/commit 与 MIT License。

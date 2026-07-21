@@ -69,7 +69,7 @@ The change show command SHALL support interactive selection when no change name 
 
 #### Scenario: Non-interactive fallback keeps current behavior
 
-- **GIVEN** stdin is not a TTY or `--no-interactive` is provided or environment variable `OPEN_SPEC_INTERACTIVE=0`
+- **GIVEN** stdin is not a TTY or `--no-interactive` is provided or environment variable `OPSX_INTERACTIVE=0`
 - **WHEN** executing `opsx change show` without a change name
 - **THEN** do not prompt interactively
 - **AND** print the existing hint including available change IDs
@@ -88,7 +88,7 @@ The change validate command SHALL support interactive selection when no change n
 
 #### Scenario: Non-interactive fallback keeps current behavior
 
-- **GIVEN** stdin is not a TTY or `--no-interactive` is provided or environment variable `OPEN_SPEC_INTERACTIVE=0`
+- **GIVEN** stdin is not a TTY or `--no-interactive` is provided or environment variable `OPSX_INTERACTIVE=0`
 - **WHEN** executing `opsx change validate` without a change name
 - **THEN** do not prompt interactively
 - **AND** print the existing hint including available change IDs

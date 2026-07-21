@@ -198,10 +198,11 @@ model {
     }
 
     workflow_templates = capability 'Workflow Templates' {
-      description '提供遵循 Specs + LikeC4 durable source、compilation scaffolding、definition-first authoring、opsx arch query 导航与实时代码证据分层规则的核心 workflow skill templates'
-      metadata {
+      description '生成仅引用 opsx 命令和 .opsx/ 路径的 Agent 工作流'
+            metadata {
         capabilityId 'cap.ai.workflow-templates'
         status 'active'
+        specs ['.opsx/specs/opsx-framework-identity/spec.md']
       }
     }
 

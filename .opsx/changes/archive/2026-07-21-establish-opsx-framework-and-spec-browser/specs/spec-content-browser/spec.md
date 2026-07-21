@@ -1,6 +1,7 @@
 ---
 capabilities:
-  - cap.opsx.spec-content-browser
+  - cap.presentation.spec-content-gateway
+  - cap.presentation.spec-content-panel
 ---
 # spec-content-browser Specification
 
@@ -75,7 +76,8 @@ capabilities:
 #### Scenario: 路径授权校验
 
 - **WHEN** 浏览器请求 Spec 内容
-- **THEN** 服务端 SHALL 从当前元素的 `metadata.specs` 复核请求路径
+- **THEN** 浏览器 SHALL 携带当前元素所属的 LikeC4 project ID
+- **AND** 服务端 SHALL 仅从该 project 的当前 computed model 中读取元素并复核其 `metadata.specs` 请求路径
 - **AND** SHALL 拒绝未在元素索引中声明的路径
 - **AND** SHALL 拒绝绝对路径
 - **AND** SHALL 拒绝包含 `..` 的路径

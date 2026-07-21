@@ -1,4 +1,4 @@
-# opsx-impact-sweeper Specification
+# opsx-impact-sweeper-architecture Specification
 
 ## Purpose
 This specification records behavior introduced by change opsx-to-likec4-mega-refactor. Replace this Purpose with the formal capability intent before archive.

@@ -80,10 +80,11 @@ model {
     }
 
     init = capability 'Init' {
-      description '在项目中初始化 OPSX 与 .opsx/architecture LikeC4 基础模型，固定安装 workflow skills，无需 profile 或 delivery 配置，且不生成 slash command workflow artifacts。'
-      metadata {
+      description '初始化 .opsx/ durable workspace 与 LikeC4 架构骨架'
+            metadata {
         capabilityId 'cap.cli.init'
         status 'active'
+        specs ['.opsx/specs/cli-init/spec.md']
       }
     }
 
@@ -217,10 +218,11 @@ model {
     }
 
     view_element = capability 'View Element' {
-      description '显示规约和变更的交互式仪表板，task 全部完成的分类标签改为 "Tasks Done"'
-      metadata {
+      description '启动完整项目语义 Web 浏览器'
+            metadata {
         capabilityId 'cap.cli.view'
         status 'active'
+        specs ['.opsx/specs/cli-view/spec.md']
       }
     }
 
@@ -243,11 +245,11 @@ model {
         }
 
         arch_preview = capability 'Architecture Preview' {
-          description '启动 LikeC4 web preview server'
-          metadata {
+          description '由 opsx view 取代的历史架构预览能力'
+                    metadata {
             capabilityId 'cap.cli.arch-preview'
-            status 'active'
-            specs ['.opsx/specs/arch-preview-command/spec.md']
+            status 'deprecated'
+            replacedBy 'cap.cli.view'
           }
         }
 

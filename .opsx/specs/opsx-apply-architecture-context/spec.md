@@ -1,4 +1,4 @@
-# opsx-apply-skill Specification
+# opsx-apply-architecture-context Specification
 
 ## Purpose
 This specification records behavior introduced by change opsx-to-likec4-mega-refactor. Replace this Purpose with the formal capability intent before archive.

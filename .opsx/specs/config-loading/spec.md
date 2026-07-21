@@ -52,10 +52,11 @@ Define how `.opsx/config.yaml` is discovered, parsed, validated, and exposed to 
 - **WHEN** config 包含 `proseLanguage: 123`（数字而非字符串）
 - **THEN** 记录警告，proseLanguage 字段不包含在返回的配置中
 
-#### Scenario: docLanguage field is missing
+#### Scenario: Config path uses .opsx on all platforms
 
-- **WHEN** config 缺少 `docLanguage` 字段
-- **THEN** 不记录警告，返回的配置中不包含文档语言覆盖
+- **WHEN** 系统在 Windows、macOS 或 Linux 查找项目配置
+- **THEN** 系统 SHALL 使用 `path.join(projectRoot, '.opsx', 'config.yaml')` 构建路径
+- **AND** SHALL NOT 硬编码斜杠分隔符
 
 ### Requirement: Support .yml file extension alias
 

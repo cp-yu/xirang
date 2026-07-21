@@ -21,7 +21,7 @@ The CLI SHALL provide a top-level `show` command for displaying changes and spec
 
 #### Scenario: Non-interactive environments do not prompt
 
-- **GIVEN** stdin is not a TTY or `--no-interactive` is provided or environment variable `OPEN_SPEC_INTERACTIVE=0`
+- **GIVEN** stdin is not a TTY or `--no-interactive` is provided or environment variable `OPSX_INTERACTIVE=0`
 - **WHEN** executing `opsx show` without arguments
 - **THEN** do not prompt
 - **AND** print a helpful hint with examples for `opsx show <item>` or `opsx change/spec show`
@@ -72,7 +72,7 @@ The show command SHALL support various output formats consistent with existing c
 ### Requirement: Interactivity controls
 
 - The CLI SHALL respect `--no-interactive` to disable prompts.
-- The CLI SHALL respect `OPEN_SPEC_INTERACTIVE=0` to disable prompts globally.
+- The CLI SHALL respect `OPSX_INTERACTIVE=0` to disable prompts globally.
 - Interactive prompts SHALL only be shown when stdin is a TTY and interactivity is not disabled.
 
 #### Scenario: Change-specific options

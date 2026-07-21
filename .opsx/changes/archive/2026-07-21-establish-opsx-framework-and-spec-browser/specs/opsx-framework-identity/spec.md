@@ -1,6 +1,6 @@
 ---
 capabilities:
-  - cap.opsx.framework-identity
+  - cap.framework.identity
 ---
 # opsx-framework-identity Specification
 
@@ -12,7 +12,7 @@ capabilities:
 
 ### Requirement: CLI 可执行命令 SHALL 为 opsx
 
-OPSX CLI 可执行命令 SHALL 为 `opsx`，不提供 `opsx` 别名。
+OPSX CLI 的唯一可执行命令 SHALL 为 `opsx`，不提供其他命令别名。
 
 #### Scenario: 运行 CLI 命令
 
@@ -20,9 +20,9 @@ OPSX CLI 可执行命令 SHALL 为 `opsx`，不提供 `opsx` 别名。
 - **THEN** 系统 SHALL 显示 OPSX CLI 帮助信息
 - **AND** 帮助信息 SHALL 包含 `opsx` 作为命令名称
 
-#### Scenario: 尝试使用旧命令
+#### Scenario: 尝试使用其他命令名称
 
-- **WHEN** 用户执行 `opsx` 命令
+- **WHEN** 用户尝试通过其他命令名称调用本框架
 - **THEN** 系统 SHALL 报告命令不存在
 - **AND** SHALL NOT 自动路由到 `opsx`
 
@@ -30,23 +30,23 @@ OPSX CLI 可执行命令 SHALL 为 `opsx`，不提供 `opsx` 别名。
 
 - **WHEN** 用户安装 shell completion
 - **THEN** 补全脚本 SHALL 为 `opsx` 命令注册
-- **AND** SHALL NOT 为 `opsx` 注册
+- **AND** SHALL NOT 为其他命令名称注册
 
 ### Requirement: 项目工作区 SHALL 为 .opsx
 
-目标项目的 OPSX durable workspace SHALL 位于项目根目录 `.opsx/`，不回退或双写 `opsx/`。
+目标项目的 OPSX durable workspace SHALL 位于项目根目录 `.opsx/`，不回退或双写 non-hidden legacy workspace。
 
 #### Scenario: 项目发现
 
 - **WHEN** CLI 从任意子目录向上查找项目根
 - **THEN** 系统 SHALL 寻找最近的 `.opsx/` 目录
-- **AND** SHALL NOT 回退到 `opsx/` 目录
+- **AND** SHALL NOT 回退到 non-hidden legacy workspace
 
 #### Scenario: 初始化新项目
 
 - **WHEN** 用户运行 `opsx init`
 - **THEN** 系统 SHALL 创建 `.opsx/` 目录结构
-- **AND** SHALL NOT 创建 `opsx/` 目录
+- **AND** SHALL NOT 创建 non-hidden legacy workspace
 
 #### Scenario: 跨平台路径处理
 
@@ -56,23 +56,22 @@ OPSX CLI 可执行命令 SHALL 为 `opsx`，不提供 `opsx` 别名。
 
 ### Requirement: 工作区目录结构 SHALL 完整
 
-`.opsx/` SHALL 包含 architecture、specs、changes、references、bootstrap、config 和运行缓存。
+`.opsx/` SHALL 包含初始化所需的 durable core，并为 bootstrap、history 与运行缓存提供受各自操作拥有的隐藏路径。
 
 #### Scenario: 标准工作区结构
 
-- **WHEN** 初始化或操作 OPSX 项目
-- **THEN** 工作区 SHALL 包含以下目录和文件：
+- **WHEN** 初始化 OPSX 项目
+- **THEN** 工作区 SHALL 创建 architecture、specs、changes、references 和 config durable core：
   ```
   .opsx/
   ├── architecture/        # LikeC4 架构语义与 Spec 索引
   ├── specs/               # Durable behavior source
   ├── changes/             # Change-local 编译脚手架与 delta
   ├── references/          # Agent workflow 参考协议
-  ├── bootstrap/           # Agent bootstrap 工作区
-  ├── bootstrap-history/   # Bootstrap audit history
-  ├── config.yaml          # 项目级框架配置
-  └── .cache/              # 运行时缓存（默认忽略）
+  └── config.yaml          # 项目级框架配置
   ```
+- **AND** bootstrap 操作 SHALL 仅在 `.opsx/bootstrap/` 与 `.opsx/bootstrap-history/` 中按需物化工作区和历史
+- **AND** 运行缓存 SHALL 仅在 `.opsx/.cache/` 中按需物化
 
 #### Scenario: 版本控制
 
@@ -89,7 +88,7 @@ OPSX CLI 可执行命令 SHALL 为 `opsx`，不提供 `opsx` 别名。
 - **WHEN** 生成 workflow skill SKILL.md
 - **THEN** 文件内容 SHALL 引用 `opsx` 命令
 - **AND** SHALL 引用 `.opsx/` 路径
-- **AND** SHALL NOT 引用 `opsx` 命令或 `opsx/` 路径
+- **AND** SHALL NOT 引用其他 CLI identity 或 non-hidden legacy workspace 路径
 
 #### Scenario: Subagent artifact 引用
 
@@ -111,25 +110,25 @@ OPSX CLI 可执行命令 SHALL 为 `opsx`，不提供 `opsx` 别名。
 
 ### Requirement: 不提供迁移兼容层
 
-OPSX SHALL NOT 提供 `opsx` 命令别名、`opsx/` 目录回退或自动迁移工具。
+OPSX SHALL NOT 提供其他命令别名、non-hidden legacy workspace 回退或自动迁移工具。
 
 #### Scenario: 无命令别名
 
 - **WHEN** CLI 注册可执行命令
 - **THEN** 系统 SHALL 仅注册 `opsx`
-- **AND** SHALL NOT 注册 `opsx` 或其他别名
+- **AND** SHALL NOT 注册其他别名
 
 #### Scenario: 无目录双读
 
 - **WHEN** CLI 读取项目配置、Specs、Architecture 或 changes
 - **THEN** 系统 SHALL 仅从 `.opsx/` 读取
-- **AND** SHALL NOT 回退到 `opsx/` 或提示迁移
+- **AND** SHALL NOT 回退到 non-hidden legacy workspace 或提示迁移
 
 #### Scenario: 无自动迁移工具
 
-- **WHEN** 用户在含 `opsx/` 的项目运行 `opsx` 命令
+- **WHEN** 用户在仅含 non-hidden legacy workspace 的项目运行 `opsx` 命令
 - **THEN** 系统 SHALL 报告未找到 `.opsx/` 项目
-- **AND** SHALL NOT 自动将 `opsx/` 迁移到 `.opsx/`
+- **AND** SHALL NOT 自动迁移该 workspace
 
 ### Requirement: Telemetry command identity SHALL 为 opsx
 
@@ -139,7 +138,7 @@ OPSX SHALL NOT 提供 `opsx` 命令别名、`opsx/` 目录回退或自动迁移�
 
 - **WHEN** 用户执行 `opsx init`
 - **THEN** 遥测事件 SHALL 记录 `opsx` 为命令标识
-- **AND** SHALL NOT 记录 `opsx`
+- **AND** SHALL NOT 记录其他 command identity
 
 ### Requirement: Package.json bin entry SHALL 为 opsx
 
@@ -149,4 +148,4 @@ npm package 的 bin entry SHALL 为 `opsx`。
 
 - **WHEN** 用户通过 npm 安装框架
 - **THEN** 系统 SHALL 在 PATH 中创建 `opsx` 可执行链接
-- **AND** SHALL NOT 创建 `opsx` 链接
+- **AND** SHALL NOT 创建其他框架命令链接

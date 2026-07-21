@@ -65,8 +65,6 @@ model {
 
   change_workflow.create -[invokes]-> artifact_graph.schema_resolution
 
-  cli.arch_preview -[invokes]-> architecture.likec4_reader
-
   cli.arch_query -[invokes]-> architecture.likec4_reader
 
   cli.arch_validate -[invokes]-> architecture.likec4_reader
@@ -107,7 +105,15 @@ model {
 
   cli.verify_aware_instructions -[invokes]-> verify.freshness_engine
 
+  cli.view_element -[invokes]-> presentation.likec4_engine
+
   config.apply_default_isolation -[consumes]-> config.project_element
+
+  framework.identity -[constrains]-> ai_integration.workflow_templates
+
+  framework.identity -[constrains]-> cli.init
+
+  framework.identity -[constrains]-> cli.update
 
   migration.opsx_to_likec4_converter -[invokes]-> migration.likec4_file_generator
 
@@ -120,6 +126,14 @@ model {
   opsx_element.delta_merge -[invokes]-> opsx_element.atomic_write
 
   opsx_element.referential_integrity -[validates]-> opsx_element.delta_merge
+
+  presentation.likec4_engine -[consumes]-> presentation.spec_content_gateway
+
+  presentation.likec4_engine -[invokes]-> architecture.likec4_reader
+
+  presentation.spec_content_gateway -[invokes]-> validation.registry
+
+  presentation.spec_content_panel -[consumes]-> presentation.spec_content_gateway
 
   validation.change -[invokes]-> validation.spec_section_type_cross_check
 
