@@ -12,9 +12,9 @@ import { validateRelationGraph } from '../core/relations/validator.js';
 export const OPSX_SCHEMA_VERSION = 2;
 
 export const OPSX_PATHS = {
-  PROJECT_FILE: 'openspec/project.opsx.yaml',
-  RELATIONS_FILE: 'openspec/project.opsx.relations.yaml',
-  deltaPath: (changeName: string) => `openspec/changes/${changeName}/opsx-delta.yaml`,
+  PROJECT_FILE: '.opsx/project.opsx.yaml',
+  RELATIONS_FILE: '.opsx/project.opsx.relations.yaml',
+  deltaPath: (changeName: string) => `.opsx/changes/${changeName}/opsx-delta.yaml`,
 } as const;
 
 /**

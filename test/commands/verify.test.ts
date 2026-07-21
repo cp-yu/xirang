@@ -36,9 +36,9 @@ describe('openspec verify command', () => {
 
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-verify-cli-'));
-    await fs.mkdir(path.join(tempDir, 'openspec', 'changes', 'c1'), { recursive: true });
+    await fs.mkdir(path.join(tempDir, '.opsx', 'changes', 'c1'), { recursive: true });
     await fs.mkdir(path.join(tempDir, 'src'), { recursive: true });
-    await fs.writeFile(path.join(tempDir, 'openspec', 'changes', 'c1', 'tasks.md'), '- [x] task\n', 'utf-8');
+    await fs.writeFile(path.join(tempDir, '.opsx', 'changes', 'c1', 'tasks.md'), '- [x] task\n', 'utf-8');
     await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 1;\n', 'utf-8');
     await execFileAsync('git', ['init'], { cwd: tempDir });
     await execFileAsync('git', ['config', 'user.name', 'OpenSpec Test'], { cwd: tempDir });
@@ -281,7 +281,7 @@ describe('openspec verify command', () => {
 
   it('reconciles resolved, invalidated, and new findings after a successful wave', async () => {
     await fs.writeFile(
-      path.join(tempDir, 'openspec', 'config.yaml'),
+      path.join(tempDir, '.opsx', 'config.yaml'),
       'schema: spec-driven\noptimization:\n  enabled: true\n  optRetries: 1\n',
       'utf-8'
     );
@@ -355,7 +355,7 @@ describe('openspec verify command', () => {
 
   it('records masterChallenge and rejects one exhausted direction without blocking others', async () => {
     await fs.writeFile(
-      path.join(tempDir, 'openspec', 'config.yaml'),
+      path.join(tempDir, '.opsx', 'config.yaml'),
       'schema: spec-driven\noptimization:\n  enabled: true\n  optRetries: 1\n',
       'utf-8'
     );
@@ -420,7 +420,7 @@ describe('openspec verify command', () => {
       },
     })], { cwd: tempDir });
     const [firstFinding, secondFinding] = JSON.parse(proposed.stdout).result.optimization.findings;
-    const before = await fs.readFile(path.join(tempDir, 'openspec', 'changes', 'c1', '.verify-result.json'), 'utf-8');
+    const before = await fs.readFile(path.join(tempDir, '.opsx', 'changes', 'c1', '.verify-result.json'), 'utf-8');
 
     const incomplete = await runCLI(['verify', 'phase2', 'c1', '--type=optimization', '--json', '--input', JSON.stringify({
       status: 'OPTIMIZATION_PROPOSED',
@@ -446,7 +446,7 @@ describe('openspec verify command', () => {
     })], { cwd: tempDir });
     expect(illegal.exitCode).toBe(2);
     expect(JSON.parse(illegal.stdout).reason).toBe('ILLEGAL_FINDING_TRANSITION');
-    expect(await fs.readFile(path.join(tempDir, 'openspec', 'changes', 'c1', '.verify-result.json'), 'utf-8')).toBe(before);
+    expect(await fs.readFile(path.join(tempDir, '.opsx', 'changes', 'c1', '.verify-result.json'), 'utf-8')).toBe(before);
   });
 
   it('terminates with a stalled diagnostic after two unchanged reconciliations', async () => {
@@ -525,7 +525,7 @@ describe('openspec verify command', () => {
     await runCLI(['verify', 'phase1', 'c1', '--input', JSON.stringify({
       result: 'PASS', issues: [], evidenceFiles: ['src/a.ts'],
     })], { cwd: tempDir });
-    const before = await fs.readFile(path.join(tempDir, 'openspec', 'changes', 'c1', '.verify-result.json'), 'utf-8');
+    const before = await fs.readFile(path.join(tempDir, '.opsx', 'changes', 'c1', '.verify-result.json'), 'utf-8');
     const result = await runCLI(['verify', 'phase2', 'c1', '--type=optimization', '--json', '--input', JSON.stringify({
       status: 'OPTIMIZATION_PROPOSED',
       envelope: {
@@ -537,11 +537,11 @@ describe('openspec verify command', () => {
 
     expect(result.exitCode).toBe(2);
     expect(JSON.parse(result.stdout).reason).toBe('UNKNOWN_FINDING_DEPENDENCY');
-    expect(await fs.readFile(path.join(tempDir, 'openspec', 'changes', 'c1', '.verify-result.json'), 'utf-8')).toBe(before);
+    expect(await fs.readFile(path.join(tempDir, '.opsx', 'changes', 'c1', '.verify-result.json'), 'utf-8')).toBe(before);
   });
 
   it('requires reconciliation after an exhausted direction before terminating', async () => {
-    await fs.writeFile(path.join(tempDir, 'openspec', 'config.yaml'), 'schema: spec-driven\noptimization:\n  optRetries: 1\n', 'utf-8');
+    await fs.writeFile(path.join(tempDir, '.opsx', 'config.yaml'), 'schema: spec-driven\noptimization:\n  optRetries: 1\n', 'utf-8');
     await runCLI(['verify', 'phase1', 'c1', '--input', JSON.stringify({
       result: 'PASS', issues: [], evidenceFiles: ['src/a.ts'],
     })], { cwd: tempDir });
@@ -662,7 +662,7 @@ describe('openspec verify command', () => {
     await runCLI(['verify', 'phase1', 'c1', '--input', JSON.stringify({
       result: 'PASS', issues: [], evidenceFiles: ['src/a.ts'],
     })], { cwd: tempDir });
-    const before = await fs.readFile(path.join(tempDir, 'openspec', 'changes', 'c1', '.verify-result.json'), 'utf-8');
+    const before = await fs.readFile(path.join(tempDir, '.opsx', 'changes', 'c1', '.verify-result.json'), 'utf-8');
     const result = await runCLI(['verify', 'phase2', 'c1', '--type=optimization', '--json', '--input', JSON.stringify({
       status: 'NO_OPTIMIZATION_NEEDED',
       envelope: {
@@ -674,7 +674,7 @@ describe('openspec verify command', () => {
 
     expect(result.exitCode).toBe(2);
     expect(JSON.parse(result.stdout).reason).toBe('CONTRADICTORY_OPTIMIZATION_STATUS');
-    expect(await fs.readFile(path.join(tempDir, 'openspec', 'changes', 'c1', '.verify-result.json'), 'utf-8')).toBe(before);
+    expect(await fs.readFile(path.join(tempDir, '.opsx', 'changes', 'c1', '.verify-result.json'), 'utf-8')).toBe(before);
   });
 
   it('persists Phase 1, seals, and reports status in JSON mode', async () => {
@@ -774,7 +774,7 @@ describe('openspec verify command', () => {
     expect(seal.exitCode).toBe(0);
 
     const phase1Result = JSON.parse(
-      await fs.readFile(path.join(tempDir, 'openspec', 'changes', 'c1', '.verify-result.json'), 'utf-8')
+      await fs.readFile(path.join(tempDir, '.opsx', 'changes', 'c1', '.verify-result.json'), 'utf-8')
     );
     await fs.writeFile(path.join(tempDir, 'notes.md'), 'head changed\n', 'utf-8');
     await execFileAsync('git', ['add', 'notes.md'], { cwd: tempDir });
@@ -832,7 +832,7 @@ describe('openspec verify command', () => {
 
   it('allows SKIPPED to close Phase 2 when optimization is disabled', async () => {
     await fs.writeFile(
-      path.join(tempDir, 'openspec', 'config.yaml'),
+      path.join(tempDir, '.opsx', 'config.yaml'),
       'schema: spec-driven\noptimization:\n  enabled: false\n',
       'utf-8'
     );
@@ -876,7 +876,7 @@ describe('openspec verify command', () => {
 
   it('uses optRetries per finding direction and preserves failedDirections', async () => {
     await fs.writeFile(
-      path.join(tempDir, 'openspec', 'config.yaml'),
+      path.join(tempDir, '.opsx', 'config.yaml'),
       'schema: spec-driven\noptimization:\n  enabled: true\n  optRetries: 2\n',
       'utf-8'
     );
@@ -942,7 +942,7 @@ describe('openspec verify command', () => {
     ], { cwd: tempDir });
 
     const phase1Result = JSON.parse(
-      await fs.readFile(path.join(tempDir, 'openspec', 'changes', 'c1', '.verify-result.json'), 'utf-8')
+      await fs.readFile(path.join(tempDir, '.opsx', 'changes', 'c1', '.verify-result.json'), 'utf-8')
     );
     const phase1Fingerprint = phase1Result.verificationContext.evidenceFingerprint;
 
@@ -961,7 +961,7 @@ describe('openspec verify command', () => {
     })], { cwd: tempDir });
 
     const finalResult = JSON.parse(
-      await fs.readFile(path.join(tempDir, 'openspec', 'changes', 'c1', '.verify-result.json'), 'utf-8')
+      await fs.readFile(path.join(tempDir, '.opsx', 'changes', 'c1', '.verify-result.json'), 'utf-8')
     );
     expect(finalResult.verificationContext.evidenceFingerprint).not.toBe(phase1Fingerprint);
     expect(finalResult.verificationContext.evidenceFingerprintEntries).toEqual([
@@ -977,7 +977,7 @@ describe('openspec verify command', () => {
 
   it('does NOT recalculate evidenceFingerprint on DEGRADED path', async () => {
     await fs.writeFile(
-      path.join(tempDir, 'openspec', 'config.yaml'),
+      path.join(tempDir, '.opsx', 'config.yaml'),
       'schema: spec-driven\noptimization:\n  enabled: true\n  optRetries: 1\n',
       'utf-8'
     );
@@ -991,7 +991,7 @@ describe('openspec verify command', () => {
     ], { cwd: tempDir });
 
     const phase1Result = JSON.parse(
-      await fs.readFile(path.join(tempDir, 'openspec', 'changes', 'c1', '.verify-result.json'), 'utf-8')
+      await fs.readFile(path.join(tempDir, '.opsx', 'changes', 'c1', '.verify-result.json'), 'utf-8')
     );
     const phase1Fingerprint = phase1Result.verificationContext.evidenceFingerprint;
 
@@ -1015,7 +1015,7 @@ describe('openspec verify command', () => {
     })], { cwd: tempDir });
 
     const finalResult = JSON.parse(
-      await fs.readFile(path.join(tempDir, 'openspec', 'changes', 'c1', '.verify-result.json'), 'utf-8')
+      await fs.readFile(path.join(tempDir, '.opsx', 'changes', 'c1', '.verify-result.json'), 'utf-8')
     );
     expect(finalResult.optimization.status).toBe('DEGRADED');
     expect(finalResult.verificationContext.evidenceFingerprint).toBe(phase1Fingerprint);

@@ -12,7 +12,7 @@ describe('artifact-workflow CLI commands', () => {
 
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-artifact-workflow-'));
-    changesDir = path.join(tempDir, 'openspec', 'changes');
+    changesDir = path.join(tempDir, '.opsx', 'changes');
     await fs.mkdir(changesDir, { recursive: true });
   });
 
@@ -522,7 +522,7 @@ describe('artifact-workflow CLI commands', () => {
     it('outputs JSON for apply instructions', async () => {
       await createTestChange('json-apply', ['proposal', 'design', 'specs', 'tasks']);
       await fs.writeFile(
-        path.join(tempDir, 'openspec', 'config.yaml'),
+        path.join(tempDir, '.opsx', 'config.yaml'),
         `schema: spec-driven
 proseLanguage: 中文
 apply:
@@ -568,7 +568,7 @@ rules: {}
     it('prints config projection in text apply instructions', async () => {
       await createTestChange('text-apply-projection', ['proposal', 'design', 'specs', 'tasks']);
       await fs.writeFile(
-        path.join(tempDir, 'openspec', 'config.yaml'),
+        path.join(tempDir, '.opsx', 'config.yaml'),
         `schema: spec-driven
 proseLanguage: 中文
 apply:
@@ -993,9 +993,9 @@ rules: {}
     describe('new change uses config schema', () => {
       it('creates change with schema from project config', async () => {
         // Create project config with spec-driven schema
-        // Note: changesDir is already at tempDir/openspec/changes (created in beforeEach)
+        // Note: changesDir is already at tempDir/.opsx/changes (created in beforeEach)
         await fs.writeFile(
-          path.join(tempDir, 'openspec', 'config.yaml'),
+          path.join(tempDir, '.opsx', 'config.yaml'),
           'schema: spec-driven\n'
         );
 
@@ -1013,7 +1013,7 @@ rules: {}
         // Create project config with spec-driven schema
         // Note: openspec directory already exists (from changesDir creation in beforeEach)
         await fs.writeFile(
-          path.join(tempDir, 'openspec', 'config.yaml'),
+          path.join(tempDir, '.opsx', 'config.yaml'),
           'schema: spec-driven\n'
         );
 
@@ -1036,7 +1036,7 @@ rules: {}
         // Create project config with context and rules
         // Note: openspec directory already exists (from changesDir creation in beforeEach)
         await fs.writeFile(
-          path.join(tempDir, 'openspec', 'config.yaml'),
+          path.join(tempDir, '.opsx', 'config.yaml'),
           `schema: spec-driven
 context: |
   Tech stack: TypeScript, React
@@ -1071,7 +1071,7 @@ rules:
         // Create project config with rules only for proposal
         // Note: openspec directory already exists (from changesDir creation in beforeEach)
         await fs.writeFile(
-          path.join(tempDir, 'openspec', 'config.yaml'),
+          path.join(tempDir, '.opsx', 'config.yaml'),
           `schema: spec-driven
 rules:
   proposal:
@@ -1140,7 +1140,7 @@ rules:
         // Create initial config
         // Note: openspec directory already exists (from changesDir creation in beforeEach)
         await fs.writeFile(
-          path.join(tempDir, 'openspec', 'config.yaml'),
+          path.join(tempDir, '.opsx', 'config.yaml'),
           `schema: spec-driven
 context: Initial context
 `
@@ -1159,7 +1159,7 @@ context: Initial context
 
         // Update config
         await fs.writeFile(
-          path.join(tempDir, 'openspec', 'config.yaml'),
+          path.join(tempDir, '.opsx', 'config.yaml'),
           `schema: spec-driven
 context: Updated context
 `

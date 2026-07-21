@@ -79,7 +79,7 @@ afterAll(async () => {
 describe('openspec bootstrap Phase 1', () => {
   it('returns structured pre-init status for a specs-based baseline', async () => {
     const projectDir = await createTempProject();
-    await writeFile(projectDir, 'openspec/specs/auth/spec.md', '# Auth spec\n');
+    await writeFile(projectDir, '.opsx/specs/auth/spec.md', '# Auth spec\n');
 
     const json = await withCwd(projectDir, () => captureJsonOutput(() => bootstrapStatusCommand({ json: true })));
     expect(json).toMatchObject({
@@ -147,14 +147,14 @@ capabilities: []
     expect(json.instruction).toContain('openspec bootstrap init --mode');
   });
 
-  it('rejects unsupported full mode on formal OPSX before creating openspec/bootstrap', async () => {
+  it('rejects unsupported full mode on formal OPSX before creating .opsx/bootstrap', async () => {
     const projectDir = await createTempProject();
     await writeFormalOpsxBundle(projectDir);
 
     await expect(initBootstrap(projectDir, { mode: 'full', granularity: 'fine' })).rejects.toThrow(
       "Bootstrap mode 'full' is not supported for baseline 'formal-opsx'. Valid modes: refresh"
     );
-    expect(await pathExists(projectDir, 'openspec/bootstrap')).toBe(false);
+    expect(await pathExists(projectDir, '.opsx/bootstrap')).toBe(false);
   });
 
   it('allows refresh init on formal OPSX repositories', async () => {
@@ -163,16 +163,16 @@ capabilities: []
 
     await initBootstrap(projectDir, { mode: 'refresh', granularity: 'fine' });
 
-    expect(await pathExists(projectDir, 'openspec/bootstrap')).toBe(true);
+    expect(await pathExists(projectDir, '.opsx/bootstrap')).toBe(true);
   });
 
   it('rejects unsupported baseline-to-mode combinations with valid modes in the error', async () => {
     const projectDir = await createTempProject();
-    await writeFile(projectDir, 'openspec/specs/auth/spec.md', '# Auth spec\n');
+    await writeFile(projectDir, '.opsx/specs/auth/spec.md', '# Auth spec\n');
 
     await expect(initBootstrap(projectDir, { mode: 'opsx-first', granularity: 'fine' })).rejects.toThrow(
       "Bootstrap mode 'opsx-first' is not supported for baseline 'specs-based'. Valid modes: full"
     );
-    expect(await pathExists(projectDir, 'openspec/bootstrap')).toBe(false);
+    expect(await pathExists(projectDir, '.opsx/bootstrap')).toBe(false);
   });
 });

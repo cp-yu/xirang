@@ -14,7 +14,7 @@ async function withTempDir(run: (dir: string) => Promise<void>) {
 }
 
 async function writeSpec(root: string, id: string, content: string) {
-  const dir = path.join(root, 'openspec', 'specs', id);
+  const dir = path.join(root, '.opsx', 'specs', id);
   await fs.mkdir(dir, { recursive: true });
   await fs.writeFile(path.join(dir, 'spec.md'), content, 'utf8');
 }

@@ -1,3 +1,4 @@
+import { OPSX_DIR_NAME } from '../../core/config.js';
 /**
  * New Change Command
  *
@@ -48,7 +49,7 @@ export async function newChangeCommand(name: string | undefined, options: NewCha
     // If description provided, create README.md with description
     if (options.description) {
       const { promises: fs } = await import('fs');
-      const changeDir = path.join(projectRoot, 'openspec', 'changes', name);
+      const changeDir = path.join(projectRoot, OPSX_DIR_NAME, 'changes', name);
       const readmePath = path.join(changeDir, 'README.md');
       await fs.writeFile(readmePath, `# ${name}\n\n${options.description}\n`, 'utf-8');
     }

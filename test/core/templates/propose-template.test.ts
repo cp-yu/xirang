@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { OPENSPEC_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
+import { OPSX_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import {
   getOpsxProposeSkillTemplate,
 } from '../../../src/core/templates/workflows/propose.js';
@@ -17,11 +17,11 @@ describe('propose template post-validation flow', () => {
     expect(instructions).toContain('architecture-delta.c4');
     expect(instructions).toContain('extend existing_domain');
     expect(instructions).toContain('-[invokes]->');
-    expect(instructions).toContain('openspec arch validate --delta');
+    expect(instructions).toContain('opsx arch validate --delta');
   });
 
-  it('includes the OpenSpec philosophy in the skill surface', () => {
-    expect(getOpsxProposeSkillTemplate().instructions).toContain(OPENSPEC_PHILOSOPHY);
+  it('includes the OPSX philosophy in the skill surface', () => {
+    expect(getOpsxProposeSkillTemplate().instructions).toContain(OPSX_PHILOSOPHY);
   });
 
   it('resolves new and existing change identity without rename semantics', () => {
@@ -38,9 +38,9 @@ describe('propose template post-validation flow', () => {
 
   it('navigates the formal LikeC4 model before authoring', () => {
     const instructions = getOpsxProposeSkillTemplate().instructions;
-    expect(instructions).toContain('openspec/architecture/');
-    expect(instructions).toContain('openspec arch query <element-id> --relations --depth 2');
-    expect(instructions).not.toContain('openspec/project.opsx.yaml');
+    expect(instructions).toContain('.opsx/architecture/');
+    expect(instructions).toContain('opsx arch query <element-id> --relations --depth 2');
+    expect(instructions).not.toContain('opsx/project.opsx.yaml');
   });
 
   it('defers definition-first ordering to the artifact instruction projection', () => {
@@ -52,12 +52,12 @@ describe('propose template post-validation flow', () => {
 
   it('uses one blocking combined validation with a single repair pass', () => {
     for (const body of getProposeBodies()) {
-      expect(body.match(/openspec validate --change "<name>" --json/g)).toHaveLength(1);
+      expect(body.match(/opsx validate --change "<name>" --json/g)).toHaveLength(1);
       expect(body).toContain('ERROR from either scaffolding checks or combined change validation blocks ready-for-apply');
       expect(body).toContain('WARNING does not block');
       expect(body).toContain('at most one repair pass');
       expect(body).toContain('re-check once');
-      expect(body).toContain('Do NOT run `openspec sync`');
+      expect(body).toContain('Do NOT run `opsx sync`');
       expect(body).not.toContain('--artifacts specs');
       expect(body).not.toContain('--artifacts opsx-delta');
       expect(body).not.toContain('Validator.validateChangeDeltaSpecs()');
@@ -70,15 +70,15 @@ describe('propose template post-validation flow', () => {
     const template = getOpsxProposeSkillTemplate();
     expect(template.instructions).toMatch(/read the exact Requirement titles from the formal Spec/i);
     expect(template.instructions).toContain('combined change validation');
-    expect(template.instructions).not.toContain('openspec check-delta');
+    expect(template.instructions).not.toContain('opsx check-delta');
     expect(template).not.toHaveProperty('referenceFiles');
   });
 
   it('uses current schema templates for lightweight proposal/design/tasks checks', () => {
     for (const body of getProposeBodies()) {
-      expect(body).toContain('openspec instructions proposal --change "<name>" --json');
-      expect(body).toContain('openspec instructions design --change "<name>" --json');
-      expect(body).toContain('openspec instructions tasks --change "<name>" --json');
+      expect(body).toContain('opsx instructions proposal --change "<name>" --json');
+      expect(body).toContain('opsx instructions design --change "<name>" --json');
+      expect(body).toContain('opsx instructions tasks --change "<name>" --json');
       expect(body).toContain('validateTaskStructure');
       expect(body).toContain('Actions');
       expect(body).toContain('### Task N:');
@@ -124,7 +124,7 @@ describe('propose template post-validation flow', () => {
   it('checks readiness before creating a new change', () => {
     const body = getOpsxProposeSkillTemplate().instructions;
     expect(body.indexOf('Assess semantic readiness')).toBeGreaterThanOrEqual(0);
-    expect(body.indexOf('openspec new change "<name>"')).toBeGreaterThan(body.indexOf('Assess semantic readiness'));
+    expect(body.indexOf('opsx new change "<name>"')).toBeGreaterThan(body.indexOf('Assess semantic readiness'));
     expect(body).toContain('do not create a change directory or modify project files');
     expect(body).toContain('existing artifacts, current input, the confirmed Design Summary, formal source, and implementation evidence');
   });
@@ -138,13 +138,13 @@ describe('propose template post-validation flow', () => {
 
   it('keeps Spec IDs separate from associated capability IDs', () => {
     for (const body of getProposeBodies()) {
-      expect(body).toContain('openspec list --specs --json');
+      expect(body).toContain('opsx list --specs --json');
       expect(body).toContain('Spec ID');
       expect(body).toContain('`capabilities` string array');
       expect(body).toContain('canonical capability ID');
       expect(body).toContain('does not by itself require a New Spec');
       expect(body).toContain('genuinely new observable behavior');
-      expect(body).not.toContain('openspec spec list');
+      expect(body).not.toContain('opsx spec list');
     }
   });
 
@@ -167,7 +167,7 @@ describe('propose template post-validation flow', () => {
     const body = getOpsxProposeSkillTemplate().instructions;
     expect(body).toContain('create or modify only the Spec IDs declared under proposal `Behavior Source`');
     expect(body).toMatch(/read the exact Requirement titles from the formal Spec/i);
-    expect(body).not.toContain('openspec check-delta');
+    expect(body).not.toContain('opsx check-delta');
   });
 
   it('reconciles Architecture Source after Specs and Design', () => {
@@ -189,9 +189,9 @@ describe('propose template post-validation flow', () => {
 
   it('previews and reviews scenario operations before writing labels', () => {
     for (const body of getProposeBodies()) {
-      const validationIndex = body.indexOf('openspec validate --change "<name>" --json');
-      const previewIndex = body.indexOf('openspec scenario-labels "<name>" --preview --json');
-      const writeIndex = body.indexOf('openspec scenario-labels "<name>" --write');
+      const validationIndex = body.indexOf('opsx validate --change "<name>" --json');
+      const previewIndex = body.indexOf('opsx scenario-labels "<name>" --preview --json');
+      const writeIndex = body.indexOf('opsx scenario-labels "<name>" --write');
       expect(validationIndex).toBeGreaterThanOrEqual(0);
       expect(previewIndex).toBeGreaterThan(validationIndex);
       expect(writeIndex).toBeGreaterThan(previewIndex);

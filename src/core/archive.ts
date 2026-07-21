@@ -1,3 +1,4 @@
+import { OPSX_DIR_NAME } from './config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { getTaskProgressForChange, formatTaskStatus } from '../utils/task-progress.js';
@@ -87,7 +88,7 @@ export class ArchiveCommand {
    */
   async execute(changeName?: string, options: ArchiveOptions = {}): Promise<void> {
     const targetPath = '.';
-    const changesDir = path.join(targetPath, 'openspec', 'changes');
+    const changesDir = path.join(targetPath, OPSX_DIR_NAME, 'changes');
     const archiveDir = path.join(changesDir, 'archive');
 
     try {

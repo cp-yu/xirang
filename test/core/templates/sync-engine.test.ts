@@ -19,8 +19,8 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-sync-engine-${randomUUID()}`);
-    await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+    testDir = path.join(os.tmpdir(), `opsx-sync-engine-${randomUUID()}`);
+    await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
   });
 
   afterEach(async () => {
@@ -44,16 +44,16 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
       ['.codex', 'toml'],
     ] as const) {
       await expect(
-        fs.stat(path.join(testDir, toolDir, 'skills', 'openspec-propose', 'SKILL.md'))
+        fs.stat(path.join(testDir, toolDir, 'skills', 'opsx-propose', 'SKILL.md'))
       ).resolves.toBeDefined();
       await expect(
-        fs.stat(path.join(testDir, toolDir, 'skills', 'openspec-explore', 'SKILL.md'))
+        fs.stat(path.join(testDir, toolDir, 'skills', 'opsx-explore', 'SKILL.md'))
       ).resolves.toBeDefined();
 
       for (const name of [
-        'openspec-reviewer',
-        'openspec-optimizer',
-        'openspec-impact-sweeper',
+        'opsx-reviewer',
+        'opsx-optimizer',
+        'opsx-impact-sweeper',
       ]) {
         await expect(
           fs.stat(path.join(testDir, toolDir, 'agents', `${name}.${ext}`))
@@ -64,9 +64,9 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
   });
 
   it('removes only explicitly named stale shared references', async () => {
-    const referencesDir = path.join(testDir, 'openspec', 'references');
+    const referencesDir = path.join(testDir, '.opsx', 'references');
     await fs.mkdir(referencesDir, { recursive: true });
-    await fs.writeFile(path.join(referencesDir, 'openspec-apply-phase2-optimization.md'), 'stale');
+    await fs.writeFile(path.join(referencesDir, 'opsx-apply-phase2-optimization.md'), 'stale');
     await fs.writeFile(path.join(referencesDir, 'user-reference.md'), 'user');
 
     const result = await ArtifactSyncEngine.syncOne({
@@ -77,7 +77,7 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
     });
 
     expect(result.error).toBeUndefined();
-    expect(await exists(path.join(referencesDir, 'openspec-apply-phase2-optimization.md'))).toBe(false);
+    expect(await exists(path.join(referencesDir, 'opsx-apply-phase2-optimization.md'))).toBe(false);
     expect(await exists(path.join(referencesDir, 'user-reference.md'))).toBe(true);
   });
 
@@ -112,21 +112,21 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
 
     expect(result.error).toBeUndefined();
     await expect(
-      fs.stat(path.join(testDir, '.codex', 'agents', 'openspec-optimizer.toml'))
+      fs.stat(path.join(testDir, '.codex', 'agents', 'opsx-optimizer.toml'))
     ).resolves.toBeDefined();
     await expect(
-      fs.stat(path.join(testDir, '.codex', 'agents', 'openspec-reviewer.toml'))
+      fs.stat(path.join(testDir, '.codex', 'agents', 'opsx-reviewer.toml'))
     ).resolves.toBeDefined();
-    expect(await exists(path.join(testDir, '.codex/agents/openspec-optimizer.md'))).toBe(false);
+    expect(await exists(path.join(testDir, '.codex/agents/opsx-optimizer.md'))).toBe(false);
   });
 
   it('cleans up old internal skill directories by explicit managed name', async () => {
     const skillsDir = path.join(testDir, '.claude', 'skills');
     for (const name of [
-      'openspec-reviewer',
-      'openspec-optimizer',
-      'openspec-impact-sweeper',
-      'openspec-implementer',
+      'opsx-reviewer',
+      'opsx-optimizer',
+      'opsx-impact-sweeper',
+      'opsx-implementer',
       'user-skill',
     ]) {
       await fs.mkdir(path.join(skillsDir, name), { recursive: true });
@@ -142,14 +142,14 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
 
     expect(result.error).toBeUndefined();
     for (const name of [
-      'openspec-reviewer',
-      'openspec-optimizer',
-      'openspec-impact-sweeper',
-      'openspec-implementer',
+      'opsx-reviewer',
+      'opsx-optimizer',
+      'opsx-impact-sweeper',
+      'opsx-implementer',
     ]) {
       expect(await exists(path.join(skillsDir, name))).toBe(false);
     }
-    expect(await exists(path.join(skillsDir, 'openspec-explore', 'SKILL.md'))).toBe(true);
+    expect(await exists(path.join(skillsDir, 'opsx-explore', 'SKILL.md'))).toBe(true);
     expect(await exists(path.join(skillsDir, 'user-skill', 'SKILL.md'))).toBe(true);
   });
 
@@ -157,7 +157,7 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
     const agentsDir = path.join(testDir, '.pi', 'agents');
     await fs.mkdir(agentsDir, { recursive: true });
     await fs.writeFile(path.join(agentsDir, 'my-custom.md'), 'custom');
-    await fs.writeFile(path.join(agentsDir, 'openspec-reviewer.md'), 'stale');
+    await fs.writeFile(path.join(agentsDir, 'opsx-reviewer.md'), 'stale');
 
     const result = await ArtifactSyncEngine.syncOne({
       toolId: 'pi',
@@ -168,7 +168,7 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
 
     expect(result.error).toBeUndefined();
     await expect(fs.readFile(path.join(agentsDir, 'my-custom.md'), 'utf-8')).resolves.toBe('custom');
-    await expect(fs.readFile(path.join(agentsDir, 'openspec-reviewer.md'), 'utf-8')).resolves.toContain('name: openspec-reviewer');
+    await expect(fs.readFile(path.join(agentsDir, 'opsx-reviewer.md'), 'utf-8')).resolves.toContain('name: opsx-reviewer');
   });
 
   it('preserves user-set model value on update', async () => {
@@ -177,9 +177,9 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
 
     // Pre-create agent file with user-customized model
     await fs.writeFile(
-      path.join(agentsDir, 'openspec-reviewer.md'),
+      path.join(agentsDir, 'opsx-reviewer.md'),
       `---
-name: openspec-reviewer
+name: opsx-reviewer
 description: test
 tools: read, grep
 model: "anthropic/claude-sonnet-4"
@@ -195,7 +195,7 @@ User-changed prompt.`
       version: 'test',
     });
 
-    const content = await fs.readFile(path.join(agentsDir, 'openspec-reviewer.md'), 'utf-8');
+    const content = await fs.readFile(path.join(agentsDir, 'opsx-reviewer.md'), 'utf-8');
     expect(content).toContain('model: "anthropic/claude-sonnet-4"');
   });
 
@@ -205,8 +205,8 @@ User-changed prompt.`
 
     // Pre-create toml agent file with user-customized model
     await fs.writeFile(
-      path.join(agentsDir, 'openspec-reviewer.toml'),
-      `name = "openspec-reviewer"
+      path.join(agentsDir, 'opsx-reviewer.toml'),
+      `name = "opsx-reviewer"
 description = "test"
 model = "gpt-5"
 sandbox_mode = "read-only"
@@ -224,7 +224,7 @@ stale
       version: 'test',
     });
 
-    const content = await fs.readFile(path.join(agentsDir, 'openspec-reviewer.toml'), 'utf-8');
+    const content = await fs.readFile(path.join(agentsDir, 'opsx-reviewer.toml'), 'utf-8');
     expect(content).toContain('model = "gpt-5"');
   });
 
@@ -234,9 +234,9 @@ stale
 
     // Pre-create agent file with model: 'inherit'
     await fs.writeFile(
-      path.join(agentsDir, 'openspec-reviewer.md'),
+      path.join(agentsDir, 'opsx-reviewer.md'),
       `---
-name: openspec-reviewer
+name: opsx-reviewer
 description: test
 tools: read, grep
 model: "inherit"
@@ -252,7 +252,7 @@ Stale prompt.`
       version: 'test',
     });
 
-    const content = await fs.readFile(path.join(agentsDir, 'openspec-reviewer.md'), 'utf-8');
+    const content = await fs.readFile(path.join(agentsDir, 'opsx-reviewer.md'), 'utf-8');
     // model: "inherit" is a sentinel for 'no override' — should be stripped
     expect(content).not.toContain('model:');
   });
@@ -266,7 +266,7 @@ Stale prompt.`
     });
 
     const content = await fs.readFile(
-      path.join(testDir, '.pi', 'agents', 'openspec-reviewer.md'),
+      path.join(testDir, '.pi', 'agents', 'opsx-reviewer.md'),
       'utf-8'
     );
     // Fresh generation without override should not write model

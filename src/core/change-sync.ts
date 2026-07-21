@@ -1,3 +1,4 @@
+import { OPSX_DIR_NAME } from './config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import {
@@ -62,8 +63,8 @@ export async function assessChangeSyncState(
   projectRoot: string,
   changeName: string
 ): Promise<ChangeSyncState> {
-  const changeDir = path.join(projectRoot, 'openspec', 'changes', changeName);
-  const mainSpecsDir = path.join(projectRoot, 'openspec', 'specs');
+  const changeDir = path.join(projectRoot, OPSX_DIR_NAME, 'changes', changeName);
+  const mainSpecsDir = path.join(projectRoot, OPSX_DIR_NAME, 'specs');
   const specUpdates = await findSpecUpdates(changeDir, mainSpecsDir);
   const architectureDelta = path.join(changeDir, 'architecture-delta.c4');
   const hasArchitectureDelta = await fileExists(architectureDelta);
@@ -167,7 +168,7 @@ export async function prepareChangeSync(
   if (state.hasArchitectureDelta) {
     const deltaPath = path.join(state.changeDir, 'architecture-delta.c4');
     if (!await isArchitectureDeltaApplied(projectRoot, deltaPath, state.changeName)) {
-      const architectureDir = path.join(projectRoot, 'openspec', 'architecture');
+      const architectureDir = path.join(projectRoot, OPSX_DIR_NAME, 'architecture');
       architecture = {
         architectureDir,
         deltaPath,
@@ -305,7 +306,7 @@ function sameCapability(left: { id: string; title: string; description?: string;
 }
 
 function formalizeSpecPaths(content: string, changeName: string): string {
-  return content.replaceAll(`openspec/changes/${changeName}/specs/`, 'openspec/specs/');
+  return content.replaceAll(`.opsx/changes/${changeName}/specs/`, '.opsx/specs/');
 }
 
 function blockAt(content: string, openBrace: number): { body: string; end: number } {

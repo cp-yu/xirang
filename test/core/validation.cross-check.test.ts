@@ -5,10 +5,10 @@ import { Validator } from '../../src/core/validation/validator.js';
 
 describe('validateChangeDeltaSpecs cross-check against main spec', () => {
   const testDir = path.join(process.cwd(), 'test-cross-check-tmp');
-  // Layout: <testDir>/openspec/changes/test-change/specs/<cap>/spec.md
-  //         <testDir>/openspec/specs/<cap>/spec.md
-  const changeDir = path.join(testDir, 'openspec', 'changes', 'test-change');
-  const mainSpecsDir = path.join(testDir, 'openspec', 'specs');
+  // Layout: <testDir>/.opsx/changes/test-change/specs/<cap>/spec.md
+  //         <testDir>/.opsx/specs/<cap>/spec.md
+  const changeDir = path.join(testDir, '.opsx', 'changes', 'test-change');
+  const mainSpecsDir = path.join(testDir, '.opsx', 'specs');
 
   beforeEach(async () => {
     await fs.mkdir(path.join(changeDir, 'specs'), { recursive: true });
@@ -32,7 +32,7 @@ describe('validateChangeDeltaSpecs cross-check against main spec', () => {
   }
 
   async function writeArchitecture(capIds: string[]) {
-    const architectureDir = path.join(testDir, 'openspec', 'architecture');
+    const architectureDir = path.join(testDir, '.opsx', 'architecture');
     await fs.mkdir(path.join(architectureDir, 'domains'), { recursive: true });
     await fs.writeFile(path.join(architectureDir, 'domains', 'test.c4'), `model {
   test = domain 'Test' {
@@ -208,7 +208,7 @@ ${mainSpecWithHeaders(['Existing'])}`);
     expect(warnings.some(i => i.message.includes('cap.cli.archive'))).toBe(false);
   });
 
-  it('should warn when main spec has no frontmatter capabilities', async () => {
+  it('should report informational issues when main spec has no frontmatter capabilities', async () => {
     await writeArchitecture(['cap.cli.archive']);
     await writeMainSpec('foo', mainSpecWithHeaders(['Existing']));
     await writeMainSpec('empty-caps', `---
@@ -219,9 +219,9 @@ ${mainSpecWithHeaders(['Existing'])}`);
 
     const report = await new Validator().validateChangeDeltaSpecs(changeDir);
 
-    const warnings = report.issues.filter(i => i.level === 'WARNING');
-    expect(warnings.some(i => i.message.includes('foo') && i.message.includes('capabilities frontmatter'))).toBe(true);
-    expect(warnings.some(i => i.message.includes('empty-caps') && i.message.includes('capabilities frontmatter'))).toBe(true);
+    const informational = report.issues.filter(i => i.level === 'INFO');
+    expect(informational.some(i => i.message.includes('foo') && i.message.includes('capabilities frontmatter'))).toBe(true);
+    expect(informational.some(i => i.message.includes('empty-caps') && i.message.includes('capabilities frontmatter'))).toBe(true);
   });
 
   it('should skip capability existence check when LikeC4 architecture is missing', async () => {
@@ -236,6 +236,6 @@ ${mainSpecWithHeaders(['Existing'])}`);
     const report = await new Validator().validateChangeDeltaSpecs(changeDir);
 
     expect(report.issues.some(i => i.message.includes('cap.nonexistent'))).toBe(false);
-    expect(report.issues.some(i => i.level === 'WARNING' && i.message.includes('legacy'))).toBe(true);
+    expect(report.issues.some(i => i.level === 'INFO' && i.message.includes('legacy'))).toBe(true);
   });
 });

@@ -21,8 +21,8 @@ describe('specs apply scenario operation labels', () => {
   });
 
   async function writeUpdate(changeSpec: string, mainSpec: string): Promise<SpecUpdate> {
-    const source = path.join(tempDir, 'openspec', 'changes', 'c1', 'specs', 'auth', 'spec.md');
-    const target = path.join(tempDir, 'openspec', 'specs', 'auth', 'spec.md');
+    const source = path.join(tempDir, '.opsx', 'changes', 'c1', 'specs', 'auth', 'spec.md');
+    const target = path.join(tempDir, '.opsx', 'specs', 'auth', 'spec.md');
     await fs.mkdir(path.dirname(source), { recursive: true });
     await fs.mkdir(path.dirname(target), { recursive: true });
     await fs.writeFile(source, changeSpec, 'utf-8');

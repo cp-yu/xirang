@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ARCHITECTURE_GENERATE_DELTA,
-  OPENSPEC_PHILOSOPHY,
+  OPSX_PHILOSOPHY,
   VERIFY_CLI_JSON_SCHEMA_REFERENCE,
   VERIFY_ERROR_RECOVERY_GUIDE,
   VERIFY_SIMPLE_CHANGE_FAST_PATH,
@@ -87,7 +87,7 @@ describe('LikeC4 delta generation fragment', () => {
   });
 });
 
-describe('OpenSpec philosophy fragment', () => {
+describe('OPSX philosophy fragment', () => {
   it('defines the durable source and scaffolding boundary', () => {
     for (const token of [
       'human-intent programming layer',
@@ -98,7 +98,7 @@ describe('OpenSpec philosophy fragment', () => {
       'compilation scaffolding',
       'not competing sources of truth',
     ]) {
-      expect(OPENSPEC_PHILOSOPHY).toContain(token);
+      expect(OPSX_PHILOSOPHY).toContain(token);
     }
   });
 
@@ -110,7 +110,7 @@ describe('OpenSpec philosophy fragment', () => {
       'Existing code is compiled output and current implementation evidence',
       'MUST NOT silently override the declared semantic source',
     ]) {
-      expect(OPENSPEC_PHILOSOPHY).toContain(token);
+      expect(OPSX_PHILOSOPHY).toContain(token);
     }
   });
 
@@ -123,7 +123,7 @@ describe('OpenSpec philosophy fragment', () => {
       'linking and release',
       'decompilation',
     ]) {
-      expect(OPENSPEC_PHILOSOPHY).not.toContain(token);
+      expect(OPSX_PHILOSOPHY).not.toContain(token);
     }
   });
 });

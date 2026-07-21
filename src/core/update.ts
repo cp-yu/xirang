@@ -14,7 +14,7 @@ import { FileSystemUtils } from '../utils/file-system.js';
 import {
   renderWorkflowInvocation,
 } from '../utils/command-references.js';
-import { AI_TOOLS, OPENSPEC_DIR_NAME } from './config.js';
+import { AI_TOOLS, OPSX_DIR_NAME } from './config.js';
 import {
   getToolVersionStatus,
   getToolsWithSkillsDir,
@@ -79,7 +79,7 @@ export class UpdateCommand {
 
   async execute(projectPath: string): Promise<void> {
     const resolvedProjectPath = path.resolve(projectPath);
-    const openspecPath = path.join(resolvedProjectPath, OPENSPEC_DIR_NAME);
+    const openspecPath = path.join(resolvedProjectPath, OPSX_DIR_NAME);
 
     // 1. Check openspec directory exists
     if (!await FileSystemUtils.directoryExists(openspecPath)) {

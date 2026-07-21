@@ -59,7 +59,7 @@ files:
           - User scope decisions, repository evidence, architecture semantics, and review decisions.
       writePolicy: workflow-managed
       validation:
-        - openspec bootstrap status --json
+        - opsx bootstrap status --json
   - id: scope
     path: "scope.yaml"
     definition:
@@ -72,7 +72,7 @@ files:
           - Repository evidence, architecture semantics, derived candidates, and workflow state.
       writePolicy: cli-generated
       validation:
-        - openspec bootstrap status --json
+        - opsx bootstrap status --json
   - id: evidence
     path: "evidence.yaml"
     definition:
@@ -85,7 +85,7 @@ files:
           - Final architecture claims, derived candidates, review approval, and unsupported conclusions.
       writePolicy: agent-authored
       validation:
-        - openspec bootstrap validate
+        - opsx bootstrap validate
   - id: domain-map
     path: "domain-map/*.yaml"
     definition:
@@ -98,7 +98,7 @@ files:
           - Derived candidates, final approval, unsupported architecture claims, and mechanical import or call edges presented as semantic relations.
       writePolicy: agent-authored
       validation:
-        - openspec bootstrap validate
+        - opsx bootstrap validate
   - id: candidate-project
     path: "candidate/project.opsx.yaml"
     definition:
@@ -111,7 +111,7 @@ files:
           - Semantic relations, delta operations, implementation locations, and review decisions.
       writePolicy: cli-generated
       validation:
-        - openspec bootstrap validate
+        - opsx bootstrap validate
   - id: candidate-relations
     path: "candidate/project.opsx.relations.yaml"
     definition:
@@ -124,7 +124,7 @@ files:
           - Node definitions, delta operations, mechanical import or call graphs, unsupported relations, and review decisions.
       writePolicy: cli-generated
       validation:
-        - openspec bootstrap validate
+        - opsx bootstrap validate
   - id: candidate-specs
     path: "candidate/specs/**/*.md"
     definition:
@@ -137,7 +137,7 @@ files:
           - Architecture semantics, bootstrap evidence, implementation decisions, review state, and change-local delta operations.
       writePolicy: cli-generated
       validation:
-        - openspec bootstrap validate
+        - opsx bootstrap validate
   - id: review
     path: "review.md"
     definition:
@@ -150,9 +150,9 @@ files:
           - Manually copied candidate content, edits outside approval controls, and approval of stale candidates.
       writePolicy: review-controlled
       validation:
-        - openspec bootstrap validate
+        - opsx bootstrap validate
   - id: formal-project
-    path: "openspec/project.opsx.yaml"
+    path: ".opsx/project.opsx.yaml"
     definition:
       purpose: Define the current project intent and durable non-relation architecture model.
       compilationRole: Durable architecture source in the formal OPSX bundle.
@@ -163,9 +163,9 @@ files:
           - Semantic relations, delta operations, implementation locations, bootstrap evidence, and review state.
       writePolicy: workflow-managed
       validation:
-        - openspec validate --all
+        - opsx validate --all
   - id: formal-relations
-    path: "openspec/project.opsx.relations.yaml"
+    path: ".opsx/project.opsx.relations.yaml"
     definition:
       purpose: Define the complete semantic relations that hold in the current project architecture.
       compilationRole: Durable architecture source in the formal OPSX bundle.
@@ -176,9 +176,9 @@ files:
           - Node definitions, delta operations, mechanical import or call graphs, speculative relations, and bootstrap review state.
       writePolicy: workflow-managed
       validation:
-        - openspec validate --all
+        - opsx validate --all
   - id: formal-specs
-    path: "openspec/specs/**/*.md"
+    path: ".opsx/specs/**/*.md"
     definition:
       purpose: Define the observable behavior the current program must continue to exhibit.
       compilationRole: Durable behavior source in the formal Specs collection.
@@ -189,7 +189,7 @@ files:
           - Bootstrap evidence, architecture semantics, implementation decisions, review state, and change-local delta operations.
       writePolicy: workflow-managed
       validation:
-        - openspec validate --specs --strict
+        - opsx validate --specs --strict
 artifacts:
   - id: init
     generates: .bootstrap.yaml
@@ -199,9 +199,9 @@ artifacts:
       - metadata
       - scope
     instruction: |
-      Create the bootstrap workspace under openspec/bootstrap/.
+      Create the bootstrap workspace under .opsx/bootstrap/.
 
-      Run: openspec bootstrap init [--mode full|opsx-first|refresh] --granularity coarse|fine [--scope src/]
+      Run: opsx bootstrap init [--mode full|opsx-first|refresh] --granularity coarse|fine [--scope src/]
 
       **Granularity**: coarse produces fewer grouped specs via spec_groups; fine produces per-capability specs. The agent must confirm choice before initial init. A completed workspace restart inherits retained scope.yaml granularity when omitted; an explicit value overrides it.
 
@@ -220,7 +220,7 @@ artifacts:
       Use refresh only when the repository already has both formal OPSX v2 files. Refresh rebuilds a complete candidate from current evidence; the old model is used only for review diff.
 
       Confirm the scope configuration with the user before proceeding.
-      After init, run openspec bootstrap advance scan and verify status reports phase scan. Do not edit .bootstrap.yaml or call internal APIs.
+      After init, run opsx bootstrap advance scan and verify status reports phase scan. Do not edit .bootstrap.yaml or call internal APIs.
     requires: []
 
   - id: scan
@@ -271,7 +271,7 @@ ${renderRelationWorkflowSummary().split('\n').map((line) => `      ${line}`).joi
 
       Imports and calls are candidate evidence only. Select a relation from the interaction mechanism; do not mechanically promote code edges.
       This phase can be done incrementally — map one domain at a time.
-      Run openspec bootstrap status to see per-domain progress.
+      Run opsx bootstrap status to see per-domain progress.
 
       Gates (map → review):
       - All domains in evidence.yaml have a corresponding domain-map/*.yaml
@@ -294,7 +294,7 @@ ${renderRelationWorkflowSummary().split('\n').map((line) => `      ${line}`).joi
     instruction: |
       Assemble a complete candidate from current domain-map/*.yaml evidence and generate review.md.
 
-      Run: openspec bootstrap validate
+      Run: opsx bootstrap validate
 
       Review domain boundaries, capability coverage, semantic relation type/direction, ownership gaps, unsupported interactions, and spec coverage. In refresh mode, compare the complete candidate with the old formal model, which is review evidence only and must not be copied into the candidate.
 
@@ -322,21 +322,21 @@ ${renderRelationWorkflowSummary().split('\n').map((line) => `      ${line}`).joi
       - formal-relations
       - formal-specs
     instruction: |
-      Run: openspec bootstrap promote -y
+      Run: opsx bootstrap promote -y
 
       This command:
       1. Re-validates scan, map, review, and Registry semantic gates
       2. Assembles the complete candidate OPSX v2 bundle from domain-map files
       3. Atomically writes project.opsx.yaml and project.opsx.relations.yaml
       4. In raw + full with granularity coarse, writes grouped specs from spec_groups; with granularity fine, writes one spec per mapped capability
-      5. In raw + opsx-first, writes only openspec/specs/README.md
+      5. In raw + opsx-first, writes only .opsx/specs/README.md
       6. In specs-based + full, preserves existing specs and writes only missing capability specs
       7. In formal-opsx + refresh, atomically replaces the two formal OPSX v2 files with the reviewed complete candidate
       8. Runs deterministic spec frontmatter backfill automatically
-      9. Retains openspec/bootstrap/ workspace for audit history
+      9. Retains .opsx/bootstrap/ workspace for audit history
 
-      After promote, run openspec bootstrap backfill-specs --json. For every unmatched spec, use semanticHandoff spec content plus candidate capability intents with a subagent. Apply only reviewed mappings with --mappings <mapping-file> and report the remaining unmatched list; never guess capability associations.
-      Then run \`openspec validate --all\`. If validation fails, return to the relevant bootstrap source artifact for repair before claiming completion.
+      After promote, run opsx bootstrap backfill-specs --json. For every unmatched spec, use semanticHandoff spec content plus candidate capability intents with a subagent. Apply only reviewed mappings with --mappings <mapping-file> and report the remaining unmatched list; never guess capability associations.
+      Then run \`opsx validate --all\`. If validation fails, return to the relevant bootstrap source artifact for repair before claiming completion.
 
       Confirm before writing to formal OPSX files.
     requires:
@@ -348,8 +348,8 @@ apply:
   instruction: |
     Review the mapped architecture in review.md.
     Check each domain checkbox after verifying its boundaries, capabilities, semantic relations, and evidence gaps.
-    If evidence.yaml or domain-map files change, run openspec bootstrap validate to regenerate review.md and re-approve it.
-    When all checkboxes are checked, run openspec bootstrap promote -y.
+    If evidence.yaml or domain-map files change, run opsx bootstrap validate to regenerate review.md and re-approve it.
+    When all checkboxes are checked, run opsx bootstrap promote -y.
 `;
 }
 
@@ -464,7 +464,7 @@ export const GENERATED_RELATION_FILES = [
     render: renderDomainMapTemplate,
   },
   {
-    path: 'openspec/references/openspec-relation-authoring.md',
+    path: '.opsx/references/opsx-relation-authoring.md',
     render: renderRelationAuthoringReference,
   },
 ] as const;

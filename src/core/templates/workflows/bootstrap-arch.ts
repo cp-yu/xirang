@@ -1,21 +1,21 @@
 import type { SkillTemplate } from '../types.js';
-import { OPENSPEC_PHILOSOPHY } from '../fragments/opsx-fragments.js';
+import { OPSX_PHILOSOPHY } from '../fragments/opsx-fragments.js';
 
 export function getBootstrapArchSkillTemplate(): SkillTemplate {
   return {
-    name: 'openspec-bootstrap-arch',
+    name: 'opsx-bootstrap-arch',
     description: 'Bootstrap a LikeC4 architecture model from existing code using a five-phase workflow (init → scan → map → review → promote).',
     instructions: `Bootstrap the LikeC4 architecture model from current repository evidence.
 
-${OPENSPEC_PHILOSOPHY}
+${OPSX_PHILOSOPHY}
 
 ## Workflow
 
-1. **init** — inspect the repository, Specs, and config; create \`openspec/architecture/candidates/\`.
+1. **init** — inspect the repository, Specs, and config; create \`.opsx/architecture/candidates/\`.
 2. **scan** — collect evidence for domains, capabilities, ownership, and semantic relations. Use CodeGraph or ACE/\`rg\`/\`read\` only as current implementation evidence.
 3. **map** — generate one candidate \`.c4\` file per domain. Nest every capability in exactly one domain; do not emit a \`belongs_to\` relationship.
 4. **review** — compare candidate elements, metadata, and typed relations with Specs and current code evidence. Record uncertainty instead of guessing.
-5. **promote** — after explicit review approval, write \`openspec/architecture/specification.c4\`, \`domains/*.c4\`, and \`views.c4\`; run \`openspec arch validate\`.
+5. **promote** — after explicit review approval, write \`.opsx/architecture/specification.c4\`, \`domains/*.c4\`, and \`views.c4\`; run \`opsx arch validate\`.
 
 ## Candidate Contract
 
@@ -27,7 +27,7 @@ model {
     query = capability 'Query architecture' {
       metadata {
         capabilityId 'cap.cli.arch-query'
-        specs ['openspec/specs/arch-query-command/spec.md']
+        specs ['.opsx/specs/arch-query-command/spec.md']
       }
     }
   }
@@ -44,7 +44,7 @@ Element IDs use snake_case locally. Semantic relations use \`-[invokes]->\`, \`-
 - Do not emit explicit \`belongs_to\`; nesting is the ownership source.
 - Preserve project prose language while keeping IDs, paths, commands, and DSL tokens canonical.`,
     license: 'MIT',
-    compatibility: 'Requires openspec CLI with arch commands.',
-    metadata: { author: 'openspec', version: '3.0' },
+    compatibility: 'Requires opsx CLI with arch commands.',
+    metadata: { author: 'opsx', version: '3.0' },
   };
 }

@@ -57,7 +57,7 @@ describe('UpdateCommand', () => {
     process.env.CODEX_HOME = path.join(testDir, 'codex-home');
 
     // Create openspec directory
-    const openspecDir = path.join(testDir, 'openspec');
+    const openspecDir = path.join(testDir, '.opsx');
     await fs.mkdir(openspecDir, { recursive: true });
 
     updateCommand = new UpdateCommand();
@@ -93,7 +93,7 @@ describe('UpdateCommand', () => {
   describe('basic validation', () => {
     it('should throw error if openspec directory does not exist', async () => {
       // Remove openspec directory
-      await fs.rm(path.join(testDir, 'openspec'), {
+      await fs.rm(path.join(testDir, '.opsx'), {
         recursive: true,
         force: true,
       });
@@ -112,7 +112,7 @@ describe('UpdateCommand', () => {
         expect.stringContaining('No configured tools found')
       );
 
-      const configPath = path.join(testDir, 'openspec', 'config.yaml');
+      const configPath = path.join(testDir, '.opsx', 'config.yaml');
       const config = parseYaml(await fs.readFile(configPath, 'utf-8'));
       expect(config.optimization.enabled).toBe(true);
       expect(config.optimization.optRetries).toBe(2);
@@ -127,7 +127,7 @@ describe('UpdateCommand', () => {
     });
 
     it('should preserve existing config fields while adding missing defaults', async () => {
-      const configPath = path.join(testDir, 'openspec', 'config.yaml');
+      const configPath = path.join(testDir, '.opsx', 'config.yaml');
       await fs.writeFile(
         configPath,
         `schema: custom-schema
@@ -161,7 +161,7 @@ rules:
     });
 
     it('should preserve existing apply isolation while adding missing defaults', async () => {
-      const configPath = path.join(testDir, 'openspec', 'config.yaml');
+      const configPath = path.join(testDir, '.opsx', 'config.yaml');
       await fs.writeFile(
         configPath,
         `schema: custom-schema
@@ -193,7 +193,7 @@ git:
     });
 
     it('should remove obsolete git fields while adding new defaults', async () => {
-      const configPath = path.join(testDir, 'openspec', 'config.yaml');
+      const configPath = path.join(testDir, '.opsx', 'config.yaml');
       await fs.writeFile(
         configPath,
         `schema: custom-schema
@@ -225,7 +225,7 @@ git:
     });
 
     it('should warn and continue refreshing tools when project config migration is skipped', async () => {
-      const configPath = path.join(testDir, 'openspec', 'config.yaml');
+      const configPath = path.join(testDir, '.opsx', 'config.yaml');
       const originalConfig = 'schema: [unclosed';
       await fs.writeFile(configPath, originalConfig);
 
@@ -256,7 +256,7 @@ git:
       const skillsDir = path.join(testDir, '.claude', 'skills', 'openspec-explore');
       await fs.mkdir(skillsDir, { recursive: true });
       await fs.writeFile(path.join(skillsDir, 'SKILL.md'), 'existing explore skill');
-      await fs.mkdir(path.join(testDir, 'openspec', 'bootstrap'), { recursive: true });
+      await fs.mkdir(path.join(testDir, '.opsx', 'bootstrap'), { recursive: true });
 
       setMockConfig({
         featureFlags: {},
@@ -1226,6 +1226,7 @@ ${OPENSPEC_MARKERS.end}
       );
 
       // Create legacy openspec/AGENTS.md
+      await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
       await fs.writeFile(
         path.join(testDir, 'openspec', 'AGENTS.md'),
         '# Old AGENTS.md content'

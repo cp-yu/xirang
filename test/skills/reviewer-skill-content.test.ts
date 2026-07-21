@@ -1,14 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 
+import { generateSubagentContent } from '../../src/core/shared/subagent-generation.js';
 import { getReviewerSubagentTemplate } from '../../src/core/templates/workflows/reviewer.js';
-
-const projectRoot = process.cwd();
-
-function readSkill(relativePath: string): string {
-  return readFileSync(join(projectRoot, relativePath), 'utf-8');
-}
 
 function normalizeSelfRead(content: string): string {
   const start = content.indexOf('## Self-Read Protocol');
@@ -22,7 +15,7 @@ function normalizeSelfRead(content: string): string {
     .trim();
 }
 
-describe('openspec reviewer skill content', () => {
+describe('opsx reviewer skill content', () => {
   it('contains absence-check protocol for REMOVED anchors', () => {
     const instructions = getReviewerSubagentTemplate().prompt;
 
@@ -74,10 +67,11 @@ describe('openspec reviewer skill content', () => {
   });
 
   it('keeps codex and claude reviewer subagent self-read sections equivalent', () => {
-    const codex = readSkill('.codex/agents/openspec-reviewer.toml');
-    const claude = readSkill('.claude/agents/openspec-reviewer.md');
+    const template = getReviewerSubagentTemplate();
+    const codex = generateSubagentContent(template, 'codex', 'test');
+    const claude = generateSubagentContent(template, 'claude', 'test');
 
     expect(normalizeSelfRead(codex)).toBe(normalizeSelfRead(claude));
-    expect(normalizeSelfRead(codex)).toBe(normalizeSelfRead(getReviewerSubagentTemplate().prompt));
+    expect(normalizeSelfRead(codex)).toBe(normalizeSelfRead(template.prompt));
   });
 });

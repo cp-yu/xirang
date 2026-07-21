@@ -1,0 +1,84 @@
+model {
+  presentation = domain 'Presentation' {
+    description 'OPSX 内置的 LikeC4 DSL、交互式 Web 与 Spec 内容呈现边界'
+    metadata {
+      boundary '拥有本地 Web 呈现、受控 Spec 内容读取和元素详情扩展，不拥有 Specs 或 Architecture durable source'
+      status 'active'
+    }
+
+    likec4_engine = capability 'LikeC4 Engine' {
+      description 'OPSX CLI 内置的 LikeC4 DSL 与交互式 Web 呈现引擎'
+      metadata {
+        capabilityId 'cap.presentation.likec4-engine'
+        status 'active'
+      }
+    }
+
+    spec_content_gateway = capability 'Spec Content Gateway' {
+      description '依据元素索引受控读取 .opsx/specs/**/*.md 的 Preview 数据边界'
+      metadata {
+        capabilityId 'cap.presentation.spec-content-gateway'
+        status 'active'
+        specs ['.opsx/changes/establish-opsx-framework-and-spec-browser/specs/spec-content-browser/spec.md']
+      }
+    }
+
+    spec_content_panel = capability 'Spec Content Panel' {
+      description '在元素详情中按需呈现一个或多个 Spec 的只读 UI'
+      metadata {
+        capabilityId 'cap.presentation.spec-content-panel'
+        status 'active'
+        specs ['.opsx/changes/establish-opsx-framework-and-spec-browser/specs/spec-content-browser/spec.md']
+      }
+    }
+  }
+
+  extend cli.view_element {
+    metadata {
+      intent '启动完整项目语义 Web 浏览器'
+      specs ['.opsx/changes/establish-opsx-framework-and-spec-browser/specs/cli-view/spec.md']
+    }
+  }
+
+  extend cli.init {
+    metadata {
+      intent '初始化 .opsx/ durable workspace 与 LikeC4 架构骨架'
+      specs ['.opsx/changes/establish-opsx-framework-and-spec-browser/specs/cli-init/spec.md']
+    }
+  }
+
+  extend cli.arch_preview {
+    metadata {
+      intent '由 opsx view 取代的历史架构预览能力'
+      status 'deprecated'
+      replacedBy 'cap.cli.view'
+    }
+  }
+
+  extend config.project_element {
+    metadata {
+      intent '从 .opsx/config.yaml 加载并投影项目配置'
+      specs ['.opsx/changes/establish-opsx-framework-and-spec-browser/specs/config-loading/spec.md']
+    }
+  }
+
+  extend validation.registry {
+    metadata {
+      intent '从 .opsx/specs/ 构建 capability↔Spec registry'
+      specs ['.opsx/changes/establish-opsx-framework-and-spec-browser/specs/spec-registry/spec.md']
+    }
+  }
+
+  extend ai_integration.workflow_templates {
+    metadata {
+      intent '生成仅引用 opsx 命令和 .opsx/ 路径的 Agent 工作流'
+      specs ['.opsx/changes/establish-opsx-framework-and-spec-browser/specs/opsx-framework-identity/spec.md']
+    }
+  }
+
+  cli.view_element -[invokes]-> presentation.likec4_engine
+  presentation.likec4_engine -[invokes]-> architecture.likec4_reader
+  presentation.likec4_engine -[consumes]-> presentation.spec_content_gateway
+  presentation.spec_content_gateway -[invokes]-> validation.registry
+  presentation.spec_content_panel -[consumes]-> presentation.spec_content_gateway
+}

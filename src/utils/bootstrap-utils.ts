@@ -12,6 +12,7 @@ import {
   type RuntimeProjection,
 } from '../core/config-projection.js';
 import { backfillSpecs, type BackfillSpecsResult } from '../core/backfill-specs.js';
+import { OPSX_DIR_NAME } from '../core/config.js';
 import { readProjectConfig } from '../core/project-config.js';
 import { validateRelationGraph } from '../core/relations/validator.js';
 import { Validator } from '../core/validation/validator.js';
@@ -31,12 +32,12 @@ import {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-export const BOOTSTRAP_DIR = 'openspec/bootstrap';
-export const BOOTSTRAP_HISTORY_DIR = 'openspec/bootstrap-history';
+export const BOOTSTRAP_DIR = path.join(OPSX_DIR_NAME, 'bootstrap');
+export const BOOTSTRAP_HISTORY_DIR = path.join(OPSX_DIR_NAME, 'bootstrap-history');
 export const DEFAULT_BOOTSTRAP_PROJECT_ID = 'project';
 export const DEFAULT_BOOTSTRAP_PROJECT_NAME = 'Project';
 export const BOOTSTRAP_WORKSPACE_RETAINED_NOTICE =
-  'Bootstrap workspace retained at openspec/bootstrap/. To start the next refresh run with retained granularity, use `openspec bootstrap init --mode refresh --restart`; pass `--granularity coarse|fine` to override it. Delete the workspace only when you no longer need the audit trail.';
+  'Bootstrap workspace retained at .opsx/bootstrap/. To start the next refresh run with retained granularity, use `opsx bootstrap init --mode refresh --restart`; pass `--granularity coarse|fine` to override it. Delete the workspace only when you no longer need the audit trail.';
 export const BOOTSTRAP_METADATA_FILE = '.bootstrap.yaml';
 export const BOOTSTRAP_SCOPE_FILE = 'scope.yaml';
 export const BOOTSTRAP_EVIDENCE_FILE = 'evidence.yaml';
@@ -364,7 +365,7 @@ const DOMAIN_CONFIDENCE_ORDER: Record<EvidenceDomain['confidence'], number> = {
 };
 
 async function hasRealSpecContent(projectRoot: string): Promise<boolean> {
-  const specsDir = FileSystemUtils.joinPath(projectRoot, 'openspec/specs');
+  const specsDir = FileSystemUtils.joinPath(projectRoot, OPSX_DIR_NAME, 'specs');
   if (!await FileSystemUtils.directoryExists(specsDir)) {
     return false;
   }
@@ -524,7 +525,7 @@ function candidateSpecPath(projectRoot: string, folder: string): string {
 }
 
 function formalSpecPath(projectRoot: string, folder: string): string {
-  return FileSystemUtils.joinPath(projectRoot, 'openspec', 'specs', folder, 'spec.md');
+  return FileSystemUtils.joinPath(projectRoot, OPSX_DIR_NAME, 'specs', folder, 'spec.md');
 }
 
 function compareConfidence(a: EvidenceDomain['confidence'], b: EvidenceDomain['confidence']): number {
@@ -925,8 +926,8 @@ async function assembleCandidateSpecs(
         }
         seenFolders.set(folder, `spec_group:${folder}`);
 
-        const candidateRelativePath = `openspec/bootstrap/candidate/specs/${folder}/spec.md`;
-        const formalRelativePath = `openspec/specs/${folder}/spec.md`;
+        const candidateRelativePath = `.opsx/bootstrap/candidate/specs/${folder}/spec.md`;
+        const formalRelativePath = `.opsx/specs/${folder}/spec.md`;
         const existingFormalPath = formalSpecPath(projectRoot, folder);
         const alreadyExists = await FileSystemUtils.fileExists(existingFormalPath);
         if (state.metadata.mode === 'refresh' && alreadyExists) {
@@ -981,7 +982,7 @@ async function assembleCandidateSpecs(
 
     for (const capability of [...mapFile.capabilities].sort((a, b) => a.id.localeCompare(b.id))) {
       if (restrictToAddedCapabilities && !restrictToAddedCapabilities.has(capability.id)) {
-        const formalPath = capability.spec ? `openspec/specs/${normalizeSpecFolderInput(capability.spec.folder)}/spec.md` : null;
+        const formalPath = capability.spec ? `.opsx/specs/${normalizeSpecFolderInput(capability.spec.folder)}/spec.md` : null;
         if (formalPath) {
           preservedFormalPaths.push(formalPath);
         }
@@ -1024,7 +1025,7 @@ async function assembleCandidateSpecs(
         }
       }
 
-      const formalRelativePath = `openspec/specs/${folder}/spec.md`;
+      const formalRelativePath = `.opsx/specs/${folder}/spec.md`;
       const existingFormalPath = formalSpecPath(projectRoot, folder);
       const alreadyExists = await FileSystemUtils.fileExists(existingFormalPath);
       if (state.metadata.mode === 'refresh' && alreadyExists) {
@@ -1045,7 +1046,7 @@ async function assembleCandidateSpecs(
         continue;
       }
 
-      const candidateRelativePath = `openspec/bootstrap/candidate/specs/${folder}/spec.md`;
+      const candidateRelativePath = `.opsx/bootstrap/candidate/specs/${folder}/spec.md`;
       const content = renderCandidateSpec(capability, folder, candidateProjection);
       specs.push({
         capabilityId: capability.id,
@@ -2142,7 +2143,7 @@ async function writeBootstrapSpecStarter(projectRoot: string, state: BootstrapSt
     return;
   }
 
-  const specsReadmePath = FileSystemUtils.joinPath(projectRoot, 'openspec/specs/README.md');
+  const specsReadmePath = FileSystemUtils.joinPath(projectRoot, OPSX_DIR_NAME, 'specs/README.md');
   if (await FileSystemUtils.fileExists(specsReadmePath)) {
     return;
   }
@@ -2166,8 +2167,8 @@ ${localizeBootstrapText(projection, {
   zh: 'Add behavior specs incrementally with normal OpenSpec changes.',
 })}
 - ${localizeBootstrapText(projection, {
-  en: 'Create focused specs under `openspec/specs/<capability>/spec.md` as features evolve.',
-  zh: 'Create focused specs under `openspec/specs/<capability>/spec.md` as features evolve.',
+  en: 'Create focused specs under `.opsx/specs/<capability>/spec.md` as features evolve.',
+  zh: 'Create focused specs under `.opsx/specs/<capability>/spec.md` as features evolve.',
 })}
 `;
 

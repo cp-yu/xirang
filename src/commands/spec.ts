@@ -1,3 +1,4 @@
+import { OPSX_DIR_NAME } from '../core/config.js';
 import { program } from 'commander';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
@@ -7,7 +8,7 @@ import type { Spec } from '../core/schemas/index.js';
 import { isInteractive } from '../utils/interactive.js';
 import { getSpecIds } from '../utils/item-discovery.js';
 
-const SPECS_DIR = 'openspec/specs';
+const SPECS_DIR = join(OPSX_DIR_NAME, 'specs');
 
 interface ShowOptions {
   json?: boolean;
@@ -65,7 +66,7 @@ function printSpecTextRaw(specPath: string): void {
 }
 
 export class SpecCommand {
-  private SPECS_DIR = 'openspec/specs';
+  private SPECS_DIR = join(OPSX_DIR_NAME, 'specs');
 
   async show(specId?: string, options: ShowOptions = {}): Promise<void> {
     if (!specId) {

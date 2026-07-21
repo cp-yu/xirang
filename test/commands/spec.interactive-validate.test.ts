@@ -6,7 +6,7 @@ import { runCLI } from '../helpers/run-cli.js';
 describe('spec validate (interactive behavior)', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-spec-validate-tmp');
-  const specsDir = path.join(testDir, 'openspec', 'specs');
+  const specsDir = path.join(testDir, '.opsx', 'specs');
 
   beforeEach(async () => {
     await fs.mkdir(specsDir, { recursive: true });

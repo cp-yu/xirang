@@ -1,3 +1,4 @@
+import { OPSX_DIR_NAME } from '../../core/config.js';
 /**
  * Shared Types and Utilities for Artifact Workflow Commands
  *
@@ -93,7 +94,7 @@ export function getStatusIndicator(status: 'done' | 'ready' | 'blocked'): string
  * Excludes the archive directory and hidden directories.
  */
 export async function getAvailableChanges(projectRoot: string): Promise<string[]> {
-  const changesPath = path.join(projectRoot, 'openspec', 'changes');
+  const changesPath = path.join(projectRoot, OPSX_DIR_NAME, 'changes');
   try {
     const entries = await fs.promises.readdir(changesPath, { withFileTypes: true });
     return entries
@@ -130,7 +131,7 @@ export async function validateChangeExists(
   }
 
   // Check directory existence directly
-  const changePath = path.join(projectRoot, 'openspec', 'changes', changeName);
+  const changePath = path.join(projectRoot, OPSX_DIR_NAME, 'changes', changeName);
   const exists = fs.existsSync(changePath) && fs.statSync(changePath).isDirectory();
 
   if (!exists) {

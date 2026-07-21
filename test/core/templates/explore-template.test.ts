@@ -1,19 +1,19 @@
 import { describe, expect, it } from 'vitest';
 
-import { OPENSPEC_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
+import { OPSX_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import { getExploreSkillTemplate } from '../../../src/core/templates/skill-templates.js';
 
 describe('explore template impact sweeps', () => {
   const template = getExploreSkillTemplate().instructions;
 
   it('includes v2 OPSX context without code-map guidance', () => {
-    expect(template).toContain(OPENSPEC_PHILOSOPHY);
+    expect(template).toContain(OPSX_PHILOSOPHY);
     expect(template).toContain('semantic relations');
     expect(template).not.toContain('code-map refs');
   });
 
   it('invokes the sweeper before proposal readiness', () => {
-    expect(template).toContain('Delegate to the `openspec-impact-sweeper` agent');
+    expect(template).toContain('Delegate to the `opsx-impact-sweeper` agent');
     expect(template).toContain('preparing to say the discussion is ready for proposal/change artifacts');
     expect(template).toContain('After the agent returns the canonical JSON report');
     expect(template).toContain('interpret that returned object directly in the explore conversation');
@@ -22,8 +22,8 @@ describe('explore template impact sweeps', () => {
 
   it('supports repeated independent concept sweeps', () => {
     expect(template).toContain('the user introduces a new module, workflow, command, configuration key, project concept, or unfamiliar domain term');
-    expect(template).not.toContain('openspec-impact-sweeper/SKILL.md');
-    expect(template).not.toContain('.claude/skills/openspec-impact-sweeper/SKILL.md');
+    expect(template).not.toContain('opsx-impact-sweeper/SKILL.md');
+    expect(template).not.toContain('.claude/skills/opsx-impact-sweeper/SKILL.md');
     expect(template).toContain('Treat each new concept as an independent sweep');
     expect(template).toContain('even if another concept was already swept earlier in the conversation');
   });
@@ -32,7 +32,7 @@ describe('explore template impact sweeps', () => {
     expect(template).not.toContain('## Skill Delegation Protocol');
     expect(template).not.toContain('**Internal Subagents**');
     expect(template).not.toContain('Never** read or inline the generated');
-    expect(template).not.toContain('/skills/openspec-impact-sweeper/SKILL.md');
+    expect(template).not.toContain('/skills/opsx-impact-sweeper/SKILL.md');
   });
 
   it('passes the lightweight sweeper input fields', () => {
@@ -87,7 +87,7 @@ describe('explore template impact sweeps', () => {
     const ref = getExploreSkillTemplate().referenceFiles?.find(f => f.path === 'references/explore-supperpowers-style.md');
 
     expect(template).toContain("Output language: use the user's main language for prose and non-canonical section labels");
-    expect(template).toContain('keep commands, paths, artifact names, schema keys, and OpenSpec tokens unchanged');
+    expect(template).toContain('keep commands, paths, artifact names, schema keys, and OPSX tokens unchanged');
     expect(ref?.content).toContain("Output language: use the user's main language for prose and non-canonical section labels");
   });
 
@@ -111,12 +111,12 @@ describe('explore template impact sweeps', () => {
   });
 
   it('keeps both explore and its sweeper fully read-only', () => {
-    expect(template).toContain('The main explore agent and `openspec-impact-sweeper` subagent are both read-only');
+    expect(template).toContain('The main explore agent and `opsx-impact-sweeper` subagent are both read-only');
     expect(template).toContain('The sweeper returns its canonical JSON report directly and MUST NOT write it to the project');
     expect(template).toContain('If delegation fails or returns no usable object, disclose the evidence gap');
     expect(template).toContain('MUST NOT infer missing impact evidence');
     expect(template).not.toContain('Subagent Exception');
-    expect(template).not.toContain('openspec/sweeper/');
+    expect(template).not.toContain('opsx/sweeper/');
   });
 
   it('routes active-change insights to future capture targets', () => {
@@ -133,7 +133,7 @@ describe('explore template impact sweeps', () => {
 
   it('uses the generated superpowers reference as the authoritative behavior guide', () => {
     expect(template).toContain('## Required References');
-    expect(template).toContain('openspec/references/openspec-explore-supperpowers-style.md');
+    expect(template).toContain('.opsx/references/opsx-explore-supperpowers-style.md');
     expect(template).toContain('authoritative Superpowers brainstorming behavior guide');
     expect(template).toContain('hard gate, context exploration, visual companion judgment, one-question discipline');
     expect(template).toContain('Do not reconstruct or duplicate Superpowers behavior from this prompt');
@@ -164,7 +164,7 @@ describe('explore supperpowers-style reference', () => {
     expect(ref?.content).toContain('Section-by-section design approval');
     expect(ref?.content).toContain('Design Summary self-review');
     expect(ref?.content).toContain('User review gate');
-    expect(ref?.content).toContain('openspec-propose handoff');
+    expect(ref?.content).toContain('opsx-propose handoff');
   });
 
   it('preserves the Superpowers design-before-implementation gate', () => {
@@ -176,7 +176,7 @@ describe('explore supperpowers-style reference', () => {
     expect(ref?.content).toContain('Simple changes still require design confirmation');
     expect(ref?.content).toContain('confirm only the applicable design sections');
     expect(ref?.content).toContain('at minimum confirm the problem, impact scope, approach, and verification method');
-    expect(ref?.content).toContain('Only route to openspec-propose after the user reviews and accepts the Design Summary');
+    expect(ref?.content).toContain('Only route to opsx-propose after the user reviews and accepts the Design Summary');
   });
 
   it('reference content routes to propose instead of direct writes', () => {
@@ -193,8 +193,8 @@ describe('explore supperpowers-style reference', () => {
     expect(ref?.content).not.toContain('invoke writing-plans');
 
     // Should route to propose by logical workflow name, not tool-specific syntax.
-    expect(ref?.content).toContain('openspec-propose');
-    expect(ref?.content).not.toContain('$openspec-propose');
+    expect(ref?.content).toContain('opsx-propose');
+    expect(ref?.content).not.toContain('$opsx-propose');
     expect(ref?.content).not.toContain('/opsx:propose');
   });
 
@@ -204,7 +204,7 @@ describe('explore supperpowers-style reference', () => {
 
     expect(ref).toBeDefined();
     // Should NOT contain sweeper delegation protocol details
-    expect(ref?.content).not.toContain('openspec-impact-sweeper');
+    expect(ref?.content).not.toContain('opsx-impact-sweeper');
     // Should NOT contain brainstorming checklist numbered flow
     expect(ref?.content).not.toContain('Explore MUST run this sequence');
     // Should NOT contain Future Capture Target routing table

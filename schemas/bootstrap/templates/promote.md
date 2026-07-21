@@ -13,10 +13,10 @@ Confirm promotion of candidate OPSX files to formal project files.
 ## Actions
 
 1. Re-check all promotion gates before any formal write
-2. Write openspec/project.opsx.yaml
-3. Write openspec/project.opsx.relations.yaml
-4. In `raw + full`, copy reviewed candidate specs into `openspec/specs/<capability-folder>/spec.md`
-5. In `raw + opsx-first`, create only `openspec/specs/README.md`
+2. Write .opsx/project.opsx.yaml
+3. Write .opsx/project.opsx.relations.yaml
+4. In `raw + full`, copy reviewed candidate specs into `.opsx/specs/<capability-folder>/spec.md`
+5. In `raw + opsx-first`, create only `.opsx/specs/README.md`
 6. In `specs-based + full`, preserve existing specs and add only missing capability specs
-7. Retain openspec/bootstrap/ as audit history and direct the next run to `openspec bootstrap init --mode refresh --restart`, which inherits retained `scope.yaml` granularity unless explicitly overridden
-8. Run `openspec bootstrap backfill-specs --json`; pass unmatched spec content and candidate capability intents to a subagent, apply only reviewed mappings with `--mappings <mapping-file>`, and explicitly report specs still unmatched
+7. Retain .opsx/bootstrap/ as audit history and direct the next run to `opsx bootstrap init --mode refresh --restart`, which inherits retained `scope.yaml` granularity unless explicitly overridden
+8. Run `opsx bootstrap backfill-specs --json`; pass unmatched spec content and candidate capability intents to a subagent, apply only reviewed mappings with `--mappings <mapping-file>`, and explicitly report specs still unmatched

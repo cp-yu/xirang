@@ -24,8 +24,8 @@ const MANIFEST_ENTRIES: readonly WorkflowManifestEntry[] = [
   {
     workflowId: 'propose',
     modeMembership: ['core'],
-    skillDirName: 'openspec-propose',
-    skillName: 'openspec-propose',
+    skillDirName: 'opsx-propose',
+    skillName: 'opsx-propose',
     commandSlug: 'propose',
     promptMeta: {
       name: 'Propose change',
@@ -36,8 +36,8 @@ const MANIFEST_ENTRIES: readonly WorkflowManifestEntry[] = [
   {
     workflowId: 'explore',
     modeMembership: ['core'],
-    skillDirName: 'openspec-explore',
-    skillName: 'openspec-explore',
+    skillDirName: 'opsx-explore',
+    skillName: 'opsx-explore',
     commandSlug: 'explore',
     promptMeta: {
       name: 'Explore ideas',
@@ -48,8 +48,8 @@ const MANIFEST_ENTRIES: readonly WorkflowManifestEntry[] = [
   {
     workflowId: 'apply',
     modeMembership: ['core'],
-    skillDirName: 'openspec-apply-change',
-    skillName: 'openspec-apply-change',
+    skillDirName: 'opsx-apply-change',
+    skillName: 'opsx-apply-change',
     commandSlug: 'apply',
     promptMeta: {
       name: 'Apply tasks',
@@ -60,8 +60,8 @@ const MANIFEST_ENTRIES: readonly WorkflowManifestEntry[] = [
   {
     workflowId: 'archive',
     modeMembership: ['core'],
-    skillDirName: 'openspec-archive-change',
-    skillName: 'openspec-archive-change',
+    skillDirName: 'opsx-archive-change',
+    skillName: 'opsx-archive-change',
     commandSlug: 'archive',
     promptMeta: {
       name: 'Archive change',
@@ -72,8 +72,8 @@ const MANIFEST_ENTRIES: readonly WorkflowManifestEntry[] = [
   {
     workflowId: 'bootstrap-arch',
     modeMembership: [],
-    skillDirName: 'openspec-bootstrap-arch',
-    skillName: 'openspec-bootstrap-arch',
+    skillDirName: 'opsx-bootstrap-arch',
+    skillName: 'opsx-bootstrap-arch',
     commandSlug: 'bootstrap',
     promptMeta: {
       name: 'Bootstrap architecture',
@@ -84,8 +84,8 @@ const MANIFEST_ENTRIES: readonly WorkflowManifestEntry[] = [
   {
     workflowId: 'snack',
     modeMembership: ['flexible'],
-    skillDirName: 'openspec-snack',
-    skillName: 'openspec-snack',
+    skillDirName: 'opsx-snack',
+    skillName: 'opsx-snack',
     commandSlug: 'snack',
     promptMeta: {
       name: 'Snack sync',

@@ -18,11 +18,11 @@ describe('subagent generation', () => {
     const names = INTERNAL_SUBAGENT_TEMPLATES.map((template) => template.name);
 
     expect(names).toEqual([
-      'openspec-reviewer',
-      'openspec-optimizer',
-      'openspec-impact-sweeper',
+      'opsx-reviewer',
+      'opsx-optimizer',
+      'opsx-impact-sweeper',
     ]);
-    expect(names).not.toContain('openspec-implementer');
+    expect(names).not.toContain('opsx-implementer');
 
     for (const template of INTERNAL_SUBAGENT_TEMPLATES) {
       expect(template.name).toBeTruthy();
@@ -36,7 +36,7 @@ describe('subagent generation', () => {
 
   it('renders Claude markdown agent frontmatter without other tool fields', () => {
     const reviewer = INTERNAL_SUBAGENT_TEMPLATES.find(
-      (template) => template.name === 'openspec-reviewer'
+      (template) => template.name === 'opsx-reviewer'
     );
     expect(reviewer).toBeDefined();
 
@@ -45,7 +45,7 @@ describe('subagent generation', () => {
 
     expect(content).toMatch(/^---\n/);
     expect(frontmatter).toMatchObject({
-      name: 'openspec-reviewer',
+      name: 'opsx-reviewer',
       description: reviewer!.description,
     });
     expect(frontmatter).not.toHaveProperty('model');
@@ -61,13 +61,13 @@ describe('subagent generation', () => {
 
   it('renders Pi and OpenCode markdown agent permissions', () => {
     const reviewer = INTERNAL_SUBAGENT_TEMPLATES.find(
-      (template) => template.name === 'openspec-reviewer'
+      (template) => template.name === 'opsx-reviewer'
     );
     expect(reviewer).toBeDefined();
 
     const pi = markdownFrontmatter(generateSubagentContent(reviewer!, 'pi', 'TEST'));
     expect(pi).toMatchObject({
-      name: 'openspec-reviewer',
+      name: 'opsx-reviewer',
       description: `${reviewer!.description} Pi callers: run foreground and omit timeoutMs/maxRuntimeMs.`,
     });
     expect(pi).not.toHaveProperty('model');
@@ -91,13 +91,13 @@ describe('subagent generation', () => {
 
   it('renders the impact sweeper as fully read-only for every tool', () => {
     const sweeper = INTERNAL_SUBAGENT_TEMPLATES.find(
-      (template) => template.name === 'openspec-impact-sweeper'
+      (template) => template.name === 'opsx-impact-sweeper'
     );
     expect(sweeper).toBeDefined();
     expect(sweeper!.mode).toBe('read-only');
     expect(sweeper!.tools).not.toContain('write');
     expect(sweeper!.tools).not.toContain('edit');
-    expect(sweeper!.prompt).not.toContain('openspec/sweeper/');
+    expect(sweeper!.prompt).not.toContain('opsx/sweeper/');
 
     const claude = markdownFrontmatter(generateSubagentContent(sweeper!, 'claude', 'TEST'));
     const pi = markdownFrontmatter(generateSubagentContent(sweeper!, 'pi', 'TEST'));
@@ -128,7 +128,7 @@ describe('subagent generation', () => {
 
   it('renders Codex TOML with escaped multiline developer instructions', () => {
     const template: SubagentTemplate = {
-      name: 'openspec-reviewer',
+      name: 'opsx-reviewer',
       description: 'A reviewer with "quotes"',
       prompt: 'Line 1 with triple quotes """\nLine 2 with slash C:\\temp',
       tools: ['read', 'grep', 'find', 'bash'],
@@ -140,7 +140,7 @@ describe('subagent generation', () => {
     const content = generateSubagentContent(template, 'codex', 'TEST');
 
     expect(content).not.toMatch(/^---\n/);
-    expect(content).toContain('name = "openspec-reviewer"');
+    expect(content).toContain('name = "opsx-reviewer"');
     expect(content).toContain('description = "A reviewer with \\"quotes\\""');
     expect(content).not.toContain('model =');
     expect(content).toContain('sandbox_mode = "read-only"');

@@ -18,7 +18,7 @@ const formal = `model {
 `;
 
 async function architectureSnapshot(root: string): Promise<Map<string, string>> {
-  const architecture = path.join(root, 'openspec', 'architecture');
+  const architecture = path.join(root, '.opsx', 'architecture');
   const files = new Map<string, string>();
   const visit = async (directory: string): Promise<void> => {
     for (const entry of await fs.readdir(directory, { withFileTypes: true })) {
@@ -36,10 +36,10 @@ describe('architecture sync workflow', () => {
   let changeDir: string;
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-architecture-sync-'));
-    changeDir = path.join(root, 'openspec', 'changes', 'add');
-    await fs.mkdir(path.join(root, 'openspec', 'architecture', 'domains'), { recursive: true });
+    changeDir = path.join(root, '.opsx', 'changes', 'add');
+    await fs.mkdir(path.join(root, '.opsx', 'architecture', 'domains'), { recursive: true });
     await fs.mkdir(changeDir, { recursive: true });
-    const architecture = path.join(root, 'openspec', 'architecture');
+    const architecture = path.join(root, '.opsx', 'architecture');
     await fs.writeFile(path.join(architecture, 'specification.c4'), 'specification { element domain element capability relationship invokes }');
     await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), formal);
     await fs.writeFile(path.join(architecture, 'relations.c4'), 'model {\n}\n');
@@ -52,7 +52,7 @@ describe('architecture sync workflow', () => {
     const state = await assessChangeSyncState(root, 'add');
     expect(state.hasArchitectureDelta).toBe(true);
     await applyPreparedChangeSync(root, await prepareChangeSync(root, state, { skipValidation: true }));
-    expect(await fs.readFile(path.join(root, 'openspec', 'architecture', 'domains', 'core.c4'), 'utf8')).toContain("added = capability 'Added'");
+    expect(await fs.readFile(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'), 'utf8')).toContain("added = capability 'Added'");
   });
 
   it('should move change-local specs to formal', async () => {
@@ -60,7 +60,7 @@ describe('architecture sync workflow', () => {
     await fs.writeFile(path.join(changeDir, 'specs', 'added', 'spec.md'), `## ADDED Requirements\n### Requirement: Added behavior\nThe system SHALL add behavior.\n\n#### Scenario: Added succeeds\n- **WHEN** added runs\n- **THEN** it succeeds\n`);
     const state = await assessChangeSyncState(root, 'add');
     await applyPreparedChangeSync(root, await prepareChangeSync(root, state, { skipValidation: true }));
-    await expect(fs.access(path.join(root, 'openspec', 'specs', 'added', 'spec.md'))).resolves.toBeUndefined();
+    await expect(fs.access(path.join(root, '.opsx', 'specs', 'added', 'spec.md'))).resolves.toBeUndefined();
   });
 
   it('should keep a colliding capability delta pending when its content differs', async () => {
@@ -80,7 +80,7 @@ describe('architecture sync workflow', () => {
   });
 
   it('should keep a colliding relation delta pending when its description differs', async () => {
-    await fs.writeFile(path.join(root, 'openspec', 'architecture', 'relations.c4'), `model {
+    await fs.writeFile(path.join(root, '.opsx', 'architecture', 'relations.c4'), `model {
   core.existing -[invokes]-> core.existing { description 'Formal description.' }
 }
 `);
@@ -100,7 +100,7 @@ describe('architecture sync workflow', () => {
       metadata {
         capabilityId 'cap.core.added'
         status 'active'
-        specs ['openspec/changes/add/specs/added/spec.md']
+        specs ['.opsx/changes/add/specs/added/spec.md']
       }
     }
   }
@@ -119,10 +119,10 @@ describe('architecture sync workflow', () => {
       process.chdir(originalCwd);
     }
 
-    const archiveNames = await fs.readdir(path.join(root, 'openspec', 'changes', 'archive'));
-    const archived = path.join(root, 'openspec', 'changes', 'archive', archiveNames.find(name => name.endsWith('-add'))!);
+    const archiveNames = await fs.readdir(path.join(root, '.opsx', 'changes', 'archive'));
+    const archived = path.join(root, '.opsx', 'changes', 'archive', archiveNames.find(name => name.endsWith('-add'))!);
     await expect(fs.access(path.join(archived, 'architecture-delta.c4'))).rejects.toThrow();
-    await expect(fs.readFile(path.join(root, 'openspec', 'architecture', 'domains', 'core.c4'), 'utf8'))
+    await expect(fs.readFile(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'), 'utf8'))
       .resolves.toContain("added = capability 'Added'");
   });
 
@@ -147,12 +147,12 @@ The system SHALL expose a broken target.
     const before = await architectureSnapshot(root);
     const state = await assessChangeSyncState(root, 'add');
     const prepared = await prepareChangeSync(root, state, { skipValidation: true });
-    const targetParent = path.join(root, 'openspec', 'specs', 'broken');
+    const targetParent = path.join(root, '.opsx', 'specs', 'broken');
     await fs.mkdir(path.dirname(targetParent), { recursive: true });
     await fs.writeFile(targetParent, 'blocks mkdir');
 
     await expect(applyPreparedChangeSync(root, prepared)).rejects.toThrow();
     expect(await architectureSnapshot(root)).toEqual(before);
-    await expect(fs.access(path.join(root, 'openspec', 'architecture', 'domains', 'added.c4'))).rejects.toThrow();
+    await expect(fs.access(path.join(root, '.opsx', 'architecture', 'domains', 'added.c4'))).rejects.toThrow();
   });
 });

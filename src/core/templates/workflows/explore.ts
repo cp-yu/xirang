@@ -6,12 +6,12 @@
  */
 import type { SkillTemplate } from '../types.js';
 import {
-  OPENSPEC_PHILOSOPHY,
+  OPSX_PHILOSOPHY,
   ARCHITECTURE_NAVIGATION_GUIDANCE,
   ARCHITECTURE_SHARED_CONTEXT,
 } from '../fragments/opsx-fragments.js';
 
-const CONVERSATION_LANGUAGE_GUIDANCE = `Output language: use the user's main language for prose and non-canonical section labels; keep commands, paths, artifact names, schema keys, and OpenSpec tokens unchanged.`;
+const CONVERSATION_LANGUAGE_GUIDANCE = `Output language: use the user's main language for prose and non-canonical section labels; keep commands, paths, artifact names, schema keys, and OPSX tokens unchanged.`;
 
 const ACTIVE_CHANGE_CAPTURE_GUIDANCE = `### Capture Boundary for Existing Changes
 
@@ -36,7 +36,7 @@ Example offers:
 
 const EXPLORE_SUPPERPOWERS_STYLE_REFERENCE = `# Superpowers-Style Explore Behavior Guide
 
-This reference is the OpenSpec explore adaptation of Superpowers brainstorming. It restores design-first discipline but does not restore original Superpowers file writing, committing, or implementation planning permissions.
+This reference is the OPSX explore adaptation of Superpowers brainstorming. It restores design-first discipline but does not restore original Superpowers file writing, committing, or implementation planning permissions.
 
 ## Superpowers brainstorming source
 
@@ -50,10 +50,10 @@ The core of Superpowers brainstorming is not free-form discussion, but compressi
 
 If todo is available, track these stages as a checklist and tick each completed stage.
 
-OpenSpec mapping:
+OPSX mapping:
 - The original design-document step maps to a conversation-only \`Design Summary\`.
 - The original commit step is removed; explore does not write files.
-- The original implementation-plan handoff maps to \`openspec-propose\` handoff.
+- The original implementation-plan handoff maps to \`opsx-propose\` handoff.
 
 ## Conversation language
 
@@ -74,7 +74,7 @@ Simple changes still require design confirmation. For a narrow change, confirm o
 Before context reads, create the todo checklist: context, visual decision, one question, options, section approvals, self-review, handoff.
 
 Constrain the discussion with project facts first:
-- Read relevant OpenSpec change, spec, design, and tasks.
+- Read relevant OPSX change, spec, design, and tasks.
 - Inspect relevant implementation files, tests, and git evidence.
 - Identify affected subsystems; if the request spans multiple independent subsystems, first clarify boundaries and recommend an order.
 - Explicitly identify unknowns; do not substitute general experience for project evidence.
@@ -133,21 +133,21 @@ The \`Design Summary\` must stay in the conversation; do not create or update fi
 
 After showing the \`Design Summary\` to the user, stop advancing; let the user review. When the user requests changes, return to the corresponding section and reconfirm.
 
-Only route to openspec-propose after the user reviews and accepts the Design Summary.
+Only route to opsx-propose after the user reviews and accepts the Design Summary.
 
-## openspec-propose handoff
+## opsx-propose handoff
 
 After the user confirms the \`Design Summary\`, hand off using tool-neutral workflow names:
 
 \`\`\`
-Design Summary complete. Review the above design. If confirmed, use openspec-propose to generate artifacts.
+Design Summary complete. Review the above design. If confirmed, use opsx-propose to generate artifacts.
 \`\`\`
 
 Do not use tool-specific call syntax in references. Do not imply that explore can create proposals, update designs, modify specs, commit files, or directly enter implementation.`;
 
 export function getExploreSkillTemplate(): SkillTemplate {
   return {
-    name: 'openspec-explore',
+    name: 'opsx-explore',
     description: 'Enter explore mode - a thinking partner for exploring ideas, investigating problems, and clarifying requirements. Use when the user wants to think through something before or during a change.',
     referenceFiles: [
       {
@@ -157,7 +157,7 @@ export function getExploreSkillTemplate(): SkillTemplate {
     ],
     instructions: `Enter explore mode: investigate, clarify, compare, and help the user think before implementation.
 
-${OPENSPEC_PHILOSOPHY}
+${OPSX_PHILOSOPHY}
 
 ## Workflow Stage
 
@@ -169,7 +169,7 @@ ${OPENSPEC_PHILOSOPHY}
 
 ## Required References
 
-- MUST read the project-root file \`openspec/references/openspec-explore-supperpowers-style.md\` before exploring. DO NOT proceed without reading it first. It is the authoritative Superpowers brainstorming behavior guide for hard gate, context exploration, visual companion judgment, one-question discipline, options comparison, section approval, Design Summary review, and propose handoff.
+- MUST read the project-root file \`.opsx/references/opsx-explore-supperpowers-style.md\` before exploring. DO NOT proceed without reading it first. It is the authoritative Superpowers brainstorming behavior guide for hard gate, context exploration, visual companion judgment, one-question discipline, options comparison, section approval, Design Summary review, and propose handoff.
 - Do not reconstruct or duplicate Superpowers behavior from this prompt. This prompt defines boundaries, context loading, sweeper delegation, and proposal routing only.
 
 ## Hard Rules
@@ -178,11 +178,11 @@ ${OPENSPEC_PHILOSOPHY}
 - Ask one clarification question at a time; do not auto-capture decisions into artifacts.
 - When ready, produce a conversation-only \`Design Summary\` and instruct the user to call \`/opsx:propose <change-name>\`.
 
-The main explore agent and \`openspec-impact-sweeper\` subagent are both read-only. The sweeper returns its canonical JSON report directly and MUST NOT write it to the project.
+The main explore agent and \`opsx-impact-sweeper\` subagent are both read-only. The sweeper returns its canonical JSON report directly and MUST NOT write it to the project.
 
 ## Required Context
 
-- Start with \`openspec list --json\`.
+- Start with \`opsx list --json\`.
 - Read relevant change artifacts when a change name is present.
 - Use LikeC4 as navigation: project domains/capabilities, semantic relations, Specs, and CLI query guidance; use live repository tools for code evidence.
 - Ground claims in project files and git evidence when the idea maps to code.
@@ -195,7 +195,7 @@ ${CONVERSATION_LANGUAGE_GUIDANCE}
 
 ## Impact Sweeps
 
-Delegate to the \`openspec-impact-sweeper\` agent when the user introduces a new module, workflow, command, configuration key, project concept, or unfamiliar domain term, or when preparing to say the discussion is ready for proposal/change artifacts. Pass \`projectRoot\`, \`concept\`, optional \`optionalChangeName\`, optional \`knownUserTerms\`, and optional \`focus\`. Treat each new concept as an independent sweep, even if another concept was already swept earlier in the conversation. After the agent returns the canonical JSON report, interpret that returned object directly in the explore conversation. If delegation fails or returns no usable object, disclose the evidence gap and continue only with available read-only evidence; MUST NOT infer missing impact evidence.
+Delegate to the \`opsx-impact-sweeper\` agent when the user introduces a new module, workflow, command, configuration key, project concept, or unfamiliar domain term, or when preparing to say the discussion is ready for proposal/change artifacts. Pass \`projectRoot\`, \`concept\`, optional \`optionalChangeName\`, optional \`knownUserTerms\`, and optional \`focus\`. Treat each new concept as an independent sweep, even if another concept was already swept earlier in the conversation. After the agent returns the canonical JSON report, interpret that returned object directly in the explore conversation. If delegation fails or returns no usable object, disclose the evidence gap and continue only with available read-only evidence; MUST NOT infer missing impact evidence.
 
 Treat \`terminologyObservations\` with this decision table:
 
@@ -225,7 +225,7 @@ The simplicity filter (for reference):
 ## Brainstorming Checklist
 
 If todo is available, create this checklist before context reads and tick each stage as completed. Explore MUST run this sequence before saying a proposal is ready:
-1. **Explore project context**. Run \`openspec list --json\`, inspect relevant source and current implementation evidence, and identify affected subsystems. If the request spans multiple independent subsystems, identify them and recommend an implementation order.
+1. **Explore project context**. Run \`opsx list --json\`, inspect relevant source and current implementation evidence, and identify affected subsystems. If the request spans multiple independent subsystems, identify them and recommend an implementation order.
 2. **Decide whether a visual companion helps**. Use one only when it clarifies architecture, state, data flow, or trade-offs.
 3. **Clarify one question at a time**. Ask exactly one question, then wait for the answer; resolve terminology before impact and design questions.
 4. **Compare 2-3 options**. Present 2-3 viable approaches with strengths, weaknesses, best fit, and a recommendation when a real design choice exists. Name a simpler alternative in one line when applicable.
@@ -236,7 +236,7 @@ If todo is available, create this checklist before context reads and tick each s
 
 ${ACTIVE_CHANGE_CAPTURE_GUIDANCE}`,
     license: 'MIT',
-    compatibility: 'Requires openspec CLI.',
-    metadata: { author: 'openspec', version: '1.0' },
+    compatibility: 'Requires opsx CLI.',
+    metadata: { author: 'opsx', version: '1.0' },
   };
 }

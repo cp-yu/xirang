@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { OPENSPEC_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
+import { OPSX_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import { getArchiveChangeSkillTemplate } from '../../../src/core/templates/workflows/archive-change.js';
 
 describe('archive change workflow template', () => {
-  it('includes the OpenSpec philosophy in the skill surface', () => {
-    expect(getArchiveChangeSkillTemplate().instructions).toContain(OPENSPEC_PHILOSOPHY);
+  it('includes the OPSX philosophy in the skill surface', () => {
+    expect(getArchiveChangeSkillTemplate().instructions).toContain(OPSX_PHILOSOPHY);
   });
 
   it('keeps definition-first discipline for workflow-managed writes', () => {
@@ -25,18 +25,18 @@ describe('archive change workflow template', () => {
   it('delegates verify work to internal agents', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
 
-    expect(instructions).toContain('delegate to clean-context generated `openspec-reviewer` subagent');
-    expect(instructions).toContain('delegate to clean-context generated `openspec-optimizer` subagent');
+    expect(instructions).toContain('delegate to clean-context generated `opsx-reviewer` subagent');
+    expect(instructions).toContain('delegate to clean-context generated `opsx-optimizer` subagent');
     expect(instructions).toContain('MUST NOT inline a current-agent review skeleton');
-    expect(instructions).not.toContain('invoke the `openspec-reviewer` skill');
-    expect(instructions).not.toContain('invoke `openspec-optimizer`');
-    expect(instructions).not.toContain('/skills/openspec-reviewer/SKILL.md');
+    expect(instructions).not.toContain('invoke the `opsx-reviewer` skill');
+    expect(instructions).not.toContain('invoke `opsx-optimizer`');
+    expect(instructions).not.toContain('/skills/opsx-reviewer/SKILL.md');
   });
 
   it('retains apply isolation metadata before CLI move and owns safe cleanup', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
     const readIndex = instructions.indexOf('Read `.apply-isolation.json` before running the archive CLI');
-    const cliIndex = instructions.indexOf('Run `openspec archive "<change-name>"`');
+    const cliIndex = instructions.indexOf('Run `opsx archive "<change-name>"`');
 
     expect(readIndex).toBeGreaterThan(-1);
     expect(cliIndex).toBeGreaterThan(readIndex);

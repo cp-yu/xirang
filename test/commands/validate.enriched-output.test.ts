@@ -6,7 +6,7 @@ import { runCLI } from '../helpers/run-cli.js';
 describe('validate command enriched human output', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-validate-enriched-tmp');
-  const changesDir = path.join(testDir, 'openspec', 'changes');
+  const changesDir = path.join(testDir, '.opsx', 'changes');
 
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });

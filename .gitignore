@@ -165,3 +165,5 @@ opencode.json
 !.github/workflows/opsx-v2-cross-platform.yml
 .roadmap/
 /.pi-subagents/artifacts
+/.opsx/.cache/
+/.opsx/architecture/.likec4/

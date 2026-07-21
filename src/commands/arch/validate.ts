@@ -1,3 +1,4 @@
+import { OPSX_DIR_NAME } from '../../core/config.js';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -12,7 +13,7 @@ export interface ValidateArchitectureOptions {
 }
 
 export async function validateArchitectureCommand(projectRoot: string, options: ValidateArchitectureOptions = {}) {
-  const architectureDir = path.join(projectRoot, 'openspec', 'architecture');
+  const architectureDir = path.join(projectRoot, OPSX_DIR_NAME, 'architecture');
   const runner = options.runLikeC4 ?? runLikeC4;
   if (!options.deltaPath) {
     await runner(['validate', architectureDir]);
@@ -30,7 +31,10 @@ export async function validateArchitectureCommand(projectRoot: string, options: 
 
   const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-likec4-delta-'));
   try {
-    await fs.cp(architectureDir, workspace, { recursive: true });
+    await fs.cp(architectureDir, workspace, {
+      recursive: true,
+      filter: file => path.basename(file) !== '.likec4',
+    });
     await fs.copyFile(options.deltaPath, path.join(workspace, 'architecture-delta.c4'));
     await runner(['validate', workspace]);
     return { success: true, errors: [], warnings: [] };

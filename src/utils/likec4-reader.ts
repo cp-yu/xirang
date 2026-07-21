@@ -1,3 +1,4 @@
+import { OPSX_DIR_NAME } from '../core/config.js';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { parseLikeC4Domain, type ArchitectureCapability, type ArchitectureDomain, type ArchitectureRelation } from './likec4-parser.js';
@@ -11,7 +12,7 @@ export interface LikeC4Architecture {
 }
 
 export async function readLikeC4Architecture(projectRoot: string): Promise<LikeC4Architecture> {
-  const architecture = path.join(projectRoot, 'openspec', 'architecture');
+  const architecture = path.join(projectRoot, OPSX_DIR_NAME, 'architecture');
   const domainsDir = path.join(architecture, 'domains');
   const domainNames = (await fs.readdir(domainsDir)).filter(name => name.endsWith('.c4')).sort();
   const rootNames = (await fs.readdir(architecture)).filter(name => name.endsWith('.c4')).sort();

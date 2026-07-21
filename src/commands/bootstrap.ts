@@ -632,8 +632,8 @@ export async function bootstrapPromoteCommand(options: BootstrapPromoteOptions):
   try {
     const result = await promoteBootstrap(projectRoot);
     spinner.succeed('Bootstrap promoted to formal OPSX files');
-    console.log('  Written: openspec/project.opsx.yaml');
-    console.log('  Written: openspec/project.opsx.relations.yaml');
+    console.log('  Written: .opsx/project.opsx.yaml');
+    console.log('  Written: .opsx/project.opsx.relations.yaml');
     console.log(`  Backfill specs: written ${result.backfill.written.length}, unmatched ${result.backfill.unmatched.length}`);
     console.log(`  ${result.retainedWorkspaceNotice}`);
   } catch (error) {

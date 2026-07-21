@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ARCHITECTURE_GENERATE_DELTA,
-  OPENSPEC_PHILOSOPHY,
+  OPSX_PHILOSOPHY,
 } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import { getSnackSkillTemplate } from '../../../src/core/templates/skill-templates.js';
 
@@ -10,8 +10,8 @@ describe('snack template code-change evidence collection', () => {
   const template = getSnackSkillTemplate();
   const instructions = template.instructions;
 
-  it('includes the OpenSpec philosophy', () => {
-    expect(instructions).toContain(OPENSPEC_PHILOSOPHY);
+  it('includes the OPSX philosophy', () => {
+    expect(instructions).toContain(OPSX_PHILOSOPHY);
   });
 
   it('treats conversation context as a first-class evidence source', () => {
@@ -168,13 +168,13 @@ describe('snack template scenario operation labels', () => {
   const instructions = template.instructions;
 
   it('delegates scenario labels to the CLI', () => {
-    const validationIndex = instructions.indexOf('Run `openspec validate "<name>" --type change --json`');
-    const scenarioLabelsIndex = instructions.indexOf('Run `openspec scenario-labels "<name>" --write` after validate to add deterministic change-local scenario operation labels.');
+    const validationIndex = instructions.indexOf('Run `opsx validate "<name>" --type change --json`');
+    const scenarioLabelsIndex = instructions.indexOf('Run `opsx scenario-labels "<name>" --write` after validate to add deterministic change-local scenario operation labels.');
     expect(validationIndex).toBeGreaterThanOrEqual(0);
     expect(scenarioLabelsIndex).toBeGreaterThan(validationIndex);
     expect(instructions).toContain('SHALL NOT run validate again only because scenario labels were added');
     expect(instructions).not.toContain(
-      ['automatically handled by the OpenSpec CLI', 'after validation'].join(' ')
+      ['automatically handled by the OPSX CLI', 'after validation'].join(' ')
     );
     expect(instructions).not.toContain('#### Scenario: [ADDED] <title>');
     expect(instructions).not.toContain('#### Scenario: [MODIFIED] <title>');
@@ -187,10 +187,10 @@ describe('snack template output hints', () => {
   const instructions = template.instructions;
 
   it('offers quick-sync, quick-archive, sync-and-archive, and continue-development paths after snack', () => {
-    expect(instructions).toContain('1. **Quick sync**: `openspec sync "<change-name>" --no-verify`');
-    expect(instructions).toContain('2. **Quick archive**: `openspec archive "<change-name>" --no-verify`');
+    expect(instructions).toContain('1. **Quick sync**: `opsx sync "<change-name>" --no-verify`');
+    expect(instructions).toContain('2. **Quick archive**: `opsx archive "<change-name>" --no-verify`');
     expect(instructions).toContain(
-      '3. **Sync and archive**: `openspec sync "<change-name>" --no-verify && openspec archive "<change-name>" --no-verify`'
+      '3. **Sync and archive**: `opsx sync "<change-name>" --no-verify && opsx archive "<change-name>" --no-verify`'
     );
     expect(instructions).toContain('4. **Continue development**');
   });

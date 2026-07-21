@@ -4,6 +4,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 import type { Command } from 'commander';
+import { OPSX_DIR_NAME } from '../core/config.js';
 import { readProjectConfig } from '../core/project-config.js';
 import {
   checkArchiveCompatibility,
@@ -813,7 +814,7 @@ async function handleFindingVerification(
 
 async function getChangeDir(changeName: string, projectRoot: string): Promise<string> {
   const validated = await validateChangeExists(changeName, projectRoot);
-  return path.join(projectRoot, 'openspec', 'changes', validated);
+  return path.join(projectRoot, OPSX_DIR_NAME, 'changes', validated);
 }
 
 async function readRequiredVerifyResult(changeDir: string): Promise<VerifyResult> {

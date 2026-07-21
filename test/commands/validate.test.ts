@@ -6,8 +6,8 @@ import { runCLI } from '../helpers/run-cli.js';
 describe('top-level validate command', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-validate-command-tmp');
-  const changesDir = path.join(testDir, 'openspec', 'changes');
-  const specsDir = path.join(testDir, 'openspec', 'specs');
+  const changesDir = path.join(testDir, '.opsx', 'changes');
+  const specsDir = path.join(testDir, '.opsx', 'specs');
 
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });
@@ -60,7 +60,7 @@ describe('top-level validate command', () => {
   });
 
   async function writeProjectOpsx(): Promise<void> {
-    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), [
+    await fs.writeFile(path.join(testDir, '.opsx', 'project.opsx.yaml'), [
       'schema_version: 2',
       'project:',
       '  id: proj.test',
@@ -78,7 +78,7 @@ describe('top-level validate command', () => {
       '    intent: Alpha capability',
       '    type: capability',
     ].join('\n'), 'utf-8');
-    await fs.writeFile(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'), [
+    await fs.writeFile(path.join(testDir, '.opsx', 'project.opsx.relations.yaml'), [
       'schema_version: 2',
       'relations:',
       '  - from: cap.alpha',

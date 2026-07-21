@@ -1,3 +1,4 @@
+import { OPSX_DIR_NAME } from '../core/config.js';
 import { promises as fs } from 'node:fs';
 import ora from 'ora';
 import path from 'path';
@@ -173,7 +174,7 @@ export class ValidateCommand {
     }
 
     const validator = new Validator(opts.strict);
-    const changeDir = path.join(process.cwd(), 'openspec', 'changes', id);
+    const changeDir = path.join(process.cwd(), OPSX_DIR_NAME, 'changes', id);
     const start = Date.now();
     const report = await this.validateChangeReports(validator, changeDir, opts.artifactScope);
     const durationMs = Date.now() - start;
@@ -184,7 +185,7 @@ export class ValidateCommand {
   private async validateByType(type: ItemType, id: string, opts: { strict: boolean; json: boolean }): Promise<void> {
     const validator = new Validator(opts.strict);
     if (type === 'change') {
-      const changeDir = path.join(process.cwd(), 'openspec', 'changes', id);
+      const changeDir = path.join(process.cwd(), OPSX_DIR_NAME, 'changes', id);
       const start = Date.now();
       const report = await this.validateChangeReports(validator, changeDir);
       const durationMs = Date.now() - start;
@@ -193,7 +194,7 @@ export class ValidateCommand {
       process.exitCode = report.valid ? 0 : 1;
       return;
     }
-    const file = path.join(process.cwd(), 'openspec', 'specs', id, 'spec.md');
+    const file = path.join(process.cwd(), OPSX_DIR_NAME, 'specs', id, 'spec.md');
     const start = Date.now();
     const report = await validator.validateSpec(file);
     const durationMs = Date.now() - start;
@@ -251,7 +252,7 @@ export class ValidateCommand {
     for (const id of changeIds) {
       queue.push(async () => {
         const start = Date.now();
-        const changeDir = path.join(process.cwd(), 'openspec', 'changes', id);
+        const changeDir = path.join(process.cwd(), OPSX_DIR_NAME, 'changes', id);
         const report = await this.validateChangeReports(validator, changeDir);
         const durationMs = Date.now() - start;
         return { id, type: 'change' as const, valid: report.valid, issues: report.issues, durationMs };
@@ -260,7 +261,7 @@ export class ValidateCommand {
     for (const id of specIds) {
       queue.push(async () => {
         const start = Date.now();
-        const file = path.join(process.cwd(), 'openspec', 'specs', id, 'spec.md');
+        const file = path.join(process.cwd(), OPSX_DIR_NAME, 'specs', id, 'spec.md');
         const report = await validator.validateSpec(file);
         const durationMs = Date.now() - start;
         return { id, type: 'spec' as const, valid: report.valid, issues: report.issues, durationMs };

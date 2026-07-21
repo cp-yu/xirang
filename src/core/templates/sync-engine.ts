@@ -9,6 +9,7 @@ import path from 'path';
 import * as fs from 'fs';
 import { parse as parseYaml } from 'yaml';
 import { FileSystemUtils } from '../../utils/file-system.js';
+import { OPSX_DIR_NAME } from '../config.js';
 import {
   generateSkillContent,
   getSkillTemplates,
@@ -108,7 +109,7 @@ function resolveEffectiveWorkflows(
   workflows: readonly string[]
 ): readonly WorkflowId[] {
   const effective = new Set<WorkflowId>(normalizeWorkflowIds(workflows));
-  const bootstrapDir = path.join(projectPath, 'openspec', 'bootstrap');
+  const bootstrapDir = path.join(projectPath, OPSX_DIR_NAME, 'bootstrap');
 
   try {
     if (fs.statSync(bootstrapDir).isDirectory()) {
@@ -163,11 +164,11 @@ function toSharedReferenceFileName(referencePath: string): string {
     throw new Error(`Invalid skill reference path: ${referencePath}`);
   }
 
-  return `openspec-${path.posix.basename(normalized)}`;
+  return `opsx-${path.posix.basename(normalized)}`;
 }
 
 function assertToolNeutralReference(referencePath: string, content: string): void {
-  if (/\/opsx:|\$openspec-/.test(content)) {
+  if (/\/opsx:|\$opsx-/.test(content)) {
     throw new Error(`Tool-specific syntax in skill reference file: ${referencePath}`);
   }
 }
@@ -202,21 +203,21 @@ export function collectSharedReferenceFiles(
 }
 
 const STALE_SHARED_REFERENCE_FILES = [
-  'openspec-apply-phase2-optimization.md',
+  'opsx-apply-phase2-optimization.md',
 ] as const;
 
 async function writeSharedReferences(
   projectPath: string,
   references: readonly SharedReferenceFile[]
 ): Promise<void> {
-  const referencesDir = path.join(projectPath, 'openspec', 'references');
+  const referencesDir = path.join(projectPath, OPSX_DIR_NAME, 'references');
 
   for (const fileName of STALE_SHARED_REFERENCE_FILES) {
     await fs.promises.rm(path.join(referencesDir, fileName), { force: true });
   }
 
   for (const referenceFile of references) {
-    if (!referenceFile.fileName.startsWith('openspec-')) {
+    if (!referenceFile.fileName.startsWith('opsx-')) {
       throw new Error(`Invalid managed reference file name: ${referenceFile.fileName}`);
     }
 

@@ -16,6 +16,7 @@ import {
   type RequirementBlock,
 } from './parsers/requirement-blocks.js';
 import { projectConfigForRuntime, type RuntimeProjection } from './config-projection.js';
+import { OPSX_DIR_NAME } from './config.js';
 import { readProjectConfig } from './project-config.js';
 import { findMainSpecStructureIssues } from './parsers/spec-structure.js';
 import { Validator } from './validation/validator.js';
@@ -470,8 +471,8 @@ export async function applySpecs(
     silent?: boolean;
   } = {}
 ): Promise<SpecsApplyOutput> {
-  const changeDir = path.join(projectRoot, 'openspec', 'changes', changeName);
-  const mainSpecsDir = path.join(projectRoot, 'openspec', 'specs');
+  const changeDir = path.join(projectRoot, OPSX_DIR_NAME, 'changes', changeName);
+  const mainSpecsDir = path.join(projectRoot, OPSX_DIR_NAME, 'specs');
 
   // Verify change exists
   try {

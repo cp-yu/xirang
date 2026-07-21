@@ -16,7 +16,7 @@ import {
 } from '../utils/command-references.js';
 import {
   AI_TOOLS,
-  OPENSPEC_DIR_NAME,
+  OPSX_DIR_NAME,
   AIToolOption,
 } from './config.js';
 import { PALETTE } from './styles/palette.js';
@@ -88,7 +88,7 @@ export class InitCommand {
 
   async execute(targetPath: string): Promise<void> {
     const projectPath = path.resolve(targetPath);
-    const openspecDir = OPENSPEC_DIR_NAME;
+    const openspecDir = OPSX_DIR_NAME;
     const openspecPath = path.join(projectPath, openspecDir);
 
     // Validation happens silently in the background
@@ -707,8 +707,8 @@ export class InitCommand {
       console.log(`Config: openspec/config.yaml (updated proseLanguage: ${proseLanguage})`);
     } else if (configStatus === 'exists') {
       // Show actual filename (config.yaml or config.yml)
-      const configYaml = path.join(projectPath, OPENSPEC_DIR_NAME, 'config.yaml');
-      const configYml = path.join(projectPath, OPENSPEC_DIR_NAME, 'config.yml');
+      const configYaml = path.join(projectPath, OPSX_DIR_NAME, 'config.yaml');
+      const configYml = path.join(projectPath, OPSX_DIR_NAME, 'config.yml');
       const configName = fs.existsSync(configYaml) ? 'config.yaml' : fs.existsSync(configYml) ? 'config.yml' : 'config.yaml';
       console.log(`Config: openspec/${configName} (exists)`);
     } else {

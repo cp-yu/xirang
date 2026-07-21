@@ -10,10 +10,10 @@ async function buildRealProgram(): Promise<Command> {
   // We can't directly import and run the full CLI setup due to side effects,
   // so we'll build a representative subset that covers all command patterns
   const program = new Command();
-  program.name('openspec').description('AI-native system for spec-driven development');
+  program.name('opsx').description('AI-native system for spec-driven development');
 
   // Top-level commands with various patterns
-  program.command('init [path]').description('Initialize OpenSpec in your project');
+  program.command('init [path]').description('Initialize OPSX in your project');
   program.command('list').description('List items').option('--specs', 'List specs').option('--json', 'Output as JSON');
   program.command('validate [item-name]').description('Validate changes and specs').option('--strict', 'Strict mode');
   program.command('show [item-name]').description('Show a change or spec').option('--json', 'Output as JSON');
@@ -61,11 +61,11 @@ describe('introspect-regression', () => {
     const script = generator.generate(commands);
 
     // 验证基本结构
-    expect(script).toContain('#compdef openspec');
-    expect(script).toContain('_openspec() {');
+    expect(script).toContain('#compdef opsx');
+    expect(script).toContain('_opsx() {');
 
     // 验证顶层命令
-    expect(script).toContain("'init:Initialize OpenSpec");
+    expect(script).toContain("'init:Initialize OPSX");
     expect(script).toContain("'list:List items");
     expect(script).toContain("'validate:Validate changes");
     expect(script).toContain("'show:Show a change");
@@ -83,8 +83,8 @@ describe('introspect-regression', () => {
     expect(script).toContain('--verbose');
 
     // 验证动态补全函数引用（针对 positionalType）
-    expect(script).toContain('_openspec_complete_changes'); // For change-id
-    expect(script).toContain('_openspec_complete_specs'); // For spec-id
+    expect(script).toContain('_opsx_complete_changes'); // For change-id
+    expect(script).toContain('_opsx_complete_specs'); // For spec-id
   });
 
   it('Bash 补全脚本覆盖率：包含所有命令和 flags', async () => {
@@ -95,7 +95,7 @@ describe('introspect-regression', () => {
     const script = generator.generate(commands);
 
     // 验证基本结构
-    expect(script).toContain('_openspec_completion()');
+    expect(script).toContain('_opsx_completion()');
     expect(script).toContain('COMPREPLY=()');
 
     // 验证顶层命令列表
@@ -115,7 +115,7 @@ describe('introspect-regression', () => {
     expect(script).toContain('--verbose');
 
     // 验证补全注册
-    expect(script).toContain('complete -F _openspec_completion openspec');
+    expect(script).toContain('complete -F _opsx_completion opsx');
   });
 
   it('验证 positionalType 合并后动态补全函数引用正确', async () => {
@@ -144,8 +144,8 @@ describe('introspect-regression', () => {
     const zshScript = zshGenerator.generate(commands);
 
     // change-id 和 spec-id 类型会生成对应的补全函数
-    expect(zshScript).toContain('_openspec_complete_changes');
-    expect(zshScript).toContain('_openspec_complete_specs');
+    expect(zshScript).toContain('_opsx_complete_changes');
+    expect(zshScript).toContain('_opsx_complete_specs');
 
     // shell 类型使用固定值补全，不生成动态函数
     expect(zshScript).toContain('zsh');

@@ -60,12 +60,12 @@ describe('WorkflowManifestRegistry', () => {
     it('should return 6 skill names', () => {
       const skillNames = WorkflowManifestRegistry.getSkillNames();
       expect(skillNames).toHaveLength(6);
-      expect(skillNames).toContain('openspec-propose');
-      expect(skillNames).toContain('openspec-explore');
-      expect(skillNames).toContain('openspec-apply-change');
-      expect(skillNames).toContain('openspec-archive-change');
-      expect(skillNames).toContain('openspec-bootstrap-arch');
-      expect(skillNames).toContain('openspec-snack');
+      expect(skillNames).toContain('opsx-propose');
+      expect(skillNames).toContain('opsx-explore');
+      expect(skillNames).toContain('opsx-apply-change');
+      expect(skillNames).toContain('opsx-archive-change');
+      expect(skillNames).toContain('opsx-bootstrap-arch');
+      expect(skillNames).toContain('opsx-snack');
     });
   });
 

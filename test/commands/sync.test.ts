@@ -36,8 +36,8 @@ describe('syncCommand', () => {
   beforeEach(async () => {
     vi.resetModules();
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-sync-test-'));
-    await fs.mkdir(path.join(tempDir, 'openspec', 'changes', 'archive'), { recursive: true });
-    await fs.mkdir(path.join(tempDir, 'openspec', 'specs'), { recursive: true });
+    await fs.mkdir(path.join(tempDir, '.opsx', 'changes', 'archive'), { recursive: true });
+    await fs.mkdir(path.join(tempDir, '.opsx', 'specs'), { recursive: true });
     process.chdir(tempDir);
     console.log = vi.fn();
   });
@@ -55,7 +55,7 @@ describe('syncCommand', () => {
   }
 
   async function createChange(changeName: string): Promise<string> {
-    const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+    const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
     await fs.mkdir(changeDir, { recursive: true });
     return changeDir;
   }
@@ -101,7 +101,7 @@ Then the system signs the user in`
     await syncCommand('direct-sync', { noValidate: true, noVerify: true });
 
     const mainSpec = await fs.readFile(
-      path.join(tempDir, 'openspec', 'specs', 'auth', 'spec.md'),
+      path.join(tempDir, '.opsx', 'specs', 'auth', 'spec.md'),
       'utf-8'
     );
     expect(mainSpec).toContain('### Requirement: The system SHALL support login');
@@ -138,7 +138,7 @@ Then the system signs the user in`
 
     await syncCommand('specs-with-no-op-opsx', { noValidate: true, noVerify: true });
 
-    await expect(fs.readFile(path.join(tempDir, 'openspec', 'specs', 'auth', 'spec.md'), 'utf-8'))
+    await expect(fs.readFile(path.join(tempDir, '.opsx', 'specs', 'auth', 'spec.md'), 'utf-8'))
       .resolves.toContain('### Requirement: 登录');
     expect(console.log).toHaveBeenCalledWith("Sync complete for 'specs-with-no-op-opsx'.");
     expect(console.log).toHaveBeenCalledWith('specs: synced');
@@ -184,7 +184,7 @@ Then the system signs the user in`
     await syncCommand('verified-sync', { noValidate: true });
 
     const mainSpec = await fs.readFile(
-      path.join(tempDir, 'openspec', 'specs', 'verified', 'spec.md'),
+      path.join(tempDir, '.opsx', 'specs', 'verified', 'spec.md'),
       'utf-8'
     );
     expect(mainSpec).toContain('### Requirement: Verified sync works');
@@ -193,7 +193,7 @@ Then the system signs the user in`
   it('uses runtime projection when creating a new formal spec skeleton', async () => {
     const syncCommand = await loadSyncCommand();
     await fs.writeFile(
-      path.join(tempDir, 'openspec', 'config.yaml'),
+      path.join(tempDir, '.opsx', 'config.yaml'),
       'schema: spec-driven\ndocLanguage: 中文\n'
     );
     const changeDir = await createChange('localized-sync');
@@ -216,7 +216,7 @@ Then the system signs the user in`
     await syncCommand('localized-sync', { noValidate: true, noVerify: true });
 
     const mainSpec = await fs.readFile(
-      path.join(tempDir, 'openspec', 'specs', 'auth', 'spec.md'),
+      path.join(tempDir, '.opsx', 'specs', 'auth', 'spec.md'),
       'utf-8'
     );
     expect(mainSpec).toContain('## Purpose');
@@ -229,7 +229,7 @@ Then the system signs the user in`
     const syncCommand = await loadSyncCommand();
     const changeDir = await createChange('remove-empty-spec');
     const changeSpecDir = path.join(changeDir, 'specs', 'old-merge');
-    const mainSpecDir = path.join(tempDir, 'openspec', 'specs', 'old-merge');
+    const mainSpecDir = path.join(tempDir, '.opsx', 'specs', 'old-merge');
     await fs.mkdir(changeSpecDir, { recursive: true });
     await fs.mkdir(mainSpecDir, { recursive: true });
 
@@ -268,7 +268,7 @@ Old B.`
     const changeName = 'removal-already-applied';
     const changeDir = await createChange(changeName);
     const changeSpecDir = path.join(changeDir, 'specs', 'partial-merge');
-    const mainSpecDir = path.join(tempDir, 'openspec', 'specs', 'partial-merge');
+    const mainSpecDir = path.join(tempDir, '.opsx', 'specs', 'partial-merge');
     await fs.mkdir(changeSpecDir, { recursive: true });
     await fs.mkdir(mainSpecDir, { recursive: true });
     await writeFreshVerifyResult(changeDir);
@@ -307,7 +307,7 @@ The system SHALL keep this requirement.`
     const changeName = 'removal-empty-then-rerun';
     const changeDir = await createChange(changeName);
     const changeSpecDir = path.join(changeDir, 'specs', 'solo-merge');
-    const mainSpecDir = path.join(tempDir, 'openspec', 'specs', 'solo-merge');
+    const mainSpecDir = path.join(tempDir, '.opsx', 'specs', 'solo-merge');
     await fs.mkdir(changeSpecDir, { recursive: true });
     await fs.mkdir(mainSpecDir, { recursive: true });
     await writeFreshVerifyResult(changeDir);
@@ -350,7 +350,7 @@ Old A.`
     await createChange(selectedChange);
     await createChange('other-sync');
 
-    const changeSpecDir = path.join(tempDir, 'openspec', 'changes', selectedChange, 'specs', 'docs');
+    const changeSpecDir = path.join(tempDir, '.opsx', 'changes', selectedChange, 'specs', 'docs');
     await fs.mkdir(changeSpecDir, { recursive: true });
     await fs.writeFile(
       path.join(changeSpecDir, 'spec.md'),
@@ -443,14 +443,14 @@ Then the system signs the user in`
 
     await syncCommand(changeName, { noValidate: true, noVerify: true });
     const specAfterFirst = await fs.readFile(
-      path.join(tempDir, 'openspec', 'specs', 'auth', 'spec.md'),
+      path.join(tempDir, '.opsx', 'specs', 'auth', 'spec.md'),
       'utf-8'
     );
     const opsxAfterFirst = await readProjectOpsx(tempDir);
 
     await syncCommand(changeName, { noValidate: true, noVerify: true });
     const specAfterSecond = await fs.readFile(
-      path.join(tempDir, 'openspec', 'specs', 'auth', 'spec.md'),
+      path.join(tempDir, '.opsx', 'specs', 'auth', 'spec.md'),
       'utf-8'
     );
     const opsxAfterSecond = await readProjectOpsx(tempDir);
@@ -465,7 +465,7 @@ Then the system signs the user in`
     const changeName = 'scenario-label-sync';
     const changeDir = await createChange(changeName);
     const changeSpecDir = path.join(changeDir, 'specs', 'auth');
-    const mainSpecDir = path.join(tempDir, 'openspec', 'specs', 'auth');
+    const mainSpecDir = path.join(tempDir, '.opsx', 'specs', 'auth');
     await fs.mkdir(changeSpecDir, { recursive: true });
     await fs.mkdir(mainSpecDir, { recursive: true });
 
@@ -531,7 +531,7 @@ The system SHALL support login.
     const changeName = 'unlabeled-sync';
     const changeDir = await createChange(changeName);
     const changeSpecPath = path.join(changeDir, 'specs', 'auth', 'spec.md');
-    const mainSpecDir = path.join(tempDir, 'openspec', 'specs', 'auth');
+    const mainSpecDir = path.join(tempDir, '.opsx', 'specs', 'auth');
     await fs.mkdir(path.dirname(changeSpecPath), { recursive: true });
     await fs.mkdir(mainSpecDir, { recursive: true });
 
@@ -575,7 +575,7 @@ The system SHALL support login.
     );
     const changeSpecBefore = await fs.readFile(changeSpecPath, 'utf-8');
     await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] verified\n', 'utf-8');
-    const evidenceFiles = [`openspec/changes/${changeName}/specs/auth/spec.md`];
+    const evidenceFiles = [`.opsx/changes/${changeName}/specs/auth/spec.md`];
     const beforeEvidence = await computeEvidenceFingerprint(evidenceFiles, tempDir);
     const verifyResult: VerifyResult = {
       timestamp: new Date().toISOString(),
@@ -632,7 +632,7 @@ The system SHALL support login.
 ### Requirement: Sync refreshes evidence`
     );
 
-    const architecture = path.join(tempDir, 'openspec', 'architecture');
+    const architecture = path.join(tempDir, '.opsx', 'architecture');
     await fs.mkdir(path.join(architecture, 'domains'), { recursive: true });
     await fs.writeFile(path.join(architecture, 'specification.c4'), 'specification { element domain element capability }');
     await fs.writeFile(path.join(architecture, 'views.c4'), 'views { view index { include * } }');
@@ -640,8 +640,8 @@ The system SHALL support login.
     await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), "model { extend core { login = capability 'Login' } }");
 
     const evidenceFiles = [
-      'openspec/architecture/domains/core.c4',
-      `openspec/changes/${changeName}/specs/auth/spec.md`,
+      '.opsx/architecture/domains/core.c4',
+      `.opsx/changes/${changeName}/specs/auth/spec.md`,
     ];
     const before = await computeEvidenceFingerprint(evidenceFiles, tempDir);
     const verifyResult: VerifyResult = {
@@ -671,16 +671,16 @@ The system SHALL support login.
     expect(refreshed.verificationContext.evidenceFingerprint).not.toBe(before.hash);
     expect(
       refreshed.verificationContext.evidenceFingerprintEntries?.find(
-        (entry) => entry.path === 'openspec/architecture/domains/core.c4'
+        (entry) => entry.path === '.opsx/architecture/domains/core.c4'
       )?.hash
-    ).not.toBe(before.entries.find((entry) => entry.path === 'openspec/architecture/domains/core.c4')?.hash);
+    ).not.toBe(before.entries.find((entry) => entry.path === '.opsx/architecture/domains/core.c4')?.hash);
     expect(
       refreshed.verificationContext.evidenceFingerprintEntries?.find(
-        (entry) => entry.path === `openspec/changes/${changeName}/specs/auth/spec.md`
+        (entry) => entry.path === `.opsx/changes/${changeName}/specs/auth/spec.md`
       )?.hash
     ).toBe(
       before.entries.find(
-        (entry) => entry.path === `openspec/changes/${changeName}/specs/auth/spec.md`
+        (entry) => entry.path === `.opsx/changes/${changeName}/specs/auth/spec.md`
       )?.hash
     );
   });
@@ -786,7 +786,7 @@ The system SHALL support login.
       'utf-8'
     );
 
-    const evidenceFiles = [`openspec/changes/${changeName}/specs/auth/spec.md`];
+    const evidenceFiles = [`.opsx/changes/${changeName}/specs/auth/spec.md`];
     const evidence = await computeEvidenceFingerprint(evidenceFiles, tempDir);
     const verifyResult: VerifyResult = {
       timestamp: new Date().toISOString(),

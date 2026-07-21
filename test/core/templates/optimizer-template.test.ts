@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { OPENSPEC_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
+import { OPSX_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import { getOptimizerSubagentTemplate } from '../../../src/core/templates/workflows/optimizer.js';
 
 describe('optimizer subagent template', () => {
@@ -8,7 +8,7 @@ describe('optimizer subagent template', () => {
     const template = getOptimizerSubagentTemplate();
     const prompt = template.prompt;
 
-    expect(prompt).toContain(OPENSPEC_PHILOSOPHY);
+    expect(prompt).toContain(OPSX_PHILOSOPHY);
     expect(prompt).toContain('finding-first');
     expect(prompt).toContain('strict JSON envelope');
     expect(prompt).toContain('keyDesign');
@@ -21,7 +21,7 @@ describe('optimizer subagent template', () => {
   it('preserves read-only self-read and reconciliation protocol', () => {
     const template = getOptimizerSubagentTemplate();
 
-    expect(template.name).toBe('openspec-optimizer');
+    expect(template.name).toBe('opsx-optimizer');
     expect(template).not.toHaveProperty('instructions');
     expect(template.prompt).toContain('MUST NOT modify files');
     expect(template.prompt).toContain('failedDirections');

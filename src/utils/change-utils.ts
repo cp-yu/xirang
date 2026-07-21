@@ -1,6 +1,7 @@
 import path from 'path';
 import { FileSystemUtils } from './file-system.js';
 import { writeChangeMetadata, validateSchemaName } from './change-metadata.js';
+import { OPSX_DIR_NAME } from '../core/config.js';
 import { readProjectConfig } from '../core/project-config.js';
 import type { BuiltInSchemaId } from '../core/artifact-graph/types.js';
 
@@ -134,7 +135,7 @@ export async function createChange(
   validateSchemaName(schemaName, projectRoot);
 
   // Build the change directory path
-  const changeDir = path.join(projectRoot, 'openspec', 'changes', name);
+  const changeDir = path.join(projectRoot, OPSX_DIR_NAME, 'changes', name);
 
   // Check if change already exists
   if (await FileSystemUtils.directoryExists(changeDir)) {

@@ -49,13 +49,13 @@ async function pathExists(projectDir: string, relativePath: string): Promise<boo
 }
 
 async function getBootstrapPhase(projectDir: string): Promise<string> {
-  const metadataPath = path.join(projectDir, 'openspec', 'bootstrap', '.bootstrap.yaml');
+  const metadataPath = path.join(projectDir, '.opsx', 'bootstrap', '.bootstrap.yaml');
   const metadata = parseYaml(await fs.readFile(metadataPath, 'utf-8')) as Record<string, unknown>;
   return String(metadata.phase);
 }
 
 async function checkAllReviewBoxes(projectDir: string): Promise<void> {
-  const reviewPath = path.join(projectDir, 'openspec', 'bootstrap', 'review.md');
+  const reviewPath = path.join(projectDir, '.opsx', 'bootstrap', 'review.md');
   const review = await fs.readFile(reviewPath, 'utf-8');
   await fs.writeFile(reviewPath, review.replace(/- \[ \]/g, '- [x]'), 'utf-8');
 }
@@ -75,7 +75,7 @@ async function initWorkspace(
   await writeFile(projectDir, 'src/auth/login.ts', 'export function login() { return true; }\n');
 
   if (baseline === 'specs-based') {
-    await writeFile(projectDir, 'openspec/specs/auth/spec.md', '# Auth\n');
+    await writeFile(projectDir, '.opsx/specs/auth/spec.md', '# Auth\n');
   }
 
   const initResult = await runCLI(['bootstrap', 'init', '--mode', mode, '--granularity', 'fine'], { cwd: projectDir });
@@ -92,7 +92,7 @@ async function prepareReviewWorkspace(
 ): Promise<void> {
   await initWorkspace(projectDir, mode, baseline);
 
-  await writeFile(projectDir, 'openspec/bootstrap/evidence.yaml', `domains:
+  await writeFile(projectDir, '.opsx/bootstrap/evidence.yaml', `domains:
   - id: dom.cli
     confidence: high
     sources:
@@ -109,7 +109,7 @@ async function prepareReviewWorkspace(
   expect(scanValidate.exitCode).toBe(0);
   expect(await getBootstrapPhase(projectDir)).toBe('map');
 
-  await writeFile(projectDir, 'openspec/bootstrap/domain-map/dom.cli.yaml', `domain:
+  await writeFile(projectDir, '.opsx/bootstrap/domain-map/dom.cli.yaml', `domain:
   id: dom.cli
   type: domain
   intent: CLI command surface
@@ -136,7 +136,7 @@ relations:
     type: belongs_to
 `);
 
-  await writeFile(projectDir, 'openspec/bootstrap/domain-map/dom.auth.yaml', `domain:
+  await writeFile(projectDir, '.opsx/bootstrap/domain-map/dom.auth.yaml', `domain:
   id: dom.auth
   type: domain
   intent: Authentication behaviors
@@ -170,8 +170,8 @@ relations:
 
   const reviewValidate = await runCLI(['bootstrap', 'validate'], { cwd: projectDir });
   expect(reviewValidate.exitCode).toBe(1);
-  expect(await pathExists(projectDir, 'openspec/bootstrap/review.md')).toBe(true);
-  expect(await pathExists(projectDir, 'openspec/bootstrap/candidate/project.opsx.yaml')).toBe(true);
+  expect(await pathExists(projectDir, '.opsx/bootstrap/review.md')).toBe(true);
+  expect(await pathExists(projectDir, '.opsx/bootstrap/candidate/project.opsx.yaml')).toBe(true);
 }
 
 afterAll(async () => {
@@ -182,7 +182,7 @@ describe('openspec bootstrap lifecycle', () => {
   it('supports specs-based -> full, preserves existing specs, and adds missing candidate specs', async () => {
     const projectDir = await createTempProject();
     const originalSpec = '# Auth\n';
-    await writeFile(projectDir, 'openspec/specs/auth/spec.md', originalSpec);
+    await writeFile(projectDir, '.opsx/specs/auth/spec.md', originalSpec);
 
     await prepareReviewWorkspace(projectDir, 'full', 'specs-based');
     await checkAllReviewBoxes(projectDir);
@@ -194,11 +194,11 @@ describe('openspec bootstrap lifecycle', () => {
     const promoteResult = await runCLI(['bootstrap', 'promote', '-y'], { cwd: projectDir });
     expect(promoteResult.exitCode).toBe(0);
     await expectFormalBundle(projectDir);
-    const authSpec = await readFile(projectDir, 'openspec/specs/auth/spec.md');
+    const authSpec = await readFile(projectDir, '.opsx/specs/auth/spec.md');
     expect(authSpec).toContain('capabilities:\n  - cap.auth.login');
     expect(authSpec.endsWith(originalSpec)).toBe(true);
-    await expect(readFile(projectDir, 'openspec/specs/cli/spec.md')).resolves.toContain('### Requirement: Bootstrap workflow');
-    expect(await pathExists(projectDir, 'openspec/bootstrap')).toBe(true);
+    await expect(readFile(projectDir, '.opsx/specs/cli/spec.md')).resolves.toContain('### Requirement: Bootstrap workflow');
+    expect(await pathExists(projectDir, '.opsx/bootstrap')).toBe(true);
   });
 
   it('supports raw -> opsx-first with README-only starter output', async () => {
@@ -212,10 +212,10 @@ describe('openspec bootstrap lifecycle', () => {
     const promoteResult = await runCLI(['bootstrap', 'promote', '-y'], { cwd: projectDir });
     expect(promoteResult.exitCode).toBe(0);
     await expectFormalBundle(projectDir);
-    await expect(readFile(projectDir, 'openspec/specs/README.md')).resolves.toContain('bootstrapped in `opsx-first` mode');
-    expect(await pathExists(projectDir, 'openspec/specs/cli/spec.md')).toBe(false);
-    expect(await pathExists(projectDir, 'openspec/specs/auth/spec.md')).toBe(false);
-    expect(await pathExists(projectDir, 'openspec/bootstrap')).toBe(true);
+    await expect(readFile(projectDir, '.opsx/specs/README.md')).resolves.toContain('bootstrapped in `opsx-first` mode');
+    expect(await pathExists(projectDir, '.opsx/specs/cli/spec.md')).toBe(false);
+    expect(await pathExists(projectDir, '.opsx/specs/auth/spec.md')).toBe(false);
+    expect(await pathExists(projectDir, '.opsx/bootstrap')).toBe(true);
   });
 
   it('supports raw -> full and writes complete candidate specs', async () => {
@@ -229,15 +229,15 @@ describe('openspec bootstrap lifecycle', () => {
     const promoteResult = await runCLI(['bootstrap', 'promote', '-y'], { cwd: projectDir });
     expect(promoteResult.exitCode).toBe(0);
     await expectFormalBundle(projectDir);
-    await expect(readFile(projectDir, 'openspec/specs/cli/spec.md')).resolves.toContain('### Requirement: Bootstrap workflow');
-    await expect(readFile(projectDir, 'openspec/specs/auth/spec.md')).resolves.toContain('### Requirement: User login');
-    expect(await pathExists(projectDir, 'openspec/specs/README.md')).toBe(false);
-    expect(await pathExists(projectDir, 'openspec/bootstrap')).toBe(true);
+    await expect(readFile(projectDir, '.opsx/specs/cli/spec.md')).resolves.toContain('### Requirement: Bootstrap workflow');
+    await expect(readFile(projectDir, '.opsx/specs/auth/spec.md')).resolves.toContain('### Requirement: User login');
+    expect(await pathExists(projectDir, '.opsx/specs/README.md')).toBe(false);
+    expect(await pathExists(projectDir, '.opsx/bootstrap')).toBe(true);
   });
 
   it('treats an empty specs directory as raw and still writes complete specs in full mode', async () => {
     const projectDir = await createTempProject();
-    await fs.mkdir(path.join(projectDir, 'openspec', 'specs'), { recursive: true });
+    await fs.mkdir(path.join(projectDir, '.opsx', 'specs'), { recursive: true });
 
     await prepareReviewWorkspace(projectDir, 'full', 'raw');
     await checkAllReviewBoxes(projectDir);
@@ -248,10 +248,10 @@ describe('openspec bootstrap lifecycle', () => {
     const promoteResult = await runCLI(['bootstrap', 'promote', '-y'], { cwd: projectDir });
     expect(promoteResult.exitCode).toBe(0);
     await expectFormalBundle(projectDir);
-    await expect(readFile(projectDir, 'openspec/specs/cli/spec.md')).resolves.toContain('### Requirement: Bootstrap workflow');
-    await expect(readFile(projectDir, 'openspec/specs/auth/spec.md')).resolves.toContain('### Requirement: User login');
-    expect(await pathExists(projectDir, 'openspec/specs/README.md')).toBe(false);
-    expect(await pathExists(projectDir, 'openspec/bootstrap')).toBe(true);
+    await expect(readFile(projectDir, '.opsx/specs/cli/spec.md')).resolves.toContain('### Requirement: Bootstrap workflow');
+    await expect(readFile(projectDir, '.opsx/specs/auth/spec.md')).resolves.toContain('### Requirement: User login');
+    expect(await pathExists(projectDir, '.opsx/specs/README.md')).toBe(false);
+    expect(await pathExists(projectDir, '.opsx/bootstrap')).toBe(true);
   });
 
   it('re-asserts upstream completeness before promote', async () => {
@@ -262,12 +262,12 @@ describe('openspec bootstrap lifecycle', () => {
     const validateResult = await runCLI(['bootstrap', 'validate'], { cwd: projectDir });
     expect(validateResult.exitCode).toBe(0);
 
-    await fs.rm(path.join(projectDir, 'openspec', 'bootstrap', 'domain-map', 'dom.auth.yaml'));
+    await fs.rm(path.join(projectDir, '.opsx', 'bootstrap', 'domain-map', 'dom.auth.yaml'));
 
     const promoteResult = await runCLI(['bootstrap', 'promote', '-y'], { cwd: projectDir });
     expect(promoteResult.exitCode).toBe(1);
     expect(await pathExists(projectDir, 'openspec/project.opsx.yaml')).toBe(false);
-    expect(await pathExists(projectDir, 'openspec/bootstrap')).toBe(true);
+    expect(await pathExists(projectDir, '.opsx/bootstrap')).toBe(true);
   }, 30000);
 
   it('blocks promote on invalid candidate spec before any formal outputs are written', async () => {
@@ -278,7 +278,7 @@ describe('openspec bootstrap lifecycle', () => {
     const validateResult = await runCLI(['bootstrap', 'validate'], { cwd: projectDir });
     expect(validateResult.exitCode).toBe(0);
 
-    const candidateSpecPath = path.join(projectDir, 'openspec', 'bootstrap', 'candidate', 'specs', 'cli', 'spec.md');
+    const candidateSpecPath = path.join(projectDir, '.opsx', 'bootstrap', 'candidate', 'specs', 'cli', 'spec.md');
     await fs.writeFile(candidateSpecPath, '# Spec: cli\n', 'utf-8');
 
     const promoteResult = await runCLI(['bootstrap', 'promote', '-y'], { cwd: projectDir });
@@ -288,8 +288,8 @@ describe('openspec bootstrap lifecycle', () => {
     expect(await pathExists(projectDir, 'openspec/project.opsx.yaml')).toBe(false);
     expect(await pathExists(projectDir, 'openspec/project.opsx.relations.yaml')).toBe(false);
     expect(await pathExists(projectDir, 'openspec/project.opsx.code-map.yaml')).toBe(false);
-    expect(await pathExists(projectDir, 'openspec/specs/cli/spec.md')).toBe(false);
-    expect(await pathExists(projectDir, 'openspec/bootstrap')).toBe(true);
+    expect(await pathExists(projectDir, '.opsx/specs/cli/spec.md')).toBe(false);
+    expect(await pathExists(projectDir, '.opsx/bootstrap')).toBe(true);
   }, 30000);
 
   it('invalidates stale review after evidence edits and reports stale status', async () => {
@@ -300,7 +300,7 @@ describe('openspec bootstrap lifecycle', () => {
     const validateResult = await runCLI(['bootstrap', 'validate'], { cwd: projectDir });
     expect(validateResult.exitCode).toBe(0);
 
-    await writeFile(projectDir, 'openspec/bootstrap/evidence.yaml', `domains:
+    await writeFile(projectDir, '.opsx/bootstrap/evidence.yaml', `domains:
   - id: dom.cli
     confidence: high
     sources:
@@ -334,7 +334,7 @@ describe('openspec bootstrap lifecycle', () => {
     const reviewValidate = await runCLI(['bootstrap', 'validate'], { cwd: projectDir });
     expect(reviewValidate.exitCode).toBe(1);
 
-    const review = await readFile(projectDir, 'openspec/bootstrap/review.md');
+    const review = await readFile(projectDir, '.opsx/bootstrap/review.md');
     expect(review).toContain('dom.payments');
     expect(review.indexOf('dom.payments')).toBeLessThan(review.indexOf('dom.auth'));
     expect(review).toContain('- [ ] dom.payments');

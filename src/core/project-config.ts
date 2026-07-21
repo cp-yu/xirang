@@ -1,3 +1,4 @@
+import { OPSX_DIR_NAME } from './config.js';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import {
@@ -189,12 +190,12 @@ export function materializeProjectConfigDefaults(
 }
 
 function findProjectConfigPath(projectRoot: string): { path: string; exists: boolean } {
-  const yamlPath = path.join(projectRoot, 'openspec', 'config.yaml');
+  const yamlPath = path.join(projectRoot, OPSX_DIR_NAME, 'config.yaml');
   if (existsSync(yamlPath)) {
     return { path: yamlPath, exists: true };
   }
 
-  const ymlPath = path.join(projectRoot, 'openspec', 'config.yml');
+  const ymlPath = path.join(projectRoot, OPSX_DIR_NAME, 'config.yml');
   if (existsSync(ymlPath)) {
     return { path: ymlPath, exists: true };
   }
@@ -315,9 +316,9 @@ export function migrateProjectConfigDefaults(projectRoot: string): ProjectConfig
  */
 export function readProjectConfig(projectRoot: string): ProjectConfig | null {
   // Try both .yaml and .yml, prefer .yaml
-  let configPath = path.join(projectRoot, 'openspec', 'config.yaml');
+  let configPath = path.join(projectRoot, OPSX_DIR_NAME, 'config.yaml');
   if (!existsSync(configPath)) {
-    configPath = path.join(projectRoot, 'openspec', 'config.yml');
+    configPath = path.join(projectRoot, OPSX_DIR_NAME, 'config.yml');
     if (!existsSync(configPath)) {
       return null; // No config is OK
     }

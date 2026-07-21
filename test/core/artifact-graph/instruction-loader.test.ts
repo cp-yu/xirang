@@ -108,7 +108,7 @@ describe('instruction-loader', () => {
 
     it('should detect completed artifacts', () => {
       // Create change directory with proposal.md
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(tempDir, '.opsx', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(path.join(changeDir, 'proposal.md'), '# Proposal');
 
@@ -125,7 +125,7 @@ describe('instruction-loader', () => {
 
     it('should auto-detect schema from .openspec.yaml metadata', () => {
       // Create change directory with metadata file
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(tempDir, '.opsx', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(path.join(changeDir, '.openspec.yaml'), 'schema: spec-driven\ncreated: "2025-01-05"\n');
 
@@ -138,7 +138,7 @@ describe('instruction-loader', () => {
 
     it('should use explicit schema over metadata schema', () => {
       // Create change directory with metadata file using spec-driven
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(tempDir, '.opsx', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(path.join(changeDir, '.openspec.yaml'), 'schema: spec-driven\n');
 
@@ -151,7 +151,7 @@ describe('instruction-loader', () => {
 
     it('should fall back to default when no metadata and no explicit schema', () => {
       // Create change directory without metadata file
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(tempDir, '.opsx', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
 
       const context = loadChangeContext(tempDir, 'my-change');
@@ -188,7 +188,7 @@ describe('instruction-loader', () => {
     });
 
     it('projects existing artifact paths as current state without embedding content', () => {
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(tempDir, '.opsx', 'changes', 'my-change');
       const proposalPath = path.join(changeDir, 'proposal.md');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(proposalPath, 'private proposal content');
@@ -204,7 +204,7 @@ describe('instruction-loader', () => {
     });
 
     it('projects completion-marker state without claiming a semantic output exists', () => {
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(tempDir, '.opsx', 'changes', 'my-change');
       const markerPath = path.join(changeDir, '.specs-noop');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(markerPath, '');
@@ -223,7 +223,7 @@ describe('instruction-loader', () => {
     });
 
     it('projects the expected completion-marker path when the marker is absent', () => {
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(tempDir, '.opsx', 'changes', 'my-change');
       const markerPath = path.join(changeDir, '.specs-noop');
       fs.mkdirSync(changeDir, { recursive: true });
 
@@ -345,7 +345,7 @@ describe('instruction-loader', () => {
     });
 
     it('projects phase file definitions and workspace state for generic bootstrap instructions', () => {
-      const bootstrapDir = path.join(tempDir, 'openspec', 'bootstrap');
+      const bootstrapDir = path.join(tempDir, '.opsx', 'bootstrap');
       const evidencePath = path.join(bootstrapDir, 'evidence.yaml');
       fs.mkdirSync(bootstrapDir, { recursive: true });
       fs.writeFileSync(evidencePath, 'domains: []\n');
@@ -366,11 +366,11 @@ describe('instruction-loader', () => {
     });
 
     it('rejects an unsupported project schema during instruction projection', () => {
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(tempDir, '.opsx', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(path.join(changeDir, '.openspec.yaml'), 'schema: spec-driven\n');
       fs.writeFileSync(
-        path.join(tempDir, 'openspec', 'config.yaml'),
+        path.join(tempDir, '.opsx', 'config.yaml'),
         'schema: custom-schema\n'
       );
 
@@ -453,7 +453,7 @@ describe('instruction-loader', () => {
 
     it('should mark completed dependencies as done', () => {
       // Create proposal
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(tempDir, '.opsx', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(path.join(changeDir, 'proposal.md'), '# Proposal');
 
@@ -862,7 +862,7 @@ rules:
     });
 
     it('should show completed artifacts as done', () => {
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(tempDir, '.opsx', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(path.join(changeDir, 'proposal.md'), '# Proposal');
 
@@ -893,7 +893,7 @@ rules:
     });
 
     it('should report isComplete true when all done', () => {
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(tempDir, '.opsx', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.mkdirSync(path.join(changeDir, 'specs'), { recursive: true });
 

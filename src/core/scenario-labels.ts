@@ -1,3 +1,4 @@
+import { OPSX_DIR_NAME } from './config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import {
@@ -58,19 +59,19 @@ async function processScenarioLabels(
   changeName: string,
   write: boolean
 ): Promise<ScenarioLabelReport> {
-  const changeDir = path.join(projectRoot, 'openspec', 'changes', changeName);
+  const changeDir = path.join(projectRoot, OPSX_DIR_NAME, 'changes', changeName);
   await assertChangeDir(changeDir, changeName);
 
   const reports: ScenarioLabelFileReport[] = [];
   for (const specId of await listChangeSpecIds(changeDir)) {
     const changeSpecPath = path.join(changeDir, 'specs', specId, 'spec.md');
-    const mainSpecPath = path.join(projectRoot, 'openspec', 'specs', specId, 'spec.md');
+    const mainSpecPath = path.join(projectRoot, OPSX_DIR_NAME, 'specs', specId, 'spec.md');
     const changeContent = normalizeLineEndings(await fs.readFile(changeSpecPath, 'utf-8'));
     const mainContent = await readOptional(mainSpecPath);
     if (mainContent === null) continue;
 
     const result = applyScenarioLabelsInContent(changeContent, normalizeLineEndings(mainContent), specId);
-    const relativePath = path.join('openspec', 'changes', changeName, 'specs', specId, 'spec.md');
+    const relativePath = path.join(OPSX_DIR_NAME, 'changes', changeName, 'specs', specId, 'spec.md');
     reports.push({ path: relativePath, changed: result.content !== changeContent, suggestions: result.suggestions });
     if (write && result.content !== changeContent) await fs.writeFile(changeSpecPath, result.content, 'utf-8');
   }

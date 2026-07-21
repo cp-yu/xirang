@@ -6,7 +6,7 @@ import { runCLI } from '../helpers/run-cli.js';
 describe('spec command', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-spec-command-tmp');
-  const specsDir = path.join(testDir, 'openspec', 'specs');
+  const specsDir = path.join(testDir, '.opsx', 'specs');
 
   async function runSpecCli(args: string[]) {
     return runCLI(args, { cwd: testDir });

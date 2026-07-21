@@ -1,3 +1,4 @@
+import { OPSX_DIR_NAME } from '../core/config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import type { Command } from 'commander';
@@ -27,7 +28,7 @@ export async function syncCommand(
   options: SyncOptions = {}
 ): Promise<void> {
   const projectRoot = process.cwd();
-  const changesDir = path.join(projectRoot, 'openspec', 'changes');
+  const changesDir = path.join(projectRoot, OPSX_DIR_NAME, 'changes');
 
   try {
     await fs.access(changesDir);
@@ -50,7 +51,7 @@ export async function syncCommand(
   const skipValidation = options.validate === false || options.noValidate === true;
   const skipVerify = options.verify === false || options.noVerify === true;
   if (!skipVerify) {
-    const changeDir = path.join(projectRoot, 'openspec', 'changes', validatedChangeName);
+    const changeDir = path.join(projectRoot, OPSX_DIR_NAME, 'changes', validatedChangeName);
     const freshness = await checkFreshness(changeDir, projectRoot);
     const compatibility = freshness.verifyResult
       ? checkArchiveCompatibility(freshness.verifyResult)

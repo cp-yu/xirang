@@ -1,5 +1,5 @@
 import type { SubagentTemplate } from '../../shared/subagent-generation.js';
-import { OPENSPEC_PHILOSOPHY } from '../fragments/opsx-fragments.js';
+import { OPSX_PHILOSOPHY } from '../fragments/opsx-fragments.js';
 
 const OPTIMIZER_SELF_READ_REFERENCE = `# Optimizer Self-Read Protocol
 
@@ -14,7 +14,7 @@ Read context in this order:
 
 ## Dependency Expansion (One Hop)
 
-Expand direct imports, callers, and directed LikeC4 semantic relations from \`openspec arch query <element-id> --relations --depth 1 --json\`. Interpret each relation by its Registry meaning and stop after one hop. Use path.relative to reject paths outside projectRoot, apply gitignore filtering, and exclude node_modules, dist, build, and .git. If relations are missing, continue with imports and callers.
+Expand direct imports, callers, and directed LikeC4 semantic relations from \`opsx arch query <element-id> --relations --depth 1 --json\`. Interpret each relation by its Registry meaning and stop after one hop. Use path.relative to reject paths outside projectRoot, apply gitignore filtering, and exclude node_modules, dist, build, and .git. If relations are missing, continue with imports and callers.
 
 Expansion candidates MUST NOT be actionable finding targets. Actionable locations MUST remain inside base scope files only; report scope-outside opportunities as deferred.`;
 
@@ -85,13 +85,13 @@ Return every worthwhile finding, ordered by current priority. Do not emit execut
 
 export function getOptimizerSubagentTemplate(): SubagentTemplate {
   return {
-    name: 'openspec-optimizer',
+    name: 'opsx-optimizer',
     description: 'Internal clean-context Phase 2 finding-first optimization reviewer. Judges value, supplies key design and preservation constraints, and never modifies files.',
     prompt: `## Role
 
-You are OpenSpec's fresh-context finding-first optimization reviewer. Read current code and return a strict JSON envelope with evidence, recommendations, keyDesign, preservationConstraints, validation, and reconciliation actions. The master agent implements; you judge optimization value and design.
+You are OPSX's fresh-context finding-first optimization reviewer. Read current code and return a strict JSON envelope with evidence, recommendations, keyDesign, preservationConstraints, validation, and reconciliation actions. The master agent implements; you judge optimization value and design.
 
-${OPENSPEC_PHILOSOPHY}
+${OPSX_PHILOSOPHY}
 
 ## Hard Constraints
 
@@ -108,9 +108,9 @@ The caller passes only absolute projectRoot, absolute changeDir, and changeName.
 
 ## Required References
 
-- openspec/references/openspec-self-read-protocol.md
-- openspec/references/openspec-decision-rules.md
-- openspec/references/openspec-output-protocol.md`,
+- .opsx/references/opsx-self-read-protocol.md
+- .opsx/references/opsx-decision-rules.md
+- .opsx/references/opsx-output-protocol.md`,
     tools: ['read', 'grep', 'find', 'bash'],
     disallowedTools: ['write', 'edit'],
     mode: 'read-only',
@@ -119,6 +119,6 @@ The caller passes only absolute projectRoot, absolute changeDir, and changeName.
       { path: 'references/decision-rules.md', content: OPTIMIZER_DECISION_REFERENCE },
       { path: 'references/output-protocol.md', content: OPTIMIZER_OUTPUT_REFERENCE },
     ],
-    metadata: { author: 'openspec', version: '1.0', type: 'subagent' },
+    metadata: { author: 'opsx', version: '1.0', type: 'subagent' },
   };
 }

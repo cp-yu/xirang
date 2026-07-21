@@ -145,9 +145,9 @@ describe('config project command', () => {
   }
 
   it('prints normalized project config as JSON', async () => {
-    fs.mkdirSync(path.join(tempDir, 'openspec'), { recursive: true });
+    fs.mkdirSync(path.join(tempDir, '.opsx'), { recursive: true });
     fs.writeFileSync(
-      path.join(tempDir, 'openspec', 'config.yaml'),
+      path.join(tempDir, '.opsx', 'config.yaml'),
       `schema: spec-driven
 proseLanguage: 中文
 context: Project context
@@ -212,9 +212,9 @@ rules:
   });
 
   it('prints YAML-like text without --json', async () => {
-    fs.mkdirSync(path.join(tempDir, 'openspec'), { recursive: true });
+    fs.mkdirSync(path.join(tempDir, '.opsx'), { recursive: true });
     fs.writeFileSync(
-      path.join(tempDir, 'openspec', 'config.yaml'),
+      path.join(tempDir, '.opsx', 'config.yaml'),
       `schema: spec-driven
 proseLanguage: 中文
 rules: {}

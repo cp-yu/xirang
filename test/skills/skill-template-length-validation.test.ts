@@ -95,32 +95,32 @@ describe('skill template length validation', () => {
 
   it('groups over-limit file variants by path and identical line count', () => {
     const report = formatOverLimitReport([
-      { dirName: 'openspec-explore', variant: 'default', filePath: 'SKILL.md', lines: 541, limit: MAX_SKILL_LINES },
-      { dirName: 'openspec-explore', variant: 'claude', filePath: 'SKILL.md', lines: 541, limit: MAX_SKILL_LINES },
-      { dirName: 'openspec-explore', variant: 'codex', filePath: 'SKILL.md', lines: 541, limit: MAX_SKILL_LINES },
+      { dirName: 'opsx-explore', variant: 'default', filePath: 'SKILL.md', lines: 541, limit: MAX_SKILL_LINES },
+      { dirName: 'opsx-explore', variant: 'claude', filePath: 'SKILL.md', lines: 541, limit: MAX_SKILL_LINES },
+      { dirName: 'opsx-explore', variant: 'codex', filePath: 'SKILL.md', lines: 541, limit: MAX_SKILL_LINES },
     ]);
 
     expect(report).toContain('3 skill template file variant(s) exceed configured line limits.');
-    expect(report).toContain('• openspec-explore/SKILL.md (default, claude, codex): 541 lines (+341, limit 200)');
+    expect(report).toContain('• opsx-explore/SKILL.md (default, claude, codex): 541 lines (+341, limit 200)');
     expect(report).toContain(REFERENCE_URL);
   });
 
   it('splits one file into separate rows when variant line counts differ', () => {
     const report = formatOverLimitReport([
-      { dirName: 'openspec-verify', variant: 'default', filePath: 'SKILL.md', lines: 580, limit: MAX_SKILL_LINES },
-      { dirName: 'openspec-verify', variant: 'claude', filePath: 'SKILL.md', lines: 604, limit: MAX_SKILL_LINES },
-      { dirName: 'openspec-verify', variant: 'codex', filePath: 'SKILL.md', lines: 604, limit: MAX_SKILL_LINES },
+      { dirName: 'opsx-verify', variant: 'default', filePath: 'SKILL.md', lines: 580, limit: MAX_SKILL_LINES },
+      { dirName: 'opsx-verify', variant: 'claude', filePath: 'SKILL.md', lines: 604, limit: MAX_SKILL_LINES },
+      { dirName: 'opsx-verify', variant: 'codex', filePath: 'SKILL.md', lines: 604, limit: MAX_SKILL_LINES },
     ]);
 
-    expect(report).toContain('• openspec-verify/SKILL.md (claude, codex): 604 lines (+404, limit 200)');
-    expect(report).toContain('• openspec-verify/SKILL.md (default): 580 lines (+380, limit 200)');
+    expect(report).toContain('• opsx-verify/SKILL.md (claude, codex): 604 lines (+404, limit 200)');
+    expect(report).toContain('• opsx-verify/SKILL.md (default): 580 lines (+380, limit 200)');
   });
 
   it('reports reference files independently instead of summing a skill directory', () => {
     const report = formatOverLimitReport([
-      { dirName: 'openspec-optimizer', variant: 'default', filePath: 'SKILL.md', lines: 180, limit: MAX_SKILL_LINES },
+      { dirName: 'opsx-optimizer', variant: 'default', filePath: 'SKILL.md', lines: 180, limit: MAX_SKILL_LINES },
       {
-        dirName: 'openspec-optimizer',
+        dirName: 'opsx-optimizer',
         variant: 'default',
         filePath: 'references/output-protocol.md',
         lines: 501,
@@ -128,7 +128,7 @@ describe('skill template length validation', () => {
       },
     ]);
 
-    expect(report).not.toContain('openspec-optimizer/SKILL.md');
-    expect(report).toContain('• openspec-optimizer/references/output-protocol.md (default): 501 lines (+1, limit 500)');
+    expect(report).not.toContain('opsx-optimizer/SKILL.md');
+    expect(report).toContain('• opsx-optimizer/references/output-protocol.md (default): 501 lines (+1, limit 500)');
   });
 });

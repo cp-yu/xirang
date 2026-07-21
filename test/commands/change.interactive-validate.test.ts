@@ -9,7 +9,7 @@ import { runCLI } from '../helpers/run-cli.js';
 describe('change validate (interactive behavior)', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-change-validate-tmp');
-  const changesDir = path.join(testDir, 'openspec', 'changes');
+  const changesDir = path.join(testDir, '.opsx', 'changes');
 
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });

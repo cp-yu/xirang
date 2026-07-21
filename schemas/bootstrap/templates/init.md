@@ -22,6 +22,6 @@ Granularity contract:
 - explicit restart granularity overrides the retained value
 
 Next phase:
-- run `openspec bootstrap advance scan`
-- verify `openspec bootstrap status --json` reports `phase: scan`
+- run `opsx bootstrap advance scan`
+- verify `opsx bootstrap status --json` reports `phase: scan`
 - do not edit `.bootstrap.yaml` or call internal APIs

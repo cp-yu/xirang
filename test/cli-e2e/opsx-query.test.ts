@@ -9,7 +9,7 @@ const tempRoots: string[] = [];
 async function createProject(): Promise<string> {
   const projectDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-opsx-query-e2e-'));
   tempRoots.push(projectDir);
-  await fs.mkdir(path.join(projectDir, 'openspec', 'specs', 'cli-list'), { recursive: true });
+  await fs.mkdir(path.join(projectDir, '.opsx', 'specs', 'cli-list'), { recursive: true });
   await fs.writeFile(
     path.join(projectDir, 'openspec', 'project.opsx.yaml'),
     `schema_version: 2
@@ -58,7 +58,7 @@ relations:
 `
   );
   await fs.writeFile(
-    path.join(projectDir, 'openspec', 'specs', 'cli-list', 'spec.md'),
+    path.join(projectDir, '.opsx', 'specs', 'cli-list', 'spec.md'),
     `---
 capabilities:
   - cap.cli.list

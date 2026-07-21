@@ -54,7 +54,7 @@ async function writeProjectOpsx(root: string, capIds: string[]) {
 }
 
 async function writeSpec(root: string, id: string, content: string) {
-  const specDir = path.join(root, 'openspec', 'specs', id);
+  const specDir = path.join(root, '.opsx', 'specs', id);
   await fs.mkdir(specDir, { recursive: true });
   await fs.writeFile(path.join(specDir, 'spec.md'), content, 'utf-8');
 }
@@ -80,7 +80,7 @@ describe('matchSpecToCaps', () => {
 describe('writeSpecFrontmatter', () => {
   it('writes frontmatter without changing existing markdown content', async () => {
     await withTempDir(async (root) => {
-      const specPath = path.join(root, 'openspec', 'specs', 'cli-archive', 'spec.md');
+      const specPath = path.join(root, '.opsx', 'specs', 'cli-archive', 'spec.md');
       const body = '# CLI Archive\n\n## Requirements\n';
       await fs.mkdir(path.dirname(specPath), { recursive: true });
       await fs.writeFile(specPath, body, 'utf-8');
@@ -95,7 +95,7 @@ describe('writeSpecFrontmatter', () => {
 
   it('skips specs with existing frontmatter', async () => {
     await withTempDir(async (root) => {
-      const specPath = path.join(root, 'openspec', 'specs', 'cli-archive', 'spec.md');
+      const specPath = path.join(root, '.opsx', 'specs', 'cli-archive', 'spec.md');
       const content = '---\ncapabilities:\n  - cap.cli.archive\n---\n# CLI Archive\n';
       await fs.mkdir(path.dirname(specPath), { recursive: true });
       await fs.writeFile(specPath, content, 'utf-8');
@@ -127,12 +127,12 @@ describe('backfillSpecs', () => {
         semanticHandoff: {
           unmatchedSpecs: [{
             spec: 'unknown-area',
-            path: 'openspec/specs/unknown-area/spec.md',
+            path: '.opsx/specs/unknown-area/spec.md',
             content: '# Unknown\n',
           }],
         },
       });
-      await expect(fs.readFile(path.join(root, 'openspec', 'specs', 'cli-archive', 'spec.md'), 'utf-8')).resolves.toContain(
+      await expect(fs.readFile(path.join(root, '.opsx', 'specs', 'cli-archive', 'spec.md'), 'utf-8')).resolves.toContain(
         'capabilities:\n  - cap.cli.archive'
       );
     });

@@ -10,16 +10,16 @@ describe('spec path inference', () => {
   afterEach(async () => fs.rm(root, { recursive: true, force: true }));
 
   it('should find old format spec.md', async () => {
-    const dir = path.join(root, 'openspec', 'specs', 'skill-generation');
+    const dir = path.join(root, '.opsx', 'specs', 'skill-generation');
     await fs.mkdir(dir, { recursive: true });
     await fs.writeFile(path.join(dir, 'spec.md'), 'spec');
     expect(await inferSpecPaths(root, 'cap.ai.skill-generation')).toEqual([
-      path.join('openspec', 'specs', 'skill-generation', 'spec.md'),
+      path.join('.opsx', 'specs', 'skill-generation', 'spec.md'),
     ]);
   });
 
   it('should find new format multiple md files', async () => {
-    const dir = path.join(root, 'openspec', 'specs', 'task-executor');
+    const dir = path.join(root, '.opsx', 'specs', 'task-executor');
     await fs.mkdir(dir, { recursive: true });
     await Promise.all([
       fs.writeFile(path.join(dir, 'phase1.md'), 'one'),
@@ -27,8 +27,8 @@ describe('spec path inference', () => {
       fs.writeFile(path.join(dir, 'ignore.txt'), 'ignore'),
     ]);
     expect(await inferSpecPaths(root, 'cap.apply.task-executor')).toEqual([
-      path.join('openspec', 'specs', 'task-executor', 'phase0.md'),
-      path.join('openspec', 'specs', 'task-executor', 'phase1.md'),
+      path.join('.opsx', 'specs', 'task-executor', 'phase0.md'),
+      path.join('.opsx', 'specs', 'task-executor', 'phase1.md'),
     ]);
   });
 

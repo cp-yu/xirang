@@ -73,7 +73,7 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const openspecPath = path.join(testDir, 'openspec');
+      const openspecPath = path.join(testDir, '.opsx');
       expect(await directoryExists(openspecPath)).toBe(true);
       expect(await directoryExists(path.join(openspecPath, 'specs'))).toBe(true);
       expect(await directoryExists(path.join(openspecPath, 'changes'))).toBe(true);
@@ -85,7 +85,7 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const configPath = path.join(testDir, 'openspec', 'config.yaml');
+      const configPath = path.join(testDir, '.opsx', 'config.yaml');
       expect(await fileExists(configPath)).toBe(true);
 
       const content = await fs.readFile(configPath, 'utf-8');
@@ -127,7 +127,7 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const configPath = path.join(testDir, 'openspec', 'config.yaml');
+      const configPath = path.join(testDir, '.opsx', 'config.yaml');
       const content = await fs.readFile(configPath, 'utf-8');
       expect(content).toContain('schema: spec-driven');
       expect(content).toContain('proseLanguage: zh-CN');
@@ -299,7 +299,7 @@ describe('InitCommand', () => {
       await initCommand.execute(testDir);
 
       // Should create OpenSpec structure but no skills
-      const openspecPath = path.join(testDir, 'openspec');
+      const openspecPath = path.join(testDir, '.opsx');
       expect(await directoryExists(openspecPath)).toBe(true);
 
       // No tool-specific directories should be created
@@ -335,7 +335,7 @@ describe('InitCommand', () => {
 
     it('should not create config.yaml if it already exists', async () => {
       // Pre-create config.yaml
-      const openspecDir = path.join(testDir, 'openspec');
+      const openspecDir = path.join(testDir, '.opsx');
       await fs.mkdir(openspecDir, { recursive: true });
       const configPath = path.join(openspecDir, 'config.yaml');
       const existingContent = 'schema: custom-schema\n';
@@ -354,7 +354,7 @@ describe('InitCommand', () => {
 
       await initCommand.execute(newDir);
 
-      const openspecPath = path.join(newDir, 'openspec');
+      const openspecPath = path.join(newDir, '.opsx');
       expect(await directoryExists(openspecPath)).toBe(true);
     });
 
@@ -375,7 +375,7 @@ describe('InitCommand', () => {
     });
 
     it('should update existing config.yaml with proseLanguage in extend mode', async () => {
-      const openspecDir = path.join(testDir, 'openspec');
+      const openspecDir = path.join(testDir, '.opsx');
       await fs.mkdir(openspecDir, { recursive: true });
       await fs.writeFile(
         path.join(openspecDir, 'config.yaml'),
@@ -615,7 +615,7 @@ describe('OPSX skeleton generation', () => {
     const initCommand = new InitCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
-    const architecture = path.join(testDir, 'openspec', 'architecture');
+    const architecture = path.join(testDir, '.opsx', 'architecture');
     expect(await fileExists(path.join(architecture, 'specification.c4'))).toBe(true);
     expect(await fileExists(path.join(architecture, 'views.c4'))).toBe(true);
     expect((await fs.stat(path.join(architecture, 'domains'))).isDirectory()).toBe(true);
@@ -640,12 +640,12 @@ describe('OPSX skeleton generation', () => {
     const initCommand = new InitCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
-    const views = await fs.readFile(path.join(testDir, 'openspec', 'architecture', 'views.c4'), 'utf-8');
+    const views = await fs.readFile(path.join(testDir, '.opsx', 'architecture', 'views.c4'), 'utf-8');
     expect(views).toContain("title '@scope/my-awesome-project Architecture'");
   });
 
   it('should not overwrite existing LikeC4 files in extend mode', async () => {
-    const architecture = path.join(testDir, 'openspec', 'architecture');
+    const architecture = path.join(testDir, '.opsx', 'architecture');
     await fs.mkdir(architecture, { recursive: true });
     const existingContent = "specification { element existing }\n";
     await fs.writeFile(path.join(architecture, 'specification.c4'), existingContent);
@@ -697,7 +697,7 @@ describe('OPSX skeleton generation', () => {
     });
 
     // Pre-create openspec to make it extend mode
-    await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+    await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
 
     const consoleSpy = vi.spyOn(console, 'log');
     const initCommand = new InitCommand({ tools: 'claude', force: true });
@@ -816,7 +816,7 @@ describe('InitCommand - profile and detection features', () => {
 
   it('should preselect configured tools but not directory-detected tools in extend mode', async () => {
     // Simulate existing OpenSpec project (extend mode).
-    await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+    await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
 
     // Configured with OpenSpec
     const claudeSkillDir = path.join(testDir, '.claude', 'skills', 'openspec-explore');
@@ -894,7 +894,7 @@ describe('InitCommand - profile and detection features', () => {
   });
 
   it('should install all 6 workflows in extend mode regardless of prior config (skills-only)', async () => {
-    await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+    await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
     // Pre-existing legacy command file remains on disk under skills-only surface
     await fs.mkdir(path.join(testDir, '.claude', 'commands', 'opsx'), { recursive: true });
     const legacyExploreCmd = path.join(testDir, '.claude', 'commands', 'opsx', 'explore.md');

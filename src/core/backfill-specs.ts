@@ -1,3 +1,4 @@
+import { OPSX_DIR_NAME } from './config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { z } from 'zod';
@@ -96,7 +97,7 @@ export async function backfillSpecs(
   const unmatched: string[] = [];
 
   for (const spec of specs) {
-    const specPath = path.join(projectRoot, 'openspec', 'specs', spec, 'spec.md');
+    const specPath = path.join(projectRoot, OPSX_DIR_NAME, 'specs', spec, 'spec.md');
     const content = await fs.readFile(specPath, 'utf-8');
     if (parseSpecFrontmatter(content).capabilities.length > 0) {
       continue;
@@ -168,7 +169,7 @@ async function buildSemanticHandoff(
 }
 
 async function listSpecs(projectRoot: string): Promise<string[]> {
-  const specsDir = path.join(projectRoot, 'openspec', 'specs');
+  const specsDir = path.join(projectRoot, OPSX_DIR_NAME, 'specs');
   let entries;
   try {
     entries = await fs.readdir(specsDir, { withFileTypes: true });

@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import path from 'path';
-import { getAITool } from './config.js';
+import { getAITool, OPSX_DIR_NAME } from './config.js';
 import {
   ALL_WORKFLOWS,
   getCommandSlug,
@@ -31,7 +31,7 @@ export function resolveEffectiveWorkflows(
   workflows: readonly string[]
 ): readonly WorkflowId[] {
   const effective = new Set<WorkflowId>(normalizeWorkflowIds(workflows));
-  const bootstrapDir = path.join(projectPath, 'openspec', 'bootstrap');
+  const bootstrapDir = path.join(projectPath, OPSX_DIR_NAME, 'bootstrap');
 
   try {
     if (fs.statSync(bootstrapDir).isDirectory()) {
@@ -105,7 +105,7 @@ export function getPlannedToolArtifacts(
     ...plan.skillTemplates,
     ...subagentTemplates.map((template) => ({ template, workflowId: template.name })),
   ]).map((referenceFile) =>
-    path.join(projectPath, 'openspec', 'references', referenceFile.fileName)
+    path.join(projectPath, OPSX_DIR_NAME, 'references', referenceFile.fileName)
   );
   const skillFiles = plan.skillTemplates.map((entry) =>
     path.join(skillsDir, entry.dirName, 'SKILL.md')
