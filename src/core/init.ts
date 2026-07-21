@@ -300,7 +300,7 @@ export class InitCommand {
       .map((toolId) => AI_TOOLS.find((t) => t.value === toolId)?.name || toolId);
 
     if (configuredNames.length > 0) {
-      console.log(`OpenSpec configured: ${configuredNames.join(', ')} (pre-selected)`);
+      console.log(`OPSX configured: ${configuredNames.join(', ')} (pre-selected)`);
     }
 
     const detectedOnlyNames = detectedTools
@@ -445,7 +445,7 @@ export class InitCommand {
       return;
     }
 
-    const spinner = this.startSpinner('Creating OpenSpec structure...');
+    const spinner = this.startSpinner('Creating OPSX structure...');
 
     const directories = [
       openspecPath,
@@ -460,7 +460,7 @@ export class InitCommand {
 
     spinner.stopAndPersist({
       symbol: PALETTE.white('▌'),
-      text: PALETTE.white('OpenSpec structure created'),
+      text: PALETTE.white('OPSX structure created'),
     });
   }
 
@@ -581,7 +581,7 @@ export class InitCommand {
     const currentProseLanguage = readProjectConfig(projectPath)?.proseLanguage;
     const { input } = await import('@inquirer/prompts');
     const response = await input({
-      message: 'OpenSpec document language (optional, e.g. en, zh-CN, pt-BR)',
+      message: 'OPSX document language (optional, e.g. en, zh-CN, pt-BR)',
       default: currentProseLanguage ?? '',
       validate: (value: string) => {
         if (value.trim().length === 0) {
@@ -668,7 +668,7 @@ export class InitCommand {
     proseLanguage?: string
   ): void {
     console.log();
-    console.log(chalk.bold('OpenSpec Setup Complete'));
+    console.log(chalk.bold('OPSX Setup Complete'));
     console.log();
 
     // Show created vs refreshed tools
@@ -702,15 +702,15 @@ export class InitCommand {
     // Config status
     if (configStatus === 'created') {
       const details = proseLanguage ? `schema: ${DEFAULT_SCHEMA}, proseLanguage: ${proseLanguage}` : `schema: ${DEFAULT_SCHEMA}`;
-      console.log(`Config: openspec/config.yaml (${details})`);
+      console.log(`Config: ${OPSX_DIR_NAME}/config.yaml (${details})`);
     } else if (configStatus === 'updated') {
-      console.log(`Config: openspec/config.yaml (updated proseLanguage: ${proseLanguage})`);
+      console.log(`Config: ${OPSX_DIR_NAME}/config.yaml (updated proseLanguage: ${proseLanguage})`);
     } else if (configStatus === 'exists') {
       // Show actual filename (config.yaml or config.yml)
       const configYaml = path.join(projectPath, OPSX_DIR_NAME, 'config.yaml');
       const configYml = path.join(projectPath, OPSX_DIR_NAME, 'config.yml');
       const configName = fs.existsSync(configYaml) ? 'config.yaml' : fs.existsSync(configYml) ? 'config.yml' : 'config.yaml';
-      console.log(`Config: openspec/${configName} (exists)`);
+      console.log(`Config: ${OPSX_DIR_NAME}/${configName} (exists)`);
     } else {
       console.log(chalk.dim(`Config: skipped (non-interactive mode)`));
     }
@@ -723,7 +723,7 @@ export class InitCommand {
       console.log(chalk.bold('Getting started:'));
       console.log(`  Start your first change: ${renderWorkflowInvocation(guidanceToolId, 'propose')} "your idea"`);
     } else {
-      console.log("Done. Run 'openspec init' to configure your workflows.");
+      console.log("Done. Run 'opsx init' to configure your workflows.");
     }
 
     // Bootstrap guidance: only when bootstrap-arch is active and this is first-time init

@@ -1,10 +1,11 @@
 {
-  "name": "@fission-ai/openspec",
+  "name": "opsx",
   "version": "1.4.1-cpyu.5",
-  "description": "AI-native system for spec-driven development",
+  "description": "Human-intent programming framework with integrated architecture and specification browsing",
   "keywords": [
-    "openspec",
+    "opsx",
     "specs",
+    "architecture",
     "cli",
     "ai",
     "development"
@@ -15,7 +16,7 @@
     "url": "git+https://github.com/cp-yu/opsx.git"
   },
   "license": "MIT",
-  "author": "OpenSpec Contributors",
+  "author": "OPSX Contributors",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -33,6 +34,7 @@
     "dist",
     "bin",
     "schemas",
+    "likec4",
     "scripts/postinstall.js",
     "!dist/**/*.test.js",
     "!dist/**/__tests__",
@@ -41,6 +43,10 @@
   "scripts": {
     "lint": "eslint src/",
     "build": "node build.js",
+    "likec4:install": "pnpm --dir likec4 install --frozen-lockfile",
+    "likec4:build": "pnpm --dir likec4 build",
+    "likec4:test": "pnpm --dir likec4 test",
+    "likec4:typecheck": "pnpm --dir likec4 typecheck",
     "dev": "tsc --watch",
     "dev:cli": "pnpm build && node bin/opsx.js",
     "test": "vitest run",

@@ -199,12 +199,12 @@
 
 #### Checks
 
-- [ ] C1 验证 subtree 来源与关键包
+- [x] C1 验证 subtree 来源与关键包
   - Verifies: `specs/opsx-framework-identity/spec.md` / Requirement "CLI 命令引用 SHALL 一致" / Scenario "Archive history 残留"
   - Command: `git log --grep='Squashed.*likec4' -1 --oneline && test -d likec4/packages/diagram && test -d likec4/packages/likec4-spa && test -d likec4/packages/vite-plugin`
   - Expect: subtree commit 与关键包存在
 
-- [ ] C2 验证 upstream License
+- [x] C2 验证 upstream License
   - Evidence: `likec4/LICENSE`
   - Expect: LikeC4 MIT License 原文保留
 
