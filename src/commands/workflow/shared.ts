@@ -1,3 +1,4 @@
+import { OPSX_DIR_NAME } from '../../core/config.js';
 /**
  * Shared Types and Utilities for Artifact Workflow Commands
  *
@@ -89,11 +90,11 @@ export function getStatusIndicator(status: 'done' | 'ready' | 'blocked'): string
 }
 
 /**
- * Returns the list of available change directory names under openspec/changes/.
+ * Returns the list of available change directory names under .opsx/changes/.
  * Excludes the archive directory and hidden directories.
  */
 export async function getAvailableChanges(projectRoot: string): Promise<string[]> {
-  const changesPath = path.join(projectRoot, 'openspec', 'changes');
+  const changesPath = path.join(projectRoot, OPSX_DIR_NAME, 'changes');
   try {
     const entries = await fs.promises.readdir(changesPath, { withFileTypes: true });
     return entries
@@ -116,7 +117,7 @@ export async function validateChangeExists(
   if (!changeName) {
     const available = await getAvailableChanges(projectRoot);
     if (available.length === 0) {
-      throw new Error('No changes found. Create one with: openspec new change <name>');
+      throw new Error('No changes found. Create one with: opsx new change <name>');
     }
     throw new Error(
       `Missing required option --change. Available changes:\n  ${available.join('\n  ')}`
@@ -130,14 +131,14 @@ export async function validateChangeExists(
   }
 
   // Check directory existence directly
-  const changePath = path.join(projectRoot, 'openspec', 'changes', changeName);
+  const changePath = path.join(projectRoot, OPSX_DIR_NAME, 'changes', changeName);
   const exists = fs.existsSync(changePath) && fs.statSync(changePath).isDirectory();
 
   if (!exists) {
     const available = await getAvailableChanges(projectRoot);
     if (available.length === 0) {
       throw new Error(
-        `Change '${changeName}' not found. No changes exist. Create one with: openspec new change <name>`
+        `Change '${changeName}' not found. No changes exist. Create one with: opsx new change <name>`
       );
     }
     throw new Error(

@@ -1,6 +1,6 @@
 # Workflows
 
-OpenSpec combines Specs with LikeC4 architecture and exposes managed workflows as skills.
+OPSX combines Specs with LikeC4 architecture and exposes managed workflows as skills.
 
 ## Current Surface
 
@@ -32,7 +32,7 @@ Use this when behavior or architecture decisions remain undefined.
 ### Bootstrap Architecture
 
 ```text
-/opsx:bootstrap-arch ──► review candidates ──► openspec arch validate
+/opsx:bootstrap-arch ──► review candidates ──► opsx arch validate
 ```
 
 The bootstrap workflow scans current evidence, produces reviewed LikeC4 candidates, and promotes them only after approval.
@@ -43,7 +43,7 @@ The bootstrap workflow scans current evidence, produces reviewed LikeC4 candidat
 /opsx:snack ──► /opsx:archive
 ```
 
-Use this when code already exists and OpenSpec artifacts must be reconciled afterward.
+Use this when code already exists and OPSX artifacts must be reconciled afterward.
 
 ## Archive Contract
 

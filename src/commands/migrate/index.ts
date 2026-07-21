@@ -3,7 +3,7 @@ import ora from 'ora';
 import { migrateOpsxToLikeC4, type MigrateOpsxOptions } from './opsx-to-likec4.js';
 
 export function registerMigrateCommand(program: Command): void {
-  const migrate = program.command('migrate').description('Migrate OpenSpec project formats');
+  const migrate = program.command('migrate').description('Migrate OPSX project formats');
   migrate.command('opsx-to-likec4')
     .description('Migrate OPSX YAML architecture to LikeC4')
     .option('--dry-run', 'Preview generated files without writing')

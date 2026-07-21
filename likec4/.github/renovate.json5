@@ -1,0 +1,118 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    'config:recommended',
+    'helpers:disableTypesNodeMajor',
+    'group:monorepos',
+    'npm:unpublishSafe'
+  ],
+  "prHourlyLimit": 30,
+  "prConcurrentLimit": 8,
+  "rangeStrategy": 'bump',
+  "postUpdateOptions": [
+    "pnpmDedupe"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "ignorePaths": [
+    "e2e/**",
+    "examples/**",
+    "packages/create-likec4/**"
+  ],
+  packageRules: [
+    {
+      matchCategories: [
+        'ci',
+      ],
+      automergeType: "branch",
+      automerge: true,
+      pinDigests: false,
+    },
+    {
+      groupName: 'oxlint',
+      matchPackageNames: [
+        '/oxlint/',
+      ],
+    },
+    {
+      automerge: true,
+      automergeType: "branch",
+      matchPackageNames: [
+        'dprint',
+        'type-fest',
+        'remeda',
+        'turbo',
+        'wireit',
+        'pnpm',
+        'semver',
+        'oxlint',
+        'oxlint-tsgolint',
+        'terser',
+        'caniuse-lite',
+        'zx',
+        'autoprefixer',
+        '@typescript/native-preview',
+        '@fontsource-variable/**',
+        '@fontsource/**',
+      ]
+    },
+    {
+      groupName: '@cloudflare',
+      matchPackageNames: [
+        'wrangler',
+        '@cloudflare/vite-plugin'
+      ],
+    },
+    {
+      groupName: '@langium',
+      matchDepNames: [
+        '/langium/',
+      ],
+    },
+    {
+      groupName: '@nanostores',
+      matchPackageNames: [
+        'nanostores',
+        '@nanostores/**',
+      ],
+    },
+    {
+      groupName: '@xyflow',
+      matchPackageNames: [
+        '@xyflow/**',
+      ],
+    },
+    {
+      groupName: '@pandacss',
+      matchPackageNames: [
+        '@pandacss/**',
+      ],
+    },
+    {
+      groupName: '@expressive-code',
+      matchPackageNames: [
+        '@expressive-code/**',
+      ],
+    },
+    {
+      groupName: 'reactive-vscode',
+      matchPackageNames: [
+        '/reactive-vscode/',
+      ],
+    },
+    {
+      enabled: false,
+      matchPackageNames: [
+        'html-to-image',
+        '/^monaco/',
+        '/^@monaco/',
+        '/^@codingame/',
+        '@types/vscode',
+        'vscode',
+        '/^vscode-/',
+        '@tanstack{/,}**',
+      ]
+    },
+  ],
+}

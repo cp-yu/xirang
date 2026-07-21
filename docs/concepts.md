@@ -1,10 +1,10 @@
 # Concepts
 
-This guide explains the core ideas behind OpenSpec and how they fit together. For practical usage, see [Getting Started](getting-started.md) and [Workflows](workflows.md).
+This guide explains the core ideas behind OPSX and how they fit together. For practical usage, see [Getting Started](getting-started.md) and [Workflows](workflows.md).
 
 ## Philosophy
 
-OpenSpec is built around four principles:
+OPSX is built around four principles:
 
 ```
 fluid not rigid         — no phase gates, work on what makes sense
@@ -15,21 +15,21 @@ brownfield-first        — works with existing codebases, not just greenfield
 
 ### Why These Principles Matter
 
-**Fluid not rigid.** Traditional spec systems lock you into phases: first you plan, then you implement, then you're done. OpenSpec is more flexible — you can create artifacts in any order that makes sense for your work.
+**Fluid not rigid.** Traditional spec systems lock you into phases: first you plan, then you implement, then you're done. OPSX is more flexible — you can create artifacts in any order that makes sense for your work.
 
-**Iterative not waterfall.** Requirements change. Understanding deepens. What seemed like a good approach at the start might not hold up after you see the codebase. OpenSpec embraces this reality.
+**Iterative not waterfall.** Requirements change. Understanding deepens. What seemed like a good approach at the start might not hold up after you see the codebase. OPSX embraces this reality.
 
-**Easy not complex.** Some spec frameworks require extensive setup, rigid formats, or heavyweight processes. OpenSpec stays out of your way. Initialize in seconds, start working immediately, customize only if you need to.
+**Easy not complex.** Some spec frameworks require extensive setup, rigid formats, or heavyweight processes. OPSX stays out of your way. Initialize in seconds, start working immediately, customize only if you need to.
 
-**Brownfield-first.** Most software work isn't building from scratch — it's modifying existing systems. OpenSpec's delta-based approach makes it easy to specify changes to existing behavior, not just describe new systems.
+**Brownfield-first.** Most software work isn't building from scratch — it's modifying existing systems. OPSX's delta-based approach makes it easy to specify changes to existing behavior, not just describe new systems.
 
 ## The Big Picture
 
-OpenSpec organizes your work into two main areas:
+OPSX organizes your work into two main areas:
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│                        openspec/                                   │
+│                        .opsx/                                   │
 │                                                                    │
 │   ┌─────────────────────┐      ┌───────────────────────────────┐   │
 │   │       specs/        │      │         changes/              │   │
@@ -56,7 +56,7 @@ Specs describe your system's behavior using structured requirements and scenario
 ### Structure
 
 ```
-openspec/specs/
+.opsx/specs/
 ├── auth/
 │   └── spec.md           # Authentication behavior
 ├── payments/
@@ -154,7 +154,7 @@ Quick test:
 
 ### Keep It Lightweight: Progressive Rigor
 
-OpenSpec aims to avoid bureaucracy. Use the lightest level that still makes the change verifiable.
+OPSX aims to avoid bureaucracy. Use the lightest level that still makes the change verifiable.
 
 **Lite spec (default):**
 - Short behavior-first requirements
@@ -186,11 +186,11 @@ A change is a proposed modification to your system, packaged as a folder with ev
 ### Change Structure
 
 ```
-openspec/changes/add-dark-mode/
+.opsx/changes/add-dark-mode/
 ├── proposal.md           # Why and what
 ├── design.md             # How (technical approach)
 ├── tasks.md              # Implementation checklist
-├── .openspec.yaml        # Change metadata (optional)
+├── .opsx.yaml        # Change metadata (optional)
 └── specs/                # Delta specs
     └── ui/
         └── spec.md       # What's changing in ui/spec.md
@@ -345,7 +345,7 @@ Tasks are the **implementation checklist** — concrete steps with checkboxes.
 
 ## Delta Specs
 
-Delta specs are the key concept that makes OpenSpec work for brownfield development. They describe **what's changing** rather than restating the entire spec.
+Delta specs are the key concept that makes OPSX work for brownfield development. They describe **what's changing** rather than restating the entire spec.
 
 ### The Format
 
@@ -470,7 +470,7 @@ Best for: Most feature work where you want to agree on specs before implementati
 
 `bootstrap` is the retained legacy schema for the deprecated OPSX bootstrap CLI. New architecture bootstrapping uses the managed `bootstrap-arch` skill and produces reviewed LikeC4 candidates.
 
-OpenSpec resolves only the package-owned `spec-driven` and `bootstrap` schemas. Project-local and user override schemas are not supported. Use `openspec schema which --all` to inspect both built-ins and `openspec schema validate` to validate them.
+OPSX resolves only the package-owned `spec-driven` and `bootstrap` schemas. Project-local and user override schemas are not supported. Use `opsx schema which --all` to inspect both built-ins and `opsx schema validate` to validate them.
 
 ## Archive
 
@@ -481,7 +481,7 @@ Archiving completes a change by merging delta Specs into formal Specs, merging `
 ```
 Before archive:
 
-openspec/
+.opsx/
 ├── specs/
 │   └── auth/
 │       └── spec.md ◄────────────────┐
@@ -497,7 +497,7 @@ openspec/
 
 After archive:
 
-openspec/
+.opsx/
 ├── specs/
 │   └── auth/
 │       └── spec.md        # Now includes 2FA requirements
@@ -514,7 +514,7 @@ openspec/
 
 ### The Archive Process
 
-1. **Merge deltas.** Each delta Spec section is applied to the corresponding formal Spec. If `architecture-delta.c4` exists, it is validated and merged into `openspec/architecture/`.
+1. **Merge deltas.** Each delta Spec section is applied to the corresponding formal Spec. If `architecture-delta.c4` exists, it is validated and merged into `.opsx/architecture/`.
 
 2. **Move to archive.** The change folder moves to `changes/archive/` with a date prefix for chronological ordering.
 
@@ -532,7 +532,7 @@ openspec/
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│                              OPENSPEC FLOW                                   │
+│                              OPSX FLOW                                   │
 │                                                                              │
 │   ┌────────────────┐                                                         │
 │   │  1. START      │  /opsx:propose                                           │
@@ -591,7 +591,7 @@ openspec/
 | **Scenario** | A concrete example of a requirement, typically in Given/When/Then format |
 | **Schema** | A definition of artifact types and their dependencies |
 | **Spec** | A specification describing system behavior, containing requirements and scenarios |
-| **Source of truth** | The `openspec/specs/` directory, containing the current agreed-upon behavior |
+| **Source of truth** | The `.opsx/specs/` directory, containing the current agreed-upon behavior |
 
 ## Next Steps
 

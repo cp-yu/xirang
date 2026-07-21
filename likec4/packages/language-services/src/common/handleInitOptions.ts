@@ -1,0 +1,30 @@
+import { type Logger, rootLogger } from '@likec4/log'
+import { type LikeC4Langium, LikeC4 } from './LikeC4'
+import { type InitOptions, DefaultInitOptions } from './options'
+
+const validationErrorsToError = (likec4: LikeC4) =>
+  new Error(
+    `Invalid model:\n${
+      likec4.getErrors().map(e => `  ${e.sourceFsPath}:${e.line} ${e.message.slice(0, 200)}`).join('\n')
+    }`,
+  )
+
+export async function handleInitOptions(
+  langium: LikeC4Langium,
+  logger: Logger = rootLogger,
+  options: InitOptions | undefined,
+): Promise<LikeC4> {
+  const likec4 = new LikeC4(langium, logger)
+
+  const throwIfInvalid = options?.throwIfInvalid ?? DefaultInitOptions.throwIfInvalid
+  const printErrors = options?.printErrors ?? DefaultInitOptions.printErrors
+  if ((throwIfInvalid || printErrors) && likec4.hasErrors()) {
+    if (throwIfInvalid) {
+      await likec4.dispose()
+      return Promise.reject(validationErrorsToError(likec4))
+    }
+    likec4.printErrors()
+  }
+
+  return likec4
+}

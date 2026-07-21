@@ -156,7 +156,7 @@ describe('validateTaskStructure', () => {
 
     try {
       for (const verifies of [
-        '`openspec/specs/example/spec.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"',
+        '`.opsx/specs/example/spec.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"',
         '`/tmp/example/spec.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"',
         '`specs/../example/spec.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"',
         '`specs\\example\\spec.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"',
@@ -217,7 +217,7 @@ describe('validateTaskStructure', () => {
   });
 
   it('downgrades Verifies cross-checking to warning when no change specs exist', () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-task-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-task-'));
 
     try {
       const result = validateTaskStructure(validTasks('manual verification'), { changeDir: tempDir });
@@ -302,7 +302,7 @@ describe('validateTaskStructure', () => {
 });
 
 function createChangeDir(specs: Record<string, string>): string {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-task-'));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-task-'));
   for (const [relativePath, content] of Object.entries(specs)) {
     const target = path.join(tempDir, 'specs', relativePath);
     fs.mkdirSync(path.dirname(target), { recursive: true });
@@ -460,7 +460,7 @@ describe('Preserves field anchoring', () => {
     });
 
     const projectRoot = path.dirname(tempDir);
-    const mainSpecPath = path.join(projectRoot, 'openspec', 'specs', 'auth', 'spec.md');
+    const mainSpecPath = path.join(projectRoot, '.opsx', 'specs', 'auth', 'spec.md');
     fs.mkdirSync(path.dirname(mainSpecPath), { recursive: true });
     fs.writeFileSync(
       mainSpecPath,
@@ -487,7 +487,7 @@ describe('Preserves field anchoring', () => {
 #### Checks
 
 - [ ] C1 Verify behavior preserved
-  - Preserves: \`openspec/specs/auth/spec.md\` / Requirement "Login behavior" / Scenario "User authenticates"
+  - Preserves: \`.opsx/specs/auth/spec.md\` / Requirement "Login behavior" / Scenario "User authenticates"
   - Command: \`pnpm test src/auth/login.test.ts\`
   - Expect: old function loginUser no longer exists
 `,
@@ -498,7 +498,7 @@ describe('Preserves field anchoring', () => {
       expect(result.checks).toEqual(['C1']);
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });
-      fs.rmSync(path.join(projectRoot, 'openspec'), { recursive: true, force: true });
+      fs.rmSync(path.join(projectRoot, '.opsx'), { recursive: true, force: true });
     }
   });
 
@@ -563,7 +563,7 @@ describe('Preserves field anchoring', () => {
 #### Checks
 
 - [ ] C1 Verify behavior
-  - Preserves: \`/openspec/specs/auth/spec.md\` / Requirement "Test" / Scenario "Test"
+  - Preserves: \`/.opsx/specs/auth/spec.md\` / Requirement "Test" / Scenario "Test"
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -599,7 +599,7 @@ describe('Preserves field anchoring', () => {
 #### Checks
 
 - [ ] C1 Verify behavior
-  - Preserves: \`openspec/../specs/auth/spec.md\` / Requirement "Test" / Scenario "Test"
+  - Preserves: \`opsx/../specs/auth/spec.md\` / Requirement "Test" / Scenario "Test"
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -635,7 +635,7 @@ describe('Preserves field anchoring', () => {
 #### Checks
 
 - [ ] C1 Verify behavior
-  - Preserves: \`openspec\\specs\\auth\\spec.md\` / Requirement "Test" / Scenario "Test"
+  - Preserves: \`opsx\\specs\\auth\\spec.md\` / Requirement "Test" / Scenario "Test"
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -659,7 +659,7 @@ describe('Preserves field anchoring', () => {
     });
 
     const projectRoot = path.dirname(tempDir);
-    const mainSpecPath = path.join(projectRoot, 'openspec', 'specs', 'auth', 'spec.md');
+    const mainSpecPath = path.join(projectRoot, '.opsx', 'specs', 'auth', 'spec.md');
     fs.mkdirSync(path.dirname(mainSpecPath), { recursive: true });
     fs.writeFileSync(
       mainSpecPath,
@@ -686,7 +686,7 @@ describe('Preserves field anchoring', () => {
 #### Checks
 
 - [ ] C1 Verify feature
-  - Verifies: \`openspec/specs/auth/spec.md\` / Requirement "Login" / Scenario "Works"
+  - Verifies: \`.opsx/specs/auth/spec.md\` / Requirement "Login" / Scenario "Works"
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -696,7 +696,7 @@ describe('Preserves field anchoring', () => {
       expect(result.issues.map((issue) => issue.code)).toContain('invalid-verifies-path');
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });
-      fs.rmSync(path.join(projectRoot, 'openspec'), { recursive: true, force: true });
+      fs.rmSync(path.join(projectRoot, '.opsx'), { recursive: true, force: true });
     }
   });
 });

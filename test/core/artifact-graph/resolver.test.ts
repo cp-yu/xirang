@@ -16,7 +16,7 @@ describe('artifact-graph/resolver', () => {
   let originalDataHome: string | undefined;
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-resolver-'));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-resolver-'));
     originalDataHome = process.env.XDG_DATA_HOME;
     process.env.XDG_DATA_HOME = path.join(tempDir, 'data');
   });
@@ -36,9 +36,9 @@ describe('artifact-graph/resolver', () => {
   });
 
   it('ignores project and user schemas, including same-name overrides', () => {
-    const projectOverride = path.join(tempDir, 'openspec', 'schemas', 'spec-driven');
-    const userOverride = path.join(process.env.XDG_DATA_HOME!, 'openspec', 'schemas', 'spec-driven');
-    const custom = path.join(tempDir, 'openspec', 'schemas', 'custom');
+    const projectOverride = path.join(tempDir, '.opsx', 'schemas', 'spec-driven');
+    const userOverride = path.join(process.env.XDG_DATA_HOME!, 'opsx', 'schemas', 'spec-driven');
+    const custom = path.join(tempDir, '.opsx', 'schemas', 'custom');
     for (const dir of [projectOverride, userOverride, custom]) {
       fs.mkdirSync(dir, { recursive: true });
       fs.writeFileSync(path.join(dir, 'schema.yaml'), 'name: override\nversion: 1\nartifacts: []\n');

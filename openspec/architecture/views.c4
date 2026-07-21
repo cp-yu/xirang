@@ -1,7 +1,0 @@
-views {
-  view index {
-    title '@fission-ai/openspec Architecture'
-    include *
-    autoLayout TopBottom
-  }
-}

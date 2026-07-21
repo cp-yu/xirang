@@ -1,0 +1,128 @@
+---
+title: LikeC4 Docker
+description: Learn how to use LikeC4 Docker image.
+head:
+  - tag: title
+    content: LikeC4 Docker
+sidebar:
+  label: Docker
+  order: 1
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6  
+---
+
+import { LinkCard, Tabs, TabItem as Tab } from '@astrojs/starlight/components';
+import { Aside } from '@astrojs/starlight/components';
+import { PackageManagers } from 'starlight-package-managers';
+
+LikeC4 Docker image is a self-contained environment for running LikeC4 commands and can be used as a drop-in replacement for `likec4` CLI.  
+It is hosted in [GitHub Container Registry](https://github.com/likec4/likec4/pkgs/container/likec4) and [Docker Hub](https://hub.docker.com/r/likec4/likec4) and includes:
+
+- Node.js (22.x)
+- Graphviz (built from sources of the [latest release](https://gitlab.com/graphviz/graphviz/-/releases))
+- Playwright (latest)
+- LikeC4 CLI (latest)
+
+You can find the [Dockerfile](https://github.com/likec4/likec4/blob/main/Dockerfile) in the repository.
+
+
+<Tabs>
+  <Tab label='Docker HUB'>
+  ```sh copy title="Run any CLI command"
+  # Example: Help for export command
+  docker run --rm -t likec4/likec4 export png -h
+  ```
+  </Tab>
+  <Tab label='GitHub Container Registry'>
+  ```sh copy title="Run any CLI command"
+  # Example: Help for export command
+  docker run --rm -t ghcr.io/likec4/likec4 export png -h
+  ```
+  </Tab>
+</Tabs>
+
+## Usage
+
+To work with the container you need to mount the folder with LikeC4 sources to `/data` directory  
+(it is the default working directory, but you can change it and use any other you prefer).
+
+### Start local web server
+
+```sh copy title="Start local web server"
+# mount LikeC4 sources to /data: -v $(pwd):/data
+# publish ports: -p 5173:5173
+# (optional) for realtime updates: -p 24678:24678
+# (optional) use init process to correctly handle signals (eg Ctrl+C): --init
+# (optional) enable color output: -t
+docker run --rm \
+  -v $PWD:/data \
+  --init \
+  -t \
+  -p 5173:5173 \
+  -p 24678:24678 \
+  -e CHOKIDAR_USEPOLLING=1 \
+  -e CHOKIDAR_INTERVAL=200 \
+  likec4/likec4 \
+  start
+```
+
+The HMR WebSocket port is auto-discovered from the range 24678–24690. To pin it to a specific port, use `--hmr-port` (or the `HMR_PORT` env var) and publish that exact port:
+
+```sh copy title="Pin the HMR port"
+docker run --rm \
+  -v $PWD:/data \
+  --init \
+  -t \
+  -p 5173:5173 \
+  -p 24700:24700 \
+  -e CHOKIDAR_USEPOLLING=1 \
+  -e CHOKIDAR_INTERVAL=200 \
+  likec4/likec4 \
+  start --hmr-port 24700
+# Or equivalently via env var:
+#   -e HMR_PORT=24700
+```
+
+:::note
+By default LikeC4 Docker sets `--use-dot` flag and uses local Graphviz binaries instead of bundled WASM (as it has [memory issues](https://github.com/likec4/likec4/issues?q=Memory%20type:Bug)).
+
+You can override it with `--no-use-dot` flag.
+:::
+
+:::caution[Running the Local Web Server on Windows]
+When using Windows with the Docker-based preview, updates to the diagrams/ file system are not reflected in the running container when files are hosted within a Windows-based file system (i.e. on a drive such as `C:\`).
+
+This is a [known issue](https://github.com/microsoft/WSL/issues/4739) with file system notifications for Linux applications using WSL.
+
+**Workaround**:
+
+Enable polling for file changes by adding the following environment variables to the `docker run` command:
+
+```diff lang="sh" copy title="Start local web server with WSL workaround"
+docker run --rm \
+  -v $PWD:/data \
+  --init \
+  -t \
+  -p 5173:5173 \
+  -p 24678:24678 \
++  -e CHOKIDAR_USEPOLLING=1 \   # Enable polling support
++  -e CHOKIDAR_INTERVAL=200 \   # Adjust timing to your needs
+  likec4/likec4 \
+  start
+```
+
+**Note**: If your diagrams are hosted within a WSL-based filesystem (e.g. /home/user/...), then file system notifications should work as expected.
+:::
+
+### Build static website
+
+```sh copy title="Build static website"
+docker run -v $PWD:/data likec4/likec4 build -o dist
+```
+
+### Export to PNG
+
+```sh copy title="Export to PNG"
+docker run -v $PWD:/data likec4/likec4 export png --outdir assets --theme dark
+```

@@ -18,7 +18,7 @@ describe('Transform Pipeline', () => {
     it('should transform colon-based references for codex', () => {
       const result = runTransforms('Run /opsx:apply to implement',
         { toolId: 'codex', workflowId: 'apply', artifactType: 'skill' });
-      expect(result).toBe('Run $openspec-apply-change to implement');
+      expect(result).toBe('Run $opsx-apply-change to implement');
     });
 
     it('should transform colon-based references for opencode', () => {
@@ -30,7 +30,7 @@ describe('Transform Pipeline', () => {
     it('should transform colon-based references for pi', () => {
       const result = runTransforms('Run /opsx:apply to implement',
         { toolId: 'pi', workflowId: 'apply', artifactType: 'skill' });
-      expect(result).toBe('Run /skill:openspec-apply-change to implement');
+      expect(result).toBe('Run /skill:opsx-apply-change to implement');
     });
   });
 
@@ -50,7 +50,7 @@ describe('Transform Pipeline', () => {
         { toolId: 'pi', workflowId: 'propose', artifactType: 'command' },
         'preAdapter'
       );
-      expect(result).toBe('Use /skill:openspec-propose to start and /skill:openspec-apply-change to implement.');
+      expect(result).toBe('Use /skill:opsx-propose to start and /skill:opsx-apply-change to implement.');
     });
 
     it('should transform codex command body to dollar-sign format', () => {
@@ -59,9 +59,9 @@ describe('Transform Pipeline', () => {
         { toolId: 'codex', workflowId: 'propose', artifactType: 'command' },
         'preAdapter'
       );
-      expect(result).toContain('$openspec-propose');
-      expect(result).toContain('$openspec-explore');
-      expect(result).toContain('$openspec-apply-change');
+      expect(result).toContain('$opsx-propose');
+      expect(result).toContain('$opsx-explore');
+      expect(result).toContain('$opsx-apply-change');
     });
 
     it('should NOT apply postAdapter transforms when phase is preAdapter', () => {
@@ -76,20 +76,20 @@ describe('Transform Pipeline', () => {
     it('should transform colon-based references for claude', () => {
       const result = runTransforms('Run /opsx:apply to implement',
         { toolId: 'claude', workflowId: 'apply', artifactType: 'skill' });
-      expect(result).toBe('Run /openspec-apply-change to implement');
+      expect(result).toBe('Run /opsx-apply-change to implement');
     });
 
     it('should transform archive references for all precise tool surfaces', () => {
       const input = 'Archive with /opsx:archive';
 
       expect(runTransforms(input, { toolId: 'codex', workflowId: 'apply', artifactType: 'skill' })).toBe(
-        'Archive with $openspec-archive-change'
+        'Archive with $opsx-archive-change'
       );
       expect(runTransforms(input, { toolId: 'claude', workflowId: 'apply', artifactType: 'skill' })).toBe(
-        'Archive with /openspec-archive-change'
+        'Archive with /opsx-archive-change'
       );
       expect(runTransforms(input, { toolId: 'pi', workflowId: 'apply', artifactType: 'skill' })).toBe(
-        'Archive with /skill:openspec-archive-change'
+        'Archive with /skill:opsx-archive-change'
       );
       expect(runTransforms(input, { toolId: 'opencode', workflowId: 'apply', artifactType: 'skill' })).toBe(
         'Archive with /opsx-archive'
@@ -105,7 +105,7 @@ describe('Transform Pipeline', () => {
     it('should transform registered references to neutral skill text for tools without precise syntax', () => {
       const result = runTransforms('Use /opsx:apply, leave /opsx:unknown.',
         { toolId: 'cursor', workflowId: 'apply', artifactType: 'skill' });
-      expect(result).toBe('Use invoke the openspec-apply-change skill, leave /opsx:unknown.');
+      expect(result).toBe('Use invoke the opsx-apply-change skill, leave /opsx:unknown.');
     });
   });
 

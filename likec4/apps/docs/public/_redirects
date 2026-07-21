@@ -1,0 +1,8 @@
+/docs   /tutorial  301
+/docs/* /:splat
+/dsl/workspace/ /dsl/extend/
+/dsl/projects/ /dsl/config/multi-projects
+/examples/* /showcases/:splat
+
+/tooling/vscode/ /tooling/editors/
+/tooling/mcp/ /tooling/ai-tools/

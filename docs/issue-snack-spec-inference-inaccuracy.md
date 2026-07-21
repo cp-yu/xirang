@@ -1,6 +1,6 @@
 # Historical Issue: snack spec 推断不准确导致归档验证失败
 
-> Historical record for OpenSpec v1.2.0-cpyu.9. The original diagnosis depended on the removed OPSX v1 persisted path mapping. Current snack behavior uses OPSX v2 capability intents and semantic relations, `openspec list --specs --json`, and live code evidence from optional CodeGraph or ACE/`rg`/`read`.
+> Historical record for OPSX v1.2.0-cpyu.9. The original diagnosis depended on the removed OPSX v1 persisted path mapping. Current snack behavior uses OPSX v2 capability intents and semantic relations, `opsx list --specs --json`, and live code evidence from optional CodeGraph or ACE/`rg`/`read`.
 
 ## 问题
 
@@ -17,7 +17,7 @@ MODIFIED requirement references a non-existent main requirement.
 生成 delta spec 前应：
 
 1. 从代码变更、capability intent、semantic relation 与 spec coverage 确定候选 capability。
-2. 运行 `openspec list --specs --json` 获取 capability 到 main spec 的映射。
+2. 运行 `opsx list --specs --json` 获取 capability 到 main spec 的映射。
 3. 读取目标 main spec 并按 requirement 标题判断操作：
    - main spec 或 requirement 不存在：`ADDED`
    - requirement 已存在且行为变化：`MODIFIED`

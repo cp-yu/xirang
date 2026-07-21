@@ -12,7 +12,7 @@ describe('config command integration', () => {
 
   beforeEach(() => {
     // Create unique temp directory for each test
-    tempDir = path.join(os.tmpdir(), `openspec-config-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    tempDir = path.join(os.tmpdir(), `opsx-config-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     fs.mkdirSync(tempDir, { recursive: true });
 
     // Save original env and set XDG_CONFIG_HOME
@@ -40,7 +40,7 @@ describe('config command integration', () => {
   it('should use XDG_CONFIG_HOME for config path', async () => {
     const { getGlobalConfigPath } = await import('../../src/core/global-config.js');
     const configPath = getGlobalConfigPath();
-    expect(configPath).toBe(path.join(tempDir, 'openspec', 'config.json'));
+    expect(configPath).toBe(path.join(tempDir, 'opsx', 'config.json'));
   });
 
   it('should save and load config correctly', async () => {
@@ -100,7 +100,7 @@ describe('config command integration', () => {
     process.exitCode = undefined;
     await program.parseAsync([
       'node',
-      'openspec',
+      'opsx',
       'config',
       'set',
       'propose.smartRouting',
@@ -123,7 +123,7 @@ describe('config project command', () => {
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    tempDir = path.join(os.tmpdir(), `openspec-project-config-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    tempDir = path.join(os.tmpdir(), `opsx-project-config-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     fs.mkdirSync(tempDir, { recursive: true });
     originalCwd = process.cwd();
     process.chdir(tempDir);
@@ -141,13 +141,13 @@ describe('config project command', () => {
     const { registerConfigCommand } = await import('../../src/commands/config.js');
     const program = new Command();
     registerConfigCommand(program);
-    await program.parseAsync(['node', 'openspec', 'config', 'project', ...args]);
+    await program.parseAsync(['node', 'opsx', 'config', 'project', ...args]);
   }
 
   it('prints normalized project config as JSON', async () => {
-    fs.mkdirSync(path.join(tempDir, 'openspec'), { recursive: true });
+    fs.mkdirSync(path.join(tempDir, '.opsx'), { recursive: true });
     fs.writeFileSync(
-      path.join(tempDir, 'openspec', 'config.yaml'),
+      path.join(tempDir, '.opsx', 'config.yaml'),
       `schema: spec-driven
 proseLanguage: 中文
 context: Project context
@@ -212,9 +212,9 @@ rules:
   });
 
   it('prints YAML-like text without --json', async () => {
-    fs.mkdirSync(path.join(tempDir, 'openspec'), { recursive: true });
+    fs.mkdirSync(path.join(tempDir, '.opsx'), { recursive: true });
     fs.writeFileSync(
-      path.join(tempDir, 'openspec', 'config.yaml'),
+      path.join(tempDir, '.opsx', 'config.yaml'),
       `schema: spec-driven
 proseLanguage: 中文
 rules: {}

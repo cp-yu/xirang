@@ -1,15 +1,15 @@
 /**
- * Skill-only template: openspec-impact-sweeper
+ * Skill-only template: opsx-impact-sweeper
  */
 import type { SubagentTemplate } from '../../shared/subagent-generation.js';
 
 const IMPACT_SWEEPER_EVIDENCE_REFERENCE = `# Impact Sweeper Evidence Protocol
 
-1. Query LikeC4 first with \`openspec arch query <element-id> --relations --depth 2\`. Preserve each relation's canonical source/kind/target direction. Element nesting supplies domain context only; no relation alone proves \`mustChange\`.
-2. Build cap→spec coverage with \`openspec list --specs --json\`, then read contracts linked to candidate capabilities.
+1. Query LikeC4 first with \`opsx arch query <element-id> --relations --depth 2\`. Preserve each relation's canonical source/kind/target direction. Element nesting supplies domain context only; no relation alone proves \`mustChange\`.
+2. Build cap→spec coverage with \`opsx list --specs --json\`, then read contracts linked to candidate capabilities.
 3. Collect current code evidence after semantic mapping. If CodeGraph is available, use its CLI/MCP symbol, call, import, and blast-radius evidence as an optional accelerator. Never install it automatically and never read \`.codegraph/codegraph.db\`.
 4. If CodeGraph is unavailable or fails, continue with ACE, \`rg\`, \`read\`, and \`git ls-files\`; disclose reduced evidence coverage in \`unknown\` or \`questions\` rather than blocking.
-5. Do not read legacy OPSX YAML or any code-map file. Use \`openspec arch query\` output for architecture details and LikeC4 element IDs in the report.
+5. Do not read legacy OPSX YAML or any code-map file. Use \`opsx arch query\` output for architecture details and LikeC4 element IDs in the report.
 6. When optionalChangeName is provided, inspect only that change's artifacts; exclude archive history.
 7. Classify findings as \`mustChange\`, \`mustVerify\`, \`contextual\`, \`unknown\`, or \`architectureDrift\`. Every finding includes target, relationPath, reason, and evidence.
 8. Use \`architectureDrift\` when LikeC4 relation evidence conflicts with current call/import/symbol evidence, preserving both sides.
@@ -20,7 +20,7 @@ const IMPACT_SWEEPER_TERMINOLOGY_REFERENCE = `# Impact Sweeper Terminology Aware
 
 Identify terms semantically related to user's \`concept\` input while reading affected specs. Extract only domain terms close to that concept, not every noun in the file; if concept is 'workflow', extract 'process', 'pipeline', 'flow' etc. and ignore unrelated terms such as 'topological sort' or 'artifact'.
 
-For each extracted term, count occurrences and record the spec names where it appears. Use the spec identifier returned by \`openspec list --specs --json\` when available; otherwise use the spec directory name without path prefixes or file extensions. Sort extracted terms by descending count, then by term.
+For each extracted term, count occurrences and record the spec names where it appears. Use the spec identifier returned by \`opsx list --specs --json\` when available; otherwise use the spec directory name without path prefixes or file extensions. Sort extracted terms by descending count, then by term.
 
 Record in \`terminologyObservations\` field:
 
@@ -67,12 +67,12 @@ Field names are canonical. Omit \`terminologyObservations\` only when extraction
 
 export function getImpactSweeperSubagentTemplate(): SubagentTemplate {
   return {
-    name: 'openspec-impact-sweeper',
+    name: 'opsx-impact-sweeper',
     description:
       'Generate a lightweight LikeC4-grounded JSON impact report for one project concept. Use from explore before scope or proposal readiness claims. Prefer a fast model for this lightweight architecture impact sweep.',
     prompt: `## Role
 
-You are an impact sweeper for OpenSpec Explore. You receive one project concept, collect read-only evidence, and return one canonical JSON report directly to the caller.
+You are an impact sweeper for OPSX Explore. You receive one project concept, collect read-only evidence, and return one canonical JSON report directly to the caller.
 
 ## Input Contract
 
@@ -88,15 +88,15 @@ The caller provides:
 
 If projectRoot or concept is missing, stop and report the missing field instead of guessing.
 
-Start architecture navigation with \`openspec arch query <element-id> --relations --depth 2\`; report LikeC4 element IDs.
+Start architecture navigation with \`opsx arch query <element-id> --relations --depth 2\`; report LikeC4 element IDs.
 
 ## Required References
 
 Read these before collecting evidence or producing the report:
 
-- openspec/references/openspec-evidence-protocol.md (project-root relative)
-- openspec/references/openspec-terminology-awareness.md (project-root relative)
-- openspec/references/openspec-report-schema.md (project-root relative)
+- .opsx/references/opsx-evidence-protocol.md (project-root relative)
+- .opsx/references/opsx-terminology-awareness.md (project-root relative)
+- .opsx/references/opsx-report-schema.md (project-root relative)
 
 ## Read-Only Boundary
 
@@ -108,7 +108,7 @@ Do not run tests, builds, installs, git diff, git status, or git log as impact e
 
 ## Output Contract
 
-On success, return exactly one JSON object conforming to openspec/references/openspec-report-schema.md.
+On success, return exactly one JSON object conforming to .opsx/references/opsx-report-schema.md.
 
 Do not wrap the JSON in a Markdown code fence. Do not emit a report path or separate summary.`,
     tools: ['read', 'grep', 'find', 'bash'],
@@ -128,6 +128,6 @@ Do not wrap the JSON in a Markdown code fence. Do not emit a report path or sepa
         content: IMPACT_SWEEPER_REPORT_SCHEMA_REFERENCE,
       },
     ],
-    metadata: { author: 'openspec', version: '1.0', type: 'subagent' },
+    metadata: { author: 'opsx', version: '1.0', type: 'subagent' },
   };
 }

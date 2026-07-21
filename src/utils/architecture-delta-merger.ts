@@ -1,3 +1,4 @@
+import { OPSX_DIR_NAME } from '../core/config.js';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -25,8 +26,82 @@ function insertIntoDomain(content: string, domain: string, addition: string): st
   return `${content.slice(0, block.end)}\n${addition.trim().split('\n').map(line => `    ${line}`).join('\n')}\n  ${content.slice(block.end)}`;
 }
 
+function metadataValues(body: string): Map<string, string> {
+  const values = new Map<string, string>();
+  const pattern = /([A-Za-z_][\w-]*)\s+(\[(?:[^\]'\\]|\\.|'(?:[^'\\]|\\.)*')*\]|'(?:[^'\\]|\\.)*')/g;
+  for (const match of body.matchAll(pattern)) values.set(match[1], match[2]);
+  return values;
+}
+
+function specValues(value: string | undefined): string[] {
+  return value ? [...value.matchAll(/'((?:[^'\\]|\\.)*)'/g)].map(match => match[1]) : [];
+}
+
+function renderMetadata(values: Map<string, string>, indent: string): string {
+  const entries = [...values].map(([key, value]) => `${indent}  ${key} ${value}`).join('\n');
+  return `${indent}metadata {\n${entries}\n${indent}}`;
+}
+
+function applyElementExtension(content: string, qualifiedId: string, extension: string): string {
+  const [, element] = qualifiedId.split('.');
+  const pattern = new RegExp(`\\b${element}\\s*=\\s*[A-Za-z_][\\w-]*\\b[^\\{]*\\{`);
+  const match = pattern.exec(content);
+  if (!match) throw new Error(`Cannot extend nonexistent element: ${qualifiedId}`);
+
+  const open = match.index + match[0].lastIndexOf('{');
+  const elementBlock = blockAt(content, open);
+  let body = elementBlock.body;
+  const metadataMatch = /\bmetadata\s*\{/.exec(body);
+  const existing = new Map<string, string>();
+  let metadataStart = -1;
+  let metadataEnd = -1;
+  if (metadataMatch) {
+    metadataStart = metadataMatch.index;
+    const metadataOpen = metadataStart + metadataMatch[0].lastIndexOf('{');
+    const metadataBlock = blockAt(body, metadataOpen);
+    metadataEnd = metadataBlock.end + 1;
+    for (const [key, value] of metadataValues(metadataBlock.body)) existing.set(key, value);
+  }
+
+  const extensionMetadataMatch = /\bmetadata\s*\{/.exec(extension);
+  if (!extensionMetadataMatch) return content;
+  const extensionOpen = extensionMetadataMatch.index + extensionMetadataMatch[0].lastIndexOf('{');
+  const incoming = metadataValues(blockAt(extension, extensionOpen).body);
+  const intent = incoming.get('intent');
+  incoming.delete('intent');
+
+  const specs = [...new Set([...specValues(existing.get('specs')), ...specValues(incoming.get('specs'))])];
+  if (specs.length) incoming.set('specs', `[${specs.map(spec => `'${spec}'`).join(', ')}]`);
+  for (const [key, value] of incoming) existing.set(key, value);
+
+  if (metadataStart >= 0) {
+    const indent = body.slice(0, metadataStart).match(/(?:^|\n)([ \t]*)[^\n]*$/)?.[1] ?? '    ';
+    body = `${body.slice(0, metadataStart)}${renderMetadata(existing, indent)}${body.slice(metadataEnd)}`;
+  } else if (existing.size) {
+    body = `${body.trimEnd()}\n    ${renderMetadata(existing, '    ').trimStart()}\n  `;
+  }
+
+  if (intent) {
+    const description = `description ${intent}`;
+    if (/\bdescription\s+'(?:[^'\\]|\\.)*'/.test(body)) {
+      body = body.replace(/\bdescription\s+'(?:[^'\\]|\\.)*'/, description);
+    } else {
+      body = `\n    ${description}${body}`;
+    }
+  }
+
+  return `${content.slice(0, open + 1)}${body}${content.slice(elementBlock.end)}`;
+}
+
 function formalizeSpecPaths(content: string, changeName?: string): string {
-  return changeName ? content.replaceAll(`openspec/changes/${changeName}/specs/`, 'openspec/specs/') : content;
+  return changeName ? content.replaceAll(`.opsx/changes/${changeName}/specs/`, '.opsx/specs/') : content;
+}
+
+function copyDurableArchitecture(source: string, destination: string): Promise<void> {
+  return fs.cp(source, destination, {
+    recursive: true,
+    filter: file => path.basename(file) !== '.likec4',
+  });
 }
 
 function mergeRelations(content: string, additions: string[]): string {
@@ -62,7 +137,7 @@ export interface MergeArchitectureDeltaOptions {
 
 export async function mergeArchitectureDelta(projectRoot: string, deltaPath: string, options: MergeArchitectureDeltaOptions = {}): Promise<void> {
   const delta = formalizeSpecPaths(await fs.readFile(deltaPath, 'utf8'), options.changeName);
-  const architectureDir = path.join(projectRoot, 'openspec', 'architecture');
+  const architectureDir = path.join(projectRoot, OPSX_DIR_NAME, 'architecture');
   const domainsDir = path.join(architectureDir, 'domains');
   const names = (await fs.readdir(domainsDir)).filter(name => name.endsWith('.c4'));
   const contents = new Map(await Promise.all(names.map(async name => [path.join(domainsDir, name), await fs.readFile(path.join(domainsDir, name), 'utf8')] as const)));
@@ -90,6 +165,14 @@ export async function mergeArchitectureDelta(projectRoot: string, deltaPath: str
     contents.set(file, insertIntoDomain(contents.get(file)!, match[1], blockAt(delta, open).body));
   }
 
+  for (const match of delta.matchAll(/\bextend\s+([A-Za-z_][\w-]*\.[A-Za-z_][\w-]*)\s*\{/g)) {
+    const domain = match[1].split('.')[0];
+    const file = domainFile.get(domain);
+    if (!file) throw new Error(`Cannot extend nonexistent domain: ${domain}`);
+    const open = match.index + match[0].lastIndexOf('{');
+    contents.set(file, applyElementExtension(contents.get(file)!, match[1], blockAt(delta, open).body));
+  }
+
   const relations = extractRelations(delta);
   for (const relation of relations) {
     const sourceDomain = relation.split('.')[0];
@@ -108,9 +191,9 @@ export async function mergeArchitectureDelta(projectRoot: string, deltaPath: str
     }));
   }
 
-  const staging = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-likec4-merge-'));
+  const staging = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-likec4-merge-'));
   try {
-    await fs.cp(architectureDir, staging, { recursive: true });
+    await copyDurableArchitecture(architectureDir, staging);
     for (const [file, content] of contents) {
       const staged = path.join(staging, path.relative(architectureDir, file));
       await fs.mkdir(path.dirname(staged), { recursive: true });

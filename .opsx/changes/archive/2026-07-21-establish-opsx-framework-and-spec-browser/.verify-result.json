@@ -1,0 +1,289 @@
+{
+  "timestamp": "2026-07-21T10:14:53.208Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "77a9360cd30e42624c4d5054eaca61fcbcb95c38415b7922f26192d9f37edf5b",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".github/workflows/opsx-v2-cross-platform.yml",
+      ".opsx/architecture/domains/framework.c4",
+      ".opsx/architecture/domains/presentation.c4",
+      ".opsx/architecture/relations.c4",
+      ".opsx/changes/establish-opsx-framework-and-spec-browser/architecture-delta.c4",
+      ".opsx/changes/establish-opsx-framework-and-spec-browser/design.md",
+      ".opsx/changes/establish-opsx-framework-and-spec-browser/proposal.md",
+      ".opsx/changes/establish-opsx-framework-and-spec-browser/specs/spec-content-browser/spec.md",
+      ".opsx/changes/establish-opsx-framework-and-spec-browser/tasks.md",
+      ".opsx/specs/opsx-framework-identity/spec.md",
+      ".opsx/specs/spec-content-browser/spec.md",
+      "likec4/packages/diagram/src/opsx/SpecLoaderContext.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/SpecsTab.tsx",
+      "likec4/packages/likec4-spa/src/opsx/HttpSpecLoader.ts",
+      "likec4/packages/vite-plugin/src/opsx/opsx-spec-handler.ts",
+      "likec4/packages/vite-plugin/src/plugin.ts",
+      "scripts/audit-opsx-identity.mjs",
+      "src/core/init.ts",
+      "src/core/project-config.ts",
+      "src/core/view.ts",
+      "src/telemetry/index.ts",
+      "src/ui/welcome-screen.ts",
+      "test/e2e/spec-browser.spec.ts"
+    ],
+    "evidenceFingerprint": "e94fc9823e1722a6418755abac355c771d711a50d60d090f6ad7441053ce99b5",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".github/workflows/opsx-v2-cross-platform.yml",
+        "hash": "ae0cc5c326bdd4c17c2e6a2520d997d7addee742d1ef42a198c631dc252c50fb"
+      },
+      {
+        "path": ".opsx/architecture/domains/framework.c4",
+        "hash": "61a86bb50a9d813c7b66adebd0fca7b653ee24abddfa149739e928e32be965b2"
+      },
+      {
+        "path": ".opsx/architecture/domains/presentation.c4",
+        "hash": "06f5fb2bbf68eb57fb73428343bdfc4b9175263763f499654050fb7b25530611"
+      },
+      {
+        "path": ".opsx/architecture/relations.c4",
+        "hash": "1fec393aabc018723b4b5cdb6caa13ecd657ed9e2e653a44fbda0132f1f17f08"
+      },
+      {
+        "path": ".opsx/changes/establish-opsx-framework-and-spec-browser/architecture-delta.c4",
+        "hash": "25caa3cd6a37ea0f7aaeaeb098002c24c0d8b7115609d06b02e2326ac2a8dfca"
+      },
+      {
+        "path": ".opsx/changes/establish-opsx-framework-and-spec-browser/design.md",
+        "hash": "ff438d12422f00108d4c86b664da1f3f0efd623e1213129cbf59bc423981ed72"
+      },
+      {
+        "path": ".opsx/changes/establish-opsx-framework-and-spec-browser/proposal.md",
+        "hash": "e70fe2182c9d896f5a328e5962cc0c212b907138dc9380909c2e044403b5c8a4"
+      },
+      {
+        "path": ".opsx/changes/establish-opsx-framework-and-spec-browser/specs/spec-content-browser/spec.md",
+        "hash": "e3c7c67aaad2250cabeb856e5c9ef394d3a4158d5b87b81e0e1cff016752ee3a"
+      },
+      {
+        "path": ".opsx/changes/establish-opsx-framework-and-spec-browser/tasks.md",
+        "hash": "77a9360cd30e42624c4d5054eaca61fcbcb95c38415b7922f26192d9f37edf5b"
+      },
+      {
+        "path": ".opsx/specs/opsx-framework-identity/spec.md",
+        "hash": "133a455e19c4c806ee435807b5f514066472ca38308f57b1519dc600d2b529af"
+      },
+      {
+        "path": ".opsx/specs/spec-content-browser/spec.md",
+        "hash": "a6efb84b22420ae2d8f6fbad7b15b3ed9fd75903e90574b33a197fbf2068e54c"
+      },
+      {
+        "path": "likec4/packages/diagram/src/opsx/SpecLoaderContext.tsx",
+        "hash": "075287ec24a552ce97215125642135274953c2b7de13244f1454b905a8126edd"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+        "hash": "6cb32e67a27916aba2dbb1a3e6487e8709042f8c74207f6c023aaba0943fb097"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/SpecsTab.tsx",
+        "hash": "f3dd16ad27a5eccb0a40af264b6cf5869d7db90bc5bb8b48eb57cb9b193325e0"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/opsx/HttpSpecLoader.ts",
+        "hash": "8691485abee4a89e085a75b72a5f994d40374755420e11a194e2d633633f11fa"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/opsx/opsx-spec-handler.ts",
+        "hash": "08b2b1dcf2be1516ea532e1dc9c077f2b9c6e89142e02a727dc10d39803549b1"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/plugin.ts",
+        "hash": "73e4371a177e7b5396ea6cc3c00afc7056c5c8d92508b70ec07075261ecb6dc0"
+      },
+      {
+        "path": "scripts/audit-opsx-identity.mjs",
+        "hash": "349a0237b0e354426c74d981fa22947ed37a28a88a0bf3f1db836bb518ddfc62"
+      },
+      {
+        "path": "src/core/init.ts",
+        "hash": "f15a3bd57d2254361cf63b6dbf55d6dbf5b9c7b9358775d34bcf5d5645b27f38"
+      },
+      {
+        "path": "src/core/project-config.ts",
+        "hash": "13759647715ee3c9a73ec4cbdacff946166272c20a6ffcb1bedd78c38e231972"
+      },
+      {
+        "path": "src/core/view.ts",
+        "hash": "ae03741b9e49cd3993904abf05ffbe9f4a979339a6270420b1361968176bfc3d"
+      },
+      {
+        "path": "src/telemetry/index.ts",
+        "hash": "57cf1978d549949159fcfda69c15efe65b3e1bef5e72a68a14cb4bcfb1c22bbb"
+      },
+      {
+        "path": "src/ui/welcome-screen.ts",
+        "hash": "3a1e9ab6d8cacedc2baf1f1fc02846bfd54d976caab487be5a85b3485d9f0123"
+      },
+      {
+        "path": "test/e2e/spec-browser.spec.ts",
+        "hash": "4b184782fe4144c4fc2e96614d88d0e7a7a7a6b88550cfca22e72e4f9d88e720"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "bbef6689593537560664f6e33c414fe3e948738e",
+    "gitDiffSummary": "Final clean-context Phase 1 PASS after project-scoped authorization remediation. Root lint/build and 153 files/2161 tests pass. Formal Specs 123/123, LikeC4 model 18 files, identity audit 584 active clean with 1167 historical-only, sync no pending. Duplicate-project and browser package regressions pass 21/21, three package typechecks pass, and Playwright desktop/mobile 2/2 pass. ElementModel.projectId now scopes every Spec request to the current computed model."
+  },
+  "optimization": {
+    "status": "NOT_NEEDED",
+    "attempts": [
+      {
+        "timestamp": "2026-07-21T10:18:21.879Z",
+        "type": "optimization",
+        "status": "NO_OPTIMIZATION_NEEDED",
+        "summary": "Clean-context optimizer found no remaining actionable behavior-preserving optimization after project-scoped authorization remediation."
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-07-21T10:14:53.208Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "77a9360cd30e42624c4d5054eaca61fcbcb95c38415b7922f26192d9f37edf5b",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".github/workflows/opsx-v2-cross-platform.yml",
+          ".opsx/architecture/domains/framework.c4",
+          ".opsx/architecture/domains/presentation.c4",
+          ".opsx/architecture/relations.c4",
+          ".opsx/changes/establish-opsx-framework-and-spec-browser/architecture-delta.c4",
+          ".opsx/changes/establish-opsx-framework-and-spec-browser/design.md",
+          ".opsx/changes/establish-opsx-framework-and-spec-browser/proposal.md",
+          ".opsx/changes/establish-opsx-framework-and-spec-browser/specs/spec-content-browser/spec.md",
+          ".opsx/changes/establish-opsx-framework-and-spec-browser/tasks.md",
+          ".opsx/specs/opsx-framework-identity/spec.md",
+          ".opsx/specs/spec-content-browser/spec.md",
+          "likec4/packages/diagram/src/opsx/SpecLoaderContext.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/SpecsTab.tsx",
+          "likec4/packages/likec4-spa/src/opsx/HttpSpecLoader.ts",
+          "likec4/packages/vite-plugin/src/opsx/opsx-spec-handler.ts",
+          "likec4/packages/vite-plugin/src/plugin.ts",
+          "scripts/audit-opsx-identity.mjs",
+          "src/core/init.ts",
+          "src/core/project-config.ts",
+          "src/core/view.ts",
+          "src/telemetry/index.ts",
+          "src/ui/welcome-screen.ts",
+          "test/e2e/spec-browser.spec.ts"
+        ],
+        "evidenceFingerprint": "e94fc9823e1722a6418755abac355c771d711a50d60d090f6ad7441053ce99b5",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".github/workflows/opsx-v2-cross-platform.yml",
+            "hash": "ae0cc5c326bdd4c17c2e6a2520d997d7addee742d1ef42a198c631dc252c50fb"
+          },
+          {
+            "path": ".opsx/architecture/domains/framework.c4",
+            "hash": "61a86bb50a9d813c7b66adebd0fca7b653ee24abddfa149739e928e32be965b2"
+          },
+          {
+            "path": ".opsx/architecture/domains/presentation.c4",
+            "hash": "06f5fb2bbf68eb57fb73428343bdfc4b9175263763f499654050fb7b25530611"
+          },
+          {
+            "path": ".opsx/architecture/relations.c4",
+            "hash": "1fec393aabc018723b4b5cdb6caa13ecd657ed9e2e653a44fbda0132f1f17f08"
+          },
+          {
+            "path": ".opsx/changes/establish-opsx-framework-and-spec-browser/architecture-delta.c4",
+            "hash": "25caa3cd6a37ea0f7aaeaeb098002c24c0d8b7115609d06b02e2326ac2a8dfca"
+          },
+          {
+            "path": ".opsx/changes/establish-opsx-framework-and-spec-browser/design.md",
+            "hash": "ff438d12422f00108d4c86b664da1f3f0efd623e1213129cbf59bc423981ed72"
+          },
+          {
+            "path": ".opsx/changes/establish-opsx-framework-and-spec-browser/proposal.md",
+            "hash": "e70fe2182c9d896f5a328e5962cc0c212b907138dc9380909c2e044403b5c8a4"
+          },
+          {
+            "path": ".opsx/changes/establish-opsx-framework-and-spec-browser/specs/spec-content-browser/spec.md",
+            "hash": "e3c7c67aaad2250cabeb856e5c9ef394d3a4158d5b87b81e0e1cff016752ee3a"
+          },
+          {
+            "path": ".opsx/changes/establish-opsx-framework-and-spec-browser/tasks.md",
+            "hash": "77a9360cd30e42624c4d5054eaca61fcbcb95c38415b7922f26192d9f37edf5b"
+          },
+          {
+            "path": ".opsx/specs/opsx-framework-identity/spec.md",
+            "hash": "133a455e19c4c806ee435807b5f514066472ca38308f57b1519dc600d2b529af"
+          },
+          {
+            "path": ".opsx/specs/spec-content-browser/spec.md",
+            "hash": "a6efb84b22420ae2d8f6fbad7b15b3ed9fd75903e90574b33a197fbf2068e54c"
+          },
+          {
+            "path": "likec4/packages/diagram/src/opsx/SpecLoaderContext.tsx",
+            "hash": "075287ec24a552ce97215125642135274953c2b7de13244f1454b905a8126edd"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+            "hash": "6cb32e67a27916aba2dbb1a3e6487e8709042f8c74207f6c023aaba0943fb097"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/SpecsTab.tsx",
+            "hash": "f3dd16ad27a5eccb0a40af264b6cf5869d7db90bc5bb8b48eb57cb9b193325e0"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/opsx/HttpSpecLoader.ts",
+            "hash": "8691485abee4a89e085a75b72a5f994d40374755420e11a194e2d633633f11fa"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/opsx/opsx-spec-handler.ts",
+            "hash": "08b2b1dcf2be1516ea532e1dc9c077f2b9c6e89142e02a727dc10d39803549b1"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/plugin.ts",
+            "hash": "73e4371a177e7b5396ea6cc3c00afc7056c5c8d92508b70ec07075261ecb6dc0"
+          },
+          {
+            "path": "scripts/audit-opsx-identity.mjs",
+            "hash": "349a0237b0e354426c74d981fa22947ed37a28a88a0bf3f1db836bb518ddfc62"
+          },
+          {
+            "path": "src/core/init.ts",
+            "hash": "f15a3bd57d2254361cf63b6dbf55d6dbf5b9c7b9358775d34bcf5d5645b27f38"
+          },
+          {
+            "path": "src/core/project-config.ts",
+            "hash": "13759647715ee3c9a73ec4cbdacff946166272c20a6ffcb1bedd78c38e231972"
+          },
+          {
+            "path": "src/core/view.ts",
+            "hash": "ae03741b9e49cd3993904abf05ffbe9f4a979339a6270420b1361968176bfc3d"
+          },
+          {
+            "path": "src/telemetry/index.ts",
+            "hash": "57cf1978d549949159fcfda69c15efe65b3e1bef5e72a68a14cb4bcfb1c22bbb"
+          },
+          {
+            "path": "src/ui/welcome-screen.ts",
+            "hash": "3a1e9ab6d8cacedc2baf1f1fc02846bfd54d976caab487be5a85b3485d9f0123"
+          },
+          {
+            "path": "test/e2e/spec-browser.spec.ts",
+            "hash": "4b184782fe4144c4fc2e96614d88d0e7a7a7a6b88550cfca22e72e4f9d88e720"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "bbef6689593537560664f6e33c414fe3e948738e",
+        "gitDiffSummary": "Final clean-context Phase 1 PASS after project-scoped authorization remediation. Root lint/build and 153 files/2161 tests pass. Formal Specs 123/123, LikeC4 model 18 files, identity audit 584 active clean with 1167 historical-only, sync no pending. Duplicate-project and browser package regressions pass 21/21, three package typechecks pass, and Playwright desktop/mobile 2/2 pass. ElementModel.projectId now scopes every Spec request to the current computed model."
+      }
+    },
+    "findings": [],
+    "history": [],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}

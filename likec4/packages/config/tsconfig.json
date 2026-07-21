@@ -1,0 +1,28 @@
+{
+  "extends": "@likec4/tsconfig/base.json",
+  "compilerOptions": {
+    "customConditions": [
+      "sources"
+    ],
+    "target": "es2024",
+    "rootDir": ".",
+    "incremental": true,
+    "composite": true,
+    "declaration": true,
+    "types": [
+      "node"
+    ]
+  },
+  "include": [
+    "src",
+    "*.ts"
+  ],
+  "references": [
+    {
+      "path": "../core/tsconfig.json"
+    },
+    {
+      "path": "../log/tsconfig.json"
+    }
+  ]
+}

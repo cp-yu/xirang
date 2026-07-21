@@ -1,3 +1,4 @@
+import { OPSX_DIR_NAME } from '../../core/config.js';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -9,7 +10,7 @@ import { verifyMigration } from '../../migration/migration-verifier.js';
 export interface MigrateOpsxOptions { dryRun?: boolean; agentVerify?: boolean }
 
 async function validateLikeC4(projectRoot: string): Promise<void> {
-  const architecture = path.join(projectRoot, 'openspec', 'architecture');
+  const architecture = path.join(projectRoot, OPSX_DIR_NAME, 'architecture');
   const bin = fileURLToPath(new URL('../../../node_modules/likec4/bin/likec4.mjs', import.meta.url));
   await new Promise<void>((resolve, reject) => {
     const child = spawn(process.execPath, [bin, 'validate', architecture], { stdio: ['ignore', 'pipe', 'pipe'] });
@@ -31,10 +32,10 @@ export async function migrateOpsxToLikeC4(projectRoot: string, options: MigrateO
 
   await generateLikeC4Files(projectRoot, model);
   await validateLikeC4(projectRoot);
-  const openspec = path.join(projectRoot, 'openspec');
+  const workspace = path.join(projectRoot, OPSX_DIR_NAME);
   await Promise.all([
-    fs.rename(path.join(openspec, 'project.opsx.yaml'), path.join(openspec, 'project.opsx.yaml.backup')),
-    fs.rename(path.join(openspec, 'project.opsx.relations.yaml'), path.join(openspec, 'project.opsx.relations.yaml.backup')),
+    fs.rename(path.join(workspace, 'project.opsx.yaml'), path.join(workspace, 'project.opsx.yaml.backup')),
+    fs.rename(path.join(workspace, 'project.opsx.relations.yaml'), path.join(workspace, 'project.opsx.relations.yaml.backup')),
   ]);
   console.log('✓ LikeC4 validation passed');
   console.log(`✓ Migrated ${model.domains.length} domains`);

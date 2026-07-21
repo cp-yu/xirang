@@ -19,8 +19,8 @@ describe('workflow installation planning', () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-workflow-installation-${randomUUID()}`);
-    await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+    testDir = path.join(os.tmpdir(), `opsx-workflow-installation-${randomUUID()}`);
+    await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
   });
 
   afterEach(async () => {
@@ -47,7 +47,7 @@ describe('workflow installation planning', () => {
   });
 
   it('adds bootstrap-arch to effective workflows when bootstrap workspace exists', async () => {
-    await fs.mkdir(path.join(testDir, 'openspec', 'bootstrap'), { recursive: true });
+    await fs.mkdir(path.join(testDir, '.opsx', 'bootstrap'), { recursive: true });
 
     const effective = resolveEffectiveWorkflows(testDir, ['propose', 'explore', 'apply', 'archive']);
     expect(effective).toEqual([
@@ -60,7 +60,7 @@ describe('workflow installation planning', () => {
 
     const plan = createWorkflowArtifactPlan(['propose', 'explore', 'apply', 'archive'], testDir);
     expect(plan.workflows).toContain('bootstrap-arch');
-    expect(plan.expectedSkillDirNames).toContain('openspec-bootstrap-arch');
+    expect(plan.expectedSkillDirNames).toContain('opsx-bootstrap-arch');
   });
 
   it('treats codex as skills-only for workflow skills and plans subagent artifacts separately', () => {
@@ -68,31 +68,31 @@ describe('workflow installation planning', () => {
 
     expect(plan.shouldGenerateSkills).toBe(true);
     expect(plan.expectedSkillDirNames).toEqual([
-      'openspec-propose',
-      'openspec-explore',
+      'opsx-propose',
+      'opsx-explore',
     ]);
   });
 
   it('tracks stale internal skill directories by explicit name', () => {
     expect(MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES).toEqual([
-      'openspec-implementer',
-      'openspec-reviewer',
-      'openspec-optimizer',
-      'openspec-impact-sweeper',
-      'openspec-bootstrap-opsx',
+      'opsx-implementer',
+      'opsx-reviewer',
+      'opsx-optimizer',
+      'opsx-impact-sweeper',
+      'opsx-bootstrap-opsx',
     ]);
 
     const plan = createToolWorkflowArtifactPlan('claude', ['propose', 'explore'], testDir);
     expect(plan.managedSkillDirNames).toEqual(expect.arrayContaining([
-      'openspec-implementer',
-      'openspec-reviewer',
-      'openspec-optimizer',
-      'openspec-impact-sweeper',
+      'opsx-implementer',
+      'opsx-reviewer',
+      'opsx-optimizer',
+      'opsx-impact-sweeper',
     ]));
-    expect(MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES).not.toContain('openspec-propose');
-    expect(MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES).not.toContain('openspec-explore');
-    expect(plan.expectedSkillDirNames).not.toContain('openspec-implementer');
-    expect(plan.expectedSkillDirNames).not.toContain('openspec-reviewer');
+    expect(MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES).not.toContain('opsx-propose');
+    expect(MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES).not.toContain('opsx-explore');
+    expect(plan.expectedSkillDirNames).not.toContain('opsx-implementer');
+    expect(plan.expectedSkillDirNames).not.toContain('opsx-reviewer');
   });
 
   it('includes shared reference files in planned artifacts', () => {
@@ -100,28 +100,28 @@ describe('workflow installation planning', () => {
     const artifacts = getPlannedToolArtifacts(testDir, 'claude', plan);
 
     expect(artifacts.skillFiles).toContain(
-      path.join(testDir, '.claude', 'skills', 'openspec-archive-change', 'SKILL.md')
+      path.join(testDir, '.claude', 'skills', 'opsx-archive-change', 'SKILL.md')
     );
     expect(artifacts.skillFiles).toContain(
-      path.join(testDir, '.claude', 'skills', 'openspec-apply-change', 'SKILL.md')
+      path.join(testDir, '.claude', 'skills', 'opsx-apply-change', 'SKILL.md')
     );
     expect(artifacts.skillFiles).toContain(
-      path.join(testDir, 'openspec', 'references', 'openspec-archive-commit-message.md')
+      path.join(testDir, '.opsx', 'references', 'opsx-archive-commit-message.md')
     );
     expect(artifacts.skillFiles).toContain(
-      path.join(testDir, 'openspec', 'references', 'openspec-apply-step-1-preparation.md')
+      path.join(testDir, '.opsx', 'references', 'opsx-apply-step-1-preparation.md')
     );
     expect(artifacts.skillFiles).toContain(
-      path.join(testDir, 'openspec', 'references', 'openspec-apply-step-5-phase2-optimization.md')
+      path.join(testDir, '.opsx', 'references', 'opsx-apply-step-5-phase2-optimization.md')
     );
     expect(artifacts.skillFiles).toContain(
-      path.join(testDir, 'openspec', 'references', 'openspec-output-protocol.md')
+      path.join(testDir, '.opsx', 'references', 'opsx-output-protocol.md')
     );
     expect(artifacts.agentFiles).toContain(
-      path.join(testDir, '.claude', 'agents', 'openspec-reviewer.md')
+      path.join(testDir, '.claude', 'agents', 'opsx-reviewer.md')
     );
     expect(artifacts.agentFiles).toContain(
-      path.join(testDir, '.claude', 'agents', 'openspec-optimizer.md')
+      path.join(testDir, '.claude', 'agents', 'opsx-optimizer.md')
     );
     // Skills-only: no command files are planned
     expect(artifacts.commandFiles).toEqual([]);
@@ -130,10 +130,10 @@ describe('workflow installation planning', () => {
   it('removes explicitly managed stale internal skill directories during sync', async () => {
     const skillsDir = path.join(testDir, '.claude', 'skills');
     for (const name of [
-      'openspec-implementer',
-      'openspec-reviewer',
-      'openspec-optimizer',
-      'openspec-impact-sweeper',
+      'opsx-implementer',
+      'opsx-reviewer',
+      'opsx-optimizer',
+      'opsx-impact-sweeper',
       'user-skill',
     ]) {
       await fs.mkdir(path.join(skillsDir, name), { recursive: true });
@@ -150,15 +150,15 @@ describe('workflow installation planning', () => {
     expect(result.error).toBeUndefined();
     expect(result.skillsRemoved).toBe(4);
     for (const name of [
-      'openspec-implementer',
-      'openspec-reviewer',
-      'openspec-optimizer',
-      'openspec-impact-sweeper',
+      'opsx-implementer',
+      'opsx-reviewer',
+      'opsx-optimizer',
+      'opsx-impact-sweeper',
     ]) {
       await expect(fs.stat(path.join(skillsDir, name))).rejects.toThrow();
     }
     await expect(fs.stat(path.join(skillsDir, 'user-skill', 'SKILL.md'))).resolves.toBeDefined();
-    await expect(fs.stat(path.join(testDir, '.claude', 'agents', 'openspec-reviewer.md'))).resolves.toBeDefined();
+    await expect(fs.stat(path.join(testDir, '.claude', 'agents', 'opsx-reviewer.md'))).resolves.toBeDefined();
   });
 
   it('writes shared reference files during sync', async () => {
@@ -171,11 +171,11 @@ describe('workflow installation planning', () => {
 
     expect(result.error).toBeUndefined();
     const archiveReference = await fs.readFile(
-      path.join(testDir, 'openspec', 'references', 'openspec-archive-commit-message.md'),
+      path.join(testDir, '.opsx', 'references', 'opsx-archive-commit-message.md'),
       'utf-8'
     );
     const mergeReference = await fs.readFile(
-      path.join(testDir, 'openspec', 'references', 'openspec-merge-summary-message.md'),
+      path.join(testDir, '.opsx', 'references', 'opsx-merge-summary-message.md'),
       'utf-8'
     );
     expect(archiveReference).toContain('git.commitMessage.archive');
@@ -183,10 +183,10 @@ describe('workflow installation planning', () => {
   });
 
   it('preserves user reference files and overwrites managed reference files', async () => {
-    const referencesDir = path.join(testDir, 'openspec', 'references');
+    const referencesDir = path.join(testDir, '.opsx', 'references');
     await fs.mkdir(referencesDir, { recursive: true });
     await fs.writeFile(path.join(referencesDir, 'custom-archive-commit-message.md'), 'user template');
-    await fs.writeFile(path.join(referencesDir, 'openspec-archive-commit-message.md'), 'modified');
+    await fs.writeFile(path.join(referencesDir, 'opsx-archive-commit-message.md'), 'modified');
 
     const result = await ArtifactSyncEngine.syncOne({
       toolId: 'claude',
@@ -200,7 +200,7 @@ describe('workflow installation planning', () => {
       fs.readFile(path.join(referencesDir, 'custom-archive-commit-message.md'), 'utf-8')
     ).resolves.toBe('user template');
     await expect(
-      fs.readFile(path.join(referencesDir, 'openspec-archive-commit-message.md'), 'utf-8')
+      fs.readFile(path.join(referencesDir, 'opsx-archive-commit-message.md'), 'utf-8')
     ).resolves.toContain('git.commitMessage.archive');
   });
 
@@ -226,7 +226,7 @@ describe('workflow installation planning', () => {
           },
         },
       ])
-    ).toThrow(/Duplicate skill reference file name: openspec-details\.md/);
+    ).toThrow(/Duplicate skill reference file name: opsx-details\.md/);
   });
 
   it('rejects tool-specific syntax in shared reference files', () => {
@@ -264,7 +264,7 @@ describe('workflow installation planning', () => {
     expect(summary.failed).toEqual([]);
     await expect(
       fs.readFile(
-        path.join(testDir, 'openspec', 'references', 'openspec-archive-commit-message.md'),
+        path.join(testDir, '.opsx', 'references', 'opsx-archive-commit-message.md'),
         'utf-8'
       )
     ).resolves.toContain('git.commitMessage.archive');
@@ -274,7 +274,7 @@ describe('workflow installation planning', () => {
           testDir,
           '.claude',
           'skills',
-          'openspec-archive-change',
+          'opsx-archive-change',
           'references',
           'archive-commit-message.md'
         )
@@ -286,7 +286,7 @@ describe('workflow installation planning', () => {
           testDir,
           '.codex',
           'skills',
-          'openspec-archive-change',
+          'opsx-archive-change',
           'references',
           'archive-commit-message.md'
         )

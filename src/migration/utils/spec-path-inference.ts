@@ -1,9 +1,10 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import { OPSX_DIR_NAME } from '../../core/config.js';
 
 export async function inferSpecPaths(projectRoot: string, capabilityId: string): Promise<string[]> {
   const slug = capabilityId.split('.').at(-1)!;
-  const relativeDir = path.join('openspec', 'specs', slug);
+  const relativeDir = path.join(OPSX_DIR_NAME, 'specs', slug);
   const absoluteDir = path.join(projectRoot, relativeDir);
   let entries;
   try {

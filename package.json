@@ -1,10 +1,11 @@
 {
-  "name": "@fission-ai/openspec",
+  "name": "opsx",
   "version": "1.4.1-cpyu.5",
-  "description": "AI-native system for spec-driven development",
+  "description": "Human-intent programming framework with integrated architecture and specification browsing",
   "keywords": [
-    "openspec",
+    "opsx",
     "specs",
+    "architecture",
     "cli",
     "ai",
     "development"
@@ -15,7 +16,7 @@
     "url": "git+https://github.com/cp-yu/opsx.git"
   },
   "license": "MIT",
-  "author": "OpenSpec Contributors",
+  "author": "OPSX Contributors",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -27,12 +28,13 @@
     }
   },
   "bin": {
-    "openspec": "./bin/openspec.js"
+    "opsx": "./bin/opsx.js"
   },
   "files": [
     "dist",
     "bin",
     "schemas",
+    "likec4",
     "scripts/postinstall.js",
     "!dist/**/*.test.js",
     "!dist/**/__tests__",
@@ -41,9 +43,16 @@
   "scripts": {
     "lint": "eslint src/",
     "build": "node build.js",
+    "audit:identity": "node scripts/audit-opsx-identity.mjs",
+    "likec4:install": "pnpm --dir likec4 install --frozen-lockfile",
+    "likec4:build": "pnpm --dir likec4 build",
+    "likec4:test": "pnpm --dir likec4 test",
+    "likec4:typecheck": "pnpm --dir likec4 typecheck",
     "dev": "tsc --watch",
-    "dev:cli": "pnpm build && node bin/openspec.js",
+    "dev:cli": "pnpm build && node bin/opsx.js",
     "test": "vitest run",
+    "test:e2e": "playwright test test/e2e/spec-browser.spec.ts",
+    "test:e2e:install": "playwright install chromium",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
@@ -62,6 +71,7 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.2",
     "@changesets/cli": "^2.27.7",
+    "@playwright/test": "1.60.0",
     "@vitest/ui": "^3.2.4",
     "eslint": "^9.39.2",
     "fast-check": "^4.6.0",

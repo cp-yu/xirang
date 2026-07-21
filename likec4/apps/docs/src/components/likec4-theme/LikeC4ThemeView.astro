@@ -1,0 +1,46 @@
+---
+import type { ViewPadding } from 'likec4/react'
+import type { LikeC4ViewId } from 'likec4:react/likec4-theme'
+import { LikeC4View } from 'likec4:react/likec4-theme'
+import type { CSSProperties } from 'react'
+interface Props {
+  viewId: LikeC4ViewId
+  fitViewPadding?: ViewPadding
+  interactive?: boolean
+  keepAspectRatio?: boolean
+  style?: CSSProperties
+}
+const {
+  viewId,
+  interactive = true,
+  fitViewPadding = '8px',
+  keepAspectRatio = true,
+  style,
+} = Astro.props
+---
+
+<LikeC4View
+  className={keepAspectRatio ? 'likec4-theme-view' : ''}
+  viewId={viewId}
+  fitViewPadding={fitViewPadding}
+  keepAspectRatio={keepAspectRatio}
+  browser={interactive
+  ? {
+    enableFocusMode: false,
+    enableElementDetails: false,
+    enableRelationshipDetails: false,
+    enableRelationshipBrowser: false,
+    enableSearch: false,
+  }
+  : false}
+  client:only="react"
+  style={style}
+/>
+
+<style>
+.likec4-theme-view {
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>

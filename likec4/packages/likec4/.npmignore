@@ -1,0 +1,23 @@
+# Ignore everything
+*
+
+# Include the following
+!bin/**
+!dist/**
+!react/**
+!icons/**
+!__app__/**
+!package.json
+!**/package.json
+!config/schema.json
+!LICENSE
+!README.md
+!vite-plugin-modules.d.ts
+
+# Exclude the following
+**/*.spec.ts
+**/*.test-d.ts
+**/*.map
+**/*.tsbuildinfo
+__app__/react/components.mjs
+dist/**/metafile.json

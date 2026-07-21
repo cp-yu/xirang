@@ -1,0 +1,19 @@
+{
+  "projectName": "LikeC4",
+  "importExtension": "",
+  "langiumInternal": false,
+  "languages": [
+    {
+      "id": "likec4",
+      "grammar": "src/like-c4.langium",
+      "fileExtensions": [".c4", ".likec4", ".like-c4"]
+    }
+  ],
+  "out": "src/generated",
+  "mode": "production",
+  "chevrotainParserConfig": {
+    "skipValidations": true,
+    "recoveryEnabled": true,
+    "nodeLocationTracking": "full"
+  }
+}

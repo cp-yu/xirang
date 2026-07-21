@@ -1,3 +1,4 @@
+import { OPSX_DIR_NAME } from '../config.js';
 import { z, ZodError } from 'zod';
 import { readFileSync, promises as fs } from 'fs';
 import path from 'path';
@@ -602,7 +603,7 @@ export class Validator {
 
   private async validateMainSpecFrontmatter(changeDir: string, issues: ValidationIssue[]): Promise<void> {
     const projectRoot = path.resolve(changeDir, '..', '..', '..');
-    const mainSpecsDir = path.join(projectRoot, 'openspec', 'specs');
+    const mainSpecsDir = path.join(projectRoot, OPSX_DIR_NAME, 'specs');
     const architecture = await readLikeC4Architecture(projectRoot).catch((error: NodeJS.ErrnoException) => {
       if (error.code === 'ENOENT') return null;
       throw error;
@@ -631,10 +632,10 @@ export class Validator {
       }
 
       const { capabilities } = parseSpecFrontmatter(content);
-      const issuePath = `openspec/specs/${specName}/spec.md`;
+      const issuePath = `${OPSX_DIR_NAME}/specs/${specName}/spec.md`;
       if (capabilities.length === 0) {
         issues.push({
-          level: 'WARNING',
+          level: 'INFO',
           path: issuePath,
           message: `Spec "${specName}" has no capabilities frontmatter. Add capabilities frontmatter to map it to architecture capabilities.`,
         });
@@ -653,4 +654,5 @@ export class Validator {
       }
     }
   }
+
 }

@@ -1,6 +1,7 @@
 import path from 'path';
 import { FileSystemUtils } from './file-system.js';
 import { writeChangeMetadata, validateSchemaName } from './change-metadata.js';
+import { OPSX_DIR_NAME } from '../core/config.js';
 import { readProjectConfig } from '../core/project-config.js';
 import type { BuiltInSchemaId } from '../core/artifact-graph/types.js';
 
@@ -91,7 +92,7 @@ export function validateChangeName(name: string): ValidationResult {
 /**
  * Creates a new change directory with metadata file.
  *
- * @param projectRoot - The root directory of the project (where `openspec/` lives)
+ * @param projectRoot - The root directory of the project (where `.opsx/` lives)
  * @param name - The change name (must be valid kebab-case)
  * @param options - Optional settings for the change
  * @throws Error if the change name is invalid
@@ -101,12 +102,12 @@ export function validateChangeName(name: string): ValidationResult {
  * @returns Result containing the resolved schema name
  *
  * @example
- * // Creates openspec/changes/add-auth/ with default schema
+ * // Creates .opsx/changes/add-auth/ with default schema
  * const result = await createChange('/path/to/project', 'add-auth')
  * console.log(result.schema) // 'spec-driven' or value from config
  *
  * @example
- * // Creates openspec/changes/add-auth/ with the bootstrap schema
+ * // Creates .opsx/changes/add-auth/ with the bootstrap schema
  * const result = await createChange('/path/to/project', 'add-auth', { schema: 'bootstrap' })
  * console.log(result.schema) // 'bootstrap'
  */
@@ -134,7 +135,7 @@ export async function createChange(
   validateSchemaName(schemaName, projectRoot);
 
   // Build the change directory path
-  const changeDir = path.join(projectRoot, 'openspec', 'changes', name);
+  const changeDir = path.join(projectRoot, OPSX_DIR_NAME, 'changes', name);
 
   // Check if change already exists
   if (await FileSystemUtils.directoryExists(changeDir)) {

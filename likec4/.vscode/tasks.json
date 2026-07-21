@@ -1,0 +1,97 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "generate",
+      "type": "shell",
+      "command": "pnpm generate",
+      "options": {
+        "env": {
+          "NODE_ENV": "development",
+        }
+      },
+      "group": {
+        "kind": "build",
+      },
+      "promptOnClose": false,
+      "presentation": {
+        "showReuseMessage": false,
+        "reveal": "always",
+        "revealProblems": "onProblem",
+        "group": "build",
+        "close": true,
+        "clear": true,
+      }
+    },
+    {
+      "label": "tsc: build",
+      "type": "shell",
+      "command": "pnpm tsc --build --verbose",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "NODE_ENV": "development",
+        }
+      },
+      "problemMatcher": [
+        "$tsc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "dependsOn": "generate",
+      "promptOnClose": false,
+      "presentation": {
+        "showReuseMessage": false,
+        "reveal": "always",
+        "revealProblems": "onProblem",
+        "group": "build",
+        "close": true,
+        "clear": true,
+      }
+    },
+    {
+      "label": "ts: watch",
+      "type": "typescript",
+      "tsconfig": "tsconfig.json",
+      "option": "watch",
+      "problemMatcher": [
+        "$tsc-watch"
+      ],
+      "group": "build"
+    },
+    {
+      "label": "typecheck",
+      "type": "npm",
+      "script": "vscode:typecheck",
+      "problemMatcher": [
+        "$tsc"
+      ],
+      "options": {
+        "env": {
+          "NODE_ENV": "development"
+        }
+      },
+      "dependsOn": "generate",
+      "promptOnClose": false,
+      "presentation": {
+        "echo": false,
+        "showReuseMessage": false,
+        "reveal": "always",
+        "group": "build",
+        "clear": true,
+      }
+    },
+    {
+      "label": "build_extension",
+      "type": "shell",
+      "command": "pnpm turbo run build --filter='@likec4/vscode-preview' --filter='likec4-vscode'",
+      "options": {
+        "env": {
+          "NODE_ENV": "development",
+        }
+      },
+    }
+  ]
+}

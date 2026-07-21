@@ -1,0 +1,33 @@
+specification {
+  element capability
+}
+
+model {
+  none = capability 'No Spec'
+
+  single = capability 'Single Spec' {
+    metadata {
+      specs ['.opsx/specs/single/spec.md']
+    }
+  }
+
+  multi = capability 'Multiple Specs' {
+    metadata {
+      specs ['.opsx/specs/multiple/first.md', '.opsx/specs/multiple/second.md']
+    }
+  }
+
+  long = capability 'Long Spec' {
+    metadata {
+      specs ['.opsx/specs/long/spec.md']
+    }
+  }
+}
+
+views {
+  view index {
+    title 'OPSX Spec Browser'
+    include *
+    autoLayout LeftRight
+  }
+}

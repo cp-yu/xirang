@@ -1,3 +1,4 @@
+import { OPSX_DIR_NAME } from './config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { parseSpecFrontmatter } from './parsers/spec-frontmatter.js';
@@ -12,7 +13,7 @@ export interface SpecRegistry {
 }
 
 export async function buildSpecRegistry(projectRoot: string): Promise<SpecRegistry> {
-  const specsDir = path.join(projectRoot, 'openspec', 'specs');
+  const specsDir = path.join(projectRoot, OPSX_DIR_NAME, 'specs');
   const capToSpecs = new Map<string, string[]>();
   const specToCaps = new Map<string, string[]>();
   const orphanedSpecs: string[] = [];

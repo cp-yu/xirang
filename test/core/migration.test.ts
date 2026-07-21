@@ -33,8 +33,8 @@ describe('migration', () => {
   let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(async () => {
-    projectDir = path.join(os.tmpdir(), `openspec-migration-project-${randomUUID()}`);
-    configHome = path.join(os.tmpdir(), `openspec-migration-config-${randomUUID()}`);
+    projectDir = path.join(os.tmpdir(), `opsx-migration-project-${randomUUID()}`);
+    configHome = path.join(os.tmpdir(), `opsx-migration-config-${randomUUID()}`);
     await fsp.mkdir(projectDir, { recursive: true });
     await fsp.mkdir(configHome, { recursive: true });
     originalEnv = { ...process.env };
@@ -58,7 +58,7 @@ describe('migration', () => {
       workflows: ['explore'],
     }));
 
-    await writeSkill(projectDir, 'openspec-explore');
+    await writeSkill(projectDir, 'opsx-explore');
 
     migrateIfNeeded(projectDir, [ensureClaudeTool()]);
 
@@ -78,7 +78,7 @@ describe('migration', () => {
       workflows: ['explore'],
     }));
 
-    await writeSkill(projectDir, 'openspec-explore');
+    await writeSkill(projectDir, 'opsx-explore');
 
     migrateIfNeeded(projectDir, [ensureClaudeTool()]);
 
@@ -97,7 +97,7 @@ describe('migration', () => {
       optimization: { enabled: true },
     }));
 
-    await writeSkill(projectDir, 'openspec-explore');
+    await writeSkill(projectDir, 'opsx-explore');
 
     migrateIfNeeded(projectDir, [ensureClaudeTool()]);
 
@@ -124,7 +124,7 @@ describe('migration', () => {
   });
 
   it('detects installed workflows from skills only (commands ignored)', async () => {
-    await writeSkill(projectDir, 'openspec-explore');
+    await writeSkill(projectDir, 'opsx-explore');
 
     const workflows = scanInstalledWorkflows(projectDir, [ensureClaudeTool()]);
     expect(workflows).toContain('explore');

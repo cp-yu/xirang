@@ -2,11 +2,10 @@ import path from 'node:path';
 import type { Command } from 'commander';
 import { formatArchitectureQueryText, queryArchitecture } from './query.js';
 import { validateArchitectureCommand } from './validate.js';
-import { previewArchitecture } from './preview.js';
 import { exportArchitecture, type ExportFormat } from './export.js';
 
 export function registerArchCommand(program: Command): void {
-  const arch = program.command('arch').description('Query, validate, preview, and export LikeC4 architecture');
+  const arch = program.command('arch').description('Query, validate, and export LikeC4 architecture');
   arch.command('query <element-id>').option('--relations').option('--depth <n>').option('--json').action(async (id, options) => {
     try {
       const result = await queryArchitecture(process.cwd(), id, { relations: options.relations, depth: options.depth ? Number(options.depth) : undefined });
@@ -26,6 +25,5 @@ export function registerArchCommand(program: Command): void {
       process.exitCode = 1;
     }
   });
-  arch.command('preview').option('--port <n>').action(options => previewArchitecture(process.cwd(), { port: options.port ? Number(options.port) : undefined }));
   arch.command('export').option('--format <format>', 'png, svg, or pdf', 'png').option('--output <dir>', 'output directory', 'docs/architecture').action(options => exportArchitecture(process.cwd(), { format: options.format as ExportFormat, output: path.resolve(options.output) }));
 }

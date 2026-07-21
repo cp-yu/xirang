@@ -1,0 +1,243 @@
+# @likec4/core
+
+## 1.59.0
+
+### Minor Changes
+
+- [#3053](https://github.com/likec4/likec4/pull/3053) [`d0a05fe`](https://github.com/likec4/likec4/commit/d0a05fe8e29105444762542c78c9861a13bfaff0) Thanks [@farhan523](https://github.com/farhan523)! - Allow defining `title`, `description` and links on relationship kinds in the `specification`, the same way as for element kinds. These properties are inherited by every relationship of that kind and can be overridden per relationship.
+
+  ```likec4
+  specification {
+    relationship async {
+      title 'Asynchronous'
+      description 'Communication over a message broker'
+      link https://example.com/async
+    }
+  }
+  ```
+
+  Closes [#2260](https://github.com/likec4/likec4/issues/2260)
+
+- [#3083](https://github.com/likec4/likec4/pull/3083) [`1814846`](https://github.com/likec4/likec4/commit/1814846f629971cec2a392222ab00c42abea47ed) Thanks [@farhan523](https://github.com/farhan523)! - Allow defining tags on relationship kinds in the `specification`, the same way as for element kinds. Tags are inherited by every relationship of that kind (merged with the relationship's own tags), so they can be used in view predicates like `where tag is #tcp`.
+
+  ```likec4
+  specification {
+    relationship https {
+      #tcp
+      head diamond
+    }
+    tag tcp
+  }
+  ```
+
+  Closes [#2533](https://github.com/likec4/likec4/issues/2533)
+
+- [#2984](https://github.com/likec4/likec4/pull/2984) [`061e687`](https://github.com/likec4/likec4/commit/061e6872ee80b1381d3ec047663a22d1ebe6bab5) Thanks [@davydkov](https://github.com/davydkov)! - Add programmatic enrichment + DSL writeback for loaded workspaces (resolves [#2833](https://github.com/likec4/likec4/issues/2833)).
+
+  - `Builder.fromParsed(data, mode?)` — seed a `Builder` from an existing `ParsedLikeC4ModelData`. The returned builder is `Builder<AnyTypes>` (kinds/FQNs unknown at compile time); pass an explicit generic to opt back into a typed Builder. `mode` (`'strict'` | `'editable'`, default `'editable'`) controls duplicate handling: in `editable` mode re-declaring an existing FQN with the same kind edits it in place; pass `'strict'` to throw on duplicates instead.
+  - `LikeC4.parsedModel(project?)` — exposes the parsed model on the public `LikeC4` instance.
+  - `LikeC4.toBuilder(mode?, project?)` — returns a Builder seeded from the parsed workspace; chain `.model(...)` / `.deployment(...)` / `.views(...)` to extend it. Defaults to `editable` (re-declaring a loaded element edits it); pass `'strict'` for a builder where duplicate FQNs throw.
+  - `LikeC4.toTypedBuilder({ specification, mode?, project? })` — validates the given specification against the loaded model (subset semantics — every declared kind/tag/metadata key must exist) and returns a Builder typed by it (`Builder<Types.FromSpecification<Spec>>`), replacing the unchecked `as unknown as Builder<...>` cast. Backed by the new `assertSpecificationCompatible` helper exported from `@likec4/core/builder`.
+  - `LikeC4.toDSL(project?)` — renders the parsed model back to `.c4` DSL source via `@likec4/generators/likec4`.
+  - `writeDSL(likec4, targetDir, options?)` — Node-only helper exported from `likec4` (and `@likec4/language-services/node`) that writes the rendered DSL to disk.
+
+  The DSL round-trip is intentionally LOSSY: comments, source positions and original formatting are not preserved.
+
+### Patch Changes
+
+- [#3084](https://github.com/likec4/likec4/pull/3084) [`76ef007`](https://github.com/likec4/likec4/commit/76ef007fd2fb0c6d52cedcdb3ef048a9f2a624c4) Thanks [@davydkov](https://github.com/davydkov)! - Flow control in dynamic views. Besides `parallel`, steps can now be grouped into flow blocks (each with an optional title):
+
+  - `opt`, `loop` and `break` blocks
+  - `alt` with `when` / `else` branches
+  - `try` / `catch` / `finally` blocks
+
+  ```likec4
+  dynamic view example {
+    customer -> app 'opens app'
+    alt {
+      when 'authorized' {
+        app -> api 'requests data'
+      }
+      else 'not authorized' {
+        app -> customer 'shows login'
+      }
+    }
+  }
+  ```
+
+  Sequence diagrams render these blocks as nested frames, and actors stay visible when zoomed in (fixes [#3074](https://github.com/likec4/likec4/issues/3074)). During a walkthrough, a docked Sequence Outline panel shows the flow as a collapsible tree that mirrors the block nesting — each step is numbered and every operator carries a colored type tag and step count, so you can jump to any step and keep your place.
+
+  > [!NOTE]
+  > Flow control blocks are experimental — syntax and rendering may change. We are looking for your feedback in [discussions](https://github.com/likec4/likec4/discussions)!
+
+  Resolved issues:
+
+  - [#2745](https://github.com/likec4/likec4/issues/2745)
+  - [#2993](https://github.com/likec4/likec4/issues/2993)
+  - [#3074](https://github.com/likec4/likec4/issues/3074)
+
+- [#3055](https://github.com/likec4/likec4/pull/3055) [`0994577`](https://github.com/likec4/likec4/commit/09945775fb0c4c64b79eae6f17ee0abce92ef8f1) Thanks [@ckeller42](https://github.com/ckeller42)! - Inherit relationship kind styles in dynamic views.
+
+  Fixes [#2916](https://github.com/likec4/likec4/issues/2916)
+
+- [#3099](https://github.com/likec4/likec4/pull/3099) [`9b9727f`](https://github.com/likec4/likec4/commit/9b9727fcd1201296c4d7e09f7446edd38669328a) Thanks [@kindasorrow](https://github.com/kindasorrow)! - Relationships browser: keep the direct parent of leaf elements when flattening hierarchy. Previously a single-child chain was collapsed to "root + leaf", so a nested component was rendered as a direct child of a distant ancestor and its owner was not visible.
+
+## 1.57.1
+
+### Patch Changes
+
+- [`f2c0b57`](https://github.com/likec4/likec4/commit/f2c0b57485e912e85a986d5f89408a6039538ecc) Thanks [@davydkov](https://github.com/davydkov)! - Edit edge label positions in the diagram editor. Select a relationship edge and drag its label to reposition it; the position is saved to the manual layout with undo/redo. A manually placed label moves together with the edge when its curve is reshaped, keeping its offset.
+
+- [#2986](https://github.com/likec4/likec4/pull/2986) [`8ad28c7`](https://github.com/likec4/likec4/commit/8ad28c777c76f294483c352180c7e3ea037eddfd) Thanks [@ckeller42](https://github.com/ckeller42)! - Fix deployment relationship filters so source and target metadata predicates use deployed instance metadata.
+  Instance metadata replaces, not merges with, model element metadata, matching existing deployment model semantics.
+
+- [#2978](https://github.com/likec4/likec4/pull/2978) [`75e1510`](https://github.com/likec4/likec4/commit/75e1510def804bf9931bf222b03d1034e1181d04) Thanks [@farhan523](https://github.com/farhan523)! - Tags with custom hex / rgb colors now get an accurate text color derived from the background via APCA contrast, instead of the previous CSS-filter workaround. `TagStylesProvider` emits `--colors-likec4-tag-text` for all tags (custom-colored and named), and the `autoTextColor` variant is removed from the `likec4tag` recipe. `getContrastedColorsAPCA` is now exported from `@likec4/core/styles`. Resolves [#2143](https://github.com/likec4/likec4/issues/2143).
+
+## 1.57.0
+
+### Minor Changes
+
+- [#2939](https://github.com/likec4/likec4/pull/2939) [`311b93d`](https://github.com/likec4/likec4/commit/311b93de360556b9583b901c5ad3d6692b9c9f03) Thanks [@galuszkak](https://github.com/galuszkak)! - Support expanding merged relationships into separate edges with the `multiple` flag. Set `multiple true` on a relationship kind in `specification`, or per-view via `with { multiple true }`, to show each relationship as its own edge with its own label instead of merging them into a single `[...]` edge. Resolves [#663](https://github.com/likec4/likec4/issues/663).
+
+- [#2935](https://github.com/likec4/likec4/pull/2935) [`35ba3f6`](https://github.com/likec4/likec4/commit/35ba3f637e45fc1072646f646b3442b3235cc29d) Thanks [@Kiiv](https://github.com/Kiiv)! - feat: add `includeAncestors` property to deployment views to include all ancestors of visible nodes. Fix https://github.com/likec4/likec4/issues/1483
+
+## 1.56.0
+
+### Minor Changes
+
+- [#2912](https://github.com/likec4/likec4/pull/2912) [`ace5b2e`](https://github.com/likec4/likec4/commit/ace5b2e5cd261f47bd2e93b6f495e2122ceef16d) Thanks [@Kiiv](https://github.com/Kiiv)! - Improve color palette used for element rendering to be more accurate with the color specified by the user. Fix https://github.com/likec4/likec4/issues/2101
+
+### Patch Changes
+
+- [#2921](https://github.com/likec4/likec4/pull/2921) [`5f46082`](https://github.com/likec4/likec4/commit/5f460821526d851ef3bbf8be5a2bd749c2df6a8a) Thanks [@davydkov](https://github.com/davydkov)! - Update Mantine to 9.1.0. The `light` variant of Buttons, Alerts, and ActionIcons now uses solid colors instead of transparency.
+
+## 1.55.1
+
+## 1.55.0
+
+### Patch Changes
+
+- [#2864](https://github.com/likec4/likec4/pull/2864) [`6b87578`](https://github.com/likec4/likec4/commit/6b87578486c821fdc1060d69867a10f3c7e6ca9b) Thanks [@davydkov](https://github.com/davydkov)! - Inherit relationship styles (color, line, head, tail) from specification in dynamic views
+
+  Fixes [#2797](https://github.com/likec4/likec4/issues/2797)
+
+- [#2860](https://github.com/likec4/likec4/pull/2860) [`f684e2f`](https://github.com/likec4/likec4/commit/f684e2fb59745fe62ac2b43c68f1e453ab884cc8) Thanks [@davydkov](https://github.com/davydkov)! - Fix custom element `description` and `summary` being overwritten by specification defaults in Builder API
+
+  Fixes [#2795](https://github.com/likec4/likec4/issues/2795)
+
+- [#2883](https://github.com/likec4/likec4/pull/2883) [`347b48f`](https://github.com/likec4/likec4/commit/347b48f7bb67e0a480e231d57c4feeca09b32383) Thanks [@ckeller42](https://github.com/ckeller42)! - Fix crash on views with manual layout in dev mode (applyManualLayout invariant)
+
+- [#2881](https://github.com/likec4/likec4/pull/2881) [`9834ebb`](https://github.com/likec4/likec4/commit/9834ebbfa32bdcb40710aac9038839e9da70031e) Thanks [@ckeller42](https://github.com/ckeller42)! - Allow data: URIs in markdown image src (rehype-sanitize protocols)
+
+- [#2858](https://github.com/likec4/likec4/pull/2858) [`c0048b6`](https://github.com/likec4/likec4/commit/c0048b6ca156508c893e072dfbf9d75bbe4dd8ad) Thanks [@davydkov](https://github.com/davydkov)! - Fix predicate evaluation for wildcard expressions with `where`.
+  Previously, `include * where` was applying filter to the root elements (or children inside scoped view).
+  Now it applies the filter to all elements, to match the wildcard semantics.
+
+  Fixes [#2837](https://github.com/likec4/likec4/issues/2837)
+
+## 1.54.0
+
+## 1.53.0
+
+### Minor Changes
+
+- [#2769](https://github.com/likec4/likec4/pull/2769) [`39df42e`](https://github.com/likec4/likec4/commit/39df42e69d11a74cfbda94258321860d9437a3f7) Thanks [@galuszkak](https://github.com/galuszkak)! - Support `metadata` filtering in view predicates
+
+  - Filter elements and relations by metadata key existence (`where metadata.key`) or value (`where metadata.key = 'value'`)
+  - Works with `!=` for negation and supports `source.metadata` / `target.metadata` for relation participants
+
+## 1.52.0
+
+### Patch Changes
+
+- [#2713](https://github.com/likec4/likec4/pull/2713) [`bc47423`](https://github.com/likec4/likec4/commit/bc474235cf31a7d42e8c4f25328a698bb7edefe3) Thanks [@davydkov](https://github.com/davydkov)! - Remove deprecated ManualLayoutV1 and related migration command
+
+## 1.51.0
+
+## 1.50.0
+
+### Patch Changes
+
+- [#2642](https://github.com/likec4/likec4/pull/2642) [`fe468d8`](https://github.com/likec4/likec4/commit/fe468d830544e6f0051ea2203ab137d46932d11e) Thanks [@davydkov](https://github.com/davydkov)! - Automatically derive element technology from icon name when not set explicitly.
+  Elements with `aws:`, `azure:`, `gcp:`, or `tech:` icons will get a human-readable technology label
+  (e.g. `tech:apache-flink` → "Apache Flink"). Can be disabled via `inferTechnologyFromIcon: false` in project config.
+
+## 1.49.0
+
+### Patch Changes
+
+- [`f42c046`](https://github.com/likec4/likec4/commit/f42c046cd4bf1a3f4037cb2020268e729f018300) Thanks [@davydkov](https://github.com/davydkov)! - First iteration of element notes feature to diagrams
+
+  - Add notes property to NodeModel for element annotations
+  - Add enableNotes prop to diagram components for controlling notes display
+  - Implement visual notes indicator with paper-like styling
+  - Support notes in all node types (elements, deployment, sequence actors)
+  - Add hover effects and animations for notes indicators
+
+- [#2624](https://github.com/likec4/likec4/pull/2624) [`507bab3`](https://github.com/likec4/likec4/commit/507bab30cf9e30450cedfc4b27f67718a387b2e7) Thanks [@davydkov](https://github.com/davydkov)! - Enhanced hover tooltips in editor now show relationship counts and clickable links to views containing the element
+
+- [`e10ea04`](https://github.com/likec4/likec4/commit/e10ea04bd2119b83cbd4c625640e63cd6e3f2e96) Thanks [@davydkov](https://github.com/davydkov)! - Fix compound nodes not respecting border style from defaults
+  Closes [#2501](https://github.com/like-c4/like-c4/issues/2501)
+
+- [`731a6cb`](https://github.com/likec4/likec4/commit/731a6cb278ef6bc06280bf1ba3b2d8f79c7d7fe6) Thanks [@davydkov](https://github.com/davydkov)! - Add notes to the elements and relationships using `with`. Example:
+
+  ```
+  view {
+    include
+      some.element with {
+        notes '''
+          This is a note for some.element.
+          It can contain multiple lines and **markdown** formatting.
+        '''
+      }
+  }
+  ```
+
+  Relates to [#2567](https://github.com/likec4/likec4/issues/2567)
+
+## 1.48.0
+
+### Minor Changes
+
+- [`68c6bf2`](https://github.com/likec4/likec4/commit/68c6bf286536e39ec316db906a425e2bfc852a83) Thanks [@davydkov](https://github.com/davydkov)! - Add icon customization options
+
+  - Add iconColor, iconSize, and iconPosition properties to element styles
+  - Support icon positioning (left, right, top, bottom) in diagrams and layouts
+  - Enable custom icon colors and sizes in element specifications
+
+- [`c186a08`](https://github.com/likec4/likec4/commit/c186a082c6fbb26d2b5169a9c28ca51e540622f6) Thanks [@davydkov](https://github.com/davydkov)! - Add API to compute Adhoc views (not defined in the model and computed on demand)
+
+### Patch Changes
+
+- [`c333592`](https://github.com/likec4/likec4/commit/c333592b6342dc4a726864e970c8056bc65fafa8) Thanks [@davydkov](https://github.com/davydkov)! - Fix compound node colors (based on element color and depth)
+
+- [`9aa59c8`](https://github.com/likec4/likec4/commit/9aa59c81f40ac948b32842a265bfdfe48d21bddf) Thanks [@davydkov](https://github.com/davydkov)! - Improved color contrast and visual appearance for compound nodes (nested elements)
+
+- [`6677d12`](https://github.com/likec4/likec4/commit/6677d124aaf6c45fb1456ce66a5c538634fe5fa0) Thanks [@davydkov](https://github.com/davydkov)! - Derive technology in RelationshipModel and DeploymentRelationModel from kind specification when not explicitly set
+
+- [#2543](https://github.com/likec4/likec4/pull/2543) [`c12f7a1`](https://github.com/likec4/likec4/commit/c12f7a108c19418403f5afc0c06c1e25565f6bf2) Thanks [@copilot-swe-agent](https://github.com/apps/copilot-swe-agent)! - Dynamic view steps now inherit technology and description from model relationships and specification relationship kinds
+
+- [`6ab5089`](https://github.com/likec4/likec4/commit/6ab5089fc2c1ce472fa5f5a471061056676e5546) Thanks [@davydkov](https://github.com/davydkov)! - Improved font loading performance by migrating to variable fonts and enhanced diagram bounds calculation with better edge handling
+
+## 1.47.0
+
+### Patch Changes
+
+- [#2520](https://github.com/likec4/likec4/pull/2520) [`dbaae67`](https://github.com/likec4/likec4/commit/dbaae67a2f00b6cacf1a0391cd8132b1d5f0e2ee) Thanks [@davydkov](https://github.com/davydkov)! - Add `computeProjectsView`, as an overview of projects and their relationships
+
+- [#2521](https://github.com/likec4/likec4/pull/2521) [`de2b294`](https://github.com/likec4/likec4/commit/de2b2942322f1a1b0ce4822e40c997ba3fff9e15) Thanks [@davydkov](https://github.com/davydkov)! - - Add two new shapes: `document` and `bucket`
+
+  - Apply border style to element node (previously it was applied to compound nodes and groups), closes [#2502](https://github.com/likec4/likec4/issues/2502)
+
+- [#2520](https://github.com/likec4/likec4/pull/2520) [`5e38c9b`](https://github.com/likec4/likec4/commit/5e38c9b2fced5fc43aee0326204a443d889a9d37) Thanks [@davydkov](https://github.com/davydkov)! - Fixed issue with computation of views with groups, that led to missing relations.
+  Exclude imported elements from views if have no relationships and not included explicitly
+
+## 1.46.4
+
+## 1.46.3
+
+## 1.46.2
+
+### Patch Changes
+
+- [#2476](https://github.com/likec4/likec4/pull/2476) [`9c5779d`](https://github.com/likec4/likec4/commit/9c5779d872d8de353adf706d1a0edbbcd8bb9671) Thanks [@davydkov](https://github.com/davydkov)! - Deployment nodes name is wrong derived from instanceOf, fixes [#2387](https://github.com/likec4/likec4/issues/2387)

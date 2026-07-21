@@ -39,7 +39,7 @@ async function captureJsonOutput(fn: () => Promise<void>): Promise<any> {
 }
 
 async function createTempProject(): Promise<string> {
-  const projectDir = await fs.mkdtemp(path.join(tmpdir(), 'openspec-bootstrap-phase1-'));
+  const projectDir = await fs.mkdtemp(path.join(tmpdir(), 'opsx-bootstrap-phase1-'));
   tempRoots.push(projectDir);
   return projectDir;
 }
@@ -60,14 +60,14 @@ async function pathExists(projectDir: string, relativePath: string): Promise<boo
 }
 
 async function writeFormalOpsxBundle(projectDir: string): Promise<void> {
-  await writeFile(projectDir, 'openspec/project.opsx.yaml', `schema_version: 2
+  await writeFile(projectDir, '.opsx/project.opsx.yaml', `schema_version: 2
 project:
   id: project
   name: Project
 domains: []
 capabilities: []
 `);
-  await writeFile(projectDir, 'openspec/project.opsx.relations.yaml', `schema_version: 2
+  await writeFile(projectDir, '.opsx/project.opsx.relations.yaml', `schema_version: 2
 relations: []
 `);
 }
@@ -76,10 +76,10 @@ afterAll(async () => {
   await Promise.all(tempRoots.map((dir) => fs.rm(dir, { recursive: true, force: true })));
 });
 
-describe('openspec bootstrap Phase 1', () => {
+describe('opsx bootstrap Phase 1', () => {
   it('returns structured pre-init status for a specs-based baseline', async () => {
     const projectDir = await createTempProject();
-    await writeFile(projectDir, 'openspec/specs/auth/spec.md', '# Auth spec\n');
+    await writeFile(projectDir, '.opsx/specs/auth/spec.md', '# Auth spec\n');
 
     const json = await withCwd(projectDir, () => captureJsonOutput(() => bootstrapStatusCommand({ json: true })));
     expect(json).toMatchObject({
@@ -94,7 +94,7 @@ describe('openspec bootstrap Phase 1', () => {
 
   it('returns structured pre-init status for an invalid partial OPSX baseline', async () => {
     const projectDir = await createTempProject();
-    await writeFile(projectDir, 'openspec/project.opsx.yaml', `schema_version: 2
+    await writeFile(projectDir, '.opsx/project.opsx.yaml', `schema_version: 2
 project:
   id: project
   name: Project
@@ -144,17 +144,17 @@ capabilities: []
     expect(json.allowedModes).toContain('full');
     expect(json.allowedModes).toContain('opsx-first');
     expect(json.instruction).toContain("requested phase 'scan' is unavailable before initialization");
-    expect(json.instruction).toContain('openspec bootstrap init --mode');
+    expect(json.instruction).toContain('opsx bootstrap init --mode');
   });
 
-  it('rejects unsupported full mode on formal OPSX before creating openspec/bootstrap', async () => {
+  it('rejects unsupported full mode on formal OPSX before creating .opsx/bootstrap', async () => {
     const projectDir = await createTempProject();
     await writeFormalOpsxBundle(projectDir);
 
     await expect(initBootstrap(projectDir, { mode: 'full', granularity: 'fine' })).rejects.toThrow(
       "Bootstrap mode 'full' is not supported for baseline 'formal-opsx'. Valid modes: refresh"
     );
-    expect(await pathExists(projectDir, 'openspec/bootstrap')).toBe(false);
+    expect(await pathExists(projectDir, '.opsx/bootstrap')).toBe(false);
   });
 
   it('allows refresh init on formal OPSX repositories', async () => {
@@ -163,16 +163,16 @@ capabilities: []
 
     await initBootstrap(projectDir, { mode: 'refresh', granularity: 'fine' });
 
-    expect(await pathExists(projectDir, 'openspec/bootstrap')).toBe(true);
+    expect(await pathExists(projectDir, '.opsx/bootstrap')).toBe(true);
   });
 
   it('rejects unsupported baseline-to-mode combinations with valid modes in the error', async () => {
     const projectDir = await createTempProject();
-    await writeFile(projectDir, 'openspec/specs/auth/spec.md', '# Auth spec\n');
+    await writeFile(projectDir, '.opsx/specs/auth/spec.md', '# Auth spec\n');
 
     await expect(initBootstrap(projectDir, { mode: 'opsx-first', granularity: 'fine' })).rejects.toThrow(
       "Bootstrap mode 'opsx-first' is not supported for baseline 'specs-based'. Valid modes: full"
     );
-    expect(await pathExists(projectDir, 'openspec/bootstrap')).toBe(false);
+    expect(await pathExists(projectDir, '.opsx/bootstrap')).toBe(false);
   });
 });

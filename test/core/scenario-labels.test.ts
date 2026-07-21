@@ -12,7 +12,7 @@ describe('scenario labels', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-scenario-labels-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-scenario-labels-'));
   });
 
   afterEach(async () => {
@@ -20,8 +20,8 @@ describe('scenario labels', () => {
   });
 
   async function writeSpecs(changeSpec: string, mainSpec: string): Promise<void> {
-    const changeSpecPath = path.join(tempDir, 'openspec', 'changes', 'label-change', 'specs', 'auth', 'spec.md');
-    const mainSpecPath = path.join(tempDir, 'openspec', 'specs', 'auth', 'spec.md');
+    const changeSpecPath = path.join(tempDir, '.opsx', 'changes', 'label-change', 'specs', 'auth', 'spec.md');
+    const mainSpecPath = path.join(tempDir, '.opsx', 'specs', 'auth', 'spec.md');
     await fs.mkdir(path.dirname(changeSpecPath), { recursive: true });
     await fs.mkdir(path.dirname(mainSpecPath), { recursive: true });
     await fs.writeFile(changeSpecPath, changeSpec, 'utf-8');
@@ -74,7 +74,7 @@ The system SHALL support login.
 
     await applyScenarioLabelsForChange(tempDir, 'label-change');
     const updated = await fs.readFile(
-      path.join(tempDir, 'openspec', 'changes', 'label-change', 'specs', 'auth', 'spec.md'),
+      path.join(tempDir, '.opsx', 'changes', 'label-change', 'specs', 'auth', 'spec.md'),
       'utf-8'
     );
     expect(updated).toContain('#### Scenario: [MODIFIED] Existing path');
@@ -114,7 +114,7 @@ The system SHALL support login.
     ]);
 
     const updated = await fs.readFile(
-      path.join(tempDir, 'openspec', 'changes', 'label-change', 'specs', 'auth', 'spec.md'),
+      path.join(tempDir, '.opsx', 'changes', 'label-change', 'specs', 'auth', 'spec.md'),
       'utf-8'
     );
     expect(updated).toContain('#### Scenario: Same path');
@@ -151,7 +151,7 @@ The system SHALL support login.
     );
 
     await applyScenarioLabelsForChange(tempDir, 'label-change');
-    const changeSpecPath = path.join(tempDir, 'openspec', 'changes', 'label-change', 'specs', 'auth', 'spec.md');
+    const changeSpecPath = path.join(tempDir, '.opsx', 'changes', 'label-change', 'specs', 'auth', 'spec.md');
     const first = await fs.readFile(changeSpecPath, 'utf-8');
     expect(first).toContain('#### Scenario: [MODIFIED] Existing path');
     expect(first).toContain('#### Scenario: [REMOVED] Legacy path');

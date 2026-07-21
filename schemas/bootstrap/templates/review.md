@@ -2,7 +2,7 @@
 
 Review the mapped architecture before promoting to formal OPSX files.
 This file is derived from `evidence.yaml` and `domain-map/*.yaml`.
-If either changes, rerun `openspec bootstrap validate` and review the regenerated output again.
+If either changes, rerun `opsx bootstrap validate` and review the regenerated output again.
 
 ## Domain Checklist
 
@@ -17,5 +17,5 @@ If either changes, rerun `openspec bootstrap validate` and review the regenerate
 - [ ] Relation semantic validation passes
 - [ ] Review gaps are resolved or explicitly accepted
 - [ ] Candidate spec set matches the bootstrap mode contract
-- [ ] Candidate specs pass OpenSpec validation
+- [ ] Candidate specs pass OPSX validation
 - [ ] Domain boundaries match mental model

@@ -24,16 +24,16 @@ describe('skill-generation', () => {
       const templates = getSkillTemplates();
       const dirNames = templates.map(t => t.dirName);
 
-      expect(dirNames).toContain('openspec-explore');
-      expect(dirNames).toContain('openspec-apply-change');
-      expect(dirNames).toContain('openspec-archive-change');
-      expect(dirNames).toContain('openspec-propose');
-      expect(dirNames).toContain('openspec-bootstrap-arch');
-      expect(dirNames).toContain('openspec-snack');
-      expect(dirNames).not.toContain('openspec-reviewer');
-      expect(dirNames).not.toContain('openspec-optimizer');
-      expect(dirNames).not.toContain('openspec-impact-sweeper');
-      expect(dirNames).not.toContain('openspec-implementer');
+      expect(dirNames).toContain('opsx-explore');
+      expect(dirNames).toContain('opsx-apply-change');
+      expect(dirNames).toContain('opsx-archive-change');
+      expect(dirNames).toContain('opsx-propose');
+      expect(dirNames).toContain('opsx-bootstrap-arch');
+      expect(dirNames).toContain('opsx-snack');
+      expect(dirNames).not.toContain('opsx-reviewer');
+      expect(dirNames).not.toContain('opsx-optimizer');
+      expect(dirNames).not.toContain('opsx-impact-sweeper');
+      expect(dirNames).not.toContain('opsx-implementer');
     });
 
     it('should have valid template structure', () => {
@@ -80,7 +80,7 @@ describe('skill-generation', () => {
       const filtered = getSkillTemplates(['propose']);
       expect(filtered).toHaveLength(1);
       expect(filtered[0].workflowId).toBe('propose');
-      expect(filtered[0].dirName).toBe('openspec-propose');
+      expect(filtered[0].dirName).toBe('opsx-propose');
     });
 
     it('should always use subagent-orchestrated archive skeleton (skills-only)', () => {
@@ -160,8 +160,8 @@ describe('skill-generation', () => {
       const content = generateSkillContent(template, '0.24.0');
 
       expect(content).toContain('license: "MIT"');
-      expect(content).toContain('compatibility: "Requires openspec CLI."');
-      expect(content).toContain('author: "openspec"');
+      expect(content).toContain('compatibility: "Requires opsx CLI."');
+      expect(content).toContain('author: "opsx"');
       expect(content).toContain('version: "1.0"');
       expect(content).toContain('generatedBy: "0.24.0"');
     });
@@ -269,9 +269,9 @@ describe('skill-generation', () => {
         (text: string) => transformWorkflowReferences(text, 'codex')
       );
 
-      expect(content).toContain('$openspec-propose');
-      expect(content).toContain('$openspec-explore');
-      expect(content).toContain('$openspec-apply-change');
+      expect(content).toContain('$opsx-propose');
+      expect(content).toContain('$opsx-explore');
+      expect(content).toContain('$opsx-apply-change');
       expect(content).not.toContain('/opsx:propose');
       expect(content).not.toContain('/opsx:explore');
       expect(content).not.toContain('/opsx:apply');

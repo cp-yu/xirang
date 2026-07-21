@@ -45,17 +45,17 @@ describe('ArchiveCommand', () => {
 
   beforeEach(async () => {
     // Create temp directory
-    tempDir = path.join(os.tmpdir(), `openspec-archive-test-${Date.now()}`);
+    tempDir = path.join(os.tmpdir(), `opsx-archive-test-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
     
     // Change to temp directory
     process.chdir(tempDir);
     
-    // Create OpenSpec structure
-    const openspecDir = path.join(tempDir, 'openspec');
-    await fs.mkdir(path.join(openspecDir, 'changes'), { recursive: true });
-    await fs.mkdir(path.join(openspecDir, 'specs'), { recursive: true });
-    await fs.mkdir(path.join(openspecDir, 'changes', 'archive'), { recursive: true });
+    // Create OPSX structure
+    const opsxDir = path.join(tempDir, '.opsx');
+    await fs.mkdir(path.join(opsxDir, 'changes'), { recursive: true });
+    await fs.mkdir(path.join(opsxDir, 'specs'), { recursive: true });
+    await fs.mkdir(path.join(opsxDir, 'changes', 'archive'), { recursive: true });
     
     // Suppress console.log during tests
     console.log = vi.fn();
@@ -101,7 +101,7 @@ describe('ArchiveCommand', () => {
     it('should archive a change successfully', async () => {
       // Create a test change
       const changeName = 'test-feature';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       
       // Create tasks.md with completed tasks
@@ -113,7 +113,7 @@ describe('ArchiveCommand', () => {
       await archiveCommand.execute(changeName, { yes: true, noVerify: true });
       
       // Check that change was moved to archive
-      const archiveDir = path.join(tempDir, 'openspec', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       
       expect(archives.length).toBe(1);
@@ -126,10 +126,10 @@ describe('ArchiveCommand', () => {
 
     it('prints agent handoff reminder for legacy auto git mode without recommended commit message', async () => {
       const changeName = 'auto-handoff';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n', 'utf-8');
-      await fs.writeFile(path.join(tempDir, 'openspec', 'config.yaml'), `schema: spec-driven
+      await fs.writeFile(path.join(tempDir, '.opsx', 'config.yaml'), `schema: spec-driven
 git:
   autoCommit: auto
 `, 'utf-8');
@@ -149,10 +149,10 @@ git:
 
     it('prints agent handoff reminder for legacy manual git mode without recommended commit message', async () => {
       const changeName = 'manual-handoff';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n', 'utf-8');
-      await fs.writeFile(path.join(tempDir, 'openspec', 'config.yaml'), `schema: spec-driven
+      await fs.writeFile(path.join(tempDir, '.opsx', 'config.yaml'), `schema: spec-driven
 git:
   autoCommit: manual
 `, 'utf-8');
@@ -169,35 +169,35 @@ git:
 
     it('should block archive when verify result is missing', async () => {
       const changeName = 'missing-verify';
-      await fs.mkdir(path.join(tempDir, 'openspec', 'changes', changeName), { recursive: true });
+      await fs.mkdir(path.join(tempDir, '.opsx', 'changes', changeName), { recursive: true });
 
       await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(
-        'openspec verify phase1 missing-verify'
+        'opsx verify phase1 missing-verify'
       );
       await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(
-        'openspec archive missing-verify --no-verify'
+        'opsx archive missing-verify --no-verify'
       );
     });
 
     it('should archive when verify is fresh and no sync is required', async () => {
       const changeName = 'fresh-verify';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
 
       await archiveCommand.execute(changeName, { yes: true });
 
-      const archiveDir = path.join(tempDir, 'openspec', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       expect(archives.some((entry) => entry.includes(changeName))).toBe(true);
     });
 
     it('should archive after seal when only git HEAD changed', async () => {
       const changeName = 'fresh-after-seal';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await execFileAsync('git', ['init'], { cwd: tempDir });
-      await execFileAsync('git', ['config', 'user.name', 'OpenSpec Test'], { cwd: tempDir });
+      await execFileAsync('git', ['config', 'user.name', 'OPSX Test'], { cwd: tempDir });
       await execFileAsync('git', ['config', 'user.email', 'test@example.com'], { cwd: tempDir });
       await writeFreshVerifyResult(changeDir);
       await execFileAsync('git', ['add', '.'], { cwd: tempDir });
@@ -222,14 +222,14 @@ git:
 
       await archiveCommand.execute(changeName, { yes: true });
 
-      const archiveDir = path.join(tempDir, 'openspec', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       expect(archives.some((entry) => entry.includes(changeName))).toBe(true);
     });
 
     it('should block archive when sync has pending delta writes', async () => {
       const changeName = 'pending-sync-gate';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       const specDir = path.join(changeDir, 'specs', 'gate');
       await fs.mkdir(specDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
@@ -242,7 +242,7 @@ git:
 
     it('should call a pending LikeC4 delta architecture, not OPSX', async () => {
       const changeName = 'pending-architecture-gate';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
       await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), 'model {}\n');
@@ -254,9 +254,9 @@ git:
 
     it('should allow archive when delta specs and OPSX delta are already synced', async () => {
       const changeName = 'already-synced-gate';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       const changeSpecDir = path.join(changeDir, 'specs', 'gate');
-      const mainSpecDir = path.join(tempDir, 'openspec', 'specs', 'gate');
+      const mainSpecDir = path.join(tempDir, '.opsx', 'specs', 'gate');
       await fs.mkdir(changeSpecDir, { recursive: true });
       await fs.mkdir(mainSpecDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
@@ -302,16 +302,16 @@ System SHALL keep synced gates stable.
 
       await archiveCommand.execute(changeName, { yes: true, noVerify: true });
 
-      const archiveDir = path.join(tempDir, 'openspec', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       expect(archives.some((entry) => entry.includes(changeName))).toBe(true);
     });
 
     it('should allow archive when removal-only delta already deleted the main spec', async () => {
       const changeName = 'already-deleted-spec';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       const changeSpecDir = path.join(changeDir, 'specs', 'old-merge');
-      const mainSpecDir = path.join(tempDir, 'openspec', 'specs', 'old-merge');
+      const mainSpecDir = path.join(tempDir, '.opsx', 'specs', 'old-merge');
       await fs.mkdir(changeSpecDir, { recursive: true });
       await fs.mkdir(mainSpecDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
@@ -328,16 +328,16 @@ System SHALL keep synced gates stable.
 
       await archiveCommand.execute(changeName, { yes: true });
 
-      const archiveDir = path.join(tempDir, 'openspec', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       expect(archives.some((entry) => entry.includes(changeName))).toBe(true);
     });
 
     it('should allow archive when removal-only delta targets headers already absent from a still-existing main spec', async () => {
       const changeName = 'removal-headers-already-absent';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       const changeSpecDir = path.join(changeDir, 'specs', 'partial-merge');
-      const mainSpecDir = path.join(tempDir, 'openspec', 'specs', 'partial-merge');
+      const mainSpecDir = path.join(tempDir, '.opsx', 'specs', 'partial-merge');
       await fs.mkdir(changeSpecDir, { recursive: true });
       await fs.mkdir(mainSpecDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
@@ -368,7 +368,7 @@ The system SHALL keep this requirement.`,
 
       await archiveCommand.execute(changeName, { yes: true });
 
-      const archiveDir = path.join(tempDir, 'openspec', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       expect(archives.some((entry) => entry.includes(changeName))).toBe(true);
 
@@ -378,7 +378,7 @@ The system SHALL keep this requirement.`,
 
     it('should warn about incomplete tasks', async () => {
       const changeName = 'incomplete-feature';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       
       // Create tasks.md with incomplete tasks
@@ -396,7 +396,7 @@ The system SHALL keep this requirement.`,
 
     it('should block archive with --no-sync --yes when pending deltas exist', async () => {
       const changeName = 'no-sync-bypass';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       const specDir = path.join(changeDir, 'specs', 'gate');
       await fs.mkdir(specDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
@@ -410,14 +410,14 @@ The system SHALL keep this requirement.`,
 
       await archiveCommand.execute(changeName, { yes: true, noVerify: true, noSync: true, noValidate: true });
 
-      const archiveDir = path.join(tempDir, 'openspec', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       expect(archives.some((entry) => entry.includes(changeName))).toBe(true);
     });
 
     it('should confirm before bypassing sync gate with --no-sync', async () => {
       const changeName = 'no-sync-confirm';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       const specDir = path.join(changeDir, 'specs', 'gate');
       await fs.mkdir(specDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
@@ -436,11 +436,11 @@ The system SHALL keep this requirement.`,
 
     it('should block archive when architecture delta is pending', async () => {
       const changeName = 'pending-architecture';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
 
-      const architecture = path.join(tempDir, 'openspec', 'architecture');
+      const architecture = path.join(tempDir, '.opsx', 'architecture');
       await fs.mkdir(path.join(architecture, 'domains'), { recursive: true });
       await fs.writeFile(path.join(architecture, 'specification.c4'), 'specification { element domain element capability }');
       await fs.writeFile(path.join(architecture, 'views.c4'), 'views { view index { include * } }');
@@ -458,11 +458,11 @@ The system SHALL keep this requirement.`,
 
     it('should throw error if archive already exists', async () => {
       const changeName = 'duplicate-feature';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       
       const date = new Date().toISOString().split('T')[0];
-      const archivePath = path.join(tempDir, 'openspec', 'changes', 'archive', `${date}-${changeName}`);
+      const archivePath = path.join(tempDir, '.opsx', 'changes', 'archive', `${date}-${changeName}`);
       await fs.mkdir(archivePath, { recursive: true });
       
       await expect(
@@ -472,7 +472,7 @@ The system SHALL keep this requirement.`,
 
     it('should handle changes without tasks.md', async () => {
       const changeName = 'no-tasks-feature';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       
       await archiveCommand.execute(changeName, { yes: true, noVerify: true });
@@ -481,14 +481,14 @@ The system SHALL keep this requirement.`,
         expect.stringContaining('incomplete task(s)')
       );
       
-      const archiveDir = path.join(tempDir, 'openspec', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       expect(archives.length).toBe(1);
     });
 
     it('should handle changes without specs', async () => {
       const changeName = 'no-specs-feature';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       
       await archiveCommand.execute(changeName, { yes: true, noVerify: true });
@@ -497,14 +497,14 @@ The system SHALL keep this requirement.`,
         expect.stringContaining('Specs to update')
       );
       
-      const archiveDir = path.join(tempDir, 'openspec', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       expect(archives.length).toBe(1);
     });
 
     it('should skip validation when commander sets validate to false (--no-validate)', async () => {
       const changeName = 'skip-validation-flag';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n');
 
@@ -517,7 +517,7 @@ The system SHALL keep this requirement.`,
         expect(validateSpy).not.toHaveBeenCalled();
         expect(deltaSpy).not.toHaveBeenCalled();
 
-        const archiveDir = path.join(tempDir, 'openspec', 'changes', 'archive');
+        const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
         const archives = await fs.readdir(archiveDir);
         expect(archives.length).toBe(1);
         expect(archives[0]).toMatch(new RegExp(`\\d{4}-\\d{2}-\\d{2}-${changeName}`));
@@ -529,13 +529,13 @@ The system SHALL keep this requirement.`,
   });
 
   describe('error handling', () => {
-    it('should throw error when openspec directory does not exist', async () => {
-      // Remove openspec directory
-      await fs.rm(path.join(tempDir, 'openspec'), { recursive: true });
+    it('should throw error when opsx directory does not exist', async () => {
+      // Remove opsx directory
+      await fs.rm(path.join(tempDir, '.opsx'), { recursive: true });
       
       await expect(
         archiveCommand.execute('any-change', { yes: true, noVerify: true })
-      ).rejects.toThrow("No OpenSpec changes directory found. Run 'openspec init' first.");
+      ).rejects.toThrow("No OPSX changes directory found. Run 'opsx init' first.");
     });
   });
 
@@ -547,8 +547,8 @@ The system SHALL keep this requirement.`,
       // Create test changes
       const change1 = 'feature-a';
       const change2 = 'feature-b';
-      await fs.mkdir(path.join(tempDir, 'openspec', 'changes', change1), { recursive: true });
-      await fs.mkdir(path.join(tempDir, 'openspec', 'changes', change2), { recursive: true });
+      await fs.mkdir(path.join(tempDir, '.opsx', 'changes', change1), { recursive: true });
+      await fs.mkdir(path.join(tempDir, '.opsx', 'changes', change2), { recursive: true });
       
       // Mock select to return first change
       mockSelect.mockResolvedValueOnce(change1);
@@ -566,7 +566,7 @@ The system SHALL keep this requirement.`,
       }));
       
       // Verify the selected change was archived
-      const archiveDir = path.join(tempDir, 'openspec', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       expect(archives[0]).toContain(change1);
     });
@@ -576,7 +576,7 @@ The system SHALL keep this requirement.`,
       const mockConfirm = confirm as unknown as ReturnType<typeof vi.fn>;
       
       const changeName = 'incomplete-interactive';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       
       // Create tasks.md with incomplete tasks
@@ -601,7 +601,7 @@ The system SHALL keep this requirement.`,
       const mockConfirm = confirm as unknown as ReturnType<typeof vi.fn>;
       
       const changeName = 'cancel-test';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       
       // Create tasks.md with incomplete tasks
@@ -625,7 +625,7 @@ The system SHALL keep this requirement.`,
 
     it('preserves apply isolation state for handoff under --yes', async () => {
       const changeName = 'isolated-yes';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n');
       await fs.writeFile(
@@ -649,7 +649,7 @@ The system SHALL keep this requirement.`,
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining('Git handoff: agent handles git commits, merge, and cleanup after archive.')
       );
-      const archiveDir = path.join(tempDir, 'openspec', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
       const [archiveName] = (await fs.readdir(archiveDir)).filter((entry) => entry.includes(changeName));
       await expect(fs.access(path.join(archiveDir, archiveName, '.apply-isolation.json'))).resolves.not.toThrow();
     });
@@ -659,7 +659,7 @@ The system SHALL keep this requirement.`,
       const mockConfirm = confirm as unknown as ReturnType<typeof vi.fn>;
 
       const changeName = 'isolated-prompt';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       const worktreePath = path.join(tempDir, '.worktrees', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n');
@@ -687,7 +687,7 @@ The system SHALL keep this requirement.`,
       const mockConfirm = confirm as unknown as ReturnType<typeof vi.fn>;
 
       const changeName = 'isolated-windows-path';
-      const changeDir = path.join(tempDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       const worktreePath = `.worktrees\\${changeName}`;
       await fs.mkdir(changeDir, { recursive: true });
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n');

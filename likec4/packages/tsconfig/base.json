@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Base Strictest",
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "Preserve",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "lib": [
+      "esnext"
+    ],
+    "customConditions": [
+      "sources"
+    ],
+    "allowArbitraryExtensions": true,
+    "allowImportingTsExtensions": true,
+    "resolvePackageJsonExports": true,
+    "resolvePackageJsonImports": true,
+    "allowJs": true,
+    "allowUnreachableCode": false,
+    "checkJs": false,
+    "declaration": true,
+    "declarationMap": false,
+    "verbatimModuleSyntax": true,
+    "esModuleInterop": true,
+    "exactOptionalPropertyTypes": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "noErrorTruncation": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noEmitOnError": false,
+    "pretty": true,
+    "resolveJsonModule": true,
+    "skipDefaultLibCheck": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictBuiltinIteratorReturn": true,
+    "outDir": "${configDir}/lib",
+    "tsBuildInfoFile": "${configDir}/lib/tsconfig.tsbuildinfo"
+  }
+}

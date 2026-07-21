@@ -112,7 +112,7 @@ describe('createChange', () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-test-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `opsx-test-${randomUUID()}`);
     await fs.mkdir(testDir, { recursive: true });
   });
 
@@ -124,24 +124,24 @@ describe('createChange', () => {
     it('should create change directory', async () => {
       await createChange(testDir, 'add-auth');
 
-      const changeDir = path.join(testDir, 'openspec', 'changes', 'add-auth');
+      const changeDir = path.join(testDir, '.opsx', 'changes', 'add-auth');
       const stats = await fs.stat(changeDir);
       expect(stats.isDirectory()).toBe(true);
     });
 
-    it('should create .openspec.yaml metadata file with default schema', async () => {
+    it('should create .opsx.yaml metadata file with default schema', async () => {
       await createChange(testDir, 'add-auth');
 
-      const metaPath = path.join(testDir, 'openspec', 'changes', 'add-auth', '.openspec.yaml');
+      const metaPath = path.join(testDir, '.opsx', 'changes', 'add-auth', '.opsx.yaml');
       const content = await fs.readFile(metaPath, 'utf-8');
       expect(content).toContain('schema: spec-driven');
       expect(content).toMatch(/created: \d{4}-\d{2}-\d{2}/);
     });
 
-    it('should create .openspec.yaml with custom schema', async () => {
+    it('should create .opsx.yaml with custom schema', async () => {
       await createChange(testDir, 'add-auth', { schema: 'spec-driven' });
 
-      const metaPath = path.join(testDir, 'openspec', 'changes', 'add-auth', '.openspec.yaml');
+      const metaPath = path.join(testDir, '.opsx', 'changes', 'add-auth', '.opsx.yaml');
       const content = await fs.readFile(metaPath, 'utf-8');
       expect(content).toContain('schema: spec-driven');
     });
@@ -154,20 +154,20 @@ describe('createChange', () => {
       );
     });
 
-    it('rejects an unsupported project schema without creating the change', async () => {
-      await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+    it('falls back to the default schema when project schema is unsupported', async () => {
+      await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
       await fs.writeFile(
-        path.join(testDir, 'openspec', 'config.yaml'),
+        path.join(testDir, '.opsx', 'config.yaml'),
         'schema: custom-schema\n',
         'utf-8'
       );
 
-      await expect(createChange(testDir, 'add-auth')).rejects.toThrow(
-        /Unsupported schema 'custom-schema'.*spec-driven, bootstrap/
-      );
+      await expect(createChange(testDir, 'add-auth')).resolves.toEqual({
+        schema: 'spec-driven',
+      });
       await expect(
-        fs.stat(path.join(testDir, 'openspec', 'changes', 'add-auth'))
-      ).rejects.toMatchObject({ code: 'ENOENT' });
+        fs.stat(path.join(testDir, '.opsx', 'changes', 'add-auth'))
+      ).resolves.toBeDefined();
     });
   });
 
@@ -202,14 +202,14 @@ describe('createChange', () => {
   });
 
   describe('creates parent directories if needed', () => {
-    it('should create openspec/changes/ directories if they do not exist', async () => {
+    it('should create .opsx/changes/ directories if they do not exist', async () => {
       const newProjectDir = path.join(testDir, 'new-project');
       await fs.mkdir(newProjectDir);
 
-      // openspec/changes/ does not exist yet
+      // .opsx/changes/ does not exist yet
       await createChange(newProjectDir, 'add-auth');
 
-      const changeDir = path.join(newProjectDir, 'openspec', 'changes', 'add-auth');
+      const changeDir = path.join(newProjectDir, '.opsx', 'changes', 'add-auth');
       const stats = await fs.stat(changeDir);
       expect(stats.isDirectory()).toBe(true);
     });

@@ -143,7 +143,7 @@ export async function bootstrapInitCommand(options: BootstrapInitOptions): Promi
   try {
     const result = await initBootstrap(projectRoot, { mode, scope, restart: options.restart, granularity });
     const metadata = result.metadata;
-    spinner.succeed(`Bootstrap workspace ${result.restarted ? 'restarted' : 'created'} at openspec/bootstrap/`);
+    spinner.succeed(`Bootstrap workspace ${result.restarted ? 'restarted' : 'created'} at .opsx/bootstrap/`);
     console.log(`  Phase: ${metadata.phase}`);
     console.log(`  Mode: ${metadata.mode}`);
     if (result.historyPath) {
@@ -166,8 +166,8 @@ export async function bootstrapInitCommand(options: BootstrapInitOptions): Promi
       console.log();
     }
     console.log('Next: Advance to scan, then discover domains.');
-    console.log('  openspec bootstrap advance scan');
-    console.log('  Use /opsx:bootstrap or openspec bootstrap instructions scan');
+    console.log('  opsx bootstrap advance scan');
+    console.log('  Use /opsx:bootstrap or opsx bootstrap instructions scan');
   } catch (error) {
     spinner.fail(`Failed to initialize bootstrap`);
     throw error;
@@ -197,7 +197,7 @@ export async function bootstrapStatusCommand(options: BootstrapStatusOptions): P
 }
 
 function printBootstrapStatus(status: BootstrapStatus): void {
-  console.log('Bootstrap: openspec');
+  console.log('Bootstrap: opsx');
 
   if (!status.initialized) {
     console.log('Initialized: no');
@@ -207,7 +207,7 @@ function printBootstrapStatus(status: BootstrapStatus): void {
     console.log(`Reason: ${status.reason}`);
     if (status.nextAction === 'init' && status.allowedModes.length > 0) {
       console.log();
-      console.log(`Next: openspec bootstrap init --mode ${status.allowedModes[0]}`);
+      console.log(`Next: opsx bootstrap init --mode ${status.allowedModes[0]}`);
     }
     return;
   }
@@ -221,7 +221,7 @@ function printBootstrapStatus(status: BootstrapStatus): void {
     if (status.restartCommand) {
       console.log();
       console.log(`Next: ${status.restartCommand}`);
-      console.log('Restart snapshots the retained workspace into openspec/bootstrap-history/ before creating a fresh openspec/bootstrap/.');
+      console.log('Restart snapshots the retained workspace into .opsx/bootstrap-history/ before creating a fresh .opsx/bootstrap/.');
     }
     return;
   }
@@ -249,7 +249,7 @@ function printBootstrapStatus(status: BootstrapStatus): void {
     }
   } else if (phaseIdx < BOOTSTRAP_PHASES.indexOf('scan')) {
     console.log();
-    console.log('No domains discovered yet. Run `openspec bootstrap advance scan` next.');
+    console.log('No domains discovered yet. Run `opsx bootstrap advance scan` next.');
   }
 }
 
@@ -380,8 +380,8 @@ function getCompletedWorkspaceInstructions(status: Extract<BootstrapStatus, { in
 
   if (status.restartCommand) {
     lines.push('', `Run: ${status.restartCommand}`);
-    lines.push('Restart moves the current openspec/bootstrap/ into openspec/bootstrap-history/ and creates a fresh workspace from init.');
-    lines.push('Use the retained snapshot for audit or diff; do not delete openspec/bootstrap/ as the normal restart path.');
+    lines.push('Restart moves the current .opsx/bootstrap/ into .opsx/bootstrap-history/ and creates a fresh workspace from init.');
+    lines.push('Use the retained snapshot for audit or diff; do not delete .opsx/bootstrap/ as the normal restart path.');
   } else {
     lines.push('', 'The current repository baseline does not expose a supported restart mode.');
   }
@@ -407,7 +407,7 @@ function getPreInitInstructions(status: Extract<BootstrapStatus, { initialized: 
   }
 
   lines.push('', `Allowed modes: ${status.allowedModes.join(', ')}`);
-  lines.push(`Run: openspec bootstrap init --mode ${status.allowedModes[0]} --granularity coarse|fine`);
+  lines.push(`Run: opsx bootstrap init --mode ${status.allowedModes[0]} --granularity coarse|fine`);
 
   if (status.baselineType === 'specs-based') {
     lines.push('', 'Bootstrap will preserve existing specs, add missing capability specs, and fail fast on target-path conflicts.');
@@ -436,9 +436,9 @@ function getPhaseInstructions(
     case 'init':
       return `Initialize the bootstrap workspace.
 
-Run: openspec bootstrap init --mode ${mode} --granularity coarse|fine
+Run: opsx bootstrap init --mode ${mode} --granularity coarse|fine
 
-This creates the workspace at openspec/bootstrap/ with scope configuration. Initial init requires explicit granularity; a completed workspace restart inherits retained scope.yaml granularity unless explicitly overridden.
+This creates the workspace at .opsx/bootstrap/ with scope configuration. Initial init requires explicit granularity; a completed workspace restart inherits retained scope.yaml granularity unless explicitly overridden.
 ${mode === 'opsx-first'
   ? 'This mode prepares the formal OPSX bundle plus a README-only specs starter. Add behavior specs incrementally later through normal change workflows.'
   : mode === 'refresh'
@@ -446,13 +446,13 @@ ${mode === 'opsx-first'
   : baselineType === 'specs-based'
     ? 'This mode preserves existing specs, adds missing capability specs, and fails fast if a generated target path already exists.'
     : 'This mode prepares the formal OPSX bundle plus complete valid candidate specs for each mapped capability.'}
-After init, run \`openspec bootstrap advance scan\`; the agent can then analyze the codebase for domain candidates.`;
+After init, run \`opsx bootstrap advance scan\`; the agent can then analyze the codebase for domain candidates.`;
 
     case 'scan':
       return `Scan the codebase to discover candidate domains.
 
-1. Read package.json, README, and OpenSpec config for project context
-2. Inspect openspec/specs/ for existing domain/capability evidence
+1. Read package.json, README, and OPSX config for project context
+2. Inspect .opsx/specs/ for existing domain/capability evidence
 3. Scan source code for structural boundaries (directories, modules, entrypoints)
 4. Write evidence.yaml with candidate domains, confidence levels, and sources
 
@@ -466,7 +466,7 @@ Prefer fewer domains with solid evidence over exhaustive noise.
 ${mode === 'refresh'
   ? '\nFor refresh, scan all current source, specs, configuration, and package/build metadata. The existing formal OPSX v2 model is review-only evidence and must not supply candidate content.'
   : ''}
-After writing evidence.yaml, run: openspec bootstrap validate`;
+After writing evidence.yaml, run: opsx bootstrap validate`;
 
     case 'map':
       return `Map capabilities and semantic relations per domain.
@@ -478,13 +478,13 @@ For each domain in evidence.yaml, create domain-map/<domain-id>.yaml:
 - review_gaps: evidence and reason for interactions that cannot be classified precisely
 
 Map one domain at a time, but derive every entry from the complete current scan.
-Run: openspec bootstrap status to see per-domain progress.
-After mapping all domains, run: openspec bootstrap validate`;
+Run: opsx bootstrap status to see per-domain progress.
+After mapping all domains, run: opsx bootstrap validate`;
 
     case 'review':
       return `Review the mapped architecture before promotion.
 
-1. Run: openspec bootstrap validate (regenerates candidate files and review.md from current evidence.yaml + domain-map/*.yaml)
+1. Run: opsx bootstrap validate (regenerates candidate files and review.md from current evidence.yaml + domain-map/*.yaml)
 2. Review review.md — check each domain's boundaries, capabilities, semantic relation type/direction, ownership, and review gaps${mode === 'refresh' ? ', plus the complete-candidate diff against the old formal review baseline' : ''}
 3. Mark each domain checkbox as reviewed
 4. If evidence or domain maps change, run validate again and re-approve the regenerated review
@@ -495,18 +495,18 @@ When all checkboxes are checked, proceed to promote.`;
     case 'promote':
       return `Promote the candidate OPSX to formal project files.
 
-Run: openspec bootstrap promote
+Run: opsx bootstrap promote
 
 This re-validates scan, map, and review gates before writing any formal OPSX files.
 Successful promotion writes the two formal OPSX v2 files and retains the bootstrap workspace as audit history.
 ${mode === 'opsx-first'
-  ? 'Opsx-first writes the formal OPSX bundle plus only openspec/specs/README.md.'
+  ? 'Opsx-first writes the formal OPSX bundle plus only .opsx/specs/README.md.'
   : mode === 'refresh'
     ? 'Refresh rebuilds the complete candidate from current evidence, uses the old model only for review diff, replaces both formal files, and fails fast on spec-path conflicts.'
     : baselineType === 'specs-based'
     ? 'Full mode preserves your existing specs, adds only missing capability specs, and fails fast on target-path conflicts.'
     : 'Full mode writes the formal OPSX bundle plus valid specs covering all mapped capabilities (coarse: grouped via spec_groups, fine: one per capability).'}}
-After a completed retained workspace, start the next refresh run with: openspec bootstrap init --mode refresh --restart. It inherits retained scope.yaml granularity; pass --granularity coarse|fine to override it.`;
+After a completed retained workspace, start the next refresh run with: opsx bootstrap init --mode refresh --restart. It inherits retained scope.yaml granularity; pass --granularity coarse|fine to override it.`;
   }
 }
 
@@ -520,14 +520,14 @@ export async function bootstrapAdvanceCommand(
   const status = await getBootstrapStatus(projectRoot);
 
   if (!status.initialized) {
-    throw new Error('No bootstrap workspace found. Run `openspec bootstrap init` first.');
+    throw new Error('No bootstrap workspace found. Run `opsx bootstrap init` first.');
   }
   if (status.workspaceState === 'completed') {
     throw new Error('Bootstrap workspace is complete. Start a new retained-workspace run with the reported restart command.');
   }
   if (status.phase !== 'init' || targetPhase !== 'scan') {
     throw new Error(
-      `Public bootstrap advance only supports 'init' -> 'scan'. Current: '${status.phase}', target: '${targetPhase}'. Later transitions are gate-driven by \`openspec bootstrap validate\`.`
+      `Public bootstrap advance only supports 'init' -> 'scan'. Current: '${status.phase}', target: '${targetPhase}'. Later transitions are gate-driven by \`opsx bootstrap validate\`.`
     );
   }
 
@@ -539,7 +539,7 @@ export async function bootstrapAdvanceCommand(
   }
 
   console.log('Bootstrap phase advanced: init -> scan');
-  console.log('Next: collect repository evidence in openspec/bootstrap/evidence.yaml, then run `openspec bootstrap validate`.');
+  console.log('Next: collect repository evidence in .opsx/bootstrap/evidence.yaml, then run `opsx bootstrap validate`.');
 }
 
 // ─── Validate ────────────────────────────────────────────────────────────────
@@ -632,8 +632,8 @@ export async function bootstrapPromoteCommand(options: BootstrapPromoteOptions):
   try {
     const result = await promoteBootstrap(projectRoot);
     spinner.succeed('Bootstrap promoted to formal OPSX files');
-    console.log('  Written: openspec/project.opsx.yaml');
-    console.log('  Written: openspec/project.opsx.relations.yaml');
+    console.log('  Written: .opsx/project.opsx.yaml');
+    console.log('  Written: .opsx/project.opsx.relations.yaml');
     console.log(`  Backfill specs: written ${result.backfill.written.length}, unmatched ${result.backfill.unmatched.length}`);
     console.log(`  ${result.retainedWorkspaceNotice}`);
   } catch (error) {

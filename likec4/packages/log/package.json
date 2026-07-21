@@ -1,0 +1,57 @@
+{
+  "name": "@likec4/log",
+  "description": "Shared interface for logging",
+  "license": "MIT",
+  "version": "1.59.0",
+  "bugs": "https://github.com/likec4/likec4/issues",
+  "homepage": "https://likec4.dev",
+  "author": "Denis Davydkov <denis@davydkov.com>",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/likec4/likec4.git",
+    "directory": "packages/log"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "sources": "./src/index.ts",
+      "default": {
+        "types": "./dist/index.d.mts",
+        "import": "./dist/index.mjs",
+        "default": "./dist/index.mjs"
+      }
+    }
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public",
+    "types": "dist/index.d.mts",
+    "module": "dist/index.mjs"
+  },
+  "scripts": {
+    "typecheck": "tsc -b --verbose",
+    "build": "tsdown",
+    "pack": "pnpm pack",
+    "postpack": "likec4ops postpack",
+    "lint:package": "pnpx publint ./package.tgz",
+    "clean": "likec4ops clean"
+  },
+  "dependencies": {
+    "@logtape/logtape": "catalog:utils"
+  },
+  "devDependencies": {
+    "@likec4/tsconfig": "workspace:*",
+    "@likec4/devops": "workspace:*",
+    "@types/node": "catalog:",
+    "merge-error-cause": "^5.0.2",
+    "safe-stringify": "catalog:utils",
+    "typescript": "catalog:",
+    "tsdown": "catalog:tsdown",
+    "wrap-error-message": "^3.0.1"
+  }
+}

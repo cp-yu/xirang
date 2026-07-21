@@ -5,7 +5,7 @@ import path from 'path';
 import { buildSpecRegistry } from '../../src/core/spec-registry.js';
 
 async function withTempDir(run: (dir: string) => Promise<void>) {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-spec-registry-'));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-spec-registry-'));
   try {
     await run(dir);
   } finally {
@@ -14,7 +14,7 @@ async function withTempDir(run: (dir: string) => Promise<void>) {
 }
 
 async function writeSpec(root: string, id: string, content: string) {
-  const dir = path.join(root, 'openspec', 'specs', id);
+  const dir = path.join(root, '.opsx', 'specs', id);
   await fs.mkdir(dir, { recursive: true });
   await fs.writeFile(path.join(dir, 'spec.md'), content, 'utf8');
 }

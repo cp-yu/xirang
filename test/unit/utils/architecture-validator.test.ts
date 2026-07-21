@@ -16,7 +16,7 @@ function architecture(overrides: Partial<LikeC4Architecture> = {}): LikeC4Archit
 
 describe('architecture validator', () => {
   let root: string;
-  beforeEach(async () => { root = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-architecture-validator-')); });
+  beforeEach(async () => { root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-architecture-validator-')); });
   afterEach(async () => fs.rm(root, { recursive: true, force: true }));
 
   it('should detect missing ownership', async () => {
@@ -61,9 +61,9 @@ describe('architecture validator', () => {
 
   it('should check spec file existence', async () => {
     const result = await validateArchitecture(root, architecture({
-      capabilities: [{ id: 'core.a', title: 'A', domain: 'core', capabilityId: 'cap.core.a', specs: ['openspec/specs/missing/spec.md'] }],
+      capabilities: [{ id: 'core.a', title: 'A', domain: 'core', capabilityId: 'cap.core.a', specs: ['.opsx/specs/missing/spec.md'] }],
     }));
-    expect(result.warnings[0].message).toBe('Spec file not found: openspec/specs/missing/spec.md');
+    expect(result.warnings[0].message).toBe('Spec file not found: .opsx/specs/missing/spec.md');
   });
 
   it('should return structured validation result', async () => {

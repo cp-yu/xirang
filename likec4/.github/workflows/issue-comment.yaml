@@ -1,0 +1,205 @@
+name: issue comment
+
+on:
+  issue_comment:
+    types: [created]
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+  id-token: write
+  issues: write
+  deployments: write
+  pull-requests: write
+
+env:
+  NODE_ENV: production
+  FORCE_COLOR: 1
+  DO_NOT_TRACK: '1'
+
+jobs:
+  check-write-access:
+    name: check access
+    if: ${{ github.repository_owner == 'likec4' && github.event.issue.pull_request }}
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      allowed: ${{ steps.perm.outputs.allowed }}
+      # Immutable commit from the API (avoids TOCTOU vs refs/pull/N/head).
+      head_sha: ${{ steps.refs.outputs.head_sha }}
+    steps:
+      - name: Check commenter has write access
+        id: perm
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const username = context.payload.comment.user.login
+            const { owner, repo } = context.repo
+
+            const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner,
+              repo,
+              username,
+            })
+
+            const allowedPermissions = new Set(['admin', 'maintain', 'write'])
+            core.setOutput('permission', data.permission)
+            core.setOutput('allowed', allowedPermissions.has(data.permission) ? 'true' : 'false')
+
+      - name: resolve pr refs
+        id: refs
+        uses: actions/github-script@v8
+        if: ${{ steps.perm.outputs.allowed == 'true' }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = context.payload.issue.number
+            const { owner, repo } = context.repo
+            const { data: pr } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: prNumber,
+            })
+            core.setOutput('head_sha', pr.head.sha)
+
+  preview-playground:
+    needs: check-write-access
+    name: deploy playground preview
+    if: ${{ needs.check-write-access.outputs.allowed == 'true' && (contains(github.event.comment.body, '/preview playground') || contains(github.event.comment.body, '/playground')) }}
+    runs-on: ubuntu-24.04-arm
+    env:
+      PR_HEAD_SHA: ${{ needs.check-write-access.outputs.head_sha }}
+      CLOUDFLARE_ENV: production
+    steps:
+      - name: start deployment
+        uses: bobheadxi/deployments@v1
+        id: deployment
+        with:
+          step: start
+          token: ${{ secrets.GITHUB_TOKEN }}
+          env: playground-preview
+          ref: ${{ env.PR_HEAD_SHA }}
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.PR_HEAD_SHA }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: 🛠️ bootstrap
+        uses: ./.github/actions/bootstrap
+
+      - name: ⚙️ build
+        run: |
+          pnpm turbo run build --filter='@likec4/playground'
+
+      - id: cloudflare
+        name: publish to cloudflare
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: versions upload
+          workingDirectory: apps/playground
+          packageManager: pnpm
+
+      - name: add comment
+        uses: actions/github-script@v8
+        env:
+          DEPLOY_URL: ${{ steps.cloudflare.outputs.deployment-url }}
+        with:
+          script: |
+            let message = 'Playground: ' + process.env.DEPLOY_URL
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message,
+            })
+
+      - name: update deployment status
+        uses: bobheadxi/deployments@v1
+        if: always()
+        with:
+          step: finish
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: ${{ job.status }}
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+          env_url: ${{ steps.cloudflare.outputs.deployment-url }}
+          env: ${{ steps.deployment.outputs.env }}
+
+  preview-docs:
+    needs: check-write-access
+    name: deploy docs preview
+    if: ${{ needs.check-write-access.outputs.allowed == 'true' && (contains(github.event.comment.body, '/preview docs') || contains(github.event.comment.body, '/docs')) }}
+    runs-on: ubuntu-24.04-arm
+    env:
+      PR_HEAD_SHA: ${{ needs.check-write-access.outputs.head_sha }}
+    steps:
+      - name: start deployment
+        uses: bobheadxi/deployments@v1
+        id: deployment
+        with:
+          step: start
+          token: ${{ secrets.GITHUB_TOKEN }}
+          env: docs-preview
+          ref: ${{ env.PR_HEAD_SHA }}
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.PR_HEAD_SHA }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: 🛠️ bootstrap
+        uses: ./.github/actions/bootstrap
+
+      - name: ⚙️ build
+        working-directory: apps/docs
+        run: |
+          pnpm turbo run build
+
+      - id: cloudflare
+        name: publish to cloudflare
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name likec4-docs-astro --commit-dirty --branch preview
+          workingDirectory: apps/docs
+          packageManager: pnpm
+
+      - name: add comment
+        uses: actions/github-script@v8
+        env:
+          DEPLOY_URL: ${{ steps.cloudflare.outputs.deployment-url }}
+        with:
+          script: |
+            let message = 'Docs: ' + process.env.DEPLOY_URL
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message,
+            })
+
+      - name: update deployment status
+        uses: bobheadxi/deployments@v1
+        if: always()
+        with:
+          step: finish
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: ${{ job.status }}
+          env: ${{ steps.deployment.outputs.env }}
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+          env_url: ${{ steps.cloudflare.outputs.deployment-url }}
+
+  pkg-pr:
+    needs: check-write-access
+    name: create pkg
+    if: ${{ needs.check-write-access.outputs.allowed == 'true' && github.event.comment.body == '/pkg' }}
+    uses: ./.github/workflows/pkg-pr-new.yaml
+    secrets: inherit

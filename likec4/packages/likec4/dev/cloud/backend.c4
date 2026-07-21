@@ -1,0 +1,31 @@
+model {
+
+  extend cloud.backend {
+
+    graphql = app 'GraphQL' {
+      #v2 #next
+      technology 'nodejs'
+      description '
+        The GraphQL API to access data
+      '
+      icon tech:graphql
+    }
+
+    cms = app 'CMS' {
+      #v1 #deprecated
+      description 'The CMS of the cloud system'
+    }
+
+    graphql -> cms 'read and write'
+    graphql -> amazon.cognito 'authenticate'
+    graphql -> amazon.rds.pg 'read and write'
+    graphql -> cloud.billing.subscriptions 'verify access'
+
+    cms -> amazon.rds.mysql 'store media'
+  }
+
+}
+
+views {
+
+}

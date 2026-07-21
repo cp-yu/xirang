@@ -1,0 +1,83 @@
+model {
+  verify = domain 'Verify' {
+    description '两阶段质量门禁——在一致性检验通过后，对代码进行最优性检验，将代码从"可用"提升到"精良"'
+
+    metadata {
+      status 'active'
+    }
+
+    subagent_self_read = capability 'Subagent Self Read' {
+      description 'Reviewer/Optimizer subagent 自主文件读取与测试执行能力定义，包括 Read+Bash 工具权限、安全约束和 L1 测试策略'
+      metadata {
+        capabilityId 'cap.ai.subagent-self-read'
+        status 'active'
+        specs ['.opsx/specs/subagent-self-read/spec.md']
+      }
+    }
+
+    evidence_refresh = capability 'Evidence Refresh' {
+      description 'sync 完成后自动刷新 .verify-result.json 中与 sync 输出重叠的 evidence 文件哈希，使 verify freshness 判决不受合法 sync 写入的影响'
+      metadata {
+        capabilityId 'cap.sync.evidence-refresh'
+        status 'active'
+      }
+    }
+
+    cli_gate = capability 'Cli Gate' {
+      description '保留 Phase 2 双调用 CLI 表面，并校验 finding JSON actions、CLI-owned stable IDs、dependencies、唯一 selected、状态迁移、append-only history、目标文件 hashes 与 reviewer verdict'
+      metadata {
+        capabilityId 'cap.verify.cli-gate'
+        status 'active'
+      }
+    }
+
+    enforce_optimizer_invocation = capability 'Enforce Optimizer Invocation' {
+      description '强制每个未跳过的 Phase 2 至少调用 optimizer；NO_OPTIMIZATION_NEEDED 必须由合法 reconciliation envelope 证明，不再接受仅非空 summary 的证据'
+      metadata {
+        capabilityId 'cap.verify.enforce-optimizer-invocation'
+        status 'active'
+        specs ['.opsx/specs/enforce-optimizer-invocation/spec.md']
+      }
+    }
+
+    execution_model_selection = capability 'Execution Model Selection' {
+      description 'verify / archive full verify 固定使用 subagent-orchestrated skeleton，不再按工具选择 current-agent-reread fallback。'
+      metadata {
+        capabilityId 'cap.verify.execution-model-selection'
+        status 'active'
+      }
+    }
+
+    freshness_engine = capability 'Freshness Engine' {
+      description '维持 change-level evidence freshness，并增加 selected finding 目标文件 hash 校验，阻止 optimizer 裁决后代码变化导致的过期建议被实施'
+      metadata {
+        capabilityId 'cap.verify.freshness-engine'
+        status 'active'
+      }
+    }
+
+    optimize = capability 'Optimize' {
+      description 'Phase 1 通过后强制委托 optimizer，持久化完整 findings 并逐波次实现最高优先级建议；每波次后基于当前代码全量 reconciliation，成功波次无固定上限，optRetries 只限制失败方向'
+      metadata {
+        capabilityId 'cap.verify.optimize'
+        status 'active'
+      }
+    }
+
+    optimizer_findings = capability 'Optimizer Findings' {
+      description '持久化 Phase 2 optimization findings 的严格 JSON 合约、CLI 稳定 ID、状态机、优先级、append-only reconciliation history、原子波次选择与确定性终止'
+      metadata {
+        capabilityId 'cap.verify.optimizer-findings'
+        status 'active'
+      }
+    }
+
+    prompt_orchestration = capability 'Prompt Orchestration' {
+      description 'Verification prompt orchestration patterns。Coordinator 的 Evidence 步骤简化为确定路径。Severity philosophy 表述从"prefer lower tier"改为"escalate when uncertain"，删除降级偏见的措辞'
+      metadata {
+        capabilityId 'cap.verify.prompt-orchestration'
+        status 'active'
+      }
+    }
+  }
+}

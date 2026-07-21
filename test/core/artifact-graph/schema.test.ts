@@ -9,7 +9,7 @@ const definition = `
         includes: [Target behavior]
         excludes: [Implementation notes]
       writePolicy: agent-authored
-      validation: [openspec validate]
+      validation: [opsx validate]
 `;
 
 describe('artifact-graph/schema', () => {
@@ -234,7 +234,7 @@ ${definition}`);
           excludes: ['Implementation notes'],
         },
         writePolicy: 'agent-authored',
-        validation: ['openspec validate'],
+        validation: ['opsx validate'],
       });
     });
 
@@ -244,7 +244,7 @@ ${definition}`);
       ['empty excludes', 'excludes: [Implementation notes]', 'excludes: []'],
       ['unknown write policy', 'writePolicy: agent-authored', 'writePolicy: arbitrary'],
       ['unsupported read-only policy', 'writePolicy: agent-authored', 'writePolicy: read-only'],
-      ['empty validation', 'validation: [openspec validate]', 'validation: []'],
+      ['empty validation', 'validation: [opsx validate]', 'validation: []'],
     ])('rejects an incomplete definition: %s', (_name, current, replacement) => {
       const yaml = `
 name: test

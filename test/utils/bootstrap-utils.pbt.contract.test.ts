@@ -69,7 +69,7 @@ describe('Bootstrap contract parity', () => {
       fs.readFile(path.join(projectRoot, 'docs/opsx-bootstrap.md'), 'utf-8'),
       fs.readFile(path.join(projectRoot, 'src/commands/bootstrap.ts'), 'utf-8'),
       fs.readFile(path.join(projectRoot, 'src/cli/index.ts'), 'utf-8'),
-      fs.readFile(path.join(projectRoot, 'openspec/references/openspec-apply-step-1-preparation.md'), 'utf-8'),
+      fs.readFile(path.join(projectRoot, '.opsx/references/opsx-apply-step-1-preparation.md'), 'utf-8'),
     ]);
 
     for (const content of [schema, docs]) {
@@ -99,9 +99,9 @@ describe('Bootstrap contract parity', () => {
 });
 
 async function withTempProject<T>(fn: (projectDir: string) => Promise<T>): Promise<T> {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-bootstrap-pbt-'));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-bootstrap-pbt-'));
   try {
-    await fs.mkdir(path.join(dir, 'openspec'), { recursive: true });
+    await fs.mkdir(path.join(dir, '.opsx'), { recursive: true });
     return await fn(dir);
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
@@ -118,7 +118,7 @@ async function writeBootstrapEvidence(projectDir: string): Promise<void> {
 `;
   await fs.mkdir(path.join(projectDir, 'src', 'pbt'), { recursive: true });
   await fs.writeFile(path.join(projectDir, 'src', 'pbt', 'index.ts'), 'export {};\n', 'utf-8');
-  await fs.writeFile(path.join(projectDir, 'openspec', 'bootstrap', 'evidence.yaml'), evidence, 'utf-8');
+  await fs.writeFile(path.join(projectDir, '.opsx', 'bootstrap', 'evidence.yaml'), evidence, 'utf-8');
 }
 
 async function writeBootstrapDomainMap(
@@ -176,7 +176,7 @@ async function writeBootstrapDomainMap(
     relations,
   };
   await fs.writeFile(
-    path.join(projectDir, 'openspec', 'bootstrap', 'domain-map', 'dom.pbt.yaml'),
+    path.join(projectDir, '.opsx', 'bootstrap', 'domain-map', 'dom.pbt.yaml'),
     stringifyYaml(map, { lineWidth: 0 }),
     'utf-8'
   );
@@ -185,7 +185,7 @@ async function writeBootstrapDomainMap(
 }
 
 async function checkAllReviewBoxes(projectDir: string): Promise<void> {
-  const reviewPath = path.join(projectDir, 'openspec', 'bootstrap', 'review.md');
+  const reviewPath = path.join(projectDir, '.opsx', 'bootstrap', 'review.md');
   const content = await fs.readFile(reviewPath, 'utf-8');
   await fs.writeFile(reviewPath, content.replace(/- \[ \]/g, '- [x]'), 'utf-8');
 }
@@ -213,13 +213,13 @@ describe('PBT: Bootstrap candidate specs contract', () => {
 
             const validator = new Validator(false);
             for (const folder of folders) {
-              const formalPath = path.join(projectDir, 'openspec', 'specs', folder, 'spec.md');
+              const formalPath = path.join(projectDir, '.opsx', 'specs', folder, 'spec.md');
               const content = await fs.readFile(formalPath, 'utf-8');
               const report = await validator.validateSpecContent(folder, content);
               expect(report.valid).toBe(true);
             }
 
-            await expect(fs.access(path.join(projectDir, 'openspec', 'specs', 'README.md'))).rejects.toThrow();
+            await expect(fs.access(path.join(projectDir, '.opsx', 'specs', 'README.md'))).rejects.toThrow();
           });
         }
       ),
@@ -244,7 +244,7 @@ describe('PBT: Bootstrap candidate specs contract', () => {
 
           await promoteBootstrap(projectDir);
 
-          const specsDir = path.join(projectDir, 'openspec', 'specs');
+          const specsDir = path.join(projectDir, '.opsx', 'specs');
           const entries = await fs.readdir(specsDir, { withFileTypes: true });
           expect(entries.some((e) => e.isDirectory())).toBe(false);
           expect(entries.filter((e) => e.isFile()).map((e) => e.name).sort()).toEqual(['README.md']);
@@ -312,10 +312,10 @@ describe('PBT: Bootstrap candidate specs contract', () => {
           expect(first.candidateUpdated).toBe(true);
 
           const candidateFiles = [
-            path.join(projectDir, 'openspec', 'bootstrap', 'candidate', 'project.opsx.yaml'),
-            path.join(projectDir, 'openspec', 'bootstrap', 'candidate', 'project.opsx.relations.yaml'),
+            path.join(projectDir, '.opsx', 'bootstrap', 'candidate', 'project.opsx.yaml'),
+            path.join(projectDir, '.opsx', 'bootstrap', 'candidate', 'project.opsx.relations.yaml'),
             ...folders.map((folder) =>
-              path.join(projectDir, 'openspec', 'bootstrap', 'candidate', 'specs', folder, 'spec.md')
+              path.join(projectDir, '.opsx', 'bootstrap', 'candidate', 'specs', folder, 'spec.md')
             ),
           ];
 

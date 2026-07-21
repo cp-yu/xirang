@@ -3,7 +3,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
-  OPENSPEC_PHILOSOPHY,
+  OPSX_PHILOSOPHY,
 } from '../../../src/core/templates/fragments/opsx-fragments.js';
 import {
   getApplyChangeSkillTemplate,
@@ -20,20 +20,20 @@ describe('apply change workflow template', () => {
   it('keeps project-root shared references byte-identical to the template', () => {
     for (const reference of getApplyChangeSkillTemplate().referenceFiles ?? []) {
       if (reference.path.includes('apply-step-3-')) continue;
-      const sharedPath = path.resolve(`openspec/references/openspec-${path.posix.basename(reference.path)}`);
+      const sharedPath = path.resolve(`.opsx/references/opsx-${path.posix.basename(reference.path)}`);
       expect(readFileSync(sharedPath, 'utf8')).toBe(reference.content);
     }
   });
 
   it('queries LikeC4 architecture and explains element IDs before implementation', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
-    expect(instructions).toContain('openspec arch query');
+    expect(instructions).toContain('opsx arch query');
     expect(instructions).toContain('element ID');
     expect(instructions).toContain('domain_name.capability_name');
   });
 
-  it('keeps the OpenSpec philosophy in the skill surface', () => {
-    expect(getApplyChangeSkillTemplate().instructions).toContain(OPENSPEC_PHILOSOPHY);
+  it('keeps the OPSX philosophy in the skill surface', () => {
+    expect(getApplyChangeSkillTemplate().instructions).toContain(OPSX_PHILOSOPHY);
   });
 
   it('uses definition-first authoring without code-map navigation', () => {
@@ -41,8 +41,8 @@ describe('apply change workflow template', () => {
     const preparation = applyReference('references/apply-step-1-preparation.md');
     expect(instructions).toContain('resolved file definition');
     expect(instructions).toContain('MUST NOT copy definitions');
-    expect(preparation).toContain('openspec arch query');
-    expect(preparation).toContain('openspec/architecture/');
+    expect(preparation).toContain('opsx arch query');
+    expect(preparation).toContain('.opsx/architecture/');
     expect(preparation).toContain('formal LikeC4 source');
     expect(preparation).toContain('CodeGraph');
     expect(preparation).toContain('ACE');
@@ -65,7 +65,7 @@ describe('apply change workflow template', () => {
     ]);
 
     for (const reference of template.referenceFiles?.filter((file) => !file.path.includes('apply-step-3-')) ?? []) {
-      const sharedPath = `openspec/references/openspec-${reference.path.replace('references/', '')}`;
+      const sharedPath = `.opsx/references/opsx-${reference.path.replace('references/', '')}`;
       expect(template.instructions).toContain(sharedPath);
     }
   });
@@ -75,13 +75,13 @@ describe('apply change workflow template', () => {
     const preparation = applyReference('references/apply-step-1-preparation.md');
 
     expect(instructions).toContain('Step 3: Isolation router');
-    expect(instructions).not.toContain('openspec-apply-step-3-branch-isolation.md');
-    expect(instructions).not.toContain('openspec-apply-step-3-worktree-isolation.md');
-    expect(instructions).not.toContain('openspec-apply-step-3-current-branch.md');
+    expect(instructions).not.toContain('opsx-apply-step-3-branch-isolation.md');
+    expect(instructions).not.toContain('opsx-apply-step-3-worktree-isolation.md');
+    expect(instructions).not.toContain('opsx-apply-step-3-current-branch.md');
     expect(preparation).toContain('At Step 3, read exactly one');
-    expect(preparation).toContain('openspec-apply-step-3-branch-isolation.md');
-    expect(preparation).toContain('openspec-apply-step-3-worktree-isolation.md');
-    expect(preparation).toContain('openspec-apply-step-3-current-branch.md');
+    expect(preparation).toContain('opsx-apply-step-3-branch-isolation.md');
+    expect(preparation).toContain('opsx-apply-step-3-worktree-isolation.md');
+    expect(preparation).toContain('opsx-apply-step-3-current-branch.md');
     expect(preparation).toContain('MUST NOT read the other two');
     expect(preparation).toContain('Do not read the selected reference during Preparation');
   });
@@ -92,9 +92,9 @@ describe('apply change workflow template', () => {
 
     expect(instructions).toContain('## Flow Outline');
     expect(instructions).toContain('Step 1: Preparation');
-    expect(instructions).not.toContain('openspec list --specs --json');
+    expect(instructions).not.toContain('opsx list --specs --json');
     expect(instructions).not.toContain('capabilities: []');
-    expect(preparation).toContain('openspec list --specs --json');
+    expect(preparation).toContain('opsx list --specs --json');
     expect(preparation).toContain('Spec coverage');
   });
 
@@ -103,11 +103,11 @@ describe('apply change workflow template', () => {
 
     expect(instructions).not.toContain('## Skill Delegation Protocol');
     expect(instructions).not.toContain('**Internal Subagents**');
-    expect(instructions).not.toContain('generated `openspec-impact-sweeper`');
-    expect(instructions).not.toContain('generated `openspec-reviewer`');
-    expect(instructions).not.toContain('generated `openspec-optimizer`');
-    expect(instructions).not.toContain('.claude/skills/openspec-reviewer/SKILL.md');
-    expect(instructions).not.toContain('/skills/openspec-optimizer/SKILL.md');
+    expect(instructions).not.toContain('generated `opsx-impact-sweeper`');
+    expect(instructions).not.toContain('generated `opsx-reviewer`');
+    expect(instructions).not.toContain('generated `opsx-optimizer`');
+    expect(instructions).not.toContain('.claude/skills/opsx-reviewer/SKILL.md');
+    expect(instructions).not.toContain('/skills/opsx-optimizer/SKILL.md');
   });
 
   it('keeps Phase 0 execution discipline directly in the apply skill', () => {
@@ -221,7 +221,7 @@ describe('apply change workflow template', () => {
     const reference = applyReference('references/apply-step-4-phase1-verification.md');
     const validationIndex = reference.indexOf('Validate the reviewer payload');
     const writebackIndex = reference.indexOf('Apply only CRITICAL `writeBackPlan` entries');
-    const recordIndex = reference.indexOf('openspec verify phase1 "<change-name>"');
+    const recordIndex = reference.indexOf('opsx verify phase1 "<change-name>"');
 
     expect(validationIndex).toBeGreaterThan(-1);
     expect(writebackIndex).toBeGreaterThan(validationIndex);
@@ -252,7 +252,7 @@ describe('apply change workflow template', () => {
     const reconciliationIndex = content.indexOf('optimizer reconciliation envelope');
     const freshnessIndex = content.indexOf('mode":"begin-implementation');
     const implementationIndex = content.indexOf('Master implements only the selected finding with TDD');
-    const verificationIndex = content.indexOf('openspec verify phase2 "<change-name>" --type=verification');
+    const verificationIndex = content.indexOf('opsx verify phase2 "<change-name>" --type=verification');
     const nextReconciliationIndex = content.indexOf('re-run optimizer reconciliation against current code');
 
     expect(reconciliationIndex).toBeGreaterThan(-1);
@@ -273,14 +273,14 @@ describe('apply change workflow template', () => {
     expect(instructions).toContain('Phase 1 verification');
     expect(instructions).toContain('Phase 2 optimization');
     expect(instructions).toContain('Phase 3 seal');
-    expect(instructions).toContain('delegate to the clean-context `openspec-reviewer` agent');
-    expect(instructions).toContain('delegate to the clean-context `openspec-optimizer` agent');
-    expect(instructions).not.toContain('invoke the `openspec-reviewer` skill');
-    expect(instructions).not.toContain('invoke the `openspec-optimizer` skill');
+    expect(instructions).toContain('delegate to the clean-context `opsx-reviewer` agent');
+    expect(instructions).toContain('delegate to the clean-context `opsx-optimizer` agent');
+    expect(instructions).not.toContain('invoke the `opsx-reviewer` skill');
+    expect(instructions).not.toContain('invoke the `opsx-optimizer` skill');
 
-    expect(applyReference('references/apply-step-4-phase1-verification.md')).toContain('openspec verify phase1 "<change-name>"');
-    expect(applyReference('references/apply-step-5-phase2-optimization.md')).toContain('openspec verify phase2');
-    expect(applyReference('references/apply-step-6-phase3-seal.md')).toContain('openspec verify seal "<change-name>"');
+    expect(applyReference('references/apply-step-4-phase1-verification.md')).toContain('opsx verify phase1 "<change-name>"');
+    expect(applyReference('references/apply-step-5-phase2-optimization.md')).toContain('opsx verify phase2');
+    expect(applyReference('references/apply-step-6-phase3-seal.md')).toContain('opsx verify seal "<change-name>"');
   });
 
   it('routes seal failure into remediation and recovery in the seal reference', () => {
@@ -312,13 +312,13 @@ describe('apply change workflow template', () => {
     const source = 'Archive ready. Run /opsx:archive <change-name> to complete the workflow.';
 
     expect(runTransforms(source, { toolId: 'codex', workflowId: 'apply', artifactType: 'skill' })).toBe(
-      'Archive ready. Run $openspec-archive-change <change-name> to complete the workflow.'
+      'Archive ready. Run $opsx-archive-change <change-name> to complete the workflow.'
     );
     expect(runTransforms(source, { toolId: 'claude', workflowId: 'apply', artifactType: 'skill' })).toBe(
-      'Archive ready. Run /openspec-archive-change <change-name> to complete the workflow.'
+      'Archive ready. Run /opsx-archive-change <change-name> to complete the workflow.'
     );
     expect(runTransforms(source, { toolId: 'pi', workflowId: 'apply', artifactType: 'skill' })).toBe(
-      'Archive ready. Run /skill:openspec-archive-change <change-name> to complete the workflow.'
+      'Archive ready. Run /skill:opsx-archive-change <change-name> to complete the workflow.'
     );
     expect(runTransforms(source, { toolId: 'opencode', workflowId: 'apply', artifactType: 'skill' })).toBe(
       'Archive ready. Run /opsx-archive <change-name> to complete the workflow.'

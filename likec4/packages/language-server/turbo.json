@@ -1,0 +1,19 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": [
+    "//"
+  ],
+  "tasks": {
+    "generate": {
+      "dependsOn": [
+        "@likec4/icons#generate"
+      ],
+      "outputs": [
+        "contrib/**",
+        "src/generated/**",
+        "src/generated-lib/**"
+      ],
+      "outputLogs": "new-only"
+    }
+  }
+}

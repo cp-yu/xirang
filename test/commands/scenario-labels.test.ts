@@ -8,8 +8,8 @@ describe('scenario-labels command', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-scenario-labels-'));
-    await fs.mkdir(path.join(tempDir, 'openspec', 'changes', 'archive'), { recursive: true });
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-scenario-labels-'));
+    await fs.mkdir(path.join(tempDir, '.opsx', 'changes', 'archive'), { recursive: true });
   });
 
   afterEach(async () => {
@@ -17,8 +17,8 @@ describe('scenario-labels command', () => {
   });
 
   async function writeFixture(changeName = 'label-change'): Promise<string> {
-    const changeSpecPath = path.join(tempDir, 'openspec', 'changes', changeName, 'specs', 'auth', 'spec.md');
-    const mainSpecPath = path.join(tempDir, 'openspec', 'specs', 'auth', 'spec.md');
+    const changeSpecPath = path.join(tempDir, '.opsx', 'changes', changeName, 'specs', 'auth', 'spec.md');
+    const mainSpecPath = path.join(tempDir, '.opsx', 'specs', 'auth', 'spec.md');
     await fs.mkdir(path.dirname(changeSpecPath), { recursive: true });
     await fs.mkdir(path.dirname(mainSpecPath), { recursive: true });
     await fs.writeFile(

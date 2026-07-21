@@ -1,0 +1,359 @@
+// SPDX-License-Identifier: MIT
+//
+// Copyright (c) 2023-2026 Denis Davydkov
+// Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+//
+// Portions of this file have been modified by NVIDIA CORPORATION & AFFILIATES.
+
+import {
+  type DiagramEdge,
+  type DiagramNode,
+  type DiagramView,
+  type EdgeId,
+  type Fqn,
+  type NodeId,
+  type ViewId,
+  type WhereOperator,
+  GroupElementKind,
+  invariant,
+  isStepPath,
+  nonNullable,
+  Queue,
+  whereOperatorAsPredicate,
+} from '@likec4/core'
+import { hasAtLeast, pick } from 'remeda'
+import { ZIndexes } from '../../base/const'
+import { readableText } from '../../utils'
+import type { Types } from '../types'
+
+function sentence(parts: Array<string | null | undefined>): string {
+  return parts.filter((part): part is string => !!part).map(part => part.endsWith('.') ? part : `${part}.`).join(' ')
+}
+
+function nodeAriaLabel(node: DiagramNode): string {
+  const title = readableText(node.title) ?? node.id
+  const description = readableText(node.description)
+  const notes = readableText(node.notes)
+
+  if (node.kind === GroupElementKind) {
+    const childCount = node.children.length
+    return sentence([
+      title,
+      'Group',
+      `Contains ${childCount} ${childCount === 1 ? 'node' : 'nodes'}`,
+      notes && `Notes: ${notes}`,
+    ])
+  }
+
+  return sentence([
+    title,
+    `Node kind: ${node.kind}`,
+    node.technology && `Technology: ${node.technology}`,
+    description && `Description: ${description}`,
+    notes && `Notes: ${notes}`,
+    node.navigateTo && `Opens view ${node.navigateTo}`,
+  ])
+}
+
+function edgeAriaLabel(edge: DiagramEdge, source: DiagramNode, target: DiagramNode): string {
+  const sourceTitle = readableText(source.title) ?? source.id
+  const targetTitle = readableText(target.title) ?? target.id
+  const label = readableText(edge.label)
+  const description = readableText(edge.description)
+  const notes = readableText(edge.notes)
+
+  return sentence([
+    `Relationship from ${sourceTitle} to ${targetTitle}`,
+    label && `Label: ${label}`,
+    edge.technology && `Technology: ${edge.technology}`,
+    description && `Description: ${description}`,
+    notes && `Notes: ${notes}`,
+    edge.navigateTo && `Opens view ${edge.navigateTo}`,
+  ])
+}
+
+/**
+ * Convert a diagram view to XY flow nodes and edges.
+ * @param opts
+ * @param opts.view - The diagram view to convert.
+ * @param opts.currentViewId - The ID of the current view.
+ * @param opts.where - Optional filter for nodes and edges.
+ * @returns An object containing an array of XY flow nodes and an array of XY flow edges.
+ */
+export function diagramToXY(opts: {
+  view: Pick<DiagramView, 'id' | 'nodes' | 'bounds' | 'edges' | '_type' | 'autoLayout'>
+  currentViewId: ViewId | undefined
+  where: WhereOperator | null
+}): {
+  xynodes: Types.Node[]
+  xyedges: Types.Edge[]
+} {
+  const {
+    view,
+  } = opts
+  const xynodes = [] as Types.Node[],
+    xyedges = [] as Types.Edge[],
+    nodeLookup = new Map<Fqn, DiagramNode>()
+
+  const viewLayoutDir = view.autoLayout?.direction ?? 'TB'
+  const isDynamic = view._type === 'dynamic'
+
+  //
+  const deletable = view._type !== 'dynamic'
+
+  type TraverseItem = {
+    node: DiagramNode
+    parent: DiagramNode | null
+  }
+  const queue = Queue.from(view.nodes.reduce(
+    (acc, node) => {
+      nodeLookup.set(node.id, node)
+      if (!node.parent) {
+        acc.push({ node, parent: null })
+      }
+      return acc
+    },
+    [] as TraverseItem[],
+  ))
+
+  let visiblePredicate = (_nodeOrEdge: DiagramNode | DiagramEdge): boolean => true
+  if (opts.where) {
+    try {
+      const filterablePredicate = whereOperatorAsPredicate(opts.where)
+      visiblePredicate = i =>
+        filterablePredicate({
+          ...pick(i, ['tags', 'kind']),
+          ...('source' in i ? { source: nodeById(i.source) } : i),
+          ...('target' in i ? { target: nodeById(i.target) } : i),
+        })
+    } catch (e) {
+      console.error('Error in where filter:', e)
+    }
+  }
+  // const visiblePredicate = opts.where ? whereOperatorAsPredicate(opts.where) : () => true
+
+  // namespace to force unique ids
+  const ns = ''
+  const nodeById = (id: Fqn) => nonNullable(nodeLookup.get(id), `Node not found: ${id}`)
+
+  let next: TraverseItem | undefined
+  while ((next = queue.dequeue())) {
+    const { node, parent } = next
+    const isCompound = hasAtLeast(node.children, 1) || node.kind == GroupElementKind
+    if (isCompound) {
+      for (const child of node.children) {
+        queue.enqueue({ node: nodeById(child), parent: node })
+      }
+    }
+
+    const position = {
+      x: node.x,
+      y: node.y,
+    }
+    if (parent) {
+      position.x -= parent.x
+      position.y -= parent.y
+    }
+
+    const id = ns + node.id as NodeId
+
+    const base = {
+      id,
+      deletable,
+      position,
+      zIndex: isCompound ? ZIndexes.Compound : ZIndexes.Element,
+      style: {
+        width: node.width,
+        height: node.height,
+      },
+      ariaLabel: nodeAriaLabel(node),
+      initialWidth: node.width,
+      initialHeight: node.height,
+      hidden: node.kind !== GroupElementKind && !visiblePredicate(node),
+      ...(parent && {
+        parentId: ns + parent.id,
+      }),
+    } satisfies Omit<Types.Node, 'data' | 'type'>
+
+    const modelFqn = node.modelRef ?? null
+    const deploymentFqn = node.deploymentRef ?? null
+    const navigateTo = { navigateTo: node.navigateTo ?? null }
+
+    /**
+     * Compound nodes
+     */
+    if (isCompound) {
+      const compoundData = {
+        viewId: view.id,
+        id: node.id,
+        title: node.title,
+        color: node.color,
+        shape: node.shape,
+        style: node.style,
+        depth: node.depth ?? 0,
+        icon: node.icon ?? 'none',
+        tags: node.tags ?? null,
+        x: node.x,
+        y: node.y,
+        drifts: node.drifts ?? null,
+        notes: node.notes,
+        viewLayoutDir,
+      } satisfies Types.CompoundNodeData
+
+      switch (true) {
+        case node.kind === GroupElementKind: {
+          xynodes.push({
+            ...base,
+            type: 'view-group',
+            data: {
+              isViewGroup: true,
+              ...compoundData,
+            },
+          })
+          break
+        }
+        case !!deploymentFqn: {
+          xynodes.push(
+            {
+              ...base,
+              type: 'compound-deployment',
+              data: {
+                ...compoundData,
+                ...navigateTo,
+                deploymentFqn,
+                modelFqn,
+              },
+            } satisfies Types.CompoundDeploymentNode,
+          )
+          break
+        }
+        default: {
+          invariant(!!modelFqn, 'ModelRef expected')
+          xynodes.push(
+            {
+              ...base,
+              type: 'compound-element',
+              data: {
+                ...compoundData,
+                ...navigateTo,
+                modelFqn,
+              },
+            } satisfies Types.CompoundElementNode,
+          )
+        }
+      }
+      continue
+    }
+
+    if (!modelFqn && !deploymentFqn) {
+      console.error('Invalid node', node)
+      throw new Error('Element should have either modelRef or deploymentRef')
+    }
+
+    const leafNodeData = {
+      viewId: view.id,
+      id: node.id,
+      title: node.title,
+      technology: node.technology ?? null,
+      description: node.description ?? null,
+      height: node.height,
+      width: node.width,
+      level: node.level,
+      color: node.color,
+      shape: node.shape,
+      style: node.style,
+      icon: node.icon ?? null,
+      tags: node.tags,
+      notes: node.notes,
+      x: node.x,
+      y: node.y,
+      isMultiple: node.style?.multiple ?? false,
+      drifts: node.drifts ?? null,
+      viewLayoutDir,
+    } satisfies Types.LeafNodeData
+
+    switch (true) {
+      case !!deploymentFqn: {
+        xynodes.push(
+          {
+            ...base,
+            type: 'deployment',
+            data: {
+              ...leafNodeData,
+              ...navigateTo,
+              deploymentFqn,
+              modelFqn,
+            },
+          } satisfies Types.DeploymentElementNode,
+        )
+        break
+      }
+      default: {
+        invariant(!!modelFqn, 'ModelRef expected')
+        xynodes.push(
+          {
+            ...base,
+            type: 'element',
+            data: {
+              ...leafNodeData,
+              ...navigateTo,
+              modelFqn,
+            },
+          } satisfies Types.ElementNode,
+        )
+      }
+    }
+  }
+
+  let stepnum = 1
+
+  for (const edge of view.edges) {
+    const source = edge.source
+    const target = edge.target
+    const id = ns + edge.id as EdgeId
+
+    if (!hasAtLeast(edge.points, 2)) {
+      console.error('edge should have at least 2 points', edge)
+      continue
+    }
+
+    xyedges.push({
+      id,
+      type: 'relationship',
+      source: ns + source,
+      target: ns + target,
+      ariaLabel: edgeAriaLabel(edge, nodeById(source), nodeById(target)),
+      zIndex: ZIndexes.Edge,
+      hidden: !visiblePredicate(edge),
+      deletable,
+      data: {
+        id: edge.id,
+        label: edge.label,
+        technology: edge.technology,
+        notes: edge.notes ?? null,
+        navigateTo: edge.navigateTo,
+        controlPoints: edge.controlPoints ?? null,
+        labelBBox: edge.labelBBox ?? null,
+        isLabelCustomized: edge.isLabelCustomized ?? false,
+        labelXY: null,
+        points: edge.points,
+        color: edge.color ?? 'gray',
+        line: edge.line ?? 'dashed',
+        dir: edge.dir ?? 'forward',
+        head: edge.head ?? 'normal',
+        tail: edge.tail ?? 'none',
+        astPath: edge.astPath,
+        drifts: edge.drifts ?? null,
+        ...(isDynamic && isStepPath(edge.id) && {
+          stepnum: stepnum++,
+        }),
+      },
+      interactionWidth: 20,
+    })
+  }
+
+  return {
+    xynodes,
+    xyedges,
+  }
+}

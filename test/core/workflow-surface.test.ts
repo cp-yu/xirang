@@ -29,12 +29,12 @@ describe('workflow-surface', () => {
 
     it('SKILL_NAMES 应包含 6 个 skill 名称', () => {
       expect(SKILL_NAMES).toHaveLength(6);
-      expect(SKILL_NAMES).toContain('openspec-propose');
-      expect(SKILL_NAMES).toContain('openspec-explore');
-      expect(SKILL_NAMES).toContain('openspec-apply-change');
-      expect(SKILL_NAMES).toContain('openspec-archive-change');
-      expect(SKILL_NAMES).toContain('openspec-bootstrap-arch');
-      expect(SKILL_NAMES).toContain('openspec-snack');
+      expect(SKILL_NAMES).toContain('opsx-propose');
+      expect(SKILL_NAMES).toContain('opsx-explore');
+      expect(SKILL_NAMES).toContain('opsx-apply-change');
+      expect(SKILL_NAMES).toContain('opsx-archive-change');
+      expect(SKILL_NAMES).toContain('opsx-bootstrap-arch');
+      expect(SKILL_NAMES).toContain('opsx-snack');
     });
 
     it('COMMAND_IDS 与 ALL_WORKFLOWS 一致', () => {
@@ -54,10 +54,10 @@ describe('workflow-surface', () => {
 
   describe('WORKFLOW_TO_SKILL_DIR', () => {
     it('将每个工作流映射到 skill 目录名', () => {
-      expect(WORKFLOW_TO_SKILL_DIR.propose).toBe('openspec-propose');
-      expect(WORKFLOW_TO_SKILL_DIR.apply).toBe('openspec-apply-change');
-      expect(WORKFLOW_TO_SKILL_DIR.archive).toBe('openspec-archive-change');
-      expect(WORKFLOW_TO_SKILL_DIR['bootstrap-arch']).toBe('openspec-bootstrap-arch');
+      expect(WORKFLOW_TO_SKILL_DIR.propose).toBe('opsx-propose');
+      expect(WORKFLOW_TO_SKILL_DIR.apply).toBe('opsx-apply-change');
+      expect(WORKFLOW_TO_SKILL_DIR.archive).toBe('opsx-archive-change');
+      expect(WORKFLOW_TO_SKILL_DIR['bootstrap-arch']).toBe('opsx-bootstrap-arch');
     });
   });
 
@@ -91,7 +91,7 @@ describe('workflow-surface', () => {
     it('返回指定工作流的 surface 定义', () => {
       const surface = getWorkflowSurface('propose');
       expect(surface.workflowId).toBe('propose');
-      expect(surface.skillDirName).toBe('openspec-propose');
+      expect(surface.skillDirName).toBe('opsx-propose');
     });
 
     it('getWorkflowSurfaces 无过滤器返回全部 6 个', () => {

@@ -35,7 +35,7 @@ function isPromptCancellationError(error: unknown): boolean {
 export function registerConfigCommand(program: Command): void {
   const configCmd = program
     .command('config')
-    .description('View and modify global OpenSpec configuration')
+    .description('View and modify global OPSX configuration')
     .option('--scope <scope>', 'Config scope (only "global" supported currently)')
     .hook('preAction', (thisCommand) => {
       const opts = thisCommand.opts();
@@ -116,7 +116,7 @@ export function registerConfigCommand(program: Command): void {
       if (!keyValidation.valid && (keyValidation.retired || !allowUnknown)) {
         const reason = keyValidation.reason ? ` ${keyValidation.reason}.` : '';
         console.error(`Error: Invalid configuration key "${key}".${reason}`);
-        console.error('Use "openspec config list" to see available keys.');
+        console.error('Use "opsx config list" to see available keys.');
         if (!keyValidation.retired) {
           console.error('Pass --allow-unknown to bypass this check.');
         }
@@ -173,7 +173,7 @@ export function registerConfigCommand(program: Command): void {
     .action(async (options: { all?: boolean; yes?: boolean }) => {
       if (!options.all) {
         console.error('Error: --all flag is required for reset');
-        console.error('Usage: openspec config reset --all [-y]');
+        console.error('Usage: opsx config reset --all [-y]');
         process.exitCode = 1;
         return;
       }

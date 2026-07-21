@@ -15,7 +15,7 @@ describe('PBT: Fixed Two-File Layout', () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-opsx-pbt-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `opsx-opsx-pbt-${randomUUID()}`);
     await fs.mkdir(testDir, { recursive: true });
   });
 
@@ -72,7 +72,7 @@ describe('PBT: Fixed Two-File Layout', () => {
           const bundle = mkBundle({ project, domains });
           await writeProjectOpsx(testDir, bundle);
 
-          const opsxDir = path.join(testDir, 'openspec');
+          const opsxDir = path.join(testDir, '.opsx');
           const files = await fs.readdir(opsxDir);
           const opsxFiles = files.filter(f => f.startsWith('project.opsx'));
           expect(opsxFiles).toHaveLength(2);
@@ -96,7 +96,7 @@ describe('PBT: Fixed Two-File Layout', () => {
           const bundle = mkBundle({ project, domains, capabilities });
           await writeProjectOpsx(testDir, bundle);
 
-          const opsxDir = path.join(testDir, 'openspec');
+          const opsxDir = path.join(testDir, '.opsx');
           const files = await fs.readdir(opsxDir);
           const opsxFiles = files.filter(f => f.startsWith('project.opsx'));
           expect(opsxFiles).toHaveLength(2);

@@ -11,7 +11,7 @@ describe('BashInstaller', () => {
 
   beforeEach(async () => {
     // Create a temporary home directory for testing
-    testHomeDir = path.join(os.tmpdir(), `openspec-bash-test-${randomUUID()}`);
+    testHomeDir = path.join(os.tmpdir(), `opsx-bash-test-${randomUUID()}`);
     await fs.mkdir(testHomeDir, { recursive: true });
     installer = new BashInstaller(testHomeDir);
   });
@@ -25,7 +25,7 @@ describe('BashInstaller', () => {
     it('should return standard bash-completion path', async () => {
       const result = await installer.getInstallationPath();
 
-      expect(result).toBe(path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'openspec'));
+      expect(result).toBe(path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'opsx'));
     });
   });
 
@@ -62,13 +62,13 @@ describe('BashInstaller', () => {
   });
 
   describe('install', () => {
-    const testScript = '# Bash completion script for OpenSpec CLI\n_openspec_completion() {\n  echo "test"\n}\n';
+    const testScript = '# Bash completion script for OPSX CLI\n_opsx_completion() {\n  echo "test"\n}\n';
 
     it('should install to bash-completion path', async () => {
       const result = await installer.install(testScript);
 
       expect(result.success).toBe(true);
-      expect(result.installedPath).toBe(path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'openspec'));
+      expect(result.installedPath).toBe(path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'opsx'));
 
       // Verify file was created with correct content
       const content = await fs.readFile(result.installedPath!, 'utf-8');
@@ -87,7 +87,7 @@ describe('BashInstaller', () => {
     });
 
     it('should backup existing file before overwriting', async () => {
-      const targetPath = path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'openspec');
+      const targetPath = path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'opsx');
       await fs.mkdir(path.dirname(targetPath), { recursive: true });
       await fs.writeFile(targetPath, 'old script');
 
@@ -115,16 +115,16 @@ describe('BashInstaller', () => {
       const bashrcPath = path.join(testHomeDir, '.bashrc');
       const content = await fs.readFile(bashrcPath, 'utf-8');
 
-      expect(content).toContain('# OPENSPEC:START');
-      expect(content).toContain('# OPENSPEC:END');
-      expect(content).toContain('OpenSpec shell completions configuration');
-      expect(content).toContain('.local/share/bash-completion/completions/openspec');
+      expect(content).toContain('# OPSX:START');
+      expect(content).toContain('# OPSX:END');
+      expect(content).toContain('OPSX shell completions configuration');
+      expect(content).toContain('.local/share/bash-completion/completions/opsx');
       expect(content).not.toContain('for f in');
     });
 
     it('should include instructions when auto-config is disabled', async () => {
-      const originalEnv = process.env.OPENSPEC_NO_AUTO_CONFIG;
-      process.env.OPENSPEC_NO_AUTO_CONFIG = '1';
+      const originalEnv = process.env.OPSX_NO_AUTO_CONFIG;
+      process.env.OPSX_NO_AUTO_CONFIG = '1';
 
       const result = await installer.install(testScript);
 
@@ -134,9 +134,9 @@ describe('BashInstaller', () => {
 
       // Restore env
       if (originalEnv === undefined) {
-        delete process.env.OPENSPEC_NO_AUTO_CONFIG;
+        delete process.env.OPSX_NO_AUTO_CONFIG;
       } else {
-        process.env.OPENSPEC_NO_AUTO_CONFIG = originalEnv;
+        process.env.OPSX_NO_AUTO_CONFIG = originalEnv;
       }
     });
 
@@ -168,7 +168,7 @@ describe('BashInstaller', () => {
     });
 
     it('should refresh stale .bashrc markers even when the completion script is already up to date', async () => {
-      const targetPath = path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'openspec');
+      const targetPath = path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'opsx');
       await fs.mkdir(path.dirname(targetPath), { recursive: true });
       await fs.writeFile(targetPath, testScript);
 
@@ -176,14 +176,14 @@ describe('BashInstaller', () => {
       await fs.writeFile(
         bashrcPath,
         [
-          '# OPENSPEC:START',
-          '# OpenSpec shell completions configuration',
+          '# OPSX:START',
+          '# OPSX shell completions configuration',
           'if [ -d "/stale/path" ]; then',
           '  for f in "/stale/path"/*; do',
           '    [ -f "$f" ] && . "$f"',
           '  done',
           'fi',
-          '# OPENSPEC:END',
+          '# OPSX:END',
         ].join('\n'),
         'utf-8'
       );
@@ -194,19 +194,19 @@ describe('BashInstaller', () => {
       expect(result.bashrcConfigured).toBe(true);
 
       const content = await fs.readFile(bashrcPath, 'utf-8');
-      expect(content).toContain('.local/share/bash-completion/completions/openspec');
+      expect(content).toContain('.local/share/bash-completion/completions/opsx');
       expect(content).not.toContain('/stale/path');
       expect(content).not.toContain('for f in');
     });
 
     it('should update completion when content differs', async () => {
       // First installation
-      const firstScript = '# Bash completion v1\n_openspec_completion() {\n  echo "version 1"\n}\n';
+      const firstScript = '# Bash completion v1\n_opsx_completion() {\n  echo "version 1"\n}\n';
       const firstResult = await installer.install(firstScript);
       expect(firstResult.success).toBe(true);
 
       // Second installation with different script
-      const secondScript = '# Bash completion v2\n_openspec_completion() {\n  echo "version 2"\n}\n';
+      const secondScript = '# Bash completion v2\n_opsx_completion() {\n  echo "version 2"\n}\n';
       const secondResult = await installer.install(secondScript);
 
       expect(secondResult.success).toBe(true);
@@ -224,7 +224,7 @@ describe('BashInstaller', () => {
 
     it('should handle paths with spaces in .bashrc config', async () => {
       // Create a test home directory with spaces
-      const testHomeDirWithSpaces = path.join(os.tmpdir(), `openspec bash test ${randomUUID()}`);
+      const testHomeDirWithSpaces = path.join(os.tmpdir(), `opsx bash test ${randomUUID()}`);
       await fs.mkdir(testHomeDirWithSpaces, { recursive: true });
       const installerWithSpaces = new BashInstaller(testHomeDirWithSpaces);
 
@@ -250,7 +250,7 @@ describe('BashInstaller', () => {
   });
 
   describe('uninstall', () => {
-    const testScript = '# Bash completion script\n_openspec_completion() {}\n';
+    const testScript = '# Bash completion script\n_opsx_completion() {}\n';
 
     it('should remove installed completion script', async () => {
       // Install first
@@ -288,8 +288,8 @@ describe('BashInstaller', () => {
 
       if (exists) {
         const content = await fs.readFile(bashrcPath, 'utf-8');
-        expect(content).not.toContain('# OPENSPEC:START');
-        expect(content).not.toContain('# OPENSPEC:END');
+        expect(content).not.toContain('# OPSX:START');
+        expect(content).not.toContain('# OPSX:END');
       }
     });
   });
@@ -305,11 +305,11 @@ describe('BashInstaller', () => {
       const bashrcPath = path.join(testHomeDir, '.bashrc');
       const content = await fs.readFile(bashrcPath, 'utf-8');
 
-      expect(content).toContain('# OPENSPEC:START');
-      expect(content).toContain('# OPENSPEC:END');
-      expect(content).toContain('# OpenSpec shell completions configuration');
+      expect(content).toContain('# OPSX:START');
+      expect(content).toContain('# OPSX:END');
+      expect(content).toContain('# OPSX shell completions configuration');
       expect(content).toContain(completionsDir);
-      expect(content).toContain(`${completionsDir}/openspec`);
+      expect(content).toContain(`${completionsDir}/opsx`);
       expect(content).not.toContain('for f in');
     });
 
@@ -323,13 +323,13 @@ describe('BashInstaller', () => {
 
       const content = await fs.readFile(bashrcPath, 'utf-8');
 
-      expect(content).toContain('# OPENSPEC:START');
-      expect(content).toContain('# OPENSPEC:END');
+      expect(content).toContain('# OPSX:START');
+      expect(content).toContain('# OPSX:END');
       expect(content).toContain('# My custom bash config');
       expect(content).toContain('alias ll="ls -la"');
 
       // Config should be before existing content
-      const configIndex = content.indexOf('# OPENSPEC:START');
+      const configIndex = content.indexOf('# OPSX:START');
       const aliasIndex = content.indexOf('alias ll');
       expect(configIndex).toBeLessThan(aliasIndex);
     });
@@ -337,12 +337,12 @@ describe('BashInstaller', () => {
     it('should update config between markers when .bashrc has existing markers', async () => {
       const bashrcPath = path.join(testHomeDir, '.bashrc');
       const initialContent = [
-        '# OPENSPEC:START',
+        '# OPSX:START',
         '# Old config',
         'if [ -d "/old/path" ]; then',
         '  . "/old/path"',
         'fi',
-        '# OPENSPEC:END',
+        '# OPSX:END',
         '',
         '# My custom config',
       ].join('\n');
@@ -355,8 +355,8 @@ describe('BashInstaller', () => {
 
       const content = await fs.readFile(bashrcPath, 'utf-8');
 
-      expect(content).toContain('# OPENSPEC:START');
-      expect(content).toContain('# OPENSPEC:END');
+      expect(content).toContain('# OPSX:START');
+      expect(content).toContain('# OPSX:END');
       expect(content).toContain(completionsDir);
       expect(content).not.toContain('# Old config');
       expect(content).not.toContain('/old/path');
@@ -369,9 +369,9 @@ describe('BashInstaller', () => {
         '# My bash config',
         'export PATH="/custom/path:$PATH"',
         '',
-        '# OPENSPEC:START',
-        '# Old OpenSpec config',
-        '# OPENSPEC:END',
+        '# OPSX:START',
+        '# Old OPSX config',
+        '# OPSX:END',
         '',
         'alias ls="ls -G"',
       ].join('\n');
@@ -388,12 +388,12 @@ describe('BashInstaller', () => {
       expect(content).toContain('export PATH="/custom/path:$PATH"');
       expect(content).toContain('alias ls="ls -G"');
       expect(content).toContain(completionsDir);
-      expect(content).not.toContain('# Old OpenSpec config');
+      expect(content).not.toContain('# Old OPSX config');
     });
 
-    it('should return false when OPENSPEC_NO_AUTO_CONFIG is set', async () => {
-      const originalEnv = process.env.OPENSPEC_NO_AUTO_CONFIG;
-      process.env.OPENSPEC_NO_AUTO_CONFIG = '1';
+    it('should return false when OPSX_NO_AUTO_CONFIG is set', async () => {
+      const originalEnv = process.env.OPSX_NO_AUTO_CONFIG;
+      process.env.OPSX_NO_AUTO_CONFIG = '1';
 
       const result = await installer.configureBashrc(completionsDir);
 
@@ -405,9 +405,9 @@ describe('BashInstaller', () => {
 
       // Restore env
       if (originalEnv === undefined) {
-        delete process.env.OPENSPEC_NO_AUTO_CONFIG;
+        delete process.env.OPSX_NO_AUTO_CONFIG;
       } else {
-        process.env.OPENSPEC_NO_AUTO_CONFIG = originalEnv;
+        process.env.OPSX_NO_AUTO_CONFIG = originalEnv;
       }
     });
 
@@ -448,12 +448,12 @@ describe('BashInstaller', () => {
       const content = [
         '# My config',
         '',
-        '# OPENSPEC:START',
-        '# OpenSpec shell completions configuration',
+        '# OPSX:START',
+        '# OPSX shell completions configuration',
         'if [ -d ~/.local/share/bash-completion/completions ]; then',
-        '  . ~/.local/share/bash-completion/completions/openspec',
+        '  . ~/.local/share/bash-completion/completions/opsx',
         'fi',
-        '# OPENSPEC:END',
+        '# OPSX:END',
         '',
         'alias ll="ls -la"',
       ].join('\n');
@@ -466,9 +466,9 @@ describe('BashInstaller', () => {
 
       const newContent = await fs.readFile(bashrcPath, 'utf-8');
 
-      expect(newContent).not.toContain('# OPENSPEC:START');
-      expect(newContent).not.toContain('# OPENSPEC:END');
-      expect(newContent).not.toContain('OpenSpec shell completions configuration');
+      expect(newContent).not.toContain('# OPSX:START');
+      expect(newContent).not.toContain('# OPSX:END');
+      expect(newContent).not.toContain('OPSX shell completions configuration');
       expect(newContent).toContain('# My config');
       expect(newContent).toContain('alias ll="ls -la"');
     });
@@ -478,9 +478,9 @@ describe('BashInstaller', () => {
       const content = [
         'export PATH="/custom:$PATH"',
         '',
-        '# OPENSPEC:START',
+        '# OPSX:START',
         '# Config',
-        '# OPENSPEC:END',
+        '# OPSX:END',
         '',
         'alias g="git"',
       ].join('\n');
@@ -495,7 +495,7 @@ describe('BashInstaller', () => {
 
       expect(newContent).toContain('export PATH="/custom:$PATH"');
       expect(newContent).toContain('alias g="git"');
-      expect(newContent).not.toContain('# OPENSPEC:START');
+      expect(newContent).not.toContain('# OPSX:START');
     });
 
     it('should handle permission errors gracefully', async () => {

@@ -1,0 +1,10 @@
+{
+  "extends": "@likec4/tsconfig/base.json",
+  "compilerOptions": {
+    "module": "esnext",
+  },
+  "include": [
+    "./src",
+    "build.config.ts"
+  ]
+}

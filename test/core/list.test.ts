@@ -12,7 +12,7 @@ describe('ListCommand', () => {
 
   beforeEach(async () => {
     // Create temp directory
-    tempDir = path.join(os.tmpdir(), `openspec-list-test-${Date.now()}`);
+    tempDir = path.join(os.tmpdir(), `opsx-list-test-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
 
     // Mock console.log to capture output
@@ -82,16 +82,16 @@ describe('ListCommand', () => {
   }
 
   describe('execute', () => {
-    it('should handle missing openspec/changes directory', async () => {
+    it('should handle missing .opsx/changes directory', async () => {
       const listCommand = new ListCommand();
       
       await expect(listCommand.execute(tempDir, 'changes')).rejects.toThrow(
-        "No OpenSpec changes directory found. Run 'openspec init' first."
+        "No OPSX changes directory found. Run 'opsx init' first."
       );
     });
 
     it('should handle empty changes directory', async () => {
-      const changesDir = path.join(tempDir, 'openspec', 'changes');
+      const changesDir = path.join(tempDir, '.opsx', 'changes');
       await fs.mkdir(changesDir, { recursive: true });
 
       const listCommand = new ListCommand();
@@ -101,7 +101,7 @@ describe('ListCommand', () => {
     });
 
     it('should exclude archive directory', async () => {
-      const changesDir = path.join(tempDir, 'openspec', 'changes');
+      const changesDir = path.join(tempDir, '.opsx', 'changes');
       await fs.mkdir(path.join(changesDir, 'archive'), { recursive: true });
       await fs.mkdir(path.join(changesDir, 'my-change'), { recursive: true });
       
@@ -120,7 +120,7 @@ describe('ListCommand', () => {
     });
 
     it('should count tasks correctly', async () => {
-      const changesDir = path.join(tempDir, 'openspec', 'changes');
+      const changesDir = path.join(tempDir, '.opsx', 'changes');
       await fs.mkdir(path.join(changesDir, 'test-change'), { recursive: true });
       
       await fs.writeFile(
@@ -142,7 +142,7 @@ Regular text that should be ignored
     });
 
     it('should show complete status for fully completed changes', async () => {
-      const changesDir = path.join(tempDir, 'openspec', 'changes');
+      const changesDir = path.join(tempDir, '.opsx', 'changes');
       await fs.mkdir(path.join(changesDir, 'completed-change'), { recursive: true });
       
       await fs.writeFile(
@@ -157,7 +157,7 @@ Regular text that should be ignored
     });
 
     it('should handle changes without tasks.md', async () => {
-      const changesDir = path.join(tempDir, 'openspec', 'changes');
+      const changesDir = path.join(tempDir, '.opsx', 'changes');
       await fs.mkdir(path.join(changesDir, 'no-tasks'), { recursive: true });
 
       const listCommand = new ListCommand();
@@ -167,7 +167,7 @@ Regular text that should be ignored
     });
 
     it('should sort changes alphabetically when sort=name', async () => {
-      const changesDir = path.join(tempDir, 'openspec', 'changes');
+      const changesDir = path.join(tempDir, '.opsx', 'changes');
       await fs.mkdir(path.join(changesDir, 'zebra'), { recursive: true });
       await fs.mkdir(path.join(changesDir, 'alpha'), { recursive: true });
       await fs.mkdir(path.join(changesDir, 'middle'), { recursive: true });
@@ -185,7 +185,7 @@ Regular text that should be ignored
     });
 
     it('should handle multiple changes with various states', async () => {
-      const changesDir = path.join(tempDir, 'openspec', 'changes');
+      const changesDir = path.join(tempDir, '.opsx', 'changes');
       
       // Complete change
       await fs.mkdir(path.join(changesDir, 'completed'), { recursive: true });
@@ -214,7 +214,7 @@ Regular text that should be ignored
     });
 
     it('should include verifyStatus in JSON output', async () => {
-      const changesDir = path.join(tempDir, 'openspec', 'changes');
+      const changesDir = path.join(tempDir, '.opsx', 'changes');
 
       const freshDir = path.join(changesDir, 'fresh-change');
       await fs.mkdir(freshDir, { recursive: true });
@@ -247,7 +247,7 @@ Regular text that should be ignored
     });
 
     it('capabilities字段包含spec frontmatter中的capabilities', async () => {
-      const specsDir = path.join(tempDir, 'openspec', 'specs');
+      const specsDir = path.join(tempDir, '.opsx', 'specs');
       await fs.mkdir(path.join(specsDir, 'cli-list'), { recursive: true });
       await fs.writeFile(
         path.join(specsDir, 'cli-list', 'spec.md'),
@@ -283,7 +283,7 @@ The system SHALL output JSON.
     });
 
     it('requirements字段来自spec headers并忽略fenced code', async () => {
-      const specsDir = path.join(tempDir, 'openspec', 'specs');
+      const specsDir = path.join(tempDir, '.opsx', 'specs');
       await fs.mkdir(path.join(specsDir, 'cli-list'), { recursive: true });
       await fs.writeFile(
         path.join(specsDir, 'cli-list', 'spec.md'),
@@ -325,7 +325,7 @@ The system SHALL output a table.
     });
 
     it('空数组用于无frontmatter的spec capabilities字段和无requirement headers的requirements字段', async () => {
-      const specsDir = path.join(tempDir, 'openspec', 'specs');
+      const specsDir = path.join(tempDir, '.opsx', 'specs');
       await fs.mkdir(path.join(specsDir, 'legacy'), { recursive: true });
       await fs.writeFile(
         path.join(specsDir, 'legacy', 'spec.md'),

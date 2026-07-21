@@ -1,0 +1,43 @@
+model {
+
+  extend cloud.reporting {
+
+    report_subscriptions = component 'Subscriptions Report' {
+      icon ../images/subscription-report.svg
+
+      -> cloud.billing.subscriptions 'sync daily'
+      -> amazon.rds.pg 'read data'
+      -> cloud.backend.graphql 'read tenants'
+      -> cloud.backend.graphql 'read'
+    }
+
+  }
+
+}
+
+views {
+
+  view reporting of cloud.reporting {
+    #team-two #next #planned
+
+    title 'Context / Cloud / Reporting service'
+
+    link https://github.com/likec4/likec4 'source'
+    link /view/reporting/editor
+    link ./cloud/reporting.c4#L3
+
+    include cloud, *
+    autoLayout BottomTop
+
+    style * {
+      color secondary
+    }
+    style cloud {
+      color muted
+    }
+    style cloud.reporting, cloud.reporting.* {
+      color green
+    }
+  }
+
+}

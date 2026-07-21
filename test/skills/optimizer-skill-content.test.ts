@@ -29,7 +29,7 @@ function normalizeSelfRead(content: string): string {
     .trim();
 }
 
-describe('openspec optimizer skill content', () => {
+describe('opsx optimizer skill content', () => {
   it('uses immutable baseline plus uncommitted name-only scope and avoids diff hunk evidence', () => {
     const instructions = readReference('references/self-read-protocol.md');
 
@@ -70,13 +70,13 @@ describe('openspec optimizer skill content', () => {
     expect(instructions).toContain('dist');
     expect(instructions).toContain('build');
     expect(instructions).toContain('.git');
-    expect(instructions).toContain('openspec arch query');
+    expect(instructions).toContain('opsx arch query');
     expect(instructions).toContain('If relations are missing');
   });
 
   it('keeps codex and claude optimizer skill self-read sections equivalent', () => {
-    const codex = readSkill('openspec/references/openspec-self-read-protocol.md');
-    const claude = readSkill('openspec/references/openspec-self-read-protocol.md');
+    const codex = readSkill('.opsx/references/opsx-self-read-protocol.md');
+    const claude = readSkill('.opsx/references/opsx-self-read-protocol.md');
 
     expect(normalizeSelfRead(codex)).toBe(normalizeSelfRead(claude));
     expect(normalizeSelfRead(codex)).toBe(normalizeSelfRead(readReference('references/self-read-protocol.md')));

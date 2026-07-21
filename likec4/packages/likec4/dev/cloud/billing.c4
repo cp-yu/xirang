@@ -1,0 +1,55 @@
+model {
+
+  extend cloud.billing {
+    #team-two #next
+
+    subscriptions = service 'Subscriptions' {
+      description 'Manage subscriptions'
+
+      -> stripe.api 'manage'
+      -> cloud.backend.graphql 'read tenants'
+    }
+
+  }
+
+  stripe = externalSystem 'Stripe' {
+    description 'Stripe payment system'
+    style {
+      color indigo
+    }
+
+    api = service 'Stripe API' {
+      technology 'REST'
+      style {
+        color indigo
+      }
+    }
+  }
+
+  cloud.billing -> stripe 'use as payment provider'
+
+}
+
+views {
+
+  view billing of cloud.billing {
+    title 'Context / Billing Diagram with Stripe and very long title'
+    include
+      *,
+      cloud,
+      stripe,
+      stripe.*
+
+    style cloud {
+      color muted
+    }
+    style cloud.* {
+      color secondary
+    }
+    style cloud.billing, cloud.billing.* {
+      color green
+    }
+  }
+
+
+}

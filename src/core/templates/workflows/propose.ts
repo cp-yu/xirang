@@ -4,33 +4,33 @@
 import type { SkillTemplate } from '../types.js';
 import {
   ARTIFACT_DOC_LANGUAGE_CONTRACT,
-  OPENSPEC_PHILOSOPHY,
+  OPSX_PHILOSOPHY,
 } from '../fragments/opsx-fragments.js';
 
 export function getOpsxProposeSkillTemplate(): SkillTemplate {
   return {
-    name: 'openspec-propose',
+    name: 'opsx-propose',
     description: 'Propose a new change with all artifacts generated in one step. Use when the user wants to quickly describe what they want to build and get a complete proposal with design, specs, and tasks ready for implementation.',
     instructions: `Propose a new change or update an existing change, generating all artifacts needed for implementation.
 
-${OPENSPEC_PHILOSOPHY}
+${OPSX_PHILOSOPHY}
 
 ## Workflow Stage
 
 | Aspect | Value |
 |--------|-------|
 | **Stage** | \`PROPOSE\` - Artifact generation (no implementation) |
-| **Allowed** | Generate proposal, design, specs, tasks, architecture-delta.c4 in openspec/changes/<name>/ |
+| **Allowed** | Generate proposal, design, specs, tasks, architecture-delta.c4 in .opsx/changes/<name>/ |
 | **Forbidden** | Implement code, modify project files outside the selected change directory |
 
 ## Flow
 
 1. Resolve a provisional kebab-case change ID. Ask one focused question when the requested change itself is unclear. Report status only at readiness, blocker, and final-summary points; do not emit per-artifact progress updates.
 2. Gather read-only evidence before any write.
-   - Run \`openspec list --json\` and inspect relevant existing change artifacts when present.
-   - Load the formal LikeC4 model under \`openspec/architecture/\` through CLI navigation; do not read legacy OPSX YAML.
-   - Run \`openspec list --specs --json\`. A Spec ID identifies \`openspec/specs/<spec-id>/spec.md\`; each item in its \`capabilities\` string array is an associated canonical capability ID. Specs without frontmatter return \`capabilities: []\`.
-   - For known or affected capability IDs, run \`openspec arch query <element-id> --relations --depth 2\`. LikeC4 element IDs use \`domain_name.capability_name\`; metadata retains canonical capability IDs.
+   - Run \`opsx list --json\` and inspect relevant existing change artifacts when present.
+   - Load the formal LikeC4 model under \`.opsx/architecture/\` through CLI navigation; do not read legacy OPSX YAML.
+   - Run \`opsx list --specs --json\`. A Spec ID identifies \`.opsx/specs/<spec-id>/spec.md\`; each item in its \`capabilities\` string array is an associated canonical capability ID. Specs without frontmatter return \`capabilities: []\`.
+   - For known or affected capability IDs, run \`opsx arch query <element-id> --relations --depth 2\`. LikeC4 element IDs use \`domain_name.capability_name\`; metadata retains canonical capability IDs.
    - Use implementation evidence only where needed to resolve current behavior or lowering constraints.
 3. Assess semantic readiness.
    - Reuse a confirmed \`Design Summary\` when the conversation contains one, and state that it is being reused. Route architecture decisions to proposal Architecture Source, \`design.md\`, and \`architecture-delta.c4\`; route testing strategy to \`design.md\` and concrete test work to \`tasks.md\`; route risk and trade-off decisions to \`design.md\`.
@@ -40,16 +40,16 @@ ${OPENSPEC_PHILOSOPHY}
    - For an existing change, assess readiness from existing artifacts, current input, the confirmed Design Summary, formal source, and implementation evidence together.
    - Keep readiness, missing-item, and override state in the conversation only; do not copy it into change artifacts.
 4. Resolve change identity after readiness passes or is explicitly overridden.
-   - If the user explicitly requests a new change and the ID is unused, run \`openspec new change "<name>"\`.
+   - If the user explicitly requests a new change and the ID is unused, run \`opsx new change "<name>"\`.
    - If the user explicitly requests a new change and the ID already exists, stop and ask for a different ID. Do not overwrite, continue, or synthesize an alternative ID.
    - If the user explicitly requests an existing change, update that change in place without asking for another ID.
    - If intent is ambiguous and the ID exists, ask whether to update the existing change or create an independent new change; in non-interactive mode, fail and request an explicit choice.
-   - Run \`openspec status --change "<name>" --json\` for \`applyRequires\`, artifact order, dependencies, and schema.
+   - Run \`opsx status --change "<name>" --json\` for \`applyRequires\`, artifact order, dependencies, and schema.
 5. Determine source impact before writing \`proposal.md\`.
    - Compare requested observable behavior with formal Specs. Reuse an existing Spec that owns the behavior; propose a New Spec only for genuinely new observable behavior. A capability without Spec coverage does not by itself require a New Spec.
    - Compare durable architecture impact with the formal LikeC4 model. Identify affected element IDs, responsibility, ownership, boundaries, and semantic relations. Implementation movement or call/import evidence alone is not an architecture-source change.
    - Determine Behavior Source and Architecture Source independently. Behavior Source uses \`New Specs\` or \`Modified Specs\` with Spec IDs; Architecture Source uses LikeC4 element IDs. Use \`None\` only when that source truly does not change.
-6. Generate ready artifacts in dependency order. For each artifact, run \`openspec instructions <artifact-id> --change "<name>" --json\`.
+6. Generate ready artifacts in dependency order. For each artifact, run \`opsx instructions <artifact-id> --change "<name>" --json\`.
    - For each response, follow the authoring order in the returned \`instruction\`. Keep \`definition\`, dependencies, \`currentState\`, \`configProjection\`, and \`template\` as separate inputs; do not copy non-artifact inputs into artifacts.
    - For \`proposal.md\`, write \`## Source Impact\` with independent Behavior Source and Architecture Source sections. Keep Spec IDs distinct from LikeC4 element IDs.
    - When creating \`specs\`, create or modify only the Spec IDs declared under proposal \`Behavior Source\`. Read the exact Requirement titles from the formal Spec before authoring ADDED, MODIFIED, REMOVED, or RENAMED deltas. Rely on combined change validation for deterministic header compatibility. Follow the returned Specs authoring contract. Agent MUST NOT author scenario operation labels.
@@ -58,21 +58,21 @@ ${OPENSPEC_PHILOSOPHY}
 8. After Specs and Design are complete, reconcile architecture scope before generating \`architecture-delta.c4\`.
    - Re-read proposal Architecture Source, \`design.md\`, the formal LikeC4 model, and current implementation evidence.
    - If Design confirms a different durable architecture impact, update only proposal \`Architecture Source\` to declare final scope.
-   - Read \`openspec/references/likec4-authoring.md\`. Extend an existing domain with \`extend existing_domain { ... }\`; use change-local specs metadata such as \`specs ['openspec/changes/<name>/specs/...']\`.
+   - Read \`.opsx/references/likec4-authoring.md\`. Extend an existing domain with \`extend existing_domain { ... }\`; use change-local specs metadata such as \`specs ['.opsx/changes/<name>/specs/...']\`.
    - Encode semantic relationship kinds with LikeC4 kind syntax, for example \`source -[invokes]-> target\`; never encode a kind as a relationship title.
    - If Architecture Source is \`None\`, omit \`architecture-delta.c4\`; do not invent architecture operations from behavior changes alone.
-   - Validate a generated delta with \`openspec arch validate --delta openspec/changes/<name>/architecture-delta.c4\` and fix all errors before continuing.
+   - Validate a generated delta with \`opsx arch validate --delta .opsx/changes/<name>/architecture-delta.c4\` and fix all errors before continuing.
 9. Check compilation scaffolding before semantic-source validation.
-   - Run \`openspec instructions proposal --change "<name>" --json\` and \`openspec instructions design --change "<name>" --json\`; compare each file with its current resolved definition and template.
-   - Run \`openspec instructions tasks --change "<name>" --json\` and use deterministic \`validateTaskStructure\`. Support Actions and coarse \`### Task N:\`, Goal, Files, Requirements, Checks, Covers:, Verifies:, change-local \`Verifies:\` spec paths, Requirement/Scenario references, Command:, Evidence:, and Expect:. Do NOT invent semantic lint rules beyond the current templates. Do NOT judge whether a check is semantically sufficient.
-10. Run combined change validation exactly once with \`openspec validate --change "<name>" --json\`. Do NOT run \`openspec sync\`.
+   - Run \`opsx instructions proposal --change "<name>" --json\` and \`opsx instructions design --change "<name>" --json\`; compare each file with its current resolved definition and template.
+   - Run \`opsx instructions tasks --change "<name>" --json\` and use deterministic \`validateTaskStructure\`. Support Actions and coarse \`### Task N:\`, Goal, Files, Requirements, Checks, Covers:, Verifies:, change-local \`Verifies:\` spec paths, Requirement/Scenario references, Command:, Evidence:, and Expect:. Do NOT invent semantic lint rules beyond the current templates. Do NOT judge whether a check is semantically sufficient.
+10. Run combined change validation exactly once with \`opsx validate --change "<name>" --json\`. Do NOT run \`opsx sync\`.
     - ERROR from either scaffolding checks or combined change validation blocks ready-for-apply. Perform at most one repair pass, re-check once, and stop with the remaining blockers if any ERROR remains.
     - WARNING does not block ready-for-apply; retain it for the final summary.
-11. After validation passes, run \`openspec scenario-labels "<name>" --preview --json\`.
+11. After validation passes, run \`opsx scenario-labels "<name>" --preview --json\`.
     - Compare every suggested ADDED, MODIFIED, or REMOVED operation with proposal Behavior Source and the intended delta.
     - Unexpected ADDED, MODIFIED, or REMOVED operations block label writing. Correct the Spec, rerun combined change validation, and preview again.
-    - When the preview matches intent, run \`openspec scenario-labels "<name>" --write\`. This deterministic write does not require a second validate pass. Labels remain change-local review metadata; sync/archive consume and clean existing labels but do not generate them.
-12. Finish with \`openspec status --change "<name>"\`. Summarize artifacts created or updated, validation errors and warnings, scenario-label results, and readiness for \`/opsx:apply\`.
+    - When the preview matches intent, run \`opsx scenario-labels "<name>" --write\`. This deterministic write does not require a second validate pass. Labels remain change-local review metadata; sync/archive consume and clean existing labels but do not generate them.
+12. Finish with \`opsx status --change "<name>"\`. Summarize artifacts created or updated, validation errors and warnings, scenario-label results, and readiness for \`/opsx:apply\`.
 
 ## Artifact Contract
 
@@ -80,7 +80,7 @@ ${ARTIFACT_DOC_LANGUAGE_CONTRACT}
 
 Keep tasks coarse: \`### Task N:\`, \`Goal\`, \`Files\`, \`Requirements\`, and nested Checks; at most 5 Requirements per task. Preserve canonical headings, IDs, schema keys, paths, commands, BDD keywords, and code identifiers.`,
     license: 'MIT',
-    compatibility: 'Requires openspec CLI.',
-    metadata: { author: 'openspec', version: '1.0' },
+    compatibility: 'Requires opsx CLI.',
+    metadata: { author: 'opsx', version: '1.0' },
   };
 }

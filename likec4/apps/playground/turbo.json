@@ -1,0 +1,31 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": [
+    "//"
+  ],
+  "tasks": {
+    "generate": {
+      "dependsOn": [
+        "sources",
+        "^generate"
+      ],
+      "outputs": [
+        "src/routeTree.gen.ts",
+        "worker-configuration.d.ts",
+        "styled-system/**"
+      ]
+    },
+    "build": {
+      "dependsOn": [
+        "generate",
+        "@likec4/core#build",
+        "@likec4/diagram#build",
+        "@likec4/language-server#build"
+      ],
+      "outputs": [
+        ".wrangler/deploy/**",
+        "dist/**"
+      ]
+    }
+  }
+}

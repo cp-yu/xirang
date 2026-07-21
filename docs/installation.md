@@ -2,64 +2,44 @@
 
 ## Prerequisites
 
-- **Node.js 22.22.3 or higher** — Check your version: `node --version`
+- Node.js 22.22.3 or newer
+- pnpm 9 or newer
+- Git with subtree support
 
-## GitHub Release Install
+OPSX currently runs from source. It does not publish an npm package and does not download or build LikeC4 from lifecycle hooks.
 
-Install the packaged tarball from a GitHub Release:
-
-```bash
-npm install -g https://github.com/cp-yu/opsx/releases/download/v1.4.1-cpyu.5/fission-ai-openspec-1.4.1-cpyu.5.tgz
-```
-
-Replace `1.4.1-cpyu.5` with the version you want to install.
-
-This installs a prebuilt package asset, so users do not need a Git dependency build during installation.
-
-## Nix
-
-Run OpenSpec directly without installation:
+## Build From Source
 
 ```bash
-nix run github:cp-yu/opsx -- init
+git clone https://github.com/cp-yu/opsx.git
+cd opsx
+pnpm install --frozen-lockfile
+pnpm --dir likec4 install --frozen-lockfile
+pnpm --dir likec4 build
+pnpm build
+node bin/opsx.js --version
 ```
 
-Or install to your profile:
+The root project and `likec4/` are independent pnpm workspaces. Install and build each workspace explicitly. The CLI resolves only `likec4/packages/likec4/bin/likec4.mjs` from the vendored subtree.
 
-```bash
-nix profile install github:cp-yu/opsx
-```
+For local command access, invoke the repository binary directly or link the built root package with the package manager used by your environment.
 
-Or add to your development environment in `flake.nix`:
-
-```nix
-{
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    openspec.url = "github:cp-yu/opsx";
-  };
-
-  outputs = { nixpkgs, openspec, ... }: {
-    devShells.x86_64-linux.default = nixpkgs.legacyPackages.x86_64-linux.mkShell {
-      buildInputs = [ openspec.packages.x86_64-linux.default ];
-    };
-  };
-}
-```
-
-## Verify Installation
-
-```bash
-openspec --version
-```
-
-## Next Steps
-
-After installing, initialize OpenSpec in your project:
+## Initialize A Project
 
 ```bash
 cd your-project
-openspec init
+/path/to/opsx/bin/opsx.js init
 ```
 
-See [Getting Started](getting-started.md) for a full walkthrough.
+Initialization creates `.opsx/` and installs managed workflow skills for the selected agent tools.
+
+## Verify The Browser
+
+```bash
+cd your-project
+/path/to/opsx/bin/opsx.js view --port 5173
+```
+
+Open `http://localhost:5173`. No external LikeC4 installation is used.
+
+See [Getting Started](getting-started.md) for the workflow and [Supported Tools](supported-tools.md) for agent-specific skill locations.

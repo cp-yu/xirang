@@ -31,7 +31,7 @@ function isGhAuthenticated(): boolean {
 }
 
 /**
- * Get OpenSpec version from package.json
+ * Get OPSX version from package.json
  */
 function getVersion(): string {
   try {
@@ -65,7 +65,7 @@ function generateMetadata(): string {
   const timestamp = getTimestamp();
 
   return `---
-Submitted via OpenSpec CLI
+Submitted via OPSX CLI
 - Version: ${version}
 - Platform: ${platform}
 - Timestamp: ${timestamp}`;

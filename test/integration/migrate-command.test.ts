@@ -37,17 +37,17 @@ relations:
 describe('migrate opsx-to-likec4 command', () => {
   let root: string;
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-migrate-command-'));
-    await fs.mkdir(path.join(root, 'openspec'), { recursive: true });
-    await fs.writeFile(path.join(root, 'openspec', 'project.opsx.yaml'), main);
-    await fs.writeFile(path.join(root, 'openspec', 'project.opsx.relations.yaml'), relations);
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-migrate-command-'));
+    await fs.mkdir(path.join(root, '.opsx'), { recursive: true });
+    await fs.writeFile(path.join(root, '.opsx', 'project.opsx.yaml'), main);
+    await fs.writeFile(path.join(root, '.opsx', 'project.opsx.relations.yaml'), relations);
   });
   afterEach(async () => fs.rm(root, { recursive: true, force: true }));
 
   it('should migrate complete project structure', async () => {
     const result = await runCLI(['migrate', 'opsx-to-likec4'], { cwd: root });
     expect(result.exitCode).toBe(0);
-    await expect(fs.access(path.join(root, 'openspec', 'architecture', 'domains', 'core.c4'))).resolves.toBeUndefined();
+    await expect(fs.access(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'))).resolves.toBeUndefined();
   });
 
   it('should expose migrated relations through arch query', async () => {
@@ -68,17 +68,17 @@ describe('migrate opsx-to-likec4 command', () => {
     const result = await runCLI(['migrate', 'opsx-to-likec4', '--dry-run'], { cwd: root });
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Preview of generated files');
-    await expect(fs.access(path.join(root, 'openspec', 'architecture'))).rejects.toThrow();
+    await expect(fs.access(path.join(root, '.opsx', 'architecture'))).rejects.toThrow();
   });
 
   it('should generate a structured agent verification handoff report', async () => {
     const result = await runCLI(['migrate', 'opsx-to-likec4', '--agent-verify'], { cwd: root });
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('"skill": "openspec-verify-migration"');
+    expect(result.stdout).toContain('"skill": "opsx-verify-migration"');
     expect(result.stdout).toContain('"valid": true');
-    const report = JSON.parse(await fs.readFile(path.join(root, 'openspec', 'architecture', 'migration-report.json'), 'utf8'));
+    const report = JSON.parse(await fs.readFile(path.join(root, '.opsx', 'architecture', 'migration-report.json'), 'utf8'));
     expect(report).toMatchObject({
-      skill: 'openspec-verify-migration',
+      skill: 'opsx-verify-migration',
       scope: 'opsx-source-to-generated-likec4',
       baseline: 'pre-formal-reconciliation',
       valid: true,
@@ -90,7 +90,7 @@ describe('migrate opsx-to-likec4 command', () => {
   it('should preserve original OPSX as backup', async () => {
     const result = await runCLI(['migrate', 'opsx-to-likec4'], { cwd: root });
     expect(result.exitCode).toBe(0);
-    await expect(fs.readFile(path.join(root, 'openspec', 'project.opsx.yaml.backup'), 'utf8')).resolves.toBe(main);
-    await expect(fs.readFile(path.join(root, 'openspec', 'project.opsx.relations.yaml.backup'), 'utf8')).resolves.toBe(relations);
+    await expect(fs.readFile(path.join(root, '.opsx', 'project.opsx.yaml.backup'), 'utf8')).resolves.toBe(main);
+    await expect(fs.readFile(path.join(root, '.opsx', 'project.opsx.relations.yaml.backup'), 'utf8')).resolves.toBe(relations);
   });
 });

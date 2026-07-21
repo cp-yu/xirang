@@ -9,12 +9,12 @@ import { runCLI } from '../helpers/run-cli.js';
 describe('LikeC4 validation integration', () => {
   let root: string;
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-likec4-validation-'));
-    const domains = path.join(root, 'openspec', 'architecture', 'domains');
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-likec4-validation-'));
+    const domains = path.join(root, '.opsx', 'architecture', 'domains');
     await fs.mkdir(domains, { recursive: true });
-    await fs.writeFile(path.join(root, 'openspec', 'architecture', 'specification.c4'), 'specification { element domain element capability }');
+    await fs.writeFile(path.join(root, '.opsx', 'architecture', 'specification.c4'), 'specification { element domain element capability }');
     await fs.writeFile(path.join(domains, 'core.c4'), "model { core = domain 'Core' }");
-    await fs.writeFile(path.join(root, 'openspec', 'architecture', 'views.c4'), 'views { view index { include * } }');
+    await fs.writeFile(path.join(root, '.opsx', 'architecture', 'views.c4'), 'views { view index { include * } }');
   });
   afterEach(async () => fs.rm(root, { recursive: true, force: true }));
 
@@ -30,7 +30,7 @@ describe('LikeC4 validation integration', () => {
   });
 
   it('should use native LikeC4 validation for change deltas', async () => {
-    const change = path.join(root, 'openspec', 'changes', 'invalid-native');
+    const change = path.join(root, '.opsx', 'changes', 'invalid-native');
     await fs.mkdir(change, { recursive: true });
     await fs.writeFile(path.join(change, 'proposal.md'), '# Invalid native delta');
     await fs.writeFile(path.join(change, '.specs-noop'), '');

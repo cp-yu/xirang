@@ -1,0 +1,58 @@
+model {
+  change_workflow = domain 'Change Workflow' {
+    description '管理完整变更生命周期 — 创建、增量规约操作、归档及合并到主规约'
+
+    metadata {
+      boundary '拥有变更目录和增量合并逻辑。不拥有规约内容验证规则。'
+      status 'active'
+    }
+
+    branch_merge = capability 'Branch Merge' {
+      description '归档后的 git commit、merge 与 branch cleanup 由 agent 无条件继续处理；agent 先提交残余实现 diff（如有），再无条件创建 --allow-empty 的 semantic boundary commit 承载完整 change 总结（Why/Changes + Implementation footer），随后提交归档制品；message 模板按 git.commitMessage.* 路径覆盖或 .opsx/references/ 内置模板路由'
+      metadata {
+        capabilityId 'cap.archive.branch-merge'
+        status 'active'
+      }
+    }
+
+    archive = capability 'Archive' {
+      description '归档已完成的变更，移动变更到 archive；archive 在校验通过后将 change 目录移入 archive，不执行 Specs 或 LikeC4 写入操作；同步合并由 opsx sync 独立完成'
+      metadata {
+        capabilityId 'cap.change.archive'
+        status 'active'
+      }
+    }
+
+    create = capability 'Create' {
+      description '变更创建和管理，支持新的 explore → propose 工作流和 apply 直接执行任务模型'
+      metadata {
+        capabilityId 'cap.change.create'
+        status 'active'
+      }
+    }
+
+    discovery = capability 'Discovery' {
+      description '发现和列举项目中的变更和规约'
+      metadata {
+        capabilityId 'cap.change.discovery'
+        status 'active'
+      }
+    }
+
+    metadata_element = capability 'Metadata Element' {
+      description '管理变更元数据（创建时间、状态、描述）'
+      metadata {
+        capabilityId 'cap.change.metadata'
+        status 'active'
+      }
+    }
+
+    specs_sync = capability 'Specs Sync' {
+      description '将变更中的 delta Specs 和 architecture-delta.c4 同步到 formal Specs 与 LikeC4；relations 归并到 canonical relations.c4；sync 不写回 change-local scenario operation labels，写入 formal Specs 前清洗已有 labels；重复 sync 对 normalized requirement 内容保持幂等'
+      metadata {
+        capabilityId 'cap.change.specs-sync'
+        status 'active'
+      }
+    }
+  }
+}

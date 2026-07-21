@@ -1,129 +1,74 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { promises as fs } from 'fs';
-import path from 'path';
-import os from 'os';
-import { ViewCommand } from '../../src/core/view.js';
-
-const stripAnsi = (input: string): string => input.replace(/\u001b\[[0-9;]*m/g, '');
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { promises as fs } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { ViewCommand, type ViewLauncher } from '../../src/core/view.js';
 
 describe('ViewCommand', () => {
   let tempDir: string;
-  let originalLog: typeof console.log;
-  let logOutput: string[] = [];
 
   beforeEach(async () => {
-    tempDir = path.join(os.tmpdir(), `openspec-view-test-${Date.now()}`);
-    await fs.mkdir(tempDir, { recursive: true });
-
-    originalLog = console.log;
-    console.log = (...args: any[]) => {
-      logOutput.push(args.join(' '));
-    };
-
-    logOutput = [];
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-view-test-'));
   });
 
   afterEach(async () => {
-    console.log = originalLog;
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  it('shows changes with no tasks in Draft section, not Completed', async () => {
-    const changesDir = path.join(tempDir, 'openspec', 'changes');
-    await fs.mkdir(changesDir, { recursive: true });
+  it('starts the embedded LikeC4 view for an OPSX project', async () => {
+    const architectureDir = path.join(tempDir, '.opsx', 'architecture');
+    await fs.mkdir(architectureDir, { recursive: true });
+    const launch = vi.fn<ViewLauncher>().mockResolvedValue(undefined);
 
-    // Empty change (no tasks.md) - should show in Draft
-    await fs.mkdir(path.join(changesDir, 'empty-change'), { recursive: true });
+    await new ViewCommand(launch).execute(tempDir);
 
-    // Change with tasks.md but no tasks - should show in Draft
-    await fs.mkdir(path.join(changesDir, 'no-tasks-change'), { recursive: true });
-    await fs.writeFile(path.join(changesDir, 'no-tasks-change', 'tasks.md'), '# Tasks\n\nNo tasks yet.');
-
-    // Change with all tasks complete - should show in Completed
-    await fs.mkdir(path.join(changesDir, 'completed-change'), { recursive: true });
-    await fs.writeFile(
-      path.join(changesDir, 'completed-change', 'tasks.md'),
-      '- [x] Done task\n'
-    );
-
-    const viewCommand = new ViewCommand();
-    await viewCommand.execute(tempDir);
-
-    const output = logOutput.map(stripAnsi).join('\n');
-
-    // Draft section should contain empty and no-tasks changes
-    expect(output).toContain('Draft Changes');
-    expect(output).toContain('empty-change');
-    expect(output).toContain('no-tasks-change');
-
-    // Completed section should only contain changes with all tasks done
-    expect(output).toContain('Tasks Done');
-    expect(output).toContain('completed-change');
-    expect(output).toContain('Tasks Done: 1');
-
-    // Verify empty-change and no-tasks-change are in Draft section (marked with ○)
-    const draftLines = logOutput
-      .map(stripAnsi)
-      .filter((line) => line.includes('○'));
-    const draftNames = draftLines.map((line) => line.trim().replace('○ ', ''));
-    expect(draftNames).toContain('empty-change');
-    expect(draftNames).toContain('no-tasks-change');
-
-    // Verify completed-change is in Completed section (marked with ✓)
-    const completedLines = logOutput
-      .map(stripAnsi)
-      .filter((line) => line.includes('✓'));
-    const completedNames = completedLines.map((line) => line.trim().replace('✓ ', ''));
-    expect(completedNames).toContain('completed-change');
-    expect(completedNames).not.toContain('empty-change');
-    expect(completedNames).not.toContain('no-tasks-change');
+    expect(launch).toHaveBeenCalledOnce();
+    expect(launch).toHaveBeenCalledWith({
+      projectRoot: tempDir,
+      architectureDir,
+      port: undefined,
+    });
   });
 
-  it('sorts active changes by completion percentage ascending with deterministic tie-breakers', async () => {
-    const changesDir = path.join(tempDir, 'openspec', 'changes');
-    await fs.mkdir(changesDir, { recursive: true });
+  it('passes a custom port to the embedded server', async () => {
+    const architectureDir = path.join(tempDir, '.opsx', 'architecture');
+    await fs.mkdir(architectureDir, { recursive: true });
+    const launch = vi.fn<ViewLauncher>().mockResolvedValue(undefined);
 
-    await fs.mkdir(path.join(changesDir, 'gamma-change'), { recursive: true });
-    await fs.writeFile(
-      path.join(changesDir, 'gamma-change', 'tasks.md'),
-      '- [x] Done\n- [x] Also done\n- [ ] Not done\n'
-    );
+    await new ViewCommand(launch).execute(tempDir, { port: 4321 });
 
-    await fs.mkdir(path.join(changesDir, 'beta-change'), { recursive: true });
-    await fs.writeFile(
-      path.join(changesDir, 'beta-change', 'tasks.md'),
-      '- [x] Task 1\n- [ ] Task 2\n'
-    );
-
-    await fs.mkdir(path.join(changesDir, 'delta-change'), { recursive: true });
-    await fs.writeFile(
-      path.join(changesDir, 'delta-change', 'tasks.md'),
-      '- [x] Task 1\n- [ ] Task 2\n'
-    );
-
-    await fs.mkdir(path.join(changesDir, 'alpha-change'), { recursive: true });
-    await fs.writeFile(
-      path.join(changesDir, 'alpha-change', 'tasks.md'),
-      '- [ ] Task 1\n- [ ] Task 2\n'
-    );
-
-    const viewCommand = new ViewCommand();
-    await viewCommand.execute(tempDir);
-
-    const activeLines = logOutput
-      .map(stripAnsi)
-      .filter(line => line.includes('◉'));
-
-    const activeOrder = activeLines.map(line => {
-      const afterBullet = line.split('◉')[1] ?? '';
-      return afterBullet.split('[')[0]?.trim();
+    expect(launch).toHaveBeenCalledWith({
+      projectRoot: tempDir,
+      architectureDir,
+      port: 4321,
     });
+  });
 
-    expect(activeOrder).toEqual([
-      'alpha-change',
-      'beta-change',
-      'delta-change',
-      'gamma-change'
-    ]);
+  it('discovers the nearest OPSX project from a nested directory', async () => {
+    const outerArchitecture = path.join(tempDir, '.opsx', 'architecture');
+    const innerRoot = path.join(tempDir, 'packages', 'feature');
+    const innerArchitecture = path.join(innerRoot, '.opsx', 'architecture');
+    const nestedDir = path.join(innerRoot, 'src', 'nested');
+    await fs.mkdir(outerArchitecture, { recursive: true });
+    await fs.mkdir(innerArchitecture, { recursive: true });
+    await fs.mkdir(nestedDir, { recursive: true });
+    const launch = vi.fn<ViewLauncher>().mockResolvedValue(undefined);
+
+    await new ViewCommand(launch).execute(nestedDir);
+
+    expect(launch).toHaveBeenCalledWith({
+      projectRoot: innerRoot,
+      architectureDir: innerArchitecture,
+      port: undefined,
+    });
+  });
+
+  it('fails without launching when no OPSX project exists', async () => {
+    const launch = vi.fn<ViewLauncher>().mockResolvedValue(undefined);
+
+    await expect(new ViewCommand(launch).execute(tempDir)).rejects.toThrow(
+      '未找到 OPSX 项目',
+    );
+    expect(launch).not.toHaveBeenCalled();
   });
 });

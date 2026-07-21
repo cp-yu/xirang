@@ -11,10 +11,10 @@ afterEach(async () => Promise.all(roots.splice(0).map(root => fs.rm(root, { recu
 
 describe('large OPSX migration', () => {
   it('migrates 1000 capabilities in under 60 seconds', async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-likec4-large-'));
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-likec4-large-'));
     roots.push(root);
-    const openspec = path.join(root, 'openspec');
-    await fs.mkdir(openspec, { recursive: true });
+    const opsx = path.join(root, '.opsx');
+    await fs.mkdir(opsx, { recursive: true });
     const domains = Array.from({ length: 10 }, (_, index) => ({
       id: `dom.domain-${index}`,
       type: 'domain',
@@ -32,13 +32,13 @@ describe('large OPSX migration', () => {
       type: 'belongs_to',
       to: `dom.${capability.id.split('.')[1]}`,
     }));
-    await fs.writeFile(path.join(openspec, 'project.opsx.yaml'), stringifyYaml({
+    await fs.writeFile(path.join(opsx, 'project.opsx.yaml'), stringifyYaml({
       schema_version: 2,
       project: { id: 'large', name: 'Large Project' },
       domains,
       capabilities,
     }));
-    await fs.writeFile(path.join(openspec, 'project.opsx.relations.yaml'), stringifyYaml({ schema_version: 2, relations }));
+    await fs.writeFile(path.join(opsx, 'project.opsx.relations.yaml'), stringifyYaml({ schema_version: 2, relations }));
 
     const startedAt = performance.now();
     const model = await convertOpsxToLikeC4(root);

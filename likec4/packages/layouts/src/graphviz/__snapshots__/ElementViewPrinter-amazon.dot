@@ -1,0 +1,84 @@
+digraph {
+  likec4_viewId = "amazon";
+  bgcolor = "transparent";
+  layout = "dot";
+  compound = true;
+  rankdir = "TB";
+  TBbalance = "min";
+  splines = "spline";
+  outputorder = "nodesfirst";
+  nodesep = 1.528;
+  ranksep = 1.667;
+  pad = 0.209;
+  fontname = "Arial";
+  graph [
+    fontsize = 20;
+    labeljust = "l";
+    labelloc = "t";
+    margin = 50.1;
+  ];
+  edge [
+    arrowsize = 0.75;
+    fontname = "Arial";
+    fontsize = 14;
+    penwidth = 2;
+    color = "#8D8D8D";
+    fontcolor = "#C9C9C9";
+    style = "dashed";
+  ];
+  node [
+    fontname = "Arial";
+    shape = "rect";
+    fillcolor = "#3b82f6";
+    fontcolor = "#eff6ff";
+    color = "#2563eb";
+    style = "filled";
+    penwidth = 0;
+  ];
+  "backend" [
+    likec4_id = "cloud.backend";
+    likec4_level = 1;
+    label = <<FONT POINT-SIZE="20">Backend</FONT>>;
+    margin = "0.223,0.223";
+    width = 4.445;
+    height = 2.5;
+  ];
+  "s3" [
+    likec4_id = "amazon.s3";
+    likec4_level = 1;
+    label = <<TABLE BORDER="0" CELLPADDING="0" CELLSPACING="4"><TR><TD><FONT POINT-SIZE="20">S3</FONT></TD></TR><TR><TD><FONT POINT-SIZE="15" COLOR="#bfdbfe">S3 is a storage service</FONT></TD></TR></TABLE>>;
+    margin = "0.223,0.223";
+    width = 4.445;
+    height = 2.5;
+  ];
+  subgraph "cluster_cloud" {
+    likec4_id = "cloud";
+    likec4_level = 0;
+    likec4_depth = 1;
+    fillcolor = "#194b9e";
+    color = "#1b3d88";
+    style = "filled";
+    margin = 32;
+    label = <<FONT POINT-SIZE="11" COLOR="#bfdbfeb3"><B>CLOUD</B></FONT>>;
+    "backend";
+  }
+  subgraph "cluster_amazon" {
+    likec4_id = "amazon";
+    likec4_level = 0;
+    likec4_depth = 1;
+    fillcolor = "#194b9e";
+    color = "#1b3d88";
+    style = "filled";
+    margin = 32;
+    label = <<FONT POINT-SIZE="11" COLOR="#bfdbfeb3"><B>AMAZON</B></FONT>>;
+    "s3";
+  }
+  "backend" -> "s3" [
+    likec4_id = "cloud.backend:amazon.s3";
+    label = <<TABLE BORDER="0" CELLPADDING="3" CELLSPACING="0" BGCOLOR="#18191BA0"><TR><TD ALIGN="TEXT" BALIGN="LEFT"><FONT POINT-SIZE="14">persists artifacts</FONT></TD></TR></TABLE>>;
+    weight = 3;
+    arrowhead = "normal";
+    arrowtail = "odiamond";
+    dir = "both";
+  ];
+}

@@ -12,6 +12,7 @@ import {
   type RuntimeProjection,
 } from '../core/config-projection.js';
 import { backfillSpecs, type BackfillSpecsResult } from '../core/backfill-specs.js';
+import { OPSX_DIR_NAME } from '../core/config.js';
 import { readProjectConfig } from '../core/project-config.js';
 import { validateRelationGraph } from '../core/relations/validator.js';
 import { Validator } from '../core/validation/validator.js';
@@ -31,12 +32,12 @@ import {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-export const BOOTSTRAP_DIR = 'openspec/bootstrap';
-export const BOOTSTRAP_HISTORY_DIR = 'openspec/bootstrap-history';
+export const BOOTSTRAP_DIR = path.join(OPSX_DIR_NAME, 'bootstrap');
+export const BOOTSTRAP_HISTORY_DIR = path.join(OPSX_DIR_NAME, 'bootstrap-history');
 export const DEFAULT_BOOTSTRAP_PROJECT_ID = 'project';
 export const DEFAULT_BOOTSTRAP_PROJECT_NAME = 'Project';
 export const BOOTSTRAP_WORKSPACE_RETAINED_NOTICE =
-  'Bootstrap workspace retained at openspec/bootstrap/. To start the next refresh run with retained granularity, use `openspec bootstrap init --mode refresh --restart`; pass `--granularity coarse|fine` to override it. Delete the workspace only when you no longer need the audit trail.';
+  'Bootstrap workspace retained at .opsx/bootstrap/. To start the next refresh run with retained granularity, use `opsx bootstrap init --mode refresh --restart`; pass `--granularity coarse|fine` to override it. Delete the workspace only when you no longer need the audit trail.';
 export const BOOTSTRAP_METADATA_FILE = '.bootstrap.yaml';
 export const BOOTSTRAP_SCOPE_FILE = 'scope.yaml';
 export const BOOTSTRAP_EVIDENCE_FILE = 'evidence.yaml';
@@ -364,7 +365,7 @@ const DOMAIN_CONFIDENCE_ORDER: Record<EvidenceDomain['confidence'], number> = {
 };
 
 async function hasRealSpecContent(projectRoot: string): Promise<boolean> {
-  const specsDir = FileSystemUtils.joinPath(projectRoot, 'openspec/specs');
+  const specsDir = FileSystemUtils.joinPath(projectRoot, OPSX_DIR_NAME, 'specs');
   if (!await FileSystemUtils.directoryExists(specsDir)) {
     return false;
   }
@@ -398,7 +399,7 @@ function buildBootstrapRestartCommand(baselineType: BootstrapBaselineType): stri
     return null;
   }
 
-  return `openspec bootstrap init --mode ${allowedModes[0]} --restart`;
+  return `opsx bootstrap init --mode ${allowedModes[0]} --restart`;
 }
 
 function hasExplicitCompletionMarker(metadata: BootstrapMetadata): boolean {
@@ -524,7 +525,7 @@ function candidateSpecPath(projectRoot: string, folder: string): string {
 }
 
 function formalSpecPath(projectRoot: string, folder: string): string {
-  return FileSystemUtils.joinPath(projectRoot, 'openspec', 'specs', folder, 'spec.md');
+  return FileSystemUtils.joinPath(projectRoot, OPSX_DIR_NAME, 'specs', folder, 'spec.md');
 }
 
 function compareConfidence(a: EvidenceDomain['confidence'], b: EvidenceDomain['confidence']): number {
@@ -925,8 +926,8 @@ async function assembleCandidateSpecs(
         }
         seenFolders.set(folder, `spec_group:${folder}`);
 
-        const candidateRelativePath = `openspec/bootstrap/candidate/specs/${folder}/spec.md`;
-        const formalRelativePath = `openspec/specs/${folder}/spec.md`;
+        const candidateRelativePath = `.opsx/bootstrap/candidate/specs/${folder}/spec.md`;
+        const formalRelativePath = `.opsx/specs/${folder}/spec.md`;
         const existingFormalPath = formalSpecPath(projectRoot, folder);
         const alreadyExists = await FileSystemUtils.fileExists(existingFormalPath);
         if (state.metadata.mode === 'refresh' && alreadyExists) {
@@ -981,7 +982,7 @@ async function assembleCandidateSpecs(
 
     for (const capability of [...mapFile.capabilities].sort((a, b) => a.id.localeCompare(b.id))) {
       if (restrictToAddedCapabilities && !restrictToAddedCapabilities.has(capability.id)) {
-        const formalPath = capability.spec ? `openspec/specs/${normalizeSpecFolderInput(capability.spec.folder)}/spec.md` : null;
+        const formalPath = capability.spec ? `.opsx/specs/${normalizeSpecFolderInput(capability.spec.folder)}/spec.md` : null;
         if (formalPath) {
           preservedFormalPaths.push(formalPath);
         }
@@ -1024,7 +1025,7 @@ async function assembleCandidateSpecs(
         }
       }
 
-      const formalRelativePath = `openspec/specs/${folder}/spec.md`;
+      const formalRelativePath = `.opsx/specs/${folder}/spec.md`;
       const existingFormalPath = formalSpecPath(projectRoot, folder);
       const alreadyExists = await FileSystemUtils.fileExists(existingFormalPath);
       if (state.metadata.mode === 'refresh' && alreadyExists) {
@@ -1045,7 +1046,7 @@ async function assembleCandidateSpecs(
         continue;
       }
 
-      const candidateRelativePath = `openspec/bootstrap/candidate/specs/${folder}/spec.md`;
+      const candidateRelativePath = `.opsx/bootstrap/candidate/specs/${folder}/spec.md`;
       const content = renderCandidateSpec(capability, folder, candidateProjection);
       specs.push({
         capabilityId: capability.id,
@@ -1277,17 +1278,17 @@ export async function initBootstrap(
     const completion = await resolveBootstrapWorkspaceCompletion(projectRoot, existingState.metadata);
     if (!options.restart) {
       if (completion.state === 'completed') {
-        const restartCommand = buildBootstrapRestartCommand(baselineType) ?? `openspec bootstrap init --mode ${mode} --restart`;
+        const restartCommand = buildBootstrapRestartCommand(baselineType) ?? `opsx bootstrap init --mode ${mode} --restart`;
         throw new Error(
           `Bootstrap workspace already exists and the previous run is complete. Run \`${restartCommand}\` to start a new run from the retained workspace.`
         );
       }
 
-      throw new Error('Bootstrap workspace already exists and is still in progress. Run `openspec bootstrap status` or `openspec bootstrap instructions` to resume the current phase.');
+      throw new Error('Bootstrap workspace already exists and is still in progress. Run `opsx bootstrap status` or `opsx bootstrap instructions` to resume the current phase.');
     }
 
     if (completion.state !== 'completed') {
-      throw new Error('Bootstrap workspace is still in progress. `--restart` only works after promote completes. Run `openspec bootstrap status` or `openspec bootstrap instructions` to resume the current phase.');
+      throw new Error('Bootstrap workspace is still in progress. `--restart` only works after promote completes. Run `opsx bootstrap status` or `opsx bootstrap instructions` to resume the current phase.');
     }
 
     inheritedScope = existingState.scope;
@@ -1345,7 +1346,7 @@ export async function readBootstrapState(projectRoot: string): Promise<Bootstrap
   const bsDir = bootstrapPath(projectRoot);
 
   if (!await FileSystemUtils.directoryExists(bsDir)) {
-    throw new Error('No bootstrap workspace found. Run `openspec bootstrap init` first.');
+    throw new Error('No bootstrap workspace found. Run `opsx bootstrap init` first.');
   }
 
   const fallbackBaselineType = await inferLegacyBaselineType(projectRoot);
@@ -1465,7 +1466,7 @@ export async function getBootstrapStatus(projectRoot: string): Promise<Bootstrap
     restartCommand: completion.state === 'completed' ? buildBootstrapRestartCommand(currentBaselineType) : null,
     nextAction: completion.state === 'completed' ? 'restart' : getNextBootstrapAction(state.metadata.phase),
     transitionCommand: completion.state === 'in-progress' && state.metadata.phase === 'init'
-      ? 'openspec bootstrap advance scan'
+      ? 'opsx bootstrap advance scan'
       : null,
     created_at: state.metadata.created_at,
     domains,
@@ -1587,11 +1588,11 @@ export async function validateGate(
       if (!state.reviewExists) {
         errors.push('review.md not found');
       } else if (derived.reviewState !== 'current') {
-        errors.push('Review approval is stale. Run `openspec bootstrap validate` to regenerate review.md and re-approve it.');
+        errors.push('Review approval is stale. Run `opsx bootstrap validate` to regenerate review.md and re-approve it.');
       }
 
       if (!derived.bundle || !derived.candidateFingerprint) {
-        errors.push('Candidate OPSX artifacts are unavailable. Run `openspec bootstrap validate` after scan/map are complete.');
+        errors.push('Candidate OPSX artifacts are unavailable. Run `opsx bootstrap validate` after scan/map are complete.');
         break;
       }
 
@@ -1796,8 +1797,8 @@ function buildReviewContent(
   );
   lines.push(
     localizeBootstrapText(projection, {
-      en: 'This file is derived from evidence.yaml and domain-map/*.yaml. If either changes, regenerate review via `openspec bootstrap validate`.',
-      zh: 'This file is derived from evidence.yaml and domain-map/*.yaml. If either changes, regenerate review via `openspec bootstrap validate`.',
+      en: 'This file is derived from evidence.yaml and domain-map/*.yaml. If either changes, regenerate review via `opsx bootstrap validate`.',
+      zh: 'This file is derived from evidence.yaml and domain-map/*.yaml. If either changes, regenerate review via `opsx bootstrap validate`.',
     }),
     ''
   );
@@ -1882,8 +1883,8 @@ function buildReviewContent(
   lines.push('', '## Candidate Specs', '');
   if (state.metadata.mode === 'opsx-first') {
     lines.push(`- ${localizeBootstrapText(projection, {
-      en: 'Mode contract: README-only starter at openspec/specs/README.md',
-      zh: 'Mode contract: README-only starter at openspec/specs/README.md',
+      en: 'Mode contract: README-only starter at .opsx/specs/README.md',
+      zh: 'Mode contract: README-only starter at .opsx/specs/README.md',
     })}`);
     lines.push(`- ${localizeBootstrapText(projection, {
       en: 'No capability-level candidate specs should be generated',
@@ -1937,8 +1938,8 @@ function buildReviewContent(
     })}`);
   }
   lines.push(`- [ ] ${localizeBootstrapText(projection, {
-    en: 'Candidate specs pass OpenSpec validation',
-    zh: 'Candidate specs pass OpenSpec validation',
+    en: 'Candidate specs pass OPSX validation',
+    zh: 'Candidate specs pass OPSX validation',
   })}`);
   lines.push(`- [ ] ${localizeBootstrapText(projection, {
     en: 'Domain boundaries match mental model',
@@ -2142,7 +2143,7 @@ async function writeBootstrapSpecStarter(projectRoot: string, state: BootstrapSt
     return;
   }
 
-  const specsReadmePath = FileSystemUtils.joinPath(projectRoot, 'openspec/specs/README.md');
+  const specsReadmePath = FileSystemUtils.joinPath(projectRoot, OPSX_DIR_NAME, 'specs/README.md');
   if (await FileSystemUtils.fileExists(specsReadmePath)) {
     return;
   }
@@ -2162,12 +2163,12 @@ ${localizeBootstrapText(projection, {
   zh: 'Formal OPSX files were generated from the bootstrap workflow.',
 })}
 - ${localizeBootstrapText(projection, {
-  en: 'Add behavior specs incrementally with normal OpenSpec changes.',
-  zh: 'Add behavior specs incrementally with normal OpenSpec changes.',
+  en: 'Add behavior specs incrementally with normal OPSX changes.',
+  zh: 'Add behavior specs incrementally with normal OPSX changes.',
 })}
 - ${localizeBootstrapText(projection, {
-  en: 'Create focused specs under `openspec/specs/<capability>/spec.md` as features evolve.',
-  zh: 'Create focused specs under `openspec/specs/<capability>/spec.md` as features evolve.',
+  en: 'Create focused specs under `.opsx/specs/<capability>/spec.md` as features evolve.',
+  zh: 'Create focused specs under `.opsx/specs/<capability>/spec.md` as features evolve.',
 })}
 `;
 
@@ -2185,7 +2186,7 @@ export async function promoteBootstrap(projectRoot: string): Promise<PromoteBoot
   const state = await readBootstrapState(projectRoot);
   const derived = await deriveBootstrapArtifacts(projectRoot, state);
   if (!derived.bundle || !derived.candidateFingerprint) {
-    throw new Error('Cannot promote: candidate artifacts are unavailable. Run `openspec bootstrap validate` first.');
+    throw new Error('Cannot promote: candidate artifacts are unavailable. Run `opsx bootstrap validate` first.');
   }
 
   const targetErrors = await validateFormalSpecTargets(projectRoot, state, derived.candidateSpecs);

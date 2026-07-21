@@ -7,7 +7,7 @@ import { runCLI } from '../helpers/run-cli.js';
 const tempRoots: string[] = [];
 
 async function createTempProject(): Promise<string> {
-  const projectDir = await fs.mkdtemp(path.join(tmpdir(), 'openspec-bootstrap-backfill-'));
+  const projectDir = await fs.mkdtemp(path.join(tmpdir(), 'opsx-bootstrap-backfill-'));
   tempRoots.push(projectDir);
   return projectDir;
 }
@@ -23,13 +23,13 @@ async function readFile(projectDir: string, relativePath: string): Promise<strin
 }
 
 async function checkAllReviewBoxes(projectDir: string): Promise<void> {
-  const reviewPath = path.join(projectDir, 'openspec', 'bootstrap', 'review.md');
+  const reviewPath = path.join(projectDir, '.opsx', 'bootstrap', 'review.md');
   const review = await fs.readFile(reviewPath, 'utf-8');
   await fs.writeFile(reviewPath, review.replace(/- \[ \]/g, '- [x]'), 'utf-8');
 }
 
 async function writeOpsxAndSpecs(projectDir: string): Promise<void> {
-  await writeFile(projectDir, 'openspec/project.opsx.yaml', `schema_version: 2
+  await writeFile(projectDir, '.opsx/project.opsx.yaml', `schema_version: 2
 project:
   id: proj.test
   name: Test
@@ -42,14 +42,14 @@ capabilities:
     type: capability
     intent: Archive changes
 `);
-  await writeFile(projectDir, 'openspec/project.opsx.relations.yaml', `schema_version: 2
+  await writeFile(projectDir, '.opsx/project.opsx.relations.yaml', `schema_version: 2
 relations:
   - from: cap.cli.archive
     type: belongs_to
     to: dom.cli
 `);
-  await writeFile(projectDir, 'openspec/specs/cli-archive/spec.md', '# CLI Archive\n');
-  await writeFile(projectDir, 'openspec/specs/unknown-area/spec.md', '# Unknown\n');
+  await writeFile(projectDir, '.opsx/specs/cli-archive/spec.md', '# CLI Archive\n');
+  await writeFile(projectDir, '.opsx/specs/unknown-area/spec.md', '# Unknown\n');
 }
 
 async function preparePromoteWorkspace(projectDir: string): Promise<void> {
@@ -57,7 +57,7 @@ async function preparePromoteWorkspace(projectDir: string): Promise<void> {
 
   expect((await runCLI(['bootstrap', 'init', '--mode', 'full', '--granularity', 'fine'], { cwd: projectDir })).exitCode).toBe(0);
   expect((await runCLI(['bootstrap', 'advance', 'scan'], { cwd: projectDir })).exitCode).toBe(0);
-  await writeFile(projectDir, 'openspec/bootstrap/evidence.yaml', `domains:
+  await writeFile(projectDir, '.opsx/bootstrap/evidence.yaml', `domains:
   - id: dom.cli
     confidence: high
     sources:
@@ -65,7 +65,7 @@ async function preparePromoteWorkspace(projectDir: string): Promise<void> {
     intent: CLI command surface
 `);
   expect((await runCLI(['bootstrap', 'validate'], { cwd: projectDir })).exitCode).toBe(0);
-  await writeFile(projectDir, 'openspec/bootstrap/domain-map/dom.cli.yaml', `domain:
+  await writeFile(projectDir, '.opsx/bootstrap/domain-map/dom.cli.yaml', `domain:
   id: dom.cli
   type: domain
   intent: CLI command surface
@@ -101,7 +101,7 @@ afterAll(async () => {
   await Promise.all(tempRoots.map((dir) => fs.rm(dir, { recursive: true, force: true })));
 });
 
-describe('openspec bootstrap backfill-specs', () => {
+describe('opsx bootstrap backfill-specs', () => {
   it('runs standalone and prints text statistics', async () => {
     const projectDir = await createTempProject();
     await writeOpsxAndSpecs(projectDir);
@@ -114,7 +114,7 @@ describe('openspec bootstrap backfill-specs', () => {
     expect(result.stdout).toContain('Unmatched: 1');
     expect(result.stdout).toContain('- unknown-area');
     expect(result.stdout).toContain('Run with --json for semantic handoff context');
-    await expect(readFile(projectDir, 'openspec/specs/cli-archive/spec.md')).resolves.toContain('cap.cli.archive');
+    await expect(readFile(projectDir, '.opsx/specs/cli-archive/spec.md')).resolves.toContain('cap.cli.archive');
   });
 
   it('prints JSON output for standalone backfill', async () => {
@@ -130,14 +130,14 @@ describe('openspec bootstrap backfill-specs', () => {
       semanticHandoff: {
         unmatchedSpecs: [{
           spec: 'unknown-area',
-          path: 'openspec/specs/unknown-area/spec.md',
+          path: '.opsx/specs/unknown-area/spec.md',
           content: '# Unknown\n',
         }],
         candidateCapabilities: [{ id: 'cap.cli.archive', intent: 'Archive changes' }],
         mappingResultFormat: {
           mappings: [{ spec: '<spec-id>', capabilities: ['<capability-id>'] }],
         },
-        applyCommand: 'openspec bootstrap backfill-specs --mappings <mapping-file> --json',
+        applyCommand: 'opsx bootstrap backfill-specs --mappings <mapping-file> --json',
       },
     });
   });
@@ -145,7 +145,7 @@ describe('openspec bootstrap backfill-specs', () => {
   it('applies explicit semantic mappings and still reports unresolved specs', async () => {
     const projectDir = await createTempProject();
     await writeOpsxAndSpecs(projectDir);
-    await writeFile(projectDir, 'openspec/specs/still-unknown/spec.md', '# Still Unknown\n');
+    await writeFile(projectDir, '.opsx/specs/still-unknown/spec.md', '# Still Unknown\n');
     await writeFile(projectDir, 'semantic-mappings.json', JSON.stringify({
       mappings: [{ spec: 'unknown-area', capabilities: ['cap.cli.archive'] }],
     }));
@@ -166,7 +166,7 @@ describe('openspec bootstrap backfill-specs', () => {
     ]);
     expect(output.unmatched).toEqual(['still-unknown']);
     expect(output.semanticHandoff.unmatchedSpecs[0].content).toBe('# Still Unknown\n');
-    await expect(readFile(projectDir, 'openspec/specs/unknown-area/spec.md')).resolves.toContain('cap.cli.archive');
+    await expect(readFile(projectDir, '.opsx/specs/unknown-area/spec.md')).resolves.toContain('cap.cli.archive');
   });
 
   it('rejects semantic mappings to unknown capabilities without writing them', async () => {
@@ -186,7 +186,7 @@ describe('openspec bootstrap backfill-specs', () => {
 
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("Unknown capability 'cap.cli.missing'");
-    await expect(readFile(projectDir, 'openspec/specs/unknown-area/spec.md')).resolves.toBe('# Unknown\n');
+    await expect(readFile(projectDir, '.opsx/specs/unknown-area/spec.md')).resolves.toBe('# Unknown\n');
   });
 
   it('runs backfill after promote and reports statistics', async () => {
@@ -197,6 +197,6 @@ describe('openspec bootstrap backfill-specs', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Backfill specs: written 1, unmatched 0');
-    await expect(readFile(projectDir, 'openspec/specs/cli/spec.md')).resolves.toContain('cap.cli.bootstrap');
+    await expect(readFile(projectDir, '.opsx/specs/cli/spec.md')).resolves.toContain('cap.cli.bootstrap');
   }, 30000);
 });

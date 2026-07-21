@@ -27,7 +27,7 @@ const model: LikeC4Model = {
 describe('LikeC4 file generator', () => {
   let root: string;
 
-  beforeEach(async () => { root = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-likec4-generator-')); });
+  beforeEach(async () => { root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-likec4-generator-')); });
   afterEach(async () => fs.rm(root, { recursive: true, force: true }));
 
   it('should generate valid specification and project metadata', async () => {
@@ -73,7 +73,7 @@ describe('LikeC4 file generator', () => {
 
   it('should use path.join for all paths', async () => {
     const files = await generateLikeC4Files(root, model);
-    const architecture = path.join(root, 'openspec', 'architecture');
+    const architecture = path.join(root, '.opsx', 'architecture');
     expect(files.specification).toBe(path.join(architecture, 'specification.c4'));
     expect(files.views).toBe(path.join(architecture, 'views.c4'));
     expect(files.project).toBe(path.join(architecture, 'project.c4'));

@@ -1,0 +1,16 @@
+{
+  "extends": "@likec4/tsconfig/base.json",
+  "compilerOptions": {
+    "customConditions": [
+      "sources"
+    ]
+  },
+  "include": [
+    "."
+  ],
+  "references": [
+    {
+      "path": "../tsconfig.json"
+    }
+  ]
+}

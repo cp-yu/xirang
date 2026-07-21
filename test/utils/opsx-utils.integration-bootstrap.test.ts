@@ -16,7 +16,7 @@ describe('Integration: Bootstrap Workflow', () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-bootstrap-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `opsx-bootstrap-${randomUUID()}`);
     await fs.mkdir(testDir, { recursive: true });
   });
 

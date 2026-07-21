@@ -1,3 +1,4 @@
+import { OPSX_DIR_NAME } from './config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { z } from 'zod';
@@ -96,7 +97,7 @@ export async function backfillSpecs(
   const unmatched: string[] = [];
 
   for (const spec of specs) {
-    const specPath = path.join(projectRoot, 'openspec', 'specs', spec, 'spec.md');
+    const specPath = path.join(projectRoot, OPSX_DIR_NAME, 'specs', spec, 'spec.md');
     const content = await fs.readFile(specPath, 'utf-8');
     if (parseSpecFrontmatter(content).capabilities.length > 0) {
       continue;
@@ -149,7 +150,7 @@ async function buildSemanticHandoff(
   candidateCapabilities: CapabilityIntent[]
 ): Promise<SemanticBackfillHandoff> {
   const unmatchedSpecs = await Promise.all(unmatched.map(async (spec) => {
-    const relativePath = path.posix.join('openspec', 'specs', spec, 'spec.md');
+    const relativePath = path.posix.join(OPSX_DIR_NAME, 'specs', spec, 'spec.md');
     return {
       spec,
       path: relativePath,
@@ -163,12 +164,12 @@ async function buildSemanticHandoff(
     mappingResultFormat: {
       mappings: [{ spec: '<spec-id>', capabilities: ['<capability-id>'] }],
     },
-    applyCommand: 'openspec bootstrap backfill-specs --mappings <mapping-file> --json',
+    applyCommand: 'opsx bootstrap backfill-specs --mappings <mapping-file> --json',
   };
 }
 
 async function listSpecs(projectRoot: string): Promise<string[]> {
-  const specsDir = path.join(projectRoot, 'openspec', 'specs');
+  const specsDir = path.join(projectRoot, OPSX_DIR_NAME, 'specs');
   let entries;
   try {
     entries = await fs.readdir(specsDir, { withFileTypes: true });

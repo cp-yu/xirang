@@ -1,0 +1,7 @@
+views {
+  view index {
+    title '@fission-ai/opsx Architecture'
+    include *
+    autoLayout TopBottom
+  }
+}

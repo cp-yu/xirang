@@ -1,211 +1,154 @@
 <p align="center">
   <a href="https://github.com/cp-yu/opsx">
     <picture>
-      <source srcset="assets/openspec_bg.png">
-      <img src="assets/openspec_bg.png" alt="OpenSpec logo">
+      <source srcset="assets/opsx_bg.png">
+      <img src="assets/opsx_bg.png" alt="OPSX logo">
     </picture>
   </a>
 </p>
 
-<p align="center">
-  <a href="https://github.com/cp-yu/opsx/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/cp-yu/opsx/actions/workflows/ci.yml/badge.svg" /></a>
-  <a href="./LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" /></a>
-  <a href="https://discord.gg/YctCnvvshC"><img alt="Discord" src="https://img.shields.io/discord/1411657095639601154?style=flat-square&logo=discord&logoColor=white&label=Discord&suffix=%20online" /></a>
-</p>
+# OPSX
 
-<details>
-<summary><strong>The most loved spec framework.</strong></summary>
+OPSX is a human-intent programming framework for agent-driven software development. Specs define externally observable behavior. LikeC4 defines architecture intent, capability ownership, boundaries, and semantic relations. Agents compile both sources into code.
 
-[![Stars](https://img.shields.io/github/stars/cp-yu/opsx?style=flat-square&label=Stars)](https://github.com/cp-yu/opsx/stargazers)
-[![Contributors](https://img.shields.io/github/contributors/cp-yu/opsx?style=flat-square&label=Contributors)](https://github.com/cp-yu/opsx/graphs/contributors)
-
-</details>
-<p></p>
-Our philosophy:
+## Core Model
 
 ```text
-→ fluid not rigid
-→ iterative not waterfall
-→ easy not complex
-→ built for brownfield not just greenfield
-→ scalable from personal projects to enterprises
+.opsx/
+├── architecture/        # LikeC4 architecture source
+├── specs/               # Formal behavioral Specs
+├── changes/             # Change-local deltas and compilation scaffolding
+├── references/          # Managed workflow references
+└── config.yaml          # Project configuration
 ```
 
-> [!TIP]
-> **New workflow now available!** We've rebuilt OpenSpec with a new artifact-guided workflow.
->
-> Run `/opsx:propose "your idea"` to get started. → [Learn more here](docs/opsx.md)
+`proposal.md`, `design.md`, and `tasks.md` guide a change, but they do not replace Specs or LikeC4 as durable semantic source.
 
-<p align="center">
-  Follow <a href="https://x.com/0xTab">@0xTab on X</a> for updates · Join the <a href="https://discord.gg/YctCnvvshC">OpenSpec Discord</a> for help and questions.
-</p>
+## Requirements
 
-<!-- TODO: Add GIF demo of /opsx:propose → /opsx:archive workflow -->
+- Node.js 22.22.3 or newer
+- pnpm 9 or newer
 
-## See it in action
-
-```text
-You: /opsx:propose add-dark-mode
-AI:  Created openspec/changes/add-dark-mode/
-     ✓ proposal.md — why we're doing this, what's changing
-     ✓ specs/       — requirements and scenarios
-     ✓ design.md    — technical approach
-     ✓ tasks.md     — implementation checklist
-     Ready for implementation!
-
-You: /opsx:apply
-AI:  Checking branch isolation...
-     ✓ Implemented task 1: theme provider
-     ✓ Tests passed for theme provider behavior
-     ✓ Implemented task 2: theme toggle
-     ✓ Checks marked complete after evidence passed
-     All tasks complete!
-
-You: /opsx:archive
-AI:  Running full verify gate...
-     ✓ Fresh verify result confirmed
-     Archived to openspec/changes/archive/2025-01-23-add-dark-mode/
-     Specs updated. Ready for the next feature.
-```
-
-<details>
-<summary><strong>OpenSpec Dashboard</strong></summary>
-
-<p align="center">
-  <img src="assets/openspec_dashboard.png" alt="OpenSpec dashboard preview" width="90%">
-</p>
-
-</details>
-
-## Quick Start
-
-**Requires Node.js 22.22.3 or higher.**
-
-Install the packaged release tarball from GitHub Releases:
+OPSX currently runs from source. The project does not publish an npm package or download the LikeC4 runtime during installation.
 
 ```bash
-npm install -g https://github.com/cp-yu/opsx/releases/download/v1.4.1-cpyu.5/fission-ai-openspec-1.4.1-cpyu.5.tgz
+git clone https://github.com/cp-yu/opsx.git
+cd opsx
+pnpm install --frozen-lockfile
+pnpm run likec4:install
+pnpm run likec4:build
+pnpm build
+node bin/opsx.js --help
 ```
 
-For future versions, replace both occurrences of `1.4.1-cpyu.5` with the release tag you want to pin.
+The vendored LikeC4 `v1.59.0` subtree is the only browser engine used by the CLI.
 
-Then navigate to your project directory and initialize:
+## Start A Project
 
 ```bash
 cd your-project
-openspec init
+/path/to/opsx/bin/opsx.js init
 ```
 
-Now tell your AI: `/opsx:propose <what-you-want-to-build>`
+Then use the managed workflow skills installed for your agent:
 
-For vague or multi-subsystem ideas, start with `/opsx:explore`. Explore now runs a structured brainstorming flow and produces a Design Summary in chat. `/opsx:propose` can reuse that summary, or skip explore when your input is already detailed.
+| Skill | Purpose |
+|---|---|
+| `/opsx:explore` | Investigate an idea and resolve ambiguous intent |
+| `/opsx:propose` | Create a complete change proposal and semantic deltas |
+| `/opsx:apply` | Implement tasks with evidence-backed TDD |
+| `/opsx:archive` | Verify, sync, and archive a completed change |
+| `/opsx:bootstrap-arch` | Model an existing repository in LikeC4 |
+| `/opsx:snack` | Reconcile already-written code into OPSX artifacts |
 
-`/opsx:apply` now reads coarse `tasks.md` entries and has the current agent execute pending behavior checks through strict red/green TDD before marking evidence-backed progress. When run on `main` or `master`, it asks whether to create a feature branch, create a worktree, or continue on the current branch.
+Tool-specific invocation syntax is documented in [Supported Tools](docs/supported-tools.md).
 
-OpenSpec installs managed workflow skills by default, including `/opsx:propose`, `/opsx:explore`, `/opsx:apply`, `/opsx:archive`, `/opsx:bootstrap-arch`, and `/opsx:snack`. Specs and LikeC4 form the durable semantic source; `/opsx:archive` verifies and synchronizes behavior plus architecture deltas.
+## Browse Architecture And Specs
 
-> [!NOTE]
-> OpenSpec's managed workflow surface is **skills-only**. `openspec init` and `openspec update` install and refresh skill files under `.<tool>/skills/`. Slash command files may still exist from older installations; they remain on disk as legacy artifacts and OpenSpec no longer generates, refreshes, or removes them.
-
-> [!NOTE]
-> Not sure if your tool is supported? [View the full list](docs/supported-tools.md) – we support 20+ tools and growing.
->
-> Also works with Nix. [See installation options](docs/installation.md).
-
-## Docs
-
-→ **[Getting Started](docs/getting-started.md)**: first steps<br>
-→ **[Workflows](docs/workflows.md)**: combos and patterns<br>
-→ **[Commands](docs/commands.md)**: workflow entry points & skills<br>
-→ **[CLI](docs/cli.md)**: terminal reference<br>
-→ **[LikeC4 Architecture](docs/architecture-integration.md)**: architecture model, commands, and change deltas<br>
-→ **[Migration Guide](docs/migration-guide.md)**: migrate legacy OPSX YAML to LikeC4<br>
-→ **[Supported Tools](docs/supported-tools.md)**: tool integrations & install paths<br>
-→ **[Concepts](docs/concepts.md)**: how it all fits<br>
-→ **[Multi-Language](docs/multi-language.md)**: multi-language support<br>
-→ **[Customization](docs/customization.md)**: make it yours
-
-
-## Why OpenSpec?
-
-AI coding assistants are powerful but unpredictable when requirements live only in chat history. OpenSpec adds a lightweight spec layer so you agree on what to build before any code is written.
-
-- **Agree before you build** — human and AI align on specs before code gets written
-- **Stay organized** — each change gets its own folder with proposal, specs, design, and tasks
-- **Work fluidly** — update any artifact anytime, no rigid phase gates
-- **Use your tools** — works with 20+ AI assistants via managed skills
-
-### How we compare
-
-**vs. [Spec Kit](https://github.com/github/spec-kit)** (GitHub) — Thorough but heavyweight. Rigid phase gates, lots of Markdown, Python setup. OpenSpec is lighter and lets you iterate freely.
-
-**vs. [Kiro](https://kiro.dev)** (AWS) — Powerful but you're locked into their IDE and limited to Claude models. OpenSpec works with the tools you already use.
-
-**vs. nothing** — AI coding without specs means vague prompts and unpredictable results. OpenSpec brings predictability without the ceremony.
-
-## Updating OpenSpec
-
-**Reinstall from GitHub Releases**
+From a project or any nested directory:
 
 ```bash
-npm install -g https://github.com/cp-yu/opsx/releases/download/v1.4.1-cpyu.5/fission-ai-openspec-1.4.1-cpyu.5.tgz
+opsx view
+opsx view --port 5173
 ```
 
-**Refresh agent instructions**
+`opsx view` discovers the nearest `.opsx/`, starts the vendored LikeC4 application, and renders `.opsx/architecture/**/*.c4`. Elements with `metadata.specs` expose a Specs tab that loads the indexed `.opsx/specs/**/*.md` files on demand. Spec files remain the single behavioral source; Markdown is not copied into the architecture model.
 
-Run this inside each project to regenerate AI guidance and refresh the managed workflow skills:
+The local Spec API authorizes every request against the current computed LikeC4 model and rejects unsafe, unindexed, non-Markdown, and symlink-escaping paths. Editing the current Spec refreshes its rendered content through a precise HMR event.
+
+## Common CLI Commands
 
 ```bash
-openspec update
+opsx list
+opsx show <change-or-spec>
+opsx validate --all --strict
+opsx arch query <element-id> --relations --depth 2
+opsx arch validate
+opsx arch export --format svg --output docs/architecture
+opsx view --port 5173
 ```
 
-For a newer release, replace the version in the tarball URL and reinstall before running `openspec update`.
+There is no legacy CLI alias, previous-workspace fallback, or secondary architecture preview command.
 
-## Usage Notes
+## Change Workflow
 
-**Model selection**: OpenSpec works best with high-reasoning models for exploration, proposal, design, and apply. Apply uses reviewer and optimizer subagents for judgment gates, not coding execution.
+```text
+You: /opsx:propose add-dark-mode
+AI:  Created .opsx/changes/add-dark-mode/
+     - proposal.md
+     - design.md
+     - tasks.md
+     - specs/**/spec.md
+     - architecture-delta.c4 when architecture changes
 
-**Context hygiene**: OpenSpec benefits from a clean context window. Clear your context before starting implementation and maintain good context hygiene throughout your session.
+You: /opsx:apply
+AI:  Implemented each behavior through RED -> GREEN -> REFACTOR
+     and marked checks only after validation passed.
 
-## Contributing
+You: /opsx:archive
+AI:  Verified and synced the semantic deltas, then moved the change to
+     .opsx/changes/archive/YYYY-MM-DD-add-dark-mode/
+```
 
-**Small fixes** — Bug fixes, typo corrections, and minor improvements can be submitted directly as PRs.
+## Documentation
 
-**Larger changes** — For new features, significant refactors, or architectural changes, please submit an OpenSpec change proposal first so we can align on intent and goals before implementation begins.
+- [Getting Started](docs/getting-started.md)
+- [Workflows](docs/workflows.md)
+- [Workflow Skills](docs/commands.md)
+- [CLI Reference](docs/cli.md)
+- [LikeC4 Architecture](docs/architecture-integration.md)
+- [Migration Guide](docs/migration-guide.md)
+- [Supported Tools](docs/supported-tools.md)
+- [Concepts](docs/concepts.md)
+- [Customization](docs/customization.md)
 
-When writing proposals, keep the OpenSpec philosophy in mind: we serve a wide variety of users across different coding agents, models, and use cases. Changes should work well for everyone.
+## Development
 
-**AI-generated code is welcome** — as long as it's been tested and verified. PRs containing AI-generated code should mention the coding agent and model used (e.g., "Generated with Claude Code using claude-opus-4-5-20251101").
+```bash
+pnpm install --frozen-lockfile
+pnpm run likec4:install
+pnpm lint
+pnpm build
+pnpm test
+pnpm run likec4:typecheck
+pnpm run likec4:test
+pnpm run likec4:build
+pnpm run test:e2e:install
+pnpm run test:e2e
+node scripts/audit-opsx-identity.mjs
+```
 
-### Development
+Root and `likec4/` are independent pnpm workspaces. Root scripts use `pnpm --dir likec4` to orchestrate the vendored engine explicitly.
 
-- Install dependencies: `pnpm install`
-- Build: `pnpm run build`
-- Test: `pnpm test`
-- Develop CLI locally: `pnpm run dev` or `pnpm run dev:cli`
-- Conventional commits (one-line): `type(scope): subject`
+## Telemetry
 
-## Other
+OPSX records anonymous command names and version only. It does not collect arguments, paths, file content, or personally identifiable information. Telemetry is disabled in CI.
 
-<details>
-<summary><strong>Telemetry</strong></summary>
+```bash
+export OPSX_TELEMETRY=0
+```
 
-OpenSpec collects anonymous usage stats.
-
-We collect only command names and version to understand usage patterns. No arguments, paths, content, or PII. Automatically disabled in CI.
-
-**Opt-out:** `export OPENSPEC_TELEMETRY=0` or `export DO_NOT_TRACK=1`
-
-</details>
-
-<details>
-<summary><strong>Maintainers & Advisors</strong></summary>
-
-See [MAINTAINERS.md](MAINTAINERS.md) for the list of core maintainers and advisors who help guide the project.
-
-</details>
-
-
+`DO_NOT_TRACK=1` is also respected.
 
 ## License
 

@@ -1,6 +1,6 @@
 # OPSX Workflow
 
-OpenSpec's managed workflow surface is skills-only.
+OPSX's managed workflow surface is skills-only.
 
 ## Surface
 
@@ -16,4 +16,4 @@ OpenSpec's managed workflow surface is skills-only.
 ## Notes
 
 - Legacy slash command files may still exist on disk
-- OpenSpec no longer generates, refreshes, or removes them
+- OPSX no longer generates, refreshes, or removes them

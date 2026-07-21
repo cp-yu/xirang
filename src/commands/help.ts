@@ -26,7 +26,7 @@ export class AuthoringHelpCommand {
   async execute(file: string | undefined, options: HelpOptions): Promise<void> {
     if (!file) {
       if (options.json) console.log(JSON.stringify({ topics: AUTHORING_TOPICS }, null, 2));
-      else console.log(`可用 authoring topics:\n${AUTHORING_TOPICS.map((topic) => `  ${topic}`).join('\n')}\n运行 openspec help authoring <file> 获取详细帮助。`);
+      else console.log(`可用 authoring topics:\n${AUTHORING_TOPICS.map((topic) => `  ${topic}`).join('\n')}\n运行 opsx help authoring <file> 获取详细帮助。`);
       return;
     }
 
@@ -77,7 +77,7 @@ function renderTextHelp(help: AuthoringHelp): string {
 }
 
 export function registerHelpCommand(program: Command): Command {
-  program.addHelpText('after', '\nAuthoring help: openspec help authoring [file]');
+  program.addHelpText('after', '\nAuthoring help: opsx help authoring [file]');
   const help = program
     .command('help [topics...]')
     .description('Display command or authoring help')

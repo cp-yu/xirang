@@ -1,3 +1,4 @@
+import { OPSX_DIR_NAME } from '../../core/config.js';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import type { LikeC4Model } from '../converters/types.js';
@@ -38,7 +39,7 @@ export function renderLikeC4Files(model: LikeC4Model): RenderedLikeC4File[] {
 }
 
 export async function generateLikeC4Files(projectRoot: string, model: LikeC4Model): Promise<GeneratedLikeC4Files> {
-  const architectureDir = path.join(projectRoot, 'openspec', 'architecture');
+  const architectureDir = path.join(projectRoot, OPSX_DIR_NAME, 'architecture');
   const rendered = renderLikeC4Files(model);
   await Promise.all(rendered.map(async file => {
     const output = path.join(architectureDir, file.relativePath);

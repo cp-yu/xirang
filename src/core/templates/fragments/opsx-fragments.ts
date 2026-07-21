@@ -1,14 +1,14 @@
 /** Shared architecture instruction fragments for workflow templates. */
 
 /**
- * Fragment: OpenSpec philosophy
+ * Fragment: OPSX philosophy
  * Used in: propose, explore, apply-change, archive-change, bootstrap-arch, snack, reviewer, optimizer
  * Excluded by decision: impact-sweeper (read-only reporter), feedback (writes no artifacts)
  */
-export const OPENSPEC_PHILOSOPHY = `
-**OpenSpec Philosophy**
+export const OPSX_PHILOSOPHY = `
+**OPSX Philosophy**
 
-OpenSpec is a human-intent programming layer between human intent and general-purpose programming languages.
+OPSX is a human-intent programming layer between human intent and general-purpose programming languages.
 
 1. Specs and LikeC4 jointly form the durable semantic source. Specs define observable behavior; LikeC4 defines project intent, capabilities, ownership, boundaries, and semantic relations.
 2. A change reconciles semantic source deltas toward a target steady state. \`proposal.md\`, \`design.md\`, and \`tasks.md\` are compilation scaffolding, not competing sources of truth.
@@ -21,8 +21,8 @@ OpenSpec is a human-intent programming layer between human intent and general-pu
  * Used in: explore, propose, apply-change
  */
 export const ARCHITECTURE_SHARED_CONTEXT = `
-Before reading implementation files, load the formal LikeC4 source under \`openspec/architecture/\`.
-- Use \`openspec arch query <element-id> --relations --depth 2\` for architecture navigation
+Before reading implementation files, load the formal LikeC4 source under \`.opsx/architecture/\`.
+- Use \`opsx arch query <element-id> --relations --depth 2\` for architecture navigation
 - Read linked Specs from capability metadata
 - Treat code paths, imports, calls, and symbols as implementation evidence only
 - Do not read legacy OPSX YAML as active architecture source
@@ -33,9 +33,9 @@ Before reading implementation files, load the formal LikeC4 source under \`opens
  * Used in: propose, snack, apply-change
  */
 export const ARCHITECTURE_CLI_QUERY_CONTEXT = `
-Use OpenSpec LikeC4 query surfaces for architecture details.
-- Run \`openspec list --specs --json\` for Spec coverage.
-- Run \`openspec arch query <element-id> --relations --depth 2 --json\` for affected elements and directed semantic relations.
+Use OPSX LikeC4 query surfaces for architecture details.
+- Run \`opsx list --specs --json\` for Spec coverage.
+- Run \`opsx arch query <element-id> --relations --depth 2 --json\` for affected elements and directed semantic relations.
 - LikeC4 element IDs are semantic locations, not source paths.
 - Use CodeGraph or ACE/\`rg\`/\`read\` only for current implementation evidence.
 `.trim();
@@ -50,12 +50,12 @@ export const ARCHITECTURE_GENERATE_DELTA = `
 - Read proposal \`Source Impact\`: use \`Architecture Source\` as declared scope and \`Behavior Source\` to locate related change-local Specs; Spec IDs are not LikeC4 element IDs
 - Read completed change-local Specs as target behavior context, \`design.md\` for architecture decisions, and the formal LikeC4 model as current architecture state
 - Treat proposal entries as scope declarations, not authoritative LikeC4 records; derive exact target-state elements and typed relations
-- Read \`openspec/references/likec4-authoring.md\`
+- Read \`.opsx/references/likec4-authoring.md\`
 - Extend existing domains with \`extend <domain> { ... }\`; define genuinely new domains directly
 - Express ownership by nesting and relations with typed syntax such as \`source -[invokes]-> target\`
 - Link new capabilities to change-local Specs paths
 - If Architecture Source is \`None\`, omit \`architecture-delta.c4\`; do not invent architecture changes from behavior changes alone
-- Run \`openspec arch validate --delta openspec/changes/<name>/architecture-delta.c4\`
+- Run \`opsx arch validate --delta .opsx/changes/<name>/architecture-delta.c4\`
 - Use current code only as implementation evidence; it MUST NOT override declared semantic source
 `.trim();
 
@@ -66,11 +66,11 @@ export const ARCHITECTURE_GENERATE_DELTA = `
  */
 export const ARCHITECTURE_POST_PROPOSE_VALIDATION = `
 **Run post-propose validation**:
-- Validate generated change specs with \`openspec validate --change "<name>" --json\`.
-- Validate \`architecture-delta.c4\` with \`openspec arch validate --delta openspec/changes/<name>/architecture-delta.c4\`.
-- Do NOT run \`openspec sync\` because validation must not mutate formal source
+- Validate generated change specs with \`opsx validate --change "<name>" --json\`.
+- Validate \`architecture-delta.c4\` with \`opsx arch validate --delta .opsx/changes/<name>/architecture-delta.c4\`.
+- Do NOT run \`opsx sync\` because validation must not mutate formal source
 - Run lightweight structure checks for \`proposal.md\`, \`design.md\`, and \`tasks.md\` against the current schema templates, not scattered examples:
-  - Read \`openspec instructions proposal --change "<name>" --json\`, \`openspec instructions design --change "<name>" --json\`, and \`openspec instructions tasks --change "<name>" --json\`
+  - Read \`opsx instructions proposal --change "<name>" --json\`, \`opsx instructions design --change "<name>" --json\`, and \`opsx instructions tasks --change "<name>" --json\`
   - Check only key required headings and checkbox structure
   - For \`tasks.md\`, run a deterministic task structure check equivalent to \`validateTaskStructure\` in \`src/core/parsers/task-structure.ts\`
   - Programmatically verify either legacy \`Actions\`/\`Checks\` sections or coarse \`### Task N:\` sections with \`Goal\`, \`Files\`, \`Requirements\`, and nested \`Checks\`
@@ -79,7 +79,7 @@ export const ARCHITECTURE_POST_PROPOSE_VALIDATION = `
   - For every check, verify required non-empty \`Verifies:\` or \`Preserves:\` field
   - When \`Verifies:\` anchors an ordinary requirement, verify change-local \`Verifies:\` spec paths plus Requirement/Scenario references when local change specs exist
   - When \`Verifies:\` anchors a REMOVED requirement, verify it uses \`REMOVED Requirement "<name>"\` syntax (no Scenario required) and the REMOVED requirement exists in the delta spec
-  - When \`Preserves:\` is present, verify it uses main spec path (\`openspec/specs/<cap>/spec.md\`) with Requirement and ≥1 Scenario names, and the path whitelist does not relax \`Verifies:\` constraints
+  - When \`Preserves:\` is present, verify it uses main spec path (\`.opsx/specs/<cap>/spec.md\`) with Requirement and ≥1 Scenario names, and the path whitelist does not relax \`Verifies:\` constraints
   - Verify at least one \`Command:\`, \`Evidence:\`, or \`Expect:\` field per check
   - Do NOT invent semantic lint rules beyond the current templates
   - Do NOT judge whether a check is semantically sufficient; defer semantic suitability to verify/reviewer
@@ -164,8 +164,8 @@ export const VERIFY_SIMPLE_CHANGE_FAST_PATH = `
  */
 export const ARCHITECTURE_NAVIGATION_GUIDANCE = `
 **LikeC4-first navigation**:
-- Use \`openspec arch query <element-id> --relations --depth 2 --json\` for domains, capabilities, and directed semantic relations
-- Read linked files under \`openspec/specs/\` for behavior contracts
+- Use \`opsx arch query <element-id> --relations --depth 2 --json\` for domains, capabilities, and directed semantic relations
+- Read linked files under \`.opsx/specs/\` for behavior contracts
 - Use optional CodeGraph or ACE/\`rg\`/\`read\` only for current implementation evidence
 - Cross-reference nested domains to understand ownership and boundaries
 `.trim();
@@ -176,7 +176,7 @@ export const ARCHITECTURE_NAVIGATION_GUIDANCE = `
  */
 export const ARTIFACT_DOC_LANGUAGE_CONTRACT = `
 **Document Language Contract**:
-- Treat \`openspec/config.yaml\` as the compact source of truth, but consume its compiled prompt projection rather than reinterpreting raw keys ad hoc
+- Treat \`.opsx/config.yaml\` as the compact source of truth, but consume its compiled prompt projection rather than reinterpreting raw keys ad hoc
 - If the compiled projection includes \`proseLanguage\`, apply it to natural-language prose you write or revise in the artifact body
 - Natural-language prose includes task titles, check names, Requirement titles, Scenario titles, bullet descriptions, Expect/Evidence descriptions, rationale, goals, risks, and summaries
 - Follow the existing template structure exactly; do not invent a different layout because the prose language changes

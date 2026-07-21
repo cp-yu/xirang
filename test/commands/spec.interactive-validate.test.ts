@@ -6,7 +6,7 @@ import { runCLI } from '../helpers/run-cli.js';
 describe('spec validate (interactive behavior)', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-spec-validate-tmp');
-  const specsDir = path.join(testDir, 'openspec', 'specs');
+  const specsDir = path.join(testDir, '.opsx', 'specs');
 
   beforeEach(async () => {
     await fs.mkdir(specsDir, { recursive: true });
@@ -22,7 +22,7 @@ describe('spec validate (interactive behavior)', () => {
   it('errors when no arg and non-interactive', async () => {
     const result = await runCLI(['spec', 'validate'], {
       cwd: testDir,
-      env: { OPEN_SPEC_INTERACTIVE: '0' },
+      env: { OPSX_INTERACTIVE: '0' },
     });
     expect(result.exitCode).not.toBe(0);
     expect(result.stderr).toContain('Missing required argument <spec-id>');

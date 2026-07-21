@@ -14,7 +14,7 @@ export interface CommandContent {
   id: string;
   /** External user-facing command slug used for command file generation */
   commandSlug: string;
-  /** Human-readable name (e.g., 'OpenSpec Explore') */
+  /** Human-readable name (e.g., 'OPSX Explore') */
   name: string;
   /** Brief description of command purpose */
   description: string;

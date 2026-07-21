@@ -1,0 +1,28 @@
+{
+  "extends": "@likec4/tsconfig/base.json",
+  "compilerOptions": {
+    "target": "es2024",
+    "composite": true,
+    "rootDir": "src",
+    "lib": [
+      "ESNext"
+    ],
+    "types": [
+      "node"
+    ]
+  },
+  "include": [
+    "src"
+  ],
+  "references": [
+    {
+      "path": "../core/"
+    },
+    {
+      "path": "../config/"
+    },
+    {
+      "path": "../log/"
+    }
+  ]
+}

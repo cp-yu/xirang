@@ -16,13 +16,13 @@ describe('impact sweeper template', () => {
 
   it('keeps project-root shared references byte-identical to the template', () => {
     for (const reference of template.referenceFiles ?? []) {
-      const sharedPath = path.resolve(`openspec/references/openspec-${path.posix.basename(reference.path)}`);
+      const sharedPath = path.resolve(`.opsx/references/opsx-${path.posix.basename(reference.path)}`);
       expect(readFileSync(sharedPath, 'utf8')).toBe(reference.content);
     }
   });
 
-  it('excludes the OpenSpec philosophy (read-only reporter role)', () => {
-    expect(instructions).not.toContain('OpenSpec Philosophy');
+  it('excludes the OPSX philosophy (read-only reporter role)', () => {
+    expect(instructions).not.toContain('OPSX Philosophy');
   });
 
   it('describes fast-model usage for the lightweight sweep', () => {
@@ -30,7 +30,7 @@ describe('impact sweeper template', () => {
   });
 
   it('defines the report input and output contract', () => {
-    expect(getImpactSweeperSubagentTemplate().name).toBe('openspec-impact-sweeper');
+    expect(getImpactSweeperSubagentTemplate().name).toBe('opsx-impact-sweeper');
     expect(instructions).toContain('projectRoot');
     expect(instructions).toContain('concept');
     expect(instructions).toContain('optionalChangeName');
@@ -39,7 +39,7 @@ describe('impact sweeper template', () => {
     expect(instructions).toContain('return exactly one JSON object');
     expect(instructions).toContain('Do not wrap the JSON in a Markdown code fence');
     expect(instructions).toContain('Do not emit a report path or separate summary');
-    expect(instructions).not.toContain('openspec/sweeper/');
+    expect(instructions).not.toContain('opsx/sweeper/');
   });
 
   it('includes canonical JSON report fields', () => {
@@ -87,10 +87,10 @@ describe('impact sweeper template', () => {
   it('requires CLI-backed LikeC4 evidence and bounded reverse search', () => {
     const evidence = readReference('references/evidence-protocol.md');
 
-    expect(evidence).toContain('openspec arch query <element-id> --relations --depth 2');
+    expect(evidence).toContain('opsx arch query <element-id> --relations --depth 2');
     expect(evidence).toContain("Preserve each relation's canonical source/kind/target direction");
     expect(evidence).toContain('Element nesting supplies domain context only');
-    expect(evidence).toContain('openspec list --specs --json');
+    expect(evidence).toContain('opsx list --specs --json');
     expect(evidence).toContain('CodeGraph is available');
     expect(evidence).toContain('never read `.codegraph/codegraph.db`');
     expect(evidence).toContain('ACE, `rg`, `read`, and `git ls-files`');
@@ -122,6 +122,6 @@ describe('impact sweeper template', () => {
   });
 
   it('does not retain the legacy report persistence scaffold', () => {
-    expect(existsSync(path.resolve('openspec/sweeper/.gitignore'))).toBe(false);
+    expect(existsSync(path.resolve('opsx/sweeper/.gitignore'))).toBe(false);
   });
 });

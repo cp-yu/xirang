@@ -1,3 +1,4 @@
+import { OPSX_DIR_NAME } from './config.js';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import {
@@ -10,13 +11,6 @@ import {
 } from 'yaml';
 import { z } from 'zod';
 import { BuiltInSchemaIdSchema } from './artifact-graph/types.js';
-
-export class ProjectConfigError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ProjectConfigError';
-  }
-}
 
 export const PROJECT_CONFIG_FUNCTIONAL_DEFAULTS = {
   optimization: {
@@ -69,20 +63,20 @@ const gitCommitMessagePathField = z
  * 3. Runtime validation - uses safeParse() for resilient field-by-field validation
  *
  * Why Zod over manual validation:
- * - Helps understand OpenSpec's data interfaces at a glance
+ * - Helps understand OPSX's data interfaces at a glance
  * - Single source of truth for type and validation
- * - Consistent with other OpenSpec schemas
+ * - Consistent with other OPSX schemas
  */
 export const ProjectConfigSchema = z.object({
   // Required: which built-in workflow schema to use
   schema: BuiltInSchemaIdSchema.describe('The built-in workflow schema to use'),
 
-  // Optional: natural-language prose language for OpenSpec artifacts
+  // Optional: natural-language prose language for OPSX artifacts
   proseLanguage: z
     .string()
     .min(1)
     .optional()
-    .describe('Language for natural-language prose in OpenSpec artifacts'),
+    .describe('Language for natural-language prose in OPSX artifacts'),
   docLanguage: z
     .string()
     .min(1)
@@ -189,12 +183,12 @@ export function materializeProjectConfigDefaults(
 }
 
 function findProjectConfigPath(projectRoot: string): { path: string; exists: boolean } {
-  const yamlPath = path.join(projectRoot, 'openspec', 'config.yaml');
+  const yamlPath = path.join(projectRoot, OPSX_DIR_NAME, 'config.yaml');
   if (existsSync(yamlPath)) {
     return { path: yamlPath, exists: true };
   }
 
-  const ymlPath = path.join(projectRoot, 'openspec', 'config.yml');
+  const ymlPath = path.join(projectRoot, OPSX_DIR_NAME, 'config.yml');
   if (existsSync(ymlPath)) {
     return { path: ymlPath, exists: true };
   }
@@ -295,7 +289,7 @@ export function migrateProjectConfigDefaults(projectRoot: string): ProjectConfig
 }
 
 /**
- * Read and parse openspec/config.yaml from project root.
+ * Read and parse .opsx/config.yaml from project root.
  * Uses resilient parsing - validates each field independently using Zod safeParse.
  * Returns null if file doesn't exist.
  * Returns partial config if some fields are invalid (with warnings).
@@ -310,14 +304,14 @@ export function migrateProjectConfigDefaults(projectRoot: string): ProjectConfig
  * invalidation logic) for negligible benefit. Direct reads also ensure config
  * changes are reflected immediately without stale cache issues.
  *
- * @param projectRoot - The root directory of the project (where `openspec/` lives)
+ * @param projectRoot - The root directory of the project (where `.opsx/` lives)
  * @returns Parsed config or null if file doesn't exist
  */
 export function readProjectConfig(projectRoot: string): ProjectConfig | null {
   // Try both .yaml and .yml, prefer .yaml
-  let configPath = path.join(projectRoot, 'openspec', 'config.yaml');
+  let configPath = path.join(projectRoot, OPSX_DIR_NAME, 'config.yaml');
   if (!existsSync(configPath)) {
-    configPath = path.join(projectRoot, 'openspec', 'config.yml');
+    configPath = path.join(projectRoot, OPSX_DIR_NAME, 'config.yml');
     if (!existsSync(configPath)) {
       return null; // No config is OK
     }
@@ -328,20 +322,20 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
     const raw = parseYaml(content);
 
     if (!raw || typeof raw !== 'object') {
-      console.warn(`openspec/config.yaml is not a valid YAML object`);
+      console.warn(`.opsx/config.yaml is not a valid YAML object`);
       return null;
     }
 
     const config: Partial<ProjectConfig> = {};
 
-    // Schema binding is strict because selecting the wrong compiler is unsafe.
     const schemaResult = BuiltInSchemaIdSchema.safeParse(raw.schema);
     if (schemaResult.success) {
       config.schema = schemaResult.data;
     } else if (raw.schema !== undefined) {
-      throw new ProjectConfigError(
-        `Unsupported schema '${String(raw.schema)}' in openspec/config.yaml. Available: spec-driven, bootstrap`
+      console.warn(
+        `Unsupported schema '${String(raw.schema)}' in .opsx/config.yaml. Available: spec-driven, bootstrap`
       );
+      return null;
     }
 
     // Parse proseLanguage field using Zod, with docLanguage as a legacy fallback.
@@ -550,10 +544,7 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
     // Return partial config even if some fields failed
     return Object.keys(config).length > 0 ? (config as ProjectConfig) : null;
   } catch (error) {
-    if (error instanceof ProjectConfigError) {
-      throw error;
-    }
-    console.warn(`Failed to parse openspec/config.yaml:`, error);
+    console.warn(`Failed to parse .opsx/config.yaml:`, error);
     return null;
   }
 }

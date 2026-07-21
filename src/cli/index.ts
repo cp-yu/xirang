@@ -70,18 +70,18 @@ function getCommandPath(command: Command): string {
 
   while (current) {
     const name = current.name();
-    // Skip the root 'openspec' command
-    if (name && name !== 'openspec') {
+    // Skip the root 'opsx' command
+    if (name && name !== 'opsx') {
       names.unshift(name);
     }
     current = current.parent;
   }
 
-  return names.join(':') || 'openspec';
+  return names.join(':') || 'opsx';
 }
 
 program
-  .name('openspec')
+  .name('opsx')
   .description('AI-native system for spec-driven development')
   .version(version);
 
@@ -116,14 +116,14 @@ const toolsOptionDescription = `Configure AI tools non-interactively. Use "all",
 
 program
   .command('init [path]')
-  .description('Initialize OpenSpec in your project')
+  .description('Initialize OPSX in your project')
   .option('--tools <tools>', toolsOptionDescription)
   .option('--force', 'Auto-cleanup legacy files without prompting')
   .action(async (targetPath = '.', options?: { tools?: string; force?: boolean; profile?: string }) => {
     try {
       if (options?.profile) {
         throw new Error(
-          'The --profile option has been removed. OpenSpec now installs all 5 workflows by default. ' +
+          'The --profile option has been removed. OPSX now installs all 5 workflows by default. ' +
           'Remove --profile from your command and try again.'
         );
       }
@@ -168,7 +168,7 @@ program
   .option('--no-interactive', 'Disable interactive prompts')
   .action(async (options?: { tool?: string; noInteractive?: boolean }) => {
     try {
-      console.log('Note: "openspec experimental" is deprecated. Use "openspec init" instead.');
+      console.log('Note: "opsx experimental" is deprecated. Use "opsx init" instead.');
       const { InitCommand } = await import('../core/init.js');
       const initCommand = new InitCommand({
         tools: options?.tool,
@@ -184,7 +184,7 @@ program
 
 program
   .command('update [path]')
-  .description('Update OpenSpec instruction files')
+  .description('Update OPSX instruction files')
   .option('--force', 'Force update even when tools are up to date')
   .action(async (targetPath = '.', options?: { force?: boolean }) => {
     try {
@@ -226,11 +226,12 @@ program
 
 program
   .command('view')
-  .description('Display an interactive dashboard of specs and changes')
-  .action(async () => {
+  .description('Browse architecture and specifications in the embedded web viewer')
+  .option('--port <n>', 'Web server port', (value) => Number(value))
+  .action(async (options: { port?: number }) => {
     try {
       const viewCommand = new ViewCommand();
-      await viewCommand.execute('.');
+      await viewCommand.execute('.', { port: options.port });
     } catch (error) {
       console.log(); // Empty line for spacing
       ora().fail(`Error: ${(error as Error).message}`);
@@ -241,11 +242,11 @@ program
 // Change command with subcommands
 const changeCmd = program
   .command('change')
-  .description('Manage OpenSpec change proposals');
+  .description('Manage OPSX change proposals');
 
 // Deprecation notice for noun-based commands
 changeCmd.hook('preAction', () => {
-  console.error('Warning: The "openspec change ..." commands are deprecated. Prefer verb-first commands (e.g., "openspec list", "openspec validate --changes").');
+  console.error('Warning: The "opsx change ..." commands are deprecated. Prefer verb-first commands (e.g., "opsx list", "opsx validate --changes").');
 });
 
 changeCmd
@@ -267,12 +268,12 @@ changeCmd
 
 changeCmd
   .command('list')
-  .description('List all active changes (DEPRECATED: use "openspec list" instead)')
+  .description('List all active changes (DEPRECATED: use "opsx list" instead)')
   .option('--json', 'Output as JSON')
   .option('--long', 'Show id and title with counts')
   .action(async (options?: { json?: boolean; long?: boolean }) => {
     try {
-      console.error('Warning: "openspec change list" is deprecated. Use "openspec list".');
+      console.error('Warning: "opsx change list" is deprecated. Use "opsx list".');
       const changeCommand = new ChangeCommand();
       await changeCommand.list(options);
     } catch (error) {
@@ -336,7 +337,7 @@ program
   .option('--type <type>', 'Specify item type when ambiguous: change|spec')
   .option('--strict', 'Enable strict validation mode')
   .option('--json', 'Output validation results as JSON')
-  .option('--concurrency <n>', 'Max concurrent validations (defaults to env OPENSPEC_CONCURRENCY or 6)')
+  .option('--concurrency <n>', 'Max concurrent validations (defaults to env OPSX_CONCURRENCY or 6)')
   .option('--no-interactive', 'Disable interactive prompts')
   .action(async (itemName?: string, options?: { all?: boolean; changes?: boolean; specs?: boolean; change?: string; artifacts?: string; type?: string; strict?: boolean; json?: boolean; noInteractive?: boolean; concurrency?: string }) => {
     try {
@@ -379,7 +380,7 @@ program
 // Feedback command
 program
   .command('feedback <message>')
-  .description('Submit feedback about OpenSpec')
+  .description('Submit feedback about OPSX')
   .option('--body <text>', 'Detailed description for the feedback')
   .action(async (message: string, options?: { body?: string }) => {
     try {
@@ -395,7 +396,7 @@ program
 // Completion command with subcommands
 const completionCmd = program
   .command('completion')
-  .description('Manage shell completions for OpenSpec CLI');
+  .description('Manage shell completions for OPSX CLI');
 
 completionCmd
   .command('generate [shell]')
@@ -556,7 +557,7 @@ const bootstrapCmd = program
   .description('Deprecated legacy OPSX bootstrap CLI; use the bootstrap-arch skill for LikeC4');
 
 bootstrapCmd.hook('preAction', () => {
-  console.warn('Deprecated: openspec bootstrap writes legacy OPSX YAML. Use the bootstrap-arch skill for LikeC4.');
+  console.warn('Deprecated: opsx bootstrap writes legacy OPSX YAML. Use the bootstrap-arch skill for LikeC4.');
 });
 
 bootstrapCmd
@@ -564,7 +565,7 @@ bootstrapCmd
   .description('Initialize bootstrap workspace')
   .option('--mode <mode>', 'Bootstrap mode: full (complete specs), opsx-first (README-only starter), or refresh (complete rebuild of formal OPSX v2)')
   .option('--scope <paths>', 'Comma-separated paths to include in scan')
-  .option('--restart', 'Start a new run from a completed retained workspace by snapshotting the previous openspec/bootstrap/')
+  .option('--restart', 'Start a new run from a completed retained workspace by snapshotting the previous .opsx/bootstrap/')
   .option('--granularity <granularity>', 'Spec granularity: required for initial init; restart inherits retained scope when omitted (coarse: grouped, fine: per-capability)')
   .action(async (options: BootstrapInitOptions) => {
     try {

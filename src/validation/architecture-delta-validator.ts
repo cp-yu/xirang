@@ -9,10 +9,19 @@ export async function validateArchitectureDelta(projectRoot: string, deltaPath: 
   const content = await fs.readFile(deltaPath, 'utf8');
   const architecture = await readLikeC4Architecture(projectRoot);
   const domains = new Set(architecture.domains.map(domain => domain.id));
+  const elements = new Set([
+    ...architecture.domains.map(domain => domain.id),
+    ...architecture.capabilities.map(capability => capability.id),
+  ]);
   const issues: ArchitectureDeltaIssue[] = [];
-  for (const match of content.matchAll(/\bextend\s+([A-Za-z_][\w-]*)\s*\{/g)) {
-    if (!domains.has(match[1])) issues.push({
-      level: 'ERROR', path: path.basename(deltaPath), message: `Cannot extend nonexistent domain: ${match[1]}`,
+  for (const match of content.matchAll(/\bextend\s+([A-Za-z_][\w-]*(?:\.[A-Za-z_][\w-]*)?)\s*\{/g)) {
+    const target = match[1];
+    if (!elements.has(target)) issues.push({
+      level: 'ERROR',
+      path: path.basename(deltaPath),
+      message: target.includes('.')
+        ? `Cannot extend nonexistent element: ${target}`
+        : `Cannot extend nonexistent domain: ${target}`,
     });
   }
   if (!/\bmodel\s*\{/.test(content)) issues.push({

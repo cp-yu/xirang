@@ -1,0 +1,103 @@
+name: e2e update screenshots
+
+on:
+  workflow_dispatch:
+    inputs:
+      create-pull-request:
+        description: 'Create pull request?'
+        type: boolean
+        required: true
+        default: true
+
+env:
+  NODE_ENV: production
+  CLOUDFLARE_ENV: 'production'
+  FORCE_COLOR: true
+  DO_NOT_TRACK: '1'
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  update-screenshots:
+    name: create pull request
+    timeout-minutes: 15
+    runs-on: ubuntu-24.04-arm
+    if: ${{ github.repository_owner == 'likec4' }}
+    steps:
+      - name: Decode the GitHub App Private Key
+        id: decode
+        run: |
+          private_key=$(echo "${{ secrets.BOT_APP_PRIVATE_KEY }}" | base64 -d | awk 'BEGIN {ORS="\\n"} {print}' | head -c -2) &> /dev/null
+          echo "::add-mask::$private_key"
+          echo "private-key=$private_key" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ steps.decode.outputs.private-key }}
+
+      - uses: actions/checkout@v6
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          ssh-strict: 'no'
+
+      - name: Get GitHub App User ID
+        id: get-user-id
+        run: echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      - run: |
+          git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
+          git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
+
+      - name: 🛠️ bootstrap
+        uses: ./.github/actions/bootstrap
+
+      - name: 📦 pack
+        run: |
+          pnpm turbo run pack --filter="likec4..."
+
+      - name: 🛠️ install e2e dependencies
+        working-directory: e2e
+        run: |
+          pnpm install
+          pnpm add \
+            ../packages/core/package.tgz \
+            ../packages/icons/package.tgz \
+            ../packages/likec4/package.tgz
+          pnpm install:chromium
+          pnpm bootstrap
+
+      - name: ⚙️ update screenshots
+        working-directory: e2e
+        run: |
+          pnpm test:update-screenshots
+
+      - name: create pull request
+        id: cpr
+        if: ${{ inputs.create-pull-request }}
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          commit-message: 'chore: update e2e screenshots'
+          title: 'chore: update e2e screenshots'
+          branch: update-screenshots/${{ github.ref_name }}
+          add-paths: 'e2e/tests/**'
+          delete-branch: true
+
+      - name: enable automerge
+        if: ${{ inputs.create-pull-request && steps.cpr.outputs.pull-request-number }}
+        run: gh pr merge --squash --auto "${{ steps.cpr.outputs.pull-request-number }}" || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: commit updates
+        if: ${{ !inputs.create-pull-request }}
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: 'chore: update e2e screenshots'
+          file_pattern: 'e2e/tests/'

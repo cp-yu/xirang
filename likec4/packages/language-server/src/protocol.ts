@@ -1,0 +1,359 @@
+import type { LikeC4ProjectJsonConfig } from '@likec4/config'
+import type {
+  ColorLiteral,
+  ComputedLikeC4ModelData,
+  DeploymentFqn,
+  DiagramView,
+  Fqn,
+  LayoutedLikeC4ModelData,
+  LayoutedProjectsView,
+  NonEmptyArray,
+  ProjectId,
+  RelationId,
+  ViewChange,
+  ViewId,
+} from '@likec4/core'
+import type { AILayoutHints } from '@likec4/layouts/ai'
+import { NotificationType, NotificationType0, RequestType, RequestType0 } from 'vscode-jsonrpc'
+import type { DiagnosticSeverity, DocumentUri, Location, Position, Range, URI } from 'vscode-languageserver-types'
+
+export namespace DidChangeModelNotification {
+  export type Params = {
+    projectId: ProjectId
+  }
+  export const type = new NotificationType<Params>('likec4/onDidChangeModel')
+  export type Type = typeof type
+}
+
+/**
+ * Triggered by the language server when projects changed
+ * (number of projects changed, names changed, etc)
+ */
+export namespace DidChangeProjectsNotification {
+  export const type = new NotificationType0('likec4/onDidChangeProjects')
+  export type Type = typeof type
+}
+
+/**
+ * When the snapshot of a manual layout changes
+ * Send by the editor to the language server
+ */
+export namespace DidChangeSnapshotNotification {
+  export type Params = { update: string; delete?: never } | { delete: string; update?: never }
+  export const Method = 'likec4/onDidChangeSnapshot' as const
+  export const type = new NotificationType<Params>(Method)
+  export type Type = typeof type
+}
+
+/**
+ * When server requests to open a likec4 preview panel
+ * (available only in the editor).
+ * (not the best place, but seems to be working)
+ */
+export namespace DidRequestOpenViewNotification {
+  export type Params = {
+    viewId: ViewId
+    projectId: ProjectId
+  }
+  export const type = new NotificationType<Params>('likec4/onRequestOpenView')
+  export type Type = typeof type
+}
+
+/**
+ * Request to fetch the computed model data
+ * If LSP has multiple projects, the projectId is required.
+ * otherwise throws an error.
+ */
+export namespace FetchComputedModel {
+  export type Params = {
+    projectId?: string | undefined
+    cleanCaches?: boolean | undefined
+  }
+  export type Res = {
+    model: ComputedLikeC4ModelData | null
+  }
+  export const req = new RequestType<Params, Res, void>('likec4/fetchComputedModel')
+  export type Req = typeof req
+}
+
+/**
+ * Request to fetch all views of all projects
+ */
+export namespace FetchViewsFromAllProjects {
+  export type Res = {
+    views: Array<{
+      id: ViewId
+      title: string
+      projectId: ProjectId
+    }>
+  }
+  export const req = new RequestType0<Res, void>('likec4/fetchViewsFromAllProjects')
+  export type Req = typeof req
+}
+
+/**
+ * Request to fetch the layouted model data
+ * If LSP has multiple projects, the projectId is required.
+ * otherwise throws an error.
+ */
+export namespace FetchLayoutedModel {
+  export type Params = {
+    projectId?: string | undefined
+  }
+  export type Res = {
+    model: LayoutedLikeC4ModelData | null
+  }
+
+  export const req = new RequestType<Params, Res, void>('likec4/fetchLayoutedModel')
+  export type Req = typeof req
+}
+
+/**
+ * Request to layout a view.
+ * If LSP has multiple projects, the projectId is required.
+ */
+export namespace LayoutView {
+  export type Params = {
+    viewId: ViewId
+    projectId?: string | undefined
+    layoutType?: 'auto' | 'manual' | undefined
+    /** Optional AI-generated layout hints to enhance the layout */
+    hints?: AILayoutHints | undefined
+  }
+  export type Res = {
+    result:
+      | {
+        dot: string
+        diagram: DiagramView
+      }
+      | null
+  }
+
+  export const req = new RequestType<Params, Res, void>('likec4/layout-view')
+  export type Req = typeof req
+}
+
+/**
+ * Request to validate all views
+ * If projects ID is provided, it will validate only the views of that project.
+ */
+export namespace ValidateLayout {
+  export type Params = {
+    projectId?: string
+  }
+
+  export type Res = {
+    result:
+      | {
+        uri: string
+        viewId: ViewId
+        message: string
+        severity: DiagnosticSeverity
+        range: { start: Position; end: Position }
+      }[]
+      | null
+  }
+  export const req = new RequestType<Params, Res, void>('likec4/validate-layout')
+  export type Req = typeof req
+}
+
+/**
+ * Request to reload projects.
+ */
+export namespace ReloadProjects {
+  export type Params = never
+
+  export type Res = void
+
+  export const req = new RequestType0<Res, void>('likec4/reload-projects')
+  export type Req = typeof req
+}
+
+/**
+ * Fetch all non-empty projects.
+ */
+export namespace FetchProjects {
+  export type Params = never
+
+  export type Res = {
+    projects: {
+      [projectId: ProjectId]: {
+        folder: URI
+        config: {
+          name: string
+          title?: string | undefined
+        }
+        docs: NonEmptyArray<DocumentUri>
+      }
+    }
+  }
+
+  export const req = new RequestType0<Res, void>('likec4/fetch-projects')
+  export type Req = typeof req
+}
+
+/**
+ * Request from the client to register a project.
+ */
+export namespace RegisterProject {
+  export type Params = {
+    folderUri: URI
+    config: LikeC4ProjectJsonConfig
+    configUri?: never
+  } | {
+    configUri: URI
+    folderUri?: never
+    config?: never
+  }
+
+  export type Res = {
+    id: ProjectId
+  }
+
+  export const req = new RequestType<Params, Res, void>('likec4/register-project')
+  export type Req = typeof req
+}
+
+/**
+ * Request to build documents.
+ */
+export namespace BuildDocuments {
+  export type Params = {
+    docs: DocumentUri[]
+  }
+
+  export const req = new RequestType<Params, void, void>('likec4/build')
+  export type Req = typeof req
+}
+
+/**
+ * Request to locate an element, relation, deployment or view.
+ * If LSP has multiple projects, the projectId is required.
+ */
+export namespace Locate {
+  export type Params =
+    /**
+     * Locate an element by its fqn
+     */
+    | {
+      element: Fqn
+      projectId?: string | undefined
+      property?: string
+    }
+    /**
+     * Locate a relation by its id
+     */
+    | {
+      projectId?: string | undefined
+      relation: RelationId
+    }
+    /**
+     * Locate a deployment by its fqn
+     */
+    | {
+      deployment: DeploymentFqn
+      projectId?: string | undefined
+      property?: string
+    }
+    /**
+     * Locate a step in a dynamic view by its astPath
+     */
+    | {
+      view: ViewId
+      astPath: string
+      projectId?: string | undefined
+    }
+    /**
+     * Locate a view by its id
+     */
+    | {
+      view: ViewId
+      projectId?: string | undefined
+    }
+  export type Res = Location | null
+  export const req = new RequestType<Params, Res, void>('likec4/locate')
+  export type Req = typeof req
+}
+// #endregion
+
+/**
+ * Request to change the view
+ * If LSP has multiple projects, the projectId is required.
+ */
+export namespace ChangeView {
+  export type Params = {
+    viewId: ViewId
+    change: ViewChange
+    projectId?: string | undefined
+  }
+  export type Res = {
+    success: true
+    location: Location | null
+  } | {
+    success: false
+    location?: Location | null
+    error: string
+  }
+
+  export const req = new RequestType<Params, Res, void>('likec4/change-view')
+  export type Req = typeof req
+}
+
+/**
+ * Request to fetch telemetry metrics
+ */
+export namespace FetchTelemetryMetrics {
+  export type Res = {
+    metrics: null | {
+      elementKinds: number
+      deploymentKinds: number
+      relationshipKinds: number
+      tags: number
+      customColors: number
+      elements: number
+      deploymentNodes: number
+      relationships: number
+      views: number
+      projects: number
+    }
+  }
+  export const req = new RequestType0<Res, void>('likec4/metrics')
+  export type Req = typeof req
+}
+
+/**
+ * Request to fetch all tags of a document
+ */
+export namespace GetDocumentTags {
+  export type Params = {
+    documentUri: DocumentUri
+  }
+  export type Res = {
+    /**
+     * Project ID this document belongs to (or default project if none).
+     */
+    projectId: ProjectId
+    /**
+     * Used tags in the document
+     */
+    tags: Array<{
+      name: string
+      range: Range
+      color: ColorLiteral
+      isSpecification?: boolean
+    }>
+  }
+  export const req = new RequestType<Params, Res, void>('likec4/document-tags')
+  export type Req = typeof req
+}
+
+/**
+ * Request to fetch projects overview diagram
+ */
+export namespace FetchProjectsOverview {
+  export type Res = {
+    projectsView: LayoutedProjectsView | null
+  }
+  export const req = new RequestType0<Res, void>('likec4/fetch-projects-overview')
+  export type Req = typeof req
+}

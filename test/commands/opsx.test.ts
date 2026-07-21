@@ -8,8 +8,8 @@ describe('opsx command', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-opsx-command-'));
-    await fs.mkdir(path.join(tempDir, 'openspec'), { recursive: true });
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-opsx-command-'));
+    await fs.mkdir(path.join(tempDir, '.opsx'), { recursive: true });
   });
 
   afterEach(async () => {
@@ -18,7 +18,7 @@ describe('opsx command', () => {
 
   async function writeOpsxProject(): Promise<void> {
     await fs.writeFile(
-      path.join(tempDir, 'openspec', 'project.opsx.yaml'),
+      path.join(tempDir, '.opsx', 'project.opsx.yaml'),
       `schema_version: 2
 project:
   id: proj.test
@@ -48,7 +48,7 @@ capabilities:
 `
     );
     await fs.writeFile(
-      path.join(tempDir, 'openspec', 'project.opsx.relations.yaml'),
+      path.join(tempDir, '.opsx', 'project.opsx.relations.yaml'),
       `schema_version: 2
 relations:
   - from: cap.cli.list
@@ -114,8 +114,8 @@ relations:
 
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain('OPSX files not found');
-    expect(result.stderr).toContain('openspec bootstrap init');
-    expect(result.stderr).toContain('openspec init');
+    expect(result.stderr).toContain('opsx bootstrap init');
+    expect(result.stderr).toContain('opsx init');
   });
 
   it('relations filter works and code-map option is rejected', async () => {

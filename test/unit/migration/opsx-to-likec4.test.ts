@@ -31,11 +31,11 @@ describe('OPSX to LikeC4 converter', () => {
   let root: string;
 
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-likec4-converter-'));
-    const openspec = path.join(root, 'openspec');
-    await fs.mkdir(openspec, { recursive: true });
-    await fs.writeFile(path.join(openspec, 'project.opsx.yaml'), stringifyYaml(project));
-    await fs.writeFile(path.join(openspec, 'project.opsx.relations.yaml'), stringifyYaml(relations));
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-likec4-converter-'));
+    const opsx = path.join(root, '.opsx');
+    await fs.mkdir(opsx, { recursive: true });
+    await fs.writeFile(path.join(opsx, 'project.opsx.yaml'), stringifyYaml(project));
+    await fs.writeFile(path.join(opsx, 'project.opsx.relations.yaml'), stringifyYaml(relations));
   });
 
   afterEach(async () => fs.rm(root, { recursive: true, force: true }));

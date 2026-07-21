@@ -17,7 +17,7 @@ describe('Workflow Manifest', () => {
     it('should define skillDirName for every entry', () => {
       for (const entry of WorkflowManifestRegistry.entries) {
         expect(entry.skillDirName).toBeTruthy();
-        expect(entry.skillDirName).toMatch(/^openspec-/);
+        expect(entry.skillDirName).toMatch(/^opsx-/);
       }
     });
 
@@ -42,7 +42,7 @@ describe('Workflow Manifest', () => {
         expect(skill.description).toBeTruthy();
         expect(skill.instructions).toBeTruthy();
         expect(skill.license || 'MIT').toBeTruthy();
-        expect(skill.compatibility || 'Requires openspec CLI.').toBeTruthy();
+        expect(skill.compatibility || 'Requires opsx CLI.').toBeTruthy();
       }
     });
 
@@ -78,7 +78,7 @@ describe('Workflow Manifest', () => {
       const names = WorkflowManifestRegistry.getSkillNames();
       expect(names.length).toBe(WorkflowManifestRegistry.entries.length);
       for (const name of names) {
-        expect(name).toMatch(/^openspec-/);
+        expect(name).toMatch(/^opsx-/);
       }
     });
 

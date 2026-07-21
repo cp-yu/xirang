@@ -7,11 +7,11 @@ import { runCLI } from '../helpers/run-cli.js';
 const tempRoots: string[] = [];
 
 async function createProject(): Promise<string> {
-  const projectDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-opsx-query-e2e-'));
+  const projectDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-opsx-query-e2e-'));
   tempRoots.push(projectDir);
-  await fs.mkdir(path.join(projectDir, 'openspec', 'specs', 'cli-list'), { recursive: true });
+  await fs.mkdir(path.join(projectDir, '.opsx', 'specs', 'cli-list'), { recursive: true });
   await fs.writeFile(
-    path.join(projectDir, 'openspec', 'project.opsx.yaml'),
+    path.join(projectDir, '.opsx', 'project.opsx.yaml'),
     `schema_version: 2
 project:
   id: proj.e2e
@@ -37,7 +37,7 @@ capabilities:
 `
   );
   await fs.writeFile(
-    path.join(projectDir, 'openspec', 'project.opsx.relations.yaml'),
+    path.join(projectDir, '.opsx', 'project.opsx.relations.yaml'),
     `schema_version: 2
 relations:
   - from: cap.cli.list
@@ -58,7 +58,7 @@ relations:
 `
   );
   await fs.writeFile(
-    path.join(projectDir, 'openspec', 'specs', 'cli-list', 'spec.md'),
+    path.join(projectDir, '.opsx', 'specs', 'cli-list', 'spec.md'),
     `---
 capabilities:
   - cap.cli.list
@@ -81,7 +81,7 @@ afterAll(async () => {
   await Promise.all(tempRoots.map((dir) => fs.rm(dir, { recursive: true, force: true })));
 });
 
-describe('openspec opsx query e2e', () => {
+describe('opsx opsx query e2e', () => {
   it('queries an existing OPSX node as JSON', async () => {
     const projectDir = await createProject();
 

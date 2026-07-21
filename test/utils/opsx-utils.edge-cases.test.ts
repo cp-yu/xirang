@@ -17,7 +17,7 @@ describe('Edge Cases: OPSX Utils', () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-opsx-edge-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `opsx-opsx-edge-${randomUUID()}`);
     await fs.mkdir(testDir, { recursive: true });
   });
 
@@ -184,7 +184,7 @@ describe('Edge Cases: OPSX Utils', () => {
       expect(result!.domains).toHaveLength(1000);
 
       // Verify still two files, no sharding
-      const opsxDir = path.join(testDir, 'openspec');
+      const opsxDir = path.join(testDir, '.opsx');
       const files = await fs.readdir(opsxDir);
       const opsxFiles = files.filter(f => f.startsWith('project.opsx'));
       expect(opsxFiles).toHaveLength(2);

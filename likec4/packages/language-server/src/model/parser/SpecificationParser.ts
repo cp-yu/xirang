@@ -1,0 +1,154 @@
+import * as c4 from '@likec4/core'
+import { exact } from '@likec4/core'
+import { nonNullable } from '@likec4/core/utils'
+import { filter, isTruthy, mapToObj, pipe } from 'remeda'
+import { ast, parseMarkdownAsString, toRelationshipStyle } from '../../ast'
+import { type Base, removeIndent } from './Base'
+
+export function SpecificationParser<TBase extends Base>(B: TBase) {
+  return class SpecificationParser extends B {
+    parseSpecification() {
+      const {
+        parseResult: {
+          value: {
+            specifications,
+          },
+        },
+        c4Specification,
+      } = this.doc
+      const isValid = this.isValid
+
+      for (const elementSpec of specifications.flatMap(s => s.elements.filter(isValid))) {
+        try {
+          Object.assign(c4Specification.elements, this.parseElementSpecificationNode(elementSpec))
+        } catch (e) {
+          this.logError(e, elementSpec, 'specification')
+        }
+      }
+
+      for (const deploymentNodeSpec of specifications.flatMap(s => s.deploymentNodes.filter(isValid))) {
+        try {
+          Object.assign(c4Specification.deployments, this.parseElementSpecificationNode(deploymentNodeSpec))
+        } catch (e) {
+          this.logError(e, deploymentNodeSpec, 'specification')
+        }
+      }
+
+      const relations_specs = specifications.flatMap(s => s.relationships.filter(this.isValid))
+      for (const relSpec of relations_specs) {
+        const { kind, props } = relSpec
+        try {
+          const kindName = kind.name as c4.RelationshipKind
+          if (!isTruthy(kindName)) {
+            continue
+          }
+          if (kindName in c4Specification.relationships) {
+            this.logError(`Relationship kind "${kindName}" is already defined`, kind, 'specification')
+            continue
+          }
+          const tags = this.parseTags(relSpec)
+          const links = this.parseLinks(relSpec)
+          const bodyProps = pipe(
+            props.filter(ast.isSpecificationRelationshipStringProperty) ?? [],
+            filter(p => this.isValid(p)),
+            mapToObj(p => [p.key, p.value as ast.MarkdownOrString | undefined]),
+          )
+          // `summary` is not supported on relationship kinds (model relations have no summary)
+          const { summary: _summary, ...baseProps } = this.parseBaseProps(bodyProps)
+          const notation = removeIndent(parseMarkdownAsString(bodyProps.notation))
+          const multipleProps = props.filter(ast.isMultipleProperty)
+          if (multipleProps.length > 1) {
+            this.logError(
+              `Duplicate 'multiple' property for relationship "${kindName}", using the first one`,
+              kind,
+              'specification',
+            )
+          }
+          const multipleProp = multipleProps[0]
+          c4Specification.relationships[kindName] = exact({
+            ...baseProps,
+            notation,
+            tags: tags ?? undefined,
+            ...(links && c4.isNonEmptyArray(links) && { links }),
+            ...toRelationshipStyle(props.filter(ast.isRelationshipStyleProperty), this.isValid),
+            ...(multipleProp && { multiple: multipleProp.value }),
+          })
+        } catch (e) {
+          this.logError(e, kind, 'specification')
+        }
+      }
+
+      const tags_specs = specifications.flatMap(s => s.tags.filter(this.isValid))
+      for (const tagSpec of tags_specs) {
+        try {
+          const tag = tagSpec.tag.name as c4.Tag
+          const astPath = this.getAstNodePath(tagSpec.tag)
+          const color = tagSpec.color && this.parseColorLiteral(tagSpec.color)
+          if (tag in c4Specification.tags) {
+            this.logError(`Tag ${tag} is already defined, skipping duplicate`, tagSpec, 'specification')
+            continue
+          }
+          if (isTruthy(tag)) {
+            c4Specification.tags[tag] = {
+              astPath,
+              ...(color ? { color } : {}),
+            }
+          }
+        } catch (e) {
+          this.logError(e, tagSpec, 'specification')
+        }
+      }
+
+      const colors_specs = specifications.flatMap(s => s.colors.filter(isValid))
+      for (const { name, color } of colors_specs) {
+        try {
+          const colorName = name.name as c4.CustomColor
+          if (colorName in c4Specification.colors) {
+            this.logError(`Custom color "${colorName}" is already defined`, name, 'specification')
+            continue
+          }
+          c4Specification.colors[colorName] = {
+            color: nonNullable(this.parseColorLiteral(color), `Color "${colorName}" is not valid`),
+          }
+        } catch (e) {
+          this.logError(e, color, 'specification')
+        }
+      }
+    }
+
+    parseElementSpecificationNode(
+      specAst: ast.SpecificationElementKind,
+    ): { [key: c4.ElementKind]: c4.ElementSpecification }
+    parseElementSpecificationNode(
+      specAst: ast.SpecificationDeploymentNodeKind,
+    ): { [key: c4.DeploymentKind]: c4.ElementSpecification }
+    parseElementSpecificationNode(specAst: ast.SpecificationDeploymentNodeKind | ast.SpecificationElementKind) {
+      const { kind, props } = specAst
+      const kindName = kind.name
+      if (!isTruthy(kindName)) {
+        throw new Error('DeploymentNodeKind name is not resolved')
+      }
+      const tags = this.parseTags(specAst)
+      const style = this.parseElementStyle(props.find(ast.isElementStyleProperty))
+      const links = this.parseLinks(specAst)
+      const bodyProps = pipe(
+        props.filter(ast.isSpecificationElementStringProperty) ?? [],
+        filter(p => this.isValid(p)),
+        mapToObj(p => [p.key, p.value as ast.MarkdownOrString | undefined]),
+      )
+
+      const baseProps = this.parseBaseProps(bodyProps)
+      const notation = removeIndent(parseMarkdownAsString(bodyProps.notation))
+
+      return {
+        [kindName]: exact({
+          ...baseProps,
+          notation,
+          tags: tags ?? undefined,
+          ...(links && c4.isNonEmptyArray(links) && { links }),
+          style,
+        }) satisfies c4.ElementSpecification,
+      }
+    }
+  }
+}

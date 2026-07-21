@@ -26,7 +26,7 @@ describe('AuthoringHelpCommand', () => {
       expect(output).toContain(type);
     }
     expect(output).toContain('选择规则');
-    expect(output).toContain('openspec validate --change <name> --artifacts architecture-delta --json');
+    expect(output).toContain('opsx validate --change <name> --artifacts architecture-delta --json');
   });
 
   it('returns Schema-backed definitions and Registry relation details', async () => {
@@ -75,12 +75,12 @@ describe('AuthoringHelpCommand', () => {
 
 describe('registerHelpCommand', () => {
   it('delegates non-authoring command paths to Commander help', async () => {
-    const program = new Command().name('openspec').exitOverride();
+    const program = new Command().name('opsx').exitOverride();
     program.command('validate').description('Validate artifacts');
     registerHelpCommand(program);
     const output = await captureLogs(async () => {
-      await program.parseAsync(['node', 'openspec', 'help', 'validate']);
+      await program.parseAsync(['node', 'opsx', 'help', 'validate']);
     });
-    expect(output).toContain('Usage: openspec validate');
+    expect(output).toContain('Usage: opsx validate');
   });
 });

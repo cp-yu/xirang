@@ -19,11 +19,11 @@ import {
 } from '../workflow-surface.js';
 
 export const MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES = [
-  'openspec-implementer',
-  'openspec-reviewer',
-  'openspec-optimizer',
-  'openspec-impact-sweeper',
-  'openspec-bootstrap-opsx',
+  'opsx-implementer',
+  'opsx-reviewer',
+  'opsx-optimizer',
+  'opsx-impact-sweeper',
+  'opsx-bootstrap-opsx',
 ] as const;
 
 export function getManagedSkillDirNames(): string[] {
@@ -91,7 +91,7 @@ function escapeYamlString(value: string): string {
  * Generates skill file content with YAML frontmatter.
  *
  * @param template - The skill template
- * @param generatedByVersion - The OpenSpec version to embed in the file
+ * @param generatedByVersion - The OPSX version to embed in the file
  * @param transformInstructions - Optional callback to transform the instructions content
  */
 export function generateSkillContent(
@@ -107,9 +107,9 @@ export function generateSkillContent(
 name: ${escapeYamlString(template.name)}
 description: ${escapeYamlString(template.description)}
 license: ${escapeYamlString(template.license || 'MIT')}
-compatibility: ${escapeYamlString(template.compatibility || 'Requires openspec CLI.')}
+compatibility: ${escapeYamlString(template.compatibility || 'Requires opsx CLI.')}
 metadata:
-  author: ${escapeYamlString(template.metadata?.author || 'openspec')}
+  author: ${escapeYamlString(template.metadata?.author || 'opsx')}
   version: ${escapeYamlString(template.metadata?.version || '1.0')}
   generatedBy: ${escapeYamlString(generatedByVersion)}
 ---

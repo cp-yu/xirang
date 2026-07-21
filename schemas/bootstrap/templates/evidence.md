@@ -9,7 +9,7 @@ Candidate domains discovered from codebase scan.
 - id: dom.<area>
   confidence: high | medium | low
   sources:
-    - spec:openspec/specs/<path>
+    - spec:.opsx/specs/<path>
     - code:src/<path>
   intent: One-sentence description
 -->

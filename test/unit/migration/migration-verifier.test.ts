@@ -9,8 +9,8 @@ describe('migration verifier', () => {
   let root: string;
 
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-migration-verifier-'));
-    const architecture = path.join(root, 'openspec', 'architecture');
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-migration-verifier-'));
+    const architecture = path.join(root, '.opsx', 'architecture');
     await fs.mkdir(path.join(architecture, 'domains'), { recursive: true });
     await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), `model {
   core = domain 'Core' {
@@ -18,7 +18,7 @@ describe('migration verifier', () => {
     metadata { boundary 'wrong'; status 'deprecated' }
     run = capability 'Run' {
       description 'Run intent'
-      metadata { capabilityId 'cap.core.run'; status 'deprecated'; specs ['openspec/specs/run/spec.md'] }
+      metadata { capabilityId 'cap.core.run'; status 'deprecated'; specs ['.opsx/specs/run/spec.md'] }
     }
     stop = capability 'Stop' { metadata { capabilityId 'cap.core.stop' } }
   }
@@ -37,7 +37,7 @@ describe('migration verifier', () => {
         id: 'dom.core', elementId: 'core', title: 'Core', description: 'Core intent',
         metadata: { boundary: 'service', status: 'active' },
         capabilities: [
-          { id: 'cap.core.run', elementId: 'run', qualifiedId: 'core.run', title: 'Run', description: 'Run intent', metadata: { capabilityId: 'cap.core.run', status: 'active', specs: ['openspec/specs/run/spec.md'] } },
+          { id: 'cap.core.run', elementId: 'run', qualifiedId: 'core.run', title: 'Run', description: 'Run intent', metadata: { capabilityId: 'cap.core.run', status: 'active', specs: ['.opsx/specs/run/spec.md'] } },
           { id: 'cap.core.stop', elementId: 'stop', qualifiedId: 'core.stop', title: 'Stop', metadata: { capabilityId: 'cap.core.stop' } },
         ],
       }],

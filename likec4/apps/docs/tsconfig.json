@@ -1,0 +1,36 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "verbatimModuleSyntax": true,
+    "paths": {
+      "@components/*": [
+        "./src/components/*"
+      ],
+      "@assets/*": [
+        "./src/assets/*"
+      ]
+    }
+  },
+  "include": [
+    ".astro/types.d.ts",
+    "**/*"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ],
+  "references": [
+    {
+      "path": "../../packages/core/"
+    },
+    {
+      "path": "../../packages/react/"
+    },
+    {
+      "path": "../../packages/vite-plugin/"
+    },
+    {
+      "path": "../../packages/likec4/"
+    }
+  ]
+}

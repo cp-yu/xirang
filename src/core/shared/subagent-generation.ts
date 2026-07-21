@@ -31,9 +31,9 @@ export const INTERNAL_SUBAGENT_TEMPLATES: readonly SubagentTemplate[] = [
 
 const DEFAULT_TOOLS = ['read', 'grep', 'find', 'bash'] as const;
 const PI_FOREGROUND_DESCRIPTION_SUBAGENTS = new Set([
-  'openspec-reviewer',
-  'openspec-optimizer',
-  'openspec-impact-sweeper',
+  'opsx-reviewer',
+  'opsx-optimizer',
+  'opsx-impact-sweeper',
 ]);
 const PI_FOREGROUND_DESCRIPTION_SUFFIX = ' Pi callers: run foreground and omit timeoutMs/maxRuntimeMs.';
 

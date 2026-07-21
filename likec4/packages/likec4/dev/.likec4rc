@@ -1,0 +1,13 @@
+{
+  name: 'likec4-dev',
+  title: 'LikeC4 Dev',
+  styles: {
+    defaults: {
+      color: 'secondary',
+      opacity: 5,
+      relationship: {
+        arrow: 'open'
+      }
+    }
+  }
+}

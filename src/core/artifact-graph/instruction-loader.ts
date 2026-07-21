@@ -7,6 +7,7 @@ import { resolveArtifactOutputs } from './outputs.js';
 import { resolveSchemaForChange } from '../../utils/change-metadata.js';
 import { FileSystemUtils } from '../../utils/file-system.js';
 import { readProjectConfig, validateConfigRules } from '../project-config.js';
+import { OPSX_DIR_NAME } from '../config.js';
 import { buildConfigProjectionBundle, type ConfigProjectionBundle } from '../config-projection.js';
 import type { Artifact, CompletedSet, FileDefinition, ManagedFile } from './types.js';
 
@@ -206,7 +207,7 @@ export function loadTemplate(
  *
  * Schema resolution order:
  * 1. Explicit schemaName parameter (if provided)
- * 2. Schema from .openspec.yaml metadata (if exists in change directory)
+ * 2. Schema from .opsx.yaml metadata (if exists in change directory)
  * 3. Default 'spec-driven'
  *
  * @param projectRoot - Project root directory
@@ -219,12 +220,12 @@ export function loadChangeContext(
   changeName: string,
   schemaName?: string
 ): ChangeContext {
-  const changePath = path.join(projectRoot, 'openspec', 'changes', changeName);
+  const changePath = path.join(projectRoot, OPSX_DIR_NAME, 'changes', changeName);
 
   // Resolve schema: explicit > metadata > default
   const resolvedSchemaName = resolveSchemaForChange(changePath, schemaName);
   const workspacePath = resolvedSchemaName === 'bootstrap'
-    ? path.join(projectRoot, 'openspec', 'bootstrap')
+    ? path.join(projectRoot, OPSX_DIR_NAME, 'bootstrap')
     : changePath;
   const changeDir = FileSystemUtils.canonicalizeExistingPath(workspacePath);
 
