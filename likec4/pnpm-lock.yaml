@@ -615,7 +615,7 @@ importers:
       canvaskit-wasm:
         specifier: 0.40.0
         version: 0.40.0
-      likec4:
+      opsx-likec4:
         specifier: workspace:*
         version: link:../../packages/likec4
       react:
@@ -1815,6 +1815,12 @@ importers:
       playwright:
         specifier: 'catalog:'
         version: 1.60.0
+      react:
+        specifier: 19.2.7
+        version: 19.2.7
+      react-dom:
+        specifier: 19.2.7
+        version: 19.2.7(react@19.2.7)
       std-env:
         specifier: catalog:externals
         version: 4.1.0
@@ -1987,12 +1993,6 @@ importers:
       pretty-ms:
         specifier: ^9.3.0
         version: 9.3.0
-      react:
-        specifier: 19.2.7
-        version: 19.2.7
-      react-dom:
-        specifier: 19.2.7
-        version: 19.2.7(react@19.2.7)
       react-error-boundary:
         specifier: catalog:react
         version: 6.1.2(react@19.2.7)

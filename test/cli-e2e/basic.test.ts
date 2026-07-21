@@ -50,6 +50,19 @@ describe('opsx CLI e2e basics', () => {
     expect(pkg.bin).toEqual({ opsx: './bin/opsx.js' });
   });
 
+  it('identifies the embedded browser runtime as opsx-likec4', async () => {
+    const pkgRaw = await fs.readFile(
+      path.join(cliProjectRoot, 'likec4', 'packages', 'likec4', 'package.json'),
+      'utf-8'
+    );
+    const pkg = JSON.parse(pkgRaw);
+    expect(pkg.name).toBe('opsx-likec4');
+    expect(pkg.dependencies).toMatchObject({
+      react: 'catalog:react',
+      'react-dom': 'catalog:react',
+    });
+  });
+
   it('shows dynamic tool ids in init help', async () => {
     const result = await runCLI(['init', '--help']);
     expect(result.exitCode).toBe(0);
