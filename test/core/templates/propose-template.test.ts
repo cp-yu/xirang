@@ -40,7 +40,7 @@ describe('propose template post-validation flow', () => {
     const instructions = getOpsxProposeSkillTemplate().instructions;
     expect(instructions).toContain('.opsx/architecture/');
     expect(instructions).toContain('opsx arch query <element-id> --relations --depth 2');
-    expect(instructions).not.toContain('opsx/project.opsx.yaml');
+    expect(instructions).not.toContain('.opsx/project.opsx.yaml');
   });
 
   it('defers definition-first ordering to the artifact instruction projection', () => {

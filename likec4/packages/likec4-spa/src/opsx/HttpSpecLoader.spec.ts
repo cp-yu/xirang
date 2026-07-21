@@ -12,7 +12,7 @@ describe('HttpSpecLoader', () => {
     const loader = new HttpSpecLoader(fetcher)
     const controller = new AbortController()
 
-    await expect(loader.load('core.api', '.opsx/specs/api/spec.md', controller.signal)).resolves.toEqual({
+    await expect(loader.load('default', 'core.api', '.opsx/specs/api/spec.md', controller.signal)).resolves.toEqual({
       path: '.opsx/specs/api/spec.md',
       md: '# API',
     })
@@ -20,9 +20,26 @@ describe('HttpSpecLoader', () => {
     const [url, options] = fetcher.mock.calls[0]!
     const parsed = new URL(String(url), 'http://localhost')
     expect(parsed.pathname).toBe('/__opsx/spec')
+    expect(parsed.searchParams.get('project')).toBe('default')
     expect(parsed.searchParams.get('element')).toBe('core.api')
     expect(parsed.searchParams.get('path')).toBe('.opsx/specs/api/spec.md')
     expect(options).toMatchObject({ signal: controller.signal })
+  })
+
+  it('calls browser fetch with the global receiver', async () => {
+    let receiver: unknown
+    const fetcher = function(this: unknown) {
+      receiver = this
+      return Promise.resolve(new Response(JSON.stringify({
+        path: '.opsx/specs/api/spec.md',
+        md: '# API',
+      }), { status: 200, headers: { 'content-type': 'application/json' } }))
+    } as typeof fetch
+    const loader = new HttpSpecLoader(fetcher)
+
+    await loader.load('default', 'core.api', '.opsx/specs/api/spec.md', new AbortController().signal)
+
+    expect(receiver).toBe(globalThis)
   })
 
   it('reports server errors without discarding the selected path', async () => {
@@ -33,6 +50,7 @@ describe('HttpSpecLoader', () => {
     const loader = new HttpSpecLoader(fetcher)
 
     await expect(loader.load(
+      'default',
       'core.api',
       '.opsx/specs/missing/spec.md',
       new AbortController().signal,

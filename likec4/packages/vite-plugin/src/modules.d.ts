@@ -177,6 +177,11 @@ declare module 'likec4:rpc' {
   export type { LikeC4VitePluginRpc }
   export const likec4rpc: LikeC4VitePluginRpc
 
+  export const likec4hot: {
+    on(event: string, listener: (payload: any) => void): void
+    off(event: string, listener: (payload: any) => void): void
+  } | undefined
+
   export const isRpcAvailable: boolean
 
   export const isAIAvailable: boolean

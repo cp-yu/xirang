@@ -35,7 +35,7 @@ describe('syncCommand', () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-sync-test-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-sync-test-'));
     await fs.mkdir(path.join(tempDir, '.opsx', 'changes', 'archive'), { recursive: true });
     await fs.mkdir(path.join(tempDir, '.opsx', 'specs'), { recursive: true });
     process.chdir(tempDir);
@@ -159,10 +159,10 @@ Then the system signs the user in`
     await createChange('blocked-sync');
 
     await expect(syncCommand('blocked-sync', { noValidate: true })).rejects.toThrow(
-      'openspec verify phase1 blocked-sync'
+      'opsx verify phase1 blocked-sync'
     );
     await expect(syncCommand('blocked-sync', { noValidate: true })).rejects.toThrow(
-      'openspec sync blocked-sync --no-verify'
+      'opsx sync blocked-sync --no-verify'
     );
   });
 
@@ -721,7 +721,7 @@ The system SHALL support login.
       'utf-8'
     );
 
-    const evidenceFiles = ['openspec/project.opsx.yaml'];
+    const evidenceFiles = ['.opsx/project.opsx.yaml'];
     const before = await computeEvidenceFingerprint(evidenceFiles, tempDir);
     const verifyResult: VerifyResult = {
       timestamp: new Date().toISOString(),

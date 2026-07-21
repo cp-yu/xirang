@@ -191,7 +191,7 @@ export async function mergeArchitectureDelta(projectRoot: string, deltaPath: str
     }));
   }
 
-  const staging = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-likec4-merge-'));
+  const staging = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-likec4-merge-'));
   try {
     await copyDurableArchitecture(architectureDir, staging);
     for (const [file, content] of contents) {

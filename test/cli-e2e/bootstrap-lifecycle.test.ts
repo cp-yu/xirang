@@ -24,7 +24,7 @@ async function removeDirWithRetry(dir: string, attempts = 5): Promise<void> {
 }
 
 async function createTempProject(): Promise<string> {
-  const projectDir = await fs.mkdtemp(path.join(tmpdir(), 'openspec-bootstrap-lifecycle-'));
+  const projectDir = await fs.mkdtemp(path.join(tmpdir(), 'opsx-bootstrap-lifecycle-'));
   tempRoots.push(projectDir);
   return projectDir;
 }
@@ -61,9 +61,9 @@ async function checkAllReviewBoxes(projectDir: string): Promise<void> {
 }
 
 async function expectFormalBundle(projectDir: string): Promise<void> {
-  await expect(readFile(projectDir, 'openspec/project.opsx.yaml')).resolves.toContain('schema_version: 2');
-  await expect(readFile(projectDir, 'openspec/project.opsx.relations.yaml')).resolves.toContain('schema_version: 2');
-  await expect(readFile(projectDir, 'openspec/project.opsx.code-map.yaml')).rejects.toThrow();
+  await expect(readFile(projectDir, '.opsx/project.opsx.yaml')).resolves.toContain('schema_version: 2');
+  await expect(readFile(projectDir, '.opsx/project.opsx.relations.yaml')).resolves.toContain('schema_version: 2');
+  await expect(readFile(projectDir, '.opsx/project.opsx.code-map.yaml')).rejects.toThrow();
 }
 
 async function initWorkspace(
@@ -178,7 +178,7 @@ afterAll(async () => {
   await Promise.all(tempRoots.map((dir) => removeDirWithRetry(dir)));
 });
 
-describe('openspec bootstrap lifecycle', () => {
+describe('opsx bootstrap lifecycle', () => {
   it('supports specs-based -> full, preserves existing specs, and adds missing candidate specs', async () => {
     const projectDir = await createTempProject();
     const originalSpec = '# Auth\n';
@@ -266,7 +266,7 @@ describe('openspec bootstrap lifecycle', () => {
 
     const promoteResult = await runCLI(['bootstrap', 'promote', '-y'], { cwd: projectDir });
     expect(promoteResult.exitCode).toBe(1);
-    expect(await pathExists(projectDir, 'openspec/project.opsx.yaml')).toBe(false);
+    expect(await pathExists(projectDir, '.opsx/project.opsx.yaml')).toBe(false);
     expect(await pathExists(projectDir, '.opsx/bootstrap')).toBe(true);
   }, 30000);
 
@@ -285,9 +285,9 @@ describe('openspec bootstrap lifecycle', () => {
     expect(promoteResult.exitCode).toBe(1);
 
     // No partial formal writes should have occurred.
-    expect(await pathExists(projectDir, 'openspec/project.opsx.yaml')).toBe(false);
-    expect(await pathExists(projectDir, 'openspec/project.opsx.relations.yaml')).toBe(false);
-    expect(await pathExists(projectDir, 'openspec/project.opsx.code-map.yaml')).toBe(false);
+    expect(await pathExists(projectDir, '.opsx/project.opsx.yaml')).toBe(false);
+    expect(await pathExists(projectDir, '.opsx/project.opsx.relations.yaml')).toBe(false);
+    expect(await pathExists(projectDir, '.opsx/project.opsx.code-map.yaml')).toBe(false);
     expect(await pathExists(projectDir, '.opsx/specs/cli/spec.md')).toBe(false);
     expect(await pathExists(projectDir, '.opsx/bootstrap')).toBe(true);
   }, 30000);
@@ -329,7 +329,7 @@ describe('openspec bootstrap lifecycle', () => {
 
     const promoteResult = await runCLI(['bootstrap', 'promote', '-y'], { cwd: projectDir });
     expect(promoteResult.exitCode).toBe(1);
-    expect(await pathExists(projectDir, 'openspec/project.opsx.yaml')).toBe(false);
+    expect(await pathExists(projectDir, '.opsx/project.opsx.yaml')).toBe(false);
 
     const reviewValidate = await runCLI(['bootstrap', 'validate'], { cwd: projectDir });
     expect(reviewValidate.exitCode).toBe(1);

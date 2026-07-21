@@ -399,7 +399,7 @@ function buildBootstrapRestartCommand(baselineType: BootstrapBaselineType): stri
     return null;
   }
 
-  return `openspec bootstrap init --mode ${allowedModes[0]} --restart`;
+  return `opsx bootstrap init --mode ${allowedModes[0]} --restart`;
 }
 
 function hasExplicitCompletionMarker(metadata: BootstrapMetadata): boolean {
@@ -1278,17 +1278,17 @@ export async function initBootstrap(
     const completion = await resolveBootstrapWorkspaceCompletion(projectRoot, existingState.metadata);
     if (!options.restart) {
       if (completion.state === 'completed') {
-        const restartCommand = buildBootstrapRestartCommand(baselineType) ?? `openspec bootstrap init --mode ${mode} --restart`;
+        const restartCommand = buildBootstrapRestartCommand(baselineType) ?? `opsx bootstrap init --mode ${mode} --restart`;
         throw new Error(
           `Bootstrap workspace already exists and the previous run is complete. Run \`${restartCommand}\` to start a new run from the retained workspace.`
         );
       }
 
-      throw new Error('Bootstrap workspace already exists and is still in progress. Run `openspec bootstrap status` or `openspec bootstrap instructions` to resume the current phase.');
+      throw new Error('Bootstrap workspace already exists and is still in progress. Run `opsx bootstrap status` or `opsx bootstrap instructions` to resume the current phase.');
     }
 
     if (completion.state !== 'completed') {
-      throw new Error('Bootstrap workspace is still in progress. `--restart` only works after promote completes. Run `openspec bootstrap status` or `openspec bootstrap instructions` to resume the current phase.');
+      throw new Error('Bootstrap workspace is still in progress. `--restart` only works after promote completes. Run `opsx bootstrap status` or `opsx bootstrap instructions` to resume the current phase.');
     }
 
     inheritedScope = existingState.scope;
@@ -1346,7 +1346,7 @@ export async function readBootstrapState(projectRoot: string): Promise<Bootstrap
   const bsDir = bootstrapPath(projectRoot);
 
   if (!await FileSystemUtils.directoryExists(bsDir)) {
-    throw new Error('No bootstrap workspace found. Run `openspec bootstrap init` first.');
+    throw new Error('No bootstrap workspace found. Run `opsx bootstrap init` first.');
   }
 
   const fallbackBaselineType = await inferLegacyBaselineType(projectRoot);
@@ -1466,7 +1466,7 @@ export async function getBootstrapStatus(projectRoot: string): Promise<Bootstrap
     restartCommand: completion.state === 'completed' ? buildBootstrapRestartCommand(currentBaselineType) : null,
     nextAction: completion.state === 'completed' ? 'restart' : getNextBootstrapAction(state.metadata.phase),
     transitionCommand: completion.state === 'in-progress' && state.metadata.phase === 'init'
-      ? 'openspec bootstrap advance scan'
+      ? 'opsx bootstrap advance scan'
       : null,
     created_at: state.metadata.created_at,
     domains,
@@ -1588,11 +1588,11 @@ export async function validateGate(
       if (!state.reviewExists) {
         errors.push('review.md not found');
       } else if (derived.reviewState !== 'current') {
-        errors.push('Review approval is stale. Run `openspec bootstrap validate` to regenerate review.md and re-approve it.');
+        errors.push('Review approval is stale. Run `opsx bootstrap validate` to regenerate review.md and re-approve it.');
       }
 
       if (!derived.bundle || !derived.candidateFingerprint) {
-        errors.push('Candidate OPSX artifacts are unavailable. Run `openspec bootstrap validate` after scan/map are complete.');
+        errors.push('Candidate OPSX artifacts are unavailable. Run `opsx bootstrap validate` after scan/map are complete.');
         break;
       }
 
@@ -1797,8 +1797,8 @@ function buildReviewContent(
   );
   lines.push(
     localizeBootstrapText(projection, {
-      en: 'This file is derived from evidence.yaml and domain-map/*.yaml. If either changes, regenerate review via `openspec bootstrap validate`.',
-      zh: 'This file is derived from evidence.yaml and domain-map/*.yaml. If either changes, regenerate review via `openspec bootstrap validate`.',
+      en: 'This file is derived from evidence.yaml and domain-map/*.yaml. If either changes, regenerate review via `opsx bootstrap validate`.',
+      zh: 'This file is derived from evidence.yaml and domain-map/*.yaml. If either changes, regenerate review via `opsx bootstrap validate`.',
     }),
     ''
   );
@@ -1883,8 +1883,8 @@ function buildReviewContent(
   lines.push('', '## Candidate Specs', '');
   if (state.metadata.mode === 'opsx-first') {
     lines.push(`- ${localizeBootstrapText(projection, {
-      en: 'Mode contract: README-only starter at openspec/specs/README.md',
-      zh: 'Mode contract: README-only starter at openspec/specs/README.md',
+      en: 'Mode contract: README-only starter at .opsx/specs/README.md',
+      zh: 'Mode contract: README-only starter at .opsx/specs/README.md',
     })}`);
     lines.push(`- ${localizeBootstrapText(projection, {
       en: 'No capability-level candidate specs should be generated',
@@ -1938,8 +1938,8 @@ function buildReviewContent(
     })}`);
   }
   lines.push(`- [ ] ${localizeBootstrapText(projection, {
-    en: 'Candidate specs pass OpenSpec validation',
-    zh: 'Candidate specs pass OpenSpec validation',
+    en: 'Candidate specs pass OPSX validation',
+    zh: 'Candidate specs pass OPSX validation',
   })}`);
   lines.push(`- [ ] ${localizeBootstrapText(projection, {
     en: 'Domain boundaries match mental model',
@@ -2163,8 +2163,8 @@ ${localizeBootstrapText(projection, {
   zh: 'Formal OPSX files were generated from the bootstrap workflow.',
 })}
 - ${localizeBootstrapText(projection, {
-  en: 'Add behavior specs incrementally with normal OpenSpec changes.',
-  zh: 'Add behavior specs incrementally with normal OpenSpec changes.',
+  en: 'Add behavior specs incrementally with normal OPSX changes.',
+  zh: 'Add behavior specs incrementally with normal OPSX changes.',
 })}
 - ${localizeBootstrapText(projection, {
   en: 'Create focused specs under `.opsx/specs/<capability>/spec.md` as features evolve.',
@@ -2186,7 +2186,7 @@ export async function promoteBootstrap(projectRoot: string): Promise<PromoteBoot
   const state = await readBootstrapState(projectRoot);
   const derived = await deriveBootstrapArtifacts(projectRoot, state);
   if (!derived.bundle || !derived.candidateFingerprint) {
-    throw new Error('Cannot promote: candidate artifacts are unavailable. Run `openspec bootstrap validate` first.');
+    throw new Error('Cannot promote: candidate artifacts are unavailable. Run `opsx bootstrap validate` first.');
   }
 
   const targetErrors = await validateFormalSpecTargets(projectRoot, state, derived.candidateSpecs);

@@ -11,7 +11,7 @@ const domain = `model { core = domain 'Core' { run = capability 'Run' { descript
 describe('arch commands', () => {
   let root: string;
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-arch-command-'));
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-arch-command-'));
     const architecture = path.join(root, '.opsx', 'architecture');
     await fs.mkdir(path.join(architecture, 'domains'), { recursive: true });
     await fs.writeFile(path.join(architecture, 'specification.c4'), 'specification { element domain element capability relationship invokes }');
@@ -69,7 +69,7 @@ describe('arch commands', () => {
       await expect(fs.access(path.join(workspace, '.likec4'))).rejects.toThrow();
     });
     const result = await validateArchitectureCommand(root, { deltaPath: delta, runLikeC4: runner });
-    expect(runner).toHaveBeenCalledWith(['validate', expect.stringContaining('openspec-likec4-delta-')]);
+    expect(runner).toHaveBeenCalledWith(['validate', expect.stringContaining('opsx-likec4-delta-')]);
     expect(result.success).toBe(true);
   });
 

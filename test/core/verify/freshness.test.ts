@@ -19,7 +19,7 @@ describe('verify freshness engine', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-verify-freshness-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-verify-freshness-'));
   });
 
   afterEach(async () => {
@@ -129,7 +129,7 @@ describe('verify freshness engine', () => {
     await fs.writeFile(tasksPath, '- [x] task\n', 'utf-8');
     await fs.writeFile(path.join(changeDir, 'src', 'a.ts'), 'a', 'utf-8');
     await execFileAsync('git', ['init'], { cwd: changeDir });
-    await execFileAsync('git', ['config', 'user.name', 'OpenSpec Test'], { cwd: changeDir });
+    await execFileAsync('git', ['config', 'user.name', 'OPSX Test'], { cwd: changeDir });
     await execFileAsync('git', ['config', 'user.email', 'test@example.com'], { cwd: changeDir });
     await execFileAsync('git', ['add', '.'], { cwd: changeDir });
     await execFileAsync('git', ['commit', '-m', 'init'], { cwd: changeDir });
@@ -163,7 +163,7 @@ describe('verify freshness engine', () => {
 
   it('refreshes matching evidence entries after sync and keeps freshness fresh', async () => {
     const changeDir = path.join(tempDir, '.opsx', 'changes', 'c1');
-    const mainOpsxPath = path.join(tempDir, 'openspec', 'project.opsx.yaml');
+    const mainOpsxPath = path.join(tempDir, '.opsx', 'project.opsx.yaml');
     const changeSpecPath = path.join(changeDir, 'specs', 'auth', 'spec.md');
     await fs.mkdir(path.dirname(mainOpsxPath), { recursive: true });
     await fs.mkdir(path.dirname(changeSpecPath), { recursive: true });
@@ -172,7 +172,7 @@ describe('verify freshness engine', () => {
     await fs.writeFile(changeSpecPath, 'change spec\n', 'utf-8');
 
     const before = await computeEvidenceFingerprint(
-      ['openspec/project.opsx.yaml', '.opsx/changes/c1/specs/auth/spec.md'],
+      ['.opsx/project.opsx.yaml', '.opsx/changes/c1/specs/auth/spec.md'],
       tempDir
     );
     const result: VerifyResult = {
@@ -182,7 +182,7 @@ describe('verify freshness engine', () => {
       tasksFileHash: (await computeTasksFileHash(path.join(changeDir, 'tasks.md')))!,
       verificationContext: {
         contractVersion: '1.0',
-        evidenceFiles: ['openspec/project.opsx.yaml', '.opsx/changes/c1/specs/auth/spec.md'],
+        evidenceFiles: ['.opsx/project.opsx.yaml', '.opsx/changes/c1/specs/auth/spec.md'],
         evidenceFingerprint: before.hash,
         evidenceFingerprintEntries: before.entries,
       },
@@ -194,7 +194,7 @@ describe('verify freshness engine', () => {
     const staleBeforeRefresh = await checkFreshness(changeDir, tempDir);
     expect(staleBeforeRefresh.status).toBe('STALE');
 
-    await refreshVerifyEvidenceAfterSync(changeDir, tempDir, ['openspec/project.opsx.yaml']);
+    await refreshVerifyEvidenceAfterSync(changeDir, tempDir, ['.opsx/project.opsx.yaml']);
 
     const refreshed = JSON.parse(
       await fs.readFile(path.join(changeDir, '.verify-result.json'), 'utf-8')
@@ -202,18 +202,18 @@ describe('verify freshness engine', () => {
     expect(refreshed.verificationContext.evidenceFingerprint).not.toBe(before.hash);
     expect(refreshed.verificationContext.evidenceFingerprintEntries).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ path: 'openspec/project.opsx.yaml' }),
+        expect.objectContaining({ path: '.opsx/project.opsx.yaml' }),
         expect.objectContaining({ path: '.opsx/changes/c1/specs/auth/spec.md' }),
       ])
     );
     const refreshedOpsxEntry = refreshed.verificationContext.evidenceFingerprintEntries?.find(
-      (entry) => entry.path === 'openspec/project.opsx.yaml'
+      (entry) => entry.path === '.opsx/project.opsx.yaml'
     );
     const unchangedChangeSpecEntry = refreshed.verificationContext.evidenceFingerprintEntries?.find(
       (entry) => entry.path === '.opsx/changes/c1/specs/auth/spec.md'
     );
     expect(refreshedOpsxEntry?.hash).not.toBe(
-      before.entries.find((entry) => entry.path === 'openspec/project.opsx.yaml')?.hash
+      before.entries.find((entry) => entry.path === '.opsx/project.opsx.yaml')?.hash
     );
     expect(unchangedChangeSpecEntry?.hash).toBe(
       before.entries.find((entry) => entry.path === '.opsx/changes/c1/specs/auth/spec.md')?.hash
@@ -223,13 +223,13 @@ describe('verify freshness engine', () => {
 
   it('skips refresh when no synced paths match evidence entries', async () => {
     const changeDir = path.join(tempDir, '.opsx', 'changes', 'c1');
-    const evidencePath = path.join(tempDir, 'openspec', 'project.opsx.yaml');
+    const evidencePath = path.join(tempDir, '.opsx', 'project.opsx.yaml');
     await fs.mkdir(path.dirname(evidencePath), { recursive: true });
     await fs.mkdir(changeDir, { recursive: true });
     await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] task\n', 'utf-8');
     await fs.writeFile(evidencePath, 'version: 1\n', 'utf-8');
 
-    const before = await computeEvidenceFingerprint(['openspec/project.opsx.yaml'], tempDir);
+    const before = await computeEvidenceFingerprint(['.opsx/project.opsx.yaml'], tempDir);
     const result: VerifyResult = {
       timestamp: new Date().toISOString(),
       result: 'PASS',
@@ -237,7 +237,7 @@ describe('verify freshness engine', () => {
       tasksFileHash: (await computeTasksFileHash(path.join(changeDir, 'tasks.md')))!,
       verificationContext: {
         contractVersion: '1.0',
-        evidenceFiles: ['openspec/project.opsx.yaml'],
+        evidenceFiles: ['.opsx/project.opsx.yaml'],
         evidenceFingerprint: before.hash,
         evidenceFingerprintEntries: before.entries,
       },
@@ -254,13 +254,13 @@ describe('verify freshness engine', () => {
 
   it('skips refresh when verify result is missing or legacy entries are absent', async () => {
     const changeDir = path.join(tempDir, '.opsx', 'changes', 'c1');
-    const evidencePath = path.join(tempDir, 'openspec', 'project.opsx.yaml');
+    const evidencePath = path.join(tempDir, '.opsx', 'project.opsx.yaml');
     await fs.mkdir(path.dirname(evidencePath), { recursive: true });
     await fs.mkdir(changeDir, { recursive: true });
     await fs.writeFile(evidencePath, 'version: 1\n', 'utf-8');
 
     await expect(
-      refreshVerifyEvidenceAfterSync(changeDir, tempDir, ['openspec/project.opsx.yaml'])
+      refreshVerifyEvidenceAfterSync(changeDir, tempDir, ['.opsx/project.opsx.yaml'])
     ).resolves.toBeUndefined();
 
     const legacy: VerifyResult = {
@@ -270,7 +270,7 @@ describe('verify freshness engine', () => {
       tasksFileHash: 'a'.repeat(64),
       verificationContext: {
         contractVersion: '1.0',
-        evidenceFiles: ['openspec/project.opsx.yaml'],
+        evidenceFiles: ['.opsx/project.opsx.yaml'],
         evidenceFingerprint: 'b'.repeat(64),
       },
       optimization: { status: 'NOT_NEEDED', attempts: [] },
@@ -279,20 +279,20 @@ describe('verify freshness engine', () => {
     await fs.writeFile(verifyPath, `${JSON.stringify(legacy, null, 2)}\n`, 'utf-8');
     const originalContent = await fs.readFile(verifyPath, 'utf-8');
 
-    await refreshVerifyEvidenceAfterSync(changeDir, tempDir, ['openspec/project.opsx.yaml']);
+    await refreshVerifyEvidenceAfterSync(changeDir, tempDir, ['.opsx/project.opsx.yaml']);
 
     expect(await fs.readFile(verifyPath, 'utf-8')).toBe(originalContent);
   });
 
   it('matches synced files using POSIX-normalized paths on Windows-style input', async () => {
     const changeDir = path.join(tempDir, '.opsx', 'changes', 'c1');
-    const evidencePath = path.join(tempDir, 'openspec', 'project.opsx.yaml');
+    const evidencePath = path.join(tempDir, '.opsx', 'project.opsx.yaml');
     await fs.mkdir(path.dirname(evidencePath), { recursive: true });
     await fs.mkdir(changeDir, { recursive: true });
     await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] task\n', 'utf-8');
     await fs.writeFile(evidencePath, 'version: 1\n', 'utf-8');
 
-    const before = await computeEvidenceFingerprint(['openspec/project.opsx.yaml'], tempDir);
+    const before = await computeEvidenceFingerprint(['.opsx/project.opsx.yaml'], tempDir);
     const result: VerifyResult = {
       timestamp: new Date().toISOString(),
       result: 'PASS',
@@ -300,7 +300,7 @@ describe('verify freshness engine', () => {
       tasksFileHash: (await computeTasksFileHash(path.join(changeDir, 'tasks.md')))!,
       verificationContext: {
         contractVersion: '1.0',
-        evidenceFiles: ['openspec/project.opsx.yaml'],
+        evidenceFiles: ['.opsx/project.opsx.yaml'],
         evidenceFingerprint: before.hash,
         evidenceFingerprintEntries: before.entries,
       },
@@ -309,7 +309,7 @@ describe('verify freshness engine', () => {
     await fs.writeFile(path.join(changeDir, '.verify-result.json'), `${JSON.stringify(result, null, 2)}\n`, 'utf-8');
     await fs.writeFile(evidencePath, 'version: 2\n', 'utf-8');
 
-    await refreshVerifyEvidenceAfterSync(changeDir, tempDir, ['openspec\\project.opsx.yaml']);
+    await refreshVerifyEvidenceAfterSync(changeDir, tempDir, ['.opsx\\project.opsx.yaml']);
 
     expect((await checkFreshness(changeDir, tempDir)).status).toBe('FRESH');
   });

@@ -12,7 +12,7 @@ describe('artifact-graph/outputs', () => {
   let tempDir: string;
 
   beforeEach(() => {
-    tempDir = path.join(os.tmpdir(), `openspec-outputs-test-${Date.now()}`);
+    tempDir = path.join(os.tmpdir(), `opsx-outputs-test-${Date.now()}`);
     fs.mkdirSync(tempDir, { recursive: true });
   });
 

@@ -27,7 +27,7 @@ const domain = `model {
 describe('LikeC4 architecture reader', () => {
   let root: string;
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-likec4-reader-'));
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-likec4-reader-'));
     const architecture = path.join(root, '.opsx', 'architecture');
     await fs.mkdir(path.join(architecture, 'domains'), { recursive: true });
     await fs.writeFile(path.join(architecture, 'specification.c4'), 'specification { element domain element capability relationship invokes }');
@@ -60,8 +60,8 @@ describe('LikeC4 architecture reader', () => {
 
   it('should fallback to OPSX when LikeC4 not present', async () => {
     await fs.rm(path.join(root, '.opsx', 'architecture'), { recursive: true });
-    await fs.writeFile(path.join(root, 'openspec', 'project.opsx.yaml'), `schema_version: 2\nproject: { id: test, name: Test }\ndomains: [{ id: dom.core, type: domain }]\ncapabilities: [{ id: cap.core.run, type: capability }]\n`);
-    await fs.writeFile(path.join(root, 'openspec', 'project.opsx.relations.yaml'), `schema_version: 2\nrelations: [{ from: cap.core.run, type: belongs_to, to: dom.core }]\n`);
+    await fs.writeFile(path.join(root, '.opsx', 'project.opsx.yaml'), `schema_version: 2\nproject: { id: test, name: Test }\ndomains: [{ id: dom.core, type: domain }]\ncapabilities: [{ id: cap.core.run, type: capability }]\n`);
+    await fs.writeFile(path.join(root, '.opsx', 'project.opsx.relations.yaml'), `schema_version: 2\nrelations: [{ from: cap.core.run, type: belongs_to, to: dom.core }]\n`);
     const result = await readArchitecture(root);
     expect(result.source).toBe('opsx');
   });

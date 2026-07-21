@@ -75,7 +75,7 @@ The system SHALL process credit card payments securely`;
       expect(json.title).toBe('auth');
       expect(json.overview).toContain('test specification');
       expect(json.requirements).toHaveLength(2);
-      expect(json.metadata.format).toBe('openspec');
+      expect(json.metadata.format).toBe('opsx');
     });
 
     it('should filter to show only requirements with --requirements flag (JSON only)', async () => {

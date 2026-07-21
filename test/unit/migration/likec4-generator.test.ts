@@ -27,7 +27,7 @@ const model: LikeC4Model = {
 describe('LikeC4 file generator', () => {
   let root: string;
 
-  beforeEach(async () => { root = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-likec4-generator-')); });
+  beforeEach(async () => { root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-likec4-generator-')); });
   afterEach(async () => fs.rm(root, { recursive: true, force: true }));
 
   it('should generate valid specification and project metadata', async () => {

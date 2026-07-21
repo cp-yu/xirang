@@ -4,9 +4,9 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 PROJECT=$(mktemp -d)
 trap 'rm -rf "$PROJECT"' EXIT
-mkdir -p "$PROJECT/openspec"
+mkdir -p "$PROJECT/.opsx"
 
-cat > "$PROJECT/openspec/project.opsx.yaml" <<'YAML'
+cat > "$PROJECT/.opsx/project.opsx.yaml" <<'YAML'
 schema_version: 2
 project:
   id: bootstrap-test
@@ -21,7 +21,7 @@ capabilities:
     intent: Run bootstrap
 YAML
 
-cat > "$PROJECT/openspec/project.opsx.relations.yaml" <<'YAML'
+cat > "$PROJECT/.opsx/project.opsx.relations.yaml" <<'YAML'
 schema_version: 2
 relations:
   - from: cap.core.run
@@ -31,11 +31,11 @@ YAML
 
 (
   cd "$PROJECT"
-  node "$ROOT/bin/openspec.js" migrate opsx-to-likec4
-  node "$ROOT/bin/openspec.js" arch validate
-  node "$ROOT/bin/openspec.js" arch query cap.core.run | grep -q 'Element: cap.core.run'
-  test -f openspec/project.opsx.yaml.backup
-  test -f openspec/project.opsx.relations.yaml.backup
+  node "$ROOT/bin/opsx.js" migrate opsx-to-likec4
+  node "$ROOT/bin/opsx.js" arch validate
+  node "$ROOT/bin/opsx.js" arch query cap.core.run | grep -q 'Element: cap.core.run'
+  test -f .opsx/project.opsx.yaml.backup
+  test -f .opsx/project.opsx.relations.yaml.backup
 )
 
 echo 'Bootstrap Test PASSED'

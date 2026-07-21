@@ -1,10 +1,10 @@
 # Getting Started
 
-This guide explains how OpenSpec works after you've installed and initialized it. For installation instructions, see the [main README](../README.md#quick-start).
+This guide explains how OPSX works after you've built and initialized it. For source installation instructions, see [Installation](installation.md).
 
 ## How It Works
 
-OpenSpec helps you and your AI coding assistant agree on what to build before any code is written.
+OPSX helps you and your AI coding assistant agree on what to build before any code is written.
 
 **Default quick path:**
 
@@ -12,14 +12,14 @@ OpenSpec helps you and your AI coding assistant agree on what to build before an
 /opsx:propose ──► /opsx:apply ──► /opsx:archive
 ```
 
-OpenSpec installs a fixed managed workflow surface. `/opsx:archive` syncs delta Specs and `architecture-delta.c4` into the formal LikeC4 model before archiving, and it runs a full verify gate before archive.
+OPSX installs a fixed managed workflow surface. `/opsx:archive` syncs delta Specs and `architecture-delta.c4` into the formal LikeC4 model before archiving, and it runs a full verify gate before archive.
 
-## What OpenSpec Creates
+## What OPSX Creates
 
-After running `openspec init`, your project has this structure:
+After running `opsx init`, your project has this structure:
 
 ```
-openspec/
+.opsx/
 ├── specs/              # Source of truth (your system's behavior)
 │   └── <domain>/
 │       └── spec.md
@@ -66,7 +66,7 @@ You can always go back and refine earlier artifacts as you learn more during imp
 
 ## How Delta Specs Work
 
-Delta specs are the key concept in OpenSpec. They show what's changing relative to your current specs.
+Delta specs are the key concept in OPSX. They show what's changing relative to your current specs.
 
 ### The Format
 
@@ -110,7 +110,7 @@ When you archive a change:
 2. **MODIFIED** requirements replace the existing version
 3. **REMOVED** requirements are deleted from the main spec
 
-The change folder moves to `openspec/changes/archive/` for audit history.
+The change folder moves to `.opsx/changes/archive/` for audit history.
 
 ## Example: Your First Change
 
@@ -121,7 +121,7 @@ Let's walk through adding dark mode to an application.
 ```text
 You: /opsx:propose add-dark-mode
 
-AI:  Created openspec/changes/add-dark-mode/
+AI:  Created .opsx/changes/add-dark-mode/
      ✓ proposal.md — why we're doing this, what's changing
      ✓ specs/       — requirements and scenarios
      ✓ design.md    — technical approach
@@ -219,8 +219,8 @@ You: /opsx:archive
 AI:  Archiving add-dark-mode...
      ✓ No fresh verify result found, running full verify
      ✓ Full verify passed
-     ✓ Merged specs into openspec/specs/ui/spec.md
-     ✓ Moved to openspec/changes/archive/2025-01-24-add-dark-mode/
+     ✓ Merged specs into .opsx/specs/ui/spec.md
+     ✓ Moved to .opsx/changes/archive/2025-01-24-add-dark-mode/
      Done! Ready for the next feature.
 ```
 
@@ -232,16 +232,16 @@ Use the CLI to check on your changes:
 
 ```bash
 # List active changes
-openspec list
+opsx list
 
 # View change details
-openspec show add-dark-mode
+opsx show add-dark-mode
 
 # Validate spec formatting
-openspec validate add-dark-mode
+opsx validate add-dark-mode
 
-# Interactive dashboard
-openspec view
+# Local Architecture and Specs browser
+opsx view
 ```
 
 ## Next Steps
@@ -249,4 +249,4 @@ openspec view
 - [Workflows](workflows.md) - Common patterns and when to use each command
 - [Commands](commands.md) - Full reference for all slash commands
 - [Concepts](concepts.md) - Deeper understanding of specs, changes, and schemas
-- [Customization](customization.md) - Make OpenSpec work your way
+- [Customization](customization.md) - Make OPSX work your way

@@ -5,7 +5,7 @@ import path from 'path';
 import { backfillSpecs, matchSpecToCaps, writeSpecFrontmatter } from '../../src/core/backfill-specs.js';
 
 async function withTempDir(run: (dir: string) => Promise<void>) {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-backfill-specs-'));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-backfill-specs-'));
   try {
     await run(dir);
   } finally {
@@ -14,10 +14,10 @@ async function withTempDir(run: (dir: string) => Promise<void>) {
 }
 
 async function writeProjectOpsx(root: string, capIds: string[]) {
-  const openspecDir = path.join(root, 'openspec');
-  await fs.mkdir(openspecDir, { recursive: true });
+  const opsxDir = path.join(root, '.opsx');
+  await fs.mkdir(opsxDir, { recursive: true });
   await fs.writeFile(
-    path.join(openspecDir, 'project.opsx.yaml'),
+    path.join(opsxDir, 'project.opsx.yaml'),
     [
       'schema_version: 2',
       'project:',
@@ -38,7 +38,7 @@ async function writeProjectOpsx(root: string, capIds: string[]) {
     'utf-8'
   );
   await fs.writeFile(
-    path.join(openspecDir, 'project.opsx.relations.yaml'),
+    path.join(opsxDir, 'project.opsx.relations.yaml'),
     [
       'schema_version: 2',
       'relations:',

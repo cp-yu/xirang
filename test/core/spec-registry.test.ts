@@ -5,7 +5,7 @@ import path from 'path';
 import { buildSpecRegistry } from '../../src/core/spec-registry.js';
 
 async function withTempDir(run: (dir: string) => Promise<void>) {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-spec-registry-'));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-spec-registry-'));
   try {
     await run(dir);
   } finally {

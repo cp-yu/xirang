@@ -35,10 +35,10 @@ describe('snack workflow integration', () => {
   let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-snack-it-${Date.now()}`);
+    testDir = path.join(os.tmpdir(), `opsx-snack-it-${Date.now()}`);
     await fs.mkdir(testDir, { recursive: true });
     originalEnv = { ...process.env };
-    configTempDir = path.join(os.tmpdir(), `openspec-snack-cfg-${Date.now()}`);
+    configTempDir = path.join(os.tmpdir(), `opsx-snack-cfg-${Date.now()}`);
     await fs.mkdir(configTempDir, { recursive: true });
     process.env.XDG_CONFIG_HOME = configTempDir;
     vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -70,7 +70,7 @@ describe('snack workflow integration', () => {
 
     const skillTemplates = getSkillTemplates();
     const snackTemplate = skillTemplates.find((entry) => entry.workflowId === 'snack');
-    expect(snackTemplate?.dirName).toBe('openspec-snack');
+    expect(snackTemplate?.dirName).toBe('opsx-snack');
   });
 
   it('init installs 6 workflow skills including snack for Claude Code', async () => {
@@ -79,12 +79,12 @@ describe('snack workflow integration', () => {
 
     const skillsDir = path.join(testDir, '.claude', 'skills');
     const expectedSkills = [
-      'openspec-propose',
-      'openspec-explore',
-      'openspec-apply-change',
-      'openspec-archive-change',
-      'openspec-bootstrap-arch',
-      'openspec-snack',
+      'opsx-propose',
+      'opsx-explore',
+      'opsx-apply-change',
+      'opsx-archive-change',
+      'opsx-bootstrap-arch',
+      'opsx-snack',
     ];
 
     for (const skill of expectedSkills) {
@@ -97,21 +97,21 @@ describe('snack workflow integration', () => {
     expect(await fileExists(snackCommand)).toBe(false);
 
     const snackSkill = await fs.readFile(
-      path.join(skillsDir, 'openspec-snack', 'SKILL.md'),
+      path.join(skillsDir, 'opsx-snack', 'SKILL.md'),
       'utf-8'
     );
     expect(snackSkill).toContain('git diff');
     expect(snackSkill).toContain('CodeGraph');
     expect(snackSkill).toContain('ACE, `rg`, and `read`');
     expect(snackSkill).not.toContain('project.opsx.code-map.yaml');
-    expect(snackSkill).toContain('openspec instructions proposal');
-    expect(snackSkill).toContain('openspec instructions specs');
-    expect(snackSkill).toContain('openspec instructions design');
-    expect(snackSkill).toContain('openspec validate "<name>" --type change --json');
-    expect(snackSkill).toContain('1. **Quick sync**: `openspec sync "<change-name>" --no-verify`');
-    expect(snackSkill).toContain('2. **Quick archive**: `openspec archive "<change-name>" --no-verify`');
+    expect(snackSkill).toContain('opsx instructions proposal');
+    expect(snackSkill).toContain('opsx instructions specs');
+    expect(snackSkill).toContain('opsx instructions design');
+    expect(snackSkill).toContain('opsx validate "<name>" --type change --json');
+    expect(snackSkill).toContain('1. **Quick sync**: `opsx sync "<change-name>" --no-verify`');
+    expect(snackSkill).toContain('2. **Quick archive**: `opsx archive "<change-name>" --no-verify`');
     expect(snackSkill).toContain(
-      '3. **Sync and archive**: `openspec sync "<change-name>" --no-verify && openspec archive "<change-name>" --no-verify`'
+      '3. **Sync and archive**: `opsx sync "<change-name>" --no-verify && opsx archive "<change-name>" --no-verify`'
     );
     expect(snackSkill).toContain('4. **Continue development**');
     expect(snackSkill).toMatch(/no architecture-level changes detected|Do NOT generate `tasks.md`/);
@@ -134,9 +134,9 @@ describe('snack workflow integration', () => {
   });
 
   it('update refreshes the snack skill file in place', async () => {
-    await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
-    await fs.mkdir(path.join(testDir, '.claude', 'skills', 'openspec-snack'), { recursive: true });
-    const staleSkill = path.join(testDir, '.claude', 'skills', 'openspec-snack', 'SKILL.md');
+    await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
+    await fs.mkdir(path.join(testDir, '.claude', 'skills', 'opsx-snack'), { recursive: true });
+    const staleSkill = path.join(testDir, '.claude', 'skills', 'opsx-snack', 'SKILL.md');
     await fs.writeFile(staleSkill, 'STALE CONTENT');
 
     const updateCommand = new UpdateCommand({ force: true });
@@ -144,10 +144,10 @@ describe('snack workflow integration', () => {
 
     const refreshed = await fs.readFile(staleSkill, 'utf-8');
     expect(refreshed).not.toBe('STALE CONTENT');
-    expect(readSkillFrontmatter(refreshed)).toMatchObject({ name: 'openspec-snack' });
+    expect(readSkillFrontmatter(refreshed)).toMatchObject({ name: 'opsx-snack' });
     expect(refreshed).toContain('git diff');
-    expect(refreshed).toContain('openspec instructions proposal');
-    expect(refreshed).toContain('openspec validate "<name>" --type change --json');
+    expect(refreshed).toContain('opsx instructions proposal');
+    expect(refreshed).toContain('opsx validate "<name>" --type change --json');
     // C4: refreshed skill still exposes broader evidence sources
     expect(refreshed).toContain('conversation context');
     expect(refreshed).toContain('git diff HEAD');

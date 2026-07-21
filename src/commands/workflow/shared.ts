@@ -90,7 +90,7 @@ export function getStatusIndicator(status: 'done' | 'ready' | 'blocked'): string
 }
 
 /**
- * Returns the list of available change directory names under openspec/changes/.
+ * Returns the list of available change directory names under .opsx/changes/.
  * Excludes the archive directory and hidden directories.
  */
 export async function getAvailableChanges(projectRoot: string): Promise<string[]> {
@@ -117,7 +117,7 @@ export async function validateChangeExists(
   if (!changeName) {
     const available = await getAvailableChanges(projectRoot);
     if (available.length === 0) {
-      throw new Error('No changes found. Create one with: openspec new change <name>');
+      throw new Error('No changes found. Create one with: opsx new change <name>');
     }
     throw new Error(
       `Missing required option --change. Available changes:\n  ${available.join('\n  ')}`
@@ -138,7 +138,7 @@ export async function validateChangeExists(
     const available = await getAvailableChanges(projectRoot);
     if (available.length === 0) {
       throw new Error(
-        `Change '${changeName}' not found. No changes exist. Create one with: openspec new change <name>`
+        `Change '${changeName}' not found. No changes exist. Create one with: opsx new change <name>`
       );
     }
     throw new Error(

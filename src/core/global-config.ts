@@ -3,9 +3,9 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 
 // Constants
-export const GLOBAL_CONFIG_DIR_NAME = 'openspec';
+export const GLOBAL_CONFIG_DIR_NAME = 'opsx';
 export const GLOBAL_CONFIG_FILE_NAME = 'config.json';
-export const GLOBAL_DATA_DIR_NAME = 'openspec';
+export const GLOBAL_DATA_DIR_NAME = 'opsx';
 
 // TypeScript interfaces
 export interface GlobalConfig {
@@ -33,9 +33,9 @@ const DEFAULT_CONFIG: GlobalConfig = {
 /**
  * Gets the global configuration directory path following XDG Base Directory Specification.
  *
- * - All platforms: $XDG_CONFIG_HOME/openspec/ if XDG_CONFIG_HOME is set
- * - Unix/macOS fallback: ~/.config/openspec/
- * - Windows fallback: %APPDATA%/openspec/
+ * - All platforms: $XDG_CONFIG_HOME/opsx/ if XDG_CONFIG_HOME is set
+ * - Unix/macOS fallback: ~/.config/opsx/
+ * - Windows fallback: %APPDATA%/opsx/
  */
 export function getGlobalConfigDir(): string {
   // XDG_CONFIG_HOME takes precedence on all platforms when explicitly set
@@ -64,9 +64,9 @@ export function getGlobalConfigDir(): string {
  * Gets the global data directory path following XDG Base Directory Specification.
  * Used for user data like schema overrides.
  *
- * - All platforms: $XDG_DATA_HOME/openspec/ if XDG_DATA_HOME is set
- * - Unix/macOS fallback: ~/.local/share/openspec/
- * - Windows fallback: %LOCALAPPDATA%/openspec/
+ * - All platforms: $XDG_DATA_HOME/opsx/ if XDG_DATA_HOME is set
+ * - Unix/macOS fallback: ~/.local/share/opsx/
+ * - Windows fallback: %LOCALAPPDATA%/opsx/
  */
 export function getGlobalDataDir(): string {
   // XDG_DATA_HOME takes precedence on all platforms when explicitly set
@@ -123,7 +123,7 @@ export function getGlobalConfig(): GlobalConfig {
 
     // Warn about deprecated fields
     if ('profile' in parsed || 'workflows' in parsed || 'delivery' in parsed) {
-      console.warn('Warning: obsolete config fields detected (profile/workflows/delivery). Run "openspec update" to clean up these fields.');
+      console.warn('Warning: obsolete config fields detected (profile/workflows/delivery). Run "opsx update" to clean up these fields.');
     }
 
     // Merge with defaults (loaded values take precedence)

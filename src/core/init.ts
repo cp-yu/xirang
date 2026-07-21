@@ -1,7 +1,7 @@
 /**
  * Init Command
  *
- * Sets up OpenSpec with managed workflow skills.
+ * Sets up OPSX with managed workflow skills.
  * This is the unified setup command that replaces both the old init and experimental commands.
  */
 
@@ -48,7 +48,7 @@ import { generateSpecification } from '../migration/generators/specification-gen
 import { generateViews } from '../migration/generators/views-generator.js';
 
 const require = createRequire(import.meta.url);
-const { version: OPENSPEC_VERSION } = require('../../package.json');
+const { version: OPSX_VERSION } = require('../../package.json');
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -88,11 +88,11 @@ export class InitCommand {
 
   async execute(targetPath: string): Promise<void> {
     const projectPath = path.resolve(targetPath);
-    const openspecDir = OPSX_DIR_NAME;
-    const openspecPath = path.join(projectPath, openspecDir);
+    const opsxDir = OPSX_DIR_NAME;
+    const opsxPath = path.join(projectPath, opsxDir);
 
     // Validation happens silently in the background
-    const extendMode = await this.validate(projectPath, openspecPath);
+    const extendMode = await this.validate(projectPath, opsxPath);
 
     // Check for legacy artifacts and handle cleanup
     await this.handleLegacyCleanup(projectPath, extendMode);
@@ -126,18 +126,18 @@ export class InitCommand {
     const validatedTools = this.validateTools(selectedToolIds, toolStates);
 
     // Create directory structure and config
-    await this.createDirectoryStructure(openspecPath, extendMode);
+    await this.createDirectoryStructure(opsxPath, extendMode);
 
     // Generate LikeC4 skeleton files on first-time init (non-extend mode)
     if (!extendMode) {
-      await this.writeArchitectureSkeleton(projectPath, openspecPath);
+      await this.writeArchitectureSkeleton(projectPath, opsxPath);
     }
 
     // Generate skills and commands for each tool
     const results = await this.generateSkillsAndCommands(projectPath, validatedTools);
 
     // Create config.yaml if needed
-    const configStatus = await this.createConfig(openspecPath, proseLanguage);
+    const configStatus = await this.createConfig(opsxPath, proseLanguage);
 
     // Display success message
     this.displaySuccessMessage(projectPath, validatedTools, results, configStatus, extendMode, proseLanguage);
@@ -149,9 +149,9 @@ export class InitCommand {
 
   private async validate(
     projectPath: string,
-    openspecPath: string
+    opsxPath: string
   ): Promise<boolean> {
-    const extendMode = await FileSystemUtils.directoryExists(openspecPath);
+    const extendMode = await FileSystemUtils.directoryExists(opsxPath);
 
     // Check write permissions
     if (!(await FileSystemUtils.ensureWritePermissions(projectPath))) {
@@ -187,7 +187,7 @@ export class InitCommand {
 
     if (this.force || !canPrompt) {
       // --force flag or non-interactive mode: proceed with cleanup automatically.
-      // Legacy slash commands are 100% OpenSpec-managed, and config file cleanup
+      // Legacy slash commands are 100% OPSX-managed, and config file cleanup
       // only removes markers (never deletes files), so auto-cleanup is safe.
       await this.performLegacyCleanup(projectPath, detection);
       return;
@@ -429,14 +429,15 @@ export class InitCommand {
   // DIRECTORY STRUCTURE
   // ═══════════════════════════════════════════════════════════
 
-  private async createDirectoryStructure(openspecPath: string, extendMode: boolean): Promise<void> {
+  private async createDirectoryStructure(opsxPath: string, extendMode: boolean): Promise<void> {
     if (extendMode) {
       // In extend mode, just ensure directories exist without spinner
       const directories = [
-        openspecPath,
-        path.join(openspecPath, 'specs'),
-        path.join(openspecPath, 'changes'),
-        path.join(openspecPath, 'changes', 'archive'),
+        opsxPath,
+        path.join(opsxPath, 'specs'),
+        path.join(opsxPath, 'changes'),
+        path.join(opsxPath, 'changes', 'archive'),
+        path.join(opsxPath, 'references'),
       ];
 
       for (const dir of directories) {
@@ -448,10 +449,11 @@ export class InitCommand {
     const spinner = this.startSpinner('Creating OPSX structure...');
 
     const directories = [
-      openspecPath,
-      path.join(openspecPath, 'specs'),
-      path.join(openspecPath, 'changes'),
-      path.join(openspecPath, 'changes', 'archive'),
+      opsxPath,
+      path.join(opsxPath, 'specs'),
+      path.join(opsxPath, 'changes'),
+      path.join(opsxPath, 'changes', 'archive'),
+      path.join(opsxPath, 'references'),
     ];
 
     for (const dir of directories) {
@@ -468,8 +470,8 @@ export class InitCommand {
   // LIKEC4 SKELETON GENERATION
   // ═══════════════════════════════════════════════════════════
 
-  private async writeArchitectureSkeleton(projectPath: string, openspecPath: string): Promise<void> {
-    const architecturePath = path.join(openspecPath, 'architecture');
+  private async writeArchitectureSkeleton(projectPath: string, opsxPath: string): Promise<void> {
+    const architecturePath = path.join(opsxPath, 'architecture');
     await FileSystemUtils.createDirectory(path.join(architecturePath, 'domains'));
     const files = [
       { path: path.join(architecturePath, 'specification.c4'), content: generateSpecification() },
@@ -536,7 +538,7 @@ export class InitCommand {
       toolId: tool.value,
       projectPath,
       workflows,
-      version: OPENSPEC_VERSION,
+      version: OPSX_VERSION,
     }));
 
     const summary = await ArtifactSyncEngine.syncAll(requests);
@@ -615,11 +617,11 @@ export class InitCommand {
   }
 
   private async createConfig(
-    openspecPath: string,
+    opsxPath: string,
     proseLanguage?: string
   ): Promise<'created' | 'updated' | 'exists' | 'skipped'> {
-    const configPath = path.join(openspecPath, 'config.yaml');
-    const configYmlPath = path.join(openspecPath, 'config.yml');
+    const configPath = path.join(opsxPath, 'config.yaml');
+    const configYmlPath = path.join(opsxPath, 'config.yml');
     const configYamlExists = fs.existsSync(configPath);
     const configYmlExists = fs.existsSync(configYmlPath);
     const existingConfigPath = configYamlExists ? configPath : configYmlExists ? configYmlPath : null;
@@ -630,11 +632,6 @@ export class InitCommand {
       }
       await this.writeProseLanguage(existingConfigPath, proseLanguage);
       return 'updated';
-    }
-
-    // In non-interactive mode without --force, skip config creation
-    if (!this.canPromptInteractively() && !this.force) {
-      return 'skipped';
     }
 
     try {
@@ -727,10 +724,8 @@ export class InitCommand {
     }
 
     // Bootstrap guidance: only when bootstrap-arch is active and this is first-time init
-    if (!extendMode && activeWorkflows.includes('bootstrap-arch')) {
-      const bootstrapRef = guidanceToolId
-        ? renderWorkflowInvocation(guidanceToolId, 'bootstrap-arch' as WorkflowId)
-        : '/opsx:bootstrap-arch';
+    if (!extendMode && guidanceToolId && activeWorkflows.includes('bootstrap-arch')) {
+      const bootstrapRef = renderWorkflowInvocation(guidanceToolId, 'bootstrap-arch' as WorkflowId);
       console.log(`  Next: run ${bootstrapRef} to map your architecture`);
     }
 

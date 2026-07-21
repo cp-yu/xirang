@@ -6,7 +6,7 @@ import { inferSpecPaths } from '../../../src/migration/utils/spec-path-inference
 
 describe('spec path inference', () => {
   let root: string;
-  beforeEach(async () => { root = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-spec-inference-')); });
+  beforeEach(async () => { root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-spec-inference-')); });
   afterEach(async () => fs.rm(root, { recursive: true, force: true }));
 
   it('should find old format spec.md', async () => {

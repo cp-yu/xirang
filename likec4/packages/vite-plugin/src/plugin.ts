@@ -12,7 +12,7 @@ import type {
 import { detectAI } from './ai/detect-ai'
 import { iconBundlePlugin } from './icon-bundle-plugin'
 import { logger } from './logger'
-import { createOpsxSpecWatcher, OpsxSpecError, readOpsxSpec } from './opsx/opsx-spec-handler'
+import { createOpsxSpecWatcher, getProjectIndexedSpecs, OpsxSpecError, readOpsxSpec } from './opsx/opsx-spec-handler'
 import { enablePluginRPC } from './rpc'
 import { opsxSpecChangedEvent } from './rpc/protocol'
 import { splitErrorMessage } from './rpc/sendError'
@@ -373,10 +373,11 @@ export function LikeC4VitePlugin({
               throw new OpsxSpecError(405, 'Method not allowed')
             }
             const requestUrl = new URL(req.url ?? '/', 'http://localhost')
+            const project = requestUrl.searchParams.get('project')
             const element = requestUrl.searchParams.get('element')
             const specPath = requestUrl.searchParams.get('path')
-            if (!element || !specPath) {
-              throw new OpsxSpecError(400, 'Missing element or path')
+            if (!project || !element || !specPath) {
+              throw new OpsxSpecError(400, 'Missing project, element or path')
             }
 
             const result = await readOpsxSpec({
@@ -384,16 +385,12 @@ export function LikeC4VitePlugin({
               element,
               specPath,
               index: {
-                getIndexedSpecs: async requestedElement => {
-                  for (const project of likec4.projects()) {
-                    const model = await likec4.computedModel(project.id)
-                    const metadata = model.findElement(requestedElement)?.metadata
-                    const specs = metadata?.['specs']
-                    if (Array.isArray(specs)) return specs
-                    if (typeof specs === 'string') return [specs]
-                  }
-                  return undefined
-                },
+                getIndexedSpecs: requestedElement => getProjectIndexedSpecs({
+                  project,
+                  element: requestedElement,
+                  projects: likec4.projects(),
+                  loadModel: selected => likec4.computedModel(selected.id),
+                }),
               },
             })
             res.statusCode = 200

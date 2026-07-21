@@ -15,9 +15,9 @@ export class HttpSpecLoader implements OpsxSpecLoader {
     private readonly hot?: OpsxHotChannel,
   ) {}
 
-  async load(element: string, path: string, signal: AbortSignal): Promise<OpsxSpecContent> {
-    const query = new URLSearchParams({ element, path })
-    const response = await this.fetcher(`/__opsx/spec?${query}`, { signal })
+  async load(project: string, element: string, path: string, signal: AbortSignal): Promise<OpsxSpecContent> {
+    const query = new URLSearchParams({ project, element, path })
+    const response = await this.fetcher.call(globalThis, `/__opsx/spec?${query}`, { signal })
     const payload = await response.json() as OpsxSpecContent | { error?: string }
     if (!response.ok) {
       throw new Error('error' in payload && payload.error ? payload.error : `Unable to load Spec (${response.status})`)

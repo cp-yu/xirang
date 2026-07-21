@@ -5,7 +5,7 @@ import type { LikeC4Model } from './converters/types.js';
 import { readLikeC4Architecture } from '../utils/likec4-reader.js';
 
 export interface MigrationVerificationReport {
-  skill: 'openspec-verify-migration';
+  skill: 'opsx-verify-migration';
   scope: 'opsx-source-to-generated-likec4';
   baseline: 'pre-formal-reconciliation';
   description: string;
@@ -58,7 +58,7 @@ export async function verifyMigration(projectRoot: string, model: LikeC4Model): 
     relations: expectedRelations.filter(relation => !actualRelations.has(relation)),
   };
   const report: MigrationVerificationReport = {
-    skill: 'openspec-verify-migration',
+    skill: 'opsx-verify-migration',
     scope: 'opsx-source-to-generated-likec4',
     baseline: 'pre-formal-reconciliation',
     description: 'Compares the legacy OPSX source with its immediate generated LikeC4 output; subsequent formal reconciliation is outside this report.',

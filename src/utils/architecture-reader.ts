@@ -19,7 +19,7 @@ export async function readArchitecture(projectRoot: string): Promise<Architectur
   }
   const bundle = await readProjectOpsx(projectRoot);
   if (bundle) {
-    console.warn('Using legacy OPSX YAML. Run: openspec migrate opsx-to-likec4');
+    console.warn('Using legacy OPSX YAML. Run: opsx migrate opsx-to-likec4');
     return { source: 'opsx', bundle };
   }
   throw new Error('No architecture model found');

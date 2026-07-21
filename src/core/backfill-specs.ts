@@ -150,7 +150,7 @@ async function buildSemanticHandoff(
   candidateCapabilities: CapabilityIntent[]
 ): Promise<SemanticBackfillHandoff> {
   const unmatchedSpecs = await Promise.all(unmatched.map(async (spec) => {
-    const relativePath = path.posix.join('openspec', 'specs', spec, 'spec.md');
+    const relativePath = path.posix.join(OPSX_DIR_NAME, 'specs', spec, 'spec.md');
     return {
       spec,
       path: relativePath,
@@ -164,7 +164,7 @@ async function buildSemanticHandoff(
     mappingResultFormat: {
       mappings: [{ spec: '<spec-id>', capabilities: ['<capability-id>'] }],
     },
-    applyCommand: 'openspec bootstrap backfill-specs --mappings <mapping-file> --json',
+    applyCommand: 'opsx bootstrap backfill-specs --mappings <mapping-file> --json',
   };
 }
 

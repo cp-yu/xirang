@@ -31,17 +31,17 @@ function finding(overrides: Record<string, unknown> = {}) {
   };
 }
 
-describe('openspec verify command', () => {
+describe('opsx verify command', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-verify-cli-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-verify-cli-'));
     await fs.mkdir(path.join(tempDir, '.opsx', 'changes', 'c1'), { recursive: true });
     await fs.mkdir(path.join(tempDir, 'src'), { recursive: true });
     await fs.writeFile(path.join(tempDir, '.opsx', 'changes', 'c1', 'tasks.md'), '- [x] task\n', 'utf-8');
     await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 1;\n', 'utf-8');
     await execFileAsync('git', ['init'], { cwd: tempDir });
-    await execFileAsync('git', ['config', 'user.name', 'OpenSpec Test'], { cwd: tempDir });
+    await execFileAsync('git', ['config', 'user.name', 'OPSX Test'], { cwd: tempDir });
     await execFileAsync('git', ['config', 'user.email', 'test@example.com'], { cwd: tempDir });
     await execFileAsync('git', ['add', '.'], { cwd: tempDir });
     await execFileAsync('git', ['commit', '-m', 'init'], { cwd: tempDir });
@@ -826,8 +826,8 @@ describe('openspec verify command', () => {
     expect(status.stdout).toContain('Archive compatibility:');
     expect(status.stdout).toContain('PENDING_VERIFICATION');
     expect(status.stdout).toContain('Suggested actions:');
-    expect(status.stdout).toContain('openspec verify phase1 c1');
-    expect(status.stdout).toContain('openspec sync c1 --no-verify');
+    expect(status.stdout).toContain('opsx verify phase1 c1');
+    expect(status.stdout).toContain('opsx sync c1 --no-verify');
   });
 
   it('allows SKIPPED to close Phase 2 when optimization is disabled', async () => {

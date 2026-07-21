@@ -55,7 +55,7 @@ describe('SpecsTab', () => {
     const second = deferred<{ path: string; md: string }>()
     const signals: AbortSignal[] = []
     const loader: OpsxSpecLoader = {
-      load: vi.fn((_element, specPath, signal) => {
+      load: vi.fn((_project, _element, specPath, signal) => {
         signals.push(signal)
         return specPath.includes('/a/') ? first.promise : second.promise
       }),
@@ -63,8 +63,8 @@ describe('SpecsTab', () => {
     const states: SpecLoadState[] = []
     const controller = new OpsxSpecLoadController(state => states.push(state))
 
-    controller.load(loader, 'core.a', '.opsx/specs/a/spec.md')
-    controller.load(loader, 'core.b', '.opsx/specs/b/spec.md')
+    controller.load(loader, 'default', 'core.a', '.opsx/specs/a/spec.md')
+    controller.load(loader, 'default', 'core.b', '.opsx/specs/b/spec.md')
     expect(signals[0]?.aborted).toBe(true)
 
     second.resolve({ path: '.opsx/specs/b/spec.md', md: '# B' })
@@ -76,10 +76,14 @@ describe('SpecsTab', () => {
 
     expect(states.at(-1)).toEqual({
       status: 'success',
+      project: 'default',
+      element: 'core.b',
       content: { path: '.opsx/specs/b/spec.md', md: '# B' },
     })
     expect(states).not.toContainEqual({
       status: 'success',
+      project: 'default',
+      element: 'core.a',
       content: { path: '.opsx/specs/a/spec.md', md: '# A' },
     })
   })
@@ -93,16 +97,18 @@ describe('SpecsTab', () => {
     const states: SpecLoadState[] = []
     const controller = new OpsxSpecLoadController(state => states.push(state))
 
-    controller.load(loader, 'core.a', '.opsx/specs/a/spec.md')
+    controller.load(loader, 'default', 'core.a', '.opsx/specs/a/spec.md')
     await Promise.resolve()
     await Promise.resolve()
     expect(states.at(-1)).toEqual({
       status: 'error',
+      project: 'default',
+      element: 'core.a',
       path: '.opsx/specs/a/spec.md',
       message: 'permission denied',
     })
 
-    controller.load(loader, 'core.a', '.opsx/specs/a/spec.md')
+    controller.load(loader, 'default', 'core.a', '.opsx/specs/a/spec.md')
     await Promise.resolve()
     await Promise.resolve()
     expect(states.at(-1)?.status).toBe('success')

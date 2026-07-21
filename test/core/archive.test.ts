@@ -45,17 +45,17 @@ describe('ArchiveCommand', () => {
 
   beforeEach(async () => {
     // Create temp directory
-    tempDir = path.join(os.tmpdir(), `openspec-archive-test-${Date.now()}`);
+    tempDir = path.join(os.tmpdir(), `opsx-archive-test-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
     
     // Change to temp directory
     process.chdir(tempDir);
     
-    // Create OpenSpec structure
-    const openspecDir = path.join(tempDir, 'openspec');
-    await fs.mkdir(path.join(openspecDir, 'changes'), { recursive: true });
-    await fs.mkdir(path.join(openspecDir, 'specs'), { recursive: true });
-    await fs.mkdir(path.join(openspecDir, 'changes', 'archive'), { recursive: true });
+    // Create OPSX structure
+    const opsxDir = path.join(tempDir, '.opsx');
+    await fs.mkdir(path.join(opsxDir, 'changes'), { recursive: true });
+    await fs.mkdir(path.join(opsxDir, 'specs'), { recursive: true });
+    await fs.mkdir(path.join(opsxDir, 'changes', 'archive'), { recursive: true });
     
     // Suppress console.log during tests
     console.log = vi.fn();
@@ -172,10 +172,10 @@ git:
       await fs.mkdir(path.join(tempDir, '.opsx', 'changes', changeName), { recursive: true });
 
       await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(
-        'openspec verify phase1 missing-verify'
+        'opsx verify phase1 missing-verify'
       );
       await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(
-        'openspec archive missing-verify --no-verify'
+        'opsx archive missing-verify --no-verify'
       );
     });
 
@@ -197,7 +197,7 @@ git:
       const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await execFileAsync('git', ['init'], { cwd: tempDir });
-      await execFileAsync('git', ['config', 'user.name', 'OpenSpec Test'], { cwd: tempDir });
+      await execFileAsync('git', ['config', 'user.name', 'OPSX Test'], { cwd: tempDir });
       await execFileAsync('git', ['config', 'user.email', 'test@example.com'], { cwd: tempDir });
       await writeFreshVerifyResult(changeDir);
       await execFileAsync('git', ['add', '.'], { cwd: tempDir });
@@ -529,13 +529,13 @@ The system SHALL keep this requirement.`,
   });
 
   describe('error handling', () => {
-    it('should throw error when openspec directory does not exist', async () => {
-      // Remove openspec directory
-      await fs.rm(path.join(tempDir, 'openspec'), { recursive: true });
+    it('should throw error when opsx directory does not exist', async () => {
+      // Remove opsx directory
+      await fs.rm(path.join(tempDir, '.opsx'), { recursive: true });
       
       await expect(
         archiveCommand.execute('any-change', { yes: true, noVerify: true })
-      ).rejects.toThrow("No OpenSpec changes directory found. Run 'openspec init' first.");
+      ).rejects.toThrow("No OPSX changes directory found. Run 'opsx init' first.");
     });
   });
 

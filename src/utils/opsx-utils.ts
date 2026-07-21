@@ -252,19 +252,19 @@ export async function readProjectOpsx(
   const raw = parseYaml(await fs.readFile(mainPath, 'utf-8'));
   if (raw?.schema_version !== OPSX_SCHEMA_VERSION) {
     throw new Error(
-      `OPSX schema_version ${String(raw?.schema_version ?? 'missing')} is unsupported; run openspec help authoring project.opsx.relations.yaml and rebuild with the bootstrap/refresh workflow.`
+      `OPSX schema_version ${String(raw?.schema_version ?? 'missing')} is unsupported; run opsx help authoring project.opsx.relations.yaml and rebuild with the bootstrap/refresh workflow.`
     );
   }
 
   const mainFile = ProjectOpsxFileSchema.parse(raw);
   const relationsPath = FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.RELATIONS_FILE);
   if (!await FileSystemUtils.fileExists(relationsPath)) {
-    throw new Error(`OPSX file not found: ${OPSX_PATHS.RELATIONS_FILE}. Run openspec init or the bootstrap/refresh workflow.`);
+    throw new Error(`OPSX file not found: ${OPSX_PATHS.RELATIONS_FILE}. Run opsx init or the bootstrap/refresh workflow.`);
   }
   const rawRelations = parseYaml(await fs.readFile(relationsPath, 'utf-8'));
   if (rawRelations?.schema_version !== OPSX_SCHEMA_VERSION) {
     throw new Error(
-      `OPSX relations schema_version ${String(rawRelations?.schema_version ?? 'missing')} is unsupported; run openspec help authoring project.opsx.relations.yaml and rebuild with the bootstrap/refresh workflow.`
+      `OPSX relations schema_version ${String(rawRelations?.schema_version ?? 'missing')} is unsupported; run opsx help authoring project.opsx.relations.yaml and rebuild with the bootstrap/refresh workflow.`
     );
   }
   const relationsFile = ProjectOpsxRelationsFileSchema.parse(rawRelations);

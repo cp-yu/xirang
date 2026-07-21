@@ -105,12 +105,12 @@ export class OpsxCommand {
   async query(nodeIds: string | string[], options: QueryOptions = {}, projectRoot = '.'): Promise<void> {
     const mainPath = FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.PROJECT_FILE);
     if (!await FileSystemUtils.fileExists(mainPath)) {
-      throw new Error('OPSX files not found. Initialize with:\n  openspec bootstrap init\n  openspec init');
+      throw new Error('OPSX files not found. Initialize with:\n  opsx bootstrap init\n  opsx init');
     }
 
     const bundle = await readProjectOpsx(projectRoot);
     if (!bundle) {
-      throw new Error('OPSX files not found. Initialize with:\n  openspec bootstrap init\n  openspec init');
+      throw new Error('OPSX files not found. Initialize with:\n  opsx bootstrap init\n  opsx init');
     }
 
     const nodes = collectNodes(bundle);
@@ -162,7 +162,7 @@ export class OpsxCommand {
 export function registerOpsxCommand(rootProgram: Command): Command {
   const opsxCommand = rootProgram
     .command('opsx')
-    .description('Query OpenSpec OPSX architecture data');
+    .description('Query OPSX OPSX architecture data');
 
   opsxCommand
     .command('query <node-id...>')

@@ -169,7 +169,11 @@ export const tabsRoot = css({
 })
 
 export const tabsList = css({
-  // flex: '0',
+  width: '100%',
+  minWidth: 0,
+  maxWidth: '100%',
+  overflowX: 'auto',
+  justifyContent: 'flex-start',
   background: 'mantine.gray[1]',
   borderRadius: 'sm',
   flexWrap: 'nowrap',

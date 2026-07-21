@@ -27,9 +27,9 @@ async function writeFile(projectRoot: string, relativePath: string, content: str
 }
 
 async function setupRepo(): Promise<string> {
-  const projectRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-archive-merge-'));
+  const projectRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-archive-merge-'));
   await fs.mkdir(path.join(projectRoot, '.opsx', 'changes', 'archive'), { recursive: true });
-await writeFile(projectRoot, 'openspec/config.yaml', `schema: spec-driven
+await writeFile(projectRoot, '.opsx/config.yaml', `schema: spec-driven
 git:
   merge:
     strategy: no-ff
@@ -38,7 +38,7 @@ git:
 `);
   await git(projectRoot, ['init', '-b', 'main']);
   await git(projectRoot, ['config', 'user.email', 'test@example.com']);
-  await git(projectRoot, ['config', 'user.name', 'OpenSpec Test']);
+  await git(projectRoot, ['config', 'user.name', 'OPSX Test']);
   await writeFile(projectRoot, 'README.md', 'baseline\n');
   await git(projectRoot, ['add', '.']);
   await git(projectRoot, ['commit', '-m', 'baseline']);
@@ -106,14 +106,14 @@ describe('archive branch merge', () => {
 ### Requirement: Synced behavior
 The system SHALL sync this requirement.
 `);
-    await writeFile(projectRoot, 'openspec/project.opsx.yaml', `schema_version: 2
+    await writeFile(projectRoot, '.opsx/project.opsx.yaml', `schema_version: 2
 project:
   id: proj.test
   name: Test
 domains: []
 capabilities: []
 `);
-    await writeFile(projectRoot, 'openspec/project.opsx.relations.yaml', `schema_version: 2
+    await writeFile(projectRoot, '.opsx/project.opsx.relations.yaml', `schema_version: 2
 relations: []
 `);
     await writeFile(projectRoot, '.opsx/changes/feature-archive/opsx-delta.yaml', `schema_version: 2
@@ -156,7 +156,7 @@ ADDED:
     const status = await git(projectRoot, ['status', '--short']);
     expect(status).toContain('?? .opsx/changes/');
     expect(status).toContain('?? .opsx/specs/');
-    expect(status).toContain('?? openspec/project.opsx.relations.yaml');
+    expect(status).toContain('?? .opsx/project.opsx.relations.yaml');
   });
 
   it('leaves unrelated dirty files unstaged during handoff', async () => {
@@ -215,7 +215,7 @@ ADDED:
 
   it('does not delete the feature branch when archive cleanup is enabled', async () => {
     projectRoot = await setupRepo();
-await writeFile(projectRoot, 'openspec/config.yaml', `schema: spec-driven
+await writeFile(projectRoot, '.opsx/config.yaml', `schema: spec-driven
 git:
   merge:
     strategy: no-ff
@@ -235,16 +235,16 @@ git:
 
   it('archives files with agent handoff when legacy autoCommit is manual', async () => {
     projectRoot = await setupRepo();
-    await writeFile(projectRoot, 'openspec/config.yaml', `schema: spec-driven
+    await writeFile(projectRoot, '.opsx/config.yaml', `schema: spec-driven
 git:
   autoCommit: manual
   archive:
     commitMessage:
-      convention: openspec-archive
+      convention: opsx-archive
   merge:
     strategy: no-ff
     commitMessage:
-      convention: openspec-merge-summary
+      convention: opsx-merge-summary
   branch:
     deleteAfterArchive: true
 `);

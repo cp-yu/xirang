@@ -26,7 +26,7 @@ describe('CompletionProvider', () => {
     });
 
     it('should return active change IDs', async () => {
-      // Create opsx/changes directory structure
+      // Create .opsx/changes directory structure
       const changesDir = path.join(testDir, '.opsx', 'changes');
       await fs.mkdir(changesDir, { recursive: true });
 

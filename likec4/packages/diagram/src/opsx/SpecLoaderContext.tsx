@@ -6,7 +6,7 @@ export interface OpsxSpecContent {
 }
 
 export interface OpsxSpecLoader {
-  load(element: string, path: string, signal: AbortSignal): Promise<OpsxSpecContent>
+  load(project: string, element: string, path: string, signal: AbortSignal): Promise<OpsxSpecContent>
   subscribe?(listener: (path: string) => void): () => void
 }
 

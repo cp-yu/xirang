@@ -9,7 +9,7 @@ import { runCLI } from '../helpers/run-cli.js';
 describe('LikeC4 validation integration', () => {
   let root: string;
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-likec4-validation-'));
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-likec4-validation-'));
     const domains = path.join(root, '.opsx', 'architecture', 'domains');
     await fs.mkdir(domains, { recursive: true });
     await fs.writeFile(path.join(root, '.opsx', 'architecture', 'specification.c4'), 'specification { element domain element capability }');

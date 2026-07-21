@@ -27,6 +27,6 @@ describe('validate command enriched human output', () => {
     expect(result.exitCode).not.toBe(0);
     expect(result.stderr).toContain('has issues');
     expect(result.stderr).toContain('Next steps:');
-    expect(result.stderr).toContain('openspec change show');
+    expect(result.stderr).toContain('opsx change show');
   });
 });

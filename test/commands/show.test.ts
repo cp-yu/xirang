@@ -29,13 +29,13 @@ describe('top-level show command', () => {
   it('prints hint and non-zero exit when no args and non-interactive', async () => {
     const result = await runCLI(['show'], {
       cwd: testDir,
-      env: { OPEN_SPEC_INTERACTIVE: '0' },
+      env: { OPSX_INTERACTIVE: '0' },
     });
     expect(result.exitCode).not.toBe(0);
     expect(result.stderr).toContain('Nothing to show.');
-    expect(result.stderr).toContain('openspec show <item>');
-    expect(result.stderr).toContain('openspec change show');
-    expect(result.stderr).toContain('openspec spec show');
+    expect(result.stderr).toContain('opsx show <item>');
+    expect(result.stderr).toContain('opsx change show');
+    expect(result.stderr).toContain('opsx spec show');
   });
 
   it('auto-detects change id and supports --json', async () => {

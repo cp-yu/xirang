@@ -376,7 +376,7 @@ async function writePreparedSpecs(writes: PreparedSpecWrite[], silent: boolean):
 
       if (!silent) {
         const specName = path.basename(path.dirname(write.update.target));
-        console.log(`Applying changes to openspec/specs/${specName}/spec.md:`);
+        console.log(`Applying changes to .opsx/specs/${specName}/spec.md:`);
         if (write.counts.added) console.log(`  + ${write.counts.added} added`);
         if (write.counts.modified) console.log(`  ~ ${write.counts.modified} modified`);
         if (write.counts.removed) console.log(`  - ${write.counts.removed} removed`);

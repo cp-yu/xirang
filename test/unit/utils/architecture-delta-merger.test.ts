@@ -17,7 +17,7 @@ describe('architecture delta merger', () => {
   let root: string;
   let delta: string;
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-delta-merger-'));
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-delta-merger-'));
     const architecture = path.join(root, '.opsx', 'architecture');
     await fs.mkdir(path.join(architecture, 'domains'), { recursive: true });
     await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), formal);

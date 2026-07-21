@@ -10,9 +10,9 @@ import {
 
 export type SpecLoadState =
   | { status: 'idle' }
-  | { status: 'loading'; path: string }
-  | { status: 'success'; content: OpsxSpecContent }
-  | { status: 'error'; path: string; message: string }
+  | { status: 'loading'; project: string; element: string; path: string }
+  | { status: 'success'; project: string; element: string; content: OpsxSpecContent }
+  | { status: 'error'; project: string; element: string; path: string; message: string }
 
 export class OpsxSpecLoadController {
   private abortController: AbortController | undefined
@@ -20,16 +20,16 @@ export class OpsxSpecLoadController {
 
   constructor(private readonly update: (state: SpecLoadState) => void) {}
 
-  load(loader: OpsxSpecLoader, element: string, specPath: string): void {
+  load(loader: OpsxSpecLoader, project: string, element: string, specPath: string): void {
     this.abortController?.abort()
     const abortController = this.abortController = new AbortController()
     const requestId = ++this.requestId
-    this.update({ status: 'loading', path: specPath })
+    this.update({ status: 'loading', project, element, path: specPath })
 
-    loader.load(element, specPath, abortController.signal).then(
+    loader.load(project, element, specPath, abortController.signal).then(
       content => {
         if (requestId === this.requestId && !abortController.signal.aborted) {
-          this.update({ status: 'success', content })
+          this.update({ status: 'success', project, element, content })
         }
       },
       error => {
@@ -38,6 +38,8 @@ export class OpsxSpecLoadController {
         }
         this.update({
           status: 'error',
+          project,
+          element,
           path: specPath,
           message: error instanceof Error ? error.message : 'Unable to load Spec',
         })
@@ -72,10 +74,12 @@ export function getSpecsTabModel(value: unknown) {
 }
 
 export function SpecsTab({
+  project,
   element,
   specs,
   active,
 }: {
+  project: string
   element: string
   specs: readonly string[]
   active: boolean
@@ -84,31 +88,36 @@ export function SpecsTab({
   const [selected, setSelected] = useState(specs[0] ?? '')
   const [state, setState] = useState<SpecLoadState>({ status: 'idle' })
   const controller = useMemo(() => new OpsxSpecLoadController(setState), [])
+  const selectedPath = specs.includes(selected) ? selected : specs[0] ?? ''
+  const displayState = state.status === 'idle'
+    || (state.project === project && state.element === element)
+    ? state
+    : { status: 'idle' as const }
 
   useEffect(() => {
     setSelected(specs[0] ?? '')
     setState({ status: 'idle' })
     controller.dispose()
-  }, [controller, element, specs])
+  }, [controller, element, project, specs])
 
   useEffect(() => {
-    if (!active || !loader || !selected) {
+    if (!active || !loader || !selectedPath) {
       return
     }
-    controller.load(loader, element, selected)
+    controller.load(loader, project, element, selectedPath)
     return () => controller.dispose()
-  }, [active, controller, element, loader, selected])
+  }, [active, controller, element, loader, project, selectedPath])
 
   useEffect(() => {
-    if (!active || !loader?.subscribe || !selected) {
+    if (!active || !loader?.subscribe || !selectedPath) {
       return
     }
     return loader.subscribe(changedPath => {
-      if (changedPath === selected) {
-        controller.load(loader, element, selected)
+      if (changedPath === selectedPath) {
+        controller.load(loader, project, element, selectedPath)
       }
     })
-  }, [active, controller, element, loader, selected])
+  }, [active, controller, element, loader, project, selectedPath])
 
   return (
     <Stack gap="sm" h="100%" data-opsx-specs>
@@ -116,27 +125,27 @@ export function SpecsTab({
         <NativeSelect
           aria-label="Select Spec"
           size="xs"
-          value={selected}
+          value={selectedPath}
           data={specs.map(spec => ({ label: spec, value: spec }))}
           onChange={event => setSelected(event.currentTarget.value)}
         />
       )}
-      {state.status === 'idle' && (
+      {displayState.status === 'idle' && (
         <Text size="sm" c="dimmed">Select a Spec</Text>
       )}
-      {state.status === 'loading' && (
-        <SpecPath path={state.path}>Loading…</SpecPath>
+      {displayState.status === 'loading' && (
+        <SpecPath path={displayState.path}>Loading…</SpecPath>
       )}
-      {state.status === 'error' && (
-        <SpecPath path={state.path} color="red">{state.message}</SpecPath>
+      {displayState.status === 'error' && (
+        <SpecPath path={displayState.path} color="red">{displayState.message}</SpecPath>
       )}
-      {state.status === 'success' && (
+      {displayState.status === 'success' && (
         <>
           <Text size="xs" c="dimmed" style={{ userSelect: 'all' }}>
-            {state.content.path}
+            {displayState.content.path}
           </Text>
-          <Box style={{ minHeight: 0, overflow: 'auto' }}>
-            <Markdown value={RichText.from({ md: state.content.md })} />
+          <Box data-opsx-spec-content style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+            <Markdown value={RichText.from({ md: displayState.content.md })} />
           </Box>
         </>
       )}

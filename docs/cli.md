@@ -1,12 +1,12 @@
 # CLI Reference
 
-The OpenSpec CLI (`openspec`) provides terminal commands for project setup, validation, status inspection, and management. These commands complement the AI slash commands (like `/opsx:propose`) documented in [Commands](commands.md).
+The OPSX CLI (`opsx`) provides terminal commands for project setup, validation, status inspection, architecture browsing, and lifecycle management. These commands complement the managed workflow skills documented in [Workflow Skills And Architecture Commands](commands.md).
 
 ## Summary
 
 | Category | Commands | Purpose |
 |----------|----------|---------|
-| **Setup** | `init`, `update` | Initialize and update OpenSpec in your project |
+| **Setup** | `init`, `update` | Initialize and update OPSX in your project |
 | **Browsing** | `list`, `view`, `show` | Explore changes and specs |
 | **Validation** | `validate` | Check changes and specs for issues |
 | **Lifecycle** | `archive` | Finalize completed changes |
@@ -27,11 +27,11 @@ These commands are interactive and designed for terminal use:
 
 | Command | Purpose |
 |---------|---------|
-| `openspec init` | Initialize project (interactive prompts) |
-| `openspec view` | Interactive dashboard |
-| `openspec config edit` | Open config in editor |
-| `openspec feedback` | Submit feedback via GitHub |
-| `openspec completion install` | Install shell completions |
+| `opsx init` | Initialize project (interactive prompts) |
+| `opsx view` | Local Architecture and Specs browser |
+| `opsx config edit` | Open config in editor |
+| `opsx feedback` | Submit feedback via GitHub |
+| `opsx completion install` | Install shell completions |
 
 ### Agent-Compatible Commands
 
@@ -39,15 +39,15 @@ These commands support `--json` output for programmatic use by AI agents and scr
 
 | Command | Human Use | Agent Use |
 |---------|-----------|-----------|
-| `openspec list` | Browse changes/specs | `--json` for structured data |
-| `openspec show <item>` | Read content | `--json` for parsing |
-| `openspec validate` | Check for issues | `--all --json` for bulk validation |
-| `openspec status` | See artifact progress | `--json` for structured status |
-| `openspec instructions` | Get next steps | `--json` for agent instructions |
-| `openspec templates` | Find template paths | `--json` for path resolution |
-| `openspec schemas` | List available schemas | `--json` for schema discovery |
+| `opsx list` | Browse changes/specs | `--json` for structured data |
+| `opsx show <item>` | Read content | `--json` for parsing |
+| `opsx validate` | Check for issues | `--all --json` for bulk validation |
+| `opsx status` | See artifact progress | `--json` for structured status |
+| `opsx instructions` | Get next steps | `--json` for agent instructions |
+| `opsx templates` | Find template paths | `--json` for path resolution |
+| `opsx schemas` | List available schemas | `--json` for schema discovery |
 
-OpenSpec's verify gate now runs a two-phase contract by default and accepts `--skip-optimization` when you want a Phase 1 conformance-only pass. When Phase 2 runs, it keeps a `git stash` checkpoint so failed optimization attempts can restore the exact Phase 1 baseline. `/opsx:archive` reuses a fresh verify result when possible, but if it must re-run full verify, that rerun is required to honor the same Phase 2 contract whenever optimization is still eligible.
+OPSX's verify gate now runs a two-phase contract by default and accepts `--skip-optimization` when you want a Phase 1 conformance-only pass. When Phase 2 runs, it keeps a `git stash` checkpoint so failed optimization attempts can restore the exact Phase 1 baseline. `/opsx:archive` reuses a fresh verify result when possible, but if it must re-run full verify, that rerun is required to honor the same Phase 2 contract whenever optimization is still eligible.
 
 ---
 
@@ -65,14 +65,14 @@ These options work with all commands:
 
 ## Setup Commands
 
-### `openspec init`
+### `opsx init`
 
-Initialize OpenSpec in your project. Creates the folder structure and configures AI tool integrations.
+Initialize OPSX in your project. Creates the folder structure and configures AI tool integrations.
 
 Default behavior installs the fixed managed workflow skills.
 
 ```
-openspec init [path] [options]
+opsx init [path] [options]
 ```
 
 **Arguments:**
@@ -94,25 +94,25 @@ openspec init [path] [options]
 
 ```bash
 # Interactive initialization
-openspec init
+opsx init
 
 # Initialize in a specific directory
-openspec init ./my-project
+opsx init ./my-project
 
 # Non-interactive: configure for Claude and Cursor
-openspec init --tools claude,cursor
+opsx init --tools claude,cursor
 
 # Configure for all supported tools
-openspec init --tools all
+opsx init --tools all
 
 # Skip prompts and auto-cleanup legacy files
-openspec init --force
+opsx init --force
 ```
 
 **What it creates:**
 
 ```
-openspec/
+.opsx/
 ├── specs/              # Your specifications (source of truth)
 ├── changes/            # Proposed changes
 └── config.yaml         # Project configuration
@@ -125,12 +125,12 @@ openspec/
 
 ---
 
-### `openspec update`
+### `opsx update`
 
-Update OpenSpec instruction files after upgrading the CLI. Re-generates managed workflow skills for configured tools.
+Update OPSX instruction files after upgrading the CLI. Re-generates managed workflow skills for configured tools.
 
 ```
-openspec update [path] [options]
+opsx update [path] [options]
 ```
 
 **Arguments:**
@@ -148,21 +148,20 @@ openspec update [path] [options]
 **Example:**
 
 ```bash
-# Reinstall the latest fork revision from GitHub
-npm install -g git+https://github.com/cp-yu/opsx.git
-openspec update
+# After rebuilding or updating the source checkout
+opsx update
 ```
 
 ---
 
 ## Browsing Commands
 
-### `openspec list`
+### `opsx list`
 
 List changes or specs in your project.
 
 ```
-openspec list [options]
+opsx list [options]
 ```
 
 **Options:**
@@ -178,13 +177,13 @@ openspec list [options]
 
 ```bash
 # List all active changes
-openspec list
+opsx list
 
 # List all specs
-openspec list --specs
+opsx list --specs
 
 # JSON output for scripts
-openspec list --json
+opsx list --json
 ```
 
 **Output (text):**
@@ -197,24 +196,24 @@ Active changes:
 
 ---
 
-### `openspec view`
+### `opsx view`
 
-Display an interactive dashboard for exploring specs and changes.
+Start the vendored LikeC4 browser for the nearest `.opsx/` project.
 
 ```
-openspec view
+opsx view [--port <n>]
 ```
 
-Opens a terminal-based interface for navigating your project's specifications and changes.
+The browser renders `.opsx/architecture/**/*.c4`. Elements with `metadata.specs` expose an on-demand Specs tab backed by authorized reads from `.opsx/specs/**/*.md`. The command does not require or resolve an external LikeC4 installation.
 
 ---
 
-### `openspec show`
+### `opsx show`
 
 Display details of a change or spec.
 
 ```
-openspec show [item-name] [options]
+opsx show [item-name] [options]
 ```
 
 **Arguments:**
@@ -249,28 +248,28 @@ openspec show [item-name] [options]
 
 ```bash
 # Interactive selection
-openspec show
+opsx show
 
 # Show a specific change
-openspec show add-dark-mode
+opsx show add-dark-mode
 
 # Show a specific spec
-openspec show auth --type spec
+opsx show auth --type spec
 
 # JSON output for parsing
-openspec show add-dark-mode --json
+opsx show add-dark-mode --json
 ```
 
 ---
 
 ## Validation Commands
 
-### `openspec validate`
+### `opsx validate`
 
 Validate changes and specs for structural issues.
 
 ```
-openspec validate [item-name] [options]
+opsx validate [item-name] [options]
 ```
 
 **Arguments:**
@@ -289,26 +288,26 @@ openspec validate [item-name] [options]
 | `--type <type>` | Specify type when name is ambiguous: `change` or `spec` |
 | `--strict` | Enable strict validation mode |
 | `--json` | Output as JSON |
-| `--concurrency <n>` | Max parallel validations (default: 6, or `OPENSPEC_CONCURRENCY` env) |
+| `--concurrency <n>` | Max parallel validations (default: 6, or `OPSX_CONCURRENCY` env) |
 | `--no-interactive` | Disable prompts |
 
 **Examples:**
 
 ```bash
 # Interactive validation
-openspec validate
+opsx validate
 
 # Validate a specific change
-openspec validate add-dark-mode
+opsx validate add-dark-mode
 
 # Validate all changes
-openspec validate --changes
+opsx validate --changes
 
 # Validate everything with JSON output (for CI/scripts)
-openspec validate --all --json
+opsx validate --all --json
 
 # Strict validation with increased parallelism
-openspec validate --all --strict --concurrency 12
+opsx validate --all --strict --concurrency 12
 ```
 
 **Output (text):**
@@ -348,12 +347,12 @@ Validating add-dark-mode...
 
 ## Lifecycle Commands
 
-### `openspec archive`
+### `opsx archive`
 
-Archive a completed change after verify, sync, validation, and task gates pass. Archive does not write formal Specs or architecture; run `openspec sync` first when the change contains delta Specs or `architecture-delta.c4`.
+Archive a completed change after verify, sync, validation, and task gates pass. Archive does not write formal Specs or architecture; run `opsx sync` first when the change contains delta Specs or `architecture-delta.c4`.
 
 ```
-openspec archive [change-name] [options]
+opsx archive [change-name] [options]
 ```
 
 **Arguments:**
@@ -375,16 +374,16 @@ openspec archive [change-name] [options]
 
 ```bash
 # Interactive archive
-openspec archive
+opsx archive
 
 # Archive specific change
-openspec archive add-dark-mode
+opsx archive add-dark-mode
 
 # Archive without prompts (CI/scripts)
-openspec archive add-dark-mode --yes
+opsx archive add-dark-mode --yes
 
 # Explicitly bypass the sync gate for a change with no formal-source reconciliation
-openspec archive update-ci-config --no-sync --yes
+opsx archive update-ci-config --no-sync --yes
 ```
 
 **What it does:**
@@ -393,7 +392,7 @@ openspec archive update-ci-config --no-sync --yes
 2. Requires all delta Specs and `architecture-delta.c4` changes to be synced unless `--no-sync` is explicitly authorized
 3. Validates the change unless `--no-validate` is explicitly authorized
 4. Checks task completion and prompts when required
-5. Removes the consumed `architecture-delta.c4` and moves the change to `openspec/changes/archive/YYYY-MM-DD-<name>/`
+5. Removes the consumed `architecture-delta.c4` and moves the change to `.opsx/changes/archive/YYYY-MM-DD-<name>/`
 
 ---
 
@@ -401,12 +400,12 @@ openspec archive update-ci-config --no-sync --yes
 
 These commands support the artifact-driven OPSX workflow. They're useful for both humans checking progress and agents determining next steps.
 
-### `openspec status`
+### `opsx status`
 
 Display artifact completion status for a change.
 
 ```
-openspec status [options]
+opsx status [options]
 ```
 
 **Options:**
@@ -421,13 +420,13 @@ openspec status [options]
 
 ```bash
 # Interactive status check
-openspec status
+opsx status
 
 # Status for specific change
-openspec status --change add-dark-mode
+opsx status --change add-dark-mode
 
 # JSON for agent use
-openspec status --change add-dark-mode --json
+opsx status --change add-dark-mode --json
 ```
 
 **Output (text):**
@@ -462,12 +461,12 @@ Progress: 2/4 artifacts complete
 
 ---
 
-### `openspec instructions`
+### `opsx instructions`
 
 Get enriched instructions for creating an artifact or applying tasks. Used by AI agents to understand what to create next.
 
 ```
-openspec instructions [artifact] [options]
+opsx instructions [artifact] [options]
 ```
 
 **Arguments:**
@@ -490,16 +489,16 @@ openspec instructions [artifact] [options]
 
 ```bash
 # Get instructions for next artifact
-openspec instructions --change add-dark-mode
+opsx instructions --change add-dark-mode
 
 # Get specific artifact instructions
-openspec instructions design --change add-dark-mode
+opsx instructions design --change add-dark-mode
 
 # Get apply/implementation instructions
-openspec instructions apply --change add-dark-mode
+opsx instructions apply --change add-dark-mode
 
 # JSON for agent consumption
-openspec instructions design --change add-dark-mode --json
+opsx instructions design --change add-dark-mode --json
 ```
 
 **Output includes:**
@@ -511,12 +510,12 @@ openspec instructions design --change add-dark-mode --json
 
 ---
 
-### `openspec templates`
+### `opsx templates`
 
 Show resolved template paths for all artifacts in a schema.
 
 ```
-openspec templates [options]
+opsx templates [options]
 ```
 
 **Options:**
@@ -530,13 +529,13 @@ openspec templates [options]
 
 ```bash
 # Show template paths for default schema
-openspec templates
+opsx templates
 
 # Show templates for the bootstrap schema
-openspec templates --schema bootstrap
+opsx templates --schema bootstrap
 
 # JSON for programmatic use
-openspec templates --json
+opsx templates --json
 ```
 
 **Output (text):**
@@ -553,12 +552,12 @@ Templates:
 
 ---
 
-### `openspec schemas`
+### `opsx schemas`
 
 List available workflow schemas with their descriptions and artifact flows.
 
 ```
-openspec schemas [options]
+opsx schemas [options]
 ```
 
 **Options:**
@@ -570,7 +569,7 @@ openspec schemas [options]
 **Example:**
 
 ```bash
-openspec schemas
+opsx schemas
 ```
 
 **Output:**
@@ -591,14 +590,14 @@ Available schemas:
 
 ## Schema Commands
 
-OpenSpec ships exactly two package-owned schemas: `spec-driven` and `bootstrap`. Project-local and user override schemas are not resolved, and `schema init` and `schema fork` are not available.
+OPSX ships exactly two package-owned schemas: `spec-driven` and `bootstrap`. Project-local and user override schemas are not resolved, and `schema init` and `schema fork` are not available.
 
-### `openspec schema validate`
+### `opsx schema validate`
 
 Validate a schema's structure and templates.
 
 ```
-openspec schema validate [name] [options]
+opsx schema validate [name] [options]
 ```
 
 **Arguments:**
@@ -618,20 +617,20 @@ openspec schema validate [name] [options]
 
 ```bash
 # Validate a specific built-in schema
-openspec schema validate spec-driven
+opsx schema validate spec-driven
 
 # Validate both built-in schemas
-openspec schema validate
+opsx schema validate
 ```
 
 ---
 
-### `openspec schema which`
+### `opsx schema which`
 
 Show the package location of a built-in schema.
 
 ```
-openspec schema which [name] [options]
+opsx schema which [name] [options]
 ```
 
 **Arguments:**
@@ -651,7 +650,7 @@ openspec schema which [name] [options]
 
 ```bash
 # Check where a schema comes from
-openspec schema which spec-driven
+opsx schema which spec-driven
 ```
 
 **Output:**
@@ -669,12 +668,12 @@ Both schemas resolve directly from the installed package. Project and user direc
 
 ## Configuration Commands
 
-### `openspec config`
+### `opsx config`
 
-View and modify global OpenSpec configuration.
+View and modify global OPSX configuration.
 
 ```
-openspec config <subcommand> [options]
+opsx config <subcommand> [options]
 ```
 
 **Subcommands:**
@@ -693,28 +692,28 @@ openspec config <subcommand> [options]
 
 ```bash
 # Show config file path
-openspec config path
+opsx config path
 
 # List all settings
-openspec config list
+opsx config list
 
 # Get a specific value
-openspec config get telemetry.enabled
+opsx config get telemetry.enabled
 
 # Set a value
-openspec config set telemetry.enabled false
+opsx config set telemetry.enabled false
 
 # Set a string value explicitly
-openspec config set user.name "My Name" --string
+opsx config set user.name "My Name" --string
 
 # Remove a custom setting
-openspec config unset user.name
+opsx config unset user.name
 
 # Reset all configuration
-openspec config reset --all --yes
+opsx config reset --all --yes
 
 # Edit config in your editor
-openspec config edit
+opsx config edit
 
 ```
 
@@ -722,12 +721,12 @@ openspec config edit
 
 ## Utility Commands
 
-### `openspec feedback`
+### `opsx feedback`
 
-Submit feedback about OpenSpec. Creates a GitHub issue.
+Submit feedback about OPSX. Creates a GitHub issue.
 
 ```
-openspec feedback <message> [options]
+opsx feedback <message> [options]
 ```
 
 **Arguments:**
@@ -747,18 +746,18 @@ openspec feedback <message> [options]
 **Example:**
 
 ```bash
-openspec feedback "Add support for custom artifact types" \
+opsx feedback "Add support for custom artifact types" \
   --body "I'd like to define my own artifact types beyond the built-in ones."
 ```
 
 ---
 
-### `openspec completion`
+### `opsx completion`
 
-Manage shell completions for the OpenSpec CLI.
+Manage shell completions for the OPSX CLI.
 
 ```
-openspec completion <subcommand> [shell]
+opsx completion <subcommand> [shell]
 ```
 
 **Subcommands:**
@@ -775,16 +774,16 @@ openspec completion <subcommand> [shell]
 
 ```bash
 # Install completions (auto-detects shell)
-openspec completion install
+opsx completion install
 
 # Install for specific shell
-openspec completion install zsh
+opsx completion install zsh
 
 # Generate script for manual installation
-openspec completion generate bash > ~/.bash_completion.d/openspec
+opsx completion generate bash > ~/.bash_completion.d/opsx
 
 # Uninstall
-openspec completion uninstall
+opsx completion uninstall
 ```
 
 ---
@@ -802,10 +801,10 @@ openspec completion uninstall
 
 | Variable | Description |
 |----------|-------------|
-| `OPENSPEC_TELEMETRY` | Set to `0` to disable telemetry |
+| `OPSX_TELEMETRY` | Set to `0` to disable telemetry |
 | `DO_NOT_TRACK` | Set to `1` to disable telemetry (standard DNT signal) |
-| `OPENSPEC_CONCURRENCY` | Default concurrency for bulk validation (default: 6) |
-| `EDITOR` or `VISUAL` | Editor for `openspec config edit` |
+| `OPSX_CONCURRENCY` | Default concurrency for bulk validation (default: 6) |
+| `EDITOR` or `VISUAL` | Editor for `opsx config edit` |
 | `NO_COLOR` | Disable color output when set |
 
 ---

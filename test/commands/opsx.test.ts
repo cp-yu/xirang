@@ -8,7 +8,7 @@ describe('opsx command', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-opsx-command-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-opsx-command-'));
     await fs.mkdir(path.join(tempDir, '.opsx'), { recursive: true });
   });
 
@@ -114,8 +114,8 @@ relations:
 
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain('OPSX files not found');
-    expect(result.stderr).toContain('openspec bootstrap init');
-    expect(result.stderr).toContain('openspec init');
+    expect(result.stderr).toContain('opsx bootstrap init');
+    expect(result.stderr).toContain('opsx init');
   });
 
   it('relations filter works and code-map option is rejected', async () => {

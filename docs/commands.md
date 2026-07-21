@@ -1,24 +1,34 @@
-# Commands
+# Workflow Skills And Architecture Commands
 
-OpenSpec's managed workflow surface is skills-only. Older slash command files may remain as legacy artifacts.
+OPSX exposes managed workflows as skills. It does not generate a parallel slash-command surface.
 
-## Workflow Surface
+## Workflow Skills
 
-| Command | Purpose |
+| Skill | Purpose |
 |---|---|
-| `/opsx:propose` | Create or update a change and author its semantic deltas |
-| `/opsx:explore` | Investigate requirements before proposing a change |
-| `/opsx:apply` | Implement tasks with architecture-first TDD |
+| `/opsx:explore` | Investigate requirements without modifying code or artifacts |
+| `/opsx:propose` | Create proposal, design, tasks, delta Specs, and architecture delta when required |
+| `/opsx:apply` | Implement an approved change with TDD and evidence-backed checks |
 | `/opsx:archive` | Verify, sync, and archive a completed change |
-| `/opsx:bootstrap-arch` | Bootstrap a LikeC4 model from repository evidence |
-| `/opsx:snack` | Reconcile existing code into OpenSpec artifacts |
+| `/opsx:bootstrap-arch` | Build a LikeC4 architecture model from repository evidence |
+| `/opsx:snack` | Reconcile existing code into OPSX semantic artifacts |
+
+Invocation syntax varies by agent tool. See [Supported Tools](supported-tools.md).
 
 ## Architecture CLI
+
+### Browse
+
+```bash
+opsx view [--port <n>]
+```
+
+Discovers the nearest `.opsx/`, starts the vendored LikeC4 engine, and serves the Architecture and indexed Specs browser.
 
 ### Query
 
 ```bash
-openspec arch query <element-id> [--relations] [--depth <n>] [--json]
+opsx arch query <element-id> [--relations] [--depth <n>] [--json]
 ```
 
 Queries a LikeC4 domain or capability. Canonical capability IDs in metadata are also accepted.
@@ -26,32 +36,24 @@ Queries a LikeC4 domain or capability. Canonical capability IDs in metadata are 
 ### Validate
 
 ```bash
-openspec arch validate [--json]
-openspec arch validate --delta <architecture-delta.c4> [--json]
+opsx arch validate [--json]
+opsx arch validate --delta <architecture-delta.c4> [--json]
 ```
 
-Validates the formal model or a change-local delta against the formal model.
-
-### Preview
-
-```bash
-openspec arch preview [--port <n>]
-```
-
-Starts the LikeC4 browser preview.
+Validates the formal LikeC4 model or a change-local delta.
 
 ### Export
 
 ```bash
-openspec arch export [--format png|svg|pdf] [--output <directory>]
+opsx arch export [--format png|svg|pdf] [--output <directory>]
 ```
 
-Exports diagrams to `docs/architecture` by default.
+Exports architecture diagrams without changing the semantic model.
 
-## Migration CLI
+## Explicit Legacy YAML Migration
 
 ```bash
-openspec migrate opsx-to-likec4 [--dry-run]
+opsx migrate opsx-to-likec4 [--dry-run]
 ```
 
-Converts the legacy OPSX YAML bundle to `openspec/architecture/`. A successful migration validates the generated LikeC4 and renames the source YAML files with `.backup` suffixes.
+This one-time command converts the former OPSX YAML architecture bundle into `.opsx/architecture/`. Runtime commands never fall back to that legacy format.

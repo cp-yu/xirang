@@ -41,7 +41,7 @@ export class ViewCommand {
   async execute(startPath: string = '.', options: { port?: number } = {}): Promise<void> {
     const projectRoot = findOpsxProjectRoot(startPath);
     if (!projectRoot) {
-      throw new Error(`No ${OPSX_DIR_NAME} directory found from ${path.resolve(startPath)}`);
+      throw new Error('未找到 OPSX 项目');
     }
 
     await this.launch({

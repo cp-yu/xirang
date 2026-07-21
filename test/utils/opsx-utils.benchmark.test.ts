@@ -71,8 +71,8 @@ describe('opsx-utils performance benchmark', () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-bench-${randomUUID()}`);
-    await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+    testDir = path.join(os.tmpdir(), `opsx-bench-${randomUUID()}`);
+    await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
   });
 
   afterEach(async () => {

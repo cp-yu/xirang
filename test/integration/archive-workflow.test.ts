@@ -8,7 +8,7 @@ describe('architecture archive workflow', () => {
   let changeDir: string;
   let root: string;
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-architecture-archive-'));
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-architecture-archive-'));
     changeDir = path.join(root, '.opsx', 'changes', 'done');
     await fs.mkdir(changeDir, { recursive: true });
   });

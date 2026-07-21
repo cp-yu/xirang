@@ -18,7 +18,7 @@ describe('Integration: Full Workflow', () => {
   let changeName: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-integration-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `opsx-integration-${randomUUID()}`);
     changeName = 'add-auth-feature';
     await fs.mkdir(testDir, { recursive: true });
   });
@@ -39,7 +39,7 @@ describe('Integration: Full Workflow', () => {
   describe('Workflow: propose → sync → verify', () => {
     it('should complete full workflow successfully', async () => {
       // Step 1: PROPOSE
-      const changeDir = path.join(testDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(testDir, '.opsx', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
 
       await fs.writeFile(
@@ -123,7 +123,7 @@ describe('Integration: Full Workflow', () => {
       });
       await writeProjectOpsx(testDir, initial);
 
-      const changeDir = path.join(testDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(testDir, '.opsx', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
 
       const delta: OpsxDelta = {
@@ -181,7 +181,7 @@ describe('Integration: Full Workflow', () => {
       });
       await writeProjectOpsx(testDir, initial);
 
-      const changeDir = path.join(testDir, 'openspec', 'changes', changeName);
+      const changeDir = path.join(testDir, '.opsx', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
 
       const delta: OpsxDelta = {

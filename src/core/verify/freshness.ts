@@ -272,8 +272,8 @@ export function formatVerifyGateFailure(
   lines.push(
     '',
     '  Suggested actions:',
-    `    openspec verify phase1 ${changeName}`,
-    `    openspec ${command} ${changeName} --no-verify`
+    `    opsx verify phase1 ${changeName}`,
+    `    opsx ${command} ${changeName} --no-verify`
   );
   return lines.join('\n');
 }

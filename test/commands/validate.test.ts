@@ -42,7 +42,7 @@ describe('top-level validate command', () => {
       '',
       '#### Scenario: Apply alpha delta',
       '- **GIVEN** the test change delta',
-      '- **WHEN** openspec validate runs',
+      '- **WHEN** opsx validate runs',
       '- **THEN** the validator reports the change as valid',
     ].join('\n');
     const c1DeltaDir = path.join(changesDir, 'c1', 'specs', 'alpha');
@@ -214,7 +214,7 @@ describe('top-level validate command', () => {
       '',
       '#### Scenario: Validate CRLF change',
       '- **GIVEN** a change proposal saved with CRLF line endings',
-      '- **WHEN** a developer runs openspec validate on the proposal',
+      '- **WHEN** a developer runs opsx validate on the proposal',
       '- **THEN** validation succeeds without section errors',
     ]);
 
@@ -232,8 +232,8 @@ describe('top-level validate command', () => {
     // (not options.noInteractive = true) due to Commander.js convention.
     const result = await runCLI(['validate', '--specs', '--no-interactive'], {
       cwd: testDir,
-      // Don't set OPEN_SPEC_INTERACTIVE to ensure we're testing the flag itself
-      env: { ...process.env, OPEN_SPEC_INTERACTIVE: undefined },
+      // Don't set OPSX_INTERACTIVE to ensure we're testing the flag itself
+      env: { ...process.env, OPSX_INTERACTIVE: undefined },
     });
     expect(result.exitCode).toBe(0);
     // Should complete without hanging and without prompts

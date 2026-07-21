@@ -521,6 +521,7 @@ export function ElementDetailsCard({
               {specTab.visible && (
                 <TabsPanel value="Specs">
                   <SpecsTab
+                    project={elementModel.projectId}
                     element={elementModel.id}
                     specs={specTab.paths}
                     active={activeTab === 'Specs'}

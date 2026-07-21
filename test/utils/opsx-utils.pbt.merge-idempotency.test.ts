@@ -15,7 +15,7 @@ describe('PBT: Merge Idempotency', () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-opsx-pbt-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `opsx-opsx-pbt-${randomUUID()}`);
     await fs.mkdir(testDir, { recursive: true });
   });
 

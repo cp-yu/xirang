@@ -43,6 +43,7 @@
   "scripts": {
     "lint": "eslint src/",
     "build": "node build.js",
+    "audit:identity": "node scripts/audit-opsx-identity.mjs",
     "likec4:install": "pnpm --dir likec4 install --frozen-lockfile",
     "likec4:build": "pnpm --dir likec4 build",
     "likec4:test": "pnpm --dir likec4 test",
@@ -50,6 +51,8 @@
     "dev": "tsc --watch",
     "dev:cli": "pnpm build && node bin/opsx.js",
     "test": "vitest run",
+    "test:e2e": "playwright test test/e2e/spec-browser.spec.ts",
+    "test:e2e:install": "playwright install chromium",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
@@ -68,6 +71,7 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.2",
     "@changesets/cli": "^2.27.7",
+    "@playwright/test": "1.60.0",
     "@vitest/ui": "^3.2.4",
     "eslint": "^9.39.2",
     "fast-check": "^4.6.0",

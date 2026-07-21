@@ -22,10 +22,10 @@ describe('change show (interactive behavior)', () => {
   it('prints list hint and exits non-zero when no arg and non-interactive', async () => {
     const result = await runCLI(['change', 'show'], {
       cwd: testDir,
-      env: { OPEN_SPEC_INTERACTIVE: '0' },
+      env: { OPSX_INTERACTIVE: '0' },
     });
     expect(result.exitCode).not.toBe(0);
     expect(result.stderr).toContain('Available IDs:');
-    expect(result.stderr).toContain('openspec change list');
+    expect(result.stderr).toContain('opsx change list');
   });
 });

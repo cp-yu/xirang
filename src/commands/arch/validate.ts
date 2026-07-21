@@ -29,7 +29,7 @@ export async function validateArchitectureCommand(projectRoot: string, options: 
     };
   }
 
-  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-likec4-delta-'));
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-likec4-delta-'));
   try {
     await fs.cp(architectureDir, workspace, {
       recursive: true,

@@ -9,7 +9,7 @@ describe('migration verifier', () => {
   let root: string;
 
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-migration-verifier-'));
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-migration-verifier-'));
     const architecture = path.join(root, '.opsx', 'architecture');
     await fs.mkdir(path.join(architecture, 'domains'), { recursive: true });
     await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), `model {

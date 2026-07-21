@@ -35,7 +35,7 @@ describe('architecture sync workflow', () => {
   let root: string;
   let changeDir: string;
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-architecture-sync-'));
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-architecture-sync-'));
     changeDir = path.join(root, '.opsx', 'changes', 'add');
     await fs.mkdir(path.join(root, '.opsx', 'architecture', 'domains'), { recursive: true });
     await fs.mkdir(changeDir, { recursive: true });

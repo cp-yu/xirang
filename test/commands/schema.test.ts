@@ -8,7 +8,7 @@ describe('schema command', () => {
   let tempDir: string;
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-schema-command-'));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-schema-command-'));
   });
 
   afterEach(() => fs.rmSync(tempDir, { recursive: true, force: true }));

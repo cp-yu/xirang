@@ -39,7 +39,7 @@ async function captureJsonOutput(fn: () => Promise<void>): Promise<any> {
 }
 
 async function createTempProject(): Promise<string> {
-  const projectDir = await fs.mkdtemp(path.join(tmpdir(), 'openspec-bootstrap-phase1-'));
+  const projectDir = await fs.mkdtemp(path.join(tmpdir(), 'opsx-bootstrap-phase1-'));
   tempRoots.push(projectDir);
   return projectDir;
 }
@@ -60,14 +60,14 @@ async function pathExists(projectDir: string, relativePath: string): Promise<boo
 }
 
 async function writeFormalOpsxBundle(projectDir: string): Promise<void> {
-  await writeFile(projectDir, 'openspec/project.opsx.yaml', `schema_version: 2
+  await writeFile(projectDir, '.opsx/project.opsx.yaml', `schema_version: 2
 project:
   id: project
   name: Project
 domains: []
 capabilities: []
 `);
-  await writeFile(projectDir, 'openspec/project.opsx.relations.yaml', `schema_version: 2
+  await writeFile(projectDir, '.opsx/project.opsx.relations.yaml', `schema_version: 2
 relations: []
 `);
 }
@@ -76,7 +76,7 @@ afterAll(async () => {
   await Promise.all(tempRoots.map((dir) => fs.rm(dir, { recursive: true, force: true })));
 });
 
-describe('openspec bootstrap Phase 1', () => {
+describe('opsx bootstrap Phase 1', () => {
   it('returns structured pre-init status for a specs-based baseline', async () => {
     const projectDir = await createTempProject();
     await writeFile(projectDir, '.opsx/specs/auth/spec.md', '# Auth spec\n');
@@ -94,7 +94,7 @@ describe('openspec bootstrap Phase 1', () => {
 
   it('returns structured pre-init status for an invalid partial OPSX baseline', async () => {
     const projectDir = await createTempProject();
-    await writeFile(projectDir, 'openspec/project.opsx.yaml', `schema_version: 2
+    await writeFile(projectDir, '.opsx/project.opsx.yaml', `schema_version: 2
 project:
   id: project
   name: Project
@@ -144,7 +144,7 @@ capabilities: []
     expect(json.allowedModes).toContain('full');
     expect(json.allowedModes).toContain('opsx-first');
     expect(json.instruction).toContain("requested phase 'scan' is unavailable before initialization");
-    expect(json.instruction).toContain('openspec bootstrap init --mode');
+    expect(json.instruction).toContain('opsx bootstrap init --mode');
   });
 
   it('rejects unsupported full mode on formal OPSX before creating .opsx/bootstrap', async () => {

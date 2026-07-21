@@ -48,7 +48,7 @@ function applyDelta(bundle: ProjectOpsxBundle, delta: OpsxDelta): ProjectOpsxBun
   return b;
 }
 async function writeChangeArtifacts(testDir: string, changeName: string, delta: OpsxDelta): Promise<void> {
-  const changeDir = path.join(testDir, 'openspec', 'changes', changeName);
+  const changeDir = path.join(testDir, '.opsx', 'changes', changeName);
   await fs.mkdir(changeDir, { recursive: true });
   await fs.writeFile(path.join(changeDir, 'opsx-delta.yaml'), stringifyYaml(delta));
   await fs.writeFile(path.join(changeDir, 'proposal.md'), `# ${changeName}\n`);
@@ -58,8 +58,8 @@ describe('Integration: Multiple Changes on Real Project', () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-multi-${randomUUID()}`);
-    await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+    testDir = path.join(os.tmpdir(), `opsx-multi-${randomUUID()}`);
+    await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
   });
 
   afterEach(async () => {

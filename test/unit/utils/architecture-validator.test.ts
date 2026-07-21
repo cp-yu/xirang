@@ -16,7 +16,7 @@ function architecture(overrides: Partial<LikeC4Architecture> = {}): LikeC4Archit
 
 describe('architecture validator', () => {
   let root: string;
-  beforeEach(async () => { root = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-architecture-validator-')); });
+  beforeEach(async () => { root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-architecture-validator-')); });
   afterEach(async () => fs.rm(root, { recursive: true, force: true }));
 
   it('should detect missing ownership', async () => {

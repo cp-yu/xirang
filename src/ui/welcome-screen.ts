@@ -15,19 +15,18 @@ const ART_COLUMN_WIDTH = 24;
 /**
  * Welcome text content (right column)
  */
-function getWelcomeText(): string[] {
+export function getWelcomeText(): string[] {
   return [
-    chalk.white.bold('Welcome to OpenSpec'),
+    chalk.white.bold('Welcome to OPSX'),
     chalk.dim('A lightweight spec-driven framework'),
     '',
     chalk.white('This setup will configure:'),
     chalk.dim('  • Agent Skills for AI tools'),
-    chalk.dim('  • /opsx:* slash commands'),
+    chalk.dim('  • The .opsx durable workspace'),
     '',
     chalk.white('Quick start after setup:'),
-    `  ${chalk.yellow('/opsx:new')}      ${chalk.dim('Create a change')}`,
-    `  ${chalk.yellow('/opsx:continue')} ${chalk.dim('Next artifact')}`,
-    `  ${chalk.yellow('/opsx:apply')}    ${chalk.dim('Implement tasks')}`,
+    `  ${chalk.yellow('opsx status')} ${chalk.dim('Inspect project state')}`,
+    `  ${chalk.yellow('opsx view')}   ${chalk.dim('Browse Architecture and Specs')}`,
     '',
     chalk.cyan('Press Enter to select tools...'),
   ];

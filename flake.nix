@@ -1,5 +1,5 @@
 {
-  description = "OpenSpec - AI-native system for spec-driven development";
+  description = "OPSX - AI-native system for spec-driven development";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -26,7 +26,7 @@
         in
         {
           default = pkgs.stdenv.mkDerivation (finalAttrs: {
-            pname = "openspec";
+            pname = "opsx";
             version = (builtins.fromJSON (builtins.readFile ./package.json)).version;
 
             src = lib.fileset.toSource {
@@ -76,7 +76,7 @@
               homepage = "https://github.com/cp-yu/opsx";
               license = licenses.mit;
               maintainers = [ ];
-              mainProgram = "openspec";
+              mainProgram = "opsx";
             };
           });
         }
@@ -85,7 +85,7 @@
       apps = forAllSystems (system: {
         default = {
           type = "app";
-          program = "${self.packages.${system}.default}/bin/openspec";
+          program = "${self.packages.${system}.default}/bin/opsx";
         };
       });
 
@@ -102,7 +102,7 @@
             ];
 
             shellHook = ''
-              echo "OpenSpec development environment"
+              echo "OPSX development environment"
               echo "Node version: $(node --version)"
               echo "pnpm version: $(pnpm --version)"
               echo "Run 'pnpm install' to install dependencies"

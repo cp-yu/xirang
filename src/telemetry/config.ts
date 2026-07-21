@@ -124,9 +124,9 @@ async function migrateLegacyTelemetryConfig(
  * Get the path to the global config file.
  * Follows XDG Base Directory Specification and platform conventions.
  *
- * - All platforms: $XDG_CONFIG_HOME/openspec/ if XDG_CONFIG_HOME is set
- * - Unix/macOS fallback: ~/.config/openspec/
- * - Windows fallback: %APPDATA%/openspec/
+ * - All platforms: $XDG_CONFIG_HOME/opsx/ if XDG_CONFIG_HOME is set
+ * - Unix/macOS fallback: ~/.config/opsx/
+ * - Windows fallback: %APPDATA%/opsx/
  */
 export function getConfigPath(): string {
   const configDir = getConfigDir();

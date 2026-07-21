@@ -8,6 +8,10 @@ import { createRpc } from 'likec4/vite-plugin/internal'
 export const isRpcAvailable = !!import.meta.hot && ${rpcEnabled}
 export const isAIAvailable = isRpcAvailable && ${isAIAvailable}
 export const AIAdapter = ${JSON.stringify(ai?.adapter.name)}
+export const likec4hot = import.meta.hot ? {
+  on: (event, listener) => import.meta.hot.on(event, listener),
+  off: (event, listener) => import.meta.hot.off(event, listener),
+} : undefined
 
 let rpc 
 if (isRpcAvailable) {

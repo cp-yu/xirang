@@ -45,7 +45,7 @@ describe('project-config', () => {
   let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-test-config-'));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-test-config-'));
     consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
@@ -493,11 +493,11 @@ git:
     merge: docs\\merge.md
   archive:
     commitMessage:
-      convention: openspec-archive
+      convention: opsx-archive
   merge:
     strategy: rebase
     commitMessage:
-      convention: openspec-merge-summary
+      convention: opsx-merge-summary
   branch:
     deleteAfterArchive: "true"
 `
@@ -532,7 +532,7 @@ git:
         );
       });
 
-      it('should fail fast when schema is invalid', () => {
+      it('should warn and return null when schema is invalid', () => {
         const configDir = path.join(tempDir, '.opsx');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
@@ -542,8 +542,9 @@ context: Valid context here
 `
         );
 
-        expect(() => readProjectConfig(tempDir)).toThrow(
-          /Unsupported schema 'custom-schema'.*spec-driven, bootstrap/
+        expect(readProjectConfig(tempDir)).toBeNull();
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          "Unsupported schema 'custom-schema' in .opsx/config.yaml. Available: spec-driven, bootstrap"
         );
       });
 
@@ -762,7 +763,7 @@ rules:
 
         expect(config).toBeNull();
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Failed to parse openspec/config.yaml'),
+          expect.stringContaining('Failed to parse .opsx/config.yaml'),
           expect.anything()
         );
       });
@@ -915,7 +916,7 @@ context: |
         expect(consoleWarnSpy).not.toHaveBeenCalled();
       });
 
-      it('should return null when openspec directory does not exist', () => {
+      it('should return null when opsx directory does not exist', () => {
         const config = readProjectConfig(tempDir);
 
         expect(config).toBeNull();

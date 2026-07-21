@@ -15,7 +15,7 @@ describe('PBT: Atomic Write Guarantees (Two-File)', () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-opsx-pbt-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `opsx-opsx-pbt-${randomUUID()}`);
     await fs.mkdir(testDir, { recursive: true });
   });
 
@@ -56,7 +56,7 @@ describe('PBT: Atomic Write Guarantees (Two-File)', () => {
       fc.asyncProperty(bundleArb, async (bundle) => {
         await writeProjectOpsx(testDir, bundle);
 
-        const opsxDir = path.join(testDir, 'openspec');
+        const opsxDir = path.join(testDir, '.opsx');
         const files = await fs.readdir(opsxDir, { recursive: true });
         const tmpFiles = files.filter(f => f.toString().includes('.tmp'));
         expect(tmpFiles).toHaveLength(0);
@@ -100,7 +100,7 @@ describe('PBT: Atomic Write Guarantees (Two-File)', () => {
       fc.asyncProperty(bundleArb, async (bundle) => {
         await writeProjectOpsx(testDir, bundle);
 
-        const opsxDir = path.join(testDir, 'openspec');
+        const opsxDir = path.join(testDir, '.opsx');
         const files = await fs.readdir(opsxDir);
         const opsxFiles = files.filter(f => f.startsWith('project.opsx'));
         expect(opsxFiles).toHaveLength(2);

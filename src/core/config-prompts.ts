@@ -23,7 +23,7 @@ export function serializeConfig(config: Partial<ProjectConfig>): string {
   lines.push('');
 
   // Document language with comments
-  lines.push('# OpenSpec document prose language (optional)');
+  lines.push('# OPSX document prose language (optional)');
   lines.push('# Applies only to natural-language body text in artifacts.');
   lines.push('# Keep template headings, IDs, schema keys, commands, and code tokens unchanged.');
   lines.push('# Example:');

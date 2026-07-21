@@ -84,7 +84,7 @@ export class ArchiveCommand {
   /**
    * Archive a completed change. Enforces verify gate, sync gate, validation gate,
    * and task gate before moving the change to archive. Does NOT write formal Specs
-   * or LikeC4 architecture files; sync is handled by `openspec sync`.
+   * or LikeC4 architecture files; sync is handled by `opsx sync`.
    */
   async execute(changeName?: string, options: ArchiveOptions = {}): Promise<void> {
     const targetPath = '.';
@@ -94,7 +94,7 @@ export class ArchiveCommand {
     try {
       await fs.access(changesDir);
     } catch {
-      throw new Error("No OpenSpec changes directory found. Run 'openspec init' first.");
+      throw new Error("No OPSX changes directory found. Run 'opsx init' first.");
     }
 
     if (!changeName) {
@@ -238,13 +238,13 @@ export class ArchiveCommand {
     if (pendingSync.specs > 0) {
       throw new Error(
         `Sync gate failed: ${pendingSync.specs} pending delta spec(s).\n` +
-        `Run openspec sync ${changeName} first, or pass --no-sync to bypass.`,
+        `Run opsx sync ${changeName} first, or pass --no-sync to bypass.`,
       );
     }
     if (pendingSync.architecture) {
       throw new Error(
         `Sync gate failed: pending architecture delta.\n` +
-        `Run openspec sync ${changeName} first, or pass --no-sync to bypass.`,
+        `Run opsx sync ${changeName} first, or pass --no-sync to bypass.`,
       );
     }
     return true;

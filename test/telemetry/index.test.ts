@@ -4,11 +4,13 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 import { randomUUID } from 'node:crypto';
 
+const { captureMock } = vi.hoisted(() => ({ captureMock: vi.fn() }));
+
 // Mock posthog-node before importing the module
 vi.mock('posthog-node', () => {
   return {
     PostHog: vi.fn().mockImplementation(() => ({
-      capture: vi.fn(),
+      capture: captureMock,
       shutdown: vi.fn().mockResolvedValue(undefined),
     })),
   };
@@ -43,7 +45,7 @@ describe('telemetry/index', () => {
 
   beforeEach(() => {
     // Create unique temp directory for each test using UUID
-    tempDir = path.join(os.tmpdir(), `openspec-telemetry-test-${randomUUID()}`);
+    tempDir = path.join(os.tmpdir(), `opsx-telemetry-test-${randomUUID()}`);
     fs.mkdirSync(tempDir, { recursive: true });
 
     // Save original env
@@ -52,8 +54,12 @@ describe('telemetry/index', () => {
     // Mock HOME to point to temp dir
     process.env.HOME = tempDir;
 
-    // Clear all mocks
+    // Clear all mocks and restore the constructor implementation after prior spy restoration.
     vi.clearAllMocks();
+    vi.mocked(PostHog).mockImplementation(() => ({
+      capture: captureMock,
+      shutdown: vi.fn().mockResolvedValue(undefined),
+    }) as any);
 
     // Spy on console.log for notice tests
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -78,8 +84,8 @@ describe('telemetry/index', () => {
   });
 
   describe('isTelemetryEnabled', () => {
-    it('should return false when OPENSPEC_TELEMETRY=0', () => {
-      process.env.OPENSPEC_TELEMETRY = '0';
+    it('should return false when OPSX_TELEMETRY=0', () => {
+      process.env.OPSX_TELEMETRY = '0';
       expect(isTelemetryEnabled()).toBe(false);
     });
 
@@ -98,8 +104,8 @@ describe('telemetry/index', () => {
       expect(isTelemetryEnabled()).toBe(false);
     });
 
-    it('should return false when OPEN_SPEC_INTERACTIVE=0', () => {
-      process.env.OPEN_SPEC_INTERACTIVE = '0';
+    it('should return false when OPSX_INTERACTIVE=0', () => {
+      process.env.OPSX_INTERACTIVE = '0';
       expect(isTelemetryEnabled()).toBe(false);
     });
 
@@ -121,10 +127,10 @@ describe('telemetry/index', () => {
     });
 
     it('should return true when no opt-out is set and stdin is a TTY', () => {
-      delete process.env.OPENSPEC_TELEMETRY;
+      delete process.env.OPSX_TELEMETRY;
       delete process.env.DO_NOT_TRACK;
       delete process.env.CI;
-      delete process.env.OPEN_SPEC_INTERACTIVE;
+      delete process.env.OPSX_INTERACTIVE;
 
       const originalIsTTY = process.stdin.isTTY;
       Object.defineProperty(process.stdin, 'isTTY', {
@@ -142,8 +148,8 @@ describe('telemetry/index', () => {
       }
     });
 
-    it('should prioritize OPENSPEC_TELEMETRY=0 over other settings', () => {
-      process.env.OPENSPEC_TELEMETRY = '0';
+    it('should prioritize OPSX_TELEMETRY=0 over other settings', () => {
+      process.env.OPSX_TELEMETRY = '0';
       delete process.env.DO_NOT_TRACK;
       delete process.env.CI;
       expect(isTelemetryEnabled()).toBe(false);
@@ -152,7 +158,7 @@ describe('telemetry/index', () => {
 
   describe('maybeShowTelemetryNotice', () => {
     it('should not show notice when telemetry is disabled', async () => {
-      process.env.OPENSPEC_TELEMETRY = '0';
+      process.env.OPSX_TELEMETRY = '0';
 
       await maybeShowTelemetryNotice();
 
@@ -162,15 +168,15 @@ describe('telemetry/index', () => {
 
   describe('trackCommand', () => {
     it('should not track when telemetry is disabled', async () => {
-      process.env.OPENSPEC_TELEMETRY = '0';
+      process.env.OPSX_TELEMETRY = '0';
 
       await trackCommand('test', '1.0.0');
 
       expect(PostHog).not.toHaveBeenCalled();
     });
 
-    it('should not track when OPEN_SPEC_INTERACTIVE=0', async () => {
-      process.env.OPEN_SPEC_INTERACTIVE = '0';
+    it('should not track when OPSX_INTERACTIVE=0', async () => {
+      process.env.OPSX_INTERACTIVE = '0';
 
       await trackCommand('test', '1.0.0');
 
@@ -178,10 +184,10 @@ describe('telemetry/index', () => {
     });
 
     it('should track when telemetry is enabled', async () => {
-      delete process.env.OPENSPEC_TELEMETRY;
+      delete process.env.OPSX_TELEMETRY;
       delete process.env.DO_NOT_TRACK;
       delete process.env.CI;
-      delete process.env.OPEN_SPEC_INTERACTIVE;
+      delete process.env.OPSX_INTERACTIVE;
 
       const originalIsTTY = process.stdin.isTTY;
       Object.defineProperty(process.stdin, 'isTTY', {
@@ -200,11 +206,30 @@ describe('telemetry/index', () => {
       }
     });
 
-    it('should construct PostHog with bounded silent-failure settings', async () => {
-      delete process.env.OPENSPEC_TELEMETRY;
+    it('should record OPSX identity separately from the subcommand path', async () => {
+      delete process.env.OPSX_TELEMETRY;
       delete process.env.DO_NOT_TRACK;
       delete process.env.CI;
-      delete process.env.OPEN_SPEC_INTERACTIVE;
+      delete process.env.OPSX_INTERACTIVE;
+
+      await shutdown();
+      await withInteractiveTTY(async () => {
+        await trackCommand('init', '1.0.0');
+      });
+
+      expect(captureMock).toHaveBeenCalledWith(expect.objectContaining({
+        properties: expect.objectContaining({
+          commandIdentity: 'opsx',
+          command: 'init',
+        }),
+      }));
+    });
+
+    it('should construct PostHog with bounded silent-failure settings', async () => {
+      delete process.env.OPSX_TELEMETRY;
+      delete process.env.DO_NOT_TRACK;
+      delete process.env.CI;
+      delete process.env.OPSX_INTERACTIVE;
 
       await withInteractiveTTY(async () => {
         await trackCommand('test', '1.0.0');
@@ -212,7 +237,7 @@ describe('telemetry/index', () => {
         expect(PostHog).toHaveBeenCalledWith(
           expect.any(String),
           expect.objectContaining({
-            host: 'https://edge.openspec.dev',
+            host: 'https://edge.opsx.dev',
             flushAt: 1,
             flushInterval: 0,
             fetchRetryCount: 0,
@@ -227,10 +252,10 @@ describe('telemetry/index', () => {
     });
 
     it('should return a synthetic success response when fetch throws a network error', async () => {
-      delete process.env.OPENSPEC_TELEMETRY;
+      delete process.env.OPSX_TELEMETRY;
       delete process.env.DO_NOT_TRACK;
       delete process.env.CI;
-      delete process.env.OPEN_SPEC_INTERACTIVE;
+      delete process.env.OPSX_INTERACTIVE;
 
       await withInteractiveTTY(async () => {
         await trackCommand('test', '1.0.0');
@@ -238,17 +263,17 @@ describe('telemetry/index', () => {
         const fetchFn = (PostHog as any).mock.calls[0][1].fetch as typeof fetch;
         fetchSpy.mockRejectedValueOnce(new Error('network down'));
 
-        const response = await fetchFn('https://edge.openspec.dev/batch/', { method: 'POST' });
+        const response = await fetchFn('https://edge.opsx.dev/batch/', { method: 'POST' });
 
         expect(response.status).toBe(204);
       });
     });
 
     it('should return a synthetic success response when fetch aborts', async () => {
-      delete process.env.OPENSPEC_TELEMETRY;
+      delete process.env.OPSX_TELEMETRY;
       delete process.env.DO_NOT_TRACK;
       delete process.env.CI;
-      delete process.env.OPEN_SPEC_INTERACTIVE;
+      delete process.env.OPSX_INTERACTIVE;
 
       await withInteractiveTTY(async () => {
         await trackCommand('test', '1.0.0');
@@ -256,17 +281,17 @@ describe('telemetry/index', () => {
         const fetchFn = (PostHog as any).mock.calls[0][1].fetch as typeof fetch;
         fetchSpy.mockRejectedValueOnce(new DOMException('This operation was aborted', 'AbortError'));
 
-        const response = await fetchFn('https://edge.openspec.dev/batch/', { method: 'POST' });
+        const response = await fetchFn('https://edge.opsx.dev/batch/', { method: 'POST' });
 
         expect(response.status).toBe(204);
       });
     });
 
     it('should return a synthetic success response for non-2xx responses', async () => {
-      delete process.env.OPENSPEC_TELEMETRY;
+      delete process.env.OPSX_TELEMETRY;
       delete process.env.DO_NOT_TRACK;
       delete process.env.CI;
-      delete process.env.OPEN_SPEC_INTERACTIVE;
+      delete process.env.OPSX_INTERACTIVE;
 
       await withInteractiveTTY(async () => {
         await trackCommand('test', '1.0.0');
@@ -274,17 +299,17 @@ describe('telemetry/index', () => {
         const fetchFn = (PostHog as any).mock.calls[0][1].fetch as typeof fetch;
         fetchSpy.mockResolvedValueOnce(new Response('forbidden', { status: 403 }));
 
-        const response = await fetchFn('https://edge.openspec.dev/batch/', { method: 'POST' });
+        const response = await fetchFn('https://edge.opsx.dev/batch/', { method: 'POST' });
 
         expect(response.status).toBe(204);
       });
     });
 
     it('should pass through successful responses from fetch', async () => {
-      delete process.env.OPENSPEC_TELEMETRY;
+      delete process.env.OPSX_TELEMETRY;
       delete process.env.DO_NOT_TRACK;
       delete process.env.CI;
-      delete process.env.OPEN_SPEC_INTERACTIVE;
+      delete process.env.OPSX_INTERACTIVE;
 
       await withInteractiveTTY(async () => {
         await trackCommand('test', '1.0.0');
@@ -293,7 +318,7 @@ describe('telemetry/index', () => {
         const expectedResponse = new Response(null, { status: 200 });
         fetchSpy.mockResolvedValueOnce(expectedResponse);
 
-        const response = await fetchFn('https://edge.openspec.dev/batch/', { method: 'POST' });
+        const response = await fetchFn('https://edge.opsx.dev/batch/', { method: 'POST' });
 
         expect(response).toBe(expectedResponse);
       });

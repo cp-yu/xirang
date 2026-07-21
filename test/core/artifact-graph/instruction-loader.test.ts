@@ -50,7 +50,7 @@ describe('instruction-loader', () => {
       expect(initTemplate).toContain('complete candidate from current evidence');
       expect(initTemplate).toContain('old formal OPSX v2 model is review-only evidence');
       expect(initTemplate).toContain('completed workspace restart inherits retained `scope.yaml` granularity');
-      expect(initTemplate).toContain('openspec bootstrap advance scan');
+      expect(initTemplate).toContain('opsx bootstrap advance scan');
       expect(reviewTemplate).toContain('Relation semantic validation passes');
       expect(reviewTemplate).toContain('Review gaps are resolved or explicitly accepted');
       expect(reviewTemplate).not.toMatch(/code-map/i);
@@ -83,7 +83,7 @@ describe('instruction-loader', () => {
     let tempDir: string;
 
     beforeEach(() => {
-      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-test-'));
+      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-test-'));
     });
 
     afterEach(() => {
@@ -123,11 +123,11 @@ describe('instruction-loader', () => {
       expect(context.completed.size).toBe(0);
     });
 
-    it('should auto-detect schema from .openspec.yaml metadata', () => {
+    it('should auto-detect schema from .opsx.yaml metadata', () => {
       // Create change directory with metadata file
       const changeDir = path.join(tempDir, '.opsx', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
-      fs.writeFileSync(path.join(changeDir, '.openspec.yaml'), 'schema: spec-driven\ncreated: "2025-01-05"\n');
+      fs.writeFileSync(path.join(changeDir, '.opsx.yaml'), 'schema: spec-driven\ncreated: "2025-01-05"\n');
 
       // Load without explicit schema - should detect from metadata
       const context = loadChangeContext(tempDir, 'my-change');
@@ -140,7 +140,7 @@ describe('instruction-loader', () => {
       // Create change directory with metadata file using spec-driven
       const changeDir = path.join(tempDir, '.opsx', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
-      fs.writeFileSync(path.join(changeDir, '.openspec.yaml'), 'schema: spec-driven\n');
+      fs.writeFileSync(path.join(changeDir, '.opsx.yaml'), 'schema: spec-driven\n');
 
       // Load with explicit schema - should override metadata
       const context = loadChangeContext(tempDir, 'my-change', 'spec-driven');
@@ -164,7 +164,7 @@ describe('instruction-loader', () => {
     let tempDir: string;
 
     beforeEach(() => {
-      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-test-'));
+      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-test-'));
     });
 
     afterEach(() => {
@@ -262,9 +262,9 @@ describe('instruction-loader', () => {
       });
       expect(specs).toMatchObject({
         purpose: 'Define the observable behavior the target program must exhibit.',
-        validation: ['openspec validate --change <name> --artifacts specs --json'],
+        validation: ['opsx validate --change <name> --artifacts specs --json'],
       });
-      expect(specs?.validation).not.toContain('openspec scenario-labels <name> --write');
+      expect(specs?.validation).not.toContain('opsx scenario-labels <name> --write');
       expect(architectureDelta?.content.excludes).toContain(
         'Observable behavior requirements, implementation evidence, code paths, symbols, imports, calls, and change-log narration.'
       );
@@ -365,10 +365,10 @@ describe('instruction-loader', () => {
       expect(instructions.instruction).not.toContain('Read the resolved `definition`');
     });
 
-    it('rejects an unsupported project schema during instruction projection', () => {
+    it('falls back to change metadata when project schema is unsupported', () => {
       const changeDir = path.join(tempDir, '.opsx', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
-      fs.writeFileSync(path.join(changeDir, '.openspec.yaml'), 'schema: spec-driven\n');
+      fs.writeFileSync(path.join(changeDir, '.opsx.yaml'), 'schema: spec-driven\n');
       fs.writeFileSync(
         path.join(tempDir, '.opsx', 'config.yaml'),
         'schema: custom-schema\n'
@@ -376,9 +376,9 @@ describe('instruction-loader', () => {
 
       const context = loadChangeContext(tempDir, 'my-change');
 
-      expect(() => generateInstructions(context, 'proposal')).toThrow(
-        /Unsupported schema 'custom-schema'.*spec-driven, bootstrap/
-      );
+      const instructions = generateInstructions(context, 'proposal');
+      expect(instructions.schemaName).toBe('spec-driven');
+      expect(instructions.outputPath).toBe('proposal.md');
     });
 
     it('should include template content', () => {
@@ -436,7 +436,7 @@ describe('instruction-loader', () => {
 
       expect(instructions.instruction).toContain('Agent MUST NOT author scenario operation labels');
       expect(instructions.instruction).toContain('The invoking workflow owns scenario label preview and write orchestration');
-      expect(instructions.instruction).not.toContain('openspec scenario-labels');
+      expect(instructions.instruction).not.toContain('opsx scenario-labels');
       expect(instructions.instruction).not.toContain('use `[ADDED]`');
       expect(instructions.instruction).not.toContain('use `[MODIFIED]`');
       expect(instructions.instruction).not.toContain('use `[REMOVED]`');
@@ -490,7 +490,7 @@ describe('instruction-loader', () => {
     describe('project config integration', () => {
       it('should return context as separate field for all artifacts', () => {
         // Create project config
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = path.join(tempDir, '.opsx');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -522,7 +522,7 @@ context: |
 
       it('should preserve multi-line context', () => {
         // Create project config with multi-line context
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = path.join(tempDir, '.opsx');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -542,7 +542,7 @@ context: |
 
       it('should preserve special characters in context', () => {
         // Create project config with special characters
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = path.join(tempDir, '.opsx');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -560,7 +560,7 @@ context: |
 
       it('should return rules only for matching artifact', () => {
         // Create project config with rules
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = path.join(tempDir, '.opsx');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -589,7 +589,7 @@ rules:
 
       it('should return undefined rules for non-matching artifact', () => {
         // Create project config with rules only for proposal
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = path.join(tempDir, '.opsx');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -609,7 +609,7 @@ rules:
 
       it('should return undefined rules when empty array', () => {
         // Create project config with empty rules array
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = path.join(tempDir, '.opsx');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -629,7 +629,7 @@ rules:
 
       it('should keep context, rules, and template as separate fields', () => {
         // Create project config with both context and rules
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = path.join(tempDir, '.opsx');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -659,7 +659,7 @@ rules:
 
       it('should handle context without rules', () => {
         // Create project config with only context
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = path.join(tempDir, '.opsx');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -678,7 +678,7 @@ context: Project context only
 
       it('should handle rules without context', () => {
         // Create project config with only rules
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = path.join(tempDir, '.opsx');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -708,7 +708,7 @@ rules:
       });
 
       it('should expose proseLanguage through the compiled projection bundle', () => {
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = path.join(tempDir, '.opsx');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -751,7 +751,7 @@ rules:
 
       it('should warn about unknown artifact IDs in rules', () => {
         // Create project config with invalid artifact ID
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = path.join(tempDir, '.opsx');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -774,11 +774,11 @@ rules:
 
       it('should deduplicate validation warnings within session', () => {
         // Create a fresh temp directory to avoid cache pollution
-        const freshTempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-test-'));
+        const freshTempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-test-'));
 
         try {
           // Create project config with a uniquely named invalid artifact ID
-          const configDir = path.join(freshTempDir, 'openspec');
+          const configDir = path.join(freshTempDir, '.opsx');
           fs.mkdirSync(configDir, { recursive: true });
           fs.writeFileSync(
             path.join(configDir, 'config.yaml'),
@@ -811,7 +811,7 @@ rules:
 
       it('should not warn for valid artifact IDs', () => {
         // Create project config with valid artifact IDs
-        const configDir = path.join(tempDir, 'openspec');
+        const configDir = path.join(tempDir, '.opsx');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -836,7 +836,7 @@ rules:
     let tempDir: string;
 
     beforeEach(() => {
-      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-test-'));
+      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-test-'));
     });
 
     afterEach(() => {

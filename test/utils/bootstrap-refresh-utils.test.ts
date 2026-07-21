@@ -17,8 +17,8 @@ describe('bootstrap refresh utilities', () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-bootstrap-refresh-${randomUUID()}`);
-    await fs.mkdir(path.join(testDir, 'openspec'), { recursive: true });
+    testDir = path.join(os.tmpdir(), `opsx-bootstrap-refresh-${randomUUID()}`);
+    await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
   });
 
   afterEach(async () => {
@@ -34,8 +34,8 @@ describe('bootstrap refresh utilities', () => {
   async function writeFormalBaseline(): Promise<void> {
     await writeFile('src/auth/login.ts', 'export function login() { return true; }\n');
     await writeFile('src/auth/session.ts', 'export function session() { return true; }\n');
-    await writeFile('openspec/specs/auth/spec.md', '# Auth\n');
-    await writeFile('openspec/project.opsx.yaml', `schema_version: 2
+    await writeFile('.opsx/specs/auth/spec.md', '# Auth\n');
+    await writeFile('.opsx/project.opsx.yaml', `schema_version: 2
 project:
   id: proj.demo
   name: Demo
@@ -49,7 +49,7 @@ capabilities:
     type: capability
     intent: Existing login capability
 `);
-    await writeFile('openspec/project.opsx.relations.yaml', `schema_version: 2
+    await writeFile('.opsx/project.opsx.relations.yaml', `schema_version: 2
 relations:
   - from: cap.auth.login
     to: dom.auth
@@ -58,7 +58,7 @@ relations:
   }
 
   async function writeRefreshInputs(mapFile: DomainMapFile): Promise<void> {
-    await writeFile('openspec/bootstrap/evidence.yaml', `domains:
+    await writeFile('.opsx/bootstrap/evidence.yaml', `domains:
   - id: dom.auth
     confidence: high
     sources:
@@ -66,7 +66,7 @@ relations:
     intent: Authentication boundary
 `);
     await writeFile(
-      'openspec/bootstrap/domain-map/dom.auth.yaml',
+      '.opsx/bootstrap/domain-map/dom.auth.yaml',
       stringifyYaml(mapFile, { lineWidth: 0 })
     );
   }
@@ -74,7 +74,7 @@ relations:
   async function rewriteBootstrapMetadata(
     mutate: (metadata: Record<string, unknown>) => void
   ): Promise<void> {
-    const metadataPath = path.join(testDir, 'openspec', 'bootstrap', '.bootstrap.yaml');
+    const metadataPath = path.join(testDir, '.opsx', 'bootstrap', '.bootstrap.yaml');
     const metadata = parseYaml(await fs.readFile(metadataPath, 'utf-8')) as Record<string, unknown>;
     mutate(metadata);
     await fs.writeFile(metadataPath, stringifyYaml(metadata, { lineWidth: 0 }), 'utf-8');
@@ -122,7 +122,7 @@ relations:
 
     await refreshBootstrapDerivedArtifacts(testDir);
 
-    const review = await fs.readFile(path.join(testDir, 'openspec', 'bootstrap', 'review.md'), 'utf-8');
+    const review = await fs.readFile(path.join(testDir, '.opsx', 'bootstrap', 'review.md'), 'utf-8');
     expect(review).toContain('Strategy: full-rebuild');
     expect(review).toContain('Rebuilding the complete candidate from current source, specs, config, and reviewed workspace evidence.');
   });
@@ -192,21 +192,21 @@ relations:
       ],
     });
 
-    const originalProjectOpsx = await fs.readFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), 'utf-8');
+    const originalProjectOpsx = await fs.readFile(path.join(testDir, '.opsx', 'project.opsx.yaml'), 'utf-8');
 
     await refreshBootstrapDerivedArtifacts(testDir);
-    await expect(promoteBootstrap(testDir)).rejects.toThrow('openspec/specs/auth/spec.md');
-    await expect(fs.readFile(path.join(testDir, 'openspec', 'project.opsx.yaml'), 'utf-8')).resolves.toBe(originalProjectOpsx);
+    await expect(promoteBootstrap(testDir)).rejects.toThrow('.opsx/specs/auth/spec.md');
+    await expect(fs.readFile(path.join(testDir, '.opsx', 'project.opsx.yaml'), 'utf-8')).resolves.toBe(originalProjectOpsx);
   });
 
   it('restarts a completed retained refresh workspace by snapshotting the old workspace and carrying forward stable inputs', async () => {
     await writeFormalBaseline();
     await initBootstrap(testDir, { mode: 'refresh', granularity: 'fine' });
 
-    await writeFile('openspec/bootstrap/evidence.yaml', 'domains: []\n');
-    await writeFile('openspec/bootstrap/review.md', '# Review\n');
-    await writeFile('openspec/bootstrap/candidate/project.opsx.yaml', 'schema_version: 2\nproject:\n  id: proj.demo\n  name: Demo\n');
-    await writeFile('openspec/bootstrap/scope.yaml', stringifyYaml({
+    await writeFile('.opsx/bootstrap/evidence.yaml', 'domains: []\n');
+    await writeFile('.opsx/bootstrap/review.md', '# Review\n');
+    await writeFile('.opsx/bootstrap/candidate/project.opsx.yaml', 'schema_version: 2\nproject:\n  id: proj.demo\n  name: Demo\n');
+    await writeFile('.opsx/bootstrap/scope.yaml', stringifyYaml({
       mode: 'refresh',
       include: ['src/auth'],
       exclude: ['vendor'],
@@ -219,15 +219,15 @@ relations:
       metadata.source_fingerprint = 'source';
       metadata.candidate_fingerprint = 'candidate';
       metadata.review_fingerprint = 'review';
-      metadata.candidate_spec_paths = ['openspec/bootstrap/candidate/specs/auth/spec.md'];
+      metadata.candidate_spec_paths = ['.opsx/bootstrap/candidate/specs/auth/spec.md'];
     });
 
     const result = await initBootstrap(testDir, { mode: 'refresh', restart: true });
 
     expect(result.restarted).toBe(true);
-    expect(result.historyPath).toMatch(/^openspec[\\/]+bootstrap-history[\\/]+/);
+    expect(result.historyPath).toMatch(/^\.opsx[\\/]+bootstrap-history[\\/]+/);
 
-    const historyRoot = path.join(testDir, 'openspec', 'bootstrap-history');
+    const historyRoot = path.join(testDir, '.opsx', 'bootstrap-history');
     const historyEntries = await fs.readdir(historyRoot);
     expect(historyEntries).toHaveLength(1);
 
@@ -249,8 +249,8 @@ relations:
       exclude: ['vendor'],
       granularity: 'fine',
     });
-    await expect(fs.access(path.join(testDir, 'openspec', 'bootstrap', 'review.md'))).rejects.toThrow();
-    await expect(fs.access(path.join(testDir, 'openspec', 'bootstrap', 'evidence.yaml'))).rejects.toThrow();
+    await expect(fs.access(path.join(testDir, '.opsx', 'bootstrap', 'review.md'))).rejects.toThrow();
+    await expect(fs.access(path.join(testDir, '.opsx', 'bootstrap', 'evidence.yaml'))).rejects.toThrow();
   });
 
   it('infers legacy completed refresh workspaces from refresh anchors and preserves the anchor on restart', async () => {
@@ -268,7 +268,7 @@ relations:
       throw new Error('Expected initialized bootstrap status');
     }
     expect(status.workspaceState).toBe('completed');
-    expect(status.restartCommand).toBe('openspec bootstrap init --mode refresh --restart');
+    expect(status.restartCommand).toBe('opsx bootstrap init --mode refresh --restart');
 
     await initBootstrap(testDir, { mode: 'refresh', restart: true });
     const restarted = await readBootstrapState(testDir);
@@ -279,13 +279,13 @@ relations:
   it('refuses restart for in-progress workspaces without moving the current workspace', async () => {
     await writeFormalBaseline();
     await initBootstrap(testDir, { mode: 'refresh', granularity: 'fine' });
-    await writeFile('openspec/bootstrap/review.md', '# In progress\n');
+    await writeFile('.opsx/bootstrap/review.md', '# In progress\n');
 
     await expect(initBootstrap(testDir, { mode: 'refresh', restart: true })).rejects.toThrow(
       '`--restart` only works after promote completes'
     );
 
-    await expect(fs.readFile(path.join(testDir, 'openspec', 'bootstrap', 'review.md'), 'utf-8')).resolves.toContain('# In progress');
-    await expect(fs.stat(path.join(testDir, 'openspec', 'bootstrap-history'))).rejects.toThrow();
+    await expect(fs.readFile(path.join(testDir, '.opsx', 'bootstrap', 'review.md'), 'utf-8')).resolves.toContain('# In progress');
+    await expect(fs.stat(path.join(testDir, '.opsx', 'bootstrap-history'))).rejects.toThrow();
   });
 });

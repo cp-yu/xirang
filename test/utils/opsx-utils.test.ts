@@ -22,7 +22,7 @@ describe('opsx-utils', () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-opsx-test-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `opsx-opsx-test-${randomUUID()}`);
     await fs.mkdir(testDir, { recursive: true });
   });
 
@@ -159,7 +159,7 @@ domains:
 
       const result = await readProjectOpsx(testDir);
       expect(result).toEqual(bundle);
-      await expect(fs.access(path.join(testDir, 'openspec', 'project.opsx.code-map.yaml'))).rejects.toThrow();
+      await expect(fs.access(path.join(testDir, '.opsx', 'project.opsx.code-map.yaml'))).rejects.toThrow();
     });
 
     it('should return null if file does not exist', async () => {
@@ -168,7 +168,7 @@ domains:
     });
 
     it('should reject v1 with authoring and rebuild guidance', async () => {
-      const opsxDir = path.join(testDir, 'openspec');
+      const opsxDir = path.join(testDir, '.opsx');
       await fs.mkdir(opsxDir, { recursive: true });
       await fs.writeFile(path.join(testDir, OPSX_PATHS.PROJECT_FILE), stringifyYaml({
         schema_version: 1,
@@ -177,12 +177,12 @@ domains:
         capabilities: [],
       }));
 
-      await expect(readProjectOpsx(testDir)).rejects.toThrow('openspec help authoring project.opsx.relations.yaml');
+      await expect(readProjectOpsx(testDir)).rejects.toThrow('opsx help authoring project.opsx.relations.yaml');
       await expect(readProjectOpsx(testDir)).rejects.toThrow('bootstrap');
     });
 
     it('should reject a missing relations companion file', async () => {
-      const opsxDir = path.join(testDir, 'openspec');
+      const opsxDir = path.join(testDir, '.opsx');
       await fs.mkdir(opsxDir, { recursive: true });
       await fs.writeFile(path.join(testDir, OPSX_PATHS.PROJECT_FILE), stringifyYaml({
         schema_version: 2,
@@ -195,7 +195,7 @@ domains:
     });
 
     it('should reject a v1 relations companion file', async () => {
-      const opsxDir = path.join(testDir, 'openspec');
+      const opsxDir = path.join(testDir, '.opsx');
       await fs.mkdir(opsxDir, { recursive: true });
       await fs.writeFile(path.join(testDir, OPSX_PATHS.PROJECT_FILE), stringifyYaml({
         schema_version: 2,
@@ -206,12 +206,12 @@ domains:
         relations: [],
       }));
 
-      await expect(readProjectOpsx(testDir)).rejects.toThrow('openspec help authoring project.opsx.relations.yaml');
+      await expect(readProjectOpsx(testDir)).rejects.toThrow('opsx help authoring project.opsx.relations.yaml');
       await expect(readProjectOpsx(testDir)).rejects.toThrow('bootstrap');
     });
 
     it('should reject a semantically invalid relation graph', async () => {
-      const opsxDir = path.join(testDir, 'openspec');
+      const opsxDir = path.join(testDir, '.opsx');
       await fs.mkdir(opsxDir, { recursive: true });
       await fs.writeFile(path.join(testDir, OPSX_PATHS.PROJECT_FILE), stringifyYaml({
         schema_version: 2,
@@ -231,7 +231,7 @@ domains:
     it('should write exactly two OPSX files', async () => {
       await writeProjectOpsx(testDir, mkBundle());
 
-      const files = await fs.readdir(path.join(testDir, 'openspec'));
+      const files = await fs.readdir(path.join(testDir, '.opsx'));
       expect(files.sort()).toEqual(['project.opsx.relations.yaml', 'project.opsx.yaml']);
     });
 
@@ -241,7 +241,7 @@ domains:
       });
       await writeProjectOpsx(testDir, bundle);
 
-      const opsxDir = path.join(testDir, 'openspec');
+      const opsxDir = path.join(testDir, '.opsx');
       const files = await fs.readdir(opsxDir);
       const hasTmpFile = files.some(f => f.includes('.tmp'));
       expect(hasTmpFile).toBe(false);
@@ -646,7 +646,7 @@ ADDED:
 
   describe('readOpsxDelta error messages', () => {
     it('should produce diagnostic message when ADDED capability has no type', async () => {
-      const changeDir = path.join(testDir, 'openspec', 'changes', 'test-change');
+      const changeDir = path.join(testDir, '.opsx', 'changes', 'test-change');
       await fs.mkdir(changeDir, { recursive: true });
       await fs.writeFile(path.join(changeDir, 'opsx-delta.yaml'), stringifyYaml({
         schema_version: 2,
@@ -657,7 +657,7 @@ ADDED:
     });
 
     it('should include section/index/path info in error output', async () => {
-      const changeDir = path.join(testDir, 'openspec', 'changes', 'test-change2');
+      const changeDir = path.join(testDir, '.opsx', 'changes', 'test-change2');
       await fs.mkdir(changeDir, { recursive: true });
       await fs.writeFile(path.join(changeDir, 'opsx-delta.yaml'), stringifyYaml({
         schema_version: 2,
@@ -670,16 +670,16 @@ ADDED:
 
   describe('path constants', () => {
     it('should have correct project file path', () => {
-      expect(OPSX_PATHS.PROJECT_FILE).toBe('openspec/project.opsx.yaml');
+      expect(OPSX_PATHS.PROJECT_FILE).toBe('.opsx/project.opsx.yaml');
     });
 
     it('should have correct relations file path', () => {
-      expect(OPSX_PATHS.RELATIONS_FILE).toBe('openspec/project.opsx.relations.yaml');
+      expect(OPSX_PATHS.RELATIONS_FILE).toBe('.opsx/project.opsx.relations.yaml');
     });
 
     it('should generate correct delta path', () => {
       const deltaPath = OPSX_PATHS.deltaPath('my-change');
-      expect(deltaPath).toBe('openspec/changes/my-change/opsx-delta.yaml');
+      expect(deltaPath).toBe('.opsx/changes/my-change/opsx-delta.yaml');
     });
   });
 });

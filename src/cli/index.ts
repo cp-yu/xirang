@@ -337,7 +337,7 @@ program
   .option('--type <type>', 'Specify item type when ambiguous: change|spec')
   .option('--strict', 'Enable strict validation mode')
   .option('--json', 'Output validation results as JSON')
-  .option('--concurrency <n>', 'Max concurrent validations (defaults to env OPENSPEC_CONCURRENCY or 6)')
+  .option('--concurrency <n>', 'Max concurrent validations (defaults to env OPSX_CONCURRENCY or 6)')
   .option('--no-interactive', 'Disable interactive prompts')
   .action(async (itemName?: string, options?: { all?: boolean; changes?: boolean; specs?: boolean; change?: string; artifacts?: string; type?: string; strict?: boolean; json?: boolean; noInteractive?: boolean; concurrency?: string }) => {
     try {
@@ -557,7 +557,7 @@ const bootstrapCmd = program
   .description('Deprecated legacy OPSX bootstrap CLI; use the bootstrap-arch skill for LikeC4');
 
 bootstrapCmd.hook('preAction', () => {
-  console.warn('Deprecated: openspec bootstrap writes legacy OPSX YAML. Use the bootstrap-arch skill for LikeC4.');
+  console.warn('Deprecated: opsx bootstrap writes legacy OPSX YAML. Use the bootstrap-arch skill for LikeC4.');
 });
 
 bootstrapCmd
@@ -565,7 +565,7 @@ bootstrapCmd
   .description('Initialize bootstrap workspace')
   .option('--mode <mode>', 'Bootstrap mode: full (complete specs), opsx-first (README-only starter), or refresh (complete rebuild of formal OPSX v2)')
   .option('--scope <paths>', 'Comma-separated paths to include in scan')
-  .option('--restart', 'Start a new run from a completed retained workspace by snapshotting the previous openspec/bootstrap/')
+  .option('--restart', 'Start a new run from a completed retained workspace by snapshotting the previous .opsx/bootstrap/')
   .option('--granularity <granularity>', 'Spec granularity: required for initial init; restart inherits retained scope when omitted (coarse: grouped, fine: per-capability)')
   .action(async (options: BootstrapInitOptions) => {
     try {

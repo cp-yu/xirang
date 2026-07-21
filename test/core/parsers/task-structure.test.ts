@@ -217,7 +217,7 @@ describe('validateTaskStructure', () => {
   });
 
   it('downgrades Verifies cross-checking to warning when no change specs exist', () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-task-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-task-'));
 
     try {
       const result = validateTaskStructure(validTasks('manual verification'), { changeDir: tempDir });
@@ -302,7 +302,7 @@ describe('validateTaskStructure', () => {
 });
 
 function createChangeDir(specs: Record<string, string>): string {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-task-'));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-task-'));
   for (const [relativePath, content] of Object.entries(specs)) {
     const target = path.join(tempDir, 'specs', relativePath);
     fs.mkdirSync(path.dirname(target), { recursive: true });
@@ -498,7 +498,7 @@ describe('Preserves field anchoring', () => {
       expect(result.checks).toEqual(['C1']);
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });
-      fs.rmSync(path.join(projectRoot, 'openspec'), { recursive: true, force: true });
+      fs.rmSync(path.join(projectRoot, '.opsx'), { recursive: true, force: true });
     }
   });
 
@@ -599,7 +599,7 @@ describe('Preserves field anchoring', () => {
 #### Checks
 
 - [ ] C1 Verify behavior
-  - Preserves: \`openspec/../specs/auth/spec.md\` / Requirement "Test" / Scenario "Test"
+  - Preserves: \`opsx/../specs/auth/spec.md\` / Requirement "Test" / Scenario "Test"
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -635,7 +635,7 @@ describe('Preserves field anchoring', () => {
 #### Checks
 
 - [ ] C1 Verify behavior
-  - Preserves: \`openspec\\specs\\auth\\spec.md\` / Requirement "Test" / Scenario "Test"
+  - Preserves: \`opsx\\specs\\auth\\spec.md\` / Requirement "Test" / Scenario "Test"
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -696,7 +696,7 @@ describe('Preserves field anchoring', () => {
       expect(result.issues.map((issue) => issue.code)).toContain('invalid-verifies-path');
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });
-      fs.rmSync(path.join(projectRoot, 'openspec'), { recursive: true, force: true });
+      fs.rmSync(path.join(projectRoot, '.opsx'), { recursive: true, force: true });
     }
   });
 });

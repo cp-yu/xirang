@@ -8,7 +8,7 @@ describe('scenario-labels command', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-scenario-labels-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-scenario-labels-'));
     await fs.mkdir(path.join(tempDir, '.opsx', 'changes', 'archive'), { recursive: true });
   });
 

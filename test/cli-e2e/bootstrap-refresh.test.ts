@@ -11,7 +11,7 @@ const execFile = promisify(execFileCallback);
 const tempRoots: string[] = [];
 
 async function createTempProject(): Promise<string> {
-  const projectDir = await fs.mkdtemp(path.join(tmpdir(), 'openspec-bootstrap-refresh-'));
+  const projectDir = await fs.mkdtemp(path.join(tmpdir(), 'opsx-bootstrap-refresh-'));
   tempRoots.push(projectDir);
   return projectDir;
 }
@@ -34,7 +34,7 @@ async function git(projectDir: string, args: string[]): Promise<string> {
 async function initGitRepo(projectDir: string): Promise<string> {
   await git(projectDir, ['init']);
   await git(projectDir, ['config', 'user.email', 'test@example.com']);
-  await git(projectDir, ['config', 'user.name', 'OpenSpec Test']);
+  await git(projectDir, ['config', 'user.name', 'OPSX Test']);
   await git(projectDir, ['add', '.']);
   await git(projectDir, ['commit', '-m', 'baseline']);
   return git(projectDir, ['rev-parse', 'HEAD']);
@@ -57,7 +57,7 @@ async function writeFormalBaseline(projectDir: string): Promise<void> {
   await writeFile(projectDir, 'src/auth/login.ts', 'export function login() { return true; }\n');
   await writeFile(projectDir, 'src/auth/session.ts', 'export function session() { return true; }\n');
   await writeFile(projectDir, '.opsx/specs/auth/spec.md', '# Existing auth spec\n');
-  await writeFile(projectDir, 'openspec/project.opsx.yaml', `schema_version: 2
+  await writeFile(projectDir, '.opsx/project.opsx.yaml', `schema_version: 2
 project:
   id: proj.demo
   name: Demo
@@ -71,7 +71,7 @@ capabilities:
     type: capability
     intent: Existing login capability
 `);
-  await writeFile(projectDir, 'openspec/project.opsx.relations.yaml', `schema_version: 2
+  await writeFile(projectDir, '.opsx/project.opsx.relations.yaml', `schema_version: 2
 relations:
   - from: cap.auth.login
     to: dom.auth
@@ -166,7 +166,7 @@ afterAll(async () => {
   await Promise.all(tempRoots.map((dir) => fs.rm(dir, { recursive: true, force: true })));
 });
 
-describe('openspec bootstrap refresh', () => {
+describe('opsx bootstrap refresh', () => {
   it('supports formal-opsx -> refresh with complete rebuild and atomic replacement', async () => {
     const projectDir = await createTempProject();
     await writeFormalBaseline(projectDir);
@@ -195,7 +195,7 @@ describe('openspec bootstrap refresh', () => {
     const promoteResult = await runCLI(['bootstrap', 'promote', '-y'], { cwd: projectDir });
     expect(promoteResult.exitCode).toBe(0);
 
-    const promotedProject = await readFile(projectDir, 'openspec/project.opsx.yaml');
+    const promotedProject = await readFile(projectDir, '.opsx/project.opsx.yaml');
     expect(promotedProject).toContain('id: acme-current-project');
     expect(promotedProject).toContain('name: "@acme/current-project"');
     expect(promotedProject).toContain('intent: Authentication boundary');

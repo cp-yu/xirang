@@ -1,11 +1,11 @@
 export const OPSX_DIR_NAME = '.opsx';
 
-export const OPENSPEC_MARKERS = {
-  start: '<!-- OPENSPEC:START -->',
-  end: '<!-- OPENSPEC:END -->'
+export const OPSX_MARKERS = {
+  start: '<!-- OPSX:START -->',
+  end: '<!-- OPSX:END -->'
 };
 
-export interface OpenSpecConfig {
+export interface OPSXConfig {
   aiTools: string[];
 }
 

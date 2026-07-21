@@ -13,7 +13,7 @@ describe('specs apply scenario operation labels', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openspec-specs-apply-test-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-specs-apply-test-'));
   });
 
   afterEach(async () => {
@@ -29,6 +29,17 @@ describe('specs apply scenario operation labels', () => {
     await fs.writeFile(target, mainSpec, 'utf-8');
     return { source, target, exists: true };
   }
+
+  it('preserves capability frontmatter when creating a formal spec', async () => {
+    const source = path.join(tempDir, '.opsx', 'changes', 'c1', 'specs', 'browser', 'spec.md');
+    const target = path.join(tempDir, '.opsx', 'specs', 'browser', 'spec.md');
+    await fs.mkdir(path.dirname(source), { recursive: true });
+    await fs.writeFile(source, `---\ncapabilities:\n  - cap.presentation.spec-content-panel\n---\n## ADDED Requirements\n\n### Requirement: Browse Specs\n\nThe UI SHALL display indexed Specs.\n\n#### Scenario: Open details\n\n- **WHEN** details open\n- **THEN** indexed Specs are displayed\n`);
+
+    const { rebuilt } = await buildUpdatedSpec({ source, target, exists: false }, 'c1', tempDir);
+
+    expect(rebuilt).toMatch(/^---\ncapabilities:\n  - cap\.presentation\.spec-content-panel\n---\n/);
+  });
 
   it('writes clean formal scenario headings and omits removed scenario blocks', async () => {
     const update = await writeUpdate(

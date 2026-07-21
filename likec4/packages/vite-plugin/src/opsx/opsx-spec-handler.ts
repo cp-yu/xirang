@@ -25,6 +25,34 @@ export class OpsxSpecError extends Error {
   }
 }
 
+export async function getProjectIndexedSpecs<P extends { id: string }>({
+  project,
+  element,
+  projects,
+  loadModel,
+}: {
+  project: string
+  element: string
+  projects: readonly P[]
+  loadModel(project: P): Promise<{
+    findElement(element: string): { metadata?: unknown } | null | undefined
+  }>
+}): Promise<readonly string[] | undefined> {
+  const selected = projects.find(candidate => candidate.id === project)
+  if (!selected) {
+    return undefined
+  }
+  const metadata = (await loadModel(selected)).findElement(element)?.metadata
+  if (!metadata || typeof metadata !== 'object') {
+    return undefined
+  }
+  const specs = (metadata as Record<string, unknown>)['specs']
+  if (Array.isArray(specs)) {
+    return specs.filter((entry): entry is string => typeof entry === 'string')
+  }
+  return typeof specs === 'string' ? [specs] : undefined
+}
+
 export async function readOpsxSpec({
   projectRoot,
   element,

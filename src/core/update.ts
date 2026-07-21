@@ -1,7 +1,7 @@
 /**
  * Update Command
  *
- * Refreshes OpenSpec skills for configured tools.
+ * Refreshes OPSX skills for configured tools.
  * Supports stale-config cleanup, migration, and smart update detection.
  */
 
@@ -47,7 +47,7 @@ import { ArtifactSyncEngine } from './templates/sync-engine.js';
 import { WorkflowManifestRegistry } from './templates/manifest/index.js';
 
 const require = createRequire(import.meta.url);
-const { version: OPENSPEC_VERSION } = require('../../package.json');
+const { version: OPSX_VERSION } = require('../../package.json');
 
 /**
  * Options for the update command.
@@ -79,11 +79,11 @@ export class UpdateCommand {
 
   async execute(projectPath: string): Promise<void> {
     const resolvedProjectPath = path.resolve(projectPath);
-    const openspecPath = path.join(resolvedProjectPath, OPSX_DIR_NAME);
+    const opsxPath = path.join(resolvedProjectPath, OPSX_DIR_NAME);
 
-    // 1. Check openspec directory exists
-    if (!await FileSystemUtils.directoryExists(openspecPath)) {
-      throw new Error(`No OpenSpec directory found. Run 'openspec init' first.`);
+    // 1. Check opsx directory exists
+    if (!await FileSystemUtils.directoryExists(opsxPath)) {
+      throw new Error("未找到 OPSX 项目。运行 'opsx init' 进行设置。");
     }
 
     const configMigration = migrateProjectConfigDefaults(resolvedProjectPath);
@@ -122,13 +122,13 @@ export class UpdateCommand {
 
     if (configuredTools.length === 0 && newlyConfiguredTools.length === 0) {
       console.log(chalk.yellow('No configured tools found.'));
-      console.log(chalk.dim('Run "openspec init" to set up tools.'));
+      console.log(chalk.dim('Run "opsx init" to set up tools.'));
       return;
     }
 
     // 6. Check version status for all configured tools
     const toolStatuses = configuredTools.map((toolId) =>
-      getToolVersionStatus(resolvedProjectPath, toolId, OPENSPEC_VERSION)
+      getToolVersionStatus(resolvedProjectPath, toolId, OPSX_VERSION)
     );
     const statusByTool = new Map(toolStatuses.map((status) => [status.toolId, status] as const));
 
@@ -172,7 +172,7 @@ export class UpdateCommand {
       toolId,
       projectPath: resolvedProjectPath,
       workflows: desiredWorkflows,
-      version: OPENSPEC_VERSION,
+      version: OPSX_VERSION,
     }));
 
     const summary = await ArtifactSyncEngine.syncAll(syncRequests);
@@ -192,7 +192,7 @@ export class UpdateCommand {
     // 11. Summary
     console.log();
     if (updatedTools.length > 0) {
-      console.log(chalk.green(`✓ Updated: ${updatedTools.join(', ')} (v${OPENSPEC_VERSION})`));
+      console.log(chalk.green(`✓ Updated: ${updatedTools.join(', ')} (v${OPSX_VERSION})`));
     }
     if (failedTools.length > 0) {
       console.log(chalk.red(`✗ Failed: ${failedTools.map(f => `${f.name} (${f.error})`).join(', ')}`));
@@ -240,7 +240,7 @@ export class UpdateCommand {
    */
   private displayUpToDateMessage(toolStatuses: ToolVersionStatus[]): void {
     const toolNames = toolStatuses.map((s) => s.toolId);
-    console.log(chalk.green(`✓ All ${toolStatuses.length} tool(s) up to date (v${OPENSPEC_VERSION})`));
+    console.log(chalk.green(`✓ All ${toolStatuses.length} tool(s) up to date (v${OPSX_VERSION})`));
     console.log(chalk.dim(`  Tools: ${toolNames.join(', ')}`));
     console.log();
     console.log(chalk.dim('Use --force to refresh files anyway.'));
@@ -258,7 +258,7 @@ export class UpdateCommand {
       const status = statusByTool.get(toolId);
       if (status?.needsUpdate) {
         const fromVersion = status.generatedByVersion ?? 'unknown';
-        return `${status.toolId} (${fromVersion} → ${OPENSPEC_VERSION})`;
+        return `${status.toolId} (${fromVersion} → ${OPSX_VERSION})`;
       }
       return `${toolId} (config sync)`;
     });
@@ -288,7 +288,7 @@ export class UpdateCommand {
       console.log();
       console.log(
         chalk.yellow(
-          `Detected new ${toolNoun}: ${newToolNames.join(', ')}. Run 'openspec init' to add ${pronoun}.`
+          `Detected new ${toolNoun}: ${newToolNames.join(', ')}. Run 'opsx init' to add ${pronoun}.`
         )
       );
     }
@@ -307,12 +307,12 @@ export class UpdateCommand {
     const extraWorkflows = installedWorkflows.filter((w) => !profileSet.has(w));
 
     if (extraWorkflows.length > 0) {
-      console.log(chalk.dim(`Note: ${extraWorkflows.length} extra workflows installed outside the standard set. Run 'openspec update' to sync.`));
+      console.log(chalk.dim(`Note: ${extraWorkflows.length} extra workflows installed outside the standard set. Run 'opsx update' to sync.`));
     }
   }
 
   /**
-   * Detect and handle legacy OpenSpec artifacts.
+   * Detect and handle legacy OPSX artifacts.
    * Unlike init, update warns but continues if legacy files found in non-interactive mode.
    * Returns array of tool IDs that were newly configured during legacy upgrade.
    */
@@ -471,7 +471,7 @@ export class UpdateCommand {
       toolId,
       projectPath,
       workflows: [...plan.workflows],
-      version: OPENSPEC_VERSION,
+      version: OPSX_VERSION,
     }));
 
     const summary = await ArtifactSyncEngine.syncAll(syncRequests);
@@ -519,13 +519,13 @@ export class UpdateCommand {
    */
   private cleanupExpandedWorkflowRemnants(projectPath: string): void {
     const removedSkillDirNames = [
-      'openspec-new-change',
-      'openspec-continue-change',
-      'openspec-ff-change',
-      'openspec-verify-change',
-      'openspec-sync-specs',
-      'openspec-bulk-archive-change',
-      'openspec-onboard',
+      'opsx-new-change',
+      'opsx-continue-change',
+      'opsx-ff-change',
+      'opsx-verify-change',
+      'opsx-sync-specs',
+      'opsx-bulk-archive-change',
+      'opsx-onboard',
     ];
 
     const removedCommandSlugs = ['new', 'continue', 'ff', 'verify', 'sync', 'bulk-archive', 'onboard'];

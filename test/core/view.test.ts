@@ -67,7 +67,7 @@ describe('ViewCommand', () => {
     const launch = vi.fn<ViewLauncher>().mockResolvedValue(undefined);
 
     await expect(new ViewCommand(launch).execute(tempDir)).rejects.toThrow(
-      `No ${path.join('.opsx')} directory found`,
+      '未找到 OPSX 项目',
     );
     expect(launch).not.toHaveBeenCalled();
   });

@@ -7,7 +7,7 @@ import { runCLI } from '../helpers/run-cli.js';
 const tempRoots: string[] = [];
 
 async function createTempProject(): Promise<string> {
-  const projectDir = await fs.mkdtemp(path.join(tmpdir(), 'openspec-bootstrap-backfill-'));
+  const projectDir = await fs.mkdtemp(path.join(tmpdir(), 'opsx-bootstrap-backfill-'));
   tempRoots.push(projectDir);
   return projectDir;
 }
@@ -29,7 +29,7 @@ async function checkAllReviewBoxes(projectDir: string): Promise<void> {
 }
 
 async function writeOpsxAndSpecs(projectDir: string): Promise<void> {
-  await writeFile(projectDir, 'openspec/project.opsx.yaml', `schema_version: 2
+  await writeFile(projectDir, '.opsx/project.opsx.yaml', `schema_version: 2
 project:
   id: proj.test
   name: Test
@@ -42,7 +42,7 @@ capabilities:
     type: capability
     intent: Archive changes
 `);
-  await writeFile(projectDir, 'openspec/project.opsx.relations.yaml', `schema_version: 2
+  await writeFile(projectDir, '.opsx/project.opsx.relations.yaml', `schema_version: 2
 relations:
   - from: cap.cli.archive
     type: belongs_to
@@ -101,7 +101,7 @@ afterAll(async () => {
   await Promise.all(tempRoots.map((dir) => fs.rm(dir, { recursive: true, force: true })));
 });
 
-describe('openspec bootstrap backfill-specs', () => {
+describe('opsx bootstrap backfill-specs', () => {
   it('runs standalone and prints text statistics', async () => {
     const projectDir = await createTempProject();
     await writeOpsxAndSpecs(projectDir);
@@ -137,7 +137,7 @@ describe('openspec bootstrap backfill-specs', () => {
         mappingResultFormat: {
           mappings: [{ spec: '<spec-id>', capabilities: ['<capability-id>'] }],
         },
-        applyCommand: 'openspec bootstrap backfill-specs --mappings <mapping-file> --json',
+        applyCommand: 'opsx bootstrap backfill-specs --mappings <mapping-file> --json',
       },
     });
   });

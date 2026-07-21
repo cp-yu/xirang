@@ -79,7 +79,7 @@ describe('bootstrap command Phase 1 baseline contract', () => {
   let originalIsTTY: boolean | undefined;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-bootstrap-cli-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `opsx-bootstrap-cli-${randomUUID()}`);
     await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
     originalIsTTY = (process.stdout as NodeJS.WriteStream & { isTTY?: boolean }).isTTY;
   });
@@ -170,7 +170,7 @@ describe('bootstrap command Phase 1 baseline contract', () => {
     });
     expect(instructions.instruction).toContain('Read `fileDefinitions` first');
     expect(instructions.instruction).toContain('MUST NOT copy file definitions');
-    expect(instructions.instruction).toContain('Run: openspec bootstrap init --mode full');
+    expect(instructions.instruction).toContain('Run: opsx bootstrap init --mode full');
     expect(instructions.fileDefinitions.map((file: { id: string }) => file.id)).toEqual([
       'metadata',
       'scope',
@@ -310,7 +310,7 @@ describe('bootstrap command Phase 1 baseline contract', () => {
         purpose: 'Define the observable behavior the current program must continue to exhibit.',
         compilationRole: 'Durable behavior source in the formal Specs collection.',
         writePolicy: 'workflow-managed',
-        validation: ['openspec validate --specs --strict'],
+        validation: ['opsx validate --specs --strict'],
       },
     });
   });
@@ -341,7 +341,7 @@ describe('bootstrap command Phase 1 baseline contract', () => {
     expect(status).toMatchObject({
       phase: 'init',
       nextAction: 'scan',
-      transitionCommand: 'openspec bootstrap advance scan',
+      transitionCommand: 'opsx bootstrap advance scan',
     });
   });
 
@@ -645,7 +645,7 @@ relations:
     const statusJson = await withCwd(testDir, () => captureJsonOutput(() => bootstrapStatusCommand({ json: true })));
     expect(statusJson.workspaceState).toBe('completed');
     expect(statusJson.nextAction).toBe('restart');
-    expect(statusJson.restartCommand).toBe('openspec bootstrap init --mode refresh --restart');
+    expect(statusJson.restartCommand).toBe('opsx bootstrap init --mode refresh --restart');
   });
 
   it('reports completed retained workspaces as restartable instead of resumable', async () => {
@@ -663,7 +663,7 @@ relations:
     const statusJson = await withCwd(testDir, () => captureJsonOutput(() => bootstrapStatusCommand({ json: true })));
     expect(statusJson.workspaceState).toBe('completed');
     expect(statusJson.nextAction).toBe('restart');
-    expect(statusJson.restartCommand).toBe('openspec bootstrap init --mode refresh --restart');
+    expect(statusJson.restartCommand).toBe('opsx bootstrap init --mode refresh --restart');
 
     const instructions = await withCwd(
       testDir,
@@ -674,9 +674,9 @@ relations:
     expect(instructions).toContain('"id": "candidate-project"');
     expect(instructions.indexOf('<file_definitions>')).toBeLessThan(instructions.indexOf('<instruction>'));
     expect(instructions.indexOf('Read `fileDefinitions` first.')).toBeLessThan(
-      instructions.indexOf('openspec bootstrap init --mode refresh --restart')
+      instructions.indexOf('opsx bootstrap init --mode refresh --restart')
     );
-    expect(instructions).toContain('openspec bootstrap init --mode refresh --restart');
+    expect(instructions).toContain('opsx bootstrap init --mode refresh --restart');
     expect(instructions).not.toContain('## Bootstrap: promote phase');
   });
 

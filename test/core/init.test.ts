@@ -33,11 +33,11 @@ describe('InitCommand', () => {
   let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-init-test-${Date.now()}`);
+    testDir = path.join(os.tmpdir(), `opsx-init-test-${Date.now()}`);
     await fs.mkdir(testDir, { recursive: true });
     originalEnv = { ...process.env };
     // Use a temp dir for global config to avoid reading real config
-    configTempDir = path.join(os.tmpdir(), `openspec-config-init-${Date.now()}`);
+    configTempDir = path.join(os.tmpdir(), `opsx-config-init-${Date.now()}`);
     await fs.mkdir(configTempDir, { recursive: true });
     process.env.XDG_CONFIG_HOME = configTempDir;
 
@@ -68,16 +68,25 @@ describe('InitCommand', () => {
   }
 
   describe('execute with --tools flag', () => {
-    it('should create OpenSpec directory structure', async () => {
+    it('should create OPSX directory structure', async () => {
       const initCommand = new InitCommand({ tools: 'claude', force: true });
 
       await initCommand.execute(testDir);
 
-      const openspecPath = path.join(testDir, '.opsx');
-      expect(await directoryExists(openspecPath)).toBe(true);
-      expect(await directoryExists(path.join(openspecPath, 'specs'))).toBe(true);
-      expect(await directoryExists(path.join(openspecPath, 'changes'))).toBe(true);
-      expect(await directoryExists(path.join(openspecPath, 'changes', 'archive'))).toBe(true);
+      const opsxPath = path.join(testDir, '.opsx');
+      expect(await directoryExists(opsxPath)).toBe(true);
+      expect(await directoryExists(path.join(opsxPath, 'specs'))).toBe(true);
+      expect(await directoryExists(path.join(opsxPath, 'changes'))).toBe(true);
+      expect(await directoryExists(path.join(opsxPath, 'changes', 'archive'))).toBe(true);
+    });
+
+    it('should create config.yaml in non-interactive mode without --force', async () => {
+      const initCommand = new InitCommand({ tools: 'claude' });
+      vi.spyOn(initCommand as any, 'canPromptInteractively').mockReturnValue(false);
+
+      await initCommand.execute(testDir);
+
+      expect(await fileExists(path.join(testDir, '.opsx', 'config.yaml'))).toBe(true);
     });
 
     it('should create config.yaml with functional defaults', async () => {
@@ -102,8 +111,8 @@ describe('InitCommand', () => {
       expect(content).toContain('  branch:');
       expect(content).toContain('    deleteAfterArchive: false');
       expect(content).not.toContain('autoCommit');
-      expect(content).not.toContain('convention: openspec-archive');
-      expect(content).not.toContain('convention: openspec-merge-summary');
+      expect(content).not.toContain('convention: opsx-archive');
+      expect(content).not.toContain('convention: opsx-merge-summary');
       expect(content).not.toContain('messageFrom');
       expect(parsed.git).not.toHaveProperty('autoCommit');
       expect(parsed.git).not.toHaveProperty('archive');
@@ -185,7 +194,7 @@ describe('InitCommand', () => {
         'opsx/explore.md',
         'opsx/apply.md',
         'opsx/archive.md',
-        'opsx/bootstrap.md',
+        '.opsx/bootstrap.md',
       ];
 
       for (const cmdName of slashCommandNames) {
@@ -298,9 +307,14 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      // Should create OpenSpec structure but no skills
-      const openspecPath = path.join(testDir, '.opsx');
-      expect(await directoryExists(openspecPath)).toBe(true);
+      // Should create the durable core but no skills.
+      const opsxPath = path.join(testDir, '.opsx');
+      expect(await directoryExists(path.join(opsxPath, 'architecture'))).toBe(true);
+      expect(await directoryExists(path.join(opsxPath, 'specs'))).toBe(true);
+      expect(await directoryExists(path.join(opsxPath, 'changes'))).toBe(true);
+      expect(await directoryExists(path.join(opsxPath, 'references'))).toBe(true);
+      expect(await fileExists(path.join(opsxPath, 'config.yaml'))).toBe(true);
+      expect(vi.mocked(console.log).mock.calls.flat().join('\n')).not.toContain('/opsx:');
 
       // No tool-specific directories should be created
       const claudeSkillsDir = path.join(testDir, '.claude', 'skills');
@@ -335,9 +349,9 @@ describe('InitCommand', () => {
 
     it('should not create config.yaml if it already exists', async () => {
       // Pre-create config.yaml
-      const openspecDir = path.join(testDir, '.opsx');
-      await fs.mkdir(openspecDir, { recursive: true });
-      const configPath = path.join(openspecDir, 'config.yaml');
+      const opsxDir = path.join(testDir, '.opsx');
+      await fs.mkdir(opsxDir, { recursive: true });
+      const configPath = path.join(opsxDir, 'config.yaml');
       const existingContent = 'schema: custom-schema\n';
       await fs.writeFile(configPath, existingContent);
 
@@ -354,8 +368,8 @@ describe('InitCommand', () => {
 
       await initCommand.execute(newDir);
 
-      const openspecPath = path.join(newDir, '.opsx');
-      expect(await directoryExists(openspecPath)).toBe(true);
+      const opsxPath = path.join(newDir, '.opsx');
+      expect(await directoryExists(opsxPath)).toBe(true);
     });
 
     it('should work in extend mode (re-running init)', async () => {
@@ -375,10 +389,10 @@ describe('InitCommand', () => {
     });
 
     it('should update existing config.yaml with proseLanguage in extend mode', async () => {
-      const openspecDir = path.join(testDir, '.opsx');
-      await fs.mkdir(openspecDir, { recursive: true });
+      const opsxDir = path.join(testDir, '.opsx');
+      await fs.mkdir(opsxDir, { recursive: true });
       await fs.writeFile(
-        path.join(openspecDir, 'config.yaml'),
+        path.join(opsxDir, 'config.yaml'),
         `schema: spec-driven
 context: |
   Existing project context
@@ -392,7 +406,7 @@ context: |
 
       await initCommand.execute(testDir);
 
-      const content = await fs.readFile(path.join(openspecDir, 'config.yaml'), 'utf-8');
+      const content = await fs.readFile(path.join(opsxDir, 'config.yaml'), 'utf-8');
       expect(content).toContain('proseLanguage: ja');
       expect(content).toContain('Existing project context');
     });
@@ -517,7 +531,7 @@ context: |
         async (filePath: any, ...args: any[]) => {
           if (
             typeof filePath === 'string' &&
-            filePath.includes('.openspec-test-')
+            filePath.includes('.opsx-test-')
           ) {
             throw new Error('EACCES: permission denied');
           }
@@ -589,10 +603,10 @@ describe('OPSX skeleton generation', () => {
   let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-opsx-test-${Date.now()}`);
+    testDir = path.join(os.tmpdir(), `opsx-opsx-test-${Date.now()}`);
     await fs.mkdir(testDir, { recursive: true });
     originalEnv = { ...process.env };
-    configTempDir = path.join(os.tmpdir(), `openspec-config-opsx-${Date.now()}`);
+    configTempDir = path.join(os.tmpdir(), `opsx-config-opsx-${Date.now()}`);
     await fs.mkdir(configTempDir, { recursive: true });
     process.env.XDG_CONFIG_HOME = configTempDir;
     vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -631,8 +645,8 @@ describe('OPSX skeleton generation', () => {
     const initCommand = new InitCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
-    expect(await fileExists(path.join(testDir, 'openspec', 'project.opsx.yaml'))).toBe(false);
-    expect(await fileExists(path.join(testDir, 'openspec', 'project.opsx.relations.yaml'))).toBe(false);
+    expect(await fileExists(path.join(testDir, '.opsx', 'project.opsx.yaml'))).toBe(false);
+    expect(await fileExists(path.join(testDir, '.opsx', 'project.opsx.relations.yaml'))).toBe(false);
   });
 
   it('should infer the architecture title from package.json', async () => {
@@ -696,7 +710,7 @@ describe('OPSX skeleton generation', () => {
       featureFlags: {},
     });
 
-    // Pre-create openspec to make it extend mode
+    // Pre-create opsx to make it extend mode
     await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
 
     const consoleSpy = vi.spyOn(console, 'log');
@@ -717,11 +731,11 @@ describe('InitCommand - profile and detection features', () => {
   let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-init-profile-test-${Date.now()}`);
+    testDir = path.join(os.tmpdir(), `opsx-init-profile-test-${Date.now()}`);
     await fs.mkdir(testDir, { recursive: true });
     originalEnv = { ...process.env };
     // Use a temp dir for global config to avoid polluting real config
-    configTempDir = path.join(os.tmpdir(), `openspec-config-test-${Date.now()}`);
+    configTempDir = path.join(os.tmpdir(), `opsx-config-test-${Date.now()}`);
     await fs.mkdir(configTempDir, { recursive: true });
     process.env.XDG_CONFIG_HOME = configTempDir;
     vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -815,15 +829,15 @@ describe('InitCommand - profile and detection features', () => {
   });
 
   it('should preselect configured tools but not directory-detected tools in extend mode', async () => {
-    // Simulate existing OpenSpec project (extend mode).
+    // Simulate existing OPSX project (extend mode).
     await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
 
-    // Configured with OpenSpec
+    // Configured with OPSX
     const claudeSkillDir = path.join(testDir, '.claude', 'skills', 'opsx-explore');
     await fs.mkdir(claudeSkillDir, { recursive: true });
     await fs.writeFile(path.join(claudeSkillDir, 'SKILL.md'), 'configured');
 
-    // Directory detected only (not configured with OpenSpec)
+    // Directory detected only (not configured with OPSX)
     await fs.mkdir(path.join(testDir, '.github'), { recursive: true });
     await fs.writeFile(path.join(testDir, '.github', 'copilot-instructions.md'), '');
 
@@ -846,7 +860,7 @@ describe('InitCommand - profile and detection features', () => {
   });
 
   it('should preselect detected tools for first-time interactive setup', async () => {
-    // First-time init: no openspec/ directory and no configured OpenSpec skills.
+    // First-time init: no opsx/ directory and no configured OPSX skills.
     await fs.mkdir(path.join(testDir, '.github'), { recursive: true });
     await fs.writeFile(path.join(testDir, '.github', 'copilot-instructions.md'), '');
 
@@ -893,9 +907,8 @@ describe('InitCommand - profile and detection features', () => {
     }
   });
 
-  it('should install all 6 workflows in extend mode regardless of prior config (skills-only)', async () => {
+  it('should install all 6 workflows in extend mode and remove managed command remnants', async () => {
     await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
-    // Pre-existing legacy command file remains on disk under skills-only surface
     await fs.mkdir(path.join(testDir, '.claude', 'commands', 'opsx'), { recursive: true });
     const legacyExploreCmd = path.join(testDir, '.claude', 'commands', 'opsx', 'explore.md');
     await fs.writeFile(legacyExploreCmd, '# explore\n');
@@ -903,13 +916,11 @@ describe('InitCommand - profile and detection features', () => {
     const initCommand = new InitCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
-    // Skills-only: no new slash commands are generated (only explore.md was pre-existing)
-    const newCommands = ['propose.md', 'apply.md', 'archive.md', 'bootstrap.md'];
-    for (const cmd of newCommands) {
+    const commandFiles = ['explore.md', 'propose.md', 'apply.md', 'archive.md', 'bootstrap.md'];
+    for (const cmd of commandFiles) {
       expect(await fileExists(path.join(testDir, '.claude', 'commands', 'opsx', cmd))).toBe(false);
     }
-    // Legacy explore.md remains (skills-only surface does not actively clean command files)
-    expect(await fileExists(legacyExploreCmd)).toBe(true);
+    expect(await fileExists(legacyExploreCmd)).toBe(false);
 
     // All 6 skills should exist (includes skill-only snack)
     const expectedSkills = [
@@ -986,7 +997,7 @@ describe('InitCommand - profile and detection features', () => {
     expect(await fileExists(cmdFile)).toBe(false);
   });
 
-  it('should NOT remove existing command files on re-init (skills-only, no cleanup)', async () => {
+  it('should remove managed command remnants on re-init', async () => {
     const initCommand1 = new InitCommand({ tools: 'claude', force: true });
     await initCommand1.execute(testDir);
 
@@ -998,8 +1009,7 @@ describe('InitCommand - profile and detection features', () => {
     const initCommand2 = new InitCommand({ tools: 'claude', force: true });
     await initCommand2.execute(testDir);
 
-    // Skills-only: OpenSpec does not actively clean up legacy command files
-    expect(await fileExists(cmdFile)).toBe(true);
+    expect(await fileExists(cmdFile)).toBe(false);
 
     const skillFile = path.join(testDir, '.claude', 'skills', 'opsx-explore', 'SKILL.md');
     expect(await fileExists(skillFile)).toBe(true);

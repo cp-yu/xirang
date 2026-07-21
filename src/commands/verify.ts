@@ -820,7 +820,7 @@ async function getChangeDir(changeName: string, projectRoot: string): Promise<st
 async function readRequiredVerifyResult(changeDir: string): Promise<VerifyResult> {
   const result = await readVerifyResult(changeDir);
   if (!result) {
-    throw new Error('.verify-result.json is missing. Run openspec verify phase1 first.');
+    throw new Error('.verify-result.json is missing. Run opsx verify phase1 first.');
   }
   return result;
 }
