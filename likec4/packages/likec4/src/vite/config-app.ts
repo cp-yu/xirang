@@ -34,6 +34,7 @@ export type LikeC4ViteConfig = {
    * from likec4 views via absolute URLs.
    */
   userPublicDir?: string | undefined
+  opsxProjectRoot?: string | undefined
 }
 
 export const viteConfig = async ({ languageServices, likec4AssetsDir, ...cfg }: LikeC4ViteConfig) => {
@@ -101,6 +102,7 @@ export const viteConfig = async ({ languageServices, likec4AssetsDir, ...cfg }: 
     plugins: [
       LikeC4VitePlugin({
         languageServices: languageServices.languageServices,
+        ...(cfg.opsxProjectRoot ? { opsxProjectRoot: cfg.opsxProjectRoot } : {}),
         appConfig: {
           webcomponentPrefix,
           pageTitle: title,

@@ -1,6 +1,12 @@
 import type { AdhocViewPredicate } from '@likec4/core/compute-view'
 import type { LayoutedElementView, ProjectId, ViewChange, ViewId } from '@likec4/core/types'
 
+export const opsxSpecChangedEvent = 'opsx:spec-changed'
+
+export interface OpsxSpecChangedEvent {
+  path: string
+}
+
 export interface LikeC4VitePluginRpc {
   /**
    * Apply semantic layout (if AI is available)

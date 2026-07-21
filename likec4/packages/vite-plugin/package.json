@@ -40,6 +40,10 @@
         "default": "./dist/internal/index.mjs"
       }
     },
+    "./protocol": {
+      "sources": "./src/rpc/protocol.ts",
+      "default": "./src/rpc/protocol.ts"
+    },
     "./ai/tools": "./src/ai/tools.ts",
     "./modules": "./src/modules.d.ts",
     "./package.json": "./package.json"

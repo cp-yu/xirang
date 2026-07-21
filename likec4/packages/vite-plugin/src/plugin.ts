@@ -12,7 +12,9 @@ import type {
 import { detectAI } from './ai/detect-ai'
 import { iconBundlePlugin } from './icon-bundle-plugin'
 import { logger } from './logger'
+import { createOpsxSpecWatcher, OpsxSpecError, readOpsxSpec } from './opsx/opsx-spec-handler'
 import { enablePluginRPC } from './rpc'
+import { opsxSpecChangedEvent } from './rpc/protocol'
 import { splitErrorMessage } from './rpc/sendError'
 import { type ProjectsData, type SharedVirtualModuleOptions, k } from './virtuals/_shared'
 import { type AppConfig, createAppConfigModule } from './virtuals/app-config'
@@ -91,6 +93,11 @@ type SharedOptions = {
    * Configuration for the static application
    */
   appConfig?: AppConfig
+
+  /**
+   * Absolute OPSX project root. Enables the local Spec content API in dev mode.
+   */
+  opsxProjectRoot?: string
 }
 
 export type LikeC4VitePluginOptions =
@@ -188,6 +195,7 @@ const VITE_PLUGIN_LIKEC4 = 'vite-plugin-likec4'
 export function LikeC4VitePlugin({
   environments,
   appConfig,
+  opsxProjectRoot,
   ai: _ai = 'auto',
   ...pluginOpts
 }: LikeC4VitePluginOptions): PluginOption {
@@ -357,6 +365,56 @@ export function LikeC4VitePlugin({
         this,
         moduleopts({ server }),
       )
+
+      if (opsxProjectRoot) {
+        server.middlewares.use('/__opsx/spec', async (req, res) => {
+          try {
+            if (req.method !== 'GET') {
+              throw new OpsxSpecError(405, 'Method not allowed')
+            }
+            const requestUrl = new URL(req.url ?? '/', 'http://localhost')
+            const element = requestUrl.searchParams.get('element')
+            const specPath = requestUrl.searchParams.get('path')
+            if (!element || !specPath) {
+              throw new OpsxSpecError(400, 'Missing element or path')
+            }
+
+            const result = await readOpsxSpec({
+              projectRoot: opsxProjectRoot,
+              element,
+              specPath,
+              index: {
+                getIndexedSpecs: async requestedElement => {
+                  for (const project of likec4.projects()) {
+                    const model = await likec4.computedModel(project.id)
+                    const metadata = model.findElement(requestedElement)?.metadata
+                    const specs = metadata?.['specs']
+                    if (Array.isArray(specs)) return specs
+                    if (typeof specs === 'string') return [specs]
+                  }
+                  return undefined
+                },
+              },
+            })
+            res.statusCode = 200
+            res.setHeader('Content-Type', 'application/json; charset=utf-8')
+            res.setHeader('Cache-Control', 'no-store')
+            res.end(JSON.stringify(result))
+          } catch (error) {
+            const opsxError = error instanceof OpsxSpecError
+              ? error
+              : new OpsxSpecError(500, 'Unable to read Spec')
+            res.statusCode = opsxError.statusCode
+            res.setHeader('Content-Type', 'application/json; charset=utf-8')
+            res.end(JSON.stringify({ error: opsxError.message }))
+          }
+        })
+        createOpsxSpecWatcher({
+          projectRoot: opsxProjectRoot,
+          watcher: server.watcher,
+          notify: event => server.hot.send(opsxSpecChangedEvent, event),
+        })
+      }
 
       if (ai) {
         logger.info(

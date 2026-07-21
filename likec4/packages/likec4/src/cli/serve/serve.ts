@@ -68,6 +68,9 @@ type HandlerParams = {
    * @see https://vite.dev/config/server-options#server-allowedhosts
    */
   allowedHosts?: string[] | undefined
+
+  /** Absolute OPSX project root for the local Spec content API. */
+  opsxProjectRoot?: string | undefined
 }
 
 /** Starts the LikeC4 dev server (Vite) for the given workspace path. */
@@ -85,6 +88,7 @@ export async function handler({
   hmrPort,
   userPublicDir,
   allowedHosts,
+  opsxProjectRoot,
 }: HandlerParams) {
   // Explicitly set NODE_ENV to development
   if (enableHMR) {
@@ -112,6 +116,7 @@ export async function handler({
     hmrPort,
     userPublicDir,
     allowedHosts,
+    opsxProjectRoot,
   })
 
   server.config.logger.clearScreen('info')

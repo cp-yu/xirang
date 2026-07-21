@@ -44,7 +44,7 @@ import { useDebouncedCallback, useTimeoutEffect } from '@react-hookz/web'
 import { IconExternalLink, IconFileSymlink, IconStack2, IconZoomScan } from '@tabler/icons-react'
 import type { Rect } from '@xyflow/system'
 import { type PanInfo, m, useDragControls, useMotionValue } from 'motion/react'
-import { type PropsWithChildren, type SyntheticEvent, useCallback, useRef, useState } from 'react'
+import { type PropsWithChildren, type SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { clamp, entries, isNullish, map, only, partition, pipe } from 'remeda'
 import { Markdown } from '../../base-primitives'
 import { ElementTag } from '../../base-primitives/element/ElementTags'
@@ -57,6 +57,7 @@ import type { OnNavigateTo } from '../../LikeC4Diagram.props'
 import { stopPropagation } from '../../utils'
 import * as styles from './ElementDetailsCard.css'
 import { MetadataProvider, MetadataValue } from './MetadataValue'
+import { getSpecsTabModel, SpecsTab } from './SpecsTab'
 import { TabPanelDeployments } from './TabPanelDeployments'
 import { TabPanelRelationships } from './TabPanelRelationships'
 import { TabPanelStructure } from './TabPanelStructure'
@@ -102,7 +103,7 @@ type ElementDetailsCardProps = {
 const MIN_PADDING = 24
 
 const TABS = ['Properties', 'Relationships', 'Views', 'Structure', 'Deployments'] as const
-type TabName = typeof TABS[number]
+type TabName = typeof TABS[number] | 'Specs'
 
 export function ElementDetailsCard({
   viewId,
@@ -125,6 +126,14 @@ export function ElementDetailsCard({
   const nodeModel = fromNode ? viewModel.findNode(fromNode) : viewModel.findNodeWithElement(fqn)
 
   const elementModel = viewModel.$model.element(fqn)
+  const specsMetadata = elementModel.$element.metadata?.['specs']
+  const specTab = useMemo(() => getSpecsTabModel(specsMetadata), [specsMetadata])
+
+  useEffect(() => {
+    if (activeTab === 'Specs' && !specTab.visible) {
+      setActiveTab('Properties')
+    }
+  }, [activeTab, setActiveTab, specTab.visible])
 
   const [viewsOf, otherViews] = pipe(
     [...elementModel.views()],
@@ -413,6 +422,7 @@ export function ElementDetailsCard({
                     {tab}
                   </TabsTab>
                 ))}
+                {specTab.visible && <TabsTab value="Specs">Specs</TabsTab>}
               </TabsList>
 
               <TabsPanel value="Properties">
@@ -507,6 +517,16 @@ export function ElementDetailsCard({
                   <TabPanelDeployments elementFqn={elementModel.id} />
                 </ScrollArea>
               </TabsPanel>
+
+              {specTab.visible && (
+                <TabsPanel value="Specs">
+                  <SpecsTab
+                    element={elementModel.id}
+                    specs={specTab.paths}
+                    active={activeTab === 'Specs'}
+                  />
+                </TabsPanel>
+              )}
             </Tabs>
           </MetadataProvider>
           <m.div

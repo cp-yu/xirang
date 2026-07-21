@@ -229,19 +229,19 @@
 
 #### Checks
 
-- [ ] C1 验证 view 启动与端口传递
+- [x] C1 验证 view 启动与端口传递
   - Verifies: `specs/cli-view/spec.md` / Requirement "Dashboard Display" / Scenario "启动 Web 浏览器"
   - Verifies: `specs/cli-view/spec.md` / Requirement "Dashboard Display" / Scenario "自定义端口"
   - Command: `pnpm exec vitest run test/core/view.test.ts`
   - Expect: `opsx view` 使用内置 LikeC4 并传递端口
 
-- [ ] C2 验证项目发现与失败状态
+- [x] C2 验证项目发现与失败状态
   - Verifies: `specs/cli-view/spec.md` / Requirement "Dashboard Display" / Scenario "项目根发现"
   - Verifies: `specs/cli-view/spec.md` / Requirement "Dashboard Display" / Scenario "未找到项目"
   - Command: `pnpm exec vitest run test/core/view.test.ts`
   - Expect: 子目录发现成功，无 `.opsx/` 时失败
 
-- [ ] C3 验证旧 arch preview 移除
+- [x] C3 验证旧 arch preview 移除
   - Verifies: `specs/arch-preview-command/spec.md` / REMOVED Requirement "arch preview 命令 SHALL 启动 LikeC4 web 服务器"
   - Command: `pnpm build && ! node bin/opsx.js arch --help | grep -q preview`
   - Expect: `arch preview` 不再暴露
@@ -264,13 +264,13 @@
 
 #### Checks
 
-- [ ] C1 验证路径授权与按需读取
+- [x] C1 验证路径授权与按需读取
   - Verifies: `specs/spec-content-browser/spec.md` / Requirement "按需安全读取 Spec 文件" / Scenario "路径授权校验"
   - Verifies: `specs/spec-content-browser/spec.md` / Requirement "按需安全读取 Spec 文件" / Scenario "按需加载"
   - Command: `pnpm --dir likec4 exec vitest run packages/vite-plugin/src/opsx/opsx-spec-handler.spec.ts`
   - Expect: 仅 element 已索引的 `.opsx/specs/**/*.md` 可读取
 
-- [ ] C2 验证 symlink escape 与文件事件
+- [x] C2 验证 symlink escape 与文件事件
   - Verifies: `specs/spec-content-browser/spec.md` / Requirement "按需安全读取 Spec 文件" / Scenario "符号链接逃逸"
   - Verifies: `specs/spec-content-browser/spec.md` / Requirement "文件监听与热更新" / Scenario "Spec 文件修改"
   - Command: `pnpm --dir likec4 exec vitest run packages/vite-plugin/src/opsx/opsx-spec-handler.spec.ts`
@@ -297,14 +297,14 @@
 
 #### Checks
 
-- [ ] C1 验证条件式标签与单/多 Spec 交互
+- [x] C1 验证条件式标签与单/多 Spec 交互
   - Verifies: `specs/spec-content-browser/spec.md` / Requirement "条件式 Specs 标签页显示" / Scenario "元素有 Spec 索引"
   - Verifies: `specs/spec-content-browser/spec.md` / Requirement "单个 Spec 直接渲染" / Scenario "单个 Spec 加载"
   - Verifies: `specs/spec-content-browser/spec.md` / Requirement "多个 Spec 提供选择器" / Scenario "多个 Spec 默认选择"
   - Command: `pnpm --dir likec4 exec vitest run packages/diagram/src/overlays/element-details/SpecsTab.spec.tsx`
   - Expect: 三种索引状态按合同呈现
 
-- [ ] C2 验证异步隔离、错误与安全 Markdown
+- [x] C2 验证异步隔离、错误与安全 Markdown
   - Verifies: `specs/spec-content-browser/spec.md` / Requirement "切换元素清除状态" / Scenario "切换到新元素"
   - Verifies: `specs/spec-content-browser/spec.md` / Requirement "异步加载状态" / Scenario "加载失败"
   - Verifies: `specs/spec-content-browser/spec.md` / Requirement "Markdown 安全渲染" / Scenario "禁止危险内容"

@@ -226,11 +226,12 @@ program
 
 program
   .command('view')
-  .description('Display an interactive dashboard of specs and changes')
-  .action(async () => {
+  .description('Browse architecture and specifications in the embedded web viewer')
+  .option('--port <n>', 'Web server port', (value) => Number(value))
+  .action(async (options: { port?: number }) => {
     try {
       const viewCommand = new ViewCommand();
-      await viewCommand.execute('.');
+      await viewCommand.execute('.', { port: options.port });
     } catch (error) {
       console.log(); // Empty line for spacing
       ora().fail(`Error: ${(error as Error).message}`);

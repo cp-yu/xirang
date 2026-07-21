@@ -1,0 +1,58 @@
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { HttpSpecLoader, type OpsxHotChannel } from './HttpSpecLoader'
+
+describe('HttpSpecLoader', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  it('loads one Spec through the OPSX HTTP API with encoded query parameters', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+      path: '.opsx/specs/api/spec.md',
+      md: '# API',
+    }), { status: 200, headers: { 'content-type': 'application/json' } }))
+    const loader = new HttpSpecLoader(fetcher)
+    const controller = new AbortController()
+
+    await expect(loader.load('core.api', '.opsx/specs/api/spec.md', controller.signal)).resolves.toEqual({
+      path: '.opsx/specs/api/spec.md',
+      md: '# API',
+    })
+
+    const [url, options] = fetcher.mock.calls[0]!
+    const parsed = new URL(String(url), 'http://localhost')
+    expect(parsed.pathname).toBe('/__opsx/spec')
+    expect(parsed.searchParams.get('element')).toBe('core.api')
+    expect(parsed.searchParams.get('path')).toBe('.opsx/specs/api/spec.md')
+    expect(options).toMatchObject({ signal: controller.signal })
+  })
+
+  it('reports server errors without discarding the selected path', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(
+      JSON.stringify({ error: 'Spec not found' }),
+      { status: 404, headers: { 'content-type': 'application/json' } },
+    ))
+    const loader = new HttpSpecLoader(fetcher)
+
+    await expect(loader.load(
+      'core.api',
+      '.opsx/specs/missing/spec.md',
+      new AbortController().signal,
+    )).rejects.toThrow('Spec not found')
+  })
+
+  it('notifies subscribers only for exact Spec change paths', () => {
+    const listeners = new Map<string, (payload: { path: string }) => void>()
+    const hot: OpsxHotChannel = {
+      on: (event, listener) => listeners.set(event, listener),
+      off: (event) => listeners.delete(event),
+    }
+    const loader = new HttpSpecLoader(fetch, hot)
+    const subscriber = vi.fn()
+    const unsubscribe = loader.subscribe(subscriber)
+
+    listeners.get('opsx:spec-changed')?.({ path: '.opsx/specs/api/spec.md' })
+    expect(subscriber).toHaveBeenCalledWith('.opsx/specs/api/spec.md')
+
+    unsubscribe()
+    expect(listeners.has('opsx:spec-changed')).toBe(false)
+  })
+})

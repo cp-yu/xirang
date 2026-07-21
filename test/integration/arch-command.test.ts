@@ -4,7 +4,6 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { formatArchitectureQueryText, queryArchitecture } from '../../src/commands/arch/query.js';
 import { validateArchitectureCommand } from '../../src/commands/arch/validate.js';
-import { previewArchitecture } from '../../src/commands/arch/preview.js';
 import { exportArchitecture } from '../../src/commands/arch/export.js';
 
 const domain = `model { core = domain 'Core' { run = capability 'Run' { description 'Runs work' metadata { capabilityId 'cap.core.run' specs ['.opsx/specs/run/spec.md'] } } stop = capability 'Stop' { metadata { capabilityId 'cap.core.stop' } } finish = capability 'Finish' { metadata { capabilityId 'cap.core.finish' } } } core.run -[invokes]-> core.stop { description 'Runs stop' } core.stop -[precedes]-> core.finish }`;
@@ -78,12 +77,6 @@ describe('arch commands', () => {
     await fs.writeFile(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'), `model { orphan = capability 'Orphan' }`);
     const result = await validateArchitectureCommand(root, { runLikeC4: vi.fn().mockResolvedValue(undefined) });
     expect(result.success).toBe(false);
-  });
-
-  it('should start preview server', async () => {
-    const runner = vi.fn().mockResolvedValue(undefined);
-    await previewArchitecture(root, { port: 8080, runLikeC4: runner });
-    expect(runner).toHaveBeenCalledWith(['start', path.join(root, '.opsx', 'architecture'), '--port', '8080']);
   });
 
   it('should export diagrams', async () => {

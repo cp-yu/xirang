@@ -9,6 +9,7 @@ import {
   path,
   port,
   publicDir,
+  opsxProjectRoot,
   title,
   useDotBin,
   useHashHistory,
@@ -36,6 +37,7 @@ const serveCmd = (yargs: yargs.Argv) => {
           .option('hmr-port', hmrPort)
           .option('public', publicDir)
           .option('allowed-host', allowedHost)
+          .option('opsx-project-root', opsxProjectRoot)
           .options({
             'react-hmr': {
               type: 'boolean',
@@ -68,6 +70,7 @@ const serveCmd = (yargs: yargs.Argv) => {
           enableWebcomponent: args['build-webcomponent'],
           userPublicDir: args.public,
           allowedHosts: args['allowed-host'],
+          opsxProjectRoot: args['opsx-project-root'],
         })
       },
     })

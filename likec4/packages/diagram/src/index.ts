@@ -124,3 +124,9 @@ export { SearchControl } from './components/SearchControl'
 
 export { DefaultMantineProvider } from './context/DefaultMantineProvider'
 export { FramerMotionConfig } from './context/FramerMotionConfig'
+export {
+  type OpsxSpecContent,
+  type OpsxSpecLoader,
+  OpsxSpecLoaderProvider,
+  useOpsxSpecLoader,
+} from './opsx/SpecLoaderContext'
