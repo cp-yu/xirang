@@ -1,58 +1,49 @@
 # OPSX Project Invariant
 
-OPSX 是面向 Agent 软件开发的 human-intent programming layer。Agent 将人类可读、机器可验证的高层语义编译为项目代码。
+OPSX 是可被 Agent 编译的 human intent 的结构化表述。这里的“编译”描述 Agent 类似编译器的操作：Agent 直接读取、理解并实现 OPSX Semantic Model。
 
-## Durable Semantic Source
+## OPSX Semantic Model
 
-OPSX 的持久语义源码是 **Specs + LikeC4**：
+**OPSX Semantic Model** 是 human intent 的唯一权威表达，由同一模型的两类 source modules 共同构成：
 
-- Specs 定义完整、可验证、外部可观察的行为。
-- `.opsx/architecture/**/*.c4` 定义 project intent、domain、capability、ownership、boundary 与 semantic relations。
-- Specs 回答“程序必须做什么”；LikeC4 回答“能力属于哪里以及如何协作”。
-- LikeC4 不是 code map。源码路径、import、call 与 symbol 只能作为当前实现证据，不能替代架构语义。
+- `.opsx/architecture/**/*.c4` 使用 OPSX LikeC4 Profile 表达 metamodel、elements、containment、semantic relationships 与 views。
+- `.opsx/specs/**/*.md` 表达 elements 的 typed contracts。
+- LikeC4 modules 与 Spec modules 不是两套并列模型；必须联合理解、联合验证。
 
-理想的 OPSX compiler 只需 Specs 与 LikeC4 即可忠实编译项目代码。
-
-## Compilation Scaffolding
-
-- `proposal.md`：修改动机、范围与 source impact。
-- `design.md`：Agent 不应自行猜测的 lowering decisions。
-- `tasks.md`：可执行、可验证的局部编译批次。
-
-这些文件是编译脚手架，不得覆盖 Specs 或 LikeC4。外部行为事实属于 Specs；architecture intent、ownership、boundary 或 semantic relation 事实属于 LikeC4。
 
 ## Change and Reconciliation
 
-- change-local `specs/**/spec.md` 是 behavior-source delta。
-- `architecture-delta.c4` 是 architecture-source delta。
-- sync 将已批准的 delta 合并到 formal Specs 与 `.opsx/architecture/`；archive 建立生命周期与历史边界。
+工作流保持 `Explore → Propose → Apply → Verify → Sync → Archive`：
+
+- Explore 澄清 human intent。
+- Propose 将 intent 结构化为 change-local Semantic Delta，并生成 compilation scaffolding。
+- Apply 按 Target Semantic Model 实现代码。
+- Verify 校验实现与 Target Semantic Model 一致。
+- Sync 将已批准、已验证的 Semantic Delta 原子合并到 formal OPSX Semantic Model。
+- Archive 封存 change、决策与证据，不再改变 formal semantics。
 
 ```text
-Target Behavior Source
-  = Formal Specs
-  + Change-local Delta Specs
-
-Target Architecture Source
-  = Formal LikeC4
-  + architecture-delta.c4
+Target Semantic Model
+  = Formal OPSX Semantic Model
+  + Approved Semantic Delta
 ```
 
-Agent 编译这两个目标模型，而不是把 proposal、design 或 tasks 当作最终语义真相。
 
-## Source Completeness
+## Model Completeness
 
-OPSX source 完整，当且仅当 Agent 能依据 Specs 与 LikeC4 忠实编译目标代码，无需猜测任何会改变行为或架构的关键决策。
+OPSX Semantic Model 完整，当且仅当 Agent 能直接依据它忠实实现目标代码，无需猜测任何会改变 human intent 的关键决策。
 
-- 未声明但会改变外部行为的决策必须回到 Specs。
-- 未声明但会改变架构语义的决策必须回到 LikeC4。
-- Specs 与 LikeC4 无法共同成立时，必须先修正 source compilation error。
-- Existing code 是上一次编译产物与当前实现证据，不得静默覆盖 human intent。
-- 同一语义事实只在一个权威 artifact 中定义。
+- 每个 Spec 的 `element` 必须解析到 formal model 或同一 Semantic Delta 中的 element。
+- 删除 element 时必须同时 reconcile 其 Specs、children 与 Semantic Relationships。
+- required-contract elements 在 Target Semantic Model 中必须至少拥有一个 Spec。
+- 同一语义事实只能在一个权威 source location 中定义；其他位置只能引用或派生。
 
 ## Agent as Compiler
 
-- 忠实翻译，不发明未定义的行为或架构。
-- 遇到 undefined decision 时停止猜测，回到对应 semantic source。
+- 忠实翻译，不发明未定义的 intent、guarantee、contract、element 或 relationship。
+- 遇到 undefined decision 时停止猜测，返回 human intent 澄清或 change artifacts。
+- 先从 Project Root Element 理解整体，再沿 abstraction/refinement hierarchy 按需下钻。
 - 先理解 file definition，再消费 `instruction` 与 `template`。
 - 保留 parser 所需的 canonical headings、IDs、schema keys、normative keywords、paths 与 commands。
-- 将 `opsx validate`、reviewer、optimizer、seal、sync 与 archive 视为 compilation pipeline 的组成部分。
+- 将 `opsx validate`、reviewer、optimizer、seal、sync 与 archive 视为 Agent compilation workflow 的组成部分。
+
