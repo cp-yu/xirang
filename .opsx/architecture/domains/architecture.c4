@@ -7,8 +7,8 @@ model {
       }
 
       likec4_reader = capability 'LikeC4 Reader' {
-        description '读取和解析 LikeC4 多文件模型'
-        metadata {
+        description '读取 versioned OPSX LikeC4 graph modules，解析任意 element kinds、stable elementId、containment、relationships、Metamodel 与 views'
+                metadata {
           capabilityId 'cap.architecture.likec4-reader'
           status 'active'
           specs ['.opsx/specs/arch-query-command/spec.md']
@@ -16,8 +16,8 @@ model {
       }
 
       semantic_validator = capability 'Semantic Validator' {
-        description '验证 ownership、precedes cycle 与 metadata'
-        metadata {
+        description '验证 Project Root、element identity、abstraction/refinement containment、Metamodel constraints、Element Contracts 与 semantic relationships'
+                metadata {
           capabilityId 'cap.architecture.semantic-validator'
           status 'active'
           specs ['.opsx/specs/likec4-semantic-validator/spec.md']
@@ -25,12 +25,21 @@ model {
       }
 
       delta_merger = capability 'Architecture Delta Merger' {
-        description '原子合并 architecture-delta.c4 到 formal LikeC4 model'
-        metadata {
+        description '将 graph delta 与 element-owned Spec deltas 作为一个 Semantic Delta 原子 reconcile 到 formal OPSX Semantic Model'
+                metadata {
           capabilityId 'cap.architecture.delta-merger'
           status 'active'
           specs ['.opsx/specs/architecture-delta-artifact/spec.md']
         }
       }
-    }
+    
+    metamodel = capability 'Semantic Metamodel' {
+          description '定义 versioned element kinds、contract policies、optional containment constraints 与 relationship endpoint constraints'
+          metadata {
+            capabilityId 'cap.architecture.metamodel'
+            status 'active'
+            specs ['.opsx/specs/opsx-semantic-model/spec.md']
+          }
+        }
+  }
 }

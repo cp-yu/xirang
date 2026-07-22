@@ -33,8 +33,8 @@ model {
     }
 
     explore_brainstorming = capability 'Explore Brainstorming' {
-      description 'Explore 阶段的 brainstorming 流程，包含 6 步 checklist、一次一问纪律、2-3 方案对比、Design Summary 生成；todo 可用时必须在读取 context 前将 Superpowers 阶段记录为 checklist 并逐步 tick；main explore agent 严格 read-only，用户设计确认不构成文件写入授权；已有 change 的 insight 仅分类为 future capture target，不在 explore 中更新 artifacts；Superpowers 行为引导通过 referenceFiles 暴露为 OPSX-adapted brainstorming protocol，以原始 Superpowers brainstorming 的 hard gate、上下文探索、just-in-time visual 判断、分段设计确认、自检和用户审查 gate 为行为来源，并映射到 conversation-only Design Summary 与 opsx-propose 路由；主 instructions 中的 workflow 引用使用规范形 /opsx:<slug>，经 transform 管线按工具适配渲染'
-      metadata {
+      description '澄清 human intent 并形成 Project Root、Metamodel、elements、refinement、contracts、relationships 与 views 的 conversation-only Design Summary'
+            metadata {
         capabilityId 'cap.ai.explore-brainstorming'
         status 'active'
         specs ['.opsx/specs/explore-brainstorming/spec.md']
@@ -51,8 +51,8 @@ model {
     }
 
     impact_sweeper = capability 'Impact Sweeper' {
-      description '以 LikeC4 element relation paths、cap-to-Spec contracts 与当前代码证据生成语义影响报告；通过 opsx arch query 导航，CodeGraph 可选，不可用时回退 ACE、rg 与 read。'
-      metadata {
+      description '使用 stable elements、abstraction/refinement hierarchy、Element Contracts 与 semantic relationships 扫描 concept impact'
+            metadata {
         capabilityId 'cap.ai.impact-sweeper'
         status 'active'
       }
@@ -118,8 +118,8 @@ model {
     }
 
     snack_skill = capability 'Snack Skill' {
-      description 'snack 通过代码变更证据、LikeC4 intent/relations 与 Spec registry 推断受影响 capabilities，使用可选 CodeGraph 或 ACE/rg/read fallback，不依赖 code-map'
-      metadata {
+      description '从 code evidence reconcile 一个 OPSX Semantic Model 的 graph 与 contract modules，且不猜测 element 或 Spec ownership'
+            metadata {
         capabilityId 'cap.ai.snack-skill'
         status 'active'
         specs ['.opsx/specs/snack-skill/spec.md']
@@ -198,12 +198,12 @@ model {
     }
 
     workflow_templates = capability 'Workflow Templates' {
-      description '生成仅引用 opsx 命令和 .opsx/ 路径的 Agent 工作流'
-            metadata {
-        capabilityId 'cap.ai.workflow-templates'
-        status 'active'
-        specs ['.opsx/specs/opsx-framework-identity/spec.md']
-      }
+      description '生成以 Project Root、stable elements、refinement hierarchy、Element Contracts 与 Semantic Delta 为统一语义的 Agent workflows'
+                        metadata {
+              capabilityId 'cap.ai.workflow-templates'
+              status 'active'
+              specs ['.opsx/specs/opsx-framework-identity/spec.md']
+            }
     }
 
     tdd_smells = capability 'Tdd Smells' {

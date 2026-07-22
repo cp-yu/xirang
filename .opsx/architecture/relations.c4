@@ -51,6 +51,10 @@ model {
 
   architecture.delta_merger -[validates]-> architecture.semantic_validator
 
+  architecture.likec4_reader -[consumes]-> architecture.metamodel
+
+  architecture.semantic_validator -[consumes]-> architecture.metamodel
+
   artifact_graph.instruction_loader -[consumes]-> artifact_graph.file_definitions
 
   artifact_graph.instruction_loader -[consumes]-> config.project_element
@@ -119,6 +123,12 @@ model {
 
   migration.opsx_to_likec4_converter -[invokes]-> migration.spec_path_inference
 
+  migration.semantic_model_migrator -[consumes]-> validation.registry
+
+  migration.semantic_model_migrator -[invokes]-> architecture.likec4_reader
+
+  migration.semantic_model_migrator -[invokes]-> architecture.semantic_validator
+
   opsx_element.bootstrap -[consumes]-> artifact_graph.file_definitions
 
   opsx_element.bootstrap_refresh -[invokes]-> opsx_element.bootstrap
@@ -142,6 +152,8 @@ model {
   validation.opsx_dry_run -[invokes]-> opsx_element.referential_integrity
 
   validation.opsx_element -[invokes]-> opsx_element.referential_integrity
+
+  validation.registry -[consumes]-> architecture.metamodel
 
   validation.registry -[invokes]-> validation.frontmatter
 

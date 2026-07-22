@@ -48,8 +48,8 @@ model {
     }
 
     specs_sync = capability 'Specs Sync' {
-      description '将变更中的 delta Specs 和 architecture-delta.c4 同步到 formal Specs 与 LikeC4；relations 归并到 canonical relations.c4；sync 不写回 change-local scenario operation labels，写入 formal Specs 前清洗已有 labels；重复 sync 对 normalized requirement 内容保持幂等'
-      metadata {
+      description '将 change-local graph delta 与 element-owned Spec deltas 作为一个 Semantic Delta prepare、validate、commit 或 rollback'
+            metadata {
         capabilityId 'cap.change.specs-sync'
         status 'active'
       }

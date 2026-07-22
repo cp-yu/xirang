@@ -1,0 +1,322 @@
+{
+  "timestamp": "2026-07-21T21:19:37.267Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "requirement": "Semantic Model Alignment",
+      "message": "Repository self-model remains on the intentionally deferred legacy profile; singular-bound self-model migration is a separate planned change.",
+      "recommendation": "Complete the separately planned self-model migration before relying on this repository's formal Spec registry for v1 traversal.",
+      "evidence": [
+        ".opsx/changes/unify-opsx-semantic-model/proposal.md",
+        ".opsx/architecture/project.c4"
+      ]
+    }
+  ],
+  "tasksFileHash": "38b52551c409c161815e055314354ebd1c45c4761c315eb4036c50570aa9e2f6",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "executionMode": "fresh-project-reviewer",
+    "evidenceFiles": [
+      ".github/workflows/test-windows.yml",
+      ".opsx/changes/unify-opsx-semantic-model/architecture-delta.c4",
+      ".opsx/changes/unify-opsx-semantic-model/design.md",
+      ".opsx/changes/unify-opsx-semantic-model/proposal.md",
+      ".opsx/changes/unify-opsx-semantic-model/tasks.md",
+      ".opsx/references/opsx-relation-authoring.md",
+      "schemas/bootstrap/schema.yaml",
+      "src/cli/index.ts",
+      "src/commands/bootstrap.ts",
+      "src/commands/help.ts",
+      "src/core/archive.ts",
+      "src/core/change-sync.ts",
+      "src/core/relations/active-registry.ts",
+      "src/core/relations/renderers.ts",
+      "src/migration/semantic-model-migrator.ts",
+      "src/utils/architecture-validator.ts",
+      "src/utils/bootstrap-utils.ts",
+      "src/utils/likec4-reader.ts",
+      "src/utils/semantic-checks/relation-validator.ts",
+      "src/utils/semantic-checks/semantic-model-validator.ts",
+      "test/commands/bootstrap.test.ts",
+      "test/core/relations/renderers.test.ts",
+      "test/e2e/spec-browser.spec.ts",
+      "test/integration/sync-workflow.test.ts",
+      "test/unit/migration/semantic-model-migrator.test.ts"
+    ],
+    "evidenceFingerprint": "02df567ecffb9a93f5c42272ead6c06e8dd97a59fb5a7a63264d65709eeb1879",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".github/workflows/test-windows.yml",
+        "hash": "278d0b0f84ae64f0b540d5c73b4eef4a3758e607f9c2ef5f9abd3cbdc36d9637"
+      },
+      {
+        "path": ".opsx/changes/unify-opsx-semantic-model/architecture-delta.c4",
+        "hash": "61e94be4d63376b7508dde7366918134b6e7ed4e547c3f9a2cb70e44aca7b8f0"
+      },
+      {
+        "path": ".opsx/changes/unify-opsx-semantic-model/design.md",
+        "hash": "7e526470c27164294cb1f688ef6d88b2d24c6051720117aba3eccab6d5602ceb"
+      },
+      {
+        "path": ".opsx/changes/unify-opsx-semantic-model/proposal.md",
+        "hash": "54b8048214a8448dd578c551fbb63157e4a1294e59e10496942e416a773164d5"
+      },
+      {
+        "path": ".opsx/changes/unify-opsx-semantic-model/tasks.md",
+        "hash": "38b52551c409c161815e055314354ebd1c45c4761c315eb4036c50570aa9e2f6"
+      },
+      {
+        "path": ".opsx/references/opsx-relation-authoring.md",
+        "hash": "dc30a531413cb5a29d32bb9e12f5946407b50f53d2217f025a1b4931d16e9665"
+      },
+      {
+        "path": "schemas/bootstrap/schema.yaml",
+        "hash": "112bd1c6851ce644e23fc59429cea84f34b903dd7360a1a0902e71c9b53b3d07"
+      },
+      {
+        "path": "src/cli/index.ts",
+        "hash": "16b9b4b28fb066898fcb3c32e57dcdaee2ad39a58c62e7f3f02ed3daa6c33c02"
+      },
+      {
+        "path": "src/commands/bootstrap.ts",
+        "hash": "12db0fab92a2eda0fcb87ce5c4489842b9f685796f0fb509a06dccaa1c9fe4d6"
+      },
+      {
+        "path": "src/commands/help.ts",
+        "hash": "a9bf5b64553244057bfe7fab935d37971e0762fd2544c45299a963a8ba6bcabf"
+      },
+      {
+        "path": "src/core/archive.ts",
+        "hash": "0bdf704b01cfbcb3f969b50bcb9375807ead7bf95e033ba8c53323dd17bef1aa"
+      },
+      {
+        "path": "src/core/change-sync.ts",
+        "hash": "546e2be39d938cd1066cea9b4d70de365492deb695e3bc6b4666b62b132824bf"
+      },
+      {
+        "path": "src/core/relations/active-registry.ts",
+        "hash": "d0bdecd7d01eeb7714e1324fbb02a9752ac4bc3e1e6fbcdb3f87a126bae1e0cf"
+      },
+      {
+        "path": "src/core/relations/renderers.ts",
+        "hash": "ad906c9d1086e7ccc784398cd05e014b25bab4bf0f0794b5b9d48dc5032c0c26"
+      },
+      {
+        "path": "src/migration/semantic-model-migrator.ts",
+        "hash": "2dcc0360185af645ac53b0ce8cf23ce7581a6854e2d4d7d46ce90a111f207bcb"
+      },
+      {
+        "path": "src/utils/architecture-validator.ts",
+        "hash": "7dcf319dbe07eb61dab8fc19582418567783d38f7a4f1e89f1edb8f74942a9cd"
+      },
+      {
+        "path": "src/utils/bootstrap-utils.ts",
+        "hash": "0863b35edb35f95db3099a872722cbd88e325b2f207c1c66f0dc1084157b1f73"
+      },
+      {
+        "path": "src/utils/likec4-reader.ts",
+        "hash": "b5992038fc3df0f388795d2d7d56bb7413eb0e07b2acd1256f507291a50659ee"
+      },
+      {
+        "path": "src/utils/semantic-checks/relation-validator.ts",
+        "hash": "8ab01d34c350c5932a41b1d1ff51595b41de7c10ea690bc66402ccdb1fcd9f65"
+      },
+      {
+        "path": "src/utils/semantic-checks/semantic-model-validator.ts",
+        "hash": "e447a84b20fc5fb4b2332f9b601c0dee93f1f2e32079f531047b6f1bfb9e1499"
+      },
+      {
+        "path": "test/commands/bootstrap.test.ts",
+        "hash": "a6fac601a535564955b0ffc7d19d330d1aec4a8f9d1c45773a2e2c2bf85505fb"
+      },
+      {
+        "path": "test/core/relations/renderers.test.ts",
+        "hash": "5cae13c375c9a9beb0bd330d5914e0f1f5ae7deb7aa9d24490431ec06f150de2"
+      },
+      {
+        "path": "test/e2e/spec-browser.spec.ts",
+        "hash": "1a2ff18d63f8c907ce22a379d004b80254a9bf3109a0547da865636932fc812c"
+      },
+      {
+        "path": "test/integration/sync-workflow.test.ts",
+        "hash": "274f84450395cb5e11096b597e5e029f5790c67801e8accb26013ae4ccbc05f0"
+      },
+      {
+        "path": "test/unit/migration/semantic-model-migrator.test.ts",
+        "hash": "2ab00866d2b3cb82f62c5bbc43c5cd103a9cd7a62c01fb60409afeb46e9b841d"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "f1253c13c3e92083c0636e88b84e65bc081813e3",
+    "gitDiffSummary": "Final Phase 1 review: 36/36 tasks, 75/75 requirements, 309/309 scenarios; root 156 files/2239 tests, lint/build/typecheck, focused LikeC4 and browser E2E passed; no unaccounted changes or half migrations."
+  },
+  "optimization": {
+    "status": "NOT_NEEDED",
+    "attempts": [
+      {
+        "timestamp": "2026-07-21T21:27:47.255Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-07-21T21:19:37.267Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "requirement": "Semantic Model Alignment",
+          "message": "Repository self-model remains on the intentionally deferred legacy profile; singular-bound self-model migration is a separate planned change.",
+          "recommendation": "Complete the separately planned self-model migration before relying on this repository's formal Spec registry for v1 traversal.",
+          "evidence": [
+            ".opsx/changes/unify-opsx-semantic-model/proposal.md",
+            ".opsx/architecture/project.c4"
+          ]
+        }
+      ],
+      "tasksFileHash": "38b52551c409c161815e055314354ebd1c45c4761c315eb4036c50570aa9e2f6",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "executionMode": "fresh-project-reviewer",
+        "evidenceFiles": [
+          ".github/workflows/test-windows.yml",
+          ".opsx/changes/unify-opsx-semantic-model/architecture-delta.c4",
+          ".opsx/changes/unify-opsx-semantic-model/design.md",
+          ".opsx/changes/unify-opsx-semantic-model/proposal.md",
+          ".opsx/changes/unify-opsx-semantic-model/tasks.md",
+          ".opsx/references/opsx-relation-authoring.md",
+          "schemas/bootstrap/schema.yaml",
+          "src/cli/index.ts",
+          "src/commands/bootstrap.ts",
+          "src/commands/help.ts",
+          "src/core/archive.ts",
+          "src/core/change-sync.ts",
+          "src/core/relations/active-registry.ts",
+          "src/core/relations/renderers.ts",
+          "src/migration/semantic-model-migrator.ts",
+          "src/utils/architecture-validator.ts",
+          "src/utils/bootstrap-utils.ts",
+          "src/utils/likec4-reader.ts",
+          "src/utils/semantic-checks/relation-validator.ts",
+          "src/utils/semantic-checks/semantic-model-validator.ts",
+          "test/commands/bootstrap.test.ts",
+          "test/core/relations/renderers.test.ts",
+          "test/e2e/spec-browser.spec.ts",
+          "test/integration/sync-workflow.test.ts",
+          "test/unit/migration/semantic-model-migrator.test.ts"
+        ],
+        "evidenceFingerprint": "02df567ecffb9a93f5c42272ead6c06e8dd97a59fb5a7a63264d65709eeb1879",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".github/workflows/test-windows.yml",
+            "hash": "278d0b0f84ae64f0b540d5c73b4eef4a3758e607f9c2ef5f9abd3cbdc36d9637"
+          },
+          {
+            "path": ".opsx/changes/unify-opsx-semantic-model/architecture-delta.c4",
+            "hash": "61e94be4d63376b7508dde7366918134b6e7ed4e547c3f9a2cb70e44aca7b8f0"
+          },
+          {
+            "path": ".opsx/changes/unify-opsx-semantic-model/design.md",
+            "hash": "7e526470c27164294cb1f688ef6d88b2d24c6051720117aba3eccab6d5602ceb"
+          },
+          {
+            "path": ".opsx/changes/unify-opsx-semantic-model/proposal.md",
+            "hash": "54b8048214a8448dd578c551fbb63157e4a1294e59e10496942e416a773164d5"
+          },
+          {
+            "path": ".opsx/changes/unify-opsx-semantic-model/tasks.md",
+            "hash": "38b52551c409c161815e055314354ebd1c45c4761c315eb4036c50570aa9e2f6"
+          },
+          {
+            "path": ".opsx/references/opsx-relation-authoring.md",
+            "hash": "dc30a531413cb5a29d32bb9e12f5946407b50f53d2217f025a1b4931d16e9665"
+          },
+          {
+            "path": "schemas/bootstrap/schema.yaml",
+            "hash": "112bd1c6851ce644e23fc59429cea84f34b903dd7360a1a0902e71c9b53b3d07"
+          },
+          {
+            "path": "src/cli/index.ts",
+            "hash": "16b9b4b28fb066898fcb3c32e57dcdaee2ad39a58c62e7f3f02ed3daa6c33c02"
+          },
+          {
+            "path": "src/commands/bootstrap.ts",
+            "hash": "12db0fab92a2eda0fcb87ce5c4489842b9f685796f0fb509a06dccaa1c9fe4d6"
+          },
+          {
+            "path": "src/commands/help.ts",
+            "hash": "a9bf5b64553244057bfe7fab935d37971e0762fd2544c45299a963a8ba6bcabf"
+          },
+          {
+            "path": "src/core/archive.ts",
+            "hash": "0bdf704b01cfbcb3f969b50bcb9375807ead7bf95e033ba8c53323dd17bef1aa"
+          },
+          {
+            "path": "src/core/change-sync.ts",
+            "hash": "546e2be39d938cd1066cea9b4d70de365492deb695e3bc6b4666b62b132824bf"
+          },
+          {
+            "path": "src/core/relations/active-registry.ts",
+            "hash": "d0bdecd7d01eeb7714e1324fbb02a9752ac4bc3e1e6fbcdb3f87a126bae1e0cf"
+          },
+          {
+            "path": "src/core/relations/renderers.ts",
+            "hash": "ad906c9d1086e7ccc784398cd05e014b25bab4bf0f0794b5b9d48dc5032c0c26"
+          },
+          {
+            "path": "src/migration/semantic-model-migrator.ts",
+            "hash": "2dcc0360185af645ac53b0ce8cf23ce7581a6854e2d4d7d46ce90a111f207bcb"
+          },
+          {
+            "path": "src/utils/architecture-validator.ts",
+            "hash": "7dcf319dbe07eb61dab8fc19582418567783d38f7a4f1e89f1edb8f74942a9cd"
+          },
+          {
+            "path": "src/utils/bootstrap-utils.ts",
+            "hash": "0863b35edb35f95db3099a872722cbd88e325b2f207c1c66f0dc1084157b1f73"
+          },
+          {
+            "path": "src/utils/likec4-reader.ts",
+            "hash": "b5992038fc3df0f388795d2d7d56bb7413eb0e07b2acd1256f507291a50659ee"
+          },
+          {
+            "path": "src/utils/semantic-checks/relation-validator.ts",
+            "hash": "8ab01d34c350c5932a41b1d1ff51595b41de7c10ea690bc66402ccdb1fcd9f65"
+          },
+          {
+            "path": "src/utils/semantic-checks/semantic-model-validator.ts",
+            "hash": "e447a84b20fc5fb4b2332f9b601c0dee93f1f2e32079f531047b6f1bfb9e1499"
+          },
+          {
+            "path": "test/commands/bootstrap.test.ts",
+            "hash": "a6fac601a535564955b0ffc7d19d330d1aec4a8f9d1c45773a2e2c2bf85505fb"
+          },
+          {
+            "path": "test/core/relations/renderers.test.ts",
+            "hash": "5cae13c375c9a9beb0bd330d5914e0f1f5ae7deb7aa9d24490431ec06f150de2"
+          },
+          {
+            "path": "test/e2e/spec-browser.spec.ts",
+            "hash": "1a2ff18d63f8c907ce22a379d004b80254a9bf3109a0547da865636932fc812c"
+          },
+          {
+            "path": "test/integration/sync-workflow.test.ts",
+            "hash": "274f84450395cb5e11096b597e5e029f5790c67801e8accb26013ae4ccbc05f0"
+          },
+          {
+            "path": "test/unit/migration/semantic-model-migrator.test.ts",
+            "hash": "2ab00866d2b3cb82f62c5bbc43c5cd103a9cd7a62c01fb60409afeb46e9b841d"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "f1253c13c3e92083c0636e88b84e65bc081813e3",
+        "gitDiffSummary": "Final Phase 1 review: 36/36 tasks, 75/75 requirements, 309/309 scenarios; root 156 files/2239 tests, lint/build/typecheck, focused LikeC4 and browser E2E passed; no unaccounted changes or half migrations."
+      }
+    },
+    "findings": [],
+    "history": [],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}

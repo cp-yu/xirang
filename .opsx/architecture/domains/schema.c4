@@ -17,8 +17,8 @@ model {
     }
 
     architecture_delta_artifact = capability 'Architecture Delta Artifact' {
-      description '将 architecture-delta.c4 注册为 spec-driven 正式 architecture artifact，提供 LikeC4 template、definition-first instruction 与 staged native validation'
-      metadata {
+      description '定义 versioned OPSX LikeC4 graph module delta，并与 change-local Specs 共同形成 Target Semantic Model'
+            metadata {
         capabilityId 'cap.schema.architecture-delta-artifact'
         status 'active'
         specs ['.opsx/changes/opsx-to-likec4-mega-refactor/specs/architecture-delta-artifact/spec.md']

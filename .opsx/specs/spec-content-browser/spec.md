@@ -10,89 +10,78 @@ capabilities:
 ## Requirements
 ### Requirement: 条件式 Specs 标签页显示
 
-元素详情 SHALL 在元素包含 `metadata.specs` 时显示 `Specs` 标签页。
+元素详情 SHALL 根据派生 Spec registry 中该 `elementId` 的 Specs 显示 `Specs` 标签页，MUST NOT 依赖 element `metadata.specs`。
 
-#### Scenario: 元素无 Spec 索引
+#### Scenario: Element 无 Spec binding
+- **WHEN** registry 对当前 element 返回空数组
+- **THEN** 详情 SHALL NOT 显示 `Specs` 标签
+- **AND** 其他详情标签 SHALL 保持可用
 
-- **WHEN** 打开的元素不包含 `metadata.specs` 或索引为空
-- **THEN** 详情弹窗 SHALL NOT 显示 `Specs` 标签
-- **AND** 其他标签页（Properties / Relationships / Views / Structure / Deployments）SHALL 保持可用
-
-#### Scenario: 元素有 Spec 索引
-
-- **WHEN** 打开的元素包含非空 `metadata.specs` 数组
-- **THEN** 详情弹窗 SHALL 显示 `Specs` 标签
-- **AND** 标签 SHALL 与其他标签并列显示
+#### Scenario: Element 有 Specs
+- **WHEN** registry 返回一个或多个 Spec
+- **THEN** 详情 SHALL 显示 `Specs` 标签
+- **AND** SHALL 使用 canonical `elementId` 关联内容
 
 ### Requirement: 单个 Spec 直接渲染
 
-元素仅索引一个 Spec 时，SHALL 直接渲染 Markdown 全文。
+Element 仅拥有一个 Spec 时，详情 SHALL 直接按需加载并渲染该 Markdown。
 
 #### Scenario: 单个 Spec 加载
-
-- **WHEN** 打开 `Specs` 标签且 `metadata.specs` 包含一个路径
-- **THEN** 系统 SHALL 按需读取该 Spec 文件
-- **AND** SHALL 显示项目相对路径（例如 `.opsx/specs/arch-preview/spec.md`）
-- **AND** SHALL 渲染完整 Markdown 内容
-- **AND** SHALL NOT 显示 Spec 选择器
+- **WHEN** 用户打开 `Specs` 标签且 registry 返回一个 Spec
+- **THEN** SHALL 显示 project-relative path 与完整 Markdown
+- **AND** SHALL NOT 显示 Spec selector
 
 #### Scenario: 单个 Spec 缺失
-
-- **WHEN** 索引的 Spec 文件不存在或不可读
-- **THEN** 系统 SHALL 在内容区显示文件路径和错误信息
-- **AND** SHALL NOT 关闭详情弹窗
+- **WHEN** registry entry 对应文件不存在或不可读
+- **THEN** SHALL 在内容区显示 path 与错误
+- **AND** SHALL NOT 关闭 element details
 
 ### Requirement: 多个 Spec 提供选择器
 
-元素索引多个 Spec 时，SHALL 提供紧凑选择器并按索引顺序默认打开第一项。
+Element 拥有多个 Specs 时，详情 SHALL 按 registry 的确定性 Spec ID 顺序提供 selector，并默认打开第一项。
 
 #### Scenario: 多个 Spec 默认选择
-
-- **WHEN** 打开 `Specs` 标签且 `metadata.specs` 包含多个路径
-- **THEN** 系统 SHALL 在内容顶部显示 Spec 选择器
-- **AND** SHALL 默认选中索引数组第一项
-- **AND** SHALL 按需加载第一项内容
+- **WHEN** registry 返回多个 Specs
+- **THEN** selector SHALL 按 Spec ID 排序
+- **AND** SHALL 默认按需加载第一项
 
 #### Scenario: 切换 Spec
-
-- **WHEN** 用户在选择器中选择不同 Spec
-- **THEN** 系统 SHALL 卸载当前 Spec 内容
-- **AND** SHALL 按需加载新选中 Spec
-- **AND** SHALL 显示新 Spec 的项目相对路径
+- **WHEN** 用户选择另一个 Spec
+- **THEN** SHALL 卸载当前内容并加载新内容
+- **AND** SHALL 显示新 Spec 的 project-relative path
 
 #### Scenario: 多个 Spec 独立错误
-
-- **WHEN** 多个 Spec 中某一个加载失败
-- **THEN** 系统 SHALL 仅在该 Spec 内容区显示错误
-- **AND** 其他 Spec SHALL 可正常切换和加载
+- **WHEN** 多个 Specs 中一项加载失败
+- **THEN** SHALL 只在该项显示 error
+- **AND** 其他 Specs SHALL 可继续切换和加载
 
 ### Requirement: 按需安全读取 Spec 文件
 
-系统 SHALL 从服务端按需读取 `.opsx/specs/**/*.md`，并校验路径安全。
+服务端 SHALL 根据当前 computed OPSX Semantic Model 的 stable `elementId` 与派生 registry 授权 `.opsx/specs/**/*.md` 读取。请求 path 必须属于该 element 的 registry entries，并通过 project-relative、extension 与 realpath containment 校验。
+
+#### Scenario: Registry 授权校验
+- **WHEN** browser 请求 Spec 内容
+- **THEN** request SHALL 携带当前 model project ID 与 stable `elementId`
+- **AND** server SHALL 重建或读取当前 registry 并验证该 Spec 属于 element
+- **AND** SHALL 拒绝不匹配的 element/path pair
+
+#### Scenario: 路径安全
+- **WHEN** path 为 absolute、包含 `..`、包含 backslash、不是 `.md` 或 realpath 逃逸 `.opsx/specs/`
+- **THEN** server SHALL 拒绝读取
 
 #### Scenario: 路径授权校验
-
-- **WHEN** 浏览器请求 Spec 内容
-- **THEN** 浏览器 SHALL 携带当前元素所属的 LikeC4 project ID
-- **AND** 服务端 SHALL 仅从该 project 的当前 computed model 中读取元素并复核其 `metadata.specs` 请求路径
-- **AND** SHALL 拒绝未在元素索引中声明的路径
-- **AND** SHALL 拒绝绝对路径
-- **AND** SHALL 拒绝包含 `..` 的路径
-- **AND** SHALL 拒绝反斜杠路径
-- **AND** SHALL 拒绝非 `.md` 后缀文件
-- **AND** 解析后路径 SHALL 位于 `<project>/.opsx/specs/` 下
+- **WHEN** requested path 不属于 registry 中当前 element 的 Specs
+- **THEN** server SHALL 拒绝读取
+- **AND** SHALL NOT 仅凭 path 存在授权
 
 #### Scenario: 符号链接逃逸
-
-- **WHEN** `.opsx/specs/` 下存在符号链接指向目录外文件
-- **THEN** 服务端 SHALL 拒绝读取
-- **AND** SHALL 返回错误状态
+- **WHEN** `.opsx/specs/` 下 symlink 的 realpath 指向目录外
+- **THEN** server SHALL 拒绝读取
 
 #### Scenario: 按需加载
-
 - **WHEN** 用户未打开 `Specs` 标签
-- **THEN** 系统 SHALL NOT 加载 Spec 内容
-- **AND** SHALL NOT 预载未选中的 Spec
+- **THEN** SHALL NOT 加载 Spec body
+- **AND** SHALL NOT 预载未选中的 Specs
 
 ### Requirement: Markdown 安全渲染
 
@@ -151,14 +140,13 @@ capabilities:
 
 ### Requirement: 切换元素清除状态
 
-切换元素时，SHALL 清除上一个元素的 Spec 加载结果。
+切换 element 时 SHALL 清除上一个 `elementId` 的 Spec state，并通过新 element 的 registry entries 重新初始化。
 
-#### Scenario: 切换到新元素
-
-- **WHEN** 用户从元素 A 切换到元素 B
-- **THEN** 系统 SHALL 卸载元素 A 的 Spec 内容
-- **AND** 若元素 B 包含 Spec 索引，SHALL 按新索引重新加载
-- **AND** SHALL NOT 短暂显示元素 A 的内容
+#### Scenario: 切换到新 element
+- **WHEN** 用户从 element A 切换到 B
+- **THEN** SHALL 卸载 A 的 Spec content
+- **AND** SHALL NOT 短暂显示 A 的内容
+- **AND** B 有 Specs 时 SHALL 按 B 的 registry entries 加载
 
 ### Requirement: 桌面与移动视口兼容
 

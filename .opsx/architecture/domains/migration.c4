@@ -7,8 +7,8 @@ model {
       }
 
       opsx_to_likec4_converter = capability 'OPSX to LikeC4 Converter' {
-        description '将 OPSX YAML 两文件模型转换为 LikeC4 多文件模型'
-        metadata {
+        description '读取 legacy OPSX inputs，并将其路由为 versioned semantic model migration candidate 而非 runtime fallback'
+                metadata {
           capabilityId 'cap.migration.opsx-to-likec4-converter'
           status 'active'
           specs ['.opsx/specs/migrate-opsx-to-likec4/spec.md']
@@ -16,8 +16,8 @@ model {
       }
 
       likec4_file_generator = capability 'LikeC4 File Generator' {
-        description '生成 specification、domain、relation 与 view 文件'
-        metadata {
+        description '生成 Project Root、versioned Metamodel、任意 element hierarchy、relationships 与 views 的 candidate graph modules'
+                metadata {
           capabilityId 'cap.migration.likec4-file-generator'
           status 'active'
           specs ['.opsx/specs/migrate-opsx-to-likec4/spec.md']
@@ -25,8 +25,8 @@ model {
       }
 
       spec_path_inference = capability 'Spec Path Inference' {
-        description '从 formal Specs 推断 capability metadata 的 spec 路径'
-        metadata {
+        description '仅从唯一 legacy mapping 生成 singular Spec element binding，并将歧义保留为 review gap'
+                metadata {
           capabilityId 'cap.migration.spec-path-inference'
           status 'active'
           specs ['.opsx/specs/migrate-opsx-to-likec4/spec.md']
@@ -34,12 +34,21 @@ model {
       }
 
       agent_verification_workflow = capability 'Agent Verification Workflow' {
-        description '请求 Agent 审查迁移结果的完整性和正确性'
-        metadata {
+        description '在 human authorization 与 promotion 前验证 migration candidate 无 unresolved identity、hierarchy 或 binding gaps'
+                metadata {
           capabilityId 'cap.migration.agent-verification-workflow'
           status 'active'
           specs ['.opsx/specs/migrate-opsx-to-likec4/spec.md']
         }
       }
-    }
+    
+    semantic_model_migrator = capability 'Semantic Model Migrator' {
+          description '将 legacy LikeC4 profile 显式转换为经审阅和验证的 versioned OPSX Semantic Model candidate'
+          metadata {
+            capabilityId 'cap.migration.semantic-model-migrator'
+            status 'active'
+            specs ['.opsx/specs/semantic-model-migration/spec.md']
+          }
+        }
+  }
 }

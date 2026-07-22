@@ -98,57 +98,46 @@ The command SHALL maintain consistent ordering of changes for predictable output
 
 ### Requirement: Extracting capabilities from frontmatter
 
-系统 SHALL 在 specs 模式下解析 spec 文件的 YAML frontmatter 并提取 capabilities 关联信息。
+系统 SHALL 在 Specs mode 解析 YAML frontmatter 的 singular `element` binding，并 SHALL 返回一个 stable `elementId` 或 null。系统 MUST NOT 将新版 Spec 映射为 capabilities 数组。
 
-#### Scenario: Extracting capabilities from frontmatter
-- **WHEN** parsing a `spec.md` file in specs mode
-- **THEN** 系统 SHALL 使用 `parseSpecFrontmatter()` 函数提取 YAML frontmatter
-- **AND** 若 frontmatter 包含 `capabilities` 数组，SHALL 提取该数组
-- **AND** 若 frontmatter 不存在或无 `capabilities` 字段，SHALL 返回空数组
+#### Scenario: Extracting element from frontmatter
+- **WHEN** parsing a新版 `spec.md`
+- **THEN** SHALL 使用 `parseSpecFrontmatter()` 提取 `element`
+- **AND** 合法字符串 SHALL 原样作为 canonical `elementId` 返回
+
+#### Scenario: Missing element binding
+- **WHEN** frontmatter 缺失或没有合法 `element`
+- **THEN** SHALL 返回 `element: null`
+- **AND** MUST NOT 返回空 capabilities 数组替代该状态
 
 ### Requirement: JSON output format for specs
 
-系统 SHALL 在 specs 模式下支持 `--json` 输出，返回包含 `capabilities` 与 `requirements` 字段的结构化数据。`requirements` SHALL 使用 formal spec 中 `### Requirement: <name>` header 的 `<name>`，而不是 requirement 正文。
+`opsx list --specs --json` SHALL 返回 Spec identity、requirements 与 singular element binding。Requirement names SHALL 从 formal `### Requirement:` headers 提取。
 
-#### Scenario: JSON output includes capabilities and requirements fields
-- **WHEN** 用户执行 `opsx list --specs --json`
-- **THEN** 系统 SHALL 输出 JSON 数组
-- **AND** 每个数组元素 SHALL 包含以下字段：
-  - `id`: spec 的目录名（字符串）
-  - `title`: spec 的标题（字符串）
-  - `requirementCount`: requirements 数量（数字）
-  - `requirements`: 从 `### Requirement:` headers 提取的 requirement 名称数组（字符串数组）
-  - `capabilities`: 从 frontmatter 提取的 capabilities 数组（字符串数组）
+#### Scenario: JSON output includes element and requirements
+- **WHEN** 用户运行 `opsx list --specs --json`
+- **THEN** 每个 item SHALL 包含 `id`、`title`、`requirementCount`、`requirements` 与 `element`
+- **AND** `element` SHALL 为 stable `elementId` 或 null
+- **AND** MUST NOT 包含 `capabilities` 字段
 
-#### Scenario: Capabilities and requirements fields are empty arrays when missing
-- **WHEN** spec 文件无 YAML frontmatter 或 frontmatter 无 `capabilities` 字段
-- **THEN** JSON 输出中该 spec 的 `capabilities` 字段 SHALL 为空数组 `[]`
-- **AND** MUST NOT 返回 null 或 undefined
-- **WHEN** spec 文件无法读取、无法解析 requirement headers、或不包含 requirement headers
-- **THEN** JSON 输出中该 spec 的 `requirements` 字段 SHALL 为空数组 `[]`
-- **AND** MUST NOT 返回 null 或 undefined
+#### Scenario: Missing fields use deterministic empty values
+- **WHEN** Spec 缺少 element binding
+- **THEN** `element` SHALL 为 null
+- **WHEN** requirement headers 不存在或无法读取
+- **THEN** `requirements` SHALL 为 `[]`
 
 #### Scenario: JSON structure example
-- **WHEN** 执行 `opsx list --specs --json`
-- **THEN** 输出结构 SHALL 符合以下示例：
-  ```json
-  [
-    {
-      "id": "cli-list",
-      "title": "List Command Specification",
-      "requirementCount": 7,
-      "requirements": ["Command Execution", "JSON output format for specs"],
-      "capabilities": ["cap.cli.list"]
-    },
-    {
-      "id": "cli-spec",
-      "title": "Spec Command Specification",
-      "requirementCount": 5,
-      "requirements": ["Spec display", "Spec validation"],
-      "capabilities": ["cap.cli.spec"]
-    }
-  ]
-  ```
+- **WHEN** Spec `cli-list` 绑定 `cli.list`
+- **THEN** output SHALL 匹配：
+```json
+{
+  "id": "cli-list",
+  "title": "List Command Specification",
+  "requirementCount": 2,
+  "requirements": ["Command Execution", "JSON output format for specs"],
+  "element": "cli.list"
+}
+```
 
 ## Why
 
