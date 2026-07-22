@@ -1,6 +1,7 @@
 import { existsSync, promises as fs, readFileSync } from 'fs';
 import { createHash } from 'crypto';
 import path from 'path';
+import os from 'os';
 import { promisify } from 'util';
 import { execFile as execFileCallback } from 'child_process';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
@@ -16,13 +17,18 @@ import { OPSX_DIR_NAME } from '../core/config.js';
 import { readProjectConfig } from '../core/project-config.js';
 import { validateRelationGraph } from '../core/relations/validator.js';
 import { Validator } from '../core/validation/validator.js';
+import { buildSpecRegistry } from '../core/spec-registry.js';
+import { readLikeC4Architecture } from './likec4-reader.js';
+import { validateArchitecture } from './architecture-validator.js';
+import { renderViews } from '../core/templates/architecture-skeleton.js';
+import { quoteLikeC4, indent } from '../migration/generators/formatting-utils.js';
+import type { ContractPolicy } from './semantic-model.js';
 import {
   OPSX_SCHEMA_VERSION,
   OPSX_PATHS,
   OpsxRelationSchema,
   applyOpsxDelta,
   readProjectOpsx,
-  writeProjectOpsx,
   type ProjectOpsxBundle,
   type OpsxRelation,
   type OpsxDelta,
@@ -45,9 +51,11 @@ export const BOOTSTRAP_DOMAIN_MAP_DIR = 'domain-map';
 export const BOOTSTRAP_REVIEW_FILE = 'review.md';
 export const BOOTSTRAP_CANDIDATE_DIR = 'candidate';
 export const BOOTSTRAP_CANDIDATE_SPECS_DIR = path.join(BOOTSTRAP_CANDIDATE_DIR, 'specs');
+export const BOOTSTRAP_CANDIDATE_ARCHITECTURE_DIR = path.join(BOOTSTRAP_CANDIDATE_DIR, 'architecture');
+export const BOOTSTRAP_ARCHITECTURE_FILES = ['specification.c4', 'model.c4', 'relations.c4', 'views.c4'] as const;
 export const BOOTSTRAP_CANDIDATE_FILE_NAMES = {
-  project: 'project.opsx.yaml',
-  relations: 'project.opsx.relations.yaml',
+  project: 'model.c4',
+  relations: 'relations.c4',
 } as const;
 const execFile = promisify(execFileCallback);
 
@@ -103,15 +111,58 @@ const ScopeConfigDiskSchema = z.object({
 });
 
 
+const BootstrapConfidenceSchema = z.enum(['high', 'medium', 'low']);
+const ElementKindSchema = z.string().regex(/^[A-Za-z_][A-Za-z0-9_]*$/);
+const LocalElementIdSchema = z.string().regex(/^[A-Za-z_][A-Za-z0-9_]*$/);
+const StableElementIdSchema = z.string().trim().min(1);
+
 const EvidenceDomainSchema = z.object({
   id: z.string().regex(/^dom\./),
-  confidence: z.enum(['high', 'medium', 'low']),
+  confidence: BootstrapConfidenceSchema,
   sources: z.array(z.string()),
   intent: z.string(),
 });
 
-const EvidenceFileSchema = z.object({
+const EvidenceElementSchema = z.object({
+  elementId: StableElementIdSchema,
+  kind: ElementKindSchema,
+  contractPolicy: z.enum(['required', 'optional']).optional(),
+  localId: LocalElementIdSchema,
+  title: z.string().trim().min(1),
+  summary: z.string().trim().min(1),
+  confidence: BootstrapConfidenceSchema,
+  sources: z.array(z.string()),
+}).strict();
+
+const LegacyEvidenceFileSchema = z.object({
   domains: z.array(EvidenceDomainSchema),
+}).strict();
+
+const GenericEvidenceFileSchema = z.object({
+  elements: z.array(EvidenceElementSchema),
+}).strict();
+
+const EvidenceFileSchema = z.union([GenericEvidenceFileSchema, LegacyEvidenceFileSchema]);
+
+const ElementSpecSchema = z.object({
+  preserve_existing: z.boolean().optional().default(false),
+  folder: z
+    .string()
+    .min(1)
+    .regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/)
+    .refine((value) => value !== '.' && value !== '..', 'folder must be a single path segment'),
+  purpose: z.string().min(1),
+  requirements: z.array(z.object({
+    title: z.string().min(1),
+    text: z.string().min(1),
+    scenarios: z.array(z.object({
+      title: z.string().min(1),
+      steps: z.array(z.object({
+        keyword: z.enum(['GIVEN', 'WHEN', 'THEN', 'AND']),
+        text: z.string().min(1),
+      })).min(1),
+    })).min(1),
+  })).min(1),
 });
 
 const DomainCapabilitySchema = z.object({
@@ -119,26 +170,7 @@ const DomainCapabilitySchema = z.object({
   type: z.literal('capability').default('capability'),
   intent: z.string(),
   status: z.enum(['draft', 'active']).default('draft'),
-  spec: z.object({
-    preserve_existing: z.boolean().optional().default(false),
-    folder: z
-      .string()
-      .min(1)
-      .regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/)
-      .refine((value) => value !== '.' && value !== '..', 'folder must be a single path segment'),
-    purpose: z.string().min(1),
-    requirements: z.array(z.object({
-      title: z.string().min(1),
-      text: z.string().min(1),
-      scenarios: z.array(z.object({
-        title: z.string().min(1),
-        steps: z.array(z.object({
-          keyword: z.enum(['GIVEN', 'WHEN', 'THEN', 'AND']),
-          text: z.string().min(1),
-        })).min(1),
-      })).min(1),
-    })).min(1),
-  }).optional(),
+  spec: ElementSpecSchema.optional(),
 });
 
 const DomainNodeSchema = z.object({
@@ -150,6 +182,12 @@ const DomainNodeSchema = z.object({
 });
 
 const DomainRelationSchema = OpsxRelationSchema;
+const GenericRelationSchema = z.object({
+  from: StableElementIdSchema,
+  type: z.enum(['invokes', 'produces', 'consumes', 'precedes', 'constrains', 'validates']),
+  to: StableElementIdSchema,
+  note: z.string().max(200).optional(),
+}).strict();
 
 const SpecGroupSchema = z.object({
   folder: z
@@ -177,13 +215,37 @@ const ReviewGapSchema = z.object({
   reason: z.string().min(1),
 }).strict();
 
-const DomainMapFileSchema = z.object({
+const LegacyDomainMapFileSchema = z.object({
   domain: DomainNodeSchema,
   capabilities: z.array(DomainCapabilitySchema).default([]),
   relations: z.array(DomainRelationSchema).default([]),
   review_gaps: z.array(ReviewGapSchema).default([]),
   spec_groups: z.array(SpecGroupSchema).optional(),
 }).strict();
+
+const GenericElementCandidateSchema = z.object({
+  elementId: StableElementIdSchema,
+  kind: ElementKindSchema,
+  contractPolicy: z.enum(['required', 'optional']).optional(),
+  localId: LocalElementIdSchema,
+  title: z.string().trim().min(1),
+  summary: z.string().trim().min(1),
+  spec: ElementSpecSchema.optional(),
+}).strict();
+
+const ParentLinkSchema = z.object({
+  parent: StableElementIdSchema,
+  child: StableElementIdSchema,
+}).strict();
+
+const GenericElementMapFileSchema = z.object({
+  elements: z.array(GenericElementCandidateSchema),
+  parent_links: z.array(ParentLinkSchema).default([]),
+  relations: z.array(GenericRelationSchema).default([]),
+  review_gaps: z.array(ReviewGapSchema).default([]),
+}).strict();
+
+const DomainMapFileSchema = z.union([GenericElementMapFileSchema, LegacyDomainMapFileSchema]);
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -208,12 +270,17 @@ export interface ScopeConfig {
   granularity: 'coarse' | 'fine';
 }
 export type EvidenceDomain = z.infer<typeof EvidenceDomainSchema>;
+export type EvidenceElement = z.infer<typeof EvidenceElementSchema>;
 export type EvidenceFile = z.infer<typeof EvidenceFileSchema>;
+export type LegacyDomainMapFile = z.infer<typeof LegacyDomainMapFileSchema>;
+export type GenericElementMapFile = z.infer<typeof GenericElementMapFileSchema>;
 export type DomainMapFile = z.infer<typeof DomainMapFileSchema>;
 export type DomainCapability = z.infer<typeof DomainCapabilitySchema>;
+type ElementSpec = z.infer<typeof ElementSpecSchema>;
+type CandidateRelation = z.infer<typeof GenericRelationSchema>;
 
 interface BootstrapCandidateSpec {
-  capabilityId: string;
+  elementId: string;
   folder: string;
   candidateRelativePath: string;
   formalRelativePath: string;
@@ -273,6 +340,10 @@ export interface BootstrapInitializedStatus {
   totalDomains: number;
   mappedDomains: number;
   reviewedDomains: number;
+  elements: ElementStatus[];
+  totalElements: number;
+  mappedElements: number;
+  reviewedElements: number;
   candidateState: 'missing' | 'current' | 'stale';
   reviewState: 'missing' | 'current' | 'stale';
   reviewApproved: boolean;
@@ -308,6 +379,14 @@ export interface DomainStatus {
   reviewed: boolean;
 }
 
+export interface ElementStatus {
+  elementId: string;
+  kind: string;
+  confidence: 'high' | 'medium' | 'low';
+  mapped: boolean;
+  reviewed: boolean;
+}
+
 export interface GateResult {
   passed: boolean;
   errors: string[];
@@ -315,6 +394,8 @@ export interface GateResult {
 
 interface DerivedBootstrapArtifacts {
   bundle: ProjectOpsxBundle | null;
+  candidateModel: CandidateArchitectureModel | null;
+  modelErrors: string[];
   candidateSpecs: BootstrapCandidateSpec[];
   preservedFormalPaths: string[];
   specErrors: string[];
@@ -517,11 +598,347 @@ function formalOpsxPaths(projectRoot: string): string[] {
 }
 
 function candidatePath(projectRoot: string, fileName: string): string {
-  return bootstrapPath(projectRoot, BOOTSTRAP_CANDIDATE_DIR, fileName);
+  return bootstrapPath(projectRoot, BOOTSTRAP_CANDIDATE_ARCHITECTURE_DIR, fileName);
 }
 
 function candidateSpecPath(projectRoot: string, folder: string): string {
   return bootstrapPath(projectRoot, BOOTSTRAP_CANDIDATE_SPECS_DIR, folder, 'spec.md');
+}
+
+function localElementId(elementId: string): string {
+  const normalized = elementId.replace(/[^A-Za-z0-9_]/g, '_');
+  return /^[A-Za-z_]/.test(normalized) ? normalized : `element_${normalized}`;
+}
+
+function elementTitle(elementId: string): string {
+  const value = elementId.split('.').at(-1) ?? elementId;
+  return value.replace(/[-_]+/g, ' ').replace(/\b\w/g, character => character.toUpperCase());
+}
+
+function elementSummary(value: string | undefined, fallback: string): string {
+  return normalizeBootstrapText(value) ?? fallback;
+}
+
+interface CandidateArchitectureElement {
+  elementId: string;
+  kind: string;
+  contractPolicy?: ContractPolicy;
+  localId: string;
+  title: string;
+  summary: string;
+  spec?: ElementSpec;
+  children: CandidateArchitectureElement[];
+}
+
+interface CandidateArchitectureModel {
+  root: CandidateArchitectureElement;
+  elements: CandidateArchitectureElement[];
+  relations: CandidateRelation[];
+}
+
+function isGenericEvidence(evidence: EvidenceFile): evidence is z.infer<typeof GenericEvidenceFileSchema> {
+  return 'elements' in evidence;
+}
+
+function isGenericMap(mapFile: DomainMapFile): mapFile is GenericElementMapFile {
+  return 'elements' in mapFile;
+}
+
+function evidenceElements(evidence: EvidenceFile | null): EvidenceElement[] {
+  if (!evidence) return [];
+  if (isGenericEvidence(evidence)) return evidence.elements;
+  return evidence.domains.map(domain => ({
+    elementId: domain.id,
+    kind: 'domain',
+    contractPolicy: 'optional' as const,
+    localId: localElementId(domain.id),
+    title: elementTitle(domain.id),
+    summary: elementSummary(domain.intent, `Intent for ${domain.id}.`),
+    confidence: domain.confidence,
+    sources: domain.sources,
+  }));
+}
+
+function mapElements(mapFile: DomainMapFile): CandidateArchitectureElement[] {
+  if (isGenericMap(mapFile)) {
+    return mapFile.elements.map(element => ({
+      ...element,
+      children: [],
+    }));
+  }
+  return [
+    {
+      elementId: mapFile.domain.id,
+      kind: 'domain',
+      contractPolicy: 'optional' as const,
+      localId: localElementId(mapFile.domain.id),
+      title: elementTitle(mapFile.domain.id),
+      summary: elementSummary(mapFile.domain.intent, `Intent for ${mapFile.domain.id}.`),
+      children: [],
+    },
+    ...mapFile.capabilities.map(capability => ({
+      elementId: capability.id,
+      kind: 'capability',
+      contractPolicy: 'optional' as const,
+      localId: localElementId(capability.id),
+      title: elementTitle(capability.id),
+      summary: elementSummary(capability.intent, `Intent for ${capability.id}.`),
+      spec: capability.spec,
+      children: [],
+    })),
+  ];
+}
+
+function mapParentLinks(mapFile: DomainMapFile): Array<{ parent: string; child: string }> {
+  if (isGenericMap(mapFile)) return mapFile.parent_links;
+  return [
+    { parent: 'project.root', child: mapFile.domain.id },
+    ...mapFile.capabilities.map(capability => ({ parent: mapFile.domain.id, child: capability.id })),
+  ];
+}
+
+function mapRelations(mapFile: DomainMapFile): CandidateRelation[] {
+  if (isGenericMap(mapFile)) return mapFile.relations;
+  return mapFile.relations
+    .filter(relation => !['belongs_to', 'refines', 'abstracts'].includes(relation.type))
+    .map(relation => ({
+      from: relation.from,
+      type: relation.type as CandidateRelation['type'],
+      to: relation.to,
+      ...(relation.note === undefined ? {} : { note: relation.note }),
+    }));
+}
+
+function assembleCandidateArchitectureModel(
+  projectRoot: string,
+  state: BootstrapState
+): { model: CandidateArchitectureModel; errors: string[] } {
+  const project = buildBootstrapProjectMetadata(projectRoot, state);
+  const root: CandidateArchitectureElement = {
+    elementId: 'project.root',
+    kind: 'project',
+    contractPolicy: 'required',
+    localId: 'projectRoot',
+    title: project.name,
+    summary: elementSummary(project.intent, 'Project intent is reviewed before promotion.'),
+    children: [],
+  };
+  const mappedElements = [...state.domainMaps.values()].flatMap(mapElements);
+  const relations = [...state.domainMaps.values()].flatMap(mapRelations);
+  const parentLinks = [...state.domainMaps.values()].flatMap(mapParentLinks);
+  const errors: string[] = [];
+  const evidenceById = new Map<string, EvidenceElement>();
+  const validatesMappedElementsAgainstEvidence = state.evidence !== null && isGenericEvidence(state.evidence);
+
+  for (const evidence of evidenceElements(state.evidence)) {
+    if (evidenceById.has(evidence.elementId)) {
+      errors.push(`Review gap: duplicate evidence elementId '${evidence.elementId}'.`);
+    } else {
+      evidenceById.set(evidence.elementId, evidence);
+    }
+    if (!evidence.contractPolicy) {
+      errors.push(`Review gap: evidence element '${evidence.elementId}' has no explicit contractPolicy.`);
+    }
+  }
+
+  const elementsById = new Map<string, CandidateArchitectureElement>();
+  const contractPolicyByKind = new Map<string, ContractPolicy>();
+  for (const element of mappedElements) {
+    if (element.elementId === root.elementId) {
+      errors.push(`Review gap: mapped elements must not redefine Project Root '${root.elementId}'.`);
+      continue;
+    }
+    if (elementsById.has(element.elementId)) {
+      errors.push(`Review gap: duplicate elementId '${element.elementId}'.`);
+      continue;
+    }
+    const discovered = evidenceById.get(element.elementId);
+    if (validatesMappedElementsAgainstEvidence && !discovered) {
+      errors.push(`Review gap: element '${element.elementId}' was not discovered in evidence.yaml.`);
+    } else if (validatesMappedElementsAgainstEvidence && discovered?.kind !== element.kind) {
+      errors.push(`Review gap: element '${element.elementId}' uses unknown kind '${element.kind}'; evidence declares '${discovered?.kind}'.`);
+    } else if (validatesMappedElementsAgainstEvidence && discovered?.contractPolicy !== element.contractPolicy) {
+      errors.push(`Review gap: element '${element.elementId}' contractPolicy does not match evidence.yaml.`);
+    }
+    if (!element.contractPolicy) {
+      errors.push(`Review gap: mapped element '${element.elementId}' has no explicit contractPolicy.`);
+    } else {
+      const kindPolicy = contractPolicyByKind.get(element.kind);
+      if (kindPolicy && kindPolicy !== element.contractPolicy) {
+        errors.push(`Review gap: element kind '${element.kind}' has conflicting contractPolicy values.`);
+      } else {
+        contractPolicyByKind.set(element.kind, element.contractPolicy);
+      }
+    }
+    elementsById.set(element.elementId, element);
+  }
+
+  if (validatesMappedElementsAgainstEvidence) {
+    for (const elementId of evidenceById.keys()) {
+      if (!elementsById.has(elementId)) {
+        errors.push(`Review gap: discovered element '${elementId}' has no mapped candidate.`);
+      }
+    }
+  }
+
+  const parentsByChild = new Map<string, string[]>();
+  for (const link of parentLinks) {
+    if (link.child === root.elementId) {
+      errors.push(`Review gap: Project Root '${root.elementId}' must not have a parent.`);
+      continue;
+    }
+    if (!elementsById.has(link.child)) {
+      errors.push(`Review gap: parent link references unknown child '${link.child}'.`);
+      continue;
+    }
+    if (link.parent !== root.elementId && !elementsById.has(link.parent)) {
+      errors.push(`Review gap: parent link for '${link.child}' references unknown parent '${link.parent}'.`);
+      continue;
+    }
+    const parents = parentsByChild.get(link.child) ?? [];
+    parents.push(link.parent);
+    parentsByChild.set(link.child, parents);
+  }
+
+  for (const element of elementsById.values()) {
+    const parents = parentsByChild.get(element.elementId) ?? [];
+    if (parents.length === 0) {
+      errors.push(`Review gap: non-root element '${element.elementId}' must have exactly one parent.`);
+    } else if (parents.length > 1) {
+      errors.push(`Review gap: non-root element '${element.elementId}' has multiple parents: ${parents.join(', ')}.`);
+    }
+  }
+
+  for (const element of elementsById.values()) {
+    const seen = new Set([element.elementId]);
+    let current = element.elementId;
+    while (parentsByChild.get(current)?.length === 1) {
+      const parent = parentsByChild.get(current)![0]!;
+      if (parent === root.elementId) break;
+      if (seen.has(parent)) {
+        errors.push(`Review gap: containment cycle includes '${parent}'.`);
+        break;
+      }
+      seen.add(parent);
+      current = parent;
+    }
+  }
+
+  if (errors.length === 0) {
+    for (const element of elementsById.values()) {
+      const parentId = parentsByChild.get(element.elementId)![0]!;
+      const parent = parentId === root.elementId ? root : elementsById.get(parentId)!;
+      parent.children.push(element);
+    }
+
+    const visiting = new Set<string>();
+    const visited = new Set<string>();
+    const visit = (element: CandidateArchitectureElement): void => {
+      if (visiting.has(element.elementId)) {
+        errors.push(`Review gap: containment cycle includes '${element.elementId}'.`);
+        return;
+      }
+      if (visited.has(element.elementId)) return;
+      visiting.add(element.elementId);
+      const localIds = new Set<string>();
+      for (const child of element.children) {
+        if (localIds.has(child.localId)) {
+          errors.push(`Review gap: siblings under '${element.elementId}' reuse localId '${child.localId}'.`);
+        }
+        localIds.add(child.localId);
+        visit(child);
+      }
+      visiting.delete(element.elementId);
+      visited.add(element.elementId);
+      element.children.sort((left, right) => left.localId.localeCompare(right.localId));
+    };
+    visit(root);
+    for (const element of elementsById.values()) {
+      if (!visited.has(element.elementId)) {
+        errors.push(`Review gap: element '${element.elementId}' is not reachable from Project Root.`);
+      }
+    }
+  }
+
+  const knownIds = new Set([root.elementId, ...elementsById.keys()]);
+  for (const relation of relations) {
+    if (!knownIds.has(relation.from)) errors.push(`Review gap: relation references unknown source '${relation.from}'.`);
+    if (!knownIds.has(relation.to)) errors.push(`Review gap: relation references unknown target '${relation.to}'.`);
+  }
+
+  return {
+    model: { root, elements: [root, ...elementsById.values()], relations },
+    errors,
+  };
+}
+
+function renderCandidateElement(element: CandidateArchitectureElement, level: number): string {
+  const prefix = ' '.repeat(level);
+  const bodyPrefix = ' '.repeat(level + 2);
+  const children = element.children.map(child => renderCandidateElement(child, level + 2)).join('\n');
+  const body = [
+    `${bodyPrefix}metadata { elementId ${quoteLikeC4(element.elementId)} }`,
+    children,
+  ].filter(Boolean).join('\n');
+  return `${prefix}${element.localId} = ${element.kind} ${quoteLikeC4(element.title)} ${quoteLikeC4(element.summary)} {\n${body}\n${prefix}}`;
+}
+
+function renderCandidateSpecification(model: CandidateArchitectureModel): string {
+  const parentsByKind = new Map<string, Set<string>>();
+  const childrenByKind = new Map<string, Set<string>>();
+  const visit = (parent: CandidateArchitectureElement): void => {
+    for (const child of parent.children) {
+      const parents = parentsByKind.get(child.kind) ?? new Set<string>();
+      parents.add(parent.kind);
+      parentsByKind.set(child.kind, parents);
+      const children = childrenByKind.get(parent.kind) ?? new Set<string>();
+      children.add(child.kind);
+      childrenByKind.set(parent.kind, children);
+      visit(child);
+    }
+  };
+  visit(model.root);
+
+  const kinds = [...new Set(model.elements.map(element => element.kind))]
+    .filter(kind => kind !== 'project')
+    .sort();
+  const contractPolicyByKind = new Map(model.elements.map(element => [element.kind, element.contractPolicy]));
+  const renderKinds = ['project', ...kinds].map(kind => {
+    const contractPolicy = contractPolicyByKind.get(kind);
+    if (!contractPolicy) throw new Error(`Cannot render element kind '${kind}' without an explicit contractPolicy`);
+    const annotations = [
+      ...(kind === 'project' ? ['root true'] : []),
+      `contract ${contractPolicy}`,
+      ...(parentsByKind.has(kind) ? [`parents [${[...parentsByKind.get(kind)!].sort().join(', ')}]`] : []),
+      ...(childrenByKind.has(kind) ? [`children [${[...childrenByKind.get(kind)!].sort().join(', ')}]`] : []),
+    ];
+    return `  element ${kind} {\n    opsx {\n${annotations.map(value => `      ${value}`).join('\n')}\n    }\n  }`;
+  });
+
+  return `opsx {\n  languageVersion '1'\n}\n\nspecification {\n${renderKinds.join('\n\n')}\n\n  relationship invokes\n  relationship produces\n  relationship consumes\n  relationship precedes\n  relationship constrains\n  relationship validates\n}\n`;
+}
+
+function renderCandidateArchitecture(model: CandidateArchitectureModel): Map<string, string> {
+  const fqnByElementId = new Map<string, string>();
+  const visit = (element: CandidateArchitectureElement, fqn: string): void => {
+    fqnByElementId.set(element.elementId, fqn);
+    for (const child of element.children) visit(child, `${fqn}.${child.localId}`);
+  };
+  visit(model.root, model.root.localId);
+
+  const relations = model.relations.map(relation => {
+    const source = fqnByElementId.get(relation.from)!;
+    const target = fqnByElementId.get(relation.to)!;
+    const note = relation.note ? ` {\n  description ${quoteLikeC4(relation.note)}\n}` : '';
+    return `${source} -[${relation.type}]-> ${target}${note}`;
+  });
+
+  return new Map([
+    ['specification.c4', renderCandidateSpecification(model)],
+    ['model.c4', `model {\n${renderCandidateElement(model.root, 2)}\n}\n`],
+    ['relations.c4', `model {\n${indent(relations.join('\n'))}\n}\n`],
+    ['views.c4', renderViews()],
+  ]);
 }
 
 function formalSpecPath(projectRoot: string, folder: string): string {
@@ -537,34 +954,33 @@ function compareEvidenceDomains(a: EvidenceDomain, b: EvidenceDomain): number {
   return confidenceComparison !== 0 ? confidenceComparison : a.id.localeCompare(b.id);
 }
 
+function compareEvidenceElements(a: EvidenceElement, b: EvidenceElement): number {
+  const confidenceComparison = compareConfidence(a.confidence, b.confidence);
+  return confidenceComparison !== 0 ? confidenceComparison : a.elementId.localeCompare(b.elementId);
+}
+
 function normalizeBootstrapText(value: string | undefined): string | undefined {
   const normalized = value?.trim().replace(/\s+/g, ' ');
   return normalized ? normalized : undefined;
 }
 
 function deriveProjectIntent(state: BootstrapState): string | undefined {
-  const intentsByDomain = new Map<string, string>();
-  for (const domain of state.evidence?.domains ?? []) {
-    const normalizedIntent = normalizeBootstrapText(domain.intent);
-    if (normalizedIntent) {
-      intentsByDomain.set(domain.id, normalizedIntent);
+  if (state.domainMaps.size === 0) return undefined;
+  const summariesByElement = new Map<string, string>();
+  for (const evidence of evidenceElements(state.evidence)) {
+    const summary = normalizeBootstrapText(evidence.summary);
+    if (summary) summariesByElement.set(evidence.elementId, summary);
+  }
+  for (const mapFile of state.domainMaps.values()) {
+    for (const element of mapElements(mapFile)) {
+      const summary = normalizeBootstrapText(element.summary);
+      if (summary) summariesByElement.set(element.elementId, summary);
     }
   }
-
-  for (const [domainId, mapFile] of [...state.domainMaps.entries()].sort(([leftId], [rightId]) => leftId.localeCompare(rightId))) {
-    const normalizedIntent = normalizeBootstrapText(mapFile.domain.intent);
-    if (normalizedIntent) {
-      intentsByDomain.set(domainId, normalizedIntent);
-    }
-  }
-
-  if (intentsByDomain.size === 0 || state.domainMaps.size === 0) {
-    return undefined;
-  }
-
-  return [...intentsByDomain.entries()]
+  if (summariesByElement.size === 0) return undefined;
+  return [...summariesByElement.entries()]
     .sort(([leftId], [rightId]) => leftId.localeCompare(rightId))
-    .map(([, intent]) => intent)
+    .map(([, summary]) => summary)
     .join('; ');
 }
 
@@ -573,7 +989,10 @@ function deriveProjectScope(state: BootstrapState): string | undefined {
     return undefined;
   }
 
-  const mappedDomainIds = [...state.domainMaps.keys()].sort();
+  const mappedElementIds = [...state.domainMaps.values()]
+    .flatMap(mapElements)
+    .map(element => element.elementId)
+    .sort();
   const segments = [`mode=${state.scope.mode}`];
   if (state.scope.include.length > 0) {
     segments.push(`include=${state.scope.include.join(', ')}`);
@@ -581,8 +1000,8 @@ function deriveProjectScope(state: BootstrapState): string | undefined {
   if (state.scope.exclude.length > 0) {
     segments.push(`exclude=${state.scope.exclude.join(', ')}`);
   }
-  if (mappedDomainIds.length > 0) {
-    segments.push(`mapped domains=${mappedDomainIds.join(', ')}`);
+  if (mappedElementIds.length > 0) {
+    segments.push(`mapped elements=${mappedElementIds.join(', ')}`);
   }
 
   if (segments.length === 1) {
@@ -627,30 +1046,49 @@ function buildBootstrapProjectMetadata(projectRoot: string, state: BootstrapStat
 }
 
 function normalizeEvidenceForFingerprint(evidence: EvidenceFile): EvidenceFile {
+  if (isGenericEvidence(evidence)) {
+    return {
+      elements: [...evidence.elements]
+        .sort((a, b) => a.elementId.localeCompare(b.elementId))
+        .map(element => ({ ...element, sources: [...element.sources].sort() })),
+    };
+  }
   return {
     domains: [...evidence.domains]
       .sort((a, b) => a.id.localeCompare(b.id))
-      .map((domain) => ({
-        ...domain,
-        sources: [...domain.sources].sort(),
-      })),
+      .map(domain => ({ ...domain, sources: [...domain.sources].sort() })),
   };
 }
 
 function normalizeDomainMapForFingerprint(mapFile: DomainMapFile): DomainMapFile {
-  return {
-    domain: { ...mapFile.domain },
-    capabilities: [...mapFile.capabilities].sort((a, b) => a.id.localeCompare(b.id)),
-    relations: [...mapFile.relations].sort((a, b) => {
+  const sortRelationsForFingerprint = <T extends { from: string; type: string; to: string }>(relations: T[]): T[] =>
+    [...relations].sort((a, b) => {
       const fromComparison = a.from.localeCompare(b.from);
       if (fromComparison !== 0) return fromComparison;
       const typeComparison = a.type.localeCompare(b.type);
       return typeComparison !== 0 ? typeComparison : a.to.localeCompare(b.to);
-    }),
-    review_gaps: [...mapFile.review_gaps].sort((a, b) => {
-      const evidenceComparison = a.evidence.localeCompare(b.evidence);
-      return evidenceComparison !== 0 ? evidenceComparison : a.reason.localeCompare(b.reason);
-    }),
+    });
+  const review_gaps = [...mapFile.review_gaps].sort((a, b) => {
+    const evidenceComparison = a.evidence.localeCompare(b.evidence);
+    return evidenceComparison !== 0 ? evidenceComparison : a.reason.localeCompare(b.reason);
+  });
+  if (isGenericMap(mapFile)) {
+    return {
+      elements: [...mapFile.elements].sort((a, b) => a.elementId.localeCompare(b.elementId)),
+      parent_links: [...mapFile.parent_links].sort((a, b) => {
+        const childComparison = a.child.localeCompare(b.child);
+        return childComparison !== 0 ? childComparison : a.parent.localeCompare(b.parent);
+      }),
+      relations: sortRelationsForFingerprint(mapFile.relations),
+      review_gaps,
+    };
+  }
+  return {
+    domain: { ...mapFile.domain },
+    capabilities: [...mapFile.capabilities].sort((a, b) => a.id.localeCompare(b.id)),
+    relations: sortRelationsForFingerprint(mapFile.relations),
+    review_gaps,
+    ...(mapFile.spec_groups ? { spec_groups: mapFile.spec_groups } : {}),
   };
 }
 
@@ -790,8 +1228,7 @@ function getNextBootstrapAction(phase: BootstrapPhase): BootstrapPhase | null {
 
 async function candidateFilesExist(projectRoot: string, candidateSpecs: BootstrapCandidateSpec[]): Promise<boolean> {
   const results = await Promise.all([
-    FileSystemUtils.fileExists(candidatePath(projectRoot, 'project.opsx.yaml')),
-    FileSystemUtils.fileExists(candidatePath(projectRoot, 'project.opsx.relations.yaml')),
+    ...BOOTSTRAP_ARCHITECTURE_FILES.map(file => FileSystemUtils.fileExists(candidatePath(projectRoot, file))),
     ...candidateSpecs.map((spec) => FileSystemUtils.fileExists(candidateSpecPath(projectRoot, spec.folder))),
   ]);
   return results.every(Boolean);
@@ -803,7 +1240,7 @@ function collectReviewChecks(reviewContent: string): { checkedDomains: Set<strin
 
   for (const rawLine of reviewContent.split('\n')) {
     const line = rawLine.trim();
-    const checkedMatch = line.match(/^-\s+\[x\]\s+(dom\.\S+)/i);
+    const checkedMatch = line.match(/^-\s+\[x\]\s+([^\s—]+)/i);
     if (checkedMatch) {
       checkedDomains.add(checkedMatch[1]);
     }
@@ -849,13 +1286,25 @@ function renderProjectedProse(text: string, _projection: RuntimeProjection): str
   return text.trim();
 }
 
+function renderProjectContractSpec(bundle: ProjectOpsxBundle, projection: RuntimeProjection): string {
+  const intent = renderProjectedProse(
+    bundle.project.intent ?? 'The project intent is reviewed as part of bootstrap promotion.',
+    projection,
+  );
+  return `---\nelement: project.root\n---\n\n# Spec: project\n\n## Purpose\n\n${intent}\n\n## Requirements\n\n### Requirement: Project intent\nThe project SHALL preserve the reviewed semantic model intent.\n\n#### Scenario: Project model is reviewed\n- **WHEN** the bootstrap candidate is reviewed\n- **THEN** the promoted model reflects the approved project intent\n`;
+}
+
 function renderCandidateSpec(
-  capability: DomainCapability,
+  elementId: string,
+  spec: ElementSpec,
   folder: string,
   projection: RuntimeProjection
 ): string {
-  const spec = capability.spec!;
   const lines: string[] = [
+    '---',
+    `element: ${elementId}`,
+    '---',
+    '',
     `# Spec: ${folder}`,
     '',
     '## Purpose',
@@ -889,7 +1338,7 @@ async function assembleCandidateSpecs(
   bundle: ProjectOpsxBundle | null,
   options: { addedCapabilityIds?: Set<string> } = {}
 ): Promise<CandidateSpecAssembly> {
-  if (!bundle || (state.metadata.mode !== 'full' && state.metadata.mode !== 'refresh')) {
+  if (!bundle) {
     return { specs: [], preservedFormalPaths: [], sourceErrors: [], validationErrors: [] };
   }
 
@@ -903,12 +1352,88 @@ async function assembleCandidateSpecs(
     consumer: 'bootstrap-candidate-spec',
   });
 
+  const projectFolder = 'project';
+  const projectPath = formalSpecPath(projectRoot, projectFolder);
+  if (state.metadata.baseline_type !== 'specs-based' || !await FileSystemUtils.fileExists(projectPath)) {
+    const projectContent = renderProjectContractSpec(bundle, candidateProjection);
+    const projectRelativePath = `.opsx/bootstrap/candidate/specs/${projectFolder}/spec.md`;
+    specs.push({
+      elementId: 'project.root',
+      folder: projectFolder,
+      candidateRelativePath: projectRelativePath,
+      formalRelativePath: `.opsx/specs/${projectFolder}/spec.md`,
+      content: projectContent,
+    });
+    const report = await validator.validateSpecContent(projectFolder, projectContent);
+    if (!report.valid) {
+      for (const issue of report.issues.filter(issue => issue.level === 'ERROR')) {
+        validationErrors.push(`Candidate spec '${projectRelativePath}' failed validation at ${issue.path || 'file'}: ${issue.message}`);
+      }
+    }
+  }
+
+  if (state.metadata.mode === 'opsx-first') {
+    return { specs, preservedFormalPaths, sourceErrors, validationErrors };
+  }
+
   const sortedDomainMaps = [...state.domainMaps.entries()]
     .sort(([leftId], [rightId]) => leftId.localeCompare(rightId))
     .map(([, mapFile]) => mapFile);
   const restrictToAddedCapabilities = state.metadata.mode === 'refresh' ? (options.addedCapabilityIds ?? new Set<string>()) : null;
 
   for (const mapFile of sortedDomainMaps) {
+    if (isGenericMap(mapFile)) {
+      for (const element of [...mapFile.elements].sort((a, b) => a.elementId.localeCompare(b.elementId))) {
+        if (!element.spec) continue;
+        const folder = normalizeSpecFolderInput(element.spec.folder);
+        if (!folder || folder.includes('/') || folder.includes('\\')) {
+          sourceErrors.push(`Element '${element.elementId}' has invalid spec folder '${element.spec.folder}'. Use a single cross-platform path segment.`);
+          continue;
+        }
+        const priorElement = seenFolders.get(folder);
+        if (priorElement && priorElement !== element.elementId) {
+          sourceErrors.push(`Elements '${priorElement}' and '${element.elementId}' map to the same spec folder '${folder}'`);
+          continue;
+        }
+        seenFolders.set(folder, element.elementId);
+        for (const requirement of element.spec.requirements) {
+          if (!usesShallOrMust(requirement.text)) {
+            sourceErrors.push(`Element '${element.elementId}' requirement '${requirement.title}' must contain SHALL or MUST`);
+          }
+          for (const scenario of requirement.scenarios) {
+            sourceErrors.push(...validateSpecScenarioSteps(
+              element.elementId,
+              requirement.title,
+              scenario.title,
+              scenario.steps
+            ));
+          }
+        }
+        const formalRelativePath = `.opsx/specs/${folder}/spec.md`;
+        const alreadyExists = await FileSystemUtils.fileExists(formalSpecPath(projectRoot, folder));
+        if (state.metadata.baseline_type === 'specs-based' && alreadyExists) {
+          if (element.spec.preserve_existing) {
+            preservedFormalPaths.push(formalRelativePath);
+            continue;
+          }
+          sourceErrors.push(`Element '${element.elementId}' maps to existing spec path '${formalRelativePath}'. Mark spec.preserve_existing: true to preserve it, or choose a different folder.`);
+          continue;
+        }
+        if (state.metadata.mode === 'refresh' && alreadyExists) {
+          sourceErrors.push(`Refresh cannot write spec '${formalRelativePath}' because the target path already exists. Preserve existing formal specs or choose a different folder.`);
+          continue;
+        }
+        const candidateRelativePath = `.opsx/bootstrap/candidate/specs/${folder}/spec.md`;
+        const content = renderCandidateSpec(element.elementId, element.spec, folder, candidateProjection);
+        specs.push({ elementId: element.elementId, folder, candidateRelativePath, formalRelativePath, content });
+        const report = await validator.validateSpecContent(folder, content);
+        for (const issue of report.issues.filter(issue => issue.level === 'ERROR')) {
+          validationErrors.push(`Candidate spec '${candidateRelativePath}' failed validation at ${issue.path || 'file'}: ${issue.message}`);
+        }
+      }
+      continue;
+    }
+
     // Coarse mode: generate specs from spec_groups
     if (state.scope?.granularity === 'coarse' && mapFile.spec_groups && mapFile.spec_groups.length > 0) {
       const domainCapIds = new Set(mapFile.capabilities.map((c) => c.id));
@@ -942,7 +1467,13 @@ async function assembleCandidateSpecs(
           continue;
         }
 
-        const frontmatterLines = ['---', 'capabilities:', ...group.capabilities.filter((c) => domainCapIds.has(c)).map((c) => `  - ${c}`), '---', '', `# Spec: ${folder}`, '', '## Purpose', '', group.purpose || 'TODO', ''];
+        const groupCapabilities = group.capabilities.filter((c) => domainCapIds.has(c));
+        if (groupCapabilities.length !== 1) {
+          sourceErrors.push(`Spec group '${folder}' has ambiguous owners (${groupCapabilities.join(', ')}); resolve to exactly one element before promotion.`);
+          continue;
+        }
+        const elementId = groupCapabilities[0];
+        const frontmatterLines = ['---', `element: ${elementId}`, '---', '', `# Spec: ${folder}`, '', '## Purpose', '', group.purpose || 'TODO', ''];
         const contentParts = [...frontmatterLines];
         if (group.requirements && group.requirements.length > 0) {
           contentParts.push('## Requirements', '');
@@ -961,7 +1492,7 @@ async function assembleCandidateSpecs(
         }
         const content = contentParts.join('\n');
         specs.push({
-          capabilityId: `spec_group:${folder}`,
+          elementId,
           folder,
           candidateRelativePath,
           formalRelativePath,
@@ -1047,9 +1578,9 @@ async function assembleCandidateSpecs(
       }
 
       const candidateRelativePath = `.opsx/bootstrap/candidate/specs/${folder}/spec.md`;
-      const content = renderCandidateSpec(capability, folder, candidateProjection);
+      const content = renderCandidateSpec(capability.id, capability.spec, folder, candidateProjection);
       specs.push({
-        capabilityId: capability.id,
+        elementId: capability.id,
         folder,
         candidateRelativePath,
         formalRelativePath,
@@ -1092,6 +1623,47 @@ async function validateFormalSpecTargets(
     }
   }
   return errors;
+}
+
+async function validateCandidateArchitectureOnDisk(
+  projectRoot: string,
+  candidateSpecs: BootstrapCandidateSpec[]
+): Promise<string[]> {
+  const candidateRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-bootstrap-candidate-'));
+  try {
+    const architectureDirectory = path.join(candidateRoot, OPSX_DIR_NAME, 'architecture');
+    await FileSystemUtils.createDirectory(architectureDirectory);
+    await Promise.all(BOOTSTRAP_ARCHITECTURE_FILES.map(async file => {
+      const source = candidatePath(projectRoot, file);
+      await fs.copyFile(source, path.join(architectureDirectory, file));
+    }));
+    const specsDirectory = path.join(candidateRoot, OPSX_DIR_NAME, 'specs');
+    await Promise.all(candidateSpecs.map(async spec => {
+      const target = path.join(specsDirectory, spec.folder, 'spec.md');
+      await FileSystemUtils.createDirectory(path.dirname(target));
+      await fs.copyFile(candidateSpecPath(projectRoot, spec.folder), target);
+    }));
+
+    const architecture = await readLikeC4Architecture(candidateRoot);
+    const validation = await validateArchitecture(candidateRoot, architecture);
+    const errors = validation.errors.map(issue => `Candidate architecture: ${issue.message}`);
+    const registry = await buildSpecRegistry(candidateRoot, specsDirectory);
+    const elementIds = new Set(architecture.elements.map(element => element.id));
+    errors.push(...registry.getOrphanedSpecs().map(spec => `Candidate spec '${spec}' has no singular element binding`));
+    for (const [spec, element] of registry.specToElement) {
+      if (!elementIds.has(element)) {
+        errors.push(`Candidate spec '${spec}' binds missing element '${element}'`);
+      }
+      errors.push(...registry.getIssuesForSpec(spec).map(issue => `Candidate spec '${spec}': ${issue.message}`));
+    }
+    errors.push(...registry.getUncoveredRequiredElements(architecture.elements, architecture.metamodel)
+      .map(element => `Candidate architecture required element '${element}' has no bound Spec`));
+    return errors;
+  } catch (error) {
+    return [`Candidate architecture validation failed: ${error instanceof Error ? error.message : String(error)}`];
+  } finally {
+    await fs.rm(candidateRoot, { recursive: true, force: true }).catch(() => undefined);
+  }
 }
 
 async function validateCandidateSpecsOnDisk(
@@ -1376,7 +1948,8 @@ export async function readBootstrapState(projectRoot: string): Promise<Bootstrap
       try {
         const raw = await readYaml(path.join(mapDir, entry));
         const parsed = DomainMapFileSchema.parse(raw);
-        domainMaps.set(parsed.domain.id, parsed);
+        const mapId = isGenericMap(parsed) ? entry.replace(/\.yaml$/, '') : parsed.domain.id;
+        domainMaps.set(mapId, parsed);
       } catch (error) {
         const domainId = entry.replace(/\.yaml$/, '');
         invalidDomainMaps.set(domainId, {
@@ -1436,22 +2009,36 @@ export async function getBootstrapStatus(projectRoot: string): Promise<Bootstrap
     : state.metadata.baseline_type;
   const derived = await deriveBootstrapArtifacts(projectRoot, state);
   const domains: DomainStatus[] = [];
+  const elements: ElementStatus[] = [];
 
   if (state.evidence) {
-    const orderedDomains = [...state.evidence.domains].sort(compareEvidenceDomains);
-    for (const dom of orderedDomains) {
-      const mapFile = state.domainMaps.get(dom.id);
-      const invalidMap = state.invalidDomainMaps.get(dom.id);
-      const mapState = mapFile ? 'valid' : invalidMap ? 'invalid' : 'missing';
-      domains.push({
-        id: dom.id,
-        confidence: dom.confidence,
-        mapped: mapState === 'valid',
-        mapState,
-        ...(invalidMap ? { mapError: invalidMap.error } : {}),
-        capabilityCount: mapFile?.capabilities.length ?? 0,
-        reviewed: derived.reviewState === 'current' && derived.checkedDomains.has(dom.id),
-      });
+    if (isGenericEvidence(state.evidence)) {
+      const mappedIds = new Set([...state.domainMaps.values()].flatMap(mapElements).map(element => element.elementId));
+      for (const element of [...state.evidence.elements].sort(compareEvidenceElements)) {
+        elements.push({
+          elementId: element.elementId,
+          kind: element.kind,
+          confidence: element.confidence,
+          mapped: mappedIds.has(element.elementId),
+          reviewed: derived.reviewState === 'current' && derived.checkedDomains.has(element.elementId),
+        });
+      }
+    } else {
+      const orderedDomains = [...state.evidence.domains].sort(compareEvidenceDomains);
+      for (const dom of orderedDomains) {
+        const mapFile = state.domainMaps.get(dom.id);
+        const invalidMap = state.invalidDomainMaps.get(dom.id);
+        const mapState = mapFile ? 'valid' : invalidMap ? 'invalid' : 'missing';
+        domains.push({
+          id: dom.id,
+          confidence: dom.confidence,
+          mapped: mapState === 'valid',
+          mapState,
+          ...(invalidMap ? { mapError: invalidMap.error } : {}),
+          capabilityCount: mapFile && !isGenericMap(mapFile) ? mapFile.capabilities.length : 0,
+          reviewed: derived.reviewState === 'current' && derived.checkedDomains.has(dom.id),
+        });
+      }
     }
   }
 
@@ -1473,6 +2060,10 @@ export async function getBootstrapStatus(projectRoot: string): Promise<Bootstrap
     totalDomains: domains.length,
     mappedDomains: domains.filter(d => d.mapped).length,
     reviewedDomains: domains.filter(d => d.reviewed).length,
+    elements,
+    totalElements: elements.length,
+    mappedElements: elements.filter(element => element.mapped).length,
+    reviewedElements: elements.filter(element => element.reviewed).length,
     candidateState: derived.candidateState,
     reviewState: derived.reviewState,
     reviewApproved: derived.reviewApproved,
@@ -1495,14 +2086,16 @@ export async function validateGate(
         break;
       }
       const ids = new Set<string>();
-      for (const dom of state.evidence.domains) {
-        if (!dom.id.startsWith('dom.')) {
-          errors.push(`Domain ID '${dom.id}' does not follow dom.<name> convention`);
+      if (isGenericEvidence(state.evidence)) {
+        for (const element of state.evidence.elements) {
+          if (ids.has(element.elementId)) errors.push(`Duplicate elementId: ${element.elementId}`);
+          ids.add(element.elementId);
         }
-        if (ids.has(dom.id)) {
-          errors.push(`Duplicate domain ID: ${dom.id}`);
+      } else {
+        for (const dom of state.evidence.domains) {
+          if (ids.has(dom.id)) errors.push(`Duplicate domain ID: ${dom.id}`);
+          ids.add(dom.id);
         }
-        ids.add(dom.id);
       }
       break;
     }
@@ -1511,16 +2104,21 @@ export async function validateGate(
         errors.push('evidence.yaml not found');
         break;
       }
-      for (const dom of state.evidence.domains) {
-        const invalidMap = state.invalidDomainMaps.get(dom.id);
-        if (invalidMap) {
-          errors.push(
-            `Domain '${dom.id}' has invalid domain-map: ${invalidMap.file} — ${invalidMap.error}`
-          );
-          continue;
+      if (isGenericEvidence(state.evidence)) {
+        for (const invalidMap of state.invalidDomainMaps.values()) {
+          errors.push(`Element map '${invalidMap.file}' is invalid — ${invalidMap.error}`);
         }
-        if (!state.domainMaps.has(dom.id)) {
-          errors.push(`Domain '${dom.id}' has no domain-map file`);
+        if (state.domainMaps.size === 0 && state.invalidDomainMaps.size === 0) {
+          errors.push('No element map file found');
+        }
+      } else {
+        for (const dom of state.evidence.domains) {
+          const invalidMap = state.invalidDomainMaps.get(dom.id);
+          if (invalidMap) {
+            errors.push(`Domain '${dom.id}' has invalid domain-map: ${invalidMap.file} — ${invalidMap.error}`);
+            continue;
+          }
+          if (!state.domainMaps.has(dom.id)) errors.push(`Domain '${dom.id}' has no domain-map file`);
         }
       }
 
@@ -1528,11 +2126,13 @@ export async function validateGate(
       if (state.scope?.granularity === 'coarse') {
         const capabilityIds = new Map<string, Set<string>>();
         for (const [, mapFile] of state.domainMaps) {
+          if (isGenericMap(mapFile)) continue;
           const ids = new Set(mapFile.capabilities.map((c) => c.id));
           capabilityIds.set(mapFile.domain.id, ids);
         }
 
         for (const [, mapFile] of state.domainMaps) {
+          if (isGenericMap(mapFile)) continue;
           const domainCaps = capabilityIds.get(mapFile.domain.id) ?? new Set();
 
           if (!mapFile.spec_groups || mapFile.spec_groups.length === 0) {
@@ -1568,21 +2168,19 @@ export async function validateGate(
         }
       }
 
-      for (const [, mapFile] of state.domainMaps) {
-        for (const cap of mapFile.capabilities) {
-          if (!cap.id.startsWith('cap.')) {
-            errors.push(`Capability ID '${cap.id}' does not follow cap.<domain>.<action> convention`);
-          }
-        }
-      }
       const derived = await deriveBootstrapArtifacts(projectRoot, state);
-      errors.push(...derived.specErrors);
+      errors.push(...derived.modelErrors, ...derived.specErrors);
       break;
     }
     case 'review_to_promote': {
       const scanGate = await validateGate(projectRoot, 'scan_to_map');
       const mapGate = await validateGate(projectRoot, 'map_to_review');
       errors.push(...scanGate.errors, ...mapGate.errors);
+      for (const [mapId, mapFile] of state.domainMaps) {
+        for (const gap of mapFile.review_gaps) {
+          errors.push(`Unresolved review gap in '${mapId}': ${gap.evidence} — ${gap.reason}`);
+        }
+      }
 
       const derived = await deriveBootstrapArtifacts(projectRoot, state);
       if (!state.reviewExists) {
@@ -1591,7 +2189,8 @@ export async function validateGate(
         errors.push('Review approval is stale. Run `opsx bootstrap validate` to regenerate review.md and re-approve it.');
       }
 
-      if (!derived.bundle || !derived.candidateFingerprint) {
+      if (!derived.bundle || !derived.candidateModel || !derived.candidateFingerprint) {
+        errors.push(...derived.modelErrors);
         errors.push('Candidate OPSX artifacts are unavailable. Run `opsx bootstrap validate` after scan/map are complete.');
         break;
       }
@@ -1606,6 +2205,7 @@ export async function validateGate(
 
       errors.push(...derived.specErrors);
       errors.push(...await validateCandidateSpecsOnDisk(projectRoot, derived.candidateSpecs));
+      errors.push(...await validateCandidateArchitectureOnDisk(projectRoot, derived.candidateSpecs));
       errors.push(...await validateFormalSpecTargets(projectRoot, state, derived.candidateSpecs));
 
       const bundle = derived.bundle;
@@ -1629,6 +2229,7 @@ function assembleBundle(projectRoot: string, state: BootstrapState): ProjectOpsx
     .map(([, mapFile]) => mapFile);
 
   for (const mapFile of sortedDomainMaps) {
+    if (isGenericMap(mapFile)) continue;
     domains.push({
       id: mapFile.domain.id,
       type: 'domain',
@@ -1685,6 +2286,7 @@ function computeSourceFingerprint(projectRoot: string, state: BootstrapState): s
 function computeCandidateFingerprint(
   projectRoot: string,
   bundle: ProjectOpsxBundle,
+  candidateModel: CandidateArchitectureModel,
   state: BootstrapState,
   candidateSpecs: BootstrapCandidateSpec[],
   preservedFormalPaths: string[],
@@ -1694,6 +2296,7 @@ function computeCandidateFingerprint(
   const projectConfig = readProjectConfig(projectRoot);
   return fingerprintValue({
     bundle,
+    candidateModel,
     baseline: state.metadata.baseline_type,
     mode: state.metadata.mode,
     runtimeProjection: {
@@ -1716,7 +2319,7 @@ function computeCandidateFingerprint(
       preservedNodeIds: refreshDelta.preservedNodeIds,
     } : null,
     candidateSpecs: candidateSpecs.map((spec) => ({
-      capabilityId: spec.capabilityId,
+      elementId: spec.elementId,
       candidateRelativePath: spec.candidateRelativePath,
       formalRelativePath: spec.formalRelativePath,
       content: spec.content,
@@ -1750,7 +2353,7 @@ async function writeBootstrapMetadata(projectRoot: string, metadata: BootstrapMe
 async function writeCandidateFiles(
   projectRoot: string,
   state: BootstrapState,
-  bundle: ProjectOpsxBundle,
+  candidateModel: CandidateArchitectureModel,
   candidateSpecs: BootstrapCandidateSpec[]
 ): Promise<string[]> {
   const candidateDir = bootstrapPath(projectRoot, BOOTSTRAP_CANDIDATE_DIR);
@@ -1761,18 +2364,17 @@ async function writeCandidateFiles(
     await fs.rm(FileSystemUtils.joinPath(projectRoot, relativePath), { force: true }).catch(() => undefined);
   }));
 
-  const mainData = {
-    schema_version: bundle.schema_version,
-    project: bundle.project,
-    ...(bundle.domains.length ? { domains: bundle.domains } : {}),
-    ...(bundle.capabilities.length ? { capabilities: bundle.capabilities } : {}),
-  };
-  const relData = { schema_version: bundle.schema_version, relations: bundle.relations };
+  const architectureFiles = renderCandidateArchitecture(candidateModel);
+  await Promise.all([
+    ...[...architectureFiles.entries()].map(([relativePath, content]) =>
+      FileSystemUtils.writeFile(candidatePath(projectRoot, relativePath), content)
+    ),
+    ...candidateSpecs.map((spec) => FileSystemUtils.writeFile(candidateSpecPath(projectRoot, spec.folder), spec.content)),
+  ]);
 
   await Promise.all([
-    writeYaml(candidatePath(projectRoot, BOOTSTRAP_CANDIDATE_FILE_NAMES.project), mainData),
-    writeYaml(candidatePath(projectRoot, BOOTSTRAP_CANDIDATE_FILE_NAMES.relations), relData),
-    ...candidateSpecs.map((spec) => FileSystemUtils.writeFile(candidateSpecPath(projectRoot, spec.folder), spec.content)),
+    fs.rm(bootstrapPath(projectRoot, BOOTSTRAP_CANDIDATE_DIR, 'project.opsx.yaml'), { force: true }),
+    fs.rm(bootstrapPath(projectRoot, BOOTSTRAP_CANDIDATE_DIR, 'project.opsx.relations.yaml'), { force: true }),
   ]);
 
   return nextSpecPaths;
@@ -1847,48 +2449,52 @@ function buildReviewContent(
     lines.push('');
   }
 
-  const reviewGaps = [...state.domainMaps.values()]
-    .flatMap((mapFile) => mapFile.review_gaps.map((gap) => ({ domainId: mapFile.domain.id, ...gap })))
+  const reviewGaps = [...state.domainMaps.entries()]
+    .flatMap(([mapId, mapFile]) => mapFile.review_gaps.map((gap) => ({ mapId, ...gap })))
     .sort((left, right) => {
-      const domainComparison = left.domainId.localeCompare(right.domainId);
-      if (domainComparison !== 0) return domainComparison;
+      const mapComparison = left.mapId.localeCompare(right.mapId);
+      if (mapComparison !== 0) return mapComparison;
       const evidenceComparison = left.evidence.localeCompare(right.evidence);
       return evidenceComparison !== 0 ? evidenceComparison : left.reason.localeCompare(right.reason);
     });
   if (reviewGaps.length > 0) {
     lines.push('## Review Gaps', '');
     for (const gap of reviewGaps) {
-      lines.push(`- [ ] ${gap.domainId}: ${gap.evidence} — ${gap.reason}`);
+      lines.push(`- [ ] ${gap.mapId}: ${gap.evidence} — ${gap.reason}`);
     }
     lines.push('');
   }
 
-  lines.push('## Domain Checklist', '');
-
-  const orderedDomains = [...state.evidence.domains]
-    .filter((domain) => state.metadata.mode !== 'refresh' || !derived.refreshDelta || derived.refreshDelta.affectedDomainIds.length === 0 || derived.refreshDelta.affectedDomainIds.includes(domain.id))
-    .sort(compareEvidenceDomains);
-  for (const dom of orderedDomains) {
-    const mapFile = state.domainMaps.get(dom.id);
-    const capCount = mapFile?.capabilities.length ?? 0;
-    const status = mapFile
-      ? localizeBootstrapText(projection, {
-        en: `${capCount} capabilities`,
-        zh: `${capCount} capabilities`,
-      })
-      : localizeBootstrapText(projection, { en: 'unmapped', zh: 'unmapped' });
-    lines.push(`- [ ] ${dom.id} — ${status}, confidence: ${dom.confidence}`);
+  lines.push(isGenericEvidence(state.evidence) ? '## Element Checklist' : '## Domain Checklist', '');
+  if (isGenericEvidence(state.evidence)) {
+    const mappedIds = new Set([...state.domainMaps.values()].flatMap(mapElements).map(element => element.elementId));
+    for (const element of [...state.evidence.elements].sort(compareEvidenceElements)) {
+      const status = mappedIds.has(element.elementId) ? 'mapped' : 'unmapped';
+      lines.push(`- [ ] ${element.elementId} — ${status}, kind: ${element.kind}, contractPolicy: ${element.contractPolicy}, confidence: ${element.confidence}`);
+    }
+  } else {
+    const orderedDomains = [...state.evidence.domains]
+      .filter((domain) => state.metadata.mode !== 'refresh' || !derived.refreshDelta || derived.refreshDelta.affectedDomainIds.length === 0 || derived.refreshDelta.affectedDomainIds.includes(domain.id))
+      .sort(compareEvidenceDomains);
+    for (const dom of orderedDomains) {
+      const mapFile = state.domainMaps.get(dom.id);
+      const capCount = mapFile && !isGenericMap(mapFile) ? mapFile.capabilities.length : 0;
+      const status = mapFile
+        ? localizeBootstrapText(projection, { en: `${capCount} capabilities`, zh: `${capCount} capabilities` })
+        : localizeBootstrapText(projection, { en: 'unmapped', zh: 'unmapped' });
+      lines.push(`- [ ] ${dom.id} — ${status}, confidence: ${dom.confidence}`);
+    }
   }
 
   lines.push('', '## Candidate Specs', '');
   if (state.metadata.mode === 'opsx-first') {
     lines.push(`- ${localizeBootstrapText(projection, {
-      en: 'Mode contract: README-only starter at .opsx/specs/README.md',
-      zh: 'Mode contract: README-only starter at .opsx/specs/README.md',
+      en: 'Mode contract: Project Contract plus starter at .opsx/specs/README.md',
+      zh: 'Mode contract: Project Contract plus starter at .opsx/specs/README.md',
     })}`);
     lines.push(`- ${localizeBootstrapText(projection, {
-      en: 'No capability-level candidate specs should be generated',
-      zh: 'No capability-level candidate specs should be generated',
+      en: 'No capability-level candidate Specs should be generated',
+      zh: 'No capability-level candidate Specs should be generated',
     })}`);
   } else if (derived.candidateSpecs.length === 0) {
     lines.push(`- ${localizeBootstrapText(projection, {
@@ -1903,7 +2509,7 @@ function buildReviewContent(
     }
   } else {
     for (const spec of derived.candidateSpecs) {
-      lines.push(`- ${spec.capabilityId} -> ${spec.formalRelativePath}`);
+      lines.push(`- ${spec.elementId} -> ${spec.formalRelativePath}`);
     }
   }
 
@@ -1928,6 +2534,10 @@ function buildReviewContent(
     zh: 'Relation semantic validation passes',
   })}`);
   lines.push(`- [ ] ${localizeBootstrapText(projection, {
+    en: 'No unresolved review gaps remain',
+    zh: 'No unresolved review gaps remain',
+  })}`);
+  lines.push(`- [ ] ${localizeBootstrapText(projection, {
     en: 'Candidate spec set matches the bootstrap mode contract',
     zh: 'Candidate spec set matches the bootstrap mode contract',
   })}`);
@@ -1942,8 +2552,12 @@ function buildReviewContent(
     zh: 'Candidate specs pass OPSX validation',
   })}`);
   lines.push(`- [ ] ${localizeBootstrapText(projection, {
-    en: 'Domain boundaries match mental model',
-    zh: 'Domain boundaries match mental model',
+    en: isGenericEvidence(state.evidence)
+      ? 'Element kinds, contract policies, and refinement parentage match the reviewed model'
+      : 'Domain boundaries match mental model',
+    zh: isGenericEvidence(state.evidence)
+      ? 'Element kinds, contract policies, and refinement parentage match the reviewed model'
+      : 'Domain boundaries match mental model',
   })}`);
   lines.push('');
 
@@ -1958,11 +2572,16 @@ async function deriveBootstrapArtifacts(projectRoot: string, state: BootstrapSta
 
   const sourceFingerprint = computeSourceFingerprint(projectRoot, state);
   let bundle: ProjectOpsxBundle | null = null;
+  let candidateModel: CandidateArchitectureModel | null = null;
+  let modelErrors: string[] = [];
   let refreshPlan: RefreshPlan | null = null;
   let refreshDelta: RefreshDeltaSummary | null = null;
   const preSpecErrors: string[] = [];
 
   if (sourceFingerprint) {
+    const candidateArchitecture = assembleCandidateArchitectureModel(projectRoot, state);
+    candidateModel = candidateArchitecture.model;
+    modelErrors = candidateArchitecture.errors;
     if (state.metadata.mode === 'refresh') {
       const formalBundle = await readProjectOpsx(projectRoot);
       if (!formalBundle) {
@@ -1985,10 +2604,11 @@ async function deriveBootstrapArtifacts(projectRoot: string, state: BootstrapSta
     ...candidateSpecAssembly.sourceErrors,
     ...candidateSpecAssembly.validationErrors,
   ];
-  const candidateFingerprint = bundle && specErrors.length === 0
+  const candidateFingerprint = bundle && candidateModel && modelErrors.length === 0 && specErrors.length === 0
     ? computeCandidateFingerprint(
         projectRoot,
         bundle,
+        candidateModel,
         state,
         candidateSpecAssembly.specs,
         candidateSpecAssembly.preservedFormalPaths,
@@ -2037,6 +2657,8 @@ async function deriveBootstrapArtifacts(projectRoot: string, state: BootstrapSta
 
   return {
     bundle,
+    candidateModel,
+    modelErrors,
     candidateSpecs: candidateSpecAssembly.specs,
     preservedFormalPaths: candidateSpecAssembly.preservedFormalPaths,
     specErrors,
@@ -2054,11 +2676,11 @@ async function deriveBootstrapArtifacts(projectRoot: string, state: BootstrapSta
 export async function assembleCandidate(projectRoot: string): Promise<ProjectOpsxBundle> {
   const state = await readBootstrapState(projectRoot);
   const derived = await deriveBootstrapArtifacts(projectRoot, state);
-  if (!derived.bundle || !derived.sourceFingerprint || !derived.candidateFingerprint) {
+  if (!derived.bundle || !derived.candidateModel || !derived.sourceFingerprint || !derived.candidateFingerprint) {
     throw new Error('No evidence.yaml found. Run scan phase first.');
   }
 
-  const candidateSpecPaths = await writeCandidateFiles(projectRoot, state, derived.bundle, derived.candidateSpecs);
+  const candidateSpecPaths = await writeCandidateFiles(projectRoot, state, derived.candidateModel, derived.candidateSpecs);
   await writeBootstrapMetadata(projectRoot, {
     ...state.metadata,
     source_fingerprint: derived.sourceFingerprint,
@@ -2098,7 +2720,7 @@ export async function refreshBootstrapDerivedArtifacts(
 ): Promise<{ candidateUpdated: boolean; reviewUpdated: boolean }> {
   const state = await readBootstrapState(projectRoot);
   const derived = await deriveBootstrapArtifacts(projectRoot, state);
-  if (!derived.bundle || !derived.sourceFingerprint || !derived.candidateFingerprint) {
+  if (!derived.bundle || !derived.candidateModel || !derived.sourceFingerprint || !derived.candidateFingerprint) {
     return { candidateUpdated: false, reviewUpdated: false };
   }
 
@@ -2106,7 +2728,7 @@ export async function refreshBootstrapDerivedArtifacts(
   const reviewUpdated = derived.reviewState !== 'current';
 
   if (candidateUpdated) {
-    state.metadata.candidate_spec_paths = await writeCandidateFiles(projectRoot, state, derived.bundle, derived.candidateSpecs);
+    state.metadata.candidate_spec_paths = await writeCandidateFiles(projectRoot, state, derived.candidateModel, derived.candidateSpecs);
   }
 
   if (reviewUpdated) {
@@ -2159,8 +2781,8 @@ ${localizeBootstrapText(projection, {
 })}
 
 - ${localizeBootstrapText(projection, {
-  en: 'Formal OPSX files were generated from the bootstrap workflow.',
-  zh: 'Formal OPSX files were generated from the bootstrap workflow.',
+  en: 'Formal v1 Semantic Model files were generated from the bootstrap workflow.',
+  zh: 'Formal v1 Semantic Model files were generated from the bootstrap workflow.',
 })}
 - ${localizeBootstrapText(projection, {
   en: 'Add behavior specs incrementally with normal OPSX changes.',
@@ -2194,40 +2816,36 @@ export async function promoteBootstrap(projectRoot: string): Promise<PromoteBoot
     throw new Error(`Cannot promote: gate validation failed.\n${targetErrors.join('\n')}`);
   }
 
-  const originalBundle = state.metadata.mode === 'refresh' ? await readProjectOpsx(projectRoot) : null;
-  const writtenSpecPaths: Array<{ path: string; original: string | null }> = [];
+  const writes = [
+    ...BOOTSTRAP_ARCHITECTURE_FILES.map(file => ({
+      source: candidatePath(projectRoot, file),
+      target: FileSystemUtils.joinPath(projectRoot, OPSX_DIR_NAME, 'architecture', file),
+    })),
+    ...derived.candidateSpecs.map(spec => ({
+      source: candidateSpecPath(projectRoot, spec.folder),
+      target: formalSpecPath(projectRoot, spec.folder),
+    })),
+  ];
+  const originals = new Map<string, Buffer | null>();
   try {
-    if (state.metadata.mode === 'refresh') {
-      await writeProjectOpsx(projectRoot, derived.bundle);
-    } else {
-      await copyFile(candidatePath(projectRoot, BOOTSTRAP_CANDIDATE_FILE_NAMES.project), FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.PROJECT_FILE));
-      await copyFile(candidatePath(projectRoot, BOOTSTRAP_CANDIDATE_FILE_NAMES.relations), FileSystemUtils.joinPath(projectRoot, OPSX_PATHS.RELATIONS_FILE));
-    }
-
-    for (const spec of derived.candidateSpecs) {
-      const targetPath = formalSpecPath(projectRoot, spec.folder);
-      let original: string | null = null;
+    for (const write of writes) {
+      let original: Buffer | null = null;
       try {
-        original = await fs.readFile(targetPath, 'utf-8');
+        original = await fs.readFile(write.target);
       } catch (error: any) {
-        if (error?.code !== 'ENOENT') {
-          throw error;
-        }
+        if (error?.code !== 'ENOENT') throw error;
       }
-      writtenSpecPaths.push({ path: targetPath, original });
-      await copyFile(candidateSpecPath(projectRoot, spec.folder), targetPath);
+      originals.set(write.target, original);
+      await copyFile(write.source, write.target);
     }
-
     await writeBootstrapSpecStarter(projectRoot, state);
   } catch (error) {
-    if (state.metadata.mode === 'refresh' && originalBundle) {
-      await writeProjectOpsx(projectRoot, originalBundle).catch(() => undefined);
-    }
-    for (const write of writtenSpecPaths.reverse()) {
-      if (write.original === null) {
-        await fs.rm(write.path, { force: true }).catch(() => undefined);
+    for (const [target, original] of [...originals.entries()].reverse()) {
+      if (original === null) {
+        await fs.rm(target, { force: true }).catch(() => undefined);
       } else {
-        await FileSystemUtils.writeFile(write.path, write.original).catch(() => undefined);
+        await FileSystemUtils.createDirectory(path.dirname(target)).catch(() => undefined);
+        await fs.writeFile(target, original).catch(() => undefined);
       }
     }
     throw error;

@@ -54,10 +54,11 @@ import { useCallbackRef, useUpdateEffect } from '../../hooks'
 import { useCurrentViewModel } from '../../hooks/useCurrentViewModel'
 import { useDiagram } from '../../hooks/useDiagram'
 import type { OnNavigateTo } from '../../LikeC4Diagram.props'
+import { useOpsxSpecLoader } from '../../opsx/SpecLoaderContext'
 import { stopPropagation } from '../../utils'
 import * as styles from './ElementDetailsCard.css'
 import { MetadataProvider, MetadataValue } from './MetadataValue'
-import { getSpecsTabModel, SpecsTab } from './SpecsTab'
+import { getSpecsTabModel, OpsxSpecIndexController, type OpsxSpecIndexState, SpecsTab } from './SpecsTab'
 import { TabPanelDeployments } from './TabPanelDeployments'
 import { TabPanelRelationships } from './TabPanelRelationships'
 import { TabPanelStructure } from './TabPanelStructure'
@@ -126,8 +127,22 @@ export function ElementDetailsCard({
   const nodeModel = fromNode ? viewModel.findNode(fromNode) : viewModel.findNodeWithElement(fqn)
 
   const elementModel = viewModel.$model.element(fqn)
-  const specsMetadata = elementModel.$element.metadata?.['specs']
-  const specTab = useMemo(() => getSpecsTabModel(specsMetadata), [specsMetadata])
+  const specLoader = useOpsxSpecLoader()
+  const stableElementId = typeof elementModel.$element.metadata?.['elementId'] === 'string'
+    ? elementModel.$element.metadata['elementId']
+    : elementModel.id
+  const [specIndex, setSpecIndex] = useState<OpsxSpecIndexState | null>(null)
+  const specIndexController = useMemo(() => new OpsxSpecIndexController(setSpecIndex), [])
+  const specPaths = specIndex?.project === elementModel.projectId && specIndex.element === stableElementId
+    ? specIndex.paths
+    : []
+  const specTab = useMemo(() => getSpecsTabModel(specPaths), [specPaths])
+
+  useEffect(() => {
+    if (!specLoader) return
+    specIndexController.load(specLoader, elementModel.projectId, stableElementId)
+    return () => specIndexController.dispose()
+  }, [elementModel.projectId, specIndexController, specLoader, stableElementId])
 
   useEffect(() => {
     if (activeTab === 'Specs' && !specTab.visible) {
@@ -522,7 +537,7 @@ export function ElementDetailsCard({
                 <TabsPanel value="Specs">
                   <SpecsTab
                     project={elementModel.projectId}
-                    element={elementModel.id}
+                    element={stableElementId}
                     specs={specTab.paths}
                     active={activeTab === 'Specs'}
                   />

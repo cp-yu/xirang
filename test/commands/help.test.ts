@@ -22,9 +22,10 @@ describe('AuthoringHelpCommand', () => {
 
   it('renders complete relation help from the Registry', async () => {
     const output = await captureLogs(() => new AuthoringHelpCommand().execute('architecture-delta.c4', {}));
-    for (const type of ['belongs_to', 'invokes', 'consumes', 'precedes', 'constrains', 'validates']) {
+    for (const type of ['invokes', 'produces', 'consumes', 'precedes', 'constrains', 'validates']) {
       expect(output).toContain(type);
     }
+    expect(output).not.toContain('belongs_to');
     expect(output).toContain('选择规则');
     expect(output).toContain('opsx validate --change <name> --artifacts architecture-delta --json');
   });
@@ -46,6 +47,18 @@ describe('AuthoringHelpCommand', () => {
       },
     });
     expect(parsed.relations).toHaveLength(6);
+    expect(parsed.relations.map(({ type }: { type: string }) => type)).toEqual([
+      'invokes', 'produces', 'consumes', 'precedes', 'constrains', 'validates',
+    ]);
+    expect(parsed.relations).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: 'belongs_to' }),
+    ]));
+    for (const relation of parsed.relations) {
+      expect(relation.fromKinds).toEqual(expect.arrayContaining(['generic']));
+      expect(relation.toKinds).toEqual(expect.arrayContaining(['element']));
+      expect([...relation.fromKinds, ...relation.toKinds]).not.toContain('capability');
+      expect([...relation.fromKinds, ...relation.toKinds]).not.toContain('domain');
+    }
     expect(parsed.relations[0]).toEqual(expect.objectContaining({
       type: expect.any(String),
       fromKinds: expect.any(Array),

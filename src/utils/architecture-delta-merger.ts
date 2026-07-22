@@ -3,6 +3,8 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { runLikeC4, type LikeC4Runner } from '../commands/arch/runner.js';
+import { validateArchitecture } from './architecture-validator.js';
+import { readLikeC4Architecture } from './likec4-reader.js';
 import { atomicWrite } from './likec4-writer.js';
 
 function blockAt(content: string, open: number): { body: string; end: number } {
@@ -135,9 +137,62 @@ export interface MergeArchitectureDeltaOptions {
   write?: (file: string, content: string) => Promise<void>;
 }
 
+function deltaModuleName(deltaPath: string, changeName?: string): string {
+  const source = changeName ?? path.basename(deltaPath, path.extname(deltaPath));
+  const normalized = source.replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+  return `${normalized || 'architecture-delta'}.c4`;
+}
+
+async function mergeV1ArchitectureDelta(
+  architectureDir: string,
+  deltaPath: string,
+  delta: string,
+  options: MergeArchitectureDeltaOptions,
+): Promise<void> {
+  const modulePath = path.join(architectureDir, 'deltas', deltaModuleName(deltaPath, options.changeName));
+  const stagingRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-likec4-v1-merge-'));
+  const stagingArchitecture = path.join(stagingRoot, OPSX_DIR_NAME, 'architecture');
+  try {
+    await copyDurableArchitecture(architectureDir, stagingArchitecture);
+    const stagedModule = path.join(stagingArchitecture, 'deltas', path.basename(modulePath));
+    await fs.mkdir(path.dirname(stagedModule), { recursive: true });
+    await fs.writeFile(stagedModule, delta);
+    await (options.runLikeC4 ?? runLikeC4)(['validate', stagingArchitecture]);
+
+    const architecture = await readLikeC4Architecture(stagingRoot);
+    const validation = await validateArchitecture(stagingRoot, architecture);
+    if (!validation.success) {
+      const issue = validation.errors[0];
+      throw new Error(`${issue.code}: ${issue.message}`);
+    }
+  } finally {
+    await fs.rm(stagingRoot, { recursive: true, force: true });
+  }
+
+  const original = await fs.readFile(modulePath, 'utf8').catch((error: NodeJS.ErrnoException) => {
+    if (error.code === 'ENOENT') return null;
+    throw error;
+  });
+  await fs.mkdir(path.dirname(modulePath), { recursive: true });
+  try {
+    await (options.write ?? atomicWrite)(modulePath, delta);
+  } catch (error) {
+    if (original === null) await fs.rm(modulePath, { force: true });
+    else await fs.writeFile(modulePath, original);
+    throw error;
+  }
+}
+
 export async function mergeArchitectureDelta(projectRoot: string, deltaPath: string, options: MergeArchitectureDeltaOptions = {}): Promise<void> {
-  const delta = formalizeSpecPaths(await fs.readFile(deltaPath, 'utf8'), options.changeName);
+  const sourceDelta = await fs.readFile(deltaPath, 'utf8');
   const architectureDir = path.join(projectRoot, OPSX_DIR_NAME, 'architecture');
+  const architecture = await readLikeC4Architecture(projectRoot);
+  if (architecture.profile === 'v1') {
+    await mergeV1ArchitectureDelta(architectureDir, deltaPath, sourceDelta, options);
+    return;
+  }
+
+  const delta = formalizeSpecPaths(sourceDelta, options.changeName);
   const domainsDir = path.join(architectureDir, 'domains');
   const names = (await fs.readdir(domainsDir)).filter(name => name.endsWith('.c4'));
   const contents = new Map(await Promise.all(names.map(async name => [path.join(domainsDir, name), await fs.readFile(path.join(domainsDir, name), 'utf8')] as const)));

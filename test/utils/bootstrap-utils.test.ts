@@ -13,6 +13,7 @@ import {
   validateGate,
 } from '../../src/utils/bootstrap-utils.js';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
+import { readLikeC4Architecture } from '../../src/utils/likec4-reader.js';
 
 describe('bootstrap-utils invalid domain-map handling', () => {
   let testDir: string;
@@ -523,15 +524,11 @@ relations:
     expect(gate.passed, gate.errors.join('\n')).toBe(true);
     await refreshBootstrapDerivedArtifacts(testDir);
 
-    const relations = parseYaml(
-      await fs.readFile(path.join(testDir, '.opsx', 'bootstrap', 'candidate', 'project.opsx.relations.yaml'), 'utf-8')
-    ) as { relations: Array<{ from: string; to: string; type: string; note?: string }> };
-    expect(relations.relations).toContainEqual({
-      from: 'cap.auth.login',
-      to: 'cap.auth.session',
-      type: 'invokes',
-      note: 'Creates a session after successful authentication.',
-    });
+    const relations = await fs.readFile(
+      path.join(testDir, '.opsx', 'bootstrap', 'candidate', 'architecture', 'relations.c4'), 'utf-8'
+    );
+    expect(relations).toContain('projectRoot.dom_auth.cap_auth_login -[invokes]-> projectRoot.dom_auth.cap_auth_session');
+    expect(relations).toContain('Creates a session after successful authentication.');
   });
 
   it('projects uncertain interaction evidence into review gaps without creating a relation', async () => {
@@ -560,12 +557,17 @@ relations:
     ]));
     await approveReview();
     promoteGate = await validateGate(testDir, 'review_to_promote');
-    expect(promoteGate.passed, promoteGate.errors.join('\n')).toBe(true);
+    expect(promoteGate.passed).toBe(false);
+    expect(promoteGate.errors).toEqual(expect.arrayContaining([
+      expect.stringContaining("Unresolved review gap in 'dom.auth'"),
+    ]));
+    await expect(promoteBootstrap(testDir)).rejects.toThrow('Cannot promote: gate validation failed.');
 
-    const relations = parseYaml(
-      await fs.readFile(path.join(testDir, '.opsx', 'bootstrap', 'candidate', 'project.opsx.relations.yaml'), 'utf-8')
-    ) as { relations: unknown[] };
-    expect(relations.relations).toEqual([{ from: 'cap.auth.login', to: 'dom.auth', type: 'belongs_to' }]);
+    const relations = await fs.readFile(
+      path.join(testDir, '.opsx', 'bootstrap', 'candidate', 'architecture', 'relations.c4'), 'utf-8'
+    );
+    expect(relations).not.toContain('belongs_to');
+    expect(relations).toContain('model {');
   });
 
   it('derives bootstrap project identity and architecture metadata from current evidence', async () => {
@@ -596,26 +598,15 @@ relations:
 
     await refreshBootstrapDerivedArtifacts(testDir);
 
-    const candidate = parseYaml(
-      await fs.readFile(path.join(testDir, '.opsx', 'bootstrap', 'candidate', 'project.opsx.yaml'), 'utf-8')
-    ) as {
-      project: {
-        id: string;
-        name: string;
-        intent?: string;
-        scope?: string;
-      };
-    };
+    const candidate = await fs.readFile(
+      path.join(testDir, '.opsx', 'bootstrap', 'candidate', 'architecture', 'model.c4'), 'utf-8'
+    );
 
-    expect(candidate.project.id).toBe('acme-manifest-name');
-    expect(candidate.project.name).toBe('@acme/manifest-name');
-    expect(candidate.project.intent).toContain('dom.auth boundary');
-    expect(candidate.project.intent).toContain('dom.cli boundary');
-    expect(candidate.project.intent).not.toContain('Manifest description');
-    expect(candidate.project.scope).toContain('mode=full');
-    expect(candidate.project.scope).toContain('include=src, docs');
-    expect(candidate.project.scope).toContain('exclude=vendor');
-    expect(candidate.project.scope).toContain('mapped domains=dom.auth, dom.cli');
+    expect(candidate).toContain("projectRoot = project '@acme/manifest-name'");
+    expect(candidate).toContain("elementId 'project.root'");
+    expect(candidate).toContain('dom.auth boundary');
+    expect(candidate).toContain('dom.cli boundary');
+    expect(candidate).not.toContain('Manifest description');
   });
 
   it('rejects obsolete code_refs in v2 domain maps instead of silently stripping them', async () => {
@@ -656,12 +647,11 @@ relations:
 
     await refreshBootstrapDerivedArtifacts(testDir);
 
-    const candidate = parseYaml(
-      await fs.readFile(path.join(testDir, '.opsx', 'bootstrap', 'candidate', 'project.opsx.yaml'), 'utf-8')
-    ) as { project: Record<string, unknown> };
+    const candidate = await fs.readFile(
+      path.join(testDir, '.opsx', 'bootstrap', 'candidate', 'architecture', 'model.c4'), 'utf-8'
+    );
 
-    expect(candidate.project.intent).toBeUndefined();
-    expect(candidate.project.scope).toBeUndefined();
+    expect(candidate).toContain('Project intent is reviewed before promotion.');
   });
 
   it('keeps existing formal OPSX files unchanged when a non-refresh mode is requested on a formal baseline', async () => {
@@ -682,20 +672,84 @@ project:
     await expect(fs.stat(path.join(testDir, '.opsx', 'bootstrap'))).rejects.toThrow();
   });
 
-  it('retains the bootstrap workspace after promote and returns a manual cleanup notice', async () => {
+  it('writes a v1 candidate architecture tree and promotes only to formal LikeC4 files', async () => {
     await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
     await writeEvidence(['dom.auth']);
-    await writeValidDomainMap('dom.auth');
+    await writeValidDomainMap('dom.auth', 'cap.auth.login');
 
     await refreshBootstrapDerivedArtifacts(testDir);
+
+    const candidateArchitecture = path.join(testDir, '.opsx', 'bootstrap', 'candidate', 'architecture');
+    const candidateModel = await fs.readFile(path.join(candidateArchitecture, 'model.c4'), 'utf-8');
+    expect(candidateModel).toContain("elementId 'project.root'");
+    expect(candidateModel).toContain("elementId 'dom.auth'");
+    expect(candidateModel).toContain("elementId 'cap.auth.login'");
+    expect(candidateModel).toContain('cap_auth_login = capability');
+    expect(await fs.readFile(path.join(candidateArchitecture, 'specification.c4'), 'utf-8')).toContain("languageVersion '1'");
+    expect(await fs.readFile(path.join(candidateArchitecture, 'relations.c4'), 'utf-8')).not.toContain('belongs_to');
+    await expect(fs.stat(path.join(candidateArchitecture, 'views.c4'))).resolves.toBeDefined();
+    expect(await fileExists(path.join(testDir, '.opsx', 'bootstrap', 'candidate', 'project.opsx.yaml'))).toBe(false);
+
+    const candidateSpec = await fs.readFile(
+      path.join(testDir, '.opsx', 'bootstrap', 'candidate', 'specs', 'auth', 'spec.md'),
+      'utf-8'
+    );
+    expect(candidateSpec).toMatch(/^---\nelement: cap\.auth\.login\n---/);
+    expect(candidateSpec).not.toContain('capabilities:');
+
     await approveReview();
     await refreshBootstrapDerivedArtifacts(testDir);
-
     const result = await promoteBootstrap(testDir);
 
     expect(result.retainedWorkspaceNotice).toBe(BOOTSTRAP_WORKSPACE_RETAINED_NOTICE);
-    await expect(fs.stat(path.join(testDir, '.opsx', 'bootstrap'))).resolves.toBeDefined();
+    expect(await fileExists(path.join(testDir, '.opsx', 'architecture', 'model.c4'))).toBe(true);
+    expect(await fileExists(path.join(testDir, '.opsx', 'architecture', 'relations.c4'))).toBe(true);
+    expect(await fileExists(path.join(testDir, '.opsx', 'architecture', 'views.c4'))).toBe(true);
+    expect(await fileExists(path.join(testDir, '.opsx', 'project.opsx.yaml'))).toBe(false);
+    expect(await fileExists(path.join(testDir, '.opsx', 'project.opsx.relations.yaml'))).toBe(false);
   });
+
+  it('blocks coarse promotion when a spec group has multiple possible owners', async () => {
+    await initBootstrap(testDir, { mode: 'full', granularity: 'coarse' });
+    await writeEvidence(['dom.auth']);
+    const mapPath = path.join(testDir, '.opsx', 'bootstrap', 'domain-map', 'dom.auth.yaml');
+    await fs.mkdir(path.dirname(mapPath), { recursive: true });
+    await fs.writeFile(mapPath, stringifyYaml({
+      domain: { id: 'dom.auth', type: 'domain', intent: 'Authentication' },
+      capabilities: [
+        { id: 'cap.auth.login', type: 'capability', intent: 'Login' },
+        { id: 'cap.auth.session', type: 'capability', intent: 'Sessions' },
+      ],
+      spec_groups: [{
+        folder: 'auth',
+        capabilities: ['cap.auth.login', 'cap.auth.session'],
+        purpose: 'Authentication contract',
+        requirements: [{
+          title: 'Authentication',
+          text: 'The system SHALL authenticate users.',
+          scenarios: [{ title: 'Login', steps: [
+            { keyword: 'WHEN', text: 'a user logs in' },
+            { keyword: 'THEN', text: 'the user is authenticated' },
+          ] }],
+        }],
+      }],
+      relations: [],
+    }, { lineWidth: 0 }), 'utf-8');
+
+    const gate = await validateGate(testDir, 'map_to_review');
+    expect(gate.passed).toBe(false);
+    expect(gate.errors.join('\n')).toMatch(/ambiguous|multiple|owner/i);
+    await expect(promoteBootstrap(testDir)).rejects.toThrow(/gate validation failed/);
+  });
+
+  async function fileExists(filePath: string): Promise<boolean> {
+    try {
+      await fs.access(filePath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
 });
 
 // ─── Task 2: spec_groups validation tests ──────────────────────────────────
@@ -766,18 +820,18 @@ describe('bootstrap-utils spec_groups validation', () => {
     return stringifyYaml(data, { lineWidth: 0 });
   }
 
-  it('accepts a valid coarse domain-map with spec_groups', async () => {
+  it('accepts a coarse spec_group with one unambiguous owner', async () => {
     await initCoarse(testDir);
     await fs.writeFile(
       path.join(testDir, '.opsx', 'bootstrap', 'domain-map', 'dom.cli.yaml'),
-      domainMapYaml('dom.cli', ['cap.cli.init', 'cap.cli.validate'], [
-        { folder: 'cli', capabilities: ['cap.cli.init', 'cap.cli.validate'] },
+      domainMapYaml('dom.cli', ['cap.cli.init'], [
+        { folder: 'cli', capabilities: ['cap.cli.init'] },
       ]),
       'utf-8'
     );
 
     const gate = await validateGate(testDir, 'map_to_review');
-    expect(gate.passed).toBe(true);
+    expect(gate.passed, gate.errors.join('\n')).toBe(true);
     expect(gate.errors).toEqual([]);
   });
 
@@ -938,7 +992,7 @@ describe('bootstrap-utils coarse candidate spec compilation', () => {
     await fs.writeFile(
       path.join(testDir, '.opsx', 'bootstrap', 'domain-map', 'dom.cli.yaml'),
       coarseDomainMapYaml('dom.cli', ['cap.cli.init', 'cap.cli.validate'], [
-        { folder: 'cli-core', capabilities: ['cap.cli.init', 'cap.cli.validate'] },
+        { folder: 'cli-core', capabilities: ['cap.cli.init'] },
       ]),
       'utf-8'
     );
@@ -953,12 +1007,12 @@ describe('bootstrap-utils coarse candidate spec compilation', () => {
     expect(candidateSpec).toContain('The system SHALL support cli-core');
   });
 
-  it('coarse candidate spec frontmatter contains multiple capabilities', async () => {
+  it('coarse candidate spec frontmatter contains one singular element owner', async () => {
     await setupCoarseWorkspace();
     await fs.writeFile(
       path.join(testDir, '.opsx', 'bootstrap', 'domain-map', 'dom.cli.yaml'),
       coarseDomainMapYaml('dom.cli', ['cap.cli.init', 'cap.cli.validate'], [
-        { folder: 'cli-core', capabilities: ['cap.cli.init', 'cap.cli.validate'] },
+        { folder: 'cli-core', capabilities: ['cap.cli.init'] },
       ]),
       'utf-8'
     );
@@ -969,8 +1023,258 @@ describe('bootstrap-utils coarse candidate spec compilation', () => {
       path.join(testDir, '.opsx', 'bootstrap', 'candidate', 'specs', 'cli-core', 'spec.md'),
       'utf-8'
     );
-    // Frontmatter should list the capabilities
-    expect(candidateSpec).toContain('cap.cli.init');
-    expect(candidateSpec).toContain('cap.cli.validate');
+    expect(candidateSpec).toContain('element: cap.cli.init');
+    expect(candidateSpec).not.toContain('capabilities:');
+  });
+});
+
+describe('bootstrap-utils generic element candidates', () => {
+  let testDir: string;
+
+  const evidence = {
+    elements: [
+      {
+        elementId: 'commerce',
+        kind: 'area',
+        contractPolicy: 'optional',
+        localId: 'commerce',
+        title: 'Commerce',
+        summary: 'Commerce intent.',
+        confidence: 'high',
+        sources: ['code:src/commerce/index.ts'],
+      },
+      {
+        elementId: 'checkout',
+        kind: 'workflow',
+        contractPolicy: 'optional',
+        localId: 'checkout',
+        title: 'Checkout',
+        summary: 'Checkout intent.',
+        confidence: 'high',
+        sources: ['code:src/commerce/checkout.ts'],
+      },
+      {
+        elementId: 'payment.authorize',
+        kind: 'operation',
+        contractPolicy: 'optional',
+        localId: 'authorize',
+        title: 'Authorize payment',
+        summary: 'Authorize a payment.',
+        confidence: 'high',
+        sources: ['code:src/commerce/authorize.ts'],
+      },
+      {
+        elementId: 'payment.capture',
+        kind: 'operation',
+        contractPolicy: 'optional',
+        localId: 'capture',
+        title: 'Capture payment',
+        summary: 'Capture a payment.',
+        confidence: 'medium',
+        sources: ['code:src/commerce/capture.ts'],
+      },
+    ],
+  };
+
+  const operationSpec = {
+    folder: 'payment-authorize',
+    purpose: 'Authorize checkout payments.',
+    requirements: [{
+      title: 'Payment authorization',
+      text: 'The system SHALL authorize an eligible payment.',
+      scenarios: [{
+        title: 'Authorization succeeds',
+        steps: [
+          { keyword: 'WHEN', text: 'an eligible payment is submitted' },
+          { keyword: 'THEN', text: 'the payment is authorized' },
+        ],
+      }],
+    }],
+  };
+
+  const elementMap = {
+    elements: evidence.elements.map(({ confidence: _confidence, sources: _sources, ...element }) => ({
+      ...element,
+      ...(element.elementId === 'payment.authorize' ? { spec: operationSpec } : {}),
+    })),
+    parent_links: [
+      { parent: 'project.root', child: 'commerce' },
+      { parent: 'commerce', child: 'checkout' },
+      { parent: 'checkout', child: 'payment.authorize' },
+      { parent: 'checkout', child: 'payment.capture' },
+    ],
+    relations: [],
+    review_gaps: [],
+  };
+
+  beforeEach(async () => {
+    testDir = path.join(os.tmpdir(), `opsx-bootstrap-generic-${randomUUID()}`);
+    await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
+    await fs.writeFile(
+      path.join(testDir, '.opsx', 'bootstrap', 'evidence.yaml'),
+      stringifyYaml(evidence, { lineWidth: 0 }),
+      'utf-8'
+    );
+  });
+
+  afterEach(async () => {
+    await fs.rm(testDir, { recursive: true, force: true });
+  });
+
+  async function writeElementMap(value: unknown): Promise<void> {
+    await fs.writeFile(
+      path.join(testDir, '.opsx', 'bootstrap', 'domain-map', 'semantic-model.yaml'),
+      stringifyYaml(value, { lineWidth: 0 }),
+      'utf-8'
+    );
+  }
+
+  async function approveGenericReview(): Promise<void> {
+    const reviewPath = path.join(testDir, '.opsx', 'bootstrap', 'review.md');
+    const content = await fs.readFile(reviewPath, 'utf-8');
+    await fs.writeFile(reviewPath, content.replace(/- \[ \]/g, '- [x]'), 'utf-8');
+  }
+
+  it('preserves arbitrary depth, siblings, project-defined kinds, stable IDs, and parentage through promotion', async () => {
+    await writeElementMap(elementMap);
+
+    const mapGate = await validateGate(testDir, 'map_to_review');
+    expect(mapGate.passed, mapGate.errors.join('\n')).toBe(true);
+    const status = await getBootstrapStatus(testDir);
+    expect(status.initialized).toBe(true);
+    if (!status.initialized) throw new Error('Expected initialized bootstrap status');
+    expect(status.domains).toEqual([]);
+    expect(status.totalElements).toBe(4);
+    expect(status.mappedElements).toBe(4);
+    await refreshBootstrapDerivedArtifacts(testDir);
+
+    const candidateRoot = path.join(testDir, '.opsx', 'bootstrap', 'candidate', 'architecture');
+    const specification = await fs.readFile(path.join(candidateRoot, 'specification.c4'), 'utf-8');
+    const model = await fs.readFile(path.join(candidateRoot, 'model.c4'), 'utf-8');
+    expect(specification).toContain('element area');
+    expect(specification).toContain('element workflow');
+    expect(specification).toContain('element operation');
+    expect(specification).toMatch(/element operation[\s\S]*?contract optional/);
+    expect(specification).toContain('parents [project]');
+    expect(specification).toContain('parents [area]');
+    expect(specification).toContain('parents [workflow]');
+    expect(model.indexOf('commerce = area')).toBeLessThan(model.indexOf('checkout = workflow'));
+    expect(model.indexOf('checkout = workflow')).toBeLessThan(model.indexOf('authorize = operation'));
+    expect(model).toContain('capture = operation');
+    expect(model).toContain("elementId 'payment.authorize'");
+    expect(model).toContain("elementId 'payment.capture'");
+
+    const candidateSpec = await fs.readFile(
+      path.join(testDir, '.opsx', 'bootstrap', 'candidate', 'specs', 'payment-authorize', 'spec.md'),
+      'utf-8'
+    );
+    expect(candidateSpec).toMatch(/^---\nelement: payment\.authorize\n---/);
+
+    await approveGenericReview();
+    await promoteBootstrap(testDir);
+
+    const promoted = await readLikeC4Architecture(testDir);
+    expect(promoted.elements.map((element) => ({
+      id: element.id,
+      kind: element.kind,
+      parent: element.parent,
+      children: element.children,
+    }))).toEqual([
+      { id: 'project.root', kind: 'project', parent: null, children: ['commerce'] },
+      { id: 'commerce', kind: 'area', parent: 'project.root', children: ['checkout'] },
+      { id: 'checkout', kind: 'workflow', parent: 'commerce', children: ['payment.authorize', 'payment.capture'] },
+      { id: 'payment.authorize', kind: 'operation', parent: 'checkout', children: [] },
+      { id: 'payment.capture', kind: 'operation', parent: 'checkout', children: [] },
+    ]);
+  });
+
+  it('renders the reviewed generic contract policy without defaulting the kind to optional', async () => {
+    const requiredEvidence = structuredClone(evidence);
+    requiredEvidence.elements[0]!.contractPolicy = 'required';
+    const requiredMap = structuredClone(elementMap);
+    requiredMap.elements[0]!.contractPolicy = 'required';
+    await fs.writeFile(
+      path.join(testDir, '.opsx', 'bootstrap', 'evidence.yaml'),
+      stringifyYaml(requiredEvidence, { lineWidth: 0 }),
+      'utf-8'
+    );
+    await writeElementMap(requiredMap);
+
+    await refreshBootstrapDerivedArtifacts(testDir);
+
+    const specification = await fs.readFile(
+      path.join(testDir, '.opsx', 'bootstrap', 'candidate', 'architecture', 'specification.c4'),
+      'utf-8'
+    );
+    expect(specification).toMatch(/element area[\s\S]*?contract required/);
+  });
+
+  it.each(['evidence', 'map'] as const)('blocks a generic candidate when %s omits an explicit contract policy', async source => {
+    if (source === 'evidence') {
+      const missingPolicyEvidence = structuredClone(evidence) as { elements: Array<Record<string, unknown>> };
+      delete missingPolicyEvidence.elements[0]!.contractPolicy;
+      await fs.writeFile(
+        path.join(testDir, '.opsx', 'bootstrap', 'evidence.yaml'),
+        stringifyYaml(missingPolicyEvidence, { lineWidth: 0 }),
+        'utf-8'
+      );
+      await writeElementMap(elementMap);
+    } else {
+      const missingPolicyMap = structuredClone(elementMap) as { elements: Array<Record<string, unknown>> };
+      delete missingPolicyMap.elements[0]!.contractPolicy;
+      await writeElementMap(missingPolicyMap);
+    }
+
+    const gate = await validateGate(testDir, 'map_to_review');
+
+    expect(gate.passed).toBe(false);
+    expect(gate.errors.join('\n')).toMatch(/review gap.*contractPolicy/i);
+    await expect(promoteBootstrap(testDir)).rejects.toThrow('Cannot promote: gate validation failed.');
+  });
+
+  it.each([
+    {
+      name: 'orphan',
+      mutate: (value: typeof elementMap) => ({
+        ...value,
+        parent_links: value.parent_links.filter((link) => link.child !== 'payment.authorize'),
+      }),
+      expected: /payment\.authorize.*exactly one parent/i,
+    },
+    {
+      name: 'multiple parents',
+      mutate: (value: typeof elementMap) => ({
+        ...value,
+        parent_links: [...value.parent_links, { parent: 'commerce', child: 'payment.authorize' }],
+      }),
+      expected: /payment\.authorize.*multiple parents/i,
+    },
+    {
+      name: 'unknown kind',
+      mutate: (value: typeof elementMap) => ({
+        ...value,
+        elements: value.elements.map((element) => element.elementId === 'payment.authorize'
+          ? { ...element, kind: 'service' }
+          : element),
+      }),
+      expected: /payment\.authorize.*unknown kind 'service'/i,
+    },
+    {
+      name: 'duplicate stable ID',
+      mutate: (value: typeof elementMap) => ({
+        ...value,
+        elements: [...value.elements, { ...value.elements[2]!, localId: 'authorizeAgain' }],
+      }),
+      expected: /duplicate elementId.*payment\.authorize/i,
+    },
+  ])('turns $name into a blocking review gap', async ({ mutate, expected }) => {
+    await writeElementMap(mutate(structuredClone(elementMap)));
+
+    const gate = await validateGate(testDir, 'map_to_review');
+    expect(gate.passed).toBe(false);
+    expect(gate.errors.join('\n')).toMatch(expected);
+    await expect(promoteBootstrap(testDir)).rejects.toThrow('Cannot promote: gate validation failed.');
+    await expect(fs.access(path.join(testDir, '.opsx', 'architecture', 'model.c4'))).rejects.toThrow();
   });
 });

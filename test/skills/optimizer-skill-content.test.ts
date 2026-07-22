@@ -47,8 +47,8 @@ describe('opsx optimizer skill content', () => {
     expect(instructions).toContain('## Dependency Expansion (One Hop)');
     expect(instructions).toContain('imports');
     expect(instructions).toContain('callers');
-    expect(instructions).toContain('LikeC4 semantic relations');
-    expect(instructions).toContain('Registry meaning');
+    expect(instructions).toContain('directed semantic relationships');
+    expect(instructions).toContain('declared meaning');
     expect(instructions).not.toMatch(/\bdepends_on\b|\brelates_to\b/);
     expect(instructions).toContain('one hop');
   });

@@ -18,35 +18,55 @@ OPSX conventions SHALL mandate a structured spec format with clear requirement a
 - **THEN** authors SHALL use `### Requirement: ...` followed by at least one `#### Scenario: ...` section
 
 ### Requirement: Behavior-First Specification Boundary
-OPSX specifications SHALL capture verifiable WHAT-only behavior contracts, avoid implementation, refactor, and process detail, and frame requirements as durable capabilities rather than change records.
+
+OPSX Specs SHALL 作为其 owner element 的 typed Element Contract modules，表达该 element 在对应 abstraction level 的可验证 intent、guarantees、constraints、requirements 与 scenarios。Spec SHALL 避免实现、refactor 与 process detail；parent Spec MUST NOT 复制 child contracts，跨 element collaboration SHALL 由 Semantic Relationships 表达。
+
+#### Scenario: Capability-like contract 表达行为
+- **WHEN** element kind 的 contract schema 定义 observable behavior
+- **THEN** requirements SHALL 聚焦 externally observable behavior、interfaces、error handling 与 constraints
+- **AND** scenarios SHALL 可测试或显式可验证
+
+#### Scenario: Parent contract 表达本层 guarantees
+- **WHEN** Spec 属于包含 child elements 的 parent
+- **THEN** SHALL 表达 parent 本层 aggregate intent、guarantees、cross-child invariants 或 decomposition rationale
+- **AND** MUST NOT 逐条复制 child Specs
+
+#### Scenario: 非 contract 内容路由
+- **WHEN**内容涉及具体 library、class/function structure、执行机制、call path、refactor rationale、rejected approach 或 exploration notes
+- **THEN** SHALL 路由到 `design.md` 或 `tasks.md`
+- **AND** MUST NOT 作为 Element Contract 写入 Spec
+
+#### Scenario: Requirement 使用稳态名称
+- **WHEN** 为 Spec 撰写 requirement
+- **THEN** 标题 SHALL 使用持久、可验证的 contract 名称
+- **AND** SHALL NOT 使用缺口、恢复、迁移等一次性 change action 命名
 
 #### Scenario: Writing behavior requirements
-- **WHEN** documenting a capability in `spec.md`
-- **THEN** requirements focus on externally observable behavior, interfaces, error handling, and constraints
-- **AND** scenarios remain testable or explicitly verifiable
+- **WHEN** element kind 的 contract schema 管理 observable behavior
+- **THEN** requirements SHALL 聚焦 behavior、interfaces、errors 与 constraints
+- **AND** scenarios SHALL 可测试或显式可验证
 
 #### Scenario: Avoiding implementation leakage
-- **WHEN** details involve concrete library choices, class/function structure, execution mechanics, call paths, refactor rationale, rejected approaches, or exploration notes
-- **THEN** those details SHALL be documented in `design.md` or `tasks.md` instead of behavioral requirements
+- **WHEN** details 涉及 library、class/function structure、execution mechanics 或 call paths
+- **THEN** SHALL 写入 `design.md` 或 `tasks.md`
+- **AND** MUST NOT 写入 Element Contract
 
 #### Scenario: Routing non-behavior content
-- **WHEN** a candidate spec statement explains why an implementation path was chosen, why an old path is not used, or how code should be organized
-- **THEN** authors SHALL move that statement to `design.md`
-- **AND** specs SHALL express only the preserved or changed observable behavior
+- **WHEN** statement 解释 implementation choice、rejected path 或 code organization
+- **THEN** SHALL 路由到 `design.md`
 
 #### Scenario: 以能力命名 Requirement
-- **WHEN** 为变更撰写新的 requirement 标题
-- **THEN** 标题 SHALL 使用持久的能力名称
-- **AND** 标题 SHALL NOT 使用缺口、恢复、统一、替代、迁移等一次性变更动作命名
+- **WHEN** contract schema 表达持久 capability
+- **THEN** Requirement title SHALL 使用该 capability 的稳态名称
+- **AND** SHALL NOT 使用一次性 change action 命名
 
 #### Scenario: 单一 Requirement 不打包多个能力
-- **WHEN** 一条候选 requirement 覆盖多个互不相关的命令或功能
-- **THEN** 作者 SHALL 将其拆分为按能力划分的独立 requirement
+- **WHEN** candidate Requirement 覆盖多个互不相关 guarantees 或 behaviors
+- **THEN** SHALL 拆分为独立 Requirements
 
 #### Scenario: 行为定义不引用变更上下文
-- **WHEN** requirement 正文出现"已承诺"、"原有"、"deprecated 的 X"等仅在变更上下文中可理解的表述
-- **THEN** 作者 SHALL 改写为以目标状态直接陈述的行为定义
-- **AND** 既有能力的行为变化 SHALL 优先以 MODIFIED 更新既有 requirement，而非 ADDED 变更命名的新 requirement
+- **WHEN** Requirement 依赖“原有”“本次”等 change narration 才能理解
+- **THEN** SHALL 改写为 target steady state
 
 ### Requirement: Progressive Rigor
 OPSX conventions SHALL keep specs lightweight by default and scale rigor only when risk or coordination complexity demands it.
@@ -61,59 +81,52 @@ OPSX conventions SHALL keep specs lightweight by default and scale rigor only wh
 
 ### Requirement: Project Structure
 
-OPSX 项目 SHALL 保持一致的目录结构用于 specifications 和 changes。
+OPSX 项目 SHALL 使用一致目录保存同一个 OPSX Semantic Model 的 graph modules、contract modules 与 change-local Semantic Delta。
 
 #### Scenario: 初始化项目结构
-
 - **WHEN** 初始化 OPSX 项目
-- **THEN** 它 SHALL 拥有此结构：
-```
+- **THEN** SHALL 创建：
+```text
 .opsx/
-├── architecture/          # LikeC4 architecture intent and Spec indexes
-├── specs/                 # Durable behavior source
-│   └── [capability]/
-│       ├── spec.md         # WHAT: behavior contract
-│       └── design.md       # HOW (optional established pattern)
-├── changes/               # Change-local compilation scaffolding
-│   ├── [change-name]/
+├── architecture/          # LikeC4 graph modules: metamodel, elements, relations, views
+├── specs/                 # Element-owned contract modules
+│   └── <spec-id>/spec.md
+├── changes/
+│   ├── <change-name>/
 │   │   ├── proposal.md
+│   │   ├── design.md
 │   │   ├── tasks.md
-│   │   ├── design.md       # Optional lowering decisions
-│   │   └── specs/
-│   │       └── [capability]/spec.md
-│   └── archive/            # Completed change history
-├── references/            # Managed Agent workflow protocols
-└── config.yaml            # Project configuration
+│   │   ├── architecture-delta.c4
+│   │   └── specs/<spec-id>/spec.md
+│   └── archive/
+├── references/
+└── config.yaml
 ```
+- **AND** graph 与 contract directories SHALL 被解释为一个 OPSX Semantic Model
 
 ### Requirement: Structured Format for Behavioral Specs
 
-Behavioral specifications SHALL use a structured format with consistent section headers and keywords to ensure visual consistency and parseability.
+Element Contract Specs SHALL 使用一致、可解析的 section headers 与 normative keywords；每份 Spec SHALL 通过 frontmatter singular `element` 绑定唯一 owner element。
 
 #### Scenario: Writing requirement sections
-
-- **WHEN** documenting a requirement in a behavioral specification
+- **WHEN** documenting a requirement in an Element Contract
 - **THEN** use a level-3 heading with format `### Requirement: [Name]`
-- **AND** immediately follow with a SHALL statement describing core behavior
-- **AND** keep requirement names descriptive and under 50 characters
+- **AND** immediately follow with a SHALL or MUST statement describing target behavior or guarantee
 
 #### Scenario: Documenting scenarios
+- **WHEN** documenting a verifiable case
+- **THEN** use `#### Scenario: [Description]`
+- **AND** use bold `GIVEN`、`WHEN`、`THEN` 与 `AND` keywords
 
-- **WHEN** documenting specific behaviors or use cases
-- **THEN** use level-4 headings with format `#### Scenario: [Description]`
-- **AND** use bullet points with bold keywords for steps:
-  - **GIVEN** for initial state (optional)
-  - **WHEN** for conditions or triggers
-  - **THEN** for expected outcomes
-  - **AND** for additional outcomes or conditions
+#### Scenario: Binding a Spec
+- **WHEN** authoring a formal or change-local Spec for the new language version
+- **THEN** frontmatter SHALL contain exactly one `element: <elementId>` field
+- **AND** MUST NOT contain a `capabilities` ownership array
 
 #### Scenario: Adding implementation details
-
-- **WHEN** a step requires additional detail
-- **THEN** use sub-bullets under the main step
-- **AND** maintain consistent indentation
-  - Sub-bullets provide examples or specifics
-  - Keep sub-bullets concise
+- **WHEN** a scenario step needs additional observable detail
+- **THEN** MAY use concise nested bullets
+- **AND** MUST NOT use them承载 implementation design
 
 ### Requirement: Header-Based Requirement Identification
 
@@ -146,46 +159,34 @@ Requirement headers SHALL serve as unique identifiers for programmatic matching 
 
 ### Requirement: Change Storage Convention
 
-Change proposals SHALL store only the additions, modifications, and removals to specifications, not complete future states.
+Change proposals SHALL store only target-state graph and contract deltas，不保存完整未来模型。`architecture-delta.c4` 与 `specs/**/*.md` SHALL 共同构成一个 Semantic Delta，并在 validation 与 sync 中联合处理。
+
+#### Scenario: Graph 与 contract modules 同属一个 delta
+- **WHEN** change 同时修改 element graph 与 Element Contracts
+- **THEN** graph operations SHALL 写入 `architecture-delta.c4`
+- **AND** requirement operations SHALL 写入对应 change-local Specs
+- **AND** 系统 SHALL 将两者作为一个 Target Semantic Model 验证
+
+#### Scenario: Delta operation 保持现有格式
+- **WHEN** change-local Spec 增加、修改、删除或重命名 requirement
+- **THEN** SHALL 继续使用 `ADDED`、`MODIFIED`、`REMOVED` 与 `RENAMED` sections
+- **AND**正文 SHALL 描述 target steady state
 
 #### Scenario: Creating change proposals with additions
+- **WHEN** change 增加 Requirement
+- **THEN** SHALL 在 `## ADDED Requirements` 包含完整 target Requirement
 
-- **WHEN** creating a change proposal that adds new requirements
-- **THEN** include only the new requirements under `## ADDED Requirements`
-- **AND** each requirement SHALL include its complete content
-- **AND** use the standard structured format for requirements and scenarios
-
-#### Scenario: Creating change proposals with modifications  
-
-- **WHEN** creating a change proposal that modifies existing requirements
-- **THEN** include the modified requirements under `## MODIFIED Requirements`
-- **AND** use the same header text as in the current spec (normalized)
-- **AND** include the complete modified requirement (not a diff)
-- **AND** optionally annotate what changed with inline comments like `← (was X)`
+#### Scenario: Creating change proposals with modifications
+- **WHEN** change 修改 Requirement
+- **THEN** SHALL 在 `## MODIFIED Requirements` 使用 exact existing title 和完整 target content
 
 #### Scenario: Creating change proposals with removals
-
-- **WHEN** creating a change proposal that removes requirements
-- **THEN** list them under `## REMOVED Requirements`
-- **AND** use the normalized header text for identification
-- **AND** include reason for removal
-- **AND** document any migration path if applicable
-
-The `changes/[name]/specs/` directory SHALL contain:
-- Delta files showing only what changes
-- Sections for ADDED, MODIFIED, REMOVED, and RENAMED requirements
-- Normalized header matching for requirement identification
-- Complete requirements using the structured format
-- Clear indication of change type for each requirement
+- **WHEN** change 删除 Requirement
+- **THEN** SHALL 在 `## REMOVED Requirements` 声明 exact title、Reason 与 Migration
 
 #### Scenario: Using standard output symbols
-
-- **WHEN** displaying delta operations in CLI output
-- **THEN** use these standard symbols:
-  - `+` for ADDED (green)
-  - `~` for MODIFIED (yellow)
-  - `-` for REMOVED (red)
-  - `→` for RENAMED (cyan)
+- **WHEN** CLI 显示 delta operations
+- **THEN** SHALL 继续使用 `+`、`~`、`-` 与 `→` 表示 ADDED、MODIFIED、REMOVED 与 RENAMED
 
 ### Requirement: Archive Process Enhancement
 

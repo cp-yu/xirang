@@ -34,6 +34,18 @@ relations:
     note: Run invokes stop
 `;
 
+const legacyGraph = `model {
+  core = domain 'Core' {
+    run = capability 'Run' {
+      description 'Runs work'
+      metadata { capabilityId 'cap.core.run' specs ['.opsx/specs/run/spec.md'] }
+    }
+  }
+}
+`;
+
+const validSpec = `---\ncapabilities:\n  - cap.core.run\n---\n\n# Run\n\n## Purpose\nRun work.\n\n## Requirements\n\n### Requirement: Run work\nThe system SHALL run work.\n\n#### Scenario: Run succeeds\n- **WHEN** run is requested\n- **THEN** work runs\n`;
+
 describe('migrate opsx-to-likec4 command', () => {
   let root: string;
   beforeEach(async () => {
@@ -92,5 +104,80 @@ describe('migrate opsx-to-likec4 command', () => {
     expect(result.exitCode).toBe(0);
     await expect(fs.readFile(path.join(root, '.opsx', 'project.opsx.yaml.backup'), 'utf8')).resolves.toBe(main);
     await expect(fs.readFile(path.join(root, '.opsx', 'project.opsx.relations.yaml.backup'), 'utf8')).resolves.toBe(relations);
+  });
+});
+
+describe('migrate semantic-model command', () => {
+  let root: string;
+  beforeEach(async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-semantic-migrate-'));
+    await fs.mkdir(path.join(root, '.opsx', 'architecture'), { recursive: true });
+    await fs.mkdir(path.join(root, '.opsx', 'specs', 'run'), { recursive: true });
+    await fs.writeFile(path.join(root, '.opsx', 'architecture', 'legacy.c4'), legacyGraph);
+    await fs.writeFile(path.join(root, '.opsx', 'specs', 'run', 'spec.md'), validSpec);
+  });
+  afterEach(async () => fs.rm(root, { recursive: true, force: true }));
+
+  it('generates an auditable v1 candidate without changing formal source', async () => {
+    const beforeGraph = await fs.readFile(path.join(root, '.opsx', 'architecture', 'legacy.c4'), 'utf8');
+    const beforeSpec = await fs.readFile(path.join(root, '.opsx', 'specs', 'run', 'spec.md'), 'utf8');
+    const result = await runCLI(['migrate', 'semantic-model', '--json'], { cwd: root });
+    expect(result.exitCode).toBe(0);
+    const candidate = path.join(root, '.opsx', 'migration-candidate');
+    const report = JSON.parse(await fs.readFile(path.join(candidate, 'migration-report.json'), 'utf8'));
+    expect(report).toMatchObject({ sourceVersion: 'legacy', targetVersion: '1', gaps: [] });
+    expect(report.resolvedMappings).toEqual(expect.arrayContaining([
+      expect.objectContaining({ legacyId: 'cap.core.run', elementId: 'project.root/domain.core/cap.core.run' }),
+    ]));
+    await expect(fs.readFile(path.join(candidate, '.opsx', 'architecture', 'specification.c4'), 'utf8')).resolves.toContain("languageVersion '1'");
+    await expect(fs.readFile(path.join(candidate, '.opsx', 'specs', 'run', 'spec.md'), 'utf8')).resolves.toContain('element: project.root/domain.core/cap.core.run');
+    await expect(fs.readFile(path.join(root, '.opsx', 'architecture', 'legacy.c4'), 'utf8')).resolves.toBe(beforeGraph);
+    await expect(fs.readFile(path.join(root, '.opsx', 'specs', 'run', 'spec.md'), 'utf8')).resolves.toBe(beforeSpec);
+  });
+
+  it('blocks promotion without yes and reports review gaps', async () => {
+    await fs.writeFile(path.join(root, '.opsx', 'specs', 'run', 'spec.md'), validSpec.replace('cap.core.run', 'cap.unknown'));
+    const beforeGraph = await fs.readFile(path.join(root, '.opsx', 'architecture', 'legacy.c4'), 'utf8');
+    const result = await runCLI(['migrate', 'semantic-model', '--promote', '--yes', '--json'], { cwd: root });
+    expect(result.exitCode).toBe(1);
+    expect(result.stdout).toContain('UNKNOWN');
+    await expect(fs.readFile(path.join(root, '.opsx', 'architecture', 'legacy.c4'), 'utf8')).resolves.toBe(beforeGraph);
+  });
+
+  it('blocks promotion when candidate contract validation fails', async () => {
+    await fs.writeFile(path.join(root, '.opsx', 'specs', 'run', 'spec.md'), validSpec.replace('SHALL run work', 'runs work'));
+    const beforeGraph = await fs.readFile(path.join(root, '.opsx', 'architecture', 'legacy.c4'), 'utf8');
+    const result = await runCLI(['migrate', 'semantic-model', '--promote', '--yes', '--json'], { cwd: root });
+    expect(result.exitCode).toBe(1);
+    expect(result.stdout).toContain('VALIDATION_FAILURE');
+    await expect(fs.readFile(path.join(root, '.opsx', 'architecture', 'legacy.c4'), 'utf8')).resolves.toBe(beforeGraph);
+  });
+
+  it('requires explicit authorization for promotion', async () => {
+    const result = await runCLI(['migrate', 'semantic-model', '--promote', '--json'], { cwd: root });
+    expect(result.exitCode).toBe(1);
+    expect(result.stdout).toContain('Promotion requires --yes');
+    await expect(fs.access(path.join(root, '.opsx', 'architecture', 'legacy.c4'))).resolves.toBeUndefined();
+  });
+
+  it('documents the explicit migration options in help', async () => {
+    const result = await runCLI(['migrate', 'semantic-model', '--help'], { cwd: root });
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('--candidate <path>');
+    expect(result.stdout).toContain('--promote');
+    expect(result.stdout).toContain('--yes');
+    expect(result.stdout).toContain('--json');
+  });
+
+  it('promotes an independently validated candidate only with explicit authorization', async () => {
+    const result = await runCLI(['migrate', 'semantic-model', '--promote', '--yes', '--json'], { cwd: root });
+    expect(result.exitCode).toBe(0);
+    const specification = await fs.readFile(path.join(root, '.opsx', 'architecture', 'specification.c4'), 'utf8');
+    expect(specification).toContain("languageVersion '1'");
+    expect(specification).toMatch(/element project[\s\S]*contract required/);
+    expect(specification).toMatch(/element capability[\s\S]*contract required/);
+    await expect(fs.readFile(path.join(root, '.opsx', 'specs', 'run', 'spec.md'), 'utf8')).resolves.toContain('element: project.root/domain.core/cap.core.run');
+    await expect(fs.readFile(path.join(root, '.opsx', 'specs', 'project-contract', 'spec.md'), 'utf8')).resolves.toContain('element: project.root');
+    await expect(fs.access(path.join(root, '.opsx', 'migration-candidate', 'migration-report.json'))).resolves.toBeUndefined();
   });
 });

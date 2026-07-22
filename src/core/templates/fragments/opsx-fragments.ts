@@ -8,36 +8,27 @@
 export const OPSX_PHILOSOPHY = `
 **OPSX Philosophy**
 
-OPSX is a human-intent programming layer between human intent and general-purpose programming languages.
-
-1. Specs and LikeC4 jointly form the durable semantic source. Specs define observable behavior; LikeC4 defines project intent, capabilities, ownership, boundaries, and semantic relations.
-2. A change reconciles semantic source deltas toward a target steady state. \`proposal.md\`, \`design.md\`, and \`tasks.md\` are compilation scaffolding, not competing sources of truth.
-3. Source is complete only when an Agent can compile it without guessing decisions that affect behavior or architecture.
-4. The Agent acts as a compiler: translate declared intent faithfully. Existing code is compiled output and current implementation evidence; it MUST NOT silently override the declared semantic source.
+1. OPSX is a structured representation of human intent that an Agent can compile.
+2. One OPSX Semantic Model consists of LikeC4 graph modules and element-owned Markdown contract modules; they are source modules of the same model, not two parallel sources.
+3. A change reconciles a Semantic Delta toward the target steady state. \`proposal.md\`, \`design.md\`, and \`tasks.md\` are compilation scaffolding, not competing sources of truth.
+4. The OPSX Semantic Model is complete only when an Agent need not guess decisions that affect element hierarchy, contracts, or relationships.
+5. The Agent acts like a compiler and faithfully translates authorized human intent. Existing code is current implementation evidence and MUST NOT silently override the OPSX Semantic Model.
 `.trim();
 
 /**
- * Fragment: Shared LikeC4 read context
- * Used in: explore, propose, apply-change
+ * Fragment: Shared OPSX Semantic Model context
+ * Used in: explore, propose, apply-change, snack, reviewer, optimizer, impact-sweeper
  */
-export const ARCHITECTURE_SHARED_CONTEXT = `
-Before reading implementation files, load the formal LikeC4 source under \`.opsx/architecture/\`.
-- Use \`opsx arch query <element-id> --relations --depth 2\` for architecture navigation
-- Read linked Specs from capability metadata
-- Treat code paths, imports, calls, and symbols as implementation evidence only
-- Do not read legacy OPSX YAML as active architecture source
-`.trim();
-
-/**
- * Fragment: CLI-backed LikeC4 query context
- * Used in: propose, snack, apply-change
- */
-export const ARCHITECTURE_CLI_QUERY_CONTEXT = `
-Use OPSX LikeC4 query surfaces for architecture details.
-- Run \`opsx list --specs --json\` for Spec coverage.
-- Run \`opsx arch query <element-id> --relations --depth 2 --json\` for affected elements and directed semantic relations.
-- LikeC4 element IDs are semantic locations, not source paths.
-- Use CodeGraph or ACE/\`rg\`/\`read\` only for current implementation evidence.
+export const OPSX_SHARED_CONTEXT = `
+**OPSX Semantic Model Context**
+- Resolve the absolute Project Root, then load the LikeC4 graph modules under \`.opsx/architecture/\` and locate the unique Project Root element.
+- Use stable \`elementId\` as canonical identity. FQN is the current source navigation path and may change when an element moves.
+- Read relevant parent and children as abstraction/refinement context. Do not assume a fixed element-kind hierarchy or treat nesting as ownership.
+- Use \`opsx list --specs --json\` as the Element Contract registry; each Spec has one singular element owner binding.
+- Use \`opsx arch query <elementId> --relations --depth <n> --json\` for parent, children, owned Specs, and incoming/outgoing semantic relationships.
+- Treat code paths, symbols, imports, and calls from CodeGraph or ACE/\`rg\`/\`read\` as current implementation evidence only; do not promote them to elements or relationships without declared model intent.
+- If the model is missing, report \`Semantic Model unavailable\`. If it is incomplete or unsupported, identify the root, identity, binding, contract, or relationship gap.
+- A read-only exploration MAY degrade to available model and code evidence with the limitation disclosed. Workflows that compile or write semantics MUST stop when required model context is missing or incomplete; never treat a missing collection as complete and empty.
 `.trim();
 
 /**
@@ -47,16 +38,16 @@ Use OPSX LikeC4 query surfaces for architecture details.
 export const ARCHITECTURE_GENERATE_DELTA = `
 **Generate architecture-delta.c4**:
 - Before writing, follow the authoring order in the returned \`instruction\`; keep \`definition\`, dependencies, \`currentState\`, \`configProjection\`, and \`template\` as separate inputs
-- Read proposal \`Source Impact\`: use \`Architecture Source\` as declared scope and \`Behavior Source\` to locate related change-local Specs; Spec IDs are not LikeC4 element IDs
-- Read completed change-local Specs as target behavior context, \`design.md\` for architecture decisions, and the formal LikeC4 model as current architecture state
-- Treat proposal entries as scope declarations, not authoritative LikeC4 records; derive exact target-state elements and typed relations
+- Read proposal \`Source Impact\` as compatible scaffolding for one Semantic Delta; use it to locate affected elements, refinement, Element Contracts, and relationships
+- Read completed change-local Element Contracts as target contract context, \`design.md\` for architecture decisions, and the formal OPSX Semantic Model as current semantic state
+- Treat proposal entries as scope declarations, not authoritative LikeC4 records; derive exact target-state elements, refinement, contract bindings, and typed relationships
 - Read \`.opsx/references/likec4-authoring.md\`
-- Extend existing domains with \`extend <domain> { ... }\`; define genuinely new domains directly
-- Express ownership by nesting and relations with typed syntax such as \`source -[invokes]-> target\`
-- Link new capabilities to change-local Specs paths
-- If Architecture Source is \`None\`, omit \`architecture-delta.c4\`; do not invent architecture changes from behavior changes alone
+- Extend existing elements by current FQN and preserve stable \`elementId\` metadata
+- Express abstraction/refinement by nesting and collaboration with typed syntax such as \`source -[invokes]-> target\`
+- Bind each change-local Spec to exactly one stable \`elementId\` through singular frontmatter
+- If the graph module scope is \`None\`, omit \`architecture-delta.c4\`; do not invent graph changes from contract changes alone
 - Run \`opsx arch validate --delta .opsx/changes/<name>/architecture-delta.c4\`
-- Use current code only as implementation evidence; it MUST NOT override declared semantic source
+- Use current code only as implementation evidence; it MUST NOT override the OPSX Semantic Model
 `.trim();
 
 
@@ -156,18 +147,6 @@ export const VERIFY_SIMPLE_CHANGE_FAST_PATH = `
 - Spawn fresh optimizer at least once unless optimization is skipped or disabled
 - Only a valid reconciliation envelope with no actionable findings may produce NOT_NEEDED
 - Master MUST NOT self-determine NOT_NEEDED, skip selected findings, or reject them without masterChallenge
-`.trim();
-
-/**
- * Fragment: LikeC4-first navigation guidance
- * Used in: explore
- */
-export const ARCHITECTURE_NAVIGATION_GUIDANCE = `
-**LikeC4-first navigation**:
-- Use \`opsx arch query <element-id> --relations --depth 2 --json\` for domains, capabilities, and directed semantic relations
-- Read linked files under \`.opsx/specs/\` for behavior contracts
-- Use optional CodeGraph or ACE/\`rg\`/\`read\` only for current implementation evidence
-- Cross-reference nested domains to understand ownership and boundaries
 `.trim();
 
 /**

@@ -9,20 +9,20 @@
 
 # OPSX
 
-OPSX is a human-intent programming framework for agent-driven software development. Specs define externally observable behavior. LikeC4 defines architecture intent, capability ownership, boundaries, and semantic relations. Agents compile both sources into code.
+OPSX is a human-intent programming framework for agent-driven software development. Versioned LikeC4 graph modules and element-owned Markdown contract modules form one OPSX Semantic Model. Agents read these persisted files directly and translate authorized human intent into code.
 
 ## Core Model
 
 ```text
 .opsx/
-├── architecture/        # LikeC4 architecture source
-├── specs/               # Formal behavioral Specs
-├── changes/             # Change-local deltas and compilation scaffolding
+├── architecture/        # Versioned graph modules and Project Root
+├── specs/               # Element-owned contract modules
+├── changes/             # Semantic Deltas and compilation scaffolding
 ├── references/          # Managed workflow references
 └── config.yaml          # Project configuration
 ```
 
-`proposal.md`, `design.md`, and `tasks.md` guide a change, but they do not replace Specs or LikeC4 as durable semantic source.
+Every v1 graph element has a stable `elementId`; each Spec binds to one element through `element: <elementId>` frontmatter. `proposal.md`, `design.md`, and `tasks.md` guide compilation, but they do not replace the Semantic Model or create a persisted intermediate representation.
 
 ## Requirements
 
@@ -72,9 +72,9 @@ opsx view
 opsx view --port 5173
 ```
 
-`opsx view` discovers the nearest `.opsx/`, starts the vendored LikeC4 application, and renders `.opsx/architecture/**/*.c4`. Elements with `metadata.specs` expose a Specs tab that loads the indexed `.opsx/specs/**/*.md` files on demand. Spec files remain the single behavioral source; Markdown is not copied into the architecture model.
+`opsx view` discovers the nearest `.opsx/`, starts the vendored LikeC4 application, and renders `.opsx/architecture/**/*.c4`. Elements with entries in the derived Spec registry expose a Specs tab that loads their `.opsx/specs/**/*.md` contract modules on demand. The registry is derived from singular Spec frontmatter; graph metadata does not duplicate Spec paths.
 
-The local Spec API authorizes every request against the current computed LikeC4 model and rejects unsafe, unindexed, non-Markdown, and symlink-escaping paths. Editing the current Spec refreshes its rendered content through a precise HMR event.
+The local Spec API authorizes every element/path pair against the current registry and rejects unsafe, unregistered, non-Markdown, and symlink-escaping paths. Editing the current Spec refreshes its rendered content through a precise HMR event.
 
 ## Common CLI Commands
 
@@ -88,7 +88,7 @@ opsx arch export --format svg --output docs/architecture
 opsx view --port 5173
 ```
 
-There is no legacy CLI alias, previous-workspace fallback, or secondary architecture preview command.
+There is no legacy CLI alias, previous-workspace fallback, runtime grammar fallback, or secondary architecture preview command. Legacy YAML and unversioned LikeC4 profiles are accepted only by the explicit migration commands documented in the Migration Guide.
 
 ## Change Workflow
 

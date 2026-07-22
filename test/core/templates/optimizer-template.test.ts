@@ -9,6 +9,8 @@ describe('optimizer subagent template', () => {
     const prompt = template.prompt;
 
     expect(prompt).toContain(OPSX_PHILOSOPHY);
+    expect(prompt).toContain('Element Contract registry');
+    expect(prompt).toContain('opsx arch query <elementId> --relations --depth <n> --json');
     expect(prompt).toContain('finding-first');
     expect(prompt).toContain('strict JSON envelope');
     expect(prompt).toContain('keyDesign');

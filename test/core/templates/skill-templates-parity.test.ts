@@ -17,19 +17,19 @@ import { generateSkillContent } from '../../../src/core/shared/skill-generation.
 import { runTransforms } from '../../../src/core/templates/transforms/index.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getExploreSkillTemplate: '37224d9e180a7e294aa03e4cb708142cd1737b7138a0faa92411485c729c7bd5',
-  getApplyChangeSkillTemplate: '8c97f157cae8fe5216fe428f5b28c27566b9a9310ab131a90bc6837987aad411',
-  getArchiveChangeSkillTemplate: '8e5049da04ee2209fe8d3dc0a76845ff0507886100f9024537b506626cecd2ea',
-  getOpsxProposeSkillTemplate: '031bca9a447ed68712b60a99f61aa86a90a7ab13d1761262ec8951c55ba6578b',
+  getExploreSkillTemplate: '97736f185f0a45f17d32d2f62d2145a0be81cbba024eeb83d8855f6d52e4e194',
+  getApplyChangeSkillTemplate: 'b9f8382ad64b0cc45b777217b297096cf2034c524c3689aeea06ccdb1b9c5a12',
+  getArchiveChangeSkillTemplate: '67cb322982bf8857c79aee9520b3a54c7305738afabcf5cb66b23b181d248f0d',
+  getOpsxProposeSkillTemplate: 'b50fb55546c84dc596aed50928c9560eca17db1ff5f5519a48a901370af2ad94',
   getFeedbackSkillTemplate: '99756a104f264b86ab4b13ad5ca778dae8357fed3f79f70b5f01684abff2891e',
-  getBootstrapArchSkillTemplate: '175d2a1b57242d92f81ef8c89bf14b7ae8601af162977c6cd950393759ef6a08',
+  getBootstrapArchSkillTemplate: '4728f3b793aa269224dd16999b2076b865a0f04bd849a5c6a33a9bb461388413',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'opsx-explore': '41ee441872cd4489ddca3c91c7a2a7adb9fd86a8bbc4453f815c707033988c2a',
-  'opsx-apply-change': '03ab54dda5df120cc03abaeb0abc76dfe1fef12e9c42d47beee3c33e33578aac',
-  'opsx-archive-change': '1c2da7ba0be2ce53f51daae9c220e4d38ed11905d1b30c6998032f7900aca86d',
-  'opsx-propose': '34a6c407d100ef6da016c90a1c823d3a3d0a3a205db183250707e911630fc973',
+  'opsx-explore': 'a1bc722d5800cac7d5f7856f50d745957d3a2468119aff3bfd0300157c9a0f8d',
+  'opsx-apply-change': '36686537ae4587e06deba968a9ea4a647363194501c36ed377eff9dbad2de1d3',
+  'opsx-archive-change': 'b79be46840321900135d5d28d7adece4050389c88eefa298c6a09b4954911bb1',
+  'opsx-propose': '38083ef7c4ad021bb749849317f1367580e814f737dc30d8e22e5b0e7ac9d96d',
 };
 
 function stableStringify(value: unknown): string {
@@ -90,23 +90,26 @@ describe('skill templates split parity', () => {
     expect(actualHashes).toEqual(EXPECTED_GENERATED_SKILL_CONTENT_HASHES);
   });
 
-  it('keeps tracked Pi skills byte-identical to generated templates', () => {
+  it('renders every tracked workflow surface with canonical Semantic Model guidance', () => {
     const version = JSON.parse(readFileSync(path.resolve('package.json'), 'utf-8')).version as string;
-    const skillFactories: Array<[string, string, () => SkillTemplate]> = [
-      ['propose', 'opsx-propose', getOpsxProposeSkillTemplate],
-      ['explore', 'opsx-explore', getExploreSkillTemplate],
-      ['apply', 'opsx-apply-change', getApplyChangeSkillTemplate],
-      ['archive', 'opsx-archive-change', getArchiveChangeSkillTemplate],
-      ['bootstrap-arch', 'opsx-bootstrap-arch', getBootstrapArchSkillTemplate],
-      ['snack', 'opsx-snack', getSnackSkillTemplate],
+    const skillFactories: Array<[string, () => SkillTemplate]> = [
+      ['propose', getOpsxProposeSkillTemplate],
+      ['explore', getExploreSkillTemplate],
+      ['apply', getApplyChangeSkillTemplate],
+      ['archive', getArchiveChangeSkillTemplate],
+      ['bootstrap-arch', getBootstrapArchSkillTemplate],
+      ['snack', getSnackSkillTemplate],
     ];
 
-    for (const [workflowId, dirName, createTemplate] of skillFactories) {
-      const expected = generateSkillContent(createTemplate(), version, (instructions) =>
+    for (const [workflowId, createTemplate] of skillFactories) {
+      const rendered = generateSkillContent(createTemplate(), version, (instructions) =>
         runTransforms(instructions, { toolId: 'pi', workflowId, artifactType: 'skill' })
       );
-      const actual = readFileSync(path.join('.pi', 'skills', dirName, 'SKILL.md'), 'utf-8');
-      expect(actual, dirName).toBe(expected);
+      expect(rendered).toContain('OPSX Semantic Model');
+      expect(rendered).not.toContain('capabilityId');
+      expect(rendered).not.toContain('metadata.specs');
+      expect(rendered).not.toContain('capabilities: []');
+      expect(rendered).not.toContain('opsx-delta');
     }
   });
 

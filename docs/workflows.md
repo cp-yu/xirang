@@ -1,6 +1,6 @@
 # Workflows
 
-OPSX combines Specs with LikeC4 architecture and exposes managed workflows as skills.
+OPSX exposes managed workflows as skills over one OPSX Semantic Model: versioned LikeC4 graph modules plus element-owned Markdown contract modules.
 
 ## Current Surface
 
@@ -19,7 +19,7 @@ OPSX combines Specs with LikeC4 architecture and exposes managed workflows as sk
 /opsx:propose ──► /opsx:apply ──► /opsx:archive
 ```
 
-Propose authors behavior deltas and, when architecture changes, `architecture-delta.c4`. Apply queries affected LikeC4 elements before implementing serial TDD tasks. Archive verifies and syncs approved deltas.
+Propose authors contract deltas and, when graph facts change, `architecture-delta.c4`. Apply queries affected elements by stable `elementId` before implementing serial TDD tasks. Archive verifies and atomically syncs the approved Semantic Delta.
 
 ### Explore First
 
@@ -35,7 +35,7 @@ Use this when behavior or architecture decisions remain undefined.
 /opsx:bootstrap-arch ──► review candidates ──► opsx arch validate
 ```
 
-The bootstrap workflow scans current evidence, produces reviewed LikeC4 candidates, and promotes them only after approval.
+The bootstrap workflow scans current evidence, produces a reviewed versioned Semantic Model candidate, and promotes it only after identity, binding, and validation gates pass.
 
 ### Code-First Reconciliation
 

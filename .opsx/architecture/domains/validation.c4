@@ -8,20 +8,20 @@ model {
     }
 
     frontmatter = capability 'Frontmatter' {
-      description 'Spec 文件 YAML frontmatter 解析，提取 capabilities 关联声明'
-      metadata {
+      description '解析 Spec YAML frontmatter 的 singular element binding 并报告 malformed ownership declarations'
+            metadata {
         capabilityId 'cap.spec.frontmatter'
         status 'active'
       }
     }
 
     registry = capability 'Registry' {
-      description '从 .opsx/specs/ 构建 capability↔Spec registry'
-            metadata {
-        capabilityId 'cap.spec.registry'
-        status 'active'
-        specs ['.opsx/specs/spec-registry/spec.md']
-      }
+      description '从 formal Specs 构建 element-to-Specs 与 Spec-to-element 派生 registry，并检查 required contract coverage'
+                        metadata {
+              capabilityId 'cap.spec.registry'
+              status 'active'
+              specs ['.opsx/specs/spec-registry/spec.md']
+            }
     }
 
     change = capability 'Change' {

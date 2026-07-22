@@ -7,7 +7,7 @@ describe('reviewer cleanliness dimension contract', () => {
     const instructions = getReviewerSubagentTemplate().prompt;
     const coherence = instructions.indexOf('### Coherence');
     const cleanliness = instructions.indexOf('### Cleanliness');
-    const architecture = instructions.indexOf('### Architecture Alignment');
+    const architecture = instructions.indexOf('### Semantic Model Alignment');
 
     expect(coherence).toBeGreaterThanOrEqual(0);
     expect(cleanliness).toBeGreaterThan(coherence);

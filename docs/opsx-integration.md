@@ -1,33 +1,38 @@
 # OPSX Programmatic Integration
 
-LikeC4 is the only active architecture source. Programmatic consumers should read `.opsx/architecture/**/*.c4` through LikeC4 APIs or use the OPSX CLI instead of reading a parallel YAML model.
+The persisted OPSX Semantic Model is the only semantic authority. Programmatic consumers should read versioned `.opsx/architecture/**/*.c4` graph modules and element-owned `.opsx/specs/**/*.md` contract modules through OPSX/LikeC4 APIs or use the CLI. Source paths, imports, calls, and symbols remain current implementation evidence; they are not persisted semantic facts.
 
-## Query Architecture
+## Query Elements
 
 ```bash
-opsx arch query <element-id> --relations --depth 2 --json
+opsx arch query <element-id-or-fqn> --relations --depth 2 --json
 opsx arch validate --json
 ```
 
-Query output preserves element IDs, semantic relation direction, and relation type. Source paths, imports, calls, and symbols remain live implementation evidence and are not persisted as architecture truth.
+Query output canonicalizes identity to stable `elementId` and includes the current FQN, summary, parent, children, owned Specs, and directed semantic relationships.
 
-## Read Formal Specs
+## Read Element Contracts
 
-Formal behavior is stored under `.opsx/specs/**/*.md`. A LikeC4 element may index one or more Specs:
+Each v1 Spec uses singular ownership frontmatter:
 
-```likec4
-metadata {
-  specs ['.opsx/specs/orders/spec.md', '.opsx/specs/payments/spec.md']
-}
+```markdown
+---
+element: order.submit
+---
 ```
 
-`opsx view` reads indexed Markdown through its local authorized API. Other integrations should apply the same path controls: project-relative `.md` paths only, current-model authorization, and realpath containment under `.opsx/specs/`.
+Build or consume the derived Spec registry rather than reading graph `metadata.specs`. One element may own multiple Specs; each Spec binds to at most one element. Integrations that read Markdown must require project-relative `.md` paths, authorize the element/path pair against the current registry, and enforce realpath containment under `.opsx/specs/`.
 
 ## Change Integration
 
-- Behavior changes are declared in `.opsx/changes/<name>/specs/**/spec.md`.
-- Architecture changes are declared in `.opsx/changes/<name>/architecture-delta.c4`.
-- `opsx sync <name>` reconciles approved deltas into formal Specs and LikeC4.
-- `opsx archive <name>` verifies lifecycle gates and moves the change into audit history.
+- Graph changes are declared in `.opsx/changes/<name>/architecture-delta.c4`.
+- Contract changes are declared in `.opsx/changes/<name>/specs/**/spec.md`.
+- Both module sets form one Target Semantic Model during validation.
+- `opsx sync <name>` validates and commits the Semantic Delta atomically.
+- `opsx archive <name>` enforces lifecycle gates and moves the change into audit history.
 
-See [LikeC4 Architecture Integration](architecture-integration.md) for the model contract.
+See [OPSX Semantic Model And LikeC4](architecture-integration.md) for the authoring contract.
+
+## Legacy Input
+
+Former OPSX YAML bundles and unversioned domain/capability LikeC4 models are migration inputs only. Runtime integrations must not add fallback reads for either format. See [Migration Guide](migration-guide.md).

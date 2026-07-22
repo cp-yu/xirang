@@ -5,10 +5,10 @@ import path from 'node:path'
 const fixtureRoot = path.resolve('test/fixtures/spec-browser')
 
 async function openDetails(page: Page, id: string): Promise<Locator> {
-  const node = page.locator(`.react-flow__node[data-id="${id}"]`)
+  const node = page.locator(`.react-flow__node[data-id="projectRoot.${id}"]`)
   await expect(node).toBeVisible({ timeout: 20_000 })
-  await node.hover()
-  await node.getByRole('button', { name: 'Open details' }).click()
+  await node.click()
+  await node.click()
   const dialog = page.locator('dialog[open]')
   await expect(dialog).toBeVisible()
   return dialog
@@ -40,9 +40,9 @@ test('browses absent, single, multiple, long, and hot-reloaded Specs', async ({ 
   dialog = await openDetails(page, 'multi')
   await dialog.getByRole('tab', { name: 'Specs' }).click()
   const selector = dialog.getByRole('combobox', { name: 'Select Spec' })
-  await expect(selector).toHaveValue('.opsx/specs/multiple/first.md')
+  await expect(selector).toHaveValue('.opsx/specs/multiple-first/spec.md')
   await expect(dialog.getByRole('heading', { name: 'First Spec' })).toBeVisible()
-  await selector.selectOption('.opsx/specs/multiple/second.md')
+  await selector.selectOption('.opsx/specs/multiple-second/spec.md')
   await expect(dialog.getByRole('heading', { name: 'Second Spec' })).toBeVisible()
   await closeDetails(dialog)
 

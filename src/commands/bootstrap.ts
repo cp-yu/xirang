@@ -124,10 +124,10 @@ async function resolveGranularity(
 
   const { select } = await import('@inquirer/prompts');
   return select({
-    message: 'Select spec granularity',
+    message: 'Select Element Contract granularity',
     choices: [
-      { name: 'coarse — fewer, wider grouped specs', value: 'coarse' },
-      { name: 'fine — per-capability specs', value: 'fine' },
+      { name: 'coarse — fewer, wider grouped Element Contracts', value: 'coarse' },
+      { name: 'fine — per-element Element Contracts', value: 'fine' },
     ],
   });
 }
@@ -151,21 +151,21 @@ export async function bootstrapInitCommand(options: BootstrapInitOptions): Promi
     }
     console.log();
     if (metadata.mode === 'opsx-first') {
-      console.log('This mode writes the formal OPSX bundle plus a README-only specs starter. Add behavior specs later through normal change workflows.');
+      console.log('This mode writes the v1 Semantic Model architecture plus a Project Contract and README starter. Add Element Contracts later through normal change workflows.');
       console.log();
     } else if (metadata.mode === 'refresh') {
-      console.log('Refresh mode rebuilds a complete candidate from all current repository evidence.');
-      console.log('The existing formal OPSX v2 files are review-only baseline evidence and are replaced atomically after approval.');
+      console.log('Refresh mode rebuilds a complete candidate for the v1 Semantic Model from all current repository evidence.');
+      console.log('The legacy formal OPSX v2 model is review-only input evidence; approval promotes the reviewed v1 Semantic Model and Element Contracts.');
       console.log();
     } else if (metadata.baseline_type === 'raw') {
-      console.log('Full mode will generate the formal OPSX bundle plus complete valid candidate specs for each capability.');
+      console.log('Full mode will generate a v1 Semantic Model candidate with generic elements and singular-bound Element Contracts.');
       console.log();
     }
     if (result.restarted) {
       console.log('This run starts fresh from init while retaining the previous workspace as audit history.');
       console.log();
     }
-    console.log('Next: Advance to scan, then discover domains.');
+    console.log('Next: Advance to scan, then discover elements.');
     console.log('  opsx bootstrap advance scan');
     console.log('  Use /opsx:bootstrap or opsx bootstrap instructions scan');
   } catch (error) {
@@ -233,8 +233,19 @@ function printBootstrapStatus(status: BootstrapStatus): void {
   console.log(`Candidate: ${status.candidateState}`);
   console.log(`Review: ${status.reviewState}${status.reviewApproved ? ' (approved)' : ''}`);
 
-  if (status.totalDomains > 0) {
-    console.log(`Domains: ${status.mappedDomains}/${status.totalDomains} mapped`);
+  if (status.totalElements > 0) {
+    console.log(`Elements: ${status.mappedElements}/${status.totalElements} mapped`);
+    console.log();
+    for (const element of status.elements) {
+      const indicator = element.reviewed
+        ? chalk.green('[x]')
+        : element.mapped
+          ? chalk.yellow('[~]')
+          : chalk.red('[ ]');
+      console.log(`  ${indicator} ${element.elementId}  kind: ${element.kind}  confidence: ${element.confidence}`);
+    }
+  } else if (status.totalDomains > 0) {
+    console.log(`Elements (legacy input adapter): ${status.mappedDomains}/${status.totalDomains} evidence groups mapped`);
     console.log();
 
     for (const dom of status.domains) {
@@ -244,12 +255,12 @@ function printBootstrapStatus(status: BootstrapStatus): void {
           ? chalk.yellow('[~]')
           : chalk.red('[ ]');
 
-      const capText = dom.mapped ? `${dom.capabilityCount} capabilities` : 'discovered, unmapped';
-      console.log(`  ${indicator} ${dom.id}  ${capText}  confidence: ${dom.confidence}`);
+      const elementText = dom.mapped ? 'adapted element group' : 'discovered, unmapped';
+      console.log(`  ${indicator} ${dom.id}  ${elementText}  confidence: ${dom.confidence}`);
     }
   } else if (phaseIdx < BOOTSTRAP_PHASES.indexOf('scan')) {
     console.log();
-    console.log('No domains discovered yet. Run `opsx bootstrap advance scan` next.');
+    console.log('No elements discovered yet. Run `opsx bootstrap advance scan` next.');
   }
 }
 
@@ -410,18 +421,18 @@ function getPreInitInstructions(status: Extract<BootstrapStatus, { initialized: 
   lines.push(`Run: opsx bootstrap init --mode ${status.allowedModes[0]} --granularity coarse|fine`);
 
   if (status.baselineType === 'specs-based') {
-    lines.push('', 'Bootstrap will preserve existing specs, add missing capability specs, and fail fast on target-path conflicts.');
+    lines.push('', 'Bootstrap will preserve existing Element Contracts, add missing contracts for generic elements, and fail fast on target-path conflicts.');
   }
 
   if (status.baselineType === 'formal-opsx') {
-    lines.push('', 'Refresh rebuilds a complete candidate from all current repository evidence.');
-    lines.push('The old formal OPSX v2 model is used only for the review diff.');
-    lines.push('After approval, promotion atomically replaces both formal OPSX v2 files.');
+    lines.push('', 'Refresh rebuilds a complete candidate for the v1 Semantic Model from all current repository evidence.');
+    lines.push('The legacy formal OPSX v2 model is review-only input evidence for the candidate review diff.');
+    lines.push('After approval, promotion atomically writes the reviewed v1 Semantic Model architecture and Element Contracts.');
   }
 
   if (status.baselineType === 'raw') {
-    lines.push('', 'Use `full` to prepare the formal OPSX bundle plus complete valid specs for each mapped capability.');
-    lines.push('Use `opsx-first` to prepare the formal OPSX bundle plus a README-only specs starter, then add behavior specs later through normal change workflows.');
+    lines.push('', 'Use `full` to prepare a v1 Semantic Model candidate with generic elements and singular-bound Element Contracts.');
+    lines.push('Use `opsx-first` to prepare the v1 Semantic Model architecture, Project Contract, and README starter; add further Element Contracts through normal change workflows.');
   }
 
   return lines.join('\n');
@@ -440,72 +451,75 @@ Run: opsx bootstrap init --mode ${mode} --granularity coarse|fine
 
 This creates the workspace at .opsx/bootstrap/ with scope configuration. Initial init requires explicit granularity; a completed workspace restart inherits retained scope.yaml granularity unless explicitly overridden.
 ${mode === 'opsx-first'
-  ? 'This mode prepares the formal OPSX bundle plus a README-only specs starter. Add behavior specs incrementally later through normal change workflows.'
+  ? 'This mode prepares the v1 Semantic Model architecture plus a Project Contract and README starter; add further Element Contracts through normal change workflows.'
   : mode === 'refresh'
-    ? 'This mode rebuilds a complete candidate from current source, specs, config, and reviewed evidence; the existing formal OPSX v2 bundle is review-only baseline evidence.'
+    ? 'This mode rebuilds a complete candidate for the v1 Semantic Model from current source, Specs, config, and reviewed evidence; the legacy formal OPSX v2 model is review-only input evidence.'
   : baselineType === 'specs-based'
-    ? 'This mode preserves existing specs, adds missing capability specs, and fails fast if a generated target path already exists.'
-    : 'This mode prepares the formal OPSX bundle plus complete valid candidate specs for each mapped capability.'}
-After init, run \`opsx bootstrap advance scan\`; the agent can then analyze the codebase for domain candidates.`;
+    ? 'This mode preserves existing Element Contracts, adds missing contracts for generic elements, and fails fast if a generated target path already exists.'
+    : 'This mode prepares a v1 Semantic Model candidate with generic elements and singular-bound Element Contracts.'}
+After init, run \`opsx bootstrap advance scan\`; the agent can then analyze the codebase for element candidates.`;
 
     case 'scan':
-      return `Scan the codebase to discover candidate domains.
+      return `Scan the codebase to discover candidate semantic elements.
 
-1. Read package.json, README, and OPSX config for project context
-2. Inspect .opsx/specs/ for existing domain/capability evidence
+1. Read package.json, README, Specs, and OPSX config for project context
+2. Identify evidence-backed project-defined kinds and refinement candidates
 3. Scan source code for structural boundaries (directories, modules, entrypoints)
-4. Write evidence.yaml with candidate domains, confidence levels, and sources
+4. Write evidence.yaml with generic elements, confidence levels, and sources
 
-Each domain entry should have:
-- id: dom.<area> (e.g., dom.auth, dom.cli)
+Each element entry has:
+- elementId: globally unique stable identity
+- kind: project-defined element kind
+- contractPolicy: required | optional
+- localId: LikeC4 navigation identifier
+- title and non-empty summary
 - confidence: high | medium | low
 - sources: evidence trail (spec:<path>, code:<path>)
-- intent: one-sentence domain description
 
-Prefer fewer domains with solid evidence over exhaustive noise.
+Legacy \`domains\` evidence remains accepted through the explicit compatibility adapter.
 ${mode === 'refresh'
-  ? '\nFor refresh, scan all current source, specs, configuration, and package/build metadata. The existing formal OPSX v2 model is review-only evidence and must not supply candidate content.'
+  ? '\nFor refresh, scan all current source, specs, configuration, and package/build metadata. The legacy formal OPSX v2 model is review-only input evidence and must not supply candidate content.'
   : ''}
 After writing evidence.yaml, run: opsx bootstrap validate`;
 
     case 'map':
-      return `Map capabilities and semantic relations per domain.
+      return `Map refinement parentage, Element Contracts, and semantic relations.
 
-For each domain in evidence.yaml, create domain-map/<domain-id>.yaml:
-- domain: the domain node definition
-- capabilities: list of cap.<domain>.<action> entries
-- relations: precise Registry-defined belongs_to/invokes/consumes/precedes/constrains/validates facts
-- review_gaps: evidence and reason for interactions that cannot be classified precisely
+Create one or more domain-map/*.yaml compatibility-path files containing:
+- elements: generic candidates with elementId, kind, explicit contractPolicy (required | optional), localId, title, summary, and optional singular-bound Element Contract source
+- parent_links: exactly one parent link per non-root element; use project.root for top-level candidates
+- relations: precise invokes/produces/consumes/precedes/constrains/validates facts
+- review_gaps: evidence and reason for ambiguous parentage, binding, or interaction semantics
 
-Map one domain at a time, but derive every entry from the complete current scan.
-Run: opsx bootstrap status to see per-domain progress.
-After mapping all domains, run: opsx bootstrap validate`;
+Project-defined kinds and arbitrary depth are valid. Do not lower unknown kinds to domain/capability, and do not persist belongs_to/refines/abstracts relations. Legacy \`domain/capabilities\` maps remain accepted only through the compatibility adapter.
+Run: opsx bootstrap status to see element mapping progress.
+After mapping all elements, run: opsx bootstrap validate`;
 
     case 'review':
       return `Review the mapped architecture before promotion.
 
 1. Run: opsx bootstrap validate (regenerates candidate files and review.md from current evidence.yaml + domain-map/*.yaml)
-2. Review review.md — check each domain's boundaries, capabilities, semantic relation type/direction, ownership, and review gaps${mode === 'refresh' ? ', plus the complete-candidate diff against the old formal review baseline' : ''}
-3. Mark each domain checkbox as reviewed
-4. If evidence or domain maps change, run validate again and re-approve the regenerated review
+2. Review review.md — check each element's kind, explicit contract policy, stable identity, unique parent, contract binding, semantic relation type/direction, and review gaps${mode === 'refresh' ? ', plus the complete-candidate diff against the old formal review baseline' : ''}
+3. Mark each element checkbox as reviewed
+4. If evidence or element maps change, run validate again and re-approve the regenerated review
 
-Low-confidence domains appear first for priority review.
+Low-confidence elements appear first for priority review.
 When all checkboxes are checked, proceed to promote.`;
 
     case 'promote':
-      return `Promote the candidate OPSX to formal project files.
+      return `Promote the reviewed v1 Semantic Model candidate.
 
 Run: opsx bootstrap promote
 
-This re-validates scan, map, and review gates before writing any formal OPSX files.
-Successful promotion writes the two formal OPSX v2 files and retains the bootstrap workspace as audit history.
+This re-validates scan, map, and review gates before writing the v1 Semantic Model architecture and Element Contracts.
+Successful promotion writes the complete \`.opsx/architecture/\` and \`.opsx/specs/\` tree and retains the bootstrap workspace as audit history.
 ${mode === 'opsx-first'
-  ? 'Opsx-first writes the formal OPSX bundle plus only .opsx/specs/README.md.'
+  ? 'Opsx-first writes the v1 architecture modules, Project Contract, and `.opsx/specs/README.md`; add further Element Contracts through normal change workflows.'
   : mode === 'refresh'
-    ? 'Refresh rebuilds the complete candidate from current evidence, uses the old model only for review diff, replaces both formal files, and fails fast on spec-path conflicts.'
+    ? 'Refresh rebuilds the complete candidate from current evidence, uses the legacy model only as review input, promotes the reviewed v1 Semantic Model, and fails fast on contract-path conflicts.'
     : baselineType === 'specs-based'
-    ? 'Full mode preserves your existing specs, adds only missing capability specs, and fails fast on target-path conflicts.'
-    : 'Full mode writes the formal OPSX bundle plus valid specs covering all mapped capabilities (coarse: grouped via spec_groups, fine: one per capability).'}}
+    ? 'Full mode preserves existing Element Contracts, adds only missing contracts for generic elements, and fails fast on target-path conflicts.'
+    : 'Full mode writes v1 architecture modules plus singular-bound Element Contracts (coarse: grouped under one unambiguous element owner, fine: one per element).'}}
 After a completed retained workspace, start the next refresh run with: opsx bootstrap init --mode refresh --restart. It inherits retained scope.yaml granularity; pass --granularity coarse|fine to override it.`;
   }
 }
@@ -622,7 +636,7 @@ export async function bootstrapPromoteCommand(options: BootstrapPromoteOptions):
   const projectRoot = process.cwd();
 
   if (!options.yes) {
-    console.log('This will write formal OPSX files and retain the bootstrap workspace as audit history.');
+    console.log('This will promote the reviewed v1 Semantic Model and retain the bootstrap workspace as audit history.');
     console.log('Run with -y to confirm, or use the /opsx:bootstrap skill.');
     return;
   }
@@ -631,9 +645,9 @@ export async function bootstrapPromoteCommand(options: BootstrapPromoteOptions):
 
   try {
     const result = await promoteBootstrap(projectRoot);
-    spinner.succeed('Bootstrap promoted to formal OPSX files');
-    console.log('  Written: .opsx/project.opsx.yaml');
-    console.log('  Written: .opsx/project.opsx.relations.yaml');
+    spinner.succeed('Bootstrap promoted to the formal v1 Semantic Model');
+    console.log('  Written: .opsx/architecture/*.c4');
+    console.log('  Written: .opsx/specs/');
     console.log(`  Backfill specs: written ${result.backfill.written.length}, unmatched ${result.backfill.unmatched.length}`);
     console.log(`  ${result.retainedWorkspaceNotice}`);
   } catch (error) {

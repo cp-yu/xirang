@@ -110,14 +110,23 @@ Then the system signs the user in`
     expect(console.log).toHaveBeenCalledWith('architecture: no-delta');
   });
 
-  it('treats a canonical no-op OPSX delta as no sync required', async () => {
+  it('rejects an empty graph model instead of treating file presence as a delta', async () => {
     const syncCommand = await loadSyncCommand();
-    const changeDir = await createChange('no-op-opsx');
-    await fs.writeFile(path.join(changeDir, 'opsx-delta.yaml'), 'schema_version: 2\n', 'utf-8');
+    const changeDir = await createChange('empty-graph');
+    await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), 'model {}\n', 'utf-8');
 
-    await syncCommand('no-op-opsx', { noValidate: true, noVerify: true });
+    await expect(syncCommand('empty-graph', { noValidate: true, noVerify: true }))
+      .rejects.toThrow(/no actual architecture operation|empty/i);
+  });
 
-    expect(console.log).toHaveBeenCalledWith('No sync required.');
+  it('does not let --no-validate bypass empty graph operation integrity', async () => {
+    const syncCommand = await loadSyncCommand();
+    const changeDir = await createChange('empty-extension');
+    await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), 'model { extend missing {} }\n', 'utf-8');
+
+    await expect(syncCommand('empty-extension', { noValidate: true, noVerify: true }))
+      .rejects.toThrow(/no actual architecture operation|empty/i);
+    await expect(fs.readdir(path.join(tempDir, '.opsx', 'specs'))).resolves.toEqual([]);
   });
 
   it('syncs Specs without requiring formal OPSX for a no-op delta', async () => {

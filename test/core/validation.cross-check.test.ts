@@ -44,6 +44,25 @@ ${capIds.map((id, index) => `    capability_${index} = capability 'Test capabili
 `);
   }
 
+  async function writeV1Architecture() {
+    const architectureDir = path.join(testDir, '.opsx', 'architecture');
+    await fs.mkdir(architectureDir, { recursive: true });
+    await fs.writeFile(path.join(architectureDir, 'model.c4'), `opsx { languageVersion '1' }
+specification {
+  element project { opsx { root true contract required } }
+  element workflow { opsx { contract required } }
+  element note { opsx { contract optional } }
+}
+model {
+  projectRoot = project 'Root' 'Project intent' {
+    metadata { elementId 'project.root' }
+    run = workflow 'Run' 'Run workflow' { metadata { elementId 'workflow.run' } }
+    note = note 'Note' 'Optional note' { metadata { elementId 'note.info' } }
+  }
+}
+`);
+  }
+
   const mainSpecWithHeaders = (headers: string[]) => {
     const reqs = headers.map(h => `### Requirement: ${h}\nThe system SHALL do ${h}.\n\n#### Scenario: ${h} works\n- **WHEN** foo\n- **THEN** bar\n`).join('\n');
     return `# Test Spec\n\n## Purpose\nTest spec for cross-check validation.\n\n## Requirements\n\n${reqs}`;
@@ -237,5 +256,48 @@ ${mainSpecWithHeaders(['Existing'])}`);
 
     expect(report.issues.some(i => i.message.includes('cap.nonexistent'))).toBe(false);
     expect(report.issues.some(i => i.level === 'INFO' && i.message.includes('legacy'))).toBe(true);
+  });
+
+  it('validates v1 formal and change-local singular bindings together', async () => {
+    await writeV1Architecture();
+    await writeMainSpec('project-contract', `---\nelement: project.root\n---\n${mainSpecWithHeaders(['Project'])}`);
+    await writeChangeSpec('workflow-contract', `---\nelement: workflow.run\n---\n${deltaSpec('ADDED', 'Run')}`);
+
+    const report = await new Validator().validateChangeDeltaSpecs(changeDir);
+
+    expect(report.issues.filter(issue => issue.level === 'ERROR')).toEqual([]);
+  });
+
+  it('rejects v1 unknown, missing, legacy, and multiple-owner bindings', async () => {
+    await writeV1Architecture();
+    await writeMainSpec('project-contract', `---\nelement: project.root\n---\n${mainSpecWithHeaders(['Project'])}`);
+    await writeMainSpec('unknown-owner', `---\nelement: missing.element\n---\n${mainSpecWithHeaders(['Unknown'])}`);
+    await writeMainSpec('missing-owner', mainSpecWithHeaders(['Missing']));
+    await writeMainSpec('legacy-owner', `---\ncapabilities: [cap.workflow.run]\n---\n${mainSpecWithHeaders(['Legacy'])}`);
+    await writeMainSpec('multiple-owner', `---\nelement: [workflow.run, project.root]\n---\n${mainSpecWithHeaders(['Multiple'])}`);
+    await writeChangeSpec('workflow-contract', `---\nelement: workflow.run\n---\n${deltaSpec('ADDED', 'Run')}`);
+
+    const report = await new Validator().validateChangeDeltaSpecs(changeDir);
+
+    expect(report.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({ level: 'ERROR', path: expect.stringContaining('unknown-owner'), message: expect.stringContaining('missing.element') }),
+      expect.objectContaining({ level: 'ERROR', path: expect.stringContaining('missing-owner'), message: expect.stringContaining('MISSING_SPEC_ELEMENT') }),
+      expect.objectContaining({ level: 'ERROR', path: expect.stringContaining('legacy-owner'), message: expect.stringContaining('LEGACY_SPEC_OWNERSHIP') }),
+      expect.objectContaining({ level: 'ERROR', path: expect.stringContaining('multiple-owner'), message: expect.stringContaining('MULTIPLE_SPEC_OWNERS') }),
+    ]));
+  });
+
+  it('reports uncovered required contracts while allowing optional elements without Specs', async () => {
+    await writeV1Architecture();
+    await writeMainSpec('project-contract', `---\nelement: project.root\n---\n${mainSpecWithHeaders(['Project'])}`);
+    await writeChangeSpec('project-delta', `---\nelement: project.root\n---\n${deltaSpec('ADDED', 'More Project')}`);
+
+    const report = await new Validator().validateChangeDeltaSpecs(changeDir);
+
+    expect(report.issues).toContainEqual(expect.objectContaining({
+      level: 'ERROR',
+      message: expect.stringContaining('MISSING_REQUIRED_CONTRACT'),
+    }));
+    expect(report.issues.some(issue => issue.message.includes('note.info'))).toBe(false);
   });
 });

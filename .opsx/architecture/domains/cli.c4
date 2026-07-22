@@ -80,12 +80,12 @@ model {
     }
 
     init = capability 'Init' {
-      description '初始化 .opsx/ durable workspace 与 LikeC4 架构骨架'
-            metadata {
-        capabilityId 'cap.cli.init'
-        status 'active'
-        specs ['.opsx/specs/cli-init/spec.md']
-      }
+      description '初始化带 Project Root、versioned Metamodel、graph modules 与 Specs directory 的 OPSX Semantic Model skeleton'
+                        metadata {
+              capabilityId 'cap.cli.init'
+              status 'active'
+              specs ['.opsx/specs/cli-init/spec.md']
+            }
     }
 
     init_opsx_skeleton = capability 'Init Opsx Skeleton' {
@@ -106,8 +106,8 @@ model {
     }
 
     list = capability 'List' {
-      description '列出变更或 specs，specs 模式支持 JSON 输出包含 capabilities 字段与 requirement header 名称列表'
-      metadata {
+      description '列出 changes 与 Specs，并在 Specs JSON projection 中返回 singular stable element binding'
+            metadata {
         capabilityId 'cap.cli.list'
         status 'active'
       }
@@ -178,8 +178,8 @@ model {
     }
 
     sync = capability 'Sync' {
-      description '顶层 CLI 命令，将 change 中的 delta specs 和 architecture-delta.c4 同步到 formal Specs 与 LikeC4 模型，不执行归档；sync 允许未标注的 change-local scenarios，消费并清洗已有 labels，但不生成或写回 scenario operation labels'
-      metadata {
+      description '在 verify gate 后联合验证并原子提升 graph 与 contract modules，且不改变 workflow stage 顺序'
+            metadata {
         capabilityId 'cap.cli.sync'
         status 'active'
       }
@@ -227,8 +227,8 @@ model {
     }
 
     arch_query = capability 'Architecture Query' {
-          description '查询 LikeC4 elements 和 directed relations'
-          metadata {
+          description '按 stable elementId 或当前 FQN 查询 element、refinement hierarchy、owned Specs 与 semantic relationships'
+                    metadata {
             capabilityId 'cap.cli.arch-query'
             status 'active'
             specs ['.opsx/specs/arch-query-command/spec.md']
@@ -236,8 +236,8 @@ model {
         }
 
         arch_validate = capability 'Architecture Validate' {
-          description '验证 formal LikeC4 model 或 change-local architecture delta'
-          metadata {
+          description '联合验证 formal OPSX Semantic Model 或 change-local Target Semantic Model 的 graph 与 contract modules'
+                    metadata {
             capabilityId 'cap.cli.arch-validate'
             status 'active'
             specs ['.opsx/specs/arch-validate-command/spec.md']

@@ -32,11 +32,11 @@ files:
   - id: evidence
     path: "evidence.yaml"
     definition:
-      purpose: Record repository evidence and evidence-backed candidate domain boundaries.
+      purpose: Record repository evidence and evidence-backed generic element candidates.
       compilationRole: Retained bootstrap authoring input for architecture discovery.
       content:
         includes:
-          - Repository locations, candidate domains, confidence, provisional intents, and supporting evidence.
+          - Stable element IDs, project-defined kinds, explicit contract policies, local IDs, titles, summaries, confidence, sources, and legacy domain evidence accepted by the compatibility adapter.
         excludes:
           - Final architecture claims, derived candidates, review approval, and unsupported conclusions.
       writePolicy: agent-authored
@@ -49,33 +49,33 @@ files:
       compilationRole: Retained bootstrap authoring input compiled into candidate OPSX and Specs.
       content:
         includes:
-          - Provisional domains, capabilities, canonical semantic relations, spec groups, and review gaps.
+          - Generic element candidates with explicit contract policies, exactly-one-parent links, canonical semantic relations, singular Spec sources, and review gaps; legacy domain/capability maps are compatibility input only.
         excludes:
           - Derived candidates, final approval, unsupported architecture claims, and mechanical import or call edges presented as semantic relations.
       writePolicy: agent-authored
       validation:
         - opsx bootstrap validate
   - id: candidate-project
-    path: "candidate/project.opsx.yaml"
+    path: "candidate/architecture/{specification,model,views}.c4"
     definition:
-      purpose: Present the derived candidate project intent and non-relation architecture nodes.
+      purpose: Present the derived versioned Metamodel, Project Root, arbitrary-depth element tree, and views.
       compilationRole: CLI-generated review projection compiled from retained bootstrap inputs.
       content:
         includes:
-          - Candidate project intent, scope, domains, capabilities, and other legal non-relation nodes.
+          - Project-defined kind declarations, explicit contract policies and constraints, stable elementId metadata, unique-parent nesting, summaries, and views.
         excludes:
           - Semantic relations, delta operations, implementation locations, and review decisions.
       writePolicy: cli-generated
       validation:
         - opsx bootstrap validate
   - id: candidate-relations
-    path: "candidate/project.opsx.relations.yaml"
+    path: "candidate/architecture/relations.c4"
     definition:
       purpose: Present the derived candidate semantic relation set.
       compilationRole: CLI-generated review projection compiled from retained bootstrap inputs.
       content:
         includes:
-          - Registry-defined semantic relations between candidate OPSX nodes.
+          - Typed semantic relations between candidate elements, excluding belongs_to, refines, and abstracts.
         excludes:
           - Node definitions, delta operations, mechanical import or call graphs, unsupported relations, and review decisions.
       writePolicy: cli-generated
@@ -88,7 +88,7 @@ files:
       compilationRole: CLI-generated behavior projection reviewed before controlled promotion.
       content:
         includes:
-          - Complete target-state requirements and scenarios for mapped capabilities.
+          - Singular `element` bindings plus complete target-state requirements and scenarios for mapped elements.
         excludes:
           - Architecture semantics, bootstrap evidence, implementation decisions, review state, and change-local delta operations.
       writePolicy: cli-generated
@@ -108,20 +108,20 @@ files:
       validation:
         - opsx bootstrap validate
   - id: formal-project
-    path: ".opsx/project.opsx.yaml"
+    path: ".opsx/architecture/{specification,model,views}.c4"
     definition:
-      purpose: Define the current project intent and durable non-relation architecture model.
+      purpose: Define the versioned Metamodel, Project Root, arbitrary-depth element hierarchy, and views.
       compilationRole: Durable architecture source in the formal OPSX bundle.
       content:
         includes:
-          - Project intent, scope, domains, capabilities, ownership boundaries, and other legal non-relation nodes.
+          - Project intent, project-defined kinds with explicit contract policies and constraints, stable element identities, unique-parent refinement nesting, and views.
         excludes:
           - Semantic relations, delta operations, implementation locations, bootstrap evidence, and review state.
       writePolicy: workflow-managed
       validation:
         - opsx validate --all
   - id: formal-relations
-    path: ".opsx/project.opsx.relations.yaml"
+    path: ".opsx/architecture/relations.c4"
     definition:
       purpose: Define the complete semantic relations that hold in the current project architecture.
       compilationRole: Durable architecture source in the formal OPSX bundle.
@@ -140,7 +140,7 @@ files:
       compilationRole: Durable behavior source in the formal Specs collection.
       content:
         includes:
-          - Complete target-state requirements and scenarios for project capabilities.
+          - Singular element-owned target-state requirements and scenarios.
         excludes:
           - Bootstrap evidence, architecture semantics, implementation decisions, review state, and change-local delta operations.
       writePolicy: workflow-managed
@@ -159,7 +159,7 @@ artifacts:
 
       Run: opsx bootstrap init [--mode full|opsx-first|refresh] --granularity coarse|fine [--scope src/]
 
-      **Granularity**: coarse produces fewer grouped specs via spec_groups; fine produces per-capability specs. The agent must confirm choice before initial init. A completed workspace restart inherits retained scope.yaml granularity when omitted; an explicit value overrides it.
+      **Granularity**: coarse produces fewer grouped Specs via explicit singular element owners; fine produces per-element Specs. The agent must confirm choice before initial init. A completed workspace restart inherits retained scope.yaml granularity when omitted; an explicit value overrides it.
 
       This creates:
       - .bootstrap.yaml — metadata (phase, baseline, mode, fingerprints, created_at)
@@ -171,9 +171,9 @@ artifacts:
       - raw -> opsx-first
       - formal-opsx -> refresh
 
-      Use opsx-first only when the repository has no existing specs and you want the formal OPSX v2 two-file bundle plus a README-only specs starter first.
+      Use opsx-first only when the repository has no existing Specs and you want the formal v1 architecture plus a README-only Specs starter first.
       In that path, add full behavior specs later through normal change workflows.
-      Use refresh only when the repository already has both formal OPSX v2 files. Refresh rebuilds a complete candidate from current evidence; the old model is used only for review diff.
+      Use refresh only when the repository already has a formal baseline. Refresh rebuilds a complete candidate from current evidence as v1; the old model is used only for review diff.
 
       Confirm the scope configuration with the user before proceeding.
       After init, run opsx bootstrap advance scan and verify status reports phase scan. Do not edit .bootstrap.yaml or call internal APIs.
@@ -181,63 +181,60 @@ artifacts:
 
   - id: scan
     generates: evidence.yaml
-    description: Scan codebase for domains, entrypoints, and structural evidence
+    description: Scan codebase for generic elements, entrypoints, and structural evidence
     template: evidence.md
     files:
       - metadata
       - scope
       - evidence
     instruction: |
-      Scan the codebase to identify candidate domains from current source, specs, configuration, and package/build metadata.
+      Scan the codebase to identify generic candidate elements from current source, Specs, configuration, and package/build metadata.
 
-      For each candidate domain, record:
-      - id: domain ID following dom.<area> convention
+      For each candidate element, record:
+      - elementId: globally unique stable identity
+      - kind: project-defined kind
+      - contractPolicy: required | optional
+      - localId: LikeC4 navigation identifier
+      - title and non-empty summary
       - confidence: high | medium | low
       - sources: list of evidence (spec:<path>, code:<path>, readme:<section>)
-      - intent: one-sentence description of the domain boundary
 
       CodeGraph MAY accelerate symbol/call/import discovery when already available. Otherwise use ACE, rg, read, and tracked-file search. Do not install CodeGraph automatically.
-      Use repository evidence only. Do not fabricate domains.
-      Prefer fewer domains with solid evidence over exhaustive noise.
+      Use repository evidence only. Do not fabricate elements or kinds.
+      Legacy domains evidence remains accepted only through the explicit compatibility adapter.
 
       Gates (scan → map):
-      - All domain IDs follow dom.<name> convention
-      - No duplicate domain IDs
+      - No duplicate stable element IDs
+      - Every kind and contract policy is explicit and project-defined
     requires:
       - init
 
   - id: map
     generates: "domain-map/*.yaml"
-    description: Map capabilities and semantic relations per domain
+    description: Map generic elements, refinement parent links, and semantic relations
     template: domain-map.md
     files:
       - scope
       - evidence
       - domain-map
     instruction: |
-      For each domain in evidence.yaml, create a domain-map/<domain-id>.yaml file.
+      Create one or more domain-map/*.yaml compatibility-path files containing generic candidates and parent links.
 
-      Each file contains:
-      - domain: the domain node definition
-      - capabilities: list of capabilities under this domain
-      - relations: precise Registry relation facts
-      - review_gaps: current evidence that cannot be promoted to a precise relation; each entry requires evidence and reason
+      Each generic map contains:
+      - elements: elementId, kind, explicit contractPolicy (required | optional), localId, title, summary, and optional singular-bound spec source
+      - parent_links: exactly one parent link per non-root element; top-level candidates use project.root
+      - relations: precise invokes/produces/consumes/precedes/constrains/validates facts
+      - review_gaps: current evidence that cannot be promoted precisely; each entry requires evidence and reason
 
-      - `belongs_to` (capability → domain): 记录 capability 的架构所有权。
-      - `invokes` (caller → callee): 一个 capability 在运行时主动调用另一个 capability。
-      - `consumes` (consumer → provider): 交互核心是读取或依赖提供内容。
-      - `precedes` (earlier → later): 执行顺序是正确性合同。
-      - `constrains` (constraint owner → constrained capability): 存在独立且稳定的行为约束。
-      - `validates` (validator → subject): 交互结果是明确的有效性判定。
-
-      Imports and calls are candidate evidence only. Select a relation from the interaction mechanism; do not mechanically promote code edges.
-      This phase can be done incrementally — map one domain at a time.
-      Run opsx bootstrap status to see per-domain progress.
+      Containment is the refinement source. Do not persist belongs_to, refines, or abstracts relations, and do not lower unknown kinds to domain/capability. Imports and calls are evidence only; do not mechanically promote code edges. Legacy domain/capabilities maps remain accepted through the explicit compatibility adapter.
+      Run opsx bootstrap status to see element mapping progress.
 
       Gates (map → review):
-      - All domains in evidence.yaml have a corresponding domain-map/*.yaml
-      - Capability IDs follow cap.<domain>.<action> convention
-      - Relation endpoints, ownership, notes, duplicates, and cycles satisfy the Registry contract
+      - Every mapped generic element is discovered with the same kind and contract policy
+      - Every non-root element has exactly one parent and the tree is reachable and acyclic
+      - Stable element IDs and Spec folders are unique
+      - Every element kind has one consistent explicit contract policy
+      - Relation endpoints, notes, duplicates, and cycles satisfy the Registry contract
     requires:
       - scan
 
@@ -253,11 +250,11 @@ artifacts:
       - candidate-specs
       - review
     instruction: |
-      Assemble a complete candidate from current domain-map/*.yaml evidence and generate review.md.
+      Assemble a complete candidate from current generic element maps and parent links and generate review.md.
 
       Run: opsx bootstrap validate
 
-      Review domain boundaries, capability coverage, semantic relation type/direction, ownership gaps, unsupported interactions, and spec coverage. In refresh mode, compare the complete candidate with the old formal model, which is review evidence only and must not be copied into the candidate.
+      Review Project Root, every element kind/explicit contract policy/stable ID/summary, unique-parent refinement, semantic relation type/direction, unresolved gaps, and singular Spec coverage. In refresh mode, compare the complete candidate with the old formal model, which is review evidence only and must not be copied into the candidate.
 
       Re-run validate after any evidence.yaml or domain-map edit because review.md is regenerated from current inputs.
 
@@ -286,17 +283,16 @@ artifacts:
       Run: opsx bootstrap promote -y
 
       This command:
-      1. Re-validates scan, map, review, and Registry semantic gates
-      2. Assembles the complete candidate OPSX v2 bundle from domain-map files
-      3. Atomically writes project.opsx.yaml and project.opsx.relations.yaml
-      4. In raw + full with granularity coarse, writes grouped specs from spec_groups; with granularity fine, writes one spec per mapped capability
-      5. In raw + opsx-first, writes only .opsx/specs/README.md
-      6. In specs-based + full, preserves existing specs and writes only missing capability specs
-      7. In formal-opsx + refresh, atomically replaces the two formal OPSX v2 files with the reviewed complete candidate
-      8. Runs deterministic spec frontmatter backfill automatically
-      9. Retains .opsx/bootstrap/ workspace for audit history
+      1. Re-validates scan, map, review, containment, binding, and semantic relation gates
+      2. Assembles the complete generic candidate tree from element candidates and parent links
+      3. Validates the versioned LikeC4 Metamodel, model, relations, views, and singular-bound Specs together
+      4. Atomically writes `.opsx/architecture/*.c4` and reviewed candidate Specs
+      5. In raw + opsx-first, additionally writes `.opsx/specs/README.md`
+      6. Preserves compatible existing Specs only when explicitly requested
+      7. Runs deterministic spec frontmatter backfill automatically
+      8. Retains `.opsx/bootstrap/` workspace for audit history
 
-      After promote, run opsx bootstrap backfill-specs --json. For every unmatched spec, use semanticHandoff spec content plus candidate capability intents with a subagent. Apply only reviewed mappings with --mappings <mapping-file> and report the remaining unmatched list; never guess capability associations.
+      After promote, run opsx bootstrap backfill-specs --json and report the remaining unmatched Specs; never guess bindings.
       Then run `opsx validate --all`. If validation fails, return to the relevant bootstrap source artifact for repair before claiming completion.
 
       Confirm before writing to formal OPSX files.
@@ -308,6 +304,6 @@ apply:
   tracks: review.md
   instruction: |
     Review the mapped architecture in review.md.
-    Check each domain checkbox after verifying its boundaries, capabilities, semantic relations, and evidence gaps.
+    Check each element checkbox after verifying its kind, explicit contract policy, stable identity, unique parent, contract binding, semantic relations, and evidence gaps.
     If evidence.yaml or domain-map files change, run opsx bootstrap validate to regenerate review.md and re-approve it.
     When all checkboxes are checked, run opsx bootstrap promote -y.

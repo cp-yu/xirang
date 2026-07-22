@@ -7,6 +7,11 @@ export interface OpsxSpecIndex {
   getIndexedSpecs(element: string): Promise<readonly string[] | undefined>
 }
 
+export interface OpsxSpecRegistrySnapshot {
+  version: 1
+  elements: Record<string, readonly string[]>
+}
+
 export interface OpsxSpecResult {
   path: string
   md: string
@@ -25,32 +30,34 @@ export class OpsxSpecError extends Error {
   }
 }
 
-export async function getProjectIndexedSpecs<P extends { id: string }>({
-  project,
-  element,
-  projects,
-  loadModel,
-}: {
-  project: string
-  element: string
-  projects: readonly P[]
-  loadModel(project: P): Promise<{
-    findElement(element: string): { metadata?: unknown } | null | undefined
-  }>
-}): Promise<readonly string[] | undefined> {
-  const selected = projects.find(candidate => candidate.id === project)
-  if (!selected) {
-    return undefined
+export function assertOpsxProject(project: string, projects: readonly { id: string }[]): void {
+  if (!projects.some(candidate => candidate.id === project)) {
+    throw new OpsxSpecError(404, 'Project not found')
   }
-  const metadata = (await loadModel(selected)).findElement(element)?.metadata
-  if (!metadata || typeof metadata !== 'object') {
-    return undefined
+}
+
+export async function readOpsxSpecRegistry(registryFile: string): Promise<Map<string, readonly string[]>> {
+  let value: unknown
+  try {
+    value = JSON.parse(await fs.readFile(registryFile, 'utf8'))
+  } catch {
+    throw new OpsxSpecError(500, 'Unable to read Spec registry')
   }
-  const specs = (metadata as Record<string, unknown>)['specs']
-  if (Array.isArray(specs)) {
-    return specs.filter((entry): entry is string => typeof entry === 'string')
+  if (!value || typeof value !== 'object' || (value as { version?: unknown }).version !== 1) {
+    throw new OpsxSpecError(500, 'Invalid Spec registry')
   }
-  return typeof specs === 'string' ? [specs] : undefined
+  const elements = (value as { elements?: unknown }).elements
+  if (!elements || typeof elements !== 'object' || Array.isArray(elements)) {
+    throw new OpsxSpecError(500, 'Invalid Spec registry')
+  }
+  const registry = new Map<string, readonly string[]>()
+  for (const [element, specs] of Object.entries(elements)) {
+    if (!Array.isArray(specs) || !specs.every(spec => typeof spec === 'string')) {
+      throw new OpsxSpecError(500, 'Invalid Spec registry')
+    }
+    registry.set(element, [...new Set(specs)].sort())
+  }
+  return registry
 }
 
 export async function readOpsxSpec({

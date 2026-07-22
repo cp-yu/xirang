@@ -10,6 +10,7 @@ grammar LikeC4
 entry LikeC4Grammar:
   (
     imports+=ImportsFromPoject |
+    opsx+=OpsxLanguageBlock |
     specifications+=SpecificationRule |
     models+=Model  |
     views+=ModelViews |
@@ -31,6 +32,32 @@ LibIcon: name=IconId;
 
 // Specification -------------------------------------
 
+OpsxLanguageBlock:
+  'opsx' '{'
+    'languageVersion' version=String ';'?
+  '}';
+
+OpsxElementAnnotation:
+  'opsx' '{'
+    props+=OpsxElementAnnotationProperty*
+  '}';
+
+OpsxElementAnnotationProperty:
+  {infer OpsxRootProperty} key='root' value=BOOLEAN ';'? |
+  {infer OpsxContractProperty} key='contract' value=('required' | 'optional') ';'? |
+  {infer OpsxElementKindsProperty} key=('parents' | 'children') value=OpsxKindArray ';'?;
+
+OpsxRelationshipAnnotation:
+  'opsx' '{'
+    props+=OpsxRelationshipAnnotationProperty*
+  '}';
+
+OpsxRelationshipAnnotationProperty:
+  {infer OpsxRelationshipKindsProperty} key=('sourceKinds' | 'targetKinds') value=OpsxKindArray ';'?;
+
+OpsxKindArray:
+  '[' values+=Id (',' values+=Id)* ']';
+
 ElementKind: name=Id;
 Tag: name=Id;
 RelationshipKind: name=Id;
@@ -50,6 +77,7 @@ SpecificationRule:
 
 SpecificationElementKind:
   'element' kind=ElementKind ('{'
+    opsx=OpsxElementAnnotation?
     tags=Tags?
     props+=(
       SpecificationElementStringProperty |
@@ -81,6 +109,7 @@ SpecificationColor:
 
 SpecificationRelationshipKind:
   'relationship' kind=RelationshipKind ('{'
+    opsx=OpsxRelationshipAnnotation?
     tags=Tags?
     props+=(
       LinkProperty |

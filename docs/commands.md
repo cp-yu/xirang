@@ -10,8 +10,8 @@ OPSX exposes managed workflows as skills. It does not generate a parallel slash-
 | `/opsx:propose` | Create proposal, design, tasks, delta Specs, and architecture delta when required |
 | `/opsx:apply` | Implement an approved change with TDD and evidence-backed checks |
 | `/opsx:archive` | Verify, sync, and archive a completed change |
-| `/opsx:bootstrap-arch` | Build a LikeC4 architecture model from repository evidence |
-| `/opsx:snack` | Reconcile existing code into OPSX semantic artifacts |
+| `/opsx:bootstrap-arch` | Build a versioned Semantic Model candidate from repository evidence |
+| `/opsx:snack` | Reconcile existing code into one Semantic Delta |
 
 Invocation syntax varies by agent tool. See [Supported Tools](supported-tools.md).
 
@@ -23,7 +23,7 @@ Invocation syntax varies by agent tool. See [Supported Tools](supported-tools.md
 opsx view [--port <n>]
 ```
 
-Discovers the nearest `.opsx/`, starts the vendored LikeC4 engine, and serves the Architecture and indexed Specs browser.
+Discovers the nearest `.opsx/`, starts the vendored LikeC4 engine, and serves graph elements with contracts authorized by the derived Spec registry.
 
 ### Query
 
@@ -31,7 +31,7 @@ Discovers the nearest `.opsx/`, starts the vendored LikeC4 engine, and serves th
 opsx arch query <element-id> [--relations] [--depth <n>] [--json]
 ```
 
-Queries a LikeC4 domain or capability. Canonical capability IDs in metadata are also accepted.
+Queries any Semantic Model element by stable `elementId` or current LikeC4 FQN. Output identity is canonicalized to `elementId`.
 
 ### Validate
 
@@ -40,7 +40,7 @@ opsx arch validate [--json]
 opsx arch validate --delta <architecture-delta.c4> [--json]
 ```
 
-Validates the formal LikeC4 model or a change-local delta.
+Validates the formal Semantic Model graph or a change-local graph delta. Use `opsx validate --change <name> --json` for combined graph and contract validation.
 
 ### Export
 
@@ -50,10 +50,19 @@ opsx arch export [--format png|svg|pdf] [--output <directory>]
 
 Exports architecture diagrams without changing the semantic model.
 
-## Explicit Legacy YAML Migration
+## Explicit Semantic Model Migration
+
+```bash
+opsx migrate semantic-model [--candidate <path>] [--json]
+opsx migrate semantic-model --promote --yes [--json]
+```
+
+This command converts an unversioned legacy LikeC4 profile into an independently validated v1 candidate. Promotion requires resolved identities and Spec bindings plus explicit authorization.
+
+## Legacy YAML Conversion
 
 ```bash
 opsx migrate opsx-to-likec4 [--dry-run]
 ```
 
-This one-time command converts the former OPSX YAML architecture bundle into `.opsx/architecture/`. Runtime commands never fall back to that legacy format.
+This retained one-time command accepts only the former OPSX YAML architecture bundle. It is a legacy conversion path, not a runtime fallback or the canonical v1 migration workflow.

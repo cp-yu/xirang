@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import os from 'os';
 import path from 'path';
 import { buildSpecRegistry } from '../../src/core/spec-registry.js';
+import type { SemanticElement, SemanticMetamodel } from '../../src/utils/semantic-model.js';
 
 async function withTempDir(run: (dir: string) => Promise<void>) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-spec-registry-'));
@@ -19,51 +20,69 @@ async function writeSpec(root: string, id: string, content: string) {
   await fs.writeFile(path.join(dir, 'spec.md'), content, 'utf8');
 }
 
-const specWithCaps = (caps: string[]) => `---
-capabilities:
-${caps.map(cap => `  - ${cap}`).join('\n')}
+const specForElement = (element: string) => `---
+element: ${element}
 ---
 # Test Spec
 
 ## Requirements
 `;
 
+const metamodel: SemanticMetamodel = {
+  elements: {
+    project: { root: true, contractPolicy: 'required' },
+    workflow: { contractPolicy: 'required' },
+    note: { contractPolicy: 'optional' },
+  },
+  relationships: {},
+};
+
+function element(id: string, kind: string): SemanticElement {
+  return { id, fqn: id, kind, title: id, summary: id, parent: null, children: [], metadata: { elementId: id } };
+}
+
 describe('buildSpecRegistry', () => {
-  it('builds sorted cap/spec mappings from frontmatter', async () => {
+  it('builds sorted one-to-many element/spec mappings', async () => {
     await withTempDir(async root => {
-      await writeSpec(root, 'cli-archive', specWithCaps(['cap.cli.archive', 'cap.change.archive']));
-      await writeSpec(root, 'archive-verify-gate', specWithCaps(['cap.cli.archive']));
+      await writeSpec(root, 'payment-errors', specForElement('payment.authorize'));
+      await writeSpec(root, 'payment-auth', specForElement('payment.authorize'));
+      await writeSpec(root, 'payment-refund', specForElement('payment.refund'));
 
       const registry = await buildSpecRegistry(root);
 
-      expect(registry.capToSpecs.get('cap.cli.archive')).toEqual(['archive-verify-gate', 'cli-archive']);
-      expect(registry.capToSpecs.get('cap.change.archive')).toEqual(['cli-archive']);
-      expect(registry.specToCaps.get('cli-archive')).toEqual(['cap.cli.archive', 'cap.change.archive']);
+      expect(registry.elementToSpecs.get('payment.authorize')).toEqual(['payment-auth', 'payment-errors']);
+      expect(registry.elementToSpecs.get('payment.refund')).toEqual(['payment-refund']);
+      expect(registry.specToElement.get('payment-auth')).toBe('payment.authorize');
+      expect(registry.getSpecsForElement('payment.authorize')).toEqual(['payment-auth', 'payment-errors']);
+      expect(registry.getElementForSpec('payment-auth')).toBe('payment.authorize');
     });
   });
 
-  it('skips unmapped specs in mappings and reports them as orphaned', async () => {
+  it('keeps missing and invalid bindings orphaned with structured issues', async () => {
     await withTempDir(async root => {
-      await writeSpec(root, 'mapped', specWithCaps(['cap.cli.archive']));
-      await writeSpec(root, 'legacy-cleanup', '# Legacy\n\n## Requirements\n');
+      await writeSpec(root, 'mapped', specForElement('payment.authorize'));
+      await writeSpec(root, 'unbound', '# Unbound\n\n## Requirements\n');
+      await writeSpec(root, 'legacy-owner', '---\ncapabilities: [cap.payment.authorize]\n---\n# Legacy\n');
+      await writeSpec(root, 'malformed', '---\nelement: [payment.authorize\n---\n# Malformed\n');
 
       const registry = await buildSpecRegistry(root);
 
-      expect(registry.specToCaps.has('legacy-cleanup')).toBe(false);
-      expect(registry.getOrphanedSpecs()).toEqual(['legacy-cleanup']);
-      expect(registry.getSpecsForCap('cap.cli.archive')).toEqual(['mapped']);
+      expect(registry.specToElement.has('unbound')).toBe(false);
+      expect(registry.getOrphanedSpecs()).toEqual(['legacy-owner', 'malformed', 'unbound']);
+      expect(registry.getIssuesForSpec('legacy-owner')).toContainEqual(expect.objectContaining({ code: 'LEGACY_SPEC_OWNERSHIP' }));
+      expect(registry.getIssuesForSpec('malformed')).toContainEqual(expect.objectContaining({ code: 'MALFORMED_FRONTMATTER' }));
     });
   });
 
-  it('returns empty arrays for unknown ids and uncovered caps', async () => {
+  it('returns deterministic unknown results and uncovered required elements only', async () => {
     await withTempDir(async root => {
-      await writeSpec(root, 'mapped', specWithCaps(['cap.cli.archive']));
-
+      await writeSpec(root, 'root-contract', specForElement('project.root'));
       const registry = await buildSpecRegistry(root);
+      const elements = [element('project.root', 'project'), element('workflow.run', 'workflow'), element('note.info', 'note')];
 
-      expect(registry.getSpecsForCap('cap.unknown')).toEqual([]);
-      expect(registry.getCapsForSpec('unknown')).toEqual([]);
-      expect(registry.getUncoveredCaps(['cap.cli.archive', 'cap.cli.spec'])).toEqual(['cap.cli.spec']);
+      expect(registry.getSpecsForElement('unknown')).toEqual([]);
+      expect(registry.getElementForSpec('unknown')).toBeNull();
+      expect(registry.getUncoveredRequiredElements(elements, metamodel)).toEqual(['workflow.run']);
     });
   });
 
@@ -71,9 +90,23 @@ describe('buildSpecRegistry', () => {
     await withTempDir(async root => {
       const registry = await buildSpecRegistry(root);
 
-      expect(registry.capToSpecs.size).toBe(0);
-      expect(registry.specToCaps.size).toBe(0);
+      expect(registry.elementToSpecs.size).toBe(0);
+      expect(registry.specToElement.size).toBe(0);
       expect(registry.getOrphanedSpecs()).toEqual([]);
+    });
+  });
+
+  it('projects identical spec ids from POSIX and Windows-shaped project roots', async () => {
+    await withTempDir(async root => {
+      const windowsShapedRoot = path.join(root, 'C:\\workspace\\demo');
+      await writeSpec(root, 'payment-auth', specForElement('payment.authorize'));
+      await writeSpec(windowsShapedRoot, 'payment-auth', specForElement('payment.authorize'));
+
+      const posix = await buildSpecRegistry(root);
+      const windowsShaped = await buildSpecRegistry(windowsShapedRoot);
+
+      expect([...posix.specToElement]).toEqual([['payment-auth', 'payment.authorize']]);
+      expect([...windowsShaped.specToElement]).toEqual([...posix.specToElement]);
     });
   });
 });

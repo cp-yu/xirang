@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ARCHITECTURE_GENERATE_DELTA,
+  OPSX_SHARED_CONTEXT,
   OPSX_PHILOSOPHY,
   VERIFY_CLI_JSON_SCHEMA_REFERENCE,
   VERIFY_ERROR_RECOVERY_GUIDE,
@@ -60,15 +61,14 @@ describe('LikeC4 delta generation fragment', () => {
     expect(ARCHITECTURE_GENERATE_DELTA).not.toContain('content.excludes');
   });
 
-  it('separates proposal scope, target behavior, architecture decisions, and evidence', () => {
+  it('separates proposal scope, contracts, architecture decisions, and evidence', () => {
     for (const token of [
       '`Source Impact`',
-      '`Architecture Source` as declared scope',
-      '`Behavior Source` to locate related change-local Specs',
-      'Spec IDs are not LikeC4 element IDs',
-      'completed change-local Specs as target behavior context',
+      'Semantic Delta',
+      'affected elements, refinement, Element Contracts, and relationships',
+      'completed change-local Element Contracts',
       '`design.md` for architecture decisions',
-      'formal LikeC4 model as current architecture state',
+      'formal OPSX Semantic Model as current semantic state',
       'current code only as implementation evidence',
     ]) {
       expect(ARCHITECTURE_GENERATE_DELTA).toContain(token);
@@ -77,9 +77,9 @@ describe('LikeC4 delta generation fragment', () => {
 
   it('keeps exact target-state LikeC4 elements owned by architecture delta', () => {
     for (const token of [
-      'do not invent architecture changes from behavior changes alone',
+      'do not invent graph changes from contract changes alone',
       'scope declarations, not authoritative LikeC4 records',
-      'derive exact target-state elements and typed relations',
+      'derive exact target-state elements, refinement, contract bindings, and typed relationships',
     ]) {
       expect(ARCHITECTURE_GENERATE_DELTA).toContain(token);
     }
@@ -88,33 +88,17 @@ describe('LikeC4 delta generation fragment', () => {
 });
 
 describe('OPSX philosophy fragment', () => {
-  it('defines the durable source and scaffolding boundary', () => {
-    for (const token of [
-      'human-intent programming layer',
-      'Specs and LikeC4 jointly form the durable semantic source',
-      'observable behavior',
-      'project intent, capabilities, ownership, boundaries, and semantic relations',
-      'target steady state',
-      'compilation scaffolding',
-      'not competing sources of truth',
-    ]) {
-      expect(OPSX_PHILOSOPHY).toContain(token);
-    }
+  it('is exactly the five canonical Semantic Model definitions', () => {
+    expect(OPSX_PHILOSOPHY).toBe(`**OPSX Philosophy**
+
+1. OPSX is a structured representation of human intent that an Agent can compile.
+2. One OPSX Semantic Model consists of LikeC4 graph modules and element-owned Markdown contract modules; they are source modules of the same model, not two parallel sources.
+3. A change reconciles a Semantic Delta toward the target steady state. \`proposal.md\`, \`design.md\`, and \`tasks.md\` are compilation scaffolding, not competing sources of truth.
+4. The OPSX Semantic Model is complete only when an Agent need not guess decisions that affect element hierarchy, contracts, or relationships.
+5. The Agent acts like a compiler and faithfully translates authorized human intent. Existing code is current implementation evidence and MUST NOT silently override the OPSX Semantic Model.`);
   });
 
-  it('defines source completeness and faithful compilation', () => {
-    for (const token of [
-      'without guessing decisions that affect behavior or architecture',
-      'The Agent acts as a compiler',
-      'translate declared intent faithfully',
-      'Existing code is compiled output and current implementation evidence',
-      'MUST NOT silently override the declared semantic source',
-    ]) {
-      expect(OPSX_PHILOSOPHY).toContain(token);
-    }
-  });
-
-  it('does not mix operational workflow rules into the philosophy', () => {
+  it('does not mix excluded definitions or operational rules into the philosophy', () => {
     for (const token of [
       'Definition-first authoring',
       'Syntax is contract',
@@ -122,8 +106,49 @@ describe('OPSX philosophy fragment', () => {
       'static analysis',
       'linking and release',
       'decompilation',
+      'durable semantic source',
+      'Behavior Source',
+      'Architecture Source',
+      'compiler process',
+      'persistent IR',
     ]) {
       expect(OPSX_PHILOSOPHY).not.toContain(token);
+    }
+  });
+});
+
+describe('OPSX shared context fragment', () => {
+  it('defines canonical model loading, identity, registry, and degradation rules', () => {
+    for (const token of [
+      'Project Root',
+      'stable `elementId`',
+      'FQN',
+      'parent',
+      'children',
+      'refinement',
+      'Element Contract registry',
+      'semantic relationships',
+      'opsx arch query <elementId> --relations --depth <n> --json',
+      'current implementation evidence',
+      'Semantic Model unavailable',
+      'read-only',
+      'MUST stop',
+    ]) {
+      expect(OPSX_SHARED_CONTEXT).toContain(token);
+    }
+  });
+
+  it('does not prescribe legacy identity, bindings, hierarchy, or graph formats', () => {
+    for (const token of [
+      'capabilityId',
+      'metadata.specs',
+      'capabilities: []',
+      'domain_name.capability_name',
+      'OPSX YAML',
+      'opsx-delta',
+      'ownership by nesting',
+    ]) {
+      expect(OPSX_SHARED_CONTEXT).not.toContain(token);
     }
   });
 });

@@ -14,6 +14,44 @@ export type SpecLoadState =
   | { status: 'success'; project: string; element: string; content: OpsxSpecContent }
   | { status: 'error'; project: string; element: string; path: string; message: string }
 
+export interface OpsxSpecIndexState {
+  project: string
+  element: string
+  paths: string[]
+}
+
+export class OpsxSpecIndexController {
+  private abortController: AbortController | undefined
+  private requestId = 0
+
+  constructor(private readonly update: (state: OpsxSpecIndexState) => void) {}
+
+  load(loader: OpsxSpecLoader, project: string, element: string): void {
+    this.abortController?.abort()
+    const abortController = this.abortController = new AbortController()
+    const requestId = ++this.requestId
+    this.update({ project, element, paths: [] })
+    loader.list(project, element, abortController.signal).then(
+      paths => {
+        if (requestId === this.requestId && !abortController.signal.aborted) {
+          this.update({ project, element, paths: normalizeSpecPaths(paths) })
+        }
+      },
+      () => {
+        if (requestId === this.requestId && !abortController.signal.aborted) {
+          this.update({ project, element, paths: [] })
+        }
+      },
+    )
+  }
+
+  dispose(): void {
+    this.requestId++
+    this.abortController?.abort()
+    this.abortController = undefined
+  }
+}
+
 export class OpsxSpecLoadController {
   private abortController: AbortController | undefined
   private requestId = 0
@@ -60,7 +98,7 @@ export function normalizeSpecPaths(value: unknown): string[] {
     : Array.isArray(value)
     ? value
     : []
-  return [...new Set(paths.filter((entry): entry is string => typeof entry === 'string' && entry.length > 0))]
+  return [...new Set(paths.filter((entry): entry is string => typeof entry === 'string' && entry.length > 0))].sort()
 }
 
 export function getSpecsTabModel(value: unknown) {

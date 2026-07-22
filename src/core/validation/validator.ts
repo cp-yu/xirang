@@ -19,6 +19,7 @@ import {
   parseScenarioOperationLabel,
 } from '../parsers/requirement-blocks.js';
 import { parseSpecFrontmatter } from '../parsers/spec-frontmatter.js';
+import { buildSpecRegistry, type SpecRegistry } from '../spec-registry.js';
 import { findMainSpecStructureIssues } from '../parsers/spec-structure.js';
 import {
   buildCodeFenceMask,
@@ -27,6 +28,79 @@ import {
   listNonFencedScenarioHeaders,
 } from '../parsers/requirement-text.js';
 import { FileSystemUtils } from '../../utils/file-system.js';
+
+export interface ChangeDeltaValidationContext {
+  projectRoot: string;
+  architecture: Awaited<ReturnType<typeof readLikeC4Architecture>>;
+  specsDirectory: string;
+}
+
+function appendRegistryBindingIssues(
+  registry: SpecRegistry,
+  specsPath: string,
+  knownElements: Set<string>,
+  issues: ValidationIssue[],
+): void {
+  for (const specName of registry.getOrphanedSpecs()) {
+    const issuePath = path.join(specsPath, specName, 'spec.md');
+    const parseIssues = registry.getIssuesForSpec(specName);
+    if (parseIssues.length === 0) {
+      issues.push({
+        level: 'ERROR',
+        path: issuePath,
+        message: `MISSING_SPEC_ELEMENT: Spec "${specName}" has no singular element binding`,
+      });
+      continue;
+    }
+    for (const issue of parseIssues) {
+      issues.push({ level: 'ERROR', path: issuePath, message: `${issue.code}: ${issue.message}` });
+    }
+  }
+
+  for (const [specName, elementId] of registry.specToElement) {
+    if (knownElements.has(elementId)) continue;
+    issues.push({
+      level: 'ERROR',
+      path: path.join(specsPath, specName, 'spec.md'),
+      message: `UNKNOWN_SPEC_ELEMENT: Spec "${specName}" binds unknown element "${elementId}"`,
+    });
+  }
+}
+
+function appendRequiredContractIssues(
+  registry: SpecRegistry,
+  architecture: Awaited<ReturnType<typeof readLikeC4Architecture>>,
+  issues: ValidationIssue[],
+  coveredBy?: SpecRegistry,
+): void {
+  const uncovered = registry
+    .getUncoveredRequiredElements(architecture.elements, architecture.metamodel)
+    .filter(elementId => !coveredBy?.elementToSpecs.has(elementId));
+  for (const elementId of uncovered) {
+    issues.push({
+      level: 'ERROR',
+      path: path.join(OPSX_DIR_NAME, 'architecture'),
+      message: `MISSING_REQUIRED_CONTRACT: required element "${elementId}" has no bound Spec`,
+    });
+  }
+}
+
+export async function validateSpecBindings(
+  projectRoot: string,
+  architecture: Awaited<ReturnType<typeof readLikeC4Architecture>>,
+  specsDirectory?: string,
+): Promise<ValidationIssue[]> {
+  const registry = await buildSpecRegistry(projectRoot, specsDirectory);
+  const issues: ValidationIssue[] = [];
+  appendRegistryBindingIssues(
+    registry,
+    path.relative(projectRoot, specsDirectory ?? path.join(projectRoot, OPSX_DIR_NAME, 'specs')),
+    new Set(architecture.elements.map(element => element.id)),
+    issues,
+  );
+  appendRequiredContractIssues(registry, architecture, issues);
+  return issues;
+}
 
 export class Validator {
   private strictMode: boolean;
@@ -136,7 +210,7 @@ export class Validator {
    * - RENAMED: pairs well-formed
    * - No duplicates within sections; no cross-section conflicts per spec
    */
-  async validateChangeDeltaSpecs(changeDir: string): Promise<ValidationReport> {
+  async validateChangeDeltaSpecs(changeDir: string, context?: ChangeDeltaValidationContext): Promise<ValidationReport> {
     const issues: ValidationIssue[] = [];
     const specsDir = path.join(changeDir, 'specs');
     const noOpMarker = path.join(changeDir, '.specs-noop');
@@ -329,7 +403,7 @@ export class Validator {
       });
     }
 
-    await this.validateMainSpecFrontmatter(changeDir, issues);
+    await this.validateMainSpecFrontmatter(changeDir, issues, context);
 
     return this.createReport(issues);
   }
@@ -601,17 +675,25 @@ export class Validator {
     return `${head.join(', ')} and ${last}`;
   }
 
-  private async validateMainSpecFrontmatter(changeDir: string, issues: ValidationIssue[]): Promise<void> {
-    const projectRoot = path.resolve(changeDir, '..', '..', '..');
-    const mainSpecsDir = path.join(projectRoot, OPSX_DIR_NAME, 'specs');
-    const architecture = await readLikeC4Architecture(projectRoot).catch((error: NodeJS.ErrnoException) => {
+  private async validateMainSpecFrontmatter(
+    changeDir: string,
+    issues: ValidationIssue[],
+    context?: ChangeDeltaValidationContext,
+  ): Promise<void> {
+    const projectRoot = context?.projectRoot ?? path.resolve(changeDir, '..', '..', '..');
+    const architecture = context?.architecture ?? await readLikeC4Architecture(projectRoot).catch((error: NodeJS.ErrnoException) => {
       if (error.code === 'ENOENT') return null;
       throw error;
     });
+    if (architecture?.profile === 'v1') {
+      await this.validateV1SpecBindings(projectRoot, changeDir, architecture, issues, context?.specsDirectory);
+      return;
+    }
+
+    const mainSpecsDir = path.join(projectRoot, OPSX_DIR_NAME, 'specs');
     const knownCaps = architecture
       ? new Set(architecture.capabilities.flatMap(capability => capability.capabilityId ?? []))
       : null;
-
     let entries;
     try {
       entries = await fs.readdir(mainSpecsDir, { withFileTypes: true });
@@ -621,7 +703,6 @@ export class Validator {
 
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
-
       const specName = entry.name;
       const specPath = path.join(mainSpecsDir, specName, 'spec.md');
       let content: string;
@@ -631,8 +712,10 @@ export class Validator {
         continue;
       }
 
-      const { capabilities } = parseSpecFrontmatter(content);
-      const issuePath = `${OPSX_DIR_NAME}/specs/${specName}/spec.md`;
+      const frontmatter = parseSpecFrontmatter(content);
+      const capabilities = frontmatter.issues
+        ?.find(issue => issue.code === 'LEGACY_SPEC_OWNERSHIP')?.values ?? [];
+      const issuePath = path.join(OPSX_DIR_NAME, 'specs', specName, 'spec.md');
       if (capabilities.length === 0) {
         issues.push({
           level: 'INFO',
@@ -653,6 +736,22 @@ export class Validator {
         }
       }
     }
+  }
+
+  private async validateV1SpecBindings(
+    projectRoot: string,
+    changeDir: string,
+    architecture: Awaited<ReturnType<typeof readLikeC4Architecture>>,
+    issues: ValidationIssue[],
+    specsDirectory?: string,
+  ): Promise<void> {
+    const formal = await buildSpecRegistry(projectRoot, specsDirectory);
+    const local = specsDirectory ? null : await buildSpecRegistry(projectRoot, path.join(changeDir, 'specs'));
+    const knownElements = new Set(architecture.elements.map(element => element.id));
+
+    appendRegistryBindingIssues(formal, path.join(OPSX_DIR_NAME, 'specs'), knownElements, issues);
+    if (local) appendRegistryBindingIssues(local, path.relative(projectRoot, path.join(changeDir, 'specs')), knownElements, issues);
+    appendRequiredContractIssues(formal, architecture, issues, local ?? undefined);
   }
 
 }

@@ -10,6 +10,7 @@ import {
   port,
   publicDir,
   opsxProjectRoot,
+  opsxSpecRegistry,
   title,
   useDotBin,
   useHashHistory,
@@ -38,6 +39,7 @@ const serveCmd = (yargs: yargs.Argv) => {
           .option('public', publicDir)
           .option('allowed-host', allowedHost)
           .option('opsx-project-root', opsxProjectRoot)
+          .option('opsx-spec-registry', opsxSpecRegistry)
           .options({
             'react-hmr': {
               type: 'boolean',
@@ -71,6 +73,7 @@ const serveCmd = (yargs: yargs.Argv) => {
           userPublicDir: args.public,
           allowedHosts: args['allowed-host'],
           opsxProjectRoot: args['opsx-project-root'],
+          opsxSpecRegistry: args['opsx-spec-registry'],
         })
       },
     })

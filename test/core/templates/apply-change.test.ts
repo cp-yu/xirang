@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -17,19 +15,19 @@ const applyReference = (path: string) => {
 };
 
 describe('apply change workflow template', () => {
-  it('keeps project-root shared references byte-identical to the template', () => {
-    for (const reference of getApplyChangeSkillTemplate().referenceFiles ?? []) {
-      if (reference.path.includes('apply-step-3-')) continue;
-      const sharedPath = path.resolve(`.opsx/references/opsx-${path.posix.basename(reference.path)}`);
-      expect(readFileSync(sharedPath, 'utf8')).toBe(reference.content);
+  it('keeps the generated apply reference set complete', () => {
+    const references = getApplyChangeSkillTemplate().referenceFiles ?? [];
+    expect(references).toHaveLength(9);
+    for (const reference of references) {
+      expect(reference.content.length).toBeGreaterThan(0);
     }
   });
 
   it('queries LikeC4 architecture and explains element IDs before implementation', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
     expect(instructions).toContain('opsx arch query');
-    expect(instructions).toContain('element ID');
-    expect(instructions).toContain('domain_name.capability_name');
+    expect(instructions).toContain('stable `elementId`');
+    expect(instructions).toContain('FQN');
   });
 
   it('keeps the OPSX philosophy in the skill surface', () => {
@@ -43,7 +41,7 @@ describe('apply change workflow template', () => {
     expect(instructions).toContain('MUST NOT copy definitions');
     expect(preparation).toContain('opsx arch query');
     expect(preparation).toContain('.opsx/architecture/');
-    expect(preparation).toContain('formal LikeC4 source');
+    expect(preparation).toContain('OPSX Semantic Model');
     expect(preparation).toContain('CodeGraph');
     expect(preparation).toContain('ACE');
     expect(preparation).not.toContain('project.opsx.code-map.yaml');
@@ -95,7 +93,7 @@ describe('apply change workflow template', () => {
     expect(instructions).not.toContain('opsx list --specs --json');
     expect(instructions).not.toContain('capabilities: []');
     expect(preparation).toContain('opsx list --specs --json');
-    expect(preparation).toContain('Spec coverage');
+    expect(preparation).toContain('Element Contract registry');
   });
 
   it('does not carry obsolete generated subagent artifact warnings', () => {

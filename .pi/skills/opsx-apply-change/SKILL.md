@@ -13,12 +13,11 @@ Implement tasks from an OPSX change.
 
 **OPSX Philosophy**
 
-OPSX is a human-intent programming layer between human intent and general-purpose programming languages.
-
-1. Specs and LikeC4 jointly form the durable semantic source. Specs define observable behavior; LikeC4 defines project intent, capabilities, ownership, boundaries, and semantic relations.
-2. A change reconciles semantic source deltas toward a target steady state. `proposal.md`, `design.md`, and `tasks.md` are compilation scaffolding, not competing sources of truth.
-3. Source is complete only when an Agent can compile it without guessing decisions that affect behavior or architecture.
-4. The Agent acts as a compiler: translate declared intent faithfully. Existing code is compiled output and current implementation evidence; it MUST NOT silently override the declared semantic source.
+1. OPSX is a structured representation of human intent that an Agent can compile.
+2. One OPSX Semantic Model consists of LikeC4 graph modules and element-owned Markdown contract modules; they are source modules of the same model, not two parallel sources.
+3. A change reconciles a Semantic Delta toward the target steady state. `proposal.md`, `design.md`, and `tasks.md` are compilation scaffolding, not competing sources of truth.
+4. The OPSX Semantic Model is complete only when an Agent need not guess decisions that affect element hierarchy, contracts, or relationships.
+5. The Agent acts like a compiler and faithfully translates authorized human intent. Existing code is current implementation evidence and MUST NOT silently override the OPSX Semantic Model.
 
 For workflow-managed writes, read the resolved file definition before its instruction and template, and MUST NOT copy definitions, config projections, or reasoning into artifacts.
 
@@ -35,7 +34,7 @@ For workflow-managed writes, read the resolved file definition before its instru
 
 ## Implementation Discipline
 
-- Before implementation, run `opsx arch query <capability-id> --relations --depth 2`, then read referenced specs and current code. In pseudocode, a LikeC4 element ID uses `domain_name.capability_name`; treat it as semantic location guidance, not a source path.
+- Before implementation, run `opsx arch query <elementId> --relations --depth 2 --json`, then read owned Specs and current code. Use stable `elementId` as identity and FQN only as current source navigation.
 - Process unfinished `## Remediation` `[code_fix]` and `[artifact_fix]` items before pending tasks. Finish every Check in the current task before starting the next; never execute tasks in parallel.
 - Assess interface testability before writing tests for each behavior/code Check: inject external dependencies, prefer returned results over hidden side effects, and keep the public interface minimal.
 - Write or update a targeted test first. Exercise public behavior; mock only injected system boundaries, never internal collaborators.

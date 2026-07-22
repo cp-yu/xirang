@@ -4,20 +4,31 @@ OPSX has one active CLI identity and one active workspace layout:
 
 - CLI: `opsx`
 - Workspace: `.opsx/`
-- Behavior source: `.opsx/specs/**/*.md`
-- Architecture source: `.opsx/architecture/**/*.c4`
+- Semantic Model graph: versioned `.opsx/architecture/**/*.c4`
+- Element contracts: `.opsx/specs/**/spec.md` with singular `element` binding
 
-There is no legacy CLI alias, directory fallback, dual read/write mode, or automatic workspace relocation.
+There is no legacy CLI alias, directory fallback, dual read/write mode, or automatic workspace relocation. Existing legacy inputs remain unchanged until an explicit migration is requested.
 
-## Move Project Content Explicitly
+## Migrate A Legacy Semantic Model
 
-Commit or back up the repository first. Move durable content into `.opsx/` with normal filesystem or Git operations, then update links and automation to use `opsx` and `.opsx/`. OPSX will not discover a previous workspace name for you.
+For an unversioned domain/capability LikeC4 model, generate an auditable v1 candidate:
 
-Preserve archive history as history. Do not rewrite archived change content solely to modernize terminology.
+```bash
+opsx migrate semantic-model --json
+opsx migrate semantic-model --candidate .opsx/migration-candidate --json
+```
 
-## Convert Former OPSX YAML Architecture
+The migrator records source/target versions, resolved stable identity mappings, and review gaps. It writes only the candidate until promotion is explicitly authorized. Ambiguous identity or Spec ownership blocks promotion; the migrator never guesses an owner from a file name or path.
 
-The explicit one-time converter remains available for repositories that already have the former OPSX YAML architecture bundle:
+```bash
+opsx migrate semantic-model --promote --yes --json
+```
+
+Promotion requires zero unresolved gaps and complete target validation. Graph and contract modules are promoted atomically; a failed write leaves the formal source unchanged. The current repository self-model is not automatically migrated.
+
+## Legacy YAML Conversion
+
+The former `opsx-to-likec4` command is retained solely for repositories with the **legacy OPSX YAML architecture bundle**. It is not the v1 Semantic Model migration path and it does not enable runtime fallback:
 
 ```bash
 opsx migrate opsx-to-likec4 --dry-run
@@ -25,14 +36,11 @@ opsx migrate opsx-to-likec4
 opsx arch validate
 ```
 
-The command validates generated LikeC4 before preserving the YAML inputs with `.backup` suffixes. Runtime commands never read those backup files.
+This one-time converter validates generated LikeC4 and preserves the YAML inputs with `.backup` suffixes. Review the generated candidate, stable IDs, Spec bindings, and relationship directions before adopting it. Runtime commands never read the legacy YAML or backup files.
 
-Review domain ownership, capability intent, relationship direction, and every `metadata.specs` path after conversion:
+## Move Workspace Content Explicitly
 
-```bash
-opsx arch query <element-id> --relations --depth 2
-opsx view
-```
+Commit or back up the repository first. Move durable content into `.opsx/` with normal filesystem or Git operations, then update links and automation to use `opsx` and `.opsx/`. Preserve archive history as history; do not rewrite archived change content solely to modernize terminology.
 
 ## Refresh Managed Skills
 
@@ -53,6 +61,6 @@ opsx view --port 5173
 
 - No active command invokes a legacy CLI name.
 - No active workflow reads a workspace other than `.opsx/`.
-- Formal Spec links resolve beneath `.opsx/specs/`.
-- LikeC4 elements index Spec paths instead of embedding Markdown.
+- v1 Specs use singular `element` bindings and resolve to stable element IDs.
+- LikeC4 graph modules use an explicit language version and unique Project Root.
 - CI installs and builds the root and vendored LikeC4 workspaces explicitly.

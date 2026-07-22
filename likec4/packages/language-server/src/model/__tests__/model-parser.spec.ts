@@ -1062,7 +1062,7 @@ describe('LikeC4ModelParser', () => {
           element block
         }
         model {
-          block root {
+          block system {
             block child {
               block grand
               block grand2
@@ -1072,8 +1072,8 @@ describe('LikeC4ModelParser', () => {
         views {
           view index {
             include *
-            rank same { root.child.grand, root.child.grand2 }
-            rank max { root.child.grand }
+            rank same { system.child.grand, system.child.grand2 }
+            rank max { system.child.grand }
           }
         }
       `)
@@ -1086,12 +1086,12 @@ describe('LikeC4ModelParser', () => {
           targets: [
             {
               ref: {
-                model: 'root.child.grand',
+                model: 'system.child.grand',
               },
             },
             {
               ref: {
-                model: 'root.child.grand2',
+                model: 'system.child.grand2',
               },
             },
           ],
@@ -1101,7 +1101,7 @@ describe('LikeC4ModelParser', () => {
           targets: [
             {
               ref: {
-                model: 'root.child.grand',
+                model: 'system.child.grand',
               },
             },
           ],
@@ -1117,19 +1117,19 @@ describe('LikeC4ModelParser', () => {
           deploymentNode node
         }
         model {
-          element root
+          element system
         }
         deployment {
-          node root {
-            instanceOf root
+          node system {
+            instanceOf system
           }
           node nd {
-            instanceOf root
+            instanceOf system
           }
         }
         views {
           deployment view test {
-            include * -> root
+            include * -> system
           }
         }
       `)
@@ -1143,7 +1143,7 @@ describe('LikeC4ModelParser', () => {
           },
           target: {
             ref: {
-              deployment: 'root',
+              deployment: 'system',
             },
           },
         }],
@@ -1158,16 +1158,16 @@ describe('LikeC4ModelParser', () => {
           deploymentNode node
         }
         model {
-          element root
+          element system
         }
         deployment {
           node nd {
-            instanceOf root
+            instanceOf system
           }
         }
         views {
           deployment view test {
-            include * -> root,
+            include * -> system,
           }
         }
       `)
@@ -1181,7 +1181,7 @@ describe('LikeC4ModelParser', () => {
           },
           target: {
             ref: {
-              deployment: 'nd.root',
+              deployment: 'nd.system',
             },
           },
         }],
@@ -1196,16 +1196,16 @@ describe('LikeC4ModelParser', () => {
           deploymentNode node
         }
         model {
-          element root
+          element system
         }
         deployment {
           node nd {
-            ins = instanceOf root
+            ins = instanceOf system
           }
         }
         views {
           deployment view test {
-            include * -> root
+            include * -> system
           }
         }
       `)
@@ -1219,7 +1219,7 @@ describe('LikeC4ModelParser', () => {
           },
           target: {
             ref: {
-              model: 'root',
+              model: 'system',
             },
           },
         }],
@@ -1236,14 +1236,14 @@ describe('LikeC4ModelParser', () => {
           relationship r
         }
         model {
-          element root {
+          element system {
             element child1
             element child2
           }
         }
         deployment {
           node nd {
-            ins = instanceOf root
+            ins = instanceOf system
           }
         }
         views {
@@ -1261,12 +1261,12 @@ describe('LikeC4ModelParser', () => {
             source: {
               ref: {
                 deployment: 'nd.ins',
-                element: 'root.child1',
+                element: 'system.child1',
               },
             },
             target: {
               ref: {
-                model: 'root.child2',
+                model: 'system.child2',
               },
             },
           }],
@@ -1281,14 +1281,14 @@ describe('LikeC4ModelParser', () => {
           relationship r
         }
         model {
-          element root {
+          element system {
             element child1
             element child2
           }
         }
         deployment {
           node nd {
-            ins = instanceOf root
+            ins = instanceOf system
           }
         }
         views {
@@ -1312,12 +1312,12 @@ describe('LikeC4ModelParser', () => {
                 source: {
                   ref: {
                     deployment: 'nd.ins',
-                    element: 'root.child1',
+                    element: 'system.child1',
                   },
                 },
                 target: {
                   ref: {
-                    model: 'root.child2',
+                    model: 'system.child2',
                   },
                 },
               },
@@ -1334,14 +1334,14 @@ describe('LikeC4ModelParser', () => {
           relationship r
         }
         model {
-          element root {
+          element system {
             element child1
             element child2
           }
         }
         deployment {
           node nd {
-            ins = instanceOf root
+            ins = instanceOf system
           }
         }
         views {
@@ -1365,12 +1365,12 @@ describe('LikeC4ModelParser', () => {
                 source: {
                   ref: {
                     deployment: 'nd.ins',
-                    element: 'root.child1',
+                    element: 'system.child1',
                   },
                 },
                 target: {
                   ref: {
-                    model: 'root.child2',
+                    model: 'system.child2',
                   },
                 },
               },

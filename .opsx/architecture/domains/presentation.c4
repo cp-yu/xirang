@@ -7,16 +7,16 @@ model {
       }
   
       likec4_engine = capability 'LikeC4 Engine' {
-        description 'OPSX CLI 内置的 LikeC4 DSL 与交互式 Web 呈现引擎'
-        metadata {
+        description '呈现 versioned OPSX Semantic Model 的任意深度 elements、Refinement Overview、semantic relationships 与 Element Contracts'
+                metadata {
           capabilityId 'cap.presentation.likec4-engine'
           status 'active'
         }
       }
   
       spec_content_gateway = capability 'Spec Content Gateway' {
-        description '依据元素索引受控读取 .opsx/specs/**/*.md 的 Preview 数据边界'
-        metadata {
+        description '依据 stable elementId 与派生 Spec registry 授权读取 element-owned Markdown contracts'
+                metadata {
           capabilityId 'cap.presentation.spec-content-gateway'
           status 'active'
           specs ['.opsx/specs/spec-content-browser/spec.md']
@@ -24,8 +24,8 @@ model {
       }
   
       spec_content_panel = capability 'Spec Content Panel' {
-        description '在元素详情中按需呈现一个或多个 Spec 的只读 UI'
-        metadata {
+        description '在 element details 中按需呈现该 element 拥有的零个或多个 Specs'
+                metadata {
           capabilityId 'cap.presentation.spec-content-panel'
           status 'active'
           specs ['.opsx/specs/spec-content-browser/spec.md']

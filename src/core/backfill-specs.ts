@@ -99,7 +99,8 @@ export async function backfillSpecs(
   for (const spec of specs) {
     const specPath = path.join(projectRoot, OPSX_DIR_NAME, 'specs', spec, 'spec.md');
     const content = await fs.readFile(specPath, 'utf-8');
-    if (parseSpecFrontmatter(content).capabilities.length > 0) {
+    const frontmatter = parseSpecFrontmatter(content);
+    if (frontmatter.element !== null || frontmatter.issues?.some(issue => issue.code === 'LEGACY_SPEC_OWNERSHIP')) {
       continue;
     }
 

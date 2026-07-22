@@ -1,5 +1,5 @@
 import type { Command } from 'commander';
-import { RelationDefinitionRegistry } from '../core/relations/registry.js';
+import { ActiveRelationDefinitionRegistry } from '../core/relations/active-registry.js';
 import { renderRelationAuthoringReference } from '../core/relations/renderers.js';
 import { resolveSchema } from '../core/artifact-graph/resolver.js';
 import type { FileDefinition } from '../core/artifact-graph/types.js';
@@ -15,7 +15,7 @@ interface HelpOptions {
 interface AuthoringHelp {
   file: AuthoringTopic;
   definition: FileDefinition;
-  relations?: typeof RelationDefinitionRegistry;
+  relations?: typeof ActiveRelationDefinitionRegistry;
 }
 
 const FILE_LOOKUP: Record<AuthoringTopic, { schema: 'spec-driven'; artifactId: string }> = {
@@ -45,7 +45,7 @@ function buildHelp(file: AuthoringTopic): AuthoringHelp {
   const definition = schema.artifacts.find((candidate) => candidate.id === lookup.artifactId)?.definition;
   if (!definition) throw new Error(`Missing file definition for '${file}' in built-in schema '${lookup.schema}'.`);
 
-  return { file, definition, relations: RelationDefinitionRegistry };
+  return { file, definition, relations: ActiveRelationDefinitionRegistry };
 }
 
 function renderTextHelp(help: AuthoringHelp): string {

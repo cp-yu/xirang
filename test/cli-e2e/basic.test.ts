@@ -44,6 +44,27 @@ describe('opsx CLI e2e basics', () => {
     expect(result.stderr).toBe('');
   });
 
+  it('describes bootstrap as the active v1 Semantic Model workflow', async () => {
+    const bootstrapHelp = await runCLI(['bootstrap', '--help']);
+    expect(bootstrapHelp.exitCode).toBe(0);
+    expect(bootstrapHelp.stdout).toContain('v1 Semantic Model');
+    expect(bootstrapHelp.stdout).not.toMatch(/deprecated|legacy OPSX YAML/i);
+
+    const initHelp = await runCLI(['bootstrap', 'init', '--help']);
+    expect(initHelp.exitCode).toBe(0);
+    const normalizedInitHelp = initHelp.stdout.replace(/\s+/g, ' ');
+    expect(normalizedInitHelp).toContain('Element Contracts');
+    expect(normalizedInitHelp).toContain('generic elements');
+    expect(normalizedInitHelp).not.toMatch(/formal OPSX v2|per-capability|legacy OPSX YAML/i);
+
+    const projectDir = await fs.mkdtemp(path.join(tmpdir(), 'opsx-bootstrap-help-'));
+    tempRoots.push(projectDir);
+    await fs.mkdir(path.join(projectDir, '.opsx'), { recursive: true });
+    const status = await runCLI(['bootstrap', 'status', '--json'], { cwd: projectDir });
+    expect(status.exitCode).toBe(0);
+    expect(status.stderr).toBe('');
+  });
+
   it('exposes only the opsx npm bin', async () => {
     const pkgRaw = await fs.readFile(path.join(cliProjectRoot, 'package.json'), 'utf-8');
     const pkg = JSON.parse(pkgRaw);

@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { mergeArchitectureDelta } from '../../../src/utils/architecture-delta-merger.js';
+import { readLikeC4Architecture } from '../../../src/utils/likec4-reader.js';
 
 const formal = `model {
   core = domain 'Core' {
@@ -164,5 +165,62 @@ describe('architecture delta merger', () => {
     await fs.writeFile(delta, `model { extend missing { added = capability 'Added' } }`);
     await expect(mergeArchitectureDelta(root, delta, { runLikeC4: async () => undefined })).rejects.toThrow('Cannot extend nonexistent domain: missing');
     expect(await fs.readFile(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'), 'utf8')).toBe(formal);
+  });
+
+  it('should preserve a v1 generic delta as a native LikeC4 module', async () => {
+    const architecture = path.join(root, '.opsx', 'architecture');
+    await fs.rm(architecture, { recursive: true });
+    await fs.mkdir(architecture, { recursive: true });
+    await fs.writeFile(path.join(architecture, 'model.c4'), `opsx { languageVersion '1' }
+specification {
+  element project { opsx { root true contract optional } }
+  element area { opsx { contract optional } }
+  element operation { opsx { contract optional } }
+}
+model {
+  projectRoot = project 'Root' 'Project intent' {
+    metadata { elementId 'project.root' }
+    payments = area 'Payments' 'Payment area' {
+      metadata { elementId 'payments' }
+      authorize = operation 'Authorize' 'Authorize payments' {
+        metadata { elementId 'payment.authorize' }
+      }
+      capture = operation 'Capture' 'Capture payments' {
+        metadata { elementId 'payment.capture' }
+      }
+    }
+  }
+}
+`);
+    await fs.writeFile(delta, `specification {
+  element artifact { opsx { contract optional parents [operation] } }
+  relationship produces { opsx { sourceKinds [operation] targetKinds [artifact] } }
+}
+model {
+  extend projectRoot.payments.authorize {
+    receipt = artifact 'Receipt' 'Authorization receipt' {
+      metadata { elementId 'payment.receipt' }
+    }
+  }
+  projectRoot.payments.capture -[produces]-> projectRoot.payments.authorize.receipt
+}
+`);
+
+    await mergeArchitectureDelta(root, delta, { changeName: 'add-receipt', runLikeC4: async () => undefined });
+
+    const merged = await readLikeC4Architecture(root);
+    expect(merged.elements).toContainEqual(expect.objectContaining({
+      id: 'payment.receipt',
+      fqn: 'projectRoot.payments.authorize.receipt',
+      kind: 'artifact',
+      parent: 'payment.authorize',
+    }));
+    expect(merged.metamodel.relationships.produces).toEqual({ sourceKinds: ['operation'], targetKinds: ['artifact'] });
+    expect(merged.relations).toContainEqual(expect.objectContaining({
+      source: 'payment.capture',
+      kind: 'produces',
+      target: 'payment.receipt',
+    }));
+    expect(await fs.readFile(path.join(architecture, 'deltas', 'add-receipt.c4'), 'utf8')).toContain('extend projectRoot.payments.authorize');
   });
 });

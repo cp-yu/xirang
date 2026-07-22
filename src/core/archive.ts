@@ -18,42 +18,54 @@ import { selectActiveChange } from './change-utils.js';
 /**
  * Recursively copy a directory. Used when fs.rename fails (e.g. EPERM on Windows).
  */
-async function copyDirRecursive(src: string, dest: string): Promise<void> {
-  await fs.mkdir(dest, { recursive: true });
-  const entries = await fs.readdir(src, { withFileTypes: true });
-  for (const entry of entries) {
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
-    if (entry.isDirectory()) {
-      await copyDirRecursive(srcPath, destPath);
-    } else {
-      await fs.copyFile(srcPath, destPath);
-    }
-  }
+export interface ArchiveMoveFileSystem {
+  rename: typeof fs.rename;
+  cp: typeof fs.cp;
+  rm: typeof fs.rm;
+  mkdtemp?: typeof fs.mkdtemp;
 }
 
-/**
- * Move a directory from src to dest. On Windows, fs.rename() often fails with
- * EPERM when the directory is non-empty or another process has it open (IDE,
- * file watcher, antivirus). Fall back to copy-then-remove when rename fails
- * with EPERM or EXDEV.
- */
-async function moveDirectory(src: string, dest: string): Promise<void> {
+/** Move a change directory without deleting the active source until copy is complete. */
+export async function moveDirectory(
+  src: string,
+  dest: string,
+  overrides: Partial<ArchiveMoveFileSystem> = {},
+): Promise<void> {
+  const filesystem: ArchiveMoveFileSystem = {
+    rename: overrides.rename ?? fs.rename.bind(fs),
+    cp: overrides.cp ?? fs.cp.bind(fs),
+    rm: overrides.rm ?? fs.rm.bind(fs),
+    mkdtemp: overrides.mkdtemp ?? fs.mkdtemp.bind(fs),
+  };
   try {
-    await fs.rename(src, dest);
-  } catch (err: any) {
-    const code = err?.code;
-    if (code === 'EPERM' || code === 'EXDEV') {
-      await copyDirRecursive(src, dest);
-      await fs.rm(src, { recursive: true, force: true });
-    } else {
-      throw err;
-    }
+    await filesystem.rename(src, dest);
+    return;
+  } catch (error: any) {
+    if (error?.code !== 'EPERM' && error?.code !== 'EXDEV') throw error;
   }
-}
 
-export async function removeArchitectureDeltaBeforeArchive(changeDir: string): Promise<void> {
-  await fs.rm(path.join(changeDir, 'architecture-delta.c4'), { force: true });
+  const temporary = await filesystem.mkdtemp!(path.join(path.dirname(dest), `.${path.basename(dest)}-`));
+  try {
+    await filesystem.cp(src, temporary, { recursive: true, force: true });
+    await filesystem.rename(temporary, dest);
+  } catch (error) {
+    await filesystem.rm(temporary, { recursive: true, force: true }).catch(() => undefined);
+    throw error;
+  }
+  try {
+    await filesystem.rm(src, { recursive: true, force: true });
+  } catch (cleanupError) {
+    try {
+      await filesystem.cp(dest, src, { recursive: true, force: true });
+      await filesystem.rm(dest, { recursive: true, force: true });
+    } catch (rollbackError) {
+      throw new AggregateError(
+        [cleanupError, rollbackError],
+        'Failed to clean up the active archive source and roll back the installed destination'
+      );
+    }
+    throw cleanupError;
+  }
 }
 
 async function findArchivedChangePathAsync(archiveDir: string, changeName: string): Promise<string | null> {
@@ -147,10 +159,9 @@ export class ArchiveCommand {
       if (error.code !== 'ENOENT') throw error;
     }
 
-    await fs.rm(path.join(changeDir, '.specs-noop'), { force: true });
-    await removeArchitectureDeltaBeforeArchive(changeDir);
     await fs.mkdir(archiveDir, { recursive: true });
     await moveDirectory(changeDir, archivePath);
+    await fs.rm(path.join(archivePath, '.specs-noop'), { force: true });
 
     console.log(`Change '${changeName}' archived as '${archiveName}'.`);
     this.printGitHandoff();

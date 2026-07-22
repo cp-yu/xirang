@@ -25,29 +25,21 @@ brownfield-first        — works with existing codebases, not just greenfield
 
 ## The Big Picture
 
-OPSX organizes your work into two main areas:
+OPSX has one persisted Semantic Model with two module types:
 
-```
-┌────────────────────────────────────────────────────────────────────┐
-│                        .opsx/                                   │
-│                                                                    │
-│   ┌─────────────────────┐      ┌───────────────────────────────┐   │
-│   │       specs/        │      │         changes/              │   │
-│   │                     │      │                               │   │
-│   │  Source of truth    │◄─────│  Proposed modifications       │   │
-│   │  How your system    │ merge│  Each change = one folder     │   │
-│   │  currently works    │      │  Contains artifacts + deltas  │   │
-│   │                     │      │                               │   │
-│   └─────────────────────┘      └───────────────────────────────┘   │
-│                                                                    │
-└────────────────────────────────────────────────────────────────────┘
+```text
+.opsx/
+├── architecture/       # Project Root, metamodel, elements, refinement,
+│                       # semantic relationships, and views
+├── specs/              # Element-owned contract modules
+└── changes/            # Proposed Semantic Deltas and scaffolding
 ```
 
-**Specs** are the source of truth — they describe how your system currently behaves.
+Versioned LikeC4 graph modules and Markdown contract modules are not independent sources. Together they express the current authorized human intent. Agents read these files directly and translate them into implementation; transient parser objects are implementation details, not a second persisted model.
 
-**Changes** are proposed modifications — they live in separate folders until you're ready to merge them.
+Every v1 graph contains one Project Root. Each element has a stable `elementId`, an authored summary, and at most one parent. Containment expresses abstraction and refinement at arbitrary depth. Each Spec binds to one element through singular `element` frontmatter; one element may own multiple Specs.
 
-This separation is key. You can work on multiple changes in parallel without conflicts. You can review a change before it affects the main specs. And when you archive a change, its deltas merge cleanly into the source of truth.
+**Changes** remain separate until sync. A change-local `architecture-delta.c4` and its delta Specs form one Semantic Delta and are validated against one Target Semantic Model before atomic promotion.
 
 ## Specs
 
@@ -78,6 +70,10 @@ Organize specs by domain — logical groupings that make sense for your system. 
 A spec contains requirements, and each requirement has scenarios:
 
 ```markdown
+---
+element: auth.login
+---
+
 # Auth Specification
 
 ## Purpose
@@ -114,7 +110,8 @@ The system MUST expire sessions after 30 minutes of inactivity.
 
 | Element | Purpose |
 |---------|---------|
-| `## Purpose` | High-level description of this spec's domain |
+| `element` frontmatter | Stable element that owns this contract |
+| `## Purpose` | High-level purpose of this contract module |
 | `### Requirement:` | A specific behavior the system must have |
 | `#### Scenario:` | A concrete example of the requirement in action |
 | SHALL/MUST/SHOULD | RFC 2119 keywords indicating requirement strength |
@@ -135,7 +132,7 @@ The system MUST expire sessions after 30 minutes of inactivity.
 
 ### What a Spec Is (and Is Not)
 
-A spec is a **behavior contract**, not an implementation plan.
+A Spec is an **Element Contract**, not an implementation plan. Its typed content may define observable behavior, parent guarantees, data shape, or another contract appropriate to the owning element kind.
 
 Good spec content:
 - Observable behavior users or downstream systems rely on
@@ -468,13 +465,13 @@ Best for: Most feature work where you want to agree on specs before implementati
 
 ### Bootstrap Schema
 
-`bootstrap` is the retained legacy schema for the deprecated OPSX bootstrap CLI. New architecture bootstrapping uses the managed `bootstrap-arch` skill and produces reviewed LikeC4 candidates.
+`bootstrap` is the retained legacy schema for the deprecated OPSX bootstrap CLI. New bootstrapping uses the managed `bootstrap-arch` skill and produces a reviewed versioned Semantic Model candidate.
 
 OPSX resolves only the package-owned `spec-driven` and `bootstrap` schemas. Project-local and user override schemas are not supported. Use `opsx schema which --all` to inspect both built-ins and `opsx schema validate` to validate them.
 
 ## Archive
 
-Archiving completes a change by merging delta Specs into formal Specs, merging `architecture-delta.c4` into the formal LikeC4 model, and preserving the change for history.
+Archiving completes a change by verifying and atomically syncing its graph and contract modules into the formal OPSX Semantic Model, then preserving the change for history.
 
 ### What Happens When You Archive
 
@@ -514,7 +511,7 @@ After archive:
 
 ### The Archive Process
 
-1. **Merge deltas.** Each delta Spec section is applied to the corresponding formal Spec. If `architecture-delta.c4` exists, it is validated and merged into `.opsx/architecture/`.
+1. **Sync the Semantic Delta.** Contract sections and `architecture-delta.c4` operations are prepared and validated against one Target Semantic Model, then committed atomically.
 
 2. **Move to archive.** The change folder moves to `changes/archive/` with a date prefix for chronological ordering.
 
@@ -526,7 +523,7 @@ After archive:
 
 **Audit trail.** The archive preserves the full context of every change — not just what changed, but the proposal explaining why, the design explaining how, and the tasks showing the work done.
 
-**Spec evolution.** Specs grow organically as changes are archived. Each archive merges its deltas, building up a comprehensive specification over time.
+**Model evolution.** Graph and contract modules evolve together. Each archive preserves the approved Semantic Delta and the decisions that authorized it.
 
 ## How It All Fits Together
 
@@ -561,9 +558,9 @@ After archive:
 │           │                                                                  │
 │           ▼                                                                  │
 │   ┌────────────────┐     ┌──────────────────────────────────────────────┐    │
-│   │  5. ARCHIVE    │────►│  Delta specs merge into main specs           │    │
+│   │  5. ARCHIVE    │────►│  Graph and contract deltas sync atomically   │    │
 │   │     CHANGE     │     │  Change folder moves to archive/             │    │
-│   └────────────────┘     │  Specs are now the updated source of truth   │    │
+│   └────────────────┘     │  The Semantic Model is now updated           │    │
 │                          └──────────────────────────────────────────────┘    │
 │                                                                              │
 └──────────────────────────────────────────────────────────────────────────────┘
@@ -571,27 +568,31 @@ After archive:
 
 **The virtuous cycle:**
 
-1. Specs describe current behavior
-2. Changes propose modifications (as deltas)
-3. Implementation makes the changes real
-4. Archive merges deltas into specs
-5. Specs now describe the new behavior
-6. Next change builds on updated specs
+1. The Semantic Model describes current intent and contracts
+2. Changes propose graph and contract modifications as one delta
+3. Implementation makes the authorized changes real
+4. Validation checks the Target Semantic Model
+5. Archive atomically syncs the approved delta
+6. Next change builds on the updated model
 
 ## Glossary
 
 | Term | Definition |
 |------|------------|
 | **Artifact** | A document within a change (proposal, design, tasks, or delta specs) |
-| **Archive** | The process of completing a change and merging its deltas into main specs |
+| **Archive** | The process of completing a change and atomically syncing its Semantic Delta into formal modules |
 | **Change** | A proposed modification to the system, packaged as a folder with artifacts |
 | **Delta spec** | A spec that describes changes (ADDED/MODIFIED/REMOVED) relative to current specs |
-| **Domain** | A logical grouping for specs (e.g., `auth/`, `payments/`) |
+| **Element** | A stable Semantic Model node with an `elementId`, kind, summary, and refinement parent |
+| **Project Root** | The unique highest-level element expressing project intent |
+| **Element Contract** | A Spec module owned by one stable element |
+| **Domain** | A legacy grouping term; v1 models may define any metamodel kinds |
 | **Requirement** | A specific behavior the system must have |
 | **Scenario** | A concrete example of a requirement, typically in Given/When/Then format |
 | **Schema** | A definition of artifact types and their dependencies |
-| **Spec** | A specification describing system behavior, containing requirements and scenarios |
-| **Source of truth** | The `.opsx/specs/` directory, containing the current agreed-upon behavior |
+| **Spec** | An element-owned contract module containing requirements, scenarios, or another typed guarantee |
+| **Semantic Model** | The persisted versioned graph modules and element-owned contract modules together |
+| **Source of truth** | The formal OPSX Semantic Model under `.opsx/architecture/` and `.opsx/specs/` |
 
 ## Next Steps
 

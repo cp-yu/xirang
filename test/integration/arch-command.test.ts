@@ -25,6 +25,98 @@ describe('arch commands', () => {
     expect(result.element).toMatchObject({ id: 'core.run', capabilityId: 'cap.core.run' });
   });
 
+  it('queries v1 elements by stable ID or FQN with canonical refinement output', async () => {
+    const architecture = path.join(root, '.opsx', 'architecture');
+    await fs.writeFile(path.join(architecture, 'specification.c4'), `
+      opsx { languageVersion '1' }
+      specification {
+        element semanticProject { opsx { root true contract required } }
+        element area { opsx { contract optional } }
+        element operation { opsx { contract required } }
+        relationship invokes
+      }
+    `);
+    await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), `
+      model {
+        projectRoot = semanticProject 'Project' {
+          summary 'Project intent'
+          metadata { elementId 'project.root' }
+          payments = area 'Payments' {
+            summary 'Payment refinement'
+            metadata { elementId 'payments' }
+            authorize = operation 'Authorize' {
+              summary 'Authorize payment'
+              metadata { elementId 'payment.authorize' }
+            }
+          }
+        }
+      }
+    `);
+    await fs.mkdir(path.join(root, '.opsx', 'specs', 'authorize'), { recursive: true });
+    await fs.writeFile(path.join(root, '.opsx', 'specs', 'authorize', 'spec.md'), '---\nelement: payment.authorize\n---\n# Authorize');
+
+    const byId = await queryArchitecture(root, 'payment.authorize');
+    const byFqn = await queryArchitecture(root, 'projectRoot.payments.authorize');
+
+    expect(byId).toEqual(byFqn);
+    expect(byId.element).toMatchObject({
+      id: 'payment.authorize',
+      fqn: 'projectRoot.payments.authorize',
+      kind: 'operation',
+      summary: 'Authorize payment',
+      parent: 'payments',
+      children: [],
+      contractPolicy: 'required',
+      specs: ['.opsx/specs/authorize/spec.md'],
+    });
+  });
+
+  it('expands v1 containment and canonical semantic relation endpoints', async () => {
+    const architecture = path.join(root, '.opsx', 'architecture');
+    await fs.writeFile(path.join(architecture, 'specification.c4'), `
+      opsx { languageVersion '1' }
+      specification {
+        element semanticProject { opsx { root true contract optional } }
+        element area { opsx { contract optional } }
+        element operation { opsx { contract optional } }
+        relationship invokes
+      }
+    `);
+    await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), `
+      model {
+        projectRoot = semanticProject 'Project' {
+          summary 'Project intent'
+          metadata { elementId 'project.root' }
+          payments = area 'Payments' {
+            summary 'Payment refinement'
+            metadata { elementId 'payments' }
+            authorize = operation 'Authorize' {
+              summary 'Authorize payment'
+              metadata { elementId 'payment.authorize' }
+            }
+            audit = operation 'Audit' {
+              summary 'Audit payment'
+              metadata { elementId 'payment.audit' }
+            }
+          }
+        }
+        projectRoot.payments.authorize -[invokes]-> projectRoot.payments.audit
+      }
+    `);
+
+    const result = await queryArchitecture(root, 'project.root', { depth: 2, relations: true });
+
+    expect(result.refinement).toEqual([
+      expect.objectContaining({ id: 'payments', parent: 'project.root', depth: 1 }),
+      expect.objectContaining({ id: 'payment.audit', parent: 'payments', depth: 2 }),
+      expect.objectContaining({ id: 'payment.authorize', parent: 'payments', depth: 2 }),
+    ]);
+    expect(result.relations).toEqual([
+      expect.objectContaining({ source: 'payment.authorize', target: 'payment.audit', kind: 'invokes', depth: 2 }),
+    ]);
+    expect(await formatArchitectureQueryText(root, result)).toContain('[depth 2] Element: payment.authorize');
+  });
+
   it('should query element with canonical relation details', async () => {
     const result = await queryArchitecture(root, 'cap.core.run', { relations: true });
     expect(result.relations).toEqual([expect.objectContaining({ source: 'core.run', kind: 'invokes', target: 'core.stop', description: 'Runs stop', depth: 1 })]);

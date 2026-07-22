@@ -1,5 +1,6 @@
 import { OPSX_DIR_NAME } from '../core/config.js';
 import { promises as fs } from 'node:fs';
+import os from 'node:os';
 import ora from 'ora';
 import path from 'path';
 import { Validator } from '../core/validation/validator.js';
@@ -7,6 +8,10 @@ import { isInteractive, resolveNoInteractive } from '../utils/interactive.js';
 import { getActiveChangeIds, getSpecIds } from '../utils/item-discovery.js';
 import { nearestMatches } from '../utils/match.js';
 import type { ValidationReport } from '../core/validation/types.js';
+import { buildUpdatedSpec, findSpecUpdates } from '../core/specs-apply.js';
+import { extractRequirementsSection } from '../core/parsers/requirement-blocks.js';
+import { validateArchitecture } from '../utils/architecture-validator.js';
+import { readLikeC4Architecture } from '../utils/likec4-reader.js';
 import { validateArchitectureCommand } from './arch/validate.js';
 
 type ItemType = 'change' | 'spec';
@@ -353,10 +358,73 @@ export class ValidateCommand {
     if (artifactScope === 'specs') return validator.validateChangeDeltaSpecs(changeDir);
     if (artifactScope === 'architecture-delta') return this.validateArchitectureDeltaReport(changeDir);
 
+    const formal = await readLikeC4Architecture(process.cwd()).catch((error: NodeJS.ErrnoException) => {
+      if (error.code === 'ENOENT') return null;
+      throw error;
+    });
+    if (formal?.profile === 'v1') return this.validateCombinedV1Change(validator, changeDir);
+
     const specsReport = await validator.validateChangeDeltaSpecs(changeDir);
     const architectureDelta = path.join(changeDir, 'architecture-delta.c4');
     if (!await fileExists(architectureDelta)) return specsReport;
     return mergeValidationReports(specsReport, await this.validateArchitectureDeltaReport(changeDir));
+  }
+
+  private async validateCombinedV1Change(validator: Validator, changeDir: string): Promise<ValidationReport> {
+    const projectRoot = process.cwd();
+    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-combined-validation-'));
+    const targetArchitecture = path.join(workspace, OPSX_DIR_NAME, 'architecture');
+    const targetSpecs = path.join(workspace, OPSX_DIR_NAME, 'specs');
+    const architectureDelta = path.join(changeDir, 'architecture-delta.c4');
+    try {
+      await copySourceTree(path.join(projectRoot, OPSX_DIR_NAME, 'architecture'), targetArchitecture, true);
+      await copySourceTree(path.join(projectRoot, OPSX_DIR_NAME, 'specs'), targetSpecs);
+
+      if (await fileExists(architectureDelta)) {
+        const modulePath = path.join(targetArchitecture, 'deltas', `${path.basename(changeDir)}.c4`);
+        await fs.mkdir(path.dirname(modulePath), { recursive: true });
+        await fs.copyFile(architectureDelta, modulePath);
+      }
+
+      const updates = await findSpecUpdates(changeDir, targetSpecs);
+      for (const update of updates) {
+        const { rebuilt } = await buildUpdatedSpec(update, path.basename(changeDir), projectRoot);
+        if (extractRequirementsSection(rebuilt).bodyBlocks.length === 0) {
+          await fs.rm(path.dirname(update.target), { recursive: true, force: true });
+          continue;
+        }
+        await fs.mkdir(path.dirname(update.target), { recursive: true });
+        await fs.writeFile(update.target, rebuilt);
+      }
+
+      const architecture = await readLikeC4Architecture(workspace);
+      const architectureResult = await validateArchitecture(workspace, architecture);
+      const graphIssues = architectureResult.errors.map(error => ({
+        level: 'ERROR' as const,
+        path: 'architecture-delta.c4',
+        message: `${error.code}: ${error.message}`,
+      }));
+      const graphReport: ValidationReport = {
+        valid: graphIssues.length === 0,
+        issues: graphIssues,
+        summary: { errors: graphIssues.length, warnings: 0, info: 0 },
+      };
+      const specsReport = await validator.validateChangeDeltaSpecs(changeDir, {
+        projectRoot: workspace,
+        architecture,
+        specsDirectory: targetSpecs,
+      });
+      return mergeValidationReports(graphReport, specsReport);
+    } catch (error) {
+      const issues = [{
+        level: 'ERROR' as const,
+        path: await fileExists(architectureDelta) ? 'architecture-delta.c4' : 'file',
+        message: (error as Error).message,
+      }];
+      return { valid: false, issues, summary: { errors: 1, warnings: 0, info: 0 } };
+    } finally {
+      await fs.rm(workspace, { recursive: true, force: true });
+    }
   }
 
   private async validateArchitectureDeltaReport(changeDir: string): Promise<ValidationReport> {
@@ -373,6 +441,16 @@ export class ValidateCommand {
 
 async function fileExists(file: string): Promise<boolean> {
   try { await fs.access(file); return true; } catch { return false; }
+}
+
+async function copySourceTree(source: string, target: string, excludeLikeC4Cache = false): Promise<void> {
+  await fs.mkdir(target, { recursive: true });
+  await fs.cp(source, target, {
+    recursive: true,
+    filter: file => !excludeLikeC4Cache || path.basename(file) !== '.likec4',
+  }).catch((error: NodeJS.ErrnoException) => {
+    if (error.code !== 'ENOENT') throw error;
+  });
 }
 
 function mergeValidationReports(...reports: ValidationReport[]): ValidationReport {
