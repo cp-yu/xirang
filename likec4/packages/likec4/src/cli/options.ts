@@ -135,6 +135,14 @@ export const opsxProjectRoot = {
   coerce: resolve,
 } as const satisfies Options
 
+export const opsxSpecRegistry = {
+  hidden: true,
+  string: true,
+  normalize: true,
+  nargs: 1,
+  coerce: resolve,
+} as const satisfies Options
+
 export const project = {
   alias: 'p',
   string: true,

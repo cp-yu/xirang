@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { parse as parseYaml } from 'yaml';
-import { InitCommand } from '../../src/core/init.js';
+import { INIT_ARCHITECTURE_FILE_MANIFEST, InitCommand } from '../../src/core/init.js';
 import { getCommandSlug } from '../../src/core/shared/index.js';
 import { saveGlobalConfig, getGlobalConfig } from '../../src/core/global-config.js';
 
@@ -625,20 +625,43 @@ describe('OPSX skeleton generation', () => {
     vi.restoreAllMocks();
   });
 
-  it('should generate LikeC4 architecture structure on first-time init', async () => {
+  it('should generate the v1 Semantic Model from an explicit file manifest', async () => {
     const initCommand = new InitCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
     const architecture = path.join(testDir, '.opsx', 'architecture');
-    expect(await fileExists(path.join(architecture, 'specification.c4'))).toBe(true);
-    expect(await fileExists(path.join(architecture, 'views.c4'))).toBe(true);
-    expect((await fs.stat(path.join(architecture, 'domains'))).isDirectory()).toBe(true);
+    expect(INIT_ARCHITECTURE_FILE_MANIFEST.map((file) => file.relativePath)).toEqual([
+      'specification.c4',
+      'model.c4',
+      'relations.c4',
+      'views.c4',
+    ]);
+    for (const file of INIT_ARCHITECTURE_FILE_MANIFEST) {
+      expect(await fileExists(path.join(architecture, file.relativePath))).toBe(true);
+      expect(typeof file.render).toBe('function');
+    }
+    expect(await directoryExists(path.join(testDir, '.opsx', 'specs'))).toBe(true);
+    expect(await directoryExists(path.join(architecture, 'domains'))).toBe(false);
 
     const specification = await fs.readFile(path.join(architecture, 'specification.c4'), 'utf-8');
-    expect(specification).toContain('element domain');
-    expect(specification).toContain('element capability');
-    expect(specification).toContain('relationship invokes');
-    expect(specification).not.toContain('relationship belongs_to');
+    expect(specification).toContain("opsx {\n  languageVersion '1'\n}");
+    expect(specification).toMatch(/element project\s*\{[\s\S]*root true[\s\S]*contract required/);
+    for (const relation of ['invokes', 'produces', 'consumes', 'precedes', 'constrains', 'validates']) {
+      expect(specification).toContain(`relationship ${relation}`);
+    }
+    expect(specification).not.toContain('belongs_to');
+
+    const model = await fs.readFile(path.join(architecture, 'model.c4'), 'utf-8');
+    expect(model).toMatch(/projectRoot = project '[^']+' '[^']+'/);
+    expect(model).toContain("elementId 'project.root'");
+    expect(model).not.toMatch(/projectRoot\s*=.*\{[\s\S]*?\n\s{4}\w+\s*=/);
+
+    const relations = await fs.readFile(path.join(architecture, 'relations.c4'), 'utf-8');
+    expect(relations).toBe('model {\n}\n');
+
+    const views = await fs.readFile(path.join(architecture, 'views.c4'), 'utf-8');
+    expect(views).toContain('view index');
+    expect(views).toContain('view refinement of projectRoot');
   });
 
   it('should not generate OPSX YAML files', async () => {

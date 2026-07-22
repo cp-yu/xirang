@@ -11,37 +11,50 @@ ${OPSX_PHILOSOPHY}
 
 ## Workflow
 
-1. **init** — inspect the repository, Specs, and config; create \`.opsx/architecture/candidates/\`.
-2. **scan** — collect evidence for domains, capabilities, ownership, and semantic relations. Use CodeGraph or ACE/\`rg\`/\`read\` only as current implementation evidence.
-3. **map** — generate one candidate \`.c4\` file per domain. Nest every capability in exactly one domain; do not emit a \`belongs_to\` relationship.
-4. **review** — compare candidate elements, metadata, and typed relations with Specs and current code evidence. Record uncertainty instead of guessing.
-5. **promote** — after explicit review approval, write \`.opsx/architecture/specification.c4\`, \`domains/*.c4\`, and \`views.c4\`; run \`opsx arch validate\`.
+1. **init** — inspect the repository, Specs, and config; retain the existing bootstrap workspace and phase state.
+2. **scan** — collect evidence for elements, refinement, Element Contracts, and semantic relationships. Use CodeGraph or ACE/\`rg\`/\`read\` only as current implementation evidence.
+3. **map** — write \`.opsx/bootstrap/candidate/architecture/**/*.c4\` plus \`.opsx/bootstrap/candidate/specs/<spec-id>/spec.md\`. Lower discovered intent into a Project Root and arbitrary-depth refinement nesting; do not emit a \`belongs_to\`, \`refines\`, or \`abstracts\` relationship.
+4. **review** — compare candidate elements, stable \`elementId\` metadata, typed relationships, and singular \`element: <stable-id>\` bindings with Specs and current code evidence. Record uncertainty instead of guessing; ambiguous parents or contract bindings are review gaps.
+5. **promote** — after the existing review gate has no gaps and candidate validation passes, atomically write \`.opsx/architecture/\` and \`.opsx/specs/\`; run \`opsx arch validate\`.
 
 ## Candidate Contract
 
 Use LikeC4 DSL only. MUST NOT generate YAML architecture candidates.
 
 \`\`\`likec4
+opsx { languageVersion '1' }
+specification {
+  element project { opsx { root true contract required } }
+  element area { opsx { contract optional parents [project] } }
+  element component { opsx { contract optional parents [area] } }
+  relationship invokes
+  relationship produces
+  relationship consumes
+  relationship precedes
+  relationship constrains
+  relationship validates
+}
 model {
-  cli = domain 'CLI' {
-    query = capability 'Query architecture' {
-      metadata {
-        capabilityId 'cap.cli.arch-query'
-        specs ['.opsx/specs/arch-query-command/spec.md']
+  projectRoot = project 'Project' 'Project intent is reviewed before promotion.' {
+    metadata { elementId 'project.root' }
+    identity = area 'Identity' 'Identity intent.' {
+      metadata { elementId 'identity' }
+      sign_in = component 'Sign in' 'Sign-in intent.' {
+        metadata { elementId 'identity.sign-in' }
       }
     }
   }
-  cli.query -[invokes]-> architecture.reader
 }
 \`\`\`
 
-Element IDs use snake_case locally. Semantic relations use \`-[invokes]->\`, \`-[consumes]->\`, \`-[precedes]->\`, \`-[constrains]->\`, or \`-[validates]->\`. Keep evidence paths out of durable architecture metadata.
+Element kinds are project-defined and do not impose a fixed hierarchy. Use local identifiers only for LikeC4 navigation; persist stable \`elementId\` metadata on every element. Semantic relationships use \`-[invokes]->\`, \`-[produces]->\`, \`-[consumes]->\`, \`-[precedes]->\`, \`-[constrains]->\`, or \`-[validates]->\`. Candidate Specs use singular frontmatter \`element: <stable-id>\`. Keep evidence paths out of durable architecture metadata.
 
 ## Guardrails
 
 - Do not write formal LikeC4 files before review approval.
 - Do not infer architecture directly from imports or calls.
-- Do not emit explicit \`belongs_to\`; nesting is the ownership source.
+- MUST NOT emit \`belongs_to\`, \`refines\`, or \`abstracts\` relationships; nesting is the refinement source.
+- A coarse \`spec_group\` with more than one possible owner is a review gap and blocks promotion; never guess.
 - Preserve project prose language while keeping IDs, paths, commands, and DSL tokens canonical.`,
     license: 'MIT',
     compatibility: 'Requires opsx CLI with arch commands.',

@@ -240,16 +240,16 @@ git:
       await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow('Sync gate');
     });
 
-    it('should call a pending LikeC4 delta architecture, not OPSX', async () => {
-      const changeName = 'pending-architecture-gate';
+    it('rejects an empty graph delta at the archive sync gate', async () => {
+      const changeName = 'empty-architecture-delta';
       const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
       await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), 'model {}\n');
 
-      await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(
-        'Sync gate failed: pending architecture delta.'
-      );
+      await expect(archiveCommand.execute(changeName, { yes: true }))
+        .rejects.toThrow(/no actual architecture operation|empty/i);
+      await expect(fs.readFile(path.join(changeDir, 'architecture-delta.c4'), 'utf8')).resolves.toBe('model {}\n');
     });
 
     it('should allow archive when delta specs and OPSX delta are already synced', async () => {

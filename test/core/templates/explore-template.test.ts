@@ -6,9 +6,11 @@ import { getExploreSkillTemplate } from '../../../src/core/templates/skill-templ
 describe('explore template impact sweeps', () => {
   const template = getExploreSkillTemplate().instructions;
 
-  it('includes v2 OPSX context without code-map guidance', () => {
+  it('includes unified OPSX Semantic Model context without code-map guidance', () => {
     expect(template).toContain(OPSX_PHILOSOPHY);
-    expect(template).toContain('semantic relations');
+    expect(template).toContain('Project Root');
+    expect(template).toContain('Element Contract registry');
+    expect(template).toContain('semantic relationships');
     expect(template).not.toContain('code-map refs');
   });
 
@@ -126,7 +128,7 @@ describe('explore template impact sweeps', () => {
     expect(template).toContain('Refactor rationale or rejected path');
     expect(template).toContain('Implementation strategy');
     expect(template).toContain('LikeC4 architecture intent changed');
-    expect(template).toContain('This is observable behavior for `specs/<capability>/spec.md`; include it in the Design Summary');
+    expect(template).toContain('This changes an Element Contract; include it in the Design Summary');
     expect(template).toContain('That is a design decision for `design.md`; include it in the Design Summary');
     expect(template).toContain('This changes scope for `proposal.md`; include it in the Design Summary');
   });

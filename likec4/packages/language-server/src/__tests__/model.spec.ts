@@ -273,6 +273,29 @@ describe('model', () => {
       }
     }`
 
+  test('OPSX v1 model supports arbitrary-depth custom elements').valid`
+    opsx { languageVersion '1' }
+    specification {
+      element project { opsx { root true contract required } }
+      element product { opsx { contract optional } }
+      element workflow { opsx { contract required } }
+      element operation { opsx { contract required } }
+    }
+    model {
+      project_root = project 'Root' 'Project intent' {
+        metadata { elementId 'project.root' }
+        product = product 'Product' 'Product intent' {
+          metadata { elementId 'product.main' }
+          flow = workflow 'Flow' 'Flow intent' {
+            metadata { elementId 'flow.checkout' }
+            execute = operation 'Execute' 'Execution intent' {
+              metadata { elementId 'flow.checkout.execute' }
+            }
+          }
+        }
+      }
+    }`
+
   test('fail if nested element name is string').invalid`
     specification {
       element person

@@ -1,5 +1,5 @@
 import type { SubagentTemplate } from '../../shared/subagent-generation.js';
-import { OPSX_PHILOSOPHY } from '../fragments/opsx-fragments.js';
+import { OPSX_PHILOSOPHY, OPSX_SHARED_CONTEXT } from '../fragments/opsx-fragments.js';
 
 const OPTIMIZER_SELF_READ_REFERENCE = `# Optimizer Self-Read Protocol
 
@@ -14,7 +14,7 @@ Read context in this order:
 
 ## Dependency Expansion (One Hop)
 
-Expand direct imports, callers, and directed LikeC4 semantic relations from \`opsx arch query <element-id> --relations --depth 1 --json\`. Interpret each relation by its Registry meaning and stop after one hop. Use path.relative to reject paths outside projectRoot, apply gitignore filtering, and exclude node_modules, dist, build, and .git. If relations are missing, continue with imports and callers.
+Expand direct imports, callers, and directed semantic relationships from \`opsx arch query <elementId> --relations --depth 1 --json\`. Interpret each relationship by its declared meaning and stop after one hop. Use path.relative to reject paths outside projectRoot, apply gitignore filtering, and exclude node_modules, dist, build, and .git. If relations are missing, continue with imports and callers.
 
 Expansion candidates MUST NOT be actionable finding targets. Actionable locations MUST remain inside base scope files only; report scope-outside opportunities as deferred.`;
 
@@ -43,7 +43,7 @@ Exclude findings whose evidence or preservation cannot close. Then order by high
 
 Read current code, findings, history, and failedDirections. Reconcile every non-terminal finding: retain, reprioritize, resolve, invalidate, reject, or merge it, and add newly discovered opportunities. Never repeat an exhausted failed direction by changing wording. Existing stable IDs belong to the CLI; new add actions omit IDs. Same-envelope dependencies may use actionIndex.
 
-Only base scope implementation files may be actionable. Never alter specs, design, tasks, configuration, public contracts, or domain semantics.`;
+Only base scope implementation files may be actionable. Never alter Specs, design, tasks, configuration, public contracts, or OPSX Semantic Model intent.`;
 
 const OPTIMIZER_OUTPUT_REFERENCE = `# Optimizer Output Protocol
 
@@ -93,11 +93,13 @@ You are OPSX's fresh-context finding-first optimization reviewer. Read current c
 
 ${OPSX_PHILOSOPHY}
 
+${OPSX_SHARED_CONTEXT}
+
 ## Hard Constraints
 
 - You MUST NOT modify files or rely on implementation conversation history.
 - Read files yourself from changeName, changeDir, and projectRoot.
-- Preserve observable behavior, specs, public contracts, and domain semantics.
+- Preserve observable behavior, Specs, public contracts, and OPSX Semantic Model intent.
 - Actionable findings target existing tracked base scope implementation files only.
 - Read findings, history, and failedDirections and reconcile every non-terminal finding.
 - Return one strict JSON envelope exactly as the output protocol requires.

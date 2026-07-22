@@ -167,7 +167,7 @@ afterAll(async () => {
 });
 
 describe('opsx bootstrap refresh', () => {
-  it('supports formal-opsx -> refresh with complete rebuild and atomic replacement', async () => {
+  it('refreshes a legacy formal OPSX baseline into v1 graph files without rewriting the preserved Spec', async () => {
     const projectDir = await createTempProject();
     await writeFormalBaseline(projectDir);
     await writeFile(projectDir, 'package.json', JSON.stringify({ name: '@acme/current-project' }));
@@ -195,17 +195,18 @@ describe('opsx bootstrap refresh', () => {
     const promoteResult = await runCLI(['bootstrap', 'promote', '-y'], { cwd: projectDir });
     expect(promoteResult.exitCode).toBe(0);
 
-    const promotedProject = await readFile(projectDir, '.opsx/project.opsx.yaml');
-    expect(promotedProject).toContain('id: acme-current-project');
-    expect(promotedProject).toContain('name: "@acme/current-project"');
-    expect(promotedProject).toContain('intent: Authentication boundary');
-    expect(promotedProject).toContain('scope: mode=refresh; mapped domains=dom.auth');
-    expect(promotedProject).not.toContain('Existing formal intent');
-    expect(promotedProject).toContain('cap.auth.session');
+    const promotedModel = await readFile(projectDir, '.opsx/architecture/model.c4');
+    expect(promotedModel).toContain("projectRoot = project '@acme/current-project'");
+    expect(promotedModel).toContain("elementId 'project.root'");
+    expect(promotedModel).toContain("elementId 'cap.auth.session'");
+    expect(promotedModel).toContain('Authentication boundary');
+    expect(promotedModel).not.toContain('Existing formal intent');
+    const promotedSpecification = await readFile(projectDir, '.opsx/architecture/specification.c4');
+    expect(promotedSpecification).toContain("languageVersion '1'");
     const authSpec = await readFile(projectDir, '.opsx/specs/auth/spec.md');
-    expect(authSpec).toContain('capabilities:\n  - cap.auth.login\n  - cap.auth.session');
-    expect(authSpec.endsWith('# Existing auth spec\n')).toBe(true);
-    await expect(readFile(projectDir, '.opsx/specs/sessions/spec.md')).resolves.toContain('### Requirement: Session tracking');
+    expect(authSpec).toBe('---\ncapabilities:\n  - cap.auth.login\n---\n# Existing auth spec\n');
+    await expect(readFile(projectDir, '.opsx/specs/sessions/spec.md')).resolves.toMatch(/^---\nelement: cap\.auth\.session\n---/);
+    await expect(readFile(projectDir, '.opsx/specs/project/spec.md')).resolves.toContain('element: project.root');
 
     const metadata = parseYaml(await readFile(projectDir, '.opsx/bootstrap/.bootstrap.yaml')) as Record<string, unknown>;
     expect(metadata.refresh_anchor_commit).toBe(baselineHead);
@@ -251,7 +252,7 @@ describe('opsx bootstrap refresh', () => {
     expect((await runCLI(['bootstrap', 'init', '--mode', 'refresh', '--granularity', 'coarse'], { cwd: projectDir })).exitCode).toBe(0);
     await writeFile(projectDir, '.opsx/bootstrap/evidence.yaml', 'domains: []\n');
     await writeFile(projectDir, '.opsx/bootstrap/review.md', '# Completed review\n');
-    await writeFile(projectDir, '.opsx/bootstrap/candidate/project.opsx.yaml', 'schema_version: 2\nproject:\n  id: proj.demo\n  name: Demo\n');
+    await writeFile(projectDir, '.opsx/bootstrap/candidate/architecture/model.c4', "model { projectRoot = project 'Demo' 'Demo intent' { metadata { elementId 'project.root' } } }\n");
     await writeFile(projectDir, '.opsx/bootstrap/scope.yaml', stringifyYaml({
       mode: 'refresh',
       include: ['src/auth'],

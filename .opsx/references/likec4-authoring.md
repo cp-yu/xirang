@@ -1,62 +1,97 @@
 # LikeC4 Authoring
 
+## Language And Metamodel
+
+Author new OPSX Semantic Models with an explicit language version and project-specific vocabulary.
+
+```likec4
+opsx {
+  languageVersion '1'
+}
+
+specification {
+  element project {
+    opsx { root true contract required }
+  }
+  element area {
+    opsx { contract optional parents [project] }
+  }
+  element operation {
+    opsx { contract required parents [area] }
+  }
+  relationship invokes {
+    opsx { sourceKinds [operation] targetKinds [operation] }
+  }
+}
+```
+
+Nesting is open unless `parents` or `children` constraints are declared. Define constraints only when they express durable human intent.
+
 ## Elements
 
-Use snake_case local element IDs and preserve canonical OPSX IDs in metadata.
+Every model has one Project Root. Use snake_case local LikeC4 IDs, stable `elementId` metadata, and a non-empty authored summary. Stable identity does not depend on the current containment path.
 
 ```likec4
 model {
-  cli = domain 'CLI' {
-    query = capability 'Query architecture' {
-      metadata {
-        capabilityId 'cap.cli.arch-query'
-        specs ['.opsx/specs/arch-query-command/spec.md']
+  projectRoot = project 'Payments' 'Payment platform intent' {
+    metadata { elementId 'project.root' }
+
+    payments = area 'Payments' 'Payment processing area' {
+      metadata { elementId 'payments' }
+
+      authorize = operation 'Authorize' 'Authorize a payment' {
+        metadata { elementId 'payment.authorize' }
       }
     }
   }
 }
 ```
 
-Containment expresses ownership; do not define or emit `relationship belongs_to`.
+Containment expresses abstraction and refinement. Do not infer ownership from a fixed nesting depth or emit a `belongs_to` relationship.
 
-## Relationship kinds
+## Element Contracts
 
-The specification defines:
+Bind each Spec to exactly one stable element in Markdown frontmatter:
 
-```likec4
-relationship invokes
-relationship consumes
-relationship precedes
-relationship constrains
-relationship validates
+```markdown
+---
+element: payment.authorize
+---
 ```
 
-Use kind syntax, not relationship titles:
+One element may own multiple Specs. Do not add `metadata.specs`, `capabilityId`, or `capabilities: []` ownership indexes to v1 source.
+
+## Relationships
+
+Declare relationship kinds in the metamodel and author directed edges with kind syntax:
 
 ```likec4
-cli.query -[invokes]-> architecture.reader
-apply.implement -[precedes]-> verify.review
+projectRoot.payments.capture -[invokes]-> projectRoot.payments.authorize
 ```
 
-## Change delta
+Optional `sourceKinds` and `targetKinds` constraints validate endpoints. Preserve the authored source/kind/target direction.
 
-Extend existing domains and point new capability metadata at change-local specs:
+## Change Delta
+
+Extend an existing element by its current FQN, then give every new element a stable identity:
 
 ```likec4
 model {
-  extend existing_domain {
-    new_capability = capability 'New capability' {
-      metadata {
-        capabilityId 'cap.example.new-capability'
-        specs ['.opsx/changes/<name>/specs/new-capability/spec.md']
-      }
+  extend projectRoot.payments {
+    capture = operation 'Capture' 'Capture an authorized payment' {
+      metadata { elementId 'payment.capture' }
     }
   }
 }
 ```
 
-Validate with:
+A change-local Spec may bind to an element introduced by the same delta. Validate the combined target:
 
 ```bash
+opsx validate --change <name> --json
 opsx arch validate --delta .opsx/changes/<name>/architecture-delta.c4
 ```
+
+## Legacy Authoring
+
+Unversioned domain/capability models with `capabilityId` or `metadata.specs` are legacy migration input, not canonical v1 examples. Do not restore those fields or legacy YAML as runtime fallback behavior.

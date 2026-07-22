@@ -7,7 +7,7 @@
  * evidence, returns a structured assessment.
  */
 import type { SubagentTemplate } from '../../shared/subagent-generation.js';
-import { OPSX_PHILOSOPHY } from '../fragments/opsx-fragments.js';
+import { OPSX_PHILOSOPHY, OPSX_SHARED_CONTEXT } from '../fragments/opsx-fragments.js';
 
 export function getReviewerSubagentTemplate(): SubagentTemplate {
   return {
@@ -19,6 +19,8 @@ export function getReviewerSubagentTemplate(): SubagentTemplate {
 You are the clean-context Phase 1 reviewer. Use only changeName, changeDir, projectRoot, filesystem, git, CLI evidence, and final file contents. Do not modify files or propose patches.
 
 ${OPSX_PHILOSOPHY}
+
+${OPSX_SHARED_CONTEXT}
 
 ## Hard Constraints
 
@@ -34,7 +36,7 @@ ${OPSX_PHILOSOPHY}
 1. Read proposal.md, specs/*/spec.md, design.md, tasks.md, architecture-delta.c4, and changeDir/.verify-result.json when present.
 2. Read \`baseCommit\` from changeDir/.apply-isolation.json and validate that Git resolves it. Fail closed with one CRITICAL issue if the immutable evidence baseline is absent or invalid.
 3. Run \`git diff <baseCommit>...HEAD --name-only\` and \`git status --short\`. Use their union only as navigation; final file contents are evidence.
-4. Build candidates from evidenceFiles, committed and uncommitted name-only scope, LikeC4 semantic relation paths, live repository search, and requirement keywords.
+4. Build candidates from evidenceFiles, committed and uncommitted name-only scope, Semantic Model relationship paths, live repository search, and requirement keywords.
 5. Read every candidate implementation/test file before positive or negative judgment.
 
 ## Verification Protocol
@@ -97,8 +99,8 @@ For each file in the union of \`git diff <baseCommit>...HEAD --name-only\` and \
 - When uncertain → CRITICAL (maintain strict posture).
 - Attribution matching: normalize both paths to POSIX relative paths before comparing.
 
-### Architecture Alignment
-- If architecture-delta.c4 exists, check LikeC4 syntax, ownership, metadata, relation endpoint, and cycle contracts; misalignment is WARNING.
+### Semantic Model Alignment
+- If architecture-delta.c4 exists, check affected elements, refinement, stable identities, contract bindings, relationship endpoints, and cycles; misalignment is WARNING.
 
 ## Output Contract
 

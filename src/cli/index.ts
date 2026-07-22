@@ -10,7 +10,6 @@ import { ListCommand } from '../core/list.js';
 import { ArchiveCommand } from '../core/archive.js';
 import { ViewCommand } from '../core/view.js';
 import { registerSpecCommand } from '../commands/spec.js';
-import { registerOpsxCommand } from '../commands/opsx.js';
 import { registerHelpCommand } from '../commands/help.js';
 import { ChangeCommand } from '../commands/change.js';
 import { ValidateCommand } from '../commands/validate.js';
@@ -320,7 +319,6 @@ program
   });
 
 registerSpecCommand(program);
-registerOpsxCommand(program);
 registerHelpCommand(program);
 registerConfigCommand(program);
 registerSchemaCommand(program);
@@ -554,19 +552,15 @@ newCmd
 
 const bootstrapCmd = program
   .command('bootstrap')
-  .description('Deprecated legacy OPSX bootstrap CLI; use the bootstrap-arch skill for LikeC4');
-
-bootstrapCmd.hook('preAction', () => {
-  console.warn('Deprecated: opsx bootstrap writes legacy OPSX YAML. Use the bootstrap-arch skill for LikeC4.');
-});
+  .description('Build a reviewed v1 Semantic Model candidate from repository evidence');
 
 bootstrapCmd
   .command('init')
-  .description('Initialize bootstrap workspace')
-  .option('--mode <mode>', 'Bootstrap mode: full (complete specs), opsx-first (README-only starter), or refresh (complete rebuild of formal OPSX v2)')
+  .description('Initialize a v1 Semantic Model candidate workspace')
+  .option('--mode <mode>', 'Bootstrap mode: full (v1 architecture and Element Contracts for generic elements), opsx-first (v1 architecture and Project Contract starter), or refresh (reviewed v1 Semantic Model rebuild)')
   .option('--scope <paths>', 'Comma-separated paths to include in scan')
   .option('--restart', 'Start a new run from a completed retained workspace by snapshotting the previous .opsx/bootstrap/')
-  .option('--granularity <granularity>', 'Spec granularity: required for initial init; restart inherits retained scope when omitted (coarse: grouped, fine: per-capability)')
+  .option('--granularity <granularity>', 'Element Contract granularity: required for initial init; restart inherits retained scope when omitted (coarse: grouped, fine: per-element)')
   .action(async (options: BootstrapInitOptions) => {
     try {
       await bootstrapInitCommand(options);
@@ -579,7 +573,7 @@ bootstrapCmd
 
 bootstrapCmd
   .command('status')
-  .description('Show bootstrap phase progress and per-domain status')
+  .description('Show bootstrap phase progress and per-element status')
   .option('--json', 'Output as JSON')
   .action(async (options: BootstrapStatusOptions) => {
     try {
@@ -635,7 +629,7 @@ bootstrapCmd
 
 bootstrapCmd
   .command('promote')
-  .description('Validate, write formal OPSX files, and retain the workspace')
+  .description('Validate and promote the reviewed v1 Semantic Model candidate')
   .option('-y, --yes', 'Skip confirmation')
   .action(async (options: BootstrapPromoteOptions) => {
     try {

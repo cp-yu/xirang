@@ -2,6 +2,38 @@ import { describe } from 'vitest'
 import { test } from './asserts'
 
 describe('specification', () => {
+  test('OPSX v1 annotations').valid`
+      opsx {
+        languageVersion '1'
+      }
+      specification {
+        element project {
+          opsx {
+            root true
+            contract required
+          }
+        }
+        element capability {
+          opsx {
+            contract required
+            parents [project, capability]
+            children [capability]
+          }
+        }
+        element event {
+          opsx {
+            contract optional
+          }
+        }
+        relationship produces {
+          opsx {
+            sourceKinds [capability]
+            targetKinds [event]
+          }
+        }
+      }
+      `
+
   test('valid').valid`
       specification {
         element container

@@ -3,8 +3,10 @@ import { describe, expect, it, vi } from 'vitest'
 import type { OpsxSpecLoader } from '../../opsx/SpecLoaderContext'
 import {
   getSpecsTabModel,
+  OpsxSpecIndexController,
   OpsxSpecLoadController,
   normalizeSpecPaths,
+  type OpsxSpecIndexState,
   type SpecLoadState,
 } from './SpecsTab'
 
@@ -19,7 +21,7 @@ function deferred<T>() {
 }
 
 describe('SpecsTab', () => {
-  it('normalizes absent, single, and multiple Spec indexes in order', () => {
+  it('normalizes absent, single, and multiple registry entries deterministically', () => {
     expect(normalizeSpecPaths(undefined)).toEqual([])
     expect(normalizeSpecPaths('')).toEqual([])
     expect(normalizeSpecPaths('.opsx/specs/api/spec.md')).toEqual([
@@ -33,6 +35,13 @@ describe('SpecsTab', () => {
     ])).toEqual([
       '.opsx/specs/a/spec.md',
       '.opsx/specs/b/spec.md',
+    ])
+    expect(normalizeSpecPaths([
+      '.opsx/specs/z/spec.md',
+      '.opsx/specs/a/spec.md',
+    ])).toEqual([
+      '.opsx/specs/a/spec.md',
+      '.opsx/specs/z/spec.md',
     ])
   })
 
@@ -50,11 +59,43 @@ describe('SpecsTab', () => {
     })
   })
 
+  it('clears the old index and ignores late element index responses', async () => {
+    const first = deferred<readonly string[]>()
+    const second = deferred<readonly string[]>()
+    const loader: OpsxSpecLoader = {
+      list: vi.fn((_project, element) => element === 'element.a' ? first.promise : second.promise),
+      load: vi.fn(),
+    }
+    const indexes: OpsxSpecIndexState[] = []
+    const controller = new OpsxSpecIndexController(index => indexes.push(index))
+
+    controller.load(loader, 'default', 'element.a')
+    controller.load(loader, 'default', 'element.b')
+    second.resolve(['.opsx/specs/b/spec.md'])
+    await second.promise
+    await Promise.resolve()
+    first.resolve(['.opsx/specs/a/spec.md'])
+    await first.promise
+    await Promise.resolve()
+
+    expect(indexes.at(-1)).toEqual({
+      project: 'default',
+      element: 'element.b',
+      paths: ['.opsx/specs/b/spec.md'],
+    })
+    expect(indexes.slice(2)).not.toContainEqual({
+      project: 'default',
+      element: 'element.a',
+      paths: ['.opsx/specs/a/spec.md'],
+    })
+  })
+
   it('aborts the previous request and ignores stale responses', async () => {
     const first = deferred<{ path: string; md: string }>()
     const second = deferred<{ path: string; md: string }>()
     const signals: AbortSignal[] = []
     const loader: OpsxSpecLoader = {
+      list: vi.fn(),
       load: vi.fn((_project, _element, specPath, signal) => {
         signals.push(signal)
         return specPath.includes('/a/') ? first.promise : second.promise
@@ -90,6 +131,7 @@ describe('SpecsTab', () => {
 
   it('isolates errors to the selected Spec and supports retry', async () => {
     const loader: OpsxSpecLoader = {
+      list: vi.fn(),
       load: vi.fn()
         .mockRejectedValueOnce(new Error('permission denied'))
         .mockResolvedValueOnce({ path: '.opsx/specs/a/spec.md', md: '# A' }),

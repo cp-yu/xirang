@@ -113,8 +113,9 @@ opsx init --force
 
 ```
 .opsx/
-├── specs/              # Your specifications (source of truth)
-├── changes/            # Proposed changes
+├── architecture/       # Versioned graph modules and Project Root
+├── specs/              # Element-owned contract modules
+├── changes/            # Proposed Semantic Deltas
 └── config.yaml         # Project configuration
 
 .claude/skills/         # Claude Code skills (if claude selected)
@@ -204,7 +205,7 @@ Start the vendored LikeC4 browser for the nearest `.opsx/` project.
 opsx view [--port <n>]
 ```
 
-The browser renders `.opsx/architecture/**/*.c4`. Elements with `metadata.specs` expose an on-demand Specs tab backed by authorized reads from `.opsx/specs/**/*.md`. The command does not require or resolve an external LikeC4 installation.
+The browser renders versioned `.opsx/architecture/**/*.c4`. Elements with entries in the derived Spec registry expose an on-demand Specs tab backed by authorized reads from `.opsx/specs/**/*.md`. The command uses the vendored LikeC4 engine and does not require or resolve an external installation.
 
 ---
 

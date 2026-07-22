@@ -15,7 +15,7 @@ describe('propose template post-validation flow', () => {
   it('authors and validates LikeC4 architecture deltas', () => {
     const instructions = getOpsxProposeSkillTemplate().instructions;
     expect(instructions).toContain('architecture-delta.c4');
-    expect(instructions).toContain('extend existing_domain');
+    expect(instructions).toContain('affected elements, refinement, Element Contracts, and relationships');
     expect(instructions).toContain('-[invokes]->');
     expect(instructions).toContain('opsx arch validate --delta');
   });
@@ -39,7 +39,7 @@ describe('propose template post-validation flow', () => {
   it('navigates the formal LikeC4 model before authoring', () => {
     const instructions = getOpsxProposeSkillTemplate().instructions;
     expect(instructions).toContain('.opsx/architecture/');
-    expect(instructions).toContain('opsx arch query <element-id> --relations --depth 2');
+    expect(instructions).toContain('opsx arch query <elementId> --relations --depth 2 --json');
     expect(instructions).not.toContain('.opsx/project.opsx.yaml');
   });
 
@@ -109,7 +109,7 @@ describe('propose template post-validation flow', () => {
       expect(body).toContain('impact scope');
       expect(body).toContain('approach');
       expect(body).toContain('verification method');
-      expect(body).toContain('unresolved Behavior Source or Architecture Source decisions');
+      expect(body).toContain('unresolved Semantic Delta decisions across contract or graph module scope');
       expect(body).toContain('explicitly overrides the readiness recommendation');
       expect(body).toContain('does not authorize guessing source decisions');
       expect(body).toMatch(/ask one focused question at a time/i);
@@ -136,28 +136,30 @@ describe('propose template post-validation flow', () => {
     expect(body).not.toContain('<!--');
   });
 
-  it('keeps Spec IDs separate from associated capability IDs', () => {
+  it('uses the Element Contract registry and stable element identities', () => {
     for (const body of getProposeBodies()) {
       expect(body).toContain('opsx list --specs --json');
       expect(body).toContain('Spec ID');
-      expect(body).toContain('`capabilities` string array');
-      expect(body).toContain('canonical capability ID');
+      expect(body).toContain('singular owner binding');
+      expect(body).toContain('stable `elementId`');
       expect(body).toContain('does not by itself require a New Spec');
       expect(body).toContain('genuinely new observable behavior');
+      expect(body).not.toContain('`capabilities` string array');
       expect(body).not.toContain('opsx spec list');
     }
   });
 
-  it('determines Behavior Source and Architecture Source independently', () => {
+  it('determines contract and graph scopes as one Semantic Delta', () => {
     const body = getOpsxProposeSkillTemplate().instructions;
     for (const token of [
+      'contract and graph module scopes of one Semantic Delta',
       'Behavior Source',
       'Architecture Source',
       'New Specs',
       'Modified Specs',
-      'Spec IDs',
-      'LikeC4 element IDs',
-      'Use `None` only when that source truly does not change',
+      'Spec ID',
+      'stable `elementId`',
+      'Use `None` only when that module scope truly does not change',
     ]) {
       expect(body).toContain(token);
     }
@@ -177,8 +179,8 @@ describe('propose template post-validation flow', () => {
     expect(designIndex).toBeGreaterThanOrEqual(0);
     expect(deltaIndex).toBeGreaterThan(designIndex);
     expect(body).toContain('update only proposal `Architecture Source`');
-    expect(body).toContain('formal LikeC4 model');
-    expect(body).toContain('do not invent architecture operations from behavior changes alone');
+    expect(body).toContain('formal OPSX Semantic Model');
+    expect(body).toContain('do not invent graph changes from contract changes alone');
   });
 
   it('does not duplicate the resolved Specs content boundary', () => {

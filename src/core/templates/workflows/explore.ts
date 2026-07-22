@@ -7,8 +7,7 @@
 import type { SkillTemplate } from '../types.js';
 import {
   OPSX_PHILOSOPHY,
-  ARCHITECTURE_NAVIGATION_GUIDANCE,
-  ARCHITECTURE_SHARED_CONTEXT,
+  OPSX_SHARED_CONTEXT,
 } from '../fragments/opsx-fragments.js';
 
 const CONVERSATION_LANGUAGE_GUIDANCE = `Output language: use the user's main language for prose and non-canonical section labels; keep commands, paths, artifact names, schema keys, and OPSX tokens unchanged.`;
@@ -19,8 +18,8 @@ When exploring an active change, read proposal/design/specs/tasks, reference the
 
 | Insight Type                         | Future Capture Target          |
 |--------------------------------------|--------------------------------|
-| Observable behavior requirement      | \`specs/<capability>/spec.md\` |
-| Observable behavior changed          | \`specs/<capability>/spec.md\` |
+| Observable behavior requirement      | \`specs/<spec-id>/spec.md\`    |
+| Observable behavior changed          | \`specs/<spec-id>/spec.md\`    |
 | Refactor rationale or rejected path  | \`design.md\`                  |
 | Implementation strategy              | \`design.md\`                  |
 | Scope changed                        | \`proposal.md\`                |
@@ -31,7 +30,7 @@ When exploring an active change, read proposal/design/specs/tasks, reference the
 
 Example offers:
 - "That is a design decision for \`design.md\`; include it in the Design Summary, then call \`/opsx:propose <change-name>\` or the appropriate non-explore workflow."
-- "This is observable behavior for \`specs/<capability>/spec.md\`; include it in the Design Summary, then call \`/opsx:propose <change-name>\` or the appropriate non-explore workflow."
+- "This changes an Element Contract; include it in the Design Summary, then call \`/opsx:propose <change-name>\` or the appropriate non-explore workflow."
 - "This changes scope for \`proposal.md\`; include it in the Design Summary, then call \`/opsx:propose <change-name>\` or the appropriate non-explore workflow."`;
 
 const EXPLORE_SUPPERPOWERS_STYLE_REFERENCE = `# Superpowers-Style Explore Behavior Guide
@@ -184,12 +183,10 @@ The main explore agent and \`opsx-impact-sweeper\` subagent are both read-only. 
 
 - Start with \`opsx list --json\`.
 - Read relevant change artifacts when a change name is present.
-- Use LikeC4 as navigation: project domains/capabilities, semantic relations, Specs, and CLI query guidance; use live repository tools for code evidence.
+- Use the OPSX Semantic Model for Project Root intent, refinement, Element Contracts, and semantic relationships; use live repository tools for code evidence.
 - Ground claims in project files and git evidence when the idea maps to code.
 
-${ARCHITECTURE_SHARED_CONTEXT}
-
-${ARCHITECTURE_NAVIGATION_GUIDANCE}
+${OPSX_SHARED_CONTEXT}
 
 ${CONVERSATION_LANGUAGE_GUIDANCE}
 

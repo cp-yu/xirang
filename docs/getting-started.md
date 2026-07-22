@@ -12,7 +12,7 @@ OPSX helps you and your AI coding assistant agree on what to build before any co
 /opsx:propose ──► /opsx:apply ──► /opsx:archive
 ```
 
-OPSX installs a fixed managed workflow surface. `/opsx:archive` syncs delta Specs and `architecture-delta.c4` into the formal LikeC4 model before archiving, and it runs a full verify gate before archive.
+OPSX installs a fixed managed workflow surface. `/opsx:archive` syncs the graph and contract modules of one Semantic Delta into the formal OPSX Semantic Model before archiving, and it runs a full verify gate before archive.
 
 ## What OPSX Creates
 
@@ -20,27 +20,30 @@ After running `opsx init`, your project has this structure:
 
 ```
 .opsx/
-├── specs/              # Source of truth (your system's behavior)
-│   └── <domain>/
-│       └── spec.md
-├── changes/            # Proposed updates (one folder per change)
+├── architecture/       # Versioned graph modules and Project Root
+│   ├── specification.c4
+│   ├── model.c4
+│   ├── relations.c4
+│   └── views.c4
+├── specs/              # Element-owned contract modules
+│   └── <spec-id>/spec.md
+├── changes/            # Proposed Semantic Deltas
 │   └── <change-name>/
 │       ├── proposal.md
 │       ├── design.md
 │       ├── tasks.md
-│       └── specs/      # Delta specs (what's changing)
-│           └── <domain>/
-│               └── spec.md
+│       ├── architecture-delta.c4
+│       └── specs/<spec-id>/spec.md
 └── config.yaml         # Project configuration (optional)
 ```
 
-**Two key directories:**
+**Three key directories:**
 
-- **`specs/`** - The source of truth for observable behavior. Together with `architecture/**/*.c4`, Specs form the durable semantic source.
+- **`architecture/`** - The graph modules of the OPSX Semantic Model: Project Root, stable elements, refinement, semantic relationships, metamodel, and views.
 
-- **`architecture/`** - The formal LikeC4 model for project intent, domains, capabilities, ownership, boundaries, and typed relations.
+- **`specs/`** - Element-owned contract modules. Each v1 Spec uses singular `element: <elementId>` frontmatter; one element may own multiple Specs.
 
-- **`changes/`** - Proposed modifications. On sync/archive, delta Specs merge into `specs/` and `architecture-delta.c4` merges into the formal LikeC4 model.
+- **`changes/`** - Proposed graph and contract deltas. Combined validation constructs the Target Semantic Model before sync/archive.
 
 ## Understanding Artifacts
 
@@ -209,7 +212,7 @@ AI:  Working through tasks...
      All tasks complete!
 ```
 
-During implementation, if you discover the design needs adjustment, just update the artifact and continue.
+During implementation, if you discover the design needs adjustment, update the artifact and continue. The persisted Semantic Model remains the authority for element identity, refinement, relationships, and contracts.
 
 ### 4. Archive
 

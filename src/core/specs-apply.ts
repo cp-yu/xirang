@@ -293,9 +293,15 @@ export async function buildUpdatedSpec(
     }
     isNewSpec = true;
     targetContent = buildSpecSkeleton(specName, changeName, runtimeProjection);
-    const { capabilities } = parseSpecFrontmatter(changeContent);
-    if (capabilities.length > 0) {
-      targetContent = `---\n${stringify({ capabilities }).trimEnd()}\n---\n${targetContent}`;
+    const frontmatter = parseSpecFrontmatter(changeContent);
+    if (frontmatter.element !== null) {
+      targetContent = `---\n${stringify({ element: frontmatter.element }).trimEnd()}\n---\n${targetContent}`;
+    } else {
+      const capabilities = frontmatter.issues
+        ?.find(issue => issue.code === 'LEGACY_SPEC_OWNERSHIP')?.values;
+      if (capabilities && capabilities.length > 0) {
+        targetContent = `---\n${stringify({ capabilities }).trimEnd()}\n---\n${targetContent}`;
+      }
     }
   }
 

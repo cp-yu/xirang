@@ -63,7 +63,7 @@ describe('PBT: Bootstrap mode contract', () => {
 });
 
 describe('Bootstrap contract parity', () => {
-  it('keeps the legacy bootstrap CLI and docs on approved mode names', async () => {
+  it('keeps the active bootstrap CLI and docs on approved mode names', async () => {
     const [schema, docs, command, cli, applyPreparation] = await Promise.all([
       fs.readFile(path.join(projectRoot, 'schemas/bootstrap/schema.yaml'), 'utf-8'),
       fs.readFile(path.join(projectRoot, 'docs/opsx-bootstrap.md'), 'utf-8'),
@@ -93,7 +93,11 @@ describe('Bootstrap contract parity', () => {
     }
     expect(schema).toContain('complete candidate from current evidence');
     expect(command).toContain('complete candidate');
-    expect(cli).toContain('complete rebuild');
+    expect(command).toContain('Element Contracts');
+    expect(command).toContain('review-only input evidence');
+    expect(cli).toContain('reviewed v1 Semantic Model rebuild');
+    expect(cli).toContain('Element Contracts for generic elements');
+    expect(cli).not.toMatch(/deprecated legacy OPSX bootstrap|legacy OPSX YAML|per-capability|per-domain/i);
     expect(applyPreparation).toContain('semantic relations');
   });
 });
@@ -227,7 +231,7 @@ describe('PBT: Bootstrap candidate specs contract', () => {
     );
   }, 60000);
 
-  it('Property: opsx-first exclusivity (raw + opsx-first writes README-only starter and no spec.md)', async () => {
+  it('Property: opsx-first writes only the required Project Contract and README starter', async () => {
     await fc.assert(
       fc.asyncProperty(fc.integer({ min: 1, max: 3 }), async (capabilityCount) => {
         await withTempProject(async (projectDir) => {
@@ -246,8 +250,10 @@ describe('PBT: Bootstrap candidate specs contract', () => {
 
           const specsDir = path.join(projectDir, '.opsx', 'specs');
           const entries = await fs.readdir(specsDir, { withFileTypes: true });
-          expect(entries.some((e) => e.isDirectory())).toBe(false);
-          expect(entries.filter((e) => e.isFile()).map((e) => e.name).sort()).toEqual(['README.md']);
+          expect(entries.filter((e) => e.isDirectory()).map((e) => e.name)).toEqual(['project']);
+          expect(entries.filter((e) => e.isFile()).map((e) => e.name)).toEqual(['README.md']);
+          await expect(fs.readFile(path.join(specsDir, 'project', 'spec.md'), 'utf-8'))
+            .resolves.toContain('element: project.root');
         });
       }),
       { numRuns: 10 },
@@ -312,8 +318,10 @@ describe('PBT: Bootstrap candidate specs contract', () => {
           expect(first.candidateUpdated).toBe(true);
 
           const candidateFiles = [
-            path.join(projectDir, '.opsx', 'bootstrap', 'candidate', 'project.opsx.yaml'),
-            path.join(projectDir, '.opsx', 'bootstrap', 'candidate', 'project.opsx.relations.yaml'),
+            ...['specification.c4', 'model.c4', 'relations.c4', 'views.c4'].map((file) =>
+              path.join(projectDir, '.opsx', 'bootstrap', 'candidate', 'architecture', file)
+            ),
+            path.join(projectDir, '.opsx', 'bootstrap', 'candidate', 'specs', 'project', 'spec.md'),
             ...folders.map((folder) =>
               path.join(projectDir, '.opsx', 'bootstrap', 'candidate', 'specs', folder, 'spec.md')
             ),

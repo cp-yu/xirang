@@ -193,6 +193,44 @@ describe('bootstrap command Phase 1 baseline contract', () => {
     expect(output).toContain('"id": "scope"');
   });
 
+  it('uses v1 generic element and Element Contract wording in active instructions and status', async () => {
+    const preInit = await withCwd(
+      testDir,
+      () => captureJsonOutput(() => bootstrapInstructionsCommand(undefined, { json: true }))
+    );
+    expect(preInit.instruction).toContain('v1 Semantic Model');
+    expect(preInit.instruction).toContain('Element Contracts');
+    expect(preInit.instruction).not.toMatch(/capability specs|capability-level Specs|per-capability|legacy OPSX YAML/i);
+
+    await initBootstrap(testDir, { mode: 'full', granularity: 'fine' });
+    await fs.writeFile(
+      path.join(testDir, '.opsx', 'bootstrap', 'evidence.yaml'),
+      `domains:
+  - id: dom.cli
+    confidence: high
+    sources:
+      - code:src/cli/index.ts
+    intent: CLI surface
+`,
+      'utf-8'
+    );
+
+    const status = await withCwd(
+      testDir,
+      () => captureTextOutput(() => bootstrapStatusCommand({ json: false }))
+    );
+    expect(status).toContain('Elements (legacy input adapter):');
+    expect(status).not.toMatch(/Domains:|capabilities/);
+
+    const instructions = await withCwd(
+      testDir,
+      () => captureJsonOutput(() => bootstrapInstructionsCommand('promote', { json: true }))
+    );
+    expect(instructions.instruction).toContain('v1 Semantic Model');
+    expect(instructions.instruction).toContain('Element Contracts');
+    expect(instructions.instruction).not.toMatch(/capability specs|capability-level Specs|per-capability|legacy OPSX YAML/i);
+  });
+
   it('rejects unsupported mode on a formal-opsx baseline before creating bootstrap workspace', async () => {
     await fs.writeFile(path.join(testDir, '.opsx', 'project.opsx.yaml'), 'schema_version: 2\nproject:\n  id: demo\n  name: Demo\n');
     await fs.writeFile(path.join(testDir, '.opsx', 'project.opsx.relations.yaml'), 'schema_version: 2\nrelations: []\n');
@@ -203,7 +241,7 @@ describe('bootstrap command Phase 1 baseline contract', () => {
     await expect(fs.stat(path.join(testDir, '.opsx', 'bootstrap'))).rejects.toThrow();
   });
 
-  it('keeps every refresh CLI guidance branch on complete-rebuild v2 semantics', async () => {
+  it('keeps legacy formal-opsx compatibility wording scoped to review-only input evidence', async () => {
     await fs.writeFile(path.join(testDir, '.opsx', 'project.opsx.yaml'), 'schema_version: 2\nproject:\n  id: demo\n  name: Demo\n');
     await fs.writeFile(path.join(testDir, '.opsx', 'project.opsx.relations.yaml'), 'schema_version: 2\nrelations: []\n');
 
@@ -213,14 +251,18 @@ describe('bootstrap command Phase 1 baseline contract', () => {
     );
     expect(preInit.instruction).toContain('complete candidate');
     expect(preInit.instruction).toContain('review diff');
-    expect(preInit.instruction).toContain('replaces both formal OPSX v2 files');
+    expect(preInit.instruction).toContain('legacy formal OPSX v2 model');
+    expect(preInit.instruction).toContain('review-only input evidence');
+    expect(preInit.instruction).toContain('v1 Semantic Model');
+    expect(preInit.instruction).not.toMatch(/(?:writes|replaces|promotes) (?:the )?legacy formal OPSX v2/i);
 
     const initOutput = await withCwd(
       testDir,
       () => captureTextOutput(() => bootstrapInitCommand({ mode: 'refresh', granularity: 'fine' }))
     );
     expect(initOutput).toContain('complete candidate');
-    expect(initOutput).toContain('review-only baseline evidence');
+    expect(initOutput).toContain('review-only input evidence');
+    expect(initOutput).toContain('v1 Semantic Model');
 
     for (const phase of ['scan', 'map', 'review']) {
       const result = await withCwd(
@@ -263,7 +305,7 @@ describe('bootstrap command Phase 1 baseline contract', () => {
       compilationRole: 'Retained bootstrap authoring input for architecture discovery.',
       content: {
         includes: [
-          'Repository locations, candidate domains, confidence, provisional intents, and supporting evidence.',
+          'Stable element IDs, project-defined kinds, explicit contract policies, local IDs, titles, summaries, confidence, sources, and legacy domain evidence accepted by the compatibility adapter.',
         ],
         excludes: [
           'Final architecture claims, derived candidates, review approval, and unsupported conclusions.',
@@ -278,6 +320,8 @@ describe('bootstrap command Phase 1 baseline contract', () => {
     expect(domainMap.definition.compilationRole).toBe(
       'Retained bootstrap authoring input compiled into candidate OPSX and Specs.'
     );
+    expect(domainMap.definition.content.includes[0]).toContain('Generic element candidates');
+    expect(domainMap.definition.content.includes[0]).toContain('exactly-one-parent links');
     expect(domainMap.definition.content.excludes[0]).toContain(
       'mechanical import or call edges presented as semantic relations'
     );
@@ -297,9 +341,12 @@ describe('bootstrap command Phase 1 baseline contract', () => {
     const formalProject = promote.fileDefinitions.find(
       (file: { id: string }) => file.id === 'formal-project'
     );
-    expect(formalProject.definition).toMatchObject({
-      purpose: 'Define the current project intent and durable non-relation architecture model.',
-      compilationRole: 'Durable architecture source in the formal OPSX bundle.',
+    expect(formalProject).toMatchObject({
+      path: '.opsx/architecture/{specification,model,views}.c4',
+      definition: {
+        purpose: 'Define the versioned Metamodel, Project Root, arbitrary-depth element hierarchy, and views.',
+        compilationRole: 'Durable architecture source in the formal OPSX bundle.',
+      },
     });
     const formalSpecs = promote.fileDefinitions.find(
       (file: { id: string }) => file.id === 'formal-specs'

@@ -30,15 +30,27 @@ describe('specs apply scenario operation labels', () => {
     return { source, target, exists: true };
   }
 
-  it('preserves capability frontmatter when creating a formal spec', async () => {
+  it('preserves singular element frontmatter when creating a formal spec', async () => {
     const source = path.join(tempDir, '.opsx', 'changes', 'c1', 'specs', 'browser', 'spec.md');
     const target = path.join(tempDir, '.opsx', 'specs', 'browser', 'spec.md');
     await fs.mkdir(path.dirname(source), { recursive: true });
-    await fs.writeFile(source, `---\ncapabilities:\n  - cap.presentation.spec-content-panel\n---\n## ADDED Requirements\n\n### Requirement: Browse Specs\n\nThe UI SHALL display indexed Specs.\n\n#### Scenario: Open details\n\n- **WHEN** details open\n- **THEN** indexed Specs are displayed\n`);
+    await fs.writeFile(source, `---\nelement: presentation.spec_content_panel\n---\n## ADDED Requirements\n\n### Requirement: Browse Specs\n\nThe UI SHALL display indexed Specs.\n\n#### Scenario: Open details\n\n- **WHEN** details open\n- **THEN** indexed Specs are displayed\n`);
 
     const { rebuilt } = await buildUpdatedSpec({ source, target, exists: false }, 'c1', tempDir);
 
-    expect(rebuilt).toMatch(/^---\ncapabilities:\n  - cap\.presentation\.spec-content-panel\n---\n/);
+    expect(rebuilt).toMatch(/^---\nelement: presentation\.spec_content_panel\n---\n/);
+    expect(rebuilt).not.toContain('capabilities:');
+  });
+
+  it('keeps legacy capability frontmatter on the legacy read path', async () => {
+    const source = path.join(tempDir, '.opsx', 'changes', 'c1', 'specs', 'legacy', 'spec.md');
+    const target = path.join(tempDir, '.opsx', 'specs', 'legacy', 'spec.md');
+    await fs.mkdir(path.dirname(source), { recursive: true });
+    await fs.writeFile(source, `---\ncapabilities: [cap.legacy.run]\n---\n## ADDED Requirements\n\n### Requirement: Run\n\nThe system SHALL run.\n\n#### Scenario: Run\n\n- **WHEN** invoked\n- **THEN** it runs\n`);
+
+    const { rebuilt } = await buildUpdatedSpec({ source, target, exists: false }, 'c1', tempDir);
+
+    expect(rebuilt).toContain('capabilities:\n  - cap.legacy.run');
   });
 
   it('writes clean formal scenario headings and omits removed scenario blocks', async () => {

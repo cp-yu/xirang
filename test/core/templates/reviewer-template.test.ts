@@ -9,9 +9,11 @@ describe('reviewer subagent template', () => {
     const prompt = getReviewerSubagentTemplate().prompt;
 
     expect(prompt).toContain(OPSX_PHILOSOPHY);
+    expect(prompt).toContain('Element Contract registry');
+    expect(prompt).toContain('opsx arch query <elementId> --relations --depth <n> --json');
     expect(prompt).toContain('Prefer direct evidence over inferred intent.');
     expect(prompt).toContain('Treat stale code, orphaned imports, half migrations, and unaccounted behavior changes as defects.');
-    expect(prompt).toContain('LikeC4 semantic relation paths');
+    expect(prompt).toContain('Semantic Model relationship paths');
     expect(prompt).not.toContain('OPSX code-map refs');
     expect(prompt).not.toContain('Ponytail');
     expect(prompt).not.toContain('Superpowers');

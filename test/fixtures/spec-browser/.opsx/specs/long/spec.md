@@ -1,3 +1,6 @@
+---
+element: browser.long
+---
 # Long Spec
 
 ## Section 1

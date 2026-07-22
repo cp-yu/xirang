@@ -21,6 +21,28 @@ jobs:
           node-version: '22.22.3'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm run build
-      - name: Verify migration and architecture commands
-        run: pnpm exec vitest run test/integration/migrate-command.test.ts test/integration/arch-command.test.ts test/unit/migration/likec4-generator.test.ts test/unit/utils/likec4-reader.test.ts
+      - run: pnpm run likec4:install
+      - name: Build and typecheck vendored LikeC4
+        run: |
+          pnpm run likec4:typecheck
+          pnpm run likec4:build
+      - name: Build and test root workspace
+        run: |
+          pnpm run lint
+          pnpm run build
+          pnpm test
+      - name: Run Windows path-sensitive root tests
+        run: >-
+          pnpm exec vitest run
+          test/core/parsers/spec-frontmatter.test.ts
+          test/core/spec-registry.test.ts
+          test/integration/migrate-command.test.ts
+          test/integration/sync-workflow.test.ts
+          test/core/view.test.ts
+      - name: Run Windows vendored browser-server tests
+        run: >-
+          pnpm --dir likec4 exec vitest run --no-isolate
+          packages/vite-plugin/src/opsx/opsx-spec-handler.spec.ts
+          packages/likec4-spa/src/opsx/HttpSpecLoader.spec.ts
+          packages/language-server/src/lsp/CompletionProvider.spec.ts
+          packages/language-server/src/model/__tests__/model-parser.spec.ts

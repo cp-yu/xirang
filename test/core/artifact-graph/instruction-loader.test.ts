@@ -42,7 +42,7 @@ describe('instruction-loader', () => {
       expect(template).not.toContain('### Modified Capabilities');
     });
 
-    it('loads bootstrap init and review templates with the complete v2 refresh contract', () => {
+    it('loads bootstrap init and review templates with the complete v1 refresh contract', () => {
       const initTemplate = loadTemplate('bootstrap', 'init.md');
       const reviewTemplate = loadTemplate('bootstrap', 'review.md');
 
@@ -52,7 +52,8 @@ describe('instruction-loader', () => {
       expect(initTemplate).toContain('completed workspace restart inherits retained `scope.yaml` granularity');
       expect(initTemplate).toContain('opsx bootstrap advance scan');
       expect(reviewTemplate).toContain('Relation semantic validation passes');
-      expect(reviewTemplate).toContain('Review gaps are resolved or explicitly accepted');
+      expect(reviewTemplate).toContain('Review gaps are resolved; checking a gap does not authorize promotion');
+      expect(reviewTemplate).not.toContain('explicitly accepted');
       expect(reviewTemplate).not.toMatch(/code-map/i);
     });
 

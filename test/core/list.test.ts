@@ -246,14 +246,13 @@ Regular text that should be ignored
       expect(changes['missing-change'].status).toBe('in-progress');
     });
 
-    it('capabilities字段包含spec frontmatter中的capabilities', async () => {
+    it('includes singular element binding without capabilities in JSON', async () => {
       const specsDir = path.join(tempDir, '.opsx', 'specs');
       await fs.mkdir(path.join(specsDir, 'cli-list'), { recursive: true });
       await fs.writeFile(
         path.join(specsDir, 'cli-list', 'spec.md'),
         `---
-capabilities:
-  - cap.cli.list
+element: cli.list
 ---
 # CLI List
 
@@ -277,9 +276,10 @@ The system SHALL output JSON.
           title: 'cli-list',
           requirementCount: 1,
           requirements: ['JSON output'],
-          capabilities: ['cap.cli.list'],
+          element: 'cli.list',
         },
       ]);
+      expect(output[0]).not.toHaveProperty('capabilities');
     });
 
     it('requirements字段来自spec headers并忽略fenced code', async () => {
@@ -324,7 +324,7 @@ The system SHALL output a table.
       ]);
     });
 
-    it('空数组用于无frontmatter的spec capabilities字段和无requirement headers的requirements字段', async () => {
+    it('uses null element and empty requirements when fields are absent', async () => {
       const specsDir = path.join(tempDir, '.opsx', 'specs');
       await fs.mkdir(path.join(specsDir, 'legacy'), { recursive: true });
       await fs.writeFile(
@@ -344,9 +344,10 @@ Legacy spec.
       const output = JSON.parse(logOutput[0]);
       expect(output[0]).toMatchObject({
         id: 'legacy',
-        capabilities: [],
+        element: null,
         requirements: [],
       });
+      expect(output[0]).not.toHaveProperty('capabilities');
     });
   });
 });

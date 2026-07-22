@@ -192,13 +192,13 @@ export class ListCommand {
       return;
     }
 
-    type SpecInfo = { id: string; title: string; requirementCount: number; requirements: string[]; capabilities: string[] };
+    type SpecInfo = { id: string; title: string; requirementCount: number; requirements: string[]; element: string | null };
     const specs: SpecInfo[] = [];
     for (const id of specDirs) {
       const specPath = join(specsDir, id, 'spec.md');
       try {
         const content = readFileSync(specPath, 'utf-8');
-        const capabilities = parseSpecFrontmatter(content).capabilities;
+        const { element } = parseSpecFrontmatter(content);
         try {
           const parser = new MarkdownParser(content);
           const spec = parser.parseSpec(id);
@@ -207,14 +207,14 @@ export class ListCommand {
             title: spec.name,
             requirementCount: spec.requirements.length,
             requirements: extractRequirementHeaders(content),
-            capabilities,
+            element,
           });
         } catch {
-          specs.push({ id, title: id, requirementCount: 0, requirements: [], capabilities });
+          specs.push({ id, title: id, requirementCount: 0, requirements: [], element });
         }
       } catch {
         // If spec cannot be read or parsed, include with 0 count
-        specs.push({ id, title: id, requirementCount: 0, requirements: [], capabilities: [] });
+        specs.push({ id, title: id, requirementCount: 0, requirements: [], element: null });
       }
     }
 

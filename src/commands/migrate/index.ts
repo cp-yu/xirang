@@ -1,9 +1,19 @@
 import type { Command } from 'commander';
 import ora from 'ora';
 import { migrateOpsxToLikeC4, type MigrateOpsxOptions } from './opsx-to-likec4.js';
+import { runMigrateSemanticModel, type MigrateSemanticModelOptions } from './semantic-model.js';
 
 export function registerMigrateCommand(program: Command): void {
   const migrate = program.command('migrate').description('Migrate OPSX project formats');
+  migrate.command('semantic-model')
+    .description('Migrate a legacy LikeC4 profile to an auditable OPSX Semantic Model v1 candidate')
+    .option('--candidate <path>', 'Candidate workspace path (default: .opsx/migration-candidate)')
+    .option('--promote', 'Promote the validated candidate to the formal model')
+    .option('--yes', 'Authorize promotion')
+    .option('--json', 'Print the structured migration report as JSON')
+    .action(async (options: MigrateSemanticModelOptions) => {
+      await runMigrateSemanticModel(process.cwd(), options);
+    });
   migrate.command('opsx-to-likec4')
     .description('Migrate OPSX YAML architecture to LikeC4')
     .option('--dry-run', 'Preview generated files without writing')

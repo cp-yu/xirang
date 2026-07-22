@@ -15,6 +15,20 @@ export class HttpSpecLoader implements OpsxSpecLoader {
     private readonly hot?: OpsxHotChannel,
   ) {}
 
+  async list(project: string, element: string, signal: AbortSignal): Promise<readonly string[]> {
+    const query = new URLSearchParams({ project, element })
+    const response = await this.fetcher.call(globalThis, `/__opsx/specs?${query}`, { signal })
+    const payload = await response.json() as { specs?: unknown; error?: string }
+    if (!response.ok) {
+      if (response.status === 404) return []
+      throw new Error(payload.error ?? `Unable to load Spec registry (${response.status})`)
+    }
+    if (!Array.isArray(payload.specs) || !payload.specs.every(spec => typeof spec === 'string')) {
+      throw new Error('Invalid Spec registry response')
+    }
+    return [...new Set(payload.specs)].sort()
+  }
+
   async load(project: string, element: string, path: string, signal: AbortSignal): Promise<OpsxSpecContent> {
     const query = new URLSearchParams({ project, element, path })
     const response = await this.fetcher.call(globalThis, `/__opsx/spec?${query}`, { signal })

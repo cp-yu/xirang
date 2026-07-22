@@ -10,6 +10,7 @@ import {
   renderRelationAuthoringReference,
   renderRelationWorkflowSummary,
 } from '../../../src/core/relations/renderers.js';
+import { ACTIVE_RELATION_TYPES } from '../../../src/core/relations/active-registry.js';
 import { RELATION_TYPES } from '../../../src/core/relations/registry.js';
 import { OpsxDeltaSchema } from '../../../src/utils/opsx-utils.js';
 
@@ -32,26 +33,39 @@ describe('relation renderers', () => {
     for (const type of RELATION_TYPES) expect(rendered).toContain(type);
   });
 
-  it('renders compact domain-map, bootstrap schema, and workflow projections from all definitions', () => {
+  it('renders the canonical generic v1 bootstrap artifacts', () => {
     const domainMap = renderDomainMapTemplate();
     const bootstrapSchema = renderBootstrapSchema();
     const summary = renderRelationWorkflowSummary();
     for (const type of RELATION_TYPES) {
       expect(domainMap).toContain(type);
       expect(bootstrapSchema).toContain(type);
-      expect(summary).toContain(type);
     }
+    for (const type of ACTIVE_RELATION_TYPES) expect(summary).toContain(type);
+    expect(domainMap).toContain('## Elements');
+    expect(domainMap).toContain('contractPolicy: required | optional');
+    expect(domainMap).toContain('## Parent Links');
+    expect(domainMap).toContain('- parent: <stable-parent-id>\n  child: <stable-child-id>');
+    expect(domainMap).toContain('spec:\n    folder: <single-path-segment>');
+    expect(domainMap).not.toMatch(/## Domain|## Capabilities|cap\.<domain>/);
     expect(domainMap).not.toContain('Code References');
-    expect(bootstrapSchema).toContain('complete candidate from current evidence');
-    expect(bootstrapSchema).toContain('atomically replaces the two formal OPSX v2 files');
-    expect(bootstrapSchema).not.toMatch(/code-map|merge the reviewed delta/i);
+    expect(bootstrapSchema).toContain('- elements: elementId, kind, explicit contractPolicy');
+    expect(bootstrapSchema).toContain('- parent_links: exactly one parent link per non-root element');
+    expect(bootstrapSchema).toContain('arbitrary-depth element tree');
+    expect(bootstrapSchema).toContain('Singular element-owned target-state requirements and scenarios.');
+    expect(bootstrapSchema).not.toMatch(/code-map|merge the reviewed delta|OPSX v2 two-file bundle|per-capability Specs/i);
   });
 
   it('renders the complete canonical reference', () => {
     const reference = renderRelationAuthoringReference();
     expect(reference).toContain('## 选择规则');
     expect(reference).toContain('## Note policy');
-    for (const type of RELATION_TYPES) expect(reference).toContain(`## ${type}`);
+    for (const type of ACTIVE_RELATION_TYPES) expect(reference).toContain(`## ${type}`);
+    expect(reference).toContain('produces');
+    expect(reference).not.toContain('belongs_to');
+    expect(reference).not.toContain('refines');
+    expect(reference).not.toContain('abstracts');
+    expect(reference).toMatch(/Endpoints: (generic|element)(?: \| (generic|element))* → (generic|element)(?: \| (generic|element))*/g);
   });
 
   it.each(GENERATED_RELATION_FILES)('keeps $path byte-identical to its renderer', async ({ path: relativePath, render }) => {

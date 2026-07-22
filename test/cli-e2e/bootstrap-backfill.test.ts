@@ -196,7 +196,7 @@ describe('opsx bootstrap backfill-specs', () => {
     const result = await runCLI(['bootstrap', 'promote', '-y'], { cwd: projectDir });
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Backfill specs: written 1, unmatched 0');
-    await expect(readFile(projectDir, '.opsx/specs/cli/spec.md')).resolves.toContain('cap.cli.bootstrap');
+    expect(result.stdout).toContain('Backfill specs: written 0, unmatched 0');
+    await expect(readFile(projectDir, '.opsx/specs/cli/spec.md')).resolves.toContain('element: cap.cli.bootstrap');
   }, 30000);
 });

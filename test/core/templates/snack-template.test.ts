@@ -82,16 +82,17 @@ describe('snack template artifact reconciliation', () => {
     expect(instructions).toMatch(/do not.*tasks\.md|tasks\.md.*not.*generat|not.*generate.*tasks\.md/i);
   });
 
-  it('determines Behavior Source and Architecture Source independently', () => {
+  it('determines contract and graph scopes as one Semantic Delta', () => {
     for (const token of [
-      'Determine Behavior Source impact',
-      'Determine Architecture Source impact',
+      'Determine Element Contract impact',
+      'Determine graph impact',
       'Modified Specs',
       'New Spec',
-      'durable capability responsibility',
-      'domain boundary',
-      'ownership',
-      'semantic relation',
+      'elements',
+      'refinement',
+      'contracts',
+      'relationships',
+      'Semantic Delta',
     ]) {
       expect(instructions).toContain(token);
     }
@@ -100,11 +101,11 @@ describe('snack template artifact reconciliation', () => {
   it('stops before writing artifacts when architecture impact is unresolved', () => {
     expect(instructions).toContain('stop and ask one focused question');
     expect(instructions).toContain('do not write `architecture-delta.c4` or claim reconciliation complete');
-    expect(instructions).toContain('only after Architecture Source is resolved');
+    expect(instructions).toContain('only after graph impact is resolved');
   });
 
-  it('does not turn missing capability coverage into a New Spec', () => {
-    expect(instructions).toContain("absent from every Spec's `capabilities` array does not by itself require a New Spec");
+  it('does not turn missing optional contract coverage into a New Spec', () => {
+    expect(instructions).toContain('An optional-contract element without a registered Spec does not by itself require a New Spec');
     expect(instructions).toContain('[REVIEW NEEDED]');
     expect(instructions).not.toContain('If no existing spec covers it → mark as **New Capability**');
   });
@@ -112,23 +113,23 @@ describe('snack template artifact reconciliation', () => {
   it('uses Spec IDs for delta Spec paths', () => {
     expect(instructions).toContain('specs/<spec-id>/spec.md');
     expect(instructions).toContain('Spec IDs');
-    expect(instructions).toContain('LikeC4 element ID');
-    expect(instructions).toContain('Do not derive the directory name directly from an LikeC4 element ID');
+    expect(instructions).toContain('stable `elementId`');
+    expect(instructions).toContain('Do not derive the directory name directly from an element FQN or `elementId`');
     expect(instructions).not.toContain('specs/<capability>/spec.md');
     expect(instructions).not.toContain('proposal capability name');
   });
 
   it('does not promote mechanical code evidence to LikeC4 changes', () => {
-    expect(instructions).toContain('implementation evidence, not as proof that LikeC4 must change');
+    expect(instructions).toContain('implementation evidence, not as proof that the OPSX Semantic Model must change');
     expect(instructions).toContain('Implementation-only movement, symbol renaming, helper extraction');
-    expect(instructions).toContain('mechanical call/import changes do not by themselves change LikeC4');
+    expect(instructions).toContain('mechanical call/import changes do not by themselves change the graph modules');
   });
 
   it('reconciles proposal Source Impact from separate decisions', () => {
     expect(instructions).toContain('`## Source Impact`');
     expect(instructions).toContain('Behavior Source');
     expect(instructions).toContain('Architecture Source');
-    expect(instructions).toContain('Reuse the confirmed Behavior Source list as the delta Spec input');
+    expect(instructions).toContain('Reuse the confirmed contract module scope as the delta Spec input');
     expect(instructions).toContain('`## Why`');
     expect(instructions).toContain('`## What Changes`');
     expect(instructions).toContain('`## Impact`');
@@ -140,11 +141,11 @@ describe('snack architecture delta input boundary', () => {
   it('uses proposal scope, completed Specs, Design, and formal LikeC4 for reconciliation', () => {
     for (const token of [
       '`Source Impact`',
-      '`Architecture Source`',
-      '`Behavior Source`',
-      'completed change-local Specs',
+      'Semantic Delta',
+      'affected elements, refinement, Element Contracts, and relationships',
+      'completed change-local Element Contracts',
       '`design.md` for architecture decisions',
-      'formal LikeC4 model as current architecture state',
+      'formal OPSX Semantic Model as current semantic state',
       'scope declarations, not authoritative LikeC4 records',
     ]) {
       expect(ARCHITECTURE_GENERATE_DELTA).toContain(token);

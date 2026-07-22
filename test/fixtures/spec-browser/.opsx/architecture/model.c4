@@ -1,25 +1,51 @@
+opsx {
+  languageVersion '1'
+}
+
 specification {
-  element capability
+  element project {
+    opsx {
+      root true
+      contract optional
+      children [capability]
+    }
+  }
+  element capability {
+    opsx {
+      contract optional
+      parents [project]
+    }
+  }
 }
 
 model {
-  none = capability 'No Spec'
-
-  single = capability 'Single Spec' {
+  projectRoot = project 'OPSX Spec Browser' 'Browser fixture project root' {
     metadata {
-      specs ['.opsx/specs/single/spec.md']
+      elementId 'project.root'
     }
-  }
 
-  multi = capability 'Multiple Specs' {
-    metadata {
-      specs ['.opsx/specs/multiple/first.md', '.opsx/specs/multiple/second.md']
+    none = capability 'No Spec' 'Browser element without a bound Spec' {
+      metadata {
+        elementId 'browser.none'
+      }
     }
-  }
 
-  long = capability 'Long Spec' {
-    metadata {
-      specs ['.opsx/specs/long/spec.md']
+    single = capability 'Single Spec' 'Browser element with one bound Spec' {
+      metadata {
+        elementId 'browser.single'
+      }
+    }
+
+    multi = capability 'Multiple Specs' 'Browser element with multiple bound Specs' {
+      metadata {
+        elementId 'browser.multi'
+      }
+    }
+
+    long = capability 'Long Spec' 'Browser element with a scrollable bound Spec' {
+      metadata {
+        elementId 'browser.long'
+      }
     }
   }
 }
@@ -27,7 +53,7 @@ model {
 views {
   view index {
     title 'OPSX Spec Browser'
-    include *
+    include projectRoot.*
     autoLayout LeftRight
   }
 }

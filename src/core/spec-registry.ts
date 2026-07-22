@@ -1,31 +1,37 @@
 import { OPSX_DIR_NAME } from './config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { parseSpecFrontmatter } from './parsers/spec-frontmatter.js';
+import {
+  parseSpecFrontmatter,
+  type SpecFrontmatterIssue,
+} from './parsers/spec-frontmatter.js';
+import type { SemanticElement, SemanticMetamodel } from '../utils/semantic-model.js';
 
 export interface SpecRegistry {
-  capToSpecs: Map<string, string[]>;
-  specToCaps: Map<string, string[]>;
-  getSpecsForCap(capId: string): string[];
-  getCapsForSpec(specId: string): string[];
+  elementToSpecs: Map<string, string[]>;
+  specToElement: Map<string, string>;
+  getSpecsForElement(elementId: string): string[];
+  getElementForSpec(specId: string): string | null;
   getOrphanedSpecs(): string[];
-  getUncoveredCaps(allCapIds: string[]): string[];
+  getIssuesForSpec(specId: string): SpecFrontmatterIssue[];
+  getUncoveredRequiredElements(elements: SemanticElement[], metamodel: SemanticMetamodel): string[];
 }
 
-export async function buildSpecRegistry(projectRoot: string): Promise<SpecRegistry> {
-  const specsDir = path.join(projectRoot, OPSX_DIR_NAME, 'specs');
-  const capToSpecs = new Map<string, string[]>();
-  const specToCaps = new Map<string, string[]>();
+export async function buildSpecRegistry(projectRoot: string, specsDirectory?: string): Promise<SpecRegistry> {
+  const specsDir = path.resolve(specsDirectory ?? path.join(projectRoot, OPSX_DIR_NAME, 'specs'));
+  const elementToSpecs = new Map<string, string[]>();
+  const specToElement = new Map<string, string>();
+  const issuesBySpec = new Map<string, SpecFrontmatterIssue[]>();
   const orphanedSpecs: string[] = [];
 
   let entries;
   try {
     entries = await fs.readdir(specsDir, { withFileTypes: true });
   } catch {
-    return createRegistry(capToSpecs, specToCaps, orphanedSpecs);
+    return createRegistry(elementToSpecs, specToElement, orphanedSpecs, issuesBySpec);
   }
 
-  for (const entry of entries) {
+  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
     if (!entry.isDirectory()) continue;
 
     const specId = entry.name;
@@ -37,51 +43,51 @@ export async function buildSpecRegistry(projectRoot: string): Promise<SpecRegist
       continue;
     }
 
-    const { capabilities } = parseSpecFrontmatter(content);
-    if (capabilities.length === 0) {
+    const frontmatter = parseSpecFrontmatter(content);
+    if (frontmatter.issues) issuesBySpec.set(specId, frontmatter.issues);
+    if (frontmatter.element === null) {
       orphanedSpecs.push(specId);
       continue;
     }
 
-    specToCaps.set(specId, capabilities);
-    for (const capId of capabilities) {
-      const specs = capToSpecs.get(capId) ?? [];
-      specs.push(specId);
-      capToSpecs.set(capId, specs);
-    }
+    specToElement.set(specId, frontmatter.element);
+    const specs = elementToSpecs.get(frontmatter.element) ?? [];
+    specs.push(specId);
+    elementToSpecs.set(frontmatter.element, specs);
   }
 
-  sortMapValues(capToSpecs);
+  for (const specs of elementToSpecs.values()) specs.sort();
   orphanedSpecs.sort();
-
-  return createRegistry(capToSpecs, specToCaps, orphanedSpecs);
+  return createRegistry(elementToSpecs, specToElement, orphanedSpecs, issuesBySpec);
 }
 
 function createRegistry(
-  capToSpecs: Map<string, string[]>,
-  specToCaps: Map<string, string[]>,
+  elementToSpecs: Map<string, string[]>,
+  specToElement: Map<string, string>,
   orphanedSpecs: string[],
+  issuesBySpec: Map<string, SpecFrontmatterIssue[]>,
 ): SpecRegistry {
   return {
-    capToSpecs,
-    specToCaps,
-    getSpecsForCap(capId: string): string[] {
-      return capToSpecs.get(capId) ?? [];
+    elementToSpecs,
+    specToElement,
+    getSpecsForElement(elementId) {
+      return elementToSpecs.get(elementId) ?? [];
     },
-    getCapsForSpec(specId: string): string[] {
-      return specToCaps.get(specId) ?? [];
+    getElementForSpec(specId) {
+      return specToElement.get(specId) ?? null;
     },
-    getOrphanedSpecs(): string[] {
+    getOrphanedSpecs() {
       return orphanedSpecs;
     },
-    getUncoveredCaps(allCapIds: string[]): string[] {
-      return allCapIds.filter(capId => !capToSpecs.has(capId));
+    getIssuesForSpec(specId) {
+      return issuesBySpec.get(specId) ?? [];
+    },
+    getUncoveredRequiredElements(elements, metamodel) {
+      return elements
+        .filter(element => metamodel.elements[element.kind]?.contractPolicy === 'required')
+        .filter(element => !elementToSpecs.has(element.id))
+        .map(element => element.id)
+        .sort();
     },
   };
-}
-
-function sortMapValues(map: Map<string, string[]>): void {
-  for (const values of map.values()) {
-    values.sort();
-  }
 }

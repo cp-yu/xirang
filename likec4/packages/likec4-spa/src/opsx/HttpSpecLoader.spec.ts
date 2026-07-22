@@ -4,6 +4,23 @@ import { HttpSpecLoader, type OpsxHotChannel } from './HttpSpecLoader'
 describe('HttpSpecLoader', () => {
   afterEach(() => vi.restoreAllMocks())
 
+  it('loads the sorted registry projection for a stable element ID', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+      specs: ['.opsx/specs/a/spec.md', '.opsx/specs/z/spec.md'],
+    }), { status: 200, headers: { 'content-type': 'application/json' } }))
+    const loader = new HttpSpecLoader(fetcher)
+    const controller = new AbortController()
+
+    await expect(loader.list('default', 'payment.authorize', controller.signal)).resolves.toEqual([
+      '.opsx/specs/a/spec.md',
+      '.opsx/specs/z/spec.md',
+    ])
+    const [url] = fetcher.mock.calls[0]!
+    const parsed = new URL(String(url), 'http://localhost')
+    expect(parsed.pathname).toBe('/__opsx/specs')
+    expect(parsed.searchParams.get('element')).toBe('payment.authorize')
+  })
+
   it('loads one Spec through the OPSX HTTP API with encoded query parameters', async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
       path: '.opsx/specs/api/spec.md',

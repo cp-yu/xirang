@@ -31,6 +31,7 @@ describe('LikeC4CompletionProvider', () => {
       index: 0,
       expectedItems: [
         'import',
+        'opsx',
         'specification',
         'model',
         'views',
@@ -59,7 +60,7 @@ describe('LikeC4CompletionProvider', () => {
     await completion({
       text,
       index: 4,
-      expectedItems: ['title', 'description', 'technology', 'notation', 'summary', 'link', 'style'],
+      expectedItems: ['opsx', 'title', 'description', 'technology', 'notation', 'summary', 'link', 'style'],
     })
     await completion({
       text,
@@ -292,7 +293,7 @@ describe('LikeC4CompletionProvider', () => {
         element component
       }
       model {
-        root = component {
+        system = component {
           c1 = component {
             c2 = component {
               unique = component
@@ -304,7 +305,7 @@ describe('LikeC4CompletionProvider', () => {
           }
         }
         cloud = component {
-          -> <|>root.<|>c1.<|>
+          -> <|>system.<|>c1.<|>
         }
         cloud2 = component {
           -> c2.<|>
@@ -318,7 +319,7 @@ describe('LikeC4CompletionProvider', () => {
       expectedItems: [
         'this',
         'it',
-        'root',
+        'system',
         'cloud',
         'cloud2',
         'c1',
@@ -351,7 +352,7 @@ describe('LikeC4CompletionProvider', () => {
         element component
       }
       model {
-        root = component {
+        system = component {
           a = component {
             b1 = component {
               b2 = component
@@ -362,7 +363,7 @@ describe('LikeC4CompletionProvider', () => {
       views {
         view {
           <|>include
-            <|>root.<|> -> *,
+            <|>system.<|> -> *,
             * -> b<|>2 <|>
         }
       }
@@ -389,7 +390,7 @@ describe('LikeC4CompletionProvider', () => {
       text,
       index: 1,
       expectedItems: [
-        'root',
+        'system',
         'a',
         'b1',
         'b2',
@@ -459,7 +460,7 @@ describe('LikeC4CompletionProvider', () => {
           relationship uses
         }
         model {
-          root = component {
+          system = component {
             a = component {
               b1 = component {
                 b2 = component
@@ -493,7 +494,7 @@ describe('LikeC4CompletionProvider', () => {
           relationship uses
         }
         model {
-          root = component {
+          system = component {
             a = component {
               b1 = component {
                 b2 = component
@@ -524,7 +525,7 @@ describe('LikeC4CompletionProvider', () => {
         element component
       }
       model {
-        root = component
+        system = component
       }
       views {
         view index {
@@ -536,7 +537,7 @@ describe('LikeC4CompletionProvider', () => {
         dynamic view view3 { // should also suggest dynamic views
         }
         view {
-          include root <|>with {
+          include system <|>with {
             <|>navigateTo <|>
           }
         }
@@ -599,7 +600,7 @@ describe('LikeC4CompletionProvider', () => {
         element component
       }
       model {
-        root = component
+        system = component
       }
       views {
         view index {
@@ -608,7 +609,7 @@ describe('LikeC4CompletionProvider', () => {
         dynamic view view3 { // should also suggest dynamic views
         }
         view {
-          include root -> * <|>with {
+          include system -> * <|>with {
             <|>navigateTo <|>
           }
         }

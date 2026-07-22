@@ -35,6 +35,7 @@ export type LikeC4ViteConfig = {
    */
   userPublicDir?: string | undefined
   opsxProjectRoot?: string | undefined
+  opsxSpecRegistry?: string | undefined
 }
 
 export const viteConfig = async ({ languageServices, likec4AssetsDir, ...cfg }: LikeC4ViteConfig) => {
@@ -103,6 +104,7 @@ export const viteConfig = async ({ languageServices, likec4AssetsDir, ...cfg }: 
       LikeC4VitePlugin({
         languageServices: languageServices.languageServices,
         ...(cfg.opsxProjectRoot ? { opsxProjectRoot: cfg.opsxProjectRoot } : {}),
+        ...(cfg.opsxSpecRegistry ? { opsxSpecRegistry: cfg.opsxSpecRegistry } : {}),
         appConfig: {
           webcomponentPrefix,
           pageTitle: title,

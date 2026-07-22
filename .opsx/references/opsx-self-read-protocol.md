@@ -11,6 +11,6 @@ Read context in this order:
 
 ## Dependency Expansion (One Hop)
 
-Expand direct imports, callers, and directed LikeC4 semantic relations from `opsx arch query <element-id> --relations --depth 1 --json`. Interpret each relation by its Registry meaning and stop after one hop. Use path.relative to reject paths outside projectRoot, apply gitignore filtering, and exclude node_modules, dist, build, and .git. If relations are missing, continue with imports and callers.
+Expand direct imports, callers, and directed semantic relationships from `opsx arch query <elementId> --relations --depth 1 --json`. Interpret each relationship by its declared meaning and stop after one hop. Use path.relative to reject paths outside projectRoot, apply gitignore filtering, and exclude node_modules, dist, build, and .git. If relations are missing, continue with imports and callers.
 
 Expansion candidates MUST NOT be actionable finding targets. Actionable locations MUST remain inside base scope files only; report scope-outside opportunities as deferred.

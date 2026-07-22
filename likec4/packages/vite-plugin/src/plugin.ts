@@ -12,7 +12,7 @@ import type {
 import { detectAI } from './ai/detect-ai'
 import { iconBundlePlugin } from './icon-bundle-plugin'
 import { logger } from './logger'
-import { createOpsxSpecWatcher, getProjectIndexedSpecs, OpsxSpecError, readOpsxSpec } from './opsx/opsx-spec-handler'
+import { assertOpsxProject, createOpsxSpecWatcher, OpsxSpecError, readOpsxSpec, readOpsxSpecRegistry } from './opsx/opsx-spec-handler'
 import { enablePluginRPC } from './rpc'
 import { opsxSpecChangedEvent } from './rpc/protocol'
 import { splitErrorMessage } from './rpc/sendError'
@@ -98,6 +98,8 @@ type SharedOptions = {
    * Absolute OPSX project root. Enables the local Spec content API in dev mode.
    */
   opsxProjectRoot?: string
+  /** Root-owned immutable element-to-Spec registry snapshot. */
+  opsxSpecRegistry?: string
 }
 
 export type LikeC4VitePluginOptions =
@@ -196,6 +198,7 @@ export function LikeC4VitePlugin({
   environments,
   appConfig,
   opsxProjectRoot,
+  opsxSpecRegistry,
   ai: _ai = 'auto',
   ...pluginOpts
 }: LikeC4VitePluginOptions): PluginOption {
@@ -366,7 +369,36 @@ export function LikeC4VitePlugin({
         moduleopts({ server }),
       )
 
-      if (opsxProjectRoot) {
+      if (opsxProjectRoot && opsxSpecRegistry) {
+        const specRegistry = await readOpsxSpecRegistry(opsxSpecRegistry)
+        server.middlewares.use('/__opsx/specs', async (req, res) => {
+          try {
+            if (req.method !== 'GET') {
+              throw new OpsxSpecError(405, 'Method not allowed')
+            }
+            const requestUrl = new URL(req.url ?? '/', 'http://localhost')
+            const project = requestUrl.searchParams.get('project')
+            const element = requestUrl.searchParams.get('element')
+            if (!project || !element || !likec4.projects().some(candidate => candidate.id === project)) {
+              throw new OpsxSpecError(404, 'Element not found')
+            }
+            const specs = specRegistry.get(element)
+            if (!specs) {
+              throw new OpsxSpecError(404, 'Element not found')
+            }
+            res.statusCode = 200
+            res.setHeader('Content-Type', 'application/json; charset=utf-8')
+            res.setHeader('Cache-Control', 'no-store')
+            res.end(JSON.stringify({ specs }))
+          } catch (error) {
+            const opsxError = error instanceof OpsxSpecError
+              ? error
+              : new OpsxSpecError(500, 'Unable to read Spec registry')
+            res.statusCode = opsxError.statusCode
+            res.setHeader('Content-Type', 'application/json; charset=utf-8')
+            res.end(JSON.stringify({ error: opsxError.message }))
+          }
+        })
         server.middlewares.use('/__opsx/spec', async (req, res) => {
           try {
             if (req.method !== 'GET') {
@@ -379,18 +411,14 @@ export function LikeC4VitePlugin({
             if (!project || !element || !specPath) {
               throw new OpsxSpecError(400, 'Missing project, element or path')
             }
+            assertOpsxProject(project, likec4.projects())
 
             const result = await readOpsxSpec({
               projectRoot: opsxProjectRoot,
               element,
               specPath,
               index: {
-                getIndexedSpecs: requestedElement => getProjectIndexedSpecs({
-                  project,
-                  element: requestedElement,
-                  projects: likec4.projects(),
-                  loadModel: selected => likec4.computedModel(selected.id),
-                }),
+                getIndexedSpecs: async requestedElement => specRegistry.get(requestedElement),
               },
             })
             res.statusCode = 200

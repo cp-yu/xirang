@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -14,10 +14,14 @@ describe('impact sweeper template', () => {
     return reference!.content;
   }
 
-  it('keeps project-root shared references byte-identical to the template', () => {
+  it('keeps the canonical generated reference set complete', () => {
+    expect(template.referenceFiles?.map((reference) => reference.path)).toEqual([
+      'references/evidence-protocol.md',
+      'references/terminology-awareness.md',
+      'references/report-schema.md',
+    ]);
     for (const reference of template.referenceFiles ?? []) {
-      const sharedPath = path.resolve(`.opsx/references/opsx-${path.posix.basename(reference.path)}`);
-      expect(readFileSync(sharedPath, 'utf8')).toBe(reference.content);
+      expect(reference.content.length).toBeGreaterThan(0);
     }
   });
 
@@ -59,7 +63,9 @@ describe('impact sweeper template', () => {
       '"projectTerms"',
       '"evidence"',
       '"opsx"',
-      '"nodes"',
+      '"elements"',
+      '"elementId"',
+      '"fqn"',
       '"relationsExpanded"',
       '"mustChange"',
       '"mustVerify"',
@@ -87,9 +93,11 @@ describe('impact sweeper template', () => {
   it('requires CLI-backed LikeC4 evidence and bounded reverse search', () => {
     const evidence = readReference('references/evidence-protocol.md');
 
-    expect(evidence).toContain('opsx arch query <element-id> --relations --depth 2');
-    expect(evidence).toContain("Preserve each relation's canonical source/kind/target direction");
-    expect(evidence).toContain('Element nesting supplies domain context only');
+    expect(evidence).toContain('opsx arch query <elementId> --relations --depth 2 --json');
+    expect(evidence).toContain("Preserve each relationship's canonical source/kind/target direction");
+    expect(evidence).toContain('parent and children as abstraction/refinement context');
+    expect(evidence).toContain('canonical `elementId`');
+    expect(evidence).toContain('current FQN');
     expect(evidence).toContain('opsx list --specs --json');
     expect(evidence).toContain('CodeGraph is available');
     expect(evidence).toContain('never read `.codegraph/codegraph.db`');

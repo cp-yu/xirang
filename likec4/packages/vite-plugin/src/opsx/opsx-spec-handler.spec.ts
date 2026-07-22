@@ -4,9 +4,10 @@ import os from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  assertOpsxProject,
   createOpsxSpecWatcher,
-  getProjectIndexedSpecs,
   readOpsxSpec,
+  readOpsxSpecRegistry,
   type OpsxSpecIndex,
 } from './opsx-spec-handler'
 
@@ -36,19 +37,24 @@ describe('OPSX Spec handler', () => {
     await fs.rm(projectRoot, { recursive: true, force: true })
   })
 
-  it('authorizes duplicate element IDs against the requested project only', async () => {
-    const projects = [{ id: 'alpha' }, { id: 'beta' }]
-    const models = new Map([
-      ['alpha', { findElement: () => ({ metadata: { specs: ['.opsx/specs/api/spec.md'] } }) }],
-      ['beta', { findElement: () => ({ metadata: { specs: ['.opsx/specs/other/spec.md'] } }) }],
-    ])
+  it('reads a root-owned registry snapshot without consulting model metadata', async () => {
+    const registryFile = path.join(projectRoot, 'opsx-spec-registry.json')
+    await fs.writeFile(registryFile, JSON.stringify({
+      version: 1,
+      elements: {
+        'payment.authorize': ['.opsx/specs/shared/spec.md', '.opsx/specs/api/spec.md'],
+      },
+    }))
 
-    await expect(getProjectIndexedSpecs({
-      project: 'beta',
-      element: 'core.api',
-      projects,
-      loadModel: async selected => models.get(selected.id)!,
-    })).resolves.toEqual(['.opsx/specs/other/spec.md'])
+    await expect(readOpsxSpecRegistry(registryFile)).resolves.toEqual(new Map([
+      ['payment.authorize', ['.opsx/specs/api/spec.md', '.opsx/specs/shared/spec.md']],
+    ]))
+  })
+
+  it('rejects content access for an unknown model project', () => {
+    expect(() => assertOpsxProject('missing', [{ id: 'default' }]))
+      .toThrow(expect.objectContaining({ statusCode: 404, message: 'Project not found' }))
+    expect(() => assertOpsxProject('default', [{ id: 'default' }])).not.toThrow()
   })
 
   it('reads only Markdown indexed by the requested element', async () => {

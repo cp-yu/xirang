@@ -44,8 +44,12 @@ import {
 } from './workflow-installation.js';
 import { isMap, parseDocument } from 'yaml';
 import { ArtifactSyncEngine } from './templates/sync-engine.js';
-import { generateSpecification } from '../migration/generators/specification-generator.js';
-import { generateViews } from '../migration/generators/views-generator.js';
+import {
+  ARCHITECTURE_FILE_MANIFEST,
+  type ArchitectureFileManifestEntry,
+} from './templates/architecture-skeleton.js';
+
+export const INIT_ARCHITECTURE_FILE_MANIFEST: readonly ArchitectureFileManifestEntry[] = ARCHITECTURE_FILE_MANIFEST;
 
 const require = createRequire(import.meta.url);
 const { version: OPSX_VERSION } = require('../../package.json');
@@ -472,13 +476,18 @@ export class InitCommand {
 
   private async writeArchitectureSkeleton(projectPath: string, opsxPath: string): Promise<void> {
     const architecturePath = path.join(opsxPath, 'architecture');
-    await FileSystemUtils.createDirectory(path.join(architecturePath, 'domains'));
-    const files = [
-      { path: path.join(architecturePath, 'specification.c4'), content: generateSpecification() },
-      { path: path.join(architecturePath, 'views.c4'), content: generateViews(this.inferProjectName(projectPath)) },
-    ];
-    for (const file of files) {
-      if (!fs.existsSync(file.path)) await FileSystemUtils.writeFile(file.path, file.content);
+    const projectName = this.inferProjectName(projectPath);
+    const context = {
+      projectName,
+      projectSummary: `Project intent for ${projectName} is not yet defined.`,
+    };
+
+    await FileSystemUtils.createDirectory(architecturePath);
+    for (const file of INIT_ARCHITECTURE_FILE_MANIFEST) {
+      const filePath = path.join(architecturePath, file.relativePath);
+      if (!fs.existsSync(filePath)) {
+        await FileSystemUtils.writeFile(filePath, file.render(context));
+      }
     }
   }
 
