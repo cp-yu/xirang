@@ -1,7 +1,7 @@
 ---
-capabilities:
-  - cap.cli.feedback
+element: project.root/domain.cli/cap.cli.feedback
 ---
+
 # cli-feedback Specification
 
 ## Purpose
@@ -194,4 +194,3 @@ The system SHALL provide shell completions for the feedback command.
 
 - **WHEN** user types `opsx feedback "msg" --<TAB>`
 - **THEN** the shell suggests available flags (`--body`)
-

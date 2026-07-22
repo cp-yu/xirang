@@ -1,3 +1,7 @@
+---
+element: project.root/domain.config/cap.config.runtime-projection
+---
+
 # context-injection Specification
 
 ## Purpose
@@ -63,4 +67,3 @@ Project `context` SHALL be injected into artifact instructions through the share
 - **WHEN** config omits `context`
 - **THEN** the config projection SHALL omit the context fragment
 - **AND** instruction output SHALL continue without an injected context section
-

@@ -1,7 +1,7 @@
 ---
-capabilities:
-  - cap.cli.archive
+element: project.root/domain.cli/cap.cli.change-operations
 ---
+
 # CLI Archive Command Specification
 
 ## Purpose

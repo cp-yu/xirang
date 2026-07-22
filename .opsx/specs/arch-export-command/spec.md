@@ -1,7 +1,12 @@
+---
+element: project.root/domain.cli/cap.cli.architecture-navigation
+---
+
 # arch-export-command Specification
 
 ## Purpose
-This specification records behavior introduced by change opsx-to-likec4-mega-refactor. Replace this Purpose with the formal capability intent before archive.
+Define the reviewed Architecture Navigation contract for arch export 命令 SHALL 导出架构图; arch export SHALL 创建输出目录.
+
 ## Requirements
 ### Requirement: arch export 命令 SHALL 导出架构图
 

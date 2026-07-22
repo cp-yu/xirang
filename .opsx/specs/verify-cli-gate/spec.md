@@ -1,7 +1,12 @@
+---
+element: project.root/domain.verify/cap.verify.consistency-gate
+---
+
 # verify-cli-gate Specification
 
 ## Purpose
-此规约记录变更 add-verify-cli-gate 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Consistency and Freshness Gate contract for Phase 1 入口门禁; Phase 2 双调用门禁; Seal 校验; and 1 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: Phase 1 入口门禁
 
@@ -118,4 +123,3 @@
 - **WHEN** agent 消费 `verify status --json` 输出决定是否重新执行 full verify
 - **THEN** agent SHALL 仅依据 `freshness.status` 判断 freshness
 - **AND** SHALL NOT 从 `freshness.checks`、`freshness.details` 或 `freshness.information` 推导 STALE
-

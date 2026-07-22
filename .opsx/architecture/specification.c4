@@ -1,28 +1,16 @@
+opsx {
+  languageVersion '1'
+}
+
 specification {
-  element project {
-    style {
-      shape rectangle
-      color gray
-    }
-  }
-
-  element domain {
-    style {
-      shape rectangle
-      color indigo
-    }
-  }
-
-  element capability {
-    style {
-      shape rectangle
-      color blue
-    }
-  }
-
+  element project { opsx { root true contract required } }
+  element domain { opsx { contract optional } }
+  element capability { opsx { contract required } }
+  element compatibility { opsx { contract optional } }
   relationship invokes
+  relationship produces
   relationship consumes
-  relationship precedes
-  relationship constrains
   relationship validates
+  relationship constrains
+  relationship precedes
 }

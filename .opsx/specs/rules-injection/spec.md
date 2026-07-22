@@ -1,3 +1,7 @@
+---
+element: project.root/domain.config/cap.config.runtime-projection
+---
+
 # rules-injection Specification
 
 ## Purpose
@@ -111,4 +115,3 @@ Per-artifact `rules` from project config SHALL be compiled into artifact-scoped 
 - **WHEN** config defines rules for other artifact IDs but not the requested one
 - **THEN** the projection pipeline SHALL omit rules for the requested artifact
 - **AND** instruction output SHALL not fabricate empty rule sections
-

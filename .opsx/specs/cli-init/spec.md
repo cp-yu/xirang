@@ -1,7 +1,7 @@
 ---
-capabilities:
-  - cap.cli.init
+element: project.root/domain.cli/cap.cli.project-setup
 ---
+
 # CLI Init Specification
 
 ## Purpose

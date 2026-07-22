@@ -1,3 +1,7 @@
+---
+element: project.root/domain.verify/cap.verify.consistency-gate
+---
+
 # verify-execution-model-selection Specification
 
 ## Purpose

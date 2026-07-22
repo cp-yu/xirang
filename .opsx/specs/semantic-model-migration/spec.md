@@ -1,7 +1,12 @@
+---
+element: project.root/domain.migration/cap.migration.semantic-model-reconciliation
+---
+
 # semantic-model-migration Specification
 
 ## Purpose
-This specification records behavior introduced by change unify-opsx-semantic-model. Replace this Purpose with the formal capability intent before archive.
+Define the reviewed Reviewed Semantic Model Reconciliation contract for Semantic Model migration SHALL 显式生成候选模型; Migration SHALL 只接受确定的 identity 与 binding; Migration promotion SHALL 由完整验证和 human authorization 门禁; and 1 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: Semantic Model migration SHALL 显式生成候选模型
 
@@ -49,4 +54,3 @@ Migration SHALL 使用 Node.js `path.join()` 与 `path.resolve()` 构造 project
 - **WHEN** migration 在 Windows path separator 环境执行
 - **THEN** 所有 candidate 与 formal paths SHALL 通过 Node.js path API 解析
 - **AND** report 中的 project-relative source references SHALL 保持可定位
-

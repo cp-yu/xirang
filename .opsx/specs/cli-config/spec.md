@@ -1,7 +1,7 @@
 ---
-capabilities:
-  - cap.cli.config
+element: project.root/domain.cli/cap.cli.project-setup
 ---
+
 # cli-config Specification
 
 ## Purpose
@@ -236,4 +236,3 @@ The config command SHALL reserve the `--scope` flag for future extensibility.
 - **WHEN** 用户对 `propose` routing 路径使用 `--allow-unknown`
 - **THEN** command SHALL 仍拒绝该已知退役路径
 - **AND** SHALL NOT 将其作为普通未知字段保存
-

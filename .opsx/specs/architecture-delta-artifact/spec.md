@@ -1,7 +1,12 @@
+---
+element: project.root/domain.schema/cap.schema.workflow-definition
+---
+
 # architecture-delta-artifact Specification
 
 ## Purpose
-This specification records behavior introduced by change opsx-to-likec4-mega-refactor. Replace this Purpose with the formal capability intent before archive.
+Define the reviewed Built-in Workflow Definition contract for Change SHALL 使用 architecture-delta.c4 表达架构增量; Delta 文件 SHALL 使用 LikeC4 extend 语法; Delta 文件 SHALL 引用 change-local specs; and 2 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: Change SHALL 使用 architecture-delta.c4 表达架构增量
 
@@ -78,4 +83,3 @@ Sync SHALL 将 graph delta 与 contract deltas 作为一个 Semantic Delta 原�
 - **WHEN** graph 或 contract module 合并失败
 - **THEN** SHALL 回滚全部 formal modifications
 - **AND** formal OPSX Semantic Model SHALL 保持合并前状态
-

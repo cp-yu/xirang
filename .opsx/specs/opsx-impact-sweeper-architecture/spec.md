@@ -1,7 +1,12 @@
+---
+element: project.root/domain.architecture/cap.architecture.semantic-model
+---
+
 # opsx-impact-sweeper-architecture Specification
 
 ## Purpose
-This specification records behavior introduced by change opsx-to-likec4-mega-refactor. Replace this Purpose with the formal capability intent before archive.
+Define the reviewed Versioned Semantic Model contract for Impact sweeper SHALL 使用 LikeC4 导航架构.
+
 ## Requirements
 ### Requirement: Impact sweeper SHALL 使用 LikeC4 导航架构
 
@@ -28,4 +33,3 @@ Sweeper SHALL 使用 `opsx arch query` 导航 OPSX Semantic Model，并 SHALL �
 - **WHEN** report 引用 Element Contract
 - **THEN** SHALL 通过 registry 的 singular binding 定位 Specs
 - **AND** MUST NOT 使用 `metadata.specs` 或多 capability mapping
-

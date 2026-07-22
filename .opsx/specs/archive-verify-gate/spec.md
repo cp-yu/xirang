@@ -1,7 +1,12 @@
+---
+element: project.root/domain.change_workflow/cap.change.lifecycle
+---
+
 # archive-verify-gate Specification
 
 ## Purpose
-此规约记录变更 require-full-verify-before-archive 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Change Lifecycle Management contract for 归档前必须具备新鲜的完整验证结果; Freshness 基于显式验证证据判定; Archive reruns use the verify execution model; and 1 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: 归档前必须具备新鲜的完整验证结果
 
@@ -119,4 +124,3 @@
 - **THEN** 系统 SHALL 跳过交互式确认
 - **AND** SHALL 记录 `[AUTHORIZED]` 审计日志
 - **AND** SHALL 直接跳过 verify 和 sync 门禁检查
-

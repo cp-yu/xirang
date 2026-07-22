@@ -1,3 +1,7 @@
+---
+element: project.root/domain.artifact_graph/cap.artifact-graph.workflow-compilation
+---
+
 # artifact-graph Specification
 
 ## Purpose
@@ -132,4 +136,3 @@ The system SHALL support self-contained schema directories with co-located templ
 #### Scenario: List available schemas
 - **WHEN** listing schemas
 - **THEN** the system returns schema names from both user and package directories
-

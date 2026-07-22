@@ -1,7 +1,12 @@
+---
+element: project.root/domain.ai_integration/cap.ai.review-roles
+---
+
 # opsx-reviewer-skill Specification
 
 ## Purpose
-此规约记录变更 add-subagent-skills 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Agent Review Roles contract for Reviewer 角色与硬约束; Reviewer 输入合约; 6 步验证协议; and 4 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: Reviewer 角色与硬约束
 `opsx-reviewer` skill SHALL 将 subagent 定义为 Phase 1 验证审查者，拥有所有 completeness、correctness、coherence 判定权，且 MUST 遵循以下硬约束：
@@ -41,7 +46,7 @@ Reviewer SHALL 自主完成以下信息获取：
 - **scopeFiles**: 从 `path.join(changeDir, '.apply-isolation.json').baseCommit` 读取不可变证据基线，并取 `git diff <baseCommit>...HEAD --name-only` 与 `git status --short` 的并集作为定位锚点
 - **finalFileContents**: 对 scopeFiles、`.verify-result.json` 中的 `verificationContext.evidenceFiles`、OPSX semantic relation paths 与项目搜索推断的候选文件，SHALL 通过 Read 读取最终磁盘内容作为唯一权威证据
 - **priorVerifyResult**: 自行读取 `changeDir/.verify-result.json`（如存在）
-- **opsxContext**: 自行读取 `changeDir/opsx-delta.yaml` 和 `projectRoot/opsx/project.opsx.yaml`
+- **opsxContext**: 自行读取 `changeDir/architecture-delta.c4`、`projectRoot/.opsx/architecture/**/*.c4` 与 element-owned Specs
 
 Reviewer MUST NOT 把 `git diff` 的内容级输出（hunks、行变更）作为判断证据；diff 内容只反映过渡 commit 状态，最终态需要 Read 文件内容确认。
 
@@ -166,7 +171,7 @@ Reviewer MUST NOT 把 `git diff` 的内容级输出（hunks、行变更）作为
 
 **Cleanliness（清洁性）**: 检测本次变更应清理但未清理的遗留物，以及 diff 中无法归因到任何 task 的规格外改动。孤儿代码 = CRITICAL，过时 TODO = CRITICAL，死 import = CRITICAL，半迁移 = CRITICAL，不可达代码 = WARNING，规格外行为代码 = CRITICAL。
 
-**OPSX Alignment（OPSX 对齐）**（如 opsx-delta.yaml 存在）: 引用完整性和 code-map 完整性。不对齐 = WARNING。
+**OPSX Alignment（OPSX 对齐）**: 检查 architecture-delta.c4、singular Spec ownership、stable element references 与 semantic relation closure。不对齐 = WARNING。
 
 #### Scenario: 仅有 tasks.md 的变更
 - **WHEN** 变更仅有 tasks.md 无 delta specs 无 design.md
@@ -260,4 +265,3 @@ summary 对象 SHALL 包含四个维度对象：completeness、correctness、coh
 #### Scenario: Windows 上安装 reviewer skill
 - **WHEN** 在 Windows 上为 Claude Code 执行 `opsx init`
 - **THEN** skill 文件 SHALL 写入到 `.claude/skills/opsx-reviewer/SKILL.md`（路径使用 `path.join()` 构建）
-

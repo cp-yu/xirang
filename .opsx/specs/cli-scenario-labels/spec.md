@@ -1,3 +1,7 @@
+---
+element: project.root/domain.cli/cap.cli.change-operations
+---
+
 # cli-scenario-labels Specification
 
 ## Purpose

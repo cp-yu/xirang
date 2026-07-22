@@ -1,7 +1,12 @@
+---
+element: project.root/domain.validation/cap.validation.semantic-contract
+---
+
 # validate-spec-section-type-cross-check Specification
 
 ## Purpose
-此规约记录变更 validate-spec-section-type-integrity 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Semantic Contract Validation contract for MODIFIED requirement header 必须存在于主 spec; ADDED requirement header 不得已存在于主 spec; REMOVED/RENAMED requirement header 必须存在于主 spec; and 2 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: MODIFIED requirement header 必须存在于主 spec
 
@@ -124,4 +129,3 @@ Validation SHALL 对每份新版 formal 或 change-local Spec 的 singular `elem
 #### Scenario: Optional element coverage
 - **WHEN** element kind 为 `contract optional` 且无 Spec
 - **THEN** validation SHALL 通过且不产生 missing binding issue
-

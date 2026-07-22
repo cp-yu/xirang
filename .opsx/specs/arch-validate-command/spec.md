@@ -1,7 +1,12 @@
+---
+element: project.root/domain.cli/cap.cli.architecture-navigation
+---
+
 # arch-validate-command Specification
 
 ## Purpose
-This specification records behavior introduced by change opsx-to-likec4-mega-refactor. Replace this Purpose with the formal capability intent before archive.
+Define the reviewed Architecture Navigation contract for arch validate 命令 SHALL 验证 LikeC4 语法; arch validate SHALL 补充 OPSX 语义验证; arch validate SHALL 支持 --delta 选项.
+
 ## Requirements
 ### Requirement: arch validate 命令 SHALL 验证 LikeC4 语法
 

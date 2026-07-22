@@ -130,7 +130,8 @@ describe('Integration: Bootstrap Workflow', () => {
       const result = await readArchitecture(repoRoot);
       expect(result.source).toBe('likec4');
       if (result.source === 'likec4') {
-        expect(result.domains.length).toBeGreaterThan(0);
+        if (result.profile === 'v1') expect(result.elements.length).toBeGreaterThan(0);
+        else expect(result.domains.length).toBeGreaterThan(0);
       }
     });
   });

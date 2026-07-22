@@ -1,7 +1,7 @@
 ---
-capabilities:
-  - cap.ai.workflow-templates
+element: project.root/domain.ai_integration/cap.ai.workflow-generation
 ---
+
 # OPSX Conventions Specification
 
 ## Purpose
@@ -430,7 +430,7 @@ Change proposals SHALL store only the additions, modifications, and removals to 
 - **AND** each requirement SHALL include its complete content
 - **AND** use the standard structured format for requirements and scenarios
 
-#### Scenario: Creating change proposals with modifications  
+#### Scenario: Creating change proposals with modifications
 
 - **WHEN** creating a change proposal that modifies existing requirements
 - **THEN** include the modified requirements under `## MODIFIED Requirements`
@@ -513,7 +513,7 @@ The change process SHALL follow these states:
 3. **Approve**: Change is approved for implementation
 4. **Implement**: Follow tasks.md checklist (can span multiple PRs)
 5. **Deploy**: Changes are deployed to production
-6. **Update**: Delta specs are merged into main `specs/`; opsx-delta is merged into `project.opsx.yaml`
+6. **Update**: Delta specs are merged into main `specs/`; `architecture-delta.c4` is merged into `.opsx/architecture/`
 7. **Archive**: Change is moved to `archive/YYYY-MM-DD-[name]/`
 
 ## Viewing Changes

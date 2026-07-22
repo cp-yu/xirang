@@ -1,7 +1,12 @@
+---
+element: project.root/domain.ai_integration/cap.ai.intent-exploration
+---
+
 # sweeper-terminology-extraction Specification
 
 ## Purpose
-此规约记录变更 sweeper-terminology-awareness 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Intent Exploration and Impact contract for 术语提取触发条件; 语义相近术语识别; 术语统计与分布追踪; and 3 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: 术语提取触发条件
 
@@ -90,4 +95,3 @@ Sweeper skill prompt SHALL 包含明确的术语提取指令，定义提取策�
 - **THEN** sweeper SHALL 生成不含 `terminologyObservations` 字段的 JSON 报告
 - **AND** SHALL 包含正常的 `mustChange`、`mustVerify`、`contextual`、`unknown`、`architectureDrift` 与 `questions` 字段
 - **AND** master agent SHALL 将缺失该字段视为"无术语观察结果"，继续正常流程
-

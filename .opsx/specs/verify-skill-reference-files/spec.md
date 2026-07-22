@@ -1,3 +1,7 @@
+---
+element: project.root/domain.apply/cap.apply.verification-integration
+---
+
 # verify-skill-reference-files Specification
 
 ## Purpose

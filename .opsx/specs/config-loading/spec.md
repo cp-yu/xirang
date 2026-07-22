@@ -1,3 +1,7 @@
+---
+element: project.root/domain.config/cap.config.project-settings
+---
+
 # config-loading Specification
 
 ## Purpose
@@ -347,4 +351,3 @@ Project config loader SHALL 将顶层 `propose` routing 节点视为退役配置
 - **WHEN** project config 包含旧 `propose` 节点
 - **THEN** `NormalizedProjectConfig` 与 artifact instructions 的 `configProjection.normalized` SHALL NOT 包含 `propose`
 - **AND** Propose workflow behavior SHALL NOT 受该节点影响
-

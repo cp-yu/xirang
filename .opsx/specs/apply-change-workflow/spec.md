@@ -1,3 +1,7 @@
+---
+element: project.root/domain.apply/cap.apply.verification-integration
+---
+
 # apply-change-workflow Specification
 
 ## Purpose

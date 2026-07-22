@@ -1,7 +1,12 @@
+---
+element: project.root/domain.ai_integration/cap.ai.review-roles
+---
+
 # reviewer-cleanliness-dimension Specification
 
 ## Purpose
-此规约记录变更 enforce-reviewer-strictness 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Agent Review Roles contract for Cleanliness 维度定义; 工具无关的检测策略; Cleanliness summary schema 扩展; and 2 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: Cleanliness 维度定义
 
@@ -191,4 +196,3 @@ Scope SHALL 限定为 `git diff <baseCommit>...HEAD --name-only` 与 `git status
 - **WHEN** 归因宇宙的条目与 git diff 文件路径做匹配
 - **THEN** 实现 SHALL 将两侧路径规范化为 POSIX 相对路径后比较
 - **AND** Windows 反斜杠路径 SHALL 在规范化后正确归因，不产生平台相关误报
-

@@ -1,7 +1,7 @@
 ---
-capabilities:
-  - cap.cli.update
+element: project.root/domain.cli/cap.cli.project-setup
 ---
+
 # Update Command Specification
 
 ## Purpose

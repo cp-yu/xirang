@@ -1,7 +1,12 @@
+---
+element: project.root/domain.verify/cap.verify.consistency-gate
+---
+
 # verify-prompt-orchestration Specification
 
 ## Purpose
-此规约记录变更 optimize-verify-prompts 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Consistency and Freshness Gate contract for Coordinator 角色声明; 阶段模式标签; Explicit subagent delegation instructions; and 3 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: Coordinator 角色声明
 
@@ -160,4 +165,3 @@ Severity philosophy 表述 SHALL 从"prefer lower tier"改为"escalate when unce
 - **WHEN** reviewer.ts 子代理 contract 被渲染
 - **THEN** SHALL NOT 包含 "when uncertain, prefer SUGGESTION over WARNING and WARNING over CRITICAL" 表述
 - **AND** SHALL 替换为 "when uncertain, escalate to CRITICAL to enforce the 'clean slate' principle"
-

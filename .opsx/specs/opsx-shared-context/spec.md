@@ -1,3 +1,7 @@
+---
+element: project.root/domain.ai_integration/cap.ai.workflow-generation
+---
+
 # Spec: opsx-shared-context
 
 ## Purpose
@@ -51,4 +55,3 @@ Shared query fragment SHALL 将 `opsx arch query <elementId> --relations --depth
 - **THEN** SHALL 说明 parent、children、Specs 与 incoming/outgoing relationships
 - **AND** SHALL 使用 elementId 作为 canonical identity
 - **AND** SHALL NOT 承诺 code-map refs
-

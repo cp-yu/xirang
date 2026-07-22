@@ -1,7 +1,7 @@
 ---
-capabilities:
-  - cap.change.create
+element: project.root/domain.change_workflow/cap.change.lifecycle
 ---
+
 # change-creation Specification
 
 ## Purpose
@@ -68,4 +68,3 @@ The system SHALL validate change names follow kebab-case conventions.
 #### Scenario: Consecutive hyphens rejected
 - **WHEN** a change name like `add--auth` is validated
 - **THEN** validation returns `{ valid: false, error: "..." }`
-

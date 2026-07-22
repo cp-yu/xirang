@@ -1,7 +1,12 @@
+---
+element: project.root/domain.cli/cap.cli.project-setup
+---
+
 # init-project-structure Specification
 
 ## Purpose
-This specification records behavior introduced by change opsx-to-likec4-mega-refactor. Replace this Purpose with the formal capability intent before archive.
+Define the reviewed Project Setup and Update contract for init SHALL 生成 LikeC4 架构目录.
+
 ## Requirements
 ### Requirement: init SHALL 生成 LikeC4 架构目录
 
@@ -34,4 +39,3 @@ This specification records behavior introduced by change opsx-to-likec4-mega-ref
 - **WHEN** init 在 POSIX 或 Windows 创建目录和文件
 - **THEN** 所有 filesystem paths SHALL 使用 `path.join()` 或 `path.resolve()`
 - **AND** generated LikeC4 references SHALL 使用 DSL 所需 canonical path representation
-

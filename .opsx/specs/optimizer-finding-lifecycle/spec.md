@@ -1,7 +1,12 @@
+---
+element: project.root/domain.verify/cap.verify.optimization-gate
+---
+
 # optimizer-finding-lifecycle Specification
 
 ## Purpose
-This specification records behavior introduced by change refactor-optimizer-finding-workflow. Replace this Purpose with the formal capability intent before archive.
+Define the reviewed Finding-Driven Optimization Gate contract for Finding 数据合约与稳定标识; Finding 状态与 reconciliation events; Finding 优先级与选择; and 2 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: Finding 数据合约与稳定标识
 
@@ -91,4 +96,3 @@ Optimizer SHALL 先排除静态证据不足或 preservation constraints 无法�
 - **AND** 没有状态迁移或新 finding
 - **THEN** 系统 SHALL 停止 Phase 2 循环
 - **AND** SHALL 持久化 `STALLED` 诊断而非再次调用 optimizer
-

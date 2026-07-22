@@ -1,7 +1,12 @@
+---
+element: project.root/domain.ai_integration/cap.ai.workflow-generation
+---
+
 # skill-frontmatter-yaml Specification
 
 ## Purpose
-此规约记录变更 fix-skill-frontmatter-yaml 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Agent Workflow Generation contract for skill frontmatter 必须生成合法 YAML.
+
 ## Requirements
 ### Requirement: skill frontmatter 必须生成合法 YAML
 系统 SHALL 将 skill template 的 `name`、`description`、`license`、`compatibility`、`metadata.author`、`metadata.version` 和 `metadata.generatedBy` 作为可解析的 YAML 字符串写入 `SKILL.md` frontmatter。
@@ -15,4 +20,3 @@
 - **WHEN** 用户运行 `opsx init` 或 `opsx update` 生成 skill files
 - **THEN** 生成的 `SKILL.md` frontmatter MUST 能被 YAML parser 解析
 - **AND** 测试 MUST 通过解析后的 `name`、`license` 等字段校验语义，而不是依赖未加引号的 YAML 表面格式
-

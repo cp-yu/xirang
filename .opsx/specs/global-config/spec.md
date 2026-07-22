@@ -1,3 +1,7 @@
+---
+element: project.root/domain.config/cap.config.global-contract
+---
+
 # global-config Specification
 
 ## Purpose
@@ -137,4 +141,3 @@ Global config loader SHALL 从返回配置和默认配置中移除 `propose.smar
 #### Scenario: 默认配置不再包含 Propose routing
 - **WHEN** global config 不存在或执行 config reset
 - **THEN** default global config SHALL NOT 包含 `propose`
-

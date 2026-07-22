@@ -1,7 +1,7 @@
 ---
-capabilities:
-  - cap.opsx.bootstrap
+element: project.root/domain.architecture/cap.architecture.bootstrap
 ---
+
 ## Purpose
 
 Define the bootstrap workflow contract: how `opsx bootstrap` CLI subcommands guide users through initializing and promoting OPSX architecture files.
@@ -31,9 +31,9 @@ Bootstrap 文档、workflow templates 与生成的命令指引 SHALL 仅将 boot
 #### Scenario: Bootstrap skill 指令包含 subagent 语义匹配
 - **WHEN** bootstrap skill 模板被加载
 - **THEN** 指令 SHALL 描述 promote 后对 backfill 返回的 unmatched specs 启动 subagent
-- **AND** SHALL 使用 `semanticHandoff` 提供 spec 内容/路径、OPSX capability ID/intent 与 mapping result format
+- **AND** SHALL 使用 `semanticHandoff` 提供 spec 内容/路径、stable element ID/intent 与 mapping result format
 - **AND** 主 agent SHALL 仅把证据充分的结果通过 `--mappings <file>` 写回 frontmatter
-- **AND** 最终报告 SHALL 列出仍无匹配的 specs，且不得静默猜测 capability 关联
+- **AND** 最终报告 SHALL 列出仍无匹配的 specs，且不得静默猜测 element ownership
 
 #### Scenario: Deprecated pseudo-command flags are removed from bootstrap docs
 - **WHEN** bootstrap docs are updated for the structured CLI-backed workflow
@@ -42,11 +42,11 @@ Bootstrap 文档、workflow templates 与生成的命令指引 SHALL 仅将 boot
 
 ### Requirement: Bootstrap contract surfaces SHALL stay consistent
 
-Bootstrap schema、CLI、workflow templates、generated instructions 与 docs SHALL 描述同一 v2 五阶段流程及两文件输出。所有 relation authoring surface SHALL 消费 Registry 投影；formal-opsx refresh SHALL 描述为从当前 evidence 完整重建并以旧 model 生成 review diff。
+Bootstrap schema、CLI、workflow templates、generated instructions 与 docs SHALL 描述同一 v1 lifecycle、LikeC4 candidate 与 singular Element Contract output。所有 relation authoring surface SHALL 消费 Registry 投影；formal-opsx refresh SHALL 描述为从当前 evidence 完整重建 v1 candidate 并仅以旧 model 生成 review diff。
 
-#### Scenario: Contract surfaces agree on v2 output
+#### Scenario: Contract surfaces agree on v1 output
 - **WHEN** 检查 bootstrap surfaces
-- **THEN** SHALL 仅声明 `project.opsx.yaml` 与 `project.opsx.relations.yaml` 为 formal output
+- **THEN** SHALL 仅声明 `.opsx/architecture/**/*.c4` 与 `.opsx/specs/**/spec.md` 为 formal output
 - **AND** MUST NOT 声明 code-map、changed-path mapping 或 partial relation merge
 
 #### Scenario: Contract surfaces agree on relation vocabulary
@@ -176,18 +176,18 @@ Bootstrap skill agent SHALL obtain an explicit `coarse` or `fine` granularity ch
 
 ### Requirement: Bootstrap grouped spec source
 
-Bootstrap domain-map SHALL 支持 coarse `spec_groups`，但 candidate OPSX 只生成 domains、capabilities 与 Registry-valid relations。`spec_groups` SHALL NOT 创建 graph nodes 或 relations，也不存在 code-map output。
+Bootstrap domain-map SHALL 支持 coarse `spec_groups`，但 candidate Semantic Model 生成唯一 Project Root、reviewed elements、refinement containment 与 Registry-valid relations。`spec_groups` SHALL NOT 创建 graph nodes 或 relations，也不存在 code-map output。
 
 #### Scenario: Coarse mode uses spec_groups
 - **GIVEN** granularity 为 coarse 且 domain-map 有合法 spec_groups
 - **WHEN** validate 编译 candidate specs
-- **THEN** 每个 group SHALL 生成一份含完整 capability frontmatter 的 spec
+- **THEN** 每个 group SHALL 生成一份具有 singular stable `element` binding 的 Spec
 - **AND** SHALL NOT 改变 OPSX node/relation graph
 
 #### Scenario: Fine mode uses capability specs
 - **GIVEN** granularity 为 fine
 - **WHEN** validate 编译 candidate specs
-- **THEN** SHALL 从 capability spec source 生成
+- **THEN** SHALL 从 reviewed element contract source 生成
 - **AND** SHALL NOT 经 spec_groups 合并
 
 ### Requirement: Bootstrap completion validation
@@ -242,7 +242,7 @@ Bootstrap SHALL 为完整生命周期文件提供结构化定义，并由 `opsx 
 
 #### Scenario: Promote definitions
 - **WHEN** Agent 请求 promote instructions
-- **THEN** `fileDefinitions` SHALL 描述 candidate OPSX bundle、candidate Specs、formal OPSX bundle 与 formal Specs
+- **THEN** `fileDefinitions` SHALL 描述 candidate LikeC4 modules、candidate Specs、formal architecture modules 与 formal Specs
 - **AND** SHALL 将 formal OPSX bundle 定义为当前 durable architecture source
 - **AND** SHALL 将 `.opsx/specs/**/*.md` 定义为 durable behavior source
 - **AND** SHALL 明确 formal files 只能由受控 promotion workflow 写入
@@ -268,4 +268,3 @@ Bootstrap SHALL 为完整生命周期文件提供结构化定义，并由 `opsx 
 - **WHEN** retained Bootstrap workspace 已 completed
 - **THEN** instruction output SHALL 继续投影 target phase 的 file definitions
 - **AND** SHALL 在共享 authoring guidance 后提供显式 restart guidance
-

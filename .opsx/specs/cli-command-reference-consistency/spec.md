@@ -1,7 +1,12 @@
+---
+element: project.root/domain.cli/cap.cli.command-discovery
+---
+
 # cli-command-reference-consistency Specification
 
 ## Purpose
-此规约记录变更 clean-stale-cli-command-references 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Command Discovery and Consistency contract for Active command references match the current CLI surface; Command-reference cleanup is source-backed; Cleanup verification reports remaining stale references by class.
+
 ## Requirements
 ### Requirement: Active command references match the current CLI surface
 
@@ -59,4 +64,3 @@ OPSX SHALL 在生成 stale 命令引用的源头清理它们，而不仅在生�
 - **THEN** 仓库搜索 SHALL 确认没有 active surface 仍包含 retired product identity 或 non-hidden legacy workspace 路径引用
 - **AND** archive history 下的任何剩余出现 SHALL 与 active 失败分开报告
 - **AND** 验证输出 SHALL 区分有效的 `opsx` 命令引用与 stale legacy identity 引用
-

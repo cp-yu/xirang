@@ -1,3 +1,7 @@
+---
+element: project.root/domain.artifact_graph/cap.artifact-graph.workflow-compilation
+---
+
 # schema-resolution Specification
 
 ## Purpose

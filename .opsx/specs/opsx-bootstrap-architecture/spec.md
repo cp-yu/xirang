@@ -1,7 +1,12 @@
+---
+element: project.root/domain.architecture/cap.architecture.bootstrap
+---
+
 # opsx-bootstrap-architecture Specification
 
 ## Purpose
-This specification records behavior introduced by change opsx-to-likec4-mega-refactor. Replace this Purpose with the formal capability intent before archive.
+Define the reviewed Architecture Bootstrap contract for Bootstrap skill 名称 SHALL 改为 bootstrap-arch; Bootstrap SHALL 输出 LikeC4 候选模型.
+
 ## Requirements
 ### Requirement: Bootstrap skill 名称 SHALL 改为 bootstrap-arch
 
@@ -40,4 +45,3 @@ Bootstrap SHALL 从 repository evidence 与已有 Specs 生成 versioned OPSX Se
 - **WHEN** candidate model 完成
 - **THEN** SHALL 恰有一个 Project Root
 - **AND** root summary 与 Project Contract SHALL 提供 Agent 的最高层 intent context
-

@@ -1,7 +1,7 @@
 ---
-capabilities:
-  - cap.cli.list
+element: project.root/domain.cli/cap.cli.artifact-workflow
 ---
+
 # List Command Specification
 
 ## Purpose

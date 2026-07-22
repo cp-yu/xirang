@@ -1,7 +1,12 @@
+---
+element: project.root/domain.ai_integration/cap.ai.intent-exploration
+---
+
 # sweeper-terminology-reporting Specification
 
 ## Purpose
-此规约记录变更 sweeper-terminology-awareness 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Intent Exploration and Impact contract for terminologyObservations 字段结构; 向后兼容性保证; foundInSpecs 数组排序规则; and 3 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: terminologyObservations 字段结构
 
@@ -103,4 +108,3 @@ TypeScript 接口定义 SHALL 包含 JSDoc 注释，说明字段用途和示例�
 - **THEN** `terminologyObservations` 字段 SHALL 包含 JSDoc 注释
 - **AND** 注释 SHALL 说明："术语观察结果，用于检测用户输入与 specs 中术语的一致性"
 - **AND** SHALL 包含示例 JSON 结构
-

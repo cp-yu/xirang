@@ -1,3 +1,7 @@
+---
+element: project.root/domain.apply/cap.apply.verification-integration
+---
+
 # opsx-apply-skill Specification
 
 ## Purpose
@@ -50,4 +54,3 @@ Apply 阶段在所有 task 完成且 seal 通过后，SHALL 显式输出下一�
 - **AND** call-to-action SHALL 引用 archive workflow 的工具适配 invocation，例如 Codex `$opsx-archive-change <change-name>`、Claude `/opsx-archive-change <change-name>`、Pi `/skill:opsx-archive-change <change-name>` 或 OpenCode `/opsx-archive <change-name>`
 - **AND** SHALL NOT 仅报告 sealed 状态而省略操作指引
 - **AND** SHALL NOT 在 workflow 模板 source text 中硬编码 `/opsx-archive`
-

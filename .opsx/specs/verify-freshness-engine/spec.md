@@ -1,7 +1,12 @@
+---
+element: project.root/domain.verify/cap.verify.consistency-gate
+---
+
 # verify-freshness-engine Specification
 
 ## Purpose
-此规约记录变更 add-verify-cli-gate 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Consistency and Freshness Gate contract for tasksFileHash 计算; evidenceFingerprint 计算; Freshness 判定; and 6 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: tasksFileHash 计算
 
@@ -173,7 +178,7 @@
 
 #### Scenario: 正常刷新
 
-- **WHEN** 调用 `refreshVerifyEvidenceAfterSync(changeDir, projectRoot, ['opsx/project.opsx.yaml'])`
+- **WHEN** 调用 `refreshVerifyEvidenceAfterSync(changeDir, projectRoot, ['.opsx/architecture/model.c4'])`
 - **AND** `.verify-result.json` 存在且该路径在 entries 中
 - **THEN** 重算该 entry 的 hash
 - **AND** 重算 overall evidenceFingerprint
@@ -192,8 +197,8 @@
 #### Scenario: 跨平台路径匹配
 
 - **WHEN** 在 Windows 上调用 `refreshVerifyEvidenceAfterSync`
-- **AND** `syncedFiles` 包含 `opsx/project.opsx.yaml`
-- **AND** evidence entries 中也包含 `opsx/project.opsx.yaml`
+- **AND** `syncedFiles` 包含 `.opsx/architecture/model.c4`
+- **AND** evidence entries 中也包含 `.opsx/architecture/model.c4`
 - **THEN** 路径比较 SHALL 使用 POSIX 正斜杠标准化
 - **AND** SHALL 正确匹配同一文件
 
@@ -254,4 +259,3 @@ CLI SHALL 在 optimizer reconciliation 时为 selected finding 的目标文件�
 - **WHEN** Windows 输入使用反斜杠表示 finding location
 - **THEN** CLI SHALL 将其规范化为相对 POSIX 路径后查找和计算 hash
 - **AND** SHALL 与 optimizer 持久化路径匹配
-

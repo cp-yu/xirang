@@ -1,3 +1,7 @@
+---
+element: project.root/domain.apply/cap.apply.isolation
+---
+
 # apply-branch-isolation Specification
 
 ## Purpose

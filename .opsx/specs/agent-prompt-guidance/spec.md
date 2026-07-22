@@ -1,7 +1,12 @@
+---
+element: project.root/domain.ai_integration/cap.ai.review-roles
+---
+
 # agent-prompt-guidance Specification
 
 ## Purpose
-此规约记录变更 unify-apply-verify 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Agent Review Roles contract for 共享 verify gate 指引片段; Archive 模板 PENDING_VERIFICATION 恢复路径; Verify 模板 CLI 错误恢复指南; and 1 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: 共享 verify gate 指引片段
 
@@ -118,4 +123,3 @@ verify skill 模板的 `buildCanonicalPhase1Step` 和 `buildPhase2Step` SHALL �
 - **AND** `optimization.enabled` 为 `true`
 - **THEN** 系统 SHALL 始终 spawn optimizer subagent，无论 change 类型（包括纯删除、重命名）
 - **AND** optimizer subagent 对简单 change 快速返回 "No optimization opportunities found"
-

@@ -1,7 +1,12 @@
+---
+element: project.root/domain.ai_integration/cap.ai.subagent-generation
+---
+
 # internal-subagent-generation Specification
 
 ## Purpose
-This specification records behavior introduced by change replace-internal-skills-with-subagents. Replace this Purpose with the formal capability intent before archive.
+Define the reviewed Subagent Artifact Generation contract for Internal subagent 模板注册; Per-tool subagent artifact 渲染; Subagent artifact 写入路径; and 5 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: Internal subagent 模板注册
 
@@ -237,4 +242,3 @@ Renderer SHALL 在 prompt body 中明确 impact-sweeper MUST NOT 通过 Bash 绕
 - **WHEN** agent 文件不存在（首次 `opsx init` 或 `opsx update`）
 - **AND** `template.model` 未设置
 - **THEN** 生成的 agent 文件 SHALL NOT 包含 `model` 字段
-

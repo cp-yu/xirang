@@ -1,7 +1,7 @@
 ---
-capabilities:
-  - cap.ai.snack-workflow-manifest
+element: project.root/domain.ai_integration/cap.ai.workflow-generation
 ---
+
 # snack-workflow-manifest Specification
 
 ## Purpose
@@ -26,12 +26,12 @@ WorkflowManifestRegistry SHALL 包含 snack workflow manifest entry，与现有 
 
 ### Requirement: 6 个工作流架构
 
-系统 SHALL 支持 6 个核心工作流（propose、explore、apply、archive、bootstrap-opsx、snack），保持架构一致性。
+系统 SHALL 支持 6 个核心工作流（propose、explore、apply、archive、bootstrap-arch、snack），保持架构一致性。
 
 #### Scenario: init 安装 6 个工作流
 
 - **WHEN** 运行 `opsx init` 初始化项目
-- **THEN** 安装 6 个工作流 skill：opsx-propose、opsx-explore、opsx-apply-change、opsx-archive-change、opsx-bootstrap-opsx、opsx-snack
+- **THEN** 安装 6 个工作流 skill：opsx-propose、opsx-explore、opsx-apply-change、opsx-archive-change、opsx-bootstrap-arch、opsx-snack
 
 #### Scenario: update 刷新 6 个工作流
 
@@ -45,4 +45,3 @@ snack workflow formal specs SHALL use meaningful Purpose text instead of the pla
 - **WHEN** the snack workflow specs are reviewed
 - **THEN** `.opsx/specs/snack-skill/spec.md`, `.opsx/specs/snack-skill-generation/spec.md`, and `.opsx/specs/snack-workflow-manifest/spec.md` do not contain the placeholder text `此规约记录变更 snack-workflow 引入的行为，请在后续同步或归档前补全正式 Purpose。`
 - **AND** each of those specs has Purpose text that describes its active responsibility
-

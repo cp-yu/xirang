@@ -1,7 +1,12 @@
+---
+element: project.root/domain.ai_integration/cap.ai.workflow-generation
+---
+
 # ai-workflow-templates Specification
 
 ## Purpose
-此规约记录变更 add-subagent-skills 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Agent Workflow Generation contract for 模板不内联 subagent 角色定义; Verify template 对 subagent 使用明确 delegation 指令; Phase 2 checkpoint state machine 使用表格格式; and 6 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: 模板不内联 subagent 角色定义
 verify/apply/archive 模板 SHALL NOT 在模板 body 中内联 reviewer 或 optimizer 的完整角色定义、验证协议、判断标准或输出格式。这些内容归对应的 generated internal subagent artifact 所有。
@@ -77,16 +82,16 @@ Propose 模板 SHALL 使用 `opsx list --specs --json` 替代 deprecated 的 `op
 #### Scenario: Propose 模板包含正确的 spec 发现指令
 
 - **WHEN** propose 模板被加载
-- **THEN** SHALL 包含步骤指示 LLM 运行 `opsx list --specs --json` 获取现有 specs 及其 capabilities 关联
+- **THEN** SHALL 包含步骤指示 LLM 运行 `opsx list --specs --json` 获取现有 Specs 及其 singular element ownership
 - **AND** MUST NOT 引用 `opsx spec list --json`
-- **AND** SHALL 指示 LLM 交叉对比提议的新 capabilities 与已有 specs，避免创建冗余 spec
+- **AND** SHALL 指示 LLM 交叉对比提议的新 elements 与已有 Specs，避免创建冗余 spec
 
-#### Scenario: Propose 模板解析 capabilities 字段
+#### Scenario: Propose 模板解析 element 字段
 
 - **WHEN** propose 模板指示 LLM 使用 `opsx list --specs --json` 输出
-- **THEN** SHALL 指示 LLM 从每个 spec 条目的 `capabilities` 字段提取 cap ID 列表
-- **AND** SHALL 说明 `capabilities` 字段是字符串数组
-- **AND** SHALL 说明无 frontmatter 的 spec 返回空数组
+- **THEN** SHALL 指示 LLM 从每个 Spec 条目的 `element` 字段提取 stable elementId 或 null
+- **AND** SHALL 说明 `element` 字段是 singular stable elementId
+- **AND** SHALL 说明无有效 binding 的 Spec 返回 null
 
 ### Requirement: Apply 模板使用统一 CLI 查询接口
 
@@ -95,18 +100,18 @@ Apply-change 模板 SHALL 使用 `opsx list --specs --json` 替代 deprecated �
 #### Scenario: Apply 模板包含正确的 spec 交叉检查指令
 
 - **WHEN** apply-change 模板被加载
-- **THEN** SHALL 包含步骤指示 LLM 在实现 capability 前查询关联的所有 specs
-- **AND** SHALL 指示 LLM 运行 `opsx list --specs --json` 获取 cap→spec 映射
+- **THEN** SHALL 包含步骤指示 LLM 在实现 element-owned behavior 前查询关联的所有 Specs
+- **AND** SHALL 指示 LLM 运行 `opsx list --specs --json` 获取 element→Spec 映射
 - **AND** MUST NOT 引用 `opsx spec list --json`
 - **AND** SHALL 指示 LLM 确认是否需要同步更新 delta spec
 
 ### Requirement: 固定工作流模板集合
 
-工作流模板注册表 SHALL 包含固定的 6 个用户 workflow 模板：`propose`、`explore`、`apply`、`archive`、`bootstrap-opsx` 与 `snack`。Registry MUST NOT 包含 `new`、`continue`、`ff`、`verify`、`sync`、`bulk-archive` 或 `onboard` 等已删除 workflow。
+工作流模板注册表 SHALL 包含固定的 6 个用户 workflow 模板：`propose`、`explore`、`apply`、`archive`、`bootstrap-arch` 与 `snack`。Registry MUST NOT 包含 `new`、`continue`、`ff`、`verify`、`sync`、`bulk-archive` 或 `onboard` 等已删除 workflow。
 
 #### Scenario: 注册表包含固定的 6 个工作流
 - **WHEN** 查询 workflow manifest registry
-- **THEN** SHALL 恰好包含 `propose`、`explore`、`apply`、`archive`、`bootstrap-opsx` 与 `snack`
+- **THEN** SHALL 恰好包含 `propose`、`explore`、`apply`、`archive`、`bootstrap-arch` 与 `snack`
 - **AND** snack SHALL 保持其 manifest metadata 与生成 surface
 
 #### Scenario: 已删除工作流不在注册表中
@@ -158,7 +163,7 @@ Workflow skill 模板的 instructions SHALL 以共享 OPSX Philosophy 开头。�
 - **AND** workflow template SHALL NOT 重复 `content.includes`、`content.excludes` 或 `writePolicy` 的消费步骤
 
 #### Scenario: Snack 消费 artifact instruction contract
-- **WHEN** snack reconcile proposal、Specs、design 或 OPSX delta
+- **WHEN** snack reconcile proposal、Specs、design 或 architecture delta
 - **THEN** SHALL 运行对应 `opsx instructions <artifact> --change <name> --json`
 - **AND** SHALL 遵循返回 `instruction` 中的 authoring order
 - **AND** SHALL 将 current state 与 artifact content 分离
@@ -172,6 +177,5 @@ Workflow skill 模板的 instructions SHALL 以共享 OPSX Philosophy 开头。�
 #### Scenario: Workflow 不复制 definitions 或 authoring rules
 - **WHEN** 检查 generated workflow skill instructions
 - **THEN** SHALL 只引用 CLI 返回的 authoring order 并保持结构化 inputs 分离
-- **AND** SHALL NOT 内联 proposal、Specs、OPSX delta、design、tasks 或 Bootstrap 文件的完整 definition
+- **AND** SHALL NOT 内联 proposal、Specs、architecture delta、design、tasks 或 Bootstrap 文件的完整 definition
 - **AND** SHALL NOT 复制 instruction projection 已持有的 definition-first 字段级规则
-

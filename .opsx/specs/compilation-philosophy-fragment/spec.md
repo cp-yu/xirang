@@ -1,3 +1,7 @@
+---
+element: project.root/domain.ai_integration/cap.ai.workflow-generation
+---
+
 # compilation-philosophy-fragment Specification
 
 ## Purpose
@@ -45,7 +49,7 @@
 - `explore`
 - `apply-change`
 - `archive-change`
-- `bootstrap-opsx`
+- `bootstrap-arch`
 - `snack`
 
 注入 SHALL 使用 TypeScript 模板字符串插值 `${OPSX_PHILOSOPHY}`，并与后续内容保留一个空行。
@@ -70,4 +74,3 @@
 #### Scenario: 排除决策编码在片段注释中
 - **WHEN** `OPSX_PHILOSOPHY` 常量在 `opsx-fragments.ts` 中被定义
 - **THEN** 其上方 JSDoc 注释 SHALL 列出使用方和排除名单及排除原因
-

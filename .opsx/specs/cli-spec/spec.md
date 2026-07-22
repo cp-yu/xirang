@@ -1,7 +1,7 @@
 ---
-capabilities:
-  - cap.cli.spec
+element: project.root/domain.cli/cap.cli.change-operations
 ---
+
 # cli-spec Specification
 
 ## Purpose
@@ -57,4 +57,3 @@ The spec validate command SHALL support interactive selection when no spec-id is
 - **THEN** do not prompt interactively
 - **AND** print the existing error message for missing spec-id
 - **AND** set non-zero exit code
-

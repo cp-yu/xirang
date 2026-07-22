@@ -1,3 +1,7 @@
+---
+element: project.root/domain.ai_integration/cap.ai.intent-exploration
+---
+
 # explore-terminology-decision Specification
 
 ## Purpose

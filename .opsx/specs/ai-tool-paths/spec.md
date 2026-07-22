@@ -1,3 +1,7 @@
+---
+element: project.root/domain.ai_integration/cap.ai.tool-integration
+---
+
 # ai-tool-paths Specification
 
 ## Purpose
@@ -145,4 +149,3 @@ Codex workflow 安装 SHALL 只使用仓库内受管的项目本地 skills 路�
 - **AND** `agentsDir` 为 `.codex`，`agentFormat` 为 `toml`，`name` 为 `opsx-optimizer`
 - **THEN** 路径 SHALL 为 `path.join(projectRoot, '.codex', 'agents', 'opsx-optimizer.toml')`
 - **AND** SHALL 使用 `path.join()` 而非硬编码正斜杠
-

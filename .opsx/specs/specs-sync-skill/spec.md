@@ -1,3 +1,7 @@
+---
+element: project.root/domain.change_workflow/cap.change.lifecycle
+---
+
 # specs-sync-skill Specification
 
 ## Purpose
@@ -5,7 +9,7 @@ Defines the archive-time sync contract for delta specs and OPSX state.
 ## Requirements
 ### Requirement: Archive-time sync contract
 
-The system SHALL reconcile delta specs and OPSX delta during archive.
+The system SHALL reconcile delta Specs and architecture delta during archive.
 
 #### Scenario: Archive reconciles delta specs
 
@@ -81,10 +85,10 @@ The skill SHALL provide clear feedback on what was applied.
   - Number of requirements renamed
 
 #### Scenario: Show OPSX sync summary
-- **WHEN** opsx-delta sync completes successfully
+- **WHEN** Semantic Delta sync completes successfully
 - **THEN** display summary including:
-  - Number of nodes added to `project.opsx.yaml`
-  - Number of relations added to `project.opsx.relations.yaml`
+  - Number of architecture modules written
+  - Number of semantic relations reconciled
   - Number of nodes modified
   - Number of nodes removed
 
@@ -98,7 +102,7 @@ The archive sync template SHALL import and embed the `OPSX_SYNC_DELTA` fragment 
 #### Scenario: Fragment wired into skill template
 - **GIVEN** `OPSX_SYNC_DELTA` is defined in `opsx-fragments.ts`
 - **WHEN** `getSyncSpecsSkillTemplate()` generates instructions
-- **THEN** the instructions include the OPSX delta sync step after specs sync
+- **THEN** the instructions include the Semantic Delta sync step after specs sync
 
 ### Requirement: Sync template SHALL consume prompt projection
 
@@ -123,4 +127,3 @@ Archive sync SHALL require a fresh verify result before writing.
 
 - **WHEN** archive sync runs without a fresh `.verify-result.json`
 - **THEN** system SHALL stop and require verify first
-

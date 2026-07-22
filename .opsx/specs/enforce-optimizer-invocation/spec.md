@@ -1,7 +1,12 @@
+---
+element: project.root/domain.verify/cap.verify.optimization-gate
+---
+
 # enforce-optimizer-invocation Specification
 
 ## Purpose
-此规约记录变更 enforce-optimizer-subagent 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Finding-Driven Optimization Gate contract for CLI 拒绝无证据的 NO_OPTIMIZATION_NEEDED; Prompt fragment 强制委托 optimizer subagent; Apply 编排文本明确角色分离.
+
 ## Requirements
 ### Requirement: CLI 拒绝无证据的 NO_OPTIMIZATION_NEEDED
 
@@ -37,4 +42,3 @@ Apply Phase 2 文本 SHALL 将 master 描述为 evidence collector、TDD impleme
 - **THEN** SHALL 要求 optimizer 先判断和排序 findings
 - **AND** master SHALL 只实现 selected finding或提交 masterChallenge
 - **AND** fresh reviewer SHALL 独立验证实现
-

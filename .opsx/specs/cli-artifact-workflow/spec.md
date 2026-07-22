@@ -1,3 +1,7 @@
+---
+element: project.root/domain.cli/cap.cli.artifact-workflow
+---
+
 # cli-artifact-workflow Specification
 
 ## Purpose
@@ -407,4 +411,3 @@ Workflow commands SHALL 仅接受内置 `spec-driven` 与 `bootstrap` Schema ID�
 - **THEN** Apply state SHALL 为 blocked
 - **AND** JSON 与 text guidance SHALL 指示返回 Bootstrap workflow
 - **AND** MUST NOT 将 Propose 作为 Bootstrap prerequisite owner
-

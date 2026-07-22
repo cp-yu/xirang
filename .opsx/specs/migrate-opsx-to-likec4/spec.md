@@ -1,7 +1,12 @@
+---
+element: project.root/domain.migration/cap.migration.semantic-model-reconciliation
+---
+
 # migrate-opsx-to-likec4 Specification
 
 ## Purpose
-This specification records behavior introduced by change opsx-to-likec4-mega-refactor. Replace this Purpose with the formal capability intent before archive.
+Define the reviewed Reviewed Semantic Model Reconciliation contract for LikeC4 工具链 SHALL 使用兼容的 Node.js runtime; 迁移命令 SHALL 读取 OPSX 两文件模型; 迁移 SHALL 生成 LikeC4 多文件结构; and 10 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: LikeC4 工具链 SHALL 使用兼容的 Node.js runtime
 
@@ -96,32 +101,34 @@ OPSX SHALL 要求 Node.js `>=22.22.3`，与锁定的 `likec4@1.59.0` engine 合�
 - **GIVEN** OPSX capability 包含 `intent` 和 capability ID
 - **WHEN** 转换为 LikeC4
 - **THEN** SHALL 将 `intent` 映射为 `description`
-- **AND** SHALL 在 metadata 中保留 `capabilityId 'cap.domain.name'`
+- **AND** legacy capability ID SHALL be recorded only in the change-local alias/report evidence
+- **AND** the v1 target SHALL use stable `elementId` metadata
 
 ### Requirement: 转换 SHALL 推断 specs 路径
 
-转换 SHALL 自动推断每个 capability 关联的 spec 文件路径，写入 metadata。
+转换 MAY collect candidate Spec path evidence in the migration report, but the v1 target SHALL bind Specs only through singular `element` frontmatter and MUST NOT write `metadata.specs`.
 
 #### Scenario: 推断旧格式 spec.md
 
 - **GIVEN** capability ID 为 `cap.ai.skill-generation`
 - **AND** 存在 `.opsx/specs/skill-generation/spec.md`
 - **WHEN** 转换该 capability
-- **THEN** SHALL 在 metadata 中添加 `specs ['.opsx/specs/skill-generation/spec.md']`
+- **THEN** the candidate report SHALL record the path as review evidence
+- **AND** target element metadata SHALL NOT contain a Spec index
 
 #### Scenario: 推断新格式多个 .md 文件
 
 - **GIVEN** capability ID 为 `cap.apply.task-executor`
 - **AND** 存在 `.opsx/specs/task-executor/phase0.md` 和 `phase1.md`
 - **WHEN** 转换该 capability
-- **THEN** SHALL 在 metadata 中添加两个路径
+- **THEN** the candidate report SHALL record both project-relative paths
 - **AND** 路径 SHALL 使用 `path.join()` 构建
 
 #### Scenario: Capability 无 spec 时返回空数组
 
 - **GIVEN** capability 没有对应的 spec 目录
 - **WHEN** 转换该 capability
-- **THEN** MUST NOT 包含 `specs` metadata 字段
+- **THEN** target metadata SHALL NOT contain a `specs` field
 
 ### Requirement: 转换 SHALL 映射 semantic relations
 

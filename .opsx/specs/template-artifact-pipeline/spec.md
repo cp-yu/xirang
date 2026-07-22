@@ -1,7 +1,12 @@
+---
+element: project.root/domain.ai_integration/cap.ai.workflow-generation
+---
+
 # template-artifact-pipeline Specification
 
 ## Purpose
-此规约记录变更 unify-template-generation-pipeline 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Agent Workflow Generation contract for Canonical Workflow Manifest; Tool Profile Registry; Ordered Transform Pipeline; and 2 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: Canonical Workflow Manifest
 
@@ -9,7 +14,7 @@ The system SHALL define a canonical workflow manifest as the single source of tr
 
 #### Scenario: Register workflow once
 
-- **WHEN** a workflow (for example `explore`, `apply`, or `bootstrap-opsx`) is added or modified
+- **WHEN** a workflow (for example `explore`, `apply`, or `bootstrap-arch`) is added or modified
 - **THEN** its canonical definition SHALL be registered once in the workflow manifest
 - **AND** skill projections SHALL be derived from that manifest
 - **AND** duplicate hand-maintained lists SHALL NOT be required
@@ -122,4 +127,3 @@ The system SHALL enforce guardrails that prevent output drift during refactors.
 - **WHEN** running parity tests for representative workflow/tool combinations
 - **THEN** generated skill artifacts SHALL remain behaviorally equivalent to approved baselines unless intentionally changed
 - **AND** intentional changes SHALL be captured in explicit spec/proposal updates
-

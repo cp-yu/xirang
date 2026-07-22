@@ -1,7 +1,12 @@
+---
+element: project.root/domain.cli/cap.cli.architecture-navigation
+---
+
 # arch-query-command Specification
 
 ## Purpose
-This specification records behavior introduced by change opsx-to-likec4-mega-refactor. Replace this Purpose with the formal capability intent before archive.
+Define the reviewed Architecture Navigation contract for arch query 命令 SHALL 查询 LikeC4 element 详情; arch query SHALL 支持 --relations 选项; arch query SHALL 支持 --depth 选项; and 2 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: arch query 命令 SHALL 查询 LikeC4 element 详情
 
@@ -63,4 +68,3 @@ This specification records behavior introduced by change opsx-to-likec4-mega-ref
 - **WHEN** 运行 `opsx arch query missing.element`
 - **THEN** SHALL 输出 `Element not found: missing.element`
 - **AND** exit code SHALL 非零
-

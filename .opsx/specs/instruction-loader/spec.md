@@ -1,3 +1,7 @@
+---
+element: project.root/domain.artifact_graph/cap.artifact-graph.workflow-compilation
+---
+
 # instruction-loader Specification
 
 ## Purpose
@@ -100,4 +104,3 @@ Instruction loader SHALL 根据 resolved schema 选择 completion state 的 work
 - **WHEN** loader 使用 `bootstrap` schema 生成 phase instructions
 - **THEN** completion detection、dependency state 与 output resolution SHALL 使用 `.opsx/bootstrap/`
 - **AND** 已存在的 Bootstrap phase outputs SHALL 从该 workspace 被识别
-

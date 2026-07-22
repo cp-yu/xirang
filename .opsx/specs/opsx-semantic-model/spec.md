@@ -1,7 +1,12 @@
+---
+element: project.root/domain.architecture/cap.architecture.semantic-model
+---
+
 # opsx-semantic-model Specification
 
 ## Purpose
-This specification records behavior introduced by change unify-opsx-semantic-model. Replace this Purpose with the formal capability intent before archive.
+Define the reviewed Versioned Semantic Model contract for OPSX Semantic Model SHALL 统一表达 human intent; Metamodel SHALL 定义可编译 element vocabulary; Project Root SHALL 是唯一最高抽象; and 4 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: OPSX Semantic Model SHALL 统一表达 human intent
 
@@ -104,4 +109,3 @@ OPSX graph source SHALL 使用显式 language version 选择 model semantics。�
 - **WHEN** graph source 未声明 language version
 - **THEN** reader SHALL 使用 legacy rules
 - **AND** 写入新版 source SHALL 要求显式 migration 与 human authorization
-

@@ -1,107 +1,40 @@
+---
+element: project.root/domain.quality/cap.quality.ci-nix-validation
+---
+
 # ci-nix-validation Specification
 
 ## Purpose
 
-Validates Nix flake builds and maintenance scripts in CI to ensure Nix users can reliably install and use OPSX. Prevents regressions in Nix support by testing builds and the update-flake.sh script on every pull request and push to main.
+Define the executable delivery surfaces currently maintained by the repository: Nix packaging/development and the GitHub cross-platform validation workflow.
+
 ## Requirements
-### Requirement: Nix Flake Build Validation
 
-The CI system SHALL validate that the Nix flake builds successfully on every pull request and push to main.
+### Requirement: Versioned Nix delivery surface
 
-#### Scenario: Successful flake build
+The Nix flake SHALL declare the Node.js and pnpm packages used to build OPSX and enter its development shell.
 
-- **WHEN** a pull request or push to main is made
-- **THEN** the CI SHALL execute `nix build` and verify it completes with exit code 0
-- **AND** the build output SHALL contain the opsx binary
+#### Scenario: Nix package or development shell is evaluated
 
-#### Scenario: Flake build failure
+- **WHEN** a contributor evaluates the package or enters the default development shell
+- **THEN** the flake SHALL provide its pinned Node.js and pnpm toolchain
+- **AND** SHALL build the current package.json version from the locked pnpm dependency closure
 
-- **WHEN** the Nix flake configuration is broken
-- **THEN** the CI job SHALL fail with a non-zero exit code
-- **AND** the CI SHALL prevent merging of the pull request
+### Requirement: Cross-platform GitHub validation
 
-#### Scenario: Multi-platform support check
+The GitHub workflow SHALL run the declared root and vendored LikeC4 validation commands on Linux, macOS, and Windows with its pinned Node.js and pnpm versions.
 
-- **WHEN** the flake declares support for multiple systems
-- **THEN** the CI SHALL validate the flake builds on at least Linux (x86_64-linux)
+#### Scenario: Cross-platform workflow runs
 
-### Requirement: Update Script Validation
+- **WHEN** a pull request or main-branch push triggers validation
+- **THEN** root install, identity audit, lint, build, tests, and browser tests SHALL run on each declared operating system
+- **AND** vendored LikeC4 install, typecheck, tests, and build SHALL run on each declared operating system
 
-The CI system SHALL validate that the update-flake.sh script executes successfully and produces valid output.
+### Requirement: Delivery claims follow executable configuration
 
-#### Scenario: Update script execution
+Delivery documentation and contracts SHALL describe only jobs, commands, operating systems, and tool versions present in versioned flake or workflow configuration.
 
-- **WHEN** the CI runs the update script validation
-- **THEN** the script SHALL execute without errors
-- **AND** the script SHALL correctly read the version from package.json
-- **AND** the script SHALL validate that flake.nix uses dynamic version from package.json
+#### Scenario: Delivery configuration changes
 
-#### Scenario: Update script with mock hash
-
-- **WHEN** validating the update script in CI
-- **THEN** the script SHALL be able to detect and extract the correct pnpm dependency hash
-- **AND** the flake.nix SHALL be updated with a valid sha256 hash
-
-### Requirement: CI Job Integration
-
-The Nix validation jobs SHALL be integrated into the existing GitHub Actions workflow and required for merge.
-
-#### Scenario: PR merge requirements
-
-- **WHEN** a pull request is created
-- **THEN** the Nix validation job SHALL be included in required checks
-- **AND** the PR SHALL NOT be mergeable until Nix validation passes
-
-#### Scenario: Job execution triggers
-
-- **WHEN** code is pushed to a pull request OR pushed to main OR manually triggered
-- **THEN** the Nix validation job SHALL execute automatically
-
-### Requirement: Local Testing Support
-
-The CI workflow SHALL be testable locally using the `act` tool to enable rapid iteration.
-
-#### Scenario: Local CI execution with act
-
-- **WHEN** a developer runs `act` with the Nix validation workflow
-- **THEN** the workflow SHALL execute in the local Docker environment
-- **AND** the developer SHALL receive feedback on Nix build status without pushing to GitHub
-
-#### Scenario: Act configuration compatibility
-
-- **WHEN** the workflow is designed
-- **THEN** it SHALL use standard GitHub Actions syntax compatible with `act`
-- **AND** any Nix-specific setup SHALL work in the act Docker environment
-
-### Requirement: Nix Installation in CI
-
-The CI environment SHALL have Nix properly installed and configured before running validation.
-
-#### Scenario: Nix installation step
-
-- **WHEN** the Nix validation job starts
-- **THEN** Nix SHALL be installed using the official Nix installer or determinatesystems/nix-installer-action
-- **AND** the Nix installation SHALL be cached for subsequent runs to improve performance
-
-#### Scenario: Nix configuration for CI
-
-- **WHEN** Nix is installed in CI
-- **THEN** it SHALL be configured to work in the GitHub Actions environment
-- **AND** experimental features (flakes, nix-command) SHALL be enabled
-
-### Requirement: CI Performance Optimization
-
-The Nix validation SHALL be optimized to minimize CI runtime impact.
-
-#### Scenario: Acceptable runtime
-
-- **WHEN** the Nix validation job runs
-- **THEN** it SHALL complete in under 5 minutes on a clean run
-- **AND** with caching, it SHALL complete in under 3 minutes on subsequent runs
-
-#### Scenario: Parallel execution
-
-- **WHEN** multiple CI jobs are running
-- **THEN** the Nix validation job SHALL run in parallel with other validation jobs (tests, lint)
-- **AND** SHALL NOT block other independent checks
-
+- **WHEN** a Nix package, workflow job, command, operating system, or pinned tool version is added, removed, or changed
+- **THEN** the corresponding delivery contract SHALL be reconciled in the same change

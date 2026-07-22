@@ -1,7 +1,12 @@
+---
+element: project.root/domain.apply/cap.apply.execution
+---
+
 # apply-preflight-scan Specification
 
 ## Purpose
-此规约记录变更 reviewer-optimization 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Evidence-Gated Apply Execution contract for Task 间矛盾检测; Task 依赖顺序检测.
+
 ## Requirements
 ### Requirement: Task 间矛盾检测
 
@@ -46,4 +51,3 @@ apply-change skill SHALL 检测 task 间的隐式依赖顺序问题：当 Task N
 - **WHEN** pre-flight scan 呈现 findings 给用户
 - **THEN** 系统 SHALL 等待用户决策（修改 tasks.md 或确认忽略）
 - **AND** 用户确认后系统 SHALL 继续进入 Step 3 所选方法 reference
-

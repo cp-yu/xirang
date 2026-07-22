@@ -1,7 +1,12 @@
+---
+element: project.root/domain.validation/cap.validation.semantic-contract
+---
+
 # spec-pseudocode-support Specification
 
 ## Purpose
-This specification records behavior introduced by change opsx-to-likec4-mega-refactor. Replace this Purpose with the formal capability intent before archive.
+Define the reviewed Semantic Contract Validation contract for Specs SHALL 支持伪代码表达调用序列; 伪代码 SHALL 引用 LikeC4 element IDs; Specs SHALL 支持混合表达（WHEN/THEN + 伪代码）; and 1 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: Specs SHALL 支持伪代码表达调用序列
 

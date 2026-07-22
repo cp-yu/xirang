@@ -1,7 +1,12 @@
+---
+element: project.root/domain.architecture/cap.architecture.semantic-model
+---
+
 # archive-sync-workflow Specification
 
 ## Purpose
-This specification records behavior introduced by change opsx-to-likec4-mega-refactor. Replace this Purpose with the formal capability intent before archive.
+Define the reviewed Versioned Semantic Model contract for sync SHALL 合并 architecture-delta.c4; archive SHALL 删除 architecture-delta.c4.
+
 ## Requirements
 ### Requirement: sync SHALL 合并 architecture-delta.c4
 
@@ -40,4 +45,3 @@ Archive SHALL 在确认 Semantic Delta 已 sync 后封存 change，并 SHALL 从
 - **WHEN** graph 或 contract module 仍有 pending semantic operations
 - **THEN** archive SHALL 阻塞
 - **AND** SHALL 指引先运行 sync
-

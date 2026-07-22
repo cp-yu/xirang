@@ -1,16 +1,16 @@
 ---
-capabilities:
-  - cap.ai.snack-skill
+element: project.root/domain.ai_integration/cap.ai.snack-reconciliation
 ---
+
 # snack-skill Specification
 
 ## Purpose
 
-定义 snack 从已写代码反向 reconcile proposal、delta Specs、design 与 OPSX delta 的 code-first workflow；不生成 `tasks.md`。
+定义 snack 从已写代码反向 reconcile proposal、delta Specs、design 与 architecture delta 的 code-first workflow；不生成 `tasks.md`。
 ## Requirements
 ### Requirement: Snack 条件式 reconcile artifacts
 
-Snack SHALL 支持新建 change 与更新已有 change，并将 `proposal.md`、`design.md`、delta Specs 与 `opsx-delta.yaml` 分类为 missing、stale、inconsistent 或 current。仅 missing、stale 或 inconsistent 内容 SHALL 被修改。
+Snack SHALL 支持新建 change 与更新已有 change，并将 `proposal.md`、`design.md`、delta Specs 与 `architecture-delta.c4` 分类为 missing、stale、inconsistent 或 current。仅 missing、stale 或 inconsistent 内容 SHALL 被修改。
 
 #### Scenario: 新 change
 - **WHEN** 目标 change 不存在
@@ -145,4 +145,3 @@ Snack SHALL 运行 full change validation。出现 ERROR/WARNING 时 SHALL 修�
 - **WHEN** 自检完成
 - **THEN** summary SHALL 披露 pass 或 remaining issues
 - **AND** SHALL 提供 quick sync、quick archive、sync-and-archive 与 continue-development 路径
-

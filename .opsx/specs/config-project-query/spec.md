@@ -1,7 +1,12 @@
+---
+element: project.root/domain.cli/cap.cli.project-setup
+---
+
 # config-project-query Specification
 
 ## Purpose
-此规约记录变更 improve-config-projection 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Project Setup and Update contract for 查询项目配置; 命令集成于 config 子命令体系; 输出格式与 instructions 配置投影一致.
+
 ## Requirements
 ### Requirement: 查询项目配置
 
@@ -62,4 +67,3 @@
 - **AND** SHALL NOT 包含 `archive.commitMessage.convention`
 - **AND** SHALL NOT 包含 `merge.commitMessage.convention`
 - **AND** SHALL NOT 包含 `merge.messageFrom`
-

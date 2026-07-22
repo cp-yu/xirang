@@ -1,7 +1,12 @@
+---
+element: project.root/domain.artifact_graph/cap.artifact-graph.workflow-compilation
+---
+
 # artifact-workflow-status Specification
 
 ## Purpose
-此规约记录变更 fix-apply-instructions-verify-gate 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Workflow Artifact Compilation contract for list --json 输出包含 verify 状态.
+
 ## Requirements
 ### Requirement: list --json 输出包含 verify 状态
 
@@ -28,4 +33,3 @@
 
 - **WHEN** `opsx list --json` 执行
 - **THEN** 输出的 `status` 字段 SHALL 保持与原有逻辑一致（基于 task count）
-

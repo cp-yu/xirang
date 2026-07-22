@@ -1,3 +1,7 @@
+---
+element: project.root/domain.schema/cap.schema.workflow-definition
+---
+
 # schema-validate-command Specification
 
 ## Purpose
@@ -24,4 +28,3 @@ Define `opsx schema validate` behavior for validating schema syntax, structure, 
 #### Scenario: 未知 Schema 被拒绝
 - **WHEN** 用户请求校验非内置 Schema
 - **THEN** 命令 SHALL 非零退出并列出合法内置 ID
-

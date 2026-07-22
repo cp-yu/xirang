@@ -1,51 +1,31 @@
-# Spec: bootstrap-surface-exposure
+---
+element: project.root/domain.ai_integration/cap.ai.workflow-generation
+---
+
+# bootstrap-surface-exposure Specification
 
 ## Purpose
-
-Bootstrap 命令面在执行过 `bootstrap init` 后动态暴露，通过现有 workflow/profile/install generation 链路实现。
+Expose the active bootstrap-arch skill through install planning without creating a second command surface.
 
 ## Requirements
-
 ### Requirement: 动态暴露条件
+When `.opsx/bootstrap` exists, init or update SHALL include the `bootstrap-arch` workflow and install `opsx-bootstrap-arch`; when it does not exist, the dynamic workflow SHALL be absent.
 
-Bootstrap 命令面的暴露 SHALL 取决于 `.opsx/bootstrap/` 目录是否存在。
-
-#### Scenario: Bootstrap 目录存在时暴露
-- **GIVEN** `.opsx/bootstrap/` 目录存在
-- **WHEN** 执行 `opsx init` 或 `opsx update`
-- **THEN** 生成的命令面包含 `bootstrap-opsx` 对应的 skill 和 command
-- **AND** 与当前 profile 的其他命令面一起生成
-
-#### Scenario: Bootstrap 目录不存在时不暴露
-- **GIVEN** `.opsx/bootstrap/` 目录不存在
-- **WHEN** 执行 `opsx init` 或 `opsx update`
-- **THEN** 生成的命令面不包含 `bootstrap-opsx`
-
-#### Scenario: Bootstrap 完成后目录被清理
-- **GIVEN** `.opsx/bootstrap/` 目录在 promote 后被清理
-- **WHEN** 执行 `opsx update`
-- **THEN** 生成的命令面不再包含 `bootstrap-opsx`
+#### Scenario: Bootstrap workspace exists
+- **WHEN** install planning runs
+- **THEN** the active skill projection SHALL include `bootstrap-arch`
+- **AND** SHALL NOT generate a separate command artifact
 
 ### Requirement: 通过 install planning 链路实现
+Dynamic exposure SHALL be decided by canonical workflow installation and sync planning, not by direct writes from bootstrap commands.
 
-系统 SHALL 通过 install planning 链路暴露 bootstrap 命令面，并 SHALL NOT 直接在 `bootstrap init` 中写入命令面文件。
-
-#### Scenario: Init 后需要 update 才能暴露
-- **GIVEN** 用户执行了 `opsx bootstrap init`
-- **WHEN** 随后执行 `opsx update`
-- **THEN** bootstrap 命令面被生成
-
-#### Scenario: 不修改静态 preset
-- **GIVEN** `CORE_WORKFLOWS` 和 `EXPANDED_WORKFLOWS` 常量
-- **WHEN** bootstrap 目录存在
-- **THEN** 这两个常量的值不变
-- **AND** bootstrap 命令面通过 install planning 动态追加
+#### Scenario: Bootstrap initializes
+- **WHEN** `opsx bootstrap init` creates workspace state
+- **THEN** a later init or update SHALL converge through the normal sync engine
 
 ### Requirement: 收敛性
+Repeated update with unchanged workspace and profile state SHALL produce no further bootstrap skill changes; retained completed workspaces SHALL continue to expose explicit restart guidance.
 
-bootstrap 命令面生成 SHALL 保持收敛性，重复执行不得产生额外漂移。
-
-#### Scenario: 多次 update 产生相同结果
-- **GIVEN** bootstrap 目录存在且状态不变
-- **WHEN** 连续执行两次 `opsx update`
-- **THEN** 两次生成的命令面文件集合完全一致
+#### Scenario: Update repeats
+- **WHEN** update runs twice without state changes
+- **THEN** the second run SHALL be a no-op for the bootstrap surface

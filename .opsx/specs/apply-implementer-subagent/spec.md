@@ -1,3 +1,7 @@
+---
+element: project.root/domain.apply/cap.apply.execution
+---
+
 # apply-implementer-subagent Specification
 
 ## Purpose
@@ -24,4 +28,3 @@
 - **WHEN** Phase 0 实现完成
 - **THEN** 系统仍 SHALL 使用 reviewer subagent 进行 Phase 1 判断
 - **AND** 系统仍 SHALL 使用 optimizer subagent 判断 Phase 2 优化机会
-

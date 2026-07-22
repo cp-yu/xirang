@@ -1,3 +1,7 @@
+---
+element: project.root/domain.change_workflow/cap.change.lifecycle
+---
+
 # OPSX Archive Skill Spec
 
 ## Purpose
@@ -72,10 +76,10 @@ The skill SHALL handle sync inline during archive instead of requiring a separat
 - **THEN** the skill SHALL reconcile delta specs to main specs as part of archive
 - **AND** SHALL NOT require an installed separate `/opsx:sync` skill
 
-#### Scenario: Archive a change with opsx-delta
+#### Scenario: Archive a change with architecture delta
 - **WHEN** agent executes `/opsx:archive`
-- **AND** `opsx-delta.yaml` exists
-- **THEN** the skill SHALL apply the OPSX delta during archive
+- **AND** `architecture-delta.c4` exists
+- **THEN** the skill SHALL apply the Semantic Delta during archive-time sync
 - **AND** SHALL validate referential integrity before writing
 - **AND** SHALL write updated OPSX files atomically
 
@@ -93,7 +97,7 @@ The skill SHALL handle sync inline during archive instead of requiring a separat
 
 #### Scenario: Archive keeps the same sync-state contract
 - **WHEN** agent executes `/opsx:archive`
-- **AND** delta specs or `opsx-delta.yaml` are present
+- **AND** delta Specs or `architecture-delta.c4` are present
 - **THEN** archive SHALL assess and execute the embedded sync contract before moving the change
 
 ### Requirement: Archive Process
@@ -337,4 +341,3 @@ archive skill 在归档后的 git 流程中 SHALL 通过统一 prompt/runtime pr
 - **AND** `archiveCompatibility.compatible` 为 `false`
 - **THEN** skill SHALL 独立处理不兼容的 optimization 状态
 - **AND** SHALL NOT 将 informational Git HEAD 字段视为 freshness stale 证据
-

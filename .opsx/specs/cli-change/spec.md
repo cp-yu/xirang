@@ -1,7 +1,7 @@
 ---
-capabilities:
-  - cap.cli.change
+element: project.root/domain.cli/cap.cli.change-operations
 ---
+
 # cli-change Specification
 
 ## Purpose
@@ -93,4 +93,3 @@ The change validate command SHALL support interactive selection when no change n
 - **THEN** do not prompt interactively
 - **AND** print the existing hint including available change IDs
 - **AND** set `process.exitCode = 1`
-

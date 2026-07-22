@@ -1,3 +1,7 @@
+---
+element: project.root/domain.architecture/cap.architecture.bootstrap
+---
+
 # Spec: bootstrap-domain-map-state
 
 ## Purpose
@@ -125,4 +129,3 @@ Bootstrap 状态模型应显式区分 domain-map 文件的三种状态（valid /
 - **WHEN** the domain-map is parsed or validated
 - **THEN** validation SHALL fail
 - **AND** the error SHALL require a single path segment rather than a platform-specific path
-

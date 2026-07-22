@@ -1,7 +1,12 @@
+---
+element: project.root/domain.ai_integration/cap.ai.workflow-generation
+---
+
 # references-home Specification
 
 ## Purpose
-此规约记录变更 unify-references-home 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Agent Workflow Generation contract for 内置 reference 物化到 .opsx/references 目录; opsx 前缀作为 update 写入所有权边界; reference 生成校验文件名唯一与工具中立; and 1 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: 内置 reference 物化到 .opsx/references 目录
 
@@ -97,4 +102,3 @@
 - **THEN** 系统 SHALL 通过 Node.js path 工具构建实际文件路径
 - **AND** 配置值与 skill 指令中的路径 SHALL 保持 POSIX 正斜杠形式
 - **AND** 行为 SHALL 与 Unix 系统一致
-

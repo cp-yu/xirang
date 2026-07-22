@@ -1,3 +1,7 @@
+---
+element: project.root/domain.architecture/cap.architecture.bootstrap
+---
+
 # Spec: bootstrap-baseline
 
 ## Purpose
@@ -48,7 +52,7 @@
 - **GIVEN** bootstrap 以 `full` 模式初始化
 - **AND** baseline 类型为 `raw`
 - **AND** candidate 输出与 review 已生成且处于 `current`
-- **WHEN** 任一会影响 candidate spec 内容、路径、frontmatter capabilities 或 `spec_groups` membership 的 spec-generation source data 被修改
+- **WHEN** 任一会影响 candidate spec 内容、路径、singular frontmatter element binding 或 `spec_groups` membership 的 spec-generation source data 被修改
 - **THEN** reviewState SHALL 变为 `stale`
 - **AND** promote SHALL 被阻止，直到重新运行 `opsx bootstrap validate` 并重新审核
 
@@ -69,8 +73,8 @@
 - **AND** domain-map source contains valid `spec_groups`
 - **WHEN** promote 成功
 - **THEN** formal specs SHALL be written from those `spec_groups`
-- **AND** every mapped capability SHALL appear in at least one formal spec frontmatter capabilities list
-- **AND** formal spec count MAY be lower than mapped capability count
+- **AND** every mapped capability SHALL appear in at least one formal spec singular frontmatter element binding list
+- **AND** one element MAY own multiple Specs while each Spec SHALL own exactly one element
 
 #### Scenario: Fine full output remains per capability
 - **GIVEN** bootstrap 以 `full` 模式初始化

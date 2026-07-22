@@ -1,7 +1,12 @@
+---
+element: project.root/domain.config/cap.config.runtime-projection
+---
+
 # config-apply-projection Specification
 
 ## Purpose
-此规约记录变更 improve-config-projection 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Runtime Configuration Projection contract for apply instructions 包含配置投影; 文本输出包含配置投影信息.
+
 ## Requirements
 ### Requirement: apply instructions 包含配置投影
 
@@ -30,4 +35,3 @@
 - **WHEN** 用户执行 `opsx instructions apply --change "<name>"`（不带 `--json`）
 - **THEN** 输出包含 `<config_projection>` 区块
 - **AND** 区块包含来自 config.yaml 的 proseLanguage 和 apply.isolation 指令
-

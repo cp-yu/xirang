@@ -1,7 +1,7 @@
 ---
-capabilities:
-  - cap.cli.completion
+element: project.root/domain.cli/cap.cli.command-discovery
 ---
+
 # cli-completion Specification
 
 ## Purpose
@@ -459,4 +459,3 @@ The completion implementation SHALL be testable with unit and integration tests 
 - **AND** phase2 SHALL 包含 flags: `--type`, `--files`, `--input`, `--json` 且 positionalType 为 `change-id`
 - **AND** seal SHALL 包含 flags: `--json` 且 positionalType 为 `change-id`
 - **AND** status SHALL 包含 flags: `--json` 且 positionalType 为 `change-id`
-

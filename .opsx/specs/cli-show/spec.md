@@ -1,7 +1,7 @@
 ---
-capabilities:
-  - cap.cli.show
+element: project.root/domain.cli/cap.cli.change-operations
 ---
+
 # cli-show Specification
 
 ## Purpose
@@ -81,10 +81,9 @@ The show command SHALL support various output formats consistent with existing c
 - **THEN** display only the deltas in JSON format
 - **AND** maintain compatibility with existing change show options
 
-#### Scenario: Spec-specific options  
+#### Scenario: Spec-specific options
 
 - **WHEN** showing a spec with `opsx show <spec-id> --requirements`
 - **THEN** display only requirements in JSON format
 - **AND** support other spec options (--no-scenarios, -r)
 - **AND** maintain compatibility with existing spec show options
-

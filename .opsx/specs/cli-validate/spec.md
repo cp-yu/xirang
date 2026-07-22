@@ -1,7 +1,7 @@
 ---
-capabilities:
-  - cap.cli.validate
+element: project.root/domain.cli/cap.cli.change-operations
 ---
+
 # cli-validate Specification
 
 ## Purpose
@@ -342,23 +342,23 @@ The validate command SHALL support explicit change selection and artifact-scoped
 - **WHEN** executing `opsx validate --change my-change`
 - **THEN** the CLI SHALL validate `.opsx/changes/my-change`
 - **AND** SHALL run the same full change validation as `opsx validate my-change --type change`
-- **AND** SHALL include both change delta spec validation and OPSX delta validation in the merged report
+- **AND** SHALL include both change delta spec validation and architecture delta validation in the merged report
 
 #### Scenario: Specs artifact scope validates only delta specs
 - **WHEN** executing `opsx validate --change my-change --artifacts specs`
 - **THEN** the CLI SHALL validate `.opsx/changes/my-change/specs/**/spec.md`
 - **AND** SHALL report issues from change delta spec validation
-- **AND** SHALL NOT report issues from OPSX delta dry-run validation
+- **AND** SHALL NOT report issues from isolated architecture delta validation
 
-#### Scenario: OPSX delta artifact scope validates only opsx-delta
-- **WHEN** executing `opsx validate --change my-change --artifacts opsx-delta`
-- **THEN** the CLI SHALL validate `.opsx/changes/my-change/opsx-delta.yaml`
-- **AND** SHALL report issues from OPSX delta dry-run validation
+#### Scenario: Architecture delta artifact scope validates only architecture-delta
+- **WHEN** executing `opsx validate --change my-change --artifacts architecture-delta`
+- **THEN** the CLI SHALL validate `.opsx/changes/my-change/architecture-delta.c4`
+- **AND** SHALL report issues from isolated architecture delta validation
 - **AND** SHALL NOT report issues from change delta spec validation
 
 #### Scenario: Unknown artifact scope fails deterministically
 - **WHEN** executing `opsx validate --change my-change --artifacts unknown`
-- **THEN** the CLI SHALL print an error that lists supported artifact scopes `specs` and `opsx-delta`
+- **THEN** the CLI SHALL print an error that lists supported artifact scopes `specs` and `architecture-delta`
 - **AND** SHALL exit with code 1 without running validation
 
 #### Scenario: Missing explicit change fails deterministically
@@ -401,4 +401,3 @@ Surviving scenario 计数 SHALL 仅考虑非 fence 行上的 `#### Scenario:` �
 
 - **WHEN** requirement 的全部非 fence `#### Scenario:` 均标记为 `[REMOVED]`，即使 fence 内另有 scenario 示例
 - **THEN** `opsx validate <change> --type change` SHALL report ERROR，说明至少需要一个 unlabeled、`[ADDED]` 或 `[MODIFIED]` scenario
-

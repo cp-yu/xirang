@@ -1,7 +1,12 @@
+---
+element: project.root/domain.ai_integration/cap.ai.review-roles
+---
+
 # subagent-self-read Specification
 
 ## Purpose
-此规约记录变更 self-sufficient-verify-subagents 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Agent Review Roles contract for Subagent 工具权限定义; Impact Sweeper 保持只读; Subagent Bash 允许命令范围; and 1 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: Subagent 工具权限定义
 Reviewer 和 Optimizer subagent SHALL 拥有以下工具能力：
@@ -96,4 +101,3 @@ Subagent MUST NOT 默认跑全量测试。仅在以下情况跑全量：
 - **THEN** reviewer SHALL 报告为 CRITICAL issue
 - **AND** SHALL 引用失败的测试输出作为证据
 - **AND** SHALL 在 writeBackPlan 中建议修复失败测试
-

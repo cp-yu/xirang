@@ -1,3 +1,7 @@
+---
+element: project.root/domain.ai_integration/cap.ai.intent-exploration
+---
+
 # ai-impact-sweeper Specification
 
 ## Purpose
@@ -5,20 +9,20 @@
 ## Requirements
 ### Requirement: Evidence Protocol 使用 CLI 查询接口
 
-Impact sweeper SHALL 先通过 `opsx opsx query <node-id...> --json` 获取 capability 与精确 relation paths，再通过 `opsx list --specs --json` 获取 cap→spec contracts。Sweeper MUST NOT 直接读取 formal OPSX YAML。代码证据 SHALL 优先使用可用且已索引的 CodeGraph；否则 SHALL 回退 ACE、`rg`、`read` 与 `git ls-files`。CodeGraph 缺失 MUST NOT 阻塞 sweep。
+Impact sweeper SHALL 对每个 seed 通过 `opsx arch query <element-id-or-fqn> --relations --json` 获取 stable element、refinement context 与精确 relation paths，再通过 `opsx list --specs --json` 获取 element→Spec contracts。Sweeper MUST NOT 直接读取 formal OPSX YAML。代码证据 SHALL 优先使用可用且已索引的 CodeGraph；否则 SHALL 回退 ACE、`rg`、`read` 与 `git ls-files`。CodeGraph 缺失 MUST NOT 阻塞 sweep。
 
 #### Scenario: OPSX relation path 优先
-- **WHEN** concept 映射到一个或多个 capability seeds
+- **WHEN** concept 映射到一个或多个 element seeds
 - **THEN** sweeper SHALL 批量查询 seeds 及必要深度的 relations
-- **AND** SHALL 按 `belongs_to`、`invokes`、`consumes`、`precedes`、`constrains`、`validates` 的 propagation hint 构建候选路径
-- **AND** `belongs_to` SHALL 只提供 domain context
+- **AND** SHALL 按 refinement context 与 `invokes`、`produces`、`consumes`、`precedes`、`constrains`、`validates` 的 propagation hint 构建候选路径
+- **AND** refinement containment SHALL 只提供 abstraction context
 - **AND** relation 本身 MUST NOT 单独证明 `mustChange`
 - **AND** MUST NOT 将无解释的邻居集合直接声明为影响结论
 
-#### Scenario: 查询 cap→spec 映射
+#### Scenario: 查询 element→Spec 映射
 - **WHEN** sweeper 需要行为合同
 - **THEN** SHALL 执行 `opsx list --specs --json`
-- **AND** SHALL 使用每个 spec 的 `capabilities` 数组选择需读取的 specs
+- **AND** SHALL 使用每个 Spec 的 singular `element` binding 选择需读取的 contracts
 
 #### Scenario: CodeGraph 可选加速
 - **GIVEN** `codegraph` 可调用且项目 index 可用
@@ -86,4 +90,3 @@ Impact sweeper SHALL 先通过 `opsx opsx query <node-id...> --json` 获取 capa
 - **WHEN** 系统读取 `opsx-impact-sweeper` subagent template
 - **THEN** `description` SHALL 包含 `Prefer a fast model for this lightweight OPSX-grounded impact sweep.`
 - **AND** 模板 SHALL NOT 因该提示设置具体 `model` 字段
-

@@ -1,7 +1,7 @@
 ---
-capabilities:
-  - cap.cli.view
+element: project.root/domain.cli/cap.cli.architecture-navigation
 ---
+
 # cli-view Specification
 
 ## Purpose
@@ -43,4 +43,3 @@ The `opsx view` command provides a comprehensive dashboard view of the OPSX proj
 - **WHEN** 在 Windows、macOS 或 Linux 查找 `.opsx/` 项目根
 - **THEN** 系统 SHALL 使用 Node.js `path` 模块构建路径
 - **AND** SHALL NOT 假设路径分隔符
-

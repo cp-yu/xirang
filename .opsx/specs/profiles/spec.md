@@ -1,3 +1,7 @@
+---
+element: project.root/domain.config/cap.config.global-contract
+---
+
 ## Purpose
 
 Profile selection is removed. The active contract only preserves the absence of the old profile surface.

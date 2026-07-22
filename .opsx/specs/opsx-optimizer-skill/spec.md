@@ -1,7 +1,12 @@
+---
+element: project.root/domain.ai_integration/cap.ai.review-roles
+---
+
 # opsx-optimizer-skill Specification
 
 ## Purpose
-此规约记录变更 add-subagent-skills 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Agent Review Roles contract for Optimizer 角色与硬约束; Optimizer 输入合约; 优化原则与禁止项; and 4 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: Optimizer 角色与硬约束
 
@@ -104,4 +109,3 @@ Optimizer SHALL 从 base scope 通过直接 imports、callers 和 OPSX `depends_
 - **WHEN** optimizer 给出实现建议
 - **THEN** 输出 SHALL NOT 包含 Search/Replace blocks 或 unified diff
 - **AND** SHALL 由 master agent 负责编码
-

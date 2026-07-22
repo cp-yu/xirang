@@ -1,8 +1,0 @@
-model {
-  project_context = project '@fission-ai/opsx' {
-    description '多工具 AI 支持 — 为 25+ AI 工具生成特定工具的技能文件和面向 Agent 的 workflow skills; apply 命令作为编译步骤，集成实现、验证、优化的完整生命周期。确保 apply 输出即验证过的制品; 制品依赖解析、拓扑排序和指令组装的核心引擎; 管理完整变更生命周期 — 创建、增量规约操作、归档及合并到主规约; 命令行界面，将所有 OPSX 操作暴露为可组合的子命令; 项目级和用户级配置管理，带 Schema 验证; OPSX 编程基础设施，用于架构追踪，包含两文件 YAML 操作、Registry 驱动的语义验证和 delta 合并; 定义、解析和管理控制制品类型、依赖关系和构建顺序的工作流 Schema; 变更、规约和 OPSX 完整性的验证系统; 两阶段质量门禁——在一致性检验通过后，对代码进行最优性检验，将代码从"可用"提升到"精良"'
-    metadata {
-      projectId 'fission-ai-opsx'
-    }
-  }
-}

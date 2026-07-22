@@ -1,9 +1,14 @@
+---
+element: project.root/domain.architecture/cap.architecture.semantic-model
+---
+
 # opsx-semantic-relations Specification
 
 ## Purpose
-This specification records behavior introduced by change opsx-v2-semantic-relations. Replace this Purpose with the formal capability intent before archive.
+Define the reviewed Versioned Semantic Model contract for OPSX v1 文件模型; RelationDefinitionRegistry 单一权威; 精确 relation vocabulary; and 2 additional reviewed Requirements.
+
 ## Requirements
-### Requirement: OPSX v2 文件模型
+### Requirement: OPSX v1 文件模型
 
 OPSX Semantic Model graph SHALL 使用 `.opsx/architecture/**/*.c4` 的 versioned OPSX LikeC4 profile，并与 `.opsx/specs/**/*.md` contract modules 共同形成 formal model。系统 MUST NOT 读取 legacy YAML graph 作为新版 model 的 runtime fallback。
 
@@ -69,4 +74,3 @@ Relationship endpoints SHALL 引用可解析 elements，并遵守 Metamodel 可�
 - **WHEN** A `invokes` B 且 A `consumes` B
 - **THEN** SHALL 接受两条不同 kind relations
 - **AND** 重复 `{source,kind,target}` SHALL 被拒绝
-

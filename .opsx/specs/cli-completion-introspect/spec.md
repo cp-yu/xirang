@@ -1,7 +1,12 @@
+---
+element: project.root/domain.cli/cap.cli.command-discovery
+---
+
 # cli-completion-introspect Specification
 
 ## Purpose
-此规约记录变更 derive-registry-from-commander 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Command Discovery and Consistency contract for 从 Commander.js 命令树反射生成 CommandDefinition 数组; positionalType 通过集中式 Map 注入; introspect 输出与补全脚本生成器接口兼容; and 1 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: 从 Commander.js 命令树反射生成 CommandDefinition 数组
 
@@ -81,4 +86,3 @@
 - **WHEN** CLI 新增了一个带位置参数的命令
 - **AND** 该命令路径未在 `POSITIONAL_TYPE_MAP` 中注册
 - **THEN** 防漏测试 SHALL 失败并报告缺失的命令路径
-

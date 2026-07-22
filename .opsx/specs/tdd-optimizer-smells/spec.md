@@ -1,3 +1,7 @@
+---
+element: project.root/domain.ai_integration/cap.ai.review-roles
+---
+
 # tdd-optimizer-smells Specification
 
 ## Purpose
@@ -23,4 +27,3 @@ Optimizer MAY 发现未列出的算法、数据结构、I/O、分配或资源效
 - **WHEN** optimizer 从当前代码证明某算法存在可避免的更高时间复杂度
 - **THEN** SHALL 允许使用开放文本描述该 finding
 - **AND** SHALL NOT 要求映射到固定 smell 类型
-

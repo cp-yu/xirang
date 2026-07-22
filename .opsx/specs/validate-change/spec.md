@@ -1,7 +1,12 @@
+---
+element: project.root/domain.validation/cap.validation.semantic-contract
+---
+
 # validate-change Specification
 
 ## Purpose
-This specification records behavior introduced by change opsx-to-likec4-mega-refactor. Replace this Purpose with the formal capability intent before archive.
+Define the reviewed Semantic Contract Validation contract for validate change SHALL 支持 architecture-delta.c4.
+
 ## Requirements
 ### Requirement: validate change SHALL 支持 architecture-delta.c4
 

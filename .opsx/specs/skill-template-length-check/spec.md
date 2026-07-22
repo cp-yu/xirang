@@ -1,7 +1,12 @@
+---
+element: project.root/domain.validation/cap.validation.semantic-contract
+---
+
 # skill-template-length-check Specification
 
 ## Purpose
-此规约记录变更 skill-length-validation 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Semantic Contract Validation contract for 测试验证所有生成 skill 文件行数限制; 测试覆盖所有 tool 变体; 现有超标 skill 模板必须拆分或精简.
+
 ## Requirements
 ### Requirement: 测试验证所有生成 skill 文件行数限制
 
@@ -92,4 +97,3 @@
 
 - **WHEN** 刷新生成的 `.claude`、`.codex`、`.github` 工具产物
 - **THEN** 生成文件中的 workflow `SKILL.md` 与 `.opsx/references/opsx-*.md` 内容与对应模板源保持一致
-

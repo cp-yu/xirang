@@ -1,7 +1,7 @@
 ---
-capabilities:
-  - cap.ai.explore-brainstorming
+element: project.root/domain.ai_integration/cap.ai.intent-exploration
 ---
+
 # explore-brainstorming Specification
 
 ## Purpose
@@ -311,4 +311,3 @@ reference 文件 SHALL 声明为 `references/explore-supperpowers-style.md` 并�
 - **WHEN** explore 使用 todo checklist 跟踪流程
 - **THEN** checklist SHALL 只表示 explore 对话流程进度
 - **AND** checklist SHALL NOT 授权 main explore agent 创建、编辑或删除项目文件或 OPSX 制品
-

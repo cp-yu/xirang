@@ -1,3 +1,7 @@
+---
+element: project.root/domain.config/cap.config.global-contract
+---
+
 # legacy-cleanup Specification
 
 ## Purpose
@@ -160,4 +164,3 @@ The system SHALL report what was cleaned up.
 - **WHEN** no legacy artifacts are found
 - **THEN** the system SHALL NOT display the cleanup section
 - **AND** proceed directly with skill setup
-

@@ -1,3 +1,7 @@
+---
+element: project.root/domain.cli/cap.cli.artifact-workflow
+---
+
 # schema-which-command Specification
 
 ## Purpose
@@ -20,4 +24,3 @@ Define `opsx schema which` behavior for reporting resolved schema source, locati
 - **WHEN** 用户查询非内置 Schema
 - **THEN** 命令 SHALL 非零退出
 - **AND** SHALL 列出合法内置 ID
-

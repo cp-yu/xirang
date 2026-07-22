@@ -1,11 +1,12 @@
 ---
-capabilities:
-  - cap.spec.registry
+element: project.root/domain.validation/cap.validation.semantic-contract
 ---
+
 # spec-registry Specification
 
 ## Purpose
-此规约记录变更 spec-capability-awareness 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Semantic Contract Validation contract for 运行时构建 cap↔spec 双向映射; 提供查询 API; Registry 扫描使用跨平台路径.
+
 ## Requirements
 ### Requirement: 运行时构建 cap↔spec 双向映射
 
@@ -53,4 +54,3 @@ Registry SHALL 提供 element-oriented query API：`getSpecsForElement(elementId
 - **WHEN** 在 Windows 执行 registry scan
 - **THEN** SHALL 使用 Node.js path API 定位 `.opsx/specs`
 - **AND** SHALL 返回与 POSIX 相同的 Spec IDs 与 element mappings
-

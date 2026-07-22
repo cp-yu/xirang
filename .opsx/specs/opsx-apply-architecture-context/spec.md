@@ -1,7 +1,12 @@
+---
+element: project.root/domain.ai_integration/cap.ai.workflow-generation
+---
+
 # opsx-apply-architecture-context Specification
 
 ## Purpose
-This specification records behavior introduced by change opsx-to-likec4-mega-refactor. Replace this Purpose with the formal capability intent before archive.
+Define the reviewed Agent Workflow Generation contract for apply skill SHALL 读取 LikeC4 架构上下文; apply skill SHALL 指导理解伪代码; apply skill SHALL 在实现前查询架构.
+
 ## Requirements
 ### Requirement: apply skill SHALL 读取 LikeC4 架构上下文
 
@@ -46,4 +51,3 @@ Skill SHALL 要求 Agent 在实现前按以下顺序消费 Target Semantic Model
   4. 使用 CodeGraph 或 ACE/`rg`/`read` 获取 current implementation evidence
   5. 开始编码
 - **AND** code evidence MUST NOT 静默覆盖 approved Semantic Delta
-

@@ -1,8 +1,7 @@
 ---
-capabilities:
-  - cap.ai.propose-smart-routing
-  - cap.ai.workflow-templates
+element: project.root/domain.cli/cap.cli.artifact-workflow
 ---
+
 ## Purpose
 
 定义 propose workflow 创建 change、分离 behavior/architecture source impact、生成完整制品并执行轻量验证的行为。
@@ -133,7 +132,7 @@ Proposal SHALL 保留 canonical `## Source Impact` 兼容结构，并分别声�
 #### Scenario: Specs 按 Behavior Source 生成
 - **WHEN** propose 创建 change-local Specs
 - **THEN** SHALL 只消费 proposal Behavior Source 中的 Spec IDs
-- **AND** SHALL 使用返回的 definition 路由非 behavior 内容到 proposal、design、tasks 或 OPSX delta
+- **AND** SHALL 使用返回的 definition 路由非 behavior 内容到 proposal、design、tasks 或 architecture delta
 - **AND** SHALL 读取 formal Spec 的精确 Requirement titles 后 author delta
 
 #### Scenario: Specs boundary 不重复定义
@@ -151,7 +150,7 @@ Proposal SHALL 保留 canonical `## Source Impact` 兼容结构，并分别声�
 - **AND** sync/archive SHALL 消费并清理已有 labels，但 MUST NOT 生成 labels
 - **AND** SHALL NOT 仅因已审查的 deterministic labels 写入而再次运行 validate
 
-### Requirement: Propose 在 OPSX delta 前 reconcile architecture scope
+### Requirement: Propose 在 architecture delta 前 reconcile architecture scope
 
 Specs 与 `design.md` 完成后，propose SHALL 重新读取 proposal graph scope、design decisions、formal OPSX Semantic Model 与 implementation evidence，再生成 `architecture-delta.c4`。Workflow SHALL 联合检查 change-local Specs 的 singular element bindings。
 
@@ -180,12 +179,12 @@ Propose SHALL 消费 artifact instructions 的 config projection，使新写或�
 
 ### Requirement: Post-propose validation 保持 warning-only
 
-Artifact 生成后，workflow SHALL 依次运行 Specs-scoped、OPSX-delta-scoped 与 full change validation。发现 warning 时 SHALL 只修复一轮并复检一次，最终总结 SHALL 区分 fixed、remaining 与 skipped checks。
+Artifact 生成后，workflow SHALL 依次运行 Specs-scoped、architecture-delta-scoped 与 full change validation。发现 warning 时 SHALL 只修复一轮并复检一次，最终总结 SHALL 区分 fixed、remaining 与 skipped checks。
 
 #### Scenario: Staged validation
 - **WHEN** artifacts 已生成
 - **THEN** SHALL 运行 `opsx validate --change "<name>" --artifacts specs --json`
-- **AND** SHALL 运行 `opsx validate --change "<name>" --artifacts opsx-delta --json`
+- **AND** SHALL 运行 `opsx validate --change "<name>" --artifacts architecture-delta --json`
 - **AND** SHALL 运行 `opsx validate --change "<name>" --json`
 - **AND** MUST NOT 在该检查中执行 `opsx sync`
 
@@ -246,4 +245,3 @@ Propose SHALL 只在 readiness 判断、阻塞决策和最终总结三个节点�
 - **WHEN** propose 完成 artifact generation 与 validation
 - **THEN** SHALL 汇总创建或更新的 artifacts、validation errors/warnings、scenario label 结果与 ready-for-apply 状态
 - **AND** SHALL NOT 要求每完成一个 artifact 就输出独立进度消息
-

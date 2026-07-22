@@ -1,7 +1,12 @@
+---
+element: project.root/domain.apply/cap.apply.verification-integration
+---
+
 # apply-verify-integration Specification
 
 ## Purpose
-此规约记录变更 unify-apply-verify 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Apply Verification Integration contract for Apply Phase 1 SHALL 先写回再持久化; apply 作为编译步骤; 失败方向记录; and 2 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: Apply Phase 1 SHALL 先写回再持久化
 
@@ -103,4 +108,3 @@ Master SHALL 按 selected finding 的 keyDesign 和 preservation constraints 实
 - **WHEN** 用户传入 `--skip-optimization`
 - **THEN** 系统 SHALL 设置 optimization.status 为 SKIPPED
 - **AND** SHALL 直接进入 Phase 3 Seal
-

@@ -1,3 +1,7 @@
+---
+element: project.root/domain.ai_integration/cap.ai.tool-integration
+---
+
 # tool-invocation-references Specification
 
 ## Purpose
@@ -52,4 +56,3 @@
 - **THEN** 系统 SHALL 仅替换能够通过共享 workflow surface manifest 显式解析的引用
 - **AND** SHALL 使用显式 lookup 而不是通配符或猜测式正则来生成 skill 名称
 - **AND** 无法解析为已注册 workflow surface 的普通文本 SHALL 保持原样
-

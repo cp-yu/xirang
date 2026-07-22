@@ -1,7 +1,12 @@
+---
+element: project.root/domain.cli/cap.cli.artifact-workflow
+---
+
 # graceful-status-empty Specification
 
 ## Purpose
-此规约记录变更 graceful-status-no-changes 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Artifact Workflow Commands contract for Status command exits gracefully when no changes exist; Existing status validation behavior is preserved.
+
 ## Requirements
 ### Requirement: Status command exits gracefully when no changes exist
 The `statusCommand` function SHALL check for available changes via `getAvailableChanges` before calling `validateChangeExists`. When no `--change` option is provided and no change directories exist, it SHALL print a friendly informational message and exit with code 0, instead of reaching `validateChangeExists` and propagating a fatal error.
@@ -28,4 +33,3 @@ Other error paths in `validateChangeExists` that apply to the status command SHA
 #### Scenario: Other commands unaffected
 - **WHEN** user runs `opsx show` or `opsx instructions` without `--change` and no changes exist
 - **THEN** the CLI throws the original `No changes found` error (no behavior change)
-

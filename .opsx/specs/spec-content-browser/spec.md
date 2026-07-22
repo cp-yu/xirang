@@ -1,8 +1,7 @@
 ---
-capabilities:
-  - cap.presentation.spec-content-gateway
-  - cap.presentation.spec-content-panel
+element: project.root/domain.presentation/cap.presentation.semantic-browser
 ---
+
 # spec-content-browser Specification
 
 ## Purpose
@@ -190,4 +189,3 @@ Spec 内容 SHALL 只读，不提供编辑功能。
 
 - **WHEN** 用户关闭 `opsx view` 服务器
 - **THEN** 浏览器 SHALL NOT 能继续访问 Spec 内容
-

@@ -1,3 +1,7 @@
+---
+element: project.root/domain.ai_integration/cap.ai.tool-integration
+---
+
 # agent-command-slugs Specification
 
 ## Purpose
@@ -7,10 +11,10 @@ Define explicit mapping between internal workflow IDs and external user-facing c
 系统 SHALL 支持将外部 command slug 与内部 workflow ID 分离，使生成的命令制品能够暴露稳定的用户可见命令名，而不要求 profile/config 中的 workflow ID 与磁盘上的命令文件名完全一致。
 
 #### Scenario: Bootstrap workflow generates user-facing bootstrap command
-- **WHEN** the workflow ID is `bootstrap-opsx`
+- **WHEN** the workflow ID is `bootstrap-arch`
 - **AND** command artifacts are generated for Claude Code
 - **THEN** the generated command file SHALL be written to `.claude/commands/.opsx/bootstrap.md`
-- **AND** the generated command SHALL remain associated with workflow `bootstrap-opsx` for filtering and profile selection
+- **AND** the generated command SHALL remain associated with workflow `bootstrap-arch` for filtering and profile selection
 
 #### Scenario: Command generation preserves tool-specific path rules while using external slug
 - **WHEN** a tool adapter generates command files for a workflow with a custom external command slug
@@ -28,17 +32,17 @@ Define explicit mapping between internal workflow IDs and external user-facing c
 
 #### Scenario: Migration detects bootstrap workflow from external bootstrap command artifact
 - **WHEN** a generated bootstrap command artifact exists at the tool-specific path for slug `bootstrap`
-- **THEN** installed workflow scanning SHALL infer workflow `bootstrap-opsx`
+- **THEN** installed workflow scanning SHALL infer workflow `bootstrap-arch`
 - **AND** migration SHALL preserve that workflow in custom profile state
 
 #### Scenario: Drift detection recognizes generated bootstrap command as satisfying selected workflow
-- **WHEN** workflow `bootstrap-opsx` is selected in the active profile
+- **WHEN** workflow `bootstrap-arch` is selected in the active profile
 - **AND** the generated command artifact exists at the mapped bootstrap command path
 - **THEN** profile sync checks SHALL treat the workflow as present
 - **AND** the tool SHALL NOT be flagged as missing bootstrap command artifacts
 
 #### Scenario: Deselected bootstrap workflow removes only the mapped command artifact
-- **WHEN** workflow `bootstrap-opsx` is no longer selected for a tool
+- **WHEN** workflow `bootstrap-arch` is no longer selected for a tool
 - **THEN** update cleanup SHALL remove the generated bootstrap command artifact using the explicit mapped path
 - **AND** cleanup SHALL NOT rely on wildcard pattern matching to discover bootstrap command files
 
@@ -59,4 +63,3 @@ The system SHALL generate slash command files for all workflows included in the 
 - **WHEN** the active mode is `core`
 - **THEN** generated command artifacts SHALL NOT include the standalone sync command artifact
 - **AND** cleanup SHALL remove previously generated managed sync command artifacts if sync is no longer selected
-

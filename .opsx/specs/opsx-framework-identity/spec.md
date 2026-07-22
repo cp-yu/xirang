@@ -1,7 +1,7 @@
 ---
-capabilities:
-  - cap.framework.identity
+element: project.root/domain.framework/cap.framework.identity
 ---
+
 # opsx-framework-identity Specification
 
 ## Purpose
@@ -146,4 +146,3 @@ npm package 的 bin entry SHALL 为 `opsx`。
 - **WHEN** 用户通过 npm 安装框架
 - **THEN** 系统 SHALL 在 PATH 中创建 `opsx` 可执行链接
 - **AND** SHALL NOT 创建其他框架命令链接
-

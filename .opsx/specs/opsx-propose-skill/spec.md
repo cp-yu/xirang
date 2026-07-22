@@ -1,59 +1,33 @@
+---
+element: project.root/domain.ai_integration/cap.ai.workflow-generation
+---
+
 # opsx-propose-skill Specification
 
 ## Purpose
-This specification records behavior introduced by change opsx-to-likec4-mega-refactor. Replace this Purpose with the formal capability intent before archive.
+Define how the propose workflow authors and validates change-local Semantic Delta source modules.
+
 ## Requirements
 ### Requirement: propose skill SHALL 生成 architecture-delta.c4
+When a change affects architecture, the propose skill SHALL author graph changes in `architecture-delta.c4` and behavior changes in change-local Specs. Every change-local Spec SHALL use singular `element: <elementId>` frontmatter; the skill MUST NOT write element-side Spec indexes.
 
-propose skill SHALL 指导 Agent 生成 `architecture-delta.c4` 而非 `opsx-delta.yaml`。
-
-#### Scenario: 指导生成 LikeC4 delta
-
-- **WHEN** Agent 执行 propose skill
-- **AND** change 影响架构
-- **THEN** skill SHALL 指导创建 `architecture-delta.c4`
-- **AND** skill SHALL 提供 LikeC4 DSL 语法参考
-- **AND** skill MUST NOT 指导创建 `opsx-delta.yaml`
-
-#### Scenario: 提供 extend 语法示例
-
-- **WHEN** skill 指导 delta 生成
-- **THEN** SHALL 包含 `extend` 语法示例：
-  ```likec4
-  model {
-    extend existing_domain {
-      new_capability = capability 'Name' { ... }
-    }
-  }
-  ```
-
-#### Scenario: 指导引用 change-local specs
-
-- **WHEN** skill 指导 capability metadata
-- **THEN** SHALL 强调 specs 路径使用 change-local 路径
-- **AND** SHALL 提供示例：`specs ['.opsx/changes/<name>/specs/...']`
+#### Scenario: Architecture scope is present
+- **WHEN** propose identifies an architecture impact
+- **THEN** it SHALL create or update `architecture-delta.c4`
+- **AND** it SHALL use LikeC4-compatible `extend` syntax and stable `elementId` references
 
 ### Requirement: propose skill SHALL 指导 relationship 类型选择
+The skill SHALL select only relation kinds declared by the current Semantic Model and SHALL use containment, not persisted ownership edges, for refinement hierarchy.
 
-skill SHALL 帮助 Agent 选择正确的 relationship kind。
-
-#### Scenario: 提供 relationship kinds 参考
-
-- **WHEN** skill 指导添加 relation
-- **THEN** SHALL 列出 6 种 semantic relations：
-  - `invokes`：主动调用
-  - `consumes`：消费输出或合同
-  - `precedes`：时序依赖
-  - `constrains`：约束限制
-  - `validates`：有效性判定
-- **AND** SHALL 说明 belongs_to 通过嵌套表达
+#### Scenario: A semantic interaction is required
+- **WHEN** propose adds a relation
+- **THEN** it SHALL choose the declared kind matching the reviewed intent
+- **AND** it SHALL reject dangling, self, or unsupported relations
 
 ### Requirement: propose skill SHALL 指导验证 delta
+After authoring, the skill SHALL validate delta Specs, `architecture-delta.c4`, and the combined change before reporting completion.
 
-skill SHALL 要求 Agent 在生成 delta 后验证。
-
-#### Scenario: 验证 delta 语法
-
-- **WHEN** Agent 完成 architecture-delta.c4
-- **THEN** skill SHALL 指导运行 `opsx arch validate --delta`
-- **AND** SHALL 要求修复验证错误后再继续
+#### Scenario: Delta authoring completes
+- **WHEN** all artifacts are present
+- **THEN** the skill SHALL run `opsx validate --change <name> --artifacts architecture-delta`
+- **AND** it SHALL run full change validation and resolve blocking errors

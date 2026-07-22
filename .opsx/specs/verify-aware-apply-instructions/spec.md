@@ -1,7 +1,12 @@
+---
+element: project.root/domain.cli/cap.cli.artifact-workflow
+---
+
 # verify-aware-apply-instructions Specification
 
 ## Purpose
-此规约记录变更 fix-apply-instructions-verify-gate 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Artifact Workflow Commands contract for Apply 指令检查 verify 状态.
+
 ## Requirements
 ### Requirement: Apply 指令检查 verify 状态
 
@@ -33,4 +38,3 @@
 - **WHEN** schema 未配置 `apply.tracks` (即 `tracksFile` 为 null)
 - **AND** required artifacts 全部存在
 - **THEN** 保持现有行为，`state` 为 `'ready'`
-

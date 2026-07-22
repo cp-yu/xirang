@@ -1,7 +1,12 @@
+---
+element: project.root/domain.verify/cap.verify.optimization-gate
+---
+
 # verify-optimization Specification
 
 ## Purpose
-此规约记录变更 enhance-verify-with-optimization 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Finding-Driven Optimization Gate contract for 最优性检验执行; Checkpoint 与回滚; 重试预算控制; and 4 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: 最优性检验执行
 
@@ -139,4 +144,3 @@ Master agent SHALL 只实现最新排序中的首个 actionable finding；旧 fi
 - **THEN** SHALL 记录 `masterChallenge` 及证据
 - **AND** SHALL 重新调用 optimizer
 - **AND** master SHALL NOT 自行将 finding 标记为 rejected
-

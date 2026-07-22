@@ -1,11 +1,12 @@
 ---
-capabilities:
-  - cap.spec.frontmatter
+element: project.root/domain.validation/cap.validation.semantic-contract
 ---
+
 # spec-frontmatter Specification
 
 ## Purpose
-此规约记录变更 spec-capability-awareness 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Semantic Contract Validation contract for 解析 spec 文件的 YAML frontmatter; 使用已有 yaml 库解析.
+
 ## Requirements
 ### Requirement: 解析 spec 文件的 YAML frontmatter
 
@@ -50,4 +51,3 @@ capabilities:
 - **WHEN** parser 由 Windows project path 下的 registry 调用
 - **THEN** caller SHALL 使用 `path.join()` 定位 Spec
 - **AND** parser output SHALL 与 POSIX 环境一致
-

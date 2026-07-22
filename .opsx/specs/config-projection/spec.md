@@ -1,7 +1,7 @@
 ---
-capabilities:
-  - cap.config.projection
+element: project.root/domain.config/cap.config.runtime-projection
 ---
+
 # config-projection Specification
 
 ## Purpose

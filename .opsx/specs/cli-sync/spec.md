@@ -1,12 +1,12 @@
 ---
-capabilities:
-  - cap.cli.sync
+element: project.root/domain.cli/cap.cli.change-operations
 ---
+
 # Spec: cli-sync
 
 ## Purpose
 
-`opsx sync` 命令将 change 中的 delta specs 和 OPSX delta 同步到主 specs 和 OPSX 文件，不执行归档。
+`opsx sync` 命令将 change 中的 delta Specs 与 architecture delta 同步到 formal Specs 和 LikeC4 architecture modules，不执行归档。
 
 ## Command Syntax
 
@@ -168,7 +168,7 @@ opsx sync [change-name] [--no-validate]
 - **AND** 不调用 `checkFreshness` 或 `checkArchiveCompatibility`
 - **AND** 同步照常执行
 
-### Requirement: Sync 按实际 OPSX operations 判断同步需求
+### Requirement: Sync 按实际 Semantic Delta operations 判断同步需求
 
 Sync SHALL 根据 parsed `architecture-delta.c4` graph operations 与 change-local contract operations 判断是否需要同步，而不是仅根据文件存在。省略 graph delta SHALL 表示 graph scope 无变化；空 operation block SHALL 被拒绝。
 
@@ -185,7 +185,7 @@ Sync SHALL 根据 parsed `architecture-delta.c4` graph operations 与 change-loc
 - **WHEN** graph delta 包含实际 operations 且 formal graph 不存在
 - **THEN** SHALL 失败并报告无法构造 Target Semantic Model
 
-### Requirement: Sync 拒绝非 canonical 空 OPSX delta
+### Requirement: Sync 拒绝非 canonical 空 architecture delta
 
 Sync SHALL 始终使用对应 language version 的 graph delta parser。`--no-validate` MUST NOT 绕过 syntax 与 integrity validation；空 `extend`、空 OPSX annotation collection 或无法解析 operation MUST NOT 被当作 no-op。
 
@@ -218,4 +218,3 @@ Sync SHALL 在 temporary workspace 中完成 graph merge、contract reconciliati
 - **WHEN** sync 在 Windows filesystem 执行
 - **THEN** temporary 与 target paths SHALL 使用 Node.js path API
 - **AND** rollback SHALL 恢复 graph 与 Spec files
-

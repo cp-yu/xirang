@@ -1,7 +1,12 @@
+---
+element: project.root/domain.apply/cap.apply.execution
+---
+
 # apply-recovery-protocol-enhanced Specification
 
 ## Purpose
-此规约记录变更 reviewer-optimization 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Evidence-Gated Apply Execution contract for 诊断优先于修复; 单变量修复约束; 累计 3-strike 升级机制.
+
 ## Requirements
 ### Requirement: 诊断优先于修复
 
@@ -58,4 +63,3 @@ apply-change skill 的 recovery loop 中，当 Check command 返回非预期失�
 - **WHEN** 同一 task 的同一 normalized error signature 连续失败 2 次
 - **THEN** agent SHALL 立即 pause（不等累计计数器达到 3）
 - **AND** pause 输出 SHALL 包含 task、check、command、failure kind 和 error summary
-

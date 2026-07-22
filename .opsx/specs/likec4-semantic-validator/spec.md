@@ -1,7 +1,12 @@
+---
+element: project.root/domain.architecture/cap.architecture.semantic-model
+---
+
 # likec4-semantic-validator Specification
 
 ## Purpose
-This specification records behavior introduced by change opsx-to-likec4-mega-refactor. Replace this Purpose with the formal capability intent before archive.
+Define the reviewed Versioned Semantic Model contract for 语义验证器 SHALL 检查 ownership cardinality; 验证器 SHALL 检测 precedes cycle; 验证器 SHALL 检查 metadata 完整性; and 1 additional reviewed Requirements.
+
 ## Requirements
 ### Requirement: 语义验证器 SHALL 检查 ownership cardinality
 
@@ -87,4 +92,3 @@ This specification records behavior introduced by change opsx-to-likec4-mega-ref
 #### Scenario: 验证通过时无 errors
 - **WHEN** root、identity、containment、contracts 与 relations 全部合法
 - **THEN** result SHALL 为 success 且 errors 为空
-

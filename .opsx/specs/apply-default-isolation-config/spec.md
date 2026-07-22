@@ -1,7 +1,12 @@
+---
+element: project.root/domain.config/cap.config.project-settings
+---
+
 # apply-default-isolation-config Specification
 
 ## Purpose
-此规约记录变更 materialize-apply-default-isolation 引入的行为，请在后续同步或归档前补全正式 Purpose。
+Define the reviewed Project Configuration contract for Apply default isolation SHALL be materialized in project config defaults.
+
 ## Requirements
 ### Requirement: Apply default isolation SHALL be materialized in project config defaults
 
@@ -33,4 +38,3 @@ The project config default materialization contract SHALL include `apply.default
 - **WHEN** default materialization reads or writes project config files on Windows, macOS, or Linux
 - **THEN** it SHALL build config paths with Node.js path utilities
 - **AND** it SHALL preserve the existing `.yaml` preference and `.yml` fallback behavior
-

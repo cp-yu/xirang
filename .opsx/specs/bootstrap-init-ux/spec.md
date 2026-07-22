@@ -1,3 +1,7 @@
+---
+element: project.root/domain.architecture/cap.architecture.bootstrap
+---
+
 # Spec: bootstrap-init-ux
 
 ## Purpose
@@ -143,4 +147,3 @@ After initialization, bootstrap SHALL expose an auditable CLI transition from `i
 - **WHEN** `opsx bootstrap advance <phase>` does not describe the current `init -> scan` transition
 - **THEN** CLI SHALL fail without modifying bootstrap metadata
 - **AND** later phase transitions SHALL remain gate-driven by `opsx bootstrap validate`
-
