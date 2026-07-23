@@ -44,6 +44,12 @@ compiler 按固定顺序解析 contract operations 与 Architecture operations�
 
 替代方案是分别保留 Specs diff、Architecture merger 与 Scenario labels。该方案会产生不同 identity、计数与 diagnostics，无法保证 CLI/Web 一致，因此拒绝。
 
+### 1.1 与当前 Formal Architecture 粒度对齐
+
+当前 Formal Architecture 已将旧 command-level 与 implementation-level elements 收敛为聚合 capability。Semantic Diff Engine 的职责归入 `project.root/domain.architecture/cap.architecture.semantic-model` 与 `project.root/domain.change_workflow/cap.change.semantic-delta`；diff、validate、sync、archive 归入 `project.root/domain.cli/cap.cli.change-operations`；plan-remove 归入 `project.root/domain.cli/cap.cli.architecture-navigation`；Web change review 归入 `project.root/domain.presentation/cap.presentation.semantic-browser`。
+
+本 change 不重新引入 `architecture.delta_merger`、`cli.diff`、`presentation.change_review` 等旧粒度 elements。Scenario labels 的移除通过修改聚合 CLI capability 与行为合同表达，因为当前 Formal Model 不存在独立 `cli.scenario_labels` element。这样保留当前 abstraction/refinement hierarchy，同时不改变 compiler、CLI 或 Web 的目标行为。
+
 ### 2. Durable operations 只位于稳定 identity
 
 Specs 的 operation identity 是 Requirement title。`MODIFIED Requirement` 是完整 target block；formal 中未出现在该 block 的 Scenario 不进入 target。Scenario operations 由 before/after 比较派生。
@@ -146,9 +152,9 @@ archive 不消费 report 作为 source；它在 validation 与 sync gate 通过�
 
 ### 11. 自举与迁移顺序
 
-该 change 本身需要使用新 dialect 表达删除 `cli.scenario_labels`，而当前 validator 只能接受 additive LikeC4 module。这是预期的 source compiler bootstrap boundary，不能用旧 `extend` 静默弱化目标语义。
+该 change 本身使用新 dialect 修改当前聚合 capability，并以行为合同删除 Scenario labels command；当前 validator 仍只能接受 additive LikeC4 module。这是预期的 source compiler bootstrap boundary，不能用旧 `extend` 静默弱化目标语义。
 
-实施时先以 unit fixtures 驱动新 parser/materializer/diff engine，再接通 change validation；随后使用新 compiler 验证本 change 的 `architecture-delta.c4`，最后切换 sync writer、CLI/Web 与 workflow surfaces。切换提交完成前不得 sync 本 change。
+实施时先以 unit fixtures 驱动新 parser/materializer/diff engine，再接通 change validation；随后使用新 compiler 验证已绑定当前 stable element identities 的 `architecture-delta.c4` 与 change-local Specs，最后切换 sync writer、CLI/Web 与 workflow surfaces。切换提交完成前不得 sync 本 change。
 
 不保留 dual grammar compatibility。回滚时回退整个 compiler/grammar/workflow change，而不是留下部分 compatibility branches。
 

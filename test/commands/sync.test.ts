@@ -469,7 +469,7 @@ Then the system signs the user in`
     expect(console.log).toHaveBeenCalledWith('No sync required.');
   });
 
-  it('strips scenario operation labels and stays idempotent on repeated sync', async () => {
+  it('rejects Scenario operation labels without changing the formal Spec', async () => {
     const syncCommand = await loadSyncCommand();
     const changeName = 'scenario-label-sync';
     const changeDir = await createChange(changeName);
@@ -521,18 +521,10 @@ The system SHALL support login.
       'utf-8'
     );
 
-    await syncCommand(changeName, { noValidate: true, noVerify: true });
-    const first = await fs.readFile(mainSpecPath, 'utf-8');
-    expect(first).toContain('#### Scenario: Existing path');
-    expect(first).toContain('#### Scenario: MFA path');
-    expect(first).not.toContain('Scenario: [MODIFIED]');
-    expect(first).not.toContain('Scenario: [ADDED]');
-    expect(first).not.toContain('Scenario: [REMOVED]');
-    expect(first).not.toContain('legacy flow runs');
-
-    await syncCommand(changeName, { noValidate: true, noVerify: true });
-    expect(await fs.readFile(mainSpecPath, 'utf-8')).toBe(first);
-    expect(console.log).toHaveBeenCalledWith('No sync required.');
+    const before = await fs.readFile(mainSpecPath, 'utf-8');
+    await expect(syncCommand(changeName, { noValidate: true, noVerify: true }))
+      .rejects.toThrow('Scenario operation metadata [MODIFIED] is unsupported');
+    expect(await fs.readFile(mainSpecPath, 'utf-8')).toBe(before);
   });
 
   it('syncs unlabeled scenario differences without changing the change-local spec', async () => {

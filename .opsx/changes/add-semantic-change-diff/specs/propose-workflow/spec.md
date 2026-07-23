@@ -1,3 +1,7 @@
+---
+element: project.root/domain.cli/cap.cli.artifact-workflow
+---
+
 ## MODIFIED Requirements
 
 ### Requirement: Propose 使用 definition-first authoring

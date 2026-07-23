@@ -1,3 +1,7 @@
+---
+element: project.root/domain.cli/cap.cli.change-operations
+---
+
 ## MODIFIED Requirements
 
 ### Requirement: 同步执行
@@ -83,6 +87,32 @@
 - **THEN** combined validation SHALL 失败
 - **AND** sync SHALL NOT 写入任何 Formal modules
 
+### Requirement: Semantic Delta SHALL 原子提升
+
+Sync SHALL 在 temporary workspace 中完成 target materialization、registry rebuild、full validation、Diff IR generation 与 Formal fingerprint recheck，随后一次提交全部 formal writes。
+
+#### Scenario: Graph 与 contract 联合成功
+- **WHEN** graph 新增 element 且 Spec 绑定该 element
+- **AND** Target validation 与 fingerprint recheck 通过
+- **THEN** 两类 modules SHALL 同时写入
+- **AND** Formal registry SHALL 可立即查询该 binding
+
+#### Scenario: Contract failure 回滚 graph
+- **WHEN** graph materialization 成功但 Spec binding 或 contract validation 失败
+- **THEN** graph change SHALL NOT 留在 Formal source
+
+#### Scenario: Stale Formal snapshot
+- **WHEN** prepare 后检测到 Formal fingerprint 改变
+- **THEN** sync SHALL 拒绝全部 writes
+- **AND** SHALL 指引重新 validate 与 diff
+
+#### Scenario: Windows 原子 sync
+- **WHEN** sync 在 Windows filesystem 执行
+- **THEN** temporary、backup 与 target paths SHALL 使用 Node.js path API
+- **AND** rollback SHALL 恢复全部 graph 与 Spec files
+
+## ADDED Requirements
+
 ### Requirement: Sync 按实际 OPSX operations 判断同步需求
 
 Sync SHALL 根据 parsed identity-level Architecture operations 与 Requirement operations 判断同步需求。缺失 `architecture-delta.c4` SHALL 表示 graph no-op；存在的 graph delta 必须含真实 operation。
@@ -113,27 +143,3 @@ Sync SHALL 使用 target language version 的 Architecture delta parser。`--no-
 - **WHEN** delta 使用不受支持 version、raw `extend` 或 invalid operation
 - **THEN** SHALL 返回 structured ERROR
 - **AND** MUST NOT partial apply contract deltas
-
-### Requirement: Semantic Delta SHALL 原子提升
-
-Sync SHALL 在 temporary workspace 中完成 target materialization、registry rebuild、full validation、Diff IR generation 与 Formal fingerprint recheck，随后一次提交全部 formal writes。
-
-#### Scenario: Graph 与 contract 联合成功
-- **WHEN** graph 新增 element 且 Spec 绑定该 element
-- **AND** Target validation 与 fingerprint recheck 通过
-- **THEN** 两类 modules SHALL 同时写入
-- **AND** Formal registry SHALL 可立即查询该 binding
-
-#### Scenario: Contract failure 回滚 graph
-- **WHEN** graph materialization 成功但 Spec binding 或 contract validation 失败
-- **THEN** graph change SHALL NOT 留在 Formal source
-
-#### Scenario: Stale Formal snapshot
-- **WHEN** prepare 后检测到 Formal fingerprint 改变
-- **THEN** sync SHALL 拒绝全部 writes
-- **AND** SHALL 指引重新 validate 与 diff
-
-#### Scenario: Windows 原子 sync
-- **WHEN** sync 在 Windows filesystem 执行
-- **THEN** temporary、backup 与 target paths SHALL 使用 Node.js path API
-- **AND** rollback SHALL 恢复全部 graph 与 Spec files

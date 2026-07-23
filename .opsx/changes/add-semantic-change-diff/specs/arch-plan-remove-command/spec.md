@@ -1,3 +1,7 @@
+---
+element: project.root/domain.cli/cap.cli.architecture-navigation
+---
+
 ## ADDED Requirements
 
 ### Requirement: Architecture removal impact planning

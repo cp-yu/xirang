@@ -1,3 +1,7 @@
+---
+element: project.root/domain.validation/cap.validation.semantic-contract
+---
+
 ## MODIFIED Requirements
 
 ### Requirement: REMOVED/RENAMED requirement header 必须存在于主 spec

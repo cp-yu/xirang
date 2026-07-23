@@ -31,7 +31,7 @@ There are changes proposed, but no delta specs provided yet.`;
     const msg = report.issues.map(i => i.message).join('\n');
     expect(msg).toContain('Change must have at least one delta');
     expect(msg).toContain('Ensure your change has a specs/ directory');
-    expect(msg).toContain('## ADDED/MODIFIED/REMOVED/RENAMED Requirements');
+    expect(msg).toContain('## ADDED/MODIFIED/REMOVED Requirements');
   });
 
   it('adds guidance when spec missing Purpose/Requirements', async () => {

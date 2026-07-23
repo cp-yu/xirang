@@ -1,6 +1,6 @@
 const REQUIREMENTS_SECTION_HEADER = /^##\s+Requirements\s*$/i;
 const TOP_LEVEL_SECTION_HEADER = /^##\s+/;
-const DELTA_HEADER = /^##\s+(ADDED|MODIFIED|REMOVED|RENAMED)\s+Requirements\s*$/i;
+const DELTA_HEADER = /^##\s+(ADDED|MODIFIED|REMOVED)\s+Requirements\s*$/i;
 const REQUIREMENT_HEADER = /^###\s+Requirement:\s*(.+)\s*$/;
 
 export interface MainSpecStructureIssue {

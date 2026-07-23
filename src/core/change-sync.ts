@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { OPSX_DIR_NAME } from './config.js';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
@@ -11,14 +12,16 @@ import {
 import { refreshVerifyEvidenceAfterSync } from './verify/freshness.js';
 import { Validator } from './validation/validator.js';
 import { extractRequirementsSection, parseDeltaSpec } from './parsers/requirement-blocks.js';
-import { mergeArchitectureDelta } from '../utils/architecture-delta-merger.js';
+import { mergeArchitectureDelta, writeSemanticArchitectureSnapshot } from '../utils/architecture-delta-merger.js';
 import { readLikeC4Architecture } from '../utils/likec4-reader.js';
 import { parseLikeC4Domain } from '../utils/likec4-parser.js';
 import { runLikeC4 } from '../commands/arch/runner.js';
 import { validateArchitecture } from '../utils/architecture-validator.js';
 import { buildSpecRegistry } from './spec-registry.js';
+import { compileChange } from './change-compiler.js';
+import { parseArchitectureDelta as parseIdentityArchitectureDelta } from './architecture-delta-parser.js';
 
-type SpecCounts = { added: number; modified: number; removed: number; renamed: number };
+type SpecCounts = { added: number; modified: number; removed: number };
 
 export interface ChangeSyncState {
   changeName: string;
@@ -51,6 +54,7 @@ export interface PreparedSyncManifestEntry {
 
 export interface PreparedChangeSync {
   state: ChangeSyncState;
+  formalFingerprint: string;
   specs: {
     writes: PreparedSpecWrite[];
     totals: SpecCounts;
@@ -86,7 +90,7 @@ export async function assessChangeSyncState(
   for (const update of candidateSpecUpdates) {
     const content = await fs.readFile(update.source, 'utf8');
     const plan = parseDeltaSpec(content);
-    const operationCount = plan.added.length + plan.modified.length + plan.removed.length + plan.renamed.length;
+    const operationCount = plan.added.length + plan.modified.length + plan.removed.length;
     const hasDeltaSection = Object.values(plan.sectionPresence).some(Boolean);
     if (operationCount === 0 && hasDeltaSection) {
       throw new Error(`Spec ${path.basename(path.dirname(update.source))} has an empty delta section`);
@@ -143,7 +147,7 @@ export async function prepareChangeSync(
   options: { skipValidation?: boolean } = {}
 ): Promise<PreparedChangeSync> {
   const writes: PreparedSpecWrite[] = [];
-  const totals: SpecCounts = { added: 0, modified: 0, removed: 0, renamed: 0 };
+  const totals: SpecCounts = { added: 0, modified: 0, removed: 0 };
   const validator = new Validator();
   const validateLegacySpecs = !options.skipValidation;
 
@@ -159,7 +163,6 @@ export async function prepareChangeSync(
     totals.added += built.counts.added;
     totals.modified += built.counts.modified;
     totals.removed += built.counts.removed;
-    totals.renamed += built.counts.renamed;
   }
 
   const deltaPath = path.join(state.changeDir, 'architecture-delta.c4');
@@ -172,6 +175,13 @@ export async function prepareChangeSync(
   const hasFormalArchitecture = await directoryExists(formalArchitecture);
   if (architecture && !hasFormalArchitecture) {
     throw new Error('Cannot construct Target Semantic Model: formal architecture does not exist');
+  }
+  const formalModel = hasFormalArchitecture ? await readLikeC4Architecture(projectRoot) : null;
+  const compiled = formalModel?.profile === 'v1'
+    ? await compileChange(projectRoot, state.changeName)
+    : null;
+  if (compiled && !compiled.valid) {
+    throw new Error(compiled.diagnostics.map(item => `${item.code}: ${item.message}`).join('\n'));
   }
 
   const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-sync-target-'));
@@ -188,9 +198,8 @@ export async function prepareChangeSync(
     );
 
     if (architecture) {
-      await mergeArchitectureDelta(workspace, architecture.deltaPath, {
-        changeName: state.changeName,
-      });
+      if (compiled?.target) await writeSemanticArchitectureSnapshot(workspace, compiled.target.architecture);
+      else await mergeArchitectureDelta(workspace, architecture.deltaPath, { changeName: state.changeName });
     }
     await writeSpecsToTarget(projectRoot, workspace, writes);
 
@@ -211,6 +220,7 @@ export async function prepareChangeSync(
     }
     return {
       state,
+      formalFingerprint: semanticTreeFingerprint(before),
       specs: { writes, totals },
       architecture,
       manifest,
@@ -231,6 +241,10 @@ export async function applyPreparedChangeSync(
 ): Promise<AppliedChangeSyncSummary> {
   const silent = options.silent ?? false;
   const filesystem = transactionFileSystem(options.filesystem);
+  const currentFingerprint = semanticTreeFingerprint(await readSemanticTree(projectRoot));
+  if (currentFingerprint !== prepared.formalFingerprint) {
+    throw new Error('Prepared sync is stale: Formal Semantic Model changed after validation');
+  }
   await assertManifestPreimages(projectRoot, prepared.manifest, filesystem);
 
   const applied: PreparedSyncManifestEntry[] = [];
@@ -257,7 +271,7 @@ export async function applyPreparedChangeSync(
   if (!silent && architectureSynced) console.log('Architecture updated successfully.');
   if (!silent && specsSynced) {
     console.log(
-      `Totals: + ${prepared.specs.totals.added}, ~ ${prepared.specs.totals.modified}, - ${prepared.specs.totals.removed}, → ${prepared.specs.totals.renamed}`
+      `Totals: + ${prepared.specs.totals.added}, ~ ${prepared.specs.totals.modified}, - ${prepared.specs.totals.removed}`
     );
     console.log('Specs updated successfully.');
   }
@@ -294,17 +308,35 @@ async function isArchitectureDeltaApplied(
   });
   if (!formal) return false;
   if (formal.profile === 'v1') {
-    const modulePath = path.join(
-      projectRoot,
-      OPSX_DIR_NAME,
-      'architecture',
-      'deltas',
-      architectureDeltaModuleName(changeName),
-    );
+    if (/^\s*architectureDelta\b/.test(content)) {
+      const parsed = parseIdentityArchitectureDelta(content, deltaPath);
+      if (!parsed.delta) throw new Error(parsed.diagnostics[0]?.message ?? 'Invalid architecture delta');
+      const elements = new Map(formal.elements.map(element => [element.id, element]));
+      const relations = new Map(formal.relations.map(relation => [`${relation.source}|${relation.kind}|${relation.target}`, relation]));
+      return parsed.delta.operations.every(operation => {
+        if (operation.entity === 'element') {
+          const current = elements.get(operation.identity);
+          if (operation.operation === 'REMOVED') return current === undefined;
+          if (!current || !operation.target) return false;
+          const target = operation.target as { kind: string; parent: string | null; title: string; summary: string; metadata: Record<string, string | string[]> };
+          return current.kind === target.kind && current.parent === target.parent && current.title === target.title
+            && current.summary === target.summary && sameJson(current.metadata, target.metadata);
+        }
+        if (operation.entity === 'relationship') {
+          const current = relations.get(operation.identity);
+          if (operation.operation === 'REMOVED') return current === undefined;
+          return current !== undefined && sameJson(current, operation.target);
+        }
+        const collection = operation.entity === 'elementKind' ? formal.metamodel.elements : formal.metamodel.relationships;
+        if (operation.operation === 'REMOVED') return !Object.hasOwn(collection, operation.identity);
+        return Object.hasOwn(collection, operation.identity) && sameJson(collection[operation.identity], operation.target);
+      });
+    }
+    const modulePath = path.join(projectRoot, OPSX_DIR_NAME, 'architecture', 'deltas', architectureDeltaModuleName(changeName));
     return await readOptionalFile(modulePath) === content;
   }
 
-  const delta = parseArchitectureDelta(content, changeName);
+  const delta = parseLegacyArchitectureDelta(content, changeName);
   const nestedExtensions = assessLegacyElementExtensions(content, formal, changeName);
   const operationCount = delta.domains.length + delta.capabilities.length + delta.relations.length;
   if (operationCount === 0 && !nestedExtensions.hasOperations) return false;
@@ -324,7 +356,7 @@ async function isArchitectureDeltaApplied(
     ));
 }
 
-function parseArchitectureDelta(content: string, changeName: string) {
+function parseLegacyArchitectureDelta(content: string, changeName: string) {
   const normalized = formalizeSpecPaths(content, changeName);
   const extensionRanges: Array<[number, number]> = [];
   const capabilities = [];
@@ -351,6 +383,17 @@ function maskRanges(content: string, ranges: Array<[number, number]>): string {
     }
   }
   return characters.join('');
+}
+
+function sameJson(left: unknown, right: unknown): boolean {
+  const canonical = (value: unknown): string => {
+    if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
+    if (value && typeof value === 'object') return `{${Object.entries(value as Record<string, unknown>)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, nested]) => `${JSON.stringify(key)}:${canonical(nested)}`).join(',')}}`;
+    return JSON.stringify(value);
+  };
+  return canonical(left) === canonical(right);
 }
 
 function sameDomain(left: { id: string; title: string; description?: string; boundary?: string; status?: string }, right: typeof left): boolean {
@@ -440,7 +483,12 @@ async function directoryExists(directory: string): Promise<boolean> {
 async function readArchitectureDelta(deltaPath: string): Promise<string | null> {
   if (!await fileExists(deltaPath)) return null;
   const content = await fs.readFile(deltaPath, 'utf8');
-  assertArchitectureDeltaOperations(content);
+  if (/^\s*architectureDelta\b/.test(content)) {
+    const parsed = parseIdentityArchitectureDelta(content, deltaPath);
+    if (!parsed.delta) throw new Error(parsed.diagnostics[0]?.message ?? 'Invalid architecture delta');
+  } else {
+    assertArchitectureDeltaOperations(content);
+  }
   return content;
 }
 
@@ -597,6 +645,17 @@ async function readSemanticTree(projectRoot: string): Promise<Map<string, Buffer
   return files;
 }
 
+function semanticTreeFingerprint(files: Map<string, Buffer>): string {
+  const hash = createHash('sha256');
+  for (const [file, content] of [...files].sort(([left], [right]) => left.localeCompare(right))) {
+    hash.update(file);
+    hash.update('\0');
+    hash.update(content);
+    hash.update('\0');
+  }
+  return hash.digest('hex');
+}
+
 function buildManifest(
   before: Map<string, Buffer>,
   after: Map<string, Buffer>,
@@ -731,8 +790,7 @@ function isRemovalOnlyDelta(content: string): boolean {
   const plan = parseDeltaSpec(content);
   return plan.removed.length > 0 &&
     plan.added.length === 0 &&
-    plan.modified.length === 0 &&
-    plan.renamed.length === 0;
+    plan.modified.length === 0;
 }
 
 function toPosixProjectRelative(projectRoot: string, filePath: string): string {

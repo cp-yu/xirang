@@ -1,3 +1,7 @@
+---
+element: project.root/domain.ai_integration/cap.ai.snack-reconciliation
+---
+
 ## MODIFIED Requirements
 
 ### Requirement: Snack 执行一次自检与程序化 labels

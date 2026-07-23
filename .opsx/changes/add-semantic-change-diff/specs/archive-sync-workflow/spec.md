@@ -1,3 +1,7 @@
+---
+element: project.root/domain.architecture/cap.architecture.semantic-model
+---
+
 ## MODIFIED Requirements
 
 ### Requirement: sync SHALL 合并 architecture-delta.c4

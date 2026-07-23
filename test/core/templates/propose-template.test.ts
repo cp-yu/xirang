@@ -33,7 +33,7 @@ describe('propose template post-validation flow', () => {
     expect(instructions).toContain('ask whether to update the existing change or create an independent new change');
     expect(instructions).toContain('in non-interactive mode, fail and request an explicit choice');
     expect(instructions).not.toContain('use a new name');
-    expect(instructions).not.toContain('rename');
+    expect(instructions).not.toContain('opsx rename');
   });
 
   it('navigates the formal LikeC4 model before authoring', () => {
@@ -189,17 +189,16 @@ describe('propose template post-validation flow', () => {
     expect(body).not.toContain('route non-behavior content to design/tasks/proposal/opsx-delta');
   });
 
-  it('previews and reviews scenario operations before writing labels', () => {
+  it('writes the effective-change report after validation', () => {
     for (const body of getProposeBodies()) {
       const validationIndex = body.indexOf('opsx validate --change "<name>" --json');
-      const previewIndex = body.indexOf('opsx scenario-labels "<name>" --preview --json');
-      const writeIndex = body.indexOf('opsx scenario-labels "<name>" --write');
+      const diffIndex = body.indexOf('opsx diff --change "<name>" --write');
       expect(validationIndex).toBeGreaterThanOrEqual(0);
-      expect(previewIndex).toBeGreaterThan(validationIndex);
-      expect(writeIndex).toBeGreaterThan(previewIndex);
-      expect(body).toContain('Unexpected ADDED, MODIFIED, or REMOVED operations block label writing');
-      expect(body).toContain('does not require a second validate pass');
-      expect(body).toContain('sync/archive consume and clean existing labels but do not generate them');
+      expect(diffIndex).toBeGreaterThan(validationIndex);
+      expect(body).toContain('.opsx/changes/<name>/effective-change.md');
+      expect(body).toContain('status is Passed');
+      expect(body).toContain('source and target fingerprints');
+      expect(body).not.toContain('opsx scenario-labels');
       expect(body).not.toContain('#### Scenario: [ADDED] <title>');
       expect(body).not.toContain('#### Scenario: [MODIFIED] <title>');
       expect(body).not.toContain('#### Scenario: [REMOVED] <title>');

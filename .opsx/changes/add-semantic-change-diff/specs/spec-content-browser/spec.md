@@ -1,3 +1,7 @@
+---
+element: project.root/domain.presentation/cap.presentation.semantic-browser
+---
+
 ## ADDED Requirements
 
 ### Requirement: Active change Specs semantic diff

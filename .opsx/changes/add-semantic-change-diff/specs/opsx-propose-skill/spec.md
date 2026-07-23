@@ -1,3 +1,7 @@
+---
+element: project.root/domain.ai_integration/cap.ai.workflow-generation
+---
+
 ## MODIFIED Requirements
 
 ### Requirement: propose skill SHALL 生成 architecture-delta.c4

@@ -8,8 +8,8 @@ async function openDetails(page: Page, id: string): Promise<Locator> {
   const node = page.locator(`.react-flow__node[data-id="projectRoot.${id}"]`)
   await expect(node).toBeVisible({ timeout: 20_000 })
   await node.click()
-  await node.click()
   const dialog = page.locator('dialog[open]')
+  if (await dialog.count() === 0) await node.click()
   await expect(dialog).toBeVisible()
   return dialog
 }
@@ -33,7 +33,7 @@ test('browses absent, single, multiple, long, and hot-reloaded Specs', async ({ 
   await dialog.getByRole('tab', { name: 'Specs' }).click()
   const singlePanel = dialog.getByRole('tabpanel', { name: 'Specs' })
   await expect(singlePanel.getByText('.opsx/specs/single/spec.md')).toBeVisible()
-  await expect(singlePanel.getByRole('heading', { name: 'Single Spec' })).toBeVisible()
+  await expect(singlePanel.getByRole('heading', { name: 'Single Spec', exact: true })).toBeVisible()
   await expect(dialog.getByRole('combobox', { name: 'Select Spec' })).toHaveCount(0)
   await closeDetails(dialog)
 
@@ -59,12 +59,75 @@ test('browses absent, single, multiple, long, and hot-reloaded Specs', async ({ 
   try {
     dialog = await openDetails(page, 'single')
     await dialog.getByRole('tab', { name: 'Specs' }).click()
-    await expect(dialog.getByRole('heading', { name: 'Single Spec' })).toBeVisible()
+    await expect(dialog.getByRole('heading', { name: 'Single Spec', exact: true })).toBeVisible()
     await fs.writeFile(specFile, '# Single Spec Updated\n\nFresh content.\n')
     await expect(dialog.getByRole('heading', { name: 'Single Spec Updated' })).toBeVisible({ timeout: 10_000 })
     await expect(dialog.getByText('Fresh content.')).toBeVisible()
   } finally {
     await fs.writeFile(specFile, original)
+  }
+})
+
+test('switches isolated active changes, renders semantic diff, and preserves graph layout on Spec HMR', async ({ page }) => {
+  const manifest = await page.request.get('/__opsx/changes')
+  expect(manifest.ok()).toBe(true)
+  expect((await manifest.json()).variants.map((variant: { id: string }) => variant.id)).toEqual([
+    'formal', 'change:architecture-change', 'change:browser-change',
+  ])
+
+  await page.getByRole('button', { name: 'OPSX Spec Browser' }).click()
+  const variantSelector = page.getByRole('combobox', { name: 'Semantic model variant' })
+  await expect(variantSelector).toHaveValue('formal')
+  await variantSelector.selectOption('change:architecture-change')
+  const overlay = page.locator('[data-opsx-architecture-overlay]')
+  await expect(overlay).toBeVisible()
+  await expect(overlay).toContainText('~1')
+  await expect(page.locator('.react-flow__node').getByText('Single Spec Changed')).toBeVisible()
+  const fullNodeCount = await page.locator('.react-flow__node[data-id]').count()
+  await overlay.getByRole('button', { name: 'Diff only' }).click()
+  await expect(overlay).toHaveAttribute('data-opsx-architecture-mode', 'diff')
+  await expect(overlay).toHaveAttribute('data-opsx-changed-count', '1')
+  await expect.poll(() => page.locator('.react-flow__node[data-id]').count()).toBeLessThan(fullNodeCount)
+
+  const renderedHash = await overlay.getAttribute('data-opsx-rendered-view-hash')
+  const architectureSpec = path.join(fixtureRoot, '.opsx/changes/architecture-change/specs/single/spec.md')
+  const architectureSpecOriginal = await fs.readFile(architectureSpec, 'utf8')
+  try {
+    const architectureDialog = await openDetails(page, 'single')
+    await architectureDialog.getByRole('tab', { name: 'Specs' }).click()
+    await expect(architectureDialog.getByText(/architecture-change target content/).last()).toBeVisible()
+    await fs.writeFile(architectureSpec, architectureSpecOriginal.replace('architecture-change target content', 'architecture Spec HMR content'))
+    await expect(architectureDialog.getByText(/architecture Spec HMR content/).last()).toBeVisible({ timeout: 10_000 })
+    await expect(overlay).toHaveAttribute('data-opsx-rendered-view-hash', renderedHash!)
+    await closeDetails(architectureDialog)
+  } finally {
+    await fs.writeFile(architectureSpec, architectureSpecOriginal)
+  }
+
+  await overlay.getByRole('combobox', { name: 'Active change variant' }).selectOption('change:browser-change')
+  await expect(overlay).toContainText('No semantic graph change')
+
+  const nodeIdsBefore = await page.locator('.react-flow__node[data-id]').evaluateAll(nodes => nodes.map(node => node.getAttribute('data-id')))
+  await page.evaluate(() => { (globalThis as any).__opsxHmrMarker = 'preserved' })
+  const changeSpec = path.join(fixtureRoot, '.opsx/changes/browser-change/specs/single/spec.md')
+  const original = await fs.readFile(changeSpec, 'utf8')
+  try {
+    const dialog = await openDetails(page, 'single')
+    await dialog.getByRole('tab', { name: 'Specs' }).click()
+    const diff = dialog.locator('[data-opsx-structured-diff]')
+    await expect(diff.getByText('MODIFIED', { exact: true }).first()).toBeVisible()
+    await expect(diff.getByText('ADDED', { exact: true })).toBeVisible()
+    await expect(diff.getByText('Change diff path')).toBeVisible()
+    await expect(diff.locator('del').first()).toBeVisible()
+    await expect(diff.locator('ins').first()).toBeVisible()
+
+    await fs.writeFile(changeSpec, original.replace('refreshed target content', 'hot-refreshed target content'))
+    await expect(diff.getByText(/hot-refreshed target content/).first()).toBeVisible({ timeout: 10_000 })
+    expect(await page.evaluate(() => (globalThis as any).__opsxHmrMarker)).toBe('preserved')
+    const nodeIdsAfter = await page.locator('.react-flow__node[data-id]').evaluateAll(nodes => nodes.map(node => node.getAttribute('data-id')))
+    expect(nodeIdsAfter).toEqual(nodeIdsBefore)
+  } finally {
+    await fs.writeFile(changeSpec, original)
   }
 })
 

@@ -1,3 +1,7 @@
+---
+element: project.root/domain.cli/cap.cli.architecture-navigation
+---
+
 ## MODIFIED Requirements
 
 ### Requirement: arch validate SHALL 支持 --delta 选项

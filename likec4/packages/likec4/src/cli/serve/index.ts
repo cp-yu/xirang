@@ -11,6 +11,7 @@ import {
   publicDir,
   opsxProjectRoot,
   opsxSpecRegistry,
+  opsxChangeManifest,
   title,
   useDotBin,
   useHashHistory,
@@ -40,6 +41,7 @@ const serveCmd = (yargs: yargs.Argv) => {
           .option('allowed-host', allowedHost)
           .option('opsx-project-root', opsxProjectRoot)
           .option('opsx-spec-registry', opsxSpecRegistry)
+          .option('opsx-change-manifest', opsxChangeManifest)
           .options({
             'react-hmr': {
               type: 'boolean',
@@ -74,6 +76,7 @@ const serveCmd = (yargs: yargs.Argv) => {
           allowedHosts: args['allowed-host'],
           opsxProjectRoot: args['opsx-project-root'],
           opsxSpecRegistry: args['opsx-spec-registry'],
+          opsxChangeManifest: args['opsx-change-manifest'],
         })
       },
     })

@@ -43,35 +43,33 @@ OPSX 目前无法把 active change 编译后的 Specs 与 Architecture 实际变
 
 ### Architecture Source
 
+当前 Formal Architecture 使用聚合 capability 表达稳定职责。本 change 保持该粒度，不恢复已被合并的 command-level 或 implementation-level elements。
+
 #### Added LikeC4 Elements
 
-- `architecture.semantic_diff_engine`: materialize selected change target、验证 declared/effective operations 并生成统一 Diff IR。
-- `cli.diff`: 向 Agent 与用户提供 semantic text/JSON diff 及确定性 review artifact。
-- `cli.arch_plan_remove`: 分析 element 删除对 containment、relationships 与 Element Contracts 的显式影响。
-- `presentation.change_review`: 将统一 Diff IR 投影为 Specs diff 与 Architecture overlay。
+None.
 
 #### Modified LikeC4 Elements
 
-- `architecture.delta_merger`: 从 additive module merge 转为完整 Target Semantic Model reconciliation 与 formal source compilation。
-- `architecture.semantic_validator`: 联合验证 Metamodel、elements、containment、relationships、bindings、contracts 与严格非级联删除。
-- `cli.validate`: 展示 validation diagnostics 与 concise effective-change preview。
-- `cli.view_element`: 为 formal view 与 active change runtime views 提供统一 selector。
-- `cli.sync`: 在 immutable snapshot 与 fingerprint gate 下原子提升编译后的 target modules。
-- `cli.archive`: 在归档前生成最终确定性 review artifact。
-- `presentation.likec4_engine`: 渲染 selected change 的 transient target graph 与 diff overlay。
-- `presentation.spec_content_gateway`: 按 selected change 提供 formal/target Specs 与分区 diagnostics。
-- `presentation.spec_content_panel`: 显示 Requirement/Scenario 结构化 diff 与行内文本变化。
-- `ai_integration.workflow_templates`: Agent workflow 通过 validate preview 与 semantic diff 审阅 change。
+- `project.root/domain.architecture/cap.architecture.semantic-model`: 增加 immutable Formal → Target materialization、完整 validation、统一 Diff IR 与干净 formal source compilation 职责。
+- `project.root/domain.change_workflow/cap.change.semantic-delta`: 增加 identity-level graph/contract compilation、fingerprint gate 与 rollback-capable transaction 职责。
+- `project.root/domain.change_workflow/cap.change.lifecycle`: 增加 final deterministic review report 与 archive gate 职责。
+- `project.root/domain.cli/cap.cli.architecture-navigation`: 增加只读 removal impact planning。
+- `project.root/domain.cli/cap.cli.change-operations`: 增加 semantic diff command，并从正式命令职责中移除 Scenario labels。
+- `project.root/domain.presentation/cap.presentation.semantic-browser`: 增加 active change selector、Specs diff、Architecture overlay、Diff only 与分区 diagnostics。
+- `project.root/domain.ai_integration/cap.ai.workflow-generation`: Agent workflow 通过 validate preview 与 semantic diff 审阅 change。
+- `project.root/domain.validation/cap.validation.semantic-contract`: 联合验证 Requirement operations、Architecture target、bindings、strict removals 与 partial diagnostics。
 
 #### Removed LikeC4 Elements
 
-- `cli.scenario_labels`: Scenario operations 改由统一 Diff IR 派生，不再保留独立 labels command capability。
+None。Scenario labels 已包含在聚合的 `project.root/domain.cli/cap.cli.change-operations` 中，不存在可删除的独立 Formal element。
 
 #### Architecture Relations
 
-- CLI validate、diff、sync、plan-remove 与 Web change review 共同消费 Semantic Diff Engine 的 target materialization 和 Diff IR。
-- Change Review 继续复用 LikeC4 Engine 与 Spec Content Gateway，不引入第二套 graph renderer。
-- Delta Merger、Semantic Validator 与 Semantic Diff Engine 共同约束同一 immutable Formal → Target compilation transaction。
+- `project.root/domain.change_workflow/cap.change.semantic-delta` 消费 versioned Semantic Model。
+- CLI change operations 与 architecture navigation 调用 Semantic Delta Application。
+- Semantic Browser 与 Agent Workflow Generation 消费同一 Semantic Delta Application 结果。
+- 现有 validation 与 change lifecycle relations 继续约束同一 immutable Formal → Target compilation transaction。
 
 ## Impact
 

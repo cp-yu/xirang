@@ -55,7 +55,7 @@ ${OPSX_SHARED_CONTEXT}
 6. Generate ready artifacts in dependency order. For each artifact, run \`opsx instructions <artifact-id> --change "<name>" --json\`.
    - For each response, follow the authoring order in the returned \`instruction\`. Keep \`definition\`, dependencies, \`currentState\`, \`configProjection\`, and \`template\` as separate inputs; do not copy non-artifact inputs into artifacts.
    - For \`proposal.md\`, write \`## Source Impact\` with the compatible Behavior Source and Architecture Source module-scope sections. Keep Spec IDs distinct from stable \`elementId\` values.
-   - When creating \`specs\`, create or modify only the Spec IDs declared under proposal \`Behavior Source\`. Read the exact Requirement titles from the formal Spec before authoring ADDED, MODIFIED, REMOVED, or RENAMED deltas. Rely on combined change validation for deterministic header compatibility. Follow the returned Specs authoring contract. Agent MUST NOT author scenario operation labels.
+   - When creating \`specs\`, create or modify only the Spec IDs declared under proposal \`Behavior Source\`. Read the exact Requirement titles from the formal Spec before authoring ADDED, MODIFIED, or REMOVED deltas. Express a rename as REMOVED old Requirement plus ADDED new complete Requirement. Author only canonical unlabeled \`#### Scenario: <title>\` headings. Rely on combined change validation for deterministic header compatibility. Follow the returned Specs authoring contract.
    - Route obsolete-test rationale from **Test Maintenance** to \`design.md\` and concrete test updates/removals to \`tasks.md\`. Route **One-time Verification** items to evidence-only \`tasks.md\` Checks with no persistent test file; absence assertions use \`Verifies: <path> REMOVED Requirement\`.
 7. Continue until all \`applyRequires\` artifacts are done. Ask one focused question when an artifact decision remains unresolved.
 8. After Specs and Design are complete, reconcile architecture scope before generating \`architecture-delta.c4\`.
@@ -71,11 +71,11 @@ ${OPSX_SHARED_CONTEXT}
 10. Run combined change validation exactly once with \`opsx validate --change "<name>" --json\`. Do NOT run \`opsx sync\`.
     - ERROR from either scaffolding checks or combined change validation blocks ready-for-apply. Perform at most one repair pass, re-check once, and stop with the remaining blockers if any ERROR remains.
     - WARNING does not block ready-for-apply; retain it for the final summary.
-11. After validation passes, run \`opsx scenario-labels "<name>" --preview --json\`.
-    - Compare every suggested ADDED, MODIFIED, or REMOVED operation with the proposal contract module scope and the intended Semantic Delta.
-    - Unexpected ADDED, MODIFIED, or REMOVED operations block label writing. Correct the Spec, rerun combined change validation, and preview again.
-    - When the preview matches intent, run \`opsx scenario-labels "<name>" --write\`. This deterministic write does not require a second validate pass. Labels remain change-local review metadata; sync/archive consume and clean existing labels but do not generate them.
-12. Finish with \`opsx status --change "<name>"\`. Summarize artifacts created or updated, validation errors and warnings, scenario-label results, and readiness for \`/opsx:apply\`.
+11. After validation passes, run \`opsx diff --change "<name>" --write\`.
+    - Treat \`.opsx/changes/<name>/effective-change.md\` as the only persistent effective-change report.
+    - Verify its recorded status is Passed and its source and target fingerprints match the validated compilation.
+    - If report generation fails, keep the failed report as evidence and stop; do not claim ready-for-apply.
+12. Finish with \`opsx status --change "<name>"\`. Summarize artifacts created or updated, validation errors and warnings, effective-change report status, and readiness for \`/opsx:apply\`.
 
 ## Artifact Contract
 

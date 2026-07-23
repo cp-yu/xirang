@@ -1,10 +1,9 @@
 import { OPSX_DIR_NAME } from '../../core/config.js';
 import { promises as fs } from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
+import { compileArchitectureChange, readFormalSemanticModel } from '../../core/change-compiler.js';
 import { readLikeC4Architecture } from '../../utils/likec4-reader.js';
 import { validateArchitecture } from '../../utils/architecture-validator.js';
-import { validateArchitectureDelta } from '../../validation/architecture-delta-validator.js';
 import { runLikeC4, type LikeC4Runner } from './runner.js';
 
 export interface ValidateArchitectureOptions {
@@ -20,25 +19,16 @@ export async function validateArchitectureCommand(projectRoot: string, options: 
     return validateArchitecture(projectRoot, await readLikeC4Architecture(projectRoot));
   }
 
-  const delta = await validateArchitectureDelta(projectRoot, options.deltaPath);
-  if (!delta.valid) {
-    return {
-      success: false,
-      errors: delta.issues.map(issue => ({ code: 'architecture-delta', message: issue.message })),
-      warnings: [],
-    };
-  }
-
-  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-likec4-delta-'));
-  try {
-    await fs.cp(architectureDir, workspace, {
-      recursive: true,
-      filter: file => path.basename(file) !== '.likec4',
-    });
-    await fs.copyFile(options.deltaPath, path.join(workspace, 'architecture-delta.c4'));
-    await runner(['validate', workspace]);
-    return { success: true, errors: [], warnings: [] };
-  } finally {
-    await fs.rm(workspace, { recursive: true, force: true });
-  }
+  const source = await fs.readFile(options.deltaPath, 'utf8');
+  const formal = await readFormalSemanticModel(projectRoot);
+  const compiled = compileArchitectureChange(formal, source, { validateContracts: false });
+  return {
+    success: compiled.valid,
+    errors: compiled.diagnostics
+      .filter(item => item.level === 'ERROR')
+      .map(item => ({ code: item.code, message: item.message })),
+    warnings: compiled.diagnostics
+      .filter(item => item.level === 'WARNING')
+      .map(item => ({ code: item.code, message: item.message })),
+  };
 }

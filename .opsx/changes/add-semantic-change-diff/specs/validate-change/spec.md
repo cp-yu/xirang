@@ -1,3 +1,7 @@
+---
+element: project.root/domain.validation/cap.validation.semantic-contract
+---
+
 ## MODIFIED Requirements
 
 ### Requirement: validate change SHALL 支持 architecture-delta.c4

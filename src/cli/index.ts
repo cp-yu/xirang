@@ -19,7 +19,7 @@ import { FeedbackCommand } from '../commands/feedback.js';
 import { registerConfigCommand } from '../commands/config.js';
 import { registerSchemaCommand } from '../commands/schema.js';
 import { registerSyncCommand } from '../commands/sync.js';
-import { registerScenarioLabelsCommand } from '../commands/scenario-labels.js';
+import { registerDiffCommand } from '../commands/diff.js';
 import { registerVerifyCommand } from '../commands/verify.js';
 import { registerMigrateCommand } from '../commands/migrate/index.js';
 import { registerArchCommand } from '../commands/arch/index.js';
@@ -198,7 +198,7 @@ program
   });
 
 registerSyncCommand(program);
-registerScenarioLabelsCommand(program);
+registerDiffCommand(program);
 registerVerifyCommand(program);
 registerMigrateCommand(program);
 registerArchCommand(program);

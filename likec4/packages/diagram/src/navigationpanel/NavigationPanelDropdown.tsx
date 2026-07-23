@@ -16,6 +16,7 @@ import {
   Divider,
   Highlight,
   Input,
+  NativeSelect,
   PopoverDropdown,
   ScrollAreaAutosize,
   UnstyledButton,
@@ -47,6 +48,7 @@ import { isArray, isEmpty, pipe, sort } from 'remeda'
 import { type NavigationLinkProps, NavigationLink } from '../components/NavigationLink'
 import { useOnDiagramEvent } from '../hooks/useDiagram'
 import { useLikeC4Model } from '../hooks/useLikeC4Model'
+import { useOpsxVariants } from '../opsx/SpecLoaderContext'
 import { Tooltip } from './_common'
 import type { NavigationPanelActorContext, NavigationPanelActorSnapshot } from './actor'
 import { ProjectsMenu } from './dropdown/ProjectsMenu'
@@ -71,6 +73,7 @@ const hasSearchQuerySelector = selectNavigationContext(s => s.searchQuery.trim()
 export const NavigationPanelDropdown = memo(() => {
   const actor = useNavigationActor()
   const hasSearchQuery = useNavigationActorSelector(hasSearchQuerySelector)
+  const runtime = useOpsxVariants()
 
   useOnDiagramEvent('paneClick', () => {
     actor.closeDropdown()
@@ -101,6 +104,19 @@ export const NavigationPanelDropdown = memo(() => {
       onMouseLeave={() => actor.send({ type: 'dropdown.mouseLeave' })}
       onMouseEnter={() => actor.send({ type: 'dropdown.mouseEnter' })}
     >
+      {runtime.variants.length > 1 && (
+        <NativeSelect
+          aria-label="Semantic model variant"
+          size="xs"
+          value={runtime.selected.id}
+          data={runtime.variants.map(variant => ({
+            value: variant.id,
+            label: variant.kind === 'formal' ? variant.label : `Change / ${variant.label}`,
+          }))}
+          onChange={event => runtime.select(event.currentTarget.value)}
+          data-opsx-change-selector
+        />
+      )}
       <ProjectsMenu />
       <HStack gap="xs">
         <SearchInput

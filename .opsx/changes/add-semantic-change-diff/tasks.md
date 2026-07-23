@@ -10,7 +10,10 @@
 - Modify: `src/utils/semantic-model.ts`
 - Modify: `src/utils/likec4-reader.ts`
 - Modify: `src/validation/architecture-delta-validator.ts`
+- Modify: `src/commands/arch/validate.ts`
 - Test: `test/unit/utils/architecture-delta-merger.test.ts`
+- Test: `test/integration/arch-command.test.ts`
+- Test: `test/integration/validate-command.test.ts`
 - Test: `test/core/architecture-delta-parser.test.ts`
 - Test: `test/core/change-compiler.test.ts`
 
@@ -23,17 +26,17 @@
 
 #### Checks
 
-- [ ] C1 验证 Architecture delta grammar 与 identity preconditions
+- [x] C1 验证 Architecture delta grammar 与 identity preconditions
   - Verifies: `specs/architecture-delta-artifact/spec.md` / Requirement "Delta 文件 SHALL 使用 LikeC4 extend 语法" / Scenario "修改 existing element", Scenario "Relationship identity", Scenario "Metamodel target state"
   - Command: `pnpm vitest run test/core/architecture-delta-parser.test.ts`
   - Expect: 合法完整 target operations 通过，raw extend、partial payload 与 identity conflict 失败
 
-- [ ] C2 验证 replacement hint 不改变 target
+- [x] C2 验证 replacement hint 不改变 target
   - Verifies: `specs/architecture-delta-artifact/spec.md` / Requirement "Element replacement review hint" / Scenario "删除 hint 不改变 target", Scenario "Hint 不迁移引用"
   - Command: `pnpm vitest run test/core/change-compiler.test.ts`
   - Expect: 有无 hint 的 Target Semantic Model 相同，未处理引用保持 diagnostics
 
-- [ ] C3 验证 strict removal 与完整 Diff IR
+- [x] C3 验证 strict removal 与完整 Diff IR
   - Verifies: `specs/architecture-delta-artifact/spec.md` / Requirement "Delta 验证 SHALL 检查 extend 目标存在" / Scenario "删除存在未处理依赖", Scenario "Declared MODIFIED 无 effective change"
   - Command: `pnpm vitest run test/core/change-compiler.test.ts test/unit/utils/architecture-delta-merger.test.ts`
   - Expect: compiler 返回全部 unresolved dependencies，并为 Scenario/property 生成 derived entries
@@ -60,17 +63,17 @@
 
 #### Checks
 
-- [ ] C4 验证 diff text、scope 与 JSON projections
+- [x] C4 验证 diff text、scope 与 JSON projections
   - Verifies: `specs/cli-diff/spec.md` / Requirement "Diff projections share one result" / Scenario "JSON 输出完整 Diff IR", Scenario "只显示 Specs", Scenario "只显示 Architecture"
   - Command: `pnpm vitest run test/commands/diff.test.ts`
   - Expect: 各 projection 的 identities、counts、valid 与 diagnostics 一致
 
-- [ ] C5 验证 deterministic effective-change.md
+- [x] C5 验证 deterministic effective-change.md
   - Verifies: `specs/cli-diff/spec.md` / Requirement "Effective change review artifact" / Scenario "相同输入生成相同文件", Scenario "无效 change 覆盖旧报告"
   - Command: `pnpm vitest run test/commands/diff.test.ts`
   - Expect: 重复写入字节一致，Failed report 原子替换旧成功报告
 
-- [ ] C6 验证 validate concise preview
+- [x] C6 验证 validate concise preview
   - Verifies: `specs/cli-validate/spec.md` / Requirement "Change validation effective preview" / Scenario "Human-readable concise preview", Scenario "JSON concise preview", Scenario "Preview 不写 review artifact"
   - Command: `pnpm vitest run test/commands/validate.test.ts test/commands/validate.enriched-output.test.ts`
   - Expect: validate 输出 summary 与 concise entries，且不创建 effective-change.md
@@ -93,12 +96,12 @@
 
 #### Checks
 
-- [ ] C7 验证 Formal removal plan
+- [x] C7 验证 Formal removal plan
   - Verifies: `specs/arch-plan-remove-command/spec.md` / Requirement "Architecture removal impact planning" / Scenario "分析 formal element", Scenario "Element 不存在"
   - Command: `pnpm vitest run test/commands/arch-plan-remove.test.ts`
   - Expect: 只读输出完整依赖，not-found 使用非零退出
 
-- [ ] C8 验证 change-aware Handled 与 Unresolved
+- [x] C8 验证 change-aware Handled 与 Unresolved
   - Verifies: `specs/arch-plan-remove-command/spec.md` / Requirement "Change-aware removal planning" / Scenario "区分 Handled 与 Unresolved", Scenario "Replacement hint 不自动处理引用"
   - Command: `pnpm vitest run test/commands/arch-plan-remove.test.ts`
   - Expect: 已显式 operations 与残留 dependencies 分类准确
@@ -126,12 +129,12 @@
 
 #### Checks
 
-- [ ] C9 验证原子 sync 与 stale fingerprint
+- [x] C9 验证原子 sync 与 stale fingerprint
   - Verifies: `specs/cli-sync/spec.md` / Requirement "Semantic Delta SHALL 原子提升" / Scenario "Stale Formal snapshot", Scenario "Contract failure 回滚 graph", Scenario "Windows 原子 sync"
   - Command: `pnpm vitest run test/commands/sync.test.ts test/integration/sync-workflow.test.ts`
   - Expect: stale 或任一 failure 后 Formal graph 与 Specs 均无部分写入
 
-- [ ] C10 验证 archive final report gate
+- [x] C10 验证 archive final report gate
   - Verifies: `specs/cli-archive/spec.md` / Requirement "Archive Process" / Scenario "直接归档", Scenario "Final report generation 失败"
   - Command: `pnpm vitest run test/core/archive.test.ts test/integration/archive-workflow.test.ts`
   - Expect: archive 只在 current Passed report 生成成功后移动目录
@@ -147,6 +150,13 @@
 - Delete: `test/core/scenario-labels.test.ts`
 - Modify: `src/cli/index.ts`
 - Modify: `src/core/parsers/requirement-blocks.ts`
+- Modify: `src/core/parsers/change-parser.ts`
+- Modify: `src/core/parsers/markdown-parser.ts`
+- Modify: `src/core/parsers/spec-structure.ts`
+- Modify: `src/core/parsers/task-structure.ts`
+- Modify: `src/core/schemas/change.schema.ts`
+- Modify: `src/core/validation/constants.ts`
+- Modify: `src/commands/change.ts`
 - Modify: `src/core/specs-apply.ts`
 - Modify: `src/core/validation/validator.ts`
 - Modify: `schemas/spec-driven/schema.yaml`
@@ -154,7 +164,18 @@
 - Modify: `src/core/templates/workflows/snack.ts`
 - Modify: `src/core/templates/fragments/opsx-fragments.ts`
 - Test: `test/core/parsers/requirement-blocks.test.ts`
+- Test: `test/core/parsers/task-structure.test.ts`
+- Test: `test/core/specs-apply.test.ts`
+- Test: `test/core/artifact-graph/instruction-loader.test.ts`
 - Test: `test/core/templates/transforms.test.ts`
+- Test: `test/core/templates/propose-template.test.ts`
+- Test: `test/core/templates/skill-templates-parity.test.ts`
+- Test: `test/core/templates/snack-template.test.ts`
+- Test: `test/core/validation.cross-check.test.ts`
+- Test: `test/core/validation.delta-specs.test.ts`
+- Test: `test/core/validation.enriched-messages.test.ts`
+- Test: `test/core/validation.test.ts`
+- Test: `test/integration/snack-workflow.test.ts`
 
 **Requirements**:
 - CLI command 与所有生成/写回代码必须删除，不保留 alias 或 migration layer。
@@ -165,17 +186,17 @@
 
 #### Checks
 
-- [ ] C11 验证 Scenario labels command 与 writer 已删除
+- [x] C11 验证 Scenario labels command 与 writer 已删除
   - Verifies: `specs/cli-scenario-labels/spec.md` / REMOVED Requirement "Scenario label fix command"
   - Command: `node -e "const fs=require('fs');for(const p of ['src/commands/scenario-labels.ts','src/core/scenario-labels.ts'])if(fs.existsSync(p))process.exit(1);const r=require('child_process').spawnSync('rg',['-n','registerScenarioLabelsCommand|opsx scenario-labels','src','schemas','--glob','*.ts','--glob','*.yaml'],{encoding:'utf8'});if(r.status===0&&r.stdout.trim())process.exit(1);if(r.status!==0&&r.status!==1)process.exit(r.status||1)"`
   - Expect: runtime 与 generated workflow source 无 Scenario labels command 引用
 
-- [ ] C12 验证 Scenario label derivation compatibility 已删除
+- [x] C12 验证 Scenario label derivation compatibility 已删除
   - Verifies: `specs/cli-scenario-labels/spec.md` / REMOVED Requirement "Scenario label derivation"
   - Command: `pnpm vitest run test/core/parsers/requirement-blocks.test.ts test/commands/validate.test.ts`
   - Expect: operation-like labels 与 RENAMED section 均产生 location-aware ERROR
 
-- [ ] C13 验证 propose 与 snack 使用 effective diff
+- [x] C13 验证 propose 与 snack 使用 effective diff
   - Verifies: `specs/propose-workflow/spec.md` / Requirement "Propose 使用 definition-first authoring" / Scenario "Scenario operations 通过 diff 审阅"
   - Command: `pnpm vitest run test/core/templates/transforms.test.ts test/core/templates/propose-template.test.ts test/integration/snack-workflow.test.ts`
   - Expect: generated instructions 包含 validate preview 与 opsx diff --write，且不含 scenario-labels
@@ -186,13 +207,28 @@
 
 **Files**:
 - Modify: `src/core/view.ts`
+- Modify: `likec4/packages/diagram/src/index.ts`
 - Modify: `likec4/packages/diagram/src/navigationpanel/NavigationPanelDropdown.tsx`
+- Modify: `likec4/packages/diagram/src/opsx/SpecLoaderContext.tsx`
+- Create: `likec4/packages/diagram/src/opsx/architectureView.ts`
 - Modify: `likec4/packages/diagram/src/overlays/element-details/SpecsTab.tsx`
 - Modify: `likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx`
 - Modify: `likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx`
+- Modify: `likec4/packages/likec4-spa/src/main.tsx`
+- Modify: `likec4/packages/likec4-spa/src/opsx/HttpSpecLoader.ts`
+- Modify: `likec4/packages/likec4/src/cli/options.ts`
+- Modify: `likec4/packages/likec4/src/cli/serve/index.ts`
+- Modify: `likec4/packages/likec4/src/cli/serve/serve.ts`
+- Modify: `likec4/packages/likec4/src/vite/config-app.ts`
+- Modify: `likec4/packages/vite-plugin/src/plugin.ts`
+- Modify: `likec4/packages/vite-plugin/src/rpc/protocol.ts`
+- Modify: `playwright.config.ts`
 - Test: `test/core/view.test.ts`
+- Test: `likec4/packages/diagram/src/opsx/architectureView.spec.ts`
 - Test: `likec4/packages/diagram/src/overlays/element-details/SpecsTab.spec.tsx`
 - Test: `test/e2e/spec-browser.spec.ts`
+- Test: `test/fixtures/spec-browser/.opsx/changes/`
+- Test: `test/fixtures/spec-browser/.opsx/specs/single/spec.md`
 
 **Requirements**:
 - Selector 默认 Formal，并只列 active changes；Specs-only changes 也显示。
@@ -203,20 +239,20 @@
 
 #### Checks
 
-- [ ] C14 验证 active change selector 与 isolation
+- [x] C14 验证 active change selector 与 isolation
   - Verifies: `specs/cli-view/spec.md` / Requirement "Dashboard Display" / Scenario "Active change selector", Scenario "Archive change 不显示", Scenario "Specs-only change 显示"
   - Command: `pnpm vitest run test/core/view.test.ts`
   - Expect: selector 稳定排序，archive 排除，各 change target 相互隔离
 
-- [ ] C15 验证 Specs structured diff 与 partial diagnostics
+- [x] C15 验证 Specs structured diff 与 partial diagnostics
   - Verifies: `specs/spec-content-browser/spec.md` / Requirement "Active change Specs semantic diff" / Scenario "Scenario operation 派生", Scenario "Modified text 展示"
   - Command: `pnpm --dir likec4 exec vitest run packages/diagram/src/overlays/element-details/SpecsTab.spec.tsx`
   - Expect: Requirement/Scenario badges、line/word diff 与 diagnostics 使用统一 Diff IR
 
-- [ ] C16 验证 graph overlay、Diff only 与 HMR
+- [x] C16 验证 graph overlay、Diff only 与 HMR
   - Verifies: `specs/cli-view/spec.md` / Requirement "Dashboard Display" / Scenario "Full context 与 Diff only", Scenario "分区 diagnostics", Scenario "Active change 热更新"
-  - Command: `pnpm test:e2e`
-  - Expect: 单图 overlay 保留最小上下文，Specs-only 更新不触发无关 graph relayout
+  - Command: `pnpm --dir likec4 build && pnpm test:e2e`
+  - Expect: selected target graph 被 renderer 消费，Diff only 保留最小上下文，Specs-only 更新不触发无关 graph relayout
 
 ### Task 7: 完成 self-host validation 与跨平台回归
 
@@ -237,17 +273,50 @@
 
 #### Checks
 
-- [ ] C17 验证本 change 的完整 Semantic Delta
+- [x] C17 验证本 change 的完整 Semantic Delta
   - Verifies: `specs/validate-change/spec.md` / Requirement "validate change SHALL 支持 architecture-delta.c4" / Scenario "联合 Target Semantic Model", Scenario "Validation 保持只读"
   - Command: `pnpm build && node bin/opsx.js validate --change add-semantic-change-diff --json && node bin/opsx.js diff --change add-semantic-change-diff --write`
   - Expect: validation 通过并生成 current deterministic effective-change.md
 
-- [ ] C18 验证 root 与 LikeC4 全套检查
+- [x] C18 验证 root 与 LikeC4 全套检查
   - Verifies: `specs/cli-diff/spec.md` / Requirement "Partial diff diagnostics" / Scenario "Specs 失败而 Architecture 可计算", Scenario "Architecture 失败而 Specs 可计算"
   - Command: `pnpm lint && pnpm build && pnpm test && pnpm --dir likec4 typecheck && pnpm --dir likec4 test && pnpm --dir likec4 build && pnpm test:e2e`
   - Expect: root、LikeC4 与 browser suites 全部通过
 
-- [ ] C19 验证三平台 CI matrix
+- [x] C19 验证三平台 CI matrix
   - Verifies: `specs/cli-diff/spec.md` / Requirement "Effective change review artifact" / Scenario "相同输入生成相同文件"
   - Command: `node -e "const fs=require('fs');const s=fs.readFileSync('.github/workflows/opsx-v2-cross-platform.yml','utf8');for(const v of ['ubuntu-latest','macos-latest','windows-latest','22.22.3'])if(!s.includes(v))process.exit(1)"`
   - Expect: CI 明确覆盖 Linux、macOS、Windows 与要求的 Node.js runtime
+
+## Remediation
+
+- [x] [code_fix] Specs-only compilation does not run complete target validation.
+  - Requirement: validate change SHALL support architecture-delta.c4
+  - Next: Validate the materialized contract-only target for bindings, required contracts, element identities, and all semantic model constraints before returning valid=true.
+- [x] [code_fix] Removal validation does not inspect explicit metadata references.
+  - Requirement: Delta validation SHALL check strict non-cascading removals
+  - Next: Extend target validation to report metadata and other explicit surviving references.
+- [x] [code_fix] Selected active-change target and Diff only mode are not rendered as a graph.
+  - Requirement: Dashboard Display
+  - Next: Materialize and pass the selected target graph to the renderer, then implement changed-graph/context-closure filtering.
+- [x] [artifact_fix] Runtime, LikeC4, and browser-surface changes are outside the task attribution universe.
+  - Requirement: Unaccounted changes
+  - Next: Supplement the applicable task Files sections and Check evidence attribution for every intentional changed path, or remove each unaccounted change.
+- [x] [artifact_fix] Parser, schema, validation, and architecture-command changes are outside the task attribution universe.
+  - Requirement: Unaccounted changes
+  - Next: Supplement the applicable Task 5 and architecture-validation task Files sections for every intentional source path, or remove each unaccounted change.
+- [x] [artifact_fix] Supporting tests and fixtures are outside the task attribution universe.
+  - Requirement: Unaccounted changes
+  - Next: List every changed test and fixture under the relevant task Files or Check evidence commands, or remove the unaccounted changes.
+- [x] [code_fix] Specs and Architecture caches, fingerprints, and HMR invalidation remain coupled.
+  - Requirement: Dashboard Display
+  - Next: Separate cache keys and fingerprints so Spec changes do not update or relayout an unchanged Architecture target.
+- [x] [code_fix] Contract binding diagnostics are not partitioned from Architecture diagnostics.
+  - Requirement: Dashboard Display
+  - Next: Use explicit diagnostic scope or a canonical Specs-prefixed path, then rerun C16 and browser E2E.
+- [x] [code_fix] The shared compiler accepts structurally invalid change Specs.
+  - Requirement: Partial diff diagnostics
+  - Next: Integrate complete change-Spec validation into compileChange and add invalid-Spec partial-diff command and runtime-view regressions.
+- [x] [code_fix] The fixed-file snapshot writer duplicates facts from other Formal graph modules.
+  - Requirement: sync SHALL 合并 architecture-delta.c4
+  - Next: Reconcile superseded semantic modules while preserving view-only modules and add a multi-module v1 sync regression.

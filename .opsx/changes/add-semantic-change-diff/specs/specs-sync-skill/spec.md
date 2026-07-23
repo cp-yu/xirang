@@ -1,3 +1,7 @@
+---
+element: project.root/domain.change_workflow/cap.change.lifecycle
+---
+
 ## MODIFIED Requirements
 
 ### Requirement: Delta Reconciliation Logic

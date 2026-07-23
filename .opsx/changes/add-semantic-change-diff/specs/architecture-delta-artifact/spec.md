@@ -1,3 +1,7 @@
+---
+element: project.root/domain.schema/cap.schema.workflow-definition
+---
+
 ## MODIFIED Requirements
 
 ### Requirement: Change SHALL 使用 architecture-delta.c4 表达架构增量

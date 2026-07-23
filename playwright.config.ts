@@ -16,12 +16,12 @@ export default defineConfig({
   projects: [
     {
       name: 'desktop',
-      grep: /browses absent/,
+      grep: /browses absent|switches isolated/,
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'mobile',
-      grep: /mobile dialog/,
+      grep: /mobile dialog|switches isolated/,
       use: { ...devices['Pixel 7'] },
     },
   ],

@@ -13,8 +13,28 @@ describe('top-level validate command', () => {
     await fs.mkdir(changesDir, { recursive: true });
     await fs.mkdir(specsDir, { recursive: true });
 
+    await fs.mkdir(path.join(testDir, '.opsx', 'architecture'), { recursive: true });
+    await fs.writeFile(path.join(testDir, '.opsx', 'architecture', 'model.c4'), [
+      "opsx { languageVersion '1' }",
+      'specification {',
+      '  element project { opsx { root true contract optional } }',
+      '  element capability { opsx { contract optional parents [project] } }',
+      '}',
+      'model {',
+      "  project_root = project 'Root' 'Root summary' {",
+      "    metadata { elementId 'project.root' }",
+      "    alpha = capability 'Alpha' 'Alpha summary' { metadata { elementId 'alpha.id' } }",
+      '  }',
+      '}',
+      '',
+    ].join('\n'));
+
     // Create a valid spec
     const specContent = [
+      '---',
+      'element: alpha.id',
+      '---',
+      '',
       '## Purpose',
       'This spec ensures the validation harness exercises a deterministic alpha module for automated tests.',
       '',
@@ -36,6 +56,10 @@ describe('top-level validate command', () => {
     await fs.mkdir(path.join(changesDir, 'c1'), { recursive: true });
     await fs.writeFile(path.join(changesDir, 'c1', 'proposal.md'), changeContent, 'utf-8');
     const deltaContent = [
+      '---',
+      'element: alpha.id',
+      '---',
+      '',
       '## ADDED Requirements',
       '### Requirement: Validator SHALL support alpha change deltas',
       'The validator SHALL accept deltas provided by the test harness.',
@@ -106,6 +130,23 @@ describe('top-level validate command', () => {
     const explicitJson = JSON.parse(explicit.stdout.trim());
     expect(explicitJson.items[0]).toMatchObject({ id: 'c1', type: 'change', valid: true });
     expect(explicitJson.items[0].issues).toEqual(legacyJson.items[0].issues);
+  });
+
+  it('shows concise effective preview without writing the review artifact', async () => {
+    const human = await runCLI(['validate', '--change', 'c1'], { cwd: testDir });
+    const jsonResult = await runCLI(['validate', '--change', 'c1', '--json'], { cwd: testDir });
+
+    expect(human.exitCode).toBe(0);
+    expect(human.stdout).toContain('Effective change preview');
+    expect(human.stdout).toContain('Specs');
+    expect(jsonResult.exitCode).toBe(0);
+    const json = JSON.parse(jsonResult.stdout);
+    expect(json.items[0].summary).toBeDefined();
+    expect(json.items[0].entries).toEqual(expect.arrayContaining([
+      expect.objectContaining({ scope: 'specs', kind: 'requirement', operation: 'ADDED' }),
+    ]));
+    expect(json.items[0].entries[0]).not.toHaveProperty('before');
+    await expect(fs.access(path.join(changesDir, 'c1', 'effective-change.md'))).rejects.toThrow();
   });
 
   it('accepts a canonical Specs no-op in scoped and full validation', async () => {
@@ -190,6 +231,41 @@ describe('top-level validate command', () => {
     expect(result.stderr).toContain('Ambiguous item');
   });
 
+  it('does not register the removed scenario-labels command', async () => {
+    const result = await runCLI(['scenario-labels', 'c1', '--preview'], { cwd: testDir });
+
+    expect(result.exitCode).not.toBe(0);
+    expect(`${result.stdout}\n${result.stderr}`).toContain("unknown command 'scenario-labels'");
+  });
+
+  it.each(['ADDED', 'MODIFIED', 'REMOVED', 'UPDATED'])('rejects [%s] Scenario metadata', async prefix => {
+    const specPath = path.join(changesDir, 'c1', 'specs', 'alpha', 'spec.md');
+    const content = await fs.readFile(specPath, 'utf-8');
+    await fs.writeFile(specPath, content.replace('#### Scenario: Apply alpha delta', `#### Scenario: [${prefix}] Apply alpha delta`));
+
+    const result = await runCLI(['validate', '--change', 'c1', '--artifacts', 'specs', '--json'], { cwd: testDir });
+
+    expect(result.exitCode).toBe(1);
+    expect(`${result.stdout}\n${result.stderr}`).toContain(`Unsupported Scenario operation metadata [${prefix}]`);
+  });
+
+  it('rejects RENAMED Requirements with REMOVED plus ADDED guidance', async () => {
+    const specPath = path.join(changesDir, 'c1', 'specs', 'alpha', 'spec.md');
+    await fs.writeFile(specPath, [
+      '---', 'element: alpha.id', '---', '',
+      '## RENAMED Requirements', '',
+      'FROM: ### Requirement: Alpha module SHALL produce deterministic output',
+      'TO: ### Requirement: Alpha module SHALL produce renamed output',
+    ].join('\n'));
+
+    const result = await runCLI(['validate', '--change', 'c1', '--artifacts', 'specs', '--json'], { cwd: testDir });
+
+    expect(result.exitCode).toBe(1);
+    const output = `${result.stdout}\n${result.stderr}`;
+    expect(output).toContain('RENAMED Requirements is unsupported');
+    expect(output).toContain('REMOVED old Requirement plus ADDED new Requirement');
+  });
+
   it('accepts change proposals saved with CRLF line endings', async () => {
     const changeId = 'crlf-change';
     const toCrlf = (segments: string[]) => segments.join('\n').replace(/\n/g, '\r\n');
@@ -208,6 +284,10 @@ describe('top-level validate command', () => {
     await fs.writeFile(path.join(changesDir, changeId, 'proposal.md'), crlfContent, 'utf-8');
 
     const deltaContent = toCrlf([
+      '---',
+      'element: alpha.id',
+      '---',
+      '',
       '## ADDED Requirements',
       '### Requirement: Parser SHALL accept CRLF change proposals',
       'The parser SHALL accept CRLF change proposals without manual edits.',

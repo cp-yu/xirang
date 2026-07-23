@@ -2,6 +2,7 @@ import type { AdhocViewPredicate } from '@likec4/core/compute-view'
 import type { LayoutedElementView, ProjectId, ViewChange, ViewId } from '@likec4/core/types'
 
 export const opsxSpecChangedEvent = 'opsx:spec-changed'
+export const opsxChangeManifestChangedEvent = 'opsx:change-manifest-changed'
 
 export interface OpsxSpecChangedEvent {
   path: string

@@ -1,3 +1,7 @@
+---
+element: project.root/domain.cli/cap.cli.change-operations
+---
+
 ## REMOVED Requirements
 
 ### Requirement: Scenario label fix command
