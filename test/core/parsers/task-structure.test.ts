@@ -311,15 +311,15 @@ function createChangeDir(specs: Record<string, string>): string {
   return tempDir;
 }
 
-describe('scenario operation label references', () => {
-  it('matches Verifies scenario references by clean scenario title', () => {
+describe('canonical Scenario references', () => {
+  it('matches Verifies scenario references by exact canonical title', () => {
     const tempDir = createChangeDir({
       'example/spec.md': `## MODIFIED Requirements
 
 ### Requirement: Parser behavior
 The system SHALL validate task references.
 
-#### Scenario: [MODIFIED] Valid tasks pass
+#### Scenario: Valid tasks pass
 - **WHEN** validation runs
 - **THEN** the task reference is valid
 `,

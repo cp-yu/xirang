@@ -1,6 +1,5 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { stripScenarioOperationLabel } from './requirement-blocks.js';
 
 export interface TaskStructureIssue {
   code:
@@ -487,7 +486,7 @@ function parseSpecRequirements(content: string): Map<string, SpecRequirement> {
       continue;
     }
 
-    const scenario = stripScenarioOperationLabel(line).match(/^####\s+Scenario:\s+(.+?)\s*$/);
+    const scenario = line.match(/^####\s+Scenario:\s+(.+?)\s*$/);
     if (scenario && current && !inRemovedSection) {
       current.scenarios.add(scenario[1]);
     }

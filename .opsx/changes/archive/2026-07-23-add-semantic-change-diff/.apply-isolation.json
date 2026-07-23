@@ -1,0 +1,426 @@
+{
+  "method": "worktree",
+  "branchName": "add-semantic-change-diff",
+  "originalBranch": "main",
+  "baseCommit": "0bd4cf0ee98a61251bc85512db03e807edb5edf1",
+  "worktreePath": "/home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec/.worktrees/add-semantic-change-diff",
+  "sourceRoot": "/home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec",
+  "transferredFiles": [
+    {
+      "path": ".github/workflows/opsx-v2-cross-platform.yml",
+      "sourceState": "present",
+      "sourceHash": "ae0cc5c326bdd4c17c2e6a2520d997d7addee742d1ef42a198c631dc252c50fb"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/.opsx.yaml",
+      "sourceState": "present",
+      "sourceHash": "6a5c58f9e3373af27403fe8fe085847ba938f4b583c5931a3b4ae44272281289"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/architecture-delta.c4",
+      "sourceState": "present",
+      "sourceHash": "87409b607dfa4a7e8a8033353dcbd5affa58dd616dd9a929784af128e8ef2071"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/design.md",
+      "sourceState": "present",
+      "sourceHash": "993e2953aff89b7123c01d30eb94f243b062bab78a4d3d971dc944bcb81d7ede"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/proposal.md",
+      "sourceState": "present",
+      "sourceHash": "cea063f08c8b7955d6065533f227312d52e6b9148eb799fb4fe5e06891430435"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/specs/apply-preflight-scan/spec.md",
+      "sourceState": "present",
+      "sourceHash": "61dd75b45818affcff9d9dc8378117ce06b717299b2492d808585b07e9768f6c"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/specs/arch-plan-remove-command/spec.md",
+      "sourceState": "present",
+      "sourceHash": "d685c0678377f605aef3a9a8c4640bef62d0d6461c558eca786b0f9615e32d95"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/specs/arch-validate-command/spec.md",
+      "sourceState": "present",
+      "sourceHash": "a996a4b07be4f187a94ac61f9cbdaadff43f6d9f0a335c9ce9b2c34db95f578a"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/specs/architecture-delta-artifact/spec.md",
+      "sourceState": "present",
+      "sourceHash": "a0d870435d13021bf7d5b1f19244703e20184caa65de8268e1b4a214c17a657b"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/specs/archive-sync-workflow/spec.md",
+      "sourceState": "present",
+      "sourceHash": "37abb85312a0c66869d66c4bb0a30062c879e82c9699212d0de3d4b265141c91"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/specs/artifact-file-definitions/spec.md",
+      "sourceState": "present",
+      "sourceHash": "252afa7d9998b125b5a0cb9e8c2fc397204a42cf4375525d7f54031c797ed058"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/specs/cli-archive/spec.md",
+      "sourceState": "present",
+      "sourceHash": "dedd1aef43c0353e76630e85d7602021744b29c963003bd7dfa7b24486822002"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/specs/cli-diff/spec.md",
+      "sourceState": "present",
+      "sourceHash": "08849cf34a147cea288cca8bb69fc1bbd86a11ec0459207205f3f7f437f8b0ae"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/specs/cli-scenario-labels/spec.md",
+      "sourceState": "present",
+      "sourceHash": "4066f83b828481267d94224aafdbc3aff7b6b0e4ef0455f12d3271662bee936f"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/specs/cli-sync/spec.md",
+      "sourceState": "present",
+      "sourceHash": "b94fdf94ce9f303fe60ccd285d925a499dde171e89af10033f97a37f6203d534"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/specs/cli-validate/spec.md",
+      "sourceState": "present",
+      "sourceHash": "4f71db8e9a4d6a53e481e49db8b24a74f8e77c42906587abb051496b78da37ec"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/specs/cli-view/spec.md",
+      "sourceState": "present",
+      "sourceHash": "406328ea5a5a6a79e130c7b96e373621835bd076d5f68022e8d8e9e644bcaf08"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/specs/opsx-conventions/spec.md",
+      "sourceState": "present",
+      "sourceHash": "ca2ced5735b586daedf2102ac137788c5eff573712dcb27b503a105c1bbda4aa"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/specs/opsx-propose-skill/spec.md",
+      "sourceState": "present",
+      "sourceHash": "3ec1796e75891e94ed4bedc13645a6276c3c6cb3d0f7cf829d8ab40fc0f81350"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/specs/propose-workflow/spec.md",
+      "sourceState": "present",
+      "sourceHash": "3efe382a319731fcece8d4e25be6c2ee4aa178c62ff990d58d9908b93fa994fe"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/specs/snack-skill/spec.md",
+      "sourceState": "present",
+      "sourceHash": "7400e24b8ff07888b229f7cb7da20b743b3c22071a53c05365d553e54741ffc7"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/specs/spec-content-browser/spec.md",
+      "sourceState": "present",
+      "sourceHash": "47142a2cba6f80b973a4b38ed43d921eb7d9dfa93165edb3511d438c42c8707d"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/specs/specs-sync-skill/spec.md",
+      "sourceState": "present",
+      "sourceHash": "36d150450309dfd9b63fbdbb574b35972d441ebd861d2a2d4c6b901a06bf6a45"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/specs/validate-change/spec.md",
+      "sourceState": "present",
+      "sourceHash": "6b5aaae6e0dcd3343527def754da9b7df11f8291a82739e90a2f37b8289425bd"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/specs/validate-spec-section-type-cross-check/spec.md",
+      "sourceState": "present",
+      "sourceHash": "0f6e748e333239387a5ab08053a1536ee524730f3bc9508285afb9c0a55f1fdf"
+    },
+    {
+      "path": ".opsx/changes/add-semantic-change-diff/tasks.md",
+      "sourceState": "present",
+      "sourceHash": "57386816305b90621f4105b4b80778d7a8d93763af21d7c83707dd5ec21c78c4"
+    },
+    {
+      "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.ts",
+      "sourceState": "deleted",
+      "sourceHash": null
+    },
+    {
+      "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+      "sourceState": "present",
+      "sourceHash": "ce4e4b8c413468b799a9cfa0099ecc6d525026a4f4b6fcc480c12e58b8776e63"
+    },
+    {
+      "path": "likec4/packages/diagram/src/navigationpanel/NavigationPanelDropdown.ts",
+      "sourceState": "deleted",
+      "sourceHash": null
+    },
+    {
+      "path": "likec4/packages/diagram/src/navigationpanel/NavigationPanelDropdown.tsx",
+      "sourceState": "present",
+      "sourceHash": "f57bdad9f1213a785e1cc47443ccae02a9979541a42b70149fa17c181ebfa6b4"
+    },
+    {
+      "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.ts",
+      "sourceState": "deleted",
+      "sourceHash": null
+    },
+    {
+      "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+      "sourceState": "present",
+      "sourceHash": "3dc17553442f2373105ca892cfc244f3a8243939412eb078963ded9a1478a963"
+    },
+    {
+      "path": "likec4/packages/diagram/src/overlays/element-details/SpecsTab.spec.ts",
+      "sourceState": "deleted",
+      "sourceHash": null
+    },
+    {
+      "path": "likec4/packages/diagram/src/overlays/element-details/SpecsTab.spec.tsx",
+      "sourceState": "present",
+      "sourceHash": "bb2b3ee59c268b11b2bb8fe914cb82ec51fe4d2b337ca886f2d522e5e0b0e25e"
+    },
+    {
+      "path": "likec4/packages/diagram/src/overlays/element-details/SpecsTab.ts",
+      "sourceState": "deleted",
+      "sourceHash": null
+    },
+    {
+      "path": "likec4/packages/diagram/src/overlays/element-details/SpecsTab.tsx",
+      "sourceState": "present",
+      "sourceHash": "326062919af8b4ad530f17454431b6a97eb23d2fcc03b87a867b52890caa3862"
+    },
+    {
+      "path": "likec4/packages/language-server/src/like-c4.langium",
+      "sourceState": "present",
+      "sourceHash": "737387de431a67850bdf38aa97fb465d8b1cee7dfee6d0e1b70c0aba04fd5453"
+    },
+    {
+      "path": "schemas/spec-driven/schema.yaml",
+      "sourceState": "present",
+      "sourceHash": "2262e5df447386ed4b12830aaae46d4f973954deb4f092bb96c754551a3f5424"
+    },
+    {
+      "path": "src/cli/index.ts",
+      "sourceState": "present",
+      "sourceHash": "16b9b4b28fb066898fcb3c32e57dcdaee2ad39a58c62e7f3f02ed3daa6c33c02"
+    },
+    {
+      "path": "src/commands/arch/index.ts",
+      "sourceState": "present",
+      "sourceHash": "7a1f93ef5509ce3379826a3b644e03a30c09af00ae46ababe6282a8d0532ff44"
+    },
+    {
+      "path": "src/commands/arch/plan-remove.ts",
+      "sourceState": "deleted",
+      "sourceHash": null
+    },
+    {
+      "path": "src/commands/diff.ts",
+      "sourceState": "deleted",
+      "sourceHash": null
+    },
+    {
+      "path": "src/commands/scenario-labels.ts",
+      "sourceState": "present",
+      "sourceHash": "03d19a328e2148c6532178f1d100ef269bb374247e61c23ae5aa5ffc3e693795"
+    },
+    {
+      "path": "src/commands/sync.ts",
+      "sourceState": "present",
+      "sourceHash": "a45d2672b153100dad3dc394e58109527b0ad3491d551643c74691075ff7cee1"
+    },
+    {
+      "path": "src/commands/validate.ts",
+      "sourceState": "present",
+      "sourceHash": "ac510f72517378de33832d7eaa0638010c896c3cb057a550cc9cf8e6e91a3913"
+    },
+    {
+      "path": "src/core/architecture-delta-parser.ts",
+      "sourceState": "deleted",
+      "sourceHash": null
+    },
+    {
+      "path": "src/core/archive.ts",
+      "sourceState": "present",
+      "sourceHash": "0bdf704b01cfbcb3f969b50bcb9375807ead7bf95e033ba8c53323dd17bef1aa"
+    },
+    {
+      "path": "src/core/change-compiler.ts",
+      "sourceState": "deleted",
+      "sourceHash": null
+    },
+    {
+      "path": "src/core/change-diff-renderer.ts",
+      "sourceState": "deleted",
+      "sourceHash": null
+    },
+    {
+      "path": "src/core/change-sync.ts",
+      "sourceState": "present",
+      "sourceHash": "546e2be39d938cd1066cea9b4d70de365492deb695e3bc6b4666b62b132824bf"
+    },
+    {
+      "path": "src/core/parsers/requirement-blocks.ts",
+      "sourceState": "present",
+      "sourceHash": "0f659d447d8546ebabecf92134d17f451024f2555ee5d01007ae88e981b9b7ec"
+    },
+    {
+      "path": "src/core/scenario-labels.ts",
+      "sourceState": "present",
+      "sourceHash": "51f712a6172808d7223075fee5921d4a4f1d4df6b33e76778347172a6db1754c"
+    },
+    {
+      "path": "src/core/semantic-diff.ts",
+      "sourceState": "deleted",
+      "sourceHash": null
+    },
+    {
+      "path": "src/core/specs-apply.ts",
+      "sourceState": "present",
+      "sourceHash": "ae9ff94cc4041cefbb93b9d372bca66fd3d47938f2de930b61806ef63ee476a6"
+    },
+    {
+      "path": "src/core/templates/fragments/opsx-fragments.ts",
+      "sourceState": "present",
+      "sourceHash": "2a19082ef4bb1365c2dc182a89a101ea5996a1796c323ff850be3912c1f7e96a"
+    },
+    {
+      "path": "src/core/templates/workflows/propose.ts",
+      "sourceState": "present",
+      "sourceHash": "7b197d1a72248e3df778856928640a07317789dcd081733231769504774ce7c7"
+    },
+    {
+      "path": "src/core/templates/workflows/snack.ts",
+      "sourceState": "present",
+      "sourceHash": "ff2cd6d980e8efb883fcadc34a7c9348b33b7c970b824a1143a8fc62db2a0ff1"
+    },
+    {
+      "path": "src/core/validation/validator.ts",
+      "sourceState": "present",
+      "sourceHash": "9c1dd7e1e33ed3adfec9492d3879cdde5fb8a3a6f20c4f77d36ec20f7feeb2c2"
+    },
+    {
+      "path": "src/core/view.ts",
+      "sourceState": "present",
+      "sourceHash": "9eadf5f1e652ba6b422a5a35f48ff61cfcca115aa12168b512453006140866a5"
+    },
+    {
+      "path": "src/utils/architecture-delta-merger.ts",
+      "sourceState": "present",
+      "sourceHash": "67471db01609e2612f5d2f2b3ce9009e5f43f6d75b758b9f09d82d396cc239ae"
+    },
+    {
+      "path": "src/utils/likec4-reader.ts",
+      "sourceState": "present",
+      "sourceHash": "b5992038fc3df0f388795d2d7d56bb7413eb0e07b2acd1256f507291a50659ee"
+    },
+    {
+      "path": "src/utils/semantic-model.ts",
+      "sourceState": "present",
+      "sourceHash": "9f262b20a8a4008cf4cd43e22aa8167cdcfce95d1f546c533b2e2f72e2f3144e"
+    },
+    {
+      "path": "src/validation/architecture-delta-validator.ts",
+      "sourceState": "present",
+      "sourceHash": "eb4c30cb408edb7f8eb9fa5904d3618da3ea8436df992508c5ed12e79c46e81a"
+    },
+    {
+      "path": "test/commands/arch-plan-remove.test.ts",
+      "sourceState": "deleted",
+      "sourceHash": null
+    },
+    {
+      "path": "test/commands/diff.test.ts",
+      "sourceState": "deleted",
+      "sourceHash": null
+    },
+    {
+      "path": "test/commands/scenario-labels.test.ts",
+      "sourceState": "present",
+      "sourceHash": "1fea270d450d48a68bd58616ae71346b7ca704b930c3d06ec0666b6fd10f8cd2"
+    },
+    {
+      "path": "test/commands/sync.test.ts",
+      "sourceState": "present",
+      "sourceHash": "0000c8482a0a4c73ce3a7ff9d61cf006135e1b872c8931da94e4d08e256964bc"
+    },
+    {
+      "path": "test/commands/validate.enriched-output.test.ts",
+      "sourceState": "present",
+      "sourceHash": "bc173f4c75f30c997a6065b993e9ca791a2badb167ffe76c7752c32452726bff"
+    },
+    {
+      "path": "test/commands/validate.test.ts",
+      "sourceState": "present",
+      "sourceHash": "9a01d4e5fbaa36e45a250b3227212b96ce0447efb1a4fe3243cdbe85124304b4"
+    },
+    {
+      "path": "test/core/architecture-delta-parser.test.ts",
+      "sourceState": "deleted",
+      "sourceHash": null
+    },
+    {
+      "path": "test/core/archive.test.ts",
+      "sourceState": "present",
+      "sourceHash": "b312c1f86fd9ee2844accbd91520486d8c85828fc7e7c517fdf1fda9d108c60a"
+    },
+    {
+      "path": "test/core/change-compiler.test.ts",
+      "sourceState": "deleted",
+      "sourceHash": null
+    },
+    {
+      "path": "test/core/parsers/requirement-blocks.test.ts",
+      "sourceState": "present",
+      "sourceHash": "6d6b76ad98b4680998ab8a4d2d8f28d6f35548285c04753792916533c38cbde0"
+    },
+    {
+      "path": "test/core/scenario-labels.test.ts",
+      "sourceState": "present",
+      "sourceHash": "6a9fa9bcffb8c284837c1c069c0ebcdd4af63f6753d619cba51abeb9d84bcb52"
+    },
+    {
+      "path": "test/core/templates/propose-template.test.ts",
+      "sourceState": "present",
+      "sourceHash": "00584a2d7e110d4464276dbeb9032642666dfe229d1eaf974fcaff802c272f0a"
+    },
+    {
+      "path": "test/core/templates/transforms.test.ts",
+      "sourceState": "present",
+      "sourceHash": "b03736a878b398d335fed34360c9abfee2ededd72cb86605db9cacd11c43116d"
+    },
+    {
+      "path": "test/core/view.test.ts",
+      "sourceState": "present",
+      "sourceHash": "94bef28e6182792cd210eb9b514e89aaa46bd04e9c6a41fc7bb5349b3ba9d57c"
+    },
+    {
+      "path": "test/e2e/spec-browser.spec.ts",
+      "sourceState": "present",
+      "sourceHash": "1a2ff18d63f8c907ce22a379d004b80254a9bf3109a0547da865636932fc812c"
+    },
+    {
+      "path": "test/integration/archive-workflow.test.ts",
+      "sourceState": "present",
+      "sourceHash": "4c92f71b104f0f02371cd7a9703e189a302a950102bc5db349989939768bf7e5"
+    },
+    {
+      "path": "test/integration/snack-workflow.test.ts",
+      "sourceState": "present",
+      "sourceHash": "c1d690ddd7b3d867f5ed35c8e342dc74886ca1e14518825c481e7889413067f7"
+    },
+    {
+      "path": "test/integration/sync-workflow.test.ts",
+      "sourceState": "present",
+      "sourceHash": "274f84450395cb5e11096b597e5e029f5790c67801e8accb26013ae4ccbc05f0"
+    },
+    {
+      "path": "test/integration/validate-command.test.ts",
+      "sourceState": "present",
+      "sourceHash": "136ae1dab6e209200ab9542acb88d831ccbfd9aa4e7f1d02f5802f8e914e4528"
+    },
+    {
+      "path": "test/unit/utils/architecture-delta-merger.test.ts",
+      "sourceState": "present",
+      "sourceHash": "27e06f1d18eab1ea46a429137c69d2232e35341c904e0b2e46cf0e6beb019a5f"
+    }
+  ],
+  "phase2BaselineCommit": "57afad44d37cacc73782a2ea8dd45f05aa33aa98"
+}

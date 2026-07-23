@@ -1,0 +1,91 @@
+architectureDelta {
+  ADDED {
+    relationship 'project.root/domain.change_workflow/cap.change.semantic-delta' -[consumes]-> 'project.root/domain.architecture/cap.architecture.semantic-model'
+    relationship 'project.root/domain.cli/cap.cli.architecture-navigation' -[invokes]-> 'project.root/domain.change_workflow/cap.change.semantic-delta'
+    relationship 'project.root/domain.cli/cap.cli.change-operations' -[invokes]-> 'project.root/domain.change_workflow/cap.change.semantic-delta'
+    relationship 'project.root/domain.presentation/cap.presentation.semantic-browser' -[consumes]-> 'project.root/domain.change_workflow/cap.change.semantic-delta'
+    relationship 'project.root/domain.ai_integration/cap.ai.workflow-generation' -[consumes]-> 'project.root/domain.change_workflow/cap.change.semantic-delta'
+  }
+
+  MODIFIED {
+    element 'project.root/domain.architecture/cap.architecture.semantic-model' {
+      kind 'capability'
+      parent 'project.root/domain.architecture'
+      title 'Versioned Semantic Model'
+      summary '读取 immutable Formal snapshot，联合 materialize graph 与 contract target，验证完整 Semantic Model，并提供统一 Diff IR 与干净 formal source compilation'
+      metadata {
+        elementId 'project.root/domain.architecture/cap.architecture.semantic-model'
+      }
+    }
+
+    element 'project.root/domain.change_workflow/cap.change.semantic-delta' {
+      kind 'capability'
+      parent 'project.root/domain.change_workflow'
+      title 'Semantic Delta Application'
+      summary '编译 identity-level graph 与 Requirement operations，在 fingerprint gate 下生成 Target Semantic Model、统一 Diff IR，并以 rollback-capable transaction 原子持久化'
+      metadata {
+        elementId 'project.root/domain.change_workflow/cap.change.semantic-delta'
+      }
+    }
+
+    element 'project.root/domain.change_workflow/cap.change.lifecycle' {
+      kind 'capability'
+      parent 'project.root/domain.change_workflow'
+      title 'Change Lifecycle Management'
+      summary '维护 change 从创建、semantic diff 审阅和 verify-gated sync 到 final effective-change report、archive 与显式 Git handoff 的完整生命周期'
+      metadata {
+        elementId 'project.root/domain.change_workflow/cap.change.lifecycle'
+      }
+    }
+
+    element 'project.root/domain.cli/cap.cli.architecture-navigation' {
+      kind 'capability'
+      parent 'project.root/domain.cli'
+      title 'Architecture Navigation'
+      summary '按 stable element identity 查询、验证、导出、渲染 Semantic Architecture，并提供严格非级联删除的只读影响规划'
+      metadata {
+        elementId 'project.root/domain.cli/cap.cli.architecture-navigation'
+      }
+    }
+
+    element 'project.root/domain.cli/cap.cli.change-operations' {
+      kind 'capability'
+      parent 'project.root/domain.cli'
+      title 'Change Operations'
+      summary '提供 change、spec、show、validate、semantic diff、sync 与 archive 命令，并通过统一 compiler 保持 preview、JSON、report 与写入语义一致'
+      metadata {
+        elementId 'project.root/domain.cli/cap.cli.change-operations'
+      }
+    }
+
+    element 'project.root/domain.presentation/cap.presentation.semantic-browser' {
+      kind 'capability'
+      parent 'project.root/domain.presentation'
+      title 'Semantic Browser'
+      summary '使用现有 LikeC4 renderer 展示 Formal 与独立 active change target variants、Requirement/Scenario diff、Architecture overlay、Diff only 与分区 diagnostics'
+      metadata {
+        elementId 'project.root/domain.presentation/cap.presentation.semantic-browser'
+      }
+    }
+
+    element 'project.root/domain.ai_integration/cap.ai.workflow-generation' {
+      kind 'capability'
+      parent 'project.root/domain.ai_integration'
+      title 'Agent Workflow Generation'
+      summary '将 canonical workflow definitions、prompt projection、references 与 semantic guidance 编译为使用 validate preview 和 semantic diff review 的受管 Agent skills'
+      metadata {
+        elementId 'project.root/domain.ai_integration/cap.ai.workflow-generation'
+      }
+    }
+
+    element 'project.root/domain.validation/cap.validation.semantic-contract' {
+      kind 'capability'
+      parent 'project.root/domain.validation'
+      title 'Semantic Contract Validation'
+      summary '联合验证 registry-driven singular binding、contract coverage、Requirement operations、Architecture target、strict removals 与 partial diagnostics'
+      metadata {
+        elementId 'project.root/domain.validation/cap.validation.semantic-contract'
+      }
+    }
+  }
+}

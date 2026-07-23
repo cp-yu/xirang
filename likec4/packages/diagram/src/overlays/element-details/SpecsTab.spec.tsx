@@ -2,7 +2,9 @@ import { RichText } from '@likec4/core'
 import { describe, expect, it, vi } from 'vitest'
 import type { OpsxSpecLoader } from '../../opsx/SpecLoaderContext'
 import {
+  createTextDiff,
   getSpecsTabModel,
+  getStructuredSpecDiff,
   OpsxSpecIndexController,
   OpsxSpecLoadController,
   normalizeSpecPaths,
@@ -154,6 +156,74 @@ describe('SpecsTab', () => {
     await Promise.resolve()
     await Promise.resolve()
     expect(states.at(-1)?.status).toBe('success')
+  })
+
+  it('derives Requirement and Scenario badges from the unified Diff IR', () => {
+    const model = getStructuredSpecDiff({
+      id: 'change:auth', label: 'auth', kind: 'change', valid: true, diagnostics: [],
+      diff: {
+        summary: {
+          total: 1,
+          specs: { ADDED: 0, MODIFIED: 1, REMOVED: 0 },
+          architecture: { ADDED: 0, MODIFIED: 0, REMOVED: 0 },
+        },
+        entries: [{
+          scope: 'specs', kind: 'requirement', identity: 'auth#Login', operation: 'MODIFIED',
+          before: { body: 'The system SHALL use password login.' },
+          after: { body: 'The system SHALL use secure password login.' },
+          children: [
+            { scope: 'specs', kind: 'scenario', identity: 'auth#Login#Legacy', operation: 'REMOVED', before: { body: 'legacy' } },
+            { scope: 'specs', kind: 'scenario', identity: 'auth#Login#MFA', operation: 'ADDED', after: { body: 'mfa' } },
+          ],
+        }],
+      },
+    }, '.opsx/specs/auth/spec.md')
+
+    expect(model.requirements).toEqual([
+      expect.objectContaining({
+        title: 'Login', operation: 'MODIFIED',
+        scenarios: expect.arrayContaining([
+          expect.objectContaining({ title: 'Legacy', operation: 'REMOVED' }),
+          expect.objectContaining({ title: 'MFA', operation: 'ADDED' }),
+        ]),
+      }),
+    ])
+    expect(model.requirements[0]?.text.flatMap(line => line.words ?? []).some(word => word.operation === 'ADDED')).toBe(true)
+  })
+
+  it('builds line and inline word additions/removals while retaining unchanged context', () => {
+    const diff = createTextDiff('same\nold phrase here\ntail', 'same\nnew phrase here\ntail')
+
+    expect(diff.map(line => line.operation)).toEqual(['UNCHANGED', 'REMOVED', 'ADDED', 'UNCHANGED'])
+    expect(diff[1]?.words).toEqual(expect.arrayContaining([
+      expect.objectContaining({ operation: 'REMOVED', text: 'old' }),
+    ]))
+    expect(diff[2]?.words).toEqual(expect.arrayContaining([
+      expect.objectContaining({ operation: 'ADDED', text: 'new' }),
+    ]))
+  })
+
+  it('keeps Spec diagnostics partitioned from usable structured diff content', () => {
+    const model = getStructuredSpecDiff({
+      id: 'change:auth', label: 'auth', kind: 'change', valid: false,
+      diagnostics: [
+        { level: 'ERROR', code: 'SPEC_PARSE', path: 'specs/auth/spec.md:8', message: 'Bad Scenario' },
+        { level: 'ERROR', code: 'ARCH', path: 'architecture-delta.c4:2', message: 'Bad element' },
+      ],
+      diff: {
+        summary: {
+          total: 1,
+          specs: { ADDED: 1, MODIFIED: 0, REMOVED: 0 },
+          architecture: { ADDED: 0, MODIFIED: 0, REMOVED: 0 },
+        },
+        entries: [{ scope: 'specs', kind: 'requirement', identity: 'auth#Login', operation: 'ADDED', after: { body: 'new' } }],
+      },
+    }, '.opsx/specs/auth/spec.md')
+
+    expect(model.requirements).toHaveLength(1)
+    expect(model.diagnostics).toEqual([
+      expect.objectContaining({ code: 'SPEC_PARSE' }),
+    ])
   })
 
   it('uses the existing sanitized RichText Markdown pipeline', () => {

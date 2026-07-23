@@ -139,9 +139,16 @@ Snack SHALL NOT 生成 `tasks.md`。
 
 ### Requirement: Snack 执行一次自检与程序化 labels
 
-Snack SHALL 运行 full change validation。出现 ERROR/WARNING 时 SHALL 修复一轮并复检一次。最终 validation 后 SHALL 执行 `opsx scenario-labels "<name>" --write`，且 SHALL NOT 仅因 labels 再运行 validate。
+Snack SHALL 运行 full change validation，并审阅统一 effective semantic diff。出现 ERROR/WARNING 时 SHALL 修复一轮并复检一次；validation 无 ERROR 后 SHALL 运行 `opsx diff --change "<name>" --write`，且 MUST NOT 生成或写入 Scenario labels。
 
-#### Scenario: 输出结果
-- **WHEN** 自检完成
-- **THEN** summary SHALL 披露 pass 或 remaining issues
-- **AND** SHALL 提供 quick sync、quick archive、sync-and-archive 与 continue-development 路径
+#### Scenario: 输出 reconciliation result
+- **WHEN** self-check 与 diff review 完成
+- **THEN** summary SHALL 披露 validation pass 或 remaining issues
+- **AND** SHALL 汇总 effective Specs 与 Architecture operations
+- **AND** SHALL 提供 quick sync、quick archive、sync-and-archive 与 continue-development paths
+
+#### Scenario: Unexpected effective operation
+- **WHEN** Diff IR 包含 evidence 与 authorized intent 无法支持的 operation
+- **THEN** Snack SHALL 修正 proposal、Specs、design 或 Architecture delta source
+- **AND** SHALL NOT 手工编辑 `effective-change.md`
+

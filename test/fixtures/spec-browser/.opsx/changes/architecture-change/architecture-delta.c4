@@ -1,0 +1,13 @@
+architectureDelta {
+  MODIFIED {
+    element 'browser.single' {
+      kind 'capability'
+      parent 'project.root'
+      title 'Single Spec Changed'
+      summary 'Browser element changed by an isolated active architecture change'
+      metadata {
+        elementId 'browser.single'
+      }
+    }
+  }
+}

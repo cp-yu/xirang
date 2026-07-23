@@ -6,6 +6,7 @@ import { runLikeC4, type LikeC4Runner } from '../commands/arch/runner.js';
 import { validateArchitecture } from './architecture-validator.js';
 import { readLikeC4Architecture } from './likec4-reader.js';
 import { atomicWrite } from './likec4-writer.js';
+import type { SemanticArchitectureModel, SemanticElement } from './semantic-model.js';
 
 function blockAt(content: string, open: number): { body: string; end: number } {
   let depth = 0;
@@ -129,6 +130,146 @@ function extractRelations(content: string): string[] {
     relations.push(lines.map((line, index) => index === 0 ? line : line.slice(continuationIndent)).join('\n'));
   }
   return relations;
+}
+
+export interface WriteSemanticArchitectureOptions {
+  write?: (file: string, content: string) => Promise<void>;
+}
+
+function quote(value: string): string {
+  return `'${value.replaceAll('\\', '\\\\').replaceAll("'", "\\'").replaceAll('\n', '\\n')}'`;
+}
+
+function renderStringArray(values: string[]): string {
+  return `[${values.map(quote).join(', ')}]`;
+}
+
+function renderMetadataRecord(metadata: Record<string, string | string[]>, indent: string): string[] {
+  const values = { ...metadata };
+  const lines = Object.entries(values)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, value]) => `${indent}${key} ${Array.isArray(value) ? renderStringArray(value) : quote(value)}`);
+  return lines.length ? [`${indent.slice(2)}metadata {`, ...lines, `${indent.slice(2)}}`] : [];
+}
+
+function validFqn(fqn: string): boolean {
+  return fqn.split('.').every(part => /^[A-Za-z_][\w-]*$/.test(part));
+}
+
+function buildFqns(elements: SemanticElement[]): Map<string, string> {
+  const byId = new Map(elements.map(element => [element.id, element]));
+  const fqns = new Map<string, string>();
+  const resolve = (element: SemanticElement): string => {
+    const cached = fqns.get(element.id);
+    if (cached) return cached;
+    if (validFqn(element.fqn)) {
+      fqns.set(element.id, element.fqn);
+      return element.fqn;
+    }
+    const local = element.id.split('/').pop()!.replace(/[^A-Za-z0-9_-]/g, '_').replace(/^[^A-Za-z_]/, '_$&');
+    const parent = element.parent ? byId.get(element.parent) : undefined;
+    const fqn = parent ? `${resolve(parent)}.${local}` : local;
+    fqns.set(element.id, fqn);
+    return fqn;
+  };
+  for (const element of elements) resolve(element);
+  return fqns;
+}
+
+function renderElementTree(
+  element: SemanticElement,
+  children: Map<string | null, SemanticElement[]>,
+  fqns: Map<string, string>,
+  indent: string,
+): string[] {
+  const localName = fqns.get(element.id)!.split('.').pop()!;
+  const nested = children.get(element.id) ?? [];
+  const metadata = { ...element.metadata, elementId: element.id };
+  const body = [
+    ...renderMetadataRecord(metadata, `${indent}    `),
+    ...nested.flatMap(child => renderElementTree(child, children, fqns, `${indent}  `)),
+  ];
+  const declaration = `${indent}${localName} = ${element.kind} ${quote(element.title)} ${quote(element.summary)}`;
+  if (!body.length) return [declaration];
+  return [`${declaration} {`, ...body, `${indent}}`];
+}
+
+function renderSpecification(model: SemanticArchitectureModel): string {
+  const lines = [`opsx {`, `  languageVersion ${quote(model.languageVersion ?? '1')}`, `}`, '', 'specification {'];
+  for (const [kind, constraints] of Object.entries(model.metamodel.elements).sort(([left], [right]) => left.localeCompare(right))) {
+    const properties = [
+      ...(constraints.root ? ['root true'] : []),
+      ...(constraints.contractPolicy ? [`contract ${constraints.contractPolicy}`] : []),
+      ...(constraints.parents ? [`parents [${constraints.parents.join(', ')}]`] : []),
+      ...(constraints.children ? [`children [${constraints.children.join(', ')}]`] : []),
+    ];
+    lines.push(properties.length ? `  element ${kind} { opsx { ${properties.join(' ')} } }` : `  element ${kind}`);
+  }
+  for (const [kind, constraints] of Object.entries(model.metamodel.relationships).sort(([left], [right]) => left.localeCompare(right))) {
+    const properties = [
+      ...(constraints.sourceKinds ? [`sourceKinds [${constraints.sourceKinds.join(', ')}]`] : []),
+      ...(constraints.targetKinds ? [`targetKinds [${constraints.targetKinds.join(', ')}]`] : []),
+    ];
+    lines.push(properties.length ? `  relationship ${kind} { opsx { ${properties.join(' ')} } }` : `  relationship ${kind}`);
+  }
+  lines.push('}', '');
+  return lines.join('\n');
+}
+
+function renderModel(model: SemanticArchitectureModel): { model: string; relations: string } {
+  const fqns = buildFqns(model.elements);
+  const children = new Map<string | null, SemanticElement[]>();
+  for (const element of model.elements) {
+    const siblings = children.get(element.parent) ?? [];
+    siblings.push(element);
+    children.set(element.parent, siblings);
+  }
+  for (const siblings of children.values()) siblings.sort((left, right) => left.id.localeCompare(right.id));
+  const modelLines = ['model {', ...(children.get(null) ?? []).flatMap(element => renderElementTree(element, children, fqns, '  ')), '}', ''];
+  const relationLines = ['model {'];
+  for (const relation of [...model.relations].sort((left, right) => `${left.source}|${left.kind}|${left.target}`.localeCompare(`${right.source}|${right.kind}|${right.target}`))) {
+    const description = relation.description ? ` ${quote(relation.description)}` : '';
+    relationLines.push(`  ${fqns.get(relation.source) ?? relation.source} -[${relation.kind}]-> ${fqns.get(relation.target) ?? relation.target}${description}`);
+  }
+  relationLines.push('}', '');
+  return { model: modelLines.join('\n'), relations: relationLines.join('\n') };
+}
+
+async function removeSupersededSemanticModules(architectureDir: string): Promise<void> {
+  const canonicalModules = new Set(['specification.c4', 'model.c4', 'relations.c4']
+    .map(file => path.resolve(architectureDir, file)));
+  const visit = async (directory: string): Promise<void> => {
+    const entries = await fs.readdir(directory, { withFileTypes: true }).catch(() => []);
+    for (const entry of entries) {
+      const target = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        await visit(target);
+        continue;
+      }
+      if (!entry.isFile() || !entry.name.endsWith('.c4') || canonicalModules.has(path.resolve(target))) continue;
+      const source = await fs.readFile(target, 'utf8');
+      if (/\b(?:model|specification)\s*\{/.test(source) || /\bopsx\s*\{/.test(source)) {
+        await fs.rm(target, { force: true });
+      }
+    }
+  };
+  await visit(architectureDir);
+}
+
+export async function writeSemanticArchitectureSnapshot(
+  projectRoot: string,
+  model: SemanticArchitectureModel,
+  options: WriteSemanticArchitectureOptions = {},
+): Promise<void> {
+  const architectureDir = path.join(projectRoot, OPSX_DIR_NAME, 'architecture');
+  const rendered = renderModel(model);
+  const writes = options.write ?? atomicWrite;
+  await fs.mkdir(architectureDir, { recursive: true });
+  await fs.rm(path.join(architectureDir, 'deltas'), { recursive: true, force: true });
+  await removeSupersededSemanticModules(architectureDir);
+  await writes(path.join(architectureDir, 'specification.c4'), renderSpecification(model));
+  await writes(path.join(architectureDir, 'model.c4'), rendered.model);
+  await writes(path.join(architectureDir, 'relations.c4'), rendered.relations);
 }
 
 export interface MergeArchitectureDeltaOptions {

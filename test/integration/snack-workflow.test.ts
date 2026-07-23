@@ -107,7 +107,10 @@ describe('snack workflow integration', () => {
     expect(snackSkill).toContain('opsx instructions proposal');
     expect(snackSkill).toContain('opsx instructions specs');
     expect(snackSkill).toContain('opsx instructions design');
-    expect(snackSkill).toContain('opsx validate "<name>" --type change --json');
+    expect(snackSkill).toContain('opsx validate --change "<name>" --json');
+    expect(snackSkill).toContain('opsx diff --change "<name>" --write');
+    expect(snackSkill).toContain('.opsx/changes/<name>/effective-change.md');
+    expect(snackSkill).not.toContain('opsx scenario-labels');
     expect(snackSkill).toContain('1. **Quick sync**: `opsx sync "<change-name>" --no-verify`');
     expect(snackSkill).toContain('2. **Quick archive**: `opsx archive "<change-name>" --no-verify`');
     expect(snackSkill).toContain(
@@ -147,7 +150,9 @@ describe('snack workflow integration', () => {
     expect(readSkillFrontmatter(refreshed)).toMatchObject({ name: 'opsx-snack' });
     expect(refreshed).toContain('git diff');
     expect(refreshed).toContain('opsx instructions proposal');
-    expect(refreshed).toContain('opsx validate "<name>" --type change --json');
+    expect(refreshed).toContain('opsx validate --change "<name>" --json');
+    expect(refreshed).toContain('opsx diff --change "<name>" --write');
+    expect(refreshed).not.toContain('opsx scenario-labels');
     // C4: refreshed skill still exposes broader evidence sources
     expect(refreshed).toContain('conversation context');
     expect(refreshed).toContain('git diff HEAD');

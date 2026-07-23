@@ -27,3 +27,39 @@ export interface SemanticElement {
   children: string[];
   metadata: Record<string, string | string[]>;
 }
+
+export interface SemanticRelationship {
+  source: string;
+  kind: string;
+  target: string;
+  description?: string;
+}
+
+export interface SemanticScenario {
+  title: string;
+  body: string;
+}
+
+export interface SemanticRequirement {
+  title: string;
+  body: string;
+  scenarios: SemanticScenario[];
+}
+
+export interface SemanticContract {
+  specId: string;
+  elementId: string;
+  requirements: SemanticRequirement[];
+}
+
+export interface SemanticArchitectureModel {
+  languageVersion: string | null;
+  metamodel: SemanticMetamodel;
+  elements: SemanticElement[];
+  relations: SemanticRelationship[];
+}
+
+export interface TargetSemanticModel {
+  architecture: SemanticArchitectureModel;
+  contracts: SemanticContract[];
+}

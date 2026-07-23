@@ -14,6 +14,11 @@ import {
   formatVerifyGateFailure,
 } from './verify/freshness.js';
 import { selectActiveChange } from './change-utils.js';
+import { compileChange } from './change-compiler.js';
+import { renderEffectiveChange } from './change-diff-renderer.js';
+import { EFFECTIVE_CHANGE_FILE } from '../commands/diff.js';
+import { atomicWrite } from '../utils/likec4-writer.js';
+import { readLikeC4Architecture } from '../utils/likec4-reader.js';
 
 /**
  * Recursively copy a directory. Used when fs.rename fails (e.g. EPERM on Windows).
@@ -147,6 +152,7 @@ export class ArchiveCommand {
     if (!(await this.runSyncGate(targetPath, changeName, options))) return;
     if (!(await this.runValidationGate(changeDir, options))) return;
     if (!(await this.runTaskGate(changesDir, changeName, options))) return;
+    await this.generateFinalReport(targetPath, changeDir, changeName, options);
 
     // Move change to archive
     const archiveName = `${this.getArchiveDate()}-${changeName}`;
@@ -284,6 +290,20 @@ export class ArchiveCommand {
       return true;
     }
 
+    const architecture = await readLikeC4Architecture('.').catch((error: NodeJS.ErrnoException) => {
+      if (error.code === 'ENOENT') return null;
+      throw error;
+    });
+    if (architecture?.profile === 'v1') {
+      const compiled = await compileChange('.', path.basename(changeDir), { allowAlreadyApplied: true });
+      if (!compiled.valid) {
+        console.log(chalk.red('\nValidation errors in Semantic Delta:'));
+        for (const issue of compiled.diagnostics) console.log(chalk.red(`  ✗ ${issue.code}: ${issue.message}`));
+        return false;
+      }
+      return true;
+    }
+
     const validator = new Validator();
     let hasValidationErrors = false;
 
@@ -311,7 +331,7 @@ export class ArchiveCommand {
             const candidatePath = path.join(changeSpecsDir, c.name, 'spec.md');
             await fs.access(candidatePath);
             const content = await fs.readFile(candidatePath, 'utf-8');
-            if (/^##\s+(ADDED|MODIFIED|REMOVED|RENAMED)\s+Requirements/m.test(content)) {
+            if (/^##\s+(ADDED|MODIFIED|REMOVED)\s+Requirements/m.test(content)) {
               hasDeltaSpecs = true;
               break;
             }
@@ -345,6 +365,29 @@ export class ArchiveCommand {
       return false;
     }
     return true;
+  }
+
+  private async generateFinalReport(
+    projectRoot: string,
+    changeDir: string,
+    changeName: string,
+    options: ArchiveOptions,
+  ): Promise<void> {
+    const architecture = await readLikeC4Architecture(projectRoot).catch((error: NodeJS.ErrnoException) => {
+      if (error.code === 'ENOENT') return null;
+      throw error;
+    });
+    if (architecture?.profile !== 'v1') return;
+
+    const compiled = await compileChange(projectRoot, changeName, { allowAlreadyApplied: true });
+    await atomicWrite(path.join(changeDir, EFFECTIVE_CHANGE_FILE), renderEffectiveChange(compiled.diff));
+    const skipValidation = options.validate === false || options.noValidate === true;
+    if (!compiled.valid && !skipValidation) {
+      throw new Error(`Final report generation failed: ${compiled.diagnostics.map(item => `${item.code}: ${item.message}`).join('; ')}`);
+    }
+    if (compiled.valid && !renderEffectiveChange(compiled.diff).includes('Status: Passed')) {
+      throw new Error('Final report generation failed: report status is not Passed');
+    }
   }
 
   private async runTaskGate(

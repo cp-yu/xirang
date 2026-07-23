@@ -127,6 +127,10 @@ export { FramerMotionConfig } from './context/FramerMotionConfig'
 export {
   type OpsxSpecContent,
   type OpsxSpecLoader,
+  type OpsxDiffEntry,
+  type OpsxRuntimeManifest,
+  type OpsxRuntimeVariant,
   OpsxSpecLoaderProvider,
   useOpsxSpecLoader,
+  useOpsxVariants,
 } from './opsx/SpecLoaderContext'

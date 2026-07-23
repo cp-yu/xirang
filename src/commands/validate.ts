@@ -13,6 +13,8 @@ import { extractRequirementsSection } from '../core/parsers/requirement-blocks.j
 import { validateArchitecture } from '../utils/architecture-validator.js';
 import { readLikeC4Architecture } from '../utils/likec4-reader.js';
 import { validateArchitectureCommand } from './arch/validate.js';
+import { compileChange, type CompiledChange } from '../core/change-compiler.js';
+import { conciseDiffEntries, renderChangeDiff } from '../core/change-diff-renderer.js';
 
 type ItemType = 'change' | 'spec';
 type ArtifactScope = 'specs' | 'architecture-delta';
@@ -181,10 +183,12 @@ export class ValidateCommand {
     const validator = new Validator(opts.strict);
     const changeDir = path.join(process.cwd(), OPSX_DIR_NAME, 'changes', id);
     const start = Date.now();
-    const report = await this.validateChangeReports(validator, changeDir, opts.artifactScope);
+    const result = opts.artifactScope
+      ? { report: await this.validateChangeReports(validator, changeDir, opts.artifactScope) }
+      : await this.validateChangeWithPreview(validator, id, changeDir);
     const durationMs = Date.now() - start;
-    this.printReport('change', id, report, durationMs, opts.json);
-    process.exitCode = report.valid ? 0 : 1;
+    this.printReport('change', id, result.report, durationMs, opts.json, result.compiled);
+    process.exitCode = result.report.valid ? 0 : 1;
   }
 
   private async validateByType(type: ItemType, id: string, opts: { strict: boolean; json: boolean }): Promise<void> {
@@ -192,11 +196,11 @@ export class ValidateCommand {
     if (type === 'change') {
       const changeDir = path.join(process.cwd(), OPSX_DIR_NAME, 'changes', id);
       const start = Date.now();
-      const report = await this.validateChangeReports(validator, changeDir);
+      const result = await this.validateChangeWithPreview(validator, id, changeDir);
       const durationMs = Date.now() - start;
-      this.printReport('change', id, report, durationMs, opts.json);
+      this.printReport('change', id, result.report, durationMs, opts.json, result.compiled);
       // Non-zero exit if invalid (keeps enriched output test semantics)
-      process.exitCode = report.valid ? 0 : 1;
+      process.exitCode = result.report.valid ? 0 : 1;
       return;
     }
     const file = path.join(process.cwd(), OPSX_DIR_NAME, 'specs', id, 'spec.md');
@@ -207,9 +211,14 @@ export class ValidateCommand {
     process.exitCode = report.valid ? 0 : 1;
   }
 
-  private printReport(type: ItemType, id: string, report: { valid: boolean; issues: any[] }, durationMs: number, json: boolean): void {
+  private printReport(type: ItemType, id: string, report: { valid: boolean; issues: any[] }, durationMs: number, json: boolean, compiled?: CompiledChange): void {
     if (json) {
-      const out = { items: [{ id, type, valid: report.valid, issues: report.issues, durationMs }], summary: { totals: { items: 1, passed: report.valid ? 1 : 0, failed: report.valid ? 0 : 1 }, byType: { [type]: { items: 1, passed: report.valid ? 1 : 0, failed: report.valid ? 0 : 1 } } }, version: '1.0' };
+      const preview = compiled ? {
+        diagnostics: compiled.diagnostics,
+        summary: compiled.diff.summary,
+        entries: conciseDiffEntries(compiled.diff),
+      } : {};
+      const out = { items: [{ id, type, valid: report.valid, issues: report.issues, durationMs, ...preview }], summary: { totals: { items: 1, passed: report.valid ? 1 : 0, failed: report.valid ? 0 : 1 }, byType: { [type]: { items: 1, passed: report.valid ? 1 : 0, failed: report.valid ? 0 : 1 } } }, version: '1.0' };
       console.log(JSON.stringify(out, null, 2));
       return;
     }
@@ -224,12 +233,50 @@ export class ValidateCommand {
       }
       this.printNextSteps(type);
     }
+    if (compiled) {
+      console.log('Effective change preview');
+      console.log(renderChangeDiff(compiled.diff).trimEnd());
+    }
+  }
+
+  private async validateChangeWithPreview(
+    validator: Validator,
+    id: string,
+    changeDir: string,
+  ): Promise<{ report: ValidationReport; compiled?: CompiledChange }> {
+    const architecture = await readLikeC4Architecture(process.cwd()).catch((error: NodeJS.ErrnoException) => {
+      if (error.code === 'ENOENT') return null;
+      throw error;
+    });
+    if (architecture?.profile !== 'v1') return { report: await this.validateChangeReports(validator, changeDir) };
+
+    const compiled = await compileChange(process.cwd(), id);
+    const specsReport = await validator.validateChangeDeltaSpecs(changeDir, {
+      projectRoot: process.cwd(),
+      architecture,
+      knownElementIds: new Set(compiled.target?.architecture.elements.map(element => element.id) ?? architecture.elements.map(element => element.id)),
+    });
+    const compilerIssues = compiled.diagnostics.map(item => ({
+      level: item.level,
+      path: item.path,
+      message: `${item.code}: ${item.message}`,
+    }));
+    const compilerReport: ValidationReport = {
+      valid: compiled.valid,
+      issues: compilerIssues,
+      summary: {
+        errors: compilerIssues.filter(item => item.level === 'ERROR').length,
+        warnings: compilerIssues.filter(item => item.level === 'WARNING').length,
+        info: 0,
+      },
+    };
+    return { report: mergeValidationReports(specsReport, compilerReport), compiled };
   }
 
   private printNextSteps(type: ItemType): void {
     const bullets: string[] = [];
     if (type === 'change') {
-      bullets.push('- Ensure change has deltas in specs/: use headers ## ADDED/MODIFIED/REMOVED/RENAMED Requirements');
+      bullets.push('- Ensure change has deltas in specs/: use headers ## ADDED/MODIFIED/REMOVED Requirements');
       bullets.push('- Each requirement MUST include at least one #### Scenario: block');
       bullets.push('- Debug parsed deltas: opsx change show <id> --json --deltas-only');
     } else {

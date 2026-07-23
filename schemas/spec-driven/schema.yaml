@@ -77,12 +77,12 @@ artifacts:
       - `## ADDED Requirements`: requirements absent from the formal Spec.
       - `## MODIFIED Requirements`: existing requirements whose observable behavior changes. Copy the complete formal Requirement block, then edit it into the target state.
       - `## REMOVED Requirements`: existing requirements removed from the target behavior. Include `Reason` and `Migration`.
-      - `## RENAMED Requirements`: title-only changes using `FROM:` and `TO:`.
-      - A `Modified Specs` file may contain any combination of these operations. Do not infer the Requirement operation from the Spec classification alone.
+      - Requirement rename uses `## REMOVED Requirements` for the old title plus `## ADDED Requirements` for the new complete target block. `## RENAMED Requirements` is unsupported.
+      - A `Modified Specs` file may contain any combination of the three supported operations. Do not infer the Requirement operation from the Spec classification alone.
 
       Before writing an operation against an existing Spec:
       - read `.opsx/specs/<spec-id>/spec.md`;
-      - use the exact existing Requirement title for `MODIFIED`, `REMOVED`, or `RENAMED`;
+      - use the exact existing Requirement title for `MODIFIED` or `REMOVED`;
       - keep a `MODIFIED` Requirement complete, including all surviving scenarios;
       - use `ADDED` when existing behavior remains unchanged and the target Spec gains a separate requirement.
 
@@ -99,7 +99,7 @@ artifacts:
       - implementation work and verification → `tasks.md`;
       - durable architecture elements, ownership, boundaries, or semantic relations → `architecture-delta.c4`.
 
-      Agent MUST NOT author scenario operation labels. The invoking workflow owns scenario label preview and write orchestration. Sync and archive consume and remove existing change-local labels but MUST NOT generate them.
+      Agent MUST NOT author Scenario operation labels. Validation rejects operation-like bracket prefixes; Scenario operations are derived by `opsx validate --change <name>` and `opsx diff --change <name> --write`.
 
       Follow the returned template structure. Do not add placeholders, empty delta sections, examples, or process notes to the artifact.
     requires:
@@ -220,7 +220,7 @@ artifacts:
       - `Preserves:` anchors behavior-equivalence checks to main spec paths (`.opsx/specs/<capability>/spec.md` / Requirement "<name>" / Scenario "<name>"), naming old forms in `Expect:` and absence assertion in `Command:`
       - Each check MUST include at least one executable evidence field: `Command:`, `Evidence:`, or `Expect:`
       - When this change has local delta specs, `Verifies:` MUST use a change-local relative POSIX path from the change directory: `specs/<capability>/spec.md`
-      - `Verifies:` MUST name the full Requirement title and one or more full clean Scenario names without scenario operation labels (for `#### Scenario: [ADDED] <title>`, use `Scenario "<title>"`; except for REMOVED Requirement variant)
+      - `Verifies:` MUST name the full Requirement title and one or more exact canonical unlabeled Scenario names; except for REMOVED Requirement variant
       - `Verifies:` MUST NOT use `.opsx/specs/...`, project-root-relative paths, archived/main spec paths, absolute paths, parent traversal, or backslash-separated paths
       - `Preserves:` path whitelist is independent: only `.opsx/specs/<capability>/spec.md` is allowed; it does not relax `Verifies:` constraints
 

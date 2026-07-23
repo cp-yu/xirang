@@ -1,0 +1,822 @@
+{
+  "timestamp": "2026-07-23T03:35:20.033Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "requirement": "Root 与 LikeC4 全套检查",
+      "task": "C18 验证 root 与 LikeC4 全套检查",
+      "summary": "The complete root suite was not independently reproducible in this worktree because five migration tests require a worktree-local node_modules/likec4 binary that is absent.",
+      "recommendation": "Rerun the exact C18 command in the dependency-complete environment used for the reported 159-file/2268-test pass, or install the worktree dependencies before sealing; the five observed failures were all the same missing-binary tooling failure rather than assertion-level behavior regressions.",
+      "evidenceCitations": [
+        "src/commands/migrate/opsx-to-likec4.ts:12-16",
+        "test/integration/migrate-command.test.ts:59-105"
+      ],
+      "message": "The complete root suite was not independently reproducible in this worktree because five migration tests require a worktree-local node_modules/likec4 binary that is absent."
+    }
+  ],
+  "tasksFileHash": "86f1a6351231c35431f37fc6071f470c4b9d3ee572859de8909b0953b06360a5",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".github/workflows/opsx-v2-cross-platform.yml",
+      ".opsx/architecture/model.c4",
+      ".opsx/architecture/relations.c4",
+      ".opsx/architecture/specification.c4",
+      ".opsx/architecture/views.c4",
+      ".opsx/changes/add-semantic-change-diff/.apply-isolation.json",
+      ".opsx/changes/add-semantic-change-diff/.verify-result.json",
+      ".opsx/changes/add-semantic-change-diff/architecture-delta.c4",
+      ".opsx/changes/add-semantic-change-diff/design.md",
+      ".opsx/changes/add-semantic-change-diff/effective-change.md",
+      ".opsx/changes/add-semantic-change-diff/proposal.md",
+      ".opsx/changes/add-semantic-change-diff/specs/archive-sync-workflow/spec.md",
+      ".opsx/changes/add-semantic-change-diff/specs/cli-archive/spec.md",
+      ".opsx/changes/add-semantic-change-diff/specs/cli-diff/spec.md",
+      ".opsx/changes/add-semantic-change-diff/specs/cli-sync/spec.md",
+      ".opsx/changes/add-semantic-change-diff/specs/cli-view/spec.md",
+      ".opsx/changes/add-semantic-change-diff/specs/spec-content-browser/spec.md",
+      ".opsx/changes/add-semantic-change-diff/specs/validate-change/spec.md",
+      ".opsx/changes/add-semantic-change-diff/tasks.md",
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+      "likec4/packages/diagram/src/opsx/SpecLoaderContext.tsx",
+      "likec4/packages/diagram/src/opsx/architectureView.spec.ts",
+      "likec4/packages/diagram/src/opsx/architectureView.ts",
+      "likec4/packages/diagram/src/overlays/element-details/SpecsTab.spec.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/SpecsTab.tsx",
+      "likec4/packages/vite-plugin/src/plugin.ts",
+      "src/commands/arch/plan-remove.ts",
+      "src/commands/diff.ts",
+      "src/commands/validate.ts",
+      "src/core/architecture-delta-parser.ts",
+      "src/core/archive.ts",
+      "src/core/change-compiler.ts",
+      "src/core/change-diff-renderer.ts",
+      "src/core/change-sync.ts",
+      "src/core/semantic-diff.ts",
+      "src/core/validation/validator.ts",
+      "src/core/view.ts",
+      "src/utils/architecture-delta-merger.ts",
+      "src/utils/semantic-model.ts",
+      "test/commands/arch-plan-remove.test.ts",
+      "test/commands/diff.test.ts",
+      "test/commands/sync.test.ts",
+      "test/commands/validate.enriched-output.test.ts",
+      "test/commands/validate.test.ts",
+      "test/core/architecture-delta-parser.test.ts",
+      "test/core/archive.test.ts",
+      "test/core/change-compiler.test.ts",
+      "test/core/validation.delta-specs.test.ts",
+      "test/core/view.test.ts",
+      "test/e2e/spec-browser.spec.ts",
+      "test/integration/sync-workflow.test.ts",
+      "test/integration/validate-command.test.ts"
+    ],
+    "evidenceFingerprint": "f80b0e380bbe6732bbbc078650a0bc887b22e5c2be319a5f9354a7c9e0f2fff4",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".github/workflows/opsx-v2-cross-platform.yml",
+        "hash": "ae0cc5c326bdd4c17c2e6a2520d997d7addee742d1ef42a198c631dc252c50fb"
+      },
+      {
+        "path": ".opsx/architecture/model.c4",
+        "hash": "4b1784406e1c35ef704e07c4a7dfe36885f290a36e63ee3d6ecaaa04faa14ebb"
+      },
+      {
+        "path": ".opsx/architecture/relations.c4",
+        "hash": "717e4bb3420368f6cdbb092a6ade534de9b237fab57d18a886388aa3fd841010"
+      },
+      {
+        "path": ".opsx/architecture/specification.c4",
+        "hash": "f544cac6b0e1f53056f463c7791b98fcb3546d2ff22ad7dd4752c8981f3e5507"
+      },
+      {
+        "path": ".opsx/architecture/views.c4",
+        "hash": "c7bf4cd83cb56961fff4a947ebd7c0fa7a48d12531295e0f94e2ee460408244e"
+      },
+      {
+        "path": ".opsx/changes/add-semantic-change-diff/.apply-isolation.json",
+        "hash": "4e464726dfee8b5a2033f90e780fffb0ddcababac3fa0e990b2116fc35a93737"
+      },
+      {
+        "path": ".opsx/changes/add-semantic-change-diff/architecture-delta.c4",
+        "hash": "96f0d2d86399c55663b51f0a0f6e27408f45f3c7c01f41cf822601befde98e43"
+      },
+      {
+        "path": ".opsx/changes/add-semantic-change-diff/design.md",
+        "hash": "655e465ed540335f0563eb7f583d5a2332a1c8e7f13d734d19ec11907f5e2df7"
+      },
+      {
+        "path": ".opsx/changes/add-semantic-change-diff/effective-change.md",
+        "hash": "b580bfb48b47218fcdbbf21681b0f30395e71fdccebd75c2e95b1cd0d595fdfa"
+      },
+      {
+        "path": ".opsx/changes/add-semantic-change-diff/proposal.md",
+        "hash": "604dd9ca17a42b5db78ddb4de18007ef948120dbce809fa241557eb0fd29c163"
+      },
+      {
+        "path": ".opsx/changes/add-semantic-change-diff/specs/archive-sync-workflow/spec.md",
+        "hash": "37abb85312a0c66869d66c4bb0a30062c879e82c9699212d0de3d4b265141c91"
+      },
+      {
+        "path": ".opsx/changes/add-semantic-change-diff/specs/cli-archive/spec.md",
+        "hash": "dedd1aef43c0353e76630e85d7602021744b29c963003bd7dfa7b24486822002"
+      },
+      {
+        "path": ".opsx/changes/add-semantic-change-diff/specs/cli-diff/spec.md",
+        "hash": "08849cf34a147cea288cca8bb69fc1bbd86a11ec0459207205f3f7f437f8b0ae"
+      },
+      {
+        "path": ".opsx/changes/add-semantic-change-diff/specs/cli-sync/spec.md",
+        "hash": "04335a0cc26c43dd57d7e943522bb181c3fc412096861d293da2390d1756d22f"
+      },
+      {
+        "path": ".opsx/changes/add-semantic-change-diff/specs/cli-view/spec.md",
+        "hash": "406328ea5a5a6a79e130c7b96e373621835bd076d5f68022e8d8e9e644bcaf08"
+      },
+      {
+        "path": ".opsx/changes/add-semantic-change-diff/specs/spec-content-browser/spec.md",
+        "hash": "47142a2cba6f80b973a4b38ed43d921eb7d9dfa93165edb3511d438c42c8707d"
+      },
+      {
+        "path": ".opsx/changes/add-semantic-change-diff/specs/validate-change/spec.md",
+        "hash": "6b5aaae6e0dcd3343527def754da9b7df11f8291a82739e90a2f37b8289425bd"
+      },
+      {
+        "path": ".opsx/changes/add-semantic-change-diff/tasks.md",
+        "hash": "86f1a6351231c35431f37fc6071f470c4b9d3ee572859de8909b0953b06360a5"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+        "hash": "a74a43156f636adff0afeff4f980cc3ab42b9bf9b3471d61c521ddb2020a1b90"
+      },
+      {
+        "path": "likec4/packages/diagram/src/opsx/architectureView.spec.ts",
+        "hash": "5dff6ea98508b353ed50733f08f5fd4d8f5f19709e39f3220d4619e20362920f"
+      },
+      {
+        "path": "likec4/packages/diagram/src/opsx/architectureView.ts",
+        "hash": "5c1877f8aad071996337bb6e5e0692342fcf132d5f4977808069a4a662b66ef6"
+      },
+      {
+        "path": "likec4/packages/diagram/src/opsx/SpecLoaderContext.tsx",
+        "hash": "1ee5053bd744da8b917f364a9d3aaff92296a3020b7cf1fc91692850faed307a"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/SpecsTab.spec.tsx",
+        "hash": "b6222319c17b98b904f59e7180d41fef3c7db80c2c2c7b2752c968e667193249"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/SpecsTab.tsx",
+        "hash": "3939cd9c18e8d06226e21778a2fc36fce9f9c1ff1e29ae2b10fe4b05e54e3c7c"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/plugin.ts",
+        "hash": "0ad1798ca1332042381da44c7dad4788d8a0943381dd3ddd428126aa1e7f2506"
+      },
+      {
+        "path": "src/commands/arch/plan-remove.ts",
+        "hash": "e83dea88b653f48de4cc8efd085af980a60521060c824c7dff0804be4d31d9a6"
+      },
+      {
+        "path": "src/commands/diff.ts",
+        "hash": "2a40b7bf1115709c4bf56612c3bd3edc5be05921e61d0df5dc0cd0a8643edb8a"
+      },
+      {
+        "path": "src/commands/validate.ts",
+        "hash": "9fbb5b020e7a12681f12a59b84d1f5351f4b6f0809296a44b00b8650a0b062a8"
+      },
+      {
+        "path": "src/core/architecture-delta-parser.ts",
+        "hash": "c9296fa7ed73ad446af5d08483f4711fe8e3206dc32baca92492ea757eedb6f2"
+      },
+      {
+        "path": "src/core/archive.ts",
+        "hash": "29d7e320a54bb171454dda067df05056f214bf28b7e6884707f9e92bf19f7c2f"
+      },
+      {
+        "path": "src/core/change-compiler.ts",
+        "hash": "be01bee3df3f6b2a75812e78cdb6072496422e5d794d7a730907f93b2e8627c2"
+      },
+      {
+        "path": "src/core/change-diff-renderer.ts",
+        "hash": "a9432a2bf78536755e4bb9d72160c2cdb24dd22bd11479d3ae8987719ca84e31"
+      },
+      {
+        "path": "src/core/change-sync.ts",
+        "hash": "ab593308d90b1708d18d150cb38b33ab527ad3d8594cba6568a9b8621c978f01"
+      },
+      {
+        "path": "src/core/semantic-diff.ts",
+        "hash": "3850e3694dbddaa7539e5c7242bafeed47e2c0c52599540ba1a8aad94597d762"
+      },
+      {
+        "path": "src/core/validation/validator.ts",
+        "hash": "a2eff28ca7dd834778ff40f7546413e74e87abf9aa6ec46bfb3cef92a01a3567"
+      },
+      {
+        "path": "src/core/view.ts",
+        "hash": "bddbe4788da00697aaca99c6edb7593ff2a01d7092c3a4ced02d20beada0e72c"
+      },
+      {
+        "path": "src/utils/architecture-delta-merger.ts",
+        "hash": "c495b6630803e34e22a1d50230de5bd5a2d1433c8e98c7882099103a8a3e8a2d"
+      },
+      {
+        "path": "src/utils/semantic-model.ts",
+        "hash": "5c24623ec882ab378eb9298bc9ec8bb73925727c962a83880503ad1aebc29277"
+      },
+      {
+        "path": "test/commands/arch-plan-remove.test.ts",
+        "hash": "274f4287555ce718ad565e02a75ae8ed3f4bc0fb8d3981b09512b88eaa43f81a"
+      },
+      {
+        "path": "test/commands/diff.test.ts",
+        "hash": "75bfaa466e9f4a30217f7e94edbd94ab3ed6a774d91525db29926349fbb2f308"
+      },
+      {
+        "path": "test/commands/sync.test.ts",
+        "hash": "77fdec1128a1eef112576c9868932c0ddd934fe70530e89be060b8a45638f37c"
+      },
+      {
+        "path": "test/commands/validate.enriched-output.test.ts",
+        "hash": "bc173f4c75f30c997a6065b993e9ca791a2badb167ffe76c7752c32452726bff"
+      },
+      {
+        "path": "test/commands/validate.test.ts",
+        "hash": "51a462dbd27486cca784f1691ca8c894dcc65050d15042d62a8e06c08c78a6f1"
+      },
+      {
+        "path": "test/core/architecture-delta-parser.test.ts",
+        "hash": "7def410b7b803bc35d9c485078a75c9c4b12f575234b807eaef935a5697776a1"
+      },
+      {
+        "path": "test/core/archive.test.ts",
+        "hash": "3bf4fc547452702e1afa0cea8aead9e52ceccd2a215c566f0d802e5a2edc9e5a"
+      },
+      {
+        "path": "test/core/change-compiler.test.ts",
+        "hash": "fd8a34cf4e04ae7b7d22eb861b043f83357e5f4247673a4b075316b425b0e073"
+      },
+      {
+        "path": "test/core/validation.delta-specs.test.ts",
+        "hash": "ebde9d9cc60931be6452c0301089e1ee7d6af24fa28f9a061f477cf60c6b401c"
+      },
+      {
+        "path": "test/core/view.test.ts",
+        "hash": "76858284652dc659963037a50bbb1f5baac631ce9523f90db080270e97c14d6b"
+      },
+      {
+        "path": "test/e2e/spec-browser.spec.ts",
+        "hash": "04aa2431ec28301967c70230ea892067d634e097465e20b5934b85e1a5c82c74"
+      },
+      {
+        "path": "test/integration/sync-workflow.test.ts",
+        "hash": "9177178e1ca5b4b381148e62c33689356bc0f65ca82f5230d8708ab19debc96d"
+      },
+      {
+        "path": "test/integration/validate-command.test.ts",
+        "hash": "88e043f8f5296653dfd7d55c5dff508000771f03a8d67d39e8610f65dfe9a5d9"
+      }
+    ],
+    "skippedEvidenceFiles": [
+      ".opsx/changes/add-semantic-change-diff/.verify-result.json"
+    ],
+    "gitHeadCommit": "6b6bfcbc961cb7cca0fa505604e2d56066e85f67",
+    "gitDiffSummary": "Validated changeName, absolute changeDir, and absolute projectRoot. Immutable baseCommit 0bd4cf0ee98a61251bc85512db03e807edb5edf1 resolves. git diff <baseCommit>...HEAD --name-only is empty because HEAD remains at the baseline; git status --short -uall contains 105 modified, deleted, or untracked paths, all covered by explicit task Files entries or the change-artifact allowance. No staged files exist. All four declared Scenario-label source/test deletions are complete. git diff --check passed. Current opsx validate passed with one change item and zero failures; current diff JSON passed with valid=true, zero diagnostics, and 70 entries; effective-change.md reports Passed. Root build and ESLint passed. Targeted root verification passed 12 files and 126 tests across malformed-Spec partial diff, complete target validation, allowAlreadyApplied archive ADDED/MODIFIED/REMOVED paths, snapshot cleanup, validate, sync, plan-remove, and runtime views. LikeC4 diagram verification passed 2 files and 12 tests. Architecture validation passed with zero errors and warnings. Playwright passed 4/4 desktop and mobile tests, including isolated variants, Diff only, diagnostic rendering, and Spec HMR graph stability. The full root suite executed 159 files and 2268 tests but reported 5 environment-only failures in test/integration/migrate-command.test.ts because this isolated worktree lacks node_modules/likec4/bin/likec4.mjs; the remaining 158 files and 2263 tests passed. Residual risk is limited to independently reproducing the exact full-suite green result in a dependency-complete worktree.",
+    "timestamp": "2026-07-23T03:56:04.073Z"
+  },
+  "optimization": {
+    "status": "IMPROVED",
+    "attempts": [
+      {
+        "timestamp": "2026-07-23T03:39:47.831Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-23T03:45:21.007Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-07-23T03:48:58.972Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-23T03:56:04.055Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-07-23T04:02:04.060Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-07-23T03:35:20.033Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "requirement": "Root 与 LikeC4 全套检查",
+          "task": "C18 验证 root 与 LikeC4 全套检查",
+          "summary": "The complete root suite was not independently reproducible in this worktree because five migration tests require a worktree-local node_modules/likec4 binary that is absent.",
+          "recommendation": "Rerun the exact C18 command in the dependency-complete environment used for the reported 159-file/2268-test pass, or install the worktree dependencies before sealing; the five observed failures were all the same missing-binary tooling failure rather than assertion-level behavior regressions.",
+          "evidenceCitations": [
+            "src/commands/migrate/opsx-to-likec4.ts:12-16",
+            "test/integration/migrate-command.test.ts:59-105"
+          ],
+          "message": "The complete root suite was not independently reproducible in this worktree because five migration tests require a worktree-local node_modules/likec4 binary that is absent."
+        }
+      ],
+      "tasksFileHash": "86f1a6351231c35431f37fc6071f470c4b9d3ee572859de8909b0953b06360a5",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".github/workflows/opsx-v2-cross-platform.yml",
+          ".opsx/architecture/model.c4",
+          ".opsx/architecture/relations.c4",
+          ".opsx/architecture/specification.c4",
+          ".opsx/architecture/views.c4",
+          ".opsx/changes/add-semantic-change-diff/.apply-isolation.json",
+          ".opsx/changes/add-semantic-change-diff/.verify-result.json",
+          ".opsx/changes/add-semantic-change-diff/architecture-delta.c4",
+          ".opsx/changes/add-semantic-change-diff/design.md",
+          ".opsx/changes/add-semantic-change-diff/effective-change.md",
+          ".opsx/changes/add-semantic-change-diff/proposal.md",
+          ".opsx/changes/add-semantic-change-diff/specs/archive-sync-workflow/spec.md",
+          ".opsx/changes/add-semantic-change-diff/specs/cli-archive/spec.md",
+          ".opsx/changes/add-semantic-change-diff/specs/cli-diff/spec.md",
+          ".opsx/changes/add-semantic-change-diff/specs/cli-sync/spec.md",
+          ".opsx/changes/add-semantic-change-diff/specs/cli-view/spec.md",
+          ".opsx/changes/add-semantic-change-diff/specs/spec-content-browser/spec.md",
+          ".opsx/changes/add-semantic-change-diff/specs/validate-change/spec.md",
+          ".opsx/changes/add-semantic-change-diff/tasks.md",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/opsx/SpecLoaderContext.tsx",
+          "likec4/packages/diagram/src/opsx/architectureView.spec.ts",
+          "likec4/packages/diagram/src/opsx/architectureView.ts",
+          "likec4/packages/diagram/src/overlays/element-details/SpecsTab.spec.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/SpecsTab.tsx",
+          "likec4/packages/vite-plugin/src/plugin.ts",
+          "src/commands/arch/plan-remove.ts",
+          "src/commands/diff.ts",
+          "src/commands/validate.ts",
+          "src/core/architecture-delta-parser.ts",
+          "src/core/archive.ts",
+          "src/core/change-compiler.ts",
+          "src/core/change-diff-renderer.ts",
+          "src/core/change-sync.ts",
+          "src/core/semantic-diff.ts",
+          "src/core/validation/validator.ts",
+          "src/core/view.ts",
+          "src/utils/architecture-delta-merger.ts",
+          "src/utils/semantic-model.ts",
+          "test/commands/arch-plan-remove.test.ts",
+          "test/commands/diff.test.ts",
+          "test/commands/sync.test.ts",
+          "test/commands/validate.enriched-output.test.ts",
+          "test/commands/validate.test.ts",
+          "test/core/architecture-delta-parser.test.ts",
+          "test/core/archive.test.ts",
+          "test/core/change-compiler.test.ts",
+          "test/core/validation.delta-specs.test.ts",
+          "test/core/view.test.ts",
+          "test/e2e/spec-browser.spec.ts",
+          "test/integration/sync-workflow.test.ts",
+          "test/integration/validate-command.test.ts"
+        ],
+        "evidenceFingerprint": "0db0fdf2ac92312f0d81be75876d74015c5d595522f0007ed68a9d374fffe65a",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".github/workflows/opsx-v2-cross-platform.yml",
+            "hash": "ae0cc5c326bdd4c17c2e6a2520d997d7addee742d1ef42a198c631dc252c50fb"
+          },
+          {
+            "path": ".opsx/architecture/model.c4",
+            "hash": "74a31485021f7fad734b435feeb97ce601ffeb5b506180c6dc0407bfea70f0e9"
+          },
+          {
+            "path": ".opsx/architecture/relations.c4",
+            "hash": "ce319ad04a12a0c1c84635f2976ce174a1d03e9b71c4e04034efbd6299c440e5"
+          },
+          {
+            "path": ".opsx/architecture/specification.c4",
+            "hash": "acc2ce42810e55b391993ae046b98391e8351805543a68f0d9a317e4df8a2d97"
+          },
+          {
+            "path": ".opsx/architecture/views.c4",
+            "hash": "c7bf4cd83cb56961fff4a947ebd7c0fa7a48d12531295e0f94e2ee460408244e"
+          },
+          {
+            "path": ".opsx/changes/add-semantic-change-diff/.apply-isolation.json",
+            "hash": "437407bd0a39bffd9e61bb758624d279d68e32bd1f8ffcd62cbc33c590daffc5"
+          },
+          {
+            "path": ".opsx/changes/add-semantic-change-diff/architecture-delta.c4",
+            "hash": "96f0d2d86399c55663b51f0a0f6e27408f45f3c7c01f41cf822601befde98e43"
+          },
+          {
+            "path": ".opsx/changes/add-semantic-change-diff/design.md",
+            "hash": "655e465ed540335f0563eb7f583d5a2332a1c8e7f13d734d19ec11907f5e2df7"
+          },
+          {
+            "path": ".opsx/changes/add-semantic-change-diff/effective-change.md",
+            "hash": "b580bfb48b47218fcdbbf21681b0f30395e71fdccebd75c2e95b1cd0d595fdfa"
+          },
+          {
+            "path": ".opsx/changes/add-semantic-change-diff/proposal.md",
+            "hash": "604dd9ca17a42b5db78ddb4de18007ef948120dbce809fa241557eb0fd29c163"
+          },
+          {
+            "path": ".opsx/changes/add-semantic-change-diff/specs/archive-sync-workflow/spec.md",
+            "hash": "37abb85312a0c66869d66c4bb0a30062c879e82c9699212d0de3d4b265141c91"
+          },
+          {
+            "path": ".opsx/changes/add-semantic-change-diff/specs/cli-archive/spec.md",
+            "hash": "dedd1aef43c0353e76630e85d7602021744b29c963003bd7dfa7b24486822002"
+          },
+          {
+            "path": ".opsx/changes/add-semantic-change-diff/specs/cli-diff/spec.md",
+            "hash": "08849cf34a147cea288cca8bb69fc1bbd86a11ec0459207205f3f7f437f8b0ae"
+          },
+          {
+            "path": ".opsx/changes/add-semantic-change-diff/specs/cli-sync/spec.md",
+            "hash": "04335a0cc26c43dd57d7e943522bb181c3fc412096861d293da2390d1756d22f"
+          },
+          {
+            "path": ".opsx/changes/add-semantic-change-diff/specs/cli-view/spec.md",
+            "hash": "406328ea5a5a6a79e130c7b96e373621835bd076d5f68022e8d8e9e644bcaf08"
+          },
+          {
+            "path": ".opsx/changes/add-semantic-change-diff/specs/spec-content-browser/spec.md",
+            "hash": "47142a2cba6f80b973a4b38ed43d921eb7d9dfa93165edb3511d438c42c8707d"
+          },
+          {
+            "path": ".opsx/changes/add-semantic-change-diff/specs/validate-change/spec.md",
+            "hash": "6b5aaae6e0dcd3343527def754da9b7df11f8291a82739e90a2f37b8289425bd"
+          },
+          {
+            "path": ".opsx/changes/add-semantic-change-diff/tasks.md",
+            "hash": "86f1a6351231c35431f37fc6071f470c4b9d3ee572859de8909b0953b06360a5"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "hash": "a74a43156f636adff0afeff4f980cc3ab42b9bf9b3471d61c521ddb2020a1b90"
+          },
+          {
+            "path": "likec4/packages/diagram/src/opsx/architectureView.spec.ts",
+            "hash": "ad498d938fe8cbcadab5b09b2fd1e3ff1eca147c6699603847e6296083dac493"
+          },
+          {
+            "path": "likec4/packages/diagram/src/opsx/architectureView.ts",
+            "hash": "dfba66dd647a431d2abd2c7d2a1344ef65b715651eeaf50a68f3f590b461353a"
+          },
+          {
+            "path": "likec4/packages/diagram/src/opsx/SpecLoaderContext.tsx",
+            "hash": "1ee5053bd744da8b917f364a9d3aaff92296a3020b7cf1fc91692850faed307a"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/SpecsTab.spec.tsx",
+            "hash": "b6222319c17b98b904f59e7180d41fef3c7db80c2c2c7b2752c968e667193249"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/SpecsTab.tsx",
+            "hash": "3939cd9c18e8d06226e21778a2fc36fce9f9c1ff1e29ae2b10fe4b05e54e3c7c"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/plugin.ts",
+            "hash": "0ad1798ca1332042381da44c7dad4788d8a0943381dd3ddd428126aa1e7f2506"
+          },
+          {
+            "path": "src/commands/arch/plan-remove.ts",
+            "hash": "e83dea88b653f48de4cc8efd085af980a60521060c824c7dff0804be4d31d9a6"
+          },
+          {
+            "path": "src/commands/diff.ts",
+            "hash": "2a40b7bf1115709c4bf56612c3bd3edc5be05921e61d0df5dc0cd0a8643edb8a"
+          },
+          {
+            "path": "src/commands/validate.ts",
+            "hash": "9fbb5b020e7a12681f12a59b84d1f5351f4b6f0809296a44b00b8650a0b062a8"
+          },
+          {
+            "path": "src/core/architecture-delta-parser.ts",
+            "hash": "c9296fa7ed73ad446af5d08483f4711fe8e3206dc32baca92492ea757eedb6f2"
+          },
+          {
+            "path": "src/core/archive.ts",
+            "hash": "29d7e320a54bb171454dda067df05056f214bf28b7e6884707f9e92bf19f7c2f"
+          },
+          {
+            "path": "src/core/change-compiler.ts",
+            "hash": "db560529ff168a112f23f98a7fca63dcf93c684fa9e230ed822c38234ef8a95c"
+          },
+          {
+            "path": "src/core/change-diff-renderer.ts",
+            "hash": "a9432a2bf78536755e4bb9d72160c2cdb24dd22bd11479d3ae8987719ca84e31"
+          },
+          {
+            "path": "src/core/change-sync.ts",
+            "hash": "ab593308d90b1708d18d150cb38b33ab527ad3d8594cba6568a9b8621c978f01"
+          },
+          {
+            "path": "src/core/semantic-diff.ts",
+            "hash": "3850e3694dbddaa7539e5c7242bafeed47e2c0c52599540ba1a8aad94597d762"
+          },
+          {
+            "path": "src/core/validation/validator.ts",
+            "hash": "a2eff28ca7dd834778ff40f7546413e74e87abf9aa6ec46bfb3cef92a01a3567"
+          },
+          {
+            "path": "src/core/view.ts",
+            "hash": "bddbe4788da00697aaca99c6edb7593ff2a01d7092c3a4ced02d20beada0e72c"
+          },
+          {
+            "path": "src/utils/architecture-delta-merger.ts",
+            "hash": "c495b6630803e34e22a1d50230de5bd5a2d1433c8e98c7882099103a8a3e8a2d"
+          },
+          {
+            "path": "src/utils/semantic-model.ts",
+            "hash": "5c24623ec882ab378eb9298bc9ec8bb73925727c962a83880503ad1aebc29277"
+          },
+          {
+            "path": "test/commands/arch-plan-remove.test.ts",
+            "hash": "274f4287555ce718ad565e02a75ae8ed3f4bc0fb8d3981b09512b88eaa43f81a"
+          },
+          {
+            "path": "test/commands/diff.test.ts",
+            "hash": "75bfaa466e9f4a30217f7e94edbd94ab3ed6a774d91525db29926349fbb2f308"
+          },
+          {
+            "path": "test/commands/sync.test.ts",
+            "hash": "77fdec1128a1eef112576c9868932c0ddd934fe70530e89be060b8a45638f37c"
+          },
+          {
+            "path": "test/commands/validate.enriched-output.test.ts",
+            "hash": "bc173f4c75f30c997a6065b993e9ca791a2badb167ffe76c7752c32452726bff"
+          },
+          {
+            "path": "test/commands/validate.test.ts",
+            "hash": "51a462dbd27486cca784f1691ca8c894dcc65050d15042d62a8e06c08c78a6f1"
+          },
+          {
+            "path": "test/core/architecture-delta-parser.test.ts",
+            "hash": "7def410b7b803bc35d9c485078a75c9c4b12f575234b807eaef935a5697776a1"
+          },
+          {
+            "path": "test/core/archive.test.ts",
+            "hash": "3bf4fc547452702e1afa0cea8aead9e52ceccd2a215c566f0d802e5a2edc9e5a"
+          },
+          {
+            "path": "test/core/change-compiler.test.ts",
+            "hash": "fd8a34cf4e04ae7b7d22eb861b043f83357e5f4247673a4b075316b425b0e073"
+          },
+          {
+            "path": "test/core/validation.delta-specs.test.ts",
+            "hash": "ebde9d9cc60931be6452c0301089e1ee7d6af24fa28f9a061f477cf60c6b401c"
+          },
+          {
+            "path": "test/core/view.test.ts",
+            "hash": "76858284652dc659963037a50bbb1f5baac631ce9523f90db080270e97c14d6b"
+          },
+          {
+            "path": "test/e2e/spec-browser.spec.ts",
+            "hash": "04aa2431ec28301967c70230ea892067d634e097465e20b5934b85e1a5c82c74"
+          },
+          {
+            "path": "test/integration/sync-workflow.test.ts",
+            "hash": "9177178e1ca5b4b381148e62c33689356bc0f65ca82f5230d8708ab19debc96d"
+          },
+          {
+            "path": "test/integration/validate-command.test.ts",
+            "hash": "88e043f8f5296653dfd7d55c5dff508000771f03a8d67d39e8610f65dfe9a5d9"
+          }
+        ],
+        "skippedEvidenceFiles": [
+          ".opsx/changes/add-semantic-change-diff/.verify-result.json"
+        ],
+        "gitHeadCommit": "0bd4cf0ee98a61251bc85512db03e807edb5edf1",
+        "gitDiffSummary": "Validated changeName, absolute changeDir, and absolute projectRoot. Immutable baseCommit 0bd4cf0ee98a61251bc85512db03e807edb5edf1 resolves. git diff <baseCommit>...HEAD --name-only is empty because HEAD remains at the baseline; git status --short -uall contains 105 modified, deleted, or untracked paths, all covered by explicit task Files entries or the change-artifact allowance. No staged files exist. All four declared Scenario-label source/test deletions are complete. git diff --check passed. Current opsx validate passed with one change item and zero failures; current diff JSON passed with valid=true, zero diagnostics, and 70 entries; effective-change.md reports Passed. Root build and ESLint passed. Targeted root verification passed 12 files and 126 tests across malformed-Spec partial diff, complete target validation, allowAlreadyApplied archive ADDED/MODIFIED/REMOVED paths, snapshot cleanup, validate, sync, plan-remove, and runtime views. LikeC4 diagram verification passed 2 files and 12 tests. Architecture validation passed with zero errors and warnings. Playwright passed 4/4 desktop and mobile tests, including isolated variants, Diff only, diagnostic rendering, and Spec HMR graph stability. The full root suite executed 159 files and 2268 tests but reported 5 environment-only failures in test/integration/migrate-command.test.ts because this isolated worktree lacks node_modules/likec4/bin/likec4.mjs; the remaining 158 files and 2263 tests passed. Residual risk is limited to independently reproducing the exact full-suite green result in a dependency-complete worktree."
+      }
+    },
+    "findings": [
+      {
+        "id": "OPT-20260723T033947829Z-01",
+        "status": "resolved",
+        "location": {
+          "files": [
+            "likec4/packages/diagram/src/opsx/architectureView.ts"
+          ],
+          "symbols": [
+            "materializeOpsxArchitectureView"
+          ]
+        },
+        "opportunity": "Graph adjacency is rebuilt by filtering the complete node array once and the complete edge array twice for every visible node.",
+        "impact": "Replace O(N^2 + N*E) graph finalization and its temporary arrays with O(N + E) indexing, reducing CPU time and allocations whenever full or Diff-only architecture overlays are materialized.",
+        "evidence": [
+          "likec4/packages/diagram/src/opsx/architectureView.ts:182-185 loops over every node and executes nodes.filter, edges.filter for incoming edges, and edges.filter for outgoing edges.",
+          "The function has already materialized ordered nodes and edges before this loop, so parent, source, and target adjacency can be accumulated in one pass without additional graph reads.",
+          "Decision 9 in .opsx/changes/add-semantic-change-diff/design.md requires full-context and Diff-only graph projections over the selected target, making this path part of every change-graph rendering operation.",
+          "Fresh validation passed: pnpm --dir likec4 exec vitest run packages/diagram/src/opsx/architectureView.spec.ts reported 1 file and 3 tests passed."
+        ],
+        "recommendation": "Build children-by-parent, incoming-edge, and outgoing-edge maps while traversing the already ordered node and edge arrays, then assign each node's adjacency arrays from those maps.",
+        "keyDesign": "Initialize empty adjacency arrays keyed by visible node ID; append child IDs while visiting nodes in their existing order; append edge IDs to source and target maps while visiting edges in their existing order; finally assign children, inEdges, and outEdges to each node with empty-array fallbacks.",
+        "preservationConstraints": [
+          "Preserve the exact nodes and edges arrays, their ordering, IDs, overlay colors, labels, coordinates, bounds, and hash construction.",
+          "Preserve children ordering as the current nodes.filter traversal order.",
+          "Preserve inEdges and outEdges ordering as the current edges.filter traversal order, including duplicate edge IDs if present.",
+          "Do not create adjacency entries for parents or endpoints absent from the visible node set.",
+          "Preserve behavior for empty graphs, disconnected nodes, removed elements included only in Diff-only mode, and relationships whose endpoints cannot be materialized.",
+          "Do not change full versus Diff-only visibility or ancestor-context closure semantics."
+        ],
+        "implementationOutline": [
+          "Create maps for child IDs, incoming edge IDs, and outgoing edge IDs.",
+          "Traverse nodes once and append each node ID under its non-null visible parent.",
+          "Traverse edges once and append each edge ID under its target and source.",
+          "Traverse nodes once to assign mapped arrays or new empty arrays.",
+          "Keep all visibility, node creation, edge creation, styling, bounds, and return logic unchanged."
+        ],
+        "validation": [
+          "Run pnpm --dir likec4 exec vitest run packages/diagram/src/opsx/architectureView.spec.ts and retain the current full-target and Diff-only assertions.",
+          "Add or extend an architecture-view test to assert exact children, inEdges, and outEdges ordering for multiple siblings and multiple incoming/outgoing relationships.",
+          "Cover a disconnected node and an omitted endpoint to prove empty arrays and endpoint filtering remain unchanged.",
+          "Statically verify that adjacency construction contains no node-nested scan of the complete nodes or edges arrays."
+        ],
+        "impactLevel": "high",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "This removes a statically proven quadratic rendering path from the interactive architecture surface with a local, order-preserving implementation. It outranks the parser finding because its asymptotic benefit grows with every visible graph node and relationship.",
+        "targetFileHashes": {
+          "likec4/packages/diagram/src/opsx/architectureView.ts": "dfba66dd647a431d2abd2c7d2a1344ef65b715651eeaf50a68f3f590b461353a"
+        }
+      },
+      {
+        "id": "OPT-20260723T033947829Z-02",
+        "status": "resolved",
+        "location": {
+          "files": [
+            "src/core/change-compiler.ts"
+          ],
+          "symbols": [
+            "compileChange",
+            "compileArchitectureChange"
+          ]
+        },
+        "opportunity": "For a valid architecture delta, compileChange tokenizes and parses the same source three times and computes the complete semantic Diff IR twice, discarding the first Diff IR.",
+        "impact": "Reduce each architecture-bearing compileChange invocation to one parser pass and one semantic-diff pass, eliminating two token/parser passes plus one full graph-and-contract comparison, entry construction, canonical comparison, and sorting pass used by validate, diff, sync, archive, plan-remove, and runtime views.",
+        "evidence": [
+          "src/core/change-compiler.ts:345 parses the source inside compileArchitectureChange.",
+          "src/core/change-compiler.ts:616 and src/core/change-compiler.ts:617 independently parse the same deltaSource again to recover operations and replacement hints.",
+          "src/core/change-compiler.ts:357 constructs compiled.diff, but compileChange never reads compiled.diff and constructs the final combined diff again at src/core/change-compiler.ts:610.",
+          "src/core/semantic-diff.ts:242-245 rebuilds Requirement, Scenario, element, property, relationship, and Metamodel entries and sorts the combined entry collection on every createSemanticDiff call.",
+          "The duplicate work is deterministic for every architecture-bearing compileChange call and does not depend on workload, cache hit rate, or profiling assumptions.",
+          "Decision 1 in .opsx/changes/add-semantic-change-diff/design.md requires validate, diff, sync, archive, and view to consume the shared compiler result rather than reconstruct operation semantics.",
+          "Fresh validation passed: /home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec/node_modules/.bin/vitest run test/core/architecture-delta-parser.test.ts test/core/change-compiler.test.ts test/commands/diff.test.ts reported 3 files and 13 tests passed.",
+          "Current src/core/change-compiler.ts SHA-256 is db560529ff168a112f23f98a7fca63dcf93c684fa9e230ed822c38234ef8a95c, confirming the redundant calls remain unchanged after checkpoint 6b6bfcbc961cb7cca0fa505604e2d56066e85f67."
+        ],
+        "recommendation": "Extract a private architecture-materialization helper that parses once and returns the parsed result, immutable formal snapshot, fingerprints, target, diagnostics, and validity without creating a Diff IR. Keep compileArchitectureChange as the public source-based wrapper that creates its standalone diff once, while compileChange consumes the same helper result and creates only its final combined diff.",
+        "keyDesign": "Use one private core result containing formalSnapshot, formalFingerprint, architecture change fingerprint, parsed ArchitectureDeltaParseResult, target or null, diagnostics, and validity. The core performs cloning, parsing, replacement validation, operation application, and complete target validation but no presentation projection. compileArchitectureChange projects that result to its existing CompiledChange contract with one createSemanticDiff call. compileChange reuses parsed.delta operations and replacements directly, appends contract and change-Spec diagnostics in the existing order, and performs one final createSemanticDiff call with the combined change fingerprint.",
+        "preservationConstraints": [
+          "Preserve the exported compileArchitectureChange and compileChange signatures and their source-based behavior.",
+          "Preserve formalFingerprint and both standalone and combined changeFingerprint inputs and byte-for-byte values.",
+          "Preserve target contents, target nullability for syntax failures, immutable Formal snapshot behavior, and complete Target Semantic Model validation.",
+          "Preserve parser diagnostics, paths, source locations, codes, messages, and ordering.",
+          "Preserve Architecture operation and replacement ordering exactly as emitted by DeltaParser.",
+          "Preserve the order in which architecture diagnostics, contract-delta diagnostics, and change-Spec diagnostics are combined.",
+          "Preserve allowAlreadyApplied behavior for ADDED, MODIFIED, and REMOVED graph and contract operations.",
+          "Preserve every ChangeDiff field, entry, child entry, declaredOperation, replacement association, diagnostic, summary count, and canonical ordering.",
+          "Preserve behavior for missing architecture-delta.c4, empty or malformed deltas, Specs-only changes, invalid contract deltas, and partial diagnostic projections.",
+          "Do not cache parser or materialization results across invocations, filesystem reads, project roots, or change fingerprints.",
+          "Do not add test-only parameters or broaden the public compiler contract solely to count calls."
+        ],
+        "implementationOutline": [
+          "Introduce a private result type for architecture materialization that retains the single ArchitectureDeltaParseResult.",
+          "Move cloning, fingerprinting, parseArchitectureDelta, replacement validation, operation application, and target validation from compileArchitectureChange into the private helper.",
+          "Keep createSemanticDiff outside the helper.",
+          "Have compileArchitectureChange invoke the helper and construct its existing standalone CompiledChange result with exactly one semantic-diff projection.",
+          "Have compileChange invoke the helper directly instead of compileArchitectureChange when deltaSource exists.",
+          "Reuse helperResult.parsed.delta operations and replacements in the final combined createSemanticDiff call.",
+          "Remove the two terminal parseArchitectureDelta calls and prevent creation of the discarded intermediate compiled.diff.",
+          "Leave the Specs-only branch and all filesystem read ordering unchanged."
+        ],
+        "validation": [
+          "Run test/core/architecture-delta-parser.test.ts, test/core/change-compiler.test.ts, and test/commands/diff.test.ts.",
+          "Add a focused module-mock or equivalent non-public seam assertion proving architecture-bearing compileChange invokes parseArchitectureDelta exactly once and createSemanticDiff exactly once.",
+          "Assert standalone compileArchitectureChange still invokes each operation exactly once and returns an unchanged Diff IR.",
+          "Assert valid graph operations, declared operations, replacement associations, fingerprints, summary counts, and full Diff IR remain deeply equal.",
+          "Retain invalid-delta coverage proving target remains null and parser diagnostics preserve source locations.",
+          "Retain malformed-Spec partial-diff and Specs-only coverage to prove diagnostic reconciliation and missing-delta behavior remain unchanged.",
+          "Run git diff --check and the targeted validate, diff, sync, archive, plan-remove, and view tests that exercise compileChange consumers."
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "This is now the only remaining actionable finding. It removes statically proven duplicate parser and full semantic-projection work from every architecture-bearing shared compiler invocation through one local internal boundary, with no cache, public API, or semantic-model change.",
+        "targetFileHashes": {
+          "src/core/change-compiler.ts": "db560529ff168a112f23f98a7fca63dcf93c684fa9e230ed822c38234ef8a95c"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-23T03:39:47.830Z",
+        "findingId": "OPT-20260723T033947829Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-23T03:39:47.830Z",
+        "findingId": "OPT-20260723T033947829Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "select",
+        "reason": "This removes a statically proven quadratic rendering path from the interactive architecture surface with a local, order-preserving implementation. It outranks the parser finding because its asymptotic benefit grows with every visible graph node and relationship.",
+        "timestamp": "2026-07-23T03:39:47.831Z",
+        "findingId": "OPT-20260723T033947829Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/opsx/architectureView.ts": "dfba66dd647a431d2abd2c7d2a1344ef65b715651eeaf50a68f3f590b461353a"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-23T03:39:54.712Z",
+        "findingId": "OPT-20260723T033947829Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/opsx/architectureView.ts": "dfba66dd647a431d2abd2c7d2a1344ef65b715651eeaf50a68f3f590b461353a"
+        }
+      },
+      {
+        "sequence": 5,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-23T03:45:21.007Z",
+        "findingId": "OPT-20260723T033947829Z-01"
+      },
+      {
+        "sequence": 6,
+        "action": "resolve",
+        "reason": "Checkpoint 6b6bfcbc961cb7cca0fa505604e2d56066e85f67 replaced the node-nested adjacency scans with ordered single-pass maps. Current code contains no full-array filter inside adjacency construction, the added ordering and omitted-endpoint coverage is committed, and the persisted fresh reviewer marked the finding verified.",
+        "timestamp": "2026-07-23T03:48:58.971Z",
+        "findingId": "OPT-20260723T033947829Z-01"
+      },
+      {
+        "sequence": 7,
+        "action": "reprioritize",
+        "reason": "The finding remains the highest-priority actionable optimization. Current code still parses each valid architecture delta three times and additionally materializes a complete intermediate ChangeDiff that compileChange discards before constructing the final combined Diff IR. The same private architecture-materialization boundary can eliminate both classes of redundant work without changing public behavior.",
+        "timestamp": "2026-07-23T03:48:58.971Z",
+        "findingId": "OPT-20260723T033947829Z-02"
+      },
+      {
+        "sequence": 8,
+        "action": "select",
+        "reason": "This is now the only remaining actionable finding. It removes statically proven duplicate parser and full semantic-projection work from every architecture-bearing shared compiler invocation through one local internal boundary, with no cache, public API, or semantic-model change.",
+        "timestamp": "2026-07-23T03:48:58.972Z",
+        "findingId": "OPT-20260723T033947829Z-02",
+        "hashes": {
+          "src/core/change-compiler.ts": "db560529ff168a112f23f98a7fca63dcf93c684fa9e230ed822c38234ef8a95c"
+        }
+      },
+      {
+        "sequence": 9,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-23T03:49:05.241Z",
+        "findingId": "OPT-20260723T033947829Z-02",
+        "hashes": {
+          "src/core/change-compiler.ts": "db560529ff168a112f23f98a7fca63dcf93c684fa9e230ed822c38234ef8a95c"
+        }
+      },
+      {
+        "sequence": 10,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-23T03:56:04.055Z",
+        "findingId": "OPT-20260723T033947829Z-02"
+      },
+      {
+        "sequence": 11,
+        "action": "resolve",
+        "reason": "Current persisted state marks the finding verified after commit 2008ab557 replaced the duplicate architecture parsing and discarded intermediate semantic diff with one shared materialization pass. Current src/core/change-compiler.ts SHA-256 is be01bee3df3f6b2a75812e78cdb6072496422e5d794d7a730907f93b2e8627c. Fresh targeted verification passed 3 files and 13 tests; git diff --check passed, the worktree is clean, and no staged files exist. The previously recorded dependency-complete full-suite reproduction warning remains a non-blocking environment residual.",
+        "timestamp": "2026-07-23T04:02:04.060Z",
+        "findingId": "OPT-20260723T033947829Z-02"
+      }
+    ],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}

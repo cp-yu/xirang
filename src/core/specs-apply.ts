@@ -12,7 +12,6 @@ import {
   extractRequirementsSection,
   parseDeltaSpec,
   normalizeRequirementName,
-  normalizeScenarioOperationLabelsForSync,
   type RequirementBlock,
 } from './parsers/requirement-blocks.js';
 import { projectConfigForRuntime, type RuntimeProjection } from './config-projection.js';
@@ -38,7 +37,6 @@ export interface ApplyResult {
   added: number;
   modified: number;
   removed: number;
-  renamed: number;
 }
 
 export interface SpecsApplyOutput {
@@ -48,13 +46,12 @@ export interface SpecsApplyOutput {
     added: number;
     modified: number;
     removed: number;
-    renamed: number;
   };
   noChanges: boolean;
 }
 
 function normalizeRequirementBlockRaw(raw: string): string {
-  return normalizeScenarioOperationLabelsForSync(raw)
+  return raw
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line.length > 0)
@@ -62,8 +59,7 @@ function normalizeRequirementBlockRaw(raw: string): string {
 }
 
 function normalizeRequirementBlockForSync(block: RequirementBlock): RequirementBlock {
-  const raw = normalizeScenarioOperationLabelsForSync(block.raw);
-  return { ...block, raw, headerLine: raw.split('\n')[0] ?? block.headerLine };
+  return block;
 }
 
 export function isDeltaSpecAlreadyApplied(
@@ -76,16 +72,6 @@ export function isDeltaSpecAlreadyApplied(
     parts.bodyBlocks.map((block) => [normalizeRequirementName(block.name), block])
   );
   let confirmedAppliedState = false;
-
-  for (const rename of plan.renamed) {
-    if (currentBlocks.has(normalizeRequirementName(rename.from))) {
-      return false;
-    }
-    if (!currentBlocks.has(normalizeRequirementName(rename.to))) {
-      return false;
-    }
-    confirmedAppliedState = true;
-  }
 
   for (const name of plan.removed) {
     if (currentBlocks.has(normalizeRequirementName(name))) {
@@ -110,7 +96,7 @@ export function isDeltaSpecAlreadyApplied(
     confirmedAppliedState = true;
   }
 
-  return true;
+  return confirmedAppliedState;
 }
 
 // -----------------------------------------------------------------------------
@@ -169,7 +155,7 @@ export async function buildUpdatedSpec(
   update: SpecUpdate,
   changeName: string,
   projectRoot?: string
-): Promise<{ rebuilt: string; counts: { added: number; modified: number; removed: number; renamed: number } }> {
+): Promise<{ rebuilt: string; counts: { added: number; modified: number; removed: number } }> {
   // Read change spec content (delta-format expected)
   const changeContent = await fs.readFile(update.source, 'utf-8');
 
@@ -208,25 +194,6 @@ export async function buildUpdatedSpec(
     }
     removedNamesSet.add(name);
   }
-  const renamedFromSet = new Set<string>();
-  const renamedToSet = new Set<string>();
-  for (const { from, to } of plan.renamed) {
-    const fromNorm = normalizeRequirementName(from);
-    const toNorm = normalizeRequirementName(to);
-    if (renamedFromSet.has(fromNorm)) {
-      throw new Error(
-        `${specName} validation failed - duplicate FROM in RENAMED for header "### Requirement: ${from}"`
-      );
-    }
-    if (renamedToSet.has(toNorm)) {
-      throw new Error(
-        `${specName} validation failed - duplicate TO in RENAMED for header "### Requirement: ${to}"`
-      );
-    }
-    renamedFromSet.add(fromNorm);
-    renamedToSet.add(toNorm);
-  }
-
   // Pre-validate cross-section conflicts
   const conflicts: Array<{ name: string; a: string; b: string }> = [];
   for (const n of modifiedNames) {
@@ -236,33 +203,24 @@ export async function buildUpdatedSpec(
   for (const n of addedNames) {
     if (removedNamesSet.has(n)) conflicts.push({ name: n, a: 'ADDED', b: 'REMOVED' });
   }
-  // Renamed interplay: MODIFIED must reference the NEW header, not FROM
-  for (const { from, to } of plan.renamed) {
-    const fromNorm = normalizeRequirementName(from);
-    const toNorm = normalizeRequirementName(to);
-    if (modifiedNames.has(fromNorm)) {
-      throw new Error(
-        `${specName} validation failed - when a rename exists, MODIFIED must reference the NEW header "### Requirement: ${to}"`
-      );
-    }
-    // Detect ADDED colliding with a RENAMED TO
-    if (addedNames.has(toNorm)) {
-      throw new Error(
-        `${specName} validation failed - RENAMED TO header collides with ADDED for "### Requirement: ${to}"`
-      );
-    }
-  }
   if (conflicts.length > 0) {
     const c = conflicts[0];
     throw new Error(
       `${specName} validation failed - requirement present in multiple sections (${c.a} and ${c.b}) for header "### Requirement: ${c.name}"`
     );
   }
-  const hasAnyDelta = plan.added.length + plan.modified.length + plan.removed.length + plan.renamed.length > 0;
+  if (plan.unsupportedSections.length > 0) {
+    throw new Error(`${specName}: RENAMED Requirements is unsupported; use REMOVED old plus ADDED new.`);
+  }
+  if (plan.scenarioOperationLabels.length > 0) {
+    const label = plan.scenarioOperationLabels[0];
+    throw new Error(`${specName}: Scenario operation metadata [${label.prefix}] is unsupported at line ${label.line}`);
+  }
+  const hasAnyDelta = plan.added.length + plan.modified.length + plan.removed.length > 0;
   if (!hasAnyDelta) {
     throw new Error(
       `Delta parsing found no operations for ${path.basename(path.dirname(update.source))}. ` +
-        `Provide ADDED/MODIFIED/REMOVED/RENAMED sections in change spec.`
+        `Provide ADDED/MODIFIED/REMOVED sections in change spec.`
     );
   }
 
@@ -276,11 +234,11 @@ export async function buildUpdatedSpec(
   try {
     targetContent = await fs.readFile(update.target, 'utf-8');
   } catch {
-    // Target spec does not exist; MODIFIED and RENAMED are not allowed for new specs
+    // Target spec does not exist; MODIFIED is not allowed for new specs
     // REMOVED will be ignored with a warning since there's nothing to remove
-    if (plan.modified.length > 0 || plan.renamed.length > 0) {
+    if (plan.modified.length > 0) {
       throw new Error(
-        `${specName}: target spec does not exist; only ADDED requirements are allowed for new specs. MODIFIED and RENAMED operations require an existing spec.`
+        `${specName}: target spec does not exist; only ADDED requirements are allowed for new specs. MODIFIED operations require an existing spec.`
       );
     }
     // Warn about REMOVED requirements being ignored for new specs
@@ -322,30 +280,7 @@ export async function buildUpdatedSpec(
     nameToBlock.set(normalizeRequirementName(block.name), block);
   }
 
-  // Apply operations in order: RENAMED → REMOVED → MODIFIED → ADDED
-  // RENAMED
-  for (const r of plan.renamed) {
-    const from = normalizeRequirementName(r.from);
-    const to = normalizeRequirementName(r.to);
-    if (!nameToBlock.has(from)) {
-      throw new Error(`${specName} RENAMED failed for header "### Requirement: ${r.from}" - source not found`);
-    }
-    if (nameToBlock.has(to)) {
-      throw new Error(`${specName} RENAMED failed for header "### Requirement: ${r.to}" - target already exists`);
-    }
-    const block = nameToBlock.get(from)!;
-    const newHeader = `### Requirement: ${to}`;
-    const rawLines = block.raw.split('\n');
-    rawLines[0] = newHeader;
-    const renamedBlock: RequirementBlock = {
-      headerLine: newHeader,
-      name: to,
-      raw: rawLines.join('\n'),
-    };
-    nameToBlock.delete(from);
-    nameToBlock.set(to, renamedBlock);
-  }
-
+  // Apply operations in order: REMOVED → MODIFIED → ADDED
   // REMOVED
   for (const name of plan.removed) {
     const key = normalizeRequirementName(name);
@@ -423,7 +358,6 @@ export async function buildUpdatedSpec(
       added: plan.added.length,
       modified: plan.modified.length,
       removed: plan.removed.length,
-      renamed: plan.renamed.length,
     },
   };
 }
@@ -434,7 +368,7 @@ export async function buildUpdatedSpec(
 export async function writeUpdatedSpec(
   update: SpecUpdate,
   rebuilt: string,
-  counts: { added: number; modified: number; removed: number; renamed: number }
+  counts: { added: number; modified: number; removed: number }
 ): Promise<void> {
   // Create target directory if needed
   const targetDir = path.dirname(update.target);
@@ -446,7 +380,6 @@ export async function writeUpdatedSpec(
   if (counts.added) console.log(`  + ${counts.added} added`);
   if (counts.modified) console.log(`  ~ ${counts.modified} modified`);
   if (counts.removed) console.log(`  - ${counts.removed} removed`);
-  if (counts.renamed) console.log(`  → ${counts.renamed} renamed`);
 }
 
 /**
@@ -503,7 +436,7 @@ export async function applySpecs(
     return {
       changeName,
       capabilities: [],
-      totals: { added: 0, modified: 0, removed: 0, renamed: 0 },
+      totals: { added: 0, modified: 0, removed: 0 },
       noChanges: true,
     };
   }
@@ -512,7 +445,7 @@ export async function applySpecs(
   const prepared: Array<{
     update: SpecUpdate;
     rebuilt: string;
-    counts: { added: number; modified: number; removed: number; renamed: number };
+    counts: { added: number; modified: number; removed: number };
   }> = [];
 
   for (const update of specUpdates) {
@@ -538,7 +471,7 @@ export async function applySpecs(
 
   // Build results
   const capabilities: ApplyResult[] = [];
-  const totals = { added: 0, modified: 0, removed: 0, renamed: 0 };
+  const totals = { added: 0, modified: 0, removed: 0 };
 
   for (const p of prepared) {
     const capability = path.basename(path.dirname(p.update.target));
@@ -554,14 +487,12 @@ export async function applySpecs(
         if (p.counts.added) console.log(`  + ${p.counts.added} added`);
         if (p.counts.modified) console.log(`  ~ ${p.counts.modified} modified`);
         if (p.counts.removed) console.log(`  - ${p.counts.removed} removed`);
-        if (p.counts.renamed) console.log(`  → ${p.counts.renamed} renamed`);
       }
     } else if (!options.silent) {
       console.log(`Would apply changes to .opsx/specs/${capability}/spec.md:`);
       if (p.counts.added) console.log(`  + ${p.counts.added} added`);
       if (p.counts.modified) console.log(`  ~ ${p.counts.modified} modified`);
       if (p.counts.removed) console.log(`  - ${p.counts.removed} removed`);
-      if (p.counts.renamed) console.log(`  → ${p.counts.renamed} renamed`);
     }
 
     capabilities.push({
@@ -572,7 +503,6 @@ export async function applySpecs(
     totals.added += p.counts.added;
     totals.modified += p.counts.modified;
     totals.removed += p.counts.removed;
-    totals.renamed += p.counts.renamed;
   }
 
   return {

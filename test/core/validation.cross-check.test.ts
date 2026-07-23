@@ -119,17 +119,17 @@ model {
     expect(issue!.message).toContain('Ghost');
   });
 
-  it('should report ERROR when RENAMED FROM header not found in main spec', async () => {
+  it('should reject RENAMED Requirements before cross-checking the old header', async () => {
     await writeMainSpec('foo', mainSpecWithHeaders(['Other']));
     await writeChangeSpec('foo', deltaSpec('RENAMED', 'Missing'));
 
     const report = await new Validator().validateChangeDeltaSpecs(changeDir);
 
     expect(report.valid).toBe(false);
-    const issue = report.issues.find(i => i.message.includes('RENAMED FROM') && i.message.includes('not found in main spec'));
+    const issue = report.issues.find(i => i.message.includes('RENAMED Requirements is unsupported'));
     expect(issue).toBeDefined();
     expect(issue!.level).toBe('ERROR');
-    expect(issue!.message).toContain('Missing');
+    expect(issue!.message).toContain('REMOVED old Requirement plus ADDED new Requirement');
   });
 
   it('should report ERROR when main spec does not exist and MODIFIED is used', async () => {
@@ -165,24 +165,20 @@ model {
     expect(crossCheckErrors).toHaveLength(0);
   });
 
-  it('should pass when MODIFIED scenario operation labels are valid', async () => {
+  it('should pass when a MODIFIED Requirement declares a canonical complete target set', async () => {
     await writeMainSpec('foo', mainSpecWithHeaders(['Valid Header']));
     await writeChangeSpec('foo', `## MODIFIED Requirements
 
 ### Requirement: Valid Header
 The system SHALL do something.
 
-#### Scenario: [MODIFIED] Existing path
+#### Scenario: Existing path
 - **WHEN** action
 - **THEN** result
 
-#### Scenario: [ADDED] New path
+#### Scenario: New path
 - **WHEN** new action
 - **THEN** new result
-
-#### Scenario: [REMOVED] Old path
-- **WHEN** old action
-- **THEN** old result
 `);
 
     const report = await new Validator().validateChangeDeltaSpecs(changeDir);

@@ -127,28 +127,25 @@ Proposal SHALL 保留 canonical `## Source Impact` 兼容结构，并分别声�
 
 ### Requirement: Propose 使用 definition-first authoring
 
-每个 artifact 写入前，workflow SHALL 读取 resolved `definition`，使用 `content.includes` 与 `content.excludes` 判断内容归属，遵守 `writePolicy`，再执行 `instruction` 并填充 `template`。Definition、context、rules、config projection、routing decision 与 Agent reasoning MUST NOT 被复制进 artifact。
+每个 artifact 写入前，workflow SHALL 读取 resolved definition，按 content boundaries 路由语义，再执行 artifact instruction 与 template。Specs SHALL 只包含 canonical unlabeled target-state Requirements 与 Scenarios；完成 artifacts 后 SHALL 使用统一 change compiler 审阅 effective changes。
 
 #### Scenario: Specs 按 Behavior Source 生成
 - **WHEN** propose 创建 change-local Specs
 - **THEN** SHALL 只消费 proposal Behavior Source 中的 Spec IDs
-- **AND** SHALL 使用返回的 definition 路由非 behavior 内容到 proposal、design、tasks 或 architecture delta
-- **AND** SHALL 读取 formal Spec 的精确 Requirement titles 后 author delta
+- **AND** SHALL 读取 Formal Spec 的 exact Requirement titles 后 author delta
 
 #### Scenario: Specs boundary 不重复定义
 - **WHEN** workflow 生成 Specs
-- **THEN** SHALL 依赖 `opsx instructions specs --change "<name>" --json` 返回的 definition boundary
-- **AND** SHALL NOT 在 workflow template 中维护独立的内容分类合同
+- **THEN** SHALL 依赖 `opsx instructions specs --change "<name>" --json` 返回的 definition
+- **AND** SHALL NOT 在 workflow template 维护竞争的 behavior boundary
 
-#### Scenario: Scenario labels preview 后生成
-- **WHEN** Agent 已完成 Specs 与 combined semantic-source delta validation
-- **THEN** Agent MUST NOT 手写 scenario operation labels
-- **AND** SHALL 先执行 `opsx scenario-labels "<name>" --preview --json`
-- **AND** SHALL 将 suggestions 与 proposal Behavior Source 和目标 delta 对照
-- **AND** 非预期 ADDED、MODIFIED 或 REMOVED operation SHALL 阻塞 label write
-- **AND** preview 符合意图后才 SHALL 执行 `opsx scenario-labels "<name>" --write`
-- **AND** sync/archive SHALL 消费并清理已有 labels，但 MUST NOT 生成 labels
-- **AND** SHALL NOT 仅因已审查的 deterministic labels 写入而再次运行 validate
+#### Scenario: Scenario operations 通过 diff 审阅
+- **WHEN** Agent 已完成 Specs、design、Architecture delta 与 combined validation
+- **THEN** Agent MUST NOT 手写或生成 Scenario operation labels
+- **AND** SHALL 审阅 validate concise preview
+- **AND** SHALL 运行 `opsx diff --change "<name>" --write`
+- **AND** SHALL 将 effective Scenario 与 Architecture operations 对照 proposal 与 Design Summary
+- **AND** 非预期 operation SHALL 阻塞 ready-for-apply 并要求修正 source
 
 ### Requirement: Propose 在 architecture delta 前 reconcile architecture scope
 
@@ -179,69 +176,63 @@ Propose SHALL 消费 artifact instructions 的 config projection，使新写或�
 
 ### Requirement: Post-propose validation 保持 warning-only
 
-Artifact 生成后，workflow SHALL 依次运行 Specs-scoped、architecture-delta-scoped 与 full change validation。发现 warning 时 SHALL 只修复一轮并复检一次，最终总结 SHALL 区分 fixed、remaining 与 skipped checks。
+Artifact generation 后，workflow SHALL 检查 scaffolding，并运行一次 combined Semantic Delta validation。WARNING SHALL 披露但不阻塞；ERROR 最多修复一轮并复检一次。
 
-#### Scenario: Staged validation
-- **WHEN** artifacts 已生成
-- **THEN** SHALL 运行 `opsx validate --change "<name>" --artifacts specs --json`
-- **AND** SHALL 运行 `opsx validate --change "<name>" --artifacts architecture-delta --json`
-- **AND** SHALL 运行 `opsx validate --change "<name>" --json`
-- **AND** MUST NOT 在该检查中执行 `opsx sync`
+#### Scenario: Combined validation 与 review generation
+- **WHEN** apply-required artifacts 已生成
+- **THEN** SHALL 运行 `opsx validate --change "<name>" --json`
+- **AND** validation 无 ERROR 后 SHALL 运行 `opsx diff --change "<name>" --write`
+- **AND** MUST NOT 执行 sync
 
 #### Scenario: Lightweight auxiliary checks
 - **WHEN** 检查 proposal、design 与 tasks
-- **THEN** SHALL 使用当前 Schema instructions/templates 与 `validateTaskStructure`
-- **AND** SHALL NOT 发明额外 semantic lint 或判断 Check 语义充分性
+- **THEN** SHALL 使用 resolved definitions/templates 与 deterministic task structure validation
+- **AND** SHALL NOT 发明额外 semantic lint
 
-#### Scenario: Validation 不阻塞 propose handoff
-- **WHEN** 单轮修复后仍有 warnings
+#### Scenario: Warning-only handoff
+- **WHEN**修复轮次后只剩 WARNING
 - **THEN** summary SHALL 披露 remaining warnings
-- **AND** workflow MAY 继续声明 apply-ready
+- **AND** MAY 声明 apply-ready
 
 ### Requirement: Post-propose validation 使用分级 gate
 
-Artifact generation 后，workflow SHALL 检查 compilation scaffolding，并运行一次 combined Semantic Delta validation。Validation SHALL 联合 graph 与 contract modules 构造 Target Semantic Model；ERROR 最多修复一轮并复检一次，残留 ERROR 阻塞 apply，WARNING 只披露。
+Propose SHALL 使用 combined compiler validation 与 effective diff review 作为分级 gate。ERROR 或非预期 effective operation 阻塞 apply；WARNING 只披露。
 
 #### Scenario: Combined Semantic Delta validation
 - **WHEN** apply-required artifacts 已生成
-- **THEN** SHALL 运行 `opsx validate --change "<name>" --json`
-- **AND** SHALL 联合验证 graph syntax、elements、containment、relationships、Spec bindings 与 contracts
-- **AND** MUST NOT 执行 `opsx sync`
-
-#### Scenario: Lightweight scaffolding checks
-- **WHEN** 检查 proposal、design 与 tasks
-- **THEN** SHALL 使用 resolved definitions/templates 与 deterministic task structure validation
-- **AND** SHALL NOT 发明额外 lint
+- **THEN** SHALL 联合验证 graph、containment、relationships、bindings、contracts 与 strict removals
+- **AND** SHALL 输出 concise effective preview
 
 #### Scenario: ERROR 阻塞
 - **WHEN** validation 产生 ERROR
 - **THEN** SHALL 最多修复并复检一轮
 - **AND** 残留 ERROR SHALL 阻塞 ready-for-apply
 
-#### Scenario: WARNING 不阻塞
-- **WHEN** 仅剩 WARNING
-- **THEN** final summary SHALL 披露 warnings
-- **AND** MAY 声明 ready-for-apply
+#### Scenario: Effective diff 不符合 intent
+- **WHEN** `opsx diff` 显示未授权或遗漏的 operation
+- **THEN** SHALL 修正 durable source 后重新 validate 与 write report
+- **AND** MUST NOT 通过编辑 `effective-change.md` 解决
 
 #### Scenario: Validation 全部通过
-- **WHEN** scaffolding 与 combined Semantic Delta validation 均无 ERROR
-- **THEN** SHALL 继续 scenario label preview/write
+- **WHEN** validation 无 ERROR 且 effective diff 已审阅
+- **THEN** SHALL 保留生成的 `effective-change.md`
 - **AND** final summary SHALL 声明 ready-for-apply
 
 ### Requirement: Propose 状态输出保持收敛
 
-Propose SHALL 只在 readiness 判断、阻塞决策和最终总结三个节点输出状态，不得要求首次 onboarding 预告或逐 artifact 完成播报。
+Propose SHALL 只在 readiness、blocker 与 final summary 节点输出状态。
 
 #### Scenario: Readiness 状态
 - **WHEN** propose 完成 semantic readiness 判断
-- **THEN** SHALL 报告 Design Summary reuse、readiness 结果、具体缺口或 override 状态中适用的内容
+- **THEN** SHALL 报告 Design Summary reuse、readiness 或具体 gap
 
 #### Scenario: Blocker 状态
-- **WHEN** change identity、source decision、validation 或 label preview 阻塞流程
+- **WHEN** identity、source decision、validation 或 effective diff 阻塞流程
 - **THEN** SHALL 报告最小必要 blocker
 - **AND** 需要用户决定时 SHALL 一次询问一个问题
 
 #### Scenario: 最终总结
-- **WHEN** propose 完成 artifact generation 与 validation
-- **THEN** SHALL 汇总创建或更新的 artifacts、validation errors/warnings、scenario label 结果与 ready-for-apply 状态
-- **AND** SHALL NOT 要求每完成一个 artifact 就输出独立进度消息
+- **WHEN** propose 完成 artifacts、validation 与 report generation
+- **THEN** SHALL 汇总 artifacts、errors/warnings、effective diff review 与 ready-for-apply 状态
+- **AND** SHALL NOT 报告 Scenario label result
+
