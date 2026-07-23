@@ -6,7 +6,6 @@ element: project.root/domain.ai_integration/cap.ai.workflow-generation
 
 ## Purpose
 Define the reviewed Agent Workflow Generation contract for 模板不内联 subagent 角色定义; Verify template 对 subagent 使用明确 delegation 指令; Phase 2 checkpoint state machine 使用表格格式; and 6 additional reviewed Requirements.
-
 ## Requirements
 ### Requirement: 模板不内联 subagent 角色定义
 verify/apply/archive 模板 SHALL NOT 在模板 body 中内联 reviewer 或 optimizer 的完整角色定义、验证协议、判断标准或输出格式。这些内容归对应的 generated internal subagent artifact 所有。
@@ -106,17 +105,12 @@ Apply-change 模板 SHALL 使用 `opsx list --specs --json` 替代 deprecated �
 - **AND** SHALL 指示 LLM 确认是否需要同步更新 delta spec
 
 ### Requirement: 固定工作流模板集合
+WorkflowManifestRegistry SHALL 恰好包含六个 user workflows：`propose`、`explore`、`apply`、`archive`、`build` 和 `snack`。Registry SHALL NOT 包含 `bootstrap-arch`。
 
-工作流模板注册表 SHALL 包含固定的 6 个用户 workflow 模板：`propose`、`explore`、`apply`、`archive`、`bootstrap-arch` 与 `snack`。Registry MUST NOT 包含 `new`、`continue`、`ff`、`verify`、`sync`、`bulk-archive` 或 `onboard` 等已删除 workflow。
-
-#### Scenario: 注册表包含固定的 6 个工作流
-- **WHEN** 查询 workflow manifest registry
-- **THEN** SHALL 恰好包含 `propose`、`explore`、`apply`、`archive`、`bootstrap-arch` 与 `snack`
-- **AND** snack SHALL 保持其 manifest metadata 与生成 surface
-
-#### Scenario: 已删除工作流不在注册表中
-- **WHEN** 查询 workflow manifest registry
-- **THEN** MUST NOT 包含 `new`、`continue`、`ff`、`verify`、`sync`、`bulk-archive` 或 `onboard`
+#### Scenario: Registry 包含 Project Build
+- **WHEN** 查询 workflow manifest
+- **THEN** SHALL 包含 workflow ID `build`，其 skill name 与 directory 均为 `opsx-build`
+- **AND** SHALL NOT 包含 `bootstrap-arch` 或 `opsx-bootstrap-arch`
 
 ### Requirement: 内部 subagent 引用替换内联 fragment
 
@@ -153,29 +147,12 @@ Workflow skill 模板的 instructions SHALL 以共享 OPSX Philosophy 开头。�
 - **AND** 每个流程步骤 SHALL 指向独立的 `.opsx/references/opsx-apply-step-<N>-<name>.md` 文件
 
 ### Requirement: Agent definition-first authoring
+编写 Project Build source 的 workflow template SHALL 消费 Candidate contract 与 CLI command surface，且 SHALL NOT 重新引入 phase-specific bootstrap instructions。
 
-所有会编写 OPSX artifacts 或 Bootstrap source files 的 workflow skill SHALL 获取对应 CLI instruction projection，并 SHALL 指示 Agent 遵循返回 `instruction` 中的 authoring order。Workflow templates MUST NOT 重复维护 `content.includes`、`content.excludes`、`writePolicy` 或 definition-first 逐步规则；这些细节由 instruction projection 单一持有。Workflow SHALL 将 definition、dependencies/current state、config projection、instruction 与 template 作为独立 inputs，并 MUST NOT 将非 source inputs 复制进 authored files。
+#### Scenario: Build skill authoring
+- **WHEN** 生成 `opsx-build`
+- **THEN** SHALL 指导 Agent 询问 exploration scope 与 build starting point
+- **AND** SHALL 指导 Agent 编写 `build.md`、Candidate Architecture 与 Candidate Specs
+- **AND** SHALL 指导 Agent 使用 `opsx candidate validate` diagnostics
+- **AND** SHALL NOT 要求 `opsx bootstrap instructions`、scan/map files、evidence.yaml、domain-map 或固定 subagent roles
 
-#### Scenario: Propose 消费 artifact instruction contract
-- **WHEN** propose 准备编写 ready artifact
-- **THEN** SHALL 读取 `opsx instructions <artifact> --change <name> --json`
-- **AND** SHALL 遵循返回 `instruction` 中的 authoring order
-- **AND** workflow template SHALL NOT 重复 `content.includes`、`content.excludes` 或 `writePolicy` 的消费步骤
-
-#### Scenario: Snack 消费 artifact instruction contract
-- **WHEN** snack reconcile proposal、Specs、design 或 architecture delta
-- **THEN** SHALL 运行对应 `opsx instructions <artifact> --change <name> --json`
-- **AND** SHALL 遵循返回 `instruction` 中的 authoring order
-- **AND** SHALL 将 current state 与 artifact content 分离
-
-#### Scenario: Bootstrap 消费 phase instruction contract
-- **WHEN** Bootstrap 进入当前 phase
-- **THEN** SHALL 读取 `opsx bootstrap instructions <phase> --json`
-- **AND** SHALL 遵循返回 `instruction` 中的 fileDefinitions-first order
-- **AND** SHALL 只直接编辑 write policy 允许 Agent authoring 的文件
-
-#### Scenario: Workflow 不复制 definitions 或 authoring rules
-- **WHEN** 检查 generated workflow skill instructions
-- **THEN** SHALL 只引用 CLI 返回的 authoring order 并保持结构化 inputs 分离
-- **AND** SHALL NOT 内联 proposal、Specs、architecture delta、design、tasks 或 Bootstrap 文件的完整 definition
-- **AND** SHALL NOT 复制 instruction projection 已持有的 definition-first 字段级规则

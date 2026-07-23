@@ -6,44 +6,15 @@ element: project.root/domain.ai_integration/cap.ai.workflow-generation
 
 ## Purpose
 Define the reviewed Agent Workflow Generation contract for Canonical Workflow Manifest; Tool Profile Registry; Ordered Transform Pipeline; and 2 additional reviewed Requirements.
-
 ## Requirements
 ### Requirement: Canonical Workflow Manifest
+canonical workflow manifest SHALL 是生成 skill artifacts 的唯一 source of truth，并 SHALL 包含六个 user workflows：`propose`、`explore`、`apply`、`archive`、`build` 和 `snack`。
 
-The system SHALL define a canonical workflow manifest as the single source of truth for generated skill artifacts.
-
-#### Scenario: Register workflow once
-
-- **WHEN** a workflow (for example `explore`, `apply`, or `bootstrap-arch`) is added or modified
-- **THEN** its canonical definition SHALL be registered once in the workflow manifest
-- **AND** skill projections SHALL be derived from that manifest
-- **AND** duplicate hand-maintained lists SHALL NOT be required
-
-#### Scenario: Manifest 包含固定的 5 个工作流
-
-- **WHEN** 查询 WorkflowManifestRegistry
-- **THEN** manifest SHALL 包含固定 workflow entries
-- **AND** manifest SHALL NOT 包含以下已删除的 entries：
-  - `new`
-  - `continue`
-  - `ff`
-  - `verify`
-  - `sync`
-  - `bulk-archive`
-  - `onboard`
-
-#### Scenario: modeMembership 作为标签系统
-
-- **WHEN** 读取 workflow manifest entry 的 `modeMembership` 字段
-- **THEN** 该字段 SHALL 被解释为标签列表，而非 profile 成员标识
-- **AND** 系统 SHALL NOT 使用 `modeMembership` 过滤工作流
-- **AND** 所有 manifest entries 均用于生成 skills
-
-#### Scenario: 生成制品时使用全部 manifest entries
-
-- **WHEN** 生成 skill 制品
-- **THEN** 系统 SHALL 使用 manifest 中的全部 entries
-- **AND** 系统 SHALL NOT 基于 `modeMembership` 值过滤 entries
+#### Scenario: 仅注册一次 Project Build
+- **WHEN** 生成 Project Build workflow
+- **THEN** manifest entry SHALL 使用 workflow ID `build`、skill name `opsx-build` 和 skill directory `opsx-build`
+- **AND** 所有 tool projections SHALL 从该 entry 派生
+- **AND** manifest SHALL NOT 包含 `bootstrap-arch`
 
 ### Requirement: Tool Profile Registry
 
@@ -90,27 +61,12 @@ The system SHALL support ordered artifact transforms with explicit scope semanti
 - **AND** transforms with `scope: 'both'` or `scope: 'skill'` SHALL apply to skill content
 
 ### Requirement: Shared Artifact Sync Engine
+Setup 和 update SHALL 使用 shared artifact sync engine 生成 `opsx-build` 及相关 managed artifacts，并 SHALL NOT 生成第二套 bootstrap command surface。
 
-The system SHALL provide a shared artifact sync engine used by all skill generation entry points. Reference files declared by skill templates SHALL be written by the shared engine to the project-level `.opsx/references/` home instead of per-tool skill directories.
-
-#### Scenario: Init and update use same engine
-
-- **WHEN** `opsx init` or `opsx update` writes skills
-- **THEN** both flows SHALL use the same orchestration engine for planning, rendering, validating, and writing artifacts
-- **AND** behavior differences SHALL NOT require separate duplicated loops
-
-#### Scenario: Legacy upgrade path reuses engine
-
-- **WHEN** legacy upgrade triggers artifact regeneration
-- **THEN** the regeneration path SHALL use the same shared engine for skills
-- **AND** generated outputs SHALL follow the same transform and validation rules
-
-#### Scenario: Reference files write to the shared references home
-
-- **WHEN** the engine writes skill artifacts for any configured tool
-- **THEN** `template.referenceFiles[]` SHALL be written once to `.opsx/references/` as `opsx-<name>.md`
-- **AND** the engine SHALL NOT write `references/` subdirectories under any tool skill directory
-- **AND** ownership, naming-uniqueness, and tool-neutrality constraints SHALL follow the `references-home` specification
+#### Scenario: Setup/update 保持 parity
+- **WHEN** setup 或 update 写入 workflow skills
+- **THEN** 两者 SHALL 使用同一个 manifest-derived engine
+- **AND** generated output SHALL 收敛到六个 fixed workflow set
 
 ### Requirement: Fidelity Guardrails
 
@@ -127,3 +83,4 @@ The system SHALL enforce guardrails that prevent output drift during refactors.
 - **WHEN** running parity tests for representative workflow/tool combinations
 - **THEN** generated skill artifacts SHALL remain behaviorally equivalent to approved baselines unless intentionally changed
 - **AND** intentional changes SHALL be captured in explicit spec/proposal updates
+

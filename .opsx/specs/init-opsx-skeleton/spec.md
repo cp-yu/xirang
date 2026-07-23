@@ -6,24 +6,25 @@ element: project.root/domain.cli/cap.cli.project-setup
 
 ## Purpose
 Define the first-run LikeC4 skeleton and bootstrap-arch guidance emitted by `opsx init`.
-
 ## Requirements
-### Requirement: OPSX Skeleton Generation on Init
-First-time non-extend init SHALL create the durable `.opsx` core and a versioned LikeC4 architecture skeleton only when targets do not exist; it MUST NOT create legacy project YAML or code-map files.
+### Requirement: Setup SHALL 生成 formal Semantic Model skeleton
+首次运行 `opsx setup` 时，SHALL 仅在目标不存在时创建 versioned `.opsx/architecture/` modules 与 empty `.opsx/specs/` directory。
 
-#### Scenario: First-time init creates LikeC4 source
-- **WHEN** `opsx init` runs in a project without an OPSX workspace
-- **THEN** it SHALL create `.opsx/architecture/specification.c4`, `model.c4`, `relations.c4`, and `views.c4`
-- **AND** SHALL preserve portable paths and project identity derived from package metadata or directory name
+#### Scenario: First-run skeleton
+- **WHEN** `opsx setup` 在没有 OPSX workspace 的项目中运行
+- **THEN** SHALL 创建 `specification.c4`、`model.c4`、`relations.c4` 和 `views.c4`
+- **AND** SHALL 创建 Project Root 与 required metamodel skeleton
+- **AND** SHALL NOT 推断 project elements 或 Specs
 
-#### Scenario: Extend mode preserves source
-- **WHEN** init extends an existing workspace
-- **THEN** existing architecture and Specs SHALL NOT be overwritten
+#### Scenario: Existing source preservation
+- **WHEN** setup 在 existing workspace 中运行
+- **THEN** existing Architecture 与 Specs SHALL NOT 被覆盖
 
-### Requirement: Bootstrap Guidance in Init Success Output
-Init success output SHALL show tool-native guidance for the installed `bootstrap-arch` skill only when that workflow is present and the run is not extend mode.
+### Requirement: Setup success guidance SHALL 暴露 Project Build
+Setup success output SHALL 使用当前工具的 Project Build invocation 引导用户继续语义构建。
 
-#### Scenario: Bootstrap skill is installed
-- **WHEN** first-time init installs `opsx-bootstrap-arch`
-- **THEN** success output SHALL point to its tool-specific invocation
-- **AND** SHALL NOT print the retired `/opsx:bootstrap` alias
+#### Scenario: 安装 Project Build workflow
+- **WHEN** setup 为工具安装 fixed workflow set
+- **THEN** success guidance SHALL 使用该工具的 `opsx-build` invocation
+- **AND** SHALL NOT 引用 `opsx-bootstrap-arch`、`opsx bootstrap` 或 `/opsx:bootstrap`
+

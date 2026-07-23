@@ -6,74 +6,27 @@ element: project.root/domain.config/cap.config.global-contract
 
 ## Purpose
 Define detection and cleanup behavior for legacy OPSX artifacts during initialization and update workflows.
-
 ## Requirements
 ### Requirement: Legacy artifact detection
+Setup/update SHALL 检测 legacy generated Agent surfaces 和退役的 OPSX managed workspaces，包括 `.opsx/bootstrap/`、`.opsx/bootstrap-history/` 与 `.opsx/migration-candidate/`。
 
-The system SHALL detect legacy OPSX artifacts from previous init versions.
-
-#### Scenario: Detecting legacy config files
-
-- **WHEN** running `opsx init` on an existing project
-- **THEN** the system SHALL check for config files with OPSX markers:
-  - `CLAUDE.md`
-  - `.cursorrules`
-  - `.windsurfrules`
-  - `.clinerules`
-  - `.kilocode_rules`
-  - `.github/copilot-instructions.md`
-  - `.amazonq/instructions.md`
-  - `CODEBUDDY.md`
-  - `IFLOW.md`
-  - And all other tool config files from the legacy ToolRegistry
-
-#### Scenario: Detecting legacy slash command directories
-
-- **WHEN** running `opsx init` on an existing project
-- **THEN** the system SHALL check for old slash command directories:
-  - `.claude/commands/opsx/`
-  - `.cursor/commands/opsx/` (note: old format used `opsx-*.md` in commands root)
-  - `.windsurf/workflows/opsx-*.md`
-  - And equivalent directories for all tools in the legacy SlashCommandRegistry
-
-#### Scenario: Detecting legacy OPSX structure files
-
-- **WHEN** running `opsx init` on an existing project
-- **THEN** the system SHALL check for:
-  - `opsx/AGENTS.md`
-  - `opsx/project.md` (for migration messaging only, not deleted)
-  - Root `AGENTS.md` with OPSX markers
+#### Scenario: 检测退役 workspace
+- **WHEN** setup 或 update 运行
+- **THEN** SHALL 使用 project-relative path 报告每个 retired workspace
+- **AND** SHALL NOT 将其视为 active semantic source
 
 ### Requirement: Legacy cleanup confirmation
+系统 SHALL 在删除或移动 legacy generated artifacts 与 retired workspaces 前要求 explicit user confirmation。
 
-The system SHALL prompt for confirmation before removing legacy artifacts.
+#### Scenario: 用户确认 cleanup
+- **WHEN** 用户确认 cleanup
+- **THEN** managed legacy artifacts SHALL 被清理，retired workspaces SHALL 移动到 `.opsx/history/legacy-<timestamp>/`
+- **AND** cleanup manifest SHALL 记录原始路径
 
-#### Scenario: Prompting for cleanup when legacy detected
-
-- **WHEN** legacy artifacts are detected
-- **THEN** the system SHALL display what was found
-- **AND** prompt: "Legacy files detected. Upgrade and clean up? [Y/n]"
-- **AND** default to Yes if user presses Enter
-
-#### Scenario: User confirms cleanup
-
-- **WHEN** user responds Y or presses Enter
-- **THEN** the system SHALL remove legacy artifacts
-- **AND** proceed with skill-based setup
-
-#### Scenario: User declines cleanup
-
-- **WHEN** user responds N
-- **THEN** the system SHALL abort initialization
-- **AND** display message suggesting manual cleanup or using `--force` flag
-
-#### Scenario: Non-interactive mode
-
-- **WHEN** running with `--no-interactive` or in CI environment
-- **AND** legacy artifacts are detected
-- **THEN** the system SHALL abort with exit code 1
-- **AND** display detected legacy artifacts
-- **AND** suggest running interactively or using `--force` flag
+#### Scenario: 用户拒绝 cleanup
+- **WHEN** 用户拒绝 cleanup
+- **THEN** setup/update SHALL 停止
+- **AND** SHALL NOT 进行 partial deletion 或 movement
 
 ### Requirement: Surgical removal of config file content
 
@@ -138,29 +91,10 @@ The system SHALL preserve project.md and display a migration hint instead of del
 - **THEN** users can migrate manually or use `/opsx:explore` to get AI assistance
 
 ### Requirement: Cleanup reporting
+Cleanup SHALL 报告已移动的 retired workspaces、已删除的 managed skill surfaces、保留的 user files 和仍需手动处理的内容。
 
-The system SHALL report what was cleaned up.
+#### Scenario: Cleanup summary
+- **WHEN** cleanup 完成
+- **THEN** output SHALL 列出每个显式 path action
+- **AND** SHALL 说明 history entries 只是 audit evidence，不是 runtime fallback source
 
-#### Scenario: Displaying cleanup summary
-
-- **WHEN** legacy cleanup completes
-- **THEN** the system SHALL display a summary section:
-  ```
-  Cleaned up legacy files:
-    ✓ Removed OPSX markers from CLAUDE.md
-    ✓ Removed .claude/commands/opsx/ (replaced by /opsx:*)
-    ✓ Removed opsx/AGENTS.md (no longer needed)
-  ```
-- **AND IF** `opsx/project.md` exists
-- **THEN** the system SHALL display a separate migration section:
-  ```
-  Manual migration needed:
-    → opsx/project.md still exists
-      Move useful content to config.yaml's "context:" field, then delete
-  ```
-
-#### Scenario: No legacy detected
-
-- **WHEN** no legacy artifacts are found
-- **THEN** the system SHALL NOT display the cleanup section
-- **AND** proceed directly with skill setup

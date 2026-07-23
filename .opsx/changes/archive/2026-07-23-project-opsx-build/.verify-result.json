@@ -52,11 +52,11 @@
       "test/core/templates/build.test.ts",
       "test/core/templates/manifest/registry.test.ts"
     ],
-    "evidenceFingerprint": "7831dbec82b26a791c218de605c932a1abaf5d7632ad4f624bcd0e742b635169",
+    "evidenceFingerprint": "c3a4a843f8110c835064127c1fc605fc32e0ca92d0c62b65c40da117c5d82ae5",
     "evidenceFingerprintEntries": [
       {
         "path": ".opsx/architecture/model.c4",
-        "hash": "4b1784406e1c35ef704e07c4a7dfe36885f290a36e63ee3d6ecaaa04faa14ebb"
+        "hash": "0b112267baeaa11cd29b10261c3d71e06fd410920dc1499ecc96c830f35504d6"
       },
       {
         "path": ".opsx/architecture/specification.c4",

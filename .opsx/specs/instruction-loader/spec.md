@@ -92,15 +92,3 @@ Instruction loader SHALL 将 artifact completion state 投影为独立的结构�
 - **THEN** `currentState.completionMarker.path` SHALL 指向预期 marker path
 - **AND** `currentState.completionMarker.present` SHALL 为 `false`
 
-### Requirement: Schema workspace state resolution
-
-Instruction loader SHALL 根据 resolved schema 选择 completion state 的 workspace root。Spec-driven artifacts SHALL 使用目标 change directory；Bootstrap artifacts SHALL 使用共享的 `.opsx/bootstrap/` workspace。显式 schema 选择 MUST NOT 导致 Bootstrap state 从 `.opsx/changes/<name>/` 读取。
-
-#### Scenario: Spec-driven state 使用 change root
-- **WHEN** loader 为 spec-driven change 生成 artifact instructions
-- **THEN** completion detection 与 output resolution SHALL 使用 `.opsx/changes/<name>/`
-
-#### Scenario: Bootstrap state 使用 bootstrap root
-- **WHEN** loader 使用 `bootstrap` schema 生成 phase instructions
-- **THEN** completion detection、dependency state 与 output resolution SHALL 使用 `.opsx/bootstrap/`
-- **AND** 已存在的 Bootstrap phase outputs SHALL 从该 workspace 被识别

@@ -98,85 +98,38 @@ The completion system SHALL automatically detect the user's current shell enviro
 - **THEN** throw error: "Shell '<name>' is not supported. Supported shells: zsh, bash, fish, powershell"
 
 ### Requirement: Completion Generation
+Completion command SHALL 为所有 supported shells 生成来自当前 Commander.js command tree 的 completion scripts，并 SHALL 反映 setup、Candidate 与 Project Build 的当前 surface。
 
-The completion command SHALL generate completion scripts for all supported shells on demand.
+#### Scenario: 所有 shell 暴露当前 commands
+- **WHEN** 为 Zsh、Bash、Fish 或 PowerShell 生成 completion
+- **THEN** output SHALL 包含 `setup`
+- **AND** SHALL 包含 `candidate` 及其 `init`、`status`、`validate`、`promote` subcommands
+- **AND** SHALL NOT 包含 `init`、`bootstrap` 或 `migrate`
+- **AND** SHALL 包含每个 current command 的 flags 与 descriptions
 
-#### Scenario: Generating Zsh completion
+#### Scenario: Candidate subcommand completion
+- **WHEN** 用户输入 `opsx candidate <TAB>`
+- **THEN** shell SHALL 建议 `init`、`status`、`validate`、`promote`
+- **AND** `init` SHALL complete its starting-point options
+- **AND** `validate` SHALL complete `--json`
+- **AND** `promote` SHALL complete `--digest`
 
-- **WHEN** user executes `opsx completion generate zsh`
-- **THEN** output a complete Zsh completion script to stdout
-- **AND** include completions for all commands: init, list, show, validate, archive, view, update, change, spec, completion, verify
-- **AND** include all command-specific flags and options
-- **AND** use Zsh's `_arguments` and `_describe` built-in functions
-- **AND** support dynamic completion for change and spec IDs
-
-#### Scenario: Generating Bash completion
-
-- **WHEN** user executes `opsx completion generate bash`
-- **THEN** output a complete Bash completion script to stdout
-- **AND** include completions for all commands: init, list, show, validate, archive, view, update, change, spec, completion, verify
-- **AND** use `complete -F` with custom completion function
-- **AND** populate `COMPREPLY` with appropriate suggestions
-- **AND** support dynamic completion for change and spec IDs via `opsx __complete`
-
-#### Scenario: Generating Fish completion
-
-- **WHEN** user executes `opsx completion generate fish`
-- **THEN** output a complete Fish completion script to stdout
-- **AND** include completions for all commands: init, list, show, validate, archive, view, update, change, spec, completion, verify
-- **AND** use `complete -c opsx` with conditions
-- **AND** include command-specific completions with `--condition` predicates
-- **AND** support dynamic completion for change and spec IDs via `opsx __complete`
-- **AND** include descriptions for each completion option
-
-#### Scenario: Generating PowerShell completion
-
-- **WHEN** user executes `opsx completion generate powershell`
-- **THEN** output a complete PowerShell completion script to stdout
-- **AND** include completions for all commands: init, list, show, validate, archive, view, update, change, spec, completion, verify
-- **AND** use `Register-ArgumentCompleter -CommandName opsx`
-- **AND** implement scriptblock that handles command context
-- **AND** support dynamic completion for change and spec IDs via `opsx __complete`
-- **AND** return `[System.Management.Automation.CompletionResult]` objects
-
-#### Scenario: Verify command subcommand completion
-
-- **WHEN** user types `opsx verify <TAB>`
-- **THEN** the shell SHALL suggest verify subcommands: phase1, phase2, seal, status
-- **AND** each subcommand SHALL complete its flags (e.g., `--input`, `--json`, `--type`, `--files`)
-- **AND** each subcommand SHALL accept `<change-name>` as positional argument with dynamic change-id completion
+#### Scenario: Generated script 保持 shell-native
+- **WHEN** 为任一 supported shell 生成 completion
+- **THEN** SHALL 保持该 shell 的 native completion primitives、escaping 和 interaction behavior
+- **AND** SHALL 从 runtime command introspection 获取 command definitions
 
 ### Requirement: Dynamic Completions
+Dynamic completion SHALL 继续为 change IDs 与 Spec IDs 提供 project-aware suggestions，并 SHALL NOT 从 `.opsx/candidate/` 或 `.opsx/history/` 推断 formal identifiers。
 
-The completion system SHALL provide context-aware dynamic completions for project-specific values.
+#### Scenario: Formal ID completion
+- **WHEN** command 需要 change 或 Spec identifier
+- **THEN** provider SHALL 从 `.opsx/changes/` 或 `.opsx/specs/` 读取 suggestions
+- **AND** SHALL 排除 archive、Candidate 与 history entries
 
-#### Scenario: Completing change IDs
-
-- **WHEN** completing arguments for commands that accept change names (show, validate, archive)
-- **THEN** discover active changes from `.opsx/changes/` directory
-- **AND** exclude archived changes in `.opsx/changes/archive/`
-- **AND** return change IDs as completion suggestions
-- **AND** only provide suggestions when inside an OPSX-enabled project
-
-#### Scenario: Completing spec IDs
-
-- **WHEN** completing arguments for commands that accept spec names (show, validate)
-- **THEN** discover specs from `.opsx/specs/` directory
-- **AND** return spec IDs as completion suggestions
-- **AND** only provide suggestions when inside an OPSX-enabled project
-
-#### Scenario: Completion caching
-
-- **WHEN** dynamic completions are requested
-- **THEN** cache discovered change and spec IDs for 2 seconds
-- **AND** reuse cached values for subsequent requests within cache window
-- **AND** automatically refresh cache after expiration
-
-#### Scenario: Project detection
-
-- **WHEN** user requests completions outside an OPSX project
-- **THEN** skip dynamic change/spec ID completions
-- **AND** only suggest static commands and flags
+#### Scenario: Project 外 completion
+- **WHEN** 当前目录不是 OPSX project
+- **THEN** SHALL 仅提供 static command 和 flag suggestions
 
 ### Requirement: Installation Automation
 
@@ -459,3 +412,4 @@ The completion implementation SHALL be testable with unit and integration tests 
 - **AND** phase2 SHALL 包含 flags: `--type`, `--files`, `--input`, `--json` 且 positionalType 为 `change-id`
 - **AND** seal SHALL 包含 flags: `--json` 且 positionalType 为 `change-id`
 - **AND** status SHALL 包含 flags: `--json` 且 positionalType 为 `change-id`
+

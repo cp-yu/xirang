@@ -30,80 +30,45 @@ OPSX CLI 的唯一可执行命令 SHALL 为 `opsx`，不提供其他命令别名
 - **AND** SHALL NOT 为其他命令名称注册
 
 ### Requirement: 项目工作区 SHALL 为 .opsx
+目标项目的 OPSX durable workspace SHALL 位于项目根目录 `.opsx/`。Project Setup、Candidate 与 history 均 SHALL 使用该唯一 workspace，且 SHALL NOT 回退或双写其他目录。
 
-目标项目的 OPSX durable workspace SHALL 位于项目根目录 `.opsx/`，不回退或双写 non-hidden legacy workspace。
-
-#### Scenario: 项目发现
-
-- **WHEN** CLI 从任意子目录向上查找项目根
-- **THEN** 系统 SHALL 寻找最近的 `.opsx/` 目录
-- **AND** SHALL NOT 回退到 non-hidden legacy workspace
-
-#### Scenario: 初始化新项目
-
-- **WHEN** 用户运行 `opsx init`
-- **THEN** 系统 SHALL 创建 `.opsx/` 目录结构
+#### Scenario: Setup 新项目
+- **WHEN** 用户运行 `opsx setup`
+- **THEN** 系统 SHALL 创建 `.opsx/` durable core
 - **AND** SHALL NOT 创建 non-hidden legacy workspace
 
 #### Scenario: 跨平台路径处理
-
 - **WHEN** CLI 在 Windows、macOS 或 Linux 构建 `.opsx/` 路径
-- **THEN** 系统 SHALL 使用 Node.js `path.join()` 或 `path.resolve()`
-- **AND** SHALL NOT 硬编码斜杠分隔符
+- **THEN** SHALL 使用 `path.join()` 或 `path.resolve()`
+- **AND** SHALL NOT 硬编码路径分隔符
 
 ### Requirement: 工作区目录结构 SHALL 完整
-
-`.opsx/` SHALL 包含初始化所需的 durable core，并为 bootstrap、history 与运行缓存提供受各自操作拥有的隐藏路径。
+`.opsx/` SHALL 包含 formal Semantic Model、change-local deltas、Agent references 和配置，并 MAY 按操作需要物化一个 active Candidate 与 durable history。
 
 #### Scenario: 标准工作区结构
-
 - **WHEN** 初始化 OPSX 项目
-- **THEN** 工作区 SHALL 创建 architecture、specs、changes、references 和 config durable core：
-  ```
-  .opsx/
-  ├── architecture/        # LikeC4 架构语义与 Spec 索引
-  ├── specs/               # Durable behavior source
-  ├── changes/             # Change-local 编译脚手架与 delta
-  ├── references/          # Agent workflow 参考协议
-  └── config.yaml          # 项目级框架配置
-  ```
-- **AND** bootstrap 操作 SHALL 仅在 `.opsx/bootstrap/` 与 `.opsx/bootstrap-history/` 中按需物化工作区和历史
-- **AND** 运行缓存 SHALL 仅在 `.opsx/.cache/` 中按需物化
+- **THEN** durable core SHALL 包含 `architecture/`、`specs/`、`changes/`、`references/` 和 `config.yaml`
+- **AND** Project Build MAY 物化 `.opsx/candidate/`
+- **AND** promotion 和 retired workspace cleanup MAY 物化 `.opsx/history/`
+- **AND** SHALL NOT 物化 active `.opsx/bootstrap/`、`.opsx/bootstrap-history/` 或 `.opsx/migration-candidate/`
 
-#### Scenario: 版本控制
-
-- **WHEN** 用户提交 OPSX 项目到 Git
-- **THEN** `.opsx/architecture/`、`.opsx/specs/`、`.opsx/changes/` SHALL 纳入版本控制
-- **AND** `.opsx/.cache/` SHALL 默认忽略
+#### Scenario: History 不是 fallback source
+- **WHEN** CLI 读取 formal Architecture 或 Specs
+- **THEN** SHALL 只读取 `.opsx/architecture/` 与 `.opsx/specs/`
+- **AND** SHALL NOT 从 `.opsx/history/` 自动恢复或补全 source
 
 ### Requirement: CLI 命令引用 SHALL 一致
+所有 active user-facing documentation、generated workflow templates、Agent instructions、skills、prompts 和 active Specs SHALL 仅引用当前 `opsx --help` 暴露的命令与当前 managed skill names。
 
-所有 active user-facing documentation、generated workflow templates、Agent instructions、skills、prompts 和 active specs SHALL 仅引用 `opsx` 命令和 `.opsx/` 路径。
-
-#### Scenario: Workflow skill 引用
-
-- **WHEN** 生成 workflow skill SKILL.md
-- **THEN** 文件内容 SHALL 引用 `opsx` 命令
-- **AND** SHALL 引用 `.opsx/` 路径
-- **AND** SHALL NOT 引用其他 CLI identity 或 non-hidden legacy workspace 路径
-
-#### Scenario: Subagent artifact 引用
-
-- **WHEN** 生成 subagent artifact
-- **THEN** artifact 内容 SHALL 引用 `opsx` 命令
-- **AND** SHALL 引用 `.opsx/` 路径
-
-#### Scenario: Project config 引用
-
-- **WHEN** 系统加载或生成项目配置
-- **THEN** 配置文件路径 SHALL 为 `.opsx/config.yaml`
-- **AND** 配置中 reference 路由路径 SHALL 使用 `.opsx/references/` 前缀
+#### Scenario: Project Build command references
+- **WHEN** active surface 描述 setup 或 Project Build
+- **THEN** SHALL 使用 `opsx setup`、`opsx candidate init|status|validate|promote` 与 `opsx-build`
+- **AND** SHALL NOT 使用 `opsx init`、`opsx bootstrap`、`opsx migrate` 或 `opsx-bootstrap-arch`
 
 #### Scenario: Archive history 残留
-
-- **WHEN** 审计 CLI 命令引用
-- **THEN** `.opsx/changes/archive/**` 下的历史归档 SHALL 允许保留旧命令引用
-- **AND** active surfaces SHALL NOT 包含旧命令引用
+- **WHEN** stale references 仅存在于 `.opsx/changes/archive/**` 或 `.opsx/history/**`
+- **THEN** MAY 将其保留为历史证据
+- **AND** active surfaces SHALL NOT 从这些文件生成 guidance
 
 ### Requirement: 不提供迁移兼容层
 
@@ -128,14 +93,17 @@ OPSX SHALL NOT 提供其他命令别名、non-hidden legacy workspace 回退或�
 - **AND** SHALL NOT 自动迁移该 workspace
 
 ### Requirement: Telemetry command identity SHALL 为 opsx
+Telemetry events SHALL 使用 `opsx` 作为 executable identity，并使用当前 command path 作为 command property。
 
-遥测事件 SHALL 使用 `opsx` 作为 command identity。
+#### Scenario: 记录 setup
+- **WHEN** 用户执行 `opsx setup`
+- **THEN** telemetry SHALL 记录 command `setup`
+- **AND** SHALL NOT 记录 `init`
 
-#### Scenario: 记录命令执行
-
-- **WHEN** 用户执行 `opsx init`
-- **THEN** 遥测事件 SHALL 记录 `opsx` 为命令标识
-- **AND** SHALL NOT 记录其他 command identity
+#### Scenario: 记录 Candidate subcommand
+- **WHEN** 用户执行 `opsx candidate validate`
+- **THEN** telemetry SHALL 记录完整 command path `candidate:validate`
+- **AND** SHALL NOT 记录 Candidate paths、digest 或项目内容
 
 ### Requirement: Package.json bin entry SHALL 为 opsx
 
@@ -146,3 +114,4 @@ npm package 的 bin entry SHALL 为 `opsx`。
 - **WHEN** 用户通过 npm 安装框架
 - **THEN** 系统 SHALL 在 PATH 中创建 `opsx` 可执行链接
 - **AND** SHALL NOT 创建其他框架命令链接
+
