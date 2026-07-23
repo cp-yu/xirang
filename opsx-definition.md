@@ -25,4 +25,3 @@ OPSX Semantic Model 是项目 human intent 的结构化、规范性表达。它�
 ## 1. Change
 
 OPSX 通过连续的 Changes 演进项目。每个 Change 将新的 human intent 与当前 Formal OPSX Semantic Model 对照，把需要新增、修改或移除的语义表达为 Semantic Delta。Semantic Delta 与当前模型共同构成 Target OPSX Semantic Model，Agent 依据该目标模型实现和验证可运行项目的新状态。Change 完成后，经确认的 Semantic Delta 更新 Formal OPSX Semantic Model，项目实现与语义模型一同进入新的稳定状态。
-
