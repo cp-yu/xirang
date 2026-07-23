@@ -24,7 +24,6 @@ import {
 import type { SkillTemplateEntry } from '../shared/skill-generation.js';
 import { runTransforms } from './transforms/index.js';
 import {
-  ALL_WORKFLOWS,
   normalizeWorkflowIds,
   type WorkflowId,
 } from '../workflow-surface.js';
@@ -105,21 +104,10 @@ interface ToolSyncPlan {
 // ---------------------------------------------------------------------------
 
 function resolveEffectiveWorkflows(
-  projectPath: string,
+  _projectPath: string,
   workflows: readonly string[]
 ): readonly WorkflowId[] {
-  const effective = new Set<WorkflowId>(normalizeWorkflowIds(workflows));
-  const bootstrapDir = path.join(projectPath, OPSX_DIR_NAME, 'bootstrap');
-
-  try {
-    if (fs.statSync(bootstrapDir).isDirectory()) {
-      effective.add('bootstrap-arch' as WorkflowId);
-    }
-  } catch {
-    // No bootstrap workspace; keep the requested workflows unchanged.
-  }
-
-  return ALL_WORKFLOWS.filter((workflowId) => effective.has(workflowId));
+  return normalizeWorkflowIds(workflows);
 }
 
 function buildPlan(request: ArtifactSyncRequest): ToolSyncPlan | null {

@@ -47,7 +47,7 @@ The vendored LikeC4 `v1.59.0` subtree is the only browser engine used by the CLI
 
 ```bash
 cd your-project
-/path/to/opsx/bin/opsx.js init
+/path/to/opsx/bin/opsx.js setup
 ```
 
 Then use the managed workflow skills installed for your agent:
@@ -58,7 +58,7 @@ Then use the managed workflow skills installed for your agent:
 | `/opsx:propose` | Create a complete change proposal and semantic deltas |
 | `/opsx:apply` | Implement tasks with evidence-backed TDD |
 | `/opsx:archive` | Verify, sync, and archive a completed change |
-| `/opsx:bootstrap-arch` | Model an existing repository in LikeC4 |
+| `/opsx:build` | Build or rebuild Architecture and Specs as one reviewed Candidate |
 | `/opsx:snack` | Reconcile already-written code into OPSX artifacts |
 
 Tool-specific invocation syntax is documented in [Supported Tools](docs/supported-tools.md).
@@ -88,7 +88,7 @@ opsx arch export --format svg --output docs/architecture
 opsx view --port 5173
 ```
 
-There is no legacy CLI alias, previous-workspace fallback, runtime grammar fallback, or secondary architecture preview command. Legacy YAML and unversioned LikeC4 profiles are accepted only by the explicit migration commands documented in the Migration Guide.
+There is no legacy CLI alias, previous-workspace fallback, runtime grammar fallback, migration command family, or secondary architecture preview command. External or legacy material can only be used as user-approved Project Build evidence or as an explicit Candidate starting point.
 
 ## Change Workflow
 
@@ -117,7 +117,6 @@ AI:  Verified and synced the semantic deltas, then moved the change to
 - [Workflow Skills](docs/commands.md)
 - [CLI Reference](docs/cli.md)
 - [LikeC4 Architecture](docs/architecture-integration.md)
-- [Migration Guide](docs/migration-guide.md)
 - [Supported Tools](docs/supported-tools.md)
 - [Concepts](docs/concepts.md)
 - [Customization](docs/customization.md)

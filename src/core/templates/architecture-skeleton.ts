@@ -1,4 +1,6 @@
-import { quoteLikeC4 } from '../../migration/generators/formatting-utils.js';
+function quoteLikeC4(value: string): string {
+  return `'${value.replaceAll('\\', '\\\\').replaceAll("'", "\\'").replaceAll('\n', '\\n')}'`;
+}
 
 export interface ArchitectureSkeletonContext {
   projectName: string;
@@ -23,6 +25,14 @@ export function renderSpecification(): string {
 }
 
 specification {
+  element capability {
+    opsx { contract optional }
+  }
+
+  element domain {
+    opsx { contract optional }
+  }
+
   element project {
     opsx {
       root true
@@ -30,19 +40,11 @@ specification {
     }
   }
 
-  element domain {
-    opsx { contract optional }
-  }
-
-  element capability {
-    opsx { contract optional }
-  }
-
-  relationship invokes
-  relationship produces
-  relationship consumes
-  relationship precedes
   relationship constrains
+  relationship consumes
+  relationship invokes
+  relationship precedes
+  relationship produces
   relationship validates
 }
 `;

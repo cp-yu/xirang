@@ -394,7 +394,7 @@ export async function generateApplyInstructions(
   const requiredArtifactIds = applyConfig?.requires ?? schema.artifacts.map((a) => a.id);
   const tracksFile = applyConfig?.tracks ?? null;
   const schemaInstruction = applyConfig?.instruction ?? null;
-  const prerequisiteWorkflow = context.schemaName === 'bootstrap' ? 'Bootstrap' : 'Propose';
+  const prerequisiteWorkflow = 'Propose';
 
   // Check which required artifacts are missing
   const missingArtifacts: string[] = [];

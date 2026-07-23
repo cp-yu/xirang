@@ -14,7 +14,7 @@ export async function readArchitecture(projectRoot: string): Promise<Architectur
     if (error?.code === 'ENOENT') {
       throw new Error(
         `No LikeC4 architecture model found at ${likec4Directory}. ` +
-        'For legacy YAML, run "opsx migrate opsx-to-likec4"; for semantic migration, run "opsx migrate semantic-model".',
+        'Run "opsx setup" to create a formal skeleton or use opsx-build to construct a reviewed Candidate.',
       );
     }
     throw error;

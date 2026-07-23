@@ -21,24 +21,8 @@ import { registerSchemaCommand } from '../commands/schema.js';
 import { registerSyncCommand } from '../commands/sync.js';
 import { registerDiffCommand } from '../commands/diff.js';
 import { registerVerifyCommand } from '../commands/verify.js';
-import { registerMigrateCommand } from '../commands/migrate/index.js';
 import { registerArchCommand } from '../commands/arch/index.js';
-import {
-  bootstrapAdvanceCommand,
-  bootstrapInitCommand,
-  bootstrapStatusCommand,
-  bootstrapInstructionsCommand,
-  bootstrapValidateCommand,
-  bootstrapPromoteCommand,
-  bootstrapBackfillSpecsCommand,
-  type BootstrapAdvanceOptions,
-  type BootstrapInitOptions,
-  type BootstrapStatusOptions,
-  type BootstrapInstructionsOptions,
-  type BootstrapValidateOptions,
-  type BootstrapPromoteOptions,
-  type BootstrapBackfillOptions,
-} from '../commands/bootstrap.js';
+import { registerCandidateCommand } from '../commands/candidate.js';
 import {
   statusCommand,
   instructionsCommand,
@@ -114,20 +98,12 @@ const availableToolIds = AI_TOOLS.filter((tool) => tool.skillsDir).map((tool) =>
 const toolsOptionDescription = `Configure AI tools non-interactively. Use "all", "none", or a comma-separated list of: ${availableToolIds.join(', ')}`;
 
 program
-  .command('init [path]')
-  .description('Initialize OPSX in your project')
+  .command('setup [path]')
+  .description('Set up OPSX in your project')
   .option('--tools <tools>', toolsOptionDescription)
-  .option('--force', 'Auto-cleanup legacy files without prompting')
-  .action(async (targetPath = '.', options?: { tools?: string; force?: boolean; profile?: string }) => {
+  .option('--force', 'Archive retired managed files without prompting')
+  .action(async (targetPath = '.', options?: { tools?: string; force?: boolean }) => {
     try {
-      if (options?.profile) {
-        throw new Error(
-          'The --profile option has been removed. OPSX now installs all 5 workflows by default. ' +
-          'Remove --profile from your command and try again.'
-        );
-      }
-
-      // Validate that the path is a valid directory
       const resolvedPath = path.resolve(targetPath);
 
       try {
@@ -137,7 +113,6 @@ program
         }
       } catch (error: any) {
         if (error.code === 'ENOENT') {
-          // Directory doesn't exist, but we can create it
           console.log(`Directory "${targetPath}" doesn't exist, it will be created.`);
         } else if (error.message && error.message.includes('not a directory')) {
           throw error;
@@ -146,34 +121,11 @@ program
         }
       }
 
-      const { InitCommand } = await import('../core/init.js');
-      const initCommand = new InitCommand({
+      const { SetupCommand } = await import('../core/setup.js');
+      await new SetupCommand({
         tools: options?.tools,
         force: options?.force,
-      });
-      await initCommand.execute(targetPath);
-    } catch (error) {
-      console.log(); // Empty line for spacing
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-// Hidden alias: 'experimental' -> 'init' for backwards compatibility
-program
-  .command('experimental', { hidden: true })
-  .description('Alias for init (deprecated)')
-  .option('--tool <tool-id>', 'Target AI tool (maps to --tools)')
-  .option('--no-interactive', 'Disable interactive prompts')
-  .action(async (options?: { tool?: string; noInteractive?: boolean }) => {
-    try {
-      console.log('Note: "opsx experimental" is deprecated. Use "opsx init" instead.');
-      const { InitCommand } = await import('../core/init.js');
-      const initCommand = new InitCommand({
-        tools: options?.tool,
-        interactive: options?.noInteractive === true ? false : undefined,
-      });
-      await initCommand.execute('.');
+      }).execute(targetPath);
     } catch (error) {
       console.log();
       ora().fail(`Error: ${(error as Error).message}`);
@@ -200,8 +152,8 @@ program
 registerSyncCommand(program);
 registerDiffCommand(program);
 registerVerifyCommand(program);
-registerMigrateCommand(program);
 registerArchCommand(program);
+registerCandidateCommand(program);
 
 program
   .command('list')
@@ -539,116 +491,6 @@ newCmd
   .action(async (name: string, options: NewChangeOptions) => {
     try {
       await newChangeCommand(name, options);
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-// ═══════════════════════════════════════════════════════════
-// Bootstrap Commands
-// ═══════════════════════════════════════════════════════════
-
-const bootstrapCmd = program
-  .command('bootstrap')
-  .description('Build a reviewed v1 Semantic Model candidate from repository evidence');
-
-bootstrapCmd
-  .command('init')
-  .description('Initialize a v1 Semantic Model candidate workspace')
-  .option('--mode <mode>', 'Bootstrap mode: full (v1 architecture and Element Contracts for generic elements), opsx-first (v1 architecture and Project Contract starter), or refresh (reviewed v1 Semantic Model rebuild)')
-  .option('--scope <paths>', 'Comma-separated paths to include in scan')
-  .option('--restart', 'Start a new run from a completed retained workspace by snapshotting the previous .opsx/bootstrap/')
-  .option('--granularity <granularity>', 'Element Contract granularity: required for initial init; restart inherits retained scope when omitted (coarse: grouped, fine: per-element)')
-  .action(async (options: BootstrapInitOptions) => {
-    try {
-      await bootstrapInitCommand(options);
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-bootstrapCmd
-  .command('status')
-  .description('Show bootstrap phase progress and per-element status')
-  .option('--json', 'Output as JSON')
-  .action(async (options: BootstrapStatusOptions) => {
-    try {
-      await bootstrapStatusCommand(options);
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-bootstrapCmd
-  .command('instructions [phase]')
-  .description('Get agent instructions for a bootstrap phase')
-  .option('--json', 'Output as JSON')
-  .action(async (phase: string | undefined, options: BootstrapInstructionsOptions) => {
-    try {
-      await bootstrapInstructionsCommand(phase, options);
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-bootstrapCmd
-  .command('advance <phase>')
-  .description('Advance the public init -> scan bootstrap phase transition')
-  .option('--json', 'Output transition result as JSON')
-  .action(async (phase: string, options: BootstrapAdvanceOptions) => {
-    try {
-      await bootstrapAdvanceCommand(phase, options);
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-bootstrapCmd
-  .command('validate')
-  .description('Run gate validation for current bootstrap phase')
-  .option('--json', 'Output as JSON')
-  .action(async (options: BootstrapValidateOptions) => {
-    try {
-      await bootstrapValidateCommand(options);
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-bootstrapCmd
-  .command('promote')
-  .description('Validate and promote the reviewed v1 Semantic Model candidate')
-  .option('-y, --yes', 'Skip confirmation')
-  .action(async (options: BootstrapPromoteOptions) => {
-    try {
-      await bootstrapPromoteCommand(options);
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-bootstrapCmd
-  .command('backfill-specs')
-  .description('Backfill deterministic matches and emit semantic handoff context for unmatched specs')
-  .option('--mappings <file>', 'Apply agent-reviewed semantic mappings from a JSON file')
-  .option('--json', 'Output matches, unmatched specs, semantic context, and mapping format as JSON')
-  .action(async (options: BootstrapBackfillOptions) => {
-    try {
-      await bootstrapBackfillSpecsCommand(options);
     } catch (error) {
       console.log();
       ora().fail(`Error: ${(error as Error).message}`);

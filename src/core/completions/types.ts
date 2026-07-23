@@ -35,7 +35,7 @@ export interface FlagDefinition {
  */
 export interface CommandDefinition {
   /**
-   * Command name (e.g., "init", "validate", "show")
+   * Command name (e.g., "setup", "validate", "show")
    */
   name: string;
 

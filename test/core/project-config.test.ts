@@ -544,7 +544,7 @@ context: Valid context here
 
         expect(readProjectConfig(tempDir)).toBeNull();
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-          "Unsupported schema 'custom-schema' in .opsx/config.yaml. Available: spec-driven, bootstrap"
+          "Unsupported schema 'custom-schema' in .opsx/config.yaml. Available: spec-driven"
         );
       });
 
@@ -892,7 +892,7 @@ context: |
         expect(config?.context).toBe('from yaml');
       });
 
-      it('should use .yml when .yaml does not exist', () => {
+      it('should reject the retired bootstrap schema in .yml', () => {
         const configDir = path.join(tempDir, '.opsx');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
@@ -900,10 +900,10 @@ context: |
           'schema: bootstrap\ncontext: from yml\n'
         );
 
-        const config = readProjectConfig(tempDir);
-
-        expect(config?.schema).toBe('bootstrap');
-        expect(config?.context).toBe('from yml');
+        expect(readProjectConfig(tempDir)).toBeNull();
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          "Unsupported schema 'bootstrap' in .opsx/config.yaml. Available: spec-driven"
+        );
       });
 
       it('should return null when neither .yaml nor .yml exist', () => {

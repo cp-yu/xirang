@@ -33,6 +33,6 @@ Build or consume the derived Spec registry rather than reading graph `metadata.s
 
 See [OPSX Semantic Model And LikeC4](architecture-integration.md) for the authoring contract.
 
-## Legacy Input
+## External Or Legacy Input
 
-Former OPSX YAML bundles and unversioned domain/capability LikeC4 models are migration inputs only. Runtime integrations must not add fallback reads for either format. See [Migration Guide](migration-guide.md).
+Former OPSX YAML bundles and unversioned LikeC4 models are never runtime fallbacks. `opsx-build` may consume them only as user-approved evidence or an explicit Candidate starting point.

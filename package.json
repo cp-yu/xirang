@@ -57,6 +57,7 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "test:postinstall": "node scripts/postinstall.js",
+    "test:pack-install": "node scripts/test-packed-install.mjs",
     "prepare": "node build.js",
     "prepublishOnly": "node build.js",
     "postinstall": "node scripts/postinstall.js",

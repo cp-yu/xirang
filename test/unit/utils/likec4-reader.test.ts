@@ -85,7 +85,7 @@ describe('LikeC4 architecture reader', () => {
     await fs.rm(path.join(root, '.opsx', 'architecture'), { recursive: true });
     await fs.writeFile(path.join(root, '.opsx', 'project.opsx.yaml'), `schema_version: 2\nproject: { id: test, name: Test }\ndomains: [{ id: dom.core, type: domain }]\ncapabilities: [{ id: cap.core.run, type: capability }]\n`);
     await fs.writeFile(path.join(root, '.opsx', 'project.opsx.relations.yaml'), `schema_version: 2\nrelations: [{ from: cap.core.run, type: belongs_to, to: dom.core }]\n`);
-    await expect(readArchitecture(root)).rejects.toThrow(/opsx migrate opsx-to-likec4|semantic migration/);
+    await expect(readArchitecture(root)).rejects.toThrow(/opsx setup|opsx-build/);
   });
 
   it('reads a versioned arbitrary-depth semantic model through generic elements', async () => {

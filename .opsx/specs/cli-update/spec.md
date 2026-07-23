@@ -38,15 +38,12 @@ As a developer using OPSX, I want to update the OPSX instructions in my project 
 - **AND** 补齐新的 git 功能性默认结构
 
 ### Requirement: Prerequisites
+Update command SHALL 要求现有 `.opsx/` workspace，才能刷新 managed surfaces。
 
-The command SHALL require an existing OPSX structure before allowing updates.
-
-#### Scenario: Checking prerequisites
-
-- **GIVEN** the command requires an existing `opsx` directory (created by `opsx init`)
-- **WHEN** the `opsx` directory does not exist
-- **THEN** display error: "No OPSX directory found. Run 'opsx init' first."
-- **AND** exit with code 1
+#### Scenario: Workspace 缺失
+- **WHEN** `.opsx/` 不存在
+- **THEN** update SHALL 失败，并指引运行 `opsx setup`
+- **AND** SHALL NOT 创建 partial workspace
 
 ### Requirement: File Handling
 The update command SHALL handle file updates in a predictable and safe manner.
@@ -155,57 +152,30 @@ The update command SHALL treat a tool as configured only when it has generated O
 - **AND** the system SHALL NOT refresh or remove those command files
 
 ### Requirement: Update detects new tool directories
-The update command SHALL notify the user if new AI tool directories are detected that aren't currently configured.
+Update command SHALL 报告新检测到的 AI tool directories，并指引用户运行 `opsx setup` 进行配置。
 
-#### Scenario: New tool directory detected
-- **WHEN** user runs `opsx update`
-- **AND** a new tool directory is detected (e.g., `.windsurf/` exists but Windsurf is not configured)
-- **THEN** the system SHALL display: "Detected new tool: Windsurf. Run 'opsx init' to add it."
-- **THEN** the system SHALL NOT automatically add the new tool
-- **THEN** the system SHALL proceed with update for currently configured tools only
-
-#### Scenario: Multiple new tool directories detected
-- **WHEN** user runs `opsx update`
-- **AND** multiple new tool directories are detected (e.g., `.github/` and `.windsurf/` exist but neither tool is configured)
-- **THEN** the system SHALL display one consolidated message listing all detected tools, for example: "Detected new tools: GitHub Copilot, Windsurf. Run 'opsx init' to add them."
-- **THEN** the system SHALL NOT automatically add any new tools
-- **THEN** the system SHALL proceed with update for currently configured tools only
-
-#### Scenario: No new tool directories
-- **WHEN** user runs `opsx update`
-- **AND** no new tool directories are detected
-- **THEN** the system SHALL NOT display any tool detection message
+#### Scenario: 检测到新工具
+- **WHEN** supported tool directory 存在，但没有 managed OPSX skills
+- **THEN** update SHALL 报告该工具
+- **AND** SHALL NOT 静默配置该工具
+- **AND** SHALL 指引用户运行 `opsx setup`
 
 ### Requirement: Update requires an OPSX project
+`opsx update` SHALL 只在包含 `.opsx/` 的项目内运行。
 
-update 命令 SHALL 仅在已初始化 OPSX 项目内运行。
-
-#### Scenario: 项目外运行 update
-
-- **WHEN** 用户运行 `opsx update`
-- **AND** 当前工作目录不存在 `.opsx/` 目录
-- **THEN** 系统 SHALL 显示："未找到 OPSX 项目。运行 'opsx init' 进行设置。"
-- **THEN** 系统 SHALL 以状态码 1 退出
+#### Scenario: 在 OPSX 项目外运行
+- **WHEN** `.opsx/` directory 不存在
+- **THEN** update SHALL 报告 OPSX project 缺失，并提供 `opsx setup` remediation
+- **AND** SHALL 以非零状态退出
 
 ### Requirement: Extra workflows synchronized to the fixed workflow set
+Update SHALL 使用显式 managed-name list 删除不属于 `propose`、`explore`、`apply`、`archive`、`build`、`snack` 的 managed skill artifacts。
 
-The update command SHALL remove managed skill workflow files that are no longer part of the fixed workflow set.
-
-#### Scenario: Extra workflows outside the fixed set
-
-- **WHEN** user runs `opsx update`
-- **AND** project has managed skill workflows not in the fixed workflow set
-- **THEN** the system SHALL delete those managed skill workflow files
-- **AND** the system SHALL keep only workflows currently selected by the fixed manifest
-- **AND** SHALL NOT delete command workflow files
-
-#### Scenario: Delivery change with extra workflows
-
-- **WHEN** user runs `opsx update`
-- **AND** global config contains a removed `delivery` field
-- **AND** project has extra managed skill workflows not in the fixed workflow set
-- **THEN** the system SHALL delete only managed skill files for extra workflows
-- **AND** SHALL NOT delete command files because delivery cleanup is not supported
+#### Scenario: Retired Build skill
+- **WHEN** managed `opsx-bootstrap-arch` skill 存在
+- **THEN** update SHALL 删除该 skill
+- **AND** SHALL 生成或刷新 `opsx-build`
+- **AND** SHALL NOT 删除 user-authored skills
 
 ### Requirement: Migrate project config defaults
 
@@ -283,28 +253,25 @@ The update command SHALL remove managed skill workflow files that are no longer 
 - **AND** SHALL 移除过时 git 字段并添加新默认值，行为与 Unix 系统一致
 
 ### Requirement: 固定工作流更新
+`opsx update` SHALL 刷新全部六个 fixed workflow skills，并 SHALL NOT 读取 retired workflow-selection settings。
 
-该命令 SHALL 固定更新 workflow manifest 中声明的工作流，无需读取 profile 配置。
+#### Scenario: Fixed workflow refresh
+- **WHEN** update 在 configured project 中运行
+- **THEN** SHALL 收敛到 `opsx-propose`、`opsx-explore`、`opsx-apply-change`、`opsx-archive-change`、`opsx-build`、`opsx-snack`
+- **AND** SHALL NOT 创建 bootstrap slash commands
 
-#### Scenario: 固定更新工作流
+### Requirement: Update SHALL 归档退役的 OPSX workspace
+当 update 或 setup 发现 `.opsx/bootstrap/`、`.opsx/bootstrap-history/` 或 `.opsx/migration-candidate/` 时，SHALL 在用户确认后将其移动到显式 `.opsx/history/legacy-<timestamp>/` entry。
 
-- **WHEN** 用户运行 `opsx update`
-- **THEN** 系统 SHALL 为所有检测到的工具固定更新 workflow manifest 中声明的工作流 skills
-- **AND** 系统 SHALL NOT 读取全局配置中的 `profile` 或 `workflows` 字段
-- **AND** 系统 SHALL 删除不在固定 5 个工作流列表中的 skill 文件
+#### Scenario: Retired workspace cleanup
+- **WHEN** 检测到 retired workspace 且用户确认 cleanup
+- **THEN** SHALL 完整移动该 directory，并用 manifest 记录原始 relative path
+- **AND** OPSX runtime SHALL 不再读取旧 active path
 
-#### Scenario: 清理 expanded 工作流残留
-
-- **WHEN** 项目中存在已废弃的 expanded 工作流 skill 文件
-- **THEN** 系统 SHALL 删除以下 skill 目录：
-  - `opsx-new-change`
-  - `opsx-continue-change`
-  - `opsx-ff-change`
-  - `opsx-verify-change`
-  - `opsx-sync-specs`
-  - `opsx-bulk-archive-change`
-  - `opsx-onboard`
-- **AND** 输出清理摘要："已清理 7 个废弃工作流"
+#### Scenario: 用户拒绝 cleanup
+- **WHEN** 用户拒绝 cleanup
+- **THEN** setup/update SHALL 失败
+- **AND** SHALL NOT 删除或部分移动 retired workspace
 
 ## Edge Cases
 

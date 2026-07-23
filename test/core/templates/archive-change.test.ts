@@ -8,6 +8,14 @@ describe('archive change workflow template', () => {
     expect(getArchiveChangeSkillTemplate().instructions).toContain(OPSX_PHILOSOPHY);
   });
 
+  it('uses current OPSX workflow branding', () => {
+    const template = getArchiveChangeSkillTemplate();
+    expect(template.description).toContain('OPSX change workflow');
+    expect(template.instructions).toContain('OPSX change workflow');
+    expect(template.description).not.toContain('experimental workflow');
+    expect(template.instructions).not.toContain('experimental workflow');
+  });
+
   it('keeps definition-first discipline for workflow-managed writes', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
     expect(instructions).toContain('resolved file definition');

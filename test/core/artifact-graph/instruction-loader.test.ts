@@ -42,21 +42,6 @@ describe('instruction-loader', () => {
       expect(template).not.toContain('### Modified Capabilities');
     });
 
-    it('loads bootstrap init and review templates with the complete v1 refresh contract', () => {
-      const initTemplate = loadTemplate('bootstrap', 'init.md');
-      const reviewTemplate = loadTemplate('bootstrap', 'review.md');
-
-      expect(initTemplate).toContain('formal-opsx -> refresh');
-      expect(initTemplate).toContain('complete candidate from current evidence');
-      expect(initTemplate).toContain('old formal OPSX v2 model is review-only evidence');
-      expect(initTemplate).toContain('completed workspace restart inherits retained `scope.yaml` granularity');
-      expect(initTemplate).toContain('opsx bootstrap advance scan');
-      expect(reviewTemplate).toContain('Relation semantic validation passes');
-      expect(reviewTemplate).toContain('Review gaps are resolved; checking a gap does not authorize promotion');
-      expect(reviewTemplate).not.toContain('explicitly accepted');
-      expect(reviewTemplate).not.toMatch(/code-map/i);
-    });
-
     it('should throw TemplateLoadError for non-existent template', () => {
       expect(() => loadTemplate('spec-driven', 'nonexistent.md')).toThrow(
         TemplateLoadError
@@ -343,27 +328,6 @@ describe('instruction-loader', () => {
         expect(templateIndex).toBeGreaterThan(instructionIndex);
         expect(body).toContain('MUST NOT copy `definition`, context, rules, `configProjection`, or Agent reasoning into the artifact');
       }
-    });
-
-    it('projects phase file definitions and workspace state for generic bootstrap instructions', () => {
-      const bootstrapDir = path.join(tempDir, '.opsx', 'bootstrap');
-      const evidencePath = path.join(bootstrapDir, 'evidence.yaml');
-      fs.mkdirSync(bootstrapDir, { recursive: true });
-      fs.writeFileSync(evidencePath, 'domains: []\n');
-
-      const context = loadChangeContext(tempDir, 'my-change', 'bootstrap');
-      const instructions = generateInstructions(context, 'scan');
-
-      expect(context.changeDir).toBe(canonicalPath(bootstrapDir));
-      expect(instructions.definition).toBeUndefined();
-      expect(instructions.fileDefinitions?.map((file) => file.id)).toEqual([
-        'metadata',
-        'scope',
-        'evidence',
-      ]);
-      expect(instructions.currentState.outputs).toEqual([canonicalPath(evidencePath)]);
-      expect(instructions.instruction).toContain('Read `fileDefinitions` first');
-      expect(instructions.instruction).not.toContain('Read the resolved `definition`');
     });
 
     it('falls back to change metadata when project schema is unsupported', () => {

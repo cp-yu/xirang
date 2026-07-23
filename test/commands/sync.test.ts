@@ -257,6 +257,7 @@ Old A.
 ### Requirement: Old B
 Old B.`
     );
+    await fs.writeFile(path.join(mainSpecDir, 'notes.md'), 'obsolete sidecar');
     await fs.writeFile(
       path.join(changeSpecDir, 'spec.md'),
       `## REMOVED Requirements
@@ -267,7 +268,7 @@ Old B.`
 
     await syncCommand('remove-empty-spec', { noVerify: true });
 
-    await expect(fs.access(path.join(mainSpecDir, 'spec.md'))).rejects.toThrow();
+    await expect(fs.access(mainSpecDir)).rejects.toThrow();
     expect(console.log).toHaveBeenCalledWith("Sync complete for 'remove-empty-spec'.");
     expect(console.log).toHaveBeenCalledWith('specs: synced');
   });

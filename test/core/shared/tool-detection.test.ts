@@ -36,7 +36,7 @@ describe('tool-detection', () => {
       expect(SKILL_NAMES).toContain('opsx-apply-change');
       expect(SKILL_NAMES).toContain('opsx-archive-change');
       expect(SKILL_NAMES).toContain('opsx-propose');
-      expect(SKILL_NAMES).toContain('opsx-bootstrap-arch');
+      expect(SKILL_NAMES).toContain('opsx-build');
       expect(SKILL_NAMES).toContain('opsx-snack');
     });
   });
@@ -44,13 +44,13 @@ describe('tool-detection', () => {
   describe('command slug mapping', () => {
     it('should expose all command workflow ids', () => {
       expect(COMMAND_IDS).toHaveLength(6);
-      expect(COMMAND_IDS).toContain('bootstrap-arch');
+      expect(COMMAND_IDS).toContain('build');
       expect(COMMAND_IDS).toContain('snack');
     });
 
-    it('should map bootstrap workflow id to bootstrap command slug', () => {
-      expect(WORKFLOW_TO_COMMAND_SLUG['bootstrap-arch']).toBe('bootstrap');
-      expect(getCommandSlug('bootstrap-arch')).toBe('bootstrap');
+    it('should map build workflow id to build command slug', () => {
+      expect(WORKFLOW_TO_COMMAND_SLUG.build).toBe('build');
+      expect(getCommandSlug('build')).toBe('build');
     });
   });
 

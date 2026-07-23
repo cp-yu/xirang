@@ -52,10 +52,6 @@ export function parseSchema(yamlContent: string): SchemaYaml {
       }
     }
   }
-  if (schema.name === 'bootstrap' && !schema.files) {
-    throw new SchemaValidationError('Invalid built-in bootstrap schema: files registry is required');
-  }
-
   // Check for duplicate artifact IDs
   validateNoDuplicateIds(schema.artifacts);
   validateFileReferences(schema);

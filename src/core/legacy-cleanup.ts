@@ -6,6 +6,7 @@
 import path from 'path';
 import { promises as fs } from 'fs';
 import chalk from 'chalk';
+import { stringify as stringifyYaml } from 'yaml';
 import { FileSystemUtils, removeMarkerBlock as removeMarkerBlockUtil } from '../utils/file-system.js';
 import { OPSX_DIR_NAME, OPSX_MARKERS } from './config.js';
 
@@ -13,6 +14,12 @@ import { OPSX_DIR_NAME, OPSX_MARKERS } from './config.js';
  * Legacy config file names from the old ToolRegistry.
  * These were config files created at project root with OPSX markers.
  */
+export const RETIRED_WORKSPACE_PATHS = [
+  '.opsx/bootstrap',
+  '.opsx/bootstrap-history',
+  '.opsx/migration-candidate',
+] as const;
+
 export const LEGACY_CONFIG_FILES = [
   'CLAUDE.md',
   'CLINE.md',
@@ -84,6 +91,8 @@ export interface LegacyDetectionResult {
   hasProjectMd: boolean;
   /** Whether root AGENTS.md has OPSX markers */
   hasRootAgentsWithMarkers: boolean;
+  /** Explicit retired managed workspaces found */
+  retiredWorkspaces?: string[];
   /** Whether any legacy artifacts were found */
   hasLegacyArtifacts: boolean;
 }
@@ -105,6 +114,7 @@ export async function detectLegacyArtifacts(
     hasOpsxAgents: false,
     hasProjectMd: false,
     hasRootAgentsWithMarkers: false,
+    retiredWorkspaces: [],
     hasLegacyArtifacts: false,
   };
 
@@ -124,6 +134,12 @@ export async function detectLegacyArtifacts(
   result.hasProjectMd = structureResult.hasProjectMd;
   result.hasRootAgentsWithMarkers = structureResult.hasRootAgentsWithMarkers;
 
+  for (const relativePath of RETIRED_WORKSPACE_PATHS) {
+    if (await FileSystemUtils.directoryExists(path.join(projectPath, ...relativePath.split('/')))) {
+      result.retiredWorkspaces!.push(relativePath);
+    }
+  }
+
   // Determine if any legacy artifacts exist
   result.hasLegacyArtifacts =
     result.configFiles.length > 0 ||
@@ -131,7 +147,8 @@ export async function detectLegacyArtifacts(
     result.slashCommandFiles.length > 0 ||
     result.hasOpsxAgents ||
     result.hasRootAgentsWithMarkers ||
-    result.hasProjectMd;
+    result.hasProjectMd ||
+    result.retiredWorkspaces!.length > 0;
 
   return result;
 }
@@ -345,10 +362,50 @@ export interface CleanupResult {
   modifiedFiles: string[];
   /** Directories that were deleted */
   deletedDirs: string[];
+  /** Retired managed workspaces moved to history */
+  archivedWorkspaces: string[];
   /** Whether project.md exists and needs manual migration */
   projectMdNeedsMigration: boolean;
   /** Error messages if any operations failed */
   errors: string[];
+}
+
+async function createLegacyHistoryEntry(projectPath: string, workspaces: readonly string[]): Promise<string[]> {
+  if (workspaces.length === 0) return [];
+
+  const historyRoot = path.join(projectPath, OPSX_DIR_NAME, 'history');
+  await fs.mkdir(historyRoot, { recursive: true });
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  let entry = path.join(historyRoot, `legacy-${timestamp}`);
+  for (let suffix = 1; await FileSystemUtils.directoryExists(entry); suffix += 1) {
+    entry = path.join(historyRoot, `legacy-${timestamp}-${suffix}`);
+  }
+  await fs.mkdir(entry);
+
+  const moved: Array<{ source: string; destination: string }> = [];
+  try {
+    for (const relativePath of workspaces) {
+      const source = path.join(projectPath, ...relativePath.split('/'));
+      const destinationName = path.basename(source);
+      const destination = path.join(entry, destinationName);
+      await fs.rename(source, destination);
+      moved.push({ source: relativePath, destination: destinationName });
+    }
+    await fs.writeFile(
+      path.join(entry, 'manifest.yaml'),
+      stringifyYaml({ schemaVersion: 1, archivedAt: new Date().toISOString(), workspaces: moved }),
+      'utf8',
+    );
+    return moved.map(({ source }) => source);
+  } catch (error) {
+    for (const item of [...moved].reverse()) {
+      const source = path.join(projectPath, ...item.source.split('/'));
+      const destination = path.join(entry, item.destination);
+      await fs.rename(destination, source).catch(() => undefined);
+    }
+    await fs.rm(entry, { recursive: true, force: true }).catch(() => undefined);
+    throw error;
+  }
 }
 
 /**
@@ -367,9 +424,15 @@ export async function cleanupLegacyArtifacts(
     deletedFiles: [],
     modifiedFiles: [],
     deletedDirs: [],
+    archivedWorkspaces: [],
     projectMdNeedsMigration: detection.hasProjectMd,
     errors: [],
   };
+
+  result.archivedWorkspaces = await createLegacyHistoryEntry(
+    projectPath,
+    detection.retiredWorkspaces ?? [],
+  );
 
   // Remove marker blocks from config files (NEVER delete config files)
   // Config files like CLAUDE.md, AGENTS.md belong to the user's project root
@@ -437,8 +500,17 @@ export async function cleanupLegacyArtifacts(
 export function formatCleanupSummary(result: CleanupResult): string {
   const lines: string[] = [];
 
-  if (result.deletedFiles.length > 0 || result.deletedDirs.length > 0 || result.modifiedFiles.length > 0) {
+  if (
+    result.deletedFiles.length > 0 ||
+    result.deletedDirs.length > 0 ||
+    result.modifiedFiles.length > 0 ||
+    (result.archivedWorkspaces?.length ?? 0) > 0
+  ) {
     lines.push('Cleaned up legacy files:');
+
+    for (const workspace of result.archivedWorkspaces ?? []) {
+      lines.push(`  ✓ Archived ${workspace} under .opsx/history/`);
+    }
 
     for (const file of result.deletedFiles) {
       lines.push(`  ✓ Removed ${file}`);

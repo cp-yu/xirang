@@ -4,7 +4,7 @@ import path from 'path';
 import os from 'os';
 import { parse as parseYaml } from 'yaml';
 
-import { InitCommand } from '../../src/core/init.js';
+import { SetupCommand } from '../../src/core/setup.js';
 import { UpdateCommand } from '../../src/core/update.js';
 import { WorkflowManifestRegistry } from '../../src/core/templates/manifest/registry.js';
 import { getSkillTemplates } from '../../src/core/shared/skill-generation.js';
@@ -74,7 +74,7 @@ describe('snack workflow integration', () => {
   });
 
   it('init installs 6 workflow skills including snack for Claude Code', async () => {
-    const initCommand = new InitCommand({ tools: 'claude', force: true });
+    const initCommand = new SetupCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
     const skillsDir = path.join(testDir, '.claude', 'skills');
@@ -83,7 +83,7 @@ describe('snack workflow integration', () => {
       'opsx-explore',
       'opsx-apply-change',
       'opsx-archive-change',
-      'opsx-bootstrap-arch',
+      'opsx-build',
       'opsx-snack',
     ];
 

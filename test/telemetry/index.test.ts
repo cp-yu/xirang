@@ -206,7 +206,7 @@ describe('telemetry/index', () => {
       }
     });
 
-    it('should record OPSX identity separately from the subcommand path', async () => {
+    it('should record only the current command path, version, and IP exclusion', async () => {
       delete process.env.OPSX_TELEMETRY;
       delete process.env.DO_NOT_TRACK;
       delete process.env.CI;
@@ -214,14 +214,15 @@ describe('telemetry/index', () => {
 
       await shutdown();
       await withInteractiveTTY(async () => {
-        await trackCommand('init', '1.0.0');
+        await trackCommand('candidate:validate', '1.0.0');
       });
 
       expect(captureMock).toHaveBeenCalledWith(expect.objectContaining({
-        properties: expect.objectContaining({
-          commandIdentity: 'opsx',
-          command: 'init',
-        }),
+        properties: {
+          command: 'candidate:validate',
+          version: '1.0.0',
+          $ip: null,
+        },
       }));
     });
 

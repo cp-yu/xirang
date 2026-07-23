@@ -6,7 +6,6 @@ element: project.root/domain.ai_integration/cap.ai.subagent-generation
 
 ## Purpose
 Define the reviewed Subagent Artifact Generation contract for Internal subagent 模板注册; Per-tool subagent artifact 渲染; Subagent artifact 写入路径; and 5 additional reviewed Requirements.
-
 ## Requirements
 ### Requirement: Internal subagent 模板注册
 
@@ -137,49 +136,25 @@ Subagent artifact 目录名与文件名 SHALL 定义为显式常量，MUST NOT �
 - **AND** SHALL NOT 抛出异常
 
 ### Requirement: Init 与 Update 集成 subagent artifact 生成
+`opsx setup` 与 `opsx update` SHALL 通过 shared ArtifactSyncEngine 生成 workflow skills 和 internal subagent artifacts；Project Build 的完成 SHALL NOT 依赖 subagent artifact availability。
 
-`opsx init` 与 `opsx update` SHALL 通过 `ArtifactSyncEngine` 同时生成 workflow skills 与 internal subagent artifacts。Subagent artifact 生成 SHALL 与 workflow skill 生成共享同一次工具遍历，SHALL NOT 拆分为独立引擎或独立 CLI 入口。
+#### Scenario: Setup 生成 subagent artifacts
+- **WHEN** 用户执行 `opsx setup` 并选择支持 internal subagents 的工具
+- **THEN** 系统 SHALL 生成 managed internal subagent artifacts
+- **AND** SHALL 同时生成 `opsx-build` workflow skill
 
-#### Scenario: Init 时同时写入 skills 与 agents
-
-- **WHEN** 用户执行 `opsx init` 并选择 Claude Code、Pi、OpenCode、Codex 中的任一工具
-- **THEN** 系统 SHALL 写入该工具的全部 workflow skill `SKILL.md`
-- **AND** SHALL 写入该工具的全部 internal subagent artifact（`<toolDir>/agents/<name>.<ext>`）
-- **AND** SHALL NOT 在 `<toolDir>/skills/` 下生成 `opsx-reviewer`、`opsx-optimizer`、`opsx-impact-sweeper` 目录
-
-#### Scenario: Update 时刷新 subagent artifact
-
-- **WHEN** 用户执行 `opsx update`
-- **THEN** 系统 SHALL 重新生成并覆盖 managed subagent artifact 文件
-- **AND** SHALL NOT 删除用户自定义的 `agents/*.md` 或 `agents/*.toml` 文件
-- **AND** SHALL NOT 重新生成 `opsx-implementer`
+#### Scenario: Build 不依赖 subagents
+- **WHEN** Agent 运行 `opsx-build`，且当前工具不支持 internal subagents
+- **THEN** Build SHALL 仍可通过 Candidate authoring、validation 和 promotion 完成
+- **AND** SHALL NOT 因缺少 subagent artifact 而改变 Candidate contract
 
 ### Requirement: 旧 internal skill 目录迁移 cleanup
+Setup/update SHALL 使用显式 managed name list 清理旧 internal skill artifacts，并 SHALL NOT 清理 user-authored agents。
 
-系统 SHALL 在 `opsx init` 与 `opsx update` 的 artifact sync 路径中，按显式 managed name list 删除旧版本生成的 internal skill 目录。Managed stale name list SHALL 至少包含 `opsx-implementer`、`opsx-reviewer`、`opsx-optimizer`、`opsx-impact-sweeper`。
-
-删除 SHALL 使用显式名 list 查找，MUST NOT 通过目录扫描、glob filtering 或 regex inference 删除。系统 SHALL NOT 删除用户自定义 skill 目录或用户自定义 `agents/` 文件。
-
-#### Scenario: Update 删除旧 internal skill 目录
-
-- **WHEN** 用户执行 `opsx update`
-- **AND** 某工具的 managed skills directory 下存在旧版本生成的 `opsx-reviewer/`、`opsx-optimizer/`、`opsx-impact-sweeper/` 目录
-- **THEN** 系统 SHALL 通过显式名 list 删除这些 managed 目录
-- **AND** SHALL NOT 删除用户自定义 skill 目录
-- **AND** SHALL NOT 删除 workflow skill 目录（如 `opsx-explore/`）
-
-#### Scenario: 显式名 list 不包含 workflow skill
-
-- **WHEN** 读取 managed stale name list
-- **THEN** 列表 SHALL NOT 包含任何 workflow skill 目录名（如 `opsx-propose`、`opsx-explore`）
-- **AND** SHALL 限定为 internal 角色与历史 implementer
-
-#### Scenario: 用户自定义 agents 文件不误删
-
-- **WHEN** 某工具的 `agents/` 目录下存在用户自定义 `my-custom-agent.md`
-- **AND** 系统执行 update
-- **THEN** 系统 SHALL 只覆盖 managed subartifact（`opsx-reviewer.*`、`opsx-optimizer.*`、`opsx-impact-sweeper.*`）
-- **AND** SHALL NOT 删除 `my-custom-agent.md`
+#### Scenario: Cleanup 使用显式列表
+- **WHEN** managed old internal skill artifacts 存在
+- **THEN** setup/update SHALL 只删除显式列出的 managed names
+- **AND** SHALL 保留 user-authored agent files
 
 ### Requirement: Generated subagent artifact 编码 subagent-self-read 权限模型
 
@@ -242,3 +217,4 @@ Renderer SHALL 在 prompt body 中明确 impact-sweeper MUST NOT 通过 Bash 绕
 - **WHEN** agent 文件不存在（首次 `opsx init` 或 `opsx update`）
 - **AND** `template.model` 未设置
 - **THEN** 生成的 agent 文件 SHALL NOT 包含 `model` 字段
+

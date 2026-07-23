@@ -107,7 +107,7 @@ export class ListCommand {
       try {
         await fs.access(changesDir);
       } catch {
-        throw new Error("No OPSX changes directory found. Run 'opsx init' first.");
+        throw new Error("No OPSX changes directory found. Run 'opsx setup' first.");
       }
 
       // Get all directories in changes (excluding archive)

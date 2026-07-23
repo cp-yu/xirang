@@ -17,7 +17,7 @@ model {
   project_root.apply.apply_verification_integration -[invokes]-> project_root.cli.cli_artifact_workflow
   project_root.apply.apply_verification_integration -[invokes]-> project_root.verify.verify_consistency_gate
   project_root.apply.apply_verification_integration -[invokes]-> project_root.verify.verify_optimization_gate
-  project_root.architecture.architecture_bootstrap -[consumes]-> project_root.artifact_graph.artifact_graph_workflow_compilation
+  project_root.architecture.architecture_bootstrap -[invokes]-> project_root.cli.cap_cli_candidate
   project_root.artifact_graph.artifact_graph_workflow_compilation -[consumes]-> project_root.config.config_project_settings
   project_root.artifact_graph.artifact_graph_workflow_compilation -[consumes]-> project_root.config.config_runtime_projection
   project_root.change_workflow.change_lifecycle -[consumes]-> project_root.config.config_project_settings
@@ -30,6 +30,8 @@ model {
   project_root.cli.cli_artifact_workflow -[consumes]-> project_root.artifact_graph.artifact_graph_workflow_compilation
   project_root.cli.cli_artifact_workflow -[invokes]-> project_root.artifact_graph.artifact_graph_workflow_compilation
   project_root.cli.cli_artifact_workflow -[invokes]-> project_root.verify.verify_consistency_gate
+  project_root.cli.cap_cli_candidate -[invokes]-> project_root.architecture.architecture_semantic_model
+  project_root.cli.cap_cli_candidate -[invokes]-> project_root.validation.validation_semantic_contract
   project_root.cli.cli_change_operations -[invokes]-> project_root.architecture.architecture_semantic_model
   project_root.cli.cli_change_operations -[invokes]-> project_root.change_workflow.change_semantic_delta
   project_root.cli.cli_change_operations -[invokes]-> project_root.cli.cli_command_discovery
@@ -43,10 +45,6 @@ model {
   project_root.cli.cli_project_setup -[invokes]-> project_root.config.config_global_contract
   project_root.framework.framework_identity -[constrains]-> project_root.ai_integration.ai_workflow_generation
   project_root.framework.framework_identity -[constrains]-> project_root.cli.cli_project_setup
-  project_root.migration.migration_semantic_model_reconciliation -[consumes]-> project_root.opsx_element.opsx_legacy_bundle
-  project_root.migration.migration_semantic_model_reconciliation -[consumes]-> project_root.validation.validation_semantic_contract
-  project_root.migration.migration_semantic_model_reconciliation -[invokes]-> project_root.architecture.architecture_semantic_model
-  project_root.migration.migration_semantic_model_reconciliation -[validates]-> project_root.architecture.architecture_semantic_model
   project_root.presentation.presentation_semantic_browser -[consumes]-> project_root.architecture.architecture_semantic_model
   project_root.presentation.presentation_semantic_browser -[consumes]-> project_root.change_workflow.change_semantic_delta
   project_root.presentation.presentation_semantic_browser -[consumes]-> project_root.validation.validation_semantic_contract

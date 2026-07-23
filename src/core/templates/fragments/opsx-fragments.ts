@@ -2,7 +2,7 @@
 
 /**
  * Fragment: OPSX philosophy
- * Used in: propose, explore, apply-change, archive-change, bootstrap-arch, snack, reviewer, optimizer
+ * Used in: propose, explore, apply-change, archive-change, build, snack, reviewer, optimizer
  * Excluded by decision: impact-sweeper (read-only reporter), feedback (writes no artifacts)
  */
 export const OPSX_PHILOSOPHY = `

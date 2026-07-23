@@ -80,14 +80,14 @@ OPSX conventions SHALL keep specs lightweight by default and scale rigor only wh
 - **THEN** authors increase detail and explicit validation expectations proportionally
 
 ### Requirement: Project Structure
+OPSX 项目 SHALL 使用一致目录保存 formal Semantic Model、change-local Semantic Deltas、一个可选 active Candidate 与 durable build history。
 
-OPSX 项目 SHALL 使用一致目录保存同一个 OPSX Semantic Model 的 graph modules、contract modules、change-local Semantic Delta 与可再生 review artifact。
-
-#### Scenario: 初始化与 change 目录结构
-- **WHEN** 初始化 OPSX 项目或创建 change
-- **THEN** SHALL 使用 `.opsx/architecture/`、`.opsx/specs/`、`.opsx/changes/<name>/` 与 `.opsx/changes/archive/`
-- **AND** active change MAY 包含 `proposal.md`、`design.md`、`tasks.md`、`architecture-delta.c4`、`specs/<spec-id>/spec.md` 与 generated `effective-change.md`
-- **AND** `effective-change.md` SHALL NOT 被解释为 semantic source
+#### Scenario: 初始化项目结构
+- **WHEN** `opsx setup` 初始化项目
+- **THEN** SHALL 创建 formal `architecture/`、`specs/`、`changes/`、`references/` 与 `config.yaml`
+- **AND** Project Build SHALL 只在 `.opsx/candidate/` 编写待提升的 `build.md`、Architecture 和 Specs
+- **AND** successful promotion SHALL 在 `.opsx/history/builds/` 保存 previous formal source
+- **AND** graph 与 contract directories SHALL 始终被解释为一个 OPSX Semantic Model
 
 ### Requirement: Structured Format for Behavioral Specs
 
@@ -227,26 +227,22 @@ Behavioral specifications SHALL adopt the structured format with `### Requiremen
 - **AND** use `#### Scenario:` for scenarios with bold WHEN/THEN/AND keywords
 
 ### Requirement: Verb–Noun CLI Command Structure
+OPSX CLI SHALL 优先使用动作明确的顶层 commands，但 MAY 为具有内聚 lifecycle 的 durable resource 提供稳定 noun namespace。
 
-OPSX CLI 设计 SHALL 使用动词作为顶层命令，通过参数或标志提供名词进行范围界定。
+#### Scenario: Setup 使用动词 command
+- **WHEN** 用户创建或刷新 project setup
+- **THEN** SHALL 使用 `opsx setup`
+- **AND** SHALL NOT 保留 `opsx init` alias
 
-#### Scenario: 动词优先命令发现
+#### Scenario: Candidate 使用 resource namespace
+- **WHEN** 用户管理 active Semantic Model Candidate
+- **THEN** SHALL 使用 `opsx candidate init|status|validate|promote`
+- **AND** noun namespace SHALL 只聚合该 resource 的内聚 lifecycle operations
 
-- **WHEN** 用户运行像 `opsx list` 这样的命令
-- **THEN** 动词清晰传达动作
-- **AND** 名词通过标志或参数细化范围（例如 `--changes`、`--specs`）
-
-#### Scenario: 名词命令的向后兼容性
-
-- **WHEN** 用户运行名词前缀命令如 `opsx spec ...` 或 `opsx change ...`
-- **THEN** CLI SHALL 继续支持它们至少一个发布周期
-- **AND** 显示指向动词优先替代方案的弃用警告
-
-#### Scenario: 消歧义指导
-
-- **WHEN** 项目名在 changes 和 specs 之间有歧义
-- **THEN** `opsx show` 和 `opsx validate` SHALL 接受 `--type spec|change`
-- **AND** 帮助文本 SHALL 清晰记录这一点
+#### Scenario: 退役 command family
+- **WHEN** 用户请求 `opsx bootstrap` 或 `opsx migrate`
+- **THEN** CLI SHALL 报告 command 不存在
+- **AND** SHALL NOT 自动转发到 Project Build
 
 ### Requirement: spec-driven instruction 区分结构 token 和填充 prose
 Spec-driven artifact instructions SHALL 明确 parse-sensitive 结构 token 保持 canonical，agent 填充的新写或改写 prose 跟随 `proseLanguage`。

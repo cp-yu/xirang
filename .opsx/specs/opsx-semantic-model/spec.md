@@ -6,21 +6,24 @@ element: project.root/domain.architecture/cap.architecture.semantic-model
 
 ## Purpose
 Define the reviewed Versioned Semantic Model contract for OPSX Semantic Model SHALL 统一表达 human intent; Metamodel SHALL 定义可编译 element vocabulary; Project Root SHALL 是唯一最高抽象; and 4 additional reviewed Requirements.
-
 ## Requirements
 ### Requirement: OPSX Semantic Model SHALL 统一表达 human intent
+OPSX SHALL 将 formal LikeC4 graph modules 与 singular element-bound Markdown contract modules 解释为同一个权威 Semantic Model。Project Build Candidate SHALL 使用相同的完整模型边界；promotion SHALL 完整替换 graph 与 contracts，而不是逐文件 merge。
 
-OPSX SHALL 将 LikeC4 graph modules 与 Markdown contract modules 解释为同一个权威 OPSX Semantic Model。系统与 Agent guidance MUST NOT 将它们描述为两套并列 source，也 MUST NOT 要求独立持久化 IR 才能消费该模型。
-
-#### Scenario: Agent 读取统一模型
+#### Scenario: Agent 读取 formal 统一模型
 - **WHEN** Agent 需要理解或实现项目 intent
 - **THEN** SHALL 读取 `.opsx/architecture/**/*.c4` 中的 graph semantics
 - **AND** SHALL 读取 `.opsx/specs/**/*.md` 中与相关 elements 对应的 contracts
 - **AND** SHALL 将两类 modules 作为同一个 OPSX Semantic Model 消费
 
+#### Scenario: Candidate promotion
+- **WHEN** valid Candidate 被用户授权并成功 promotion
+- **THEN** `.opsx/architecture/` 与 `.opsx/specs/` SHALL 完全等于 Candidate target trees
+- **AND** Candidate 中不存在的旧 formal modules 或 Specs SHALL NOT 继续存在
+
 #### Scenario: 程序化解析不创建第二权威模型
-- **WHEN** CLI 为 query、validation、sync 或 view 临时解析 source files
-- **THEN** 解析结果 MAY 作为运行时实现数据
+- **WHEN** CLI 为 query、validation、diff、promotion 或 view 临时解析 source
+- **THEN** runtime representation MAY 作为实现数据
 - **AND** MUST NOT 被持久化或声明为独立 source of truth
 
 ### Requirement: Metamodel SHALL 定义可编译 element vocabulary
@@ -98,14 +101,15 @@ OPSX LikeC4 profile SHALL 通过显式 language version 与 Metamodel 定义 ele
 - **THEN** validation SHALL 通过且 MUST NOT 报缺失 contract warning
 
 ### Requirement: Language version SHALL 控制 dialect 演进
-
-OPSX graph source SHALL 使用显式 language version 选择 model semantics。缺失 version 的现有 LikeC4 source SHALL 作为 legacy profile 读取；系统 MUST NOT 静默将 legacy source 写成新版本。
+OPSX graph source SHALL 使用显式 language version 选择 model semantics。缺失 version 的输入 MAY 由用户选择为 Project Build evidence 或指定起点，但 runtime MUST NOT 静默转换或自动 promotion。
 
 #### Scenario: 新版 source 选择 v1 semantics
 - **WHEN** graph source 声明 language version `1`
 - **THEN** parser 与 validator SHALL 启用 Project Root、通用 elementId、Metamodel constraints 与 singular Spec binding 规则
 
-#### Scenario: Legacy source 保持可读
-- **WHEN** graph source 未声明 language version
-- **THEN** reader SHALL 使用 legacy rules
-- **AND** 写入新版 source SHALL 要求显式 migration 与 human authorization
+#### Scenario: Legacy source 作为 Build input
+- **WHEN** 用户将 legacy source 选为指定构建起点或 evidence
+- **THEN** Agent MAY 读取并将用户批准的语义编译到 Candidate
+- **AND** CLI SHALL NOT 提供 `opsx migrate` 或 runtime fallback conversion
+- **AND** 写入 formal source SHALL 仍要求 Candidate validation 与 human-authorized digest
+

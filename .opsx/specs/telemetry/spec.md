@@ -7,9 +7,7 @@ element: project.root/domain.telemetry/cap.telemetry.anonymous-usage
 ## Purpose
 
 This spec defines how OPSX collects anonymous usage telemetry to help improve the tool. It governs the `src/telemetry/` module, which handles PostHog integration, privacy-preserving event design, user opt-out mechanisms, and first-run notice display. The spec ensures telemetry is minimal, transparent, and respects user privacy.
-
 ## Requirements
-
 ### Requirement: Command execution tracking
 The system SHALL send a `command_executed` event to PostHog when any CLI command executes, including only the command name and OPSX version as properties.
 
@@ -22,15 +20,21 @@ The system SHALL send a `command_executed` event to PostHog when any CLI command
 - **THEN** the system sends a `command_executed` event with the full command path (e.g., `change:apply`)
 
 ### Requirement: Privacy-preserving event design
-The system SHALL NOT include command arguments, file paths, project names, spec content, error messages, or IP addresses in telemetry events.
+Telemetry events SHALL NOT 包含 command arguments、file paths、project names、Spec content、Candidate content、digest、error messages 或 IP addresses。
 
-#### Scenario: Command with arguments
-- **WHEN** a user runs `opsx init my-project --force`
-- **THEN** the telemetry event contains only `command: "init"` and `version: "<version>"` without arguments
+#### Scenario: Setup command 带参数
+- **WHEN** 用户运行 `opsx setup my-project --tools all`
+- **THEN** telemetry event SHALL 只包含 `command: "setup"` 与 `version`
+- **AND** SHALL NOT 包含 project path 或 tool selection
+
+#### Scenario: Candidate validation
+- **WHEN** 用户运行 `opsx candidate validate --json`
+- **THEN** telemetry event SHALL 只包含 `command: "candidate:validate"` 与 `version`
+- **AND** SHALL NOT 包含 Candidate paths、diagnostics 或 `reviewDigest`
 
 #### Scenario: IP address exclusion
-- **WHEN** the system sends a telemetry event
-- **THEN** the event explicitly sets `$ip: null` to prevent IP tracking
+- **WHEN** system 发送 telemetry event
+- **THEN** SHALL 显式设置 `$ip: null`
 
 ### Requirement: Environment variable opt-out
 The system SHALL disable telemetry when `OPSX_TELEMETRY=0` or `DO_NOT_TRACK=1` environment variables are set.
@@ -124,3 +128,4 @@ The system SHALL silently ignore telemetry failures without affecting CLI functi
 #### Scenario: Shutdown failure
 - **WHEN** `shutdown()` fails or times out
 - **THEN** the CLI exits normally without error message
+

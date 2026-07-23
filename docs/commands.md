@@ -10,7 +10,7 @@ OPSX exposes managed workflows as skills. It does not generate a parallel slash-
 | `/opsx:propose` | Create proposal, design, tasks, delta Specs, and architecture delta when required |
 | `/opsx:apply` | Implement an approved change with TDD and evidence-backed checks |
 | `/opsx:archive` | Verify, sync, and archive a completed change |
-| `/opsx:bootstrap-arch` | Build a versioned Semantic Model candidate from repository evidence |
+| `/opsx:build` | Build a versioned Semantic Model candidate from repository evidence |
 | `/opsx:snack` | Reconcile existing code into one Semantic Delta |
 
 Invocation syntax varies by agent tool. See [Supported Tools](supported-tools.md).
@@ -50,19 +50,15 @@ opsx arch export [--format png|svg|pdf] [--output <directory>]
 
 Exports architecture diagrams without changing the semantic model.
 
-## Explicit Semantic Model Migration
+## Project Candidate
 
 ```bash
-opsx migrate semantic-model [--candidate <path>] [--json]
-opsx migrate semantic-model --promote --yes [--json]
+opsx candidate init --from current
+opsx candidate init --from clean
+opsx candidate init --from-path <path>
+opsx candidate status [--json]
+opsx candidate validate [--json]
+opsx candidate promote --digest <reviewDigest>
 ```
 
-This command converts an unversioned legacy LikeC4 profile into an independently validated v1 candidate. Promotion requires resolved identities and Spec bindings plus explicit authorization.
-
-## Legacy YAML Conversion
-
-```bash
-opsx migrate opsx-to-likec4 [--dry-run]
-```
-
-This retained one-time command accepts only the former OPSX YAML architecture bundle. It is a legacy conversion path, not a runtime fallback or the canonical v1 migration workflow.
+Project Build authors Architecture and Specs in one isolated Candidate. Validation is read-only, and promotion requires the exact digest confirmed by the user.

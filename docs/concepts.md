@@ -463,11 +463,7 @@ proposal → specs → design → tasks → implement
 
 Best for: Most feature work where you want to agree on specs before implementation.
 
-### Bootstrap Schema
-
-`bootstrap` is the retained legacy schema for the deprecated OPSX bootstrap CLI. New bootstrapping uses the managed `bootstrap-arch` skill and produces a reviewed versioned Semantic Model candidate.
-
-OPSX resolves only the package-owned `spec-driven` and `bootstrap` schemas. Project-local and user override schemas are not supported. Use `opsx schema which --all` to inspect both built-ins and `opsx schema validate` to validate them.
+OPSX resolves only the package-owned `spec-driven` schema. Project-local and user override schemas are not supported. Project Build uses the Candidate contract directly rather than a separate artifact schema.
 
 ## Archive
 

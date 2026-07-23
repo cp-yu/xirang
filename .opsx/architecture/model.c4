@@ -62,7 +62,7 @@ model {
       metadata {
         elementId 'project.root/domain.architecture'
       }
-      architecture_bootstrap = capability 'Architecture Bootstrap' 'Drives the CLI-backed init, scan, map, review, promote, refresh, and backfill lifecycle that derives a reviewed Semantic Model from repository evidence.' {
+      architecture_bootstrap = capability 'Project OPSX Build' '由 Agent 根据用户要求和项目证据自由探索，同时编写完整 Architecture 与 Specs Candidate，并仅通过确定性 Candidate CLI 完成验证和提升。' {
         metadata {
           elementId 'project.root/domain.architecture/cap.architecture.bootstrap'
         }
@@ -112,6 +112,11 @@ model {
           elementId 'project.root/domain.cli/cap.cli.artifact-workflow'
         }
       }
+      cap_cli_candidate = capability 'Semantic Model Candidate CLI' '管理单一 Project Build Candidate 的初始化、状态、确定性验证、digest gate、history 与原子 promotion。' {
+        metadata {
+          elementId 'project.root/domain.cli/cap.cli.candidate'
+        }
+      }
       cli_change_operations = capability 'Change Operations' '提供 change、spec、show、validate、semantic diff、sync 与 archive 命令，并通过统一 compiler 保持 preview、JSON、report 与写入语义一致' {
         metadata {
           elementId 'project.root/domain.cli/cap.cli.change-operations'
@@ -127,7 +132,7 @@ model {
           elementId 'project.root/domain.cli/cap.cli.feedback'
         }
       }
-      cli_project_setup = capability 'Project Setup and Update' 'Initializes the semantic workspace and refreshes generated agent surfaces using normalized project configuration and identity rules.' {
+      cli_project_setup = capability 'Project Setup and Update' '通过 opsx setup 创建最小 formal skeleton、项目配置与 managed Agent surfaces，并通过 update 收敛当前固定 workflow 集。' {
         metadata {
           elementId 'project.root/domain.cli/cap.cli.project-setup'
         }
@@ -157,29 +162,9 @@ model {
       metadata {
         elementId 'project.root/domain.framework'
       }
-      framework_identity = capability 'OPSX Identity Boundary' 'Maintains one OPSX CLI identity and one hidden durable workspace contract without legacy product aliases or workspace fallbacks.' {
+      framework_identity = capability 'OPSX Identity Boundary' '维护唯一 opsx CLI、唯一 .opsx workspace、单一 active Candidate 与仅用于审计恢复的 durable history，不提供 migration 或 fallback semantic stores。' {
         metadata {
           elementId 'project.root/domain.framework/cap.framework.identity'
-        }
-      }
-    }
-    migration = domain 'Semantic Model Migration' 'Converts explicitly authorized legacy inputs into a reviewed versioned OPSX candidate and verifies its promotion readiness.' {
-      metadata {
-        elementId 'project.root/domain.migration'
-      }
-      migration_semantic_model_reconciliation = capability 'Reviewed Semantic Model Reconciliation' 'Generates candidate graph, hierarchy, relations, singular Spec bindings, reports gaps, and atomically promotes only after explicit human authorization.' {
-        metadata {
-          elementId 'project.root/domain.migration/cap.migration.semantic-model-reconciliation'
-        }
-      }
-    }
-    opsx_element = domain 'Legacy Compatibility' 'Explicitly deprecated OPSX YAML compatibility boundary retained only long enough to complete migration and cleanup.' {
-      metadata {
-        elementId 'project.root/domain.opsx_element'
-      }
-      opsx_legacy_bundle = compatibility 'Legacy OPSX Bundle Compatibility' 'Isolates deprecated two-file OPSX YAML input as a temporary source for explicit semantic-model migration, with no active workflow ownership.' {
-        metadata {
-          elementId 'project.root/domain.opsx_element/compat.opsx.legacy-bundle'
         }
       }
     }

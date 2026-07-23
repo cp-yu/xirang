@@ -26,15 +26,9 @@ describe('ChangeMetadataSchema', () => {
       }
     });
 
-    it('should accept the other built-in schema without created date', () => {
-      const result = ChangeMetadataSchema.safeParse({
-        schema: 'bootstrap',
-      });
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.schema).toBe('bootstrap');
-        expect(result.data.created).toBeUndefined();
-      }
+    it('should reject the retired bootstrap schema', () => {
+      const result = ChangeMetadataSchema.safeParse({ schema: 'bootstrap' });
+      expect(result.success).toBe(false);
     });
   });
 
@@ -160,7 +154,7 @@ describe('readChangeMetadata', () => {
     const metaPath = path.join(changeDir, '.opsx.yaml');
     await fs.writeFile(metaPath, 'schema: unknown-schema\n', 'utf-8');
 
-    expect(() => readChangeMetadata(changeDir)).toThrow(/spec-driven.*bootstrap/s);
+    expect(() => readChangeMetadata(changeDir)).toThrow(/spec-driven/);
   });
 });
 
@@ -183,7 +177,7 @@ describe('resolveSchemaForChange', () => {
     await fs.writeFile(metaPath, 'schema: spec-driven\n', 'utf-8');
 
     expect(() => resolveSchemaForChange(changeDir, 'custom-schema')).toThrow(
-      /Available: spec-driven, bootstrap/
+      /Available: spec-driven/
     );
   });
 
@@ -207,81 +201,12 @@ describe('resolveSchemaForChange', () => {
     expect(() => resolveSchemaForChange(changeDir)).toThrow(ChangeMetadataError);
   });
 
-  it('should use project config schema when no metadata exists', async () => {
-    // Create project config
+  it('should ignore a retired bootstrap project config and use the fixed default', async () => {
     const configDir = path.join(testDir, '.opsx');
     await fs.mkdir(configDir, { recursive: true });
-    await fs.writeFile(
-      path.join(configDir, 'config.yaml'),
-      'schema: bootstrap\n',
-      'utf-8'
-    );
+    await fs.writeFile(path.join(configDir, 'config.yaml'), 'schema: bootstrap\n', 'utf-8');
 
-    const result = resolveSchemaForChange(changeDir);
-    expect(result).toBe('bootstrap');
-  });
-
-  it('should prefer change metadata over project config', async () => {
-    // Create project config
-    const configDir = path.join(testDir, '.opsx');
-    await fs.mkdir(configDir, { recursive: true });
-    await fs.writeFile(
-      path.join(configDir, 'config.yaml'),
-      'schema: bootstrap\n',
-      'utf-8'
-    );
-
-    // Create change metadata with different schema
-    const metaPath = path.join(changeDir, '.opsx.yaml');
-    await fs.writeFile(metaPath, 'schema: spec-driven\n', 'utf-8');
-
-    const result = resolveSchemaForChange(changeDir);
-    expect(result).toBe('spec-driven'); // Change metadata wins
-  });
-
-  it('should prefer explicit schema over all config sources', async () => {
-    // Create project config
-    const configDir = path.join(testDir, '.opsx');
-    await fs.mkdir(configDir, { recursive: true });
-    await fs.writeFile(
-      path.join(configDir, 'config.yaml'),
-      'schema: bootstrap\n',
-      'utf-8'
-    );
-
-    // Create change metadata
-    const metaPath = path.join(changeDir, '.opsx.yaml');
-    await fs.writeFile(metaPath, 'schema: spec-driven\n', 'utf-8');
-
-    // Explicit schema should win
-    const result = resolveSchemaForChange(changeDir, 'bootstrap');
-    expect(result).toBe('bootstrap');
-  });
-
-  it('should test full precedence order: CLI > metadata > config > default', async () => {
-    // Setup all levels
-    const configDir = path.join(testDir, '.opsx');
-    await fs.mkdir(configDir, { recursive: true });
-    await fs.writeFile(
-      path.join(configDir, 'config.yaml'),
-      'schema: bootstrap\n',
-      'utf-8'
-    );
-
-    const metaPath = path.join(changeDir, '.opsx.yaml');
-    await fs.writeFile(metaPath, 'schema: spec-driven\n', 'utf-8');
-
-    // Test each level
-    expect(resolveSchemaForChange(changeDir, 'bootstrap')).toBe('bootstrap'); // CLI wins
-    expect(resolveSchemaForChange(changeDir)).toBe('spec-driven'); // Metadata wins when no CLI
-
-    // Remove metadata, config should win
-    await fs.unlink(metaPath);
-    expect(resolveSchemaForChange(changeDir)).toBe('bootstrap'); // Config wins
-
-    // Remove config, default should win
-    await fs.unlink(path.join(configDir, 'config.yaml'));
-    expect(resolveSchemaForChange(changeDir)).toBe('spec-driven'); // Default wins
+    expect(resolveSchemaForChange(changeDir)).toBe('spec-driven');
   });
 });
 

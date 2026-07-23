@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const BUILT_IN_SCHEMA_IDS = ['spec-driven', 'bootstrap'] as const;
+export const BUILT_IN_SCHEMA_IDS = ['spec-driven'] as const;
 export const BuiltInSchemaIdSchema = z.enum(BUILT_IN_SCHEMA_IDS);
 
 export const FileDefinitionSchema = z.object({

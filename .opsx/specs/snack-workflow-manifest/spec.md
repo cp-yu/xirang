@@ -25,18 +25,17 @@ WorkflowManifestRegistry SHALL 包含 snack workflow manifest entry，与现有 
   - `getSkillTemplate: getSnackSkillTemplate`
 
 ### Requirement: 6 个工作流架构
+系统 SHALL 支持六个核心 workflows：`propose`、`explore`、`apply`、`archive`、`build`、`snack`，并 SHALL 使用 `opsx-build` 作为 Project Build skill surface。
 
-系统 SHALL 支持 6 个核心工作流（propose、explore、apply、archive、bootstrap-arch、snack），保持架构一致性。
+#### Scenario: setup 安装六个 workflows
+- **WHEN** 运行 `opsx setup`
+- **THEN** SHALL 安装 `opsx-propose`、`opsx-explore`、`opsx-apply-change`、`opsx-archive-change`、`opsx-build`、`opsx-snack`
+- **AND** SHALL NOT 安装 `opsx-bootstrap-arch`
 
-#### Scenario: init 安装 6 个工作流
-
-- **WHEN** 运行 `opsx init` 初始化项目
-- **THEN** 安装 6 个工作流 skill：opsx-propose、opsx-explore、opsx-apply-change、opsx-archive-change、opsx-bootstrap-arch、opsx-snack
-
-#### Scenario: update 刷新 6 个工作流
-
-- **WHEN** 运行 `opsx update` 刷新指令
-- **THEN** 更新 6 个工作流 skill 文件，保持与 manifest registry 同步
+#### Scenario: update 刷新六个 workflows
+- **WHEN** 运行 `opsx update`
+- **THEN** SHALL 刷新相同的六个 workflow skills
+- **AND** SHALL 删除 managed `opsx-bootstrap-arch`
 
 ### Requirement: snack workflow specs include finalized purpose text
 snack workflow formal specs SHALL use meaningful Purpose text instead of the placeholder text that says the Purpose must be completed later.
@@ -45,3 +44,4 @@ snack workflow formal specs SHALL use meaningful Purpose text instead of the pla
 - **WHEN** the snack workflow specs are reviewed
 - **THEN** `.opsx/specs/snack-skill/spec.md`, `.opsx/specs/snack-skill-generation/spec.md`, and `.opsx/specs/snack-workflow-manifest/spec.md` do not contain the placeholder text `此规约记录变更 snack-workflow 引入的行为，请在后续同步或归档前补全正式 Purpose。`
 - **AND** each of those specs has Purpose text that describes its active responsibility
+

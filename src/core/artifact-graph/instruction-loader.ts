@@ -224,10 +224,7 @@ export function loadChangeContext(
 
   // Resolve schema: explicit > metadata > default
   const resolvedSchemaName = resolveSchemaForChange(changePath, schemaName);
-  const workspacePath = resolvedSchemaName === 'bootstrap'
-    ? path.join(projectRoot, OPSX_DIR_NAME, 'bootstrap')
-    : changePath;
-  const changeDir = FileSystemUtils.canonicalizeExistingPath(workspacePath);
+  const changeDir = FileSystemUtils.canonicalizeExistingPath(changePath);
 
   const schema = resolveSchema(resolvedSchemaName, projectRoot);
   const graph = ArtifactGraph.fromSchema(schema);

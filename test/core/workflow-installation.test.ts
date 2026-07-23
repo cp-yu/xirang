@@ -46,21 +46,15 @@ describe('workflow installation planning', () => {
     ]);
   });
 
-  it('adds bootstrap-arch to effective workflows when bootstrap workspace exists', async () => {
+  it('does not derive workflows from a retired bootstrap workspace', async () => {
     await fs.mkdir(path.join(testDir, '.opsx', 'bootstrap'), { recursive: true });
 
     const effective = resolveEffectiveWorkflows(testDir, ['propose', 'explore', 'apply', 'archive']);
-    expect(effective).toEqual([
-      'propose',
-      'explore',
-      'apply',
-      'archive',
-      'bootstrap-arch',
-    ]);
+    expect(effective).toEqual(['propose', 'explore', 'apply', 'archive']);
 
     const plan = createWorkflowArtifactPlan(['propose', 'explore', 'apply', 'archive'], testDir);
-    expect(plan.workflows).toContain('bootstrap-arch');
-    expect(plan.expectedSkillDirNames).toContain('opsx-bootstrap-arch');
+    expect(plan.workflows).not.toContain('build');
+    expect(plan.expectedSkillDirNames).not.toContain('opsx-bootstrap-arch');
   });
 
   it('treats codex as skills-only for workflow skills and plans subagent artifacts separately', () => {
@@ -80,6 +74,7 @@ describe('workflow installation planning', () => {
       'opsx-optimizer',
       'opsx-impact-sweeper',
       'opsx-bootstrap-opsx',
+      'opsx-bootstrap-arch',
     ]);
 
     const plan = createToolWorkflowArtifactPlan('claude', ['propose', 'explore'], testDir);
@@ -134,6 +129,7 @@ describe('workflow installation planning', () => {
       'opsx-reviewer',
       'opsx-optimizer',
       'opsx-impact-sweeper',
+      'opsx-bootstrap-arch',
       'user-skill',
     ]) {
       await fs.mkdir(path.join(skillsDir, name), { recursive: true });
@@ -148,12 +144,13 @@ describe('workflow installation planning', () => {
     });
 
     expect(result.error).toBeUndefined();
-    expect(result.skillsRemoved).toBe(4);
+    expect(result.skillsRemoved).toBe(5);
     for (const name of [
       'opsx-implementer',
       'opsx-reviewer',
       'opsx-optimizer',
       'opsx-impact-sweeper',
+      'opsx-bootstrap-arch',
     ]) {
       await expect(fs.stat(path.join(skillsDir, name))).rejects.toThrow();
     }

@@ -86,7 +86,7 @@ describe('ListCommand', () => {
       const listCommand = new ListCommand();
       
       await expect(listCommand.execute(tempDir, 'changes')).rejects.toThrow(
-        "No OPSX changes directory found. Run 'opsx init' first."
+        "No OPSX changes directory found. Run 'opsx setup' first."
       );
     });
 

@@ -81,13 +81,6 @@ Artifact instructions SHALL 按 definition-first 顺序投影 inputs；通用 ar
 - **AND** SHALL 要求完整 target Requirements
 - **AND** MUST NOT 调用独立 Scenario metadata command
 
-### Requirement: Bootstrap phase 文件定义投影
-Bootstrap instructions SHALL project only the file definitions for the active phase and SHALL preserve their dependency and completion semantics.
-
-#### Scenario: Bootstrap phase changes
-- **WHEN** bootstrap advances to another phase
-- **THEN** instructions SHALL expose that phase's files without treating bootstrap state as durable semantic source
-
 ### Requirement: Formal OPSX 文件定义
 Durable architecture source SHALL be `.opsx/architecture/**/*.c4`; durable behavior source SHALL be singular element-bound `.opsx/specs/**/spec.md` contracts.
 
@@ -96,4 +89,19 @@ Durable architecture source SHALL be `.opsx/architecture/**/*.c4`; durable behav
 - **THEN** LikeC4 modules SHALL define Project Root, elements, containment, metamodel, views, and persisted semantic relations
 - **AND** Specs SHALL define observable behavior through singular `element` ownership
 - **AND** legacy two-file YAML SHALL NOT be described as active formal source
+
+### Requirement: Candidate file definitions SHALL 分离 authoring 与 workflow state
+Candidate workspace SHALL 为 CLI-owned `candidate.yaml`、Agent-authored `build.md`、Agent-authored Candidate Architecture/Specs、read-only validation output、formal bundle 和 history snapshots 提供彼此独立的 file semantics。
+
+#### Scenario: Candidate source definitions
+- **WHEN** Agent 初始化或编写 Candidate
+- **THEN** definition SHALL 将 `build.md`、`candidate/architecture/**/*.c4` 和 `candidate/specs/**/spec.md` 标识为 Agent-authored source
+- **AND** SHALL 将 `candidate.yaml` 标识为 CLI-owned lifecycle metadata
+- **AND** SHALL NOT 定义 evidence.yaml、domain-map、review.md 或 Spec backfill files
+
+#### Scenario: Formal 与 history definitions
+- **WHEN** 描述 Candidate promotion
+- **THEN** formal `.opsx/architecture/**/*.c4` 和 `.opsx/specs/**/spec.md` SHALL 保持为 durable semantic source
+- **AND** `.opsx/history/` SHALL 仅作为 audit 和 recovery evidence
+- **AND** history SHALL NOT 成为 runtime fallback semantic source
 

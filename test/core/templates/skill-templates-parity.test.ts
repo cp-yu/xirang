@@ -10,7 +10,7 @@ import {
   getExploreSkillTemplate,
   getFeedbackSkillTemplate,
   getOpsxProposeSkillTemplate,
-  getBootstrapArchSkillTemplate,
+  getBuildSkillTemplate,
   getSnackSkillTemplate,
 } from '../../../src/core/templates/skill-templates.js';
 import { generateSkillContent } from '../../../src/core/shared/skill-generation.js';
@@ -19,16 +19,16 @@ import { runTransforms } from '../../../src/core/templates/transforms/index.js';
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
   getExploreSkillTemplate: '97736f185f0a45f17d32d2f62d2145a0be81cbba024eeb83d8855f6d52e4e194',
   getApplyChangeSkillTemplate: 'b9f8382ad64b0cc45b777217b297096cf2034c524c3689aeea06ccdb1b9c5a12',
-  getArchiveChangeSkillTemplate: '67cb322982bf8857c79aee9520b3a54c7305738afabcf5cb66b23b181d248f0d',
+  getArchiveChangeSkillTemplate: 'dc4c29b88aa24c8612fd9f7e590a9a6714b09c680555d3991b7c83356a325be2',
   getOpsxProposeSkillTemplate: '57ad70609b7a547e11a2904148da2d11999d11f3d6ffa6b6d1df5022b34bbc38',
   getFeedbackSkillTemplate: '99756a104f264b86ab4b13ad5ca778dae8357fed3f79f70b5f01684abff2891e',
-  getBootstrapArchSkillTemplate: '4728f3b793aa269224dd16999b2076b865a0f04bd849a5c6a33a9bb461388413',
+  getBuildSkillTemplate: '4e5623d744fd04bd7becfa8c3a646c8f5bd01946a664b38cbe17d63551575133',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
   'opsx-explore': 'a1bc722d5800cac7d5f7856f50d745957d3a2468119aff3bfd0300157c9a0f8d',
   'opsx-apply-change': '36686537ae4587e06deba968a9ea4a647363194501c36ed377eff9dbad2de1d3',
-  'opsx-archive-change': 'b79be46840321900135d5d28d7adece4050389c88eefa298c6a09b4954911bb1',
+  'opsx-archive-change': '99b238a5b1b92d226a06f10b0c6fde55e2aa089bff2ada55e64b4231a99ca805',
   'opsx-propose': 'eb9783b16b7ca5f42d4b5f8545cf3704303065c185a667ced6de5c8b40c72d8a',
 };
 
@@ -60,7 +60,7 @@ describe('skill templates split parity', () => {
       getArchiveChangeSkillTemplate,
       getOpsxProposeSkillTemplate,
       getFeedbackSkillTemplate,
-      getBootstrapArchSkillTemplate,
+      getBuildSkillTemplate,
     };
 
     const actualHashes = Object.fromEntries(
@@ -97,7 +97,7 @@ describe('skill templates split parity', () => {
       ['explore', getExploreSkillTemplate],
       ['apply', getApplyChangeSkillTemplate],
       ['archive', getArchiveChangeSkillTemplate],
-      ['bootstrap-arch', getBootstrapArchSkillTemplate],
+      ['build', getBuildSkillTemplate],
       ['snack', getSnackSkillTemplate],
     ];
 
