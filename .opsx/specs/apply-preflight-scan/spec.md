@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.apply/cap.apply.execution
+element: cap.apply.preflight-scan
 ---
 
 # apply-preflight-scan Specification

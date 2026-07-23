@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.ai_integration/cap.ai.tool-integration
+element: cap.ai.tool-adapters
 ---
 
 # ai-tool-paths Specification

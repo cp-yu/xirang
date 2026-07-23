@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.apply/cap.apply.execution
+element: cap.apply.tdd-checkpoints
 ---
 
 # tdd-apply-checkpoints Specification

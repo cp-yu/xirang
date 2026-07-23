@@ -1,0 +1,14 @@
+model {
+  extend project_root {
+    quality = domain 'Delivery Assurance' 'Owns reproducible build, packaging, CI, and supported-platform checks that are outside runtime command semantics.' {
+      metadata {
+        elementId 'project.root/domain.quality'
+      }
+      ci_nix_validation = capability 'Nix and Cross-Platform Delivery' 'Defines the repository\'s executable Nix package/development surface and GitHub Linux, macOS, and Windows validation matrix using the tool versions pinned by each configuration.' {
+        metadata {
+          elementId 'cap.quality.ci-nix-validation'
+        }
+      }
+    }
+  }
+}

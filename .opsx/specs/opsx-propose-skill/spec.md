@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.ai_integration/cap.ai.workflow-generation
+element: cap.ai.propose-smart-routing
 ---
 
 # opsx-propose-skill Specification

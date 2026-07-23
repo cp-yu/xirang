@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.architecture/cap.architecture.bootstrap
+element: cap.architecture.project-build
 ---
 # opsx-build Specification
 

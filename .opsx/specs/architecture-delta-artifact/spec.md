@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.schema/cap.schema.workflow-definition
+element: cap.schema.architecture-delta-artifact
 ---
 
 # architecture-delta-artifact Specification

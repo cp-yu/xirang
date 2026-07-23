@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.cli/cap.cli.change-operations
+element: cap.cli.show
 ---
 
 # cli-show Specification

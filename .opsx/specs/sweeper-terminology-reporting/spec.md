@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.ai_integration/cap.ai.intent-exploration
+element: cap.ai.sweeper-terminology-reporting
 ---
 
 # sweeper-terminology-reporting Specification

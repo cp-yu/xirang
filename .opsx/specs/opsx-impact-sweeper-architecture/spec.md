@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.architecture/cap.architecture.semantic-model
+element: cap.ai.impact-sweeper
 ---
 
 # opsx-impact-sweeper-architecture Specification

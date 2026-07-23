@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.architecture/cap.architecture.semantic-model
+element: cap.architecture.semantic-validator
 ---
 
 # likec4-semantic-validator Specification

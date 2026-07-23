@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.architecture/cap.architecture.semantic-model
+element: cap.change.specs-sync
 ---
 
 # archive-sync-workflow Specification

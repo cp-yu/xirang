@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.cli/cap.cli.artifact-workflow
+element: cap.cli.status
 ---
 
 # graceful-status-empty Specification

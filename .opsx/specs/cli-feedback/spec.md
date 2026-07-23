@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.cli/cap.cli.feedback
+element: cap.cli.feedback
 ---
 
 # cli-feedback Specification

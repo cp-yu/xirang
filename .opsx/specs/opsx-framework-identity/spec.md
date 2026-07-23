@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.framework/cap.framework.identity
+element: cap.framework.identity
 ---
 
 # opsx-framework-identity Specification

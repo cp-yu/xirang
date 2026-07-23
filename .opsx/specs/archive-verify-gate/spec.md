@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.change_workflow/cap.change.lifecycle
+element: cap.verify.freshness-engine
 ---
 
 # archive-verify-gate Specification

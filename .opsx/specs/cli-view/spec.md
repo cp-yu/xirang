@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.cli/cap.cli.architecture-navigation
+element: cap.cli.view
 ---
 
 # cli-view Specification

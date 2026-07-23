@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.config/cap.config.runtime-projection
+element: cap.config.projection
 ---
 
 # rules-injection Specification

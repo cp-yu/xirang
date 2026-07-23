@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.quality/cap.quality.ci-nix-validation
+element: cap.quality.ci-nix-validation
 ---
 
 # ci-nix-validation Specification

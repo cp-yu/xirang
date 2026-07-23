@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.validation/cap.validation.semantic-contract
+element: cap.spec.registry
 ---
 
 # spec-registry Specification

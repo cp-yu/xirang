@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.architecture/cap.architecture.semantic-model
+element: cap.opsx.semantic-relations
 ---
 
 # opsx-semantic-relations Specification

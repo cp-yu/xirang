@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.schema/cap.schema.workflow-definition
+element: cap.schema.validate
 ---
 
 # schema-validate-command Specification

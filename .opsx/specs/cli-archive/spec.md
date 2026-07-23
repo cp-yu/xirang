@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.cli/cap.cli.change-operations
+element: cap.cli.archive
 ---
 
 # CLI Archive Command Specification

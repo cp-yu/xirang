@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.ai_integration/cap.ai.workflow-generation
+element: cap.ai.workflow-templates
 ---
 
 # opsx-apply-architecture-context Specification

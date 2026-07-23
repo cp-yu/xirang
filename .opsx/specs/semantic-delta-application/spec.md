@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.change_workflow/cap.change.semantic-delta
+element: cap.architecture.delta-merger
 ---
 
 # semantic-delta-application Specification

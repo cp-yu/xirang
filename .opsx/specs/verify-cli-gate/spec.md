@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.verify/cap.verify.consistency-gate
+element: cap.verify.cli-gate
 ---
 
 # verify-cli-gate Specification

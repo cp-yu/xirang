@@ -1,0 +1,189 @@
+model {
+  extend project_root {
+    cli = domain 'Cli' '命令行界面，将所有 OPSX 操作暴露为可组合的子命令' {
+      metadata {
+        elementId 'project.root/domain.cli'
+      }
+      archive = capability 'Archive' '归档已完成的变更并将规约合并到主规约目录；输出 agent 接管后续 git 工作的 handoff 提醒，不读取 handoff 模式配置，不执行 git 写操作或生成推荐 commit message；sync gate 检查未合并 delta，--no-sync flag 可跳过' {
+        metadata {
+          elementId 'cap.cli.archive'
+        }
+      }
+      authoring_help = capability 'Authoring Help' '从内置 Schema file definitions 与 RelationDefinitionRegistry 生成文件级 authoring help 和稳定 JSON 输出' {
+        metadata {
+          elementId 'cap.cli.authoring-help'
+        }
+      }
+      change = capability 'Change' '管理变更提案，包含创建、列表和操作的子命令' {
+        metadata {
+          elementId 'cap.cli.change'
+        }
+      }
+      command_reference_consistency = capability 'Command Reference Consistency' 'Ensure active documentation, generated Agent instructions, skills, prompts, and workflow templates reference only supported OPSX CLI command forms and report historical archive-only stale references separately.' {
+        metadata {
+          elementId 'cap.cli.command-reference-consistency'
+        }
+      }
+      completion = capability 'Completion' '管理 OPSX CLI 的 shell 补全，通过运行时反射 Commander.js 命令树自动派生补全数据，不再依赖静态 COMMAND_REGISTRY' {
+        metadata {
+          elementId 'cap.cli.completion'
+        }
+      }
+      completion_introspect = capability 'Completion Introspect' '从 Commander.js 命令树运行时反射派生 CommandDefinition[]，通过 POSITIONAL_TYPE_MAP 补充补全语义注解，消除静态 COMMAND_REGISTRY 的手工同步负担' {
+        metadata {
+          elementId 'cap.cli.completion-introspect'
+        }
+      }
+      config = capability 'Config' '查看和修改全局 OPSX 配置（不含 profile 子命令），查询归一化项目配置' {
+        metadata {
+          elementId 'cap.cli.config'
+        }
+      }
+      project_element = capability 'Project Element' '通过 CLI 查询归一化项目配置（opsx config project --json），供 skill agent 获取配置投影' {
+        metadata {
+          elementId 'cap.cli.config.project'
+        }
+      }
+      feedback = capability 'Feedback' '提交关于 OPSX 的反馈' {
+        metadata {
+          elementId 'cap.cli.feedback'
+        }
+      }
+      init = capability 'Init' '初始化带 Project Root、versioned Metamodel、graph modules 与 Specs directory 的 OPSX Semantic Model skeleton' {
+        metadata {
+          elementId 'cap.cli.init'
+        }
+      }
+      init_opsx_skeleton = capability 'Init Opsx Skeleton' 'Deprecated compatibility capability for historical init generation of project.opsx.yaml and project.opsx.relations.yaml; active init generates LikeC4 architecture files.' {
+        metadata {
+          elementId 'cap.cli.init-opsx-skeleton'
+        }
+      }
+      instructions = capability 'Instructions' '向 Agent 投影 artifact definition、instruction、template、依赖、输出路径与 config projection，并要求 definition-first authoring；apply instructions 保持 verify-aware TDD 状态' {
+        metadata {
+          elementId 'cap.cli.instructions'
+        }
+      }
+      list = capability 'List' '列出 changes 与 Specs，并在 Specs JSON projection 中返回 singular stable element binding' {
+        metadata {
+          elementId 'cap.cli.list'
+        }
+      }
+      new_change = capability 'New Change' '创建新的变更目录' {
+        metadata {
+          elementId 'cap.cli.new-change'
+        }
+      }
+      opsx_query = capability 'Opsx Query' 'Deprecated compatibility query for legacy OPSX v2 YAML; active architecture navigation uses opsx arch query.' {
+        metadata {
+          elementId 'cap.cli.opsx-query'
+        }
+      }
+      scenario_labels = capability 'Scenario Labels' '提供 `opsx scenario-labels` preview/write 命令，在 validate 之后显式生成 change-local MODIFIED requirements 的 scenario operation labels；不使用 fix 语义' {
+        metadata {
+          elementId 'cap.cli.scenario-labels'
+        }
+      }
+      schema = capability 'Schema' '检查固定内置 spec-driven 与 bootstrap Schema 的 package location、结构、templates、file definitions 和依赖 graph' {
+        metadata {
+          elementId 'cap.cli.schema'
+        }
+      }
+      schemas = capability 'Schemas' '列出固定内置 workflow Schema 及其描述' {
+        metadata {
+          elementId 'cap.cli.schemas'
+        }
+      }
+      show = capability 'Show' '显示变更或规约的详细信息' {
+        metadata {
+          elementId 'cap.cli.show'
+        }
+      }
+      spec = capability 'Spec' '使用 show 和 validate 子命令管理和查看 OPSX 规约；list 功能已迁移到 opsx list --specs' {
+        metadata {
+          elementId 'cap.cli.spec'
+        }
+      }
+      status = capability 'Status' '显示变更的制品完成状态' {
+        metadata {
+          elementId 'cap.cli.status'
+        }
+      }
+      sync = capability 'Sync' '在 verify gate 后联合验证并原子提升 graph 与 contract modules，且不改变 workflow stage 顺序' {
+        metadata {
+          elementId 'cap.cli.sync'
+        }
+      }
+      templates = capability 'Templates' '显示固定内置 Schema 中所有 artifacts 的 package template paths' {
+        metadata {
+          elementId 'cap.cli.templates'
+        }
+      }
+      update = capability 'Update' '刷新 OPSX skills，固定更新 workflow skills，自动清理过时的 profile/workflows/delivery 配置字段，不生成、刷新或清理旧 command workflow artifacts。' {
+        metadata {
+          elementId 'cap.cli.update'
+        }
+      }
+      validate = capability 'Validate' '验证变更和规约的完整性，支持显式 change scope 与 specs/architecture-delta artifact scope 分阶段验证，并复用 native LikeC4 staged validation' {
+        metadata {
+          elementId 'cap.cli.validate'
+        }
+      }
+      verify_aware_instructions = capability 'Verify Aware Instructions' 'instructions apply 命令在判定 change 完成状态时集成 verify freshness 检查，返回 needs_verify/needs_seal/all_done 三态而非仅基于 task checkbox' {
+        metadata {
+          elementId 'cap.cli.verify-aware-instructions'
+        }
+      }
+      view_element = capability 'View Element' '启动完整项目语义 Web 浏览器' {
+        metadata {
+          elementId 'cap.cli.view'
+        }
+      }
+      arch_query = capability 'Architecture Query' '按 stable elementId 或当前 FQN 查询 element、refinement hierarchy、owned Specs 与 semantic relationships' {
+        metadata {
+          elementId 'cap.cli.arch-query'
+        }
+      }
+      arch_validate = capability 'Architecture Validate' '联合验证 formal OPSX Semantic Model 或 change-local Target Semantic Model 的 graph 与 contract modules' {
+        metadata {
+          elementId 'cap.cli.arch-validate'
+        }
+      }
+      arch_preview = capability 'Architecture Preview' '由 opsx view 取代的历史架构预览能力' {
+        metadata {
+          elementId 'cap.cli.arch-preview'
+        }
+      }
+      arch_export = capability 'Architecture Export' '导出 LikeC4 architecture diagrams' {
+        metadata {
+          elementId 'cap.cli.arch-export'
+        }
+      }      legacy_cleanup = capability 'Legacy Cleanup' 'Detects and cleans retired OPSX workspaces, legacy slash-command surfaces, and OPSX marker blocks during setup and update after explicit confirmation.' {
+        metadata {
+          elementId 'cap.cli.legacy-cleanup'
+        }
+      }
+      arch_plan_remove = capability 'Architecture Plan Remove' 'Read-only opsx arch plan-remove command that reports non-cascading removal impact for containment, relationships, Spec bindings, and other semantic references.' {
+        metadata {
+          elementId 'cap.cli.arch-plan-remove'
+        }
+      }
+      artifact_workflow = capability 'Artifact Workflow' 'Coherent CLI surface for change artifact status, instructions, templates, and related setup flows for scaffolded and active changes.' {
+        metadata {
+          elementId 'cap.cli.artifact-workflow'
+        }
+      }
+      candidate = capability 'Candidate' 'Manages the isolated Project Build Candidate workspace through init, status, validate, and digest-gated promote commands.' {
+        metadata {
+          elementId 'cap.cli.candidate'
+        }
+      }
+      diff = capability 'Diff' 'Materializes an active change Target Semantic Model from an immutable Formal snapshot and prints Formal versus Target semantic diff without mutating files by default.' {
+        metadata {
+          elementId 'cap.cli.diff'
+        }
+      }
+
+    }
+  }
+}

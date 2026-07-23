@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.cli/cap.cli.artifact-workflow
+element: cap.ai.propose-smart-routing
 ---
 
 ## Purpose

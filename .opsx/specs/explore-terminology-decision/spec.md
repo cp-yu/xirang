@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.ai_integration/cap.ai.intent-exploration
+element: cap.ai.explore-terminology-decision
 ---
 
 # explore-terminology-decision Specification

@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.change_workflow/cap.change.lifecycle
+element: cap.change.specs-sync
 ---
 
 # specs-sync-skill Specification

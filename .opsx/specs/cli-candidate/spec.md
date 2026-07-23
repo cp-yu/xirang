@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.cli/cap.cli.candidate
+element: cap.cli.candidate
 ---
 # cli-candidate Specification
 

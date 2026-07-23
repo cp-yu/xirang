@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.presentation/cap.presentation.semantic-browser
+element: cap.presentation.spec-content-panel
 ---
 
 # spec-content-browser Specification

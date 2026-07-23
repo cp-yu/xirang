@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.ai_integration/cap.ai.workflow-generation
+element: cap.framework.conventions
 ---
 
 # OPSX Conventions Specification

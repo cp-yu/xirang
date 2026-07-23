@@ -1,0 +1,54 @@
+model {
+  extend project_root {
+    opsx_element = domain 'Opsx Element' 'Deprecated OPSX YAML compatibility infrastructure retained during the one-month migration window' {
+      metadata {
+        elementId 'project.root/domain.opsx_element'
+      }
+      atomic_write = capability 'Atomic Write' '使用临时文件 + 重命名模式实现 legacy OPSX 原子写入' {
+        metadata {
+          elementId 'cap.opsx.atomic-write'
+        }
+      }
+      bootstrap = capability 'Bootstrap' 'Deprecated legacy init → scan → map → review → promote OPSX v2 workflow' {
+        metadata {
+          elementId 'cap.opsx.bootstrap'
+        }
+      }
+      bootstrap_backfill_specs = capability 'Bootstrap Backfill Specs' 'Deprecated legacy backfill engine for OPSX capability mappings' {
+        metadata {
+          elementId 'cap.opsx.bootstrap-backfill-specs'
+        }
+      }
+      bootstrap_refresh = capability 'Bootstrap Refresh' 'Deprecated legacy OPSX candidate refresh and replacement workflow' {
+        metadata {
+          elementId 'cap.opsx.bootstrap-refresh'
+        }
+      }
+      delta_merge = capability 'Delta Merge' 'Deprecated legacy opsx-delta.yaml merge retained for migration compatibility only' {
+        metadata {
+          elementId 'cap.opsx.delta-merge'
+        }
+      }
+      read_transparent = capability 'Read Transparent' 'Deprecated fallback reader for the legacy OPSX two-file bundle' {
+        metadata {
+          elementId 'cap.opsx.read-transparent'
+        }
+      }
+      referential_integrity = capability 'Referential Integrity' 'Deprecated legacy OPSX endpoint integrity validation' {
+        metadata {
+          elementId 'cap.opsx.referential-integrity'
+        }
+      }
+      semantic_relations = capability 'Semantic Relations' 'Deprecated legacy OPSX RelationDefinitionRegistry compatibility' {
+        metadata {
+          elementId 'cap.opsx.semantic-relations'
+        }
+      }
+      yaml_operations = capability 'Yaml Operations' 'Deprecated OPSX YAML serialization and parsing compatibility' {
+        metadata {
+          elementId 'cap.opsx.yaml-operations'
+        }
+      }
+    }
+  }
+}

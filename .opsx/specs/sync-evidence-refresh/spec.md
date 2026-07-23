@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.verify/cap.verify.optimization-gate
+element: cap.sync.evidence-refresh
 ---
 
 # sync-evidence-refresh Specification

@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.config/cap.config.global-contract
+element: cap.config.global
 ---
 
 # global-config Specification

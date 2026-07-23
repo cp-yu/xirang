@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.verify/cap.verify.consistency-gate
+element: cap.verify.execution-model-selection
 ---
 
 # verify-execution-model-selection Specification

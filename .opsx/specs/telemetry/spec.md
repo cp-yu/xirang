@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.telemetry/cap.telemetry.anonymous-usage
+element: cap.telemetry.anonymous-usage
 ---
 
 # telemetry Specification

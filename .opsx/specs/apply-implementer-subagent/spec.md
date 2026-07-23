@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.apply/cap.apply.execution
+element: cap.apply.subagent-orchestration
 ---
 
 # apply-implementer-subagent Specification

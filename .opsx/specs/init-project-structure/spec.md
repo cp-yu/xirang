@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.cli/cap.cli.project-setup
+element: cap.cli.init
 ---
 
 # init-project-structure Specification

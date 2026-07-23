@@ -1,0 +1,7 @@
+model {
+  project_root = project 'OPSX' 'Human-intent programming layer that compiles Specs and LikeC4 semantic intent into agent workflows and verified project changes.' {
+    metadata {
+      elementId 'project.root'
+    }
+  }
+}

@@ -1,0 +1,19 @@
+model {
+  extend project_root {
+    framework = domain 'Framework' 'OPSX product identity and durable workspace boundary' {
+      metadata {
+        elementId 'project.root/domain.framework'
+      }
+      identity = capability 'Framework Identity' 'Defines the single OPSX CLI identity and hidden durable workspace contract' {
+        metadata {
+          elementId 'cap.framework.identity'
+        }
+      }
+      conventions = capability 'OPSX Conventions' 'Project-wide authoring conventions for Element Contracts, Spec structure, behavior-first boundaries, progressive rigor, and change documentation.' {
+        metadata {
+          elementId 'cap.framework.conventions'
+        }
+      }
+    }
+  }
+}

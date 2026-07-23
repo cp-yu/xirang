@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.cli/cap.cli.change-operations
+element: cap.cli.sync
 ---
 
 # Spec: cli-sync

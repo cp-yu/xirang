@@ -1,0 +1,34 @@
+model {
+  extend project_root {
+    architecture = domain 'Architecture' 'LikeC4 架构模型读取、语义验证和 delta 合并' {
+      metadata {
+        elementId 'project.root/domain.architecture'
+      }
+      likec4_reader = capability 'LikeC4 Reader' '读取 versioned OPSX LikeC4 graph modules，解析任意 element kinds、stable elementId、containment、relationships、Metamodel 与 views' {
+        metadata {
+          elementId 'cap.architecture.likec4-reader'
+        }
+      }
+      semantic_validator = capability 'Semantic Validator' '验证 Project Root、element identity、abstraction/refinement containment、Metamodel constraints、Element Contracts 与 semantic relationships' {
+        metadata {
+          elementId 'cap.architecture.semantic-validator'
+        }
+      }
+      delta_merger = capability 'Architecture Delta Merger' '将 graph delta 与 element-owned Spec deltas 作为一个 Semantic Delta 原子 reconcile 到 formal OPSX Semantic Model' {
+        metadata {
+          elementId 'cap.architecture.delta-merger'
+        }
+      }
+      metamodel = capability 'Semantic Metamodel' '定义 versioned element kinds、contract policies、optional containment constraints 与 relationship endpoint constraints' {
+        metadata {
+          elementId 'cap.architecture.metamodel'
+        }
+      }      project_build = capability 'Project Build' 'Agent-driven Project Build that authorizes Candidate scope, records build.md constraints, writes complete Candidate Architecture and Specs, and promotes only after digest-confirmed review.' {
+        metadata {
+          elementId 'cap.architecture.project-build'
+        }
+      }
+
+    }
+  }
+}

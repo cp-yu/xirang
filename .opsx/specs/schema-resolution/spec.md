@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.artifact_graph/cap.artifact-graph.workflow-compilation
+element: cap.artifact-graph.schema-resolution
 ---
 
 # schema-resolution Specification

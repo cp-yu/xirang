@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.ai_integration/cap.ai.snack-reconciliation
+element: cap.ai.snack-skill
 ---
 
 # snack-skill Specification

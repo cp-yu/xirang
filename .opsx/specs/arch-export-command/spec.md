@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.cli/cap.cli.architecture-navigation
+element: cap.cli.arch-export
 ---
 
 # arch-export-command Specification

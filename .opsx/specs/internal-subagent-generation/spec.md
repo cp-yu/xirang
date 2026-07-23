@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.ai_integration/cap.ai.subagent-generation
+element: cap.ai.internal-subagent-generation
 ---
 
 # internal-subagent-generation Specification

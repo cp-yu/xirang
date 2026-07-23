@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.apply/cap.apply.verification-integration
+element: cap.apply.verify-integration
 ---
 
 # verify-skill-reference-files Specification

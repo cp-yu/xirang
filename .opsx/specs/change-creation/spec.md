@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.change_workflow/cap.change.lifecycle
+element: cap.change.create
 ---
 
 # change-creation Specification

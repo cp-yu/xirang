@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.apply/cap.apply.isolation
+element: cap.apply.branch-isolation
 ---
 
 # apply-branch-isolation Specification

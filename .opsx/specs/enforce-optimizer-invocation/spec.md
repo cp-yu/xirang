@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.verify/cap.verify.optimization-gate
+element: cap.verify.enforce-optimizer-invocation
 ---
 
 # enforce-optimizer-invocation Specification

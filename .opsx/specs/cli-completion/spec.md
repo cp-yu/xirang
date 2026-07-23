@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.cli/cap.cli.command-discovery
+element: cap.cli.completion
 ---
 
 # cli-completion Specification

@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.validation/cap.validation.semantic-contract
+element: cap.validation.spec-section-type-cross-check
 ---
 
 # validate-spec-section-type-cross-check Specification

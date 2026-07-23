@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.ai_integration/cap.ai.review-roles
+element: cap.ai.optimizer-skill
 ---
 
 # opsx-optimizer-skill Specification

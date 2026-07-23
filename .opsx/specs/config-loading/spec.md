@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.config/cap.config.project-settings
+element: cap.config.project
 ---
 
 # config-loading Specification

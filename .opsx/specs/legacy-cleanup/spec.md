@@ -1,5 +1,5 @@
 ---
-element: project.root/domain.config/cap.config.global-contract
+element: cap.cli.legacy-cleanup
 ---
 
 # legacy-cleanup Specification
