@@ -1,0 +1,388 @@
+{
+  "timestamp": "2026-07-23T07:56:52.510Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "Semantic Model relationship query could not load the architecture graph because the repository layout lacks the domains directory expected by opsx arch query.",
+      "requirement": "Semantic Model alignment",
+      "task": null,
+      "recommendation": "Confirm the installed OPSX architecture-query implementation supports the current flat .opsx/architecture layout, then rerun the relationship and contract-binding checks.",
+      "evidenceCitations": [
+        ".opsx/architecture/model.c4:1-9",
+        ".opsx/architecture/specification.c4:1-15"
+      ]
+    }
+  ],
+  "tasksFileHash": "081b29c71c4c9228901811374034818409e6b217116015dce39d6f76dc8b7a7d",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".opsx/architecture/model.c4",
+      ".opsx/architecture/specification.c4",
+      ".opsx/changes/project-opsx-build/architecture-delta.c4",
+      ".opsx/changes/project-opsx-build/design.md",
+      ".opsx/changes/project-opsx-build/tasks.md",
+      "src/cli/index.ts",
+      "src/commands/candidate.ts",
+      "src/commands/validate.ts",
+      "src/core/candidate/digest.ts",
+      "src/core/candidate/history.ts",
+      "src/core/candidate/promotion.ts",
+      "src/core/candidate/validator.ts",
+      "src/core/candidate/workspace.ts",
+      "src/core/change-compiler.ts",
+      "src/core/change-sync.ts",
+      "src/core/legacy-cleanup.ts",
+      "src/core/setup.ts",
+      "src/core/shared/artifact-sync.ts",
+      "src/core/specs-apply.ts",
+      "src/core/templates/manifest/registry.ts",
+      "src/core/templates/workflows/build.ts",
+      "test/commands/candidate-init.test.ts",
+      "test/commands/candidate-promote.test.ts",
+      "test/commands/candidate-status.test.ts",
+      "test/commands/candidate-validate.test.ts",
+      "test/core/candidate-digest.test.ts",
+      "test/core/candidate-history.test.ts",
+      "test/core/change-compiler.test.ts",
+      "test/core/legacy-cleanup.test.ts",
+      "test/core/setup.test.ts",
+      "test/core/specs-apply.test.ts",
+      "test/core/templates/build.test.ts",
+      "test/core/templates/manifest/registry.test.ts"
+    ],
+    "evidenceFingerprint": "7831dbec82b26a791c218de605c932a1abaf5d7632ad4f624bcd0e742b635169",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".opsx/architecture/model.c4",
+        "hash": "4b1784406e1c35ef704e07c4a7dfe36885f290a36e63ee3d6ecaaa04faa14ebb"
+      },
+      {
+        "path": ".opsx/architecture/specification.c4",
+        "hash": "f544cac6b0e1f53056f463c7791b98fcb3546d2ff22ad7dd4752c8981f3e5507"
+      },
+      {
+        "path": ".opsx/changes/project-opsx-build/architecture-delta.c4",
+        "hash": "69fe270ce9c64b191031abd4f18b7d6cf973a0f5a0e44eaf1ac6875563f63568"
+      },
+      {
+        "path": ".opsx/changes/project-opsx-build/design.md",
+        "hash": "c4d59a36396d352004735f5e7c182eecae023d3d8ea24cb2832eafffb322b6f6"
+      },
+      {
+        "path": ".opsx/changes/project-opsx-build/tasks.md",
+        "hash": "081b29c71c4c9228901811374034818409e6b217116015dce39d6f76dc8b7a7d"
+      },
+      {
+        "path": "src/cli/index.ts",
+        "hash": "483a75de90db83ec7dc4882b7fba95201975065ddb47a63041ab4d9874869392"
+      },
+      {
+        "path": "src/commands/candidate.ts",
+        "hash": "d6df6a512b97f8ebaf34d5a8f67ef8fa0516fc8bba968d7ee9b57c67ef2064aa"
+      },
+      {
+        "path": "src/commands/validate.ts",
+        "hash": "45109849150a576d1705580004e60fc27cdcdc6b3a9084a58327aaaae6a44cbe"
+      },
+      {
+        "path": "src/core/candidate/digest.ts",
+        "hash": "119509b3454a6ed6d60254df67d646d5a9ade72d034e69286ff85712aead2fec"
+      },
+      {
+        "path": "src/core/candidate/history.ts",
+        "hash": "8aeb4d566e3b2f0c40261ab5e66f961c37fb43a9599212cd229874560e61b395"
+      },
+      {
+        "path": "src/core/candidate/promotion.ts",
+        "hash": "4956d64779d19213f049114bcb82a28a6d6a9494a7180aa957fe9d6cd99e78b3"
+      },
+      {
+        "path": "src/core/candidate/validator.ts",
+        "hash": "0dfec6060d60fb765ccb65379be0a5fd97c61427f20b8fe869de71284bc1adb0"
+      },
+      {
+        "path": "src/core/candidate/workspace.ts",
+        "hash": "612b94f55964838b70c5406172032e7581352e3cc5356868035af4c4d4c4b385"
+      },
+      {
+        "path": "src/core/change-compiler.ts",
+        "hash": "49fe3e77c086d19b3ba2d853827625d43672666dd210ef347a7c50604583e2d8"
+      },
+      {
+        "path": "src/core/change-sync.ts",
+        "hash": "2906f580b8f97d0667b7bfc75541aa09a2767d61dad23e4b71b2e51778352bbf"
+      },
+      {
+        "path": "src/core/legacy-cleanup.ts",
+        "hash": "c2713120231801524f8db0cf9b59f59faceb7980b94280893165872879e36a6a"
+      },
+      {
+        "path": "src/core/setup.ts",
+        "hash": "6b8d96dd62c74b0e22895469c2751d3aaa5be386843037d46e9ce61fba820ef4"
+      },
+      {
+        "path": "src/core/specs-apply.ts",
+        "hash": "200add23468402b853430cfc57832f17976089e43eb9a3266785cfd4bd395bec"
+      },
+      {
+        "path": "src/core/templates/manifest/registry.ts",
+        "hash": "ed16ab8bee13ffc0305f5379dbcee2ec9fb63cb95f214dd4c63fb058a27eada5"
+      },
+      {
+        "path": "src/core/templates/workflows/build.ts",
+        "hash": "b320f4755b161a70076d06b8a8c8268ffbf6bfef29e555b110bac11c857721e2"
+      },
+      {
+        "path": "test/commands/candidate-init.test.ts",
+        "hash": "431348718520501a5314c9e424d5ddc451c1453bae23c1bf798863b5138cd10b"
+      },
+      {
+        "path": "test/commands/candidate-promote.test.ts",
+        "hash": "1eb38fa7390938125aae17f67acd82f3a414ca77a567f5d9847f24b490137ad5"
+      },
+      {
+        "path": "test/commands/candidate-status.test.ts",
+        "hash": "5100879d7f72a158b200727c1456c607667662ee726bf33a6c5dedf9dca7dd85"
+      },
+      {
+        "path": "test/commands/candidate-validate.test.ts",
+        "hash": "d901794609c4956b32561a77961a0ab3d1aff8b6bf37a3117e4bffc36a788360"
+      },
+      {
+        "path": "test/core/candidate-digest.test.ts",
+        "hash": "0bf08ba0ac4dffdf611352d13ec34dc17210cb75f8cd698333036f2b19ccc82b"
+      },
+      {
+        "path": "test/core/candidate-history.test.ts",
+        "hash": "9690fd4fc16065c502c3ddf500aff82b1e88f8c6116ab21875f24cc3fa51d283"
+      },
+      {
+        "path": "test/core/change-compiler.test.ts",
+        "hash": "4bd2724b26c3e0b7c207622c7db0c02ea9ceca6940eae97a265532d8e7c99ccd"
+      },
+      {
+        "path": "test/core/legacy-cleanup.test.ts",
+        "hash": "cb7b8ebb5b83f36fe5df009114f1f1684df6c1d205a251a9067b06fc8fa3c70e"
+      },
+      {
+        "path": "test/core/setup.test.ts",
+        "hash": "cb80343004c04fb6750aaad12e012e0742942cecdb726de63cbae2e2d0d6cec0"
+      },
+      {
+        "path": "test/core/specs-apply.test.ts",
+        "hash": "40ee810db2df73f50b282cdc93ebef9b0d372b0e5e64cef0ccccce6cd8910c2f"
+      },
+      {
+        "path": "test/core/templates/build.test.ts",
+        "hash": "fb866d33cda19f2c3b7dc28055535ada85950f92264c47d1795031a593426b1e"
+      },
+      {
+        "path": "test/core/templates/manifest/registry.test.ts",
+        "hash": "94e613e9b55e28db42cba386fb47475a69c0e703e6adac461ad741995d80df5f"
+      }
+    ],
+    "skippedEvidenceFiles": [
+      "src/core/shared/artifact-sync.ts"
+    ],
+    "gitHeadCommit": "681ae963ed484d118feaddcfa740649ec3461638",
+    "gitDiffSummary": "Validated base commit 0bd4cf0ee98a61251bc85512db03e807edb5edf1 and reviewed the union of git diff 0bd4cf0...HEAD --name-only and git status --short. The worktree has no tracked or staged modifications; only unrelated untracked .turbo/ exists. Merge-only files from 5edcf1659 were excluded from unaccounted-change judgment. Declared bootstrap, migration, init, and bootstrap-arch deletions are complete."
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-07-23T07:56:52.510Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "Semantic Model relationship query could not load the architecture graph because the repository layout lacks the domains directory expected by opsx arch query.",
+          "requirement": "Semantic Model alignment",
+          "task": null,
+          "recommendation": "Confirm the installed OPSX architecture-query implementation supports the current flat .opsx/architecture layout, then rerun the relationship and contract-binding checks.",
+          "evidenceCitations": [
+            ".opsx/architecture/model.c4:1-9",
+            ".opsx/architecture/specification.c4:1-15"
+          ]
+        }
+      ],
+      "tasksFileHash": "081b29c71c4c9228901811374034818409e6b217116015dce39d6f76dc8b7a7d",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".opsx/architecture/model.c4",
+          ".opsx/architecture/specification.c4",
+          ".opsx/changes/project-opsx-build/architecture-delta.c4",
+          ".opsx/changes/project-opsx-build/design.md",
+          ".opsx/changes/project-opsx-build/tasks.md",
+          "src/cli/index.ts",
+          "src/commands/candidate.ts",
+          "src/commands/validate.ts",
+          "src/core/candidate/digest.ts",
+          "src/core/candidate/history.ts",
+          "src/core/candidate/promotion.ts",
+          "src/core/candidate/validator.ts",
+          "src/core/candidate/workspace.ts",
+          "src/core/change-compiler.ts",
+          "src/core/change-sync.ts",
+          "src/core/legacy-cleanup.ts",
+          "src/core/setup.ts",
+          "src/core/shared/artifact-sync.ts",
+          "src/core/specs-apply.ts",
+          "src/core/templates/manifest/registry.ts",
+          "src/core/templates/workflows/build.ts",
+          "test/commands/candidate-init.test.ts",
+          "test/commands/candidate-promote.test.ts",
+          "test/commands/candidate-status.test.ts",
+          "test/commands/candidate-validate.test.ts",
+          "test/core/candidate-digest.test.ts",
+          "test/core/candidate-history.test.ts",
+          "test/core/change-compiler.test.ts",
+          "test/core/legacy-cleanup.test.ts",
+          "test/core/setup.test.ts",
+          "test/core/specs-apply.test.ts",
+          "test/core/templates/build.test.ts",
+          "test/core/templates/manifest/registry.test.ts"
+        ],
+        "evidenceFingerprint": "7831dbec82b26a791c218de605c932a1abaf5d7632ad4f624bcd0e742b635169",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".opsx/architecture/model.c4",
+            "hash": "4b1784406e1c35ef704e07c4a7dfe36885f290a36e63ee3d6ecaaa04faa14ebb"
+          },
+          {
+            "path": ".opsx/architecture/specification.c4",
+            "hash": "f544cac6b0e1f53056f463c7791b98fcb3546d2ff22ad7dd4752c8981f3e5507"
+          },
+          {
+            "path": ".opsx/changes/project-opsx-build/architecture-delta.c4",
+            "hash": "69fe270ce9c64b191031abd4f18b7d6cf973a0f5a0e44eaf1ac6875563f63568"
+          },
+          {
+            "path": ".opsx/changes/project-opsx-build/design.md",
+            "hash": "c4d59a36396d352004735f5e7c182eecae023d3d8ea24cb2832eafffb322b6f6"
+          },
+          {
+            "path": ".opsx/changes/project-opsx-build/tasks.md",
+            "hash": "081b29c71c4c9228901811374034818409e6b217116015dce39d6f76dc8b7a7d"
+          },
+          {
+            "path": "src/cli/index.ts",
+            "hash": "483a75de90db83ec7dc4882b7fba95201975065ddb47a63041ab4d9874869392"
+          },
+          {
+            "path": "src/commands/candidate.ts",
+            "hash": "d6df6a512b97f8ebaf34d5a8f67ef8fa0516fc8bba968d7ee9b57c67ef2064aa"
+          },
+          {
+            "path": "src/commands/validate.ts",
+            "hash": "45109849150a576d1705580004e60fc27cdcdc6b3a9084a58327aaaae6a44cbe"
+          },
+          {
+            "path": "src/core/candidate/digest.ts",
+            "hash": "119509b3454a6ed6d60254df67d646d5a9ade72d034e69286ff85712aead2fec"
+          },
+          {
+            "path": "src/core/candidate/history.ts",
+            "hash": "8aeb4d566e3b2f0c40261ab5e66f961c37fb43a9599212cd229874560e61b395"
+          },
+          {
+            "path": "src/core/candidate/promotion.ts",
+            "hash": "4956d64779d19213f049114bcb82a28a6d6a9494a7180aa957fe9d6cd99e78b3"
+          },
+          {
+            "path": "src/core/candidate/validator.ts",
+            "hash": "0dfec6060d60fb765ccb65379be0a5fd97c61427f20b8fe869de71284bc1adb0"
+          },
+          {
+            "path": "src/core/candidate/workspace.ts",
+            "hash": "612b94f55964838b70c5406172032e7581352e3cc5356868035af4c4d4c4b385"
+          },
+          {
+            "path": "src/core/change-compiler.ts",
+            "hash": "49fe3e77c086d19b3ba2d853827625d43672666dd210ef347a7c50604583e2d8"
+          },
+          {
+            "path": "src/core/change-sync.ts",
+            "hash": "2906f580b8f97d0667b7bfc75541aa09a2767d61dad23e4b71b2e51778352bbf"
+          },
+          {
+            "path": "src/core/legacy-cleanup.ts",
+            "hash": "c2713120231801524f8db0cf9b59f59faceb7980b94280893165872879e36a6a"
+          },
+          {
+            "path": "src/core/setup.ts",
+            "hash": "6b8d96dd62c74b0e22895469c2751d3aaa5be386843037d46e9ce61fba820ef4"
+          },
+          {
+            "path": "src/core/specs-apply.ts",
+            "hash": "200add23468402b853430cfc57832f17976089e43eb9a3266785cfd4bd395bec"
+          },
+          {
+            "path": "src/core/templates/manifest/registry.ts",
+            "hash": "ed16ab8bee13ffc0305f5379dbcee2ec9fb63cb95f214dd4c63fb058a27eada5"
+          },
+          {
+            "path": "src/core/templates/workflows/build.ts",
+            "hash": "b320f4755b161a70076d06b8a8c8268ffbf6bfef29e555b110bac11c857721e2"
+          },
+          {
+            "path": "test/commands/candidate-init.test.ts",
+            "hash": "431348718520501a5314c9e424d5ddc451c1453bae23c1bf798863b5138cd10b"
+          },
+          {
+            "path": "test/commands/candidate-promote.test.ts",
+            "hash": "1eb38fa7390938125aae17f67acd82f3a414ca77a567f5d9847f24b490137ad5"
+          },
+          {
+            "path": "test/commands/candidate-status.test.ts",
+            "hash": "5100879d7f72a158b200727c1456c607667662ee726bf33a6c5dedf9dca7dd85"
+          },
+          {
+            "path": "test/commands/candidate-validate.test.ts",
+            "hash": "d901794609c4956b32561a77961a0ab3d1aff8b6bf37a3117e4bffc36a788360"
+          },
+          {
+            "path": "test/core/candidate-digest.test.ts",
+            "hash": "0bf08ba0ac4dffdf611352d13ec34dc17210cb75f8cd698333036f2b19ccc82b"
+          },
+          {
+            "path": "test/core/candidate-history.test.ts",
+            "hash": "9690fd4fc16065c502c3ddf500aff82b1e88f8c6116ab21875f24cc3fa51d283"
+          },
+          {
+            "path": "test/core/change-compiler.test.ts",
+            "hash": "4bd2724b26c3e0b7c207622c7db0c02ea9ceca6940eae97a265532d8e7c99ccd"
+          },
+          {
+            "path": "test/core/legacy-cleanup.test.ts",
+            "hash": "cb7b8ebb5b83f36fe5df009114f1f1684df6c1d205a251a9067b06fc8fa3c70e"
+          },
+          {
+            "path": "test/core/setup.test.ts",
+            "hash": "cb80343004c04fb6750aaad12e012e0742942cecdb726de63cbae2e2d0d6cec0"
+          },
+          {
+            "path": "test/core/specs-apply.test.ts",
+            "hash": "40ee810db2df73f50b282cdc93ebef9b0d372b0e5e64cef0ccccce6cd8910c2f"
+          },
+          {
+            "path": "test/core/templates/build.test.ts",
+            "hash": "fb866d33cda19f2c3b7dc28055535ada85950f92264c47d1795031a593426b1e"
+          },
+          {
+            "path": "test/core/templates/manifest/registry.test.ts",
+            "hash": "94e613e9b55e28db42cba386fb47475a69c0e703e6adac461ad741995d80df5f"
+          }
+        ],
+        "skippedEvidenceFiles": [
+          "src/core/shared/artifact-sync.ts"
+        ],
+        "gitHeadCommit": "681ae963ed484d118feaddcfa740649ec3461638",
+        "gitDiffSummary": "Validated base commit 0bd4cf0ee98a61251bc85512db03e807edb5edf1 and reviewed the union of git diff 0bd4cf0...HEAD --name-only and git status --short. The worktree has no tracked or staged modifications; only unrelated untracked .turbo/ exists. Merge-only files from 5edcf1659 were excluded from unaccounted-change judgment. Declared bootstrap, migration, init, and bootstrap-arch deletions are complete."
+      }
+    }
+  }
+}
