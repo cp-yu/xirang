@@ -1,6 +1,6 @@
 ---
 name: "opsx-archive-change"
-description: "Archive a completed change in the experimental workflow. Use when the user wants to finalize and archive a completed change after implementation is complete."
+description: "Archive a completed change in the OPSX change workflow. Use when the user wants to finalize and archive a completed change after implementation is complete."
 license: "MIT"
 compatibility: "Requires opsx CLI."
 metadata:
@@ -9,7 +9,7 @@ metadata:
   generatedBy: "1.4.1-cpyu.5"
 ---
 
-Archive a completed change in the experimental workflow.
+Archive a completed change in the OPSX change workflow.
 
 **OPSX Philosophy**
 

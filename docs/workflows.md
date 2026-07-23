@@ -1,6 +1,6 @@
 # Workflows
 
-OPSX exposes managed workflows as skills over one OPSX Semantic Model: versioned LikeC4 graph modules plus element-owned Markdown contract modules.
+OPSX exposes six managed workflows over one Semantic Model: versioned LikeC4 graph modules plus element-owned Markdown contract modules.
 
 ## Current Surface
 
@@ -8,18 +8,18 @@ OPSX exposes managed workflows as skills over one OPSX Semantic Model: versioned
 - `/opsx:explore`
 - `/opsx:apply`
 - `/opsx:archive`
-- `/opsx:bootstrap-arch`
+- `/opsx:build`
 - `/opsx:snack`
 
 ## Typical Flows
 
-### Standard
+### Standard Change
 
 ```text
 /opsx:propose ──► /opsx:apply ──► /opsx:archive
 ```
 
-Propose authors contract deltas and, when graph facts change, `architecture-delta.c4`. Apply queries affected elements by stable `elementId` before implementing serial TDD tasks. Archive verifies and atomically syncs the approved Semantic Delta.
+Propose authors Semantic Deltas. Apply implements serial TDD checks. Archive verifies and atomically syncs the authorized delta.
 
 ### Explore First
 
@@ -29,13 +29,13 @@ Propose authors contract deltas and, when graph facts change, `architecture-delt
 
 Use this when behavior or architecture decisions remain undefined.
 
-### Bootstrap Architecture
+### Project Build
 
 ```text
-/opsx:bootstrap-arch ──► review candidates ──► opsx arch validate
+/opsx:build ──► opsx candidate validate ──► user confirmation ──► opsx candidate promote
 ```
 
-The bootstrap workflow scans current evidence, produces a reviewed versioned Semantic Model candidate, and promotes it only after identity, binding, and validation gates pass.
+Project Build asks for exploration scope and a starting point, then authors Architecture and Specs as one isolated Candidate. The CLI validates exact bytes and promotion requires the user-confirmed digest.
 
 ### Code-First Reconciliation
 
@@ -44,7 +44,3 @@ The bootstrap workflow scans current evidence, produces a reviewed versioned Sem
 ```
 
 Use this when code already exists and OPSX artifacts must be reconciled afterward.
-
-## Archive Contract
-
-`/opsx:archive` requires fresh verification, synchronizes delta Specs and `architecture-delta.c4`, then establishes the archive boundary.

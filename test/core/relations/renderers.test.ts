@@ -4,11 +4,8 @@ import { describe, expect, it } from 'vitest';
 import { parse as parseYaml } from 'yaml';
 import {
   GENERATED_RELATION_FILES,
-  renderBootstrapSchema,
-  renderDomainMapTemplate,
   renderOpsxDeltaTemplate,
   renderRelationAuthoringReference,
-  renderRelationWorkflowSummary,
 } from '../../../src/core/relations/renderers.js';
 import { ACTIVE_RELATION_TYPES } from '../../../src/core/relations/active-registry.js';
 import { RELATION_TYPES } from '../../../src/core/relations/registry.js';
@@ -31,29 +28,6 @@ describe('relation renderers', () => {
     expect(parsed.MODIFIED.capabilities.length).toBeGreaterThan(0);
     expect(parsed.REMOVED.capabilities.length).toBeGreaterThan(0);
     for (const type of RELATION_TYPES) expect(rendered).toContain(type);
-  });
-
-  it('renders the canonical generic v1 bootstrap artifacts', () => {
-    const domainMap = renderDomainMapTemplate();
-    const bootstrapSchema = renderBootstrapSchema();
-    const summary = renderRelationWorkflowSummary();
-    for (const type of RELATION_TYPES) {
-      expect(domainMap).toContain(type);
-      expect(bootstrapSchema).toContain(type);
-    }
-    for (const type of ACTIVE_RELATION_TYPES) expect(summary).toContain(type);
-    expect(domainMap).toContain('## Elements');
-    expect(domainMap).toContain('contractPolicy: required | optional');
-    expect(domainMap).toContain('## Parent Links');
-    expect(domainMap).toContain('- parent: <stable-parent-id>\n  child: <stable-child-id>');
-    expect(domainMap).toContain('spec:\n    folder: <single-path-segment>');
-    expect(domainMap).not.toMatch(/## Domain|## Capabilities|cap\.<domain>/);
-    expect(domainMap).not.toContain('Code References');
-    expect(bootstrapSchema).toContain('- elements: elementId, kind, explicit contractPolicy');
-    expect(bootstrapSchema).toContain('- parent_links: exactly one parent link per non-root element');
-    expect(bootstrapSchema).toContain('arbitrary-depth element tree');
-    expect(bootstrapSchema).toContain('Singular element-owned target-state requirements and scenarios.');
-    expect(bootstrapSchema).not.toMatch(/code-map|merge the reviewed delta|OPSX v2 two-file bundle|per-capability Specs/i);
   });
 
   it('renders the complete canonical reference', () => {

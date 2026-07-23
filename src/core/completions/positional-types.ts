@@ -10,7 +10,7 @@ import type { CommandDefinition } from './types.js';
  */
 export const POSITIONAL_TYPE_MAP: Record<string, NonNullable<CommandDefinition['positionalType']>> = {
   // Top-level commands
-  'init': 'path',
+  'setup': 'path',
   'update': 'path',
   'validate': 'change-or-spec-id',
   'show': 'change-or-spec-id',
@@ -39,8 +39,6 @@ export const POSITIONAL_TYPE_MAP: Record<string, NonNullable<CommandDefinition['
   // new subcommands
   'new.change': 'change-or-spec-id',
 
-  // bootstrap subcommands
-  'bootstrap.instructions': 'change-or-spec-id',
 
   // verify subcommands
   'verify.phase1': 'change-id',

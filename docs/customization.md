@@ -5,7 +5,7 @@ OPSX provides project-level configuration and built-in schema inspection:
 | Level | What it does | Best for |
 |-------|--------------|----------|
 | **Project Config** | Set defaults, inject context/rules | Most teams |
-| **Built-in Schemas** | Select and inspect `spec-driven` or `bootstrap` | All projects |
+| **Built-in Schemas** | Select and inspect `spec-driven` | All projects |
 
 ---
 
@@ -21,7 +21,7 @@ The `.opsx/config.yaml` file is the easiest way to customize OPSX for your team.
 ### Quick Setup
 
 ```bash
-opsx init
+opsx setup
 ```
 
 This walks you through creating a config interactively. Or create one manually:
@@ -107,10 +107,9 @@ When OPSX needs a schema, it checks in this order:
 
 ## Built-in Schemas
 
-OPSX resolves exactly two package-owned schemas:
+OPSX resolves one package-owned schema:
 
 - `spec-driven` for proposal, specs, design, tasks, and apply workflows.
-- `bootstrap` for the structured OPSX bootstrap lifecycle.
 
 Project-local `.opsx/schemas/` directories and user schema directories are ignored. `opsx schema init` and `opsx schema fork` are not available.
 
@@ -118,7 +117,6 @@ Validate one or both built-in schemas:
 
 ```bash
 opsx schema validate spec-driven
-opsx schema validate bootstrap
 opsx schema validate
 ```
 
@@ -126,11 +124,10 @@ Inspect their package locations:
 
 ```bash
 opsx schema which spec-driven
-opsx schema which bootstrap
 opsx schema which --all
 ```
 
-Schema binding still follows CLI option → change metadata → project config → `spec-driven`, but every binding must be either `spec-driven` or `bootstrap`.
+Schema binding still follows CLI option → change metadata → project config → `spec-driven`, and no retired schema name is accepted.
 
 ## See Also
 

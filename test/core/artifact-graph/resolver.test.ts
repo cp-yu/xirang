@@ -27,7 +27,7 @@ describe('artifact-graph/resolver', () => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
-  it('resolves both built-in schemas from the package directory', () => {
+  it('resolves the fixed built-in schema from the package directory', () => {
     for (const id of BUILT_IN_SCHEMA_IDS) {
       const expected = path.join(getPackageSchemasDir(), id);
       expect(getSchemaDir(id, tempDir)).toBe(expected);
@@ -48,19 +48,18 @@ describe('artifact-graph/resolver', () => {
     expect(listSchemas(tempDir)).toEqual([...BUILT_IN_SCHEMA_IDS]);
     expect(listSchemasWithInfo(tempDir).map(({ name, source }) => ({ name, source }))).toEqual([
       { name: 'spec-driven', source: 'package' },
-      { name: 'bootstrap', source: 'package' },
     ]);
   });
 
   it('rejects unknown IDs and lists every valid built-in ID', () => {
     expect(() => resolveSchema('custom', tempDir)).toThrow(
-      "Schema 'custom' not found. Available schemas: spec-driven, bootstrap"
+      "Schema 'custom' not found. Available schemas: spec-driven"
     );
     expect(getSchemaDir('SPEC-DRIVEN', tempDir)).toBeNull();
   });
 
   it('rejects aliases and case variants instead of inferring a schema ID', () => {
-    expect(() => resolveSchema('spec-driven.yaml', tempDir)).toThrow(/spec-driven, bootstrap/);
+    expect(() => resolveSchema('spec-driven.yaml', tempDir)).toThrow(/Available schemas: spec-driven/);
     expect(getSchemaDir('SPEC-DRIVEN', tempDir)).toBeNull();
   });
 

@@ -8,7 +8,7 @@ OPSX's managed workflow surface is skills-only.
 - `/opsx:explore`
 - `/opsx:apply`
 - `/opsx:archive`
-- `/opsx:bootstrap-arch`
+- `/opsx:build`
 - `/opsx:snack`
 
 `/opsx:archive` runs the full verify gate before archive and performs archive-time sync inline.

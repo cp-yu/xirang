@@ -535,7 +535,7 @@ The system SHALL keep this requirement.`,
       
       await expect(
         archiveCommand.execute('any-change', { yes: true, noVerify: true })
-      ).rejects.toThrow("No OPSX changes directory found. Run 'opsx init' first.");
+      ).rejects.toThrow("No OPSX changes directory found. Run 'opsx setup' first.");
     });
   });
 

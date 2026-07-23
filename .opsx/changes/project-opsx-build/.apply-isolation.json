@@ -1,0 +1,200 @@
+{
+  "method": "worktree",
+  "branchName": "project-opsx-build",
+  "originalBranch": "main",
+  "baseCommit": "0bd4cf0ee98a61251bc85512db03e807edb5edf1",
+  "worktreePath": "/home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec/.worktrees/project-opsx-build",
+  "sourceRoot": "/home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec",
+  "transferredFiles": [
+    {
+      "path": ".opsx/changes/project-opsx-build/.opsx.yaml",
+      "sourceState": "untracked",
+      "sourceHash": "6a5c58f9e3373af27403fe8fe085847ba938f4b583c5931a3b4ae44272281289"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/architecture-delta.c4",
+      "sourceState": "untracked",
+      "sourceHash": "69fe270ce9c64b191031abd4f18b7d6cf973a0f5a0e44eaf1ac6875563f63568"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/design.md",
+      "sourceState": "untracked",
+      "sourceHash": "c4d59a36396d352004735f5e7c182eecae023d3d8ea24cb2832eafffb322b6f6"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/proposal.md",
+      "sourceState": "untracked",
+      "sourceHash": "5154382578ffe67d21a22517479fb333fdceb1683aaf3579d6eedcff5d0c731b"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/agent-command-slugs/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "159171be4f06e0689d24bce1e828004c93c5e8ca5e01d5442c7af344c1120a87"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/ai-workflow-templates/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "7330bb6d93f6c761ec086245523a2ebe2c9fc0f50340e17ef3d053d718226053"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/artifact-file-definitions/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "538c48df47b9a63ab0cf2ead321dbb33f7a722108bcd74c031d087de2446e881"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/bootstrap-backfill-specs/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "f8dbeed17988c211f9a46f3e9596351f02123a019cfd2db066712f359acaf360"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/bootstrap-baseline/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "202f6fc204a394b4cf033254031df7eecad27346ff98f6539b344f365c3fb94f"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/bootstrap-domain-map-state/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "b3bef929195ccb0ea849592ad949dd70af86db5aa6104ac078de6540b4faf831"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/bootstrap-init-ux/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "df43d7e2fdf142dcc9d6deb10257b3ac288d9f003a4424f26268e097297b36f3"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/bootstrap-refresh-mode/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "888474454111323ec562d6bc3b73f8c6298e119d0c3d725a6fbae4a1f36f7c10"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/bootstrap-surface-exposure/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "90314d7ff4381a626c31930c7d157aeeeb836e6dc1f2508edb7205acd9b67d2f"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/bootstrap/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "ae24165fac1bb3cf5711def09a66bc1530ebc25d8f8a78275423471f537f65c9"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/cli-candidate/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "e6a8b6d532ebe1263f674b984a438b34f1452e377f73e3eda42e2c0c500cd506"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/cli-command-reference-consistency/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "b2f3fd64bf82b75606faca6fb0a0476abd61f79c85ca710ac97a2521a670ae17"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/cli-completion/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "517705c9ccd2188ea892f4bef50197e1555795e0d3ea0db12c78fb10ffc3431e"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/cli-init/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "fe8e5976013e0afca93d131655f85fafef36c35b66751be4f095a0e2f9e96b9a"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/cli-update/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "4c5e7b5be8c7a867c01fbbf9a21961d5c426db3ba3b3e4b7c9c3cdd9742fd0df"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/init-opsx-skeleton/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "fc476714b8ebd65b93840524eab845a834a090b6fe2bad5b17e87dbbafad9a39"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/init-project-structure/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "3c07ae5337a012abe165a4f5977ed563e11ff1a1bac7a3ede83bd01aed38d3ba"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/instruction-loader/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "f63e0390404e4a5ddaad92f3e054adca18e4c2815c45d4bcc769c0cff41d0e81"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/internal-subagent-generation/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "03700078f035d1e6c5a93cf02b68c9367810466cb519b20e97bcbc62ca23a5ca"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/legacy-cleanup/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "85619c5f881501a409d997a86285795e4c42a1e539a3d1a91929d69747abb7ea"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/migrate-opsx-to-likec4/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "60bc603797ad26e73a709cc08a234e53d269f5036f83086bf14f3d35b1161578"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/opsx-bootstrap-architecture/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "52de8d59abbf53018945310e4e34a8fbb85d30624c5c4160b41d10c0fd55b89a"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/opsx-build/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "0b28739122fd260712f71f50fe81e06c01371b6455727541ff49752dda6eca69"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/opsx-conventions/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "93051251de123e32282abcbd5bd1820cff0a2672e25bcb2034c83f36775af406"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/opsx-framework-identity/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "15bf038095d095dc24678ff8296bd52cdae04ca8354009344fb824fe53daeb9b"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/opsx-semantic-model/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "b5df0ae284c5bfae25add8527ea8474d4e0122cb558093b54746466641f7306f"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/project-contract/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "dedd363f0e131a6cd4423fe54fbbef4c76e84002a8b71eb9c72000ba997fdc4d"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/schema-resolution/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "b3e6fe2f9ab612cfe4268565158c88a25b12a73be59d5ed9403c6b616ee31301"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/semantic-delta-application/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "dddb32fe6718ef4303629f7ff0bc37d7811c26ea9f4af2b85238c799e67d3415"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/semantic-model-migration/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "0d1fc873a4b0fa8a333bf338113b300a095c23497ca521e4137cf754d7cad2d1"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/snack-workflow-manifest/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "a47ef8731e2eabca59f373df7bb127445f4265ec1525189ab55c8a72b27cdf59"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/telemetry/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "7843bcf1f1e6f3b074c8a6eb3740221e88b1b82adc893ede798a32d87778a22d"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/specs/template-artifact-pipeline/spec.md",
+      "sourceState": "untracked",
+      "sourceHash": "4e3f91e1c83ff242a1664fa9cb59efc0b8ecbfafc42270a844ddc84f313a4e57"
+    },
+    {
+      "path": ".opsx/changes/project-opsx-build/tasks.md",
+      "sourceState": "untracked",
+      "sourceHash": "081b29c71c4c9228901811374034818409e6b217116015dce39d6f76dc8b7a7d"
+    }
+  ]
+}

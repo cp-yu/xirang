@@ -13,7 +13,12 @@ async function buildRealProgram(): Promise<Command> {
   program.name('opsx').description('AI-native system for spec-driven development');
 
   // Top-level commands with various patterns
-  program.command('init [path]').description('Initialize OPSX in your project');
+  program.command('setup [path]').description('Set up OPSX in your project');
+  const candidateCmd = program.command('candidate').description('Manage the active Project Build Candidate');
+  candidateCmd.command('init').option('--from <kind>').option('--from-path <path>');
+  candidateCmd.command('status').option('--json');
+  candidateCmd.command('validate').option('--json');
+  candidateCmd.command('promote').requiredOption('--digest <reviewDigest>');
   program.command('list').description('List items').option('--specs', 'List specs').option('--json', 'Output as JSON');
   program.command('validate [item-name]').description('Validate changes and specs').option('--strict', 'Strict mode');
   program.command('show [item-name]').description('Show a change or spec').option('--json', 'Output as JSON');
@@ -65,7 +70,10 @@ describe('introspect-regression', () => {
     expect(script).toContain('_opsx() {');
 
     // 验证顶层命令
-    expect(script).toContain("'init:Initialize OPSX");
+    expect(script).toContain("'setup:Set up OPSX");
+    expect(script).toContain("'candidate:Manage the active Project Build Candidate");
+    expect(script).not.toContain("'bootstrap:");
+    expect(script).not.toContain("'migrate:");
     expect(script).toContain("'list:List items");
     expect(script).toContain("'validate:Validate changes");
     expect(script).toContain("'show:Show a change");
@@ -99,7 +107,10 @@ describe('introspect-regression', () => {
     expect(script).toContain('COMPREPLY=()');
 
     // 验证顶层命令列表
-    expect(script).toContain('init');
+    expect(script).toContain('setup');
+    expect(script).toContain('candidate');
+    expect(script).not.toContain(' bootstrap ');
+    expect(script).not.toContain(' migrate ');
     expect(script).toContain('list');
     expect(script).toContain('validate');
     expect(script).toContain('show');

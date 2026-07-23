@@ -44,25 +44,17 @@ describe('opsx CLI e2e basics', () => {
     expect(result.stderr).toBe('');
   });
 
-  it('describes bootstrap as the active v1 Semantic Model workflow', async () => {
-    const bootstrapHelp = await runCLI(['bootstrap', '--help']);
-    expect(bootstrapHelp.exitCode).toBe(0);
-    expect(bootstrapHelp.stdout).toContain('v1 Semantic Model');
-    expect(bootstrapHelp.stdout).not.toMatch(/deprecated|legacy OPSX YAML/i);
+  it('exposes Project Build Candidate commands without retired command families', async () => {
+    const candidateHelp = await runCLI(['candidate', '--help']);
+    expect(candidateHelp.exitCode).toBe(0);
+    expect(candidateHelp.stdout).toContain('init');
+    expect(candidateHelp.stdout).toContain('status');
+    expect(candidateHelp.stdout).toContain('validate');
+    expect(candidateHelp.stdout).toContain('promote');
 
-    const initHelp = await runCLI(['bootstrap', 'init', '--help']);
-    expect(initHelp.exitCode).toBe(0);
-    const normalizedInitHelp = initHelp.stdout.replace(/\s+/g, ' ');
-    expect(normalizedInitHelp).toContain('Element Contracts');
-    expect(normalizedInitHelp).toContain('generic elements');
-    expect(normalizedInitHelp).not.toMatch(/formal OPSX v2|per-capability|legacy OPSX YAML/i);
-
-    const projectDir = await fs.mkdtemp(path.join(tmpdir(), 'opsx-bootstrap-help-'));
-    tempRoots.push(projectDir);
-    await fs.mkdir(path.join(projectDir, '.opsx'), { recursive: true });
-    const status = await runCLI(['bootstrap', 'status', '--json'], { cwd: projectDir });
-    expect(status.exitCode).toBe(0);
-    expect(status.stderr).toBe('');
+    const rootHelp = await runCLI(['--help']);
+    expect(rootHelp.stdout).toContain('setup');
+    expect(rootHelp.stdout).not.toMatch(/^\s*(init|bootstrap|migrate)\b/m);
   });
 
   it('exposes only the opsx npm bin', async () => {
@@ -84,8 +76,8 @@ describe('opsx CLI e2e basics', () => {
     });
   });
 
-  it('shows dynamic tool ids in init help', async () => {
-    const result = await runCLI(['init', '--help']);
+  it('shows dynamic tool ids in setup help', async () => {
+    const result = await runCLI(['setup', '--help']);
     expect(result.exitCode).toBe(0);
 
     const expectedTools = AI_TOOLS.filter((tool) => tool.available)
@@ -163,14 +155,14 @@ describe('opsx CLI e2e basics', () => {
     expect(result.stderr).toContain("Unknown item 'does-not-exist'");
   });
 
-  describe('init command non-interactive options', () => {
+  describe('setup command non-interactive options', () => {
     it('initializes with --tools all option', async () => {
       const projectDir = await prepareFixture('tmp-init');
       const emptyProjectDir = path.join(projectDir, '..', 'empty-project');
       await fs.mkdir(emptyProjectDir, { recursive: true });
 
       const codexHome = path.join(emptyProjectDir, '.codex');
-      const result = await runCLI(['init', '--tools', 'all'], {
+      const result = await runCLI(['setup', '--tools', 'all'], {
         cwd: emptyProjectDir,
         env: { CODEX_HOME: codexHome },
       });
@@ -189,7 +181,7 @@ describe('opsx CLI e2e basics', () => {
       const emptyProjectDir = path.join(projectDir, '..', 'empty-project');
       await fs.mkdir(emptyProjectDir, { recursive: true });
 
-      const result = await runCLI(['init', '--tools', 'claude'], { cwd: emptyProjectDir });
+      const result = await runCLI(['setup', '--tools', 'claude'], { cwd: emptyProjectDir });
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('OPSX Setup Complete');
       expect(result.stdout).toContain('Claude Code');
@@ -206,7 +198,7 @@ describe('opsx CLI e2e basics', () => {
       const emptyProjectDir = path.join(projectDir, '..', 'empty-project');
       await fs.mkdir(emptyProjectDir, { recursive: true });
 
-      const result = await runCLI(['init', '--tools', 'none'], { cwd: emptyProjectDir });
+      const result = await runCLI(['setup', '--tools', 'none'], { cwd: emptyProjectDir });
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('OPSX Setup Complete');
 
@@ -223,7 +215,7 @@ describe('opsx CLI e2e basics', () => {
       const emptyProjectDir = path.join(projectDir, '..', 'empty-project');
       await fs.mkdir(emptyProjectDir, { recursive: true });
 
-      const result = await runCLI(['init', '--tools', 'invalid-tool'], { cwd: emptyProjectDir });
+      const result = await runCLI(['setup', '--tools', 'invalid-tool'], { cwd: emptyProjectDir });
       expect(result.exitCode).toBe(1);
       expect(result.stderr).toContain('Invalid tool(s): invalid-tool');
       expect(result.stderr).toContain('Available values:');
@@ -234,7 +226,7 @@ describe('opsx CLI e2e basics', () => {
       const emptyProjectDir = path.join(projectDir, '..', 'empty-project');
       await fs.mkdir(emptyProjectDir, { recursive: true });
 
-      const result = await runCLI(['init', '--tools', 'all,claude'], { cwd: emptyProjectDir });
+      const result = await runCLI(['setup', '--tools', 'all,claude'], { cwd: emptyProjectDir });
       expect(result.exitCode).toBe(1);
       expect(result.stderr).toContain('Cannot combine reserved values "all" or "none" with specific tool IDs');
     });

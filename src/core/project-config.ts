@@ -333,7 +333,7 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
       config.schema = schemaResult.data;
     } else if (raw.schema !== undefined) {
       console.warn(
-        `Unsupported schema '${String(raw.schema)}' in .opsx/config.yaml. Available: spec-driven, bootstrap`
+        `Unsupported schema '${String(raw.schema)}' in .opsx/config.yaml. Available: spec-driven`
       );
       return null;
     }

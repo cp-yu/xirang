@@ -6,7 +6,7 @@ The OPSX CLI (`opsx`) provides terminal commands for project setup, validation, 
 
 | Category | Commands | Purpose |
 |----------|----------|---------|
-| **Setup** | `init`, `update` | Initialize and update OPSX in your project |
+| **Setup** | `setup`, `update` | Set up and update OPSX in your project |
 | **Browsing** | `list`, `view`, `show` | Explore changes and specs |
 | **Validation** | `validate` | Check changes and specs for issues |
 | **Lifecycle** | `archive` | Finalize completed changes |
@@ -27,7 +27,7 @@ These commands are interactive and designed for terminal use:
 
 | Command | Purpose |
 |---------|---------|
-| `opsx init` | Initialize project (interactive prompts) |
+| `opsx setup` | Initialize project (interactive prompts) |
 | `opsx view` | Local Architecture and Specs browser |
 | `opsx config edit` | Open config in editor |
 | `opsx feedback` | Submit feedback via GitHub |
@@ -65,14 +65,14 @@ These options work with all commands:
 
 ## Setup Commands
 
-### `opsx init`
+### `opsx setup`
 
 Initialize OPSX in your project. Creates the folder structure and configures AI tool integrations.
 
 Default behavior installs the fixed managed workflow skills.
 
 ```
-opsx init [path] [options]
+opsx setup [path] [options]
 ```
 
 **Arguments:**
@@ -94,19 +94,19 @@ opsx init [path] [options]
 
 ```bash
 # Interactive initialization
-opsx init
+opsx setup
 
 # Initialize in a specific directory
-opsx init ./my-project
+opsx setup ./my-project
 
 # Non-interactive: configure for Claude and Cursor
-opsx init --tools claude,cursor
+opsx setup --tools claude,cursor
 
 # Configure for all supported tools
-opsx init --tools all
+opsx setup --tools all
 
 # Skip prompts and auto-cleanup legacy files
-opsx init --force
+opsx setup --force
 ```
 
 **What it creates:**
@@ -532,9 +532,6 @@ opsx templates [options]
 # Show template paths for default schema
 opsx templates
 
-# Show templates for the bootstrap schema
-opsx templates --schema bootstrap
-
 # JSON for programmatic use
 opsx templates --json
 ```
@@ -582,16 +579,13 @@ Available schemas:
     The default spec-driven development workflow
     Flow: proposal → specs → design → tasks
 
-  bootstrap (package)
-    The structured OPSX bootstrap workflow
-    Flow: init → scan → map → review → promote
 ```
 
 ---
 
 ## Schema Commands
 
-OPSX ships exactly two package-owned schemas: `spec-driven` and `bootstrap`. Project-local and user override schemas are not resolved, and `schema init` and `schema fork` are not available.
+OPSX ships exactly one package-owned schema: `spec-driven`. Project-local and user override schemas are not resolved, and `schema init` and `schema fork` are not available.
 
 ### `opsx schema validate`
 

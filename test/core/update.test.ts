@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { UpdateCommand, scanInstalledWorkflows } from '../../src/core/update.js';
 import { getCommandSlug } from '../../src/core/shared/index.js';
-import { InitCommand } from '../../src/core/init.js';
+import { SetupCommand } from '../../src/core/setup.js';
 import { FileSystemUtils } from '../../src/utils/file-system.js';
 import { OPSX_MARKERS } from '../../src/core/config.js';
 import type { GlobalConfig } from '../../src/core/global-config.js';
@@ -99,7 +99,7 @@ describe('UpdateCommand', () => {
       });
 
       await expect(updateCommand.execute(testDir)).rejects.toThrow(
-        "未找到 OPSX 项目。运行 'opsx init' 进行设置。"
+        "未找到 OPSX 项目。运行 'opsx setup' 进行设置。"
       );
     });
 
@@ -251,27 +251,24 @@ git:
     });
   });
 
-  describe('bootstrap surface exposure', () => {
-    it('adds bootstrap skill surface when bootstrap workspace exists and remains convergent across repeated updates', async () => {
+  describe('retired workspace handling', () => {
+    it('requires confirmation, then archives the workspace and installs Project Build', async () => {
       const skillsDir = path.join(testDir, '.claude', 'skills', 'opsx-explore');
       await fs.mkdir(skillsDir, { recursive: true });
       await fs.writeFile(path.join(skillsDir, 'SKILL.md'), 'existing explore skill');
       await fs.mkdir(path.join(testDir, '.opsx', 'bootstrap'), { recursive: true });
+      await fs.writeFile(path.join(testDir, '.opsx', 'bootstrap', 'state.yaml'), 'state\n');
 
-      setMockConfig({
-        featureFlags: {},
-      });
+      setMockConfig({ featureFlags: {} });
 
-      await updateCommand.execute(testDir);
-      const bootstrapSkill = path.join(testDir, '.claude', 'skills', 'opsx-bootstrap-arch', 'SKILL.md');
-      expect(await FileSystemUtils.fileExists(bootstrapSkill)).toBe(true);
+      await expect(updateCommand.execute(testDir)).rejects.toThrow(/cleanup confirmation/);
+      await new UpdateCommand({ force: true }).execute(testDir);
 
-      await updateCommand.execute(testDir);
-      expect(await FileSystemUtils.fileExists(bootstrapSkill)).toBe(true);
-
-      // Skills-only: no bootstrap command file is generated
-      const bootstrapCmd = path.join(testDir, '.claude', 'commands', 'opsx', 'bootstrap.md');
-      expect(await FileSystemUtils.fileExists(bootstrapCmd)).toBe(false);
+      const buildSkill = path.join(testDir, '.claude', 'skills', 'opsx-build', 'SKILL.md');
+      expect(await FileSystemUtils.fileExists(buildSkill)).toBe(true);
+      expect(await FileSystemUtils.directoryExists(path.join(testDir, '.opsx', 'bootstrap'))).toBe(false);
+      const historyEntries = await fs.readdir(path.join(testDir, '.opsx', 'history'));
+      expect(historyEntries).toHaveLength(1);
     });
   });
 
@@ -423,27 +420,18 @@ Old instructions content
       }
     });
 
-    it('should NOT refresh existing bootstrap command files (skills-only)', async () => {
+    it('should require cleanup approval before touching an existing legacy command', async () => {
       const skillsDir = path.join(testDir, '.claude', 'skills');
       await fs.mkdir(path.join(skillsDir, 'opsx-explore'), { recursive: true });
       await fs.writeFile(path.join(skillsDir, 'opsx-explore', 'SKILL.md'), 'old content');
 
-      // Pre-existing command file remains untouched
-      const bootstrapCmd = path.join(testDir, '.claude', 'commands', 'opsx', getCommandSlug('bootstrap-arch') + '.md');
-      await fs.mkdir(path.dirname(bootstrapCmd), { recursive: true });
+      const legacyCommand = path.join(testDir, '.claude', 'commands', 'opsx', getCommandSlug('build') + '.md');
+      await fs.mkdir(path.dirname(legacyCommand), { recursive: true });
       const legacyContent = 'legacy bootstrap command';
-      await fs.writeFile(bootstrapCmd, legacyContent);
+      await fs.writeFile(legacyCommand, legacyContent);
 
-      setMockConfig({
-        featureFlags: {},
-      });
-
-      await updateCommand.execute(testDir);
-
-      // Skills-only: command file is left as-is (not refreshed, not removed)
-      expect(await FileSystemUtils.fileExists(bootstrapCmd)).toBe(true);
-      const content = await fs.readFile(bootstrapCmd, 'utf-8');
-      expect(content).toBe(legacyContent);
+      await expect(updateCommand.execute(testDir)).rejects.toThrow(/cleanup confirmation/);
+      expect(await fs.readFile(legacyCommand, 'utf-8')).toBe(legacyContent);
     });
 
   });
@@ -816,7 +804,7 @@ Old instructions content
   describe('smart update detection', () => {
     it('should show "up to date" message when skills have current version', async () => {
       // Initialize full core profile output so there is no profile/delivery drift.
-      const initCommand = new InitCommand({ tools: 'claude', force: true });
+      const initCommand = new SetupCommand({ tools: 'claude', force: true });
       await initCommand.execute(testDir);
 
       const consoleSpy = vi.spyOn(console, 'log');
@@ -1050,7 +1038,7 @@ metadata:
 
     it('should only update tools that need updating', async () => {
       // Initialize both tools so Cursor is fully synced with profile/delivery.
-      const initCommand = new InitCommand({ tools: 'claude,cursor', force: true });
+      const initCommand = new SetupCommand({ tools: 'claude,cursor', force: true });
       await initCommand.execute(testDir);
 
       // Make Claude stale to force a version update.
@@ -1130,51 +1118,32 @@ ${OPSX_MARKERS.end}
       consoleSpy.mockRestore();
     });
 
-    it('should warn but continue with update when legacy files found in non-interactive mode', async () => {
-      // Set up a configured tool
-      const skillsDir = path.join(testDir, '.claude', 'skills');
-      await fs.mkdir(path.join(skillsDir, 'opsx-explore'), {
-        recursive: true,
-      });
-      await fs.writeFile(
-        path.join(skillsDir, 'opsx-explore', 'SKILL.md'),
-        'old'
-      );
+    it('should stop before writes when legacy cleanup cannot be confirmed', async () => {
+      const skillFile = path.join(testDir, '.claude', 'skills', 'opsx-explore', 'SKILL.md');
+      await fs.mkdir(path.dirname(skillFile), { recursive: true });
+      await fs.writeFile(skillFile, 'old skill');
 
-      // Create legacy CLAUDE.md with OPSX markers
+      const configPath = path.join(testDir, '.opsx', 'config.yaml');
+      const configContent = 'schema: spec-driven\n';
+      await fs.writeFile(configPath, configContent);
+
+      const removedWorkflow = path.join(testDir, '.claude', 'skills', 'opsx-new-change', 'SKILL.md');
+      await fs.mkdir(path.dirname(removedWorkflow), { recursive: true });
+      await fs.writeFile(removedWorkflow, 'retired skill');
+
       const legacyContent = `${OPSX_MARKERS.start}
 # OPSX Instructions
 ${OPSX_MARKERS.end}
 `;
-      await fs.writeFile(path.join(testDir, 'CLAUDE.md'), legacyContent);
+      const legacyFile = path.join(testDir, 'CLAUDE.md');
+      await fs.writeFile(legacyFile, legacyContent);
 
-      const consoleSpy = vi.spyOn(console, 'log');
+      await expect(updateCommand.execute(testDir)).rejects.toThrow(/cleanup confirmation/);
 
-      // Run without --force in non-interactive mode (CI environment)
-      await updateCommand.execute(testDir);
-
-      // Should show v1 upgrade message
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Upgrading to the new OPSX')
-      );
-
-      // Should show warning about --force
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Run with --force to auto-cleanup')
-      );
-
-      // Should continue with update
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Updated: Claude Code')
-      );
-
-      // Legacy file should still exist (not cleaned up)
-      const legacyExists = await FileSystemUtils.fileExists(
-        path.join(testDir, 'CLAUDE.md')
-      );
-      expect(legacyExists).toBe(true);
-
-      consoleSpy.mockRestore();
+      expect(await fs.readFile(legacyFile, 'utf8')).toBe(legacyContent);
+      expect(await fs.readFile(skillFile, 'utf8')).toBe('old skill');
+      expect(await fs.readFile(removedWorkflow, 'utf8')).toBe('retired skill');
+      expect(await fs.readFile(configPath, 'utf8')).toBe(configContent);
     });
 
     it('should cleanup legacy slash command directories with --force', async () => {
@@ -1607,7 +1576,7 @@ More user content after markers.
       const skillsDir = path.join(testDir, '.claude', 'skills');
       const expectedSkills = [
         'opsx-explore', 'opsx-propose', 'opsx-apply-change',
-        'opsx-archive-change', 'opsx-bootstrap-arch', 'opsx-snack',
+        'opsx-archive-change', 'opsx-build', 'opsx-snack',
       ];
       for (const skill of expectedSkills) {
         expect(await FileSystemUtils.fileExists(
@@ -1643,7 +1612,7 @@ More user content after markers.
       // All 6 registry workflows should be created (snack is skill-only)
       const expectedSkills = [
         'opsx-explore', 'opsx-propose', 'opsx-apply-change',
-        'opsx-archive-change', 'opsx-bootstrap-arch', 'opsx-snack',
+        'opsx-archive-change', 'opsx-build', 'opsx-snack',
       ];
       for (const skill of expectedSkills) {
         expect(await FileSystemUtils.fileExists(
@@ -1735,12 +1704,12 @@ More user content after markers.
         featureFlags: {},
       });
 
-      const skillsDir = path.join(testDir, '.claude', 'skills');
-      await fs.mkdir(path.join(skillsDir, 'opsx-explore'), { recursive: true });
+      const skillFile = path.join(testDir, '.claude', 'skills', 'opsx-explore', 'SKILL.md');
+      await fs.mkdir(path.dirname(skillFile), { recursive: true });
       const packageJsonPath = path.join(process.cwd(), 'package.json');
       const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8')) as { version: string };
       await fs.writeFile(
-        path.join(skillsDir, 'opsx-explore', 'SKILL.md'),
+        skillFile,
         `---
 name: opsx-explore
 metadata:
@@ -1750,46 +1719,18 @@ content
 `
       );
 
-      // Pre-existing command file remains (skills-only does not actively clean command files)
-      const commandsDir = path.join(testDir, '.claude', 'commands', 'opsx');
-      await fs.mkdir(commandsDir, { recursive: true });
-      await fs.writeFile(path.join(commandsDir, 'explore.md'), 'old command');
-
       await updateCommand.execute(testDir);
 
-      // Skills-only: command file is NOT removed
-      expect(await FileSystemUtils.fileExists(
-        path.join(commandsDir, 'explore.md')
-      )).toBe(true);
+      expect(await FileSystemUtils.fileExists(skillFile)).toBe(true);
     });
 
-    it('should NOT detect commands-only tool configuration (skills-only)', async () => {
-      setMockConfig({
-        featureFlags: {},
-      });
+    it('should require cleanup approval for a commands-only legacy install', async () => {
+      const commandFile = path.join(testDir, '.claude', 'commands', 'opsx', 'explore.md');
+      await fs.mkdir(path.dirname(commandFile), { recursive: true });
+      await fs.writeFile(commandFile, 'existing command');
 
-      const commandsDir = path.join(testDir, '.claude', 'commands', 'opsx');
-      await fs.mkdir(commandsDir, { recursive: true });
-      await fs.writeFile(path.join(commandsDir, 'explore.md'), 'existing command');
-
-      const consoleSpy = vi.spyOn(console, 'log');
-
-      await updateCommand.execute(testDir);
-
-      // Skills-only: command-only tools are NOT treated as configured
-      const calls = consoleSpy.mock.calls.map(call =>
-        call.map(arg => String(arg)).join(' ')
-      );
-      const hasNoConfiguredMessage = calls.some(call =>
-        call.includes('No configured tools found')
-      );
-      expect(hasNoConfiguredMessage).toBe(true);
-
-      // Existing command files are NOT refreshed
-      const existingContent = await fs.readFile(path.join(commandsDir, 'explore.md'), 'utf-8');
-      expect(existingContent).toBe('existing command');
-
-      consoleSpy.mockRestore();
+      await expect(updateCommand.execute(testDir)).rejects.toThrow(/cleanup confirmation/);
+      expect(await fs.readFile(commandFile, 'utf-8')).toBe('existing command');
     });
 
     it('should remove workflows not in registry during update sync (skills-only)', async () => {
@@ -1814,7 +1755,7 @@ content
 
       const consoleSpy = vi.spyOn(console, 'log');
 
-      await updateCommand.execute(testDir);
+      await new UpdateCommand({ force: true }).execute(testDir);
 
       // Removed skill workflow is cleaned up
       expect(await FileSystemUtils.fileExists(
@@ -1936,7 +1877,7 @@ content
         call.map(arg => String(arg)).join(' ')
       );
       const hasNewToolMessage = calls.some(call =>
-        call.includes("Detected new tool: Cursor. Run 'opsx init' to add it.")
+        call.includes("Detected new tool: Cursor. Run 'opsx setup' to add it.")
       );
       expect(hasNewToolMessage).toBe(true);
 
@@ -1968,7 +1909,7 @@ content
       expect(consolidatedCalls).toHaveLength(1);
       expect(consolidatedCalls[0]).toContain('GitHub Copilot');
       expect(consolidatedCalls[0]).toContain('Windsurf');
-      expect(consolidatedCalls[0]).toContain("Run 'opsx init' to add them.");
+      expect(consolidatedCalls[0]).toContain("Run 'opsx setup' to add them.");
 
       const repeatedSingularCalls = calls.filter(call =>
         call.includes('Detected new tool:')

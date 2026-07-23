@@ -10,7 +10,7 @@
  * Represents the content of a command without any tool-specific formatting.
  */
 export interface CommandContent {
-  /** Internal workflow-linked identifier (e.g., 'explore', 'bootstrap-arch') */
+  /** Internal workflow-linked identifier (e.g., 'explore', 'build') */
   id: string;
   /** External user-facing command slug used for command file generation */
   commandSlug: string;
@@ -36,7 +36,7 @@ export interface ToolCommandAdapter {
   toolId: string;
   /**
    * Returns the file path for a command.
-   * @param commandSlug - The external command slug (e.g., 'explore', 'bootstrap')
+   * @param commandSlug - The external command slug (e.g., 'explore', 'build')
    * @returns Path from project root (e.g., '.claude/commands/opsx/explore.md').
    */
   getFilePath(commandSlug: string): string;

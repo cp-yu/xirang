@@ -23,7 +23,6 @@ describe('generated internal agent semantic context', () => {
     const generatedFiles = [
       '.pi/skills/opsx-apply-change/SKILL.md',
       '.pi/skills/opsx-archive-change/SKILL.md',
-      '.pi/skills/opsx-bootstrap-arch/SKILL.md',
       '.pi/skills/opsx-explore/SKILL.md',
       '.pi/skills/opsx-propose/SKILL.md',
       '.pi/skills/opsx-snack/SKILL.md',

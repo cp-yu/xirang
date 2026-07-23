@@ -24,14 +24,14 @@ The root project and `likec4/` are independent pnpm workspaces. Install and buil
 
 For local command access, invoke the repository binary directly or link the built root package with the package manager used by your environment.
 
-## Initialize A Project
+## Set Up A Project
 
 ```bash
 cd your-project
-/path/to/opsx/bin/opsx.js init
+/path/to/opsx/bin/opsx.js setup --tools all
 ```
 
-Initialization creates `.opsx/` and installs managed workflow skills for the selected agent tools.
+Setup creates `.opsx/` and installs managed workflow skills for the selected agent tools.
 
 ## Verify The Browser
 

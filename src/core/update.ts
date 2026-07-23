@@ -2,7 +2,7 @@
  * Update Command
  *
  * Refreshes OPSX skills for configured tools.
- * Supports stale-config cleanup, migration, and smart update detection.
+ * Supports stale-config cleanup, default reconciliation, and smart update detection.
  */
 
 import path from 'path';
@@ -38,10 +38,7 @@ import {
 import {
   createWorkflowArtifactPlan,
 } from './workflow-installation.js';
-import {
-  scanInstalledWorkflows as scanInstalledWorkflowsShared,
-  migrateIfNeeded as migrateIfNeededShared,
-} from './migration.js';
+import { ALL_WORKFLOWS, WORKFLOW_TO_SKILL_DIR } from './workflow-surface.js';
 import { migrateProjectConfigDefaults } from './project-config.js';
 import { ArtifactSyncEngine } from './templates/sync-engine.js';
 import { WorkflowManifestRegistry } from './templates/manifest/index.js';
@@ -61,13 +58,19 @@ export interface UpdateCommandOptions {
  * Scans installed workflow artifacts (skills and managed commands) across all configured tools.
  * Returns the union of detected workflow IDs that match ALL_WORKFLOWS.
  *
- * Wrapper around the shared migration module's scanInstalledWorkflows that accepts tool IDs.
  */
 export function scanInstalledWorkflows(projectPath: string, toolIds: string[]): string[] {
-  const tools = toolIds
-    .map((id) => AI_TOOLS.find((t) => t.value === id))
-    .filter((t): t is NonNullable<typeof t> => t != null);
-  return scanInstalledWorkflowsShared(projectPath, tools);
+  const installed = new Set<string>();
+  for (const toolId of toolIds) {
+    const tool = AI_TOOLS.find((candidate) => candidate.value === toolId);
+    if (!tool?.skillsDir) continue;
+    const skillsRoot = path.join(projectPath, tool.skillsDir, 'skills');
+    for (const workflowId of ALL_WORKFLOWS) {
+      const skillFile = path.join(skillsRoot, WORKFLOW_TO_SKILL_DIR[workflowId], 'SKILL.md');
+      if (fs.existsSync(skillFile)) installed.add(workflowId);
+    }
+  }
+  return ALL_WORKFLOWS.filter((workflowId) => installed.has(workflowId));
 }
 
 export class UpdateCommand {
@@ -83,8 +86,19 @@ export class UpdateCommand {
 
     // 1. Check opsx directory exists
     if (!await FileSystemUtils.directoryExists(opsxPath)) {
-      throw new Error("未找到 OPSX 项目。运行 'opsx init' 进行设置。");
+      throw new Error("未找到 OPSX 项目。运行 'opsx setup' 进行设置。");
     }
+
+    // 2. Resolve the fixed workflow set without writing project state.
+    const allWorkflowIds = WorkflowManifestRegistry.getAllWorkflowIds();
+    const plan = createWorkflowArtifactPlan(allWorkflowIds, resolvedProjectPath);
+    const desiredWorkflows = [...plan.workflows];
+
+    // 3. Legacy cleanup approval gates every update write.
+    const newlyConfiguredTools = await this.handleLegacyCleanup(
+      resolvedProjectPath,
+      desiredWorkflows
+    );
 
     const configMigration = migrateProjectConfigDefaults(resolvedProjectPath);
     if (configMigration.status === 'skipped') {
@@ -95,34 +109,18 @@ export class UpdateCommand {
       );
     }
 
-    // 2. Perform one-time migration if needed before any legacy upgrade generation.
-    // Use detected tool directories to preserve existing opsx skills/commands.
     const detectedTools = getAvailableTools(resolvedProjectPath);
-    migrateIfNeededShared(resolvedProjectPath, detectedTools);
 
-    // 3. Workflows are fixed from registry; skills-only surface.
-    const allWorkflowIds = WorkflowManifestRegistry.getAllWorkflowIds();
-    const plan = createWorkflowArtifactPlan(allWorkflowIds, resolvedProjectPath);
-    const desiredWorkflows = [...plan.workflows];
-
-    // 3b. Clean up obsolete profile/workflows/delivery fields from global config
+    // 4. Reconcile obsolete managed settings and workflow remnants after approval.
     this.cleanupObsoleteConfigFields();
-
-    // 3c. Clean up expanded workflow remnants (7 removed workflows)
     this.cleanupExpandedWorkflowRemnants(resolvedProjectPath);
-
-    // 4. Detect and handle legacy artifacts + upgrade legacy tools
-    const newlyConfiguredTools = await this.handleLegacyCleanup(
-      resolvedProjectPath,
-      desiredWorkflows
-    );
 
     // 5. Find configured tools (skills-only surface)
     const configuredTools = getConfiguredToolsForProfileSync(resolvedProjectPath);
 
     if (configuredTools.length === 0 && newlyConfiguredTools.length === 0) {
       console.log(chalk.yellow('No configured tools found.'));
-      console.log(chalk.dim('Run "opsx init" to set up tools.'));
+      console.log(chalk.dim('Run "opsx setup" to set up tools.'));
       return;
     }
 
@@ -288,7 +286,7 @@ export class UpdateCommand {
       console.log();
       console.log(
         chalk.yellow(
-          `Detected new ${toolNoun}: ${newToolNames.join(', ')}. Run 'opsx init' to add ${pronoun}.`
+          `Detected new ${toolNoun}: ${newToolNames.join(', ')}. Run 'opsx setup' to add ${pronoun}.`
         )
       );
     }
@@ -313,7 +311,7 @@ export class UpdateCommand {
 
   /**
    * Detect and handle legacy OPSX artifacts.
-   * Unlike init, update warns but continues if legacy files found in non-interactive mode.
+   * Unlike setup, update warns but continues for non-workspace legacy files in non-interactive mode.
    * Returns array of tool IDs that were newly configured during legacy upgrade.
    */
   private async handleLegacyCleanup(
@@ -342,11 +340,7 @@ export class UpdateCommand {
     }
 
     if (!canPrompt) {
-      // Non-interactive mode without --force: warn and continue
-      // (Unlike init, update doesn't abort - user may just want to update skills)
-      console.log(chalk.yellow('⚠ Run with --force to auto-cleanup legacy files, or run interactively.'));
-      console.log();
-      return [];
+      throw new Error('Legacy OPSX artifacts require cleanup confirmation. Re-run interactively or use --force.');
     }
 
     // Interactive mode: prompt for confirmation
@@ -361,9 +355,7 @@ export class UpdateCommand {
       // Then upgrade legacy tools to new skills
       return this.upgradeLegacyTools(projectPath, detection, canPrompt, desiredWorkflows);
     } else {
-      console.log(chalk.dim('Skipping legacy cleanup. Continuing with skill update...'));
-      console.log();
-      return [];
+      throw new Error('Update cancelled; no legacy files or retired workspaces were changed.');
     }
   }
 

@@ -1,10 +1,5 @@
-import { readFileSync } from 'node:fs';
 import { ActiveRelationDefinitionRegistry } from './active-registry.js';
 import { RelationDefinitionRegistry } from './registry.js';
-
-function readCanonicalBootstrapArtifact(relativePath: string): string {
-  return readFileSync(new URL(`../../../schemas/bootstrap/${relativePath}`, import.meta.url), 'utf8');
-}
 
 export function renderRelationWorkflowSummary(): string {
   return ActiveRelationDefinitionRegistry
@@ -46,14 +41,6 @@ REMOVED:
   capabilities:
     - id: cap.example.legacy
 `;
-}
-
-export function renderBootstrapSchema(): string {
-  return readCanonicalBootstrapArtifact('schema.yaml');
-}
-
-export function renderDomainMapTemplate(): string {
-  return readCanonicalBootstrapArtifact('templates/domain-map.md');
 }
 
 export function renderRelationAuthoringReference(): string {
@@ -108,14 +95,6 @@ ${definitions}
 }
 
 export const GENERATED_RELATION_FILES = [
-  {
-    path: 'schemas/bootstrap/schema.yaml',
-    render: renderBootstrapSchema,
-  },
-  {
-    path: 'schemas/bootstrap/templates/domain-map.md',
-    render: renderDomainMapTemplate,
-  },
   {
     path: '.opsx/references/opsx-relation-authoring.md',
     render: renderRelationAuthoringReference,

@@ -24,6 +24,7 @@ export const MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES = [
   'opsx-optimizer',
   'opsx-impact-sweeper',
   'opsx-bootstrap-opsx',
+  'opsx-bootstrap-arch',
 ] as const;
 
 export function getManagedSkillDirNames(): string[] {

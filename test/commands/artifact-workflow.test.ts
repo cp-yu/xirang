@@ -503,22 +503,6 @@ describe('artifact-workflow CLI commands', () => {
       expect(result.stdout).not.toContain('Use the opsx-apply-change skill to create');
     });
 
-    it('routes bootstrap blockers back to the Bootstrap workflow', async () => {
-      await createTestChange('blocked-bootstrap');
-
-      const result = await runCLI(
-        ['instructions', 'apply', '--change', 'blocked-bootstrap', '--schema', 'bootstrap', '--json'],
-        { cwd: tempDir }
-      );
-      expect(result.exitCode).toBe(0);
-
-      const json = JSON.parse(result.stdout);
-      expect(json.state).toBe('blocked');
-      expect(json.missingArtifacts).toEqual(['review']);
-      expect(json.instruction).toContain('Return to the Bootstrap workflow');
-      expect(json.instruction).not.toContain('Propose workflow');
-    });
-
     it('outputs JSON for apply instructions', async () => {
       await createTestChange('json-apply', ['proposal', 'design', 'specs', 'tasks']);
       await fs.writeFile(
@@ -720,8 +704,8 @@ rules: {}
         { cwd: tempDir }
       );
       expect(result.exitCode).toBe(1);
+      expect(getOutput(result)).toContain('Available schemas:');
       expect(getOutput(result)).toContain('spec-driven');
-      expect(getOutput(result)).toContain('bootstrap');
     });
 
     it('shows schema instruction from apply block', async () => {
@@ -912,80 +896,11 @@ rules: {}
     });
   });
 
-  describe('experimental command (deprecated alias for init)', () => {
-    it('shows deprecation notice', async () => {
-      const result = await runCLI(['experimental', '--tool', 'claude'], { cwd: tempDir });
-      // May succeed or fail depending on setup, but should show deprecation notice
-      const output = getOutput(result);
-      expect(output).toContain('deprecated');
-    });
-
-    it('errors for unknown tool', async () => {
-      const result = await runCLI(['experimental', '--tool', 'unknown-tool'], {
-        cwd: tempDir,
-      });
+  describe('retired setup aliases', () => {
+    it('does not register experimental', async () => {
+      const result = await runCLI(['experimental'], { cwd: tempDir });
       expect(result.exitCode).toBe(1);
-      const output = getOutput(result);
-      expect(output).toContain('Invalid tool(s): unknown-tool');
-    });
-
-    it('errors for tool without skillsDir', async () => {
-      // Using 'agents' which doesn't have skillsDir configured
-      const result = await runCLI(['experimental', '--tool', 'agents'], {
-        cwd: tempDir,
-      });
-      expect(result.exitCode).toBe(1);
-      const output = getOutput(result);
-      expect(output).toContain('Invalid tool(s): agents');
-    });
-
-    it('creates skills for Claude tool', async () => {
-      const result = await runCLI(['experimental', '--tool', 'claude'], {
-        cwd: tempDir,
-      });
-      expect(result.exitCode).toBe(0);
-      const output = normalizePaths(getOutput(result));
-      expect(output).toContain('Claude Code');
-      expect(output).toContain('.claude/');
-
-      // Verify skill files were created
-      const skillFile = path.join(tempDir, '.claude', 'skills', 'opsx-explore', 'SKILL.md');
-      const stat = await fs.stat(skillFile);
-      expect(stat.isFile()).toBe(true);
-    });
-
-    it('creates skills for Cursor tool', async () => {
-      const result = await runCLI(['experimental', '--tool', 'cursor'], {
-        cwd: tempDir,
-      });
-      expect(result.exitCode).toBe(0);
-      const output = normalizePaths(getOutput(result));
-      expect(output).toContain('Cursor');
-      expect(output).toContain('.cursor/');
-
-      // Verify skill files were created
-      const skillFile = path.join(tempDir, '.cursor', 'skills', 'opsx-explore', 'SKILL.md');
-      const stat = await fs.stat(skillFile);
-      expect(stat.isFile()).toBe(true);
-
-      // Skills-only: no command files are generated
-      const commandFile = path.join(tempDir, '.cursor', 'commands', 'opsx-explore.md');
-      expect(await fs.stat(commandFile).then(() => true).catch(() => false)).toBe(false);
-    });
-
-    it('creates skills for Windsurf tool', async () => {
-      const result = await runCLI(['experimental', '--tool', 'windsurf'], {
-        cwd: tempDir,
-      });
-      expect(result.exitCode).toBe(0);
-      const output = normalizePaths(getOutput(result));
-      expect(output).toContain('Windsurf');
-      expect(output).toContain('.windsurf/');
-
-      // Verify skill files were created
-      const skillFile = path.join(tempDir, '.windsurf', 'skills', 'opsx-explore', 'SKILL.md');
-      const stat = await fs.stat(skillFile);
-      expect(stat.isFile()).toBe(true);
+      expect(getOutput(result)).toContain("unknown command 'experimental'");
     });
   });
 

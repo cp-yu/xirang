@@ -1,0 +1,62 @@
+architectureDelta {
+  ADDED {
+    element 'project.root/domain.cli/cap.cli.candidate' {
+      kind 'capability'
+      parent 'project.root/domain.cli'
+      title 'Semantic Model Candidate CLI'
+      summary '管理单一 Project Build Candidate 的初始化、状态、确定性验证、digest gate、history 与原子 promotion。'
+      metadata {
+        elementId 'project.root/domain.cli/cap.cli.candidate'
+      }
+    }
+
+    relationship 'project.root/domain.architecture/cap.architecture.bootstrap' -[invokes]-> 'project.root/domain.cli/cap.cli.candidate'
+    relationship 'project.root/domain.cli/cap.cli.candidate' -[invokes]-> 'project.root/domain.validation/cap.validation.semantic-contract'
+    relationship 'project.root/domain.cli/cap.cli.candidate' -[invokes]-> 'project.root/domain.architecture/cap.architecture.semantic-model'
+  }
+
+  MODIFIED {
+    element 'project.root/domain.architecture/cap.architecture.bootstrap' {
+      kind 'capability'
+      parent 'project.root/domain.architecture'
+      title 'Project OPSX Build'
+      summary '由 Agent 根据用户要求和项目证据自由探索，同时编写完整 Architecture 与 Specs Candidate，并仅通过确定性 Candidate CLI 完成验证和提升。'
+      metadata {
+        elementId 'project.root/domain.architecture/cap.architecture.bootstrap'
+      }
+    }
+
+    element 'project.root/domain.cli/cap.cli.project-setup' {
+      kind 'capability'
+      parent 'project.root/domain.cli'
+      title 'Project Setup and Update'
+      summary '通过 opsx setup 创建最小 formal skeleton、项目配置与 managed Agent surfaces，并通过 update 收敛当前固定 workflow 集。'
+      metadata {
+        elementId 'project.root/domain.cli/cap.cli.project-setup'
+      }
+    }
+
+    element 'project.root/domain.framework/cap.framework.identity' {
+      kind 'capability'
+      parent 'project.root/domain.framework'
+      title 'OPSX Identity Boundary'
+      summary '维护唯一 opsx CLI、唯一 .opsx workspace、单一 active Candidate 与仅用于审计恢复的 durable history，不提供 migration 或 fallback semantic stores。'
+      metadata {
+        elementId 'project.root/domain.framework/cap.framework.identity'
+      }
+    }
+  }
+
+  REMOVED {
+    relationship 'project.root/domain.architecture/cap.architecture.bootstrap' -[consumes]-> 'project.root/domain.artifact_graph/cap.artifact-graph.workflow-compilation'
+    relationship 'project.root/domain.migration/cap.migration.semantic-model-reconciliation' -[consumes]-> 'project.root/domain.validation/cap.validation.semantic-contract'
+    relationship 'project.root/domain.migration/cap.migration.semantic-model-reconciliation' -[invokes]-> 'project.root/domain.architecture/cap.architecture.semantic-model'
+    relationship 'project.root/domain.migration/cap.migration.semantic-model-reconciliation' -[validates]-> 'project.root/domain.architecture/cap.architecture.semantic-model'
+    relationship 'project.root/domain.migration/cap.migration.semantic-model-reconciliation' -[consumes]-> 'project.root/domain.opsx_element/compat.opsx.legacy-bundle'
+
+    element 'project.root/domain.migration/cap.migration.semantic-model-reconciliation'
+    element 'project.root/domain.migration'
+    element 'project.root/domain.opsx_element/compat.opsx.legacy-bundle'
+    element 'project.root/domain.opsx_element'
+  }
+}

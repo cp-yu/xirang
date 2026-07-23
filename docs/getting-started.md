@@ -16,7 +16,7 @@ OPSX installs a fixed managed workflow surface. `/opsx:archive` syncs the graph 
 
 ## What OPSX Creates
 
-After running `opsx init`, your project has this structure:
+After running `opsx setup`, your project has a minimal formal skeleton. Project Build may later create one active Candidate and durable history:
 
 ```
 .opsx/
@@ -34,7 +34,9 @@ After running `opsx init`, your project has this structure:
 │       ├── tasks.md
 │       ├── architecture-delta.c4
 │       └── specs/<spec-id>/spec.md
-└── config.yaml         # Project configuration (optional)
+├── candidate/          # Optional active Project Build Candidate
+├── history/            # Promotion and retired-workspace audit evidence
+└── config.yaml         # Project configuration
 ```
 
 **Three key directories:**

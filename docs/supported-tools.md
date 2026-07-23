@@ -1,6 +1,6 @@
 # Supported Tools
 
-OPSX works with many AI coding assistants. When you run `opsx init`, OPSX configures selected tools with the fixed managed workflow surface.
+OPSX works with many AI coding assistants. When you run `opsx setup`, OPSX configures selected tools with the fixed managed workflow surface.
 
 ## How It Works
 
@@ -43,13 +43,13 @@ For CI/CD or scripted setup, use `--tools`:
 
 ```bash
 # Configure specific tools
-opsx init --tools claude,cursor
+opsx setup --tools claude,cursor
 
 # Configure all supported tools
-opsx init --tools all
+opsx setup --tools all
 
 # Skip tool configuration
-opsx init --tools none
+opsx setup --tools none
 
 ```
 
@@ -62,14 +62,14 @@ OPSX installs the fixed managed workflow skills:
 - `opsx-explore`
 - `opsx-apply-change`
 - `opsx-archive-change`
-- `opsx-bootstrap-arch`
+- `opsx-build`
 - `opsx-snack`
 
 ## Generated Skill Names
 
 OPSX also installs internal supporting skills when required by a workflow template, but those are not user-facing workflow entry points.
 
-See [Commands](commands.md) for command behavior and [CLI](cli.md) for `init`/`update` options.
+See [Commands](commands.md) for command behavior and [CLI](cli.md) for `setup`/`update` options.
 
 ## Related
 

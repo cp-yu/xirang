@@ -28,7 +28,8 @@ describe('skill-generation', () => {
       expect(dirNames).toContain('opsx-apply-change');
       expect(dirNames).toContain('opsx-archive-change');
       expect(dirNames).toContain('opsx-propose');
-      expect(dirNames).toContain('opsx-bootstrap-arch');
+      expect(dirNames).toContain('opsx-build');
+      expect(dirNames).not.toContain('opsx-bootstrap-arch');
       expect(dirNames).toContain('opsx-snack');
       expect(dirNames).not.toContain('opsx-reviewer');
       expect(dirNames).not.toContain('opsx-optimizer');

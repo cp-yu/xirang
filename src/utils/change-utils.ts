@@ -106,10 +106,6 @@ export function validateChangeName(name: string): ValidationResult {
  * const result = await createChange('/path/to/project', 'add-auth')
  * console.log(result.schema) // 'spec-driven' or value from config
  *
- * @example
- * // Creates .opsx/changes/add-auth/ with the bootstrap schema
- * const result = await createChange('/path/to/project', 'add-auth', { schema: 'bootstrap' })
- * console.log(result.schema) // 'bootstrap'
  */
 export async function createChange(
   projectRoot: string,

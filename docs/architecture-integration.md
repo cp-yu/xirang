@@ -113,4 +113,4 @@ The local endpoint accepts `GET /__opsx/spec?project=<project-id>&element=<eleme
 
 ## Legacy Models
 
-Unversioned domain/capability LikeC4 models remain readable only as the legacy profile. They are not the canonical v1 authoring format and are never silently rewritten. Use the explicit migration workflow documented in [Migration Guide](migration-guide.md) to generate and review a v1 candidate.
+Unversioned domain/capability LikeC4 models are not canonical v1 source and are never silently rewritten. They may only be consumed by `opsx-build` as user-approved evidence or an explicit Candidate starting point.

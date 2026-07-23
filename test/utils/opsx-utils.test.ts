@@ -177,8 +177,8 @@ domains:
         capabilities: [],
       }));
 
-      await expect(readProjectOpsx(testDir)).rejects.toThrow('opsx help authoring project.opsx.relations.yaml');
-      await expect(readProjectOpsx(testDir)).rejects.toThrow('bootstrap');
+      await expect(readProjectOpsx(testDir)).rejects.toThrow('opsx-build');
+      await expect(readProjectOpsx(testDir)).rejects.toThrow('Candidate starting point');
     });
 
     it('should reject a missing relations companion file', async () => {
@@ -206,8 +206,8 @@ domains:
         relations: [],
       }));
 
-      await expect(readProjectOpsx(testDir)).rejects.toThrow('opsx help authoring project.opsx.relations.yaml');
-      await expect(readProjectOpsx(testDir)).rejects.toThrow('bootstrap');
+      await expect(readProjectOpsx(testDir)).rejects.toThrow('opsx-build');
+      await expect(readProjectOpsx(testDir)).rejects.toThrow('Candidate starting point');
     });
 
     it('should reject a semantically invalid relation graph', async () => {

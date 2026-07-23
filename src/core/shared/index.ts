@@ -1,7 +1,7 @@
 /**
  * Shared Utilities
  *
- * Common code shared between init and update commands.
+ * Common code shared between setup and update commands.
  */
 
 export {

@@ -22,7 +22,7 @@ describe('workflow-surface', () => {
         'explore',
         'apply',
         'archive',
-        'bootstrap-arch',
+        'build',
         'snack',
       ]);
     });
@@ -33,7 +33,7 @@ describe('workflow-surface', () => {
       expect(SKILL_NAMES).toContain('opsx-explore');
       expect(SKILL_NAMES).toContain('opsx-apply-change');
       expect(SKILL_NAMES).toContain('opsx-archive-change');
-      expect(SKILL_NAMES).toContain('opsx-bootstrap-arch');
+      expect(SKILL_NAMES).toContain('opsx-build');
       expect(SKILL_NAMES).toContain('opsx-snack');
     });
 
@@ -57,14 +57,14 @@ describe('workflow-surface', () => {
       expect(WORKFLOW_TO_SKILL_DIR.propose).toBe('opsx-propose');
       expect(WORKFLOW_TO_SKILL_DIR.apply).toBe('opsx-apply-change');
       expect(WORKFLOW_TO_SKILL_DIR.archive).toBe('opsx-archive-change');
-      expect(WORKFLOW_TO_SKILL_DIR['bootstrap-arch']).toBe('opsx-bootstrap-arch');
+      expect(WORKFLOW_TO_SKILL_DIR['build']).toBe('opsx-build');
     });
   });
 
   describe('WORKFLOW_TO_COMMAND_SLUG', () => {
     it('将每个工作流映射到 command slug', () => {
       expect(WORKFLOW_TO_COMMAND_SLUG.propose).toBe('propose');
-      expect(WORKFLOW_TO_COMMAND_SLUG['bootstrap-arch']).toBe('bootstrap');
+      expect(WORKFLOW_TO_COMMAND_SLUG.build).toBe('build');
     });
   });
 
@@ -107,7 +107,7 @@ describe('workflow-surface', () => {
   describe('getCommandSlug', () => {
     it('返回工作流的 command slug', () => {
       expect(getCommandSlug('propose')).toBe('propose');
-      expect(getCommandSlug('bootstrap-arch')).toBe('bootstrap');
+      expect(getCommandSlug('build')).toBe('build');
     });
   });
 

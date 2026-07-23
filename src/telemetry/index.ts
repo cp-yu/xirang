@@ -121,7 +121,7 @@ function getClient(): PostHog {
 /**
  * Track a command execution.
  *
- * @param commandName - The command name (e.g., 'init', 'change:apply')
+ * @param commandName - The command name (e.g., 'setup', 'change:apply')
  * @param version - The OPSX version
  */
 export async function trackCommand(commandName: string, version: string): Promise<void> {
@@ -137,11 +137,9 @@ export async function trackCommand(commandName: string, version: string): Promis
       distinctId: userId,
       event: 'command_executed',
       properties: {
-        commandIdentity: 'opsx',
         command: commandName,
-        version: version,
-        surface: 'cli',
-        $ip: null, // Explicitly disable IP tracking
+        version,
+        $ip: null,
       },
     });
   } catch {

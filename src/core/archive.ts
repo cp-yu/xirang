@@ -106,7 +106,7 @@ export class ArchiveCommand {
     try {
       await fs.access(changesDir);
     } catch {
-      throw new Error("No OPSX changes directory found. Run 'opsx init' first.");
+      throw new Error("No OPSX changes directory found. Run 'opsx setup' first.");
     }
 
     if (!changeName) {

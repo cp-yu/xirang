@@ -23,19 +23,18 @@ describe('schema command', () => {
     });
   });
 
-  it('lists exactly both built-in schemas', async () => {
+  it('lists exactly the fixed built-in schema', async () => {
     const result = await runCLI(['schema', 'which', '--all', '--json'], { cwd: tempDir });
     expect(result.exitCode).toBe(0);
     expect(JSON.parse(result.stdout).map(({ name, source }: { name: string; source: string }) => ({ name, source }))).toEqual([
       { name: 'spec-driven', source: 'package' },
-      { name: 'bootstrap', source: 'package' },
     ]);
   });
 
   it('rejects unknown schemas with the valid IDs', async () => {
     const result = await runCLI(['schema', 'which', 'custom'], { cwd: tempDir });
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('spec-driven, bootstrap');
+    expect(result.stderr).toContain('Available schemas: spec-driven');
   });
 
   it('validates one built-in schema', async () => {
@@ -54,7 +53,7 @@ describe('schema command', () => {
     expect(result.exitCode).toBe(0);
     const output = JSON.parse(result.stdout);
     expect(output.valid).toBe(true);
-    expect(output.schemas.map((schema: { name: string }) => schema.name)).toEqual(['spec-driven', 'bootstrap']);
+    expect(output.schemas.map((schema: { name: string }) => schema.name)).toEqual(['spec-driven']);
   });
 
   it('does not register init or fork', async () => {

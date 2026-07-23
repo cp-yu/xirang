@@ -1,4 +1,6 @@
-import { quoteLikeC4 } from '../../migration/generators/formatting-utils.js';
+function quoteLikeC4(value: string): string {
+  return `'${value.replaceAll('\\', '\\\\').replaceAll("'", "\\'").replaceAll('\n', '\\n')}'`;
+}
 
 export interface ArchitectureSkeletonContext {
   projectName: string;
