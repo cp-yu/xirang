@@ -6,8 +6,8 @@
   "projectRoot": "string",
   "termMappings": [{ "userTerm": "string", "projectTerms": ["string"], "evidence": ["string"] }],
   "opsx": {
-    "elements": [{ "elementId": "string", "fqn": "string or null", "reason": "string" }],
-    "relationsExpanded": [{ "from": "elementId", "type": "string", "to": "elementId" }]
+    "nodes": [{ "id": "string", "reason": "string" }],
+    "relationsExpanded": [{ "from": "string", "type": "string", "to": "string" }]
   },
   "mustChange": [{ "target": "string", "relationPath": [], "reason": "string", "evidence": ["string"] }],
   "mustVerify": [{ "target": "string", "relationPath": [], "reason": "string", "evidence": ["string"] }],

@@ -13,11 +13,12 @@ Enter explore mode: investigate, clarify, compare, and help the user think befor
 
 **OPSX Philosophy**
 
-1. OPSX is a structured representation of human intent that an Agent can compile.
-2. One OPSX Semantic Model consists of LikeC4 graph modules and element-owned Markdown contract modules; they are source modules of the same model, not two parallel sources.
-3. A change reconciles a Semantic Delta toward the target steady state. `proposal.md`, `design.md`, and `tasks.md` are compilation scaffolding, not competing sources of truth.
-4. The OPSX Semantic Model is complete only when an Agent need not guess decisions that affect element hierarchy, contracts, or relationships.
-5. The Agent acts like a compiler and faithfully translates authorized human intent. Existing code is current implementation evidence and MUST NOT silently override the OPSX Semantic Model.
+OPSX is a human-intent programming layer between human intent and general-purpose programming languages.
+
+1. Specs and LikeC4 jointly form the durable semantic source. Specs define observable behavior; LikeC4 defines project intent, capabilities, ownership, boundaries, and semantic relations.
+2. A change reconciles semantic source deltas toward a target steady state. `proposal.md`, `design.md`, and `tasks.md` are compilation scaffolding, not competing sources of truth.
+3. Source is complete only when an Agent can compile it without guessing decisions that affect behavior or architecture.
+4. The Agent acts as a compiler: translate declared intent faithfully. Existing code is compiled output and current implementation evidence; it MUST NOT silently override the declared semantic source.
 
 ## Workflow Stage
 
@@ -44,18 +45,20 @@ The main explore agent and `opsx-impact-sweeper` subagent are both read-only. Th
 
 - Start with `opsx list --json`.
 - Read relevant change artifacts when a change name is present.
-- Use the OPSX Semantic Model for Project Root intent, refinement, Element Contracts, and semantic relationships; use live repository tools for code evidence.
+- Use LikeC4 as navigation: project domains/capabilities, semantic relations, Specs, and CLI query guidance; use live repository tools for code evidence.
 - Ground claims in project files and git evidence when the idea maps to code.
 
-**OPSX Semantic Model Context**
-- Resolve the absolute Project Root, then load the LikeC4 graph modules under `.opsx/architecture/` and locate the unique Project Root element.
-- Use stable `elementId` as canonical identity. FQN is the current source navigation path and may change when an element moves.
-- Read relevant parent and children as abstraction/refinement context. Do not assume a fixed element-kind hierarchy or treat nesting as ownership.
-- Use `opsx list --specs --json` as the Element Contract registry; each Spec has one singular element owner binding.
-- Use `opsx arch query <elementId> --relations --depth <n> --json` for parent, children, owned Specs, and incoming/outgoing semantic relationships.
-- Treat code paths, symbols, imports, and calls from CodeGraph or ACE/`rg`/`read` as current implementation evidence only; do not promote them to elements or relationships without declared model intent.
-- If the model is missing, report `Semantic Model unavailable`. If it is incomplete or unsupported, identify the root, identity, binding, contract, or relationship gap.
-- A read-only exploration MAY degrade to available model and code evidence with the limitation disclosed. Workflows that compile or write semantics MUST stop when required model context is missing or incomplete; never treat a missing collection as complete and empty.
+Before reading implementation files, load the formal LikeC4 source under `.opsx/architecture/`.
+- Use `opsx arch query <element-id> --relations --depth 2` for architecture navigation
+- Read linked Specs from capability metadata
+- Treat code paths, imports, calls, and symbols as implementation evidence only
+- Do not read legacy OPSX YAML as active architecture source
+
+**LikeC4-first navigation**:
+- Use `opsx arch query <element-id> --relations --depth 2 --json` for domains, capabilities, and directed semantic relations
+- Read linked files under `.opsx/specs/` for behavior contracts
+- Use optional CodeGraph or ACE/`rg`/`read` only for current implementation evidence
+- Cross-reference nested domains to understand ownership and boundaries
 
 Output language: use the user's main language for prose and non-canonical section labels; keep commands, paths, artifact names, schema keys, and OPSX tokens unchanged.
 
@@ -106,8 +109,8 @@ When exploring an active change, read proposal/design/specs/tasks, reference the
 
 | Insight Type                         | Future Capture Target          |
 |--------------------------------------|--------------------------------|
-| Observable behavior requirement      | `specs/<spec-id>/spec.md`    |
-| Observable behavior changed          | `specs/<spec-id>/spec.md`    |
+| Observable behavior requirement      | `specs/<capability>/spec.md` |
+| Observable behavior changed          | `specs/<capability>/spec.md` |
 | Refactor rationale or rejected path  | `design.md`                  |
 | Implementation strategy              | `design.md`                  |
 | Scope changed                        | `proposal.md`                |
@@ -118,5 +121,5 @@ When exploring an active change, read proposal/design/specs/tasks, reference the
 
 Example offers:
 - "That is a design decision for `design.md`; include it in the Design Summary, then call `/skill:opsx-propose <change-name>` or the appropriate non-explore workflow."
-- "This changes an Element Contract; include it in the Design Summary, then call `/skill:opsx-propose <change-name>` or the appropriate non-explore workflow."
+- "This is observable behavior for `specs/<capability>/spec.md`; include it in the Design Summary, then call `/skill:opsx-propose <change-name>` or the appropriate non-explore workflow."
 - "This changes scope for `proposal.md`; include it in the Design Summary, then call `/skill:opsx-propose <change-name>` or the appropriate non-explore workflow."
