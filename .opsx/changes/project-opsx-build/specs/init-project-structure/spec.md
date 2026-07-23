@@ -1,3 +1,7 @@
+---
+element: project.root/domain.cli/cap.cli.project-setup
+---
+
 ## REMOVED Requirements
 
 ### Requirement: init SHALL 生成 LikeC4 架构目录

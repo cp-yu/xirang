@@ -1,3 +1,7 @@
+---
+element: project.root/domain.architecture/cap.architecture.bootstrap
+---
+
 ## REMOVED Requirements
 
 ### Requirement: Refresh mode SHALL support formal OPSX repositories

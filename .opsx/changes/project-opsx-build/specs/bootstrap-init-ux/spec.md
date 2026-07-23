@@ -1,3 +1,7 @@
+---
+element: project.root/domain.architecture/cap.architecture.bootstrap
+---
+
 ## REMOVED Requirements
 
 ### Requirement: TTY 环境下的模式提问

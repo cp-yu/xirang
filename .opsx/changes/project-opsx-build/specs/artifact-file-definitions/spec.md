@@ -1,3 +1,7 @@
+---
+element: project.root/domain.artifact_graph/cap.artifact-graph.workflow-compilation
+---
+
 ## REMOVED Requirements
 
 ### Requirement: Bootstrap phase 文件定义投影

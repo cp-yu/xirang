@@ -175,6 +175,44 @@ describe('compileArchitectureChange', () => {
     }
   });
 
+  it('removes a fully deleted Spec with its removed element from one Target model', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-whole-spec-removal-'));
+    try {
+      const formalSpec = path.join(root, '.opsx', 'specs', 'obsolete', 'spec.md');
+      const changeDir = path.join(root, '.opsx', 'changes', 'remove-obsolete');
+      await fs.mkdir(path.dirname(formalSpec), { recursive: true });
+      await fs.mkdir(path.join(changeDir, 'specs', 'obsolete'), { recursive: true });
+      await fs.writeFile(formalSpec, `---\nelement: obsolete.id\n---\n\n# Obsolete Specification\n\n## Purpose\nObsolete behavior contract.\n\n## Requirements\n\n### Requirement: Obsolete behavior\nThe system SHALL expose obsolete behavior.\n\n#### Scenario: Existing behavior\n- **WHEN** invoked\n- **THEN** obsolete behavior runs\n`);
+      await fs.writeFile(path.join(changeDir, 'specs', 'obsolete', 'spec.md'), `---\nelement: obsolete.id\n---\n\n## REMOVED Requirements\n\n### Requirement: Obsolete behavior\n`);
+      await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), `architectureDelta {\n  REMOVED { element 'obsolete.id' }\n}\n`);
+
+      const result = await compileChange(root, 'remove-obsolete', {
+        architecture: {
+          languageVersion: '1',
+          metamodel: {
+            elements: {
+              project: { root: true, contractPolicy: 'optional' },
+              capability: { contractPolicy: 'required', parents: ['project'] },
+            },
+            relationships: {},
+          },
+          elements: [
+            { id: 'project.root', fqn: 'root', kind: 'project', title: 'Root', summary: 'Root', parent: null, children: ['obsolete.id'], metadata: { elementId: 'project.root' } },
+            { id: 'obsolete.id', fqn: 'root.obsolete', kind: 'capability', title: 'Obsolete', summary: 'Obsolete', parent: 'project.root', children: [], metadata: { elementId: 'obsolete.id' } },
+          ],
+          relations: [],
+        },
+      });
+
+      expect(result.valid).toBe(true);
+      expect(result.diagnostics).toEqual([]);
+      expect(result.target?.architecture.elements.map(element => element.id)).toEqual(['project.root']);
+      expect(result.target?.contracts).toEqual([]);
+    } finally {
+      await fs.rm(root, { recursive: true, force: true });
+    }
+  });
+
   it('derives property and Scenario entries from Formal and Target comparison', () => {
     const targetContracts: SemanticContract[] = [{
       specId: 'old-contract',

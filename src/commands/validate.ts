@@ -255,6 +255,7 @@ export class ValidateCommand {
       projectRoot: process.cwd(),
       architecture,
       knownElementIds: new Set(compiled.target?.architecture.elements.map(element => element.id) ?? architecture.elements.map(element => element.id)),
+      skipSpecBindingValidation: compiled.target !== null,
     });
     const compilerIssues = compiled.diagnostics.map(item => ({
       level: item.level,

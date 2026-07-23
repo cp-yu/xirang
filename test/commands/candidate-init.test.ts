@@ -40,6 +40,8 @@ describe('Candidate initialization', () => {
     await fs.mkdir(architecture, { recursive: true });
     await fs.mkdir(path.dirname(spec), { recursive: true });
     await fs.writeFile(path.join(architecture, 'model.c4'), Buffer.from([0x6d, 0x0a]));
+    await fs.mkdir(path.join(architecture, '.likec4'), { recursive: true });
+    await fs.writeFile(path.join(architecture, '.likec4', 'cache'), 'generated');
     await fs.writeFile(spec, Buffer.from([0x73, 0x0a]));
 
     await initializeCandidate(root, { kind: 'current' });
@@ -48,6 +50,7 @@ describe('Candidate initialization', () => {
       .toEqual(Buffer.from([0x6d, 0x0a]));
     expect(await fs.readFile(path.join(root, '.opsx', 'candidate', 'specs', 'sample', 'spec.md')))
       .toEqual(Buffer.from([0x73, 0x0a]));
+    expect(await exists(path.join(root, '.opsx', 'candidate', 'architecture', '.likec4'))).toBe(false);
   });
 
   it('copies an explicitly specified OPSX source', async () => {

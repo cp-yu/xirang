@@ -25,6 +25,14 @@ export function renderSpecification(): string {
 }
 
 specification {
+  element capability {
+    opsx { contract optional }
+  }
+
+  element domain {
+    opsx { contract optional }
+  }
+
   element project {
     opsx {
       root true
@@ -32,19 +40,11 @@ specification {
     }
   }
 
-  element domain {
-    opsx { contract optional }
-  }
-
-  element capability {
-    opsx { contract optional }
-  }
-
-  relationship invokes
-  relationship produces
-  relationship consumes
-  relationship precedes
   relationship constrains
+  relationship consumes
+  relationship invokes
+  relationship precedes
+  relationship produces
   relationship validates
 }
 `;

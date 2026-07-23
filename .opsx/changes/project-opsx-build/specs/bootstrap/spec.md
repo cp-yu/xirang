@@ -1,3 +1,7 @@
+---
+element: project.root/domain.architecture/cap.architecture.bootstrap
+---
+
 ## REMOVED Requirements
 
 ### Requirement: Bootstrap docs and workflow templates SHALL describe only the CLI-backed five-phase flow

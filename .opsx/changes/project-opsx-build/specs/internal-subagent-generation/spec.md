@@ -1,3 +1,7 @@
+---
+element: project.root/domain.ai_integration/cap.ai.subagent-generation
+---
+
 ## MODIFIED Requirements
 
 ### Requirement: Init 与 Update 集成 subagent artifact 生成

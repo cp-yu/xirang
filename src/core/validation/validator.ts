@@ -34,6 +34,7 @@ export interface ChangeDeltaValidationContext {
   specsDirectory?: string;
   knownElementIds?: ReadonlySet<string>;
   allowAlreadyApplied?: boolean;
+  skipSpecBindingValidation?: boolean;
 }
 
 function appendRegistryBindingIssues(
@@ -609,7 +610,9 @@ export class Validator {
       throw error;
     });
     if (architecture?.profile === 'v1') {
-      await this.validateV1SpecBindings(projectRoot, changeDir, architecture, issues, context?.specsDirectory, context?.knownElementIds);
+      if (!context?.skipSpecBindingValidation) {
+        await this.validateV1SpecBindings(projectRoot, changeDir, architecture, issues, context?.specsDirectory, context?.knownElementIds);
+      }
       return;
     }
 

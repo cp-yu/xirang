@@ -1,3 +1,7 @@
+---
+element: project.root/domain.architecture/cap.architecture.bootstrap
+---
+
 ## REMOVED Requirements
 
 ### Requirement: Bootstrap skill 名称 SHALL 改为 bootstrap-arch

@@ -1,3 +1,7 @@
+---
+element: project.root/domain.cli/cap.cli.project-setup
+---
+
 ## REMOVED Requirements
 
 ### Requirement: Progress Indicators

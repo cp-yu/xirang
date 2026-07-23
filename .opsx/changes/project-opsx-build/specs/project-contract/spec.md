@@ -1,3 +1,7 @@
+---
+element: project.root
+---
+
 ## MODIFIED Requirements
 
 ### Requirement: Independent product and durable workspace

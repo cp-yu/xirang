@@ -450,6 +450,9 @@ export async function applySpecs(
 
   for (const update of specUpdates) {
     const built = await buildUpdatedSpec(update, changeName, projectRoot);
+    if (extractRequirementsSection(built.rebuilt).bodyBlocks.length === 0) {
+      throw new Error('Whole-Spec removal requires the shared Target Semantic Model sync transaction.');
+    }
     prepared.push({ update, rebuilt: built.rebuilt, counts: built.counts });
   }
 

@@ -1,3 +1,7 @@
+---
+element: project.root/domain.migration/cap.migration.semantic-model-reconciliation
+---
+
 ## REMOVED Requirements
 
 ### Requirement: LikeC4 工具链 SHALL 使用兼容的 Node.js runtime

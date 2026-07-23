@@ -4,6 +4,7 @@ import os from 'os';
 import path from 'path';
 
 import {
+  applySpecs,
   buildUpdatedSpec,
   isDeltaSpecAlreadyApplied,
   type SpecUpdate,
@@ -88,6 +89,18 @@ The system SHALL support login.
     expect(rebuilt).toContain('#### Scenario: MFA path');
     expect(rebuilt).not.toContain('Scenario: [');
     expect(rebuilt).not.toContain('legacy flow runs');
+  });
+
+  it('rejects whole-Spec removal outside the shared Target transaction', async () => {
+    const formalSpec = path.join(tempDir, '.opsx', 'specs', 'auth', 'spec.md');
+    const changeSpec = path.join(tempDir, '.opsx', 'changes', 'remove-auth', 'specs', 'auth', 'spec.md');
+    await fs.mkdir(path.dirname(formalSpec), { recursive: true });
+    await fs.mkdir(path.dirname(changeSpec), { recursive: true });
+    await fs.writeFile(formalSpec, `---\nelement: auth.id\n---\n\n# Auth Specification\n\n## Purpose\nAuth behavior.\n\n## Requirements\n\n### Requirement: Login\nThe system SHALL support login.\n\n#### Scenario: Login succeeds\n- **WHEN** credentials are valid\n- **THEN** login succeeds\n`);
+    await fs.writeFile(changeSpec, `---\nelement: auth.id\n---\n\n## REMOVED Requirements\n\n### Requirement: Login\n`);
+
+    await expect(applySpecs(tempDir, 'remove-auth', { silent: true })).rejects.toThrow(/shared Target Semantic Model sync transaction/i);
+    expect(await fs.readFile(formalSpec, 'utf8')).toContain('### Requirement: Login');
   });
 
   it('compares canonical target blocks against formal specs for idempotency', () => {

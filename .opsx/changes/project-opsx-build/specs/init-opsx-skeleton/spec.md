@@ -1,3 +1,7 @@
+---
+element: project.root/domain.cli/cap.cli.project-setup
+---
+
 ## REMOVED Requirements
 
 ### Requirement: OPSX Skeleton Generation on Init
@@ -24,6 +28,9 @@
 - **THEN** existing Architecture 与 Specs SHALL NOT 被覆盖
 
 ### Requirement: Setup success guidance SHALL 暴露 Project Build
+Setup success output SHALL 使用当前工具的 Project Build invocation 引导用户继续语义构建。
+
+#### Scenario: 安装 Project Build workflow
 - **WHEN** setup 为工具安装 fixed workflow set
 - **THEN** success guidance SHALL 使用该工具的 `opsx-build` invocation
 - **AND** SHALL NOT 引用 `opsx-bootstrap-arch`、`opsx bootstrap` 或 `/opsx:bootstrap`

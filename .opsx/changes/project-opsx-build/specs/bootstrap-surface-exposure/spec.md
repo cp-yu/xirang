@@ -1,3 +1,7 @@
+---
+element: project.root/domain.ai_integration/cap.ai.workflow-generation
+---
+
 ## REMOVED Requirements
 
 ### Requirement: 动态暴露条件

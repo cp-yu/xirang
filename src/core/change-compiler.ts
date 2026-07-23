@@ -63,6 +63,10 @@ function fingerprint(value: unknown): string {
   return createHash('sha256').update(canonical(value)).digest('hex');
 }
 
+export function semanticModelFingerprint(model: TargetSemanticModel): string {
+  return fingerprint(model);
+}
+
 function equal(left: unknown, right: unknown): boolean {
   return canonical(left) === canonical(right);
 }
@@ -335,6 +339,12 @@ function validateTarget(
   void formal;
 }
 
+export function validateTargetSemanticModel(target: TargetSemanticModel): ChangeDiagnostic[] {
+  const diagnostics: ChangeDiagnostic[] = [];
+  validateTarget(target, target, [], diagnostics, true);
+  return diagnostics;
+}
+
 interface ArchitectureMaterialization {
   formal: TargetSemanticModel;
   formalFingerprint: string;
@@ -562,6 +572,7 @@ async function appendChangeSpecDiagnostics(
     },
     knownElementIds: new Set(target.architecture.elements.map(element => element.id)),
     allowAlreadyApplied,
+    skipSpecBindingValidation: true,
   });
   for (const issue of report.issues) {
     if (issue.level === 'INFO') continue;

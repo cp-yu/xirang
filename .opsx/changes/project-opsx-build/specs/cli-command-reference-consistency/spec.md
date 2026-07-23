@@ -1,3 +1,7 @@
+---
+element: project.root/domain.cli/cap.cli.command-discovery
+---
+
 ## MODIFIED Requirements
 
 ### Requirement: Active command references match the current CLI surface

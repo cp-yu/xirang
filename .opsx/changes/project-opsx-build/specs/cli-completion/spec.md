@@ -1,3 +1,7 @@
+---
+element: project.root/domain.cli/cap.cli.command-discovery
+---
+
 ## MODIFIED Requirements
 
 ### Requirement: Completion Generation

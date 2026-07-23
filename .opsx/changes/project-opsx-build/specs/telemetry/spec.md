@@ -1,3 +1,7 @@
+---
+element: project.root/domain.telemetry/cap.telemetry.anonymous-usage
+---
+
 ## MODIFIED Requirements
 
 ### Requirement: Privacy-preserving event design

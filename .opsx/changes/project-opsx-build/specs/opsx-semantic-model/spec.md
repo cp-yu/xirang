@@ -1,3 +1,7 @@
+---
+element: project.root/domain.architecture/cap.architecture.semantic-model
+---
+
 ## MODIFIED Requirements
 
 ### Requirement: OPSX Semantic Model SHALL 统一表达 human intent

@@ -1,3 +1,7 @@
+---
+element: project.root/domain.migration/cap.migration.semantic-model-reconciliation
+---
+
 ## REMOVED Requirements
 
 ### Requirement: Semantic Model migration SHALL 显式生成候选模型

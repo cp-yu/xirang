@@ -79,7 +79,11 @@ async function copySource(source: string, staging: string): Promise<void> {
   await assertDirectory(specs, 'Specs');
   await assertNoSymlinks(architecture);
   await assertNoSymlinks(specs);
-  await fs.cp(architecture, path.join(staging, 'architecture'), { recursive: true, force: false });
+  await fs.cp(architecture, path.join(staging, 'architecture'), {
+    recursive: true,
+    force: false,
+    filter: sourcePath => path.basename(sourcePath) !== '.likec4',
+  });
   await fs.cp(specs, path.join(staging, 'specs'), { recursive: true, force: false });
 }
 

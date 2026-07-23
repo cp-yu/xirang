@@ -1,3 +1,7 @@
+---
+element: project.root/domain.framework/cap.framework.identity
+---
+
 ## MODIFIED Requirements
 
 ### Requirement: 项目工作区 SHALL 为 .opsx

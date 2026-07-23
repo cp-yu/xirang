@@ -24,7 +24,7 @@ describe('Candidate command registration', () => {
     const validate = candidate?.commands.find((command) => command.name() === 'validate');
     expect(validate?.options.map((option) => option.long)).toEqual(['--json']);
     const promote = candidate?.commands.find((command) => command.name() === 'promote');
-    expect(promote?.options.map((option) => option.long)).toEqual(['--digest']);
+    expect(promote?.options.map((option) => option.long)).toEqual(['--digest', '--json']);
   });
 
   it('prints resume and explicit restart guidance for an active Candidate', () => {

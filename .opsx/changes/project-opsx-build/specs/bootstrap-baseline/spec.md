@@ -1,3 +1,7 @@
+---
+element: project.root/domain.architecture/cap.architecture.bootstrap
+---
+
 ## REMOVED Requirements
 
 ### Requirement: 空 specs 目录仍应视为 raw baseline

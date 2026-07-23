@@ -1,3 +1,7 @@
+---
+element: project.root/domain.config/cap.config.global-contract
+---
+
 ## MODIFIED Requirements
 
 ### Requirement: Legacy artifact detection

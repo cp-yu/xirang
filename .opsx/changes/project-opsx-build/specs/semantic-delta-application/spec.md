@@ -1,3 +1,7 @@
+---
+element: project.root/domain.change_workflow/cap.change.semantic-delta
+---
+
 ## ADDED Requirements
 
 ### Requirement: Target compiler SHALL 删除显式清空的 Spec module

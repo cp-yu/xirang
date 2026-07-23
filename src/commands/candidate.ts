@@ -5,6 +5,11 @@ import {
   type CandidateBaselineInput,
   type CandidateStatus,
 } from '../core/candidate/workspace.js';
+import {
+  validateCandidate,
+  type CandidateValidationResult,
+} from '../core/candidate/validator.js';
+import { promoteCandidate } from '../core/candidate/promotion.js';
 
 function baselineFromOptions(options: { from?: string; fromPath?: string }): CandidateBaselineInput {
   if (options.fromPath && options.from) {
@@ -41,6 +46,22 @@ function printStatus(status: CandidateStatus): void {
   console.log(formatCandidateStatus(status));
 }
 
+export function formatCandidateValidation(result: CandidateValidationResult): string {
+  const lines = [
+    `Candidate validation: ${result.valid ? 'valid' : 'invalid'}`,
+    `Architecture files: ${result.inventory.architectureFiles.length}`,
+    `Spec files: ${result.inventory.specFiles.length}`,
+    `Candidate bytes: ${result.inventory.bytes}`,
+    `Formal diff entries: ${result.diff.summary.total}`,
+  ];
+  if (result.reviewDigest) lines.push(`Review digest: ${result.reviewDigest}`);
+  for (const item of result.diagnostics) {
+    const location = item.location ? `:${item.location.line}:${item.location.column}` : '';
+    lines.push(`${item.level} ${item.code} ${item.path}${location} ${item.message}`);
+  }
+  return lines.join('\n');
+}
+
 export function registerCandidateCommand(program: Command): void {
   const candidate = program
     .command('candidate')
@@ -70,15 +91,24 @@ export function registerCandidateCommand(program: Command): void {
     .command('validate')
     .description('Validate the complete Candidate and compute its review digest')
     .option('--json', 'Output structured JSON')
-    .action(() => {
-      throw new Error('Candidate Semantic Closure validation requires the Target Semantic Model compiler.');
+    .action(async (options: { json?: boolean }) => {
+      const result = await validateCandidate(process.cwd());
+      console.log(options.json ? JSON.stringify(result, null, 2) : formatCandidateValidation(result));
+      if (!result.valid) process.exitCode = 1;
     });
 
   candidate
     .command('promote')
     .description('Promote the exact user-confirmed Candidate version')
     .requiredOption('--digest <reviewDigest>', 'User-confirmed Candidate review digest')
-    .action(() => {
-      throw new Error('Candidate promotion requires the shared Target Semantic Model transaction writer.');
+    .option('--json', 'Output structured JSON')
+    .action(async (options: { digest: string; json?: boolean }) => {
+      const result = await promoteCandidate(process.cwd(), options.digest);
+      if (options.json) console.log(JSON.stringify(result, null, 2));
+      else {
+        console.log(`Candidate promoted: ${result.reviewDigest}`);
+        console.log(`History: ${result.historyPath}`);
+        console.log(`Formal files changed: ${result.files.length}`);
+      }
     });
 }

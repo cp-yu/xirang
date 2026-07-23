@@ -132,6 +132,28 @@ describe('top-level validate command', () => {
     expect(explicitJson.items[0].issues).toEqual(legacyJson.items[0].issues);
   });
 
+  it('accepts a whole-Spec removal when the bound element is removed from the compiled Target', async () => {
+    await fs.rm(path.join(specsDir, 'dup'), { recursive: true, force: true });
+    await fs.writeFile(path.join(changesDir, 'c1', 'specs', 'alpha', 'spec.md'), [
+      '---',
+      'element: alpha.id',
+      '---',
+      '',
+      '## REMOVED Requirements',
+      '',
+      '### Requirement: Alpha module SHALL produce deterministic output',
+    ].join('\n'));
+    await fs.writeFile(
+      path.join(changesDir, 'c1', 'architecture-delta.c4'),
+      "architectureDelta {\n  REMOVED { element 'alpha.id' }\n}\n",
+    );
+
+    const result = await runCLI(['validate', '--change', 'c1', '--json'], { cwd: testDir });
+
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout).items[0]).toMatchObject({ id: 'c1', type: 'change', valid: true });
+  });
+
   it('shows concise effective preview without writing the review artifact', async () => {
     const human = await runCLI(['validate', '--change', 'c1'], { cwd: testDir });
     const jsonResult = await runCLI(['validate', '--change', 'c1', '--json'], { cwd: testDir });

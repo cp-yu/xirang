@@ -1,3 +1,7 @@
+---
+element: project.root/domain.ai_integration/cap.ai.tool-integration
+---
+
 ## REMOVED Requirements
 
 ### Requirement: Agent command generation SHALL support separate external command slugs
