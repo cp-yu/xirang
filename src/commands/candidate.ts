@@ -9,7 +9,10 @@ import {
   validateCandidate,
   type CandidateValidationResult,
 } from '../core/candidate/validator.js';
-import { promoteCandidate } from '../core/candidate/promotion.js';
+import {
+  promoteCandidate,
+  recoverPendingCandidatePromotions,
+} from '../core/candidate/promotion.js';
 
 function baselineFromOptions(options: { from?: string; fromPath?: string }): CandidateBaselineInput {
   if (options.fromPath && options.from) {
@@ -73,6 +76,7 @@ export function registerCandidateCommand(program: Command): void {
     .option('--from <kind>', 'Starting point: current or clean')
     .option('--from-path <path>', 'Use an explicit Architecture and Specs source directory')
     .action(async (options: { from?: string; fromPath?: string }) => {
+      await recoverPendingCandidatePromotions(process.cwd());
       const status = await initializeCandidate(process.cwd(), baselineFromOptions(options));
       printStatus(status);
     });
@@ -103,6 +107,7 @@ export function registerCandidateCommand(program: Command): void {
     .requiredOption('--digest <reviewDigest>', 'User-confirmed Candidate review digest')
     .option('--json', 'Output structured JSON')
     .action(async (options: { digest: string; json?: boolean }) => {
+      // promoteCandidate recovers pending promotions before mutating formal source.
       const result = await promoteCandidate(process.cwd(), options.digest);
       if (options.json) console.log(JSON.stringify(result, null, 2));
       else {

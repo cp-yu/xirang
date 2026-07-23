@@ -38,7 +38,6 @@ import {
   type NewChangeOptions,
 } from '../commands/workflow/index.js';
 import { maybeShowTelemetryNotice, trackCommand, shutdown } from '../telemetry/index.js';
-import { recoverPendingCandidatePromotions } from '../core/candidate/promotion.js';
 
 const program = new Command();
 const require = createRequire(import.meta.url);
@@ -81,8 +80,6 @@ program.hook('preAction', async (thisCommand, actionCommand) => {
   if (opts.color === false) {
     process.env.NO_COLOR = '1';
   }
-
-  await recoverPendingCandidatePromotions(process.cwd());
 
   // Show first-run telemetry notice (if not seen)
   await maybeShowTelemetryNotice();

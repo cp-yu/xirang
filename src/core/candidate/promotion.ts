@@ -166,16 +166,8 @@ async function recoverCandidatePromotion(projectRoot: string, stagingRoot: strin
         stagingRoot,
         path.join(projectRoot, OPSX_DIR_NAME, 'candidate'),
         path.join(stagingRoot, 'candidate'),
-        path.join(historyDirectory, 'candidate'),
       );
       await fs.rm(historyDirectory, { recursive: true, force: true });
-    } else {
-      const frozenCandidate = path.join(stagingRoot, 'candidate');
-      const archivedCandidate = path.join(historyDirectory, 'candidate');
-      if (await exists(frozenCandidate) && !await exists(archivedCandidate)) {
-        await setCandidateWritable(frozenCandidate);
-        await fs.rename(frozenCandidate, archivedCandidate);
-      }
     }
   } finally {
     await fs.rm(stagingRoot, { recursive: true, force: true });
@@ -254,7 +246,6 @@ export async function promoteCandidate(
       reviewDigest: suppliedDigest,
       promotedAt: promotedAt.toISOString(),
       previousFormalFingerprint,
-      candidate: 'candidate',
       previous: {
         architecture: 'previous/architecture',
         specs: 'previous/specs',
@@ -285,13 +276,6 @@ export async function promoteCandidate(
         if (current.snapshot.reviewDigest !== suppliedDigest) {
           throw new Error(`Candidate review digest mismatch during promotion: expected ${suppliedDigest}, received ${current.snapshot.reviewDigest}.`);
         }
-        const archivedCandidate = path.join(history!.directory, 'candidate');
-        await setCandidateWritable(frozenCandidate);
-        await fs.rename(frozenCandidate, archivedCandidate);
-        const archived = await validateCandidateDirectory(projectRoot, archivedCandidate);
-        if (!archived.result.valid || archived.snapshot.reviewDigest !== suppliedDigest) {
-          throw new Error('Candidate review digest mismatch while archiving the reviewed snapshot.');
-        }
       },
     });
     promotionSucceeded = true;
@@ -308,7 +292,6 @@ export async function promoteCandidate(
         stagingRoot,
         activeCandidate,
         frozenCandidate,
-        history ? path.join(history.directory, 'candidate') : undefined,
       );
     } finally {
       if (!(error instanceof AggregateError)) {
@@ -318,6 +301,9 @@ export async function promoteCandidate(
     }
     throw error;
   } finally {
-    if (promotionSucceeded) await fs.rm(stagingRoot, { recursive: true, force: true }).catch(() => undefined);
+    if (promotionSucceeded) {
+      await setCandidateWritable(frozenCandidate).catch(() => undefined);
+      await fs.rm(stagingRoot, { recursive: true, force: true }).catch(() => undefined);
+    }
   }
 }

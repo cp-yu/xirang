@@ -9,7 +9,6 @@ export interface CandidatePromotionMetadata {
   reviewDigest: string;
   promotedAt: string;
   previousFormalFingerprint: string;
-  candidate: 'candidate';
   previous: {
     architecture: 'previous/architecture';
     specs: 'previous/specs';

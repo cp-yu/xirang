@@ -65,11 +65,14 @@ describe('Candidate promotion', () => {
     expect(await fs.readFile(path.join(history, 'previous', 'specs', 'stale', 'note.txt'), 'utf8'))
       .toBe('stale formal source\n');
     expect(await fs.readFile(path.join(history, 'build.md'), 'utf8')).toBe('\n');
-    expect(await fs.readFile(path.join(history, 'candidate', 'build.md'), 'utf8')).toBe('\n');
+    expect(await exists(path.join(history, 'candidate'))).toBe(false);
+    const historyEntries = await fs.readdir(history);
+    expect(historyEntries.sort()).toEqual(['build.md', 'previous', 'promotion.yaml']);
     const manifest = await fs.readFile(path.join(history, 'promotion.yaml'), 'utf8');
     expect(manifest).toContain(`reviewDigest: ${validation.reviewDigest}`);
     expect(manifest).toContain('previous/architecture');
     expect(manifest).toContain('previous/specs');
+    expect(manifest).not.toContain('candidate:');
     expect(manifest).not.toContain(root);
   });
 
