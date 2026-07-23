@@ -90,4 +90,39 @@ describe('materializeOpsxArchitectureView', () => {
     expect(target.nodes.find(node => node.id === 'projectRoot.beta')).toMatchObject({ color: 'red' })
     expect(target.edges).toHaveLength(1)
   })
+
+  it('preserves node and edge order when building adjacency', () => {
+    const ordered: OpsxRuntimeVariant = {
+      ...variant,
+      architecture: {
+        ...variant.architecture!,
+        elements: [
+          ...variant.architecture!.elements,
+          { id: 'delta.id', fqn: 'projectRoot.delta', kind: 'capability', title: 'Delta', summary: 'Delta', parent: 'project.root', children: [], metadata: {} },
+          { id: 'epsilon.id', fqn: 'projectRoot.epsilon', kind: 'capability', title: 'Epsilon', summary: 'Disconnected', parent: 'project.root', children: [], metadata: {} },
+        ],
+        relations: [
+          { source: 'gamma.id', kind: 'first', target: 'alpha.id' },
+          { source: 'alpha.id', kind: 'second', target: 'gamma.id' },
+          { source: 'delta.id', kind: 'third', target: 'alpha.id' },
+          { source: 'missing.id', kind: 'omitted', target: 'alpha.id' },
+        ],
+      },
+    }
+    const target = materializeOpsxArchitectureView(formal, ordered, 'full')
+    const root = target.nodes.find(node => node.id === 'projectRoot')!
+    const alpha = target.nodes.find(node => node.id === 'projectRoot.alpha')!
+    const epsilon = target.nodes.find(node => node.id === 'projectRoot.epsilon')!
+
+    expect(root.children).toEqual([
+      'projectRoot.alpha',
+      'projectRoot.gamma',
+      'projectRoot.delta',
+      'projectRoot.epsilon',
+    ])
+    expect(alpha.inEdges).toEqual([target.edges[0]!.id, target.edges[2]!.id])
+    expect(alpha.outEdges).toEqual([target.edges[1]!.id])
+    expect(epsilon).toMatchObject({ inEdges: [], outEdges: [], children: [] })
+    expect(target.edges).toHaveLength(3)
+  })
 })

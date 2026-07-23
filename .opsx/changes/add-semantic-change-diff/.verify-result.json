@@ -72,7 +72,7 @@
       "test/integration/sync-workflow.test.ts",
       "test/integration/validate-command.test.ts"
     ],
-    "evidenceFingerprint": "0db0fdf2ac92312f0d81be75876d74015c5d595522f0007ed68a9d374fffe65a",
+    "evidenceFingerprint": "2bfbe73757648e82bcc988d87d27eb8ed1aa0d660f778c1c06d5f08808104bf4",
     "evidenceFingerprintEntries": [
       {
         "path": ".github/workflows/opsx-v2-cross-platform.yml",
@@ -96,7 +96,7 @@
       },
       {
         "path": ".opsx/changes/add-semantic-change-diff/.apply-isolation.json",
-        "hash": "437407bd0a39bffd9e61bb758624d279d68e32bd1f8ffcd62cbc33c590daffc5"
+        "hash": "4e464726dfee8b5a2033f90e780fffb0ddcababac3fa0e990b2116fc35a93737"
       },
       {
         "path": ".opsx/changes/add-semantic-change-diff/architecture-delta.c4",
@@ -152,11 +152,11 @@
       },
       {
         "path": "likec4/packages/diagram/src/opsx/architectureView.spec.ts",
-        "hash": "ad498d938fe8cbcadab5b09b2fd1e3ff1eca147c6699603847e6296083dac493"
+        "hash": "5dff6ea98508b353ed50733f08f5fd4d8f5f19709e39f3220d4619e20362920f"
       },
       {
         "path": "likec4/packages/diagram/src/opsx/architectureView.ts",
-        "hash": "dfba66dd647a431d2abd2c7d2a1344ef65b715651eeaf50a68f3f590b461353a"
+        "hash": "5c1877f8aad071996337bb6e5e0692342fcf132d5f4977808069a4a662b66ef6"
       },
       {
         "path": "likec4/packages/diagram/src/opsx/SpecLoaderContext.tsx",
@@ -282,12 +282,24 @@
     "skippedEvidenceFiles": [
       ".opsx/changes/add-semantic-change-diff/.verify-result.json"
     ],
-    "gitHeadCommit": "0bd4cf0ee98a61251bc85512db03e807edb5edf1",
-    "gitDiffSummary": "Validated changeName, absolute changeDir, and absolute projectRoot. Immutable baseCommit 0bd4cf0ee98a61251bc85512db03e807edb5edf1 resolves. git diff <baseCommit>...HEAD --name-only is empty because HEAD remains at the baseline; git status --short -uall contains 105 modified, deleted, or untracked paths, all covered by explicit task Files entries or the change-artifact allowance. No staged files exist. All four declared Scenario-label source/test deletions are complete. git diff --check passed. Current opsx validate passed with one change item and zero failures; current diff JSON passed with valid=true, zero diagnostics, and 70 entries; effective-change.md reports Passed. Root build and ESLint passed. Targeted root verification passed 12 files and 126 tests across malformed-Spec partial diff, complete target validation, allowAlreadyApplied archive ADDED/MODIFIED/REMOVED paths, snapshot cleanup, validate, sync, plan-remove, and runtime views. LikeC4 diagram verification passed 2 files and 12 tests. Architecture validation passed with zero errors and warnings. Playwright passed 4/4 desktop and mobile tests, including isolated variants, Diff only, diagnostic rendering, and Spec HMR graph stability. The full root suite executed 159 files and 2268 tests but reported 5 environment-only failures in test/integration/migrate-command.test.ts because this isolated worktree lacks node_modules/likec4/bin/likec4.mjs; the remaining 158 files and 2263 tests passed. Residual risk is limited to independently reproducing the exact full-suite green result in a dependency-complete worktree."
+    "gitHeadCommit": "57afad44d37cacc73782a2ea8dd45f05aa33aa98",
+    "gitDiffSummary": "Validated changeName, absolute changeDir, and absolute projectRoot. Immutable baseCommit 0bd4cf0ee98a61251bc85512db03e807edb5edf1 resolves. git diff <baseCommit>...HEAD --name-only is empty because HEAD remains at the baseline; git status --short -uall contains 105 modified, deleted, or untracked paths, all covered by explicit task Files entries or the change-artifact allowance. No staged files exist. All four declared Scenario-label source/test deletions are complete. git diff --check passed. Current opsx validate passed with one change item and zero failures; current diff JSON passed with valid=true, zero diagnostics, and 70 entries; effective-change.md reports Passed. Root build and ESLint passed. Targeted root verification passed 12 files and 126 tests across malformed-Spec partial diff, complete target validation, allowAlreadyApplied archive ADDED/MODIFIED/REMOVED paths, snapshot cleanup, validate, sync, plan-remove, and runtime views. LikeC4 diagram verification passed 2 files and 12 tests. Architecture validation passed with zero errors and warnings. Playwright passed 4/4 desktop and mobile tests, including isolated variants, Diff only, diagnostic rendering, and Spec HMR graph stability. The full root suite executed 159 files and 2268 tests but reported 5 environment-only failures in test/integration/migrate-command.test.ts because this isolated worktree lacks node_modules/likec4/bin/likec4.mjs; the remaining 158 files and 2263 tests passed. Residual risk is limited to independently reproducing the exact full-suite green result in a dependency-complete worktree.",
+    "timestamp": "2026-07-23T03:45:21.027Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-07-23T03:39:47.831Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-23T03:45:21.007Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-07-23T03:35:20.033Z",
       "result": "PASS_WITH_WARNINGS",
@@ -575,6 +587,159 @@
         "gitHeadCommit": "0bd4cf0ee98a61251bc85512db03e807edb5edf1",
         "gitDiffSummary": "Validated changeName, absolute changeDir, and absolute projectRoot. Immutable baseCommit 0bd4cf0ee98a61251bc85512db03e807edb5edf1 resolves. git diff <baseCommit>...HEAD --name-only is empty because HEAD remains at the baseline; git status --short -uall contains 105 modified, deleted, or untracked paths, all covered by explicit task Files entries or the change-artifact allowance. No staged files exist. All four declared Scenario-label source/test deletions are complete. git diff --check passed. Current opsx validate passed with one change item and zero failures; current diff JSON passed with valid=true, zero diagnostics, and 70 entries; effective-change.md reports Passed. Root build and ESLint passed. Targeted root verification passed 12 files and 126 tests across malformed-Spec partial diff, complete target validation, allowAlreadyApplied archive ADDED/MODIFIED/REMOVED paths, snapshot cleanup, validate, sync, plan-remove, and runtime views. LikeC4 diagram verification passed 2 files and 12 tests. Architecture validation passed with zero errors and warnings. Playwright passed 4/4 desktop and mobile tests, including isolated variants, Diff only, diagnostic rendering, and Spec HMR graph stability. The full root suite executed 159 files and 2268 tests but reported 5 environment-only failures in test/integration/migrate-command.test.ts because this isolated worktree lacks node_modules/likec4/bin/likec4.mjs; the remaining 158 files and 2263 tests passed. Residual risk is limited to independently reproducing the exact full-suite green result in a dependency-complete worktree."
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "likec4/packages/diagram/src/opsx/architectureView.ts"
+          ],
+          "symbols": [
+            "materializeOpsxArchitectureView"
+          ]
+        },
+        "opportunity": "Graph adjacency is rebuilt by filtering the complete node array once and the complete edge array twice for every visible node.",
+        "impact": "Replace O(N^2 + N*E) graph finalization and its temporary arrays with O(N + E) indexing, reducing CPU time and allocations whenever full or Diff-only architecture overlays are materialized.",
+        "evidence": [
+          "likec4/packages/diagram/src/opsx/architectureView.ts:182-185 loops over every node and executes nodes.filter, edges.filter for incoming edges, and edges.filter for outgoing edges.",
+          "The function has already materialized ordered nodes and edges before this loop, so parent, source, and target adjacency can be accumulated in one pass without additional graph reads.",
+          "Decision 9 in .opsx/changes/add-semantic-change-diff/design.md requires full-context and Diff-only graph projections over the selected target, making this path part of every change-graph rendering operation.",
+          "Fresh validation passed: pnpm --dir likec4 exec vitest run packages/diagram/src/opsx/architectureView.spec.ts reported 1 file and 3 tests passed."
+        ],
+        "recommendation": "Build children-by-parent, incoming-edge, and outgoing-edge maps while traversing the already ordered node and edge arrays, then assign each node's adjacency arrays from those maps.",
+        "keyDesign": "Initialize empty adjacency arrays keyed by visible node ID; append child IDs while visiting nodes in their existing order; append edge IDs to source and target maps while visiting edges in their existing order; finally assign children, inEdges, and outEdges to each node with empty-array fallbacks.",
+        "preservationConstraints": [
+          "Preserve the exact nodes and edges arrays, their ordering, IDs, overlay colors, labels, coordinates, bounds, and hash construction.",
+          "Preserve children ordering as the current nodes.filter traversal order.",
+          "Preserve inEdges and outEdges ordering as the current edges.filter traversal order, including duplicate edge IDs if present.",
+          "Do not create adjacency entries for parents or endpoints absent from the visible node set.",
+          "Preserve behavior for empty graphs, disconnected nodes, removed elements included only in Diff-only mode, and relationships whose endpoints cannot be materialized.",
+          "Do not change full versus Diff-only visibility or ancestor-context closure semantics."
+        ],
+        "implementationOutline": [
+          "Create maps for child IDs, incoming edge IDs, and outgoing edge IDs.",
+          "Traverse nodes once and append each node ID under its non-null visible parent.",
+          "Traverse edges once and append each edge ID under its target and source.",
+          "Traverse nodes once to assign mapped arrays or new empty arrays.",
+          "Keep all visibility, node creation, edge creation, styling, bounds, and return logic unchanged."
+        ],
+        "validation": [
+          "Run pnpm --dir likec4 exec vitest run packages/diagram/src/opsx/architectureView.spec.ts and retain the current full-target and Diff-only assertions.",
+          "Add or extend an architecture-view test to assert exact children, inEdges, and outEdges ordering for multiple siblings and multiple incoming/outgoing relationships.",
+          "Cover a disconnected node and an omitted endpoint to prove empty arrays and endpoint filtering remain unchanged.",
+          "Statically verify that adjacency construction contains no node-nested scan of the complete nodes or edges arrays."
+        ],
+        "impactLevel": "high",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "This removes a statically proven quadratic rendering path from the interactive architecture surface with a local, order-preserving implementation. It outranks the parser finding because its asymptotic benefit grows with every visible graph node and relationship.",
+        "id": "OPT-20260723T033947829Z-01",
+        "targetFileHashes": {
+          "likec4/packages/diagram/src/opsx/architectureView.ts": "dfba66dd647a431d2abd2c7d2a1344ef65b715651eeaf50a68f3f590b461353a"
+        }
+      },
+      {
+        "status": "pending",
+        "location": {
+          "files": [
+            "src/core/change-compiler.ts"
+          ],
+          "symbols": [
+            "compileChange",
+            "compileArchitectureChange"
+          ]
+        },
+        "opportunity": "A valid architecture delta is tokenized and parsed three times during one compileChange invocation.",
+        "impact": "Parse each architecture delta once per compilation, eliminating two complete tokenizer/parser passes and their token, operation, replacement, and diagnostic allocations from validate, diff, sync, archive, plan-remove, and runtime-view compilation.",
+        "evidence": [
+          "src/core/change-compiler.ts:345 parses the source inside compileArchitectureChange.",
+          "src/core/change-compiler.ts:616 reparses the same deltaSource to recover declared operations.",
+          "src/core/change-compiler.ts:617 reparses the same deltaSource again to recover replacement hints.",
+          "The two final calls are separate expressions, so a valid delta incurs three parseArchitectureDelta executions rather than reusing the first ArchitectureDeltaParseResult.",
+          "Fresh validation passed: /home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec/node_modules/.bin/vitest run test/core/change-compiler.test.ts test/commands/diff.test.ts reported 2 files and 9 tests passed.",
+          "Fresh CLI validation returned one passed change item with zero diagnostics; fresh diff JSON returned valid=true, 70 entries, and zero diagnostics."
+        ],
+        "recommendation": "Introduce an internal compilation helper that accepts an ArchitectureDeltaParseResult. Parse deltaSource once in compileChange, pass that result through architecture application, and reuse its operations and replacements when constructing the final combined Diff IR.",
+        "keyDesign": "Keep compileArchitectureChange as the public source-based entry point that performs one parse and delegates to a private parsed-result helper. Have compileChange parse deltaSource once and call the same helper, retaining the parsed result locally for the final createSemanticDiff call.",
+        "preservationConstraints": [
+          "Preserve formalFingerprint and changeFingerprint inputs and byte-for-byte values.",
+          "Preserve parser diagnostics, paths, locations, codes, messages, and ordering.",
+          "Preserve operation and replacement ordering exactly as emitted by DeltaParser.",
+          "Preserve target nullability for syntax failures and complete target validation for valid parses.",
+          "Preserve allowAlreadyApplied behavior and the order in which architecture diagnostics, contract-delta diagnostics, and change-Spec diagnostics are combined.",
+          "Preserve the exported compileArchitectureChange source-based behavior for existing callers.",
+          "Do not cache parse results across invocations or filesystem changes."
+        ],
+        "implementationOutline": [
+          "Extract the current post-parse body of compileArchitectureChange into a private helper receiving source and the parsed result.",
+          "Retain compileArchitectureChange as parseArchitectureDelta(source) followed by that helper.",
+          "In compileChange, parse deltaSource once before architecture compilation and pass the result to the helper.",
+          "Use the same parsed delta's operations and replacements in the final createSemanticDiff invocation.",
+          "Remove only the two redundant parseArchitectureDelta calls at the end of compileChange."
+        ],
+        "validation": [
+          "Run test/core/architecture-delta-parser.test.ts, test/core/change-compiler.test.ts, and test/commands/diff.test.ts.",
+          "Assert that valid architecture operations and replacement associations in the final Diff IR remain identical.",
+          "Retain invalid-delta tests proving target remains null and parser diagnostics preserve source locations.",
+          "Retain malformed-Spec partial-diff coverage to prove diagnostic reconciliation is unchanged.",
+          "Use a parser seam or focused unit assertion to prove compileChange performs one architecture-delta parse per invocation without introducing a cross-call cache."
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "This is a deterministic per-compilation reduction with direct evidence and low implementation risk, but its saved work is linear in delta size and therefore ranks below eliminating the graph renderer's quadratic adjacency scans.",
+        "id": "OPT-20260723T033947829Z-02"
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-23T03:39:47.830Z",
+        "findingId": "OPT-20260723T033947829Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-23T03:39:47.830Z",
+        "findingId": "OPT-20260723T033947829Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "select",
+        "reason": "This removes a statically proven quadratic rendering path from the interactive architecture surface with a local, order-preserving implementation. It outranks the parser finding because its asymptotic benefit grows with every visible graph node and relationship.",
+        "timestamp": "2026-07-23T03:39:47.831Z",
+        "findingId": "OPT-20260723T033947829Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/opsx/architectureView.ts": "dfba66dd647a431d2abd2c7d2a1344ef65b715651eeaf50a68f3f590b461353a"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-23T03:39:54.712Z",
+        "findingId": "OPT-20260723T033947829Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/opsx/architectureView.ts": "dfba66dd647a431d2abd2c7d2a1344ef65b715651eeaf50a68f3f590b461353a"
+        }
+      },
+      {
+        "sequence": 5,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-23T03:45:21.007Z",
+        "findingId": "OPT-20260723T033947829Z-01"
+      }
+    ],
+    "reconciliationSignature": "8414c88da4df3a64e4ee1417af7ab9d5ca18eed44c01dbe458f08a0e9921268a",
+    "unchangedReconciliations": 0
   }
 }

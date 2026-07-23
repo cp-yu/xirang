@@ -179,10 +179,27 @@ export function materializeOpsxArchitectureView(
     } as unknown as ViewEdge]
   })
 
+  const childrenByParent = new Map<string, ViewNode['children']>()
+  const inEdgesByNode = new Map<string, ViewNode['inEdges']>()
+  const outEdgesByNode = new Map<string, ViewNode['outEdges']>()
   for (const node of nodes) {
-    node.children = nodes.filter(candidate => candidate.parent === node.id).map(candidate => candidate.id)
-    node.inEdges = edges.filter(edge => edge.target === node.id).map(edge => edge.id)
-    node.outEdges = edges.filter(edge => edge.source === node.id).map(edge => edge.id)
+    if (!node.parent || !nodesById.has(node.parent)) continue
+    const children = childrenByParent.get(node.parent) ?? []
+    children.push(node.id)
+    childrenByParent.set(node.parent, children)
+  }
+  for (const edge of edges) {
+    const incoming = inEdgesByNode.get(edge.target) ?? []
+    incoming.push(edge.id)
+    inEdgesByNode.set(edge.target, incoming)
+    const outgoing = outEdgesByNode.get(edge.source) ?? []
+    outgoing.push(edge.id)
+    outEdgesByNode.set(edge.source, outgoing)
+  }
+  for (const node of nodes) {
+    node.children = childrenByParent.get(node.id) ?? []
+    node.inEdges = inEdgesByNode.get(node.id) ?? []
+    node.outEdges = outEdgesByNode.get(node.id) ?? []
   }
 
   return {
