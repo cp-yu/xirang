@@ -118,12 +118,9 @@ async function restoreFrozenCandidate(
   stagingRoot: string,
   activeCandidate: string,
   frozenCandidate: string,
-  historyCandidate?: string,
 ): Promise<void> {
-  const source = await exists(frozenCandidate)
-    ? frozenCandidate
-    : historyCandidate && await exists(historyCandidate) ? historyCandidate : null;
-  if (!source) return;
+  if (!await exists(frozenCandidate)) return;
+  const source = frozenCandidate;
   if (await exists(activeCandidate)) {
     await preserveRecoveredCandidate(projectRoot, stagingRoot, source);
     return;
