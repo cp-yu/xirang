@@ -18,6 +18,7 @@ import type {
 import {
   parseArchitectureDelta,
   type ArchitectureDeltaOperation,
+  type ArchitectureDeltaParseResult,
   type ArchitectureElementTarget,
   type ArchitectureRelationshipTarget,
 } from './architecture-delta-parser.js';
@@ -334,11 +335,21 @@ function validateTarget(
   void formal;
 }
 
-export function compileArchitectureChange(
+interface ArchitectureMaterialization {
+  formal: TargetSemanticModel;
+  formalFingerprint: string;
+  changeFingerprint: string;
+  parsed: ArchitectureDeltaParseResult;
+  target: TargetSemanticModel;
+  diagnostics: ChangeDiagnostic[];
+  valid: boolean;
+}
+
+function materializeArchitectureChange(
   formal: TargetSemanticModel,
   source: string,
-  options: CompileArchitectureChangeOptions = {},
-): CompiledChange {
+  options: CompileArchitectureChangeOptions,
+): ArchitectureMaterialization {
   const formalSnapshot = structuredClone(formal);
   const formalFingerprint = fingerprint(formalSnapshot);
   const changeFingerprint = fingerprint(source);
@@ -354,16 +365,32 @@ export function compileArchitectureChange(
   }
 
   const valid = parsed.delta !== null && diagnostics.every(item => item.level !== 'ERROR');
-  const diff = createSemanticDiff(formalSnapshot, target, {
+  return { formal: formalSnapshot, formalFingerprint, changeFingerprint, parsed, target, diagnostics, valid };
+}
+
+export function compileArchitectureChange(
+  formal: TargetSemanticModel,
+  source: string,
+  options: CompileArchitectureChangeOptions = {},
+): CompiledChange {
+  const compiled = materializeArchitectureChange(formal, source, options);
+  const diff = createSemanticDiff(compiled.formal, compiled.target, {
     change: options.change,
-    valid,
-    formalFingerprint,
-    changeFingerprint,
-    diagnostics,
-    declaredOperations: parsed.delta?.operations,
-    replacements: parsed.delta?.replacements,
+    valid: compiled.valid,
+    formalFingerprint: compiled.formalFingerprint,
+    changeFingerprint: compiled.changeFingerprint,
+    diagnostics: compiled.diagnostics,
+    declaredOperations: compiled.parsed.delta?.operations,
+    replacements: compiled.parsed.delta?.replacements,
   });
-  return { formalFingerprint, changeFingerprint, target: parsed.delta ? target : null, diff, diagnostics, valid };
+  return {
+    formalFingerprint: compiled.formalFingerprint,
+    changeFingerprint: compiled.changeFingerprint,
+    target: compiled.parsed.delta ? compiled.target : null,
+    diff,
+    diagnostics: compiled.diagnostics,
+    valid: compiled.valid,
+  };
 }
 
 function parseRequirement(block: RequirementBlock): SemanticRequirement {
@@ -578,10 +605,10 @@ export async function compileChange(
     throw error;
   });
   const combinedChangeFingerprint = fingerprint({ architecture: deltaSource, specs: contractResult.sources });
-  let compiled: CompiledChange;
+  let compiled: ArchitectureMaterialization;
 
   if (deltaSource !== null) {
-    compiled = compileArchitectureChange(formal, deltaSource, {
+    compiled = materializeArchitectureChange(formal, deltaSource, {
       change: changeName,
       targetContracts: contractResult.contracts,
       allowAlreadyApplied: options.allowAlreadyApplied,
@@ -601,25 +628,22 @@ export async function compileChange(
   }
 
   const diagnostics = [...compiled.diagnostics, ...contractResult.diagnostics];
-  const target = compiled.target ?? {
-    architecture: structuredClone(formal.architecture),
-    contracts: structuredClone(contractResult.contracts),
-  };
+  const target = compiled.target;
   await appendChangeSpecDiagnostics(projectRoot, changeDir, target, diagnostics, options.allowAlreadyApplied);
-  const valid = compiled.target !== null && diagnostics.every(item => item.level !== 'ERROR');
+  const valid = compiled.parsed.delta !== null && diagnostics.every(item => item.level !== 'ERROR');
   const diff = createSemanticDiff(formal, target, {
     change: changeName,
     valid,
     formalFingerprint: compiled.formalFingerprint,
     changeFingerprint: combinedChangeFingerprint,
     diagnostics,
-    declaredOperations: compiled.target ? parseArchitectureDelta(deltaSource).delta?.operations : undefined,
-    replacements: compiled.target ? parseArchitectureDelta(deltaSource).delta?.replacements : undefined,
+    declaredOperations: compiled.parsed.delta?.operations,
+    replacements: compiled.parsed.delta?.replacements,
   });
   return {
     formalFingerprint: compiled.formalFingerprint,
     changeFingerprint: combinedChangeFingerprint,
-    target: compiled.target ? target : null,
+    target: compiled.parsed.delta ? target : null,
     diff,
     diagnostics,
     valid,

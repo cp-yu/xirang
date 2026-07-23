@@ -72,7 +72,7 @@
       "test/integration/sync-workflow.test.ts",
       "test/integration/validate-command.test.ts"
     ],
-    "evidenceFingerprint": "2bfbe73757648e82bcc988d87d27eb8ed1aa0d660f778c1c06d5f08808104bf4",
+    "evidenceFingerprint": "93477886cb59b9affef1127a1b72b42a4f2d32ab86cfe394029146daea188862",
     "evidenceFingerprintEntries": [
       {
         "path": ".github/workflows/opsx-v2-cross-platform.yml",
@@ -196,7 +196,7 @@
       },
       {
         "path": "src/core/change-compiler.ts",
-        "hash": "db560529ff168a112f23f98a7fca63dcf93c684fa9e230ed822c38234ef8a95c"
+        "hash": "be01bee3df3f6b2a75812e78cdb6072496422e5d794d7a730907f93b2e8627c2"
       },
       {
         "path": "src/core/change-diff-renderer.ts",
@@ -282,9 +282,9 @@
     "skippedEvidenceFiles": [
       ".opsx/changes/add-semantic-change-diff/.verify-result.json"
     ],
-    "gitHeadCommit": "57afad44d37cacc73782a2ea8dd45f05aa33aa98",
+    "gitHeadCommit": "6b6bfcbc961cb7cca0fa505604e2d56066e85f67",
     "gitDiffSummary": "Validated changeName, absolute changeDir, and absolute projectRoot. Immutable baseCommit 0bd4cf0ee98a61251bc85512db03e807edb5edf1 resolves. git diff <baseCommit>...HEAD --name-only is empty because HEAD remains at the baseline; git status --short -uall contains 105 modified, deleted, or untracked paths, all covered by explicit task Files entries or the change-artifact allowance. No staged files exist. All four declared Scenario-label source/test deletions are complete. git diff --check passed. Current opsx validate passed with one change item and zero failures; current diff JSON passed with valid=true, zero diagnostics, and 70 entries; effective-change.md reports Passed. Root build and ESLint passed. Targeted root verification passed 12 files and 126 tests across malformed-Spec partial diff, complete target validation, allowAlreadyApplied archive ADDED/MODIFIED/REMOVED paths, snapshot cleanup, validate, sync, plan-remove, and runtime views. LikeC4 diagram verification passed 2 files and 12 tests. Architecture validation passed with zero errors and warnings. Playwright passed 4/4 desktop and mobile tests, including isolated variants, Diff only, diagnostic rendering, and Spec HMR graph stability. The full root suite executed 159 files and 2268 tests but reported 5 environment-only failures in test/integration/migrate-command.test.ts because this isolated worktree lacks node_modules/likec4/bin/likec4.mjs; the remaining 158 files and 2263 tests passed. Residual risk is limited to independently reproducing the exact full-suite green result in a dependency-complete worktree.",
-    "timestamp": "2026-07-23T03:45:21.027Z"
+    "timestamp": "2026-07-23T03:56:04.073Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
@@ -296,6 +296,16 @@
       },
       {
         "timestamp": "2026-07-23T03:45:21.007Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-07-23T03:48:58.972Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-23T03:56:04.055Z",
         "type": "verification",
         "result": "PASS"
       }
@@ -590,7 +600,8 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "id": "OPT-20260723T033947829Z-01",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/diagram/src/opsx/architectureView.ts"
@@ -636,13 +647,13 @@
         "cost": "low",
         "dependencies": [],
         "priorityReason": "This removes a statically proven quadratic rendering path from the interactive architecture surface with a local, order-preserving implementation. It outranks the parser finding because its asymptotic benefit grows with every visible graph node and relationship.",
-        "id": "OPT-20260723T033947829Z-01",
         "targetFileHashes": {
           "likec4/packages/diagram/src/opsx/architectureView.ts": "dfba66dd647a431d2abd2c7d2a1344ef65b715651eeaf50a68f3f590b461353a"
         }
       },
       {
-        "status": "pending",
+        "id": "OPT-20260723T033947829Z-02",
+        "status": "verified",
         "location": {
           "files": [
             "src/core/change-compiler.ts"
@@ -652,48 +663,61 @@
             "compileArchitectureChange"
           ]
         },
-        "opportunity": "A valid architecture delta is tokenized and parsed three times during one compileChange invocation.",
-        "impact": "Parse each architecture delta once per compilation, eliminating two complete tokenizer/parser passes and their token, operation, replacement, and diagnostic allocations from validate, diff, sync, archive, plan-remove, and runtime-view compilation.",
+        "opportunity": "For a valid architecture delta, compileChange tokenizes and parses the same source three times and computes the complete semantic Diff IR twice, discarding the first Diff IR.",
+        "impact": "Reduce each architecture-bearing compileChange invocation to one parser pass and one semantic-diff pass, eliminating two token/parser passes plus one full graph-and-contract comparison, entry construction, canonical comparison, and sorting pass used by validate, diff, sync, archive, plan-remove, and runtime views.",
         "evidence": [
           "src/core/change-compiler.ts:345 parses the source inside compileArchitectureChange.",
-          "src/core/change-compiler.ts:616 reparses the same deltaSource to recover declared operations.",
-          "src/core/change-compiler.ts:617 reparses the same deltaSource again to recover replacement hints.",
-          "The two final calls are separate expressions, so a valid delta incurs three parseArchitectureDelta executions rather than reusing the first ArchitectureDeltaParseResult.",
-          "Fresh validation passed: /home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec/node_modules/.bin/vitest run test/core/change-compiler.test.ts test/commands/diff.test.ts reported 2 files and 9 tests passed.",
-          "Fresh CLI validation returned one passed change item with zero diagnostics; fresh diff JSON returned valid=true, 70 entries, and zero diagnostics."
+          "src/core/change-compiler.ts:616 and src/core/change-compiler.ts:617 independently parse the same deltaSource again to recover operations and replacement hints.",
+          "src/core/change-compiler.ts:357 constructs compiled.diff, but compileChange never reads compiled.diff and constructs the final combined diff again at src/core/change-compiler.ts:610.",
+          "src/core/semantic-diff.ts:242-245 rebuilds Requirement, Scenario, element, property, relationship, and Metamodel entries and sorts the combined entry collection on every createSemanticDiff call.",
+          "The duplicate work is deterministic for every architecture-bearing compileChange call and does not depend on workload, cache hit rate, or profiling assumptions.",
+          "Decision 1 in .opsx/changes/add-semantic-change-diff/design.md requires validate, diff, sync, archive, and view to consume the shared compiler result rather than reconstruct operation semantics.",
+          "Fresh validation passed: /home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec/node_modules/.bin/vitest run test/core/architecture-delta-parser.test.ts test/core/change-compiler.test.ts test/commands/diff.test.ts reported 3 files and 13 tests passed.",
+          "Current src/core/change-compiler.ts SHA-256 is db560529ff168a112f23f98a7fca63dcf93c684fa9e230ed822c38234ef8a95c, confirming the redundant calls remain unchanged after checkpoint 6b6bfcbc961cb7cca0fa505604e2d56066e85f67."
         ],
-        "recommendation": "Introduce an internal compilation helper that accepts an ArchitectureDeltaParseResult. Parse deltaSource once in compileChange, pass that result through architecture application, and reuse its operations and replacements when constructing the final combined Diff IR.",
-        "keyDesign": "Keep compileArchitectureChange as the public source-based entry point that performs one parse and delegates to a private parsed-result helper. Have compileChange parse deltaSource once and call the same helper, retaining the parsed result locally for the final createSemanticDiff call.",
+        "recommendation": "Extract a private architecture-materialization helper that parses once and returns the parsed result, immutable formal snapshot, fingerprints, target, diagnostics, and validity without creating a Diff IR. Keep compileArchitectureChange as the public source-based wrapper that creates its standalone diff once, while compileChange consumes the same helper result and creates only its final combined diff.",
+        "keyDesign": "Use one private core result containing formalSnapshot, formalFingerprint, architecture change fingerprint, parsed ArchitectureDeltaParseResult, target or null, diagnostics, and validity. The core performs cloning, parsing, replacement validation, operation application, and complete target validation but no presentation projection. compileArchitectureChange projects that result to its existing CompiledChange contract with one createSemanticDiff call. compileChange reuses parsed.delta operations and replacements directly, appends contract and change-Spec diagnostics in the existing order, and performs one final createSemanticDiff call with the combined change fingerprint.",
         "preservationConstraints": [
-          "Preserve formalFingerprint and changeFingerprint inputs and byte-for-byte values.",
-          "Preserve parser diagnostics, paths, locations, codes, messages, and ordering.",
-          "Preserve operation and replacement ordering exactly as emitted by DeltaParser.",
-          "Preserve target nullability for syntax failures and complete target validation for valid parses.",
-          "Preserve allowAlreadyApplied behavior and the order in which architecture diagnostics, contract-delta diagnostics, and change-Spec diagnostics are combined.",
-          "Preserve the exported compileArchitectureChange source-based behavior for existing callers.",
-          "Do not cache parse results across invocations or filesystem changes."
+          "Preserve the exported compileArchitectureChange and compileChange signatures and their source-based behavior.",
+          "Preserve formalFingerprint and both standalone and combined changeFingerprint inputs and byte-for-byte values.",
+          "Preserve target contents, target nullability for syntax failures, immutable Formal snapshot behavior, and complete Target Semantic Model validation.",
+          "Preserve parser diagnostics, paths, source locations, codes, messages, and ordering.",
+          "Preserve Architecture operation and replacement ordering exactly as emitted by DeltaParser.",
+          "Preserve the order in which architecture diagnostics, contract-delta diagnostics, and change-Spec diagnostics are combined.",
+          "Preserve allowAlreadyApplied behavior for ADDED, MODIFIED, and REMOVED graph and contract operations.",
+          "Preserve every ChangeDiff field, entry, child entry, declaredOperation, replacement association, diagnostic, summary count, and canonical ordering.",
+          "Preserve behavior for missing architecture-delta.c4, empty or malformed deltas, Specs-only changes, invalid contract deltas, and partial diagnostic projections.",
+          "Do not cache parser or materialization results across invocations, filesystem reads, project roots, or change fingerprints.",
+          "Do not add test-only parameters or broaden the public compiler contract solely to count calls."
         ],
         "implementationOutline": [
-          "Extract the current post-parse body of compileArchitectureChange into a private helper receiving source and the parsed result.",
-          "Retain compileArchitectureChange as parseArchitectureDelta(source) followed by that helper.",
-          "In compileChange, parse deltaSource once before architecture compilation and pass the result to the helper.",
-          "Use the same parsed delta's operations and replacements in the final createSemanticDiff invocation.",
-          "Remove only the two redundant parseArchitectureDelta calls at the end of compileChange."
+          "Introduce a private result type for architecture materialization that retains the single ArchitectureDeltaParseResult.",
+          "Move cloning, fingerprinting, parseArchitectureDelta, replacement validation, operation application, and target validation from compileArchitectureChange into the private helper.",
+          "Keep createSemanticDiff outside the helper.",
+          "Have compileArchitectureChange invoke the helper and construct its existing standalone CompiledChange result with exactly one semantic-diff projection.",
+          "Have compileChange invoke the helper directly instead of compileArchitectureChange when deltaSource exists.",
+          "Reuse helperResult.parsed.delta operations and replacements in the final combined createSemanticDiff call.",
+          "Remove the two terminal parseArchitectureDelta calls and prevent creation of the discarded intermediate compiled.diff.",
+          "Leave the Specs-only branch and all filesystem read ordering unchanged."
         ],
         "validation": [
           "Run test/core/architecture-delta-parser.test.ts, test/core/change-compiler.test.ts, and test/commands/diff.test.ts.",
-          "Assert that valid architecture operations and replacement associations in the final Diff IR remain identical.",
-          "Retain invalid-delta tests proving target remains null and parser diagnostics preserve source locations.",
-          "Retain malformed-Spec partial-diff coverage to prove diagnostic reconciliation is unchanged.",
-          "Use a parser seam or focused unit assertion to prove compileChange performs one architecture-delta parse per invocation without introducing a cross-call cache."
+          "Add a focused module-mock or equivalent non-public seam assertion proving architecture-bearing compileChange invokes parseArchitectureDelta exactly once and createSemanticDiff exactly once.",
+          "Assert standalone compileArchitectureChange still invokes each operation exactly once and returns an unchanged Diff IR.",
+          "Assert valid graph operations, declared operations, replacement associations, fingerprints, summary counts, and full Diff IR remain deeply equal.",
+          "Retain invalid-delta coverage proving target remains null and parser diagnostics preserve source locations.",
+          "Retain malformed-Spec partial-diff and Specs-only coverage to prove diagnostic reconciliation and missing-delta behavior remain unchanged.",
+          "Run git diff --check and the targeted validate, diff, sync, archive, plan-remove, and view tests that exercise compileChange consumers."
         ],
         "impactLevel": "medium",
         "confidence": "high",
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "This is a deterministic per-compilation reduction with direct evidence and low implementation risk, but its saved work is linear in delta size and therefore ranks below eliminating the graph renderer's quadratic adjacency scans.",
-        "id": "OPT-20260723T033947829Z-02"
+        "priorityReason": "This is now the only remaining actionable finding. It removes statically proven duplicate parser and full semantic-projection work from every architecture-bearing shared compiler invocation through one local internal boundary, with no cache, public API, or semantic-model change.",
+        "targetFileHashes": {
+          "src/core/change-compiler.ts": "db560529ff168a112f23f98a7fca63dcf93c684fa9e230ed822c38234ef8a95c"
+        }
       }
     ],
     "history": [
@@ -737,9 +761,50 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-07-23T03:45:21.007Z",
         "findingId": "OPT-20260723T033947829Z-01"
+      },
+      {
+        "sequence": 6,
+        "action": "resolve",
+        "reason": "Checkpoint 6b6bfcbc961cb7cca0fa505604e2d56066e85f67 replaced the node-nested adjacency scans with ordered single-pass maps. Current code contains no full-array filter inside adjacency construction, the added ordering and omitted-endpoint coverage is committed, and the persisted fresh reviewer marked the finding verified.",
+        "timestamp": "2026-07-23T03:48:58.971Z",
+        "findingId": "OPT-20260723T033947829Z-01"
+      },
+      {
+        "sequence": 7,
+        "action": "reprioritize",
+        "reason": "The finding remains the highest-priority actionable optimization. Current code still parses each valid architecture delta three times and additionally materializes a complete intermediate ChangeDiff that compileChange discards before constructing the final combined Diff IR. The same private architecture-materialization boundary can eliminate both classes of redundant work without changing public behavior.",
+        "timestamp": "2026-07-23T03:48:58.971Z",
+        "findingId": "OPT-20260723T033947829Z-02"
+      },
+      {
+        "sequence": 8,
+        "action": "select",
+        "reason": "This is now the only remaining actionable finding. It removes statically proven duplicate parser and full semantic-projection work from every architecture-bearing shared compiler invocation through one local internal boundary, with no cache, public API, or semantic-model change.",
+        "timestamp": "2026-07-23T03:48:58.972Z",
+        "findingId": "OPT-20260723T033947829Z-02",
+        "hashes": {
+          "src/core/change-compiler.ts": "db560529ff168a112f23f98a7fca63dcf93c684fa9e230ed822c38234ef8a95c"
+        }
+      },
+      {
+        "sequence": 9,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-23T03:49:05.241Z",
+        "findingId": "OPT-20260723T033947829Z-02",
+        "hashes": {
+          "src/core/change-compiler.ts": "db560529ff168a112f23f98a7fca63dcf93c684fa9e230ed822c38234ef8a95c"
+        }
+      },
+      {
+        "sequence": 10,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-23T03:56:04.055Z",
+        "findingId": "OPT-20260723T033947829Z-02"
       }
     ],
-    "reconciliationSignature": "8414c88da4df3a64e4ee1417af7ab9d5ca18eed44c01dbe458f08a0e9921268a",
+    "reconciliationSignature": "54eb43c0c30eded838ed3c0bcff56e3c354124fd71c729c2c43bf57ecaf30b52",
     "unchangedReconciliations": 0
   }
 }
