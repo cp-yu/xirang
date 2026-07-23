@@ -6,7 +6,6 @@ element: project.root/domain.validation/cap.validation.semantic-contract
 
 ## Purpose
 Define the reviewed Semantic Contract Validation contract for MODIFIED requirement header 必须存在于主 spec; ADDED requirement header 不得已存在于主 spec; REMOVED/RENAMED requirement header 必须存在于主 spec; and 2 additional reviewed Requirements.
-
 ## Requirements
 ### Requirement: MODIFIED requirement header 必须存在于主 spec
 
@@ -63,31 +62,22 @@ Define the reviewed Semantic Contract Validation contract for MODIFIED requireme
 
 ### Requirement: REMOVED/RENAMED requirement header 必须存在于主 spec
 
-`validateChangeDeltaSpecs()` SHALL 对 `## REMOVED Requirements` 和 `## RENAMED Requirements` 中引用的 header 验证其存在于主 spec。
+`validateChangeDeltaSpecs()` SHALL 对 `## REMOVED Requirements` 中引用的 header 验证其存在于 Formal Spec，并 SHALL 拒绝 `## RENAMED Requirements` section。
 
-#### Scenario: REMOVED header 存在于主 spec
+#### Scenario: REMOVED header 存在于 Formal Spec
+- **WHEN** change Spec 包含 REMOVED `### Requirement: Old`
+- **AND** Formal Spec 包含同名 identity
+- **THEN** validation SHALL 通过 identity precondition
 
-- **WHEN** change spec 包含 `## REMOVED Requirements` 下的 `### Requirement: Old`
-- **AND** 主 spec 包含 `### Requirement: Old`
-- **THEN** 验证 SHALL 通过
+#### Scenario: REMOVED header 不存在于 Formal Spec
+- **WHEN** change Spec 包含 REMOVED `### Requirement: Ghost`
+- **AND** Formal Spec 不包含该 identity
+- **THEN** validation SHALL 报 ERROR
 
-#### Scenario: REMOVED header 不存在于主 spec
-
-- **WHEN** change spec 包含 `## REMOVED Requirements` 下的 `### Requirement: Ghost`
-- **AND** 主 spec 不包含 `### Requirement: Ghost`
-- **THEN** 验证 SHALL 报 ERROR
-
-#### Scenario: RENAMED FROM header 存在于主 spec
-
-- **WHEN** change spec 包含 `## RENAMED Requirements` 的 FROM: `Old Name`
-- **AND** 主 spec 包含 `### Requirement: Old Name`
-- **THEN** 验证 SHALL 通过
-
-#### Scenario: RENAMED FROM header 不存在于主 spec
-
-- **WHEN** change spec 包含 `## RENAMED Requirements` 的 FROM: `Missing`
-- **AND** 主 spec 不包含 `### Requirement: Missing`
-- **THEN** 验证 SHALL 报 ERROR
+#### Scenario: RENAMED section 被拒绝
+- **WHEN** change Spec 包含 `## RENAMED Requirements`
+- **THEN** validation SHALL 报 unsupported operation ERROR
+- **AND** SHALL 指引使用 REMOVED old 与 ADDED new
 
 ### Requirement: Frontmatter capabilities 存在性校验
 
@@ -129,3 +119,4 @@ Validation SHALL 对每份新版 formal 或 change-local Spec 的 singular `elem
 #### Scenario: Optional element coverage
 - **WHEN** element kind 为 `contract optional` 且无 Spec
 - **THEN** validation SHALL 通过且不产生 missing binding issue
+
