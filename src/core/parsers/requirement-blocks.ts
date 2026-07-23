@@ -17,53 +17,11 @@ export function normalizeRequirementName(name: string): string {
 }
 
 const REQUIREMENT_HEADER_REGEX = /^###\s*Requirement:\s*(.+)\s*$/;
-const SCENARIO_HEADER_REGEX = /^(####\s+Scenario:\s*)\[(ADDED|MODIFIED|REMOVED)\]\s+(.+?)\s*$/;
 
-export type ScenarioOperation = 'ADDED' | 'MODIFIED' | 'REMOVED';
-
-export interface ScenarioOperationLabel {
-  operation: ScenarioOperation;
+export interface UnsupportedScenarioOperationLabel {
+  line: number;
+  prefix: string;
   title: string;
-}
-
-export function parseScenarioOperationLabel(line: string): ScenarioOperationLabel | null {
-  const match = line.match(SCENARIO_HEADER_REGEX);
-  if (!match) return null;
-  return { operation: match[2] as ScenarioOperation, title: match[3].trim() };
-}
-
-export function stripScenarioOperationLabel(line: string): string {
-  const match = line.match(SCENARIO_HEADER_REGEX);
-  if (!match) return line;
-  return `${match[1]}${match[3].trim()}`;
-}
-
-export function normalizeScenarioOperationLabelsForSync(raw: string): string {
-  const lines = normalizeLineEndings(raw).split('\n');
-  const output: string[] = [];
-  let skippingRemovedScenario = false;
-
-  for (const line of lines) {
-    if (/^####\s+Scenario:\s+/.test(line)) {
-      const label = parseScenarioOperationLabel(line);
-      if (label?.operation === 'REMOVED') {
-        skippingRemovedScenario = true;
-        if (output[output.length - 1] === '') output.pop();
-        continue;
-      }
-      if (skippingRemovedScenario && output.length > 0 && output[output.length - 1] !== '') {
-        output.push('');
-      }
-      skippingRemovedScenario = false;
-      output.push(stripScenarioOperationLabel(line));
-      continue;
-    }
-
-    if (skippingRemovedScenario) continue;
-    output.push(line);
-  }
-
-  return output.join('\n').trimEnd();
 }
 
 /**
@@ -148,12 +106,12 @@ export interface DeltaPlan {
   added: RequirementBlock[];
   modified: RequirementBlock[];
   removed: string[]; // requirement names
-  renamed: Array<{ from: string; to: string }>;
+  unsupportedSections: string[];
+  scenarioOperationLabels: UnsupportedScenarioOperationLabel[];
   sectionPresence: {
     added: boolean;
     modified: boolean;
     removed: boolean;
-    renamed: boolean;
   };
 }
 
@@ -170,21 +128,19 @@ export function parseDeltaSpec(content: string): DeltaPlan {
   const addedLookup = getSectionCaseInsensitive(sections, 'ADDED Requirements');
   const modifiedLookup = getSectionCaseInsensitive(sections, 'MODIFIED Requirements');
   const removedLookup = getSectionCaseInsensitive(sections, 'REMOVED Requirements');
-  const renamedLookup = getSectionCaseInsensitive(sections, 'RENAMED Requirements');
   const added = parseRequirementBlocksFromSection(addedLookup.body);
   const modified = parseRequirementBlocksFromSection(modifiedLookup.body);
   const removedNames = parseRemovedNames(removedLookup.body);
-  const renamedPairs = parseRenamedPairs(renamedLookup.body);
   return {
     added,
     modified,
     removed: removedNames,
-    renamed: renamedPairs,
+    unsupportedSections: Object.keys(sections).filter(title => title.toLowerCase() === 'renamed requirements'),
+    scenarioOperationLabels: findScenarioOperationLabels(normalized),
     sectionPresence: {
       added: addedLookup.found,
       modified: modifiedLookup.found,
       removed: removedLookup.found,
-      renamed: renamedLookup.found,
     },
   };
 }
@@ -260,23 +216,18 @@ function parseRemovedNames(sectionBody: string): string[] {
   return names;
 }
 
-function parseRenamedPairs(sectionBody: string): Array<{ from: string; to: string }> {
-  if (!sectionBody) return [];
-  const pairs: Array<{ from: string; to: string }> = [];
-  const lines = normalizeLineEndings(sectionBody).split('\n');
-  let current: { from?: string; to?: string } = {};
-  for (const line of lines) {
-    const fromMatch = line.match(/^\s*-?\s*FROM:\s*`?###\s*Requirement:\s*(.+?)`?\s*$/);
-    const toMatch = line.match(/^\s*-?\s*TO:\s*`?###\s*Requirement:\s*(.+?)`?\s*$/);
-    if (fromMatch) {
-      current.from = normalizeRequirementName(fromMatch[1]);
-    } else if (toMatch) {
-      current.to = normalizeRequirementName(toMatch[1]);
-      if (current.from && current.to) {
-        pairs.push({ from: current.from, to: current.to });
-        current = {};
-      }
+function findScenarioOperationLabels(content: string): UnsupportedScenarioOperationLabel[] {
+  const lines = normalizeLineEndings(content).split('\n');
+  const labels: UnsupportedScenarioOperationLabel[] = [];
+  let fenced = false;
+  for (let index = 0; index < lines.length; index += 1) {
+    if (/^\s*```/.test(lines[index])) {
+      fenced = !fenced;
+      continue;
     }
+    if (fenced) continue;
+    const match = lines[index].match(/^####\s+Scenario:\s+\[([^\]]+)\]\s*(.*?)\s*$/);
+    if (match) labels.push({ line: index + 1, prefix: match[1], title: match[2] });
   }
-  return pairs;
+  return labels;
 }

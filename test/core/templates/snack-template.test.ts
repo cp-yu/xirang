@@ -164,19 +164,18 @@ describe('snack template evidence/artifact terminology', () => {
   });
 });
 
-describe('snack template scenario operation labels', () => {
+describe('snack template semantic diff gate', () => {
   const template = getSnackSkillTemplate();
   const instructions = template.instructions;
 
-  it('delegates scenario labels to the CLI', () => {
-    const validationIndex = instructions.indexOf('Run `opsx validate "<name>" --type change --json`');
-    const scenarioLabelsIndex = instructions.indexOf('Run `opsx scenario-labels "<name>" --write` after validate to add deterministic change-local scenario operation labels.');
+  it('writes the effective semantic diff only after validation passes', () => {
+    const validationIndex = instructions.indexOf('Run `opsx validate --change "<name>" --json`');
+    const diffIndex = instructions.indexOf('run `opsx diff --change "<name>" --write`');
     expect(validationIndex).toBeGreaterThanOrEqual(0);
-    expect(scenarioLabelsIndex).toBeGreaterThan(validationIndex);
-    expect(instructions).toContain('SHALL NOT run validate again only because scenario labels were added');
-    expect(instructions).not.toContain(
-      ['automatically handled by the OPSX CLI', 'after validation'].join(' ')
-    );
+    expect(diffIndex).toBeGreaterThan(validationIndex);
+    expect(instructions).toContain('`.opsx/changes/<name>/effective-change.md`');
+    expect(instructions).toContain('require its status to be Passed');
+    expect(instructions).not.toContain('opsx scenario-labels');
     expect(instructions).not.toContain('#### Scenario: [ADDED] <title>');
     expect(instructions).not.toContain('#### Scenario: [MODIFIED] <title>');
     expect(instructions).not.toContain('#### Scenario: [REMOVED] <title>');

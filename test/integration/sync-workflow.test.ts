@@ -110,9 +110,13 @@ model {
   }
 }
 `);
-    await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), `model {
-  extend projectRoot {
-    added = operation 'Added' 'Added operation' {
+    await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), `architectureDelta {
+  ADDED {
+    element 'operation.added' {
+      kind 'operation'
+      parent 'project.root'
+      title 'Added'
+      summary 'Added operation'
       metadata { elementId 'operation.added' }
     }
   }
@@ -137,7 +141,62 @@ The system SHALL add behavior.
 
     const registry = await buildSpecRegistry(root);
     expect(registry.getElementForSpec('added')).toBe('operation.added');
-    expect(await fs.readFile(path.join(architecture, 'deltas', 'add.c4'), 'utf8')).toContain('operation.added');
+    expect(await fs.readFile(path.join(architecture, 'model.c4'), 'utf8')).toContain("elementId 'operation.added'");
+    await expect(fs.access(path.join(architecture, 'deltas'))).rejects.toThrow();
+  });
+
+  it('reconciles multi-module v1 graph sources without duplicating semantic facts', async () => {
+    const architecture = path.join(root, '.opsx', 'architecture');
+    await fs.rm(architecture, { recursive: true });
+    await fs.mkdir(path.join(architecture, 'domains'), { recursive: true });
+    await fs.writeFile(path.join(architecture, 'domains', 'specification.c4'), `opsx { languageVersion '1' }
+specification {
+  element project { opsx { root true contract optional children [capability] } }
+  element capability { opsx { contract optional parents [project] } }
+  relationship invokes
+}
+`);
+    await fs.writeFile(path.join(architecture, 'domains', 'model.c4'), `model {
+  projectRoot = project 'Root' 'Project intent' {
+    metadata { elementId 'project.root' }
+    alpha = capability 'Alpha' 'Alpha summary' { metadata { elementId 'alpha.id' } }
+    beta = capability 'Beta' 'Beta summary' { metadata { elementId 'beta.id' } }
+  }
+}
+`);
+    await fs.writeFile(path.join(architecture, 'domains', 'relations.c4'), `model {
+  projectRoot.alpha -[invokes]-> projectRoot.beta
+}
+`);
+    const views = 'views { view index { include * } }\n';
+    await fs.writeFile(path.join(architecture, 'views.c4'), views);
+    await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), `architectureDelta { MODIFIED {
+      element 'alpha.id' { kind 'capability' parent 'project.root' title 'Alpha' summary 'Updated summary' metadata { elementId 'alpha.id' } }
+    } }`);
+    await fs.writeFile(path.join(changeDir, '.specs-noop'), '');
+
+    const prepared = await prepareChangeSync(root, await assessChangeSyncState(root, 'add'), { skipValidation: true });
+    await applyPreparedChangeSync(root, prepared, { silent: true });
+
+    await expect(fs.access(path.join(architecture, 'domains', 'specification.c4'))).rejects.toThrow();
+    await expect(fs.access(path.join(architecture, 'domains', 'model.c4'))).rejects.toThrow();
+    await expect(fs.access(path.join(architecture, 'domains', 'relations.c4'))).rejects.toThrow();
+    expect(await fs.readFile(path.join(architecture, 'views.c4'), 'utf8')).toBe(views);
+    const relations = await fs.readFile(path.join(architecture, 'relations.c4'), 'utf8');
+    expect(relations.match(/-\[invokes\]->/g)).toHaveLength(1);
+    expect(await fs.readFile(path.join(architecture, 'model.c4'), 'utf8')).toContain('Updated summary');
+  });
+
+  it('rejects a stale Formal snapshot before any graph or Spec write', async () => {
+    await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), `model { extend core { added = capability 'Added' { metadata { capabilityId 'cap.core.added' } } } }`);
+    await fs.mkdir(path.join(changeDir, 'specs', 'added'), { recursive: true });
+    await fs.writeFile(path.join(changeDir, 'specs', 'added', 'spec.md'), `## ADDED Requirements\n\n### Requirement: Added behavior\nThe system SHALL add behavior.\n\n#### Scenario: Added succeeds\n- **WHEN** added runs\n- **THEN** it succeeds\n`);
+    const prepared = await prepareChangeSync(root, await assessChangeSyncState(root, 'add'), { skipValidation: true });
+    await fs.writeFile(path.join(root, '.opsx', 'architecture', 'views.c4'), 'views { view changed { include * } }');
+
+    await expect(applyPreparedChangeSync(root, prepared)).rejects.toThrow('Formal Semantic Model changed');
+    expect(await fs.readFile(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'), 'utf8')).toBe(formal);
+    await expect(fs.access(path.join(root, '.opsx', 'specs', 'added', 'spec.md'))).rejects.toThrow();
   });
 
   it('rejects invalid v1 relations in the sync target', async () => {
@@ -148,13 +207,15 @@ The system SHALL add behavior.
  specification { element project { opsx { root true contract optional } } relationship invokes }
  model { projectRoot = project 'Root' 'Project intent' { metadata { elementId 'project.root' } } payments = project 'Payments' 'Payments' { metadata { elementId 'project.payments' } } reports = project 'Reports' 'Reports' { metadata { elementId 'project.reports' } } }
 `);
-    await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), `model {
-  projectRoot.payments -[invokes]-> projectRoot.reports
-  projectRoot.payments -[invokes]-> projectRoot.reports
+    await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), `architectureDelta {
+  ADDED {
+    relationship 'project.payments' -[invokes]-> 'project.reports'
+    relationship 'project.payments' -[invokes]-> 'project.reports'
+  }
 }
 `);
 
-    await expect(prepareChangeSync(root, await assessChangeSyncState(root, 'add'), { skipValidation: true }))
+    await expect((async () => prepareChangeSync(root, await assessChangeSyncState(root, 'add'), { skipValidation: true }))())
       .rejects.toThrow();
   });
 

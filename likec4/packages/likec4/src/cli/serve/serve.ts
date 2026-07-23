@@ -73,6 +73,8 @@ type HandlerParams = {
   opsxProjectRoot?: string | undefined
   /** Root-owned immutable element-to-Spec registry snapshot. */
   opsxSpecRegistry?: string | undefined
+  /** Runtime Formal/active-change selector and semantic diff snapshot. */
+  opsxChangeManifest?: string | undefined
 }
 
 /** Starts the LikeC4 dev server (Vite) for the given workspace path. */
@@ -92,6 +94,7 @@ export async function handler({
   allowedHosts,
   opsxProjectRoot,
   opsxSpecRegistry,
+  opsxChangeManifest,
 }: HandlerParams) {
   // Explicitly set NODE_ENV to development
   if (enableHMR) {
@@ -121,6 +124,7 @@ export async function handler({
     allowedHosts,
     opsxProjectRoot,
     opsxSpecRegistry,
+    opsxChangeManifest,
   })
 
   server.config.logger.clearScreen('info')

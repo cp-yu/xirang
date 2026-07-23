@@ -14,7 +14,7 @@ describe('arch commands', () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-arch-command-'));
     const architecture = path.join(root, '.opsx', 'architecture');
     await fs.mkdir(path.join(architecture, 'domains'), { recursive: true });
-    await fs.writeFile(path.join(architecture, 'specification.c4'), 'specification { element domain element capability relationship invokes }');
+    await fs.writeFile(path.join(architecture, 'specification.c4'), 'specification { element domain element capability relationship invokes relationship precedes }');
     await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), domain);
     await fs.writeFile(path.join(architecture, 'views.c4'), 'views { view index { include * } }');
   });
@@ -151,18 +151,34 @@ describe('arch commands', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should validate an architecture delta with the formal model', async () => {
+  it('should validate an architecture delta against an immutable formal model', async () => {
+    const architecture = path.join(root, '.opsx', 'architecture');
+    await fs.writeFile(path.join(architecture, 'specification.c4'), `opsx { languageVersion '1' }
+specification {
+  element project { opsx { root true contract optional children [capability] } }
+  element capability { opsx { contract optional parents [project] } }
+}`);
+    await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), `model {
+  projectRoot = project 'Root' 'Root summary' {
+    metadata { elementId 'project.root' }
+  }
+}`);
     const delta = path.join(root, 'architecture-delta.c4');
-    await fs.writeFile(delta, `model { extend core { next = capability 'Next' } }`);
-    const cache = path.join(root, '.opsx', 'architecture', '.likec4');
-    await fs.mkdir(cache, { recursive: true });
-    await fs.writeFile(path.join(cache, 'index.likec4.snap'), 'stale');
-    const runner = vi.fn(async ([, workspace]: string[]) => {
-      await expect(fs.access(path.join(workspace, '.likec4'))).rejects.toThrow();
-    });
+    await fs.writeFile(delta, `architectureDelta { ADDED {
+      element 'cap.core.next' {
+        kind 'capability'
+        parent 'project.root'
+        title 'Next'
+        summary 'Runs next work'
+        metadata { elementId 'cap.core.next' }
+      }
+    } }`);
+    const formalBefore = await fs.readFile(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'), 'utf8');
+    const runner = vi.fn();
     const result = await validateArchitectureCommand(root, { deltaPath: delta, runLikeC4: runner });
-    expect(runner).toHaveBeenCalledWith(['validate', expect.stringContaining('opsx-likec4-delta-')]);
-    expect(result.success).toBe(true);
+    expect(runner).not.toHaveBeenCalled();
+    expect(result.success, JSON.stringify(result)).toBe(true);
+    expect(await fs.readFile(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'), 'utf8')).toBe(formalBefore);
   });
 
   it('should perform semantic validation', async () => {

@@ -216,10 +216,7 @@ export class MarkdownParser {
         const lowerDesc = description.toLowerCase();
         
         // Use word boundaries to avoid false matches (e.g., "address" matching "add")
-        // Check RENAMED first since it's more specific than patterns containing "new"
-        if (/\brename(s|d|ing)?\b/.test(lowerDesc) || /\brenamed\s+(to|from)\b/.test(lowerDesc)) {
-          operation = 'RENAMED';
-        } else if (/\badd(s|ed|ing)?\b/.test(lowerDesc) || /\bcreate(s|d|ing)?\b/.test(lowerDesc) || /\bnew\b/.test(lowerDesc)) {
+        if (/\badd(s|ed|ing)?\b/.test(lowerDesc) || /\bcreate(s|d|ing)?\b/.test(lowerDesc) || /\bnew\b/.test(lowerDesc)) {
           operation = 'ADDED';
         } else if (/\bremove(s|d|ing)?\b/.test(lowerDesc) || /\bdelete(s|d|ing)?\b/.test(lowerDesc)) {
           operation = 'REMOVED';

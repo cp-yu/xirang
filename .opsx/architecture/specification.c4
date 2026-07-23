@@ -3,14 +3,14 @@ opsx {
 }
 
 specification {
-  element project { opsx { root true contract required } }
-  element domain { opsx { contract optional } }
   element capability { opsx { contract required } }
   element compatibility { opsx { contract optional } }
-  relationship invokes
-  relationship produces
-  relationship consumes
-  relationship validates
+  element domain { opsx { contract optional } }
+  element project { opsx { root true contract required } }
   relationship constrains
+  relationship consumes
+  relationship invokes
   relationship precedes
+  relationship produces
+  relationship validates
 }

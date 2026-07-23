@@ -16,7 +16,6 @@ import {
   parseDeltaSpec,
   normalizeRequirementName,
   extractRequirementsSection,
-  parseScenarioOperationLabel,
 } from '../parsers/requirement-blocks.js';
 import { parseSpecFrontmatter } from '../parsers/spec-frontmatter.js';
 import { buildSpecRegistry, type SpecRegistry } from '../spec-registry.js';
@@ -32,7 +31,9 @@ import { FileSystemUtils } from '../../utils/file-system.js';
 export interface ChangeDeltaValidationContext {
   projectRoot: string;
   architecture: Awaited<ReturnType<typeof readLikeC4Architecture>>;
-  specsDirectory: string;
+  specsDirectory?: string;
+  knownElementIds?: ReadonlySet<string>;
+  allowAlreadyApplied?: boolean;
 }
 
 function appendRegistryBindingIssues(
@@ -207,7 +208,7 @@ export class Validator {
    * - At least one delta across all files
    * - ADDED/MODIFIED: each requirement has SHALL/MUST and at least one scenario
    * - REMOVED: names only; no scenario/description required
-   * - RENAMED: pairs well-formed
+   * - unsupported operation sections and Scenario metadata are rejected
    * - No duplicates within sections; no cross-section conflicts per spec
    */
   async validateChangeDeltaSpecs(changeDir: string, context?: ChangeDeltaValidationContext): Promise<ValidationReport> {
@@ -237,9 +238,16 @@ export class Validator {
         if (plan.sectionPresence.added) sectionNames.push('## ADDED Requirements');
         if (plan.sectionPresence.modified) sectionNames.push('## MODIFIED Requirements');
         if (plan.sectionPresence.removed) sectionNames.push('## REMOVED Requirements');
-        if (plan.sectionPresence.renamed) sectionNames.push('## RENAMED Requirements');
         const hasSections = sectionNames.length > 0;
-        const hasEntries = plan.added.length + plan.modified.length + plan.removed.length + plan.renamed.length > 0;
+        const hasEntries = plan.added.length + plan.modified.length + plan.removed.length > 0;
+        for (const section of plan.unsupportedSections) issues.push({
+          level: 'ERROR', path: entryPath,
+          message: `${section} is unsupported. Use REMOVED old Requirement plus ADDED new Requirement.`,
+        });
+        for (const label of plan.scenarioOperationLabels) issues.push({
+          level: 'ERROR', path: `${entryPath}:${label.line}`,
+          message: `Unsupported Scenario operation metadata [${label.prefix}]. Remove the label and express the complete target Scenario set.`,
+        });
         if (!hasEntries) {
           if (hasSections) emptySectionSpecs.push({ path: entryPath, sections: sectionNames });
           else missingHeaderSpecs.push(entryPath);
@@ -248,8 +256,6 @@ export class Validator {
         const addedNames = new Set<string>();
         const modifiedNames = new Set<string>();
         const removedNames = new Set<string>();
-        const renamedFrom = new Set<string>();
-        const renamedTo = new Set<string>();
 
         totalDeltas += this.validateDeltaRequirementBlocks(
           plan.added,
@@ -278,23 +284,6 @@ export class Validator {
           }
         }
 
-        // Validate RENAMED pairs
-        for (const { from, to } of plan.renamed) {
-          const fromKey = normalizeRequirementName(from);
-          const toKey = normalizeRequirementName(to);
-          totalDeltas++;
-          if (renamedFrom.has(fromKey)) {
-            issues.push({ level: 'ERROR', path: entryPath, message: `Duplicate FROM in RENAMED: "${from}"` });
-          } else {
-            renamedFrom.add(fromKey);
-          }
-          if (renamedTo.has(toKey)) {
-            issues.push({ level: 'ERROR', path: entryPath, message: `Duplicate TO in RENAMED: "${to}"` });
-          } else {
-            renamedTo.add(toKey);
-          }
-        }
-
         // Cross-section conflicts (within the same spec file)
         for (const n of modifiedNames) {
           if (removedNames.has(n)) {
@@ -309,16 +298,7 @@ export class Validator {
             issues.push({ level: 'ERROR', path: entryPath, message: `Requirement present in both ADDED and REMOVED: "${n}"` });
           }
         }
-        for (const { from, to } of plan.renamed) {
-          const fromKey = normalizeRequirementName(from);
-          const toKey = normalizeRequirementName(to);
-          if (modifiedNames.has(fromKey)) {
-            issues.push({ level: 'ERROR', path: entryPath, message: `MODIFIED references old name from RENAMED. Use new header for "${to}"` });
-          }
-          if (addedNames.has(toKey)) {
-            issues.push({ level: 'ERROR', path: entryPath, message: `RENAMED TO collides with ADDED for "${to}"` });
-          }
-        }
+        if (context?.allowAlreadyApplied) continue;
 
         // Cross-validate against main spec
         const mainSpecsDir = path.resolve(changeDir, '../../specs');
@@ -354,12 +334,6 @@ export class Validator {
               issues.push({ level: 'ERROR', path: entryPath, message: `REMOVED "${name}" not found in main spec.` });
             }
           }
-          for (const { from } of plan.renamed) {
-            const fromKey = normalizeRequirementName(from).toLowerCase();
-            if (!mainHeaders.has(fromKey)) {
-              issues.push({ level: 'ERROR', path: entryPath, message: `RENAMED FROM "${from}" not found in main spec.` });
-            }
-          }
         } else {
           // Main spec does not exist: only ADDED is valid
           for (const block of plan.modified) {
@@ -367,9 +341,6 @@ export class Validator {
           }
           for (const name of plan.removed) {
             issues.push({ level: 'ERROR', path: entryPath, message: `REMOVED "${name}" references non-existent main spec. Main spec "specs/${specName}/spec.md" does not exist.` });
-          }
-          for (const { from } of plan.renamed) {
-            issues.push({ level: 'ERROR', path: entryPath, message: `RENAMED FROM "${from}" references non-existent main spec. Main spec "specs/${specName}/spec.md" does not exist.` });
           }
         }
       }
@@ -577,10 +548,8 @@ export class Validator {
         issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${block.name}" must contain SHALL or MUST` });
       }
 
-      this.validateScenarioOperationLabels(block.raw, section, entryPath, block.name, issues);
-
       if (this.countSurvivingScenarios(block.raw) < 1) {
-        issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${block.name}" must include at least one unlabeled, [ADDED], or [MODIFIED] scenario` });
+        issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${block.name}" must include at least one canonical unlabeled Scenario` });
       }
     }
 
@@ -600,70 +569,24 @@ export class Validator {
   private findFormalScenarioOperationLabels(content: string): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
     const lines = content.replace(/\r\n?/g, '\n').split('\n');
+    const fenceMask = buildCodeFenceMask(lines);
     for (let i = 0; i < lines.length; i++) {
-      if (/^####\s+Scenario:\s+\[(ADDED|MODIFIED|REMOVED)\]\s+/.test(lines[i])) {
+      if (!fenceMask[i] && /^####\s+Scenario:\s+\[[^\]]+\]/.test(lines[i])) {
         issues.push({
           level: 'ERROR',
           path: 'file',
           line: i + 1,
-          message: 'Formal specs SHALL NOT contain scenario operation labels in Scenario headings',
+          message: 'Formal specs SHALL use canonical unlabeled Scenario headings',
         });
       }
     }
     return issues;
   }
 
-  private validateScenarioOperationLabels(
-    blockRaw: string,
-    section: 'ADDED' | 'MODIFIED',
-    entryPath: string,
-    blockName: string,
-    issues: ValidationIssue[],
-  ): void {
-    const lines = blockRaw.replace(/\r\n?/g, '\n').split('\n');
-    const fenceMask = buildCodeFenceMask(lines);
-    for (let i = 0; i < lines.length; i++) {
-      if (fenceMask[i]) continue;
-      const line = lines[i];
-      // Only process lines that look like scenario headers
-      if (!/^####\s+/.test(line)) continue;
-
-      // Unknown label check (canonical scenario header with unexpected label)
-      const canonicalUnknown = line.match(/^####\s+Scenario:\s+\[([^\]]+)\]\s+/);
-      if (canonicalUnknown && !['ADDED', 'MODIFIED', 'REMOVED'].includes(canonicalUnknown[1])) {
-        issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${blockName}" has unknown scenario operation label. Allowed labels are [ADDED], [MODIFIED], [REMOVED]` });
-        continue;
-      }
-
-      // Malformed label check (label-like text present but not in canonical position)
-      if (/\[(ADDED|MODIFIED|REMOVED)\]/.test(line) && !parseScenarioOperationLabel(line)) {
-        issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${blockName}" has malformed scenario operation label. Use legal format #### Scenario: [ADDED] 场景` });
-        continue;
-      }
-
-      // From here on, only canonical `#### Scenario:` lines with valid labels
-      if (!/^####\s+Scenario:\s+/.test(line)) continue;
-
-      const label = parseScenarioOperationLabel(line);
-
-      if (section === 'ADDED') {
-        if (label?.operation === 'REMOVED') {
-          issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${blockName}" has [REMOVED] scenario. A new requirement cannot have removed scenarios — if modifying an existing requirement, use "## MODIFIED Requirements" instead.` });
-        } else if (label?.operation === 'MODIFIED') {
-          issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${blockName}" has [MODIFIED] scenario. A new requirement can only have [ADDED] scenarios — if modifying an existing requirement, use "## MODIFIED Requirements" instead.` });
-        }
-        // [ADDED] or unlabeled: fine (unlabeled is the recommended form under ADDED)
-      }
-    }
-  }
-
   private countSurvivingScenarios(blockRaw: string): number {
     const lines = blockRaw.replace(/\r\n?/g, '\n').split('\n');
     let count = 0;
-    for (const line of listNonFencedScenarioHeaders(lines)) {
-      if (parseScenarioOperationLabel(line)?.operation === 'REMOVED') continue;
-      count++;
-    }
+    for (const _line of listNonFencedScenarioHeaders(lines)) count++;
     return count;
   }
 
@@ -686,7 +609,7 @@ export class Validator {
       throw error;
     });
     if (architecture?.profile === 'v1') {
-      await this.validateV1SpecBindings(projectRoot, changeDir, architecture, issues, context?.specsDirectory);
+      await this.validateV1SpecBindings(projectRoot, changeDir, architecture, issues, context?.specsDirectory, context?.knownElementIds);
       return;
     }
 
@@ -744,10 +667,11 @@ export class Validator {
     architecture: Awaited<ReturnType<typeof readLikeC4Architecture>>,
     issues: ValidationIssue[],
     specsDirectory?: string,
+    contextKnownElementIds?: ReadonlySet<string>,
   ): Promise<void> {
     const formal = await buildSpecRegistry(projectRoot, specsDirectory);
     const local = specsDirectory ? null : await buildSpecRegistry(projectRoot, path.join(changeDir, 'specs'));
-    const knownElements = new Set(architecture.elements.map(element => element.id));
+    const knownElements = new Set(contextKnownElementIds ?? architecture.elements.map(element => element.id));
 
     appendRegistryBindingIssues(formal, path.join(OPSX_DIR_NAME, 'specs'), knownElements, issues);
     if (local) appendRegistryBindingIssues(local, path.relative(projectRoot, path.join(changeDir, 'specs')), knownElements, issues);

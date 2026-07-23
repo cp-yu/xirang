@@ -3,6 +3,7 @@ import type { Command } from 'commander';
 import { formatArchitectureQueryText, queryArchitecture } from './query.js';
 import { validateArchitectureCommand } from './validate.js';
 import { exportArchitecture, type ExportFormat } from './export.js';
+import { registerPlanRemoveCommand } from './plan-remove.js';
 
 export function registerArchCommand(program: Command): void {
   const arch = program.command('arch').description('Query, validate, and export LikeC4 architecture');
@@ -26,4 +27,5 @@ export function registerArchCommand(program: Command): void {
     }
   });
   arch.command('export').option('--format <format>', 'png, svg, or pdf', 'png').option('--output <dir>', 'output directory', 'docs/architecture').action(options => exportArchitecture(process.cwd(), { format: options.format as ExportFormat, output: path.resolve(options.output) }));
+  registerPlanRemoveCommand(arch);
 }

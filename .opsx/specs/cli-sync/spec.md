@@ -45,7 +45,7 @@ opsx sync [change-name] [--no-validate]
 
 ### Requirement: 同步执行
 
-`opsx sync` SHALL 在 verify gate 通过后，将 change-local graph 与 contract modules 作为一个 Semantic Delta prepare、联合验证并原子写入 formal OPSX Semantic Model。Sync SHALL NOT 生成 scenario labels，也 SHALL NOT 静默迁移 language version。
+`opsx sync` SHALL 在 verify gate 通过后，从 immutable Formal snapshot 将 change-local graph 与 contract operations materialize 为一个完整 Target Semantic Model，执行 combined validation 与 fingerprint freshness check，再原子写入干净 formal modules。Sync SHALL NOT 生成 review metadata 或静默迁移 language version。
 
 #### Scenario: verify gate 失败输出指引
 - **WHEN** freshness 为 STALE 或 archive compatibility 不满足
@@ -54,18 +54,18 @@ opsx sync [change-name] [--no-validate]
 
 #### Scenario: verify gate 通过后执行同步
 - **WHEN** freshness 为 FRESH 且 archive compatible
-- **THEN** SHALL 构造 Target Semantic Model 并执行 combined validation
-- **AND** validation 通过后 SHALL 原子写入 graph 与 Specs
+- **THEN** SHALL 构造 Target Semantic Model 与内部 Diff IR
+- **AND** validation 与 Formal fingerprint recheck 通过后 SHALL 原子写入 graph 与 Specs
 
 #### Scenario: --no-verify 跳过 gate
 - **WHEN** 用户运行 `opsx sync <change> --no-verify`
-- **THEN** SHALL 跳过 freshness gate
-- **AND** MUST NOT 跳过 Semantic Model syntax 与 integrity validation
+- **THEN** SHALL 跳过 verify freshness gate
+- **AND** MUST NOT 跳过 syntax、identity、integrity、fingerprint 与 target validation
 
-#### Scenario: sync 不写入 scenario labels
-- **WHEN** sync prepares contract deltas
-- **THEN** MUST NOT 运行 scenario-label write
-- **AND** MUST NOT 仅为 labels 修改 change-local Specs
+#### Scenario: sync 不修改 change review source
+- **WHEN** sync prepares Semantic Delta
+- **THEN** MUST NOT 修改 change-local Specs、Architecture delta 或 `effective-change.md`
+- **AND** MUST NOT 生成 Scenario operation metadata
 
 #### Scenario: 同步后 evidence fingerprint 刷新
 - **WHEN** sync 成功写入 formal graph 或 Specs
@@ -74,88 +74,57 @@ opsx sync [change-name] [--no-validate]
 
 ### Requirement: 不触发归档
 
-`opsx sync` SHALL NOT 触发归档或移动 change 目录。Sync MAY write formal specs and OPSX files only through the sync contract and SHALL NOT update change-local delta specs to apply scenario operation labels.
+`opsx sync` SHALL NOT 归档或移动 change directory。Sync 只 MAY 通过 prepared transaction 写入 formal Specs 与 Architecture modules。
 
 #### Scenario: 同步后 change 目录保持不变
-
 - **WHEN** sync 成功完成
-- **THEN** change 目录不被移动或删除
-- **AND** change-local spec files SHALL NOT be modified by sync only to add scenario operation labels
+- **THEN** active change directory 与其中 artifacts SHALL 保持原路径
+- **AND** generated review artifact SHALL NOT 因 sync 被创建、更新或删除
 
 ### Requirement: 幂等性
 
-`opsx sync` SHALL 保持幂等性，重复执行不得引入额外差异。对于只包含 `## REMOVED Requirements` 的 delta，当该 delta 声明的所有 requirement headers 都已从当前主 spec 缺失时，系统 SHALL 将该 spec delta 视为已经同步；主 spec 中仍存在的无关 requirements SHALL NOT 使该 removal-only delta 重新变为 pending。对于包含 scenario operation labels 的 ADDED 或 MODIFIED requirement，幂等性比较 SHALL 使用 sync-normalized requirement 内容：`[ADDED]` 与 `[MODIFIED]` labels 被忽略，`[REMOVED]` scenario block 被视为不存在。
+`opsx sync` SHALL 保持 target-state 幂等性。重复执行不得引入额外 graph、contract 或 formatting differences；identity operations 已全部反映在 Formal Model 时 SHALL 被判断为 already synchronized。
 
 #### Scenario: 重复执行产生相同结果
-
-- **GIVEN** 已对某 change 执行过一次 sync
-- **WHEN** 再次对同一 change 执行 sync
-- **THEN** 主 specs 和 OPSX 文件内容与首次同步后完全一致
-
-#### Scenario: labeled scenario 不触发重复 pending
-
-- **GIVEN** change spec 的 `## MODIFIED Requirements` 包含 `#### Scenario: [MODIFIED] 已调整场景`
-- **AND** 首次 sync 已将 formal spec 写为 `#### Scenario: 已调整场景`
-- **WHEN** 再次执行 `opsx sync <change-name>`
-- **THEN** sync SHALL treat that requirement delta as already applied
-- **AND** SHALL NOT 仅因 change-local scenario header 包含 `[MODIFIED]` 而将 spec 报告为 pending
-
-#### Scenario: removed scenario block 不触发重复 pending
-
-- **GIVEN** change spec 的 `## MODIFIED Requirements` 包含 `#### Scenario: [REMOVED] 旧场景`
-- **AND** 首次 sync 后 formal spec 不包含该 scenario block
-- **WHEN** 再次执行 `opsx sync <change-name>`
-- **THEN** sync SHALL treat that requirement delta as already applied
-- **AND** SHALL NOT 重新创建或要求该 removed scenario block
+- **GIVEN** 已对某 change 成功执行 sync
+- **WHEN** Formal target 未被其他 change 修改且再次执行 sync
+- **THEN** formal Specs 与 Architecture SHALL 与首次同步后字节一致
 
 #### Scenario: removal-only delta 的目标 headers 已缺失
+- **GIVEN** change Spec 只包含 `## REMOVED Requirements`
+- **AND** 所有 target headers 已从 Formal Spec 缺失
+- **WHEN** 再次执行 sync
+- **THEN** SHALL 将该 contract delta 视为已同步
 
-- **GIVEN** change spec 只包含 `## REMOVED Requirements`
-- **AND** 主 spec 文件仍存在
-- **AND** delta 声明的所有 requirement headers 都已从主 spec 缺失
-- **AND** 主 spec 仍包含无关 requirements
-- **WHEN** 再次执行 `opsx sync <change-name>`
-- **THEN** sync SHALL treat that spec delta as already synced
-- **AND** SHALL NOT 再次尝试删除这些 headers
+#### Scenario: removal-only delta 清空 Spec
+- **GIVEN**首次 sync 删除了 Formal Spec 最后一个 Requirement 并删除该 Spec file
+- **WHEN** 再次执行 sync
+- **THEN** SHALL 将该 delta 视为已同步
+- **AND** SHALL NOT 重建空 Spec
 
-#### Scenario: removal-only delta 清空 spec 后重复执行
-
-- **GIVEN** change spec 只包含 `## REMOVED Requirements`
-- **AND** 首次 sync 删除了主 spec 中最后一个 requirement
-- **AND** 主 spec 文件已被删除
-- **WHEN** 再次执行 `opsx sync <change-name>`
-- **THEN** sync SHALL treat that spec delta as already synced
-- **AND** SHALL NOT 重建空的主 spec 文件
-
-#### Scenario: unlabeled scenario differences 不阻塞 sync
-
-- **GIVEN** change spec 的 `## MODIFIED Requirements` contains unlabeled scenario differences
-- **WHEN** executing `opsx sync <change-name>`
-- **THEN** sync SHALL continue without requiring scenario operation labels
-- **AND** sync SHALL NOT write labels back to the change-local spec
+#### Scenario: 完整 MODIFIED Requirement 已同步
+- **WHEN** Formal Requirement 已与 change-local完整 target block 相同
+- **THEN** sync SHALL 将 operation 视为已应用
+- **AND** SHALL NOT 依赖 Scenario labels 判断等价性
 
 ### Requirement: Sync-created specs SHALL use runtime projection
-`opsx sync` 创建或重建 formal specs 时 SHALL 消费 runtime projection，使新写入的 prose 遵循 config 策略而非硬编码英文模板。Sync 写入的 formal specs SHALL NOT 在 `#### Scenario:` 标题中包含 `[ADDED]`、`[MODIFIED]`、`[REMOVED]` 等 scenario operation labels。
+
+`opsx sync` 创建或重建 Formal Specs 时 SHALL 消费 runtime projection，并写入 canonical unlabeled Scenario headings。任何 Scenario operation-like label SHALL 在 validation 阶段阻止 sync，而不是在写入时被清洗。
 
 #### Scenario: New formal spec uses projected prose policy
-- **WHEN** sync 创建尚不存在的 formal spec
-- **THEN** 命令 SHALL 对生成的 prose 内容使用 runtime projection
-- **AND** SHALL 保留 canonical headers、requirement markers、scenario markers 及 normative keywords
+- **WHEN** sync 创建尚不存在的 Formal Spec
+- **THEN** SHALL 对生成 prose 使用 runtime projection
+- **AND** SHALL 保留 canonical headers、normative keywords 与 BDD keywords
 
 #### Scenario: Existing formal spec update does not inject unrelated boilerplate
-- **WHEN** sync 通过 delta reconciliation 更新已有 formal spec
-- **THEN** 命令 SHALL 将生成的 prose 限制在 sync contract 范围内
-- **AND** SHALL NOT 向未受影响 section 注入无关硬编码英文指导
+- **WHEN** sync 更新 existing Formal Spec
+- **THEN** SHALL 将写入限制在 target reconciliation 范围
+- **AND** SHALL NOT 修改 unrelated sections
 
-#### Scenario: Scenario operation labels 不进入 formal specs
-- **WHEN** sync 从包含 `#### Scenario: [ADDED] 新场景` 或 `#### Scenario: [MODIFIED] 已调整场景` 的 change-local ADDED 或 MODIFIED requirement 写入 formal spec
-- **THEN** formal spec SHALL 包含去除 operation label 后的 scenario 标题
-- **AND** formal spec SHALL NOT 包含 `Scenario: [ADDED]` 或 `Scenario: [MODIFIED]`
-
-#### Scenario: Removed scenario labels 不进入 formal specs
-- **WHEN** sync 从包含 `#### Scenario: [REMOVED] 旧场景` 的 change-local MODIFIED requirement 写入 formal spec
-- **THEN** formal spec SHALL 省略该 scenario block
-- **AND** formal spec SHALL NOT 包含 `Scenario: [REMOVED]`
+#### Scenario: Scenario label 阻止 sync
+- **WHEN** change-local Spec 包含 Scenario operation-like label
+- **THEN** combined validation SHALL 失败
+- **AND** sync SHALL NOT 写入任何 Formal modules
 
 ### Requirement: --no-verify 选项
 
@@ -201,20 +170,56 @@ Sync SHALL 始终使用对应 language version 的 graph delta parser。`--no-va
 
 ### Requirement: Semantic Delta SHALL 原子提升
 
-Sync SHALL 在 temporary workspace 中完成 graph merge、contract reconciliation、registry rebuild 与 full validation，随后一次提交全部 formal writes。任一 write 或 validation failure SHALL 回滚整个 Semantic Delta。
+Sync SHALL 在 temporary workspace 中完成 target materialization、registry rebuild、full validation、Diff IR generation 与 Formal fingerprint recheck，随后一次提交全部 formal writes。
 
 #### Scenario: Graph 与 contract 联合成功
 - **WHEN** graph 新增 element 且 Spec 绑定该 element
-- **AND** Target Semantic Model validation 通过
+- **AND** Target validation 与 fingerprint recheck 通过
 - **THEN** 两类 modules SHALL 同时写入
-- **AND** formal registry SHALL 可立即查询该 binding
+- **AND** Formal registry SHALL 可立即查询该 binding
 
 #### Scenario: Contract failure 回滚 graph
-- **WHEN** graph merge 成功但 Spec binding 或 required contract validation 失败
-- **THEN** graph change SHALL NOT 留在 formal source
-- **AND** formal model SHALL 保持同步前内容
+- **WHEN** graph materialization 成功但 Spec binding 或 contract validation 失败
+- **THEN** graph change SHALL NOT 留在 Formal source
+
+#### Scenario: Stale Formal snapshot
+- **WHEN** prepare 后检测到 Formal fingerprint 改变
+- **THEN** sync SHALL 拒绝全部 writes
+- **AND** SHALL 指引重新 validate 与 diff
 
 #### Scenario: Windows 原子 sync
 - **WHEN** sync 在 Windows filesystem 执行
-- **THEN** temporary 与 target paths SHALL 使用 Node.js path API
-- **AND** rollback SHALL 恢复 graph 与 Spec files
+- **THEN** temporary、backup 与 target paths SHALL 使用 Node.js path API
+- **AND** rollback SHALL 恢复全部 graph 与 Spec files
+
+### Requirement: Sync 按实际 OPSX operations 判断同步需求
+
+Sync SHALL 根据 parsed identity-level Architecture operations 与 Requirement operations 判断同步需求。缺失 `architecture-delta.c4` SHALL 表示 graph no-op；存在的 graph delta 必须含真实 operation。
+
+#### Scenario: 无 graph delta 且无 contract delta
+- **WHEN** change 没有待同步 operations
+- **THEN** SHALL 输出 `No sync required.`
+
+#### Scenario: 只有 contract delta
+- **WHEN** change 只有待同步 Specs
+- **THEN** SHALL 只更新 contract modules
+- **AND** SHALL 在完整 Target Semantic Model 上检查 bindings 与 contract policy
+
+#### Scenario: Real graph delta 要求 Formal Model
+- **WHEN** graph delta 包含 operation 且 Formal graph 不存在
+- **THEN** SHALL 失败并报告无法构造 Target Semantic Model
+
+### Requirement: Sync 拒绝非 canonical 空 OPSX delta
+
+Sync SHALL 使用 target language version 的 Architecture delta parser。`--no-validate` MUST NOT 绕过 syntax 与 integrity validation；空 section、只有 replacement hint 或 raw `extend` MUST NOT 被当作 no-op。
+
+#### Scenario: 空 graph operation fail-fast
+- **WHEN** `architecture-delta.c4` 无真实 target operation
+- **THEN** sync SHALL 失败
+- **AND** MUST NOT 写入 Formal graph 或 Specs
+
+#### Scenario: Invalid dialect syntax fail-fast
+- **WHEN** delta 使用不受支持 version、raw `extend` 或 invalid operation
+- **THEN** SHALL 返回 structured ERROR
+- **AND** MUST NOT partial apply contract deltas
+

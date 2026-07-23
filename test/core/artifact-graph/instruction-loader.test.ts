@@ -305,7 +305,7 @@ describe('instruction-loader', () => {
         'specs/<spec-id>/spec.md',
         'Spec IDs and architecture capability IDs are different identifiers',
         'A `Modified Specs` file may contain any combination',
-        'Agent MUST NOT author scenario operation labels',
+        'Agent MUST NOT author Scenario operation labels',
       ]) {
         expect(body).toContain(token);
       }
@@ -380,8 +380,8 @@ describe('instruction-loader', () => {
       expect(instructions.instruction).toMatch(/paths/i);
       expect(instructions.instruction).toContain('Task titles, check names');
       expect(instructions.instruction).toContain('Evidence:/Expect:');
-      expect(instructions.instruction).toContain('clean Scenario names without scenario operation labels');
-      expect(instructions.instruction).toContain('Scenario "<title>"');
+      expect(instructions.instruction).toContain('exact canonical unlabeled Scenario names');
+      expect(instructions.instruction).toContain('Scenario "<name>"');
       expect(instructions.instruction).toContain('proseLanguage');
     });
 
@@ -395,12 +395,12 @@ describe('instruction-loader', () => {
       expect(instructions.instruction).toContain('proseLanguage');
     });
 
-    it('leaves scenario label orchestration to the invoking workflow', () => {
+    it('derives Scenario operations through validation and semantic diff', () => {
       const context = loadChangeContext(tempDir, 'my-change');
       const instructions = generateInstructions(context, 'specs');
 
-      expect(instructions.instruction).toContain('Agent MUST NOT author scenario operation labels');
-      expect(instructions.instruction).toContain('The invoking workflow owns scenario label preview and write orchestration');
+      expect(instructions.instruction).toContain('Agent MUST NOT author Scenario operation labels');
+      expect(instructions.instruction).toContain('Scenario operations are derived by `opsx validate --change <name>` and `opsx diff --change <name> --write`');
       expect(instructions.instruction).not.toContain('opsx scenario-labels');
       expect(instructions.instruction).not.toContain('use `[ADDED]`');
       expect(instructions.instruction).not.toContain('use `[MODIFIED]`');

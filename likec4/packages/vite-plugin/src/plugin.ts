@@ -1,3 +1,4 @@
+import { promises as fs } from 'node:fs'
 import type { ProjectId } from '@likec4/core/types'
 import type { LikeC4LanguageServices } from '@likec4/language-services'
 import { fromWorkspace } from '@likec4/language-services/node'
@@ -14,7 +15,7 @@ import { iconBundlePlugin } from './icon-bundle-plugin'
 import { logger } from './logger'
 import { assertOpsxProject, createOpsxSpecWatcher, OpsxSpecError, readOpsxSpec, readOpsxSpecRegistry } from './opsx/opsx-spec-handler'
 import { enablePluginRPC } from './rpc'
-import { opsxSpecChangedEvent } from './rpc/protocol'
+import { opsxChangeManifestChangedEvent, opsxSpecChangedEvent } from './rpc/protocol'
 import { splitErrorMessage } from './rpc/sendError'
 import { type ProjectsData, type SharedVirtualModuleOptions, k } from './virtuals/_shared'
 import { type AppConfig, createAppConfigModule } from './virtuals/app-config'
@@ -100,6 +101,8 @@ type SharedOptions = {
   opsxProjectRoot?: string
   /** Root-owned immutable element-to-Spec registry snapshot. */
   opsxSpecRegistry?: string
+  /** Runtime Formal/active-change selector and semantic diff snapshot. */
+  opsxChangeManifest?: string
 }
 
 export type LikeC4VitePluginOptions =
@@ -199,6 +202,7 @@ export function LikeC4VitePlugin({
   appConfig,
   opsxProjectRoot,
   opsxSpecRegistry,
+  opsxChangeManifest,
   ai: _ai = 'auto',
   ...pluginOpts
 }: LikeC4VitePluginOptions): PluginOption {
@@ -359,6 +363,26 @@ export function LikeC4VitePlugin({
       },
     },
 
+    async transformIndexHtml(html) {
+      if (!opsxChangeManifest) return html
+      try {
+        const payload = (await fs.readFile(opsxChangeManifest, 'utf8'))
+          .replaceAll('<', '\\u003c')
+          .replaceAll('\u2028', '\\u2028')
+          .replaceAll('\u2029', '\\u2029')
+        return {
+          html,
+          tags: [{
+            tag: 'script',
+            children: `globalThis.__OPSX_RUNTIME__=${payload}`,
+            injectTo: 'head-prepend',
+          }],
+        }
+      } catch {
+        return html
+      }
+    },
+
     async configureServer(server) {
       if (!rpcEnabled) {
         return
@@ -369,8 +393,49 @@ export function LikeC4VitePlugin({
         moduleopts({ server }),
       )
 
+      if (opsxChangeManifest) {
+        server.middlewares.use('/__opsx/changes', async (req, res) => {
+          try {
+            if (req.method !== 'GET') {
+              throw new OpsxSpecError(405, 'Method not allowed')
+            }
+            const payload = JSON.parse(await fs.readFile(opsxChangeManifest, 'utf8')) as unknown
+            if (!payload || typeof payload !== 'object' || (payload as { version?: unknown }).version !== 1
+              || !Array.isArray((payload as { variants?: unknown }).variants)) {
+              throw new OpsxSpecError(500, 'Invalid active change manifest')
+            }
+            res.statusCode = 200
+            res.setHeader('Content-Type', 'application/json; charset=utf-8')
+            res.setHeader('Cache-Control', 'no-store')
+            res.end(JSON.stringify(payload))
+          } catch (error) {
+            const opsxError = error instanceof OpsxSpecError
+              ? error
+              : new OpsxSpecError(500, 'Unable to read active change manifest')
+            res.statusCode = opsxError.statusCode
+            res.setHeader('Content-Type', 'application/json; charset=utf-8')
+            res.end(JSON.stringify({ error: opsxError.message }))
+          }
+        })
+        const notifyManifest = (changedPath: string) => {
+          if (changedPath === opsxChangeManifest) server.hot.send(opsxChangeManifestChangedEvent, {})
+        }
+        server.watcher.add(opsxChangeManifest)
+        server.watcher.on('change', notifyManifest)
+      }
+
       if (opsxProjectRoot && opsxSpecRegistry) {
         const specRegistry = await readOpsxSpecRegistry(opsxSpecRegistry)
+        const readRuntimeVariant = async (id: string | null) => {
+          if (!id || id === 'formal') return null
+          if (!opsxChangeManifest) throw new OpsxSpecError(404, 'Active change not found')
+          const manifest = JSON.parse(await fs.readFile(opsxChangeManifest, 'utf8')) as {
+            variants?: Array<{ id?: string; specs?: Record<string, string[]>; contents?: Record<string, string> }>
+          }
+          const variant = manifest.variants?.find(candidate => candidate.id === id)
+          if (!variant) throw new OpsxSpecError(404, 'Active change not found')
+          return variant
+        }
         server.middlewares.use('/__opsx/specs', async (req, res) => {
           try {
             if (req.method !== 'GET') {
@@ -379,10 +444,11 @@ export function LikeC4VitePlugin({
             const requestUrl = new URL(req.url ?? '/', 'http://localhost')
             const project = requestUrl.searchParams.get('project')
             const element = requestUrl.searchParams.get('element')
+            const variant = await readRuntimeVariant(requestUrl.searchParams.get('variant'))
             if (!project || !element || !likec4.projects().some(candidate => candidate.id === project)) {
               throw new OpsxSpecError(404, 'Element not found')
             }
-            const specs = specRegistry.get(element)
+            const specs = variant ? variant.specs?.[element] : specRegistry.get(element)
             if (!specs) {
               throw new OpsxSpecError(404, 'Element not found')
             }
@@ -408,19 +474,29 @@ export function LikeC4VitePlugin({
             const project = requestUrl.searchParams.get('project')
             const element = requestUrl.searchParams.get('element')
             const specPath = requestUrl.searchParams.get('path')
+            const variant = await readRuntimeVariant(requestUrl.searchParams.get('variant'))
             if (!project || !element || !specPath) {
               throw new OpsxSpecError(400, 'Missing project, element or path')
             }
             assertOpsxProject(project, likec4.projects())
 
-            const result = await readOpsxSpec({
-              projectRoot: opsxProjectRoot,
-              element,
-              specPath,
-              index: {
-                getIndexedSpecs: async requestedElement => specRegistry.get(requestedElement),
-              },
-            })
+            const variantSpecs = variant?.specs?.[element]
+            const variantContent = variant?.contents?.[specPath]
+            const result = variant
+              ? (() => {
+                if (!variantSpecs?.includes(specPath) || typeof variantContent !== 'string') {
+                  throw new OpsxSpecError(404, 'Spec not found')
+                }
+                return { path: specPath, md: variantContent }
+              })()
+              : await readOpsxSpec({
+                projectRoot: opsxProjectRoot,
+                element,
+                specPath,
+                index: {
+                  getIndexedSpecs: async requestedElement => specRegistry.get(requestedElement),
+                },
+              })
             res.statusCode = 200
             res.setHeader('Content-Type', 'application/json; charset=utf-8')
             res.setHeader('Cache-Control', 'no-store')

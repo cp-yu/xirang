@@ -54,7 +54,7 @@ import { useCallbackRef, useUpdateEffect } from '../../hooks'
 import { useCurrentViewModel } from '../../hooks/useCurrentViewModel'
 import { useDiagram } from '../../hooks/useDiagram'
 import type { OnNavigateTo } from '../../LikeC4Diagram.props'
-import { useOpsxSpecLoader } from '../../opsx/SpecLoaderContext'
+import { useOpsxSpecLoader, useOpsxVariants } from '../../opsx/SpecLoaderContext'
 import { stopPropagation } from '../../utils'
 import * as styles from './ElementDetailsCard.css'
 import { MetadataProvider, MetadataValue } from './MetadataValue'
@@ -128,21 +128,24 @@ export function ElementDetailsCard({
 
   const elementModel = viewModel.$model.element(fqn)
   const specLoader = useOpsxSpecLoader()
+  const runtime = useOpsxVariants()
   const stableElementId = typeof elementModel.$element.metadata?.['elementId'] === 'string'
     ? elementModel.$element.metadata['elementId']
     : elementModel.id
   const [specIndex, setSpecIndex] = useState<OpsxSpecIndexState | null>(null)
   const specIndexController = useMemo(() => new OpsxSpecIndexController(setSpecIndex), [])
-  const specPaths = specIndex?.project === elementModel.projectId && specIndex.element === stableElementId
+  const specPaths = specIndex?.project === elementModel.projectId
+      && specIndex.element === stableElementId
+      && (specIndex.variant ?? 'formal') === runtime.selected.id
     ? specIndex.paths
     : []
   const specTab = useMemo(() => getSpecsTabModel(specPaths), [specPaths])
 
   useEffect(() => {
     if (!specLoader) return
-    specIndexController.load(specLoader, elementModel.projectId, stableElementId)
+    specIndexController.load(specLoader, elementModel.projectId, stableElementId, runtime.selected.id)
     return () => specIndexController.dispose()
-  }, [elementModel.projectId, specIndexController, specLoader, stableElementId])
+  }, [elementModel.projectId, runtime.selected.id, specIndexController, specLoader, stableElementId])
 
   useEffect(() => {
     if (activeTab === 'Specs' && !specTab.visible) {

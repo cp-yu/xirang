@@ -146,9 +146,15 @@ The project SHALL preserve its intent.
   it('should validate a v1 graph target through arch validate --delta', async () => {
     await writeV1Project();
     const delta = path.join(root, 'architecture-delta.c4');
-    await fs.writeFile(delta, `model {
-  extend projectRoot.payments {
-    run = operation 'Run' 'Run payments' { metadata { elementId 'payment.run' } }
+    await fs.writeFile(delta, `architectureDelta {
+  ADDED {
+    element 'payment.run' {
+      kind 'operation'
+      parent 'payments'
+      title 'Run'
+      summary 'Run payments'
+      metadata { elementId 'payment.run' }
+    }
   }
 }
 `);
@@ -164,23 +170,29 @@ The project SHALL preserve its intent.
   it('rejects invalid v1 relations in a delta target', async () => {
     await writeV1Project();
     const delta = path.join(root, 'architecture-delta.c4');
-    await fs.writeFile(delta, `model {
-  projectRoot.payments -[invokes]-> projectRoot.settlements
-  projectRoot.payments -[invokes]-> projectRoot.settlements
+    await fs.writeFile(delta, `architectureDelta {
+  ADDED {
+    relationship 'payments' -[invokes]-> 'settlements'
+    relationship 'payments' -[invokes]-> 'settlements'
+  }
 }
 `);
 
-    const result = await validateArchitectureDelta(root, delta);
+    const result = await validateArchitectureCommand(root, { deltaPath: delta });
 
-    expect(result.valid).toBe(false);
-    expect(result.issues).toContainEqual(expect.objectContaining({ message: expect.stringContaining('DUPLICATE_RELATION') }));
+    expect(result.success).toBe(false);
+    expect(result.errors).toContainEqual(expect.objectContaining({ code: 'CONFLICTING_IDENTITY_OPERATIONS' }));
   });
 
   it('should validate graph and Specs in one v1 target context', async () => {
     await writeV1Project();
-    await writeChange('combined-target', `model {
-  extend projectRoot.payments {
-    run = operation 'Run' 'Run payments' {
+    await writeChange('combined-target', `architectureDelta {
+  ADDED {
+    element 'payment.run' {
+      kind 'operation'
+      parent 'payments'
+      title 'Run'
+      summary 'Run payments'
       metadata { elementId 'payment.run' }
     }
   }
@@ -189,39 +201,35 @@ The project SHALL preserve its intent.
 
     const result = await runCLI(['validate', '--change', 'combined-target', '--json'], { cwd: root });
 
-    expect(result.exitCode, result.stderr).toBe(0);
+    expect(result.exitCode, `${result.stderr}\n${result.stdout}`).toBe(0);
     expect(JSON.parse(result.stdout).items[0]).toMatchObject({ valid: true, issues: [] });
   });
 
   it.each([
     {
       name: 'missing-target',
-      delta: `model { extend projectRoot.payments.missing { run = operation 'Run' 'Run payments' { metadata { elementId 'payment.run' } } } }`,
-      message: 'projectRoot.payments.missing',
+      delta: `architectureDelta { ADDED { element 'payment.run' { kind 'operation' parent 'payments.missing' title 'Run' summary 'Run payments' metadata { elementId 'payment.run' } } } }`,
+      message: 'UNKNOWN_PARENT',
     },
     {
       name: 'invalid-endpoint',
-      delta: `model {
-  extend projectRoot.payments {
-    run = operation 'Run' 'Run payments' { metadata { elementId 'payment.run' } }
-    store = operation 'Store' 'Store receipts' {
-      metadata { elementId 'payment.store' }
-      receipt = artifact 'Receipt' 'Receipt data' { metadata { elementId 'payment.receipt' } }
-    }
-  }
-  projectRoot.payments.store.receipt -[produces]-> projectRoot.payments.run
-}`,
-      message: 'INVALID_RELATION_ENDPOINT',
+      delta: `architectureDelta { ADDED {
+  element 'payment.run' { kind 'operation' parent 'payments' title 'Run' summary 'Run payments' metadata { elementId 'payment.run' } }
+  element 'payment.store' { kind 'operation' parent 'payments' title 'Store' summary 'Store receipts' metadata { elementId 'payment.store' } }
+  element 'payment.receipt' { kind 'artifact' parent 'payment.store' title 'Receipt' summary 'Receipt data' metadata { elementId 'payment.receipt' } }
+  relationship 'payment.receipt' -[produces]-> 'payment.run'
+} }`,
+      message: 'INVALID_RELATIONSHIP_SOURCE_KIND',
     },
     {
       name: 'invalid-containment',
-      delta: `model { extend projectRoot.payments { receipt = artifact 'Receipt' 'Receipt data' { metadata { elementId 'payment.receipt' } } } }`,
-      message: 'INVALID_CONTAINMENT',
+      delta: `architectureDelta { ADDED { element 'payment.receipt' { kind 'artifact' parent 'payments' title 'Receipt' summary 'Receipt data' metadata { elementId 'payment.receipt' } } } }`,
+      message: 'INVALID_PARENT_KIND',
     },
     {
       name: 'duplicate-identity',
-      delta: `model { extend projectRoot.payments { run = operation 'Run' 'Run payments' { metadata { elementId 'project.root' } } } }`,
-      message: 'DUPLICATE_ELEMENT_ID',
+      delta: `architectureDelta { ADDED { element 'project.root' { kind 'operation' parent 'payments' title 'Run' summary 'Run payments' metadata { elementId 'project.root' } } } }`,
+      message: 'ADDED_IDENTITY_EXISTS',
     },
   ])('should reject $name in the combined v1 target', async ({ name, delta, message }) => {
     await writeV1Project();

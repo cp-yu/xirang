@@ -20,7 +20,7 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
   getExploreSkillTemplate: '97736f185f0a45f17d32d2f62d2145a0be81cbba024eeb83d8855f6d52e4e194',
   getApplyChangeSkillTemplate: 'b9f8382ad64b0cc45b777217b297096cf2034c524c3689aeea06ccdb1b9c5a12',
   getArchiveChangeSkillTemplate: 'dc4c29b88aa24c8612fd9f7e590a9a6714b09c680555d3991b7c83356a325be2',
-  getOpsxProposeSkillTemplate: 'b50fb55546c84dc596aed50928c9560eca17db1ff5f5519a48a901370af2ad94',
+  getOpsxProposeSkillTemplate: '57ad70609b7a547e11a2904148da2d11999d11f3d6ffa6b6d1df5022b34bbc38',
   getFeedbackSkillTemplate: '99756a104f264b86ab4b13ad5ca778dae8357fed3f79f70b5f01684abff2891e',
   getBuildSkillTemplate: '4e5623d744fd04bd7becfa8c3a646c8f5bd01946a664b38cbe17d63551575133',
 };
@@ -29,7 +29,7 @@ const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
   'opsx-explore': 'a1bc722d5800cac7d5f7856f50d745957d3a2468119aff3bfd0300157c9a0f8d',
   'opsx-apply-change': '36686537ae4587e06deba968a9ea4a647363194501c36ed377eff9dbad2de1d3',
   'opsx-archive-change': '99b238a5b1b92d226a06f10b0c6fde55e2aa089bff2ada55e64b4231a99ca805',
-  'opsx-propose': '38083ef7c4ad021bb749849317f1367580e814f737dc30d8e22e5b0e7ac9d96d',
+  'opsx-propose': 'eb9783b16b7ca5f42d4b5f8545cf3704303065c185a667ced6de5c8b40c72d8a',
 };
 
 function stableStringify(value: unknown): string {

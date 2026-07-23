@@ -57,7 +57,7 @@ ${OPSX_SHARED_CONTEXT}
 9. Reconcile delta Specs in \`specs/<spec-id>/spec.md\`.
    - Run \`opsx instructions specs --change "<name>" --json\`. ${ARTIFACT_INSTRUCTION_CONTRACT}
    - Create or update only Specs declared by the contract module scope. Do not derive the directory name directly from an element FQN or \`elementId\`.
-   - Follow returned \`## ADDED Requirements\`, \`## MODIFIED Requirements\`, REMOVED/RENAMED rules, exact title matching, canonical Requirement/Scenario syntax, and label guidance. Preserve unrelated current delta content.
+   - Follow returned \`## ADDED Requirements\`, \`## MODIFIED Requirements\`, and \`## REMOVED Requirements\` rules with exact title matching and canonical unlabeled Requirement/Scenario syntax. Express a rename as REMOVED old Requirement plus ADDED new complete Requirement. Preserve unrelated current delta content.
 10. Reconcile simplified \`design.md\`.
    - Run \`opsx instructions design --change "<name>" --json\`. ${ARTIFACT_INSTRUCTION_CONTRACT}
    - Preserve Context, Goals / Non-Goals, Decisions, and Risks / Trade-offs. Mark inferred content \`[INFERRED FROM CODE]\` and unresolved decisions \`[REVIEW NEEDED]\`.
@@ -65,8 +65,8 @@ ${OPSX_SHARED_CONTEXT}
    ${ARCHITECTURE_GENERATE_DELTA}
    - Distinguish delta Spec Markdown headings from LikeC4 model declarations and typed relations.
 12. Do NOT generate \`tasks.md\` (code is already implemented).
-13. Run \`opsx validate "<name>" --type change --json\`. On ERROR/WARNING, repair once from artifact instructions, validate once more, and report the final result.
-14. Run \`opsx scenario-labels "<name>" --write\` after validate to add deterministic change-local scenario operation labels. SHALL NOT run validate again only because scenario labels were added.
+13. Run \`opsx validate --change "<name>" --json\`. On ERROR/WARNING, repair once from artifact instructions, validate once more, and report the final result.
+14. After validation passes, run \`opsx diff --change "<name>" --write\`. Treat \`.opsx/changes/<name>/effective-change.md\` as the only persistent effective-change report and require its status to be Passed before claiming reconciliation complete.
 15. Finish with the output hints.
 
 ## Output Hints

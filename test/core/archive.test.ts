@@ -63,6 +63,44 @@ describe('ArchiveCommand', () => {
     archiveCommand = new ArchiveCommand();
   });
 
+  async function writeV1Architecture(): Promise<void> {
+    const architecture = path.join(tempDir, '.opsx', 'architecture');
+    await fs.mkdir(architecture, { recursive: true });
+    await fs.writeFile(path.join(architecture, 'model.c4'), `opsx { languageVersion '1' }
+specification {
+  element project { opsx { root true contract optional } }
+  element capability { opsx { contract optional parents [project] } }
+}
+model {
+  project_root = project 'Root' 'Root summary' {
+    metadata { elementId 'project.root' }
+    existing = capability 'Existing' 'Existing summary' { metadata { elementId 'existing.id' } }
+  }
+}
+`);
+  }
+
+  async function writeSemanticArchiveFixture(changeName: string): Promise<string> {
+    const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+    await writeV1Architecture();
+    await fs.mkdir(changeDir, { recursive: true });
+    await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), `architectureDelta {
+  MODIFIED {
+    element 'existing.id' {
+      kind 'capability'
+      parent 'project.root'
+      title 'Existing'
+      summary 'Changed summary'
+      metadata { elementId 'existing.id' }
+    }
+  }
+}
+`);
+    await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] complete\n');
+    await fs.writeFile(path.join(changeDir, '.specs-noop'), '');
+    return changeDir;
+  }
+
   async function writeFreshVerifyResult(changeDir: string): Promise<void> {
     await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] verified\n', 'utf-8');
     await fs.mkdir(path.join(tempDir, 'src'), { recursive: true });
@@ -122,6 +160,31 @@ describe('ArchiveCommand', () => {
       
       // Verify original change directory no longer exists
       await expect(fs.access(changeDir)).rejects.toThrow();
+    });
+
+    it('generates a current Passed final report before moving a semantic change', async () => {
+      const changeName = 'semantic-final-report';
+      await writeSemanticArchiveFixture(changeName);
+
+      await archiveCommand.execute(changeName, { yes: true, noVerify: true, noSync: true });
+
+      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
+      const archived = (await fs.readdir(archiveDir)).find(entry => entry.endsWith(`-${changeName}`));
+      expect(archived).toBeDefined();
+      const archivedDir = path.join(archiveDir, archived!);
+      expect(await fs.readFile(path.join(archivedDir, 'effective-change.md'), 'utf8')).toContain('Status: Passed');
+      await expect(fs.access(path.join(archivedDir, 'architecture-delta.c4'))).resolves.toBeUndefined();
+    });
+
+    it('keeps the active change in place when final report generation fails', async () => {
+      const changeName = 'semantic-report-failure';
+      const changeDir = await writeSemanticArchiveFixture(changeName);
+      await fs.mkdir(path.join(changeDir, 'effective-change.md.tmp'));
+
+      await expect(archiveCommand.execute(changeName, { yes: true, noVerify: true, noSync: true })).rejects.toThrow();
+
+      await expect(fs.access(changeDir)).resolves.toBeUndefined();
+      expect((await fs.readdir(path.join(tempDir, '.opsx', 'changes', 'archive'))).some(entry => entry.endsWith(`-${changeName}`))).toBe(false);
     });
 
     it('prints agent handoff reminder for legacy auto git mode without recommended commit message', async () => {
@@ -260,13 +323,13 @@ git:
       await fs.mkdir(changeSpecDir, { recursive: true });
       await fs.mkdir(mainSpecDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
-      await writeProjectOpsx(tempDir, mkBundle({
-        domains: [{ id: 'dom.verify', type: 'domain', intent: 'Verify domain' }],
-        capabilities: [{ id: 'cap.verify.gate', type: 'capability', intent: 'Verify gate' }],
-        relations: [{ from: 'cap.verify.gate', to: 'dom.verify', type: 'belongs_to' }],
-      }));
+      await writeV1Architecture();
 
-      const deltaSpec = `## ADDED Requirements
+      const deltaSpec = `---
+element: existing.id
+---
+
+## ADDED Requirements
 
 ### Requirement: Gate already synced
 
@@ -277,7 +340,11 @@ System SHALL keep synced gates stable.
 - **THEN** archive SHALL proceed
 `;
       await fs.writeFile(path.join(changeSpecDir, 'spec.md'), deltaSpec, 'utf-8');
-      await fs.writeFile(path.join(mainSpecDir, 'spec.md'), `# gate Specification
+      await fs.writeFile(path.join(mainSpecDir, 'spec.md'), `---
+element: existing.id
+---
+
+# gate Specification
 
 ## Purpose
 Synced gate spec.
@@ -304,7 +371,38 @@ System SHALL keep synced gates stable.
 
       const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
-      expect(archives.some((entry) => entry.includes(changeName))).toBe(true);
+      const archived = archives.find((entry) => entry.includes(changeName));
+      expect(archived).toBeDefined();
+      expect(await fs.readFile(path.join(archiveDir, archived!, 'effective-change.md'), 'utf8')).toContain('Status: Passed');
+    });
+
+    it('should allow archive when a modified Requirement is already synchronized', async () => {
+      const changeName = 'already-modified-spec';
+      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeSpecDir = path.join(changeDir, 'specs', 'gate');
+      const mainSpecDir = path.join(tempDir, '.opsx', 'specs', 'gate');
+      await fs.mkdir(changeSpecDir, { recursive: true });
+      await fs.mkdir(mainSpecDir, { recursive: true });
+      await writeFreshVerifyResult(changeDir);
+      await writeV1Architecture();
+
+      const requirement = `### Requirement: Gate already modified
+
+System SHALL retain the synchronized target text.
+
+#### Scenario: Gate stays modified
+- **WHEN** archive reads an already-synchronized modification
+- **THEN** archive SHALL preserve the target Requirement
+`;
+      await fs.writeFile(path.join(changeSpecDir, 'spec.md'), `---\nelement: existing.id\n---\n\n## MODIFIED Requirements\n\n${requirement}`, 'utf-8');
+      await fs.writeFile(path.join(mainSpecDir, 'spec.md'), `---\nelement: existing.id\n---\n\n# gate Specification\n\n## Purpose\nSynced gate spec.\n\n## Requirements\n${requirement}`, 'utf-8');
+
+      await archiveCommand.execute(changeName, { yes: true, noVerify: true });
+
+      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
+      const archived = (await fs.readdir(archiveDir)).find((entry) => entry.includes(changeName));
+      expect(archived).toBeDefined();
+      expect(await fs.readFile(path.join(archiveDir, archived!, 'effective-change.md'), 'utf8')).toContain('Status: Passed');
     });
 
     it('should allow archive when removal-only delta already deleted the main spec', async () => {
@@ -315,10 +413,15 @@ System SHALL keep synced gates stable.
       await fs.mkdir(changeSpecDir, { recursive: true });
       await fs.mkdir(mainSpecDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
+      await writeV1Architecture();
 
       await fs.writeFile(
         path.join(changeSpecDir, 'spec.md'),
-        `## REMOVED Requirements
+        `---
+element: existing.id
+---
+
+## REMOVED Requirements
 
 ### Requirement: Old A
 ### Requirement: Old B`,
@@ -330,7 +433,9 @@ System SHALL keep synced gates stable.
 
       const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
-      expect(archives.some((entry) => entry.includes(changeName))).toBe(true);
+      const archived = archives.find((entry) => entry.includes(changeName));
+      expect(archived).toBeDefined();
+      expect(await fs.readFile(path.join(archiveDir, archived!, 'effective-change.md'), 'utf8')).toContain('Status: Passed');
     });
 
     it('should allow archive when removal-only delta targets headers already absent from a still-existing main spec', async () => {

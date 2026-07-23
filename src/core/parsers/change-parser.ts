@@ -131,49 +131,7 @@ export class ChangeParser extends MarkdownParser {
       });
     }
     
-    // Parse RENAMED requirements
-    const renamedSection = this.findSection(sections, 'RENAMED Requirements');
-    if (renamedSection) {
-      const renames = this.parseRenames(renamedSection.content);
-      renames.forEach(rename => {
-        deltas.push({
-          spec: specName,
-          operation: 'RENAMED' as DeltaOperation,
-          description: `Rename requirement from "${rename.from}" to "${rename.to}"`,
-          rename,
-        });
-      });
-    }
-    
     return deltas;
-  }
-
-  private parseRenames(content: string): Array<{ from: string; to: string }> {
-    const renames: Array<{ from: string; to: string }> = [];
-    const lines = ChangeParser.normalizeContent(content).split('\n');
-    
-    let currentRename: { from?: string; to?: string } = {};
-    
-    for (const line of lines) {
-      const fromMatch = line.match(/^\s*-?\s*FROM:\s*`?###\s*Requirement:\s*(.+?)`?\s*$/);
-      const toMatch = line.match(/^\s*-?\s*TO:\s*`?###\s*Requirement:\s*(.+?)`?\s*$/);
-      
-      if (fromMatch) {
-        currentRename.from = fromMatch[1].trim();
-      } else if (toMatch) {
-        currentRename.to = toMatch[1].trim();
-        
-        if (currentRename.from && currentRename.to) {
-          renames.push({
-            from: currentRename.from,
-            to: currentRename.to,
-          });
-          currentRename = {};
-        }
-      }
-    }
-    
-    return renames;
   }
 
   private parseSectionsFromContent(content: string): Section[] {

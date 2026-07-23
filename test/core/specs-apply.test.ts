@@ -9,7 +9,7 @@ import {
   type SpecUpdate,
 } from '../../src/core/specs-apply.js';
 
-describe('specs apply scenario operation labels', () => {
+describe('specs apply complete target state', () => {
   let tempDir: string;
 
   beforeEach(async () => {
@@ -53,22 +53,18 @@ describe('specs apply scenario operation labels', () => {
     expect(rebuilt).toContain('capabilities:\n  - cap.legacy.run');
   });
 
-  it('writes clean formal scenario headings and omits removed scenario blocks', async () => {
+  it('treats a MODIFIED Requirement block as the complete target Scenario set', async () => {
     const update = await writeUpdate(
       `## MODIFIED Requirements
 
 ### Requirement: Login
 The system SHALL support login.
 
-#### Scenario: [MODIFIED] Existing path
+#### Scenario: Existing path
 - **WHEN** credentials are valid
 - **THEN** login succeeds
 
-#### Scenario: [REMOVED] Legacy path
-- **WHEN** legacy flow runs
-- **THEN** old behavior happens
-
-#### Scenario: [ADDED] MFA path
+#### Scenario: MFA path
 - **WHEN** MFA is required
 - **THEN** a challenge is shown`,
       `# auth Specification
@@ -90,27 +86,21 @@ The system SHALL support login.
 
     expect(rebuilt).toContain('#### Scenario: Existing path');
     expect(rebuilt).toContain('#### Scenario: MFA path');
-    expect(rebuilt).not.toContain('Scenario: [MODIFIED]');
-    expect(rebuilt).not.toContain('Scenario: [ADDED]');
-    expect(rebuilt).not.toContain('Scenario: [REMOVED]');
+    expect(rebuilt).not.toContain('Scenario: [');
     expect(rebuilt).not.toContain('legacy flow runs');
   });
 
-  it('compares labeled deltas against normalized formal specs for idempotency', () => {
+  it('compares canonical target blocks against formal specs for idempotency', () => {
     const changeContent = `## MODIFIED Requirements
 
 ### Requirement: Login
 The system SHALL support login.
 
-#### Scenario: [MODIFIED] Existing path
+#### Scenario: Existing path
 - **WHEN** credentials are valid
 - **THEN** login succeeds
 
-#### Scenario: [REMOVED] Legacy path
-- **WHEN** legacy flow runs
-- **THEN** old behavior happens
-
-#### Scenario: [ADDED] MFA path
+#### Scenario: MFA path
 - **WHEN** MFA is required
 - **THEN** a challenge is shown`;
     const targetContent = `# auth Specification
