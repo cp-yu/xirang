@@ -28,7 +28,9 @@ npm install -g "./${TARBALL}"
 INSTALL_DIR="$(npm root -g)/${PACKAGE_NAME}"
 LIKEC4_RUNTIME="${INSTALL_DIR}/likec4/packages/likec4"
 rm -rf "${INSTALL_DIR}/likec4"
-pnpm --dir likec4 --filter xirang-likec4 deploy --legacy --prod "${LIKEC4_RUNTIME}"
+# Skip husky prepare during deploy: the deploy target has no .git, and
+# likec4's prepare script would otherwise print ".git can't be found".
+CI=true pnpm --dir likec4 --filter xirang-likec4 deploy --legacy --prod "${LIKEC4_RUNTIME}"
 
 echo
 echo "🔍 Verifying installation..."
