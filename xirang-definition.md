@@ -1,4 +1,4 @@
-# OPSX Definition
+# 息壤（Xirang）定义
 
 ## Definition Hierarchy
 
@@ -46,7 +46,7 @@ Realization（落实过程）
 
     协作结构
     ├── 2. Participants
-    │   ├── 3. Human
+    │   ├── 3. 用户
     │   └── 3. Agents
     │       ├── 4. Agent
     │       │   ├── 5. Project Build
@@ -67,13 +67,13 @@ Realization（落实过程）
 
 ## 0. Project Definition
 
-OPSX 是面向 Agent 的项目开发框架：它以 Semantic Model 结构化表达 human intent，以 Change 承载新的演进意图，并通过 Realization 由 Agent 落实 Change、持续构建和演进项目。
+息壤（Xirang）是面向 Agent 的项目开发框架：它以 Semantic Model 结构化表达用户意图，以 Change 承载新的演进意图，并通过 Realization 由 Agent 落实 Change、持续构建和演进项目。
 
 ## 1. Semantic Model
 
-Semantic Model 是项目 human intent 的结构化语义表达。它以帮助人从不同抽象层级理解、讨论和决策项目为首要目标，并为 Agent 导航、验证、实现和持续演进项目提供明确的语义依据。
+Semantic Model 是项目用户意图的结构化语义表达。它以帮助用户从不同抽象层级理解、讨论和决策项目为首要目标，并为 Agent 导航、验证、实现和持续演进项目提供明确的语义依据。
 
-模型在可扩展 Metamodel 的约束下，以 Hierarchical Elements 表达任意深度的项目抽象。每个 Element 由 Element Declaration 与 Element Contract 共同表达：Element Declaration 定义其身份、类型、概要及层级位置，Element Contract 规范其职责、保证、约束与行为。Relationships 表达 Elements 之间的协作、依赖与约束；Views 面向人组织和呈现模型，但不改变模型的规范性语义。
+模型在可扩展 Metamodel 的约束下，以 Hierarchical Elements 表达任意深度的项目抽象。每个 Element 由 Element Declaration 与 Element Contract 共同表达：Element Declaration 定义其身份、类型、概要及层级位置，Element Contract 规范其职责、保证、约束与行为。Relationships 表达 Elements 之间的协作、依赖与约束；Views 面向用户组织和呈现模型，但不改变模型的规范性语义。
 
 在存储结构上，Metamodel、Element Declarations 和 Relationships 存储于 `.opsx/architecture/`，Element Contracts 存储于 `.opsx/specs/`。Element Declarations 与 Element Contracts 共同表达 Elements，必须联合理解和验证。Views 通过 View Definition Files 存储，用于呈现模型，但不改变模型的规范性语义。
 
@@ -99,15 +99,15 @@ Relationships 是 Elements 之间显式的、类型化的语义联系。每个 R
 
 ## 2. Views
 
-Views 是 Semantic Model 的呈现层。View 从模型中选择并组织 Elements 与 Relationships，形成面向人的特定视角；View 不引入任何规范性语义，模型的语义不因 View 的变化而改变。Views 由 Authored Views 与 Derived Views 组成。
+Views 是 Semantic Model 的呈现层。View 从模型中选择并组织 Elements 与 Relationships，形成面向用户的特定视角；View 不引入任何规范性语义，模型的语义不因 View 的变化而改变。Views 由 Authored Views 与 Derived Views 组成。
 
 ### 3. Authored Views
 
-Authored Views 是 Human 显式声明并持久化的 View，存储于 View Definition Files。
+Authored Views 是用户显式声明并持久化的 View，存储于 View Definition Files。
 
 ### 3. Derived Views
 
-Derived Views 由模型或 Change 自动推导，无需 Human 声明，不持久化。当前包括 Element-derived Views 与 Change-derived Views。
+Derived Views 由模型或 Change 自动推导，无需用户声明，不持久化。当前包括 Element-derived Views 与 Change-derived Views。
 
 #### 4. Element-derived Views
 
@@ -119,7 +119,7 @@ Change-derived Views 由 Semantic Model 与 Semantic Delta 推导，以 diff 视
 
 ## 1. Change
 
-OPSX 通过连续的 Changes 演进项目。每个 Change 由 Semantic Delta 与 Change Plan 组成：Semantic Delta 将新的 human intent 规范化为针对 Semantic Model 的新增、修改或移除语义集合，与 Semantic Model 共同推导 Expected Semantic Model；Change Plan 记录该 Change 的意图、决策与执行安排。
+息壤通过连续的 Changes 演进项目。每个 Change 由 Semantic Delta 与 Change Plan 组成：Semantic Delta 将新的用户意图规范化为针对 Semantic Model 的新增、修改或移除语义集合，与 Semantic Model 共同推导 Expected Semantic Model；Change Plan 记录该 Change 的意图、决策与执行安排。
 
 ## 2. Semantic Delta
 
@@ -133,15 +133,15 @@ Semantic Delta 以统一的语法表达，其修改语为 ADDED、MODIFIED、REM
 
 ## 2. Change Plan
 
-Change Plan 是 Change 的辅助性组成。它通过 `proposal.md`、`design.md` 与 `tasks.md` 共同解释该 Change 的意图与路径：`proposal.md` 说明为何发起 Change 及其范围与影响面；`design.md` 记录关键决策、理由与实现策略；`tasks.md` 安排执行步骤与验证检查。Change Plan 帮助人审查 Change，并帮助 Agent 生产与执行 Semantic Delta，但不独立定义目标语义；当它与 Semantic Delta 冲突时，以 Semantic Delta 为准。
+Change Plan 是 Change 的辅助性组成。它通过 `proposal.md`、`design.md` 与 `tasks.md` 共同解释该 Change 的意图与路径：`proposal.md` 说明为何发起 Change 及其范围与影响面；`design.md` 记录关键决策、理由与实现策略；`tasks.md` 安排执行步骤与验证检查。Change Plan 帮助用户审查 Change，并帮助 Agent 生产与执行 Semantic Delta，但不独立定义目标语义；当它与 Semantic Delta 冲突时，以 Semantic Delta 为准。
 
 ## 1. Realization
 
-Realization 是 OPSX 的落实过程维。在推进过程上，它通过 Semantic Model Build 构建或重建 Semantic Model，通过 Change Realization 将已授权 Change 落实为项目新状态并收束；在协作结构上，由 Participants 承担授权、判断与编排，由 Interaction Surfaces 提供配置、呈现与确定性操作。
+Realization 是息壤的落实过程维。在推进过程上，它通过 Semantic Model Build 构建或重建 Semantic Model，通过 Change Realization 将已授权 Change 落实为项目新状态并收束；在协作结构上，由 Participants 承担授权、判断与编排，由 Interaction Surfaces 提供配置、呈现与确定性操作。
 
 ## 2. Semantic Model Build
 
-Semantic Model Build 是 Realization 推进过程中构建或重建 Semantic Model 的过程。它在 Human 授权的探索范围与声明的权威依据下，由 Agent 编写统一 Candidate——Architecture 与 Element Contracts 一体表达目标模型；由 CLI 对 Candidate 做只读确定性校验并给出 review digest；Human 确认该版本后，由 CLI 将 Candidate 原子提升为 Semantic Model，并保留必要 history。本过程不通过 Change 的 Semantic Delta 演进模型，也不落实单次 Change 的项目改动。临时 scaffolding 不定义 durable 语义。
+Semantic Model Build 是 Realization 推进过程中构建或重建 Semantic Model 的过程。它在用户授权的探索范围与声明的权威依据下，由 Agent 编写统一 Candidate——Architecture 与 Element Contracts 一体表达目标模型；由 CLI 对 Candidate 做只读确定性校验并给出 review digest；用户确认该版本后，由 CLI 将 Candidate 原子提升为 Semantic Model，并保留必要 history。本过程不通过 Change 的 Semantic Delta 演进模型，也不落实单次 Change 的项目改动。临时 scaffolding 不定义 durable 语义。
 
 ## 2. Change Realization
 
@@ -153,11 +153,11 @@ Change Formation 是 Change Realization 中形成完整 Change 的阶段。它�
 
 ### 4. Intent-first Path
 
-Intent-first Path 是 Change Formation 的路径之一：从 human intent 出发，先形成 Change，再进入实现。该路径先通过 Explore 澄清意图、范围与影响并形成 Change 雏形，再通过 Propose 将雏形收成完整 Change，最终得到可进入 Change Implementation 的 Change。
+Intent-first Path 是 Change Formation 的路径之一：从用户意图出发，先形成 Change，再进入实现。该路径先通过 Explore 澄清意图、范围与影响并形成 Change 雏形，再通过 Propose 将雏形收成完整 Change，最终得到可进入 Change Implementation 的 Change。
 
 #### 5. Explore
 
-Explore 是 Intent-first Path 的起始阶段。它基于 Semantic Model 与项目证据，澄清 human intent、范围与影响：通过 CLI 查询 Elements、Relationships 与 Element Contracts，并结合实现证据识别影响面；通过一次一问与方案比较推进设计；再分段确认设计——复杂变更逐段确认适用的 architecture、components、data flow、technology、testing 与 risks，窄变更至少确认 problem、impact scope、approach 与 verification method；最终把已确认内容收成 conversation-only 的 Design Summary 作为 Change 雏形，交由 Propose 收成完整 Change。
+Explore 是 Intent-first Path 的起始阶段。它基于 Semantic Model 与项目证据，澄清用户意图、范围与影响：通过 CLI 查询 Elements、Relationships 与 Element Contracts，并结合实现证据识别影响面；通过一次一问与方案比较推进设计；再分段确认设计——复杂变更逐段确认适用的 architecture、components、data flow、technology、testing 与 risks，窄变更至少确认 problem、impact scope、approach 与 verification method；最终把已确认内容收成 conversation-only 的 Design Summary 作为 Change 雏形，交由 Propose 收成完整 Change。
 
 #### 5. Propose
 
@@ -169,7 +169,7 @@ Implementation-first Path 是 Change Formation 的路径之一：从已发生的
 
 #### 5. Snack
 
-Snack 是 Implementation-first Path 的形成阶段。它从已发生的项目实现出发，对照 Semantic Model 形成完整 Change：通过 CLI 查询 Elements、Relationships 与 Element Contracts，并结合 conversation context、working-tree / staged / HEAD 与 Human 指定 diff 等实现证据识别影响面；再按证据与 Semantic Model 写出或更新 Semantic Delta，以及 Change Plan 中的 `proposal.md` 与 `design.md`，已与证据和模型一致的内容保持不变；因实现已完成，不生成 `tasks.md`。它在 Formation 内完成必要审查与确认，使已发生的实现能对照完整 Change 进入后续验证与 Change Closure。
+Snack 是 Implementation-first Path 的形成阶段。它从已发生的项目实现出发，对照 Semantic Model 形成完整 Change：通过 CLI 查询 Elements、Relationships 与 Element Contracts，并结合 conversation context、working-tree / staged / HEAD 与用户指定 diff 等实现证据识别影响面；再按证据与 Semantic Model 写出或更新 Semantic Delta，以及 Change Plan 中的 `proposal.md` 与 `design.md`，已与证据和模型一致的内容保持不变；因实现已完成，不生成 `tasks.md`。它在 Formation 内完成必要审查与确认，使已发生的实现能对照完整 Change 进入后续验证与 Change Closure。
 
 ## 3. Change Implementation
 
@@ -205,15 +205,15 @@ Change Closure 是 Change Realization 中将已验证的 Change 收束为项目�
 
 ## 2. Interaction Surfaces
 
-Interaction Surfaces 是 Realization 中供 Human 与 Agents 配置、理解和操作 OPSX 的交互界面体系。它建立和维护 OPSX 项目、项目配置与 Agent 工具集成，提供确定性操作，并以 Views 呈现 Semantic Model 与 Change-derived information。两种界面共同支撑 Realization，但不构成新的语义来源。
+Interaction Surfaces 是 Realization 中供用户与 Agents 配置、理解和操作息壤的交互界面体系。它建立和维护息壤项目、项目配置与 Agent 工具集成，提供确定性操作，并以 Views 呈现 Semantic Model 与 Change-derived information。两种界面共同支撑 Realization，但不构成新的语义来源。
 
 ### 3. CLI
 
-CLI 是 OPSX 的配置与确定性操作界面。它建立和维护 OPSX workspace、项目配置与所选 Agent 工具集成，管理 OPSX 配置，并在 Realization 中提供结构化查询、状态管理、instructions 与 templates 投影、程序化校验、验证证据持久化及原子状态转换，使关键操作具有一致结果、可复现证据和明确失败语义。
+CLI 是息壤的配置与确定性操作界面。它建立和维护息壤工作区、项目配置与所选 Agent 工具集成，管理息壤配置，并在 Realization 中提供结构化查询、状态管理、instructions 与 templates 投影、程序化校验、验证证据持久化及原子状态转换，使关键操作具有一致结果、可复现证据和明确失败语义。
 
 #### 4. Project and Tooling Configuration
 
-Project and Tooling Configuration 建立和维护 OPSX workspace、项目配置与所选 Agent 工具集成，并持续管理 OPSX 配置与 OPSX-managed Agent surfaces。
+Project and Tooling Configuration 建立和维护息壤工作区、项目配置与所选 Agent 工具集成，并持续管理息壤配置与息壤托管的 Agent 工作面。
 
 #### 4. Deterministic Operations
 
@@ -221,31 +221,31 @@ Deterministic Operations 在 Realization 中提供结构化查询、状态管理
 
 ### 3. Semantic Browser
 
-Semantic Browser 是 OPSX 的可视化语义界面。它使用 Views 呈现 Semantic Model 与 Change-derived information，使 Human 能够浏览不同抽象层级的 Elements、Element Contracts 与 Relationships，观察 Change 带来的语义差异，并据此理解、讨论、审查和决策项目。
+Semantic Browser 是息壤的可视化语义界面。它使用 Views 呈现 Semantic Model 与 Change-derived information，使用户能够浏览不同抽象层级的 Elements、Element Contracts 与 Relationships，观察 Change 带来的语义差异，并据此理解、讨论、审查和决策项目。
 
 ## 2. Participants
 
-Participants 是 Realization 中参与意图授权、语义判断与项目落实的行为主体。由 Human 与 Agents 组成：Human 保留意图与关键授权；Agents 依据 Semantic Model、Change、Human 决策与项目证据推进 Realization，并通过 Interaction Surfaces 完成查询、投影与确定性操作。
+Participants 是 Realization 中参与意图授权、语义判断与项目落实的行为主体。由用户与 Agents 组成：用户保留意图与关键授权；Agents 依据 Semantic Model、Change、用户决策与项目证据推进 Realization，并通过 Interaction Surfaces 完成查询、投影与确定性操作。
 
-### 3. Human
+### 3. 用户
 
-Human 表达并确认 human intent，裁决无法仅从 Semantic Model、Change 与项目证据确定的语义与范围问题，并授权需要人类判断的重要决策与状态转换。Human 不必亲自执行项目修改或确定性 CLI 操作。
+用户表达并确认用户意图，裁决无法仅从 Semantic Model、Change 与项目证据确定的语义与范围问题，并授权需要用户判断的重要决策与状态转换。用户不必亲自执行项目修改或确定性 CLI 操作。
 
 ### 3. Agents
 
-Agents 是可代表 OPSX 推进 Realization 的执行主体。它们理解 Semantic Model 与项目证据，形成或调和 Change，实现 Change，组织独立评估，并在 Human 授权下推进模型构建与 Change 收束。Agents 分为 Agent 与 Internal Agents。
+Agents 是可代表息壤推进 Realization 的执行主体。它们理解 Semantic Model 与项目证据，形成或调和 Change，实现 Change，组织独立评估，并在用户授权下推进模型构建与 Change 收束。Agents 分为 Agent 与 Internal Agents。
 
 #### 4. Agent
 
-Agent 是与 Human 交互、并端到端编排 Realization 的默认执行身份。它可写入项目与 Change 制品，消费 CLI 的查询与投影，在需要时委托 Internal Agents；不得替代 Human 作出需明确授权的决策，也不得自行重做 CLI 已提供的确定性操作。
+Agent 是与用户交互、并端到端编排 Realization 的默认执行身份。它可写入项目与 Change 制品，消费 CLI 的查询与投影，在需要时委托 Internal Agents；不得替代用户作出需明确授权的决策，也不得自行重做 CLI 已提供的确定性操作。
 
 ##### 5. Project Build
 
-Project Build 是 Agent 构建或重建 Semantic Model 的工作身份。它在 Human 授权的探索范围与声明的权威依据下，编写统一 Candidate（Architecture 与 Element Contracts 一体），使用 CLI 做只读校验，向 Human 呈现 valid Candidate 与 review digest；仅在 Human 确认后，由 CLI 将 Candidate 原子提升为 Semantic Model。临时 scaffolding（如 `build.md`）不定义 durable 语义。
+Project Build 是 Agent 构建或重建 Semantic Model 的工作身份。它在用户授权的探索范围与声明的权威依据下，编写统一 Candidate（Architecture 与 Element Contracts 一体），使用 CLI 做只读校验，向用户呈现 valid Candidate 与 review digest；仅在用户确认后，由 CLI 将 Candidate 原子提升为 Semantic Model。临时 scaffolding（如 `build.md`）不定义 durable 语义。
 
 ##### 5. Explore
 
-Explore 是 Agent 在 Intent-first Path 中澄清 human intent、范围与影响的工作身份。它结合 Semantic Model、CLI 查询与项目证据推进设计确认，产出 conversation-only 的 Design Summary 作为 Change 雏形，不写入完整 Change，也不实现项目。
+Explore 是 Agent 在 Intent-first Path 中澄清用户意图、范围与影响的工作身份。它结合 Semantic Model、CLI 查询与项目证据推进设计确认，产出 conversation-only 的 Design Summary 作为 Change 雏形，不写入完整 Change，也不实现项目。
 
 ##### 5. Propose
 
