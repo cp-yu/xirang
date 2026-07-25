@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
-import { OPSX_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
+import { XIRANG_PHILOSOPHY } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import { getOptimizerSubagentTemplate } from '../../../src/core/templates/workflows/optimizer.js';
 
 describe('optimizer subagent template', () => {
-  it('includes OPSX philosophy and finding-first optimization discipline', () => {
+  it('includes Xirang philosophy and finding-first optimization discipline', () => {
     const template = getOptimizerSubagentTemplate();
     const prompt = template.prompt;
 
-    expect(prompt).toContain(OPSX_PHILOSOPHY);
+    expect(prompt).toContain(XIRANG_PHILOSOPHY);
     expect(prompt).toContain('Element Contract registry');
-    expect(prompt).toContain('opsx arch query <elementId> --relations --depth <n> --json');
+    expect(prompt).toContain('xirang arch query <elementId> --relations --depth <n> --json');
     expect(prompt).toContain('finding-first');
     expect(prompt).toContain('strict JSON envelope');
     expect(prompt).toContain('keyDesign');
@@ -23,7 +23,7 @@ describe('optimizer subagent template', () => {
   it('preserves read-only self-read and reconciliation protocol', () => {
     const template = getOptimizerSubagentTemplate();
 
-    expect(template.name).toBe('opsx-optimizer');
+    expect(template.name).toBe('xirang-optimizer');
     expect(template).not.toHaveProperty('instructions');
     expect(template.prompt).toContain('MUST NOT modify files');
     expect(template.prompt).toContain('failedDirections');

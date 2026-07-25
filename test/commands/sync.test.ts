@@ -4,11 +4,11 @@ import path from 'path';
 import os from 'os';
 import { stringify as stringifyYaml } from 'yaml';
 import {
-  OPSX_SCHEMA_VERSION,
+  XIRANG_SCHEMA_VERSION,
   readProjectOpsx,
   writeProjectOpsx,
-  type ProjectOpsxBundle,
-} from '../../src/utils/opsx-utils.js';
+  type ProjectXirangBundle,
+} from '../../src/utils/xirang-utils.js';
 import {
   computeEvidenceFingerprint,
   computeTasksFileHash,
@@ -24,8 +24,8 @@ describe('syncCommand', () => {
   const originalCwd = process.cwd();
   const originalConsoleLog = console.log;
 
-  const mkBundle = (overrides: Partial<ProjectOpsxBundle> = {}): ProjectOpsxBundle => ({
-    schema_version: OPSX_SCHEMA_VERSION,
+  const mkBundle = (overrides: Partial<ProjectXirangBundle> = {}): ProjectXirangBundle => ({
+    schema_version: XIRANG_SCHEMA_VERSION,
     project: { id: 'test-project', name: 'test-project' },
     domains: [],
     capabilities: [],
@@ -36,8 +36,8 @@ describe('syncCommand', () => {
   beforeEach(async () => {
     vi.resetModules();
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-sync-test-'));
-    await fs.mkdir(path.join(tempDir, '.opsx', 'changes', 'archive'), { recursive: true });
-    await fs.mkdir(path.join(tempDir, '.opsx', 'specs'), { recursive: true });
+    await fs.mkdir(path.join(tempDir, '.xirang', 'changes', 'archive'), { recursive: true });
+    await fs.mkdir(path.join(tempDir, '.xirang', 'specs'), { recursive: true });
     process.chdir(tempDir);
     console.log = vi.fn();
   });
@@ -55,7 +55,7 @@ describe('syncCommand', () => {
   }
 
   async function createChange(changeName: string): Promise<string> {
-    const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+    const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
     await fs.mkdir(changeDir, { recursive: true });
     return changeDir;
   }
@@ -101,7 +101,7 @@ Then the system signs the user in`
     await syncCommand('direct-sync', { noValidate: true, noVerify: true });
 
     const mainSpec = await fs.readFile(
-      path.join(tempDir, '.opsx', 'specs', 'auth', 'spec.md'),
+      path.join(tempDir, '.xirang', 'specs', 'auth', 'spec.md'),
       'utf-8'
     );
     expect(mainSpec).toContain('### Requirement: The system SHALL support login');
@@ -126,10 +126,10 @@ Then the system signs the user in`
 
     await expect(syncCommand('empty-extension', { noValidate: true, noVerify: true }))
       .rejects.toThrow(/no actual architecture operation|empty/i);
-    await expect(fs.readdir(path.join(tempDir, '.opsx', 'specs'))).resolves.toEqual([]);
+    await expect(fs.readdir(path.join(tempDir, '.xirang', 'specs'))).resolves.toEqual([]);
   });
 
-  it('syncs Specs without requiring formal OPSX for a no-op delta', async () => {
+  it('syncs Specs without requiring formal Xirang for a no-op delta', async () => {
     const syncCommand = await loadSyncCommand();
     const changeDir = await createChange('specs-with-no-op-opsx');
     const specDir = path.join(changeDir, 'specs', 'auth');
@@ -147,14 +147,14 @@ Then the system signs the user in`
 
     await syncCommand('specs-with-no-op-opsx', { noValidate: true, noVerify: true });
 
-    await expect(fs.readFile(path.join(tempDir, '.opsx', 'specs', 'auth', 'spec.md'), 'utf-8'))
+    await expect(fs.readFile(path.join(tempDir, '.xirang', 'specs', 'auth', 'spec.md'), 'utf-8'))
       .resolves.toContain('### Requirement: 登录');
     expect(console.log).toHaveBeenCalledWith("Sync complete for 'specs-with-no-op-opsx'.");
     expect(console.log).toHaveBeenCalledWith('specs: synced');
     expect(console.log).toHaveBeenCalledWith('architecture: no-delta');
   });
 
-  it('ignores deprecated OPSX deltas in the active sync path', async () => {
+  it('ignores deprecated Xirang deltas in the active sync path', async () => {
     const syncCommand = await loadSyncCommand();
     const changeDir = await createChange('legacy-opsx');
     await fs.writeFile(path.join(changeDir, 'opsx-delta.yaml'), 'schema_version: 2\nADDED: {}\n', 'utf-8');
@@ -168,10 +168,10 @@ Then the system signs the user in`
     await createChange('blocked-sync');
 
     await expect(syncCommand('blocked-sync', { noValidate: true })).rejects.toThrow(
-      'opsx verify phase1 blocked-sync'
+      'xirang verify phase1 blocked-sync'
     );
     await expect(syncCommand('blocked-sync', { noValidate: true })).rejects.toThrow(
-      'opsx sync blocked-sync --no-verify'
+      'xirang sync blocked-sync --no-verify'
     );
   });
 
@@ -193,7 +193,7 @@ Then the system signs the user in`
     await syncCommand('verified-sync', { noValidate: true });
 
     const mainSpec = await fs.readFile(
-      path.join(tempDir, '.opsx', 'specs', 'verified', 'spec.md'),
+      path.join(tempDir, '.xirang', 'specs', 'verified', 'spec.md'),
       'utf-8'
     );
     expect(mainSpec).toContain('### Requirement: Verified sync works');
@@ -202,7 +202,7 @@ Then the system signs the user in`
   it('uses runtime projection when creating a new formal spec skeleton', async () => {
     const syncCommand = await loadSyncCommand();
     await fs.writeFile(
-      path.join(tempDir, '.opsx', 'config.yaml'),
+      path.join(tempDir, '.xirang', 'config.yaml'),
       'schema: spec-driven\ndocLanguage: 中文\n'
     );
     const changeDir = await createChange('localized-sync');
@@ -225,7 +225,7 @@ Then the system signs the user in`
     await syncCommand('localized-sync', { noValidate: true, noVerify: true });
 
     const mainSpec = await fs.readFile(
-      path.join(tempDir, '.opsx', 'specs', 'auth', 'spec.md'),
+      path.join(tempDir, '.xirang', 'specs', 'auth', 'spec.md'),
       'utf-8'
     );
     expect(mainSpec).toContain('## Purpose');
@@ -238,7 +238,7 @@ Then the system signs the user in`
     const syncCommand = await loadSyncCommand();
     const changeDir = await createChange('remove-empty-spec');
     const changeSpecDir = path.join(changeDir, 'specs', 'old-merge');
-    const mainSpecDir = path.join(tempDir, '.opsx', 'specs', 'old-merge');
+    const mainSpecDir = path.join(tempDir, '.xirang', 'specs', 'old-merge');
     await fs.mkdir(changeSpecDir, { recursive: true });
     await fs.mkdir(mainSpecDir, { recursive: true });
 
@@ -278,7 +278,7 @@ Old B.`
     const changeName = 'removal-already-applied';
     const changeDir = await createChange(changeName);
     const changeSpecDir = path.join(changeDir, 'specs', 'partial-merge');
-    const mainSpecDir = path.join(tempDir, '.opsx', 'specs', 'partial-merge');
+    const mainSpecDir = path.join(tempDir, '.xirang', 'specs', 'partial-merge');
     await fs.mkdir(changeSpecDir, { recursive: true });
     await fs.mkdir(mainSpecDir, { recursive: true });
     await writeFreshVerifyResult(changeDir);
@@ -317,7 +317,7 @@ The system SHALL keep this requirement.`
     const changeName = 'removal-empty-then-rerun';
     const changeDir = await createChange(changeName);
     const changeSpecDir = path.join(changeDir, 'specs', 'solo-merge');
-    const mainSpecDir = path.join(tempDir, '.opsx', 'specs', 'solo-merge');
+    const mainSpecDir = path.join(tempDir, '.xirang', 'specs', 'solo-merge');
     await fs.mkdir(changeSpecDir, { recursive: true });
     await fs.mkdir(mainSpecDir, { recursive: true });
     await writeFreshVerifyResult(changeDir);
@@ -360,7 +360,7 @@ Old A.`
     await createChange(selectedChange);
     await createChange('other-sync');
 
-    const changeSpecDir = path.join(tempDir, '.opsx', 'changes', selectedChange, 'specs', 'docs');
+    const changeSpecDir = path.join(tempDir, '.xirang', 'changes', selectedChange, 'specs', 'docs');
     await fs.mkdir(changeSpecDir, { recursive: true });
     await fs.writeFile(
       path.join(changeSpecDir, 'spec.md'),
@@ -442,7 +442,7 @@ Then the system signs the user in`
     await fs.writeFile(
       path.join(changeDir, 'opsx-delta.yaml'),
       stringifyYaml({
-        schema_version: OPSX_SCHEMA_VERSION,
+        schema_version: XIRANG_SCHEMA_VERSION,
         ADDED: {
           domains: [{ id: 'dom.auth', type: 'domain', intent: 'Authentication domain' }],
           capabilities: [{ id: 'cap.auth.login', type: 'capability', intent: 'User login' }],
@@ -453,14 +453,14 @@ Then the system signs the user in`
 
     await syncCommand(changeName, { noValidate: true, noVerify: true });
     const specAfterFirst = await fs.readFile(
-      path.join(tempDir, '.opsx', 'specs', 'auth', 'spec.md'),
+      path.join(tempDir, '.xirang', 'specs', 'auth', 'spec.md'),
       'utf-8'
     );
     const opsxAfterFirst = await readProjectOpsx(tempDir);
 
     await syncCommand(changeName, { noValidate: true, noVerify: true });
     const specAfterSecond = await fs.readFile(
-      path.join(tempDir, '.opsx', 'specs', 'auth', 'spec.md'),
+      path.join(tempDir, '.xirang', 'specs', 'auth', 'spec.md'),
       'utf-8'
     );
     const opsxAfterSecond = await readProjectOpsx(tempDir);
@@ -475,7 +475,7 @@ Then the system signs the user in`
     const changeName = 'scenario-label-sync';
     const changeDir = await createChange(changeName);
     const changeSpecDir = path.join(changeDir, 'specs', 'auth');
-    const mainSpecDir = path.join(tempDir, '.opsx', 'specs', 'auth');
+    const mainSpecDir = path.join(tempDir, '.xirang', 'specs', 'auth');
     await fs.mkdir(changeSpecDir, { recursive: true });
     await fs.mkdir(mainSpecDir, { recursive: true });
 
@@ -533,7 +533,7 @@ The system SHALL support login.
     const changeName = 'unlabeled-sync';
     const changeDir = await createChange(changeName);
     const changeSpecPath = path.join(changeDir, 'specs', 'auth', 'spec.md');
-    const mainSpecDir = path.join(tempDir, '.opsx', 'specs', 'auth');
+    const mainSpecDir = path.join(tempDir, '.xirang', 'specs', 'auth');
     await fs.mkdir(path.dirname(changeSpecPath), { recursive: true });
     await fs.mkdir(mainSpecDir, { recursive: true });
 
@@ -577,7 +577,7 @@ The system SHALL support login.
     );
     const changeSpecBefore = await fs.readFile(changeSpecPath, 'utf-8');
     await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] verified\n', 'utf-8');
-    const evidenceFiles = [`.opsx/changes/${changeName}/specs/auth/spec.md`];
+    const evidenceFiles = [`.xirang/changes/${changeName}/specs/auth/spec.md`];
     const beforeEvidence = await computeEvidenceFingerprint(evidenceFiles, tempDir);
     const verifyResult: VerifyResult = {
       timestamp: new Date().toISOString(),
@@ -634,7 +634,7 @@ The system SHALL support login.
 ### Requirement: Sync refreshes evidence`
     );
 
-    const architecture = path.join(tempDir, '.opsx', 'architecture');
+    const architecture = path.join(tempDir, '.xirang', 'architecture');
     await fs.mkdir(path.join(architecture, 'domains'), { recursive: true });
     await fs.writeFile(path.join(architecture, 'specification.c4'), 'specification { element domain element capability }');
     await fs.writeFile(path.join(architecture, 'views.c4'), 'views { view index { include * } }');
@@ -642,8 +642,8 @@ The system SHALL support login.
     await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), "model { extend core { login = capability 'Login' } }");
 
     const evidenceFiles = [
-      '.opsx/architecture/domains/core.c4',
-      `.opsx/changes/${changeName}/specs/auth/spec.md`,
+      '.xirang/architecture/domains/core.c4',
+      `.xirang/changes/${changeName}/specs/auth/spec.md`,
     ];
     const before = await computeEvidenceFingerprint(evidenceFiles, tempDir);
     const verifyResult: VerifyResult = {
@@ -673,16 +673,16 @@ The system SHALL support login.
     expect(refreshed.verificationContext.evidenceFingerprint).not.toBe(before.hash);
     expect(
       refreshed.verificationContext.evidenceFingerprintEntries?.find(
-        (entry) => entry.path === '.opsx/architecture/domains/core.c4'
+        (entry) => entry.path === '.xirang/architecture/domains/core.c4'
       )?.hash
-    ).not.toBe(before.entries.find((entry) => entry.path === '.opsx/architecture/domains/core.c4')?.hash);
+    ).not.toBe(before.entries.find((entry) => entry.path === '.xirang/architecture/domains/core.c4')?.hash);
     expect(
       refreshed.verificationContext.evidenceFingerprintEntries?.find(
-        (entry) => entry.path === `.opsx/changes/${changeName}/specs/auth/spec.md`
+        (entry) => entry.path === `.xirang/changes/${changeName}/specs/auth/spec.md`
       )?.hash
     ).toBe(
       before.entries.find(
-        (entry) => entry.path === `.opsx/changes/${changeName}/specs/auth/spec.md`
+        (entry) => entry.path === `.xirang/changes/${changeName}/specs/auth/spec.md`
       )?.hash
     );
   });
@@ -713,7 +713,7 @@ The system SHALL support login.
     await fs.writeFile(
       path.join(changeDir, 'opsx-delta.yaml'),
       stringifyYaml({
-        schema_version: OPSX_SCHEMA_VERSION,
+        schema_version: XIRANG_SCHEMA_VERSION,
         ADDED: {
           domains: [{ id: 'dom.sync', type: 'domain', intent: 'Sync domain' }],
           capabilities: [{ id: 'cap.sync.refresh', type: 'capability', intent: 'Refresh evidence' }],
@@ -723,7 +723,7 @@ The system SHALL support login.
       'utf-8'
     );
 
-    const evidenceFiles = ['.opsx/project.opsx.yaml'];
+    const evidenceFiles = ['.xirang/project.xirang.yaml'];
     const before = await computeEvidenceFingerprint(evidenceFiles, tempDir);
     const verifyResult: VerifyResult = {
       timestamp: new Date().toISOString(),
@@ -778,7 +778,7 @@ The system SHALL support login.
     await fs.writeFile(
       path.join(changeDir, 'opsx-delta.yaml'),
       stringifyYaml({
-        schema_version: OPSX_SCHEMA_VERSION,
+        schema_version: XIRANG_SCHEMA_VERSION,
         ADDED: {
           domains: [{ id: 'dom.audit', type: 'domain', intent: 'Audit domain' }],
           capabilities: [{ id: 'cap.audit.log', type: 'capability', intent: 'Audit log' }],
@@ -788,7 +788,7 @@ The system SHALL support login.
       'utf-8'
     );
 
-    const evidenceFiles = [`.opsx/changes/${changeName}/specs/auth/spec.md`];
+    const evidenceFiles = [`.xirang/changes/${changeName}/specs/auth/spec.md`];
     const evidence = await computeEvidenceFingerprint(evidenceFiles, tempDir);
     const verifyResult: VerifyResult = {
       timestamp: new Date().toISOString(),

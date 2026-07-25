@@ -1,6 +1,6 @@
 # Historical Issue: snack spec 推断不准确导致归档验证失败
 
-> Historical record for OPSX v1.2.0-cpyu.9. The original diagnosis depended on the removed OPSX v1 persisted path mapping. Current snack behavior uses OPSX v2 capability intents and semantic relations, `opsx list --specs --json`, and live code evidence from optional CodeGraph or ACE/`rg`/`read`.
+> Historical record for Xirang v1.2.0-cpyu.9. The original diagnosis depended on the removed Xirang v1 persisted path mapping. Current snack behavior uses Xirang v2 capability intents and semantic relations, `xirang list --specs --json`, and live code evidence from optional CodeGraph or ACE/`rg`/`read`.
 
 ## 问题
 
@@ -17,7 +17,7 @@ MODIFIED requirement references a non-existent main requirement.
 生成 delta spec 前应：
 
 1. 从代码变更、capability intent、semantic relation 与 spec coverage 确定候选 capability。
-2. 运行 `opsx list --specs --json` 获取 capability 到 main spec 的映射。
+2. 运行 `xirang list --specs --json` 获取 capability 到 main spec 的映射。
 3. 读取目标 main spec 并按 requirement 标题判断操作：
    - main spec 或 requirement 不存在：`ADDED`
    - requirement 已存在且行为变化：`MODIFIED`
@@ -26,7 +26,7 @@ MODIFIED requirement references a non-existent main requirement.
 
 ## 当前证据边界
 
-OPSX v2 不持久化实现路径。CodeGraph 可在已安装且已索引时提供 symbol/call/import evidence；否则 snack 使用 ACE、`rg` 与 `read`。这些代码事实用于辅助 capability 映射，不能替代 capability intent、semantic relations 或 main spec contracts。
+Xirang v2 不持久化实现路径。CodeGraph 可在已安装且已索引时提供 symbol/call/import evidence；否则 snack 使用 ACE、`rg` 与 `read`。这些代码事实用于辅助 capability 映射，不能替代 capability intent、semantic relations 或 main spec contracts。
 
 ## 回归场景
 

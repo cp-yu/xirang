@@ -25,7 +25,7 @@ describe('BashInstaller', () => {
     it('should return standard bash-completion path', async () => {
       const result = await installer.getInstallationPath();
 
-      expect(result).toBe(path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'opsx'));
+      expect(result).toBe(path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'xirang'));
     });
   });
 
@@ -62,13 +62,13 @@ describe('BashInstaller', () => {
   });
 
   describe('install', () => {
-    const testScript = '# Bash completion script for OPSX CLI\n_opsx_completion() {\n  echo "test"\n}\n';
+    const testScript = '# Bash completion script for Xirang CLI\n_opsx_completion() {\n  echo "test"\n}\n';
 
     it('should install to bash-completion path', async () => {
       const result = await installer.install(testScript);
 
       expect(result.success).toBe(true);
-      expect(result.installedPath).toBe(path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'opsx'));
+      expect(result.installedPath).toBe(path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'xirang'));
 
       // Verify file was created with correct content
       const content = await fs.readFile(result.installedPath!, 'utf-8');
@@ -87,7 +87,7 @@ describe('BashInstaller', () => {
     });
 
     it('should backup existing file before overwriting', async () => {
-      const targetPath = path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'opsx');
+      const targetPath = path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'xirang');
       await fs.mkdir(path.dirname(targetPath), { recursive: true });
       await fs.writeFile(targetPath, 'old script');
 
@@ -115,16 +115,16 @@ describe('BashInstaller', () => {
       const bashrcPath = path.join(testHomeDir, '.bashrc');
       const content = await fs.readFile(bashrcPath, 'utf-8');
 
-      expect(content).toContain('# OPSX:START');
-      expect(content).toContain('# OPSX:END');
-      expect(content).toContain('OPSX shell completions configuration');
-      expect(content).toContain('.local/share/bash-completion/completions/opsx');
+      expect(content).toContain('# Xirang:START');
+      expect(content).toContain('# Xirang:END');
+      expect(content).toContain('Xirang shell completions configuration');
+      expect(content).toContain('.local/share/bash-completion/completions/xirang');
       expect(content).not.toContain('for f in');
     });
 
     it('should include instructions when auto-config is disabled', async () => {
-      const originalEnv = process.env.OPSX_NO_AUTO_CONFIG;
-      process.env.OPSX_NO_AUTO_CONFIG = '1';
+      const originalEnv = process.env.XIRANG_NO_AUTO_CONFIG;
+      process.env.XIRANG_NO_AUTO_CONFIG = '1';
 
       const result = await installer.install(testScript);
 
@@ -134,9 +134,9 @@ describe('BashInstaller', () => {
 
       // Restore env
       if (originalEnv === undefined) {
-        delete process.env.OPSX_NO_AUTO_CONFIG;
+        delete process.env.XIRANG_NO_AUTO_CONFIG;
       } else {
-        process.env.OPSX_NO_AUTO_CONFIG = originalEnv;
+        process.env.XIRANG_NO_AUTO_CONFIG = originalEnv;
       }
     });
 
@@ -168,7 +168,7 @@ describe('BashInstaller', () => {
     });
 
     it('should refresh stale .bashrc markers even when the completion script is already up to date', async () => {
-      const targetPath = path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'opsx');
+      const targetPath = path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'xirang');
       await fs.mkdir(path.dirname(targetPath), { recursive: true });
       await fs.writeFile(targetPath, testScript);
 
@@ -176,14 +176,14 @@ describe('BashInstaller', () => {
       await fs.writeFile(
         bashrcPath,
         [
-          '# OPSX:START',
-          '# OPSX shell completions configuration',
+          '# Xirang:START',
+          '# Xirang shell completions configuration',
           'if [ -d "/stale/path" ]; then',
           '  for f in "/stale/path"/*; do',
           '    [ -f "$f" ] && . "$f"',
           '  done',
           'fi',
-          '# OPSX:END',
+          '# Xirang:END',
         ].join('\n'),
         'utf-8'
       );
@@ -194,7 +194,7 @@ describe('BashInstaller', () => {
       expect(result.bashrcConfigured).toBe(true);
 
       const content = await fs.readFile(bashrcPath, 'utf-8');
-      expect(content).toContain('.local/share/bash-completion/completions/opsx');
+      expect(content).toContain('.local/share/bash-completion/completions/xirang');
       expect(content).not.toContain('/stale/path');
       expect(content).not.toContain('for f in');
     });
@@ -224,7 +224,7 @@ describe('BashInstaller', () => {
 
     it('should handle paths with spaces in .bashrc config', async () => {
       // Create a test home directory with spaces
-      const testHomeDirWithSpaces = path.join(os.tmpdir(), `opsx bash test ${randomUUID()}`);
+      const testHomeDirWithSpaces = path.join(os.tmpdir(), `xirang bash test ${randomUUID()}`);
       await fs.mkdir(testHomeDirWithSpaces, { recursive: true });
       const installerWithSpaces = new BashInstaller(testHomeDirWithSpaces);
 
@@ -288,8 +288,8 @@ describe('BashInstaller', () => {
 
       if (exists) {
         const content = await fs.readFile(bashrcPath, 'utf-8');
-        expect(content).not.toContain('# OPSX:START');
-        expect(content).not.toContain('# OPSX:END');
+        expect(content).not.toContain('# Xirang:START');
+        expect(content).not.toContain('# Xirang:END');
       }
     });
   });
@@ -305,11 +305,11 @@ describe('BashInstaller', () => {
       const bashrcPath = path.join(testHomeDir, '.bashrc');
       const content = await fs.readFile(bashrcPath, 'utf-8');
 
-      expect(content).toContain('# OPSX:START');
-      expect(content).toContain('# OPSX:END');
-      expect(content).toContain('# OPSX shell completions configuration');
+      expect(content).toContain('# Xirang:START');
+      expect(content).toContain('# Xirang:END');
+      expect(content).toContain('# Xirang shell completions configuration');
       expect(content).toContain(completionsDir);
-      expect(content).toContain(`${completionsDir}/opsx`);
+      expect(content).toContain(`${completionsDir}/xirang`);
       expect(content).not.toContain('for f in');
     });
 
@@ -323,13 +323,13 @@ describe('BashInstaller', () => {
 
       const content = await fs.readFile(bashrcPath, 'utf-8');
 
-      expect(content).toContain('# OPSX:START');
-      expect(content).toContain('# OPSX:END');
+      expect(content).toContain('# Xirang:START');
+      expect(content).toContain('# Xirang:END');
       expect(content).toContain('# My custom bash config');
       expect(content).toContain('alias ll="ls -la"');
 
       // Config should be before existing content
-      const configIndex = content.indexOf('# OPSX:START');
+      const configIndex = content.indexOf('# Xirang:START');
       const aliasIndex = content.indexOf('alias ll');
       expect(configIndex).toBeLessThan(aliasIndex);
     });
@@ -337,12 +337,12 @@ describe('BashInstaller', () => {
     it('should update config between markers when .bashrc has existing markers', async () => {
       const bashrcPath = path.join(testHomeDir, '.bashrc');
       const initialContent = [
-        '# OPSX:START',
+        '# Xirang:START',
         '# Old config',
         'if [ -d "/old/path" ]; then',
         '  . "/old/path"',
         'fi',
-        '# OPSX:END',
+        '# Xirang:END',
         '',
         '# My custom config',
       ].join('\n');
@@ -355,8 +355,8 @@ describe('BashInstaller', () => {
 
       const content = await fs.readFile(bashrcPath, 'utf-8');
 
-      expect(content).toContain('# OPSX:START');
-      expect(content).toContain('# OPSX:END');
+      expect(content).toContain('# Xirang:START');
+      expect(content).toContain('# Xirang:END');
       expect(content).toContain(completionsDir);
       expect(content).not.toContain('# Old config');
       expect(content).not.toContain('/old/path');
@@ -369,9 +369,9 @@ describe('BashInstaller', () => {
         '# My bash config',
         'export PATH="/custom/path:$PATH"',
         '',
-        '# OPSX:START',
-        '# Old OPSX config',
-        '# OPSX:END',
+        '# Xirang:START',
+        '# Old Xirang config',
+        '# Xirang:END',
         '',
         'alias ls="ls -G"',
       ].join('\n');
@@ -388,12 +388,12 @@ describe('BashInstaller', () => {
       expect(content).toContain('export PATH="/custom/path:$PATH"');
       expect(content).toContain('alias ls="ls -G"');
       expect(content).toContain(completionsDir);
-      expect(content).not.toContain('# Old OPSX config');
+      expect(content).not.toContain('# Old Xirang config');
     });
 
-    it('should return false when OPSX_NO_AUTO_CONFIG is set', async () => {
-      const originalEnv = process.env.OPSX_NO_AUTO_CONFIG;
-      process.env.OPSX_NO_AUTO_CONFIG = '1';
+    it('should return false when XIRANG_NO_AUTO_CONFIG is set', async () => {
+      const originalEnv = process.env.XIRANG_NO_AUTO_CONFIG;
+      process.env.XIRANG_NO_AUTO_CONFIG = '1';
 
       const result = await installer.configureBashrc(completionsDir);
 
@@ -405,9 +405,9 @@ describe('BashInstaller', () => {
 
       // Restore env
       if (originalEnv === undefined) {
-        delete process.env.OPSX_NO_AUTO_CONFIG;
+        delete process.env.XIRANG_NO_AUTO_CONFIG;
       } else {
-        process.env.OPSX_NO_AUTO_CONFIG = originalEnv;
+        process.env.XIRANG_NO_AUTO_CONFIG = originalEnv;
       }
     });
 
@@ -448,12 +448,12 @@ describe('BashInstaller', () => {
       const content = [
         '# My config',
         '',
-        '# OPSX:START',
-        '# OPSX shell completions configuration',
+        '# Xirang:START',
+        '# Xirang shell completions configuration',
         'if [ -d ~/.local/share/bash-completion/completions ]; then',
-        '  . ~/.local/share/bash-completion/completions/opsx',
+        '  . ~/.local/share/bash-completion/completions/xirang',
         'fi',
-        '# OPSX:END',
+        '# Xirang:END',
         '',
         'alias ll="ls -la"',
       ].join('\n');
@@ -466,9 +466,9 @@ describe('BashInstaller', () => {
 
       const newContent = await fs.readFile(bashrcPath, 'utf-8');
 
-      expect(newContent).not.toContain('# OPSX:START');
-      expect(newContent).not.toContain('# OPSX:END');
-      expect(newContent).not.toContain('OPSX shell completions configuration');
+      expect(newContent).not.toContain('# Xirang:START');
+      expect(newContent).not.toContain('# Xirang:END');
+      expect(newContent).not.toContain('Xirang shell completions configuration');
       expect(newContent).toContain('# My config');
       expect(newContent).toContain('alias ll="ls -la"');
     });
@@ -478,9 +478,9 @@ describe('BashInstaller', () => {
       const content = [
         'export PATH="/custom:$PATH"',
         '',
-        '# OPSX:START',
+        '# Xirang:START',
         '# Config',
-        '# OPSX:END',
+        '# Xirang:END',
         '',
         'alias g="git"',
       ].join('\n');
@@ -495,7 +495,7 @@ describe('BashInstaller', () => {
 
       expect(newContent).toContain('export PATH="/custom:$PATH"');
       expect(newContent).toContain('alias g="git"');
-      expect(newContent).not.toContain('# OPSX:START');
+      expect(newContent).not.toContain('# Xirang:START');
     });
 
     it('should handle permission errors gracefully', async () => {

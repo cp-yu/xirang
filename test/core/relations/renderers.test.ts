@@ -4,20 +4,20 @@ import { describe, expect, it } from 'vitest';
 import { parse as parseYaml } from 'yaml';
 import {
   GENERATED_RELATION_FILES,
-  renderOpsxDeltaTemplate,
+  renderXirangDeltaTemplate,
   renderRelationAuthoringReference,
 } from '../../../src/core/relations/renderers.js';
 import { ACTIVE_RELATION_TYPES } from '../../../src/core/relations/active-registry.js';
 import { RELATION_TYPES } from '../../../src/core/relations/registry.js';
-import { OpsxDeltaSchema } from '../../../src/utils/opsx-utils.js';
+import { XirangDeltaSchema } from '../../../src/utils/xirang-utils.js';
 
 const projectRoot = path.resolve(import.meta.dirname, '..', '..', '..');
 
 describe('relation renderers', () => {
   it('renders a parseable strict real-delta template with canonical relations', () => {
-    const rendered = renderOpsxDeltaTemplate();
+    const rendered = renderXirangDeltaTemplate();
     const parsed = parseYaml(rendered);
-    expect(OpsxDeltaSchema.safeParse(parsed).success).toBe(true);
+    expect(XirangDeltaSchema.safeParse(parsed).success).toBe(true);
     expect(parsed).toMatchObject({ schema_version: 2 });
     expect(rendered).toContain('Canonical no-op');
     expect(rendered).toContain('ADDED: {}');

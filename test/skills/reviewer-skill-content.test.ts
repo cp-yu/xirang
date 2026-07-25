@@ -15,7 +15,7 @@ function normalizeSelfRead(content: string): string {
     .trim();
 }
 
-describe('opsx reviewer skill content', () => {
+describe('xirang reviewer skill content', () => {
   it('contains absence-check protocol for REMOVED anchors', () => {
     const instructions = getReviewerSubagentTemplate().prompt;
 

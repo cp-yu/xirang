@@ -11,12 +11,12 @@ const activeRoots = [
   '.pi/skills',
   '.claude/skills',
 ];
-const historyRoots = ['.opsx/changes/archive', '.opsx/history'];
+const historyRoots = ['.xirang/changes/archive', '.xirang/history'];
 const patterns = [
-  ['opsx init', /\bopsx\s+init\b/],
-  ['opsx bootstrap', /\bopsx\s+bootstrap\b/],
-  ['opsx migrate', /\bopsx\s+migrate\b/],
-  ['opsx-bootstrap-arch', /\bopsx-bootstrap-arch\b/],
+  ['xirang init', /\bopsx\s+init\b/],
+  ['xirang bootstrap', /\bopsx\s+bootstrap\b/],
+  ['xirang migrate', /\bopsx\s+migrate\b/],
+  ['xirang-bootstrap-arch', /\bxirang-bootstrap-arch\b/],
   ['bootstrap-arch', /\bbootstrap-arch\b/],
   ['experimental workflow', /\bexperimental workflow\b/],
 ];

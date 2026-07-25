@@ -28,7 +28,7 @@ export const ChangeSchema = z.object({
     .max(MAX_DELTAS_PER_CHANGE, VALIDATION_MESSAGES.CHANGE_TOO_MANY_DELTAS),
   metadata: z.object({
     version: z.string().default('1.0.0'),
-    format: z.literal('opsx-change'),
+    format: z.literal('xirang-change'),
     sourcePath: z.string().optional(),
   }).optional(),
 });

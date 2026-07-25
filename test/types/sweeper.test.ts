@@ -10,7 +10,7 @@ describe('ImpactSweepReport', () => {
       concept: '流程',
       projectRoot: '/project',
       termMappings: [],
-      opsx: {
+      xirang: {
         nodes: [],
         relationsExpanded: [],
       },

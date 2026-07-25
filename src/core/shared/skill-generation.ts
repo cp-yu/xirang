@@ -20,11 +20,11 @@ import {
 
 export const MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES = [
   'opsx-implementer',
-  'opsx-reviewer',
-  'opsx-optimizer',
-  'opsx-impact-sweeper',
+  'xirang-reviewer',
+  'xirang-optimizer',
+  'xirang-impact-sweeper',
   'opsx-bootstrap-opsx',
-  'opsx-bootstrap-arch',
+  'xirang-bootstrap-arch',
 ] as const;
 
 export function getManagedSkillDirNames(): string[] {
@@ -92,7 +92,7 @@ function escapeYamlString(value: string): string {
  * Generates skill file content with YAML frontmatter.
  *
  * @param template - The skill template
- * @param generatedByVersion - The OPSX version to embed in the file
+ * @param generatedByVersion - The Xirang version to embed in the file
  * @param transformInstructions - Optional callback to transform the instructions content
  */
 export function generateSkillContent(
@@ -108,9 +108,9 @@ export function generateSkillContent(
 name: ${escapeYamlString(template.name)}
 description: ${escapeYamlString(template.description)}
 license: ${escapeYamlString(template.license || 'MIT')}
-compatibility: ${escapeYamlString(template.compatibility || 'Requires opsx CLI.')}
+compatibility: ${escapeYamlString(template.compatibility || 'Requires xirang CLI.')}
 metadata:
-  author: ${escapeYamlString(template.metadata?.author || 'opsx')}
+  author: ${escapeYamlString(template.metadata?.author || 'xirang')}
   version: ${escapeYamlString(template.metadata?.version || '1.0')}
   generatedBy: ${escapeYamlString(generatedByVersion)}
 ---

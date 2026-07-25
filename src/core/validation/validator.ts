@@ -1,4 +1,4 @@
-import { OPSX_DIR_NAME } from '../config.js';
+import { XIRANG_DIR_NAME } from '../config.js';
 import { z, ZodError } from 'zod';
 import { readFileSync, promises as fs } from 'fs';
 import path from 'path';
@@ -81,7 +81,7 @@ function appendRequiredContractIssues(
   for (const elementId of uncovered) {
     issues.push({
       level: 'ERROR',
-      path: path.join(OPSX_DIR_NAME, 'architecture'),
+      path: path.join(XIRANG_DIR_NAME, 'architecture'),
       message: `MISSING_REQUIRED_CONTRACT: required element "${elementId}" has no bound Spec`,
     });
   }
@@ -96,7 +96,7 @@ export async function validateSpecBindings(
   const issues: ValidationIssue[] = [];
   appendRegistryBindingIssues(
     registry,
-    path.relative(projectRoot, specsDirectory ?? path.join(projectRoot, OPSX_DIR_NAME, 'specs')),
+    path.relative(projectRoot, specsDirectory ?? path.join(projectRoot, XIRANG_DIR_NAME, 'specs')),
     new Set(architecture.elements.map(element => element.id)),
     issues,
   );
@@ -616,7 +616,7 @@ export class Validator {
       return;
     }
 
-    const mainSpecsDir = path.join(projectRoot, OPSX_DIR_NAME, 'specs');
+    const mainSpecsDir = path.join(projectRoot, XIRANG_DIR_NAME, 'specs');
     const knownCaps = architecture
       ? new Set(architecture.capabilities.flatMap(capability => capability.capabilityId ?? []))
       : null;
@@ -641,7 +641,7 @@ export class Validator {
       const frontmatter = parseSpecFrontmatter(content);
       const capabilities = frontmatter.issues
         ?.find(issue => issue.code === 'LEGACY_SPEC_OWNERSHIP')?.values ?? [];
-      const issuePath = path.join(OPSX_DIR_NAME, 'specs', specName, 'spec.md');
+      const issuePath = path.join(XIRANG_DIR_NAME, 'specs', specName, 'spec.md');
       if (capabilities.length === 0) {
         issues.push({
           level: 'INFO',
@@ -676,7 +676,7 @@ export class Validator {
     const local = specsDirectory ? null : await buildSpecRegistry(projectRoot, path.join(changeDir, 'specs'));
     const knownElements = new Set(contextKnownElementIds ?? architecture.elements.map(element => element.id));
 
-    appendRegistryBindingIssues(formal, path.join(OPSX_DIR_NAME, 'specs'), knownElements, issues);
+    appendRegistryBindingIssues(formal, path.join(XIRANG_DIR_NAME, 'specs'), knownElements, issues);
     if (local) appendRegistryBindingIssues(local, path.relative(projectRoot, path.join(changeDir, 'specs')), knownElements, issues);
     appendRequiredContractIssues(formal, architecture, issues, local ?? undefined);
   }

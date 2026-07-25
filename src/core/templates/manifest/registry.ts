@@ -24,8 +24,8 @@ const MANIFEST_ENTRIES: readonly WorkflowManifestEntry[] = [
   {
     workflowId: 'propose',
     modeMembership: ['core'],
-    skillDirName: 'opsx-propose',
-    skillName: 'opsx-propose',
+    skillDirName: 'xirang-propose',
+    skillName: 'xirang-propose',
     commandSlug: 'propose',
     promptMeta: {
       name: 'Propose change',
@@ -36,8 +36,8 @@ const MANIFEST_ENTRIES: readonly WorkflowManifestEntry[] = [
   {
     workflowId: 'explore',
     modeMembership: ['core'],
-    skillDirName: 'opsx-explore',
-    skillName: 'opsx-explore',
+    skillDirName: 'xirang-explore',
+    skillName: 'xirang-explore',
     commandSlug: 'explore',
     promptMeta: {
       name: 'Explore ideas',
@@ -48,8 +48,8 @@ const MANIFEST_ENTRIES: readonly WorkflowManifestEntry[] = [
   {
     workflowId: 'apply',
     modeMembership: ['core'],
-    skillDirName: 'opsx-apply-change',
-    skillName: 'opsx-apply-change',
+    skillDirName: 'xirang-apply-change',
+    skillName: 'xirang-apply-change',
     commandSlug: 'apply',
     promptMeta: {
       name: 'Apply tasks',
@@ -60,8 +60,8 @@ const MANIFEST_ENTRIES: readonly WorkflowManifestEntry[] = [
   {
     workflowId: 'archive',
     modeMembership: ['core'],
-    skillDirName: 'opsx-archive-change',
-    skillName: 'opsx-archive-change',
+    skillDirName: 'xirang-archive-change',
+    skillName: 'xirang-archive-change',
     commandSlug: 'archive',
     promptMeta: {
       name: 'Archive change',
@@ -72,11 +72,11 @@ const MANIFEST_ENTRIES: readonly WorkflowManifestEntry[] = [
   {
     workflowId: 'build',
     modeMembership: [],
-    skillDirName: 'opsx-build',
-    skillName: 'opsx-build',
+    skillDirName: 'xirang-build',
+    skillName: 'xirang-build',
     commandSlug: 'build',
     promptMeta: {
-      name: 'Build project OPSX',
+      name: 'Build project Xirang',
       description: 'Build or rebuild one reviewed Architecture and Specs Candidate',
     },
     getSkillTemplate: getBuildSkillTemplate,
@@ -84,8 +84,8 @@ const MANIFEST_ENTRIES: readonly WorkflowManifestEntry[] = [
   {
     workflowId: 'snack',
     modeMembership: ['flexible'],
-    skillDirName: 'opsx-snack',
-    skillName: 'opsx-snack',
+    skillDirName: 'xirang-snack',
+    skillName: 'xirang-snack',
     commandSlug: 'snack',
     promptMeta: {
       name: 'Snack sync',

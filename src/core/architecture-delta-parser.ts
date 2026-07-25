@@ -315,8 +315,8 @@ class DeltaParser {
 
   private parseElementKindTarget(): SemanticElementKind {
     this.expectSymbol('{');
-    this.expectIdentifier('opsx');
-    const values = this.parseOpsxProperties(new Set(['root', 'contract', 'parents', 'children']));
+    this.expectIdentifier('xirang');
+    const values = this.parseXirangProperties(new Set(['root', 'contract', 'parents', 'children']));
     this.expectSymbol('}');
     const contract = values.get('contract');
     if (contract !== 'required' && contract !== 'optional') {
@@ -332,8 +332,8 @@ class DeltaParser {
 
   private parseRelationshipKindTarget(): SemanticRelationshipKind {
     this.expectSymbol('{');
-    this.expectIdentifier('opsx');
-    const values = this.parseOpsxProperties(new Set(['sourceKinds', 'targetKinds']));
+    this.expectIdentifier('xirang');
+    const values = this.parseXirangProperties(new Set(['sourceKinds', 'targetKinds']));
     this.expectSymbol('}');
     return {
       ...(values.has('sourceKinds') ? { sourceKinds: values.get('sourceKinds') as string[] } : {}),
@@ -341,7 +341,7 @@ class DeltaParser {
     };
   }
 
-  private parseOpsxProperties(allowed: Set<string>): Map<string, unknown> {
+  private parseXirangProperties(allowed: Set<string>): Map<string, unknown> {
     this.expectSymbol('{');
     const values = new Map<string, unknown>();
     while (!this.acceptSymbol('}')) {

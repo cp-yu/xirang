@@ -22,8 +22,8 @@ describe('specs apply complete target state', () => {
   });
 
   async function writeUpdate(changeSpec: string, mainSpec: string): Promise<SpecUpdate> {
-    const source = path.join(tempDir, '.opsx', 'changes', 'c1', 'specs', 'auth', 'spec.md');
-    const target = path.join(tempDir, '.opsx', 'specs', 'auth', 'spec.md');
+    const source = path.join(tempDir, '.xirang', 'changes', 'c1', 'specs', 'auth', 'spec.md');
+    const target = path.join(tempDir, '.xirang', 'specs', 'auth', 'spec.md');
     await fs.mkdir(path.dirname(source), { recursive: true });
     await fs.mkdir(path.dirname(target), { recursive: true });
     await fs.writeFile(source, changeSpec, 'utf-8');
@@ -32,8 +32,8 @@ describe('specs apply complete target state', () => {
   }
 
   it('preserves singular element frontmatter when creating a formal spec', async () => {
-    const source = path.join(tempDir, '.opsx', 'changes', 'c1', 'specs', 'browser', 'spec.md');
-    const target = path.join(tempDir, '.opsx', 'specs', 'browser', 'spec.md');
+    const source = path.join(tempDir, '.xirang', 'changes', 'c1', 'specs', 'browser', 'spec.md');
+    const target = path.join(tempDir, '.xirang', 'specs', 'browser', 'spec.md');
     await fs.mkdir(path.dirname(source), { recursive: true });
     await fs.writeFile(source, `---\nelement: presentation.spec_content_panel\n---\n## ADDED Requirements\n\n### Requirement: Browse Specs\n\nThe UI SHALL display indexed Specs.\n\n#### Scenario: Open details\n\n- **WHEN** details open\n- **THEN** indexed Specs are displayed\n`);
 
@@ -44,8 +44,8 @@ describe('specs apply complete target state', () => {
   });
 
   it('keeps legacy capability frontmatter on the legacy read path', async () => {
-    const source = path.join(tempDir, '.opsx', 'changes', 'c1', 'specs', 'legacy', 'spec.md');
-    const target = path.join(tempDir, '.opsx', 'specs', 'legacy', 'spec.md');
+    const source = path.join(tempDir, '.xirang', 'changes', 'c1', 'specs', 'legacy', 'spec.md');
+    const target = path.join(tempDir, '.xirang', 'specs', 'legacy', 'spec.md');
     await fs.mkdir(path.dirname(source), { recursive: true });
     await fs.writeFile(source, `---\ncapabilities: [cap.legacy.run]\n---\n## ADDED Requirements\n\n### Requirement: Run\n\nThe system SHALL run.\n\n#### Scenario: Run\n\n- **WHEN** invoked\n- **THEN** it runs\n`);
 
@@ -92,8 +92,8 @@ The system SHALL support login.
   });
 
   it('rejects whole-Spec removal outside the shared Target transaction', async () => {
-    const formalSpec = path.join(tempDir, '.opsx', 'specs', 'auth', 'spec.md');
-    const changeSpec = path.join(tempDir, '.opsx', 'changes', 'remove-auth', 'specs', 'auth', 'spec.md');
+    const formalSpec = path.join(tempDir, '.xirang', 'specs', 'auth', 'spec.md');
+    const changeSpec = path.join(tempDir, '.xirang', 'changes', 'remove-auth', 'specs', 'auth', 'spec.md');
     await fs.mkdir(path.dirname(formalSpec), { recursive: true });
     await fs.mkdir(path.dirname(changeSpec), { recursive: true });
     await fs.writeFile(formalSpec, `---\nelement: auth.id\n---\n\n# Auth Specification\n\n## Purpose\nAuth behavior.\n\n## Requirements\n\n### Requirement: Login\nThe system SHALL support login.\n\n#### Scenario: Login succeeds\n- **WHEN** credentials are valid\n- **THEN** login succeeds\n`);

@@ -1,5 +1,5 @@
 /**
- * Internal subagent skill: opsx-reviewer
+ * Internal subagent skill: xirang-reviewer
  *
  * Phase 1 verification reviewer. Spawned as a clean-context subagent by
  * verify/apply/archive workflows. Owns all completeness, correctness, and
@@ -7,20 +7,20 @@
  * evidence, returns a structured assessment.
  */
 import type { SubagentTemplate } from '../../shared/subagent-generation.js';
-import { OPSX_PHILOSOPHY, OPSX_SHARED_CONTEXT } from '../fragments/opsx-fragments.js';
+import { XIRANG_PHILOSOPHY, XIRANG_SHARED_CONTEXT } from '../fragments/xirang-fragments.js';
 
 export function getReviewerSubagentTemplate(): SubagentTemplate {
   return {
-    name: 'opsx-reviewer',
+    name: 'xirang-reviewer',
     description:
       'Internal clean-context Phase 1 verification reviewer. Judges implementation completeness, correctness, coherence, and cleanliness by reading files from changeName, changeDir, and projectRoot. Never accesses conversation history.',
     prompt: `## Role
 
 You are the clean-context Phase 1 reviewer. Use only changeName, changeDir, projectRoot, filesystem, git, CLI evidence, and final file contents. Do not modify files or propose patches.
 
-${OPSX_PHILOSOPHY}
+${XIRANG_PHILOSOPHY}
 
-${OPSX_SHARED_CONTEXT}
+${XIRANG_SHARED_CONTEXT}
 
 ## Hard Constraints
 
@@ -90,7 +90,7 @@ Judgment mode is dispatched by Check anchor type:
 Attribution universe = union of the following sets (explicit list lookup; do not use pattern-matching inference):
 1. Entries declared in each task \`Files\` (including directory entries \u2014 directory entry covers all files under it)
 2. Test and evidence files referenced by each Check \`Command:\`
-3. Change artifacts themselves (all files under \`.opsx/changes/<name>/\`)
+3. Change artifacts themselves (all files under \`.xirang/changes/<name>/\`)
 
 For each file in the union of \`git diff <baseCommit>...HEAD --name-only\` and \`git status --short\` scope and outside the attribution universe:
 - Read the file, then determine its content nature.
@@ -122,7 +122,7 @@ Return one structured object only:
       "halfMigrationsFound": 0,
       "unaccountedChangesFound": 0
     },
-    "opsxAlignment": {"checked": true, "issues": 0}
+    "xirangAlignment": {"checked": true, "issues": 0}
   },
   "writeBackPlan": [{"taskLine": "exact checkbox", "action": "unmark | append_remediation", "remediationType": "code_fix | artifact_fix", "requirement": "name", "summary": "issue", "nextAction": "step"}],
   "evidenceFiles": ["relative/posix/path.ts"],
@@ -134,6 +134,6 @@ Only CRITICAL issues may appear in writeBackPlan. If tasks.md has no checkbox ta
     tools: ['read', 'grep', 'find', 'bash'],
     disallowedTools: ['write', 'edit'],
     mode: 'read-only',
-    metadata: { author: 'opsx', version: '1.0', type: 'subagent' },
+    metadata: { author: 'xirang', version: '1.0', type: 'subagent' },
   };
 }

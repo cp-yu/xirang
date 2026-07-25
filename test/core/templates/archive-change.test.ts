@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest';
 
-import { OPSX_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
+import { XIRANG_PHILOSOPHY } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import { getArchiveChangeSkillTemplate } from '../../../src/core/templates/workflows/archive-change.js';
 
 describe('archive change workflow template', () => {
-  it('includes the OPSX philosophy in the skill surface', () => {
-    expect(getArchiveChangeSkillTemplate().instructions).toContain(OPSX_PHILOSOPHY);
+  it('includes the Xirang philosophy in the skill surface', () => {
+    expect(getArchiveChangeSkillTemplate().instructions).toContain(XIRANG_PHILOSOPHY);
   });
 
-  it('uses current OPSX workflow branding', () => {
+  it('uses current Xirang workflow branding', () => {
     const template = getArchiveChangeSkillTemplate();
-    expect(template.description).toContain('OPSX change workflow');
-    expect(template.instructions).toContain('OPSX change workflow');
+    expect(template.description).toContain('Xirang change workflow');
+    expect(template.instructions).toContain('Xirang change workflow');
     expect(template.description).not.toContain('experimental workflow');
     expect(template.instructions).not.toContain('experimental workflow');
   });
@@ -33,18 +33,18 @@ describe('archive change workflow template', () => {
   it('delegates verify work to internal agents', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
 
-    expect(instructions).toContain('delegate to clean-context generated `opsx-reviewer` subagent');
-    expect(instructions).toContain('delegate to clean-context generated `opsx-optimizer` subagent');
+    expect(instructions).toContain('delegate to clean-context generated `xirang-reviewer` subagent');
+    expect(instructions).toContain('delegate to clean-context generated `xirang-optimizer` subagent');
     expect(instructions).toContain('MUST NOT inline a current-agent review skeleton');
-    expect(instructions).not.toContain('invoke the `opsx-reviewer` skill');
-    expect(instructions).not.toContain('invoke `opsx-optimizer`');
-    expect(instructions).not.toContain('/skills/opsx-reviewer/SKILL.md');
+    expect(instructions).not.toContain('invoke the `xirang-reviewer` skill');
+    expect(instructions).not.toContain('invoke `xirang-optimizer`');
+    expect(instructions).not.toContain('/skills/xirang-reviewer/SKILL.md');
   });
 
   it('retains apply isolation metadata before CLI move and owns safe cleanup', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
     const readIndex = instructions.indexOf('Read `.apply-isolation.json` before running the archive CLI');
-    const cliIndex = instructions.indexOf('Run `opsx archive "<change-name>"`');
+    const cliIndex = instructions.indexOf('Run `xirang archive "<change-name>"`');
 
     expect(readIndex).toBeGreaterThan(-1);
     expect(cliIndex).toBeGreaterThan(readIndex);

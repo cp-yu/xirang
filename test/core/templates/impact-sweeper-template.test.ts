@@ -25,8 +25,8 @@ describe('impact sweeper template', () => {
     }
   });
 
-  it('excludes the OPSX philosophy (read-only reporter role)', () => {
-    expect(instructions).not.toContain('OPSX Philosophy');
+  it('excludes the Xirang philosophy (read-only reporter role)', () => {
+    expect(instructions).not.toContain('Xirang Philosophy');
   });
 
   it('describes fast-model usage for the lightweight sweep', () => {
@@ -34,7 +34,7 @@ describe('impact sweeper template', () => {
   });
 
   it('defines the report input and output contract', () => {
-    expect(getImpactSweeperSubagentTemplate().name).toBe('opsx-impact-sweeper');
+    expect(getImpactSweeperSubagentTemplate().name).toBe('xirang-impact-sweeper');
     expect(instructions).toContain('projectRoot');
     expect(instructions).toContain('concept');
     expect(instructions).toContain('optionalChangeName');
@@ -43,7 +43,7 @@ describe('impact sweeper template', () => {
     expect(instructions).toContain('return exactly one JSON object');
     expect(instructions).toContain('Do not wrap the JSON in a Markdown code fence');
     expect(instructions).toContain('Do not emit a report path or separate summary');
-    expect(instructions).not.toContain('opsx/sweeper/');
+    expect(instructions).not.toContain('xirang/sweeper/');
   });
 
   it('includes canonical JSON report fields', () => {
@@ -62,7 +62,7 @@ describe('impact sweeper template', () => {
       '"userTerm"',
       '"projectTerms"',
       '"evidence"',
-      '"opsx"',
+      '"xirang"',
       '"elements"',
       '"elementId"',
       '"fqn"',
@@ -93,12 +93,12 @@ describe('impact sweeper template', () => {
   it('requires CLI-backed LikeC4 evidence and bounded reverse search', () => {
     const evidence = readReference('references/evidence-protocol.md');
 
-    expect(evidence).toContain('opsx arch query <elementId> --relations --depth 2 --json');
+    expect(evidence).toContain('xirang arch query <elementId> --relations --depth 2 --json');
     expect(evidence).toContain("Preserve each relationship's canonical source/kind/target direction");
     expect(evidence).toContain('parent and children as abstraction/refinement context');
     expect(evidence).toContain('canonical `elementId`');
     expect(evidence).toContain('current FQN');
-    expect(evidence).toContain('opsx list --specs --json');
+    expect(evidence).toContain('xirang list --specs --json');
     expect(evidence).toContain('CodeGraph is available');
     expect(evidence).toContain('never read `.codegraph/codegraph.db`');
     expect(evidence).toContain('ACE, `rg`, `read`, and `git ls-files`');
@@ -130,6 +130,6 @@ describe('impact sweeper template', () => {
   });
 
   it('does not retain the legacy report persistence scaffold', () => {
-    expect(existsSync(path.resolve('opsx/sweeper/.gitignore'))).toBe(false);
+    expect(existsSync(path.resolve('xirang/sweeper/.gitignore'))).toBe(false);
   });
 });

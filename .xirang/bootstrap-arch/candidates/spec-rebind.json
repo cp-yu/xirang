@@ -1,0 +1,562 @@
+{
+  "auto": [
+    {
+      "spec": "agent-prompt-guidance",
+      "from": "project.root/domain.ai_integration/cap.ai.review-roles",
+      "to": "cap.ai.agent-prompt-guidance"
+    },
+    {
+      "spec": "ai-impact-sweeper",
+      "from": "project.root/domain.ai_integration/cap.ai.intent-exploration",
+      "to": "cap.ai.impact-sweeper"
+    },
+    {
+      "spec": "ai-workflow-templates",
+      "from": "project.root/domain.ai_integration/cap.ai.workflow-generation",
+      "to": "cap.ai.workflow-templates"
+    },
+    {
+      "spec": "apply-branch-isolation",
+      "from": "project.root/domain.apply/cap.apply.isolation",
+      "to": "cap.apply.branch-isolation"
+    },
+    {
+      "spec": "apply-preflight-scan",
+      "from": "project.root/domain.apply/cap.apply.execution",
+      "to": "cap.apply.preflight-scan"
+    },
+    {
+      "spec": "apply-recovery-protocol-enhanced",
+      "from": "project.root/domain.apply/cap.apply.execution",
+      "to": "cap.apply.recovery-protocol-enhanced"
+    },
+    {
+      "spec": "apply-task-decomposition",
+      "from": "project.root/domain.apply/cap.apply.execution",
+      "to": "cap.apply.task-decomposition"
+    },
+    {
+      "spec": "apply-verify-integration",
+      "from": "project.root/domain.apply/cap.apply.verification-integration",
+      "to": "cap.apply.verify-integration"
+    },
+    {
+      "spec": "arch-export-command",
+      "from": "project.root/domain.cli/cap.cli.architecture-navigation",
+      "to": "cap.cli.arch-export"
+    },
+    {
+      "spec": "arch-validate-command",
+      "from": "project.root/domain.cli/cap.cli.architecture-navigation",
+      "to": "cap.cli.arch-validate"
+    },
+    {
+      "spec": "ci-nix-validation",
+      "from": "project.root/domain.quality/cap.quality.ci-nix-validation",
+      "to": "cap.quality.ci-nix-validation"
+    },
+    {
+      "spec": "cli-archive",
+      "from": "project.root/domain.cli/cap.cli.change-operations",
+      "to": "cap.cli.archive"
+    },
+    {
+      "spec": "cli-authoring-help",
+      "from": "project.root/domain.cli/cap.cli.artifact-workflow",
+      "to": "cap.cli.authoring-help"
+    },
+    {
+      "spec": "cli-change",
+      "from": "project.root/domain.cli/cap.cli.change-operations",
+      "to": "cap.cli.change"
+    },
+    {
+      "spec": "cli-command-reference-consistency",
+      "from": "project.root/domain.cli/cap.cli.command-discovery",
+      "to": "cap.cli.command-reference-consistency"
+    },
+    {
+      "spec": "cli-completion-introspect",
+      "from": "project.root/domain.cli/cap.cli.command-discovery",
+      "to": "cap.cli.completion-introspect"
+    },
+    {
+      "spec": "cli-feedback",
+      "from": "project.root/domain.cli/cap.cli.feedback",
+      "to": "cap.cli.feedback"
+    },
+    {
+      "spec": "cli-list",
+      "from": "project.root/domain.cli/cap.cli.artifact-workflow",
+      "to": "cap.cli.list"
+    },
+    {
+      "spec": "cli-show",
+      "from": "project.root/domain.cli/cap.cli.change-operations",
+      "to": "cap.cli.show"
+    },
+    {
+      "spec": "cli-spec",
+      "from": "project.root/domain.cli/cap.cli.change-operations",
+      "to": "cap.cli.spec"
+    },
+    {
+      "spec": "cli-sync",
+      "from": "project.root/domain.cli/cap.cli.change-operations",
+      "to": "cap.cli.sync"
+    },
+    {
+      "spec": "cli-update",
+      "from": "project.root/domain.cli/cap.cli.project-setup",
+      "to": "cap.cli.update"
+    },
+    {
+      "spec": "cli-validate",
+      "from": "project.root/domain.cli/cap.cli.change-operations",
+      "to": "cap.cli.validate"
+    },
+    {
+      "spec": "cli-view",
+      "from": "project.root/domain.cli/cap.cli.architecture-navigation",
+      "to": "cap.cli.view"
+    },
+    {
+      "spec": "config-apply-projection",
+      "from": "project.root/domain.config/cap.config.runtime-projection",
+      "to": "cap.config.apply-projection"
+    },
+    {
+      "spec": "config-loading",
+      "from": "project.root/domain.config/cap.config.project-settings",
+      "to": "cap.config.project"
+    },
+    {
+      "spec": "config-projection",
+      "from": "project.root/domain.config/cap.config.runtime-projection",
+      "to": "cap.config.projection"
+    },
+    {
+      "spec": "enforce-optimizer-invocation",
+      "from": "project.root/domain.verify/cap.verify.optimization-gate",
+      "to": "cap.verify.enforce-optimizer-invocation"
+    },
+    {
+      "spec": "explore-brainstorming",
+      "from": "project.root/domain.ai_integration/cap.ai.intent-exploration",
+      "to": "cap.ai.explore-brainstorming"
+    },
+    {
+      "spec": "explore-terminology-decision",
+      "from": "project.root/domain.ai_integration/cap.ai.intent-exploration",
+      "to": "cap.ai.explore-terminology-decision"
+    },
+    {
+      "spec": "init-opsx-skeleton",
+      "from": "project.root/domain.cli/cap.cli.project-setup",
+      "to": "cap.cli.init-opsx-skeleton"
+    },
+    {
+      "spec": "instruction-loader",
+      "from": "project.root/domain.artifact_graph/cap.artifact-graph.workflow-compilation",
+      "to": "cap.artifact-graph.instruction-loader"
+    },
+    {
+      "spec": "internal-subagent-generation",
+      "from": "project.root/domain.ai_integration/cap.ai.subagent-generation",
+      "to": "cap.ai.internal-subagent-generation"
+    },
+    {
+      "spec": "likec4-semantic-validator",
+      "from": "project.root/domain.architecture/cap.architecture.semantic-model",
+      "to": "cap.architecture.semantic-validator"
+    },
+    {
+      "spec": "opsx-semantic-model",
+      "from": "project.root/domain.architecture/cap.architecture.semantic-model",
+      "to": "cap.architecture.metamodel"
+    },
+    {
+      "spec": "opsx-semantic-relations",
+      "from": "project.root/domain.architecture/cap.architecture.semantic-model",
+      "to": "cap.xirang.semantic-relations"
+    },
+    {
+      "spec": "references-home",
+      "from": "project.root/domain.ai_integration/cap.ai.workflow-generation",
+      "to": "cap.ai.references-home"
+    },
+    {
+      "spec": "reviewer-cleanliness-dimension",
+      "from": "project.root/domain.ai_integration/cap.ai.review-roles",
+      "to": "cap.ai.reviewer-cleanliness-dimension"
+    },
+    {
+      "spec": "schema-resolution",
+      "from": "project.root/domain.artifact_graph/cap.artifact-graph.workflow-compilation",
+      "to": "cap.artifact-graph.schema-resolution"
+    },
+    {
+      "spec": "snack-skill-generation",
+      "from": "project.root/domain.ai_integration/cap.ai.workflow-generation",
+      "to": "cap.ai.snack-skill-generation"
+    },
+    {
+      "spec": "snack-workflow-manifest",
+      "from": "project.root/domain.ai_integration/cap.ai.workflow-generation",
+      "to": "cap.ai.snack-workflow-manifest"
+    },
+    {
+      "spec": "spec-frontmatter",
+      "from": "project.root/domain.validation/cap.validation.semantic-contract",
+      "to": "cap.spec.frontmatter"
+    },
+    {
+      "spec": "spec-registry",
+      "from": "project.root/domain.validation/cap.validation.semantic-contract",
+      "to": "cap.spec.registry"
+    },
+    {
+      "spec": "subagent-self-read",
+      "from": "project.root/domain.ai_integration/cap.ai.review-roles",
+      "to": "cap.ai.subagent-self-read"
+    },
+    {
+      "spec": "sweeper-terminology-extraction",
+      "from": "project.root/domain.ai_integration/cap.ai.intent-exploration",
+      "to": "cap.ai.sweeper-terminology-extraction"
+    },
+    {
+      "spec": "sweeper-terminology-reporting",
+      "from": "project.root/domain.ai_integration/cap.ai.intent-exploration",
+      "to": "cap.ai.sweeper-terminology-reporting"
+    },
+    {
+      "spec": "sync-evidence-refresh",
+      "from": "project.root/domain.verify/cap.verify.optimization-gate",
+      "to": "cap.sync.evidence-refresh"
+    },
+    {
+      "spec": "telemetry",
+      "from": "project.root/domain.telemetry/cap.telemetry.anonymous-usage",
+      "to": "cap.telemetry.anonymous-usage"
+    },
+    {
+      "spec": "template-artifact-pipeline",
+      "from": "project.root/domain.ai_integration/cap.ai.workflow-generation",
+      "to": "cap.ai.template-artifact-pipeline"
+    },
+    {
+      "spec": "tool-invocation-references",
+      "from": "project.root/domain.ai_integration/cap.ai.tool-integration",
+      "to": "cap.ai.tool-invocation-references"
+    },
+    {
+      "spec": "verify-cli-gate",
+      "from": "project.root/domain.verify/cap.verify.consistency-gate",
+      "to": "cap.verify.cli-gate"
+    },
+    {
+      "spec": "verify-execution-model-selection",
+      "from": "project.root/domain.verify/cap.verify.consistency-gate",
+      "to": "cap.verify.execution-model-selection"
+    },
+    {
+      "spec": "verify-freshness-engine",
+      "from": "project.root/domain.verify/cap.verify.consistency-gate",
+      "to": "cap.verify.freshness-engine"
+    },
+    {
+      "spec": "verify-prompt-orchestration",
+      "from": "project.root/domain.verify/cap.verify.consistency-gate",
+      "to": "cap.verify.prompt-orchestration"
+    },
+    {
+      "spec": "verify-writeback",
+      "from": "project.root/domain.ai_integration/cap.ai.review-roles",
+      "to": "cap.ai.verify-writeback"
+    }
+  ],
+  "ambiguous": [
+    {
+      "spec": "arch-query-command",
+      "from": "project.root/domain.cli/cap.cli.architecture-navigation",
+      "candidates": [
+        "cap.architecture.likec4-reader",
+        "cap.cli.arch-query"
+      ]
+    },
+    {
+      "spec": "architecture-delta-artifact",
+      "from": "project.root/domain.schema/cap.schema.workflow-definition",
+      "candidates": [
+        "cap.architecture.delta-merger",
+        "cap.schema.architecture-delta-artifact"
+      ]
+    },
+    {
+      "spec": "artifact-graph",
+      "from": "project.root/domain.artifact_graph/cap.artifact-graph.workflow-compilation",
+      "candidates": [
+        "cap.artifact-graph.file-definitions",
+        "cap.artifact-graph.instruction-loader",
+        "cap.artifact-graph.parse",
+        "cap.artifact-graph.schema-resolution",
+        "cap.artifact-graph.state-tracking"
+      ]
+    },
+    {
+      "spec": "cli-completion",
+      "from": "project.root/domain.cli/cap.cli.command-discovery",
+      "candidates": [
+        "cap.cli.completion",
+        "cap.cli.completion-introspect"
+      ]
+    },
+    {
+      "spec": "cli-config",
+      "from": "project.root/domain.cli/cap.cli.project-setup",
+      "candidates": [
+        "cap.cli.config",
+        "cap.cli.config.project"
+      ]
+    },
+    {
+      "spec": "cli-init",
+      "from": "project.root/domain.cli/cap.cli.project-setup",
+      "candidates": [
+        "cap.cli.init",
+        "cap.cli.init-opsx-skeleton"
+      ]
+    },
+    {
+      "spec": "xirang-framework-identity",
+      "from": "project.root/domain.framework/cap.framework.identity",
+      "candidates": [
+        "cap.ai.workflow-templates",
+        "cap.framework.identity"
+      ]
+    },
+    {
+      "spec": "snack-skill",
+      "from": "project.root/domain.ai_integration/cap.ai.snack-reconciliation",
+      "candidates": [
+        "cap.ai.snack-skill",
+        "cap.ai.snack-skill-generation"
+      ]
+    },
+    {
+      "spec": "spec-content-browser",
+      "from": "project.root/domain.presentation/cap.presentation.semantic-browser",
+      "candidates": [
+        "cap.presentation.spec-content-gateway",
+        "cap.presentation.spec-content-panel"
+      ]
+    }
+  ],
+  "unmatched": [
+    {
+      "spec": "ai-tool-paths",
+      "from": "project.root/domain.ai_integration/cap.ai.tool-integration"
+    },
+    {
+      "spec": "apply-change-workflow",
+      "from": "project.root/domain.apply/cap.apply.verification-integration"
+    },
+    {
+      "spec": "apply-default-isolation-config",
+      "from": "project.root/domain.config/cap.config.project-settings"
+    },
+    {
+      "spec": "apply-implementer-subagent",
+      "from": "project.root/domain.apply/cap.apply.execution"
+    },
+    {
+      "spec": "arch-plan-remove-command",
+      "from": "project.root/domain.cli/cap.cli.architecture-navigation"
+    },
+    {
+      "spec": "archive-sync-workflow",
+      "from": "project.root/domain.architecture/cap.architecture.semantic-model"
+    },
+    {
+      "spec": "archive-verify-gate",
+      "from": "project.root/domain.change_workflow/cap.change.lifecycle"
+    },
+    {
+      "spec": "artifact-file-definitions",
+      "from": "project.root/domain.artifact_graph/cap.artifact-graph.workflow-compilation"
+    },
+    {
+      "spec": "artifact-workflow-status",
+      "from": "project.root/domain.artifact_graph/cap.artifact-graph.workflow-compilation"
+    },
+    {
+      "spec": "change-creation",
+      "from": "project.root/domain.change_workflow/cap.change.lifecycle"
+    },
+    {
+      "spec": "cli-artifact-workflow",
+      "from": "project.root/domain.cli/cap.cli.artifact-workflow"
+    },
+    {
+      "spec": "cli-candidate",
+      "from": "project.root/domain.cli/cap.cli.candidate"
+    },
+    {
+      "spec": "cli-diff",
+      "from": "project.root/domain.cli/cap.cli.change-operations"
+    },
+    {
+      "spec": "compilation-philosophy-fragment",
+      "from": "project.root/domain.ai_integration/cap.ai.workflow-generation"
+    },
+    {
+      "spec": "config-project-query",
+      "from": "project.root/domain.cli/cap.cli.project-setup"
+    },
+    {
+      "spec": "context-injection",
+      "from": "project.root/domain.config/cap.config.runtime-projection"
+    },
+    {
+      "spec": "global-config",
+      "from": "project.root/domain.config/cap.config.global-contract"
+    },
+    {
+      "spec": "graceful-status-empty",
+      "from": "project.root/domain.cli/cap.cli.artifact-workflow"
+    },
+    {
+      "spec": "init-project-structure",
+      "from": "project.root/domain.cli/cap.cli.project-setup"
+    },
+    {
+      "spec": "legacy-cleanup",
+      "from": "project.root/domain.config/cap.config.global-contract"
+    },
+    {
+      "spec": "opsx-apply-architecture-context",
+      "from": "project.root/domain.ai_integration/cap.ai.workflow-generation"
+    },
+    {
+      "spec": "opsx-apply-skill",
+      "from": "project.root/domain.apply/cap.apply.verification-integration"
+    },
+    {
+      "spec": "opsx-archive-skill",
+      "from": "project.root/domain.change_workflow/cap.change.lifecycle"
+    },
+    {
+      "spec": "opsx-build",
+      "from": "project.root/domain.architecture/cap.architecture.bootstrap"
+    },
+    {
+      "spec": "opsx-conventions",
+      "from": "project.root/domain.ai_integration/cap.ai.workflow-generation"
+    },
+    {
+      "spec": "opsx-impact-sweeper-architecture",
+      "from": "project.root/domain.architecture/cap.architecture.semantic-model"
+    },
+    {
+      "spec": "opsx-optimizer-skill",
+      "from": "project.root/domain.ai_integration/cap.ai.review-roles"
+    },
+    {
+      "spec": "opsx-propose-skill",
+      "from": "project.root/domain.ai_integration/cap.ai.workflow-generation"
+    },
+    {
+      "spec": "opsx-reviewer-skill",
+      "from": "project.root/domain.ai_integration/cap.ai.review-roles"
+    },
+    {
+      "spec": "opsx-shared-context",
+      "from": "project.root/domain.ai_integration/cap.ai.workflow-generation"
+    },
+    {
+      "spec": "opsx-verify-skill",
+      "from": "project.root/domain.verify/cap.verify.consistency-gate"
+    },
+    {
+      "spec": "optimizer-finding-lifecycle",
+      "from": "project.root/domain.verify/cap.verify.optimization-gate"
+    },
+    {
+      "spec": "profiles",
+      "from": "project.root/domain.config/cap.config.global-contract"
+    },
+    {
+      "spec": "project-contract",
+      "from": "project.root"
+    },
+    {
+      "spec": "propose-workflow",
+      "from": "project.root/domain.cli/cap.cli.artifact-workflow"
+    },
+    {
+      "spec": "rules-injection",
+      "from": "project.root/domain.config/cap.config.runtime-projection"
+    },
+    {
+      "spec": "schema-validate-command",
+      "from": "project.root/domain.schema/cap.schema.workflow-definition"
+    },
+    {
+      "spec": "schema-which-command",
+      "from": "project.root/domain.cli/cap.cli.artifact-workflow"
+    },
+    {
+      "spec": "semantic-delta-application",
+      "from": "project.root/domain.change_workflow/cap.change.semantic-delta"
+    },
+    {
+      "spec": "skill-frontmatter-yaml",
+      "from": "project.root/domain.ai_integration/cap.ai.workflow-generation"
+    },
+    {
+      "spec": "skill-template-length-check",
+      "from": "project.root/domain.validation/cap.validation.semantic-contract"
+    },
+    {
+      "spec": "spec-pseudocode-support",
+      "from": "project.root/domain.validation/cap.validation.semantic-contract"
+    },
+    {
+      "spec": "specs-sync-skill",
+      "from": "project.root/domain.change_workflow/cap.change.lifecycle"
+    },
+    {
+      "spec": "tdd-apply-checkpoints",
+      "from": "project.root/domain.apply/cap.apply.execution"
+    },
+    {
+      "spec": "tdd-optimizer-smells",
+      "from": "project.root/domain.ai_integration/cap.ai.review-roles"
+    },
+    {
+      "spec": "validate-change",
+      "from": "project.root/domain.validation/cap.validation.semantic-contract"
+    },
+    {
+      "spec": "validate-opsx-dry-run",
+      "from": "project.root/domain.validation/cap.validation.semantic-contract"
+    },
+    {
+      "spec": "validate-spec-section-type-cross-check",
+      "from": "project.root/domain.validation/cap.validation.semantic-contract"
+    },
+    {
+      "spec": "verify-aware-apply-instructions",
+      "from": "project.root/domain.cli/cap.cli.artifact-workflow"
+    },
+    {
+      "spec": "verify-optimization",
+      "from": "project.root/domain.verify/cap.verify.optimization-gate"
+    },
+    {
+      "spec": "verify-skill-reference-files",
+      "from": "project.root/domain.apply/cap.apply.verification-integration"
+    }
+  ]
+}

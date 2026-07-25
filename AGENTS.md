@@ -75,7 +75,7 @@ Semantic Model 是项目用户意图的结构化语义表达。它以帮助用�
 
 模型在可扩展 Metamodel 的约束下，以 Hierarchical Elements 表达任意深度的项目抽象。每个 Element 由 Element Declaration 与 Element Contract 共同表达：Element Declaration 定义其身份、类型、概要及层级位置，Element Contract 规范其职责、保证、约束与行为。Relationships 表达 Elements 之间的协作、依赖与约束；Views 面向用户组织和呈现模型，但不改变模型的规范性语义。
 
-在存储结构上，Metamodel、Element Declarations 和 Relationships 存储于 `.opsx/architecture/`，Element Contracts 存储于 `.opsx/specs/`。Element Declarations 与 Element Contracts 共同表达 Elements，必须联合理解和验证。Views 通过 View Definition Files 存储，用于呈现模型，但不改变模型的规范性语义。
+在存储结构上，Metamodel、Element Declarations 和 Relationships 存储于 `.xirang/architecture/`，Element Contracts 存储于 `.xirang/specs/`。Element Declarations 与 Element Contracts 共同表达 Elements，必须联合理解和验证。Views 通过 View Definition Files 存储，用于呈现模型，但不改变模型的规范性语义。
 
 ## 2. Metamodel
 
@@ -127,7 +127,7 @@ Semantic Delta 是 Change 的规范性组成。它表达该 Change 需要新增�
 
 Semantic Delta 由 Element Declaration Delta、Element Contract Delta、Relationship Delta 与 Metamodel Delta 组成。
 
-在存储结构上，`.opsx/changes/**/architecture-delta.c4` 包含 Element Declaration Delta、Relationship Delta 与 Metamodel Delta；Element Contract Delta 存储于 `.opsx/changes/**/specs/`。
+在存储结构上，`.xirang/changes/**/architecture-delta.c4` 包含 Element Declaration Delta、Relationship Delta 与 Metamodel Delta；Element Contract Delta 存储于 `.xirang/changes/**/specs/`。
 
 Semantic Delta 以统一的语法表达，其修改语为 ADDED、MODIFIED、REMOVED。每个 Delta 条目由修改语、实体与稳定 identity 构成。ADDED 与 MODIFIED 声明实体的完整目标态；REMOVED 只声明 identity，不携带内容。同一 identity 在一个 Semantic Delta 中不允许冲突操作。
 

@@ -6,7 +6,7 @@ import { runCLI } from '../helpers/run-cli.js';
 describe('spec command', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-spec-command-tmp');
-  const specsDir = path.join(testDir, '.opsx', 'specs');
+  const specsDir = path.join(testDir, '.xirang', 'specs');
 
   async function runSpecCli(args: string[]) {
     return runCLI(args, { cwd: testDir });
@@ -75,7 +75,7 @@ The system SHALL process credit card payments securely`;
       expect(json.title).toBe('auth');
       expect(json.overview).toContain('test specification');
       expect(json.requirements).toHaveLength(2);
-      expect(json.metadata.format).toBe('opsx');
+      expect(json.metadata.format).toBe('xirang');
     });
 
     it('should filter to show only requirements with --requirements flag (JSON only)', async () => {

@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-  <sub>🧪 <strong>New:</strong> <a href="docs/opsx.md">OPSX Workflow</a> — schema-driven, hackable, fluid. Iterate on workflows without code changes.</sub>
+  <sub>🧪 <strong>New:</strong> <a href="docs/xirang.md">Xirang Workflow</a> — schema-driven, hackable, fluid. Iterate on workflows without code changes.</sub>
 </p>
 
 # OpenSpec
@@ -411,7 +411,7 @@ Run `openspec update` whenever someone switches tools so your agents pick up the
 ## Experimental Features
 
 <details>
-<summary><strong>🧪 OPSX: Fluid, Iterative Workflow</strong> (Claude Code only)</summary>
+<summary><strong>🧪 Xirang: Fluid, Iterative Workflow</strong> (Claude Code only)</summary>
 
 **Why this exists:**
 - Standard workflow is locked down — you can't tweak instructions or customize
@@ -434,15 +434,15 @@ You can always go back:
 
 | Command | What it does |
 |---------|--------------|
-| `/opsx:new` | Start a new change |
-| `/opsx:continue` | Create the next artifact (based on what's ready) |
-| `/opsx:ff` | Fast-forward (all planning artifacts at once) |
-| `/opsx:apply` | Implement tasks, updating artifacts as needed |
-| `/opsx:archive` | Archive when done |
+| `/xirang:new` | Start a new change |
+| `/xirang:continue` | Create the next artifact (based on what's ready) |
+| `/xirang:ff` | Fast-forward (all planning artifacts at once) |
+| `/xirang:apply` | Implement tasks, updating artifacts as needed |
+| `/xirang:archive` | Archive when done |
 
 **Setup:** `openspec experimental`
 
-[Full documentation →](docs/opsx.md)
+[Full documentation →](docs/xirang.md)
 
 </details>
 

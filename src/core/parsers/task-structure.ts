@@ -443,7 +443,7 @@ function hasInvalidPathChars(specPath: string): boolean {
 }
 
 function isValidChangeSpecPath(specPath: string): boolean {
-  if (hasInvalidPathChars(specPath) || specPath.startsWith('.opsx/')) {
+  if (hasInvalidPathChars(specPath) || specPath.startsWith('.xirang/')) {
     return false;
   }
 
@@ -459,7 +459,7 @@ function isValidMainSpecPath(specPath: string): boolean {
   const parts = specPath.split('/');
   return (
     parts.length === 4 &&
-    parts[0] === '.opsx' &&
+    parts[0] === '.xirang' &&
     parts[1] === 'specs' &&
     parts[2] !== '' &&
     parts[3] === 'spec.md'

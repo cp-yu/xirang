@@ -1,4 +1,4 @@
-import { OPSX_DIR_NAME } from '../core/config.js';
+import { XIRANG_DIR_NAME } from '../core/config.js';
 import { program } from 'commander';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
@@ -8,7 +8,7 @@ import type { Spec } from '../core/schemas/index.js';
 import { isInteractive } from '../utils/interactive.js';
 import { getSpecIds } from '../utils/item-discovery.js';
 
-const SPECS_DIR = join(OPSX_DIR_NAME, 'specs');
+const SPECS_DIR = join(XIRANG_DIR_NAME, 'specs');
 
 interface ShowOptions {
   json?: boolean;
@@ -46,7 +46,7 @@ function filterSpec(spec: Spec, options: ShowOptions): Spec {
     scenarios: includeScenarios ? req.scenarios : [],
   }));
 
-  const metadata = spec.metadata ?? { version: '1.0.0', format: 'opsx' as const };
+  const metadata = spec.metadata ?? { version: '1.0.0', format: 'xirang' as const };
 
   return {
     name: spec.name,
@@ -66,7 +66,7 @@ function printSpecTextRaw(specPath: string): void {
 }
 
 export class SpecCommand {
-  private SPECS_DIR = join(OPSX_DIR_NAME, 'specs');
+  private SPECS_DIR = join(XIRANG_DIR_NAME, 'specs');
 
   async show(specId?: string, options: ShowOptions = {}): Promise<void> {
     if (!specId) {
@@ -85,7 +85,7 @@ export class SpecCommand {
 
     const specPath = join(this.SPECS_DIR, specId, 'spec.md');
     if (!existsSync(specPath)) {
-      throw new Error(`Spec '${specId}' not found at .opsx/specs/${specId}/spec.md`);
+      throw new Error(`Spec '${specId}' not found at .xirang/specs/${specId}/spec.md`);
     }
 
     if (options.json) {
@@ -100,7 +100,7 @@ export class SpecCommand {
         overview: parsed.overview,
         requirementCount: filtered.requirements.length,
         requirements: filtered.requirements,
-        metadata: parsed.metadata ?? { version: '1.0.0', format: 'opsx' as const },
+        metadata: parsed.metadata ?? { version: '1.0.0', format: 'xirang' as const },
       };
       console.log(JSON.stringify(output, null, 2));
       return;
@@ -112,11 +112,11 @@ export class SpecCommand {
 export function registerSpecCommand(rootProgram: typeof program) {
   const specCommand = rootProgram
     .command('spec')
-    .description('Manage and view OPSX specifications');
+    .description('Manage and view Xirang specifications');
 
   // Deprecation notice for noun-based commands
   specCommand.hook('preAction', () => {
-    console.error('Warning: The "opsx spec ..." commands are deprecated. Prefer verb-first commands (e.g., "opsx show", "opsx validate --specs").');
+    console.error('Warning: The "xirang spec ..." commands are deprecated. Prefer verb-first commands (e.g., "xirang show", "xirang validate --specs").');
   });
 
   specCommand
@@ -162,7 +162,7 @@ export function registerSpecCommand(rootProgram: typeof program) {
         const specPath = join(SPECS_DIR, specId, 'spec.md');
         
         if (!existsSync(specPath)) {
-          throw new Error(`Spec '${specId}' not found at .opsx/specs/${specId}/spec.md`);
+          throw new Error(`Spec '${specId}' not found at .xirang/specs/${specId}/spec.md`);
         }
 
         const validator = new Validator(options.strict);

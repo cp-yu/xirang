@@ -9,11 +9,11 @@ import { promisify } from 'util';
 import { stringify as stringifyYaml } from 'yaml';
 import { runCLI } from '../helpers/run-cli.js';
 import {
-  OPSX_SCHEMA_VERSION,
+  XIRANG_SCHEMA_VERSION,
   readProjectOpsx,
   writeProjectOpsx,
-  type ProjectOpsxBundle,
-} from '../../src/utils/opsx-utils.js';
+  type ProjectXirangBundle,
+} from '../../src/utils/xirang-utils.js';
 import {
   checkFreshness,
   computeEvidenceFingerprint,
@@ -34,8 +34,8 @@ describe('ArchiveCommand', () => {
   let archiveCommand: ArchiveCommand;
   const originalConsoleLog = console.log;
 
-  const mkBundle = (overrides: Partial<ProjectOpsxBundle> = {}): ProjectOpsxBundle => ({
-    schema_version: OPSX_SCHEMA_VERSION,
+  const mkBundle = (overrides: Partial<ProjectXirangBundle> = {}): ProjectXirangBundle => ({
+    schema_version: XIRANG_SCHEMA_VERSION,
     project: { id: 'test-project', name: 'test-project' },
     domains: [],
     capabilities: [],
@@ -45,14 +45,14 @@ describe('ArchiveCommand', () => {
 
   beforeEach(async () => {
     // Create temp directory
-    tempDir = path.join(os.tmpdir(), `opsx-archive-test-${Date.now()}`);
+    tempDir = path.join(os.tmpdir(), `xirang-archive-test-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
     
     // Change to temp directory
     process.chdir(tempDir);
     
-    // Create OPSX structure
-    const opsxDir = path.join(tempDir, '.opsx');
+    // Create Xirang structure
+    const opsxDir = path.join(tempDir, '.xirang');
     await fs.mkdir(path.join(opsxDir, 'changes'), { recursive: true });
     await fs.mkdir(path.join(opsxDir, 'specs'), { recursive: true });
     await fs.mkdir(path.join(opsxDir, 'changes', 'archive'), { recursive: true });
@@ -64,12 +64,12 @@ describe('ArchiveCommand', () => {
   });
 
   async function writeV1Architecture(): Promise<void> {
-    const architecture = path.join(tempDir, '.opsx', 'architecture');
+    const architecture = path.join(tempDir, '.xirang', 'architecture');
     await fs.mkdir(architecture, { recursive: true });
-    await fs.writeFile(path.join(architecture, 'model.c4'), `opsx { languageVersion '1' }
+    await fs.writeFile(path.join(architecture, 'model.c4'), `xirang { languageVersion '1' }
 specification {
-  element project { opsx { root true contract optional } }
-  element capability { opsx { contract optional parents [project] } }
+  element project { xirang { root true contract optional } }
+  element capability { xirang { contract optional parents [project] } }
 }
 model {
   project_root = project 'Root' 'Root summary' {
@@ -81,7 +81,7 @@ model {
   }
 
   async function writeSemanticArchiveFixture(changeName: string): Promise<string> {
-    const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+    const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
     await writeV1Architecture();
     await fs.mkdir(changeDir, { recursive: true });
     await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), `architectureDelta {
@@ -139,7 +139,7 @@ model {
     it('should archive a change successfully', async () => {
       // Create a test change
       const changeName = 'test-feature';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       
       // Create tasks.md with completed tasks
@@ -151,7 +151,7 @@ model {
       await archiveCommand.execute(changeName, { yes: true, noVerify: true });
       
       // Check that change was moved to archive
-      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       
       expect(archives.length).toBe(1);
@@ -168,7 +168,7 @@ model {
 
       await archiveCommand.execute(changeName, { yes: true, noVerify: true, noSync: true });
 
-      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const archived = (await fs.readdir(archiveDir)).find(entry => entry.endsWith(`-${changeName}`));
       expect(archived).toBeDefined();
       const archivedDir = path.join(archiveDir, archived!);
@@ -184,15 +184,15 @@ model {
       await expect(archiveCommand.execute(changeName, { yes: true, noVerify: true, noSync: true })).rejects.toThrow();
 
       await expect(fs.access(changeDir)).resolves.toBeUndefined();
-      expect((await fs.readdir(path.join(tempDir, '.opsx', 'changes', 'archive'))).some(entry => entry.endsWith(`-${changeName}`))).toBe(false);
+      expect((await fs.readdir(path.join(tempDir, '.xirang', 'changes', 'archive'))).some(entry => entry.endsWith(`-${changeName}`))).toBe(false);
     });
 
     it('prints agent handoff reminder for legacy auto git mode without recommended commit message', async () => {
       const changeName = 'auto-handoff';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n', 'utf-8');
-      await fs.writeFile(path.join(tempDir, '.opsx', 'config.yaml'), `schema: spec-driven
+      await fs.writeFile(path.join(tempDir, '.xirang', 'config.yaml'), `schema: spec-driven
 git:
   autoCommit: auto
 `, 'utf-8');
@@ -212,10 +212,10 @@ git:
 
     it('prints agent handoff reminder for legacy manual git mode without recommended commit message', async () => {
       const changeName = 'manual-handoff';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n', 'utf-8');
-      await fs.writeFile(path.join(tempDir, '.opsx', 'config.yaml'), `schema: spec-driven
+      await fs.writeFile(path.join(tempDir, '.xirang', 'config.yaml'), `schema: spec-driven
 git:
   autoCommit: manual
 `, 'utf-8');
@@ -232,35 +232,35 @@ git:
 
     it('should block archive when verify result is missing', async () => {
       const changeName = 'missing-verify';
-      await fs.mkdir(path.join(tempDir, '.opsx', 'changes', changeName), { recursive: true });
+      await fs.mkdir(path.join(tempDir, '.xirang', 'changes', changeName), { recursive: true });
 
       await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(
-        'opsx verify phase1 missing-verify'
+        'xirang verify phase1 missing-verify'
       );
       await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(
-        'opsx archive missing-verify --no-verify'
+        'xirang archive missing-verify --no-verify'
       );
     });
 
     it('should archive when verify is fresh and no sync is required', async () => {
       const changeName = 'fresh-verify';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
 
       await archiveCommand.execute(changeName, { yes: true });
 
-      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       expect(archives.some((entry) => entry.includes(changeName))).toBe(true);
     });
 
     it('should archive after seal when only git HEAD changed', async () => {
       const changeName = 'fresh-after-seal';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await execFileAsync('git', ['init'], { cwd: tempDir });
-      await execFileAsync('git', ['config', 'user.name', 'OPSX Test'], { cwd: tempDir });
+      await execFileAsync('git', ['config', 'user.name', 'Xirang Test'], { cwd: tempDir });
       await execFileAsync('git', ['config', 'user.email', 'test@example.com'], { cwd: tempDir });
       await writeFreshVerifyResult(changeDir);
       await execFileAsync('git', ['add', '.'], { cwd: tempDir });
@@ -285,14 +285,14 @@ git:
 
       await archiveCommand.execute(changeName, { yes: true });
 
-      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       expect(archives.some((entry) => entry.includes(changeName))).toBe(true);
     });
 
     it('should block archive when sync has pending delta writes', async () => {
       const changeName = 'pending-sync-gate';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       const specDir = path.join(changeDir, 'specs', 'gate');
       await fs.mkdir(specDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
@@ -305,7 +305,7 @@ git:
 
     it('rejects an empty graph delta at the archive sync gate', async () => {
       const changeName = 'empty-architecture-delta';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
       await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), 'model {}\n');
@@ -315,11 +315,11 @@ git:
       await expect(fs.readFile(path.join(changeDir, 'architecture-delta.c4'), 'utf8')).resolves.toBe('model {}\n');
     });
 
-    it('should allow archive when delta specs and OPSX delta are already synced', async () => {
+    it('should allow archive when delta specs and Xirang delta are already synced', async () => {
       const changeName = 'already-synced-gate';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       const changeSpecDir = path.join(changeDir, 'specs', 'gate');
-      const mainSpecDir = path.join(tempDir, '.opsx', 'specs', 'gate');
+      const mainSpecDir = path.join(tempDir, '.xirang', 'specs', 'gate');
       await fs.mkdir(changeSpecDir, { recursive: true });
       await fs.mkdir(mainSpecDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
@@ -360,7 +360,7 @@ System SHALL keep synced gates stable.
 - **THEN** archive SHALL proceed
 `, 'utf-8');
       await fs.writeFile(path.join(changeDir, 'opsx-delta.yaml'), stringifyYaml({
-        schema_version: OPSX_SCHEMA_VERSION,
+        schema_version: XIRANG_SCHEMA_VERSION,
         ADDED: {
           capabilities: [{ id: 'cap.verify.gate', type: 'capability', intent: 'Verify gate' }],
           relations: [{ from: 'cap.verify.gate', to: 'dom.verify', type: 'belongs_to' }],
@@ -369,7 +369,7 @@ System SHALL keep synced gates stable.
 
       await archiveCommand.execute(changeName, { yes: true, noVerify: true });
 
-      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       const archived = archives.find((entry) => entry.includes(changeName));
       expect(archived).toBeDefined();
@@ -378,9 +378,9 @@ System SHALL keep synced gates stable.
 
     it('should allow archive when a modified Requirement is already synchronized', async () => {
       const changeName = 'already-modified-spec';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       const changeSpecDir = path.join(changeDir, 'specs', 'gate');
-      const mainSpecDir = path.join(tempDir, '.opsx', 'specs', 'gate');
+      const mainSpecDir = path.join(tempDir, '.xirang', 'specs', 'gate');
       await fs.mkdir(changeSpecDir, { recursive: true });
       await fs.mkdir(mainSpecDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
@@ -399,7 +399,7 @@ System SHALL retain the synchronized target text.
 
       await archiveCommand.execute(changeName, { yes: true, noVerify: true });
 
-      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const archived = (await fs.readdir(archiveDir)).find((entry) => entry.includes(changeName));
       expect(archived).toBeDefined();
       expect(await fs.readFile(path.join(archiveDir, archived!, 'effective-change.md'), 'utf8')).toContain('Status: Passed');
@@ -407,9 +407,9 @@ System SHALL retain the synchronized target text.
 
     it('should allow archive when removal-only delta already deleted the main spec', async () => {
       const changeName = 'already-deleted-spec';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       const changeSpecDir = path.join(changeDir, 'specs', 'old-merge');
-      const mainSpecDir = path.join(tempDir, '.opsx', 'specs', 'old-merge');
+      const mainSpecDir = path.join(tempDir, '.xirang', 'specs', 'old-merge');
       await fs.mkdir(changeSpecDir, { recursive: true });
       await fs.mkdir(mainSpecDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
@@ -431,7 +431,7 @@ element: existing.id
 
       await archiveCommand.execute(changeName, { yes: true });
 
-      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       const archived = archives.find((entry) => entry.includes(changeName));
       expect(archived).toBeDefined();
@@ -440,9 +440,9 @@ element: existing.id
 
     it('should allow archive when removal-only delta targets headers already absent from a still-existing main spec', async () => {
       const changeName = 'removal-headers-already-absent';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       const changeSpecDir = path.join(changeDir, 'specs', 'partial-merge');
-      const mainSpecDir = path.join(tempDir, '.opsx', 'specs', 'partial-merge');
+      const mainSpecDir = path.join(tempDir, '.xirang', 'specs', 'partial-merge');
       await fs.mkdir(changeSpecDir, { recursive: true });
       await fs.mkdir(mainSpecDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
@@ -473,7 +473,7 @@ The system SHALL keep this requirement.`,
 
       await archiveCommand.execute(changeName, { yes: true });
 
-      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       expect(archives.some((entry) => entry.includes(changeName))).toBe(true);
 
@@ -483,7 +483,7 @@ The system SHALL keep this requirement.`,
 
     it('should warn about incomplete tasks', async () => {
       const changeName = 'incomplete-feature';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       
       // Create tasks.md with incomplete tasks
@@ -501,7 +501,7 @@ The system SHALL keep this requirement.`,
 
     it('should block archive with --no-sync --yes when pending deltas exist', async () => {
       const changeName = 'no-sync-bypass';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       const specDir = path.join(changeDir, 'specs', 'gate');
       await fs.mkdir(specDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
@@ -515,14 +515,14 @@ The system SHALL keep this requirement.`,
 
       await archiveCommand.execute(changeName, { yes: true, noVerify: true, noSync: true, noValidate: true });
 
-      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       expect(archives.some((entry) => entry.includes(changeName))).toBe(true);
     });
 
     it('should confirm before bypassing sync gate with --no-sync', async () => {
       const changeName = 'no-sync-confirm';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       const specDir = path.join(changeDir, 'specs', 'gate');
       await fs.mkdir(specDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
@@ -541,11 +541,11 @@ The system SHALL keep this requirement.`,
 
     it('should block archive when architecture delta is pending', async () => {
       const changeName = 'pending-architecture';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await writeFreshVerifyResult(changeDir);
 
-      const architecture = path.join(tempDir, '.opsx', 'architecture');
+      const architecture = path.join(tempDir, '.xirang', 'architecture');
       await fs.mkdir(path.join(architecture, 'domains'), { recursive: true });
       await fs.writeFile(path.join(architecture, 'specification.c4'), 'specification { element domain element capability }');
       await fs.writeFile(path.join(architecture, 'views.c4'), 'views { view index { include * } }');
@@ -563,11 +563,11 @@ The system SHALL keep this requirement.`,
 
     it('should throw error if archive already exists', async () => {
       const changeName = 'duplicate-feature';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       
       const date = new Date().toISOString().split('T')[0];
-      const archivePath = path.join(tempDir, '.opsx', 'changes', 'archive', `${date}-${changeName}`);
+      const archivePath = path.join(tempDir, '.xirang', 'changes', 'archive', `${date}-${changeName}`);
       await fs.mkdir(archivePath, { recursive: true });
       
       await expect(
@@ -577,7 +577,7 @@ The system SHALL keep this requirement.`,
 
     it('should handle changes without tasks.md', async () => {
       const changeName = 'no-tasks-feature';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       
       await archiveCommand.execute(changeName, { yes: true, noVerify: true });
@@ -586,14 +586,14 @@ The system SHALL keep this requirement.`,
         expect.stringContaining('incomplete task(s)')
       );
       
-      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       expect(archives.length).toBe(1);
     });
 
     it('should handle changes without specs', async () => {
       const changeName = 'no-specs-feature';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       
       await archiveCommand.execute(changeName, { yes: true, noVerify: true });
@@ -602,14 +602,14 @@ The system SHALL keep this requirement.`,
         expect.stringContaining('Specs to update')
       );
       
-      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       expect(archives.length).toBe(1);
     });
 
     it('should skip validation when commander sets validate to false (--no-validate)', async () => {
       const changeName = 'skip-validation-flag';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n');
 
@@ -622,7 +622,7 @@ The system SHALL keep this requirement.`,
         expect(validateSpy).not.toHaveBeenCalled();
         expect(deltaSpy).not.toHaveBeenCalled();
 
-        const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
+        const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
         const archives = await fs.readdir(archiveDir);
         expect(archives.length).toBe(1);
         expect(archives[0]).toMatch(new RegExp(`\\d{4}-\\d{2}-\\d{2}-${changeName}`));
@@ -634,13 +634,13 @@ The system SHALL keep this requirement.`,
   });
 
   describe('error handling', () => {
-    it('should throw error when opsx directory does not exist', async () => {
-      // Remove opsx directory
-      await fs.rm(path.join(tempDir, '.opsx'), { recursive: true });
+    it('should throw error when xirang directory does not exist', async () => {
+      // Remove xirang directory
+      await fs.rm(path.join(tempDir, '.xirang'), { recursive: true });
       
       await expect(
         archiveCommand.execute('any-change', { yes: true, noVerify: true })
-      ).rejects.toThrow("No OPSX changes directory found. Run 'opsx setup' first.");
+      ).rejects.toThrow("No Xirang changes directory found. Run 'xirang setup' first.");
     });
   });
 
@@ -652,8 +652,8 @@ The system SHALL keep this requirement.`,
       // Create test changes
       const change1 = 'feature-a';
       const change2 = 'feature-b';
-      await fs.mkdir(path.join(tempDir, '.opsx', 'changes', change1), { recursive: true });
-      await fs.mkdir(path.join(tempDir, '.opsx', 'changes', change2), { recursive: true });
+      await fs.mkdir(path.join(tempDir, '.xirang', 'changes', change1), { recursive: true });
+      await fs.mkdir(path.join(tempDir, '.xirang', 'changes', change2), { recursive: true });
       
       // Mock select to return first change
       mockSelect.mockResolvedValueOnce(change1);
@@ -671,7 +671,7 @@ The system SHALL keep this requirement.`,
       }));
       
       // Verify the selected change was archived
-      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       expect(archives[0]).toContain(change1);
     });
@@ -681,7 +681,7 @@ The system SHALL keep this requirement.`,
       const mockConfirm = confirm as unknown as ReturnType<typeof vi.fn>;
       
       const changeName = 'incomplete-interactive';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       
       // Create tasks.md with incomplete tasks
@@ -706,7 +706,7 @@ The system SHALL keep this requirement.`,
       const mockConfirm = confirm as unknown as ReturnType<typeof vi.fn>;
       
       const changeName = 'cancel-test';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       
       // Create tasks.md with incomplete tasks
@@ -730,7 +730,7 @@ The system SHALL keep this requirement.`,
 
     it('preserves apply isolation state for handoff under --yes', async () => {
       const changeName = 'isolated-yes';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n');
       await fs.writeFile(
@@ -754,7 +754,7 @@ The system SHALL keep this requirement.`,
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining('Git handoff: agent handles git commits, merge, and cleanup after archive.')
       );
-      const archiveDir = path.join(tempDir, '.opsx', 'changes', 'archive');
+      const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const [archiveName] = (await fs.readdir(archiveDir)).filter((entry) => entry.includes(changeName));
       await expect(fs.access(path.join(archiveDir, archiveName, '.apply-isolation.json'))).resolves.not.toThrow();
     });
@@ -764,7 +764,7 @@ The system SHALL keep this requirement.`,
       const mockConfirm = confirm as unknown as ReturnType<typeof vi.fn>;
 
       const changeName = 'isolated-prompt';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       const worktreePath = path.join(tempDir, '.worktrees', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n');
@@ -792,7 +792,7 @@ The system SHALL keep this requirement.`,
       const mockConfirm = confirm as unknown as ReturnType<typeof vi.fn>;
 
       const changeName = 'isolated-windows-path';
-      const changeDir = path.join(tempDir, '.opsx', 'changes', changeName);
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       const worktreePath = `.worktrees\\${changeName}`;
       await fs.mkdir(changeDir, { recursive: true });
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n');

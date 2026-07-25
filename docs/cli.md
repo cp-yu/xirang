@@ -1,12 +1,12 @@
 # CLI Reference
 
-The OPSX CLI (`opsx`) provides terminal commands for project setup, validation, status inspection, architecture browsing, and lifecycle management. These commands complement the managed workflow skills documented in [Workflow Skills And Architecture Commands](commands.md).
+The Xirang CLI (`xirang`) provides terminal commands for project setup, validation, status inspection, architecture browsing, and lifecycle management. These commands complement the managed workflow skills documented in [Workflow Skills And Architecture Commands](commands.md).
 
 ## Summary
 
 | Category | Commands | Purpose |
 |----------|----------|---------|
-| **Setup** | `setup`, `update` | Set up and update OPSX in your project |
+| **Setup** | `setup`, `update` | Set up and update Xirang in your project |
 | **Browsing** | `list`, `view`, `show` | Explore changes and specs |
 | **Validation** | `validate` | Check changes and specs for issues |
 | **Lifecycle** | `archive` | Finalize completed changes |
@@ -27,11 +27,11 @@ These commands are interactive and designed for terminal use:
 
 | Command | Purpose |
 |---------|---------|
-| `opsx setup` | Initialize project (interactive prompts) |
-| `opsx view` | Local Architecture and Specs browser |
-| `opsx config edit` | Open config in editor |
-| `opsx feedback` | Submit feedback via GitHub |
-| `opsx completion install` | Install shell completions |
+| `xirang setup` | Initialize project (interactive prompts) |
+| `xirang view` | Local Architecture and Specs browser |
+| `xirang config edit` | Open config in editor |
+| `xirang feedback` | Submit feedback via GitHub |
+| `xirang completion install` | Install shell completions |
 
 ### Agent-Compatible Commands
 
@@ -39,15 +39,15 @@ These commands support `--json` output for programmatic use by AI agents and scr
 
 | Command | Human Use | Agent Use |
 |---------|-----------|-----------|
-| `opsx list` | Browse changes/specs | `--json` for structured data |
-| `opsx show <item>` | Read content | `--json` for parsing |
-| `opsx validate` | Check for issues | `--all --json` for bulk validation |
-| `opsx status` | See artifact progress | `--json` for structured status |
-| `opsx instructions` | Get next steps | `--json` for agent instructions |
-| `opsx templates` | Find template paths | `--json` for path resolution |
-| `opsx schemas` | List available schemas | `--json` for schema discovery |
+| `xirang list` | Browse changes/specs | `--json` for structured data |
+| `xirang show <item>` | Read content | `--json` for parsing |
+| `xirang validate` | Check for issues | `--all --json` for bulk validation |
+| `xirang status` | See artifact progress | `--json` for structured status |
+| `xirang instructions` | Get next steps | `--json` for agent instructions |
+| `xirang templates` | Find template paths | `--json` for path resolution |
+| `xirang schemas` | List available schemas | `--json` for schema discovery |
 
-OPSX's verify gate now runs a two-phase contract by default and accepts `--skip-optimization` when you want a Phase 1 conformance-only pass. When Phase 2 runs, it keeps a `git stash` checkpoint so failed optimization attempts can restore the exact Phase 1 baseline. `/opsx:archive` reuses a fresh verify result when possible, but if it must re-run full verify, that rerun is required to honor the same Phase 2 contract whenever optimization is still eligible.
+Xirang's verify gate now runs a two-phase contract by default and accepts `--skip-optimization` when you want a Phase 1 conformance-only pass. When Phase 2 runs, it keeps a `git stash` checkpoint so failed optimization attempts can restore the exact Phase 1 baseline. `/xirang:archive` reuses a fresh verify result when possible, but if it must re-run full verify, that rerun is required to honor the same Phase 2 contract whenever optimization is still eligible.
 
 ---
 
@@ -65,14 +65,14 @@ These options work with all commands:
 
 ## Setup Commands
 
-### `opsx setup`
+### `xirang setup`
 
-Initialize OPSX in your project. Creates the folder structure and configures AI tool integrations.
+Initialize Xirang in your project. Creates the folder structure and configures AI tool integrations.
 
 Default behavior installs the fixed managed workflow skills.
 
 ```
-opsx setup [path] [options]
+xirang setup [path] [options]
 ```
 
 **Arguments:**
@@ -94,25 +94,25 @@ opsx setup [path] [options]
 
 ```bash
 # Interactive initialization
-opsx setup
+xirang setup
 
 # Initialize in a specific directory
-opsx setup ./my-project
+xirang setup ./my-project
 
 # Non-interactive: configure for Claude and Cursor
-opsx setup --tools claude,cursor
+xirang setup --tools claude,cursor
 
 # Configure for all supported tools
-opsx setup --tools all
+xirang setup --tools all
 
 # Skip prompts and auto-cleanup legacy files
-opsx setup --force
+xirang setup --force
 ```
 
 **What it creates:**
 
 ```
-.opsx/
+.xirang/
 ├── architecture/       # Versioned graph modules and Project Root
 ├── specs/              # Element-owned contract modules
 ├── changes/            # Proposed Semantic Deltas
@@ -126,12 +126,12 @@ opsx setup --force
 
 ---
 
-### `opsx update`
+### `xirang update`
 
-Update OPSX instruction files after upgrading the CLI. Re-generates managed workflow skills for configured tools.
+Update Xirang instruction files after upgrading the CLI. Re-generates managed workflow skills for configured tools.
 
 ```
-opsx update [path] [options]
+xirang update [path] [options]
 ```
 
 **Arguments:**
@@ -150,19 +150,19 @@ opsx update [path] [options]
 
 ```bash
 # After rebuilding or updating the source checkout
-opsx update
+xirang update
 ```
 
 ---
 
 ## Browsing Commands
 
-### `opsx list`
+### `xirang list`
 
 List changes or specs in your project.
 
 ```
-opsx list [options]
+xirang list [options]
 ```
 
 **Options:**
@@ -178,13 +178,13 @@ opsx list [options]
 
 ```bash
 # List all active changes
-opsx list
+xirang list
 
 # List all specs
-opsx list --specs
+xirang list --specs
 
 # JSON output for scripts
-opsx list --json
+xirang list --json
 ```
 
 **Output (text):**
@@ -197,24 +197,24 @@ Active changes:
 
 ---
 
-### `opsx view`
+### `xirang view`
 
-Start the vendored LikeC4 browser for the nearest `.opsx/` project.
+Start the vendored LikeC4 browser for the nearest `.xirang/` project.
 
 ```
-opsx view [--port <n>]
+xirang view [--port <n>]
 ```
 
-The browser renders versioned `.opsx/architecture/**/*.c4`. Elements with entries in the derived Spec registry expose an on-demand Specs tab backed by authorized reads from `.opsx/specs/**/*.md`. The command uses the vendored LikeC4 engine and does not require or resolve an external installation.
+The browser renders versioned `.xirang/architecture/**/*.c4`. Elements with entries in the derived Spec registry expose an on-demand Specs tab backed by authorized reads from `.xirang/specs/**/*.md`. The command uses the vendored LikeC4 engine and does not require or resolve an external installation.
 
 ---
 
-### `opsx show`
+### `xirang show`
 
 Display details of a change or spec.
 
 ```
-opsx show [item-name] [options]
+xirang show [item-name] [options]
 ```
 
 **Arguments:**
@@ -249,28 +249,28 @@ opsx show [item-name] [options]
 
 ```bash
 # Interactive selection
-opsx show
+xirang show
 
 # Show a specific change
-opsx show add-dark-mode
+xirang show add-dark-mode
 
 # Show a specific spec
-opsx show auth --type spec
+xirang show auth --type spec
 
 # JSON output for parsing
-opsx show add-dark-mode --json
+xirang show add-dark-mode --json
 ```
 
 ---
 
 ## Validation Commands
 
-### `opsx validate`
+### `xirang validate`
 
 Validate changes and specs for structural issues.
 
 ```
-opsx validate [item-name] [options]
+xirang validate [item-name] [options]
 ```
 
 **Arguments:**
@@ -289,26 +289,26 @@ opsx validate [item-name] [options]
 | `--type <type>` | Specify type when name is ambiguous: `change` or `spec` |
 | `--strict` | Enable strict validation mode |
 | `--json` | Output as JSON |
-| `--concurrency <n>` | Max parallel validations (default: 6, or `OPSX_CONCURRENCY` env) |
+| `--concurrency <n>` | Max parallel validations (default: 6, or `XIRANG_CONCURRENCY` env) |
 | `--no-interactive` | Disable prompts |
 
 **Examples:**
 
 ```bash
 # Interactive validation
-opsx validate
+xirang validate
 
 # Validate a specific change
-opsx validate add-dark-mode
+xirang validate add-dark-mode
 
 # Validate all changes
-opsx validate --changes
+xirang validate --changes
 
 # Validate everything with JSON output (for CI/scripts)
-opsx validate --all --json
+xirang validate --all --json
 
 # Strict validation with increased parallelism
-opsx validate --all --strict --concurrency 12
+xirang validate --all --strict --concurrency 12
 ```
 
 **Output (text):**
@@ -348,12 +348,12 @@ Validating add-dark-mode...
 
 ## Lifecycle Commands
 
-### `opsx archive`
+### `xirang archive`
 
-Archive a completed change after verify, sync, validation, and task gates pass. Archive does not write formal Specs or architecture; run `opsx sync` first when the change contains delta Specs or `architecture-delta.c4`.
+Archive a completed change after verify, sync, validation, and task gates pass. Archive does not write formal Specs or architecture; run `xirang sync` first when the change contains delta Specs or `architecture-delta.c4`.
 
 ```
-opsx archive [change-name] [options]
+xirang archive [change-name] [options]
 ```
 
 **Arguments:**
@@ -375,16 +375,16 @@ opsx archive [change-name] [options]
 
 ```bash
 # Interactive archive
-opsx archive
+xirang archive
 
 # Archive specific change
-opsx archive add-dark-mode
+xirang archive add-dark-mode
 
 # Archive without prompts (CI/scripts)
-opsx archive add-dark-mode --yes
+xirang archive add-dark-mode --yes
 
 # Explicitly bypass the sync gate for a change with no formal-source reconciliation
-opsx archive update-ci-config --no-sync --yes
+xirang archive update-ci-config --no-sync --yes
 ```
 
 **What it does:**
@@ -393,20 +393,20 @@ opsx archive update-ci-config --no-sync --yes
 2. Requires all delta Specs and `architecture-delta.c4` changes to be synced unless `--no-sync` is explicitly authorized
 3. Validates the change unless `--no-validate` is explicitly authorized
 4. Checks task completion and prompts when required
-5. Removes the consumed `architecture-delta.c4` and moves the change to `.opsx/changes/archive/YYYY-MM-DD-<name>/`
+5. Removes the consumed `architecture-delta.c4` and moves the change to `.xirang/changes/archive/YYYY-MM-DD-<name>/`
 
 ---
 
 ## Workflow Commands
 
-These commands support the artifact-driven OPSX workflow. They're useful for both humans checking progress and agents determining next steps.
+These commands support the artifact-driven Xirang workflow. They're useful for both humans checking progress and agents determining next steps.
 
-### `opsx status`
+### `xirang status`
 
 Display artifact completion status for a change.
 
 ```
-opsx status [options]
+xirang status [options]
 ```
 
 **Options:**
@@ -421,13 +421,13 @@ opsx status [options]
 
 ```bash
 # Interactive status check
-opsx status
+xirang status
 
 # Status for specific change
-opsx status --change add-dark-mode
+xirang status --change add-dark-mode
 
 # JSON for agent use
-opsx status --change add-dark-mode --json
+xirang status --change add-dark-mode --json
 ```
 
 **Output (text):**
@@ -462,12 +462,12 @@ Progress: 2/4 artifacts complete
 
 ---
 
-### `opsx instructions`
+### `xirang instructions`
 
 Get enriched instructions for creating an artifact or applying tasks. Used by AI agents to understand what to create next.
 
 ```
-opsx instructions [artifact] [options]
+xirang instructions [artifact] [options]
 ```
 
 **Arguments:**
@@ -490,16 +490,16 @@ opsx instructions [artifact] [options]
 
 ```bash
 # Get instructions for next artifact
-opsx instructions --change add-dark-mode
+xirang instructions --change add-dark-mode
 
 # Get specific artifact instructions
-opsx instructions design --change add-dark-mode
+xirang instructions design --change add-dark-mode
 
 # Get apply/implementation instructions
-opsx instructions apply --change add-dark-mode
+xirang instructions apply --change add-dark-mode
 
 # JSON for agent consumption
-opsx instructions design --change add-dark-mode --json
+xirang instructions design --change add-dark-mode --json
 ```
 
 **Output includes:**
@@ -511,12 +511,12 @@ opsx instructions design --change add-dark-mode --json
 
 ---
 
-### `opsx templates`
+### `xirang templates`
 
 Show resolved template paths for all artifacts in a schema.
 
 ```
-opsx templates [options]
+xirang templates [options]
 ```
 
 **Options:**
@@ -530,10 +530,10 @@ opsx templates [options]
 
 ```bash
 # Show template paths for default schema
-opsx templates
+xirang templates
 
 # JSON for programmatic use
-opsx templates --json
+xirang templates --json
 ```
 
 **Output (text):**
@@ -550,12 +550,12 @@ Templates:
 
 ---
 
-### `opsx schemas`
+### `xirang schemas`
 
 List available workflow schemas with their descriptions and artifact flows.
 
 ```
-opsx schemas [options]
+xirang schemas [options]
 ```
 
 **Options:**
@@ -567,7 +567,7 @@ opsx schemas [options]
 **Example:**
 
 ```bash
-opsx schemas
+xirang schemas
 ```
 
 **Output:**
@@ -585,14 +585,14 @@ Available schemas:
 
 ## Schema Commands
 
-OPSX ships exactly one package-owned schema: `spec-driven`. Project-local and user override schemas are not resolved, and `schema init` and `schema fork` are not available.
+Xirang ships exactly one package-owned schema: `spec-driven`. Project-local and user override schemas are not resolved, and `schema init` and `schema fork` are not available.
 
-### `opsx schema validate`
+### `xirang schema validate`
 
 Validate a schema's structure and templates.
 
 ```
-opsx schema validate [name] [options]
+xirang schema validate [name] [options]
 ```
 
 **Arguments:**
@@ -612,20 +612,20 @@ opsx schema validate [name] [options]
 
 ```bash
 # Validate a specific built-in schema
-opsx schema validate spec-driven
+xirang schema validate spec-driven
 
 # Validate both built-in schemas
-opsx schema validate
+xirang schema validate
 ```
 
 ---
 
-### `opsx schema which`
+### `xirang schema which`
 
 Show the package location of a built-in schema.
 
 ```
-opsx schema which [name] [options]
+xirang schema which [name] [options]
 ```
 
 **Arguments:**
@@ -645,7 +645,7 @@ opsx schema which [name] [options]
 
 ```bash
 # Check where a schema comes from
-opsx schema which spec-driven
+xirang schema which spec-driven
 ```
 
 **Output:**
@@ -663,12 +663,12 @@ Both schemas resolve directly from the installed package. Project and user direc
 
 ## Configuration Commands
 
-### `opsx config`
+### `xirang config`
 
-View and modify global OPSX configuration.
+View and modify global Xirang configuration.
 
 ```
-opsx config <subcommand> [options]
+xirang config <subcommand> [options]
 ```
 
 **Subcommands:**
@@ -687,28 +687,28 @@ opsx config <subcommand> [options]
 
 ```bash
 # Show config file path
-opsx config path
+xirang config path
 
 # List all settings
-opsx config list
+xirang config list
 
 # Get a specific value
-opsx config get telemetry.enabled
+xirang config get telemetry.enabled
 
 # Set a value
-opsx config set telemetry.enabled false
+xirang config set telemetry.enabled false
 
 # Set a string value explicitly
-opsx config set user.name "My Name" --string
+xirang config set user.name "My Name" --string
 
 # Remove a custom setting
-opsx config unset user.name
+xirang config unset user.name
 
 # Reset all configuration
-opsx config reset --all --yes
+xirang config reset --all --yes
 
 # Edit config in your editor
-opsx config edit
+xirang config edit
 
 ```
 
@@ -716,12 +716,12 @@ opsx config edit
 
 ## Utility Commands
 
-### `opsx feedback`
+### `xirang feedback`
 
-Submit feedback about OPSX. Creates a GitHub issue.
+Submit feedback about Xirang. Creates a GitHub issue.
 
 ```
-opsx feedback <message> [options]
+xirang feedback <message> [options]
 ```
 
 **Arguments:**
@@ -741,18 +741,18 @@ opsx feedback <message> [options]
 **Example:**
 
 ```bash
-opsx feedback "Add support for custom artifact types" \
+xirang feedback "Add support for custom artifact types" \
   --body "I'd like to define my own artifact types beyond the built-in ones."
 ```
 
 ---
 
-### `opsx completion`
+### `xirang completion`
 
-Manage shell completions for the OPSX CLI.
+Manage shell completions for the Xirang CLI.
 
 ```
-opsx completion <subcommand> [shell]
+xirang completion <subcommand> [shell]
 ```
 
 **Subcommands:**
@@ -769,16 +769,16 @@ opsx completion <subcommand> [shell]
 
 ```bash
 # Install completions (auto-detects shell)
-opsx completion install
+xirang completion install
 
 # Install for specific shell
-opsx completion install zsh
+xirang completion install zsh
 
 # Generate script for manual installation
-opsx completion generate bash > ~/.bash_completion.d/opsx
+xirang completion generate bash > ~/.bash_completion.d/xirang
 
 # Uninstall
-opsx completion uninstall
+xirang completion uninstall
 ```
 
 ---
@@ -796,17 +796,17 @@ opsx completion uninstall
 
 | Variable | Description |
 |----------|-------------|
-| `OPSX_TELEMETRY` | Set to `0` to disable telemetry |
+| `XIRANG_TELEMETRY` | Set to `0` to disable telemetry |
 | `DO_NOT_TRACK` | Set to `1` to disable telemetry (standard DNT signal) |
-| `OPSX_CONCURRENCY` | Default concurrency for bulk validation (default: 6) |
-| `EDITOR` or `VISUAL` | Editor for `opsx config edit` |
+| `XIRANG_CONCURRENCY` | Default concurrency for bulk validation (default: 6) |
+| `EDITOR` or `VISUAL` | Editor for `xirang config edit` |
 | `NO_COLOR` | Disable color output when set |
 
 ---
 
 ## Related Documentation
 
-- [Commands](commands.md) - AI slash commands (`/opsx:propose`, `/opsx:apply`, etc.)
+- [Commands](commands.md) - AI slash commands (`/xirang:propose`, `/xirang:apply`, etc.)
 - [Workflows](workflows.md) - Common patterns and when to use each command
 - [Schema Commands](#schema-commands) - Inspect built-in schemas and templates
 - [Getting Started](getting-started.md) - First-time setup guide

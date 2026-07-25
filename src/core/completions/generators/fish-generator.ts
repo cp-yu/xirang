@@ -2,7 +2,7 @@ import { CompletionGenerator, CommandDefinition, FlagDefinition } from '../types
 import { FISH_STATIC_HELPERS, FISH_DYNAMIC_HELPERS } from '../templates/fish-templates.js';
 
 /**
- * Generates Fish completion scripts for the OPSX CLI.
+ * Generates Fish completion scripts for the Xirang CLI.
  * Follows Fish completion conventions using the complete command.
  */
 export class FishGenerator implements CompletionGenerator {
@@ -20,7 +20,7 @@ export class FishGenerator implements CompletionGenerator {
     for (const cmd of commands) {
       topLevelLines.push(`# ${cmd.name} command`);
       topLevelLines.push(
-        `complete -c opsx -n '__fish_opsx_no_subcommand' -a '${cmd.name}' -d '${this.escapeDescription(cmd.description)}'`
+        `complete -c xirang -n '__fish_opsx_no_subcommand' -a '${cmd.name}' -d '${this.escapeDescription(cmd.description)}'`
       );
     }
     const topLevelCommands = topLevelLines.join('\n');
@@ -40,7 +40,7 @@ export class FishGenerator implements CompletionGenerator {
     const dynamicHelpers = FISH_DYNAMIC_HELPERS;
 
     // Assemble final script with template literal
-    return `# Fish completion script for OPSX CLI
+    return `# Fish completion script for Xirang CLI
 # Auto-generated - do not edit manually
 
 ${helperFunctions}
@@ -61,7 +61,7 @@ ${commandCompletions}`;
       // Add subcommand completions
       for (const subcmd of cmd.subcommands) {
         lines.push(
-          `complete -c opsx -n '__fish_opsx_using_subcommand ${cmd.name}; and not __fish_opsx_using_subcommand ${subcmd.name}' -a '${subcmd.name}' -d '${this.escapeDescription(subcmd.description)}'`
+          `complete -c xirang -n '__fish_opsx_using_subcommand ${cmd.name}; and not __fish_opsx_using_subcommand ${subcmd.name}' -a '${subcmd.name}' -d '${this.escapeDescription(subcmd.description)}'`
         );
       }
       lines.push('');
@@ -112,11 +112,11 @@ ${commandCompletions}`;
       for (const value of flag.values) {
         if (shortFlag) {
           lines.push(
-            `complete -c opsx -n '${condition}' -s ${flag.short} -l ${flag.name} -a '${value}' -d '${this.escapeDescription(flag.description)}'`
+            `complete -c xirang -n '${condition}' -s ${flag.short} -l ${flag.name} -a '${value}' -d '${this.escapeDescription(flag.description)}'`
           );
         } else {
           lines.push(
-            `complete -c opsx -n '${condition}' -l ${flag.name} -a '${value}' -d '${this.escapeDescription(flag.description)}'`
+            `complete -c xirang -n '${condition}' -l ${flag.name} -a '${value}' -d '${this.escapeDescription(flag.description)}'`
           );
         }
       }
@@ -124,22 +124,22 @@ ${commandCompletions}`;
       // Flag that takes a value but no specific values defined
       if (shortFlag) {
         lines.push(
-          `complete -c opsx -n '${condition}' -s ${flag.short} -l ${flag.name} -r -d '${this.escapeDescription(flag.description)}'`
+          `complete -c xirang -n '${condition}' -s ${flag.short} -l ${flag.name} -r -d '${this.escapeDescription(flag.description)}'`
         );
       } else {
         lines.push(
-          `complete -c opsx -n '${condition}' -l ${flag.name} -r -d '${this.escapeDescription(flag.description)}'`
+          `complete -c xirang -n '${condition}' -l ${flag.name} -r -d '${this.escapeDescription(flag.description)}'`
         );
       }
     } else {
       // Boolean flag
       if (shortFlag) {
         lines.push(
-          `complete -c opsx -n '${condition}' -s ${flag.short} -l ${flag.name} -d '${this.escapeDescription(flag.description)}'`
+          `complete -c xirang -n '${condition}' -s ${flag.short} -l ${flag.name} -d '${this.escapeDescription(flag.description)}'`
         );
       } else {
         lines.push(
-          `complete -c opsx -n '${condition}' -l ${flag.name} -d '${this.escapeDescription(flag.description)}'`
+          `complete -c xirang -n '${condition}' -l ${flag.name} -d '${this.escapeDescription(flag.description)}'`
         );
       }
     }
@@ -155,16 +155,16 @@ ${commandCompletions}`;
 
     switch (positionalType) {
       case 'change-id':
-        lines.push(`complete -c opsx -n '${condition}' -a '(__fish_opsx_changes)' -f`);
+        lines.push(`complete -c xirang -n '${condition}' -a '(__fish_opsx_changes)' -f`);
         break;
       case 'spec-id':
-        lines.push(`complete -c opsx -n '${condition}' -a '(__fish_opsx_specs)' -f`);
+        lines.push(`complete -c xirang -n '${condition}' -a '(__fish_opsx_specs)' -f`);
         break;
       case 'change-or-spec-id':
-        lines.push(`complete -c opsx -n '${condition}' -a '(__fish_opsx_items)' -f`);
+        lines.push(`complete -c xirang -n '${condition}' -a '(__fish_opsx_items)' -f`);
         break;
       case 'shell':
-        lines.push(`complete -c opsx -n '${condition}' -a 'zsh bash fish powershell' -f`);
+        lines.push(`complete -c xirang -n '${condition}' -a 'zsh bash fish powershell' -f`);
         break;
       case 'path':
         // Fish automatically completes files, no need to specify

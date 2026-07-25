@@ -124,24 +124,24 @@ describe('createChange', () => {
     it('should create change directory', async () => {
       await createChange(testDir, 'add-auth');
 
-      const changeDir = path.join(testDir, '.opsx', 'changes', 'add-auth');
+      const changeDir = path.join(testDir, '.xirang', 'changes', 'add-auth');
       const stats = await fs.stat(changeDir);
       expect(stats.isDirectory()).toBe(true);
     });
 
-    it('should create .opsx.yaml metadata file with default schema', async () => {
+    it('should create .xirang.yaml metadata file with default schema', async () => {
       await createChange(testDir, 'add-auth');
 
-      const metaPath = path.join(testDir, '.opsx', 'changes', 'add-auth', '.opsx.yaml');
+      const metaPath = path.join(testDir, '.xirang', 'changes', 'add-auth', '.xirang.yaml');
       const content = await fs.readFile(metaPath, 'utf-8');
       expect(content).toContain('schema: spec-driven');
       expect(content).toMatch(/created: \d{4}-\d{2}-\d{2}/);
     });
 
-    it('should create .opsx.yaml with custom schema', async () => {
+    it('should create .xirang.yaml with custom schema', async () => {
       await createChange(testDir, 'add-auth', { schema: 'spec-driven' });
 
-      const metaPath = path.join(testDir, '.opsx', 'changes', 'add-auth', '.opsx.yaml');
+      const metaPath = path.join(testDir, '.xirang', 'changes', 'add-auth', '.xirang.yaml');
       const content = await fs.readFile(metaPath, 'utf-8');
       expect(content).toContain('schema: spec-driven');
     });
@@ -155,9 +155,9 @@ describe('createChange', () => {
     });
 
     it('falls back to the default schema when project schema is unsupported', async () => {
-      await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
+      await fs.mkdir(path.join(testDir, '.xirang'), { recursive: true });
       await fs.writeFile(
-        path.join(testDir, '.opsx', 'config.yaml'),
+        path.join(testDir, '.xirang', 'config.yaml'),
         'schema: custom-schema\n',
         'utf-8'
       );
@@ -166,7 +166,7 @@ describe('createChange', () => {
         schema: 'spec-driven',
       });
       await expect(
-        fs.stat(path.join(testDir, '.opsx', 'changes', 'add-auth'))
+        fs.stat(path.join(testDir, '.xirang', 'changes', 'add-auth'))
       ).resolves.toBeDefined();
     });
   });
@@ -202,14 +202,14 @@ describe('createChange', () => {
   });
 
   describe('creates parent directories if needed', () => {
-    it('should create .opsx/changes/ directories if they do not exist', async () => {
+    it('should create .xirang/changes/ directories if they do not exist', async () => {
       const newProjectDir = path.join(testDir, 'new-project');
       await fs.mkdir(newProjectDir);
 
-      // .opsx/changes/ does not exist yet
+      // .xirang/changes/ does not exist yet
       await createChange(newProjectDir, 'add-auth');
 
-      const changeDir = path.join(newProjectDir, '.opsx', 'changes', 'add-auth');
+      const changeDir = path.join(newProjectDir, '.xirang', 'changes', 'add-auth');
       const stats = await fs.stat(changeDir);
       expect(stats.isDirectory()).toBe(true);
     });

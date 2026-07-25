@@ -66,7 +66,7 @@ export const RelationDefinitionRegistry = [
     doNotUseWhen: '仅消费数据、配置或合同而不主动触发执行。',
     propagationHint: '调用方变化需验证被调用方合同；被调用方变化需验证调用方。',
     notePolicy: optionalNote,
-    example: { from: 'cap.cli.sync', type: 'invokes', to: 'cap.opsx.merge' },
+    example: { from: 'cap.cli.sync', type: 'invokes', to: 'cap.xirang.merge' },
   },
   {
     type: 'consumes',
@@ -77,7 +77,7 @@ export const RelationDefinitionRegistry = [
     doNotUseWhen: '消费方主动触发提供方执行。',
     propagationHint: '提供方合同变化需验证消费方。',
     notePolicy: optionalNote,
-    example: { from: 'cap.cli.help', type: 'consumes', to: 'cap.opsx.relations' },
+    example: { from: 'cap.cli.help', type: 'consumes', to: 'cap.xirang.relations' },
   },
   {
     type: 'precedes',
@@ -110,7 +110,7 @@ export const RelationDefinitionRegistry = [
     doNotUseWhen: '仅运行测试、调用目标或消费其输出。',
     propagationHint: '目标合同变化需验证验证方覆盖，验证规则变化需复核目标。',
     notePolicy: optionalNote,
-    example: { from: 'cap.validation.opsx', type: 'validates', to: 'cap.opsx.merge' },
+    example: { from: 'cap.validation.xirang', type: 'validates', to: 'cap.xirang.merge' },
   },
 ] as const satisfies readonly RelationDefinition[];
 

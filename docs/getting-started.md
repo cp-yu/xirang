@@ -1,25 +1,25 @@
 # Getting Started
 
-This guide explains how OPSX works after you've built and initialized it. For source installation instructions, see [Installation](installation.md).
+This guide explains how Xirang works after you've built and initialized it. For source installation instructions, see [Installation](installation.md).
 
 ## How It Works
 
-OPSX helps you and your AI coding assistant agree on what to build before any code is written.
+Xirang helps you and your AI coding assistant agree on what to build before any code is written.
 
 **Default quick path:**
 
 ```text
-/opsx:propose ──► /opsx:apply ──► /opsx:archive
+/xirang:propose ──► /xirang:apply ──► /xirang:archive
 ```
 
-OPSX installs a fixed managed workflow surface. `/opsx:archive` syncs the graph and contract modules of one Semantic Delta into the formal OPSX Semantic Model before archiving, and it runs a full verify gate before archive.
+Xirang installs a fixed managed workflow surface. `/xirang:archive` syncs the graph and contract modules of one Semantic Delta into the formal Xirang Semantic Model before archiving, and it runs a full verify gate before archive.
 
-## What OPSX Creates
+## What Xirang Creates
 
-After running `opsx setup`, your project has a minimal formal skeleton. Project Build may later create one active Candidate and durable history:
+After running `xirang setup`, your project has a minimal formal skeleton. Project Build may later create one active Candidate and durable history:
 
 ```
-.opsx/
+.xirang/
 ├── architecture/       # Versioned graph modules and Project Root
 │   ├── specification.c4
 │   ├── model.c4
@@ -41,7 +41,7 @@ After running `opsx setup`, your project has a minimal formal skeleton. Project 
 
 **Three key directories:**
 
-- **`architecture/`** - The graph modules of the OPSX Semantic Model: Project Root, stable elements, refinement, semantic relationships, metamodel, and views.
+- **`architecture/`** - The graph modules of the Xirang Semantic Model: Project Root, stable elements, refinement, semantic relationships, metamodel, and views.
 
 - **`specs/`** - Element-owned contract modules. Each v1 Spec uses singular `element: <elementId>` frontmatter; one element may own multiple Specs.
 
@@ -71,7 +71,7 @@ You can always go back and refine earlier artifacts as you learn more during imp
 
 ## How Delta Specs Work
 
-Delta specs are the key concept in OPSX. They show what's changing relative to your current specs.
+Delta specs are the key concept in Xirang. They show what's changing relative to your current specs.
 
 ### The Format
 
@@ -115,7 +115,7 @@ When you archive a change:
 2. **MODIFIED** requirements replace the existing version
 3. **REMOVED** requirements are deleted from the main spec
 
-The change folder moves to `.opsx/changes/archive/` for audit history.
+The change folder moves to `.xirang/changes/archive/` for audit history.
 
 ## Example: Your First Change
 
@@ -124,9 +124,9 @@ Let's walk through adding dark mode to an application.
 ### 1. Start the Change (Default)
 
 ```text
-You: /opsx:propose add-dark-mode
+You: /xirang:propose add-dark-mode
 
-AI:  Created .opsx/changes/add-dark-mode/
+AI:  Created .xirang/changes/add-dark-mode/
      ✓ proposal.md — why we're doing this, what's changing
      ✓ specs/       — requirements and scenarios
      ✓ design.md    — technical approach
@@ -203,7 +203,7 @@ The system SHALL allow users to choose between light and dark themes.
 ### 3. Implement
 
 ```
-You: /opsx:apply
+You: /xirang:apply
 
 AI:  Working through tasks...
      ✓ 1.1 Created ThemeContext with light/dark state
@@ -219,13 +219,13 @@ During implementation, if you discover the design needs adjustment, update the a
 ### 4. Archive
 
 ```
-You: /opsx:archive
+You: /xirang:archive
 
 AI:  Archiving add-dark-mode...
      ✓ No fresh verify result found, running full verify
      ✓ Full verify passed
-     ✓ Merged specs into .opsx/specs/ui/spec.md
-     ✓ Moved to .opsx/changes/archive/2025-01-24-add-dark-mode/
+     ✓ Merged specs into .xirang/specs/ui/spec.md
+     ✓ Moved to .xirang/changes/archive/2025-01-24-add-dark-mode/
      Done! Ready for the next feature.
 ```
 
@@ -237,16 +237,16 @@ Use the CLI to check on your changes:
 
 ```bash
 # List active changes
-opsx list
+xirang list
 
 # View change details
-opsx show add-dark-mode
+xirang show add-dark-mode
 
 # Validate spec formatting
-opsx validate add-dark-mode
+xirang validate add-dark-mode
 
 # Local Architecture and Specs browser
-opsx view
+xirang view
 ```
 
 ## Next Steps
@@ -254,4 +254,4 @@ opsx view
 - [Workflows](workflows.md) - Common patterns and when to use each command
 - [Commands](commands.md) - Full reference for all slash commands
 - [Concepts](concepts.md) - Deeper understanding of specs, changes, and schemas
-- [Customization](customization.md) - Make OPSX work your way
+- [Customization](customization.md) - Make Xirang work your way

@@ -19,8 +19,8 @@ describe('ViewCommand', () => {
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  it('starts the embedded LikeC4 view for an OPSX project', async () => {
-    const architectureDir = path.join(tempDir, '.opsx', 'architecture');
+  it('starts the embedded LikeC4 view for an Xirang project', async () => {
+    const architectureDir = path.join(tempDir, '.xirang', 'architecture');
     await fs.mkdir(architectureDir, { recursive: true });
     const launch = vi.fn<ViewLauncher>().mockResolvedValue(undefined);
 
@@ -31,13 +31,13 @@ describe('ViewCommand', () => {
       projectRoot: tempDir,
       architectureDir,
       port: undefined,
-      specRegistryFile: expect.stringContaining('opsx-spec-registry.json'),
-      changeManifestFile: expect.stringContaining('opsx-change-manifest.json'),
+      specRegistryFile: expect.stringContaining('xirang-spec-registry.json'),
+      changeManifestFile: expect.stringContaining('xirang-change-manifest.json'),
     });
   });
 
   it('passes a custom port to the embedded server', async () => {
-    const architectureDir = path.join(tempDir, '.opsx', 'architecture');
+    const architectureDir = path.join(tempDir, '.xirang', 'architecture');
     await fs.mkdir(architectureDir, { recursive: true });
     const launch = vi.fn<ViewLauncher>().mockResolvedValue(undefined);
 
@@ -47,15 +47,15 @@ describe('ViewCommand', () => {
       projectRoot: tempDir,
       architectureDir,
       port: 4321,
-      specRegistryFile: expect.stringContaining('opsx-spec-registry.json'),
-      changeManifestFile: expect.stringContaining('opsx-change-manifest.json'),
+      specRegistryFile: expect.stringContaining('xirang-spec-registry.json'),
+      changeManifestFile: expect.stringContaining('xirang-change-manifest.json'),
     });
   });
 
-  it('discovers the nearest OPSX project from a nested directory', async () => {
-    const outerArchitecture = path.join(tempDir, '.opsx', 'architecture');
+  it('discovers the nearest Xirang project from a nested directory', async () => {
+    const outerArchitecture = path.join(tempDir, '.xirang', 'architecture');
     const innerRoot = path.join(tempDir, 'packages', 'feature');
-    const innerArchitecture = path.join(innerRoot, '.opsx', 'architecture');
+    const innerArchitecture = path.join(innerRoot, '.xirang', 'architecture');
     const nestedDir = path.join(innerRoot, 'src', 'nested');
     await fs.mkdir(outerArchitecture, { recursive: true });
     await fs.mkdir(innerArchitecture, { recursive: true });
@@ -68,18 +68,18 @@ describe('ViewCommand', () => {
       projectRoot: innerRoot,
       architectureDir: innerArchitecture,
       port: undefined,
-      specRegistryFile: expect.stringContaining('opsx-spec-registry.json'),
-      changeManifestFile: expect.stringContaining('opsx-change-manifest.json'),
+      specRegistryFile: expect.stringContaining('xirang-spec-registry.json'),
+      changeManifestFile: expect.stringContaining('xirang-change-manifest.json'),
     });
   });
 
   it('passes a sorted immutable Spec registry snapshot to the server lifecycle', async () => {
-    const architectureDir = path.join(tempDir, '.opsx', 'architecture');
+    const architectureDir = path.join(tempDir, '.xirang', 'architecture');
     await fs.mkdir(architectureDir, { recursive: true });
-    await fs.mkdir(path.join(tempDir, '.opsx', 'specs', 'zeta'), { recursive: true });
-    await fs.mkdir(path.join(tempDir, '.opsx', 'specs', 'alpha'), { recursive: true });
-    await fs.writeFile(path.join(tempDir, '.opsx', 'specs', 'zeta', 'spec.md'), '---\nelement: payment.authorize\n---\n');
-    await fs.writeFile(path.join(tempDir, '.opsx', 'specs', 'alpha', 'spec.md'), '---\nelement: payment.authorize\n---\n');
+    await fs.mkdir(path.join(tempDir, '.xirang', 'specs', 'zeta'), { recursive: true });
+    await fs.mkdir(path.join(tempDir, '.xirang', 'specs', 'alpha'), { recursive: true });
+    await fs.writeFile(path.join(tempDir, '.xirang', 'specs', 'zeta', 'spec.md'), '---\nelement: payment.authorize\n---\n');
+    await fs.writeFile(path.join(tempDir, '.xirang', 'specs', 'alpha', 'spec.md'), '---\nelement: payment.authorize\n---\n');
     let snapshot: unknown;
     const launch: ViewLauncher = async options => {
       snapshot = JSON.parse(await fs.readFile(options.specRegistryFile, 'utf8'));
@@ -91,21 +91,21 @@ describe('ViewCommand', () => {
       version: 1,
       elements: {
         'payment.authorize': [
-          '.opsx/specs/alpha/spec.md',
-          '.opsx/specs/zeta/spec.md',
+          '.xirang/specs/alpha/spec.md',
+          '.xirang/specs/zeta/spec.md',
         ],
       },
     });
   });
 
   it('lists isolated active change variants deterministically and excludes archive', async () => {
-    const architectureDir = path.join(tempDir, '.opsx', 'architecture');
+    const architectureDir = path.join(tempDir, '.xirang', 'architecture');
     await fs.mkdir(architectureDir, { recursive: true });
     await fs.writeFile(path.join(architectureDir, 'model.c4'), [
-      "opsx { languageVersion '1' }",
+      "xirang { languageVersion '1' }",
       'specification {',
-      '  element project { opsx { root true contract optional } }',
-      '  element capability { opsx { contract optional parents [project] } }',
+      '  element project { xirang { root true contract optional } }',
+      '  element capability { xirang { contract optional parents [project] } }',
       '}',
       'model {',
       "  projectRoot = project 'Root' 'Root summary' {",
@@ -114,16 +114,16 @@ describe('ViewCommand', () => {
       '  }',
       '}',
     ].join('\n'));
-    const mainSpec = path.join(tempDir, '.opsx', 'specs', 'alpha', 'spec.md');
+    const mainSpec = path.join(tempDir, '.xirang', 'specs', 'alpha', 'spec.md');
     await fs.mkdir(path.dirname(mainSpec), { recursive: true });
     await fs.writeFile(mainSpec, `---\nelement: alpha.id\n---\n\n## Purpose\nAlpha behavior for runtime variant tests.\n\n## Requirements\n\n### Requirement: Existing\nThe system SHALL preserve existing behavior.\n\n#### Scenario: Existing\n- **WHEN** invoked\n- **THEN** existing behavior remains\n`);
 
     for (const [change, requirement] of [['z-change', 'Zeta'], ['a-change', 'Alpha']] as const) {
-      const delta = path.join(tempDir, '.opsx', 'changes', change, 'specs', 'alpha', 'spec.md');
+      const delta = path.join(tempDir, '.xirang', 'changes', change, 'specs', 'alpha', 'spec.md');
       await fs.mkdir(path.dirname(delta), { recursive: true });
       await fs.writeFile(delta, `---\nelement: alpha.id\n---\n\n## ADDED Requirements\n\n### Requirement: ${requirement}\nThe system SHALL provide ${requirement} behavior.\n\n#### Scenario: ${requirement}\n- **WHEN** invoked\n- **THEN** ${requirement} behavior is provided\n`);
     }
-    await fs.mkdir(path.join(tempDir, '.opsx', 'changes', 'archive', 'old-change'), { recursive: true });
+    await fs.mkdir(path.join(tempDir, '.xirang', 'changes', 'archive', 'old-change'), { recursive: true });
 
     const snapshot = await buildViewRuntimeSnapshot(tempDir);
 
@@ -148,7 +148,7 @@ describe('ViewCommand', () => {
 
   it('keeps Architecture identity stable when only Specs change in a mixed change', async () => {
     await fs.cp(browserFixtureRoot, tempDir, { recursive: true });
-    const targetSpec = path.join(tempDir, '.opsx', 'changes', 'architecture-change', 'specs', 'single', 'spec.md');
+    const targetSpec = path.join(tempDir, '.xirang', 'changes', 'architecture-change', 'specs', 'single', 'spec.md');
 
     const before = await buildViewRuntimeSnapshot(tempDir);
     const beforeVariant = before.variants.find(variant => variant.id === 'change:architecture-change')!;
@@ -165,8 +165,8 @@ describe('ViewCommand', () => {
   });
 
   it('retains invalid active changes with partitioned diagnostics', async () => {
-    await fs.mkdir(path.join(tempDir, '.opsx', 'architecture'), { recursive: true });
-    const delta = path.join(tempDir, '.opsx', 'changes', 'broken', 'specs', 'bad', 'spec.md');
+    await fs.mkdir(path.join(tempDir, '.xirang', 'architecture'), { recursive: true });
+    const delta = path.join(tempDir, '.xirang', 'changes', 'broken', 'specs', 'bad', 'spec.md');
     await fs.mkdir(path.dirname(delta), { recursive: true });
     await fs.writeFile(delta, '## RENAMED Requirements\n');
 
@@ -177,11 +177,11 @@ describe('ViewCommand', () => {
     ]));
   });
 
-  it('fails without launching when no OPSX project exists', async () => {
+  it('fails without launching when no Xirang project exists', async () => {
     const launch = vi.fn<ViewLauncher>().mockResolvedValue(undefined);
 
     await expect(new ViewCommand(launch).execute(tempDir)).rejects.toThrow(
-      '未找到 OPSX 项目',
+      '未找到 Xirang 项目',
     );
     expect(launch).not.toHaveBeenCalled();
   });

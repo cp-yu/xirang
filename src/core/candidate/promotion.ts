@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
-import { OPSX_DIR_NAME } from '../config.js';
+import { XIRANG_DIR_NAME } from '../config.js';
 import { compareUtf8Bytes } from './canonical.js';
 import {
   applySemanticDirectoryTransaction,
@@ -48,7 +48,7 @@ function snapshotTargetTree(snapshot: CandidateSnapshot): Map<string, Buffer> {
   const files = new Map<string, Buffer>();
   for (const file of snapshot.files) {
     if (!file.path.startsWith('architecture/') && !file.path.startsWith('specs/')) continue;
-    files.set(`${OPSX_DIR_NAME}/${file.path}`, Buffer.from(file.bytes));
+    files.set(`${XIRANG_DIR_NAME}/${file.path}`, Buffer.from(file.bytes));
   }
   return files;
 }
@@ -99,7 +99,7 @@ async function preserveRecoveredCandidate(
 ): Promise<void> {
   const recoveryRoot = path.join(
     projectRoot,
-    OPSX_DIR_NAME,
+    XIRANG_DIR_NAME,
     'history',
     'recovery',
     path.basename(stagingRoot),
@@ -147,7 +147,7 @@ async function recoverCandidatePromotion(projectRoot: string, stagingRoot: strin
     return;
   }
   const marker = JSON.parse(markerSource) as CandidatePromotionMarker;
-  if (marker.schemaVersion !== 1 || !/^\.opsx\/history\/builds\/[^/]+$/.test(marker.historyPath)) {
+  if (marker.schemaVersion !== 1 || !/^\.xirang\/history\/builds\/[^/]+$/.test(marker.historyPath)) {
     throw new Error(`Invalid Candidate promotion recovery marker: ${stagingRoot}`);
   }
 
@@ -161,7 +161,7 @@ async function recoverCandidatePromotion(projectRoot: string, stagingRoot: strin
       await restoreFrozenCandidate(
         projectRoot,
         stagingRoot,
-        path.join(projectRoot, OPSX_DIR_NAME, 'candidate'),
+        path.join(projectRoot, XIRANG_DIR_NAME, 'candidate'),
         path.join(stagingRoot, 'candidate'),
       );
       await fs.rm(historyDirectory, { recursive: true, force: true });
@@ -173,14 +173,14 @@ async function recoverCandidatePromotion(projectRoot: string, stagingRoot: strin
 
 export async function recoverPendingCandidatePromotions(projectRootInput: string): Promise<void> {
   const projectRoot = path.resolve(projectRootInput);
-  const opsxRoot = path.join(projectRoot, OPSX_DIR_NAME);
-  const entries = await fs.readdir(opsxRoot, { withFileTypes: true }).catch((error: NodeJS.ErrnoException) => {
+  const xirangRoot = path.join(projectRoot, XIRANG_DIR_NAME);
+  const entries = await fs.readdir(xirangRoot, { withFileTypes: true }).catch((error: NodeJS.ErrnoException) => {
     if (error.code === 'ENOENT') return [];
     throw error;
   });
   for (const entry of entries.sort((left, right) => compareUtf8Bytes(left.name, right.name))) {
     if (!entry.isDirectory() || !entry.name.startsWith('.candidate-promotion-')) continue;
-    await recoverCandidatePromotion(projectRoot, path.join(opsxRoot, entry.name));
+    await recoverCandidatePromotion(projectRoot, path.join(xirangRoot, entry.name));
   }
 }
 
@@ -202,11 +202,11 @@ export async function promoteCandidate(
     throw new Error(`Candidate review digest mismatch: expected ${suppliedDigest}, received ${initial.snapshot.reviewDigest}.`);
   }
 
-  const opsxRoot = path.join(projectRoot, OPSX_DIR_NAME);
-  const activeCandidate = path.join(opsxRoot, 'candidate');
+  const xirangRoot = path.join(projectRoot, XIRANG_DIR_NAME);
+  const activeCandidate = path.join(xirangRoot, 'candidate');
   const promotedAt = (options.now ?? (() => new Date()))();
   const plannedHistoryPath = createCandidateHistoryRelativePath(promotedAt, suppliedDigest);
-  const stagingRoot = path.join(opsxRoot, `.candidate-promotion-${randomUUID()}`);
+  const stagingRoot = path.join(xirangRoot, `.candidate-promotion-${randomUUID()}`);
   const frozenCandidate = path.join(stagingRoot, 'candidate');
   let history: CandidateHistoryReservation | undefined;
   let promotionSucceeded = false;

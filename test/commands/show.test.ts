@@ -6,8 +6,8 @@ import { runCLI } from '../helpers/run-cli.js';
 describe('top-level show command', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-show-command-tmp');
-  const changesDir = path.join(testDir, '.opsx', 'changes');
-  const specsDir = path.join(testDir, '.opsx', 'specs');
+  const changesDir = path.join(testDir, '.xirang', 'changes');
+  const specsDir = path.join(testDir, '.xirang', 'specs');
 
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });
@@ -29,13 +29,13 @@ describe('top-level show command', () => {
   it('prints hint and non-zero exit when no args and non-interactive', async () => {
     const result = await runCLI(['show'], {
       cwd: testDir,
-      env: { OPSX_INTERACTIVE: '0' },
+      env: { XIRANG_INTERACTIVE: '0' },
     });
     expect(result.exitCode).not.toBe(0);
     expect(result.stderr).toContain('Nothing to show.');
-    expect(result.stderr).toContain('opsx show <item>');
-    expect(result.stderr).toContain('opsx change show');
-    expect(result.stderr).toContain('opsx spec show');
+    expect(result.stderr).toContain('xirang show <item>');
+    expect(result.stderr).toContain('xirang change show');
+    expect(result.stderr).toContain('xirang spec show');
   });
 
   it('auto-detects change id and supports --json', async () => {

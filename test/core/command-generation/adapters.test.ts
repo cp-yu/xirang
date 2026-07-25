@@ -26,7 +26,7 @@ import type { CommandContent } from '../../../src/core/command-generation/types.
 describe('command-generation/adapters', () => {
   const sampleContent: CommandContent = {
     id: 'explore',
-    name: 'OPSX Explore',
+    name: 'Xirang Explore',
     description: 'Enter explore mode for thinking',
     category: 'Workflow',
     tags: ['workflow', 'explore', 'experimental'],
@@ -40,19 +40,19 @@ describe('command-generation/adapters', () => {
 
     it('should generate correct file path', () => {
       const filePath = claudeAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.claude', 'commands', 'opsx', 'explore.md'));
+      expect(filePath).toBe(path.join('.claude', 'commands', 'xirang', 'explore.md'));
     });
 
     it('should generate correct file path for different command IDs', () => {
-      expect(claudeAdapter.getFilePath('new')).toBe(path.join('.claude', 'commands', 'opsx', 'new.md'));
-      expect(claudeAdapter.getFilePath('bulk-archive')).toBe(path.join('.claude', 'commands', 'opsx', 'bulk-archive.md'));
+      expect(claudeAdapter.getFilePath('new')).toBe(path.join('.claude', 'commands', 'xirang', 'new.md'));
+      expect(claudeAdapter.getFilePath('bulk-archive')).toBe(path.join('.claude', 'commands', 'xirang', 'bulk-archive.md'));
     });
 
     it('should format file with correct YAML frontmatter', () => {
       const output = claudeAdapter.formatFile(sampleContent);
 
       expect(output).toContain('---\n');
-      expect(output).toContain('name: OPSX Explore');
+      expect(output).toContain('name: Xirang Explore');
       expect(output).toContain('description: Enter explore mode for thinking');
       expect(output).toContain('category: Workflow');
       expect(output).toContain('tags: [workflow, explore, experimental]');
@@ -74,20 +74,20 @@ describe('command-generation/adapters', () => {
 
     it('should generate correct file path with opsx- prefix', () => {
       const filePath = cursorAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.cursor', 'commands', 'opsx-explore.md'));
+      expect(filePath).toBe(path.join('.cursor', 'commands', 'xirang-explore.md'));
     });
 
     it('should generate correct file paths for different commands', () => {
-      expect(cursorAdapter.getFilePath('new')).toBe(path.join('.cursor', 'commands', 'opsx-new.md'));
-      expect(cursorAdapter.getFilePath('bulk-archive')).toBe(path.join('.cursor', 'commands', 'opsx-bulk-archive.md'));
+      expect(cursorAdapter.getFilePath('new')).toBe(path.join('.cursor', 'commands', 'xirang-new.md'));
+      expect(cursorAdapter.getFilePath('bulk-archive')).toBe(path.join('.cursor', 'commands', 'xirang-bulk-archive.md'));
     });
 
     it('should format file with Cursor-specific frontmatter', () => {
       const output = cursorAdapter.formatFile(sampleContent);
 
       expect(output).toContain('---\n');
-      expect(output).toContain('name: /opsx-explore');
-      expect(output).toContain('id: opsx-explore');
+      expect(output).toContain('name: /xirang-explore');
+      expect(output).toContain('id: xirang-explore');
       expect(output).toContain('category: Workflow');
       expect(output).toContain('description: Enter explore mode for thinking');
       expect(output).toContain('---\n\n');
@@ -107,14 +107,14 @@ describe('command-generation/adapters', () => {
 
     it('should generate correct file path', () => {
       const filePath = windsurfAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.windsurf', 'workflows', 'opsx-explore.md'));
+      expect(filePath).toBe(path.join('.windsurf', 'workflows', 'xirang-explore.md'));
     });
 
     it('should format file similar to Claude format', () => {
       const output = windsurfAdapter.formatFile(sampleContent);
 
       expect(output).toContain('---\n');
-      expect(output).toContain('name: OPSX Explore');
+      expect(output).toContain('name: Xirang Explore');
       expect(output).toContain('description: Enter explore mode for thinking');
       expect(output).toContain('category: Workflow');
       expect(output).toContain('tags: [workflow, explore, experimental]');
@@ -130,7 +130,7 @@ describe('command-generation/adapters', () => {
 
     it('should generate correct file path', () => {
       const filePath = amazonQAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.amazonq', 'prompts', 'opsx-explore.md'));
+      expect(filePath).toBe(path.join('.amazonq', 'prompts', 'xirang-explore.md'));
     });
 
     it('should format file with description frontmatter', () => {
@@ -149,7 +149,7 @@ describe('command-generation/adapters', () => {
 
     it('should generate correct file path', () => {
       const filePath = antigravityAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.agent', 'workflows', 'opsx-explore.md'));
+      expect(filePath).toBe(path.join('.agent', 'workflows', 'xirang-explore.md'));
     });
 
     it('should format file with description frontmatter', () => {
@@ -168,7 +168,7 @@ describe('command-generation/adapters', () => {
 
     it('should generate correct file path', () => {
       const filePath = auggieAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.augment', 'commands', 'opsx-explore.md'));
+      expect(filePath).toBe(path.join('.augment', 'commands', 'xirang-explore.md'));
     });
 
     it('should format file with description and argument-hint', () => {
@@ -188,12 +188,12 @@ describe('command-generation/adapters', () => {
 
     it('should generate correct file path', () => {
       const filePath = clineAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.clinerules', 'workflows', 'opsx-explore.md'));
+      expect(filePath).toBe(path.join('.clinerules', 'workflows', 'xirang-explore.md'));
     });
 
     it('should format file with markdown header (no YAML frontmatter)', () => {
       const output = clineAdapter.formatFile(sampleContent);
-      expect(output).toContain('# OPSX Explore');
+      expect(output).toContain('# Xirang Explore');
       expect(output).toContain('Enter explore mode for thinking');
       expect(output).toContain('This is the command body.');
       expect(output).not.toContain('---');
@@ -205,15 +205,15 @@ describe('command-generation/adapters', () => {
       expect(codebuddyAdapter.toolId).toBe('codebuddy');
     });
 
-    it('should generate correct file path with nested opsx folder', () => {
+    it('should generate correct file path with nested xirang folder', () => {
       const filePath = codebuddyAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.codebuddy', 'commands', 'opsx', 'explore.md'));
+      expect(filePath).toBe(path.join('.codebuddy', 'commands', 'xirang', 'explore.md'));
     });
 
     it('should format file with name, description, and argument-hint', () => {
       const output = codebuddyAdapter.formatFile(sampleContent);
       expect(output).toContain('---\n');
-      expect(output).toContain('name: OPSX Explore');
+      expect(output).toContain('name: Xirang Explore');
       expect(output).toContain('description: "Enter explore mode for thinking"');
       expect(output).toContain('argument-hint: "[command arguments]"');
       expect(output).toContain('---\n\n');
@@ -228,13 +228,13 @@ describe('command-generation/adapters', () => {
 
     it('should generate correct file path with .prompt extension', () => {
       const filePath = continueAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.continue', 'prompts', 'opsx-explore.prompt'));
+      expect(filePath).toBe(path.join('.continue', 'prompts', 'xirang-explore.prompt'));
     });
 
     it('should format file with name, description, and invokable', () => {
       const output = continueAdapter.formatFile(sampleContent);
       expect(output).toContain('---\n');
-      expect(output).toContain('name: opsx-explore');
+      expect(output).toContain('name: xirang-explore');
       expect(output).toContain('description: Enter explore mode for thinking');
       expect(output).toContain('invokable: true');
       expect(output).toContain('---\n\n');
@@ -249,7 +249,7 @@ describe('command-generation/adapters', () => {
 
     it('should generate correct file path', () => {
       const filePath = costrictAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.cospec', 'opsx', 'commands', 'opsx-explore.md'));
+      expect(filePath).toBe(path.join('.cospec', 'xirang', 'commands', 'xirang-explore.md'));
     });
 
     it('should format file with description and argument-hint', () => {
@@ -267,15 +267,15 @@ describe('command-generation/adapters', () => {
       expect(crushAdapter.toolId).toBe('crush');
     });
 
-    it('should generate correct file path with nested opsx folder', () => {
+    it('should generate correct file path with nested xirang folder', () => {
       const filePath = crushAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.crush', 'commands', 'opsx', 'explore.md'));
+      expect(filePath).toBe(path.join('.crush', 'commands', 'xirang', 'explore.md'));
     });
 
     it('should format file with name, description, category, and tags', () => {
       const output = crushAdapter.formatFile(sampleContent);
       expect(output).toContain('---\n');
-      expect(output).toContain('name: OPSX Explore');
+      expect(output).toContain('name: Xirang Explore');
       expect(output).toContain('description: Enter explore mode for thinking');
       expect(output).toContain('category: Workflow');
       expect(output).toContain('tags: [workflow, explore, experimental]');
@@ -291,7 +291,7 @@ describe('command-generation/adapters', () => {
 
     it('should generate correct file path', () => {
       const filePath = factoryAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.factory', 'commands', 'opsx-explore.md'));
+      expect(filePath).toBe(path.join('.factory', 'commands', 'xirang-explore.md'));
     });
 
     it('should format file with description and argument-hint', () => {
@@ -311,7 +311,7 @@ describe('command-generation/adapters', () => {
 
     it('should generate correct file path with .toml extension', () => {
       const filePath = geminiAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.gemini', 'commands', 'opsx', 'explore.toml'));
+      expect(filePath).toBe(path.join('.gemini', 'commands', 'xirang', 'explore.toml'));
     });
 
     it('should format file in TOML format', () => {
@@ -330,7 +330,7 @@ describe('command-generation/adapters', () => {
 
     it('should generate correct file path with .prompt.md extension', () => {
       const filePath = githubCopilotAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.github', 'prompts', 'opsx-explore.prompt.md'));
+      expect(filePath).toBe(path.join('.github', 'prompts', 'xirang-explore.prompt.md'));
     });
 
     it('should format file with description frontmatter', () => {
@@ -349,14 +349,14 @@ describe('command-generation/adapters', () => {
 
     it('should generate correct file path', () => {
       const filePath = iflowAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.iflow', 'commands', 'opsx-explore.md'));
+      expect(filePath).toBe(path.join('.iflow', 'commands', 'xirang-explore.md'));
     });
 
     it('should format file with name, id, category, and description', () => {
       const output = iflowAdapter.formatFile(sampleContent);
       expect(output).toContain('---\n');
-      expect(output).toContain('name: /opsx-explore');
-      expect(output).toContain('id: opsx-explore');
+      expect(output).toContain('name: /xirang-explore');
+      expect(output).toContain('id: xirang-explore');
       expect(output).toContain('category: Workflow');
       expect(output).toContain('description: Enter explore mode for thinking');
       expect(output).toContain('---\n\n');
@@ -371,7 +371,7 @@ describe('command-generation/adapters', () => {
 
     it('should generate correct file path', () => {
       const filePath = kilocodeAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.kilocode', 'workflows', 'opsx-explore.md'));
+      expect(filePath).toBe(path.join('.kilocode', 'workflows', 'xirang-explore.md'));
     });
 
     it('should format file without frontmatter', () => {
@@ -388,7 +388,7 @@ describe('command-generation/adapters', () => {
 
     it('should generate correct file path', () => {
       const filePath = opencodeAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.opencode', 'commands', 'opsx-explore.md'));
+      expect(filePath).toBe(path.join('.opencode', 'commands', 'xirang-explore.md'));
     });
 
     it('should format file with description frontmatter', () => {
@@ -402,28 +402,28 @@ describe('command-generation/adapters', () => {
     it('should pass through command body unchanged (transform is in writeCommands pipeline)', () => {
       const contentWithCommands: CommandContent = {
         ...sampleContent,
-        body: 'Use /opsx:new to start, then /opsx:apply to implement.',
+        body: 'Use /xirang:new to start, then /xirang:apply to implement.',
       };
       const output = opencodeAdapter.formatFile(contentWithCommands);
       // Adapter no longer transforms — transformation handled by runTransforms in writeCommands
-      expect(output).toContain('/opsx:new');
-      expect(output).toContain('/opsx:apply');
+      expect(output).toContain('/xirang:new');
+      expect(output).toContain('/xirang:apply');
     });
 
     it('should pass through multiple command references unchanged (transform is in writeCommands pipeline)', () => {
       const contentWithMultipleCommands: CommandContent = {
         ...sampleContent,
-        body: `/opsx:explore for ideas
-/opsx:new to create
-/opsx:continue to proceed
-/opsx:apply to implement`,
+        body: `/xirang:explore for ideas
+/xirang:new to create
+/xirang:continue to proceed
+/xirang:apply to implement`,
       };
       const output = opencodeAdapter.formatFile(contentWithMultipleCommands);
       // Adapter no longer transforms — transformation handled by runTransforms in writeCommands
-      expect(output).toContain('/opsx:explore');
-      expect(output).toContain('/opsx:new');
-      expect(output).toContain('/opsx:continue');
-      expect(output).toContain('/opsx:apply');
+      expect(output).toContain('/xirang:explore');
+      expect(output).toContain('/xirang:new');
+      expect(output).toContain('/xirang:continue');
+      expect(output).toContain('/xirang:apply');
     });
   });
 
@@ -432,15 +432,15 @@ describe('command-generation/adapters', () => {
       expect(qoderAdapter.toolId).toBe('qoder');
     });
 
-    it('should generate correct file path with nested opsx folder', () => {
+    it('should generate correct file path with nested xirang folder', () => {
       const filePath = qoderAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.qoder', 'commands', 'opsx', 'explore.md'));
+      expect(filePath).toBe(path.join('.qoder', 'commands', 'xirang', 'explore.md'));
     });
 
     it('should format file with name, description, category, and tags', () => {
       const output = qoderAdapter.formatFile(sampleContent);
       expect(output).toContain('---\n');
-      expect(output).toContain('name: OPSX Explore');
+      expect(output).toContain('name: Xirang Explore');
       expect(output).toContain('description: Enter explore mode for thinking');
       expect(output).toContain('category: Workflow');
       expect(output).toContain('tags: [workflow, explore, experimental]');
@@ -456,7 +456,7 @@ describe('command-generation/adapters', () => {
 
     it('should generate correct file path with .toml extension', () => {
       const filePath = qwenAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.qwen', 'commands', 'opsx-explore.toml'));
+      expect(filePath).toBe(path.join('.qwen', 'commands', 'xirang-explore.toml'));
     });
 
     it('should format file in TOML format', () => {
@@ -475,12 +475,12 @@ describe('command-generation/adapters', () => {
 
     it('should generate correct file path', () => {
       const filePath = piAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.pi', 'prompts', 'opsx-explore.md'));
+      expect(filePath).toBe(path.join('.pi', 'prompts', 'xirang-explore.md'));
     });
 
     it('should generate correct file paths for different commands', () => {
-      expect(piAdapter.getFilePath('new')).toBe(path.join('.pi', 'prompts', 'opsx-new.md'));
-      expect(piAdapter.getFilePath('bulk-archive')).toBe(path.join('.pi', 'prompts', 'opsx-bulk-archive.md'));
+      expect(piAdapter.getFilePath('new')).toBe(path.join('.pi', 'prompts', 'xirang-new.md'));
+      expect(piAdapter.getFilePath('bulk-archive')).toBe(path.join('.pi', 'prompts', 'xirang-bulk-archive.md'));
     });
 
     it('should format file with description frontmatter', () => {
@@ -494,19 +494,19 @@ describe('command-generation/adapters', () => {
     it('should pass through command body unchanged (transform is in writeCommands pipeline)', () => {
       const contentWithRefs: CommandContent = {
         ...sampleContent,
-        body: 'Run /opsx:apply to implement. Then /opsx:archive when done.',
+        body: 'Run /xirang:apply to implement. Then /xirang:archive when done.',
       };
 
       const output = piAdapter.formatFile(contentWithRefs);
       // Adapter no longer transforms — transformation handled by runTransforms in writeCommands
-      expect(output).toContain('/opsx:apply');
-      expect(output).toContain('/opsx:archive');
+      expect(output).toContain('/xirang:apply');
+      expect(output).toContain('/xirang:archive');
     });
 
     it('should inject template arguments into the input section', () => {
       const contentWithInput: CommandContent = {
         ...sampleContent,
-        body: '**Input**: The argument after `/opsx:explore` is the topic.\n\n**Steps**\n1. Think.',
+        body: '**Input**: The argument after `/xirang:explore` is the topic.\n\n**Steps**\n1. Think.',
       };
 
       const output = piAdapter.formatFile(contentWithInput);
@@ -539,12 +539,12 @@ describe('command-generation/adapters', () => {
 
     it('should generate correct file path', () => {
       const filePath = roocodeAdapter.getFilePath('explore');
-      expect(filePath).toBe(path.join('.roo', 'commands', 'opsx-explore.md'));
+      expect(filePath).toBe(path.join('.roo', 'commands', 'xirang-explore.md'));
     });
 
     it('should format file with markdown header (no YAML frontmatter)', () => {
       const output = roocodeAdapter.formatFile(sampleContent);
-      expect(output).toContain('# OPSX Explore');
+      expect(output).toContain('# Xirang Explore');
       expect(output).toContain('Enter explore mode for thinking');
       expect(output).toContain('This is the command body.');
       expect(output).not.toContain('---');
@@ -556,17 +556,17 @@ describe('command-generation/adapters', () => {
       // path.join handles platform-specific separators
       const filePath = claudeAdapter.getFilePath('test');
       // On any platform, path.join returns the correct separator
-      expect(filePath.split(path.sep)).toEqual(['.claude', 'commands', 'opsx', 'test.md']);
+      expect(filePath.split(path.sep)).toEqual(['.claude', 'commands', 'xirang', 'test.md']);
     });
 
     it('Cursor adapter uses path.join for paths', () => {
       const filePath = cursorAdapter.getFilePath('test');
-      expect(filePath.split(path.sep)).toEqual(['.cursor', 'commands', 'opsx-test.md']);
+      expect(filePath.split(path.sep)).toEqual(['.cursor', 'commands', 'xirang-test.md']);
     });
 
     it('Windsurf adapter uses path.join for paths', () => {
       const filePath = windsurfAdapter.getFilePath('test');
-      expect(filePath.split(path.sep)).toEqual(['.windsurf', 'workflows', 'opsx-test.md']);
+      expect(filePath.split(path.sep)).toEqual(['.windsurf', 'workflows', 'xirang-test.md']);
     });
 
     it('All adapters use path.join for paths', () => {

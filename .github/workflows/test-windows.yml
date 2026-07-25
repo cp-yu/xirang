@@ -42,7 +42,7 @@ jobs:
       - name: Run Windows vendored browser-server tests
         run: >-
           pnpm --dir likec4 exec vitest run --no-isolate
-          packages/vite-plugin/src/opsx/opsx-spec-handler.spec.ts
-          packages/likec4-spa/src/opsx/HttpSpecLoader.spec.ts
+          packages/vite-plugin/src/xirang/opsx-spec-handler.spec.ts
+          packages/likec4-spa/src/xirang/HttpSpecLoader.spec.ts
           packages/language-server/src/lsp/CompletionProvider.spec.ts
           packages/language-server/src/model/__tests__/model-parser.spec.ts

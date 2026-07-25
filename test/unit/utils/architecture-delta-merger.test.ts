@@ -19,7 +19,7 @@ describe('architecture delta merger', () => {
   let delta: string;
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-delta-merger-'));
-    const architecture = path.join(root, '.opsx', 'architecture');
+    const architecture = path.join(root, '.xirang', 'architecture');
     await fs.mkdir(path.join(architecture, 'domains'), { recursive: true });
     await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), formal);
     await fs.writeFile(path.join(architecture, 'relations.c4'), 'model {\n}\n');
@@ -30,14 +30,14 @@ describe('architecture delta merger', () => {
   it('should merge new capability to domain file', async () => {
     await fs.writeFile(delta, `model { extend core { added = capability 'Added' { metadata { capabilityId 'cap.core.added' } } } }`);
     await mergeArchitectureDelta(root, delta, { runLikeC4: async () => undefined });
-    expect(await fs.readFile(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'), 'utf8')).toContain("added = capability 'Added'");
+    expect(await fs.readFile(path.join(root, '.xirang', 'architecture', 'domains', 'core.c4'), 'utf8')).toContain("added = capability 'Added'");
   });
 
   it('should merge new relations into the standalone relation file', async () => {
     await fs.writeFile(delta, `model { core.existing -[invokes]-> core.existing }`);
     await mergeArchitectureDelta(root, delta, { runLikeC4: async () => undefined });
-    expect(await fs.readFile(path.join(root, '.opsx', 'architecture', 'relations.c4'), 'utf8')).toContain('core.existing -[invokes]-> core.existing');
-    expect(await fs.readFile(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'), 'utf8')).not.toContain('core.existing -[invokes]-> core.existing');
+    expect(await fs.readFile(path.join(root, '.xirang', 'architecture', 'relations.c4'), 'utf8')).toContain('core.existing -[invokes]-> core.existing');
+    expect(await fs.readFile(path.join(root, '.xirang', 'architecture', 'domains', 'core.c4'), 'utf8')).not.toContain('core.existing -[invokes]-> core.existing');
   });
 
   it('should preserve multiline relation blocks', async () => {
@@ -48,7 +48,7 @@ describe('architecture delta merger', () => {
 }
 `);
     await mergeArchitectureDelta(root, delta, { runLikeC4: async () => undefined });
-    const content = await fs.readFile(path.join(root, '.opsx', 'architecture', 'relations.c4'), 'utf8');
+    const content = await fs.readFile(path.join(root, '.xirang', 'architecture', 'relations.c4'), 'utf8');
     expect(content).toContain(`core.existing -[invokes]-> core.existing {
     description 'Calls the existing capability'
   }`);
@@ -57,13 +57,13 @@ describe('architecture delta merger', () => {
   it('should add a new domain file', async () => {
     await fs.writeFile(delta, `model { added = domain 'Added' { run = capability 'Run' { metadata { capabilityId 'cap.added.run' } } } }`);
     await mergeArchitectureDelta(root, delta, { runLikeC4: async () => undefined });
-    expect(await fs.readFile(path.join(root, '.opsx', 'architecture', 'domains', 'added.c4'), 'utf8')).toContain("added = domain 'Added'");
+    expect(await fs.readFile(path.join(root, '.xirang', 'architecture', 'domains', 'added.c4'), 'utf8')).toContain("added = domain 'Added'");
   });
 
   it('should update specs paths to formal', async () => {
-    await fs.writeFile(delta, `model { extend core { added = capability 'Added' { metadata { capabilityId 'cap.core.added' specs ['.opsx/changes/add/specs/added/spec.md'] } } } }`);
+    await fs.writeFile(delta, `model { extend core { added = capability 'Added' { metadata { capabilityId 'cap.core.added' specs ['.xirang/changes/add/specs/added/spec.md'] } } } }`);
     await mergeArchitectureDelta(root, delta, { changeName: 'add', runLikeC4: async () => undefined });
-    expect(await fs.readFile(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'), 'utf8')).toContain("specs ['.opsx/specs/added/spec.md']");
+    expect(await fs.readFile(path.join(root, '.xirang', 'architecture', 'domains', 'core.c4'), 'utf8')).toContain("specs ['.xirang/specs/added/spec.md']");
   });
 
   it('should lower nested element extensions into the formal capability', async () => {
@@ -72,24 +72,24 @@ describe('architecture delta merger', () => {
     metadata {
       intent 'Runs existing work'
       status 'deprecated'
-      specs ['.opsx/changes/add/specs/existing/spec.md', '.opsx/changes/add/specs/existing/spec.md']
+      specs ['.xirang/changes/add/specs/existing/spec.md', '.xirang/changes/add/specs/existing/spec.md']
     }
   }
 }`);
 
     await mergeArchitectureDelta(root, delta, { changeName: 'add', runLikeC4: async () => undefined });
 
-    const content = await fs.readFile(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'), 'utf8');
+    const content = await fs.readFile(path.join(root, '.xirang', 'architecture', 'domains', 'core.c4'), 'utf8');
     expect(content).toContain("description 'Runs existing work'");
     expect(content).toContain("capabilityId 'cap.core.existing'");
     expect(content).toContain("status 'deprecated'");
-    expect(content.match(/\.opsx\/specs\/existing\/spec\.md/g)).toHaveLength(1);
+    expect(content.match(/\.xirang\/specs\/existing\/spec\.md/g)).toHaveLength(1);
     expect(content).not.toContain("intent 'Runs existing work'");
     expect(content.match(/existing\s*=\s*capability/g)).toHaveLength(1);
   });
 
   it('should exclude LikeC4 cache from staged merge validation', async () => {
-    const cache = path.join(root, '.opsx', 'architecture', '.likec4');
+    const cache = path.join(root, '.xirang', 'architecture', '.likec4');
     await fs.mkdir(cache, { recursive: true });
     await fs.writeFile(path.join(cache, 'index.likec4.snap'), 'stale');
     await fs.writeFile(delta, `model { extend core { added = capability 'Added' } }`);
@@ -104,12 +104,12 @@ describe('architecture delta merger', () => {
   it('should sort relations deterministically', async () => {
     await fs.writeFile(delta, `model { core.existing -[validates]-> core.existing\ncore.existing -[invokes]-> core.existing }`);
     await mergeArchitectureDelta(root, delta, { runLikeC4: async () => undefined });
-    const content = await fs.readFile(path.join(root, '.opsx', 'architecture', 'relations.c4'), 'utf8');
+    const content = await fs.readFile(path.join(root, '.xirang', 'architecture', 'relations.c4'), 'utf8');
     expect(content.indexOf('-[invokes]->')).toBeLessThan(content.indexOf('-[validates]->'));
   });
 
   it('should not write unchanged domain files', async () => {
-    const domains = path.join(root, '.opsx', 'architecture', 'domains');
+    const domains = path.join(root, '.xirang', 'architecture', 'domains');
     const untouched = path.join(domains, 'untouched.c4');
     await fs.writeFile(untouched, `model { untouched = domain 'Untouched' }\n`);
     await fs.writeFile(delta, `model { extend core { added = capability 'Added' } }`);
@@ -137,8 +137,8 @@ describe('architecture delta merger', () => {
         await fs.writeFile(file, content);
       },
     })).rejects.toThrow('injected write failure');
-    expect(await fs.readFile(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'), 'utf8')).toBe(formal);
-    expect(await fs.readFile(path.join(root, '.opsx', 'architecture', 'relations.c4'), 'utf8')).toBe('model {\n}\n');
+    expect(await fs.readFile(path.join(root, '.xirang', 'architecture', 'domains', 'core.c4'), 'utf8')).toBe(formal);
+    expect(await fs.readFile(path.join(root, '.xirang', 'architecture', 'relations.c4'), 'utf8')).toBe('model {\n}\n');
   });
 
   it('should remove a new domain when a later changed-file write fails', async () => {
@@ -157,25 +157,25 @@ describe('architecture delta merger', () => {
       },
     })).rejects.toThrow('injected write failure');
 
-    await expect(fs.access(path.join(root, '.opsx', 'architecture', 'domains', 'added.c4'))).rejects.toThrow();
-    expect(await fs.readFile(path.join(root, '.opsx', 'architecture', 'relations.c4'), 'utf8')).toBe('model {\n}\n');
+    await expect(fs.access(path.join(root, '.xirang', 'architecture', 'domains', 'added.c4'))).rejects.toThrow();
+    expect(await fs.readFile(path.join(root, '.xirang', 'architecture', 'relations.c4'), 'utf8')).toBe('model {\n}\n');
   });
 
   it('should rollback on pre-write failure', async () => {
     await fs.writeFile(delta, `model { extend missing { added = capability 'Added' } }`);
     await expect(mergeArchitectureDelta(root, delta, { runLikeC4: async () => undefined })).rejects.toThrow('Cannot extend nonexistent domain: missing');
-    expect(await fs.readFile(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'), 'utf8')).toBe(formal);
+    expect(await fs.readFile(path.join(root, '.xirang', 'architecture', 'domains', 'core.c4'), 'utf8')).toBe(formal);
   });
 
   it('should preserve a v1 generic delta as a native LikeC4 module', async () => {
-    const architecture = path.join(root, '.opsx', 'architecture');
+    const architecture = path.join(root, '.xirang', 'architecture');
     await fs.rm(architecture, { recursive: true });
     await fs.mkdir(architecture, { recursive: true });
-    await fs.writeFile(path.join(architecture, 'model.c4'), `opsx { languageVersion '1' }
+    await fs.writeFile(path.join(architecture, 'model.c4'), `xirang { languageVersion '1' }
 specification {
-  element project { opsx { root true contract optional } }
-  element area { opsx { contract optional } }
-  element operation { opsx { contract optional } }
+  element project { xirang { root true contract optional } }
+  element area { xirang { contract optional } }
+  element operation { xirang { contract optional } }
 }
 model {
   projectRoot = project 'Root' 'Project intent' {
@@ -193,8 +193,8 @@ model {
 }
 `);
     await fs.writeFile(delta, `specification {
-  element artifact { opsx { contract optional parents [operation] } }
-  relationship produces { opsx { sourceKinds [operation] targetKinds [artifact] } }
+  element artifact { xirang { contract optional parents [operation] } }
+  relationship produces { xirang { sourceKinds [operation] targetKinds [artifact] } }
 }
 model {
   extend projectRoot.payments.authorize {

@@ -10,7 +10,7 @@ grammar LikeC4
 entry LikeC4Grammar:
   (
     imports+=ImportsFromPoject |
-    opsx+=OpsxLanguageBlock |
+    xirang+=XirangLanguageBlock |
     specifications+=SpecificationRule |
     models+=Model  |
     views+=ModelViews |
@@ -32,30 +32,30 @@ LibIcon: name=IconId;
 
 // Specification -------------------------------------
 
-OpsxLanguageBlock:
-  'opsx' '{'
+XirangLanguageBlock:
+  'xirang' '{'
     'languageVersion' version=String ';'?
   '}';
 
-OpsxElementAnnotation:
-  'opsx' '{'
-    props+=OpsxElementAnnotationProperty*
+XirangElementAnnotation:
+  'xirang' '{'
+    props+=XirangElementAnnotationProperty*
   '}';
 
-OpsxElementAnnotationProperty:
-  {infer OpsxRootProperty} key='root' value=BOOLEAN ';'? |
-  {infer OpsxContractProperty} key='contract' value=('required' | 'optional') ';'? |
-  {infer OpsxElementKindsProperty} key=('parents' | 'children') value=OpsxKindArray ';'?;
+XirangElementAnnotationProperty:
+  {infer XirangRootProperty} key='root' value=BOOLEAN ';'? |
+  {infer XirangContractProperty} key='contract' value=('required' | 'optional') ';'? |
+  {infer XirangElementKindsProperty} key=('parents' | 'children') value=XirangKindArray ';'?;
 
-OpsxRelationshipAnnotation:
-  'opsx' '{'
-    props+=OpsxRelationshipAnnotationProperty*
+XirangRelationshipAnnotation:
+  'xirang' '{'
+    props+=XirangRelationshipAnnotationProperty*
   '}';
 
-OpsxRelationshipAnnotationProperty:
-  {infer OpsxRelationshipKindsProperty} key=('sourceKinds' | 'targetKinds') value=OpsxKindArray ';'?;
+XirangRelationshipAnnotationProperty:
+  {infer XirangRelationshipKindsProperty} key=('sourceKinds' | 'targetKinds') value=XirangKindArray ';'?;
 
-OpsxKindArray:
+XirangKindArray:
   '[' values+=Id (',' values+=Id)* ']';
 
 ElementKind: name=Id;
@@ -77,7 +77,7 @@ SpecificationRule:
 
 SpecificationElementKind:
   'element' kind=ElementKind ('{'
-    opsx=OpsxElementAnnotation?
+    xirang=XirangElementAnnotation?
     tags=Tags?
     props+=(
       SpecificationElementStringProperty |
@@ -109,7 +109,7 @@ SpecificationColor:
 
 SpecificationRelationshipKind:
   'relationship' kind=RelationshipKind ('{'
-    opsx=OpsxRelationshipAnnotation?
+    xirang=XirangRelationshipAnnotation?
     tags=Tags?
     props+=(
       LinkProperty |

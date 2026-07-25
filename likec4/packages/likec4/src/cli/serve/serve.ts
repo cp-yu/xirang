@@ -70,11 +70,11 @@ type HandlerParams = {
   allowedHosts?: string[] | undefined
 
   /** Absolute OPSX project root for the local Spec content API. */
-  opsxProjectRoot?: string | undefined
+  xirangProjectRoot?: string | undefined
   /** Root-owned immutable element-to-Spec registry snapshot. */
-  opsxSpecRegistry?: string | undefined
+  xirangSpecRegistry?: string | undefined
   /** Runtime Formal/active-change selector and semantic diff snapshot. */
-  opsxChangeManifest?: string | undefined
+  xirangChangeManifest?: string | undefined
 }
 
 /** Starts the LikeC4 dev server (Vite) for the given workspace path. */
@@ -92,9 +92,9 @@ export async function handler({
   hmrPort,
   userPublicDir,
   allowedHosts,
-  opsxProjectRoot,
-  opsxSpecRegistry,
-  opsxChangeManifest,
+  xirangProjectRoot,
+  xirangSpecRegistry,
+  xirangChangeManifest,
 }: HandlerParams) {
   // Explicitly set NODE_ENV to development
   if (enableHMR) {
@@ -122,9 +122,9 @@ export async function handler({
     hmrPort,
     userPublicDir,
     allowedHosts,
-    opsxProjectRoot,
-    opsxSpecRegistry,
-    opsxChangeManifest,
+    xirangProjectRoot,
+    xirangSpecRegistry,
+    xirangChangeManifest,
   })
 
   server.config.logger.clearScreen('info')

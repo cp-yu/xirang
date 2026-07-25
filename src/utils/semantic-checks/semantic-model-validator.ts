@@ -42,11 +42,11 @@ export function validateSemanticModel(architecture: LikeC4Architecture): Archite
     }
   }
   if (roots.length === 0) {
-    issues.push({ code: 'MISSING_PROJECT_ROOT', message: 'OPSX Semantic Model has no Project Root' });
+    issues.push({ code: 'MISSING_PROJECT_ROOT', message: 'Xirang Semantic Model has no Project Root' });
   } else if (roots.length > 1) {
     issues.push({
       code: 'MULTIPLE_PROJECT_ROOTS',
-      message: `OPSX Semantic Model has multiple Project Roots: ${roots.map(root => root.id).join(', ')}`,
+      message: `Xirang Semantic Model has multiple Project Roots: ${roots.map(root => root.id).join(', ')}`,
     });
   }
 

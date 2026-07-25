@@ -75,7 +75,7 @@ describe('CompletionCommand', () => {
 
       expect(consoleLogSpy).toHaveBeenCalled();
       const output = consoleLogSpy.mock.calls[0][0];
-      expect(output).toContain('#compdef opsx');
+      expect(output).toContain('#compdef xirang');
       expect(output).toContain('_opsx() {');
     });
 
@@ -86,7 +86,7 @@ describe('CompletionCommand', () => {
 
       expect(consoleLogSpy).toHaveBeenCalled();
       const output = consoleLogSpy.mock.calls[0][0];
-      expect(output).toContain('#compdef opsx');
+      expect(output).toContain('#compdef xirang');
     });
 
     it('should show error when shell cannot be auto-detected', async () => {
@@ -114,7 +114,7 @@ describe('CompletionCommand', () => {
 
       expect(consoleLogSpy).toHaveBeenCalled();
       const output = consoleLogSpy.mock.calls[0][0];
-      expect(output).toContain('#compdef opsx');
+      expect(output).toContain('#compdef xirang');
     });
   });
 
@@ -290,7 +290,7 @@ describe('CompletionCommand', () => {
 
       expect(consoleLogSpy).toHaveBeenCalled();
       const output = consoleLogSpy.mock.calls[0][0];
-      expect(output).toContain('#compdef opsx');
+      expect(output).toContain('#compdef xirang');
     });
   });
 });

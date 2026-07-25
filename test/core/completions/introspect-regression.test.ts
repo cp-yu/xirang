@@ -10,10 +10,10 @@ async function buildRealProgram(): Promise<Command> {
   // We can't directly import and run the full CLI setup due to side effects,
   // so we'll build a representative subset that covers all command patterns
   const program = new Command();
-  program.name('opsx').description('AI-native system for spec-driven development');
+  program.name('xirang').description('AI-native system for spec-driven development');
 
   // Top-level commands with various patterns
-  program.command('setup [path]').description('Set up OPSX in your project');
+  program.command('setup [path]').description('Set up Xirang in your project');
   const candidateCmd = program.command('candidate').description('Manage the active Project Build Candidate');
   candidateCmd.command('init').option('--from <kind>').option('--from-path <path>');
   candidateCmd.command('status').option('--json');
@@ -66,11 +66,11 @@ describe('introspect-regression', () => {
     const script = generator.generate(commands);
 
     // 验证基本结构
-    expect(script).toContain('#compdef opsx');
+    expect(script).toContain('#compdef xirang');
     expect(script).toContain('_opsx() {');
 
     // 验证顶层命令
-    expect(script).toContain("'setup:Set up OPSX");
+    expect(script).toContain("'setup:Set up Xirang");
     expect(script).toContain("'candidate:Manage the active Project Build Candidate");
     expect(script).not.toContain("'bootstrap:");
     expect(script).not.toContain("'migrate:");
@@ -126,7 +126,7 @@ describe('introspect-regression', () => {
     expect(script).toContain('--verbose');
 
     // 验证补全注册
-    expect(script).toContain('complete -F _opsx_completion opsx');
+    expect(script).toContain('complete -F _opsx_completion xirang');
   });
 
   it('验证 positionalType 合并后动态补全函数引用正确', async () => {

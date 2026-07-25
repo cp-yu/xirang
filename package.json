@@ -1,22 +1,22 @@
 {
-  "name": "opsx",
-  "version": "1.4.1-cpyu.5",
+  "name": "xirang",
+  "version": "0.0.1",
   "description": "Human-intent programming framework with integrated architecture and specification browsing",
   "keywords": [
-    "opsx",
+    "xirang",
     "specs",
     "architecture",
     "cli",
     "ai",
     "development"
   ],
-  "homepage": "https://github.com/cp-yu/opsx",
+  "homepage": "https://github.com/cp-yu/xirang",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cp-yu/opsx.git"
+    "url": "git+https://github.com/cp-yu/xirang.git"
   },
   "license": "MIT",
-  "author": "OPSX Contributors",
+  "author": "Xirang Contributors",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -28,7 +28,7 @@
     }
   },
   "bin": {
-    "opsx": "./bin/opsx.js"
+    "xirang": "./bin/xirang.js"
   },
   "files": [
     "dist",
@@ -43,13 +43,13 @@
   "scripts": {
     "lint": "eslint src/",
     "build": "node build.js",
-    "audit:identity": "node scripts/audit-opsx-identity.mjs",
+    "audit:identity": "node scripts/audit-xirang-identity.mjs",
     "likec4:install": "pnpm --dir likec4 install --frozen-lockfile",
     "likec4:build": "pnpm --dir likec4 build",
     "likec4:test": "pnpm --dir likec4 test",
     "likec4:typecheck": "pnpm --dir likec4 typecheck",
     "dev": "tsc --watch",
-    "dev:cli": "pnpm build && node bin/opsx.js",
+    "dev:cli": "pnpm build && node bin/xirang.js",
     "test": "vitest run",
     "test:e2e": "playwright test test/e2e/spec-browser.spec.ts",
     "test:e2e:install": "playwright install chromium",

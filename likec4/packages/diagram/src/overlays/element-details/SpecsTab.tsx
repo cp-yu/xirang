@@ -3,34 +3,34 @@ import { Badge, Box, Code, Group, NativeSelect, Stack, Text } from '@mantine/cor
 import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Markdown } from '../../base-primitives'
 import {
-  type OpsxDiffEntry,
-  type OpsxRuntimeVariant,
-  type OpsxSpecContent,
-  type OpsxSpecLoader,
-  useOpsxSpecLoader,
-  useOpsxVariants,
-} from '../../opsx/SpecLoaderContext'
+  type XirangDiffEntry,
+  type XirangRuntimeVariant,
+  type XirangSpecContent,
+  type XirangSpecLoader,
+  useXirangSpecLoader,
+  useXirangVariants,
+} from '../../xirang/SpecLoaderContext'
 
 export type SpecLoadState =
   | { status: 'idle' }
   | { status: 'loading'; project: string; element: string; path: string }
-  | { status: 'success'; project: string; element: string; content: OpsxSpecContent }
+  | { status: 'success'; project: string; element: string; content: XirangSpecContent }
   | { status: 'error'; project: string; element: string; path: string; message: string }
 
-export interface OpsxSpecIndexState {
+export interface XirangSpecIndexState {
   project: string
   element: string
   variant?: string
   paths: string[]
 }
 
-export class OpsxSpecIndexController {
+export class XirangSpecIndexController {
   private abortController: AbortController | undefined
   private requestId = 0
 
-  constructor(private readonly update: (state: OpsxSpecIndexState) => void) {}
+  constructor(private readonly update: (state: XirangSpecIndexState) => void) {}
 
-  load(loader: OpsxSpecLoader, project: string, element: string, variant = 'formal'): void {
+  load(loader: XirangSpecLoader, project: string, element: string, variant = 'formal'): void {
     this.abortController?.abort()
     const abortController = this.abortController = new AbortController()
     const requestId = ++this.requestId
@@ -56,13 +56,13 @@ export class OpsxSpecIndexController {
   }
 }
 
-export class OpsxSpecLoadController {
+export class XirangSpecLoadController {
   private abortController: AbortController | undefined
   private requestId = 0
 
   constructor(private readonly update: (state: SpecLoadState) => void) {}
 
-  load(loader: OpsxSpecLoader, project: string, element: string, specPath: string, variant = 'formal'): void {
+  load(loader: XirangSpecLoader, project: string, element: string, specPath: string, variant = 'formal'): void {
     this.abortController?.abort()
     const abortController = this.abortController = new AbortController()
     const requestId = ++this.requestId
@@ -134,7 +134,7 @@ export interface StructuredSpecDiff {
       text: TextDiffLine[]
     }>
   }>
-  diagnostics: OpsxRuntimeVariant['diagnostics']
+  diagnostics: XirangRuntimeVariant['diagnostics']
 }
 
 function body(value: unknown): string {
@@ -186,8 +186,8 @@ export function createTextDiff(before: string, after: string): TextDiffLine[] {
   return [...unchangedBefore, ...changed, ...unchangedAfter]
 }
 
-export function getStructuredSpecDiff(variant: OpsxRuntimeVariant, specPath: string): StructuredSpecDiff {
-  const specId = specPath.match(/^\.opsx\/specs\/([^/]+)\/spec\.md$/)?.[1]
+export function getStructuredSpecDiff(variant: XirangRuntimeVariant, specPath: string): StructuredSpecDiff {
+  const specId = specPath.match(/^\.xirang\/specs\/([^/]+)\/spec\.md$/)?.[1]
   const entries = variant.diff?.entries ?? []
   const requirements = specId
     ? entries.filter(entry => entry.scope === 'specs' && entry.kind === 'requirement' && entry.identity.startsWith(`${specId}#`))
@@ -209,14 +209,14 @@ export function getStructuredSpecDiff(variant: OpsxRuntimeVariant, specPath: str
   }
 }
 
-function OperationBadge({ operation }: { operation: OpsxDiffEntry['operation'] }) {
+function OperationBadge({ operation }: { operation: XirangDiffEntry['operation'] }) {
   const color = operation === 'ADDED' ? 'green' : operation === 'REMOVED' ? 'red' : 'yellow'
   return <Badge size="xs" color={color}>{operation}</Badge>
 }
 
 function TextDiff({ lines }: { lines: TextDiffLine[] }) {
   return (
-    <Code block data-opsx-text-diff>
+    <Code block data-xirang-text-diff>
       {lines.map((line, index) => (
         <Box
           key={index}
@@ -250,11 +250,11 @@ export function SpecsTab({
   specs: readonly string[]
   active: boolean
 }) {
-  const loader = useOpsxSpecLoader()
-  const runtime = useOpsxVariants()
+  const loader = useXirangSpecLoader()
+  const runtime = useXirangVariants()
   const [selected, setSelected] = useState(specs[0] ?? '')
   const [state, setState] = useState<SpecLoadState>({ status: 'idle' })
-  const controller = useMemo(() => new OpsxSpecLoadController(setState), [])
+  const controller = useMemo(() => new XirangSpecLoadController(setState), [])
   const selectedPath = specs.includes(selected) ? selected : specs[0] ?? ''
   const displayState = state.status === 'idle'
     || (state.project === project && state.element === element)
@@ -291,7 +291,7 @@ export function SpecsTab({
     : null
 
   return (
-    <Stack gap="sm" h="100%" data-opsx-specs data-opsx-variant={runtime.selected.id}>
+    <Stack gap="sm" h="100%" data-xirang-specs data-xirang-variant={runtime.selected.id}>
       {specs.length > 1 && (
         <NativeSelect
           aria-label="Select Spec"
@@ -311,7 +311,7 @@ export function SpecsTab({
         <SpecPath path={displayState.path} color="red">{displayState.message}</SpecPath>
       )}
       {structuredDiff && (structuredDiff.requirements.length > 0 || structuredDiff.diagnostics.length > 0) && (
-        <Stack gap="xs" data-opsx-structured-diff>
+        <Stack gap="xs" data-xirang-structured-diff>
           {structuredDiff.diagnostics.map((diagnostic, index) => (
             <Text key={index} size="xs" c={diagnostic.level === 'ERROR' ? 'red' : 'yellow'}>
               {diagnostic.path}: {diagnostic.message}
@@ -336,7 +336,7 @@ export function SpecsTab({
           <Text size="xs" c="dimmed" style={{ userSelect: 'all' }}>
             {displayState.content.path}
           </Text>
-          <Box data-opsx-spec-content style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+          <Box data-xirang-spec-content style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
             <Markdown value={RichText.from({ md: displayState.content.md })} />
           </Box>
         </>

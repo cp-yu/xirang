@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { OPSX_DIR_NAME } from './config.js';
+import { XIRANG_DIR_NAME } from './config.js';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -112,8 +112,8 @@ export async function assessChangeSyncState(
   projectRoot: string,
   changeName: string
 ): Promise<ChangeSyncState> {
-  const changeDir = path.join(projectRoot, OPSX_DIR_NAME, 'changes', changeName);
-  const mainSpecsDir = path.join(projectRoot, OPSX_DIR_NAME, 'specs');
+  const changeDir = path.join(projectRoot, XIRANG_DIR_NAME, 'changes', changeName);
+  const mainSpecsDir = path.join(projectRoot, XIRANG_DIR_NAME, 'specs');
   const candidateSpecUpdates = await findSpecUpdates(changeDir, mainSpecsDir);
   const specUpdates: SpecUpdate[] = [];
   for (const update of candidateSpecUpdates) {
@@ -200,7 +200,7 @@ export async function prepareChangeSync(
     && !await isArchitectureDeltaApplied(projectRoot, deltaPath, state.changeName)
     ? { deltaPath }
     : null;
-  const formalArchitecture = path.join(projectRoot, OPSX_DIR_NAME, 'architecture');
+  const formalArchitecture = path.join(projectRoot, XIRANG_DIR_NAME, 'architecture');
   const hasFormalArchitecture = await directoryExists(formalArchitecture);
   if (architecture && !hasFormalArchitecture) {
     throw new Error('Cannot construct Target Semantic Model: formal architecture does not exist');
@@ -213,16 +213,16 @@ export async function prepareChangeSync(
     throw new Error(compiled.diagnostics.map(item => `${item.code}: ${item.message}`).join('\n'));
   }
 
-  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-sync-target-'));
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-sync-target-'));
   try {
     await copyOptionalTree(
       formalArchitecture,
-      path.join(workspace, OPSX_DIR_NAME, 'architecture'),
+      path.join(workspace, XIRANG_DIR_NAME, 'architecture'),
       true,
     );
     await copyOptionalTree(
-      path.join(projectRoot, OPSX_DIR_NAME, 'specs'),
-      path.join(workspace, OPSX_DIR_NAME, 'specs'),
+      path.join(projectRoot, XIRANG_DIR_NAME, 'specs'),
+      path.join(workspace, XIRANG_DIR_NAME, 'specs'),
       false,
     );
 
@@ -274,7 +274,7 @@ async function pathExists(target: string): Promise<boolean> {
 }
 
 async function semanticSubtreeFingerprint(semanticRoot: string, name: 'architecture' | 'specs'): Promise<string> {
-  const prefix = `${OPSX_DIR_NAME}/${name}/`;
+  const prefix = `${XIRANG_DIR_NAME}/${name}/`;
   const tree = await readSemanticDirectoryTree(semanticRoot);
   return semanticTreeFingerprint(new Map([...tree].filter(([file]) => file.startsWith(prefix))));
 }
@@ -284,11 +284,11 @@ async function preserveConcurrentFormalDirectory(
   stagingRoot: string,
   name: 'architecture' | 'specs',
 ): Promise<void> {
-  const source = path.join(projectRoot, OPSX_DIR_NAME, name);
+  const source = path.join(projectRoot, XIRANG_DIR_NAME, name);
   if (!await pathExists(source)) return;
   const recoveryRoot = path.join(
     projectRoot,
-    OPSX_DIR_NAME,
+    XIRANG_DIR_NAME,
     'history',
     'recovery',
     path.basename(stagingRoot),
@@ -309,7 +309,7 @@ export async function recoverSemanticDirectoryTransaction(
   }
   if (journal.state === 'committed') return 'committed';
 
-  const formalRoot = path.join(projectRoot, OPSX_DIR_NAME);
+  const formalRoot = path.join(projectRoot, XIRANG_DIR_NAME);
   const backupRoot = path.join(stagingRoot, journal.backupDirectory);
   for (const name of ['architecture', 'specs'] as const) {
     const formal = path.join(formalRoot, name);
@@ -363,7 +363,7 @@ export async function applySemanticDirectoryTransaction(
     throw new Error('Prepared sync is stale: Formal Semantic Model changed after validation');
   }
 
-  const formalRoot = path.join(projectRoot, OPSX_DIR_NAME);
+  const formalRoot = path.join(projectRoot, XIRANG_DIR_NAME);
   const backupDirectory = `.backup-${randomUUID()}`;
   const backupRoot = path.join(stagingRoot, backupDirectory);
   const names = ['architecture', 'specs'] as const;
@@ -513,11 +513,11 @@ async function removeEmptyDeletedSpecModules(
   const modules = new Set<string>();
   for (const entry of manifest) {
     if (entry.scope !== 'spec' || entry.action !== 'delete') continue;
-    const match = entry.path.match(/^\.opsx\/specs\/([^/]+)\//);
+    const match = entry.path.match(/^\.xirang\/specs\/([^/]+)\//);
     if (match) modules.add(match[1]);
   }
   for (const moduleId of modules) {
-    await fs.rmdir(path.join(projectRoot, OPSX_DIR_NAME, 'specs', moduleId)).catch((error: NodeJS.ErrnoException) => {
+    await fs.rmdir(path.join(projectRoot, XIRANG_DIR_NAME, 'specs', moduleId)).catch((error: NodeJS.ErrnoException) => {
       if (error.code !== 'ENOENT' && error.code !== 'ENOTEMPTY' && error.code !== 'EEXIST') throw error;
     });
   }
@@ -605,7 +605,7 @@ async function isArchitectureDeltaApplied(
         return Object.hasOwn(collection, operation.identity) && sameJson(collection[operation.identity], operation.target);
       });
     }
-    const modulePath = path.join(projectRoot, OPSX_DIR_NAME, 'architecture', 'deltas', architectureDeltaModuleName(changeName));
+    const modulePath = path.join(projectRoot, XIRANG_DIR_NAME, 'architecture', 'deltas', architectureDeltaModuleName(changeName));
     return await readOptionalFile(modulePath) === content;
   }
 
@@ -729,7 +729,7 @@ function listValues(content: string, key: string): string[] | null {
 }
 
 function formalizeSpecPaths(content: string, changeName: string): string {
-  return content.replaceAll(`.opsx/changes/${changeName}/specs/`, '.opsx/specs/');
+  return content.replaceAll(`.xirang/changes/${changeName}/specs/`, '.xirang/specs/');
 }
 
 function blockAt(content: string, openBrace: number): { body: string; end: number } {
@@ -786,7 +786,7 @@ function assertArchitectureDeltaOperations(content: string): void {
   for (const match of content.matchAll(/\bopsx\s*\{/g)) {
     const body = blockAt(content, match.index + match[0].lastIndexOf('{')).body;
     if (stripLikeC4Comments(body).trim() === '') {
-      throw new Error('Empty OPSX annotation has no actual architecture operation');
+      throw new Error('Empty Xirang annotation has no actual architecture operation');
     }
   }
 
@@ -842,7 +842,7 @@ async function validateTargetSemanticModel(
   targetRoot: string,
   validator: Validator,
 ): Promise<'legacy' | 'v1'> {
-  const architectureDir = path.join(targetRoot, OPSX_DIR_NAME, 'architecture');
+  const architectureDir = path.join(targetRoot, XIRANG_DIR_NAME, 'architecture');
   await runLikeC4(['validate', architectureDir]);
   const architecture = await readLikeC4Architecture(targetRoot);
   const architectureResult = await validateArchitecture(targetRoot, architecture);
@@ -852,7 +852,7 @@ async function validateTargetSemanticModel(
   }
   if (architecture.profile !== 'v1') return architecture.profile;
 
-  const specsDir = path.join(targetRoot, OPSX_DIR_NAME, 'specs');
+  const specsDir = path.join(targetRoot, XIRANG_DIR_NAME, 'specs');
   const entries = await fs.readdir(specsDir, { withFileTypes: true });
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
@@ -911,7 +911,7 @@ export async function readSemanticDirectoryTree(semanticRoot: string): Promise<M
       const file = path.join(directory, entry.name);
       const child = `${relative}/${entry.name}`;
       if (entry.isDirectory()) await visit(file, child);
-      else files.set(`${OPSX_DIR_NAME}/${child}`, await fs.readFile(file));
+      else files.set(`${XIRANG_DIR_NAME}/${child}`, await fs.readFile(file));
     }
   };
   await visit(path.join(semanticRoot, 'architecture'), 'architecture');
@@ -920,7 +920,7 @@ export async function readSemanticDirectoryTree(semanticRoot: string): Promise<M
 }
 
 export async function readSemanticTree(projectRoot: string): Promise<Map<string, Buffer>> {
-  return readSemanticDirectoryTree(path.join(projectRoot, OPSX_DIR_NAME));
+  return readSemanticDirectoryTree(path.join(projectRoot, XIRANG_DIR_NAME));
 }
 
 export function semanticTreeFingerprint(files: Map<string, Buffer>): string {
@@ -946,7 +946,7 @@ export function buildManifest(
     if (preimage === null && postimage === null) return [];
     return [{
       path: relativePath,
-      scope: relativePath.startsWith(`${OPSX_DIR_NAME}/architecture/`) ? 'architecture' as const : 'spec' as const,
+      scope: relativePath.startsWith(`${XIRANG_DIR_NAME}/architecture/`) ? 'architecture' as const : 'spec' as const,
       action: postimage === null ? 'delete' as const : 'write' as const,
       preimage,
       postimage,
@@ -1032,8 +1032,8 @@ function resolveManifestPath(projectRoot: string, relativePath: string): string 
   if (path.posix.isAbsolute(relativePath) || path.posix.normalize(relativePath) !== relativePath) {
     throw new Error(`Invalid prepared sync path: ${relativePath}`);
   }
-  const allowed = relativePath.startsWith(`${OPSX_DIR_NAME}/architecture/`)
-    || relativePath.startsWith(`${OPSX_DIR_NAME}/specs/`);
+  const allowed = relativePath.startsWith(`${XIRANG_DIR_NAME}/architecture/`)
+    || relativePath.startsWith(`${XIRANG_DIR_NAME}/specs/`);
   if (!allowed) throw new Error(`Prepared sync path is outside Semantic Model: ${relativePath}`);
   return path.resolve(projectRoot, ...relativePath.split('/'));
 }

@@ -83,9 +83,9 @@ describe('architecture validator', () => {
 
   it('should check spec file existence', async () => {
     const result = await validateArchitecture(root, architecture({
-      capabilities: [{ id: 'core.a', title: 'A', domain: 'core', capabilityId: 'cap.core.a', specs: ['.opsx/specs/missing/spec.md'] }],
+      capabilities: [{ id: 'core.a', title: 'A', domain: 'core', capabilityId: 'cap.core.a', specs: ['.xirang/specs/missing/spec.md'] }],
     }));
-    expect(result.warnings[0].message).toBe('Spec file not found: .opsx/specs/missing/spec.md');
+    expect(result.warnings[0].message).toBe('Spec file not found: .xirang/specs/missing/spec.md');
   });
 
   it('should return structured validation result', async () => {

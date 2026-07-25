@@ -93,10 +93,10 @@ describe('project-config', () => {
 
   describe('migrateProjectConfigDefaults', () => {
     it('should create config.yaml with functional defaults when config is missing', () => {
-      fs.mkdirSync(path.join(tempDir, '.opsx'), { recursive: true });
+      fs.mkdirSync(path.join(tempDir, '.xirang'), { recursive: true });
 
       const result = migrateProjectConfigDefaults(tempDir);
-      const configPath = path.join(tempDir, '.opsx', 'config.yaml');
+      const configPath = path.join(tempDir, '.xirang', 'config.yaml');
       const content = fs.readFileSync(configPath, 'utf-8');
       const parsed = parseYaml(content);
 
@@ -118,7 +118,7 @@ describe('project-config', () => {
     });
 
     it('should add nested missing defaults without overwriting existing values', () => {
-      const configDir = path.join(tempDir, '.opsx');
+      const configDir = path.join(tempDir, '.xirang');
       fs.mkdirSync(configDir, { recursive: true });
       const configPath = path.join(configDir, 'config.yaml');
       fs.writeFileSync(
@@ -154,7 +154,7 @@ context: keep me
     });
 
     it('should add defaults through missing nested parents', () => {
-      const configDir = path.join(tempDir, '.opsx');
+      const configDir = path.join(tempDir, '.xirang');
       fs.mkdirSync(configDir, { recursive: true });
       const configPath = path.join(configDir, 'config.yaml');
       fs.writeFileSync(
@@ -184,7 +184,7 @@ git:
     });
 
     it('should not overwrite non-map parents during nested default migration', () => {
-      const configDir = path.join(tempDir, '.opsx');
+      const configDir = path.join(tempDir, '.xirang');
       fs.mkdirSync(configDir, { recursive: true });
       const configPath = path.join(configDir, 'config.yaml');
       fs.writeFileSync(
@@ -210,7 +210,7 @@ git: disabled
     });
 
     it('should mutate config.yml when config.yaml is missing', () => {
-      const configDir = path.join(tempDir, '.opsx');
+      const configDir = path.join(tempDir, '.xirang');
       fs.mkdirSync(configDir, { recursive: true });
       const ymlPath = path.join(configDir, 'config.yml');
       fs.writeFileSync(ymlPath, 'schema: spec-driven\n');
@@ -226,7 +226,7 @@ git: disabled
     });
 
     it('should leave invalid yaml unchanged and report skipped migration', () => {
-      const configDir = path.join(tempDir, '.opsx');
+      const configDir = path.join(tempDir, '.xirang');
       fs.mkdirSync(configDir, { recursive: true });
       const configPath = path.join(configDir, 'config.yaml');
       const original = 'schema: [unclosed';
@@ -243,7 +243,7 @@ git: disabled
     });
 
     it('should leave non-object yaml unchanged and report skipped migration', () => {
-      const configDir = path.join(tempDir, '.opsx');
+      const configDir = path.join(tempDir, '.xirang');
       fs.mkdirSync(configDir, { recursive: true });
       const configPath = path.join(configDir, 'config.yaml');
       const original = '"just a string"\n';
@@ -260,7 +260,7 @@ git: disabled
     });
 
     it('should preserve runtime defaults after disk materialization round trip', () => {
-      fs.mkdirSync(path.join(tempDir, '.opsx'), { recursive: true });
+      fs.mkdirSync(path.join(tempDir, '.xirang'), { recursive: true });
 
       migrateProjectConfigDefaults(tempDir);
       const config = readProjectConfig(tempDir);
@@ -281,7 +281,7 @@ git: disabled
   describe('readProjectConfig', () => {
     describe('resilient parsing', () => {
       it('should parse complete valid config', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -315,7 +315,7 @@ rules:
       });
 
       it('should migrate legacy docLanguage when proseLanguage is absent', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -332,7 +332,7 @@ docLanguage: zh-CN
       });
 
       it('should prefer proseLanguage over legacy docLanguage', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -350,7 +350,7 @@ docLanguage: zh-CN
       });
 
       it('should parse minimal config with schema only', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(path.join(configDir, 'config.yaml'), 'schema: spec-driven\n');
 
@@ -364,7 +364,7 @@ docLanguage: zh-CN
       });
 
       it('should parse optimization policy when present', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -387,7 +387,7 @@ optimization:
       });
 
       it('should silently ignore retired propose policy without rewriting the file', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         const configPath = path.join(configDir, 'config.yaml');
         fs.mkdirSync(configDir, { recursive: true });
         const source = `schema: spec-driven
@@ -413,7 +413,7 @@ apply:
       });
 
       it('should parse complete git archive policy when present', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -448,7 +448,7 @@ git:
       });
 
       it('should fill default git archive policy when git node is missing', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(path.join(configDir, 'config.yaml'), 'schema: spec-driven\n');
 
@@ -462,7 +462,7 @@ git:
       });
 
       it('should preserve valid git fields while defaulting missing nested fields', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -480,7 +480,7 @@ git:
       });
 
       it('should warn per invalid git field and keep valid siblings', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -493,7 +493,7 @@ git:
     merge: docs\\merge.md
   archive:
     commitMessage:
-      convention: opsx-archive
+      convention: xirang-archive
   merge:
     strategy: rebase
     commitMessage:
@@ -533,7 +533,7 @@ git:
       });
 
       it('should warn and return null when schema is invalid', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -544,12 +544,12 @@ context: Valid context here
 
         expect(readProjectConfig(tempDir)).toBeNull();
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-          "Unsupported schema 'custom-schema' in .opsx/config.yaml. Available: spec-driven"
+          "Unsupported schema 'custom-schema' in .xirang/config.yaml. Available: spec-driven"
         );
       });
 
       it('should return partial config when context is invalid', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -576,7 +576,7 @@ rules:
       });
 
       it('should return partial config when proseLanguage is invalid', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -599,7 +599,7 @@ context: Valid context
       });
 
       it('should return partial config when rules is not an object', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -622,7 +622,7 @@ rules: ["not", "an", "object"]
       });
 
       it('should return partial config when optimization is invalid', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -646,7 +646,7 @@ context: Valid context
 
       it('should handle rules: null without aborting config parsing', () => {
         // YAML `rules:` with no value parses to null
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -670,7 +670,7 @@ rules:
       });
 
       it('should filter out invalid rules for specific artifact', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -700,7 +700,7 @@ rules:
       });
 
       it('should filter out empty string rules', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -729,7 +729,7 @@ rules:
       });
 
       it('should skip artifact if all rules are empty strings', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -755,7 +755,7 @@ rules:
       });
 
       it('should handle completely invalid YAML gracefully', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(path.join(configDir, 'config.yaml'), 'schema: [unclosed');
 
@@ -763,13 +763,13 @@ rules:
 
         expect(config).toBeNull();
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Failed to parse .opsx/config.yaml'),
+          expect.stringContaining('Failed to parse .xirang/config.yaml'),
           expect.anything()
         );
       });
 
       it('should warn when config is not a YAML object', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(path.join(configDir, 'config.yaml'), '"just a string"');
 
@@ -782,7 +782,7 @@ rules:
       });
 
       it('should handle empty config file', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(path.join(configDir, 'config.yaml'), '');
 
@@ -794,7 +794,7 @@ rules:
 
     describe('context size limit enforcement', () => {
       it('should accept context under 50KB limit', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         const smallContext = 'a'.repeat(1000); // 1KB
         fs.writeFileSync(
@@ -811,7 +811,7 @@ rules:
       });
 
       it('should reject context over 50KB limit', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         const largeContext = 'a'.repeat(51 * 1024); // 51KB
         fs.writeFileSync(
@@ -835,7 +835,7 @@ rules:
       });
 
       it('should handle context exactly at 50KB limit', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         const exactContext = 'a'.repeat(50 * 1024); // Exactly 50KB
         fs.writeFileSync(
@@ -852,7 +852,7 @@ rules:
       });
 
       it('should handle multi-byte UTF-8 characters in size calculation', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         // Unicode snowman is 3 bytes in UTF-8
         const contextWithUnicode = '☃'.repeat(18000); // ~54KB in UTF-8 (18000 * 3 bytes)
@@ -875,7 +875,7 @@ context: |
 
     describe('.yml/.yaml precedence', () => {
       it('should prefer .yaml when both exist', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -893,7 +893,7 @@ context: |
       });
 
       it('should reject the retired bootstrap schema in .yml', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yml'),
@@ -902,12 +902,12 @@ context: |
 
         expect(readProjectConfig(tempDir)).toBeNull();
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-          "Unsupported schema 'bootstrap' in .opsx/config.yaml. Available: spec-driven"
+          "Unsupported schema 'bootstrap' in .xirang/config.yaml. Available: spec-driven"
         );
       });
 
       it('should return null when neither .yaml nor .yml exist', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
 
         const config = readProjectConfig(tempDir);
@@ -916,7 +916,7 @@ context: |
         expect(consoleWarnSpy).not.toHaveBeenCalled();
       });
 
-      it('should return null when opsx directory does not exist', () => {
+      it('should return null when xirang directory does not exist', () => {
         const config = readProjectConfig(tempDir);
 
         expect(config).toBeNull();
@@ -926,7 +926,7 @@ context: |
 
     describe('multi-line and special characters', () => {
       it('should preserve multi-line context', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -946,7 +946,7 @@ context: |
       });
 
       it('should preserve special YAML characters in context', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
@@ -967,7 +967,7 @@ context: |
       });
 
       it('should preserve special characters in rule strings', () => {
-        const configDir = path.join(tempDir, '.opsx');
+        const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),

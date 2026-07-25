@@ -24,8 +24,8 @@ async function readFormalTree(root: string): Promise<Map<string, Buffer>> {
       else if (entry.isFile()) files.set(path.relative(root, target), await fs.readFile(target));
     }
   };
-  await visit(path.join(root, '.opsx', 'architecture'));
-  await visit(path.join(root, '.opsx', 'specs'));
+  await visit(path.join(root, '.xirang', 'architecture'));
+  await visit(path.join(root, '.xirang', 'specs'));
   return files;
 }
 
@@ -36,11 +36,11 @@ describe('Candidate promotion', () => {
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-candidate-promote-'));
     await new SetupCommand({ tools: 'none', force: true }).execute(root);
-    const projectSpec = path.join(root, '.opsx', 'specs', 'project-contract', 'spec.md');
+    const projectSpec = path.join(root, '.xirang', 'specs', 'project-contract', 'spec.md');
     await fs.mkdir(path.dirname(projectSpec), { recursive: true });
     await fs.writeFile(projectSpec, `---\nelement: project.root\n---\n\n# Project Contract Specification\n\n## Purpose\nDefines the project contract used by Candidate promotion tests.\n\n## Requirements\n\n### Requirement: Project contract\nThe project SHALL expose a valid semantic contract.\n\n#### Scenario: Validate project\n- **WHEN** Candidate validation runs\n- **THEN** the project contract is accepted\n`);
     await initializeCandidate(root, { kind: 'current' });
-    candidate = path.join(root, '.opsx', 'candidate');
+    candidate = path.join(root, '.xirang', 'candidate');
   });
 
   afterEach(async () => {
@@ -48,7 +48,7 @@ describe('Candidate promotion', () => {
   });
 
   it('backs up the complete preimage and replaces formal source exactly', async () => {
-    const stale = path.join(root, '.opsx', 'specs', 'stale', 'note.txt');
+    const stale = path.join(root, '.xirang', 'specs', 'stale', 'note.txt');
     await fs.mkdir(path.dirname(stale), { recursive: true });
     await fs.writeFile(stale, 'stale formal source\n');
     const validation = await validateCandidate(root);
@@ -85,7 +85,7 @@ describe('Candidate promotion', () => {
 
     expect(await readFormalTree(root)).toEqual(before);
     expect(await exists(candidate)).toBe(true);
-    expect(await exists(path.join(root, '.opsx', 'history', 'builds'))).toBe(false);
+    expect(await exists(path.join(root, '.xirang', 'history', 'builds'))).toBe(false);
   });
 
   it('rejects Candidate revalidation failures before formal writes', async () => {
@@ -107,7 +107,7 @@ describe('Candidate promotion', () => {
       transactionFilesystem: {
         rename: async (source, target) => {
           await fs.rename(source, target);
-          if (target === path.join(root, '.opsx', 'specs')
+          if (target === path.join(root, '.xirang', 'specs')
             && source.includes('.candidate-promotion-')
             && !source.includes('.backup-')) {
             const build = path.join(path.dirname(source), 'candidate', 'build.md');
@@ -121,7 +121,7 @@ describe('Candidate promotion', () => {
     expect(await readFormalTree(root)).toEqual(before);
     expect(await exists(candidate)).toBe(true);
     expect(await fs.readFile(path.join(candidate, 'build.md'), 'utf8')).toBe('concurrent change\n');
-    expect(await fs.readdir(path.join(root, '.opsx', 'history', 'builds')).catch(() => [])).toEqual([]);
+    expect(await fs.readdir(path.join(root, '.xirang', 'history', 'builds')).catch(() => [])).toEqual([]);
   });
 
   it('rejects and preserves files added after target installation', async () => {
@@ -132,7 +132,7 @@ describe('Candidate promotion', () => {
       transactionFilesystem: {
         rename: async (source, target) => {
           await fs.rename(source, target);
-          if (target === path.join(root, '.opsx', 'specs')
+          if (target === path.join(root, '.xirang', 'specs')
             && source.includes('.candidate-promotion-')
             && !source.includes('.backup-')) {
             await fs.writeFile(path.join(target, 'unreviewed.txt'), 'late formal edit\n');
@@ -143,7 +143,7 @@ describe('Candidate promotion', () => {
 
     expect(await readFormalTree(root)).toEqual(before);
     expect(await exists(candidate)).toBe(true);
-    const recoveryRoot = path.join(root, '.opsx', 'history', 'recovery');
+    const recoveryRoot = path.join(root, '.xirang', 'history', 'recovery');
     const recoveryEntry = (await fs.readdir(recoveryRoot))[0];
     expect(await fs.readFile(path.join(recoveryRoot, recoveryEntry, 'specs', 'unreviewed.txt'), 'utf8'))
       .toBe('late formal edit\n');
@@ -151,13 +151,13 @@ describe('Candidate promotion', () => {
 
   it('rejects concurrent formal edits and preserves them outside Candidate history', async () => {
     const validation = await validateCandidate(root);
-    const concurrent = path.join(root, '.opsx', 'specs', 'concurrent.txt');
+    const concurrent = path.join(root, '.xirang', 'specs', 'concurrent.txt');
     let injected = false;
 
     await expect(promoteCandidate(root, validation.reviewDigest!, {
       transactionFilesystem: {
         stat: async (target) => {
-          if (!injected && target === path.join(root, '.opsx', 'architecture')) {
+          if (!injected && target === path.join(root, '.xirang', 'architecture')) {
             injected = true;
             await fs.writeFile(concurrent, 'concurrent formal edit\n');
           }
@@ -168,18 +168,18 @@ describe('Candidate promotion', () => {
 
     expect(await fs.readFile(concurrent, 'utf8')).toBe('concurrent formal edit\n');
     expect(await exists(candidate)).toBe(true);
-    expect(await fs.readdir(path.join(root, '.opsx', 'history', 'builds')).catch(() => [])).toEqual([]);
+    expect(await fs.readdir(path.join(root, '.xirang', 'history', 'builds')).catch(() => [])).toEqual([]);
   });
 
   it('preserves recovered Candidate when an active Candidate already exists', async () => {
-    const staging = path.join(root, '.opsx', '.candidate-promotion-active-exists');
+    const staging = path.join(root, '.xirang', '.candidate-promotion-active-exists');
     const frozen = path.join(staging, 'candidate');
     await fs.mkdir(path.join(frozen, 'architecture'), { recursive: true });
     await fs.mkdir(path.join(frozen, 'specs'), { recursive: true });
     await fs.writeFile(path.join(frozen, 'build.md'), 'recovered candidate\n');
     await fs.writeFile(path.join(staging, 'candidate-promotion.json'), `${JSON.stringify({
       schemaVersion: 1,
-      historyPath: '.opsx/history/builds/active-exists',
+      historyPath: '.xirang/history/builds/active-exists',
       reviewDigest: 'b'.repeat(64),
     }, null, 2)}\n`);
 
@@ -189,7 +189,7 @@ describe('Candidate promotion', () => {
     expect(await exists(staging)).toBe(false);
     expect(await fs.readFile(path.join(
       root,
-      '.opsx',
+      '.xirang',
       'history',
       'recovery',
       '.candidate-promotion-active-exists',
@@ -200,9 +200,9 @@ describe('Candidate promotion', () => {
 
   it('recovers an interrupted directory swap from its durable journal', async () => {
     const before = await readFormalTree(root);
-    const staging = path.join(root, '.opsx', '.candidate-promotion-interrupted');
+    const staging = path.join(root, '.xirang', '.candidate-promotion-interrupted');
     const backup = path.join(staging, '.backup-interrupted');
-    const historyPath = '.opsx/history/builds/interrupted';
+    const historyPath = '.xirang/history/builds/interrupted';
     await fs.mkdir(backup, { recursive: true });
     await fs.writeFile(path.join(staging, 'candidate-promotion.json'), `${JSON.stringify({
       schemaVersion: 1,
@@ -219,10 +219,10 @@ describe('Candidate promotion', () => {
       existed: { architecture: true, specs: true },
     }, null, 2)}\n`);
     await fs.rename(candidate, path.join(staging, 'candidate'));
-    await fs.rename(path.join(root, '.opsx', 'architecture'), path.join(backup, 'architecture'));
-    await fs.rename(path.join(root, '.opsx', 'specs'), path.join(backup, 'specs'));
-    await fs.mkdir(path.join(root, '.opsx', 'architecture'), { recursive: true });
-    await fs.writeFile(path.join(root, '.opsx', 'architecture', 'partial.c4'), 'partial\n');
+    await fs.rename(path.join(root, '.xirang', 'architecture'), path.join(backup, 'architecture'));
+    await fs.rename(path.join(root, '.xirang', 'specs'), path.join(backup, 'specs'));
+    await fs.mkdir(path.join(root, '.xirang', 'architecture'), { recursive: true });
+    await fs.writeFile(path.join(root, '.xirang', 'architecture', 'partial.c4'), 'partial\n');
     await fs.mkdir(path.join(root, ...historyPath.split('/')), { recursive: true });
 
     await recoverPendingCandidatePromotions(root);
@@ -233,7 +233,7 @@ describe('Candidate promotion', () => {
     expect(await exists(path.join(root, ...historyPath.split('/')))).toBe(false);
     expect(await fs.readFile(path.join(
       root,
-      '.opsx',
+      '.xirang',
       'history',
       'recovery',
       '.candidate-promotion-interrupted',
@@ -252,7 +252,7 @@ describe('Candidate promotion', () => {
     await expect(promoteCandidate(root, validation.reviewDigest!, {
       transactionFilesystem: {
         rename: async (source, target) => {
-          if (target === path.join(root, '.opsx', 'architecture')
+          if (target === path.join(root, '.xirang', 'architecture')
             && source.includes('.candidate-promotion-')
             && !source.includes('.backup-')) {
             throw Object.assign(new Error('injected transaction failure'), { code: 'EIO' });
@@ -264,7 +264,7 @@ describe('Candidate promotion', () => {
 
     expect(await readFormalTree(root)).toEqual(before);
     expect(await exists(candidate)).toBe(true);
-    const builds = path.join(root, '.opsx', 'history', 'builds');
+    const builds = path.join(root, '.xirang', 'history', 'builds');
     expect(await fs.readdir(builds).catch(() => [])).toEqual([]);
   });
 });

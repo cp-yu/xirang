@@ -23,7 +23,7 @@ function canonicalId(element: ArchitectureElement | SemanticQueryElement): strin
 }
 
 function specPath(specId: string): string {
-  return `.opsx/specs/${specId}/spec.md`;
+  return `.xirang/specs/${specId}/spec.md`;
 }
 
 async function querySemanticArchitecture(

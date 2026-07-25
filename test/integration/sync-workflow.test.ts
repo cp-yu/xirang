@@ -19,7 +19,7 @@ const formal = `model {
 `;
 
 async function architectureSnapshot(root: string): Promise<Map<string, string>> {
-  const architecture = path.join(root, '.opsx', 'architecture');
+  const architecture = path.join(root, '.xirang', 'architecture');
   const files = new Map<string, string>();
   const visit = async (directory: string): Promise<void> => {
     for (const entry of await fs.readdir(directory, { withFileTypes: true })) {
@@ -37,10 +37,10 @@ describe('architecture sync workflow', () => {
   let changeDir: string;
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-architecture-sync-'));
-    changeDir = path.join(root, '.opsx', 'changes', 'add');
-    await fs.mkdir(path.join(root, '.opsx', 'architecture', 'domains'), { recursive: true });
+    changeDir = path.join(root, '.xirang', 'changes', 'add');
+    await fs.mkdir(path.join(root, '.xirang', 'architecture', 'domains'), { recursive: true });
     await fs.mkdir(changeDir, { recursive: true });
-    const architecture = path.join(root, '.opsx', 'architecture');
+    const architecture = path.join(root, '.xirang', 'architecture');
     await fs.writeFile(path.join(architecture, 'specification.c4'), 'specification { element domain element capability relationship invokes }');
     await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), formal);
     await fs.writeFile(path.join(architecture, 'relations.c4'), 'model {\n}\n');
@@ -53,7 +53,7 @@ describe('architecture sync workflow', () => {
     const state = await assessChangeSyncState(root, 'add');
     expect(state.hasArchitectureDelta).toBe(true);
     await applyPreparedChangeSync(root, await prepareChangeSync(root, state, { skipValidation: true }));
-    expect(await fs.readFile(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'), 'utf8')).toContain("added = capability 'Added'");
+    expect(await fs.readFile(path.join(root, '.xirang', 'architecture', 'domains', 'core.c4'), 'utf8')).toContain("added = capability 'Added'");
   });
 
   it('treats an absent graph delta as absent and rejects empty operation blocks', async () => {
@@ -86,23 +86,23 @@ describe('architecture sync workflow', () => {
     await fs.writeFile(path.join(changeDir, 'specs', 'added', 'spec.md'), `## ADDED Requirements\n\n### Requirement: Added behavior\nThe system SHALL add behavior.\n\n#### Scenario: Added succeeds\n- **WHEN** added runs\n- **THEN** it succeeds\n`);
     const before = await architectureSnapshot(root);
     const prepared = await prepareChangeSync(root, await assessChangeSyncState(root, 'add'), { skipValidation: true });
-    const target = path.join(root, '.opsx', 'specs', 'added');
+    const target = path.join(root, '.xirang', 'specs', 'added');
     await fs.mkdir(path.dirname(target), { recursive: true });
     await fs.writeFile(target, 'blocks directory creation');
 
     await expect(applyPreparedChangeSync(root, prepared)).rejects.toThrow();
     expect(await architectureSnapshot(root)).toEqual(before);
-    await expect(fs.access(path.join(root, '.opsx', 'architecture', 'deltas', 'add.c4'))).rejects.toThrow();
+    await expect(fs.access(path.join(root, '.xirang', 'architecture', 'deltas', 'add.c4'))).rejects.toThrow();
   });
 
   it('atomically syncs a v1 element and its same-delta Spec binding', async () => {
-    const architecture = path.join(root, '.opsx', 'architecture');
+    const architecture = path.join(root, '.xirang', 'architecture');
     await fs.rm(architecture, { recursive: true });
     await fs.mkdir(architecture, { recursive: true });
-    await fs.writeFile(path.join(architecture, 'model.c4'), `opsx { languageVersion '1' }
+    await fs.writeFile(path.join(architecture, 'model.c4'), `xirang { languageVersion '1' }
 specification {
-  element project { opsx { root true contract optional } }
-  element operation { opsx { contract required parents [project] } }
+  element project { xirang { root true contract optional } }
+  element operation { xirang { contract required parents [project] } }
 }
 model {
   projectRoot = project 'Root' 'Project intent' {
@@ -146,13 +146,13 @@ The system SHALL add behavior.
   });
 
   it('reconciles multi-module v1 graph sources without duplicating semantic facts', async () => {
-    const architecture = path.join(root, '.opsx', 'architecture');
+    const architecture = path.join(root, '.xirang', 'architecture');
     await fs.rm(architecture, { recursive: true });
     await fs.mkdir(path.join(architecture, 'domains'), { recursive: true });
-    await fs.writeFile(path.join(architecture, 'domains', 'specification.c4'), `opsx { languageVersion '1' }
+    await fs.writeFile(path.join(architecture, 'domains', 'specification.c4'), `xirang { languageVersion '1' }
 specification {
-  element project { opsx { root true contract optional children [capability] } }
-  element capability { opsx { contract optional parents [project] } }
+  element project { xirang { root true contract optional children [capability] } }
+  element capability { xirang { contract optional parents [project] } }
   relationship invokes
 }
 `);
@@ -192,19 +192,19 @@ specification {
     await fs.mkdir(path.join(changeDir, 'specs', 'added'), { recursive: true });
     await fs.writeFile(path.join(changeDir, 'specs', 'added', 'spec.md'), `## ADDED Requirements\n\n### Requirement: Added behavior\nThe system SHALL add behavior.\n\n#### Scenario: Added succeeds\n- **WHEN** added runs\n- **THEN** it succeeds\n`);
     const prepared = await prepareChangeSync(root, await assessChangeSyncState(root, 'add'), { skipValidation: true });
-    await fs.writeFile(path.join(root, '.opsx', 'architecture', 'views.c4'), 'views { view changed { include * } }');
+    await fs.writeFile(path.join(root, '.xirang', 'architecture', 'views.c4'), 'views { view changed { include * } }');
 
     await expect(applyPreparedChangeSync(root, prepared)).rejects.toThrow('Formal Semantic Model changed');
-    expect(await fs.readFile(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'), 'utf8')).toBe(formal);
-    await expect(fs.access(path.join(root, '.opsx', 'specs', 'added', 'spec.md'))).rejects.toThrow();
+    expect(await fs.readFile(path.join(root, '.xirang', 'architecture', 'domains', 'core.c4'), 'utf8')).toBe(formal);
+    await expect(fs.access(path.join(root, '.xirang', 'specs', 'added', 'spec.md'))).rejects.toThrow();
   });
 
   it('rejects invalid v1 relations in the sync target', async () => {
-    const architecture = path.join(root, '.opsx', 'architecture');
+    const architecture = path.join(root, '.xirang', 'architecture');
     await fs.rm(architecture, { recursive: true });
     await fs.mkdir(architecture, { recursive: true });
-    await fs.writeFile(path.join(architecture, 'model.c4'), `opsx { languageVersion '1' }
- specification { element project { opsx { root true contract optional } } relationship invokes }
+    await fs.writeFile(path.join(architecture, 'model.c4'), `xirang { languageVersion '1' }
+ specification { element project { xirang { root true contract optional } } relationship invokes }
  model { projectRoot = project 'Root' 'Project intent' { metadata { elementId 'project.root' } } payments = project 'Payments' 'Payments' { metadata { elementId 'project.payments' } } reports = project 'Reports' 'Reports' { metadata { elementId 'project.reports' } } }
 `);
     await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), `architectureDelta {
@@ -224,7 +224,7 @@ specification {
     await fs.writeFile(path.join(changeDir, 'specs', 'added', 'spec.md'), `## ADDED Requirements\n### Requirement: Added behavior\nThe system SHALL add behavior.\n\n#### Scenario: Added succeeds\n- **WHEN** added runs\n- **THEN** it succeeds\n`);
     const state = await assessChangeSyncState(root, 'add');
     await applyPreparedChangeSync(root, await prepareChangeSync(root, state, { skipValidation: true }));
-    await expect(fs.access(path.join(root, '.opsx', 'specs', 'added', 'spec.md'))).resolves.toBeUndefined();
+    await expect(fs.access(path.join(root, '.xirang', 'specs', 'added', 'spec.md'))).resolves.toBeUndefined();
   });
 
   it('validates rebuilt legacy Specs unless validation is explicitly skipped', async () => {
@@ -254,7 +254,7 @@ specification {
   });
 
   it('should keep a colliding relation delta pending when its description differs', async () => {
-    await fs.writeFile(path.join(root, '.opsx', 'architecture', 'relations.c4'), `model {
+    await fs.writeFile(path.join(root, '.xirang', 'architecture', 'relations.c4'), `model {
   core.existing -[invokes]-> core.existing { description 'Formal description.' }
 }
 `);
@@ -274,7 +274,7 @@ specification {
       metadata {
         capabilityId 'cap.core.added'
         status 'active'
-        specs ['.opsx/changes/add/specs/added/spec.md']
+        specs ['.xirang/changes/add/specs/added/spec.md']
       }
     }
   }
@@ -293,10 +293,10 @@ specification {
       process.chdir(originalCwd);
     }
 
-    const archiveNames = await fs.readdir(path.join(root, '.opsx', 'changes', 'archive'));
-    const archived = path.join(root, '.opsx', 'changes', 'archive', archiveNames.find(name => name.endsWith('-add'))!);
+    const archiveNames = await fs.readdir(path.join(root, '.xirang', 'changes', 'archive'));
+    const archived = path.join(root, '.xirang', 'changes', 'archive', archiveNames.find(name => name.endsWith('-add'))!);
     await expect(fs.readFile(path.join(archived, 'architecture-delta.c4'), 'utf8')).resolves.toContain('extend core');
-    await expect(fs.readFile(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'), 'utf8'))
+    await expect(fs.readFile(path.join(root, '.xirang', 'architecture', 'domains', 'core.c4'), 'utf8'))
       .resolves.toContain("added = capability 'Added'");
   });
 
@@ -311,7 +311,7 @@ specification {
     });
 
     await expect(applyPreparedChangeSync(root, prepared, { filesystem: { rename } })).resolves.toMatchObject({ architecture: 'synced' });
-    expect(await fs.readFile(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'), 'utf8')).toContain("added = capability 'Added'");
+    expect(await fs.readFile(path.join(root, '.xirang', 'architecture', 'domains', 'core.c4'), 'utf8')).toContain("added = capability 'Added'");
     expect(rename).toHaveBeenCalledTimes(2);
   });
 
@@ -323,7 +323,7 @@ specification {
     await expect(applyPreparedChangeSync(root, prepared, {
       refreshEvidence: vi.fn().mockRejectedValue(new Error('evidence unavailable')),
     })).rejects.toThrow(/Semantic sync committed.*evidence refresh failed/);
-    await expect(fs.access(path.join(root, '.opsx', 'specs', 'added', 'spec.md'))).resolves.toBeUndefined();
+    await expect(fs.access(path.join(root, '.xirang', 'specs', 'added', 'spec.md'))).resolves.toBeUndefined();
   });
 
   it('should restore the complete architecture when a later spec write fails', async () => {
@@ -347,12 +347,12 @@ The system SHALL expose a broken target.
     const before = await architectureSnapshot(root);
     const state = await assessChangeSyncState(root, 'add');
     const prepared = await prepareChangeSync(root, state, { skipValidation: true });
-    const targetParent = path.join(root, '.opsx', 'specs', 'broken');
+    const targetParent = path.join(root, '.xirang', 'specs', 'broken');
     await fs.mkdir(path.dirname(targetParent), { recursive: true });
     await fs.writeFile(targetParent, 'blocks mkdir');
 
     await expect(applyPreparedChangeSync(root, prepared)).rejects.toThrow();
     expect(await architectureSnapshot(root)).toEqual(before);
-    await expect(fs.access(path.join(root, '.opsx', 'architecture', 'domains', 'added.c4'))).rejects.toThrow();
+    await expect(fs.access(path.join(root, '.xirang', 'architecture', 'domains', 'added.c4'))).rejects.toThrow();
   });
 });

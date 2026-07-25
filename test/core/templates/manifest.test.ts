@@ -18,7 +18,7 @@ describe('Workflow Manifest', () => {
     it('should define skillDirName for every entry', () => {
       for (const entry of WorkflowManifestRegistry.entries) {
         expect(entry.skillDirName).toBeTruthy();
-        expect(entry.skillDirName).toMatch(/^opsx-/);
+        expect(entry.skillDirName).toMatch(/^xirang-/);
       }
     });
 
@@ -43,7 +43,7 @@ describe('Workflow Manifest', () => {
         expect(skill.description).toBeTruthy();
         expect(skill.instructions).toBeTruthy();
         expect(skill.license || 'MIT').toBeTruthy();
-        expect(skill.compatibility || 'Requires opsx CLI.').toBeTruthy();
+        expect(skill.compatibility || 'Requires xirang CLI.').toBeTruthy();
       }
     });
 
@@ -79,7 +79,7 @@ describe('Workflow Manifest', () => {
       const names = WorkflowManifestRegistry.getSkillNames();
       expect(names.length).toBe(WorkflowManifestRegistry.entries.length);
       for (const name of names) {
-        expect(name).toMatch(/^opsx-/);
+        expect(name).toMatch(/^xirang-/);
       }
     });
 

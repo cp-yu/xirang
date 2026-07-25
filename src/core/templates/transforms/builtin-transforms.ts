@@ -24,11 +24,11 @@ interface ReplacementPair {
 
 function buildReplacementPairs(): ReplacementPair[] {
   return getWorkflowSurfaces().map((entry) => ({
-    source: `/opsx:${entry.commandSlug}`,
+    source: `/xirang:${entry.commandSlug}`,
     codexTarget: `$${entry.skillDirName}`,
     claudeTarget: `/${entry.skillDirName}`,
     piTarget: `/skill:${entry.skillDirName}`,
-    opencodeTarget: `/opsx-${entry.commandSlug}`,
+    opencodeTarget: `/xirang-${entry.commandSlug}`,
     neutralTarget: `invoke the ${entry.skillDirName} skill`,
   }));
 }

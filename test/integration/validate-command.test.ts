@@ -24,17 +24,17 @@ The system SHALL run the payment operation.
 `;
 
   async function writeV1Project() {
-    const architecture = path.join(root, '.opsx', 'architecture');
+    const architecture = path.join(root, '.xirang', 'architecture');
     await fs.rm(architecture, { recursive: true });
     await fs.mkdir(architecture, { recursive: true });
-    await fs.writeFile(path.join(architecture, 'model.c4'), `opsx { languageVersion '1' }
+    await fs.writeFile(path.join(architecture, 'model.c4'), `xirang { languageVersion '1' }
 specification {
-  element project { opsx { root true contract required children [area] } }
-  element area { opsx { contract optional parents [project] children [operation] } }
-  element operation { opsx { contract required parents [area] } }
-  element artifact { opsx { contract optional parents [operation] } }
+  element project { xirang { root true contract required children [area] } }
+  element area { xirang { contract optional parents [project] children [operation] } }
+  element operation { xirang { contract required parents [area] } }
+  element artifact { xirang { contract optional parents [operation] } }
   relationship invokes
-  relationship produces { opsx { sourceKinds [operation] targetKinds [artifact] } }
+  relationship produces { xirang { sourceKinds [operation] targetKinds [artifact] } }
 }
 model {
   projectRoot = project 'Root' 'Project intent' {
@@ -48,7 +48,7 @@ model {
   }
 }
 `);
-    const spec = path.join(root, '.opsx', 'specs', 'project-contract');
+    const spec = path.join(root, '.xirang', 'specs', 'project-contract');
     await fs.mkdir(spec, { recursive: true });
     await fs.writeFile(path.join(spec, 'spec.md'), `---
 element: project.root
@@ -72,7 +72,7 @@ The project SHALL preserve its intent.
   }
 
   async function writeChange(name: string, deltaContent: string, specElement?: string) {
-    const change = path.join(root, '.opsx', 'changes', name);
+    const change = path.join(root, '.xirang', 'changes', name);
     await fs.mkdir(change, { recursive: true });
     await fs.writeFile(path.join(change, 'proposal.md'), '# Change');
     await fs.writeFile(path.join(change, 'architecture-delta.c4'), deltaContent);
@@ -88,11 +88,11 @@ The project SHALL preserve its intent.
 
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-likec4-validation-'));
-    const domains = path.join(root, '.opsx', 'architecture', 'domains');
+    const domains = path.join(root, '.xirang', 'architecture', 'domains');
     await fs.mkdir(domains, { recursive: true });
-    await fs.writeFile(path.join(root, '.opsx', 'architecture', 'specification.c4'), 'specification { element domain element capability }');
+    await fs.writeFile(path.join(root, '.xirang', 'architecture', 'specification.c4'), 'specification { element domain element capability }');
     await fs.writeFile(path.join(domains, 'core.c4'), "model { core = domain 'Core' }");
-    await fs.writeFile(path.join(root, '.opsx', 'architecture', 'views.c4'), 'views { view index { include * } }');
+    await fs.writeFile(path.join(root, '.xirang', 'architecture', 'views.c4'), 'views { view index { include * } }');
   });
   afterEach(async () => fs.rm(root, { recursive: true, force: true }));
 
@@ -102,12 +102,12 @@ The project SHALL preserve its intent.
   });
 
   it('should apply v1 semantic validation without rewriting the source', async () => {
-    const architecture = path.join(root, '.opsx', 'architecture');
+    const architecture = path.join(root, '.xirang', 'architecture');
     await fs.rm(architecture, { recursive: true });
     await fs.mkdir(architecture, { recursive: true });
     const modelPath = path.join(architecture, 'model.c4');
-    const source = `opsx { languageVersion '1' }
-      specification { element project { opsx { root true contract required } } element product { opsx { contract optional } } }
+    const source = `xirang { languageVersion '1' }
+      specification { element project { xirang { root true contract required } } element product { xirang { contract optional } } }
       model { product = product 'Product' 'Product intent' { metadata { elementId 'product.main' } } }`;
     await fs.writeFile(modelPath, source);
 
@@ -125,7 +125,7 @@ The project SHALL preserve its intent.
   });
 
   it('should use native LikeC4 validation for change deltas', async () => {
-    const change = path.join(root, '.opsx', 'changes', 'invalid-native');
+    const change = path.join(root, '.xirang', 'changes', 'invalid-native');
     await fs.mkdir(change, { recursive: true });
     await fs.writeFile(path.join(change, 'proposal.md'), '# Invalid native delta');
     await fs.writeFile(path.join(change, '.specs-noop'), '');

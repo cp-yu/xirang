@@ -34,9 +34,9 @@ export type LikeC4ViteConfig = {
    * from likec4 views via absolute URLs.
    */
   userPublicDir?: string | undefined
-  opsxProjectRoot?: string | undefined
-  opsxSpecRegistry?: string | undefined
-  opsxChangeManifest?: string | undefined
+  xirangProjectRoot?: string | undefined
+  xirangSpecRegistry?: string | undefined
+  xirangChangeManifest?: string | undefined
 }
 
 export const viteConfig = async ({ languageServices, likec4AssetsDir, ...cfg }: LikeC4ViteConfig) => {
@@ -104,9 +104,9 @@ export const viteConfig = async ({ languageServices, likec4AssetsDir, ...cfg }: 
     plugins: [
       LikeC4VitePlugin({
         languageServices: languageServices.languageServices,
-        ...(cfg.opsxProjectRoot ? { opsxProjectRoot: cfg.opsxProjectRoot } : {}),
-        ...(cfg.opsxSpecRegistry ? { opsxSpecRegistry: cfg.opsxSpecRegistry } : {}),
-        ...(cfg.opsxChangeManifest ? { opsxChangeManifest: cfg.opsxChangeManifest } : {}),
+        ...(cfg.xirangProjectRoot ? { xirangProjectRoot: cfg.xirangProjectRoot } : {}),
+        ...(cfg.xirangSpecRegistry ? { xirangSpecRegistry: cfg.xirangSpecRegistry } : {}),
+        ...(cfg.xirangChangeManifest ? { xirangChangeManifest: cfg.xirangChangeManifest } : {}),
         appConfig: {
           webcomponentPrefix,
           pageTitle: title,

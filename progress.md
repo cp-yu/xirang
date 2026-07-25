@@ -23,7 +23,7 @@ In Progress
   - Checked `opsx-verify-skill/spec.md` for `prompts.md` and `CONFORMANCE_CHECK_RULES` references
   - Read `archive-verify-gate/spec.md` for deleted/renamed capability references
   - Searched all `openspec/specs/*/spec.md` for `cap.` patterns (frontmatter-based)
-  - Cross-referenced spec frontmatter capabilities against `openspec/project.opsx.yaml` (102 capabilities)
+  - Cross-referenced spec frontmatter capabilities against `openspec/project.xirang.yaml` (102 capabilities)
   - Checked `openspec/references/` files for stale workflow/fragment references
   - Report written to /tmp/orphan-scout-3-spec-refs.txt
 

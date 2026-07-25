@@ -13,7 +13,7 @@ const domain = `model {
       description 'Run things'
       metadata {
         capabilityId 'cap.core.run'
-        specs ['.opsx/specs/run/spec.md']
+        specs ['.xirang/specs/run/spec.md']
       }
     }
     stop = capability 'Stop' {
@@ -25,15 +25,15 @@ const domain = `model {
   }
 }`;
 
-const semanticModel = `opsx {
+const semanticModel = `xirang {
   languageVersion '1'
 }
 specification {
-  element project { opsx { root true contract required } }
-  element product { opsx { contract optional } }
-  element workflow { opsx { contract required parents [product] } }
+  element project { xirang { root true contract required } }
+  element product { xirang { contract optional } }
+  element workflow { xirang { contract required parents [product] } }
   relationship invokes
-  relationship produces { opsx { sourceKinds [workflow] targetKinds [product] } }
+  relationship produces { xirang { sourceKinds [workflow] targetKinds [product] } }
 }
 model {
   projectRoot = project 'Root' 'Project intent' {
@@ -51,7 +51,7 @@ describe('LikeC4 architecture reader', () => {
   let root: string;
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-likec4-reader-'));
-    const architecture = path.join(root, '.opsx', 'architecture');
+    const architecture = path.join(root, '.xirang', 'architecture');
     await fs.mkdir(path.join(architecture, 'domains'), { recursive: true });
     await fs.writeFile(path.join(architecture, 'specification.c4'), 'specification { element domain element capability relationship invokes }');
     await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), domain);
@@ -68,11 +68,11 @@ describe('LikeC4 architecture reader', () => {
   it('should parse element definitions', async () => {
     const result = await readLikeC4Architecture(root);
     expect(result.domains[0]).toMatchObject({ id: 'core', title: 'Core' });
-    expect(result.capabilities[0]).toMatchObject({ id: 'core.run', capabilityId: 'cap.core.run', specs: ['.opsx/specs/run/spec.md'] });
+    expect(result.capabilities[0]).toMatchObject({ id: 'core.run', capabilityId: 'cap.core.run', specs: ['.xirang/specs/run/spec.md'] });
   });
 
   it('should parse relationships from domain and standalone relation files', async () => {
-    await fs.writeFile(path.join(root, '.opsx', 'architecture', 'relations.c4'), `model { core.stop -[invokes]-> core.run }`);
+    await fs.writeFile(path.join(root, '.xirang', 'architecture', 'relations.c4'), `model { core.stop -[invokes]-> core.run }`);
     const result = await readLikeC4Architecture(root);
     expect(result.files).toHaveLength(4);
     expect(result.relations).toEqual(expect.arrayContaining([
@@ -82,14 +82,14 @@ describe('LikeC4 architecture reader', () => {
   });
 
   it('rejects active architecture navigation when LikeC4 is absent', async () => {
-    await fs.rm(path.join(root, '.opsx', 'architecture'), { recursive: true });
-    await fs.writeFile(path.join(root, '.opsx', 'project.opsx.yaml'), `schema_version: 2\nproject: { id: test, name: Test }\ndomains: [{ id: dom.core, type: domain }]\ncapabilities: [{ id: cap.core.run, type: capability }]\n`);
-    await fs.writeFile(path.join(root, '.opsx', 'project.opsx.relations.yaml'), `schema_version: 2\nrelations: [{ from: cap.core.run, type: belongs_to, to: dom.core }]\n`);
-    await expect(readArchitecture(root)).rejects.toThrow(/opsx setup|opsx-build/);
+    await fs.rm(path.join(root, '.xirang', 'architecture'), { recursive: true });
+    await fs.writeFile(path.join(root, '.xirang', 'project.xirang.yaml'), `schema_version: 2\nproject: { id: test, name: Test }\ndomains: [{ id: dom.core, type: domain }]\ncapabilities: [{ id: cap.core.run, type: capability }]\n`);
+    await fs.writeFile(path.join(root, '.xirang', 'project.xirang.relations.yaml'), `schema_version: 2\nrelations: [{ from: cap.core.run, type: belongs_to, to: dom.core }]\n`);
+    await expect(readArchitecture(root)).rejects.toThrow(/xirang setup|xirang-build/);
   });
 
   it('reads a versioned arbitrary-depth semantic model through generic elements', async () => {
-    const architecture = path.join(root, '.opsx', 'architecture');
+    const architecture = path.join(root, '.xirang', 'architecture');
     await fs.rm(architecture, { recursive: true });
     await fs.mkdir(architecture, { recursive: true });
     await fs.writeFile(path.join(architecture, 'model.c4'), semanticModel);
@@ -108,7 +108,7 @@ describe('LikeC4 architecture reader', () => {
   });
 
   it('does not synthesize an optional policy when a parser input omits the declaration', () => {
-    const versioned = parseOpsxProfile("opsx { languageVersion '1' } specification { element worker }");
+    const versioned = parseOpsxProfile("xirang { languageVersion '1' } specification { element worker }");
     const legacy = parseOpsxProfile('specification { element worker }');
 
     expect(versioned.declaredElementContractPolicies.worker).toBeNull();
@@ -118,19 +118,19 @@ describe('LikeC4 architecture reader', () => {
   });
 
   it('rejects a v1 element kind without an explicit contract policy', async () => {
-    const architecture = path.join(root, '.opsx', 'architecture');
+    const architecture = path.join(root, '.xirang', 'architecture');
     await fs.rm(architecture, { recursive: true });
     await fs.mkdir(architecture, { recursive: true });
     await fs.writeFile(
       path.join(architecture, 'model.c4'),
-      semanticModel.replace('element product { opsx { contract optional } }', 'element product')
+      semanticModel.replace('element product { xirang { contract optional } }', 'element product')
     );
 
     await expect(readLikeC4Architecture(root)).rejects.toThrow(/product.*contract policy/i);
   });
 
   it('keeps stable element identity when the containment path changes', async () => {
-    const architecture = path.join(root, '.opsx', 'architecture');
+    const architecture = path.join(root, '.xirang', 'architecture');
     await fs.rm(architecture, { recursive: true });
     await fs.mkdir(architecture, { recursive: true });
     const modelPath = path.join(architecture, 'model.c4');
@@ -149,7 +149,7 @@ describe('LikeC4 architecture reader', () => {
   });
 
   it('keeps unversioned LikeC4 sources on the legacy read path without rewriting them', async () => {
-    const sourcePath = path.join(root, '.opsx', 'architecture', 'domains', 'core.c4');
+    const sourcePath = path.join(root, '.xirang', 'architecture', 'domains', 'core.c4');
     const before = await fs.readFile(sourcePath, 'utf8');
     const result = await readLikeC4Architecture(root);
     expect(result.profile).toBe('legacy');
@@ -158,9 +158,9 @@ describe('LikeC4 architecture reader', () => {
     expect(await fs.readFile(sourcePath, 'utf8')).toBe(before);
   });
 
-  it('rejects unsupported OPSX language versions', async () => {
-    const architecture = path.join(root, '.opsx', 'architecture');
-    await fs.writeFile(path.join(architecture, 'version.c4'), "opsx { languageVersion '2' }");
-    await expect(readLikeC4Architecture(root)).rejects.toThrow('Unsupported OPSX language version: 2');
+  it('rejects unsupported Xirang language versions', async () => {
+    const architecture = path.join(root, '.xirang', 'architecture');
+    await fs.writeFile(path.join(architecture, 'version.c4'), "xirang { languageVersion '2' }");
+    await expect(readLikeC4Architecture(root)).rejects.toThrow('Unsupported Xirang language version: 2');
   });
 });

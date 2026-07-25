@@ -51,6 +51,6 @@
 #### Checks
 
 - [ ] C3 <!-- Behavior equivalence check -->
-  - Preserves: `.opsx/specs/<capability>/spec.md` / Requirement "<requirement name>" / Scenario "<scenario name>"
+  - Preserves: `.xirang/specs/<capability>/spec.md` / Requirement "<requirement name>" / Scenario "<scenario name>"
   - Command: `<!-- behavior test command -->`
   - Expect: <!-- old form (old function, old path, old duplication) no longer exists -->

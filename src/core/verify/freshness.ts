@@ -272,8 +272,8 @@ export function formatVerifyGateFailure(
   lines.push(
     '',
     '  Suggested actions:',
-    `    opsx verify phase1 ${changeName}`,
-    `    opsx ${command} ${changeName} --no-verify`
+    `    xirang verify phase1 ${changeName}`,
+    `    xirang ${command} ${changeName} --no-verify`
   );
   return lines.join('\n');
 }

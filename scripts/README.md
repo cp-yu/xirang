@@ -1,6 +1,6 @@
-# OPSX Scripts
+# Xirang Scripts
 
-Utility scripts for OPSX maintenance and development.
+Utility scripts for Xirang maintenance and development.
 
 ## update-flake.sh
 

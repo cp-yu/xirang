@@ -1,0 +1,129 @@
+model {
+  extend project_root {
+    ai_integration = domain 'Ai Integration' '多工具 AI 支持 — 为 25+ AI 工具生成特定工具的技能文件和面向 Agent 的 workflow skills' {
+      metadata {
+        elementId 'project.root/domain.ai_integration'
+      }
+      agent_prompt_guidance = capability 'Agent Prompt Guidance' '面向 Agent 的 verify gate 提示词指引系统。VERIFY_SIMPLE_CHANGE_FAST_PATH 从"允许 master agent 自主跳过"改为"强制委托 optimizer subagent"语义。共享片段（状态机流程图、JSON schema 速查表、CLI 错误恢复决策树）中 OPTIMIZATION_PROPOSED 行补全 --files 参数，错误恢复增加 FILES_REQUIRED 条目。' {
+        metadata {
+          elementId 'cap.ai.agent-prompt-guidance'
+        }
+      }
+      command_generation = capability 'Command Generation' '管理 AI 工具命令生成管线的能力——将 workflow templates 编译为各 AI 工具平台的 command instructions' {
+        metadata {
+          elementId 'cap.ai.command-generation'
+        }
+      }
+      command_slugs = capability 'Command Slugs' '管理 OPSX CLI 命令的 slug 映射与工具检测，确保跨工具 workflow surface 的命名一致性' {
+        metadata {
+          elementId 'cap.ai.command-slugs'
+        }
+      }
+      explore_brainstorming = capability 'Explore Brainstorming' '澄清 human intent 并形成 Project Root、Metamodel、elements、refinement、contracts、relationships 与 views 的 conversation-only Design Summary' {
+        metadata {
+          elementId 'cap.ai.explore-brainstorming'
+        }
+      }
+      explore_terminology_decision = capability 'Explore Terminology Decision' 'Explore master agent 解读 terminologyObservations，根据四态判断逻辑决定是否向用户提示术语不一致' {
+        metadata {
+          elementId 'cap.ai.explore-terminology-decision'
+        }
+      }
+      impact_sweeper = capability 'Impact Sweeper' '使用 stable elements、abstraction/refinement hierarchy、Element Contracts 与 semantic relationships 扫描 concept impact' {
+        metadata {
+          elementId 'cap.ai.impact-sweeper'
+        }
+      }
+      internal_subagent_generation = capability 'Internal Subagent Generation' 'Internal subagent artifact generation framework。为 opsx-reviewer、 opsx-optimizer、opsx-impact-sweeper 等 internal 执行角色生成 tool-native subagent artifact：Claude Code / Pi / OpenCode 写入 <toolDir>/agents/<name>.md，Codex 写入 <toolDir>/agents/<name>.toml。 提供统一 SubagentTemplate 源模型与 per-tool renderer（markdown / toml）， 与 ArtifactSyncEngine 集成，在 init / update 时与 workflow skills 并列生成， 并按显式名 list 清理旧 internal skill 目录；不暴露为用户可调用 workflow surface。' {
+        metadata {
+          elementId 'cap.ai.internal-subagent-generation'
+        }
+      }
+      optimizer_skill = capability 'Optimizer Skill' 'Phase 2 finding-first 通用优化审查者；基于当前代码输出多个证据化 findings、修改意见、关键设计、保持约束和验证建议，不修改文件、不输出逐字补丁、不受固定优化 taxonomy 限制' {
+        metadata {
+          elementId 'cap.ai.optimizer-skill'
+        }
+      }
+      propose_smart_routing = capability 'Propose Smart Routing' 'Propose 阶段复用已确认的 Design Summary，或依据 problem、impact scope、approach、verification method 与 unresolved source decisions 判断 semantic readiness；区分 new/existing change identity，在 readiness 通过或用户明确 override 后按 resolved file definitions 生成 change artifacts；以 blocking combined semantic-source delta validation 和 preview-first scenario labels 建立 ready-for-apply gate' {
+        metadata {
+          elementId 'cap.ai.propose-smart-routing'
+        }
+      }
+      references_home = capability 'References Home' '.xirang/references/ 作为全部 skill reference 的唯一物理位置，并承载由 RelationDefinitionRegistry 确定性生成的 canonical relation authoring reference。' {
+        metadata {
+          elementId 'cap.ai.references-home'
+        }
+      }
+      reviewer_cleanliness_dimension = capability 'Reviewer Cleanliness Dimension' 'Cleanliness 维度的检测逻辑、severity 映射和跨语言工具适配策略，用于检测重构残留、孤儿代码、过时 TODO、半迁移等遗留物；新增规格外改动检测——以 task Files 声明（含目录条目）、Check 证据文件与 change 工件构成归因宇宙，diff 中无法归因的行为代码升级 CRITICAL，机械性良性改动降级' {
+        metadata {
+          elementId 'cap.ai.reviewer-cleanliness-dimension'
+        }
+      }
+      reviewer_skill = capability 'Reviewer Skill' 'Phase 1 验证审查 subagent skill。元规则从"不确定时降级"反转为"不确定时升级"，Correctness/Coherence trigger 强化（spec 偏离和设计违背升为 CRITICAL），新增 Cleanliness 维度检测，summary schema 扩展包含 cleanliness 指标。判定模式按 Check 锚点类型分派：Verifies 普通 requirement 执行存在性判定，REMOVED 锚点执行缺失性判定（残留即 CRITICAL），Preserves 锚点执行双支等价性判定（行为不变 ∧ 旧形态消失）；Completeness 对 Files Delete 声明与 git diff 逐项核对' {
+        metadata {
+          elementId 'cap.ai.reviewer-skill'
+        }
+      }
+      skill_generation = capability 'Skill Generation' 'AI 技能文件生成是唯一受管 workflow surface，通过 manifest registry 生成 SkillTemplate 制品，暴露 skills-only workflow surface。为 propose、explore、apply-change、archive-change、bootstrap-arch、snack 等 workflow 生成 SkillTemplate。' {
+        metadata {
+          elementId 'cap.ai.skill-generation'
+        }
+      }
+      snack_skill = capability 'Snack Skill' '从 code evidence reconcile 一个 OPSX Semantic Model 的 graph 与 contract modules，且不猜测 element 或 Spec ownership' {
+        metadata {
+          elementId 'cap.ai.snack-skill'
+        }
+      }
+      snack_skill_generation = capability 'Snack Skill Generation' '将 snack skill 纳入 skill 生成管线，与现有 5 个核心工作流一致；生成文本必须表达 artifact reconciliation、broader code-change evidence sources、conditional artifact updates、三条 fast path 和 no tasks.md 边界' {
+        metadata {
+          elementId 'cap.ai.snack-skill-generation'
+        }
+      }
+      snack_workflow_manifest = capability 'Snack Workflow Manifest' '在 WorkflowManifestRegistry 中注册 snack 工作流，modeMembership 标记为 flexible（过渡能力标签），运行时安装行为不受标签影响（所有 6 个工作流仍被全量安装）' {
+        metadata {
+          elementId 'cap.ai.snack-workflow-manifest'
+        }
+      }
+      sweeper_terminology_extraction = capability 'Sweeper Terminology Extraction' 'Impact sweeper 在读取相关 specs 时提取与用户 concept 语义相近的术语，记录术语、出现次数和分布 specs' {
+        metadata {
+          elementId 'cap.ai.sweeper-terminology-extraction'
+        }
+      }
+      sweeper_terminology_reporting = capability 'Sweeper Terminology Reporting' '在 sweeper JSON 报告中通过 terminologyObservations 字段返回术语观察结果，支持向后兼容' {
+        metadata {
+          elementId 'cap.ai.sweeper-terminology-reporting'
+        }
+      }
+      template_artifact_pipeline = capability 'Template Artifact Pipeline' '统一的 skills-only artifact 生成管线，基于固定 workflow manifest entries 生成 skill 制品，modeMembership 作为标签系统而非 profile 过滤条件。' {
+        metadata {
+          elementId 'cap.ai.template-artifact-pipeline'
+        }
+      }
+      tool_adapters = capability 'Tool Adapters' '为支持的 AI 工具提供 skills 路径、transform 与 invocation guidance 元数据；不再维护 adapter-backed command generation 能力。' {
+        metadata {
+          elementId 'cap.ai.tool-adapters'
+        }
+      }
+      tool_invocation_references = capability 'Tool Invocation References' '基于共享 workflow surface 元数据渲染不同 AI 工具的用户可调用 skill 引用；Codex 使用 $<skillDirName>，Claude Code 使用 /<skillDirName>，Pi 使用 /skill:<skillDirName>，OpenCode 使用 /opsx-<commandSlug>；没有精确工具语法时使用中性 skill invocation 文案。' {
+        metadata {
+          elementId 'cap.ai.tool-invocation-references'
+        }
+      }
+      verify_writeback = capability 'Verify Writeback' '验证结果回写 tasks.md（unmark 未真正完成的任务）并生成分类 remediation 清单（code_fix / artifact_fix），同时让 write-back prose 遵守统一 runtime projection' {
+        metadata {
+          elementId 'cap.ai.verify-writeback'
+        }
+      }
+      workflow_templates = capability 'Workflow Templates' '生成以 Project Root、stable elements、refinement hierarchy、Element Contracts 与 Semantic Delta 为统一语义的 Agent workflows' {
+        metadata {
+          elementId 'cap.ai.workflow-templates'
+        }
+      }
+      tdd_smells = capability 'Tdd Smells' '为 optimizer 提供非穷尽候选信号；长方法、浅模块、原始类型、重复、局部性和控制流阈值只触发分析，不强制产生 finding，也不限制算法、数据结构和资源优化' {
+        metadata {
+          elementId 'cap.optimizer.tdd-smells'
+        }
+      }
+    }
+  }
+}

@@ -51,7 +51,7 @@ function metadata(body: string): Record<string, string | string[]> {
 }
 
 function annotationBlock(body: string): string | undefined {
-  const match = /\bopsx\s*\{/.exec(body);
+  const match = /\bxirang\s*\{/.exec(body);
   if (!match) return undefined;
   return blockAt(body, body.indexOf('{', match.index)).body;
 }
@@ -103,7 +103,7 @@ export function parseOpsxProfile(content: string): ParsedOpsxProfile {
   const ranges: Array<[number, number]> = [];
   let languageVersion: string | null = null;
 
-  for (const match of content.matchAll(/\bopsx\s*\{/g)) {
+  for (const match of content.matchAll(/\bxirang\s*\{/g)) {
     const open = content.indexOf('{', match.index);
     const block = blockAt(content, open);
     ranges.push([match.index, block.end]);

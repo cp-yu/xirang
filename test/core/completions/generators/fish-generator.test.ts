@@ -24,14 +24,14 @@ describe('FishGenerator', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'init',
-          description: 'Initialize OPSX',
+          description: 'Initialize Xirang',
           flags: [],
         },
       ];
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('# Fish completion script for OPSX CLI');
+      expect(script).toContain('# Fish completion script for Xirang CLI');
       expect(script).toContain('function __fish_opsx');
     });
 
@@ -39,7 +39,7 @@ describe('FishGenerator', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'init',
-          description: 'Initialize OPSX',
+          description: 'Initialize Xirang',
           flags: [],
         },
       ];
@@ -55,7 +55,7 @@ describe('FishGenerator', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'init',
-          description: 'Initialize OPSX',
+          description: 'Initialize Xirang',
           flags: [],
         },
         {
@@ -72,9 +72,9 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain("complete -c opsx");
+      expect(script).toContain("complete -c xirang");
       expect(script).toContain("-a 'init'");
-      expect(script).toContain("'Initialize OPSX'");
+      expect(script).toContain("'Initialize Xirang'");
       expect(script).toContain("-a 'validate'");
       expect(script).toContain("'Validate specs'");
       expect(script).toContain("-a 'show'");
@@ -308,7 +308,7 @@ describe('FishGenerator', () => {
       const script = generator.generate(commands);
 
       expect(script).toContain('function __fish_opsx_changes');
-      expect(script).toContain('opsx __complete changes 2>/dev/null');
+      expect(script).toContain('xirang __complete changes 2>/dev/null');
       expect(script).toContain('while read -l id desc');
       expect(script).toContain('printf');
     });
@@ -327,7 +327,7 @@ describe('FishGenerator', () => {
       const script = generator.generate(commands);
 
       expect(script).toContain('function __fish_opsx_specs');
-      expect(script).toContain('opsx __complete specs 2>/dev/null');
+      expect(script).toContain('xirang __complete specs 2>/dev/null');
     });
 
     it('should generate dynamic completion helper for items', () => {

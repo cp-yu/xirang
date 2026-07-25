@@ -127,7 +127,7 @@ export const hmrPort = {
   nargs: 1,
 } as const satisfies Options
 
-export const opsxProjectRoot = {
+export const xirangProjectRoot = {
   hidden: true,
   string: true,
   normalize: true,
@@ -135,7 +135,7 @@ export const opsxProjectRoot = {
   coerce: resolve,
 } as const satisfies Options
 
-export const opsxSpecRegistry = {
+export const xirangSpecRegistry = {
   hidden: true,
   string: true,
   normalize: true,
@@ -143,7 +143,7 @@ export const opsxSpecRegistry = {
   coerce: resolve,
 } as const satisfies Options
 
-export const opsxChangeManifest = {
+export const xirangChangeManifest = {
   hidden: true,
   string: true,
   normalize: true,

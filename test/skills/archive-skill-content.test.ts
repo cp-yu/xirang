@@ -15,7 +15,7 @@ function normalizeSteps(content: string): string {
 }
 
 async function generateArchiveSkill(toolId: 'codex' | 'claude'): Promise<{ root: string; skill: string }> {
-  const root = mkdtempSync(join(tmpdir(), 'opsx-archive-skill-'));
+  const root = mkdtempSync(join(tmpdir(), 'xirang-archive-skill-'));
   const result = await ArtifactSyncEngine.syncOne({
     toolId,
     projectPath: root,
@@ -26,7 +26,7 @@ async function generateArchiveSkill(toolId: 'codex' | 'claude'): Promise<{ root:
   expect(result.error).toBeUndefined();
   return {
     root,
-    skill: readFileSync(join(root, `.${toolId}`, 'skills', 'opsx-archive-change', 'SKILL.md'), 'utf-8'),
+    skill: readFileSync(join(root, `.${toolId}`, 'skills', 'xirang-archive-change', 'SKILL.md'), 'utf-8'),
   };
 }
 
@@ -36,7 +36,7 @@ function readReference(path: string): string {
   return reference!.content;
 }
 
-describe('opsx archive skill content', () => {
+describe('xirang archive skill content', () => {
   it('documents CLI archive then agent handoff steps in order', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
 
@@ -46,11 +46,11 @@ describe('opsx archive skill content', () => {
     expect(instructions.indexOf('6. **Run archive CLI**')).toBeLessThan(instructions.indexOf('7. **Git handoff**'));
     expect(instructions.indexOf('7. **Git handoff**')).toBeLessThan(instructions.indexOf('8. **Agent git flow**'));
     expect(instructions).toContain('CLI only verifies, syncs, moves the change to archive');
-    expect(instructions).toContain('handle the implementation boundary before OPSX/docs archive artifacts');
+    expect(instructions).toContain('handle the implementation boundary before Xirang/docs archive artifacts');
     expect(instructions).toContain('uncommitted real project implementation changes');
     expect(instructions).toContain('wip: opt-*');
     expect(instructions).toContain('git commit --allow-empty');
-    expect(instructions).not.toContain('First commit real project changes before OPSX/docs archive artifacts.');
+    expect(instructions).not.toContain('First commit real project changes before Xirang/docs archive artifacts.');
     expect(instructions).toContain('git commit -F -');
     expect(instructions).toContain('git merge --no-ff');
     expect(instructions).toContain('git branch --merged');
@@ -73,7 +73,7 @@ describe('opsx archive skill content', () => {
   it('states archive consumes git policy from project config command output', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
 
-    expect(instructions).toContain('opsx config project --json');
+    expect(instructions).toContain('xirang config project --json');
     expect(instructions).toContain('normalized project config');
     expect(instructions).toContain('git.commitMessage.archive');
     expect(instructions).toContain('git.commitMessage.merge');
@@ -94,9 +94,9 @@ describe('opsx archive skill content', () => {
     const archiveReference = readReference('references/archive-commit-message.md');
     const boundaryReference = readReference('references/boundary-commit-message.md');
     const mergeReference = readReference('references/merge-summary-message.md');
-    const archivePath = '.opsx/references/opsx-archive-commit-message.md';
-    const boundaryPath = '.opsx/references/opsx-boundary-commit-message.md';
-    const mergePath = '.opsx/references/opsx-merge-summary-message.md';
+    const archivePath = '.xirang/references/xirang-archive-commit-message.md';
+    const boundaryPath = '.xirang/references/xirang-boundary-commit-message.md';
+    const mergePath = '.xirang/references/xirang-merge-summary-message.md';
 
     expect(template.referenceFiles?.map((file) => file.path)).toContain('references/archive-commit-message.md');
     expect(template.referenceFiles?.map((file) => file.path)).toContain('references/boundary-commit-message.md');
@@ -104,7 +104,7 @@ describe('opsx archive skill content', () => {
     expect(instructions).toContain(`If \`git.commitMessage.archive\` is set, read that project-relative path; otherwise read the project-root file \`${archivePath}\``);
     expect(instructions).toContain(`If \`git.commitMessage.boundary\` is set, read that project-relative path; otherwise read the project-root file \`${boundaryPath}\``);
     expect(instructions).toContain(`If \`git.commitMessage.merge\` is set, read that project-relative path; otherwise read the project-root file \`${mergePath}\``);
-    expect(instructions).not.toContain('read `references/archive-commit-message.md` before creating the OPSX/docs archive commit');
+    expect(instructions).not.toContain('read `references/archive-commit-message.md` before creating the Xirang/docs archive commit');
     expect(instructions).not.toContain('read `references/boundary-commit-message.md`');
     expect(instructions).not.toContain('read `references/merge-summary-message.md` before creating a merge or squash commit message');
     expect(instructions).not.toContain('docs(<change-name>): Archive change artifacts');
@@ -143,9 +143,9 @@ describe('opsx archive skill content', () => {
 
     try {
       for (const [filePath, generatedPath] of [
-        ['references/archive-commit-message.md', '.opsx/references/opsx-archive-commit-message.md'],
-        ['references/boundary-commit-message.md', '.opsx/references/opsx-boundary-commit-message.md'],
-        ['references/merge-summary-message.md', '.opsx/references/opsx-merge-summary-message.md'],
+        ['references/archive-commit-message.md', '.xirang/references/xirang-archive-commit-message.md'],
+        ['references/boundary-commit-message.md', '.xirang/references/xirang-boundary-commit-message.md'],
+        ['references/merge-summary-message.md', '.xirang/references/xirang-merge-summary-message.md'],
       ] as const) {
         const expected = readReference(filePath);
 

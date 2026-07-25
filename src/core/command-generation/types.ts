@@ -14,7 +14,7 @@ export interface CommandContent {
   id: string;
   /** External user-facing command slug used for command file generation */
   commandSlug: string;
-  /** Human-readable name (e.g., 'OPSX Explore') */
+  /** Human-readable name (e.g., 'Xirang Explore') */
   name: string;
   /** Brief description of command purpose */
   description: string;
@@ -37,7 +37,7 @@ export interface ToolCommandAdapter {
   /**
    * Returns the file path for a command.
    * @param commandSlug - The external command slug (e.g., 'explore', 'build')
-   * @returns Path from project root (e.g., '.claude/commands/opsx/explore.md').
+   * @returns Path from project root (e.g., '.claude/commands/xirang/explore.md').
    */
   getFilePath(commandSlug: string): string;
   /**

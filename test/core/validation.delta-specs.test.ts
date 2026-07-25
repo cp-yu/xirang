@@ -15,8 +15,8 @@ describe('complete target delta Specs', () => {
 
   it('accepts canonical unlabeled Scenarios as the complete MODIFIED target set', async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-delta-validation-'));
-    const changeDir = path.join(tempDir, '.opsx', 'changes', 'change');
-    const mainPath = path.join(tempDir, '.opsx', 'specs', 'auth', 'spec.md');
+    const changeDir = path.join(tempDir, '.xirang', 'changes', 'change');
+    const mainPath = path.join(tempDir, '.xirang', 'specs', 'auth', 'spec.md');
     const deltaPath = path.join(changeDir, 'specs', 'auth', 'spec.md');
     await fs.mkdir(path.dirname(mainPath), { recursive: true });
     await fs.mkdir(path.dirname(deltaPath), { recursive: true });

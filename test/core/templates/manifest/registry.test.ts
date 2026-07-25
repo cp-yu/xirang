@@ -60,13 +60,13 @@ describe('WorkflowManifestRegistry', () => {
     it('should return 6 skill names', () => {
       const skillNames = WorkflowManifestRegistry.getSkillNames();
       expect(skillNames).toHaveLength(6);
-      expect(skillNames).toContain('opsx-propose');
-      expect(skillNames).toContain('opsx-explore');
-      expect(skillNames).toContain('opsx-apply-change');
-      expect(skillNames).toContain('opsx-archive-change');
-      expect(skillNames).toContain('opsx-build');
-      expect(skillNames).not.toContain('opsx-bootstrap-arch');
-      expect(skillNames).toContain('opsx-snack');
+      expect(skillNames).toContain('xirang-propose');
+      expect(skillNames).toContain('xirang-explore');
+      expect(skillNames).toContain('xirang-apply-change');
+      expect(skillNames).toContain('xirang-archive-change');
+      expect(skillNames).toContain('xirang-build');
+      expect(skillNames).not.toContain('xirang-bootstrap-arch');
+      expect(skillNames).toContain('xirang-snack');
     });
   });
 

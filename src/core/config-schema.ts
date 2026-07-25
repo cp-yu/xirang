@@ -43,7 +43,7 @@ const GitConfigSchema = z
   });
 
 /**
- * Zod schema for global OPSX configuration.
+ * Zod schema for global Xirang configuration.
  * Uses passthrough() to preserve unknown fields for forward compatibility.
  */
 export const GlobalConfigSchema = z

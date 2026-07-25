@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { stringify as stringifyYaml } from 'yaml';
-import { OPSX_DIR_NAME } from '../config.js';
+import { XIRANG_DIR_NAME } from '../config.js';
 
 export interface CandidatePromotionMetadata {
   schemaVersion: 1;
@@ -28,7 +28,7 @@ function buildId(now: Date, reviewDigest: string): string {
 }
 
 export function createCandidateHistoryRelativePath(now: Date, reviewDigest: string): string {
-  return `${OPSX_DIR_NAME}/history/builds/${buildId(now, reviewDigest)}`;
+  return `${XIRANG_DIR_NAME}/history/builds/${buildId(now, reviewDigest)}`;
 }
 
 export async function reserveCandidateHistory(
@@ -38,11 +38,11 @@ export async function reserveCandidateHistory(
   now: Date,
   relativePath = createCandidateHistoryRelativePath(now, reviewDigest),
 ): Promise<CandidateHistoryReservation> {
-  if (!/^\.opsx\/history\/builds\/[^/]+$/.test(relativePath)) {
+  if (!/^\.xirang\/history\/builds\/[^/]+$/.test(relativePath)) {
     throw new Error(`Invalid Candidate history path: ${relativePath}`);
   }
   const id = path.posix.basename(relativePath);
-  const buildsRoot = path.join(projectRoot, OPSX_DIR_NAME, 'history', 'builds');
+  const buildsRoot = path.join(projectRoot, XIRANG_DIR_NAME, 'history', 'builds');
   const directory = path.join(projectRoot, ...relativePath.split('/'));
   await fs.mkdir(buildsRoot, { recursive: true });
   await fs.mkdir(directory, { recursive: false });
@@ -50,7 +50,7 @@ export async function reserveCandidateHistory(
   try {
     await fs.writeFile(path.join(directory, 'build.md'), buildBytes);
     for (const name of ['architecture', 'specs'] as const) {
-      const source = path.join(projectRoot, OPSX_DIR_NAME, name);
+      const source = path.join(projectRoot, XIRANG_DIR_NAME, name);
       const target = path.join(directory, 'previous', name);
       if (await fs.stat(source).then(() => true, () => false)) {
         await fs.cp(source, target, {

@@ -9,14 +9,14 @@ import type { CommandContent, ToolCommandAdapter } from '../types.js';
 
 /**
  * CoStrict adapter for command generation.
- * File path: .cospec/opsx/commands/opsx-<id>.md
+ * File path: .cospec/xirang/commands/xirang-<id>.md
  * Frontmatter: description, argument-hint
  */
 export const costrictAdapter: ToolCommandAdapter = {
   toolId: 'costrict',
 
   getFilePath(commandId: string): string {
-    return path.join('.cospec', 'opsx', 'commands', `opsx-${commandId}.md`);
+    return path.join('.cospec', 'xirang', 'commands', `xirang-${commandId}.md`);
   },
 
   formatFile(content: CommandContent): string {

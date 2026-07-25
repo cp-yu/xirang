@@ -13,7 +13,7 @@ describe('Candidate initialization', () => {
 
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-candidate-init-'));
-    await fs.mkdir(path.join(root, '.opsx'), { recursive: true });
+    await fs.mkdir(path.join(root, '.xirang'), { recursive: true });
   });
 
   afterEach(async () => {
@@ -22,7 +22,7 @@ describe('Candidate initialization', () => {
 
   it('creates a clean Candidate atomically', async () => {
     const result = await initializeCandidate(root, { kind: 'clean' });
-    const candidate = path.join(root, '.opsx', 'candidate');
+    const candidate = path.join(root, '.xirang', 'candidate');
 
     expect(result.active).toBe(true);
     expect(await exists(path.join(candidate, 'candidate.yaml'))).toBe(true);
@@ -31,12 +31,12 @@ describe('Candidate initialization', () => {
       'model.c4', 'relations.c4', 'specification.c4', 'views.c4',
     ]);
     expect(await fs.readdir(path.join(candidate, 'specs'))).toEqual([]);
-    expect(await exists(path.join(root, '.opsx', 'architecture'))).toBe(false);
+    expect(await exists(path.join(root, '.xirang', 'architecture'))).toBe(false);
   });
 
   it('copies current formal Architecture and Specs byte-for-byte', async () => {
-    const architecture = path.join(root, '.opsx', 'architecture');
-    const spec = path.join(root, '.opsx', 'specs', 'sample', 'spec.md');
+    const architecture = path.join(root, '.xirang', 'architecture');
+    const spec = path.join(root, '.xirang', 'specs', 'sample', 'spec.md');
     await fs.mkdir(architecture, { recursive: true });
     await fs.mkdir(path.dirname(spec), { recursive: true });
     await fs.writeFile(path.join(architecture, 'model.c4'), Buffer.from([0x6d, 0x0a]));
@@ -46,14 +46,14 @@ describe('Candidate initialization', () => {
 
     await initializeCandidate(root, { kind: 'current' });
 
-    expect(await fs.readFile(path.join(root, '.opsx', 'candidate', 'architecture', 'model.c4')))
+    expect(await fs.readFile(path.join(root, '.xirang', 'candidate', 'architecture', 'model.c4')))
       .toEqual(Buffer.from([0x6d, 0x0a]));
-    expect(await fs.readFile(path.join(root, '.opsx', 'candidate', 'specs', 'sample', 'spec.md')))
+    expect(await fs.readFile(path.join(root, '.xirang', 'candidate', 'specs', 'sample', 'spec.md')))
       .toEqual(Buffer.from([0x73, 0x0a]));
-    expect(await exists(path.join(root, '.opsx', 'candidate', 'architecture', '.likec4'))).toBe(false);
+    expect(await exists(path.join(root, '.xirang', 'candidate', 'architecture', '.likec4'))).toBe(false);
   });
 
-  it('copies an explicitly specified OPSX source', async () => {
+  it('copies an explicitly specified Xirang source', async () => {
     const source = path.join(root, 'baseline');
     await fs.mkdir(path.join(source, 'architecture'), { recursive: true });
     await fs.mkdir(path.join(source, 'specs'), { recursive: true });
@@ -61,7 +61,7 @@ describe('Candidate initialization', () => {
 
     await initializeCandidate(root, { kind: 'path', path: source });
 
-    const metadata = await fs.readFile(path.join(root, '.opsx', 'candidate', 'candidate.yaml'), 'utf8');
+    const metadata = await fs.readFile(path.join(root, '.xirang', 'candidate', 'candidate.yaml'), 'utf8');
     expect(metadata).toContain('kind: path');
     expect(metadata).toContain('reference: baseline');
   });
@@ -78,7 +78,7 @@ describe('Candidate initialization', () => {
     await fs.symlink(path.join(root, 'outside'), path.join(source, 'architecture', 'linked.c4'));
 
     await expect(initializeCandidate(root, { kind: 'path', path: source })).rejects.toThrow(/symlink/i);
-    expect(await exists(path.join(root, '.opsx', 'candidate'))).toBe(false);
+    expect(await exists(path.join(root, '.xirang', 'candidate'))).toBe(false);
   });
 
   it('rejects a symlinked source root', async () => {
@@ -89,6 +89,6 @@ describe('Candidate initialization', () => {
     await fs.symlink(architecture, path.join(source, 'architecture'));
 
     await expect(initializeCandidate(root, { kind: 'path', path: source })).rejects.toThrow(/symlink/i);
-    expect(await exists(path.join(root, '.opsx', 'candidate'))).toBe(false);
+    expect(await exists(path.join(root, '.xirang', 'candidate'))).toBe(false);
   });
 });

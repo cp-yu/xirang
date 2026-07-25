@@ -125,12 +125,12 @@ export { SearchControl } from './components/SearchControl'
 export { DefaultMantineProvider } from './context/DefaultMantineProvider'
 export { FramerMotionConfig } from './context/FramerMotionConfig'
 export {
-  type OpsxSpecContent,
-  type OpsxSpecLoader,
-  type OpsxDiffEntry,
-  type OpsxRuntimeManifest,
-  type OpsxRuntimeVariant,
-  OpsxSpecLoaderProvider,
-  useOpsxSpecLoader,
-  useOpsxVariants,
-} from './opsx/SpecLoaderContext'
+  type XirangSpecContent,
+  type XirangSpecLoader,
+  type XirangDiffEntry,
+  type XirangRuntimeManifest,
+  type XirangRuntimeVariant,
+  XirangSpecLoaderProvider,
+  useXirangSpecLoader,
+  useXirangVariants,
+} from './xirang/SpecLoaderContext'

@@ -8,7 +8,7 @@ export function renderRelationWorkflowSummary(): string {
 }
 
 /** Legacy YAML compatibility template; active architecture-delta help uses the v1 reference below. */
-export function renderOpsxDeltaTemplate(): string {
+export function renderXirangDeltaTemplate(): string {
   const relationHelp = RelationDefinitionRegistry
     .map(({ type, direction, useWhen, notePolicy }) => {
       const note = notePolicy.allowed ? `note 可选，最多 ${notePolicy.maxLength} 字符` : '禁止 note';
@@ -69,7 +69,7 @@ ${example}
 \`\`\``;
   }).join('\n\n');
 
-  return `# OPSX Relation Authoring
+  return `# Xirang Relation Authoring
 
 ## 选择规则
 
@@ -96,7 +96,7 @@ ${definitions}
 
 export const GENERATED_RELATION_FILES = [
   {
-    path: '.opsx/references/opsx-relation-authoring.md',
+    path: '.xirang/references/xirang-relation-authoring.md',
     render: renderRelationAuthoringReference,
   },
 ] as const;

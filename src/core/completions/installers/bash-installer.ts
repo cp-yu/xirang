@@ -15,8 +15,8 @@ export class BashInstaller {
    * Markers for .bashrc configuration management
    */
   private readonly BASHRC_MARKERS = {
-    start: '# OPSX:START',
-    end: '# OPSX:END',
+    start: '# Xirang:START',
+    end: '# Xirang:END',
   };
 
   constructor(homeDir: string = os.homedir()) {
@@ -61,7 +61,7 @@ export class BashInstaller {
     const localCompletionDir = path.join(this.homeDir, '.local', 'share', 'bash-completion', 'completions');
 
     // For user installation, use local directory
-    return path.join(localCompletionDir, 'opsx');
+    return path.join(localCompletionDir, 'xirang');
   }
 
   /**
@@ -100,9 +100,9 @@ export class BashInstaller {
    * @returns Configuration content
    */
   private generateBashrcConfig(completionsDir: string): string {
-    const completionFile = path.join(completionsDir, 'opsx');
+    const completionFile = path.join(completionsDir, 'xirang');
     return [
-      '# OPSX shell completions configuration',
+      '# Xirang shell completions configuration',
       `if [ -f "${completionFile}" ]; then`,
       `  . "${completionFile}"`,
       'fi',
@@ -117,7 +117,7 @@ export class BashInstaller {
    */
   async configureBashrc(completionsDir: string): Promise<boolean> {
     // Check if auto-configuration is disabled
-    if (process.env.OPSX_NO_AUTO_CONFIG === '1') {
+    if (process.env.XIRANG_NO_AUTO_CONFIG === '1') {
       return false;
     }
 
@@ -318,7 +318,7 @@ export class BashInstaller {
       '',
       'To enable completions, add the following to your ~/.bashrc file:',
       '',
-      `  # Source OPSX completions`,
+      `  # Source Xirang completions`,
       `  if [ -d "${completionsDir}" ]; then`,
       `    for f in "${completionsDir}"/*; do`,
       '      [ -f "$f" ] && . "$f"',

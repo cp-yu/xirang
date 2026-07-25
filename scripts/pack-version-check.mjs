@@ -53,12 +53,12 @@ function main() {
   let tgzPath;
 
   try {
-    log(`Packing @fission-ai/opsx@${expected}...`);
+    log(`Packing @fission-ai/xirang@${expected}...`);
     const filename = npmPack();
     tgzPath = path.resolve(filename);
     log(`Created: ${tgzPath}`);
 
-    work = mkdtempSync(path.join(tmpdir(), 'opsx-pack-check-'));
+    work = mkdtempSync(path.join(tmpdir(), 'xirang-pack-check-'));
     log(`Temp dir: ${work}`);
 
     // Make a tiny project
@@ -80,7 +80,7 @@ function main() {
     run('npm', ['install', tgzPath, '--silent', '--no-audit', '--no-fund'], { cwd: work, env });
 
     // Run the installed CLI via Node to avoid bin resolution/platform issues
-    const binRel = path.join('node_modules', '@fission-ai', 'opsx', 'bin', 'opsx.js');
+    const binRel = path.join('node_modules', '@fission-ai', 'xirang', 'bin', 'xirang.js');
     const actual = run(process.execPath, [binRel, '--version'], { cwd: work }).trim();
 
     if (actual !== expected) {

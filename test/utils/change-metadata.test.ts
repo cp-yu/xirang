@@ -71,7 +71,7 @@ describe('writeChangeMetadata', () => {
 
   beforeEach(async () => {
     testDir = path.join(os.tmpdir(), `opsx-test-${randomUUID()}`);
-    changeDir = path.join(testDir, '.opsx', 'changes', 'test-change');
+    changeDir = path.join(testDir, '.xirang', 'changes', 'test-change');
     await fs.mkdir(changeDir, { recursive: true });
   });
 
@@ -85,7 +85,7 @@ describe('writeChangeMetadata', () => {
       created: '2025-01-05',
     });
 
-    const metaPath = path.join(changeDir, '.opsx.yaml');
+    const metaPath = path.join(changeDir, '.xirang.yaml');
     const content = await fs.readFile(metaPath, 'utf-8');
 
     expect(content).toContain('schema: spec-driven');
@@ -108,7 +108,7 @@ describe('readChangeMetadata', () => {
 
   beforeEach(async () => {
     testDir = path.join(os.tmpdir(), `opsx-test-${randomUUID()}`);
-    changeDir = path.join(testDir, '.opsx', 'changes', 'test-change');
+    changeDir = path.join(testDir, '.xirang', 'changes', 'test-change');
     await fs.mkdir(changeDir, { recursive: true });
   });
 
@@ -122,7 +122,7 @@ describe('readChangeMetadata', () => {
   });
 
   it('should read valid metadata', async () => {
-    const metaPath = path.join(changeDir, '.opsx.yaml');
+    const metaPath = path.join(changeDir, '.xirang.yaml');
     await fs.writeFile(
       metaPath,
       'schema: spec-driven\ncreated: "2025-01-05"\n',
@@ -137,21 +137,21 @@ describe('readChangeMetadata', () => {
   });
 
   it('should throw ChangeMetadataError for invalid YAML', async () => {
-    const metaPath = path.join(changeDir, '.opsx.yaml');
+    const metaPath = path.join(changeDir, '.xirang.yaml');
     await fs.writeFile(metaPath, '{ invalid yaml', 'utf-8');
 
     expect(() => readChangeMetadata(changeDir)).toThrow(ChangeMetadataError);
   });
 
   it('should throw ChangeMetadataError for missing schema field', async () => {
-    const metaPath = path.join(changeDir, '.opsx.yaml');
+    const metaPath = path.join(changeDir, '.xirang.yaml');
     await fs.writeFile(metaPath, 'created: "2025-01-05"\n', 'utf-8');
 
     expect(() => readChangeMetadata(changeDir)).toThrow(ChangeMetadataError);
   });
 
   it('should throw ChangeMetadataError for unknown schema', async () => {
-    const metaPath = path.join(changeDir, '.opsx.yaml');
+    const metaPath = path.join(changeDir, '.xirang.yaml');
     await fs.writeFile(metaPath, 'schema: unknown-schema\n', 'utf-8');
 
     expect(() => readChangeMetadata(changeDir)).toThrow(/spec-driven/);
@@ -164,7 +164,7 @@ describe('resolveSchemaForChange', () => {
 
   beforeEach(async () => {
     testDir = path.join(os.tmpdir(), `opsx-test-${randomUUID()}`);
-    changeDir = path.join(testDir, '.opsx', 'changes', 'test-change');
+    changeDir = path.join(testDir, '.xirang', 'changes', 'test-change');
     await fs.mkdir(changeDir, { recursive: true });
   });
 
@@ -173,7 +173,7 @@ describe('resolveSchemaForChange', () => {
   });
 
   it('should reject unsupported explicit schema', async () => {
-    const metaPath = path.join(changeDir, '.opsx.yaml');
+    const metaPath = path.join(changeDir, '.xirang.yaml');
     await fs.writeFile(metaPath, 'schema: spec-driven\n', 'utf-8');
 
     expect(() => resolveSchemaForChange(changeDir, 'custom-schema')).toThrow(
@@ -182,7 +182,7 @@ describe('resolveSchemaForChange', () => {
   });
 
   it('should return schema from metadata when no explicit schema', async () => {
-    const metaPath = path.join(changeDir, '.opsx.yaml');
+    const metaPath = path.join(changeDir, '.xirang.yaml');
     await fs.writeFile(metaPath, 'schema: spec-driven\n', 'utf-8');
 
     const result = resolveSchemaForChange(changeDir);
@@ -195,14 +195,14 @@ describe('resolveSchemaForChange', () => {
   });
 
   it('should fail when metadata read fails', async () => {
-    const metaPath = path.join(changeDir, '.opsx.yaml');
+    const metaPath = path.join(changeDir, '.xirang.yaml');
     await fs.writeFile(metaPath, '{ invalid yaml', 'utf-8');
 
     expect(() => resolveSchemaForChange(changeDir)).toThrow(ChangeMetadataError);
   });
 
   it('should ignore a retired bootstrap project config and use the fixed default', async () => {
-    const configDir = path.join(testDir, '.opsx');
+    const configDir = path.join(testDir, '.xirang');
     await fs.mkdir(configDir, { recursive: true });
     await fs.writeFile(path.join(configDir, 'config.yaml'), 'schema: bootstrap\n', 'utf-8');
 

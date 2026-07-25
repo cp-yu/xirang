@@ -1,4 +1,4 @@
-import { OPSX_DIR_NAME } from '../core/config.js';
+import { XIRANG_DIR_NAME } from '../core/config.js';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -97,7 +97,7 @@ function applyElementExtension(content: string, qualifiedId: string, extension: 
 }
 
 function formalizeSpecPaths(content: string, changeName?: string): string {
-  return changeName ? content.replaceAll(`.opsx/changes/${changeName}/specs/`, '.opsx/specs/') : content;
+  return changeName ? content.replaceAll(`.xirang/changes/${changeName}/specs/`, '.xirang/specs/') : content;
 }
 
 function copyDurableArchitecture(source: string, destination: string): Promise<void> {
@@ -195,7 +195,7 @@ function renderElementTree(
 }
 
 function renderSpecification(model: SemanticArchitectureModel): string {
-  const lines = [`opsx {`, `  languageVersion ${quote(model.languageVersion ?? '1')}`, `}`, '', 'specification {'];
+  const lines = [`xirang {`, `  languageVersion ${quote(model.languageVersion ?? '1')}`, `}`, '', 'specification {'];
   for (const [kind, constraints] of Object.entries(model.metamodel.elements).sort(([left], [right]) => left.localeCompare(right))) {
     const properties = [
       ...(constraints.root ? ['root true'] : []),
@@ -203,14 +203,14 @@ function renderSpecification(model: SemanticArchitectureModel): string {
       ...(constraints.parents ? [`parents [${constraints.parents.join(', ')}]`] : []),
       ...(constraints.children ? [`children [${constraints.children.join(', ')}]`] : []),
     ];
-    lines.push(properties.length ? `  element ${kind} { opsx { ${properties.join(' ')} } }` : `  element ${kind}`);
+    lines.push(properties.length ? `  element ${kind} { xirang { ${properties.join(' ')} } }` : `  element ${kind}`);
   }
   for (const [kind, constraints] of Object.entries(model.metamodel.relationships).sort(([left], [right]) => left.localeCompare(right))) {
     const properties = [
       ...(constraints.sourceKinds ? [`sourceKinds [${constraints.sourceKinds.join(', ')}]`] : []),
       ...(constraints.targetKinds ? [`targetKinds [${constraints.targetKinds.join(', ')}]`] : []),
     ];
-    lines.push(properties.length ? `  relationship ${kind} { opsx { ${properties.join(' ')} } }` : `  relationship ${kind}`);
+    lines.push(properties.length ? `  relationship ${kind} { xirang { ${properties.join(' ')} } }` : `  relationship ${kind}`);
   }
   lines.push('}', '');
   return lines.join('\n');
@@ -261,7 +261,7 @@ export async function writeSemanticArchitectureSnapshot(
   model: SemanticArchitectureModel,
   options: WriteSemanticArchitectureOptions = {},
 ): Promise<void> {
-  const architectureDir = path.join(projectRoot, OPSX_DIR_NAME, 'architecture');
+  const architectureDir = path.join(projectRoot, XIRANG_DIR_NAME, 'architecture');
   const rendered = renderModel(model);
   const writes = options.write ?? atomicWrite;
   await fs.mkdir(architectureDir, { recursive: true });
@@ -291,8 +291,8 @@ async function mergeV1ArchitectureDelta(
   options: MergeArchitectureDeltaOptions,
 ): Promise<void> {
   const modulePath = path.join(architectureDir, 'deltas', deltaModuleName(deltaPath, options.changeName));
-  const stagingRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-likec4-v1-merge-'));
-  const stagingArchitecture = path.join(stagingRoot, OPSX_DIR_NAME, 'architecture');
+  const stagingRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-likec4-v1-merge-'));
+  const stagingArchitecture = path.join(stagingRoot, XIRANG_DIR_NAME, 'architecture');
   try {
     await copyDurableArchitecture(architectureDir, stagingArchitecture);
     const stagedModule = path.join(stagingArchitecture, 'deltas', path.basename(modulePath));
@@ -326,7 +326,7 @@ async function mergeV1ArchitectureDelta(
 
 export async function mergeArchitectureDelta(projectRoot: string, deltaPath: string, options: MergeArchitectureDeltaOptions = {}): Promise<void> {
   const sourceDelta = await fs.readFile(deltaPath, 'utf8');
-  const architectureDir = path.join(projectRoot, OPSX_DIR_NAME, 'architecture');
+  const architectureDir = path.join(projectRoot, XIRANG_DIR_NAME, 'architecture');
   const architecture = await readLikeC4Architecture(projectRoot);
   if (architecture.profile === 'v1') {
     await mergeV1ArchitectureDelta(architectureDir, deltaPath, sourceDelta, options);
@@ -387,7 +387,7 @@ export async function mergeArchitectureDelta(projectRoot: string, deltaPath: str
     }));
   }
 
-  const staging = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-likec4-merge-'));
+  const staging = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-likec4-merge-'));
   try {
     await copyDurableArchitecture(architectureDir, staging);
     for (const [file, content] of contents) {

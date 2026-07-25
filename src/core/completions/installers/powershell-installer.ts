@@ -15,8 +15,8 @@ export class PowerShellInstaller {
    * Markers for PowerShell profile configuration management
    */
   private readonly PROFILE_MARKERS = {
-    start: '# OPSX:START',
-    end: '# OPSX:END',
+    start: '# Xirang:START',
+    end: '# Xirang:END',
   };
 
   constructor(homeDir: string = os.homedir()) {
@@ -151,7 +151,7 @@ export class PowerShellInstaller {
    */
   private generateProfileConfig(scriptPath: string): string {
     return [
-      '# OPSX shell completions configuration',
+      '# Xirang shell completions configuration',
       `if (Test-Path "${scriptPath}") {`,
       `    . "${scriptPath}"`,
       '}',
@@ -199,12 +199,12 @@ export class PowerShellInstaller {
           continue; // Already configured, skip
         }
 
-        // Add OPSX completion configuration with markers
+        // Add Xirang completion configuration with markers
         const opsxBlock = [
           '',
-          '# OPSX:START - OPSX completion (managed block, do not edit manually)',
+          '# Xirang:START - Xirang completion (managed block, do not edit manually)',
           scriptLine,
-          '# OPSX:END',
+          '# Xirang:END',
           '',
         ].join('\n');
 
@@ -249,13 +249,13 @@ export class PowerShellInstaller {
           continue;
         }
 
-        // Remove OPSX:START -> OPSX:END block
-        const startMarker = '# OPSX:START';
-        const endMarker = '# OPSX:END';
+        // Remove Xirang:START -> Xirang:END block
+        const startMarker = '# Xirang:START';
+        const endMarker = '# Xirang:END';
         const startIndex = profileContent.indexOf(startMarker);
 
         if (startIndex === -1) {
-          continue; // No OPSX block found
+          continue; // No Xirang block found
         }
 
         const endIndex = profileContent.indexOf(endMarker, startIndex);
@@ -372,7 +372,7 @@ export class PowerShellInstaller {
       '',
       `To enable completions, add the following to your PowerShell profile (${profilePath}):`,
       '',
-      '  # Source OPSX completions',
+      '  # Source Xirang completions',
       `  if (Test-Path "${installedPath}") {`,
       `      . "${installedPath}"`,
       '  }',

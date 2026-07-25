@@ -1,6 +1,6 @@
 # Customization
 
-OPSX provides project-level configuration and built-in schema inspection:
+Xirang provides project-level configuration and built-in schema inspection:
 
 | Level | What it does | Best for |
 |-------|--------------|----------|
@@ -11,23 +11,23 @@ OPSX provides project-level configuration and built-in schema inspection:
 
 ## Project Configuration
 
-The `.opsx/config.yaml` file is the easiest way to customize OPSX for your team. It lets you:
+The `.xirang/config.yaml` file is the easiest way to customize Xirang for your team. It lets you:
 
 - **Set a default schema** - Skip `--schema` on every command
-- **Set document prose language** - Tell OPSX which language to use for natural-language artifact body text
+- **Set document prose language** - Tell Xirang which language to use for natural-language artifact body text
 - **Inject project context** - Compile project background into prompt/runtime projection consumers
 - **Add per-artifact rules** - Compile artifact-scoped authoring constraints without leaking the whole raw config
 
 ### Quick Setup
 
 ```bash
-opsx setup
+xirang setup
 ```
 
 This walks you through creating a config interactively. Or create one manually:
 
 ```yaml
-# .opsx/config.yaml
+# .xirang/config.yaml
 schema: spec-driven
 docLanguage: zh-CN
 
@@ -46,9 +46,9 @@ rules:
     - Reference existing patterns before inventing new ones
 ```
 
-`.opsx/config.yaml` stays intentionally small. OPSX compiles its validated whitelist fields into prompt and runtime projection bundles for downstream consumers.
+`.xirang/config.yaml` stays intentionally small. Xirang compiles its validated whitelist fields into prompt and runtime projection bundles for downstream consumers.
 
-`docLanguage` only applies to natural-language prose in OPSX artifacts. Template headings, IDs, schema keys, relation types, BDD keywords, file paths, commands, and code identifiers stay in their canonical form.
+`docLanguage` only applies to natural-language prose in Xirang artifacts. Template headings, IDs, schema keys, relation types, BDD keywords, file paths, commands, and code identifiers stay in their canonical form.
 
 ### How It Works
 
@@ -56,15 +56,15 @@ rules:
 
 ```bash
 # Without config
-opsx new change my-feature --schema spec-driven
+xirang new change my-feature --schema spec-driven
 
 # With config - schema is automatic
-opsx new change my-feature
+xirang new change my-feature
 ```
 
 **Context and rules injection:**
 
-When generating any artifact, OPSX exposes a compiled projection bundle plus compatibility fields derived from the same normalized inputs:
+When generating any artifact, Xirang exposes a compiled projection bundle plus compatibility fields derived from the same normalized inputs:
 
 ```xml
 <config_projection>
@@ -96,35 +96,35 @@ Tech stack: TypeScript, React, Node.js, PostgreSQL
 
 ### Schema Resolution Order
 
-When OPSX needs a schema, it checks in this order:
+When Xirang needs a schema, it checks in this order:
 
 1. CLI flag: `--schema <name>`
-2. Change metadata (`.opsx.yaml` in the change folder)
-3. Project config (`.opsx/config.yaml`)
+2. Change metadata (`.xirang.yaml` in the change folder)
+3. Project config (`.xirang/config.yaml`)
 4. Default (`spec-driven`)
 
 ---
 
 ## Built-in Schemas
 
-OPSX resolves one package-owned schema:
+Xirang resolves one package-owned schema:
 
 - `spec-driven` for proposal, specs, design, tasks, and apply workflows.
 
-Project-local `.opsx/schemas/` directories and user schema directories are ignored. `opsx schema init` and `opsx schema fork` are not available.
+Project-local `.xirang/schemas/` directories and user schema directories are ignored. `xirang schema init` and `xirang schema fork` are not available.
 
 Validate one or both built-in schemas:
 
 ```bash
-opsx schema validate spec-driven
-opsx schema validate
+xirang schema validate spec-driven
+xirang schema validate
 ```
 
 Inspect their package locations:
 
 ```bash
-opsx schema which spec-driven
-opsx schema which --all
+xirang schema which spec-driven
+xirang schema which --all
 ```
 
 Schema binding still follows CLI option → change metadata → project config → `spec-driven`, and no retired schema name is accepted.

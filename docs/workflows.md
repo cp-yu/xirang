@@ -1,22 +1,22 @@
 # Workflows
 
-OPSX exposes six managed workflows over one Semantic Model: versioned LikeC4 graph modules plus element-owned Markdown contract modules.
+Xirang exposes six managed workflows over one Semantic Model: versioned LikeC4 graph modules plus element-owned Markdown contract modules.
 
 ## Current Surface
 
-- `/opsx:propose`
-- `/opsx:explore`
-- `/opsx:apply`
-- `/opsx:archive`
-- `/opsx:build`
-- `/opsx:snack`
+- `/xirang:propose`
+- `/xirang:explore`
+- `/xirang:apply`
+- `/xirang:archive`
+- `/xirang:build`
+- `/xirang:snack`
 
 ## Typical Flows
 
 ### Standard Change
 
 ```text
-/opsx:propose ──► /opsx:apply ──► /opsx:archive
+/xirang:propose ──► /xirang:apply ──► /xirang:archive
 ```
 
 Propose authors Semantic Deltas. Apply implements serial TDD checks. Archive verifies and atomically syncs the authorized delta.
@@ -24,7 +24,7 @@ Propose authors Semantic Deltas. Apply implements serial TDD checks. Archive ver
 ### Explore First
 
 ```text
-/opsx:explore ──► /opsx:propose ──► /opsx:apply ──► /opsx:archive
+/xirang:explore ──► /xirang:propose ──► /xirang:apply ──► /xirang:archive
 ```
 
 Use this when behavior or architecture decisions remain undefined.
@@ -32,7 +32,7 @@ Use this when behavior or architecture decisions remain undefined.
 ### Project Build
 
 ```text
-/opsx:build ──► opsx candidate validate ──► user confirmation ──► opsx candidate promote
+/xirang:build ──► xirang candidate validate ──► user confirmation ──► xirang candidate promote
 ```
 
 Project Build asks for exploration scope and a starting point, then authors Architecture and Specs as one isolated Candidate. The CLI validates exact bytes and promotion requires the user-confirmed digest.
@@ -40,7 +40,7 @@ Project Build asks for exploration scope and a starting point, then authors Arch
 ### Code-First Reconciliation
 
 ```text
-/opsx:snack ──► /opsx:archive
+/xirang:snack ──► /xirang:archive
 ```
 
-Use this when code already exists and OPSX artifacts must be reconciled afterward.
+Use this when code already exists and Xirang artifacts must be reconciled afterward.

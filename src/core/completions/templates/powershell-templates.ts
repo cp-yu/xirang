@@ -6,7 +6,7 @@
 export const POWERSHELL_DYNAMIC_HELPERS = `# Dynamic completion helpers
 
 function Get-OPSXChanges {
-    $output = opsx __complete changes 2>$null
+    $output = xirang __complete changes 2>$null
     if ($output) {
         $output | ForEach-Object {
             ($_ -split "\\t")[0]
@@ -15,7 +15,7 @@ function Get-OPSXChanges {
 }
 
 function Get-OPSXSpecs {
-    $output = opsx __complete specs 2>$null
+    $output = xirang __complete specs 2>$null
     if ($output) {
         $output | ForEach-Object {
             ($_ -split "\\t")[0]

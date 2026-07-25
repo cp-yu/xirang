@@ -6,27 +6,27 @@
  */
 import type { SkillTemplate } from '../types.js';
 import {
-  OPSX_PHILOSOPHY,
-  OPSX_SHARED_CONTEXT,
+  XIRANG_PHILOSOPHY,
+  XIRANG_SHARED_CONTEXT,
   VERIFY_CLI_JSON_SCHEMA_REFERENCE,
   VERIFY_ERROR_RECOVERY_GUIDE,
   VERIFY_STATE_MACHINE_DIAGRAM,
-} from '../fragments/opsx-fragments.js';
+} from '../fragments/xirang-fragments.js';
 
 const APPLY_STEP_1_PREPARATION_REFERENCE = `
 # Apply Step 1: Preparation
 
-1. Select the change. If no clear name is provided, infer only from explicit context; otherwise run \`opsx list --json\` and ask. Always announce "Using change: <name>".
-2. Run \`opsx status --change "<name>" --json\` and \`opsx instructions apply --change "<name>" --json\`. Read \`configProjection.prompt.fragments\` for \`proseLanguage\` and \`apply.defaultIsolation\`. Handle \`state: "needs_verify"\` by continuing at Phase 1 and \`state: "needs_seal"\` by continuing at Phase 2/3.
-3. Load the shared OPSX Semantic Model context before reading change artifacts.
-${OPSX_SHARED_CONTEXT}
+1. Select the change. If no clear name is provided, infer only from explicit context; otherwise run \`xirang list --json\` and ask. Always announce "Using change: <name>".
+2. Run \`xirang status --change "<name>" --json\` and \`xirang instructions apply --change "<name>" --json\`. Read \`configProjection.prompt.fragments\` for \`proseLanguage\` and \`apply.defaultIsolation\`. Handle \`state: "needs_verify"\` by continuing at Phase 1 and \`state: "needs_seal"\` by continuing at Phase 2/3.
+3. Load the shared Xirang Semantic Model context before reading change artifacts.
+${XIRANG_SHARED_CONTEXT}
 4. Read every context file listed by the CLI. Inspect \`changeDir/.verify-result.json\` and \`## Remediation\`; unresolved CRITICAL/code_fix/artifact_fix items take priority.
 5. Use the shared query protocol to read affected elements, refinement, Element Contracts, and relationships.
 6. In a Git repository, run \`git branch --show-current\`, \`git rev-parse HEAD\`, and \`git status --short\`. Select branch, worktree, or current-branch isolation from explicit user input or \`apply.defaultIsolation\`; only \`ask\` prompts when no method was selected. If the provisional method is branch or current branch and the initial workspace is dirty, ask the user to switch to worktree isolation, include the existing dirty state in the baseline, or stop Apply. Never alter that state automatically. Finalize the isolation method only after this gate.
 7. Record the selected method for Step 3. Do not read the selected reference during Preparation. At Step 3, read exactly one matching reference:
-   - branch: \`.opsx/references/opsx-apply-step-3-branch-isolation.md\`
-   - worktree: \`.opsx/references/opsx-apply-step-3-worktree-isolation.md\`
-   - none/current branch: \`.opsx/references/opsx-apply-step-3-current-branch.md\`
+   - branch: \`.xirang/references/xirang-apply-step-3-branch-isolation.md\`
+   - worktree: \`.xirang/references/xirang-apply-step-3-worktree-isolation.md\`
+   - none/current branch: \`.xirang/references/xirang-apply-step-3-current-branch.md\`
    The selected reference is the complete method contract. You MUST NOT read the other two isolation references.
 `.trim();
 
@@ -61,7 +61,7 @@ const APPLY_STEP_3_WORKTREE_ISOLATION_REFERENCE = `
 Use this reference only after Step 1 selects worktree isolation. Use native Git; do not delegate worktree creation to another skill.
 
 1. Record \`originalBranch\`, resolve the current \`HEAD\` SHA as the immutable evidence baseline \`baseCommit\`, and create a clean worktree from the current \`HEAD\`, normally with \`git worktree add .worktrees/<change-name> -b <change-name> HEAD\`. Existing dirty files are not carried implicitly.
-2. Build the changed file set from all files under \`.opsx/changes/<name>/\`, every task \`Files\` path, Check-referenced paths, unfinished Remediation paths, and user-confirmed paths. Do not infer ownership or add unrelated dirty files.
+2. Build the changed file set from all files under \`.xirang/changes/<name>/\`, every task \`Files\` path, Check-referenced paths, unfinished Remediation paths, and user-confirmed paths. Do not infer ownership or add unrelated dirty files.
 3. If one file appears to mix this change with unrelated edits, do not split or infer hunks. Ask the user to include the entire file, split it manually and retry, or abandon worktree isolation. Treat binary files as entire-file units.
 4. Reproduce the final state of each changed file set entry in the worktree: copy modified and added files, and reproduce deletions. The transfer does not preserve staged versus unstaged status.
 5. Compare source and target file state and SHA-256 for every present transferred entry. Represent a deleted final state as \`sourceState: "deleted"\` and \`sourceHash: null\`; never invent a hash for absent bytes. In the worktree, rerun status, apply instructions, and the targeted validation named by the affected Checks. Stop on any mismatch or validation failure.
@@ -84,10 +84,10 @@ Use this reference only after Step 1 selects current-branch isolation.
 const APPLY_STEP_4_PHASE1_VERIFICATION_REFERENCE = `
 # Apply Step 4: Phase 1 Verification
 
-1. Delegate to the clean-context \`opsx-reviewer\` agent with \`context: "fresh"\` and the current changeName, absolute changeDir, and absolute projectRoot.
+1. Delegate to the clean-context \`xirang-reviewer\` agent with \`context: "fresh"\` and the current changeName, absolute changeDir, and absolute projectRoot.
 2. Validate the reviewer payload against the Phase 1 input contract. Reject malformed or incomplete payloads rather than repairing them by inference.
 3. Apply only CRITICAL \`writeBackPlan\` entries to \`tasks.md\`; do not write back WARNING or SUGGESTION items.
-4. After writeback completes, persist the validated reviewer payload with \`opsx verify phase1 "<change-name>" --input '<json>' --json\`. This ordering ensures the CLI records \`tasksFileHash\` from the final written tasks file.
+4. After writeback completes, persist the validated reviewer payload with \`xirang verify phase1 "<change-name>" --input '<json>' --json\`. This ordering ensures the CLI records \`tasksFileHash\` from the final written tasks file.
 5. On FAIL_NEEDS_REMEDIATION, return to Phase 0. On PASS or PASS_WITH_WARNINGS, continue to Phase 2.
 `.trim();
 
@@ -104,20 +104,20 @@ Use git commits as checkpoints; never use stash or tags. Phase 0 and Phase 1 cre
    git commit -m "wip: opt-checkpoint-r0 (baseline)"
    \`\`\`
    Do not use an empty commit. If the workspace is clean, reuse only an already verified baseline or an explicitly recorded user-owned complete implementation commit; otherwise stop. Persist its SHA as \`phase2BaselineCommit\` in \`.apply-isolation.json\`.
-4. Delegate to fresh \`opsx-optimizer\` with changeName, absolute changeDir, and absolute projectRoot. Submit its strict optimizer reconciliation envelope:
+4. Delegate to fresh \`xirang-optimizer\` with changeName, absolute changeDir, and absolute projectRoot. Submit its strict optimizer reconciliation envelope:
    \`\`\`bash
-   opsx verify phase2 "<change-name>" --type=optimization --input '<json>' --json
+   xirang verify phase2 "<change-name>" --type=optimization --input '<json>' --json
    \`\`\`
 5. If optimizer returns blockingObservations, return to Phase 1 remediation. If no finding is selected, Phase 2 is terminal. Otherwise read selected finding evidence, keyDesign, preservationConstraints, validation, and priorityReason.
 6. If project evidence contradicts the finding or keyDesign, submit masterChallenge and re-run fresh optimizer reconciliation. Do not skip or reject it yourself.
 7. Before editing, enforce selected-target freshness:
    \`\`\`bash
-   opsx verify phase2 "<change-name>" --type=optimization --input '{"status":"OPTIMIZATION_PROPOSED","mode":"begin-implementation","findingId":"<finding-id>"}' --json
+   xirang verify phase2 "<change-name>" --type=optimization --input '{"status":"OPTIMIZATION_PROPOSED","mode":"begin-implementation","findingId":"<finding-id>"}' --json
    \`\`\`
 8. Master implements only the selected finding with TDD. Preserve the finding's constraints and record any non-substantive implementation differences.
-9. Delegate to fresh \`opsx-reviewer\` for speculative verification. It verifies specs and preservationConstraints, not optimization value. Persist its verdict first so failed history and \`failedDirections\` become durable:
+9. Delegate to fresh \`xirang-reviewer\` for speculative verification. It verifies specs and preservationConstraints, not optimization value. Persist its verdict first so failed history and \`failedDirections\` become durable:
    \`\`\`bash
-   opsx verify phase2 "<change-name>" --type=verification --input '{"result":"PASS","findingId":"<finding-id>","issues":[]}' --json
+   xirang verify phase2 "<change-name>" --type=verification --input '{"result":"PASS","findingId":"<finding-id>","issues":[]}' --json
    \`\`\`
 10. On PASS, save the successful checkpoint, then re-run optimizer reconciliation against current code:
     \`\`\`bash
@@ -135,7 +135,7 @@ ${VERIFY_STATE_MACHINE_DIAGRAM}
 const APPLY_STEP_6_PHASE3_SEAL_REFERENCE = `
 # Apply Step 6: Phase 3 Seal
 
-Run \`opsx verify seal "<change-name>" --json\`. If seal fails, preserve diagnostics, convert them into remediation context, map the remediation to the affected task, and return to Phase 0 recovery. Do not pause on the first seal failure.
+Run \`xirang verify seal "<change-name>" --json\`. If seal fails, preserve diagnostics, convert them into remediation context, map the remediation to the affected task, and return to Phase 0 recovery. Do not pause on the first seal failure.
 `.trim();
 
 const APPLY_STEP_7_OUTPUT_REFERENCE = `
@@ -146,28 +146,28 @@ Report schema, progress, current task, completed tasks this session, and final s
 
 export function getApplyChangeSkillTemplate(): SkillTemplate {
   return {
-    name: 'opsx-apply-change',
-    description: 'Implement tasks from an OPSX change. Use when the user wants to start implementing, continue implementation, or work through tasks.',
-    instructions: `Implement tasks from an OPSX change.
+    name: 'xirang-apply-change',
+    description: 'Implement tasks from an Xirang change. Use when the user wants to start implementing, continue implementation, or work through tasks.',
+    instructions: `Implement tasks from an Xirang change.
 
-${OPSX_PHILOSOPHY}
+${XIRANG_PHILOSOPHY}
 
 For workflow-managed writes, read the resolved file definition before its instruction and template, and MUST NOT copy definitions, config projections, or reasoning into artifacts.
 
 ## Flow Outline
 
-1. Step 1: Preparation — read \`.opsx/references/opsx-apply-step-1-preparation.md\`.
-2. Step 2: Pre-flight scan — read \`.opsx/references/opsx-apply-step-2-preflight-scan.md\`.
+1. Step 1: Preparation — read \`.xirang/references/xirang-apply-step-1-preparation.md\`.
+2. Step 2: Pre-flight scan — read \`.xirang/references/xirang-apply-step-2-preflight-scan.md\`.
 3. Step 3: Isolation router — read the one method reference selected by Step 1; do not load mutually exclusive methods.
 4. Phase 0 implementation — Master executes pending tasks serially with the implementation discipline below.
-5. Step 4: Phase 1 verification — read \`.opsx/references/opsx-apply-step-4-phase1-verification.md\` and delegate to the clean-context \`opsx-reviewer\` agent.
-6. Step 5: Phase 2 optimization — read \`.opsx/references/opsx-apply-step-5-phase2-optimization.md\` and delegate to the clean-context \`opsx-optimizer\` agent when eligible.
-7. Step 6: Phase 3 seal — read \`.opsx/references/opsx-apply-step-6-phase3-seal.md\`.
-8. Step 7: Output — read \`.opsx/references/opsx-apply-step-7-output.md\`.
+5. Step 4: Phase 1 verification — read \`.xirang/references/xirang-apply-step-4-phase1-verification.md\` and delegate to the clean-context \`xirang-reviewer\` agent.
+6. Step 5: Phase 2 optimization — read \`.xirang/references/xirang-apply-step-5-phase2-optimization.md\` and delegate to the clean-context \`xirang-optimizer\` agent when eligible.
+7. Step 6: Phase 3 seal — read \`.xirang/references/xirang-apply-step-6-phase3-seal.md\`.
+8. Step 7: Output — read \`.xirang/references/xirang-apply-step-7-output.md\`.
 
 ## Implementation Discipline
 
-- Before implementation, run \`opsx arch query <elementId> --relations --depth 2 --json\`, then read owned Specs and current code. Use stable \`elementId\` as identity and FQN only as current source navigation.
+- Before implementation, run \`xirang arch query <elementId> --relations --depth 2 --json\`, then read owned Specs and current code. Use stable \`elementId\` as identity and FQN only as current source navigation.
 - Process unfinished \`## Remediation\` \`[code_fix]\` and \`[artifact_fix]\` items before pending tasks. Finish every Check in the current task before starting the next; never execute tasks in parallel.
 - Assess interface testability before writing tests for each behavior/code Check: inject external dependencies, prefer returned results over hidden side effects, and keep the public interface minimal.
 - Write or update a targeted test first. Exercise public behavior; mock only injected system boundaries, never internal collaborators.
@@ -177,10 +177,10 @@ For workflow-managed writes, read the resolved file definition before its instru
 - Update Check and remediation checkboxes only after their evidence passes. Preserve canonical headings, schema keys, IDs, commands, template tokens, and document-language projection.
 - For unexpected failures, read the full error, classify the layer, compare a working pattern, state one hypothesis, change one variable, and rerun the same check. Pause after two consecutive identical normalized errors or three failed fixes in one task.
 
-When Phase 3 seal passes, end with an explicit call-to-action: \`Archive ready. Run /opsx:archive <change-name> to complete the workflow.\``,
+When Phase 3 seal passes, end with an explicit call-to-action: \`Archive ready. Run /xirang:archive <change-name> to complete the workflow.\``,
     license: 'MIT',
-    compatibility: 'Requires opsx CLI.',
-    metadata: { author: 'opsx', version: '1.0' },
+    compatibility: 'Requires xirang CLI.',
+    metadata: { author: 'xirang', version: '1.0' },
     referenceFiles: [
       { path: 'references/apply-step-1-preparation.md', content: APPLY_STEP_1_PREPARATION_REFERENCE },
       { path: 'references/apply-step-2-preflight-scan.md', content: APPLY_STEP_2_PREFLIGHT_SCAN_REFERENCE },

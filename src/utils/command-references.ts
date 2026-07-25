@@ -16,7 +16,7 @@ interface RegisteredWorkflowReference {
 const REGISTERED_WORKFLOW_REFERENCES: readonly RegisteredWorkflowReference[] = getWorkflowSurfaces().map(
   (entry) => ({
     workflowId: entry.workflowId,
-    source: `/opsx:${entry.commandSlug}`,
+    source: `/xirang:${entry.commandSlug}`,
   })
 );
 
@@ -26,7 +26,7 @@ const REGISTERED_WORKFLOW_REFERENCES: readonly RegisteredWorkflowReference[] = g
  * - Codex uses `$<skillDirName>` (precise skill invocation metadata).
  * - Claude uses `/<skillDirName>`.
  * - Pi uses `/skill:<skillDirName>`.
- * - OpenCode uses `/opsx-<commandSlug>`.
+ * - OpenCode uses `/xirang-<commandSlug>`.
  * - Other tools use a neutral skill invocation phrase.
  */
 export function renderWorkflowInvocation(toolId: string, workflowId: WorkflowId): string {
@@ -42,7 +42,7 @@ export function renderWorkflowInvocation(toolId: string, workflowId: WorkflowId)
     return `/skill:${workflow.skillDirName}`;
   }
   if (toolId === 'opencode') {
-    return `/opsx-${workflow.commandSlug}`;
+    return `/xirang-${workflow.commandSlug}`;
   }
 
   return `invoke the ${workflow.skillDirName} skill`;

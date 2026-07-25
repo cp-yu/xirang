@@ -2,7 +2,7 @@ import { CompletionGenerator, CommandDefinition, FlagDefinition } from '../types
 import { ZSH_DYNAMIC_HELPERS } from '../templates/zsh-templates.js';
 
 /**
- * Generates Zsh completion scripts for the OPSX CLI.
+ * Generates Zsh completion scripts for the Xirang CLI.
  * Follows Zsh completion system conventions using the _opsx function.
  */
 export class ZshGenerator implements CompletionGenerator {
@@ -44,9 +44,9 @@ export class ZshGenerator implements CompletionGenerator {
     const helpers = ZSH_DYNAMIC_HELPERS;
 
     // Assemble final script with template literal
-    return `#compdef opsx
+    return `#compdef xirang
 
-# Zsh completion script for OPSX CLI
+# Zsh completion script for Xirang CLI
 # Auto-generated - do not edit manually
 
 _opsx() {
@@ -64,7 +64,7 @@ ${commandList}
 
   case $state in
     command)
-      _describe "opsx command" commands
+      _describe "xirang command" commands
       ;;
     args)
       case $words[1] in
@@ -76,7 +76,7 @@ ${commandCases}
 
 ${commandFunctions}
 ${helpers}
-compdef _opsx opsx
+compdef _opsx xirang
 `;
   }
 

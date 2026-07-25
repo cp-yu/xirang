@@ -37,7 +37,7 @@
     "astro": "catalog:astro",
     "astro-og-canvas": "catalog:astro",
     "canvaskit-wasm": "0.40.0",
-    "opsx-likec4": "workspace:*",
+    "xirang-likec4": "workspace:*",
     "vite": "catalog:vite",
     "react": "catalog:react",
     "react-dom": "catalog:react",

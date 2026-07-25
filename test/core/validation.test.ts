@@ -736,8 +736,8 @@ The system SHALL validate labels.
 
     it('should accept unlabeled MODIFIED scenarios without writing labels', async () => {
       const projectRoot = path.join(testDir, 'unlabeled-project');
-      const changeDir = path.join(projectRoot, '.opsx', 'changes', 'unlabeled-modified-scenario');
-      const mainSpecsDir = path.join(projectRoot, '.opsx', 'specs', 'test-spec');
+      const changeDir = path.join(projectRoot, '.xirang', 'changes', 'unlabeled-modified-scenario');
+      const mainSpecsDir = path.join(projectRoot, '.xirang', 'specs', 'test-spec');
       const specsDir = path.join(changeDir, 'specs', 'test-spec');
       await fs.mkdir(mainSpecsDir, { recursive: true });
       await fs.mkdir(specsDir, { recursive: true });

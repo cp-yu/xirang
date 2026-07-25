@@ -25,8 +25,8 @@ describe('telemetry/config', () => {
 
   function defaultConfigDir(): string {
     return os.platform() === 'win32'
-      ? path.join(tempDir, 'appdata', 'opsx')
-      : path.join(tempDir, '.config', 'opsx');
+      ? path.join(tempDir, 'appdata', 'xirang')
+      : path.join(tempDir, '.config', 'xirang');
   }
 
   function defaultConfigPath(): string {
@@ -67,7 +67,7 @@ describe('telemetry/config', () => {
 
       const result = getConfigPath();
 
-      expect(result).toBe(path.join(xdgConfigHome, 'opsx', 'config.json'));
+      expect(result).toBe(path.join(xdgConfigHome, 'xirang', 'config.json'));
     });
   });
 
@@ -103,9 +103,9 @@ describe('telemetry/config', () => {
 
     it('should migrate telemetry from legacy path when XDG_CONFIG_HOME is set', async () => {
       const xdgConfigHome = path.join(tempDir, 'xdg-config');
-      const legacyConfigDir = path.join(tempDir, '.config', 'opsx');
+      const legacyConfigDir = path.join(tempDir, '.config', 'xirang');
       const legacyConfigPath = path.join(legacyConfigDir, 'config.json');
-      const newConfigPath = path.join(xdgConfigHome, 'opsx', 'config.json');
+      const newConfigPath = path.join(xdgConfigHome, 'xirang', 'config.json');
       process.env.XDG_CONFIG_HOME = xdgConfigHome;
 
       fs.mkdirSync(legacyConfigDir, { recursive: true });
@@ -124,9 +124,9 @@ describe('telemetry/config', () => {
 
     it('should not overwrite invalid new config during legacy migration', async () => {
       const xdgConfigHome = path.join(tempDir, 'xdg-config');
-      const legacyConfigDir = path.join(tempDir, '.config', 'opsx');
+      const legacyConfigDir = path.join(tempDir, '.config', 'xirang');
       const legacyConfigPath = path.join(legacyConfigDir, 'config.json');
-      const newConfigDir = path.join(xdgConfigHome, 'opsx');
+      const newConfigDir = path.join(xdgConfigHome, 'xirang');
       const newConfigPath = path.join(newConfigDir, 'config.json');
       const invalidJson = '{ invalid json }';
       process.env.XDG_CONFIG_HOME = xdgConfigHome;
@@ -147,9 +147,9 @@ describe('telemetry/config', () => {
 
     it('should fill only missing telemetry fields from legacy config', async () => {
       const xdgConfigHome = path.join(tempDir, 'xdg-config');
-      const legacyConfigDir = path.join(tempDir, '.config', 'opsx');
+      const legacyConfigDir = path.join(tempDir, '.config', 'xirang');
       const legacyConfigPath = path.join(legacyConfigDir, 'config.json');
-      const newConfigDir = path.join(xdgConfigHome, 'opsx');
+      const newConfigDir = path.join(xdgConfigHome, 'xirang');
       const newConfigPath = path.join(newConfigDir, 'config.json');
       process.env.XDG_CONFIG_HOME = xdgConfigHome;
 
@@ -198,7 +198,7 @@ describe('telemetry/config', () => {
 
     it('should write config to XDG_CONFIG_HOME when set', async () => {
       const xdgConfigHome = path.join(tempDir, 'xdg-config');
-      const configPath = path.join(xdgConfigHome, 'opsx', 'config.json');
+      const configPath = path.join(xdgConfigHome, 'xirang', 'config.json');
       process.env.XDG_CONFIG_HOME = xdgConfigHome;
 
       await writeConfig({ telemetry: { anonymousId: 'test-123' } });

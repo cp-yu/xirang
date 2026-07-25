@@ -26,7 +26,7 @@
 
 - [#627](https://github.com/Fission-AI/OpenSpec/pull/627) [`afb73cf`](https://github.com/Fission-AI/OpenSpec/commit/afb73cf9ec59c6f8b26d0c538c0218c203ba3c56) Thanks [@TabishB](https://github.com/TabishB)! - ### Bug Fixes
 
-  - **OpenCode command references** — Command references in generated files now use the correct `/opsx-` hyphen format instead of `/opsx:` colon format, ensuring commands work properly in OpenCode
+  - **OpenCode command references** — Command references in generated files now use the correct `/opsx-` hyphen format instead of `/xirang:` colon format, ensuring commands work properly in OpenCode
 
 ## 1.1.0
 
@@ -72,9 +72,9 @@
 
 ### Major Changes
 
-- [#578](https://github.com/Fission-AI/OpenSpec/pull/578) [`0cc9d90`](https://github.com/Fission-AI/OpenSpec/commit/0cc9d9025af367faa1688a7b2606a2549053cd3f) Thanks [@TabishB](https://github.com/TabishB)! - ## OpenSpec 1.0 — The OPSX Release
+- [#578](https://github.com/Fission-AI/OpenSpec/pull/578) [`0cc9d90`](https://github.com/Fission-AI/OpenSpec/commit/0cc9d9025af367faa1688a7b2606a2549053cd3f) Thanks [@TabishB](https://github.com/TabishB)! - ## OpenSpec 1.0 — The Xirang Release
 
-  The workflow has been rebuilt from the ground up. OPSX replaces the old phase-locked `/openspec:*` commands with an action-based system where AI understands what artifacts exist, what's ready to create, and what each action unlocks.
+  The workflow has been rebuilt from the ground up. Xirang replaces the old phase-locked `/openspec:*` commands with an action-based system where AI understands what artifacts exist, what's ready to create, and what each action unlocks.
 
   ### Breaking Changes
 
@@ -102,16 +102,16 @@
 
   | Command              | What it does                                         |
   | -------------------- | ---------------------------------------------------- |
-  | `/opsx:explore`      | Think through ideas before committing to a change    |
-  | `/opsx:new`          | Start a new change                                   |
-  | `/opsx:continue`     | Create one artifact at a time (step-through)         |
-  | `/opsx:ff`           | Create all planning artifacts at once (fast-forward) |
-  | `/opsx:apply`        | Implement tasks                                      |
-  | `/opsx:verify`       | Validate implementation matches artifacts            |
-  | `/opsx:sync`         | Sync delta specs to main specs                       |
-  | `/opsx:archive`      | Archive completed change                             |
-  | `/opsx:bulk-archive` | Archive multiple changes with conflict detection     |
-  | `/opsx:onboard`      | Guided 15-minute walkthrough of complete workflow    |
+  | `/xirang:explore`      | Think through ideas before committing to a change    |
+  | `/xirang:new`          | Start a new change                                   |
+  | `/xirang:continue`     | Create one artifact at a time (step-through)         |
+  | `/xirang:ff`           | Create all planning artifacts at once (fast-forward) |
+  | `/xirang:apply`        | Implement tasks                                      |
+  | `/xirang:verify`       | Validate implementation matches artifacts            |
+  | `/xirang:sync`         | Sync delta specs to main specs                       |
+  | `/xirang:archive`      | Archive completed change                             |
+  | `/xirang:bulk-archive` | Archive multiple changes with conflict detection     |
+  | `/xirang:onboard`      | Guided 15-minute walkthrough of complete workflow    |
 
   ### From Text Merging to Semantic Spec Syncing
 
@@ -134,7 +134,7 @@
 
   ### New Features
 
-  - **Onboarding skill** — `/opsx:onboard` walks new users through their first complete change with codebase-aware task suggestions and step-by-step narration (11 phases, ~15 minutes)
+  - **Onboarding skill** — `/xirang:onboard` walks new users through their first complete change with codebase-aware task suggestions and step-by-step narration (11 phases, ~15 minutes)
 
   - **21 AI tools supported** — Claude Code, Cursor, Windsurf, Continue, Gemini CLI, GitHub Copilot, Amazon Q, Cline, RooCode, Kilo Code, Auggie, CodeBuddy, Qoder, Qwen, CoStrict, Crush, Factory, OpenCode, Antigravity, iFlow, and Codex
 
@@ -152,7 +152,7 @@
 
   - New getting-started guide, CLI reference, concepts documentation
   - Removed misleading "edit mid-flight and continue" claims that weren't implemented
-  - Added migration guide for upgrading from pre-OPSX versions
+  - Added migration guide for upgrading from pre-Xirang versions
 
 ## 0.23.0
 
@@ -160,7 +160,7 @@
 
 - [#540](https://github.com/Fission-AI/OpenSpec/pull/540) [`c4cfdc7`](https://github.com/Fission-AI/OpenSpec/commit/c4cfdc7c499daef30d8a218f5f59b8d9e5adb754) Thanks [@TabishB](https://github.com/TabishB)! - ### New Features
 
-  - **Bulk archive skill** — Archive multiple completed changes in a single operation with `/opsx:bulk-archive`. Includes batch validation, spec conflict detection, and consolidated confirmation
+  - **Bulk archive skill** — Archive multiple completed changes in a single operation with `/xirang:bulk-archive`. Includes batch validation, spec conflict detection, and consolidated confirmation
 
   ### Other
 
@@ -199,18 +199,18 @@
 
   **Other**
 
-  - Improved change inference in `opsx apply` — automatically detects the target change from conversation context or prompts when ambiguous
+  - Improved change inference in `xirang apply` — automatically detects the target change from conversation context or prompts when ambiguous
   - Streamlined archive sync assessment with clearer delta spec location guidance
 
 ## 0.20.0
 
 ### Minor Changes
 
-- [#502](https://github.com/Fission-AI/OpenSpec/pull/502) [`9db74aa`](https://github.com/Fission-AI/OpenSpec/commit/9db74aa5ac6547efadaed795217cfa17444f2004) Thanks [@TabishB](https://github.com/TabishB)! - Add `/opsx:verify` command and fix vitest process storms
+- [#502](https://github.com/Fission-AI/OpenSpec/pull/502) [`9db74aa`](https://github.com/Fission-AI/OpenSpec/commit/9db74aa5ac6547efadaed795217cfa17444f2004) Thanks [@TabishB](https://github.com/TabishB)! - Add `/xirang:verify` command and fix vitest process storms
 
   **New Features**
 
-  - **`/opsx:verify` command** — Validate that change implementations match their specifications
+  - **`/xirang:verify` command** — Validate that change implementations match their specifications
 
   **Bug Fixes**
 
@@ -222,13 +222,13 @@
 
 ### Minor Changes
 
-- eb152eb: Add Continue IDE support, shell completions, and `/opsx:explore` command
+- eb152eb: Add Continue IDE support, shell completions, and `/xirang:explore` command
 
   **New Features**
 
   - **Continue IDE support** – OpenSpec now generates slash commands for [Continue](https://continue.dev/), expanding editor integration options alongside Cursor, Windsurf, Claude Code, and others
   - **Shell completions for Bash, Fish, and PowerShell** – Run `openspec completion install` to set up tab completion in your preferred shell
-  - **`/opsx:explore` command** – A new thinking partner mode for exploring ideas and investigating problems before committing to changes
+  - **`/xirang:explore` command** – A new thinking partner mode for exploring ideas and investigating problems before committing to changes
   - **Codebuddy slash command improvements** – Updated frontmatter format for better compatibility
 
   **Bug Fixes**
@@ -244,13 +244,13 @@
 
 ### Minor Changes
 
-- 8dfd824: Add OPSX experimental workflow commands and enhanced artifact system
+- 8dfd824: Add Xirang experimental workflow commands and enhanced artifact system
 
   **New Commands:**
 
-  - `/opsx:ff` - Fast-forward through artifact creation, generating all needed artifacts in one go
-  - `/opsx:sync` - Sync delta specs from a change to main specs
-  - `/opsx:archive` - Archive completed changes with smart sync check
+  - `/xirang:ff` - Fast-forward through artifact creation, generating all needed artifacts in one go
+  - `/xirang:sync` - Sync delta specs from a change to main specs
+  - `/xirang:archive` - Archive completed changes with smart sync check
 
   **Artifact Workflow Enhancements:**
 

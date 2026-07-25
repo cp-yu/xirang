@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import type { Command } from 'commander';
-import { OPSX_DIR_NAME } from '../core/config.js';
+import { XIRANG_DIR_NAME } from '../core/config.js';
 import { compileChange } from '../core/change-compiler.js';
 import { renderChangeDiff, renderEffectiveChange } from '../core/change-diff-renderer.js';
 import type { DiffScope } from '../core/semantic-diff.js';
@@ -24,7 +24,7 @@ function normalizeScope(scope?: string): DiffScope | undefined {
 
 export async function diffCommand(projectRoot: string, options: DiffOptions): Promise<void> {
   if (!options.change) throw new Error('diff requires --change <name>');
-  const changeDir = path.join(projectRoot, OPSX_DIR_NAME, 'changes', options.change);
+  const changeDir = path.join(projectRoot, XIRANG_DIR_NAME, 'changes', options.change);
   const stat = await fs.stat(changeDir).catch((error: NodeJS.ErrnoException) => {
     if (error.code === 'ENOENT') return null;
     throw error;

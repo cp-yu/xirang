@@ -4,7 +4,7 @@ import * as yaml from 'yaml';
 import { BUILT_IN_SCHEMA_IDS, ChangeMetadataSchema, type BuiltInSchemaId, type ChangeMetadata } from '../core/artifact-graph/types.js';
 import { readProjectConfig } from '../core/project-config.js';
 
-const METADATA_FILENAME = '.opsx.yaml';
+const METADATA_FILENAME = '.xirang.yaml';
 
 /**
  * Error thrown when change metadata validation fails.
@@ -41,7 +41,7 @@ export function validateSchemaName(
 }
 
 /**
- * Writes change metadata to .opsx.yaml in the change directory.
+ * Writes change metadata to .xirang.yaml in the change directory.
  *
  * @param changeDir - The path to the change directory
  * @param metadata - The metadata to write
@@ -82,7 +82,7 @@ export function writeChangeMetadata(
 }
 
 /**
- * Reads change metadata from .opsx.yaml in the change directory.
+ * Reads change metadata from .xirang.yaml in the change directory.
  *
  * @param changeDir - The path to the change directory
  * @param projectRoot - Optional project root retained for API compatibility
@@ -140,8 +140,8 @@ export function readChangeMetadata(
  *
  * Resolution order:
  * 1. Explicit schema (if provided)
- * 2. Schema from .opsx.yaml metadata (if exists)
- * 3. Schema from .opsx/config.yaml (if exists)
+ * 2. Schema from .xirang.yaml metadata (if exists)
+ * 3. Schema from .xirang/config.yaml (if exists)
  * 4. Default 'spec-driven'
  *
  * @param changeDir - The path to the change directory
@@ -152,7 +152,7 @@ export function resolveSchemaForChange(
   changeDir: string,
   explicitSchema?: string
 ): BuiltInSchemaId {
-  // Derive project root from changeDir (changeDir is typically projectRoot/.opsx/changes/change-name)
+  // Derive project root from changeDir (changeDir is typically projectRoot/.xirang/changes/change-name)
   const projectRoot = path.resolve(changeDir, '../../..');
 
   // 1. Explicit override wins

@@ -44,7 +44,7 @@ export const ActiveRelationDefinitionRegistry = [
     doNotUseWhen: '仅消费数据、配置、制品或合同而不主动触发执行。',
     propagationHint: '调用方变化需验证被调用方合同；被调用方变化需验证调用方。',
     notePolicy: optionalNote,
-    example: { from: 'element.cli.sync', type: 'invokes', to: 'element.opsx.merge' },
+    example: { from: 'element.cli.sync', type: 'invokes', to: 'element.xirang.merge' },
   },
   {
     type: 'produces',
@@ -99,7 +99,7 @@ export const ActiveRelationDefinitionRegistry = [
     doNotUseWhen: '仅运行测试、调用目标或消费其输出。',
     propagationHint: '目标合同变化需验证验证方覆盖，验证规则变化需复核目标。',
     notePolicy: optionalNote,
-    example: { from: 'element.validation.opsx', type: 'validates', to: 'element.opsx.merge' },
+    example: { from: 'element.validation.xirang', type: 'validates', to: 'element.xirang.merge' },
   },
 ] as const satisfies readonly ActiveRelationDefinition[];
 

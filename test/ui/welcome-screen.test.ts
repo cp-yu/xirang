@@ -6,8 +6,8 @@ describe('welcome screen', () => {
     const text = getWelcomeText().join('\n');
 
     expect(text).toContain('Agent Skills');
-    expect(text).toContain('opsx view');
-    expect(text).not.toContain('/opsx:');
+    expect(text).toContain('xirang view');
+    expect(text).not.toContain('/xirang:');
     expect(text).not.toContain('slash commands');
   });
 });

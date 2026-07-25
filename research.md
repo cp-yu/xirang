@@ -65,7 +65,7 @@ Skills do **not** carry tool/model configuration. The SKILL.md frontmatter has:
 - `compatibility` — a human-readable string (e.g., "Requires openspec CLI.")
 - No `model`, `temperature`, `provider`, or other inference parameters
 
-Tool-specific invocation transforms are applied at **generation time** (the `/opsx:propose` → `$openspec-propose` replacement), not through frontmatter.
+Tool-specific invocation transforms are applied at **generation time** (the `/xirang:propose` → `$openspec-propose` replacement), not through frontmatter.
 
 Source: `dist/core/templates/transforms/builtin-transforms.js`
 

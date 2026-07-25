@@ -7,8 +7,8 @@ import { useEnabledFeatures } from '../context/DiagramFeatures'
 import { selectDiagramSnapshot, useDiagramSelector } from '../hooks'
 import { useDiagramActorRef } from '../hooks/useDiagram'
 import { NavigationPanel } from '../navigationpanel'
-import { materializeOpsxArchitectureView } from '../opsx/architectureView'
-import { isOpsxSpecDiagnostic, type OpsxRuntimeVariant, useOpsxVariants } from '../opsx/SpecLoaderContext'
+import { materializeXirangArchitectureView } from '../xirang/architectureView'
+import { isXirangSpecDiagnostic, type XirangRuntimeVariant, useXirangVariants } from '../xirang/SpecLoaderContext'
 import { Overlays } from '../overlays/Overlays'
 import { Search } from '../search/Search'
 import { RelationshipPopover } from './relationship-popover/RelationshipPopover'
@@ -32,7 +32,7 @@ const selectChildren = selectDiagramSnapshot(s => ({
     }),
 }))
 
-export function getArchitectureOverlayModel(variant: OpsxRuntimeVariant) {
+export function getArchitectureOverlayModel(variant: XirangRuntimeVariant) {
   const entries = variant.diff?.entries.filter(entry => entry.scope === 'architecture') ?? []
   const changed = new Set<string>()
   const context = new Set<string>()
@@ -56,12 +56,12 @@ export function getArchitectureOverlayModel(variant: OpsxRuntimeVariant) {
     changed: [...changed].sort(),
     context: [...context].sort(),
     counts: variant.diff?.summary.architecture ?? { ADDED: 0, MODIFIED: 0, REMOVED: 0 },
-    diagnostics: variant.diagnostics.filter(diagnostic => !isOpsxSpecDiagnostic(diagnostic.path)),
+    diagnostics: variant.diagnostics.filter(diagnostic => !isXirangSpecDiagnostic(diagnostic.path)),
   }
 }
 
-function OpsxArchitectureOverlay() {
-  const runtime = useOpsxVariants()
+function XirangArchitectureOverlay() {
+  const runtime = useXirangVariants()
   const actorRef = useDiagramActorRef()
   const currentView = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.context.view))
   const formalView = useRef(currentView)
@@ -70,13 +70,13 @@ function OpsxArchitectureOverlay() {
   const [mode, setMode] = useState<'full' | 'diff'>('full')
 
   useEffect(() => {
-    if (!currentView.hash.includes(':opsx:')) formalView.current = currentView
+    if (!currentView.hash.includes(':xirang:')) formalView.current = currentView
   }, [currentView])
 
   useEffect(() => {
     const selected = selectedVariant.current
     const view = selected.kind === 'change'
-      ? materializeOpsxArchitectureView(formalView.current, selected, mode)
+      ? materializeXirangArchitectureView(formalView.current, selected, mode)
       : formalView.current
     actorRef.send({ type: 'update.view', view, source: 'external' })
   }, [actorRef, mode, runtime.selected.id, runtime.selected.kind, runtime.selected.architectureFingerprint])
@@ -85,12 +85,12 @@ function OpsxArchitectureOverlay() {
   const overlay = getArchitectureOverlayModel(runtime.selected)
   return (
     <Box
-      data-opsx-architecture-overlay
-      data-opsx-architecture-mode={mode}
-      data-opsx-changed-count={overlay.changed.length}
-      data-opsx-context-count={overlay.context.length}
-      data-opsx-rendered-node-count={currentView.nodes.length}
-      data-opsx-rendered-view-hash={currentView.hash}
+      data-xirang-architecture-overlay
+      data-xirang-architecture-mode={mode}
+      data-xirang-changed-count={overlay.changed.length}
+      data-xirang-context-count={overlay.context.length}
+      data-xirang-rendered-node-count={currentView.nodes.length}
+      data-xirang-rendered-view-hash={currentView.hash}
       style={{ position: 'absolute', right: 16, top: 16, zIndex: 5, pointerEvents: 'all' }}
     >
       <Stack gap={6} p="xs" style={{ background: 'var(--mantine-color-body)', border: '1px solid var(--mantine-color-default-border)', borderRadius: 6 }}>
@@ -147,7 +147,7 @@ export const LikeC4DiagramUI = memo(() => {
       {enableSearch && actors.search && <Search searchActorRef={actors.search} />}
       {enableRelationshipDetails && enableReadOnly && <RelationshipPopover />}
       {enableCompareWithLatest && <LayoutDriftFrame />}
-      <OpsxArchitectureOverlay />
+      <XirangArchitectureOverlay />
     </ErrorBoundary>
   )
 })

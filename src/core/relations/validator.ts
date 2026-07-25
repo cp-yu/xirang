@@ -1,5 +1,5 @@
 import { getRelationDefinition, RELATION_TYPES, type RelationType } from './registry.js';
-import type { ProjectOpsxBundle } from '../../utils/opsx-utils.js';
+import type { ProjectXirangBundle } from '../../utils/xirang-utils.js';
 
 export interface RelationValidationResult {
   valid: boolean;
@@ -11,7 +11,7 @@ type NodeKind = 'capability' | 'domain';
 type CycleRelationType = Exclude<RelationType, 'belongs_to'>;
 type Adjacency = Map<string, string[]>;
 
-export function validateRelationGraph(bundle: ProjectOpsxBundle): RelationValidationResult {
+export function validateRelationGraph(bundle: ProjectXirangBundle): RelationValidationResult {
   const errors: string[] = [];
   const diagnostics: string[] = [];
   const nodeKinds = new Map<string, NodeKind>();

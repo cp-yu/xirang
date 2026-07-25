@@ -1,11 +1,11 @@
-export const OPSX_DIR_NAME = '.opsx';
+export const XIRANG_DIR_NAME = '.xirang';
 
-export const OPSX_MARKERS = {
-  start: '<!-- OPSX:START -->',
-  end: '<!-- OPSX:END -->'
+export const XIRANG_MARKERS = {
+  start: '<!-- XIRANG:START -->',
+  end: '<!-- XIRANG:END -->'
 };
 
-export interface OPSXConfig {
+export interface XirangConfig {
   aiTools: string[];
 }
 

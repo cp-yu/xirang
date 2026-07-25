@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, promises as fs, watch, type FSWatcher } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { OPSX_DIR_NAME } from './config.js';
+import { XIRANG_DIR_NAME } from './config.js';
 import { buildSpecRegistry } from './spec-registry.js';
 import { compileChange } from './change-compiler.js';
 import type { ChangeDiagnostic, ChangeDiff } from './semantic-diff.js';
@@ -19,11 +19,11 @@ export interface ViewLaunchOptions {
 
 export type ViewLauncher = (options: ViewLaunchOptions) => Promise<void>;
 
-export function findOpsxProjectRoot(startPath: string): string | undefined {
+export function findXirangProjectRoot(startPath: string): string | undefined {
   let current = path.resolve(startPath);
 
   while (true) {
-    if (existsSync(path.join(current, OPSX_DIR_NAME))) {
+    if (existsSync(path.join(current, XIRANG_DIR_NAME))) {
       return current;
     }
 
@@ -39,11 +39,11 @@ export const launchEmbeddedLikeC4: ViewLauncher = async ({ projectRoot, architec
   const args = [
     'start',
     architectureDir,
-    '--opsx-project-root',
+    '--xirang-project-root',
     projectRoot,
-    '--opsx-spec-registry',
+    '--xirang-spec-registry',
     specRegistryFile,
-    '--opsx-change-manifest',
+    '--xirang-change-manifest',
     changeManifestFile,
   ];
   if (port !== undefined) {
@@ -79,7 +79,7 @@ function runtimeFingerprint(value: unknown): string {
 }
 
 export async function listActiveChanges(projectRoot: string): Promise<string[]> {
-  const changesDir = path.join(projectRoot, OPSX_DIR_NAME, 'changes');
+  const changesDir = path.join(projectRoot, XIRANG_DIR_NAME, 'changes');
   const entries = await fs.readdir(changesDir, { withFileTypes: true }).catch(() => []);
   return entries
     .filter(entry => entry.isDirectory() && entry.name !== 'archive' && !entry.name.startsWith('.'))
@@ -94,7 +94,7 @@ function projectContracts(contracts: NonNullable<Awaited<ReturnType<typeof compi
   const specs: Record<string, string[]> = {};
   const contents: Record<string, string> = {};
   for (const contract of [...contracts].sort((left, right) => left.specId.localeCompare(right.specId))) {
-    const specPath = `.opsx/specs/${contract.specId}/spec.md`;
+    const specPath = `.xirang/specs/${contract.specId}/spec.md`;
     (specs[contract.elementId] ??= []).push(specPath);
     const lines = [
       '---', `element: ${contract.elementId}`, '---', '',
@@ -152,7 +152,7 @@ async function buildChangeRuntimeVariant(projectRoot: string, change: string): P
       diagnostics: [{
         level: 'ERROR',
         code: 'CHANGE_RUNTIME_FAILED',
-        path: path.posix.join('.opsx', 'changes', change),
+        path: path.posix.join('.xirang', 'changes', change),
         message: error instanceof Error ? error.message : 'Unable to compile active change',
       }],
     };
@@ -174,7 +174,7 @@ export async function buildViewRuntimeSnapshot(
 }
 
 async function writeViewRuntimeSnapshot(snapshot: ViewRuntimeSnapshot, directory: string): Promise<string> {
-  const target = path.join(directory, 'opsx-change-manifest.json');
+  const target = path.join(directory, 'xirang-change-manifest.json');
   await fs.writeFile(target, JSON.stringify(snapshot));
   return target;
 }
@@ -186,10 +186,10 @@ async function writeSpecRegistrySnapshot(projectRoot: string, directory: string)
       .sort(([left], [right]) => left.localeCompare(right))
       .map(([elementId, specs]) => [
         elementId,
-        specs.map(specId => `.opsx/specs/${specId}/spec.md`).sort(),
+        specs.map(specId => `.xirang/specs/${specId}/spec.md`).sort(),
       ]),
   );
-  const target = path.join(directory, 'opsx-spec-registry.json');
+  const target = path.join(directory, 'xirang-spec-registry.json');
   await fs.writeFile(target, JSON.stringify({ version: 1, elements }));
   return target;
 }
@@ -198,12 +198,12 @@ export class ViewCommand {
   constructor(private readonly launch: ViewLauncher = launchEmbeddedLikeC4) {}
 
   async execute(startPath: string = '.', options: { port?: number } = {}): Promise<void> {
-    const projectRoot = findOpsxProjectRoot(startPath);
+    const projectRoot = findXirangProjectRoot(startPath);
     if (!projectRoot) {
-      throw new Error('未找到 OPSX 项目');
+      throw new Error('未找到 Xirang 项目');
     }
 
-    const snapshotDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-view-'));
+    const snapshotDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-view-'));
     try {
       let runtimeSnapshot = await buildViewRuntimeSnapshot(projectRoot);
       const [specRegistryFile, changeManifestFile] = await Promise.all([
@@ -235,7 +235,7 @@ export class ViewCommand {
         }).catch(() => undefined);
       };
       try {
-        sourceWatcher = watch(path.join(projectRoot, OPSX_DIR_NAME), { recursive: true }, (_event, filename) => {
+        sourceWatcher = watch(path.join(projectRoot, XIRANG_DIR_NAME), { recursive: true }, (_event, filename) => {
           if (!filename) return;
           const normalized = filename.toString().split(path.sep).join('/');
           if (normalized.startsWith('architecture/')) refreshAll = true;
@@ -256,7 +256,7 @@ export class ViewCommand {
       try {
         await this.launch({
           projectRoot,
-          architectureDir: path.join(projectRoot, OPSX_DIR_NAME, 'architecture'),
+          architectureDir: path.join(projectRoot, XIRANG_DIR_NAME, 'architecture'),
           specRegistryFile,
           changeManifestFile,
           port: options.port,

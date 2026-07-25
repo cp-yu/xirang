@@ -32,7 +32,7 @@ test('browses absent, single, multiple, long, and hot-reloaded Specs', async ({ 
   dialog = await openDetails(page, 'single')
   await dialog.getByRole('tab', { name: 'Specs' }).click()
   const singlePanel = dialog.getByRole('tabpanel', { name: 'Specs' })
-  await expect(singlePanel.getByText('.opsx/specs/single/spec.md')).toBeVisible()
+  await expect(singlePanel.getByText('.xirang/specs/single/spec.md')).toBeVisible()
   await expect(singlePanel.getByRole('heading', { name: 'Single Spec', exact: true })).toBeVisible()
   await expect(dialog.getByRole('combobox', { name: 'Select Spec' })).toHaveCount(0)
   await closeDetails(dialog)
@@ -40,9 +40,9 @@ test('browses absent, single, multiple, long, and hot-reloaded Specs', async ({ 
   dialog = await openDetails(page, 'multi')
   await dialog.getByRole('tab', { name: 'Specs' }).click()
   const selector = dialog.getByRole('combobox', { name: 'Select Spec' })
-  await expect(selector).toHaveValue('.opsx/specs/multiple-first/spec.md')
+  await expect(selector).toHaveValue('.xirang/specs/multiple-first/spec.md')
   await expect(dialog.getByRole('heading', { name: 'First Spec' })).toBeVisible()
-  await selector.selectOption('.opsx/specs/multiple-second/spec.md')
+  await selector.selectOption('.xirang/specs/multiple-second/spec.md')
   await expect(dialog.getByRole('heading', { name: 'Second Spec' })).toBeVisible()
   await closeDetails(dialog)
 
@@ -54,7 +54,7 @@ test('browses absent, single, multiple, long, and hot-reloaded Specs', async ({ 
   expect(await specContent.evaluate(element => element.scrollHeight > element.clientHeight)).toBe(true)
   await closeDetails(dialog)
 
-  const specFile = path.join(fixtureRoot, '.opsx/specs/single/spec.md')
+  const specFile = path.join(fixtureRoot, '.xirang/specs/single/spec.md')
   const original = await fs.readFile(specFile, 'utf8')
   try {
     dialog = await openDetails(page, 'single')
@@ -75,7 +75,7 @@ test('switches isolated active changes, renders semantic diff, and preserves gra
     'formal', 'change:architecture-change', 'change:browser-change',
   ])
 
-  await page.getByRole('button', { name: 'OPSX Spec Browser' }).click()
+  await page.getByRole('button', { name: 'Xirang Spec Browser' }).click()
   const variantSelector = page.getByRole('combobox', { name: 'Semantic model variant' })
   await expect(variantSelector).toHaveValue('formal')
   await variantSelector.selectOption('change:architecture-change')
@@ -90,7 +90,7 @@ test('switches isolated active changes, renders semantic diff, and preserves gra
   await expect.poll(() => page.locator('.react-flow__node[data-id]').count()).toBeLessThan(fullNodeCount)
 
   const renderedHash = await overlay.getAttribute('data-opsx-rendered-view-hash')
-  const architectureSpec = path.join(fixtureRoot, '.opsx/changes/architecture-change/specs/single/spec.md')
+  const architectureSpec = path.join(fixtureRoot, '.xirang/changes/architecture-change/specs/single/spec.md')
   const architectureSpecOriginal = await fs.readFile(architectureSpec, 'utf8')
   try {
     const architectureDialog = await openDetails(page, 'single')
@@ -109,7 +109,7 @@ test('switches isolated active changes, renders semantic diff, and preserves gra
 
   const nodeIdsBefore = await page.locator('.react-flow__node[data-id]').evaluateAll(nodes => nodes.map(node => node.getAttribute('data-id')))
   await page.evaluate(() => { (globalThis as any).__opsxHmrMarker = 'preserved' })
-  const changeSpec = path.join(fixtureRoot, '.opsx/changes/browser-change/specs/single/spec.md')
+  const changeSpec = path.join(fixtureRoot, '.xirang/changes/browser-change/specs/single/spec.md')
   const original = await fs.readFile(changeSpec, 'utf8')
   try {
     const dialog = await openDetails(page, 'single')

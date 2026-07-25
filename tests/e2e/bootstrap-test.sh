@@ -4,9 +4,9 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 PROJECT=$(mktemp -d)
 trap 'rm -rf "$PROJECT"' EXIT
-mkdir -p "$PROJECT/.opsx"
+mkdir -p "$PROJECT/.xirang"
 
-cat > "$PROJECT/.opsx/project.opsx.yaml" <<'YAML'
+cat > "$PROJECT/.xirang/project.xirang.yaml" <<'YAML'
 schema_version: 2
 project:
   id: bootstrap-test
@@ -21,7 +21,7 @@ capabilities:
     intent: Run bootstrap
 YAML
 
-cat > "$PROJECT/.opsx/project.opsx.relations.yaml" <<'YAML'
+cat > "$PROJECT/.xirang/project.xirang.relations.yaml" <<'YAML'
 schema_version: 2
 relations:
   - from: cap.core.run
@@ -31,11 +31,11 @@ YAML
 
 (
   cd "$PROJECT"
-  node "$ROOT/bin/opsx.js" migrate opsx-to-likec4
-  node "$ROOT/bin/opsx.js" arch validate
-  node "$ROOT/bin/opsx.js" arch query cap.core.run | grep -q 'Element: cap.core.run'
-  test -f .opsx/project.opsx.yaml.backup
-  test -f .opsx/project.opsx.relations.yaml.backup
+  node "$ROOT/bin/xirang.js" migrate opsx-to-likec4
+  node "$ROOT/bin/xirang.js" arch validate
+  node "$ROOT/bin/xirang.js" arch query cap.core.run | grep -q 'Element: cap.core.run'
+  test -f .xirang/project.xirang.yaml.backup
+  test -f .xirang/project.xirang.relations.yaml.backup
 )
 
 echo 'Bootstrap Test PASSED'

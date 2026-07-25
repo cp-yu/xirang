@@ -29,12 +29,12 @@ describe('workflow-surface', () => {
 
     it('SKILL_NAMES 应包含 6 个 skill 名称', () => {
       expect(SKILL_NAMES).toHaveLength(6);
-      expect(SKILL_NAMES).toContain('opsx-propose');
-      expect(SKILL_NAMES).toContain('opsx-explore');
-      expect(SKILL_NAMES).toContain('opsx-apply-change');
-      expect(SKILL_NAMES).toContain('opsx-archive-change');
-      expect(SKILL_NAMES).toContain('opsx-build');
-      expect(SKILL_NAMES).toContain('opsx-snack');
+      expect(SKILL_NAMES).toContain('xirang-propose');
+      expect(SKILL_NAMES).toContain('xirang-explore');
+      expect(SKILL_NAMES).toContain('xirang-apply-change');
+      expect(SKILL_NAMES).toContain('xirang-archive-change');
+      expect(SKILL_NAMES).toContain('xirang-build');
+      expect(SKILL_NAMES).toContain('xirang-snack');
     });
 
     it('COMMAND_IDS 与 ALL_WORKFLOWS 一致', () => {
@@ -54,10 +54,10 @@ describe('workflow-surface', () => {
 
   describe('WORKFLOW_TO_SKILL_DIR', () => {
     it('将每个工作流映射到 skill 目录名', () => {
-      expect(WORKFLOW_TO_SKILL_DIR.propose).toBe('opsx-propose');
-      expect(WORKFLOW_TO_SKILL_DIR.apply).toBe('opsx-apply-change');
-      expect(WORKFLOW_TO_SKILL_DIR.archive).toBe('opsx-archive-change');
-      expect(WORKFLOW_TO_SKILL_DIR['build']).toBe('opsx-build');
+      expect(WORKFLOW_TO_SKILL_DIR.propose).toBe('xirang-propose');
+      expect(WORKFLOW_TO_SKILL_DIR.apply).toBe('xirang-apply-change');
+      expect(WORKFLOW_TO_SKILL_DIR.archive).toBe('xirang-archive-change');
+      expect(WORKFLOW_TO_SKILL_DIR['build']).toBe('xirang-build');
     });
   });
 
@@ -91,7 +91,7 @@ describe('workflow-surface', () => {
     it('返回指定工作流的 surface 定义', () => {
       const surface = getWorkflowSurface('propose');
       expect(surface.workflowId).toBe('propose');
-      expect(surface.skillDirName).toBe('opsx-propose');
+      expect(surface.skillDirName).toBe('xirang-propose');
     });
 
     it('getWorkflowSurfaces 无过滤器返回全部 6 个', () => {

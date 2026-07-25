@@ -9,9 +9,9 @@ import {
   path,
   port,
   publicDir,
-  opsxProjectRoot,
-  opsxSpecRegistry,
-  opsxChangeManifest,
+  xirangProjectRoot,
+  xirangSpecRegistry,
+  xirangChangeManifest,
   title,
   useDotBin,
   useHashHistory,
@@ -39,9 +39,9 @@ const serveCmd = (yargs: yargs.Argv) => {
           .option('hmr-port', hmrPort)
           .option('public', publicDir)
           .option('allowed-host', allowedHost)
-          .option('opsx-project-root', opsxProjectRoot)
-          .option('opsx-spec-registry', opsxSpecRegistry)
-          .option('opsx-change-manifest', opsxChangeManifest)
+          .option('xirang-project-root', xirangProjectRoot)
+          .option('xirang-spec-registry', xirangSpecRegistry)
+          .option('xirang-change-manifest', xirangChangeManifest)
           .options({
             'react-hmr': {
               type: 'boolean',
@@ -74,9 +74,9 @@ const serveCmd = (yargs: yargs.Argv) => {
           enableWebcomponent: args['build-webcomponent'],
           userPublicDir: args.public,
           allowedHosts: args['allowed-host'],
-          opsxProjectRoot: args['opsx-project-root'],
-          opsxSpecRegistry: args['opsx-spec-registry'],
-          opsxChangeManifest: args['opsx-change-manifest'],
+          xirangProjectRoot: args['xirang-project-root'],
+          xirangSpecRegistry: args['xirang-spec-registry'],
+          xirangChangeManifest: args['xirang-change-manifest'],
         })
       },
     })

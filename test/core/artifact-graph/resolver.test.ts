@@ -36,9 +36,9 @@ describe('artifact-graph/resolver', () => {
   });
 
   it('ignores project and user schemas, including same-name overrides', () => {
-    const projectOverride = path.join(tempDir, '.opsx', 'schemas', 'spec-driven');
-    const userOverride = path.join(process.env.XDG_DATA_HOME!, 'opsx', 'schemas', 'spec-driven');
-    const custom = path.join(tempDir, '.opsx', 'schemas', 'custom');
+    const projectOverride = path.join(tempDir, '.xirang', 'schemas', 'spec-driven');
+    const userOverride = path.join(process.env.XDG_DATA_HOME!, 'xirang', 'schemas', 'spec-driven');
+    const custom = path.join(tempDir, '.xirang', 'schemas', 'custom');
     for (const dir of [projectOverride, userOverride, custom]) {
       fs.mkdirSync(dir, { recursive: true });
       fs.writeFileSync(path.join(dir, 'schema.yaml'), 'name: override\nversion: 1\nartifacts: []\n');

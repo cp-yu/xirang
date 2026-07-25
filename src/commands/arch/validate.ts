@@ -1,4 +1,4 @@
-import { OPSX_DIR_NAME } from '../../core/config.js';
+import { XIRANG_DIR_NAME } from '../../core/config.js';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { compileArchitectureChange, readFormalSemanticModel } from '../../core/change-compiler.js';
@@ -12,7 +12,7 @@ export interface ValidateArchitectureOptions {
 }
 
 export async function validateArchitectureCommand(projectRoot: string, options: ValidateArchitectureOptions = {}) {
-  const architectureDir = path.join(projectRoot, OPSX_DIR_NAME, 'architecture');
+  const architectureDir = path.join(projectRoot, XIRANG_DIR_NAME, 'architecture');
   const runner = options.runLikeC4 ?? runLikeC4;
   if (!options.deltaPath) {
     await runner(['validate', architectureDir]);

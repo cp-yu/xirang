@@ -1,4 +1,4 @@
-import { OPSX_DIR_NAME } from './config.js';
+import { XIRANG_DIR_NAME } from './config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { getTaskProgressForChange, formatTaskStatus } from '../utils/task-progress.js';
@@ -101,13 +101,13 @@ export class ListCommand {
     const { sort = 'recent', json = false } = options;
 
     if (mode === 'changes') {
-      const changesDir = path.join(targetPath, OPSX_DIR_NAME, 'changes');
+      const changesDir = path.join(targetPath, XIRANG_DIR_NAME, 'changes');
 
       // Check if changes directory exists
       try {
         await fs.access(changesDir);
       } catch {
-        throw new Error("No OPSX changes directory found. Run 'opsx setup' first.");
+        throw new Error("No Xirang changes directory found. Run 'xirang setup' first.");
       }
 
       // Get all directories in changes (excluding archive)
@@ -177,7 +177,7 @@ export class ListCommand {
     }
 
     // specs mode
-    const specsDir = path.join(targetPath, OPSX_DIR_NAME, 'specs');
+    const specsDir = path.join(targetPath, XIRANG_DIR_NAME, 'specs');
     try {
       await fs.access(specsDir);
     } catch {

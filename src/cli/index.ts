@@ -53,18 +53,18 @@ function getCommandPath(command: Command): string {
 
   while (current) {
     const name = current.name();
-    // Skip the root 'opsx' command
-    if (name && name !== 'opsx') {
+    // Skip the root 'xirang' command
+    if (name && name !== 'xirang') {
       names.unshift(name);
     }
     current = current.parent;
   }
 
-  return names.join(':') || 'opsx';
+  return names.join(':') || 'xirang';
 }
 
 program
-  .name('opsx')
+  .name('xirang')
   .description('AI-native system for spec-driven development')
   .version(version);
 
@@ -99,7 +99,7 @@ const toolsOptionDescription = `Configure AI tools non-interactively. Use "all",
 
 program
   .command('setup [path]')
-  .description('Set up OPSX in your project')
+  .description('Set up Xirang in your project')
   .option('--tools <tools>', toolsOptionDescription)
   .option('--force', 'Archive retired managed files without prompting')
   .action(async (targetPath = '.', options?: { tools?: string; force?: boolean }) => {
@@ -135,7 +135,7 @@ program
 
 program
   .command('update [path]')
-  .description('Update OPSX instruction files')
+  .description('Update Xirang instruction files')
   .option('--force', 'Force update even when tools are up to date')
   .action(async (targetPath = '.', options?: { force?: boolean }) => {
     try {
@@ -193,11 +193,11 @@ program
 // Change command with subcommands
 const changeCmd = program
   .command('change')
-  .description('Manage OPSX change proposals');
+  .description('Manage Xirang change proposals');
 
 // Deprecation notice for noun-based commands
 changeCmd.hook('preAction', () => {
-  console.error('Warning: The "opsx change ..." commands are deprecated. Prefer verb-first commands (e.g., "opsx list", "opsx validate --changes").');
+  console.error('Warning: The "xirang change ..." commands are deprecated. Prefer verb-first commands (e.g., "xirang list", "xirang validate --changes").');
 });
 
 changeCmd
@@ -219,12 +219,12 @@ changeCmd
 
 changeCmd
   .command('list')
-  .description('List all active changes (DEPRECATED: use "opsx list" instead)')
+  .description('List all active changes (DEPRECATED: use "xirang list" instead)')
   .option('--json', 'Output as JSON')
   .option('--long', 'Show id and title with counts')
   .action(async (options?: { json?: boolean; long?: boolean }) => {
     try {
-      console.error('Warning: "opsx change list" is deprecated. Use "opsx list".');
+      console.error('Warning: "xirang change list" is deprecated. Use "xirang list".');
       const changeCommand = new ChangeCommand();
       await changeCommand.list(options);
     } catch (error) {
@@ -287,7 +287,7 @@ program
   .option('--type <type>', 'Specify item type when ambiguous: change|spec')
   .option('--strict', 'Enable strict validation mode')
   .option('--json', 'Output validation results as JSON')
-  .option('--concurrency <n>', 'Max concurrent validations (defaults to env OPSX_CONCURRENCY or 6)')
+  .option('--concurrency <n>', 'Max concurrent validations (defaults to env XIRANG_CONCURRENCY or 6)')
   .option('--no-interactive', 'Disable interactive prompts')
   .action(async (itemName?: string, options?: { all?: boolean; changes?: boolean; specs?: boolean; change?: string; artifacts?: string; type?: string; strict?: boolean; json?: boolean; noInteractive?: boolean; concurrency?: string }) => {
     try {
@@ -330,7 +330,7 @@ program
 // Feedback command
 program
   .command('feedback <message>')
-  .description('Submit feedback about OPSX')
+  .description('Submit feedback about Xirang')
   .option('--body <text>', 'Detailed description for the feedback')
   .action(async (message: string, options?: { body?: string }) => {
     try {
@@ -346,7 +346,7 @@ program
 // Completion command with subcommands
 const completionCmd = program
   .command('completion')
-  .description('Manage shell completions for OPSX CLI');
+  .description('Manage shell completions for Xirang CLI');
 
 completionCmd
   .command('generate [shell]')

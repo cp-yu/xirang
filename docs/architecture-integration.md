@@ -1,11 +1,11 @@
-# OPSX Semantic Model And LikeC4
+# Xirang Semantic Model And LikeC4
 
-OPSX has one durable Semantic Model. Versioned LikeC4 graph modules under `.opsx/architecture/` define the Project Root, element vocabulary, stable elements, refinement hierarchy, semantic relationships, and views. Markdown contract modules under `.opsx/specs/` define element-owned guarantees. Agents and CLI commands read these persisted files directly; OPSX does not require a public or persisted intermediate representation.
+Xirang has one durable Semantic Model. Versioned LikeC4 graph modules under `.xirang/architecture/` define the Project Root, element vocabulary, stable elements, refinement hierarchy, semantic relationships, and views. Markdown contract modules under `.xirang/specs/` define element-owned guarantees. Agents and CLI commands read these persisted files directly; Xirang does not require a public or persisted intermediate representation.
 
 ## Layout
 
 ```text
-.opsx/
+.xirang/
 ├── architecture/
 │   ├── specification.c4
 │   ├── model.c4
@@ -18,22 +18,22 @@ OPSX has one durable Semantic Model. Versioned LikeC4 graph modules under `.opsx
 A v1 graph declares its language version and metamodel explicitly. The metamodel may define project-specific element and relationship kinds. Nesting is open unless a kind declares `parents` or `children` constraints.
 
 ```likec4
-opsx {
+xirang {
   languageVersion '1'
 }
 
 specification {
   element project {
-    opsx { root true contract required }
+    xirang { root true contract required }
   }
   element area {
-    opsx { contract optional parents [project] }
+    xirang { contract optional parents [project] }
   }
   element operation {
-    opsx { contract required parents [area] }
+    xirang { contract required parents [area] }
   }
   relationship invokes {
-    opsx { sourceKinds [operation] targetKinds [operation] }
+    xirang { sourceKinds [operation] targetKinds [operation] }
   }
 }
 
@@ -69,22 +69,22 @@ element: payment.authorize
 Define the authorization contract.
 ```
 
-One element may own multiple Specs, but each Spec has at most one owner. The derived Spec registry scans `.opsx/specs/<spec-id>/spec.md`; graph metadata does not duplicate Spec paths. A metamodel kind may require a contract with `contract required` or allow it with `contract optional`.
+One element may own multiple Specs, but each Spec has at most one owner. The derived Spec registry scans `.xirang/specs/<spec-id>/spec.md`; graph metadata does not duplicate Spec paths. A metamodel kind may require a contract with `contract required` or allow it with `contract optional`.
 
 ## Commands
 
 ```bash
-opsx view --port 5173
-opsx arch query payment.authorize --relations --depth 2
-opsx arch validate
-opsx arch export --format svg --output docs/architecture
+xirang view --port 5173
+xirang arch query payment.authorize --relations --depth 2
+xirang arch validate
+xirang arch export --format svg --output docs/architecture
 ```
 
-`opsx arch query` accepts a stable `elementId` or current FQN and returns the canonical `elementId`, parent, children, summary, owned Specs, and semantic relationships. `opsx view` uses the vendored LikeC4 source; there is no external runtime fallback.
+`xirang arch query` accepts a stable `elementId` or current FQN and returns the canonical `elementId`, parent, children, summary, owned Specs, and semantic relationships. `xirang view` uses the vendored LikeC4 source; there is no external runtime fallback.
 
 ## Semantic Delta
 
-A change may contain graph operations in `.opsx/changes/<name>/architecture-delta.c4` and contract operations in `.opsx/changes/<name>/specs/**/spec.md`. Together they form one Semantic Delta.
+A change may contain graph operations in `.xirang/changes/<name>/architecture-delta.c4` and contract operations in `.xirang/changes/<name>/specs/**/spec.md`. Together they form one Semantic Delta.
 
 ```likec4
 model {
@@ -101,11 +101,11 @@ model {
 Validate the combined target before implementation or sync:
 
 ```bash
-opsx validate --change <name> --json
-opsx arch validate --delta .opsx/changes/<name>/architecture-delta.c4
+xirang validate --change <name> --json
+xirang arch validate --delta .xirang/changes/<name>/architecture-delta.c4
 ```
 
-`opsx sync <name>` prepares and validates graph and contract modules together, then commits them atomically.
+`xirang sync <name>` prepares and validates graph and contract modules together, then commits them atomically.
 
 ## Specs Browser Security
 
@@ -113,4 +113,4 @@ The local endpoint accepts `GET /__opsx/spec?project=<project-id>&element=<eleme
 
 ## Legacy Models
 
-Unversioned domain/capability LikeC4 models are not canonical v1 source and are never silently rewritten. They may only be consumed by `opsx-build` as user-approved evidence or an explicit Candidate starting point.
+Unversioned domain/capability LikeC4 models are not canonical v1 source and are never silently rewritten. They may only be consumed by `xirang-build` as user-approved evidence or an explicit Candidate starting point.

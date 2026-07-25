@@ -41,7 +41,7 @@ export async function runCLI(args: string[] = [], options: RunCLIOptions = {}): 
   const originalExit = process.exit;
   const originalConsole = globalThis.console;
   const originalExitCode = process.exitCode;
-  const env = { OPSX_INTERACTIVE: '0', ...options.env };
+  const env = { XIRANG_INTERACTIVE: '0', ...options.env };
   const envBackup = new Map<string, string | undefined>();
   const exitSignal = Symbol('run-cli-exit');
   let timeoutHandle: NodeJS.Timeout | undefined;

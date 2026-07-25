@@ -1,4 +1,4 @@
-import { OPSX_DIR_NAME } from './config.js';
+import { XIRANG_DIR_NAME } from './config.js';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import {
@@ -63,20 +63,20 @@ const gitCommitMessagePathField = z
  * 3. Runtime validation - uses safeParse() for resilient field-by-field validation
  *
  * Why Zod over manual validation:
- * - Helps understand OPSX's data interfaces at a glance
+ * - Helps understand Xirang's data interfaces at a glance
  * - Single source of truth for type and validation
- * - Consistent with other OPSX schemas
+ * - Consistent with other Xirang schemas
  */
 export const ProjectConfigSchema = z.object({
   // Required: which built-in workflow schema to use
   schema: BuiltInSchemaIdSchema.describe('The built-in workflow schema to use'),
 
-  // Optional: natural-language prose language for OPSX artifacts
+  // Optional: natural-language prose language for Xirang artifacts
   proseLanguage: z
     .string()
     .min(1)
     .optional()
-    .describe('Language for natural-language prose in OPSX artifacts'),
+    .describe('Language for natural-language prose in Xirang artifacts'),
   docLanguage: z
     .string()
     .min(1)
@@ -183,12 +183,12 @@ export function materializeProjectConfigDefaults(
 }
 
 function findProjectConfigPath(projectRoot: string): { path: string; exists: boolean } {
-  const yamlPath = path.join(projectRoot, OPSX_DIR_NAME, 'config.yaml');
+  const yamlPath = path.join(projectRoot, XIRANG_DIR_NAME, 'config.yaml');
   if (existsSync(yamlPath)) {
     return { path: yamlPath, exists: true };
   }
 
-  const ymlPath = path.join(projectRoot, OPSX_DIR_NAME, 'config.yml');
+  const ymlPath = path.join(projectRoot, XIRANG_DIR_NAME, 'config.yml');
   if (existsSync(ymlPath)) {
     return { path: ymlPath, exists: true };
   }
@@ -289,7 +289,7 @@ export function migrateProjectConfigDefaults(projectRoot: string): ProjectConfig
 }
 
 /**
- * Read and parse .opsx/config.yaml from project root.
+ * Read and parse .xirang/config.yaml from project root.
  * Uses resilient parsing - validates each field independently using Zod safeParse.
  * Returns null if file doesn't exist.
  * Returns partial config if some fields are invalid (with warnings).
@@ -304,14 +304,14 @@ export function migrateProjectConfigDefaults(projectRoot: string): ProjectConfig
  * invalidation logic) for negligible benefit. Direct reads also ensure config
  * changes are reflected immediately without stale cache issues.
  *
- * @param projectRoot - The root directory of the project (where `.opsx/` lives)
+ * @param projectRoot - The root directory of the project (where `.xirang/` lives)
  * @returns Parsed config or null if file doesn't exist
  */
 export function readProjectConfig(projectRoot: string): ProjectConfig | null {
   // Try both .yaml and .yml, prefer .yaml
-  let configPath = path.join(projectRoot, OPSX_DIR_NAME, 'config.yaml');
+  let configPath = path.join(projectRoot, XIRANG_DIR_NAME, 'config.yaml');
   if (!existsSync(configPath)) {
-    configPath = path.join(projectRoot, OPSX_DIR_NAME, 'config.yml');
+    configPath = path.join(projectRoot, XIRANG_DIR_NAME, 'config.yml');
     if (!existsSync(configPath)) {
       return null; // No config is OK
     }
@@ -322,7 +322,7 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
     const raw = parseYaml(content);
 
     if (!raw || typeof raw !== 'object') {
-      console.warn(`.opsx/config.yaml is not a valid YAML object`);
+      console.warn(`.xirang/config.yaml is not a valid YAML object`);
       return null;
     }
 
@@ -333,7 +333,7 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
       config.schema = schemaResult.data;
     } else if (raw.schema !== undefined) {
       console.warn(
-        `Unsupported schema '${String(raw.schema)}' in .opsx/config.yaml. Available: spec-driven`
+        `Unsupported schema '${String(raw.schema)}' in .xirang/config.yaml. Available: spec-driven`
       );
       return null;
     }
@@ -544,7 +544,7 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
     // Return partial config even if some fields failed
     return Object.keys(config).length > 0 ? (config as ProjectConfig) : null;
   } catch (error) {
-    console.warn(`Failed to parse .opsx/config.yaml:`, error);
+    console.warn(`Failed to parse .xirang/config.yaml:`, error);
     return null;
   }
 }

@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { OPSX_DIR_NAME } from './config.js';
+import { XIRANG_DIR_NAME } from './config.js';
 import { extractRequirementsSection, parseDeltaSpec, type RequirementBlock } from './parsers/requirement-blocks.js';
 import { parseSpecFrontmatter } from './parsers/spec-frontmatter.js';
 import { readLikeC4Architecture } from '../utils/likec4-reader.js';
@@ -314,7 +314,7 @@ function validateTarget(
   for (const issue of [...validateSemanticModel(semanticArchitecture), ...validateSemanticRelations(semanticArchitecture)]) {
     if (diagnostics.some(item => item.code === issue.code && item.message === issue.message)) continue;
     diagnostics.push({
-      level: 'ERROR', code: issue.code, path: '.opsx/architecture',
+      level: 'ERROR', code: issue.code, path: '.xirang/architecture',
       identity: issue.element, message: issue.message,
     });
   }
@@ -330,7 +330,7 @@ function validateTarget(
     const bound = new Set(target.contracts.map(item => item.elementId));
     for (const element of target.architecture.elements) {
       if (target.architecture.metamodel.elements[element.kind]?.contractPolicy === 'required' && !bound.has(element.id)) diagnostics.push({
-        level: 'ERROR', code: 'MISSING_REQUIRED_CONTRACT', path: '.opsx/architecture', identity: element.id,
+        level: 'ERROR', code: 'MISSING_REQUIRED_CONTRACT', path: '.xirang/architecture', identity: element.id,
         message: `Required element ${element.id} has no bound Spec`,
       });
     }
@@ -581,7 +581,7 @@ async function appendChangeSpecDiagnostics(
     const diagnostic: ChangeDiagnostic = {
       level: issue.level,
       code,
-      path: normalizedPath.startsWith('specs/') || normalizedPath.startsWith('.opsx/')
+      path: normalizedPath.startsWith('specs/') || normalizedPath.startsWith('.xirang/')
         ? normalizedPath
         : `specs/${normalizedPath}`,
       message: issue.message,
@@ -598,7 +598,7 @@ export async function readFormalSemanticModel(
 ): Promise<TargetSemanticModel> {
   return {
     architecture: structuredClone(architecture ?? await readArchitectureModel(projectRoot)),
-    contracts: await readContracts(path.join(projectRoot, OPSX_DIR_NAME, 'specs')),
+    contracts: await readContracts(path.join(projectRoot, XIRANG_DIR_NAME, 'specs')),
   };
 }
 
@@ -607,7 +607,7 @@ export async function compileChange(
   changeName: string,
   options: CompileChangeOptions = {},
 ): Promise<CompiledChange> {
-  const changeDir = path.join(projectRoot, OPSX_DIR_NAME, 'changes', changeName);
+  const changeDir = path.join(projectRoot, XIRANG_DIR_NAME, 'changes', changeName);
   const formal = await readFormalSemanticModel(projectRoot, options.architecture);
   const contractResult = await applyContractDeltas(formal.contracts, path.join(changeDir, 'specs'), options.allowAlreadyApplied);
   const deltaPath = path.join(changeDir, 'architecture-delta.c4');

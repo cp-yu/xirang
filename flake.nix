@@ -1,5 +1,5 @@
 {
-  description = "OPSX - AI-native system for spec-driven development";
+  description = "Xirang - AI-native system for spec-driven development";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -26,7 +26,7 @@
         in
         {
           default = pkgs.stdenv.mkDerivation (finalAttrs: {
-            pname = "opsx";
+            pname = "xirang";
             version = (builtins.fromJSON (builtins.readFile ./package.json)).version;
 
             src = lib.fileset.toSource {
@@ -73,10 +73,10 @@
 
             meta = with pkgs.lib; {
               description = "AI-native system for spec-driven development";
-              homepage = "https://github.com/cp-yu/opsx";
+              homepage = "https://github.com/cp-yu/xirang";
               license = licenses.mit;
               maintainers = [ ];
-              mainProgram = "opsx";
+              mainProgram = "xirang";
             };
           });
         }
@@ -85,7 +85,7 @@
       apps = forAllSystems (system: {
         default = {
           type = "app";
-          program = "${self.packages.${system}.default}/bin/opsx";
+          program = "${self.packages.${system}.default}/bin/xirang";
         };
       });
 
@@ -102,7 +102,7 @@
             ];
 
             shellHook = ''
-              echo "OPSX development environment"
+              echo "Xirang development environment"
               echo "Node version: $(node --version)"
               echo "pnpm version: $(pnpm --version)"
               echo "Run 'pnpm install' to install dependencies"

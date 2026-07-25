@@ -17,7 +17,7 @@ export interface ImpactSweepReport {
     projectTerms: string[];
     evidence: string[];
   }>;
-  opsx: {
+  xirang: {
     nodes: Array<{
       id: string;
       reason: string;

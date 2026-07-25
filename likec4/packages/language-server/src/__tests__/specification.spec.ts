@@ -3,30 +3,30 @@ import { test } from './asserts'
 
 describe('specification', () => {
   test('OPSX v1 annotations').valid`
-      opsx {
+      xirang {
         languageVersion '1'
       }
       specification {
         element project {
-          opsx {
+          xirang {
             root true
             contract required
           }
         }
         element capability {
-          opsx {
+          xirang {
             contract required
             parents [project, capability]
             children [capability]
           }
         }
         element event {
-          opsx {
+          xirang {
             contract optional
           }
         }
         relationship produces {
-          opsx {
+          xirang {
             sourceKinds [capability]
             targetKinds [event]
           }

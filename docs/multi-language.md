@@ -1,10 +1,10 @@
 # Multi-Language Guide
 
-Configure OPSX to generate artifacts in languages other than English.
+Configure Xirang to generate artifacts in languages other than English.
 
 ## Quick Setup
 
-Set `docLanguage` in your `.opsx/config.yaml`:
+Set `docLanguage` in your `.xirang/config.yaml`:
 
 ```yaml
 schema: spec-driven
@@ -14,7 +14,7 @@ context: |
   Tech stack: TypeScript, React, Node.js
 ```
 
-That localizes natural-language prose in generated OPSX artifacts through the shared config projection pipeline. Template headings, IDs, schema keys, BDD keywords, file paths, commands, and code identifiers remain unchanged.
+That localizes natural-language prose in generated Xirang artifacts through the shared config projection pipeline. Template headings, IDs, schema keys, BDD keywords, file paths, commands, and code identifiers remain unchanged.
 
 ## Language Examples
 
@@ -86,7 +86,7 @@ To verify your language config is working:
 
 ```bash
 # Check the instructions and generated workflow guidance
-opsx instructions proposal --change my-change
+xirang instructions proposal --change my-change
 
 # Agents should consume the compiled config projection and apply docLanguage only to artifact prose
 ```

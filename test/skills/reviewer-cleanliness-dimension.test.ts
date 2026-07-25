@@ -40,7 +40,7 @@ describe('reviewer cleanliness dimension contract', () => {
     expect(instructions).toContain('unaccounted');
     expect(instructions).toContain('attribution universe');
     expect(instructions).toContain('Files');
-    expect(instructions).toContain('.opsx/changes/');
+    expect(instructions).toContain('.xirang/changes/');
   });
 
   it('escalates behavior code to CRITICAL and downgrades mechanical changes', () => {

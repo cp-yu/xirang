@@ -1,6 +1,6 @@
 # Maintainers
 
-People who maintain and guide OPSX.
+People who maintain and guide Xirang.
 
 ## Core Maintainers
 

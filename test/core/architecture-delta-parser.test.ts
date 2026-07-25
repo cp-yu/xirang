@@ -19,10 +19,10 @@ describe('parseArchitectureDelta', () => {
     ${completeElement}
     relationship 'payment.authorize' -[invokes]-> 'payment.capture'
     element receipt {
-      opsx { contract optional parents [capability] }
+      xirang { contract optional parents [capability] }
     }
     relationship produces {
-      opsx { sourceKinds [capability] targetKinds [receipt] }
+      xirang { sourceKinds [capability] targetKinds [receipt] }
     }
   }
   MODIFIED {

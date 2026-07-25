@@ -2,7 +2,7 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
-import { OPSX_DIR_NAME } from '../config.js';
+import { XIRANG_DIR_NAME } from '../config.js';
 import {
   readFormalSemanticModel,
   semanticModelFingerprint,
@@ -114,9 +114,9 @@ function canonicalDiagnostic(issue: CanonicalTextIssue, file: string, bytes: Buf
 
 function normalizeDiagnostic(item: ChangeDiagnostic): ChangeDiagnostic {
   let normalizedPath = item.path.split(path.sep).join('/');
-  if (normalizedPath.startsWith(`${OPSX_DIR_NAME}/`)) normalizedPath = normalizedPath.slice(OPSX_DIR_NAME.length + 1);
-  if (normalizedPath === '.opsx/architecture') normalizedPath = 'architecture';
-  if (normalizedPath.startsWith('.opsx/')) normalizedPath = normalizedPath.slice('.opsx/'.length);
+  if (normalizedPath.startsWith(`${XIRANG_DIR_NAME}/`)) normalizedPath = normalizedPath.slice(XIRANG_DIR_NAME.length + 1);
+  if (normalizedPath === '.xirang/architecture') normalizedPath = 'architecture';
+  if (normalizedPath.startsWith('.xirang/')) normalizedPath = normalizedPath.slice('.xirang/'.length);
   return { ...item, path: normalizedPath };
 }
 
@@ -343,7 +343,7 @@ function validateMetadata(files: CandidateSnapshotFile[], diagnostics: ChangeDia
       const item = baseline as Record<string, unknown>;
       if (hasExactKeys(item, ['kind', 'reference'])) {
         validBaseline = (item.kind === 'clean' && item.reference === null)
-          || (item.kind === 'current' && item.reference === '.opsx')
+          || (item.kind === 'current' && item.reference === '.xirang')
           || (item.kind === 'path' && typeof item.reference === 'string' && isCanonicalBaselineReference(item.reference));
       }
     }
@@ -370,11 +370,11 @@ function digestEntries(files: CandidateSnapshotFile[]): CandidateDigestEntry[] {
 
 async function stageSemanticSource(files: CandidateSnapshotFile[]): Promise<string> {
   const stagingRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-candidate-target-'));
-  await fs.mkdir(path.join(stagingRoot, OPSX_DIR_NAME, 'architecture'), { recursive: true });
-  await fs.mkdir(path.join(stagingRoot, OPSX_DIR_NAME, 'specs'), { recursive: true });
+  await fs.mkdir(path.join(stagingRoot, XIRANG_DIR_NAME, 'architecture'), { recursive: true });
+  await fs.mkdir(path.join(stagingRoot, XIRANG_DIR_NAME, 'specs'), { recursive: true });
   for (const file of files) {
     if (!file.path.startsWith('architecture/') && !file.path.startsWith('specs/')) continue;
-    const target = path.join(stagingRoot, OPSX_DIR_NAME, ...file.path.split('/'));
+    const target = path.join(stagingRoot, XIRANG_DIR_NAME, ...file.path.split('/'));
     await fs.mkdir(path.dirname(target), { recursive: true });
     await fs.writeFile(target, file.bytes);
   }
@@ -398,7 +398,7 @@ async function validateStagedSemanticModel(stagingRoot: string): Promise<ChangeD
       });
     }
 
-    const specsRoot = path.join(stagingRoot, OPSX_DIR_NAME, 'specs');
+    const specsRoot = path.join(stagingRoot, XIRANG_DIR_NAME, 'specs');
     for (const entry of await fs.readdir(specsRoot, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
       const specPath = path.join(specsRoot, entry.name, 'spec.md');
@@ -432,7 +432,7 @@ export async function validateCandidateDirectory(
     throw error;
   });
   if (!rootStat?.isDirectory() || rootStat.isSymbolicLink()) {
-    diagnostics.push(diagnostic('CANDIDATE_NOT_FOUND', '.', 'Active .opsx/candidate directory not found.'));
+    diagnostics.push(diagnostic('CANDIDATE_NOT_FOUND', '.', 'Active .xirang/candidate directory not found.'));
   }
 
   if (rootStat?.isDirectory() && !rootStat.isSymbolicLink()) {
@@ -502,7 +502,7 @@ export async function validateCandidateDirectory(
 
 export async function validateCandidateSnapshot(projectRootInput: string): Promise<CandidateSnapshotValidation> {
   const projectRoot = path.resolve(projectRootInput);
-  return validateCandidateDirectory(projectRoot, path.join(projectRoot, OPSX_DIR_NAME, 'candidate'));
+  return validateCandidateDirectory(projectRoot, path.join(projectRoot, XIRANG_DIR_NAME, 'candidate'));
 }
 
 export async function validateCandidate(projectRoot: string): Promise<CandidateValidationResult> {

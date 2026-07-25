@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { OPSX_SHARED_CONTEXT } from '../../../src/core/templates/fragments/opsx-fragments.js';
+import { XIRANG_SHARED_CONTEXT } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import { getApplyChangeSkillTemplate } from '../../../src/core/templates/workflows/apply-change.js';
 import { getExploreSkillTemplate } from '../../../src/core/templates/workflows/explore.js';
 import { getImpactSweeperSubagentTemplate } from '../../../src/core/templates/workflows/impact-sweeper.js';
@@ -26,10 +26,10 @@ function activeGuidance(): string[] {
   ].join('\n'));
 }
 
-describe('generated OPSX Semantic Model guidance', () => {
+describe('generated Xirang Semantic Model guidance', () => {
   it('reuses one shared context across relevant workflow surfaces', () => {
     for (const guidance of activeGuidance()) {
-      expect(guidance).toContain(OPSX_SHARED_CONTEXT);
+      expect(guidance).toContain(XIRANG_SHARED_CONTEXT);
     }
   });
 
@@ -44,7 +44,7 @@ describe('generated OPSX Semantic Model guidance', () => {
       'canonical capability ID',
       'domain_name.capability_name',
       'ownership by nesting',
-      'OPSX YAML',
+      'Xirang YAML',
       'opsx-delta',
     ]) {
       expect(combined).not.toContain(token);

@@ -24,30 +24,30 @@ describe('PowerShellGenerator', () => {
 			const commands: CommandDefinition[] = [
 				{
 					name: 'init',
-					description: 'Initialize OPSX',
+					description: 'Initialize Xirang',
 					flags: [],
 				},
 			];
 
 			const script = generator.generate(commands);
 
-			expect(script).toContain('# PowerShell completion script for OPSX CLI');
+			expect(script).toContain('# PowerShell completion script for Xirang CLI');
 			expect(script).toContain('$opsxCompleter = {');
 			expect(script).toContain('Register-ArgumentCompleter');
 		});
 
-		it('should register argument completer for opsx command', () => {
+		it('should register argument completer for xirang command', () => {
 			const commands: CommandDefinition[] = [
 				{
 					name: 'init',
-					description: 'Initialize OPSX',
+					description: 'Initialize Xirang',
 					flags: [],
 				},
 			];
 
 			const script = generator.generate(commands);
 
-			expect(script).toContain('Register-ArgumentCompleter -CommandName opsx');
+			expect(script).toContain('Register-ArgumentCompleter -CommandName xirang');
 			expect(script).toContain('-ScriptBlock $opsxCompleter');
 		});
 
@@ -55,7 +55,7 @@ describe('PowerShellGenerator', () => {
 			const commands: CommandDefinition[] = [
 				{
 					name: 'init',
-					description: 'Initialize OPSX',
+					description: 'Initialize Xirang',
 					flags: [],
 				},
 				{
@@ -73,7 +73,7 @@ describe('PowerShellGenerator', () => {
 			const script = generator.generate(commands);
 
 			expect(script).toContain('"init"');
-			expect(script).toContain('Initialize OPSX');
+			expect(script).toContain('Initialize Xirang');
 			expect(script).toContain('"validate"');
 			expect(script).toContain('Validate specs');
 			expect(script).toContain('"show"');
@@ -84,7 +84,7 @@ describe('PowerShellGenerator', () => {
 			const commands: CommandDefinition[] = [
 				{
 					name: 'init',
-					description: 'Initialize OPSX',
+					description: 'Initialize Xirang',
 					flags: [],
 				},
 			];
@@ -340,7 +340,7 @@ describe('PowerShellGenerator', () => {
 			const commands: CommandDefinition[] = [
 				{
 					name: 'init',
-					description: 'Initialize OPSX',
+					description: 'Initialize Xirang',
 					acceptsPositional: true,
 					positionalType: 'path',
 					flags: [],
@@ -367,7 +367,7 @@ describe('PowerShellGenerator', () => {
 			const script = generator.generate(commands);
 
 			expect(script).toContain('function Get-OPSXChanges');
-			expect(script).toContain('opsx __complete changes 2>$null');
+			expect(script).toContain('xirang __complete changes 2>$null');
 			expect(script).toContain('-split');
 		});
 
@@ -385,7 +385,7 @@ describe('PowerShellGenerator', () => {
 			const script = generator.generate(commands);
 
 			expect(script).toContain('function Get-OPSXSpecs');
-			expect(script).toContain('opsx __complete specs 2>$null');
+			expect(script).toContain('xirang __complete specs 2>$null');
 		});
 
 		it('should escape double quotes in descriptions', () => {

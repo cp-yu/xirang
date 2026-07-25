@@ -87,7 +87,7 @@ describe('verify freshness engine', () => {
   });
 
   it('classifies fresh, stale, and missing verify results', async () => {
-    const changeDir = path.join(tempDir, '.opsx', 'changes', 'c1');
+    const changeDir = path.join(tempDir, '.xirang', 'changes', 'c1');
     await fs.mkdir(path.join(changeDir, 'src'), { recursive: true });
     const tasksPath = path.join(changeDir, 'tasks.md');
     const evidencePath = path.join(changeDir, 'src', 'a.ts');
@@ -123,13 +123,13 @@ describe('verify freshness engine', () => {
   });
 
   it('keeps freshness fresh when only gitHeadCommit changes', async () => {
-    const changeDir = path.join(tempDir, '.opsx', 'changes', 'c1');
+    const changeDir = path.join(tempDir, '.xirang', 'changes', 'c1');
     await fs.mkdir(path.join(changeDir, 'src'), { recursive: true });
     const tasksPath = path.join(changeDir, 'tasks.md');
     await fs.writeFile(tasksPath, '- [x] task\n', 'utf-8');
     await fs.writeFile(path.join(changeDir, 'src', 'a.ts'), 'a', 'utf-8');
     await execFileAsync('git', ['init'], { cwd: changeDir });
-    await execFileAsync('git', ['config', 'user.name', 'OPSX Test'], { cwd: changeDir });
+    await execFileAsync('git', ['config', 'user.name', 'Xirang Test'], { cwd: changeDir });
     await execFileAsync('git', ['config', 'user.email', 'test@example.com'], { cwd: changeDir });
     await execFileAsync('git', ['add', '.'], { cwd: changeDir });
     await execFileAsync('git', ['commit', '-m', 'init'], { cwd: changeDir });
@@ -162,8 +162,8 @@ describe('verify freshness engine', () => {
   });
 
   it('refreshes matching evidence entries after sync and keeps freshness fresh', async () => {
-    const changeDir = path.join(tempDir, '.opsx', 'changes', 'c1');
-    const mainOpsxPath = path.join(tempDir, '.opsx', 'project.opsx.yaml');
+    const changeDir = path.join(tempDir, '.xirang', 'changes', 'c1');
+    const mainOpsxPath = path.join(tempDir, '.xirang', 'project.xirang.yaml');
     const changeSpecPath = path.join(changeDir, 'specs', 'auth', 'spec.md');
     await fs.mkdir(path.dirname(mainOpsxPath), { recursive: true });
     await fs.mkdir(path.dirname(changeSpecPath), { recursive: true });
@@ -172,7 +172,7 @@ describe('verify freshness engine', () => {
     await fs.writeFile(changeSpecPath, 'change spec\n', 'utf-8');
 
     const before = await computeEvidenceFingerprint(
-      ['.opsx/project.opsx.yaml', '.opsx/changes/c1/specs/auth/spec.md'],
+      ['.xirang/project.xirang.yaml', '.xirang/changes/c1/specs/auth/spec.md'],
       tempDir
     );
     const result: VerifyResult = {
@@ -182,7 +182,7 @@ describe('verify freshness engine', () => {
       tasksFileHash: (await computeTasksFileHash(path.join(changeDir, 'tasks.md')))!,
       verificationContext: {
         contractVersion: '1.0',
-        evidenceFiles: ['.opsx/project.opsx.yaml', '.opsx/changes/c1/specs/auth/spec.md'],
+        evidenceFiles: ['.xirang/project.xirang.yaml', '.xirang/changes/c1/specs/auth/spec.md'],
         evidenceFingerprint: before.hash,
         evidenceFingerprintEntries: before.entries,
       },
@@ -194,7 +194,7 @@ describe('verify freshness engine', () => {
     const staleBeforeRefresh = await checkFreshness(changeDir, tempDir);
     expect(staleBeforeRefresh.status).toBe('STALE');
 
-    await refreshVerifyEvidenceAfterSync(changeDir, tempDir, ['.opsx/project.opsx.yaml']);
+    await refreshVerifyEvidenceAfterSync(changeDir, tempDir, ['.xirang/project.xirang.yaml']);
 
     const refreshed = JSON.parse(
       await fs.readFile(path.join(changeDir, '.verify-result.json'), 'utf-8')
@@ -202,34 +202,34 @@ describe('verify freshness engine', () => {
     expect(refreshed.verificationContext.evidenceFingerprint).not.toBe(before.hash);
     expect(refreshed.verificationContext.evidenceFingerprintEntries).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ path: '.opsx/project.opsx.yaml' }),
-        expect.objectContaining({ path: '.opsx/changes/c1/specs/auth/spec.md' }),
+        expect.objectContaining({ path: '.xirang/project.xirang.yaml' }),
+        expect.objectContaining({ path: '.xirang/changes/c1/specs/auth/spec.md' }),
       ])
     );
     const refreshedOpsxEntry = refreshed.verificationContext.evidenceFingerprintEntries?.find(
-      (entry) => entry.path === '.opsx/project.opsx.yaml'
+      (entry) => entry.path === '.xirang/project.xirang.yaml'
     );
     const unchangedChangeSpecEntry = refreshed.verificationContext.evidenceFingerprintEntries?.find(
-      (entry) => entry.path === '.opsx/changes/c1/specs/auth/spec.md'
+      (entry) => entry.path === '.xirang/changes/c1/specs/auth/spec.md'
     );
     expect(refreshedOpsxEntry?.hash).not.toBe(
-      before.entries.find((entry) => entry.path === '.opsx/project.opsx.yaml')?.hash
+      before.entries.find((entry) => entry.path === '.xirang/project.xirang.yaml')?.hash
     );
     expect(unchangedChangeSpecEntry?.hash).toBe(
-      before.entries.find((entry) => entry.path === '.opsx/changes/c1/specs/auth/spec.md')?.hash
+      before.entries.find((entry) => entry.path === '.xirang/changes/c1/specs/auth/spec.md')?.hash
     );
     expect((await checkFreshness(changeDir, tempDir)).status).toBe('FRESH');
   });
 
   it('skips refresh when no synced paths match evidence entries', async () => {
-    const changeDir = path.join(tempDir, '.opsx', 'changes', 'c1');
-    const evidencePath = path.join(tempDir, '.opsx', 'project.opsx.yaml');
+    const changeDir = path.join(tempDir, '.xirang', 'changes', 'c1');
+    const evidencePath = path.join(tempDir, '.xirang', 'project.xirang.yaml');
     await fs.mkdir(path.dirname(evidencePath), { recursive: true });
     await fs.mkdir(changeDir, { recursive: true });
     await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] task\n', 'utf-8');
     await fs.writeFile(evidencePath, 'version: 1\n', 'utf-8');
 
-    const before = await computeEvidenceFingerprint(['.opsx/project.opsx.yaml'], tempDir);
+    const before = await computeEvidenceFingerprint(['.xirang/project.xirang.yaml'], tempDir);
     const result: VerifyResult = {
       timestamp: new Date().toISOString(),
       result: 'PASS',
@@ -237,7 +237,7 @@ describe('verify freshness engine', () => {
       tasksFileHash: (await computeTasksFileHash(path.join(changeDir, 'tasks.md')))!,
       verificationContext: {
         contractVersion: '1.0',
-        evidenceFiles: ['.opsx/project.opsx.yaml'],
+        evidenceFiles: ['.xirang/project.xirang.yaml'],
         evidenceFingerprint: before.hash,
         evidenceFingerprintEntries: before.entries,
       },
@@ -247,20 +247,20 @@ describe('verify freshness engine', () => {
     await fs.writeFile(verifyPath, `${JSON.stringify(result, null, 2)}\n`, 'utf-8');
     const originalContent = await fs.readFile(verifyPath, 'utf-8');
 
-    await refreshVerifyEvidenceAfterSync(changeDir, tempDir, ['.opsx/specs/auth/spec.md']);
+    await refreshVerifyEvidenceAfterSync(changeDir, tempDir, ['.xirang/specs/auth/spec.md']);
 
     expect(await fs.readFile(verifyPath, 'utf-8')).toBe(originalContent);
   });
 
   it('skips refresh when verify result is missing or legacy entries are absent', async () => {
-    const changeDir = path.join(tempDir, '.opsx', 'changes', 'c1');
-    const evidencePath = path.join(tempDir, '.opsx', 'project.opsx.yaml');
+    const changeDir = path.join(tempDir, '.xirang', 'changes', 'c1');
+    const evidencePath = path.join(tempDir, '.xirang', 'project.xirang.yaml');
     await fs.mkdir(path.dirname(evidencePath), { recursive: true });
     await fs.mkdir(changeDir, { recursive: true });
     await fs.writeFile(evidencePath, 'version: 1\n', 'utf-8');
 
     await expect(
-      refreshVerifyEvidenceAfterSync(changeDir, tempDir, ['.opsx/project.opsx.yaml'])
+      refreshVerifyEvidenceAfterSync(changeDir, tempDir, ['.xirang/project.xirang.yaml'])
     ).resolves.toBeUndefined();
 
     const legacy: VerifyResult = {
@@ -270,7 +270,7 @@ describe('verify freshness engine', () => {
       tasksFileHash: 'a'.repeat(64),
       verificationContext: {
         contractVersion: '1.0',
-        evidenceFiles: ['.opsx/project.opsx.yaml'],
+        evidenceFiles: ['.xirang/project.xirang.yaml'],
         evidenceFingerprint: 'b'.repeat(64),
       },
       optimization: { status: 'NOT_NEEDED', attempts: [] },
@@ -279,20 +279,20 @@ describe('verify freshness engine', () => {
     await fs.writeFile(verifyPath, `${JSON.stringify(legacy, null, 2)}\n`, 'utf-8');
     const originalContent = await fs.readFile(verifyPath, 'utf-8');
 
-    await refreshVerifyEvidenceAfterSync(changeDir, tempDir, ['.opsx/project.opsx.yaml']);
+    await refreshVerifyEvidenceAfterSync(changeDir, tempDir, ['.xirang/project.xirang.yaml']);
 
     expect(await fs.readFile(verifyPath, 'utf-8')).toBe(originalContent);
   });
 
   it('matches synced files using POSIX-normalized paths on Windows-style input', async () => {
-    const changeDir = path.join(tempDir, '.opsx', 'changes', 'c1');
-    const evidencePath = path.join(tempDir, '.opsx', 'project.opsx.yaml');
+    const changeDir = path.join(tempDir, '.xirang', 'changes', 'c1');
+    const evidencePath = path.join(tempDir, '.xirang', 'project.xirang.yaml');
     await fs.mkdir(path.dirname(evidencePath), { recursive: true });
     await fs.mkdir(changeDir, { recursive: true });
     await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] task\n', 'utf-8');
     await fs.writeFile(evidencePath, 'version: 1\n', 'utf-8');
 
-    const before = await computeEvidenceFingerprint(['.opsx/project.opsx.yaml'], tempDir);
+    const before = await computeEvidenceFingerprint(['.xirang/project.xirang.yaml'], tempDir);
     const result: VerifyResult = {
       timestamp: new Date().toISOString(),
       result: 'PASS',
@@ -300,7 +300,7 @@ describe('verify freshness engine', () => {
       tasksFileHash: (await computeTasksFileHash(path.join(changeDir, 'tasks.md')))!,
       verificationContext: {
         contractVersion: '1.0',
-        evidenceFiles: ['.opsx/project.opsx.yaml'],
+        evidenceFiles: ['.xirang/project.xirang.yaml'],
         evidenceFingerprint: before.hash,
         evidenceFingerprintEntries: before.entries,
       },
@@ -309,7 +309,7 @@ describe('verify freshness engine', () => {
     await fs.writeFile(path.join(changeDir, '.verify-result.json'), `${JSON.stringify(result, null, 2)}\n`, 'utf-8');
     await fs.writeFile(evidencePath, 'version: 2\n', 'utf-8');
 
-    await refreshVerifyEvidenceAfterSync(changeDir, tempDir, ['.opsx\\project.opsx.yaml']);
+    await refreshVerifyEvidenceAfterSync(changeDir, tempDir, ['.xirang\\project.xirang.yaml']);
 
     expect((await checkFreshness(changeDir, tempDir)).status).toBe('FRESH');
   });

@@ -2,7 +2,7 @@ import { CompletionGenerator, CommandDefinition, FlagDefinition } from '../types
 import { POWERSHELL_DYNAMIC_HELPERS } from '../templates/powershell-templates.js';
 
 /**
- * Generates PowerShell completion scripts for the OPSX CLI.
+ * Generates PowerShell completion scripts for the Xirang CLI.
  * Uses Register-ArgumentCompleter for command completion.
  */
 export class PowerShellGenerator implements CompletionGenerator {
@@ -41,7 +41,7 @@ export class PowerShellGenerator implements CompletionGenerator {
     const helpers = POWERSHELL_DYNAMIC_HELPERS;
 
     // Assemble final script with template literal
-    return `# PowerShell completion script for OPSX CLI
+    return `# PowerShell completion script for Xirang CLI
 # Auto-generated - do not edit manually
 
 ${helpers}
@@ -69,7 +69,7 @@ ${commandCases}
     }
 }
 
-Register-ArgumentCompleter -CommandName opsx -ScriptBlock $opsxCompleter
+Register-ArgumentCompleter -CommandName xirang -ScriptBlock $opsxCompleter
 `;
   }
 

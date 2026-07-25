@@ -15,7 +15,7 @@ import {
   type RequirementBlock,
 } from './parsers/requirement-blocks.js';
 import { projectConfigForRuntime, type RuntimeProjection } from './config-projection.js';
-import { OPSX_DIR_NAME } from './config.js';
+import { XIRANG_DIR_NAME } from './config.js';
 import { readProjectConfig } from './project-config.js';
 import { parseSpecFrontmatter } from './parsers/spec-frontmatter.js';
 import { findMainSpecStructureIssues } from './parsers/spec-structure.js';
@@ -376,7 +376,7 @@ export async function writeUpdatedSpec(
   await fs.writeFile(update.target, rebuilt);
 
   const specName = path.basename(path.dirname(update.target));
-  console.log(`Applying changes to .opsx/specs/${specName}/spec.md:`);
+  console.log(`Applying changes to .xirang/specs/${specName}/spec.md:`);
   if (counts.added) console.log(`  + ${counts.added} added`);
   if (counts.modified) console.log(`  ~ ${counts.modified} modified`);
   if (counts.removed) console.log(`  - ${counts.removed} removed`);
@@ -416,8 +416,8 @@ export async function applySpecs(
     silent?: boolean;
   } = {}
 ): Promise<SpecsApplyOutput> {
-  const changeDir = path.join(projectRoot, OPSX_DIR_NAME, 'changes', changeName);
-  const mainSpecsDir = path.join(projectRoot, OPSX_DIR_NAME, 'specs');
+  const changeDir = path.join(projectRoot, XIRANG_DIR_NAME, 'changes', changeName);
+  const mainSpecsDir = path.join(projectRoot, XIRANG_DIR_NAME, 'specs');
 
   // Verify change exists
   try {
@@ -486,13 +486,13 @@ export async function applySpecs(
       await fs.writeFile(p.update.target, p.rebuilt);
 
       if (!options.silent) {
-        console.log(`Applying changes to .opsx/specs/${capability}/spec.md:`);
+        console.log(`Applying changes to .xirang/specs/${capability}/spec.md:`);
         if (p.counts.added) console.log(`  + ${p.counts.added} added`);
         if (p.counts.modified) console.log(`  ~ ${p.counts.modified} modified`);
         if (p.counts.removed) console.log(`  - ${p.counts.removed} removed`);
       }
     } else if (!options.silent) {
-      console.log(`Would apply changes to .opsx/specs/${capability}/spec.md:`);
+      console.log(`Would apply changes to .xirang/specs/${capability}/spec.md:`);
       if (p.counts.added) console.log(`  + ${p.counts.added} added`);
       if (p.counts.modified) console.log(`  ~ ${p.counts.modified} modified`);
       if (p.counts.removed) console.log(`  - ${p.counts.removed} removed`);

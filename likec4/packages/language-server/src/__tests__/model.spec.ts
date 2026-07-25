@@ -274,12 +274,12 @@ describe('model', () => {
     }`
 
   test('OPSX v1 model supports arbitrary-depth custom elements').valid`
-    opsx { languageVersion '1' }
+    xirang { languageVersion '1' }
     specification {
-      element project { opsx { root true contract required } }
-      element product { opsx { contract optional } }
-      element workflow { opsx { contract required } }
-      element operation { opsx { contract required } }
+      element project { xirang { root true contract required } }
+      element product { xirang { contract optional } }
+      element workflow { xirang { contract required } }
+      element operation { xirang { contract required } }
     }
     model {
       project_root = project 'Root' 'Project intent' {

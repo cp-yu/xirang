@@ -22,14 +22,14 @@ describe('FishInstaller', () => {
   describe('getInstallationPath', () => {
     it('should return standard fish completions path', () => {
       const result = installer.getInstallationPath();
-      expect(result).toBe(path.join(testHomeDir, '.config', 'fish', 'completions', 'opsx.fish'));
+      expect(result).toBe(path.join(testHomeDir, '.config', 'fish', 'completions', 'xirang.fish'));
     });
 
     it('should use homeDir from constructor', () => {
       const customHome = '/custom/home';
       const customInstaller = new FishInstaller(customHome);
       const result = customInstaller.getInstallationPath();
-      expect(result).toBe(path.join(customHome, '.config', 'fish', 'completions', 'opsx.fish'));
+      expect(result).toBe(path.join(customHome, '.config', 'fish', 'completions', 'xirang.fish'));
     });
   });
 
@@ -75,12 +75,12 @@ describe('FishInstaller', () => {
   });
 
   describe('install', () => {
-    const mockCompletionScript = `# Fish completion script for OPSX CLI
+    const mockCompletionScript = `# Fish completion script for Xirang CLI
 function __fish_opsx
     echo "test"
 end
 
-complete -c opsx -a 'init' -d 'Initialize OPSX'
+complete -c xirang -a 'init' -d 'Initialize Xirang'
 `;
 
     it('should install completion script for the first time', async () => {
@@ -88,7 +88,7 @@ complete -c opsx -a 'init' -d 'Initialize OPSX'
 
       expect(result.success).toBe(true);
       expect(result.message).toBe('Completion script installed successfully for Fish');
-      expect(result.installedPath).toBe(path.join(testHomeDir, '.config', 'fish', 'completions', 'opsx.fish'));
+      expect(result.installedPath).toBe(path.join(testHomeDir, '.config', 'fish', 'completions', 'xirang.fish'));
       expect(result.backupPath).toBeUndefined();
       expect(result.instructions).toHaveLength(2);
       expect(result.instructions![0]).toContain('Fish automatically loads completions');
@@ -99,7 +99,7 @@ complete -c opsx -a 'init' -d 'Initialize OPSX'
       const result = await installer.install(mockCompletionScript);
 
       expect(result.success).toBe(true);
-      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'opsx.fish');
+      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'xirang.fish');
       const dirExists = await fs.access(path.dirname(targetPath)).then(() => true).catch(() => false);
       expect(dirExists).toBe(true);
     });
@@ -107,7 +107,7 @@ complete -c opsx -a 'init' -d 'Initialize OPSX'
     it('should write completion script content correctly', async () => {
       await installer.install(mockCompletionScript);
 
-      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'opsx.fish');
+      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'xirang.fish');
       const content = await fs.readFile(targetPath, 'utf-8');
       expect(content).toBe(mockCompletionScript);
     });
@@ -130,13 +130,13 @@ complete -c opsx -a 'init' -d 'Initialize OPSX'
       await installer.install(mockCompletionScript);
 
       // Update with different content
-      const updatedScript = `# Fish completion script for OPSX CLI
+      const updatedScript = `# Fish completion script for Xirang CLI
 function __fish_opsx_new
     echo "updated"
 end
 
-complete -c opsx -a 'init' -d 'Initialize OPSX'
-complete -c opsx -a 'validate' -d 'Validate specs'
+complete -c xirang -a 'init' -d 'Initialize Xirang'
+complete -c xirang -a 'validate' -d 'Validate specs'
 `;
 
       const result = await installer.install(updatedScript);
@@ -162,7 +162,7 @@ complete -c opsx -a 'validate' -d 'Validate specs'
       expect(backupContent).toBe(originalScript);
 
       // Verify current file has updated content
-      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'opsx.fish');
+      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'xirang.fish');
       const currentContent = await fs.readFile(targetPath, 'utf-8');
       expect(currentContent).toBe(updatedScript);
     });
@@ -179,14 +179,14 @@ complete -c opsx -a 'validate' -d 'Validate specs'
     });
 
     it('should handle installation with paths containing spaces', async () => {
-      const spacedHomeDir = path.join(os.tmpdir(), `opsx fish test ${randomUUID()}`);
+      const spacedHomeDir = path.join(os.tmpdir(), `xirang fish test ${randomUUID()}`);
       await fs.mkdir(spacedHomeDir, { recursive: true });
 
       const spacedInstaller = new FishInstaller(spacedHomeDir);
       const result = await spacedInstaller.install(mockCompletionScript);
 
       expect(result.success).toBe(true);
-      expect(result.installedPath).toContain('opsx fish test');
+      expect(result.installedPath).toContain('xirang fish test');
 
       // Cleanup
       await fs.rm(spacedHomeDir, { recursive: true, force: true });
@@ -223,7 +223,7 @@ complete -c opsx -a 'validate' -d 'Validate specs'
       const result = await installer.install('');
 
       expect(result.success).toBe(true);
-      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'opsx.fish');
+      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'xirang.fish');
       const content = await fs.readFile(targetPath, 'utf-8');
       expect(content).toBe('');
     });
@@ -238,7 +238,7 @@ end
       const result = await installer.install(specialScript);
 
       expect(result.success).toBe(true);
-      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'opsx.fish');
+      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'xirang.fish');
       const content = await fs.readFile(targetPath, 'utf-8');
       expect(content).toBe(specialScript);
     });
@@ -246,7 +246,7 @@ end
 
   describe('uninstall', () => {
     const mockCompletionScript = `# Fish completion script
-complete -c opsx -a 'init'
+complete -c xirang -a 'init'
 `;
 
     it('should successfully uninstall when completion script exists', async () => {
@@ -262,7 +262,7 @@ complete -c opsx -a 'init'
 
     it('should remove the completion file', async () => {
       await installer.install(mockCompletionScript);
-      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'opsx.fish');
+      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'xirang.fish');
 
       await installer.uninstall();
 
@@ -290,7 +290,7 @@ complete -c opsx -a 'init'
     // Windows uses ACLs which Node.js chmod doesn't control
     it.skipIf(process.platform === 'win32')('should return failure on permission error', async () => {
       await installer.install(mockCompletionScript);
-      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'opsx.fish');
+      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'xirang.fish');
       const parentDir = path.dirname(targetPath);
 
       // Make parent directory read-only to simulate permission error

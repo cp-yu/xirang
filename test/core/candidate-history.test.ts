@@ -13,7 +13,7 @@ describe('Candidate build history', () => {
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-candidate-history-'));
     await new SetupCommand({ tools: 'none', force: true }).execute(root);
-    const projectSpec = path.join(root, '.opsx', 'specs', 'project-contract', 'spec.md');
+    const projectSpec = path.join(root, '.xirang', 'specs', 'project-contract', 'spec.md');
     await fs.mkdir(path.dirname(projectSpec), { recursive: true });
     await fs.writeFile(projectSpec, `---\nelement: project.root\n---\n\n# Project Contract Specification\n\n## Purpose\nDefines the project contract used by Candidate history tests.\n\n## Requirements\n\n### Requirement: Project contract\nThe project SHALL retain valid build history.\n\n#### Scenario: Retain history\n- **WHEN** promotion succeeds\n- **THEN** previous formal source is retained\n`);
   });
@@ -35,13 +35,13 @@ describe('Candidate build history', () => {
       now: () => new Date('2030-01-01T00:00:01.000Z'),
     });
 
-    const entries = await fs.readdir(path.join(root, '.opsx', 'history', 'builds'));
+    const entries = await fs.readdir(path.join(root, '.xirang', 'history', 'builds'));
     expect(entries).toHaveLength(2);
     expect(entries[0]).not.toBe(entries[1]);
     for (const entry of entries) {
-      expect((await fs.stat(path.join(root, '.opsx', 'history', 'builds', entry, 'previous', 'architecture'))).isDirectory())
+      expect((await fs.stat(path.join(root, '.xirang', 'history', 'builds', entry, 'previous', 'architecture'))).isDirectory())
         .toBe(true);
-      await expect(fs.readFile(path.join(root, '.opsx', 'history', 'builds', entry, 'promotion.yaml'), 'utf8'))
+      await expect(fs.readFile(path.join(root, '.xirang', 'history', 'builds', entry, 'promotion.yaml'), 'utf8'))
         .resolves.toContain('reviewDigest:');
     }
   });

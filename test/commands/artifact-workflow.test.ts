@@ -12,7 +12,7 @@ describe('artifact-workflow CLI commands', () => {
 
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-artifact-workflow-'));
-    changesDir = path.join(tempDir, '.opsx', 'changes');
+    changesDir = path.join(tempDir, '.xirang', 'changes');
     await fs.mkdir(changesDir, { recursive: true });
   });
 
@@ -197,7 +197,7 @@ describe('artifact-workflow CLI commands', () => {
       const result = await runCLI(['status'], { cwd: tempDir });
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('No active changes');
-      expect(result.stdout).toContain('opsx new change');
+      expect(result.stdout).toContain('xirang new change');
     });
 
     it('exits gracefully with JSON when no changes exist', async () => {
@@ -500,13 +500,13 @@ describe('artifact-workflow CLI commands', () => {
       expect(result.stdout).toContain('Blocked');
       expect(result.stdout).toContain('Missing artifacts: tasks');
       expect(result.stdout).toContain('Return to the Propose workflow');
-      expect(result.stdout).not.toContain('Use the opsx-apply-change skill to create');
+      expect(result.stdout).not.toContain('Use the xirang-apply-change skill to create');
     });
 
     it('outputs JSON for apply instructions', async () => {
       await createTestChange('json-apply', ['proposal', 'design', 'specs', 'tasks']);
       await fs.writeFile(
-        path.join(tempDir, '.opsx', 'config.yaml'),
+        path.join(tempDir, '.xirang', 'config.yaml'),
         `schema: spec-driven
 proseLanguage: 中文
 apply:
@@ -552,7 +552,7 @@ rules: {}
     it('prints config projection in text apply instructions', async () => {
       await createTestChange('text-apply-projection', ['proposal', 'design', 'specs', 'tasks']);
       await fs.writeFile(
-        path.join(tempDir, '.opsx', 'config.yaml'),
+        path.join(tempDir, '.xirang', 'config.yaml'),
         `schema: spec-driven
 proseLanguage: 中文
 apply:
@@ -693,7 +693,7 @@ rules: {}
     });
 
     it('rejects project-local schemas for apply instructions', async () => {
-      const schemaDir = path.join(tempDir, '.opsx', 'schemas', 'custom');
+      const schemaDir = path.join(tempDir, '.xirang', 'schemas', 'custom');
       await fs.mkdir(schemaDir, { recursive: true });
       await fs.writeFile(path.join(schemaDir, 'schema.yaml'), 'name: custom\nversion: 1\nartifacts: []\n');
       const changeDir = path.join(changesDir, 'custom-schema-change');
@@ -908,9 +908,9 @@ rules: {}
     describe('new change uses config schema', () => {
       it('creates change with schema from project config', async () => {
         // Create project config with spec-driven schema
-        // Note: changesDir is already at tempDir/.opsx/changes (created in beforeEach)
+        // Note: changesDir is already at tempDir/.xirang/changes (created in beforeEach)
         await fs.writeFile(
-          path.join(tempDir, '.opsx', 'config.yaml'),
+          path.join(tempDir, '.xirang', 'config.yaml'),
           'schema: spec-driven\n'
         );
 
@@ -919,16 +919,16 @@ rules: {}
         expect(result.exitCode).toBe(0);
 
         // Verify the change was created with spec-driven schema
-        const metadataPath = path.join(changesDir, 'test-change', '.opsx.yaml');
+        const metadataPath = path.join(changesDir, 'test-change', '.xirang.yaml');
         const metadata = await fs.readFile(metadataPath, 'utf-8');
         expect(metadata).toContain('schema: spec-driven');
       }, 60000);
 
       it('CLI schema overrides config schema', async () => {
         // Create project config with spec-driven schema
-        // Note: opsx directory already exists (from changesDir creation in beforeEach)
+        // Note: xirang directory already exists (from changesDir creation in beforeEach)
         await fs.writeFile(
-          path.join(tempDir, '.opsx', 'config.yaml'),
+          path.join(tempDir, '.xirang', 'config.yaml'),
           'schema: spec-driven\n'
         );
 
@@ -940,7 +940,7 @@ rules: {}
         expect(result.exitCode).toBe(0);
 
         // Verify the change uses the CLI-specified schema
-        const metadataPath = path.join(changesDir, 'override-test', '.opsx.yaml');
+        const metadataPath = path.join(changesDir, 'override-test', '.xirang.yaml');
         const metadata = await fs.readFile(metadataPath, 'utf-8');
         expect(metadata).toContain('schema: spec-driven');
       }, 60000);
@@ -949,9 +949,9 @@ rules: {}
     describe('instructions command with config', () => {
       it('injects context and rules from config into instructions', async () => {
         // Create project config with context and rules
-        // Note: opsx directory already exists (from changesDir creation in beforeEach)
+        // Note: xirang directory already exists (from changesDir creation in beforeEach)
         await fs.writeFile(
-          path.join(tempDir, '.opsx', 'config.yaml'),
+          path.join(tempDir, '.xirang', 'config.yaml'),
           `schema: spec-driven
 context: |
   Tech stack: TypeScript, React
@@ -984,9 +984,9 @@ rules:
 
       it('does not inject rules for non-matching artifact', async () => {
         // Create project config with rules only for proposal
-        // Note: opsx directory already exists (from changesDir creation in beforeEach)
+        // Note: xirang directory already exists (from changesDir creation in beforeEach)
         await fs.writeFile(
-          path.join(tempDir, '.opsx', 'config.yaml'),
+          path.join(tempDir, '.xirang', 'config.yaml'),
           `schema: spec-driven
 rules:
   proposal:
@@ -1036,7 +1036,7 @@ rules:
         // Create change with explicit schema in metadata
         const changeDir = await createTestChange('metadata-only-change');
         await fs.writeFile(
-          path.join(changeDir, '.opsx.yaml'),
+          path.join(changeDir, '.xirang.yaml'),
           'schema: spec-driven\ncreated: "2025-01-05"\n'
         );
 
@@ -1053,9 +1053,9 @@ rules:
     describe('config changes reflected immediately', () => {
       it('config changes are reflected without restart', async () => {
         // Create initial config
-        // Note: opsx directory already exists (from changesDir creation in beforeEach)
+        // Note: xirang directory already exists (from changesDir creation in beforeEach)
         await fs.writeFile(
-          path.join(tempDir, '.opsx', 'config.yaml'),
+          path.join(tempDir, '.xirang', 'config.yaml'),
           `schema: spec-driven
 context: Initial context
 `
@@ -1074,7 +1074,7 @@ context: Initial context
 
         // Update config
         await fs.writeFile(
-          path.join(tempDir, '.opsx', 'config.yaml'),
+          path.join(tempDir, '.xirang', 'config.yaml'),
           `schema: spec-driven
 context: Updated context
 `

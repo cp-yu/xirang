@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { validateRelationGraph } from '../../../src/core/relations/validator.js';
-import type { ProjectOpsxBundle } from '../../../src/utils/opsx-utils.js';
+import type { ProjectXirangBundle } from '../../../src/utils/xirang-utils.js';
 
-const bundle = (relations: ProjectOpsxBundle['relations'], capabilityIds = ['cap.a', 'cap.b']): ProjectOpsxBundle => ({
+const bundle = (relations: ProjectXirangBundle['relations'], capabilityIds = ['cap.a', 'cap.b']): ProjectXirangBundle => ({
   schema_version: 2,
   project: { id: 'test', name: 'test' },
   domains: [{ id: 'dom.core', type: 'domain' }],
@@ -49,7 +49,7 @@ describe('validateRelationGraph', () => {
       { from: 'dom.core', type: 'belongs_to', to: 'cap.a' },
       { from: 'cap.a', type: 'invokes', to: 'dom.core' },
       { from: 'cap.missing', type: 'consumes', to: 'cap.a' },
-    ] as ProjectOpsxBundle['relations']));
+    ] as ProjectXirangBundle['relations']));
 
     expect(result.valid).toBe(false);
     expect(result.errors.join('\n')).toContain('belongs_to');
@@ -59,9 +59,9 @@ describe('validateRelationGraph', () => {
   });
 
   it('rejects forbidden and oversized notes through the relation schema', async () => {
-    const { OpsxRelationSchema } = await import('../../../src/utils/opsx-utils.js');
-    expect(OpsxRelationSchema.safeParse({ ...ownership('cap.a'), note: 'not allowed' }).success).toBe(false);
-    expect(OpsxRelationSchema.safeParse({
+    const { XirangRelationSchema } = await import('../../../src/utils/xirang-utils.js');
+    expect(XirangRelationSchema.safeParse({ ...ownership('cap.a'), note: 'not allowed' }).success).toBe(false);
+    expect(XirangRelationSchema.safeParse({
       from: 'cap.a',
       type: 'invokes',
       to: 'cap.b',

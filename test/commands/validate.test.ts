@@ -6,19 +6,19 @@ import { runCLI } from '../helpers/run-cli.js';
 describe('top-level validate command', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-validate-command-tmp');
-  const changesDir = path.join(testDir, '.opsx', 'changes');
-  const specsDir = path.join(testDir, '.opsx', 'specs');
+  const changesDir = path.join(testDir, '.xirang', 'changes');
+  const specsDir = path.join(testDir, '.xirang', 'specs');
 
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });
     await fs.mkdir(specsDir, { recursive: true });
 
-    await fs.mkdir(path.join(testDir, '.opsx', 'architecture'), { recursive: true });
-    await fs.writeFile(path.join(testDir, '.opsx', 'architecture', 'model.c4'), [
-      "opsx { languageVersion '1' }",
+    await fs.mkdir(path.join(testDir, '.xirang', 'architecture'), { recursive: true });
+    await fs.writeFile(path.join(testDir, '.xirang', 'architecture', 'model.c4'), [
+      "xirang { languageVersion '1' }",
       'specification {',
-      '  element project { opsx { root true contract optional } }',
-      '  element capability { opsx { contract optional parents [project] } }',
+      '  element project { xirang { root true contract optional } }',
+      '  element capability { xirang { contract optional parents [project] } }',
       '}',
       'model {',
       "  project_root = project 'Root' 'Root summary' {",
@@ -66,7 +66,7 @@ describe('top-level validate command', () => {
       '',
       '#### Scenario: Apply alpha delta',
       '- **GIVEN** the test change delta',
-      '- **WHEN** opsx validate runs',
+      '- **WHEN** xirang validate runs',
       '- **THEN** the validator reports the change as valid',
     ].join('\n');
     const c1DeltaDir = path.join(changesDir, 'c1', 'specs', 'alpha');
@@ -84,7 +84,7 @@ describe('top-level validate command', () => {
   });
 
   async function writeProjectOpsx(): Promise<void> {
-    await fs.writeFile(path.join(testDir, '.opsx', 'project.opsx.yaml'), [
+    await fs.writeFile(path.join(testDir, '.xirang', 'project.xirang.yaml'), [
       'schema_version: 2',
       'project:',
       '  id: proj.test',
@@ -102,7 +102,7 @@ describe('top-level validate command', () => {
       '    intent: Alpha capability',
       '    type: capability',
     ].join('\n'), 'utf-8');
-    await fs.writeFile(path.join(testDir, '.opsx', 'project.opsx.relations.yaml'), [
+    await fs.writeFile(path.join(testDir, '.xirang', 'project.xirang.relations.yaml'), [
       'schema_version: 2',
       'relations:',
       '  - from: cap.alpha',
@@ -200,7 +200,7 @@ describe('top-level validate command', () => {
     expect(result.exitCode).toBe(0);
     const json = JSON.parse(result.stdout.trim());
     expect(json.items[0]).toMatchObject({ id: 'c1', type: 'change', valid: true });
-    expect(json.items[0].issues.some((issue: any) => issue.message.includes('OPSX dry-run merge failed'))).toBe(false);
+    expect(json.items[0].issues.some((issue: any) => issue.message.includes('Xirang dry-run merge failed'))).toBe(false);
   });
 
   it('rejects deprecated opsx-delta artifact scope', async () => {
@@ -316,7 +316,7 @@ describe('top-level validate command', () => {
       '',
       '#### Scenario: Validate CRLF change',
       '- **GIVEN** a change proposal saved with CRLF line endings',
-      '- **WHEN** a developer runs opsx validate on the proposal',
+      '- **WHEN** a developer runs xirang validate on the proposal',
       '- **THEN** validation succeeds without section errors',
     ]);
 
@@ -334,8 +334,8 @@ describe('top-level validate command', () => {
     // (not options.noInteractive = true) due to Commander.js convention.
     const result = await runCLI(['validate', '--specs', '--no-interactive'], {
       cwd: testDir,
-      // Don't set OPSX_INTERACTIVE to ensure we're testing the flag itself
-      env: { ...process.env, OPSX_INTERACTIVE: undefined },
+      // Don't set XIRANG_INTERACTIVE to ensure we're testing the flag itself
+      env: { ...process.env, XIRANG_INTERACTIVE: undefined },
     });
     expect(result.exitCode).toBe(0);
     // Should complete without hanging and without prompts

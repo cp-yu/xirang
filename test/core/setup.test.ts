@@ -68,12 +68,12 @@ describe('SetupCommand', () => {
   }
 
   describe('execute with --tools flag', () => {
-    it('should create OPSX directory structure', async () => {
+    it('should create Xirang directory structure', async () => {
       const initCommand = new SetupCommand({ tools: 'claude', force: true });
 
       await initCommand.execute(testDir);
 
-      const opsxPath = path.join(testDir, '.opsx');
+      const opsxPath = path.join(testDir, '.xirang');
       expect(await directoryExists(opsxPath)).toBe(true);
       expect(await directoryExists(path.join(opsxPath, 'specs'))).toBe(true);
       expect(await directoryExists(path.join(opsxPath, 'changes'))).toBe(true);
@@ -86,7 +86,7 @@ describe('SetupCommand', () => {
 
       await initCommand.execute(testDir);
 
-      expect(await fileExists(path.join(testDir, '.opsx', 'config.yaml'))).toBe(true);
+      expect(await fileExists(path.join(testDir, '.xirang', 'config.yaml'))).toBe(true);
     });
 
     it('should create config.yaml with functional defaults', async () => {
@@ -94,7 +94,7 @@ describe('SetupCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const configPath = path.join(testDir, '.opsx', 'config.yaml');
+      const configPath = path.join(testDir, '.xirang', 'config.yaml');
       expect(await fileExists(configPath)).toBe(true);
 
       const content = await fs.readFile(configPath, 'utf-8');
@@ -111,7 +111,7 @@ describe('SetupCommand', () => {
       expect(content).toContain('  branch:');
       expect(content).toContain('    deleteAfterArchive: false');
       expect(content).not.toContain('autoCommit');
-      expect(content).not.toContain('convention: opsx-archive');
+      expect(content).not.toContain('convention: xirang-archive');
       expect(content).not.toContain('convention: opsx-merge-summary');
       expect(content).not.toContain('messageFrom');
       expect(parsed.git).not.toHaveProperty('autoCommit');
@@ -136,7 +136,7 @@ describe('SetupCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const configPath = path.join(testDir, '.opsx', 'config.yaml');
+      const configPath = path.join(testDir, '.xirang', 'config.yaml');
       const content = await fs.readFile(configPath, 'utf-8');
       expect(content).toContain('schema: spec-driven');
       expect(content).toContain('proseLanguage: zh-CN');
@@ -149,12 +149,12 @@ describe('SetupCommand', () => {
 
       // All 6 registry workflows: propose, explore, apply, archive, build, snack
       const expectedSkillNames = [
-        'opsx-propose',
-        'opsx-explore',
-        'opsx-apply-change',
-        'opsx-archive-change',
-        'opsx-build',
-        'opsx-snack',
+        'xirang-propose',
+        'xirang-explore',
+        'xirang-apply-change',
+        'xirang-archive-change',
+        'xirang-build',
+        'xirang-snack',
       ];
 
       for (const skillName of expectedSkillNames) {
@@ -190,11 +190,11 @@ describe('SetupCommand', () => {
 
       // Skills-only: no slash command files are generated
       const slashCommandNames = [
-        'opsx/propose.md',
-        'opsx/explore.md',
-        'opsx/apply.md',
-        'opsx/archive.md',
-        '.opsx/bootstrap.md',
+        'xirang/propose.md',
+        'xirang/explore.md',
+        'xirang/apply.md',
+        'xirang/archive.md',
+        '.xirang/bootstrap.md',
       ];
 
       for (const cmdName of slashCommandNames) {
@@ -208,7 +208,7 @@ describe('SetupCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const skillFile = path.join(testDir, '.cursor', 'skills', 'opsx-explore', 'SKILL.md');
+      const skillFile = path.join(testDir, '.cursor', 'skills', 'xirang-explore', 'SKILL.md');
       expect(await fileExists(skillFile)).toBe(true);
     });
 
@@ -217,7 +217,7 @@ describe('SetupCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const skillFile = path.join(testDir, '.windsurf', 'skills', 'opsx-explore', 'SKILL.md');
+      const skillFile = path.join(testDir, '.windsurf', 'skills', 'xirang-explore', 'SKILL.md');
       expect(await fileExists(skillFile)).toBe(true);
     });
 
@@ -228,19 +228,19 @@ describe('SetupCommand', () => {
       await initCommand.execute(testDir);
 
       expect(await fileExists(
-        path.join(testDir, '.codex', 'skills', 'opsx-explore', 'SKILL.md')
+        path.join(testDir, '.codex', 'skills', 'xirang-explore', 'SKILL.md')
       )).toBe(true);
       expect(await fileExists(
-        path.join(path.resolve(process.env.CODEX_HOME ?? path.join(testDir, 'codex-home')), 'prompts', 'opsx-explore.md')
+        path.join(path.resolve(process.env.CODEX_HOME ?? path.join(testDir, 'codex-home')), 'prompts', 'xirang-explore.md')
       )).toBe(false);
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('$opsx-propose "your idea"')
+        expect.stringContaining('$xirang-propose "your idea"')
       );
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('refreshed skills to take effect')
       );
       expect(consoleSpy).not.toHaveBeenCalledWith(
-        expect.stringContaining('/opsx:propose')
+        expect.stringContaining('/xirang:propose')
       );
     });
 
@@ -250,7 +250,7 @@ describe('SetupCommand', () => {
 
       await initCommand.execute(testDir);
 
-      // Skills-only: guidance uses neutral skill invocation (no /opsx:*)
+      // Skills-only: guidance uses neutral skill invocation (no /xirang:*)
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('refreshed skills to take effect')
       );
@@ -269,7 +269,7 @@ describe('SetupCommand', () => {
       await initCommand.execute(testDir);
 
       expect(await fileExists(
-        path.join(testDir, '.codex', 'skills', 'opsx-explore', 'SKILL.md')
+        path.join(testDir, '.codex', 'skills', 'xirang-explore', 'SKILL.md')
       )).toBe(true);
       // Skills-only: legacy command files are not actively removed
       expect(await fileExists(legacyCommand)).toBe(true);
@@ -280,8 +280,8 @@ describe('SetupCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const claudeSkill = path.join(testDir, '.claude', 'skills', 'opsx-explore', 'SKILL.md');
-      const cursorSkill = path.join(testDir, '.cursor', 'skills', 'opsx-explore', 'SKILL.md');
+      const claudeSkill = path.join(testDir, '.claude', 'skills', 'xirang-explore', 'SKILL.md');
+      const cursorSkill = path.join(testDir, '.cursor', 'skills', 'xirang-explore', 'SKILL.md');
 
       expect(await fileExists(claudeSkill)).toBe(true);
       expect(await fileExists(cursorSkill)).toBe(true);
@@ -293,9 +293,9 @@ describe('SetupCommand', () => {
       await initCommand.execute(testDir);
 
       // Check a few representative tools
-      const claudeSkill = path.join(testDir, '.claude', 'skills', 'opsx-explore', 'SKILL.md');
-      const cursorSkill = path.join(testDir, '.cursor', 'skills', 'opsx-explore', 'SKILL.md');
-      const windsurfSkill = path.join(testDir, '.windsurf', 'skills', 'opsx-explore', 'SKILL.md');
+      const claudeSkill = path.join(testDir, '.claude', 'skills', 'xirang-explore', 'SKILL.md');
+      const cursorSkill = path.join(testDir, '.cursor', 'skills', 'xirang-explore', 'SKILL.md');
+      const windsurfSkill = path.join(testDir, '.windsurf', 'skills', 'xirang-explore', 'SKILL.md');
 
       expect(await fileExists(claudeSkill)).toBe(true);
       expect(await fileExists(cursorSkill)).toBe(true);
@@ -308,13 +308,13 @@ describe('SetupCommand', () => {
       await initCommand.execute(testDir);
 
       // Should create the durable core but no skills.
-      const opsxPath = path.join(testDir, '.opsx');
+      const opsxPath = path.join(testDir, '.xirang');
       expect(await directoryExists(path.join(opsxPath, 'architecture'))).toBe(true);
       expect(await directoryExists(path.join(opsxPath, 'specs'))).toBe(true);
       expect(await directoryExists(path.join(opsxPath, 'changes'))).toBe(true);
       expect(await directoryExists(path.join(opsxPath, 'references'))).toBe(true);
       expect(await fileExists(path.join(opsxPath, 'config.yaml'))).toBe(true);
-      expect(vi.mocked(console.log).mock.calls.flat().join('\n')).not.toContain('/opsx:');
+      expect(vi.mocked(console.log).mock.calls.flat().join('\n')).not.toContain('/xirang:');
 
       // No tool-specific directories should be created
       const claudeSkillsDir = path.join(testDir, '.claude', 'skills');
@@ -332,8 +332,8 @@ describe('SetupCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const claudeSkill = path.join(testDir, '.claude', 'skills', 'opsx-explore', 'SKILL.md');
-      const cursorSkill = path.join(testDir, '.cursor', 'skills', 'opsx-explore', 'SKILL.md');
+      const claudeSkill = path.join(testDir, '.claude', 'skills', 'xirang-explore', 'SKILL.md');
+      const cursorSkill = path.join(testDir, '.cursor', 'skills', 'xirang-explore', 'SKILL.md');
 
       expect(await fileExists(claudeSkill)).toBe(true);
       expect(await fileExists(cursorSkill)).toBe(true);
@@ -349,7 +349,7 @@ describe('SetupCommand', () => {
 
     it('should not create config.yaml if it already exists', async () => {
       // Pre-create config.yaml
-      const opsxDir = path.join(testDir, '.opsx');
+      const opsxDir = path.join(testDir, '.xirang');
       await fs.mkdir(opsxDir, { recursive: true });
       const configPath = path.join(opsxDir, 'config.yaml');
       const existingContent = 'schema: custom-schema\n';
@@ -368,7 +368,7 @@ describe('SetupCommand', () => {
 
       await initCommand.execute(newDir);
 
-      const opsxPath = path.join(newDir, '.opsx');
+      const opsxPath = path.join(newDir, '.xirang');
       expect(await directoryExists(opsxPath)).toBe(true);
     });
 
@@ -381,15 +381,15 @@ describe('SetupCommand', () => {
       await initCommand2.execute(testDir);
 
       // Both tools should have skills
-      const claudeSkill = path.join(testDir, '.claude', 'skills', 'opsx-explore', 'SKILL.md');
-      const cursorSkill = path.join(testDir, '.cursor', 'skills', 'opsx-explore', 'SKILL.md');
+      const claudeSkill = path.join(testDir, '.claude', 'skills', 'xirang-explore', 'SKILL.md');
+      const cursorSkill = path.join(testDir, '.cursor', 'skills', 'xirang-explore', 'SKILL.md');
 
       expect(await fileExists(claudeSkill)).toBe(true);
       expect(await fileExists(cursorSkill)).toBe(true);
     });
 
     it('should update existing config.yaml with proseLanguage in extend mode', async () => {
-      const opsxDir = path.join(testDir, '.opsx');
+      const opsxDir = path.join(testDir, '.xirang');
       await fs.mkdir(opsxDir, { recursive: true });
       await fs.writeFile(
         path.join(opsxDir, 'config.yaml'),
@@ -415,7 +415,7 @@ context: |
       const initCommand1 = new SetupCommand({ tools: 'claude', force: true });
       await initCommand1.execute(testDir);
 
-      const skillFile = path.join(testDir, '.claude', 'skills', 'opsx-explore', 'SKILL.md');
+      const skillFile = path.join(testDir, '.claude', 'skills', 'xirang-explore', 'SKILL.md');
       const originalContent = await fs.readFile(skillFile, 'utf-8');
 
       // Modify the file
@@ -435,12 +435,12 @@ context: |
       const initCommand = new SetupCommand({ tools: 'claude', force: true });
       await initCommand.execute(testDir);
 
-      const skillFile = path.join(testDir, '.claude', 'skills', 'opsx-explore', 'SKILL.md');
+      const skillFile = path.join(testDir, '.claude', 'skills', 'xirang-explore', 'SKILL.md');
       const content = await fs.readFile(skillFile, 'utf-8');
 
       // Should have YAML frontmatter
       expect(content).toMatch(/^---\n/);
-      expect(readSkillFrontmatter(content)).toMatchObject({ name: 'opsx-explore' });
+      expect(readSkillFrontmatter(content)).toMatchObject({ name: 'xirang-explore' });
       expect(content).toContain('description:');
       expect(content).toContain('license:');
       expect(content).toContain('compatibility:');
@@ -452,7 +452,7 @@ context: |
       const initCommand = new SetupCommand({ tools: 'claude', force: true });
       await initCommand.execute(testDir);
 
-      const skillFile = path.join(testDir, '.claude', 'skills', 'opsx-explore', 'SKILL.md');
+      const skillFile = path.join(testDir, '.claude', 'skills', 'xirang-explore', 'SKILL.md');
       const content = await fs.readFile(skillFile, 'utf-8');
 
       expect(content).toContain('Enter explore mode');
@@ -463,20 +463,20 @@ context: |
       const initCommand = new SetupCommand({ tools: 'claude', force: true });
       await initCommand.execute(testDir);
 
-      const skillFile = path.join(testDir, '.claude', 'skills', 'opsx-propose', 'SKILL.md');
+      const skillFile = path.join(testDir, '.claude', 'skills', 'xirang-propose', 'SKILL.md');
       const content = await fs.readFile(skillFile, 'utf-8');
 
-      expect(readSkillFrontmatter(content)).toMatchObject({ name: 'opsx-propose' });
+      expect(readSkillFrontmatter(content)).toMatchObject({ name: 'xirang-propose' });
     });
 
     it('should include apply-change skill instructions', async () => {
       const initCommand = new SetupCommand({ tools: 'claude', force: true });
       await initCommand.execute(testDir);
 
-      const skillFile = path.join(testDir, '.claude', 'skills', 'opsx-apply-change', 'SKILL.md');
+      const skillFile = path.join(testDir, '.claude', 'skills', 'xirang-apply-change', 'SKILL.md');
       const content = await fs.readFile(skillFile, 'utf-8');
 
-      expect(readSkillFrontmatter(content)).toMatchObject({ name: 'opsx-apply-change' });
+      expect(readSkillFrontmatter(content)).toMatchObject({ name: 'xirang-apply-change' });
       expect(content).toMatch(/preserve.*canonical|template.*heading/i);
     });
 
@@ -484,7 +484,7 @@ context: |
       const initCommand = new SetupCommand({ tools: 'claude', force: true });
       await initCommand.execute(testDir);
 
-      const skillFile = path.join(testDir, '.claude', 'skills', 'opsx-explore', 'SKILL.md');
+      const skillFile = path.join(testDir, '.claude', 'skills', 'xirang-explore', 'SKILL.md');
       const content = await fs.readFile(skillFile, 'utf-8');
 
       // Should contain generatedBy field with a version string
@@ -497,7 +497,7 @@ context: |
       const initCommand = new SetupCommand({ tools: 'claude', force: true });
       await initCommand.execute(testDir);
 
-      const cmdFile = path.join(testDir, '.claude', 'commands', 'opsx', 'explore.md');
+      const cmdFile = path.join(testDir, '.claude', 'commands', 'xirang', 'explore.md');
       expect(await fileExists(cmdFile)).toBe(false);
     });
 
@@ -505,7 +505,7 @@ context: |
       const initCommand = new SetupCommand({ tools: 'cursor', force: true });
       await initCommand.execute(testDir);
 
-      const cmdFile = path.join(testDir, '.cursor', 'commands', 'opsx-explore.md');
+      const cmdFile = path.join(testDir, '.cursor', 'commands', 'xirang-explore.md');
       expect(await fileExists(cmdFile)).toBe(false);
     });
 
@@ -513,8 +513,8 @@ context: |
       const initCommand = new SetupCommand({ tools: 'claude', force: true });
       await initCommand.execute(testDir);
 
-      const bootstrapCmd = path.join(testDir, '.claude', 'commands', 'opsx', getCommandSlug('build') + '.md');
-      const legacyBootstrapCmd = path.join(testDir, '.claude', 'commands', 'opsx', 'build.md');
+      const bootstrapCmd = path.join(testDir, '.claude', 'commands', 'xirang', getCommandSlug('build') + '.md');
+      const legacyBootstrapCmd = path.join(testDir, '.claude', 'commands', 'xirang', 'build.md');
       expect(await fileExists(bootstrapCmd)).toBe(false);
       expect(await fileExists(legacyBootstrapCmd)).toBe(false);
     });
@@ -531,7 +531,7 @@ context: |
         async (filePath: any, ...args: any[]) => {
           if (
             typeof filePath === 'string' &&
-            filePath.includes('.opsx-test-')
+            filePath.includes('.xirang-test-')
           ) {
             throw new Error('EACCES: permission denied');
           }
@@ -556,11 +556,11 @@ context: |
       const initCommand = new SetupCommand({ tools: 'gemini', force: true });
       await initCommand.execute(testDir);
 
-      const cmdFile = path.join(testDir, '.gemini', 'commands', 'opsx', 'explore.toml');
+      const cmdFile = path.join(testDir, '.gemini', 'commands', 'xirang', 'explore.toml');
       expect(await fileExists(cmdFile)).toBe(false);
 
       // Skills still generated
-      const skillFile = path.join(testDir, '.gemini', 'skills', 'opsx-explore', 'SKILL.md');
+      const skillFile = path.join(testDir, '.gemini', 'skills', 'xirang-explore', 'SKILL.md');
       expect(await fileExists(skillFile)).toBe(true);
     });
 
@@ -568,7 +568,7 @@ context: |
       const initCommand = new SetupCommand({ tools: 'windsurf', force: true });
       await initCommand.execute(testDir);
 
-      const cmdFile = path.join(testDir, '.windsurf', 'workflows', 'opsx-explore.md');
+      const cmdFile = path.join(testDir, '.windsurf', 'workflows', 'xirang-explore.md');
       expect(await fileExists(cmdFile)).toBe(false);
     });
 
@@ -576,7 +576,7 @@ context: |
       const initCommand = new SetupCommand({ tools: 'continue', force: true });
       await initCommand.execute(testDir);
 
-      const cmdFile = path.join(testDir, '.continue', 'prompts', 'opsx-explore.prompt');
+      const cmdFile = path.join(testDir, '.continue', 'prompts', 'xirang-explore.prompt');
       expect(await fileExists(cmdFile)).toBe(false);
     });
 
@@ -584,7 +584,7 @@ context: |
       const initCommand = new SetupCommand({ tools: 'cline', force: true });
       await initCommand.execute(testDir);
 
-      const cmdFile = path.join(testDir, '.clinerules', 'workflows', 'opsx-explore.md');
+      const cmdFile = path.join(testDir, '.clinerules', 'workflows', 'xirang-explore.md');
       expect(await fileExists(cmdFile)).toBe(false);
     });
 
@@ -592,13 +592,13 @@ context: |
       const initCommand = new SetupCommand({ tools: 'github-copilot', force: true });
       await initCommand.execute(testDir);
 
-      const cmdFile = path.join(testDir, '.github', 'prompts', 'opsx-explore.prompt.md');
+      const cmdFile = path.join(testDir, '.github', 'prompts', 'xirang-explore.prompt.md');
       expect(await fileExists(cmdFile)).toBe(false);
     });
   });
 });
 
-describe('OPSX skeleton generation', () => {
+describe('Xirang skeleton generation', () => {
   let testDir: string;
   let configTempDir: string;
   let originalEnv: NodeJS.ProcessEnv;
@@ -630,7 +630,7 @@ describe('OPSX skeleton generation', () => {
     const initCommand = new SetupCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
-    const architecture = path.join(testDir, '.opsx', 'architecture');
+    const architecture = path.join(testDir, '.xirang', 'architecture');
     expect(SETUP_ARCHITECTURE_FILE_MANIFEST.map((file) => file.relativePath)).toEqual([
       'specification.c4',
       'model.c4',
@@ -641,11 +641,11 @@ describe('OPSX skeleton generation', () => {
       expect(await fileExists(path.join(architecture, file.relativePath))).toBe(true);
       expect(typeof file.render).toBe('function');
     }
-    expect(await directoryExists(path.join(testDir, '.opsx', 'specs'))).toBe(true);
+    expect(await directoryExists(path.join(testDir, '.xirang', 'specs'))).toBe(true);
     expect(await directoryExists(path.join(architecture, 'domains'))).toBe(false);
 
     const specification = await fs.readFile(path.join(architecture, 'specification.c4'), 'utf-8');
-    expect(specification).toContain("opsx {\n  languageVersion '1'\n}");
+    expect(specification).toContain("xirang {\n  languageVersion '1'\n}");
     expect(specification).toMatch(/element project\s*\{[\s\S]*root true[\s\S]*contract required/);
     for (const relation of ['invokes', 'produces', 'consumes', 'precedes', 'constrains', 'validates']) {
       expect(specification).toContain(`relationship ${relation}`);
@@ -665,12 +665,12 @@ describe('OPSX skeleton generation', () => {
     expect(views).toContain('view refinement of projectRoot');
   });
 
-  it('should not generate OPSX YAML files', async () => {
+  it('should not generate Xirang YAML files', async () => {
     const initCommand = new SetupCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
-    expect(await fileExists(path.join(testDir, '.opsx', 'project.opsx.yaml'))).toBe(false);
-    expect(await fileExists(path.join(testDir, '.opsx', 'project.opsx.relations.yaml'))).toBe(false);
+    expect(await fileExists(path.join(testDir, '.xirang', 'project.xirang.yaml'))).toBe(false);
+    expect(await fileExists(path.join(testDir, '.xirang', 'project.xirang.relations.yaml'))).toBe(false);
   });
 
   it('should infer the architecture title from package.json', async () => {
@@ -678,12 +678,12 @@ describe('OPSX skeleton generation', () => {
     const initCommand = new SetupCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
-    const views = await fs.readFile(path.join(testDir, '.opsx', 'architecture', 'views.c4'), 'utf-8');
+    const views = await fs.readFile(path.join(testDir, '.xirang', 'architecture', 'views.c4'), 'utf-8');
     expect(views).toContain("title '@scope/my-awesome-project Architecture'");
   });
 
   it('should not overwrite existing LikeC4 files in extend mode', async () => {
-    const architecture = path.join(testDir, '.opsx', 'architecture');
+    const architecture = path.join(testDir, '.xirang', 'architecture');
     await fs.mkdir(architecture, { recursive: true });
     const existingContent = "specification { element existing }\n";
     await fs.writeFile(path.join(architecture, 'specification.c4'), existingContent);
@@ -695,23 +695,23 @@ describe('OPSX skeleton generation', () => {
   });
 
   it('should preserve existing Architecture, Specs, config, and user files', async () => {
-    const opsx = path.join(testDir, '.opsx');
-    const architecture = path.join(opsx, 'architecture');
-    const spec = path.join(opsx, 'specs', 'owned', 'spec.md');
+    const xirang = path.join(testDir, '.xirang');
+    const architecture = path.join(xirang, 'architecture');
+    const spec = path.join(xirang, 'specs', 'owned', 'spec.md');
     await fs.mkdir(architecture, { recursive: true });
     await fs.mkdir(path.dirname(spec), { recursive: true });
     await fs.writeFile(path.join(architecture, 'model.c4'), 'custom model\n');
     await fs.writeFile(spec, 'custom spec\n');
-    await fs.writeFile(path.join(opsx, 'config.yaml'), 'schema: spec-driven\ncontext: keep\n');
-    await fs.writeFile(path.join(opsx, 'user.txt'), 'keep\n');
+    await fs.writeFile(path.join(xirang, 'config.yaml'), 'schema: spec-driven\ncontext: keep\n');
+    await fs.writeFile(path.join(xirang, 'user.txt'), 'keep\n');
 
     const setupCommand = new SetupCommand({ tools: 'none', force: true });
     await setupCommand.execute(testDir);
 
     await expect(fs.readFile(path.join(architecture, 'model.c4'), 'utf8')).resolves.toBe('custom model\n');
     await expect(fs.readFile(spec, 'utf8')).resolves.toBe('custom spec\n');
-    await expect(fs.readFile(path.join(opsx, 'config.yaml'), 'utf8')).resolves.toBe('schema: spec-driven\ncontext: keep\n');
-    await expect(fs.readFile(path.join(opsx, 'user.txt'), 'utf8')).resolves.toBe('keep\n');
+    await expect(fs.readFile(path.join(xirang, 'config.yaml'), 'utf8')).resolves.toBe('schema: spec-driven\ncontext: keep\n');
+    await expect(fs.readFile(path.join(xirang, 'user.txt'), 'utf8')).resolves.toBe('keep\n');
   });
 
   it('should show Project Build guidance when build is installed and non-extend mode', async () => {
@@ -725,11 +725,11 @@ describe('OPSX skeleton generation', () => {
 
     const logCalls = consoleSpy.mock.calls.flat().map(String);
     const buildLine = logCalls.find((line) =>
-      line.includes('Next: run') && line.includes('opsx-build')
+      line.includes('Next: run') && line.includes('xirang-build')
     );
     expect(buildLine).toBeDefined();
-    expect(buildLine).toContain('/opsx-build');
-    expect(buildLine).toContain('build your project OPSX');
+    expect(buildLine).toContain('/xirang-build');
+    expect(buildLine).toContain('build your project Xirang');
   });
 
   it('should show Project Build guidance for the fixed workflow set', async () => {
@@ -743,7 +743,7 @@ describe('OPSX skeleton generation', () => {
 
     const logCalls = consoleSpy.mock.calls.flat().map(String);
     const buildLine = logCalls.find((line) =>
-      line.includes('Next: run') && line.includes('opsx-build')
+      line.includes('Next: run') && line.includes('xirang-build')
     );
     expect(buildLine).toBeDefined();
   });
@@ -753,8 +753,8 @@ describe('OPSX skeleton generation', () => {
       featureFlags: {},
     });
 
-    // Pre-create opsx to make it extend mode
-    await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
+    // Pre-create xirang to make it extend mode
+    await fs.mkdir(path.join(testDir, '.xirang'), { recursive: true });
 
     const consoleSpy = vi.spyOn(console, 'log');
     const initCommand = new SetupCommand({ tools: 'claude', force: true });
@@ -809,12 +809,12 @@ describe('SetupCommand - profile and detection features', () => {
 
     // All 6 registry workflows should be created
     const expectedSkillNames = [
-      'opsx-propose',
-      'opsx-explore',
-      'opsx-apply-change',
-      'opsx-archive-change',
-      'opsx-build',
-      'opsx-snack',
+      'xirang-propose',
+      'xirang-explore',
+      'xirang-apply-change',
+      'xirang-archive-change',
+      'xirang-build',
+      'xirang-snack',
     ];
 
     for (const skillName of expectedSkillNames) {
@@ -833,7 +833,7 @@ describe('SetupCommand - profile and detection features', () => {
     // SetupCommand no longer accepts profile — just verify it installs all 5 workflows
     await initCommand.execute(testDir);
 
-    const proposeSkill = path.join(testDir, '.claude', 'skills', 'opsx-propose', 'SKILL.md');
+    const proposeSkill = path.join(testDir, '.claude', 'skills', 'xirang-propose', 'SKILL.md');
     expect(await fileExists(proposeSkill)).toBe(true);
   });
 
@@ -844,30 +844,16 @@ describe('SetupCommand - profile and detection features', () => {
     await expect(setupCommand.execute(testDir)).rejects.toThrow(/Non-interactive setup requires --tools/);
   });
 
-  it('should require explicit approval before cleaning legacy artifacts in non-interactive mode', async () => {
-    const legacyDir = path.join(testDir, '.opencode', 'command');
-    const legacyFile = path.join(legacyDir, 'opsx-propose.md');
-    await fs.mkdir(legacyDir, { recursive: true });
-    await fs.writeFile(legacyFile, 'legacy content');
-
-    const setupCommand = new SetupCommand({ tools: 'opencode' });
-    await expect(setupCommand.execute(testDir)).rejects.toThrow(/cleanup confirmation/);
-
-    expect(await fs.readFile(legacyFile, 'utf8')).toBe('legacy content');
-    expect(await directoryExists(path.join(testDir, '.opsx'))).toBe(false);
-    expect(await directoryExists(path.join(testDir, '.opencode', 'skills'))).toBe(false);
-  });
-
   it('should preselect configured tools but not directory-detected tools in extend mode', async () => {
-    // Simulate existing OPSX project (extend mode).
-    await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
+    // Simulate existing Xirang project (extend mode).
+    await fs.mkdir(path.join(testDir, '.xirang'), { recursive: true });
 
-    // Configured with OPSX
-    const claudeSkillDir = path.join(testDir, '.claude', 'skills', 'opsx-explore');
+    // Configured with Xirang
+    const claudeSkillDir = path.join(testDir, '.claude', 'skills', 'xirang-explore');
     await fs.mkdir(claudeSkillDir, { recursive: true });
     await fs.writeFile(path.join(claudeSkillDir, 'SKILL.md'), 'configured');
 
-    // Directory detected only (not configured with OPSX)
+    // Directory detected only (not configured with Xirang)
     await fs.mkdir(path.join(testDir, '.github'), { recursive: true });
     await fs.writeFile(path.join(testDir, '.github', 'copilot-instructions.md'), '');
 
@@ -890,7 +876,7 @@ describe('SetupCommand - profile and detection features', () => {
   });
 
   it('should preselect detected tools for first-time interactive setup', async () => {
-    // First-time init: no opsx/ directory and no configured OPSX skills.
+    // First-time init: no xirang/ directory and no configured Xirang skills.
     await fs.mkdir(path.join(testDir, '.github'), { recursive: true });
     await fs.writeFile(path.join(testDir, '.github', 'copilot-instructions.md'), '');
 
@@ -923,42 +909,17 @@ describe('SetupCommand - profile and detection features', () => {
 
     // All 6 workflows should be installed
     const expectedSkills = [
-      'opsx-propose',
-      'opsx-explore',
-      'opsx-apply-change',
-      'opsx-archive-change',
-      'opsx-build',
-      'opsx-snack',
+      'xirang-propose',
+      'xirang-explore',
+      'xirang-apply-change',
+      'xirang-archive-change',
+      'xirang-build',
+      'xirang-snack',
     ];
 
     for (const skillName of expectedSkills) {
       const skillFile = path.join(testDir, '.claude', 'skills', skillName, 'SKILL.md');
       expect(await fileExists(skillFile)).toBe(true);
-    }
-  });
-
-  it('should install all 6 workflows in extend mode and remove managed command remnants', async () => {
-    await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
-    await fs.mkdir(path.join(testDir, '.claude', 'commands', 'opsx'), { recursive: true });
-    const legacyExploreCmd = path.join(testDir, '.claude', 'commands', 'opsx', 'explore.md');
-    await fs.writeFile(legacyExploreCmd, '# explore\n');
-
-    const initCommand = new SetupCommand({ tools: 'claude', force: true });
-    await initCommand.execute(testDir);
-
-    const commandFiles = ['explore.md', 'propose.md', 'apply.md', 'archive.md', 'bootstrap.md'];
-    for (const cmd of commandFiles) {
-      expect(await fileExists(path.join(testDir, '.claude', 'commands', 'opsx', cmd))).toBe(false);
-    }
-    expect(await fileExists(legacyExploreCmd)).toBe(false);
-
-    // All 6 skills should exist (includes skill-only snack)
-    const expectedSkills = [
-      'opsx-explore', 'opsx-propose', 'opsx-apply-change',
-      'opsx-archive-change', 'opsx-build', 'opsx-snack',
-    ];
-    for (const skill of expectedSkills) {
-      expect(await fileExists(path.join(testDir, '.claude', 'skills', skill, 'SKILL.md'))).toBe(true);
     }
   });
 
@@ -978,8 +939,8 @@ describe('SetupCommand - profile and detection features', () => {
 
     // All 6 workflows should be installed
     const expectedSkills = [
-      'opsx-explore', 'opsx-propose', 'opsx-apply-change',
-      'opsx-archive-change', 'opsx-build', 'opsx-snack',
+      'xirang-explore', 'xirang-propose', 'xirang-apply-change',
+      'xirang-archive-change', 'xirang-build', 'xirang-snack',
     ];
     for (const skill of expectedSkills) {
       expect(await fileExists(path.join(testDir, '.claude', 'skills', skill, 'SKILL.md'))).toBe(true);
@@ -1000,11 +961,11 @@ describe('SetupCommand - profile and detection features', () => {
     await initCommand.execute(testDir);
 
     // Skills should exist
-    const skillFile = path.join(testDir, '.claude', 'skills', 'opsx-explore', 'SKILL.md');
+    const skillFile = path.join(testDir, '.claude', 'skills', 'xirang-explore', 'SKILL.md');
     expect(await fileExists(skillFile)).toBe(true);
 
     // Commands should NOT exist (skills-only surface)
-    const cmdFile = path.join(testDir, '.claude', 'commands', 'opsx', 'explore.md');
+    const cmdFile = path.join(testDir, '.claude', 'commands', 'xirang', 'explore.md');
     expect(await fileExists(cmdFile)).toBe(false);
   });
 
@@ -1019,32 +980,16 @@ describe('SetupCommand - profile and detection features', () => {
     await initCommand.execute(testDir);
 
     // Skills should exist (skills-only ignores stale delivery=commands)
-    const skillFile = path.join(testDir, '.claude', 'skills', 'opsx-explore', 'SKILL.md');
+    const skillFile = path.join(testDir, '.claude', 'skills', 'xirang-explore', 'SKILL.md');
     expect(await fileExists(skillFile)).toBe(true);
 
     // Commands should NOT exist
-    const cmdFile = path.join(testDir, '.claude', 'commands', 'opsx', 'explore.md');
+    const cmdFile = path.join(testDir, '.claude', 'commands', 'xirang', 'explore.md');
     expect(await fileExists(cmdFile)).toBe(false);
   });
 
-  it('should remove managed command remnants on re-init', async () => {
-    const initCommand1 = new SetupCommand({ tools: 'claude', force: true });
-    await initCommand1.execute(testDir);
-
-    // Manually drop a stale command file (simulating legacy state)
-    const cmdFile = path.join(testDir, '.claude', 'commands', 'opsx', 'explore.md');
-    await fs.mkdir(path.dirname(cmdFile), { recursive: true });
-    await fs.writeFile(cmdFile, '# stale\n');
-
-    const initCommand2 = new SetupCommand({ tools: 'claude', force: true });
-    await initCommand2.execute(testDir);
-
-    expect(await fileExists(cmdFile)).toBe(false);
-
-    const skillFile = path.join(testDir, '.claude', 'skills', 'opsx-explore', 'SKILL.md');
-    expect(await fileExists(skillFile)).toBe(true);
-  });
 });
+
 
 async function fileExists(filePath: string): Promise<boolean> {
   try {

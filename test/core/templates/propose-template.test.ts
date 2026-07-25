@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { OPSX_PHILOSOPHY } from '../../../src/core/templates/fragments/opsx-fragments.js';
+import { XIRANG_PHILOSOPHY } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import {
   getOpsxProposeSkillTemplate,
 } from '../../../src/core/templates/workflows/propose.js';
@@ -17,11 +17,11 @@ describe('propose template post-validation flow', () => {
     expect(instructions).toContain('architecture-delta.c4');
     expect(instructions).toContain('affected elements, refinement, Element Contracts, and relationships');
     expect(instructions).toContain('-[invokes]->');
-    expect(instructions).toContain('opsx arch validate --delta');
+    expect(instructions).toContain('xirang arch validate --delta');
   });
 
-  it('includes the OPSX philosophy in the skill surface', () => {
-    expect(getOpsxProposeSkillTemplate().instructions).toContain(OPSX_PHILOSOPHY);
+  it('includes the Xirang philosophy in the skill surface', () => {
+    expect(getOpsxProposeSkillTemplate().instructions).toContain(XIRANG_PHILOSOPHY);
   });
 
   it('resolves new and existing change identity without rename semantics', () => {
@@ -33,14 +33,14 @@ describe('propose template post-validation flow', () => {
     expect(instructions).toContain('ask whether to update the existing change or create an independent new change');
     expect(instructions).toContain('in non-interactive mode, fail and request an explicit choice');
     expect(instructions).not.toContain('use a new name');
-    expect(instructions).not.toContain('opsx rename');
+    expect(instructions).not.toContain('xirang rename');
   });
 
   it('navigates the formal LikeC4 model before authoring', () => {
     const instructions = getOpsxProposeSkillTemplate().instructions;
-    expect(instructions).toContain('.opsx/architecture/');
-    expect(instructions).toContain('opsx arch query <elementId> --relations --depth 2 --json');
-    expect(instructions).not.toContain('.opsx/project.opsx.yaml');
+    expect(instructions).toContain('.xirang/architecture/');
+    expect(instructions).toContain('xirang arch query <elementId> --relations --depth 2 --json');
+    expect(instructions).not.toContain('.xirang/project.xirang.yaml');
   });
 
   it('defers definition-first ordering to the artifact instruction projection', () => {
@@ -52,17 +52,17 @@ describe('propose template post-validation flow', () => {
 
   it('uses one blocking combined validation with a single repair pass', () => {
     for (const body of getProposeBodies()) {
-      expect(body.match(/opsx validate --change "<name>" --json/g)).toHaveLength(1);
+      expect(body.match(/xirang validate --change "<name>" --json/g)).toHaveLength(1);
       expect(body).toContain('ERROR from either scaffolding checks or combined change validation blocks ready-for-apply');
       expect(body).toContain('WARNING does not block');
       expect(body).toContain('at most one repair pass');
       expect(body).toContain('re-check once');
-      expect(body).toContain('Do NOT run `opsx sync`');
+      expect(body).toContain('Do NOT run `xirang sync`');
       expect(body).not.toContain('--artifacts specs');
       expect(body).not.toContain('--artifacts opsx-delta');
       expect(body).not.toContain('Validator.validateChangeDeltaSpecs()');
-      expect(body).not.toContain('Validator.validateOpsxDelta()');
-      expect(body).not.toContain('applyOpsxDelta()');
+      expect(body).not.toContain('Validator.validateXirangDelta()');
+      expect(body).not.toContain('applyXirangDelta()');
     }
   });
 
@@ -70,15 +70,15 @@ describe('propose template post-validation flow', () => {
     const template = getOpsxProposeSkillTemplate();
     expect(template.instructions).toMatch(/read the exact Requirement titles from the formal Spec/i);
     expect(template.instructions).toContain('combined change validation');
-    expect(template.instructions).not.toContain('opsx check-delta');
+    expect(template.instructions).not.toContain('xirang check-delta');
     expect(template).not.toHaveProperty('referenceFiles');
   });
 
   it('uses current schema templates for lightweight proposal/design/tasks checks', () => {
     for (const body of getProposeBodies()) {
-      expect(body).toContain('opsx instructions proposal --change "<name>" --json');
-      expect(body).toContain('opsx instructions design --change "<name>" --json');
-      expect(body).toContain('opsx instructions tasks --change "<name>" --json');
+      expect(body).toContain('xirang instructions proposal --change "<name>" --json');
+      expect(body).toContain('xirang instructions design --change "<name>" --json');
+      expect(body).toContain('xirang instructions tasks --change "<name>" --json');
       expect(body).toContain('validateTaskStructure');
       expect(body).toContain('Actions');
       expect(body).toContain('### Task N:');
@@ -124,7 +124,7 @@ describe('propose template post-validation flow', () => {
   it('checks readiness before creating a new change', () => {
     const body = getOpsxProposeSkillTemplate().instructions;
     expect(body.indexOf('Assess semantic readiness')).toBeGreaterThanOrEqual(0);
-    expect(body.indexOf('opsx new change "<name>"')).toBeGreaterThan(body.indexOf('Assess semantic readiness'));
+    expect(body.indexOf('xirang new change "<name>"')).toBeGreaterThan(body.indexOf('Assess semantic readiness'));
     expect(body).toContain('do not create a change directory or modify project files');
     expect(body).toContain('existing artifacts, current input, the confirmed Design Summary, formal source, and implementation evidence');
   });
@@ -138,14 +138,14 @@ describe('propose template post-validation flow', () => {
 
   it('uses the Element Contract registry and stable element identities', () => {
     for (const body of getProposeBodies()) {
-      expect(body).toContain('opsx list --specs --json');
+      expect(body).toContain('xirang list --specs --json');
       expect(body).toContain('Spec ID');
       expect(body).toContain('singular owner binding');
       expect(body).toContain('stable `elementId`');
       expect(body).toContain('does not by itself require a New Spec');
       expect(body).toContain('genuinely new observable behavior');
       expect(body).not.toContain('`capabilities` string array');
-      expect(body).not.toContain('opsx spec list');
+      expect(body).not.toContain('xirang spec list');
     }
   });
 
@@ -169,7 +169,7 @@ describe('propose template post-validation flow', () => {
     const body = getOpsxProposeSkillTemplate().instructions;
     expect(body).toContain('create or modify only the Spec IDs declared under proposal `Behavior Source`');
     expect(body).toMatch(/read the exact Requirement titles from the formal Spec/i);
-    expect(body).not.toContain('opsx check-delta');
+    expect(body).not.toContain('xirang check-delta');
   });
 
   it('reconciles Architecture Source after Specs and Design', () => {
@@ -179,7 +179,7 @@ describe('propose template post-validation flow', () => {
     expect(designIndex).toBeGreaterThanOrEqual(0);
     expect(deltaIndex).toBeGreaterThan(designIndex);
     expect(body).toContain('update only proposal `Architecture Source`');
-    expect(body).toContain('formal OPSX Semantic Model');
+    expect(body).toContain('formal Xirang Semantic Model');
     expect(body).toContain('do not invent graph changes from contract changes alone');
   });
 
@@ -191,14 +191,14 @@ describe('propose template post-validation flow', () => {
 
   it('writes the effective-change report after validation', () => {
     for (const body of getProposeBodies()) {
-      const validationIndex = body.indexOf('opsx validate --change "<name>" --json');
-      const diffIndex = body.indexOf('opsx diff --change "<name>" --write');
+      const validationIndex = body.indexOf('xirang validate --change "<name>" --json');
+      const diffIndex = body.indexOf('xirang diff --change "<name>" --write');
       expect(validationIndex).toBeGreaterThanOrEqual(0);
       expect(diffIndex).toBeGreaterThan(validationIndex);
-      expect(body).toContain('.opsx/changes/<name>/effective-change.md');
+      expect(body).toContain('.xirang/changes/<name>/effective-change.md');
       expect(body).toContain('status is Passed');
       expect(body).toContain('source and target fingerprints');
-      expect(body).not.toContain('opsx scenario-labels');
+      expect(body).not.toContain('xirang scenario-labels');
       expect(body).not.toContain('#### Scenario: [ADDED] <title>');
       expect(body).not.toContain('#### Scenario: [MODIFIED] <title>');
       expect(body).not.toContain('#### Scenario: [REMOVED] <title>');

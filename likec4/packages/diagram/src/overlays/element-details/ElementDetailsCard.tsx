@@ -54,11 +54,11 @@ import { useCallbackRef, useUpdateEffect } from '../../hooks'
 import { useCurrentViewModel } from '../../hooks/useCurrentViewModel'
 import { useDiagram } from '../../hooks/useDiagram'
 import type { OnNavigateTo } from '../../LikeC4Diagram.props'
-import { useOpsxSpecLoader, useOpsxVariants } from '../../opsx/SpecLoaderContext'
+import { useXirangSpecLoader, useXirangVariants } from '../../xirang/SpecLoaderContext'
 import { stopPropagation } from '../../utils'
 import * as styles from './ElementDetailsCard.css'
 import { MetadataProvider, MetadataValue } from './MetadataValue'
-import { getSpecsTabModel, OpsxSpecIndexController, type OpsxSpecIndexState, SpecsTab } from './SpecsTab'
+import { getSpecsTabModel, XirangSpecIndexController, type XirangSpecIndexState, SpecsTab } from './SpecsTab'
 import { TabPanelDeployments } from './TabPanelDeployments'
 import { TabPanelRelationships } from './TabPanelRelationships'
 import { TabPanelStructure } from './TabPanelStructure'
@@ -127,13 +127,13 @@ export function ElementDetailsCard({
   const nodeModel = fromNode ? viewModel.findNode(fromNode) : viewModel.findNodeWithElement(fqn)
 
   const elementModel = viewModel.$model.element(fqn)
-  const specLoader = useOpsxSpecLoader()
-  const runtime = useOpsxVariants()
+  const specLoader = useXirangSpecLoader()
+  const runtime = useXirangVariants()
   const stableElementId = typeof elementModel.$element.metadata?.['elementId'] === 'string'
     ? elementModel.$element.metadata['elementId']
     : elementModel.id
-  const [specIndex, setSpecIndex] = useState<OpsxSpecIndexState | null>(null)
-  const specIndexController = useMemo(() => new OpsxSpecIndexController(setSpecIndex), [])
+  const [specIndex, setSpecIndex] = useState<XirangSpecIndexState | null>(null)
+  const specIndexController = useMemo(() => new XirangSpecIndexController(setSpecIndex), [])
   const specPaths = specIndex?.project === elementModel.projectId
       && specIndex.element === stableElementId
       && (specIndex.variant ?? 'formal') === runtime.selected.id

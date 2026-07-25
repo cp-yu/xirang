@@ -1,4 +1,4 @@
-import { OPSX_DIR_NAME } from '../core/config.js';
+import { XIRANG_DIR_NAME } from '../core/config.js';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -9,9 +9,9 @@ export interface ArchitectureDeltaIssue { level: 'ERROR'; path: string; message:
 export interface ArchitectureDeltaValidationResult { valid: boolean; issues: ArchitectureDeltaIssue[] }
 
 async function validateV1Delta(projectRoot: string, deltaPath: string): Promise<ArchitectureDeltaValidationResult> {
-  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-v1-delta-validation-'));
-  const source = path.join(projectRoot, OPSX_DIR_NAME, 'architecture');
-  const target = path.join(workspace, OPSX_DIR_NAME, 'architecture');
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-v1-delta-validation-'));
+  const source = path.join(projectRoot, XIRANG_DIR_NAME, 'architecture');
+  const target = path.join(workspace, XIRANG_DIR_NAME, 'architecture');
   const issuePath = path.basename(deltaPath);
   try {
     await fs.cp(source, target, {

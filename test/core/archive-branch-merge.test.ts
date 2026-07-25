@@ -27,9 +27,9 @@ async function writeFile(projectRoot: string, relativePath: string, content: str
 }
 
 async function setupRepo(): Promise<string> {
-  const projectRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-archive-merge-'));
-  await fs.mkdir(path.join(projectRoot, '.opsx', 'changes', 'archive'), { recursive: true });
-await writeFile(projectRoot, '.opsx/config.yaml', `schema: spec-driven
+  const projectRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-archive-merge-'));
+  await fs.mkdir(path.join(projectRoot, '.xirang', 'changes', 'archive'), { recursive: true });
+await writeFile(projectRoot, '.xirang/config.yaml', `schema: spec-driven
 git:
   merge:
     strategy: no-ff
@@ -38,7 +38,7 @@ git:
 `);
   await git(projectRoot, ['init', '-b', 'main']);
   await git(projectRoot, ['config', 'user.email', 'test@example.com']);
-  await git(projectRoot, ['config', 'user.name', 'OPSX Test']);
+  await git(projectRoot, ['config', 'user.name', 'Xirang Test']);
   await writeFile(projectRoot, 'README.md', 'baseline\n');
   await git(projectRoot, ['add', '.']);
   await git(projectRoot, ['commit', '-m', 'baseline']);
@@ -47,9 +47,9 @@ git:
 }
 
 async function writeChange(projectRoot: string, changeName = 'feature-archive'): Promise<void> {
-  const changeDir = path.join(projectRoot, '.opsx', 'changes', changeName);
+  const changeDir = path.join(projectRoot, '.xirang', 'changes', changeName);
   await fs.mkdir(changeDir, { recursive: true });
-  await writeFile(projectRoot, path.join('.opsx', 'changes', changeName, 'tasks.md'), `### Task 1: 实现归档合并
+  await writeFile(projectRoot, path.join('.xirang', 'changes', changeName, 'tasks.md'), `### Task 1: 实现归档合并
 
 **Goal**: 在归档后合并 feature 分支。
 
@@ -57,7 +57,7 @@ async function writeChange(projectRoot: string, changeName = 'feature-archive'):
 
 - [x] C1 merge
 `);
-  await writeFile(projectRoot, path.join('.opsx', 'changes', changeName, 'proposal.md'), `## Why
+  await writeFile(projectRoot, path.join('.xirang', 'changes', changeName, 'proposal.md'), `## Why
 
 归档workflow需要合并回主线。
 
@@ -65,11 +65,11 @@ async function writeChange(projectRoot: string, changeName = 'feature-archive'):
 
 - 新增 archive merge
 `);
-  await writeFile(projectRoot, path.join('.opsx', 'changes', changeName, 'design.md'), `## Decisions
+  await writeFile(projectRoot, path.join('.xirang', 'changes', changeName, 'design.md'), `## Decisions
 
 ### Decision 1: 使用 no-ff
 `);
-  await writeFile(projectRoot, path.join('.opsx', 'changes', changeName, '.apply-isolation.json'), JSON.stringify({
+  await writeFile(projectRoot, path.join('.xirang', 'changes', changeName, '.apply-isolation.json'), JSON.stringify({
     method: 'branch',
     branchName: 'feature-archive',
     originalBranch: 'main',
@@ -99,24 +99,24 @@ describe('archive branch merge', () => {
   it('archives and syncs without git writes when autoCommit is auto', async () => {
     projectRoot = await setupRepo();
     await writeChange(projectRoot);
-    await writeFile(projectRoot, '.opsx/changes/feature-archive/specs/synced/spec.md', `# Synced - Changes
+    await writeFile(projectRoot, '.xirang/changes/feature-archive/specs/synced/spec.md', `# Synced - Changes
 
 ## ADDED Requirements
 
 ### Requirement: Synced behavior
 The system SHALL sync this requirement.
 `);
-    await writeFile(projectRoot, '.opsx/project.opsx.yaml', `schema_version: 2
+    await writeFile(projectRoot, '.xirang/project.xirang.yaml', `schema_version: 2
 project:
   id: proj.test
   name: Test
 domains: []
 capabilities: []
 `);
-    await writeFile(projectRoot, '.opsx/project.opsx.relations.yaml', `schema_version: 2
+    await writeFile(projectRoot, '.xirang/project.xirang.relations.yaml', `schema_version: 2
 relations: []
 `);
-    await writeFile(projectRoot, '.opsx/changes/feature-archive/opsx-delta.yaml', `schema_version: 2
+    await writeFile(projectRoot, '.xirang/changes/feature-archive/opsx-delta.yaml', `schema_version: 2
 ADDED:
   domains:
     - id: dom.auth
@@ -131,7 +131,7 @@ ADDED:
       to: dom.auth
       type: belongs_to
 `);
-    await writeFile(projectRoot, '.opsx/specs/unrelated/spec.md', '# Unrelated\n');
+    await writeFile(projectRoot, '.xirang/specs/unrelated/spec.md', '# Unrelated\n');
     const beforeHead = await git(projectRoot, ['rev-parse', 'HEAD']);
     process.chdir(projectRoot);
 
@@ -152,11 +152,11 @@ ADDED:
     );
 
     // Sync is no longer embedded in archive — verify spec was NOT auto-synced
-    await expect(fs.access(path.join(projectRoot, '.opsx', 'specs', 'synced', 'spec.md'))).rejects.toThrow();
+    await expect(fs.access(path.join(projectRoot, '.xirang', 'specs', 'synced', 'spec.md'))).rejects.toThrow();
     const status = await git(projectRoot, ['status', '--short']);
-    expect(status).toContain('?? .opsx/changes/');
-    expect(status).toContain('?? .opsx/specs/');
-    expect(status).toContain('?? .opsx/project.opsx.relations.yaml');
+    expect(status).toContain('?? .xirang/changes/');
+    expect(status).toContain('?? .xirang/specs/');
+    expect(status).toContain('?? .xirang/project.xirang.relations.yaml');
   });
 
   it('leaves unrelated dirty files unstaged during handoff', async () => {
@@ -209,13 +209,13 @@ ADDED:
     expect(currentBranch).toBe('feature-archive');
     expect(await git(projectRoot, ['rev-parse', 'HEAD'])).toBe(beforeHead);
     expect(await git(projectRoot, ['diff', '--cached', '--name-only'])).toBe('');
-    const archives = await fs.readdir(path.join(projectRoot, '.opsx', 'changes', 'archive'));
+    const archives = await fs.readdir(path.join(projectRoot, '.xirang', 'changes', 'archive'));
     expect(archives.filter((entry) => entry.endsWith('-feature-archive'))).toHaveLength(1);
   });
 
   it('does not delete the feature branch when archive cleanup is enabled', async () => {
     projectRoot = await setupRepo();
-await writeFile(projectRoot, '.opsx/config.yaml', `schema: spec-driven
+await writeFile(projectRoot, '.xirang/config.yaml', `schema: spec-driven
 git:
   merge:
     strategy: no-ff
@@ -235,12 +235,12 @@ git:
 
   it('archives files with agent handoff when legacy autoCommit is manual', async () => {
     projectRoot = await setupRepo();
-    await writeFile(projectRoot, '.opsx/config.yaml', `schema: spec-driven
+    await writeFile(projectRoot, '.xirang/config.yaml', `schema: spec-driven
 git:
   autoCommit: manual
   archive:
     commitMessage:
-      convention: opsx-archive
+      convention: xirang-archive
   merge:
     strategy: no-ff
     commitMessage:
@@ -263,10 +263,10 @@ git:
     expect(console.log).toHaveBeenCalledWith(
       expect.stringContaining('agent')
     );
-    const archives = await fs.readdir(path.join(projectRoot, '.opsx', 'changes', 'archive'));
+    const archives = await fs.readdir(path.join(projectRoot, '.xirang', 'changes', 'archive'));
     expect(archives.some((entry) => entry.endsWith('-feature-archive'))).toBe(true);
     const status = await git(projectRoot, ['status', '--short']);
-    expect(status).toContain('?? .opsx/changes/');
+    expect(status).toContain('?? .xirang/changes/');
     expect(await git(projectRoot, ['diff', '--cached', '--name-only'])).toBe('');
   });
 
@@ -274,11 +274,11 @@ git:
     projectRoot = await setupRepo();
     const { input } = await import('@inquirer/prompts');
     const mockInput = input as unknown as ReturnType<typeof vi.fn>;
-    const changeDir = path.join(projectRoot, '.opsx', 'changes', 'feature-archive');
+    const changeDir = path.join(projectRoot, '.xirang', 'changes', 'feature-archive');
     await fs.mkdir(changeDir, { recursive: true });
-    await writeFile(projectRoot, path.join('.opsx', 'changes', 'feature-archive', 'tasks.md'), '- [x] Task 1\n');
-    await writeFile(projectRoot, path.join('.opsx', 'changes', 'feature-archive', 'proposal.md'), '## Why\n\nFallback archive.\n\n## What Changes\n\n- test\n');
-    await writeFile(projectRoot, path.join('.opsx', 'changes', 'feature-archive', 'design.md'), '## Decisions\n\n### Decision 1: fallback\n');
+    await writeFile(projectRoot, path.join('.xirang', 'changes', 'feature-archive', 'tasks.md'), '- [x] Task 1\n');
+    await writeFile(projectRoot, path.join('.xirang', 'changes', 'feature-archive', 'proposal.md'), '## Why\n\nFallback archive.\n\n## What Changes\n\n- test\n');
+    await writeFile(projectRoot, path.join('.xirang', 'changes', 'feature-archive', 'design.md'), '## Decisions\n\n### Decision 1: fallback\n');
     await writeFile(projectRoot, 'src/feature.ts', 'export const feature = true;\n');
     await git(projectRoot, ['add', 'src/feature.ts']);
     await git(projectRoot, ['commit', '-m', 'feat: implementation']);
@@ -292,7 +292,7 @@ git:
     const currentBranch = await git(projectRoot, ['branch', '--show-current']);
     expect(currentBranch).toBe('feature-archive');
     expect(await git(projectRoot, ['rev-parse', 'HEAD'])).toBe(beforeHead);
-    const archiveDir = path.join(projectRoot, '.opsx', 'changes', 'archive');
+    const archiveDir = path.join(projectRoot, '.xirang', 'changes', 'archive');
     const archives = await fs.readdir(archiveDir);
     const archiveName = archives.find((entry) => entry.includes('feature-archive'));
     expect(archiveName).toBeDefined();

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  OPSX_PHILOSOPHY,
-} from '../../../src/core/templates/fragments/opsx-fragments.js';
+  XIRANG_PHILOSOPHY,
+} from '../../../src/core/templates/fragments/xirang-fragments.js';
 import {
   getApplyChangeSkillTemplate,
 } from '../../../src/core/templates/workflows/apply-change.js';
@@ -25,13 +25,13 @@ describe('apply change workflow template', () => {
 
   it('queries LikeC4 architecture and explains element IDs before implementation', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
-    expect(instructions).toContain('opsx arch query');
+    expect(instructions).toContain('xirang arch query');
     expect(instructions).toContain('stable `elementId`');
     expect(instructions).toContain('FQN');
   });
 
-  it('keeps the OPSX philosophy in the skill surface', () => {
-    expect(getApplyChangeSkillTemplate().instructions).toContain(OPSX_PHILOSOPHY);
+  it('keeps the Xirang philosophy in the skill surface', () => {
+    expect(getApplyChangeSkillTemplate().instructions).toContain(XIRANG_PHILOSOPHY);
   });
 
   it('uses definition-first authoring without code-map navigation', () => {
@@ -39,12 +39,12 @@ describe('apply change workflow template', () => {
     const preparation = applyReference('references/apply-step-1-preparation.md');
     expect(instructions).toContain('resolved file definition');
     expect(instructions).toContain('MUST NOT copy definitions');
-    expect(preparation).toContain('opsx arch query');
-    expect(preparation).toContain('.opsx/architecture/');
-    expect(preparation).toContain('OPSX Semantic Model');
+    expect(preparation).toContain('xirang arch query');
+    expect(preparation).toContain('.xirang/architecture/');
+    expect(preparation).toContain('Xirang Semantic Model');
     expect(preparation).toContain('CodeGraph');
     expect(preparation).toContain('ACE');
-    expect(preparation).not.toContain('project.opsx.code-map.yaml');
+    expect(preparation).not.toContain('project.xirang.code-map.yaml');
   });
 
   it('keeps one reference file per apply workflow step and one per isolation method', () => {
@@ -63,7 +63,8 @@ describe('apply change workflow template', () => {
     ]);
 
     for (const reference of template.referenceFiles?.filter((file) => !file.path.includes('apply-step-3-')) ?? []) {
-      const sharedPath = `.opsx/references/opsx-${reference.path.replace('references/', '')}`;
+      const sharedPath = `.xirang/references/xirang-${reference.path.replace('references/', '')}`;
+
       expect(template.instructions).toContain(sharedPath);
     }
   });
@@ -73,13 +74,13 @@ describe('apply change workflow template', () => {
     const preparation = applyReference('references/apply-step-1-preparation.md');
 
     expect(instructions).toContain('Step 3: Isolation router');
-    expect(instructions).not.toContain('opsx-apply-step-3-branch-isolation.md');
-    expect(instructions).not.toContain('opsx-apply-step-3-worktree-isolation.md');
-    expect(instructions).not.toContain('opsx-apply-step-3-current-branch.md');
+    expect(instructions).not.toContain('xirang-apply-step-3-branch-isolation.md');
+    expect(instructions).not.toContain('xirang-apply-step-3-worktree-isolation.md');
+    expect(instructions).not.toContain('xirang-apply-step-3-current-branch.md');
     expect(preparation).toContain('At Step 3, read exactly one');
-    expect(preparation).toContain('opsx-apply-step-3-branch-isolation.md');
-    expect(preparation).toContain('opsx-apply-step-3-worktree-isolation.md');
-    expect(preparation).toContain('opsx-apply-step-3-current-branch.md');
+    expect(preparation).toContain('xirang-apply-step-3-branch-isolation.md');
+    expect(preparation).toContain('xirang-apply-step-3-worktree-isolation.md');
+    expect(preparation).toContain('xirang-apply-step-3-current-branch.md');
     expect(preparation).toContain('MUST NOT read the other two');
     expect(preparation).toContain('Do not read the selected reference during Preparation');
   });
@@ -90,9 +91,9 @@ describe('apply change workflow template', () => {
 
     expect(instructions).toContain('## Flow Outline');
     expect(instructions).toContain('Step 1: Preparation');
-    expect(instructions).not.toContain('opsx list --specs --json');
+    expect(instructions).not.toContain('xirang list --specs --json');
     expect(instructions).not.toContain('capabilities: []');
-    expect(preparation).toContain('opsx list --specs --json');
+    expect(preparation).toContain('xirang list --specs --json');
     expect(preparation).toContain('Element Contract registry');
   });
 
@@ -101,11 +102,11 @@ describe('apply change workflow template', () => {
 
     expect(instructions).not.toContain('## Skill Delegation Protocol');
     expect(instructions).not.toContain('**Internal Subagents**');
-    expect(instructions).not.toContain('generated `opsx-impact-sweeper`');
-    expect(instructions).not.toContain('generated `opsx-reviewer`');
-    expect(instructions).not.toContain('generated `opsx-optimizer`');
-    expect(instructions).not.toContain('.claude/skills/opsx-reviewer/SKILL.md');
-    expect(instructions).not.toContain('/skills/opsx-optimizer/SKILL.md');
+    expect(instructions).not.toContain('generated `xirang-impact-sweeper`');
+    expect(instructions).not.toContain('generated `xirang-reviewer`');
+    expect(instructions).not.toContain('generated `xirang-optimizer`');
+    expect(instructions).not.toContain('.claude/skills/xirang-reviewer/SKILL.md');
+    expect(instructions).not.toContain('/skills/xirang-optimizer/SKILL.md');
   });
 
   it('keeps Phase 0 execution discipline directly in the apply skill', () => {
@@ -219,7 +220,7 @@ describe('apply change workflow template', () => {
     const reference = applyReference('references/apply-step-4-phase1-verification.md');
     const validationIndex = reference.indexOf('Validate the reviewer payload');
     const writebackIndex = reference.indexOf('Apply only CRITICAL `writeBackPlan` entries');
-    const recordIndex = reference.indexOf('opsx verify phase1 "<change-name>"');
+    const recordIndex = reference.indexOf('xirang verify phase1 "<change-name>"');
 
     expect(validationIndex).toBeGreaterThan(-1);
     expect(writebackIndex).toBeGreaterThan(validationIndex);
@@ -250,7 +251,7 @@ describe('apply change workflow template', () => {
     const reconciliationIndex = content.indexOf('optimizer reconciliation envelope');
     const freshnessIndex = content.indexOf('mode":"begin-implementation');
     const implementationIndex = content.indexOf('Master implements only the selected finding with TDD');
-    const verificationIndex = content.indexOf('opsx verify phase2 "<change-name>" --type=verification');
+    const verificationIndex = content.indexOf('xirang verify phase2 "<change-name>" --type=verification');
     const nextReconciliationIndex = content.indexOf('re-run optimizer reconciliation against current code');
 
     expect(reconciliationIndex).toBeGreaterThan(-1);
@@ -271,14 +272,14 @@ describe('apply change workflow template', () => {
     expect(instructions).toContain('Phase 1 verification');
     expect(instructions).toContain('Phase 2 optimization');
     expect(instructions).toContain('Phase 3 seal');
-    expect(instructions).toContain('delegate to the clean-context `opsx-reviewer` agent');
-    expect(instructions).toContain('delegate to the clean-context `opsx-optimizer` agent');
-    expect(instructions).not.toContain('invoke the `opsx-reviewer` skill');
-    expect(instructions).not.toContain('invoke the `opsx-optimizer` skill');
+    expect(instructions).toContain('delegate to the clean-context `xirang-reviewer` agent');
+    expect(instructions).toContain('delegate to the clean-context `xirang-optimizer` agent');
+    expect(instructions).not.toContain('invoke the `xirang-reviewer` skill');
+    expect(instructions).not.toContain('invoke the `xirang-optimizer` skill');
 
-    expect(applyReference('references/apply-step-4-phase1-verification.md')).toContain('opsx verify phase1 "<change-name>"');
-    expect(applyReference('references/apply-step-5-phase2-optimization.md')).toContain('opsx verify phase2');
-    expect(applyReference('references/apply-step-6-phase3-seal.md')).toContain('opsx verify seal "<change-name>"');
+    expect(applyReference('references/apply-step-4-phase1-verification.md')).toContain('xirang verify phase1 "<change-name>"');
+    expect(applyReference('references/apply-step-5-phase2-optimization.md')).toContain('xirang verify phase2');
+    expect(applyReference('references/apply-step-6-phase3-seal.md')).toContain('xirang verify seal "<change-name>"');
   });
 
   it('routes seal failure into remediation and recovery in the seal reference', () => {
@@ -293,8 +294,8 @@ describe('apply change workflow template', () => {
   it('uses canonical archive source reference for archive-ready handoff', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
 
-    expect(instructions).toContain('Archive ready. Run /opsx:archive <change-name> to complete the workflow.');
-    expect(instructions).not.toContain('Archive ready. Run /opsx-archive');
+    expect(instructions).toContain('Archive ready. Run /xirang:archive <change-name> to complete the workflow.');
+    expect(instructions).not.toContain('Archive ready. Run /xirang-archive');
   });
 
   it('leaves branch and worktree cleanup to archive in the active apply workspace', () => {
@@ -307,19 +308,19 @@ describe('apply change workflow template', () => {
   });
 
   it('allows archive-ready handoff to be adapted per tool', () => {
-    const source = 'Archive ready. Run /opsx:archive <change-name> to complete the workflow.';
+    const source = 'Archive ready. Run /xirang:archive <change-name> to complete the workflow.';
 
     expect(runTransforms(source, { toolId: 'codex', workflowId: 'apply', artifactType: 'skill' })).toBe(
-      'Archive ready. Run $opsx-archive-change <change-name> to complete the workflow.'
+      'Archive ready. Run $xirang-archive-change <change-name> to complete the workflow.'
     );
     expect(runTransforms(source, { toolId: 'claude', workflowId: 'apply', artifactType: 'skill' })).toBe(
-      'Archive ready. Run /opsx-archive-change <change-name> to complete the workflow.'
+      'Archive ready. Run /xirang-archive-change <change-name> to complete the workflow.'
     );
     expect(runTransforms(source, { toolId: 'pi', workflowId: 'apply', artifactType: 'skill' })).toBe(
-      'Archive ready. Run /skill:opsx-archive-change <change-name> to complete the workflow.'
+      'Archive ready. Run /skill:xirang-archive-change <change-name> to complete the workflow.'
     );
     expect(runTransforms(source, { toolId: 'opencode', workflowId: 'apply', artifactType: 'skill' })).toBe(
-      'Archive ready. Run /opsx-archive <change-name> to complete the workflow.'
+      'Archive ready. Run /xirang-archive <change-name> to complete the workflow.'
     );
   });
 });

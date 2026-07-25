@@ -3,10 +3,10 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { runCLI } from '../helpers/run-cli.js';
 
-const architecture = `opsx { languageVersion '1' }
+const architecture = `xirang { languageVersion '1' }
 specification {
-  element project { opsx { root true contract optional } }
-  element capability { opsx { contract optional parents [project] } }
+  element project { xirang { root true contract optional } }
+  element capability { xirang { contract optional parents [project] } }
   relationship invokes
 }
 model {
@@ -67,14 +67,14 @@ const validDelta = `architectureDelta {
 
 describe('diff command', () => {
   const root = path.join(process.cwd(), 'test-diff-command-tmp');
-  const changeDir = path.join(root, '.opsx', 'changes', 'change-a');
+  const changeDir = path.join(root, '.xirang', 'changes', 'change-a');
 
   beforeEach(async () => {
-    await fs.mkdir(path.join(root, '.opsx', 'architecture'), { recursive: true });
-    await fs.mkdir(path.join(root, '.opsx', 'specs', 'existing'), { recursive: true });
+    await fs.mkdir(path.join(root, '.xirang', 'architecture'), { recursive: true });
+    await fs.mkdir(path.join(root, '.xirang', 'specs', 'existing'), { recursive: true });
     await fs.mkdir(path.join(changeDir, 'specs', 'existing'), { recursive: true });
-    await fs.writeFile(path.join(root, '.opsx', 'architecture', 'model.c4'), architecture);
-    await fs.writeFile(path.join(root, '.opsx', 'specs', 'existing', 'spec.md'), formalSpec);
+    await fs.writeFile(path.join(root, '.xirang', 'architecture', 'model.c4'), architecture);
+    await fs.writeFile(path.join(root, '.xirang', 'specs', 'existing', 'spec.md'), formalSpec);
     await fs.writeFile(path.join(changeDir, 'specs', 'existing', 'spec.md'), changeSpec);
     await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), validDelta);
   });

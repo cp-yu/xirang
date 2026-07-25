@@ -6,13 +6,13 @@ import { formatArchitectureQueryText, queryArchitecture } from '../../src/comman
 import { validateArchitectureCommand } from '../../src/commands/arch/validate.js';
 import { exportArchitecture } from '../../src/commands/arch/export.js';
 
-const domain = `model { core = domain 'Core' { run = capability 'Run' { description 'Runs work' metadata { capabilityId 'cap.core.run' specs ['.opsx/specs/run/spec.md'] } } stop = capability 'Stop' { metadata { capabilityId 'cap.core.stop' } } finish = capability 'Finish' { metadata { capabilityId 'cap.core.finish' } } } core.run -[invokes]-> core.stop { description 'Runs stop' } core.stop -[precedes]-> core.finish }`;
+const domain = `model { core = domain 'Core' { run = capability 'Run' { description 'Runs work' metadata { capabilityId 'cap.core.run' specs ['.xirang/specs/run/spec.md'] } } stop = capability 'Stop' { metadata { capabilityId 'cap.core.stop' } } finish = capability 'Finish' { metadata { capabilityId 'cap.core.finish' } } } core.run -[invokes]-> core.stop { description 'Runs stop' } core.stop -[precedes]-> core.finish }`;
 
 describe('arch commands', () => {
   let root: string;
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-arch-command-'));
-    const architecture = path.join(root, '.opsx', 'architecture');
+    const architecture = path.join(root, '.xirang', 'architecture');
     await fs.mkdir(path.join(architecture, 'domains'), { recursive: true });
     await fs.writeFile(path.join(architecture, 'specification.c4'), 'specification { element domain element capability relationship invokes relationship precedes }');
     await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), domain);
@@ -26,13 +26,13 @@ describe('arch commands', () => {
   });
 
   it('queries v1 elements by stable ID or FQN with canonical refinement output', async () => {
-    const architecture = path.join(root, '.opsx', 'architecture');
+    const architecture = path.join(root, '.xirang', 'architecture');
     await fs.writeFile(path.join(architecture, 'specification.c4'), `
-      opsx { languageVersion '1' }
+      xirang { languageVersion '1' }
       specification {
-        element semanticProject { opsx { root true contract required } }
-        element area { opsx { contract optional } }
-        element operation { opsx { contract required } }
+        element semanticProject { xirang { root true contract required } }
+        element area { xirang { contract optional } }
+        element operation { xirang { contract required } }
         relationship invokes
       }
     `);
@@ -52,8 +52,8 @@ describe('arch commands', () => {
         }
       }
     `);
-    await fs.mkdir(path.join(root, '.opsx', 'specs', 'authorize'), { recursive: true });
-    await fs.writeFile(path.join(root, '.opsx', 'specs', 'authorize', 'spec.md'), '---\nelement: payment.authorize\n---\n# Authorize');
+    await fs.mkdir(path.join(root, '.xirang', 'specs', 'authorize'), { recursive: true });
+    await fs.writeFile(path.join(root, '.xirang', 'specs', 'authorize', 'spec.md'), '---\nelement: payment.authorize\n---\n# Authorize');
 
     const byId = await queryArchitecture(root, 'payment.authorize');
     const byFqn = await queryArchitecture(root, 'projectRoot.payments.authorize');
@@ -67,18 +67,18 @@ describe('arch commands', () => {
       parent: 'payments',
       children: [],
       contractPolicy: 'required',
-      specs: ['.opsx/specs/authorize/spec.md'],
+      specs: ['.xirang/specs/authorize/spec.md'],
     });
   });
 
   it('expands v1 containment and canonical semantic relation endpoints', async () => {
-    const architecture = path.join(root, '.opsx', 'architecture');
+    const architecture = path.join(root, '.xirang', 'architecture');
     await fs.writeFile(path.join(architecture, 'specification.c4'), `
-      opsx { languageVersion '1' }
+      xirang { languageVersion '1' }
       specification {
-        element semanticProject { opsx { root true contract optional } }
-        element area { opsx { contract optional } }
-        element operation { opsx { contract optional } }
+        element semanticProject { xirang { root true contract optional } }
+        element area { xirang { contract optional } }
+        element operation { xirang { contract optional } }
         relationship invokes
       }
     `);
@@ -122,7 +122,7 @@ describe('arch commands', () => {
     expect(result.relations).toEqual([expect.objectContaining({ source: 'core.run', kind: 'invokes', target: 'core.stop', description: 'Runs stop', depth: 1 })]);
     const output = await formatArchitectureQueryText(root, result);
     expect(output).toContain('Description: Runs work');
-    expect(output).toContain('.opsx/specs/run/spec.md');
+    expect(output).toContain('.xirang/specs/run/spec.md');
     expect(output).toContain('Relations:');
     expect(output).toContain('cap.core.run --invokes--> cap.core.stop - Runs stop');
   });
@@ -147,16 +147,16 @@ describe('arch commands', () => {
   it('should validate architecture', async () => {
     const runner = vi.fn().mockResolvedValue(undefined);
     const result = await validateArchitectureCommand(root, { runLikeC4: runner });
-    expect(runner).toHaveBeenCalledWith(['validate', path.join(root, '.opsx', 'architecture')]);
+    expect(runner).toHaveBeenCalledWith(['validate', path.join(root, '.xirang', 'architecture')]);
     expect(result.success).toBe(true);
   });
 
   it('should validate an architecture delta against an immutable formal model', async () => {
-    const architecture = path.join(root, '.opsx', 'architecture');
-    await fs.writeFile(path.join(architecture, 'specification.c4'), `opsx { languageVersion '1' }
+    const architecture = path.join(root, '.xirang', 'architecture');
+    await fs.writeFile(path.join(architecture, 'specification.c4'), `xirang { languageVersion '1' }
 specification {
-  element project { opsx { root true contract optional children [capability] } }
-  element capability { opsx { contract optional parents [project] } }
+  element project { xirang { root true contract optional children [capability] } }
+  element capability { xirang { contract optional parents [project] } }
 }`);
     await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), `model {
   projectRoot = project 'Root' 'Root summary' {
@@ -173,16 +173,16 @@ specification {
         metadata { elementId 'cap.core.next' }
       }
     } }`);
-    const formalBefore = await fs.readFile(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'), 'utf8');
+    const formalBefore = await fs.readFile(path.join(root, '.xirang', 'architecture', 'domains', 'core.c4'), 'utf8');
     const runner = vi.fn();
     const result = await validateArchitectureCommand(root, { deltaPath: delta, runLikeC4: runner });
     expect(runner).not.toHaveBeenCalled();
     expect(result.success, JSON.stringify(result)).toBe(true);
-    expect(await fs.readFile(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'), 'utf8')).toBe(formalBefore);
+    expect(await fs.readFile(path.join(root, '.xirang', 'architecture', 'domains', 'core.c4'), 'utf8')).toBe(formalBefore);
   });
 
   it('should perform semantic validation', async () => {
-    await fs.writeFile(path.join(root, '.opsx', 'architecture', 'domains', 'core.c4'), `model { orphan = capability 'Orphan' }`);
+    await fs.writeFile(path.join(root, '.xirang', 'architecture', 'domains', 'core.c4'), `model { orphan = capability 'Orphan' }`);
     const result = await validateArchitectureCommand(root, { runLikeC4: vi.fn().mockResolvedValue(undefined) });
     expect(result.success).toBe(false);
   });
@@ -191,7 +191,7 @@ specification {
     const runner = vi.fn().mockResolvedValue(undefined);
     const output = path.join(root, 'docs', 'architecture');
     await exportArchitecture(root, { format: 'png', output, runLikeC4: runner });
-    expect(runner).toHaveBeenCalledWith(['export', 'png', '-o', output, path.join(root, '.opsx', 'architecture')]);
+    expect(runner).toHaveBeenCalledWith(['export', 'png', '-o', output, path.join(root, '.xirang', 'architecture')]);
     await expect(fs.stat(output)).resolves.toMatchObject({});
   });
 
@@ -205,7 +205,7 @@ specification {
         title: 'Root',
         domain: 'core',
         description: 'Runs root',
-        specs: ['.opsx/specs/root/spec.md'],
+        specs: ['.xirang/specs/root/spec.md'],
         capabilityId: 'cap.core.root',
       }],
       relations: [{
@@ -228,7 +228,7 @@ specification {
 Type: capability
 Description: Runs root
 Specs:
-  .opsx/specs/root/spec.md
+  .xirang/specs/root/spec.md
 Relations:
   [depth 1] cap.core.root --invokes--> core - Calls domain
   [depth 1] Element: core`);

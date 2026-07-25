@@ -20,21 +20,21 @@ export const ARCHITECTURE_FILE_MANIFEST: readonly ArchitectureFileManifestEntry[
 ];
 
 export function renderSpecification(): string {
-  return `opsx {
+  return `xirang {
   languageVersion '1'
 }
 
 specification {
   element capability {
-    opsx { contract optional }
+    xirang { contract optional }
   }
 
   element domain {
-    opsx { contract optional }
+    xirang { contract optional }
   }
 
   element project {
-    opsx {
+    xirang {
       root true
       contract required
     }

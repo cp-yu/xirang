@@ -1,5 +1,5 @@
 import type { SubagentTemplate } from '../../shared/subagent-generation.js';
-import { OPSX_PHILOSOPHY, OPSX_SHARED_CONTEXT } from '../fragments/opsx-fragments.js';
+import { XIRANG_PHILOSOPHY, XIRANG_SHARED_CONTEXT } from '../fragments/xirang-fragments.js';
 
 const OPTIMIZER_SELF_READ_REFERENCE = `# Optimizer Self-Read Protocol
 
@@ -14,7 +14,7 @@ Read context in this order:
 
 ## Dependency Expansion (One Hop)
 
-Expand direct imports, callers, and directed semantic relationships from \`opsx arch query <elementId> --relations --depth 1 --json\`. Interpret each relationship by its declared meaning and stop after one hop. Use path.relative to reject paths outside projectRoot, apply gitignore filtering, and exclude node_modules, dist, build, and .git. If relations are missing, continue with imports and callers.
+Expand direct imports, callers, and directed semantic relationships from \`xirang arch query <elementId> --relations --depth 1 --json\`. Interpret each relationship by its declared meaning and stop after one hop. Use path.relative to reject paths outside projectRoot, apply gitignore filtering, and exclude node_modules, dist, build, and .git. If relations are missing, continue with imports and callers.
 
 Expansion candidates MUST NOT be actionable finding targets. Actionable locations MUST remain inside base scope files only; report scope-outside opportunities as deferred.`;
 
@@ -43,7 +43,7 @@ Exclude findings whose evidence or preservation cannot close. Then order by high
 
 Read current code, findings, history, and failedDirections. Reconcile every non-terminal finding: retain, reprioritize, resolve, invalidate, reject, or merge it, and add newly discovered opportunities. Never repeat an exhausted failed direction by changing wording. Existing stable IDs belong to the CLI; new add actions omit IDs. Same-envelope dependencies may use actionIndex.
 
-Only base scope implementation files may be actionable. Never alter Specs, design, tasks, configuration, public contracts, or OPSX Semantic Model intent.`;
+Only base scope implementation files may be actionable. Never alter Specs, design, tasks, configuration, public contracts, or Xirang Semantic Model intent.`;
 
 const OPTIMIZER_OUTPUT_REFERENCE = `# Optimizer Output Protocol
 
@@ -85,21 +85,21 @@ Return every worthwhile finding, ordered by current priority. Do not emit execut
 
 export function getOptimizerSubagentTemplate(): SubagentTemplate {
   return {
-    name: 'opsx-optimizer',
+    name: 'xirang-optimizer',
     description: 'Internal clean-context Phase 2 finding-first optimization reviewer. Judges value, supplies key design and preservation constraints, and never modifies files.',
     prompt: `## Role
 
-You are OPSX's fresh-context finding-first optimization reviewer. Read current code and return a strict JSON envelope with evidence, recommendations, keyDesign, preservationConstraints, validation, and reconciliation actions. The master agent implements; you judge optimization value and design.
+You are Xirang's fresh-context finding-first optimization reviewer. Read current code and return a strict JSON envelope with evidence, recommendations, keyDesign, preservationConstraints, validation, and reconciliation actions. The master agent implements; you judge optimization value and design.
 
-${OPSX_PHILOSOPHY}
+${XIRANG_PHILOSOPHY}
 
-${OPSX_SHARED_CONTEXT}
+${XIRANG_SHARED_CONTEXT}
 
 ## Hard Constraints
 
 - You MUST NOT modify files or rely on implementation conversation history.
 - Read files yourself from changeName, changeDir, and projectRoot.
-- Preserve observable behavior, Specs, public contracts, and OPSX Semantic Model intent.
+- Preserve observable behavior, Specs, public contracts, and Xirang Semantic Model intent.
 - Actionable findings target existing tracked base scope implementation files only.
 - Read findings, history, and failedDirections and reconcile every non-terminal finding.
 - Return one strict JSON envelope exactly as the output protocol requires.
@@ -110,9 +110,9 @@ The caller passes only absolute projectRoot, absolute changeDir, and changeName.
 
 ## Required References
 
-- .opsx/references/opsx-self-read-protocol.md
-- .opsx/references/opsx-decision-rules.md
-- .opsx/references/opsx-output-protocol.md`,
+- .xirang/references/xirang-self-read-protocol.md
+- .xirang/references/xirang-decision-rules.md
+- .xirang/references/xirang-output-protocol.md`,
     tools: ['read', 'grep', 'find', 'bash'],
     disallowedTools: ['write', 'edit'],
     mode: 'read-only',
@@ -121,6 +121,6 @@ The caller passes only absolute projectRoot, absolute changeDir, and changeName.
       { path: 'references/decision-rules.md', content: OPTIMIZER_DECISION_REFERENCE },
       { path: 'references/output-protocol.md', content: OPTIMIZER_OUTPUT_REFERENCE },
     ],
-    metadata: { author: 'opsx', version: '1.0', type: 'subagent' },
+    metadata: { author: 'xirang', version: '1.0', type: 'subagent' },
   };
 }

@@ -5,21 +5,21 @@
 
 export const ZSH_DYNAMIC_HELPERS = `# Dynamic completion helpers
 
-# Use opsx __complete to get available changes
+# Use xirang __complete to get available changes
 _opsx_complete_changes() {
   local -a changes
   while IFS=$'\\t' read -r id desc; do
     changes+=("$id:$desc")
-  done < <(opsx __complete changes 2>/dev/null)
+  done < <(xirang __complete changes 2>/dev/null)
   _describe "change" changes
 }
 
-# Use opsx __complete to get available specs
+# Use xirang __complete to get available specs
 _opsx_complete_specs() {
   local -a specs
   while IFS=$'\\t' read -r id desc; do
     specs+=("$id:$desc")
-  done < <(opsx __complete specs 2>/dev/null)
+  done < <(xirang __complete specs 2>/dev/null)
   _describe "spec" specs
 }
 
@@ -28,9 +28,9 @@ _opsx_complete_items() {
   local -a items
   while IFS=$'\\t' read -r id desc; do
     items+=("$id:$desc")
-  done < <(opsx __complete changes 2>/dev/null)
+  done < <(xirang __complete changes 2>/dev/null)
   while IFS=$'\\t' read -r id desc; do
     items+=("$id:$desc")
-  done < <(opsx __complete specs 2>/dev/null)
+  done < <(xirang __complete specs 2>/dev/null)
   _describe "item" items
 }`;

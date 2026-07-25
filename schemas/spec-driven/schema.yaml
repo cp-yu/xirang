@@ -1,6 +1,6 @@
 name: spec-driven
 version: 1
-description: Default OPSX workflow - proposal → specs → design → tasks
+description: Default Xirang workflow - proposal → specs → design → tasks
 artifacts:
   - id: proposal
     generates: proposal.md
@@ -16,7 +16,7 @@ artifacts:
           - Complete observable behavior requirements, authoritative LikeC4 element or relation declarations, lowering decisions, and implementation work.
       writePolicy: agent-authored
       validation:
-        - opsx validate --change <name> --json
+        - xirang validate --change <name> --json
     instruction: |
       Create `proposal.md` to explain why the change is needed and bound its semantic source impact.
 
@@ -61,7 +61,7 @@ artifacts:
           - Implementation decisions, rationale, task planning, architecture semantics, change-log narration, and Agent reasoning.
       writePolicy: agent-authored
       validation:
-        - opsx validate --change <name> --artifacts specs --json
+        - xirang validate --change <name> --artifacts specs --json
     instruction: |
       Create or reconcile the change-local delta Specs declared in `proposal.md` → `Source Impact` → `Behavior Source`.
 
@@ -69,7 +69,7 @@ artifacts:
 
       Identify target files:
       - Each `New Specs` entry uses its Spec ID at `specs/<spec-id>/spec.md`.
-      - Each `Modified Specs` entry reuses the exact existing Spec ID from `.opsx/specs/<spec-id>/spec.md`.
+      - Each `Modified Specs` entry reuses the exact existing Spec ID from `.xirang/specs/<spec-id>/spec.md`.
       - Spec IDs and architecture capability IDs are different identifiers. Do not use a `cap.<domain>.<name>` ID as a Spec directory name unless that exact string is independently the declared Spec ID.
       - Do not create a delta Spec for Architecture Source impact alone.
 
@@ -81,7 +81,7 @@ artifacts:
       - A `Modified Specs` file may contain any combination of the three supported operations. Do not infer the Requirement operation from the Spec classification alone.
 
       Before writing an operation against an existing Spec:
-      - read `.opsx/specs/<spec-id>/spec.md`;
+      - read `.xirang/specs/<spec-id>/spec.md`;
       - use the exact existing Requirement title for `MODIFIED` or `REMOVED`;
       - keep a `MODIFIED` Requirement complete, including all surviving scenarios;
       - use `ADDED` when existing behavior remains unchanged and the target Spec gains a separate requirement.
@@ -99,7 +99,7 @@ artifacts:
       - implementation work and verification → `tasks.md`;
       - durable architecture elements, ownership, boundaries, or semantic relations → `architecture-delta.c4`.
 
-      Agent MUST NOT author Scenario operation labels. Validation rejects operation-like bracket prefixes; Scenario operations are derived by `opsx validate --change <name>` and `opsx diff --change <name> --write`.
+      Agent MUST NOT author Scenario operation labels. Validation rejects operation-like bracket prefixes; Scenario operations are derived by `xirang validate --change <name>` and `xirang diff --change <name> --write`.
 
       Follow the returned template structure. Do not add placeholders, empty delta sections, examples, or process notes to the artifact.
     requires:
@@ -119,11 +119,11 @@ artifacts:
           - Observable behavior requirements, implementation evidence, code paths, symbols, imports, calls, and change-log narration.
       writePolicy: agent-authored
       validation:
-        - opsx validate --change <name> --artifacts architecture-delta --json
+        - xirang validate --change <name> --artifacts architecture-delta --json
     instruction: |
       Create `architecture-delta.c4` as the architecture source reconciliation for this change.
 
-      Determine the target architecture from proposal `Architecture Source`, completed change-local Specs, `design.md` when present, the formal model under `.opsx/architecture/`, and current code as implementation evidence.
+      Determine the target architecture from proposal `Architecture Source`, completed change-local Specs, `design.md` when present, the formal model under `.xirang/architecture/`, and current code as implementation evidence.
 
       Keep source identities separate:
       - Spec IDs under proposal `Behavior Source` are not LikeC4 element IDs.
@@ -143,7 +143,7 @@ artifacts:
 
       Preserve relation direction and endpoint contracts. Element nesting expresses ownership, so do not emit explicit `belongs_to` relations. Imports and calls are evidence only. Do not include code paths, symbols, imports, calls, or Agent reasoning.
 
-      Validate with `opsx validate --change "<name>" --artifacts architecture-delta --json`.
+      Validate with `xirang validate --change "<name>" --artifacts architecture-delta --json`.
     requires:
       - specs
 
@@ -161,7 +161,7 @@ artifacts:
           - Observable behavior requirements, task progress, repeated motivation, and durable architecture changes not reconciled through architecture-delta.c4.
       writePolicy: agent-authored
       validation:
-        - opsx validate --change <name> --json
+        - xirang validate --change <name> --json
     instruction: |
       Create the design document that explains HOW to implement the change.
       Use design.md for technical decisions, refactor rationale, rejected approaches, exploration decisions, implementation strategy, and why an old path should not be used. These belong here instead of specs unless they change externally observable behavior.
@@ -201,7 +201,7 @@ artifacts:
           - New observable behavior, architecture semantics, repeated design rationale, and non-verifiable narration.
       writePolicy: agent-authored
       validation:
-        - opsx validate --change <name> --json
+        - xirang validate --change <name> --json
     instruction: |
       Create a coarse-grained task list with executable Checks that the apply phase can run through strict evidence gates.
 
@@ -217,12 +217,12 @@ artifacts:
       - `Checks` are executable verification items and MUST use checkbox IDs prefixed with `C`: `- [ ] C1 Verify ...`
       - Each check MUST include `Verifies:` or `Preserves:` before executable evidence fields
       - `Verifies:` identifies the change-local spec requirement and scenario(s); for deletion deliverables, use `Verifies: ... / REMOVED Requirement "<name>"` (no Scenario required)
-      - `Preserves:` anchors behavior-equivalence checks to main spec paths (`.opsx/specs/<capability>/spec.md` / Requirement "<name>" / Scenario "<name>"), naming old forms in `Expect:` and absence assertion in `Command:`
+      - `Preserves:` anchors behavior-equivalence checks to main spec paths (`.xirang/specs/<capability>/spec.md` / Requirement "<name>" / Scenario "<name>"), naming old forms in `Expect:` and absence assertion in `Command:`
       - Each check MUST include at least one executable evidence field: `Command:`, `Evidence:`, or `Expect:`
       - When this change has local delta specs, `Verifies:` MUST use a change-local relative POSIX path from the change directory: `specs/<capability>/spec.md`
       - `Verifies:` MUST name the full Requirement title and one or more exact canonical unlabeled Scenario names; except for REMOVED Requirement variant
-      - `Verifies:` MUST NOT use `.opsx/specs/...`, project-root-relative paths, archived/main spec paths, absolute paths, parent traversal, or backslash-separated paths
-      - `Preserves:` path whitelist is independent: only `.opsx/specs/<capability>/spec.md` is allowed; it does not relax `Verifies:` constraints
+      - `Verifies:` MUST NOT use `.xirang/specs/...`, project-root-relative paths, archived/main spec paths, absolute paths, parent traversal, or backslash-separated paths
+      - `Preserves:` path whitelist is independent: only `.xirang/specs/<capability>/spec.md` is allowed; it does not relax `Verifies:` constraints
 
       Conversion rules:
       - Task titles, check names, requirements bullet prose, and Evidence:/Expect: descriptions follow `proseLanguage` when configured.

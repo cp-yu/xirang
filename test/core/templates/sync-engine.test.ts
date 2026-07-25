@@ -20,7 +20,7 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
 
   beforeEach(async () => {
     testDir = path.join(os.tmpdir(), `opsx-sync-engine-${randomUUID()}`);
-    await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
+    await fs.mkdir(path.join(testDir, '.xirang'), { recursive: true });
   });
 
   afterEach(async () => {
@@ -44,16 +44,16 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
       ['.codex', 'toml'],
     ] as const) {
       await expect(
-        fs.stat(path.join(testDir, toolDir, 'skills', 'opsx-propose', 'SKILL.md'))
+        fs.stat(path.join(testDir, toolDir, 'skills', 'xirang-propose', 'SKILL.md'))
       ).resolves.toBeDefined();
       await expect(
-        fs.stat(path.join(testDir, toolDir, 'skills', 'opsx-explore', 'SKILL.md'))
+        fs.stat(path.join(testDir, toolDir, 'skills', 'xirang-explore', 'SKILL.md'))
       ).resolves.toBeDefined();
 
       for (const name of [
-        'opsx-reviewer',
-        'opsx-optimizer',
-        'opsx-impact-sweeper',
+        'xirang-reviewer',
+        'xirang-optimizer',
+        'xirang-impact-sweeper',
       ]) {
         await expect(
           fs.stat(path.join(testDir, toolDir, 'agents', `${name}.${ext}`))
@@ -64,9 +64,9 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
   });
 
   it('removes only explicitly named stale shared references', async () => {
-    const referencesDir = path.join(testDir, '.opsx', 'references');
+    const referencesDir = path.join(testDir, '.xirang', 'references');
     await fs.mkdir(referencesDir, { recursive: true });
-    await fs.writeFile(path.join(referencesDir, 'opsx-apply-phase2-optimization.md'), 'stale');
+    await fs.writeFile(path.join(referencesDir, 'xirang-apply-phase2-optimization.md'), 'stale');
     await fs.writeFile(path.join(referencesDir, 'user-reference.md'), 'user');
 
     const result = await ArtifactSyncEngine.syncOne({
@@ -77,13 +77,13 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
     });
 
     expect(result.error).toBeUndefined();
-    expect(await exists(path.join(referencesDir, 'opsx-apply-phase2-optimization.md'))).toBe(false);
+    expect(await exists(path.join(referencesDir, 'xirang-apply-phase2-optimization.md'))).toBe(false);
     expect(await exists(path.join(referencesDir, 'user-reference.md'))).toBe(true);
   });
 
   it.each([
-    ['claude', '.claude/commands/opsx/apply.md', '.claude/commands/opsx/custom.md'],
-    ['github-copilot', '.github/prompts/opsx-apply.prompt.md', '.github/prompts/custom.prompt.md'],
+    ['claude', '.claude/commands/xirang/apply.md', '.claude/commands/xirang/custom.md'],
+    ['github-copilot', '.github/prompts/xirang-apply.prompt.md', '.github/prompts/custom.prompt.md'],
   ])('removes the retired %s apply command without touching user commands', async (toolId, retiredPath, userPath) => {
     await fs.mkdir(path.dirname(path.join(testDir, retiredPath)), { recursive: true });
     await fs.writeFile(path.join(testDir, retiredPath), 'legacy Search/Replace workflow');
@@ -112,20 +112,20 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
 
     expect(result.error).toBeUndefined();
     await expect(
-      fs.stat(path.join(testDir, '.codex', 'agents', 'opsx-optimizer.toml'))
+      fs.stat(path.join(testDir, '.codex', 'agents', 'xirang-optimizer.toml'))
     ).resolves.toBeDefined();
     await expect(
-      fs.stat(path.join(testDir, '.codex', 'agents', 'opsx-reviewer.toml'))
+      fs.stat(path.join(testDir, '.codex', 'agents', 'xirang-reviewer.toml'))
     ).resolves.toBeDefined();
-    expect(await exists(path.join(testDir, '.codex/agents/opsx-optimizer.md'))).toBe(false);
+    expect(await exists(path.join(testDir, '.codex/agents/xirang-optimizer.md'))).toBe(false);
   });
 
   it('cleans up old internal skill directories by explicit managed name', async () => {
     const skillsDir = path.join(testDir, '.claude', 'skills');
     for (const name of [
-      'opsx-reviewer',
-      'opsx-optimizer',
-      'opsx-impact-sweeper',
+      'xirang-reviewer',
+      'xirang-optimizer',
+      'xirang-impact-sweeper',
       'opsx-implementer',
       'user-skill',
     ]) {
@@ -142,14 +142,14 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
 
     expect(result.error).toBeUndefined();
     for (const name of [
-      'opsx-reviewer',
-      'opsx-optimizer',
-      'opsx-impact-sweeper',
+      'xirang-reviewer',
+      'xirang-optimizer',
+      'xirang-impact-sweeper',
       'opsx-implementer',
     ]) {
       expect(await exists(path.join(skillsDir, name))).toBe(false);
     }
-    expect(await exists(path.join(skillsDir, 'opsx-explore', 'SKILL.md'))).toBe(true);
+    expect(await exists(path.join(skillsDir, 'xirang-explore', 'SKILL.md'))).toBe(true);
     expect(await exists(path.join(skillsDir, 'user-skill', 'SKILL.md'))).toBe(true);
   });
 
@@ -157,7 +157,7 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
     const agentsDir = path.join(testDir, '.pi', 'agents');
     await fs.mkdir(agentsDir, { recursive: true });
     await fs.writeFile(path.join(agentsDir, 'my-custom.md'), 'custom');
-    await fs.writeFile(path.join(agentsDir, 'opsx-reviewer.md'), 'stale');
+    await fs.writeFile(path.join(agentsDir, 'xirang-reviewer.md'), 'stale');
 
     const result = await ArtifactSyncEngine.syncOne({
       toolId: 'pi',
@@ -168,7 +168,7 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
 
     expect(result.error).toBeUndefined();
     await expect(fs.readFile(path.join(agentsDir, 'my-custom.md'), 'utf-8')).resolves.toBe('custom');
-    await expect(fs.readFile(path.join(agentsDir, 'opsx-reviewer.md'), 'utf-8')).resolves.toContain('name: opsx-reviewer');
+    await expect(fs.readFile(path.join(agentsDir, 'xirang-reviewer.md'), 'utf-8')).resolves.toContain('name: xirang-reviewer');
   });
 
   it('preserves user-set model value on update', async () => {
@@ -177,9 +177,9 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
 
     // Pre-create agent file with user-customized model
     await fs.writeFile(
-      path.join(agentsDir, 'opsx-reviewer.md'),
+      path.join(agentsDir, 'xirang-reviewer.md'),
       `---
-name: opsx-reviewer
+name: xirang-reviewer
 description: test
 tools: read, grep
 model: "anthropic/claude-sonnet-4"
@@ -195,7 +195,7 @@ User-changed prompt.`
       version: 'test',
     });
 
-    const content = await fs.readFile(path.join(agentsDir, 'opsx-reviewer.md'), 'utf-8');
+    const content = await fs.readFile(path.join(agentsDir, 'xirang-reviewer.md'), 'utf-8');
     expect(content).toContain('model: "anthropic/claude-sonnet-4"');
   });
 
@@ -205,8 +205,8 @@ User-changed prompt.`
 
     // Pre-create toml agent file with user-customized model
     await fs.writeFile(
-      path.join(agentsDir, 'opsx-reviewer.toml'),
-      `name = "opsx-reviewer"
+      path.join(agentsDir, 'xirang-reviewer.toml'),
+      `name = "xirang-reviewer"
 description = "test"
 model = "gpt-5"
 sandbox_mode = "read-only"
@@ -224,7 +224,7 @@ stale
       version: 'test',
     });
 
-    const content = await fs.readFile(path.join(agentsDir, 'opsx-reviewer.toml'), 'utf-8');
+    const content = await fs.readFile(path.join(agentsDir, 'xirang-reviewer.toml'), 'utf-8');
     expect(content).toContain('model = "gpt-5"');
   });
 
@@ -234,9 +234,9 @@ stale
 
     // Pre-create agent file with model: 'inherit'
     await fs.writeFile(
-      path.join(agentsDir, 'opsx-reviewer.md'),
+      path.join(agentsDir, 'xirang-reviewer.md'),
       `---
-name: opsx-reviewer
+name: xirang-reviewer
 description: test
 tools: read, grep
 model: "inherit"
@@ -252,7 +252,7 @@ Stale prompt.`
       version: 'test',
     });
 
-    const content = await fs.readFile(path.join(agentsDir, 'opsx-reviewer.md'), 'utf-8');
+    const content = await fs.readFile(path.join(agentsDir, 'xirang-reviewer.md'), 'utf-8');
     // model: "inherit" is a sentinel for 'no override' — should be stripped
     expect(content).not.toContain('model:');
   });
@@ -266,7 +266,7 @@ Stale prompt.`
     });
 
     const content = await fs.readFile(
-      path.join(testDir, '.pi', 'agents', 'opsx-reviewer.md'),
+      path.join(testDir, '.pi', 'agents', 'xirang-reviewer.md'),
       'utf-8'
     );
     // Fresh generation without override should not write model

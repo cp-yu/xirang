@@ -45,7 +45,7 @@ describe('global-config', () => {
 
   describe('constants', () => {
     it('should export correct directory name', () => {
-      expect(GLOBAL_CONFIG_DIR_NAME).toBe('opsx');
+      expect(GLOBAL_CONFIG_DIR_NAME).toBe('xirang');
     });
 
     it('should export correct file name', () => {
@@ -59,7 +59,7 @@ describe('global-config', () => {
 
       const result = getGlobalConfigDir();
 
-      expect(result).toBe(path.join(tempDir, 'opsx'));
+      expect(result).toBe(path.join(tempDir, 'xirang'));
     });
 
     it('should fall back to ~/.config on Unix/macOS without XDG_CONFIG_HOME', () => {
@@ -67,9 +67,9 @@ describe('global-config', () => {
 
       const result = getGlobalConfigDir();
 
-      // On non-Windows, should use ~/.config/opsx
+      // On non-Windows, should use ~/.config/xirang
       if (os.platform() !== 'win32') {
-        expect(result).toBe(path.join(os.homedir(), '.config', 'opsx'));
+        expect(result).toBe(path.join(os.homedir(), '.config', 'xirang'));
       }
     });
 
@@ -81,7 +81,7 @@ describe('global-config', () => {
         const appData = process.env.APPDATA;
         if (appData) {
           const result = getGlobalConfigDir();
-          expect(result).toBe(path.join(appData, 'opsx'));
+          expect(result).toBe(path.join(appData, 'xirang'));
         }
       }
     });
@@ -93,7 +93,7 @@ describe('global-config', () => {
 
       const result = getGlobalConfigPath();
 
-      expect(result).toBe(path.join(tempDir, 'opsx', 'config.json'));
+      expect(result).toBe(path.join(tempDir, 'xirang', 'config.json'));
     });
   });
 
@@ -119,7 +119,7 @@ describe('global-config', () => {
 
     it('should not create directory when reading non-existent config', () => {
       process.env.XDG_CONFIG_HOME = tempDir;
-      const configDir = path.join(tempDir, 'opsx');
+      const configDir = path.join(tempDir, 'xirang');
 
       getGlobalConfig();
 
@@ -128,7 +128,7 @@ describe('global-config', () => {
 
     it('should load valid config from file', () => {
       process.env.XDG_CONFIG_HOME = tempDir;
-      const configDir = path.join(tempDir, 'opsx');
+      const configDir = path.join(tempDir, 'xirang');
       const configPath = path.join(configDir, 'config.json');
 
       fs.mkdirSync(configDir, { recursive: true });
@@ -143,7 +143,7 @@ describe('global-config', () => {
 
     it('should return defaults for invalid JSON', () => {
       process.env.XDG_CONFIG_HOME = tempDir;
-      const configDir = path.join(tempDir, 'opsx');
+      const configDir = path.join(tempDir, 'xirang');
       const configPath = path.join(configDir, 'config.json');
 
       fs.mkdirSync(configDir, { recursive: true });
@@ -166,7 +166,7 @@ describe('global-config', () => {
 
     it('should log warning for invalid JSON', () => {
       process.env.XDG_CONFIG_HOME = tempDir;
-      const configDir = path.join(tempDir, 'opsx');
+      const configDir = path.join(tempDir, 'xirang');
       const configPath = path.join(configDir, 'config.json');
 
       fs.mkdirSync(configDir, { recursive: true });
@@ -181,7 +181,7 @@ describe('global-config', () => {
 
     it('should preserve unknown fields from config file', () => {
       process.env.XDG_CONFIG_HOME = tempDir;
-      const configDir = path.join(tempDir, 'opsx');
+      const configDir = path.join(tempDir, 'xirang');
       const configPath = path.join(configDir, 'config.json');
 
       fs.mkdirSync(configDir, { recursive: true });
@@ -199,7 +199,7 @@ describe('global-config', () => {
 
     it('should silently filter retired propose config while preserving other unknown fields', () => {
       process.env.XDG_CONFIG_HOME = tempDir;
-      const configDir = path.join(tempDir, 'opsx');
+      const configDir = path.join(tempDir, 'xirang');
       const configPath = path.join(configDir, 'config.json');
       const source = JSON.stringify({
         featureFlags: { x: true },
@@ -220,7 +220,7 @@ describe('global-config', () => {
 
     it('should merge loaded config with defaults', () => {
       process.env.XDG_CONFIG_HOME = tempDir;
-      const configDir = path.join(tempDir, 'opsx');
+      const configDir = path.join(tempDir, 'xirang');
       const configPath = path.join(configDir, 'config.json');
 
       // Config with only some fields
@@ -238,7 +238,7 @@ describe('global-config', () => {
     describe('schema evolution', () => {
       it('should not include delivery when loading old config without it', () => {
         process.env.XDG_CONFIG_HOME = tempDir;
-        const configDir = path.join(tempDir, 'opsx');
+        const configDir = path.join(tempDir, 'xirang');
         const configPath = path.join(configDir, 'config.json');
 
         // Simulate a pre-existing config that only has featureFlags
@@ -257,7 +257,7 @@ describe('global-config', () => {
 
       it('should remove deprecated profile, workflows, and delivery fields from loaded config', () => {
         process.env.XDG_CONFIG_HOME = tempDir;
-        const configDir = path.join(tempDir, 'opsx');
+        const configDir = path.join(tempDir, 'xirang');
         const configPath = path.join(configDir, 'config.json');
 
         fs.mkdirSync(configDir, { recursive: true });
@@ -277,7 +277,7 @@ describe('global-config', () => {
 
       it('should warn when loading config with deprecated fields', () => {
         process.env.XDG_CONFIG_HOME = tempDir;
-        const configDir = path.join(tempDir, 'opsx');
+        const configDir = path.join(tempDir, 'xirang');
         const configPath = path.join(configDir, 'config.json');
 
         fs.mkdirSync(configDir, { recursive: true });
@@ -296,7 +296,7 @@ describe('global-config', () => {
 
       it('should warn when loading config with delivery field', () => {
         process.env.XDG_CONFIG_HOME = tempDir;
-        const configDir = path.join(tempDir, 'opsx');
+        const configDir = path.join(tempDir, 'xirang');
         const configPath = path.join(configDir, 'config.json');
 
         fs.mkdirSync(configDir, { recursive: true });
@@ -331,7 +331,7 @@ describe('global-config', () => {
   describe('saveGlobalConfig', () => {
     it('should create directory if it does not exist', () => {
       process.env.XDG_CONFIG_HOME = tempDir;
-      const configDir = path.join(tempDir, 'opsx');
+      const configDir = path.join(tempDir, 'xirang');
 
       saveGlobalConfig({ featureFlags: { test: true } });
 
@@ -340,7 +340,7 @@ describe('global-config', () => {
 
     it('should write config to file', () => {
       process.env.XDG_CONFIG_HOME = tempDir;
-      const configPath = path.join(tempDir, 'opsx', 'config.json');
+      const configPath = path.join(tempDir, 'xirang', 'config.json');
 
       saveGlobalConfig({ featureFlags: { myFlag: true } });
 
@@ -351,7 +351,7 @@ describe('global-config', () => {
 
     it('should overwrite existing config file', () => {
       process.env.XDG_CONFIG_HOME = tempDir;
-      const configDir = path.join(tempDir, 'opsx');
+      const configDir = path.join(tempDir, 'xirang');
       const configPath = path.join(configDir, 'config.json');
 
       // Create initial config
@@ -369,7 +369,7 @@ describe('global-config', () => {
 
     it('should write formatted JSON with trailing newline', () => {
       process.env.XDG_CONFIG_HOME = tempDir;
-      const configPath = path.join(tempDir, 'opsx', 'config.json');
+      const configPath = path.join(tempDir, 'xirang', 'config.json');
 
       saveGlobalConfig({ featureFlags: {} });
 

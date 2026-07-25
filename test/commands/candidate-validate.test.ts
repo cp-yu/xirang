@@ -26,11 +26,11 @@ describe('Candidate validation', () => {
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-candidate-validate-'));
     await new SetupCommand({ tools: 'none', force: true }).execute(root);
-    const projectSpec = path.join(root, '.opsx', 'specs', 'project-contract', 'spec.md');
+    const projectSpec = path.join(root, '.xirang', 'specs', 'project-contract', 'spec.md');
     await fs.mkdir(path.dirname(projectSpec), { recursive: true });
     await fs.writeFile(projectSpec, `---\nelement: project.root\n---\n\n# Project Contract Specification\n\n## Purpose\nDefines the minimal project contract used by Candidate validation tests.\n\n## Requirements\n\n### Requirement: Project contract\nThe project SHALL expose a valid semantic contract.\n\n#### Scenario: Validate project\n- **WHEN** Candidate validation runs\n- **THEN** the project contract is accepted\n`);
     await initializeCandidate(root, { kind: 'current' });
-    candidate = path.join(root, '.opsx', 'candidate');
+    candidate = path.join(root, '.xirang', 'candidate');
   });
 
   afterEach(async () => {

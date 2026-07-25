@@ -21,12 +21,12 @@ sed -i "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEW_VERSION\"/" pack
 
 # Update README.md
 echo "✓ Updating README.md"
-sed -i "s|v$CURRENT_VERSION/fission-ai-opsx-$CURRENT_VERSION|v$NEW_VERSION/fission-ai-opsx-$NEW_VERSION|g" README.md
+sed -i "s|v$CURRENT_VERSION/fission-ai-xirang-$CURRENT_VERSION|v$NEW_VERSION/fission-ai-xirang-$NEW_VERSION|g" README.md
 sed -i "s|occurrences of \`$CURRENT_VERSION\`|occurrences of \`$NEW_VERSION\`|g" README.md
 
 # Update docs/installation.md
 echo "✓ Updating docs/installation.md"
-sed -i "s|v$CURRENT_VERSION/fission-ai-opsx-$CURRENT_VERSION|v$NEW_VERSION/fission-ai-opsx-$NEW_VERSION|g" docs/installation.md
+sed -i "s|v$CURRENT_VERSION/fission-ai-xirang-$CURRENT_VERSION|v$NEW_VERSION/fission-ai-xirang-$NEW_VERSION|g" docs/installation.md
 sed -i "s|Replace \`$CURRENT_VERSION\`|Replace \`$NEW_VERSION\`|g" docs/installation.md
 
 # Update verification-assessment.json if it exists

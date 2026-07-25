@@ -35,10 +35,10 @@ describe('snack workflow integration', () => {
   let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `opsx-snack-it-${Date.now()}`);
+    testDir = path.join(os.tmpdir(), `xirang-snack-it-${Date.now()}`);
     await fs.mkdir(testDir, { recursive: true });
     originalEnv = { ...process.env };
-    configTempDir = path.join(os.tmpdir(), `opsx-snack-cfg-${Date.now()}`);
+    configTempDir = path.join(os.tmpdir(), `xirang-snack-cfg-${Date.now()}`);
     await fs.mkdir(configTempDir, { recursive: true });
     process.env.XDG_CONFIG_HOME = configTempDir;
     vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -70,7 +70,7 @@ describe('snack workflow integration', () => {
 
     const skillTemplates = getSkillTemplates();
     const snackTemplate = skillTemplates.find((entry) => entry.workflowId === 'snack');
-    expect(snackTemplate?.dirName).toBe('opsx-snack');
+    expect(snackTemplate?.dirName).toBe('xirang-snack');
   });
 
   it('init installs 6 workflow skills including snack for Claude Code', async () => {
@@ -79,12 +79,12 @@ describe('snack workflow integration', () => {
 
     const skillsDir = path.join(testDir, '.claude', 'skills');
     const expectedSkills = [
-      'opsx-propose',
-      'opsx-explore',
-      'opsx-apply-change',
-      'opsx-archive-change',
-      'opsx-build',
-      'opsx-snack',
+      'xirang-propose',
+      'xirang-explore',
+      'xirang-apply-change',
+      'xirang-archive-change',
+      'xirang-build',
+      'xirang-snack',
     ];
 
     for (const skill of expectedSkills) {
@@ -93,28 +93,28 @@ describe('snack workflow integration', () => {
     }
 
     // snack is skill-only: no corresponding command file
-    const snackCommand = path.join(testDir, '.claude', 'commands', 'opsx', 'snack.md');
+    const snackCommand = path.join(testDir, '.claude', 'commands', 'xirang', 'snack.md');
     expect(await fileExists(snackCommand)).toBe(false);
 
     const snackSkill = await fs.readFile(
-      path.join(skillsDir, 'opsx-snack', 'SKILL.md'),
+      path.join(skillsDir, 'xirang-snack', 'SKILL.md'),
       'utf-8'
     );
     expect(snackSkill).toContain('git diff');
     expect(snackSkill).toContain('CodeGraph');
     expect(snackSkill).toContain('ACE, `rg`, and `read`');
-    expect(snackSkill).not.toContain('project.opsx.code-map.yaml');
-    expect(snackSkill).toContain('opsx instructions proposal');
-    expect(snackSkill).toContain('opsx instructions specs');
-    expect(snackSkill).toContain('opsx instructions design');
-    expect(snackSkill).toContain('opsx validate --change "<name>" --json');
-    expect(snackSkill).toContain('opsx diff --change "<name>" --write');
-    expect(snackSkill).toContain('.opsx/changes/<name>/effective-change.md');
-    expect(snackSkill).not.toContain('opsx scenario-labels');
-    expect(snackSkill).toContain('1. **Quick sync**: `opsx sync "<change-name>" --no-verify`');
-    expect(snackSkill).toContain('2. **Quick archive**: `opsx archive "<change-name>" --no-verify`');
+    expect(snackSkill).not.toContain('project.xirang.code-map.yaml');
+    expect(snackSkill).toContain('xirang instructions proposal');
+    expect(snackSkill).toContain('xirang instructions specs');
+    expect(snackSkill).toContain('xirang instructions design');
+    expect(snackSkill).toContain('xirang validate --change "<name>" --json');
+    expect(snackSkill).toContain('xirang diff --change "<name>" --write');
+    expect(snackSkill).toContain('.xirang/changes/<name>/effective-change.md');
+    expect(snackSkill).not.toContain('xirang scenario-labels');
+    expect(snackSkill).toContain('1. **Quick sync**: `xirang sync "<change-name>" --no-verify`');
+    expect(snackSkill).toContain('2. **Quick archive**: `xirang archive "<change-name>" --no-verify`');
     expect(snackSkill).toContain(
-      '3. **Sync and archive**: `opsx sync "<change-name>" --no-verify && opsx archive "<change-name>" --no-verify`'
+      '3. **Sync and archive**: `xirang sync "<change-name>" --no-verify && xirang archive "<change-name>" --no-verify`'
     );
     expect(snackSkill).toContain('4. **Continue development**');
     expect(snackSkill).toMatch(/no architecture-level changes detected|Do NOT generate `tasks.md`/);
@@ -137,9 +137,9 @@ describe('snack workflow integration', () => {
   });
 
   it('update refreshes the snack skill file in place', async () => {
-    await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
-    await fs.mkdir(path.join(testDir, '.claude', 'skills', 'opsx-snack'), { recursive: true });
-    const staleSkill = path.join(testDir, '.claude', 'skills', 'opsx-snack', 'SKILL.md');
+    await fs.mkdir(path.join(testDir, '.xirang'), { recursive: true });
+    await fs.mkdir(path.join(testDir, '.claude', 'skills', 'xirang-snack'), { recursive: true });
+    const staleSkill = path.join(testDir, '.claude', 'skills', 'xirang-snack', 'SKILL.md');
     await fs.writeFile(staleSkill, 'STALE CONTENT');
 
     const updateCommand = new UpdateCommand({ force: true });
@@ -147,12 +147,12 @@ describe('snack workflow integration', () => {
 
     const refreshed = await fs.readFile(staleSkill, 'utf-8');
     expect(refreshed).not.toBe('STALE CONTENT');
-    expect(readSkillFrontmatter(refreshed)).toMatchObject({ name: 'opsx-snack' });
+    expect(readSkillFrontmatter(refreshed)).toMatchObject({ name: 'xirang-snack' });
     expect(refreshed).toContain('git diff');
-    expect(refreshed).toContain('opsx instructions proposal');
-    expect(refreshed).toContain('opsx validate --change "<name>" --json');
-    expect(refreshed).toContain('opsx diff --change "<name>" --write');
-    expect(refreshed).not.toContain('opsx scenario-labels');
+    expect(refreshed).toContain('xirang instructions proposal');
+    expect(refreshed).toContain('xirang validate --change "<name>" --json');
+    expect(refreshed).toContain('xirang diff --change "<name>" --write');
+    expect(refreshed).not.toContain('xirang scenario-labels');
     // C4: refreshed skill still exposes broader evidence sources
     expect(refreshed).toContain('conversation context');
     expect(refreshed).toContain('git diff HEAD');

@@ -1,17 +1,17 @@
 # Workflow Skills And Architecture Commands
 
-OPSX exposes managed workflows as skills. It does not generate a parallel slash-command surface.
+Xirang exposes managed workflows as skills. It does not generate a parallel slash-command surface.
 
 ## Workflow Skills
 
 | Skill | Purpose |
 |---|---|
-| `/opsx:explore` | Investigate requirements without modifying code or artifacts |
-| `/opsx:propose` | Create proposal, design, tasks, delta Specs, and architecture delta when required |
-| `/opsx:apply` | Implement an approved change with TDD and evidence-backed checks |
-| `/opsx:archive` | Verify, sync, and archive a completed change |
-| `/opsx:build` | Build a versioned Semantic Model candidate from repository evidence |
-| `/opsx:snack` | Reconcile existing code into one Semantic Delta |
+| `/xirang:explore` | Investigate requirements without modifying code or artifacts |
+| `/xirang:propose` | Create proposal, design, tasks, delta Specs, and architecture delta when required |
+| `/xirang:apply` | Implement an approved change with TDD and evidence-backed checks |
+| `/xirang:archive` | Verify, sync, and archive a completed change |
+| `/xirang:build` | Build a versioned Semantic Model candidate from repository evidence |
+| `/xirang:snack` | Reconcile existing code into one Semantic Delta |
 
 Invocation syntax varies by agent tool. See [Supported Tools](supported-tools.md).
 
@@ -20,15 +20,15 @@ Invocation syntax varies by agent tool. See [Supported Tools](supported-tools.md
 ### Browse
 
 ```bash
-opsx view [--port <n>]
+xirang view [--port <n>]
 ```
 
-Discovers the nearest `.opsx/`, starts the vendored LikeC4 engine, and serves graph elements with contracts authorized by the derived Spec registry.
+Discovers the nearest `.xirang/`, starts the vendored LikeC4 engine, and serves graph elements with contracts authorized by the derived Spec registry.
 
 ### Query
 
 ```bash
-opsx arch query <element-id> [--relations] [--depth <n>] [--json]
+xirang arch query <element-id> [--relations] [--depth <n>] [--json]
 ```
 
 Queries any Semantic Model element by stable `elementId` or current LikeC4 FQN. Output identity is canonicalized to `elementId`.
@@ -36,16 +36,16 @@ Queries any Semantic Model element by stable `elementId` or current LikeC4 FQN. 
 ### Validate
 
 ```bash
-opsx arch validate [--json]
-opsx arch validate --delta <architecture-delta.c4> [--json]
+xirang arch validate [--json]
+xirang arch validate --delta <architecture-delta.c4> [--json]
 ```
 
-Validates the formal Semantic Model graph or a change-local graph delta. Use `opsx validate --change <name> --json` for combined graph and contract validation.
+Validates the formal Semantic Model graph or a change-local graph delta. Use `xirang validate --change <name> --json` for combined graph and contract validation.
 
 ### Export
 
 ```bash
-opsx arch export [--format png|svg|pdf] [--output <directory>]
+xirang arch export [--format png|svg|pdf] [--output <directory>]
 ```
 
 Exports architecture diagrams without changing the semantic model.
@@ -53,12 +53,12 @@ Exports architecture diagrams without changing the semantic model.
 ## Project Candidate
 
 ```bash
-opsx candidate init --from current
-opsx candidate init --from clean
-opsx candidate init --from-path <path>
-opsx candidate status [--json]
-opsx candidate validate [--json]
-opsx candidate promote --digest <reviewDigest>
+xirang candidate init --from current
+xirang candidate init --from clean
+xirang candidate init --from-path <path>
+xirang candidate status [--json]
+xirang candidate validate [--json]
+xirang candidate promote --digest <reviewDigest>
 ```
 
 Project Build authors Architecture and Specs in one isolated Candidate. Validation is read-only, and promotion requires the exact digest confirmed by the user.

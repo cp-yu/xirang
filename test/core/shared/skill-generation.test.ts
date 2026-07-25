@@ -24,16 +24,16 @@ describe('skill-generation', () => {
       const templates = getSkillTemplates();
       const dirNames = templates.map(t => t.dirName);
 
-      expect(dirNames).toContain('opsx-explore');
-      expect(dirNames).toContain('opsx-apply-change');
-      expect(dirNames).toContain('opsx-archive-change');
-      expect(dirNames).toContain('opsx-propose');
-      expect(dirNames).toContain('opsx-build');
-      expect(dirNames).not.toContain('opsx-bootstrap-arch');
-      expect(dirNames).toContain('opsx-snack');
-      expect(dirNames).not.toContain('opsx-reviewer');
-      expect(dirNames).not.toContain('opsx-optimizer');
-      expect(dirNames).not.toContain('opsx-impact-sweeper');
+      expect(dirNames).toContain('xirang-explore');
+      expect(dirNames).toContain('xirang-apply-change');
+      expect(dirNames).toContain('xirang-archive-change');
+      expect(dirNames).toContain('xirang-propose');
+      expect(dirNames).toContain('xirang-build');
+      expect(dirNames).not.toContain('xirang-bootstrap-arch');
+      expect(dirNames).toContain('xirang-snack');
+      expect(dirNames).not.toContain('xirang-reviewer');
+      expect(dirNames).not.toContain('xirang-optimizer');
+      expect(dirNames).not.toContain('xirang-impact-sweeper');
       expect(dirNames).not.toContain('opsx-implementer');
     });
 
@@ -81,7 +81,7 @@ describe('skill-generation', () => {
       const filtered = getSkillTemplates(['propose']);
       expect(filtered).toHaveLength(1);
       expect(filtered[0].workflowId).toBe('propose');
-      expect(filtered[0].dirName).toBe('opsx-propose');
+      expect(filtered[0].dirName).toBe('xirang-propose');
     });
 
     it('should always use subagent-orchestrated archive skeleton (skills-only)', () => {
@@ -161,8 +161,8 @@ describe('skill-generation', () => {
       const content = generateSkillContent(template, '0.24.0');
 
       expect(content).toContain('license: "MIT"');
-      expect(content).toContain('compatibility: "Requires opsx CLI."');
-      expect(content).toContain('author: "opsx"');
+      expect(content).toContain('compatibility: "Requires xirang CLI."');
+      expect(content).toContain('author: "xirang"');
       expect(content).toContain('version: "1.0"');
       expect(content).toContain('generatedBy: "0.24.0"');
     });
@@ -200,28 +200,28 @@ describe('skill-generation', () => {
       const template = {
         name: 'transform-test',
         description: 'Test transform callback',
-        instructions: 'Use /opsx:new to start and /opsx:apply to implement.',
+        instructions: 'Use /xirang:new to start and /xirang:apply to implement.',
       };
 
-      const transformer = (text: string) => text.replace(/\/opsx:/g, '/opsx-');
+      const transformer = (text: string) => text.replace(/\/xirang:/g, '/xirang-');
       const content = generateSkillContent(template, '0.23.0', transformer);
 
-      expect(content).toContain('/opsx-new');
-      expect(content).toContain('/opsx-apply');
-      expect(content).not.toContain('/opsx:new');
-      expect(content).not.toContain('/opsx:apply');
+      expect(content).toContain('/xirang-new');
+      expect(content).toContain('/xirang-apply');
+      expect(content).not.toContain('/xirang:new');
+      expect(content).not.toContain('/xirang:apply');
     });
 
     it('should not transform instructions when callback is undefined', () => {
       const template = {
         name: 'no-transform-test',
         description: 'Test without transform',
-        instructions: 'Use /opsx:new to start.',
+        instructions: 'Use /xirang:new to start.',
       };
 
       const content = generateSkillContent(template, '0.23.0', undefined);
 
-      expect(content).toContain('/opsx:new');
+      expect(content).toContain('/xirang:new');
     });
 
     it('should support custom transformInstructions logic', () => {
@@ -261,7 +261,7 @@ describe('skill-generation', () => {
       const template = {
         name: 'codex-transform',
         description: 'Test codex transform',
-        instructions: 'Use /opsx:propose, then /opsx:explore, then /opsx:apply.',
+        instructions: 'Use /xirang:propose, then /xirang:explore, then /xirang:apply.',
       };
 
       const content = generateSkillContent(
@@ -270,12 +270,12 @@ describe('skill-generation', () => {
         (text: string) => transformWorkflowReferences(text, 'codex')
       );
 
-      expect(content).toContain('$opsx-propose');
-      expect(content).toContain('$opsx-explore');
-      expect(content).toContain('$opsx-apply-change');
-      expect(content).not.toContain('/opsx:propose');
-      expect(content).not.toContain('/opsx:explore');
-      expect(content).not.toContain('/opsx:apply');
+      expect(content).toContain('$xirang-propose');
+      expect(content).toContain('$xirang-explore');
+      expect(content).toContain('$xirang-apply-change');
+      expect(content).not.toContain('/xirang:propose');
+      expect(content).not.toContain('/xirang:explore');
+      expect(content).not.toContain('/xirang:apply');
     });
   });
 });

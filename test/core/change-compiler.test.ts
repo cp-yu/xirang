@@ -85,8 +85,8 @@ describe('compileArchitectureChange', () => {
   it('compiles graph and bound contract operations from one immutable Formal snapshot', async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-change-compiler-'));
     try {
-      const formalSpec = path.join(root, '.opsx', 'specs', 'old-contract', 'spec.md');
-      const changeDir = path.join(root, '.opsx', 'changes', 'change-a');
+      const formalSpec = path.join(root, '.xirang', 'specs', 'old-contract', 'spec.md');
+      const changeDir = path.join(root, '.xirang', 'changes', 'change-a');
       await fs.mkdir(path.dirname(formalSpec), { recursive: true });
       await fs.mkdir(path.join(changeDir, 'specs', 'old-contract'), { recursive: true });
       await fs.writeFile(formalSpec, `---\nelement: old.id\n---\n\n# Contract\n\n## Purpose\nOld contract.\n\n## Requirements\n\n### Requirement: Old behavior\nThe system SHALL behave.\n\n#### Scenario: Existing scenario\n- **WHEN** old\n- **THEN** result\n`);
@@ -157,8 +157,8 @@ describe('compileArchitectureChange', () => {
   it('validates a specs-only target as a complete Semantic Model', async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-specs-only-compiler-'));
     try {
-      const formalSpec = path.join(root, '.opsx', 'specs', 'old-contract', 'spec.md');
-      const changeSpec = path.join(root, '.opsx', 'changes', 'remove-contract', 'specs', 'old-contract', 'spec.md');
+      const formalSpec = path.join(root, '.xirang', 'specs', 'old-contract', 'spec.md');
+      const changeSpec = path.join(root, '.xirang', 'changes', 'remove-contract', 'specs', 'old-contract', 'spec.md');
       await fs.mkdir(path.dirname(formalSpec), { recursive: true });
       await fs.mkdir(path.dirname(changeSpec), { recursive: true });
       await fs.writeFile(formalSpec, `---\nelement: old.id\n---\n\n# Contract\n\n## Purpose\nOld contract.\n\n## Requirements\n\n### Requirement: Old behavior\nThe system SHALL behave.\n\n#### Scenario: Existing scenario\n- **WHEN** old\n- **THEN** result\n`);
@@ -178,8 +178,8 @@ describe('compileArchitectureChange', () => {
   it('removes a fully deleted Spec with its removed element from one Target model', async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-whole-spec-removal-'));
     try {
-      const formalSpec = path.join(root, '.opsx', 'specs', 'obsolete', 'spec.md');
-      const changeDir = path.join(root, '.opsx', 'changes', 'remove-obsolete');
+      const formalSpec = path.join(root, '.xirang', 'specs', 'obsolete', 'spec.md');
+      const changeDir = path.join(root, '.xirang', 'changes', 'remove-obsolete');
       await fs.mkdir(path.dirname(formalSpec), { recursive: true });
       await fs.mkdir(path.join(changeDir, 'specs', 'obsolete'), { recursive: true });
       await fs.writeFile(formalSpec, `---\nelement: obsolete.id\n---\n\n# Obsolete Specification\n\n## Purpose\nObsolete behavior contract.\n\n## Requirements\n\n### Requirement: Obsolete behavior\nThe system SHALL expose obsolete behavior.\n\n#### Scenario: Existing behavior\n- **WHEN** invoked\n- **THEN** obsolete behavior runs\n`);

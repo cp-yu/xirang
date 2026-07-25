@@ -5,10 +5,10 @@ import { Validator } from '../../src/core/validation/validator.js';
 
 describe('validateChangeDeltaSpecs cross-check against main spec', () => {
   const testDir = path.join(process.cwd(), 'test-cross-check-tmp');
-  // Layout: <testDir>/.opsx/changes/test-change/specs/<cap>/spec.md
-  //         <testDir>/.opsx/specs/<cap>/spec.md
-  const changeDir = path.join(testDir, '.opsx', 'changes', 'test-change');
-  const mainSpecsDir = path.join(testDir, '.opsx', 'specs');
+  // Layout: <testDir>/.xirang/changes/test-change/specs/<cap>/spec.md
+  //         <testDir>/.xirang/specs/<cap>/spec.md
+  const changeDir = path.join(testDir, '.xirang', 'changes', 'test-change');
+  const mainSpecsDir = path.join(testDir, '.xirang', 'specs');
 
   beforeEach(async () => {
     await fs.mkdir(path.join(changeDir, 'specs'), { recursive: true });
@@ -32,7 +32,7 @@ describe('validateChangeDeltaSpecs cross-check against main spec', () => {
   }
 
   async function writeArchitecture(capIds: string[]) {
-    const architectureDir = path.join(testDir, '.opsx', 'architecture');
+    const architectureDir = path.join(testDir, '.xirang', 'architecture');
     await fs.mkdir(path.join(architectureDir, 'domains'), { recursive: true });
     await fs.writeFile(path.join(architectureDir, 'domains', 'test.c4'), `model {
   test = domain 'Test' {
@@ -45,13 +45,13 @@ ${capIds.map((id, index) => `    capability_${index} = capability 'Test capabili
   }
 
   async function writeV1Architecture() {
-    const architectureDir = path.join(testDir, '.opsx', 'architecture');
+    const architectureDir = path.join(testDir, '.xirang', 'architecture');
     await fs.mkdir(architectureDir, { recursive: true });
-    await fs.writeFile(path.join(architectureDir, 'model.c4'), `opsx { languageVersion '1' }
+    await fs.writeFile(path.join(architectureDir, 'model.c4'), `xirang { languageVersion '1' }
 specification {
-  element project { opsx { root true contract required } }
-  element workflow { opsx { contract required } }
-  element note { opsx { contract optional } }
+  element project { xirang { root true contract required } }
+  element workflow { xirang { contract required } }
+  element note { xirang { contract optional } }
 }
 model {
   projectRoot = project 'Root' 'Project intent' {

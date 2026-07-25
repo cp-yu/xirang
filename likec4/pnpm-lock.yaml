@@ -615,9 +615,6 @@ importers:
       canvaskit-wasm:
         specifier: 0.40.0
         version: 0.40.0
-      opsx-likec4:
-        specifier: workspace:*
-        version: link:../../packages/likec4
       react:
         specifier: 19.2.7
         version: 19.2.7
@@ -654,6 +651,9 @@ importers:
       wrangler:
         specifier: catalog:cloudflare
         version: 4.95.0
+      xirang-likec4:
+        specifier: workspace:*
+        version: link:../../packages/likec4
 
   apps/playground:
     dependencies:

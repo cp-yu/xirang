@@ -6,18 +6,18 @@
 - pnpm 9 or newer
 - Git with subtree support
 
-OPSX currently runs from source. It does not publish an npm package and does not download or build LikeC4 from lifecycle hooks.
+Xirang currently runs from source. It does not publish an npm package and does not download or build LikeC4 from lifecycle hooks.
 
 ## Build From Source
 
 ```bash
-git clone https://github.com/cp-yu/opsx.git
-cd opsx
+git clone https://github.com/cp-yu/xirang.git
+cd xirang
 pnpm install --frozen-lockfile
 pnpm --dir likec4 install --frozen-lockfile
 pnpm --dir likec4 build
 pnpm build
-node bin/opsx.js --version
+node bin/xirang.js --version
 ```
 
 The root project and `likec4/` are independent pnpm workspaces. Install and build each workspace explicitly. The CLI resolves only `likec4/packages/likec4/bin/likec4.mjs` from the vendored subtree.
@@ -28,16 +28,16 @@ For local command access, invoke the repository binary directly or link the buil
 
 ```bash
 cd your-project
-/path/to/opsx/bin/opsx.js setup --tools all
+/path/to/xirang/bin/xirang.js setup --tools all
 ```
 
-Setup creates `.opsx/` and installs managed workflow skills for the selected agent tools.
+Setup creates `.xirang/` and installs managed workflow skills for the selected agent tools.
 
 ## Verify The Browser
 
 ```bash
 cd your-project
-/path/to/opsx/bin/opsx.js view --port 5173
+/path/to/xirang/bin/xirang.js view --port 5173
 ```
 
 Open `http://localhost:5173`. No external LikeC4 installation is used.

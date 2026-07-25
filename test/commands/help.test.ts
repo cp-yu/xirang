@@ -16,8 +16,8 @@ describe('AuthoringHelpCommand', () => {
   it('lists only the active architecture authoring topic', async () => {
     const output = await captureLogs(() => new AuthoringHelpCommand().execute(undefined, {}));
     expect(output).toContain('architecture-delta.c4');
-    expect(output).not.toContain('project.opsx.yaml');
-    expect(output).not.toContain('project.opsx.relations.yaml');
+    expect(output).not.toContain('project.xirang.yaml');
+    expect(output).not.toContain('project.xirang.relations.yaml');
   });
 
   it('renders complete relation help from the Registry', async () => {
@@ -27,7 +27,7 @@ describe('AuthoringHelpCommand', () => {
     }
     expect(output).not.toContain('belongs_to');
     expect(output).toContain('选择规则');
-    expect(output).toContain('opsx validate --change <name> --artifacts architecture-delta --json');
+    expect(output).toContain('xirang validate --change <name> --artifacts architecture-delta --json');
   });
 
   it('returns Schema-backed definitions and Registry relation details', async () => {
@@ -73,10 +73,10 @@ describe('AuthoringHelpCommand', () => {
     }));
   });
 
-  it('rejects unknown and legacy OPSX topics', async () => {
+  it('rejects unknown and legacy Xirang topics', async () => {
     await expect(new AuthoringHelpCommand().execute('unknown.yaml', {})).rejects.toThrow('architecture-delta.c4');
-    await expect(new AuthoringHelpCommand().execute('project.opsx.yaml', {})).rejects.toThrow('未知 authoring topic');
-    await expect(new AuthoringHelpCommand().execute('project.opsx.relations.yaml', {})).rejects.toThrow('未知 authoring topic');
+    await expect(new AuthoringHelpCommand().execute('project.xirang.yaml', {})).rejects.toThrow('未知 authoring topic');
+    await expect(new AuthoringHelpCommand().execute('project.xirang.relations.yaml', {})).rejects.toThrow('未知 authoring topic');
   });
 
   it('requires an exact canonical topic', async () => {
@@ -88,12 +88,12 @@ describe('AuthoringHelpCommand', () => {
 
 describe('registerHelpCommand', () => {
   it('delegates non-authoring command paths to Commander help', async () => {
-    const program = new Command().name('opsx').exitOverride();
+    const program = new Command().name('xirang').exitOverride();
     program.command('validate').description('Validate artifacts');
     registerHelpCommand(program);
     const output = await captureLogs(async () => {
-      await program.parseAsync(['node', 'opsx', 'help', 'validate']);
+      await program.parseAsync(['node', 'xirang', 'help', 'validate']);
     });
-    expect(output).toContain('Usage: opsx validate');
+    expect(output).toContain('Usage: xirang validate');
   });
 });

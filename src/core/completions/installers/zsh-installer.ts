@@ -15,8 +15,8 @@ export class ZshInstaller {
    * Markers for .zshrc configuration management
    */
   private readonly ZSHRC_MARKERS = {
-    start: '# OPSX:START',
-    end: '# OPSX:END',
+    start: '# Xirang:START',
+    end: '# Xirang:END',
   };
 
   constructor(homeDir: string = os.homedir()) {
@@ -105,7 +105,7 @@ export class ZshInstaller {
    */
   private generateZshrcConfig(completionsDir: string): string {
     return [
-      '# OPSX shell completions configuration',
+      '# Xirang shell completions configuration',
       `fpath=("${completionsDir}" $fpath)`,
       'autoload -Uz compinit',
       'compinit',
@@ -121,7 +121,7 @@ export class ZshInstaller {
    */
   async configureZshrc(completionsDir: string): Promise<boolean> {
     // Check if auto-configuration is disabled
-    if (process.env.OPSX_NO_AUTO_CONFIG === '1') {
+    if (process.env.XIRANG_NO_AUTO_CONFIG === '1') {
       return false;
     }
 
@@ -152,7 +152,7 @@ export class ZshInstaller {
   }
 
   /**
-   * Check if .zshrc has OPSX configuration markers
+   * Check if .zshrc has Xirang configuration markers
    *
    * @returns true if .zshrc exists and has markers
    */
@@ -438,7 +438,7 @@ export class ZshInstaller {
         messages.push(`Completion script removed from ${targetPath}`);
       }
       if (zshrcCleaned && !isOhMyZsh) {
-        messages.push('Removed OPSX configuration from ~/.zshrc');
+        messages.push('Removed Xirang configuration from ~/.zshrc');
       }
 
       return {

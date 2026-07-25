@@ -95,13 +95,13 @@ describe('skill template length validation', () => {
 
   it('groups over-limit file variants by path and identical line count', () => {
     const report = formatOverLimitReport([
-      { dirName: 'opsx-explore', variant: 'default', filePath: 'SKILL.md', lines: 541, limit: MAX_SKILL_LINES },
-      { dirName: 'opsx-explore', variant: 'claude', filePath: 'SKILL.md', lines: 541, limit: MAX_SKILL_LINES },
-      { dirName: 'opsx-explore', variant: 'codex', filePath: 'SKILL.md', lines: 541, limit: MAX_SKILL_LINES },
+      { dirName: 'xirang-explore', variant: 'default', filePath: 'SKILL.md', lines: 541, limit: MAX_SKILL_LINES },
+      { dirName: 'xirang-explore', variant: 'claude', filePath: 'SKILL.md', lines: 541, limit: MAX_SKILL_LINES },
+      { dirName: 'xirang-explore', variant: 'codex', filePath: 'SKILL.md', lines: 541, limit: MAX_SKILL_LINES },
     ]);
 
     expect(report).toContain('3 skill template file variant(s) exceed configured line limits.');
-    expect(report).toContain('• opsx-explore/SKILL.md (default, claude, codex): 541 lines (+341, limit 200)');
+    expect(report).toContain('• xirang-explore/SKILL.md (default, claude, codex): 541 lines (+341, limit 200)');
     expect(report).toContain(REFERENCE_URL);
   });
 
@@ -118,9 +118,9 @@ describe('skill template length validation', () => {
 
   it('reports reference files independently instead of summing a skill directory', () => {
     const report = formatOverLimitReport([
-      { dirName: 'opsx-optimizer', variant: 'default', filePath: 'SKILL.md', lines: 180, limit: MAX_SKILL_LINES },
+      { dirName: 'xirang-optimizer', variant: 'default', filePath: 'SKILL.md', lines: 180, limit: MAX_SKILL_LINES },
       {
-        dirName: 'opsx-optimizer',
+        dirName: 'xirang-optimizer',
         variant: 'default',
         filePath: 'references/output-protocol.md',
         lines: 501,
@@ -128,7 +128,7 @@ describe('skill template length validation', () => {
       },
     ]);
 
-    expect(report).not.toContain('opsx-optimizer/SKILL.md');
-    expect(report).toContain('• opsx-optimizer/references/output-protocol.md (default): 501 lines (+1, limit 500)');
+    expect(report).not.toContain('xirang-optimizer/SKILL.md');
+    expect(report).toContain('• xirang-optimizer/references/output-protocol.md (default): 501 lines (+1, limit 500)');
   });
 });

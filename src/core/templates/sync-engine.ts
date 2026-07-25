@@ -9,7 +9,7 @@ import path from 'path';
 import * as fs from 'fs';
 import { parse as parseYaml } from 'yaml';
 import { FileSystemUtils } from '../../utils/file-system.js';
-import { OPSX_DIR_NAME } from '../config.js';
+import { XIRANG_DIR_NAME } from '../config.js';
 import {
   generateSkillContent,
   getSkillTemplates,
@@ -152,11 +152,11 @@ function toSharedReferenceFileName(referencePath: string): string {
     throw new Error(`Invalid skill reference path: ${referencePath}`);
   }
 
-  return `opsx-${path.posix.basename(normalized)}`;
+  return `xirang-${path.posix.basename(normalized)}`;
 }
 
 function assertToolNeutralReference(referencePath: string, content: string): void {
-  if (/\/opsx:|\$opsx-/.test(content)) {
+  if (/\/xirang:|\$xirang-/.test(content)) {
     throw new Error(`Tool-specific syntax in skill reference file: ${referencePath}`);
   }
 }
@@ -192,20 +192,21 @@ export function collectSharedReferenceFiles(
 
 const STALE_SHARED_REFERENCE_FILES = [
   'opsx-apply-phase2-optimization.md',
+  'xirang-apply-phase2-optimization.md',
 ] as const;
 
 async function writeSharedReferences(
   projectPath: string,
   references: readonly SharedReferenceFile[]
 ): Promise<void> {
-  const referencesDir = path.join(projectPath, OPSX_DIR_NAME, 'references');
+  const referencesDir = path.join(projectPath, XIRANG_DIR_NAME, 'references');
 
   for (const fileName of STALE_SHARED_REFERENCE_FILES) {
     await fs.promises.rm(path.join(referencesDir, fileName), { force: true });
   }
 
   for (const referenceFile of references) {
-    if (!referenceFile.fileName.startsWith('opsx-')) {
+    if (!referenceFile.fileName.startsWith('xirang-')) {
       throw new Error(`Invalid managed reference file name: ${referenceFile.fileName}`);
     }
 
@@ -326,8 +327,8 @@ async function writeSubagents(
 }
 
 const RETIRED_MANAGED_COMMANDS: Readonly<Record<string, readonly string[]>> = {
-  claude: ['commands/opsx/apply.md'],
-  'github-copilot': ['prompts/opsx-apply.prompt.md'],
+  claude: ['commands/xirang/apply.md'],
+  'github-copilot': ['prompts/opsx-apply.prompt.md', 'prompts/xirang-apply.prompt.md'],
 };
 
 async function removeRetiredManagedCommands(

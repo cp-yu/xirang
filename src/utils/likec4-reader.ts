@@ -1,4 +1,4 @@
-import { OPSX_DIR_NAME } from '../core/config.js';
+import { XIRANG_DIR_NAME } from '../core/config.js';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import {
@@ -110,14 +110,14 @@ async function readV1(contents: string[], metamodel: SemanticMetamodel): Promise
 }
 
 export async function readLikeC4Architecture(projectRoot: string): Promise<LikeC4Architecture> {
-  const architecture = path.join(projectRoot, OPSX_DIR_NAME, 'architecture');
+  const architecture = path.join(projectRoot, XIRANG_DIR_NAME, 'architecture');
   const files = await collectLikeC4Files(architecture);
   const contents = await Promise.all(files.map(file => fs.readFile(file, 'utf8')));
   const profiles = contents.map(parseOpsxProfile);
   const versions = [...new Set(profiles.map(profile => profile.languageVersion).filter((version): version is string => version !== null))];
-  if (versions.length > 1) throw new Error(`Conflicting OPSX language versions: ${versions.join(', ')}`);
+  if (versions.length > 1) throw new Error(`Conflicting Xirang language versions: ${versions.join(', ')}`);
   const languageVersion = versions[0] ?? null;
-  if (languageVersion !== null && languageVersion !== '1') throw new Error(`Unsupported OPSX language version: ${languageVersion}`);
+  if (languageVersion !== null && languageVersion !== '1') throw new Error(`Unsupported Xirang language version: ${languageVersion}`);
 
   const metamodel: SemanticMetamodel = { elements: {}, relationships: {} };
   for (const profile of profiles) mergeMetamodel(metamodel, profile.metamodel);
@@ -130,7 +130,7 @@ export async function readLikeC4Architecture(projectRoot: string): Promise<LikeC
     );
     if (missingContractPolicies.length > 0) {
       throw new Error(
-        `Element kind(s) ${[...new Set(missingContractPolicies)].sort().join(', ')} require an explicit contract policy in OPSX languageVersion '1'`
+        `Element kind(s) ${[...new Set(missingContractPolicies)].sort().join(', ')} require an explicit contract policy in Xirang languageVersion '1'`
       );
     }
     const parsed = await readV1(contents, metamodel);

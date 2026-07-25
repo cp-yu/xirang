@@ -1,4 +1,4 @@
-import { OPSX_DIR_NAME } from './config.js';
+import { XIRANG_DIR_NAME } from './config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { getTaskProgressForChange, formatTaskStatus } from '../utils/task-progress.js';
@@ -101,17 +101,17 @@ export class ArchiveCommand {
   /**
    * Archive a completed change. Enforces verify gate, sync gate, validation gate,
    * and task gate before moving the change to archive. Does NOT write formal Specs
-   * or LikeC4 architecture files; sync is handled by `opsx sync`.
+   * or LikeC4 architecture files; sync is handled by `xirang sync`.
    */
   async execute(changeName?: string, options: ArchiveOptions = {}): Promise<void> {
     const targetPath = '.';
-    const changesDir = path.join(targetPath, OPSX_DIR_NAME, 'changes');
+    const changesDir = path.join(targetPath, XIRANG_DIR_NAME, 'changes');
     const archiveDir = path.join(changesDir, 'archive');
 
     try {
       await fs.access(changesDir);
     } catch {
-      throw new Error("No OPSX changes directory found. Run 'opsx setup' first.");
+      throw new Error("No Xirang changes directory found. Run 'xirang setup' first.");
     }
 
     if (!changeName) {
@@ -255,13 +255,13 @@ export class ArchiveCommand {
     if (pendingSync.specs > 0) {
       throw new Error(
         `Sync gate failed: ${pendingSync.specs} pending delta spec(s).\n` +
-        `Run opsx sync ${changeName} first, or pass --no-sync to bypass.`,
+        `Run xirang sync ${changeName} first, or pass --no-sync to bypass.`,
       );
     }
     if (pendingSync.architecture) {
       throw new Error(
         `Sync gate failed: pending architecture delta.\n` +
-        `Run opsx sync ${changeName} first, or pass --no-sync to bypass.`,
+        `Run xirang sync ${changeName} first, or pass --no-sync to bypass.`,
       );
     }
     return true;

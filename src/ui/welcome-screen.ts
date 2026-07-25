@@ -17,16 +17,16 @@ const ART_COLUMN_WIDTH = 24;
  */
 export function getWelcomeText(): string[] {
   return [
-    chalk.white.bold('Welcome to OPSX'),
+    chalk.white.bold('Welcome to Xirang'),
     chalk.dim('A lightweight spec-driven framework'),
     '',
     chalk.white('This setup will configure:'),
     chalk.dim('  • Agent Skills for AI tools'),
-    chalk.dim('  • The .opsx durable workspace'),
+    chalk.dim('  • The .xirang durable workspace'),
     '',
     chalk.white('Quick start after setup:'),
-    `  ${chalk.yellow('opsx status')} ${chalk.dim('Inspect project state')}`,
-    `  ${chalk.yellow('opsx view')}   ${chalk.dim('Browse Architecture and Specs')}`,
+    `  ${chalk.yellow('xirang status')} ${chalk.dim('Inspect project state')}`,
+    `  ${chalk.yellow('xirang view')}   ${chalk.dim('Browse Architecture and Specs')}`,
     '',
     chalk.cyan('Press Enter to select tools...'),
   ];

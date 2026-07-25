@@ -20,7 +20,7 @@ describe('workflow installation planning', () => {
 
   beforeEach(async () => {
     testDir = path.join(os.tmpdir(), `opsx-workflow-installation-${randomUUID()}`);
-    await fs.mkdir(path.join(testDir, '.opsx'), { recursive: true });
+    await fs.mkdir(path.join(testDir, '.xirang'), { recursive: true });
   });
 
   afterEach(async () => {
@@ -47,14 +47,14 @@ describe('workflow installation planning', () => {
   });
 
   it('does not derive workflows from a retired bootstrap workspace', async () => {
-    await fs.mkdir(path.join(testDir, '.opsx', 'bootstrap'), { recursive: true });
+    await fs.mkdir(path.join(testDir, '.xirang', 'bootstrap'), { recursive: true });
 
     const effective = resolveEffectiveWorkflows(testDir, ['propose', 'explore', 'apply', 'archive']);
     expect(effective).toEqual(['propose', 'explore', 'apply', 'archive']);
 
     const plan = createWorkflowArtifactPlan(['propose', 'explore', 'apply', 'archive'], testDir);
     expect(plan.workflows).not.toContain('build');
-    expect(plan.expectedSkillDirNames).not.toContain('opsx-bootstrap-arch');
+    expect(plan.expectedSkillDirNames).not.toContain('xirang-bootstrap-arch');
   });
 
   it('treats codex as skills-only for workflow skills and plans subagent artifacts separately', () => {
@@ -62,32 +62,32 @@ describe('workflow installation planning', () => {
 
     expect(plan.shouldGenerateSkills).toBe(true);
     expect(plan.expectedSkillDirNames).toEqual([
-      'opsx-propose',
-      'opsx-explore',
+      'xirang-propose',
+      'xirang-explore',
     ]);
   });
 
   it('tracks stale internal skill directories by explicit name', () => {
     expect(MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES).toEqual([
       'opsx-implementer',
-      'opsx-reviewer',
-      'opsx-optimizer',
-      'opsx-impact-sweeper',
+      'xirang-reviewer',
+      'xirang-optimizer',
+      'xirang-impact-sweeper',
       'opsx-bootstrap-opsx',
-      'opsx-bootstrap-arch',
+      'xirang-bootstrap-arch',
     ]);
 
     const plan = createToolWorkflowArtifactPlan('claude', ['propose', 'explore'], testDir);
     expect(plan.managedSkillDirNames).toEqual(expect.arrayContaining([
       'opsx-implementer',
-      'opsx-reviewer',
-      'opsx-optimizer',
-      'opsx-impact-sweeper',
+      'xirang-reviewer',
+      'xirang-optimizer',
+      'xirang-impact-sweeper',
     ]));
-    expect(MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES).not.toContain('opsx-propose');
-    expect(MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES).not.toContain('opsx-explore');
+    expect(MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES).not.toContain('xirang-propose');
+    expect(MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES).not.toContain('xirang-explore');
     expect(plan.expectedSkillDirNames).not.toContain('opsx-implementer');
-    expect(plan.expectedSkillDirNames).not.toContain('opsx-reviewer');
+    expect(plan.expectedSkillDirNames).not.toContain('xirang-reviewer');
   });
 
   it('includes shared reference files in planned artifacts', () => {
@@ -95,28 +95,28 @@ describe('workflow installation planning', () => {
     const artifacts = getPlannedToolArtifacts(testDir, 'claude', plan);
 
     expect(artifacts.skillFiles).toContain(
-      path.join(testDir, '.claude', 'skills', 'opsx-archive-change', 'SKILL.md')
+      path.join(testDir, '.claude', 'skills', 'xirang-archive-change', 'SKILL.md')
     );
     expect(artifacts.skillFiles).toContain(
-      path.join(testDir, '.claude', 'skills', 'opsx-apply-change', 'SKILL.md')
+      path.join(testDir, '.claude', 'skills', 'xirang-apply-change', 'SKILL.md')
     );
     expect(artifacts.skillFiles).toContain(
-      path.join(testDir, '.opsx', 'references', 'opsx-archive-commit-message.md')
+      path.join(testDir, '.xirang', 'references', 'xirang-archive-commit-message.md')
     );
     expect(artifacts.skillFiles).toContain(
-      path.join(testDir, '.opsx', 'references', 'opsx-apply-step-1-preparation.md')
+      path.join(testDir, '.xirang', 'references', 'xirang-apply-step-1-preparation.md')
     );
     expect(artifacts.skillFiles).toContain(
-      path.join(testDir, '.opsx', 'references', 'opsx-apply-step-5-phase2-optimization.md')
+      path.join(testDir, '.xirang', 'references', 'xirang-apply-step-5-phase2-optimization.md')
     );
     expect(artifacts.skillFiles).toContain(
-      path.join(testDir, '.opsx', 'references', 'opsx-output-protocol.md')
+      path.join(testDir, '.xirang', 'references', 'xirang-output-protocol.md')
     );
     expect(artifacts.agentFiles).toContain(
-      path.join(testDir, '.claude', 'agents', 'opsx-reviewer.md')
+      path.join(testDir, '.claude', 'agents', 'xirang-reviewer.md')
     );
     expect(artifacts.agentFiles).toContain(
-      path.join(testDir, '.claude', 'agents', 'opsx-optimizer.md')
+      path.join(testDir, '.claude', 'agents', 'xirang-optimizer.md')
     );
     // Skills-only: no command files are planned
     expect(artifacts.commandFiles).toEqual([]);
@@ -126,10 +126,10 @@ describe('workflow installation planning', () => {
     const skillsDir = path.join(testDir, '.claude', 'skills');
     for (const name of [
       'opsx-implementer',
-      'opsx-reviewer',
-      'opsx-optimizer',
-      'opsx-impact-sweeper',
-      'opsx-bootstrap-arch',
+      'xirang-reviewer',
+      'xirang-optimizer',
+      'xirang-impact-sweeper',
+      'xirang-bootstrap-arch',
       'user-skill',
     ]) {
       await fs.mkdir(path.join(skillsDir, name), { recursive: true });
@@ -147,15 +147,15 @@ describe('workflow installation planning', () => {
     expect(result.skillsRemoved).toBe(5);
     for (const name of [
       'opsx-implementer',
-      'opsx-reviewer',
-      'opsx-optimizer',
-      'opsx-impact-sweeper',
-      'opsx-bootstrap-arch',
+      'xirang-reviewer',
+      'xirang-optimizer',
+      'xirang-impact-sweeper',
+      'xirang-bootstrap-arch',
     ]) {
       await expect(fs.stat(path.join(skillsDir, name))).rejects.toThrow();
     }
     await expect(fs.stat(path.join(skillsDir, 'user-skill', 'SKILL.md'))).resolves.toBeDefined();
-    await expect(fs.stat(path.join(testDir, '.claude', 'agents', 'opsx-reviewer.md'))).resolves.toBeDefined();
+    await expect(fs.stat(path.join(testDir, '.claude', 'agents', 'xirang-reviewer.md'))).resolves.toBeDefined();
   });
 
   it('writes shared reference files during sync', async () => {
@@ -168,11 +168,11 @@ describe('workflow installation planning', () => {
 
     expect(result.error).toBeUndefined();
     const archiveReference = await fs.readFile(
-      path.join(testDir, '.opsx', 'references', 'opsx-archive-commit-message.md'),
+      path.join(testDir, '.xirang', 'references', 'xirang-archive-commit-message.md'),
       'utf-8'
     );
     const mergeReference = await fs.readFile(
-      path.join(testDir, '.opsx', 'references', 'opsx-merge-summary-message.md'),
+      path.join(testDir, '.xirang', 'references', 'xirang-merge-summary-message.md'),
       'utf-8'
     );
     expect(archiveReference).toContain('git.commitMessage.archive');
@@ -180,10 +180,10 @@ describe('workflow installation planning', () => {
   });
 
   it('preserves user reference files and overwrites managed reference files', async () => {
-    const referencesDir = path.join(testDir, '.opsx', 'references');
+    const referencesDir = path.join(testDir, '.xirang', 'references');
     await fs.mkdir(referencesDir, { recursive: true });
     await fs.writeFile(path.join(referencesDir, 'custom-archive-commit-message.md'), 'user template');
-    await fs.writeFile(path.join(referencesDir, 'opsx-archive-commit-message.md'), 'modified');
+    await fs.writeFile(path.join(referencesDir, 'xirang-archive-commit-message.md'), 'modified');
 
     const result = await ArtifactSyncEngine.syncOne({
       toolId: 'claude',
@@ -197,7 +197,7 @@ describe('workflow installation planning', () => {
       fs.readFile(path.join(referencesDir, 'custom-archive-commit-message.md'), 'utf-8')
     ).resolves.toBe('user template');
     await expect(
-      fs.readFile(path.join(referencesDir, 'opsx-archive-commit-message.md'), 'utf-8')
+      fs.readFile(path.join(referencesDir, 'xirang-archive-commit-message.md'), 'utf-8')
     ).resolves.toContain('git.commitMessage.archive');
   });
 
@@ -223,7 +223,7 @@ describe('workflow installation planning', () => {
           },
         },
       ])
-    ).toThrow(/Duplicate skill reference file name: opsx-details\.md/);
+    ).toThrow(/Duplicate skill reference file name: xirang-details\.md/);
   });
 
   it('rejects tool-specific syntax in shared reference files', () => {
@@ -235,7 +235,7 @@ describe('workflow installation planning', () => {
             name: 'archive',
             description: 'archive',
             instructions: '',
-            referenceFiles: [{ path: 'references/details.md', content: 'Run /opsx:archive.' }],
+            referenceFiles: [{ path: 'references/details.md', content: 'Run /xirang:archive.' }],
           },
         },
       ])
@@ -261,7 +261,7 @@ describe('workflow installation planning', () => {
     expect(summary.failed).toEqual([]);
     await expect(
       fs.readFile(
-        path.join(testDir, '.opsx', 'references', 'opsx-archive-commit-message.md'),
+        path.join(testDir, '.xirang', 'references', 'xirang-archive-commit-message.md'),
         'utf-8'
       )
     ).resolves.toContain('git.commitMessage.archive');
@@ -271,7 +271,7 @@ describe('workflow installation planning', () => {
           testDir,
           '.claude',
           'skills',
-          'opsx-archive-change',
+          'xirang-archive-change',
           'references',
           'archive-commit-message.md'
         )
@@ -283,7 +283,7 @@ describe('workflow installation planning', () => {
           testDir,
           '.codex',
           'skills',
-          'opsx-archive-change',
+          'xirang-archive-change',
           'references',
           'archive-commit-message.md'
         )

@@ -23,13 +23,13 @@ end`;
 export const FISH_DYNAMIC_HELPERS = `# Dynamic completion helpers
 
 function __fish_opsx_changes
-    opsx __complete changes 2>/dev/null | while read -l id desc
+    xirang __complete changes 2>/dev/null | while read -l id desc
         printf '%s\\t%s\\n' "$id" "$desc"
     end
 end
 
 function __fish_opsx_specs
-    opsx __complete specs 2>/dev/null | while read -l id desc
+    xirang __complete specs 2>/dev/null | while read -l id desc
         printf '%s\\t%s\\n' "$id" "$desc"
     end
 end

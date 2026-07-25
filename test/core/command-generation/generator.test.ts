@@ -8,7 +8,7 @@ describe('command-generation/generator', () => {
   const sampleContent: CommandContent = {
     id: 'explore',
     commandSlug: 'explore',
-    name: 'OPSX Explore',
+    name: 'Xirang Explore',
     description: 'Enter explore mode',
     category: 'Workflow',
     tags: ['workflow'],
@@ -21,7 +21,7 @@ describe('command-generation/generator', () => {
 
       expect(result.path).toContain('.claude');
       expect(result.path).toContain('explore.md');
-      expect(result.fileContent).toContain('name: OPSX Explore');
+      expect(result.fileContent).toContain('name: Xirang Explore');
       expect(result.fileContent).toContain('Command body here.');
     });
 
@@ -29,9 +29,9 @@ describe('command-generation/generator', () => {
       const result = generateCommand(sampleContent, cursorAdapter);
 
       expect(result.path).toContain('.cursor');
-      expect(result.path).toContain('opsx-explore.md');
-      expect(result.fileContent).toContain('name: /opsx-explore');
-      expect(result.fileContent).toContain('id: opsx-explore');
+      expect(result.path).toContain('xirang-explore.md');
+      expect(result.fileContent).toContain('name: /xirang-explore');
+      expect(result.fileContent).toContain('id: xirang-explore');
       expect(result.fileContent).toContain('Command body here.');
     });
 
@@ -53,7 +53,7 @@ describe('command-generation/generator', () => {
       const result = generateCommand(sampleContent, customAdapter);
 
       expect(result.path).toBe('.custom/explore.txt');
-      expect(result.fileContent).toBe('# OPSX Explore\n\nCommand body here.');
+      expect(result.fileContent).toBe('# Xirang Explore\n\nCommand body here.');
     });
   });
 

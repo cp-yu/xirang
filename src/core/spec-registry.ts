@@ -1,4 +1,4 @@
-import { OPSX_DIR_NAME } from './config.js';
+import { XIRANG_DIR_NAME } from './config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import {
@@ -18,7 +18,7 @@ export interface SpecRegistry {
 }
 
 export async function buildSpecRegistry(projectRoot: string, specsDirectory?: string): Promise<SpecRegistry> {
-  const specsDir = path.resolve(specsDirectory ?? path.join(projectRoot, OPSX_DIR_NAME, 'specs'));
+  const specsDir = path.resolve(specsDirectory ?? path.join(projectRoot, XIRANG_DIR_NAME, 'specs'));
   const elementToSpecs = new Map<string, string[]>();
   const specToElement = new Map<string, string>();
   const issuesBySpec = new Map<string, SpecFrontmatterIssue[]>();

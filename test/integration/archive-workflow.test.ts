@@ -9,7 +9,7 @@ describe('architecture archive workflow', () => {
   let root: string;
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-architecture-archive-'));
-    changeDir = path.join(root, '.opsx', 'changes', 'done');
+    changeDir = path.join(root, '.xirang', 'changes', 'done');
     await fs.mkdir(changeDir, { recursive: true });
   });
   afterEach(async () => fs.rm(root, { recursive: true, force: true }));
@@ -17,7 +17,7 @@ describe('architecture archive workflow', () => {
   it('preserves architecture-delta.c4 as archived history', async () => {
     const delta = path.join(changeDir, 'architecture-delta.c4');
     await fs.writeFile(delta, 'model {}');
-    const archived = path.join(root, '.opsx', 'changes', 'archive', 'done');
+    const archived = path.join(root, '.xirang', 'changes', 'archive', 'done');
     await fs.mkdir(path.dirname(archived), { recursive: true });
 
     await moveDirectory(changeDir, archived);
@@ -27,7 +27,7 @@ describe('architecture archive workflow', () => {
 
   it('keeps the active source and removes partial fallback output when an EPERM copy fails', async () => {
     const sourceFile = path.join(changeDir, 'architecture-delta.c4');
-    const archived = path.join(root, '.opsx', 'changes', 'archive', 'done');
+    const archived = path.join(root, '.xirang', 'changes', 'archive', 'done');
     await fs.writeFile(sourceFile, 'model {}');
     await fs.mkdir(path.dirname(archived), { recursive: true });
     const rename = vi.fn().mockRejectedValueOnce(Object.assign(new Error('windows replacement denied'), { code: 'EPERM' }));
@@ -45,8 +45,8 @@ describe('architecture archive workflow', () => {
 
   it('rolls back an installed fallback destination when active source cleanup fails', async () => {
     const sourceFile = path.join(changeDir, 'architecture-delta.c4');
-    const formalFile = path.join(root, '.opsx', 'architecture', 'model.c4');
-    const archived = path.join(root, '.opsx', 'changes', 'archive', 'done');
+    const formalFile = path.join(root, '.xirang', 'architecture', 'model.c4');
+    const archived = path.join(root, '.xirang', 'changes', 'archive', 'done');
     await fs.writeFile(sourceFile, 'model { extend projectRoot {} }');
     await fs.mkdir(path.dirname(formalFile), { recursive: true });
     await fs.writeFile(formalFile, "model { projectRoot = project 'Root' }\n");

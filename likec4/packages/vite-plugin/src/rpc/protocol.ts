@@ -1,10 +1,10 @@
 import type { AdhocViewPredicate } from '@likec4/core/compute-view'
 import type { LayoutedElementView, ProjectId, ViewChange, ViewId } from '@likec4/core/types'
 
-export const opsxSpecChangedEvent = 'opsx:spec-changed'
-export const opsxChangeManifestChangedEvent = 'opsx:change-manifest-changed'
+export const xirangSpecChangedEvent = 'xirang:spec-changed'
+export const xirangChangeManifestChangedEvent = 'xirang:change-manifest-changed'
 
-export interface OpsxSpecChangedEvent {
+export interface XirangSpecChangedEvent {
   path: string
 }
 

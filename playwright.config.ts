@@ -26,7 +26,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `node ../../../bin/opsx.js view --port ${port}`,
+    command: `node ../../../bin/xirang.js view --port ${port}`,
     cwd: './test/fixtures/spec-browser',
     port,
     reuseExistingServer: false,

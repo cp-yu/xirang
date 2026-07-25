@@ -6,11 +6,11 @@
  */
 import type { SkillTemplate } from '../types.js';
 import {
-  OPSX_PHILOSOPHY,
-  OPSX_SHARED_CONTEXT,
-} from '../fragments/opsx-fragments.js';
+  XIRANG_PHILOSOPHY,
+  XIRANG_SHARED_CONTEXT,
+} from '../fragments/xirang-fragments.js';
 
-const CONVERSATION_LANGUAGE_GUIDANCE = `Output language: use the user's main language for prose and non-canonical section labels; keep commands, paths, artifact names, schema keys, and OPSX tokens unchanged.`;
+const CONVERSATION_LANGUAGE_GUIDANCE = `Output language: use the user's main language for prose and non-canonical section labels; keep commands, paths, artifact names, schema keys, and Xirang tokens unchanged.`;
 
 const ACTIVE_CHANGE_CAPTURE_GUIDANCE = `### Capture Boundary for Existing Changes
 
@@ -29,13 +29,13 @@ When exploring an active change, read proposal/design/specs/tasks, reference the
 | Test needs update or deletion        | \`tasks.md\` + \`design.md\`   |
 
 Example offers:
-- "That is a design decision for \`design.md\`; include it in the Design Summary, then call \`/opsx:propose <change-name>\` or the appropriate non-explore workflow."
-- "This changes an Element Contract; include it in the Design Summary, then call \`/opsx:propose <change-name>\` or the appropriate non-explore workflow."
-- "This changes scope for \`proposal.md\`; include it in the Design Summary, then call \`/opsx:propose <change-name>\` or the appropriate non-explore workflow."`;
+- "That is a design decision for \`design.md\`; include it in the Design Summary, then call \`/xirang:propose <change-name>\` or the appropriate non-explore workflow."
+- "This changes an Element Contract; include it in the Design Summary, then call \`/xirang:propose <change-name>\` or the appropriate non-explore workflow."
+- "This changes scope for \`proposal.md\`; include it in the Design Summary, then call \`/xirang:propose <change-name>\` or the appropriate non-explore workflow."`;
 
 const EXPLORE_SUPPERPOWERS_STYLE_REFERENCE = `# Superpowers-Style Explore Behavior Guide
 
-This reference is the OPSX explore adaptation of Superpowers brainstorming. It restores design-first discipline but does not restore original Superpowers file writing, committing, or implementation planning permissions.
+This reference is the Xirang explore adaptation of Superpowers brainstorming. It restores design-first discipline but does not restore original Superpowers file writing, committing, or implementation planning permissions.
 
 ## Superpowers brainstorming source
 
@@ -49,10 +49,10 @@ The core of Superpowers brainstorming is not free-form discussion, but compressi
 
 If todo is available, track these stages as a checklist and tick each completed stage.
 
-OPSX mapping:
+Xirang mapping:
 - The original design-document step maps to a conversation-only \`Design Summary\`.
 - The original commit step is removed; explore does not write files.
-- The original implementation-plan handoff maps to \`opsx-propose\` handoff.
+- The original implementation-plan handoff maps to \`xirang-propose\` handoff.
 
 ## Conversation language
 
@@ -73,7 +73,7 @@ Simple changes still require design confirmation. For a narrow change, confirm o
 Before context reads, create the todo checklist: context, visual decision, one question, options, section approvals, self-review, handoff.
 
 Constrain the discussion with project facts first:
-- Read relevant OPSX change, spec, design, and tasks.
+- Read relevant Xirang change, spec, design, and tasks.
 - Inspect relevant implementation files, tests, and git evidence.
 - Identify affected subsystems; if the request spans multiple independent subsystems, first clarify boundaries and recommend an order.
 - Explicitly identify unknowns; do not substitute general experience for project evidence.
@@ -132,21 +132,21 @@ The \`Design Summary\` must stay in the conversation; do not create or update fi
 
 After showing the \`Design Summary\` to the user, stop advancing; let the user review. When the user requests changes, return to the corresponding section and reconfirm.
 
-Only route to opsx-propose after the user reviews and accepts the Design Summary.
+Only route to xirang-propose after the user reviews and accepts the Design Summary.
 
-## opsx-propose handoff
+## xirang-propose handoff
 
 After the user confirms the \`Design Summary\`, hand off using tool-neutral workflow names:
 
 \`\`\`
-Design Summary complete. Review the above design. If confirmed, use opsx-propose to generate artifacts.
+Design Summary complete. Review the above design. If confirmed, use xirang-propose to generate artifacts.
 \`\`\`
 
 Do not use tool-specific call syntax in references. Do not imply that explore can create proposals, update designs, modify specs, commit files, or directly enter implementation.`;
 
 export function getExploreSkillTemplate(): SkillTemplate {
   return {
-    name: 'opsx-explore',
+    name: 'xirang-explore',
     description: 'Enter explore mode - a thinking partner for exploring ideas, investigating problems, and clarifying requirements. Use when the user wants to think through something before or during a change.',
     referenceFiles: [
       {
@@ -156,7 +156,7 @@ export function getExploreSkillTemplate(): SkillTemplate {
     ],
     instructions: `Enter explore mode: investigate, clarify, compare, and help the user think before implementation.
 
-${OPSX_PHILOSOPHY}
+${XIRANG_PHILOSOPHY}
 
 ## Workflow Stage
 
@@ -168,31 +168,31 @@ ${OPSX_PHILOSOPHY}
 
 ## Required References
 
-- MUST read the project-root file \`.opsx/references/opsx-explore-supperpowers-style.md\` before exploring. DO NOT proceed without reading it first. It is the authoritative Superpowers brainstorming behavior guide for hard gate, context exploration, visual companion judgment, one-question discipline, options comparison, section approval, Design Summary review, and propose handoff.
+- MUST read the project-root file \`.xirang/references/xirang-explore-supperpowers-style.md\` before exploring. DO NOT proceed without reading it first. It is the authoritative Superpowers brainstorming behavior guide for hard gate, context exploration, visual companion judgment, one-question discipline, options comparison, section approval, Design Summary review, and propose handoff.
 - Do not reconstruct or duplicate Superpowers behavior from this prompt. This prompt defines boundaries, context loading, sweeper delegation, and proposal routing only.
 
 ## Hard Rules
 
 - User confirmations ("ok", "option 2") approve design direction only, not file modification.
 - Ask one clarification question at a time; do not auto-capture decisions into artifacts.
-- When ready, produce a conversation-only \`Design Summary\` and instruct the user to call \`/opsx:propose <change-name>\`.
+- When ready, produce a conversation-only \`Design Summary\` and instruct the user to call \`/xirang:propose <change-name>\`.
 
-The main explore agent and \`opsx-impact-sweeper\` subagent are both read-only. The sweeper returns its canonical JSON report directly and MUST NOT write it to the project.
+The main explore agent and \`xirang-impact-sweeper\` subagent are both read-only. The sweeper returns its canonical JSON report directly and MUST NOT write it to the project.
 
 ## Required Context
 
-- Start with \`opsx list --json\`.
+- Start with \`xirang list --json\`.
 - Read relevant change artifacts when a change name is present.
-- Use the OPSX Semantic Model for Project Root intent, refinement, Element Contracts, and semantic relationships; use live repository tools for code evidence.
+- Use the Xirang Semantic Model for Project Root intent, refinement, Element Contracts, and semantic relationships; use live repository tools for code evidence.
 - Ground claims in project files and git evidence when the idea maps to code.
 
-${OPSX_SHARED_CONTEXT}
+${XIRANG_SHARED_CONTEXT}
 
 ${CONVERSATION_LANGUAGE_GUIDANCE}
 
 ## Impact Sweeps
 
-Delegate to the \`opsx-impact-sweeper\` agent when the user introduces a new module, workflow, command, configuration key, project concept, or unfamiliar domain term, or when preparing to say the discussion is ready for proposal/change artifacts. Pass \`projectRoot\`, \`concept\`, optional \`optionalChangeName\`, optional \`knownUserTerms\`, and optional \`focus\`. Treat each new concept as an independent sweep, even if another concept was already swept earlier in the conversation. After the agent returns the canonical JSON report, interpret that returned object directly in the explore conversation. If delegation fails or returns no usable object, disclose the evidence gap and continue only with available read-only evidence; MUST NOT infer missing impact evidence.
+Delegate to the \`xirang-impact-sweeper\` agent when the user introduces a new module, workflow, command, configuration key, project concept, or unfamiliar domain term, or when preparing to say the discussion is ready for proposal/change artifacts. Pass \`projectRoot\`, \`concept\`, optional \`optionalChangeName\`, optional \`knownUserTerms\`, and optional \`focus\`. Treat each new concept as an independent sweep, even if another concept was already swept earlier in the conversation. After the agent returns the canonical JSON report, interpret that returned object directly in the explore conversation. If delegation fails or returns no usable object, disclose the evidence gap and continue only with available read-only evidence; MUST NOT infer missing impact evidence.
 
 Treat \`terminologyObservations\` with this decision table:
 
@@ -222,18 +222,18 @@ The simplicity filter (for reference):
 ## Brainstorming Checklist
 
 If todo is available, create this checklist before context reads and tick each stage as completed. Explore MUST run this sequence before saying a proposal is ready:
-1. **Explore project context**. Run \`opsx list --json\`, inspect relevant source and current implementation evidence, and identify affected subsystems. If the request spans multiple independent subsystems, identify them and recommend an implementation order.
+1. **Explore project context**. Run \`xirang list --json\`, inspect relevant source and current implementation evidence, and identify affected subsystems. If the request spans multiple independent subsystems, identify them and recommend an implementation order.
 2. **Decide whether a visual companion helps**. Use one only when it clarifies architecture, state, data flow, or trade-offs.
 3. **Clarify one question at a time**. Ask exactly one question, then wait for the answer; resolve terminology before impact and design questions.
 4. **Compare 2-3 options**. Present 2-3 viable approaches with strengths, weaknesses, best fit, and a recommendation when a real design choice exists. Name a simpler alternative in one line when applicable.
 5. **Confirm the applicable design sections**. For a complex change, consider architecture, core components, data flow, technology stack, testing strategy, risks and trade-offs. For a narrow change, confirm at least the problem, impact scope, approach, and verification method. Classify testing items as persistent or one-time verification (no persistent test file); when one-time items exist, add a \`One-time Verification\` subsection.
-6. **Self-review and generate Design Summary**. Resolve or explicitly defer scope-affecting questions, run the final concept sweep, and check for contradictions and vague boundaries. Produce the conversation-only \`Design Summary\`. Present the Design Summary, then end with: "Design Summary complete. Review the above design. If confirmed, call \`/opsx:propose <change-name>\` generate artifacts." After presenting the Design Summary, STOP — do not offer to run a workflow or ask follow-up questions. Only the user triggers the next workflow.
+6. **Self-review and generate Design Summary**. Resolve or explicitly defer scope-affecting questions, run the final concept sweep, and check for contradictions and vague boundaries. Produce the conversation-only \`Design Summary\`. Present the Design Summary, then end with: "Design Summary complete. Review the above design. If confirmed, call \`/xirang:propose <change-name>\` generate artifacts." After presenting the Design Summary, STOP — do not offer to run a workflow or ask follow-up questions. Only the user triggers the next workflow.
 
 ## Existing Changes
 
 ${ACTIVE_CHANGE_CAPTURE_GUIDANCE}`,
     license: 'MIT',
-    compatibility: 'Requires opsx CLI.',
-    metadata: { author: 'opsx', version: '1.0' },
+    compatibility: 'Requires xirang CLI.',
+    metadata: { author: 'xirang', version: '1.0' },
   };
 }

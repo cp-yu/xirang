@@ -276,46 +276,46 @@ describe('FileSystemUtils', () => {
     it('should join POSIX-style paths', () => {
       const result = FileSystemUtils.joinPath(
         '/tmp/project',
-        '.claude/commands/opsx/proposal.md'
+        '.claude/commands/xirang/proposal.md'
       );
-      expect(result).toBe('/tmp/project/.claude/commands/opsx/proposal.md');
+      expect(result).toBe('/tmp/project/.claude/commands/xirang/proposal.md');
     });
 
     it('should join Linux home directory paths', () => {
       const result = FileSystemUtils.joinPath(
-        '/home/dev/workspace/opsx',
+        '/home/dev/workspace/xirang',
         '.cursor/commands/install.md'
       );
-      expect(result).toBe('/home/dev/workspace/opsx/.cursor/commands/install.md');
+      expect(result).toBe('/home/dev/workspace/xirang/.cursor/commands/install.md');
     });
 
     it('should join Windows drive-letter paths with backslashes', () => {
       const result = FileSystemUtils.joinPath(
         'C:\\Users\\dev\\project',
-        '.claude/commands/opsx/proposal.md'
+        '.claude/commands/xirang/proposal.md'
       );
       expect(result).toBe(
-        'C:\\Users\\dev\\project\\.claude\\commands\\opsx\\proposal.md'
+        'C:\\Users\\dev\\project\\.claude\\commands\\xirang\\proposal.md'
       );
     });
 
     it('should join Windows paths that use forward slashes', () => {
       const result = FileSystemUtils.joinPath(
         'D:/workspace/app',
-        '.cursor/commands/opsx-apply.md'
+        '.cursor/commands/xirang-apply.md'
       );
       expect(result).toBe(
-        'D:\\workspace\\app\\.cursor\\commands\\opsx-apply.md'
+        'D:\\workspace\\app\\.cursor\\commands\\xirang-apply.md'
       );
     });
 
     it('should join UNC-style Windows paths', () => {
       const result = FileSystemUtils.joinPath(
         '\\server\\share\\repo',
-        '.windsurf/workflows/opsx-archive.md'
+        '.windsurf/workflows/xirang-archive.md'
       );
       expect(result).toBe(
-        '\\server\\share\\repo\\.windsurf\\workflows\\opsx-archive.md'
+        '\\server\\share\\repo\\.windsurf\\workflows\\xirang-archive.md'
       );
     });
   });

@@ -43,8 +43,8 @@ describe('Candidate command registration', () => {
         specsDirectory: true,
       },
       guidance: {
-        resume: 'Continue editing the active .opsx/candidate workspace.',
-        restart: 'Explicitly remove or archive .opsx/candidate, then run "opsx candidate init" again.',
+        resume: 'Continue editing the active .xirang/candidate workspace.',
+        restart: 'Explicitly remove or archive .xirang/candidate, then run "xirang candidate init" again.',
       },
     };
 

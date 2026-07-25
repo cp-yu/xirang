@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { stringify as stringifyYaml, parse as parseYaml } from 'yaml';
-import { OPSX_DIR_NAME } from '../config.js';
+import { XIRANG_DIR_NAME } from '../config.js';
 import { ARCHITECTURE_FILE_MANIFEST } from '../templates/architecture-skeleton.js';
 import { compareUtf8Bytes } from './canonical.js';
 
@@ -13,7 +13,7 @@ export type CandidateBaselineInput =
 
 export type CandidateBaseline =
   | { kind: 'clean'; reference: null }
-  | { kind: 'current'; reference: '.opsx' }
+  | { kind: 'current'; reference: '.xirang' }
   | { kind: 'path'; reference: string };
 
 interface CandidateStatusBase {
@@ -134,11 +134,11 @@ async function resolveBaseline(
   }
 
   const source = input.kind === 'current'
-    ? path.join(projectRoot, OPSX_DIR_NAME)
+    ? path.join(projectRoot, XIRANG_DIR_NAME)
     : path.resolve(projectRoot, input.path);
   await copySource(source, staging);
   return input.kind === 'current'
-    ? { kind: 'current', reference: '.opsx' }
+    ? { kind: 'current', reference: '.xirang' }
     : { kind: 'path', reference: toCanonicalProjectRelativePath(projectRoot, source) };
 }
 
@@ -147,12 +147,12 @@ export async function initializeCandidate(
   input: CandidateBaselineInput,
 ): Promise<CandidateStatus> {
   const projectRoot = path.resolve(projectRootInput);
-  const opsxRoot = path.join(projectRoot, OPSX_DIR_NAME);
-  const candidate = path.join(opsxRoot, 'candidate');
-  await assertDirectory(opsxRoot, 'OPSX workspace');
-  if (await exists(candidate)) throw new Error('An active .opsx/candidate workspace already exists.');
+  const xirangRoot = path.join(projectRoot, XIRANG_DIR_NAME);
+  const candidate = path.join(xirangRoot, 'candidate');
+  await assertDirectory(xirangRoot, 'Xirang workspace');
+  if (await exists(candidate)) throw new Error('An active .xirang/candidate workspace already exists.');
 
-  const staging = path.join(opsxRoot, `.candidate-${randomUUID()}`);
+  const staging = path.join(xirangRoot, `.candidate-${randomUUID()}`);
   try {
     await fs.mkdir(staging, { recursive: false });
     const baseline = await resolveBaseline(projectRoot, input, staging);
@@ -196,8 +196,8 @@ async function listRegularFiles(root: string, prefix: string): Promise<{ files: 
   return { files, bytes };
 }
 
-async function historyStatus(opsxRoot: string): Promise<{ count: number; bytes: number }> {
-  const builds = path.join(opsxRoot, 'history', 'builds');
+async function historyStatus(xirangRoot: string): Promise<{ count: number; bytes: number }> {
+  const builds = path.join(xirangRoot, 'history', 'builds');
   if (!await exists(builds)) return { count: 0, bytes: 0 };
   const entries = await fs.readdir(builds, { withFileTypes: true });
   const count = entries.filter((entry) => entry.isDirectory()).length;
@@ -211,9 +211,9 @@ async function isDirectory(target: string): Promise<boolean> {
 
 export async function getCandidateStatus(projectRootInput: string): Promise<CandidateStatus> {
   const projectRoot = path.resolve(projectRootInput);
-  const opsxRoot = path.join(projectRoot, OPSX_DIR_NAME);
-  const candidate = path.join(opsxRoot, 'candidate');
-  const history = await historyStatus(opsxRoot);
+  const xirangRoot = path.join(projectRoot, XIRANG_DIR_NAME);
+  const candidate = path.join(xirangRoot, 'candidate');
+  const history = await historyStatus(xirangRoot);
 
   if (!await exists(candidate)) {
     return {
@@ -231,7 +231,7 @@ export async function getCandidateStatus(projectRootInput: string): Promise<Cand
         specsDirectory: false,
       },
       guidance: {
-        init: 'Run "opsx candidate init" with an explicit starting point.',
+        init: 'Run "xirang candidate init" with an explicit starting point.',
       },
     };
   }
@@ -265,8 +265,8 @@ export async function getCandidateStatus(projectRootInput: string): Promise<Cand
       specsDirectory: await isDirectory(path.join(candidate, 'specs')),
     },
     guidance: {
-      resume: 'Continue editing the active .opsx/candidate workspace.',
-      restart: 'Explicitly remove or archive .opsx/candidate, then run "opsx candidate init" again.',
+      resume: 'Continue editing the active .xirang/candidate workspace.',
+      restart: 'Explicitly remove or archive .xirang/candidate, then run "xirang candidate init" again.',
     },
   };
 }

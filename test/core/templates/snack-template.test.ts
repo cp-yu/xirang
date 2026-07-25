@@ -2,16 +2,16 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ARCHITECTURE_GENERATE_DELTA,
-  OPSX_PHILOSOPHY,
-} from '../../../src/core/templates/fragments/opsx-fragments.js';
+  XIRANG_PHILOSOPHY,
+} from '../../../src/core/templates/fragments/xirang-fragments.js';
 import { getSnackSkillTemplate } from '../../../src/core/templates/skill-templates.js';
 
 describe('snack template code-change evidence collection', () => {
   const template = getSnackSkillTemplate();
   const instructions = template.instructions;
 
-  it('includes the OPSX philosophy', () => {
-    expect(instructions).toContain(OPSX_PHILOSOPHY);
+  it('includes the Xirang philosophy', () => {
+    expect(instructions).toContain(XIRANG_PHILOSOPHY);
   });
 
   it('treats conversation context as a first-class evidence source', () => {
@@ -43,8 +43,8 @@ describe('snack template artifact reconciliation', () => {
     expect(instructions).not.toContain('use `content.includes` and `content.excludes` to decide');
   });
 
-  it('does not read an OPSX code-map', () => {
-    expect(instructions).not.toContain('project.opsx.code-map.yaml');
+  it('does not read an Xirang code-map', () => {
+    expect(instructions).not.toContain('project.xirang.code-map.yaml');
     expect(instructions).toContain('CodeGraph');
     expect(instructions).toContain('ACE');
     expect(instructions).toContain('`rg`');
@@ -120,7 +120,7 @@ describe('snack template artifact reconciliation', () => {
   });
 
   it('does not promote mechanical code evidence to LikeC4 changes', () => {
-    expect(instructions).toContain('implementation evidence, not as proof that the OPSX Semantic Model must change');
+    expect(instructions).toContain('implementation evidence, not as proof that the Xirang Semantic Model must change');
     expect(instructions).toContain('Implementation-only movement, symbol renaming, helper extraction');
     expect(instructions).toContain('mechanical call/import changes do not by themselves change the graph modules');
   });
@@ -145,7 +145,7 @@ describe('snack architecture delta input boundary', () => {
       'affected elements, refinement, Element Contracts, and relationships',
       'completed change-local Element Contracts',
       '`design.md` for architecture decisions',
-      'formal OPSX Semantic Model as current semantic state',
+      'formal Xirang Semantic Model as current semantic state',
       'scope declarations, not authoritative LikeC4 records',
     ]) {
       expect(ARCHITECTURE_GENERATE_DELTA).toContain(token);
@@ -169,13 +169,13 @@ describe('snack template semantic diff gate', () => {
   const instructions = template.instructions;
 
   it('writes the effective semantic diff only after validation passes', () => {
-    const validationIndex = instructions.indexOf('Run `opsx validate --change "<name>" --json`');
-    const diffIndex = instructions.indexOf('run `opsx diff --change "<name>" --write`');
+    const validationIndex = instructions.indexOf('Run `xirang validate --change "<name>" --json`');
+    const diffIndex = instructions.indexOf('run `xirang diff --change "<name>" --write`');
     expect(validationIndex).toBeGreaterThanOrEqual(0);
     expect(diffIndex).toBeGreaterThan(validationIndex);
-    expect(instructions).toContain('`.opsx/changes/<name>/effective-change.md`');
+    expect(instructions).toContain('`.xirang/changes/<name>/effective-change.md`');
     expect(instructions).toContain('require its status to be Passed');
-    expect(instructions).not.toContain('opsx scenario-labels');
+    expect(instructions).not.toContain('xirang scenario-labels');
     expect(instructions).not.toContain('#### Scenario: [ADDED] <title>');
     expect(instructions).not.toContain('#### Scenario: [MODIFIED] <title>');
     expect(instructions).not.toContain('#### Scenario: [REMOVED] <title>');
@@ -187,10 +187,10 @@ describe('snack template output hints', () => {
   const instructions = template.instructions;
 
   it('offers quick-sync, quick-archive, sync-and-archive, and continue-development paths after snack', () => {
-    expect(instructions).toContain('1. **Quick sync**: `opsx sync "<change-name>" --no-verify`');
-    expect(instructions).toContain('2. **Quick archive**: `opsx archive "<change-name>" --no-verify`');
+    expect(instructions).toContain('1. **Quick sync**: `xirang sync "<change-name>" --no-verify`');
+    expect(instructions).toContain('2. **Quick archive**: `xirang archive "<change-name>" --no-verify`');
     expect(instructions).toContain(
-      '3. **Sync and archive**: `opsx sync "<change-name>" --no-verify && opsx archive "<change-name>" --no-verify`'
+      '3. **Sync and archive**: `xirang sync "<change-name>" --no-verify && xirang archive "<change-name>" --no-verify`'
     );
     expect(instructions).toContain('4. **Continue development**');
   });

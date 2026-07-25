@@ -9,7 +9,7 @@ export const SpecSchema = z.object({
     .min(1, VALIDATION_MESSAGES.SPEC_NO_REQUIREMENTS),
   metadata: z.object({
     version: z.string().default('1.0.0'),
-    format: z.literal('opsx'),
+    format: z.literal('xirang'),
     sourcePath: z.string().optional(),
   }).optional(),
 });

@@ -40,7 +40,7 @@ describe('config command integration', () => {
   it('should use XDG_CONFIG_HOME for config path', async () => {
     const { getGlobalConfigPath } = await import('../../src/core/global-config.js');
     const configPath = getGlobalConfigPath();
-    expect(configPath).toBe(path.join(tempDir, 'opsx', 'config.json'));
+    expect(configPath).toBe(path.join(tempDir, 'xirang', 'config.json'));
   });
 
   it('should save and load config correctly', async () => {
@@ -100,7 +100,7 @@ describe('config command integration', () => {
     process.exitCode = undefined;
     await program.parseAsync([
       'node',
-      'opsx',
+      'xirang',
       'config',
       'set',
       'propose.smartRouting',
@@ -141,13 +141,13 @@ describe('config project command', () => {
     const { registerConfigCommand } = await import('../../src/commands/config.js');
     const program = new Command();
     registerConfigCommand(program);
-    await program.parseAsync(['node', 'opsx', 'config', 'project', ...args]);
+    await program.parseAsync(['node', 'xirang', 'config', 'project', ...args]);
   }
 
   it('prints normalized project config as JSON', async () => {
-    fs.mkdirSync(path.join(tempDir, '.opsx'), { recursive: true });
+    fs.mkdirSync(path.join(tempDir, '.xirang'), { recursive: true });
     fs.writeFileSync(
-      path.join(tempDir, '.opsx', 'config.yaml'),
+      path.join(tempDir, '.xirang', 'config.yaml'),
       `schema: spec-driven
 proseLanguage: 中文
 context: Project context
@@ -212,9 +212,9 @@ rules:
   });
 
   it('prints YAML-like text without --json', async () => {
-    fs.mkdirSync(path.join(tempDir, '.opsx'), { recursive: true });
+    fs.mkdirSync(path.join(tempDir, '.xirang'), { recursive: true });
     fs.writeFileSync(
-      path.join(tempDir, '.opsx', 'config.yaml'),
+      path.join(tempDir, '.xirang', 'config.yaml'),
       `schema: spec-driven
 proseLanguage: 中文
 rules: {}

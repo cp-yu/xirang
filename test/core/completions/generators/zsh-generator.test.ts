@@ -24,15 +24,15 @@ describe('ZshGenerator', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'init',
-          description: 'Initialize OPSX',
+          description: 'Initialize Xirang',
           flags: [],
         },
       ];
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('#compdef opsx');
-      expect(script).toContain('# Zsh completion script for OPSX CLI');
+      expect(script).toContain('#compdef xirang');
+      expect(script).toContain('# Zsh completion script for Xirang CLI');
       expect(script).toContain('_opsx() {');
     });
 
@@ -40,7 +40,7 @@ describe('ZshGenerator', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'init',
-          description: 'Initialize OPSX',
+          description: 'Initialize Xirang',
           flags: [],
         },
         {
@@ -57,7 +57,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain("'init:Initialize OPSX'");
+      expect(script).toContain("'init:Initialize Xirang'");
       expect(script).toContain("'validate:Validate specs'");
       expect(script).toContain("'show:Show a spec'");
     });
@@ -66,7 +66,7 @@ describe('ZshGenerator', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'init',
-          description: 'Initialize OPSX',
+          description: 'Initialize Xirang',
           flags: [],
         },
         {
@@ -256,7 +256,7 @@ describe('ZshGenerator', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'init',
-          description: 'Initialize OPSX',
+          description: 'Initialize Xirang',
           acceptsPositional: true,
           positionalType: 'path',
           flags: [],
@@ -351,7 +351,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script.trim().endsWith('compdef _opsx opsx')).toBe(true);
+      expect(script.trim().endsWith('compdef _opsx xirang')).toBe(true);
     });
 
     it('should handle empty command list', () => {
@@ -359,7 +359,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('#compdef opsx');
+      expect(script).toContain('#compdef xirang');
       expect(script).toContain('_opsx() {');
     });
 

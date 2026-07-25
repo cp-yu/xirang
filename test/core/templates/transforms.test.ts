@@ -16,96 +16,96 @@ describe('Transform Pipeline', () => {
     });
 
     it('should transform colon-based references for codex', () => {
-      const result = runTransforms('Run /opsx:apply to implement',
+      const result = runTransforms('Run /xirang:apply to implement',
         { toolId: 'codex', workflowId: 'apply', artifactType: 'skill' });
-      expect(result).toBe('Run $opsx-apply-change to implement');
+      expect(result).toBe('Run $xirang-apply-change to implement');
     });
 
     it('should transform colon-based references for opencode', () => {
-      const result = runTransforms('Run /opsx:apply to implement',
+      const result = runTransforms('Run /xirang:apply to implement',
         { toolId: 'opencode', workflowId: 'apply', artifactType: 'skill' });
-      expect(result).toBe('Run /opsx-apply to implement');
+      expect(result).toBe('Run /xirang-apply to implement');
     });
 
     it('should transform colon-based references for pi', () => {
-      const result = runTransforms('Run /opsx:apply to implement',
+      const result = runTransforms('Run /xirang:apply to implement',
         { toolId: 'pi', workflowId: 'apply', artifactType: 'skill' });
-      expect(result).toBe('Run /skill:opsx-apply-change to implement');
+      expect(result).toBe('Run /skill:xirang-apply-change to implement');
     });
   });
 
   describe('command path transforms (scope: both verified for command artifactType)', () => {
     it('should transform opencode command body with preAdapter phase', () => {
       const result = runTransforms(
-        'Use /opsx:propose to start and /opsx:apply to implement.',
+        'Use /xirang:propose to start and /xirang:apply to implement.',
         { toolId: 'opencode', workflowId: 'propose', artifactType: 'command' },
         'preAdapter'
       );
-      expect(result).toBe('Use /opsx-propose to start and /opsx-apply to implement.');
+      expect(result).toBe('Use /xirang-propose to start and /xirang-apply to implement.');
     });
 
     it('should transform pi command body with preAdapter phase', () => {
       const result = runTransforms(
-        'Use /opsx:propose to start and /opsx:apply to implement.',
+        'Use /xirang:propose to start and /xirang:apply to implement.',
         { toolId: 'pi', workflowId: 'propose', artifactType: 'command' },
         'preAdapter'
       );
-      expect(result).toBe('Use /skill:opsx-propose to start and /skill:opsx-apply-change to implement.');
+      expect(result).toBe('Use /skill:xirang-propose to start and /skill:xirang-apply-change to implement.');
     });
 
     it('should transform codex command body to dollar-sign format', () => {
       const result = runTransforms(
-        'Use /opsx:propose, /opsx:explore, and /opsx:apply.',
+        'Use /xirang:propose, /xirang:explore, and /xirang:apply.',
         { toolId: 'codex', workflowId: 'propose', artifactType: 'command' },
         'preAdapter'
       );
-      expect(result).toContain('$opsx-propose');
-      expect(result).toContain('$opsx-explore');
-      expect(result).toContain('$opsx-apply-change');
+      expect(result).toContain('$xirang-propose');
+      expect(result).toContain('$xirang-explore');
+      expect(result).toContain('$xirang-apply-change');
     });
 
     it('should NOT apply postAdapter transforms when phase is preAdapter', () => {
       const result = runTransforms(
-        'Run /opsx:apply',
+        'Run /xirang:apply',
         { toolId: 'opencode', workflowId: 'apply', artifactType: 'command' },
         'preAdapter'
       );
-      expect(result).toBe('Run /opsx-apply');
+      expect(result).toBe('Run /xirang-apply');
     });
 
     it('should transform colon-based references for claude', () => {
-      const result = runTransforms('Run /opsx:apply to implement',
+      const result = runTransforms('Run /xirang:apply to implement',
         { toolId: 'claude', workflowId: 'apply', artifactType: 'skill' });
-      expect(result).toBe('Run /opsx-apply-change to implement');
+      expect(result).toBe('Run /xirang-apply-change to implement');
     });
 
     it('should transform archive references for all precise tool surfaces', () => {
-      const input = 'Archive with /opsx:archive';
+      const input = 'Archive with /xirang:archive';
 
       expect(runTransforms(input, { toolId: 'codex', workflowId: 'apply', artifactType: 'skill' })).toBe(
-        'Archive with $opsx-archive-change'
+        'Archive with $xirang-archive-change'
       );
       expect(runTransforms(input, { toolId: 'claude', workflowId: 'apply', artifactType: 'skill' })).toBe(
-        'Archive with /opsx-archive-change'
+        'Archive with /xirang-archive-change'
       );
       expect(runTransforms(input, { toolId: 'pi', workflowId: 'apply', artifactType: 'skill' })).toBe(
-        'Archive with /skill:opsx-archive-change'
+        'Archive with /skill:xirang-archive-change'
       );
       expect(runTransforms(input, { toolId: 'opencode', workflowId: 'apply', artifactType: 'skill' })).toBe(
-        'Archive with /opsx-archive'
+        'Archive with /xirang-archive'
       );
     });
 
     it('should leave unknown workflow references unchanged', () => {
-      const result = runTransforms('Leave /opsx:unknown unchanged',
+      const result = runTransforms('Leave /xirang:unknown unchanged',
         { toolId: 'pi', workflowId: 'apply', artifactType: 'skill' });
-      expect(result).toBe('Leave /opsx:unknown unchanged');
+      expect(result).toBe('Leave /xirang:unknown unchanged');
     });
 
     it('should transform registered references to neutral skill text for tools without precise syntax', () => {
-      const result = runTransforms('Use /opsx:apply, leave /opsx:unknown.',
+      const result = runTransforms('Use /xirang:apply, leave /xirang:unknown.',
         { toolId: 'cursor', workflowId: 'apply', artifactType: 'skill' });
-      expect(result).toBe('Use invoke the opsx-apply-change skill, leave /opsx:unknown.');
+      expect(result).toBe('Use invoke the xirang-apply-change skill, leave /xirang:unknown.');
     });
   });
 

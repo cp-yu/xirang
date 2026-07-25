@@ -1,7 +1,7 @@
 /**
  * Setup Command
  *
- * Sets up OPSX with managed workflow skills.
+ * Sets up Xirang with managed workflow skills.
  * This is the sole project and tool setup command.
  */
 
@@ -16,20 +16,13 @@ import {
 } from '../utils/command-references.js';
 import {
   AI_TOOLS,
-  OPSX_DIR_NAME,
+  XIRANG_DIR_NAME,
   AIToolOption,
 } from './config.js';
 import { PALETTE } from './styles/palette.js';
 import { isInteractive } from '../utils/interactive.js';
 import { serializeConfig } from './config-prompts.js';
 import { readProjectConfig } from './project-config.js';
-import {
-  detectLegacyArtifacts,
-  cleanupLegacyArtifacts,
-  formatCleanupSummary,
-  formatDetectionSummary,
-  type LegacyDetectionResult,
-} from './legacy-cleanup.js';
 import {
   getToolsWithSkillsDir,
   getToolStates,
@@ -51,7 +44,7 @@ import {
 export const SETUP_ARCHITECTURE_FILE_MANIFEST: readonly ArchitectureFileManifestEntry[] = ARCHITECTURE_FILE_MANIFEST;
 
 const require = createRequire(import.meta.url);
-const { version: OPSX_VERSION } = require('../../package.json');
+const { version: XIRANG_VERSION } = require('../../package.json');
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -91,14 +84,11 @@ export class SetupCommand {
 
   async execute(targetPath: string): Promise<void> {
     const projectPath = path.resolve(targetPath);
-    const opsxDir = OPSX_DIR_NAME;
-    const opsxPath = path.join(projectPath, opsxDir);
+    const opsxDir = XIRANG_DIR_NAME;
+    const xirangPath = path.join(projectPath, opsxDir);
 
     // Validation happens silently in the background
-    const extendMode = await this.validate(projectPath, opsxPath);
-
-    // Check for legacy artifacts and handle cleanup
-    await this.handleLegacyCleanup(projectPath, extendMode);
+    const extendMode = await this.validate(projectPath, xirangPath);
 
     // Detect available tools in the project (task 7.1)
     const detectedTools = getAvailableTools(projectPath);
@@ -124,18 +114,18 @@ export class SetupCommand {
     const validatedTools = this.validateTools(selectedToolIds, toolStates);
 
     // Create directory structure and config
-    await this.createDirectoryStructure(opsxPath, extendMode);
+    await this.createDirectoryStructure(xirangPath, extendMode);
 
     // Generate LikeC4 skeleton files on first-time setup (non-extend mode)
     if (!extendMode) {
-      await this.writeArchitectureSkeleton(projectPath, opsxPath);
+      await this.writeArchitectureSkeleton(projectPath, xirangPath);
     }
 
     // Generate skills and commands for each tool
     const results = await this.generateSkillsAndCommands(projectPath, validatedTools);
 
     // Create config.yaml if needed
-    const configStatus = await this.createConfig(opsxPath, proseLanguage);
+    const configStatus = await this.createConfig(xirangPath, proseLanguage);
 
     // Display success message
     this.displaySuccessMessage(projectPath, validatedTools, results, configStatus, extendMode, proseLanguage);
@@ -147,9 +137,9 @@ export class SetupCommand {
 
   private async validate(
     projectPath: string,
-    opsxPath: string
+    xirangPath: string
   ): Promise<boolean> {
-    const extendMode = await FileSystemUtils.directoryExists(opsxPath);
+    const extendMode = await FileSystemUtils.directoryExists(xirangPath);
 
     // Check write permissions
     if (!(await FileSystemUtils.ensureWritePermissions(projectPath))) {
@@ -162,64 +152,6 @@ export class SetupCommand {
     if (this.interactiveOption === false) return false;
     if (this.toolsArg !== undefined) return false;
     return isInteractive({ interactive: this.interactiveOption });
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  // LEGACY CLEANUP
-  // ═══════════════════════════════════════════════════════════
-
-  private async handleLegacyCleanup(projectPath: string, extendMode: boolean): Promise<void> {
-    // Detect legacy artifacts
-    const detection = await detectLegacyArtifacts(projectPath);
-
-    if (!detection.hasLegacyArtifacts) {
-      return; // No legacy artifacts found
-    }
-
-    // Show what was detected
-    console.log();
-    console.log(formatDetectionSummary(detection));
-    console.log();
-
-    const canPrompt = this.canPromptInteractively();
-
-    if (this.force) {
-      await this.performLegacyCleanup(projectPath, detection);
-      return;
-    }
-
-    if (!canPrompt) {
-      throw new Error('Legacy OPSX artifacts require cleanup confirmation. Re-run interactively or use --force.');
-    }
-
-    // Interactive mode: prompt for confirmation
-    const { confirm } = await import('@inquirer/prompts');
-    const shouldCleanup = await confirm({
-      message: 'Upgrade and clean up legacy files?',
-      default: true,
-    });
-
-    if (!shouldCleanup) {
-      throw new Error('Setup cancelled; no legacy files or retired workspaces were changed.');
-    }
-
-    await this.performLegacyCleanup(projectPath, detection);
-  }
-
-  private async performLegacyCleanup(projectPath: string, detection: LegacyDetectionResult): Promise<void> {
-    const spinner = ora('Cleaning up legacy files...').start();
-
-    const result = await cleanupLegacyArtifacts(projectPath, detection);
-
-    spinner.succeed('Legacy files cleaned up');
-
-    const summary = formatCleanupSummary(result);
-    if (summary) {
-      console.log();
-      console.log(summary);
-    }
-
-    console.log();
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -293,7 +225,7 @@ export class SetupCommand {
       .map((toolId) => AI_TOOLS.find((t) => t.value === toolId)?.name || toolId);
 
     if (configuredNames.length > 0) {
-      console.log(`OPSX configured: ${configuredNames.join(', ')} (pre-selected)`);
+      console.log(`Xirang configured: ${configuredNames.join(', ')} (pre-selected)`);
     }
 
     const detectedOnlyNames = detectedTools
@@ -422,15 +354,15 @@ export class SetupCommand {
   // DIRECTORY STRUCTURE
   // ═══════════════════════════════════════════════════════════
 
-  private async createDirectoryStructure(opsxPath: string, extendMode: boolean): Promise<void> {
+  private async createDirectoryStructure(xirangPath: string, extendMode: boolean): Promise<void> {
     if (extendMode) {
       // In extend mode, just ensure directories exist without spinner
       const directories = [
-        opsxPath,
-        path.join(opsxPath, 'specs'),
-        path.join(opsxPath, 'changes'),
-        path.join(opsxPath, 'changes', 'archive'),
-        path.join(opsxPath, 'references'),
+        xirangPath,
+        path.join(xirangPath, 'specs'),
+        path.join(xirangPath, 'changes'),
+        path.join(xirangPath, 'changes', 'archive'),
+        path.join(xirangPath, 'references'),
       ];
 
       for (const dir of directories) {
@@ -439,14 +371,14 @@ export class SetupCommand {
       return;
     }
 
-    const spinner = this.startSpinner('Creating OPSX structure...');
+    const spinner = this.startSpinner('Creating Xirang structure...');
 
     const directories = [
-      opsxPath,
-      path.join(opsxPath, 'specs'),
-      path.join(opsxPath, 'changes'),
-      path.join(opsxPath, 'changes', 'archive'),
-      path.join(opsxPath, 'references'),
+      xirangPath,
+      path.join(xirangPath, 'specs'),
+      path.join(xirangPath, 'changes'),
+      path.join(xirangPath, 'changes', 'archive'),
+      path.join(xirangPath, 'references'),
     ];
 
     for (const dir of directories) {
@@ -455,7 +387,7 @@ export class SetupCommand {
 
     spinner.stopAndPersist({
       symbol: PALETTE.white('▌'),
-      text: PALETTE.white('OPSX structure created'),
+      text: PALETTE.white('Xirang structure created'),
     });
   }
 
@@ -463,8 +395,8 @@ export class SetupCommand {
   // LIKEC4 SKELETON GENERATION
   // ═══════════════════════════════════════════════════════════
 
-  private async writeArchitectureSkeleton(projectPath: string, opsxPath: string): Promise<void> {
-    const architecturePath = path.join(opsxPath, 'architecture');
+  private async writeArchitectureSkeleton(projectPath: string, xirangPath: string): Promise<void> {
+    const architecturePath = path.join(xirangPath, 'architecture');
     const projectName = this.inferProjectName(projectPath);
     const context = {
       projectName,
@@ -536,7 +468,7 @@ export class SetupCommand {
       toolId: tool.value,
       projectPath,
       workflows,
-      version: OPSX_VERSION,
+      version: XIRANG_VERSION,
     }));
 
     const summary = await ArtifactSyncEngine.syncAll(requests);
@@ -581,7 +513,7 @@ export class SetupCommand {
     const currentProseLanguage = readProjectConfig(projectPath)?.proseLanguage;
     const { input } = await import('@inquirer/prompts');
     const response = await input({
-      message: 'OPSX document language (optional, e.g. en, zh-CN, pt-BR)',
+      message: 'Xirang document language (optional, e.g. en, zh-CN, pt-BR)',
       default: currentProseLanguage ?? '',
       validate: (value: string) => {
         if (value.trim().length === 0) {
@@ -615,11 +547,11 @@ export class SetupCommand {
   }
 
   private async createConfig(
-    opsxPath: string,
+    xirangPath: string,
     proseLanguage?: string
   ): Promise<'created' | 'updated' | 'exists' | 'skipped'> {
-    const configPath = path.join(opsxPath, 'config.yaml');
-    const configYmlPath = path.join(opsxPath, 'config.yml');
+    const configPath = path.join(xirangPath, 'config.yaml');
+    const configYmlPath = path.join(xirangPath, 'config.yml');
     const configYamlExists = fs.existsSync(configPath);
     const configYmlExists = fs.existsSync(configYmlPath);
     const existingConfigPath = configYamlExists ? configPath : configYmlExists ? configYmlPath : null;
@@ -663,7 +595,7 @@ export class SetupCommand {
     proseLanguage?: string
   ): void {
     console.log();
-    console.log(chalk.bold('OPSX Setup Complete'));
+    console.log(chalk.bold('Xirang Setup Complete'));
     console.log();
 
     // Show created vs refreshed tools
@@ -697,15 +629,15 @@ export class SetupCommand {
     // Config status
     if (configStatus === 'created') {
       const details = proseLanguage ? `schema: ${DEFAULT_SCHEMA}, proseLanguage: ${proseLanguage}` : `schema: ${DEFAULT_SCHEMA}`;
-      console.log(`Config: ${OPSX_DIR_NAME}/config.yaml (${details})`);
+      console.log(`Config: ${XIRANG_DIR_NAME}/config.yaml (${details})`);
     } else if (configStatus === 'updated') {
-      console.log(`Config: ${OPSX_DIR_NAME}/config.yaml (updated proseLanguage: ${proseLanguage})`);
+      console.log(`Config: ${XIRANG_DIR_NAME}/config.yaml (updated proseLanguage: ${proseLanguage})`);
     } else if (configStatus === 'exists') {
       // Show actual filename (config.yaml or config.yml)
-      const configYaml = path.join(projectPath, OPSX_DIR_NAME, 'config.yaml');
-      const configYml = path.join(projectPath, OPSX_DIR_NAME, 'config.yml');
+      const configYaml = path.join(projectPath, XIRANG_DIR_NAME, 'config.yaml');
+      const configYml = path.join(projectPath, XIRANG_DIR_NAME, 'config.yml');
       const configName = fs.existsSync(configYaml) ? 'config.yaml' : fs.existsSync(configYml) ? 'config.yml' : 'config.yaml';
-      console.log(`Config: ${OPSX_DIR_NAME}/${configName} (exists)`);
+      console.log(`Config: ${XIRANG_DIR_NAME}/${configName} (exists)`);
     } else {
       console.log(chalk.dim(`Config: skipped (non-interactive mode)`));
     }
@@ -718,18 +650,18 @@ export class SetupCommand {
       console.log(chalk.bold('Getting started:'));
       console.log(`  Start your first change: ${renderWorkflowInvocation(guidanceToolId, 'propose')} "your idea"`);
     } else {
-      console.log("Done. Run 'opsx setup' to configure your workflows.");
+      console.log("Done. Run 'xirang setup' to configure your workflows.");
     }
 
     if (!extendMode && guidanceToolId && activeWorkflows.includes('build')) {
       const buildRef = renderWorkflowInvocation(guidanceToolId, 'build' as WorkflowId);
-      console.log(`  Next: run ${buildRef} to build your project OPSX`);
+      console.log(`  Next: run ${buildRef} to build your project Xirang`);
     }
 
     // Links
     console.log();
-    console.log(`Learn more: ${chalk.cyan('https://github.com/cp-yu/opsx')}`);
-    console.log(`Feedback:   ${chalk.cyan('https://github.com/cp-yu/opsx/issues')}`);
+    console.log(`Learn more: ${chalk.cyan('https://github.com/cp-yu/xirang')}`);
+    console.log(`Feedback:   ${chalk.cyan('https://github.com/cp-yu/xirang/issues')}`);
 
     // Restart instruction if any tools were configured
     if (results.createdTools.length > 0 || results.refreshedTools.length > 0) {

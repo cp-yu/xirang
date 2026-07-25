@@ -7,7 +7,7 @@ describe('command-generation/types', () => {
       const content: CommandContent = {
         id: 'explore',
         commandSlug: 'explore',
-        name: 'OPSX Explore',
+        name: 'Xirang Explore',
         description: 'Enter explore mode for thinking',
         category: 'Workflow',
         tags: ['workflow', 'explore'],
@@ -16,7 +16,7 @@ describe('command-generation/types', () => {
 
       expect(content.id).toBe('explore');
       expect(content.commandSlug).toBe('explore');
-      expect(content.name).toBe('OPSX Explore');
+      expect(content.name).toBe('Xirang Explore');
       expect(content.description).toBe('Enter explore mode for thinking');
       expect(content.category).toBe('Workflow');
       expect(content.tags).toEqual(['workflow', 'explore']);
@@ -72,11 +72,11 @@ describe('command-generation/types', () => {
   describe('GeneratedCommand interface', () => {
     it('should represent generated command output', () => {
       const generated: GeneratedCommand = {
-        path: '.claude/commands/.opsx/explore.md',
+        path: '.claude/commands/.xirang/explore.md',
         fileContent: '---\nname: Test\n---\n\nBody\n',
       };
 
-      expect(generated.path).toBe('.claude/commands/.opsx/explore.md');
+      expect(generated.path).toBe('.claude/commands/.xirang/explore.md');
       expect(generated.fileContent).toContain('name: Test');
     });
   });

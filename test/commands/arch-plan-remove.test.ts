@@ -3,10 +3,10 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { runCLI } from '../helpers/run-cli.js';
 
-const architecture = `opsx { languageVersion '1' }
+const architecture = `xirang { languageVersion '1' }
 specification {
-  element project { opsx { root true contract optional } }
-  element capability { opsx { contract optional parents [project, capability] } }
+  element project { xirang { root true contract optional } }
+  element capability { xirang { contract optional parents [project, capability] } }
   relationship invokes
 }
 model {
@@ -43,19 +43,19 @@ The system SHALL retain old behavior.
 
 describe('arch plan-remove command', () => {
   const root = path.join(process.cwd(), 'test-arch-plan-remove-tmp');
-  const changeDir = path.join(root, '.opsx', 'changes', 'replace-old');
+  const changeDir = path.join(root, '.xirang', 'changes', 'replace-old');
 
   beforeEach(async () => {
-    await fs.mkdir(path.join(root, '.opsx', 'architecture'), { recursive: true });
-    await fs.mkdir(path.join(root, '.opsx', 'specs', 'old-contract'), { recursive: true });
-    await fs.writeFile(path.join(root, '.opsx', 'architecture', 'model.c4'), architecture);
-    await fs.writeFile(path.join(root, '.opsx', 'specs', 'old-contract', 'spec.md'), formalSpec);
+    await fs.mkdir(path.join(root, '.xirang', 'architecture'), { recursive: true });
+    await fs.mkdir(path.join(root, '.xirang', 'specs', 'old-contract'), { recursive: true });
+    await fs.writeFile(path.join(root, '.xirang', 'architecture', 'model.c4'), architecture);
+    await fs.writeFile(path.join(root, '.xirang', 'specs', 'old-contract', 'spec.md'), formalSpec);
   });
 
   afterEach(async () => fs.rm(root, { recursive: true, force: true }));
 
   it('reports deterministic formal dependencies by stable identity or current FQN without writing', async () => {
-    const before = await fs.readFile(path.join(root, '.opsx', 'architecture', 'model.c4'), 'utf8');
+    const before = await fs.readFile(path.join(root, '.xirang', 'architecture', 'model.c4'), 'utf8');
     const byId = await runCLI(['arch', 'plan-remove', 'old.id', '--json'], { cwd: root });
     const byFqn = await runCLI(['arch', 'plan-remove', 'project_root.old', '--json'], { cwd: root });
 
@@ -71,7 +71,7 @@ describe('arch plan-remove command', () => {
       expect.objectContaining({ type: 'spec-binding', identity: 'spec:old-contract' }),
     ]));
     expect(idResult.requiredCount).toBe(idResult.unresolved.length);
-    expect(await fs.readFile(path.join(root, '.opsx', 'architecture', 'model.c4'), 'utf8')).toBe(before);
+    expect(await fs.readFile(path.join(root, '.xirang', 'architecture', 'model.c4'), 'utf8')).toBe(before);
   });
 
   it('returns nonzero for an unknown identity', async () => {

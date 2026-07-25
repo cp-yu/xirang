@@ -1,0 +1,49 @@
+model {
+  extend project_root {
+    validation = domain 'Validation' '变更、Specs、LikeC4 architecture 与 deprecated OPSX compatibility 的验证系统' {
+      metadata {
+        elementId 'project.root/domain.validation'
+      }
+      frontmatter = capability 'Frontmatter' '解析 Spec YAML frontmatter 的 singular element binding 并报告 malformed ownership declarations' {
+        metadata {
+          elementId 'cap.spec.frontmatter'
+        }
+      }
+      registry = capability 'Registry' '从 formal Specs 构建 element-to-Specs 与 Spec-to-element 派生 registry，并检查 required contract coverage' {
+        metadata {
+          elementId 'cap.spec.registry'
+        }
+      }
+      change = capability 'Change' '验证 change-local delta Specs、tasks anchors 与 architecture-delta.c4；architecture delta 通过 formal model 加 delta 的 staged native LikeC4 validation，并执行 OPSX semantic checks' {
+        metadata {
+          elementId 'cap.validation.change'
+        }
+      }
+      opsx_element = capability 'Opsx Element' 'Deprecated compatibility validation for legacy OPSX two-file models.' {
+        metadata {
+          elementId 'cap.validation.xirang'
+        }
+      }
+      opsx_dry_run = capability 'Opsx Dry Run' 'Deprecated compatibility validation for legacy opsx-delta.yaml migration APIs.' {
+        metadata {
+          elementId 'cap.validation.opsx-dry-run'
+        }
+      }
+      skill_template_length = capability 'Skill Template Length' '验证所有生成的 `SKILL.md` 模板 instructions 不超过 200 行，并验证所有 `template.referenceFiles[]` 文件不超过 500 行；archive skill 的 commit message convention references 也纳入 reference 文件生成与一致性检查。' {
+        metadata {
+          elementId 'cap.validation.skill-template-length'
+        }
+      }
+      spec = capability 'Spec' '验证规约的格式和内容；formal specs SHALL NOT contain change-local scenario operation labels such as [ADDED], [MODIFIED], or [REMOVED] in Scenario headings；change-local delta spec 校验只检查 scenario operation label 语法与 ADDED section 下非法 labels，不要求 MODIFIED scenarios 预先带 label' {
+        metadata {
+          elementId 'cap.validation.spec'
+        }
+      }
+      spec_section_type_cross_check = capability 'Spec Section Type Cross Check' '在 change delta Spec 验证中增加 section-type 与 formal Spec header 交叉验证；frontmatter capabilities 通过 LikeC4 metadata.capabilityId 校验，并对缺失 frontmatter 发出 warning' {
+        metadata {
+          elementId 'cap.validation.spec-section-type-cross-check'
+        }
+      }
+    }
+  }
+}

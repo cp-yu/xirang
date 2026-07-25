@@ -1,10 +1,10 @@
 # Concepts
 
-This guide explains the core ideas behind OPSX and how they fit together. For practical usage, see [Getting Started](getting-started.md) and [Workflows](workflows.md).
+This guide explains the core ideas behind Xirang and how they fit together. For practical usage, see [Getting Started](getting-started.md) and [Workflows](workflows.md).
 
 ## Philosophy
 
-OPSX is built around four principles:
+Xirang is built around four principles:
 
 ```
 fluid not rigid         — no phase gates, work on what makes sense
@@ -15,20 +15,20 @@ brownfield-first        — works with existing codebases, not just greenfield
 
 ### Why These Principles Matter
 
-**Fluid not rigid.** Traditional spec systems lock you into phases: first you plan, then you implement, then you're done. OPSX is more flexible — you can create artifacts in any order that makes sense for your work.
+**Fluid not rigid.** Traditional spec systems lock you into phases: first you plan, then you implement, then you're done. Xirang is more flexible — you can create artifacts in any order that makes sense for your work.
 
-**Iterative not waterfall.** Requirements change. Understanding deepens. What seemed like a good approach at the start might not hold up after you see the codebase. OPSX embraces this reality.
+**Iterative not waterfall.** Requirements change. Understanding deepens. What seemed like a good approach at the start might not hold up after you see the codebase. Xirang embraces this reality.
 
-**Easy not complex.** Some spec frameworks require extensive setup, rigid formats, or heavyweight processes. OPSX stays out of your way. Initialize in seconds, start working immediately, customize only if you need to.
+**Easy not complex.** Some spec frameworks require extensive setup, rigid formats, or heavyweight processes. Xirang stays out of your way. Initialize in seconds, start working immediately, customize only if you need to.
 
-**Brownfield-first.** Most software work isn't building from scratch — it's modifying existing systems. OPSX's delta-based approach makes it easy to specify changes to existing behavior, not just describe new systems.
+**Brownfield-first.** Most software work isn't building from scratch — it's modifying existing systems. Xirang's delta-based approach makes it easy to specify changes to existing behavior, not just describe new systems.
 
 ## The Big Picture
 
-OPSX has one persisted Semantic Model with two module types:
+Xirang has one persisted Semantic Model with two module types:
 
 ```text
-.opsx/
+.xirang/
 ├── architecture/       # Project Root, metamodel, elements, refinement,
 │                       # semantic relationships, and views
 ├── specs/              # Element-owned contract modules
@@ -48,7 +48,7 @@ Specs describe your system's behavior using structured requirements and scenario
 ### Structure
 
 ```
-.opsx/specs/
+.xirang/specs/
 ├── auth/
 │   └── spec.md           # Authentication behavior
 ├── payments/
@@ -151,7 +151,7 @@ Quick test:
 
 ### Keep It Lightweight: Progressive Rigor
 
-OPSX aims to avoid bureaucracy. Use the lightest level that still makes the change verifiable.
+Xirang aims to avoid bureaucracy. Use the lightest level that still makes the change verifiable.
 
 **Lite spec (default):**
 - Short behavior-first requirements
@@ -183,11 +183,11 @@ A change is a proposed modification to your system, packaged as a folder with ev
 ### Change Structure
 
 ```
-.opsx/changes/add-dark-mode/
+.xirang/changes/add-dark-mode/
 ├── proposal.md           # Why and what
 ├── design.md             # How (technical approach)
 ├── tasks.md              # Implementation checklist
-├── .opsx.yaml        # Change metadata (optional)
+├── .xirang.yaml        # Change metadata (optional)
 └── specs/                # Delta specs
     └── ui/
         └── spec.md       # What's changing in ui/spec.md
@@ -342,7 +342,7 @@ Tasks are the **implementation checklist** — concrete steps with checkboxes.
 
 ## Delta Specs
 
-Delta specs are the key concept that makes OPSX work for brownfield development. They describe **what's changing** rather than restating the entire spec.
+Delta specs are the key concept that makes Xirang work for brownfield development. They describe **what's changing** rather than restating the entire spec.
 
 ### The Format
 
@@ -463,18 +463,18 @@ proposal → specs → design → tasks → implement
 
 Best for: Most feature work where you want to agree on specs before implementation.
 
-OPSX resolves only the package-owned `spec-driven` schema. Project-local and user override schemas are not supported. Project Build uses the Candidate contract directly rather than a separate artifact schema.
+Xirang resolves only the package-owned `spec-driven` schema. Project-local and user override schemas are not supported. Project Build uses the Candidate contract directly rather than a separate artifact schema.
 
 ## Archive
 
-Archiving completes a change by verifying and atomically syncing its graph and contract modules into the formal OPSX Semantic Model, then preserving the change for history.
+Archiving completes a change by verifying and atomically syncing its graph and contract modules into the formal Xirang Semantic Model, then preserving the change for history.
 
 ### What Happens When You Archive
 
 ```
 Before archive:
 
-.opsx/
+.xirang/
 ├── specs/
 │   └── auth/
 │       └── spec.md ◄────────────────┐
@@ -490,7 +490,7 @@ Before archive:
 
 After archive:
 
-.opsx/
+.xirang/
 ├── specs/
 │   └── auth/
 │       └── spec.md        # Now includes 2FA requirements
@@ -525,30 +525,30 @@ After archive:
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│                              OPSX FLOW                                   │
+│                              Xirang FLOW                                   │
 │                                                                              │
 │   ┌────────────────┐                                                         │
-│   │  1. START      │  /opsx:propose                                           │
+│   │  1. START      │  /xirang:propose                                           │
 │   │     CHANGE     │                                                         │
 │   └───────┬────────┘                                                         │
 │           │                                                                  │
 │           ▼                                                                  │
 │   ┌────────────────┐                                                         │
-│   │  2. CREATE     │  /opsx:propose                                           │
+│   │  2. CREATE     │  /xirang:propose                                           │
 │   │     ARTIFACTS  │  Creates proposal → specs → design → tasks              │
 │   │                │  (based on schema dependencies)                         │
 │   └───────┬────────┘                                                         │
 │           │                                                                  │
 │           ▼                                                                  │
 │   ┌────────────────┐                                                         │
-│   │  3. IMPLEMENT  │  /opsx:apply                                            │
+│   │  3. IMPLEMENT  │  /xirang:apply                                            │
 │   │     TASKS      │  Work through tasks, checking them off                  │
 │   │                │◄──── Update artifacts as you learn                      │
 │   └───────┬────────┘                                                         │
 │           │                                                                  │
 │           ▼                                                                  │
 │   ┌────────────────┐                                                         │
-│   │  4. VERIFY     │  embedded in /opsx:archive                              │
+│   │  4. VERIFY     │  embedded in /xirang:archive                              │
 │   │     WORK       │  Check implementation matches specs                     │
 │   └───────┬────────┘                                                         │
 │           │                                                                  │
@@ -588,7 +588,7 @@ After archive:
 | **Schema** | A definition of artifact types and their dependencies |
 | **Spec** | An element-owned contract module containing requirements, scenarios, or another typed guarantee |
 | **Semantic Model** | The persisted versioned graph modules and element-owned contract modules together |
-| **Source of truth** | The formal OPSX Semantic Model under `.opsx/architecture/` and `.opsx/specs/` |
+| **Source of truth** | The formal Xirang Semantic Model under `.xirang/architecture/` and `.xirang/specs/` |
 
 ## Next Steps
 

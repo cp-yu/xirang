@@ -8,21 +8,21 @@ describe('interactive utilities', () => {
 
   beforeEach(() => {
     // Save original environment
-    originalOPSXInteractive = process.env.OPSX_INTERACTIVE;
+    originalOPSXInteractive = process.env.XIRANG_INTERACTIVE;
     originalCI = process.env.CI;
     originalStdinIsTTY = process.stdin.isTTY;
 
     // Clear environment for clean testing
-    delete process.env.OPSX_INTERACTIVE;
+    delete process.env.XIRANG_INTERACTIVE;
     delete process.env.CI;
   });
 
   afterEach(() => {
     // Restore original environment
     if (originalOPSXInteractive !== undefined) {
-      process.env.OPSX_INTERACTIVE = originalOPSXInteractive;
+      process.env.XIRANG_INTERACTIVE = originalOPSXInteractive;
     } else {
-      delete process.env.OPSX_INTERACTIVE;
+      delete process.env.XIRANG_INTERACTIVE;
     }
     if (originalCI !== undefined) {
       process.env.CI = originalCI;
@@ -88,8 +88,8 @@ describe('interactive utilities', () => {
       expect(isInteractive({ interactive: false })).toBe(false);
     });
 
-    it('should return false when OPSX_INTERACTIVE env var is 0', () => {
-      process.env.OPSX_INTERACTIVE = '0';
+    it('should return false when XIRANG_INTERACTIVE env var is 0', () => {
+      process.env.XIRANG_INTERACTIVE = '0';
       Object.defineProperty(process.stdin, 'isTTY', { value: true, writable: true, configurable: true });
       expect(isInteractive({})).toBe(false);
     });

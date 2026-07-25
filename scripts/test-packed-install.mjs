@@ -7,14 +7,14 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-packed-install-'));
+const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-packed-install-'));
 const packageManager = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const installedBinary = path.join(
   temporaryRoot,
   'node_modules',
   '.bin',
-  process.platform === 'win32' ? 'opsx.cmd' : 'opsx'
+  process.platform === 'win32' ? 'xirang.cmd' : 'xirang'
 );
 
 function run(command, args, cwd) {
@@ -24,7 +24,7 @@ function run(command, args, cwd) {
     env: {
       ...process.env,
       CI: 'true',
-      OPSX_NO_COMPLETIONS: '1',
+      XIRANG_NO_COMPLETIONS: '1',
     },
     timeout: 300_000,
   });

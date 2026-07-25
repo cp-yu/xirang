@@ -10,7 +10,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo "🔨 Building OPSX v${VERSION}..."
+echo "🔨 Building Xirang v${VERSION}..."
 echo
 
 pnpm run likec4:install
@@ -28,12 +28,12 @@ npm install -g "./${TARBALL}"
 INSTALL_DIR="$(npm root -g)/${PACKAGE_NAME}"
 LIKEC4_RUNTIME="${INSTALL_DIR}/likec4/packages/likec4"
 rm -rf "${INSTALL_DIR}/likec4"
-pnpm --dir likec4 --filter opsx-likec4 deploy --legacy --prod "${LIKEC4_RUNTIME}"
+pnpm --dir likec4 --filter xirang-likec4 deploy --legacy --prod "${LIKEC4_RUNTIME}"
 
 echo
 echo "🔍 Verifying installation..."
 node "${LIKEC4_RUNTIME}/bin/likec4.mjs" --help >/dev/null
-opsx --version
+xirang --version
 
 echo
 echo "✅ Build and install completed!"
