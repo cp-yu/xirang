@@ -19,10 +19,7 @@
 │           └── 4. Change-derived Views
 └── 1. Change
     ├── 2. Semantic Delta
-    │   ├── 3. Element Declaration Delta
-    │   ├── 3. Element Contract Delta
-    │   ├── 3. Relationship Delta
-    │   └── 3. Metamodel Delta
+    │   └── 3. Semantic Delta Entry
     └── 2. Change Plan
 
 Realization（落实过程）
@@ -75,7 +72,9 @@ Semantic Model 是项目用户意图的结构化语义表达。它以帮助用�
 
 模型在可扩展 Metamodel 的约束下，以 Hierarchical Elements 表达任意深度的项目抽象。每个 Element 由 Element Declaration 与 Element Contract 共同表达：Element Declaration 定义其身份、类型、概要及层级位置，Element Contract 规范其职责、保证、约束与行为。Relationships 表达 Elements 之间的协作、依赖与约束；Views 面向用户组织和呈现模型，但不改变模型的规范性语义。
 
-在存储结构上，Metamodel、Element Declarations 和 Relationships 存储于 `.xirang/architecture/`，Element Contracts 存储于 `.xirang/specs/`。Element Declarations 与 Element Contracts 共同表达 Elements，必须联合理解和验证。Views 通过 View Definition Files 存储，用于呈现模型，但不改变模型的规范性语义。
+Semantic Model 完整持久化于 `.xirang/model/`。Element Declarations 与 Element Contracts 共同表达 Elements，必须联合理解和验证；Authored Views 通过 View Definition Files 持久化，用于呈现模型，但不改变模型的规范性语义。
+
+identity 是引用语义对象的唯一依据。语法位置、文件路径与目录结构都不构成 identity，也不表达 Element 的层级位置。具体的存储形态与记法由 `xirang-contract.md` 规定。
 
 ## 2. Metamodel
 
@@ -97,11 +96,15 @@ Element Contract 定义 Element 在一个确定模型状态中的规范性语义
 
 当某项语义被移除时，更新后的 Element Contract 直接不再包含该项语义，而不是保留“删除某项语义”“某项语义已被删除”或其他描述变更过程的内容。
 
+一个 Element 至多对应一个 Element Contract。Element 是否必须具有 Element Contract，由其 Element Kind 在 Metamodel 中声明的 contract policy 决定。
+
 ## 2. Relationships
 
 Relationships 是 Elements 之间显式的、类型化的语义联系。每个 Relationship 连接 source Element 与 target Element，并使用由 Metamodel 声明的 Relationship Kind，表达 Elements 之间的协作、依赖或约束。Relationships 的方向与 Kind 共同表达其语义，并补充 Hierarchical Elements 无法表达的联系。
 
 Relationship 的稳定 identity 由 source Element identity、Relationship Kind identity 与 target Element identity 按方向共同确定。任一组成发生变化，都表示一个不同的 Relationship。
+
+Relationship 的 identity 即其全部内容。它不包含任何可在 identity 保持不变的前提下改变的内容，因此不存在“同一 Relationship 内容发生变化”的状态。
 
 ## 2. Views
 
@@ -129,43 +132,31 @@ Change-derived Views 由 Semantic Model 与 Semantic Delta 推导，以 diff 视
 
 ## 2. Semantic Delta
 
-Semantic Delta 是 Change 的规范性组成，由一组相对于当前 Semantic Model 声明的规范性语义差量条目构成。它与当前 Semantic Model 共同唯一确定 Expected Semantic Model。
+Semantic Delta 是 Change 的规范性组成，由一组相对于当前 Semantic Model 声明的 Semantic Delta Entries 构成。它与当前 Semantic Model 共同唯一确定 Expected Semantic Model。
 
-按照作用对象，Semantic Delta 分为 Element Declaration Delta、Element Contract Delta、Relationship Delta 与 Metamodel Delta。在存储结构上，Element Declaration Delta、Relationship Delta 与 Metamodel Delta 存储于 `.xirang/changes/**/architecture-delta.c4`，Element Contract Delta 存储于 `.xirang/changes/**/specs/`。
+每个 Entry 自身声明其作用的 entity type，Semantic Delta 持久化于 `.xirang/changes/<change>/`，其存储形态与记法由 `xirang-contract.md` 规定。
 
-每个差量条目由修改语、实体与稳定 identity 构成。修改语确定应用方式，实体与稳定 identity 确定作用对象。Semantic Delta 使用的修改语为 ADDED、MODIFIED 与 REMOVED。
+Semantic Delta 使用的修改语为 ADDED、MODIFIED 与 REMOVED。
 
 ADDED 与 MODIFIED 携带对应实体在 Expected Semantic Model 中的完整目标内容。该内容必须能够直接成为 Expected Semantic Model 的组成部分，只描述该模型状态下成立的规范性语义，不得叙述新增、修改、删除等变化过程。REMOVED 只声明需要移除实体的 identity，不携带内容。同一 identity 在一个 Semantic Delta 中不允许冲突操作。
 
 Semantic Delta 应用后，Expected Semantic Model 只保留应用结果，不保留修改语、操作记录或变更历史。
 
-### 3. Element Declaration Delta
+### 3. Semantic Delta Entry
 
-Element Declaration Delta 是 Semantic Delta 中作用于 Element Declarations 的组成。它表达当前 Semantic Model 与 Expected Semantic Model 在 Element 集合及其结构声明上的规范性语义差量，并与当前 Element Declarations 共同确定 Expected Semantic Model 中的目标 Element Declarations。
+Semantic Delta Entry 是 Semantic Delta 的组成单位。每个 Entry 由修改语、entity type 与 identity 构成：修改语确定应用方式，entity type 与 identity 共同确定作用对象。
+
+Entry 的 entity type 覆盖 Element Declaration、Element Contract 中的规范性语义条目、Relationship、Element Kind、Relationship Kind 与 Authored View。同一个 Semantic Delta 中的全部 Entries 一并应用于当前 Semantic Model，共同确定 Expected Semantic Model。
 
 Element 的稳定 identity 跨模型状态指向同一个 Element；Element Kind、概要与层级位置是该 Element 在一个确定模型状态中的声明内容，可以在 identity 保持不变的情况下发生改变。
 
-### 3. Element Contract Delta
+作用于 Element Contract 的 Entry 以 Contract 中具有稳定 identity 的规范性语义条目为对象，而不是整份 Contract。
 
-Element Contract Delta 是 Semantic Delta 中作用于 Element Contracts 的组成。它以 Element Contract 中具有稳定 identity 的规范性语义条目为作用对象，表达当前 Semantic Model 与 Expected Semantic Model 在 Element 的职责、保证、约束与行为上的规范性语义差量，并与当前 Element Contracts 共同确定 Expected Semantic Model 中的目标 Element Contracts。
+作用于 Relationship 的 Entry 以 source Element identity、Relationship Kind identity 与 target Element identity 构成的 identity 识别对象。任一组成发生变化，表示旧 Relationship 与新 Relationship 之间的差量，而不是同一 Relationship 内容的变化；由于 Relationship 的 identity 即其全部内容，作用于它的 Entry 只有 ADDED 与 REMOVED。
 
-Element Contract Delta 属于 Change，Element Contract 属于 Semantic Model。前者以差量形式确定后者的目标内容，但不成为后者的组成；目标 Element Contracts 只表达 Expected Semantic Model 状态下成立的规范性语义，不承载差量操作或变更历史。
+作用于 Metamodel 的 Entry 以 Element Kinds 与 Relationship Kinds 的稳定 identity 识别对象。相同 identity 的 Kind 可以具有不同的共享语义；不同 identity 表示旧 Kind 与新 Kind，而不是同一个 Kind 的名称变化。由于 Kind 为所有实例提供共享语义，其变化的影响不限于该 Kind 自身：目标 Metamodel 必须与 Expected Semantic Model 中的 Element Declarations 和 Relationships 联合理解。
 
-### 3. Relationship Delta
-
-Relationship Delta 是 Semantic Delta 中作用于 Relationships 的组成。它表达当前 Semantic Model 与 Expected Semantic Model 在 Elements 之间显式、类型化语义联系上的规范性语义差量，并与当前 Relationships 共同确定 Expected Semantic Model 中的目标 Relationships。
-
-Relationship Delta 以 Relationship 的稳定 identity 识别不同模型状态中的同一 Relationship。source Element identity、Relationship Kind identity 或 target Element identity 任一发生变化，表示旧 Relationship 与新 Relationship 之间的差量，而不是同一 Relationship 内容的变化。
-
-Relationship Delta 属于 Change，不成为目标 Relationships 的组成。目标 Relationships 只表达 Expected Semantic Model 状态下成立的语义联系，不承载差量操作或变更历史。
-
-### 3. Metamodel Delta
-
-Metamodel Delta 是 Semantic Delta 中作用于 Metamodel 的组成。它表达当前 Semantic Model 与 Expected Semantic Model 在语义记法及其共享语义上的规范性语义差量，并与当前 Metamodel 共同确定 Expected Semantic Model 中的目标 Metamodel。
-
-Metamodel Delta 以 Element Kinds 与 Relationship Kinds 的稳定 identity 识别不同模型状态中的同一 Kind。相同 identity 的 Kind 可以具有不同的共享语义；不同 identity 表示旧 Kind 与新 Kind，而不是同一个 Kind 的名称变化。
-
-Metamodel Delta 的影响不限于发生差量的 Kind。由于 Kind 为所有实例提供共享语义，目标 Metamodel 必须与 Expected Semantic Model 中的 Element Declarations 和 Relationships 联合理解；同一个 Semantic Delta 对 Metamodel、Element Declarations 与 Relationships 产生的结果共同构成完整目标模型。
+Semantic Delta Entries 属于 Change，不成为 Semantic Model 的组成。它们以差量形式确定目标内容，而目标内容只表达 Expected Semantic Model 状态下成立的规范性语义，不承载差量操作或变更历史。
 
 ## 2. Change Plan
 
@@ -177,7 +168,7 @@ Realization 是息壤的落实过程维。在推进过程上，它通过 Semanti
 
 ## 2. Semantic Model Build
 
-Semantic Model Build 是 Realization 推进过程中构建或重建 Semantic Model 的过程。它在用户授权的探索范围与声明的权威依据下，由 Agent 编写统一 Candidate——Architecture 与 Element Contracts 一体表达目标模型；由 CLI 对 Candidate 做只读确定性校验并给出 review digest；用户确认该版本后，由 CLI 将 Candidate 原子提升为 Semantic Model，并保留必要 history。本过程不通过 Change 的 Semantic Delta 演进模型，也不落实单次 Change 的项目改动。临时 scaffolding 不定义 durable 语义。
+Semantic Model Build 是 Realization 推进过程中构建或重建 Semantic Model 的过程。它在用户授权的探索范围与声明的权威依据下，由 Agent 编写完整的 Candidate Semantic Model；由 CLI 对 Candidate 做只读确定性校验并给出 review digest；用户确认该版本后，由 CLI 将 Candidate 原子提升为 Semantic Model，并保留必要 history。本过程不通过 Change 的 Semantic Delta 演进模型，也不落实单次 Change 的项目改动。临时 scaffolding 不定义 durable 语义。
 
 ## 2. Change Realization
 
@@ -277,7 +268,7 @@ Agent 是与用户交互、并端到端编排 Realization 的默认执行身份�
 
 ##### 5. Project Build
 
-Project Build 是 Agent 构建或重建 Semantic Model 的工作身份。它在用户授权的探索范围与声明的权威依据下，编写统一 Candidate（Architecture 与 Element Contracts 一体），使用 CLI 做只读校验，向用户呈现 valid Candidate 与 review digest；仅在用户确认后，由 CLI 将 Candidate 原子提升为 Semantic Model。临时 scaffolding（如 `build.md`）不定义 durable 语义。
+Project Build 是 Agent 构建或重建 Semantic Model 的工作身份。它在用户授权的探索范围与声明的权威依据下，编写完整的 Candidate Semantic Model，使用 CLI 做只读校验，向用户呈现 valid Candidate 与 review digest；仅在用户确认后，由 CLI 将 Candidate 原子提升为 Semantic Model。临时 scaffolding（如 `build.md`）不定义 durable 语义。
 
 ##### 5. Explore
 
