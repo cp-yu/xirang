@@ -102,11 +102,15 @@ describe('architecture sync workflow', () => {
     await fs.writeFile(path.join(architecture, 'model.c4'), `xirang { languageVersion '1' }
 specification {
   element project { xirang { root true contract optional } }
-  element operation { xirang { contract required parents [project] } }
+  element operation { xirang { contract optional parents [project] } }
+  relationship invokes
 }
 model {
   projectRoot = project 'Root' 'Project intent' {
     metadata { elementId 'project.root' }
+    existing = operation 'Existing' 'Existing operation' {
+      metadata { elementId 'operation.existing' }
+    }
   }
 }
 `);
@@ -119,6 +123,7 @@ model {
       summary 'Added operation'
       metadata { elementId 'operation.added' }
     }
+    relationship 'operation.added' -[invokes]-> 'operation.existing'
   }
 }
 `);
@@ -142,6 +147,7 @@ The system SHALL add behavior.
     const registry = await buildSpecRegistry(root);
     expect(registry.getElementForSpec('added')).toBe('operation.added');
     expect(await fs.readFile(path.join(architecture, 'model.c4'), 'utf8')).toContain("elementId 'operation.added'");
+    expect(await fs.readFile(path.join(architecture, 'relations.c4'), 'utf8')).toContain('projectRoot.added -[invokes]-> projectRoot.existing');
     await expect(fs.access(path.join(architecture, 'deltas'))).rejects.toThrow();
   });
 

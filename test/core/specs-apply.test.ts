@@ -89,6 +89,7 @@ The system SHALL support login.
     expect(rebuilt).toContain('#### Scenario: MFA path');
     expect(rebuilt).not.toContain('Scenario: [');
     expect(rebuilt).not.toContain('legacy flow runs');
+    expect(rebuilt).toMatch(/[^\n]\n$/);
   });
 
   it('rejects whole-Spec removal outside the shared Target transaction', async () => {
