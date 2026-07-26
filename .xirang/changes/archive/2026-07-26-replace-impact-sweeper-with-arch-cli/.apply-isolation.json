@@ -1,0 +1,10 @@
+{
+  "method": "branch",
+  "branchName": "replace-impact-sweeper-with-arch-cli",
+  "originalBranch": "main",
+  "baseCommit": "df2c22c07e2f590ac850fdd6c446d8acae1fbac8",
+  "phase2BaselineCommit": "b9b62f5550fb78ee7d0aea0fce97a79cf1e37cd2",
+  "preExistingUserChanges": [
+    "xirang-definition.md"
+  ]
+}

@@ -1,3 +1,5 @@
+import { buildCodeFenceMask } from './requirement-text.js';
+
 export interface RequirementBlock {
   headerLine: string; // e.g., '### Requirement: Something'
   name: string; // e.g., 'Something'
@@ -30,7 +32,9 @@ export interface UnsupportedScenarioOperationLabel {
 export function extractRequirementsSection(content: string): RequirementsSectionParts {
   const normalized = normalizeLineEndings(content);
   const lines = normalized.split('\n');
-  const reqHeaderIndex = lines.findIndex(l => /^##\s+Requirements\s*$/i.test(l));
+  const codeFenceMask = buildCodeFenceMask(lines);
+  const reqHeaderIndex = lines.findIndex((line, index) => !codeFenceMask[index]
+    && /^##\s+Requirements\s*$/i.test(line));
 
   if (reqHeaderIndex === -1) {
     // No requirements section; create an empty one at the end
@@ -48,7 +52,7 @@ export function extractRequirementsSection(content: string): RequirementsSection
   // Find end of this section: next line that starts with '## ' at same or higher level
   let endIndex = lines.length;
   for (let i = reqHeaderIndex + 1; i < lines.length; i++) {
-    if (/^##\s+/.test(lines[i])) {
+    if (!codeFenceMask[i] && /^##\s+/.test(lines[i])) {
       endIndex = i;
       break;
     }
@@ -57,6 +61,9 @@ export function extractRequirementsSection(content: string): RequirementsSection
   const before = lines.slice(0, reqHeaderIndex).join('\n');
   const headerLine = lines[reqHeaderIndex];
   const sectionBodyLines = lines.slice(reqHeaderIndex + 1, endIndex);
+  const sectionBodyFenceMask = codeFenceMask.slice(reqHeaderIndex + 1, endIndex);
+  const isRequirementHeader = (index: number) => !sectionBodyFenceMask[index]
+    && REQUIREMENT_HEADER_REGEX.test(sectionBodyLines[index]);
 
   // Parse requirement blocks within section body
   const blocks: RequirementBlock[] = [];
@@ -64,7 +71,7 @@ export function extractRequirementsSection(content: string): RequirementsSection
   let preambleLines: string[] = [];
 
   // Collect preamble lines until first requirement header
-  while (cursor < sectionBodyLines.length && !/^###\s+Requirement:/.test(sectionBodyLines[cursor])) {
+  while (cursor < sectionBodyLines.length && !isRequirementHeader(cursor)) {
     preambleLines.push(sectionBodyLines[cursor]);
     cursor++;
   }
@@ -82,7 +89,7 @@ export function extractRequirementsSection(content: string): RequirementsSection
     cursor++;
     // Gather lines until next requirement header or end of section
     const bodyLines: string[] = [headerLineCandidate];
-    while (cursor < sectionBodyLines.length && !/^###\s+Requirement:/.test(sectionBodyLines[cursor]) && !/^##\s+/.test(sectionBodyLines[cursor])) {
+    while (cursor < sectionBodyLines.length && !isRequirementHeader(cursor)) {
       bodyLines.push(sectionBodyLines[cursor]);
       cursor++;
     }

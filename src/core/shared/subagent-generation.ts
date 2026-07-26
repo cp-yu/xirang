@@ -4,7 +4,6 @@
  * Subagent artifacts are tool-native agent files, not workflow skills.
  */
 
-import { getImpactSweeperSubagentTemplate } from '../templates/workflows/impact-sweeper.js';
 import { getOptimizerSubagentTemplate } from '../templates/workflows/optimizer.js';
 import { getReviewerSubagentTemplate } from '../templates/workflows/reviewer.js';
 import type { SkillReferenceFile } from '../templates/types.js';
@@ -26,14 +25,12 @@ export interface SubagentTemplate {
 export const INTERNAL_SUBAGENT_TEMPLATES: readonly SubagentTemplate[] = [
   getReviewerSubagentTemplate(),
   getOptimizerSubagentTemplate(),
-  getImpactSweeperSubagentTemplate(),
 ] as const;
 
 const DEFAULT_TOOLS = ['read', 'grep', 'find', 'bash'] as const;
 const PI_FOREGROUND_DESCRIPTION_SUBAGENTS = new Set([
   'xirang-reviewer',
   'xirang-optimizer',
-  'xirang-impact-sweeper',
 ]);
 const PI_FOREGROUND_DESCRIPTION_SUFFIX = ' Pi callers: run foreground and omit timeoutMs/maxRuntimeMs.';
 

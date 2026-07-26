@@ -73,6 +73,7 @@ describe('workflow installation planning', () => {
       'xirang-reviewer',
       'xirang-optimizer',
       'xirang-impact-sweeper',
+      'opsx-impact-sweeper',
       'opsx-bootstrap-opsx',
       'xirang-bootstrap-arch',
     ]);
@@ -83,6 +84,7 @@ describe('workflow installation planning', () => {
       'xirang-reviewer',
       'xirang-optimizer',
       'xirang-impact-sweeper',
+      'opsx-impact-sweeper',
     ]));
     expect(MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES).not.toContain('xirang-propose');
     expect(MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES).not.toContain('xirang-explore');
@@ -122,18 +124,22 @@ describe('workflow installation planning', () => {
     expect(artifacts.commandFiles).toEqual([]);
   });
 
-  it('removes explicitly managed stale internal skill directories during sync', async () => {
+  it('removes explicitly managed generated stale internal skill directories during sync', async () => {
     const skillsDir = path.join(testDir, '.claude', 'skills');
     for (const name of [
       'opsx-implementer',
       'xirang-reviewer',
       'xirang-optimizer',
       'xirang-impact-sweeper',
+      'opsx-impact-sweeper',
       'xirang-bootstrap-arch',
       'user-skill',
     ]) {
       await fs.mkdir(path.join(skillsDir, name), { recursive: true });
-      await fs.writeFile(path.join(skillsDir, name, 'SKILL.md'), `name: ${name}\n`);
+      await fs.writeFile(
+        path.join(skillsDir, name, 'SKILL.md'),
+        name === 'user-skill' ? `name: ${name}\n` : `---\nmetadata:\n  generatedBy: test\n---\nname: ${name}\n`,
+      );
     }
 
     const result = await ArtifactSyncEngine.syncOne({
@@ -144,12 +150,13 @@ describe('workflow installation planning', () => {
     });
 
     expect(result.error).toBeUndefined();
-    expect(result.skillsRemoved).toBe(5);
+    expect(result.skillsRemoved).toBe(6);
     for (const name of [
       'opsx-implementer',
       'xirang-reviewer',
       'xirang-optimizer',
       'xirang-impact-sweeper',
+      'opsx-impact-sweeper',
       'xirang-bootstrap-arch',
     ]) {
       await expect(fs.stat(path.join(skillsDir, name))).rejects.toThrow();

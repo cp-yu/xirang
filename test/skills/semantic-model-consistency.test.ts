@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest';
 
 import { generateSubagentContent } from '../../src/core/shared/subagent-generation.js';
 import { XIRANG_SHARED_CONTEXT } from '../../src/core/templates/fragments/xirang-fragments.js';
-import { getImpactSweeperSubagentTemplate } from '../../src/core/templates/workflows/impact-sweeper.js';
 import { getOptimizerSubagentTemplate } from '../../src/core/templates/workflows/optimizer.js';
 import { getReviewerSubagentTemplate } from '../../src/core/templates/workflows/reviewer.js';
 
@@ -13,7 +12,6 @@ describe('generated internal agent semantic context', () => {
     for (const template of [
       getReviewerSubagentTemplate(),
       getOptimizerSubagentTemplate(),
-      getImpactSweeperSubagentTemplate(),
     ]) {
       expect(generateSubagentContent(template, 'claude', 'TEST')).toContain(XIRANG_SHARED_CONTEXT);
     }
@@ -26,7 +24,6 @@ describe('generated internal agent semantic context', () => {
       '.pi/skills/xirang-explore/SKILL.md',
       '.pi/skills/xirang-propose/SKILL.md',
       '.pi/skills/xirang-snack/SKILL.md',
-      '.pi/agents/xirang-impact-sweeper.md',
       '.pi/agents/xirang-optimizer.md',
       '.pi/agents/xirang-reviewer.md',
     ];

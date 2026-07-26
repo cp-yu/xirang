@@ -6,7 +6,6 @@ element: cap.ai.subagent-self-read
 
 ## Purpose
 Define the reviewed Agent Review Roles contract for Subagent 工具权限定义; Impact Sweeper 保持只读; Subagent Bash 允许命令范围; and 1 additional reviewed Requirements.
-
 ## Requirements
 ### Requirement: Subagent 工具权限定义
 Reviewer 和 Optimizer subagent SHALL 拥有以下工具能力：
@@ -34,17 +33,6 @@ Subagent MUST NOT 通过 Bash 绕过 Edit/Write 限制（如 `echo >`, `sed -i`,
 - **WHEN** subagent 的 Bash 命令包含文件修改操作（echo >、sed -i、rm、mv、cp 覆盖）
 - **THEN** 该行为违反 hard constraint
 - **AND** 用户审批层 SHALL 拒绝该命令
-
-### Requirement: Impact Sweeper 保持只读
-
-`opsx-impact-sweeper` SHALL 允许 Read、只读搜索与 `git ls-files`，并 SHALL 拒绝 Edit/Write。它 SHALL 直接返回 canonical JSON object，MUST NOT 创建 report file，也 MUST NOT 通过 Bash 修改任何文件。
-
-#### Scenario: Sweeper 返回影响面报告
-
-- **WHEN** impact sweeper 完成 evidence collection
-- **THEN** SHALL 直接返回 canonical JSON object
-- **AND** SHALL NOT 写入项目文件
-- **AND** SHALL NOT 通过 Bash 绕过 Edit/Write 限制
 
 ### Requirement: Subagent Bash 允许命令范围
 Reviewer 与 Optimizer 的 Bash 使用 SHALL 限定于以下类别：

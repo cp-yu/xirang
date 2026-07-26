@@ -23,6 +23,7 @@ export const MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES = [
   'xirang-reviewer',
   'xirang-optimizer',
   'xirang-impact-sweeper',
+  'opsx-impact-sweeper',
   'opsx-bootstrap-opsx',
   'xirang-bootstrap-arch',
 ] as const;

@@ -162,13 +162,17 @@ function buildFqns(elements: SemanticElement[]): Map<string, string> {
   const resolve = (element: SemanticElement): string => {
     const cached = fqns.get(element.id);
     if (cached) return cached;
-    if (validFqn(element.fqn)) {
+    const parent = element.parent ? byId.get(element.parent) : undefined;
+    const parentFqn = parent ? resolve(parent) : undefined;
+    const localFqn = parentFqn && element.fqn.startsWith(`${parentFqn}.`)
+      ? element.fqn.slice(parentFqn.length + 1)
+      : undefined;
+    if (validFqn(element.fqn) && (!parentFqn || (localFqn && !localFqn.includes('.')))) {
       fqns.set(element.id, element.fqn);
       return element.fqn;
     }
-    const local = element.id.split('/').pop()!.replace(/[^A-Za-z0-9_-]/g, '_').replace(/^[^A-Za-z_]/, '_$&');
-    const parent = element.parent ? byId.get(element.parent) : undefined;
-    const fqn = parent ? `${resolve(parent)}.${local}` : local;
+    const local = element.id.split(/[/.]/).pop()!.replace(/[^A-Za-z0-9_-]/g, '_').replace(/^[^A-Za-z_]/, '_$&');
+    const fqn = parentFqn ? `${parentFqn}.${local}` : local;
     fqns.set(element.id, fqn);
     return fqn;
   };

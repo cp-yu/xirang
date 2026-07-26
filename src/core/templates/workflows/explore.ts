@@ -169,7 +169,7 @@ ${XIRANG_PHILOSOPHY}
 ## Required References
 
 - MUST read the project-root file \`.xirang/references/xirang-explore-supperpowers-style.md\` before exploring. DO NOT proceed without reading it first. It is the authoritative Superpowers brainstorming behavior guide for hard gate, context exploration, visual companion judgment, one-question discipline, options comparison, section approval, Design Summary review, and propose handoff.
-- Do not reconstruct or duplicate Superpowers behavior from this prompt. This prompt defines boundaries, context loading, sweeper delegation, and proposal routing only.
+- Do not reconstruct or duplicate Superpowers behavior from this prompt. This prompt defines boundaries, context loading, semantic impact navigation, and proposal routing only.
 
 ## Hard Rules
 
@@ -177,7 +177,7 @@ ${XIRANG_PHILOSOPHY}
 - Ask one clarification question at a time; do not auto-capture decisions into artifacts.
 - When ready, produce a conversation-only \`Design Summary\` and instruct the user to call \`/xirang:propose <change-name>\`.
 
-The main explore agent and \`xirang-impact-sweeper\` subagent are both read-only. The sweeper returns its canonical JSON report directly and MUST NOT write it to the project.
+The main Explore agent remains read-only. \`arch search\` and \`arch impact\` are read-only; they and the main agent MUST NOT create or update project files.
 
 ## Required Context
 
@@ -190,22 +190,16 @@ ${XIRANG_SHARED_CONTEXT}
 
 ${CONVERSATION_LANGUAGE_GUIDANCE}
 
-## Impact Sweeps
+## Semantic Impact
 
-Delegate to the \`xirang-impact-sweeper\` agent when the user introduces a new module, workflow, command, configuration key, project concept, or unfamiliar domain term, or when preparing to say the discussion is ready for proposal/change artifacts. Pass \`projectRoot\`, \`concept\`, optional \`optionalChangeName\`, optional \`knownUserTerms\`, and optional \`focus\`. Treat each new concept as an independent sweep, even if another concept was already swept earlier in the conversation. After the agent returns the canonical JSON report, interpret that returned object directly in the explore conversation. If delegation fails or returns no usable object, disclose the evidence gap and continue only with available read-only evidence; MUST NOT infer missing impact evidence.
+When a new module, workflow, command, configuration key, project concept, or unfamiliar domain term affects scope:
+1. Run \`xirang arch search <query> --json\` against the Formal Semantic Model.
+2. Read the candidates in their Project Root and refinement context, then select one or more stable \`elementId\` values as focus Elements. If no candidate or multiple plausible candidates remain, ask one clarification question instead of guessing.
+3. Run \`xirang arch impact <elementIds...> --depth 2 --json\` to load refinement context, canonical Relationship paths, and complete Element Contracts.
+4. Collect implementation evidence separately with CodeGraph, ACE, \`rg\`, and \`read\`; code paths, symbols, imports, and calls remain current implementation evidence only.
+5. The main Explore agent combines user intent, Formal semantic context, and implementation evidence to judge \`mustChange\`, \`mustVerify\`, contextual scope, unknowns, and architecture drift. Relationship adjacency does not by itself prove a modification or verification conclusion.
 
-Treat \`terminologyObservations\` with this decision table:
-
-| Observation | Action |
-|---|---|
-| Missing, extraction unavailable, or \`foundInSpecs\` empty | Ask no terminology question; continue with the other impact fields. |
-| Exactly one found term equals \`userInput\` | Ask no terminology question. |
-| No found term equals \`userInput\` | Ask whether the user term and found terms mean the same concept. |
-| Multiple found terms, including \`userInput\` | Ask whether they are distinct concepts or which term is canonical. |
-
-Ask a terminology question before any report \`questions\`. Ask at most one question per turn. Treat report \`questions\` as candidates and select the highest-priority unresolved scope question. Use the user's main language and preserve terms and Spec IDs verbatim. Show at most two Spec IDs per term. Show at most five terms and state the remaining count. User-facing questions MUST NOT expose JSON field names or internal agent details.
-
-When the user confirms the terms mean the same concept, record that term group and continue the explore flow. When the user chooses a canonical term, record that canonical term. When the user says the terms are different concepts, record the rejected term group. For any recorded same-concept, canonical-term, or rejected term group, do not ask again for that same group. Keep these decisions in the conversation only. Do not claim proposal readiness until those scope-affecting questions are resolved or explicitly deferred by the user.
+Read active Change artifacts completely when one is in scope, but do not pass a Change or Semantic Delta to \`arch impact\`. Before proposal readiness, recheck the selected focus Elements and evidence coverage; disclose gaps instead of inferring missing evidence.
 
 ## Simplicity Awareness
 
@@ -227,7 +221,7 @@ If todo is available, create this checklist before context reads and tick each s
 3. **Clarify one question at a time**. Ask exactly one question, then wait for the answer; resolve terminology before impact and design questions.
 4. **Compare 2-3 options**. Present 2-3 viable approaches with strengths, weaknesses, best fit, and a recommendation when a real design choice exists. Name a simpler alternative in one line when applicable.
 5. **Confirm the applicable design sections**. For a complex change, consider architecture, core components, data flow, technology stack, testing strategy, risks and trade-offs. For a narrow change, confirm at least the problem, impact scope, approach, and verification method. Classify testing items as persistent or one-time verification (no persistent test file); when one-time items exist, add a \`One-time Verification\` subsection.
-6. **Self-review and generate Design Summary**. Resolve or explicitly defer scope-affecting questions, run the final concept sweep, and check for contradictions and vague boundaries. Produce the conversation-only \`Design Summary\`. Present the Design Summary, then end with: "Design Summary complete. Review the above design. If confirmed, call \`/xirang:propose <change-name>\` generate artifacts." After presenting the Design Summary, STOP — do not offer to run a workflow or ask follow-up questions. Only the user triggers the next workflow.
+6. **Self-review and generate Design Summary**. Resolve or explicitly defer scope-affecting questions, recheck semantic impact context, and check for contradictions and vague boundaries. Produce the conversation-only \`Design Summary\`. Present the Design Summary, then end with: "Design Summary complete. Review the above design. If confirmed, call \`/xirang:propose <change-name>\` generate artifacts." After presenting the Design Summary, STOP — do not offer to run a workflow or ask follow-up questions. Only the user triggers the next workflow.
 
 ## Existing Changes
 

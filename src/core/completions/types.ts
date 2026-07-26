@@ -67,9 +67,11 @@ export interface CommandDefinition {
    * - 'path': Complete with file paths
    * - 'shell': Complete with supported shell names
    * - 'schema-name': Complete with available schema names
+   * - 'text': Accept free text without dynamic completion
+   * - 'element-id': Accept stable Semantic Model element IDs
    * - undefined: No specific completion
    */
-  positionalType?: 'change-id' | 'spec-id' | 'change-or-spec-id' | 'path' | 'shell' | 'schema-name';
+  positionalType?: 'change-id' | 'spec-id' | 'change-or-spec-id' | 'path' | 'shell' | 'schema-name' | 'text' | 'element-id';
 }
 
 /**

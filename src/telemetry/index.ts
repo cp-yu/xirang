@@ -161,8 +161,8 @@ export async function maybeShowTelemetryNotice(): Promise<void> {
       return;
     }
 
-    // Display notice
-    console.log(
+    // Keep machine-readable command output clean.
+    console.error(
       'Note: Xirang collects anonymous usage stats. Opt out: XIRANG_TELEMETRY=0'
     );
 

@@ -55,6 +55,11 @@ describe('buildSpecRegistry', () => {
       expect(registry.specToElement.get('payment-auth')).toBe('payment.authorize');
       expect(registry.getSpecsForElement('payment.authorize')).toEqual(['payment-auth', 'payment-errors']);
       expect(registry.getElementForSpec('payment-auth')).toBe('payment.authorize');
+      expect(registry.getSpecSource('payment-auth')).toEqual({
+        specId: 'payment-auth',
+        path: '.xirang/specs/payment-auth/spec.md',
+        content: specForElement('payment.authorize'),
+      });
     });
   });
 
@@ -71,6 +76,11 @@ describe('buildSpecRegistry', () => {
       expect(registry.getOrphanedSpecs()).toEqual(['legacy-owner', 'malformed', 'unbound']);
       expect(registry.getIssuesForSpec('legacy-owner')).toContainEqual(expect.objectContaining({ code: 'LEGACY_SPEC_OWNERSHIP' }));
       expect(registry.getIssuesForSpec('malformed')).toContainEqual(expect.objectContaining({ code: 'MALFORMED_FRONTMATTER' }));
+      expect(registry.getDiagnostics()).toEqual(expect.arrayContaining([
+        expect.objectContaining({ specId: 'legacy-owner', code: 'LEGACY_SPEC_OWNERSHIP' }),
+        expect.objectContaining({ specId: 'malformed', code: 'MALFORMED_FRONTMATTER' }),
+        expect.objectContaining({ specId: 'unbound', code: 'MISSING_SPEC_OWNER' }),
+      ]));
     });
   });
 
@@ -86,6 +96,21 @@ describe('buildSpecRegistry', () => {
     });
   });
 
+  it('keeps unreadable Specs diagnostic-only without a source record', async () => {
+    await withTempDir(async root => {
+      const specPath = path.join(root, '.xirang', 'specs', 'unreadable', 'spec.md');
+      await fs.mkdir(specPath, { recursive: true });
+
+      const registry = await buildSpecRegistry(root);
+
+      expect(registry.getSpecSource('unreadable')).toBeNull();
+      expect(registry.getDiagnostics()).toContainEqual(expect.objectContaining({
+        specId: 'unreadable',
+        code: 'READ_FAILED',
+      }));
+    });
+  });
+
   it('handles missing specs directory', async () => {
     await withTempDir(async root => {
       const registry = await buildSpecRegistry(root);
@@ -93,6 +118,7 @@ describe('buildSpecRegistry', () => {
       expect(registry.elementToSpecs.size).toBe(0);
       expect(registry.specToElement.size).toBe(0);
       expect(registry.getOrphanedSpecs()).toEqual([]);
+      expect(registry.getDiagnostics()).toEqual([]);
     });
   });
 

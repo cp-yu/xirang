@@ -1,0 +1,584 @@
+{
+  "timestamp": "2026-07-26T08:13:55.159Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "ea0966b8a6809c5bbcc5320812accf1a2caab3b4c643479f46d0de99123df34b",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".pi/agents/xirang-reviewer.md",
+      ".pi/skills/xirang-explore/SKILL.md",
+      ".xirang/architecture/model.c4",
+      ".xirang/architecture/relations.c4",
+      ".xirang/architecture/specification.c4",
+      ".xirang/changes/replace-impact-sweeper-with-arch-cli/.apply-isolation.json",
+      ".xirang/changes/replace-impact-sweeper-with-arch-cli/.verify-result.json",
+      ".xirang/changes/replace-impact-sweeper-with-arch-cli/architecture-delta.c4",
+      ".xirang/changes/replace-impact-sweeper-with-arch-cli/design.md",
+      ".xirang/changes/replace-impact-sweeper-with-arch-cli/proposal.md",
+      ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/ai-impact-sweeper/spec.md",
+      ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/ai-workflow-templates/spec.md",
+      ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/arch-impact-command/spec.md",
+      ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/arch-search-command/spec.md",
+      ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/explore-brainstorming/spec.md",
+      ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/explore-terminology-decision/spec.md",
+      ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/internal-subagent-generation/spec.md",
+      ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/opsx-impact-sweeper-architecture/spec.md",
+      ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/subagent-self-read/spec.md",
+      ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/sweeper-terminology-extraction/spec.md",
+      ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/sweeper-terminology-reporting/spec.md",
+      ".xirang/changes/replace-impact-sweeper-with-arch-cli/tasks.md",
+      ".xirang/specs/ai-workflow-templates/spec.md",
+      ".xirang/specs/arch-impact-command/spec.md",
+      ".xirang/specs/arch-search-command/spec.md",
+      ".xirang/specs/explore-brainstorming/spec.md",
+      ".xirang/specs/internal-subagent-generation/spec.md",
+      ".xirang/specs/subagent-self-read/spec.md",
+      "src/commands/arch/impact.ts",
+      "src/commands/arch/index.ts",
+      "src/commands/arch/search.ts",
+      "src/core/completions/positional-types.ts",
+      "src/core/parsers/requirement-blocks.ts",
+      "src/core/shared/skill-generation.ts",
+      "src/core/shared/subagent-generation.ts",
+      "src/core/spec-registry.ts",
+      "src/core/specs-apply.ts",
+      "src/core/templates/sync-engine.ts",
+      "src/core/templates/workflows/explore.ts",
+      "src/telemetry/index.ts",
+      "src/utils/architecture-delta-merger.ts",
+      "src/utils/stable-order.ts",
+      "test/commands/arch-impact.test.ts",
+      "test/commands/arch-search.test.ts",
+      "test/core/parsers/requirement-blocks.test.ts",
+      "test/core/shared/subagent-generation.test.ts",
+      "test/core/spec-registry.test.ts",
+      "test/core/specs-apply.test.ts",
+      "test/core/templates/explore-template.test.ts",
+      "test/core/templates/sync-engine.test.ts",
+      "test/core/workflow-installation.test.ts",
+      "test/integration/arch-command.test.ts",
+      "test/integration/sync-workflow.test.ts",
+      "test/unit/utils/architecture-delta-merger.test.ts"
+    ],
+    "evidenceFingerprint": "2fefe72a90ecce7eff2ac5eadc8d50266edb11fd3a2c0a6ae35c84c32f9f1ca8",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".pi/agents/xirang-reviewer.md",
+        "hash": "26db69361fdb310b6cf5664914861ccab83fb8676d4cd1f488395839af6d37f3"
+      },
+      {
+        "path": ".pi/skills/xirang-explore/SKILL.md",
+        "hash": "c3f73c3d264df7134ee221b81fac94e011a57d247c89b1b116afe5b9b4f5944d"
+      },
+      {
+        "path": ".xirang/architecture/model.c4",
+        "hash": "492fdab7fc4d5d7888f959aedac9d18d3711662368733a3b7562189959bbbc5c"
+      },
+      {
+        "path": ".xirang/architecture/relations.c4",
+        "hash": "980f59ac666d20f5d9e93d27d9cd42b3dab37137205822040b2cfa387ff20ae5"
+      },
+      {
+        "path": ".xirang/architecture/specification.c4",
+        "hash": "f3d1a950305fa55cd9a97ca2f5b1f57a3b8add78160f1d545b9cd470c908631f"
+      },
+      {
+        "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/.apply-isolation.json",
+        "hash": "42148e3749d876bf509fbd0dd5f036364e28ab6bb3e1b6270e7464a3b3999c64"
+      },
+      {
+        "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/architecture-delta.c4",
+        "hash": "a68de0a3b289d581534764191e1782d551e53470e401e9ecc762acadfa082495"
+      },
+      {
+        "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/design.md",
+        "hash": "6c7efa06c311b441e726e9632dd04f9b87f49d4c7cfdfd5a00515efb7c7b4057"
+      },
+      {
+        "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/proposal.md",
+        "hash": "3cf98b116e17b7a67eb10fa41e309592ad21c83a498c04bec7ad46d20eaceb7b"
+      },
+      {
+        "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/ai-impact-sweeper/spec.md",
+        "hash": "ce28f6d527e5a7b9b6a13b0fbc3d1c4dd53c6afcd0b09eb4a1c3ea20b2d1d6b6"
+      },
+      {
+        "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/ai-workflow-templates/spec.md",
+        "hash": "aaec7a9b65363cf148cbe2d1e7236a77ef7f87351c65bd44d2d0006e6e978322"
+      },
+      {
+        "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/arch-impact-command/spec.md",
+        "hash": "e879aa19f1f97570ae94ea1b064583b7108e8163dd195b75dd35820e4dc4e9ec"
+      },
+      {
+        "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/arch-search-command/spec.md",
+        "hash": "a665521d6a2be1092c51e8b77fe04110a1152a17df1268d5182a103d703dfe30"
+      },
+      {
+        "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/explore-brainstorming/spec.md",
+        "hash": "4b776a0b47c0017de699403bb211c8fc58b2bafc724025aa05653a51cd3ec6cd"
+      },
+      {
+        "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/explore-terminology-decision/spec.md",
+        "hash": "dee1925ea85d36cb96bc7dd85a6b42df097672cd5fba9438972f8cf728d08338"
+      },
+      {
+        "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/internal-subagent-generation/spec.md",
+        "hash": "c7aaf25a8ca96053d064501898571e3681f263e4481538ac509642368817144a"
+      },
+      {
+        "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/opsx-impact-sweeper-architecture/spec.md",
+        "hash": "c223ccb9d33d66da46677740fb1a0a1dd7488bdf44b446f0277fbecdf42c6b9b"
+      },
+      {
+        "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/subagent-self-read/spec.md",
+        "hash": "367e113ca0e2bd56d24eeb9cb7b459230e6324a2809877d888477f86e0a36975"
+      },
+      {
+        "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/sweeper-terminology-extraction/spec.md",
+        "hash": "888a79b2c276e265699712d6ee540345a7401d1b9bc16b366b171abfce2b7335"
+      },
+      {
+        "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/sweeper-terminology-reporting/spec.md",
+        "hash": "d7e30b4fdda50ca363cfbd8dff16a7def4e4a82a6454345f80839d22914d9f77"
+      },
+      {
+        "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/tasks.md",
+        "hash": "ea0966b8a6809c5bbcc5320812accf1a2caab3b4c643479f46d0de99123df34b"
+      },
+      {
+        "path": ".xirang/specs/ai-workflow-templates/spec.md",
+        "hash": "9ea5025dfc90560f1a98e2260da41c33f95718a9bedd057f79142fb9c3bd7df1"
+      },
+      {
+        "path": ".xirang/specs/arch-impact-command/spec.md",
+        "hash": "f7d675ceae49b3cf514d163ff1e8228ee89b328e295427fcb1d07fed2f680bb5"
+      },
+      {
+        "path": ".xirang/specs/arch-search-command/spec.md",
+        "hash": "ed4ceb764b966f27172e45c950f01de07ee0928b9702946f24bbc869c16393d2"
+      },
+      {
+        "path": ".xirang/specs/explore-brainstorming/spec.md",
+        "hash": "4d6c474e06cceeccd049c85bc08b05ce965b8b694f7e6aa1ba4e982e11c2151d"
+      },
+      {
+        "path": ".xirang/specs/internal-subagent-generation/spec.md",
+        "hash": "e80062fc29c64833144294ecbe086ee6ed6e9c855760f0ff883f5cca5b764e67"
+      },
+      {
+        "path": ".xirang/specs/subagent-self-read/spec.md",
+        "hash": "f809de8a88c9fed786851b90368a62a95dfc7956080a2b319662aa07ac07c7ed"
+      },
+      {
+        "path": "src/commands/arch/impact.ts",
+        "hash": "643724e74667ccd856870e92dad24413be72c772132af6fdbe7988807e13dc21"
+      },
+      {
+        "path": "src/commands/arch/index.ts",
+        "hash": "a095da661f0bf75748871ced4b629975cc6791150bd44d81bcf74ab2cf9de53f"
+      },
+      {
+        "path": "src/commands/arch/search.ts",
+        "hash": "a4d21deade9d5ffed2970f093cbd295397496db95a23b5293eed2ec251fdd117"
+      },
+      {
+        "path": "src/core/completions/positional-types.ts",
+        "hash": "032cadfec92f0e4b534637bdd868f8b202e7da520474f065e4504080c2efcb16"
+      },
+      {
+        "path": "src/core/parsers/requirement-blocks.ts",
+        "hash": "cddb7029c59a0d152161b9515c182e5a355a1ac1ce113f47647b5bafdbc205c8"
+      },
+      {
+        "path": "src/core/shared/skill-generation.ts",
+        "hash": "e0295a318a3596c78681d105d24b1165174cc7372bf4ece223be8e993bc64dad"
+      },
+      {
+        "path": "src/core/shared/subagent-generation.ts",
+        "hash": "5ec05e56abf40ad4fdd1761e230c93fdda9ebdaaa80aaac70cd08a48fdfc1133"
+      },
+      {
+        "path": "src/core/spec-registry.ts",
+        "hash": "9bfb87593411590b7de1fc634c42f79fd39bc5255d3716b37daf034c793781c1"
+      },
+      {
+        "path": "src/core/specs-apply.ts",
+        "hash": "a84799adb95f57445cb5f74f3dac74a153fe4f8c94577dbb69a3bf25746b55b5"
+      },
+      {
+        "path": "src/core/templates/sync-engine.ts",
+        "hash": "c3f958a47a1d7185dc8503eea34b5540e229e4d1ad43de26daef0d4c3da13997"
+      },
+      {
+        "path": "src/core/templates/workflows/explore.ts",
+        "hash": "df4852ad44a5d8e5c76bbc1d480c9a0178bc2773b6138939617bdbc3a24c7f1c"
+      },
+      {
+        "path": "src/telemetry/index.ts",
+        "hash": "c0529ef2c57fe53a7cc3222371318d1c74af749f862408f384e236287877c819"
+      },
+      {
+        "path": "src/utils/architecture-delta-merger.ts",
+        "hash": "16ab4676eee3147c92fedd19bbd0aab9382d9685a8e8b4d56a391e68cdc529fb"
+      },
+      {
+        "path": "src/utils/stable-order.ts",
+        "hash": "30120435fc835c7b645e6ba6d2a068a1b9e0b1268d5aabc8c31a8bfe22b86cd9"
+      },
+      {
+        "path": "test/commands/arch-impact.test.ts",
+        "hash": "0c1d1c266548b40fbabe5144aac1c0fca812307e6bb4f2ee590935142c137f03"
+      },
+      {
+        "path": "test/commands/arch-search.test.ts",
+        "hash": "107185beba0fe47d887d63200289ef8c9b9d7721fa231be7d837ed24ca6d83dc"
+      },
+      {
+        "path": "test/core/parsers/requirement-blocks.test.ts",
+        "hash": "4513941a93d3f958400dc7e0bce3066b78f577fabf6171d20db6a76f6670ba2d"
+      },
+      {
+        "path": "test/core/shared/subagent-generation.test.ts",
+        "hash": "18388356373af1ae35cf304e5da2338981c9a1d1fab92a69ccd81088af2dd0be"
+      },
+      {
+        "path": "test/core/spec-registry.test.ts",
+        "hash": "bf32d73954b3682722945106f707a3e0f3a47866d7a5960fe5a2b41626c10558"
+      },
+      {
+        "path": "test/core/specs-apply.test.ts",
+        "hash": "24b6db136dda2461de993b81ccdb13d2d91eb82136aef4778a5f798542fc3ba6"
+      },
+      {
+        "path": "test/core/templates/explore-template.test.ts",
+        "hash": "39739c11f12cc81994d06b5cd10b2f0f238dff6ae013637ea9885e02d69d2051"
+      },
+      {
+        "path": "test/core/templates/sync-engine.test.ts",
+        "hash": "1299357b9a7e66d10af245ca8fe1bf84f02553bd7994e5ce7b206d7d0b002af7"
+      },
+      {
+        "path": "test/core/workflow-installation.test.ts",
+        "hash": "5177f3a5649127161f056118a9fdd59eba53e34ab31cb3a8b20c9f38ff7a6132"
+      },
+      {
+        "path": "test/integration/arch-command.test.ts",
+        "hash": "e17089d8e68b8e1036d2e125da52914cd9a5c1aaff183bf2a9d9b6a0472ce401"
+      },
+      {
+        "path": "test/integration/sync-workflow.test.ts",
+        "hash": "e4498a9d45cbbffc0078605be240a88d33d53a5ee361cface6ef9900a9ba9de5"
+      },
+      {
+        "path": "test/unit/utils/architecture-delta-merger.test.ts",
+        "hash": "247c8c9759b66ddd32d7bea52a4493c231eff5afc1e1de9b51856e821d99216f"
+      }
+    ],
+    "skippedEvidenceFiles": [
+      ".xirang/changes/replace-impact-sweeper-with-arch-cli/.verify-result.json"
+    ],
+    "gitHeadCommit": "2d8cc65134687fd96d4e18f29c6a8d1d367c31e1",
+    "gitDiffSummary": "Validated changeName, absolute changeDir, and projectRoot; resolved immutable baseCommit df2c22c07e2f590ac850fdd6c446d8acae1fbac8. Reviewed the union of git diff df2c22c07e2f590ac850fdd6c446d8acae1fbac8...HEAD --name-only and git status --short, excluding the user-owned xirang-definition.md recorded by .apply-isolation.json. Confirmed all four task-declared source/test deletions and generated Sweeper agent/reference deletions. Canonical post-sync Architecture has one Project Root, valid stable element bindings, the two added CLI Elements, expected relationships, and no removed Sweeper Elements or Specs; arch validate returned success with no diagnostics. Current focused sync/spec/merger verification passed 3 files and 34 tests, git diff --check passed, and the persisted verification evidence records the full 148-file/2050-test suite, lint, and build as passing."
+  },
+  "optimization": {
+    "status": "NOT_NEEDED",
+    "attempts": [
+      {
+        "timestamp": "2026-07-26T08:17:55.822Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-07-26T08:13:55.159Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "ea0966b8a6809c5bbcc5320812accf1a2caab3b4c643479f46d0de99123df34b",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".pi/agents/xirang-reviewer.md",
+          ".pi/skills/xirang-explore/SKILL.md",
+          ".xirang/architecture/model.c4",
+          ".xirang/architecture/relations.c4",
+          ".xirang/architecture/specification.c4",
+          ".xirang/changes/replace-impact-sweeper-with-arch-cli/.apply-isolation.json",
+          ".xirang/changes/replace-impact-sweeper-with-arch-cli/.verify-result.json",
+          ".xirang/changes/replace-impact-sweeper-with-arch-cli/architecture-delta.c4",
+          ".xirang/changes/replace-impact-sweeper-with-arch-cli/design.md",
+          ".xirang/changes/replace-impact-sweeper-with-arch-cli/proposal.md",
+          ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/ai-impact-sweeper/spec.md",
+          ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/ai-workflow-templates/spec.md",
+          ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/arch-impact-command/spec.md",
+          ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/arch-search-command/spec.md",
+          ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/explore-brainstorming/spec.md",
+          ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/explore-terminology-decision/spec.md",
+          ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/internal-subagent-generation/spec.md",
+          ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/opsx-impact-sweeper-architecture/spec.md",
+          ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/subagent-self-read/spec.md",
+          ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/sweeper-terminology-extraction/spec.md",
+          ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/sweeper-terminology-reporting/spec.md",
+          ".xirang/changes/replace-impact-sweeper-with-arch-cli/tasks.md",
+          ".xirang/specs/ai-workflow-templates/spec.md",
+          ".xirang/specs/arch-impact-command/spec.md",
+          ".xirang/specs/arch-search-command/spec.md",
+          ".xirang/specs/explore-brainstorming/spec.md",
+          ".xirang/specs/internal-subagent-generation/spec.md",
+          ".xirang/specs/subagent-self-read/spec.md",
+          "src/commands/arch/impact.ts",
+          "src/commands/arch/index.ts",
+          "src/commands/arch/search.ts",
+          "src/core/completions/positional-types.ts",
+          "src/core/parsers/requirement-blocks.ts",
+          "src/core/shared/skill-generation.ts",
+          "src/core/shared/subagent-generation.ts",
+          "src/core/spec-registry.ts",
+          "src/core/specs-apply.ts",
+          "src/core/templates/sync-engine.ts",
+          "src/core/templates/workflows/explore.ts",
+          "src/telemetry/index.ts",
+          "src/utils/architecture-delta-merger.ts",
+          "src/utils/stable-order.ts",
+          "test/commands/arch-impact.test.ts",
+          "test/commands/arch-search.test.ts",
+          "test/core/parsers/requirement-blocks.test.ts",
+          "test/core/shared/subagent-generation.test.ts",
+          "test/core/spec-registry.test.ts",
+          "test/core/specs-apply.test.ts",
+          "test/core/templates/explore-template.test.ts",
+          "test/core/templates/sync-engine.test.ts",
+          "test/core/workflow-installation.test.ts",
+          "test/integration/arch-command.test.ts",
+          "test/integration/sync-workflow.test.ts",
+          "test/unit/utils/architecture-delta-merger.test.ts"
+        ],
+        "evidenceFingerprint": "2fefe72a90ecce7eff2ac5eadc8d50266edb11fd3a2c0a6ae35c84c32f9f1ca8",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".pi/agents/xirang-reviewer.md",
+            "hash": "26db69361fdb310b6cf5664914861ccab83fb8676d4cd1f488395839af6d37f3"
+          },
+          {
+            "path": ".pi/skills/xirang-explore/SKILL.md",
+            "hash": "c3f73c3d264df7134ee221b81fac94e011a57d247c89b1b116afe5b9b4f5944d"
+          },
+          {
+            "path": ".xirang/architecture/model.c4",
+            "hash": "492fdab7fc4d5d7888f959aedac9d18d3711662368733a3b7562189959bbbc5c"
+          },
+          {
+            "path": ".xirang/architecture/relations.c4",
+            "hash": "980f59ac666d20f5d9e93d27d9cd42b3dab37137205822040b2cfa387ff20ae5"
+          },
+          {
+            "path": ".xirang/architecture/specification.c4",
+            "hash": "f3d1a950305fa55cd9a97ca2f5b1f57a3b8add78160f1d545b9cd470c908631f"
+          },
+          {
+            "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/.apply-isolation.json",
+            "hash": "42148e3749d876bf509fbd0dd5f036364e28ab6bb3e1b6270e7464a3b3999c64"
+          },
+          {
+            "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/architecture-delta.c4",
+            "hash": "a68de0a3b289d581534764191e1782d551e53470e401e9ecc762acadfa082495"
+          },
+          {
+            "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/design.md",
+            "hash": "6c7efa06c311b441e726e9632dd04f9b87f49d4c7cfdfd5a00515efb7c7b4057"
+          },
+          {
+            "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/proposal.md",
+            "hash": "3cf98b116e17b7a67eb10fa41e309592ad21c83a498c04bec7ad46d20eaceb7b"
+          },
+          {
+            "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/ai-impact-sweeper/spec.md",
+            "hash": "ce28f6d527e5a7b9b6a13b0fbc3d1c4dd53c6afcd0b09eb4a1c3ea20b2d1d6b6"
+          },
+          {
+            "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/ai-workflow-templates/spec.md",
+            "hash": "aaec7a9b65363cf148cbe2d1e7236a77ef7f87351c65bd44d2d0006e6e978322"
+          },
+          {
+            "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/arch-impact-command/spec.md",
+            "hash": "e879aa19f1f97570ae94ea1b064583b7108e8163dd195b75dd35820e4dc4e9ec"
+          },
+          {
+            "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/arch-search-command/spec.md",
+            "hash": "a665521d6a2be1092c51e8b77fe04110a1152a17df1268d5182a103d703dfe30"
+          },
+          {
+            "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/explore-brainstorming/spec.md",
+            "hash": "4b776a0b47c0017de699403bb211c8fc58b2bafc724025aa05653a51cd3ec6cd"
+          },
+          {
+            "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/explore-terminology-decision/spec.md",
+            "hash": "dee1925ea85d36cb96bc7dd85a6b42df097672cd5fba9438972f8cf728d08338"
+          },
+          {
+            "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/internal-subagent-generation/spec.md",
+            "hash": "c7aaf25a8ca96053d064501898571e3681f263e4481538ac509642368817144a"
+          },
+          {
+            "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/opsx-impact-sweeper-architecture/spec.md",
+            "hash": "c223ccb9d33d66da46677740fb1a0a1dd7488bdf44b446f0277fbecdf42c6b9b"
+          },
+          {
+            "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/subagent-self-read/spec.md",
+            "hash": "367e113ca0e2bd56d24eeb9cb7b459230e6324a2809877d888477f86e0a36975"
+          },
+          {
+            "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/sweeper-terminology-extraction/spec.md",
+            "hash": "888a79b2c276e265699712d6ee540345a7401d1b9bc16b366b171abfce2b7335"
+          },
+          {
+            "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/specs/sweeper-terminology-reporting/spec.md",
+            "hash": "d7e30b4fdda50ca363cfbd8dff16a7def4e4a82a6454345f80839d22914d9f77"
+          },
+          {
+            "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/tasks.md",
+            "hash": "ea0966b8a6809c5bbcc5320812accf1a2caab3b4c643479f46d0de99123df34b"
+          },
+          {
+            "path": ".xirang/specs/ai-workflow-templates/spec.md",
+            "hash": "9ea5025dfc90560f1a98e2260da41c33f95718a9bedd057f79142fb9c3bd7df1"
+          },
+          {
+            "path": ".xirang/specs/arch-impact-command/spec.md",
+            "hash": "f7d675ceae49b3cf514d163ff1e8228ee89b328e295427fcb1d07fed2f680bb5"
+          },
+          {
+            "path": ".xirang/specs/arch-search-command/spec.md",
+            "hash": "ed4ceb764b966f27172e45c950f01de07ee0928b9702946f24bbc869c16393d2"
+          },
+          {
+            "path": ".xirang/specs/explore-brainstorming/spec.md",
+            "hash": "4d6c474e06cceeccd049c85bc08b05ce965b8b694f7e6aa1ba4e982e11c2151d"
+          },
+          {
+            "path": ".xirang/specs/internal-subagent-generation/spec.md",
+            "hash": "e80062fc29c64833144294ecbe086ee6ed6e9c855760f0ff883f5cca5b764e67"
+          },
+          {
+            "path": ".xirang/specs/subagent-self-read/spec.md",
+            "hash": "f809de8a88c9fed786851b90368a62a95dfc7956080a2b319662aa07ac07c7ed"
+          },
+          {
+            "path": "src/commands/arch/impact.ts",
+            "hash": "643724e74667ccd856870e92dad24413be72c772132af6fdbe7988807e13dc21"
+          },
+          {
+            "path": "src/commands/arch/index.ts",
+            "hash": "a095da661f0bf75748871ced4b629975cc6791150bd44d81bcf74ab2cf9de53f"
+          },
+          {
+            "path": "src/commands/arch/search.ts",
+            "hash": "a4d21deade9d5ffed2970f093cbd295397496db95a23b5293eed2ec251fdd117"
+          },
+          {
+            "path": "src/core/completions/positional-types.ts",
+            "hash": "032cadfec92f0e4b534637bdd868f8b202e7da520474f065e4504080c2efcb16"
+          },
+          {
+            "path": "src/core/parsers/requirement-blocks.ts",
+            "hash": "cddb7029c59a0d152161b9515c182e5a355a1ac1ce113f47647b5bafdbc205c8"
+          },
+          {
+            "path": "src/core/shared/skill-generation.ts",
+            "hash": "e0295a318a3596c78681d105d24b1165174cc7372bf4ece223be8e993bc64dad"
+          },
+          {
+            "path": "src/core/shared/subagent-generation.ts",
+            "hash": "5ec05e56abf40ad4fdd1761e230c93fdda9ebdaaa80aaac70cd08a48fdfc1133"
+          },
+          {
+            "path": "src/core/spec-registry.ts",
+            "hash": "9bfb87593411590b7de1fc634c42f79fd39bc5255d3716b37daf034c793781c1"
+          },
+          {
+            "path": "src/core/specs-apply.ts",
+            "hash": "a84799adb95f57445cb5f74f3dac74a153fe4f8c94577dbb69a3bf25746b55b5"
+          },
+          {
+            "path": "src/core/templates/sync-engine.ts",
+            "hash": "c3f958a47a1d7185dc8503eea34b5540e229e4d1ad43de26daef0d4c3da13997"
+          },
+          {
+            "path": "src/core/templates/workflows/explore.ts",
+            "hash": "df4852ad44a5d8e5c76bbc1d480c9a0178bc2773b6138939617bdbc3a24c7f1c"
+          },
+          {
+            "path": "src/telemetry/index.ts",
+            "hash": "c0529ef2c57fe53a7cc3222371318d1c74af749f862408f384e236287877c819"
+          },
+          {
+            "path": "src/utils/architecture-delta-merger.ts",
+            "hash": "16ab4676eee3147c92fedd19bbd0aab9382d9685a8e8b4d56a391e68cdc529fb"
+          },
+          {
+            "path": "src/utils/stable-order.ts",
+            "hash": "30120435fc835c7b645e6ba6d2a068a1b9e0b1268d5aabc8c31a8bfe22b86cd9"
+          },
+          {
+            "path": "test/commands/arch-impact.test.ts",
+            "hash": "0c1d1c266548b40fbabe5144aac1c0fca812307e6bb4f2ee590935142c137f03"
+          },
+          {
+            "path": "test/commands/arch-search.test.ts",
+            "hash": "107185beba0fe47d887d63200289ef8c9b9d7721fa231be7d837ed24ca6d83dc"
+          },
+          {
+            "path": "test/core/parsers/requirement-blocks.test.ts",
+            "hash": "4513941a93d3f958400dc7e0bce3066b78f577fabf6171d20db6a76f6670ba2d"
+          },
+          {
+            "path": "test/core/shared/subagent-generation.test.ts",
+            "hash": "18388356373af1ae35cf304e5da2338981c9a1d1fab92a69ccd81088af2dd0be"
+          },
+          {
+            "path": "test/core/spec-registry.test.ts",
+            "hash": "bf32d73954b3682722945106f707a3e0f3a47866d7a5960fe5a2b41626c10558"
+          },
+          {
+            "path": "test/core/specs-apply.test.ts",
+            "hash": "24b6db136dda2461de993b81ccdb13d2d91eb82136aef4778a5f798542fc3ba6"
+          },
+          {
+            "path": "test/core/templates/explore-template.test.ts",
+            "hash": "39739c11f12cc81994d06b5cd10b2f0f238dff6ae013637ea9885e02d69d2051"
+          },
+          {
+            "path": "test/core/templates/sync-engine.test.ts",
+            "hash": "1299357b9a7e66d10af245ca8fe1bf84f02553bd7994e5ce7b206d7d0b002af7"
+          },
+          {
+            "path": "test/core/workflow-installation.test.ts",
+            "hash": "5177f3a5649127161f056118a9fdd59eba53e34ab31cb3a8b20c9f38ff7a6132"
+          },
+          {
+            "path": "test/integration/arch-command.test.ts",
+            "hash": "e17089d8e68b8e1036d2e125da52914cd9a5c1aaff183bf2a9d9b6a0472ce401"
+          },
+          {
+            "path": "test/integration/sync-workflow.test.ts",
+            "hash": "e4498a9d45cbbffc0078605be240a88d33d53a5ee361cface6ef9900a9ba9de5"
+          },
+          {
+            "path": "test/unit/utils/architecture-delta-merger.test.ts",
+            "hash": "247c8c9759b66ddd32d7bea52a4493c231eff5afc1e1de9b51856e821d99216f"
+          }
+        ],
+        "skippedEvidenceFiles": [
+          ".xirang/changes/replace-impact-sweeper-with-arch-cli/.verify-result.json"
+        ],
+        "gitHeadCommit": "2d8cc65134687fd96d4e18f29c6a8d1d367c31e1",
+        "gitDiffSummary": "Validated changeName, absolute changeDir, and projectRoot; resolved immutable baseCommit df2c22c07e2f590ac850fdd6c446d8acae1fbac8. Reviewed the union of git diff df2c22c07e2f590ac850fdd6c446d8acae1fbac8...HEAD --name-only and git status --short, excluding the user-owned xirang-definition.md recorded by .apply-isolation.json. Confirmed all four task-declared source/test deletions and generated Sweeper agent/reference deletions. Canonical post-sync Architecture has one Project Root, valid stable element bindings, the two added CLI Elements, expected relationships, and no removed Sweeper Elements or Specs; arch validate returned success with no diagnostics. Current focused sync/spec/merger verification passed 3 files and 34 tests, git diff --check passed, and the persisted verification evidence records the full 148-file/2050-test suite, lint, and build as passing."
+      }
+    },
+    "findings": [],
+    "history": [],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}

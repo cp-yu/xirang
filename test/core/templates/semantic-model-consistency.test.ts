@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { XIRANG_SHARED_CONTEXT } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import { getApplyChangeSkillTemplate } from '../../../src/core/templates/workflows/apply-change.js';
 import { getExploreSkillTemplate } from '../../../src/core/templates/workflows/explore.js';
-import { getImpactSweeperSubagentTemplate } from '../../../src/core/templates/workflows/impact-sweeper.js';
 import { getOptimizerSubagentTemplate } from '../../../src/core/templates/workflows/optimizer.js';
 import { getOpsxProposeSkillTemplate } from '../../../src/core/templates/workflows/propose.js';
 import { getReviewerSubagentTemplate } from '../../../src/core/templates/workflows/reviewer.js';
@@ -17,7 +16,6 @@ function activeGuidance(): string[] {
     getSnackSkillTemplate(),
     getReviewerSubagentTemplate(),
     getOptimizerSubagentTemplate(),
-    getImpactSweeperSubagentTemplate(),
   ];
 
   return templates.map((template) => [

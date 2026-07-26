@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { XIRANG_PHILOSOPHY } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import { getExploreSkillTemplate } from '../../../src/core/templates/skill-templates.js';
 
-describe('explore template impact sweeps', () => {
+describe('explore template semantic impact', () => {
   const template = getExploreSkillTemplate().instructions;
 
   it('includes unified Xirang Semantic Model context without code-map guidance', () => {
@@ -14,53 +14,40 @@ describe('explore template impact sweeps', () => {
     expect(template).not.toContain('code-map refs');
   });
 
-  it('invokes the sweeper before proposal readiness', () => {
-    expect(template).toContain('Delegate to the `xirang-impact-sweeper` agent');
-    expect(template).toContain('preparing to say the discussion is ready for proposal/change artifacts');
-    expect(template).toContain('After the agent returns the canonical JSON report');
-    expect(template).toContain('interpret that returned object directly in the explore conversation');
-    expect(template).toContain('Do not claim proposal readiness until those scope-affecting questions are resolved or explicitly deferred by the user');
+  it('directly obtains semantic impact context for focus Elements', () => {
+    expect(template).toContain('## Semantic Impact');
+    expect(template).toContain('xirang arch search <query> --json');
+    expect(template).toContain('focus Elements');
+    expect(template).toContain('xirang arch impact <elementIds...> --depth 2 --json');
+    expect(template).toContain('Formal Semantic Model');
+    expect(template).toContain('Relationship adjacency');
   });
 
-  it('supports repeated independent concept sweeps', () => {
-    expect(template).toContain('the user introduces a new module, workflow, command, configuration key, project concept, or unfamiliar domain term');
-    expect(template).not.toContain('xirang-impact-sweeper/SKILL.md');
-    expect(template).not.toContain('.claude/skills/xirang-impact-sweeper/SKILL.md');
-    expect(template).toContain('Treat each new concept as an independent sweep');
-    expect(template).toContain('even if another concept was already swept earlier in the conversation');
+  it('collects implementation evidence separately and keeps judgments in the main agent', () => {
+    expect(template).toContain('CodeGraph');
+    expect(template).toContain('ACE');
+    expect(template).toContain('`rg`');
+    expect(template).toContain('`read`');
+    expect(template).toContain('mustChange');
+    expect(template).toContain('mustVerify');
+    expect(template).toContain('architecture drift');
+    expect(template).toContain('main Explore agent');
   });
 
-  it('does not carry obsolete Skill Delegation Protocol', () => {
+  it('contains no retired Sweeper delegation or report protocol', () => {
+    for (const retired of [
+      'xirang-impact-sweeper',
+      'opsx-impact-sweeper',
+      'termMappings',
+      'terminologyObservations',
+      'optionalChangeName',
+      'knownUserTerms',
+      'final concept sweep',
+    ]) {
+      expect(template).not.toContain(retired);
+    }
     expect(template).not.toContain('## Skill Delegation Protocol');
     expect(template).not.toContain('**Internal Subagents**');
-    expect(template).not.toContain('Never** read or inline the generated');
-    expect(template).not.toContain('/skills/xirang-impact-sweeper/SKILL.md');
-  });
-
-  it('passes the lightweight sweeper input fields', () => {
-    expect(template).toContain('projectRoot');
-    expect(template).toContain('concept');
-    expect(template).toContain('optional `optionalChangeName`');
-    expect(template).toContain('optional `knownUserTerms`');
-    expect(template).toContain('optional `focus`');
-  });
-
-  it('defines the complete terminology decision protocol in the active prompt', () => {
-    expect(template).toContain('Treat `terminologyObservations` with this decision table');
-    expect(template).toContain('Missing, extraction unavailable, or `foundInSpecs` empty');
-    expect(template).toContain('Exactly one found term equals `userInput`');
-    expect(template).toContain('No found term equals `userInput`');
-    expect(template).toContain('Multiple found terms, including `userInput`');
-    expect(template).toContain('Ask whether they are distinct concepts or which term is canonical');
-    expect(template).toContain('Ask a terminology question before any report `questions`');
-    expect(template).toContain('Ask at most one question per turn');
-    expect(template).toContain("Use the user's main language");
-    expect(template).toContain('Show at most five terms and state the remaining count');
-    expect(template).toContain('MUST NOT expose JSON field names or internal agent details');
-    expect(template).toContain('When the user confirms the terms mean the same concept, record that term group');
-    expect(template).toContain('When the user chooses a canonical term, record that canonical term');
-    expect(template).toContain('When the user says the terms are different concepts, record the rejected term group');
-    expect(template).toContain('do not ask again for that same group');
   });
 
   it('keeps one compact six-step brainstorming checklist', () => {
@@ -112,13 +99,11 @@ describe('explore template impact sweeps', () => {
     expect(template).toContain('User confirmations ("ok", "option 2") approve design direction only, not file modification');
   });
 
-  it('keeps both explore and its sweeper fully read-only', () => {
-    expect(template).toContain('The main explore agent and `xirang-impact-sweeper` subagent are both read-only');
-    expect(template).toContain('The sweeper returns its canonical JSON report directly and MUST NOT write it to the project');
-    expect(template).toContain('If delegation fails or returns no usable object, disclose the evidence gap');
-    expect(template).toContain('MUST NOT infer missing impact evidence');
+  it('keeps semantic navigation and the main Explore agent read-only', () => {
+    expect(template).toContain('The main Explore agent remains read-only');
+    expect(template).toContain('`arch search` and `arch impact` are read-only');
+    expect(template).toContain('MUST NOT create or update project files');
     expect(template).not.toContain('Subagent Exception');
-    expect(template).not.toContain('xirang/sweeper/');
   });
 
   it('routes active-change insights to future capture targets', () => {
