@@ -198,6 +198,10 @@
 - Modify: `.pi/skills/`
 - Modify: `.pi/agents/`
 - Modify: `.xirang/references/`
+- Modify: `src/utils/architecture-delta-merger.ts`
+- Modify: `src/core/specs-apply.ts`
+- Test: `test/integration/sync-workflow.test.ts`
+- Test: `test/core/specs-apply.test.ts`
 - Test: `.github/workflows/test-windows.yml`
 - Test: `.github/workflows/xirang-v2-cross-platform.yml`
 
@@ -228,3 +232,8 @@
   - Command: `node bin/xirang.js arch search "Impact Sweeper" --json && node bin/xirang.js arch impact cap.ai.impact-sweeper --depth 2 --json`
   - Expect: 输出包含 Formal Elements、Relationships 与完整 Contracts；除任意 Contract Markdown 内容外，JSON 结构不包含 Change、files、symbols、Agent classification、`seed` 或 `seeds` 字段，且命令不产生项目文件
   - Remediation: Formal-only 边界检查 JSON keys，不扫描完整 Contract Markdown 的自由文本
+
+- [x] C17 验证 ADDED Element 的关系端点可被 semantic sync 物化
+  - Verifies: `architecture-delta.c4` / ADDED `cap.cli.arch-search` 与 `cap.cli.arch-impact` relationships
+  - Command: `pnpm exec vitest run test/integration/sync-workflow.test.ts`
+  - Expect: snapshot renderer 对 stable Element ID 与 LikeC4 source FQN 分别建模，新增 Element 的 relationship endpoint 使用其真实 parent FQN，目标 Formal Architecture 通过 LikeC4 validation；Contract rebuild 仅保留一个终止换行

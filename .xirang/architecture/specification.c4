@@ -3,21 +3,9 @@ xirang {
 }
 
 specification {
-  element capability {
-    xirang { contract optional }
-  }
-
-  element domain {
-    xirang { contract optional }
-  }
-
-  element project {
-    xirang {
-      root true
-      contract required
-    }
-  }
-
+  element capability { xirang { contract optional } }
+  element domain { xirang { contract optional } }
+  element project { xirang { root true contract required } }
   relationship constrains
   relationship consumes
   relationship invokes

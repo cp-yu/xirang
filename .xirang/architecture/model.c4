@@ -1,0 +1,747 @@
+model {
+  project_root = project 'OPSX' 'Human-intent programming layer that compiles Specs and LikeC4 semantic intent into agent workflows and verified project changes.' {
+    metadata {
+      elementId 'project.root'
+    }
+    ai_integration = domain 'Ai Integration' '多工具 AI 支持 — 为 25+ AI 工具生成特定工具的技能文件和面向 Agent 的 workflow skills' {
+      metadata {
+        elementId 'project.root/domain.ai_integration'
+      }
+      agent_prompt_guidance = capability 'Agent Prompt Guidance' '面向 Agent 的 verify gate 提示词指引系统。VERIFY_SIMPLE_CHANGE_FAST_PATH 从"允许 master agent 自主跳过"改为"强制委托 optimizer subagent"语义。共享片段（状态机流程图、JSON schema 速查表、CLI 错误恢复决策树）中 OPTIMIZATION_PROPOSED 行补全 --files 参数，错误恢复增加 FILES_REQUIRED 条目。' {
+        metadata {
+          elementId 'cap.ai.agent-prompt-guidance'
+        }
+      }
+      command_generation = capability 'Command Generation' '管理 AI 工具命令生成管线的能力——将 workflow templates 编译为各 AI 工具平台的 command instructions' {
+        metadata {
+          elementId 'cap.ai.command-generation'
+        }
+      }
+      command_slugs = capability 'Command Slugs' '管理 OPSX CLI 命令的 slug 映射与工具检测，确保跨工具 workflow surface 的命名一致性' {
+        metadata {
+          elementId 'cap.ai.command-slugs'
+        }
+      }
+      explore_brainstorming = capability 'Explore Brainstorming' '澄清 human intent 并形成 Project Root、Metamodel、elements、refinement、contracts、relationships 与 views 的 conversation-only Design Summary' {
+        metadata {
+          elementId 'cap.ai.explore-brainstorming'
+        }
+      }
+      internal_subagent_generation = capability 'Internal Subagent Generation' '为 Reviewer 与 Optimizer 生成 tool-native internal subagent artifacts，并在 setup/update 中通过显式受管名称和 ownership evidence 清理退役 Sweeper artifacts' {
+        metadata {
+          elementId 'cap.ai.internal-subagent-generation'
+        }
+      }
+      optimizer_skill = capability 'Optimizer Skill' 'Phase 2 finding-first 通用优化审查者；基于当前代码输出多个证据化 findings、修改意见、关键设计、保持约束和验证建议，不修改文件、不输出逐字补丁、不受固定优化 taxonomy 限制' {
+        metadata {
+          elementId 'cap.ai.optimizer-skill'
+        }
+      }
+      propose_smart_routing = capability 'Propose Smart Routing' 'Propose 阶段复用已确认的 Design Summary，或依据 problem、impact scope、approach、verification method 与 unresolved source decisions 判断 semantic readiness；区分 new/existing change identity，在 readiness 通过或用户明确 override 后按 resolved file definitions 生成 change artifacts；以 blocking combined semantic-source delta validation 和 preview-first scenario labels 建立 ready-for-apply gate' {
+        metadata {
+          elementId 'cap.ai.propose-smart-routing'
+        }
+      }
+      references_home = capability 'References Home' '.xirang/references/ 作为全部 skill reference 的唯一物理位置，并承载由 RelationDefinitionRegistry 确定性生成的 canonical relation authoring reference。' {
+        metadata {
+          elementId 'cap.ai.references-home'
+        }
+      }
+      reviewer_cleanliness_dimension = capability 'Reviewer Cleanliness Dimension' 'Cleanliness 维度的检测逻辑、severity 映射和跨语言工具适配策略，用于检测重构残留、孤儿代码、过时 TODO、半迁移等遗留物；新增规格外改动检测——以 task Files 声明（含目录条目）、Check 证据文件与 change 工件构成归因宇宙，diff 中无法归因的行为代码升级 CRITICAL，机械性良性改动降级' {
+        metadata {
+          elementId 'cap.ai.reviewer-cleanliness-dimension'
+        }
+      }
+      reviewer_skill = capability 'Reviewer Skill' 'Phase 1 验证审查 subagent skill。元规则从"不确定时降级"反转为"不确定时升级"，Correctness/Coherence trigger 强化（spec 偏离和设计违背升为 CRITICAL），新增 Cleanliness 维度检测，summary schema 扩展包含 cleanliness 指标。判定模式按 Check 锚点类型分派：Verifies 普通 requirement 执行存在性判定，REMOVED 锚点执行缺失性判定（残留即 CRITICAL），Preserves 锚点执行双支等价性判定（行为不变 ∧ 旧形态消失）；Completeness 对 Files Delete 声明与 git diff 逐项核对' {
+        metadata {
+          elementId 'cap.ai.reviewer-skill'
+        }
+      }
+      skill_generation = capability 'Skill Generation' 'AI 技能文件生成是唯一受管 workflow surface，通过 manifest registry 生成 SkillTemplate 制品，暴露 skills-only workflow surface。为 propose、explore、apply-change、archive-change、bootstrap-arch、snack 等 workflow 生成 SkillTemplate。' {
+        metadata {
+          elementId 'cap.ai.skill-generation'
+        }
+      }
+      snack_skill = capability 'Snack Skill' '从 code evidence reconcile 一个 OPSX Semantic Model 的 graph 与 contract modules，且不猜测 element 或 Spec ownership' {
+        metadata {
+          elementId 'cap.ai.snack-skill'
+        }
+      }
+      snack_skill_generation = capability 'Snack Skill Generation' '将 snack skill 纳入 skill 生成管线，与现有 5 个核心工作流一致；生成文本必须表达 artifact reconciliation、broader code-change evidence sources、conditional artifact updates、三条 fast path 和 no tasks.md 边界' {
+        metadata {
+          elementId 'cap.ai.snack-skill-generation'
+        }
+      }
+      snack_workflow_manifest = capability 'Snack Workflow Manifest' '在 WorkflowManifestRegistry 中注册 snack 工作流，modeMembership 标记为 flexible（过渡能力标签），运行时安装行为不受标签影响（所有 6 个工作流仍被全量安装）' {
+        metadata {
+          elementId 'cap.ai.snack-workflow-manifest'
+        }
+      }
+      template_artifact_pipeline = capability 'Template Artifact Pipeline' '统一的 skills-only artifact 生成管线，基于固定 workflow manifest entries 生成 skill 制品，modeMembership 作为标签系统而非 profile 过滤条件。' {
+        metadata {
+          elementId 'cap.ai.template-artifact-pipeline'
+        }
+      }
+      tool_adapters = capability 'Tool Adapters' '为支持的 AI 工具提供 skills 路径、transform 与 invocation guidance 元数据；不再维护 adapter-backed command generation 能力。' {
+        metadata {
+          elementId 'cap.ai.tool-adapters'
+        }
+      }
+      tool_invocation_references = capability 'Tool Invocation References' '基于共享 workflow surface 元数据渲染不同 AI 工具的用户可调用 skill 引用；Codex 使用 $<skillDirName>，Claude Code 使用 /<skillDirName>，Pi 使用 /skill:<skillDirName>，OpenCode 使用 /opsx-<commandSlug>；没有精确工具语法时使用中性 skill invocation 文案。' {
+        metadata {
+          elementId 'cap.ai.tool-invocation-references'
+        }
+      }
+      verify_writeback = capability 'Verify Writeback' '验证结果回写 tasks.md（unmark 未真正完成的任务）并生成分类 remediation 清单（code_fix / artifact_fix），同时让 write-back prose 遵守统一 runtime projection' {
+        metadata {
+          elementId 'cap.ai.verify-writeback'
+        }
+      }
+      workflow_templates = capability 'Workflow Templates' '生成以 Project Root、stable elements、refinement hierarchy、Element Contracts 与 Semantic Delta 为统一语义的 Agent workflows' {
+        metadata {
+          elementId 'cap.ai.workflow-templates'
+        }
+      }
+      tdd_smells = capability 'Tdd Smells' '为 optimizer 提供非穷尽候选信号；长方法、浅模块、原始类型、重复、局部性和控制流阈值只触发分析，不强制产生 finding，也不限制算法、数据结构和资源优化' {
+        metadata {
+          elementId 'cap.optimizer.tdd-smells'
+        }
+      }
+    }
+    apply = domain 'Apply' 'apply 命令作为编译步骤，集成实现、验证、优化的完整生命周期。确保 apply 输出即验证过的制品' {
+      metadata {
+        elementId 'project.root/domain.apply'
+      }
+      branch_isolation = capability 'Branch Isolation' 'Apply 阶段分支隔离策略由 apply.defaultIsolation 驱动；main/master 上仅 ask 模式询问用户，branch/worktree/none 配置直接执行并持久化 .apply-isolation.json。' {
+        metadata {
+          elementId 'cap.apply.branch-isolation'
+        }
+      }
+      change_workflow = capability 'Apply Change Workflow' 'Master-agent opsx-apply-change workflow that serializes Phase 0 TDD implementation and branches into needs_verify and needs_seal clean-context verification phases.' {
+        metadata {
+          elementId 'cap.apply.change-workflow'
+        }
+      }
+      preflight_scan = capability 'Preflight Scan' 'apply 执行前的 tasks.md 一致性预检，扫描 task 间矛盾（同一文件互斥声明、与 spec/design 冲突）和依赖顺序问题（前序 task 引用后序 task 的产出）；对 change-local scenario operation labels 使用 label-free scenario title 匹配 Verifies 引用' {
+        metadata {
+          elementId 'cap.apply.preflight-scan'
+        }
+      }
+      recovery_protocol_enhanced = capability 'Recovery Protocol Enhanced' '增强版 Recovery Protocol，引入诊断优先（读错误→定位层面→找 working example→形成假设）、单变量修复约束和累计 3-strike 升级机制；替代原有"error signature 变化即进步"的假设' {
+        metadata {
+          elementId 'cap.apply.recovery-protocol-enhanced'
+        }
+      }
+      subagent_orchestration = capability 'Subagent Orchestration' 'apply 严格区分编码与判断角色；master agent 负责 TDD 实现和有证据的 challenge，reviewer 负责正确性判断，optimizer 负责优化价值、优先级与实现级关键设计' {
+        metadata {
+          elementId 'cap.apply.subagent-orchestration'
+        }
+      }
+      task_decomposition = capability 'Task Decomposition' 'Apply Phase 0 中 Master agent 直接读取 tasks.md、change-local specs、design 与项目代码上下文，但必须按 pending Check 执行严格 TDD。行为/代码 Check 需要 test first、预期失败、最小实现、通过确认后才勾选；非运行时文本制品只需最终证据；缺失断言按非运行时快速路径以 Command 输出为最终证据。失败处理遵循诊断优先、单变量修复、累计 3-strike 升级机制，不再将 error signature 变化视为进步。' {
+        metadata {
+          elementId 'cap.apply.task-decomposition'
+        }
+      }
+      tdd_checkpoints = capability 'Tdd Checkpoints' 'Apply Phase 0 实现循环中的 3 个 TDD 质量检查点（接口设计可测试性、测试质量标准、Mock 边界约束）' {
+        metadata {
+          elementId 'cap.apply.tdd-checkpoints'
+        }
+      }
+      verify_integration = capability 'Verify Integration' 'apply 将 Phase 1、finding-driven Phase 2 和 Phase 3 seal 串联；master agent 按 TDD 实现 selected finding，fresh optimizer 负责判断与关键设计，fresh reviewer 负责 speculative re-verify' {
+        metadata {
+          elementId 'cap.apply.verify-integration'
+        }
+      }
+    }
+    architecture = domain 'Architecture' 'LikeC4 架构模型读取、语义验证和 delta 合并' {
+      metadata {
+        elementId 'project.root/domain.architecture'
+      }
+      delta_merger = capability 'Architecture Delta Merger' '将 graph delta 与 element-owned Spec deltas 作为一个 Semantic Delta 原子 reconcile 到 formal OPSX Semantic Model' {
+        metadata {
+          elementId 'cap.architecture.delta-merger'
+        }
+      }
+      likec4_reader = capability 'LikeC4 Reader' '读取 versioned OPSX LikeC4 graph modules，解析任意 element kinds、stable elementId、containment、relationships、Metamodel 与 views' {
+        metadata {
+          elementId 'cap.architecture.likec4-reader'
+        }
+      }
+      metamodel = capability 'Semantic Metamodel' '定义 versioned element kinds、contract policies、optional containment constraints 与 relationship endpoint constraints' {
+        metadata {
+          elementId 'cap.architecture.metamodel'
+        }
+      }
+      project_build = capability 'Project Build' 'Agent-driven Project Build that authorizes Candidate scope, records build.md constraints, writes complete Candidate Architecture and Specs, and promotes only after digest-confirmed review.' {
+        metadata {
+          elementId 'cap.architecture.project-build'
+        }
+      }
+      semantic_validator = capability 'Semantic Validator' '验证 Project Root、element identity、abstraction/refinement containment、Metamodel constraints、Element Contracts 与 semantic relationships' {
+        metadata {
+          elementId 'cap.architecture.semantic-validator'
+        }
+      }
+    }
+    artifact_graph = domain 'Artifact Graph' '制品依赖解析、拓扑排序和指令组装的核心引擎' {
+      metadata {
+        elementId 'project.root/domain.artifact_graph'
+      }
+      file_definitions = capability 'File Definitions' '为内置 change artifacts、bootstrap lifecycle files、formal Specs 与 LikeC4 files 提供结构化用途、编译职责、内容边界、写入策略和验证合同，并按 artifact 或 phase 向 Agent 投影' {
+        metadata {
+          elementId 'cap.artifact-graph.file-definitions'
+        }
+      }
+      instruction_loader = capability 'Instruction Loader' '加载内置 Schema 的 file definition、instruction 与 template，并按 artifact 编译项目配置投影、依赖状态和验证上下文' {
+        metadata {
+          elementId 'cap.artifact-graph.instruction-loader'
+        }
+      }
+      parse = capability 'Parse' '解析内置 Schema 的 artifacts、file definitions 与依赖 DAG，校验 definition 结构、引用完整性、重复 ID 和循环' {
+        metadata {
+          elementId 'cap.artifact-graph.parse'
+        }
+      }
+      schema_resolution = capability 'Schema Resolution' '从固定 package 内置集合解析和验证 spec-driven 与 bootstrap Schema' {
+        metadata {
+          elementId 'cap.artifact-graph.schema-resolution'
+        }
+      }
+      state_tracking = capability 'State Tracking' '通过文件系统追踪制品完成状态' {
+        metadata {
+          elementId 'cap.artifact-graph.state-tracking'
+        }
+      }
+      workflow_compilation = capability 'Workflow Artifact Compilation' 'Resolves built-in workflow schema, file definitions, instruction projections, dependency order, completion state, and blocked/ready artifacts.' {
+        metadata {
+          elementId 'cap.artifact-graph.workflow-compilation'
+        }
+      }
+    }
+    change_workflow = domain 'Change Workflow' '管理完整变更生命周期 — 创建、增量规约操作、归档及合并到主规约' {
+      metadata {
+        elementId 'project.root/domain.change_workflow'
+      }
+      branch_merge = capability 'Branch Merge' '归档后的 git commit、merge 与 branch cleanup 由 agent 无条件继续处理；agent 先提交残余实现 diff（如有），再无条件创建 --allow-empty 的 semantic boundary commit 承载完整 change 总结（Why/Changes + Implementation footer），随后提交归档制品；message 模板按 git.commitMessage.* 路径覆盖或 .xirang/references/ 内置模板路由' {
+        metadata {
+          elementId 'cap.archive.branch-merge'
+        }
+      }
+      archive = capability 'Archive' '归档已完成的变更，移动变更到 archive；archive 在校验通过后将 change 目录移入 archive，不执行 Specs 或 LikeC4 写入操作；同步合并由 xirang sync 独立完成' {
+        metadata {
+          elementId 'cap.change.archive'
+        }
+      }
+      create = capability 'Create' '变更创建和管理，支持新的 explore → propose 工作流和 apply 直接执行任务模型' {
+        metadata {
+          elementId 'cap.change.create'
+        }
+      }
+      discovery = capability 'Discovery' '发现和列举项目中的变更和规约' {
+        metadata {
+          elementId 'cap.change.discovery'
+        }
+      }
+      metadata_element = capability 'Metadata Element' '管理变更元数据（创建时间、状态、描述）' {
+        metadata {
+          elementId 'cap.change.metadata'
+        }
+      }
+      specs_sync = capability 'Specs Sync' '将 change-local graph delta 与 element-owned Spec deltas 作为一个 Semantic Delta prepare、validate、commit 或 rollback' {
+        metadata {
+          elementId 'cap.change.specs-sync'
+        }
+      }
+    }
+    cli = domain 'Cli' '命令行界面，将所有 OPSX 操作暴露为可组合的子命令' {
+      metadata {
+        elementId 'project.root/domain.cli'
+      }
+      arch_export = capability 'Architecture Export' '导出 LikeC4 architecture diagrams' {
+        metadata {
+          elementId 'cap.cli.arch-export'
+        }
+      }
+      arch-impact = capability 'Architecture Impact' '围绕一个或多个 focus Elements 投影 bounded Relationship subgraph、refinement context、canonical shortest paths 与完整 Element Contracts' {
+        metadata {
+          elementId 'cap.cli.arch-impact'
+        }
+      }
+      arch_plan_remove = capability 'Architecture Plan Remove' 'Read-only xirang arch plan-remove command that reports non-cascading removal impact for containment, relationships, Spec bindings, and other semantic references.' {
+        metadata {
+          elementId 'cap.cli.arch-plan-remove'
+        }
+      }
+      arch_preview = capability 'Architecture Preview' '由 xirang view 取代的历史架构预览能力' {
+        metadata {
+          elementId 'cap.cli.arch-preview'
+        }
+      }
+      arch_query = capability 'Architecture Query' '按 stable elementId 或当前 FQN 查询 element、refinement hierarchy、owned Specs 与 semantic relationships' {
+        metadata {
+          elementId 'cap.cli.arch-query'
+        }
+      }
+      arch-search = capability 'Architecture Search' '对 Formal Semantic Model 的 Element declarations 与 owned Contracts 执行确定性文本检索，并返回稳定排序的候选 Elements 与 match evidence' {
+        metadata {
+          elementId 'cap.cli.arch-search'
+        }
+      }
+      arch_validate = capability 'Architecture Validate' '联合验证 formal OPSX Semantic Model 或 change-local Target Semantic Model 的 graph 与 contract modules' {
+        metadata {
+          elementId 'cap.cli.arch-validate'
+        }
+      }
+      archive = capability 'Archive' '归档已完成的变更并将规约合并到主规约目录；输出 agent 接管后续 git 工作的 handoff 提醒，不读取 handoff 模式配置，不执行 git 写操作或生成推荐 commit message；sync gate 检查未合并 delta，--no-sync flag 可跳过' {
+        metadata {
+          elementId 'cap.cli.archive'
+        }
+      }
+      artifact_workflow = capability 'Artifact Workflow' 'Coherent CLI surface for change artifact status, instructions, templates, and related setup flows for scaffolded and active changes.' {
+        metadata {
+          elementId 'cap.cli.artifact-workflow'
+        }
+      }
+      authoring_help = capability 'Authoring Help' '从内置 Schema file definitions 与 RelationDefinitionRegistry 生成文件级 authoring help 和稳定 JSON 输出' {
+        metadata {
+          elementId 'cap.cli.authoring-help'
+        }
+      }
+      candidate = capability 'Candidate' 'Manages the isolated Project Build Candidate workspace through init, status, validate, and digest-gated promote commands.' {
+        metadata {
+          elementId 'cap.cli.candidate'
+        }
+      }
+      change = capability 'Change' '管理变更提案，包含创建、列表和操作的子命令' {
+        metadata {
+          elementId 'cap.cli.change'
+        }
+      }
+      command_reference_consistency = capability 'Command Reference Consistency' 'Ensure active documentation, generated Agent instructions, skills, prompts, and workflow templates reference only supported OPSX CLI command forms and report historical archive-only stale references separately.' {
+        metadata {
+          elementId 'cap.cli.command-reference-consistency'
+        }
+      }
+      completion = capability 'Completion' '管理 OPSX CLI 的 shell 补全，通过运行时反射 Commander.js 命令树自动派生补全数据，不再依赖静态 COMMAND_REGISTRY' {
+        metadata {
+          elementId 'cap.cli.completion'
+        }
+      }
+      completion_introspect = capability 'Completion Introspect' '从 Commander.js 命令树运行时反射派生 CommandDefinition[]，通过 POSITIONAL_TYPE_MAP 补充补全语义注解，消除静态 COMMAND_REGISTRY 的手工同步负担' {
+        metadata {
+          elementId 'cap.cli.completion-introspect'
+        }
+      }
+      config = capability 'Config' '查看和修改全局 OPSX 配置（不含 profile 子命令），查询归一化项目配置' {
+        metadata {
+          elementId 'cap.cli.config'
+        }
+      }
+      project_element = capability 'Project Element' '通过 CLI 查询归一化项目配置（xirang config project --json），供 skill agent 获取配置投影' {
+        metadata {
+          elementId 'cap.cli.config.project'
+        }
+      }
+      diff = capability 'Diff' 'Materializes an active change Target Semantic Model from an immutable Formal snapshot and prints Formal versus Target semantic diff without mutating files by default.' {
+        metadata {
+          elementId 'cap.cli.diff'
+        }
+      }
+      feedback = capability 'Feedback' '提交关于 OPSX 的反馈' {
+        metadata {
+          elementId 'cap.cli.feedback'
+        }
+      }
+      init = capability 'Init' '初始化带 Project Root、versioned Metamodel、graph modules 与 Specs directory 的 OPSX Semantic Model skeleton' {
+        metadata {
+          elementId 'cap.cli.init'
+        }
+      }
+      init_opsx_skeleton = capability 'Init Opsx Skeleton' 'Deprecated compatibility capability for historical init generation of project.xirang.yaml and project.xirang.relations.yaml; active init generates LikeC4 architecture files.' {
+        metadata {
+          elementId 'cap.cli.init-opsx-skeleton'
+        }
+      }
+      instructions = capability 'Instructions' '向 Agent 投影 artifact definition、instruction、template、依赖、输出路径与 config projection，并要求 definition-first authoring；apply instructions 保持 verify-aware TDD 状态' {
+        metadata {
+          elementId 'cap.cli.instructions'
+        }
+      }
+      legacy_cleanup = capability 'Legacy Cleanup' 'Detects and cleans retired OPSX workspaces, legacy slash-command surfaces, and OPSX marker blocks during setup and update after explicit confirmation.' {
+        metadata {
+          elementId 'cap.cli.legacy-cleanup'
+        }
+      }
+      list = capability 'List' '列出 changes 与 Specs，并在 Specs JSON projection 中返回 singular stable element binding' {
+        metadata {
+          elementId 'cap.cli.list'
+        }
+      }
+      new_change = capability 'New Change' '创建新的变更目录' {
+        metadata {
+          elementId 'cap.cli.new-change'
+        }
+      }
+      opsx_query = capability 'Opsx Query' 'Deprecated compatibility query for legacy OPSX v2 YAML; active architecture navigation uses xirang arch query.' {
+        metadata {
+          elementId 'cap.cli.opsx-query'
+        }
+      }
+      scenario_labels = capability 'Scenario Labels' '提供 `xirang scenario-labels` preview/write 命令，在 validate 之后显式生成 change-local MODIFIED requirements 的 scenario operation labels；不使用 fix 语义' {
+        metadata {
+          elementId 'cap.cli.scenario-labels'
+        }
+      }
+      schema = capability 'Schema' '检查固定内置 spec-driven 与 bootstrap Schema 的 package location、结构、templates、file definitions 和依赖 graph' {
+        metadata {
+          elementId 'cap.cli.schema'
+        }
+      }
+      schemas = capability 'Schemas' '列出固定内置 workflow Schema 及其描述' {
+        metadata {
+          elementId 'cap.cli.schemas'
+        }
+      }
+      show = capability 'Show' '显示变更或规约的详细信息' {
+        metadata {
+          elementId 'cap.cli.show'
+        }
+      }
+      spec = capability 'Spec' '使用 show 和 validate 子命令管理和查看 OPSX 规约；list 功能已迁移到 xirang list --specs' {
+        metadata {
+          elementId 'cap.cli.spec'
+        }
+      }
+      status = capability 'Status' '显示变更的制品完成状态' {
+        metadata {
+          elementId 'cap.cli.status'
+        }
+      }
+      sync = capability 'Sync' '在 verify gate 后联合验证并原子提升 graph 与 contract modules，且不改变 workflow stage 顺序' {
+        metadata {
+          elementId 'cap.cli.sync'
+        }
+      }
+      templates = capability 'Templates' '显示固定内置 Schema 中所有 artifacts 的 package template paths' {
+        metadata {
+          elementId 'cap.cli.templates'
+        }
+      }
+      update = capability 'Update' '刷新 OPSX skills，固定更新 workflow skills，自动清理过时的 profile/workflows/delivery 配置字段，不生成、刷新或清理旧 command workflow artifacts。' {
+        metadata {
+          elementId 'cap.cli.update'
+        }
+      }
+      validate = capability 'Validate' '验证变更和规约的完整性，支持显式 change scope 与 specs/architecture-delta artifact scope 分阶段验证，并复用 native LikeC4 staged validation' {
+        metadata {
+          elementId 'cap.cli.validate'
+        }
+      }
+      verify_aware_instructions = capability 'Verify Aware Instructions' 'instructions apply 命令在判定 change 完成状态时集成 verify freshness 检查，返回 needs_verify/needs_seal/all_done 三态而非仅基于 task checkbox' {
+        metadata {
+          elementId 'cap.cli.verify-aware-instructions'
+        }
+      }
+      view_element = capability 'View Element' '启动完整项目语义 Web 浏览器' {
+        metadata {
+          elementId 'cap.cli.view'
+        }
+      }
+    }
+    config = domain 'Config' '项目级和用户级配置管理，带 Schema 验证' {
+      metadata {
+        elementId 'project.root/domain.config'
+      }
+      apply_default_isolation = capability 'Apply Default Isolation' '将 apply.defaultIsolation 作为项目配置的功能性磁盘默认值物化；init 生成配置时写出 ask 默认与允许值注释，update 以 missing-only 方式补齐旧配置且不覆盖用户值。' {
+        metadata {
+          elementId 'cap.config.apply-default-isolation'
+        }
+      }
+      apply_projection = capability 'Apply Projection' 'xirang instructions apply 命令输出包含 configProjection，使 apply skill 能读取项目级配置' {
+        metadata {
+          elementId 'cap.config.apply-projection'
+        }
+      }
+      global_element = capability 'Global Element' '加载和验证用户全局配置，配置结构不再包含 profile、workflows 或 delivery 字段。' {
+        metadata {
+          elementId 'cap.config.global'
+        }
+      }
+      migration_element = capability 'Migration Element' '处理配置格式迁移和破坏性字段清理，包括全局 profile 迁移与项目 config.yaml/config.yml 的默认值补齐；更新时删除陈旧 git.merge.messageFrom、git.autoCommit 与 commitMessage convention 节点并写入新的 git 功能性默认结构' {
+        metadata {
+          elementId 'cap.config.migration'
+        }
+      }
+      project_element = capability 'Project Element' '从 .xirang/config.yaml 加载并投影项目配置' {
+        metadata {
+          elementId 'cap.config.project'
+        }
+      }
+      projection_element = capability 'Projection Element' '将 config.yaml 编译为 prompt/runtime projections，确保所有 artifact-writing surfaces 共享统一的 prose/canonical/rules 语义边界' {
+        metadata {
+          elementId 'cap.config.projection'
+        }
+      }
+      schema_validation = capability 'Schema Validation' '使用 Zod Schema 验证配置结构，并拒绝 active delivery 配置语义。' {
+        metadata {
+          elementId 'cap.config.schema-validation'
+        }
+      }
+    }
+    framework = domain 'Framework' 'OPSX product identity and durable workspace boundary' {
+      metadata {
+        elementId 'project.root/domain.framework'
+      }
+      conventions = capability 'OPSX Conventions' 'Project-wide authoring conventions for Element Contracts, Spec structure, behavior-first boundaries, progressive rigor, and change documentation.' {
+        metadata {
+          elementId 'cap.framework.conventions'
+        }
+      }
+      identity = capability 'Framework Identity' 'Defines the single OPSX CLI identity and hidden durable workspace contract' {
+        metadata {
+          elementId 'cap.framework.identity'
+        }
+      }
+    }
+    migration = domain 'Migration' 'OPSX YAML 到 LikeC4 的迁移转换、生成与验证流程' {
+      metadata {
+        elementId 'project.root/domain.migration'
+      }
+      agent_verification_workflow = capability 'Agent Verification Workflow' '在 human authorization 与 promotion 前验证 migration candidate 无 unresolved identity、hierarchy 或 binding gaps' {
+        metadata {
+          elementId 'cap.migration.agent-verification-workflow'
+        }
+      }
+      likec4_file_generator = capability 'LikeC4 File Generator' '生成 Project Root、versioned Metamodel、任意 element hierarchy、relationships 与 views 的 candidate graph modules' {
+        metadata {
+          elementId 'cap.migration.likec4-file-generator'
+        }
+      }
+      opsx_to_likec4_converter = capability 'OPSX to LikeC4 Converter' '读取 legacy OPSX inputs，并将其路由为 versioned semantic model migration candidate 而非 runtime fallback' {
+        metadata {
+          elementId 'cap.migration.opsx-to-likec4-converter'
+        }
+      }
+      semantic_model_migrator = capability 'Semantic Model Migrator' '将 legacy LikeC4 profile 显式转换为经审阅和验证的 versioned OPSX Semantic Model candidate' {
+        metadata {
+          elementId 'cap.migration.semantic-model-migrator'
+        }
+      }
+      spec_path_inference = capability 'Spec Path Inference' '仅从唯一 legacy mapping 生成 singular Spec element binding，并将歧义保留为 review gap' {
+        metadata {
+          elementId 'cap.migration.spec-path-inference'
+        }
+      }
+    }
+    opsx_element = domain 'Opsx Element' 'Deprecated OPSX YAML compatibility infrastructure retained during the one-month migration window' {
+      metadata {
+        elementId 'project.root/domain.opsx_element'
+      }
+      atomic_write = capability 'Atomic Write' '使用临时文件 + 重命名模式实现 legacy OPSX 原子写入' {
+        metadata {
+          elementId 'cap.xirang.atomic-write'
+        }
+      }
+      bootstrap = capability 'Bootstrap' 'Deprecated legacy init → scan → map → review → promote OPSX v2 workflow' {
+        metadata {
+          elementId 'cap.xirang.bootstrap'
+        }
+      }
+      bootstrap_backfill_specs = capability 'Bootstrap Backfill Specs' 'Deprecated legacy backfill engine for OPSX capability mappings' {
+        metadata {
+          elementId 'cap.xirang.bootstrap-backfill-specs'
+        }
+      }
+      bootstrap_refresh = capability 'Bootstrap Refresh' 'Deprecated legacy OPSX candidate refresh and replacement workflow' {
+        metadata {
+          elementId 'cap.xirang.bootstrap-refresh'
+        }
+      }
+      delta_merge = capability 'Delta Merge' 'Deprecated legacy opsx-delta.yaml merge retained for migration compatibility only' {
+        metadata {
+          elementId 'cap.xirang.delta-merge'
+        }
+      }
+      read_transparent = capability 'Read Transparent' 'Deprecated fallback reader for the legacy OPSX two-file bundle' {
+        metadata {
+          elementId 'cap.xirang.read-transparent'
+        }
+      }
+      referential_integrity = capability 'Referential Integrity' 'Deprecated legacy OPSX endpoint integrity validation' {
+        metadata {
+          elementId 'cap.xirang.referential-integrity'
+        }
+      }
+      semantic_relations = capability 'Semantic Relations' 'Deprecated legacy OPSX RelationDefinitionRegistry compatibility' {
+        metadata {
+          elementId 'cap.xirang.semantic-relations'
+        }
+      }
+      yaml_operations = capability 'Yaml Operations' 'Deprecated OPSX YAML serialization and parsing compatibility' {
+        metadata {
+          elementId 'cap.xirang.yaml-operations'
+        }
+      }
+    }
+    presentation = domain 'Presentation' 'OPSX 内置的 LikeC4 DSL、交互式 Web 与 Spec 内容呈现边界' {
+      metadata {
+        elementId 'project.root/domain.presentation'
+      }
+      likec4_engine = capability 'LikeC4 Engine' '呈现 versioned OPSX Semantic Model 的任意深度 elements、Refinement Overview、semantic relationships 与 Element Contracts' {
+        metadata {
+          elementId 'cap.presentation.likec4-engine'
+        }
+      }
+      spec_content_gateway = capability 'Spec Content Gateway' '依据 stable elementId 与派生 Spec registry 授权读取 element-owned Markdown contracts' {
+        metadata {
+          elementId 'cap.presentation.spec-content-gateway'
+        }
+      }
+      spec_content_panel = capability 'Spec Content Panel' '在 element details 中按需呈现该 element 拥有的零个或多个 Specs' {
+        metadata {
+          elementId 'cap.presentation.spec-content-panel'
+        }
+      }
+    }
+    quality = domain 'Delivery Assurance' 'Owns reproducible build, packaging, CI, and supported-platform checks that are outside runtime command semantics.' {
+      metadata {
+        elementId 'project.root/domain.quality'
+      }
+      ci_nix_validation = capability 'Nix and Cross-Platform Delivery' 'Defines the repository\'s executable Nix package/development surface and GitHub Linux, macOS, and Windows validation matrix using the tool versions pinned by each configuration.' {
+        metadata {
+          elementId 'cap.quality.ci-nix-validation'
+        }
+      }
+    }
+    schema = domain 'Schema' '定义并解析固定内置 workflow Schema，控制 artifact/file definitions、依赖关系与构建顺序' {
+      metadata {
+        elementId 'project.root/domain.schema'
+      }
+      architecture_delta_artifact = capability 'Architecture Delta Artifact' '定义 versioned OPSX LikeC4 graph module delta，并与 change-local Specs 共同形成 Target Semantic Model' {
+        metadata {
+          elementId 'cap.schema.architecture-delta-artifact'
+        }
+      }
+      opsx_delta_artifact = capability 'Opsx Delta Artifact' 'Deprecated compatibility definition for legacy opsx-delta.yaml; active spec-driven architecture artifact is architecture-delta.c4.' {
+        metadata {
+          elementId 'cap.schema.opsx-delta-artifact'
+        }
+      }
+      parse = capability 'Parse' '解析工作流 Schema YAML 文件，支持三层解析（内置、项目、变更）' {
+        metadata {
+          elementId 'cap.schema.parse'
+        }
+      }
+      validate = capability 'Validate' '验证 Schema 结构和制品依赖关系' {
+        metadata {
+          elementId 'cap.schema.validate'
+        }
+      }
+    }
+    telemetry = domain 'Privacy Telemetry' 'Owns opt-in/opt-out anonymous operational feedback and explicitly separates it from product command behavior and user content.' {
+      metadata {
+        elementId 'project.root/domain.telemetry'
+      }
+      anonymous_usage = capability 'Anonymous Command Telemetry' 'Tracks only command identity and version with anonymous UUIDs, first-run disclosure, environment/CI opt-out, immediate flush, and silent failure.' {
+        metadata {
+          elementId 'cap.telemetry.anonymous-usage'
+        }
+      }
+    }
+    validation = domain 'Validation' '变更、Specs、LikeC4 architecture 与 deprecated OPSX compatibility 的验证系统' {
+      metadata {
+        elementId 'project.root/domain.validation'
+      }
+      frontmatter = capability 'Frontmatter' '解析 Spec YAML frontmatter 的 singular element binding 并报告 malformed ownership declarations' {
+        metadata {
+          elementId 'cap.spec.frontmatter'
+        }
+      }
+      registry = capability 'Registry' '从 formal Specs 构建 element-to-Specs 与 Spec-to-element 派生 registry，并检查 required contract coverage' {
+        metadata {
+          elementId 'cap.spec.registry'
+        }
+      }
+      change = capability 'Change' '验证 change-local delta Specs、tasks anchors 与 architecture-delta.c4；architecture delta 通过 formal model 加 delta 的 staged native LikeC4 validation，并执行 OPSX semantic checks' {
+        metadata {
+          elementId 'cap.validation.change'
+        }
+      }
+      opsx_dry_run = capability 'Opsx Dry Run' 'Deprecated compatibility validation for legacy opsx-delta.yaml migration APIs.' {
+        metadata {
+          elementId 'cap.validation.opsx-dry-run'
+        }
+      }
+      skill_template_length = capability 'Skill Template Length' '验证所有生成的 `SKILL.md` 模板 instructions 不超过 200 行，并验证所有 `template.referenceFiles[]` 文件不超过 500 行；archive skill 的 commit message convention references 也纳入 reference 文件生成与一致性检查。' {
+        metadata {
+          elementId 'cap.validation.skill-template-length'
+        }
+      }
+      spec = capability 'Spec' '验证规约的格式和内容；formal specs SHALL NOT contain change-local scenario operation labels such as [ADDED], [MODIFIED], or [REMOVED] in Scenario headings；change-local delta spec 校验只检查 scenario operation label 语法与 ADDED section 下非法 labels，不要求 MODIFIED scenarios 预先带 label' {
+        metadata {
+          elementId 'cap.validation.spec'
+        }
+      }
+      spec_section_type_cross_check = capability 'Spec Section Type Cross Check' '在 change delta Spec 验证中增加 section-type 与 formal Spec header 交叉验证；frontmatter capabilities 通过 LikeC4 metadata.capabilityId 校验，并对缺失 frontmatter 发出 warning' {
+        metadata {
+          elementId 'cap.validation.spec-section-type-cross-check'
+        }
+      }
+      opsx_element = capability 'Opsx Element' 'Deprecated compatibility validation for legacy OPSX two-file models.' {
+        metadata {
+          elementId 'cap.validation.xirang'
+        }
+      }
+    }
+    verify = domain 'Verify' '两阶段质量门禁——在一致性检验通过后，对代码进行最优性检验，将代码从"可用"提升到"精良"' {
+      metadata {
+        elementId 'project.root/domain.verify'
+      }
+      subagent_self_read = capability 'Subagent Self Read' 'Reviewer/Optimizer subagent 自主文件读取与测试执行能力定义，包括 Read+Bash 工具权限、安全约束和 L1 测试策略' {
+        metadata {
+          elementId 'cap.ai.subagent-self-read'
+        }
+      }
+      evidence_refresh = capability 'Evidence Refresh' 'sync 完成后自动刷新 .verify-result.json 中与 sync 输出重叠的 evidence 文件哈希，使 verify freshness 判决不受合法 sync 写入的影响' {
+        metadata {
+          elementId 'cap.sync.evidence-refresh'
+        }
+      }
+      cli_gate = capability 'Cli Gate' '保留 Phase 2 双调用 CLI 表面，并校验 finding JSON actions、CLI-owned stable IDs、dependencies、唯一 selected、状态迁移、append-only history、目标文件 hashes 与 reviewer verdict' {
+        metadata {
+          elementId 'cap.verify.cli-gate'
+        }
+      }
+      enforce_optimizer_invocation = capability 'Enforce Optimizer Invocation' '强制每个未跳过的 Phase 2 至少调用 optimizer；NO_OPTIMIZATION_NEEDED 必须由合法 reconciliation envelope 证明，不再接受仅非空 summary 的证据' {
+        metadata {
+          elementId 'cap.verify.enforce-optimizer-invocation'
+        }
+      }
+      execution_model_selection = capability 'Execution Model Selection' 'verify / archive full verify 固定使用 subagent-orchestrated skeleton，不再按工具选择 current-agent-reread fallback。' {
+        metadata {
+          elementId 'cap.verify.execution-model-selection'
+        }
+      }
+      freshness_engine = capability 'Freshness Engine' '维持 change-level evidence freshness，并增加 selected finding 目标文件 hash 校验，阻止 optimizer 裁决后代码变化导致的过期建议被实施' {
+        metadata {
+          elementId 'cap.verify.freshness-engine'
+        }
+      }
+      optimize = capability 'Optimize' 'Phase 1 通过后强制委托 optimizer，持久化完整 findings 并逐波次实现最高优先级建议；每波次后基于当前代码全量 reconciliation，成功波次无固定上限，optRetries 只限制失败方向' {
+        metadata {
+          elementId 'cap.verify.optimize'
+        }
+      }
+      optimizer_findings = capability 'Optimizer Findings' '持久化 Phase 2 optimization findings 的严格 JSON 合约、CLI 稳定 ID、状态机、优先级、append-only reconciliation history、原子波次选择与确定性终止' {
+        metadata {
+          elementId 'cap.verify.optimizer-findings'
+        }
+      }
+      prompt_orchestration = capability 'Prompt Orchestration' 'Verification prompt orchestration patterns。Coordinator 的 Evidence 步骤简化为确定路径。Severity philosophy 表述从"prefer lower tier"改为"escalate when uncertain"，删除降级偏见的措辞' {
+        metadata {
+          elementId 'cap.verify.prompt-orchestration'
+        }
+      }
+    }
+  }
+}
