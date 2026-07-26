@@ -1,5 +1,5 @@
 import type { SkillTemplate } from '../types.js';
-import { XIRANG_PHILOSOPHY } from '../fragments/xirang-fragments.js';
+import { SEMANTIC_MODEL_UNIT_NOTATION, XIRANG_PHILOSOPHY } from '../fragments/xirang-fragments.js';
 
 export function getBuildSkillTemplate(): SkillTemplate {
   return {
@@ -8,6 +8,8 @@ export function getBuildSkillTemplate(): SkillTemplate {
     instructions: `Build the project Xirang Semantic Model from user-authorized intent and evidence.
 
 ${XIRANG_PHILOSOPHY}
+
+${SEMANTIC_MODEL_UNIT_NOTATION}
 
 ## Workflow
 
@@ -19,7 +21,7 @@ ${XIRANG_PHILOSOPHY}
    - \`xirang candidate init --from clean\`
    - \`xirang candidate init --from-path <path>\`
 5. Explore the authorized scope in any useful order. Code, tests, documents, configuration, Git history, and current Xirang are evidence only unless the user explicitly designates them as source of truth. You MAY use subagents as optional task-specific accelerators; the workflow must still complete without them.
-6. Author one Candidate by writing \`.xirang/candidate/{metamodel,elements,relationships,views}/\`. An Element Contract is the body of its Element unit, so one Element has at most one Contract; whether a Contract is required comes from the \`contract\` field of its Element Kind.
+6. Author one Candidate by writing \`.xirang/candidate/{metamodel,elements,relationships,views}/\` in the unit notation above. An Element Contract is the body of its Element unit, so one Element has at most one Contract; whether a Contract is required comes from the \`contract\` field of its Element Kind. Every Element Kind and Relationship Kind an Element or Relationship refers to must be declared in \`metamodel/\`.
 7. Run \`xirang candidate validate\`. Fix the reported Candidate source directly and repeat until validation succeeds. The CLI is read-only and must not author or normalize semantics.
 8. Present the Project Root, Metamodel, hierarchy, Element Contracts, Relationships, Authored Views, important confirmed decisions, formal diff, and returned \`reviewDigest\` directly to the user.
 9. Only after the user confirms that exact version, run \`xirang candidate promote --digest <reviewDigest>\`. Promotion replaces \`.xirang/model/\` with the Candidate as a whole; a unit absent from the Candidate is not retained.

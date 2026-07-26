@@ -22,7 +22,7 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
   getArchiveChangeSkillTemplate: '0bf75c0d29d9dc74b98d2ce524351cf73e45836b17fe42d17e07e853c1495101',
   getOpsxProposeSkillTemplate: '05e2c1d98187c105792440c220654f647ebc7ac9628a298c21d895af42dca606',
   getFeedbackSkillTemplate: 'b59e4e8f30b3671f5346445a7fbe9043cd559233c86fc78d086bbe94e084590b',
-  getBuildSkillTemplate: '197948034ee7322f4d9e632cd047e073cdbd2bea88a6d4761016ca0198a3a106',
+  getBuildSkillTemplate: '322af37f41fcd8b835ef4f51a268d09825e8a05917fc33a462f05f5204d05ae8',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {

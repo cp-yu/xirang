@@ -16,6 +16,33 @@ export const XIRANG_PHILOSOPHY = `
 `.trim();
 
 /**
+ * Fragment: Semantic Model unit notation
+ * Used in: build
+ *
+ * Project Build authors `.xirang/candidate/` directly and has no Change artifact
+ * projection to read notation from, so the notation must travel with the prompt.
+ */
+export const SEMANTIC_MODEL_UNIT_NOTATION = `
+**Semantic Model Unit Notation**
+
+Every Markdown unit declares its own \`entity\` in frontmatter. The partition does not determine the type.
+
+| entity | frontmatter fields |
+|---|---|
+| \`element-declaration\` | \`identity\`, \`kind\`, \`parent\`, \`title\`, \`summary\` |
+| \`element-kind\` | \`identity\`, \`contract\`; optional \`root\`, \`parents\`, \`children\` |
+| \`relationship-kind\` | \`identity\`; optional \`sourceKinds\`, \`targetKinds\` |
+| \`authored-view\` | \`identity\`, \`include\`; optional \`of\`, \`title\`, \`autoLayout\` |
+
+- \`parent: null\` marks the single Project Root. \`include\` is \`'*'\` or a list of element identities; \`of\` is one element identity.
+- A \`relationships/\` file is a container of \`{source, kind, target}\` entries. A Relationship's identity is its entire content and it carries no other field.
+- An \`elements/\` unit body is exactly the \`## Requirements\` section: \`### Requirement: <name>\` with \`#### Scenario: <name>\` beneath it. Descriptive prose belongs to the Declaration's \`summary\` and MUST NOT be repeated in the Contract. Any other body content is a validation error.
+- A \`views/\` unit has no body.
+- \`identity\` uses \`[A-Za-z0-9._-]+\` and contains no path separator. Element Kind and Relationship Kind identities are globally unique within the Metamodel. Do not encode a parent path or hierarchy position into an identity: position changes over time while identity does not.
+- Default file naming, non-normative: \`elements/<identity>.md\`, \`metamodel/<kind identity>.md\`, \`views/<view identity>.md\`, \`relationships/<relationship kind identity>.yaml\` grouped by Relationship Kind.
+`.trim();
+
+/**
  * Fragment: Shared Xirang Semantic Model context
  * Used in: explore, propose, apply-change, snack, reviewer, optimizer
  */
