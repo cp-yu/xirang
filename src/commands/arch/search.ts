@@ -1,8 +1,6 @@
-import { MarkdownParser } from '../../core/parsers/markdown-parser.js';
-import { extractRequirementsSection } from '../../core/parsers/requirement-blocks.js';
-import { buildSpecRegistry } from '../../core/spec-registry.js';
-import { readLikeC4Architecture } from '../../utils/likec4-reader.js';
-import type { SemanticElement } from '../../utils/semantic-model.js';
+import { modelRoot } from '../../core/model/paths.js';
+import { parseSemanticModel } from '../../core/model/parser.js';
+import type { ElementDeclaration } from '../../core/model/types.js';
 import { compareCodePoints } from '../../utils/stable-order.js';
 
 export interface ArchitectureSearchOptions {
@@ -10,14 +8,12 @@ export interface ArchitectureSearchOptions {
 }
 
 export interface ArchitectureSearchEvidence {
-  field: 'elementId' | 'fqn' | 'title' | 'summary' | 'specId' | 'spec.purpose' | 'spec.requirement';
+  field: 'elementId' | 'title' | 'summary' | 'requirement';
   text: string;
-  specId?: string;
 }
 
 export interface ArchitectureSearchMatch {
-  element: SemanticElement;
-  ownedSpecs: Array<{ specId: string; path: string }>;
+  element: ElementDeclaration;
   evidence: ArchitectureSearchEvidence[];
 }
 
@@ -32,23 +28,18 @@ interface RankedEvidence extends ArchitectureSearchEvidence {
   rank: number;
 }
 
-function normalized(value: string): string {
-  return value.toLowerCase();
-}
-
 function addEvidence(
   target: RankedEvidence[],
   query: string,
   field: ArchitectureSearchEvidence['field'],
   text: string,
   rank: number,
-  specId?: string,
   exact = false,
 ): void {
-  const candidate = normalized(text);
-  const search = normalized(query);
+  const candidate = text.toLowerCase();
+  const search = query.toLowerCase();
   if (exact ? candidate !== search : !candidate.includes(search)) return;
-  target.push({ field, text, ...(specId ? { specId } : {}), rank });
+  target.push({ field, text, rank });
 }
 
 export async function searchArchitecture(
@@ -62,49 +53,33 @@ export async function searchArchitecture(
     throw new Error('Search limit must be a positive integer');
   }
 
-  const architecture = await readLikeC4Architecture(projectRoot);
-  if (architecture.profile !== 'v1') {
-    throw new Error('Architecture search requires a Xirang languageVersion 1 Formal Semantic Model');
-  }
-
-  const registry = await buildSpecRegistry(projectRoot);
+  const { model } = await parseSemanticModel(modelRoot(projectRoot));
   const matches: Array<ArchitectureSearchMatch & { rank: number }> = [];
 
-  for (const element of architecture.elements) {
+  for (const element of model.elements) {
+    const declaration = element.declaration;
     const evidence: RankedEvidence[] = [];
-    addEvidence(evidence, searchQuery, 'elementId', element.id, 0, undefined, true);
-    addEvidence(evidence, searchQuery, 'fqn', element.fqn, 1, undefined, true);
-    addEvidence(evidence, searchQuery, 'title', element.title, 2, undefined, true);
-    addEvidence(evidence, searchQuery, 'title', element.title, 3);
-    addEvidence(evidence, searchQuery, 'summary', element.summary, 4);
-
-    const ownedSpecs: ArchitectureSearchMatch['ownedSpecs'] = [];
-    for (const specId of registry.getSpecsForElement(element.id)) {
-      const source = registry.getSpecSource(specId);
-      if (!source) throw new Error(`Element Contract source missing: ${specId} (${element.id})`);
-      const parsed = new MarkdownParser(source.content).parseSpec(specId);
-      ownedSpecs.push({ specId, path: source.path });
-      addEvidence(evidence, searchQuery, 'specId', specId, 5, specId);
-      addEvidence(evidence, searchQuery, 'spec.purpose', parsed.overview, 5, specId);
-      for (const requirement of extractRequirementsSection(source.content).bodyBlocks) {
-        addEvidence(evidence, searchQuery, 'spec.requirement', requirement.name, 6, specId);
-      }
+    addEvidence(evidence, searchQuery, 'elementId', declaration.identity, 0, true);
+    addEvidence(evidence, searchQuery, 'title', declaration.title, 1, true);
+    addEvidence(evidence, searchQuery, 'title', declaration.title, 2);
+    addEvidence(evidence, searchQuery, 'summary', declaration.summary, 3);
+    for (const requirement of element.requirements) {
+      addEvidence(evidence, searchQuery, 'requirement', requirement.name, 4);
     }
 
     if (evidence.length === 0) continue;
     evidence.sort((left, right) => left.rank - right.rank
-      || compareCodePoints(left.specId ?? '', right.specId ?? '')
       || compareCodePoints(left.field, right.field)
       || compareCodePoints(left.text, right.text));
     matches.push({
-      element,
-      ownedSpecs,
+      element: declaration,
       evidence: evidence.map(({ rank: _rank, ...item }) => item),
       rank: evidence[0].rank,
     });
   }
 
-  matches.sort((left, right) => left.rank - right.rank || compareCodePoints(left.element.id, right.element.id));
+  matches.sort((left, right) => left.rank - right.rank
+    || compareCodePoints(left.element.identity, right.element.identity));
   const totalMatches = matches.length;
   const limited = options.limit === undefined ? matches : matches.slice(0, options.limit);
 
@@ -119,10 +94,7 @@ export async function searchArchitecture(
 export function formatArchitectureSearchText(result: ArchitectureSearchResult): string {
   if (result.matches.length === 0) return `No Formal Semantic Model matches for: ${result.query}`;
   return result.matches.map(match => {
-    const evidence = match.evidence.map(item => {
-      const spec = item.specId ? ` (${item.specId})` : '';
-      return `  ${item.field}${spec}: ${item.text}`;
-    }).join('\n');
-    return `${match.element.id}  ${match.element.title}\n${evidence}`;
+    const evidence = match.evidence.map(item => `  ${item.field}: ${item.text}`).join('\n');
+    return `${match.element.identity}  ${match.element.title}\n${evidence}`;
   }).join('\n\n');
 }

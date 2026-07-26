@@ -6,20 +6,14 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { promisify } from 'util';
-import { stringify as stringifyYaml } from 'yaml';
 import { runCLI } from '../helpers/run-cli.js';
-import {
-  XIRANG_SCHEMA_VERSION,
-  readProjectOpsx,
-  writeProjectOpsx,
-  type ProjectXirangBundle,
-} from '../../src/utils/xirang-utils.js';
 import {
   checkFreshness,
   computeEvidenceFingerprint,
   computeTasksFileHash,
 } from '../../src/core/verify/freshness.js';
 import type { VerifyResult } from '../../src/core/verify/types.js';
+import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -34,15 +28,6 @@ describe('ArchiveCommand', () => {
   let archiveCommand: ArchiveCommand;
   const originalConsoleLog = console.log;
 
-  const mkBundle = (overrides: Partial<ProjectXirangBundle> = {}): ProjectXirangBundle => ({
-    schema_version: XIRANG_SCHEMA_VERSION,
-    project: { id: 'test-project', name: 'test-project' },
-    domains: [],
-    capabilities: [],
-    relations: [],
-    ...overrides,
-  });
-
   beforeEach(async () => {
     // Create temp directory
     tempDir = path.join(os.tmpdir(), `xirang-archive-test-${Date.now()}`);
@@ -54,8 +39,8 @@ describe('ArchiveCommand', () => {
     // Create Xirang structure
     const opsxDir = path.join(tempDir, '.xirang');
     await fs.mkdir(path.join(opsxDir, 'changes'), { recursive: true });
-    await fs.mkdir(path.join(opsxDir, 'specs'), { recursive: true });
     await fs.mkdir(path.join(opsxDir, 'changes', 'archive'), { recursive: true });
+    await writeModelFixture();
     
     // Suppress console.log during tests
     console.log = vi.fn();
@@ -63,41 +48,18 @@ describe('ArchiveCommand', () => {
     archiveCommand = new ArchiveCommand();
   });
 
-  async function writeV1Architecture(): Promise<void> {
-    const architecture = path.join(tempDir, '.xirang', 'architecture');
-    await fs.mkdir(architecture, { recursive: true });
-    await fs.writeFile(path.join(architecture, 'model.c4'), `xirang { languageVersion '1' }
-specification {
-  element project { xirang { root true contract optional } }
-  element capability { xirang { contract optional parents [project] } }
-}
-model {
-  project_root = project 'Root' 'Root summary' {
-    metadata { elementId 'project.root' }
-    existing = capability 'Existing' 'Existing summary' { metadata { elementId 'existing.id' } }
-  }
-}
-`);
+  async function writeModelFixture(): Promise<void> {
+    await writeProjectModel(tempDir, minimalModel({
+      elements: [{ identity: 'existing.id', parent: 'root', title: 'Existing', summary: 'Existing summary' }],
+    }));
   }
 
+  const MODIFY_EXISTING = '---\noperation: MODIFIED\nentity: element-declaration\nidentity: existing.id\n'
+    + 'kind: capability\nparent: root\ntitle: Existing\nsummary: Changed summary\n---\n';
+
   async function writeSemanticArchiveFixture(changeName: string): Promise<string> {
-    const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
-    await writeV1Architecture();
-    await fs.mkdir(changeDir, { recursive: true });
-    await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), `architectureDelta {
-  MODIFIED {
-    element 'existing.id' {
-      kind 'capability'
-      parent 'project.root'
-      title 'Existing'
-      summary 'Changed summary'
-      metadata { elementId 'existing.id' }
-    }
-  }
-}
-`);
+    const changeDir = await writeChangeDelta(tempDir, changeName, { 'elements/existing.id.md': MODIFY_EXISTING });
     await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] complete\n');
-    await fs.writeFile(path.join(changeDir, '.specs-noop'), '');
     return changeDir;
   }
 
@@ -145,18 +107,16 @@ model {
       // Create tasks.md with completed tasks
       const tasksContent = '- [x] Task 1\n- [x] Task 2';
       await fs.writeFile(path.join(changeDir, 'tasks.md'), tasksContent);
-      await fs.writeFile(path.join(changeDir, '.specs-noop'), '');
-      
+
       // Execute archive with --yes flag
       await archiveCommand.execute(changeName, { yes: true, noVerify: true });
-      
+
       // Check that change was moved to archive
       const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
-      
+
       expect(archives.length).toBe(1);
       expect(archives[0]).toMatch(new RegExp(`\\d{4}-\\d{2}-\\d{2}-${changeName}`));
-      await expect(fs.access(path.join(archiveDir, archives[0], '.specs-noop'))).rejects.toThrow();
       
       // Verify original change directory no longer exists
       await expect(fs.access(changeDir)).rejects.toThrow();
@@ -173,7 +133,7 @@ model {
       expect(archived).toBeDefined();
       const archivedDir = path.join(archiveDir, archived!);
       expect(await fs.readFile(path.join(archivedDir, 'effective-change.md'), 'utf8')).toContain('Status: Passed');
-      await expect(fs.access(path.join(archivedDir, 'architecture-delta.c4'))).resolves.toBeUndefined();
+      await expect(fs.access(path.join(archivedDir, 'elements', 'existing.id.md'))).resolves.toBeUndefined();
     });
 
     it('keeps the active change in place when final report generation fails', async () => {
@@ -290,112 +250,31 @@ git:
       expect(archives.some((entry) => entry.includes(changeName))).toBe(true);
     });
 
-    it('should block archive when sync has pending delta writes', async () => {
+    it('should block archive when sync has pending Semantic Model writes', async () => {
       const changeName = 'pending-sync-gate';
-      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
-      const specDir = path.join(changeDir, 'specs', 'gate');
-      await fs.mkdir(specDir, { recursive: true });
+      const changeDir = await writeChangeDelta(tempDir, changeName, { 'elements/existing.id.md': MODIFY_EXISTING });
       await writeFreshVerifyResult(changeDir);
-      await fs.writeFile(path.join(specDir, 'spec.md'), `## ADDED Requirements
-
-### Requirement: Gate requires sync`);
 
       await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow('Sync gate');
     });
 
-    it('rejects an empty graph delta at the archive sync gate', async () => {
-      const changeName = 'empty-architecture-delta';
-      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
-      await fs.mkdir(changeDir, { recursive: true });
+    it('rejects a malformed Semantic Delta unit at the archive sync gate', async () => {
+      const changeName = 'malformed-delta';
+      const changeDir = await writeChangeDelta(tempDir, changeName, {
+        'elements/broken.md': '---\nentity: element-declaration\n---\n',
+      });
       await writeFreshVerifyResult(changeDir);
-      await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), 'model {}\n');
 
-      await expect(archiveCommand.execute(changeName, { yes: true }))
-        .rejects.toThrow(/no actual architecture operation|empty/i);
-      await expect(fs.readFile(path.join(changeDir, 'architecture-delta.c4'), 'utf8')).resolves.toBe('model {}\n');
+      await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(/MISSING_IDENTITY/);
     });
 
-    it('should allow archive when delta specs and Xirang delta are already synced', async () => {
+    it('should allow archive when the Semantic Delta is already synced', async () => {
       const changeName = 'already-synced-gate';
-      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
-      const changeSpecDir = path.join(changeDir, 'specs', 'gate');
-      const mainSpecDir = path.join(tempDir, '.xirang', 'specs', 'gate');
-      await fs.mkdir(changeSpecDir, { recursive: true });
-      await fs.mkdir(mainSpecDir, { recursive: true });
+      const changeDir = await writeChangeDelta(tempDir, changeName, { 'elements/existing.id.md': MODIFY_EXISTING });
       await writeFreshVerifyResult(changeDir);
-      await writeV1Architecture();
-
-      const deltaSpec = `---
-element: existing.id
----
-
-## ADDED Requirements
-
-### Requirement: Gate already synced
-
-System SHALL keep synced gates stable.
-
-#### Scenario: Gate stays synced
-- **WHEN** the change has already been synced
-- **THEN** archive SHALL proceed
-`;
-      await fs.writeFile(path.join(changeSpecDir, 'spec.md'), deltaSpec, 'utf-8');
-      await fs.writeFile(path.join(mainSpecDir, 'spec.md'), `---
-element: existing.id
----
-
-# gate Specification
-
-## Purpose
-Synced gate spec.
-
-## Requirements
-### Requirement: Gate already synced
-
-System SHALL keep synced gates stable.
-
-#### Scenario: Gate stays synced
-
-- **WHEN** the change has already been synced
-- **THEN** archive SHALL proceed
-`, 'utf-8');
-      await fs.writeFile(path.join(changeDir, 'opsx-delta.yaml'), stringifyYaml({
-        schema_version: XIRANG_SCHEMA_VERSION,
-        ADDED: {
-          capabilities: [{ id: 'cap.verify.gate', type: 'capability', intent: 'Verify gate' }],
-          relations: [{ from: 'cap.verify.gate', to: 'dom.verify', type: 'belongs_to' }],
-        },
-      }), 'utf-8');
-
-      await archiveCommand.execute(changeName, { yes: true, noVerify: true });
-
-      const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
-      const archives = await fs.readdir(archiveDir);
-      const archived = archives.find((entry) => entry.includes(changeName));
-      expect(archived).toBeDefined();
-      expect(await fs.readFile(path.join(archiveDir, archived!, 'effective-change.md'), 'utf8')).toContain('Status: Passed');
-    });
-
-    it('should allow archive when a modified Requirement is already synchronized', async () => {
-      const changeName = 'already-modified-spec';
-      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
-      const changeSpecDir = path.join(changeDir, 'specs', 'gate');
-      const mainSpecDir = path.join(tempDir, '.xirang', 'specs', 'gate');
-      await fs.mkdir(changeSpecDir, { recursive: true });
-      await fs.mkdir(mainSpecDir, { recursive: true });
-      await writeFreshVerifyResult(changeDir);
-      await writeV1Architecture();
-
-      const requirement = `### Requirement: Gate already modified
-
-System SHALL retain the synchronized target text.
-
-#### Scenario: Gate stays modified
-- **WHEN** archive reads an already-synchronized modification
-- **THEN** archive SHALL preserve the target Requirement
-`;
-      await fs.writeFile(path.join(changeSpecDir, 'spec.md'), `---\nelement: existing.id\n---\n\n## MODIFIED Requirements\n\n${requirement}`, 'utf-8');
-      await fs.writeFile(path.join(mainSpecDir, 'spec.md'), `---\nelement: existing.id\n---\n\n# gate Specification\n\n## Purpose\nSynced gate spec.\n\n## Requirements\n${requirement}`, 'utf-8');
+      await writeProjectModel(tempDir, minimalModel({
+        elements: [{ identity: 'existing.id', parent: 'root', title: 'Existing', summary: 'Changed summary' }],
+      }));
 
       await archiveCommand.execute(changeName, { yes: true, noVerify: true });
 
@@ -405,80 +284,17 @@ System SHALL retain the synchronized target text.
       expect(await fs.readFile(path.join(archiveDir, archived!, 'effective-change.md'), 'utf8')).toContain('Status: Passed');
     });
 
-    it('should allow archive when removal-only delta already deleted the main spec', async () => {
-      const changeName = 'already-deleted-spec';
-      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
-      const changeSpecDir = path.join(changeDir, 'specs', 'old-merge');
-      const mainSpecDir = path.join(tempDir, '.xirang', 'specs', 'old-merge');
-      await fs.mkdir(changeSpecDir, { recursive: true });
-      await fs.mkdir(mainSpecDir, { recursive: true });
+    it('should allow archive when an already-removed Element stays removed', async () => {
+      const changeName = 'already-removed-element';
+      const changeDir = await writeChangeDelta(tempDir, changeName, {
+        'elements/ghost.md': '---\noperation: REMOVED\nentity: element-declaration\nidentity: ghost.id\n---\n',
+      });
       await writeFreshVerifyResult(changeDir);
-      await writeV1Architecture();
-
-      await fs.writeFile(
-        path.join(changeSpecDir, 'spec.md'),
-        `---
-element: existing.id
----
-
-## REMOVED Requirements
-
-### Requirement: Old A
-### Requirement: Old B`,
-        'utf-8'
-      );
-      await fs.rm(path.join(mainSpecDir, 'spec.md'), { force: true });
 
       await archiveCommand.execute(changeName, { yes: true });
 
       const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
-      const archives = await fs.readdir(archiveDir);
-      const archived = archives.find((entry) => entry.includes(changeName));
-      expect(archived).toBeDefined();
-      expect(await fs.readFile(path.join(archiveDir, archived!, 'effective-change.md'), 'utf8')).toContain('Status: Passed');
-    });
-
-    it('should allow archive when removal-only delta targets headers already absent from a still-existing main spec', async () => {
-      const changeName = 'removal-headers-already-absent';
-      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
-      const changeSpecDir = path.join(changeDir, 'specs', 'partial-merge');
-      const mainSpecDir = path.join(tempDir, '.xirang', 'specs', 'partial-merge');
-      await fs.mkdir(changeSpecDir, { recursive: true });
-      await fs.mkdir(mainSpecDir, { recursive: true });
-      await writeFreshVerifyResult(changeDir);
-
-      const mainSpecPath = path.join(mainSpecDir, 'spec.md');
-      await fs.writeFile(
-        mainSpecPath,
-        `# partial-merge Specification
-
-## Purpose
-Partial merge behavior.
-
-## Requirements
-
-### Requirement: Unrelated Keeper
-The system SHALL keep this requirement.`,
-        'utf-8'
-      );
-
-      await fs.writeFile(
-        path.join(changeSpecDir, 'spec.md'),
-        `## REMOVED Requirements
-
-### Requirement: Old A
-### Requirement: Old B`,
-        'utf-8'
-      );
-
-      await archiveCommand.execute(changeName, { yes: true });
-
-      const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
-      const archives = await fs.readdir(archiveDir);
-      expect(archives.some((entry) => entry.includes(changeName))).toBe(true);
-
-      const preserved = await fs.readFile(mainSpecPath, 'utf-8');
-      expect(preserved).toContain('### Requirement: Unrelated Keeper');
+      expect((await fs.readdir(archiveDir)).some((entry) => entry.includes(changeName))).toBe(true);
     });
 
     it('should warn about incomplete tasks', async () => {
@@ -539,18 +355,12 @@ The system SHALL keep this requirement.`,
       expect(console.log).toHaveBeenCalledWith('Archive cancelled.');
     });
 
-    it('should block archive when architecture delta is pending', async () => {
+    it('should block archive when a metamodel or view delta is pending', async () => {
       const changeName = 'pending-architecture';
-      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
-      await fs.mkdir(changeDir, { recursive: true });
+      const changeDir = await writeChangeDelta(tempDir, changeName, {
+        'views/index.md': '---\noperation: ADDED\nentity: authored-view\nidentity: index\ninclude: "*"\n---\n',
+      });
       await writeFreshVerifyResult(changeDir);
-
-      const architecture = path.join(tempDir, '.xirang', 'architecture');
-      await fs.mkdir(path.join(architecture, 'domains'), { recursive: true });
-      await fs.writeFile(path.join(architecture, 'specification.c4'), 'specification { element domain element capability }');
-      await fs.writeFile(path.join(architecture, 'views.c4'), 'views { view index { include * } }');
-      await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), "model { core = domain 'Core' }");
-      await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), "model { extend core { init = capability 'Init' } }");
 
       await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow('Sync gate');
     });

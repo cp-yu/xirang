@@ -78,7 +78,7 @@ relationships/<relationship kind identity>.yaml
 | 模板位置 | 现命令 | 推导后形态 | 依据 |
 |---|---|---|---|
 | `xirang-fragments.ts:27` | `xirang list --specs --json` | **删除**，Contract 随 element 单元返回 | 决策 2；Spec 非独立对象 |
-| `xirang-fragments.ts:28`、`propose.ts:36`、`apply-change.ts:170`、`optimizer.ts:17` | `xirang arch query <elementId> --relations --depth <n> --json` | `<identity>` 取代 `<elementId>`，响应内联 Contract 全文，移除 `fqn` 与 `specs[]`，`contractPolicy` 改名 `contract` | 决策 1、2 |
+| `xirang-fragments.ts:28`、`propose.ts:36`、`apply-change.ts:170`、`optimizer.ts:17` | `xirang arch query <elementId> --relations --depth <n> --json` | `<identity>` 取代 `<elementId>`，新增 `--contract` 开关（默认关闭）控制 Contract 全文内联，移除 `fqn` 与 `specs[]`，`contractPolicy` 改名 `contract` | 决策 1、2 修正版 |
 | `xirang-fragments.ts:49`、`:60`、`propose.ts:67` | `xirang arch validate --delta <path>.c4` | **删除**，Delta 不再是单文件 | 契约「Semantic Delta 记法」 |
 | `explore.ts:193-202` | `xirang arch search` / `xirang arch impact` | 保留命令族，字段名 `identity` | 决策 1 |
 | `propose.ts:74` | `xirang diff --change --write` | `--scope` 枚举作废，改 `--entity` 过滤 | 决策 5 |

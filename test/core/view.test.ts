@@ -3,10 +3,22 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { buildViewRuntimeSnapshot, ViewCommand, type ViewLauncher } from '../../src/core/view.js';
-import { validateArchitecture } from '../../src/utils/architecture-validator.js';
-import { readLikeC4Architecture } from '../../src/utils/likec4-reader.js';
+import { likec4CacheDir } from '../../src/core/likec4/paths.js';
+import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 
-const browserFixtureRoot = path.resolve(import.meta.dirname, '..', 'fixtures', 'spec-browser');
+const CONTRACT = '## Requirements\n\n### Requirement: Existing\nThe system SHALL preserve existing behavior.\n\n#### Scenario: Existing\n- **WHEN** invoked\n- **THEN** existing behavior remains';
+
+function requirementDelta(change: string): string {
+  return '---\noperation: MODIFIED\nentity: element-declaration\nidentity: alpha.id\nkind: capability\nparent: root\ntitle: Alpha\nsummary: Alpha summary\n---\n\n'
+    + `## ADDED Requirements\n\n### Requirement: ${change}\nThe system SHALL provide ${change} behavior.\n\n`
+    + `#### Scenario: ${change}\n- **WHEN** invoked\n- **THEN** ${change} behavior is provided\n`;
+}
+
+async function writeBaseModel(root: string): Promise<void> {
+  await writeProjectModel(root, minimalModel({
+    elements: [{ identity: 'alpha.id', parent: 'root', title: 'Alpha', summary: 'Alpha summary', requirements: CONTRACT }],
+  }));
+}
 
 describe('ViewCommand', () => {
   let tempDir: string;
@@ -19,9 +31,8 @@ describe('ViewCommand', () => {
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  it('starts the embedded LikeC4 view for an Xirang project', async () => {
-    const architectureDir = path.join(tempDir, '.xirang', 'architecture');
-    await fs.mkdir(architectureDir, { recursive: true });
+  it('launches the embedded viewer against generated LikeC4 artifacts', async () => {
+    await writeBaseModel(tempDir);
     const launch = vi.fn<ViewLauncher>().mockResolvedValue(undefined);
 
     await new ViewCommand(launch).execute(tempDir);
@@ -29,57 +40,48 @@ describe('ViewCommand', () => {
     expect(launch).toHaveBeenCalledOnce();
     expect(launch).toHaveBeenCalledWith({
       projectRoot: tempDir,
-      architectureDir,
+      architectureDir: likec4CacheDir(tempDir),
       port: undefined,
       specRegistryFile: expect.stringContaining('xirang-spec-registry.json'),
       changeManifestFile: expect.stringContaining('xirang-change-manifest.json'),
     });
+    expect((await fs.readdir(likec4CacheDir(tempDir))).sort())
+      .toEqual(['model.c4', 'relations.c4', 'specification.c4', 'views.c4']);
   });
 
   it('passes a custom port to the embedded server', async () => {
-    const architectureDir = path.join(tempDir, '.xirang', 'architecture');
-    await fs.mkdir(architectureDir, { recursive: true });
+    await writeBaseModel(tempDir);
     const launch = vi.fn<ViewLauncher>().mockResolvedValue(undefined);
 
     await new ViewCommand(launch).execute(tempDir, { port: 4321 });
 
-    expect(launch).toHaveBeenCalledWith({
-      projectRoot: tempDir,
-      architectureDir,
-      port: 4321,
-      specRegistryFile: expect.stringContaining('xirang-spec-registry.json'),
-      changeManifestFile: expect.stringContaining('xirang-change-manifest.json'),
-    });
+    expect(launch).toHaveBeenCalledWith(expect.objectContaining({ projectRoot: tempDir, port: 4321 }));
   });
 
   it('discovers the nearest Xirang project from a nested directory', async () => {
-    const outerArchitecture = path.join(tempDir, '.xirang', 'architecture');
+    await writeBaseModel(tempDir);
     const innerRoot = path.join(tempDir, 'packages', 'feature');
-    const innerArchitecture = path.join(innerRoot, '.xirang', 'architecture');
+    await writeBaseModel(innerRoot);
     const nestedDir = path.join(innerRoot, 'src', 'nested');
-    await fs.mkdir(outerArchitecture, { recursive: true });
-    await fs.mkdir(innerArchitecture, { recursive: true });
     await fs.mkdir(nestedDir, { recursive: true });
     const launch = vi.fn<ViewLauncher>().mockResolvedValue(undefined);
 
     await new ViewCommand(launch).execute(nestedDir);
 
-    expect(launch).toHaveBeenCalledWith({
+    expect(launch).toHaveBeenCalledWith(expect.objectContaining({
       projectRoot: innerRoot,
-      architectureDir: innerArchitecture,
-      port: undefined,
-      specRegistryFile: expect.stringContaining('xirang-spec-registry.json'),
-      changeManifestFile: expect.stringContaining('xirang-change-manifest.json'),
-    });
+      architectureDir: likec4CacheDir(innerRoot),
+    }));
   });
 
-  it('passes a sorted immutable Spec registry snapshot to the server lifecycle', async () => {
-    const architectureDir = path.join(tempDir, '.xirang', 'architecture');
-    await fs.mkdir(architectureDir, { recursive: true });
-    await fs.mkdir(path.join(tempDir, '.xirang', 'specs', 'zeta'), { recursive: true });
-    await fs.mkdir(path.join(tempDir, '.xirang', 'specs', 'alpha'), { recursive: true });
-    await fs.writeFile(path.join(tempDir, '.xirang', 'specs', 'zeta', 'spec.md'), '---\nelement: payment.authorize\n---\n');
-    await fs.writeFile(path.join(tempDir, '.xirang', 'specs', 'alpha', 'spec.md'), '---\nelement: payment.authorize\n---\n');
+  it('passes a sorted Contract registry snapshot keyed by Element identity', async () => {
+    await writeProjectModel(tempDir, minimalModel({
+      elements: [
+        { identity: 'zeta.id', parent: 'root', requirements: CONTRACT },
+        { identity: 'alpha.id', parent: 'root', requirements: CONTRACT },
+        { identity: 'no.contract', parent: 'root' },
+      ],
+    }));
     let snapshot: unknown;
     const launch: ViewLauncher = async options => {
       snapshot = JSON.parse(await fs.readFile(options.specRegistryFile, 'utf8'));
@@ -90,38 +92,18 @@ describe('ViewCommand', () => {
     expect(snapshot).toEqual({
       version: 1,
       elements: {
-        'payment.authorize': [
-          '.xirang/specs/alpha/spec.md',
-          '.xirang/specs/zeta/spec.md',
-        ],
+        'alpha.id': ['.xirang/model/elements/alpha.id.md'],
+        'zeta.id': ['.xirang/model/elements/zeta.id.md'],
       },
     });
   });
 
   it('lists isolated active change variants deterministically and excludes archive', async () => {
-    const architectureDir = path.join(tempDir, '.xirang', 'architecture');
-    await fs.mkdir(architectureDir, { recursive: true });
-    await fs.writeFile(path.join(architectureDir, 'model.c4'), [
-      "xirang { languageVersion '1' }",
-      'specification {',
-      '  element project { xirang { root true contract optional } }',
-      '  element capability { xirang { contract optional parents [project] } }',
-      '}',
-      'model {',
-      "  projectRoot = project 'Root' 'Root summary' {",
-      "    metadata { elementId 'project.root' }",
-      "    alpha = capability 'Alpha' 'Alpha summary' { metadata { elementId 'alpha.id' } }",
-      '  }',
-      '}',
-    ].join('\n'));
-    const mainSpec = path.join(tempDir, '.xirang', 'specs', 'alpha', 'spec.md');
-    await fs.mkdir(path.dirname(mainSpec), { recursive: true });
-    await fs.writeFile(mainSpec, `---\nelement: alpha.id\n---\n\n## Purpose\nAlpha behavior for runtime variant tests.\n\n## Requirements\n\n### Requirement: Existing\nThe system SHALL preserve existing behavior.\n\n#### Scenario: Existing\n- **WHEN** invoked\n- **THEN** existing behavior remains\n`);
-
-    for (const [change, requirement] of [['z-change', 'Zeta'], ['a-change', 'Alpha']] as const) {
-      const delta = path.join(tempDir, '.xirang', 'changes', change, 'specs', 'alpha', 'spec.md');
-      await fs.mkdir(path.dirname(delta), { recursive: true });
-      await fs.writeFile(delta, `---\nelement: alpha.id\n---\n\n## ADDED Requirements\n\n### Requirement: ${requirement}\nThe system SHALL provide ${requirement} behavior.\n\n#### Scenario: ${requirement}\n- **WHEN** invoked\n- **THEN** ${requirement} behavior is provided\n`);
+    await writeBaseModel(tempDir);
+    for (const change of ['z-change', 'a-change']) {
+      await writeChangeDelta(tempDir, change, {
+        'elements/alpha.id.md': requirementDelta(change === 'a-change' ? 'Alpha' : 'Zeta'),
+      });
     }
     await fs.mkdir(path.join(tempDir, '.xirang', 'changes', 'archive', 'old-change'), { recursive: true });
 
@@ -138,37 +120,35 @@ describe('ViewCommand', () => {
     expect(alpha.diff?.entries.some(entry => entry.identity.includes('#Alpha'))).toBe(true);
     expect(alpha.diff?.entries.some(entry => entry.identity.includes('#Zeta'))).toBe(false);
     expect(zeta.diff?.entries.some(entry => entry.identity.includes('#Zeta'))).toBe(true);
-    expect(zeta.diff?.entries.some(entry => entry.identity.includes('#Alpha'))).toBe(false);
-    expect(alpha.diff?.summary.architecture).toEqual({ ADDED: 0, MODIFIED: 0, REMOVED: 0 });
-    expect(alpha.architecture?.elements).toEqual(expect.arrayContaining([
-      expect.objectContaining({ id: 'project.root', fqn: 'projectRoot' }),
-      expect.objectContaining({ id: 'alpha.id', fqn: 'projectRoot.alpha' }),
-    ]));
+    expect(zeta.architecture?.elements.map(element => element.declaration.identity))
+      .toEqual(expect.arrayContaining(['root', 'alpha.id']));
   });
 
-  it('keeps Architecture identity stable when only Specs change in a mixed change', async () => {
-    await fs.cp(browserFixtureRoot, tempDir, { recursive: true });
-    const targetSpec = path.join(tempDir, '.xirang', 'changes', 'architecture-change', 'specs', 'single', 'spec.md');
+  it('reports one fingerprint per Semantic Model partition', async () => {
+    await writeBaseModel(tempDir);
+    await writeChangeDelta(tempDir, 'contract-only', { 'elements/alpha.id.md': requirementDelta('Alpha') });
 
     const before = await buildViewRuntimeSnapshot(tempDir);
-    const beforeVariant = before.variants.find(variant => variant.id === 'change:architecture-change')!;
-    await fs.writeFile(targetSpec, (await fs.readFile(targetSpec, 'utf8')).replace('architecture-change target content', 'new Spec-only content'));
-    const after = await buildViewRuntimeSnapshot(tempDir, { previous: before, onlyChange: 'architecture-change' });
-    const afterVariant = after.variants.find(variant => variant.id === 'change:architecture-change')!;
+    const beforeVariant = before.variants.find(variant => variant.id === 'change:contract-only')!;
+    expect(Object.keys(beforeVariant.partitionFingerprints!).sort())
+      .toEqual(['elements', 'metamodel', 'relationships', 'views']);
+
+    await writeChangeDelta(tempDir, 'contract-only', {
+      'views/detail.md': '---\noperation: ADDED\nentity: authored-view\nidentity: detail\ninclude: "*"\n---\n',
+    });
+    const after = await buildViewRuntimeSnapshot(tempDir, { previous: before, onlyChange: 'contract-only' });
+    const afterVariant = after.variants.find(variant => variant.id === 'change:contract-only')!;
 
     expect(afterVariant.changeFingerprint).not.toBe(beforeVariant.changeFingerprint);
-    expect(afterVariant.specsFingerprint).not.toBe(beforeVariant.specsFingerprint);
-    expect(afterVariant.architectureFingerprint).toBe(beforeVariant.architectureFingerprint);
-    expect(after.variants.find(variant => variant.id === 'change:browser-change')).toBe(
-      before.variants.find(variant => variant.id === 'change:browser-change'),
-    );
+    expect(afterVariant.partitionFingerprints!.views).not.toBe(beforeVariant.partitionFingerprints!.views);
+    expect(afterVariant.partitionFingerprints!.elements).toBe(beforeVariant.partitionFingerprints!.elements);
   });
 
-  it('retains invalid active changes with partitioned diagnostics', async () => {
-    await fs.mkdir(path.join(tempDir, '.xirang', 'architecture'), { recursive: true });
-    const delta = path.join(tempDir, '.xirang', 'changes', 'broken', 'specs', 'bad', 'spec.md');
-    await fs.mkdir(path.dirname(delta), { recursive: true });
-    await fs.writeFile(delta, '## RENAMED Requirements\n');
+  it('retains invalid active changes with their diagnostics', async () => {
+    await writeBaseModel(tempDir);
+    await writeChangeDelta(tempDir, 'broken', {
+      'elements/ghost.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: ghost.id\nkind: capability\nparent: root\ntitle: Ghost\nsummary: Ghost\n---\n',
+    });
 
     const snapshot = await buildViewRuntimeSnapshot(tempDir);
 
@@ -184,25 +164,5 @@ describe('ViewCommand', () => {
       '未找到 Xirang 项目',
     );
     expect(launch).not.toHaveBeenCalled();
-  });
-
-  it('uses a complete v1 Semantic Model for the browser fixture', async () => {
-    const architecture = await readLikeC4Architecture(browserFixtureRoot);
-    const validation = await validateArchitecture(browserFixtureRoot, architecture);
-
-    expect(architecture.profile).toBe('v1');
-    expect(architecture.elements).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        id: 'project.root',
-        kind: 'project',
-        parent: null,
-        children: ['browser.long', 'browser.multi', 'browser.none', 'browser.single'],
-      }),
-      expect.objectContaining({ id: 'browser.none', kind: 'capability', parent: 'project.root' }),
-      expect.objectContaining({ id: 'browser.single', kind: 'capability', parent: 'project.root' }),
-      expect.objectContaining({ id: 'browser.multi', kind: 'capability', parent: 'project.root' }),
-      expect.objectContaining({ id: 'browser.long', kind: 'capability', parent: 'project.root' }),
-    ]));
-    expect(validation).toEqual({ success: true, errors: [], warnings: [] });
   });
 });

@@ -17,7 +17,7 @@
 
 #### Checks
 
-- [ ] C1 验证 frontmatter 分离与固定键序
+- [x] C1 验证 frontmatter 分离与固定键序
   - Verifies: `xirang-contract.md` / 「entity 自声明」/ `entity` 字段自声明
   - Command: `pnpm exec vitest run test/core/model/frontmatter.test.ts`
   - Expect: CRLF 归一、缺失分隔符诊断、键顺序与对象属性插入顺序无关
@@ -46,19 +46,19 @@
 
 #### Checks
 
-- [ ] C1 验证四分区解析与 entity 自声明
+- [x] C1 验证四分区解析与 entity 自声明
   - Verifies: `xirang-contract.md` / 「单元形态」/ 单元划分与字段表
   - Command: `pnpm exec vitest run test/core/model/parser.test.ts`
   - Expect: 四分区各自解析正确；`relationships/` 单容器多条目；Requirement/Scenario 顺序保留
   - Remediation: `relationships/` 是唯一多实体容器，不得按单实体单元处理
 
-- [ ] C2 验证分区不参与类型判定
+- [x] C2 验证分区不参与类型判定
   - Verifies: `xirang-contract.md` / 「entity 自声明」/ 分区不参与 entity type 判定
   - Command: `pnpm exec vitest run test/core/model/parser.test.ts`
   - Expect: 放错分区的条目仍按 `entity` 解析，并产出 organization warning 而非错误
   - Remediation: 错位是组织约定不符，不是解析失败，不得抛出
 
-- [ ] C3 验证 identity 索引与文件名无关性
+- [x] C3 验证 identity 索引与文件名无关性
   - Verifies: `xirang-contract.md` / 「存储结构」/ 目录与文件名仅为组织约定
   - Command: `pnpm exec vitest run test/core/model/index-map.test.ts`
   - Expect: 任意文件名下 `moduleOf(identity)` 均正确；重命名文件后 IR 逐字段不变
@@ -86,13 +86,13 @@
 
 #### Checks
 
-- [ ] C1 验证确定性与排序
+- [x] C1 验证确定性与排序
   - Verifies: `xirang-contract.md` / 「Sync 保证」/ 确定性序列化
   - Command: `pnpm exec vitest run test/core/model/serializer.test.ts`
   - Expect: 连续两次序列化字节相同；条目乱序输入产出相同排序结果；跨 locale 一致
   - Remediation: 排序使用字节序比较，不得依赖 `localeCompare` 默认 locale
 
-- [ ] C2 验证 round-trip 属性
+- [x] C2 验证 round-trip 属性
   - Verifies: `xirang-contract.md` / 「Sync 保证」/ `parse(serialize(ir))` 与 `ir` 相等
   - Command: `pnpm exec vitest run test/core/model/serializer.pbt.test.ts`
   - Expect: 随机 IR 往返等价；转义、多行、空集合、缺省字段四类边界全覆盖
@@ -122,19 +122,19 @@
 
 #### Checks
 
-- [ ] C1 验证 identity 约束与 Kind 唯一性
+- [x] C1 验证 identity 约束与 Kind 唯一性
   - Verifies: `xirang-contract.md` / 「identity 约束」/ 字符集与 Kind 全局唯一
   - Command: `pnpm exec vitest run test/core/model/validator.test.ts`
   - Expect: 含 `/`、空格、中文的 identity 被拒；Element Kind 与 Relationship Kind 同名被拒
   - Remediation: 唯一性须跨两类 Kind 检测，不得各自独立判重
 
-- [ ] C2 验证层级与端点约束
+- [x] C2 验证层级与端点约束
   - Verifies: `xirang-definition.md` / §2 Hierarchical Elements / 单 parent 与任意深度
   - Command: `pnpm exec vitest run test/core/model/validator.test.ts`
   - Expect: 任意深度合法；缺失 parent、containment 环、非法 kind 组合、非法端点均被拒
   - Remediation: 未声明约束时默认开放，不得隐式套用固定层级
 
-- [ ] C3 验证 Contract 基数与必需性
+- [x] C3 验证 Contract 基数与必需性
   - Verifies: `xirang-definition.md` / §3 Element Contract / 至多一个 Contract
   - Command: `pnpm exec vitest run test/core/model/validator.test.ts`
   - Expect: `contract: required` 且无 Requirement 被拒；`contract: optional` 且无 Requirement 通过
@@ -165,19 +165,19 @@
 
 #### Checks
 
-- [ ] C1 验证 Entry 解析与双 entity type 共存
+- [x] C1 验证 Entry 解析与双 entity type 共存
   - Verifies: `xirang-contract.md` / 「Semantic Delta 记法」/ per-entry 完整目标内容
   - Command: `pnpm exec vitest run test/core/model/delta.test.ts`
   - Expect: 单个 elements 单元同时产出 Declaration Entry 与多条 Requirement Entry；仅改 Contract 时 frontmatter 不产生 Entry
   - Remediation: 「完整目标内容」是 per-entry 规则，不得要求整份 Contract 完整
 
-- [ ] C2 验证修改语支持面矩阵
+- [x] C2 验证修改语支持面矩阵
   - Verifies: `xirang-contract.md` / 「Semantic Delta 记法」/ 修改语支持面表格
   - Command: `pnpm exec vitest run test/core/model/delta.test.ts`
   - Expect: relationships 的 MODIFIED 被拒；其余四类三种修改语均可用
   - Remediation: Relationship 的 identity 即全部内容，MODIFIED 无处施加
 
-- [ ] C3 验证 Kind 可变与应用结果
+- [x] C3 验证 Kind 可变与应用结果
   - Verifies: `xirang-definition.md` / §3 Semantic Delta Entry / Kind 可在 identity 不变时改变
   - Command: `pnpm exec vitest run test/core/model/delta.test.ts`
   - Expect: identity 不变而 kind 改变的 MODIFIED 成功；冲突操作与前置条件失败被拒；`touched` 集合精确
@@ -207,19 +207,19 @@
 
 #### Checks
 
-- [ ] C1 验证最小重写
+- [x] C1 验证最小重写
   - Verifies: `xirang-contract.md` / 「Sync 保证」/ 最小重写
   - Command: `pnpm exec vitest run test/core/model/sync-writer.test.ts`
   - Expect: 改一个 Element 后，其余单元 mtime 与字节均未变；改一条 Relationship 只重写其容器
   - Remediation: 未受影响单元不得因重新序列化而产生字节差异
 
-- [ ] C2 验证分区推广不破坏事务不变量
+- [x] C2 验证分区推广不破坏事务不变量
   - Verifies: `xirang-contract.md` / 「Sync 保证」/ 全或无
   - Command: `pnpm exec vitest run test/core/change-sync.partitions.test.ts`
   - Expect: 四分区均纳入指纹与 manifest；`../`、绝对路径、非四分区前缀被拒；写入中途失败完整回滚；journal 存在时崩溃恢复正确
   - Remediation: `resolveManifestPath` 是路径逃逸防线，推广白名单时不得削弱 normalize 校验
 
-- [ ] C3 验证差异输出不携带分区
+- [x] C3 验证差异输出不携带分区
   - Verifies: `xirang-contract.md` / 「语义差异判定」/ 差异输出以 entity type 与 identity 为键
   - Command: `pnpm exec vitest run test/core/model/sync-writer.test.ts`
   - Expect: `ChangeDiffEntry` 无 `scope` 字段；改变 relationships 分组方式不影响差异输出
@@ -246,13 +246,13 @@
 
 #### Checks
 
-- [ ] C1 验证四分区 Candidate 完整提升
+- [x] C1 验证四分区 Candidate 完整提升
   - Verifies: `xirang-contract.md` / 「存储结构」/ Candidate 与 Semantic Model 使用相同分区
   - Command: `pnpm exec vitest run test/core/model/candidate-partitions.test.ts`
   - Expect: 含四分区文件的 Candidate 提升后 `.xirang/model/` 四分区齐全，无文件被静默丢弃
   - Remediation: 两处前缀过滤须同时推广，遗漏会使新分区文件丢失而 promotion 仍报成功
 
-- [ ] C2 验证整体替换语义
+- [x] C2 验证整体替换语义
   - Verifies: `xirang-contract.md` / 「存储结构」/ Candidate 中不存在的单元不再保留
   - Command: `pnpm exec vitest run test/core/model/candidate-partitions.test.ts`
   - Expect: 旧模型独有的单元在提升后被删除；digest 不匹配时拒绝提升；提升失败后 Candidate 与模型均回到原状
@@ -283,13 +283,13 @@
 
 #### Checks
 
-- [ ] C1 验证收敛后的规则不可复现
+- [x] C1 验证收敛后的规则不可复现
   - Verifies: `xirang-definition.md` / §3 Semantic Delta Entry / Kind 可变
   - Command: `pnpm exec vitest run test/core/model/regression-removed-rules.test.ts`
   - Expect: identity 不变改 kind 通过；一 Element 绑定两份 Contract 在新结构中无法表达；relationship `description` 无处声明
   - Remediation: 这些规则的消失应由结构保证，不得仅靠删除校验实现
 
-- [ ] C2 验证删除未留孤儿引用
+- [ ] C2 验证删除未留孤儿引用（**移交 C3**：用户已接受中间态构建不通，被孤立的 9 个消费点属于 C3）
   - Verifies: `xirang-contract.md` / 「引用规则」/ 单元之间不存在位置引用
   - Command: `pnpm exec tsc --noEmit`
   - Expect: 类型检查通过，无对已删除模块的 import
@@ -314,19 +314,19 @@
 
 #### Checks
 
-- [ ] C1 验证端到端管线
+- [x] C1 验证端到端管线
   - Verifies: `xirang-contract.md` / 「Sync 保证」/ 三条保证
   - Command: `pnpm exec vitest run test/core/model/`
   - Expect: 管线各阶段结果一致；最小重写、确定性、全或无同时成立
   - Remediation: 夹具须自建临时目录，不得依赖仓库现有模型数据
 
-- [ ] C2 验证语义差异判定的顺序规则
+- [x] C2 验证语义差异判定的顺序规则
   - Verifies: `xirang-contract.md` / 「语义差异判定」/ 规范化维度清单
   - Command: `pnpm exec vitest run test/core/model/kernel-e2e.test.ts`
   - Expect: 打乱跨单元集合顺序无差异；调换 Requirement 或 Scenario 顺序产生差异
   - Remediation: 划分依据是是否存在权威顺序，不得对单元内顺序做规范化
 
-- [ ] C3 验证旧测试未新增失败
+- [ ] C3 验证旧测试未新增失败（**移交 C3**：用户已接受中间态；41 个旧测试文件因已删除模块的孤儿 import 与 Candidate 分区切换而红灯）
   - Verifies: `design.md` / 风险与回滚条件 / R1 半迁移期
   - Command: `pnpm exec vitest run`
   - Expect: 相对本 Change 起点，失败集合无新增项

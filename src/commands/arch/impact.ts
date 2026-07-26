@@ -1,14 +1,21 @@
-import { buildSpecRegistry } from '../../core/spec-registry.js';
-import { readLikeC4Architecture } from '../../utils/likec4-reader.js';
-import type { ContractPolicy, SemanticElement, SemanticRelationship } from '../../utils/semantic-model.js';
+import { deriveLocalNames } from '../../core/likec4/local-names.js';
+import { modelRoot } from '../../core/model/paths.js';
+import { parseSemanticModel } from '../../core/model/parser.js';
+import type {
+  ElementDeclaration,
+  Relationship,
+  Requirement,
+  SemanticModel,
+} from '../../core/model/types.js';
 import { compareCodePoints } from '../../utils/stable-order.js';
 
 export interface ArchitectureImpactOptions {
   depth?: number;
 }
 
-export interface ArchitectureImpactElement extends SemanticElement {
-  contractPolicy: ContractPolicy;
+export interface ArchitectureImpactElement extends ElementDeclaration {
+  contract: 'required' | 'optional';
+  children: string[];
 }
 
 export interface ArchitectureRefinementContext {
@@ -18,7 +25,7 @@ export interface ArchitectureRefinementContext {
   depth: number;
 }
 
-export interface ArchitectureRelationPathStep extends SemanticRelationship {
+export interface ArchitectureRelationPathStep extends Relationship {
   traversal: 'incoming' | 'outgoing';
 }
 
@@ -29,17 +36,15 @@ export interface ArchitectureRelationPath {
 }
 
 export interface ArchitectureImpactContract {
-  specId: string;
   elementId: string;
-  path: string;
-  content: string;
+  requirements: Requirement[];
 }
 
 export interface ArchitectureImpactResult {
   focusElements: ArchitectureImpactElement[];
   elements: ArchitectureImpactElement[];
   refinementContext: ArchitectureRefinementContext[];
-  relations: SemanticRelationship[];
+  relations: Relationship[];
   relationPaths: ArchitectureRelationPath[];
   contracts: ArchitectureImpactContract[];
   statistics: {
@@ -52,22 +57,28 @@ export interface ArchitectureImpactResult {
   diagnostics: string[];
 }
 
-function relationKey(relation: SemanticRelationship): string {
-  return [relation.source, relation.kind, relation.target, relation.description ?? ''].join('\u0000');
+function relationKey(relation: Relationship): string {
+  return [relation.source, relation.kind, relation.target].join('\u0000');
 }
 
-function compareRelations(left: SemanticRelationship, right: SemanticRelationship): number {
+function compareRelations(left: Relationship, right: Relationship): number {
   return compareCodePoints(relationKey(left), relationKey(right));
 }
 
 function pathKey(steps: ArchitectureRelationPathStep[]): string {
-  return steps.map(step => [step.source, step.kind, step.target].join('\u0000')).join('\u0001');
+  return steps.map(step => relationKey(step)).join('\u0001');
+}
+
+function isDerivedFqn(model: SemanticModel, id: string): boolean {
+  if (!id.includes('.') || model.elements.length === 0) return false;
+  const names = deriveLocalNames(model.elements);
+  return model.elements.some(element => names.pathOf(element.declaration.identity) === id);
 }
 
 function canonicalPaths(
   focusElementId: string,
   depth: number,
-  adjacency: Map<string, SemanticRelationship[]>,
+  adjacency: Map<string, Relationship[]>,
 ): Map<string, ArchitectureRelationPathStep[]> {
   const paths = new Map<string, ArchitectureRelationPathStep[]>([[focusElementId, []]]);
   let frontier = new Map<string, ArchitectureRelationPathStep[]>([[focusElementId, []]]);
@@ -106,41 +117,46 @@ export async function impactArchitecture(
   if (!Number.isInteger(depth) || depth < 0) throw new Error('Impact depth must be a non-negative integer');
   if (focusElementIds.length === 0) throw new Error('At least one focus Element is required');
 
-  const architecture = await readLikeC4Architecture(projectRoot);
-  if (architecture.profile !== 'v1') {
-    throw new Error('Architecture impact requires a Xirang languageVersion 1 Formal Semantic Model');
+  const { model } = await parseSemanticModel(modelRoot(projectRoot));
+  const kinds = new Map(model.elementKinds.map(kind => [kind.identity, kind]));
+  const childrenOf = new Map<string, string[]>();
+  for (const element of model.elements) {
+    const parent = element.declaration.parent;
+    if (parent === null) continue;
+    childrenOf.set(parent, [...(childrenOf.get(parent) ?? []), element.declaration.identity]);
   }
+  for (const list of childrenOf.values()) list.sort(compareCodePoints);
 
-  const elements = architecture.elements.map((element): ArchitectureImpactElement => ({
-    ...element,
-    contractPolicy: architecture.metamodel.elements[element.kind]?.contractPolicy ?? 'optional',
+  const elements = model.elements.map((element): ArchitectureImpactElement => ({
+    ...element.declaration,
+    contract: kinds.get(element.declaration.kind)?.contract ?? 'optional',
+    children: childrenOf.get(element.declaration.identity) ?? [],
   }));
-  const elementById = new Map(elements.map(element => [element.id, element]));
-  const roots = elements.filter(element => architecture.metamodel.elements[element.kind]?.root === true);
+  const elementById = new Map(elements.map(element => [element.identity, element]));
+  const requirementsById = new Map(model.elements.map(element => [element.declaration.identity, element.requirements]));
+  const roots = elements.filter(element => kinds.get(element.kind)?.root === true);
   if (roots.length !== 1) throw new Error(`Formal Semantic Model must contain exactly one Project Root; found ${roots.length}`);
 
   const uniqueFocusIds = [...new Set(focusElementIds)].sort(compareCodePoints);
   for (const elementId of uniqueFocusIds) {
     if (elementById.has(elementId)) continue;
-    if (elements.some(element => element.fqn === elementId)) {
+    if (isDerivedFqn(model, elementId)) {
       throw new Error(`Focus Element must use stable elementId, not FQN: ${elementId}. Use xirang arch search first.`);
     }
     throw new Error(`Focus Element not found: ${elementId}. Use xirang arch search first.`);
   }
 
-  const uniqueRelations = [...new Map(architecture.relations.map(relation => [relationKey(relation), relation])).values()]
+  const uniqueRelations = [...new Map(model.relationships.map(relation => [relationKey(relation), relation])).values()]
     .sort(compareRelations);
   for (const relation of uniqueRelations) {
     if (!elementById.has(relation.source)) throw new Error(`Relationship source not found: ${relation.source}`);
     if (!elementById.has(relation.target)) throw new Error(`Relationship target not found: ${relation.target}`);
   }
 
-  const adjacency = new Map<string, SemanticRelationship[]>();
+  const adjacency = new Map<string, Relationship[]>();
   for (const relation of uniqueRelations) {
     for (const endpoint of new Set([relation.source, relation.target])) {
-      const adjacent = adjacency.get(endpoint) ?? [];
-      adjacent.push(relation);
-      adjacency.set(endpoint, adjacent);
+      adjacency.set(endpoint, [...(adjacency.get(endpoint) ?? []), relation]);
     }
   }
   for (const adjacent of adjacency.values()) adjacent.sort(compareRelations);
@@ -168,13 +184,13 @@ export async function impactArchitecture(
       ancestorDepth += 1;
       const parent = elementById.get(current.parent);
       if (!parent) throw new Error(`Refinement parent not found: ${current.parent}`);
-      if (seenAncestors.has(parent.id)) throw new Error(`Refinement cycle detected at: ${parent.id}`);
-      seenAncestors.add(parent.id);
-      contextElementIds.add(parent.id);
+      if (seenAncestors.has(parent.identity)) throw new Error(`Refinement cycle detected at: ${parent.identity}`);
+      seenAncestors.add(parent.identity);
+      contextElementIds.add(parent.identity);
       refinementContext.push({ focusElementId, element: parent, direction: 'ancestor', depth: ancestorDepth });
       current = parent;
     }
-    if (current.id !== roots[0].id) {
+    if (current.identity !== roots[0].identity) {
       throw new Error(`Focus Element ancestor chain does not reach Project Root: ${focusElementId}`);
     }
 
@@ -188,13 +204,13 @@ export async function impactArchitecture(
           return child;
         })
         .filter(child => {
-          if (seenDescendants.has(child.id)) return false;
-          seenDescendants.add(child.id);
+          if (seenDescendants.has(child.identity)) return false;
+          seenDescendants.add(child.identity);
           return true;
         })
-        .sort((left, right) => compareCodePoints(left.id, right.id));
+        .sort((left, right) => compareCodePoints(left.identity, right.identity));
       for (const child of next) {
-        contextElementIds.add(child.id);
+        contextElementIds.add(child.identity);
         refinementContext.push({ focusElementId, element: child, direction: 'descendant', depth: descendantDepth });
       }
       frontier = next;
@@ -203,47 +219,21 @@ export async function impactArchitecture(
   refinementContext.sort((left, right) => compareCodePoints(left.focusElementId, right.focusElementId)
     || compareCodePoints(left.direction, right.direction)
     || left.depth - right.depth
-    || compareCodePoints(left.element.id, right.element.id));
+    || compareCodePoints(left.element.identity, right.element.identity));
 
   const returnedIds = new Set([...reachableIds, ...contextElementIds]);
   const returnedElements = [...returnedIds].map(elementId => elementById.get(elementId)!)
-    .sort((left, right) => compareCodePoints(left.id, right.id));
+    .sort((left, right) => compareCodePoints(left.identity, right.identity));
   const relations = uniqueRelations.filter(relation => reachableIds.has(relation.source) && reachableIds.has(relation.target));
-
-  const registry = await buildSpecRegistry(projectRoot);
-  const registryDiagnostics = registry.getDiagnostics();
-  if (registryDiagnostics.length > 0) {
-    throw new Error(
-      `Invalid Element Contract registry:\n${registryDiagnostics
-        .map(diagnostic => `  ${diagnostic.specId} [${diagnostic.code}]: ${diagnostic.message}`)
-        .join('\n')}`
-    );
-  }
-  const invalidBindings = [...registry.specToElement]
-    .filter(([, elementId]) => !elementById.has(elementId))
-    .sort(([left], [right]) => compareCodePoints(left, right));
-  if (invalidBindings.length > 0) {
-    throw new Error(
-      `Element Contract owner not found:\n${invalidBindings
-        .map(([specId, elementId]) => `  ${specId}: ${elementId}`)
-        .join('\n')}`
-    );
-  }
 
   const contracts: ArchitectureImpactContract[] = [];
   for (const element of returnedElements) {
-    const specIds = registry.getSpecsForElement(element.id);
-    if (element.contractPolicy === 'required' && specIds.length === 0) {
-      throw new Error(`Required Element Contract missing: ${element.id}`);
+    const requirements = requirementsById.get(element.identity) ?? [];
+    if (element.contract === 'required' && requirements.length === 0) {
+      throw new Error(`Required Element Contract missing: ${element.identity}`);
     }
-    for (const specId of specIds) {
-      const source = registry.getSpecSource(specId);
-      if (!source) throw new Error(`Element Contract source missing: ${specId} (${element.id})`);
-      contracts.push({ specId, elementId: element.id, path: source.path, content: source.content });
-    }
+    if (requirements.length > 0) contracts.push({ elementId: element.identity, requirements });
   }
-  contracts.sort((left, right) => compareCodePoints(left.elementId, right.elementId)
-    || compareCodePoints(left.specId, right.specId));
 
   const focusElements = uniqueFocusIds.map(elementId => elementById.get(elementId)!);
   return {
@@ -258,7 +248,7 @@ export async function impactArchitecture(
       elementCount: returnedElements.length,
       relationCount: relations.length,
       contractCount: contracts.length,
-      contractBytes: contracts.reduce((total, contract) => total + Buffer.byteLength(contract.content), 0),
+      contractBytes: contracts.reduce((total, contract) => total + Buffer.byteLength(JSON.stringify(contract.requirements)), 0),
     },
     diagnostics: [],
   };
@@ -266,7 +256,7 @@ export async function impactArchitecture(
 
 export function formatArchitectureImpactText(result: ArchitectureImpactResult): string {
   const lines = [
-    `Focus Elements: ${result.focusElements.map(element => element.id).join(', ')}`,
+    `Focus Elements: ${result.focusElements.map(element => element.identity).join(', ')}`,
     `Elements: ${result.statistics.elementCount}`,
     `Relationships: ${result.statistics.relationCount}`,
     `Contracts: ${result.statistics.contractCount}`,

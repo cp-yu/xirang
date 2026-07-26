@@ -3,16 +3,15 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { stringify as stringifyYaml } from 'yaml';
 import { XIRANG_DIR_NAME } from '../config.js';
+import { modelRoot } from '../model/paths.js';
+import { SEMANTIC_PARTITIONS } from '../model/transaction.js';
 
 export interface CandidatePromotionMetadata {
   schemaVersion: 1;
   reviewDigest: string;
   promotedAt: string;
   previousFormalFingerprint: string;
-  previous: {
-    architecture: 'previous/architecture';
-    specs: 'previous/specs';
-  };
+  previous: Record<string, string>;
 }
 
 export interface CandidateHistoryReservation {
@@ -49,14 +48,11 @@ export async function reserveCandidateHistory(
 
   try {
     await fs.writeFile(path.join(directory, 'build.md'), buildBytes);
-    for (const name of ['architecture', 'specs'] as const) {
-      const source = path.join(projectRoot, XIRANG_DIR_NAME, name);
+    for (const name of SEMANTIC_PARTITIONS) {
+      const source = path.join(modelRoot(projectRoot), name);
       const target = path.join(directory, 'previous', name);
       if (await fs.stat(source).then(() => true, () => false)) {
-        await fs.cp(source, target, {
-          recursive: true,
-          filter: entry => path.basename(entry) !== '.likec4',
-        });
+        await fs.cp(source, target, { recursive: true });
       } else {
         await fs.mkdir(target, { recursive: true });
       }

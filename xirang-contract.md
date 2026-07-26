@@ -90,7 +90,7 @@ Delta 侧在 `.xirang/changes/<change>/` 的对应分区使用相同命名。
 
 Relationship 的 identity 即其全部内容，不含任何其他字段。
 
-Element Contract 以 `## Requirements` 组织，其下每个 `### Requirement: <name>` 是一个规范性语义条目，Requirement 之下以 `#### Scenario: <name>` 表达场景。Requirement 的 identity 由宿主 Element 的 identity 与 `<name>` 共同确定：在 Delta 中宿主已由所在单元确定，因此只书写 `<name>`；需要全局寻址时书写为 `<element identity>#<name>`。
+Element Contract 以 `## Requirements` 组织，其下每个 `### Requirement: <name>` 是一个规范性语义条目，Requirement 之下以 `#### Scenario: <name>` 表达场景。`elements/` 单元的正文只包含该段；Element 的描述性文字由 Declaration 的 `summary` 承载，不得重复写入 Contract。正文出现 `## Requirements` 以外的内容时校验报错。Requirement 的 identity 由宿主 Element 的 identity 与 `<name>` 共同确定：在 Delta 中宿主已由所在单元确定，因此只书写 `<name>`；需要全局寻址时书写为 `<element identity>#<name>`。
 
 ### identity 约束
 

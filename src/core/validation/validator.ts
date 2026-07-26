@@ -6,7 +6,6 @@ import { SpecSchema, ChangeSchema, Spec, Change } from '../schemas/index.js';
 import { MarkdownParser } from '../parsers/markdown-parser.js';
 import { ChangeParser } from '../parsers/change-parser.js';
 import { ValidationReport, ValidationIssue, ValidationLevel } from './types.js';
-import { readLikeC4Architecture } from '../../utils/likec4-reader.js';
 import {
   MIN_PURPOSE_LENGTH,
   MAX_REQUIREMENT_TEXT_LENGTH,
@@ -17,9 +16,10 @@ import {
   normalizeRequirementName,
   extractRequirementsSection,
 } from '../parsers/requirement-blocks.js';
-import { parseSpecFrontmatter } from '../parsers/spec-frontmatter.js';
-import { buildSpecRegistry, type SpecRegistry } from '../spec-registry.js';
 import { findMainSpecStructureIssues } from '../parsers/spec-structure.js';
+import { splitFrontmatter } from '../model/frontmatter.js';
+import { normalizeProse, readEntity } from '../model/parser.js';
+import { PARTITIONS, type ModelElement } from '../model/types.js';
 import {
   buildCodeFenceMask,
   containsShallOrMust as containsShallOrMustShared,
@@ -29,79 +29,8 @@ import {
 import { FileSystemUtils } from '../../utils/file-system.js';
 
 export interface ChangeDeltaValidationContext {
-  projectRoot: string;
-  architecture: Awaited<ReturnType<typeof readLikeC4Architecture>>;
-  specsDirectory?: string;
-  knownElementIds?: ReadonlySet<string>;
+  projectRoot?: string;
   allowAlreadyApplied?: boolean;
-  skipSpecBindingValidation?: boolean;
-}
-
-function appendRegistryBindingIssues(
-  registry: SpecRegistry,
-  specsPath: string,
-  knownElements: Set<string>,
-  issues: ValidationIssue[],
-): void {
-  for (const specName of registry.getOrphanedSpecs()) {
-    const issuePath = path.join(specsPath, specName, 'spec.md');
-    const parseIssues = registry.getIssuesForSpec(specName);
-    if (parseIssues.length === 0) {
-      issues.push({
-        level: 'ERROR',
-        path: issuePath,
-        message: `MISSING_SPEC_ELEMENT: Spec "${specName}" has no singular element binding`,
-      });
-      continue;
-    }
-    for (const issue of parseIssues) {
-      issues.push({ level: 'ERROR', path: issuePath, message: `${issue.code}: ${issue.message}` });
-    }
-  }
-
-  for (const [specName, elementId] of registry.specToElement) {
-    if (knownElements.has(elementId)) continue;
-    issues.push({
-      level: 'ERROR',
-      path: path.join(specsPath, specName, 'spec.md'),
-      message: `UNKNOWN_SPEC_ELEMENT: Spec "${specName}" binds unknown element "${elementId}"`,
-    });
-  }
-}
-
-function appendRequiredContractIssues(
-  registry: SpecRegistry,
-  architecture: Awaited<ReturnType<typeof readLikeC4Architecture>>,
-  issues: ValidationIssue[],
-  coveredBy?: SpecRegistry,
-): void {
-  const uncovered = registry
-    .getUncoveredRequiredElements(architecture.elements, architecture.metamodel)
-    .filter(elementId => !coveredBy?.elementToSpecs.has(elementId));
-  for (const elementId of uncovered) {
-    issues.push({
-      level: 'ERROR',
-      path: path.join(XIRANG_DIR_NAME, 'architecture'),
-      message: `MISSING_REQUIRED_CONTRACT: required element "${elementId}" has no bound Spec`,
-    });
-  }
-}
-
-export async function validateSpecBindings(
-  projectRoot: string,
-  architecture: Awaited<ReturnType<typeof readLikeC4Architecture>>,
-  specsDirectory?: string,
-): Promise<ValidationIssue[]> {
-  const registry = await buildSpecRegistry(projectRoot, specsDirectory);
-  const issues: ValidationIssue[] = [];
-  appendRegistryBindingIssues(
-    registry,
-    path.relative(projectRoot, specsDirectory ?? path.join(projectRoot, XIRANG_DIR_NAME, 'specs')),
-    new Set(architecture.elements.map(element => element.id)),
-    issues,
-  );
-  appendRequiredContractIssues(registry, architecture, issues);
-  return issues;
 }
 
 export class Validator {
@@ -204,149 +133,66 @@ export class Validator {
   }
 
   /**
-   * Validate delta-formatted spec files under a change directory.
-   * Enforces:
-   * - At least one delta across all files
-   * - ADDED/MODIFIED: each requirement has SHALL/MUST and at least one scenario
-   * - REMOVED: names only; no scenario/description required
-   * - unsupported operation sections and Scenario metadata are rejected
-   * - No duplicates within sections; no cross-section conflicts per spec
+   * Notation-level validation of the Requirement deltas carried by the change's Element units.
+   * Identity resolution against the Formal model belongs to `applySemanticDelta`, not here.
    */
   async validateChangeDeltaSpecs(changeDir: string, context?: ChangeDeltaValidationContext): Promise<ValidationReport> {
     const issues: ValidationIssue[] = [];
-    const specsDir = path.join(changeDir, 'specs');
-    const noOpMarker = path.join(changeDir, '.specs-noop');
-    let totalDeltas = 0;
     const missingHeaderSpecs: string[] = [];
     const emptySectionSpecs: Array<{ path: string; sections: string[] }> = [];
 
-    try {
-      const entries = await fs.readdir(specsDir, { withFileTypes: true });
-      for (const entry of entries) {
-        if (!entry.isDirectory()) continue;
-        const specName = entry.name;
-        const specFile = path.join(specsDir, specName, 'spec.md');
-        let content: string | undefined;
-        try {
-          content = await fs.readFile(specFile, 'utf-8');
-        } catch {
-          continue;
-        }
+    for (const [entryPath, unit] of await readElementDeltaUnits(changeDir)) {
+      const plan = parseDeltaSpec(unit);
+      const sectionNames: string[] = [];
+      if (plan.sectionPresence.added) sectionNames.push('## ADDED Requirements');
+      if (plan.sectionPresence.modified) sectionNames.push('## MODIFIED Requirements');
+      if (plan.sectionPresence.removed) sectionNames.push('## REMOVED Requirements');
+      const hasSections = sectionNames.length > 0;
+      const hasEntries = plan.added.length + plan.modified.length + plan.removed.length > 0;
+      for (const section of plan.unsupportedSections) issues.push({
+        level: 'ERROR', path: entryPath,
+        message: `${section} is unsupported. Use REMOVED old Requirement plus ADDED new Requirement.`,
+      });
+      for (const label of plan.scenarioOperationLabels) issues.push({
+        level: 'ERROR', path: `${entryPath}:${label.line}`,
+        message: `Unsupported Scenario operation metadata [${label.prefix}]. Remove the label and express the complete target Scenario set.`,
+      });
+      if (!hasEntries) {
+        if (hasSections) emptySectionSpecs.push({ path: entryPath, sections: sectionNames });
+        else missingHeaderSpecs.push(entryPath);
+      }
 
-        const plan = parseDeltaSpec(content);
-        const entryPath = `${specName}/spec.md`;
-        const sectionNames: string[] = [];
-        if (plan.sectionPresence.added) sectionNames.push('## ADDED Requirements');
-        if (plan.sectionPresence.modified) sectionNames.push('## MODIFIED Requirements');
-        if (plan.sectionPresence.removed) sectionNames.push('## REMOVED Requirements');
-        const hasSections = sectionNames.length > 0;
-        const hasEntries = plan.added.length + plan.modified.length + plan.removed.length > 0;
-        for (const section of plan.unsupportedSections) issues.push({
-          level: 'ERROR', path: entryPath,
-          message: `${section} is unsupported. Use REMOVED old Requirement plus ADDED new Requirement.`,
-        });
-        for (const label of plan.scenarioOperationLabels) issues.push({
-          level: 'ERROR', path: `${entryPath}:${label.line}`,
-          message: `Unsupported Scenario operation metadata [${label.prefix}]. Remove the label and express the complete target Scenario set.`,
-        });
-        if (!hasEntries) {
-          if (hasSections) emptySectionSpecs.push({ path: entryPath, sections: sectionNames });
-          else missingHeaderSpecs.push(entryPath);
-        }
+      const addedNames = new Set<string>();
+      const modifiedNames = new Set<string>();
+      const removedNames = new Set<string>();
 
-        const addedNames = new Set<string>();
-        const modifiedNames = new Set<string>();
-        const removedNames = new Set<string>();
+      this.validateDeltaRequirementBlocks(plan.added, 'ADDED', addedNames, entryPath, issues);
+      this.validateDeltaRequirementBlocks(plan.modified, 'MODIFIED', modifiedNames, entryPath, issues);
 
-        totalDeltas += this.validateDeltaRequirementBlocks(
-          plan.added,
-          'ADDED',
-          addedNames,
-          entryPath,
-          issues,
-        );
-
-        totalDeltas += this.validateDeltaRequirementBlocks(
-          plan.modified,
-          'MODIFIED',
-          modifiedNames,
-          entryPath,
-          issues,
-        );
-
-        // Validate REMOVED (names only)
-        for (const name of plan.removed) {
-          const key = normalizeRequirementName(name);
-          totalDeltas++;
-          if (removedNames.has(key)) {
-            issues.push({ level: 'ERROR', path: entryPath, message: `Duplicate requirement in REMOVED: "${name}"` });
-          } else {
-            removedNames.add(key);
-          }
-        }
-
-        // Cross-section conflicts (within the same spec file)
-        for (const n of modifiedNames) {
-          if (removedNames.has(n)) {
-            issues.push({ level: 'ERROR', path: entryPath, message: `Requirement present in both MODIFIED and REMOVED: "${n}"` });
-          }
-          if (addedNames.has(n)) {
-            issues.push({ level: 'ERROR', path: entryPath, message: `Requirement present in both MODIFIED and ADDED: "${n}"` });
-          }
-        }
-        for (const n of addedNames) {
-          if (removedNames.has(n)) {
-            issues.push({ level: 'ERROR', path: entryPath, message: `Requirement present in both ADDED and REMOVED: "${n}"` });
-          }
-        }
-        if (context?.allowAlreadyApplied) continue;
-
-        // Cross-validate against main spec
-        const mainSpecsDir = path.resolve(changeDir, '../../specs');
-        const mainSpecFile = path.join(mainSpecsDir, specName, 'spec.md');
-        let mainSpecContent: string | undefined;
-        try {
-          mainSpecContent = await fs.readFile(mainSpecFile, 'utf-8');
-        } catch {
-          // Main spec does not exist
-        }
-
-        if (mainSpecContent !== undefined) {
-          const mainParts = extractRequirementsSection(mainSpecContent);
-          const mainHeaders = new Set(
-            mainParts.bodyBlocks.map(b => normalizeRequirementName(b.name).toLowerCase())
-          );
-
-          for (const block of plan.modified) {
-            const key = normalizeRequirementName(block.name).toLowerCase();
-            if (!mainHeaders.has(key)) {
-              issues.push({ level: 'ERROR', path: entryPath, message: `MODIFIED "${block.name}" not found in main spec. Consider using "## ADDED Requirements" instead.` });
-            }
-          }
-          for (const block of plan.added) {
-            const key = normalizeRequirementName(block.name).toLowerCase();
-            if (mainHeaders.has(key)) {
-              issues.push({ level: 'ERROR', path: entryPath, message: `ADDED "${block.name}" already exists in main spec. Consider using "## MODIFIED Requirements" instead.` });
-            }
-          }
-          for (const name of plan.removed) {
-            const key = normalizeRequirementName(name).toLowerCase();
-            if (!mainHeaders.has(key)) {
-              issues.push({ level: 'ERROR', path: entryPath, message: `REMOVED "${name}" not found in main spec.` });
-            }
-          }
+      // Validate REMOVED (names only)
+      for (const name of plan.removed) {
+        const key = normalizeRequirementName(name);
+        if (removedNames.has(key)) {
+          issues.push({ level: 'ERROR', path: entryPath, message: `Duplicate requirement in REMOVED: "${name}"` });
         } else {
-          // Main spec does not exist: only ADDED is valid
-          for (const block of plan.modified) {
-            issues.push({ level: 'ERROR', path: entryPath, message: `MODIFIED "${block.name}" references non-existent main spec. Main spec "specs/${specName}/spec.md" does not exist.` });
-          }
-          for (const name of plan.removed) {
-            issues.push({ level: 'ERROR', path: entryPath, message: `REMOVED "${name}" references non-existent main spec. Main spec "specs/${specName}/spec.md" does not exist.` });
-          }
+          removedNames.add(key);
         }
       }
-    } catch {
-      // If no specs dir, treat as no deltas
+
+      // Cross-section conflicts within the same unit
+      for (const n of modifiedNames) {
+        if (removedNames.has(n)) {
+          issues.push({ level: 'ERROR', path: entryPath, message: `Requirement present in both MODIFIED and REMOVED: "${n}"` });
+        }
+        if (addedNames.has(n)) {
+          issues.push({ level: 'ERROR', path: entryPath, message: `Requirement present in both MODIFIED and ADDED: "${n}"` });
+        }
+      }
+      for (const n of addedNames) {
+        if (removedNames.has(n)) {
+          issues.push({ level: 'ERROR', path: entryPath, message: `Requirement present in both ADDED and REMOVED: "${n}"` });
+        }
+      }
     }
 
     for (const { path: specPath, sections } of emptySectionSpecs) {
@@ -360,23 +206,38 @@ export class Validator {
       issues.push({
         level: 'ERROR',
         path,
-        message: 'No delta sections found. Add headers such as "## ADDED Requirements" or move non-delta notes outside specs/.',
+        message: 'No delta sections found. Add headers such as "## ADDED Requirements" to the Element delta unit.',
       });
     }
 
-    const hasNoOpMarker = await fs.access(noOpMarker).then(() => true, () => false);
-    if (totalDeltas === 0 && !hasNoOpMarker) {
+    if (!context?.allowAlreadyApplied && !await carriesSemanticDelta(changeDir)) {
       issues.push({ level: 'ERROR', path: 'file', message: this.enrichTopLevelError('change', VALIDATION_MESSAGES.CHANGE_NO_DELTAS) });
-    } else if (totalDeltas > 0 && hasNoOpMarker) {
-      issues.push({
-        level: 'ERROR',
-        path: '.specs-noop',
-        message: 'Remove the stale Specs no-op marker when delta Specs exist.',
-      });
     }
 
-    await this.validateMainSpecFrontmatter(changeDir, issues, context);
+    return this.createReport(issues);
+  }
 
+  /** Element Contract validation over the IR; the Contract is the `## Requirements` section alone. */
+  validateElementContract(element: ModelElement, unitPath: string): ValidationReport {
+    const issues: ValidationIssue[] = [];
+    if (element.requirements.length === 0) {
+      issues.push({ level: 'ERROR', path: unitPath, message: VALIDATION_MESSAGES.SPEC_NO_REQUIREMENTS });
+    }
+    for (const requirement of element.requirements) {
+      if (!this.containsShallOrMust(requirement.body)) {
+        issues.push({ level: 'ERROR', path: unitPath, message: `Requirement "${requirement.name}" ${VALIDATION_MESSAGES.REQUIREMENT_NO_SHALL}` });
+      }
+      if (requirement.body.length > MAX_REQUIREMENT_TEXT_LENGTH) {
+        issues.push({ level: 'INFO', path: unitPath, message: `Requirement "${requirement.name}": ${VALIDATION_MESSAGES.REQUIREMENT_TOO_LONG}` });
+      }
+      if (requirement.scenarios.length === 0) {
+        issues.push({
+          level: 'WARNING',
+          path: unitPath,
+          message: `Requirement "${requirement.name}" ${VALIDATION_MESSAGES.REQUIREMENT_NO_SCENARIOS}. ${VALIDATION_MESSAGES.GUIDE_SCENARIO_FORMAT}`,
+        });
+      }
+    }
     return this.createReport(issues);
   }
 
@@ -529,12 +390,9 @@ export class Validator {
     seenNames: Set<string>,
     entryPath: string,
     issues: ValidationIssue[],
-  ): number {
-    let validatedCount = 0;
-
+  ): void {
     for (const block of blocks) {
       const key = normalizeRequirementName(block.name);
-      validatedCount++;
 
       if (seenNames.has(key)) {
         issues.push({ level: 'ERROR', path: entryPath, message: `Duplicate requirement in ${section}: "${block.name}"` });
@@ -553,8 +411,6 @@ export class Validator {
         issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${block.name}" must include at least one canonical unlabeled Scenario` });
       }
     }
-
-    return validatedCount;
   }
 
   private extractRequirementText(blockRaw: string): string | undefined {
@@ -599,86 +455,42 @@ export class Validator {
     return `${head.join(', ')} and ${last}`;
   }
 
-  private async validateMainSpecFrontmatter(
-    changeDir: string,
-    issues: ValidationIssue[],
-    context?: ChangeDeltaValidationContext,
-  ): Promise<void> {
-    const projectRoot = context?.projectRoot ?? path.resolve(changeDir, '..', '..', '..');
-    const architecture = context?.architecture ?? await readLikeC4Architecture(projectRoot).catch((error: NodeJS.ErrnoException) => {
-      if (error.code === 'ENOENT') return null;
-      throw error;
-    });
-    if (architecture?.profile === 'v1') {
-      if (!context?.skipSpecBindingValidation) {
-        await this.validateV1SpecBindings(projectRoot, changeDir, architecture, issues, context?.specsDirectory, context?.knownElementIds);
-      }
-      return;
-    }
+}
 
-    const mainSpecsDir = path.join(projectRoot, XIRANG_DIR_NAME, 'specs');
-    const knownCaps = architecture
-      ? new Set(architecture.capabilities.flatMap(capability => capability.capabilityId ?? []))
-      : null;
+/** A change carries a Semantic Delta when any of its four partitions holds a unit. */
+async function carriesSemanticDelta(changeDir: string): Promise<boolean> {
+  for (const partition of PARTITIONS) {
+    const entries = await fs.readdir(path.join(changeDir, partition), { withFileTypes: true }).catch(() => []);
+    if (entries.some(entry => entry.isFile() || entry.isDirectory())) return true;
+  }
+  return false;
+}
+
+/** Requirement deltas live in the `elements/` partition of the change; paths locate the unit itself. */
+async function readElementDeltaUnits(changeDir: string): Promise<Array<[string, string]>> {
+  const partition = path.join(changeDir, 'elements');
+  const units: Array<[string, string]> = [];
+  const visit = async (directory: string, relative: string): Promise<void> => {
     let entries;
     try {
-      entries = await fs.readdir(mainSpecsDir, { withFileTypes: true });
+      entries = await fs.readdir(directory, { withFileTypes: true });
     } catch {
       return;
     }
-
-    for (const entry of entries) {
-      if (!entry.isDirectory()) continue;
-      const specName = entry.name;
-      const specPath = path.join(mainSpecsDir, specName, 'spec.md');
-      let content: string;
-      try {
-        content = await fs.readFile(specPath, 'utf-8');
-      } catch {
+    for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+      const child = relative ? `${relative}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) {
+        await visit(path.join(directory, entry.name), child);
         continue;
       }
-
-      const frontmatter = parseSpecFrontmatter(content);
-      const capabilities = frontmatter.issues
-        ?.find(issue => issue.code === 'LEGACY_SPEC_OWNERSHIP')?.values ?? [];
-      const issuePath = path.join(XIRANG_DIR_NAME, 'specs', specName, 'spec.md');
-      if (capabilities.length === 0) {
-        issues.push({
-          level: 'INFO',
-          path: issuePath,
-          message: `Spec "${specName}" has no capabilities frontmatter. Add capabilities frontmatter to map it to architecture capabilities.`,
-        });
-        continue;
-      }
-
-      if (!knownCaps) continue;
-      for (const capId of capabilities) {
-        if (!knownCaps.has(capId)) {
-          issues.push({
-            level: 'WARNING',
-            path: issuePath,
-            message: `Spec "${specName}" declares unknown capability "${capId}" in frontmatter.`,
-          });
-        }
-      }
+      const content = await fs.readFile(path.join(directory, entry.name), 'utf-8');
+      const split = splitFrontmatter(content);
+      if (!split.ok || readEntity(split.data) !== 'element-declaration') continue;
+      // A Declaration-only delta carries no Contract body; there is no Requirement notation to check.
+      if (normalizeProse(split.body) === '') continue;
+      units.push([`elements/${child}`, split.body]);
     }
-  }
-
-  private async validateV1SpecBindings(
-    projectRoot: string,
-    changeDir: string,
-    architecture: Awaited<ReturnType<typeof readLikeC4Architecture>>,
-    issues: ValidationIssue[],
-    specsDirectory?: string,
-    contextKnownElementIds?: ReadonlySet<string>,
-  ): Promise<void> {
-    const formal = await buildSpecRegistry(projectRoot, specsDirectory);
-    const local = specsDirectory ? null : await buildSpecRegistry(projectRoot, path.join(changeDir, 'specs'));
-    const knownElements = new Set(contextKnownElementIds ?? architecture.elements.map(element => element.id));
-
-    appendRegistryBindingIssues(formal, path.join(XIRANG_DIR_NAME, 'specs'), knownElements, issues);
-    if (local) appendRegistryBindingIssues(local, path.relative(projectRoot, path.join(changeDir, 'specs')), knownElements, issues);
-    appendRequiredContractIssues(formal, architecture, issues, local ?? undefined);
-  }
-
+  };
+  await visit(partition, '');
+  return units;
 }

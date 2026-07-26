@@ -10,7 +10,6 @@ grammar LikeC4
 entry LikeC4Grammar:
   (
     imports+=ImportsFromPoject |
-    xirang+=XirangLanguageBlock |
     specifications+=SpecificationRule |
     models+=Model  |
     views+=ModelViews |
@@ -32,32 +31,6 @@ LibIcon: name=IconId;
 
 // Specification -------------------------------------
 
-XirangLanguageBlock:
-  'xirang' '{'
-    'languageVersion' version=String ';'?
-  '}';
-
-XirangElementAnnotation:
-  'xirang' '{'
-    props+=XirangElementAnnotationProperty*
-  '}';
-
-XirangElementAnnotationProperty:
-  {infer XirangRootProperty} key='root' value=BOOLEAN ';'? |
-  {infer XirangContractProperty} key='contract' value=('required' | 'optional') ';'? |
-  {infer XirangElementKindsProperty} key=('parents' | 'children') value=XirangKindArray ';'?;
-
-XirangRelationshipAnnotation:
-  'xirang' '{'
-    props+=XirangRelationshipAnnotationProperty*
-  '}';
-
-XirangRelationshipAnnotationProperty:
-  {infer XirangRelationshipKindsProperty} key=('sourceKinds' | 'targetKinds') value=XirangKindArray ';'?;
-
-XirangKindArray:
-  '[' values+=Id (',' values+=Id)* ']';
-
 ElementKind: name=Id;
 Tag: name=Id;
 RelationshipKind: name=Id;
@@ -77,7 +50,6 @@ SpecificationRule:
 
 SpecificationElementKind:
   'element' kind=ElementKind ('{'
-    xirang=XirangElementAnnotation?
     tags=Tags?
     props+=(
       SpecificationElementStringProperty |
@@ -109,7 +81,6 @@ SpecificationColor:
 
 SpecificationRelationshipKind:
   'relationship' kind=RelationshipKind ('{'
-    xirang=XirangRelationshipAnnotation?
     tags=Tags?
     props+=(
       LinkProperty |

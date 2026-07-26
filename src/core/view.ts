@@ -3,10 +3,11 @@ import { existsSync, promises as fs, watch, type FSWatcher } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { XIRANG_DIR_NAME } from './config.js';
-import { buildSpecRegistry } from './spec-registry.js';
-import { compileChange } from './change-compiler.js';
+import { compileChange, readFormalSemanticModel } from './change-compiler.js';
+import { generateLikeC4Artifacts } from '../commands/arch/export.js';
+import { serializeElementUnit } from './model/serializer.js';
+import { PARTITIONS, type Partition, type SemanticModel } from './model/types.js';
 import type { ChangeDiagnostic, ChangeDiff } from './semantic-diff.js';
-import type { SemanticArchitectureModel } from '../utils/semantic-model.js';
 import { runLikeC4 } from '../commands/arch/runner.js';
 
 export interface ViewLaunchOptions {
@@ -60,10 +61,9 @@ export interface ViewRuntimeVariant {
   valid: boolean;
   formalFingerprint?: string;
   changeFingerprint?: string;
-  architectureFingerprint?: string;
-  specsFingerprint?: string;
+  partitionFingerprints?: Record<Partition, string>;
   diff?: ChangeDiff;
-  architecture?: SemanticArchitectureModel;
+  architecture?: SemanticModel;
   specs?: Record<string, string[]>;
   contents?: Record<string, string>;
   diagnostics: ChangeDiagnostic[];
@@ -87,30 +87,36 @@ export async function listActiveChanges(projectRoot: string): Promise<string[]> 
     .sort((left, right) => left.localeCompare(right));
 }
 
-function projectContracts(contracts: NonNullable<Awaited<ReturnType<typeof compileChange>>['target']>['contracts']): {
+function contractUnitPath(identity: string): string {
+  return `${XIRANG_DIR_NAME}/model/elements/${identity}.md`;
+}
+
+function projectContracts(model: SemanticModel): {
   specs: Record<string, string[]>;
   contents: Record<string, string>;
 } {
   const specs: Record<string, string[]> = {};
   const contents: Record<string, string> = {};
-  for (const contract of [...contracts].sort((left, right) => left.specId.localeCompare(right.specId))) {
-    const specPath = `.xirang/specs/${contract.specId}/spec.md`;
-    (specs[contract.elementId] ??= []).push(specPath);
-    const lines = [
-      '---', `element: ${contract.elementId}`, '---', '',
-      '## Purpose', `Target contract for ${contract.specId}.`, '',
-      '## Requirements', '',
-    ];
-    for (const requirement of contract.requirements) {
-      lines.push(`### Requirement: ${requirement.title}`, requirement.body, '');
-      for (const scenario of requirement.scenarios) {
-        lines.push(`#### Scenario: ${scenario.title}`, scenario.body, '');
-      }
-    }
-    contents[specPath] = lines.join('\n').trimEnd() + '\n';
+  for (const element of [...model.elements].sort((left, right) =>
+    left.declaration.identity.localeCompare(right.declaration.identity))) {
+    if (element.requirements.length === 0) continue;
+    const unitPath = contractUnitPath(element.declaration.identity);
+    (specs[element.declaration.identity] ??= []).push(unitPath);
+    contents[unitPath] = serializeElementUnit(element);
   }
-  for (const paths of Object.values(specs)) paths.sort();
   return { specs, contents };
+}
+
+function partitionFingerprints(model: SemanticModel): Record<Partition, string> {
+  const byPartition: Record<Partition, unknown> = {
+    elements: model.elements,
+    metamodel: [model.elementKinds, model.relationshipKinds],
+    relationships: model.relationships,
+    views: model.views,
+  };
+  return Object.fromEntries(
+    PARTITIONS.map(partition => [partition, runtimeFingerprint(byPartition[partition])]),
+  ) as Record<Partition, string>;
 }
 
 const formalRuntimeVariant: ViewRuntimeVariant = {
@@ -124,7 +130,7 @@ const formalRuntimeVariant: ViewRuntimeVariant = {
 async function buildChangeRuntimeVariant(projectRoot: string, change: string): Promise<ViewRuntimeVariant> {
   try {
     const compiled = await compileChange(projectRoot, change);
-    const projection = compiled.target ? projectContracts(compiled.target.contracts) : undefined;
+    const projection = compiled.target ? projectContracts(compiled.target) : undefined;
     return {
       id: `change:${change}`,
       label: change,
@@ -133,12 +139,9 @@ async function buildChangeRuntimeVariant(projectRoot: string, change: string): P
       valid: compiled.valid,
       formalFingerprint: compiled.formalFingerprint,
       changeFingerprint: compiled.changeFingerprint,
-      ...(compiled.target ? {
-        architectureFingerprint: runtimeFingerprint(compiled.target.architecture),
-        specsFingerprint: runtimeFingerprint(compiled.target.contracts),
-      } : {}),
+      ...(compiled.target ? { partitionFingerprints: partitionFingerprints(compiled.target) } : {}),
       diff: compiled.diff,
-      ...(compiled.target ? { architecture: compiled.target.architecture } : {}),
+      ...(compiled.target ? { architecture: compiled.target } : {}),
       ...(projection ?? {}),
       diagnostics: compiled.diagnostics,
     };
@@ -180,15 +183,8 @@ async function writeViewRuntimeSnapshot(snapshot: ViewRuntimeSnapshot, directory
 }
 
 async function writeSpecRegistrySnapshot(projectRoot: string, directory: string): Promise<string> {
-  const registry = await buildSpecRegistry(projectRoot);
-  const elements = Object.fromEntries(
-    [...registry.elementToSpecs.entries()]
-      .sort(([left], [right]) => left.localeCompare(right))
-      .map(([elementId, specs]) => [
-        elementId,
-        specs.map(specId => `.xirang/specs/${specId}/spec.md`).sort(),
-      ]),
-  );
+  const { model } = await readFormalSemanticModel(projectRoot);
+  const elements = projectContracts(model).specs;
   const target = path.join(directory, 'xirang-spec-registry.json');
   await fs.writeFile(target, JSON.stringify({ version: 1, elements }));
   return target;
@@ -238,8 +234,7 @@ export class ViewCommand {
         sourceWatcher = watch(path.join(projectRoot, XIRANG_DIR_NAME), { recursive: true }, (_event, filename) => {
           if (!filename) return;
           const normalized = filename.toString().split(path.sep).join('/');
-          if (normalized.startsWith('architecture/')) refreshAll = true;
-          else if (normalized.startsWith('specs/')) {
+          if (PARTITIONS.some(partition => normalized.startsWith(`model/${partition}/`))) {
             refreshAll = true;
             refreshRegistry = true;
           } else {
@@ -256,7 +251,7 @@ export class ViewCommand {
       try {
         await this.launch({
           projectRoot,
-          architectureDir: path.join(projectRoot, XIRANG_DIR_NAME, 'architecture'),
+          architectureDir: await generateLikeC4Artifacts(projectRoot),
           specRegistryFile,
           changeManifestFile,
           port: options.port,

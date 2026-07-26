@@ -16,7 +16,7 @@
 
 #### Checks
 
-- [ ] C1 验证编译产出 Expected Semantic Model
+- [x] C1 验证编译产出 Expected Semantic Model
   - Verifies: `xirang-contract.md` / 「Semantic Delta 记法」/ per-entry 完整目标内容
   - Command: `pnpm exec vitest run test/core/change-compiler.test.ts`
   - Expect: 四分区 Delta 编译出的 target 与手写期望 IR 相等；诊断 path 指向具体单元文件
@@ -43,13 +43,13 @@
 
 #### Checks
 
-- [ ] C1 验证最小重写
+- [x] C1 验证最小重写
   - Verifies: `xirang-contract.md` / 「Sync 保证」/ 最小重写
   - Command: `pnpm exec vitest run test/integration/sync-workflow.test.ts`
   - Expect: 仅 Delta 影响的单元出现在 manifest；未受影响单元字节不变
   - Remediation: 受影响单元须由 `DeltaApplication.touched` 推导，不得全量重写
 
-- [ ] C2 验证全或无
+- [x] C2 验证全或无
   - Verifies: `xirang-contract.md` / 「Sync 保证」/ 全或无
   - Command: `pnpm exec vitest run test/integration/sync-workflow.test.ts`
   - Expect: 注入写失败后全部单元回滚至 preimage
@@ -59,7 +59,7 @@
 
 ### Task 3: 迁移 arch query 到 IR 并内联 Contract
 
-**Goal**: 以 TDD 重写 `arch query`，输出内联 Contract 全文，删除 FQN 与 specs 字段。
+**Goal**: 以 TDD 重写 `arch query`，新增 `--contract` 开关（默认关闭）控制 Contract 全文内联，删除 FQN 与 specs 字段。
 
 **Files**:
 - Modify: `src/commands/arch/query.ts`
@@ -77,13 +77,13 @@
 
 #### Checks
 
-- [ ] C1 验证内联 Contract 全文
-  - Verifies: 决策 2 / `arch query` 内联 Contract 全文
+- [x] C1 验证 `--contract` 开关：默认不内联，传入时内联全文
+  - Verifies: 决策 2 修正版 / `arch query --contract`
   - Command: `pnpm exec vitest run test/integration/arch-command.test.ts`
   - Expect: `--json` 输出含完整 `requirements[]`（含 scenarios），顺序与源单元一致
   - Remediation: Requirement 与 Scenario 顺序属语义（契约「语义差异判定」），不得排序
 
-- [ ] C2 验证 identity-only 查找
+- [x] C2 验证 identity-only 查找
   - Verifies: `xirang-definition.md` / §1 Semantic Model / identity 是唯一引用依据
   - Command: `pnpm exec vitest run test/integration/arch-command.test.ts`
   - Expect: identity 命中；FQN 形态输入返回显式错误而非静默未找到
@@ -113,13 +113,13 @@
 
 #### Checks
 
-- [ ] C1 验证证据枚举收缩且排序确定
+- [x] C1 验证证据枚举收缩且排序确定
   - Verifies: `xirang-contract.md` / 「引用规则」/ FQN 不入持久源
   - Command: `pnpm exec vitest run test/commands/arch-search.test.ts`
   - Expect: 无 `fqn`/`specId` 证据；相同输入两次运行结果逐字段相同
   - Remediation: rank 重编号后须重验排序稳定性，不得依赖对象键顺序
 
-- [ ] C2 验证 contract 绑定诊断消失
+- [x] C2 验证 contract 绑定诊断消失
   - Verifies: `xirang-definition.md` / §3 Element Contract / 一个 Element 至多一个 Contract
   - Command: `pnpm exec vitest run test/commands/arch-impact.test.ts`
   - Expect: 不再产出「owner not found」「source missing」类诊断；`contracts[]` 为 `{elementId, requirements}`
@@ -149,13 +149,13 @@
 
 #### Checks
 
-- [ ] C1 验证 plan-remove 依赖类型收缩
+- [x] C1 验证 plan-remove 依赖类型收缩
   - Verifies: `xirang-definition.md` / §3 Element Contract / Contract 随 Element 单元
   - Command: `pnpm exec vitest run test/commands/arch-plan-remove.test.ts`
   - Expect: 输出无 `subject.fqn`；依赖类型仅 `descendant` 与 `relationship`
   - Remediation: metadata 字段已不存在，`reference` 类型无数据来源，须删除而非置空
 
-- [ ] C2 验证生成产物不回写持久源
+- [x] C2 验证生成产物不回写持久源
   - Verifies: `xirang-contract.md` / 「LikeC4 边界」/ 不得写入 `.xirang/model/`
   - Command: `pnpm exec vitest run test/integration/arch-command.test.ts`
   - Expect: export 后 `.xirang/model/` 字节不变，`.c4` 仅出现在 `.xirang/.cache-likec4/`
@@ -184,13 +184,13 @@
 
 #### Checks
 
-- [ ] C1 验证差异输出不携带分区
+- [x] C1 验证差异输出不携带分区
   - Verifies: `xirang-contract.md` / 「语义差异判定」/ 以 entity type 与 identity 为键
   - Command: `pnpm exec vitest run test/commands/diff.test.ts`
   - Expect: `--json` 输出无 `scope` 字段；`kind` 取值与契约 `entity` 一致
   - Remediation: 分区是组织约定，不得进入 Diff IR
 
-- [ ] C2 验证 authored-view 差异可呈现
+- [x] C2 验证 authored-view 差异可呈现
   - Verifies: `xirang-definition.md` / §3 Semantic Delta Entry / entity type 覆盖 Authored View
   - Command: `pnpm exec vitest run test/commands/diff.test.ts`
   - Expect: 新增/修改/删除 Authored View 均产出对应 diff 条目
@@ -220,13 +220,13 @@
 
 #### Checks
 
-- [ ] C1 验证四分区计数
+- [x] C1 验证四分区计数
   - Verifies: `xirang-contract.md` / 「存储结构」/ Semantic Delta 采用同构四类分区
   - Command: `pnpm exec vitest run test/commands/sync.test.ts test/core/archive.test.ts`
   - Expect: 摘要与 gate 计数覆盖四分区，无 `architecture`/`specs` 词汇残留
   - Remediation: 分区列表须来自 `PARTITIONS` 常量，不得再硬编码两值
 
-- [ ] C2 验证 list --specs 已移除
+- [x] C2 验证 list --specs 已移除
   - Verifies: `xirang-definition.md` / §3 Element Contract / Contract 不是独立对象
   - Command: `pnpm exec vitest run test/cli-e2e/basic.test.ts`
   - Expect: `--specs` 选项不存在，调用返回未知选项错误
@@ -266,13 +266,13 @@
 
 #### Checks
 
-- [ ] C1 验证 setup 后模型可校验
+- [x] C1 验证 setup 后模型可校验
   - Verifies: `xirang-contract.md` / 「存储结构」/ `.xirang/model/` 四分区
   - Command: `pnpm exec vitest run test/core/setup.test.ts`
   - Expect: setup 产出四分区目录与 metamodel 种子，随后 `validate` 通过
   - Remediation: 无种子会使 setup 后模型为空且校验立即失败，须提供 root element-kind
 
-- [ ] C2 验证 candidate 四分区 inventory
+- [x] C2 验证 candidate 四分区 inventory
   - Verifies: `xirang-contract.md` / 「存储结构」/ Candidate 与 Semantic Model 同构
   - Command: `pnpm exec vitest run test/commands/candidate-init.test.ts test/commands/candidate-validate.test.ts`
   - Expect: `--json` 的 inventory 覆盖四分区；promotion 后缺失单元不保留
@@ -295,7 +295,7 @@
 
 #### Checks
 
-- [ ] C1 验证旧栈无消费者
+- [x] C1 验证旧栈无消费者
   - Verifies: `xirang-contract.md` / 「存储结构」/ `.xirang/model/` 为唯一持久化根
   - Command: `rg -n "likec4-reader\|likec4-parser\|architecture-reader\|architecture-delta-merger\|architecture-delta-validator\|specs-apply\|contractPolicy\|profile [!=]== 'v1'\|\.xirang/architecture\|\.xirang/specs" src`
   - Expect: 无输出
@@ -332,7 +332,7 @@
 
 #### Checks
 
-- [ ] C1 验证类型检查通过
+- [x] C1 验证类型检查通过
   - Verifies: `xirang-contract.md` / 「存储结构」/ 旧双分区栈移除
   - Command: `pnpm exec tsc --noEmit`
   - Expect: 无错误
@@ -370,13 +370,13 @@
 
 #### Checks
 
-- [ ] C1 验证 JSON 契约破坏点均被断言
+- [x] C1 验证 JSON 契约破坏点均被断言
   - Verifies: `xirang-contract.md` / 「单元形态」/ 字段表
   - Command: `pnpm exec vitest run test/integration/arch-command.test.ts test/commands/arch-search.test.ts test/commands/arch-impact.test.ts test/commands/arch-plan-remove.test.ts test/commands/diff.test.ts`
   - Expect: 每个破坏点有对应逐字段断言，非仅 exit code
   - Remediation: 仅断言 exit code 会静默漏过形状变化，须补字段级断言
 
-- [ ] C2 验证全量测试绿
+- [x] C2 验证全量测试绿
   - Verifies: proposal / 「Why」/ C1/C2 期间允许构建断裂，到本 Change 终止
   - Command: `pnpm exec vitest run`
   - Expect: 全部测试通过，无 skip 掩盖失败

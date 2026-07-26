@@ -33,7 +33,7 @@
 
 ## `arch query` 的 Contract 内联
 
-决策 2 定为全文内联。IR 侧 `ModelElement.requirements` 已内联，无需额外装配——这是 Element 单元的直接产物，不再有 specId → 路径 → 读文件 → 解析 frontmatter 这条链（旧链见 `query.ts:26` `specPath` + `:38` `buildSpecRegistry`）。
+决策 2 修正版：`arch query` 默认不内联 Contract，仅在 `--contract` 时内联全文。IR 侧 `ModelElement.requirements` 已内联，无需额外装配——这是 Element 单元的直接产物，不再有 specId → 路径 → 读文件 → 解析 frontmatter 这条链（旧链见 `query.ts:26` `specPath` + `:38` `buildSpecRegistry`）。
 
 输出形状：
 
@@ -154,10 +154,10 @@ interface QueryElement {
 
 **R2 JSON 契约破坏未被测试捕获**。10 个命令的 `--json` 输出形状改变，若测试只断言 exit code 会静默漏过。缓解：§6.3 的 21 个夹具类测试中，凡断言 JSON 结构者升级为逐字段断言；`arch query`/`impact` 增加内联 Contract 的形状断言。
 
-**R3 `arch query` 内联 Contract 导致体积回归**。全文内联在 Element 拥有大量 Requirement 时显著放大输出。缓解：保留 `impact` 的 `contractBytes` 统计；若单次输出超出可用阈值，回退条件见下。
+**R3 `arch query` 内联 Contract 导致体积回归**。已由用户裁定解决：内联改为 `--contract` 开关控制，默认关闭，体积回归不再存在。保留 `impact` 的 `contractBytes` 统计用于开启时的观测。
 
 **R4 `view.ts` 的 C3/C5 边界被跨越**。该文件两侧职责交织，改动易溢出到 C5 范围。缓解：C3 只改 watcher、生成产物注入、指纹与 registry 的数据源，保持 `writeSpecRegistrySnapshot` 与 `projectContracts` 的签名与产物文件名不变。Check 为「`xirang view` 可启动且产物文件名未变」。
 
 **R5 setup 骨架种子缺失**。`.c4` skeleton（`architecture-skeleton.ts`）删除后，新项目需要 metamodel 种子单元，否则 `setup` 后模型为空且 `validate` 立即失败。缓解：Task 8 明确产出 metamodel Markdown 种子（至少一个 root element-kind），并以「setup 后 validate 通过」为 Check。
 
-**回滚条件**：若 Task 10-11 的旧栈删除导致 §6.3 的夹具类测试出现两轮内无法定位的失败，则回退删除、恢复旧栈文件，仅保留接线与命令面改动，代价是双栈并存需额外声明一个清理 Change。若 R3 的体积回归不可接受，则 `arch query` 的 Contract 内联退化为 `--contract` 开关（默认关闭），此为决策 2 的局部修正，需用户确认。
+**回滚条件**：若 Task 10-11 的旧栈删除导致 §6.3 的夹具类测试出现两轮内无法定位的失败，则回退删除、恢复旧栈文件，仅保留接线与命令面改动，代价是双栈并存需额外声明一个清理 Change。

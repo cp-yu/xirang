@@ -26,9 +26,6 @@ describe('Candidate validation', () => {
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-candidate-validate-'));
     await new SetupCommand({ tools: 'none', force: true }).execute(root);
-    const projectSpec = path.join(root, '.xirang', 'specs', 'project-contract', 'spec.md');
-    await fs.mkdir(path.dirname(projectSpec), { recursive: true });
-    await fs.writeFile(projectSpec, `---\nelement: project.root\n---\n\n# Project Contract Specification\n\n## Purpose\nDefines the minimal project contract used by Candidate validation tests.\n\n## Requirements\n\n### Requirement: Project contract\nThe project SHALL expose a valid semantic contract.\n\n#### Scenario: Validate project\n- **WHEN** Candidate validation runs\n- **THEN** the project contract is accepted\n`);
     await initializeCandidate(root, { kind: 'current' });
     candidate = path.join(root, '.xirang', 'candidate');
   });
@@ -46,12 +43,12 @@ describe('Candidate validation', () => {
     expect(first.reviewDigest).toMatch(/^[a-f0-9]{64}$/);
     expect(second.reviewDigest).toBe(first.reviewDigest);
     expect(first.diff.summary.total).toBe(0);
-    expect(first.inventory.architectureFiles).toEqual([
-      'architecture/model.c4',
-      'architecture/relations.c4',
-      'architecture/specification.c4',
-      'architecture/views.c4',
-    ]);
+    expect(first.inventory.partitions).toEqual({
+      metamodel: ['metamodel/project.md'],
+      elements: ['elements/project.root.md'],
+      relationships: [],
+      views: [],
+    });
   });
 
   it('excludes candidate metadata from the review digest', async () => {
@@ -104,49 +101,36 @@ describe('Candidate validation', () => {
     expect(await readTree(candidate)).toEqual(before);
   });
 
-  it('rejects non-bytewise Architecture and frontmatter ordering', async () => {
-    const specification = path.join(candidate, 'architecture', 'specification.c4');
-    const content = await fs.readFile(specification, 'utf8');
-    await fs.writeFile(specification, content.replace(
-      'relationship constrains\n  relationship consumes',
-      'relationship consumes\n  relationship constrains',
-    ));
-    const projectSpec = path.join(candidate, 'specs', 'project-contract', 'spec.md');
-    await fs.writeFile(projectSpec, (await fs.readFile(projectSpec, 'utf8')).replace(
-      'element: project.root',
-      'note: test\nelement: project.root',
-    ));
+  it('rejects a unit outside the four partitions', async () => {
+    await fs.mkdir(path.join(candidate, 'architecture'), { recursive: true });
+    await fs.writeFile(path.join(candidate, 'architecture', 'model.c4'), 'model {}\n');
 
     const result = await validateCandidate(root);
 
     expect(result.valid).toBe(false);
     expect(result.diagnostics).toEqual(expect.arrayContaining([
-      expect.objectContaining({ code: 'CANONICAL_ORDER', path: 'architecture/specification.c4' }),
-      expect.objectContaining({ code: 'SPEC_FRONTMATTER_ORDER', path: 'specs/project-contract/spec.md' }),
+      expect.objectContaining({ code: 'CANDIDATE_FILE_UNEXPECTED', path: 'architecture/model.c4' }),
     ]));
   });
 
-  it('rejects a Spec binding to an unknown element', async () => {
-    const spec = path.join(candidate, 'specs', 'unknown-binding', 'spec.md');
-    await fs.mkdir(path.dirname(spec), { recursive: true });
-    await fs.writeFile(spec, `---\nelement: unknown.element\n---\n\n# Unknown Binding Specification\n\n## Purpose\nUnknown binding behavior.\n\n## Requirements\n\n### Requirement: Unknown binding\nThe system SHALL reject unknown ownership.\n\n#### Scenario: Validate binding\n- **WHEN** validation runs\n- **THEN** the unknown owner is reported\n`);
+  it('rejects an Element whose parent is unknown', async () => {
+    await fs.writeFile(path.join(candidate, 'elements', 'orphan.md'),
+      '---\nentity: element-declaration\nidentity: orphan\nkind: project\nparent: ghost\ntitle: Orphan\nsummary: S\n---\n');
 
     const result = await validateCandidate(root);
 
     expect(result.valid).toBe(false);
-    expect(result.diagnostics).toEqual(expect.arrayContaining([
-      expect.objectContaining({ code: 'UNKNOWN_SPEC_ELEMENT', path: 'specs/unknown-binding/spec.md' }),
-    ]));
+    expect(result.diagnostics.map(item => item.code)).toContain('MISSING_PARENT');
   });
 
   it.runIf(process.platform !== 'win32')('rejects Candidate source symlinks', async () => {
-    await fs.symlink(path.join(candidate, 'build.md'), path.join(candidate, 'specs', 'linked.md'));
+    await fs.symlink(path.join(candidate, 'build.md'), path.join(candidate, 'views', 'linked.md'));
 
     const result = await validateCandidate(root);
 
     expect(result.valid).toBe(false);
     expect(result.diagnostics).toEqual(expect.arrayContaining([
-      expect.objectContaining({ code: 'CANDIDATE_SYMLINK', path: 'specs/linked.md' }),
+      expect.objectContaining({ code: 'CANDIDATE_SYMLINK', path: 'views/linked.md' }),
     ]));
   });
 });

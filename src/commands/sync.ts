@@ -14,6 +14,7 @@ import {
   checkFreshness,
   formatVerifyGateFailure,
 } from '../core/verify/freshness.js';
+import { PARTITIONS } from '../core/model/types.js';
 import { validateChangeExists } from './workflow/shared.js';
 
 export interface SyncOptions {
@@ -74,21 +75,20 @@ export async function syncCommand(
   }
 
   const prepared = await prepareChangeSync(projectRoot, syncState, { skipValidation });
-  if (prepared.specs.writes.length === 0 && !prepared.architecture) {
+  if (prepared.manifest.length === 0) {
     console.log('No sync required.');
     return;
   }
 
   const summary = await applyPreparedChangeSync(projectRoot, prepared);
   console.log(`Sync complete for '${validatedChangeName}'.`);
-  console.log(`specs: ${summary.specs}`);
-  console.log(`architecture: ${summary.architecture}`);
+  for (const partition of PARTITIONS) console.log(`${partition}: ${summary.partitions[partition]}`);
 }
 
 export function registerSyncCommand(program: Command): void {
   program
     .command('sync [change-name]')
-    .description('Sync a change into formal Specs and LikeC4 architecture without archiving')
+    .description('Sync a change into the Formal Semantic Model without archiving')
     .option('--no-validate', 'Skip validation while preparing sync output')
     .option('--no-verify', 'Skip verify gate before syncing')
     .action(async (changeName?: string, options: SyncOptions = {}) => {

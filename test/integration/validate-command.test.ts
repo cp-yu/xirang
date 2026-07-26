@@ -1,243 +1,125 @@
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { validateArchitectureCommand } from '../../src/commands/arch/validate.js';
-import { validateArchitectureDelta } from '../../src/validation/architecture-delta-validator.js';
+import { readModelTree } from '../../src/core/model/parser.js';
+import { modelRoot } from '../../src/core/model/paths.js';
 import { runCLI } from '../helpers/run-cli.js';
+import { writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 
-describe('LikeC4 validation integration', () => {
+const PROJECT_CONTRACT = '## Requirements\n\n### Requirement: Project intent\nThe project SHALL preserve its intent.\n\n#### Scenario: Preserve\n- **WHEN** the model changes\n- **THEN** the intent remains';
+const OPERATION_CONTRACT = '## Requirements\n\n### Requirement: Run payment\nThe system SHALL run the payment operation.\n\n#### Scenario: Run\n- **WHEN** payment is requested\n- **THEN** the operation runs';
+
+describe('Semantic Model validation integration', () => {
   let root: string;
-  const validDeltaSpec = (element: string) => `---
-element: ${element}
----
-## ADDED Requirements
 
-### Requirement: Run payment
+  beforeEach(async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-model-validation-'));
+    await writeProjectModel(root, {
+      elementKinds: [
+        { identity: 'project', contract: 'required', root: true, children: ['area'] },
+        { identity: 'area', parents: ['project'], children: ['operation'] },
+        { identity: 'operation', contract: 'required', parents: ['area'] },
+        { identity: 'artifact', parents: ['operation'] },
+      ],
+      relationshipKinds: [
+        { identity: 'invokes' },
+        { identity: 'produces', sourceKinds: ['operation'], targetKinds: ['artifact'] },
+      ],
+      elements: [
+        { identity: 'project.root', kind: 'project', parent: null, title: 'Root', summary: 'Project intent', requirements: PROJECT_CONTRACT },
+        { identity: 'payments', kind: 'area', parent: 'project.root', title: 'Payments', summary: 'Payment area' },
+        { identity: 'settlements', kind: 'area', parent: 'project.root', title: 'Settlements', summary: 'Settlement area' },
+      ],
+    });
+    await fs.mkdir(path.join(root, '.xirang', 'changes'), { recursive: true });
+  });
 
-The system SHALL run the payment operation.
+  afterEach(async () => fs.rm(root, { recursive: true, force: true }));
 
-#### Scenario: Run
-
-- **WHEN** payment is requested
-- **THEN** the operation runs
-`;
-
-  async function writeV1Project() {
-    const architecture = path.join(root, '.xirang', 'architecture');
-    await fs.rm(architecture, { recursive: true });
-    await fs.mkdir(architecture, { recursive: true });
-    await fs.writeFile(path.join(architecture, 'model.c4'), `xirang { languageVersion '1' }
-specification {
-  element project { xirang { root true contract required children [area] } }
-  element area { xirang { contract optional parents [project] children [operation] } }
-  element operation { xirang { contract required parents [area] } }
-  element artifact { xirang { contract optional parents [operation] } }
-  relationship invokes
-  relationship produces { xirang { sourceKinds [operation] targetKinds [artifact] } }
-}
-model {
-  projectRoot = project 'Root' 'Project intent' {
-    metadata { elementId 'project.root' }
-    payments = area 'Payments' 'Payment area' {
-      metadata { elementId 'payments' }
-    }
-    settlements = area 'Settlements' 'Settlement area' {
-      metadata { elementId 'settlements' }
-    }
-  }
-}
-`);
-    const spec = path.join(root, '.xirang', 'specs', 'project-contract');
-    await fs.mkdir(spec, { recursive: true });
-    await fs.writeFile(path.join(spec, 'spec.md'), `---
-element: project.root
----
-# Project
-
-## Purpose
-Project contract for validation.
-
-## Requirements
-
-### Requirement: Project intent
-
-The project SHALL preserve its intent.
-
-#### Scenario: Preserve
-
-- **WHEN** the model changes
-- **THEN** the intent remains
-`);
-  }
-
-  async function writeChange(name: string, deltaContent: string, specElement?: string) {
-    const change = path.join(root, '.xirang', 'changes', name);
-    await fs.mkdir(change, { recursive: true });
+  async function writeChange(name: string, files: Record<string, string>): Promise<string> {
+    const change = await writeChangeDelta(root, name, files);
     await fs.writeFile(path.join(change, 'proposal.md'), '# Change');
-    await fs.writeFile(path.join(change, 'architecture-delta.c4'), deltaContent);
-    if (specElement) {
-      const spec = path.join(change, 'specs', 'run-payment');
-      await fs.mkdir(spec, { recursive: true });
-      await fs.writeFile(path.join(spec, 'spec.md'), validDeltaSpec(specElement));
-    } else {
-      await fs.writeFile(path.join(change, '.specs-noop'), '');
-    }
     return change;
   }
 
-  beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-likec4-validation-'));
-    const domains = path.join(root, '.xirang', 'architecture', 'domains');
-    await fs.mkdir(domains, { recursive: true });
-    await fs.writeFile(path.join(root, '.xirang', 'architecture', 'specification.c4'), 'specification { element domain element capability }');
-    await fs.writeFile(path.join(domains, 'core.c4'), "model { core = domain 'Core' }");
-    await fs.writeFile(path.join(root, '.xirang', 'architecture', 'views.c4'), 'views { view index { include * } }');
-  });
-  afterEach(async () => fs.rm(root, { recursive: true, force: true }));
+  function addOperation(identity: string, parent: string, contract = OPERATION_CONTRACT): string {
+    return `---\noperation: ADDED\nentity: element-declaration\nidentity: ${identity}\nkind: operation\nparent: ${parent}\ntitle: Run\nsummary: Run payment\n---\n\n`
+      + `## ADDED Requirements\n\n${contract.replace('## Requirements\n\n', '')}\n`;
+  }
 
-  it('should validate LikeC4 architecture', async () => {
-    const result = await validateArchitectureCommand(root, { runLikeC4: vi.fn().mockResolvedValue(undefined) });
-    expect(result.success).toBe(true);
+  it('validates the Formal Semantic Model', async () => {
+    expect(await validateArchitectureCommand(root)).toEqual({ success: true, errors: [], warnings: [] });
   });
 
-  it('should apply v1 semantic validation without rewriting the source', async () => {
-    const architecture = path.join(root, '.xirang', 'architecture');
-    await fs.rm(architecture, { recursive: true });
-    await fs.mkdir(architecture, { recursive: true });
-    const modelPath = path.join(architecture, 'model.c4');
-    const source = `xirang { languageVersion '1' }
-      specification { element project { xirang { root true contract required } } element product { xirang { contract optional } } }
-      model { product = product 'Product' 'Product intent' { metadata { elementId 'product.main' } } }`;
-    await fs.writeFile(modelPath, source);
+  it('applies semantic validation without rewriting the source', async () => {
+    const before = await readModelTree(modelRoot(root));
+    await fs.writeFile(path.join(modelRoot(root), 'elements', 'orphan.md'),
+      '---\nentity: element-declaration\nidentity: orphan\nkind: area\nparent: ghost\ntitle: Orphan\nsummary: S\n---\n');
 
-    const result = await validateArchitectureCommand(root, { runLikeC4: vi.fn().mockResolvedValue(undefined) });
+    const result = await validateArchitectureCommand(root);
 
     expect(result.success).toBe(false);
-    expect(result.errors).toContainEqual(expect.objectContaining({ code: 'MISSING_PROJECT_ROOT' }));
-    expect(await fs.readFile(modelPath, 'utf8')).toBe(source);
-  });
-
-  it('should validate architecture-delta.c4', async () => {
-    const delta = path.join(root, 'architecture-delta.c4');
-    await fs.writeFile(delta, "model { extend core { added = capability 'Added' } }");
-    expect(await validateArchitectureDelta(root, delta)).toEqual({ valid: true, issues: [] });
-  });
-
-  it('should use native LikeC4 validation for change deltas', async () => {
-    const change = path.join(root, '.xirang', 'changes', 'invalid-native');
-    await fs.mkdir(change, { recursive: true });
-    await fs.writeFile(path.join(change, 'proposal.md'), '# Invalid native delta');
-    await fs.writeFile(path.join(change, '.specs-noop'), '');
-    await fs.writeFile(path.join(change, 'architecture-delta.c4'), "model { core.missing -> core.other }");
-    const result = await runCLI(['validate', '--change', 'invalid-native', '--json'], { cwd: root });
-    expect(result.exitCode).toBe(1);
-    expect(result.stdout).toContain('architecture-delta.c4');
-  });
-
-  it('should check extend target exists', async () => {
-    const delta = path.join(root, 'architecture-delta.c4');
-    await fs.writeFile(delta, "model { extend missing { added = capability 'Added' } }");
-    const result = await validateArchitectureDelta(root, delta);
-    expect(result.valid).toBe(false);
-    expect(result.issues[0].message).toBe('Cannot extend nonexistent domain: missing');
-  });
-
-  it('should validate a v1 graph target through arch validate --delta', async () => {
-    await writeV1Project();
-    const delta = path.join(root, 'architecture-delta.c4');
-    await fs.writeFile(delta, `architectureDelta {
-  ADDED {
-    element 'payment.run' {
-      kind 'operation'
-      parent 'payments'
-      title 'Run'
-      summary 'Run payments'
-      metadata { elementId 'payment.run' }
+    expect(result.errors.map(item => item.code)).toContain('MISSING_PARENT');
+    for (const [file, bytes] of before) {
+      expect((await readModelTree(modelRoot(root))).get(file)).toEqual(bytes);
     }
-  }
-}
-`);
+  });
 
-    const result = await validateArchitectureCommand(root, {
-      deltaPath: delta,
-      runLikeC4: vi.fn().mockResolvedValue(undefined),
+  it('validates the Expected Semantic Model of a change', async () => {
+    await writeChange('add-operation', { 'elements/payment.run.md': addOperation('payment.run', 'payments') });
+
+    const result = await validateArchitectureCommand(root, { change: 'add-operation' });
+
+    expect(result, JSON.stringify(result)).toMatchObject({ success: true, errors: [] });
+  });
+
+  it('rejects an unknown containment target in a change', async () => {
+    await writeChange('bad-parent', { 'elements/payment.run.md': addOperation('payment.run', 'ghost') });
+
+    const result = await validateArchitectureCommand(root, { change: 'bad-parent' });
+
+    expect(result.success).toBe(false);
+    expect(result.errors.map(item => item.code)).toContain('MISSING_PARENT');
+  });
+
+  it('rejects invalid relation endpoints in a change target', async () => {
+    await writeChange('bad-relation', {
+      'elements/payment.run.md': addOperation('payment.run', 'payments'),
+      'relationships/produces.yaml': 'relationships:\n  - operation: ADDED\n    source: payment.run\n    kind: produces\n    target: payments\n',
     });
 
-    expect(result.success).toBe(true);
-  });
-
-  it('rejects invalid v1 relations in a delta target', async () => {
-    await writeV1Project();
-    const delta = path.join(root, 'architecture-delta.c4');
-    await fs.writeFile(delta, `architectureDelta {
-  ADDED {
-    relationship 'payments' -[invokes]-> 'settlements'
-    relationship 'payments' -[invokes]-> 'settlements'
-  }
-}
-`);
-
-    const result = await validateArchitectureCommand(root, { deltaPath: delta });
+    const result = await validateArchitectureCommand(root, { change: 'bad-relation' });
 
     expect(result.success).toBe(false);
-    expect(result.errors).toContainEqual(expect.objectContaining({ code: 'CONFLICTING_IDENTITY_OPERATIONS' }));
+    expect(result.errors.map(item => item.code)).toContain('INVALID_RELATION_ENDPOINT');
   });
 
-  it('should validate graph and Specs in one v1 target context', async () => {
-    await writeV1Project();
-    await writeChange('combined-target', `architectureDelta {
-  ADDED {
-    element 'payment.run' {
-      kind 'operation'
-      parent 'payments'
-      title 'Run'
-      summary 'Run payments'
-      metadata { elementId 'payment.run' }
-    }
-  }
-}
-`, 'payment.run');
+  it('rejects a required Contract missing from the change target', async () => {
+    await writeChange('missing-contract', {
+      'elements/payment.run.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: payment.run\nkind: operation\nparent: payments\ntitle: Run\nsummary: Run payment\n---\n',
+    });
 
-    const result = await runCLI(['validate', '--change', 'combined-target', '--json'], { cwd: root });
+    const result = await validateArchitectureCommand(root, { change: 'missing-contract' });
 
-    expect(result.exitCode, `${result.stderr}\n${result.stdout}`).toBe(0);
-    expect(JSON.parse(result.stdout).items[0]).toMatchObject({ valid: true, issues: [] });
+    expect(result.success).toBe(false);
+    expect(result.errors.map(item => item.code)).toContain('MISSING_REQUIRED_CONTRACT');
   });
 
-  it.each([
-    {
-      name: 'missing-target',
-      delta: `architectureDelta { ADDED { element 'payment.run' { kind 'operation' parent 'payments.missing' title 'Run' summary 'Run payments' metadata { elementId 'payment.run' } } } }`,
-      message: 'UNKNOWN_PARENT',
-    },
-    {
-      name: 'invalid-endpoint',
-      delta: `architectureDelta { ADDED {
-  element 'payment.run' { kind 'operation' parent 'payments' title 'Run' summary 'Run payments' metadata { elementId 'payment.run' } }
-  element 'payment.store' { kind 'operation' parent 'payments' title 'Store' summary 'Store receipts' metadata { elementId 'payment.store' } }
-  element 'payment.receipt' { kind 'artifact' parent 'payment.store' title 'Receipt' summary 'Receipt data' metadata { elementId 'payment.receipt' } }
-  relationship 'payment.receipt' -[produces]-> 'payment.run'
-} }`,
-      message: 'INVALID_RELATIONSHIP_SOURCE_KIND',
-    },
-    {
-      name: 'invalid-containment',
-      delta: `architectureDelta { ADDED { element 'payment.receipt' { kind 'artifact' parent 'payments' title 'Receipt' summary 'Receipt data' metadata { elementId 'payment.receipt' } } } }`,
-      message: 'INVALID_PARENT_KIND',
-    },
-    {
-      name: 'duplicate-identity',
-      delta: `architectureDelta { ADDED { element 'project.root' { kind 'operation' parent 'payments' title 'Run' summary 'Run payments' metadata { elementId 'project.root' } } } }`,
-      message: 'ADDED_IDENTITY_EXISTS',
-    },
-  ])('should reject $name in the combined v1 target', async ({ name, delta, message }) => {
-    await writeV1Project();
-    await writeChange(name, delta);
+  it('validates the Semantic Model and Contracts in one change target through the CLI', async () => {
+    await writeChange('cli-change', { 'elements/payment.run.md': addOperation('payment.run', 'payments') });
 
-    const result = await runCLI(['validate', '--change', name, '--json'], { cwd: root });
+    const result = await runCLI(['arch', 'validate', '--change', 'cli-change', '--json'], { cwd: root });
+
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout)).toMatchObject({ success: true, errors: [] });
+  });
+
+  it('no longer accepts the removed --delta option', async () => {
+    const result = await runCLI(['arch', 'validate', '--delta', 'anything.c4'], { cwd: root });
 
     expect(result.exitCode).toBe(1);
-    expect(`${result.stdout}\n${result.stderr}`).toContain(message);
+    expect(`${result.stdout}\n${result.stderr}`).toContain("unknown option '--delta'");
   });
 });

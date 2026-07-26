@@ -16,7 +16,7 @@ C1 建立了 `src/core/model/` 内核，C2 建立了 LikeC4 生成器，但两�
 
 - **命令面删除**：`xirang spec show|validate`（`src/commands/spec.ts` 193 行全文件）；`xirang list --specs`（`list.ts:180-223`）；`arch validate --delta <path>`；`validate --artifacts specs|architecture-delta` 枚举。
 
-- **`arch query`**：删 `element.fqn`（`query.ts:35` 查找键、`:158` 文本输出）、`specs: string[]`（`:12`、`:42`）、`relation.description`（`:172`）；`contractPolicy`（`:11`、`:41`）改名 `contract`；**内联 Contract 全文**（决策 2），来源为 `ModelElement.requirements`；legacy 分支（`:21` `canonicalId`、`:137` profile 分叉）整体删除。FQN 输入改为显式错误，对齐 `impact.ts:126` 现有做法。
+- **`arch query`**：删 `element.fqn`（`query.ts:35` 查找键、`:158` 文本输出）、`specs: string[]`（`:12`、`:42`）、`relation.description`（`:172`）；`contractPolicy`（`:11`、`:41`）改名 `contract`；**新增 `--contract` 开关（默认关闭）控制是否内联 Contract 全文**（决策 2 修正版），开启时来源为 `ModelElement.requirements`，关闭时仅返回 Contract 是否存在；legacy 分支（`:21` `canonicalId`、`:137` profile 分叉）整体删除。FQN 输入改为显式错误，对齐 `impact.ts:126` 现有做法。
 
 - **`arch search`**：evidence 字段枚举（`search.ts:13`）由七项收缩为 `elementId | title | summary | requirement`，删 `fqn`/`specId`/`spec.purpose`/`spec.requirement`；删 `ownedSpecs`；rank 常量重编号。
 
@@ -49,7 +49,7 @@ C1 建立了 `src/core/model/` 内核，C2 建立了 LikeC4 生成器，但两�
 | `xirang-definition.md` | §1 Semantic Model——identity 是引用语义对象的唯一依据 |
 | `xirang-definition.md` | §3 Element Contract——一个 Element 至多一个 Contract |
 | 决策 1 | 字段名统一 `contract` |
-| 决策 2 | `arch query` 内联 Contract 全文 |
+| 决策 2（修正版）| `arch query --contract` 内联 Contract 全文，默认关闭 |
 | 决策 3 | 生成产物落 `.xirang/.cache-likec4/` |
 | 决策 5 | 删 `--scope` 改 `--entity`；`DiffKind` 补 `authored-view` 并对齐 `entity` |
 

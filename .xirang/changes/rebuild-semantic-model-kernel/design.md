@@ -13,8 +13,13 @@ src/core/model/
 ├── index-map.ts      identity → source module 索引
 ├── validator.ts      IR 语义校验
 ├── delta.ts          Delta 解析与应用
-└── sync-writer.ts    最小重写 + 事务提交
+├── sync-writer.ts    最小重写 + 事务提交
+└── transaction.ts    与记法无关的事务高阶骨架（由 `change-sync.ts` 逐字移入）
 ```
+
+`transaction.ts` 导出：`SEMANTIC_PARTITIONS`、`SEMANTIC_DIRECTORY_JOURNAL`、`readSemanticDirectoryTree`、`readSemanticTree`、`semanticTreeFingerprint`、`buildManifest`、`applySemanticTreeManifest`、`applySemanticDirectoryTransaction`、`recoverSemanticDirectoryTransaction`，以及 `PreparedSyncManifestEntry`、`SyncTransactionFileSystem`、`SemanticTreeTransactionOptions`、`SemanticDirectoryTransactionFileSystem`、`SemanticDirectoryTransactionOptions`。
+
+这些符号原位于 `change-sync.ts`，逐字移出以切断「事务骨架」与「旧记法读写」的耦合；`change-sync.ts` 保留纯 re-export shim，使现有消费点不变。**C3 删除 `change-sync.ts` 旧半边时必须同时删除该 shim**，让消费点直接指向 `src/core/model/transaction.ts`，不得留下永久转发层。
 
 ### IR 类型（`src/core/model/types.ts`）
 
@@ -47,7 +52,7 @@ export interface Scenario {
   body: string;
 }
 
-/** Element = Declaration + Contract，Contract 为零到多条 Requirement */
+/** Element = Declaration + Contract，Contract 即 `## Requirements` 段 */
 export interface ModelElement {
   declaration: ElementDeclaration;
   requirements: Requirement[];
@@ -59,12 +64,16 @@ export interface ElementKind {
   root?: boolean;
   parents?: string[];
   children?: string[];
+  /** 该 Kind 所有实例共享的语义（单元正文），缺省为空串 */
+  body: string;
 }
 
 export interface RelationshipKind {
   identity: string;
   sourceKinds?: string[];
   targetKinds?: string[];
+  /** 该 Kind 所有实例共享的语义（单元正文），缺省为空串 */
+  body: string;
 }
 
 /** identity 即全部内容，无其他字段 */
@@ -92,6 +101,10 @@ export interface SemanticModel {
 ```
 
 `SemanticModel` 取代 `TargetSemanticModel`（`semantic-model.ts:62`）。`ModelElement` 合并旧 `SemanticElement`（`:20`）与 `SemanticContract`（`:49`），移除 `fqn`、`children`、`metadata`、`specId`、`elementId` 五个派生或冗余字段。`Relationship` 移除 `description`（`semantic-model.ts:35`）。`ElementKind.contract` 取代 `SemanticElementKind.contractPolicy`（`:5`）。
+
+正文字段一律为 `string` 而非 `string?`：缺省即空串，避免 `undefined` 与 `''` 表达同一状态而破坏确定性序列化。正文按契约「散文逐字比较，仅规范化行尾与文件末尾空白」参与语义比较。`views/` 单元不承载正文，正文非空时由 parser 报 `VIEW_BODY_UNSUPPORTED`，不静默丢弃。
+
+`ModelElement` 不保留 `## Requirements` 之前的前言。Delta 记法在 `elements/` 只有 Element Declaration Entry 与 Requirement Entry，前言无 Entry 可寻址，保留它等于制造永久冻结区。因此契约规定 Contract 正文即 `## Requirements` 段，描述性文字由 Declaration 的 `summary` 承载；`elements/` 正文出现该段以外的内容时由 parser 报 `UNSUPPORTED_CONTRACT_CONTENT`。存量 `.xirang/specs/**` 的 `## Purpose` 不迁移，模型整体 rebuild。
 
 ### 索引类型（`src/core/model/index-map.ts`）
 
@@ -163,10 +176,12 @@ export async function writeMinimal(
 ```ts
 export type Operation = 'ADDED' | 'MODIFIED' | 'REMOVED';
 
+export type DeltaEntityType = EntityType | 'requirement' | 'relationship';
+
 export interface DeltaEntry {
   operation: Operation;
-  entity: EntityType | 'requirement';
-  identity: string;      // requirement 为 `<element identity>#<name>`
+  entity: DeltaEntityType;
+  identity: string;      // requirement 为 `<element identity>#<name>`；relationship 为 `source\0kind\0target`
   target?: unknown;      // REMOVED 不携带内容
 }
 
@@ -201,7 +216,7 @@ export interface SemanticDelta {
 | `recoverSemanticDirectoryTransaction` | `:300-346` | 崩溃恢复 |
 | journal 读写 | `:262-270` | `SemanticDirectoryTransactionJournal` |
 
-**唯一需要改动的是分区元组**。`['architecture', 'specs']` 硬编码于 `:276`、`:285`、`:314`、`:369`，`readSemanticDirectoryTree:917-918` 固定遍历两个目录，`resolveManifestPath:1031` 白名单同样只允许两者。改法是引入 `PARTITIONS` 常量并将这些位置参数化，其余逻辑不动。
+**唯一需要改动的是分区元组**。`['architecture', 'specs']` 硬编码于 `:276`、`:285`、`:314`、`:369`，`readSemanticDirectoryTree:917-918` 固定遍历两个目录，`resolveManifestPath:1031` 白名单同样只允许两者。改法是引入 `SEMANTIC_PARTITIONS` 常量（四分区 + C3 删除的旧两者，保证向后兼容）并将这些位置参数化，其余逻辑不动。
 
 `buildManifest:949` 由路径前缀 `.xirang/architecture/` 派生 `scope: 'architecture' | 'spec'`。按决策 5，差异输出不得携带分区信息，`PreparedSyncManifestEntry.scope` 降级为写回内部字段或直接移除——但 manifest 本身是文件级事务结构，保留 `partition: Partition` 用于定位是可接受的；对外的 `ChangeDiffEntry` 必须移除 `scope`。
 

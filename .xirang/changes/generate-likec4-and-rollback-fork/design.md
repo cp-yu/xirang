@@ -71,8 +71,13 @@ LikeC4 的 element 名必须是合法 `Id`，而 identity 允许 `.` 与 `-`（`
 
 1. 取 identity 最后一段（按 `.` 切分）作为基名——`cap.architecture.likec4-reader` → `likec4-reader`。
 2. 非法字符替换为 `_`；首字符非字母或 `_` 时前置 `_`。
-3. 同一 parent 下若基名重复，按 identity 字节序追加 `_2`、`_3` 消解。
-4. `pathOf` 由 parent 链的 `nameOf` 用 `.` 连接。
+3. 命中 LikeC4 保留字时再前置 `_`——`views` → `_views`。
+4. 同一 parent 下若基名重复，按 identity 字节序追加 `_2`、`_3` 消解。冲突消解必须在保留字避让之后，否则避让出的 `_views` 会与真实派生的 `_views` 相撞。
+5. `pathOf` 由 parent 链的 `nameOf` 用 `.` 连接。
+
+同一派生函数用于产物中的每一个名字：Element 局部名、Element Kind 名、Relationship Kind 名与 View 名。Kind 与 View 的 identity 同样允许 `.`（`xirang-contract.md:97`），而 LikeC4 的 `Id` 不允许，原样输出会对合法 identity 产出非法 `.c4`。命名空间按作用域分：Element 按同父，Kind 按 specification，View 按 views 块。生成器控制引用两端，派生对引用自洽，无需额外映射。
+
+保留字列表实测自 vendored grammar 并硬编码于 `local-names.ts`；运行时不解析 grammar，漂移由 `test/core/likec4/reserved-names.test.ts` 守卫——upstream 增删关键字使测试变红，而非产物静默非法。
 
 第 3 条是必须的：identity 全局唯一，但截取末段后可能在同一 parent 下碰撞（例如 `a.reader` 与 `b.reader` 同为某 domain 的子元素）。冲突消解只需在单次生成内成立，不要求跨版本稳定（`xirang-contract.md:132`），因此按字节序而非插入序，保证确定性。
 
@@ -194,9 +199,11 @@ views {
 
 缓解：`deriveLocalNames` 先按 identity 字节序排序再分配，属性测试验证同一 IR 连续两次生成字节相同，并构造同 parent 同末段的碰撞夹具。
 
-**R2 生成物被 LikeC4 拒绝**。派生名可能撞上 LikeC4 保留字（`model`、`specification`、`views`、`element`、`extend` 等），或嵌套结构违反 LikeC4 约束。
+**R2 生成物被 LikeC4 拒绝**。派生名可能撞上 LikeC4 保留字（`specification`、`views`、`title`、`metadata` 等），或嵌套结构违反 LikeC4 约束。
 
-缓解：以真实 `likec4 validate` 校验生成产物——`src/commands/arch/runner.ts:6` 的 `runLikeC4` 是既有进程边界，可直接复用。构造含保留字末段的 identity 夹具（如 `x.model`）验证转义。
+缓解：以真实 `likec4 validate` 校验生成产物——`src/commands/arch/runner.ts:6` 的 `runLikeC4` 是既有进程边界，可直接复用。对抗夹具覆盖保留字名、含 `.` 与 `-` 的 identity、首字符为数字、同父派生冲突、kind 与 view 名撞关键字。
+
+实测修正（原表述「语法扩展是可选挂载，删除前后均不影响裸产物」已被证伪）：把 `like-c4.langium` 的全部关键字字面量逐个当作 element 名跑 `likec4 validate`——回退前 86 个被拒，回退后 76 个被拒，差值正是 `xirang`、`languageVersion`、`root`、`contract`、`parents`、`children`、`sourceKinds`、`targetKinds`、`required`、`optional` 这 10 个仅由 Xirang 规则引入的词。回退因此**放宽**了裸产物的可接受范围。避让列表取回退后的 76 词（那 10 个词在目标态不再是关键字，不应被永久避让），Task 4 的回退前校验夹具避开这 10 个词，使同一夹具在回退前后都通过。
 
 **R3 回退遗漏挂载点**。`.langium` 删规则但漏删 `:80` 或 `:112` 的可选字段引用，`langium generate` 会因未定义规则报错——这是好的失败，会立即暴露。反之若漏删规则本体而删了挂载点，规则变成不可达但生成仍成功，遗留死语法。
 

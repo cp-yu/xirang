@@ -85,7 +85,7 @@ describe('ListCommand', () => {
     it('should handle missing .xirang/changes directory', async () => {
       const listCommand = new ListCommand();
       
-      await expect(listCommand.execute(tempDir, 'changes')).rejects.toThrow(
+      await expect(listCommand.execute(tempDir)).rejects.toThrow(
         "No Xirang changes directory found. Run 'xirang setup' first."
       );
     });
@@ -95,7 +95,7 @@ describe('ListCommand', () => {
       await fs.mkdir(changesDir, { recursive: true });
 
       const listCommand = new ListCommand();
-      await listCommand.execute(tempDir, 'changes');
+      await listCommand.execute(tempDir);
 
       expect(logOutput).toEqual(['No active changes found.']);
     });
@@ -112,7 +112,7 @@ describe('ListCommand', () => {
       );
 
       const listCommand = new ListCommand();
-      await listCommand.execute(tempDir, 'changes');
+      await listCommand.execute(tempDir);
 
       expect(logOutput).toContain('Changes:');
       expect(logOutput.some(line => line.includes('my-change'))).toBe(true);
@@ -136,7 +136,7 @@ Regular text that should be ignored
       );
 
       const listCommand = new ListCommand();
-      await listCommand.execute(tempDir, 'changes');
+      await listCommand.execute(tempDir);
 
       expect(logOutput.some(line => line.includes('2/5 tasks'))).toBe(true);
     });
@@ -151,7 +151,7 @@ Regular text that should be ignored
       );
 
       const listCommand = new ListCommand();
-      await listCommand.execute(tempDir, 'changes');
+      await listCommand.execute(tempDir);
 
       expect(logOutput.some(line => line.includes('✓ Complete'))).toBe(true);
     });
@@ -161,7 +161,7 @@ Regular text that should be ignored
       await fs.mkdir(path.join(changesDir, 'no-tasks'), { recursive: true });
 
       const listCommand = new ListCommand();
-      await listCommand.execute(tempDir, 'changes');
+      await listCommand.execute(tempDir);
 
       expect(logOutput.some(line => line.includes('no-tasks') && line.includes('No tasks'))).toBe(true);
     });
@@ -173,7 +173,7 @@ Regular text that should be ignored
       await fs.mkdir(path.join(changesDir, 'middle'), { recursive: true });
 
       const listCommand = new ListCommand();
-      await listCommand.execute(tempDir, 'changes', { sort: 'name' });
+      await listCommand.execute(tempDir, { sort: 'name' });
 
       const changeLines = logOutput.filter(line =>
         line.includes('alpha') || line.includes('middle') || line.includes('zebra')
@@ -235,7 +235,7 @@ Regular text that should be ignored
       await fs.writeFile(path.join(missingDir, 'tasks.md'), '- [ ] Task 1\n');
 
       const listCommand = new ListCommand();
-      await listCommand.execute(tempDir, 'changes', { json: true });
+      await listCommand.execute(tempDir, { json: true });
 
       const output = JSON.parse(logOutput[0]);
       const changes = Object.fromEntries(output.changes.map((change: any) => [change.name, change]));
@@ -246,108 +246,5 @@ Regular text that should be ignored
       expect(changes['missing-change'].status).toBe('in-progress');
     });
 
-    it('includes singular element binding without capabilities in JSON', async () => {
-      const specsDir = path.join(tempDir, '.xirang', 'specs');
-      await fs.mkdir(path.join(specsDir, 'cli-list'), { recursive: true });
-      await fs.writeFile(
-        path.join(specsDir, 'cli-list', 'spec.md'),
-        `---
-element: cli.list
----
-# CLI List
-
-## Purpose
-List specs.
-
-## Requirements
-
-### Requirement: JSON output
-The system SHALL output JSON.
-`
-      );
-
-      const listCommand = new ListCommand();
-      await listCommand.execute(tempDir, 'specs', { json: true });
-
-      const output = JSON.parse(logOutput[0]);
-      expect(output).toEqual([
-        {
-          id: 'cli-list',
-          title: 'cli-list',
-          requirementCount: 1,
-          requirements: ['JSON output'],
-          element: 'cli.list',
-        },
-      ]);
-      expect(output[0]).not.toHaveProperty('capabilities');
-    });
-
-    it('requirements字段来自spec headers并忽略fenced code', async () => {
-      const specsDir = path.join(tempDir, '.xirang', 'specs');
-      await fs.mkdir(path.join(specsDir, 'cli-list'), { recursive: true });
-      await fs.writeFile(
-        path.join(specsDir, 'cli-list', 'spec.md'),
-        `# CLI List
-
-## Purpose
-List specs as JSON.
-
-## Requirements
-
-\`\`\`md
-### Requirement: Not real
-\`\`\`
-
-### Requirement: JSON output format for specs
-The system SHALL output JSON.
-
-#### Scenario: JSON output
-- **WHEN** listing specs
-- **THEN** JSON is emitted
-
-### Requirement: Human table output
-The system SHALL output a table.
-
-#### Scenario: Human output
-- **WHEN** listing specs
-- **THEN** a table is emitted
-`
-      );
-
-      const listCommand = new ListCommand();
-      await listCommand.execute(tempDir, 'specs', { json: true });
-
-      const output = JSON.parse(logOutput[0]);
-      expect(output[0].requirements).toEqual([
-        'JSON output format for specs',
-        'Human table output',
-      ]);
-    });
-
-    it('uses null element and empty requirements when fields are absent', async () => {
-      const specsDir = path.join(tempDir, '.xirang', 'specs');
-      await fs.mkdir(path.join(specsDir, 'legacy'), { recursive: true });
-      await fs.writeFile(
-        path.join(specsDir, 'legacy', 'spec.md'),
-        `# Legacy
-
-## Purpose
-Legacy spec.
-
-## Requirements
-`
-      );
-
-      const listCommand = new ListCommand();
-      await listCommand.execute(tempDir, 'specs', { json: true });
-
-      const output = JSON.parse(logOutput[0]);
-      expect(output[0]).toMatchObject({
-        id: 'legacy',
-        element: null,
-        requirements: [],
-      });
-      expect(output[0]).not.toHaveProperty('capabilities');
-    });
   });
 });

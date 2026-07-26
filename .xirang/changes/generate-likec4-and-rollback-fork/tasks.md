@@ -20,19 +20,19 @@
 
 #### Checks
 
-- [ ] C1 验证派生规则与碰撞消解
+- [x] C1 验证派生规则与碰撞消解
   - Verifies: `xirang-contract.md:132` / 局部名只需单次生成内无冲突
   - Command: `pnpm exec vitest run test/core/likec4/local-names.test.ts`
   - Expect: `cap.architecture.likec4-reader` → `likec4_reader`；同 parent 下 `a.reader` 与 `b.reader` 得到 `reader` 与 `reader_2`；首字符为数字的 identity 前置 `_`
   - Remediation: 碰撞后缀按 identity 字节序分配，不按遍历序
 
-- [ ] C2 验证派生确定性
+- [x] C2 验证派生确定性
   - Verifies: `design.md` / 确定性节
   - Command: `pnpm exec vitest run test/core/likec4/local-names.test.ts`
   - Expect: 同一元素集合以不同数组顺序输入，`nameOf` 与 `pathOf` 结果完全相同
   - Remediation: 派生前先按 identity 字节序排序
 
-- [ ] C3 验证缓存目录被忽略
+- [x] C3 验证缓存目录被忽略
   - Verifies: `xirang-contract.md:130` / 生成产物不纳入版本控制
   - Command: `git check-ignore -v .xirang/.cache-likec4/model.c4`
   - Expect: 命中 `.gitignore` 中的 `.xirang/.cache-likec4/` 规则
@@ -60,13 +60,13 @@
 
 #### Checks
 
-- [ ] C1 验证零 xirang 输出
+- [x] C1 验证零 xirang 输出
   - Verifies: `proposal.md` / fork 回退硬前置
   - Command: `pnpm exec vitest run test/core/likec4/generator.test.ts`
   - Expect: 四个产物内容均不含子串 `xirang`；含全部六类约束的 `ElementKind`/`RelationshipKind` 夹具仍只产出裸 kind 名
   - Remediation: 约束字段不得以任何形式泄漏进产物；它们的权威位置是 `metamodel/` frontmatter
 
-- [ ] C2 验证 views 生成
+- [x] C2 验证 views 生成
   - Verifies: `xirang-contract.md:85` / `authored-view` 字段
   - Command: `pnpm exec vitest run test/core/likec4/generator.test.ts`
   - Expect: `include: '*'` 产出 `include *`；`of` 与 identity 列表经 `pathOf` 转为 LikeC4 引用；缺省 `title`/`autoLayout` 不产生空行
@@ -95,19 +95,19 @@
 
 #### Checks
 
-- [ ] C1 验证嵌套结构与 identity 保留
+- [x] C1 验证嵌套结构与 identity 保留
   - Verifies: `xirang-definition.md:77` / identity 是唯一引用依据
   - Command: `pnpm exec vitest run test/core/likec4/generator.test.ts`
   - Expect: 四层嵌套 IR 产出对应四层缩进；每个 element body 含 `elementId '<identity>'`；Requirement 正文不出现在产物中
   - Remediation: 层级由 `parent` 字段重建，不依赖输入数组的排列
 
-- [ ] C2 验证生成确定性
+- [x] C2 验证生成确定性
   - Verifies: `design.md` / 确定性节
   - Command: `pnpm exec vitest run test/core/likec4/generator.test.ts`
   - Expect: 同一 IR 连续两次调用产出相同字节；元素、关系、kind、View 乱序输入产出相同结果
   - Remediation: 全部排序改字节序；`localeCompare` 跨 locale 不稳定
 
-- [ ] C3 验证转义与边界
+- [x] C3 验证转义与边界
   - Verifies: `design.md` / 生成内容节
   - Command: `pnpm exec vitest run test/core/likec4/generator.test.ts`
   - Expect: 含单引号、反斜杠、换行的 title/summary 正确转义；空模型（零元素/零关系/零 View）产出结构合法的空产物
@@ -121,17 +121,18 @@
 
 **Files**:
 - Test: `test/core/likec4/generator-validate.test.ts`
+- Test: `test/core/likec4/reserved-names.test.ts`
 
 **Requirements**:
 - 将 `generateLikeC4` 产物写入临时目录，经 `src/commands/arch/runner.ts:6` 的 `runLikeC4(['validate', <dir>])` 校验
 - 夹具覆盖：多层嵌套、多 kind、关系端点跨子树、View 的 `of` 与 identity 列表
-- 夹具须含末段为 LikeC4 保留字的 identity（如 `x.model`、`y.views`），验证派生名不与关键字冲突
+- 夹具须含末段为 LikeC4 保留字的 identity（如 `x.model`、`y.views`），验证派生名不与关键字冲突；一并覆盖含 `.` 与 `-` 的 identity、首字符为数字、同父派生冲突、kind 与 view 名撞关键字
 - 测试写临时目录，不写 `.xirang/.cache-likec4/`，不读取仓库现有 `.xirang/architecture/`
-- 此校验在 Task 5 回退前执行，产物不含 xirang 块也应通过——语法扩展是可选挂载，删除前后均不影响裸产物
+- 此校验在 Task 5 回退前执行。实测修正：回退前 86 个关键字不能做 element 名，回退后 76 个，差值是 10 个仅由 Xirang 规则引入的词（`xirang`、`languageVersion`、`root`、`contract`、`parents`、`children`、`sourceKinds`、`targetKinds`、`required`、`optional`）；回退只会放宽接受范围。派生按回退后的 76 词避让，夹具避开那 10 个词，使同一夹具在回退前后都通过
 
 #### Checks
 
-- [ ] C1 验证产物被 LikeC4 接受
+- [x] C1 验证产物被 LikeC4 接受
   - Verifies: `xirang-contract.md:126` / `.c4` 用于渲染与校验
   - Command: `pnpm exec vitest run test/core/likec4/generator-validate.test.ts`
   - Expect: `runLikeC4(['validate', dir])` 退出码 0，无诊断输出
@@ -160,19 +161,19 @@
 
 #### Checks
 
-- [ ] C1 验证语法与生成物零残留
+- [x] C1 验证语法与生成物零残留
   - Verifies: `proposal.md` / BREAKING 删除范围
   - Command: `rg -c "Xirang" likec4/packages/language-server/src/like-c4.langium likec4/packages/language-server/src/generated/ast.ts`
   - Expect: 两文件均零命中
   - Remediation: 漏删挂载点会使 `langium generate` 报未定义规则并立即失败；漏删规则本体则留下不可达死语法，需回到 `.langium` 补删后重跑生成
 
-- [ ] C2 验证生成物齐全且与 langium 配置一致
+- [x] C2 验证生成物齐全且与 langium 配置一致
   - Verifies: `design.md` / 生成物重生成节
   - Command: `cd likec4/packages/language-server && pnpm generate && ls src/generated src/generated-lib`
   - Expect: `src/generated/` 含 `ast.ts`、`grammar.ts`、`module.ts`；`src/generated-lib/` 含 `icons.ts`
   - Remediation: 只跑 `langium generate` 会因 `pregenerate` 清空而缺失 `module.ts` 与 `icons.ts`
 
-- [ ] C3 验证类型自洽
+- [x] C3 验证类型自洽
   - Verifies: `design.md` / R3
   - Command: `cd likec4/packages/language-server && pnpm typecheck`
   - Expect: 无 Xirang 相关类型错误
@@ -199,13 +200,13 @@
 
 #### Checks
 
-- [ ] C1 验证 fork 包测试为绿
+- [x] C1 验证 fork 包测试为绿
   - Verifies: `proposal.md` / 中间态节
   - Command: `cd likec4/packages/language-server && pnpm test`
   - Expect: 无失败；若有失败须与回退前基线比对，仅接受与本改动无关的既有失败
   - Remediation: 回退前先跑一次记录既有失败集（`design.md` R4），只对比新增失败
 
-- [ ] C2 验证嵌套能力断言保留
+- [x] C2 验证嵌套能力断言保留
   - Verifies: `design.md` / 测试修复节
   - Command: `rg -n "elementId" likec4/packages/language-server/src/__tests__/model.spec.ts`
   - Expect: 改造后的用例仍含四处 `metadata { elementId ... }` 与四层嵌套
@@ -219,28 +220,36 @@
 
 **Files**:
 - Test: `test/core/likec4/generator-validate.test.ts`
+- Test: `test/core/likec4/reserved-names.test.ts`
 
 **Requirements**:
 - 回退完成后重跑 Task 4 的校验，确认产物在无 Xirang 语法的 fork 下依然合法
 - 断言 `generateLikeC4` 全程无文件写入：以临时目录快照前后比对，或确认函数签名不接受路径参数
 - 断言产物不落入 `.xirang/model/`
+- 回退后保留字漂移测试转绿，并断言 10 个 Xirang-only 词已可直接作名字使用（不在 76 词表内，不应被避让）
 
 #### Checks
 
-- [ ] C1 验证回退后产物仍合法
+- [x] C1 验证回退后产物仍合法
   - Verifies: `xirang-contract.md:126-128` / `.c4` 为渲染与校验产物
   - Command: `pnpm exec vitest run test/core/likec4/generator-validate.test.ts`
   - Expect: 回退后 `runLikeC4(['validate', dir])` 仍退出码 0
   - Remediation: 若报错涉及 xirang 关键字，说明生成器仍有残留输出，回到 Task 2 的 C1
 
-- [ ] C2 验证不回写持久源
+- [x] C2 验证不回写持久源
   - Verifies: `xirang-contract.md:132` / 不得回写持久源
   - Command: `pnpm exec vitest run test/core/likec4/generator.test.ts test/core/likec4/generator-validate.test.ts`
   - Expect: 测试执行前后 `.xirang/model/` 与 `.xirang/architecture/` 内容不变
   - Remediation: 生成器必须保持纯函数，落盘由调用方（C3）承担
 
-- [ ] C3 确认中间态边界
+- [x] C3 确认中间态边界
   - Verifies: `proposal.md` / 中间态节
   - Command: `rg -n "xirang \{" src/utils/architecture-delta-merger.ts`
   - Expect: `:202`、`:210`、`:217` 的旧 xirang 输出仍在——它们属于 C3 的删除范围，本 Change 不动
   - Remediation: 若已被本 Change 误删，说明越界改了旧栈，须还原并移交 C3
+
+- [x] C4 验证保留字表与回退后的 grammar 一致
+  - Verifies: `design.md` / R2 实测修正
+  - Command: `pnpm exec vitest run test/core/likec4/reserved-names.test.ts`
+  - Expect: 逐字面量试跑得到的拒绝集等于 `LIKEC4_RESERVED_NAMES`；10 个 Xirang-only 词既不在拒绝集也不在表内
+  - Remediation: 差异均为 upstream 漂移，按实测结果更新 `local-names.ts` 的列表，不得删弱断言

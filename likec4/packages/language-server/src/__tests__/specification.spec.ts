@@ -2,38 +2,6 @@ import { describe } from 'vitest'
 import { test } from './asserts'
 
 describe('specification', () => {
-  test('OPSX v1 annotations').valid`
-      xirang {
-        languageVersion '1'
-      }
-      specification {
-        element project {
-          xirang {
-            root true
-            contract required
-          }
-        }
-        element capability {
-          xirang {
-            contract required
-            parents [project, capability]
-            children [capability]
-          }
-        }
-        element event {
-          xirang {
-            contract optional
-          }
-        }
-        relationship produces {
-          xirang {
-            sourceKinds [capability]
-            targetKinds [event]
-          }
-        }
-      }
-      `
-
   test('valid').valid`
       specification {
         element container

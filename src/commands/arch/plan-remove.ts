@@ -1,9 +1,9 @@
 import type { Command } from 'commander';
 import { compileChange, readFormalSemanticModel } from '../../core/change-compiler.js';
+import type { ElementDeclaration, SemanticModel } from '../../core/model/types.js';
 import type { ChangeDiagnostic } from '../../core/semantic-diff.js';
-import type { SemanticElement, TargetSemanticModel } from '../../utils/semantic-model.js';
 
-export type RemovalDependencyType = 'descendant' | 'relationship' | 'spec-binding' | 'reference';
+export type RemovalDependencyType = 'descendant' | 'relationship';
 
 export interface RemovalDependency {
   type: RemovalDependencyType;
@@ -12,7 +12,7 @@ export interface RemovalDependency {
 }
 
 export interface RemovalPlan {
-  subject: { id: string; fqn: string; title: string };
+  subject: { id: string; title: string };
   change: string | null;
   context: Array<{ type: 'parent'; identity: string; detail: string }>;
   handled: RemovalDependency[];
@@ -21,91 +21,70 @@ export interface RemovalPlan {
   diagnostics: ChangeDiagnostic[];
 }
 
-function relationIdentity(source: string, kind: string, target: string): string {
-  return `${source}|${kind}|${target}`;
-}
-
 function dependencyKey(item: RemovalDependency): string {
   return `${item.type}:${item.identity}`;
 }
 
-function containsReference(value: string | string[], subject: string): boolean {
-  return Array.isArray(value) ? value.includes(subject) : value === subject;
-}
-
-function dependencies(model: TargetSemanticModel, subject: string): RemovalDependency[] {
-  const elements = new Map(model.architecture.elements.map(element => [element.id, element]));
+function dependencies(model: SemanticModel, subject: string): RemovalDependency[] {
+  const parents = new Map(model.elements.map(element => [element.declaration.identity, element.declaration.parent]));
   const result: RemovalDependency[] = [];
 
-  for (const element of model.architecture.elements) {
-    if (element.id === subject) continue;
-    let parent = element.parent;
+  for (const identity of parents.keys()) {
+    if (identity === subject) continue;
+    let parent = parents.get(identity) ?? null;
     while (parent) {
       if (parent === subject) {
-        result.push({ type: 'descendant', identity: `element:${element.id}`, detail: `${element.id} remains contained by ${subject}` });
+        result.push({ type: 'descendant', identity: `element:${identity}`, detail: `${identity} remains contained by ${subject}` });
         break;
       }
-      parent = elements.get(parent)?.parent ?? null;
-    }
-    for (const [key, value] of Object.entries(element.metadata)) {
-      if (containsReference(value, subject)) result.push({
-        type: 'reference', identity: `reference:${element.id}:metadata.${key}`,
-        detail: `${element.id} metadata.${key} references ${subject}`,
-      });
+      parent = parents.get(parent) ?? null;
     }
   }
 
-  for (const relation of model.architecture.relations) {
-    if (relation.source === subject || relation.target === subject) result.push({
+  for (const relationship of model.relationships) {
+    if (relationship.source !== subject && relationship.target !== subject) continue;
+    result.push({
       type: 'relationship',
-      identity: `relationship:${relationIdentity(relation.source, relation.kind, relation.target)}`,
-      detail: `${relation.source} -[${relation.kind}]-> ${relation.target}`,
-    });
-  }
-  for (const contract of model.contracts) {
-    if (contract.elementId === subject) result.push({
-      type: 'spec-binding', identity: `spec:${contract.specId}`, detail: `${contract.specId} binds ${subject}`,
+      identity: `relationship:${relationship.source}|${relationship.kind}|${relationship.target}`,
+      detail: `${relationship.source} -[${relationship.kind}]-> ${relationship.target}`,
     });
   }
   return result.sort((left, right) => dependencyKey(left).localeCompare(dependencyKey(right)));
 }
 
-function findSubject(models: TargetSemanticModel[], identityOrFqn: string): SemanticElement | undefined {
+function findDeclaration(models: SemanticModel[], identity: string): ElementDeclaration | undefined {
   for (const model of models) {
-    const found = model.architecture.elements.find(element => element.id === identityOrFqn || element.fqn === identityOrFqn);
-    if (found) return found;
+    const found = model.elements.find(element => element.declaration.identity === identity);
+    if (found) return found.declaration;
   }
   return undefined;
 }
 
 export async function planRemove(
   projectRoot: string,
-  identityOrFqn: string,
+  identity: string,
   change?: string,
 ): Promise<RemovalPlan> {
-  const formal = await readFormalSemanticModel(projectRoot);
+  const formal = (await readFormalSemanticModel(projectRoot)).model;
   const compiled = change ? await compileChange(projectRoot, change) : null;
   if (compiled && compiled.target === null) {
     throw new Error(compiled.diagnostics.map(item => `${item.code}: ${item.message}`).join('\n'));
   }
   const target = compiled?.target ?? formal;
-  const subject = findSubject([target, formal], identityOrFqn);
-  if (!subject) throw new Error(`Element not found: ${identityOrFqn}`);
+  const subject = findDeclaration([target, formal], identity);
+  if (!subject) throw new Error(`Element not found: ${identity}`);
 
-  const formalDependencies = dependencies(formal, subject.id);
-  const unresolved = dependencies(target, subject.id);
+  const formalDependencies = dependencies(formal, subject.identity);
+  const unresolved = dependencies(target, subject.identity);
   const unresolvedKeys = new Set(unresolved.map(dependencyKey));
   const handled = change ? formalDependencies.filter(item => !unresolvedKeys.has(dependencyKey(item))) : [];
-  const parent = target.architecture.elements.find(item => item.id === subject.id)?.parent
-    ?? formal.architecture.elements.find(item => item.id === subject.id)?.parent;
-  const parentElement = parent
-    ? target.architecture.elements.find(item => item.id === parent) ?? formal.architecture.elements.find(item => item.id === parent)
-    : undefined;
+  const parent = findDeclaration([target, formal], subject.identity)?.parent ?? null;
+  const parentElement = parent ? findDeclaration([target, formal], parent) : undefined;
 
   return {
-    subject: { id: subject.id, fqn: subject.fqn, title: subject.title },
+    subject: { id: subject.identity, title: subject.title },
     change: change ?? null,
-    context: parentElement ? [{ type: 'parent', identity: `element:${parentElement.id}`, detail: parentElement.title }] : [],
+    context: parentElement ? [{ type: 'parent', identity: `element:${parentElement.identity}`, detail: parentElement.title }] : [],
     handled,
     unresolved,
     requiredCount: unresolved.length,
@@ -116,7 +95,6 @@ export async function planRemove(
 export function renderRemovalPlan(plan: RemovalPlan): string {
   const lines = [
     `Removal plan: ${plan.subject.id}`,
-    `Current FQN: ${plan.subject.fqn}`,
     `Required before target can validate: ${plan.requiredCount}`,
     '',
     'Handled',
@@ -132,8 +110,8 @@ export function renderRemovalPlan(plan: RemovalPlan): string {
 
 export function registerPlanRemoveCommand(arch: Command): void {
   arch
-    .command('plan-remove <element-id-or-fqn>')
-    .description('Plan explicit reconciliation required before removing an architecture element')
+    .command('plan-remove <element-id>')
+    .description('Plan explicit reconciliation required before removing an Element')
     .option('--change <name>', 'Analyze a selected active change target')
     .option('--json', 'Output structured JSON')
     .action(async (identity: string, options: { change?: string; json?: boolean }) => {
