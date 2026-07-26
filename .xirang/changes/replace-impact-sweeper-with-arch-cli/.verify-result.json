@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-07-26T05:43:56.242Z",
+  "timestamp": "2026-07-26T06:13:17.593Z",
   "result": "PASS",
   "issues": [],
-  "tasksFileHash": "c30611c0db384f71567c5fdf692ff2600c35bb7e32550e045bf5367c1017762b",
+  "tasksFileHash": "19b6b1fd6792c3898fcac31f549e57fca7102abe6222bd6e125a26e8933d0f9c",
   "verificationContext": {
     "contractVersion": "1.0",
     "evidenceFiles": [
@@ -17,6 +17,7 @@
       ".xirang/architecture/specification.c4",
       ".xirang/changes/replace-impact-sweeper-with-arch-cli/.apply-isolation.json",
       ".xirang/changes/replace-impact-sweeper-with-arch-cli/.verify-result.json",
+      ".xirang/changes/replace-impact-sweeper-with-arch-cli/.xirang.yaml",
       ".xirang/changes/replace-impact-sweeper-with-arch-cli/architecture-delta.c4",
       ".xirang/changes/replace-impact-sweeper-with-arch-cli/design.md",
       ".xirang/changes/replace-impact-sweeper-with-arch-cli/effective-change.md",
@@ -41,6 +42,8 @@
       "src/commands/arch/search.ts",
       "src/core/completions/positional-types.ts",
       "src/core/completions/types.ts",
+      "src/core/parsers/requirement-blocks.ts",
+      "src/core/parsers/requirement-text.ts",
       "src/core/shared/skill-generation.ts",
       "src/core/shared/subagent-generation.ts",
       "src/core/spec-registry.ts",
@@ -55,6 +58,7 @@
       "test/core/completions/introspect-regression.test.ts",
       "test/core/completions/introspect.test.ts",
       "test/core/completions/positional-types.test.ts",
+      "test/core/parsers/requirement-blocks.test.ts",
       "test/core/shared/skill-generation.test.ts",
       "test/core/shared/subagent-generation.test.ts",
       "test/core/spec-registry.test.ts",
@@ -72,7 +76,7 @@
       "test/telemetry/index.test.ts",
       "xirang-definition.md"
     ],
-    "evidenceFingerprint": "ca014effefef35735a3580e13d498769ae6e575e01ac68e77a062095fd3a2dc3",
+    "evidenceFingerprint": "386ef0c1f7945bd47072e1772f2d725825054570e44d3ee2752c17d8a64dab8a",
     "evidenceFingerprintEntries": [
       {
         "path": ".github/workflows/test-windows.yml",
@@ -113,6 +117,10 @@
       {
         "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/.apply-isolation.json",
         "hash": "42148e3749d876bf509fbd0dd5f036364e28ab6bb3e1b6270e7464a3b3999c64"
+      },
+      {
+        "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/.xirang.yaml",
+        "hash": "ae8966f54af144580ea41d58a13f0980a08444ddccbef15515053eb5152cc8ba"
       },
       {
         "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/architecture-delta.c4",
@@ -176,7 +184,7 @@
       },
       {
         "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/tasks.md",
-        "hash": "c30611c0db384f71567c5fdf692ff2600c35bb7e32550e045bf5367c1017762b"
+        "hash": "19b6b1fd6792c3898fcac31f549e57fca7102abe6222bd6e125a26e8933d0f9c"
       },
       {
         "path": ".xirang/references/xirang-explore-supperpowers-style.md",
@@ -209,6 +217,14 @@
       {
         "path": "src/core/completions/types.ts",
         "hash": "597c483161755310207069c8b10b8bc6e01faa60ee2a84549cb0c2624715f7f9"
+      },
+      {
+        "path": "src/core/parsers/requirement-blocks.ts",
+        "hash": "cddb7029c59a0d152161b9515c182e5a355a1ac1ce113f47647b5bafdbc205c8"
+      },
+      {
+        "path": "src/core/parsers/requirement-text.ts",
+        "hash": "fa45720e24d617ef863923d8e67b32e096c84f35aaef5584a8f3a3f22aac4694"
       },
       {
         "path": "src/core/shared/skill-generation.ts",
@@ -252,7 +268,7 @@
       },
       {
         "path": "test/commands/arch-search.test.ts",
-        "hash": "1c85733ea91be0f2e8001fa1f56e0db263f7be81728c75c3e81a2b2f1dc2441f"
+        "hash": "107185beba0fe47d887d63200289ef8c9b9d7721fa231be7d837ed24ca6d83dc"
       },
       {
         "path": "test/core/completions/introspect-regression.test.ts",
@@ -265,6 +281,10 @@
       {
         "path": "test/core/completions/positional-types.test.ts",
         "hash": "e31b59711782e719ebf565ba7b9d566d264b923eb53f8de3073610e7dd793e8e"
+      },
+      {
+        "path": "test/core/parsers/requirement-blocks.test.ts",
+        "hash": "4513941a93d3f958400dc7e0bce3066b78f577fabf6171d20db6a76f6670ba2d"
       },
       {
         "path": "test/core/shared/skill-generation.test.ts",
@@ -334,29 +354,17 @@
     "skippedEvidenceFiles": [
       ".xirang/changes/replace-impact-sweeper-with-arch-cli/.verify-result.json"
     ],
-    "gitHeadCommit": "b9b62f5550fb78ee7d0aea0fce97a79cf1e37cd2",
-    "gitDiffSummary": "Validated the absolute changeName, changeDir, and projectRoot inputs and resolved immutable base commit df2c22c07e2f590ac850fdd6c446d8acae1fbac8. HEAD equals baseCommit, so git diff baseCommit...HEAD --name-only is empty; independently reviewed all 59 git-status paths, prior evidence files, Semantic Model relationship paths, and live-search candidates. xirang-definition.md was read and excluded from implementation attribution because .apply-isolation.json records it as a pre-existing user change and tasks.md preserves that isolation. All four task-declared source/test deletions and the generated Sweeper agent/reference deletions are complete. Strict change validation, architecture-delta validation, git diff --check, multi-angle retired-runtime absence searches, targeted suites, the full 148-file/2046-test pnpm test suite, pnpm lint, and pnpm build passed. Repeated built arch search and arch impact JSON outputs were byte-identical and parseable; the impact projection contained 5 Elements, 2 Relationships, and 5 complete Contracts, had no forbidden Formal-only keys, and left git status unchanged.",
-    "timestamp": "2026-07-26T05:58:57.817Z"
+    "gitHeadCommit": "e97c37ef0242bb62858c0d82d2dd3c16347caab0",
+    "gitDiffSummary": "Validated changeName, absolute changeDir, and absolute projectRoot. Resolved immutable baseCommit df2c22c07e2f590ac850fdd6c446d8acae1fbac8 and reviewed the 58 HEAD-diff paths plus uncommitted scope from git status. The fenced Requirement-heading remediation is attributed to Task 1 and is implemented through the shared code-fence mask in requirement-blocks.ts, with parser and arch-search regression coverage proving fenced headings are excluded from spec.requirement evidence. The previously verified Contract source snapshot remains invocation-local: buildSpecRegistry retains each successful read's exact content and normalized path, while arch search and arch impact consume getSpecSource without duplicate Contract reads; read-count and diagnostic tests passed. All four task-declared source/test deletions and generated Sweeper agent/reference deletions are complete. Remaining Sweeper identifiers are restricted to explicit migration cleanup constants and tests. xirang-definition.md remains an isolated pre-existing user change recorded by .apply-isolation.json and Task C15. Strict change validation and architecture-delta validation passed with no diagnostics; git diff --check passed. Targeted suites passed 30/30 and 114/114 tests. Full pnpm test passed 148 files and 2050 tests; pnpm lint and pnpm build passed. Repeated built arch search and arch impact JSON outputs were byte-identical. The one-time impact projection contained 5 Elements, 2 Relationships, and 5 complete Contracts, exposed no forbidden Formal-only keys, and did not change git status."
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [
-      {
-        "timestamp": "2026-07-26T05:50:18.007Z",
-        "type": "optimization",
-        "status": "OPTIMIZATION_PROPOSED"
-      },
-      {
-        "timestamp": "2026-07-26T05:58:57.794Z",
-        "type": "verification",
-        "result": "PASS"
-      }
-    ],
+    "attempts": [],
     "baseline": {
-      "timestamp": "2026-07-26T05:43:56.242Z",
+      "timestamp": "2026-07-26T06:13:17.593Z",
       "result": "PASS",
       "issues": [],
-      "tasksFileHash": "c30611c0db384f71567c5fdf692ff2600c35bb7e32550e045bf5367c1017762b",
+      "tasksFileHash": "19b6b1fd6792c3898fcac31f549e57fca7102abe6222bd6e125a26e8933d0f9c",
       "verificationContext": {
         "contractVersion": "1.0",
         "evidenceFiles": [
@@ -371,6 +379,7 @@
           ".xirang/architecture/specification.c4",
           ".xirang/changes/replace-impact-sweeper-with-arch-cli/.apply-isolation.json",
           ".xirang/changes/replace-impact-sweeper-with-arch-cli/.verify-result.json",
+          ".xirang/changes/replace-impact-sweeper-with-arch-cli/.xirang.yaml",
           ".xirang/changes/replace-impact-sweeper-with-arch-cli/architecture-delta.c4",
           ".xirang/changes/replace-impact-sweeper-with-arch-cli/design.md",
           ".xirang/changes/replace-impact-sweeper-with-arch-cli/effective-change.md",
@@ -395,6 +404,8 @@
           "src/commands/arch/search.ts",
           "src/core/completions/positional-types.ts",
           "src/core/completions/types.ts",
+          "src/core/parsers/requirement-blocks.ts",
+          "src/core/parsers/requirement-text.ts",
           "src/core/shared/skill-generation.ts",
           "src/core/shared/subagent-generation.ts",
           "src/core/spec-registry.ts",
@@ -409,6 +420,7 @@
           "test/core/completions/introspect-regression.test.ts",
           "test/core/completions/introspect.test.ts",
           "test/core/completions/positional-types.test.ts",
+          "test/core/parsers/requirement-blocks.test.ts",
           "test/core/shared/skill-generation.test.ts",
           "test/core/shared/subagent-generation.test.ts",
           "test/core/spec-registry.test.ts",
@@ -426,7 +438,7 @@
           "test/telemetry/index.test.ts",
           "xirang-definition.md"
         ],
-        "evidenceFingerprint": "eb218f579579faf9cc9ade1a1f96b9ea4dcb7ab5a8c41a5dc82cc4f0cc622b02",
+        "evidenceFingerprint": "386ef0c1f7945bd47072e1772f2d725825054570e44d3ee2752c17d8a64dab8a",
         "evidenceFingerprintEntries": [
           {
             "path": ".github/workflows/test-windows.yml",
@@ -466,7 +478,11 @@
           },
           {
             "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/.apply-isolation.json",
-            "hash": "0594fe25269c17922de69881cd649aa38106d7ea845f5cbf080aba3e78e0db5d"
+            "hash": "42148e3749d876bf509fbd0dd5f036364e28ab6bb3e1b6270e7464a3b3999c64"
+          },
+          {
+            "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/.xirang.yaml",
+            "hash": "ae8966f54af144580ea41d58a13f0980a08444ddccbef15515053eb5152cc8ba"
           },
           {
             "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/architecture-delta.c4",
@@ -530,7 +546,7 @@
           },
           {
             "path": ".xirang/changes/replace-impact-sweeper-with-arch-cli/tasks.md",
-            "hash": "c30611c0db384f71567c5fdf692ff2600c35bb7e32550e045bf5367c1017762b"
+            "hash": "19b6b1fd6792c3898fcac31f549e57fca7102abe6222bd6e125a26e8933d0f9c"
           },
           {
             "path": ".xirang/references/xirang-explore-supperpowers-style.md",
@@ -542,7 +558,7 @@
           },
           {
             "path": "src/commands/arch/impact.ts",
-            "hash": "6373ab096b92c6d2ae2f640e45bcab727e19e3d60be050c5c5e6e2d50c597182"
+            "hash": "643724e74667ccd856870e92dad24413be72c772132af6fdbe7988807e13dc21"
           },
           {
             "path": "src/commands/arch/index.ts",
@@ -554,7 +570,7 @@
           },
           {
             "path": "src/commands/arch/search.ts",
-            "hash": "54eeef655cb63fb5b7a4aa5ee78ecd6207a3212a583fdc508b1826f308a03014"
+            "hash": "a4d21deade9d5ffed2970f093cbd295397496db95a23b5293eed2ec251fdd117"
           },
           {
             "path": "src/core/completions/positional-types.ts",
@@ -563,6 +579,14 @@
           {
             "path": "src/core/completions/types.ts",
             "hash": "597c483161755310207069c8b10b8bc6e01faa60ee2a84549cb0c2624715f7f9"
+          },
+          {
+            "path": "src/core/parsers/requirement-blocks.ts",
+            "hash": "cddb7029c59a0d152161b9515c182e5a355a1ac1ce113f47647b5bafdbc205c8"
+          },
+          {
+            "path": "src/core/parsers/requirement-text.ts",
+            "hash": "fa45720e24d617ef863923d8e67b32e096c84f35aaef5584a8f3a3f22aac4694"
           },
           {
             "path": "src/core/shared/skill-generation.ts",
@@ -574,7 +598,7 @@
           },
           {
             "path": "src/core/spec-registry.ts",
-            "hash": "20cdf5f7de2ccdacacf6da364476bc077581adfb72acd759d18cb40dc00b0283"
+            "hash": "9bfb87593411590b7de1fc634c42f79fd39bc5255d3716b37daf034c793781c1"
           },
           {
             "path": "src/core/templates/fragments/xirang-fragments.ts",
@@ -602,11 +626,11 @@
           },
           {
             "path": "test/commands/arch-impact.test.ts",
-            "hash": "92ccf43234e5188e86c5fe67abb1ddb793c23675a28f37f4648ab4a3cd9adbd8"
+            "hash": "0c1d1c266548b40fbabe5144aac1c0fca812307e6bb4f2ee590935142c137f03"
           },
           {
             "path": "test/commands/arch-search.test.ts",
-            "hash": "4cc1b7722b2c2d5d1ebfea707a1bfe3bcdcd00838a97fde36457b99a67cec22f"
+            "hash": "107185beba0fe47d887d63200289ef8c9b9d7721fa231be7d837ed24ca6d83dc"
           },
           {
             "path": "test/core/completions/introspect-regression.test.ts",
@@ -621,6 +645,10 @@
             "hash": "e31b59711782e719ebf565ba7b9d566d264b923eb53f8de3073610e7dd793e8e"
           },
           {
+            "path": "test/core/parsers/requirement-blocks.test.ts",
+            "hash": "4513941a93d3f958400dc7e0bce3066b78f577fabf6171d20db6a76f6670ba2d"
+          },
+          {
             "path": "test/core/shared/skill-generation.test.ts",
             "hash": "4426a5b47fa2d03283a315301be9aa0ab85f22b06061a6f2733b900c5a99daf3"
           },
@@ -630,7 +658,7 @@
           },
           {
             "path": "test/core/spec-registry.test.ts",
-            "hash": "8350353e40bd3f32eb14f926fc6c1624de36906ea444be8c27fdc4c713d1d037"
+            "hash": "bf32d73954b3682722945106f707a3e0f3a47866d7a5960fe5a2b41626c10558"
           },
           {
             "path": "test/core/templates/apply-change.test.ts",
@@ -688,114 +716,9 @@
         "skippedEvidenceFiles": [
           ".xirang/changes/replace-impact-sweeper-with-arch-cli/.verify-result.json"
         ],
-        "gitHeadCommit": "df2c22c07e2f590ac850fdd6c446d8acae1fbac8",
-        "gitDiffSummary": "Validated the absolute changeName, changeDir, and projectRoot inputs and resolved immutable base commit df2c22c07e2f590ac850fdd6c446d8acae1fbac8. HEAD equals baseCommit, so git diff baseCommit...HEAD --name-only is empty; independently reviewed all 59 git-status paths, prior evidence files, Semantic Model relationship paths, and live-search candidates. xirang-definition.md was read and excluded from implementation attribution because .apply-isolation.json records it as a pre-existing user change and tasks.md preserves that isolation. All four task-declared source/test deletions and the generated Sweeper agent/reference deletions are complete. Strict change validation, architecture-delta validation, git diff --check, multi-angle retired-runtime absence searches, targeted suites, the full 148-file/2046-test pnpm test suite, pnpm lint, and pnpm build passed. Repeated built arch search and arch impact JSON outputs were byte-identical and parseable; the impact projection contained 5 Elements, 2 Relationships, and 5 complete Contracts, had no forbidden Formal-only keys, and left git status unchanged."
+        "gitHeadCommit": "e97c37ef0242bb62858c0d82d2dd3c16347caab0",
+        "gitDiffSummary": "Validated changeName, absolute changeDir, and absolute projectRoot. Resolved immutable baseCommit df2c22c07e2f590ac850fdd6c446d8acae1fbac8 and reviewed the 58 HEAD-diff paths plus uncommitted scope from git status. The fenced Requirement-heading remediation is attributed to Task 1 and is implemented through the shared code-fence mask in requirement-blocks.ts, with parser and arch-search regression coverage proving fenced headings are excluded from spec.requirement evidence. The previously verified Contract source snapshot remains invocation-local: buildSpecRegistry retains each successful read's exact content and normalized path, while arch search and arch impact consume getSpecSource without duplicate Contract reads; read-count and diagnostic tests passed. All four task-declared source/test deletions and generated Sweeper agent/reference deletions are complete. Remaining Sweeper identifiers are restricted to explicit migration cleanup constants and tests. xirang-definition.md remains an isolated pre-existing user change recorded by .apply-isolation.json and Task C15. Strict change validation and architecture-delta validation passed with no diagnostics; git diff --check passed. Targeted suites passed 30/30 and 114/114 tests. Full pnpm test passed 148 files and 2050 tests; pnpm lint and pnpm build passed. Repeated built arch search and arch impact JSON outputs were byte-identical. The one-time impact projection contained 5 Elements, 2 Relationships, and 5 complete Contracts, exposed no forbidden Formal-only keys, and did not change git status."
       }
-    },
-    "findings": [
-      {
-        "status": "verified",
-        "location": {
-          "files": [
-            "src/core/spec-registry.ts",
-            "src/commands/arch/search.ts",
-            "src/commands/arch/impact.ts"
-          ],
-          "symbols": [
-            "SpecRegistry",
-            "buildSpecRegistry",
-            "searchArchitecture",
-            "impactArchitecture"
-          ]
-        },
-        "opportunity": "Both Architecture commands reread Contract files that buildSpecRegistry has already read during the same invocation. searchArchitecture performs a second read for every valid owned Spec, while impactArchitecture performs a second read for every returned Element Contract.",
-        "impact": "Use the registry's first successful Contract read as the invocation-local source snapshot, eliminating a complete second Contract I/O pass for arch search and the returned-Contract second pass for arch impact. In the current Formal Semantic Model this removes duplicate reads over 114 Contract files totaling 639178 bytes from every search invocation, while also centralizing Contract path and content ownership.",
-        "evidence": [
-          "src/core/spec-registry.ts buildSpecRegistry reads every .xirang/specs/<specId>/spec.md with fs.readFile to parse ownership, then discards the successfully read content and path.",
-          "src/commands/arch/search.ts reconstructs each owned Spec path and calls fs.readFile again before parsing Purpose and Requirement headings; on a valid registry this repeats the read for every owned Spec.",
-          "src/commands/arch/impact.ts reconstructs returned Contract paths and calls fs.readFile again after buildSpecRegistry has already read all Formal Specs.",
-          "The checkpoint contains 114 Formal Contract files totaling 639178 bytes, so the duplicate pass is exercised by the current project rather than being a hypothetical empty-model cost.",
-          "The targeted checkpoint suites passed: test/commands/arch-search.test.ts, test/commands/arch-impact.test.ts, and test/core/spec-registry.test.ts, totaling 20 passing tests."
-        ],
-        "recommendation": "Extend SpecRegistry with an invocation-local, read-only source lookup populated from the content and path already obtained during registry construction. Have searchArchitecture and impactArchitecture consume that lookup instead of reconstructing paths and rereading files. Do not introduce a durable or cross-command cache.",
-        "keyDesign": "A single buildSpecRegistry scan remains responsible for Contract discovery, ownership parsing, diagnostics, and source acquisition. For each successfully read Spec, retain a lightweight source record containing specId, normalized project-relative path, and exact Markdown content. Existing ownership maps and query methods remain intact. arch search parses searchable fields from these records, and arch impact projects complete Contract content from the same records.",
-        "preservationConstraints": [
-          "Preserve the exact arch search query normalization, match fields, evidence text, ranking, totalMatches, limit behavior, and deterministic collection ordering.",
-          "Preserve the exact arch impact focus deduplication, graph traversal, refinement context, canonical paths, Contract ordering, full Markdown bytes, statistics, and diagnostics projection.",
-          "Preserve project-relative Contract paths with forward-slash logical identities on Windows, macOS, and Linux.",
-          "Preserve registry diagnostics and nonzero failure behavior for missing or unreadable Specs, malformed or conflicting ownership, unknown owners, and missing required Contracts; initial read failures must not be converted into empty or partial results.",
-          "Preserve all existing SpecRegistry methods and custom specsDirectory behavior for current callers.",
-          "Keep the source snapshot invocation-local so each command observes the current Formal Semantic Model at command start and retains no stale data across executions.",
-          "Do not read active Changes, implementation code, CodeGraph, or Git evidence, and do not create, modify, cache, or delete workspace files."
-        ],
-        "implementationOutline": [
-          "Add a typed immutable Spec source record and lookup method to SpecRegistry, populating it from each successful fs.readFile already performed by buildSpecRegistry.",
-          "Normalize the stored project-relative path with Node.js path utilities while retaining existing deterministic Spec ordering and diagnostics.",
-          "Update searchArchitecture to obtain Contract content and path from the registry source lookup and remove its duplicate fs.readFile and path reconstruction.",
-          "Update impactArchitecture to project complete Contract content from the same lookup, retaining explicit invariant errors if a mapped Spec lacks a source record.",
-          "Remove imports and local path helpers made unused by the single-read data flow."
-        ],
-        "validation": [
-          "Extend test/core/spec-registry.test.ts to prove successfully read Specs expose exact content and normalized project-relative paths while unreadable Specs retain READ_FAILED diagnostics and no source record.",
-          "Add an fs.readFile spy or equivalent filtered counter to the Architecture command tests proving each Formal spec.md is read once per searchArchitecture or impactArchitecture invocation.",
-          "Run pnpm exec vitest run test/commands/arch-search.test.ts test/commands/arch-impact.test.ts test/core/spec-registry.test.ts to preserve output, ordering, failure, read-only, and cross-platform path behavior.",
-          "Run pnpm test, pnpm lint, and pnpm build to verify shared SpecRegistry compatibility across all existing consumers."
-        ],
-        "impactLevel": "medium",
-        "confidence": "high",
-        "risk": "low",
-        "cost": "medium",
-        "dependencies": [],
-        "priorityReason": "This is the highest-value admissible optimization because duplicate filesystem work is statically visible on every valid search, exercised by 114 current Contracts, and removable within the changed implementation files without altering Semantic Model intent or command behavior. Lower-level allocation and comparator micro-optimizations have materially smaller benefits.",
-        "id": "OPT-20260726T055018003Z-01",
-        "targetFileHashes": {
-          "src/core/spec-registry.ts": "20cdf5f7de2ccdacacf6da364476bc077581adfb72acd759d18cb40dc00b0283",
-          "src/commands/arch/search.ts": "54eeef655cb63fb5b7a4aa5ee78ecd6207a3212a583fdc508b1826f308a03014",
-          "src/commands/arch/impact.ts": "6373ab096b92c6d2ae2f640e45bcab727e19e3d60be050c5c5e6e2d50c597182"
-        }
-      }
-    ],
-    "history": [
-      {
-        "sequence": 1,
-        "action": "add",
-        "reason": "Optimizer added finding",
-        "timestamp": "2026-07-26T05:50:18.003Z",
-        "findingId": "OPT-20260726T055018003Z-01"
-      },
-      {
-        "sequence": 2,
-        "action": "select",
-        "reason": "This is the highest-value admissible optimization because duplicate filesystem work is statically visible on every valid search, exercised by 114 current Contracts, and removable within the changed implementation files without altering Semantic Model intent or command behavior. Lower-level allocation and comparator micro-optimizations have materially smaller benefits.",
-        "timestamp": "2026-07-26T05:50:18.007Z",
-        "findingId": "OPT-20260726T055018003Z-01",
-        "hashes": {
-          "src/core/spec-registry.ts": "20cdf5f7de2ccdacacf6da364476bc077581adfb72acd759d18cb40dc00b0283",
-          "src/commands/arch/search.ts": "54eeef655cb63fb5b7a4aa5ee78ecd6207a3212a583fdc508b1826f308a03014",
-          "src/commands/arch/impact.ts": "6373ab096b92c6d2ae2f640e45bcab727e19e3d60be050c5c5e6e2d50c597182"
-        }
-      },
-      {
-        "sequence": 3,
-        "action": "implemented",
-        "reason": "Master began implementation after freshness check",
-        "timestamp": "2026-07-26T05:50:28.151Z",
-        "findingId": "OPT-20260726T055018003Z-01",
-        "hashes": {
-          "src/core/spec-registry.ts": "20cdf5f7de2ccdacacf6da364476bc077581adfb72acd759d18cb40dc00b0283",
-          "src/commands/arch/search.ts": "54eeef655cb63fb5b7a4aa5ee78ecd6207a3212a583fdc508b1826f308a03014",
-          "src/commands/arch/impact.ts": "6373ab096b92c6d2ae2f640e45bcab727e19e3d60be050c5c5e6e2d50c597182"
-        }
-      },
-      {
-        "sequence": 4,
-        "action": "verified",
-        "reason": "Fresh reviewer verified preservation constraints",
-        "timestamp": "2026-07-26T05:58:57.794Z",
-        "findingId": "OPT-20260726T055018003Z-01"
-      }
-    ],
-    "reconciliationSignature": "78b58b094028cd3dee98143051075d2b7a2ca02609296a416886cbaad1edea2c",
-    "unchangedReconciliations": 0
+    }
   }
 }

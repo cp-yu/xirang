@@ -48,7 +48,10 @@ describe('architecture search', () => {
 
     for (const [specId, content] of [
       ['project-contract', contract('project.root', 'Project contract.', 'Project behavior')],
-      ['impact-contract', contract('cap.impact', 'Impact contract purpose.', 'Impact behavior')],
+      ['impact-contract', contract('cap.impact', 'Impact contract purpose.', 'Impact behavior').replace(
+        '### Requirement: Impact behavior',
+        '```md\n### Requirement: FencedOnlyToken\nExample only.\n```\n\n### Requirement: Impact behavior',
+      )],
     ] as const) {
       const specDir = path.join(root, '.xirang', 'specs', specId);
       await fs.mkdir(specDir, { recursive: true });
@@ -116,6 +119,7 @@ describe('architecture search', () => {
     const result = await searchArchitecture(root, 'scanner');
 
     expect(result).toMatchObject({ query: 'scanner', matches: [], totalMatches: 0, diagnostics: [] });
+    expect(await searchArchitecture(root, 'FencedOnlyToken')).toMatchObject({ matches: [], totalMatches: 0 });
   });
 
   it('reads each Formal Contract once per invocation', async () => {

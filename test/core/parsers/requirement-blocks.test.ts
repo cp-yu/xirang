@@ -1,5 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import { parseDeltaSpec } from '../../../src/core/parsers/requirement-blocks.js';
+import { extractRequirementsSection, parseDeltaSpec } from '../../../src/core/parsers/requirement-blocks.js';
+
+describe('requirement section extraction', () => {
+  it('ignores Requirement headings inside fenced code blocks', () => {
+    const parts = extractRequirementsSection(`## Requirements
+
+\`\`\`md
+### Requirement: Example only
+The example SHALL not be indexed.
+\`\`\`
+
+### Requirement: Actual behavior
+The system SHALL behave.
+`);
+
+    expect(parts.bodyBlocks.map(block => block.name)).toEqual(['Actual behavior']);
+    expect(parts.preamble).toContain('### Requirement: Example only');
+  });
+});
 
 describe('requirement delta parsing', () => {
   it.each(['ADDED', 'MODIFIED', 'REMOVED', 'UPDATED'])('reports [%s] Scenario metadata with a source line', prefix => {

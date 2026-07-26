@@ -6,7 +6,9 @@
 - Create: `src/commands/arch/search.ts`
 - Create: `src/utils/stable-order.ts`
 - Modify: `src/commands/arch/index.ts`
+- Modify: `src/core/parsers/requirement-blocks.ts`
 - Test: `test/commands/arch-search.test.ts`
+- Test: `test/core/parsers/requirement-blocks.test.ts`
 
 **Requirements**:
 - 仅搜索 Formal Element declarations 与 owned Contracts
@@ -21,6 +23,7 @@
   - Verifies: `specs/arch-search-command/spec.md` / Requirement "arch search SHALL 检索 Formal Semantic Model" / Scenario "检索 Element declaration 与 owned Contract"
   - Command: `pnpm exec vitest run test/commands/arch-search.test.ts`
   - Expect: Element 与 Contract 字段命中、Change/code exclusion tests 通过
+  - Remediation: fenced code examples 内的 heading 不得作为 Formal `spec.requirement` evidence
 
 - [x] C2 验证排序、limit 与空结果
   - Verifies: `specs/arch-search-command/spec.md` / Requirement "arch search SHALL 使用稳定匹配优先级" / Scenario "同级结果稳定排序"
