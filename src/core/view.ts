@@ -12,8 +12,7 @@ import { runLikeC4 } from '../commands/arch/runner.js';
 
 export interface ViewLaunchOptions {
   projectRoot: string;
-  architectureDir: string;
-  specRegistryFile: string;
+  likec4SourceDir: string;
   changeManifestFile: string;
   port?: number;
 }
@@ -36,14 +35,10 @@ export function findXirangProjectRoot(startPath: string): string | undefined {
   }
 }
 
-export const launchEmbeddedLikeC4: ViewLauncher = async ({ projectRoot, architectureDir, specRegistryFile, changeManifestFile, port }) => {
+export const launchEmbeddedLikeC4: ViewLauncher = async ({ likec4SourceDir, changeManifestFile, port }) => {
   const args = [
     'start',
-    architectureDir,
-    '--xirang-project-root',
-    projectRoot,
-    '--xirang-spec-registry',
-    specRegistryFile,
+    likec4SourceDir,
     '--xirang-change-manifest',
     changeManifestFile,
   ];
@@ -64,8 +59,8 @@ export interface ViewRuntimeVariant {
   partitionFingerprints?: Record<Partition, string>;
   diff?: ChangeDiff;
   architecture?: SemanticModel;
-  specs?: Record<string, string[]>;
-  contents?: Record<string, string>;
+  /** element identity → Contract markdown; the only Contract transport to the Browser. */
+  contracts?: Record<string, string>;
   diagnostics: ChangeDiagnostic[];
 }
 
@@ -87,24 +82,15 @@ export async function listActiveChanges(projectRoot: string): Promise<string[]> 
     .sort((left, right) => left.localeCompare(right));
 }
 
-function contractUnitPath(identity: string): string {
-  return `${XIRANG_DIR_NAME}/model/elements/${identity}.md`;
-}
-
-function projectContracts(model: SemanticModel): {
-  specs: Record<string, string[]>;
-  contents: Record<string, string>;
-} {
-  const specs: Record<string, string[]> = {};
-  const contents: Record<string, string> = {};
+/** Elements without a Contract are absent, so a lookup miss is exactly "no Contract". */
+export function projectContracts(model: SemanticModel): Record<string, string> {
+  const contracts: Record<string, string> = {};
   for (const element of [...model.elements].sort((left, right) =>
     left.declaration.identity.localeCompare(right.declaration.identity))) {
     if (element.requirements.length === 0) continue;
-    const unitPath = contractUnitPath(element.declaration.identity);
-    (specs[element.declaration.identity] ??= []).push(unitPath);
-    contents[unitPath] = serializeElementUnit(element);
+    contracts[element.declaration.identity] = serializeElementUnit(element);
   }
-  return { specs, contents };
+  return contracts;
 }
 
 function partitionFingerprints(model: SemanticModel): Record<Partition, string> {
@@ -119,13 +105,18 @@ function partitionFingerprints(model: SemanticModel): Record<Partition, string> 
   ) as Record<Partition, string>;
 }
 
-const formalRuntimeVariant: ViewRuntimeVariant = {
-  id: 'formal',
-  label: 'Current / Formal Architecture',
-  kind: 'formal',
-  valid: true,
-  diagnostics: [],
-};
+async function buildFormalRuntimeVariant(projectRoot: string): Promise<ViewRuntimeVariant> {
+  const { model } = await readFormalSemanticModel(projectRoot);
+  return {
+    id: 'formal',
+    label: 'Current / Formal Architecture',
+    kind: 'formal',
+    valid: true,
+    partitionFingerprints: partitionFingerprints(model),
+    contracts: projectContracts(model),
+    diagnostics: [],
+  };
+}
 
 async function buildChangeRuntimeVariant(projectRoot: string, change: string): Promise<ViewRuntimeVariant> {
   try {
@@ -142,7 +133,7 @@ async function buildChangeRuntimeVariant(projectRoot: string, change: string): P
       ...(compiled.target ? { partitionFingerprints: partitionFingerprints(compiled.target) } : {}),
       diff: compiled.diff,
       ...(compiled.target ? { architecture: compiled.target } : {}),
-      ...(projection ?? {}),
+      ...(projection ? { contracts: projection } : {}),
       diagnostics: compiled.diagnostics,
     };
   } catch (error) {
@@ -168,7 +159,7 @@ export async function buildViewRuntimeSnapshot(
 ): Promise<ViewRuntimeSnapshot> {
   const changes = await listActiveChanges(projectRoot);
   const previous = new Map(options.previous?.variants.map(variant => [variant.change, variant]));
-  const variants: ViewRuntimeVariant[] = [formalRuntimeVariant];
+  const variants: ViewRuntimeVariant[] = [await buildFormalRuntimeVariant(projectRoot)];
   for (const change of changes) {
     const cached = options.onlyChange && options.onlyChange !== change ? previous.get(change) : undefined;
     variants.push(cached ?? await buildChangeRuntimeVariant(projectRoot, change));
@@ -179,14 +170,6 @@ export async function buildViewRuntimeSnapshot(
 async function writeViewRuntimeSnapshot(snapshot: ViewRuntimeSnapshot, directory: string): Promise<string> {
   const target = path.join(directory, 'xirang-change-manifest.json');
   await fs.writeFile(target, JSON.stringify(snapshot));
-  return target;
-}
-
-async function writeSpecRegistrySnapshot(projectRoot: string, directory: string): Promise<string> {
-  const { model } = await readFormalSemanticModel(projectRoot);
-  const elements = projectContracts(model).specs;
-  const target = path.join(directory, 'xirang-spec-registry.json');
-  await fs.writeFile(target, JSON.stringify({ version: 1, elements }));
   return target;
 }
 
@@ -202,32 +185,23 @@ export class ViewCommand {
     const snapshotDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-view-'));
     try {
       let runtimeSnapshot = await buildViewRuntimeSnapshot(projectRoot);
-      const [specRegistryFile, changeManifestFile] = await Promise.all([
-        writeSpecRegistrySnapshot(projectRoot, snapshotDirectory),
-        writeViewRuntimeSnapshot(runtimeSnapshot, snapshotDirectory),
-      ]);
+      const changeManifestFile = await writeViewRuntimeSnapshot(runtimeSnapshot, snapshotDirectory);
       let sourceWatcher: FSWatcher | undefined;
       let refreshTimer: NodeJS.Timeout | undefined;
       let refreshing = Promise.resolve();
       let refreshAll = false;
-      let refreshRegistry = false;
       const refreshChanges = new Set<string>();
       const refresh = () => {
         const all = refreshAll;
-        const registry = refreshRegistry;
         const changes = [...refreshChanges];
         refreshAll = false;
-        refreshRegistry = false;
         refreshChanges.clear();
         refreshing = refreshing.then(async () => {
           if (all) runtimeSnapshot = await buildViewRuntimeSnapshot(projectRoot);
           else for (const change of changes) {
             runtimeSnapshot = await buildViewRuntimeSnapshot(projectRoot, { previous: runtimeSnapshot, onlyChange: change });
           }
-          await Promise.all([
-            ...(registry ? [writeSpecRegistrySnapshot(projectRoot, snapshotDirectory)] : []),
-            writeViewRuntimeSnapshot(runtimeSnapshot, snapshotDirectory),
-          ]);
+          await writeViewRuntimeSnapshot(runtimeSnapshot, snapshotDirectory);
         }).catch(() => undefined);
       };
       try {
@@ -236,7 +210,6 @@ export class ViewCommand {
           const normalized = filename.toString().split(path.sep).join('/');
           if (PARTITIONS.some(partition => normalized.startsWith(`model/${partition}/`))) {
             refreshAll = true;
-            refreshRegistry = true;
           } else {
             const change = normalized.match(/^changes\/([^/]+)\//)?.[1];
             if (!change || change === 'archive') return;
@@ -251,8 +224,7 @@ export class ViewCommand {
       try {
         await this.launch({
           projectRoot,
-          architectureDir: await generateLikeC4Artifacts(projectRoot),
-          specRegistryFile,
+          likec4SourceDir: await generateLikeC4Artifacts(projectRoot),
           changeManifestFile,
           port: options.port,
         });

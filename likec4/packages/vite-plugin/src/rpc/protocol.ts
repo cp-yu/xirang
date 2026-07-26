@@ -1,12 +1,7 @@
 import type { AdhocViewPredicate } from '@likec4/core/compute-view'
 import type { LayoutedElementView, ProjectId, ViewChange, ViewId } from '@likec4/core/types'
 
-export const xirangSpecChangedEvent = 'xirang:spec-changed'
 export const xirangChangeManifestChangedEvent = 'xirang:change-manifest-changed'
-
-export interface XirangSpecChangedEvent {
-  path: string
-}
 
 export interface LikeC4VitePluginRpc {
   /**

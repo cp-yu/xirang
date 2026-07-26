@@ -135,3 +135,23 @@ Requirement 标题提取 `:198 identity.slice(indexOf('#') + 1)` 与 Scenario �
 **回滚条件**：若安全回归用例（Task 2）在两轮内无法全部通过，则回退为「保留 `path` 参数形态，但 path 由服务端从 identity 反查后回填、客户端不可控」的折中方案——代价是协议保留一个无语义字段，收益是逃逸防护完全不依赖新写的字符集校验。
 
 **测试策略**：`SpecsTab.spec.tsx` 的多路径选择器用例（依赖 `showSelector`）与 `getStructuredSpecDiff` 的 `specId` 用例删除；`architectureView.spec.ts` 的 fqn 对齐用例重写为 identity 对齐；`test/core/view.test.ts` 中 registry 快照断言删除。新增用例为 Task 2 的安全回归与 Task 3 的对齐稳定性，两者均为持久化测试，无一次性验证项。
+
+## 实施偏离记录
+
+实施中两条设计前提被证伪，三处偏离经裁定（G1-B/G2/G4）取代上文原方案：
+
+**前提一（证伪）：fork 可复用主仓库内核。** fork 是独立 pnpm workspace、独立进程，无法 import `parseSemanticModel` 与 `ModelIndex`。「安全边界的重建方式」一节的索引定位路径不成立。
+
+**前提二（证伪）：manifest 的 `architecture` 携带 fqn。** manifest 序列化的是 IR `SemanticModel`（`declaration.identity` 形状），无 `fqn` 亦无 `id` 字段。「对齐键修正」一节的 fqn 布局继承查表键不成立。
+
+### G1-B：Contract 改走 root 侧投影，端点退化为查表
+
+`view.ts` 以 `projectContracts()` 产出 `contracts: Record<identity, markdown>` 写入 `xirang-change-manifest.json`；`/__xirang/spec` 从 manifest 查表，`readXirangContract` 为纯函数。安全断言从三层防护改为**端点在任何输入下不触达文件系统**：回归用例覆盖 `../` 穿越、绝对路径、URL 编码、反斜杠、空字节、原型链键名与不存在的 identity，全部查表落空返回 `null`，`fs` 零调用。`readXirangSpecRegistry`、`createXirangSpecWatcher`、`xirangSpecChangedEvent`、`--xirang-spec-registry` 与 `--xirang-project-root`（核实零消费者）一并删除；manifest 变更经 `xirang:change-manifest-changed` 通知客户端。回滚条件所设的「服务端反查回填 path」折中方案随文件读取路径消亡而失效。
+
+### G2：对齐与布局继承改按 identity 与 `metadata.elementId`
+
+`XirangSemanticModel` 类型重塑为 IR 形状；生成器为每个 element 输出 `metadata { elementId '<identity>' }`（`generator.test.ts` 覆盖），`architectureView` 以该键继承几何字段，miss 回退网格且无诊断。`DiagramUI.tsx` 纳入改动面：`entry.scope === 'architecture'` 判据改为结构类 entity type 白名单，`summary.architecture` 改为条目计数，`architectureFingerprint` 改为分区指纹派生的 `xirangVariantRevision`。诊断分流从存储前缀（`isXirangSpecDiagnostic`）改为 identity 含 `#`（`isXirangContractDiagnostic`）——`elements/` 单元同时承载 Declaration 与 Contract，前缀无法区分二者。
+
+### G4：Specs Tab 可见性由 manifest 的 `contracts` 键判定
+
+`ElementDetailsCard` 直接以 `runtime.selected.contracts[stableElementId]` 判定 Tab 可见性，零请求。`XirangSpecLoadController` 保留：`/__xirang/spec` 仍是 Contract 正文的传输通道（G1-B 保留该端点），控制器承载其取消与竞态语义。

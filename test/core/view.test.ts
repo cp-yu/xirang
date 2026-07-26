@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { buildViewRuntimeSnapshot, ViewCommand, type ViewLauncher } from '../../src/core/view.js';
+import { buildViewRuntimeSnapshot, ViewCommand, type ViewLauncher, type ViewRuntimeSnapshot } from '../../src/core/view.js';
 import { likec4CacheDir } from '../../src/core/likec4/paths.js';
 import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 
@@ -40,9 +40,8 @@ describe('ViewCommand', () => {
     expect(launch).toHaveBeenCalledOnce();
     expect(launch).toHaveBeenCalledWith({
       projectRoot: tempDir,
-      architectureDir: likec4CacheDir(tempDir),
+      likec4SourceDir: likec4CacheDir(tempDir),
       port: undefined,
-      specRegistryFile: expect.stringContaining('xirang-spec-registry.json'),
       changeManifestFile: expect.stringContaining('xirang-change-manifest.json'),
     });
     expect((await fs.readdir(likec4CacheDir(tempDir))).sort())
@@ -70,11 +69,11 @@ describe('ViewCommand', () => {
 
     expect(launch).toHaveBeenCalledWith(expect.objectContaining({
       projectRoot: innerRoot,
-      architectureDir: likec4CacheDir(innerRoot),
+      likec4SourceDir: likec4CacheDir(innerRoot),
     }));
   });
 
-  it('passes a sorted Contract registry snapshot keyed by Element identity', async () => {
+  it('projects Formal Contracts into the manifest keyed by Element identity', async () => {
     await writeProjectModel(tempDir, minimalModel({
       elements: [
         { identity: 'zeta.id', parent: 'root', requirements: CONTRACT },
@@ -82,20 +81,31 @@ describe('ViewCommand', () => {
         { identity: 'no.contract', parent: 'root' },
       ],
     }));
-    let snapshot: unknown;
+    let manifest: ViewRuntimeSnapshot | undefined;
     const launch: ViewLauncher = async options => {
-      snapshot = JSON.parse(await fs.readFile(options.specRegistryFile, 'utf8'));
+      manifest = JSON.parse(await fs.readFile(options.changeManifestFile, 'utf8')) as ViewRuntimeSnapshot;
     };
 
     await new ViewCommand(launch).execute(tempDir);
 
-    expect(snapshot).toEqual({
-      version: 1,
-      elements: {
-        'alpha.id': ['.xirang/model/elements/alpha.id.md'],
-        'zeta.id': ['.xirang/model/elements/zeta.id.md'],
-      },
-    });
+    const formal = manifest!.variants[0]!;
+    expect(formal.id).toBe('formal');
+    expect(Object.keys(formal.contracts!)).toEqual(['alpha.id', 'zeta.id']);
+    expect(formal.contracts!['alpha.id']).toContain('### Requirement: Existing');
+    expect(formal.contracts!['alpha.id']).toContain('identity: alpha.id');
+    expect(formal.partitionFingerprints).toBeDefined();
+  });
+
+  it('projects the Expected Contract of a change under the same identity key', async () => {
+    await writeBaseModel(tempDir);
+    await writeChangeDelta(tempDir, 'a-change', { 'elements/alpha.id.md': requirementDelta('Alpha') });
+
+    const snapshot = await buildViewRuntimeSnapshot(tempDir);
+    const change = snapshot.variants.find(variant => variant.id === 'change:a-change')!;
+
+    expect(Object.keys(change.contracts!)).toEqual(['alpha.id']);
+    expect(change.contracts!['alpha.id']).toContain('### Requirement: Alpha');
+    expect(change.contracts!['alpha.id']).toContain('### Requirement: Existing');
   });
 
   it('lists isolated active change variants deterministically and excludes archive', async () => {

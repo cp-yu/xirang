@@ -34,8 +34,6 @@ export type LikeC4ViteConfig = {
    * from likec4 views via absolute URLs.
    */
   userPublicDir?: string | undefined
-  xirangProjectRoot?: string | undefined
-  xirangSpecRegistry?: string | undefined
   xirangChangeManifest?: string | undefined
 }
 
@@ -104,8 +102,6 @@ export const viteConfig = async ({ languageServices, likec4AssetsDir, ...cfg }: 
     plugins: [
       LikeC4VitePlugin({
         languageServices: languageServices.languageServices,
-        ...(cfg.xirangProjectRoot ? { xirangProjectRoot: cfg.xirangProjectRoot } : {}),
-        ...(cfg.xirangSpecRegistry ? { xirangSpecRegistry: cfg.xirangSpecRegistry } : {}),
         ...(cfg.xirangChangeManifest ? { xirangChangeManifest: cfg.xirangChangeManifest } : {}),
         appConfig: {
           webcomponentPrefix,

@@ -1,36 +1,20 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { HttpSpecLoader, type XirangHotChannel } from './HttpSpecLoader'
 
+function json(payload: unknown, status = 200): Response {
+  return new Response(JSON.stringify(payload), { status, headers: { 'content-type': 'application/json' } })
+}
+
 describe('HttpSpecLoader', () => {
   afterEach(() => vi.restoreAllMocks())
 
-  it('loads the sorted registry projection for a stable element ID', async () => {
-    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
-      specs: ['.xirang/specs/a/spec.md', '.xirang/specs/z/spec.md'],
-    }), { status: 200, headers: { 'content-type': 'application/json' } }))
+  it('loads one Contract addressed by Element identity', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(json({ element: 'core.api', md: '# API' }))
     const loader = new HttpSpecLoader(fetcher)
     const controller = new AbortController()
 
-    await expect(loader.list('default', 'payment.authorize', controller.signal)).resolves.toEqual([
-      '.xirang/specs/a/spec.md',
-      '.xirang/specs/z/spec.md',
-    ])
-    const [url] = fetcher.mock.calls[0]!
-    const parsed = new URL(String(url), 'http://localhost')
-    expect(parsed.pathname).toBe('/__xirang/specs')
-    expect(parsed.searchParams.get('element')).toBe('payment.authorize')
-  })
-
-  it('loads one Spec through the OPSX HTTP API with encoded query parameters', async () => {
-    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
-      path: '.xirang/specs/api/spec.md',
-      md: '# API',
-    }), { status: 200, headers: { 'content-type': 'application/json' } }))
-    const loader = new HttpSpecLoader(fetcher)
-    const controller = new AbortController()
-
-    await expect(loader.load('default', 'core.api', '.xirang/specs/api/spec.md', controller.signal)).resolves.toEqual({
-      path: '.xirang/specs/api/spec.md',
+    await expect(loader.load('default', 'core.api', controller.signal)).resolves.toEqual({
+      element: 'core.api',
       md: '# API',
     })
 
@@ -39,7 +23,8 @@ describe('HttpSpecLoader', () => {
     expect(parsed.pathname).toBe('/__xirang/spec')
     expect(parsed.searchParams.get('project')).toBe('default')
     expect(parsed.searchParams.get('element')).toBe('core.api')
-    expect(parsed.searchParams.get('path')).toBe('.xirang/specs/api/spec.md')
+    expect(parsed.searchParams.get('variant')).toBe('formal')
+    expect(parsed.searchParams.has('path')).toBe(false)
     expect(options).toMatchObject({ signal: controller.signal })
   })
 
@@ -47,47 +32,53 @@ describe('HttpSpecLoader', () => {
     let receiver: unknown
     const fetcher = function(this: unknown) {
       receiver = this
-      return Promise.resolve(new Response(JSON.stringify({
-        path: '.xirang/specs/api/spec.md',
-        md: '# API',
-      }), { status: 200, headers: { 'content-type': 'application/json' } }))
+      return Promise.resolve(json({ element: 'core.api', md: '# API' }))
     } as typeof fetch
     const loader = new HttpSpecLoader(fetcher)
 
-    await loader.load('default', 'core.api', '.xirang/specs/api/spec.md', new AbortController().signal)
+    await loader.load('default', 'core.api', new AbortController().signal)
 
     expect(receiver).toBe(globalThis)
   })
 
-  it('reports server errors without discarding the selected path', async () => {
-    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(
-      JSON.stringify({ error: 'Spec not found' }),
-      { status: 404, headers: { 'content-type': 'application/json' } },
-    ))
+  it('reports an absent Contract as null instead of throwing', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(json({ error: 'Contract not found' }, 404))
     const loader = new HttpSpecLoader(fetcher)
 
-    await expect(loader.load(
-      'default',
-      'core.api',
-      '.xirang/specs/missing/spec.md',
-      new AbortController().signal,
-    )).rejects.toThrow('Spec not found')
+    await expect(loader.load('default', 'core.missing', new AbortController().signal)).resolves.toBeNull()
   })
 
-  it('notifies subscribers only for exact Spec change paths', () => {
-    const listeners = new Map<string, (payload: { path: string }) => void>()
+  it('propagates non-404 server errors with the server message', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(json({ error: 'Project not found' }, 500))
+    const loader = new HttpSpecLoader(fetcher)
+
+    await expect(loader.load('default', 'core.api', new AbortController().signal))
+      .rejects.toThrow('Project not found')
+  })
+
+  it('rejects a malformed success payload', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(json({ md: '# API' }))
+    const loader = new HttpSpecLoader(fetcher)
+
+    await expect(loader.load('default', 'core.api', new AbortController().signal))
+      .rejects.toThrow('Invalid Contract response')
+  })
+
+  it('subscribes to manifest changes only', () => {
+    const listeners = new Map<string, (payload: unknown) => void>()
     const hot: XirangHotChannel = {
       on: (event, listener) => listeners.set(event, listener),
       off: (event) => listeners.delete(event),
     }
     const loader = new HttpSpecLoader(fetch, hot)
     const subscriber = vi.fn()
-    const unsubscribe = loader.subscribe(subscriber)
+    const unsubscribe = loader.subscribeVariants(subscriber)
 
-    listeners.get('xirang:spec-changed')?.({ path: '.xirang/specs/api/spec.md' })
-    expect(subscriber).toHaveBeenCalledWith('.xirang/specs/api/spec.md')
+    listeners.get('xirang:change-manifest-changed')?.({})
+    expect(subscriber).toHaveBeenCalledOnce()
+    expect(listeners.has('xirang:spec-changed')).toBe(false)
 
     unsubscribe()
-    expect(listeners.has('xirang:spec-changed')).toBe(false)
+    expect(listeners.has('xirang:change-manifest-changed')).toBe(false)
   })
 })
