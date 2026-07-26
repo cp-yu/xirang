@@ -14,11 +14,18 @@ export interface SpecRegistryDiagnostic {
   message: string;
 }
 
+export interface SpecSource {
+  readonly specId: string;
+  readonly path: string;
+  readonly content: string;
+}
+
 export interface SpecRegistry {
   elementToSpecs: Map<string, string[]>;
   specToElement: Map<string, string>;
   getSpecsForElement(elementId: string): string[];
   getElementForSpec(specId: string): string | null;
+  getSpecSource(specId: string): SpecSource | null;
   getOrphanedSpecs(): string[];
   getIssuesForSpec(specId: string): SpecFrontmatterIssue[];
   getDiagnostics(): SpecRegistryDiagnostic[];
@@ -29,6 +36,7 @@ export async function buildSpecRegistry(projectRoot: string, specsDirectory?: st
   const specsDir = path.resolve(specsDirectory ?? path.join(projectRoot, XIRANG_DIR_NAME, 'specs'));
   const elementToSpecs = new Map<string, string[]>();
   const specToElement = new Map<string, string>();
+  const specSources = new Map<string, SpecSource>();
   const issuesBySpec = new Map<string, SpecFrontmatterIssue[]>();
   const diagnostics: SpecRegistryDiagnostic[] = [];
   const orphanedSpecs: string[] = [];
@@ -44,7 +52,7 @@ export async function buildSpecRegistry(projectRoot: string, specsDirectory?: st
         message: error instanceof Error ? error.message : String(error),
       });
     }
-    return createRegistry(elementToSpecs, specToElement, orphanedSpecs, issuesBySpec, diagnostics);
+    return createRegistry(elementToSpecs, specToElement, specSources, orphanedSpecs, issuesBySpec, diagnostics);
   }
 
   for (const entry of entries.sort((left, right) => compareCodePoints(left.name, right.name))) {
@@ -63,6 +71,12 @@ export async function buildSpecRegistry(projectRoot: string, specsDirectory?: st
       });
       continue;
     }
+
+    specSources.set(specId, Object.freeze({
+      specId,
+      path: path.relative(projectRoot, specPath).split(path.sep).join('/'),
+      content,
+    }));
 
     const frontmatter = parseSpecFrontmatter(content);
     if (frontmatter.issues) {
@@ -92,12 +106,13 @@ export async function buildSpecRegistry(projectRoot: string, specsDirectory?: st
   diagnostics.sort((left, right) => compareCodePoints(left.specId, right.specId)
     || compareCodePoints(left.code, right.code)
     || compareCodePoints(left.message, right.message));
-  return createRegistry(elementToSpecs, specToElement, orphanedSpecs, issuesBySpec, diagnostics);
+  return createRegistry(elementToSpecs, specToElement, specSources, orphanedSpecs, issuesBySpec, diagnostics);
 }
 
 function createRegistry(
   elementToSpecs: Map<string, string[]>,
   specToElement: Map<string, string>,
+  specSources: Map<string, SpecSource>,
   orphanedSpecs: string[],
   issuesBySpec: Map<string, SpecFrontmatterIssue[]>,
   diagnostics: SpecRegistryDiagnostic[],
@@ -110,6 +125,9 @@ function createRegistry(
     },
     getElementForSpec(specId) {
       return specToElement.get(specId) ?? null;
+    },
+    getSpecSource(specId) {
+      return specSources.get(specId) ?? null;
     },
     getOrphanedSpecs() {
       return orphanedSpecs;

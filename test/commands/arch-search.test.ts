@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { searchArchitecture } from '../../src/commands/arch/search.js';
 
 const specification = `xirang { languageVersion '1' }
@@ -116,6 +116,23 @@ describe('architecture search', () => {
     const result = await searchArchitecture(root, 'scanner');
 
     expect(result).toMatchObject({ query: 'scanner', matches: [], totalMatches: 0, diagnostics: [] });
+  });
+
+  it('reads each Formal Contract once per invocation', async () => {
+    const readFileSpy = vi.spyOn(fs, 'readFile');
+    try {
+      await searchArchitecture(root, 'Impact');
+      const specReads = readFileSpy.mock.calls
+        .map(([filePath]) => String(filePath))
+        .filter(filePath => filePath.endsWith(`${path.sep}spec.md`));
+      const counts = new Map<string, number>();
+      for (const filePath of specReads) counts.set(filePath, (counts.get(filePath) ?? 0) + 1);
+
+      expect(counts.size).toBe(2);
+      expect([...counts.values()]).toEqual([1, 1]);
+    } finally {
+      readFileSpy.mockRestore();
+    }
   });
 
   it('reads only Formal Architecture and Contracts without changing the project', async () => {

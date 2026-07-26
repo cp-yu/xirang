@@ -1,6 +1,3 @@
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
-import { XIRANG_DIR_NAME } from '../../core/config.js';
 import { MarkdownParser } from '../../core/parsers/markdown-parser.js';
 import { extractRequirementsSection } from '../../core/parsers/requirement-blocks.js';
 import { buildSpecRegistry } from '../../core/spec-registry.js';
@@ -33,10 +30,6 @@ export interface ArchitectureSearchResult {
 
 interface RankedEvidence extends ArchitectureSearchEvidence {
   rank: number;
-}
-
-function logicalPath(projectRoot: string, filePath: string): string {
-  return path.relative(projectRoot, filePath).split(path.sep).join('/');
 }
 
 function normalized(value: string): string {
@@ -87,13 +80,13 @@ export async function searchArchitecture(
 
     const ownedSpecs: ArchitectureSearchMatch['ownedSpecs'] = [];
     for (const specId of registry.getSpecsForElement(element.id)) {
-      const specPath = path.join(projectRoot, XIRANG_DIR_NAME, 'specs', specId, 'spec.md');
-      const content = await fs.readFile(specPath, 'utf8');
-      const parsed = new MarkdownParser(content).parseSpec(specId);
-      ownedSpecs.push({ specId, path: logicalPath(projectRoot, specPath) });
+      const source = registry.getSpecSource(specId);
+      if (!source) throw new Error(`Element Contract source missing: ${specId} (${element.id})`);
+      const parsed = new MarkdownParser(source.content).parseSpec(specId);
+      ownedSpecs.push({ specId, path: source.path });
       addEvidence(evidence, searchQuery, 'specId', specId, 5, specId);
       addEvidence(evidence, searchQuery, 'spec.purpose', parsed.overview, 5, specId);
-      for (const requirement of extractRequirementsSection(content).bodyBlocks) {
+      for (const requirement of extractRequirementsSection(source.content).bodyBlocks) {
         addEvidence(evidence, searchQuery, 'spec.requirement', requirement.name, 6, specId);
       }
     }

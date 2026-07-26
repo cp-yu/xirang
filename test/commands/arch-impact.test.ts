@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { impactArchitecture } from '../../src/commands/arch/impact.js';
 
 const execFileAsync = promisify(execFile);
@@ -140,6 +140,23 @@ describe('architecture impact', () => {
     ]));
     expect(result.refinementContext.some(item => item.element.id === 'cap.grandchild')).toBe(false);
     expect(result.relationPaths.some(path => path.relatedElementId === 'cap.child')).toBe(false);
+  });
+
+  it('reads each Formal Contract once per invocation', async () => {
+    const readFileSpy = vi.spyOn(fs, 'readFile');
+    try {
+      await impactArchitecture(root, ['cap.focus'], { depth: 0 });
+      const specReads = readFileSpy.mock.calls
+        .map(([filePath]) => String(filePath))
+        .filter(filePath => filePath.endsWith(`${path.sep}spec.md`));
+      const counts = new Map<string, number>();
+      for (const filePath of specReads) counts.set(filePath, (counts.get(filePath) ?? 0) + 1);
+
+      expect(counts.size).toBe(3);
+      expect([...counts.values()]).toEqual([1, 1, 1]);
+    } finally {
+      readFileSpy.mockRestore();
+    }
   });
 
   it('returns complete Contracts with stable logical paths and statistics', async () => {

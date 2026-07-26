@@ -55,6 +55,11 @@ describe('buildSpecRegistry', () => {
       expect(registry.specToElement.get('payment-auth')).toBe('payment.authorize');
       expect(registry.getSpecsForElement('payment.authorize')).toEqual(['payment-auth', 'payment-errors']);
       expect(registry.getElementForSpec('payment-auth')).toBe('payment.authorize');
+      expect(registry.getSpecSource('payment-auth')).toEqual({
+        specId: 'payment-auth',
+        path: '.xirang/specs/payment-auth/spec.md',
+        content: specForElement('payment.authorize'),
+      });
     });
   });
 
@@ -88,6 +93,21 @@ describe('buildSpecRegistry', () => {
       expect(registry.getSpecsForElement('unknown')).toEqual([]);
       expect(registry.getElementForSpec('unknown')).toBeNull();
       expect(registry.getUncoveredRequiredElements(elements, metamodel)).toEqual(['workflow.run']);
+    });
+  });
+
+  it('keeps unreadable Specs diagnostic-only without a source record', async () => {
+    await withTempDir(async root => {
+      const specPath = path.join(root, '.xirang', 'specs', 'unreadable', 'spec.md');
+      await fs.mkdir(specPath, { recursive: true });
+
+      const registry = await buildSpecRegistry(root);
+
+      expect(registry.getSpecSource('unreadable')).toBeNull();
+      expect(registry.getDiagnostics()).toContainEqual(expect.objectContaining({
+        specId: 'unreadable',
+        code: 'READ_FAILED',
+      }));
     });
   });
 

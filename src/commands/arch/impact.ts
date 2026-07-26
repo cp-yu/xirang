@@ -1,6 +1,3 @@
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
-import { XIRANG_DIR_NAME } from '../../core/config.js';
 import { buildSpecRegistry } from '../../core/spec-registry.js';
 import { readLikeC4Architecture } from '../../utils/likec4-reader.js';
 import type { ContractPolicy, SemanticElement, SemanticRelationship } from '../../utils/semantic-model.js';
@@ -65,10 +62,6 @@ function compareRelations(left: SemanticRelationship, right: SemanticRelationshi
 
 function pathKey(steps: ArchitectureRelationPathStep[]): string {
   return steps.map(step => [step.source, step.kind, step.target].join('\u0000')).join('\u0001');
-}
-
-function logicalPath(projectRoot: string, filePath: string): string {
-  return path.relative(projectRoot, filePath).split(path.sep).join('/');
 }
 
 function canonicalPaths(
@@ -244,15 +237,9 @@ export async function impactArchitecture(
       throw new Error(`Required Element Contract missing: ${element.id}`);
     }
     for (const specId of specIds) {
-      const specPath = path.join(projectRoot, XIRANG_DIR_NAME, 'specs', specId, 'spec.md');
-      let content: string;
-      try {
-        content = await fs.readFile(specPath, 'utf8');
-      } catch (error) {
-        const reason = error instanceof Error ? error.message : String(error);
-        throw new Error(`Element Contract read failed: ${specId} (${element.id}): ${reason}`);
-      }
-      contracts.push({ specId, elementId: element.id, path: logicalPath(projectRoot, specPath), content });
+      const source = registry.getSpecSource(specId);
+      if (!source) throw new Error(`Element Contract source missing: ${specId} (${element.id})`);
+      contracts.push({ specId, elementId: element.id, path: source.path, content: source.content });
     }
   }
   contracts.sort((left, right) => compareCodePoints(left.elementId, right.elementId)
