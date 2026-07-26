@@ -27,16 +27,22 @@ describe('instruction-loader', () => {
         '#### New Specs',
         '#### Modified Specs',
         '### Architecture Source',
-        '#### Added LikeC4 Elements',
-        '#### Modified LikeC4 Elements',
-        '#### Removed LikeC4 Elements',
+        '#### Added Elements',
+        '#### Modified Elements',
+        '#### Removed Elements',
         '#### Architecture Relations',
         '## Impact',
       ]) {
         expect(template).toContain(heading);
       }
-      expect(template).toContain('Spec IDs');
-      expect(template).toContain('architecture-delta.c4');
+      expect(template).toContain('element identities');
+      expect(template).toContain('elements/');
+      expect(template).toContain('metamodel/');
+      expect(template).toContain('relationships/');
+      expect(template).toContain('views/');
+      expect(template).not.toContain('LikeC4');
+      expect(template).not.toContain('capabilityId');
+      expect(template).not.toContain('domain_name');
       expect(template).not.toContain('## Capabilities');
       expect(template).not.toContain('### New Capabilities');
       expect(template).not.toContain('### Modified Capabilities');
@@ -191,7 +197,7 @@ describe('instruction-loader', () => {
 
     it('projects completion-marker state without claiming a semantic output exists', () => {
       const changeDir = path.join(tempDir, '.xirang', 'changes', 'my-change');
-      const markerPath = path.join(changeDir, '.specs-noop');
+      const markerPath = path.join(changeDir, '.delta-noop');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(markerPath, '');
 
@@ -210,7 +216,7 @@ describe('instruction-loader', () => {
 
     it('projects the expected completion-marker path when the marker is absent', () => {
       const changeDir = path.join(tempDir, '.xirang', 'changes', 'my-change');
-      const markerPath = path.join(changeDir, '.specs-noop');
+      const markerPath = path.join(changeDir, '.delta-noop');
       fs.mkdirSync(changeDir, { recursive: true });
 
       const context = loadChangeContext(tempDir, 'my-change');
@@ -220,7 +226,7 @@ describe('instruction-loader', () => {
         completed: false,
         outputs: [],
         completionMarker: {
-          path: path.join(context.changeDir, '.specs-noop'),
+          path: path.join(context.changeDir, '.delta-noop'),
           present: false,
         },
       });
@@ -230,7 +236,6 @@ describe('instruction-loader', () => {
       const context = loadChangeContext(tempDir, 'my-change');
       const proposal = generateInstructions(context, 'proposal').definition;
       const specs = generateInstructions(context, 'specs').definition;
-      const architectureDelta = generateInstructions(context, 'architecture-delta').definition;
       const design = generateInstructions(context, 'design').definition;
       const tasks = generateInstructions(context, 'tasks').definition;
 
@@ -242,18 +247,26 @@ describe('instruction-loader', () => {
             'Motivation, scope boundaries, Behavior Source impact, Architecture Source impact, and affected surfaces.',
           ],
           excludes: [
-            'Complete observable behavior requirements, authoritative LikeC4 element or relation declarations, lowering decisions, and implementation work.',
+            'Complete observable behavior requirements, complete target-state Semantic Delta entries, lowering decisions, and implementation work.',
           ],
         },
       });
       expect(specs).toMatchObject({
-        purpose: 'Define the observable behavior the target program must exhibit.',
-        validation: ['xirang validate --change <name> --artifacts specs --json'],
+        purpose: 'Express the semantics this Change adds, modifies, or removes.',
+        compilationRole: 'Semantic Delta compiled against the current Semantic Model.',
+        content: {
+          includes: [
+            'Complete target-state Semantic Delta entries across elements, metamodel, relationships, and views.',
+          ],
+          excludes: [
+            'Motivation, implementation decisions, rationale, task planning, change-log narration, and Agent reasoning.',
+          ],
+        },
+        validation: [
+          'xirang validate --change <name> --json',
+          'xirang arch validate --change <name> --json',
+        ],
       });
-      expect(specs?.validation).not.toContain('xirang scenario-labels <name> --write');
-      expect(architectureDelta?.content.excludes).toContain(
-        'Observable behavior requirements, implementation evidence, code paths, symbols, imports, calls, and change-log narration.'
-      );
       expect(design).toMatchObject({
         purpose: 'Record concrete lowering and architecture decisions that the Agent must not guess.',
         content: {
@@ -261,7 +274,7 @@ describe('instruction-loader', () => {
             'Solution architecture, implementation boundaries, technical decisions, rationale, alternatives, refactoring strategy, risks, trade-offs, and migration decisions.',
           ],
           excludes: [
-            'Observable behavior requirements, task progress, repeated motivation, and durable architecture changes not reconciled through architecture-delta.c4.',
+            'Observable behavior requirements, task progress, repeated motivation, and durable semantic changes not reconciled through the four Delta partitions.',
           ],
         },
       });
@@ -280,42 +293,65 @@ describe('instruction-loader', () => {
         'Architecture Source',
         'New Specs',
         'Modified Specs',
-        'specs/<spec-id>/spec.md',
-        'domain_name.capability_name',
-        'do not assume a one-to-one mapping',
+        'element identity',
+        'one shared identity space',
         'Write `None`',
-        'Complete observable behavior belongs in delta Specs',
-        'Complete target-state LikeC4 elements and relations belong in `architecture-delta.c4`',
+        'Complete target-state Semantic Delta entries belong in `elements/`, `metamodel/`, `relationships/`, and `views/`',
         'Lowering and architecture decisions belong in `design.md`',
         'Implementation work and verification belong in `tasks.md`',
-        'Every New or Modified Spec entry must be reconciled by a corresponding change-local delta Spec',
-        'Every declared durable architecture impact must be reconciled through `architecture-delta.c4`',
       ]) {
         expect(body).toContain(token);
+      }
+      for (const legacy of ['LikeC4', 'capabilityId', 'domain_name', 'architecture-delta']) {
+        expect(body).not.toContain(legacy);
       }
     });
 
-    it('projects Behavior Source driven delta Spec guidance', () => {
+    it('projects four-partition Semantic Delta guidance and unit templates', () => {
       const context = loadChangeContext(tempDir, 'my-change');
-      const body = generateInstructions(context, 'specs').instruction ?? '';
+      const projected = generateInstructions(context, 'specs');
+      const body = projected.instruction ?? '';
 
       for (const token of [
-        '`Source Impact`',
-        '`Behavior Source`',
-        'specs/<spec-id>/spec.md',
-        'Spec IDs and architecture capability IDs are different identifiers',
-        'A `Modified Specs` file may contain any combination',
-        'Agent MUST NOT author Scenario operation labels',
+        'per-unit shape reference',
+        'entity',
+        'element-declaration: identity, kind, parent, title, summary',
+        'element-kind: identity, contract; optional root, parents, children',
+        'relationship-kind: identity; optional sourceKinds, targetKinds',
+        'authored-view: identity, include; optional of, title, autoLayout',
+        '[A-Za-z0-9._-]+',
+        '## ADDED Requirements',
+        '## MODIFIED Requirements',
+        '## REMOVED Requirements',
+        'relationships/',
+        'does not support `MODIFIED`',
       ]) {
         expect(body).toContain(token);
       }
-      expect(body).not.toContain('The system SHALL allow users to export their data');
+      for (const legacy of [
+        '.xirang/specs',
+        'specs/<spec-id>',
+        'cap.<domain>',
+        '--artifacts',
+        'architecture-delta',
+      ]) {
+        expect(body).not.toContain(legacy);
+      }
+      for (const output of [
+        'elements/<identity>.md',
+        'metamodel/<kind identity>.md',
+        'views/<view identity>.md',
+        'relationships/<relationship kind identity>.yaml',
+      ]) {
+        expect(projected.template).toContain(output);
+      }
+      expect(projected.currentState.completionMarker?.path).toBe(path.join(context.changeDir, '.delta-noop'));
     });
 
     it('projects one definition-first authoring order for every spec-driven artifact', () => {
       const context = loadChangeContext(tempDir, 'my-change');
 
-      for (const artifactId of ['proposal', 'specs', 'architecture-delta', 'design', 'tasks']) {
+      for (const artifactId of ['proposal', 'specs', 'design', 'tasks']) {
         const body = generateInstructions(context, artifactId).instruction ?? '';
         const definitionIndex = body.indexOf('1. Read the resolved `definition`');
         const currentStateIndex = body.indexOf('2. Read dependencies and current artifact state');
@@ -364,7 +400,7 @@ describe('instruction-loader', () => {
       expect(instructions.template).toContain('**Requirements**:');
       expect(instructions.template).toContain('#### Checks');
       expect(instructions.template).toContain('- [ ] C1');
-      expect(instructions.template).toContain('Verifies: `specs/<capability>/spec.md`');
+      expect(instructions.template).toContain('Verifies: `elements/<identity>.md`');
 
       // Layer 1: Core concepts - instruction content
       expect(instructions.instruction).toMatch(/coarse.*task/i);
@@ -374,7 +410,7 @@ describe('instruction-loader', () => {
       expect(instructions.instruction).toMatch(/requirements/i);
       expect(instructions.instruction).toMatch(/checks/i);
       expect(instructions.instruction).toMatch(/verifies/i);
-      expect(instructions.instruction).toMatch(/specs.*capability.*spec\.md/i);
+      expect(instructions.instruction).toMatch(/elements.*identity.*\.md/i);
       expect(instructions.instruction).toMatch(/requirement/i);
       expect(instructions.instruction).toMatch(/scenario/i);
       expect(instructions.instruction).toMatch(/paths/i);
@@ -850,23 +886,21 @@ rules:
       expect(proposal?.outputPath).toBe('proposal.md');
 
       const specs = status.artifacts.find(a => a.id === 'specs');
-      expect(specs?.outputPath).toBe('specs/**/*.md');
+      expect(specs?.outputPath).toBe('{elements,metamodel,relationships,views}/**/*');
 
-      const architectureDelta = status.artifacts.find(a => a.id === 'architecture-delta');
-      expect(architectureDelta?.outputPath).toBe('architecture-delta.c4');
+      expect(status.artifacts.some(a => a.id === 'architecture-delta')).toBe(false);
       expect(status.artifacts.some(a => a.id === 'opsx-delta')).toBe(false);
     });
 
     it('should report isComplete true when all done', () => {
       const changeDir = path.join(tempDir, '.xirang', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
-      fs.mkdirSync(path.join(changeDir, 'specs'), { recursive: true });
+      fs.mkdirSync(path.join(changeDir, 'elements'), { recursive: true });
 
       // Create all required files for spec-driven schema
       fs.writeFileSync(path.join(changeDir, 'proposal.md'), '# Proposal');
-      fs.writeFileSync(path.join(changeDir, 'specs', 'test.md'), '# Spec');
+      fs.writeFileSync(path.join(changeDir, 'elements', 'test.md'), '# Delta');
       fs.writeFileSync(path.join(changeDir, 'design.md'), '# Design');
-      fs.writeFileSync(path.join(changeDir, 'architecture-delta.c4'), 'model {}\n');
       fs.writeFileSync(path.join(changeDir, 'tasks.md'), '# Tasks');
 
       const context = loadChangeContext(tempDir, 'my-change');

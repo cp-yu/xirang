@@ -24,6 +24,63 @@ const validTasks = (verifies = '`elements/example.md` / Requirement "Parser beha
 `;
 
 describe('validateTaskStructure', () => {
+  it('accepts the task template Verifies and Preserves path examples', () => {
+    const template = fs.readFileSync(path.join(process.cwd(), 'schemas/spec-driven/templates/tasks.md'), 'utf8');
+    const verifiesPaths = [...template.matchAll(/- Verifies: `([^`]+)`/g)]
+      .map((match) => match[1].replace(/<(?:identity|capability)>/g, 'example'));
+    const preservesPath = template.match(/- Preserves: `([^`]+)`/)?.[1]
+      .replace(/<(?:identity|capability)>/g, 'example');
+    const tempDir = createChangeDir({
+      'example.md': `## ADDED Requirements
+
+### Requirement: Parser behavior
+
+#### Scenario: Valid tasks pass
+`,
+    });
+    const projectRoot = path.dirname(tempDir);
+    const mainSpecPath = path.join(projectRoot, '.xirang', 'model', 'elements', 'example.md');
+    fs.mkdirSync(path.dirname(mainSpecPath), { recursive: true });
+    fs.writeFileSync(mainSpecPath, `## Requirements
+
+### Requirement: Parser behavior
+
+#### Scenario: Valid tasks pass
+`);
+
+    try {
+      expect(verifiesPaths).toHaveLength(2);
+      expect(preservesPath).toBeDefined();
+      for (const [field, specPath] of [
+        ...verifiesPaths.map((entry) => ['Verifies', entry] as const),
+        ['Preserves', preservesPath!] as const,
+      ]) {
+        const result = validateTaskStructure(`### Task 1: Template path
+
+**Goal**: Validate the template path.
+
+**Files**:
+- Test: \`test/core/parsers/task-structure.test.ts\`
+
+**Requirements**:
+- Keep template examples accepted by the parser
+
+#### Checks
+
+- [ ] C1 Verify template path
+  - ${field}: \`${specPath}\` / Requirement "Parser behavior" / Scenario "Valid tasks pass"
+  - Command: \`pnpm test\`
+`, { changeDir: tempDir });
+
+        expect(result.valid).toBe(true);
+        expect(result.issues.map((issue) => issue.code)).not.toContain('invalid-verifies-path');
+      }
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+      fs.rmSync(path.join(projectRoot, '.xirang'), { recursive: true, force: true });
+    }
+  });
+
   it('accepts Actions and Checks with covered executable checks', () => {
     const result = validateTaskStructure(validTasks('manual verification'));
 

@@ -65,6 +65,17 @@ export const XIRANG_SHARED_CONTEXT = `
  */
 export const ARCHITECTURE_GENERATE_DELTA = `
 **Write the Semantic Delta**:
+
+Every Markdown unit declares its own \`entity\` in frontmatter. The partition does not determine the type.
+
+| entity | frontmatter fields |
+|---|---|
+| \`element-declaration\` | \`identity\`, \`kind\`, \`parent\`, \`title\`, \`summary\` |
+| \`element-kind\` | \`identity\`, \`contract\`; optional \`root\`, \`parents\`, \`children\` |
+| \`relationship-kind\` | \`identity\`; optional \`sourceKinds\`, \`targetKinds\` |
+| \`authored-view\` | \`identity\`, \`include\`; optional \`of\`, \`title\`, \`autoLayout\` |
+
+- \`identity\` uses \`[A-Za-z0-9._-]+\`, contains no path separator, and does not encode parent hierarchy
 - Before writing, follow the authoring order in the returned \`instruction\`; keep \`definition\`, dependencies, \`currentState\`, \`configProjection\`, and \`template\` as separate inputs
 - Read proposal \`Source Impact\` as compatible scaffolding for one Semantic Delta; use it to locate affected elements, refinement, Element Contracts, and relationships
 - Read \`design.md\` for architecture decisions and the formal Xirang Semantic Model as current semantic state

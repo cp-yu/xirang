@@ -1,0 +1,398 @@
+{
+  "timestamp": "2026-07-26T18:42:27.774Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "The build result is attested by the completed Apply evidence but was not independently reproduced during this read-only review.",
+      "requirement": "Static, build, and lint validation",
+      "task": "Task 8 / C6",
+      "recommendation": "Retain the Apply worker's successful build evidence or rerun `pnpm build` in the reviewed workspace when mutation is permitted; no code remediation is indicated because TypeScript, lint, targeted tests, and the full suite independently pass.",
+      "evidence": [
+        ".xirang/changes/migrate-artifact-schema-projection/tasks.md:303-306",
+        "build.js:16-24"
+      ]
+    }
+  ],
+  "tasksFileHash": "b5f7b630bbe8303b90946c8f684bb4d4f44e6d56d05e4e92b3f723bc86e0104a",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/migrate-artifact-schema-projection/.apply-isolation.json",
+      ".xirang/changes/migrate-artifact-schema-projection/.delta-noop",
+      ".xirang/changes/migrate-artifact-schema-projection/.verify-result.json",
+      ".xirang/changes/migrate-artifact-schema-projection/design.md",
+      ".xirang/changes/migrate-artifact-schema-projection/proposal.md",
+      ".xirang/changes/migrate-artifact-schema-projection/tasks.md",
+      "build.js",
+      "schemas/spec-driven/schema.yaml",
+      "schemas/spec-driven/templates/delta.md",
+      "schemas/spec-driven/templates/proposal.md",
+      "schemas/spec-driven/templates/tasks.md",
+      "src/commands/help.ts",
+      "src/core/artifact-graph/outputs.ts",
+      "src/core/model/types.ts",
+      "src/core/parsers/task-structure.ts",
+      "src/core/templates/fragments/xirang-fragments.ts",
+      "src/core/validation/constants.ts",
+      "test/commands/artifact-workflow.test.ts",
+      "test/commands/help.test.ts",
+      "test/commands/validate.test.ts",
+      "test/core/artifact-graph/instruction-loader.test.ts",
+      "test/core/artifact-graph/outputs.test.ts",
+      "test/core/artifact-graph/state.test.ts",
+      "test/core/artifact-graph/workflow.integration.test.ts",
+      "test/core/change-compiler.test.ts",
+      "test/core/parsers/task-structure.test.ts",
+      "test/core/templates/fragments/notation-consistency.test.ts",
+      "test/core/templates/fragments/xirang-fragments.test.ts",
+      "test/core/templates/propose-template.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts",
+      "test/core/validation.enriched-messages.test.ts",
+      "test/integration/archive-workflow.test.ts",
+      "xirang-contract.md",
+      "xirang-definition.md"
+    ],
+    "evidenceFingerprint": "26e6adc6c9c17e56ed26d2e00dbcc6be34ddbf97ff61bec5f41a8d7858f720d0",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/migrate-artifact-schema-projection/.apply-isolation.json",
+        "hash": "6d9d7c36703e3eb4edfa29a8c1e6bd982e4d45d08ea9acfb50cbfb8d23f8458e"
+      },
+      {
+        "path": ".xirang/changes/migrate-artifact-schema-projection/.delta-noop",
+        "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": ".xirang/changes/migrate-artifact-schema-projection/design.md",
+        "hash": "019d5f67ffb3c2d0eb834966c6a5e02f5165027b19390704774b1d7cb1085b24"
+      },
+      {
+        "path": ".xirang/changes/migrate-artifact-schema-projection/proposal.md",
+        "hash": "39c3dcbaa1126c59277e49053fc1fb506fd0562d270e7fc156f75a0bd319c0cd"
+      },
+      {
+        "path": ".xirang/changes/migrate-artifact-schema-projection/tasks.md",
+        "hash": "b5f7b630bbe8303b90946c8f684bb4d4f44e6d56d05e4e92b3f723bc86e0104a"
+      },
+      {
+        "path": "build.js",
+        "hash": "8b462881aae006c028a77ceb2938b9122e7c88e9e30bd0000bcc53b363a0f4ae"
+      },
+      {
+        "path": "schemas/spec-driven/schema.yaml",
+        "hash": "88b6cc9b65e531acbb4c1a49453169c6a46e22f9e5dd96c93b7bdeb536a80bb5"
+      },
+      {
+        "path": "schemas/spec-driven/templates/delta.md",
+        "hash": "419720af02b690249eec61b5ec21ebb69555f4eb95b9848b3f9efc71a363cb90"
+      },
+      {
+        "path": "schemas/spec-driven/templates/proposal.md",
+        "hash": "a0baf99ef2c52b2f917284970d3e60cca0a8ef32b865df4f27c92c26902fc45d"
+      },
+      {
+        "path": "schemas/spec-driven/templates/tasks.md",
+        "hash": "2a1a08545a62e166cdffa442215c8020e13c1130f8eb150b6b9f8dc4af4ddd19"
+      },
+      {
+        "path": "src/commands/help.ts",
+        "hash": "e287fa66ee35e1510b2b68cca1078ce6b01a845a7641bcea25f060fa516bdd2e"
+      },
+      {
+        "path": "src/core/artifact-graph/outputs.ts",
+        "hash": "7a95459becd3831b3cc0416aa473990169d671a1e491a284df4695d1c8008047"
+      },
+      {
+        "path": "src/core/model/types.ts",
+        "hash": "c3a63a2f092e4762ac868780ccef11dc9305d89c64f6e561b41fb67d53f69e16"
+      },
+      {
+        "path": "src/core/parsers/task-structure.ts",
+        "hash": "347e0618b8a3f17d801008765c245f63ba18a72d46af7cc3c816a1ce0e254f7a"
+      },
+      {
+        "path": "src/core/templates/fragments/xirang-fragments.ts",
+        "hash": "6ea6ba7ec12f0c1a58c9840190af2fb513371e71dc11f5fe95080afdd3cbe2c7"
+      },
+      {
+        "path": "src/core/validation/constants.ts",
+        "hash": "f4b26949e59ca9bbd72cad330b36c73932154c8f2c025140da080879deac7c54"
+      },
+      {
+        "path": "test/commands/artifact-workflow.test.ts",
+        "hash": "6cd230791fbe944dcbf5daf2b49da87f3f891e848c5eb0c390efe43e631d97c3"
+      },
+      {
+        "path": "test/commands/help.test.ts",
+        "hash": "b3ac30310b1d9a310c1d137167cf293e1d58df0a2d05884b074b65bd9c8a730f"
+      },
+      {
+        "path": "test/commands/validate.test.ts",
+        "hash": "95b1792531af038a1faa8a3757db4ae9049e08583e050e2024a48dd49ea76553"
+      },
+      {
+        "path": "test/core/artifact-graph/instruction-loader.test.ts",
+        "hash": "f72485992721f21cd40c717770a63362f549310a8090df979bdb8f54784d0f42"
+      },
+      {
+        "path": "test/core/artifact-graph/outputs.test.ts",
+        "hash": "da5873851b7a00faba1d1203b7314f199f52be56086738a15fcef6dddc0e1874"
+      },
+      {
+        "path": "test/core/artifact-graph/state.test.ts",
+        "hash": "15e6936a0b8b372e3b75bac395b99d0d4937acc6bf5ae9f24ea3ece7e8bf0466"
+      },
+      {
+        "path": "test/core/artifact-graph/workflow.integration.test.ts",
+        "hash": "d43064e9f35a8e514093004a96c6bd01c8c0140f6cd5624bd077f60ea5ad5871"
+      },
+      {
+        "path": "test/core/change-compiler.test.ts",
+        "hash": "49eb2d1d449584fb6d95bfec191742a71e224ea322687b35f1024287979ff539"
+      },
+      {
+        "path": "test/core/parsers/task-structure.test.ts",
+        "hash": "aca85ae11d0214922facabcd350e60b19691067c81d67a67f814e0868449a4dd"
+      },
+      {
+        "path": "test/core/templates/fragments/notation-consistency.test.ts",
+        "hash": "c6feaa5dd0fa729afbb7b37adb000958e3fb77d52e842990ace23e8945737e2c"
+      },
+      {
+        "path": "test/core/templates/fragments/xirang-fragments.test.ts",
+        "hash": "92a00bd8e769deb1a8453d907a69e9bdc6aa43f3ef6943774f17700264e58561"
+      },
+      {
+        "path": "test/core/templates/propose-template.test.ts",
+        "hash": "98aad648e1a7cb6d1789cc2e9df0d2ba923c2f3a92a66e7e89804df5ed94b8c0"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "b830b24e755c3e894b95f6f9c9abe69a1b9fa8b32e3ee2f4f22c31f496d8b19c"
+      },
+      {
+        "path": "test/core/validation.enriched-messages.test.ts",
+        "hash": "3d2e35dbb50f865508afc612806460afadded251e60a9936a52ea6765d08b33d"
+      },
+      {
+        "path": "test/integration/archive-workflow.test.ts",
+        "hash": "95e7fc52ae57dc2ea57174abf7d2ec9c3cf4873af117941c29a07c74b9283ee4"
+      },
+      {
+        "path": "xirang-contract.md",
+        "hash": "4d9cad676c69f9ee42772c7e671b527a6fa17897ca65a56a9288d3fcf18718e9"
+      },
+      {
+        "path": "xirang-definition.md",
+        "hash": "082007ff93703c6f58250f17186bfdc640730140f7346e97e62526d5c0c13942"
+      }
+    ],
+    "skippedEvidenceFiles": [
+      ".xirang/changes/migrate-artifact-schema-projection/.verify-result.json"
+    ],
+    "gitHeadCommit": "dc1dcd104bb04ed6012261e08756ecb6ac4afc3a",
+    "gitDiffSummary": "Validated changeName, changeDir, and projectRoot. Base commit dc1dcd104bb04ed6012261e08756ecb6ac4afc3a resolves and equals HEAD, so `git diff <baseCommit>...HEAD --name-only` is empty and the reviewed implementation is uncommitted. Final status contains 29 entries: 22 attributed change/artifact entries plus the seven explicitly attested pre-existing `.pi/` modifications. No files are staged and `git diff --check` passes. Both declared template deletions are complete. The current workflow reports four artifacts, all done, with `specs.outputPath` set to the four-partition brace pattern and `isComplete: true`. The current tasks file parses as valid deterministic coarse structure with exactly 8 tasks and 33 checks; its cross-check warnings are expected because `.delta-noop` intentionally declares no local Delta units. Canonical semantic-delta help emits only `{operation, source, kind, target}` relationship entries, and task fixtures use `elements/<identity>.md` with executable parser validation. Five independent completion-signal cases passed. Targeted verification passed 18 files and 287 tests; full verification passed 144 files and 1944 tests; `pnpm exec tsc --noEmit`, `pnpm lint`, projected CLI command parsing, status checks, deletion checks, residue searches, and diff integrity all passed. Formal `.xirang/model` is intentionally unavailable, so alignment was evaluated against `xirang-definition.md` and `xirang-contract.md`. The only residual risk is that this reviewer did not independently rerun the destructive build; Task 8 C6 records the Apply worker's successful TypeScript/build/lint gate."
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-07-26T18:42:27.774Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "The build result is attested by the completed Apply evidence but was not independently reproduced during this read-only review.",
+          "requirement": "Static, build, and lint validation",
+          "task": "Task 8 / C6",
+          "recommendation": "Retain the Apply worker's successful build evidence or rerun `pnpm build` in the reviewed workspace when mutation is permitted; no code remediation is indicated because TypeScript, lint, targeted tests, and the full suite independently pass.",
+          "evidence": [
+            ".xirang/changes/migrate-artifact-schema-projection/tasks.md:303-306",
+            "build.js:16-24"
+          ]
+        }
+      ],
+      "tasksFileHash": "b5f7b630bbe8303b90946c8f684bb4d4f44e6d56d05e4e92b3f723bc86e0104a",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/migrate-artifact-schema-projection/.apply-isolation.json",
+          ".xirang/changes/migrate-artifact-schema-projection/.delta-noop",
+          ".xirang/changes/migrate-artifact-schema-projection/.verify-result.json",
+          ".xirang/changes/migrate-artifact-schema-projection/design.md",
+          ".xirang/changes/migrate-artifact-schema-projection/proposal.md",
+          ".xirang/changes/migrate-artifact-schema-projection/tasks.md",
+          "build.js",
+          "schemas/spec-driven/schema.yaml",
+          "schemas/spec-driven/templates/delta.md",
+          "schemas/spec-driven/templates/proposal.md",
+          "schemas/spec-driven/templates/tasks.md",
+          "src/commands/help.ts",
+          "src/core/artifact-graph/outputs.ts",
+          "src/core/model/types.ts",
+          "src/core/parsers/task-structure.ts",
+          "src/core/templates/fragments/xirang-fragments.ts",
+          "src/core/validation/constants.ts",
+          "test/commands/artifact-workflow.test.ts",
+          "test/commands/help.test.ts",
+          "test/commands/validate.test.ts",
+          "test/core/artifact-graph/instruction-loader.test.ts",
+          "test/core/artifact-graph/outputs.test.ts",
+          "test/core/artifact-graph/state.test.ts",
+          "test/core/artifact-graph/workflow.integration.test.ts",
+          "test/core/change-compiler.test.ts",
+          "test/core/parsers/task-structure.test.ts",
+          "test/core/templates/fragments/notation-consistency.test.ts",
+          "test/core/templates/fragments/xirang-fragments.test.ts",
+          "test/core/templates/propose-template.test.ts",
+          "test/core/templates/skill-templates-parity.test.ts",
+          "test/core/validation.enriched-messages.test.ts",
+          "test/integration/archive-workflow.test.ts",
+          "xirang-contract.md",
+          "xirang-definition.md"
+        ],
+        "evidenceFingerprint": "26e6adc6c9c17e56ed26d2e00dbcc6be34ddbf97ff61bec5f41a8d7858f720d0",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/migrate-artifact-schema-projection/.apply-isolation.json",
+            "hash": "6d9d7c36703e3eb4edfa29a8c1e6bd982e4d45d08ea9acfb50cbfb8d23f8458e"
+          },
+          {
+            "path": ".xirang/changes/migrate-artifact-schema-projection/.delta-noop",
+            "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": ".xirang/changes/migrate-artifact-schema-projection/design.md",
+            "hash": "019d5f67ffb3c2d0eb834966c6a5e02f5165027b19390704774b1d7cb1085b24"
+          },
+          {
+            "path": ".xirang/changes/migrate-artifact-schema-projection/proposal.md",
+            "hash": "39c3dcbaa1126c59277e49053fc1fb506fd0562d270e7fc156f75a0bd319c0cd"
+          },
+          {
+            "path": ".xirang/changes/migrate-artifact-schema-projection/tasks.md",
+            "hash": "b5f7b630bbe8303b90946c8f684bb4d4f44e6d56d05e4e92b3f723bc86e0104a"
+          },
+          {
+            "path": "build.js",
+            "hash": "8b462881aae006c028a77ceb2938b9122e7c88e9e30bd0000bcc53b363a0f4ae"
+          },
+          {
+            "path": "schemas/spec-driven/schema.yaml",
+            "hash": "88b6cc9b65e531acbb4c1a49453169c6a46e22f9e5dd96c93b7bdeb536a80bb5"
+          },
+          {
+            "path": "schemas/spec-driven/templates/delta.md",
+            "hash": "419720af02b690249eec61b5ec21ebb69555f4eb95b9848b3f9efc71a363cb90"
+          },
+          {
+            "path": "schemas/spec-driven/templates/proposal.md",
+            "hash": "a0baf99ef2c52b2f917284970d3e60cca0a8ef32b865df4f27c92c26902fc45d"
+          },
+          {
+            "path": "schemas/spec-driven/templates/tasks.md",
+            "hash": "2a1a08545a62e166cdffa442215c8020e13c1130f8eb150b6b9f8dc4af4ddd19"
+          },
+          {
+            "path": "src/commands/help.ts",
+            "hash": "e287fa66ee35e1510b2b68cca1078ce6b01a845a7641bcea25f060fa516bdd2e"
+          },
+          {
+            "path": "src/core/artifact-graph/outputs.ts",
+            "hash": "7a95459becd3831b3cc0416aa473990169d671a1e491a284df4695d1c8008047"
+          },
+          {
+            "path": "src/core/model/types.ts",
+            "hash": "c3a63a2f092e4762ac868780ccef11dc9305d89c64f6e561b41fb67d53f69e16"
+          },
+          {
+            "path": "src/core/parsers/task-structure.ts",
+            "hash": "347e0618b8a3f17d801008765c245f63ba18a72d46af7cc3c816a1ce0e254f7a"
+          },
+          {
+            "path": "src/core/templates/fragments/xirang-fragments.ts",
+            "hash": "6ea6ba7ec12f0c1a58c9840190af2fb513371e71dc11f5fe95080afdd3cbe2c7"
+          },
+          {
+            "path": "src/core/validation/constants.ts",
+            "hash": "f4b26949e59ca9bbd72cad330b36c73932154c8f2c025140da080879deac7c54"
+          },
+          {
+            "path": "test/commands/artifact-workflow.test.ts",
+            "hash": "6cd230791fbe944dcbf5daf2b49da87f3f891e848c5eb0c390efe43e631d97c3"
+          },
+          {
+            "path": "test/commands/help.test.ts",
+            "hash": "b3ac30310b1d9a310c1d137167cf293e1d58df0a2d05884b074b65bd9c8a730f"
+          },
+          {
+            "path": "test/commands/validate.test.ts",
+            "hash": "95b1792531af038a1faa8a3757db4ae9049e08583e050e2024a48dd49ea76553"
+          },
+          {
+            "path": "test/core/artifact-graph/instruction-loader.test.ts",
+            "hash": "f72485992721f21cd40c717770a63362f549310a8090df979bdb8f54784d0f42"
+          },
+          {
+            "path": "test/core/artifact-graph/outputs.test.ts",
+            "hash": "da5873851b7a00faba1d1203b7314f199f52be56086738a15fcef6dddc0e1874"
+          },
+          {
+            "path": "test/core/artifact-graph/state.test.ts",
+            "hash": "15e6936a0b8b372e3b75bac395b99d0d4937acc6bf5ae9f24ea3ece7e8bf0466"
+          },
+          {
+            "path": "test/core/artifact-graph/workflow.integration.test.ts",
+            "hash": "d43064e9f35a8e514093004a96c6bd01c8c0140f6cd5624bd077f60ea5ad5871"
+          },
+          {
+            "path": "test/core/change-compiler.test.ts",
+            "hash": "49eb2d1d449584fb6d95bfec191742a71e224ea322687b35f1024287979ff539"
+          },
+          {
+            "path": "test/core/parsers/task-structure.test.ts",
+            "hash": "aca85ae11d0214922facabcd350e60b19691067c81d67a67f814e0868449a4dd"
+          },
+          {
+            "path": "test/core/templates/fragments/notation-consistency.test.ts",
+            "hash": "c6feaa5dd0fa729afbb7b37adb000958e3fb77d52e842990ace23e8945737e2c"
+          },
+          {
+            "path": "test/core/templates/fragments/xirang-fragments.test.ts",
+            "hash": "92a00bd8e769deb1a8453d907a69e9bdc6aa43f3ef6943774f17700264e58561"
+          },
+          {
+            "path": "test/core/templates/propose-template.test.ts",
+            "hash": "98aad648e1a7cb6d1789cc2e9df0d2ba923c2f3a92a66e7e89804df5ed94b8c0"
+          },
+          {
+            "path": "test/core/templates/skill-templates-parity.test.ts",
+            "hash": "b830b24e755c3e894b95f6f9c9abe69a1b9fa8b32e3ee2f4f22c31f496d8b19c"
+          },
+          {
+            "path": "test/core/validation.enriched-messages.test.ts",
+            "hash": "3d2e35dbb50f865508afc612806460afadded251e60a9936a52ea6765d08b33d"
+          },
+          {
+            "path": "test/integration/archive-workflow.test.ts",
+            "hash": "95e7fc52ae57dc2ea57174abf7d2ec9c3cf4873af117941c29a07c74b9283ee4"
+          },
+          {
+            "path": "xirang-contract.md",
+            "hash": "4d9cad676c69f9ee42772c7e671b527a6fa17897ca65a56a9288d3fcf18718e9"
+          },
+          {
+            "path": "xirang-definition.md",
+            "hash": "082007ff93703c6f58250f17186bfdc640730140f7346e97e62526d5c0c13942"
+          }
+        ],
+        "skippedEvidenceFiles": [
+          ".xirang/changes/migrate-artifact-schema-projection/.verify-result.json"
+        ],
+        "gitHeadCommit": "dc1dcd104bb04ed6012261e08756ecb6ac4afc3a",
+        "gitDiffSummary": "Validated changeName, changeDir, and projectRoot. Base commit dc1dcd104bb04ed6012261e08756ecb6ac4afc3a resolves and equals HEAD, so `git diff <baseCommit>...HEAD --name-only` is empty and the reviewed implementation is uncommitted. Final status contains 29 entries: 22 attributed change/artifact entries plus the seven explicitly attested pre-existing `.pi/` modifications. No files are staged and `git diff --check` passes. Both declared template deletions are complete. The current workflow reports four artifacts, all done, with `specs.outputPath` set to the four-partition brace pattern and `isComplete: true`. The current tasks file parses as valid deterministic coarse structure with exactly 8 tasks and 33 checks; its cross-check warnings are expected because `.delta-noop` intentionally declares no local Delta units. Canonical semantic-delta help emits only `{operation, source, kind, target}` relationship entries, and task fixtures use `elements/<identity>.md` with executable parser validation. Five independent completion-signal cases passed. Targeted verification passed 18 files and 287 tests; full verification passed 144 files and 1944 tests; `pnpm exec tsc --noEmit`, `pnpm lint`, projected CLI command parsing, status checks, deletion checks, residue searches, and diff integrity all passed. Formal `.xirang/model` is intentionally unavailable, so alignment was evaluated against `xirang-definition.md` and `xirang-contract.md`. The only residual risk is that this reviewer did not independently rerun the destructive build; Task 8 C6 records the Apply worker's successful TypeScript/build/lint gate."
+      }
+    }
+  }
+}

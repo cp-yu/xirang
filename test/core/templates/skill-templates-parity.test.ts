@@ -23,6 +23,7 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
   getOpsxProposeSkillTemplate: '05e2c1d98187c105792440c220654f647ebc7ac9628a298c21d895af42dca606',
   getFeedbackSkillTemplate: 'b59e4e8f30b3671f5346445a7fbe9043cd559233c86fc78d086bbe94e084590b',
   getBuildSkillTemplate: '322af37f41fcd8b835ef4f51a268d09825e8a05917fc33a462f05f5204d05ae8',
+  getSnackSkillTemplate: 'cda5a371e901e9d6cc0ae74a45d52c915fb28ec5ec1bec891859680b0075eabc',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
@@ -61,6 +62,7 @@ describe('skill templates split parity', () => {
       getOpsxProposeSkillTemplate,
       getFeedbackSkillTemplate,
       getBuildSkillTemplate,
+      getSnackSkillTemplate,
     };
 
     const actualHashes = Object.fromEntries(

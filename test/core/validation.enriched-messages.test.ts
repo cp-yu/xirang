@@ -30,8 +30,34 @@ There are changes proposed, but no delta specs provided yet.`;
     expect(report.valid).toBe(false);
     const msg = report.issues.map(i => i.message).join('\n');
     expect(msg).toContain('Change must have at least one delta');
-    expect(msg).toContain('Ensure your change has a specs/ directory');
-    expect(msg).toContain('## ADDED/MODIFIED/REMOVED Requirements');
+    for (const partition of ['elements/', 'metamodel/', 'relationships/', 'views/']) {
+      expect(msg).toContain(partition);
+    }
+    expect(msg).toContain('xirang diff --change <change-id> --json');
+    expect(msg).not.toContain('specs/ directory');
+    expect(msg).not.toContain('change show');
+    expect(msg).not.toContain('--deltas-only');
+  });
+
+  it('adds Semantic Delta guidance for a malformed proposal', async () => {
+    const changePath = path.join(testDir, 'proposal.md');
+    await fs.writeFile(changePath, `# Test Change
+
+## What Changes
+The proposal is deliberately missing its Why section.`);
+
+    const validator = new Validator();
+    const report = await validator.validateChange(changePath);
+    expect(report.valid).toBe(false);
+    const msg = report.issues.map(i => i.message).join('\n');
+    expect(msg).toContain('Change must have a Why section');
+    for (const partition of ['elements/', 'metamodel/', 'relationships/', 'views/']) {
+      expect(msg).toContain(partition);
+    }
+    expect(msg).toContain('xirang diff --change <change-id> --json');
+    expect(msg).not.toContain('specs/');
+    expect(msg).not.toContain('change show');
+    expect(msg).not.toContain('--deltas-only');
   });
 
   it('adds guidance when spec missing Purpose/Requirements', async () => {

@@ -3,6 +3,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import { artifactOutputExists, resolveArtifactOutputs } from '../../../src/core/artifact-graph/outputs.js';
+import { resolveSchema } from '../../../src/core/artifact-graph/resolver.js';
 
 function canonical(targetPath: string): string {
   return fs.realpathSync(targetPath);
@@ -106,6 +107,24 @@ describe('artifact-graph/outputs', () => {
   it('returns an empty list when no files match the artifact output', () => {
     expect(resolveArtifactOutputs(tempDir, 'specs/*/spec.md')).toEqual([]);
     expect(artifactOutputExists(tempDir, 'specs/*/spec.md')).toBe(false);
+  });
+
+  it('expands the specs artifact brace pattern across all Semantic Delta partitions', () => {
+    const generates = resolveSchema('spec-driven').artifacts.find(({ id }) => id === 'specs')?.generates;
+    expect(generates).toBe('{elements,metamodel,relationships,views}/**/*');
+
+    const files = [
+      path.join(tempDir, 'elements', 'x.md'),
+      path.join(tempDir, 'metamodel', 'k.md'),
+      path.join(tempDir, 'relationships', 'invokes.yaml'),
+      path.join(tempDir, 'views', 'v.md'),
+    ];
+    for (const file of files) {
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(file, 'content');
+    }
+
+    expect(resolveArtifactOutputs(tempDir, generates!)).toEqual(files.map(canonical).sort());
   });
 
   describe('glob-special characters in directory paths', () => {
