@@ -114,3 +114,17 @@ relationships/<relationship kind identity>.yaml
 缓解：Task 8 显式再生成并核验产物不含三类误导字面量。
 
 **回滚条件**：若 fragment 重写导致 3 个以上模板测试无法在两轮内修复，回退 `xirang-fragments.ts` 单文件，改为在各 workflow 内联新表述，代价是重复表述且后续易漂移。
+
+## 实施中被证伪的前提
+
+以下两条前提在实施时被代码证伪，已裁定处置方式，本节记录根因以便追溯。
+
+**P1 `Verifies:` / `Preserves:` 锚点语法仍硬编码旧载体**。`src/core/parsers/task-structure.ts` 的 `isValidChangeSpecPath`（要求 `specs/<x>/spec.md` 且显式拒绝 `.xirang/` 前缀）、`isValidMainSpecPath`（要求 `.xirang/specs/<x>/spec.md`）与 `listChangeSpecFiles`（只扫 `<changeDir>/specs/*/spec.md`）程序化拒绝新锚点。而 Task 1 要求把 `Preserves:` 锚点改为 `.xirang/model/elements/<identity>.md`、Task 2 要求 Contract 落点改为 `changes/<name>/elements/<identity>.md`，同时 propose 模板指令 Agent 用 `validateTaskStructure` 做确定性校验——模板与确定性校验会互相打脸：模板要求写出的合法锚点会被同一套校验判为非法。
+
+该文件不在 C0–C3 任何一条范围清单内，属分解缺口。裁定纳入本 Change：change-local 锚点为 `elements/<identity>.md`，main 锚点为 `.xirang/model/elements/<identity>.md`。
+
+**P2 「模板是 Agent 的唯一行为来源」不成立**。`schemas/spec-driven/schema.yaml` 与 `schemas/spec-driven/templates/` 是与模板并列且矛盾的第二个 Agent 行为来源：propose/snack 模板的核心机制是对每个 artifact 跑 `xirang instructions <id> --json` 并按返回的 `instruction` 写入，而该投影仍指令 Agent 写 `specs/<spec-id>/spec.md` 与 `architecture-delta.c4`，并携带 `.xirang/specs/`、`capabilityId`、`domain_name.capability_name` 等旧字面量。因此仅改模板无法阻止三类误导通过 CLI 投影回流。
+
+裁定：`schemas/**` 不纳入本 Change（提示词层与 artifact graph 行为层验证面不同，混合无法验净），模板继续委派给 `xirang instructions` 而不内联 Delta 写入规则，避免 C6 修好投影后出现两份并存规则。代价是本 Change 完成后 workflow 在行为上仍不可用：`xirang instructions specs` 仍返回旧记法，`xirang status` 永远不会把 `specs` artifact 判为 done，propose 第 7 步「直到 applyRequires 全部 done」走不通。这是对后继 Change 的硬依赖。
+
+模板中已不再提及 `architecture-delta` 这个 artifact id，使后继 Change 从 schema 删除该 artifact 时不产生矛盾。

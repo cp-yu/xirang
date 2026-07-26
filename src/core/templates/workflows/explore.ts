@@ -14,19 +14,22 @@ const CONVERSATION_LANGUAGE_GUIDANCE = `Output language: use the user's main lan
 
 const ACTIVE_CHANGE_CAPTURE_GUIDANCE = `### Capture Boundary for Existing Changes
 
-When exploring an active change, read proposal/design/specs/tasks, reference them naturally, and classify insights by where a future workflow should capture them. Do not update those artifacts in explore.
+When exploring an active change, read proposal/design/tasks and its Delta units, reference them naturally, and classify insights by where a future workflow should capture them. Do not update those artifacts in explore.
 
-| Insight Type                         | Future Capture Target          |
-|--------------------------------------|--------------------------------|
-| Observable behavior requirement      | \`specs/<spec-id>/spec.md\`    |
-| Observable behavior changed          | \`specs/<spec-id>/spec.md\`    |
-| Refactor rationale or rejected path  | \`design.md\`                  |
-| Implementation strategy              | \`design.md\`                  |
-| Scope changed                        | \`proposal.md\`                |
-| New work or verification identified  | \`tasks.md\`                   |
-| LikeC4 architecture intent changed   | \`architecture-delta.c4\`      |
-| Assumption invalidated               | Relevant artifact              |
-| Test needs update or deletion        | \`tasks.md\` + \`design.md\`   |
+| Insight Type                         | Future Capture Target                          |
+|--------------------------------------|------------------------------------------------|
+| Observable behavior requirement      | \`elements/<identity>.md\` body                 |
+| Observable behavior changed          | \`elements/<identity>.md\` body                 |
+| Refactor rationale or rejected path  | \`design.md\`                                   |
+| Implementation strategy              | \`design.md\`                                   |
+| Scope changed                        | \`proposal.md\`                                 |
+| New work or verification identified  | \`tasks.md\`                                    |
+| Element identity or hierarchy changed | \`elements/<identity>.md\` frontmatter          |
+| Relationship changed                 | \`relationships/<relationship kind identity>.yaml\` |
+| Element Kind or Relationship Kind changed | \`metamodel/<kind identity>.md\`           |
+| Authored View changed                | \`views/<view identity>.md\`                    |
+| Assumption invalidated               | Relevant artifact                              |
+| Test needs update or deletion        | \`tasks.md\` + \`design.md\`                     |
 
 Example offers:
 - "That is a design decision for \`design.md\`; include it in the Design Summary, then call \`/xirang:propose <change-name>\` or the appropriate non-explore workflow."
@@ -73,7 +76,7 @@ Simple changes still require design confirmation. For a narrow change, confirm o
 Before context reads, create the todo checklist: context, visual decision, one question, options, section approvals, self-review, handoff.
 
 Constrain the discussion with project facts first:
-- Read relevant Xirang change, spec, design, and tasks.
+- Read relevant Xirang change, Element Contract, design, and tasks.
 - Inspect relevant implementation files, tests, and git evidence.
 - Identify affected subsystems; if the request spans multiple independent subsystems, first clarify boundaries and recommend an order.
 - Explicitly identify unknowns; do not substitute general experience for project evidence.
@@ -142,7 +145,7 @@ After the user confirms the \`Design Summary\`, hand off using tool-neutral work
 Design Summary complete. Review the above design. If confirmed, use xirang-propose to generate artifacts.
 \`\`\`
 
-Do not use tool-specific call syntax in references. Do not imply that explore can create proposals, update designs, modify specs, commit files, or directly enter implementation.`;
+Do not use tool-specific call syntax in references. Do not imply that explore can create proposals, update designs, modify Element Contracts, commit files, or directly enter implementation.`;
 
 export function getExploreSkillTemplate(): SkillTemplate {
   return {
@@ -194,8 +197,8 @@ ${CONVERSATION_LANGUAGE_GUIDANCE}
 
 When a new module, workflow, command, configuration key, project concept, or unfamiliar domain term affects scope:
 1. Run \`xirang arch search <query> --json\` against the Formal Semantic Model.
-2. Read the candidates in their Project Root and refinement context, then select one or more stable \`elementId\` values as focus Elements. If no candidate or multiple plausible candidates remain, ask one clarification question instead of guessing.
-3. Run \`xirang arch impact <elementIds...> --depth 2 --json\` to load refinement context, canonical Relationship paths, and complete Element Contracts.
+2. Read the candidates in their Project Root and refinement context, then select one or more \`identity\` values as focus Elements. If no candidate or multiple plausible candidates remain, ask one clarification question instead of guessing.
+3. Run \`xirang arch impact <identities...> --depth 2 --json\` to load refinement context, canonical Relationship paths, and complete Element Contracts.
 4. Collect implementation evidence separately with CodeGraph, ACE, \`rg\`, and \`read\`; code paths, symbols, imports, and calls remain current implementation evidence only.
 5. The main Explore agent combines user intent, Formal semantic context, and implementation evidence to judge \`mustChange\`, \`mustVerify\`, contextual scope, unknowns, and architecture drift. Relationship adjacency does not by itself prove a modification or verification conclusion.
 

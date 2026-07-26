@@ -15,15 +15,26 @@ describe('xirang-build workflow', () => {
     expect(skill.instructions).not.toContain('scan → map');
   });
 
-  it('authors and reviews one Architecture plus Specs Candidate', () => {
+  it('authors and reviews one four-partition Candidate', () => {
     const skill = getBuildSkillTemplate();
 
-    expect(skill.instructions).toContain('.xirang/candidate/architecture/');
-    expect(skill.instructions).toContain('.xirang/candidate/specs/');
+    expect(skill.instructions).toContain('.xirang/candidate/{metamodel,elements,relationships,views}/');
+    expect(skill.instructions).toContain('one Element has at most one Contract');
+    expect(skill.instructions).toContain('`contract` field of its Element Kind');
+    expect(skill.instructions).toContain('a unit absent from the Candidate is not retained');
     expect(skill.instructions).toContain('xirang candidate validate');
     expect(skill.instructions).toContain('reviewDigest');
     expect(skill.instructions).toContain('xirang candidate promote --digest');
     expect(skill.instructions).toContain('MAY use subagents');
     expect(skill.instructions).not.toContain('mandatory reviewer');
+    for (const retired of [
+      'multiple Specs',
+      'Spec ownership',
+      '.xirang/architecture',
+      '.xirang/specs',
+      'LikeC4 tokens',
+    ]) {
+      expect(skill.instructions).not.toContain(retired);
+    }
   });
 });

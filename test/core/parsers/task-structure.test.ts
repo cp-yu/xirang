@@ -5,7 +5,7 @@ import * as path from 'node:path';
 
 import { validateTaskStructure } from '../../../src/core/parsers/task-structure.js';
 
-const validTasks = (verifies = '`specs/example/spec.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"') => `## 1. Actions
+const validTasks = (verifies = '`elements/example.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"') => `## 1. Actions
 
 - [ ] A1 Implement validation
 - [ ] A2 Refactor parser
@@ -131,9 +131,9 @@ describe('validateTaskStructure', () => {
     expect(result.issues.map((issue) => issue.code)).toContain('missing-evidence-field');
   });
 
-  it('validates Verifies references against change-local specs', () => {
+  it('validates Verifies references against change-local Element units', () => {
     const tempDir = createChangeDir({
-      'example/spec.md': `## MODIFIED Requirements
+      'example.md': `## MODIFIED Requirements
 
 ### Requirement: Parser behavior
 
@@ -152,14 +152,14 @@ describe('validateTaskStructure', () => {
   });
 
   it('reports invalid Verifies spec paths', () => {
-    const tempDir = createChangeDir({ 'example/spec.md': '### Requirement: Parser behavior\n' });
+    const tempDir = createChangeDir({ 'example.md': '### Requirement: Parser behavior\n' });
 
     try {
       for (const verifies of [
-        '`.xirang/specs/example/spec.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"',
+        '`.xirang/model/elements/example.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"',
         '`/tmp/example/spec.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"',
-        '`specs/../example/spec.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"',
-        '`specs\\example\\spec.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"',
+        '`elements/../example.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"',
+        '`elements\\example.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"',
       ]) {
         const result = validateTaskStructure(validTasks(verifies), { changeDir: tempDir });
 
@@ -172,11 +172,11 @@ describe('validateTaskStructure', () => {
   });
 
   it('reports missing Verifies spec references', () => {
-    const tempDir = createChangeDir({ 'example/spec.md': '### Requirement: Parser behavior\n' });
+    const tempDir = createChangeDir({ 'example.md': '### Requirement: Parser behavior\n' });
 
     try {
       const result = validateTaskStructure(
-        validTasks('`specs/missing/spec.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"'),
+        validTasks('`elements/missing.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"'),
         { changeDir: tempDir }
       );
 
@@ -189,7 +189,7 @@ describe('validateTaskStructure', () => {
 
   it('reports missing Verifies requirement and scenario references', () => {
     const tempDir = createChangeDir({
-      'example/spec.md': `## MODIFIED Requirements
+      'example.md': `## MODIFIED Requirements
 
 ### Requirement: Parser behavior
 
@@ -199,11 +199,11 @@ describe('validateTaskStructure', () => {
 
     try {
       const missingRequirement = validateTaskStructure(
-        validTasks('`specs/example/spec.md` / Requirement "Missing" / Scenario "Valid tasks pass"'),
+        validTasks('`elements/example.md` / Requirement "Missing" / Scenario "Valid tasks pass"'),
         { changeDir: tempDir }
       );
       const missingScenario = validateTaskStructure(
-        validTasks('`specs/example/spec.md` / Requirement "Parser behavior" / Scenario "Missing"'),
+        validTasks('`elements/example.md` / Requirement "Parser behavior" / Scenario "Missing"'),
         { changeDir: tempDir }
       );
 
@@ -216,7 +216,7 @@ describe('validateTaskStructure', () => {
     }
   });
 
-  it('downgrades Verifies cross-checking to warning when no change specs exist', () => {
+  it('downgrades Verifies cross-checking to warning when no change Element units exist', () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-task-'));
 
     try {
@@ -235,7 +235,7 @@ describe('validateTaskStructure', () => {
 
   it('accepts coarse Task sections with Goal, Files, Requirements, and Checks', () => {
     const tempDir = createChangeDir({
-      'example/spec.md': `## ADDED Requirements
+      'example.md': `## ADDED Requirements
 
 ### Requirement: Parser behavior
 
@@ -260,7 +260,7 @@ describe('validateTaskStructure', () => {
 #### Checks
 
 - [ ] C1 Verify coarse task parsing
-  - Verifies: \`specs/example/spec.md\` / Requirement "Parser behavior" / Scenario "Valid tasks pass"
+  - Verifies: \`elements/example.md\` / Requirement "Parser behavior" / Scenario "Valid tasks pass"
   - Command: \`pnpm test test/core/parsers/task-structure.test.ts\`
 `,
         { changeDir: tempDir }
@@ -301,10 +301,10 @@ describe('validateTaskStructure', () => {
   });
 });
 
-function createChangeDir(specs: Record<string, string>): string {
+function createChangeDir(units: Record<string, string>): string {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-task-'));
-  for (const [relativePath, content] of Object.entries(specs)) {
-    const target = path.join(tempDir, 'specs', relativePath);
+  for (const [relativePath, content] of Object.entries(units)) {
+    const target = path.join(tempDir, 'elements', relativePath);
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.writeFileSync(target, content);
   }
@@ -314,7 +314,7 @@ function createChangeDir(specs: Record<string, string>): string {
 describe('canonical Scenario references', () => {
   it('matches Verifies scenario references by exact canonical title', () => {
     const tempDir = createChangeDir({
-      'example/spec.md': `## MODIFIED Requirements
+      'example.md': `## MODIFIED Requirements
 
 ### Requirement: Parser behavior
 The system SHALL validate task references.
@@ -339,7 +339,7 @@ The system SHALL validate task references.
 describe('REMOVED requirement anchoring', () => {
   it('accepts Verifies with REMOVED Requirement without Scenario', () => {
     const tempDir = createChangeDir({
-      'example/spec.md': `## REMOVED Requirements
+      'example.md': `## REMOVED Requirements
 
 ### Requirement: Deprecated feature
 `,
@@ -360,7 +360,7 @@ describe('REMOVED requirement anchoring', () => {
 #### Checks
 
 - [ ] C1 Verify feature removed
-  - Verifies: \`specs/example/spec.md\` / REMOVED Requirement "Deprecated feature"
+  - Verifies: \`elements/example.md\` / REMOVED Requirement "Deprecated feature"
   - Command: \`grep -r "deprecated" src/ || true\`
   - Expect: no matches found
 `,
@@ -376,7 +376,7 @@ describe('REMOVED requirement anchoring', () => {
 
   it('reports error when REMOVED requirement is missing from spec', () => {
     const tempDir = createChangeDir({
-      'example/spec.md': `## REMOVED Requirements
+      'example.md': `## REMOVED Requirements
 
 ### Requirement: Deprecated feature
 `,
@@ -397,7 +397,7 @@ describe('REMOVED requirement anchoring', () => {
 #### Checks
 
 - [ ] C1 Verify feature removed
-  - Verifies: \`specs/example/spec.md\` / REMOVED Requirement "Missing feature"
+  - Verifies: \`elements/example.md\` / REMOVED Requirement "Missing feature"
   - Command: \`grep -r "missing" src/ || true\`
   - Expect: no matches found
 `,
@@ -413,7 +413,7 @@ describe('REMOVED requirement anchoring', () => {
 
   it('still requires Scenario for non-REMOVED Verifies', () => {
     const tempDir = createChangeDir({
-      'example/spec.md': `## ADDED Requirements
+      'example.md': `## ADDED Requirements
 
 ### Requirement: New feature
 
@@ -436,7 +436,7 @@ describe('REMOVED requirement anchoring', () => {
 #### Checks
 
 - [ ] C1 Verify feature
-  - Verifies: \`specs/example/spec.md\` / Requirement "New feature"
+  - Verifies: \`elements/example.md\` / Requirement "New feature"
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -453,14 +453,14 @@ describe('REMOVED requirement anchoring', () => {
 describe('Preserves field anchoring', () => {
   it('accepts Preserves with main spec path and Scenario', () => {
     const tempDir = createChangeDir({
-      'example/spec.md': `## ADDED Requirements
+      'example.md': `## ADDED Requirements
 
 ### Requirement: Temp spec
 `,
     });
 
     const projectRoot = path.dirname(tempDir);
-    const mainSpecPath = path.join(projectRoot, '.xirang', 'specs', 'auth', 'spec.md');
+    const mainSpecPath = path.join(projectRoot, '.xirang', 'model', 'elements', 'auth.md');
     fs.mkdirSync(path.dirname(mainSpecPath), { recursive: true });
     fs.writeFileSync(
       mainSpecPath,
@@ -487,7 +487,7 @@ describe('Preserves field anchoring', () => {
 #### Checks
 
 - [ ] C1 Verify behavior preserved
-  - Preserves: \`.xirang/specs/auth/spec.md\` / Requirement "Login behavior" / Scenario "User authenticates"
+  - Preserves: \`.xirang/model/elements/auth.md\` / Requirement "Login behavior" / Scenario "User authenticates"
   - Command: \`pnpm test src/auth/login.test.ts\`
   - Expect: old function loginUser no longer exists
 `,
@@ -504,7 +504,7 @@ describe('Preserves field anchoring', () => {
 
   it('rejects Preserves with change-local path', () => {
     const tempDir = createChangeDir({
-      'example/spec.md': `## ADDED Requirements
+      'example.md': `## ADDED Requirements
 
 ### Requirement: Temp spec
 
@@ -527,7 +527,7 @@ describe('Preserves field anchoring', () => {
 #### Checks
 
 - [ ] C1 Verify behavior
-  - Preserves: \`specs/example/spec.md\` / Requirement "Temp spec" / Scenario "Test"
+  - Preserves: \`elements/example.md\` / Requirement "Temp spec" / Scenario "Test"
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -542,7 +542,7 @@ describe('Preserves field anchoring', () => {
 
   it('rejects Preserves with absolute path', () => {
     const tempDir = createChangeDir({
-      'example/spec.md': `## ADDED Requirements
+      'example.md': `## ADDED Requirements
 
 ### Requirement: Temp spec
 `,
@@ -563,7 +563,7 @@ describe('Preserves field anchoring', () => {
 #### Checks
 
 - [ ] C1 Verify behavior
-  - Preserves: \`/.xirang/specs/auth/spec.md\` / Requirement "Test" / Scenario "Test"
+  - Preserves: \`/.xirang/model/elements/auth.md\` / Requirement "Test" / Scenario "Test"
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -578,7 +578,7 @@ describe('Preserves field anchoring', () => {
 
   it('rejects Preserves with parent traversal', () => {
     const tempDir = createChangeDir({
-      'example/spec.md': `## ADDED Requirements
+      'example.md': `## ADDED Requirements
 
 ### Requirement: Temp spec
 `,
@@ -599,7 +599,7 @@ describe('Preserves field anchoring', () => {
 #### Checks
 
 - [ ] C1 Verify behavior
-  - Preserves: \`xirang/../specs/auth/spec.md\` / Requirement "Test" / Scenario "Test"
+  - Preserves: \`xirang/../model/elements/auth.md\` / Requirement "Test" / Scenario "Test"
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -614,7 +614,7 @@ describe('Preserves field anchoring', () => {
 
   it('rejects Preserves with backslash path', () => {
     const tempDir = createChangeDir({
-      'example/spec.md': `## ADDED Requirements
+      'example.md': `## ADDED Requirements
 
 ### Requirement: Temp spec
 `,
@@ -635,7 +635,7 @@ describe('Preserves field anchoring', () => {
 #### Checks
 
 - [ ] C1 Verify behavior
-  - Preserves: \`xirang\\specs\\auth\\spec.md\` / Requirement "Test" / Scenario "Test"
+  - Preserves: \`xirang\\model\\elements\\auth.md\` / Requirement "Test" / Scenario "Test"
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -650,7 +650,7 @@ describe('Preserves field anchoring', () => {
 
   it('does not relax Verifies path rules', () => {
     const tempDir = createChangeDir({
-      'example/spec.md': `## ADDED Requirements
+      'example.md': `## ADDED Requirements
 
 ### Requirement: Temp spec
 
@@ -659,7 +659,7 @@ describe('Preserves field anchoring', () => {
     });
 
     const projectRoot = path.dirname(tempDir);
-    const mainSpecPath = path.join(projectRoot, '.xirang', 'specs', 'auth', 'spec.md');
+    const mainSpecPath = path.join(projectRoot, '.xirang', 'model', 'elements', 'auth.md');
     fs.mkdirSync(path.dirname(mainSpecPath), { recursive: true });
     fs.writeFileSync(
       mainSpecPath,
@@ -686,7 +686,7 @@ describe('Preserves field anchoring', () => {
 #### Checks
 
 - [ ] C1 Verify feature
-  - Verifies: \`.xirang/specs/auth/spec.md\` / Requirement "Login" / Scenario "Works"
+  - Verifies: \`.xirang/model/elements/auth.md\` / Requirement "Login" / Scenario "Works"
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }

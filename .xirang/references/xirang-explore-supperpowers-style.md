@@ -38,7 +38,7 @@ Simple changes still require design confirmation. For a narrow change, confirm o
 Before context reads, create the todo checklist: context, visual decision, one question, options, section approvals, self-review, handoff.
 
 Constrain the discussion with project facts first:
-- Read relevant Xirang change, spec, design, and tasks.
+- Read relevant Xirang change, Element Contract, design, and tasks.
 - Inspect relevant implementation files, tests, and git evidence.
 - Identify affected subsystems; if the request spans multiple independent subsystems, first clarify boundaries and recommend an order.
 - Explicitly identify unknowns; do not substitute general experience for project evidence.
@@ -107,4 +107,4 @@ After the user confirms the `Design Summary`, hand off using tool-neutral workfl
 Design Summary complete. Review the above design. If confirmed, use xirang-propose to generate artifacts.
 ```
 
-Do not use tool-specific call syntax in references. Do not imply that explore can create proposals, update designs, modify specs, commit files, or directly enter implementation.
+Do not use tool-specific call syntax in references. Do not imply that explore can create proposals, update designs, modify Element Contracts, commit files, or directly enter implementation.

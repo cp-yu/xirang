@@ -23,11 +23,11 @@ describe('apply change workflow template', () => {
     }
   });
 
-  it('queries LikeC4 architecture and explains element IDs before implementation', () => {
+  it('queries the Semantic Model by identity before implementation', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
-    expect(instructions).toContain('xirang arch query');
-    expect(instructions).toContain('stable `elementId`');
-    expect(instructions).toContain('FQN');
+    expect(instructions).toContain('xirang arch query <identity> --relations --depth 2 --contract --json');
+    expect(instructions).not.toContain('elementId');
+    expect(instructions).not.toContain('owned Specs');
   });
 
   it('keeps the Xirang philosophy in the skill surface', () => {
@@ -40,7 +40,7 @@ describe('apply change workflow template', () => {
     expect(instructions).toContain('resolved file definition');
     expect(instructions).toContain('MUST NOT copy definitions');
     expect(preparation).toContain('xirang arch query');
-    expect(preparation).toContain('.xirang/architecture/');
+    expect(preparation).toContain('.xirang/model/{metamodel,elements,relationships,views}/');
     expect(preparation).toContain('Xirang Semantic Model');
     expect(preparation).toContain('CodeGraph');
     expect(preparation).toContain('ACE');
@@ -91,10 +91,9 @@ describe('apply change workflow template', () => {
 
     expect(instructions).toContain('## Flow Outline');
     expect(instructions).toContain('Step 1: Preparation');
-    expect(instructions).not.toContain('xirang list --specs --json');
     expect(instructions).not.toContain('capabilities: []');
-    expect(preparation).toContain('xirang list --specs --json');
-    expect(preparation).toContain('Element Contract registry');
+    expect(preparation).toContain('xirang arch query <identity> --relations --depth <n> --json');
+    expect(preparation).toContain('one Element has at most one Contract');
   });
 
   it('does not carry obsolete generated subagent artifact warnings', () => {

@@ -167,7 +167,7 @@ For workflow-managed writes, read the resolved file definition before its instru
 
 ## Implementation Discipline
 
-- Before implementation, run \`xirang arch query <elementId> --relations --depth 2 --json\`, then read owned Specs and current code. Use stable \`elementId\` as identity and FQN only as current source navigation.
+- Before implementation, run \`xirang arch query <identity> --relations --depth 2 --contract --json\`, then read the returned Element Contract and current code.
 - Process unfinished \`## Remediation\` \`[code_fix]\` and \`[artifact_fix]\` items before pending tasks. Finish every Check in the current task before starting the next; never execute tasks in parallel.
 - Assess interface testability before writing tests for each behavior/code Check: inject external dependencies, prefer returned results over hidden side effects, and keep the public interface minimal.
 - Write or update a targeted test first. Exercise public behavior; mock only injected system boundaries, never internal collaborators.

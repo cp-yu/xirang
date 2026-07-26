@@ -9,8 +9,9 @@ describe('optimizer subagent template', () => {
     const prompt = template.prompt;
 
     expect(prompt).toContain(XIRANG_PHILOSOPHY);
-    expect(prompt).toContain('Element Contract registry');
-    expect(prompt).toContain('xirang arch query <elementId> --relations --depth <n> --json');
+    expect(prompt).toContain('one Element has at most one Contract');
+    expect(prompt).toContain('xirang arch query <identity> --relations --depth <n> --json');
+    expect(prompt).toContain('Preserve observable behavior, Element Contracts');
     expect(prompt).toContain('finding-first');
     expect(prompt).toContain('strict JSON envelope');
     expect(prompt).toContain('keyDesign');
@@ -44,6 +45,9 @@ describe('optimizer subagent template', () => {
     expect(selfRead).toContain('baseCommit');
     expect(selfRead).toContain('git diff <baseCommit>...HEAD --name-only');
     expect(selfRead).toContain('git status --short');
+    expect(selfRead).toContain('every Semantic Delta unit under changeDir/{metamodel,elements,relationships,views}/');
+    expect(selfRead).toContain('xirang arch query <identity> --relations --depth 1 --json');
     expect(selfRead).not.toContain('git diff <originalBranch>...HEAD');
+    expect(selfRead).not.toContain('specs/*/spec.md');
   });
 });
