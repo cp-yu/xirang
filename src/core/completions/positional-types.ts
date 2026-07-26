@@ -17,6 +17,8 @@ export const POSITIONAL_TYPE_MAP: Record<string, NonNullable<CommandDefinition['
   'archive': 'change-id',
   'sync': 'change-id',
   'instructions': 'change-or-spec-id',
+  'help': 'text',
+  'feedback': 'text',
 
   // change subcommands
   'change.show': 'change-id',
@@ -39,6 +41,16 @@ export const POSITIONAL_TYPE_MAP: Record<string, NonNullable<CommandDefinition['
   // new subcommands
   'new.change': 'change-or-spec-id',
 
+  // config subcommands
+  'config.get': 'text',
+  'config.set': 'text',
+  'config.unset': 'text',
+
+  // arch subcommands
+  'arch.query': 'element-id',
+  'arch.search': 'text',
+  'arch.impact': 'element-id',
+  'arch.plan-remove': 'element-id',
 
   // verify subcommands
   'verify.phase1': 'change-id',

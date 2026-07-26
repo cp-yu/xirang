@@ -1,0 +1,54 @@
+architectureDelta {
+  ADDED {
+    element 'cap.cli.arch-search' {
+      kind 'capability'
+      parent 'project.root/domain.cli'
+      title 'Architecture Search'
+      summary '对 Formal Semantic Model 的 Element declarations 与 owned Contracts 执行确定性文本检索，并返回稳定排序的候选 Elements 与 match evidence'
+      metadata {
+        elementId 'cap.cli.arch-search'
+      }
+    }
+
+    element 'cap.cli.arch-impact' {
+      kind 'capability'
+      parent 'project.root/domain.cli'
+      title 'Architecture Impact'
+      summary '围绕一个或多个 focus Elements 投影 bounded Relationship subgraph、refinement context、canonical shortest paths 与完整 Element Contracts'
+      metadata {
+        elementId 'cap.cli.arch-impact'
+      }
+    }
+
+    relationship 'cap.cli.arch-search' -[invokes]-> 'cap.architecture.likec4-reader'
+    relationship 'cap.cli.arch-search' -[invokes]-> 'cap.spec.registry'
+    relationship 'cap.cli.arch-impact' -[invokes]-> 'cap.architecture.likec4-reader'
+    relationship 'cap.cli.arch-impact' -[invokes]-> 'cap.spec.registry'
+    relationship 'cap.ai.explore-brainstorming' -[invokes]-> 'cap.cli.arch-search'
+    relationship 'cap.ai.explore-brainstorming' -[invokes]-> 'cap.cli.arch-impact'
+    relationship 'cap.cli.arch-query' -[invokes]-> 'cap.spec.registry'
+  }
+
+  MODIFIED {
+    element 'cap.ai.internal-subagent-generation' {
+      kind 'capability'
+      parent 'project.root/domain.ai_integration'
+      title 'Internal Subagent Generation'
+      summary '为 Reviewer 与 Optimizer 生成 tool-native internal subagent artifacts，并在 setup/update 中通过显式受管名称和 ownership evidence 清理退役 Sweeper artifacts'
+      metadata {
+        elementId 'cap.ai.internal-subagent-generation'
+      }
+    }
+  }
+
+  REMOVED {
+    relationship 'cap.ai.impact-sweeper' -[invokes]-> 'cap.ai.sweeper-terminology-extraction'
+    relationship 'cap.ai.sweeper-terminology-reporting' -[consumes]-> 'cap.ai.sweeper-terminology-extraction'
+    relationship 'cap.ai.explore-terminology-decision' -[consumes]-> 'cap.ai.sweeper-terminology-reporting'
+
+    element 'cap.ai.impact-sweeper'
+    element 'cap.ai.sweeper-terminology-extraction'
+    element 'cap.ai.sweeper-terminology-reporting'
+    element 'cap.ai.explore-terminology-decision'
+  }
+}

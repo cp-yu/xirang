@@ -6,6 +6,13 @@ import {
   type SpecFrontmatterIssue,
 } from './parsers/spec-frontmatter.js';
 import type { SemanticElement, SemanticMetamodel } from '../utils/semantic-model.js';
+import { compareCodePoints } from '../utils/stable-order.js';
+
+export interface SpecRegistryDiagnostic {
+  specId: string;
+  code: SpecFrontmatterIssue['code'] | 'MISSING_SPEC_OWNER' | 'READ_FAILED';
+  message: string;
+}
 
 export interface SpecRegistry {
   elementToSpecs: Map<string, string[]>;
@@ -14,6 +21,7 @@ export interface SpecRegistry {
   getElementForSpec(specId: string): string | null;
   getOrphanedSpecs(): string[];
   getIssuesForSpec(specId: string): SpecFrontmatterIssue[];
+  getDiagnostics(): SpecRegistryDiagnostic[];
   getUncoveredRequiredElements(elements: SemanticElement[], metamodel: SemanticMetamodel): string[];
 }
 
@@ -22,16 +30,24 @@ export async function buildSpecRegistry(projectRoot: string, specsDirectory?: st
   const elementToSpecs = new Map<string, string[]>();
   const specToElement = new Map<string, string>();
   const issuesBySpec = new Map<string, SpecFrontmatterIssue[]>();
+  const diagnostics: SpecRegistryDiagnostic[] = [];
   const orphanedSpecs: string[] = [];
 
   let entries;
   try {
     entries = await fs.readdir(specsDir, { withFileTypes: true });
-  } catch {
-    return createRegistry(elementToSpecs, specToElement, orphanedSpecs, issuesBySpec);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      diagnostics.push({
+        specId: '<registry>',
+        code: 'READ_FAILED',
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+    return createRegistry(elementToSpecs, specToElement, orphanedSpecs, issuesBySpec, diagnostics);
   }
 
-  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+  for (const entry of entries.sort((left, right) => compareCodePoints(left.name, right.name))) {
     if (!entry.isDirectory()) continue;
 
     const specId = entry.name;
@@ -39,14 +55,29 @@ export async function buildSpecRegistry(projectRoot: string, specsDirectory?: st
     let content: string;
     try {
       content = await fs.readFile(specPath, 'utf8');
-    } catch {
+    } catch (error) {
+      diagnostics.push({
+        specId,
+        code: 'READ_FAILED',
+        message: error instanceof Error ? error.message : String(error),
+      });
       continue;
     }
 
     const frontmatter = parseSpecFrontmatter(content);
-    if (frontmatter.issues) issuesBySpec.set(specId, frontmatter.issues);
+    if (frontmatter.issues) {
+      issuesBySpec.set(specId, frontmatter.issues);
+      diagnostics.push(...frontmatter.issues.map(issue => ({ specId, code: issue.code, message: issue.message })));
+    }
     if (frontmatter.element === null) {
       orphanedSpecs.push(specId);
+      if (!frontmatter.issues) {
+        diagnostics.push({
+          specId,
+          code: 'MISSING_SPEC_OWNER',
+          message: 'Spec frontmatter must declare one element owner',
+        });
+      }
       continue;
     }
 
@@ -56,9 +87,12 @@ export async function buildSpecRegistry(projectRoot: string, specsDirectory?: st
     elementToSpecs.set(frontmatter.element, specs);
   }
 
-  for (const specs of elementToSpecs.values()) specs.sort();
-  orphanedSpecs.sort();
-  return createRegistry(elementToSpecs, specToElement, orphanedSpecs, issuesBySpec);
+  for (const specs of elementToSpecs.values()) specs.sort(compareCodePoints);
+  orphanedSpecs.sort(compareCodePoints);
+  diagnostics.sort((left, right) => compareCodePoints(left.specId, right.specId)
+    || compareCodePoints(left.code, right.code)
+    || compareCodePoints(left.message, right.message));
+  return createRegistry(elementToSpecs, specToElement, orphanedSpecs, issuesBySpec, diagnostics);
 }
 
 function createRegistry(
@@ -66,6 +100,7 @@ function createRegistry(
   specToElement: Map<string, string>,
   orphanedSpecs: string[],
   issuesBySpec: Map<string, SpecFrontmatterIssue[]>,
+  diagnostics: SpecRegistryDiagnostic[],
 ): SpecRegistry {
   return {
     elementToSpecs,
@@ -82,12 +117,15 @@ function createRegistry(
     getIssuesForSpec(specId) {
       return issuesBySpec.get(specId) ?? [];
     },
+    getDiagnostics() {
+      return diagnostics;
+    },
     getUncoveredRequiredElements(elements, metamodel) {
       return elements
         .filter(element => metamodel.elements[element.kind]?.contractPolicy === 'required')
         .filter(element => !elementToSpecs.has(element.id))
         .map(element => element.id)
-        .sort();
+        .sort(compareCodePoints);
     },
   };
 }

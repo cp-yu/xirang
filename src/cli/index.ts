@@ -39,7 +39,7 @@ import {
 } from '../commands/workflow/index.js';
 import { maybeShowTelemetryNotice, trackCommand, shutdown } from '../telemetry/index.js';
 
-const program = new Command();
+export const program = new Command();
 const require = createRequire(import.meta.url);
 const { version } = require('../../package.json');
 

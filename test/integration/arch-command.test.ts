@@ -5,8 +5,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { formatArchitectureQueryText, queryArchitecture } from '../../src/commands/arch/query.js';
 import { validateArchitectureCommand } from '../../src/commands/arch/validate.js';
 import { exportArchitecture } from '../../src/commands/arch/export.js';
+import { runCLI } from '../helpers/run-cli.js';
 
 const domain = `model { core = domain 'Core' { run = capability 'Run' { description 'Runs work' metadata { capabilityId 'cap.core.run' specs ['.xirang/specs/run/spec.md'] } } stop = capability 'Stop' { metadata { capabilityId 'cap.core.stop' } } finish = capability 'Finish' { metadata { capabilityId 'cap.core.finish' } } } core.run -[invokes]-> core.stop { description 'Runs stop' } core.stop -[precedes]-> core.finish }`;
+
+async function withInteractiveTTY(callback: () => Promise<void>): Promise<void> {
+  const originalIsTTY = process.stdin.isTTY;
+  Object.defineProperty(process.stdin, 'isTTY', { configurable: true, value: true });
+  try {
+    await callback();
+  } finally {
+    Object.defineProperty(process.stdin, 'isTTY', { configurable: true, value: originalIsTTY });
+  }
+}
 
 describe('arch commands', () => {
   let root: string;
@@ -19,6 +30,109 @@ describe('arch commands', () => {
     await fs.writeFile(path.join(architecture, 'views.c4'), 'views { view index { include * } }');
   });
   afterEach(async () => fs.rm(root, { recursive: true, force: true }));
+
+  async function writeSemanticFixture(): Promise<void> {
+    const architecture = path.join(root, '.xirang', 'architecture');
+    await fs.writeFile(path.join(architecture, 'specification.c4'), `
+      xirang { languageVersion '1' }
+      specification {
+        element semanticProject { xirang { root true contract required children [operation] } }
+        element operation { xirang { contract optional parents [semanticProject] } }
+        relationship invokes
+      }
+    `);
+    await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), `
+      model {
+        projectRoot = semanticProject 'Project' {
+          summary 'Project intent'
+          metadata { elementId 'project.root' }
+          authorize = operation 'Authorize' {
+            summary 'Authorize payment'
+            metadata { elementId 'payment.authorize' }
+          }
+          audit = operation 'Audit' {
+            summary 'Audit payment'
+            metadata { elementId 'payment.audit' }
+          }
+        }
+        projectRoot.authorize -[invokes]-> projectRoot.audit
+      }
+    `);
+    const specDir = path.join(root, '.xirang', 'specs', 'project-contract');
+    await fs.mkdir(specDir, { recursive: true });
+    await fs.writeFile(path.join(specDir, 'spec.md'), `---\nelement: project.root\n---\n\n# Project\n\n## Purpose\nProject contract.\n\n## Requirements\n\n### Requirement: Project behavior\nThe project SHALL behave.\n\n#### Scenario: Existing\n- **WHEN** used\n- **THEN** it works\n`);
+  }
+
+  it('registers search and impact help without Change or code options', async () => {
+    const searchHelp = await runCLI(['arch', 'search', '--help'], { cwd: root });
+    const impactHelp = await runCLI(['arch', 'impact', '--help'], { cwd: root });
+
+    expect(searchHelp.exitCode).toBe(0);
+    expect(searchHelp.stdout).toContain('arch search');
+    expect(searchHelp.stdout).toContain('--limit <n>');
+    expect(searchHelp.stdout).toContain('--json');
+    expect(impactHelp.exitCode).toBe(0);
+    expect(impactHelp.stdout).toContain('arch impact');
+    expect(impactHelp.stdout).toContain('--depth <n>');
+    expect(impactHelp.stdout).toContain('--json');
+    expect(`${searchHelp.stdout}\n${impactHelp.stdout}`).not.toMatch(/--change|--code/);
+  });
+
+  it('runs search and impact through one canonical JSON projection', async () => {
+    await writeSemanticFixture();
+
+    const search = await runCLI(['arch', 'search', 'Authorize', '--limit', '1', '--json'], { cwd: root });
+    expect(search.exitCode).toBe(0);
+    expect(JSON.parse(search.stdout)).toMatchObject({
+      query: 'Authorize',
+      totalMatches: 1,
+      matches: [{ element: { id: 'payment.authorize' } }],
+    });
+
+    const impact = await runCLI(['arch', 'impact', 'payment.authorize', '--json'], { cwd: root });
+    expect(impact.exitCode).toBe(0);
+    expect(JSON.parse(impact.stdout)).toMatchObject({
+      focusElements: [{ id: 'payment.authorize' }],
+      relations: [{ source: 'payment.authorize', kind: 'invokes', target: 'payment.audit' }],
+    });
+
+    const invalid = await runCLI(['arch', 'impact', 'payment.authorize', '--change', 'active'], { cwd: root });
+    expect(invalid.exitCode).toBe(1);
+    expect(invalid.stderr).toContain("unknown option '--change'");
+  });
+
+  it('keeps first-run telemetry notices out of JSON stdout in a TTY', async () => {
+    await writeSemanticFixture();
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 204 }));
+
+    try {
+      await withInteractiveTTY(async () => {
+        const baseEnv = {
+          CI: undefined,
+          DO_NOT_TRACK: undefined,
+          XIRANG_INTERACTIVE: undefined,
+          XIRANG_TELEMETRY: undefined,
+        };
+        const search = await runCLI(['arch', 'search', 'Authorize', '--json'], {
+          cwd: root,
+          env: { ...baseEnv, XDG_CONFIG_HOME: path.join(root, 'search-config') },
+        });
+        const impact = await runCLI(['arch', 'impact', 'payment.authorize', '--json'], {
+          cwd: root,
+          env: { ...baseEnv, XDG_CONFIG_HOME: path.join(root, 'impact-config') },
+        });
+
+        expect(search.exitCode).toBe(0);
+        expect(impact.exitCode).toBe(0);
+        expect(JSON.parse(search.stdout)).toMatchObject({ matches: [{ element: { id: 'payment.authorize' } }] });
+        expect(JSON.parse(impact.stdout)).toMatchObject({ focusElements: [{ id: 'payment.authorize' }] });
+        expect(search.stderr).toContain('Xirang collects anonymous usage stats');
+        expect(impact.stderr).toContain('Xirang collects anonymous usage stats');
+      });
+    } finally {
+      fetchSpy.mockRestore();
+    }
+  });
 
   it('should query element by ID', async () => {
     const result = await queryArchitecture(root, 'cap.core.run');

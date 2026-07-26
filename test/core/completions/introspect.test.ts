@@ -138,6 +138,17 @@ describe('introspect', () => {
     expect(result[0].subcommands?.[0].positionalType).toBe('spec-id');
   });
 
+  it('为 Architecture Search 与 Impact 注入 positionalType', () => {
+    const program = new Command();
+    const arch = program.command('arch').description('Architecture operations');
+    arch.command('search <query>').description('Search Formal Semantic Model');
+    arch.command('impact <element-ids...>').description('Project semantic impact');
+
+    const [definition] = introspectCommands(program);
+    expect(definition.subcommands?.find(command => command.name === 'search')?.positionalType).toBe('text');
+    expect(definition.subcommands?.find(command => command.name === 'impact')?.positionalType).toBe('element-id');
+  });
+
   it('过滤 negate options', () => {
     const program = new Command();
     program

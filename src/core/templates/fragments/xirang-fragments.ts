@@ -3,7 +3,7 @@
 /**
  * Fragment: Xirang philosophy
  * Used in: propose, explore, apply-change, archive-change, build, snack, reviewer, optimizer
- * Excluded by decision: impact-sweeper (read-only reporter), feedback (writes no artifacts)
+ * Excluded by decision: feedback (writes no artifacts)
  */
 export const XIRANG_PHILOSOPHY = `
 **Xirang Philosophy**
@@ -17,7 +17,7 @@ export const XIRANG_PHILOSOPHY = `
 
 /**
  * Fragment: Shared Xirang Semantic Model context
- * Used in: explore, propose, apply-change, snack, reviewer, optimizer, impact-sweeper
+ * Used in: explore, propose, apply-change, snack, reviewer, optimizer
  */
 export const XIRANG_SHARED_CONTEXT = `
 **Xirang Semantic Model Context**

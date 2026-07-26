@@ -17,7 +17,7 @@ import { generateSkillContent } from '../../../src/core/shared/skill-generation.
 import { runTransforms } from '../../../src/core/templates/transforms/index.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getExploreSkillTemplate: 'eb0f0960c09b95ef358dd0aeabe733763f8c7b0c24555a11eccd695aa74ffc0e',
+  getExploreSkillTemplate: '961a75a71afd79cc442f9f66eebb2e6cc80c2380e096053cb3b65a126537fa6d',
   getApplyChangeSkillTemplate: '73e58cf818e33b7a88f45d76139b5113e04778183ccd794bee1720b770df1fd1',
   getArchiveChangeSkillTemplate: '8371d42069bdc2f7544a0eb098f375ca336c95c314730b1f06815352efc5c6d6',
   getOpsxProposeSkillTemplate: 'c36d9d1d029cc5950da379c7ece44b6aec90e5f0c665b5eea90f2b64e98af995',
@@ -26,7 +26,7 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'xirang-explore': '3c3cc3dd0ea32c92de7fcc8ebb36b768c3b8ce98f950d7ad315686a312934ee1',
+  'xirang-explore': 'ecc701de01cf9c5c8c78cdf406e22c66329657d2cfef250c4cdb6e70cf332e8b',
   'xirang-apply-change': 'dd13f615c3c856a455db928877dc7e3ffbea40b8820784d1202e438b91e9c69c',
   'xirang-archive-change': '23f1aa036bb01d9b6341260d9c1fb8fa90ede51f499dddf99713cc2598db19a2',
   'xirang-propose': 'e7bb39f81264f950c7ba0e9f0267d020048a48f6e27fd3b090a7d079154a10ee',

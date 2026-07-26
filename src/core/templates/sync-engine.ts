@@ -7,6 +7,7 @@
 
 import path from 'path';
 import * as fs from 'fs';
+import { createHash } from 'crypto';
 import { parse as parseYaml } from 'yaml';
 import { FileSystemUtils } from '../../utils/file-system.js';
 import { XIRANG_DIR_NAME } from '../config.js';
@@ -14,6 +15,7 @@ import {
   generateSkillContent,
   getSkillTemplates,
   getManagedSkillDirNames,
+  MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES,
 } from '../shared/skill-generation.js';
 import {
   INTERNAL_SUBAGENT_TEMPLATES,
@@ -195,6 +197,25 @@ const STALE_SHARED_REFERENCE_FILES = [
   'xirang-apply-phase2-optimization.md',
 ] as const;
 
+const RETIRED_SWEEPER_REFERENCE_HASHES: Readonly<Record<string, string>> = {
+  'xirang-evidence-protocol.md': '0908fc37927b9cf418ef1c7339559100168d0acbee880ccc728cd7a59bf4ed86',
+  'xirang-terminology-awareness.md': 'c6a0cca37dd18bb74196204012e50a3919ee375393b9fb968aa5b7a142692218',
+  'xirang-report-schema.md': 'ec1c8fb035345bd57bf08beb8cc0823eb4f75921568b9ce6ba5c9274fbf7c623',
+};
+
+async function removeRetiredSweeperReferences(referencesDir: string): Promise<void> {
+  for (const [fileName, expectedHash] of Object.entries(RETIRED_SWEEPER_REFERENCE_HASHES)) {
+    const filePath = path.join(referencesDir, fileName);
+    try {
+      const content = await fs.promises.readFile(filePath);
+      const actualHash = createHash('sha256').update(content).digest('hex');
+      if (actualHash === expectedHash) await fs.promises.rm(filePath, { force: true });
+    } catch {
+      // Missing or unreadable files are not owned cleanup candidates.
+    }
+  }
+}
+
 async function writeSharedReferences(
   projectPath: string,
   references: readonly SharedReferenceFile[]
@@ -204,6 +225,7 @@ async function writeSharedReferences(
   for (const fileName of STALE_SHARED_REFERENCE_FILES) {
     await fs.promises.rm(path.join(referencesDir, fileName), { force: true });
   }
+  await removeRetiredSweeperReferences(referencesDir);
 
   for (const referenceFile of references) {
     if (!referenceFile.fileName.startsWith('xirang-')) {
@@ -283,6 +305,62 @@ function injectModelToml(content: string, model: string): string {
   );
 }
 
+const RETIRED_SWEEPER_AGENT_NAMES = [
+  'xirang-impact-sweeper',
+  'opsx-impact-sweeper',
+] as const;
+
+const RETIRED_SWEEPER_AGENT_HASHES = new Set([
+  // xirang-impact-sweeper
+  '506e4a65501583b87d24903646bb37f5e57375606e1ce02add7b635549d4ba3f',
+  '8aa784ad9ce0968679ff707a0ffc7d4be1e48a902284b5daac44942647dbb83c',
+  'bd138bbc5397df5d7e952af0282af4b88369b9a831932ed091442da9ff7c3c73',
+  '70561628e52da745070ef469b4ede9a8d88bb9cd785e053ce033d3adf1e363b4',
+  '13887e077eb13514c3ecdf469329dd496456b7efc052708a3af65a0516ba6bae',
+  // opsx-impact-sweeper
+  '6ab3c7809e6448511ca320810fdc4d4e1ab3637eb84a979cb17a9336bfe73654',
+  '09233a9e991ae90f0be7ed899c49501637f02104818ac9d475b2cacbfa7c2e4c',
+  '1e30cd812a15e8dbcbc0947bbf4992d2e5148f93e1d927a84554c5bd759aee84',
+  '244bdc71bbe7d78a4db1fea45b181268a380a39f9105bc2f7f8ab52596eaa1b1',
+  '501112f4fa52bad92b392837ac7f4268a4d13d04daafe8308775aea1eea1dfe0',
+  'a94960c017f72d094b41e950309c750b216fe7627c60cdb56ae665e1eb075fd7',
+  '62f02e96ddc262eed46fee4c62a3c5d05dbd8a88417d42dbfd47b3af592ad106',
+  '600e6c19efb6ec0b0c622f4858d20f72c91eba6b4ff52fdc74b311994c121051',
+  '23a30f2f5e3051271cc14bbb179fa9574b3dc124e88998ccd4e9ff3cfebf6837',
+  '83a014e1084eb1034eb616cbf38e56aa04eb1c2313f084f1776829062c75213a',
+]);
+
+function hasGeneratedAgentOwnership(content: Buffer, name: string, extension: string): boolean {
+  const hash = createHash('sha256').update(content).digest('hex');
+  if (RETIRED_SWEEPER_AGENT_HASHES.has(hash)) return true;
+  if (extension !== 'md') return false;
+
+  const frontmatter = content.toString('utf8').match(/^---\n([\s\S]*?)\n---\n/);
+  if (!frontmatter) return false;
+  const parsed = parseYaml(frontmatter[1]) as Record<string, unknown>;
+  const metadata = parsed.metadata;
+  return (
+    parsed.name === name &&
+    typeof metadata === 'object' &&
+    metadata !== null &&
+    typeof (metadata as Record<string, unknown>).generatedBy === 'string'
+  );
+}
+
+async function removeRetiredSweeperAgents(baseDir: string, extension: string): Promise<void> {
+  for (const name of RETIRED_SWEEPER_AGENT_NAMES) {
+    const agentFile = path.join(baseDir, `${name}.${extension}`);
+    try {
+      const content = await fs.promises.readFile(agentFile);
+      if (hasGeneratedAgentOwnership(content, name, extension)) {
+        await fs.promises.rm(agentFile, { force: true });
+      }
+    } catch {
+      // Missing or unreadable files are not owned cleanup candidates.
+    }
+  }
+}
+
 async function writeSubagents(
   projectPath: string,
   toolId: string,
@@ -295,6 +373,7 @@ async function writeSubagents(
 
   const extension = agentFormat === 'toml' ? 'toml' : 'md';
   const baseDir = path.join(projectPath, agentsDir, 'agents');
+  await removeRetiredSweeperAgents(baseDir, extension);
   const sharedReferenceFiles = collectSharedReferenceFiles(
     entries.map((entry) => ({ template: entry.template, workflowId: entry.template.name }))
   );
@@ -348,6 +427,17 @@ async function removeRetiredManagedCommands(
   return removed;
 }
 
+function hasGeneratedSkillOwnership(content: string): boolean {
+  const frontmatter = content.match(/^---\n([\s\S]*?)\n---\n/);
+  if (!frontmatter) return false;
+  try {
+    const parsed = parseYaml(frontmatter[1]) as { metadata?: { generatedBy?: unknown } };
+    return typeof parsed.metadata?.generatedBy === 'string';
+  } catch {
+    return false;
+  }
+}
+
 async function removeUnselectedSkillDirs(
   projectPath: string,
   skillsDir: string,
@@ -363,6 +453,11 @@ async function removeUnselectedSkillDirs(
     const skillDir = path.join(baseDir, dirName);
     try {
       if (fs.existsSync(skillDir)) {
+        if ((MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES as readonly string[]).includes(dirName)) {
+          const skillFile = path.join(skillDir, 'SKILL.md');
+          const content = await fs.promises.readFile(skillFile, 'utf8').catch(() => '');
+          if (!hasGeneratedSkillOwnership(content)) continue;
+        }
         await fs.promises.rm(skillDir, { recursive: true, force: true });
         removed++;
       }

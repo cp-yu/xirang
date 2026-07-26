@@ -126,7 +126,7 @@ Return one structured object only:
       "halfMigrationsFound": 0,
       "unaccountedChangesFound": 0
     },
-    "opsxAlignment": {"checked": true, "issues": 0}
+    "xirangAlignment": {"checked": true, "issues": 0}
   },
   "writeBackPlan": [{"taskLine": "exact checkbox", "action": "unmark | append_remediation", "remediationType": "code_fix | artifact_fix", "requirement": "name", "summary": "issue", "nextAction": "step"}],
   "evidenceFiles": ["relative/posix/path.ts"],

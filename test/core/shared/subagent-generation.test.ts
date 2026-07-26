@@ -14,13 +14,12 @@ function markdownFrontmatter(content: string): Record<string, unknown> {
 }
 
 describe('subagent generation', () => {
-  it('registers exactly the three internal subagent templates', () => {
+  it('registers exactly the two internal subagent templates', () => {
     const names = INTERNAL_SUBAGENT_TEMPLATES.map((template) => template.name);
 
     expect(names).toEqual([
       'xirang-reviewer',
       'xirang-optimizer',
-      'xirang-impact-sweeper',
     ]);
     expect(names).not.toContain('opsx-implementer');
 
@@ -87,27 +86,6 @@ describe('subagent generation', () => {
       },
     });
     expect(opencode).not.toHaveProperty('model');
-  });
-
-  it('renders the impact sweeper as fully read-only for every tool', () => {
-    const sweeper = INTERNAL_SUBAGENT_TEMPLATES.find(
-      (template) => template.name === 'xirang-impact-sweeper'
-    );
-    expect(sweeper).toBeDefined();
-    expect(sweeper!.mode).toBe('read-only');
-    expect(sweeper!.tools).not.toContain('write');
-    expect(sweeper!.tools).not.toContain('edit');
-    expect(sweeper!.prompt).not.toContain('xirang/sweeper/');
-
-    const claude = markdownFrontmatter(generateSubagentContent(sweeper!, 'claude', 'TEST'));
-    const pi = markdownFrontmatter(generateSubagentContent(sweeper!, 'pi', 'TEST'));
-    const opencode = markdownFrontmatter(generateSubagentContent(sweeper!, 'opencode', 'TEST'));
-    const codex = generateSubagentContent(sweeper!, 'codex', 'TEST');
-
-    expect(String(claude.tools)).not.toMatch(/Write|Edit/);
-    expect(String(pi.tools)).not.toMatch(/write|edit/);
-    expect(opencode).toMatchObject({ permission: { edit: 'deny' } });
-    expect(codex).toContain('sandbox_mode = "read-only"');
   });
 
   it('adds Pi-only foreground/no-timeout guidance to all internal subagent descriptions', () => {

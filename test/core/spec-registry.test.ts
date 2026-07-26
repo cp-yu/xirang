@@ -71,6 +71,11 @@ describe('buildSpecRegistry', () => {
       expect(registry.getOrphanedSpecs()).toEqual(['legacy-owner', 'malformed', 'unbound']);
       expect(registry.getIssuesForSpec('legacy-owner')).toContainEqual(expect.objectContaining({ code: 'LEGACY_SPEC_OWNERSHIP' }));
       expect(registry.getIssuesForSpec('malformed')).toContainEqual(expect.objectContaining({ code: 'MALFORMED_FRONTMATTER' }));
+      expect(registry.getDiagnostics()).toEqual(expect.arrayContaining([
+        expect.objectContaining({ specId: 'legacy-owner', code: 'LEGACY_SPEC_OWNERSHIP' }),
+        expect.objectContaining({ specId: 'malformed', code: 'MALFORMED_FRONTMATTER' }),
+        expect.objectContaining({ specId: 'unbound', code: 'MISSING_SPEC_OWNER' }),
+      ]));
     });
   });
 
@@ -93,6 +98,7 @@ describe('buildSpecRegistry', () => {
       expect(registry.elementToSpecs.size).toBe(0);
       expect(registry.specToElement.size).toBe(0);
       expect(registry.getOrphanedSpecs()).toEqual([]);
+      expect(registry.getDiagnostics()).toEqual([]);
     });
   });
 
