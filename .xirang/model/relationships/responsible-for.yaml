@@ -1,0 +1,25 @@
+relationships:
+  - source: apply-role
+    kind: responsible-for
+    target: apply
+  - source: archive-role
+    kind: responsible-for
+    target: change-closure
+  - source: explore-role
+    kind: responsible-for
+    target: explore
+  - source: optimizer
+    kind: responsible-for
+    target: optimization
+  - source: project-build-role
+    kind: responsible-for
+    target: semantic-model-build
+  - source: propose-role
+    kind: responsible-for
+    target: propose
+  - source: reviewer
+    kind: responsible-for
+    target: review
+  - source: snack-role
+    kind: responsible-for
+    target: snack

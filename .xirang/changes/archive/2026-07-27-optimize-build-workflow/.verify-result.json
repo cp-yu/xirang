@@ -101,7 +101,7 @@
       "test/unit/utils/architecture-validator.test.ts",
       "xirang-definition.md"
     ],
-    "evidenceFingerprint": "45efcb30d6ec24a21a750b69f062531608c723d483330bb514a493d11f6d17ad",
+    "evidenceFingerprint": "2c780f42b5238d00087bde51a94991223108ceb829727109f6b3cf657d9a2e56",
     "evidenceFingerprintEntries": [
       {
         "path": ".github/workflows/test-windows.yml",
@@ -189,11 +189,11 @@
       },
       {
         "path": ".xirang/model/elements/deterministic-operations.md",
-        "hash": "d866ad2a57d36452cb393703de28427744857e4279b3b91dfe31a1d6f925dcd6"
+        "hash": "dcb65f118d51cf7e6867780f8ad776c842408324ac599ef99c582ba589d8068e"
       },
       {
         "path": ".xirang/model/elements/element-contract.md",
-        "hash": "a00406172b10827c3687aba47197cd4f5b5fe46f1638830686c0daf77685a2a5"
+        "hash": "5e4bfaa75a7321283fffa10810851dce1a0e1fbea5a54326301f28588342f47b"
       },
       {
         "path": ".xirang/model/elements/project.root.md",
@@ -205,11 +205,11 @@
       },
       {
         "path": ".xirang/model/elements/semantic-model-build.md",
-        "hash": "a2bbd2150dab7fb297aeec1518400adcd2e01b38e0a82895a3dfeb9f7fa0089b"
+        "hash": "9e654e890a2d8fcc2e41d6d4bbffad0cd6dd6b87770ddc565f0e3c148957bc63"
       },
       {
         "path": ".xirang/model/elements/semantic-model.md",
-        "hash": "9d92b069a4bb19c54400ee7602bc2508bcfa3a92e5afe8beb15d6203a8e03dfa"
+        "hash": "f20c8485f6576fe18807728ae103b7b4c6aee700ec464f96330d6cc6dcabb087"
       },
       {
         "path": "opt-build.md",
@@ -324,7 +324,7 @@
     "timestamp": "2026-07-27T09:30:49.184Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
         "timestamp": "2026-07-27T09:25:31.567Z",
@@ -335,6 +335,11 @@
         "timestamp": "2026-07-27T09:30:49.164Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-07-27T09:34:28.126Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
@@ -664,7 +669,7 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "src/core/model/validator.ts"
@@ -678,13 +683,13 @@
         "opportunity": "The containment-cycle scan restarts from every Element and re-traverses already proven acyclic ancestor chains, making validation quadratic for deep or chain-shaped hierarchies.",
         "impact": "Reduce hierarchy cycle detection from O(n²) to O(n) while lowering repeated work in Candidate validation, Expected Model compilation, Formal validation, and promotion post-write validation.",
         "evidence": [
-          "src/core/model/validator.ts:47-59 creates a new seen map and trail for every parents-map key, then follows the complete ancestor chain without remembering nodes proven acyclic by earlier starts.",
-          "For an acyclic chain inserted root-first, each successive Element revisits its already checked ancestors, producing approximately 1 + 2 + ... + n parent visits.",
-          "src/core/model/validator.ts:225-234 runs checkHierarchy as part of every validateSemanticModel invocation.",
-          "validateSemanticModel is called from src/core/candidate/validator.ts:315-321, src/core/change-compiler.ts:132-139, src/core/candidate/promotion.ts:269-273, and the Formal architecture validation command, so the redundant traversal is repeated across the Build and Change workflows.",
-          "test/core/model/validator.test.ts:72-85 establishes arbitrary-depth hierarchy support but currently exercises only eight levels and does not guard against repeated ancestor traversal."
+          "src/core/model/validator.ts:47-63 now maintains a completed identity set, skips previously proven ancestry, and marks each acyclic trail complete.",
+          "The current implementation remains iterative and retains the traversal-local identity-to-position map and trail used to reconstruct the first cycle.",
+          "test/core/model/validator.test.ts asserts linear Map lookup growth for a 128-level acyclic hierarchy and preserves the exact first-cycle diagnostic sequence reached through a prefix.",
+          "Persisted Phase 2 history records implementation followed by fresh reviewer PASS for this finding.",
+          "Fresh Change validation, Expected Semantic Model validation, lint, TypeScript build, and the complete 144-file, 1,971-test suite pass at the current checkpoint."
         ],
-        "recommendation": "Memoize nodes whose ancestry has already been completely checked, while retaining the traversal-local position map used to reconstruct the first detected cycle.",
+        "recommendation": "Retain the verified completed-set implementation; no further change is required.",
         "keyDesign": "Keep the algorithm iterative. Iterate starts in the existing Map insertion order; skip starts in a completed set; walk with the existing local trail and identity-to-position map; stop when reaching null, an unknown parent, or a completed node; after an acyclic walk mark its entire trail completed. On a local repeat, return the existing trail slice plus repeated identity unchanged.",
         "preservationConstraints": [
           "Return the same first cycle for the same parents Map insertion order.",
@@ -703,9 +708,9 @@
         ],
         "validation": [
           "Run pnpm test -- test/core/model/validator.test.ts test/unit/utils/architecture-validator.test.ts to prove existing hierarchy diagnostics and arbitrary-depth behavior remain intact.",
-          "Add assertions that mixed disconnected hierarchies report the same first CONTAINMENT_CYCLE identity and message as the current declaration-order semantics.",
-          "Add cases proving missing parents and chains terminating in completed ancestry still produce the existing non-cycle diagnostics.",
-          "Use a non-timing-gated synthetic comparison over progressively doubled linear hierarchies to confirm traversal growth is approximately linear rather than quadratic.",
+          "Assert that mixed disconnected hierarchies report the same first CONTAINMENT_CYCLE identity and message as declaration-order semantics.",
+          "Assert that missing parents and chains terminating in completed ancestry still produce the existing non-cycle behavior.",
+          "Use a non-timing-gated synthetic lookup-count test to confirm linear rather than quadratic traversal growth.",
           "Run pnpm lint && pnpm build && pnpm test to verify all Candidate, Expected Model, Formal validation, and promotion consumers preserve behavior."
         ],
         "impactLevel": "medium",
@@ -713,7 +718,7 @@
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "This is the sole admitted optimization: it removes statically proven repeated work from a shared validation gate with a small local change and closed preservation constraints. Other observed micro-allocations and already-applied lookup scans have lower demonstrated value relative to implementation and re-verification cost.",
+        "priorityReason": "This optimization has been implemented and independently verified. Fresh inspection found no additional base-scope opportunity with comparably demonstrated benefit and proportionate risk; remaining repeated allocations, lookup scans, and possible I/O concurrency changes are lower-value or workload-dependent.",
         "id": "OPT-20260727T092531565Z-01",
         "targetFileHashes": {
           "src/core/model/validator.ts": "3b875b838514e82bbc6f1690207a19437d8131c4bb819248c9b0a9aead725cc7"
@@ -754,9 +759,16 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-07-27T09:30:49.164Z",
         "findingId": "OPT-20260727T092531565Z-01"
+      },
+      {
+        "sequence": 5,
+        "action": "resolve",
+        "reason": "The current successful checkpoint contains the iterative completed-set cycle scan, its implementation hash differs from the selected baseline as expected, persisted reviewer verification passed, and fresh validation, lint, build, and all 1,971 tests pass. The verified finding has no remaining optimization work.",
+        "timestamp": "2026-07-27T09:34:28.126Z",
+        "findingId": "OPT-20260727T092531565Z-01"
       }
     ],
-    "reconciliationSignature": "10c80ed28fc3efde2f339a026e905cbbe62888b12032b8f1eea9b83483e1e9dd",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }

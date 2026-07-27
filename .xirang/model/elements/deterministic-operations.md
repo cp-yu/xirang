@@ -3,113 +3,179 @@ entity: element-declaration
 identity: deterministic-operations
 kind: capability
 parent: cli
-title: "Deterministic Operations"
-summary: "为查询、校验、证据与原子状态转换提供一致结果的 CLI 操作集合。"
+title: Deterministic Operations
+summary: 为查询、校验、证据与原子状态转换提供一致结果的 CLI 操作集合。
 ---
 
 ## Requirements
 
 ### Requirement: 对模型和 Change 提供结构化操作
+
 Deterministic Operations SHALL 支持 Semantic Model 与 Change 的查询、搜索、影响分析、差异、验证与派生呈现，并以 identity 而非文件位置寻址语义对象。
 
 #### Scenario: 查询 Element
+
 - **WHEN** Agent 按稳定 identity 查询 Element
 - **THEN** CLI 返回其语义上下文
 
 ### Requirement: 原子提升 Candidate
+
 Candidate promotion SHALL 在用户确认精确版本后原子整体替换正式模型。
 
 #### Scenario: Promotion 失败
+
 - **WHEN** 原子替换无法完成
 - **THEN** 正式模型不进入部分提升状态
 
 ### Requirement: 在 Sync 前完整验证
+
 Delta sync SHALL 在应用前完整验证 Semantic Delta 与 Expected Semantic Model。
 
 #### Scenario: Delta 无效
+
 - **WHEN** Sync 准备阶段发现验证错误
 - **THEN** 正式模型保持不变
 
 ### Requirement: 最小重写 Sync 单元
+
 Delta sync SHALL 只重写 Semantic Delta 实际影响的存储单元。
 
 #### Scenario: Delta 只影响一个 Element
+
 - **WHEN** Sync 应用该 Delta
 - **THEN** 无关模型单元保持原字节不变
 
 ### Requirement: Sync 失败完整回滚
+
 Delta sync 任一环节失败时 SHALL 完整回滚到应用前状态。
 
 #### Scenario: Sync 中途失败
+
 - **WHEN** 任一目标单元无法写入
 - **THEN** 正式模型恢复到应用前状态
 
 ### Requirement: 持久化验证证据
+
 Deterministic Operations SHALL 持久化 Verify 与 Change Closure 使用的可复现验证证据。
 
 #### Scenario: Closure 检查验证入口
+
 - **WHEN** Change 请求进入 Closure
 - **THEN** CLI 提供已持久化证据供入口判断
 
 ### Requirement: 序列化是 IR 的确定性函数
+
 模型序列化 SHALL 是当前 IR 的确定性函数，相同 IR SHALL 产生逐字节相同输出。
 
 #### Scenario: 重复序列化相同 IR
+
 - **WHEN** 系统两次序列化相同 IR
 - **THEN** 两次输出逐字节一致
 
 ### Requirement: 固定 Frontmatter 键顺序
+
 模型序列化 SHALL 以固定键顺序输出 frontmatter。
 
 #### Scenario: 序列化 Markdown 单元
+
 - **WHEN** 系统写入同类实体
 - **THEN** frontmatter 字段顺序保持确定
 
 ### Requirement: 排序 Relationship Entries
+
 模型序列化 SHALL 按 `source`、`kind`、`target` 依次排序 Relationship entries。
 
 #### Scenario: 输入容器顺序不同
+
 - **WHEN** IR 包含相同 Relationship 集合
 - **THEN** 序列化列表顺序一致
 
 ### Requirement: 验证序列化往返属性
+
 测试层 SHALL 以属性测试验证 `parse(serialize(ir))` 与原 IR 相等，并覆盖转义、多行文本、空集合与缺省字段。
 
 #### Scenario: 序列化边界输入
+
 - **WHEN** 属性测试生成有效边界 IR
 - **THEN** 序列化后重新解析得到语义相等 IR
 
 ### Requirement: 规范化无权威顺序集合
+
 语义比较 SHALL 将 Elements、Relationships、Kinds、Authored Views 及 `parents`、`children`、`sourceKinds`、`targetKinds`、`include` 作为无序集合规范化后比较。
 
 #### Scenario: 仅集合排列变化
+
 - **WHEN** 两个模型只在无权威顺序的排列上不同
 - **THEN** diff 不报告语义变化
 
 ### Requirement: 保留 Contract 条目顺序
+
 Element Contract 内 Requirement 顺序与 Requirement 内 Scenario 顺序 SHALL 保留并参与语义比较。
 
 #### Scenario: Requirement 顺序变化
+
 - **WHEN** 同一 Contract 的 Requirements 被重排
 - **THEN** diff 报告语义变化
 
 ### Requirement: 规范化散文比较
+
 散文比较 SHALL 只规范化行尾与文件末尾空白后逐字比较。
 
 #### Scenario: 散文仅行尾不同
+
 - **WHEN** 两份散文只存在行尾编码差异
 - **THEN** diff 不报告语义变化
 
 ### Requirement: 排除非语义存储信息
+
 派生字段、文件路径与文件名 SHALL NOT 参与语义比较。
 
 #### Scenario: 单元只改变文件位置
+
 - **WHEN** 实体内容与 identity 不变
 - **THEN** diff 不报告语义变化
 
 ### Requirement: 以实体身份输出差异
+
 差异输出 SHALL 以 entity type 与 identity 为键，SHALL NOT 携带存储分区信息。
 
 #### Scenario: 输出模型差异
+
 - **WHEN** CLI 报告变化实体
 - **THEN** 使用 entity type 与 identity 定位条目
+
+### Requirement: 区分初始化来源与 Formal Comparison
+
+Candidate validation SHALL 将 `candidate.yaml.baseline` 的初始化来源与当前 Formal Semantic Model 的 comparison availability 分别表达。
+
+#### Scenario: Clean Candidate 面对现有 Formal Model
+
+- **WHEN** Candidate 从 clean 初始化且当前 Formal Model 存在
+- **THEN** validation 仍以当前 Formal Model 作为 comparison baseline
+
+### Requirement: Formal 缺失时报告 Diff 不可用
+
+当前 Formal Semantic Model 不存在时，Candidate validation SHALL 返回 `comparison.baseline: absent`、`comparison.diff: unavailable` 与 `reason: formal-model-absent`，SHALL NOT 构造无效空 diff 或假设空 Formal Model。
+
+#### Scenario: 构建首个 Formal Model
+
+- **WHEN** 有效 Candidate 没有可比较的当前 Formal Model
+- **THEN** validation 仍返回 review digest 且 comparison 明确不可用
+
+### Requirement: Formal 存在时生成 Promotion Diff
+
+当前 Formal Semantic Model 存在且有效时，Candidate validation SHALL 返回 `comparison.baseline: formal`、`comparison.diff: available`、Formal fingerprint 与从当前 Formal 到 Candidate 的真实 semantic diff。
+
+#### Scenario: Candidate 改变正式语义
+
+- **WHEN** validation 比较有效 Formal Model 与 Candidate
+- **THEN** diff entries 完整表达 promotion 将产生的 ADDED、MODIFIED 与 REMOVED 语义
+
+### Requirement: Comparison 不参与 Review Digest
+
+Candidate comparison availability 与 diff 输出 SHALL NOT 参与 review digest；digest SHALL 只绑定 Candidate 的审查内容。
+
+#### Scenario: Formal 状态在 Candidate 不变时变化
+
+- **WHEN** 相同 Candidate 针对不同 comparison availability 进行校验
+- **THEN** Candidate review digest 保持不变
