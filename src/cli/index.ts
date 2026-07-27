@@ -175,11 +175,12 @@ program
 program
   .command('view')
   .description('Browse the Semantic Model in the embedded web viewer')
+  .option('--listen <address>', 'IP address to listen on')
   .option('--port <n>', 'Web server port', (value) => Number(value))
-  .action(async (options: { port?: number }) => {
+  .action(async (options: { listen?: string; port?: number }) => {
     try {
       const viewCommand = new ViewCommand();
-      await viewCommand.execute('.', { port: options.port });
+      await viewCommand.execute('.', { listen: options.listen, port: options.port });
     } catch (error) {
       console.log(); // Empty line for spacing
       ora().fail(`Error: ${(error as Error).message}`);

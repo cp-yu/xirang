@@ -14,6 +14,7 @@ export interface ViewLaunchOptions {
   projectRoot: string;
   likec4SourceDir: string;
   changeManifestFile: string;
+  listen?: string;
   port?: number;
 }
 
@@ -35,13 +36,16 @@ export function findXirangProjectRoot(startPath: string): string | undefined {
   }
 }
 
-export const launchEmbeddedLikeC4: ViewLauncher = async ({ likec4SourceDir, changeManifestFile, port }) => {
+export const launchEmbeddedLikeC4: ViewLauncher = async ({ likec4SourceDir, changeManifestFile, listen, port }) => {
   const args = [
     'start',
     likec4SourceDir,
     '--xirang-change-manifest',
     changeManifestFile,
   ];
+  if (listen !== undefined) {
+    args.push('--listen', listen);
+  }
   if (port !== undefined) {
     args.push('--port', String(port));
   }
@@ -176,7 +180,7 @@ async function writeViewRuntimeSnapshot(snapshot: ViewRuntimeSnapshot, directory
 export class ViewCommand {
   constructor(private readonly launch: ViewLauncher = launchEmbeddedLikeC4) {}
 
-  async execute(startPath: string = '.', options: { port?: number } = {}): Promise<void> {
+  async execute(startPath: string = '.', options: { listen?: string; port?: number } = {}): Promise<void> {
     const projectRoot = findXirangProjectRoot(startPath);
     if (!projectRoot) {
       throw new Error('未找到 Xirang 项目');
@@ -226,6 +230,7 @@ export class ViewCommand {
           projectRoot,
           likec4SourceDir: await generateLikeC4Artifacts(projectRoot),
           changeManifestFile,
+          listen: options.listen,
           port: options.port,
         });
       } finally {

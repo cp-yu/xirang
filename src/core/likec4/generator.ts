@@ -2,6 +2,8 @@ import { compareUtf8Bytes } from '../candidate/canonical.js';
 import type { ModelElement, SemanticModel } from '../model/types.js';
 import { createNamespace, deriveLocalNames, type LocalNames } from './local-names.js';
 
+const LIKEC4_PROJECT_CONFIG = '{\n  "name": "xirang",\n  "implicitViews": true\n}\n';
+
 function quote(value: string): string {
   return `'${value.replaceAll('\\', '\\\\').replaceAll("'", "\\'").replaceAll('\n', '\\n')}'`;
 }
@@ -70,10 +72,25 @@ function renderModel(model: SemanticModel, names: LocalNames, kinds: Map<string,
 }
 
 function renderRelations(model: SemanticModel, names: LocalNames, kinds: Map<string, string>): string {
-  const relationships = [...model.relationships].sort((left, right) =>
-    compareUtf8Bytes(left.source, right.source)
-    || compareUtf8Bytes(left.kind, right.kind)
-    || compareUtf8Bytes(left.target, right.target));
+  const parents = new Map(model.elements.map(element =>
+    [element.declaration.identity, element.declaration.parent] as const));
+  const isAncestor = (ancestor: string, descendant: string): boolean => {
+    let parent = parents.get(descendant) ?? null;
+    while (parent !== null) {
+      if (parent === ancestor) return true;
+      parent = parents.get(parent) ?? null;
+    }
+    return false;
+  };
+  // LikeC4 rejects ancestor-chain endpoints; Xirang keeps those relationships in its IR.
+  const relationships = [...model.relationships]
+    .filter(relationship => relationship.source !== relationship.target
+      && !isAncestor(relationship.source, relationship.target)
+      && !isAncestor(relationship.target, relationship.source))
+    .sort((left, right) =>
+      compareUtf8Bytes(left.source, right.source)
+      || compareUtf8Bytes(left.kind, right.kind)
+      || compareUtf8Bytes(left.target, right.target));
   return block('model', relationships.map(relationship =>
     `  ${names.pathOf(relationship.source)} -[${nameOf(kinds, relationship.kind)}]-> ${names.pathOf(relationship.target)}`));
 }
@@ -102,6 +119,7 @@ export function generateLikeC4(model: SemanticModel): Map<string, string> {
   const kinds = allocateNames([...model.elementKinds, ...model.relationshipKinds].map(kind => kind.identity));
   const views = allocateNames(model.views.map(view => view.identity));
   return new Map([
+    ['likec4.config.json', LIKEC4_PROJECT_CONFIG],
     ['specification.c4', renderSpecification(model, kinds)],
     ['model.c4', renderModel(model, names, kinds)],
     ['relations.c4', renderRelations(model, names, kinds)],

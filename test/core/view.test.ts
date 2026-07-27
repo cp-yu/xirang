@@ -2,9 +2,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { buildViewRuntimeSnapshot, ViewCommand, type ViewLauncher, type ViewRuntimeSnapshot } from '../../src/core/view.js';
+import {
+  buildViewRuntimeSnapshot,
+  launchEmbeddedLikeC4,
+  ViewCommand,
+  type ViewLauncher,
+  type ViewRuntimeSnapshot,
+} from '../../src/core/view.js';
+import { runLikeC4 } from '../../src/commands/arch/runner.js';
 import { likec4CacheDir } from '../../src/core/likec4/paths.js';
 import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
+
+vi.mock('../../src/commands/arch/runner.js', () => ({ runLikeC4: vi.fn() }));
 
 const CONTRACT = '## Requirements\n\n### Requirement: Existing\nThe system SHALL preserve existing behavior.\n\n#### Scenario: Existing\n- **WHEN** invoked\n- **THEN** existing behavior remains';
 
@@ -45,7 +54,7 @@ describe('ViewCommand', () => {
       changeManifestFile: expect.stringContaining('xirang-change-manifest.json'),
     });
     expect((await fs.readdir(likec4CacheDir(tempDir))).sort())
-      .toEqual(['model.c4', 'relations.c4', 'specification.c4', 'views.c4']);
+      .toEqual(['likec4.config.json', 'model.c4', 'relations.c4', 'specification.c4', 'views.c4']);
   });
 
   it('passes a custom port to the embedded server', async () => {
@@ -55,6 +64,38 @@ describe('ViewCommand', () => {
     await new ViewCommand(launch).execute(tempDir, { port: 4321 });
 
     expect(launch).toHaveBeenCalledWith(expect.objectContaining({ projectRoot: tempDir, port: 4321 }));
+  });
+
+  it('passes a custom listen address to the embedded server', async () => {
+    await writeBaseModel(tempDir);
+    const launch = vi.fn<ViewLauncher>().mockResolvedValue(undefined);
+
+    await new ViewCommand(launch).execute(tempDir, { listen: '0.0.0.0' });
+
+    expect(launch).toHaveBeenCalledWith(expect.objectContaining({ projectRoot: tempDir, listen: '0.0.0.0' }));
+  });
+
+  it('forwards the listen address to LikeC4', async () => {
+    vi.mocked(runLikeC4).mockResolvedValue(undefined);
+
+    await launchEmbeddedLikeC4({
+      projectRoot: tempDir,
+      likec4SourceDir: '/tmp/likec4',
+      changeManifestFile: '/tmp/manifest.json',
+      listen: '0.0.0.0',
+      port: 61000,
+    });
+
+    expect(runLikeC4).toHaveBeenCalledWith([
+      'start',
+      '/tmp/likec4',
+      '--xirang-change-manifest',
+      '/tmp/manifest.json',
+      '--listen',
+      '0.0.0.0',
+      '--port',
+      '61000',
+    ]);
   });
 
   it('discovers the nearest Xirang project from a nested directory', async () => {

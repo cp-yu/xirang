@@ -60,6 +60,34 @@ describe('generateLikeC4 artifacts', () => {
     }
   });
 
+  it('produces navigable element-derived views', { timeout: 180_000 }, async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-likec4-derived-'));
+    const outfile = path.join(os.tmpdir(), `xirang-likec4-${path.basename(dir)}.json`);
+    try {
+      for (const [file, content] of generateLikeC4(model)) await fs.writeFile(path.join(dir, file), content);
+      await runLikeC4(['export', 'json', '--skip-layout', '--project', 'xirang', '-o', outfile, dir]);
+      const generated = JSON.parse(await fs.readFile(outfile, 'utf8')) as {
+        projectId: string;
+        views: Record<string, { viewOf?: string; nodes: Array<{ modelRef?: string; navigateTo?: string }> }>;
+      };
+
+      expect(generated.projectId).toBe('xirang');
+      expect(generated.views.index.nodes).toContainEqual(expect.objectContaining({
+        modelRef: 'main',
+        navigateTo: 'arch_detail',
+      }));
+      expect(generated.views.arch_detail).toMatchObject({ viewOf: 'main' });
+      expect(generated.views.arch_detail.nodes).toContainEqual(expect.objectContaining({
+        modelRef: 'main.architecture',
+        navigateTo: '__main_architecture',
+      }));
+      expect(generated.views.__main_architecture).toMatchObject({ viewOf: 'main.architecture' });
+    } finally {
+      await fs.rm(dir, { recursive: true, force: true });
+      await fs.rm(outfile, { force: true });
+    }
+  });
+
   it('are produced without touching the file system', async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-likec4-purity-'));
     const cwd = process.cwd();

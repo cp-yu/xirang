@@ -34,7 +34,9 @@ describe('generateLikeC4 specification.c4', () => {
   });
 
   it('never emits a xirang block', () => {
-    for (const content of generateLikeC4(constrained).values()) expect(content).not.toContain('xirang');
+    for (const [file, content] of generateLikeC4(constrained)) {
+      if (file.endsWith('.c4')) expect(content).not.toContain('xirang');
+    }
   });
 
   it('avoids LikeC4 keywords in kind and view names', () => {
@@ -49,8 +51,19 @@ describe('generateLikeC4 specification.c4', () => {
     expect(files.get('views.c4')).toBe('views {\n  view arch_title {\n    include *\n  }\n}\n');
   });
 
-  it('produces the four artifact files', () => {
+  it('enables LikeC4 element-derived views in the generated project', () => {
+    expect(generateLikeC4(emptySemanticModel()).get('likec4.config.json')).toBe([
+      '{',
+      '  "name": "xirang",',
+      '  "implicitViews": true',
+      '}',
+      '',
+    ].join('\n'));
+  });
+
+  it('produces the generated project files', () => {
     expect([...generateLikeC4(emptySemanticModel()).keys()]).toEqual([
+      'likec4.config.json',
       'specification.c4',
       'model.c4',
       'relations.c4',
@@ -181,6 +194,24 @@ describe('generateLikeC4 relations.c4', () => {
       '}',
       '',
     ].join('\n'));
+  });
+
+  it('omits ancestor-descendant relationships that LikeC4 cannot represent', () => {
+    const model: SemanticModel = {
+      ...nested,
+      relationships: [
+        ...nested.relationships,
+        { source: 'cap.reader', kind: 'invokes', target: 'domain.architecture' },
+        { source: 'project.root', kind: 'covers', target: 'cap.parser' },
+        { source: 'cap.reader', kind: 'covers', target: 'cap.reader' },
+      ],
+    };
+
+    const relations = generateLikeC4(model).get('relations.c4')!;
+    expect(relations).not.toContain('root.architecture.reader -[invokes]-> root.architecture');
+    expect(relations).not.toContain('root -[covers]-> root.architecture.parser');
+    expect(relations).not.toContain('root.architecture.reader -[covers]-> root.architecture.reader');
+    expect(model.relationships).toHaveLength(6);
   });
 
   it('emits an empty model block when there are no relationships', () => {

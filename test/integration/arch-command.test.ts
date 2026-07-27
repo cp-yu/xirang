@@ -262,7 +262,8 @@ describe('arch commands', () => {
 
     const cache = likec4CacheDir(root);
     expect(runner).toHaveBeenCalledWith(['export', 'png', '-o', output, cache]);
-    expect((await fs.readdir(cache)).sort()).toEqual(['model.c4', 'relations.c4', 'specification.c4', 'views.c4']);
+    expect((await fs.readdir(cache)).sort())
+      .toEqual(['likec4.config.json', 'model.c4', 'relations.c4', 'specification.c4', 'views.c4']);
     expect(await readModelTree(modelRoot(root))).toEqual(before);
     await expect(fs.stat(output)).resolves.toMatchObject({});
   });
