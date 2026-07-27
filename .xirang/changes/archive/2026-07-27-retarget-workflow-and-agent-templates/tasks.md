@@ -16,10 +16,10 @@
 
 #### Checks
 
-- C1 Verifies: `rg -c "architecture-delta|elementId|FQN|list --specs|\.xirang/architecture|\.xirang/specs|likec4-authoring" src/core/templates/fragments/xirang-fragments.ts` 返回 0
-- C2 Verifies: `rg -q "\.xirang/model/" src/core/templates/fragments/xirang-fragments.ts` 命中，且四分区名齐全
-- C3 Verifies: `pnpm exec vitest run test/core/templates/fragments/xirang-fragments.test.ts` 通过
-- C4 Preserves: `src/core/templates/fragments/xirang-fragments.ts` 中 Verify 状态机与 `ARTIFACT_DOC_LANGUAGE_CONTRACT` 段落内容不变
+- [x] C1 Verifies: `rg -c "architecture-delta|elementId|list --specs|\.xirang/architecture|\.xirang/specs|likec4-authoring" src/core/templates/fragments/xirang-fragments.ts` 返回 0；`FQN` 仅允许出现在“不得作为持久引用”的禁止性表述中
+- [x] C2 Verifies: `rg -q "\.xirang/model/" src/core/templates/fragments/xirang-fragments.ts` 命中，且四分区名齐全
+- [x] C3 Verifies: `pnpm exec vitest run test/core/templates/fragments/xirang-fragments.test.ts` 通过
+- [x] C4 Preserves: `src/core/templates/fragments/xirang-fragments.ts` 中 Verify 状态机与 `ARTIFACT_DOC_LANGUAGE_CONTRACT` 段落内容不变
 
 ---
 
@@ -42,9 +42,9 @@
 
 #### Checks
 
-- C1 Verifies: `rg -c "architecture-delta|\.xirang/specs|spec-id|FQN|arch validate --delta" src/core/templates/workflows/propose.ts src/core/templates/workflows/snack.ts` 返回 0
-- C2 Verifies: `pnpm exec vitest run test/core/templates/propose-template.test.ts test/core/templates/snack-template.test.ts` 通过
-- C3 Preserves: `## ADDED Requirements` / `### Requirement:` / `#### Scenario:` 记法在两模板中仍被指令使用
+- [x] C1 Verifies: `rg -c "architecture-delta|\.xirang/specs|spec-id|FQN|arch validate --delta" src/core/templates/workflows/propose.ts src/core/templates/workflows/snack.ts` 返回 0
+- [x] C2 Verifies: `pnpm exec vitest run test/core/templates/propose-template.test.ts test/core/templates/snack-template.test.ts` 通过
+- [x] C3 Preserves: `## ADDED Requirements` / `### Requirement:` / `#### Scenario:` 记法在两模板中仍被指令使用
 
 ---
 
@@ -66,9 +66,9 @@
 
 #### Checks
 
-- C1 Verifies: `rg -c "architecture-delta|spec-id|FQN|owned Specs" src/core/templates/workflows/explore.ts src/core/templates/workflows/apply-change.ts` 返回 0
-- C2 Verifies: `pnpm exec vitest run test/core/templates/explore-template.test.ts test/core/templates/apply-change.test.ts` 通过
-- C3 Preserves: `src/core/templates/workflows/explore.ts` 的 Superpowers reference 正文（一次一问、2-3 方案、分段确认）内容不变
+- [x] C1 Verifies: `rg -c "architecture-delta|spec-id|FQN|owned Specs" src/core/templates/workflows/explore.ts src/core/templates/workflows/apply-change.ts` 返回 0
+- [x] C2 Verifies: `pnpm exec vitest run test/core/templates/explore-template.test.ts test/core/templates/apply-change.test.ts` 通过
+- [x] C3 Preserves: `src/core/templates/workflows/explore.ts` 的 Superpowers reference 正文（一次一问、2-3 方案、分段确认）内容不变
 
 ---
 
@@ -89,9 +89,9 @@
 
 #### Checks
 
-- C1 Verifies: `rg -c "architecture-delta|main specs|formal LikeC4" src/core/templates/workflows/archive-change.ts` 返回 0
-- C2 Verifies: `pnpm exec vitest run test/core/templates/archive-change.test.ts test/skills/archive-skill-content.test.ts` 通过
-- C3 Preserves: `git worktree remove <worktreePath>` 与 `--allow-empty` boundary commit 指令在模板中保持原义
+- [x] C1 Verifies: `rg -c "architecture-delta|main specs|formal LikeC4" src/core/templates/workflows/archive-change.ts` 返回 0
+- [x] C2 Verifies: `pnpm exec vitest run test/core/templates/archive-change.test.ts test/skills/archive-skill-content.test.ts` 通过
+- [x] C3 Preserves: `git worktree remove <worktreePath>` 与 `--allow-empty` boundary commit 指令在模板中保持原义
 
 ---
 
@@ -112,9 +112,9 @@
 
 #### Checks
 
-- C1 Verifies: `rg -c "multiple Specs|Spec ownership|\.xirang/architecture|LikeC4 tokens" src/core/templates/workflows/build.ts` 返回 0
-- C2 Verifies: `rg -q "candidate/\{metamodel,elements,relationships,views\}|candidate/metamodel" src/core/templates/workflows/build.ts` 命中
-- C3 Verifies: `pnpm exec vitest run test/core/templates/build.test.ts` 通过
+- [x] C1 Verifies: `rg -c "multiple Specs|Spec ownership|\.xirang/architecture|LikeC4 tokens" src/core/templates/workflows/build.ts` 返回 0
+- [x] C2 Verifies: `rg -q "candidate/\{metamodel,elements,relationships,views\}|candidate/metamodel" src/core/templates/workflows/build.ts` 命中
+- [x] C3 Verifies: `pnpm exec vitest run test/core/templates/build.test.ts` 通过
 
 ---
 
@@ -139,10 +139,10 @@
 
 #### Checks
 
-- C1 Verifies: `rg -c "specs/\*/spec\.md|architecture-delta|contract bindings|Never alter Specs" src/core/templates/workflows/reviewer.ts src/core/templates/workflows/optimizer.ts` 返回 0
-- C2 Verifies: `rg -q "四分区|metamodel.*elements.*relationships.*views|all four partitions" src/core/templates/workflows/reviewer.ts` 命中，确认无变更判定条件已写入
-- C3 Verifies: `pnpm exec vitest run test/core/templates/reviewer-template.test.ts test/core/templates/optimizer-template.test.ts test/skills/reviewer-skill-content.test.ts test/skills/optimizer-skill-content.test.ts` 通过
-- C4 Preserves: `reviewer.ts` 的 Cleanliness/Attribution/Absence judgment 三维度与 `:125` 输出 JSON schema 键名不变
+- [x] C1 Verifies: `rg -c "specs/\*/spec\.md|architecture-delta|contract bindings|Never alter Specs" src/core/templates/workflows/reviewer.ts src/core/templates/workflows/optimizer.ts` 返回 0
+- [x] C2 Verifies: `rg -q "四分区|metamodel.*elements.*relationships.*views|all four partitions" src/core/templates/workflows/reviewer.ts` 命中，确认无变更判定条件已写入
+- [x] C3 Verifies: `pnpm exec vitest run test/core/templates/reviewer-template.test.ts test/core/templates/optimizer-template.test.ts test/skills/reviewer-skill-content.test.ts test/skills/optimizer-skill-content.test.ts` 通过
+- [x] C4 Preserves: `reviewer.ts` 的 Cleanliness/Attribution/Absence judgment 三维度与 `:125` 输出 JSON schema 键名不变
 
 ---
 
@@ -165,10 +165,10 @@
 
 #### Checks
 
-- C1 Verifies: `rg -c "\.c4|quoteLikeC4|languageVersion|elementId|specification \{" src/core/templates/architecture-skeleton.ts` 返回 0
-- C2 Verifies: `pnpm exec vitest run test/core/templates/model-skeleton.test.ts` 通过，覆盖四分区清单、9 个 metamodel 单元、Project Root 单元 `parent: null`、view `of` 为 identity
-- C3 Verifies: 渲染产物的 identity 全部匹配 `^[A-Za-z0-9._-]+$`
-- C4 Preserves: 三个 element kind 与六个 relationship kind 的名称与约束语义在迁移后不变
+- [x] C1 Verifies: `rg -c "\.c4|quoteLikeC4|languageVersion|elementId|specification \{" src/core/templates/architecture-skeleton.ts` 返回 0
+- [x] C2 Verifies: `pnpm exec vitest run test/core/templates/model-skeleton.test.ts` 通过，覆盖四分区清单、9 个 metamodel 单元、Project Root 单元 `parent: null`、view `of` 为 identity
+- [x] C3 Verifies: 渲染产物的 identity 全部匹配 `^[A-Za-z0-9._-]+$`
+- [x] C4 Preserves: 三个 element kind 与六个 relationship kind 的名称与约束语义在迁移后不变
 
 > `test/core/setup.test.ts:634-650` 断言 manifest 恰为四个 `.c4` 文件名与 `.xirang/architecture/` 目录存在，本 Task 改 manifest 后该测试转红。调用方 `src/core/setup.ts:407` 与 `src/core/candidate/workspace.ts:121` 的路径适配、以及该测试的断言重写归 C3；本 Change 不修，红灯由 C3 消除。
 
@@ -196,8 +196,8 @@
 
 #### Checks
 
-- C1 Verifies: `rg -c "architecture-delta|\.xirang/specs|\.xirang/architecture|elementId|FQN|list --specs" .pi/skills .pi/agents` 返回 0
-- C2 Verifies: `rg -q "\.xirang/model/" .pi/skills/xirang-propose/SKILL.md .pi/agents/xirang-reviewer.md` 命中
-- C3 Verifies: `pnpm exec vitest run test/core/templates/skill-templates-parity.test.ts test/skills/skill-template-length-validation.test.ts` 通过
-- C4 Verifies: `test -e .xirang/references/likec4-authoring.md` 返回非零
-- C5 Preserves: `git status --short .claude .codex .opencode` 无本 Change 产生的改动
+- [x] C1 Verifies: `rg -c "architecture-delta|\.xirang/specs|\.xirang/architecture|elementId|list --specs" .pi/skills .pi/agents` 返回 0；`FQN` 仅允许出现在“不得作为持久引用”的禁止性表述中
+- [x] C2 Verifies: `rg -q "\.xirang/model/" .pi/skills/xirang-propose/SKILL.md .pi/agents/xirang-reviewer.md` 命中
+- [x] C3 Verifies: `pnpm exec vitest run test/core/templates/skill-templates-parity.test.ts test/skills/skill-template-length-validation.test.ts` 通过
+- [x] C4 Verifies: `test -e .xirang/references/likec4-authoring.md` 返回非零
+- [x] C5 Preserves: `git status --short .claude .codex .opencode` 无本 Change 产生的改动

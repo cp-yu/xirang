@@ -289,7 +289,7 @@
   - Expect: identity 不变改 kind 通过；一 Element 绑定两份 Contract 在新结构中无法表达；relationship `description` 无处声明
   - Remediation: 这些规则的消失应由结构保证，不得仅靠删除校验实现
 
-- [ ] C2 验证删除未留孤儿引用（**移交 C3**：用户已接受中间态构建不通，被孤立的 9 个消费点属于 C3）
+- [x] C2 验证删除未留孤儿引用（已由 C3 完成旧栈删除与消费点迁移）
   - Verifies: `xirang-contract.md` / 「引用规则」/ 单元之间不存在位置引用
   - Command: `pnpm exec tsc --noEmit`
   - Expect: 类型检查通过，无对已删除模块的 import
@@ -326,7 +326,7 @@
   - Expect: 打乱跨单元集合顺序无差异；调换 Requirement 或 Scenario 顺序产生差异
   - Remediation: 划分依据是是否存在权威顺序，不得对单元内顺序做规范化
 
-- [ ] C3 验证旧测试未新增失败（**移交 C3**：用户已接受中间态；41 个旧测试文件因已删除模块的孤儿 import 与 Candidate 分区切换而红灯）
+- [x] C3 验证旧测试未新增失败（已由 C3 收敛旧测试；最终全量测试通过）
   - Verifies: `design.md` / 风险与回滚条件 / R1 半迁移期
   - Command: `pnpm exec vitest run`
   - Expect: 相对本 Change 起点，失败集合无新增项
