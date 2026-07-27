@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { validateSemanticModel } from '../../../src/core/model/validator.js';
 import type { ModelElement, SemanticModel } from '../../../src/core/model/types.js';
 
@@ -85,12 +85,58 @@ describe('validateSemanticModel', () => {
     expect(validateSemanticModel(deep)).toEqual([]);
   });
 
-  it('rejects missing parents and containment cycles', () => {
+  it('checks deep acyclic hierarchies with linear Map lookup growth', () => {
+    const depth = 128;
+    const hierarchy = model({
+      elementKinds: [
+        { identity: 'project', contract: 'optional', root: true, body: '' },
+        { identity: 'node', contract: 'optional', body: '' },
+      ],
+      relationshipKinds: [],
+      elements: [
+        element('root', 'project', null),
+        ...Array.from({ length: depth }, (_, index) =>
+          element(`n${index}`, 'node', index === 0 ? 'root' : `n${index - 1}`)),
+      ],
+    });
+    const mapGet = Map.prototype.get;
+    let lookups = 0;
+    const getSpy = vi.spyOn(Map.prototype, 'get').mockImplementation(function (key: unknown) {
+      lookups += 1;
+      return mapGet.call(this, key);
+    });
+
+    const diagnostics = validateSemanticModel(hierarchy);
+    getSpy.mockRestore();
+
+    expect(diagnostics).toEqual([]);
+    expect(lookups).toBeLessThan(depth * 16);
+  });
+
+  it('rejects missing parents and preserves the first containment cycle sequence', () => {
     expect(codes(model({ elements: [element('root', 'project', null), element('x', 'domain', 'ghost')] })))
       .toContain('MISSING_PARENT');
-    expect(codes(model({
-      elements: [element('root', 'project', null), element('a', 'domain', 'b'), element('b', 'domain', 'a')],
-    }))).toContain('CONTAINMENT_CYCLE');
+    const diagnostics = validateSemanticModel(model({
+      elementKinds: [
+        { identity: 'project', contract: 'optional', root: true, body: '' },
+        { identity: 'node', contract: 'optional', body: '' },
+      ],
+      relationshipKinds: [],
+      elements: [
+        element('root', 'project', null),
+        element('safe', 'node', 'root'),
+        element('prefix', 'node', 'a'),
+        element('a', 'node', 'b'),
+        element('b', 'node', 'a'),
+      ],
+    }));
+    expect(diagnostics).toContainEqual({
+      level: 'ERROR',
+      code: 'CONTAINMENT_CYCLE',
+      path: '',
+      message: 'Containment cycle detected: a → b → a',
+      identity: 'a',
+    });
   });
 
   it('enforces declared parents and children constraints', () => {

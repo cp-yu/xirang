@@ -45,17 +45,20 @@ function checkIdentities(model: SemanticModel, diagnostics: ModelDiagnostic[]): 
 }
 
 function containmentCycle(parents: Map<string, string | null>): string[] | null {
+  const completed = new Set<string>();
   for (const start of parents.keys()) {
+    if (completed.has(start)) continue;
     const seen = new Map<string, number>();
     const trail: string[] = [];
     let current: string | null = start;
-    while (current !== null && parents.has(current)) {
+    while (current !== null && parents.has(current) && !completed.has(current)) {
       const position = seen.get(current);
       if (position !== undefined) return [...trail.slice(position), current];
       seen.set(current, trail.length);
       trail.push(current);
       current = parents.get(current) ?? null;
     }
+    for (const identity of trail) completed.add(identity);
   }
   return null;
 }

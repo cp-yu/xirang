@@ -101,7 +101,7 @@
       "test/unit/utils/architecture-validator.test.ts",
       "xirang-definition.md"
     ],
-    "evidenceFingerprint": "e2f24c0299a7a67d98e7a0af8baea19cb1a73a3c67679d4d864bb7f807e3b3c2",
+    "evidenceFingerprint": "45efcb30d6ec24a21a750b69f062531608c723d483330bb514a493d11f6d17ad",
     "evidenceFingerprintEntries": [
       {
         "path": ".github/workflows/test-windows.yml",
@@ -109,7 +109,7 @@
       },
       {
         "path": ".xirang/changes/optimize-build-workflow/.apply-isolation.json",
-        "hash": "c5043ce92bd33d64a0307760c3a793f5a987e55e34b22bf55eca35c0cf197d9d"
+        "hash": "86f1cac356a46e40050b6d54cb0a0aff2991908090beff7b10822610b65d01b3"
       },
       {
         "path": ".xirang/changes/optimize-build-workflow/.xirang.yaml",
@@ -237,7 +237,7 @@
       },
       {
         "path": "src/core/model/validator.ts",
-        "hash": "3b875b838514e82bbc6f1690207a19437d8131c4bb819248c9b0a9aead725cc7"
+        "hash": "f9237b7d9e9e5fb2269b1540470c8c761bc37d96ce11e6adc65ba1cd9dc33e49"
       },
       {
         "path": "src/core/semantic-diff.ts",
@@ -281,7 +281,7 @@
       },
       {
         "path": "test/core/model/validator.test.ts",
-        "hash": "36771254c448fa13568ceaf33ddb817bf562f0cdabc3c2a3e83870d938943b3e"
+        "hash": "535aa07f4a6b896de908ff97562d30e41022c5a48c372cd5c84372497ebe4b50"
       },
       {
         "path": "test/core/templates/build.test.ts",
@@ -319,12 +319,24 @@
     "skippedEvidenceFiles": [
       ".xirang/changes/optimize-build-workflow/.verify-result.json"
     ],
-    "gitHeadCommit": "9730d41a8511896c65709b35f632541027d8bff1",
-    "gitDiffSummary": "Validated projectRoot and changeDir as real paths under Git root /home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec. baseCommit 9730d41a8511896c65709b35f632541027d8bff1 resolves and equals HEAD. `git diff 9730d41a8511896c65709b35f632541027d8bff1...HEAD --name-only` was empty; the final `git status --short` union contained 45 paths: 43 tracked changes and two untracked Change verification artifacts. All available Semantic Delta units were read; metamodel, elements, and relationships are non-empty, while views is missing. The unique Formal Project Root is project.root. Fresh `xirang validate`, Formal architecture validation, Expected Model validation, and semantic diff compilation passed; the fresh diff has 56 entries (+52, ~4, -0) and fingerprints matching effective-change.md. `pnpm lint && pnpm build && pnpm test` succeeded with 144 test files and 1,970 tests. Both staged and unstaged `git diff --check` passed, and no introduced TODO, FIXME, HACK, orphaned import, or half-migration residue was found."
+    "gitHeadCommit": "f0d8c4813371d41697809bfe07c5bce3127a8817",
+    "gitDiffSummary": "Validated projectRoot and changeDir as real paths under Git root /home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec. baseCommit 9730d41a8511896c65709b35f632541027d8bff1 resolves and equals HEAD. `git diff 9730d41a8511896c65709b35f632541027d8bff1...HEAD --name-only` was empty; the final `git status --short` union contained 45 paths: 43 tracked changes and two untracked Change verification artifacts. All available Semantic Delta units were read; metamodel, elements, and relationships are non-empty, while views is missing. The unique Formal Project Root is project.root. Fresh `xirang validate`, Formal architecture validation, Expected Model validation, and semantic diff compilation passed; the fresh diff has 56 entries (+52, ~4, -0) and fingerprints matching effective-change.md. `pnpm lint && pnpm build && pnpm test` succeeded with 144 test files and 1,970 tests. Both staged and unstaged `git diff --check` passed, and no introduced TODO, FIXME, HACK, orphaned import, or half-migration residue was found.",
+    "timestamp": "2026-07-27T09:30:49.184Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-07-27T09:25:31.567Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-27T09:30:49.164Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-07-27T09:18:56.380Z",
       "result": "PASS_WITH_WARNINGS",
@@ -649,6 +661,102 @@
         "gitHeadCommit": "9730d41a8511896c65709b35f632541027d8bff1",
         "gitDiffSummary": "Validated projectRoot and changeDir as real paths under Git root /home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec. baseCommit 9730d41a8511896c65709b35f632541027d8bff1 resolves and equals HEAD. `git diff 9730d41a8511896c65709b35f632541027d8bff1...HEAD --name-only` was empty; the final `git status --short` union contained 45 paths: 43 tracked changes and two untracked Change verification artifacts. All available Semantic Delta units were read; metamodel, elements, and relationships are non-empty, while views is missing. The unique Formal Project Root is project.root. Fresh `xirang validate`, Formal architecture validation, Expected Model validation, and semantic diff compilation passed; the fresh diff has 56 entries (+52, ~4, -0) and fingerprints matching effective-change.md. `pnpm lint && pnpm build && pnpm test` succeeded with 144 test files and 1,970 tests. Both staged and unstaged `git diff --check` passed, and no introduced TODO, FIXME, HACK, orphaned import, or half-migration residue was found."
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "src/core/model/validator.ts"
+          ],
+          "symbols": [
+            "containmentCycle",
+            "checkHierarchy",
+            "validateSemanticModel"
+          ]
+        },
+        "opportunity": "The containment-cycle scan restarts from every Element and re-traverses already proven acyclic ancestor chains, making validation quadratic for deep or chain-shaped hierarchies.",
+        "impact": "Reduce hierarchy cycle detection from O(n²) to O(n) while lowering repeated work in Candidate validation, Expected Model compilation, Formal validation, and promotion post-write validation.",
+        "evidence": [
+          "src/core/model/validator.ts:47-59 creates a new seen map and trail for every parents-map key, then follows the complete ancestor chain without remembering nodes proven acyclic by earlier starts.",
+          "For an acyclic chain inserted root-first, each successive Element revisits its already checked ancestors, producing approximately 1 + 2 + ... + n parent visits.",
+          "src/core/model/validator.ts:225-234 runs checkHierarchy as part of every validateSemanticModel invocation.",
+          "validateSemanticModel is called from src/core/candidate/validator.ts:315-321, src/core/change-compiler.ts:132-139, src/core/candidate/promotion.ts:269-273, and the Formal architecture validation command, so the redundant traversal is repeated across the Build and Change workflows.",
+          "test/core/model/validator.test.ts:72-85 establishes arbitrary-depth hierarchy support but currently exercises only eight levels and does not guard against repeated ancestor traversal."
+        ],
+        "recommendation": "Memoize nodes whose ancestry has already been completely checked, while retaining the traversal-local position map used to reconstruct the first detected cycle.",
+        "keyDesign": "Keep the algorithm iterative. Iterate starts in the existing Map insertion order; skip starts in a completed set; walk with the existing local trail and identity-to-position map; stop when reaching null, an unknown parent, or a completed node; after an acyclic walk mark its entire trail completed. On a local repeat, return the existing trail slice plus repeated identity unchanged.",
+        "preservationConstraints": [
+          "Return the same first cycle for the same parents Map insertion order.",
+          "Preserve the exact cycle identity sequence used by the CONTAINMENT_CYCLE message and diagnostic identity.",
+          "Do not classify a missing parent, null parent, or ancestry leading to a previously completed acyclic node as a cycle.",
+          "Preserve existing hierarchy diagnostic ordering relative to root, missing-parent, containment-constraint, relationship, Contract, and View diagnostics.",
+          "Preserve arbitrary-depth support without introducing recursive call-stack limits.",
+          "Do not change validateSemanticModel inputs, outputs, diagnostic codes, messages, or public contracts."
+        ],
+        "implementationOutline": [
+          "Add a completed identity set local to containmentCycle.",
+          "Skip a start whose ancestry has already been proven acyclic.",
+          "During traversal, retain the current local seen positions and trail so cycle extraction remains byte-for-byte equivalent.",
+          "Terminate an acyclic traversal when it reaches null, an identity absent from parents, or a completed identity, then add every traversed identity to completed.",
+          "Add focused regression coverage for a long acyclic chain, shared ancestry, disconnected components, a cycle reached through a prefix, and preservation of the first-cycle diagnostic sequence."
+        ],
+        "validation": [
+          "Run pnpm test -- test/core/model/validator.test.ts test/unit/utils/architecture-validator.test.ts to prove existing hierarchy diagnostics and arbitrary-depth behavior remain intact.",
+          "Add assertions that mixed disconnected hierarchies report the same first CONTAINMENT_CYCLE identity and message as the current declaration-order semantics.",
+          "Add cases proving missing parents and chains terminating in completed ancestry still produce the existing non-cycle diagnostics.",
+          "Use a non-timing-gated synthetic comparison over progressively doubled linear hierarchies to confirm traversal growth is approximately linear rather than quadratic.",
+          "Run pnpm lint && pnpm build && pnpm test to verify all Candidate, Expected Model, Formal validation, and promotion consumers preserve behavior."
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "This is the sole admitted optimization: it removes statically proven repeated work from a shared validation gate with a small local change and closed preservation constraints. Other observed micro-allocations and already-applied lookup scans have lower demonstrated value relative to implementation and re-verification cost.",
+        "id": "OPT-20260727T092531565Z-01",
+        "targetFileHashes": {
+          "src/core/model/validator.ts": "3b875b838514e82bbc6f1690207a19437d8131c4bb819248c9b0a9aead725cc7"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-27T09:25:31.565Z",
+        "findingId": "OPT-20260727T092531565Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "select",
+        "reason": "This is the sole admitted optimization: it removes statically proven repeated work from a shared validation gate with a small local change and closed preservation constraints. Other observed micro-allocations and already-applied lookup scans have lower demonstrated value relative to implementation and re-verification cost.",
+        "timestamp": "2026-07-27T09:25:31.567Z",
+        "findingId": "OPT-20260727T092531565Z-01",
+        "hashes": {
+          "src/core/model/validator.ts": "3b875b838514e82bbc6f1690207a19437d8131c4bb819248c9b0a9aead725cc7"
+        }
+      },
+      {
+        "sequence": 3,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-27T09:25:39.377Z",
+        "findingId": "OPT-20260727T092531565Z-01",
+        "hashes": {
+          "src/core/model/validator.ts": "3b875b838514e82bbc6f1690207a19437d8131c4bb819248c9b0a9aead725cc7"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-27T09:30:49.164Z",
+        "findingId": "OPT-20260727T092531565Z-01"
+      }
+    ],
+    "reconciliationSignature": "10c80ed28fc3efde2f339a026e905cbbe62888b12032b8f1eea9b83483e1e9dd",
+    "unchangedReconciliations": 0
   }
 }
