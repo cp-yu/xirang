@@ -1,0 +1,13 @@
+relationships:
+  - source: agent
+    kind: invokes
+    target: deterministic-operations
+  - source: explore
+    kind: invokes
+    target: deterministic-operations
+  - source: snack
+    kind: invokes
+    target: deterministic-operations
+  - source: change-closure
+    kind: invokes
+    target: deterministic-operations

@@ -1,0 +1,28 @@
+relationships:
+  - source: change-formation
+    kind: consumes
+    target: semantic-model
+  - source: change-implementation
+    kind: consumes
+    target: change
+  - source: change-realization
+    kind: consumes
+    target: change
+  - source: apply
+    kind: consumes
+    target: semantic-delta
+  - source: review
+    kind: consumes
+    target: change
+  - source: optimization
+    kind: consumes
+    target: change
+  - source: change-closure
+    kind: consumes
+    target: semantic-delta
+  - source: deterministic-operations
+    kind: consumes
+    target: semantic-model
+  - source: deterministic-operations
+    kind: consumes
+    target: change
