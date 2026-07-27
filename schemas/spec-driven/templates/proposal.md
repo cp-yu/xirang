@@ -12,34 +12,34 @@
 
 #### New Specs
 
-<!-- List new Spec IDs. Each creates specs/<spec-id>/spec.md. Use None when no new Specs are required. -->
-- `<spec-id>`: <observable behavior covered by the new Spec>
+<!-- List element identities for new Contracts. Use None when no new behavior source is required. -->
+- `<element identity>`: <observable behavior covered by the new Contract>
 
 #### Modified Specs
 
-<!-- List existing Spec IDs whose observable requirements change. Use None when no existing Specs change. -->
-- `<existing-spec-id>`: <observable behavior that changes>
+<!-- List existing element identities whose observable requirements change. Use None when no existing Contracts change. -->
+- `<element identity>`: <observable behavior that changes>
 
 ### Architecture Source
 
-#### Added LikeC4 Elements
+#### Added Elements
 
-<!-- List new LikeC4 element IDs when known. Define exact target-state elements and relations in architecture-delta.c4. Use None when no elements are added. -->
-- `domain_name.capability_name`: <new architectural responsibility>
+<!-- List new element identities. Define exact target-state entries under elements/, metamodel/, relationships/, or views/. Use None when no Elements are added. -->
+- `<element identity>`: <new semantic responsibility>
 
-#### Modified LikeC4 Elements
+#### Modified Elements
 
-<!-- List existing LikeC4 element IDs whose responsibility, ownership, or boundary changes. Use None when no elements change. -->
-- `domain_name.capability_name`: <architecture responsibility or boundary that changes>
+<!-- List existing element identities whose responsibility, ownership, or boundary changes. Use None when no Elements change. -->
+- `<element identity>`: <responsibility or boundary that changes>
 
-#### Removed LikeC4 Elements
+#### Removed Elements
 
-<!-- List LikeC4 element IDs removed from the target architecture. Use None when no elements are removed. -->
-- `domain_name.capability_name`: <why the architecture no longer contains this element>
+<!-- List element identities removed from the target model. Use None when no Elements are removed. -->
+- `<element identity>`: <why the target model no longer contains this Element>
 
 #### Architecture Relations
 
-<!-- Summarize affected semantic collaboration without defining authoritative typed relations here. Exact relations belong in architecture-delta.c4. Use None when relations do not change. -->
+<!-- Summarize affected semantic collaboration without defining target entries here. Exact entries belong under elements/, metamodel/, relationships/, or views/. Use None when relationships do not change. -->
 - <relationship or collaboration impact>
 
 ## Impact

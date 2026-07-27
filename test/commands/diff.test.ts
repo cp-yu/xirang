@@ -2,127 +2,90 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { runCLI } from '../helpers/run-cli.js';
+import { writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 
-const architecture = `xirang { languageVersion '1' }
-specification {
-  element project { xirang { root true contract optional } }
-  element capability { xirang { contract optional parents [project] } }
-  relationship invokes
-}
-model {
-  project_root = project 'Root' 'Root summary' {
-    metadata { elementId 'project.root' }
-    existing = capability 'Existing' 'Existing summary' {
-      metadata { elementId 'existing.id' status 'active' }
-    }
-  }
-}
-`;
+const FORMAL_CONTRACT = '## Requirements\n\n### Requirement: Existing behavior\nThe system SHALL return the existing result.\n\n#### Scenario: Existing scenario\n- **WHEN** the behavior runs\n- **THEN** the existing result is returned';
 
-const formalSpec = `---
-element: existing.id
----
-
-# Existing
-
-## Purpose
-Existing contract.
-
-## Requirements
-
-### Requirement: Existing behavior
-The system SHALL return the existing result.
-
-#### Scenario: Existing scenario
-- **WHEN** the behavior runs
-- **THEN** the existing result is returned
-`;
-
-const changeSpec = `---
-element: existing.id
----
-
-## MODIFIED Requirements
-
-### Requirement: Existing behavior
-The system SHALL return the changed result.
-
-#### Scenario: Existing scenario
-- **WHEN** the behavior runs
-- **THEN** the changed result is returned
-`;
-
-const validDelta = `architectureDelta {
-  MODIFIED {
-    element 'existing.id' {
-      kind 'capability'
-      parent 'project.root'
-      title 'Existing'
-      summary 'Changed summary'
-      metadata { elementId 'existing.id' }
-    }
-  }
-}
-`;
+const ELEMENT_DELTA = '---\noperation: MODIFIED\nentity: element-declaration\nidentity: existing.id\nkind: capability\nparent: project.root\ntitle: Existing\nsummary: Changed summary\n---\n\n'
+  + '## MODIFIED Requirements\n\n### Requirement: Existing behavior\nThe system SHALL return the changed result.\n\n'
+  + '#### Scenario: Existing scenario\n- **WHEN** the behavior runs\n- **THEN** the changed result is returned\n';
 
 describe('diff command', () => {
   const root = path.join(process.cwd(), 'test-diff-command-tmp');
   const changeDir = path.join(root, '.xirang', 'changes', 'change-a');
 
   beforeEach(async () => {
-    await fs.mkdir(path.join(root, '.xirang', 'architecture'), { recursive: true });
-    await fs.mkdir(path.join(root, '.xirang', 'specs', 'existing'), { recursive: true });
-    await fs.mkdir(path.join(changeDir, 'specs', 'existing'), { recursive: true });
-    await fs.writeFile(path.join(root, '.xirang', 'architecture', 'model.c4'), architecture);
-    await fs.writeFile(path.join(root, '.xirang', 'specs', 'existing', 'spec.md'), formalSpec);
-    await fs.writeFile(path.join(changeDir, 'specs', 'existing', 'spec.md'), changeSpec);
-    await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), validDelta);
+    await writeProjectModel(root, {
+      elementKinds: [
+        { identity: 'project', root: true, children: ['capability'] },
+        { identity: 'capability', parents: ['project'] },
+      ],
+      relationshipKinds: [{ identity: 'invokes' }],
+      elements: [
+        { identity: 'project.root', kind: 'project', parent: null, title: 'Root', summary: 'Root summary' },
+        { identity: 'existing.id', parent: 'project.root', title: 'Existing', summary: 'Existing summary', requirements: FORMAL_CONTRACT },
+      ],
+      views: [{ identity: 'index' }],
+    });
+    await writeChangeDelta(root, 'change-a', { 'elements/existing.id.md': ELEMENT_DELTA });
   });
 
   afterEach(async () => fs.rm(root, { recursive: true, force: true }));
 
-  it('projects one compiled result to JSON and scope-filtered text', async () => {
+  it('keeps the Diff IR free of partitions and filters text output by entity type', async () => {
     const jsonResult = await runCLI(['diff', '--change', 'change-a', '--json'], { cwd: root });
-    const specsResult = await runCLI(['diff', '--change', 'change-a', '--scope', 'specs'], { cwd: root });
-    const architectureResult = await runCLI(['diff', '--change', 'change-a', '--scope', 'architecture'], { cwd: root });
+    const requirementOnly = await runCLI(['diff', '--change', 'change-a', '--entity', 'requirement'], { cwd: root });
+    const declarationOnly = await runCLI(['diff', '--change', 'change-a', '--entity', 'element-declaration'], { cwd: root });
 
     expect(jsonResult.stderr).toBe('');
     expect(jsonResult.exitCode).toBe(0);
     const json = JSON.parse(jsonResult.stdout);
     expect(json).toMatchObject({ schemaVersion: '1', change: 'change-a', valid: true });
     expect(json.entries).toEqual(expect.arrayContaining([
-      expect.objectContaining({ scope: 'specs', kind: 'requirement', identity: 'existing#Existing behavior' }),
-      expect.objectContaining({ scope: 'architecture', kind: 'element', identity: 'existing.id' }),
+      expect.objectContaining({ kind: 'requirement', identity: 'existing.id#Existing behavior' }),
+      expect.objectContaining({ kind: 'element-declaration', identity: 'existing.id' }),
     ]));
-    expect(specsResult.stdout).toContain('Specs');
-    expect(specsResult.stdout).not.toContain('Architecture\n');
-    expect(architectureResult.stdout).toContain('Architecture');
-    expect(architectureResult.stdout).not.toContain('Specs\n');
+    for (const entry of json.entries) expect(entry).not.toHaveProperty('scope');
+    expect(Object.keys(json.summary).sort()).toEqual(['ADDED', 'MODIFIED', 'REMOVED', 'total']);
+
+    expect(requirementOnly.stdout).toContain('requirement existing.id#Existing behavior');
+    expect(requirementOnly.stdout).not.toContain('element-declaration existing.id');
+    expect(declarationOnly.stdout).toContain('element-declaration existing.id');
+    expect(declarationOnly.stdout).not.toContain('requirement existing.id#Existing behavior');
     expect(await fs.readdir(changeDir)).not.toContain('effective-change.md');
   });
 
-  it('retains Architecture diff when a malformed change Spec makes the result invalid', async () => {
-    await fs.writeFile(path.join(changeDir, 'specs', 'existing', 'spec.md'), `---
-element: existing.id
----
+  it('accepts comma-separated entity types and rejects unknown ones', async () => {
+    const both = await runCLI(['diff', '--change', 'change-a', '--entity', 'element-declaration,requirement'], { cwd: root });
+    expect(both.stdout).toContain('element-declaration existing.id');
+    expect(both.stdout).toContain('requirement existing.id#Existing behavior');
 
-## MODIFIED Requirements
+    const unknown = await runCLI(['diff', '--change', 'change-a', '--entity', 'specs'], { cwd: root });
+    expect(unknown.exitCode).toBe(1);
+    expect(unknown.stderr).toContain("Unknown diff entity 'specs'");
+    expect(unknown.stderr).toContain('element-declaration');
 
-### Requirement: Existing behavior
-This text has no normative keyword.
-`);
+    const removedScope = await runCLI(['diff', '--change', 'change-a', '--scope', 'specs'], { cwd: root });
+    expect(removedScope.exitCode).toBe(1);
+    expect(removedScope.stderr).toContain("unknown option '--scope'");
+  });
 
-    const result = await runCLI(['diff', '--change', 'change-a', '--json'], { cwd: root });
-    const json = JSON.parse(result.stdout);
+  it('reports Authored View differences', async () => {
+    await writeChangeDelta(root, 'view-change', {
+      'views/detail.md': '---\noperation: ADDED\nentity: authored-view\nidentity: detail\ninclude: "*"\n---\n',
+      'views/index.md': '---\noperation: REMOVED\nentity: authored-view\nidentity: index\n---\n',
+    });
 
-    expect(result.exitCode).toBe(1);
-    expect(json.valid).toBe(false);
-    expect(json.diagnostics).toEqual(expect.arrayContaining([
-      expect.objectContaining({ path: expect.stringContaining('specs/existing/spec.md') }),
+    const result = await runCLI(['diff', '--change', 'view-change', '--json'], { cwd: root });
+    const entries = JSON.parse(result.stdout).entries;
+
+    expect(entries).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'authored-view', identity: 'detail', operation: 'ADDED' }),
+      expect.objectContaining({ kind: 'authored-view', identity: 'index', operation: 'REMOVED' }),
     ]));
-    expect(json.entries).toEqual(expect.arrayContaining([
-      expect.objectContaining({ scope: 'architecture', kind: 'element', identity: 'existing.id' }),
-    ]));
+
+    const filtered = await runCLI(['diff', '--change', 'view-change', '--entity', 'authored-view'], { cwd: root });
+    expect(filtered.stdout).toContain('authored-view detail');
   });
 
   it('writes deterministic reports and replaces stale success with a failed report', async () => {
@@ -139,13 +102,14 @@ This text has no normative keyword.
     expect(firstReport).toContain('Status: Passed');
     expect(firstReport).not.toContain('generatedAt');
 
-    await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), `architectureDelta { ADDED { extend root { } } }`);
+    await fs.writeFile(path.join(changeDir, 'elements', 'ghost.md'),
+      '---\noperation: MODIFIED\nentity: element-declaration\nidentity: ghost\nkind: capability\nparent: project.root\ntitle: Ghost\nsummary: Ghost\n---\n');
     const failed = await runCLI(['diff', '--change', 'change-a', '--write'], { cwd: root });
     const failedReport = await fs.readFile(reportPath, 'utf8');
 
     expect(failed.exitCode).toBe(1);
     expect(failedReport).toContain('Status: Failed');
     expect(failedReport).not.toBe(firstReport);
-    expect(failedReport).toContain('Unsupported architecture delta syntax: extend');
+    expect(failedReport).toContain('MODIFIED_IDENTITY_MISSING');
   });
 });

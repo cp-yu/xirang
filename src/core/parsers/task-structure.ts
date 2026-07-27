@@ -74,6 +74,9 @@ const REQUIREMENT_RE = /\bRequirement\s+"([^"]+)"/;
 const REMOVED_REQUIREMENT_RE = /\bREMOVED\s+Requirement\s+"([^"]+)"/;
 const SCENARIOS_RE = /\bScenarios?\s+(.+)$/;
 const SCENARIO_NAME_RE = /"([^"]+)"/g;
+/** An Element Contract is the body of its Element unit; the unit name is `<identity>.md`. */
+const ELEMENTS_PARTITION = 'elements';
+const UNIT_FILE_RE = /^[A-Za-z0-9._-]+\.md$/;
 
 export function validateTaskStructure(
   content: string,
@@ -413,20 +416,15 @@ function parsePreserves(value: string): { specPath: string; requirement: string;
 }
 
 function listChangeSpecFiles(changeDir: string): Set<string> {
-  const specsDir = path.join(changeDir, 'specs');
-  if (!fs.existsSync(specsDir)) {
+  const elementsDir = path.join(changeDir, ELEMENTS_PARTITION);
+  if (!fs.existsSync(elementsDir)) {
     return new Set();
   }
 
   const files = new Set<string>();
-  for (const capability of fs.readdirSync(specsDir, { withFileTypes: true })) {
-    if (!capability.isDirectory()) {
-      continue;
-    }
-
-    const specPath = path.join(specsDir, capability.name, 'spec.md');
-    if (fs.existsSync(specPath)) {
-      files.add(path.posix.join('specs', capability.name, 'spec.md'));
+  for (const unit of fs.readdirSync(elementsDir, { withFileTypes: true })) {
+    if (unit.isFile() && UNIT_FILE_RE.test(unit.name)) {
+      files.add(path.posix.join(ELEMENTS_PARTITION, unit.name));
     }
   }
 
@@ -448,7 +446,7 @@ function isValidChangeSpecPath(specPath: string): boolean {
   }
 
   const parts = specPath.split('/');
-  return parts.length === 3 && parts[0] === 'specs' && parts[1] !== '' && parts[2] === 'spec.md';
+  return parts.length === 2 && parts[0] === ELEMENTS_PARTITION && UNIT_FILE_RE.test(parts[1]);
 }
 
 function isValidMainSpecPath(specPath: string): boolean {
@@ -460,9 +458,9 @@ function isValidMainSpecPath(specPath: string): boolean {
   return (
     parts.length === 4 &&
     parts[0] === '.xirang' &&
-    parts[1] === 'specs' &&
-    parts[2] !== '' &&
-    parts[3] === 'spec.md'
+    parts[1] === 'model' &&
+    parts[2] === ELEMENTS_PARTITION &&
+    UNIT_FILE_RE.test(parts[3])
   );
 }
 

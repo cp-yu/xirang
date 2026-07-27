@@ -8,7 +8,13 @@ import { selectDiagramSnapshot, useDiagramSelector } from '../hooks'
 import { useDiagramActorRef } from '../hooks/useDiagram'
 import { NavigationPanel } from '../navigationpanel'
 import { materializeXirangArchitectureView } from '../xirang/architectureView'
-import { isXirangSpecDiagnostic, type XirangRuntimeVariant, useXirangVariants } from '../xirang/SpecLoaderContext'
+import {
+  isXirangContractDiagnostic,
+  type XirangDiffOperation,
+  type XirangRuntimeVariant,
+  useXirangVariants,
+  xirangVariantRevision,
+} from '../xirang/SpecLoaderContext'
 import { Overlays } from '../overlays/Overlays'
 import { Search } from '../search/Search'
 import { RelationshipPopover } from './relationship-popover/RelationshipPopover'
@@ -32,12 +38,20 @@ const selectChildren = selectDiagramSnapshot(s => ({
     }),
 }))
 
+const structuralDiffKinds = new Set(['element-declaration', 'element-kind', 'relationship-kind', 'authored-view', 'relationship'])
+
+function countOperations(entries: readonly { operation: XirangDiffOperation }[]): Record<XirangDiffOperation, number> {
+  const counts: Record<XirangDiffOperation, number> = { ADDED: 0, MODIFIED: 0, REMOVED: 0 }
+  for (const entry of entries) counts[entry.operation] += 1
+  return counts
+}
+
 export function getArchitectureOverlayModel(variant: XirangRuntimeVariant) {
-  const entries = variant.diff?.entries.filter(entry => entry.scope === 'architecture') ?? []
+  const entries = variant.diff?.entries.filter(entry => structuralDiffKinds.has(entry.kind)) ?? []
   const changed = new Set<string>()
   const context = new Set<string>()
   for (const entry of entries) {
-    if (entry.kind === 'element') {
+    if (entry.kind === 'element-declaration') {
       changed.add(entry.identity)
       const beforeParent = entry.before && typeof entry.before === 'object' ? (entry.before as { parent?: unknown }).parent : null
       const afterParent = entry.after && typeof entry.after === 'object' ? (entry.after as { parent?: unknown }).parent : null
@@ -55,8 +69,8 @@ export function getArchitectureOverlayModel(variant: XirangRuntimeVariant) {
     entries,
     changed: [...changed].sort(),
     context: [...context].sort(),
-    counts: variant.diff?.summary.architecture ?? { ADDED: 0, MODIFIED: 0, REMOVED: 0 },
-    diagnostics: variant.diagnostics.filter(diagnostic => !isXirangSpecDiagnostic(diagnostic.path)),
+    counts: countOperations(entries),
+    diagnostics: variant.diagnostics.filter(diagnostic => !isXirangContractDiagnostic(diagnostic)),
   }
 }
 
@@ -79,7 +93,7 @@ function XirangArchitectureOverlay() {
       ? materializeXirangArchitectureView(formalView.current, selected, mode)
       : formalView.current
     actorRef.send({ type: 'update.view', view, source: 'external' })
-  }, [actorRef, mode, runtime.selected.id, runtime.selected.kind, runtime.selected.architectureFingerprint])
+  }, [actorRef, mode, runtime.selected.id, runtime.selected.kind, xirangVariantRevision(runtime.selected)])
 
   if (runtime.selected.kind !== 'change') return null
   const overlay = getArchitectureOverlayModel(runtime.selected)

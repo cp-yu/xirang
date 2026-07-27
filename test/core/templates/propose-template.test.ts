@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { XIRANG_PHILOSOPHY } from '../../../src/core/templates/fragments/xirang-fragments.js';
+import {
+  ELEMENT_CONTRACT_SEMANTICS,
+  XIRANG_PHILOSOPHY,
+} from '../../../src/core/templates/fragments/xirang-fragments.js';
 import {
   getOpsxProposeSkillTemplate,
 } from '../../../src/core/templates/workflows/propose.js';
@@ -12,16 +15,31 @@ function getProposeBodies(): string[] {
 }
 
 describe('propose template post-validation flow', () => {
-  it('authors and validates LikeC4 architecture deltas', () => {
+  it('authors and validates four-partition Semantic Delta units', () => {
     const instructions = getOpsxProposeSkillTemplate().instructions;
-    expect(instructions).toContain('architecture-delta.c4');
-    expect(instructions).toContain('affected elements, refinement, Element Contracts, and relationships');
-    expect(instructions).toContain('-[invokes]->');
-    expect(instructions).toContain('xirang arch validate --delta');
+    expect(instructions).toContain('.xirang/changes/<name>/elements/<identity>.md');
+    expect(instructions).toContain('relationships/<relationship kind identity>.yaml');
+    expect(instructions).toContain('metamodel/<kind identity>.md');
+    expect(instructions).toContain('views/<view identity>.md');
+    expect(instructions).toContain('`relationships/` has no `MODIFIED`');
+    expect(instructions).toContain('xirang arch validate --change "<name>" --json');
+    for (const retired of [
+      'architecture-delta',
+      '-[invokes]->',
+      'arch validate --delta',
+      '.xirang/specs',
+      'spec-id',
+      'elementId',
+      'list --specs',
+    ]) {
+      expect(instructions).not.toContain(retired);
+    }
   });
 
-  it('includes the Xirang philosophy in the skill surface', () => {
-    expect(getOpsxProposeSkillTemplate().instructions).toContain(XIRANG_PHILOSOPHY);
+  it('includes the Xirang philosophy and shared Contract semantics in the skill surface', () => {
+    const instructions = getOpsxProposeSkillTemplate().instructions;
+    expect(instructions).toContain(XIRANG_PHILOSOPHY);
+    expect(instructions).toContain(ELEMENT_CONTRACT_SEMANTICS);
   });
 
   it('resolves new and existing change identity without rename semantics', () => {
@@ -36,10 +54,12 @@ describe('propose template post-validation flow', () => {
     expect(instructions).not.toContain('xirang rename');
   });
 
-  it('navigates the formal LikeC4 model before authoring', () => {
+  it('navigates the formal Semantic Model before authoring', () => {
     const instructions = getOpsxProposeSkillTemplate().instructions;
-    expect(instructions).toContain('.xirang/architecture/');
-    expect(instructions).toContain('xirang arch query <elementId> --relations --depth 2 --json');
+    expect(instructions).toContain('.xirang/model/{metamodel,elements,relationships,views}/');
+    expect(instructions).toContain('xirang arch search <query> --json');
+    expect(instructions).toContain('xirang arch query <identity> --relations --depth 2 --json');
+    expect(instructions).not.toContain('.xirang/architecture/');
     expect(instructions).not.toContain('.xirang/project.xirang.yaml');
   });
 
@@ -66,9 +86,9 @@ describe('propose template post-validation flow', () => {
     }
   });
 
-  it('authors delta specs from formal requirement titles without check-delta', () => {
+  it('authors Contract deltas from formal requirement titles without check-delta', () => {
     const template = getOpsxProposeSkillTemplate();
-    expect(template.instructions).toMatch(/read the exact Requirement titles from the formal Spec/i);
+    expect(template.instructions).toMatch(/read the exact Requirement titles from the formal Element Contract/i);
     expect(template.instructions).toContain('combined change validation');
     expect(template.instructions).not.toContain('xirang check-delta');
     expect(template).not.toHaveProperty('referenceFiles');
@@ -88,7 +108,7 @@ describe('propose template post-validation flow', () => {
       expect(body).toContain('Checks');
       expect(body).toContain('Covers:');
       expect(body).toContain('Verifies:');
-      expect(body).toContain('change-local `Verifies:` spec paths');
+      expect(body).toContain('change-local `Verifies:` Element unit paths');
       expect(body).toContain('Requirement/Scenario references');
       expect(body).toContain('Command:');
       expect(body).toContain('Evidence:');
@@ -101,7 +121,7 @@ describe('propose template post-validation flow', () => {
   it('uses Design Summary or semantic readiness without mechanical scoring', () => {
     for (const body of getProposeBodies()) {
       expect(body).toContain('confirmed `Design Summary`');
-      expect(body).toContain('architecture decisions to proposal Architecture Source, `design.md`, and `architecture-delta.c4`');
+      expect(body).toContain('architecture decisions to proposal Architecture Source, `design.md`, and the Declaration, Relationship, Metamodel, and View Delta units');
       expect(body).toContain('testing strategy to `design.md`');
       expect(body).toContain('concrete test work to `tasks.md`');
       expect(body).toContain('risk and trade-off decisions to `design.md`');
@@ -109,7 +129,7 @@ describe('propose template post-validation flow', () => {
       expect(body).toContain('impact scope');
       expect(body).toContain('approach');
       expect(body).toContain('verification method');
-      expect(body).toContain('unresolved Semantic Delta decisions across contract or graph module scope');
+      expect(body).toContain('unresolved Semantic Delta decisions across Contract or structural scope');
       expect(body).toContain('explicitly overrides the readiness recommendation');
       expect(body).toContain('does not authorize guessing source decisions');
       expect(body).toMatch(/ask one focused question at a time/i);
@@ -136,51 +156,49 @@ describe('propose template post-validation flow', () => {
     expect(body).not.toContain('<!--');
   });
 
-  it('uses the Element Contract registry and stable element identities', () => {
+  it('treats an Element Contract as the body of one Element unit', () => {
     for (const body of getProposeBodies()) {
-      expect(body).toContain('xirang list --specs --json');
-      expect(body).toContain('Spec ID');
-      expect(body).toContain('singular owner binding');
-      expect(body).toContain('stable `elementId`');
-      expect(body).toContain('does not by itself require a New Spec');
+      expect(body).toContain('one Element has at most one Contract');
+      expect(body).toContain('xirang arch query <identity> --relations --depth 2 --json');
+      expect(body).toContain('An optional-contract Element without a Contract does not by itself require a new one');
       expect(body).toContain('genuinely new observable behavior');
       expect(body).not.toContain('`capabilities` string array');
       expect(body).not.toContain('xirang spec list');
+      expect(body).not.toContain('singular owner binding');
     }
   });
 
-  it('determines contract and graph scopes as one Semantic Delta', () => {
+  it('determines Contract and structural scopes as one Semantic Delta', () => {
     const body = getOpsxProposeSkillTemplate().instructions;
     for (const token of [
-      'contract and graph module scopes of one Semantic Delta',
+      'Contract and structural scopes of one Semantic Delta',
       'Behavior Source',
       'Architecture Source',
       'New Specs',
       'Modified Specs',
-      'Spec ID',
-      'stable `elementId`',
-      'Use `None` only when that module scope truly does not change',
+      'Both sections address the same identity space',
+      'Use `None` only when that scope truly does not change',
     ]) {
       expect(body).toContain(token);
     }
   });
 
-  it('uses proposal Behavior Source as the delta Spec input', () => {
+  it('uses proposal Behavior Source as the Element Contract delta input', () => {
     const body = getOpsxProposeSkillTemplate().instructions;
-    expect(body).toContain('create or modify only the Spec IDs declared under proposal `Behavior Source`');
-    expect(body).toMatch(/read the exact Requirement titles from the formal Spec/i);
+    expect(body).toContain('for exactly the identities declared under proposal `Behavior Source`');
+    expect(body).toMatch(/read the exact Requirement titles from the formal Element Contract/i);
     expect(body).not.toContain('xirang check-delta');
   });
 
   it('reconciles Architecture Source after Specs and Design', () => {
     const body = getOpsxProposeSkillTemplate().instructions;
     const designIndex = body.indexOf('After Specs and Design are complete');
-    const deltaIndex = body.indexOf('architecture-delta.c4', designIndex);
+    const deltaIndex = body.indexOf('relationships/<relationship kind identity>.yaml', designIndex);
     expect(designIndex).toBeGreaterThanOrEqual(0);
     expect(deltaIndex).toBeGreaterThan(designIndex);
     expect(body).toContain('update only proposal `Architecture Source`');
     expect(body).toContain('formal Xirang Semantic Model');
-    expect(body).toContain('do not invent graph changes from contract changes alone');
+    expect(body).toContain('do not invent structural changes from Contract changes alone');
   });
 
   it('does not duplicate the resolved Specs content boundary', () => {

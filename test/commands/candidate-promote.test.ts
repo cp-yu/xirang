@@ -9,7 +9,7 @@ import {
   promoteCandidate,
   recoverPendingCandidatePromotions,
 } from '../../src/core/candidate/promotion.js';
-import { SEMANTIC_DIRECTORY_JOURNAL } from '../../src/core/change-sync.js';
+import { SEMANTIC_DIRECTORY_JOURNAL, SEMANTIC_PARTITIONS } from '../../src/core/model/transaction.js';
 
 async function exists(target: string): Promise<boolean> {
   return fs.lstat(target).then(() => true, () => false);
@@ -24,8 +24,7 @@ async function readFormalTree(root: string): Promise<Map<string, Buffer>> {
       else if (entry.isFile()) files.set(path.relative(root, target), await fs.readFile(target));
     }
   };
-  await visit(path.join(root, '.xirang', 'architecture'));
-  await visit(path.join(root, '.xirang', 'specs'));
+  for (const partition of SEMANTIC_PARTITIONS) await visit(path.join(root, '.xirang', 'model', partition));
   return files;
 }
 
@@ -36,9 +35,6 @@ describe('Candidate promotion', () => {
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-candidate-promote-'));
     await new SetupCommand({ tools: 'none', force: true }).execute(root);
-    const projectSpec = path.join(root, '.xirang', 'specs', 'project-contract', 'spec.md');
-    await fs.mkdir(path.dirname(projectSpec), { recursive: true });
-    await fs.writeFile(projectSpec, `---\nelement: project.root\n---\n\n# Project Contract Specification\n\n## Purpose\nDefines the project contract used by Candidate promotion tests.\n\n## Requirements\n\n### Requirement: Project contract\nThe project SHALL expose a valid semantic contract.\n\n#### Scenario: Validate project\n- **WHEN** Candidate validation runs\n- **THEN** the project contract is accepted\n`);
     await initializeCandidate(root, { kind: 'current' });
     candidate = path.join(root, '.xirang', 'candidate');
   });
@@ -48,7 +44,7 @@ describe('Candidate promotion', () => {
   });
 
   it('backs up the complete preimage and replaces formal source exactly', async () => {
-    const stale = path.join(root, '.xirang', 'specs', 'stale', 'note.txt');
+    const stale = path.join(root, '.xirang', 'model', 'views', 'stale', 'note.txt');
     await fs.mkdir(path.dirname(stale), { recursive: true });
     await fs.writeFile(stale, 'stale formal source\n');
     const validation = await validateCandidate(root);
@@ -62,7 +58,7 @@ describe('Candidate promotion', () => {
     expect(await exists(candidate)).toBe(false);
     expect(await exists(path.dirname(stale))).toBe(false);
     const history = path.join(root, result.historyPath);
-    expect(await fs.readFile(path.join(history, 'previous', 'specs', 'stale', 'note.txt'), 'utf8'))
+    expect(await fs.readFile(path.join(history, 'previous', 'views', 'stale', 'note.txt'), 'utf8'))
       .toBe('stale formal source\n');
     expect(await fs.readFile(path.join(history, 'build.md'), 'utf8')).toBe('\n');
     expect(await exists(path.join(history, 'candidate'))).toBe(false);
@@ -70,10 +66,24 @@ describe('Candidate promotion', () => {
     expect(historyEntries.sort()).toEqual(['build.md', 'previous', 'promotion.yaml']);
     const manifest = await fs.readFile(path.join(history, 'promotion.yaml'), 'utf8');
     expect(manifest).toContain(`reviewDigest: ${validation.reviewDigest}`);
-    expect(manifest).toContain('previous/architecture');
-    expect(manifest).toContain('previous/specs');
+    for (const partition of SEMANTIC_PARTITIONS) expect(manifest).toContain(`previous/${partition}`);
     expect(manifest).not.toContain('candidate:');
     expect(manifest).not.toContain(root);
+  });
+
+  it('promotes the first Formal Model when comparison is unavailable', async () => {
+    await fs.rm(path.join(root, '.xirang', 'model'), { recursive: true, force: true });
+    const validation = await validateCandidate(root);
+
+    expect(validation.comparison.diff).toBe('unavailable');
+    expect(validation.diff).toBeUndefined();
+
+    await promoteCandidate(root, validation.reviewDigest!);
+
+    expect(await exists(candidate)).toBe(false);
+    for (const partition of SEMANTIC_PARTITIONS) {
+      expect(await exists(path.join(root, '.xirang', 'model', partition))).toBe(true);
+    }
   });
 
   it('rejects a stale digest without changing formal source or history', async () => {
@@ -107,7 +117,7 @@ describe('Candidate promotion', () => {
       transactionFilesystem: {
         rename: async (source, target) => {
           await fs.rename(source, target);
-          if (target === path.join(root, '.xirang', 'specs')
+          if (target === path.join(root, '.xirang', 'model', 'views')
             && source.includes('.candidate-promotion-')
             && !source.includes('.backup-')) {
             const build = path.join(path.dirname(source), 'candidate', 'build.md');
@@ -132,7 +142,7 @@ describe('Candidate promotion', () => {
       transactionFilesystem: {
         rename: async (source, target) => {
           await fs.rename(source, target);
-          if (target === path.join(root, '.xirang', 'specs')
+          if (target === path.join(root, '.xirang', 'model', 'views')
             && source.includes('.candidate-promotion-')
             && !source.includes('.backup-')) {
             await fs.writeFile(path.join(target, 'unreviewed.txt'), 'late formal edit\n');
@@ -145,19 +155,19 @@ describe('Candidate promotion', () => {
     expect(await exists(candidate)).toBe(true);
     const recoveryRoot = path.join(root, '.xirang', 'history', 'recovery');
     const recoveryEntry = (await fs.readdir(recoveryRoot))[0];
-    expect(await fs.readFile(path.join(recoveryRoot, recoveryEntry, 'specs', 'unreviewed.txt'), 'utf8'))
+    expect(await fs.readFile(path.join(recoveryRoot, recoveryEntry, 'views', 'unreviewed.txt'), 'utf8'))
       .toBe('late formal edit\n');
   });
 
   it('rejects concurrent formal edits and preserves them outside Candidate history', async () => {
     const validation = await validateCandidate(root);
-    const concurrent = path.join(root, '.xirang', 'specs', 'concurrent.txt');
+    const concurrent = path.join(root, '.xirang', 'model', 'views', 'concurrent.txt');
     let injected = false;
 
     await expect(promoteCandidate(root, validation.reviewDigest!, {
       transactionFilesystem: {
         stat: async (target) => {
-          if (!injected && target === path.join(root, '.xirang', 'architecture')) {
+          if (!injected && target === path.join(root, '.xirang', 'model', 'elements')) {
             injected = true;
             await fs.writeFile(concurrent, 'concurrent formal edit\n');
           }
@@ -174,8 +184,7 @@ describe('Candidate promotion', () => {
   it('preserves recovered Candidate when an active Candidate already exists', async () => {
     const staging = path.join(root, '.xirang', '.candidate-promotion-active-exists');
     const frozen = path.join(staging, 'candidate');
-    await fs.mkdir(path.join(frozen, 'architecture'), { recursive: true });
-    await fs.mkdir(path.join(frozen, 'specs'), { recursive: true });
+    for (const partition of SEMANTIC_PARTITIONS) await fs.mkdir(path.join(frozen, partition), { recursive: true });
     await fs.writeFile(path.join(frozen, 'build.md'), 'recovered candidate\n');
     await fs.writeFile(path.join(staging, 'candidate-promotion.json'), `${JSON.stringify({
       schemaVersion: 1,
@@ -214,15 +223,16 @@ describe('Candidate promotion', () => {
       state: 'prepared',
       formalFingerprint: 'unused-during-recovery',
       targetFingerprint: 'unused-during-recovery',
-      targetFingerprints: { architecture: 'expected-target', specs: 'expected-target' },
+      targetFingerprints: Object.fromEntries(SEMANTIC_PARTITIONS.map(partition => [partition, 'expected-target'])),
       backupDirectory: '.backup-interrupted',
-      existed: { architecture: true, specs: true },
+      existed: Object.fromEntries(SEMANTIC_PARTITIONS.map(partition => [partition, true])),
     }, null, 2)}\n`);
     await fs.rename(candidate, path.join(staging, 'candidate'));
-    await fs.rename(path.join(root, '.xirang', 'architecture'), path.join(backup, 'architecture'));
-    await fs.rename(path.join(root, '.xirang', 'specs'), path.join(backup, 'specs'));
-    await fs.mkdir(path.join(root, '.xirang', 'architecture'), { recursive: true });
-    await fs.writeFile(path.join(root, '.xirang', 'architecture', 'partial.c4'), 'partial\n');
+    for (const partition of SEMANTIC_PARTITIONS) {
+      await fs.rename(path.join(root, '.xirang', 'model', partition), path.join(backup, partition));
+    }
+    await fs.mkdir(path.join(root, '.xirang', 'model', 'elements'), { recursive: true });
+    await fs.writeFile(path.join(root, '.xirang', 'model', 'elements', 'partial.md'), 'partial\n');
     await fs.mkdir(path.join(root, ...historyPath.split('/')), { recursive: true });
 
     await recoverPendingCandidatePromotions(root);
@@ -237,14 +247,14 @@ describe('Candidate promotion', () => {
       'history',
       'recovery',
       '.candidate-promotion-interrupted',
-      'architecture',
-      'partial.c4',
+      'elements',
+      'partial.md',
     ), 'utf8')).toBe('partial\n');
   });
 
   it('rolls back formal writes and removes incomplete history when the transaction fails', async () => {
-    const views = path.join(candidate, 'architecture', 'views.c4');
-    await fs.writeFile(views, `${await fs.readFile(views, 'utf8').then(content => content.trimEnd())}\n// candidate change\n`);
+    await fs.writeFile(path.join(candidate, 'views', 'index.md'),
+      '---\nentity: authored-view\nidentity: index\ninclude: "*"\n---\n');
     const validation = await validateCandidate(root);
     expect(validation.valid).toBe(true);
     const before = await readFormalTree(root);
@@ -252,7 +262,7 @@ describe('Candidate promotion', () => {
     await expect(promoteCandidate(root, validation.reviewDigest!, {
       transactionFilesystem: {
         rename: async (source, target) => {
-          if (target === path.join(root, '.xirang', 'architecture')
+          if (target === path.join(root, '.xirang', 'model', 'elements')
             && source.includes('.candidate-promotion-')
             && !source.includes('.backup-')) {
             throw Object.assign(new Error('injected transaction failure'), { code: 'EIO' });

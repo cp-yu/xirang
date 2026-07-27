@@ -1,4 +1,4 @@
-import type { ChangeDiff, ChangeDiffEntry, ChangeDiagnostic, DiffScope } from './semantic-diff.js';
+import type { ChangeDiff, ChangeDiffEntry, DiffKind } from './semantic-diff.js';
 
 function symbol(operation: ChangeDiffEntry['operation']): string {
   return operation === 'ADDED' ? '+' : operation === 'MODIFIED' ? '~' : '-';
@@ -10,38 +10,28 @@ function renderEntry(entry: ChangeDiffEntry, indent = ''): string[] {
   return lines;
 }
 
-function diagnosticScope(diagnostic: ChangeDiagnostic): DiffScope {
-  return diagnostic.path.includes('spec') || diagnostic.code.includes('REQUIREMENT') || diagnostic.code.includes('SPEC_')
-    ? 'specs'
-    : 'architecture';
+function filterEntries(diff: ChangeDiff, entities?: ReadonlySet<DiffKind>): ChangeDiffEntry[] {
+  return entities ? diff.entries.filter(entry => entities.has(entry.kind)) : diff.entries;
 }
 
-function filteredEntries(diff: ChangeDiff, scope?: DiffScope): ChangeDiffEntry[] {
-  return scope ? diff.entries.filter(entry => entry.scope === scope) : diff.entries;
+function renderSummary(diff: ChangeDiff): string {
+  return `${diff.summary.total} semantic changes (+${diff.summary.ADDED} ~${diff.summary.MODIFIED} -${diff.summary.REMOVED})`;
 }
 
-function filteredDiagnostics(diff: ChangeDiff, scope?: DiffScope): ChangeDiagnostic[] {
-  return scope ? diff.diagnostics.filter(item => diagnosticScope(item) === scope) : diff.diagnostics;
-}
-
-export function renderChangeDiff(diff: ChangeDiff, scope?: DiffScope): string {
+export function renderChangeDiff(diff: ChangeDiff, entities?: ReadonlySet<DiffKind>): string {
   const lines = [
     `Change: ${diff.change}`,
     `Status: ${diff.valid ? 'Passed' : 'Failed'}`,
-    `Summary: ${diff.summary.total} semantic changes`,
+    `Summary: ${renderSummary(diff)}`,
+    '',
+    'Semantic Delta',
   ];
-  const sections: Array<[DiffScope, string]> = [['specs', 'Specs'], ['architecture', 'Architecture']];
-  for (const [sectionScope, title] of sections) {
-    if (scope && scope !== sectionScope) continue;
-    lines.push('', title);
-    const entries = filteredEntries(diff, sectionScope);
-    if (entries.length === 0) lines.push('  No semantic changes.');
-    else for (const entry of entries) lines.push(...renderEntry(entry, '  '));
-  }
-  const diagnostics = filteredDiagnostics(diff, scope);
-  if (diagnostics.length) {
+  const entries = filterEntries(diff, entities);
+  if (entries.length === 0) lines.push('  No semantic changes.');
+  else for (const entry of entries) lines.push(...renderEntry(entry, '  '));
+  if (diff.diagnostics.length) {
     lines.push('', 'Diagnostics');
-    for (const item of diagnostics) lines.push(`  ${item.level} ${item.code}: ${item.message}`);
+    for (const item of diff.diagnostics) lines.push(`  ${item.level} ${item.code}: ${item.message}`);
   }
   return `${lines.join('\n')}\n`;
 }
@@ -58,15 +48,13 @@ export function renderEffectiveChange(diff: ChangeDiff): string {
     '## Summary',
     '',
     `- Total: ${diff.summary.total}`,
-    `- Specs: +${diff.summary.specs.ADDED} ~${diff.summary.specs.MODIFIED} -${diff.summary.specs.REMOVED}`,
-    `- Architecture: +${diff.summary.architecture.ADDED} ~${diff.summary.architecture.MODIFIED} -${diff.summary.architecture.REMOVED}`,
+    `- Operations: +${diff.summary.ADDED} ~${diff.summary.MODIFIED} -${diff.summary.REMOVED}`,
+    '',
+    '## Semantic Delta',
+    '',
   ];
-  for (const [scope, title] of [['specs', 'Specs'], ['architecture', 'Architecture']] as const) {
-    lines.push('', `## ${title}`, '');
-    const entries = filteredEntries(diff, scope);
-    if (!entries.length) lines.push('No semantic changes.');
-    else for (const entry of entries) lines.push(...renderEntry(entry));
-  }
+  if (!diff.entries.length) lines.push('No semantic changes.');
+  else for (const entry of diff.entries) lines.push(...renderEntry(entry));
   lines.push('', '## Diagnostics', '');
   if (!diff.diagnostics.length) lines.push('None.');
   else for (const item of diff.diagnostics) {
@@ -76,6 +64,6 @@ export function renderEffectiveChange(diff: ChangeDiff): string {
   return `${lines.join('\n')}\n`;
 }
 
-export function conciseDiffEntries(diff: ChangeDiff): Array<Pick<ChangeDiffEntry, 'scope' | 'kind' | 'identity' | 'operation'>> {
-  return diff.entries.map(({ scope, kind, identity, operation }) => ({ scope, kind, identity, operation }));
+export function conciseDiffEntries(diff: ChangeDiff): Array<Pick<ChangeDiffEntry, 'kind' | 'identity' | 'operation'>> {
+  return diff.entries.map(({ kind, identity, operation }) => ({ kind, identity, operation }));
 }

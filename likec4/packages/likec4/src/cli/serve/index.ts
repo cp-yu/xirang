@@ -9,8 +9,6 @@ import {
   path,
   port,
   publicDir,
-  xirangProjectRoot,
-  xirangSpecRegistry,
   xirangChangeManifest,
   title,
   useDotBin,
@@ -39,8 +37,6 @@ const serveCmd = (yargs: yargs.Argv) => {
           .option('hmr-port', hmrPort)
           .option('public', publicDir)
           .option('allowed-host', allowedHost)
-          .option('xirang-project-root', xirangProjectRoot)
-          .option('xirang-spec-registry', xirangSpecRegistry)
           .option('xirang-change-manifest', xirangChangeManifest)
           .options({
             'react-hmr': {
@@ -74,8 +70,6 @@ const serveCmd = (yargs: yargs.Argv) => {
           enableWebcomponent: args['build-webcomponent'],
           userPublicDir: args.public,
           allowedHosts: args['allowed-host'],
-          xirangProjectRoot: args['xirang-project-root'],
-          xirangSpecRegistry: args['xirang-spec-registry'],
           xirangChangeManifest: args['xirang-change-manifest'],
         })
       },

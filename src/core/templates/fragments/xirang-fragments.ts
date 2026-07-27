@@ -9,10 +9,49 @@ export const XIRANG_PHILOSOPHY = `
 **Xirang Philosophy**
 
 1. Xirang is a structured representation of human intent that an Agent can compile.
-2. One Xirang Semantic Model consists of LikeC4 graph modules and element-owned Markdown contract modules; they are source modules of the same model, not two parallel sources.
+2. One Xirang Semantic Model is persisted as a single whole in the four partitions \`metamodel/\`, \`elements/\`, \`relationships/\`, and \`views/\`; a Semantic Delta uses the same four partitions and adds \`operation\`.
 3. A change reconciles a Semantic Delta toward the target steady state. \`proposal.md\`, \`design.md\`, and \`tasks.md\` are compilation scaffolding, not competing sources of truth.
 4. The Xirang Semantic Model is complete only when an Agent need not guess decisions that affect element hierarchy, contracts, or relationships.
 5. The Agent acts like a compiler and faithfully translates authorized human intent. Existing code is current implementation evidence and MUST NOT silently override the Xirang Semantic Model.
+`.trim();
+
+/**
+ * Fragment: Element Contract semantics
+ * Used in: build, propose, snack
+ */
+export const ELEMENT_CONTRACT_SEMANTICS = `
+**Element Contract Semantics**
+
+- Element Contract SHALL 完整表达宿主 Element 在自身抽象层级承担的职责、保证、约束与行为；children 可以进一步精化或共同实现这些承诺，父子 Elements 可以在各自层级表达相互覆盖的完整语义。
+- Requirement SHALL 以稳定 identity 表达一项可独立演进的规范承诺。以该承诺能否独立新增、修改或移除判断边界，不得按句子、分句、\`SHALL\` 数量或目标条数机械拆分。只复述 Declaration summary 或 sibling Requirements 语义并集且不增加规范承诺的内容不形成 Requirement；独立的不变量、顺序、原子性、一致性或完成条件应保留。
+- Scenario SHALL 是具有规范约束力的 Requirement 组成，只具体化宿主 Requirement 在特定条件下的行为，不得引入可独立演进的承诺。Scenarios 不默认穷尽 Requirement 的全部适用情况，Scenario 不作为独立 Semantic Delta Entry，其变化由宿主 Requirement 的完整目标内容表达。
+`.trim();
+
+/**
+ * Fragment: Semantic Model unit notation
+ * Used in: build
+ *
+ * Project Build authors `.xirang/candidate/` directly and has no Change artifact
+ * projection to read notation from, so the notation must travel with the prompt.
+ */
+export const SEMANTIC_MODEL_UNIT_NOTATION = `
+**Semantic Model Unit Notation**
+
+Every Markdown unit declares its own \`entity\` in frontmatter. The partition does not determine the type.
+
+| entity | frontmatter fields |
+|---|---|
+| \`element-declaration\` | \`identity\`, \`kind\`, \`parent\`, \`title\`, \`summary\` |
+| \`element-kind\` | \`identity\`, \`contract\`; optional \`root\`, \`parents\`, \`children\` |
+| \`relationship-kind\` | \`identity\`; optional \`sourceKinds\`, \`targetKinds\` |
+| \`authored-view\` | \`identity\`, \`include\`; optional \`of\`, \`title\`, \`autoLayout\` |
+
+- \`parent: null\` marks the single Project Root. \`include\` is \`'*'\` or a list of element identities; \`of\` is one element identity.
+- A \`relationships/\` file is a container of \`{source, kind, target}\` entries. A Relationship's identity is its entire content and it carries no other field.
+- An \`elements/\` unit body is exactly the \`## Requirements\` section: \`### Requirement: <name>\` with \`#### Scenario: <name>\` beneath it. Descriptive prose belongs to the Declaration's \`summary\` and MUST NOT be repeated in the Contract. Any other body content is a validation error.
+- A \`views/\` unit has no body.
+- \`identity\` uses \`[A-Za-z0-9._-]+\` and contains no path separator. Element Kind and Relationship Kind identities are globally unique within the Metamodel. Do not encode a parent path or hierarchy position into an identity: position changes over time while identity does not.
+- Default file naming, non-normative: \`elements/<identity>.md\`, \`metamodel/<kind identity>.md\`, \`views/<view identity>.md\`, \`relationships/<relationship kind identity>.yaml\` grouped by Relationship Kind.
 `.trim();
 
 /**
@@ -21,32 +60,44 @@ export const XIRANG_PHILOSOPHY = `
  */
 export const XIRANG_SHARED_CONTEXT = `
 **Xirang Semantic Model Context**
-- Resolve the absolute Project Root, then load the LikeC4 graph modules under \`.xirang/architecture/\` and locate the unique Project Root element.
-- Use stable \`elementId\` as canonical identity. FQN is the current source navigation path and may change when an element moves.
+- Resolve the absolute Project Root, then load the Semantic Model from \`.xirang/model/{metamodel,elements,relationships,views}/\` and locate the unique Project Root Element, whose \`parent\` is null.
+- Use \`identity\` as the only way to reference a semantic object. FQN, syntax position, and derived local names are generation artifacts and never appear in a persistent source.
 - Read relevant parent and children as abstraction/refinement context. Do not assume a fixed element-kind hierarchy or treat nesting as ownership.
-- Use \`xirang list --specs --json\` as the Element Contract registry; each Spec has one singular element owner binding.
-- Use \`xirang arch query <elementId> --relations --depth <n> --json\` for parent, children, owned Specs, and incoming/outgoing semantic relationships.
+- An Element Contract is the body of its Element unit: one Element has at most one Contract, expressed as \`## Requirements\`, and whether a Contract is required comes from the \`contract\` field of its Element Kind.
+- Use \`xirang arch query <identity> --relations --depth <n> --json\` for parent, children, and incoming/outgoing semantic relationships; add \`--contract\` to inline the complete Element Contract.
+- Default unit naming is \`elements/<identity>.md\`, \`metamodel/<kind identity>.md\`, \`views/<view identity>.md\`, and \`relationships/<relationship kind identity>.yaml\` grouped by Relationship Kind; a change reuses these names under \`.xirang/changes/<name>/\`. Directory and file names carry no model semantics: every entry declares its own \`entity\` and \`identity\`, and loading locates entries by those, never by path.
 - Treat code paths, symbols, imports, and calls from CodeGraph or ACE/\`rg\`/\`read\` as current implementation evidence only; do not promote them to elements or relationships without declared model intent.
-- If the model is missing, report \`Semantic Model unavailable\`. If it is incomplete or unsupported, identify the root, identity, binding, contract, or relationship gap.
+- If the model is missing, report \`Semantic Model unavailable\`. If it is incomplete or unsupported, identify the root, identity, contract, or relationship gap.
 - A read-only exploration MAY degrade to available model and code evidence with the limitation disclosed. Workflows that compile or write semantics MUST stop when required model context is missing or incomplete; never treat a missing collection as complete and empty.
 `.trim();
 
 /**
- * Fragment: Generate architecture-delta.c4
+ * Fragment: Write the four-partition Semantic Delta
  * Used in: snack
  */
 export const ARCHITECTURE_GENERATE_DELTA = `
-**Generate architecture-delta.c4**:
+**Write the Semantic Delta**:
+
+Every Markdown unit declares its own \`entity\` in frontmatter. The partition does not determine the type.
+
+| entity | frontmatter fields |
+|---|---|
+| \`element-declaration\` | \`identity\`, \`kind\`, \`parent\`, \`title\`, \`summary\` |
+| \`element-kind\` | \`identity\`, \`contract\`; optional \`root\`, \`parents\`, \`children\` |
+| \`relationship-kind\` | \`identity\`; optional \`sourceKinds\`, \`targetKinds\` |
+| \`authored-view\` | \`identity\`, \`include\`; optional \`of\`, \`title\`, \`autoLayout\` |
+
+- \`identity\` uses \`[A-Za-z0-9._-]+\`, contains no path separator, and does not encode parent hierarchy
 - Before writing, follow the authoring order in the returned \`instruction\`; keep \`definition\`, dependencies, \`currentState\`, \`configProjection\`, and \`template\` as separate inputs
 - Read proposal \`Source Impact\` as compatible scaffolding for one Semantic Delta; use it to locate affected elements, refinement, Element Contracts, and relationships
-- Read completed change-local Element Contracts as target contract context, \`design.md\` for architecture decisions, and the formal Xirang Semantic Model as current semantic state
-- Treat proposal entries as scope declarations, not authoritative LikeC4 records; derive exact target-state elements, refinement, contract bindings, and typed relationships
-- Read \`.xirang/references/likec4-authoring.md\`
-- Extend existing elements by current FQN and preserve stable \`elementId\` metadata
-- Express abstraction/refinement by nesting and collaboration with typed syntax such as \`source -[invokes]-> target\`
-- Bind each change-local Spec to exactly one stable \`elementId\` through singular frontmatter
-- If the graph module scope is \`None\`, omit \`architecture-delta.c4\`; do not invent graph changes from contract changes alone
-- Run \`xirang arch validate --delta .xirang/changes/<name>/architecture-delta.c4\`
+- Read \`design.md\` for architecture decisions and the formal Xirang Semantic Model as current semantic state
+- Treat proposal entries as scope declarations, not authoritative Semantic Delta records; derive exact target-state Declarations, Requirements, Relationships, Kinds, and Views
+- Write Delta units under \`.xirang/changes/<name>/{metamodel,elements,relationships,views}/\` using the same field structure as the model plus an \`operation\` of \`ADDED\`, \`MODIFIED\`, or \`REMOVED\`; each Entry carries its complete target state, and \`REMOVED\` carries identity only
+- In an \`elements/\` unit, the frontmatter is the Element Declaration Entry and the body carries zero or more Requirement Entries under \`## ADDED Requirements\`, \`## MODIFIED Requirements\`, or \`## REMOVED Requirements\`; when only the Contract changes, the frontmatter declares no \`operation\` and only locates the host Element
+- A \`relationships/\` entry is \`{operation, source, kind, target}\` and nothing else: it has no \`MODIFIED\` and no description, because its identity is its whole content
+- Reference every semantic object by \`identity\`; a Delta unit carries no path, position, or derived-name reference
+- Leave a partition empty when it does not change; do not invent Declaration, Relationship, Kind, or View changes from Contract changes alone
+- Run \`xirang arch validate --change "<name>" --json\`
 - Use current code only as implementation evidence; it MUST NOT override the Xirang Semantic Model
 `.trim();
 
@@ -57,8 +108,8 @@ export const ARCHITECTURE_GENERATE_DELTA = `
  */
 export const ARCHITECTURE_POST_PROPOSE_VALIDATION = `
 **Run post-propose validation**:
-- Validate generated change specs with \`xirang validate --change "<name>" --json\`.
-- Validate \`architecture-delta.c4\` with \`xirang arch validate --delta .xirang/changes/<name>/architecture-delta.c4\`.
+- Validate the generated change with \`xirang validate --change "<name>" --json\`.
+- Validate the Expected Semantic Model with \`xirang arch validate --change "<name>" --json\`.
 - Do NOT run \`xirang sync\` because validation must not mutate formal source
 - Run lightweight structure checks for \`proposal.md\`, \`design.md\`, and \`tasks.md\` against the current schema templates, not scattered examples:
   - Read \`xirang instructions proposal --change "<name>" --json\`, \`xirang instructions design --change "<name>" --json\`, and \`xirang instructions tasks --change "<name>" --json\`
@@ -68,9 +119,9 @@ export const ARCHITECTURE_POST_PROPOSE_VALIDATION = `
   - For legacy tasks, verify \`A\`-prefixed action checkboxes, \`C\`-prefixed check checkboxes, required \`Covers:\` fields, valid \`Covers:\` references, and every action covered by at least one check
   - For coarse tasks, verify each task has no more than 5 requirements and at least one nested \`C\`-prefixed check
   - For every check, verify required non-empty \`Verifies:\` or \`Preserves:\` field
-  - When \`Verifies:\` anchors an ordinary requirement, verify change-local \`Verifies:\` spec paths plus Requirement/Scenario references when local change specs exist
-  - When \`Verifies:\` anchors a REMOVED requirement, verify it uses \`REMOVED Requirement "<name>"\` syntax (no Scenario required) and the REMOVED requirement exists in the delta spec
-  - When \`Preserves:\` is present, verify it uses main spec path (\`.xirang/specs/<cap>/spec.md\`) with Requirement and ≥1 Scenario names, and the path whitelist does not relax \`Verifies:\` constraints
+  - When \`Verifies:\` anchors an ordinary requirement, verify change-local \`Verifies:\` Element unit paths (\`elements/<identity>.md\`) plus Requirement/Scenario references when change-local Element units exist
+  - When \`Verifies:\` anchors a REMOVED requirement, verify it uses \`REMOVED Requirement "<name>"\` syntax (no Scenario required) and the REMOVED requirement exists in the Delta unit
+  - When \`Preserves:\` is present, verify it uses the formal Element unit path (\`.xirang/model/elements/<identity>.md\`) with Requirement and ≥1 Scenario names, and the path whitelist does not relax \`Verifies:\` constraints
   - Verify at least one \`Command:\`, \`Evidence:\`, or \`Expect:\` field per check
   - Do NOT invent semantic lint rules beyond the current templates
   - Do NOT judge whether a check is semantically sufficient; defer semantic suitability to verify/reviewer

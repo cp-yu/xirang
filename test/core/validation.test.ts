@@ -179,6 +179,16 @@ describe('Validation Schemas', () => {
   });
 });
 
+/** Requirement deltas live in the change's `elements/` partition. */
+async function writeDeltaUnit(changeDir: string, body: string, identity = 'test-spec'): Promise<void> {
+  const elements = path.join(changeDir, 'elements');
+  await fs.mkdir(elements, { recursive: true });
+  await fs.writeFile(
+    path.join(elements, `${identity}.md`),
+    `---\noperation: MODIFIED\nentity: element-declaration\nidentity: ${identity}\nkind: capability\nparent: root\ntitle: T\nsummary: S\n---\n\n${body}`,
+  );
+}
+
 describe('Validator', () => {
   const testDir = path.join(process.cwd(), 'test-validation-tmp');
   
@@ -465,43 +475,9 @@ Then result`;
     });
   });
 
-  describe('validateChangeDeltaSpecs no-op marker', () => {
-    it('accepts .specs-noop without delta Specs', async () => {
-      const changeDir = path.join(testDir, 'specs-noop');
-      await fs.mkdir(changeDir, { recursive: true });
-      await fs.writeFile(path.join(changeDir, '.specs-noop'), '');
-
-      const report = await new Validator(true).validateChangeDeltaSpecs(changeDir);
-
-      expect(report.valid).toBe(true);
-    });
-
-    it('rejects a stale .specs-noop alongside delta Specs', async () => {
-      const changeDir = path.join(testDir, 'stale-specs-noop');
-      const specsDir = path.join(changeDir, 'specs', 'test-spec');
-      await fs.mkdir(specsDir, { recursive: true });
-      await fs.writeFile(path.join(changeDir, '.specs-noop'), '');
-      await fs.writeFile(path.join(specsDir, 'spec.md'), `## ADDED Requirements
-
-### Requirement: Test
-The system SHALL work.
-
-#### Scenario: Test
-- **WHEN** invoked
-- **THEN** it works`);
-
-      const report = await new Validator(true).validateChangeDeltaSpecs(changeDir);
-
-      expect(report.valid).toBe(false);
-      expect(report.issues.some(issue => issue.path === '.specs-noop')).toBe(true);
-    });
-  });
-
   describe('validateChangeDeltaSpecs with metadata', () => {
     it('should validate requirement with metadata before SHALL/MUST text', async () => {
       const changeDir = path.join(testDir, 'test-change');
-      const specsDir = path.join(changeDir, 'specs', 'test-spec');
-      await fs.mkdir(specsDir, { recursive: true });
 
       const deltaSpec = `# Test Spec
 
@@ -518,8 +494,7 @@ The system MUST implement a circuit breaker with three states.
 **When** a request is made
 **Then** the request is executed normally`;
 
-      const specPath = path.join(specsDir, 'spec.md');
-      await fs.writeFile(specPath, deltaSpec);
+      await writeDeltaUnit(changeDir, deltaSpec);
 
       const validator = new Validator(true);
       const report = await validator.validateChangeDeltaSpecs(changeDir);
@@ -530,8 +505,6 @@ The system MUST implement a circuit breaker with three states.
 
     it('should validate requirement with SHALL in text but not in header', async () => {
       const changeDir = path.join(testDir, 'test-change-2');
-      const specsDir = path.join(changeDir, 'specs', 'test-spec');
-      await fs.mkdir(specsDir, { recursive: true });
 
       const deltaSpec = `# Test Spec
 
@@ -548,8 +521,7 @@ The system SHALL handle all errors gracefully.
 **When** an error occurs
 **Then** the error is logged and user is notified`;
 
-      const specPath = path.join(specsDir, 'spec.md');
-      await fs.writeFile(specPath, deltaSpec);
+      await writeDeltaUnit(changeDir, deltaSpec);
 
       const validator = new Validator(true);
       const report = await validator.validateChangeDeltaSpecs(changeDir);
@@ -560,8 +532,6 @@ The system SHALL handle all errors gracefully.
 
     it('should fail when requirement text lacks SHALL/MUST', async () => {
       const changeDir = path.join(testDir, 'test-change-3');
-      const specsDir = path.join(changeDir, 'specs', 'test-spec');
-      await fs.mkdir(specsDir, { recursive: true });
 
       const deltaSpec = `# Test Spec
 
@@ -577,8 +547,7 @@ The system will log all events.
 **When** it occurs
 **Then** it is logged`;
 
-      const specPath = path.join(specsDir, 'spec.md');
-      await fs.writeFile(specPath, deltaSpec);
+      await writeDeltaUnit(changeDir, deltaSpec);
 
       const validator = new Validator(true);
       const report = await validator.validateChangeDeltaSpecs(changeDir);
@@ -590,8 +559,6 @@ The system will log all events.
 
     it('should handle requirements without metadata fields', async () => {
       const changeDir = path.join(testDir, 'test-change-4');
-      const specsDir = path.join(changeDir, 'specs', 'test-spec');
-      await fs.mkdir(specsDir, { recursive: true });
 
       const deltaSpec = `# Test Spec
 
@@ -605,8 +572,7 @@ The system SHALL implement this feature.
 **When** an action occurs
 **Then** a result happens`;
 
-      const specPath = path.join(specsDir, 'spec.md');
-      await fs.writeFile(specPath, deltaSpec);
+      await writeDeltaUnit(changeDir, deltaSpec);
 
       const validator = new Validator(true);
       const report = await validator.validateChangeDeltaSpecs(changeDir);
@@ -617,8 +583,6 @@ The system SHALL implement this feature.
 
     it('should treat delta headers case-insensitively', async () => {
       const changeDir = path.join(testDir, 'test-change-mixed-case');
-      const specsDir = path.join(changeDir, 'specs', 'test-spec');
-      await fs.mkdir(specsDir, { recursive: true });
 
       const deltaSpec = `# Test Spec
 
@@ -632,8 +596,7 @@ The system MUST support mixed case delta headers.
 **When** validation runs
 **Then** the delta is detected`;
 
-      const specPath = path.join(specsDir, 'spec.md');
-      await fs.writeFile(specPath, deltaSpec);
+      await writeDeltaUnit(changeDir, deltaSpec);
 
       const validator = new Validator(true);
       const report = await validator.validateChangeDeltaSpecs(changeDir);
@@ -665,10 +628,8 @@ The system MUST support mixed case delta headers.
 
       for (const item of cases) {
         const changeDir = path.join(testDir, item.change);
-        const specsDir = path.join(changeDir, 'specs', 'test-spec');
-        await fs.mkdir(specsDir, { recursive: true });
-        await fs.writeFile(
-          path.join(specsDir, 'spec.md'),
+        await writeDeltaUnit(
+          changeDir,
           `## ADDED Requirements
 
 ### Requirement: Label Validation
@@ -688,10 +649,8 @@ ${item.body}
 
     it('should reject a REMOVED Scenario label before target-set validation', async () => {
       const changeDir = path.join(testDir, 'surviving-scenarios');
-      const specsDir = path.join(changeDir, 'specs', 'test-spec');
-      await fs.mkdir(specsDir, { recursive: true });
-      await fs.writeFile(
-        path.join(specsDir, 'spec.md'),
+      await writeDeltaUnit(
+        changeDir,
         `## MODIFIED Requirements
 
 ### Requirement: Label Validation
@@ -710,10 +669,8 @@ The system SHALL validate labels.
 
     it('should reject [MODIFIED] label under ADDED Requirements', async () => {
       const changeDir = path.join(testDir, 'modified-under-added');
-      const specsDir = path.join(changeDir, 'specs', 'test-spec');
-      await fs.mkdir(specsDir, { recursive: true });
-      await fs.writeFile(
-        path.join(specsDir, 'spec.md'),
+      await writeDeltaUnit(
+        changeDir,
         `## ADDED Requirements
 
 ### Requirement: Label Validation
@@ -737,22 +694,6 @@ The system SHALL validate labels.
     it('should accept unlabeled MODIFIED scenarios without writing labels', async () => {
       const projectRoot = path.join(testDir, 'unlabeled-project');
       const changeDir = path.join(projectRoot, '.xirang', 'changes', 'unlabeled-modified-scenario');
-      const mainSpecsDir = path.join(projectRoot, '.xirang', 'specs', 'test-spec');
-      const specsDir = path.join(changeDir, 'specs', 'test-spec');
-      await fs.mkdir(mainSpecsDir, { recursive: true });
-      await fs.mkdir(specsDir, { recursive: true });
-      await fs.writeFile(
-        path.join(mainSpecsDir, 'spec.md'),
-        `## Requirements
-
-### Requirement: Label Validation
-The system SHALL validate labels.
-
-#### Scenario: 场景
-- **WHEN** old
-- **THEN** old result`,
-      );
-      const specPath = path.join(specsDir, 'spec.md');
       const content = `## MODIFIED Requirements
 
 ### Requirement: Label Validation
@@ -761,22 +702,22 @@ The system SHALL validate labels.
 #### Scenario: 场景
 - **WHEN** action
 - **THEN** result`;
-      await fs.writeFile(specPath, content);
+      await writeDeltaUnit(changeDir, content);
+      const unitPath = path.join(changeDir, 'elements', 'test-spec.md');
+      const before = await fs.readFile(unitPath, 'utf-8');
 
       const report = await new Validator(false).validateChangeDeltaSpecs(changeDir);
 
       expect(report.valid).toBe(true);
       expect(report.issues.filter(i => i.level === 'ERROR')).toHaveLength(0);
-      expect(await fs.readFile(specPath, 'utf-8')).toBe(content);
+      expect(await fs.readFile(unitPath, 'utf-8')).toBe(before);
     });
   });
 
   describe('requirement reader fidelity (fence, multi-line, metadata, whole-word)', () => {
     async function writeChangeDelta(name: string, deltaSpec: string): Promise<string> {
       const changeDir = path.join(testDir, name);
-      const specsDir = path.join(changeDir, 'specs', 'test-spec');
-      await fs.mkdir(specsDir, { recursive: true });
-      await fs.writeFile(path.join(specsDir, 'spec.md'), deltaSpec);
+      await writeDeltaUnit(changeDir, deltaSpec);
       return changeDir;
     }
 

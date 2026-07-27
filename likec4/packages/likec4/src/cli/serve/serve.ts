@@ -69,11 +69,7 @@ type HandlerParams = {
    */
   allowedHosts?: string[] | undefined
 
-  /** Absolute OPSX project root for the local Spec content API. */
-  xirangProjectRoot?: string | undefined
-  /** Root-owned immutable element-to-Spec registry snapshot. */
-  xirangSpecRegistry?: string | undefined
-  /** Runtime Formal/active-change selector and semantic diff snapshot. */
+  /** Runtime variant selector, semantic diff and Contract projection snapshot. */
   xirangChangeManifest?: string | undefined
 }
 
@@ -92,8 +88,6 @@ export async function handler({
   hmrPort,
   userPublicDir,
   allowedHosts,
-  xirangProjectRoot,
-  xirangSpecRegistry,
   xirangChangeManifest,
 }: HandlerParams) {
   // Explicitly set NODE_ENV to development
@@ -122,8 +116,6 @@ export async function handler({
     hmrPort,
     userPublicDir,
     allowedHosts,
-    xirangProjectRoot,
-    xirangSpecRegistry,
     xirangChangeManifest,
   })
 

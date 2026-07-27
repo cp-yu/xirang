@@ -37,11 +37,13 @@ import {
 import { isMap, parseDocument } from 'yaml';
 import { ArtifactSyncEngine } from './templates/sync-engine.js';
 import {
-  ARCHITECTURE_FILE_MANIFEST,
-  type ArchitectureFileManifestEntry,
-} from './templates/architecture-skeleton.js';
+  MODEL_FILE_MANIFEST,
+  type ModelFileManifestEntry,
+} from './templates/model-skeleton.js';
+import { MODEL_DIR_NAME } from './model/paths.js';
+import { PARTITIONS } from './model/types.js';
 
-export const SETUP_ARCHITECTURE_FILE_MANIFEST: readonly ArchitectureFileManifestEntry[] = ARCHITECTURE_FILE_MANIFEST;
+export const SETUP_MODEL_FILE_MANIFEST: readonly ModelFileManifestEntry[] = MODEL_FILE_MANIFEST;
 
 const require = createRequire(import.meta.url);
 const { version: XIRANG_VERSION } = require('../../package.json');
@@ -116,9 +118,9 @@ export class SetupCommand {
     // Create directory structure and config
     await this.createDirectoryStructure(xirangPath, extendMode);
 
-    // Generate LikeC4 skeleton files on first-time setup (non-extend mode)
+    // Seed the Semantic Model on first-time setup (non-extend mode)
     if (!extendMode) {
-      await this.writeArchitectureSkeleton(projectPath, xirangPath);
+      await this.writeModelSkeleton(projectPath, xirangPath);
     }
 
     // Generate skills and commands for each tool
@@ -357,15 +359,7 @@ export class SetupCommand {
   private async createDirectoryStructure(xirangPath: string, extendMode: boolean): Promise<void> {
     if (extendMode) {
       // In extend mode, just ensure directories exist without spinner
-      const directories = [
-        xirangPath,
-        path.join(xirangPath, 'specs'),
-        path.join(xirangPath, 'changes'),
-        path.join(xirangPath, 'changes', 'archive'),
-        path.join(xirangPath, 'references'),
-      ];
-
-      for (const dir of directories) {
+      for (const dir of this.structureDirectories(xirangPath)) {
         await FileSystemUtils.createDirectory(dir);
       }
       return;
@@ -373,15 +367,7 @@ export class SetupCommand {
 
     const spinner = this.startSpinner('Creating Xirang structure...');
 
-    const directories = [
-      xirangPath,
-      path.join(xirangPath, 'specs'),
-      path.join(xirangPath, 'changes'),
-      path.join(xirangPath, 'changes', 'archive'),
-      path.join(xirangPath, 'references'),
-    ];
-
-    for (const dir of directories) {
+    for (const dir of this.structureDirectories(xirangPath)) {
       await FileSystemUtils.createDirectory(dir);
     }
 
@@ -391,21 +377,29 @@ export class SetupCommand {
     });
   }
 
+  private structureDirectories(xirangPath: string): string[] {
+    return [
+      xirangPath,
+      ...PARTITIONS.map((partition) => path.join(xirangPath, MODEL_DIR_NAME, partition)),
+      path.join(xirangPath, 'changes'),
+      path.join(xirangPath, 'changes', 'archive'),
+      path.join(xirangPath, 'references'),
+    ];
+  }
+
   // ═══════════════════════════════════════════════════════════
-  // LIKEC4 SKELETON GENERATION
+  // SEMANTIC MODEL SEED
   // ═══════════════════════════════════════════════════════════
 
-  private async writeArchitectureSkeleton(projectPath: string, xirangPath: string): Promise<void> {
-    const architecturePath = path.join(xirangPath, 'architecture');
+  private async writeModelSkeleton(projectPath: string, xirangPath: string): Promise<void> {
     const projectName = this.inferProjectName(projectPath);
     const context = {
       projectName,
       projectSummary: `Project intent for ${projectName} is not yet defined.`,
     };
 
-    await FileSystemUtils.createDirectory(architecturePath);
-    for (const file of SETUP_ARCHITECTURE_FILE_MANIFEST) {
-      const filePath = path.join(architecturePath, file.relativePath);
+    for (const file of SETUP_MODEL_FILE_MANIFEST) {
+      const filePath = path.join(xirangPath, MODEL_DIR_NAME, ...file.relativePath.split('/'));
       if (!fs.existsSync(filePath)) {
         await FileSystemUtils.writeFile(filePath, file.render(context));
       }

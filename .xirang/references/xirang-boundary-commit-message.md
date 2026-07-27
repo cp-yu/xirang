@@ -27,7 +27,7 @@ Implementation: <base>..<head> (carried by <commits>)
 
 Rules:
 - Build `## Why` from the archived `proposal.md` and `design.md` (when present).
-- Build `## Changes` from `git diff --name-only <base>..<head>` file list cross-referenced with archived `tasks.md` Files/Goal and `architecture-delta.c4`.
+- Build `## Changes` from `git diff --name-only <base>..<head>` file list cross-referenced with archived `tasks.md` Files/Goal and the archived Semantic Delta units.
 - List all files from the diff; if a file is not mentioned in archived artifacts, state that explicitly.
 - The `<base>` is the prior change boundary (prior archive/boundary commit); the agent infers it from git history.
 - The `Implementation:` footer lists the effective diff range and the commits carrying that diff (including `wip: opt-*` checkpoint commits and any just-created normal implementation commit).

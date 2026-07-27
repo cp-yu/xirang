@@ -9,8 +9,8 @@ describe('reviewer subagent template', () => {
     const prompt = getReviewerSubagentTemplate().prompt;
 
     expect(prompt).toContain(XIRANG_PHILOSOPHY);
-    expect(prompt).toContain('Element Contract registry');
-    expect(prompt).toContain('xirang arch query <elementId> --relations --depth <n> --json');
+    expect(prompt).toContain('one Element has at most one Contract');
+    expect(prompt).toContain('xirang arch query <identity> --relations --depth <n> --json');
     expect(prompt).toContain('Prefer direct evidence over inferred intent.');
     expect(prompt).toContain('Treat stale code, orphaned imports, half migrations, and unaccounted behavior changes as defects.');
     expect(prompt).toContain('Semantic Model relationship paths');
@@ -32,6 +32,21 @@ describe('reviewer subagent template', () => {
     expect(generateSubagentContent(template, 'pi', 'TEST')).toContain('name: xirang-reviewer');
     expect(generateSubagentContent(template, 'opencode', 'TEST')).toContain('edit: deny');
     expect(generateSubagentContent(template, 'codex', 'TEST')).toContain('sandbox_mode = "read-only"');
+  });
+
+  it('requires all four Delta partitions before concluding there is no semantic change', () => {
+    const prompt = getReviewerSubagentTemplate().prompt;
+
+    expect(prompt).toContain('every Semantic Delta unit under changeDir/{metamodel,elements,relationships,views}/');
+    expect(prompt).toContain('Only when all four partitions are empty may you conclude that the change carries no semantic change');
+    expect(prompt).toContain('a partition you did not read is never an empty partition');
+    expect(prompt).toContain('Element Declaration Entries');
+    expect(prompt).toContain('Requirement Entries');
+    expect(prompt).toContain('Relationship entries');
+    expect(prompt).toContain('xirangAlignment');
+    expect(prompt).not.toContain('architecture-delta');
+    expect(prompt).not.toContain('specs/*/spec.md');
+    expect(prompt).not.toContain('contract bindings');
   });
 
   it('uses the immutable apply baseline plus uncommitted files for scope navigation', () => {

@@ -1,6 +1,4 @@
 import { XIRANG_DIR_NAME } from '../core/config.js';
-import { promises as fs } from 'node:fs';
-import os from 'node:os';
 import ora from 'ora';
 import path from 'path';
 import { Validator } from '../core/validation/validator.js';
@@ -8,23 +6,16 @@ import { isInteractive, resolveNoInteractive } from '../utils/interactive.js';
 import { getActiveChangeIds, getSpecIds } from '../utils/item-discovery.js';
 import { nearestMatches } from '../utils/match.js';
 import type { ValidationReport } from '../core/validation/types.js';
-import { buildUpdatedSpec, findSpecUpdates } from '../core/specs-apply.js';
-import { extractRequirementsSection } from '../core/parsers/requirement-blocks.js';
-import { validateArchitecture } from '../utils/architecture-validator.js';
-import { readLikeC4Architecture } from '../utils/likec4-reader.js';
-import { validateArchitectureCommand } from './arch/validate.js';
-import { compileChange, type CompiledChange } from '../core/change-compiler.js';
+import { readFormalSemanticModel, compileChange, type CompiledChange } from '../core/change-compiler.js';
 import { conciseDiffEntries, renderChangeDiff } from '../core/change-diff-renderer.js';
 
 type ItemType = 'change' | 'spec';
-type ArtifactScope = 'specs' | 'architecture-delta';
 
 interface ExecuteOptions {
   all?: boolean;
   changes?: boolean;
   specs?: boolean;
   change?: string;
-  artifacts?: string;
   type?: string;
   strict?: boolean;
   json?: boolean;
@@ -46,18 +37,7 @@ export class ValidateCommand {
     const interactive = isInteractive(options);
 
     if (options.change) {
-      await this.validateExplicitChange(options.change, {
-        artifactScope: this.normalizeArtifactScope(options.artifacts),
-        rawArtifactScope: options.artifacts,
-        strict: !!options.strict,
-        json: !!options.json,
-      });
-      return;
-    }
-
-    if (options.artifacts) {
-      console.error('--artifacts requires --change <name>. Supported artifact scopes: specs, architecture-delta');
-      process.exitCode = 1;
+      await this.validateExplicitChange(options.change, { strict: !!options.strict, json: !!options.json });
       return;
     }
 
@@ -90,13 +70,6 @@ export class ValidateCommand {
     if (!value) return undefined;
     const v = value.toLowerCase();
     if (v === 'change' || v === 'spec') return v;
-    return undefined;
-  }
-
-  private normalizeArtifactScope(value?: string): ArtifactScope | undefined {
-    if (!value) return undefined;
-    const v = value.toLowerCase();
-    if (v === 'specs' || v === 'architecture-delta') return v;
     return undefined;
   }
 
@@ -164,13 +137,7 @@ export class ValidateCommand {
     await this.validateByType(type, itemName, opts);
   }
 
-  private async validateExplicitChange(id: string, opts: { artifactScope?: ArtifactScope; rawArtifactScope?: string; strict: boolean; json: boolean }): Promise<void> {
-    if (opts.rawArtifactScope && !opts.artifactScope) {
-      console.error(`Unknown artifact scope '${opts.rawArtifactScope}'. Supported artifact scopes: specs, architecture-delta`);
-      process.exitCode = 1;
-      return;
-    }
-
+  private async validateExplicitChange(id: string, opts: { strict: boolean; json: boolean }): Promise<void> {
     const changes = await getActiveChangeIds();
     if (!changes.includes(id)) {
       console.error(`Unknown change '${id}'`);
@@ -183,9 +150,7 @@ export class ValidateCommand {
     const validator = new Validator(opts.strict);
     const changeDir = path.join(process.cwd(), XIRANG_DIR_NAME, 'changes', id);
     const start = Date.now();
-    const result = opts.artifactScope
-      ? { report: await this.validateChangeReports(validator, changeDir, opts.artifactScope) }
-      : await this.validateChangeWithPreview(validator, id, changeDir);
+    const result = await this.validateChangeWithPreview(validator, id, changeDir);
     const durationMs = Date.now() - start;
     this.printReport('change', id, result.report, durationMs, opts.json, result.compiled);
     process.exitCode = result.report.valid ? 0 : 1;
@@ -203,9 +168,8 @@ export class ValidateCommand {
       process.exitCode = result.report.valid ? 0 : 1;
       return;
     }
-    const file = path.join(process.cwd(), XIRANG_DIR_NAME, 'specs', id, 'spec.md');
     const start = Date.now();
-    const report = await validator.validateSpec(file);
+    const report = await validateElementContract(validator, id);
     const durationMs = Date.now() - start;
     this.printReport('spec', id, report, durationMs, opts.json);
     process.exitCode = report.valid ? 0 : 1;
@@ -243,20 +207,9 @@ export class ValidateCommand {
     validator: Validator,
     id: string,
     changeDir: string,
-  ): Promise<{ report: ValidationReport; compiled?: CompiledChange }> {
-    const architecture = await readLikeC4Architecture(process.cwd()).catch((error: NodeJS.ErrnoException) => {
-      if (error.code === 'ENOENT') return null;
-      throw error;
-    });
-    if (architecture?.profile !== 'v1') return { report: await this.validateChangeReports(validator, changeDir) };
-
+  ): Promise<{ report: ValidationReport; compiled: CompiledChange }> {
     const compiled = await compileChange(process.cwd(), id);
-    const specsReport = await validator.validateChangeDeltaSpecs(changeDir, {
-      projectRoot: process.cwd(),
-      architecture,
-      knownElementIds: new Set(compiled.target?.architecture.elements.map(element => element.id) ?? architecture.elements.map(element => element.id)),
-      skipSpecBindingValidation: compiled.target !== null,
-    });
+    const notationReport = await validator.validateChangeDeltaSpecs(changeDir);
     const compilerIssues = compiled.diagnostics.map(item => ({
       level: item.level,
       path: item.path,
@@ -271,17 +224,17 @@ export class ValidateCommand {
         info: 0,
       },
     };
-    return { report: mergeValidationReports(specsReport, compilerReport), compiled };
+    return { report: mergeValidationReports(notationReport, compilerReport), compiled };
   }
 
   private printNextSteps(type: ItemType): void {
     const bullets: string[] = [];
     if (type === 'change') {
-      bullets.push('- Ensure change has deltas in specs/: use headers ## ADDED/MODIFIED/REMOVED Requirements');
+      bullets.push('- Ensure the change carries deltas in elements/: use headers ## ADDED/MODIFIED/REMOVED Requirements');
       bullets.push('- Each requirement MUST include at least one #### Scenario: block');
-      bullets.push('- Debug parsed deltas: xirang change show <id> --json --deltas-only');
+      bullets.push('- Debug the effective delta: xirang diff --change <id> --json');
     } else {
-      bullets.push('- Ensure spec includes ## Purpose and ## Requirements sections');
+      bullets.push('- Ensure the Element unit carries a ## Requirements section');
       bullets.push('- Each requirement MUST include at least one #### Scenario: block');
       bullets.push('- Re-run with --json to see structured report');
     }
@@ -306,7 +259,7 @@ export class ValidateCommand {
       queue.push(async () => {
         const start = Date.now();
         const changeDir = path.join(process.cwd(), XIRANG_DIR_NAME, 'changes', id);
-        const report = await this.validateChangeReports(validator, changeDir);
+        const { report } = await this.validateChangeWithPreview(validator, id, changeDir);
         const durationMs = Date.now() - start;
         return { id, type: 'change' as const, valid: report.valid, issues: report.issues, durationMs };
       });
@@ -314,8 +267,7 @@ export class ValidateCommand {
     for (const id of specIds) {
       queue.push(async () => {
         const start = Date.now();
-        const file = path.join(process.cwd(), XIRANG_DIR_NAME, 'specs', id, 'spec.md');
-        const report = await validator.validateSpec(file);
+        const report = await validateElementContract(validator, id);
         const durationMs = Date.now() - start;
         return { id, type: 'spec' as const, valid: report.valid, issues: report.issues, durationMs };
       });
@@ -402,103 +354,16 @@ export class ValidateCommand {
     process.exitCode = failed > 0 ? 1 : 0;
   }
 
-  private async validateChangeReports(validator: Validator, changeDir: string, artifactScope?: ArtifactScope): Promise<ValidationReport> {
-    if (artifactScope === 'specs') return validator.validateChangeDeltaSpecs(changeDir);
-    if (artifactScope === 'architecture-delta') return this.validateArchitectureDeltaReport(changeDir);
-
-    const formal = await readLikeC4Architecture(process.cwd()).catch((error: NodeJS.ErrnoException) => {
-      if (error.code === 'ENOENT') return null;
-      throw error;
-    });
-    if (formal?.profile === 'v1') return this.validateCombinedV1Change(validator, changeDir);
-
-    const specsReport = await validator.validateChangeDeltaSpecs(changeDir);
-    const architectureDelta = path.join(changeDir, 'architecture-delta.c4');
-    if (!await fileExists(architectureDelta)) return specsReport;
-    return mergeValidationReports(specsReport, await this.validateArchitectureDeltaReport(changeDir));
-  }
-
-  private async validateCombinedV1Change(validator: Validator, changeDir: string): Promise<ValidationReport> {
-    const projectRoot = process.cwd();
-    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-combined-validation-'));
-    const targetArchitecture = path.join(workspace, XIRANG_DIR_NAME, 'architecture');
-    const targetSpecs = path.join(workspace, XIRANG_DIR_NAME, 'specs');
-    const architectureDelta = path.join(changeDir, 'architecture-delta.c4');
-    try {
-      await copySourceTree(path.join(projectRoot, XIRANG_DIR_NAME, 'architecture'), targetArchitecture, true);
-      await copySourceTree(path.join(projectRoot, XIRANG_DIR_NAME, 'specs'), targetSpecs);
-
-      if (await fileExists(architectureDelta)) {
-        const modulePath = path.join(targetArchitecture, 'deltas', `${path.basename(changeDir)}.c4`);
-        await fs.mkdir(path.dirname(modulePath), { recursive: true });
-        await fs.copyFile(architectureDelta, modulePath);
-      }
-
-      const updates = await findSpecUpdates(changeDir, targetSpecs);
-      for (const update of updates) {
-        const { rebuilt } = await buildUpdatedSpec(update, path.basename(changeDir), projectRoot);
-        if (extractRequirementsSection(rebuilt).bodyBlocks.length === 0) {
-          await fs.rm(path.dirname(update.target), { recursive: true, force: true });
-          continue;
-        }
-        await fs.mkdir(path.dirname(update.target), { recursive: true });
-        await fs.writeFile(update.target, rebuilt);
-      }
-
-      const architecture = await readLikeC4Architecture(workspace);
-      const architectureResult = await validateArchitecture(workspace, architecture);
-      const graphIssues = architectureResult.errors.map(error => ({
-        level: 'ERROR' as const,
-        path: 'architecture-delta.c4',
-        message: `${error.code}: ${error.message}`,
-      }));
-      const graphReport: ValidationReport = {
-        valid: graphIssues.length === 0,
-        issues: graphIssues,
-        summary: { errors: graphIssues.length, warnings: 0, info: 0 },
-      };
-      const specsReport = await validator.validateChangeDeltaSpecs(changeDir, {
-        projectRoot: workspace,
-        architecture,
-        specsDirectory: targetSpecs,
-      });
-      return mergeValidationReports(graphReport, specsReport);
-    } catch (error) {
-      const issues = [{
-        level: 'ERROR' as const,
-        path: await fileExists(architectureDelta) ? 'architecture-delta.c4' : 'file',
-        message: (error as Error).message,
-      }];
-      return { valid: false, issues, summary: { errors: 1, warnings: 0, info: 0 } };
-    } finally {
-      await fs.rm(workspace, { recursive: true, force: true });
-    }
-  }
-
-  private async validateArchitectureDeltaReport(changeDir: string): Promise<ValidationReport> {
-    try {
-      const result = await validateArchitectureCommand(process.cwd(), { deltaPath: path.join(changeDir, 'architecture-delta.c4') });
-      const issues = result.errors.map(error => ({ level: 'ERROR' as const, path: 'architecture-delta.c4', message: error.message }));
-      return { valid: result.success, issues, summary: { errors: issues.length, warnings: 0, info: 0 } };
-    } catch (error) {
-      const issues = [{ level: 'ERROR' as const, path: 'architecture-delta.c4', message: (error as Error).message }];
-      return { valid: false, issues, summary: { errors: 1, warnings: 0, info: 0 } };
-    }
-  }
 }
 
-async function fileExists(file: string): Promise<boolean> {
-  try { await fs.access(file); return true; } catch { return false; }
-}
-
-async function copySourceTree(source: string, target: string, excludeLikeC4Cache = false): Promise<void> {
-  await fs.mkdir(target, { recursive: true });
-  await fs.cp(source, target, {
-    recursive: true,
-    filter: file => !excludeLikeC4Cache || path.basename(file) !== '.likec4',
-  }).catch((error: NodeJS.ErrnoException) => {
-    if (error.code !== 'ENOENT') throw error;
-  });
+/** Contracts are addressed by Element identity; their storage unit comes from the model index. */
+async function validateElementContract(validator: Validator, identity: string): Promise<ValidationReport> {
+  const parsed = await readFormalSemanticModel(process.cwd());
+  const element = parsed.model.elements.find(item => item.declaration.identity === identity);
+  if (!element) {
+    return { valid: false, issues: [{ level: 'ERROR', path: 'file', message: `Element not found: ${identity}` }], summary: { errors: 1, warnings: 0, info: 0 } };
+  }
+  return validator.validateElementContract(element, parsed.index.moduleOf(identity)?.path ?? `elements/${identity}.md`);
 }
 
 function mergeValidationReports(...reports: ValidationReport[]): ValidationReport {

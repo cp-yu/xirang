@@ -1,18 +1,38 @@
+import { createHash } from 'node:crypto';
 import type {
-  SemanticContract,
-  SemanticElement,
-  SemanticRelationship,
-  TargetSemanticModel,
-} from '../utils/semantic-model.js';
-import type {
-  ArchitectureDeltaOperation,
-  ArchitectureReplacementHint,
-  SourceLocation,
-} from './architecture-delta-parser.js';
+  ModelElement,
+  Relationship,
+  Requirement,
+  SemanticModel,
+} from './model/types.js';
+
+export interface SourceLocation {
+  line: number;
+  column: number;
+  offset: number;
+}
 
 export type DiffOperation = 'ADDED' | 'MODIFIED' | 'REMOVED';
-export type DiffScope = 'specs' | 'architecture';
-export type DiffKind = 'requirement' | 'scenario' | 'element' | 'relationship' | 'elementKind' | 'relationshipKind' | 'property';
+
+/** Entry kinds mirror the contract `entity` values; `scenario` and `property` are child-only detail. */
+export type DiffKind =
+  | 'element-declaration'
+  | 'element-kind'
+  | 'relationship-kind'
+  | 'authored-view'
+  | 'relationship'
+  | 'requirement'
+  | 'scenario'
+  | 'property';
+
+export const DIFF_ENTITY_KINDS: readonly DiffKind[] = [
+  'element-declaration',
+  'element-kind',
+  'relationship-kind',
+  'authored-view',
+  'relationship',
+  'requirement',
+];
 
 export interface ChangeDiagnostic {
   level: 'ERROR' | 'WARNING';
@@ -24,7 +44,6 @@ export interface ChangeDiagnostic {
 }
 
 export interface ChangeDiffEntry {
-  scope: DiffScope;
   kind: DiffKind;
   identity: string;
   operation: DiffOperation;
@@ -32,13 +51,13 @@ export interface ChangeDiffEntry {
   before?: unknown;
   after?: unknown;
   children?: ChangeDiffEntry[];
-  replacement?: { from?: string; with?: string };
 }
 
 export interface ChangeDiffSummary {
   total: number;
-  specs: Record<DiffOperation, number>;
-  architecture: Record<DiffOperation, number>;
+  ADDED: number;
+  MODIFIED: number;
+  REMOVED: number;
 }
 
 export interface ChangeDiff {
@@ -58,23 +77,58 @@ export interface CreateSemanticDiffOptions {
   formalFingerprint: string;
   changeFingerprint: string;
   diagnostics: ChangeDiagnostic[];
-  declaredOperations?: ArchitectureDeltaOperation[];
-  replacements?: ArchitectureReplacementHint[];
+  declaredOperations?: Array<{ entity: string; identity: string; operation: DiffOperation }>;
 }
 
-function canonical(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
+export function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
   if (value && typeof value === 'object') {
     return `{${Object.entries(value as Record<string, unknown>)
       .sort(([left], [right]) => left.localeCompare(right))
-      .map(([key, nested]) => `${JSON.stringify(key)}:${canonical(nested)}`)
+      .map(([key, nested]) => `${JSON.stringify(key)}:${canonicalJson(nested)}`)
       .join(',')}}`;
   }
   return JSON.stringify(value);
 }
 
+function sortStrings(values: string[] | undefined): string[] | undefined {
+  return values && [...new Set(values)].sort();
+}
+
+function sortByIdentity<T extends { identity: string }>(items: readonly T[]): T[] {
+  return [...items].sort((left, right) => left.identity.localeCompare(right.identity));
+}
+
+/** Canonicalizes set-semantic collections while preserving Contract entry order. */
+export function normalizeSemanticModel(model: SemanticModel): SemanticModel {
+  return {
+    elements: [...model.elements].sort((left, right) =>
+      left.declaration.identity.localeCompare(right.declaration.identity)),
+    elementKinds: sortByIdentity(model.elementKinds).map(kind => ({
+      ...kind,
+      ...(kind.parents ? { parents: sortStrings(kind.parents)! } : {}),
+      ...(kind.children ? { children: sortStrings(kind.children)! } : {}),
+    })),
+    relationshipKinds: sortByIdentity(model.relationshipKinds).map(kind => ({
+      ...kind,
+      ...(kind.sourceKinds ? { sourceKinds: sortStrings(kind.sourceKinds)! } : {}),
+      ...(kind.targetKinds ? { targetKinds: sortStrings(kind.targetKinds)! } : {}),
+    })),
+    relationships: [...model.relationships].sort((left, right) =>
+      relationshipLabel(left).localeCompare(relationshipLabel(right))),
+    views: sortByIdentity(model.views).map(view => ({
+      ...view,
+      ...(Array.isArray(view.include) ? { include: sortStrings(view.include)! } : {}),
+    })),
+  };
+}
+
+export function semanticModelFingerprint(model: SemanticModel): string {
+  return createHash('sha256').update(canonicalJson(normalizeSemanticModel(model))).digest('hex');
+}
+
 function equal(left: unknown, right: unknown): boolean {
-  return canonical(left) === canonical(right);
+  return canonicalJson(left) === canonicalJson(right);
 }
 
 function operation(before: unknown, after: unknown): DiffOperation | null {
@@ -91,7 +145,6 @@ function propertyEntries(identity: string, before: Record<string, unknown>, afte
     const change = operation(beforeValue, afterValue);
     if (!change) continue;
     entries.push({
-      scope: 'architecture',
       kind: 'property',
       identity: `${identity}.${key}`,
       operation: change,
@@ -102,125 +155,97 @@ function propertyEntries(identity: string, before: Record<string, unknown>, afte
   return entries;
 }
 
-function elementProperties(element: SemanticElement): Record<string, unknown> {
-  const properties: Record<string, unknown> = {
-    kind: element.kind,
-    parent: element.parent,
-    title: element.title,
-    summary: element.summary,
-  };
-  for (const [key, value] of Object.entries(element.metadata)) properties[`metadata.${key}`] = value;
-  return properties;
+function record(value: object): Record<string, unknown> {
+  return value as Record<string, unknown>;
 }
 
-function relationIdentity(relation: SemanticRelationship): string {
-  return `${relation.source}|${relation.kind}|${relation.target}`;
+function declaredMap(operations: CreateSemanticDiffOptions['declaredOperations'] = []): Map<string, DiffOperation> {
+  return new Map(operations.map(item => [`${item.entity}\u0000${item.identity}`, item.operation]));
 }
 
-function declaredMap(operations: ArchitectureDeltaOperation[] = []): Map<string, DiffOperation> {
-  return new Map(operations.map(item => [`${item.entity}:${item.identity}`, item.operation]));
+function keyed<T>(items: readonly T[], identity: (item: T) => string): Map<string, T> {
+  return new Map(items.map(item => [identity(item), item]));
 }
 
-function architectureEntries(
-  formal: TargetSemanticModel,
-  target: TargetSemanticModel,
+function entityEntries<T extends object>(
+  kind: DiffKind,
+  before: Map<string, T>,
+  after: Map<string, T>,
   declared: Map<string, DiffOperation>,
-  replacements: ArchitectureReplacementHint[],
+  detail = true,
 ): ChangeDiffEntry[] {
   const entries: ChangeDiffEntry[] = [];
-  const replacementFrom = new Map(replacements.map(item => [item.from, item.to]));
-  const replacementTo = new Map(replacements.map(item => [item.to, item.from]));
-  const beforeElements = new Map(formal.architecture.elements.map(item => [item.id, item]));
-  const afterElements = new Map(target.architecture.elements.map(item => [item.id, item]));
-
-  for (const identity of [...new Set([...beforeElements.keys(), ...afterElements.keys()])].sort()) {
-    const before = beforeElements.get(identity);
-    const after = afterElements.get(identity);
-    const change = operation(before, after);
+  for (const identity of [...new Set([...before.keys(), ...after.keys()])].sort()) {
+    const previous = before.get(identity);
+    const next = after.get(identity);
+    const change = operation(previous, next);
     if (!change) continue;
-    const children = before && after ? propertyEntries(identity, elementProperties(before), elementProperties(after)) : [];
+    const children = detail && previous && next ? propertyEntries(identity, record(previous), record(next)) : [];
+    const declaredOperation = declared.get(`${kind}\u0000${identity}`);
     entries.push({
-      scope: 'architecture',
-      kind: 'element',
+      kind,
       identity,
       operation: change,
-      ...(declared.get(`element:${identity}`) ? { declaredOperation: declared.get(`element:${identity}`) } : {}),
-      ...(before ? { before } : {}),
-      ...(after ? { after } : {}),
+      ...(declaredOperation ? { declaredOperation } : {}),
+      ...(previous ? { before: previous } : {}),
+      ...(next ? { after: next } : {}),
       ...(children.length ? { children } : {}),
-      ...(replacementFrom.has(identity) ? { replacement: { with: replacementFrom.get(identity)! } } : {}),
-      ...(replacementTo.has(identity) ? { replacement: { from: replacementTo.get(identity)! } } : {}),
     });
-  }
-
-  const beforeRelations = new Map(formal.architecture.relations.map(item => [relationIdentity(item), item]));
-  const afterRelations = new Map(target.architecture.relations.map(item => [relationIdentity(item), item]));
-  for (const identity of [...new Set([...beforeRelations.keys(), ...afterRelations.keys()])].sort()) {
-    const before = beforeRelations.get(identity);
-    const after = afterRelations.get(identity);
-    const change = operation(before, after);
-    if (!change) continue;
-    entries.push({
-      scope: 'architecture', kind: 'relationship', identity, operation: change,
-      ...(declared.get(`relationship:${identity}`) ? { declaredOperation: declared.get(`relationship:${identity}`) } : {}),
-      ...(before ? { before } : {}), ...(after ? { after } : {}),
-    });
-  }
-
-  for (const [kind, entity] of [['elementKind', 'elements'], ['relationshipKind', 'relationships']] as const) {
-    const beforeKinds = formal.architecture.metamodel[entity];
-    const afterKinds = target.architecture.metamodel[entity];
-    for (const identity of [...new Set([...Object.keys(beforeKinds), ...Object.keys(afterKinds)])].sort()) {
-      const before = beforeKinds[identity];
-      const after = afterKinds[identity];
-      const change = operation(before, after);
-      if (!change) continue;
-      const children = before && after
-        ? propertyEntries(`${kind}.${identity}`, before as Record<string, unknown>, after as Record<string, unknown>)
-            .map(item => ({ ...item, identity: item.identity, kind: 'property' as const }))
-        : [];
-      entries.push({
-        scope: 'architecture', kind, identity, operation: change,
-        ...(declared.get(`${kind}:${identity}`) ? { declaredOperation: declared.get(`${kind}:${identity}`) } : {}),
-        ...(before ? { before } : {}), ...(after ? { after } : {}),
-        ...(children.length ? { children } : {}),
-      });
-    }
   }
   return entries;
 }
 
-function contractEntries(formal: SemanticContract[], target: SemanticContract[]): ChangeDiffEntry[] {
-  const entries: ChangeDiffEntry[] = [];
-  const beforeRequirements = new Map(formal.flatMap(spec => spec.requirements.map(requirement => [`${spec.specId}#${requirement.title}`, requirement] as const)));
-  const afterRequirements = new Map(target.flatMap(spec => spec.requirements.map(requirement => [`${spec.specId}#${requirement.title}`, requirement] as const)));
+interface Positioned<T> {
+  value: T;
+  index: number;
+}
 
-  for (const identity of [...new Set([...beforeRequirements.keys(), ...afterRequirements.keys()])].sort()) {
-    const before = beforeRequirements.get(identity);
-    const after = afterRequirements.get(identity);
-    const change = operation(before, after);
+function requirementMap(elements: readonly ModelElement[]): Map<string, Positioned<Requirement>> {
+  return new Map(elements.flatMap(element =>
+    element.requirements.map((requirement, index) => [
+      `${element.declaration.identity}#${requirement.name}`,
+      { value: requirement, index },
+    ] as const)));
+}
+
+function requirementEntries(
+  before: Map<string, Positioned<Requirement>>,
+  after: Map<string, Positioned<Requirement>>,
+  declared: Map<string, DiffOperation>,
+): ChangeDiffEntry[] {
+  const entries: ChangeDiffEntry[] = [];
+  for (const identity of [...new Set([...before.keys(), ...after.keys()])].sort()) {
+    const previous = before.get(identity);
+    const next = after.get(identity);
+    const change = operation(previous, next);
     if (!change) continue;
     const children: ChangeDiffEntry[] = [];
-    if (before && after) {
-      if (before.body !== after.body) children.push({
-        scope: 'specs', kind: 'property', identity: `${identity}.body`, operation: 'MODIFIED', before: before.body, after: after.body,
+    if (previous && next) {
+      if (previous.index !== next.index) children.push({
+        kind: 'property', identity: `${identity}.position`, operation: 'MODIFIED', before: previous.index, after: next.index,
       });
-      const beforeScenarios = new Map(before.scenarios.map(item => [item.title, item]));
-      const afterScenarios = new Map(after.scenarios.map(item => [item.title, item]));
-      for (const title of [...new Set([...beforeScenarios.keys(), ...afterScenarios.keys()])].sort()) {
-        const beforeScenario = beforeScenarios.get(title);
-        const afterScenario = afterScenarios.get(title);
+      if (previous.value.body !== next.value.body) children.push({
+        kind: 'property', identity: `${identity}.body`, operation: 'MODIFIED', before: previous.value.body, after: next.value.body,
+      });
+      const beforeScenarios = keyed(previous.value.scenarios.map((value, index) => ({ value, index })), item => item.value.name);
+      const afterScenarios = keyed(next.value.scenarios.map((value, index) => ({ value, index })), item => item.value.name);
+      for (const name of [...new Set([...beforeScenarios.keys(), ...afterScenarios.keys()])].sort()) {
+        const beforeScenario = beforeScenarios.get(name);
+        const afterScenario = afterScenarios.get(name);
         const scenarioOperation = operation(beforeScenario, afterScenario);
         if (!scenarioOperation) continue;
         children.push({
-          scope: 'specs', kind: 'scenario', identity: `${identity}#${title}`, operation: scenarioOperation,
-          ...(beforeScenario ? { before: beforeScenario } : {}), ...(afterScenario ? { after: afterScenario } : {}),
+          kind: 'scenario', identity: `${identity}#${name}`, operation: scenarioOperation,
+          ...(beforeScenario ? { before: beforeScenario.value } : {}),
+          ...(afterScenario ? { after: afterScenario.value } : {}),
         });
       }
     }
+    const declaredOperation = declared.get(`requirement\u0000${identity}`);
     entries.push({
-      scope: 'specs', kind: 'requirement', identity, operation: change,
-      ...(before ? { before } : {}), ...(after ? { after } : {}),
+      kind: 'requirement', identity, operation: change,
+      ...(declaredOperation ? { declaredOperation } : {}),
+      ...(previous ? { before: previous.value } : {}), ...(next ? { after: next.value } : {}),
       ...(children.length ? { children } : {}),
     });
   }
@@ -228,21 +253,35 @@ function contractEntries(formal: SemanticContract[], target: SemanticContract[])
 }
 
 function summary(entries: ChangeDiffEntry[]): ChangeDiffSummary {
-  const empty = (): Record<DiffOperation, number> => ({ ADDED: 0, MODIFIED: 0, REMOVED: 0 });
-  const result: ChangeDiffSummary = { total: entries.length, specs: empty(), architecture: empty() };
-  for (const entry of entries) result[entry.scope][entry.operation] += 1;
+  const result: ChangeDiffSummary = { total: entries.length, ADDED: 0, MODIFIED: 0, REMOVED: 0 };
+  for (const entry of entries) result[entry.operation] += 1;
   return result;
 }
 
+function relationshipLabel(relationship: Relationship): string {
+  return `${relationship.source}|${relationship.kind}|${relationship.target}`;
+}
+
+/** Diff two Semantic Models. Entries are keyed by entity type and identity only; partitions never appear. */
 export function createSemanticDiff(
-  formal: TargetSemanticModel,
-  target: TargetSemanticModel,
+  base: SemanticModel,
+  expected: SemanticModel,
   options: CreateSemanticDiffOptions,
 ): ChangeDiff {
+  const declared = declaredMap(options.declaredOperations);
+  const normalizedBase = normalizeSemanticModel(base);
+  const normalizedExpected = normalizeSemanticModel(expected);
+  const declarations = (model: SemanticModel) => keyed(model.elements.map(item => item.declaration), item => item.identity);
+  const relationships = (model: SemanticModel) => keyed(model.relationships, relationshipLabel);
   const entries = [
-    ...contractEntries(formal.contracts, target.contracts),
-    ...architectureEntries(formal, target, declaredMap(options.declaredOperations), options.replacements ?? []),
-  ].sort((left, right) => left.scope.localeCompare(right.scope) || left.kind.localeCompare(right.kind) || left.identity.localeCompare(right.identity));
+    ...entityEntries('element-declaration', declarations(normalizedBase), declarations(normalizedExpected), declared),
+    ...entityEntries('element-kind', keyed(normalizedBase.elementKinds, item => item.identity), keyed(normalizedExpected.elementKinds, item => item.identity), declared),
+    ...entityEntries('relationship-kind', keyed(normalizedBase.relationshipKinds, item => item.identity), keyed(normalizedExpected.relationshipKinds, item => item.identity), declared),
+    ...entityEntries('authored-view', keyed(normalizedBase.views, item => item.identity), keyed(normalizedExpected.views, item => item.identity), declared),
+    ...entityEntries('relationship', relationships(normalizedBase), relationships(normalizedExpected), declared, false),
+    ...requirementEntries(requirementMap(normalizedBase.elements), requirementMap(normalizedExpected.elements), declared),
+  ].sort((left, right) => left.kind.localeCompare(right.kind) || left.identity.localeCompare(right.identity));
+
   return {
     schemaVersion: '1',
     change: options.change ?? '',
@@ -254,3 +293,4 @@ export function createSemanticDiff(
     diagnostics: options.diagnostics,
   };
 }
+

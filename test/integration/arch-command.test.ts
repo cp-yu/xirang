@@ -5,9 +5,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { formatArchitectureQueryText, queryArchitecture } from '../../src/commands/arch/query.js';
 import { validateArchitectureCommand } from '../../src/commands/arch/validate.js';
 import { exportArchitecture } from '../../src/commands/arch/export.js';
+import { likec4CacheDir } from '../../src/core/likec4/paths.js';
+import { readModelTree } from '../../src/core/model/parser.js';
+import { modelRoot } from '../../src/core/model/paths.js';
 import { runCLI } from '../helpers/run-cli.js';
+import { writeProjectModel } from '../helpers/model-fixture.js';
 
-const domain = `model { core = domain 'Core' { run = capability 'Run' { description 'Runs work' metadata { capabilityId 'cap.core.run' specs ['.xirang/specs/run/spec.md'] } } stop = capability 'Stop' { metadata { capabilityId 'cap.core.stop' } } finish = capability 'Finish' { metadata { capabilityId 'cap.core.finish' } } } core.run -[invokes]-> core.stop { description 'Runs stop' } core.stop -[precedes]-> core.finish }`;
+const CONTRACT = '## Requirements\n\n### Requirement: Project behavior\nThe project SHALL behave.\n\n#### Scenario: Existing\n- **WHEN** used\n- **THEN** it works';
 
 async function withInteractiveTTY(callback: () => Promise<void>): Promise<void> {
   const originalIsTTY = process.stdin.isTTY;
@@ -21,47 +25,28 @@ async function withInteractiveTTY(callback: () => Promise<void>): Promise<void> 
 
 describe('arch commands', () => {
   let root: string;
+
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-arch-command-'));
-    const architecture = path.join(root, '.xirang', 'architecture');
-    await fs.mkdir(path.join(architecture, 'domains'), { recursive: true });
-    await fs.writeFile(path.join(architecture, 'specification.c4'), 'specification { element domain element capability relationship invokes relationship precedes }');
-    await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), domain);
-    await fs.writeFile(path.join(architecture, 'views.c4'), 'views { view index { include * } }');
+    await writeProjectModel(root, {
+      elementKinds: [
+        { identity: 'semanticProject', contract: 'required', root: true, children: ['area', 'operation'] },
+        { identity: 'area', parents: ['semanticProject'], children: ['operation'] },
+        { identity: 'operation', parents: ['semanticProject', 'area'] },
+      ],
+      relationshipKinds: [{ identity: 'invokes' }, { identity: 'precedes' }],
+      elements: [
+        { identity: 'project.root', kind: 'semanticProject', parent: null, title: 'Project', summary: 'Project intent', requirements: CONTRACT },
+        { identity: 'payments', kind: 'area', parent: 'project.root', title: 'Payments', summary: 'Payment refinement' },
+        { identity: 'payment.authorize', kind: 'operation', parent: 'payments', title: 'Authorize', summary: 'Authorize payment', requirements: CONTRACT },
+        { identity: 'payment.audit', kind: 'operation', parent: 'payments', title: 'Audit', summary: 'Audit payment' },
+      ],
+      relationships: [{ source: 'payment.authorize', kind: 'invokes', target: 'payment.audit' }],
+      views: [{ identity: 'index' }],
+    });
   });
-  afterEach(async () => fs.rm(root, { recursive: true, force: true }));
 
-  async function writeSemanticFixture(): Promise<void> {
-    const architecture = path.join(root, '.xirang', 'architecture');
-    await fs.writeFile(path.join(architecture, 'specification.c4'), `
-      xirang { languageVersion '1' }
-      specification {
-        element semanticProject { xirang { root true contract required children [operation] } }
-        element operation { xirang { contract optional parents [semanticProject] } }
-        relationship invokes
-      }
-    `);
-    await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), `
-      model {
-        projectRoot = semanticProject 'Project' {
-          summary 'Project intent'
-          metadata { elementId 'project.root' }
-          authorize = operation 'Authorize' {
-            summary 'Authorize payment'
-            metadata { elementId 'payment.authorize' }
-          }
-          audit = operation 'Audit' {
-            summary 'Audit payment'
-            metadata { elementId 'payment.audit' }
-          }
-        }
-        projectRoot.authorize -[invokes]-> projectRoot.audit
-      }
-    `);
-    const specDir = path.join(root, '.xirang', 'specs', 'project-contract');
-    await fs.mkdir(specDir, { recursive: true });
-    await fs.writeFile(path.join(specDir, 'spec.md'), `---\nelement: project.root\n---\n\n# Project\n\n## Purpose\nProject contract.\n\n## Requirements\n\n### Requirement: Project behavior\nThe project SHALL behave.\n\n#### Scenario: Existing\n- **WHEN** used\n- **THEN** it works\n`);
-  }
+  afterEach(async () => fs.rm(root, { recursive: true, force: true }));
 
   it('registers search and impact help without Change or code options', async () => {
     const searchHelp = await runCLI(['arch', 'search', '--help'], { cwd: root });
@@ -79,20 +64,18 @@ describe('arch commands', () => {
   });
 
   it('runs search and impact through one canonical JSON projection', async () => {
-    await writeSemanticFixture();
-
     const search = await runCLI(['arch', 'search', 'Authorize', '--limit', '1', '--json'], { cwd: root });
     expect(search.exitCode).toBe(0);
     expect(JSON.parse(search.stdout)).toMatchObject({
       query: 'Authorize',
       totalMatches: 1,
-      matches: [{ element: { id: 'payment.authorize' } }],
+      matches: [{ element: { identity: 'payment.authorize' } }],
     });
 
     const impact = await runCLI(['arch', 'impact', 'payment.authorize', '--json'], { cwd: root });
     expect(impact.exitCode).toBe(0);
     expect(JSON.parse(impact.stdout)).toMatchObject({
-      focusElements: [{ id: 'payment.authorize' }],
+      focusElements: [{ identity: 'payment.authorize' }],
       relations: [{ source: 'payment.authorize', kind: 'invokes', target: 'payment.audit' }],
     });
 
@@ -102,14 +85,16 @@ describe('arch commands', () => {
   });
 
   it('keeps first-run telemetry notices out of JSON stdout in a TTY', async () => {
-    await writeSemanticFixture();
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 204 }));
 
     try {
       await withInteractiveTTY(async () => {
+        const isolatedHome = path.join(root, 'telemetry-home');
         const baseEnv = {
           CI: undefined,
           DO_NOT_TRACK: undefined,
+          HOME: isolatedHome,
+          USERPROFILE: isolatedHome,
           XIRANG_INTERACTIVE: undefined,
           XIRANG_TELEMETRY: undefined,
         };
@@ -124,8 +109,8 @@ describe('arch commands', () => {
 
         expect(search.exitCode).toBe(0);
         expect(impact.exitCode).toBe(0);
-        expect(JSON.parse(search.stdout)).toMatchObject({ matches: [{ element: { id: 'payment.authorize' } }] });
-        expect(JSON.parse(impact.stdout)).toMatchObject({ focusElements: [{ id: 'payment.authorize' }] });
+        expect(JSON.parse(search.stdout)).toMatchObject({ matches: [{ element: { identity: 'payment.authorize' } }] });
+        expect(JSON.parse(impact.stdout)).toMatchObject({ focusElements: [{ identity: 'payment.authorize' }] });
         expect(search.stderr).toContain('Xirang collects anonymous usage stats');
         expect(impact.stderr).toContain('Xirang collects anonymous usage stats');
       });
@@ -134,270 +119,167 @@ describe('arch commands', () => {
     }
   });
 
-  it('should query element by ID', async () => {
-    const result = await queryArchitecture(root, 'cap.core.run');
-    expect(result.element).toMatchObject({ id: 'core.run', capabilityId: 'cap.core.run' });
-  });
+  it('queries by stable identity and rejects a derived FQN', async () => {
+    const result = await queryArchitecture(root, 'payment.authorize');
 
-  it('queries v1 elements by stable ID or FQN with canonical refinement output', async () => {
-    const architecture = path.join(root, '.xirang', 'architecture');
-    await fs.writeFile(path.join(architecture, 'specification.c4'), `
-      xirang { languageVersion '1' }
-      specification {
-        element semanticProject { xirang { root true contract required } }
-        element area { xirang { contract optional } }
-        element operation { xirang { contract required } }
-        relationship invokes
-      }
-    `);
-    await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), `
-      model {
-        projectRoot = semanticProject 'Project' {
-          summary 'Project intent'
-          metadata { elementId 'project.root' }
-          payments = area 'Payments' {
-            summary 'Payment refinement'
-            metadata { elementId 'payments' }
-            authorize = operation 'Authorize' {
-              summary 'Authorize payment'
-              metadata { elementId 'payment.authorize' }
-            }
-          }
-        }
-      }
-    `);
-    await fs.mkdir(path.join(root, '.xirang', 'specs', 'authorize'), { recursive: true });
-    await fs.writeFile(path.join(root, '.xirang', 'specs', 'authorize', 'spec.md'), '---\nelement: payment.authorize\n---\n# Authorize');
-
-    const byId = await queryArchitecture(root, 'payment.authorize');
-    const byFqn = await queryArchitecture(root, 'projectRoot.payments.authorize');
-
-    expect(byId).toEqual(byFqn);
-    expect(byId.element).toMatchObject({
-      id: 'payment.authorize',
-      fqn: 'projectRoot.payments.authorize',
+    expect(result.element).toEqual({
+      identity: 'payment.authorize',
       kind: 'operation',
-      summary: 'Authorize payment',
       parent: 'payments',
+      title: 'Authorize',
+      summary: 'Authorize payment',
+      contract: 'optional',
+      hasContract: true,
       children: [],
-      contractPolicy: 'required',
-      specs: ['.xirang/specs/authorize/spec.md'],
     });
-  });
+    expect(result.element).not.toHaveProperty('fqn');
+    expect(result.element).not.toHaveProperty('specs');
+    expect(result.element).not.toHaveProperty('contractPolicy');
+    expect(result.element).not.toHaveProperty('requirements');
 
-  it('expands v1 containment and canonical semantic relation endpoints', async () => {
-    const architecture = path.join(root, '.xirang', 'architecture');
-    await fs.writeFile(path.join(architecture, 'specification.c4'), `
-      xirang { languageVersion '1' }
-      specification {
-        element semanticProject { xirang { root true contract optional } }
-        element area { xirang { contract optional } }
-        element operation { xirang { contract optional } }
-        relationship invokes
-      }
-    `);
-    await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), `
-      model {
-        projectRoot = semanticProject 'Project' {
-          summary 'Project intent'
-          metadata { elementId 'project.root' }
-          payments = area 'Payments' {
-            summary 'Payment refinement'
-            metadata { elementId 'payments' }
-            authorize = operation 'Authorize' {
-              summary 'Authorize payment'
-              metadata { elementId 'payment.authorize' }
-            }
-            audit = operation 'Audit' {
-              summary 'Audit payment'
-              metadata { elementId 'payment.audit' }
-            }
-          }
-        }
-        projectRoot.payments.authorize -[invokes]-> projectRoot.payments.audit
-      }
-    `);
-
-    const result = await queryArchitecture(root, 'project.root', { depth: 2, relations: true });
-
-    expect(result.refinement).toEqual([
-      expect.objectContaining({ id: 'payments', parent: 'project.root', depth: 1 }),
-      expect.objectContaining({ id: 'payment.audit', parent: 'payments', depth: 2 }),
-      expect.objectContaining({ id: 'payment.authorize', parent: 'payments', depth: 2 }),
-    ]);
-    expect(result.relations).toEqual([
-      expect.objectContaining({ source: 'payment.authorize', target: 'payment.audit', kind: 'invokes', depth: 2 }),
-    ]);
-    expect(await formatArchitectureQueryText(root, result)).toContain('[depth 2] Element: payment.authorize');
-  });
-
-  it('should query element with canonical relation details', async () => {
-    const result = await queryArchitecture(root, 'cap.core.run', { relations: true });
-    expect(result.relations).toEqual([expect.objectContaining({ source: 'core.run', kind: 'invokes', target: 'core.stop', description: 'Runs stop', depth: 1 })]);
-    const output = await formatArchitectureQueryText(root, result);
-    expect(output).toContain('Description: Runs work');
-    expect(output).toContain('.xirang/specs/run/spec.md');
-    expect(output).toContain('Relations:');
-    expect(output).toContain('cap.core.run --invokes--> cap.core.stop - Runs stop');
-  });
-
-  it('should query relations recursively to bounded depth', async () => {
-    const result = await queryArchitecture(root, 'cap.core.run', { relations: true, depth: 2 });
-    expect(result.relatedElements).toEqual(expect.arrayContaining([
-      expect.objectContaining({ element: expect.objectContaining({ capabilityId: 'cap.core.stop' }), depth: 1 }),
-      expect.objectContaining({ element: expect.objectContaining({ capabilityId: 'cap.core.finish' }), depth: 2 }),
-    ]));
-    expect(result.relations).toEqual(expect.arrayContaining([
-      expect.objectContaining({ kind: 'precedes', depth: 2 }),
-    ]));
-  });
-
-  it('should return a JSON-serializable result and reject missing elements', async () => {
-    const result = await queryArchitecture(root, 'cap.core.run', { relations: true });
-    expect(JSON.parse(JSON.stringify(result))).toMatchObject({ element: { capabilityId: 'cap.core.run' }, relations: expect.any(Array) });
+    await expect(queryArchitecture(root, 'root.payments.authorize'))
+      .rejects.toThrow('Element must use stable identity, not FQN');
     await expect(queryArchitecture(root, 'cap.missing')).rejects.toThrow('Element not found: cap.missing');
   });
 
-  it('should validate architecture', async () => {
-    const runner = vi.fn().mockResolvedValue(undefined);
-    const result = await validateArchitectureCommand(root, { runLikeC4: runner });
-    expect(runner).toHaveBeenCalledWith(['validate', path.join(root, '.xirang', 'architecture')]);
-    expect(result.success).toBe(true);
+  it('inlines the complete Contract only when --contract is requested', async () => {
+    const withoutContract = await queryArchitecture(root, 'project.root');
+    expect(withoutContract.element.hasContract).toBe(true);
+    expect(withoutContract.element.requirements).toBeUndefined();
+
+    const withContract = await queryArchitecture(root, 'project.root', { contract: true });
+    expect(withContract.element.requirements).toEqual([{
+      name: 'Project behavior',
+      body: 'The project SHALL behave.',
+      scenarios: [{ name: 'Existing', body: '- **WHEN** used\n- **THEN** it works' }],
+    }]);
+
+    const empty = await queryArchitecture(root, 'payment.audit', { contract: true });
+    expect(empty.element.hasContract).toBe(false);
+    expect(empty.element.requirements).toEqual([]);
+
+    const cli = await runCLI(['arch', 'query', 'project.root', '--contract', '--json'], { cwd: root });
+    expect(JSON.parse(cli.stdout).element.requirements[0].name).toBe('Project behavior');
   });
 
-  it('should validate an architecture delta against an immutable formal model', async () => {
-    const architecture = path.join(root, '.xirang', 'architecture');
-    await fs.writeFile(path.join(architecture, 'specification.c4'), `xirang { languageVersion '1' }
-specification {
-  element project { xirang { root true contract optional children [capability] } }
-  element capability { xirang { contract optional parents [project] } }
-}`);
-    await fs.writeFile(path.join(architecture, 'domains', 'core.c4'), `model {
-  projectRoot = project 'Root' 'Root summary' {
-    metadata { elementId 'project.root' }
-  }
-}`);
-    const delta = path.join(root, 'architecture-delta.c4');
-    await fs.writeFile(delta, `architectureDelta { ADDED {
-      element 'cap.core.next' {
-        kind 'capability'
-        parent 'project.root'
-        title 'Next'
-        summary 'Runs next work'
-        metadata { elementId 'cap.core.next' }
-      }
-    } }`);
-    const formalBefore = await fs.readFile(path.join(root, '.xirang', 'architecture', 'domains', 'core.c4'), 'utf8');
-    const runner = vi.fn();
-    const result = await validateArchitectureCommand(root, { deltaPath: delta, runLikeC4: runner });
-    expect(runner).not.toHaveBeenCalled();
-    expect(result.success, JSON.stringify(result)).toBe(true);
-    expect(await fs.readFile(path.join(root, '.xirang', 'architecture', 'domains', 'core.c4'), 'utf8')).toBe(formalBefore);
+  it('expands containment and relation endpoints by identity', async () => {
+    const result = await queryArchitecture(root, 'project.root', { depth: 2, relations: true });
+
+    expect(result.refinement).toEqual([
+      expect.objectContaining({ identity: 'payments', parent: 'project.root', depth: 1 }),
+      expect.objectContaining({ identity: 'payment.audit', parent: 'payments', depth: 2 }),
+      expect.objectContaining({ identity: 'payment.authorize', parent: 'payments', depth: 2 }),
+    ]);
+    expect(result.relations).toEqual([
+      { source: 'payment.authorize', kind: 'invokes', target: 'payment.audit', depth: 2 },
+    ]);
+    expect(result.relations?.[0]).not.toHaveProperty('description');
+    expect(formatArchitectureQueryText(result)).toContain('[depth 2] Element: payment.authorize');
   });
 
-  it('should perform semantic validation', async () => {
-    await fs.writeFile(path.join(root, '.xirang', 'architecture', 'domains', 'core.c4'), `model { orphan = capability 'Orphan' }`);
-    const result = await validateArchitectureCommand(root, { runLikeC4: vi.fn().mockResolvedValue(undefined) });
+  it('returns a JSON-serializable result with related elements at bounded depth', async () => {
+    const result = await queryArchitecture(root, 'payment.authorize', { relations: true, depth: 2 });
+    expect(result.relatedElements).toEqual([
+      expect.objectContaining({ element: expect.objectContaining({ identity: 'payment.audit' }), depth: 1 }),
+    ]);
+    expect(JSON.parse(JSON.stringify(result))).toMatchObject({ element: { identity: 'payment.authorize' } });
+  });
+
+  it('validates .xirang/model without invoking LikeC4', async () => {
+    const result = await validateArchitectureCommand(root);
+    expect(result).toEqual({ success: true, errors: [], warnings: [] });
+
+    await fs.writeFile(path.join(modelRoot(root), 'elements', 'orphan.md'),
+      '---\nentity: element-declaration\nidentity: orphan\nkind: operation\nparent: ghost\ntitle: Orphan\nsummary: S\n---\n');
+    const broken = await validateArchitectureCommand(root);
+    expect(broken.success).toBe(false);
+    expect(broken.errors.map(item => item.code)).toContain('MISSING_PARENT');
+  });
+
+  it('validates Authored View references against declared Elements', async () => {
+    await fs.writeFile(path.join(modelRoot(root), 'views', 'broken.md'),
+      '---\nentity: authored-view\nidentity: broken\nof: ghost\ninclude:\n  - payment.authorize\n  - absent\n---\n');
+
+    const result = await validateArchitectureCommand(root);
+
     expect(result.success).toBe(false);
+    expect(result.errors.filter(item => item.code === 'UNRESOLVED_VIEW_REFERENCE')).toHaveLength(2);
   });
 
-  it('should export diagrams', async () => {
+  it('reports a misplaced entity as a non-blocking Formal warning', async () => {
+    await fs.rename(
+      path.join(modelRoot(root), 'metamodel', 'invokes.md'),
+      path.join(modelRoot(root), 'views', 'invokes.md'),
+    );
+
+    const result = await validateArchitectureCommand(root);
+
+    expect(result.success).toBe(true);
+    expect(result.warnings).toContainEqual(expect.objectContaining({
+      code: 'ENTITY_PARTITION_MISMATCH',
+      element: 'invokes',
+    }));
+  });
+
+  it('preserves Formal partition warnings in Expected Model validation', async () => {
+    await fs.rename(
+      path.join(modelRoot(root), 'metamodel', 'invokes.md'),
+      path.join(modelRoot(root), 'views', 'invokes.md'),
+    );
+    const changeDir = path.join(root, '.xirang', 'changes', 'add-next', 'elements');
+    await fs.mkdir(changeDir, { recursive: true });
+    await fs.writeFile(path.join(changeDir, 'payment.next.md'),
+      '---\noperation: ADDED\nentity: element-declaration\nidentity: payment.next\nkind: operation\nparent: payments\ntitle: Next\nsummary: Runs next work\n---\n');
+
+    const result = await validateArchitectureCommand(root, { change: 'add-next' });
+
+    expect(result.success).toBe(true);
+    expect(result.warnings).toContainEqual(expect.objectContaining({
+      code: 'ENTITY_PARTITION_MISMATCH',
+      element: 'invokes',
+    }));
+  });
+
+  it('validates the Expected Semantic Model of a change without touching the persistent source', async () => {
+    const changeDir = path.join(root, '.xirang', 'changes', 'add-next', 'elements');
+    await fs.mkdir(changeDir, { recursive: true });
+    await fs.writeFile(path.join(changeDir, 'payment.next.md'),
+      '---\noperation: ADDED\nentity: element-declaration\nidentity: payment.next\nkind: operation\nparent: payments\ntitle: Next\nsummary: Runs next work\n---\n');
+    const before = await readModelTree(modelRoot(root));
+
+    const result = await validateArchitectureCommand(root, { change: 'add-next' });
+
+    expect(result.success, JSON.stringify(result)).toBe(true);
+    expect(await readModelTree(modelRoot(root))).toEqual(before);
+  });
+
+  it('exports diagrams from generated artifacts without writing the persistent source', async () => {
     const runner = vi.fn().mockResolvedValue(undefined);
     const output = path.join(root, 'docs', 'architecture');
+    const before = await readModelTree(modelRoot(root));
+
     await exportArchitecture(root, { format: 'png', output, runLikeC4: runner });
-    expect(runner).toHaveBeenCalledWith(['export', 'png', '-o', output, path.join(root, '.xirang', 'architecture')]);
+
+    const cache = likec4CacheDir(root);
+    expect(runner).toHaveBeenCalledWith(['export', 'png', '-o', output, cache]);
+    expect((await fs.readdir(cache)).sort()).toEqual(['model.c4', 'relations.c4', 'specification.c4', 'views.c4']);
+    expect(await readModelTree(modelRoot(root))).toEqual(before);
     await expect(fs.stat(output)).resolves.toMatchObject({});
   });
 
-  it('should format query results without rereading the architecture', async () => {
-    const read = vi.fn().mockResolvedValue({
-      source: 'likec4',
-      files: [],
-      domains: [{ id: 'core', title: 'Core' }],
-      capabilities: [{
-        id: 'core.root',
-        title: 'Root',
-        domain: 'core',
-        description: 'Runs root',
-        specs: ['.xirang/specs/root/spec.md'],
-        capabilityId: 'cap.core.root',
-      }],
-      relations: [{
-        source: 'core.root',
-        kind: 'invokes',
-        target: 'core',
-        description: 'Calls domain',
-      }],
-    });
-    vi.resetModules();
-    vi.doMock('../../src/utils/likec4-reader.js', () => ({ readLikeC4Architecture: read }));
-
+  it('reads the model exactly once per query', async () => {
+    const readFileSpy = vi.spyOn(fs, 'readFile');
     try {
-      const query = await import('../../src/commands/arch/query.js');
-      const result = await query.queryArchitecture('/project', 'cap.core.root', { relations: true });
-      const output = await query.formatArchitectureQueryText('/project', result);
-
-      expect(read).toHaveBeenCalledTimes(1);
-      expect(output).toBe(`Element: cap.core.root
-Type: capability
-Description: Runs root
-Specs:
-  .xirang/specs/root/spec.md
-Relations:
-  [depth 1] cap.core.root --invokes--> core - Calls domain
-  [depth 1] Element: core`);
+      const result = await queryArchitecture(root, 'payment.authorize', { relations: true });
+      const counts = new Map<string, number>();
+      for (const [file] of readFileSpy.mock.calls) {
+        const key = String(file);
+        if (key.includes(`${path.sep}model${path.sep}`)) counts.set(key, (counts.get(key) ?? 0) + 1);
+      }
+      expect([...counts.values()].every(count => count === 1)).toBe(true);
+      expect(formatArchitectureQueryText(result)).toContain('Element: payment.authorize');
     } finally {
-      vi.doUnmock('../../src/utils/likec4-reader.js');
-      vi.resetModules();
-    }
-  });
-
-  it('should index relations once while preserving traversal semantics', async () => {
-    const capability = (id: string) => ({
-      id: `core.${id}`,
-      title: id,
-      domain: 'core',
-      specs: [],
-      capabilityId: `cap.core.${id}`,
-    });
-    const relations = [
-      { source: 'core.a', kind: 'invokes', target: 'core.root' },
-      { source: 'core.a', kind: 'precedes', target: 'core.b' },
-      { source: 'core.a', kind: 'precedes', target: 'core.b' },
-      { source: 'core.unrelated', kind: 'invokes', target: 'core.other' },
-    ];
-    let iterations = 0;
-    const observedRelations = new Proxy(relations, {
-      get(target, property, receiver) {
-        if (property === Symbol.iterator) iterations += 1;
-        return Reflect.get(target, property, receiver);
-      },
-    });
-    vi.resetModules();
-    vi.doMock('../../src/utils/likec4-reader.js', () => ({
-      readLikeC4Architecture: vi.fn().mockResolvedValue({
-        source: 'likec4',
-        files: [],
-        domains: [],
-        capabilities: [capability('root'), capability('a'), capability('b'), capability('unrelated'), capability('other')],
-        relations: observedRelations,
-      }),
-    }));
-
-    try {
-      const { queryArchitecture: queryWithObservedRelations } = await import('../../src/commands/arch/query.js');
-      const result = await queryWithObservedRelations('/project', 'cap.core.root', { relations: true, depth: 2 });
-
-      expect(iterations).toBe(1);
-      expect(result.relatedElements).toEqual([
-        expect.objectContaining({ element: expect.objectContaining({ id: 'core.a' }), depth: 1 }),
-        expect.objectContaining({ element: expect.objectContaining({ id: 'core.b' }), depth: 2 }),
-      ]);
-      expect(result.relations).toHaveLength(3);
-      expect(result.relations?.filter(relation => relation.kind === 'precedes')).toHaveLength(2);
-    } finally {
-      vi.doUnmock('../../src/utils/likec4-reader.js');
-      vi.resetModules();
+      readFileSpy.mockRestore();
     }
   });
 });

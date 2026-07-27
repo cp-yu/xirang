@@ -22,6 +22,16 @@ describe('archive change workflow template', () => {
     expect(instructions).toContain('MUST NOT copy definitions');
   });
 
+  it('assesses sync from the four change partitions and reports Sync guarantees', () => {
+    const instructions = getArchiveChangeSkillTemplate().instructions;
+
+    expect(instructions).toContain('If any of `.xirang/changes/<name>/{metamodel,elements,relationships,views}/` is non-empty, assess whether sync is required');
+    expect(instructions).toContain('Synced into `.xirang/model/`, rewriting only the units the Semantic Delta affects, all-or-nothing');
+    expect(instructions).not.toContain('architecture-delta');
+    expect(instructions).not.toContain('main specs');
+    expect(instructions).not.toContain('formal LikeC4');
+  });
+
   it('routes archive verification only from freshness.status', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
 

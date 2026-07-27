@@ -9,7 +9,7 @@ describe('explore template semantic impact', () => {
   it('includes unified Xirang Semantic Model context without code-map guidance', () => {
     expect(template).toContain(XIRANG_PHILOSOPHY);
     expect(template).toContain('Project Root');
-    expect(template).toContain('Element Contract registry');
+    expect(template).toContain('one Element has at most one Contract');
     expect(template).toContain('semantic relationships');
     expect(template).not.toContain('code-map refs');
   });
@@ -18,7 +18,7 @@ describe('explore template semantic impact', () => {
     expect(template).toContain('## Semantic Impact');
     expect(template).toContain('xirang arch search <query> --json');
     expect(template).toContain('focus Elements');
-    expect(template).toContain('xirang arch impact <elementIds...> --depth 2 --json');
+    expect(template).toContain('xirang arch impact <identities...> --depth 2 --json');
     expect(template).toContain('Formal Semantic Model');
     expect(template).toContain('Relationship adjacency');
   });
@@ -112,7 +112,11 @@ describe('explore template semantic impact', () => {
     expect(template).toContain('Observable behavior changed');
     expect(template).toContain('Refactor rationale or rejected path');
     expect(template).toContain('Implementation strategy');
-    expect(template).toContain('LikeC4 architecture intent changed');
+    expect(template).toContain('Element identity or hierarchy changed');
+    expect(template).toContain('`relationships/<relationship kind identity>.yaml`');
+    expect(template).toContain('`metamodel/<kind identity>.md`');
+    expect(template).toContain('`views/<view identity>.md`');
+    expect(template).not.toContain('architecture-delta');
     expect(template).toContain('This changes an Element Contract; include it in the Design Summary');
     expect(template).toContain('That is a design decision for `design.md`; include it in the Design Summary');
     expect(template).toContain('This changes scope for `proposal.md`; include it in the Design Summary');

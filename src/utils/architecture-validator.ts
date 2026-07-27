@@ -1,9 +1,4 @@
-import type { LikeC4Architecture } from './likec4-reader.js';
-import { validateOwnership } from './semantic-checks/ownership-validator.js';
-import { detectPrecedesCycles } from './semantic-checks/cycle-detector.js';
-import { validateMetadata } from './semantic-checks/metadata-validator.js';
-import { validateSemanticModel } from './semantic-checks/semantic-model-validator.js';
-import { validateSemanticRelations } from './semantic-checks/relation-validator.js';
+import type { ModelDiagnostic } from '../core/model/types.js';
 
 export interface ArchitectureIssue { code: string; message: string; element?: string }
 export interface ArchitectureValidationResult {
@@ -12,10 +7,17 @@ export interface ArchitectureValidationResult {
   warnings: ArchitectureIssue[];
 }
 
-export async function validateArchitecture(projectRoot: string, architecture: LikeC4Architecture): Promise<ArchitectureValidationResult> {
-  const errors = architecture.profile === 'v1'
-    ? [...validateSemanticModel(architecture), ...validateSemanticRelations(architecture)]
-    : [...validateOwnership(architecture), ...detectPrecedesCycles(architecture)];
-  const warnings = architecture.profile === 'v1' ? [] : await validateMetadata(projectRoot, architecture);
+function toIssue(diagnostic: ModelDiagnostic): ArchitectureIssue {
+  return {
+    code: diagnostic.code,
+    message: diagnostic.message,
+    ...(diagnostic.identity ? { element: diagnostic.identity } : {}),
+  };
+}
+
+/** Projects Semantic Model diagnostics onto the architecture validation report shape. */
+export function validateArchitecture(diagnostics: readonly ModelDiagnostic[]): ArchitectureValidationResult {
+  const errors = diagnostics.filter(item => item.level === 'ERROR').map(toIssue);
+  const warnings = diagnostics.filter(item => item.level === 'WARNING').map(toIssue);
   return { success: errors.length === 0, errors, warnings };
 }

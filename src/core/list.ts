@@ -2,10 +2,6 @@ import { XIRANG_DIR_NAME } from './config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { getTaskProgressForChange, formatTaskStatus } from '../utils/task-progress.js';
-import { readFileSync } from 'fs';
-import { join } from 'path';
-import { MarkdownParser } from './parsers/markdown-parser.js';
-import { parseSpecFrontmatter } from './parsers/spec-frontmatter.js';
 import { checkFreshness } from './verify/freshness.js';
 
 interface ChangeInfo {
@@ -19,24 +15,6 @@ interface ChangeInfo {
 interface ListOptions {
   sort?: 'recent' | 'name';
   json?: boolean;
-}
-
-function extractRequirementHeaders(content: string): string[] {
-  const requirements: string[] = [];
-  let inFence = false;
-
-  for (const line of content.split(/\r?\n/)) {
-    if (/^\s*```/.test(line)) {
-      inFence = !inFence;
-      continue;
-    }
-    if (inFence) continue;
-
-    const match = line.match(/^### Requirement:\s*(.+?)\s*$/);
-    if (match) requirements.push(match[1]);
-  }
-
-  return requirements;
 }
 
 /**
@@ -97,139 +75,79 @@ function formatRelativeTime(date: Date): string {
 }
 
 export class ListCommand {
-  async execute(targetPath: string = '.', mode: 'changes' | 'specs' = 'changes', options: ListOptions = {}): Promise<void> {
+  async execute(targetPath: string = '.', options: ListOptions = {}): Promise<void> {
     const { sort = 'recent', json = false } = options;
+    const changesDir = path.join(targetPath, XIRANG_DIR_NAME, 'changes');
 
-    if (mode === 'changes') {
-      const changesDir = path.join(targetPath, XIRANG_DIR_NAME, 'changes');
-
-      // Check if changes directory exists
-      try {
-        await fs.access(changesDir);
-      } catch {
-        throw new Error("No Xirang changes directory found. Run 'xirang setup' first.");
-      }
-
-      // Get all directories in changes (excluding archive)
-      const entries = await fs.readdir(changesDir, { withFileTypes: true });
-      const changeDirs = entries
-        .filter(entry => entry.isDirectory() && entry.name !== 'archive')
-        .map(entry => entry.name);
-
-      if (changeDirs.length === 0) {
-        if (json) {
-          console.log(JSON.stringify({ changes: [] }));
-        } else {
-          console.log('No active changes found.');
-        }
-        return;
-      }
-
-      // Collect information about each change
-      const changes: ChangeInfo[] = [];
-
-      for (const changeDir of changeDirs) {
-        const progress = await getTaskProgressForChange(changesDir, changeDir);
-        const changePath = path.join(changesDir, changeDir);
-        const lastModified = await getLastModified(changePath);
-        const verifyStatus = json ? (await checkFreshness(changePath, targetPath)).status : undefined;
-        changes.push({
-          name: changeDir,
-          completedTasks: progress.completed,
-          totalTasks: progress.total,
-          lastModified,
-          verifyStatus,
-        });
-      }
-
-      // Sort by preference (default: recent first)
-      if (sort === 'recent') {
-        changes.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
-      } else {
-        changes.sort((a, b) => a.name.localeCompare(b.name));
-      }
-
-      // JSON output for programmatic use
-      if (json) {
-        const jsonOutput = changes.map(c => ({
-          name: c.name,
-          completedTasks: c.completedTasks,
-          totalTasks: c.totalTasks,
-          lastModified: c.lastModified.toISOString(),
-          status: c.totalTasks === 0 ? 'no-tasks' : c.completedTasks === c.totalTasks ? 'complete' : 'in-progress',
-          verifyStatus: c.verifyStatus ?? 'MISSING',
-        }));
-        console.log(JSON.stringify({ changes: jsonOutput }, null, 2));
-        return;
-      }
-
-      // Display results
-      console.log('Changes:');
-      const padding = '  ';
-      const nameWidth = Math.max(...changes.map(c => c.name.length));
-      for (const change of changes) {
-        const paddedName = change.name.padEnd(nameWidth);
-        const status = formatTaskStatus({ total: change.totalTasks, completed: change.completedTasks });
-        const timeAgo = formatRelativeTime(change.lastModified);
-        console.log(`${padding}${paddedName}     ${status.padEnd(12)}  ${timeAgo}`);
-      }
-      return;
-    }
-
-    // specs mode
-    const specsDir = path.join(targetPath, XIRANG_DIR_NAME, 'specs');
+    // Check if changes directory exists
     try {
-      await fs.access(specsDir);
+      await fs.access(changesDir);
     } catch {
-      console.log('No specs found.');
-      return;
+      throw new Error("No Xirang changes directory found. Run 'xirang setup' first.");
     }
 
-    const entries = await fs.readdir(specsDir, { withFileTypes: true });
-    const specDirs = entries.filter(e => e.isDirectory()).map(e => e.name);
-    if (specDirs.length === 0) {
-      console.log('No specs found.');
-      return;
-    }
+    // Get all directories in changes (excluding archive)
+    const entries = await fs.readdir(changesDir, { withFileTypes: true });
+    const changeDirs = entries
+      .filter(entry => entry.isDirectory() && entry.name !== 'archive')
+      .map(entry => entry.name);
 
-    type SpecInfo = { id: string; title: string; requirementCount: number; requirements: string[]; element: string | null };
-    const specs: SpecInfo[] = [];
-    for (const id of specDirs) {
-      const specPath = join(specsDir, id, 'spec.md');
-      try {
-        const content = readFileSync(specPath, 'utf-8');
-        const { element } = parseSpecFrontmatter(content);
-        try {
-          const parser = new MarkdownParser(content);
-          const spec = parser.parseSpec(id);
-          specs.push({
-            id,
-            title: spec.name,
-            requirementCount: spec.requirements.length,
-            requirements: extractRequirementHeaders(content),
-            element,
-          });
-        } catch {
-          specs.push({ id, title: id, requirementCount: 0, requirements: [], element });
-        }
-      } catch {
-        // If spec cannot be read or parsed, include with 0 count
-        specs.push({ id, title: id, requirementCount: 0, requirements: [], element: null });
+    if (changeDirs.length === 0) {
+      if (json) {
+        console.log(JSON.stringify({ changes: [] }));
+      } else {
+        console.log('No active changes found.');
       }
-    }
-
-    specs.sort((a, b) => a.id.localeCompare(b.id));
-    if (json) {
-      console.log(JSON.stringify(specs, null, 2));
       return;
     }
 
-    console.log('Specs:');
+    // Collect information about each change
+    const changes: ChangeInfo[] = [];
+
+    for (const changeDir of changeDirs) {
+      const progress = await getTaskProgressForChange(changesDir, changeDir);
+      const changePath = path.join(changesDir, changeDir);
+      const lastModified = await getLastModified(changePath);
+      const verifyStatus = json ? (await checkFreshness(changePath, targetPath)).status : undefined;
+      changes.push({
+        name: changeDir,
+        completedTasks: progress.completed,
+        totalTasks: progress.total,
+        lastModified,
+        verifyStatus,
+      });
+    }
+
+    // Sort by preference (default: recent first)
+    if (sort === 'recent') {
+      changes.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
+    } else {
+      changes.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    // JSON output for programmatic use
+    if (json) {
+      const jsonOutput = changes.map(c => ({
+        name: c.name,
+        completedTasks: c.completedTasks,
+        totalTasks: c.totalTasks,
+        lastModified: c.lastModified.toISOString(),
+        status: c.totalTasks === 0 ? 'no-tasks' : c.completedTasks === c.totalTasks ? 'complete' : 'in-progress',
+        verifyStatus: c.verifyStatus ?? 'MISSING',
+      }));
+      console.log(JSON.stringify({ changes: jsonOutput }, null, 2));
+      return;
+    }
+
+    // Display results
+    console.log('Changes:');
     const padding = '  ';
-    const nameWidth = Math.max(...specs.map(s => s.id.length));
-    for (const spec of specs) {
-      const padded = spec.id.padEnd(nameWidth);
-      console.log(`${padding}${padded}     requirements ${spec.requirementCount}`);
+    const nameWidth = Math.max(...changes.map(c => c.name.length));
+    for (const change of changes) {
+      const paddedName = change.name.padEnd(nameWidth);
+      const status = formatTaskStatus({ total: change.totalTasks, completed: change.completedTasks });
+      const timeAgo = formatRelativeTime(change.lastModified);
+      console.log(`${padding}${paddedName}     ${status.padEnd(12)}  ${timeAgo}`);
     }
   }
 }

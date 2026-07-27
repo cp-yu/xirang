@@ -48,7 +48,7 @@ Implementation: <base>..<head> (carried by <commits>)
 
 Rules:
 - Build \`## Why\` from the archived \`proposal.md\` and \`design.md\` (when present).
-- Build \`## Changes\` from \`git diff --name-only <base>..<head>\` file list cross-referenced with archived \`tasks.md\` Files/Goal and \`architecture-delta.c4\`.
+- Build \`## Changes\` from \`git diff --name-only <base>..<head>\` file list cross-referenced with archived \`tasks.md\` Files/Goal and the archived Semantic Delta units.
 - List all files from the diff; if a file is not mentioned in archived artifacts, state that explicitly.
 - The \`<base>\` is the prior change boundary (prior archive/boundary commit); the agent infers it from git history.
 - The \`Implementation:\` footer lists the effective diff range and the commits carrying that diff (including \`wip: opt-*\` checkpoint commits and any just-created normal implementation commit).
@@ -106,7 +106,7 @@ Body:
 \`\`\`
 
 Rules:
-- Build the summary from the archived \`proposal.md\`, \`design.md\`, \`tasks.md\`, and \`architecture-delta.c4\`.
+- Build the summary from the archived \`proposal.md\`, \`design.md\`, \`tasks.md\`, and the archived Semantic Delta units.
 - Use \`git commit -F -\` for no-ff merge commits and squash commits that require a message.
 - Do not generate this message for \`ff-only\` merges.
 `.trim();
@@ -161,19 +161,19 @@ ${buildArchiveFullVerifyContract(executionModel)}
    Read \`tasks.md\`; warn and confirm before proceeding if incomplete checkboxes remain. Missing tasks are not a task-related blocker.
 
 5. **Assess delta sync state**
-   If delta specs or \`architecture-delta.c4\` exist, assess whether sync is required. The archive CLI performs verify, sync, and move-to-archive; do not duplicate sync writes manually.
+   If any of \`.xirang/changes/<name>/{metamodel,elements,relationships,views}/\` is non-empty, assess whether sync is required. The archive CLI performs verify, sync, and move-to-archive; do not duplicate sync writes manually.
 
 6. **Run archive CLI**
    Run \`xirang archive "<change-name>"\` after the verify gate is fresh. CLI only verifies, syncs, moves the change to archive, and prints the git handoff reminder. CLI MUST NOT create commits, merge branches, switch branches, delete branches, remove worktrees, or generate commit messages.
 
 7. **Git handoff**
-   Read the archive CLI output and the projected git policy from \`xirang config project --json\`. Summary fields include change name, schema, archive location, verify gate result, specs / architecture sync result, agent-owned git follow-up status, and merge strategy.
+   Read the archive CLI output and the projected git policy from \`xirang config project --json\`. Summary fields include change name, schema, archive location, verify gate result, Semantic Model sync result, agent-owned git follow-up status, and merge strategy.
 
 8. **Agent git flow**
 ${buildAgentGitFlowStep()}
 
 9. **Display summary**
-   Include change, schema, archive location, verify gate result, specs / architecture sync result, agent-owned git follow-up status, Merge Strategy, cleanup responsibility, verify reuse/reexecution, and warnings. Do not report that CLI created an archive commit, performed a merge, or deleted a feature branch.
+   Include change, schema, archive location, verify gate result, Semantic Model sync result, agent-owned git follow-up status, Merge Strategy, cleanup responsibility, verify reuse/reexecution, and warnings. Do not report that CLI created an archive commit, performed a merge, or deleted a feature branch.
 
 **Output On Success**
 
@@ -184,7 +184,7 @@ ${buildAgentGitFlowStep()}
 **Schema:** <schema-name>
 **Archived to:** .xirang/changes/archive/YYYY-MM-DD-<name>/
 **Verify Gate:** Fresh PASS or PASS_WITH_WARNINGS result confirmed
-**Specs / architecture:** ✓ Synced to main specs and formal LikeC4 architecture (or "No deltas" or "Sync gate bypassed with --no-sync")
+**Semantic Model:** ✓ Synced into \`.xirang/model/\`, rewriting only the units the Semantic Delta affects, all-or-nothing (or "No deltas" or "Sync gate bypassed with --no-sync")
 **Agent Git Follow-up:** <completed / pending with reason>
 **Merge Strategy:** <git.merge.strategy>
 **Cleanup Responsibility:** <agent>
@@ -197,7 +197,7 @@ Archive completed after satisfying the unified full verify gate.
 - Prioritize the standard verify gate; only pass \`--no-verify\` to the archive CLI when the user explicitly requests it (the CLI provides its own confirmation prompt)
 - Show clearly whether verify was reused or re-executed
 - In \`core\`, use \`xirang sync "<change-name>"\` rather than manual inline sync
-- If delta specs or \`architecture-delta.c4\` exist, always run the shared sync assessment before moving the change directory`;
+- If any of \`.xirang/changes/<name>/{metamodel,elements,relationships,views}/\` is non-empty, always run the shared sync assessment before moving the change directory`;
 }
 
 export function createArchiveChangeSkillTemplateForExecutionModel(

@@ -14,7 +14,7 @@
 #### Checks
 
 - [ ] C1 <!-- Verification check -->
-  - Verifies: `specs/<capability>/spec.md` / Requirement "<requirement name>" / Scenario "<scenario name>"
+  - Verifies: `elements/<identity>.md` / Requirement "<requirement name>" / Scenario "<scenario name>"
   - Command: `<!-- command or test -->`
   - Expect: <!-- observable result -->
 
@@ -33,7 +33,7 @@
 #### Checks
 
 - [ ] C2 <!-- Deletion verification check -->
-  - Verifies: `specs/<capability>/spec.md` / REMOVED Requirement "<requirement name>"
+  - Verifies: `elements/<identity>.md` / REMOVED Requirement "<requirement name>"
   - Command: `<!-- absence assertion command, e.g., grep or test -->`
   - Expect: <!-- no matches or references found -->
 
@@ -51,6 +51,6 @@
 #### Checks
 
 - [ ] C3 <!-- Behavior equivalence check -->
-  - Preserves: `.xirang/specs/<capability>/spec.md` / Requirement "<requirement name>" / Scenario "<scenario name>"
+  - Preserves: `.xirang/model/elements/<identity>.md` / Requirement "<requirement name>" / Scenario "<scenario name>"
   - Command: `<!-- behavior test command -->`
   - Expect: <!-- old form (old function, old path, old duplication) no longer exists -->

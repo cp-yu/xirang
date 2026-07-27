@@ -3,6 +3,8 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { initializeCandidate } from '../../src/core/candidate/workspace.js';
+import { PARTITIONS } from '../../src/core/model/types.js';
+import { minimalModel, writeModel } from '../helpers/model-fixture.js';
 
 async function exists(target: string): Promise<boolean> {
   return fs.stat(target).then(() => true, () => false);
@@ -27,37 +29,29 @@ describe('Candidate initialization', () => {
     expect(result.active).toBe(true);
     expect(await exists(path.join(candidate, 'candidate.yaml'))).toBe(true);
     expect(await exists(path.join(candidate, 'build.md'))).toBe(true);
-    expect(await fs.readdir(path.join(candidate, 'architecture'))).toEqual([
-      'model.c4', 'relations.c4', 'specification.c4', 'views.c4',
-    ]);
-    expect(await fs.readdir(path.join(candidate, 'specs'))).toEqual([]);
-    expect(await exists(path.join(root, '.xirang', 'architecture'))).toBe(false);
+    expect(await fs.readdir(path.join(candidate, 'metamodel'))).toEqual(['project.md']);
+    expect(await fs.readdir(path.join(candidate, 'elements'))).toEqual(['project.root.md']);
+    expect(await fs.readdir(path.join(candidate, 'relationships'))).toEqual([]);
+    expect(await fs.readdir(path.join(candidate, 'views'))).toEqual([]);
+    expect(await exists(path.join(root, '.xirang', 'model'))).toBe(false);
   });
 
-  it('copies current formal Architecture and Specs byte-for-byte', async () => {
-    const architecture = path.join(root, '.xirang', 'architecture');
-    const spec = path.join(root, '.xirang', 'specs', 'sample', 'spec.md');
-    await fs.mkdir(architecture, { recursive: true });
-    await fs.mkdir(path.dirname(spec), { recursive: true });
-    await fs.writeFile(path.join(architecture, 'model.c4'), Buffer.from([0x6d, 0x0a]));
-    await fs.mkdir(path.join(architecture, '.likec4'), { recursive: true });
-    await fs.writeFile(path.join(architecture, '.likec4', 'cache'), 'generated');
-    await fs.writeFile(spec, Buffer.from([0x73, 0x0a]));
+  it('copies the current formal partitions byte-for-byte', async () => {
+    const modelRoot = path.join(root, '.xirang', 'model');
+    await writeModel(modelRoot, minimalModel());
+    const before = await fs.readFile(path.join(modelRoot, 'elements', 'root.md'));
 
     await initializeCandidate(root, { kind: 'current' });
 
-    expect(await fs.readFile(path.join(root, '.xirang', 'candidate', 'architecture', 'model.c4')))
-      .toEqual(Buffer.from([0x6d, 0x0a]));
-    expect(await fs.readFile(path.join(root, '.xirang', 'candidate', 'specs', 'sample', 'spec.md')))
-      .toEqual(Buffer.from([0x73, 0x0a]));
-    expect(await exists(path.join(root, '.xirang', 'candidate', 'architecture', '.likec4'))).toBe(false);
+    for (const partition of PARTITIONS) {
+      expect(await exists(path.join(root, '.xirang', 'candidate', partition))).toBe(true);
+    }
+    expect(await fs.readFile(path.join(root, '.xirang', 'candidate', 'elements', 'root.md'))).toEqual(before);
   });
 
-  it('copies an explicitly specified Xirang source', async () => {
+  it('copies an explicitly specified four-partition source', async () => {
     const source = path.join(root, 'baseline');
-    await fs.mkdir(path.join(source, 'architecture'), { recursive: true });
-    await fs.mkdir(path.join(source, 'specs'), { recursive: true });
-    await fs.writeFile(path.join(source, 'architecture', 'model.c4'), 'model {}\n');
+    await writeModel(source, minimalModel());
 
     await initializeCandidate(root, { kind: 'path', path: source });
 
@@ -73,20 +67,20 @@ describe('Candidate initialization', () => {
 
   it('rejects symlinks in a specified source', async () => {
     const source = path.join(root, 'baseline');
-    await fs.mkdir(path.join(source, 'architecture'), { recursive: true });
-    await fs.mkdir(path.join(source, 'specs'), { recursive: true });
-    await fs.symlink(path.join(root, 'outside'), path.join(source, 'architecture', 'linked.c4'));
+    await writeModel(source, minimalModel());
+    await fs.symlink(path.join(root, 'outside'), path.join(source, 'elements', 'linked.md'));
 
     await expect(initializeCandidate(root, { kind: 'path', path: source })).rejects.toThrow(/symlink/i);
     expect(await exists(path.join(root, '.xirang', 'candidate'))).toBe(false);
   });
 
-  it('rejects a symlinked source root', async () => {
+  it('rejects a symlinked partition root', async () => {
     const source = path.join(root, 'baseline');
-    const architecture = path.join(root, 'outside-architecture');
-    await fs.mkdir(architecture, { recursive: true });
-    await fs.mkdir(path.join(source, 'specs'), { recursive: true });
-    await fs.symlink(architecture, path.join(source, 'architecture'));
+    await writeModel(source, minimalModel());
+    const outside = path.join(root, 'outside-elements');
+    await fs.mkdir(outside, { recursive: true });
+    await fs.rm(path.join(source, 'elements'), { recursive: true, force: true });
+    await fs.symlink(outside, path.join(source, 'elements'));
 
     await expect(initializeCandidate(root, { kind: 'path', path: source })).rejects.toThrow(/symlink/i);
     expect(await exists(path.join(root, '.xirang', 'candidate'))).toBe(false);

@@ -31,16 +31,15 @@ describe('Candidate command registration', () => {
     const status: CandidateStatus = {
       active: true,
       baseline: { kind: 'clean', reference: null },
-      inventory: { architectureFiles: [], specFiles: [], bytes: 0 },
+      inventory: { partitions: { metamodel: [], elements: [], relationships: [], views: [] }, bytes: 0 },
       history: { count: 0, bytes: 0 },
       readiness: {
         metadata: true,
         build: true,
-        specification: true,
-        model: true,
-        relations: true,
+        metamodel: true,
+        elements: true,
+        relationships: true,
         views: true,
-        specsDirectory: true,
       },
       guidance: {
         resume: 'Continue editing the active .xirang/candidate workspace.',

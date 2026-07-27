@@ -1,10 +1,9 @@
 import type { Command } from 'commander';
 import { ActiveRelationDefinitionRegistry } from '../core/relations/active-registry.js';
-import { renderRelationAuthoringReference } from '../core/relations/renderers.js';
 import { resolveSchema } from '../core/artifact-graph/resolver.js';
 import type { FileDefinition } from '../core/artifact-graph/types.js';
 
-const AUTHORING_TOPICS = ['architecture-delta.c4'] as const;
+const AUTHORING_TOPICS = ['semantic-delta'] as const;
 
 type AuthoringTopic = typeof AUTHORING_TOPICS[number];
 
@@ -12,15 +11,31 @@ interface HelpOptions {
   json?: boolean;
 }
 
+interface SemanticDeltaRelationship {
+  operation: 'ADDED';
+  source: string;
+  kind: string;
+  target: string;
+}
+
 interface AuthoringHelp {
   file: AuthoringTopic;
   definition: FileDefinition;
-  relations?: typeof ActiveRelationDefinitionRegistry;
+  relations: SemanticDeltaRelationship[];
 }
 
 const FILE_LOOKUP: Record<AuthoringTopic, { schema: 'spec-driven'; artifactId: string }> = {
-  'architecture-delta.c4': { schema: 'spec-driven', artifactId: 'architecture-delta' },
+  'semantic-delta': { schema: 'spec-driven', artifactId: 'specs' },
 };
+
+const SEMANTIC_DELTA_RELATIONSHIPS: SemanticDeltaRelationship[] = ActiveRelationDefinitionRegistry.map(
+  ({ type, example }) => ({
+    operation: 'ADDED',
+    source: example.from,
+    kind: type,
+    target: example.to,
+  })
+);
 
 export class AuthoringHelpCommand {
   async execute(file: string | undefined, options: HelpOptions): Promise<void> {
@@ -45,7 +60,30 @@ function buildHelp(file: AuthoringTopic): AuthoringHelp {
   const definition = schema.artifacts.find((candidate) => candidate.id === lookup.artifactId)?.definition;
   if (!definition) throw new Error(`Missing file definition for '${file}' in built-in schema '${lookup.schema}'.`);
 
-  return { file, definition, relations: ActiveRelationDefinitionRegistry };
+  return { file, definition, relations: SEMANTIC_DELTA_RELATIONSHIPS };
+}
+
+function renderSemanticDeltaRelationships(relations: SemanticDeltaRelationship[]): string {
+  const entries = relations.flatMap(({ operation, source, kind, target }) => [
+    `  - operation: ${operation}`,
+    `    source: ${source}`,
+    `    kind: ${kind}`,
+    `    target: ${target}`,
+  ]);
+  return `# Semantic Delta Relationship Authoring
+
+## 选择规则
+
+1. 所有 relationship endpoint 都引用持久化 Element；无法解析 endpoint 时不创建 Relationship。
+2. 主动触发执行使用 \`invokes\`；创建或发布目标 Element 使用 \`produces\`。
+3. 只读取数据、配置、制品或合同使用 \`consumes\`。
+4. 正确性要求先后顺序使用 \`precedes\`；规则限制目标行为使用 \`constrains\`；判定目标有效性使用 \`validates\`。
+5. Relationship Delta 只支持 \`ADDED\` 与 \`REMOVED\`。
+
+\`\`\`yaml
+relationships:
+${entries.join('\n')}
+\`\`\``;
 }
 
 function renderTextHelp(help: AuthoringHelp): string {
@@ -71,7 +109,7 @@ function renderTextHelp(help: AuthoringHelp): string {
     '',
     definition.writePolicy,
   ];
-  if (help.relations) lines.push('', renderRelationAuthoringReference());
+  lines.push('', renderSemanticDeltaRelationships(help.relations));
   lines.push('', '## Validation commands', '', ...definition.validation.map((command) => `- ${command}`));
   return lines.join('\n');
 }

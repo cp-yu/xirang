@@ -1,0 +1,774 @@
+{
+  "timestamp": "2026-07-27T09:18:56.380Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "requirement": "Change scope attribution",
+      "task": "Task 4",
+      "summary": "Unaccounted mechanical fixture change: test/core/model/validator.test.ts is outside the declared attribution universe",
+      "message": "The validator fixture was adjusted to add valid Scenarios and remove unrelated Relationship Kind diagnostics from hierarchy cases. These changes are consistent with the new validation gates and the complete test suite passes, but the file is absent from Task 4's Files list and every Check command, so its modification is not explicitly owned by the Change Plan.",
+      "recommendation": "Add test/core/model/validator.test.ts to Task 4's Files inventory as mechanical fixture maintenance for the new Scenario and Kind-reference validation gates.",
+      "evidenceCitations": [
+        ".xirang/changes/optimize-build-workflow/tasks.md:127-145",
+        "test/core/model/validator.test.ts:5-13",
+        "test/core/model/validator.test.ts:72-85",
+        "test/core/model/validator.test.ts:102-111"
+      ],
+      "evidence": [
+        "The explicit Task 4 inventory lists parser.test.ts, architecture-validator.test.ts, candidate-validate.test.ts, and arch-command.test.ts, but not test/core/model/validator.test.ts.",
+        "The changed fixture now gives generated Requirements a Scenario, preventing the newly enforced MISSING_REQUIREMENT_SCENARIO diagnostic from obscuring unrelated tests.",
+        "Two hierarchy fixtures explicitly clear inherited Relationship Kinds so those cases remain focused on containment behavior.",
+        "Fresh lint, build, and the full 144-file, 1,970-test Vitest suite all passed, supporting classification as benign fixture maintenance rather than an unplanned behavior change."
+      ]
+    },
+    {
+      "severity": "WARNING",
+      "requirement": "Semantic Delta four-partition persistence",
+      "task": "Task 6 / C24",
+      "summary": "The Change views partition is unavailable rather than demonstrably empty",
+      "message": "Filesystem inspection found populated metamodel, elements, and relationships partitions but no views directory under the Change. Read-only verification therefore cannot distinguish an intentionally empty views partition from a missing collection, although the current Change and Expected Model validators accept the layout without diagnostics.",
+      "recommendation": "Persist a real empty views partition or introduce a deterministic supported marker that lets loaders and reviewers distinguish an available empty partition from a missing collection.",
+      "evidenceCitations": [
+        ".xirang/model/elements/semantic-delta.md:19-24",
+        ".xirang/changes/optimize-build-workflow/tasks.md:241-244",
+        "src/core/templates/fragments/xirang-fragments.ts:11-13"
+      ],
+      "evidence": [
+        "Direct enumeration of all four Change partitions found one metamodel unit, twelve element units, and one relationship container; .xirang/changes/optimize-build-workflow/views does not exist.",
+        "The Formal Semantic Delta contract states that a Delta is persisted through four model partitions and loaded by combining all four.",
+        "Fresh combined Change validation and Expected Semantic Model validation both succeeded with no errors or warnings, showing that the current CLI does not report the absent-collection distinction.",
+        "The semantic diff compiled successfully with 56 entries, so this is an availability and persistence-alignment warning rather than evidence that a View change was omitted."
+      ]
+    }
+  ],
+  "tasksFileHash": "93cc0ebea6001f657d2ca09c79364fbbde6ff7c7f48f2fb3aa0fba264c46a642",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".github/workflows/test-windows.yml",
+      ".xirang/changes/optimize-build-workflow/.apply-isolation.json",
+      ".xirang/changes/optimize-build-workflow/.verify-result.json",
+      ".xirang/changes/optimize-build-workflow/.xirang.yaml",
+      ".xirang/changes/optimize-build-workflow/design.md",
+      ".xirang/changes/optimize-build-workflow/effective-change.md",
+      ".xirang/changes/optimize-build-workflow/elements/deterministic-operations.md",
+      ".xirang/changes/optimize-build-workflow/elements/element-contract.md",
+      ".xirang/changes/optimize-build-workflow/elements/project-build-role.md",
+      ".xirang/changes/optimize-build-workflow/elements/project-tooling-configuration.md",
+      ".xirang/changes/optimize-build-workflow/elements/propose.md",
+      ".xirang/changes/optimize-build-workflow/elements/realization.md",
+      ".xirang/changes/optimize-build-workflow/elements/requirement.md",
+      ".xirang/changes/optimize-build-workflow/elements/scenario.md",
+      ".xirang/changes/optimize-build-workflow/elements/semantic-delta-entry.md",
+      ".xirang/changes/optimize-build-workflow/elements/semantic-model-build.md",
+      ".xirang/changes/optimize-build-workflow/elements/semantic-model.md",
+      ".xirang/changes/optimize-build-workflow/elements/snack.md",
+      ".xirang/changes/optimize-build-workflow/metamodel/responsible-for.md",
+      ".xirang/changes/optimize-build-workflow/proposal.md",
+      ".xirang/changes/optimize-build-workflow/relationships/responsible-for.yaml",
+      ".xirang/changes/optimize-build-workflow/tasks.md",
+      ".xirang/model/elements/deterministic-operations.md",
+      ".xirang/model/elements/element-contract.md",
+      ".xirang/model/elements/project.root.md",
+      ".xirang/model/elements/semantic-delta.md",
+      ".xirang/model/elements/semantic-model-build.md",
+      ".xirang/model/elements/semantic-model.md",
+      "opt-build.md",
+      "src/commands/candidate.ts",
+      "src/core/candidate/validator.ts",
+      "src/core/change-compiler.ts",
+      "src/core/model/index-map.ts",
+      "src/core/model/parser.ts",
+      "src/core/model/validator.ts",
+      "src/core/semantic-diff.ts",
+      "src/core/templates/fragments/xirang-fragments.ts",
+      "src/core/templates/workflows/build.ts",
+      "src/core/templates/workflows/propose.ts",
+      "src/core/templates/workflows/snack.ts",
+      "test/commands/candidate-promote.test.ts",
+      "test/commands/candidate-validate.test.ts",
+      "test/core/model/candidate-partitions.test.ts",
+      "test/core/model/kernel-e2e.test.ts",
+      "test/core/model/parser.test.ts",
+      "test/core/model/validator.test.ts",
+      "test/core/templates/build.test.ts",
+      "test/core/templates/fragments/xirang-fragments.test.ts",
+      "test/core/templates/propose-template.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts",
+      "test/core/templates/snack-template.test.ts",
+      "test/integration/arch-command.test.ts",
+      "test/unit/utils/architecture-validator.test.ts",
+      "xirang-definition.md"
+    ],
+    "evidenceFingerprint": "2c780f42b5238d00087bde51a94991223108ceb829727109f6b3cf657d9a2e56",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".github/workflows/test-windows.yml",
+        "hash": "777a3ec72de98f2877ba6b98d382ea5bdbbf83b51375c4f917b781a8cc0db31c"
+      },
+      {
+        "path": ".xirang/changes/optimize-build-workflow/.apply-isolation.json",
+        "hash": "86f1cac356a46e40050b6d54cb0a0aff2991908090beff7b10822610b65d01b3"
+      },
+      {
+        "path": ".xirang/changes/optimize-build-workflow/.xirang.yaml",
+        "hash": "0db77a840c2a2356d82ebc1671bdddcc1cf7e075820f3837796105c53dfb739a"
+      },
+      {
+        "path": ".xirang/changes/optimize-build-workflow/design.md",
+        "hash": "2c2ce203621c3fd8fe94ab5096c41469957ff7851b35775fe6c1a12bd61adb16"
+      },
+      {
+        "path": ".xirang/changes/optimize-build-workflow/effective-change.md",
+        "hash": "1be500cae055e8a6dd9170ee37f00b0788c324161dc8fa07b7d4eee827083e95"
+      },
+      {
+        "path": ".xirang/changes/optimize-build-workflow/elements/deterministic-operations.md",
+        "hash": "34a491368461bc0769260a4e60b5befe5fe32da3bda60c2070229b465c703f3d"
+      },
+      {
+        "path": ".xirang/changes/optimize-build-workflow/elements/element-contract.md",
+        "hash": "20ba02cc6066f58bc9e7c545577a864c28d9d6687faf486f18f015910742d331"
+      },
+      {
+        "path": ".xirang/changes/optimize-build-workflow/elements/project-build-role.md",
+        "hash": "85ac8d241d1e05969f4cde7fcea17c5e30982a26b75885a919d9f39c8b53c275"
+      },
+      {
+        "path": ".xirang/changes/optimize-build-workflow/elements/project-tooling-configuration.md",
+        "hash": "325d9279098b0176d9c2a1ad3f7cb724bd5377b7af926dfc1463a756274b6612"
+      },
+      {
+        "path": ".xirang/changes/optimize-build-workflow/elements/propose.md",
+        "hash": "c4ba96d6467ddcf9e76c2d7cc2a607d4ad414c375804376a7e9015a9948f630f"
+      },
+      {
+        "path": ".xirang/changes/optimize-build-workflow/elements/realization.md",
+        "hash": "87bbbee6aab98c9ab3c9f37cea0c16c57967b03bba3eed2b73aaacfc5466656d"
+      },
+      {
+        "path": ".xirang/changes/optimize-build-workflow/elements/requirement.md",
+        "hash": "1ab3bf3a4d764d826f6adbaca84a013a448aeb1868c95872b24eb9248eb7d10e"
+      },
+      {
+        "path": ".xirang/changes/optimize-build-workflow/elements/scenario.md",
+        "hash": "8cb7bea29eafb60d2f512a499121682a3f18d05b3ea45f90b883aba50514d8a4"
+      },
+      {
+        "path": ".xirang/changes/optimize-build-workflow/elements/semantic-delta-entry.md",
+        "hash": "d0473f082d60ec01ac062e8a9836f5f67b0a151975c1543f663313fb6382d5e0"
+      },
+      {
+        "path": ".xirang/changes/optimize-build-workflow/elements/semantic-model-build.md",
+        "hash": "20bf1971618e8badf8b0bdd8e708cab695d12ac804f8514b822469848ff96f42"
+      },
+      {
+        "path": ".xirang/changes/optimize-build-workflow/elements/semantic-model.md",
+        "hash": "fde1efabf28a615e940bb28ed253f176876f05600d57ef2f9e6a74ae01beb633"
+      },
+      {
+        "path": ".xirang/changes/optimize-build-workflow/elements/snack.md",
+        "hash": "e4a437e6e803f621e9470a3e46992f8d75d9626a56294855d518db19ab2700fd"
+      },
+      {
+        "path": ".xirang/changes/optimize-build-workflow/metamodel/responsible-for.md",
+        "hash": "0daedd9183f72d12265bca255afbd212461c7165eee2007dd1e38e0f9d5b7c0f"
+      },
+      {
+        "path": ".xirang/changes/optimize-build-workflow/proposal.md",
+        "hash": "d3542110023da788e9adcd90b16ee9a09d6126709be5454fe0b3d75e3685ebfc"
+      },
+      {
+        "path": ".xirang/changes/optimize-build-workflow/relationships/responsible-for.yaml",
+        "hash": "890d30b069b97c976d49b7fef3f924ba4625a33c2d446fceea29c97f51e4a5f2"
+      },
+      {
+        "path": ".xirang/changes/optimize-build-workflow/tasks.md",
+        "hash": "93cc0ebea6001f657d2ca09c79364fbbde6ff7c7f48f2fb3aa0fba264c46a642"
+      },
+      {
+        "path": ".xirang/model/elements/deterministic-operations.md",
+        "hash": "dcb65f118d51cf7e6867780f8ad776c842408324ac599ef99c582ba589d8068e"
+      },
+      {
+        "path": ".xirang/model/elements/element-contract.md",
+        "hash": "5e4bfaa75a7321283fffa10810851dce1a0e1fbea5a54326301f28588342f47b"
+      },
+      {
+        "path": ".xirang/model/elements/project.root.md",
+        "hash": "6f43c33332193d999d8fdc9906331be5d61de01cae2f855d677ae5d51f62039f"
+      },
+      {
+        "path": ".xirang/model/elements/semantic-delta.md",
+        "hash": "9937cd88578269dc2c2fe4279c7865f8a59f731675d83039a775c31c49f76ee4"
+      },
+      {
+        "path": ".xirang/model/elements/semantic-model-build.md",
+        "hash": "9e654e890a2d8fcc2e41d6d4bbffad0cd6dd6b87770ddc565f0e3c148957bc63"
+      },
+      {
+        "path": ".xirang/model/elements/semantic-model.md",
+        "hash": "f20c8485f6576fe18807728ae103b7b4c6aee700ec464f96330d6cc6dcabb087"
+      },
+      {
+        "path": "opt-build.md",
+        "hash": "d03d1470bd5d5a6a481c7eaf23043dfcfa7713714075c9872f4ffa9d96e73e4c"
+      },
+      {
+        "path": "src/commands/candidate.ts",
+        "hash": "1f92f72de01dea6d9d87201ad515d8e7576f4b6023013f685a1b3255fb15f8a5"
+      },
+      {
+        "path": "src/core/candidate/validator.ts",
+        "hash": "b2902dc5d1ebe5e9ff52ab445967614adaeec41a464ee3991b25f1d23eda9e80"
+      },
+      {
+        "path": "src/core/change-compiler.ts",
+        "hash": "cdd2e09e5845e5d0dcf210f66729e5e2c20d4f1e0a51c78c5b5305bffad55351"
+      },
+      {
+        "path": "src/core/model/index-map.ts",
+        "hash": "1e0f9ae654d8aec4922d8ef95842fd680ab154fe95593551eeedd2dce6bf3861"
+      },
+      {
+        "path": "src/core/model/parser.ts",
+        "hash": "d5c41176498dad11d2dd48dcce83d67be86a4a956a2b62de1cf66449fb1060e1"
+      },
+      {
+        "path": "src/core/model/validator.ts",
+        "hash": "f9237b7d9e9e5fb2269b1540470c8c761bc37d96ce11e6adc65ba1cd9dc33e49"
+      },
+      {
+        "path": "src/core/semantic-diff.ts",
+        "hash": "08772a6b6aa0a51a3ee4f96d10c0f879154d68a7bdeb5de51f7e830fc6d099a9"
+      },
+      {
+        "path": "src/core/templates/fragments/xirang-fragments.ts",
+        "hash": "35d45f02d0cba73674b15d606dde743544ed06c17b74065840b428d7294ce686"
+      },
+      {
+        "path": "src/core/templates/workflows/build.ts",
+        "hash": "f41a2564dc45252695373806a7d8c87acf69a97f5ab0f163f9e656fb3fd2dafe"
+      },
+      {
+        "path": "src/core/templates/workflows/propose.ts",
+        "hash": "11957061a4ecea0bbc4cdd1374a0b91ca9e0dd37f48d97572db5c37a09506142"
+      },
+      {
+        "path": "src/core/templates/workflows/snack.ts",
+        "hash": "9b5bad7fa3f31a9d061645d168636da83f11d652ba0f57827590de650918cb86"
+      },
+      {
+        "path": "test/commands/candidate-promote.test.ts",
+        "hash": "dd21d3b593dfc4a23683bde210d3fc2e900cef0476ada5cd0f4626573f2b6e8f"
+      },
+      {
+        "path": "test/commands/candidate-validate.test.ts",
+        "hash": "a7fbd3acef101940969fad135e33e531056b24d84abbe7a5cfe837b74757d9c3"
+      },
+      {
+        "path": "test/core/model/candidate-partitions.test.ts",
+        "hash": "a1ec9711e05416f35fac7492882be069d1ba1c9d12e14c5f818ff9cf7037e25a"
+      },
+      {
+        "path": "test/core/model/kernel-e2e.test.ts",
+        "hash": "cf42e8c41ada4f14d26adba17d219c55b1f89ec5759a2e61b81263b4e0598a64"
+      },
+      {
+        "path": "test/core/model/parser.test.ts",
+        "hash": "bc1b549f0a29b233b2f09bcc8e325f588394b0c68705519ab916f9bc9dd2fb07"
+      },
+      {
+        "path": "test/core/model/validator.test.ts",
+        "hash": "535aa07f4a6b896de908ff97562d30e41022c5a48c372cd5c84372497ebe4b50"
+      },
+      {
+        "path": "test/core/templates/build.test.ts",
+        "hash": "dc4f9f5fd1598110f983d1905d38696e0d9fc9f6774d229a43d19613d62c64d4"
+      },
+      {
+        "path": "test/core/templates/fragments/xirang-fragments.test.ts",
+        "hash": "faf6ae40306a2dd0461e0a9346b6b55d3f82c05c881791d9c31668d4e6f1d9cb"
+      },
+      {
+        "path": "test/core/templates/propose-template.test.ts",
+        "hash": "2013b36d2e385a282c34e751a64f821dc4bf95034194b44dd6e034e02b2e7973"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "4a48e57d8e9e17f9c64a9e9a7d92f7749d3de7cbf7060e493acfe9cd6f66ab5f"
+      },
+      {
+        "path": "test/core/templates/snack-template.test.ts",
+        "hash": "26b83cc5dd398f9857245fccec16f454b345931db6efb8d63763683278c0795a"
+      },
+      {
+        "path": "test/integration/arch-command.test.ts",
+        "hash": "e6c5e0ad8e1ce8ca404c0f356a4087cc11ebbdb85df94b09bd827639dfff4624"
+      },
+      {
+        "path": "test/unit/utils/architecture-validator.test.ts",
+        "hash": "b3308e05cd54e015de79fb5d328f72eeabe0421bb314bed5e42662a39be390c9"
+      },
+      {
+        "path": "xirang-definition.md",
+        "hash": "198142ba0bdbb60101550da5dd6bb92c1e618c2411cfca0a60bb8801434908e6"
+      }
+    ],
+    "skippedEvidenceFiles": [
+      ".xirang/changes/optimize-build-workflow/.verify-result.json"
+    ],
+    "gitHeadCommit": "f0d8c4813371d41697809bfe07c5bce3127a8817",
+    "gitDiffSummary": "Validated projectRoot and changeDir as real paths under Git root /home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec. baseCommit 9730d41a8511896c65709b35f632541027d8bff1 resolves and equals HEAD. `git diff 9730d41a8511896c65709b35f632541027d8bff1...HEAD --name-only` was empty; the final `git status --short` union contained 45 paths: 43 tracked changes and two untracked Change verification artifacts. All available Semantic Delta units were read; metamodel, elements, and relationships are non-empty, while views is missing. The unique Formal Project Root is project.root. Fresh `xirang validate`, Formal architecture validation, Expected Model validation, and semantic diff compilation passed; the fresh diff has 56 entries (+52, ~4, -0) and fingerprints matching effective-change.md. `pnpm lint && pnpm build && pnpm test` succeeded with 144 test files and 1,970 tests. Both staged and unstaged `git diff --check` passed, and no introduced TODO, FIXME, HACK, orphaned import, or half-migration residue was found.",
+    "timestamp": "2026-07-27T09:30:49.184Z"
+  },
+  "optimization": {
+    "status": "IMPROVED",
+    "attempts": [
+      {
+        "timestamp": "2026-07-27T09:25:31.567Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-27T09:30:49.164Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-07-27T09:34:28.126Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-07-27T09:18:56.380Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "requirement": "Change scope attribution",
+          "task": "Task 4",
+          "summary": "Unaccounted mechanical fixture change: test/core/model/validator.test.ts is outside the declared attribution universe",
+          "message": "The validator fixture was adjusted to add valid Scenarios and remove unrelated Relationship Kind diagnostics from hierarchy cases. These changes are consistent with the new validation gates and the complete test suite passes, but the file is absent from Task 4's Files list and every Check command, so its modification is not explicitly owned by the Change Plan.",
+          "recommendation": "Add test/core/model/validator.test.ts to Task 4's Files inventory as mechanical fixture maintenance for the new Scenario and Kind-reference validation gates.",
+          "evidenceCitations": [
+            ".xirang/changes/optimize-build-workflow/tasks.md:127-145",
+            "test/core/model/validator.test.ts:5-13",
+            "test/core/model/validator.test.ts:72-85",
+            "test/core/model/validator.test.ts:102-111"
+          ],
+          "evidence": [
+            "The explicit Task 4 inventory lists parser.test.ts, architecture-validator.test.ts, candidate-validate.test.ts, and arch-command.test.ts, but not test/core/model/validator.test.ts.",
+            "The changed fixture now gives generated Requirements a Scenario, preventing the newly enforced MISSING_REQUIREMENT_SCENARIO diagnostic from obscuring unrelated tests.",
+            "Two hierarchy fixtures explicitly clear inherited Relationship Kinds so those cases remain focused on containment behavior.",
+            "Fresh lint, build, and the full 144-file, 1,970-test Vitest suite all passed, supporting classification as benign fixture maintenance rather than an unplanned behavior change."
+          ]
+        },
+        {
+          "severity": "WARNING",
+          "requirement": "Semantic Delta four-partition persistence",
+          "task": "Task 6 / C24",
+          "summary": "The Change views partition is unavailable rather than demonstrably empty",
+          "message": "Filesystem inspection found populated metamodel, elements, and relationships partitions but no views directory under the Change. Read-only verification therefore cannot distinguish an intentionally empty views partition from a missing collection, although the current Change and Expected Model validators accept the layout without diagnostics.",
+          "recommendation": "Persist a real empty views partition or introduce a deterministic supported marker that lets loaders and reviewers distinguish an available empty partition from a missing collection.",
+          "evidenceCitations": [
+            ".xirang/model/elements/semantic-delta.md:19-24",
+            ".xirang/changes/optimize-build-workflow/tasks.md:241-244",
+            "src/core/templates/fragments/xirang-fragments.ts:11-13"
+          ],
+          "evidence": [
+            "Direct enumeration of all four Change partitions found one metamodel unit, twelve element units, and one relationship container; .xirang/changes/optimize-build-workflow/views does not exist.",
+            "The Formal Semantic Delta contract states that a Delta is persisted through four model partitions and loaded by combining all four.",
+            "Fresh combined Change validation and Expected Semantic Model validation both succeeded with no errors or warnings, showing that the current CLI does not report the absent-collection distinction.",
+            "The semantic diff compiled successfully with 56 entries, so this is an availability and persistence-alignment warning rather than evidence that a View change was omitted."
+          ]
+        }
+      ],
+      "tasksFileHash": "93cc0ebea6001f657d2ca09c79364fbbde6ff7c7f48f2fb3aa0fba264c46a642",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".github/workflows/test-windows.yml",
+          ".xirang/changes/optimize-build-workflow/.apply-isolation.json",
+          ".xirang/changes/optimize-build-workflow/.verify-result.json",
+          ".xirang/changes/optimize-build-workflow/.xirang.yaml",
+          ".xirang/changes/optimize-build-workflow/design.md",
+          ".xirang/changes/optimize-build-workflow/effective-change.md",
+          ".xirang/changes/optimize-build-workflow/elements/deterministic-operations.md",
+          ".xirang/changes/optimize-build-workflow/elements/element-contract.md",
+          ".xirang/changes/optimize-build-workflow/elements/project-build-role.md",
+          ".xirang/changes/optimize-build-workflow/elements/project-tooling-configuration.md",
+          ".xirang/changes/optimize-build-workflow/elements/propose.md",
+          ".xirang/changes/optimize-build-workflow/elements/realization.md",
+          ".xirang/changes/optimize-build-workflow/elements/requirement.md",
+          ".xirang/changes/optimize-build-workflow/elements/scenario.md",
+          ".xirang/changes/optimize-build-workflow/elements/semantic-delta-entry.md",
+          ".xirang/changes/optimize-build-workflow/elements/semantic-model-build.md",
+          ".xirang/changes/optimize-build-workflow/elements/semantic-model.md",
+          ".xirang/changes/optimize-build-workflow/elements/snack.md",
+          ".xirang/changes/optimize-build-workflow/metamodel/responsible-for.md",
+          ".xirang/changes/optimize-build-workflow/proposal.md",
+          ".xirang/changes/optimize-build-workflow/relationships/responsible-for.yaml",
+          ".xirang/changes/optimize-build-workflow/tasks.md",
+          ".xirang/model/elements/deterministic-operations.md",
+          ".xirang/model/elements/element-contract.md",
+          ".xirang/model/elements/project.root.md",
+          ".xirang/model/elements/semantic-delta.md",
+          ".xirang/model/elements/semantic-model-build.md",
+          ".xirang/model/elements/semantic-model.md",
+          "opt-build.md",
+          "src/commands/candidate.ts",
+          "src/core/candidate/validator.ts",
+          "src/core/change-compiler.ts",
+          "src/core/model/index-map.ts",
+          "src/core/model/parser.ts",
+          "src/core/model/validator.ts",
+          "src/core/semantic-diff.ts",
+          "src/core/templates/fragments/xirang-fragments.ts",
+          "src/core/templates/workflows/build.ts",
+          "src/core/templates/workflows/propose.ts",
+          "src/core/templates/workflows/snack.ts",
+          "test/commands/candidate-promote.test.ts",
+          "test/commands/candidate-validate.test.ts",
+          "test/core/model/candidate-partitions.test.ts",
+          "test/core/model/kernel-e2e.test.ts",
+          "test/core/model/parser.test.ts",
+          "test/core/model/validator.test.ts",
+          "test/core/templates/build.test.ts",
+          "test/core/templates/fragments/xirang-fragments.test.ts",
+          "test/core/templates/propose-template.test.ts",
+          "test/core/templates/skill-templates-parity.test.ts",
+          "test/core/templates/snack-template.test.ts",
+          "test/integration/arch-command.test.ts",
+          "test/unit/utils/architecture-validator.test.ts",
+          "xirang-definition.md"
+        ],
+        "evidenceFingerprint": "e2f24c0299a7a67d98e7a0af8baea19cb1a73a3c67679d4d864bb7f807e3b3c2",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".github/workflows/test-windows.yml",
+            "hash": "777a3ec72de98f2877ba6b98d382ea5bdbbf83b51375c4f917b781a8cc0db31c"
+          },
+          {
+            "path": ".xirang/changes/optimize-build-workflow/.apply-isolation.json",
+            "hash": "c5043ce92bd33d64a0307760c3a793f5a987e55e34b22bf55eca35c0cf197d9d"
+          },
+          {
+            "path": ".xirang/changes/optimize-build-workflow/.xirang.yaml",
+            "hash": "0db77a840c2a2356d82ebc1671bdddcc1cf7e075820f3837796105c53dfb739a"
+          },
+          {
+            "path": ".xirang/changes/optimize-build-workflow/design.md",
+            "hash": "2c2ce203621c3fd8fe94ab5096c41469957ff7851b35775fe6c1a12bd61adb16"
+          },
+          {
+            "path": ".xirang/changes/optimize-build-workflow/effective-change.md",
+            "hash": "1be500cae055e8a6dd9170ee37f00b0788c324161dc8fa07b7d4eee827083e95"
+          },
+          {
+            "path": ".xirang/changes/optimize-build-workflow/elements/deterministic-operations.md",
+            "hash": "34a491368461bc0769260a4e60b5befe5fe32da3bda60c2070229b465c703f3d"
+          },
+          {
+            "path": ".xirang/changes/optimize-build-workflow/elements/element-contract.md",
+            "hash": "20ba02cc6066f58bc9e7c545577a864c28d9d6687faf486f18f015910742d331"
+          },
+          {
+            "path": ".xirang/changes/optimize-build-workflow/elements/project-build-role.md",
+            "hash": "85ac8d241d1e05969f4cde7fcea17c5e30982a26b75885a919d9f39c8b53c275"
+          },
+          {
+            "path": ".xirang/changes/optimize-build-workflow/elements/project-tooling-configuration.md",
+            "hash": "325d9279098b0176d9c2a1ad3f7cb724bd5377b7af926dfc1463a756274b6612"
+          },
+          {
+            "path": ".xirang/changes/optimize-build-workflow/elements/propose.md",
+            "hash": "c4ba96d6467ddcf9e76c2d7cc2a607d4ad414c375804376a7e9015a9948f630f"
+          },
+          {
+            "path": ".xirang/changes/optimize-build-workflow/elements/realization.md",
+            "hash": "87bbbee6aab98c9ab3c9f37cea0c16c57967b03bba3eed2b73aaacfc5466656d"
+          },
+          {
+            "path": ".xirang/changes/optimize-build-workflow/elements/requirement.md",
+            "hash": "1ab3bf3a4d764d826f6adbaca84a013a448aeb1868c95872b24eb9248eb7d10e"
+          },
+          {
+            "path": ".xirang/changes/optimize-build-workflow/elements/scenario.md",
+            "hash": "8cb7bea29eafb60d2f512a499121682a3f18d05b3ea45f90b883aba50514d8a4"
+          },
+          {
+            "path": ".xirang/changes/optimize-build-workflow/elements/semantic-delta-entry.md",
+            "hash": "d0473f082d60ec01ac062e8a9836f5f67b0a151975c1543f663313fb6382d5e0"
+          },
+          {
+            "path": ".xirang/changes/optimize-build-workflow/elements/semantic-model-build.md",
+            "hash": "20bf1971618e8badf8b0bdd8e708cab695d12ac804f8514b822469848ff96f42"
+          },
+          {
+            "path": ".xirang/changes/optimize-build-workflow/elements/semantic-model.md",
+            "hash": "fde1efabf28a615e940bb28ed253f176876f05600d57ef2f9e6a74ae01beb633"
+          },
+          {
+            "path": ".xirang/changes/optimize-build-workflow/elements/snack.md",
+            "hash": "e4a437e6e803f621e9470a3e46992f8d75d9626a56294855d518db19ab2700fd"
+          },
+          {
+            "path": ".xirang/changes/optimize-build-workflow/metamodel/responsible-for.md",
+            "hash": "0daedd9183f72d12265bca255afbd212461c7165eee2007dd1e38e0f9d5b7c0f"
+          },
+          {
+            "path": ".xirang/changes/optimize-build-workflow/proposal.md",
+            "hash": "d3542110023da788e9adcd90b16ee9a09d6126709be5454fe0b3d75e3685ebfc"
+          },
+          {
+            "path": ".xirang/changes/optimize-build-workflow/relationships/responsible-for.yaml",
+            "hash": "890d30b069b97c976d49b7fef3f924ba4625a33c2d446fceea29c97f51e4a5f2"
+          },
+          {
+            "path": ".xirang/changes/optimize-build-workflow/tasks.md",
+            "hash": "93cc0ebea6001f657d2ca09c79364fbbde6ff7c7f48f2fb3aa0fba264c46a642"
+          },
+          {
+            "path": ".xirang/model/elements/deterministic-operations.md",
+            "hash": "d866ad2a57d36452cb393703de28427744857e4279b3b91dfe31a1d6f925dcd6"
+          },
+          {
+            "path": ".xirang/model/elements/element-contract.md",
+            "hash": "a00406172b10827c3687aba47197cd4f5b5fe46f1638830686c0daf77685a2a5"
+          },
+          {
+            "path": ".xirang/model/elements/project.root.md",
+            "hash": "6f43c33332193d999d8fdc9906331be5d61de01cae2f855d677ae5d51f62039f"
+          },
+          {
+            "path": ".xirang/model/elements/semantic-delta.md",
+            "hash": "9937cd88578269dc2c2fe4279c7865f8a59f731675d83039a775c31c49f76ee4"
+          },
+          {
+            "path": ".xirang/model/elements/semantic-model-build.md",
+            "hash": "a2bbd2150dab7fb297aeec1518400adcd2e01b38e0a82895a3dfeb9f7fa0089b"
+          },
+          {
+            "path": ".xirang/model/elements/semantic-model.md",
+            "hash": "9d92b069a4bb19c54400ee7602bc2508bcfa3a92e5afe8beb15d6203a8e03dfa"
+          },
+          {
+            "path": "opt-build.md",
+            "hash": "d03d1470bd5d5a6a481c7eaf23043dfcfa7713714075c9872f4ffa9d96e73e4c"
+          },
+          {
+            "path": "src/commands/candidate.ts",
+            "hash": "1f92f72de01dea6d9d87201ad515d8e7576f4b6023013f685a1b3255fb15f8a5"
+          },
+          {
+            "path": "src/core/candidate/validator.ts",
+            "hash": "b2902dc5d1ebe5e9ff52ab445967614adaeec41a464ee3991b25f1d23eda9e80"
+          },
+          {
+            "path": "src/core/change-compiler.ts",
+            "hash": "cdd2e09e5845e5d0dcf210f66729e5e2c20d4f1e0a51c78c5b5305bffad55351"
+          },
+          {
+            "path": "src/core/model/index-map.ts",
+            "hash": "1e0f9ae654d8aec4922d8ef95842fd680ab154fe95593551eeedd2dce6bf3861"
+          },
+          {
+            "path": "src/core/model/parser.ts",
+            "hash": "d5c41176498dad11d2dd48dcce83d67be86a4a956a2b62de1cf66449fb1060e1"
+          },
+          {
+            "path": "src/core/model/validator.ts",
+            "hash": "3b875b838514e82bbc6f1690207a19437d8131c4bb819248c9b0a9aead725cc7"
+          },
+          {
+            "path": "src/core/semantic-diff.ts",
+            "hash": "08772a6b6aa0a51a3ee4f96d10c0f879154d68a7bdeb5de51f7e830fc6d099a9"
+          },
+          {
+            "path": "src/core/templates/fragments/xirang-fragments.ts",
+            "hash": "35d45f02d0cba73674b15d606dde743544ed06c17b74065840b428d7294ce686"
+          },
+          {
+            "path": "src/core/templates/workflows/build.ts",
+            "hash": "f41a2564dc45252695373806a7d8c87acf69a97f5ab0f163f9e656fb3fd2dafe"
+          },
+          {
+            "path": "src/core/templates/workflows/propose.ts",
+            "hash": "11957061a4ecea0bbc4cdd1374a0b91ca9e0dd37f48d97572db5c37a09506142"
+          },
+          {
+            "path": "src/core/templates/workflows/snack.ts",
+            "hash": "9b5bad7fa3f31a9d061645d168636da83f11d652ba0f57827590de650918cb86"
+          },
+          {
+            "path": "test/commands/candidate-promote.test.ts",
+            "hash": "dd21d3b593dfc4a23683bde210d3fc2e900cef0476ada5cd0f4626573f2b6e8f"
+          },
+          {
+            "path": "test/commands/candidate-validate.test.ts",
+            "hash": "a7fbd3acef101940969fad135e33e531056b24d84abbe7a5cfe837b74757d9c3"
+          },
+          {
+            "path": "test/core/model/candidate-partitions.test.ts",
+            "hash": "a1ec9711e05416f35fac7492882be069d1ba1c9d12e14c5f818ff9cf7037e25a"
+          },
+          {
+            "path": "test/core/model/kernel-e2e.test.ts",
+            "hash": "cf42e8c41ada4f14d26adba17d219c55b1f89ec5759a2e61b81263b4e0598a64"
+          },
+          {
+            "path": "test/core/model/parser.test.ts",
+            "hash": "bc1b549f0a29b233b2f09bcc8e325f588394b0c68705519ab916f9bc9dd2fb07"
+          },
+          {
+            "path": "test/core/model/validator.test.ts",
+            "hash": "36771254c448fa13568ceaf33ddb817bf562f0cdabc3c2a3e83870d938943b3e"
+          },
+          {
+            "path": "test/core/templates/build.test.ts",
+            "hash": "dc4f9f5fd1598110f983d1905d38696e0d9fc9f6774d229a43d19613d62c64d4"
+          },
+          {
+            "path": "test/core/templates/fragments/xirang-fragments.test.ts",
+            "hash": "faf6ae40306a2dd0461e0a9346b6b55d3f82c05c881791d9c31668d4e6f1d9cb"
+          },
+          {
+            "path": "test/core/templates/propose-template.test.ts",
+            "hash": "2013b36d2e385a282c34e751a64f821dc4bf95034194b44dd6e034e02b2e7973"
+          },
+          {
+            "path": "test/core/templates/skill-templates-parity.test.ts",
+            "hash": "4a48e57d8e9e17f9c64a9e9a7d92f7749d3de7cbf7060e493acfe9cd6f66ab5f"
+          },
+          {
+            "path": "test/core/templates/snack-template.test.ts",
+            "hash": "26b83cc5dd398f9857245fccec16f454b345931db6efb8d63763683278c0795a"
+          },
+          {
+            "path": "test/integration/arch-command.test.ts",
+            "hash": "e6c5e0ad8e1ce8ca404c0f356a4087cc11ebbdb85df94b09bd827639dfff4624"
+          },
+          {
+            "path": "test/unit/utils/architecture-validator.test.ts",
+            "hash": "b3308e05cd54e015de79fb5d328f72eeabe0421bb314bed5e42662a39be390c9"
+          },
+          {
+            "path": "xirang-definition.md",
+            "hash": "198142ba0bdbb60101550da5dd6bb92c1e618c2411cfca0a60bb8801434908e6"
+          }
+        ],
+        "skippedEvidenceFiles": [
+          ".xirang/changes/optimize-build-workflow/.verify-result.json"
+        ],
+        "gitHeadCommit": "9730d41a8511896c65709b35f632541027d8bff1",
+        "gitDiffSummary": "Validated projectRoot and changeDir as real paths under Git root /home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec. baseCommit 9730d41a8511896c65709b35f632541027d8bff1 resolves and equals HEAD. `git diff 9730d41a8511896c65709b35f632541027d8bff1...HEAD --name-only` was empty; the final `git status --short` union contained 45 paths: 43 tracked changes and two untracked Change verification artifacts. All available Semantic Delta units were read; metamodel, elements, and relationships are non-empty, while views is missing. The unique Formal Project Root is project.root. Fresh `xirang validate`, Formal architecture validation, Expected Model validation, and semantic diff compilation passed; the fresh diff has 56 entries (+52, ~4, -0) and fingerprints matching effective-change.md. `pnpm lint && pnpm build && pnpm test` succeeded with 144 test files and 1,970 tests. Both staged and unstaged `git diff --check` passed, and no introduced TODO, FIXME, HACK, orphaned import, or half-migration residue was found."
+      }
+    },
+    "findings": [
+      {
+        "status": "resolved",
+        "location": {
+          "files": [
+            "src/core/model/validator.ts"
+          ],
+          "symbols": [
+            "containmentCycle",
+            "checkHierarchy",
+            "validateSemanticModel"
+          ]
+        },
+        "opportunity": "The containment-cycle scan restarts from every Element and re-traverses already proven acyclic ancestor chains, making validation quadratic for deep or chain-shaped hierarchies.",
+        "impact": "Reduce hierarchy cycle detection from O(n²) to O(n) while lowering repeated work in Candidate validation, Expected Model compilation, Formal validation, and promotion post-write validation.",
+        "evidence": [
+          "src/core/model/validator.ts:47-63 now maintains a completed identity set, skips previously proven ancestry, and marks each acyclic trail complete.",
+          "The current implementation remains iterative and retains the traversal-local identity-to-position map and trail used to reconstruct the first cycle.",
+          "test/core/model/validator.test.ts asserts linear Map lookup growth for a 128-level acyclic hierarchy and preserves the exact first-cycle diagnostic sequence reached through a prefix.",
+          "Persisted Phase 2 history records implementation followed by fresh reviewer PASS for this finding.",
+          "Fresh Change validation, Expected Semantic Model validation, lint, TypeScript build, and the complete 144-file, 1,971-test suite pass at the current checkpoint."
+        ],
+        "recommendation": "Retain the verified completed-set implementation; no further change is required.",
+        "keyDesign": "Keep the algorithm iterative. Iterate starts in the existing Map insertion order; skip starts in a completed set; walk with the existing local trail and identity-to-position map; stop when reaching null, an unknown parent, or a completed node; after an acyclic walk mark its entire trail completed. On a local repeat, return the existing trail slice plus repeated identity unchanged.",
+        "preservationConstraints": [
+          "Return the same first cycle for the same parents Map insertion order.",
+          "Preserve the exact cycle identity sequence used by the CONTAINMENT_CYCLE message and diagnostic identity.",
+          "Do not classify a missing parent, null parent, or ancestry leading to a previously completed acyclic node as a cycle.",
+          "Preserve existing hierarchy diagnostic ordering relative to root, missing-parent, containment-constraint, relationship, Contract, and View diagnostics.",
+          "Preserve arbitrary-depth support without introducing recursive call-stack limits.",
+          "Do not change validateSemanticModel inputs, outputs, diagnostic codes, messages, or public contracts."
+        ],
+        "implementationOutline": [
+          "Add a completed identity set local to containmentCycle.",
+          "Skip a start whose ancestry has already been proven acyclic.",
+          "During traversal, retain the current local seen positions and trail so cycle extraction remains byte-for-byte equivalent.",
+          "Terminate an acyclic traversal when it reaches null, an identity absent from parents, or a completed identity, then add every traversed identity to completed.",
+          "Add focused regression coverage for a long acyclic chain, shared ancestry, disconnected components, a cycle reached through a prefix, and preservation of the first-cycle diagnostic sequence."
+        ],
+        "validation": [
+          "Run pnpm test -- test/core/model/validator.test.ts test/unit/utils/architecture-validator.test.ts to prove existing hierarchy diagnostics and arbitrary-depth behavior remain intact.",
+          "Assert that mixed disconnected hierarchies report the same first CONTAINMENT_CYCLE identity and message as declaration-order semantics.",
+          "Assert that missing parents and chains terminating in completed ancestry still produce the existing non-cycle behavior.",
+          "Use a non-timing-gated synthetic lookup-count test to confirm linear rather than quadratic traversal growth.",
+          "Run pnpm lint && pnpm build && pnpm test to verify all Candidate, Expected Model, Formal validation, and promotion consumers preserve behavior."
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "This optimization has been implemented and independently verified. Fresh inspection found no additional base-scope opportunity with comparably demonstrated benefit and proportionate risk; remaining repeated allocations, lookup scans, and possible I/O concurrency changes are lower-value or workload-dependent.",
+        "id": "OPT-20260727T092531565Z-01",
+        "targetFileHashes": {
+          "src/core/model/validator.ts": "3b875b838514e82bbc6f1690207a19437d8131c4bb819248c9b0a9aead725cc7"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-27T09:25:31.565Z",
+        "findingId": "OPT-20260727T092531565Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "select",
+        "reason": "This is the sole admitted optimization: it removes statically proven repeated work from a shared validation gate with a small local change and closed preservation constraints. Other observed micro-allocations and already-applied lookup scans have lower demonstrated value relative to implementation and re-verification cost.",
+        "timestamp": "2026-07-27T09:25:31.567Z",
+        "findingId": "OPT-20260727T092531565Z-01",
+        "hashes": {
+          "src/core/model/validator.ts": "3b875b838514e82bbc6f1690207a19437d8131c4bb819248c9b0a9aead725cc7"
+        }
+      },
+      {
+        "sequence": 3,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-27T09:25:39.377Z",
+        "findingId": "OPT-20260727T092531565Z-01",
+        "hashes": {
+          "src/core/model/validator.ts": "3b875b838514e82bbc6f1690207a19437d8131c4bb819248c9b0a9aead725cc7"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-27T09:30:49.164Z",
+        "findingId": "OPT-20260727T092531565Z-01"
+      },
+      {
+        "sequence": 5,
+        "action": "resolve",
+        "reason": "The current successful checkpoint contains the iterative completed-set cycle scan, its implementation hash differs from the selected baseline as expected, persisted reviewer verification passed, and fresh validation, lint, build, and all 1,971 tests pass. The verified finding has no remaining optimization work.",
+        "timestamp": "2026-07-27T09:34:28.126Z",
+        "findingId": "OPT-20260727T092531565Z-01"
+      }
+    ],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}

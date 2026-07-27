@@ -3,7 +3,11 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { parse as parseYaml } from 'yaml';
-import { SETUP_ARCHITECTURE_FILE_MANIFEST, SetupCommand } from '../../src/core/setup.js';
+import { SETUP_MODEL_FILE_MANIFEST, SetupCommand } from '../../src/core/setup.js';
+import { parseSemanticModel } from '../../src/core/model/parser.js';
+import { modelRoot } from '../../src/core/model/paths.js';
+import { validateSemanticModel } from '../../src/core/model/validator.js';
+import { PARTITIONS } from '../../src/core/model/types.js';
 import { getCommandSlug } from '../../src/core/shared/index.js';
 import { saveGlobalConfig, getGlobalConfig } from '../../src/core/global-config.js';
 
@@ -75,7 +79,10 @@ describe('SetupCommand', () => {
 
       const opsxPath = path.join(testDir, '.xirang');
       expect(await directoryExists(opsxPath)).toBe(true);
-      expect(await directoryExists(path.join(opsxPath, 'specs'))).toBe(true);
+      for (const partition of PARTITIONS) {
+        expect(await directoryExists(path.join(opsxPath, 'model', partition))).toBe(true);
+      }
+      expect(await directoryExists(path.join(opsxPath, 'specs'))).toBe(false);
       expect(await directoryExists(path.join(opsxPath, 'changes'))).toBe(true);
       expect(await directoryExists(path.join(opsxPath, 'changes', 'archive'))).toBe(true);
     });
@@ -309,8 +316,7 @@ describe('SetupCommand', () => {
 
       // Should create the durable core but no skills.
       const opsxPath = path.join(testDir, '.xirang');
-      expect(await directoryExists(path.join(opsxPath, 'architecture'))).toBe(true);
-      expect(await directoryExists(path.join(opsxPath, 'specs'))).toBe(true);
+      expect(await directoryExists(path.join(opsxPath, 'model', 'elements'))).toBe(true);
       expect(await directoryExists(path.join(opsxPath, 'changes'))).toBe(true);
       expect(await directoryExists(path.join(opsxPath, 'references'))).toBe(true);
       expect(await fileExists(path.join(opsxPath, 'config.yaml'))).toBe(true);
@@ -626,43 +632,33 @@ describe('Xirang skeleton generation', () => {
     vi.restoreAllMocks();
   });
 
-  it('should generate the v1 Semantic Model from an explicit file manifest', async () => {
+  it('seeds the four partitions with a metamodel root that validates', async () => {
     const initCommand = new SetupCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
-    const architecture = path.join(testDir, '.xirang', 'architecture');
-    expect(SETUP_ARCHITECTURE_FILE_MANIFEST.map((file) => file.relativePath)).toEqual([
-      'specification.c4',
-      'model.c4',
-      'relations.c4',
-      'views.c4',
+    expect(SETUP_MODEL_FILE_MANIFEST.map((file) => file.relativePath)).toEqual([
+      'metamodel/project.md',
+      'elements/project.root.md',
     ]);
-    for (const file of SETUP_ARCHITECTURE_FILE_MANIFEST) {
-      expect(await fileExists(path.join(architecture, file.relativePath))).toBe(true);
+    for (const partition of PARTITIONS) {
+      expect(await directoryExists(path.join(testDir, '.xirang', 'model', partition))).toBe(true);
+    }
+    for (const file of SETUP_MODEL_FILE_MANIFEST) {
+      expect(await fileExists(path.join(testDir, '.xirang', 'model', ...file.relativePath.split('/')))).toBe(true);
       expect(typeof file.render).toBe('function');
     }
-    expect(await directoryExists(path.join(testDir, '.xirang', 'specs'))).toBe(true);
-    expect(await directoryExists(path.join(architecture, 'domains'))).toBe(false);
+    expect(await directoryExists(path.join(testDir, '.xirang', 'architecture'))).toBe(false);
+    expect(await directoryExists(path.join(testDir, '.xirang', 'specs'))).toBe(false);
 
-    const specification = await fs.readFile(path.join(architecture, 'specification.c4'), 'utf-8');
-    expect(specification).toContain("xirang {\n  languageVersion '1'\n}");
-    expect(specification).toMatch(/element project\s*\{[\s\S]*root true[\s\S]*contract required/);
-    for (const relation of ['invokes', 'produces', 'consumes', 'precedes', 'constrains', 'validates']) {
-      expect(specification).toContain(`relationship ${relation}`);
-    }
-    expect(specification).not.toContain('belongs_to');
-
-    const model = await fs.readFile(path.join(architecture, 'model.c4'), 'utf-8');
-    expect(model).toMatch(/projectRoot = project '[^']+' '[^']+'/);
-    expect(model).toContain("elementId 'project.root'");
-    expect(model).not.toMatch(/projectRoot\s*=.*\{[\s\S]*?\n\s{4}\w+\s*=/);
-
-    const relations = await fs.readFile(path.join(architecture, 'relations.c4'), 'utf-8');
-    expect(relations).toBe('model {\n}\n');
-
-    const views = await fs.readFile(path.join(architecture, 'views.c4'), 'utf-8');
-    expect(views).toContain('view index');
-    expect(views).toContain('view refinement of projectRoot');
+    const parsed = await parseSemanticModel(modelRoot(testDir));
+    expect(parsed.diagnostics).toEqual([]);
+    expect(validateSemanticModel(parsed.model)).toEqual([]);
+    expect(parsed.model.elementKinds).toEqual([
+      { identity: 'project', contract: 'optional', root: true, body: 'The single Project Root of the Semantic Model.' },
+    ]);
+    expect(parsed.model.elements[0].declaration).toMatchObject({
+      identity: 'project.root', kind: 'project', parent: null,
+    });
   });
 
   it('should not generate Xirang YAML files', async () => {
@@ -673,43 +669,39 @@ describe('Xirang skeleton generation', () => {
     expect(await fileExists(path.join(testDir, '.xirang', 'project.xirang.relations.yaml'))).toBe(false);
   });
 
-  it('should infer the architecture title from package.json', async () => {
+  it('should infer the Project Root title from package.json', async () => {
     await fs.writeFile(path.join(testDir, 'package.json'), JSON.stringify({ name: '@scope/my-awesome-project' }));
     const initCommand = new SetupCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
-    const views = await fs.readFile(path.join(testDir, '.xirang', 'architecture', 'views.c4'), 'utf-8');
-    expect(views).toContain("title '@scope/my-awesome-project Architecture'");
+    const unit = await fs.readFile(path.join(testDir, '.xirang', 'model', 'elements', 'project.root.md'), 'utf-8');
+    expect(unit).toContain('title: "@scope/my-awesome-project"');
   });
 
-  it('should not overwrite existing LikeC4 files in extend mode', async () => {
-    const architecture = path.join(testDir, '.xirang', 'architecture');
-    await fs.mkdir(architecture, { recursive: true });
-    const existingContent = "specification { element existing }\n";
-    await fs.writeFile(path.join(architecture, 'specification.c4'), existingContent);
+  it('should not overwrite existing Semantic Model units in extend mode', async () => {
+    const elements = path.join(testDir, '.xirang', 'model', 'elements');
+    await fs.mkdir(elements, { recursive: true });
+    const existingContent = "---\nentity: element-declaration\nidentity: project.root\n---\n";
+    await fs.writeFile(path.join(elements, 'project.root.md'), existingContent);
 
     const initCommand = new SetupCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
-    expect(await fs.readFile(path.join(architecture, 'specification.c4'), 'utf-8')).toBe(existingContent);
+    expect(await fs.readFile(path.join(elements, 'project.root.md'), 'utf-8')).toBe(existingContent);
   });
 
-  it('should preserve existing Architecture, Specs, config, and user files', async () => {
+  it('should preserve existing Semantic Model, config, and user files', async () => {
     const xirang = path.join(testDir, '.xirang');
-    const architecture = path.join(xirang, 'architecture');
-    const spec = path.join(xirang, 'specs', 'owned', 'spec.md');
-    await fs.mkdir(architecture, { recursive: true });
-    await fs.mkdir(path.dirname(spec), { recursive: true });
-    await fs.writeFile(path.join(architecture, 'model.c4'), 'custom model\n');
-    await fs.writeFile(spec, 'custom spec\n');
+    const elements = path.join(xirang, 'model', 'elements');
+    await fs.mkdir(elements, { recursive: true });
+    await fs.writeFile(path.join(elements, 'custom.md'), 'custom unit\n');
     await fs.writeFile(path.join(xirang, 'config.yaml'), 'schema: spec-driven\ncontext: keep\n');
     await fs.writeFile(path.join(xirang, 'user.txt'), 'keep\n');
 
     const setupCommand = new SetupCommand({ tools: 'none', force: true });
     await setupCommand.execute(testDir);
 
-    await expect(fs.readFile(path.join(architecture, 'model.c4'), 'utf8')).resolves.toBe('custom model\n');
-    await expect(fs.readFile(spec, 'utf8')).resolves.toBe('custom spec\n');
+    await expect(fs.readFile(path.join(elements, 'custom.md'), 'utf8')).resolves.toBe('custom unit\n');
     await expect(fs.readFile(path.join(xirang, 'config.yaml'), 'utf8')).resolves.toBe('schema: spec-driven\ncontext: keep\n');
     await expect(fs.readFile(path.join(xirang, 'user.txt'), 'utf8')).resolves.toBe('keep\n');
   });

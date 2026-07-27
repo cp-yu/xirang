@@ -3,55 +3,38 @@ import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { impactArchitecture } from '../../src/commands/arch/impact.js';
+import { writeProjectModel } from '../helpers/model-fixture.js';
 
 const outputPath = process.env.XIRANG_LOCALE_OUTPUT;
-
-const specification = `xirang { languageVersion '1' }
-specification {
-  element project { xirang { root true contract required children [capability] } }
-  element capability { xirang { contract optional parents [project] } }
-  relationship invokes
-}`;
-
-const model = `model {
-  project_root = project 'Project' 'Project intent' {
-    metadata { elementId 'project.root' }
-    focus = capability 'Focus' 'Impact focus' { metadata { elementId 'cap.focus' } }
-    upper = capability 'Upper' 'Upper branch' { metadata { elementId 'cap.I' } }
-    lower = capability 'Lower' 'Lower branch' { metadata { elementId 'cap.i' } }
-    target = capability 'Target' 'Shared target' { metadata { elementId 'cap.target' } }
-  }
-  project_root.focus -[invokes]-> project_root.upper
-  project_root.focus -[invokes]-> project_root.lower
-  project_root.upper -[invokes]-> project_root.target
-  project_root.lower -[invokes]-> project_root.target
-}`;
-
-const contract = `---
-element: project.root
----
-
-# Project
-
-## Purpose
-Project contract.
-`;
 
 describe.runIf(Boolean(outputPath))('arch impact locale process fixture', () => {
   it('writes the complete canonical impact projection', async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-impact-locale-'));
     try {
-      const architectureDir = path.join(root, '.xirang', 'architecture');
-      const specDir = path.join(root, '.xirang', 'specs', 'project-contract');
-      await fs.mkdir(architectureDir, { recursive: true });
-      await fs.mkdir(specDir, { recursive: true });
-      await fs.writeFile(path.join(architectureDir, 'specification.c4'), specification);
-      await fs.writeFile(path.join(architectureDir, 'model.c4'), model);
-      await fs.writeFile(path.join(specDir, 'spec.md'), contract);
+      await writeProjectModel(root, {
+        elementKinds: [
+          { identity: 'project', root: true, children: ['capability'] },
+          { identity: 'capability', parents: ['project'] },
+        ],
+        relationshipKinds: [{ identity: 'invokes' }],
+        elements: [
+          { identity: 'project.root', kind: 'project', parent: null, title: 'Project', summary: 'Project intent' },
+          { identity: 'cap.focus', parent: 'project.root', title: 'Focus', summary: 'Impact focus' },
+          { identity: 'cap.I', parent: 'project.root', title: 'Upper', summary: 'Upper branch' },
+          { identity: 'cap.i', parent: 'project.root', title: 'Lower', summary: 'Lower branch' },
+          { identity: 'cap.target', parent: 'project.root', title: 'Target', summary: 'Shared target' },
+        ],
+        relationships: [
+          { source: 'cap.focus', kind: 'invokes', target: 'cap.I' },
+          { source: 'cap.focus', kind: 'invokes', target: 'cap.i' },
+          { source: 'cap.I', kind: 'invokes', target: 'cap.target' },
+          { source: 'cap.i', kind: 'invokes', target: 'cap.target' },
+        ],
+      });
 
       const result = await impactArchitecture(root, ['cap.focus']);
       await fs.writeFile(outputPath!, JSON.stringify(result));
-      expect(result.elements.map(element => element.id)).toEqual([
+      expect(result.elements.map(element => element.identity)).toEqual([
         'cap.I', 'cap.focus', 'cap.i', 'cap.target', 'project.root',
       ]);
     } finally {

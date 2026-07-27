@@ -1,4 +1,5 @@
 import type { Command } from 'commander';
+import { PARTITIONS } from '../core/model/types.js';
 import {
   getCandidateStatus,
   initializeCandidate,
@@ -35,8 +36,7 @@ export function formatCandidateStatus(status: CandidateStatus): string {
   const ready = Object.values(status.readiness).every(Boolean);
   return [
     `Candidate: active (${status.baseline?.kind ?? 'unknown'} baseline)`,
-    `Architecture files: ${status.inventory.architectureFiles.length}`,
-    `Spec files: ${status.inventory.specFiles.length}`,
+    ...PARTITIONS.map(partition => `${partition}: ${status.inventory.partitions[partition].length} file(s)`),
     `Candidate bytes: ${status.inventory.bytes}`,
     `History: ${status.history.count} build(s), ${status.history.bytes} byte(s)`,
     `Validation readiness: ${ready ? 'ready' : 'incomplete'}`,
@@ -52,10 +52,12 @@ function printStatus(status: CandidateStatus): void {
 export function formatCandidateValidation(result: CandidateValidationResult): string {
   const lines = [
     `Candidate validation: ${result.valid ? 'valid' : 'invalid'}`,
-    `Architecture files: ${result.inventory.architectureFiles.length}`,
-    `Spec files: ${result.inventory.specFiles.length}`,
+    ...PARTITIONS.map(partition => `${partition}: ${result.inventory.partitions[partition].length} file(s)`),
     `Candidate bytes: ${result.inventory.bytes}`,
-    `Formal diff entries: ${result.diff.summary.total}`,
+    `Formal comparison baseline: ${result.comparison.baseline === 'formal' ? 'available' : 'absent'}`,
+    ...(result.comparison.diff === 'available'
+      ? [`Formal diff entries: ${result.diff!.summary.total}`]
+      : ['Formal diff: unavailable (formal model absent)']),
   ];
   if (result.reviewDigest) lines.push(`Review digest: ${result.reviewDigest}`);
   for (const item of result.diagnostics) {
@@ -74,7 +76,7 @@ export function registerCandidateCommand(program: Command): void {
     .command('init')
     .description('Create the isolated active Candidate workspace')
     .option('--from <kind>', 'Starting point: current or clean')
-    .option('--from-path <path>', 'Use an explicit Architecture and Specs source directory')
+    .option('--from-path <path>', 'Use an explicit source directory carrying the four Semantic Model partitions')
     .action(async (options: { from?: string; fromPath?: string }) => {
       await recoverPendingCandidatePromotions(process.cwd());
       const status = await initializeCandidate(process.cwd(), baselineFromOptions(options));

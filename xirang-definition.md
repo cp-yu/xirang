@@ -11,6 +11,8 @@
 │   ├── 2. Hierarchical Elements
 │   │   ├── 3. Element Declaration
 │   │   └── 3. Element Contract
+│   │       └── 4. Requirement
+│   │           └── 5. Scenario
 │   ├── 2. Relationships
 │   └── 2. Views
 │       ├── 3. Authored Views
@@ -92,11 +94,21 @@ Element Declaration 定义 Element 在 Semantic Model 中的结构身份。它�
 
 ### 3. Element Contract
 
-Element Contract 定义 Element 在一个确定模型状态中的规范性语义。它以该模型状态自身为视角，描述 Element 在其抽象层级上承担的职责、提供的保证、遵循的约束与表现的行为，只包含在该状态下成立的语义，不包含相对于其他模型状态的新增、修改、删除等变更叙述。
+Element Contract 定义 Element 在一个确定模型状态中、其自身抽象层级上的完整规范性语义。它以该模型状态自身为视角，描述 Element 承担的职责、提供的保证、遵循的约束与表现的行为，只包含在该状态下成立的语义，不包含相对于其他模型状态的新增、修改、删除等变更叙述。Element Contract 可以表达由 children 进一步精化或共同实现的职责、保证、约束与行为；这种跨层语义覆盖是允许的。
+
+完整性以 Element 自身的抽象层级为边界：用户与 Agent 无需读取 children Contracts，即可理解并判断该 Element 在该层级作出的规范承诺。Children Contracts 进一步精化这些承诺如何实现，而不用于补充父 Element 在父层级遗漏的语义。
 
 当某项语义被移除时，更新后的 Element Contract 直接不再包含该项语义，而不是保留“删除某项语义”“某项语义已被删除”或其他描述变更过程的内容。
 
 一个 Element 至多对应一个 Element Contract。Element 是否必须具有 Element Contract，由其 Element Kind 在 Metamodel 中声明的 contract policy 决定。
+
+#### 4. Requirement
+
+Requirement 是 Element Contract 中具有稳定 identity 的规范性语义条目，用于表达宿主 Element 在自身抽象层级上的一项可独立演进的职责、保证、约束或行为。可独立演进，是指该项语义能够独立新增、修改或移除，而不要求同一 Contract 中其他 Requirements 同时发生语义变化。
+
+##### 5. Scenario
+
+Scenario 是 Requirement 的规范性组成，用于表达该 Requirement 在特定条件下应表现的行为。Scenario 只能具体化宿主 Requirement 已定义的规范承诺，不得引入可独立演进的职责、保证、约束或行为。每个 Scenario 都具有规范约束力，但一个 Requirement 下的 Scenarios 不默认穷尽该 Requirement 的全部适用情况；未单独列出的情况仍由 Requirement 的一般规范语义约束。Scenario 从属于 Requirement，不作为独立 Semantic Delta Entry。
 
 ## 2. Relationships
 
@@ -146,11 +158,11 @@ Semantic Delta 应用后，Expected Semantic Model 只保留应用结果，不�
 
 Semantic Delta Entry 是 Semantic Delta 的组成单位。每个 Entry 由修改语、entity type 与 identity 构成：修改语确定应用方式，entity type 与 identity 共同确定作用对象。
 
-Entry 的 entity type 覆盖 Element Declaration、Element Contract 中的规范性语义条目、Relationship、Element Kind、Relationship Kind 与 Authored View。同一个 Semantic Delta 中的全部 Entries 一并应用于当前 Semantic Model，共同确定 Expected Semantic Model。
+Entry 的 entity type 覆盖 Element Declaration、Requirement、Relationship、Element Kind、Relationship Kind 与 Authored View。同一个 Semantic Delta 中的全部 Entries 一并应用于当前 Semantic Model，共同确定 Expected Semantic Model。
 
 Element 的稳定 identity 跨模型状态指向同一个 Element；Element Kind、概要与层级位置是该 Element 在一个确定模型状态中的声明内容，可以在 identity 保持不变的情况下发生改变。
 
-作用于 Element Contract 的 Entry 以 Contract 中具有稳定 identity 的规范性语义条目为对象，而不是整份 Contract。
+作用于 Element Contract 的 Entry 以 Requirement 为对象，而不是整份 Contract。
 
 作用于 Relationship 的 Entry 以 source Element identity、Relationship Kind identity 与 target Element identity 构成的 identity 识别对象。任一组成发生变化，表示旧 Relationship 与新 Relationship 之间的差量，而不是同一 Relationship 内容的变化；由于 Relationship 的 identity 即其全部内容，作用于它的 Entry 只有 ADDED 与 REMOVED。
 
@@ -165,6 +177,10 @@ Change Plan 是 Change 的辅助性组成。它通过 `proposal.md`、`design.md
 ## 1. Realization
 
 Realization 是息壤的落实过程维。在推进过程上，它通过 Semantic Model Build 构建或重建 Semantic Model，通过 Change Realization 将已授权 Change 落实为项目新状态并收束；在协作结构上，由 Participants 承担授权、判断与编排，由 Interaction Surfaces 提供配置、呈现与确定性操作。
+
+推进过程与协作结构是两个相互关联的描述维度。推进过程中的 Activity 或 Stage 在自身层级完整描述工作的入口、推进、约束与结果；协作结构中的 Participant 或 Agent 工作身份在自身层级完整描述其授权、责任、判断、操作、协调与交付。Agent 工作身份可以描述其所承担 Activity 的相关语义；这种跨维度语义覆盖是允许的，两个维度都不作为另一个维度的差量表达。
+
+`responsible-for` 从 Participant 或工作身份指向其承担职责的 Activity 或 Stage。该关系表示职责关联，不表示 source 独占或独自执行 target，也不转移用户、CLI 或其他 Participants 在该过程中的职责。
 
 ## 2. Semantic Model Build
 

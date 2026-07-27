@@ -9,7 +9,6 @@ import { UpdateCommand } from '../core/update.js';
 import { ListCommand } from '../core/list.js';
 import { ArchiveCommand } from '../core/archive.js';
 import { ViewCommand } from '../core/view.js';
-import { registerSpecCommand } from '../commands/spec.js';
 import { registerHelpCommand } from '../commands/help.js';
 import { ChangeCommand } from '../commands/change.js';
 import { ValidateCommand } from '../commands/validate.js';
@@ -157,17 +156,15 @@ registerCandidateCommand(program);
 
 program
   .command('list')
-  .description('List items (changes by default). Use --specs to list specs.')
-  .option('--specs', 'List specs instead of changes')
+  .description('List active changes')
   .option('--changes', 'List changes explicitly (default)')
   .option('--sort <order>', 'Sort order: "recent" (default) or "name"', 'recent')
   .option('--json', 'Output as JSON (for programmatic use)')
-  .action(async (options?: { specs?: boolean; changes?: boolean; sort?: string; json?: boolean }) => {
+  .action(async (options?: { changes?: boolean; sort?: string; json?: boolean }) => {
     try {
       const listCommand = new ListCommand();
-      const mode: 'changes' | 'specs' = options?.specs ? 'specs' : 'changes';
       const sort = options?.sort === 'name' ? 'name' : 'recent';
-      await listCommand.execute('.', mode, { sort, json: options?.json });
+      await listCommand.execute('.', { sort, json: options?.json });
     } catch (error) {
       console.log(); // Empty line for spacing
       ora().fail(`Error: ${(error as Error).message}`);
@@ -177,7 +174,7 @@ program
 
 program
   .command('view')
-  .description('Browse architecture and specifications in the embedded web viewer')
+  .description('Browse the Semantic Model in the embedded web viewer')
   .option('--port <n>', 'Web server port', (value) => Number(value))
   .action(async (options: { port?: number }) => {
     try {
@@ -270,7 +267,6 @@ program
     }
   });
 
-registerSpecCommand(program);
 registerHelpCommand(program);
 registerConfigCommand(program);
 registerSchemaCommand(program);
@@ -278,18 +274,17 @@ registerSchemaCommand(program);
 // Top-level validate command
 program
   .command('validate [item-name]')
-  .description('Validate changes and specs')
-  .option('--all', 'Validate all changes and specs')
+  .description('Validate changes and Element Contracts')
+  .option('--all', 'Validate all changes and Element Contracts')
   .option('--changes', 'Validate all changes')
-  .option('--specs', 'Validate all specs')
+  .option('--specs', 'Validate all Element Contracts')
   .option('--change <name>', 'Validate an explicit change')
-  .option('--artifacts <scope>', 'Validate a change artifact scope: specs|architecture-delta')
   .option('--type <type>', 'Specify item type when ambiguous: change|spec')
   .option('--strict', 'Enable strict validation mode')
   .option('--json', 'Output validation results as JSON')
   .option('--concurrency <n>', 'Max concurrent validations (defaults to env XIRANG_CONCURRENCY or 6)')
   .option('--no-interactive', 'Disable interactive prompts')
-  .action(async (itemName?: string, options?: { all?: boolean; changes?: boolean; specs?: boolean; change?: string; artifacts?: string; type?: string; strict?: boolean; json?: boolean; noInteractive?: boolean; concurrency?: string }) => {
+  .action(async (itemName?: string, options?: { all?: boolean; changes?: boolean; specs?: boolean; change?: string; type?: string; strict?: boolean; json?: boolean; noInteractive?: boolean; concurrency?: string }) => {
     try {
       const validateCommand = new ValidateCommand();
       await validateCommand.execute(itemName, options);
@@ -303,20 +298,14 @@ program
 // Top-level show command
 program
   .command('show [item-name]')
-  .description('Show a change or spec')
+  .description('Show a change')
   .option('--json', 'Output as JSON')
-  .option('--type <type>', 'Specify item type when ambiguous: change|spec')
   .option('--no-interactive', 'Disable interactive prompts')
-  // change-only flags
-  .option('--deltas-only', 'Show only deltas (JSON only, change)')
-  .option('--requirements-only', 'Alias for --deltas-only (deprecated, change)')
-  // spec-only flags
-  .option('--requirements', 'JSON only: Show only requirements (exclude scenarios)')
-  .option('--no-scenarios', 'JSON only: Exclude scenario content')
-  .option('-r, --requirement <id>', 'JSON only: Show specific requirement by ID (1-based)')
+  .option('--deltas-only', 'Show only deltas (JSON only)')
+  .option('--requirements-only', 'Alias for --deltas-only (deprecated)')
   // allow unknown options to pass-through to underlying command implementation
   .allowUnknownOption(true)
-  .action(async (itemName?: string, options?: { json?: boolean; type?: string; noInteractive?: boolean; [k: string]: any }) => {
+  .action(async (itemName?: string, options?: { json?: boolean; noInteractive?: boolean; [k: string]: any }) => {
     try {
       const showCommand = new ShowCommand();
       await showCommand.execute(itemName, options ?? {});

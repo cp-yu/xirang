@@ -25,8 +25,7 @@ describe('Candidate status', () => {
     const status = await getCandidateStatus(root);
 
     expect(status.active).toBe(false);
-    expect(status.inventory.architectureFiles).toEqual([]);
-    expect(status.inventory.specFiles).toEqual([]);
+    expect(status.inventory.partitions).toEqual({ metamodel: [], elements: [], relationships: [], views: [] });
     expect(status.guidance).toEqual({
       init: 'Run "xirang candidate init" with an explicit starting point.',
     });
@@ -35,10 +34,8 @@ describe('Candidate status', () => {
 
   it('reports baseline, deterministic inventory, readiness, and history usage', async () => {
     await initializeCandidate(root, { kind: 'clean' });
-    await fs.mkdir(path.join(root, '.xirang', 'candidate', 'specs', 'z'), { recursive: true });
-    await fs.mkdir(path.join(root, '.xirang', 'candidate', 'specs', 'a'), { recursive: true });
-    await fs.writeFile(path.join(root, '.xirang', 'candidate', 'specs', 'z', 'spec.md'), 'z\n');
-    await fs.writeFile(path.join(root, '.xirang', 'candidate', 'specs', 'a', 'spec.md'), 'a\n');
+    await fs.writeFile(path.join(root, '.xirang', 'candidate', 'views', 'z.md'), 'z\n');
+    await fs.writeFile(path.join(root, '.xirang', 'candidate', 'views', 'a.md'), 'a\n');
     await fs.mkdir(path.join(root, '.xirang', 'history', 'builds', 'one'), { recursive: true });
     await fs.writeFile(path.join(root, '.xirang', 'history', 'builds', 'one', 'promotion.yaml'), 'x\n');
 
@@ -46,15 +43,15 @@ describe('Candidate status', () => {
 
     expect(status.active).toBe(true);
     expect(status.baseline).toEqual({ kind: 'clean', reference: null });
-    expect(status.inventory.specFiles).toEqual(['specs/a/spec.md', 'specs/z/spec.md']);
+    expect(status.inventory.partitions.views).toEqual(['views/a.md', 'views/z.md']);
+    expect(status.inventory.partitions.elements).toEqual(['elements/project.root.md']);
     expect(status.readiness).toEqual({
       metadata: true,
       build: true,
-      specification: true,
-      model: true,
-      relations: true,
+      metamodel: true,
+      elements: true,
+      relationships: true,
       views: true,
-      specsDirectory: true,
     });
     expect(status.history.count).toBe(1);
     expect(status.history.bytes).toBeGreaterThan(0);

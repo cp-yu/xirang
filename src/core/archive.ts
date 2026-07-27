@@ -2,7 +2,6 @@ import { XIRANG_DIR_NAME } from './config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { getTaskProgressForChange, formatTaskStatus } from '../utils/task-progress.js';
-import { Validator } from './validation/validator.js';
 import chalk from 'chalk';
 import {
   assessChangeSyncState,
@@ -18,7 +17,6 @@ import { compileChange } from './change-compiler.js';
 import { renderEffectiveChange } from './change-diff-renderer.js';
 import { EFFECTIVE_CHANGE_FILE } from '../commands/diff.js';
 import { atomicWrite } from '../utils/likec4-writer.js';
-import { readLikeC4Architecture } from '../utils/likec4-reader.js';
 
 /**
  * Recursively copy a directory. Used when fs.rename fails (e.g. EPERM on Windows).
@@ -167,7 +165,6 @@ export class ArchiveCommand {
 
     await fs.mkdir(archiveDir, { recursive: true });
     await moveDirectory(changeDir, archivePath);
-    await fs.rm(path.join(archivePath, '.specs-noop'), { force: true });
 
     console.log(`Change '${changeName}' archived as '${archiveName}'.`);
     this.printGitHandoff();
@@ -252,15 +249,9 @@ export class ArchiveCommand {
     if (!syncState.requiresSync) return true;
 
     const pendingSync = await getPendingChangeSync(targetPath, syncState);
-    if (pendingSync.specs > 0) {
+    if (pendingSync.pending > 0) {
       throw new Error(
-        `Sync gate failed: ${pendingSync.specs} pending delta spec(s).\n` +
-        `Run xirang sync ${changeName} first, or pass --no-sync to bypass.`,
-      );
-    }
-    if (pendingSync.architecture) {
-      throw new Error(
-        `Sync gate failed: pending architecture delta.\n` +
+        `Sync gate failed: ${pendingSync.pending} pending Semantic Model unit(s).\n` +
         `Run xirang sync ${changeName} first, or pass --no-sync to bypass.`,
       );
     }
@@ -290,78 +281,10 @@ export class ArchiveCommand {
       return true;
     }
 
-    const architecture = await readLikeC4Architecture('.').catch((error: NodeJS.ErrnoException) => {
-      if (error.code === 'ENOENT') return null;
-      throw error;
-    });
-    if (architecture?.profile === 'v1') {
-      const compiled = await compileChange('.', path.basename(changeDir), { allowAlreadyApplied: true });
-      if (!compiled.valid) {
-        console.log(chalk.red('\nValidation errors in Semantic Delta:'));
-        for (const issue of compiled.diagnostics) console.log(chalk.red(`  ✗ ${issue.code}: ${issue.message}`));
-        return false;
-      }
-      return true;
-    }
-
-    const validator = new Validator();
-    let hasValidationErrors = false;
-
-    const changeFile = path.join(changeDir, 'proposal.md');
-    try {
-      await fs.access(changeFile);
-      const changeReport = await validator.validateChange(changeFile);
-      if (!changeReport.valid) {
-        console.log(chalk.yellow('\nProposal warnings in proposal.md (non-blocking):'));
-        for (const issue of changeReport.issues) {
-          console.log(chalk.yellow(`  ⚠ ${issue.message}`));
-        }
-      }
-    } catch {
-      // proposal.md may not exist
-    }
-
-    const changeSpecsDir = path.join(changeDir, 'specs');
-    let hasDeltaSpecs = false;
-    try {
-      const candidates = await fs.readdir(changeSpecsDir, { withFileTypes: true });
-      for (const c of candidates) {
-        if (c.isDirectory()) {
-          try {
-            const candidatePath = path.join(changeSpecsDir, c.name, 'spec.md');
-            await fs.access(candidatePath);
-            const content = await fs.readFile(candidatePath, 'utf-8');
-            if (/^##\s+(ADDED|MODIFIED|REMOVED)\s+Requirements/m.test(content)) {
-              hasDeltaSpecs = true;
-              break;
-            }
-          } catch {}
-        }
-      }
-    } catch {}
-
-    if (hasDeltaSpecs) {
-      const syncState = await assessChangeSyncState('.', path.basename(changeDir));
-      const pendingSync = syncState.requiresSync ? await getPendingChangeSync('.', syncState) : null;
-      if (!pendingSync || pendingSync.specs > 0) {
-        const deltaReport = await validator.validateChangeDeltaSpecs(changeDir);
-        if (!deltaReport.valid) {
-          hasValidationErrors = true;
-          console.log(chalk.red('\nValidation errors in change delta specs:'));
-          for (const issue of deltaReport.issues) {
-            if (issue.level === 'ERROR') {
-              console.log(chalk.red(`  ✗ ${issue.message}`));
-            } else if (issue.level === 'WARNING') {
-              console.log(chalk.yellow(`  ⚠ ${issue.message}`));
-            }
-          }
-        }
-      }
-    }
-
-    if (hasValidationErrors) {
-      console.log(chalk.red('\nValidation failed. Please fix the errors before archiving.'));
-      console.log(chalk.yellow('To skip validation (not recommended), use --no-validate flag.'));
+    const compiled = await compileChange('.', path.basename(changeDir), { allowAlreadyApplied: true });
+    if (!compiled.valid) {
+      console.log(chalk.red('\nValidation errors in Semantic Delta:'));
+      for (const issue of compiled.diagnostics) console.log(chalk.red(`  ✗ ${issue.code}: ${issue.message}`));
       return false;
     }
     return true;
@@ -373,12 +296,6 @@ export class ArchiveCommand {
     changeName: string,
     options: ArchiveOptions,
   ): Promise<void> {
-    const architecture = await readLikeC4Architecture(projectRoot).catch((error: NodeJS.ErrnoException) => {
-      if (error.code === 'ENOENT') return null;
-      throw error;
-    });
-    if (architecture?.profile !== 'v1') return;
-
     const compiled = await compileChange(projectRoot, changeName, { allowAlreadyApplied: true });
     await atomicWrite(path.join(changeDir, EFFECTIVE_CHANGE_FILE), renderEffectiveChange(compiled.diff));
     const skipValidation = options.validate === false || options.noValidate === true;

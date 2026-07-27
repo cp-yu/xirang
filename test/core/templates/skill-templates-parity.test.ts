@@ -17,19 +17,20 @@ import { generateSkillContent } from '../../../src/core/shared/skill-generation.
 import { runTransforms } from '../../../src/core/templates/transforms/index.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getExploreSkillTemplate: '961a75a71afd79cc442f9f66eebb2e6cc80c2380e096053cb3b65a126537fa6d',
-  getApplyChangeSkillTemplate: '73e58cf818e33b7a88f45d76139b5113e04778183ccd794bee1720b770df1fd1',
-  getArchiveChangeSkillTemplate: '8371d42069bdc2f7544a0eb098f375ca336c95c314730b1f06815352efc5c6d6',
-  getOpsxProposeSkillTemplate: 'c36d9d1d029cc5950da379c7ece44b6aec90e5f0c665b5eea90f2b64e98af995',
+  getExploreSkillTemplate: 'f55e9610cdb6369968babd67cb4a9376e44f374c6cba9391cd3b7ed348295fa0',
+  getApplyChangeSkillTemplate: 'ae395cf144982db332599e6883be4df68e045a9effedac2f603f21a0105fa3e6',
+  getArchiveChangeSkillTemplate: '0bf75c0d29d9dc74b98d2ce524351cf73e45836b17fe42d17e07e853c1495101',
+  getOpsxProposeSkillTemplate: '6b064786a2c6cef1bd5e4b70aa1d4e1958dd16c877bb9854644e2473848f2bd7',
   getFeedbackSkillTemplate: 'b59e4e8f30b3671f5346445a7fbe9043cd559233c86fc78d086bbe94e084590b',
-  getBuildSkillTemplate: '8ce8f367f84a71904d2f81ee4603874500e30b127e25f634796f3dcb4ea5aa10',
+  getBuildSkillTemplate: 'e1168617af5e74199758bf5825cb65f9b74c14644a864dc1a354517ff20df4a5',
+  getSnackSkillTemplate: '2ab87ba881512629cfd4cd0991bd9017f99d972beb1adde269cdc9a5cfeaadd2',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'xirang-explore': 'ecc701de01cf9c5c8c78cdf406e22c66329657d2cfef250c4cdb6e70cf332e8b',
-  'xirang-apply-change': 'dd13f615c3c856a455db928877dc7e3ffbea40b8820784d1202e438b91e9c69c',
-  'xirang-archive-change': '23f1aa036bb01d9b6341260d9c1fb8fa90ede51f499dddf99713cc2598db19a2',
-  'xirang-propose': 'e7bb39f81264f950c7ba0e9f0267d020048a48f6e27fd3b090a7d079154a10ee',
+  'xirang-explore': 'd5007ed402c5b1b6a2bce9b8c8139206389e16c5a84dfbeb4c7e246443100c79',
+  'xirang-apply-change': '7a80a673bd043ccae0320d0e737faaceefbd215a63cef5aabf5799fed255939a',
+  'xirang-archive-change': 'aa5499bc9fd059a6bb58668ad14052b870722a44905405851c24fac3399ee0c8',
+  'xirang-propose': '892e5a8bcabc5bc987d682416d1675b41976524625f6925b52c5368fb7812602',
 };
 
 function stableStringify(value: unknown): string {
@@ -61,6 +62,7 @@ describe('skill templates split parity', () => {
       getOpsxProposeSkillTemplate,
       getFeedbackSkillTemplate,
       getBuildSkillTemplate,
+      getSnackSkillTemplate,
     };
 
     const actualHashes = Object.fromEntries(

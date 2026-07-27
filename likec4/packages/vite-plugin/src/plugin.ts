@@ -13,9 +13,9 @@ import type {
 import { detectAI } from './ai/detect-ai'
 import { iconBundlePlugin } from './icon-bundle-plugin'
 import { logger } from './logger'
-import { assertXirangProject, createXirangSpecWatcher, XirangSpecError, readXirangSpec, readXirangSpecRegistry } from './xirang/xirang-spec-handler'
+import { assertXirangProject, readXirangContract, XirangSpecError } from './xirang/xirang-spec-handler'
 import { enablePluginRPC } from './rpc'
-import { xirangChangeManifestChangedEvent, xirangSpecChangedEvent } from './rpc/protocol'
+import { xirangChangeManifestChangedEvent } from './rpc/protocol'
 import { splitErrorMessage } from './rpc/sendError'
 import { type ProjectsData, type SharedVirtualModuleOptions, k } from './virtuals/_shared'
 import { type AppConfig, createAppConfigModule } from './virtuals/app-config'
@@ -95,13 +95,7 @@ type SharedOptions = {
    */
   appConfig?: AppConfig
 
-  /**
-   * Absolute OPSX project root. Enables the local Spec content API in dev mode.
-   */
-  xirangProjectRoot?: string
-  /** Root-owned immutable element-to-Spec registry snapshot. */
-  xirangSpecRegistry?: string
-  /** Runtime Formal/active-change selector and semantic diff snapshot. */
+  /** Runtime variant selector, semantic diff and Contract projection snapshot. */
   xirangChangeManifest?: string
 }
 
@@ -200,8 +194,6 @@ const VITE_PLUGIN_LIKEC4 = 'vite-plugin-likec4'
 export function LikeC4VitePlugin({
   environments,
   appConfig,
-  xirangProjectRoot,
-  xirangSpecRegistry,
   xirangChangeManifest,
   ai: _ai = 'auto',
   ...pluginOpts
@@ -422,49 +414,7 @@ export function LikeC4VitePlugin({
         }
         server.watcher.add(xirangChangeManifest)
         server.watcher.on('change', notifyManifest)
-      }
 
-      if (xirangProjectRoot && xirangSpecRegistry) {
-        const specRegistry = await readXirangSpecRegistry(xirangSpecRegistry)
-        const readRuntimeVariant = async (id: string | null) => {
-          if (!id || id === 'formal') return null
-          if (!xirangChangeManifest) throw new XirangSpecError(404, 'Active change not found')
-          const manifest = JSON.parse(await fs.readFile(xirangChangeManifest, 'utf8')) as {
-            variants?: Array<{ id?: string; specs?: Record<string, string[]>; contents?: Record<string, string> }>
-          }
-          const variant = manifest.variants?.find(candidate => candidate.id === id)
-          if (!variant) throw new XirangSpecError(404, 'Active change not found')
-          return variant
-        }
-        server.middlewares.use('/__xirang/specs', async (req, res) => {
-          try {
-            if (req.method !== 'GET') {
-              throw new XirangSpecError(405, 'Method not allowed')
-            }
-            const requestUrl = new URL(req.url ?? '/', 'http://localhost')
-            const project = requestUrl.searchParams.get('project')
-            const element = requestUrl.searchParams.get('element')
-            const variant = await readRuntimeVariant(requestUrl.searchParams.get('variant'))
-            if (!project || !element || !likec4.projects().some(candidate => candidate.id === project)) {
-              throw new XirangSpecError(404, 'Element not found')
-            }
-            const specs = variant ? variant.specs?.[element] : specRegistry.get(element)
-            if (!specs) {
-              throw new XirangSpecError(404, 'Element not found')
-            }
-            res.statusCode = 200
-            res.setHeader('Content-Type', 'application/json; charset=utf-8')
-            res.setHeader('Cache-Control', 'no-store')
-            res.end(JSON.stringify({ specs }))
-          } catch (error) {
-            const xirangError = error instanceof XirangSpecError
-              ? error
-              : new XirangSpecError(500, 'Unable to read Spec registry')
-            res.statusCode = xirangError.statusCode
-            res.setHeader('Content-Type', 'application/json; charset=utf-8')
-            res.end(JSON.stringify({ error: xirangError.message }))
-          }
-        })
         server.middlewares.use('/__xirang/spec', async (req, res) => {
           try {
             if (req.method !== 'GET') {
@@ -473,47 +423,30 @@ export function LikeC4VitePlugin({
             const requestUrl = new URL(req.url ?? '/', 'http://localhost')
             const project = requestUrl.searchParams.get('project')
             const element = requestUrl.searchParams.get('element')
-            const specPath = requestUrl.searchParams.get('path')
-            const variant = await readRuntimeVariant(requestUrl.searchParams.get('variant'))
-            if (!project || !element || !specPath) {
-              throw new XirangSpecError(400, 'Missing project, element or path')
+            if (!project || !element) {
+              throw new XirangSpecError(400, 'Missing project or element')
             }
             assertXirangProject(project, likec4.projects())
-
-            const variantSpecs = variant?.specs?.[element]
-            const variantContent = variant?.contents?.[specPath]
-            const result = variant
-              ? (() => {
-                if (!variantSpecs?.includes(specPath) || typeof variantContent !== 'string') {
-                  throw new XirangSpecError(404, 'Spec not found')
-                }
-                return { path: specPath, md: variantContent }
-              })()
-              : await readXirangSpec({
-                projectRoot: xirangProjectRoot,
-                element,
-                specPath,
-                index: {
-                  getIndexedSpecs: async requestedElement => specRegistry.get(requestedElement),
-                },
-              })
-            res.statusCode = 200
+            const manifest = JSON.parse(await fs.readFile(xirangChangeManifest, 'utf8')) as {
+              variants?: Array<{ id?: string; contracts?: Record<string, string> }>
+            }
+            const contract = readXirangContract(
+              manifest.variants,
+              requestUrl.searchParams.get('variant'),
+              element,
+            )
+            res.statusCode = contract ? 200 : 404
             res.setHeader('Content-Type', 'application/json; charset=utf-8')
             res.setHeader('Cache-Control', 'no-store')
-            res.end(JSON.stringify(result))
+            res.end(JSON.stringify(contract ?? { error: 'Contract not found' }))
           } catch (error) {
             const xirangError = error instanceof XirangSpecError
               ? error
-              : new XirangSpecError(500, 'Unable to read Spec')
+              : new XirangSpecError(500, 'Unable to read Contract')
             res.statusCode = xirangError.statusCode
             res.setHeader('Content-Type', 'application/json; charset=utf-8')
             res.end(JSON.stringify({ error: xirangError.message }))
           }
-        })
-        createXirangSpecWatcher({
-          projectRoot: xirangProjectRoot,
-          watcher: server.watcher,
-          notify: event => server.hot.send(xirangSpecChangedEvent, event),
         })
       }
 

@@ -4,6 +4,15 @@ import path from 'path';
 import os from 'os';
 import { randomUUID } from 'crypto';
 import { CompletionProvider } from '../../../src/core/completions/completion-provider.js';
+import { minimalModel, writeProjectModel } from '../../helpers/model-fixture.js';
+
+const CONTRACT = '## Requirements\n\n### Requirement: Rule\nIt SHALL hold.\n\n#### Scenario: Case\n- **WHEN** x\n- **THEN** y';
+
+async function writeContracts(root: string, identities: string[]): Promise<void> {
+  await writeProjectModel(root, minimalModel({
+    elements: identities.map(identity => ({ identity, requirements: CONTRACT })),
+  }));
+}
 
 describe('CompletionProvider', () => {
   let testDir: string;
@@ -110,56 +119,33 @@ describe('CompletionProvider', () => {
       expect(specIds).toEqual([]);
     });
 
-    it('should return spec IDs', async () => {
-      const specsDir = path.join(testDir, '.xirang', 'specs');
-      await fs.mkdir(specsDir, { recursive: true });
-
-      // Create some specs
-      await fs.mkdir(path.join(specsDir, 'spec-1'), { recursive: true });
-      await fs.writeFile(path.join(specsDir, 'spec-1', 'spec.md'), '# Spec 1');
-
-      await fs.mkdir(path.join(specsDir, 'spec-2'), { recursive: true });
-      await fs.writeFile(path.join(specsDir, 'spec-2', 'spec.md'), '# Spec 2');
+    it('should return Element identities that carry a Contract', async () => {
+      await writeContracts(testDir, ['spec-1', 'spec-2']);
 
       const specIds = await provider.getSpecIds();
       expect(specIds).toEqual(['spec-1', 'spec-2']);
     });
 
     it('should cache results for the TTL duration', async () => {
-      const specsDir = path.join(testDir, '.xirang', 'specs');
-      await fs.mkdir(specsDir, { recursive: true });
+      await writeContracts(testDir, ['spec-1']);
 
-      await fs.mkdir(path.join(specsDir, 'spec-1'), { recursive: true });
-      await fs.writeFile(path.join(specsDir, 'spec-1', 'spec.md'), '# Spec 1');
-
-      // First call
       const firstResult = await provider.getSpecIds();
       expect(firstResult).toEqual(['spec-1']);
 
-      // Add another spec
-      await fs.mkdir(path.join(specsDir, 'spec-2'), { recursive: true });
-      await fs.writeFile(path.join(specsDir, 'spec-2', 'spec.md'), '# Spec 2');
+      await writeContracts(testDir, ['spec-1', 'spec-2']);
 
-      // Second call should return cached result
       const secondResult = await provider.getSpecIds();
       expect(secondResult).toEqual(['spec-1']);
     });
 
     it('should refresh cache after TTL expires', async () => {
       const shortTTLProvider = new CompletionProvider(50, testDir);
-
-      const specsDir = path.join(testDir, '.xirang', 'specs');
-      await fs.mkdir(specsDir, { recursive: true });
-
-      await fs.mkdir(path.join(specsDir, 'spec-1'), { recursive: true });
-      await fs.writeFile(path.join(specsDir, 'spec-1', 'spec.md'), '# Spec 1');
+      await writeContracts(testDir, ['spec-1']);
 
       const firstResult = await shortTTLProvider.getSpecIds();
       expect(firstResult).toEqual(['spec-1']);
 
-      // Add another spec
-      await fs.mkdir(path.join(specsDir, 'spec-2'), { recursive: true });
-      await fs.writeFile(path.join(specsDir, 'spec-2', 'spec.md'), '# Spec 2');
+      await writeContracts(testDir, ['spec-1', 'spec-2']);
 
       // Wait for cache to expire
       await new Promise(resolve => setTimeout(resolve, 60));
@@ -172,17 +158,13 @@ describe('CompletionProvider', () => {
   describe('getAllIds', () => {
     it('should return both change and spec IDs', async () => {
       const changesDir = path.join(testDir, '.xirang', 'changes');
-      const specsDir = path.join(testDir, '.xirang', 'specs');
       await fs.mkdir(changesDir, { recursive: true });
-      await fs.mkdir(specsDir, { recursive: true });
 
       // Create a change
       await fs.mkdir(path.join(changesDir, 'my-change'), { recursive: true });
       await fs.writeFile(path.join(changesDir, 'my-change', 'proposal.md'), '# Change');
 
-      // Create a spec
-      await fs.mkdir(path.join(specsDir, 'my-spec'), { recursive: true });
-      await fs.writeFile(path.join(specsDir, 'my-spec', 'spec.md'), '# Spec');
+      await writeContracts(testDir, ['my-spec']);
 
       const result = await provider.getAllIds();
       expect(result).toEqual({

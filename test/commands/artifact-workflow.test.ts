@@ -5,6 +5,7 @@ import os from 'os';
 import { runCLI } from '../helpers/run-cli.js';
 import { computeEvidenceFingerprint, computeTasksFileHash } from '../../src/core/verify/freshness.js';
 import type { VerifyOptimization, VerifyResultStatus } from '../../src/core/verify/types.js';
+import { validateTaskStructure } from '../../src/core/parsers/task-structure.js';
 
 describe('artifact-workflow CLI commands', () => {
   let tempDir: string;
@@ -43,7 +44,7 @@ describe('artifact-workflow CLI commands', () => {
    */
   async function createTestChange(
     changeName: string,
-    artifacts: ('proposal' | 'design' | 'specs' | 'architecture-delta' | 'tasks')[] = []
+    artifacts: ('proposal' | 'design' | 'specs' | 'tasks')[] = []
   ): Promise<string> {
     const changeDir = path.join(changesDir, changeName);
     await fs.mkdir(changeDir, { recursive: true });
@@ -60,19 +61,28 @@ describe('artifact-workflow CLI commands', () => {
     }
 
     if (artifacts.includes('specs')) {
-      // specs artifact uses glob pattern "specs/*.md" - files directly in specs/ directory
-      const specsDir = path.join(changeDir, 'specs');
-      await fs.mkdir(specsDir, { recursive: true });
-      await fs.writeFile(path.join(specsDir, 'test-spec.md'), '## Purpose\nTest spec.');
+      const elementsDir = path.join(changeDir, 'elements');
+      await fs.mkdir(elementsDir, { recursive: true });
+      await fs.writeFile(path.join(elementsDir, 'test-element.md'), `## ADDED Requirements
+
+### Requirement: Propose smart routing
+
+#### Scenario: 复用 Design Summary
+
+### Requirement: Master agent 必须拆解粗粒度任务为 TDD 步骤
+
+#### Scenario: 读取粗粒度任务
+
+### Requirement: Master agent 直接执行 pending task
+
+#### Scenario: 拆解为可执行工作
+`);
     }
 
     if (artifacts.includes('tasks')) {
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Tasks\n- [ ] Task 1');
     }
 
-    if (artifacts.includes('architecture-delta')) {
-      await fs.writeFile(path.join(changeDir, 'architecture-delta.c4'), 'model {}\n');
-    }
 
     return changeDir;
   }
@@ -141,7 +151,7 @@ describe('artifact-workflow CLI commands', () => {
       const result = await runCLI(['status', '--change', 'scaffolded-change'], { cwd: tempDir });
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('scaffolded-change');
-      expect(result.stdout).toContain('0/5 artifacts complete');
+      expect(result.stdout).toContain('0/4 artifacts complete');
     });
 
     it('shows status for a change with proposal only', async () => {
@@ -152,7 +162,7 @@ describe('artifact-workflow CLI commands', () => {
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('minimal-change');
       expect(result.stdout).toContain('spec-driven');
-      expect(result.stdout).toContain('1/5 artifacts complete');
+      expect(result.stdout).toContain('1/4 artifacts complete');
     });
 
     it('shows status for a change with proposal and design', async () => {
@@ -160,7 +170,7 @@ describe('artifact-workflow CLI commands', () => {
 
       const result = await runCLI(['status', '--change', 'partial-change'], { cwd: tempDir });
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('2/5 artifacts complete');
+      expect(result.stdout).toContain('2/4 artifacts complete');
       expect(result.stdout).toContain('[x]');
     });
 
@@ -178,18 +188,19 @@ describe('artifact-workflow CLI commands', () => {
       expect(json.schemaName).toBe('spec-driven');
       expect(json.isComplete).toBe(false);
       expect(Array.isArray(json.artifacts)).toBe(true);
-      expect(json.artifacts).toHaveLength(5);
+      expect(json.artifacts).toHaveLength(4);
+      expect(json.artifacts.some((artifact: any) => artifact.id === 'architecture-delta')).toBe(false);
 
       const proposalArtifact = json.artifacts.find((a: any) => a.id === 'proposal');
       expect(proposalArtifact.status).toBe('done');
     });
 
     it('shows complete status when all artifacts are done', async () => {
-      await createTestChange('complete-change', ['proposal', 'design', 'specs', 'architecture-delta', 'tasks']);
+      await createTestChange('complete-change', ['proposal', 'design', 'specs', 'tasks']);
 
       const result = await runCLI(['status', '--change', 'complete-change'], { cwd: tempDir });
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('5/5 artifacts complete');
+      expect(result.stdout).toContain('4/4 artifacts complete');
       expect(result.stdout).toContain('All artifacts complete!');
     });
 
@@ -532,7 +543,7 @@ rules: {}
       const json = JSON.parse(result.stdout);
       const expectedProposalPath = await fs.realpath(path.join(changesDir, 'json-apply', 'proposal.md'));
       const expectedSpecPath = await fs.realpath(
-        path.join(changesDir, 'json-apply', 'specs', 'test-spec.md')
+        path.join(changesDir, 'json-apply', 'elements', 'test-element.md')
       );
       expect(json.changeName).toBe('json-apply');
       expect(json.schemaName).toBe('spec-driven');
@@ -580,9 +591,7 @@ rules: {}
         'specs',
         'tasks',
       ]);
-      await fs.writeFile(
-        path.join(changeDir, 'tasks.md'),
-        `### Task 1: Explore routing
+      const tasks = `### Task 1: Explore routing
 
 **Goal**: Add the explore-to-propose routing instruction.
 
@@ -596,7 +605,7 @@ rules: {}
 #### Checks
 
 - [x] C1 Verify Design Summary reuse
-  - Verifies: \`specs/propose-workflow/spec.md\` / Requirement "Propose smart routing" / Scenario "复用 Design Summary"
+  - Verifies: \`elements/test-element.md\` / Requirement "Propose smart routing" / Scenario "复用 Design Summary"
   - Command: \`npm run test -- test/core/templates/propose-template.test.ts\`
   - Expect: template mentions Design Summary reuse
 
@@ -614,11 +623,12 @@ rules: {}
 #### Checks
 
 - [ ] C2 Verify pending coarse task
-  - Verifies: \`specs/apply-task-decomposition/spec.md\` / Requirement "Master agent 必须拆解粗粒度任务为 TDD 步骤" / Scenario "读取粗粒度任务"
+  - Verifies: \`elements/test-element.md\` / Requirement "Master agent 必须拆解粗粒度任务为 TDD 步骤" / Scenario "读取粗粒度任务"
   - Command: \`npm run test -- test/commands/artifact-workflow.test.ts\`
   - Expect: apply progress reports one remaining task
-`
-      );
+`;
+      await fs.writeFile(path.join(changeDir, 'tasks.md'), tasks);
+      expect(validateTaskStructure(tasks, { changeDir }).valid).toBe(true);
 
       const result = await runCLI(
         ['instructions', 'apply', '--change', 'coarse-apply', '--json'],
@@ -645,9 +655,7 @@ rules: {}
         'specs',
         'tasks',
       ]);
-      await fs.writeFile(
-        path.join(changeDir, 'tasks.md'),
-        `### Task 1: Implement confirmed design
+      const tasks = `### Task 1: Implement confirmed design
 
 **Goal**: Apply the design confirmed during explore.
 
@@ -662,11 +670,12 @@ rules: {}
 #### Checks
 
 - [ ] C1 Verify strict apply
-  - Verifies: \`specs/apply-task-decomposition/spec.md\` / Requirement "Master agent 直接执行 pending task" / Scenario "拆解为可执行工作"
+  - Verifies: \`elements/test-element.md\` / Requirement "Master agent 直接执行 pending task" / Scenario "拆解为可执行工作"
   - Command: \`npm run test -- test/core/templates/apply-change.test.ts\`
   - Expect: apply instructions include strict red/green TDD
-`
-      );
+`;
+      await fs.writeFile(path.join(changeDir, 'tasks.md'), tasks);
+      expect(validateTaskStructure(tasks, { changeDir }).valid).toBe(true);
 
       const exploreResult = await runCLI(['instructions', 'proposal', '--change', 'workflow-integration', '--json'], {
         cwd: tempDir,

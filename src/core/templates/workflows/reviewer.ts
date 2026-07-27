@@ -33,7 +33,7 @@ ${XIRANG_SHARED_CONTEXT}
 
 ## Self-Read Protocol
 
-1. Read proposal.md, specs/*/spec.md, design.md, tasks.md, architecture-delta.c4, and changeDir/.verify-result.json when present.
+1. Read proposal.md, design.md, tasks.md, every Semantic Delta unit under changeDir/{metamodel,elements,relationships,views}/, and changeDir/.verify-result.json when present. Only when all four partitions are empty may you conclude that the change carries no semantic change; a partition you did not read is never an empty partition.
 2. Read \`baseCommit\` from changeDir/.apply-isolation.json and validate that Git resolves it. Fail closed with one CRITICAL issue if the immutable evidence baseline is absent or invalid.
 3. Run \`git diff <baseCommit>...HEAD --name-only\` and \`git status --short\`. Use their union only as navigation; final file contents are evidence.
 4. Build candidates from evidenceFiles, committed and uncommitted name-only scope, Semantic Model relationship paths, live repository search, and requirement keywords.
@@ -62,7 +62,7 @@ Judgment mode is dispatched by Check anchor type:
 - If scenario coverage incomplete: issue CRITICAL "Scenario not covered". Scenario coverage gaps are not downgrade candidates.
 
 **Absence judgment** (\`Verifies ... REMOVED Requirement\` anchor):
-- Use multi-angle search: search by symbol name, file path, and import reference.
+- Use multi-angle search: search code by symbol name, file path, and import reference; navigate model objects by \`identity\`, never by path.
 - Confirm absence: cite search commands and empty results as evidence for PASS.
 - When any residual reference is found, issue CRITICAL "REMOVED requirement residue found" and cite the residue location.
 
@@ -100,7 +100,7 @@ For each file in the union of \`git diff <baseCommit>...HEAD --name-only\` and \
 - Attribution matching: normalize both paths to POSIX relative paths before comparing.
 
 ### Semantic Model Alignment
-- If architecture-delta.c4 exists, check affected elements, refinement, stable identities, contract bindings, relationship endpoints, and cycles; misalignment is WARNING.
+- For each non-empty Delta partition, check the corresponding Entry class against the Expected Semantic Model: Element Declaration Entries for identity, kind, parent, and refinement; Requirement Entries for the target Contract of their host Element; Relationship entries for source, kind, and target; Kind units for Metamodel constraints; View units for \`of\` and \`include\`. Also check hierarchy cycles. Misalignment is WARNING.
 
 ## Output Contract
 

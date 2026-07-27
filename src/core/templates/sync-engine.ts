@@ -195,6 +195,7 @@ export function collectSharedReferenceFiles(
 const STALE_SHARED_REFERENCE_FILES = [
   'opsx-apply-phase2-optimization.md',
   'xirang-apply-phase2-optimization.md',
+  'xirang-relation-authoring.md',
 ] as const;
 
 const RETIRED_SWEEPER_REFERENCE_HASHES: Readonly<Record<string, string>> = {

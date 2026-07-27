@@ -38,11 +38,11 @@ export const VALIDATION_MESSAGES = {
   
   // Guidance snippets (appended to primary messages for remediation)
   GUIDE_NO_DELTAS:
-    'No deltas found. Ensure your change has a specs/ directory with capability folders (e.g. specs/http-server/spec.md) containing .md files that use delta headers (## ADDED/MODIFIED/REMOVED Requirements) and that each requirement includes at least one "#### Scenario:" block. Tip: run "xirang change show <change-id> --json --deltas-only" to inspect parsed deltas.',
+    'No deltas found. Add Semantic Delta units under elements/, metamodel/, relationships/, or views/. Element Contract entries use ## ADDED/MODIFIED/REMOVED Requirements, and each surviving Requirement includes at least one "#### Scenario:" block. Tip: run "xirang diff --change <change-id> --json" to inspect the Semantic Delta.',
   GUIDE_MISSING_SPEC_SECTIONS:
     'Missing required sections. Expected headers: "## Purpose" and "## Requirements". Example:\n## Purpose\n[brief purpose]\n\n## Requirements\n### Requirement: Clear requirement statement\nUsers SHALL ...\n\n#### Scenario: Descriptive name\n- **WHEN** ...\n- **THEN** ...',
   GUIDE_MISSING_CHANGE_SECTIONS:
-    'Missing required sections. Expected headers: "## Why" and "## What Changes". Ensure deltas are documented in specs/ using delta headers.',
+    'Missing required sections. Expected headers: "## Why" and "## What Changes". Add Semantic Delta units under elements/, metamodel/, relationships/, or views/. Tip: run "xirang diff --change <change-id> --json" to inspect the Semantic Delta.',
   GUIDE_SCENARIO_FORMAT:
     'Scenarios must use level-4 headers. Convert bullet lists into:\n#### Scenario: Short name\n- **WHEN** ...\n- **THEN** ...\n- **AND** ...',
 } as const;

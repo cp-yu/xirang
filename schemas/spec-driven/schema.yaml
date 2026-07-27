@@ -13,7 +13,7 @@ artifacts:
         includes:
           - Motivation, scope boundaries, Behavior Source impact, Architecture Source impact, and affected surfaces.
         excludes:
-          - Complete observable behavior requirements, authoritative LikeC4 element or relation declarations, lowering decisions, and implementation work.
+          - Complete observable behavior requirements, complete target-state Semantic Delta entries, lowering decisions, and implementation work.
       writePolicy: agent-authored
       validation:
         - xirang validate --change <name> --json
@@ -24,128 +24,68 @@ artifacts:
       - **Why**: State the problem or opportunity and why it matters now in 1-2 sentences.
       - **What Changes**: Summarize intended outcomes and scope, not detailed requirements or implementation steps. Mark breaking changes with **BREAKING**.
       - **Source Impact**:
-        - **Behavior Source**: List `New Specs` and `Modified Specs` by Spec ID. Write `None` when behavior source does not change.
-        - **Architecture Source**: List affected LikeC4 element IDs when known and summarize responsibility, ownership, boundary, or relation impact. Write `None` when architecture source does not change.
+        - **Behavior Source**: List `New Specs` and `Modified Specs` by element identity. Write `None` when behavior source does not change.
+        - **Architecture Source**: List affected element identities and summarize responsibility, ownership, boundary, or relationship impact. Write `None` when architecture source does not change.
       - **Impact**: List affected code, APIs, dependencies, data, operations, or systems.
 
-      Keep Spec IDs and LikeC4 element IDs distinct:
-      - A Spec ID is the folder name used by `specs/<spec-id>/spec.md`.
-      - A LikeC4 element ID uses the generated `domain_name.capability_name` form; canonical capability identity remains in metadata.capabilityId.
-      - A Spec may cover multiple architecture capabilities; do not assume a one-to-one mapping.
+      Use one shared identity space. Reuse an existing element identity when it already denotes the affected semantic object; introduce one only for a genuinely new Element. An Element has at most one Contract, so Behavior Source and Architecture Source may refer to the same identity.
 
-      Use existing Spec and LikeC4 element IDs when they already describe the affected behavior or architecture. Introduce a new ID only for genuinely new behavior source or architecture concepts.
-
-      The proposal declares source impact; it does not define the source:
-      - Complete observable behavior belongs in delta Specs.
-      - Complete target-state LikeC4 elements and relations belong in `architecture-delta.c4`.
+      The proposal declares source impact; it does not define target content:
+      - Complete target-state Semantic Delta entries belong in `elements/`, `metamodel/`, `relationships/`, and `views/`.
       - Lowering and architecture decisions belong in `design.md`.
       - Implementation work and verification belong in `tasks.md`.
 
-      Every New or Modified Spec entry must be reconciled by a corresponding change-local delta Spec. Every declared durable architecture impact must be reconciled through `architecture-delta.c4`.
-
-      Keep the proposal concise. Do not repeat detailed requirements, architecture definitions, design rationale, or task steps.
+      Every declared durable semantic impact must be reconciled through the appropriate Delta partition. Keep the proposal concise and do not repeat requirements, target entries, design rationale, or task steps.
     requires: []
 
   - id: specs
-    generates: "specs/**/*.md"
-    completionMarker: ".specs-noop"
-    description: Detailed specifications for the change
-    template: spec.md
+    generates: "{elements,metamodel,relationships,views}/**/*"
+    completionMarker: ".delta-noop"
+    description: Semantic Delta units for the change
+    template: delta.md
     definition:
-      purpose: Define the observable behavior the target program must exhibit.
-      compilationRole: Behavior semantic source delta reconciled into formal Specs.
+      purpose: Express the semantics this Change adds, modifies, or removes.
+      compilationRole: Semantic Delta compiled against the current Semantic Model.
       content:
         includes:
-          - Complete target-state requirements and scenarios expressed through delta sections.
+          - Complete target-state Semantic Delta entries across elements, metamodel, relationships, and views.
         excludes:
-          - Implementation decisions, rationale, task planning, architecture semantics, change-log narration, and Agent reasoning.
+          - Motivation, implementation decisions, rationale, task planning, change-log narration, and Agent reasoning.
       writePolicy: agent-authored
       validation:
-        - xirang validate --change <name> --artifacts specs --json
+        - xirang validate --change <name> --json
+        - xirang arch validate --change <name> --json
     instruction: |
-      Create or reconcile the change-local delta Specs declared in `proposal.md` → `Source Impact` → `Behavior Source`.
+      Create or reconcile the Change's Semantic Delta across `elements/`, `metamodel/`, `relationships/`, and `views/`.
 
-      If Behavior Source is confirmed as `None`, create only the empty `.specs-noop` completion marker in the change root. Otherwise remove a stale `.specs-noop` marker before authoring delta Specs. The marker carries no behavior semantics and MUST NOT be synced or archived.
+      Treat the returned template as a per-unit shape reference, not one file to copy. If no Semantic Delta is required, create only `.delta-noop`; otherwise remove a stale marker. The marker carries no semantics and MUST NOT be synced or archived.
 
-      Identify target files:
-      - Each `New Specs` entry uses its Spec ID at `specs/<spec-id>/spec.md`.
-      - Each `Modified Specs` entry reuses the exact existing Spec ID from `.xirang/specs/<spec-id>/spec.md`.
-      - Spec IDs and architecture capability IDs are different identifiers. Do not use a `cap.<domain>.<name>` ID as a Spec directory name unless that exact string is independently the declared Spec ID.
-      - Do not create a delta Spec for Architecture Source impact alone.
+      Author units by self-declared entity type:
+      - Frontmatter declares `entity`; the partition does not determine entity type.
+      - element-declaration: identity, kind, parent, title, summary
+      - element-kind: identity, contract; optional root, parents, children
+      - relationship-kind: identity; optional sourceKinds, targetKinds
+      - authored-view: identity, include; optional of, title, autoLayout
+      - Every identity uses `[A-Za-z0-9._-]+`, never a path separator, and must not encode parent hierarchy.
+      - Default filenames are organizational conventions only; unchanged partitions stay empty.
 
-      Use Requirement-level delta operations:
-      - `## ADDED Requirements`: requirements absent from the formal Spec.
-      - `## MODIFIED Requirements`: existing requirements whose observable behavior changes. Copy the complete formal Requirement block, then edit it into the target state.
-      - `## REMOVED Requirements`: existing requirements removed from the target behavior. Include `Reason` and `Migration`.
-      - Requirement rename uses `## REMOVED Requirements` for the old title plus `## ADDED Requirements` for the new complete target block. `## RENAMED Requirements` is unsupported.
-      - A `Modified Specs` file may contain any combination of the three supported operations. Do not infer the Requirement operation from the Spec classification alone.
+      Apply Delta semantics per entry:
+      - Declaration, Kind, and View entries add `operation: ADDED|MODIFIED|REMOVED`; ADDED and MODIFIED carry complete target content, while REMOVED carries only identity.
+      - Element Contract target content is `## Requirements`; Delta Requirement entries factor operation into `## ADDED Requirements`, `## MODIFIED Requirements`, and `## REMOVED Requirements` sections.
+      - ADDED and MODIFIED Requirements contain the complete target Requirement with canonical `### Requirement:` and `#### Scenario:` blocks; REMOVED names only the Requirement.
+      - Existing titles under MODIFIED Requirements stay exact; New Requirement titles and new Scenario titles follow `proseLanguage`.
+      - Agent MUST NOT author Scenario operation labels. Scenario operations are derived by `xirang validate --change <name>` and `xirang diff --change <name> --write`.
+      - When only Contract entries change, declaration frontmatter locates the Element without `operation`; when only the Declaration changes, leave the body empty.
 
-      Before writing an operation against an existing Spec:
-      - read `.xirang/specs/<spec-id>/spec.md`;
-      - use the exact existing Requirement title for `MODIFIED` or `REMOVED`;
-      - keep a `MODIFIED` Requirement complete, including all surviving scenarios;
-      - use `ADDED` when existing behavior remains unchanged and the target Spec gains a separate requirement.
+      Follow partition-specific rules:
+      - `elements/` units combine one Element Declaration entry with zero or more Requirement entries. A Requirement identity is `<element identity>#<name>` globally and only `<name>` within its unit; descriptive prose belongs only in `summary`.
+      - `metamodel/` units contain one Element Kind or Relationship Kind entry.
+      - `views/` units contain one Authored View entry.
+      - `relationships/` YAML contains `{operation, source, kind, target}` entries, has no description field, and does not support `MODIFIED` because the three identity fields are its complete content.
 
-      Author canonical behavior:
-      - `### Requirement:` and `#### Scenario:` markers remain canonical. Each requirement uses `### Requirement: <name>`.
-      - Normative text uses `SHALL` or `MUST`.
-      - Each surviving requirement has at least one `#### Scenario: <name>` with observable `WHEN`/`THEN` outcomes.
-      - Requirements describe the target steady state without change-history narration.
-      - Existing Requirement titles under `MODIFIED Requirements` remain exact for matching. New Requirement titles and new Scenario titles follow `proseLanguage`.
-
-      Route content that does not belong in Specs:
-      - motivation or scope → `proposal.md`;
-      - solution architecture, lowering decisions, rationale, or refactoring strategy → `design.md`;
-      - implementation work and verification → `tasks.md`;
-      - durable architecture elements, ownership, boundaries, or semantic relations → `architecture-delta.c4`.
-
-      Agent MUST NOT author Scenario operation labels. Validation rejects operation-like bracket prefixes; Scenario operations are derived by `xirang validate --change <name>` and `xirang diff --change <name> --write`.
-
-      Follow the returned template structure. Do not add placeholders, empty delta sections, examples, or process notes to the artifact.
+      Route motivation to `proposal.md`, decisions to `design.md`, and implementation work to `tasks.md`. Validate with the commands from `definition.validation`, and do not add placeholders, empty Delta sections, or process notes to authored units.
     requires:
       - proposal
-
-  - id: architecture-delta
-    generates: architecture-delta.c4
-    description: LikeC4 architecture source delta for this change
-    template: architecture-delta.c4
-    definition:
-      purpose: Define the architecture source changes required by the target system.
-      compilationRole: Architecture semantic source delta reconciled into formal LikeC4.
-      content:
-        includes:
-          - Minimal target-state LikeC4 element and typed relation reconciliation.
-        excludes:
-          - Observable behavior requirements, implementation evidence, code paths, symbols, imports, calls, and change-log narration.
-      writePolicy: agent-authored
-      validation:
-        - xirang validate --change <name> --artifacts architecture-delta --json
-    instruction: |
-      Create `architecture-delta.c4` as the architecture source reconciliation for this change.
-
-      Determine the target architecture from proposal `Architecture Source`, completed change-local Specs, `design.md` when present, the formal model under `.xirang/architecture/`, and current code as implementation evidence.
-
-      Keep source identities separate:
-      - Spec IDs under proposal `Behavior Source` are not LikeC4 element IDs.
-      - Proposal Architecture Source entries declare scope, not authoritative LikeC4 declarations.
-      - Only `architecture-delta.c4` defines exact target-state element and typed relation reconciliation.
-
-      Handle no-op architecture explicitly:
-      - If Architecture Source is `None` and available source and evidence confirm no durable architecture change, write `model {}`.
-      - Do not use a no-op delta while architecture impact is unresolved.
-      - Observable behavior changes alone do not require architecture operations.
-
-      When architecture changes, use the minimum LikeC4 declarations required for the target state:
-      - `extend existing_domain { ... }` for capabilities added to existing domains.
-      - Complete `domain` declarations for new domains.
-      - Typed relations using `source -[kind]-> target`, with canonical kinds `invokes`, `consumes`, `precedes`, `constrains`, and `validates`.
-      - Capability metadata preserves canonical `capabilityId`, status, and change-local Specs paths.
-
-      Preserve relation direction and endpoint contracts. Element nesting expresses ownership, so do not emit explicit `belongs_to` relations. Imports and calls are evidence only. Do not include code paths, symbols, imports, calls, or Agent reasoning.
-
-      Validate with `xirang validate --change "<name>" --artifacts architecture-delta --json`.
-    requires:
-      - specs
 
   - id: design
     generates: design.md
@@ -158,7 +98,7 @@ artifacts:
         includes:
           - Solution architecture, implementation boundaries, technical decisions, rationale, alternatives, refactoring strategy, risks, trade-offs, and migration decisions.
         excludes:
-          - Observable behavior requirements, task progress, repeated motivation, and durable architecture changes not reconciled through architecture-delta.c4.
+          - Observable behavior requirements, task progress, repeated motivation, and durable semantic changes not reconciled through the four Delta partitions.
       writePolicy: agent-authored
       validation:
         - xirang validate --change <name> --json
@@ -217,12 +157,12 @@ artifacts:
       - `Checks` are executable verification items and MUST use checkbox IDs prefixed with `C`: `- [ ] C1 Verify ...`
       - Each check MUST include `Verifies:` or `Preserves:` before executable evidence fields
       - `Verifies:` identifies the change-local spec requirement and scenario(s); for deletion deliverables, use `Verifies: ... / REMOVED Requirement "<name>"` (no Scenario required)
-      - `Preserves:` anchors behavior-equivalence checks to main spec paths (`.xirang/specs/<capability>/spec.md` / Requirement "<name>" / Scenario "<name>"), naming old forms in `Expect:` and absence assertion in `Command:`
+      - `Preserves:` anchors behavior-equivalence checks to main Element Contract paths (`.xirang/model/elements/<identity>.md` / Requirement "<name>" / Scenario "<name>"), naming old forms in `Expect:` and absence assertion in `Command:`
       - Each check MUST include at least one executable evidence field: `Command:`, `Evidence:`, or `Expect:`
-      - When this change has local delta specs, `Verifies:` MUST use a change-local relative POSIX path from the change directory: `specs/<capability>/spec.md`
+      - When this change has local Delta units, `Verifies:` MUST use a change-local relative POSIX path from the change directory: `elements/<identity>.md`
       - `Verifies:` MUST name the full Requirement title and one or more exact canonical unlabeled Scenario names; except for REMOVED Requirement variant
-      - `Verifies:` MUST NOT use `.xirang/specs/...`, project-root-relative paths, archived/main spec paths, absolute paths, parent traversal, or backslash-separated paths
-      - `Preserves:` path whitelist is independent: only `.xirang/specs/<capability>/spec.md` is allowed; it does not relax `Verifies:` constraints
+      - `Verifies:` MUST NOT use `.xirang/model/...`, project-root-relative paths, archived/main model paths, absolute paths, parent traversal, or backslash-separated paths
+      - `Preserves:` path whitelist is independent: only `.xirang/model/elements/<identity>.md` is allowed; it does not relax `Verifies:` constraints
 
       Conversion rules:
       - Task titles, check names, requirements bullet prose, and Evidence:/Expect: descriptions follow `proseLanguage` when configured.
@@ -258,12 +198,12 @@ artifacts:
       #### Checks
 
       - [ ] C1 Verify registration endpoint
-        - Verifies: `specs/auth/spec.md` / Requirement "User registration" / Scenario "Valid registration succeeds"
+        - Verifies: `elements/auth.md` / Requirement "User registration" / Scenario "Valid registration succeeds"
         - Command: `npm test`
         - Expect: registration test passes
 
       - [ ] C2 Verify invalid email rejection
-        - Verifies: `specs/auth/spec.md` / Requirement "User registration" / Scenario "Invalid email is rejected"
+        - Verifies: `elements/auth.md` / Requirement "User registration" / Scenario "Invalid email is rejected"
         - Command: `npm test`
         - Expect: invalid email test passes
       ```

@@ -11,9 +11,13 @@ import {
   recoverSemanticDirectoryTransaction,
   semanticTreeFingerprint,
   SEMANTIC_DIRECTORY_JOURNAL,
+  MODEL_PATH_PREFIX,
+  SEMANTIC_PARTITIONS,
   type SemanticDirectoryTransactionFileSystem,
-} from '../change-sync.js';
-import { readFormalSemanticModel, validateTargetSemanticModel } from '../change-compiler.js';
+} from '../model/transaction.js';
+import { modelRoot } from '../model/paths.js';
+import { parseSemanticModel } from '../model/parser.js';
+import { validateSemanticModel } from '../model/validator.js';
 import {
   createCandidateHistoryRelativePath,
   reserveCandidateHistory,
@@ -44,11 +48,15 @@ interface CandidatePromotionMarker {
 
 const CANDIDATE_PROMOTION_MARKER = 'candidate-promotion.json';
 
+function isPartitionFile(relativePath: string): boolean {
+  return SEMANTIC_PARTITIONS.some(partition => relativePath.startsWith(`${partition}/`));
+}
+
 function snapshotTargetTree(snapshot: CandidateSnapshot): Map<string, Buffer> {
   const files = new Map<string, Buffer>();
   for (const file of snapshot.files) {
-    if (!file.path.startsWith('architecture/') && !file.path.startsWith('specs/')) continue;
-    files.set(`${XIRANG_DIR_NAME}/${file.path}`, Buffer.from(file.bytes));
+    if (!isPartitionFile(file.path)) continue;
+    files.set(`${MODEL_PATH_PREFIX}/${file.path}`, Buffer.from(file.bytes));
   }
   return files;
 }
@@ -60,10 +68,11 @@ function buildBytes(snapshot: CandidateSnapshot): Buffer {
 }
 
 async function stageCandidateTarget(stagingRoot: string, snapshot: CandidateSnapshot): Promise<void> {
-  await fs.mkdir(path.join(stagingRoot, 'architecture'), { recursive: true });
-  await fs.mkdir(path.join(stagingRoot, 'specs'), { recursive: true });
+  for (const partition of SEMANTIC_PARTITIONS) {
+    await fs.mkdir(path.join(stagingRoot, partition), { recursive: true });
+  }
   for (const file of snapshot.files) {
-    if (!file.path.startsWith('architecture/') && !file.path.startsWith('specs/')) continue;
+    if (!isPartitionFile(file.path)) continue;
     const target = path.join(stagingRoot, ...file.path.split('/'));
     await fs.mkdir(path.dirname(target), { recursive: true });
     await fs.writeFile(target, file.bytes);
@@ -243,10 +252,7 @@ export async function promoteCandidate(
       reviewDigest: suppliedDigest,
       promotedAt: promotedAt.toISOString(),
       previousFormalFingerprint,
-      previous: {
-        architecture: 'previous/architecture',
-        specs: 'previous/specs',
-      },
+      previous: Object.fromEntries(SEMANTIC_PARTITIONS.map(partition => [partition, `previous/${partition}`])),
     });
 
     await applySemanticDirectoryTransaction(projectRoot, previousFormalFingerprint, stagingRoot, {
@@ -261,12 +267,10 @@ export async function promoteCandidate(
         }
       },
       postWrite: async () => {
-        const formal = await readFormalSemanticModel(projectRoot);
-        const diagnostics = validateTargetSemanticModel(formal);
-        if (diagnostics.some(item => item.level === 'ERROR')) {
-          const issue = diagnostics.find(item => item.level === 'ERROR')!;
-          throw new Error(`Post-write validation failed: ${issue.code}: ${issue.message}`);
-        }
+        const promoted = await parseSemanticModel(modelRoot(projectRoot));
+        const issue = [...promoted.diagnostics, ...validateSemanticModel(promoted.model)]
+          .find(item => item.level === 'ERROR');
+        if (issue) throw new Error(`Post-write validation failed: ${issue.code}: ${issue.message}`);
 
         const current = await validateCandidateDirectory(projectRoot, frozenCandidate);
         if (!current.result.valid) throw validationError('Candidate changed during promotion', current);

@@ -31,7 +31,6 @@ describe('LikeC4CompletionProvider', () => {
       index: 0,
       expectedItems: [
         'import',
-        'xirang',
         'specification',
         'model',
         'views',
@@ -60,7 +59,7 @@ describe('LikeC4CompletionProvider', () => {
     await completion({
       text,
       index: 4,
-      expectedItems: ['xirang', 'title', 'description', 'technology', 'notation', 'summary', 'link', 'style'],
+      expectedItems: ['title', 'description', 'technology', 'notation', 'summary', 'link', 'style'],
     })
     await completion({
       text,

@@ -1,15 +1,26 @@
 import { createContext, type PropsWithChildren, useContext, useEffect, useMemo, useState } from 'react'
 
-export interface XirangSpecContent {
-  path: string
+export interface XirangContractContent {
+  element: string
   md: string
 }
 
 export type XirangDiffOperation = 'ADDED' | 'MODIFIED' | 'REMOVED'
 
+/** Mirrors the kernel `DiffKind`: entity types plus the child-only `scenario` and `property`. */
+export type XirangDiffKind =
+  | 'element-declaration'
+  | 'element-kind'
+  | 'relationship-kind'
+  | 'authored-view'
+  | 'relationship'
+  | 'requirement'
+  | 'scenario'
+  | 'property'
+
+/** Entries are keyed by entity type and identity only; the storage partition never appears. */
 export interface XirangDiffEntry {
-  scope: 'specs' | 'architecture'
-  kind: 'requirement' | 'scenario' | 'element' | 'relationship' | 'elementKind' | 'relationshipKind' | 'property'
+  kind: XirangDiffKind
   identity: string
   operation: XirangDiffOperation
   before?: unknown
@@ -17,29 +28,28 @@ export interface XirangDiffEntry {
   children?: XirangDiffEntry[]
 }
 
-export interface XirangArchitectureElement {
-  id: string
-  fqn: string
+export interface XirangElementDeclaration {
+  identity: string
   kind: string
+  parent: string | null
   title: string
   summary: string
-  parent: string | null
-  children: string[]
-  metadata: Record<string, string | string[]>
 }
 
-export interface XirangArchitectureRelation {
+export interface XirangModelElement {
+  declaration: XirangElementDeclaration
+}
+
+export interface XirangRelationship {
   source: string
   kind: string
   target: string
-  title?: string
-  metadata?: Record<string, string | string[]>
 }
 
-export interface XirangArchitectureModel {
-  languageVersion: string | null
-  elements: XirangArchitectureElement[]
-  relations: XirangArchitectureRelation[]
+/** The part of the Semantic Model IR the Browser consumes; identity is the only reference. */
+export interface XirangSemanticModel {
+  elements: XirangModelElement[]
+  relationships: XirangRelationship[]
 }
 
 export interface XirangVariantDiagnostic {
@@ -47,6 +57,7 @@ export interface XirangVariantDiagnostic {
   code: string
   path: string
   message: string
+  identity?: string
 }
 
 export interface XirangRuntimeVariant {
@@ -57,23 +68,31 @@ export interface XirangRuntimeVariant {
   valid: boolean
   formalFingerprint?: string
   changeFingerprint?: string
-  architectureFingerprint?: string
-  specsFingerprint?: string
-  architecture?: XirangArchitectureModel
+  partitionFingerprints?: Record<string, string>
+  architecture?: XirangSemanticModel
+  /** element identity → Contract markdown; absent key means the Element has no Contract. */
+  contracts?: Record<string, string>
   diff?: {
-    summary: {
-      total: number
-      specs: Record<XirangDiffOperation, number>
-      architecture: Record<XirangDiffOperation, number>
-    }
+    summary: { total: number } & Record<XirangDiffOperation, number>
     entries: XirangDiffEntry[]
   }
   diagnostics: XirangVariantDiagnostic[]
 }
 
-export function isXirangSpecDiagnostic(path: string): boolean {
-  const normalized = path.replaceAll('\\', '/')
-  return normalized.startsWith('specs/') || normalized.startsWith('.xirang/specs/') || normalized.includes('/specs/')
+/**
+ * Contract diagnostics are the ones bound to a Requirement or Scenario identity. The `elements/`
+ * partition carries Declaration and Contract alike, so a storage prefix cannot separate them.
+ */
+export function isXirangContractDiagnostic(diagnostic: Pick<XirangVariantDiagnostic, 'identity'>): boolean {
+  return diagnostic.identity !== undefined && diagnostic.identity.includes('#')
+}
+
+/** Stable refresh key: it changes whenever any partition of the selected variant changes. */
+export function xirangVariantRevision(variant: XirangRuntimeVariant): string {
+  const fingerprints = variant.partitionFingerprints
+  return fingerprints
+    ? Object.keys(fingerprints).sort().map(partition => fingerprints[partition]).join('|')
+    : variant.changeFingerprint ?? variant.id
 }
 
 export interface XirangRuntimeManifest {
@@ -82,10 +101,9 @@ export interface XirangRuntimeManifest {
 }
 
 export interface XirangSpecLoader {
-  list(project: string, element: string, signal: AbortSignal, variant?: string): Promise<readonly string[]>
-  load(project: string, element: string, path: string, signal: AbortSignal, variant?: string): Promise<XirangSpecContent>
+  /** `null` when the Element has no Contract; one Element carries at most one Contract. */
+  load(project: string, element: string, signal: AbortSignal, variant?: string): Promise<XirangContractContent | null>
   variants?(signal: AbortSignal): Promise<XirangRuntimeManifest>
-  subscribe?(listener: (path: string) => void): () => void
   subscribeVariants?(listener: () => void): () => void
 }
 

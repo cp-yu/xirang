@@ -1,4 +1,0 @@
-model {
-  // Use `extend existing_domain { ... }` for capabilities added to formal domains.
-  // Define new domains directly and use typed relations for architecture semantics.
-}

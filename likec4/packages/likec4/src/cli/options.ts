@@ -127,22 +127,6 @@ export const hmrPort = {
   nargs: 1,
 } as const satisfies Options
 
-export const xirangProjectRoot = {
-  hidden: true,
-  string: true,
-  normalize: true,
-  nargs: 1,
-  coerce: resolve,
-} as const satisfies Options
-
-export const xirangSpecRegistry = {
-  hidden: true,
-  string: true,
-  normalize: true,
-  nargs: 1,
-  coerce: resolve,
-} as const satisfies Options
-
 export const xirangChangeManifest = {
   hidden: true,
   string: true,

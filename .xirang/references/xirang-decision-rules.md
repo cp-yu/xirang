@@ -23,4 +23,4 @@ Exclude findings whose evidence or preservation cannot close. Then order by high
 
 Read current code, findings, history, and failedDirections. Reconcile every non-terminal finding: retain, reprioritize, resolve, invalidate, reject, or merge it, and add newly discovered opportunities. Never repeat an exhausted failed direction by changing wording. Existing stable IDs belong to the CLI; new add actions omit IDs. Same-envelope dependencies may use actionIndex.
 
-Only base scope implementation files may be actionable. Never alter Specs, design, tasks, configuration, public contracts, or Xirang Semantic Model intent.
+Only base scope implementation files may be actionable. Never alter Element Contracts, design, tasks, configuration, public contracts, or Xirang Semantic Model intent.

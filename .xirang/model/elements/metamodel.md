@@ -1,0 +1,31 @@
+---
+entity: element-declaration
+identity: metamodel
+kind: capability
+parent: semantic-model
+title: "Metamodel"
+summary: "Semantic Model 使用的可扩展语义记法。"
+---
+
+## Requirements
+
+### Requirement: 声明模型记法
+Metamodel SHALL 以稳定 identity 声明 Element Kinds 与 Relationship Kinds，并可规定各 Kind 的共享语义、契约策略、层级约束与关系端点约束。
+
+#### Scenario: 验证模型实体
+- **WHEN** Element 或 Relationship 引用一个 Kind
+- **THEN** 该 Kind 在 Metamodel 中存在且实体满足其约束
+
+### Requirement: 联合理解 Kind 变更
+Metamodel Kind 的变化 SHALL 与使用该 Kind 的 Element Declarations 或 Relationships 联合验证。
+
+#### Scenario: 修改 Kind 约束
+- **WHEN** 一个 Kind 的共享约束发生变化
+- **THEN** 目标模型中的全部相关实例按新约束重新验证
+
+### Requirement: 使用规范 Kind 字段
+Element Kind SHALL 声明 `identity` 与 `contract`，并可声明 `root`、`parents`、`children`；Relationship Kind SHALL 声明 `identity`，并可声明 `sourceKinds` 与 `targetKinds`。Kind 正文可表达其所有实例共享的语义。
+
+#### Scenario: 声明受约束 Relationship Kind
+- **WHEN** Relationship Kind 限制允许的端点类型
+- **THEN** Metamodel 以 sourceKinds 与 targetKinds 声明并由模型验证器执行约束

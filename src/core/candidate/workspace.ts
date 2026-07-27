@@ -3,7 +3,9 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { stringify as stringifyYaml, parse as parseYaml } from 'yaml';
 import { XIRANG_DIR_NAME } from '../config.js';
-import { ARCHITECTURE_FILE_MANIFEST } from '../templates/architecture-skeleton.js';
+import { modelRoot } from '../model/paths.js';
+import { PARTITIONS, type Partition } from '../model/types.js';
+import { MODEL_FILE_MANIFEST } from '../templates/model-skeleton.js';
 import { compareUtf8Bytes } from './canonical.js';
 
 export type CandidateBaselineInput =
@@ -18,20 +20,11 @@ export type CandidateBaseline =
 
 interface CandidateStatusBase {
   inventory: {
-    architectureFiles: string[];
-    specFiles: string[];
+    partitions: Record<Partition, string[]>;
     bytes: number;
   };
   history: { count: number; bytes: number };
-  readiness: {
-    metadata: boolean;
-    build: boolean;
-    specification: boolean;
-    model: boolean;
-    relations: boolean;
-    views: boolean;
-    specsDirectory: boolean;
-  };
+  readiness: Record<'metadata' | 'build' | Partition, boolean>;
 }
 
 export type CandidateStatus = CandidateStatusBase & (
@@ -73,18 +66,14 @@ async function assertNoSymlinks(root: string): Promise<void> {
 }
 
 async function copySource(source: string, staging: string): Promise<void> {
-  const architecture = path.join(source, 'architecture');
-  const specs = path.join(source, 'specs');
-  await assertDirectory(architecture, 'Architecture');
-  await assertDirectory(specs, 'Specs');
-  await assertNoSymlinks(architecture);
-  await assertNoSymlinks(specs);
-  await fs.cp(architecture, path.join(staging, 'architecture'), {
-    recursive: true,
-    force: false,
-    filter: sourcePath => path.basename(sourcePath) !== '.likec4',
-  });
-  await fs.cp(specs, path.join(staging, 'specs'), { recursive: true, force: false });
+  for (const partition of PARTITIONS) {
+    const directory = path.join(source, partition);
+    await assertDirectory(directory, partition);
+    await assertNoSymlinks(directory);
+  }
+  for (const partition of PARTITIONS) {
+    await fs.cp(path.join(source, partition), path.join(staging, partition), { recursive: true, force: false });
+  }
 }
 
 function inferProjectName(projectRoot: string): string {
@@ -110,16 +99,14 @@ export function toCanonicalProjectRelativePath(
 }
 
 async function writeCleanSkeleton(projectRoot: string, staging: string): Promise<void> {
-  const architecture = path.join(staging, 'architecture');
-  await fs.mkdir(architecture, { recursive: true });
-  await fs.mkdir(path.join(staging, 'specs'), { recursive: true });
+  for (const partition of PARTITIONS) await fs.mkdir(path.join(staging, partition), { recursive: true });
   const projectName = inferProjectName(projectRoot);
   const context = {
     projectName,
     projectSummary: `Project intent for ${projectName} is not yet defined.`,
   };
-  for (const entry of ARCHITECTURE_FILE_MANIFEST) {
-    await fs.writeFile(path.join(architecture, entry.relativePath), entry.render(context), 'utf8');
+  for (const entry of MODEL_FILE_MANIFEST) {
+    await fs.writeFile(path.join(staging, ...entry.relativePath.split('/')), entry.render(context), 'utf8');
   }
 }
 
@@ -134,7 +121,7 @@ async function resolveBaseline(
   }
 
   const source = input.kind === 'current'
-    ? path.join(projectRoot, XIRANG_DIR_NAME)
+    ? modelRoot(projectRoot)
     : path.resolve(projectRoot, input.path);
   await copySource(source, staging);
   return input.kind === 'current'
@@ -205,6 +192,14 @@ async function historyStatus(xirangRoot: string): Promise<{ count: number; bytes
   return { count, bytes: inventory.bytes };
 }
 
+function emptyPartitionInventory(): Record<Partition, string[]> {
+  return Object.fromEntries(PARTITIONS.map(partition => [partition, [] as string[]])) as Record<Partition, string[]>;
+}
+
+function emptyPartitionReadiness(): Record<Partition, boolean> {
+  return Object.fromEntries(PARTITIONS.map(partition => [partition, false])) as Record<Partition, boolean>;
+}
+
 async function isDirectory(target: string): Promise<boolean> {
   return fs.stat(target).then((stat) => stat.isDirectory(), () => false);
 }
@@ -219,16 +214,12 @@ export async function getCandidateStatus(projectRootInput: string): Promise<Cand
     return {
       active: false,
       baseline: null,
-      inventory: { architectureFiles: [], specFiles: [], bytes: 0 },
+      inventory: { partitions: emptyPartitionInventory(), bytes: 0 },
       history,
       readiness: {
         metadata: false,
         build: false,
-        specification: false,
-        model: false,
-        relations: false,
-        views: false,
-        specsDirectory: false,
+        ...emptyPartitionReadiness(),
       },
       guidance: {
         init: 'Run "xirang candidate init" with an explicit starting point.',
@@ -242,27 +233,23 @@ export async function getCandidateStatus(projectRootInput: string): Promise<Cand
     const parsed = parseYaml(await fs.readFile(metadataPath, 'utf8')) as { baseline?: CandidateBaseline };
     baseline = parsed?.baseline ?? null;
   }
-  const architecture = await listRegularFiles(path.join(candidate, 'architecture'), 'architecture');
-  const specs = await listRegularFiles(path.join(candidate, 'specs'), 'specs');
+  const partitions: Record<Partition, string[]> = emptyPartitionInventory();
+  const readiness = emptyPartitionReadiness();
+  for (const partition of PARTITIONS) {
+    partitions[partition] = (await listRegularFiles(path.join(candidate, partition), partition)).files;
+    readiness[partition] = await isDirectory(path.join(candidate, partition));
+  }
   const ownFiles = await listRegularFiles(candidate, 'candidate');
 
   return {
     active: true,
     baseline,
-    inventory: {
-      architectureFiles: architecture.files,
-      specFiles: specs.files,
-      bytes: ownFiles.bytes,
-    },
+    inventory: { partitions, bytes: ownFiles.bytes },
     history,
     readiness: {
       metadata: await exists(metadataPath),
       build: await exists(path.join(candidate, 'build.md')),
-      specification: await exists(path.join(candidate, 'architecture', 'specification.c4')),
-      model: await exists(path.join(candidate, 'architecture', 'model.c4')),
-      relations: await exists(path.join(candidate, 'architecture', 'relations.c4')),
-      views: await exists(path.join(candidate, 'architecture', 'views.c4')),
-      specsDirectory: await isDirectory(path.join(candidate, 'specs')),
+      ...readiness,
     },
     guidance: {
       resume: 'Continue editing the active .xirang/candidate workspace.',

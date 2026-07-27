@@ -14,7 +14,7 @@ Implement tasks from an Xirang change.
 **Xirang Philosophy**
 
 1. Xirang is a structured representation of human intent that an Agent can compile.
-2. One Xirang Semantic Model consists of LikeC4 graph modules and element-owned Markdown contract modules; they are source modules of the same model, not two parallel sources.
+2. One Xirang Semantic Model is persisted as a single whole in the four partitions `metamodel/`, `elements/`, `relationships/`, and `views/`; a Semantic Delta uses the same four partitions and adds `operation`.
 3. A change reconciles a Semantic Delta toward the target steady state. `proposal.md`, `design.md`, and `tasks.md` are compilation scaffolding, not competing sources of truth.
 4. The Xirang Semantic Model is complete only when an Agent need not guess decisions that affect element hierarchy, contracts, or relationships.
 5. The Agent acts like a compiler and faithfully translates authorized human intent. Existing code is current implementation evidence and MUST NOT silently override the Xirang Semantic Model.
@@ -34,7 +34,7 @@ For workflow-managed writes, read the resolved file definition before its instru
 
 ## Implementation Discipline
 
-- Before implementation, run `xirang arch query <elementId> --relations --depth 2 --json`, then read owned Specs and current code. Use stable `elementId` as identity and FQN only as current source navigation.
+- Before implementation, run `xirang arch query <identity> --relations --depth 2 --contract --json`, then read the returned Element Contract and current code.
 - Process unfinished `## Remediation` `[code_fix]` and `[artifact_fix]` items before pending tasks. Finish every Check in the current task before starting the next; never execute tasks in parallel.
 - Assess interface testability before writing tests for each behavior/code Check: inject external dependencies, prefer returned results over hidden side effects, and keep the public interface minimal.
 - Write or update a targeted test first. Exercise public behavior; mock only injected system boundaries, never internal collaborators.
