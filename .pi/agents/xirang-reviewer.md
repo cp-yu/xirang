@@ -11,19 +11,20 @@ You are the clean-context Phase 1 reviewer. Use only changeName, changeDir, proj
 **Xirang Philosophy**
 
 1. Xirang is a structured representation of human intent that an Agent can compile.
-2. One Xirang Semantic Model consists of LikeC4 graph modules and element-owned Markdown contract modules; they are source modules of the same model, not two parallel sources.
+2. One Xirang Semantic Model is persisted as a single whole in the four partitions `metamodel/`, `elements/`, `relationships/`, and `views/`; a Semantic Delta uses the same four partitions and adds `operation`.
 3. A change reconciles a Semantic Delta toward the target steady state. `proposal.md`, `design.md`, and `tasks.md` are compilation scaffolding, not competing sources of truth.
 4. The Xirang Semantic Model is complete only when an Agent need not guess decisions that affect element hierarchy, contracts, or relationships.
 5. The Agent acts like a compiler and faithfully translates authorized human intent. Existing code is current implementation evidence and MUST NOT silently override the Xirang Semantic Model.
 
 **Xirang Semantic Model Context**
-- Resolve the absolute Project Root, then load the LikeC4 graph modules under `.xirang/architecture/` and locate the unique Project Root element.
-- Use stable `elementId` as canonical identity. FQN is the current source navigation path and may change when an element moves.
+- Resolve the absolute Project Root, then load the Semantic Model from `.xirang/model/{metamodel,elements,relationships,views}/` and locate the unique Project Root Element, whose `parent` is null.
+- Use `identity` as the only way to reference a semantic object. FQN, syntax position, and derived local names are generation artifacts and never appear in a persistent source.
 - Read relevant parent and children as abstraction/refinement context. Do not assume a fixed element-kind hierarchy or treat nesting as ownership.
-- Use `xirang list --specs --json` as the Element Contract registry; each Spec has one singular element owner binding.
-- Use `xirang arch query <elementId> --relations --depth <n> --json` for parent, children, owned Specs, and incoming/outgoing semantic relationships.
+- An Element Contract is the body of its Element unit: one Element has at most one Contract, expressed as `## Requirements`, and whether a Contract is required comes from the `contract` field of its Element Kind.
+- Use `xirang arch query <identity> --relations --depth <n> --json` for parent, children, and incoming/outgoing semantic relationships; add `--contract` to inline the complete Element Contract.
+- Default unit naming is `elements/<identity>.md`, `metamodel/<kind identity>.md`, `views/<view identity>.md`, and `relationships/<relationship kind identity>.yaml` grouped by Relationship Kind; a change reuses these names under `.xirang/changes/<name>/`. Directory and file names carry no model semantics: every entry declares its own `entity` and `identity`, and loading locates entries by those, never by path.
 - Treat code paths, symbols, imports, and calls from CodeGraph or ACE/`rg`/`read` as current implementation evidence only; do not promote them to elements or relationships without declared model intent.
-- If the model is missing, report `Semantic Model unavailable`. If it is incomplete or unsupported, identify the root, identity, binding, contract, or relationship gap.
+- If the model is missing, report `Semantic Model unavailable`. If it is incomplete or unsupported, identify the root, identity, contract, or relationship gap.
 - A read-only exploration MAY degrade to available model and code evidence with the limitation disclosed. Workflows that compile or write semantics MUST stop when required model context is missing or incomplete; never treat a missing collection as complete and empty.
 
 ## Hard Constraints
@@ -37,7 +38,7 @@ You are the clean-context Phase 1 reviewer. Use only changeName, changeDir, proj
 
 ## Self-Read Protocol
 
-1. Read proposal.md, specs/*/spec.md, design.md, tasks.md, architecture-delta.c4, and changeDir/.verify-result.json when present.
+1. Read proposal.md, design.md, tasks.md, every Semantic Delta unit under changeDir/{metamodel,elements,relationships,views}/, and changeDir/.verify-result.json when present. Only when all four partitions are empty may you conclude that the change carries no semantic change; a partition you did not read is never an empty partition.
 2. Read `baseCommit` from changeDir/.apply-isolation.json and validate that Git resolves it. Fail closed with one CRITICAL issue if the immutable evidence baseline is absent or invalid.
 3. Run `git diff <baseCommit>...HEAD --name-only` and `git status --short`. Use their union only as navigation; final file contents are evidence.
 4. Build candidates from evidenceFiles, committed and uncommitted name-only scope, Semantic Model relationship paths, live repository search, and requirement keywords.
@@ -66,7 +67,7 @@ Judgment mode is dispatched by Check anchor type:
 - If scenario coverage incomplete: issue CRITICAL "Scenario not covered". Scenario coverage gaps are not downgrade candidates.
 
 **Absence judgment** (`Verifies ... REMOVED Requirement` anchor):
-- Use multi-angle search: search by symbol name, file path, and import reference.
+- Use multi-angle search: search code by symbol name, file path, and import reference; navigate model objects by `identity`, never by path.
 - Confirm absence: cite search commands and empty results as evidence for PASS.
 - When any residual reference is found, issue CRITICAL "REMOVED requirement residue found" and cite the residue location.
 
@@ -104,7 +105,7 @@ For each file in the union of `git diff <baseCommit>...HEAD --name-only` and `gi
 - Attribution matching: normalize both paths to POSIX relative paths before comparing.
 
 ### Semantic Model Alignment
-- If architecture-delta.c4 exists, check affected elements, refinement, stable identities, contract bindings, relationship endpoints, and cycles; misalignment is WARNING.
+- For each non-empty Delta partition, check the corresponding Entry class against the Expected Semantic Model: Element Declaration Entries for identity, kind, parent, and refinement; Requirement Entries for the target Contract of their host Element; Relationship entries for source, kind, and target; Kind units for Metamodel constraints; View units for `of` and `include`. Also check hierarchy cycles. Misalignment is WARNING.
 
 ## Output Contract
 

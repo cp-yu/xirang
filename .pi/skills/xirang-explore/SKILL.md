@@ -14,7 +14,7 @@ Enter explore mode: investigate, clarify, compare, and help the user think befor
 **Xirang Philosophy**
 
 1. Xirang is a structured representation of human intent that an Agent can compile.
-2. One Xirang Semantic Model consists of LikeC4 graph modules and element-owned Markdown contract modules; they are source modules of the same model, not two parallel sources.
+2. One Xirang Semantic Model is persisted as a single whole in the four partitions `metamodel/`, `elements/`, `relationships/`, and `views/`; a Semantic Delta uses the same four partitions and adds `operation`.
 3. A change reconciles a Semantic Delta toward the target steady state. `proposal.md`, `design.md`, and `tasks.md` are compilation scaffolding, not competing sources of truth.
 4. The Xirang Semantic Model is complete only when an Agent need not guess decisions that affect element hierarchy, contracts, or relationships.
 5. The Agent acts like a compiler and faithfully translates authorized human intent. Existing code is current implementation evidence and MUST NOT silently override the Xirang Semantic Model.
@@ -48,13 +48,14 @@ The main Explore agent remains read-only. `arch search` and `arch impact` are re
 - Ground claims in project files and git evidence when the idea maps to code.
 
 **Xirang Semantic Model Context**
-- Resolve the absolute Project Root, then load the LikeC4 graph modules under `.xirang/architecture/` and locate the unique Project Root element.
-- Use stable `elementId` as canonical identity. FQN is the current source navigation path and may change when an element moves.
+- Resolve the absolute Project Root, then load the Semantic Model from `.xirang/model/{metamodel,elements,relationships,views}/` and locate the unique Project Root Element, whose `parent` is null.
+- Use `identity` as the only way to reference a semantic object. FQN, syntax position, and derived local names are generation artifacts and never appear in a persistent source.
 - Read relevant parent and children as abstraction/refinement context. Do not assume a fixed element-kind hierarchy or treat nesting as ownership.
-- Use `xirang list --specs --json` as the Element Contract registry; each Spec has one singular element owner binding.
-- Use `xirang arch query <elementId> --relations --depth <n> --json` for parent, children, owned Specs, and incoming/outgoing semantic relationships.
+- An Element Contract is the body of its Element unit: one Element has at most one Contract, expressed as `## Requirements`, and whether a Contract is required comes from the `contract` field of its Element Kind.
+- Use `xirang arch query <identity> --relations --depth <n> --json` for parent, children, and incoming/outgoing semantic relationships; add `--contract` to inline the complete Element Contract.
+- Default unit naming is `elements/<identity>.md`, `metamodel/<kind identity>.md`, `views/<view identity>.md`, and `relationships/<relationship kind identity>.yaml` grouped by Relationship Kind; a change reuses these names under `.xirang/changes/<name>/`. Directory and file names carry no model semantics: every entry declares its own `entity` and `identity`, and loading locates entries by those, never by path.
 - Treat code paths, symbols, imports, and calls from CodeGraph or ACE/`rg`/`read` as current implementation evidence only; do not promote them to elements or relationships without declared model intent.
-- If the model is missing, report `Semantic Model unavailable`. If it is incomplete or unsupported, identify the root, identity, binding, contract, or relationship gap.
+- If the model is missing, report `Semantic Model unavailable`. If it is incomplete or unsupported, identify the root, identity, contract, or relationship gap.
 - A read-only exploration MAY degrade to available model and code evidence with the limitation disclosed. Workflows that compile or write semantics MUST stop when required model context is missing or incomplete; never treat a missing collection as complete and empty.
 
 Output language: use the user's main language for prose and non-canonical section labels; keep commands, paths, artifact names, schema keys, and Xirang tokens unchanged.
@@ -63,8 +64,8 @@ Output language: use the user's main language for prose and non-canonical sectio
 
 When a new module, workflow, command, configuration key, project concept, or unfamiliar domain term affects scope:
 1. Run `xirang arch search <query> --json` against the Formal Semantic Model.
-2. Read the candidates in their Project Root and refinement context, then select one or more stable `elementId` values as focus Elements. If no candidate or multiple plausible candidates remain, ask one clarification question instead of guessing.
-3. Run `xirang arch impact <elementIds...> --depth 2 --json` to load refinement context, canonical Relationship paths, and complete Element Contracts.
+2. Read the candidates in their Project Root and refinement context, then select one or more `identity` values as focus Elements. If no candidate or multiple plausible candidates remain, ask one clarification question instead of guessing.
+3. Run `xirang arch impact <identities...> --depth 2 --json` to load refinement context, canonical Relationship paths, and complete Element Contracts.
 4. Collect implementation evidence separately with CodeGraph, ACE, `rg`, and `read`; code paths, symbols, imports, and calls remain current implementation evidence only.
 5. The main Explore agent combines user intent, Formal semantic context, and implementation evidence to judge `mustChange`, `mustVerify`, contextual scope, unknowns, and architecture drift. Relationship adjacency does not by itself prove a modification or verification conclusion.
 
@@ -96,19 +97,22 @@ If todo is available, create this checklist before context reads and tick each s
 
 ### Capture Boundary for Existing Changes
 
-When exploring an active change, read proposal/design/specs/tasks, reference them naturally, and classify insights by where a future workflow should capture them. Do not update those artifacts in explore.
+When exploring an active change, read proposal/design/tasks and its Delta units, reference them naturally, and classify insights by where a future workflow should capture them. Do not update those artifacts in explore.
 
-| Insight Type                         | Future Capture Target          |
-|--------------------------------------|--------------------------------|
-| Observable behavior requirement      | `specs/<spec-id>/spec.md`    |
-| Observable behavior changed          | `specs/<spec-id>/spec.md`    |
-| Refactor rationale or rejected path  | `design.md`                  |
-| Implementation strategy              | `design.md`                  |
-| Scope changed                        | `proposal.md`                |
-| New work or verification identified  | `tasks.md`                   |
-| LikeC4 architecture intent changed   | `architecture-delta.c4`      |
-| Assumption invalidated               | Relevant artifact              |
-| Test needs update or deletion        | `tasks.md` + `design.md`   |
+| Insight Type                         | Future Capture Target                          |
+|--------------------------------------|------------------------------------------------|
+| Observable behavior requirement      | `elements/<identity>.md` body                 |
+| Observable behavior changed          | `elements/<identity>.md` body                 |
+| Refactor rationale or rejected path  | `design.md`                                   |
+| Implementation strategy              | `design.md`                                   |
+| Scope changed                        | `proposal.md`                                 |
+| New work or verification identified  | `tasks.md`                                    |
+| Element identity or hierarchy changed | `elements/<identity>.md` frontmatter          |
+| Relationship changed                 | `relationships/<relationship kind identity>.yaml` |
+| Element Kind or Relationship Kind changed | `metamodel/<kind identity>.md`           |
+| Authored View changed                | `views/<view identity>.md`                    |
+| Assumption invalidated               | Relevant artifact                              |
+| Test needs update or deletion        | `tasks.md` + `design.md`                     |
 
 Example offers:
 - "That is a design decision for `design.md`; include it in the Design Summary, then call `/skill:xirang-propose <change-name>` or the appropriate non-explore workflow."

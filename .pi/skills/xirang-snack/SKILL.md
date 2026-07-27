@@ -1,6 +1,6 @@
 ---
 name: "xirang-snack"
-description: "Quick code-first artifact reconciliation: from already-written code, conditionally create or update proposal + specs + simplified design + architecture delta using available code-change evidence. Use after iterative coding to back-fill Xirang artifacts without redoing propose→apply. Does not generate tasks.md."
+description: "Quick code-first artifact reconciliation: from already-written code, conditionally create or update proposal + simplified design + the four-partition Semantic Delta using available code-change evidence. Use after iterative coding to back-fill Xirang artifacts without redoing propose→apply. Does not generate tasks.md."
 license: "MIT"
 compatibility: "Requires xirang CLI."
 metadata:
@@ -14,12 +14,12 @@ Reconcile Xirang artifacts from already-written code (code-first artifact reconc
 **Xirang Philosophy**
 
 1. Xirang is a structured representation of human intent that an Agent can compile.
-2. One Xirang Semantic Model consists of LikeC4 graph modules and element-owned Markdown contract modules; they are source modules of the same model, not two parallel sources.
+2. One Xirang Semantic Model is persisted as a single whole in the four partitions `metamodel/`, `elements/`, `relationships/`, and `views/`; a Semantic Delta uses the same four partitions and adds `operation`.
 3. A change reconciles a Semantic Delta toward the target steady state. `proposal.md`, `design.md`, and `tasks.md` are compilation scaffolding, not competing sources of truth.
 4. The Xirang Semantic Model is complete only when an Agent need not guess decisions that affect element hierarchy, contracts, or relationships.
 5. The Agent acts like a compiler and faithfully translates authorized human intent. Existing code is current implementation evidence and MUST NOT silently override the Xirang Semantic Model.
 
-Treat `proposal.md`, `design.md`, `specs/*/spec.md`, and `architecture-delta.c4` as conditional artifacts: create them when missing, update them when stale or inconsistent, and leave them unchanged when current.
+Treat `proposal.md`, `design.md`, and the Delta units under `{metamodel,elements,relationships,views}/` as conditional artifacts: create them when missing, update them when stale or inconsistent, and leave them unchanged when current.
 
 ## Input
 
@@ -30,58 +30,70 @@ Treat `proposal.md`, `design.md`, `specs/*/spec.md`, and `architecture-delta.c4`
 
 1. Resolve change name and reconcile mode.
    - If `.xirang/changes/<name>/` does not exist, run `xirang new change "<name>"` and create only artifacts required by evidence.
-   - Otherwise read current proposal, design, Specs, and architecture delta; classify each as **missing**, **stale**, **inconsistent**, or **current** and preserve unrelated human-authored content.
+   - Otherwise read the current proposal, design, and Delta units; classify each as **missing**, **stale**, **inconsistent**, or **current** and preserve unrelated human-authored content.
 2. Load the shared Xirang Semantic Model context.
 **Xirang Semantic Model Context**
-- Resolve the absolute Project Root, then load the LikeC4 graph modules under `.xirang/architecture/` and locate the unique Project Root element.
-- Use stable `elementId` as canonical identity. FQN is the current source navigation path and may change when an element moves.
+- Resolve the absolute Project Root, then load the Semantic Model from `.xirang/model/{metamodel,elements,relationships,views}/` and locate the unique Project Root Element, whose `parent` is null.
+- Use `identity` as the only way to reference a semantic object. FQN, syntax position, and derived local names are generation artifacts and never appear in a persistent source.
 - Read relevant parent and children as abstraction/refinement context. Do not assume a fixed element-kind hierarchy or treat nesting as ownership.
-- Use `xirang list --specs --json` as the Element Contract registry; each Spec has one singular element owner binding.
-- Use `xirang arch query <elementId> --relations --depth <n> --json` for parent, children, owned Specs, and incoming/outgoing semantic relationships.
+- An Element Contract is the body of its Element unit: one Element has at most one Contract, expressed as `## Requirements`, and whether a Contract is required comes from the `contract` field of its Element Kind.
+- Use `xirang arch query <identity> --relations --depth <n> --json` for parent, children, and incoming/outgoing semantic relationships; add `--contract` to inline the complete Element Contract.
+- Default unit naming is `elements/<identity>.md`, `metamodel/<kind identity>.md`, `views/<view identity>.md`, and `relationships/<relationship kind identity>.yaml` grouped by Relationship Kind; a change reuses these names under `.xirang/changes/<name>/`. Directory and file names carry no model semantics: every entry declares its own `entity` and `identity`, and loading locates entries by those, never by path.
 - Treat code paths, symbols, imports, and calls from CodeGraph or ACE/`rg`/`read` as current implementation evidence only; do not promote them to elements or relationships without declared model intent.
-- If the model is missing, report `Semantic Model unavailable`. If it is incomplete or unsupported, identify the root, identity, binding, contract, or relationship gap.
+- If the model is missing, report `Semantic Model unavailable`. If it is incomplete or unsupported, identify the root, identity, contract, or relationship gap.
 - A read-only exploration MAY degrade to available model and code evidence with the limitation disclosed. Workflows that compile or write semantics MUST stop when required model context is missing or incomplete; never treat a missing collection as complete and empty.
 3. Collect code-change evidence from conversation context plus `git diff --cached`, `git diff HEAD`, other available working-tree/staged diffs, and user-selected commit/range diffs. `git diff` is one evidence source among several and MUST NOT be treated as the only valid source. Treat natural-language commit/range selectors as agent-parsed evidence selectors, not Xirang CLI flags. Mark conflicts or uncertainty `[REVIEW NEEDED]`.
 4. Map changed symbols/files to current Semantic Model context.
-   - Use stable `elementId` values, current FQNs, refinement, Element Contracts, and relationships.
+   - Use Element `identity` values, refinement, Element Contracts, and relationships.
    - CodeGraph MAY accelerate symbol/call/import discovery; otherwise use ACE, `rg`, and `read`. Never read `.codegraph/codegraph.db`.
    - Treat code locations and call/import edges as implementation evidence, not as proof that the Xirang Semantic Model must change. Do not create elements from uncertain file-name inference.
 5. Determine Element Contract impact.
-   - Run `xirang list --specs --json` and keep each Spec ID with its singular owner binding from the Element Contract registry.
-   - Add an existing Spec ID to **Modified Specs** only when its observable requirements change. Add a **New Spec** only for genuinely new observable behavior not governed by an existing Spec.
-   - An optional-contract element without a registered Spec does not by itself require a New Spec; mark missing coverage `[REVIEW NEEDED]`.
-   - Behavior-preserving refactors create no contract module delta; later Checks use `Preserves:` against formal Specs.
-6. Determine graph impact.
-   - Declare impact only when elements, refinement, contracts, or relationships change.
-   - Implementation-only movement, symbol renaming, helper extraction, and mechanical call/import changes do not by themselves change the graph modules.
-   - If no graph fact changes, set the compatible Architecture Source module scope to `None`. If impact remains unresolved, stop and ask one focused question; do not write `architecture-delta.c4` or claim reconciliation complete.
-7. Reconcile the contract and graph module scopes as one Semantic Delta; keep Spec IDs distinct from stable `elementId` values.
+   - Run `xirang arch query <identity> --contract --json` for each candidate Element and keep its current Requirements.
+   - Add an identity to **Modified Specs** only when the observable requirements of its Element Contract change. Add it to **New Specs** only for genuinely new observable behavior not governed by an existing Element Contract.
+   - An optional-contract Element without a Contract does not by itself require a new one; mark missing coverage `[REVIEW NEEDED]`.
+   - Behavior-preserving refactors create no Contract delta; later Checks use `Preserves:` against formal Element Contracts.
+6. Determine structural impact.
+   - Declare impact only when Element Declarations, refinement, Relationships, Kinds, or Views change.
+   - Implementation-only movement, symbol renaming, helper extraction, and mechanical call/import changes do not by themselves change the structure.
+   - If no structural fact changes, set the compatible Architecture Source scope to `None`. If impact remains unresolved, stop and ask one focused question; do not write structural Delta units or claim reconciliation complete.
+7. Reconcile the Contract and structural scopes as one Semantic Delta; both address the same Element identity space.
 8. Reconcile `proposal.md`.
    - Run `xirang instructions proposal --change "<name>" --json`. For each response, follow the authoring order in the returned `instruction`. Keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs; do not copy non-artifact inputs into the artifact.
-   - Reconcile `## Source Impact` from the contract and graph module scopes of one Semantic Delta. Keep the compatible Behavior Source and Architecture Source headings, Spec IDs, and stable `elementId` values distinct.
-   - Reuse the confirmed contract module scope as the delta Spec input; preserve `## Why`, `## What Changes`, `## Source Impact`, and `## Impact`.
+   - Reconcile `## Source Impact` from the Contract and structural scopes of one Semantic Delta. Keep the compatible Behavior Source and Architecture Source headings and reference Elements by `identity`.
+   - Reuse the confirmed Contract scope as the Element Contract delta input; preserve `## Why`, `## What Changes`, `## Source Impact`, and `## Impact`.
    - If the proposal already matches evidence and source impact, leave it unchanged.
-9. Reconcile delta Specs in `specs/<spec-id>/spec.md`.
+9. Reconcile Element Contract deltas in `elements/<identity>.md`.
    - Run `xirang instructions specs --change "<name>" --json`. For each response, follow the authoring order in the returned `instruction`. Keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs; do not copy non-artifact inputs into the artifact.
-   - Create or update only Specs declared by the contract module scope. Do not derive the directory name directly from an element FQN or `elementId`.
+   - Create or update only the identities declared by the Contract scope. The default unit name is `<identity>.md`; a file name expresses nothing, so deviating from the default changes no model semantics.
    - Follow returned `## ADDED Requirements`, `## MODIFIED Requirements`, and `## REMOVED Requirements` rules with exact title matching and canonical unlabeled Requirement/Scenario syntax. Express a rename as REMOVED old Requirement plus ADDED new complete Requirement. Preserve unrelated current delta content.
 10. Reconcile simplified `design.md`.
    - Run `xirang instructions design --change "<name>" --json`. For each response, follow the authoring order in the returned `instruction`. Keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs; do not copy non-artifact inputs into the artifact.
    - Preserve Context, Goals / Non-Goals, Decisions, and Risks / Trade-offs. Mark inferred content `[INFERRED FROM CODE]` and unresolved decisions `[REVIEW NEEDED]`.
-11. Reconcile `architecture-delta.c4` only after graph impact is resolved. Omit the file when the graph modules are confirmed unchanged; author a validated LikeC4 delta otherwise.
-   **Generate architecture-delta.c4**:
+11. Reconcile the structural Delta units only after structural impact is resolved. Leave those partitions empty when the structure is confirmed unchanged; author validated Entries otherwise.
+   **Write the Semantic Delta**:
+
+Every Markdown unit declares its own `entity` in frontmatter. The partition does not determine the type.
+
+| entity | frontmatter fields |
+|---|---|
+| `element-declaration` | `identity`, `kind`, `parent`, `title`, `summary` |
+| `element-kind` | `identity`, `contract`; optional `root`, `parents`, `children` |
+| `relationship-kind` | `identity`; optional `sourceKinds`, `targetKinds` |
+| `authored-view` | `identity`, `include`; optional `of`, `title`, `autoLayout` |
+
+- `identity` uses `[A-Za-z0-9._-]+`, contains no path separator, and does not encode parent hierarchy
 - Before writing, follow the authoring order in the returned `instruction`; keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs
 - Read proposal `Source Impact` as compatible scaffolding for one Semantic Delta; use it to locate affected elements, refinement, Element Contracts, and relationships
-- Read completed change-local Element Contracts as target contract context, `design.md` for architecture decisions, and the formal Xirang Semantic Model as current semantic state
-- Treat proposal entries as scope declarations, not authoritative LikeC4 records; derive exact target-state elements, refinement, contract bindings, and typed relationships
-- Read `.xirang/references/likec4-authoring.md`
-- Extend existing elements by current FQN and preserve stable `elementId` metadata
-- Express abstraction/refinement by nesting and collaboration with typed syntax such as `source -[invokes]-> target`
-- Bind each change-local Spec to exactly one stable `elementId` through singular frontmatter
-- If the graph module scope is `None`, omit `architecture-delta.c4`; do not invent graph changes from contract changes alone
-- Run `xirang arch validate --delta .xirang/changes/<name>/architecture-delta.c4`
+- Read `design.md` for architecture decisions and the formal Xirang Semantic Model as current semantic state
+- Treat proposal entries as scope declarations, not authoritative Semantic Delta records; derive exact target-state Declarations, Requirements, Relationships, Kinds, and Views
+- Write Delta units under `.xirang/changes/<name>/{metamodel,elements,relationships,views}/` using the same field structure as the model plus an `operation` of `ADDED`, `MODIFIED`, or `REMOVED`; each Entry carries its complete target state, and `REMOVED` carries identity only
+- In an `elements/` unit, the frontmatter is the Element Declaration Entry and the body carries zero or more Requirement Entries under `## ADDED Requirements`, `## MODIFIED Requirements`, or `## REMOVED Requirements`; when only the Contract changes, the frontmatter declares no `operation` and only locates the host Element
+- A `relationships/` entry is `{operation, source, kind, target}` and nothing else: it has no `MODIFIED` and no description, because its identity is its whole content
+- Reference every semantic object by `identity`; a Delta unit carries no path, position, or derived-name reference
+- Leave a partition empty when it does not change; do not invent Declaration, Relationship, Kind, or View changes from Contract changes alone
+- Run `xirang arch validate --change "<name>" --json`
 - Use current code only as implementation evidence; it MUST NOT override the Xirang Semantic Model
-   - Distinguish delta Spec Markdown headings from LikeC4 model declarations and typed relations.
+   - Distinguish Requirement Entries in an Element unit body from the Declaration Entry in its frontmatter.
 12. Do NOT generate `tasks.md` (code is already implemented).
 13. Run `xirang validate --change "<name>" --json`. On ERROR/WARNING, repair once from artifact instructions, validate once more, and report the final result.
 14. After validation passes, run `xirang diff --change "<name>" --write`. Treat `.xirang/changes/<name>/effective-change.md` as the only persistent effective-change report and require its status to be Passed before claiming reconciliation complete.
