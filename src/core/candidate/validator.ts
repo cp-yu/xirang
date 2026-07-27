@@ -2,9 +2,14 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { XIRANG_DIR_NAME } from '../config.js';
-import { MODEL_DIR_NAME } from '../model/paths.js';
-import type { ChangeDiagnostic, ChangeDiff } from '../semantic-diff.js';
-import { parseSemanticModelFiles } from '../model/parser.js';
+import { MODEL_DIR_NAME, modelRoot } from '../model/paths.js';
+import {
+  createSemanticDiff,
+  semanticModelFingerprint,
+  type ChangeDiagnostic,
+  type ChangeDiff,
+} from '../semantic-diff.js';
+import { parseSemanticModelFiles, readModelTree } from '../model/parser.js';
 import { validateSemanticModel } from '../model/validator.js';
 import { PARTITIONS, type Partition } from '../model/types.js';
 import { computeCandidateDigest, type CandidateDigestEntry } from './digest.js';
@@ -22,11 +27,24 @@ export interface CandidateInventory {
   bytes: number;
 }
 
+export type CandidateComparison =
+  | {
+      baseline: 'absent';
+      diff: 'unavailable';
+      reason: 'formal-model-absent';
+    }
+  | {
+      baseline: 'formal';
+      diff: 'available';
+      formalFingerprint: string;
+    };
+
 export interface CandidateValidationResult {
   valid: boolean;
   diagnostics: ChangeDiagnostic[];
   inventory: CandidateInventory;
-  diff: ChangeDiff;
+  comparison: CandidateComparison;
+  diff?: ChangeDiff;
   reviewDigest?: string;
 }
 
@@ -119,23 +137,6 @@ function dedupeDiagnostics(items: ChangeDiagnostic[]): ChangeDiagnostic[] {
     seen.add(key);
     return true;
   }).sort((left, right) => compareUtf8Bytes(left.path, right.path) || compareUtf8Bytes(left.code, right.code));
-}
-
-function emptyDiff(
-  formalFingerprint: string,
-  changeFingerprint: string,
-  diagnostics: ChangeDiagnostic[],
-): ChangeDiff {
-  return {
-    schemaVersion: '1',
-    change: 'candidate',
-    valid: false,
-    formalFingerprint,
-    changeFingerprint,
-    summary: { total: 0, ADDED: 0, MODIFIED: 0, REMOVED: 0 },
-    entries: [],
-    diagnostics,
-  };
 }
 
 async function validateRequiredDirectories(candidateRoot: string, diagnostics: ChangeDiagnostic[]): Promise<void> {
@@ -271,11 +272,15 @@ function digestEntries(files: CandidateSnapshotFile[]): CandidateDigestEntry[] {
     .map(file => ({ path: file.path, bytes: file.bytes }));
 }
 
-/** Validates the Candidate partitions as an in-memory Semantic Model; no staging to disk. */
-export function validateCandidateSemanticModel(files: CandidateSnapshotFile[]): ChangeDiagnostic[] {
-  const parsed = parseSemanticModelFiles(
+function parseCandidateSemanticModel(files: CandidateSnapshotFile[]) {
+  return parseSemanticModelFiles(
     files.filter(file => isPartitionFile(file.path)).map(file => [file.path, file.bytes.toString('utf8')] as const),
   );
+}
+
+/** Validates the Candidate partitions as an in-memory Semantic Model; no staging to disk. */
+export function validateCandidateSemanticModel(files: CandidateSnapshotFile[]): ChangeDiagnostic[] {
+  const parsed = parseCandidateSemanticModel(files);
   return [...parsed.diagnostics, ...validateSemanticModel(parsed.model)].map(normalizeDiagnostic);
 }
 
@@ -307,9 +312,13 @@ export async function validateCandidateDirectory(
   const entries = digestEntries(files);
   const reviewDigest = computeCandidateDigest(entries);
 
+  const candidateModel = parseCandidateSemanticModel(files);
   if (files.some(file => isPartitionFile(file.path))) {
     try {
-      diagnostics.push(...validateCandidateSemanticModel(files));
+      diagnostics.push(...[
+        ...candidateModel.diagnostics,
+        ...validateSemanticModel(candidateModel.model),
+      ].map(normalizeDiagnostic));
     } catch (error) {
       diagnostics.push(diagnostic('CANDIDATE_SEMANTIC_MODEL', 'elements', (error as Error).message));
     }
@@ -317,7 +326,29 @@ export async function validateCandidateDirectory(
 
   const normalizedDiagnostics = dedupeDiagnostics(diagnostics.map(normalizeDiagnostic));
   const valid = normalizedDiagnostics.every(item => item.level !== 'ERROR');
-  const diff = emptyDiff('', reviewDigest, normalizedDiagnostics);
+  const formalTree = await readModelTree(modelRoot(projectRoot));
+  let comparison: CandidateComparison;
+  let diff: ChangeDiff | undefined;
+  if (formalTree.size === 0) {
+    comparison = {
+      baseline: 'absent',
+      diff: 'unavailable',
+      reason: 'formal-model-absent',
+    };
+  } else {
+    const formal = parseSemanticModelFiles(
+      [...formalTree].map(([file, bytes]) => [file, bytes.toString('utf8')] as const),
+    );
+    const formalFingerprint = semanticModelFingerprint(formal.model);
+    comparison = { baseline: 'formal', diff: 'available', formalFingerprint };
+    diff = createSemanticDiff(formal.model, candidateModel.model, {
+      change: 'candidate',
+      valid,
+      formalFingerprint,
+      changeFingerprint: reviewDigest,
+      diagnostics: normalizedDiagnostics,
+    });
+  }
 
   const inventory: CandidateInventory = {
     files: files.map(file => file.path),
@@ -333,7 +364,8 @@ export async function validateCandidateDirectory(
       valid,
       diagnostics: normalizedDiagnostics,
       inventory,
-      diff,
+      comparison,
+      ...(diff ? { diff } : {}),
       ...(valid ? { reviewDigest } : {}),
     },
     snapshot,

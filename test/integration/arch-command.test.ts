@@ -89,9 +89,12 @@ describe('arch commands', () => {
 
     try {
       await withInteractiveTTY(async () => {
+        const isolatedHome = path.join(root, 'telemetry-home');
         const baseEnv = {
           CI: undefined,
           DO_NOT_TRACK: undefined,
+          HOME: isolatedHome,
+          USERPROFILE: isolatedHome,
           XIRANG_INTERACTIVE: undefined,
           XIRANG_TELEMETRY: undefined,
         };
@@ -191,6 +194,50 @@ describe('arch commands', () => {
     const broken = await validateArchitectureCommand(root);
     expect(broken.success).toBe(false);
     expect(broken.errors.map(item => item.code)).toContain('MISSING_PARENT');
+  });
+
+  it('validates Authored View references against declared Elements', async () => {
+    await fs.writeFile(path.join(modelRoot(root), 'views', 'broken.md'),
+      '---\nentity: authored-view\nidentity: broken\nof: ghost\ninclude:\n  - payment.authorize\n  - absent\n---\n');
+
+    const result = await validateArchitectureCommand(root);
+
+    expect(result.success).toBe(false);
+    expect(result.errors.filter(item => item.code === 'UNRESOLVED_VIEW_REFERENCE')).toHaveLength(2);
+  });
+
+  it('reports a misplaced entity as a non-blocking Formal warning', async () => {
+    await fs.rename(
+      path.join(modelRoot(root), 'metamodel', 'invokes.md'),
+      path.join(modelRoot(root), 'views', 'invokes.md'),
+    );
+
+    const result = await validateArchitectureCommand(root);
+
+    expect(result.success).toBe(true);
+    expect(result.warnings).toContainEqual(expect.objectContaining({
+      code: 'ENTITY_PARTITION_MISMATCH',
+      element: 'invokes',
+    }));
+  });
+
+  it('preserves Formal partition warnings in Expected Model validation', async () => {
+    await fs.rename(
+      path.join(modelRoot(root), 'metamodel', 'invokes.md'),
+      path.join(modelRoot(root), 'views', 'invokes.md'),
+    );
+    const changeDir = path.join(root, '.xirang', 'changes', 'add-next', 'elements');
+    await fs.mkdir(changeDir, { recursive: true });
+    await fs.writeFile(path.join(changeDir, 'payment.next.md'),
+      '---\noperation: ADDED\nentity: element-declaration\nidentity: payment.next\nkind: operation\nparent: payments\ntitle: Next\nsummary: Runs next work\n---\n');
+
+    const result = await validateArchitectureCommand(root, { change: 'add-next' });
+
+    expect(result.success).toBe(true);
+    expect(result.warnings).toContainEqual(expect.objectContaining({
+      code: 'ENTITY_PARTITION_MISMATCH',
+      element: 'invokes',
+    }));
   });
 
   it('validates the Expected Semantic Model of a change without touching the persistent source', async () => {

@@ -4,6 +4,7 @@
 import type { SkillTemplate } from '../types.js';
 import {
   ARTIFACT_DOC_LANGUAGE_CONTRACT,
+  ELEMENT_CONTRACT_SEMANTICS,
   XIRANG_PHILOSOPHY,
   XIRANG_SHARED_CONTEXT,
 } from '../fragments/xirang-fragments.js';
@@ -17,6 +18,8 @@ export function getOpsxProposeSkillTemplate(): SkillTemplate {
 ${XIRANG_PHILOSOPHY}
 
 ${XIRANG_SHARED_CONTEXT}
+
+${ELEMENT_CONTRACT_SEMANTICS}
 
 ## Workflow Stage
 

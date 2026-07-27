@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ARCHITECTURE_GENERATE_DELTA,
+  ELEMENT_CONTRACT_SEMANTICS,
   XIRANG_PHILOSOPHY,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import { getSnackSkillTemplate } from '../../../src/core/templates/skill-templates.js';
@@ -10,8 +11,9 @@ describe('snack template code-change evidence collection', () => {
   const template = getSnackSkillTemplate();
   const instructions = template.instructions;
 
-  it('includes the Xirang philosophy', () => {
+  it('includes the Xirang philosophy and shared Contract semantics', () => {
     expect(instructions).toContain(XIRANG_PHILOSOPHY);
+    expect(instructions).toContain(ELEMENT_CONTRACT_SEMANTICS);
   });
 
   it('treats conversation context as a first-class evidence source', () => {

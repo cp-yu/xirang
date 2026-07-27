@@ -13,6 +13,7 @@ import { validateSemanticModel } from './model/validator.js';
 import {
   canonicalJson,
   createSemanticDiff,
+  semanticModelFingerprint,
   type ChangeDiagnostic,
   type ChangeDiff,
   type DiffOperation,
@@ -129,6 +130,7 @@ export async function compileChangeDelta(
   const parsed = await parseSemanticDelta(changeRoot(projectRoot, changeName));
   const applied = applySemanticDelta(base.model, parsed.delta);
   const raw = [
+    ...base.diagnostics,
     ...parsed.diagnostics,
     ...(options.allowAlreadyApplied
       ? suppressApplied(base.model, parsed.delta, applied.diagnostics)
@@ -137,7 +139,7 @@ export async function compileChangeDelta(
   ];
   const diagnostics = raw.map(item => toChangeDiagnostic(base.index, parsed.delta.entries, item));
   const valid = diagnostics.every(item => item.level !== 'ERROR');
-  const formalFingerprint = fingerprint(base.model);
+  const formalFingerprint = semanticModelFingerprint(base.model);
   const changeFingerprint = fingerprint(parsed.delta.entries);
   const diff = createSemanticDiff(base.model, applied.expected, {
     change: changeName,

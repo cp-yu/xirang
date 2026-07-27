@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ARCHITECTURE_GENERATE_DELTA,
+  ELEMENT_CONTRACT_SEMANTICS,
   XIRANG_SHARED_CONTEXT,
   XIRANG_PHILOSOPHY,
   VERIFY_CLI_JSON_SCHEMA_REFERENCE,
@@ -104,6 +105,27 @@ describe('Semantic Delta authoring fragment', () => {
     ]) {
       expect(ARCHITECTURE_GENERATE_DELTA).not.toContain(token);
     }
+  });
+});
+
+describe('Element Contract semantics fragment', () => {
+  it('defines the shared Contract, Requirement, and Scenario boundaries', () => {
+    for (const token of [
+      '在自身抽象层级',
+      '独立新增、修改或移除',
+      '不得按句子、分句、`SHALL` 数量或目标条数机械拆分',
+      'Scenario',
+      '只具体化宿主 Requirement',
+      '不默认穷尽',
+      '不作为独立 Semantic Delta Entry',
+    ]) {
+      expect(ELEMENT_CONTRACT_SEMANTICS).toContain(token);
+    }
+  });
+
+  it('stays separate from storage notation', () => {
+    expect(ELEMENT_CONTRACT_SEMANTICS).not.toContain('frontmatter fields');
+    expect(ELEMENT_CONTRACT_SEMANTICS).not.toContain('Default file naming');
   });
 });
 

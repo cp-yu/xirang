@@ -20,17 +20,17 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
   getExploreSkillTemplate: 'f55e9610cdb6369968babd67cb4a9376e44f374c6cba9391cd3b7ed348295fa0',
   getApplyChangeSkillTemplate: 'ae395cf144982db332599e6883be4df68e045a9effedac2f603f21a0105fa3e6',
   getArchiveChangeSkillTemplate: '0bf75c0d29d9dc74b98d2ce524351cf73e45836b17fe42d17e07e853c1495101',
-  getOpsxProposeSkillTemplate: '05e2c1d98187c105792440c220654f647ebc7ac9628a298c21d895af42dca606',
+  getOpsxProposeSkillTemplate: '6b064786a2c6cef1bd5e4b70aa1d4e1958dd16c877bb9854644e2473848f2bd7',
   getFeedbackSkillTemplate: 'b59e4e8f30b3671f5346445a7fbe9043cd559233c86fc78d086bbe94e084590b',
-  getBuildSkillTemplate: '322af37f41fcd8b835ef4f51a268d09825e8a05917fc33a462f05f5204d05ae8',
-  getSnackSkillTemplate: 'cda5a371e901e9d6cc0ae74a45d52c915fb28ec5ec1bec891859680b0075eabc',
+  getBuildSkillTemplate: 'e1168617af5e74199758bf5825cb65f9b74c14644a864dc1a354517ff20df4a5',
+  getSnackSkillTemplate: '2ab87ba881512629cfd4cd0991bd9017f99d972beb1adde269cdc9a5cfeaadd2',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
   'xirang-explore': 'd5007ed402c5b1b6a2bce9b8c8139206389e16c5a84dfbeb4c7e246443100c79',
   'xirang-apply-change': '7a80a673bd043ccae0320d0e737faaceefbd215a63cef5aabf5799fed255939a',
   'xirang-archive-change': 'aa5499bc9fd059a6bb58668ad14052b870722a44905405851c24fac3399ee0c8',
-  'xirang-propose': '8a6a1ba0b3c365e6e5332c309be53f8929b1231c619ac884c40a141bd7c3d742',
+  'xirang-propose': '892e5a8bcabc5bc987d682416d1675b41976524625f6925b52c5368fb7812602',
 };
 
 function stableStringify(value: unknown): string {

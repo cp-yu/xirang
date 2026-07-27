@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { XIRANG_PHILOSOPHY } from '../../../src/core/templates/fragments/xirang-fragments.js';
+import {
+  ELEMENT_CONTRACT_SEMANTICS,
+  XIRANG_PHILOSOPHY,
+} from '../../../src/core/templates/fragments/xirang-fragments.js';
 import {
   getOpsxProposeSkillTemplate,
 } from '../../../src/core/templates/workflows/propose.js';
@@ -33,8 +36,10 @@ describe('propose template post-validation flow', () => {
     }
   });
 
-  it('includes the Xirang philosophy in the skill surface', () => {
-    expect(getOpsxProposeSkillTemplate().instructions).toContain(XIRANG_PHILOSOPHY);
+  it('includes the Xirang philosophy and shared Contract semantics in the skill surface', () => {
+    const instructions = getOpsxProposeSkillTemplate().instructions;
+    expect(instructions).toContain(XIRANG_PHILOSOPHY);
+    expect(instructions).toContain(ELEMENT_CONTRACT_SEMANTICS);
   });
 
   it('resolves new and existing change identity without rename semantics', () => {

@@ -68,6 +68,12 @@ describe('four-partition Candidate', () => {
     expect(result.diagnostics).toEqual([]);
     expect(result.valid).toBe(true);
     expect(result.reviewDigest).toBeTruthy();
+    expect(result.comparison).toEqual({
+      baseline: 'absent',
+      diff: 'unavailable',
+      reason: 'formal-model-absent',
+    });
+    expect(result.diff).toBeUndefined();
   });
 
   it('reports semantic model errors found in the Candidate partitions', async () => {

@@ -5,6 +5,7 @@ import type { SkillTemplate } from '../types.js';
 import {
   ARCHITECTURE_GENERATE_DELTA,
   ARTIFACT_DOC_LANGUAGE_CONTRACT,
+  ELEMENT_CONTRACT_SEMANTICS,
   XIRANG_PHILOSOPHY,
   XIRANG_SHARED_CONTEXT,
 } from '../fragments/xirang-fragments.js';
@@ -19,6 +20,8 @@ export function getSnackSkillTemplate(): SkillTemplate {
     instructions: `Reconcile Xirang artifacts from already-written code (code-first artifact reconciliation, reverse of propose/apply).
 
 ${XIRANG_PHILOSOPHY}
+
+${ELEMENT_CONTRACT_SEMANTICS}
 
 Treat \`proposal.md\`, \`design.md\`, and the Delta units under \`{metamodel,elements,relationships,views}/\` as conditional artifacts: create them when missing, update them when stale or inconsistent, and leave them unchanged when current.
 

@@ -60,6 +60,37 @@ function containmentCycle(parents: Map<string, string | null>): string[] | null 
   return null;
 }
 
+function checkKindReferences(model: SemanticModel, kinds: Map<string, ElementKind>, diagnostics: ModelDiagnostic[]): void {
+  for (const element of model.elements) {
+    const { identity, kind } = element.declaration;
+    if (!kinds.has(kind)) {
+      diagnostics.push(error('UNDECLARED_ELEMENT_KIND', `Element ${identity} references undeclared Element Kind ${kind}`, identity));
+    }
+  }
+
+  const constraints: Array<[string, string, string[] | undefined]> = [
+    ...model.elementKinds.flatMap(kind => [
+      [kind.identity, 'parents', kind.parents],
+      [kind.identity, 'children', kind.children],
+    ] as Array<[string, string, string[] | undefined]>),
+    ...model.relationshipKinds.flatMap(kind => [
+      [kind.identity, 'sourceKinds', kind.sourceKinds],
+      [kind.identity, 'targetKinds', kind.targetKinds],
+    ] as Array<[string, string, string[] | undefined]>),
+  ];
+  for (const [owner, field, references] of constraints) {
+    for (const reference of references ?? []) {
+      if (!kinds.has(reference)) {
+        diagnostics.push(error(
+          'UNRESOLVED_KIND_REFERENCE',
+          `Kind ${owner} ${field} references undeclared Element Kind ${reference}`,
+          owner,
+        ));
+      }
+    }
+  }
+}
+
 function checkHierarchy(model: SemanticModel, kinds: Map<string, ElementKind>, diagnostics: ModelDiagnostic[]): void {
   const declarations = model.elements.map(item => item.declaration);
   const byIdentity = new Map(declarations.map(item => [item.identity, item]));
@@ -117,14 +148,76 @@ function checkRelationships(model: SemanticModel, diagnostics: ModelDiagnostic[]
 
     const source = kindOf.get(relationship.source);
     const target = kindOf.get(relationship.target);
+    const definition = relationshipKinds.get(relationship.kind);
+    if (!definition) {
+      diagnostics.push(error(
+        'UNDECLARED_RELATIONSHIP_KIND',
+        `Relationship ${label} references undeclared Relationship Kind ${relationship.kind}`,
+        relationship.source,
+      ));
+    }
     if (source === undefined || target === undefined) {
       diagnostics.push(error('INVALID_RELATION_ENDPOINT', `Relation ${label} has an unresolved endpoint`, relationship.source));
       continue;
     }
-    const definition = relationshipKinds.get(relationship.kind);
     if (definition?.sourceKinds && !definition.sourceKinds.includes(source)
       || definition?.targetKinds && !definition.targetKinds.includes(target)) {
       diagnostics.push(error('INVALID_RELATION_ENDPOINT', `Invalid ${relationship.kind} endpoints: ${relationship.source} (${source}) → ${relationship.target} (${target})`, relationship.source));
+    }
+  }
+}
+
+function checkContracts(model: SemanticModel, diagnostics: ModelDiagnostic[]): void {
+  for (const element of model.elements) {
+    const elementIdentity = element.declaration.identity;
+    const requirementNames = new Set<string>();
+    for (const requirement of element.requirements) {
+      if (requirementNames.has(requirement.name)) {
+        diagnostics.push(error(
+          'DUPLICATE_REQUIREMENT_NAME',
+          `Element ${elementIdentity} has duplicate Requirement name ${requirement.name}`,
+          elementIdentity,
+        ));
+      }
+      requirementNames.add(requirement.name);
+
+      if (requirement.scenarios.length === 0) {
+        diagnostics.push(error(
+          'MISSING_REQUIREMENT_SCENARIO',
+          `Requirement ${elementIdentity}#${requirement.name} has no Scenario`,
+          elementIdentity,
+        ));
+      }
+      const scenarioNames = new Set<string>();
+      for (const scenario of requirement.scenarios) {
+        if (scenarioNames.has(scenario.name)) {
+          diagnostics.push(error(
+            'DUPLICATE_SCENARIO_NAME',
+            `Requirement ${elementIdentity}#${requirement.name} has duplicate Scenario name ${scenario.name}`,
+            elementIdentity,
+          ));
+        }
+        scenarioNames.add(scenario.name);
+      }
+    }
+  }
+}
+
+function checkViews(model: SemanticModel, diagnostics: ModelDiagnostic[]): void {
+  const elements = new Set(model.elements.map(element => element.declaration.identity));
+  for (const view of model.views) {
+    const references = [
+      ...(view.of === undefined ? [] : [view.of]),
+      ...(view.include === '*' ? [] : view.include),
+    ];
+    for (const reference of references) {
+      if (!elements.has(reference)) {
+        diagnostics.push(error(
+          'UNRESOLVED_VIEW_REFERENCE',
+          `Authored View ${view.identity} references undeclared Element ${reference}`,
+          view.identity,
+        ));
+      }
     }
   }
 }
@@ -134,8 +227,11 @@ export function validateSemanticModel(model: SemanticModel): ModelDiagnostic[] {
   const kinds = new Map(model.elementKinds.map(item => [item.identity, item]));
 
   checkIdentities(model, diagnostics);
+  checkKindReferences(model, kinds, diagnostics);
   checkHierarchy(model, kinds, diagnostics);
   checkRelationships(model, diagnostics);
+  checkContracts(model, diagnostics);
+  checkViews(model, diagnostics);
 
   for (const element of model.elements) {
     if (kinds.get(element.declaration.kind)?.contract === 'required' && element.requirements.length === 0) {

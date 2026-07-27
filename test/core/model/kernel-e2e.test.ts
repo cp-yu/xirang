@@ -37,6 +37,10 @@ const CAP_A = [
   '',
   'SHALL come second.',
   '',
+  '#### Scenario: Second case',
+  '',
+  '- THEN second',
+  '',
 ].join('\n');
 
 const MODEL: Record<string, string> = {
@@ -45,7 +49,7 @@ const MODEL: Record<string, string> = {
   'metamodel/invokes.md': '---\nentity: relationship-kind\nidentity: invokes\nsourceKinds:\n  - capability\ntargetKinds:\n  - capability\n---\n',
   'elements/root.md': '---\nentity: element-declaration\nidentity: root\nkind: project\nparent: null\ntitle: Root\nsummary: Project root\n---\n',
   'elements/cap.a.md': CAP_A,
-  'elements/cap.b.md': '---\nentity: element-declaration\nidentity: cap.b\nkind: capability\nparent: root\ntitle: B\nsummary: Second capability\n---\n\n## Requirements\n\n### Requirement: Only\n\nSHALL hold.\n',
+  'elements/cap.b.md': '---\nentity: element-declaration\nidentity: cap.b\nkind: capability\nparent: root\ntitle: B\nsummary: Second capability\n---\n\n## Requirements\n\n### Requirement: Only\n\nSHALL hold.\n\n#### Scenario: Only case\n\n- THEN it holds\n',
   'relationships/invokes.yaml': 'relationships:\n  - source: cap.a\n    kind: invokes\n    target: cap.b\n',
   'views/overview.md': '---\nentity: authored-view\nidentity: overview\ninclude: "*"\ntitle: Overview\n---\n',
 };
@@ -68,6 +72,10 @@ const DELTA: Record<string, string> = {
     '',
     'SHALL come third.',
     '',
+    '#### Scenario: Third case',
+    '',
+    '- THEN third',
+    '',
     '## REMOVED Requirements',
     '',
     '### Requirement: Second',
@@ -89,6 +97,10 @@ const DELTA: Record<string, string> = {
     '### Requirement: Fresh',
     '',
     'SHALL hold.',
+    '',
+    '#### Scenario: Fresh case',
+    '',
+    '- THEN it holds',
     '',
   ].join('\n'),
   'relationships/invokes.yaml': 'relationships:\n  - operation: ADDED\n    source: cap.b\n    kind: invokes\n    target: cap.c\n',

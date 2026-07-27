@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import type {
   ModelElement,
   Relationship,
@@ -90,6 +91,42 @@ export function canonicalJson(value: unknown): string {
   return JSON.stringify(value);
 }
 
+function sortStrings(values: string[] | undefined): string[] | undefined {
+  return values && [...new Set(values)].sort();
+}
+
+function sortByIdentity<T extends { identity: string }>(items: readonly T[]): T[] {
+  return [...items].sort((left, right) => left.identity.localeCompare(right.identity));
+}
+
+/** Canonicalizes set-semantic collections while preserving Contract entry order. */
+export function normalizeSemanticModel(model: SemanticModel): SemanticModel {
+  return {
+    elements: [...model.elements].sort((left, right) =>
+      left.declaration.identity.localeCompare(right.declaration.identity)),
+    elementKinds: sortByIdentity(model.elementKinds).map(kind => ({
+      ...kind,
+      ...(kind.parents ? { parents: sortStrings(kind.parents)! } : {}),
+      ...(kind.children ? { children: sortStrings(kind.children)! } : {}),
+    })),
+    relationshipKinds: sortByIdentity(model.relationshipKinds).map(kind => ({
+      ...kind,
+      ...(kind.sourceKinds ? { sourceKinds: sortStrings(kind.sourceKinds)! } : {}),
+      ...(kind.targetKinds ? { targetKinds: sortStrings(kind.targetKinds)! } : {}),
+    })),
+    relationships: [...model.relationships].sort((left, right) =>
+      relationshipLabel(left).localeCompare(relationshipLabel(right))),
+    views: sortByIdentity(model.views).map(view => ({
+      ...view,
+      ...(Array.isArray(view.include) ? { include: sortStrings(view.include)! } : {}),
+    })),
+  };
+}
+
+export function semanticModelFingerprint(model: SemanticModel): string {
+  return createHash('sha256').update(canonicalJson(normalizeSemanticModel(model))).digest('hex');
+}
+
 function equal(left: unknown, right: unknown): boolean {
   return canonicalJson(left) === canonicalJson(right);
 }
@@ -158,14 +195,22 @@ function entityEntries<T extends object>(
   return entries;
 }
 
-function requirementMap(elements: readonly ModelElement[]): Map<string, Requirement> {
+interface Positioned<T> {
+  value: T;
+  index: number;
+}
+
+function requirementMap(elements: readonly ModelElement[]): Map<string, Positioned<Requirement>> {
   return new Map(elements.flatMap(element =>
-    element.requirements.map(requirement => [`${element.declaration.identity}#${requirement.name}`, requirement] as const)));
+    element.requirements.map((requirement, index) => [
+      `${element.declaration.identity}#${requirement.name}`,
+      { value: requirement, index },
+    ] as const)));
 }
 
 function requirementEntries(
-  before: Map<string, Requirement>,
-  after: Map<string, Requirement>,
+  before: Map<string, Positioned<Requirement>>,
+  after: Map<string, Positioned<Requirement>>,
   declared: Map<string, DiffOperation>,
 ): ChangeDiffEntry[] {
   const entries: ChangeDiffEntry[] = [];
@@ -176,11 +221,14 @@ function requirementEntries(
     if (!change) continue;
     const children: ChangeDiffEntry[] = [];
     if (previous && next) {
-      if (previous.body !== next.body) children.push({
-        kind: 'property', identity: `${identity}.body`, operation: 'MODIFIED', before: previous.body, after: next.body,
+      if (previous.index !== next.index) children.push({
+        kind: 'property', identity: `${identity}.position`, operation: 'MODIFIED', before: previous.index, after: next.index,
       });
-      const beforeScenarios = keyed(previous.scenarios, item => item.name);
-      const afterScenarios = keyed(next.scenarios, item => item.name);
+      if (previous.value.body !== next.value.body) children.push({
+        kind: 'property', identity: `${identity}.body`, operation: 'MODIFIED', before: previous.value.body, after: next.value.body,
+      });
+      const beforeScenarios = keyed(previous.value.scenarios.map((value, index) => ({ value, index })), item => item.value.name);
+      const afterScenarios = keyed(next.value.scenarios.map((value, index) => ({ value, index })), item => item.value.name);
       for (const name of [...new Set([...beforeScenarios.keys(), ...afterScenarios.keys()])].sort()) {
         const beforeScenario = beforeScenarios.get(name);
         const afterScenario = afterScenarios.get(name);
@@ -188,7 +236,8 @@ function requirementEntries(
         if (!scenarioOperation) continue;
         children.push({
           kind: 'scenario', identity: `${identity}#${name}`, operation: scenarioOperation,
-          ...(beforeScenario ? { before: beforeScenario } : {}), ...(afterScenario ? { after: afterScenario } : {}),
+          ...(beforeScenario ? { before: beforeScenario.value } : {}),
+          ...(afterScenario ? { after: afterScenario.value } : {}),
         });
       }
     }
@@ -196,7 +245,7 @@ function requirementEntries(
     entries.push({
       kind: 'requirement', identity, operation: change,
       ...(declaredOperation ? { declaredOperation } : {}),
-      ...(previous ? { before: previous } : {}), ...(next ? { after: next } : {}),
+      ...(previous ? { before: previous.value } : {}), ...(next ? { after: next.value } : {}),
       ...(children.length ? { children } : {}),
     });
   }
@@ -220,15 +269,17 @@ export function createSemanticDiff(
   options: CreateSemanticDiffOptions,
 ): ChangeDiff {
   const declared = declaredMap(options.declaredOperations);
+  const normalizedBase = normalizeSemanticModel(base);
+  const normalizedExpected = normalizeSemanticModel(expected);
   const declarations = (model: SemanticModel) => keyed(model.elements.map(item => item.declaration), item => item.identity);
   const relationships = (model: SemanticModel) => keyed(model.relationships, relationshipLabel);
   const entries = [
-    ...entityEntries('element-declaration', declarations(base), declarations(expected), declared),
-    ...entityEntries('element-kind', keyed(base.elementKinds, item => item.identity), keyed(expected.elementKinds, item => item.identity), declared),
-    ...entityEntries('relationship-kind', keyed(base.relationshipKinds, item => item.identity), keyed(expected.relationshipKinds, item => item.identity), declared),
-    ...entityEntries('authored-view', keyed(base.views, item => item.identity), keyed(expected.views, item => item.identity), declared),
-    ...entityEntries('relationship', relationships(base), relationships(expected), declared, false),
-    ...requirementEntries(requirementMap(base.elements), requirementMap(expected.elements), declared),
+    ...entityEntries('element-declaration', declarations(normalizedBase), declarations(normalizedExpected), declared),
+    ...entityEntries('element-kind', keyed(normalizedBase.elementKinds, item => item.identity), keyed(normalizedExpected.elementKinds, item => item.identity), declared),
+    ...entityEntries('relationship-kind', keyed(normalizedBase.relationshipKinds, item => item.identity), keyed(normalizedExpected.relationshipKinds, item => item.identity), declared),
+    ...entityEntries('authored-view', keyed(normalizedBase.views, item => item.identity), keyed(normalizedExpected.views, item => item.identity), declared),
+    ...entityEntries('relationship', relationships(normalizedBase), relationships(normalizedExpected), declared, false),
+    ...requirementEntries(requirementMap(normalizedBase.elements), requirementMap(normalizedExpected.elements), declared),
   ].sort((left, right) => left.kind.localeCompare(right.kind) || left.identity.localeCompare(right.identity));
 
   return {

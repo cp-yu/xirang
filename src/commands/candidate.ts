@@ -54,7 +54,10 @@ export function formatCandidateValidation(result: CandidateValidationResult): st
     `Candidate validation: ${result.valid ? 'valid' : 'invalid'}`,
     ...PARTITIONS.map(partition => `${partition}: ${result.inventory.partitions[partition].length} file(s)`),
     `Candidate bytes: ${result.inventory.bytes}`,
-    `Formal diff entries: ${result.diff.summary.total}`,
+    `Formal comparison baseline: ${result.comparison.baseline === 'formal' ? 'available' : 'absent'}`,
+    ...(result.comparison.diff === 'available'
+      ? [`Formal diff entries: ${result.diff!.summary.total}`]
+      : ['Formal diff: unavailable (formal model absent)']),
   ];
   if (result.reviewDigest) lines.push(`Review digest: ${result.reviewDigest}`);
   for (const item of result.diagnostics) {

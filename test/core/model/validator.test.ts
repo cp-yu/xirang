@@ -8,7 +8,7 @@ function element(identity: string, kind: string, parent: string | null, requirem
     requirements: Array.from({ length: requirements }, (_, index) => ({
       name: `R${index}`,
       body: 'SHALL hold.',
-      scenarios: [],
+      scenarios: [{ name: 'S', body: '- **WHEN** checked\n- **THEN** it holds' }],
     })),
   };
 }
@@ -75,6 +75,7 @@ describe('validateSemanticModel', () => {
         { identity: 'project', contract: 'optional', root: true, body: '' },
         { identity: 'node', contract: 'optional', body: '' },
       ],
+      relationshipKinds: [],
       elements: [
         element('root', 'project', null),
         ...Array.from({ length: 8 }, (_, index) =>
@@ -104,6 +105,7 @@ describe('validateSemanticModel', () => {
         { identity: 'project', contract: 'optional', root: true, body: '' },
         { identity: 'free', contract: 'optional', body: '' },
       ],
+      relationshipKinds: [],
       elements: [element('root', 'project', null), element('a', 'free', 'root'), element('b', 'free', 'a')],
     });
     expect(validateSemanticModel(open)).toEqual([]);

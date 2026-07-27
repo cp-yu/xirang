@@ -7,6 +7,7 @@ import { extractRequirementsSection } from '../parsers/requirement-blocks.js';
 import { normalizeLineEndings, splitFrontmatter } from './frontmatter.js';
 import { createModelIndex, type IndexedEntity, type IndexedRelationship, type ModelIndex, type SourceModule } from './index-map.js';
 import {
+  DEFAULT_PARTITION,
   ENTITY_TYPES,
   PARTITIONS,
   emptySemanticModel,
@@ -43,6 +44,10 @@ export function normalizeProse(body: string): string {
 
 function error(code: string, file: string, message: string, identity?: string): ModelDiagnostic {
   return { level: 'ERROR', code, path: file, message, ...(identity ? { identity } : {}) };
+}
+
+function warning(code: string, file: string, message: string, identity?: string): ModelDiagnostic {
+  return { level: 'WARNING', code, path: file, message, ...(identity ? { identity } : {}) };
 }
 
 function text(value: unknown): string | undefined {
@@ -299,7 +304,14 @@ export function parseSemanticModelFiles(files: Iterable<readonly [string, string
     }
   }
 
-  return { model, index: createModelIndex(entities, relationships), diagnostics };
+  const index = createModelIndex(entities, relationships);
+  diagnostics.push(...index.organizationWarnings().map(item => warning(
+    'ENTITY_PARTITION_MISMATCH',
+    item.path,
+    `${item.declared} ${item.identity} is stored in ${item.partition} instead of ${DEFAULT_PARTITION[item.declared]}`,
+    item.identity,
+  )));
+  return { model, index, diagnostics };
 }
 
 /** Reads the four partitions below `root` into a path → bytes map. */

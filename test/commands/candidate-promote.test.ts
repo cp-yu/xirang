@@ -71,6 +71,21 @@ describe('Candidate promotion', () => {
     expect(manifest).not.toContain(root);
   });
 
+  it('promotes the first Formal Model when comparison is unavailable', async () => {
+    await fs.rm(path.join(root, '.xirang', 'model'), { recursive: true, force: true });
+    const validation = await validateCandidate(root);
+
+    expect(validation.comparison.diff).toBe('unavailable');
+    expect(validation.diff).toBeUndefined();
+
+    await promoteCandidate(root, validation.reviewDigest!);
+
+    expect(await exists(candidate)).toBe(false);
+    for (const partition of SEMANTIC_PARTITIONS) {
+      expect(await exists(path.join(root, '.xirang', 'model', partition))).toBe(true);
+    }
+  });
+
   it('rejects a stale digest without changing formal source or history', async () => {
     const validation = await validateCandidate(root);
     const before = await readFormalTree(root);

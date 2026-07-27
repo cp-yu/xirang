@@ -121,7 +121,13 @@ describe('parseSemanticModel', () => {
     const root = await createModelRoot({ 'views/project.md': ROOT_KIND });
     const parsed = await parseSemanticModel(root);
 
-    expect(parsed.diagnostics).toEqual([]);
+    expect(parsed.diagnostics).toEqual([{
+      level: 'WARNING',
+      code: 'ENTITY_PARTITION_MISMATCH',
+      path: 'views/project.md',
+      message: 'element-kind project is stored in views instead of metamodel',
+      identity: 'project',
+    }]);
     expect(parsed.model.elementKinds.map(item => item.identity)).toEqual(['project']);
     expect(parsed.model.views).toEqual([]);
     expect(parsed.index.organizationWarnings()).toEqual([
