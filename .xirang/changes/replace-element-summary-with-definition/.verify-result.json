@@ -401,7 +401,7 @@
     "timestamp": "2026-07-28T16:51:30.640Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
         "timestamp": "2026-07-28T16:38:21.602Z",
@@ -413,6 +413,11 @@
         "type": "verification",
         "result": "PASS",
         "summary": "Speculative changes preserve the Expected Semantic Model and all stated constraints. src/core/view.ts still creates a new object for every top-level entry, projects present before/after values for added, modified, and removed top-level element declarations, and passes nested child arrays through unchanged; current semantic-diff generation restricts nested details to property/scenario entries. The focused test verifies complete definitions, derived summaries/descriptions, top-level object freshness, and nested identity/reference preservation. Formal and change validation succeeded. Root finding validation passed 3 files/36 tests, Browser validation passed 2 files/10 tests, TypeScript type checking passed, and git diff checks found no residue."
+      },
+      {
+        "timestamp": "2026-07-28T16:55:32.276Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
@@ -819,7 +824,7 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "src/core/view.ts"
@@ -909,9 +914,16 @@
         "reason": "Speculative changes preserve the Expected Semantic Model and all stated constraints. src/core/view.ts still creates a new object for every top-level entry, projects present before/after values for added, modified, and removed top-level element declarations, and passes nested child arrays through unchanged; current semantic-diff generation restricts nested details to property/scenario entries. The focused test verifies complete definitions, derived summaries/descriptions, top-level object freshness, and nested identity/reference preservation. Formal and change validation succeeded. Root finding validation passed 3 files/36 tests, Browser validation passed 2 files/10 tests, TypeScript type checking passed, and git diff checks found no residue.",
         "timestamp": "2026-07-28T16:51:30.603Z",
         "findingId": "OPT-20260728T163821598Z-01"
+      },
+      {
+        "sequence": 5,
+        "action": "resolve",
+        "reason": "The optimization is complete at successful checkpoint d8517492dd98d6b0d27cf8d37d8a3af3a28a0be3. Current src/core/view.ts removes recursive child projection while preserving fresh top-level entries and top-level Declaration before/after projection; nested child arrays retain identity and reference. Current hashes match the verified evidence, the worktree is clean, git diff --check passes, focused root validation passes 3 files/36 tests, and Browser validation passes 2 files/10 tests. A fresh scan found no further statically justified, behavior-preserving optimization whose benefit outweighs its cost and risk; remaining possibilities such as bounded excerpt iteration, repeated search normalization, or Browser lookup indexing have negligible or workload-dependent benefit.",
+        "timestamp": "2026-07-28T16:55:32.276Z",
+        "findingId": "OPT-20260728T163821598Z-01"
       }
     ],
-    "reconciliationSignature": "77cf6b4933c9e40510aa08608c9ae4898babd6fce41423af60d5b9b7b0912ad6",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }
