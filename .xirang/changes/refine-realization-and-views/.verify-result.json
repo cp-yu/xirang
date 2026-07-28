@@ -43,7 +43,7 @@
       "test/integration/snack-workflow.test.ts",
       "xirang-definition.md"
     ],
-    "evidenceFingerprint": "62bb722b6a0b1bca6aab02e8f97c101f1abccdcdd5d5ec162fa3a08335ae82a9",
+    "evidenceFingerprint": "86476fd8ac913986a4f240bc1cac023baf0b6eb0b2e2a09f2b3b665da3c2a398",
     "evidenceFingerprintEntries": [
       {
         "path": ".pi/skills/xirang-propose/SKILL.md",
@@ -55,7 +55,7 @@
       },
       {
         "path": ".xirang/changes/refine-realization-and-views/.apply-isolation.json",
-        "hash": "72223bf727fd4a49e0a3907f8145fc01f53079306fc2aa583afb983b4a3a3519"
+        "hash": "8e5c595b93bcdca31e1a6fab4a08a69c1ad1e86d8d9294b89ef4f1b3244b4cbf"
       },
       {
         "path": ".xirang/changes/refine-realization-and-views/design.md",
@@ -127,7 +127,7 @@
       },
       {
         "path": "src/core/change-diff-renderer.ts",
-        "hash": "b813f0bb98b1a351f8083265978daf464e2576fb771180150b33e7117bbc4487"
+        "hash": "474dfaa10c428e41d1bd88df3e7c6a7f5456d4043ebcda46f5f350a7fc8aedaa"
       },
       {
         "path": "src/core/templates/workflows/propose.ts",
@@ -189,12 +189,24 @@
     "skippedEvidenceFiles": [
       "src/commands/diff.ts"
     ],
-    "gitHeadCommit": "7a17832fdbefc9ed755b6bd050d1ae4bcd1128a1",
-    "gitDiffSummary": "baseCommit 7a17832fdbefc9ed755b6bd050d1ae4bcd1128a1 valid; HEAD has no exclusive commits for this change. Working tree/index union covers 42 paths: delete src/commands/diff.ts; unregister diff CLI; remove Archive generateFinalReport/renderEffectiveChange; retarget validation guidance to validate --json; scrub propose/snack templates and regenerated Pi skills of diff --write/effective-change.md; declare prior unaccounted test/constants files in tasks.md; Semantic Delta + xirang-definition updates for Realization/Views presentation model."
+    "gitHeadCommit": "b23659ef5cc313db2bf0293fef592d9030dcd309",
+    "gitDiffSummary": "baseCommit 7a17832fdbefc9ed755b6bd050d1ae4bcd1128a1 valid; HEAD has no exclusive commits for this change. Working tree/index union covers 42 paths: delete src/commands/diff.ts; unregister diff CLI; remove Archive generateFinalReport/renderEffectiveChange; retarget validation guidance to validate --json; scrub propose/snack templates and regenerated Pi skills of diff --write/effective-change.md; declare prior unaccounted test/constants files in tasks.md; Semantic Delta + xirang-definition updates for Realization/Views presentation model.",
+    "timestamp": "2026-07-28T06:41:48.301Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-07-28T06:35:22.422Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-28T06:41:48.283Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-07-28T06:30:12.014Z",
       "result": "PASS",
@@ -389,6 +401,97 @@
         "gitHeadCommit": "7a17832fdbefc9ed755b6bd050d1ae4bcd1128a1",
         "gitDiffSummary": "baseCommit 7a17832fdbefc9ed755b6bd050d1ae4bcd1128a1 valid; HEAD has no exclusive commits for this change. Working tree/index union covers 42 paths: delete src/commands/diff.ts; unregister diff CLI; remove Archive generateFinalReport/renderEffectiveChange; retarget validation guidance to validate --json; scrub propose/snack templates and regenerated Pi skills of diff --write/effective-change.md; declare prior unaccounted test/constants files in tasks.md; Semantic Delta + xirang-definition updates for Realization/Views presentation model."
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "src/core/change-diff-renderer.ts"
+          ],
+          "symbols": [
+            "filterEntries",
+            "renderChangeDiff"
+          ]
+        },
+        "opportunity": "After deleting xirang diff, renderChangeDiff still accepts an entities filter and routes through filterEntries, but the sole remaining caller (ValidateCommand.printReport) always renders the full entry list. That optional filter path is residual dead complexity from the removed --entity CLI option.",
+        "impact": "Deletes unused control-flow and API surface; shrinks the text-preview renderer to the single full-diff behavior still required by validate --change.",
+        "evidence": [
+          "src/core/change-diff-renderer.ts:13-15 defines filterEntries(entities?) and only uses it when entities is provided",
+          "src/core/change-diff-renderer.ts:21-29 exports renderChangeDiff(diff, entities?) and always calls filterEntries",
+          "src/commands/validate.ts:202 is the only production call site and invokes renderChangeDiff(compiled.diff) with no second argument",
+          "src/commands/diff.ts is deleted; git grep shows no remaining normalizeEntities / --entity callers of this filter",
+          "design.md keeps renderChangeDiff as shared preview machinery, not an entity-filtered Interaction Surface"
+        ],
+        "recommendation": "Remove the entities parameter and filterEntries helper; render diff.entries directly. Drop the now-unused DiffKind type import from change-diff-renderer.ts.",
+        "keyDesign": "renderChangeDiff(diff: ChangeDiff): string builds the same text preview as today using diff.entries unchanged; no entity subsetting remains in the presentation path.",
+        "preservationConstraints": [
+          "validate --change text Effective change preview must still list every top-level semantic entry with the same +/~/- markers, summary line, and diagnostics block",
+          "validate --change --json must still use conciseDiffEntries unchanged",
+          "do not reintroduce xirang diff, --entity filtering, renderEffectiveChange, or effective-change.md writes",
+          "internal ChangeDiff IR and Browser consumption paths stay intact"
+        ],
+        "implementationOutline": [
+          "In src/core/change-diff-renderer.ts delete filterEntries and the entities parameter from renderChangeDiff",
+          "Replace entries = filterEntries(...) with direct use of diff.entries",
+          "Narrow the import to ChangeDiff and ChangeDiffEntry only",
+          "Keep conciseDiffEntries and renderChangeDiff export names",
+          "Run validate/diff-removal tests to prove preview text and unknown-command behavior are unchanged"
+        ],
+        "validation": [
+          "test/commands/validate.test.ts: invalid-change guidance still points to validate --json and preview remains full-entry",
+          "test/commands/diff.test.ts: xirang diff still unknown and writes nothing",
+          "targeted vitest for validate + change-diff preview paths if present; otherwise exercise validate --change text output on a fixture change"
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Only residual dead code left in base-scope implementation after the intentional diff/report deletion; pure deletion, statically proven zero callers of the filter, lowest risk/cost among remaining opportunities.",
+        "id": "OPT-20260728T063522419Z-01",
+        "targetFileHashes": {
+          "src/core/change-diff-renderer.ts": "b813f0bb98b1a351f8083265978daf464e2576fb771180150b33e7117bbc4487"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-28T06:35:22.420Z",
+        "findingId": "OPT-20260728T063522419Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "select",
+        "reason": "Only residual dead code left in base-scope implementation after the intentional diff/report deletion; pure deletion, statically proven zero callers of the filter, lowest risk/cost among remaining opportunities.",
+        "timestamp": "2026-07-28T06:35:22.422Z",
+        "findingId": "OPT-20260728T063522419Z-01",
+        "hashes": {
+          "src/core/change-diff-renderer.ts": "b813f0bb98b1a351f8083265978daf464e2576fb771180150b33e7117bbc4487"
+        }
+      },
+      {
+        "sequence": 3,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-28T06:35:48.404Z",
+        "findingId": "OPT-20260728T063522419Z-01",
+        "hashes": {
+          "src/core/change-diff-renderer.ts": "b813f0bb98b1a351f8083265978daf464e2576fb771180150b33e7117bbc4487"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-28T06:41:48.283Z",
+        "findingId": "OPT-20260728T063522419Z-01"
+      }
+    ],
+    "reconciliationSignature": "def5c97b09de96b2da4382b6f69b1e93945a4db8c7e26e8176e3fdcce08f18e4",
+    "unchangedReconciliations": 0
   }
 }

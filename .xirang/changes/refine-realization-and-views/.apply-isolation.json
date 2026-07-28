@@ -2,5 +2,6 @@
   "method": "none",
   "branchName": "main",
   "originalBranch": "main",
-  "baseCommit": "7a17832fdbefc9ed755b6bd050d1ae4bcd1128a1"
+  "baseCommit": "7a17832fdbefc9ed755b6bd050d1ae4bcd1128a1",
+  "phase2BaselineCommit": "b23659ef5cc313db2bf0293fef592d9030dcd309"
 }
