@@ -232,7 +232,7 @@ export class ValidateCommand {
     if (type === 'change') {
       bullets.push('- Ensure the change carries deltas in elements/: use headers ## ADDED/MODIFIED/REMOVED Requirements');
       bullets.push('- Each requirement MUST include at least one #### Scenario: block');
-      bullets.push('- Debug the effective delta: xirang diff --change <id> --json');
+      bullets.push('- Re-run with xirang validate --change <id> --json for structured diagnostics');
     } else {
       bullets.push('- Ensure the Element unit carries a ## Requirements section');
       bullets.push('- Each requirement MUST include at least one #### Scenario: block');

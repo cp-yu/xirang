@@ -69,8 +69,7 @@ ${XIRANG_SHARED_CONTEXT}
    - Distinguish Requirement Entries in an Element unit body from the Declaration Entry in its frontmatter.
 12. Do NOT generate \`tasks.md\` (code is already implemented).
 13. Run \`xirang validate --change "<name>" --json\`. On ERROR/WARNING, repair once from artifact instructions, validate once more, and report the final result.
-14. After validation passes, run \`xirang diff --change "<name>" --write\`. Treat \`.xirang/changes/<name>/effective-change.md\` as the only persistent effective-change report and require its status to be Passed before claiming reconciliation complete.
-15. Finish with the output hints.
+14. Finish with the output hints. Do NOT generate a presentation artifact or run a separate Diff command.
 
 ## Output Hints
 

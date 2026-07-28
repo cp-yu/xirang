@@ -74,7 +74,7 @@ artifacts:
       - Element Contract target content is `## Requirements`; Delta Requirement entries factor operation into `## ADDED Requirements`, `## MODIFIED Requirements`, and `## REMOVED Requirements` sections.
       - ADDED and MODIFIED Requirements contain the complete target Requirement with canonical `### Requirement:` and `#### Scenario:` blocks; REMOVED names only the Requirement.
       - Existing titles under MODIFIED Requirements stay exact; New Requirement titles and new Scenario titles follow `proseLanguage`.
-      - Agent MUST NOT author Scenario operation labels. Scenario operations are derived by `xirang validate --change <name>` and `xirang diff --change <name> --write`.
+      - Agent MUST NOT author Scenario operation labels. Scenario operations are derived by `xirang validate --change <name>`.
       - When only Contract entries change, declaration frontmatter locates the Element without `operation`; when only the Declaration changes, leave the body empty.
 
       Follow partition-specific rules:

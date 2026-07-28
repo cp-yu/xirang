@@ -118,6 +118,18 @@ describe('top-level validate command', () => {
     expect(`${result.stdout}\n${result.stderr}`).toContain("unknown option '--artifacts'");
   });
 
+  it('directs invalid changes to structured validation output without referencing diff', async () => {
+    await writeChangeDelta(testDir, 'c1', {
+      'elements/alpha.id.md': ALPHA_DELTA.replace('The validator SHALL accept deltas provided by the test harness.', 'No normative keyword here.'),
+    });
+
+    const result = await runCLI(['validate', '--change', 'c1'], { cwd: testDir });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('xirang validate --change <id> --json');
+    expect(result.stderr).not.toContain('xirang diff');
+  });
+
   it('rejects missing explicit changes deterministically', async () => {
     const result = await runCLI(['validate', '--change', 'missing-change'], { cwd: testDir });
 

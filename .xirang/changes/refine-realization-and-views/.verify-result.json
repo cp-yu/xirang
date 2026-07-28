@@ -1,0 +1,394 @@
+{
+  "timestamp": "2026-07-28T06:30:12.014Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "5e67b171d40500ad30552fbe66d7c2924164d38942282a93d0b5de26ab738b0b",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".pi/skills/xirang-propose/SKILL.md",
+      ".pi/skills/xirang-snack/SKILL.md",
+      ".xirang/changes/refine-realization-and-views/.apply-isolation.json",
+      ".xirang/changes/refine-realization-and-views/design.md",
+      ".xirang/changes/refine-realization-and-views/elements/change-closure.md",
+      ".xirang/changes/refine-realization-and-views/elements/derived-views.md",
+      ".xirang/changes/refine-realization-and-views/elements/deterministic-operations.md",
+      ".xirang/changes/refine-realization-and-views/elements/text-presentation.md",
+      ".xirang/changes/refine-realization-and-views/elements/view-composition.md",
+      ".xirang/changes/refine-realization-and-views/elements/view-presentation.md",
+      ".xirang/changes/refine-realization-and-views/elements/views.md",
+      ".xirang/changes/refine-realization-and-views/elements/visual-presentation.md",
+      ".xirang/changes/refine-realization-and-views/metamodel/supports-presentation.md",
+      ".xirang/changes/refine-realization-and-views/proposal.md",
+      ".xirang/changes/refine-realization-and-views/relationships/supports-presentation.yaml",
+      ".xirang/changes/refine-realization-and-views/tasks.md",
+      "schemas/spec-driven/schema.yaml",
+      "src/cli/index.ts",
+      "src/commands/diff.ts",
+      "src/commands/validate.ts",
+      "src/core/archive.ts",
+      "src/core/change-diff-renderer.ts",
+      "src/core/templates/workflows/propose.ts",
+      "src/core/templates/workflows/snack.ts",
+      "src/core/validation/constants.ts",
+      "test/commands/diff.test.ts",
+      "test/commands/validate.test.ts",
+      "test/core/archive.test.ts",
+      "test/core/artifact-graph/instruction-loader.test.ts",
+      "test/core/templates/propose-template.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts",
+      "test/core/templates/snack-template.test.ts",
+      "test/core/validation.enriched-messages.test.ts",
+      "test/core/view.test.ts",
+      "test/integration/snack-workflow.test.ts",
+      "xirang-definition.md"
+    ],
+    "evidenceFingerprint": "62bb722b6a0b1bca6aab02e8f97c101f1abccdcdd5d5ec162fa3a08335ae82a9",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".pi/skills/xirang-propose/SKILL.md",
+        "hash": "ad73cadb1ce71f54ff417c992f0df4afcace457e166ece6c7d2badf6078ae560"
+      },
+      {
+        "path": ".pi/skills/xirang-snack/SKILL.md",
+        "hash": "5f422a96d216890e2dab2d3afa0e8f0ce8be2865ec1df11640c63075cd8377c6"
+      },
+      {
+        "path": ".xirang/changes/refine-realization-and-views/.apply-isolation.json",
+        "hash": "72223bf727fd4a49e0a3907f8145fc01f53079306fc2aa583afb983b4a3a3519"
+      },
+      {
+        "path": ".xirang/changes/refine-realization-and-views/design.md",
+        "hash": "c24d597c23cbbcd219c8c5504ce4c1873d9adf2eaf2f0325d980b7954701da0f"
+      },
+      {
+        "path": ".xirang/changes/refine-realization-and-views/elements/change-closure.md",
+        "hash": "b6854cd21cb7b1f26566f5a579752c9f5f92a8c87b686282196ea6e709b082c4"
+      },
+      {
+        "path": ".xirang/changes/refine-realization-and-views/elements/derived-views.md",
+        "hash": "4918fed4ccb101cb2727477842ef91e79b9630aeb42f50b975f53c0d2cf52712"
+      },
+      {
+        "path": ".xirang/changes/refine-realization-and-views/elements/deterministic-operations.md",
+        "hash": "4b9e8e110498f1842777571580aeab4bf3f9c8fa5c9b7e8646a8734681e15c4c"
+      },
+      {
+        "path": ".xirang/changes/refine-realization-and-views/elements/text-presentation.md",
+        "hash": "b35bd99baeeea01d3afd1ef271d4db0865397165a27e38e98ba4ba62243ee662"
+      },
+      {
+        "path": ".xirang/changes/refine-realization-and-views/elements/view-composition.md",
+        "hash": "3f11aa87a62d5a7c3c4c043b95631c40417e7a62d9f7408c8ba1a93487d5fd3c"
+      },
+      {
+        "path": ".xirang/changes/refine-realization-and-views/elements/view-presentation.md",
+        "hash": "621351e7bd95b0d08e7799ec6b1c5600574c5d6950d1d1bc775825b996c73b8b"
+      },
+      {
+        "path": ".xirang/changes/refine-realization-and-views/elements/views.md",
+        "hash": "e2b2f107b24c6afd19fb6fcf2df2c36e00ddf70eb8b9a1e970111861df0e8e9e"
+      },
+      {
+        "path": ".xirang/changes/refine-realization-and-views/elements/visual-presentation.md",
+        "hash": "5939cf40c2d4780962a30db79ae455c50f6b719dfd58027a7ac437a531c6ccdb"
+      },
+      {
+        "path": ".xirang/changes/refine-realization-and-views/metamodel/supports-presentation.md",
+        "hash": "af3bcb8f19abc59105097fab2b6289a14302c2401f9371238f13f9204de38e67"
+      },
+      {
+        "path": ".xirang/changes/refine-realization-and-views/proposal.md",
+        "hash": "f6139d9dfe9c93ec6c2574c869e90c5fb45edc74fe0f67401b32752cfc5d9c53"
+      },
+      {
+        "path": ".xirang/changes/refine-realization-and-views/relationships/supports-presentation.yaml",
+        "hash": "f27fb0f6d83af083c51fbe0c1f8326028355e7f50fe0e4b040be902a2d589800"
+      },
+      {
+        "path": ".xirang/changes/refine-realization-and-views/tasks.md",
+        "hash": "5e67b171d40500ad30552fbe66d7c2924164d38942282a93d0b5de26ab738b0b"
+      },
+      {
+        "path": "schemas/spec-driven/schema.yaml",
+        "hash": "3db70d404f4825c26095b6bd24ed3593fc1d995af847f7f163436bb7aa0ba8c9"
+      },
+      {
+        "path": "src/cli/index.ts",
+        "hash": "be55404c2049f05ab1c5b42c1443069180bb53aa7336279fb2881ab0f8faae45"
+      },
+      {
+        "path": "src/commands/validate.ts",
+        "hash": "e5276cf29c3cf4625c0b2f648dcb6777afae80115311fd99d8b61ab9dad4426f"
+      },
+      {
+        "path": "src/core/archive.ts",
+        "hash": "397b3e3124b1cd4bd15c5c41e8491076d203530bdad46feaafa317f1f2c2665c"
+      },
+      {
+        "path": "src/core/change-diff-renderer.ts",
+        "hash": "b813f0bb98b1a351f8083265978daf464e2576fb771180150b33e7117bbc4487"
+      },
+      {
+        "path": "src/core/templates/workflows/propose.ts",
+        "hash": "60cd4f88dcb1a393ded335dd2108344cc0f8557aaeea6b95d47537c4e6c3bcf2"
+      },
+      {
+        "path": "src/core/templates/workflows/snack.ts",
+        "hash": "ab63ae9031e3eac87af1578e4aa71f098d1346aaea419de46486a5d00b0bc5f4"
+      },
+      {
+        "path": "src/core/validation/constants.ts",
+        "hash": "d8f734dbadb6fd253dad74c239966e20d1b2d8cee5327a7de79a156271d11071"
+      },
+      {
+        "path": "test/commands/diff.test.ts",
+        "hash": "08ef5a8cd83fdb52ced5791b91912e3a46eb7987a381e2faec04ef4e01fd615c"
+      },
+      {
+        "path": "test/commands/validate.test.ts",
+        "hash": "ed82188c6e9dc27fabe19fcb55b4389c1002c9230972120605084000a4a70ca2"
+      },
+      {
+        "path": "test/core/archive.test.ts",
+        "hash": "695affdc9ec2f90ebbefd7087d7e63fd3ec8597868aad796d772db47f0bc4759"
+      },
+      {
+        "path": "test/core/artifact-graph/instruction-loader.test.ts",
+        "hash": "966a35141d2ff3070bbec8f3ac8353fb53f337b689bac7e24908b8abd6b02509"
+      },
+      {
+        "path": "test/core/templates/propose-template.test.ts",
+        "hash": "eab15b81c83444f23d83ebd3ce3376273c7ed8eec5da9f18e67d48d482651d5a"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "89ba41e504cbcd3bc8817f0f5d31a0e538c7deb099693726b6357bd77ab6b5e3"
+      },
+      {
+        "path": "test/core/templates/snack-template.test.ts",
+        "hash": "4619fc668d7b3e921c1f36d02034616edcd77b1e2f1404606e5330613585eac3"
+      },
+      {
+        "path": "test/core/validation.enriched-messages.test.ts",
+        "hash": "c9b52b9be51f1dfc68f78d1ffb675220e7a9c6c10d0f02d1c685ddc523ebc166"
+      },
+      {
+        "path": "test/core/view.test.ts",
+        "hash": "9c351b429a3cc84cd945cdd3f7f306c5de69c60c311b260d7b6cc6e475700dc0"
+      },
+      {
+        "path": "test/integration/snack-workflow.test.ts",
+        "hash": "77187275fc769f1444f65407cd4a71ffb8e6a283b25792bde9547d8a5f1f2eeb"
+      },
+      {
+        "path": "xirang-definition.md",
+        "hash": "71cc61b0baa6e586a467de2c576f4684492f1f5fea96c9ec31a160ab77e7c217"
+      }
+    ],
+    "skippedEvidenceFiles": [
+      "src/commands/diff.ts"
+    ],
+    "gitHeadCommit": "7a17832fdbefc9ed755b6bd050d1ae4bcd1128a1",
+    "gitDiffSummary": "baseCommit 7a17832fdbefc9ed755b6bd050d1ae4bcd1128a1 valid; HEAD has no exclusive commits for this change. Working tree/index union covers 42 paths: delete src/commands/diff.ts; unregister diff CLI; remove Archive generateFinalReport/renderEffectiveChange; retarget validation guidance to validate --json; scrub propose/snack templates and regenerated Pi skills of diff --write/effective-change.md; declare prior unaccounted test/constants files in tasks.md; Semantic Delta + xirang-definition updates for Realization/Views presentation model."
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-07-28T06:30:12.014Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "5e67b171d40500ad30552fbe66d7c2924164d38942282a93d0b5de26ab738b0b",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".pi/skills/xirang-propose/SKILL.md",
+          ".pi/skills/xirang-snack/SKILL.md",
+          ".xirang/changes/refine-realization-and-views/.apply-isolation.json",
+          ".xirang/changes/refine-realization-and-views/design.md",
+          ".xirang/changes/refine-realization-and-views/elements/change-closure.md",
+          ".xirang/changes/refine-realization-and-views/elements/derived-views.md",
+          ".xirang/changes/refine-realization-and-views/elements/deterministic-operations.md",
+          ".xirang/changes/refine-realization-and-views/elements/text-presentation.md",
+          ".xirang/changes/refine-realization-and-views/elements/view-composition.md",
+          ".xirang/changes/refine-realization-and-views/elements/view-presentation.md",
+          ".xirang/changes/refine-realization-and-views/elements/views.md",
+          ".xirang/changes/refine-realization-and-views/elements/visual-presentation.md",
+          ".xirang/changes/refine-realization-and-views/metamodel/supports-presentation.md",
+          ".xirang/changes/refine-realization-and-views/proposal.md",
+          ".xirang/changes/refine-realization-and-views/relationships/supports-presentation.yaml",
+          ".xirang/changes/refine-realization-and-views/tasks.md",
+          "schemas/spec-driven/schema.yaml",
+          "src/cli/index.ts",
+          "src/commands/diff.ts",
+          "src/commands/validate.ts",
+          "src/core/archive.ts",
+          "src/core/change-diff-renderer.ts",
+          "src/core/templates/workflows/propose.ts",
+          "src/core/templates/workflows/snack.ts",
+          "src/core/validation/constants.ts",
+          "test/commands/diff.test.ts",
+          "test/commands/validate.test.ts",
+          "test/core/archive.test.ts",
+          "test/core/artifact-graph/instruction-loader.test.ts",
+          "test/core/templates/propose-template.test.ts",
+          "test/core/templates/skill-templates-parity.test.ts",
+          "test/core/templates/snack-template.test.ts",
+          "test/core/validation.enriched-messages.test.ts",
+          "test/core/view.test.ts",
+          "test/integration/snack-workflow.test.ts",
+          "xirang-definition.md"
+        ],
+        "evidenceFingerprint": "62bb722b6a0b1bca6aab02e8f97c101f1abccdcdd5d5ec162fa3a08335ae82a9",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".pi/skills/xirang-propose/SKILL.md",
+            "hash": "ad73cadb1ce71f54ff417c992f0df4afcace457e166ece6c7d2badf6078ae560"
+          },
+          {
+            "path": ".pi/skills/xirang-snack/SKILL.md",
+            "hash": "5f422a96d216890e2dab2d3afa0e8f0ce8be2865ec1df11640c63075cd8377c6"
+          },
+          {
+            "path": ".xirang/changes/refine-realization-and-views/.apply-isolation.json",
+            "hash": "72223bf727fd4a49e0a3907f8145fc01f53079306fc2aa583afb983b4a3a3519"
+          },
+          {
+            "path": ".xirang/changes/refine-realization-and-views/design.md",
+            "hash": "c24d597c23cbbcd219c8c5504ce4c1873d9adf2eaf2f0325d980b7954701da0f"
+          },
+          {
+            "path": ".xirang/changes/refine-realization-and-views/elements/change-closure.md",
+            "hash": "b6854cd21cb7b1f26566f5a579752c9f5f92a8c87b686282196ea6e709b082c4"
+          },
+          {
+            "path": ".xirang/changes/refine-realization-and-views/elements/derived-views.md",
+            "hash": "4918fed4ccb101cb2727477842ef91e79b9630aeb42f50b975f53c0d2cf52712"
+          },
+          {
+            "path": ".xirang/changes/refine-realization-and-views/elements/deterministic-operations.md",
+            "hash": "4b9e8e110498f1842777571580aeab4bf3f9c8fa5c9b7e8646a8734681e15c4c"
+          },
+          {
+            "path": ".xirang/changes/refine-realization-and-views/elements/text-presentation.md",
+            "hash": "b35bd99baeeea01d3afd1ef271d4db0865397165a27e38e98ba4ba62243ee662"
+          },
+          {
+            "path": ".xirang/changes/refine-realization-and-views/elements/view-composition.md",
+            "hash": "3f11aa87a62d5a7c3c4c043b95631c40417e7a62d9f7408c8ba1a93487d5fd3c"
+          },
+          {
+            "path": ".xirang/changes/refine-realization-and-views/elements/view-presentation.md",
+            "hash": "621351e7bd95b0d08e7799ec6b1c5600574c5d6950d1d1bc775825b996c73b8b"
+          },
+          {
+            "path": ".xirang/changes/refine-realization-and-views/elements/views.md",
+            "hash": "e2b2f107b24c6afd19fb6fcf2df2c36e00ddf70eb8b9a1e970111861df0e8e9e"
+          },
+          {
+            "path": ".xirang/changes/refine-realization-and-views/elements/visual-presentation.md",
+            "hash": "5939cf40c2d4780962a30db79ae455c50f6b719dfd58027a7ac437a531c6ccdb"
+          },
+          {
+            "path": ".xirang/changes/refine-realization-and-views/metamodel/supports-presentation.md",
+            "hash": "af3bcb8f19abc59105097fab2b6289a14302c2401f9371238f13f9204de38e67"
+          },
+          {
+            "path": ".xirang/changes/refine-realization-and-views/proposal.md",
+            "hash": "f6139d9dfe9c93ec6c2574c869e90c5fb45edc74fe0f67401b32752cfc5d9c53"
+          },
+          {
+            "path": ".xirang/changes/refine-realization-and-views/relationships/supports-presentation.yaml",
+            "hash": "f27fb0f6d83af083c51fbe0c1f8326028355e7f50fe0e4b040be902a2d589800"
+          },
+          {
+            "path": ".xirang/changes/refine-realization-and-views/tasks.md",
+            "hash": "5e67b171d40500ad30552fbe66d7c2924164d38942282a93d0b5de26ab738b0b"
+          },
+          {
+            "path": "schemas/spec-driven/schema.yaml",
+            "hash": "3db70d404f4825c26095b6bd24ed3593fc1d995af847f7f163436bb7aa0ba8c9"
+          },
+          {
+            "path": "src/cli/index.ts",
+            "hash": "be55404c2049f05ab1c5b42c1443069180bb53aa7336279fb2881ab0f8faae45"
+          },
+          {
+            "path": "src/commands/validate.ts",
+            "hash": "e5276cf29c3cf4625c0b2f648dcb6777afae80115311fd99d8b61ab9dad4426f"
+          },
+          {
+            "path": "src/core/archive.ts",
+            "hash": "397b3e3124b1cd4bd15c5c41e8491076d203530bdad46feaafa317f1f2c2665c"
+          },
+          {
+            "path": "src/core/change-diff-renderer.ts",
+            "hash": "b813f0bb98b1a351f8083265978daf464e2576fb771180150b33e7117bbc4487"
+          },
+          {
+            "path": "src/core/templates/workflows/propose.ts",
+            "hash": "60cd4f88dcb1a393ded335dd2108344cc0f8557aaeea6b95d47537c4e6c3bcf2"
+          },
+          {
+            "path": "src/core/templates/workflows/snack.ts",
+            "hash": "ab63ae9031e3eac87af1578e4aa71f098d1346aaea419de46486a5d00b0bc5f4"
+          },
+          {
+            "path": "src/core/validation/constants.ts",
+            "hash": "d8f734dbadb6fd253dad74c239966e20d1b2d8cee5327a7de79a156271d11071"
+          },
+          {
+            "path": "test/commands/diff.test.ts",
+            "hash": "08ef5a8cd83fdb52ced5791b91912e3a46eb7987a381e2faec04ef4e01fd615c"
+          },
+          {
+            "path": "test/commands/validate.test.ts",
+            "hash": "ed82188c6e9dc27fabe19fcb55b4389c1002c9230972120605084000a4a70ca2"
+          },
+          {
+            "path": "test/core/archive.test.ts",
+            "hash": "695affdc9ec2f90ebbefd7087d7e63fd3ec8597868aad796d772db47f0bc4759"
+          },
+          {
+            "path": "test/core/artifact-graph/instruction-loader.test.ts",
+            "hash": "966a35141d2ff3070bbec8f3ac8353fb53f337b689bac7e24908b8abd6b02509"
+          },
+          {
+            "path": "test/core/templates/propose-template.test.ts",
+            "hash": "eab15b81c83444f23d83ebd3ce3376273c7ed8eec5da9f18e67d48d482651d5a"
+          },
+          {
+            "path": "test/core/templates/skill-templates-parity.test.ts",
+            "hash": "89ba41e504cbcd3bc8817f0f5d31a0e538c7deb099693726b6357bd77ab6b5e3"
+          },
+          {
+            "path": "test/core/templates/snack-template.test.ts",
+            "hash": "4619fc668d7b3e921c1f36d02034616edcd77b1e2f1404606e5330613585eac3"
+          },
+          {
+            "path": "test/core/validation.enriched-messages.test.ts",
+            "hash": "c9b52b9be51f1dfc68f78d1ffb675220e7a9c6c10d0f02d1c685ddc523ebc166"
+          },
+          {
+            "path": "test/core/view.test.ts",
+            "hash": "9c351b429a3cc84cd945cdd3f7f306c5de69c60c311b260d7b6cc6e475700dc0"
+          },
+          {
+            "path": "test/integration/snack-workflow.test.ts",
+            "hash": "77187275fc769f1444f65407cd4a71ffb8e6a283b25792bde9547d8a5f1f2eeb"
+          },
+          {
+            "path": "xirang-definition.md",
+            "hash": "71cc61b0baa6e586a467de2c576f4684492f1f5fea96c9ec31a160ab77e7c217"
+          }
+        ],
+        "skippedEvidenceFiles": [
+          "src/commands/diff.ts"
+        ],
+        "gitHeadCommit": "7a17832fdbefc9ed755b6bd050d1ae4bcd1128a1",
+        "gitDiffSummary": "baseCommit 7a17832fdbefc9ed755b6bd050d1ae4bcd1128a1 valid; HEAD has no exclusive commits for this change. Working tree/index union covers 42 paths: delete src/commands/diff.ts; unregister diff CLI; remove Archive generateFinalReport/renderEffectiveChange; retarget validation guidance to validate --json; scrub propose/snack templates and regenerated Pi skills of diff --write/effective-change.md; declare prior unaccounted test/constants files in tasks.md; Semantic Delta + xirang-definition updates for Realization/Views presentation model."
+      }
+    }
+  }
+}

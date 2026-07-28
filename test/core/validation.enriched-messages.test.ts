@@ -33,7 +33,8 @@ There are changes proposed, but no delta specs provided yet.`;
     for (const partition of ['elements/', 'metamodel/', 'relationships/', 'views/']) {
       expect(msg).toContain(partition);
     }
-    expect(msg).toContain('xirang diff --change <change-id> --json');
+    expect(msg).toContain('xirang validate --change <change-id> --json');
+    expect(msg).not.toContain('xirang diff');
     expect(msg).not.toContain('specs/ directory');
     expect(msg).not.toContain('change show');
     expect(msg).not.toContain('--deltas-only');
@@ -54,7 +55,8 @@ The proposal is deliberately missing its Why section.`);
     for (const partition of ['elements/', 'metamodel/', 'relationships/', 'views/']) {
       expect(msg).toContain(partition);
     }
-    expect(msg).toContain('xirang diff --change <change-id> --json');
+    expect(msg).toContain('xirang validate --change <change-id> --json');
+    expect(msg).not.toContain('xirang diff');
     expect(msg).not.toContain('specs/');
     expect(msg).not.toContain('change show');
     expect(msg).not.toContain('--deltas-only');

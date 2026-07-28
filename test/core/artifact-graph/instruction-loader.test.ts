@@ -436,7 +436,8 @@ describe('instruction-loader', () => {
       const instructions = generateInstructions(context, 'specs');
 
       expect(instructions.instruction).toContain('Agent MUST NOT author Scenario operation labels');
-      expect(instructions.instruction).toContain('Scenario operations are derived by `xirang validate --change <name>` and `xirang diff --change <name> --write`');
+      expect(instructions.instruction).toContain('Scenario operations are derived by `xirang validate --change <name>`');
+      expect(instructions.instruction).not.toContain('xirang diff --change <name> --write');
       expect(instructions.instruction).not.toContain('xirang scenario-labels');
       expect(instructions.instruction).not.toContain('use `[ADDED]`');
       expect(instructions.instruction).not.toContain('use `[MODIFIED]`');

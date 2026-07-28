@@ -171,13 +171,12 @@ describe('snack template semantic diff gate', () => {
   const template = getSnackSkillTemplate();
   const instructions = template.instructions;
 
-  it('writes the effective semantic diff only after validation passes', () => {
+  it('finishes reconciliation after validation without writing a presentation artifact', () => {
     const validationIndex = instructions.indexOf('Run `xirang validate --change "<name>" --json`');
-    const diffIndex = instructions.indexOf('run `xirang diff --change "<name>" --write`');
     expect(validationIndex).toBeGreaterThanOrEqual(0);
-    expect(diffIndex).toBeGreaterThan(validationIndex);
-    expect(instructions).toContain('`.xirang/changes/<name>/effective-change.md`');
-    expect(instructions).toContain('require its status to be Passed');
+    expect(instructions).not.toContain('xirang diff --change "<name>" --write');
+    expect(instructions).not.toContain('`.xirang/changes/<name>/effective-change.md`');
+    expect(instructions).not.toContain('effective-change report');
     expect(instructions).not.toContain('xirang scenario-labels');
     expect(instructions).not.toContain('#### Scenario: [ADDED] <title>');
     expect(instructions).not.toContain('#### Scenario: [MODIFIED] <title>');

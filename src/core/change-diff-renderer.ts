@@ -36,34 +36,6 @@ export function renderChangeDiff(diff: ChangeDiff, entities?: ReadonlySet<DiffKi
   return `${lines.join('\n')}\n`;
 }
 
-export function renderEffectiveChange(diff: ChangeDiff): string {
-  const lines = [
-    '# Effective Change',
-    '',
-    `Change: ${diff.change}`,
-    `Status: ${diff.valid ? 'Passed' : 'Failed'}`,
-    `Formal fingerprint: ${diff.formalFingerprint}`,
-    `Change fingerprint: ${diff.changeFingerprint}`,
-    '',
-    '## Summary',
-    '',
-    `- Total: ${diff.summary.total}`,
-    `- Operations: +${diff.summary.ADDED} ~${diff.summary.MODIFIED} -${diff.summary.REMOVED}`,
-    '',
-    '## Semantic Delta',
-    '',
-  ];
-  if (!diff.entries.length) lines.push('No semantic changes.');
-  else for (const entry of diff.entries) lines.push(...renderEntry(entry));
-  lines.push('', '## Diagnostics', '');
-  if (!diff.diagnostics.length) lines.push('None.');
-  else for (const item of diff.diagnostics) {
-    const location = item.location ? `:${item.location.line}:${item.location.column}` : '';
-    lines.push(`- ${item.level} ${item.code} ${item.path}${location}: ${item.message}`);
-  }
-  return `${lines.join('\n')}\n`;
-}
-
 export function conciseDiffEntries(diff: ChangeDiff): Array<Pick<ChangeDiffEntry, 'kind' | 'identity' | 'operation'>> {
   return diff.entries.map(({ kind, identity, operation }) => ({ kind, identity, operation }));
 }

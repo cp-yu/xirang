@@ -207,15 +207,15 @@ describe('propose template post-validation flow', () => {
     expect(body).not.toContain('route non-behavior content to design/tasks/proposal/opsx-delta');
   });
 
-  it('writes the effective-change report after validation', () => {
+  it('reports readiness after validation without writing a presentation artifact', () => {
     for (const body of getProposeBodies()) {
       const validationIndex = body.indexOf('xirang validate --change "<name>" --json');
-      const diffIndex = body.indexOf('xirang diff --change "<name>" --write');
+      const finishIndex = body.indexOf('Finish with `xirang status --change "<name>"`');
       expect(validationIndex).toBeGreaterThanOrEqual(0);
-      expect(diffIndex).toBeGreaterThan(validationIndex);
-      expect(body).toContain('.xirang/changes/<name>/effective-change.md');
-      expect(body).toContain('status is Passed');
-      expect(body).toContain('source and target fingerprints');
+      expect(finishIndex).toBeGreaterThan(validationIndex);
+      expect(body).not.toContain('xirang diff --change "<name>" --write');
+      expect(body).not.toContain('.xirang/changes/<name>/effective-change.md');
+      expect(body).not.toContain('effective-change report');
       expect(body).not.toContain('xirang scenario-labels');
       expect(body).not.toContain('#### Scenario: [ADDED] <title>');
       expect(body).not.toContain('#### Scenario: [MODIFIED] <title>');

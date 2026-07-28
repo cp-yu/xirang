@@ -30,6 +30,12 @@ Propose a new change or update an existing change, generating all artifacts need
 - If the model is missing, report `Semantic Model unavailable`. If it is incomplete or unsupported, identify the root, identity, contract, or relationship gap.
 - A read-only exploration MAY degrade to available model and code evidence with the limitation disclosed. Workflows that compile or write semantics MUST stop when required model context is missing or incomplete; never treat a missing collection as complete and empty.
 
+**Element Contract Semantics**
+
+- Element Contract SHALL 完整表达宿主 Element 在自身抽象层级承担的职责、保证、约束与行为；children 可以进一步精化或共同实现这些承诺，父子 Elements 可以在各自层级表达相互覆盖的完整语义。
+- Requirement SHALL 以稳定 identity 表达一项可独立演进的规范承诺。以该承诺能否独立新增、修改或移除判断边界，不得按句子、分句、`SHALL` 数量或目标条数机械拆分。只复述 Declaration summary 或 sibling Requirements 语义并集且不增加规范承诺的内容不形成 Requirement；独立的不变量、顺序、原子性、一致性或完成条件应保留。
+- Scenario SHALL 是具有规范约束力的 Requirement 组成，只具体化宿主 Requirement 在特定条件下的行为，不得引入可独立演进的承诺。Scenarios 不默认穷尽 Requirement 的全部适用情况，Scenario 不作为独立 Semantic Delta Entry，其变化由宿主 Requirement 的完整目标内容表达。
+
 ## Workflow Stage
 
 | Aspect | Value |
@@ -82,11 +88,7 @@ Propose a new change or update an existing change, generating all artifacts need
 10. Run combined change validation exactly once with `xirang validate --change "<name>" --json`. Do NOT run `xirang sync`.
     - ERROR from either scaffolding checks or combined change validation blocks ready-for-apply. Perform at most one repair pass, re-check once, and stop with the remaining blockers if any ERROR remains.
     - WARNING does not block ready-for-apply; retain it for the final summary.
-11. After validation passes, run `xirang diff --change "<name>" --write`.
-    - Treat `.xirang/changes/<name>/effective-change.md` as the only persistent effective-change report.
-    - Verify its recorded status is Passed and its source and target fingerprints match the validated compilation.
-    - If report generation fails, keep the failed report as evidence and stop; do not claim ready-for-apply.
-12. Finish with `xirang status --change "<name>"`. Summarize artifacts created or updated, validation errors and warnings, effective-change report status, and readiness for `/skill:xirang-apply-change`.
+11. Finish with `xirang status --change "<name>"`. Summarize artifacts created or updated, validation errors and warnings, and readiness for `/skill:xirang-apply-change`. Do NOT generate a presentation artifact or run a separate Diff command.
 
 ## Artifact Contract
 

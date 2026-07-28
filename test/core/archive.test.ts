@@ -122,8 +122,8 @@ describe('ArchiveCommand', () => {
       await expect(fs.access(changeDir)).rejects.toThrow();
     });
 
-    it('generates a current Passed final report before moving a semantic change', async () => {
-      const changeName = 'semantic-final-report';
+    it('archives a semantic change without creating a presentation artifact', async () => {
+      const changeName = 'semantic-without-report';
       await writeSemanticArchiveFixture(changeName);
 
       await archiveCommand.execute(changeName, { yes: true, noVerify: true, noSync: true });
@@ -132,19 +132,22 @@ describe('ArchiveCommand', () => {
       const archived = (await fs.readdir(archiveDir)).find(entry => entry.endsWith(`-${changeName}`));
       expect(archived).toBeDefined();
       const archivedDir = path.join(archiveDir, archived!);
-      expect(await fs.readFile(path.join(archivedDir, 'effective-change.md'), 'utf8')).toContain('Status: Passed');
+      await expect(fs.access(path.join(archivedDir, 'effective-change.md'))).rejects.toThrow();
       await expect(fs.access(path.join(archivedDir, 'elements', 'existing.id.md'))).resolves.toBeUndefined();
     });
 
-    it('keeps the active change in place when final report generation fails', async () => {
-      const changeName = 'semantic-report-failure';
+    it('moves an existing legacy presentation file without changing its bytes', async () => {
+      const changeName = 'semantic-legacy-report';
       const changeDir = await writeSemanticArchiveFixture(changeName);
-      await fs.mkdir(path.join(changeDir, 'effective-change.md.tmp'));
+      const report = Buffer.from('# Legacy report\r\n\x00unchanged\n', 'utf8');
+      await fs.writeFile(path.join(changeDir, 'effective-change.md'), report);
 
-      await expect(archiveCommand.execute(changeName, { yes: true, noVerify: true, noSync: true })).rejects.toThrow();
+      await archiveCommand.execute(changeName, { yes: true, noVerify: true, noSync: true });
 
-      await expect(fs.access(changeDir)).resolves.toBeUndefined();
-      expect((await fs.readdir(path.join(tempDir, '.xirang', 'changes', 'archive'))).some(entry => entry.endsWith(`-${changeName}`))).toBe(false);
+      const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
+      const archived = (await fs.readdir(archiveDir)).find(entry => entry.endsWith(`-${changeName}`));
+      expect(archived).toBeDefined();
+      expect(await fs.readFile(path.join(archiveDir, archived!, 'effective-change.md'))).toEqual(report);
     });
 
     it('prints agent handoff reminder for legacy auto git mode without recommended commit message', async () => {
@@ -281,7 +284,7 @@ git:
       const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const archived = (await fs.readdir(archiveDir)).find((entry) => entry.includes(changeName));
       expect(archived).toBeDefined();
-      expect(await fs.readFile(path.join(archiveDir, archived!, 'effective-change.md'), 'utf8')).toContain('Status: Passed');
+      await expect(fs.access(path.join(archiveDir, archived!, 'effective-change.md'))).rejects.toThrow();
     });
 
     it('should allow archive when an already-removed Element stays removed', async () => {

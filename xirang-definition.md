@@ -128,7 +128,7 @@ Views 是 Semantic Model 面向用户的呈现层。View 面向特定的理解�
 
 View 可以采用可视化、交互式或人类可读文本形式；仅供程序消费的结构化数据不属于 View。
 
-Views 不引入规范性语义，也不改变或替代 Semantic Model 与 Change 所表达的规范性语义。Views 由 Authored Views 与 Derived Views 组成。
+Views 不引入规范性语义，也不改变或替代 Semantic Model 与 Change 所表达的规范性语义。Views 同时具有 View Composition 与 View Presentation 两个独立维度：前者区分 Authored Views 与 Derived Views，后者区分 Visual Presentation 与 Text Presentation。
 
 ### 3. View Composition
 
@@ -146,7 +146,7 @@ Authored View 的声明可以持续存在并具有稳定 identity，但不为其
 
 Derived Views 是由 Semantic Model 或 Change 确定性派生的 Views。Derived View 无需用户声明，其内容随派生依据变化而重新确定。
 
-Derived View 不作为 Semantic Model 组成持久化，也不作为 Semantic Delta Entry 的作用对象。当前包括 Element-derived Views 与 Change-derived Views。
+Derived View 不作为 Semantic Model 或 Change 的 durable artifact 持久化，也不作为 Semantic Delta Entry 的作用对象；系统可以生成可从当前输入重建的运行时表示或缓存。当前包括 Element-derived Views 与 Change-derived Views。
 
 ##### 5. Element-derived Views
 
@@ -280,11 +280,11 @@ Optimizer 的核心原则是优先删除不需要存在的复杂度，并优化�
 
 ## 3. Change Closure
 
-Change Closure 是 Change Realization 中将已验证的 Change 收束为项目新稳定状态的阶段。它以 Change Implementation 的有效验证结果为入口，先通过 Sync 将 Semantic Delta 应用于 Semantic Model，使 Expected Semantic Model 成为新的 Semantic Model；再通过 Archive 保存已完成的 Change 及其最终证据，并结束 Change 的活动状态。Change Closure 完成后，项目实现与 Semantic Model 共同进入新的稳定状态。
+Change Closure 是 Change Realization 中将已验证的 Change 收束为项目新稳定状态的阶段。它以 Change Implementation 的有效验证结果为入口，先通过 Sync 将 Semantic Delta 应用于 Semantic Model，使 Expected Semantic Model 成为新的 Semantic Model；再通过 Archive 原样保存已完成的 Change 及其最终证据，并结束 Change 的活动状态。Archive 不创建、重算或覆盖任何 View presentation artifact。Change Closure 完成后，项目实现与 Semantic Model 共同进入新的稳定状态。
 
 ## 2. Interaction Surfaces
 
-Interaction Surfaces 是 Realization 中供用户与 Agents 配置、理解和操作息壤的交互界面体系。它建立和维护息壤项目、项目配置与 Agent 工具集成，提供确定性操作，并以 Views 呈现 Semantic Model 与 Change-derived information。两种界面共同支撑 Realization，但不构成新的语义来源。
+Interaction Surfaces 是 Realization 中供用户与 Agents 配置、理解和操作息壤的交互界面体系。它建立和维护息壤项目、项目配置与 Agent 工具集成，提供确定性操作，并以 Views 呈现 Semantic Model 与 Change-derived information。CLI 支持 Text Presentation，Semantic Browser 支持 Visual Presentation；两种界面共同支撑 Realization，但不构成新的语义来源，也不表示某种呈现方法被某一界面独占。
 
 ### 3. CLI
 
@@ -296,7 +296,7 @@ Project and Tooling Configuration 建立和维护息壤工作区、项目配置�
 
 #### 4. Deterministic Operations
 
-Deterministic Operations 在 Realization 中提供结构化查询、状态管理、instructions 与 templates 投影、程序化校验、验证证据持久化及原子状态转换，使关键操作具有一致结果、可复现证据和明确失败语义。
+Deterministic Operations 在 Realization 中提供结构化查询、状态管理、instructions 与 templates 投影、程序化校验、验证证据持久化及原子状态转换，使关键操作具有一致结果、可复现证据和明确失败语义。对 Change 的 CLI 文本差异呈现通过 `xirang validate --change` 提供只读预览与 JSON summary，不注册独立 Diff command，也不将该差异持久化为 Change artifact。
 
 ### 3. Semantic Browser
 

@@ -19,6 +19,12 @@ Reconcile Xirang artifacts from already-written code (code-first artifact reconc
 4. The Xirang Semantic Model is complete only when an Agent need not guess decisions that affect element hierarchy, contracts, or relationships.
 5. The Agent acts like a compiler and faithfully translates authorized human intent. Existing code is current implementation evidence and MUST NOT silently override the Xirang Semantic Model.
 
+**Element Contract Semantics**
+
+- Element Contract SHALL 完整表达宿主 Element 在自身抽象层级承担的职责、保证、约束与行为；children 可以进一步精化或共同实现这些承诺，父子 Elements 可以在各自层级表达相互覆盖的完整语义。
+- Requirement SHALL 以稳定 identity 表达一项可独立演进的规范承诺。以该承诺能否独立新增、修改或移除判断边界，不得按句子、分句、`SHALL` 数量或目标条数机械拆分。只复述 Declaration summary 或 sibling Requirements 语义并集且不增加规范承诺的内容不形成 Requirement；独立的不变量、顺序、原子性、一致性或完成条件应保留。
+- Scenario SHALL 是具有规范约束力的 Requirement 组成，只具体化宿主 Requirement 在特定条件下的行为，不得引入可独立演进的承诺。Scenarios 不默认穷尽 Requirement 的全部适用情况，Scenario 不作为独立 Semantic Delta Entry，其变化由宿主 Requirement 的完整目标内容表达。
+
 Treat `proposal.md`, `design.md`, and the Delta units under `{metamodel,elements,relationships,views}/` as conditional artifacts: create them when missing, update them when stale or inconsistent, and leave them unchanged when current.
 
 ## Input
@@ -96,8 +102,7 @@ Every Markdown unit declares its own `entity` in frontmatter. The partition does
    - Distinguish Requirement Entries in an Element unit body from the Declaration Entry in its frontmatter.
 12. Do NOT generate `tasks.md` (code is already implemented).
 13. Run `xirang validate --change "<name>" --json`. On ERROR/WARNING, repair once from artifact instructions, validate once more, and report the final result.
-14. After validation passes, run `xirang diff --change "<name>" --write`. Treat `.xirang/changes/<name>/effective-change.md` as the only persistent effective-change report and require its status to be Passed before claiming reconciliation complete.
-15. Finish with the output hints.
+14. Finish with the output hints. Do NOT generate a presentation artifact or run a separate Diff command.
 
 ## Output Hints
 

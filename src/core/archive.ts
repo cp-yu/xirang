@@ -14,9 +14,6 @@ import {
 } from './verify/freshness.js';
 import { selectActiveChange } from './change-utils.js';
 import { compileChange } from './change-compiler.js';
-import { renderEffectiveChange } from './change-diff-renderer.js';
-import { EFFECTIVE_CHANGE_FILE } from '../commands/diff.js';
-import { atomicWrite } from '../utils/likec4-writer.js';
 
 /**
  * Recursively copy a directory. Used when fs.rename fails (e.g. EPERM on Windows).
@@ -150,7 +147,6 @@ export class ArchiveCommand {
     if (!(await this.runSyncGate(targetPath, changeName, options))) return;
     if (!(await this.runValidationGate(changeDir, options))) return;
     if (!(await this.runTaskGate(changesDir, changeName, options))) return;
-    await this.generateFinalReport(targetPath, changeDir, changeName, options);
 
     // Move change to archive
     const archiveName = `${this.getArchiveDate()}-${changeName}`;
@@ -288,23 +284,6 @@ export class ArchiveCommand {
       return false;
     }
     return true;
-  }
-
-  private async generateFinalReport(
-    projectRoot: string,
-    changeDir: string,
-    changeName: string,
-    options: ArchiveOptions,
-  ): Promise<void> {
-    const compiled = await compileChange(projectRoot, changeName, { allowAlreadyApplied: true });
-    await atomicWrite(path.join(changeDir, EFFECTIVE_CHANGE_FILE), renderEffectiveChange(compiled.diff));
-    const skipValidation = options.validate === false || options.noValidate === true;
-    if (!compiled.valid && !skipValidation) {
-      throw new Error(`Final report generation failed: ${compiled.diagnostics.map(item => `${item.code}: ${item.message}`).join('; ')}`);
-    }
-    if (compiled.valid && !renderEffectiveChange(compiled.diff).includes('Status: Passed')) {
-      throw new Error('Final report generation failed: report status is not Passed');
-    }
   }
 
   private async runTaskGate(

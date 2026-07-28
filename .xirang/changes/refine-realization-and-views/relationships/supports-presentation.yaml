@@ -1,0 +1,9 @@
+relationships:
+  - operation: ADDED
+    source: cli
+    kind: supports-presentation
+    target: text-presentation
+  - operation: ADDED
+    source: semantic-browser
+    kind: supports-presentation
+    target: visual-presentation

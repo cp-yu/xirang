@@ -108,8 +108,8 @@ describe('snack workflow integration', () => {
     expect(snackSkill).toContain('xirang instructions specs');
     expect(snackSkill).toContain('xirang instructions design');
     expect(snackSkill).toContain('xirang validate --change "<name>" --json');
-    expect(snackSkill).toContain('xirang diff --change "<name>" --write');
-    expect(snackSkill).toContain('.xirang/changes/<name>/effective-change.md');
+    expect(snackSkill).not.toContain('xirang diff --change "<name>" --write');
+    expect(snackSkill).not.toContain('.xirang/changes/<name>/effective-change.md');
     expect(snackSkill).not.toContain('xirang scenario-labels');
     expect(snackSkill).toContain('1. **Quick sync**: `xirang sync "<change-name>" --no-verify`');
     expect(snackSkill).toContain('2. **Quick archive**: `xirang archive "<change-name>" --no-verify`');
@@ -151,7 +151,7 @@ describe('snack workflow integration', () => {
     expect(refreshed).toContain('git diff');
     expect(refreshed).toContain('xirang instructions proposal');
     expect(refreshed).toContain('xirang validate --change "<name>" --json');
-    expect(refreshed).toContain('xirang diff --change "<name>" --write');
+    expect(refreshed).not.toContain('xirang diff --change "<name>" --write');
     expect(refreshed).not.toContain('xirang scenario-labels');
     // C4: refreshed skill still exposes broader evidence sources
     expect(refreshed).toContain('conversation context');

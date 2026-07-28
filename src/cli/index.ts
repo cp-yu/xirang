@@ -18,7 +18,6 @@ import { FeedbackCommand } from '../commands/feedback.js';
 import { registerConfigCommand } from '../commands/config.js';
 import { registerSchemaCommand } from '../commands/schema.js';
 import { registerSyncCommand } from '../commands/sync.js';
-import { registerDiffCommand } from '../commands/diff.js';
 import { registerVerifyCommand } from '../commands/verify.js';
 import { registerArchCommand } from '../commands/arch/index.js';
 import { registerCandidateCommand } from '../commands/candidate.js';
@@ -149,7 +148,6 @@ program
   });
 
 registerSyncCommand(program);
-registerDiffCommand(program);
 registerVerifyCommand(program);
 registerArchCommand(program);
 registerCandidateCommand(program);

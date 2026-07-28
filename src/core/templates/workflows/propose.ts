@@ -73,11 +73,7 @@ ${ELEMENT_CONTRACT_SEMANTICS}
 10. Run combined change validation exactly once with \`xirang validate --change "<name>" --json\`. Do NOT run \`xirang sync\`.
     - ERROR from either scaffolding checks or combined change validation blocks ready-for-apply. Perform at most one repair pass, re-check once, and stop with the remaining blockers if any ERROR remains.
     - WARNING does not block ready-for-apply; retain it for the final summary.
-11. After validation passes, run \`xirang diff --change "<name>" --write\`.
-    - Treat \`.xirang/changes/<name>/effective-change.md\` as the only persistent effective-change report.
-    - Verify its recorded status is Passed and its source and target fingerprints match the validated compilation.
-    - If report generation fails, keep the failed report as evidence and stop; do not claim ready-for-apply.
-12. Finish with \`xirang status --change "<name>"\`. Summarize artifacts created or updated, validation errors and warnings, effective-change report status, and readiness for \`/xirang:apply\`.
+11. Finish with \`xirang status --change "<name>"\`. Summarize artifacts created or updated, validation errors and warnings, and readiness for \`/xirang:apply\`. Do NOT generate a presentation artifact or run a separate Diff command.
 
 ## Artifact Contract
 
