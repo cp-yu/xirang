@@ -37,6 +37,9 @@ Realization（落实过程）
         ├── 3. Change Formation
         │   ├── 4. Intent-first Path
         │   │   ├── 5. Explore
+        │   │   │   ├── 6. Definition Framing
+        │   │   │   │   └── 7. Change Structural Definition
+        │   │   │   └── 6. Design Exploration
         │   │   └── 5. Propose
         │   └── 4. Implementation-first Path
         │       └── 5. Snack
@@ -64,7 +67,12 @@ Realization（落实过程）
     └── 2. Interaction Surfaces
         ├── 3. CLI
         │   ├── 4. Project and Tooling Configuration
+        │   │   ├── 5. 工作区初始化与更新
+        │   │   ├── 5. 项目配置管理
+        │   │   ├── 5. Agent 工具集成选择与维护
+        │   │   └── 5. Agent 工作面投影与同步
         │   └── 4. Deterministic Operations
+        │       └── 5. Definition Framing Operations
         └── 3. Semantic Browser
 ```
 
@@ -236,11 +244,33 @@ Intent-first Path 是 Change Formation 的路径之一：从用户意图出发�
 
 #### 5. Explore
 
-Explore 是 Intent-first Path 的起始阶段。它基于 Semantic Model 与项目证据，澄清用户意图、范围与影响：通过 CLI 查询 Elements、Relationships 与 Element Contracts，并结合实现证据识别影响面；通过一次一问与方案比较推进设计；再分段确认设计——复杂变更逐段确认适用的 architecture、components、data flow、technology、testing 与 risks，窄变更至少确认 problem、impact scope、approach 与 verification method；最终把已确认内容收成 conversation-only 的 Design Summary 作为 Change 雏形，交由 Propose 收成完整 Change。
+Explore 是 Intent-first Path 的起始阶段。它通过 Design Exploration，基于 Semantic Model 与项目证据澄清用户意图、范围、影响和设计，并形成不持久化的 Design Summary。当用户选择先处理 Change 的结构定义时，Explore 先进入 Definition Framing，形成 Change Structural Definition。
+
+Change Structural Definition 存在时，Design Exploration 以其中已确认的结构内容为依据推进设计；结构内容发生变化时，相关设计重新进入确认。完成 Design Exploration 后，Change Structural Definition 与 Design Summary 共同构成 Change 雏形。Change Structural Definition 不存在时，Design Summary 独立构成 Change 雏形。Change 雏形交由 Propose 收成完整 Change；Explore 不实现项目，也不形成完整 Change。
+
+##### 6. Definition Framing
+
+Definition Framing 是 Explore 中由用户选择进入的推荐阶段，用于在 Design Exploration 前先处理 Change 的结构定义。它以 Semantic Model 与项目证据为依据，通过因果定义、identity 与边界澄清、单维度分解和按 BFS 顺序确认同层结构，逐步确认 Change 涉及的 Element Kinds、Relationship Kinds、Element Declarations 与 Relationships。
+
+Definition Framing 只将用户通过明确的持久化确认授权的完整当前目标持久化为 Change Structural Definition。完成 Definition Framing 后，Design Exploration 以 Change Structural Definition 中已确认的结构内容为依据推进设计；已持久化结构发生变化时，依赖原结构的设计内容重新进入确认。
+
+###### 7. Change Structural Definition
+
+Change Structural Definition 由 Definition Framing 形成，用于在 Propose 之前持久化表达用户已确认的当前完整结构目标。它以 Element Kinds、Relationship Kinds、Element Declarations 与 Relationships 表达结构内容，并保存用于识别 Semantic Model 相关变化的基准快照；它不独立确定 Expected Semantic Model，也不是完整 Semantic Delta。
+
+Explore 期间，Change Structural Definition 以受 CLI 管理的隐藏文件持久化并只保留最新确认状态。Propose 将其中的 Element Kinds、Relationship Kinds、Element Declarations 与 Relationships 分别编译为相应的 Semantic Delta Entries；编译完成后保留在 Change directory 中的 `change-structural-definition.md` 只记录形成历史，不参与后续语义解析、validation、sync 或 Change Closure。
+
+##### 6. Design Exploration
+
+Design Exploration 是 Explore 中澄清和确认设计的阶段。它基于 Semantic Model 与项目证据，通过一次一问和方案比较推进设计；复杂变更分段确认适用的行为、Element Contracts、Authored Views、implementation approach、data flow、technology、testing 与 risks，窄变更至少确认 problem、impact scope、approach 与 verification method。
+
+Change Structural Definition 存在时，Design Exploration 将其中已确认的结构内容作为设计依据；Change Structural Definition 不存在时，Design Exploration 直接基于 Semantic Model 与项目证据完成设计，不以运行 Definition Framing 为前提。设计过程中用户选择先处理结构定义时，Explore 进入 Definition Framing，并在结构确认后继续相关设计。适用设计内容全部确认后，Design Exploration 形成不持久化的 Design Summary，交由 Propose 使用。
 
 #### 5. Propose
 
-Propose 是 Intent-first Path 的收成阶段。它承接 Explore 形成的 Design Summary，或在缺少 summary 时先确认 problem、impact scope、approach 与 verification method 已足够清晰；再写出完整 Change：以 Semantic Delta 表达目标语义，以 Change Plan 解释意图与实现路径，并在 Formation 内完成必要审查与确认，使 Change 可进入 Change Implementation。Propose 不实现项目。
+Propose 是 Intent-first Path 的收成阶段。它承接 Explore 形成的 Design Summary，以及存在时的 Change Structural Definition；缺少 Design Summary 时，Propose 先确认 problem、impact scope、approach 与 verification method 已足够清晰。
+
+Change Structural Definition 存在时，Propose 将其中已确认的 Element Kinds、Relationship Kinds、Element Declarations 与 Relationships 分别编译为相应的 Semantic Delta Entries，并根据 Design Summary 形成其余目标语义；Change Structural Definition 不存在时，Propose 根据 Semantic Model 与已确认设计直接形成完整 Semantic Delta。两条路径均由 Propose 写出完整 Change Plan，并在 Formation 内完成必要审查与确认，使 Change 可进入 Change Implementation。Propose 不实现项目，也不将 Semantic Delta 更新到 Semantic Model。
 
 ### 4. Implementation-first Path
 
@@ -292,11 +322,17 @@ CLI 是息壤的配置与确定性操作界面。它建立和维护息壤工作�
 
 #### 4. Project and Tooling Configuration
 
-Project and Tooling Configuration 建立和维护息壤工作区、项目配置与所选 Agent 工具集成，并持续管理息壤配置与息壤托管的 Agent 工作面。
+Project and Tooling Configuration 是 CLI 中建立和维护息壤项目及其工具环境的能力。它通过相应 CLI commands 初始化和更新息壤工作区，读取和管理项目配置，选择、安装、刷新与同步 Agent 工具集成，并维护息壤托管的 Agent 工作面及其 instructions、templates 与 references。
 
 #### 4. Deterministic Operations
 
-Deterministic Operations 在 Realization 中提供结构化查询、状态管理、instructions 与 templates 投影、程序化校验、验证证据持久化及原子状态转换，使关键操作具有一致结果、可复现证据和明确失败语义。对 Change 的 CLI 文本差异呈现通过 `xirang validate --change` 提供只读预览与 JSON summary，不注册独立 Diff command，也不将该差异持久化为 Change artifact。
+Deterministic Operations 在 Realization 中提供结构化查询、状态管理、instructions 与 templates 投影、程序化校验、验证证据持久化及原子状态转换，使关键操作具有一致结果、可复现证据和明确失败语义。
+
+细节层面：
+
+对 Change 的 CLI 文本差异呈现通过 `xirang validate --change` 提供只读预览与 JSON summary，不注册独立 Diff command，也不将该差异持久化为 Change artifact。
+
+Definition Framing 相关 CLI operations 管理 Change Structural Definition 的持久化、查询、校验和生命周期转换，并根据其中记录的 Semantic Model 基准快照识别相关结构是否发生变化。
 
 ### 3. Semantic Browser
 
@@ -324,11 +360,15 @@ Project Build 是 Agent 构建或重建 Semantic Model 的工作身份。它在�
 
 ##### 5. Explore
 
-Explore 是 Agent 在 Intent-first Path 中澄清用户意图、范围与影响的工作身份。它结合 Semantic Model、CLI 查询与项目证据推进设计确认，产出 conversation-only 的 Design Summary 作为 Change 雏形，不写入完整 Change，也不实现项目。
+Explore 是 Agent 在 Intent-first Path 中澄清用户意图、范围、影响和设计的工作身份。它结合 Semantic Model、CLI 查询与项目证据推进 Design Exploration，形成不持久化的 Design Summary；用户选择先处理 Change 的结构定义时，它先推进 Definition Framing。
+
+Definition Framing 中，Explore 通过 CLI 持久化用户明确确认的 Change Structural Definition，不直接管理其存储文件。除 Change Structural Definition 外，Explore 不写入 Change 制品；它不形成完整 Change，也不实现项目。
 
 ##### 5. Propose
 
-Propose 是 Agent 将 Change 雏形收成完整 Change 的工作身份。它写出 Semantic Delta 与 Change Plan，并在 Formation 内完成必要审查与确认，使 Change 可进入实现；不实现项目，不以 Delta 更新 Semantic Model。
+Propose 是 Agent 将 Change 雏形收成完整 Change 的工作身份。它以已确认设计为依据形成 Change，并复用 Explore 已形成的 Design Summary。Explore 形成了 Change Structural Definition 时，Propose 通过 CLI 将该定义纳入目标 Change，并把其中已确认的结构目标编译为相应的 Semantic Delta Entries；Explore 未形成 Change Structural Definition 时，Propose 直接依据 Semantic Model 与已确认设计形成 Semantic Delta。
+
+Propose 写出完整 Semantic Delta 与 Change Plan，并在 Change Formation 内完成必要审查与确认，使 Change 可进入实现。它不实现项目，也不以 Semantic Delta 更新 Semantic Model。
 
 ##### 5. Snack
 
