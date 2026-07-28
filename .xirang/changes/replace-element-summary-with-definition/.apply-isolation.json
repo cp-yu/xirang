@@ -5,6 +5,7 @@
   "baseCommit": "993f5969452561cc62a7363fdb0bb410a03614cc",
   "worktreePath": "/home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec/.worktrees/replace-element-summary-with-definition",
   "sourceRoot": "/home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec",
+  "phase2BaselineCommit": "417f99a791502c969d40d44ad2f33b2af1227771",
   "transferredFiles": [
     {
       "path": ".xirang/changes/replace-element-summary-with-definition/.xirang.yaml",

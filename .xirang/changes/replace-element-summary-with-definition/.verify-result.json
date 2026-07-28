@@ -94,7 +94,7 @@
       "test/integration/windows-definition-ci.test.ts",
       "tmp_script/migrate-element-summary-to-definition.mjs"
     ],
-    "evidenceFingerprint": "0a477bd4c01a6f79ede5d907eafb92ba304698f0964172de16a58601b06e89e7",
+    "evidenceFingerprint": "12d8952e509dddf9e7d29dfce5998492c2e2f2fa1494e4ce37e12273ed7b3d67",
     "evidenceFingerprintEntries": [
       {
         "path": ".github/workflows/test-windows.yml",
@@ -114,7 +114,7 @@
       },
       {
         "path": ".xirang/changes/replace-element-summary-with-definition/.apply-isolation.json",
-        "hash": "e31296d517a93c38c0bfdd4531df17bc30b58ad342c11f24e142643177c53e12"
+        "hash": "c025c9daba69b03c10ac23bb0aa88f728fd45b095daaba16800ed28cba91f384"
       },
       {
         "path": ".xirang/changes/replace-element-summary-with-definition/design.md",
@@ -302,7 +302,7 @@
       },
       {
         "path": "src/core/view.ts",
-        "hash": "ff906679e5e24df98c6a641ef87c89683a67b12aa43486010097eee9b3c0f179"
+        "hash": "5bf09c1d4b0d3902ad76dd5e06f1d8752960ea1cb278ba974bc9513089fa4931"
       },
       {
         "path": "test/cli-e2e/basic.test.ts",
@@ -378,7 +378,7 @@
       },
       {
         "path": "test/core/view.test.ts",
-        "hash": "591f6223633d5e5ea5a26cfa6bbe9909cf62a5c70eac956f520b82f6cfe35321"
+        "hash": "580c85c4d52fc51950a5292e6e25ae76b15aedbaaf4b804860af57cd1db5ae15"
       },
       {
         "path": "test/integration/migrate-element-summary-to-definition.test.ts",
@@ -396,12 +396,25 @@
     "skippedEvidenceFiles": [
       ".xirang/changes/replace-element-summary-with-definition/.verify-result.json"
     ],
-    "gitHeadCommit": "993f5969452561cc62a7363fdb0bb410a03614cc",
-    "gitDiffSummary": "Validated the absolute projectRoot and changeDir and confirmed .apply-isolation.json resolves immutable baseCommit 993f5969452561cc62a7363fdb0bb410a03614cc. HEAD remains exactly that commit, git diff baseCommit...HEAD is empty, the implementation is entirely in the working tree, and final scope contains 134 modified tracked files, 22 untracked files, and no staged files. All scoped behavior files are attributed by explicit task Files entries or declared directories; no generated snapshot, temporary, package-manifest, lockfile, history, or archive residue is present, and git diff --check passes. Direct CLI checks confirmed complete Definition output for identity, title, Requirement, and Definition search matches, complete query and impact text/JSON, and parser diagnostic propagation. Migration --check reported pending 0, current 66, conflicts 0. Targeted root tests passed 23 files/278 tests; Browser tests passed 2 files/10 tests; the final serial full root suite passed 147 files/1997 tests. Root lint/build, LikeC4 typecheck/build, Formal validation, Expected Semantic Model validation, and combined Change validation all passed. The prior search-output and orphan-helper blockers are resolved. Windows workflow coverage was inspected but not run on Windows."
+    "gitHeadCommit": "417f99a791502c969d40d44ad2f33b2af1227771",
+    "gitDiffSummary": "Validated the absolute projectRoot and changeDir and confirmed .apply-isolation.json resolves immutable baseCommit 993f5969452561cc62a7363fdb0bb410a03614cc. HEAD remains exactly that commit, git diff baseCommit...HEAD is empty, the implementation is entirely in the working tree, and final scope contains 134 modified tracked files, 22 untracked files, and no staged files. All scoped behavior files are attributed by explicit task Files entries or declared directories; no generated snapshot, temporary, package-manifest, lockfile, history, or archive residue is present, and git diff --check passes. Direct CLI checks confirmed complete Definition output for identity, title, Requirement, and Definition search matches, complete query and impact text/JSON, and parser diagnostic propagation. Migration --check reported pending 0, current 66, conflicts 0. Targeted root tests passed 23 files/278 tests; Browser tests passed 2 files/10 tests; the final serial full root suite passed 147 files/1997 tests. Root lint/build, LikeC4 typecheck/build, Formal validation, Expected Semantic Model validation, and combined Change validation all passed. The prior search-output and orphan-helper blockers are resolved. Windows workflow coverage was inspected but not run on Windows.",
+    "timestamp": "2026-07-28T16:51:30.640Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-07-28T16:38:21.602Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-28T16:51:30.603Z",
+        "type": "verification",
+        "result": "PASS",
+        "summary": "Speculative changes preserve the Expected Semantic Model and all stated constraints. src/core/view.ts still creates a new object for every top-level entry, projects present before/after values for added, modified, and removed top-level element declarations, and passes nested child arrays through unchanged; current semantic-diff generation restricts nested details to property/scenario entries. The focused test verifies complete definitions, derived summaries/descriptions, top-level object freshness, and nested identity/reference preservation. Formal and change validation succeeded. Root finding validation passed 3 files/36 tests, Browser validation passed 2 files/10 tests, TypeScript type checking passed, and git diff checks found no residue."
+      }
+    ],
     "baseline": {
       "timestamp": "2026-07-28T16:30:33.347Z",
       "result": "PASS_WITH_WARNINGS",
@@ -803,6 +816,102 @@
         "gitHeadCommit": "993f5969452561cc62a7363fdb0bb410a03614cc",
         "gitDiffSummary": "Validated the absolute projectRoot and changeDir and confirmed .apply-isolation.json resolves immutable baseCommit 993f5969452561cc62a7363fdb0bb410a03614cc. HEAD remains exactly that commit, git diff baseCommit...HEAD is empty, the implementation is entirely in the working tree, and final scope contains 134 modified tracked files, 22 untracked files, and no staged files. All scoped behavior files are attributed by explicit task Files entries or declared directories; no generated snapshot, temporary, package-manifest, lockfile, history, or archive residue is present, and git diff --check passes. Direct CLI checks confirmed complete Definition output for identity, title, Requirement, and Definition search matches, complete query and impact text/JSON, and parser diagnostic propagation. Migration --check reported pending 0, current 66, conflicts 0. Targeted root tests passed 23 files/278 tests; Browser tests passed 2 files/10 tests; the final serial full root suite passed 147 files/1997 tests. Root lint/build, LikeC4 typecheck/build, Formal validation, Expected Semantic Model validation, and combined Change validation all passed. The prior search-output and orphan-helper blockers are resolved. Windows workflow coverage was inspected but not run on Windows."
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "src/core/view.ts"
+          ],
+          "symbols": [
+            "projectBrowserDiff",
+            "buildChangeRuntimeVariant"
+          ]
+        },
+        "opportunity": "projectBrowserDiff recursively clones every nested semantic-diff detail entry even though browser projection can only modify top-level element-declaration entries; current diff children are exclusively child-only property or scenario entries.",
+        "impact": "Removing the redundant recursive projection deletes unnecessary control flow and changes browser diff projection from O(E + C) object copies to O(E), where E is top-level entries and C is nested property/scenario details, on every active-change runtime snapshot build.",
+        "evidence": [
+          "src/core/view.ts:105-116 maps every top-level entry and recursively maps entry.children through projectEntry.",
+          "src/core/view.ts:108-113 only changes entries whose kind is element-declaration; all other projected entries are shallow copies with identical values.",
+          "src/core/semantic-diff.ts:18-26 defines scenario and property as child-only detail kinds.",
+          "src/core/semantic-diff.ts:170-195 creates entity-entry children only through propertyEntries, which emits property entries.",
+          "src/core/semantic-diff.ts:215-250 creates requirement children only as property or scenario entries.",
+          "src/core/semantic-diff.ts:276-283 constructs element-declaration and requirement entries only at the top level.",
+          "src/core/view.ts:144-160 invokes projectBrowserDiff for every successfully compiled active-change runtime variant."
+        ],
+        "recommendation": "Make browser diff projection top-level only: retain the existing map over diff.entries and the before/after projection for element-declaration entries, but remove the recursive children override so the unchanged child arrays already carried by the entry spread pass through directly.",
+        "keyDesign": "projectBrowserDiff should map each top-level ChangeDiff entry once. For top-level element-declaration entries, project present before and after declarations with projectBrowserDeclaration. Preserve every other field, including children, through the existing entry spread without recursively rebuilding child-only detail entries.",
+        "preservationConstraints": [
+          "Preserve the serialized runtime manifest exactly for all current ChangeDiff inputs, including schema metadata, diagnostics, summary counts, entry ordering, duplicate handling, declared operations, and child ordering.",
+          "Continue projecting both before and after values of every top-level element-declaration entry so added, modified, and removed Elements retain complete definition, derived summary, and description data.",
+          "Preserve all nested property and scenario identities, operations, before/after values, ordering, and optional-field presence without mutation.",
+          "Leave non-element top-level entries byte-equivalent after JSON serialization.",
+          "Do not change ChangeDiff types, semantic-diff generation, runtime manifest public types, Browser behavior, Element Contracts, or Expected Semantic Model intent.",
+          "Do not introduce caching or shared mutable state; each returned top-level projected entry must remain a new object as it is today."
+        ],
+        "implementationOutline": [
+          "Add a focused runtime-snapshot test containing a modified Element Definition and nested Requirement or Scenario details.",
+          "Assert that top-level Declaration before/after values receive Browser projection while nested detail entries remain complete and ordered.",
+          "Remove the entry.children recursive mapping from projectEntry and retain the top-level diff.entries.map(projectEntry) call.",
+          "Run the focused view, semantic-diff/change-compiler, and Browser projection tests."
+        ],
+        "validation": [
+          "test/core/view.test.ts should prove a Change runtime snapshot still projects complete Definition data and the exact derived excerpt on top-level element-declaration before/after values.",
+          "test/core/view.test.ts should prove nested property and scenario entries retain the same identities, operations, ordering, and before/after content.",
+          "test/core/change-compiler.test.ts should continue proving the producer emits property/scenario child-only details.",
+          "pnpm exec vitest run test/core/view.test.ts test/core/change-compiler.test.ts test/core/likec4/generator.test.ts should pass.",
+          "pnpm --dir likec4 exec vitest run packages/diagram/src/xirang/architectureView.spec.ts packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx should confirm unchanged Browser presentation."
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "This is the only admitted optimization with statically closed behavior preservation: one deletion removes guaranteed redundant traversal and allocation from every active-change Browser snapshot without altering serialized output or public contracts. Other observed count-only arrays and linear Browser lookups have smaller or workload-dependent benefits.",
+        "id": "OPT-20260728T163821598Z-01",
+        "targetFileHashes": {
+          "src/core/view.ts": "ff906679e5e24df98c6a641ef87c89683a67b12aa43486010097eee9b3c0f179"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-28T16:38:21.599Z",
+        "findingId": "OPT-20260728T163821598Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "select",
+        "reason": "This is the only admitted optimization with statically closed behavior preservation: one deletion removes guaranteed redundant traversal and allocation from every active-change Browser snapshot without altering serialized output or public contracts. Other observed count-only arrays and linear Browser lookups have smaller or workload-dependent benefits.",
+        "timestamp": "2026-07-28T16:38:21.602Z",
+        "findingId": "OPT-20260728T163821598Z-01",
+        "hashes": {
+          "src/core/view.ts": "ff906679e5e24df98c6a641ef87c89683a67b12aa43486010097eee9b3c0f179"
+        }
+      },
+      {
+        "sequence": 3,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-28T16:38:30.340Z",
+        "findingId": "OPT-20260728T163821598Z-01",
+        "hashes": {
+          "src/core/view.ts": "ff906679e5e24df98c6a641ef87c89683a67b12aa43486010097eee9b3c0f179"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "verified",
+        "reason": "Speculative changes preserve the Expected Semantic Model and all stated constraints. src/core/view.ts still creates a new object for every top-level entry, projects present before/after values for added, modified, and removed top-level element declarations, and passes nested child arrays through unchanged; current semantic-diff generation restricts nested details to property/scenario entries. The focused test verifies complete definitions, derived summaries/descriptions, top-level object freshness, and nested identity/reference preservation. Formal and change validation succeeded. Root finding validation passed 3 files/36 tests, Browser validation passed 2 files/10 tests, TypeScript type checking passed, and git diff checks found no residue.",
+        "timestamp": "2026-07-28T16:51:30.603Z",
+        "findingId": "OPT-20260728T163821598Z-01"
+      }
+    ],
+    "reconciliationSignature": "77cf6b4933c9e40510aa08608c9ae4898babd6fce41423af60d5b9b7b0912ad6",
+    "unchangedReconciliations": 0
   }
 }

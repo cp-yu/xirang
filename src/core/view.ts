@@ -102,7 +102,7 @@ export function projectContracts(model: SemanticModel): Record<string, string> {
   return contracts;
 }
 
-function projectBrowserDiff(diff: ChangeDiff): ChangeDiff {
+export function projectBrowserDiff(diff: ChangeDiff): ChangeDiff {
   const projectEntry = (entry: ChangeDiff['entries'][number]): ChangeDiff['entries'][number] => ({
     ...entry,
     ...(entry.kind === 'element-declaration' && entry.before
@@ -111,7 +111,6 @@ function projectBrowserDiff(diff: ChangeDiff): ChangeDiff {
     ...(entry.kind === 'element-declaration' && entry.after
       ? { after: projectBrowserDeclaration(entry.after as SemanticModel['elements'][number]['declaration']) }
       : {}),
-    ...(entry.children ? { children: entry.children.map(projectEntry) } : {}),
   });
   return { ...diff, entries: diff.entries.map(projectEntry) };
 }

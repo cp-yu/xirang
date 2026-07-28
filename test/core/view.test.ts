@@ -5,12 +5,15 @@ import path from 'node:path';
 import {
   buildViewRuntimeSnapshot,
   launchEmbeddedLikeC4,
+  projectBrowserDiff,
   ViewCommand,
   type ViewLauncher,
   type ViewRuntimeSnapshot,
 } from '../../src/core/view.js';
 import { runLikeC4 } from '../../src/commands/arch/runner.js';
+import { definitionExcerpt } from '../../src/core/likec4/definition.js';
 import { likec4CacheDir } from '../../src/core/likec4/paths.js';
+import type { ChangeDiff } from '../../src/core/semantic-diff.js';
 import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 
 vi.mock('../../src/commands/arch/runner.js', () => ({ runLikeC4: vi.fn() }));
@@ -193,6 +196,44 @@ describe('ViewCommand', () => {
     expect(afterVariant.changeFingerprint).not.toBe(beforeVariant.changeFingerprint);
     expect(afterVariant.partitionFingerprints!.views).not.toBe(beforeVariant.partitionFingerprints!.views);
     expect(afterVariant.partitionFingerprints!.elements).toBe(beforeVariant.partitionFingerprints!.elements);
+  });
+
+  it('projects top-level Declarations without cloning child-only diff details', () => {
+    const beforeDefinition = `Before ${'界'.repeat(130)}.\n\nBefore boundary.`;
+    const afterDefinition = `After ${'🚀'.repeat(130)}.\n\nAfter boundary.`;
+    const children = [
+      { kind: 'property' as const, identity: 'alpha.id#definition', operation: 'MODIFIED' as const, before: beforeDefinition, after: afterDefinition },
+      { kind: 'scenario' as const, identity: 'alpha.id#Behavior#Preserved', operation: 'ADDED' as const, after: { body: 'Preserved' } },
+    ];
+    const diff: ChangeDiff = {
+      schemaVersion: '1',
+      change: 'definition-change',
+      valid: true,
+      formalFingerprint: 'formal',
+      changeFingerprint: 'change',
+      summary: { total: 2, ADDED: 0, MODIFIED: 2, REMOVED: 0 },
+      entries: [
+        {
+          kind: 'element-declaration',
+          identity: 'alpha.id',
+          operation: 'MODIFIED',
+          before: { identity: 'alpha.id', kind: 'capability', parent: 'root', title: 'Alpha', definition: beforeDefinition },
+          after: { identity: 'alpha.id', kind: 'capability', parent: 'root', title: 'Alpha', definition: afterDefinition },
+        },
+        { kind: 'requirement', identity: 'alpha.id#Behavior', operation: 'MODIFIED', children },
+      ],
+      diagnostics: [],
+    };
+
+    const projected = projectBrowserDiff(diff);
+
+    expect(projected.entries[0]).toMatchObject({
+      before: { definition: beforeDefinition, summary: definitionExcerpt(beforeDefinition), description: beforeDefinition },
+      after: { definition: afterDefinition, summary: definitionExcerpt(afterDefinition), description: afterDefinition },
+    });
+    expect(projected.entries[1]).not.toBe(diff.entries[1]);
+    expect(projected.entries[1].children).toBe(children);
+    expect(projected.entries[1].children).toEqual(children);
   });
 
   it('retains invalid active changes with their diagnostics', async () => {
