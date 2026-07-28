@@ -15,10 +15,14 @@
 │   │           └── 5. Scenario
 │   ├── 2. Relationships
 │   └── 2. Views
-│       ├── 3. Authored Views
-│       └── 3. Derived Views
-│           ├── 4. Element-derived Views
-│           └── 4. Change-derived Views
+│       ├── 3. View Composition
+│       │   ├── 4. Authored Views
+│       │   └── 4. Derived Views
+│       │       ├── 5. Element-derived Views
+│       │       └── 5. Change-derived Views
+│       └── 3. View Presentation
+│           ├── 4. Visual Presentation
+│           └── 4. Text Presentation
 └── 1. Change
     ├── 2. Semantic Delta
     │   └── 3. Semantic Delta Entry
@@ -120,23 +124,55 @@ Relationship 的 identity 即其全部内容。它不包含任何可在 identity
 
 ## 2. Views
 
-Views 是 Semantic Model 的呈现层。View 从模型中选择并组织 Elements 与 Relationships，形成面向用户的特定视角；View 不引入任何规范性语义，模型的语义不因 View 的变化而改变。Views 由 Authored Views 与 Derived Views 组成。
+Views 是 Semantic Model 面向用户的呈现层。View 面向特定的理解、讨论、审查或决策目的，选择、组织并呈现 Semantic Model 的语义对象及与 Change 相关的派生信息。
 
-### 3. Authored Views
+View 可以采用可视化、交互式或人类可读文本形式；仅供程序消费的结构化数据不属于 View。
 
-Authored Views 是用户显式声明并持久化的 View，存储于 View Definition Files。
+Views 不引入规范性语义，也不改变或替代 Semantic Model 与 Change 所表达的规范性语义。Views 由 Authored Views 与 Derived Views 组成。
 
-### 3. Derived Views
+### 3. View Composition
 
-Derived Views 由模型或 Change 自动推导，无需用户声明，不持久化。当前包括 Element-derived Views 与 Change-derived Views。
+View Composition 是 Views 按呈现视角的形成方式划分的组成维度。每个 View 要么由用户显式声明而成为 Authored View，要么由 Semantic Model 或 Change 确定性派生而成为 Derived View。
 
-#### 4. Element-derived Views
+Authored 与 Derived 共同构成 Views，并且一个 View 不同时属于两类。View 的组成方式独立于其采用的呈现方法。
+
+#### 4. Authored Views
+
+Authored Views 是由用户显式声明并作为 Semantic Model 组成持久化的 Views。Authored View 记录用户选择的呈现视角，规定需要选择和组织的语义信息。
+
+Authored View 的声明可以持续存在并具有稳定 identity，但不为其呈现的语义对象增加规范性语义。
+
+#### 4. Derived Views
+
+Derived Views 是由 Semantic Model 或 Change 确定性派生的 Views。Derived View 无需用户声明，其内容随派生依据变化而重新确定。
+
+Derived View 不作为 Semantic Model 组成持久化，也不作为 Semantic Delta Entry 的作用对象。当前包括 Element-derived Views 与 Change-derived Views。
+
+##### 5. Element-derived Views
 
 Element-derived Views 由 Element 及其 children 确定性推导，形成该 Element 的下钻视图。
 
-#### 4. Change-derived Views
+##### 5. Change-derived Views
 
-Change-derived Views 由 Semantic Model 与 Semantic Delta 推导，以 diff 视图呈现该 Change 新增、修改或移除的语义。
+Change-derived Views 是面向一个 Change，由当前 Semantic Model 与该 Change 确定性派生的 Derived Views。它组织并呈现该 Change 的目标语义，以及目标语义相对于当前 Semantic Model 的变化，使用户能够理解、讨论、审查和决策该 Change。
+
+### 3. View Presentation
+
+View Presentation 是 Views 按语义信息如何传达给用户划分的呈现维度。View 可以采用 Visual Presentation、Text Presentation，或者同时提供两种呈现方法。
+
+呈现方法不改变 View 的呈现视角、组成方式或所依据的规范性语义。同一个 View 的不同呈现方法应表达同一呈现视角，但可以根据媒介特性采用不同的组织与交互形式。
+
+#### 4. Visual Presentation
+
+Visual Presentation 是通过图形元素、空间组织与视觉编码向用户传达 View 所组织语义信息的呈现方法。它可以提供选择、导航和下钻等交互，使用户能够观察整体结构并查看局部语义。
+
+图形布局、视觉样式与交互状态只服务于呈现，不构成新的规范性语义。
+
+#### 4. Text Presentation
+
+Text Presentation 是通过人类可读文本向用户传达 View 所组织语义信息的呈现方法。它可以使用标题、段落、列表、表格或文本差异等形式组织内容，使用户能够阅读、引用和审查 View。
+
+文本的排版、措辞与输出载体只服务于呈现，不构成新的规范性语义。仅供程序消费的结构化数据不属于 Text Presentation。
 
 ## 1. Change
 
