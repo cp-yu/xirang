@@ -94,7 +94,7 @@
       "test/integration/windows-definition-ci.test.ts",
       "tmp_script/migrate-element-summary-to-definition.mjs"
     ],
-    "evidenceFingerprint": "12d8952e509dddf9e7d29dfce5998492c2e2f2fa1494e4ce37e12273ed7b3d67",
+    "evidenceFingerprint": "4713381e4422f7038037a58cbe3695bb99f362dd7245b76cf617f49083869434",
     "evidenceFingerprintEntries": [
       {
         "path": ".github/workflows/test-windows.yml",
@@ -166,15 +166,15 @@
       },
       {
         "path": ".xirang/model/elements/deterministic-operations.md",
-        "hash": "761b5702d3f3911665f0088caa361be29f7897f255c7a564bfcb43b73f06272d"
+        "hash": "bd5aa5148935414ca26a0192d9ae9040b6a99642c5776136662f49570c7e4554"
       },
       {
         "path": ".xirang/model/elements/element-contract.md",
-        "hash": "13fbc68297e2fd627aa8a15782b458ca4d1c383a244d63b5e71539a9b2cae073"
+        "hash": "7d38fb41db24054b545eee3a6097b5cf0e1a8767f1dade24c735c37a496b41c6"
       },
       {
         "path": ".xirang/model/elements/element-declaration.md",
-        "hash": "5853a1084cc7bc6540e3356b07a380dc2d32dde2e4f9bd83f93bfe2ab786ee3e"
+        "hash": "34ea50b2ea67518e5a711ed1654f59972e40d1a647359ac90a863b77ce05ec16"
       },
       {
         "path": ".xirang/model/elements/hierarchical-elements.md",
@@ -182,7 +182,7 @@
       },
       {
         "path": ".xirang/model/elements/project-tooling-configuration.md",
-        "hash": "e5bf15caac2fb78efc99ab727ba3d3492380c8a90c6d10f20af5899ace0890a0"
+        "hash": "a9d11851d6fbd38ff52e4e5e173082ff34d14d0dde68e7b7b51e6857a77c8110"
       },
       {
         "path": ".xirang/model/elements/project.root.md",
@@ -190,11 +190,11 @@
       },
       {
         "path": ".xirang/model/elements/semantic-browser.md",
-        "hash": "1c66303884325727cde340ae977d29b437951f07f43d563332538e3ea8eb17dd"
+        "hash": "3d6a75fc32ed3b1c08dfaf3a493e6507b3d6ee089eb99fd051dc2f3a26a435e0"
       },
       {
         "path": ".xirang/model/elements/semantic-model-build.md",
-        "hash": "ea092bd46a5f94c2f9b0013f331b5e6637373e206fbad87f34376dc85ffdf70d"
+        "hash": "e2b914f3b830fa1a67abf3739e8bc1ffe7e84113d02d1d427cbd4be380473203"
       },
       {
         "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
