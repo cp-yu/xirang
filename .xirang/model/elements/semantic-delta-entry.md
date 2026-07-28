@@ -4,7 +4,7 @@ identity: semantic-delta-entry
 kind: capability
 parent: semantic-delta
 title: Semantic Delta Entry
-summary: 以修改语、entity type 与稳定 identity 为单位的目标语义声明。
+definition: 以修改语、entity type 与稳定 identity 为单位的目标语义声明。
 ---
 
 ## Requirements

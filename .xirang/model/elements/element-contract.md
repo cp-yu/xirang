@@ -4,7 +4,7 @@ identity: element-contract
 kind: capability
 parent: hierarchical-elements
 title: Element Contract
-summary: Element 在一个确定模型状态中、其自身抽象层级上的完整规范性职责、保证、约束与行为。
+definition: Element 在一个确定模型状态中、其自身抽象层级上的完整规范性职责、保证、约束与行为。
 ---
 
 ## Requirements
@@ -20,7 +20,7 @@ Element Contract SHALL 只包含当前模型状态下成立的规范性语义，
 
 ### Requirement: 使用规范 Contract 结构
 
-Element Contract 正文 SHALL 仅包含 `## Requirements`，其下以有序 `### Requirement` 与 `#### Scenario` 表达规范性语义；描述性文字 SHALL 由 Declaration summary 承载。
+Element Contract 正文 SHALL 仅包含 `## Requirements`，其下以有序 `### Requirement` 与 `#### Scenario` 表达规范性语义；Element 的完整描述性概念语义 SHALL 由 Declaration Definition 承载。
 
 #### Scenario: 校验 Contract 单元
 

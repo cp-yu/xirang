@@ -28,7 +28,7 @@ export interface ElementDeclaration {
   kind: string;
   parent: string | null;
   title: string;
-  summary: string;
+  definition: string;
 }
 
 export interface Scenario {

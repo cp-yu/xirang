@@ -18,8 +18,8 @@ const CANDIDATE_FILES: Record<string, string> = {
   'metamodel/project.md': '---\nentity: element-kind\nidentity: project\ncontract: optional\nroot: true\n---\n',
   'metamodel/capability.md': '---\nentity: element-kind\nidentity: capability\ncontract: optional\n---\n',
   'metamodel/invokes.md': '---\nentity: relationship-kind\nidentity: invokes\n---\n',
-  'elements/root.md': '---\nentity: element-declaration\nidentity: root\nkind: project\nparent: null\ntitle: Root\nsummary: Project root\n---\n',
-  'elements/cap.a.md': '---\nentity: element-declaration\nidentity: cap.a\nkind: capability\nparent: root\ntitle: A\nsummary: A capability\n---\n',
+  'elements/root.md': '---\nentity: element-declaration\nidentity: root\nkind: project\nparent: null\ntitle: Root\ndefinition: Project root\n---\n',
+  'elements/cap.a.md': '---\nentity: element-declaration\nidentity: cap.a\nkind: capability\nparent: root\ntitle: A\ndefinition: A capability\n---\n',
   'relationships/invokes.yaml': 'relationships: []\n',
   'views/overview.md': '---\nentity: authored-view\nidentity: overview\ninclude: "*"\n---\n',
 };

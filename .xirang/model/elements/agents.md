@@ -4,7 +4,7 @@ identity: agents
 kind: domain
 parent: participants
 title: "Agents"
-summary: "代表息壤推进 Realization 的执行主体。"
+definition: "代表息壤推进 Realization 的执行主体。"
 ---
 
 ## Requirements

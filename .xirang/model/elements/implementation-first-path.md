@@ -4,7 +4,7 @@ identity: implementation-first-path
 kind: domain
 parent: change-formation
 title: "Implementation-first Path"
-summary: "从已经发生的项目实现出发形成完整 Change 的路径。"
+definition: "从已经发生的项目实现出发形成完整 Change 的路径。"
 ---
 
 ## Requirements

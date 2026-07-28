@@ -131,6 +131,23 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
 
   if (entity === 'element-declaration') {
     const contract = parseContract(body);
+    const definition = text(data.definition);
+    if (Object.hasOwn(data, 'summary')) {
+      diagnostics.push(error(
+        'LEGACY_ELEMENT_SUMMARY',
+        file,
+        'Legacy Element Declaration field "summary" is not supported; migrate it to "definition".',
+        identity,
+      ));
+    }
+    if (definition === undefined || definition.trim() === '') {
+      diagnostics.push(error(
+        'MISSING_ELEMENT_DEFINITION',
+        file,
+        `Element ${identity} must declare a non-empty definition`,
+        identity,
+      ));
+    }
     if (contract.leftover !== '') {
       diagnostics.push(error('UNSUPPORTED_CONTRACT_CONTENT', file,
         'Element contract content outside the Requirements section cannot be represented', identity));
@@ -144,7 +161,7 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
           kind: text(data.kind) ?? '',
           parent: text(data.parent) ?? null,
           title: text(data.title) ?? '',
-          summary: text(data.summary) ?? '',
+          definition: definition ?? '',
         },
         requirements: contract.requirements,
       },

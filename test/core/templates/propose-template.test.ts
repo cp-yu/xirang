@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ELEMENT_CONTRACT_SEMANTICS,
+  ELEMENT_DEFINITION_SEMANTICS,
   XIRANG_PHILOSOPHY,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import {
@@ -40,6 +41,14 @@ describe('propose template post-validation flow', () => {
     const instructions = getOpsxProposeSkillTemplate().instructions;
     expect(instructions).toContain(XIRANG_PHILOSOPHY);
     expect(instructions).toContain(ELEMENT_CONTRACT_SEMANTICS);
+  });
+
+  it('writes complete target Definitions and stops when their boundaries remain unresolved', () => {
+    const instructions = getOpsxProposeSkillTemplate().instructions;
+    expect(instructions).toContain(ELEMENT_DEFINITION_SEMANTICS);
+    expect(instructions).toContain('complete target Definition');
+    expect(instructions).toContain('not a summary of what changed');
+    expect(instructions).toContain('stop and ask one focused question instead of guessing the Definition');
   });
 
   it('resolves new and existing change identity without rename semantics', () => {
@@ -129,7 +138,7 @@ describe('propose template post-validation flow', () => {
       expect(body).toContain('impact scope');
       expect(body).toContain('approach');
       expect(body).toContain('verification method');
-      expect(body).toContain('unresolved Semantic Delta decisions across Contract or structural scope');
+      expect(body).toContain('unresolved Semantic Delta decisions across Definition, Contract, or structural scope');
       expect(body).toContain('explicitly overrides the readiness recommendation');
       expect(body).toContain('does not authorize guessing source decisions');
       expect(body).toMatch(/ask one focused question at a time/i);

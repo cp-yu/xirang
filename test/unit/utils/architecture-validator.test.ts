@@ -11,10 +11,10 @@ function report(files: Record<string, string>) {
 
 const ROOT_KIND = '---\nentity: element-kind\nidentity: project\ncontract: optional\nroot: true\n---\n';
 const CAPABILITY_KIND = '---\nentity: element-kind\nidentity: capability\ncontract: optional\n---\n';
-const ROOT = '---\nentity: element-declaration\nidentity: root\nkind: project\nparent: null\ntitle: Root\nsummary: S\n---\n';
+const ROOT = '---\nentity: element-declaration\nidentity: root\nkind: project\nparent: null\ntitle: Root\ndefinition: S\n---\n';
 
 function element(identity: string, parent = 'root', kind = 'capability', contract = ''): string {
-  return `---\nentity: element-declaration\nidentity: ${identity}\nkind: ${kind}\nparent: ${parent}\ntitle: T\nsummary: S\n---\n${contract}`;
+  return `---\nentity: element-declaration\nidentity: ${identity}\nkind: ${kind}\nparent: ${parent}\ntitle: T\ndefinition: S\n---\n${contract}`;
 }
 
 function requirements(...blocks: string[]): string {

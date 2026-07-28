@@ -4,7 +4,7 @@ identity: realization
 kind: domain
 parent: project.root
 title: Realization
-summary: 由参与者通过交互界面落实 Semantic Model 构建与 Change 演进的过程维。
+definition: 由参与者通过交互界面落实 Semantic Model 构建与 Change 演进的过程维。
 ---
 
 ## Requirements

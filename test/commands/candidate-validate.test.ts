@@ -28,7 +28,11 @@ describe('Candidate validation', () => {
 
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-candidate-validate-'));
-    await new SetupCommand({ tools: 'none', force: true }).execute(root);
+    await new SetupCommand({
+      tools: 'none',
+      force: true,
+      projectDefinition: 'Candidate validation test project.',
+    }).execute(root);
     await initializeCandidate(root, { kind: 'current' });
     candidate = path.join(root, '.xirang', 'candidate');
   });
@@ -83,13 +87,14 @@ describe('Candidate validation', () => {
     await fs.writeFile(path.join(formal, 'metamodel', 'obsolete.md'),
       '---\nentity: element-kind\nidentity: obsolete\ncontract: optional\n---\n');
     await fs.writeFile(path.join(formal, 'elements', 'obsolete.md'),
-      '---\nentity: element-declaration\nidentity: obsolete\nkind: obsolete\nparent: project.root\ntitle: Obsolete\nsummary: Old\n---\n');
+      '---\nentity: element-declaration\nidentity: obsolete\nkind: obsolete\nparent: project.root\ntitle: Obsolete\ndefinition: Old\n---\n');
     await fs.writeFile(path.join(candidate, 'metamodel', 'capability.md'),
       '---\nentity: element-kind\nidentity: capability\ncontract: optional\n---\n');
     await fs.writeFile(path.join(candidate, 'elements', 'added.md'),
-      '---\nentity: element-declaration\nidentity: added\nkind: capability\nparent: project.root\ntitle: Added\nsummary: New\n---\n');
+      '---\nentity: element-declaration\nidentity: added\nkind: capability\nparent: project.root\ntitle: Added\ndefinition: New\n---\n');
     const projectUnit = path.join(candidate, 'elements', 'project.root.md');
-    await fs.writeFile(projectUnit, (await fs.readFile(projectUnit, 'utf8')).replace('Project intent', 'Changed project intent'));
+    await fs.writeFile(projectUnit, (await fs.readFile(projectUnit, 'utf8'))
+      .replace('Candidate validation test project.', 'Changed candidate validation test project.'));
 
     const result = await validateCandidate(root);
 
@@ -112,7 +117,7 @@ describe('Candidate validation', () => {
       'kind: project',
       'parent: null',
       'title: Project',
-      'summary: Project intent',
+      'definition: Project intent',
       '---',
       '',
       '## Requirements',
@@ -142,7 +147,7 @@ describe('Candidate validation', () => {
       'kind: project',
       'parent: null',
       'title: Project',
-      'summary: Project intent',
+      'definition: Project intent',
       '---',
       '',
       '## Requirements',
@@ -182,7 +187,7 @@ describe('Candidate validation', () => {
       '---', 'entity: relationship-kind', 'identity: invokes', 'sourceKinds:',
       ...sourceKinds.map(value => `  - ${value}`), 'targetKinds:', ...targetKinds.map(value => `  - ${value}`), '---', '',
     ].join('\n');
-    const element = ['---', 'entity: element-declaration', 'identity: cap', 'kind: capability', 'parent: project.root', 'title: Cap', 'summary: Cap', '---', ''].join('\n');
+    const element = ['---', 'entity: element-declaration', 'identity: cap', 'kind: capability', 'parent: project.root', 'title: Cap', 'definition: Cap', '---', ''].join('\n');
     const view = (include: string[]) => [
       '---', 'entity: authored-view', 'identity: index', 'include:', ...include.map(value => `  - ${value}`), '---', '',
     ].join('\n');
@@ -284,7 +289,7 @@ describe('Candidate validation', () => {
 
   it('rejects an Element whose parent is unknown', async () => {
     await fs.writeFile(path.join(candidate, 'elements', 'orphan.md'),
-      '---\nentity: element-declaration\nidentity: orphan\nkind: project\nparent: ghost\ntitle: Orphan\nsummary: S\n---\n');
+      '---\nentity: element-declaration\nidentity: orphan\nkind: project\nparent: ghost\ntitle: Orphan\ndefinition: S\n---\n');
 
     const result = await validateCandidate(root);
 
@@ -296,7 +301,7 @@ describe('Candidate validation', () => {
     await fs.writeFile(path.join(candidate, 'metamodel', 'capability.md'),
       '---\nentity: element-kind\nidentity: capability\ncontract: optional\nparents:\n  - missing-kind\n---\n');
     await fs.writeFile(path.join(candidate, 'elements', 'capability.md'),
-      '---\nentity: element-declaration\nidentity: capability\nkind: capability\nparent: project.root\ntitle: Capability\nsummary: S\n---\n\n## Requirements\n\n### Requirement: R\n\nBody.\n');
+      '---\nentity: element-declaration\nidentity: capability\nkind: capability\nparent: project.root\ntitle: Capability\ndefinition: S\n---\n\n## Requirements\n\n### Requirement: R\n\nBody.\n');
 
     const result = await validateCandidate(root);
 

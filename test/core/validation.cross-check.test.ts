@@ -8,7 +8,7 @@ import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/mo
 const CONTRACT = '## Requirements\n\n### Requirement: Login\nThe system SHALL support login.\n\n#### Scenario: Existing path\n- **WHEN** credentials are valid\n- **THEN** login succeeds';
 
 function deltaUnit(operation: string, body: string): string {
-  return `---\noperation: ${operation}\nentity: element-declaration\nidentity: auth.id\nkind: capability\nparent: root\ntitle: Auth\nsummary: Auth\n---\n\n${body}`;
+  return `---\noperation: ${operation}\nentity: element-declaration\nidentity: auth.id\nkind: capability\nparent: root\ntitle: Auth\ndefinition: Auth\n---\n\n${body}`;
 }
 
 /**
@@ -20,7 +20,7 @@ describe('Requirement delta cross-check against the Formal Semantic Model', () =
 
   beforeEach(async () => {
     await writeProjectModel(testDir, minimalModel({
-      elements: [{ identity: 'auth.id', parent: 'root', title: 'Auth', summary: 'Auth', requirements: CONTRACT }],
+      elements: [{ identity: 'auth.id', parent: 'root', title: 'Auth', definition: 'Auth', requirements: CONTRACT }],
     }));
   });
 

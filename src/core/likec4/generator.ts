@@ -1,5 +1,6 @@
 import { compareUtf8Bytes } from '../candidate/canonical.js';
 import type { ModelElement, SemanticModel } from '../model/types.js';
+import { definitionExcerpt } from './definition.js';
 import { createNamespace, deriveLocalNames, type LocalNames } from './local-names.js';
 
 const LIKEC4_PROJECT_CONFIG = '{\n  "name": "xirang",\n  "implicitViews": true\n}\n';
@@ -46,10 +47,11 @@ function renderElement(
   kinds: Map<string, string>,
   indent: string,
 ): string[] {
-  const { identity, kind, title, summary } = element.declaration;
+  const { identity, kind, title, definition } = element.declaration;
   const inner = `${indent}  `;
   return [
-    `${indent}${names.nameOf(identity)} = ${nameOf(kinds, kind)} ${quote(title)} ${quote(summary)} {`,
+    `${indent}${names.nameOf(identity)} = ${nameOf(kinds, kind)} ${quote(title)} ${quote(definitionExcerpt(definition))} {`,
+    `${inner}description ${quote(definition)}`,
     `${inner}metadata {`,
     `${inner}  elementId ${quote(identity)}`,
     `${inner}}`,

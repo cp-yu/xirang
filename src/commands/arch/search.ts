@@ -1,14 +1,13 @@
-import { modelRoot } from '../../core/model/paths.js';
-import { parseSemanticModel } from '../../core/model/parser.js';
 import type { ElementDeclaration } from '../../core/model/types.js';
 import { compareCodePoints } from '../../utils/stable-order.js';
+import { readValidArchitecture } from './reader.js';
 
 export interface ArchitectureSearchOptions {
   limit?: number;
 }
 
 export interface ArchitectureSearchEvidence {
-  field: 'elementId' | 'title' | 'summary' | 'requirement';
+  field: 'elementId' | 'title' | 'definition' | 'requirement';
   text: string;
 }
 
@@ -53,7 +52,7 @@ export async function searchArchitecture(
     throw new Error('Search limit must be a positive integer');
   }
 
-  const { model } = await parseSemanticModel(modelRoot(projectRoot));
+  const model = await readValidArchitecture(projectRoot);
   const matches: Array<ArchitectureSearchMatch & { rank: number }> = [];
 
   for (const element of model.elements) {
@@ -62,7 +61,7 @@ export async function searchArchitecture(
     addEvidence(evidence, searchQuery, 'elementId', declaration.identity, 0, true);
     addEvidence(evidence, searchQuery, 'title', declaration.title, 1, true);
     addEvidence(evidence, searchQuery, 'title', declaration.title, 2);
-    addEvidence(evidence, searchQuery, 'summary', declaration.summary, 3);
+    addEvidence(evidence, searchQuery, 'definition', declaration.definition, 3);
     for (const requirement of element.requirements) {
       addEvidence(evidence, searchQuery, 'requirement', requirement.name, 4);
     }
@@ -94,7 +93,13 @@ export async function searchArchitecture(
 export function formatArchitectureSearchText(result: ArchitectureSearchResult): string {
   if (result.matches.length === 0) return `No Formal Semantic Model matches for: ${result.query}`;
   return result.matches.map(match => {
-    const evidence = match.evidence.map(item => `  ${item.field}: ${item.text}`).join('\n');
-    return `${match.element.identity}  ${match.element.title}\n${evidence}`;
+    const evidence = match.evidence
+      .filter(item => item.field !== 'definition')
+      .map(item => `  ${item.field}: ${item.text}`);
+    return [
+      `${match.element.identity}  ${match.element.title}`,
+      `Definition: ${match.element.definition}`,
+      ...evidence,
+    ].join('\n');
   }).join('\n\n');
 }

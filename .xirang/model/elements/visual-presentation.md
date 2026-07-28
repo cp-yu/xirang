@@ -4,7 +4,7 @@ identity: visual-presentation
 kind: capability
 parent: view-presentation
 title: Visual Presentation
-summary: 通过图形元素、空间组织与视觉编码呈现 Views 的方法。
+definition: 通过图形元素、空间组织与视觉编码呈现 Views 的方法。
 ---
 
 ## Requirements

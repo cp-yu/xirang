@@ -36,10 +36,10 @@ describe('arch commands', () => {
       ],
       relationshipKinds: [{ identity: 'invokes' }, { identity: 'precedes' }],
       elements: [
-        { identity: 'project.root', kind: 'semanticProject', parent: null, title: 'Project', summary: 'Project intent', requirements: CONTRACT },
-        { identity: 'payments', kind: 'area', parent: 'project.root', title: 'Payments', summary: 'Payment refinement' },
-        { identity: 'payment.authorize', kind: 'operation', parent: 'payments', title: 'Authorize', summary: 'Authorize payment', requirements: CONTRACT },
-        { identity: 'payment.audit', kind: 'operation', parent: 'payments', title: 'Audit', summary: 'Audit payment' },
+        { identity: 'project.root', kind: 'semanticProject', parent: null, title: 'Project', definition: 'Project intent', requirements: CONTRACT },
+        { identity: 'payments', kind: 'area', parent: 'project.root', title: 'Payments', definition: 'Payment refinement' },
+        { identity: 'payment.authorize', kind: 'operation', parent: 'payments', title: 'Authorize', definition: 'Authorize payment', requirements: CONTRACT },
+        { identity: 'payment.audit', kind: 'operation', parent: 'payments', title: 'Audit', definition: 'Audit payment' },
       ],
       relationships: [{ source: 'payment.authorize', kind: 'invokes', target: 'payment.audit' }],
       views: [{ identity: 'index' }],
@@ -127,7 +127,7 @@ describe('arch commands', () => {
       kind: 'operation',
       parent: 'payments',
       title: 'Authorize',
-      summary: 'Authorize payment',
+      definition: 'Authorize payment',
       contract: 'optional',
       hasContract: true,
       children: [],
@@ -190,7 +190,7 @@ describe('arch commands', () => {
     expect(result).toEqual({ success: true, errors: [], warnings: [] });
 
     await fs.writeFile(path.join(modelRoot(root), 'elements', 'orphan.md'),
-      '---\nentity: element-declaration\nidentity: orphan\nkind: operation\nparent: ghost\ntitle: Orphan\nsummary: S\n---\n');
+      '---\nentity: element-declaration\nidentity: orphan\nkind: operation\nparent: ghost\ntitle: Orphan\ndefinition: S\n---\n');
     const broken = await validateArchitectureCommand(root);
     expect(broken.success).toBe(false);
     expect(broken.errors.map(item => item.code)).toContain('MISSING_PARENT');
@@ -229,7 +229,7 @@ describe('arch commands', () => {
     const changeDir = path.join(root, '.xirang', 'changes', 'add-next', 'elements');
     await fs.mkdir(changeDir, { recursive: true });
     await fs.writeFile(path.join(changeDir, 'payment.next.md'),
-      '---\noperation: ADDED\nentity: element-declaration\nidentity: payment.next\nkind: operation\nparent: payments\ntitle: Next\nsummary: Runs next work\n---\n');
+      '---\noperation: ADDED\nentity: element-declaration\nidentity: payment.next\nkind: operation\nparent: payments\ntitle: Next\ndefinition: Runs next work\n---\n');
 
     const result = await validateArchitectureCommand(root, { change: 'add-next' });
 
@@ -244,7 +244,7 @@ describe('arch commands', () => {
     const changeDir = path.join(root, '.xirang', 'changes', 'add-next', 'elements');
     await fs.mkdir(changeDir, { recursive: true });
     await fs.writeFile(path.join(changeDir, 'payment.next.md'),
-      '---\noperation: ADDED\nentity: element-declaration\nidentity: payment.next\nkind: operation\nparent: payments\ntitle: Next\nsummary: Runs next work\n---\n');
+      '---\noperation: ADDED\nentity: element-declaration\nidentity: payment.next\nkind: operation\nparent: payments\ntitle: Next\ndefinition: Runs next work\n---\n');
     const before = await readModelTree(modelRoot(root));
 
     const result = await validateArchitectureCommand(root, { change: 'add-next' });

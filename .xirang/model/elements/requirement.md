@@ -4,7 +4,7 @@ identity: requirement
 kind: capability
 parent: element-contract
 title: Requirement
-summary: Element Contract 中表达一项可独立演进规范承诺的稳定语义条目。
+definition: Element Contract 中表达一项可独立演进规范承诺的稳定语义条目。
 ---
 
 ## Requirements

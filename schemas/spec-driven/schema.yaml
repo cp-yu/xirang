@@ -62,7 +62,7 @@ artifacts:
 
       Author units by self-declared entity type:
       - Frontmatter declares `entity`; the partition does not determine entity type.
-      - element-declaration: identity, kind, parent, title, summary
+      - element-declaration: identity, kind, parent, title, definition
       - element-kind: identity, contract; optional root, parents, children
       - relationship-kind: identity; optional sourceKinds, targetKinds
       - authored-view: identity, include; optional of, title, autoLayout
@@ -78,7 +78,7 @@ artifacts:
       - When only Contract entries change, declaration frontmatter locates the Element without `operation`; when only the Declaration changes, leave the body empty.
 
       Follow partition-specific rules:
-      - `elements/` units combine one Element Declaration entry with zero or more Requirement entries. A Requirement identity is `<element identity>#<name>` globally and only `<name>` within its unit; descriptive prose belongs only in `summary`.
+      - `elements/` units combine one Element Declaration entry with zero or more Requirement entries. A Requirement identity is `<element identity>#<name>` globally and only `<name>` within its unit; complete concept identity and scope prose belongs only in `definition`.
       - `metamodel/` units contain one Element Kind or Relationship Kind entry.
       - `views/` units contain one Authored View entry.
       - `relationships/` YAML contains `{operation, source, kind, target}` entries, has no description field, and does not support `MODIFIED` because the three identity fields are its complete content.

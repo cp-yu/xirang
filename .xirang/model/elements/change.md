@@ -4,7 +4,7 @@ identity: change
 kind: domain
 parent: project.root
 title: "Change"
-summary: "承载一次项目演进意图的 Semantic Delta 与辅助 Change Plan。"
+definition: "承载一次项目演进意图的 Semantic Delta 与辅助 Change Plan。"
 ---
 
 ## Requirements

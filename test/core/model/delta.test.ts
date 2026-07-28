@@ -5,7 +5,7 @@ import { createModelRoot } from './fixtures.js';
 
 function element(identity: string, kind: string, parent: string | null, requirements: string[] = []): ModelElement {
   return {
-    declaration: { identity, kind, parent, title: identity, summary: '' },
+    declaration: { identity, kind, parent, title: identity, definition: `Definition of ${identity}.` },
     requirements: requirements.map(name => ({ name, body: `${name} body`, scenarios: [] })),
   };
 }
@@ -34,7 +34,7 @@ describe('parseSemanticDelta', () => {
         'kind: capability',
         'parent: root',
         'title: Renamed',
-        'summary: New summary',
+        'definition: Full new definition.',
         '---',
         '',
         '## ADDED Requirements',
@@ -67,7 +67,7 @@ describe('parseSemanticDelta', () => {
         operation: 'MODIFIED',
         entity: 'element-declaration',
         identity: 'cap.a',
-        target: { identity: 'cap.a', kind: 'capability', parent: 'root', title: 'Renamed', summary: 'New summary' },
+        target: { identity: 'cap.a', kind: 'capability', parent: 'root', title: 'Renamed', definition: 'Full new definition.' },
       },
       {
         operation: 'ADDED',
@@ -92,13 +92,29 @@ describe('parseSemanticDelta', () => {
   it('uses frontmatter without operation only to locate the host', async () => {
     const root = await createModelRoot({
       'elements/cap.a.md': [
-        '---', 'entity: element-declaration', 'identity: cap.a', '---', '',
+        '---', 'entity: element-declaration', 'identity: cap.a', 'definition: Host definition.', '---', '',
         '## ADDED Requirements', '', '### Requirement: Only contract', '', 'SHALL hold.', '',
       ].join('\n'),
     });
     const { delta, diagnostics } = await parseSemanticDelta(root);
     expect(diagnostics).toEqual([]);
     expect(delta.entries.map(entry => entry.entity)).toEqual(['requirement']);
+  });
+
+  it('accepts an identity-only REMOVED Element Declaration', async () => {
+    const root = await createModelRoot({
+      'elements/cap.a.md': [
+        '---', 'operation: REMOVED', 'entity: element-declaration', 'identity: cap.a', '---', '',
+      ].join('\n'),
+    });
+
+    const { delta, diagnostics } = await parseSemanticDelta(root);
+    expect(diagnostics).toEqual([]);
+    expect(delta.entries).toEqual([{
+      operation: 'REMOVED',
+      entity: 'element-declaration',
+      identity: 'cap.a',
+    }]);
   });
 
   it('supports all three operations on metamodel, views and relationships', async () => {
@@ -168,11 +184,17 @@ describe('applySemanticDelta', () => {
         operation: 'MODIFIED',
         entity: 'element-declaration',
         identity: 'cap.a',
-        target: { identity: 'cap.a', kind: 'project', parent: 'root', title: 'cap.a', summary: '' },
+        target: { identity: 'cap.a', kind: 'project', parent: 'root', title: 'cap.a', definition: 'Changed capability boundary.' },
       }],
     });
     expect(result.diagnostics).toEqual([]);
-    expect(result.expected.elements[1].declaration.kind).toBe('project');
+    expect(result.expected.elements[1].declaration).toEqual({
+      identity: 'cap.a',
+      kind: 'project',
+      parent: 'root',
+      title: 'cap.a',
+      definition: 'Changed capability boundary.',
+    });
     expect(result.expected.elements[1].requirements.map(item => item.name)).toEqual(['Existing']);
     expect([...result.touched]).toEqual(['cap.a']);
   });

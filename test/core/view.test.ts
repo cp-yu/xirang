@@ -5,12 +5,15 @@ import path from 'node:path';
 import {
   buildViewRuntimeSnapshot,
   launchEmbeddedLikeC4,
+  projectBrowserDiff,
   ViewCommand,
   type ViewLauncher,
   type ViewRuntimeSnapshot,
 } from '../../src/core/view.js';
 import { runLikeC4 } from '../../src/commands/arch/runner.js';
+import { definitionExcerpt } from '../../src/core/likec4/definition.js';
 import { likec4CacheDir } from '../../src/core/likec4/paths.js';
+import type { ChangeDiff } from '../../src/core/semantic-diff.js';
 import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 
 vi.mock('../../src/commands/arch/runner.js', () => ({ runLikeC4: vi.fn() }));
@@ -18,14 +21,14 @@ vi.mock('../../src/commands/arch/runner.js', () => ({ runLikeC4: vi.fn() }));
 const CONTRACT = '## Requirements\n\n### Requirement: Existing\nThe system SHALL preserve existing behavior.\n\n#### Scenario: Existing\n- **WHEN** invoked\n- **THEN** existing behavior remains';
 
 function requirementDelta(change: string): string {
-  return '---\noperation: MODIFIED\nentity: element-declaration\nidentity: alpha.id\nkind: capability\nparent: root\ntitle: Alpha\nsummary: Alpha summary\n---\n\n'
+  return '---\noperation: MODIFIED\nentity: element-declaration\nidentity: alpha.id\nkind: capability\nparent: root\ntitle: Alpha\ndefinition: Alpha definition\n---\n\n'
     + `## ADDED Requirements\n\n### Requirement: ${change}\nThe system SHALL provide ${change} behavior.\n\n`
     + `#### Scenario: ${change}\n- **WHEN** invoked\n- **THEN** ${change} behavior is provided\n`;
 }
 
 async function writeBaseModel(root: string): Promise<void> {
   await writeProjectModel(root, minimalModel({
-    elements: [{ identity: 'alpha.id', parent: 'root', title: 'Alpha', summary: 'Alpha summary', requirements: CONTRACT }],
+    elements: [{ identity: 'alpha.id', parent: 'root', title: 'Alpha', definition: 'Alpha definition', requirements: CONTRACT }],
   }));
 }
 
@@ -195,10 +198,48 @@ describe('ViewCommand', () => {
     expect(afterVariant.partitionFingerprints!.elements).toBe(beforeVariant.partitionFingerprints!.elements);
   });
 
+  it('projects top-level Declarations without cloning child-only diff details', () => {
+    const beforeDefinition = `Before ${'界'.repeat(130)}.\n\nBefore boundary.`;
+    const afterDefinition = `After ${'🚀'.repeat(130)}.\n\nAfter boundary.`;
+    const children = [
+      { kind: 'property' as const, identity: 'alpha.id#definition', operation: 'MODIFIED' as const, before: beforeDefinition, after: afterDefinition },
+      { kind: 'scenario' as const, identity: 'alpha.id#Behavior#Preserved', operation: 'ADDED' as const, after: { body: 'Preserved' } },
+    ];
+    const diff: ChangeDiff = {
+      schemaVersion: '1',
+      change: 'definition-change',
+      valid: true,
+      formalFingerprint: 'formal',
+      changeFingerprint: 'change',
+      summary: { total: 2, ADDED: 0, MODIFIED: 2, REMOVED: 0 },
+      entries: [
+        {
+          kind: 'element-declaration',
+          identity: 'alpha.id',
+          operation: 'MODIFIED',
+          before: { identity: 'alpha.id', kind: 'capability', parent: 'root', title: 'Alpha', definition: beforeDefinition },
+          after: { identity: 'alpha.id', kind: 'capability', parent: 'root', title: 'Alpha', definition: afterDefinition },
+        },
+        { kind: 'requirement', identity: 'alpha.id#Behavior', operation: 'MODIFIED', children },
+      ],
+      diagnostics: [],
+    };
+
+    const projected = projectBrowserDiff(diff);
+
+    expect(projected.entries[0]).toMatchObject({
+      before: { definition: beforeDefinition, summary: definitionExcerpt(beforeDefinition), description: beforeDefinition },
+      after: { definition: afterDefinition, summary: definitionExcerpt(afterDefinition), description: afterDefinition },
+    });
+    expect(projected.entries[1]).not.toBe(diff.entries[1]);
+    expect(projected.entries[1].children).toBe(children);
+    expect(projected.entries[1].children).toEqual(children);
+  });
+
   it('retains invalid active changes with their diagnostics', async () => {
     await writeBaseModel(tempDir);
     await writeChangeDelta(tempDir, 'broken', {
-      'elements/ghost.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: ghost.id\nkind: capability\nparent: root\ntitle: Ghost\nsummary: Ghost\n---\n',
+      'elements/ghost.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: ghost.id\nkind: capability\nparent: root\ntitle: Ghost\ndefinition: Ghost definition.\n---\n',
     });
 
     const snapshot = await buildViewRuntimeSnapshot(tempDir);

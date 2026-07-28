@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { ELEMENT_CONTRACT_SEMANTICS } from '../../../src/core/templates/fragments/xirang-fragments.js';
+import {
+  ELEMENT_CONTRACT_SEMANTICS,
+  ELEMENT_DEFINITION_SEMANTICS,
+} from '../../../src/core/templates/fragments/xirang-fragments.js';
 import { getBuildSkillTemplate } from '../../../src/core/templates/workflows/build.js';
 
 describe('xirang-build workflow', () => {
@@ -75,10 +78,22 @@ describe('xirang-build workflow', () => {
     expect(instructions).toContain('do not create a Requirement provenance matrix');
   });
 
+  it('authors and independently reviews complete Definitions before Contracts', () => {
+    const instructions = getBuildSkillTemplate().instructions;
+    const definitionIndex = instructions.indexOf('Element Definitions');
+    const contractIndex = instructions.indexOf('Element Contracts', definitionIndex);
+
+    expect(instructions).toContain(ELEMENT_DEFINITION_SEMANTICS);
+    expect(definitionIndex).toBeGreaterThanOrEqual(0);
+    expect(contractIndex).toBeGreaterThan(definitionIndex);
+    expect(instructions).toContain('review each Definition independently before authoring its Contract');
+    expect(instructions).toContain('concept boundary conflicts with its parent, children, or siblings');
+  });
+
   it('authors the Candidate in breadth-first semantic layers', () => {
     const instructions = getBuildSkillTemplate().instructions;
 
-    expect(instructions).toContain('Metamodel → Element Declarations and hierarchy → Element Contracts → Relationships → Authored Views');
+    expect(instructions).toContain('Metamodel → Element Declarations, hierarchy, and Element Definitions → Element Contracts → Relationships → Authored Views');
     expect(instructions).toContain('Do not require full `candidate validate` for an intentionally incomplete intermediate layer');
     expect(instructions).toContain('recheck every dependent later layer');
   });

@@ -51,13 +51,15 @@ function withDefined<T extends object>(value: T): T {
   return Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined)) as T;
 }
 
+const definitionText = scalarText.filter(value => value.trim().length > 0);
+
 const element: fc.Arbitrary<ModelElement> = fc.record({
   declaration: fc.record({
     identity,
     kind: scalarText,
     parent: fc.option(scalarText, { nil: null }),
     title: scalarText,
-    summary: scalarText,
+    definition: definitionText,
   }),
   requirements: fc.array(requirement, { maxLength: 3 }),
 });
@@ -161,7 +163,7 @@ describe('serializer round-trip properties', () => {
     expect(roundTrip({
       ...empty,
       elements: [{
-        declaration: { identity: 'a', kind: 'k', parent: null, title: '', summary: '' },
+        declaration: { identity: 'a', kind: 'k', parent: null, title: '', definition: 'Element A.' },
         requirements: [],
       }],
       elementKinds: [{ identity: 'k', contract: 'optional', body: '' }],
@@ -187,7 +189,7 @@ describe('serializer round-trip properties', () => {
     const multiline = 'first line\n\n  indented "quoted" \\ line\n- dash';
     const model: SemanticModel = {
       elements: [{
-        declaration: { identity: 'a', kind: 'k', parent: null, title: 'a: b', summary: 'one\ntwo' },
+        declaration: { identity: 'a', kind: 'k', parent: null, title: 'a: b', definition: 'one\ntwo' },
         requirements: [{
           name: 'Handles escapes',
           body: multiline,

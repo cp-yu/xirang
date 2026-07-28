@@ -87,6 +87,7 @@ describe('xirang CLI e2e basics', () => {
     expect(normalizedOutput).toContain(
       `Use "all", "none", or a comma-separated list of: ${expectedTools}`
     );
+    expect(normalizedOutput).toContain('--project-definition <definition>');
   });
 
   it('reports the package version', async () => {
@@ -156,13 +157,15 @@ describe('xirang CLI e2e basics', () => {
   });
 
   describe('setup command non-interactive options', () => {
+    const projectDefinition = 'CLI-authorized project identity and scope boundary.';
+
     it('initializes with --tools all option', async () => {
       const projectDir = await prepareFixture('tmp-init');
       const emptyProjectDir = path.join(projectDir, '..', 'empty-project');
       await fs.mkdir(emptyProjectDir, { recursive: true });
 
       const codexHome = path.join(emptyProjectDir, '.codex');
-      const result = await runCLI(['setup', '--tools', 'all'], {
+      const result = await runCLI(['setup', '--tools', 'all', '--project-definition', projectDefinition], {
         cwd: emptyProjectDir,
         env: { CODEX_HOME: codexHome },
       });
@@ -174,6 +177,8 @@ describe('xirang CLI e2e basics', () => {
       const cursorSkillPath = path.join(emptyProjectDir, '.cursor/skills/xirang-explore/SKILL.md');
       expect(await fileExists(claudeSkillPath)).toBe(true);
       expect(await fileExists(cursorSkillPath)).toBe(true);
+      const rootUnit = await fs.readFile(path.join(emptyProjectDir, '.xirang/model/elements/project.root.md'), 'utf8');
+      expect(rootUnit).toContain(`definition: ${projectDefinition}`);
     });
 
     it('initializes with --tools list option', async () => {
@@ -181,7 +186,10 @@ describe('xirang CLI e2e basics', () => {
       const emptyProjectDir = path.join(projectDir, '..', 'empty-project');
       await fs.mkdir(emptyProjectDir, { recursive: true });
 
-      const result = await runCLI(['setup', '--tools', 'claude'], { cwd: emptyProjectDir });
+      const result = await runCLI(
+        ['setup', '--tools', 'claude', '--project-definition', projectDefinition],
+        { cwd: emptyProjectDir },
+      );
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('Xirang Setup Complete');
       expect(result.stdout).toContain('Claude Code');
@@ -198,7 +206,10 @@ describe('xirang CLI e2e basics', () => {
       const emptyProjectDir = path.join(projectDir, '..', 'empty-project');
       await fs.mkdir(emptyProjectDir, { recursive: true });
 
-      const result = await runCLI(['setup', '--tools', 'none'], { cwd: emptyProjectDir });
+      const result = await runCLI(
+        ['setup', '--tools', 'none', '--project-definition', projectDefinition],
+        { cwd: emptyProjectDir },
+      );
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('Xirang Setup Complete');
 

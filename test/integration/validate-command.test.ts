@@ -28,9 +28,9 @@ describe('Semantic Model validation integration', () => {
         { identity: 'produces', sourceKinds: ['operation'], targetKinds: ['artifact'] },
       ],
       elements: [
-        { identity: 'project.root', kind: 'project', parent: null, title: 'Root', summary: 'Project intent', requirements: PROJECT_CONTRACT },
-        { identity: 'payments', kind: 'area', parent: 'project.root', title: 'Payments', summary: 'Payment area' },
-        { identity: 'settlements', kind: 'area', parent: 'project.root', title: 'Settlements', summary: 'Settlement area' },
+        { identity: 'project.root', kind: 'project', parent: null, title: 'Root', definition: 'Project intent', requirements: PROJECT_CONTRACT },
+        { identity: 'payments', kind: 'area', parent: 'project.root', title: 'Payments', definition: 'Payment area' },
+        { identity: 'settlements', kind: 'area', parent: 'project.root', title: 'Settlements', definition: 'Settlement area' },
       ],
     });
     await fs.mkdir(path.join(root, '.xirang', 'changes'), { recursive: true });
@@ -45,7 +45,7 @@ describe('Semantic Model validation integration', () => {
   }
 
   function addOperation(identity: string, parent: string, contract = OPERATION_CONTRACT): string {
-    return `---\noperation: ADDED\nentity: element-declaration\nidentity: ${identity}\nkind: operation\nparent: ${parent}\ntitle: Run\nsummary: Run payment\n---\n\n`
+    return `---\noperation: ADDED\nentity: element-declaration\nidentity: ${identity}\nkind: operation\nparent: ${parent}\ntitle: Run\ndefinition: Run payment\n---\n\n`
       + `## ADDED Requirements\n\n${contract.replace('## Requirements\n\n', '')}\n`;
   }
 
@@ -56,7 +56,7 @@ describe('Semantic Model validation integration', () => {
   it('applies semantic validation without rewriting the source', async () => {
     const before = await readModelTree(modelRoot(root));
     await fs.writeFile(path.join(modelRoot(root), 'elements', 'orphan.md'),
-      '---\nentity: element-declaration\nidentity: orphan\nkind: area\nparent: ghost\ntitle: Orphan\nsummary: S\n---\n');
+      '---\nentity: element-declaration\nidentity: orphan\nkind: area\nparent: ghost\ntitle: Orphan\ndefinition: S\n---\n');
 
     const result = await validateArchitectureCommand(root);
 
@@ -98,7 +98,7 @@ describe('Semantic Model validation integration', () => {
 
   it('rejects a required Contract missing from the change target', async () => {
     await writeChange('missing-contract', {
-      'elements/payment.run.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: payment.run\nkind: operation\nparent: payments\ntitle: Run\nsummary: Run payment\n---\n',
+      'elements/payment.run.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: payment.run\nkind: operation\nparent: payments\ntitle: Run\ndefinition: Run payment\n---\n',
     });
 
     const result = await validateArchitectureCommand(root, { change: 'missing-contract' });

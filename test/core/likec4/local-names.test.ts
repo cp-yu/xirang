@@ -6,7 +6,7 @@ import type { ModelElement } from '../../../src/core/model/types.js';
 
 function element(identity: string, parent: string | null): ModelElement {
   return {
-    declaration: { identity, kind: 'capability', parent, title: identity, summary: '' },
+    declaration: { identity, kind: 'capability', parent, title: identity, definition: '' },
     requirements: [],
   };
 }

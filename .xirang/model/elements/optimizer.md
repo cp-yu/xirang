@@ -4,7 +4,7 @@ identity: optimizer
 kind: capability
 parent: internal-agents
 title: "Optimizer"
-summary: "在已通过 Review 的状态上判断有价值行为保持优化的 Internal Agent。"
+definition: "在已通过 Review 的状态上判断有价值行为保持优化的 Internal Agent。"
 ---
 
 ## Requirements

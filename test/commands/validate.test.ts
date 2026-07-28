@@ -24,7 +24,7 @@ const ALPHA_DELTA = [
   'kind: capability',
   'parent: root',
   'title: Alpha',
-  'summary: Alpha summary',
+  'definition: Alpha summary',
   '---',
   '',
   '## ADDED Requirements',
@@ -46,7 +46,7 @@ describe('top-level validate command', () => {
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });
     await writeProjectModel(testDir, minimalModel({
-      elements: [{ identity: 'alpha.id', parent: 'root', title: 'Alpha', summary: 'Alpha summary', requirements: ALPHA_CONTRACT }],
+      elements: [{ identity: 'alpha.id', parent: 'root', title: 'Alpha', definition: 'Alpha summary', requirements: ALPHA_CONTRACT }],
     }));
 
     const changeContent = `# Test Change\n\n## Why\nBecause reasons that are sufficiently long for validation.\n\n## What Changes\n- **alpha:** Add something`;
@@ -182,7 +182,7 @@ describe('top-level validate command', () => {
     await writeChangeDelta(testDir, 'c1', {
       'elements/alpha.id.md': [
         '---', 'operation: MODIFIED', 'entity: element-declaration', 'identity: alpha.id',
-        'kind: capability', 'parent: root', 'title: Alpha', 'summary: Alpha summary', '---', '',
+        'kind: capability', 'parent: root', 'title: Alpha', 'definition: Alpha summary', '---', '',
         '## RENAMED Requirements', '',
         'FROM: ### Requirement: Alpha module SHALL produce deterministic output',
         'TO: ### Requirement: Alpha module SHALL produce renamed output',

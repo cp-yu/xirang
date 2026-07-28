@@ -4,7 +4,7 @@ identity: project.root
 kind: project
 parent: null
 title: "息壤（Xirang）"
-summary: "面向 Agent、以结构化用户意图驱动项目构建与持续演进的开发框架。"
+definition: "面向 Agent、以结构化用户意图驱动项目构建与持续演进的开发框架。"
 ---
 
 ## Requirements

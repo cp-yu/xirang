@@ -33,7 +33,9 @@ export interface XirangElementDeclaration {
   kind: string
   parent: string | null
   title: string
+  definition: string
   summary: string
+  description: string
 }
 
 export interface XirangModelElement {

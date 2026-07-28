@@ -14,6 +14,13 @@ describe('explore template semantic impact', () => {
     expect(template).not.toContain('code-map refs');
   });
 
+  it('clarifies Definition impact only when conceptual structure changes', () => {
+    expect(template).toContain('Element Definition');
+    expect(template).toContain('concept identity or scope boundary changes');
+    expect(template).toContain('complete target Definition in the Design Summary');
+    expect(template).toContain('Do not include a Definition rewrite for behavior-only or implementation-only changes');
+  });
+
   it('directly obtains semantic impact context for focus Elements', () => {
     expect(template).toContain('## Semantic Impact');
     expect(template).toContain('xirang arch search <query> --json');

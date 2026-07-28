@@ -4,7 +4,7 @@ identity: change-implementation
 kind: domain
 parent: change-realization
 title: "Change Implementation"
-summary: "落实 Change 并以独立评估确认项目符合 Expected Semantic Model 的阶段。"
+definition: "落实 Change 并以独立评估确认项目符合 Expected Semantic Model 的阶段。"
 ---
 
 ## Requirements

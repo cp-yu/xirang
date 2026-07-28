@@ -50,12 +50,12 @@ describe('ArchiveCommand', () => {
 
   async function writeModelFixture(): Promise<void> {
     await writeProjectModel(tempDir, minimalModel({
-      elements: [{ identity: 'existing.id', parent: 'root', title: 'Existing', summary: 'Existing summary' }],
+      elements: [{ identity: 'existing.id', parent: 'root', title: 'Existing', definition: 'Existing summary' }],
     }));
   }
 
   const MODIFY_EXISTING = '---\noperation: MODIFIED\nentity: element-declaration\nidentity: existing.id\n'
-    + 'kind: capability\nparent: root\ntitle: Existing\nsummary: Changed summary\n---\n';
+    + 'kind: capability\nparent: root\ntitle: Existing\ndefinition: Changed summary\n---\n';
 
   async function writeSemanticArchiveFixture(changeName: string): Promise<string> {
     const changeDir = await writeChangeDelta(tempDir, changeName, { 'elements/existing.id.md': MODIFY_EXISTING });
@@ -276,7 +276,7 @@ git:
       const changeDir = await writeChangeDelta(tempDir, changeName, { 'elements/existing.id.md': MODIFY_EXISTING });
       await writeFreshVerifyResult(changeDir);
       await writeProjectModel(tempDir, minimalModel({
-        elements: [{ identity: 'existing.id', parent: 'root', title: 'Existing', summary: 'Changed summary' }],
+        elements: [{ identity: 'existing.id', parent: 'root', title: 'Existing', definition: 'Changed summary' }],
       }));
 
       await archiveCommand.execute(changeName, { yes: true, noVerify: true });

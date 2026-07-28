@@ -14,7 +14,7 @@ const element: ModelElement = {
     kind: 'capability',
     parent: 'domain.architecture',
     title: 'Reader',
-    summary: 'Reads source modules',
+    definition: 'Reads source modules and defines the reader boundary.',
   },
   requirements: [
     {
@@ -49,7 +49,7 @@ describe('serializeElementUnit', () => {
       'kind: capability',
       'parent: domain.architecture',
       'title: Reader',
-      'summary: Reads source modules',
+      'definition: Reads source modules and defines the reader boundary.',
       '---',
       '',
       '## Requirements',
@@ -70,7 +70,7 @@ describe('serializeElementUnit', () => {
   it('emits frontmatter only for an element with no contract', () => {
     expect(serializeElementUnit({ ...element, requirements: [] })).toBe(
       '---\nentity: element-declaration\nidentity: cap.reader\nkind: capability\n'
-      + 'parent: domain.architecture\ntitle: Reader\nsummary: Reads source modules\n---\n',
+      + 'parent: domain.architecture\ntitle: Reader\ndefinition: Reads source modules and defines the reader boundary.\n---\n',
     );
   });
 });

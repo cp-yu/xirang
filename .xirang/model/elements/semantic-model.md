@@ -4,7 +4,7 @@ identity: semantic-model
 kind: domain
 parent: project.root
 title: Semantic Model
-summary: 项目用户意图的完整结构化语义表达。
+definition: 项目用户意图的完整结构化语义表达。
 ---
 
 ## Requirements

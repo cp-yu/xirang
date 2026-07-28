@@ -5,15 +5,17 @@
 //
 // oxlint-disable no-misused-spread
 // oxlint-disable no-misused-spread
-import type {
-  Any,
-  ComputedView,
-  DiagramView,
-  Element,
-  Fqn,
-  NodeId,
-  scalar,
-  ViewId,
+import {
+  RichText,
+  type Any,
+  type RichTextOrEmpty,
+  type ComputedView,
+  type DiagramView,
+  type Element,
+  type Fqn,
+  type NodeId,
+  type scalar,
+  type ViewId,
 } from '@likec4/core/types'
 import { css, cx } from '@likec4/styles/css'
 import { HStack } from '@likec4/styles/jsx'
@@ -54,7 +56,7 @@ import { useCallbackRef, useUpdateEffect } from '../../hooks'
 import { useCurrentViewModel } from '../../hooks/useCurrentViewModel'
 import { useDiagram } from '../../hooks/useDiagram'
 import type { OnNavigateTo } from '../../LikeC4Diagram.props'
-import { useXirangVariants } from '../../xirang/SpecLoaderContext'
+import { type XirangRuntimeVariant, useXirangVariants } from '../../xirang/SpecLoaderContext'
 import { stopPropagation } from '../../utils'
 import * as styles from './ElementDetailsCard.css'
 import { MetadataProvider, MetadataValue } from './MetadataValue'
@@ -99,6 +101,39 @@ type ElementDetailsCardProps = {
   rectFromNode: Rect | null
   onClose: () => void
   fqn: Fqn
+}
+
+type ElementDefinitionPropertiesProps = {
+  selected: XirangRuntimeVariant
+  stableElementId: string
+  formalSummary: RichTextOrEmpty
+  formalDescription: RichTextOrEmpty
+}
+
+export function ElementDefinitionProperties({
+  selected,
+  stableElementId,
+  formalSummary,
+  formalDescription,
+}: ElementDefinitionPropertiesProps) {
+  const declaration = selected.kind === 'change'
+    ? selected.architecture?.elements.find(item => item.declaration.identity === stableElementId)?.declaration
+    : undefined
+  const summary = declaration ? RichText.from(declaration.summary) : formalSummary
+  const description = declaration ? RichText.from(declaration.description) : formalDescription
+
+  return (
+    <>
+      {summary.nonEmpty && (
+        <>
+          <PropertyLabel>summary</PropertyLabel>
+          <Markdown value={summary} />
+        </>
+      )}
+      <PropertyLabel>description</PropertyLabel>
+      <Markdown value={description} emptyText="no description" />
+    </>
+  )
 }
 
 const MIN_PADDING = 24
@@ -433,19 +468,12 @@ export function ElementDetailsCard({
               <TabsPanel value="Properties">
                 <ScrollArea scrollbars="y" type="scroll" offsetScrollbars>
                   <Box className={styles.propertiesGrid} pt={'xs'}>
-                    {elementModel.hasSummary && (
-                      <>
-                        <PropertyLabel>summary</PropertyLabel>
-                        <Markdown value={elementModel.summary} />
-                      </>
-                    )}
-                    <>
-                      <PropertyLabel>description</PropertyLabel>
-                      <Markdown
-                        value={elementModel.description}
-                        emptyText="no description"
-                      />
-                    </>
+                    <ElementDefinitionProperties
+                      selected={runtime.selected}
+                      stableElementId={stableElementId}
+                      formalSummary={elementModel.summary}
+                      formalDescription={elementModel.description}
+                    />
                     {elementModel.technology && (
                       <ElementProperty title="technology">
                         {elementModel.technology}

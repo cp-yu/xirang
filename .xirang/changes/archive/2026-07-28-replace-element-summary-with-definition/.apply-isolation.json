@@ -1,0 +1,76 @@
+{
+  "method": "worktree",
+  "branchName": "replace-element-summary-with-definition",
+  "originalBranch": "main",
+  "baseCommit": "993f5969452561cc62a7363fdb0bb410a03614cc",
+  "worktreePath": "/home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec/.worktrees/replace-element-summary-with-definition",
+  "sourceRoot": "/home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec",
+  "phase2BaselineCommit": "417f99a791502c969d40d44ad2f33b2af1227771",
+  "transferredFiles": [
+    {
+      "path": ".xirang/changes/replace-element-summary-with-definition/.xirang.yaml",
+      "sourceState": "added",
+      "sourceHash": "9357bfc976ad88909257cc067cd03eee328d124cbd6609be68c31ca286bfee50"
+    },
+    {
+      "path": ".xirang/changes/replace-element-summary-with-definition/design.md",
+      "sourceState": "added",
+      "sourceHash": "81133c25c0f86c757bcb1f7e257d97f1e5e5f2a7fd8c1bcef8e10f2d07f68e38"
+    },
+    {
+      "path": ".xirang/changes/replace-element-summary-with-definition/elements/deterministic-operations.md",
+      "sourceState": "added",
+      "sourceHash": "1b6b9dffa21bd0008396cb9c9ed76166d2b909bd732997b169eb2cec359ae16f"
+    },
+    {
+      "path": ".xirang/changes/replace-element-summary-with-definition/elements/element-contract.md",
+      "sourceState": "added",
+      "sourceHash": "f900bf1aada5f1fef6e4f3d54f2e612071f208da29c298065c9e9a3906296eec"
+    },
+    {
+      "path": ".xirang/changes/replace-element-summary-with-definition/elements/element-declaration.md",
+      "sourceState": "added",
+      "sourceHash": "b68a8751c2105828ba1f2f1ffee2541eef3f38cee0125457aac9f8a0357927d3"
+    },
+    {
+      "path": ".xirang/changes/replace-element-summary-with-definition/elements/explore.md",
+      "sourceState": "added",
+      "sourceHash": "74e472db8811ead4e7e27b0f88958cf1e6b77e11d61e9e888308a958ed820815"
+    },
+    {
+      "path": ".xirang/changes/replace-element-summary-with-definition/elements/project-tooling-configuration.md",
+      "sourceState": "added",
+      "sourceHash": "dc4555d84b83f5b6065960291e589f9b7fd28a1560da7b752a3ba3aea4c89ad3"
+    },
+    {
+      "path": ".xirang/changes/replace-element-summary-with-definition/elements/propose.md",
+      "sourceState": "added",
+      "sourceHash": "6c0c8748f8ddb34f93cb0f99f930e3443136a71139efa1d7d042869c5f0ea224"
+    },
+    {
+      "path": ".xirang/changes/replace-element-summary-with-definition/elements/semantic-browser.md",
+      "sourceState": "added",
+      "sourceHash": "1fa6f0827165fa2cb2183beb16e9cad124cc16e99193215bb9335271bfd2b8ee"
+    },
+    {
+      "path": ".xirang/changes/replace-element-summary-with-definition/elements/semantic-model-build.md",
+      "sourceState": "added",
+      "sourceHash": "0da9274dc00343a4af5b92f01d576e55575674720cddb71fa30d4122c3b4ec9e"
+    },
+    {
+      "path": ".xirang/changes/replace-element-summary-with-definition/elements/snack.md",
+      "sourceState": "added",
+      "sourceHash": "8025cd6cf83cec4870b60c20a285f92150789b5b698cf9f2828b6fdd2045612c"
+    },
+    {
+      "path": ".xirang/changes/replace-element-summary-with-definition/proposal.md",
+      "sourceState": "added",
+      "sourceHash": "1b68caf155e4061f9756247fb81a651ec7bd354ac135e36b4e8bbe60ddb72186"
+    },
+    {
+      "path": ".xirang/changes/replace-element-summary-with-definition/tasks.md",
+      "sourceState": "added",
+      "sourceHash": "1ea8347463526023f815d3c09f40f6074558b0b340e4380d4d47db7bba474256"
+    }
+  ]
+}

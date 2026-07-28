@@ -37,12 +37,22 @@ jobs:
           test/core/parsers/spec-frontmatter.test.ts
           test/core/spec-registry.test.ts
           test/integration/migrate-command.test.ts
+          test/integration/migrate-element-summary-to-definition.test.ts
           test/integration/sync-workflow.test.ts
+          test/core/setup.test.ts
+          test/core/model/parser.test.ts
+          test/core/model/sync-writer.test.ts
+          test/core/likec4/generator.test.ts
+          test/commands/arch-query.test.ts
+          test/commands/arch-search.test.ts
+          test/commands/arch-impact.test.ts
           test/core/view.test.ts
       - name: Run Windows vendored browser-server tests
         run: >-
           pnpm --dir likec4 exec vitest run --no-isolate
           packages/vite-plugin/src/xirang/opsx-spec-handler.spec.ts
+          packages/diagram/src/xirang/architectureView.spec.ts
+          packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx
           packages/likec4-spa/src/xirang/HttpSpecLoader.spec.ts
           packages/language-server/src/lsp/CompletionProvider.spec.ts
           packages/language-server/src/model/__tests__/model-parser.spec.ts

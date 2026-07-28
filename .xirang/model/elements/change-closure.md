@@ -4,7 +4,7 @@ identity: change-closure
 kind: capability
 parent: change-realization
 title: Change Closure
-summary: 将已验证 Change 同步进正式模型并归档为新稳定状态的阶段。
+definition: 将已验证 Change 同步进正式模型并归档为新稳定状态的阶段。
 ---
 
 ## Requirements

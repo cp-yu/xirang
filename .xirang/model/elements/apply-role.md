@@ -4,7 +4,7 @@ identity: apply-role
 kind: capability
 parent: agent
 title: "Apply Role"
-summary: "落实 Change、处理验证反馈并维护实现证据的 Agent 工作身份。"
+definition: "落实 Change、处理验证反馈并维护实现证据的 Agent 工作身份。"
 ---
 
 ## Requirements

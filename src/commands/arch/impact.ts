@@ -1,6 +1,4 @@
 import { deriveLocalNames } from '../../core/likec4/local-names.js';
-import { modelRoot } from '../../core/model/paths.js';
-import { parseSemanticModel } from '../../core/model/parser.js';
 import type {
   ElementDeclaration,
   Relationship,
@@ -8,6 +6,7 @@ import type {
   SemanticModel,
 } from '../../core/model/types.js';
 import { compareCodePoints } from '../../utils/stable-order.js';
+import { readValidArchitecture } from './reader.js';
 
 export interface ArchitectureImpactOptions {
   depth?: number;
@@ -117,7 +116,7 @@ export async function impactArchitecture(
   if (!Number.isInteger(depth) || depth < 0) throw new Error('Impact depth must be a non-negative integer');
   if (focusElementIds.length === 0) throw new Error('At least one focus Element is required');
 
-  const { model } = await parseSemanticModel(modelRoot(projectRoot));
+  const model = await readValidArchitecture(projectRoot);
   const kinds = new Map(model.elementKinds.map(kind => [kind.identity, kind]));
   const childrenOf = new Map<string, string[]>();
   for (const element of model.elements) {
@@ -261,6 +260,9 @@ export function formatArchitectureImpactText(result: ArchitectureImpactResult): 
     `Relationships: ${result.statistics.relationCount}`,
     `Contracts: ${result.statistics.contractCount}`,
   ];
+  for (const element of result.elements) {
+    lines.push(`Element: ${element.identity}`, `Definition: ${element.definition}`);
+  }
   for (const relation of result.relations) {
     lines.push(`${relation.source} --${relation.kind}--> ${relation.target}`);
   }

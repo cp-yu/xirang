@@ -4,7 +4,7 @@ identity: view-presentation
 kind: domain
 parent: views
 title: View Presentation
-summary: 按语义信息传达方法组织 Visual Presentation 与 Text Presentation 的呈现维度。
+definition: 按语义信息传达方法组织 Visual Presentation 与 Text Presentation 的呈现维度。
 ---
 
 ## Requirements

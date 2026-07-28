@@ -18,11 +18,11 @@ describe.runIf(Boolean(outputPath))('arch impact locale process fixture', () => 
         ],
         relationshipKinds: [{ identity: 'invokes' }],
         elements: [
-          { identity: 'project.root', kind: 'project', parent: null, title: 'Project', summary: 'Project intent' },
-          { identity: 'cap.focus', parent: 'project.root', title: 'Focus', summary: 'Impact focus' },
-          { identity: 'cap.I', parent: 'project.root', title: 'Upper', summary: 'Upper branch' },
-          { identity: 'cap.i', parent: 'project.root', title: 'Lower', summary: 'Lower branch' },
-          { identity: 'cap.target', parent: 'project.root', title: 'Target', summary: 'Shared target' },
+          { identity: 'project.root', kind: 'project', parent: null, title: 'Project', definition: 'Project intent' },
+          { identity: 'cap.focus', parent: 'project.root', title: 'Focus', definition: 'Impact focus' },
+          { identity: 'cap.I', parent: 'project.root', title: 'Upper', definition: 'Upper branch' },
+          { identity: 'cap.i', parent: 'project.root', title: 'Lower', definition: 'Lower branch' },
+          { identity: 'cap.target', parent: 'project.root', title: 'Target', definition: 'Shared target' },
         ],
         relationships: [
           { source: 'cap.focus', kind: 'invokes', target: 'cap.I' },

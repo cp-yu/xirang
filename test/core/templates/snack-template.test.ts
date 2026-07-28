@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ARCHITECTURE_GENERATE_DELTA,
   ELEMENT_CONTRACT_SEMANTICS,
+  ELEMENT_DEFINITION_SEMANTICS,
   XIRANG_PHILOSOPHY,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import { getSnackSkillTemplate } from '../../../src/core/templates/skill-templates.js';
@@ -121,6 +122,12 @@ describe('snack template artifact reconciliation', () => {
     expect(instructions).not.toContain('elementId');
     expect(instructions).not.toContain('specs/<capability>/spec.md');
     expect(instructions).not.toContain('proposal capability name');
+  });
+
+  it('reconciles Definitions only from sufficient conceptual evidence', () => {
+    expect(instructions).toContain(ELEMENT_DEFINITION_SEMANTICS);
+    expect(instructions).toContain('Do not infer a Definition from file names, symbols, imports, or call relationships');
+    expect(instructions).toContain('stop and ask one focused question instead of guessing');
   });
 
   it('does not promote mechanical code evidence to model changes', () => {

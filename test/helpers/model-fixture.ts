@@ -7,7 +7,7 @@ export interface ElementFixture {
   kind?: string;
   parent?: string | null;
   title?: string;
-  summary?: string;
+  definition?: string;
   requirements?: string;
 }
 
@@ -44,7 +44,7 @@ export function elementUnit(element: ElementFixture): string {
     + `kind: ${element.kind ?? 'capability'}\n`
     + `parent: ${element.parent === undefined ? 'root' : element.parent === null ? 'null' : element.parent}\n`
     + `title: ${JSON.stringify(element.title ?? element.identity)}\n`
-    + `summary: ${JSON.stringify(element.summary ?? `Summary of ${element.identity}`)}\n---\n`;
+    + `definition: ${JSON.stringify(element.definition ?? `Definition of ${element.identity}.`)}\n---\n`;
   return element.requirements ? `${frontmatter}\n${element.requirements}\n` : frontmatter;
 }
 
@@ -87,7 +87,7 @@ export function minimalModel(overrides: ModelFixture = {}): ModelFixture {
       ...(overrides.elementKinds ?? []),
     ],
     elements: [
-      { identity: 'root', kind: 'project', parent: null, title: 'Root', summary: 'Project root' },
+      { identity: 'root', kind: 'project', parent: null, title: 'Root', definition: 'Project root definition.' },
       ...(overrides.elements ?? []),
     ],
     relationshipKinds: overrides.relationshipKinds,

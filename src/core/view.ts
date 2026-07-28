@@ -5,6 +5,11 @@ import path from 'node:path';
 import { XIRANG_DIR_NAME } from './config.js';
 import { compileChange, readFormalSemanticModel } from './change-compiler.js';
 import { generateLikeC4Artifacts } from '../commands/arch/export.js';
+import {
+  projectBrowserArchitecture,
+  projectBrowserDeclaration,
+  type BrowserSemanticModel,
+} from './likec4/definition.js';
 import { serializeElementUnit } from './model/serializer.js';
 import { PARTITIONS, type Partition, type SemanticModel } from './model/types.js';
 import type { ChangeDiagnostic, ChangeDiff } from './semantic-diff.js';
@@ -62,7 +67,7 @@ export interface ViewRuntimeVariant {
   changeFingerprint?: string;
   partitionFingerprints?: Record<Partition, string>;
   diff?: ChangeDiff;
-  architecture?: SemanticModel;
+  architecture?: BrowserSemanticModel;
   /** element identity → Contract markdown; the only Contract transport to the Browser. */
   contracts?: Record<string, string>;
   diagnostics: ChangeDiagnostic[];
@@ -95,6 +100,19 @@ export function projectContracts(model: SemanticModel): Record<string, string> {
     contracts[element.declaration.identity] = serializeElementUnit(element);
   }
   return contracts;
+}
+
+export function projectBrowserDiff(diff: ChangeDiff): ChangeDiff {
+  const projectEntry = (entry: ChangeDiff['entries'][number]): ChangeDiff['entries'][number] => ({
+    ...entry,
+    ...(entry.kind === 'element-declaration' && entry.before
+      ? { before: projectBrowserDeclaration(entry.before as SemanticModel['elements'][number]['declaration']) }
+      : {}),
+    ...(entry.kind === 'element-declaration' && entry.after
+      ? { after: projectBrowserDeclaration(entry.after as SemanticModel['elements'][number]['declaration']) }
+      : {}),
+  });
+  return { ...diff, entries: diff.entries.map(projectEntry) };
 }
 
 function partitionFingerprints(model: SemanticModel): Record<Partition, string> {
@@ -135,8 +153,8 @@ async function buildChangeRuntimeVariant(projectRoot: string, change: string): P
       formalFingerprint: compiled.formalFingerprint,
       changeFingerprint: compiled.changeFingerprint,
       ...(compiled.target ? { partitionFingerprints: partitionFingerprints(compiled.target) } : {}),
-      diff: compiled.diff,
-      ...(compiled.target ? { architecture: compiled.target } : {}),
+      diff: projectBrowserDiff(compiled.diff),
+      ...(compiled.target ? { architecture: projectBrowserArchitecture(compiled.target) } : {}),
       ...(projection ? { contracts: projection } : {}),
       diagnostics: compiled.diagnostics,
     };

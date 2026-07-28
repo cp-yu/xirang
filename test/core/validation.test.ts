@@ -185,7 +185,7 @@ async function writeDeltaUnit(changeDir: string, body: string, identity = 'test-
   await fs.mkdir(elements, { recursive: true });
   await fs.writeFile(
     path.join(elements, `${identity}.md`),
-    `---\noperation: MODIFIED\nentity: element-declaration\nidentity: ${identity}\nkind: capability\nparent: root\ntitle: T\nsummary: S\n---\n\n${body}`,
+    `---\noperation: MODIFIED\nentity: element-declaration\nidentity: ${identity}\nkind: capability\nparent: root\ntitle: T\ndefinition: S\n---\n\n${body}`,
   );
 }
 

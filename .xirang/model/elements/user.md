@@ -4,7 +4,7 @@ identity: user
 kind: capability
 parent: participants
 title: "用户"
-summary: "表达和确认用户意图并保留关键裁决权的参与者。"
+definition: "表达和确认用户意图并保留关键裁决权的参与者。"
 ---
 
 ## Requirements

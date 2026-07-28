@@ -4,7 +4,7 @@ identity: cli
 kind: domain
 parent: interaction-surfaces
 title: "CLI"
-summary: "息壤的项目配置与确定性操作界面。"
+definition: "息壤的项目配置与确定性操作界面。"
 ---
 
 ## Requirements

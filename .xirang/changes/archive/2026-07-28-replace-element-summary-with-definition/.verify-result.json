@@ -1,0 +1,929 @@
+{
+  "timestamp": "2026-07-28T16:30:33.347Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "Windows-specific behavior is covered by the Windows workflow but was not executed on a Windows runner during this Linux review",
+      "requirement": "跨平台初始化项目",
+      "task": "C15 验证正式跨平台 CI 与全部项目门禁",
+      "recommendation": "Require the configured Windows CI job to pass before closure; local tests verify workflow composition and path-API usage but cannot prove Windows runtime behavior.",
+      "evidence": [
+        ".github/workflows/test-windows.yml:13-55",
+        "test/integration/windows-definition-ci.test.ts:18-46"
+      ]
+    }
+  ],
+  "tasksFileHash": "5f133083444dd245bf3318c6c7a73ecc0763aca612909f54e7daa515e24bd714",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".github/workflows/test-windows.yml",
+      ".pi/skills/xirang-explore/SKILL.md",
+      ".pi/skills/xirang-propose/SKILL.md",
+      ".pi/skills/xirang-snack/SKILL.md",
+      ".xirang/changes/replace-element-summary-with-definition/.apply-isolation.json",
+      ".xirang/changes/replace-element-summary-with-definition/.verify-result.json",
+      ".xirang/changes/replace-element-summary-with-definition/design.md",
+      ".xirang/changes/replace-element-summary-with-definition/elements/deterministic-operations.md",
+      ".xirang/changes/replace-element-summary-with-definition/elements/element-contract.md",
+      ".xirang/changes/replace-element-summary-with-definition/elements/element-declaration.md",
+      ".xirang/changes/replace-element-summary-with-definition/elements/explore.md",
+      ".xirang/changes/replace-element-summary-with-definition/elements/project-tooling-configuration.md",
+      ".xirang/changes/replace-element-summary-with-definition/elements/propose.md",
+      ".xirang/changes/replace-element-summary-with-definition/elements/semantic-browser.md",
+      ".xirang/changes/replace-element-summary-with-definition/elements/semantic-model-build.md",
+      ".xirang/changes/replace-element-summary-with-definition/elements/snack.md",
+      ".xirang/changes/replace-element-summary-with-definition/proposal.md",
+      ".xirang/changes/replace-element-summary-with-definition/tasks.md",
+      ".xirang/model/elements/deterministic-operations.md",
+      ".xirang/model/elements/element-contract.md",
+      ".xirang/model/elements/element-declaration.md",
+      ".xirang/model/elements/hierarchical-elements.md",
+      ".xirang/model/elements/project-tooling-configuration.md",
+      ".xirang/model/elements/project.root.md",
+      ".xirang/model/elements/semantic-browser.md",
+      ".xirang/model/elements/semantic-model-build.md",
+      "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+      "likec4/packages/diagram/src/xirang/SpecLoaderContext.tsx",
+      "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+      "likec4/packages/diagram/src/xirang/architectureView.ts",
+      "schemas/spec-driven/schema.yaml",
+      "schemas/spec-driven/templates/delta.md",
+      "src/cli/index.ts",
+      "src/commands/arch/impact.ts",
+      "src/commands/arch/query.ts",
+      "src/commands/arch/reader.ts",
+      "src/commands/arch/search.ts",
+      "src/core/candidate/workspace.ts",
+      "src/core/likec4/definition.ts",
+      "src/core/likec4/generator.ts",
+      "src/core/model/delta.ts",
+      "src/core/model/frontmatter.ts",
+      "src/core/model/parser.ts",
+      "src/core/model/types.ts",
+      "src/core/setup.ts",
+      "src/core/templates/fragments/xirang-fragments.ts",
+      "src/core/templates/model-skeleton.ts",
+      "src/core/templates/workflows/build.ts",
+      "src/core/templates/workflows/explore.ts",
+      "src/core/templates/workflows/propose.ts",
+      "src/core/templates/workflows/snack.ts",
+      "src/core/view.ts",
+      "test/cli-e2e/basic.test.ts",
+      "test/commands/arch-impact.test.ts",
+      "test/commands/arch-query.test.ts",
+      "test/commands/arch-search.test.ts",
+      "test/core/likec4/generator-validate.test.ts",
+      "test/core/likec4/generator.test.ts",
+      "test/core/model/delta.test.ts",
+      "test/core/model/parser.test.ts",
+      "test/core/model/serializer.pbt.test.ts",
+      "test/core/model/serializer.test.ts",
+      "test/core/model/sync-writer.test.ts",
+      "test/core/setup.test.ts",
+      "test/core/templates/build.test.ts",
+      "test/core/templates/explore-template.test.ts",
+      "test/core/templates/fragments/xirang-fragments.test.ts",
+      "test/core/templates/propose-template.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts",
+      "test/core/templates/snack-template.test.ts",
+      "test/core/view.test.ts",
+      "test/integration/migrate-element-summary-to-definition.test.ts",
+      "test/integration/windows-definition-ci.test.ts",
+      "tmp_script/migrate-element-summary-to-definition.mjs"
+    ],
+    "evidenceFingerprint": "4713381e4422f7038037a58cbe3695bb99f362dd7245b76cf617f49083869434",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".github/workflows/test-windows.yml",
+        "hash": "e6b43bca96701cd7db713b12a46577ebba6b8036b6be1ec19c796706de7cc5cb"
+      },
+      {
+        "path": ".pi/skills/xirang-explore/SKILL.md",
+        "hash": "0024a1c048a6f72e361a99140a3fa4ee71b0b6cec9fee0d276c46470bb32c12c"
+      },
+      {
+        "path": ".pi/skills/xirang-propose/SKILL.md",
+        "hash": "fc5ef8db350a9e3892816d6fb34c5d7b2a4a474b6950c3a53599cdf4d7bc45b3"
+      },
+      {
+        "path": ".pi/skills/xirang-snack/SKILL.md",
+        "hash": "29ae18e3b6c10c0518683cfc9752cd49a0172a817c4c6736d14f07219e030eae"
+      },
+      {
+        "path": ".xirang/changes/replace-element-summary-with-definition/.apply-isolation.json",
+        "hash": "c025c9daba69b03c10ac23bb0aa88f728fd45b095daaba16800ed28cba91f384"
+      },
+      {
+        "path": ".xirang/changes/replace-element-summary-with-definition/design.md",
+        "hash": "81133c25c0f86c757bcb1f7e257d97f1e5e5f2a7fd8c1bcef8e10f2d07f68e38"
+      },
+      {
+        "path": ".xirang/changes/replace-element-summary-with-definition/elements/deterministic-operations.md",
+        "hash": "05db127b2886c2e29495807b26d7b0e6be5a5823eac7e8ffd46606f157e8ec5e"
+      },
+      {
+        "path": ".xirang/changes/replace-element-summary-with-definition/elements/element-contract.md",
+        "hash": "f8a4dd80c9a6017a1e38656f0575018765828003285c0fec4634e50d13c6cf36"
+      },
+      {
+        "path": ".xirang/changes/replace-element-summary-with-definition/elements/element-declaration.md",
+        "hash": "3e8463d369f07f743125cb2f3e4b32551c1ba3b93de79adb68a56b5a797ced49"
+      },
+      {
+        "path": ".xirang/changes/replace-element-summary-with-definition/elements/explore.md",
+        "hash": "c6c636e4a0480796f295f991e50b316660ea4d4b9d270803a6d0089de3b9cca1"
+      },
+      {
+        "path": ".xirang/changes/replace-element-summary-with-definition/elements/project-tooling-configuration.md",
+        "hash": "8d1c2935c55db1a8bb97a2da7afb8419b4b7b6823039067750bf039d574e54f7"
+      },
+      {
+        "path": ".xirang/changes/replace-element-summary-with-definition/elements/propose.md",
+        "hash": "2a1ab5481a546910de69dae3b2ae9442612d4b19f0bfd0fb291515cc9364d14f"
+      },
+      {
+        "path": ".xirang/changes/replace-element-summary-with-definition/elements/semantic-browser.md",
+        "hash": "46e6034dc95b4ee69c206b1c25170fdcd6c171aefc70b7dfaaa06e17984aec77"
+      },
+      {
+        "path": ".xirang/changes/replace-element-summary-with-definition/elements/semantic-model-build.md",
+        "hash": "25d822d2331739510cddaa42bd43aaff28867fb163ac399a858c37cf5e142e29"
+      },
+      {
+        "path": ".xirang/changes/replace-element-summary-with-definition/elements/snack.md",
+        "hash": "4972dce73b7936572fcc0b2b6ecc6938068ede910f81f932e65c6084cd3a8fb9"
+      },
+      {
+        "path": ".xirang/changes/replace-element-summary-with-definition/proposal.md",
+        "hash": "1b68caf155e4061f9756247fb81a651ec7bd354ac135e36b4e8bbe60ddb72186"
+      },
+      {
+        "path": ".xirang/changes/replace-element-summary-with-definition/tasks.md",
+        "hash": "5f133083444dd245bf3318c6c7a73ecc0763aca612909f54e7daa515e24bd714"
+      },
+      {
+        "path": ".xirang/model/elements/deterministic-operations.md",
+        "hash": "bd5aa5148935414ca26a0192d9ae9040b6a99642c5776136662f49570c7e4554"
+      },
+      {
+        "path": ".xirang/model/elements/element-contract.md",
+        "hash": "7d38fb41db24054b545eee3a6097b5cf0e1a8767f1dade24c735c37a496b41c6"
+      },
+      {
+        "path": ".xirang/model/elements/element-declaration.md",
+        "hash": "34ea50b2ea67518e5a711ed1654f59972e40d1a647359ac90a863b77ce05ec16"
+      },
+      {
+        "path": ".xirang/model/elements/hierarchical-elements.md",
+        "hash": "8338592f5d3d7e279012f7c3a9f0489807878cf27ba02beb54aef1b002938615"
+      },
+      {
+        "path": ".xirang/model/elements/project-tooling-configuration.md",
+        "hash": "a9d11851d6fbd38ff52e4e5e173082ff34d14d0dde68e7b7b51e6857a77c8110"
+      },
+      {
+        "path": ".xirang/model/elements/project.root.md",
+        "hash": "772db7ba06ce5bcf6a120f6733a7184b94942e52f076d8cde6a21f055eda6648"
+      },
+      {
+        "path": ".xirang/model/elements/semantic-browser.md",
+        "hash": "3d6a75fc32ed3b1c08dfaf3a493e6507b3d6ee089eb99fd051dc2f3a26a435e0"
+      },
+      {
+        "path": ".xirang/model/elements/semantic-model-build.md",
+        "hash": "e2b914f3b830fa1a67abf3739e8bc1ffe7e84113d02d1d427cbd4be380473203"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
+        "hash": "8665b8ba769e22c7a2cd3209290be1846b6fe40b785ccd45bb9dbabac50b6ae5"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+        "hash": "d14ac38f7a7181242321c7857bfe957a574ab0dc6eb6fd6152c5a6b9bfd83741"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+        "hash": "d0973ea09dab629957a619dfd38599a797074c65f6015ecccef94ac2ee7189a4"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+        "hash": "9c713f6fc01e89630bad664091f8bd1aba961d6c3fc2e926b0dbf711e70aa51a"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/SpecLoaderContext.tsx",
+        "hash": "2fba834f2823c2a6848ee35a8c3180fcf3d82bf5ea7681d586935e132f9efa97"
+      },
+      {
+        "path": "schemas/spec-driven/schema.yaml",
+        "hash": "593cdcfa63ca83b665fc99caf8e61613235f349121cb05cb7316fc3f936d8487"
+      },
+      {
+        "path": "schemas/spec-driven/templates/delta.md",
+        "hash": "419aa7192d525a4c86a21eee875673597144d4a768275b85fc05515b71df102e"
+      },
+      {
+        "path": "src/cli/index.ts",
+        "hash": "9263a6730d1795b67cd96eef00ab92ec4ee2c1493ba41626baa8e5df3b82d85a"
+      },
+      {
+        "path": "src/commands/arch/impact.ts",
+        "hash": "6be6bf59b787836b08465d257c077270b475b89ac7c926162df8baf6e94b7950"
+      },
+      {
+        "path": "src/commands/arch/query.ts",
+        "hash": "5331c7cd0d13b821eb16bbfe9d8d25bafab6b4e45ae098a132bfe00f8b9f45e0"
+      },
+      {
+        "path": "src/commands/arch/reader.ts",
+        "hash": "d4f37e959d747d94ceb228957a41f58745b146e19edc83e23a7d6f585c107b7a"
+      },
+      {
+        "path": "src/commands/arch/search.ts",
+        "hash": "1f7dbd02fddf3bdeec3de6010f43fac48a0fb633838509fd8ba750afef0fa711"
+      },
+      {
+        "path": "src/core/candidate/workspace.ts",
+        "hash": "8fdeb55a5f1377bc4cd7cd14a515c7eb57e68bf1f64fd3ec3700228ee6be7d9a"
+      },
+      {
+        "path": "src/core/likec4/definition.ts",
+        "hash": "2393d8e4a6b9ec583a2a0f0a4cec20cc424a7a76547eff886cdba8920d6a0cc7"
+      },
+      {
+        "path": "src/core/likec4/generator.ts",
+        "hash": "1082051b2daba03f8584e147782cd23b684dc9d5eaf9599d92e9a9170e35421b"
+      },
+      {
+        "path": "src/core/model/delta.ts",
+        "hash": "47ea096bcb7f3e6439118323e620a66f00b96d68782fe4425f7b95114fd169ff"
+      },
+      {
+        "path": "src/core/model/frontmatter.ts",
+        "hash": "4db2bc6e6766357a5c300bc21d46d9cd9766bd5de65d7795465b0b6443cfc606"
+      },
+      {
+        "path": "src/core/model/parser.ts",
+        "hash": "8df43148a1a461f7edacae6ecd88022fa6ae26a97b9b158845d813113751844b"
+      },
+      {
+        "path": "src/core/model/types.ts",
+        "hash": "781f97e73beefdc9e6e06792f5467d362175696a9dfff6de3b4bd6a03c33d9a0"
+      },
+      {
+        "path": "src/core/setup.ts",
+        "hash": "1f878fcb29e09a203c378283a62964f3bd95501cfa1ccb5bfd5f63e89bedfd41"
+      },
+      {
+        "path": "src/core/templates/fragments/xirang-fragments.ts",
+        "hash": "992e9cc6932b168161c54c62df56f10f5627087a3fe3da5c58ea3bd456653c65"
+      },
+      {
+        "path": "src/core/templates/model-skeleton.ts",
+        "hash": "a3aa689c4fe7e2f0101732d08ce9fb9d2dcb4a799dd30f29960fedbbfdeb41a8"
+      },
+      {
+        "path": "src/core/templates/workflows/build.ts",
+        "hash": "33c4fb576ec853bc4341fe8d9f9f6aa27ef95d627d72930aa9ab3cf297f4d4d8"
+      },
+      {
+        "path": "src/core/templates/workflows/explore.ts",
+        "hash": "508ee63ab64cb4d5f37ac8211105de825325564189da4014fcb9323ea8d7c335"
+      },
+      {
+        "path": "src/core/templates/workflows/propose.ts",
+        "hash": "1577f4c1a063fc5713840207783c7b13bf2950234e4960bcd5e4e3c2aa4e5aa5"
+      },
+      {
+        "path": "src/core/templates/workflows/snack.ts",
+        "hash": "de1506dd567a78568e46ab9ad6feac4a6bcf3f1d9647a55b42dbce57960b198c"
+      },
+      {
+        "path": "src/core/view.ts",
+        "hash": "5bf09c1d4b0d3902ad76dd5e06f1d8752960ea1cb278ba974bc9513089fa4931"
+      },
+      {
+        "path": "test/cli-e2e/basic.test.ts",
+        "hash": "448a847c11d1abdbb8153604bd100ace065aa5e8e34957dc0b5c51128416437c"
+      },
+      {
+        "path": "test/commands/arch-impact.test.ts",
+        "hash": "9c693435786b0bfc6f61d40b28f7b7682cca2f64e6ae009b7624fcd2a59e5007"
+      },
+      {
+        "path": "test/commands/arch-query.test.ts",
+        "hash": "c28f614fd7cd06b1c27cb0aae518675d9e77e66bc7c76e04565bd92b7ea764e7"
+      },
+      {
+        "path": "test/commands/arch-search.test.ts",
+        "hash": "a7ef48722e3c0e6792a04eacd47b17a3538973a89b82b034222cccdeb7d72915"
+      },
+      {
+        "path": "test/core/likec4/generator-validate.test.ts",
+        "hash": "85f7781663c32fa5259c076f6b00c91d5f3a510434b8da32218247421a523276"
+      },
+      {
+        "path": "test/core/likec4/generator.test.ts",
+        "hash": "b2a7421e9eb436eea46364174bed262e06ee6ee1570af51d4e26dbb0d9a5787a"
+      },
+      {
+        "path": "test/core/model/delta.test.ts",
+        "hash": "4dd5a7411d086ba709d221b32ce08a9e918afc30c1644fa8d0449d648b96b9ab"
+      },
+      {
+        "path": "test/core/model/parser.test.ts",
+        "hash": "98fa7650154a477895ee8def62de3b1e5fa07adba49ac5deda9f799893a50fe3"
+      },
+      {
+        "path": "test/core/model/serializer.pbt.test.ts",
+        "hash": "167b534a380ace367b69cc52e077157d86cb1f6823c6fd750ee0a402ab46f87f"
+      },
+      {
+        "path": "test/core/model/serializer.test.ts",
+        "hash": "964ed2417d58f60360b4185018020e05cbfea749504768889ab038d3774e3134"
+      },
+      {
+        "path": "test/core/model/sync-writer.test.ts",
+        "hash": "e718672cbefc85e64e1ab68d6b51f9011deb83a1e84f4813ef32da001d28b664"
+      },
+      {
+        "path": "test/core/setup.test.ts",
+        "hash": "11008af9f03710e7e3dd7c6865b00915756177e97179a6a44327050b621c04ff"
+      },
+      {
+        "path": "test/core/templates/build.test.ts",
+        "hash": "bcb9baeb5b5135def4f8ef766f88a033975491d4e224eda1470ee71adb4bd354"
+      },
+      {
+        "path": "test/core/templates/explore-template.test.ts",
+        "hash": "0ea09e1391638c6062269565c273c99f80df63f7913e6efc0aab5272fefb3da6"
+      },
+      {
+        "path": "test/core/templates/fragments/xirang-fragments.test.ts",
+        "hash": "3380a576d215f8f59f99d4f366716111dc33fa26f1a7db5369ce6042af470711"
+      },
+      {
+        "path": "test/core/templates/propose-template.test.ts",
+        "hash": "54255cd8b76f356570c871cac3848c0be947cc73235b0b25abf7f55908e0f7af"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "56740a2636d0d602f0cfd846397f3ff5451390c1bcc03cf93ff270d43ab4063c"
+      },
+      {
+        "path": "test/core/templates/snack-template.test.ts",
+        "hash": "0a8668a105f8647d46bb20ef012c4f4f63c2bad416fb71327d236375d618b1a1"
+      },
+      {
+        "path": "test/core/view.test.ts",
+        "hash": "580c85c4d52fc51950a5292e6e25ae76b15aedbaaf4b804860af57cd1db5ae15"
+      },
+      {
+        "path": "test/integration/migrate-element-summary-to-definition.test.ts",
+        "hash": "6dc28adc753915307a335fca709257ad69d3bf1aef59565d3edfb06e88071892"
+      },
+      {
+        "path": "test/integration/windows-definition-ci.test.ts",
+        "hash": "61c6bb70fced55c13a86d6220836b913b4367f17c1626beb1952b63c307b9ac5"
+      },
+      {
+        "path": "tmp_script/migrate-element-summary-to-definition.mjs",
+        "hash": "6bc4785a517d9d11a6fbbf70e4c046c0d7dce18a5ebec371ee2b7b29f8add0ed"
+      }
+    ],
+    "skippedEvidenceFiles": [
+      ".xirang/changes/replace-element-summary-with-definition/.verify-result.json"
+    ],
+    "gitHeadCommit": "417f99a791502c969d40d44ad2f33b2af1227771",
+    "gitDiffSummary": "Validated the absolute projectRoot and changeDir and confirmed .apply-isolation.json resolves immutable baseCommit 993f5969452561cc62a7363fdb0bb410a03614cc. HEAD remains exactly that commit, git diff baseCommit...HEAD is empty, the implementation is entirely in the working tree, and final scope contains 134 modified tracked files, 22 untracked files, and no staged files. All scoped behavior files are attributed by explicit task Files entries or declared directories; no generated snapshot, temporary, package-manifest, lockfile, history, or archive residue is present, and git diff --check passes. Direct CLI checks confirmed complete Definition output for identity, title, Requirement, and Definition search matches, complete query and impact text/JSON, and parser diagnostic propagation. Migration --check reported pending 0, current 66, conflicts 0. Targeted root tests passed 23 files/278 tests; Browser tests passed 2 files/10 tests; the final serial full root suite passed 147 files/1997 tests. Root lint/build, LikeC4 typecheck/build, Formal validation, Expected Semantic Model validation, and combined Change validation all passed. The prior search-output and orphan-helper blockers are resolved. Windows workflow coverage was inspected but not run on Windows.",
+    "timestamp": "2026-07-28T16:51:30.640Z"
+  },
+  "optimization": {
+    "status": "IMPROVED",
+    "attempts": [
+      {
+        "timestamp": "2026-07-28T16:38:21.602Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-28T16:51:30.603Z",
+        "type": "verification",
+        "result": "PASS",
+        "summary": "Speculative changes preserve the Expected Semantic Model and all stated constraints. src/core/view.ts still creates a new object for every top-level entry, projects present before/after values for added, modified, and removed top-level element declarations, and passes nested child arrays through unchanged; current semantic-diff generation restricts nested details to property/scenario entries. The focused test verifies complete definitions, derived summaries/descriptions, top-level object freshness, and nested identity/reference preservation. Formal and change validation succeeded. Root finding validation passed 3 files/36 tests, Browser validation passed 2 files/10 tests, TypeScript type checking passed, and git diff checks found no residue."
+      },
+      {
+        "timestamp": "2026-07-28T16:55:32.276Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-07-28T16:30:33.347Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "Windows-specific behavior is covered by the Windows workflow but was not executed on a Windows runner during this Linux review",
+          "requirement": "跨平台初始化项目",
+          "task": "C15 验证正式跨平台 CI 与全部项目门禁",
+          "recommendation": "Require the configured Windows CI job to pass before closure; local tests verify workflow composition and path-API usage but cannot prove Windows runtime behavior.",
+          "evidence": [
+            ".github/workflows/test-windows.yml:13-55",
+            "test/integration/windows-definition-ci.test.ts:18-46"
+          ]
+        }
+      ],
+      "tasksFileHash": "5f133083444dd245bf3318c6c7a73ecc0763aca612909f54e7daa515e24bd714",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".github/workflows/test-windows.yml",
+          ".pi/skills/xirang-explore/SKILL.md",
+          ".pi/skills/xirang-propose/SKILL.md",
+          ".pi/skills/xirang-snack/SKILL.md",
+          ".xirang/changes/replace-element-summary-with-definition/.apply-isolation.json",
+          ".xirang/changes/replace-element-summary-with-definition/.verify-result.json",
+          ".xirang/changes/replace-element-summary-with-definition/design.md",
+          ".xirang/changes/replace-element-summary-with-definition/elements/deterministic-operations.md",
+          ".xirang/changes/replace-element-summary-with-definition/elements/element-contract.md",
+          ".xirang/changes/replace-element-summary-with-definition/elements/element-declaration.md",
+          ".xirang/changes/replace-element-summary-with-definition/elements/explore.md",
+          ".xirang/changes/replace-element-summary-with-definition/elements/project-tooling-configuration.md",
+          ".xirang/changes/replace-element-summary-with-definition/elements/propose.md",
+          ".xirang/changes/replace-element-summary-with-definition/elements/semantic-browser.md",
+          ".xirang/changes/replace-element-summary-with-definition/elements/semantic-model-build.md",
+          ".xirang/changes/replace-element-summary-with-definition/elements/snack.md",
+          ".xirang/changes/replace-element-summary-with-definition/proposal.md",
+          ".xirang/changes/replace-element-summary-with-definition/tasks.md",
+          ".xirang/model/elements/deterministic-operations.md",
+          ".xirang/model/elements/element-contract.md",
+          ".xirang/model/elements/element-declaration.md",
+          ".xirang/model/elements/hierarchical-elements.md",
+          ".xirang/model/elements/project-tooling-configuration.md",
+          ".xirang/model/elements/project.root.md",
+          ".xirang/model/elements/semantic-browser.md",
+          ".xirang/model/elements/semantic-model-build.md",
+          "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+          "likec4/packages/diagram/src/xirang/SpecLoaderContext.tsx",
+          "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+          "likec4/packages/diagram/src/xirang/architectureView.ts",
+          "schemas/spec-driven/schema.yaml",
+          "schemas/spec-driven/templates/delta.md",
+          "src/cli/index.ts",
+          "src/commands/arch/impact.ts",
+          "src/commands/arch/query.ts",
+          "src/commands/arch/reader.ts",
+          "src/commands/arch/search.ts",
+          "src/core/candidate/workspace.ts",
+          "src/core/likec4/definition.ts",
+          "src/core/likec4/generator.ts",
+          "src/core/model/delta.ts",
+          "src/core/model/frontmatter.ts",
+          "src/core/model/parser.ts",
+          "src/core/model/types.ts",
+          "src/core/setup.ts",
+          "src/core/templates/fragments/xirang-fragments.ts",
+          "src/core/templates/model-skeleton.ts",
+          "src/core/templates/workflows/build.ts",
+          "src/core/templates/workflows/explore.ts",
+          "src/core/templates/workflows/propose.ts",
+          "src/core/templates/workflows/snack.ts",
+          "src/core/view.ts",
+          "test/cli-e2e/basic.test.ts",
+          "test/commands/arch-impact.test.ts",
+          "test/commands/arch-query.test.ts",
+          "test/commands/arch-search.test.ts",
+          "test/core/likec4/generator-validate.test.ts",
+          "test/core/likec4/generator.test.ts",
+          "test/core/model/delta.test.ts",
+          "test/core/model/parser.test.ts",
+          "test/core/model/serializer.pbt.test.ts",
+          "test/core/model/serializer.test.ts",
+          "test/core/model/sync-writer.test.ts",
+          "test/core/setup.test.ts",
+          "test/core/templates/build.test.ts",
+          "test/core/templates/explore-template.test.ts",
+          "test/core/templates/fragments/xirang-fragments.test.ts",
+          "test/core/templates/propose-template.test.ts",
+          "test/core/templates/skill-templates-parity.test.ts",
+          "test/core/templates/snack-template.test.ts",
+          "test/core/view.test.ts",
+          "test/integration/migrate-element-summary-to-definition.test.ts",
+          "test/integration/windows-definition-ci.test.ts",
+          "tmp_script/migrate-element-summary-to-definition.mjs"
+        ],
+        "evidenceFingerprint": "0a477bd4c01a6f79ede5d907eafb92ba304698f0964172de16a58601b06e89e7",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".github/workflows/test-windows.yml",
+            "hash": "e6b43bca96701cd7db713b12a46577ebba6b8036b6be1ec19c796706de7cc5cb"
+          },
+          {
+            "path": ".pi/skills/xirang-explore/SKILL.md",
+            "hash": "0024a1c048a6f72e361a99140a3fa4ee71b0b6cec9fee0d276c46470bb32c12c"
+          },
+          {
+            "path": ".pi/skills/xirang-propose/SKILL.md",
+            "hash": "fc5ef8db350a9e3892816d6fb34c5d7b2a4a474b6950c3a53599cdf4d7bc45b3"
+          },
+          {
+            "path": ".pi/skills/xirang-snack/SKILL.md",
+            "hash": "29ae18e3b6c10c0518683cfc9752cd49a0172a817c4c6736d14f07219e030eae"
+          },
+          {
+            "path": ".xirang/changes/replace-element-summary-with-definition/.apply-isolation.json",
+            "hash": "e31296d517a93c38c0bfdd4531df17bc30b58ad342c11f24e142643177c53e12"
+          },
+          {
+            "path": ".xirang/changes/replace-element-summary-with-definition/design.md",
+            "hash": "81133c25c0f86c757bcb1f7e257d97f1e5e5f2a7fd8c1bcef8e10f2d07f68e38"
+          },
+          {
+            "path": ".xirang/changes/replace-element-summary-with-definition/elements/deterministic-operations.md",
+            "hash": "05db127b2886c2e29495807b26d7b0e6be5a5823eac7e8ffd46606f157e8ec5e"
+          },
+          {
+            "path": ".xirang/changes/replace-element-summary-with-definition/elements/element-contract.md",
+            "hash": "f8a4dd80c9a6017a1e38656f0575018765828003285c0fec4634e50d13c6cf36"
+          },
+          {
+            "path": ".xirang/changes/replace-element-summary-with-definition/elements/element-declaration.md",
+            "hash": "3e8463d369f07f743125cb2f3e4b32551c1ba3b93de79adb68a56b5a797ced49"
+          },
+          {
+            "path": ".xirang/changes/replace-element-summary-with-definition/elements/explore.md",
+            "hash": "c6c636e4a0480796f295f991e50b316660ea4d4b9d270803a6d0089de3b9cca1"
+          },
+          {
+            "path": ".xirang/changes/replace-element-summary-with-definition/elements/project-tooling-configuration.md",
+            "hash": "8d1c2935c55db1a8bb97a2da7afb8419b4b7b6823039067750bf039d574e54f7"
+          },
+          {
+            "path": ".xirang/changes/replace-element-summary-with-definition/elements/propose.md",
+            "hash": "2a1ab5481a546910de69dae3b2ae9442612d4b19f0bfd0fb291515cc9364d14f"
+          },
+          {
+            "path": ".xirang/changes/replace-element-summary-with-definition/elements/semantic-browser.md",
+            "hash": "46e6034dc95b4ee69c206b1c25170fdcd6c171aefc70b7dfaaa06e17984aec77"
+          },
+          {
+            "path": ".xirang/changes/replace-element-summary-with-definition/elements/semantic-model-build.md",
+            "hash": "25d822d2331739510cddaa42bd43aaff28867fb163ac399a858c37cf5e142e29"
+          },
+          {
+            "path": ".xirang/changes/replace-element-summary-with-definition/elements/snack.md",
+            "hash": "4972dce73b7936572fcc0b2b6ecc6938068ede910f81f932e65c6084cd3a8fb9"
+          },
+          {
+            "path": ".xirang/changes/replace-element-summary-with-definition/proposal.md",
+            "hash": "1b68caf155e4061f9756247fb81a651ec7bd354ac135e36b4e8bbe60ddb72186"
+          },
+          {
+            "path": ".xirang/changes/replace-element-summary-with-definition/tasks.md",
+            "hash": "5f133083444dd245bf3318c6c7a73ecc0763aca612909f54e7daa515e24bd714"
+          },
+          {
+            "path": ".xirang/model/elements/deterministic-operations.md",
+            "hash": "761b5702d3f3911665f0088caa361be29f7897f255c7a564bfcb43b73f06272d"
+          },
+          {
+            "path": ".xirang/model/elements/element-contract.md",
+            "hash": "13fbc68297e2fd627aa8a15782b458ca4d1c383a244d63b5e71539a9b2cae073"
+          },
+          {
+            "path": ".xirang/model/elements/element-declaration.md",
+            "hash": "5853a1084cc7bc6540e3356b07a380dc2d32dde2e4f9bd83f93bfe2ab786ee3e"
+          },
+          {
+            "path": ".xirang/model/elements/hierarchical-elements.md",
+            "hash": "8338592f5d3d7e279012f7c3a9f0489807878cf27ba02beb54aef1b002938615"
+          },
+          {
+            "path": ".xirang/model/elements/project-tooling-configuration.md",
+            "hash": "e5bf15caac2fb78efc99ab727ba3d3492380c8a90c6d10f20af5899ace0890a0"
+          },
+          {
+            "path": ".xirang/model/elements/project.root.md",
+            "hash": "772db7ba06ce5bcf6a120f6733a7184b94942e52f076d8cde6a21f055eda6648"
+          },
+          {
+            "path": ".xirang/model/elements/semantic-browser.md",
+            "hash": "1c66303884325727cde340ae977d29b437951f07f43d563332538e3ea8eb17dd"
+          },
+          {
+            "path": ".xirang/model/elements/semantic-model-build.md",
+            "hash": "ea092bd46a5f94c2f9b0013f331b5e6637373e206fbad87f34376dc85ffdf70d"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
+            "hash": "8665b8ba769e22c7a2cd3209290be1846b6fe40b785ccd45bb9dbabac50b6ae5"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+            "hash": "d14ac38f7a7181242321c7857bfe957a574ab0dc6eb6fd6152c5a6b9bfd83741"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+            "hash": "d0973ea09dab629957a619dfd38599a797074c65f6015ecccef94ac2ee7189a4"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+            "hash": "9c713f6fc01e89630bad664091f8bd1aba961d6c3fc2e926b0dbf711e70aa51a"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/SpecLoaderContext.tsx",
+            "hash": "2fba834f2823c2a6848ee35a8c3180fcf3d82bf5ea7681d586935e132f9efa97"
+          },
+          {
+            "path": "schemas/spec-driven/schema.yaml",
+            "hash": "593cdcfa63ca83b665fc99caf8e61613235f349121cb05cb7316fc3f936d8487"
+          },
+          {
+            "path": "schemas/spec-driven/templates/delta.md",
+            "hash": "419aa7192d525a4c86a21eee875673597144d4a768275b85fc05515b71df102e"
+          },
+          {
+            "path": "src/cli/index.ts",
+            "hash": "9263a6730d1795b67cd96eef00ab92ec4ee2c1493ba41626baa8e5df3b82d85a"
+          },
+          {
+            "path": "src/commands/arch/impact.ts",
+            "hash": "6be6bf59b787836b08465d257c077270b475b89ac7c926162df8baf6e94b7950"
+          },
+          {
+            "path": "src/commands/arch/query.ts",
+            "hash": "5331c7cd0d13b821eb16bbfe9d8d25bafab6b4e45ae098a132bfe00f8b9f45e0"
+          },
+          {
+            "path": "src/commands/arch/reader.ts",
+            "hash": "d4f37e959d747d94ceb228957a41f58745b146e19edc83e23a7d6f585c107b7a"
+          },
+          {
+            "path": "src/commands/arch/search.ts",
+            "hash": "1f7dbd02fddf3bdeec3de6010f43fac48a0fb633838509fd8ba750afef0fa711"
+          },
+          {
+            "path": "src/core/candidate/workspace.ts",
+            "hash": "8fdeb55a5f1377bc4cd7cd14a515c7eb57e68bf1f64fd3ec3700228ee6be7d9a"
+          },
+          {
+            "path": "src/core/likec4/definition.ts",
+            "hash": "2393d8e4a6b9ec583a2a0f0a4cec20cc424a7a76547eff886cdba8920d6a0cc7"
+          },
+          {
+            "path": "src/core/likec4/generator.ts",
+            "hash": "1082051b2daba03f8584e147782cd23b684dc9d5eaf9599d92e9a9170e35421b"
+          },
+          {
+            "path": "src/core/model/delta.ts",
+            "hash": "47ea096bcb7f3e6439118323e620a66f00b96d68782fe4425f7b95114fd169ff"
+          },
+          {
+            "path": "src/core/model/frontmatter.ts",
+            "hash": "4db2bc6e6766357a5c300bc21d46d9cd9766bd5de65d7795465b0b6443cfc606"
+          },
+          {
+            "path": "src/core/model/parser.ts",
+            "hash": "8df43148a1a461f7edacae6ecd88022fa6ae26a97b9b158845d813113751844b"
+          },
+          {
+            "path": "src/core/model/types.ts",
+            "hash": "781f97e73beefdc9e6e06792f5467d362175696a9dfff6de3b4bd6a03c33d9a0"
+          },
+          {
+            "path": "src/core/setup.ts",
+            "hash": "1f878fcb29e09a203c378283a62964f3bd95501cfa1ccb5bfd5f63e89bedfd41"
+          },
+          {
+            "path": "src/core/templates/fragments/xirang-fragments.ts",
+            "hash": "992e9cc6932b168161c54c62df56f10f5627087a3fe3da5c58ea3bd456653c65"
+          },
+          {
+            "path": "src/core/templates/model-skeleton.ts",
+            "hash": "a3aa689c4fe7e2f0101732d08ce9fb9d2dcb4a799dd30f29960fedbbfdeb41a8"
+          },
+          {
+            "path": "src/core/templates/workflows/build.ts",
+            "hash": "33c4fb576ec853bc4341fe8d9f9f6aa27ef95d627d72930aa9ab3cf297f4d4d8"
+          },
+          {
+            "path": "src/core/templates/workflows/explore.ts",
+            "hash": "508ee63ab64cb4d5f37ac8211105de825325564189da4014fcb9323ea8d7c335"
+          },
+          {
+            "path": "src/core/templates/workflows/propose.ts",
+            "hash": "1577f4c1a063fc5713840207783c7b13bf2950234e4960bcd5e4e3c2aa4e5aa5"
+          },
+          {
+            "path": "src/core/templates/workflows/snack.ts",
+            "hash": "de1506dd567a78568e46ab9ad6feac4a6bcf3f1d9647a55b42dbce57960b198c"
+          },
+          {
+            "path": "src/core/view.ts",
+            "hash": "ff906679e5e24df98c6a641ef87c89683a67b12aa43486010097eee9b3c0f179"
+          },
+          {
+            "path": "test/cli-e2e/basic.test.ts",
+            "hash": "448a847c11d1abdbb8153604bd100ace065aa5e8e34957dc0b5c51128416437c"
+          },
+          {
+            "path": "test/commands/arch-impact.test.ts",
+            "hash": "9c693435786b0bfc6f61d40b28f7b7682cca2f64e6ae009b7624fcd2a59e5007"
+          },
+          {
+            "path": "test/commands/arch-query.test.ts",
+            "hash": "c28f614fd7cd06b1c27cb0aae518675d9e77e66bc7c76e04565bd92b7ea764e7"
+          },
+          {
+            "path": "test/commands/arch-search.test.ts",
+            "hash": "a7ef48722e3c0e6792a04eacd47b17a3538973a89b82b034222cccdeb7d72915"
+          },
+          {
+            "path": "test/core/likec4/generator-validate.test.ts",
+            "hash": "85f7781663c32fa5259c076f6b00c91d5f3a510434b8da32218247421a523276"
+          },
+          {
+            "path": "test/core/likec4/generator.test.ts",
+            "hash": "b2a7421e9eb436eea46364174bed262e06ee6ee1570af51d4e26dbb0d9a5787a"
+          },
+          {
+            "path": "test/core/model/delta.test.ts",
+            "hash": "4dd5a7411d086ba709d221b32ce08a9e918afc30c1644fa8d0449d648b96b9ab"
+          },
+          {
+            "path": "test/core/model/parser.test.ts",
+            "hash": "98fa7650154a477895ee8def62de3b1e5fa07adba49ac5deda9f799893a50fe3"
+          },
+          {
+            "path": "test/core/model/serializer.pbt.test.ts",
+            "hash": "167b534a380ace367b69cc52e077157d86cb1f6823c6fd750ee0a402ab46f87f"
+          },
+          {
+            "path": "test/core/model/serializer.test.ts",
+            "hash": "964ed2417d58f60360b4185018020e05cbfea749504768889ab038d3774e3134"
+          },
+          {
+            "path": "test/core/model/sync-writer.test.ts",
+            "hash": "e718672cbefc85e64e1ab68d6b51f9011deb83a1e84f4813ef32da001d28b664"
+          },
+          {
+            "path": "test/core/setup.test.ts",
+            "hash": "11008af9f03710e7e3dd7c6865b00915756177e97179a6a44327050b621c04ff"
+          },
+          {
+            "path": "test/core/templates/build.test.ts",
+            "hash": "bcb9baeb5b5135def4f8ef766f88a033975491d4e224eda1470ee71adb4bd354"
+          },
+          {
+            "path": "test/core/templates/explore-template.test.ts",
+            "hash": "0ea09e1391638c6062269565c273c99f80df63f7913e6efc0aab5272fefb3da6"
+          },
+          {
+            "path": "test/core/templates/fragments/xirang-fragments.test.ts",
+            "hash": "3380a576d215f8f59f99d4f366716111dc33fa26f1a7db5369ce6042af470711"
+          },
+          {
+            "path": "test/core/templates/propose-template.test.ts",
+            "hash": "54255cd8b76f356570c871cac3848c0be947cc73235b0b25abf7f55908e0f7af"
+          },
+          {
+            "path": "test/core/templates/skill-templates-parity.test.ts",
+            "hash": "56740a2636d0d602f0cfd846397f3ff5451390c1bcc03cf93ff270d43ab4063c"
+          },
+          {
+            "path": "test/core/templates/snack-template.test.ts",
+            "hash": "0a8668a105f8647d46bb20ef012c4f4f63c2bad416fb71327d236375d618b1a1"
+          },
+          {
+            "path": "test/core/view.test.ts",
+            "hash": "591f6223633d5e5ea5a26cfa6bbe9909cf62a5c70eac956f520b82f6cfe35321"
+          },
+          {
+            "path": "test/integration/migrate-element-summary-to-definition.test.ts",
+            "hash": "6dc28adc753915307a335fca709257ad69d3bf1aef59565d3edfb06e88071892"
+          },
+          {
+            "path": "test/integration/windows-definition-ci.test.ts",
+            "hash": "61c6bb70fced55c13a86d6220836b913b4367f17c1626beb1952b63c307b9ac5"
+          },
+          {
+            "path": "tmp_script/migrate-element-summary-to-definition.mjs",
+            "hash": "6bc4785a517d9d11a6fbbf70e4c046c0d7dce18a5ebec371ee2b7b29f8add0ed"
+          }
+        ],
+        "skippedEvidenceFiles": [
+          ".xirang/changes/replace-element-summary-with-definition/.verify-result.json"
+        ],
+        "gitHeadCommit": "993f5969452561cc62a7363fdb0bb410a03614cc",
+        "gitDiffSummary": "Validated the absolute projectRoot and changeDir and confirmed .apply-isolation.json resolves immutable baseCommit 993f5969452561cc62a7363fdb0bb410a03614cc. HEAD remains exactly that commit, git diff baseCommit...HEAD is empty, the implementation is entirely in the working tree, and final scope contains 134 modified tracked files, 22 untracked files, and no staged files. All scoped behavior files are attributed by explicit task Files entries or declared directories; no generated snapshot, temporary, package-manifest, lockfile, history, or archive residue is present, and git diff --check passes. Direct CLI checks confirmed complete Definition output for identity, title, Requirement, and Definition search matches, complete query and impact text/JSON, and parser diagnostic propagation. Migration --check reported pending 0, current 66, conflicts 0. Targeted root tests passed 23 files/278 tests; Browser tests passed 2 files/10 tests; the final serial full root suite passed 147 files/1997 tests. Root lint/build, LikeC4 typecheck/build, Formal validation, Expected Semantic Model validation, and combined Change validation all passed. The prior search-output and orphan-helper blockers are resolved. Windows workflow coverage was inspected but not run on Windows."
+      }
+    },
+    "findings": [
+      {
+        "status": "resolved",
+        "location": {
+          "files": [
+            "src/core/view.ts"
+          ],
+          "symbols": [
+            "projectBrowserDiff",
+            "buildChangeRuntimeVariant"
+          ]
+        },
+        "opportunity": "projectBrowserDiff recursively clones every nested semantic-diff detail entry even though browser projection can only modify top-level element-declaration entries; current diff children are exclusively child-only property or scenario entries.",
+        "impact": "Removing the redundant recursive projection deletes unnecessary control flow and changes browser diff projection from O(E + C) object copies to O(E), where E is top-level entries and C is nested property/scenario details, on every active-change runtime snapshot build.",
+        "evidence": [
+          "src/core/view.ts:105-116 maps every top-level entry and recursively maps entry.children through projectEntry.",
+          "src/core/view.ts:108-113 only changes entries whose kind is element-declaration; all other projected entries are shallow copies with identical values.",
+          "src/core/semantic-diff.ts:18-26 defines scenario and property as child-only detail kinds.",
+          "src/core/semantic-diff.ts:170-195 creates entity-entry children only through propertyEntries, which emits property entries.",
+          "src/core/semantic-diff.ts:215-250 creates requirement children only as property or scenario entries.",
+          "src/core/semantic-diff.ts:276-283 constructs element-declaration and requirement entries only at the top level.",
+          "src/core/view.ts:144-160 invokes projectBrowserDiff for every successfully compiled active-change runtime variant."
+        ],
+        "recommendation": "Make browser diff projection top-level only: retain the existing map over diff.entries and the before/after projection for element-declaration entries, but remove the recursive children override so the unchanged child arrays already carried by the entry spread pass through directly.",
+        "keyDesign": "projectBrowserDiff should map each top-level ChangeDiff entry once. For top-level element-declaration entries, project present before and after declarations with projectBrowserDeclaration. Preserve every other field, including children, through the existing entry spread without recursively rebuilding child-only detail entries.",
+        "preservationConstraints": [
+          "Preserve the serialized runtime manifest exactly for all current ChangeDiff inputs, including schema metadata, diagnostics, summary counts, entry ordering, duplicate handling, declared operations, and child ordering.",
+          "Continue projecting both before and after values of every top-level element-declaration entry so added, modified, and removed Elements retain complete definition, derived summary, and description data.",
+          "Preserve all nested property and scenario identities, operations, before/after values, ordering, and optional-field presence without mutation.",
+          "Leave non-element top-level entries byte-equivalent after JSON serialization.",
+          "Do not change ChangeDiff types, semantic-diff generation, runtime manifest public types, Browser behavior, Element Contracts, or Expected Semantic Model intent.",
+          "Do not introduce caching or shared mutable state; each returned top-level projected entry must remain a new object as it is today."
+        ],
+        "implementationOutline": [
+          "Add a focused runtime-snapshot test containing a modified Element Definition and nested Requirement or Scenario details.",
+          "Assert that top-level Declaration before/after values receive Browser projection while nested detail entries remain complete and ordered.",
+          "Remove the entry.children recursive mapping from projectEntry and retain the top-level diff.entries.map(projectEntry) call.",
+          "Run the focused view, semantic-diff/change-compiler, and Browser projection tests."
+        ],
+        "validation": [
+          "test/core/view.test.ts should prove a Change runtime snapshot still projects complete Definition data and the exact derived excerpt on top-level element-declaration before/after values.",
+          "test/core/view.test.ts should prove nested property and scenario entries retain the same identities, operations, ordering, and before/after content.",
+          "test/core/change-compiler.test.ts should continue proving the producer emits property/scenario child-only details.",
+          "pnpm exec vitest run test/core/view.test.ts test/core/change-compiler.test.ts test/core/likec4/generator.test.ts should pass.",
+          "pnpm --dir likec4 exec vitest run packages/diagram/src/xirang/architectureView.spec.ts packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx should confirm unchanged Browser presentation."
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "This is the only admitted optimization with statically closed behavior preservation: one deletion removes guaranteed redundant traversal and allocation from every active-change Browser snapshot without altering serialized output or public contracts. Other observed count-only arrays and linear Browser lookups have smaller or workload-dependent benefits.",
+        "id": "OPT-20260728T163821598Z-01",
+        "targetFileHashes": {
+          "src/core/view.ts": "ff906679e5e24df98c6a641ef87c89683a67b12aa43486010097eee9b3c0f179"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-28T16:38:21.599Z",
+        "findingId": "OPT-20260728T163821598Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "select",
+        "reason": "This is the only admitted optimization with statically closed behavior preservation: one deletion removes guaranteed redundant traversal and allocation from every active-change Browser snapshot without altering serialized output or public contracts. Other observed count-only arrays and linear Browser lookups have smaller or workload-dependent benefits.",
+        "timestamp": "2026-07-28T16:38:21.602Z",
+        "findingId": "OPT-20260728T163821598Z-01",
+        "hashes": {
+          "src/core/view.ts": "ff906679e5e24df98c6a641ef87c89683a67b12aa43486010097eee9b3c0f179"
+        }
+      },
+      {
+        "sequence": 3,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-28T16:38:30.340Z",
+        "findingId": "OPT-20260728T163821598Z-01",
+        "hashes": {
+          "src/core/view.ts": "ff906679e5e24df98c6a641ef87c89683a67b12aa43486010097eee9b3c0f179"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "verified",
+        "reason": "Speculative changes preserve the Expected Semantic Model and all stated constraints. src/core/view.ts still creates a new object for every top-level entry, projects present before/after values for added, modified, and removed top-level element declarations, and passes nested child arrays through unchanged; current semantic-diff generation restricts nested details to property/scenario entries. The focused test verifies complete definitions, derived summaries/descriptions, top-level object freshness, and nested identity/reference preservation. Formal and change validation succeeded. Root finding validation passed 3 files/36 tests, Browser validation passed 2 files/10 tests, TypeScript type checking passed, and git diff checks found no residue.",
+        "timestamp": "2026-07-28T16:51:30.603Z",
+        "findingId": "OPT-20260728T163821598Z-01"
+      },
+      {
+        "sequence": 5,
+        "action": "resolve",
+        "reason": "The optimization is complete at successful checkpoint d8517492dd98d6b0d27cf8d37d8a3af3a28a0be3. Current src/core/view.ts removes recursive child projection while preserving fresh top-level entries and top-level Declaration before/after projection; nested child arrays retain identity and reference. Current hashes match the verified evidence, the worktree is clean, git diff --check passes, focused root validation passes 3 files/36 tests, and Browser validation passes 2 files/10 tests. A fresh scan found no further statically justified, behavior-preserving optimization whose benefit outweighs its cost and risk; remaining possibilities such as bounded excerpt iteration, repeated search normalization, or Browser lookup indexing have negligible or workload-dependent benefit.",
+        "timestamp": "2026-07-28T16:55:32.276Z",
+        "findingId": "OPT-20260728T163821598Z-01"
+      }
+    ],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}

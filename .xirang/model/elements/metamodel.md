@@ -4,7 +4,7 @@ identity: metamodel
 kind: capability
 parent: semantic-model
 title: "Metamodel"
-summary: "Semantic Model 使用的可扩展语义记法。"
+definition: "Semantic Model 使用的可扩展语义记法。"
 ---
 
 ## Requirements

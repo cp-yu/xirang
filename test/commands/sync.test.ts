@@ -16,7 +16,7 @@ vi.mock('@inquirer/prompts', () => ({
 
 const CONTRACT = '## Requirements\n\n### Requirement: Existing\nThe system SHALL keep working.\n\n#### Scenario: Existing\n- **WHEN** invoked\n- **THEN** it works';
 
-const ADD_REQUIREMENT = '---\noperation: MODIFIED\nentity: element-declaration\nidentity: auth\nkind: capability\nparent: root\ntitle: Auth\nsummary: Auth summary\n---\n\n'
+const ADD_REQUIREMENT = '---\noperation: MODIFIED\nentity: element-declaration\nidentity: auth\nkind: capability\nparent: root\ntitle: Auth\ndefinition: Auth summary\n---\n\n'
   + '## ADDED Requirements\n\n### Requirement: Login\nThe system SHALL support login.\n\n'
   + '#### Scenario: Login succeeds\n- **WHEN** credentials are valid\n- **THEN** the user is signed in\n';
 
@@ -30,7 +30,7 @@ describe('syncCommand', () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-sync-test-'));
     await fs.mkdir(path.join(tempDir, '.xirang', 'changes', 'archive'), { recursive: true });
     await writeProjectModel(tempDir, minimalModel({
-      elements: [{ identity: 'auth', parent: 'root', title: 'Auth', summary: 'Auth summary', requirements: CONTRACT }],
+      elements: [{ identity: 'auth', parent: 'root', title: 'Auth', definition: 'Auth summary', requirements: CONTRACT }],
     }));
     process.chdir(tempDir);
     console.log = vi.fn();

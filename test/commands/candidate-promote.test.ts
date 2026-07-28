@@ -34,7 +34,11 @@ describe('Candidate promotion', () => {
 
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-candidate-promote-'));
-    await new SetupCommand({ tools: 'none', force: true }).execute(root);
+    await new SetupCommand({
+      tools: 'none',
+      force: true,
+      projectDefinition: 'Candidate promotion test project.',
+    }).execute(root);
     await initializeCandidate(root, { kind: 'current' });
     candidate = path.join(root, '.xirang', 'candidate');
   });

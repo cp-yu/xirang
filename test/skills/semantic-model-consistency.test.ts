@@ -21,6 +21,7 @@ describe('generated internal agent semantic context', () => {
     const generatedFiles = [
       '.pi/skills/xirang-apply-change/SKILL.md',
       '.pi/skills/xirang-archive-change/SKILL.md',
+      '.pi/skills/xirang-build/SKILL.md',
       '.pi/skills/xirang-explore/SKILL.md',
       '.pi/skills/xirang-propose/SKILL.md',
       '.pi/skills/xirang-snack/SKILL.md',
@@ -39,6 +40,8 @@ describe('generated internal agent semantic context', () => {
       'canonical capability ID',
       'domain_name.capability_name',
       'change-local specs metadata',
+      'Declaration summary',
+      '`element-declaration` | `identity`, `kind`, `parent`, `title`, `summary`',
     ]) {
       expect(combined).not.toContain(retired);
     }

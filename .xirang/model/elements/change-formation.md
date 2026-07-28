@@ -4,7 +4,7 @@ identity: change-formation
 kind: domain
 parent: change-realization
 title: "Change Formation"
-summary: "形成完整 Semantic Delta 与 Change Plan 并完成必要确认的阶段。"
+definition: "形成完整 Semantic Delta 与 Change Plan 并完成必要确认的阶段。"
 ---
 
 ## Requirements
