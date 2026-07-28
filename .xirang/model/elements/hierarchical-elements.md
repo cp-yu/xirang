@@ -4,7 +4,7 @@ identity: hierarchical-elements
 kind: domain
 parent: semantic-model
 title: "Hierarchical Elements"
-summary: "从 Project Root 开始、可任意深入的项目抽象结构。"
+definition: "从 Project Root 开始、可任意深入的项目抽象结构。"
 ---
 
 ## Requirements

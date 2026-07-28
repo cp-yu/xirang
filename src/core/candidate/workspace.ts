@@ -103,7 +103,7 @@ async function writeCleanSkeleton(projectRoot: string, staging: string): Promise
   const projectName = inferProjectName(projectRoot);
   const context = {
     projectName,
-    projectSummary: `Project intent for ${projectName} is not yet defined.`,
+    projectDefinition: `Project Definition for ${projectName} is not yet defined.`,
   };
   for (const entry of MODEL_FILE_MANIFEST) {
     await fs.writeFile(path.join(staging, ...entry.relativePath.split('/')), entry.render(context), 'utf8');

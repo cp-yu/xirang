@@ -10,7 +10,7 @@ const UNIT = [
   'kind: capability',
   'parent: domain.architecture',
   'title: Reader',
-  'summary: Reads source modules',
+  'definition: Reads source modules',
   '---',
   '',
 ].join('\n');

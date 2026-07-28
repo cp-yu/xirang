@@ -73,9 +73,11 @@ function parseElementUnit(file: string, data: Record<string, unknown>, body: str
     diagnostics.push(...outcome);
     return;
   }
-  diagnostics.push(...outcome.diagnostics);
   const identity = outcome.identity;
   const operation = readOperation(data.operation);
+  diagnostics.push(...outcome.diagnostics.filter(diagnostic =>
+    operation !== 'REMOVED' || diagnostic.code !== 'MISSING_ELEMENT_DEFINITION'
+  ));
   if (data.operation !== undefined && operation === undefined) {
     diagnostics.push(error('INVALID_OPERATION', file, `Unknown operation: ${String(data.operation)}`, identity));
   }

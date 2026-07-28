@@ -7,7 +7,7 @@ identity: <identity>
 kind: <element-kind identity>
 parent: null
 title: <title>
-summary: <summary>
+definition: <complete target definition>
 ---
 
 ## ADDED Requirements

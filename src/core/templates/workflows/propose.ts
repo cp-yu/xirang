@@ -5,6 +5,7 @@ import type { SkillTemplate } from '../types.js';
 import {
   ARTIFACT_DOC_LANGUAGE_CONTRACT,
   ELEMENT_CONTRACT_SEMANTICS,
+  ELEMENT_DEFINITION_SEMANTICS,
   XIRANG_PHILOSOPHY,
   XIRANG_SHARED_CONTEXT,
 } from '../fragments/xirang-fragments.js';
@@ -18,6 +19,8 @@ export function getOpsxProposeSkillTemplate(): SkillTemplate {
 ${XIRANG_PHILOSOPHY}
 
 ${XIRANG_SHARED_CONTEXT}
+
+${ELEMENT_DEFINITION_SEMANTICS}
 
 ${ELEMENT_CONTRACT_SEMANTICS}
 
@@ -40,7 +43,7 @@ ${ELEMENT_CONTRACT_SEMANTICS}
    - Use implementation evidence only where needed to resolve current behavior or lowering constraints.
 3. Assess semantic readiness.
    - Reuse a confirmed \`Design Summary\` when the conversation contains one, and state that it is being reused. Route architecture decisions to proposal Architecture Source, \`design.md\`, and the Declaration, Relationship, Metamodel, and View Delta units; route testing strategy to \`design.md\` and concrete test work to \`tasks.md\`; route risk and trade-off decisions to \`design.md\`.
-   - Otherwise require a clear problem, impact scope, approach, verification method, and no unresolved Semantic Delta decisions across Contract or structural scope. Multi-subsystem scope is evidence, not an automatic Explore requirement; report a gap only when it cannot form one coherent change scope.
+   - Otherwise require a clear problem, impact scope, approach, verification method, and no unresolved Semantic Delta decisions across Definition, Contract, or structural scope. Multi-subsystem scope is evidence, not an automatic Explore requirement; report a gap only when it cannot form one coherent change scope.
    - If readiness is incomplete, list the concrete missing items, recommend \`/xirang:explore\`, and stop: do not create a change directory or modify project files.
    - If the user explicitly overrides the readiness recommendation, continue, but the override does not authorize guessing source decisions. Ask one focused question at a time for every unresolved behavior or architecture decision.
    - For an existing change, assess readiness from existing artifacts, current input, the confirmed Design Summary, formal source, and implementation evidence together.
@@ -53,14 +56,14 @@ ${ELEMENT_CONTRACT_SEMANTICS}
    - Run \`xirang status --change "<name>" --json\` for \`applyRequires\`, artifact order, dependencies, and schema.
 5. Determine source impact before writing \`proposal.md\`.
    - Compare requested observable behavior with formal Element Contracts. Reuse the Element whose Contract already governs the behavior; add a Contract to another Element only for genuinely new observable behavior. An optional-contract Element without a Contract does not by itself require a new one.
-   - Compare structural impact with the formal Xirang Semantic Model. Identify affected Element Declarations, refinement, Relationships, Element Kinds, Relationship Kinds, and Authored Views. Implementation movement or call/import evidence alone is not a structural change.
+   - Compare structural impact with the formal Xirang Semantic Model. Identify affected Element Declarations, refinement, Relationships, Element Kinds, Relationship Kinds, and Authored Views. For every added or modified Declaration, write the complete target Definition, not a summary of what changed. Implementation movement or call/import evidence alone is not a structural change.
    - Determine the Contract and structural scopes of one Semantic Delta. Keep the compatible \`Behavior Source\` and \`Architecture Source\` proposal headings: \`Behavior Source\` lists \`New Specs\` or \`Modified Specs\` as the Element identities whose Element Contract is added or modified, and \`Architecture Source\` lists the identities whose Declaration, Relationship, Metamodel, or View semantics change. Both sections address the same identity space; they separate Contract impact from structural impact, not two kinds of identifier. Use \`None\` only when that scope truly does not change.
 6. Generate ready artifacts in dependency order. For each artifact, run \`xirang instructions <artifact-id> --change "<name>" --json\`.
    - For each response, follow the authoring order in the returned \`instruction\`. Keep \`definition\`, dependencies, \`currentState\`, \`configProjection\`, and \`template\` as separate inputs; do not copy non-artifact inputs into artifacts.
    - For \`proposal.md\`, write \`## Source Impact\` with the compatible Behavior Source and Architecture Source sections, referencing Elements by \`identity\`.
    - When creating \`specs\`, write the Element Contract delta into \`.xirang/changes/<name>/elements/<identity>.md\` for exactly the identities declared under proposal \`Behavior Source\`; the frontmatter locates the host Element and the body carries the Requirement Entries. Read the exact Requirement titles from the formal Element Contract before authoring ADDED, MODIFIED, or REMOVED deltas. Express a rename as REMOVED old Requirement plus ADDED new complete Requirement. Author only canonical unlabeled \`#### Scenario: <title>\` headings. Rely on combined change validation for deterministic header compatibility. Follow the returned Specs authoring contract.
    - Route obsolete-test rationale from **Test Maintenance** to \`design.md\` and concrete test updates/removals to \`tasks.md\`. Route **One-time Verification** items to evidence-only \`tasks.md\` Checks with no persistent test file; absence assertions use \`Verifies: <path> REMOVED Requirement\`.
-7. Continue until all \`applyRequires\` artifacts are done. Ask one focused question when an artifact decision remains unresolved.
+7. Continue until all \`applyRequires\` artifacts are done. If an Element's concept identity, independent modeling reason, scope, or hierarchy boundary remains unresolved, stop and ask one focused question instead of guessing the Definition. Ask one focused question when any other artifact decision remains unresolved.
 8. After Specs and Design are complete, reconcile structural scope before writing the remaining Delta units.
    - Re-read proposal Architecture Source, \`design.md\`, the formal Xirang Semantic Model, and current implementation evidence.
    - If Design confirms a different structural impact across Declarations, refinement, Relationships, Kinds, or Views, update only proposal \`Architecture Source\` to declare final scope.

@@ -4,7 +4,7 @@ identity: deterministic-operations
 kind: capability
 parent: cli
 title: Deterministic Operations
-summary: 为查询、校验、证据与原子状态转换提供一致结果的 CLI 操作集合。
+definition: 为查询、校验、证据与原子状态转换提供一致结果的 CLI 操作集合。
 ---
 
 ## Requirements

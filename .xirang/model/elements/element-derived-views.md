@@ -4,7 +4,7 @@ identity: element-derived-views
 kind: capability
 parent: derived-views
 title: "Element-derived Views"
-summary: "由一个 Element 及其 children 推导的下钻视图。"
+definition: "由一个 Element 及其 children 推导的下钻视图。"
 ---
 
 ## Requirements

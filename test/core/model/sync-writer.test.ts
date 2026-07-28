@@ -3,7 +3,7 @@ import { applySemanticDelta } from '../../../src/core/model/delta.js';
 import { parseSemanticModel, parseSemanticModelFiles, readModelTree } from '../../../src/core/model/parser.js';
 import { writeMinimal } from '../../../src/core/model/sync-writer.js';
 import { emptySemanticModel, relationshipIdentity } from '../../../src/core/model/types.js';
-import { createSemanticDiff } from '../../../src/core/semantic-diff.js';
+import { createSemanticDiff, semanticModelFingerprint } from '../../../src/core/semantic-diff.js';
 import { createModelRoot } from './fixtures.js';
 
 /** Hand-authored, deliberately non-canonical: extra blank lines and an unusual key order. */
@@ -11,7 +11,7 @@ const HAND_WRITTEN = [
   '---',
   'identity: cap.b',
   'entity: element-declaration',
-  'summary: Hand written',
+  'definition: Hand written definition.',
   'kind: capability',
   'parent: root',
   'title: B',
@@ -31,8 +31,8 @@ const FILES: Record<string, string> = {
   'metamodel/capability.md': '---\nentity: element-kind\nidentity: capability\ncontract: optional\n---\n',
   'metamodel/invokes.md': '---\nentity: relationship-kind\nidentity: invokes\n---\n',
   'metamodel/uses.md': '---\nentity: relationship-kind\nidentity: uses\n---\n',
-  'elements/root.md': '---\nentity: element-declaration\nidentity: root\nkind: project\nparent: null\ntitle: Root\nsummary: Root\n---\n',
-  'elements/cap.a.md': '---\nentity: element-declaration\nidentity: cap.a\nkind: capability\nparent: root\ntitle: A\nsummary: A\n---\n',
+  'elements/root.md': '---\nentity: element-declaration\nidentity: root\nkind: project\nparent: null\ntitle: Root\ndefinition: Root project definition.\n---\n',
+  'elements/cap.a.md': '---\nentity: element-declaration\nidentity: cap.a\nkind: capability\nparent: root\ntitle: A\ndefinition: Capability A definition.\n---\n',
   'elements/hand-written.md': HAND_WRITTEN,
   'relationships/invokes.yaml': 'relationships:\n  - source: cap.a\n    kind: invokes\n    target: cap.b\n',
   'relationships/uses.yaml': 'relationships:\n  - source: cap.b\n    kind: uses\n    target: cap.a\n',
@@ -57,13 +57,16 @@ describe('writeMinimal', () => {
         operation: 'MODIFIED',
         entity: 'element-declaration',
         identity: 'cap.a',
-        target: { identity: 'cap.a', kind: 'capability', parent: 'root', title: 'A renamed', summary: 'A' },
+        target: { identity: 'cap.a', kind: 'capability', parent: 'root', title: 'A renamed', definition: 'A changed, complete definition.\n\nIts second paragraph remains intact.' },
       }],
     });
 
     const before = await readModelTree(root);
     const after = await writeMinimal(root, previous, applied.expected);
     expect(changedPaths(before, after)).toEqual(['elements/cap.a.md']);
+    expect(after.get('elements/cap.a.md')!.toString('utf8')).toContain(
+      'definition: "A changed, complete definition.\\n\\nIts second paragraph remains intact."',
+    );
     for (const [file, bytes] of before) {
       if (file !== 'elements/cap.a.md') expect(after.get(file)!.equals(bytes)).toBe(true);
     }
@@ -110,7 +113,7 @@ describe('writeMinimal', () => {
         operation: 'MODIFIED',
         entity: 'element-declaration',
         identity: 'cap.a',
-        target: { identity: 'cap.a', kind: 'capability', parent: 'root', title: 'Renamed', summary: 'A' },
+        target: { identity: 'cap.a', kind: 'capability', parent: 'root', title: 'Renamed', definition: 'Capability A definition.' },
       }],
     });
     const after = await writeMinimal(root, previous, applied.expected);
@@ -126,7 +129,7 @@ describe('writeMinimal', () => {
         operation: 'ADDED',
         entity: 'element-declaration',
         identity: 'cap.c',
-        target: { identity: 'cap.c', kind: 'capability', parent: 'root', title: 'C', summary: 'C' },
+        target: { identity: 'cap.c', kind: 'capability', parent: 'root', title: 'C', definition: 'Capability C definition.' },
       }],
     });
     const after = await writeMinimal(root, previous, applied.expected);
@@ -153,12 +156,33 @@ describe('writeMinimal', () => {
 });
 
 describe('difference output', () => {
+  it('includes complete Definition changes in property diff and fingerprint', () => {
+    const before = emptySemanticModel();
+    before.elements.push({
+      declaration: { identity: 'a', kind: 'k', parent: null, title: 'A', definition: 'Original definition.' },
+      requirements: [],
+    });
+    const after = structuredClone(before);
+    after.elements[0].declaration.definition = 'Changed first paragraph.\n\nChanged second paragraph.';
+
+    const diff = createSemanticDiff(before, after, {
+      valid: true, formalFingerprint: '', changeFingerprint: '', diagnostics: [],
+    });
+    expect(diff.entries[0].children).toContainEqual(expect.objectContaining({
+      kind: 'property',
+      identity: 'a.definition',
+      before: 'Original definition.',
+      after: 'Changed first paragraph.\n\nChanged second paragraph.',
+    }));
+    expect(semanticModelFingerprint(after)).not.toBe(semanticModelFingerprint(before));
+  });
+
   it('carries no storage partition information', () => {
     const empty = emptySemanticModel();
     const target = {
       ...empty,
       elements: [{
-        declaration: { identity: 'a', kind: 'k', parent: null, title: 'A', summary: 'S' },
+        declaration: { identity: 'a', kind: 'k', parent: null, title: 'A', definition: 'Element A definition.' },
         requirements: [],
       }],
     };

@@ -99,8 +99,9 @@ program
   .command('setup [path]')
   .description('Set up Xirang in your project')
   .option('--tools <tools>', toolsOptionDescription)
+  .option('--project-definition <definition>', 'Complete Project Definition for a new non-interactive workspace')
   .option('--force', 'Archive retired managed files without prompting')
-  .action(async (targetPath = '.', options?: { tools?: string; force?: boolean }) => {
+  .action(async (targetPath = '.', options?: { tools?: string; projectDefinition?: string; force?: boolean }) => {
     try {
       const resolvedPath = path.resolve(targetPath);
 
@@ -123,6 +124,7 @@ program
       await new SetupCommand({
         tools: options?.tools,
         force: options?.force,
+        projectDefinition: options?.projectDefinition,
       }).execute(targetPath);
     } catch (error) {
       console.log();

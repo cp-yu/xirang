@@ -9,15 +9,15 @@ import { createModelRoot } from './fixtures.js';
 const MODEL: Record<string, string> = {
   'metamodel/project.md': '---\nentity: element-kind\nidentity: project\ncontract: optional\nroot: true\n---\n',
   'metamodel/capability.md': '---\nentity: element-kind\nidentity: capability\ncontract: optional\n---\n',
-  'elements/root.md': '---\nentity: element-declaration\nidentity: root\nkind: project\nparent: null\ntitle: Root\nsummary: Root\n---\n',
-  'elements/cap.a.md': '---\nentity: element-declaration\nidentity: cap.a\nkind: capability\nparent: root\ntitle: A\nsummary: A\n---\n',
+  'elements/root.md': '---\nentity: element-declaration\nidentity: root\nkind: project\nparent: null\ntitle: Root\ndefinition: Root\n---\n',
+  'elements/cap.a.md': '---\nentity: element-declaration\nidentity: cap.a\nkind: capability\nparent: root\ntitle: A\ndefinition: A\n---\n',
 };
 
 describe('rules removed by the kernel rebuild', () => {
   it('allows MODIFIED to change an Element Kind while the identity stays', async () => {
     const model = (await parseSemanticModel(await createModelRoot(MODEL))).model;
     const change = await parseSemanticDelta(await createModelRoot({
-      'elements/cap.a.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: cap.a\nkind: project\nparent: null\ntitle: A\nsummary: A\n---\n',
+      'elements/cap.a.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: cap.a\nkind: project\nparent: null\ntitle: A\ndefinition: A\n---\n',
     }));
 
     expect(change.diagnostics).toEqual([]);

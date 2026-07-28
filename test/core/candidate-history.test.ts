@@ -12,7 +12,11 @@ describe('Candidate build history', () => {
 
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-candidate-history-'));
-    await new SetupCommand({ tools: 'none', force: true }).execute(root);
+    await new SetupCommand({
+      tools: 'none',
+      force: true,
+      projectDefinition: 'Candidate history test project.',
+    }).execute(root);
   });
 
   afterEach(async () => {

@@ -4,7 +4,7 @@ identity: semantic-browser
 kind: capability
 parent: interaction-surfaces
 title: "Semantic Browser"
-summary: "以 Views 可视化浏览 Semantic Model 与 Change-derived information 的界面。"
+definition: "以 Views 可视化浏览 Semantic Model 与 Change-derived information 的界面。"
 ---
 
 ## Requirements

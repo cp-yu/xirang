@@ -4,7 +4,7 @@ identity: semantic-delta
 kind: domain
 parent: change
 title: "Semantic Delta"
-summary: "相对于当前 Semantic Model 声明目标语义差量的规范性 Change 组成。"
+definition: "相对于当前 Semantic Model 声明目标语义差量的规范性 Change 组成。"
 ---
 
 ## Requirements

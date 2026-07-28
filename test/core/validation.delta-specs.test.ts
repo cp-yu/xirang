@@ -17,7 +17,7 @@ describe('complete target delta Specs', () => {
   it('accepts canonical unlabeled Scenarios as the complete MODIFIED target set', async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-delta-validation-'));
     const changeDir = await writeChangeDelta(tempDir, 'change', {
-      'elements/auth.id.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: auth.id\nkind: capability\nparent: root\ntitle: Auth\nsummary: Auth\n---\n\n'
+      'elements/auth.id.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: auth.id\nkind: capability\nparent: root\ntitle: Auth\ndefinition: Auth\n---\n\n'
         + '## MODIFIED Requirements\n\n### Requirement: Login\nThe system SHALL support login.\n\n'
         + '#### Scenario: Existing path\n- **WHEN** valid credentials are supplied\n- **THEN** login succeeds\n\n'
         + '#### Scenario: MFA path\n- **WHEN** MFA is required\n- **THEN** a challenge is shown\n',
@@ -31,7 +31,7 @@ describe('complete target delta Specs', () => {
   it('reports notation issues at the Element delta unit path', async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-delta-validation-'));
     const changeDir = await writeChangeDelta(tempDir, 'change', {
-      'elements/auth.id.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: auth.id\nkind: capability\nparent: root\ntitle: Auth\nsummary: Auth\n---\n\n'
+      'elements/auth.id.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: auth.id\nkind: capability\nparent: root\ntitle: Auth\ndefinition: Auth\n---\n\n'
         + '## ADDED Requirements\n\n### Requirement: Login\nThis text has no normative keyword.\n\n'
         + '#### Scenario: Existing path\n- **WHEN** x\n- **THEN** y\n',
     });
@@ -47,7 +47,7 @@ describe('complete target delta Specs', () => {
     const model = (scenarios: Scenario[]): SemanticModel => ({
       ...emptySemanticModel(),
       elements: [{
-        declaration: { identity: 'auth.id', kind: 'capability', parent: 'root', title: 'Auth', summary: 'Auth' },
+        declaration: { identity: 'auth.id', kind: 'capability', parent: 'root', title: 'Auth', definition: 'Auth' },
         requirements: [{ name: 'Login', body: 'The system SHALL support login.', scenarios }],
       }],
     });

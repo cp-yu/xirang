@@ -67,6 +67,7 @@ type SetupCommandOptions = {
   tools?: string;
   force?: boolean;
   interactive?: boolean;
+  projectDefinition?: string;
 };
 
 // -----------------------------------------------------------------------------
@@ -77,11 +78,13 @@ export class SetupCommand {
   private readonly toolsArg?: string;
   private readonly force: boolean;
   private readonly interactiveOption?: boolean;
+  private readonly projectDefinitionArg?: string;
 
   constructor(options: SetupCommandOptions = {}) {
     this.toolsArg = options.tools;
     this.force = options.force ?? false;
     this.interactiveOption = options.interactive;
+    this.projectDefinitionArg = options.projectDefinition;
   }
 
   async execute(targetPath: string): Promise<void> {
@@ -114,13 +117,14 @@ export class SetupCommand {
 
     // Validate selected tools
     const validatedTools = this.validateTools(selectedToolIds, toolStates);
+    const projectDefinition = await this.resolveProjectDefinition(extendMode);
 
     // Create directory structure and config
     await this.createDirectoryStructure(xirangPath, extendMode);
 
     // Seed the Semantic Model on first-time setup (non-extend mode)
     if (!extendMode) {
-      await this.writeModelSkeleton(projectPath, xirangPath);
+      await this.writeModelSkeleton(projectPath, xirangPath, projectDefinition!);
     }
 
     // Generate skills and commands for each tool
@@ -391,11 +395,30 @@ export class SetupCommand {
   // SEMANTIC MODEL SEED
   // ═══════════════════════════════════════════════════════════
 
-  private async writeModelSkeleton(projectPath: string, xirangPath: string): Promise<void> {
+  private async resolveProjectDefinition(extendMode: boolean): Promise<string | undefined> {
+    if (extendMode) return undefined;
+    if (this.projectDefinitionArg !== undefined) {
+      if (this.projectDefinitionArg.trim().length === 0) {
+        throw new Error('Project Definition must not be empty');
+      }
+      return this.projectDefinitionArg;
+    }
+    if (!this.canPromptInteractively()) {
+      throw new Error('Non-interactive setup requires --project-definition');
+    }
+
+    const { input } = await import('@inquirer/prompts');
+    return input({
+      message: 'Project Definition',
+      validate: (value: string) => value.trim().length > 0 || 'Enter a non-empty Project Definition',
+    });
+  }
+
+  private async writeModelSkeleton(projectPath: string, xirangPath: string, projectDefinition: string): Promise<void> {
     const projectName = this.inferProjectName(projectPath);
     const context = {
       projectName,
-      projectSummary: `Project intent for ${projectName} is not yet defined.`,
+      projectDefinition,
     };
 
     for (const file of SETUP_MODEL_FILE_MANIFEST) {

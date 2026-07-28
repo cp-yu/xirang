@@ -4,7 +4,7 @@ identity: review
 kind: capability
 parent: verify
 title: "Review"
-summary: "对当前项目状态执行先证据后结论的独立正确性门禁。"
+definition: "对当前项目状态执行先证据后结论的独立正确性门禁。"
 ---
 
 ## Requirements

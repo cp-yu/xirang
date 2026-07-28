@@ -90,6 +90,7 @@ function createNode(
     outEdges: [],
     title: declaration.title,
     description: { txt: declaration.summary },
+    metadata: { elementId: declaration.identity, definition: declaration.description },
     shape: 'rectangle',
     color: operation ? operationColor[operation] : 'primary',
     style: { opacity: 15, size: 'md' },

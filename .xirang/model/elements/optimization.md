@@ -4,7 +4,7 @@ identity: optimization
 kind: capability
 parent: verify
 title: "Optimization"
-summary: "在成功 Checkpoint 上评估可证明收益且保持目标语义的简化与效率改进。"
+definition: "在成功 Checkpoint 上评估可证明收益且保持目标语义的简化与效率改进。"
 ---
 
 ## Requirements

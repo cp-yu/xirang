@@ -74,7 +74,11 @@ describe('snack workflow integration', () => {
   });
 
   it('init installs 6 workflow skills including snack for Claude Code', async () => {
-    const initCommand = new SetupCommand({ tools: 'claude', force: true });
+    const initCommand = new SetupCommand({
+      tools: 'claude',
+      force: true,
+      projectDefinition: 'Snack workflow test project.',
+    });
     await initCommand.execute(testDir);
 
     const skillsDir = path.join(testDir, '.claude', 'skills');

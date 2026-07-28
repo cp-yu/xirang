@@ -7,7 +7,7 @@ export type FrontmatterResult =
 
 /** Key order per entity type; `operation` and `entity` are always emitted first. */
 const KEY_ORDER: Record<EntityType, readonly string[]> = {
-  'element-declaration': ['identity', 'kind', 'parent', 'title', 'summary'],
+  'element-declaration': ['identity', 'kind', 'parent', 'title', 'definition'],
   'element-kind': ['identity', 'contract', 'root', 'parents', 'children'],
   'relationship-kind': ['identity', 'sourceKinds', 'targetKinds'],
   'authored-view': ['identity', 'include', 'of', 'title', 'autoLayout'],

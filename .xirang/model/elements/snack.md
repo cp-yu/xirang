@@ -4,7 +4,7 @@ identity: snack
 kind: capability
 parent: implementation-first-path
 title: Snack
-summary: 依据已有实现证据调和 Semantic Model 与完整 Change。
+definition: 依据已有实现证据调和 Semantic Model 与完整 Change。
 ---
 
 ## Requirements

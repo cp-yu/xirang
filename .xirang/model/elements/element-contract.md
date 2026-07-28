@@ -4,7 +4,7 @@ identity: element-contract
 kind: capability
 parent: hierarchical-elements
 title: Element Contract
-summary: Element 在一个确定模型状态中、其自身抽象层级上的完整规范性职责、保证、约束与行为。
+definition: Element 在一个确定模型状态中、其自身抽象层级上的完整规范性职责、保证、约束与行为。
 ---
 
 ## Requirements

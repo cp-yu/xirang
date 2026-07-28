@@ -6,6 +6,7 @@
  */
 import type { SkillTemplate } from '../types.js';
 import {
+  ELEMENT_DEFINITION_SEMANTICS,
   XIRANG_PHILOSOPHY,
   XIRANG_SHARED_CONTEXT,
 } from '../fragments/xirang-fragments.js';
@@ -191,6 +192,8 @@ The main Explore agent remains read-only. \`arch search\` and \`arch impact\` ar
 
 ${XIRANG_SHARED_CONTEXT}
 
+${ELEMENT_DEFINITION_SEMANTICS}
+
 ${CONVERSATION_LANGUAGE_GUIDANCE}
 
 ## Semantic Impact
@@ -201,6 +204,7 @@ When a new module, workflow, command, configuration key, project concept, or unf
 3. Run \`xirang arch impact <identities...> --depth 2 --json\` to load refinement context, canonical Relationship paths, and complete Element Contracts.
 4. Collect implementation evidence separately with CodeGraph, ACE, \`rg\`, and \`read\`; code paths, symbols, imports, and calls remain current implementation evidence only.
 5. The main Explore agent combines user intent, Formal semantic context, and implementation evidence to judge \`mustChange\`, \`mustVerify\`, contextual scope, unknowns, and architecture drift. Relationship adjacency does not by itself prove a modification or verification conclusion.
+6. Assess Element Definition impact only when an Element's concept identity or scope boundary changes. In that case, resolve the full concept and hierarchy boundary and include the complete target Definition in the Design Summary. Do not include a Definition rewrite for behavior-only or implementation-only changes.
 
 Read active Change artifacts completely when one is in scope, but do not pass a Change or Semantic Delta to \`arch impact\`. Before proposal readiness, recheck the selected focus Elements and evidence coverage; disclose gaps instead of inferring missing evidence.
 

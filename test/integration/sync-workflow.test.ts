@@ -14,7 +14,7 @@ import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/mo
 
 const CONTRACT = '## Requirements\n\n### Requirement: Existing behavior\nThe system SHALL keep behaving.\n\n#### Scenario: Existing\n- **WHEN** invoked\n- **THEN** it works';
 
-const ADD_ELEMENT = '---\noperation: ADDED\nentity: element-declaration\nidentity: cap.added\nkind: capability\nparent: root\ntitle: Added\nsummary: Added summary\n---\n\n'
+const ADD_ELEMENT = '---\noperation: ADDED\nentity: element-declaration\nidentity: cap.added\nkind: capability\nparent: root\ntitle: Added\ndefinition: Added summary\n---\n\n'
   + '## ADDED Requirements\n\n### Requirement: Added behavior\nThe system SHALL add behavior.\n\n'
   + '#### Scenario: Added succeeds\n- **WHEN** added runs\n- **THEN** it succeeds\n';
 
@@ -26,7 +26,7 @@ describe('Semantic Model sync workflow', () => {
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-architecture-sync-'));
     await writeProjectModel(root, minimalModel({
-      elements: [{ identity: 'cap.existing', parent: 'root', title: 'Existing', summary: 'Existing summary', requirements: CONTRACT }],
+      elements: [{ identity: 'cap.existing', parent: 'root', title: 'Existing', definition: 'Existing summary', requirements: CONTRACT }],
     }));
     await fs.mkdir(path.join(root, '.xirang', 'changes', 'add'), { recursive: true });
   });
@@ -94,7 +94,7 @@ describe('Semantic Model sync workflow', () => {
 
   it('rejects an invalid Expected Semantic Model before any write', async () => {
     await writeChangeDelta(root, 'add', {
-      'elements/cap.orphan.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: cap.orphan\nkind: capability\nparent: ghost\ntitle: Orphan\nsummary: Orphan\n---\n',
+      'elements/cap.orphan.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: cap.orphan\nkind: capability\nparent: ghost\ntitle: Orphan\ndefinition: Orphan\n---\n',
     });
     const before = await readModelTree(modelRoot(root));
 

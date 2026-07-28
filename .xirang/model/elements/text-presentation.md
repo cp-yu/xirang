@@ -4,7 +4,7 @@ identity: text-presentation
 kind: capability
 parent: view-presentation
 title: Text Presentation
-summary: 通过人类可读文本呈现 Views 的方法。
+definition: 通过人类可读文本呈现 Views 的方法。
 ---
 
 ## Requirements

@@ -4,7 +4,7 @@ identity: relationships
 kind: capability
 parent: semantic-model
 title: "Relationships"
-summary: "Elements 之间显式、定向且类型化的语义联系。"
+definition: "Elements 之间显式、定向且类型化的语义联系。"
 ---
 
 ## Requirements

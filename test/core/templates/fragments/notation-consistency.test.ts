@@ -11,7 +11,7 @@ import {
 } from '../../../../src/core/templates/fragments/xirang-fragments.js';
 
 const FIELD_ROWS = [
-  'element-declaration: identity, kind, parent, title, summary',
+  'element-declaration: identity, kind, parent, title, definition',
   'element-kind: identity, contract; optional root, parents, children',
   'relationship-kind: identity; optional sourceKinds, targetKinds',
   'authored-view: identity, include; optional of, title, autoLayout',

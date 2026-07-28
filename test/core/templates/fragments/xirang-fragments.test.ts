@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ARCHITECTURE_GENERATE_DELTA,
   ELEMENT_CONTRACT_SEMANTICS,
+  ELEMENT_DEFINITION_SEMANTICS,
   XIRANG_SHARED_CONTEXT,
   XIRANG_PHILOSOPHY,
   VERIFY_CLI_JSON_SCHEMA_REFERENCE,
@@ -104,6 +105,23 @@ describe('Semantic Delta authoring fragment', () => {
       'extract the capability list',
     ]) {
       expect(ARCHITECTURE_GENERATE_DELTA).not.toContain(token);
+    }
+  });
+});
+
+describe('Element Definition semantics fragment', () => {
+  it('defines concept identity, independent modeling reason, scope, hierarchy, and Contract boundaries', () => {
+    for (const token of [
+      '是什么',
+      '为何作为独立 Element 建模',
+      '包含什么、不包含什么',
+      'parent、children 与 siblings',
+      '不得只是 title 的改写',
+      '职责、保证、约束、行为、Requirement、Scenario',
+      'proposal.md',
+      'design.md',
+    ]) {
+      expect(ELEMENT_DEFINITION_SEMANTICS).toContain(token);
     }
   });
 });

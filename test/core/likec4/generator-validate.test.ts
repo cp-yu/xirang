@@ -8,7 +8,7 @@ import type { ModelElement, SemanticModel } from '../../../src/core/model/types.
 
 function element(identity: string, parent: string | null, kind: string): ModelElement {
   return {
-    declaration: { identity, kind, parent, title: identity, summary: `${identity} intent` },
+    declaration: { identity, kind, parent, title: identity, definition: `${identity} intent` },
     requirements: [],
   };
 }

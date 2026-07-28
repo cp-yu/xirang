@@ -21,7 +21,7 @@ const CAPABILITY = [
   'kind: capability',
   'parent: domain.architecture',
   'title: Reader',
-  'summary: Reads source modules',
+  'definition: Reads source modules and defines the reader boundary.',
   '---',
   '',
   '## Requirements',
@@ -90,7 +90,7 @@ describe('parseSemanticModel', () => {
       kind: 'capability',
       parent: 'domain.architecture',
       title: 'Reader',
-      summary: 'Reads source modules',
+      definition: 'Reads source modules and defines the reader boundary.',
     });
     expect(element.requirements.map(item => item.name)).toEqual(['Parses units', 'Builds an index']);
     expect(element.requirements[0]).toEqual({
@@ -105,11 +105,24 @@ describe('parseSemanticModel', () => {
 
   it('treats a missing or null parent as the Project Root', async () => {
     const root = await createModelRoot({
-      'elements/a.md': '---\nentity: element-declaration\nidentity: a\nkind: project\n---\n',
-      'elements/b.md': '---\nentity: element-declaration\nidentity: b\nkind: project\nparent: null\n---\n',
+      'elements/a.md': '---\nentity: element-declaration\nidentity: a\nkind: project\ntitle: A\ndefinition: Project A.\n---\n',
+      'elements/b.md': '---\nentity: element-declaration\nidentity: b\nkind: project\nparent: null\ntitle: B\ndefinition: Project B.\n---\n',
     });
     const parents = (await parseSemanticModel(root)).model.elements.map(item => item.declaration.parent);
     expect(parents).toEqual([null, null]);
+  });
+
+  it('rejects legacy summary and an empty definition explicitly', async () => {
+    const root = await createModelRoot({
+      'elements/legacy.md': '---\nentity: element-declaration\nidentity: legacy\nkind: project\ntitle: Legacy\nsummary: Old text\n---\n',
+      'elements/both.md': '---\nentity: element-declaration\nidentity: both\nkind: project\ntitle: Both\ndefinition: Current text\nsummary: Old text\n---\n',
+      'elements/empty.md': '---\nentity: element-declaration\nidentity: empty\nkind: project\ntitle: Empty\ndefinition: "  "\n---\n',
+    });
+
+    const diagnostics = (await parseSemanticModel(root)).diagnostics;
+    expect(diagnostics.filter(item => item.code === 'LEGACY_ELEMENT_SUMMARY')).toHaveLength(2);
+    expect(diagnostics.filter(item => item.code === 'MISSING_ELEMENT_DEFINITION')).toHaveLength(2);
+    expect(diagnostics.find(item => item.identity === 'legacy')?.message).toContain('migrate it to "definition"');
   });
 
   it('parses a single relationships container holding many entries', async () => {
@@ -158,7 +171,7 @@ describe('parseSemanticModel', () => {
   });
 
   it('rejects contract content outside the Requirements section', async () => {
-    const head = '---\nentity: element-declaration\nidentity: a\nkind: capability\n---\n';
+    const head = '---\nentity: element-declaration\nidentity: a\nkind: capability\ntitle: A\ndefinition: Capability A.\n---\n';
     for (const body of [
       '\n## Requirements\n\n### Requirement: R\n\nBody.\n\n## Notes\n\nTrailing.\n',
       '\n## Purpose\n\nWhy it exists.\n\n## Requirements\n\n### Requirement: R\n\nBody.\n',

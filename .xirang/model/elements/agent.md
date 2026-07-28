@@ -4,7 +4,7 @@ identity: agent
 kind: domain
 parent: agents
 title: "Agent"
-summary: "与用户交互并端到端编排 Realization 的默认执行身份。"
+definition: "与用户交互并端到端编排 Realization 的默认执行身份。"
 ---
 
 ## Requirements

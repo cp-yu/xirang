@@ -4,7 +4,7 @@ identity: project-build-role
 kind: capability
 parent: agent
 title: Project Build Role
-summary: 构建或重建完整 Semantic Model 的 Agent 工作身份。
+definition: 构建或重建完整 Semantic Model 的 Agent 工作身份。
 ---
 
 ## Requirements

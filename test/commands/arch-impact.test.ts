@@ -5,7 +5,7 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { impactArchitecture } from '../../src/commands/arch/impact.js';
+import { formatArchitectureImpactText, impactArchitecture } from '../../src/commands/arch/impact.js';
 import { writeProjectModel } from '../helpers/model-fixture.js';
 
 const execFileAsync = promisify(execFile);
@@ -15,6 +15,7 @@ const localeVitestConfig = path.join(projectRoot, 'test', 'fixtures', 'vitest.ar
 const vitestEntry = path.join(projectRoot, 'node_modules', 'vitest', 'vitest.mjs');
 
 const CONTRACT = '## Requirements\n\n### Requirement: Stable behavior\nThe system SHALL behave.\n\n#### Scenario: Existing behavior\n- **WHEN** invoked\n- **THEN** behavior is preserved';
+const FOCUS_DEFINITION = 'Focus 定义保留完整概念身份与范围边界，包含 Unicode 字符 🚀 和足够长的第一段，确保 Agent-facing impact 输出不会采用 Browser 的 120 code point excerpt 规则。\n\n第二段明确排除不属于该 Element 的职责，并保持作者原始换行。';
 
 describe('architecture impact', () => {
   let root: string;
@@ -29,15 +30,15 @@ describe('architecture impact', () => {
       ],
       relationshipKinds: [{ identity: 'invokes' }, { identity: 'observes' }],
       elements: [
-        { identity: 'project.root', kind: 'project', parent: null, title: 'Project', summary: 'Project intent', requirements: CONTRACT },
-        { identity: 'cap.domain', parent: 'project.root', title: 'Domain', summary: 'Domain context' },
-        { identity: 'cap.focus', parent: 'cap.domain', title: 'Focus', summary: 'Impact focus', requirements: CONTRACT },
-        { identity: 'cap.child', parent: 'cap.focus', title: 'Child', summary: 'Direct refinement' },
-        { identity: 'cap.grandchild', parent: 'cap.child', title: 'Grandchild', summary: 'Deep refinement' },
-        { identity: 'cap.incoming', parent: 'project.root', title: 'Incoming', summary: 'Incoming relation' },
-        { identity: 'cap.alpha', parent: 'project.root', title: 'Alpha', summary: 'Canonical branch' },
-        { identity: 'cap.beta', parent: 'project.root', title: 'Beta', summary: 'Alternate branch' },
-        { identity: 'cap.target', parent: 'project.root', title: 'Target', summary: 'Depth two target' },
+        { identity: 'project.root', kind: 'project', parent: null, title: 'Project', definition: 'Project intent', requirements: CONTRACT },
+        { identity: 'cap.domain', parent: 'project.root', title: 'Domain', definition: 'Domain context' },
+        { identity: 'cap.focus', parent: 'cap.domain', title: 'Focus', definition: FOCUS_DEFINITION, requirements: CONTRACT },
+        { identity: 'cap.child', parent: 'cap.focus', title: 'Child', definition: 'Direct refinement' },
+        { identity: 'cap.grandchild', parent: 'cap.child', title: 'Grandchild', definition: 'Deep refinement' },
+        { identity: 'cap.incoming', parent: 'project.root', title: 'Incoming', definition: 'Incoming relation' },
+        { identity: 'cap.alpha', parent: 'project.root', title: 'Alpha', definition: 'Canonical branch' },
+        { identity: 'cap.beta', parent: 'project.root', title: 'Beta', definition: 'Alternate branch' },
+        { identity: 'cap.target', parent: 'project.root', title: 'Target', definition: 'Depth two target' },
       ],
       relationships: [
         { source: 'cap.incoming', kind: 'observes', target: 'cap.focus' },
@@ -84,6 +85,16 @@ describe('architecture impact', () => {
       { source: 'cap.target', kind: 'observes', target: 'cap.alpha' },
     ]));
     expect(result.relationPaths.every(item => item.steps.length <= 2)).toBe(true);
+  });
+
+  it('preserves complete Definitions in JSON and text output', async () => {
+    const result = await impactArchitecture(root, ['cap.focus'], { depth: 0 });
+    const focus = result.elements.find(element => element.identity === 'cap.focus');
+    const text = formatArchitectureImpactText(result);
+
+    expect(focus?.definition).toBe(FOCUS_DEFINITION);
+    expect(text).toContain(`Element: cap.focus\nDefinition: ${FOCUS_DEFINITION}`);
+    expect(text).not.toContain('...');
   });
 
   it('returns identical canonical projections across process locales', async () => {
@@ -155,8 +166,8 @@ describe('architecture impact', () => {
         { identity: 'requiredCapability', contract: 'required', parents: ['project'] },
       ],
       elements: [
-        { identity: 'project.root', kind: 'project', parent: null, title: 'Project', summary: 'Project intent' },
-        { identity: 'cap.missing', kind: 'requiredCapability', parent: 'project.root', title: 'Missing', summary: 'Required without a Contract' },
+        { identity: 'project.root', kind: 'project', parent: null, title: 'Project', definition: 'Project intent' },
+        { identity: 'cap.missing', kind: 'requiredCapability', parent: 'project.root', title: 'Missing', definition: 'Required without a Contract' },
       ],
     });
     await expect(impactArchitecture(root, ['cap.missing'])).rejects.toThrow('Required Element Contract missing: cap.missing');

@@ -2,7 +2,7 @@ import { renderFrontmatter } from '../model/frontmatter.js';
 
 export interface ModelSkeletonContext {
   projectName: string;
-  projectSummary: string;
+  projectDefinition: string;
 }
 
 export interface ModelFileManifestEntry {
@@ -30,7 +30,7 @@ export const MODEL_FILE_MANIFEST: readonly ModelFileManifestEntry[] = [
       kind: ROOT_ELEMENT_KIND,
       parent: null,
       title: context.projectName,
-      summary: context.projectSummary,
+      definition: context.projectDefinition,
     }),
   },
 ];

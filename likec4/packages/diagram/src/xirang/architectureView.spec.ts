@@ -40,8 +40,8 @@ const formal = {
   edges: [],
 } as unknown as DiagramView
 
-const declaration = (identity: string, title: string, summary: string, parent: string | null) => ({
-  declaration: { identity, kind: 'capability', parent, title, summary },
+const declaration = (identity: string, title: string, definition: string, parent: string | null) => ({
+  declaration: { identity, kind: 'capability', parent, title, definition, summary: definition, description: definition },
 })
 
 const variant: XirangRuntimeVariant = {
@@ -69,7 +69,15 @@ const variant: XirangRuntimeVariant = {
         kind: 'element-declaration',
         identity: 'beta.id',
         operation: 'REMOVED',
-        before: { identity: 'beta.id', kind: 'capability', parent: 'project.root', title: 'Beta', summary: 'Removed' },
+        before: {
+          identity: 'beta.id',
+          kind: 'capability',
+          parent: 'project.root',
+          title: 'Beta',
+          definition: 'Removed',
+          summary: 'Removed',
+          description: 'Removed',
+        },
       },
       {
         kind: 'relationship',
@@ -125,6 +133,36 @@ describe('materializeXirangArchitectureView', () => {
     expect(target.nodes.find(item => item.id === 'alpha.id')).toMatchObject({ title: 'Alpha target', color: 'amber' })
     expect(target.nodes.find(item => item.id === 'gamma.id')).toMatchObject({ color: 'green' })
     expect(target.edges).toEqual([expect.objectContaining({ source: 'alpha.id', target: 'gamma.id', color: 'green' })])
+  })
+
+  it('uses the shared excerpt for nodes and preserves the full Definition for details', () => {
+    const fullDefinition = `First   paragraph ${'😀'.repeat(121)}.\n\nSecond paragraph remains complete.`
+    const projected: XirangRuntimeVariant = {
+      ...variant,
+      architecture: {
+        ...variant.architecture!,
+        elements: [
+          declaration('project.root', 'Project', 'Project', null),
+          {
+            declaration: {
+              identity: 'alpha.id',
+              kind: 'capability',
+              parent: 'project.root',
+              title: 'Alpha target',
+              definition: fullDefinition,
+              summary: `First paragraph ${'😀'.repeat(104)}...`,
+              description: fullDefinition,
+            },
+          },
+        ],
+      },
+    }
+
+    const target = materializeXirangArchitectureView(formal, projected, 'full')
+    expect(target.nodes.find(item => item.id === 'alpha.id')).toMatchObject({
+      description: { txt: `First paragraph ${'😀'.repeat(104)}...` },
+      metadata: { elementId: 'alpha.id', definition: fullDefinition },
+    })
   })
 
   it('keeps only changed graph, endpoints, and ancestor context in Diff only mode', () => {

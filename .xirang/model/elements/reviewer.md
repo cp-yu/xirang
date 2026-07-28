@@ -4,7 +4,7 @@ identity: reviewer
 kind: capability
 parent: internal-agents
 title: "Reviewer"
-summary: "独立判断实现是否完整、正确且一致地符合 Expected Semantic Model 的 Internal Agent。"
+definition: "独立判断实现是否完整、正确且一致地符合 Expected Semantic Model 的 Internal Agent。"
 ---
 
 ## Requirements

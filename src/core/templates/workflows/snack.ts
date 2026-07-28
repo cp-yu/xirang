@@ -6,6 +6,7 @@ import {
   ARCHITECTURE_GENERATE_DELTA,
   ARTIFACT_DOC_LANGUAGE_CONTRACT,
   ELEMENT_CONTRACT_SEMANTICS,
+  ELEMENT_DEFINITION_SEMANTICS,
   XIRANG_PHILOSOPHY,
   XIRANG_SHARED_CONTEXT,
 } from '../fragments/xirang-fragments.js';
@@ -20,6 +21,8 @@ export function getSnackSkillTemplate(): SkillTemplate {
     instructions: `Reconcile Xirang artifacts from already-written code (code-first artifact reconciliation, reverse of propose/apply).
 
 ${XIRANG_PHILOSOPHY}
+
+${ELEMENT_DEFINITION_SEMANTICS}
 
 ${ELEMENT_CONTRACT_SEMANTICS}
 
@@ -49,6 +52,7 @@ ${XIRANG_SHARED_CONTEXT}
    - Behavior-preserving refactors create no Contract delta; later Checks use \`Preserves:\` against formal Element Contracts.
 6. Determine structural impact.
    - Declare impact only when Element Declarations, refinement, Relationships, Kinds, or Views change.
+   - Reconcile a Definition only when user intent, existing semantic artifacts, or other authoritative evidence establishes its complete concept identity and scope boundary. Do not infer a Definition from file names, symbols, imports, or call relationships; when the required conceptual boundary is unresolved, stop and ask one focused question instead of guessing.
    - Implementation-only movement, symbol renaming, helper extraction, and mechanical call/import changes do not by themselves change the structure.
    - If no structural fact changes, set the compatible Architecture Source scope to \`None\`. If impact remains unresolved, stop and ask one focused question; do not write structural Delta units or claim reconciliation complete.
 7. Reconcile the Contract and structural scopes as one Semantic Delta; both address the same Element identity space.

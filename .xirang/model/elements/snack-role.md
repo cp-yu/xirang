@@ -4,7 +4,7 @@ identity: snack-role
 kind: capability
 parent: agent
 title: "Snack Role"
-summary: "从已发生实现调和完整 Change 的 Agent 工作身份。"
+definition: "从已发生实现调和完整 Change 的 Agent 工作身份。"
 ---
 
 ## Requirements

@@ -4,7 +4,7 @@ identity: views
 kind: domain
 parent: semantic-model
 title: Views
-summary: 面向用户选择并组织模型信息的呈现层。
+definition: 面向用户选择并组织模型信息的呈现层。
 ---
 
 ## Requirements

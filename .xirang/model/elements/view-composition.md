@@ -4,7 +4,7 @@ identity: view-composition
 kind: domain
 parent: views
 title: View Composition
-summary: 按呈现视角形成方式组织 Authored Views 与 Derived Views 的组成维度。
+definition: 按呈现视角形成方式组织 Authored Views 与 Derived Views 的组成维度。
 ---
 
 ## Requirements

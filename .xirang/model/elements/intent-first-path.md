@@ -4,7 +4,7 @@ identity: intent-first-path
 kind: domain
 parent: change-formation
 title: "Intent-first Path"
-summary: "从用户意图出发，先澄清和形成 Change 再实现的路径。"
+definition: "从用户意图出发，先澄清和形成 Change 再实现的路径。"
 ---
 
 ## Requirements

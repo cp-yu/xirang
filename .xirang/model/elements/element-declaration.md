@@ -4,7 +4,7 @@ identity: element-declaration
 kind: capability
 parent: hierarchical-elements
 title: "Element Declaration"
-summary: "Element 的稳定身份、类型、概要与层级位置声明。"
+definition: "Element 的稳定身份、类型、概要与层级位置声明。"
 ---
 
 ## Requirements

@@ -18,14 +18,14 @@ vi.mock('../../src/commands/arch/runner.js', () => ({ runLikeC4: vi.fn() }));
 const CONTRACT = '## Requirements\n\n### Requirement: Existing\nThe system SHALL preserve existing behavior.\n\n#### Scenario: Existing\n- **WHEN** invoked\n- **THEN** existing behavior remains';
 
 function requirementDelta(change: string): string {
-  return '---\noperation: MODIFIED\nentity: element-declaration\nidentity: alpha.id\nkind: capability\nparent: root\ntitle: Alpha\nsummary: Alpha summary\n---\n\n'
+  return '---\noperation: MODIFIED\nentity: element-declaration\nidentity: alpha.id\nkind: capability\nparent: root\ntitle: Alpha\ndefinition: Alpha definition\n---\n\n'
     + `## ADDED Requirements\n\n### Requirement: ${change}\nThe system SHALL provide ${change} behavior.\n\n`
     + `#### Scenario: ${change}\n- **WHEN** invoked\n- **THEN** ${change} behavior is provided\n`;
 }
 
 async function writeBaseModel(root: string): Promise<void> {
   await writeProjectModel(root, minimalModel({
-    elements: [{ identity: 'alpha.id', parent: 'root', title: 'Alpha', summary: 'Alpha summary', requirements: CONTRACT }],
+    elements: [{ identity: 'alpha.id', parent: 'root', title: 'Alpha', definition: 'Alpha definition', requirements: CONTRACT }],
   }));
 }
 
@@ -198,7 +198,7 @@ describe('ViewCommand', () => {
   it('retains invalid active changes with their diagnostics', async () => {
     await writeBaseModel(tempDir);
     await writeChangeDelta(tempDir, 'broken', {
-      'elements/ghost.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: ghost.id\nkind: capability\nparent: root\ntitle: Ghost\nsummary: Ghost\n---\n',
+      'elements/ghost.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: ghost.id\nkind: capability\nparent: root\ntitle: Ghost\ndefinition: Ghost definition.\n---\n',
     });
 
     const snapshot = await buildViewRuntimeSnapshot(tempDir);

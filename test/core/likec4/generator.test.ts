@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { generateLikeC4 } from '../../../src/core/likec4/generator.js';
 import { emptySemanticModel, type SemanticModel } from '../../../src/core/model/types.js';
 
-function element(identity: string, parent: string | null, kind = 'capability', title = identity, summary = ''): SemanticModel['elements'][number] {
-  return { declaration: { identity, kind, parent, title, summary }, requirements: [] };
+function element(identity: string, parent: string | null, kind = 'capability', title = identity, definition = `${identity} definition.`): SemanticModel['elements'][number] {
+  return { declaration: { identity, kind, parent, title, definition }, requirements: [] };
 }
 
 const constrained: SemanticModel = {
@@ -126,7 +126,7 @@ const nested: SemanticModel = {
   relationshipKinds: [{ identity: 'invokes', body: '' }, { identity: 'covers', body: '' }],
   elements: [
     {
-      declaration: { identity: 'cap.reader', kind: 'capability', parent: 'domain.architecture', title: 'Reader', summary: 'Reads units' },
+      declaration: { identity: 'cap.reader', kind: 'capability', parent: 'domain.architecture', title: 'Reader', definition: 'Reads units' },
       requirements: [{ name: 'Parses units', body: 'The reader SHALL parse every unit.', scenarios: [] }],
     },
     element('domain.architecture', 'project.root', 'domain', 'Architecture', 'Architecture intent'),
@@ -146,25 +146,30 @@ describe('generateLikeC4 model.c4', () => {
     expect(generateLikeC4(nested).get('model.c4')).toBe([
       'model {',
       "  root = project 'Root' 'Project intent' {",
+      "    description 'Project intent'",
       '    metadata {',
       "      elementId 'project.root'",
       '    }',
       "    architecture = domain 'Architecture' 'Architecture intent' {",
+      "      description 'Architecture intent'",
       '      metadata {',
       "        elementId 'domain.architecture'",
       '      }',
       "      parser = capability 'Parser' 'Parses units' {",
+      "        description 'Parses units'",
       '        metadata {',
       "          elementId 'cap.parser'",
       '        }',
       '      }',
       "      reader = capability 'Reader' 'Reads units' {",
+      "        description 'Reads units'",
       '        metadata {',
       "          elementId 'cap.reader'",
       '        }',
       '      }',
       '    }',
       "    cli = domain 'CLI' 'CLI intent' {",
+      "      description 'CLI intent'",
       '      metadata {',
       "        elementId 'domain.cli'",
       '      }',
@@ -173,6 +178,27 @@ describe('generateLikeC4 model.c4', () => {
       '}',
       '',
     ].join('\n'));
+  });
+
+  it('projects a deterministic summary excerpt and the full Definition', () => {
+    const cases = [
+      { definition: 'a'.repeat(119), summary: 'a'.repeat(119) },
+      { definition: 'a'.repeat(120), summary: 'a'.repeat(120) },
+      { definition: 'a'.repeat(121), summary: `${'a'.repeat(120)}...` },
+      { definition: '😀'.repeat(121), summary: `${'😀'.repeat(120)}...` },
+      { definition: '  First   paragraph\nwith\tspaces.  \n\nSecond paragraph remains full.  ', summary: 'First paragraph with spaces.' },
+    ];
+
+    for (const [index, item] of cases.entries()) {
+      const model: SemanticModel = {
+        ...emptySemanticModel(),
+        elementKinds: [{ identity: 'capability', contract: 'optional', body: '' }],
+        elements: [element(`cap.${index}`, null, 'capability', 'Capability', item.definition)],
+      };
+      const output = generateLikeC4(model).get('model.c4')!;
+      expect(output).toContain(`= capability 'Capability' '${item.summary}' {`);
+      expect(output).toContain(`description '${item.definition.replaceAll('\\', '\\\\').replaceAll("'", "\\'").replaceAll('\n', '\\n')}'`);
+    }
   });
 
   it('leaves the element contract out of the artifact', () => {
@@ -244,7 +270,7 @@ describe('generateLikeC4 determinism and escaping', () => {
       elements: [element('project.root', null, 'project', "It's a \\ root", 'line one\nline two')],
     };
     expect(generateLikeC4(model).get('model.c4')).toContain(
-      "root = project 'It\\'s a \\\\ root' 'line one\\nline two' {",
+      "root = project 'It\\'s a \\\\ root' 'line one line two' {",
     );
   });
 });

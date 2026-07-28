@@ -4,7 +4,7 @@ identity: alpha.id
 kind: capability
 parent: project.root
 title: Alpha
-summary: Deterministic alpha module used by the validation harness
+definition: Deterministic alpha module used by the validation harness
 ---
 
 ## Requirements

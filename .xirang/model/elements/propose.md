@@ -4,7 +4,7 @@ identity: propose
 kind: capability
 parent: intent-first-path
 title: Propose
-summary: 把已确认设计收成完整 Change 的 Formation 活动。
+definition: 把已确认设计收成完整 Change 的 Formation 活动。
 ---
 
 ## Requirements

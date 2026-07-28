@@ -4,7 +4,7 @@ identity: derived-views
 kind: domain
 parent: view-composition
 title: Derived Views
-summary: 由模型或 Change 确定性推导、无需持久化的 Views。
+definition: 由模型或 Change 确定性推导、无需持久化的 Views。
 ---
 
 ## Requirements

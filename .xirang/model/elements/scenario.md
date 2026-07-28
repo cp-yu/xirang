@@ -4,7 +4,7 @@ identity: scenario
 kind: capability
 parent: requirement
 title: Scenario
-summary: 具体化宿主 Requirement 在特定条件下行为的规范性组成。
+definition: 具体化宿主 Requirement 在特定条件下行为的规范性组成。
 ---
 
 ## Requirements

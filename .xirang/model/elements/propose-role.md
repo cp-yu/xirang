@@ -4,7 +4,7 @@ identity: propose-role
 kind: capability
 parent: agent
 title: "Propose Role"
-summary: "将已确认 Change 雏形编译为完整 Change 的 Agent 工作身份。"
+definition: "将已确认 Change 雏形编译为完整 Change 的 Agent 工作身份。"
 ---
 
 ## Requirements

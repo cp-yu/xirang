@@ -4,7 +4,7 @@ identity: archive-role
 kind: capability
 parent: agent
 title: "Archive Role"
-summary: "在验证有效后编排 Change Closure 的 Agent 工作身份。"
+definition: "在验证有效后编排 Change Closure 的 Agent 工作身份。"
 ---
 
 ## Requirements

@@ -46,7 +46,7 @@ describe('splitFrontmatter', () => {
 describe('renderFrontmatter', () => {
   it('orders keys by entity type rather than object insertion order', () => {
     const rendered = renderFrontmatter('element-declaration', {
-      summary: 'Reads source modules',
+      definition: 'Reads source modules',
       title: 'LikeC4 Reader',
       parent: 'domain.architecture',
       kind: 'capability',
@@ -59,7 +59,7 @@ describe('renderFrontmatter', () => {
       'kind: capability',
       'parent: domain.architecture',
       'title: LikeC4 Reader',
-      'summary: Reads source modules',
+      'definition: Reads source modules',
       '---',
       '',
     ].join('\n'));

@@ -4,7 +4,7 @@ identity: explore-role
 kind: capability
 parent: agent
 title: "Explore Role"
-summary: "在 Intent-first Path 中澄清和确认设计的 Agent 工作身份。"
+definition: "在 Intent-first Path 中澄清和确认设计的 Agent 工作身份。"
 ---
 
 ## Requirements

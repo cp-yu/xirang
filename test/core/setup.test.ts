@@ -31,6 +31,18 @@ vi.mock('../../src/prompts/searchable-multi-select.js', () => ({
   searchableMultiSelect: searchableMultiSelectMock,
 }));
 
+const TEST_PROJECT_DEFINITION = 'Test project with an explicit identity and scope boundary.';
+type TestSetupOptions = {
+  tools?: string;
+  force?: boolean;
+  interactive?: boolean;
+  projectDefinition?: string;
+};
+
+function createSetupCommand(options: TestSetupOptions = {}): SetupCommand {
+  return new SetupCommand({ projectDefinition: TEST_PROJECT_DEFINITION, ...options });
+}
+
 describe('SetupCommand', () => {
   let testDir: string;
   let configTempDir: string;
@@ -73,7 +85,7 @@ describe('SetupCommand', () => {
 
   describe('execute with --tools flag', () => {
     it('should create Xirang directory structure', async () => {
-      const initCommand = new SetupCommand({ tools: 'claude', force: true });
+      const initCommand = createSetupCommand({ tools: 'claude', force: true });
 
       await initCommand.execute(testDir);
 
@@ -88,7 +100,7 @@ describe('SetupCommand', () => {
     });
 
     it('should create config.yaml in non-interactive mode without --force', async () => {
-      const initCommand = new SetupCommand({ tools: 'claude' });
+      const initCommand = createSetupCommand({ tools: 'claude' });
       vi.spyOn(initCommand as any, 'canPromptInteractively').mockReturnValue(false);
 
       await initCommand.execute(testDir);
@@ -97,7 +109,7 @@ describe('SetupCommand', () => {
     });
 
     it('should create config.yaml with functional defaults', async () => {
-      const initCommand = new SetupCommand({ tools: 'claude', force: true });
+      const initCommand = createSetupCommand({ tools: 'claude', force: true });
 
       await initCommand.execute(testDir);
 
@@ -136,7 +148,7 @@ describe('SetupCommand', () => {
     });
 
     it('should write proseLanguage to config.yaml during interactive init', async () => {
-      const initCommand = new SetupCommand({ force: true });
+      const initCommand = createSetupCommand({ force: true });
       vi.spyOn(initCommand as any, 'canPromptInteractively').mockReturnValue(true);
       vi.spyOn(initCommand as any, 'getSelectedTools').mockResolvedValue(['claude']);
       inputMock.mockResolvedValue('zh-CN');
@@ -150,7 +162,7 @@ describe('SetupCommand', () => {
     });
 
     it('should create all 6 registry skills for Claude Code by default', async () => {
-      const initCommand = new SetupCommand({ tools: 'claude', force: true });
+      const initCommand = createSetupCommand({ tools: 'claude', force: true });
 
       await initCommand.execute(testDir);
 
@@ -191,7 +203,7 @@ describe('SetupCommand', () => {
     });
 
     it('should NOT create slash command templates for Claude Code (skills-only)', async () => {
-      const initCommand = new SetupCommand({ tools: 'claude', force: true });
+      const initCommand = createSetupCommand({ tools: 'claude', force: true });
 
       await initCommand.execute(testDir);
 
@@ -211,7 +223,7 @@ describe('SetupCommand', () => {
     });
 
     it('should create skills in Cursor skills directory', async () => {
-      const initCommand = new SetupCommand({ tools: 'cursor', force: true });
+      const initCommand = createSetupCommand({ tools: 'cursor', force: true });
 
       await initCommand.execute(testDir);
 
@@ -220,7 +232,7 @@ describe('SetupCommand', () => {
     });
 
     it('should create skills in Windsurf skills directory', async () => {
-      const initCommand = new SetupCommand({ tools: 'windsurf', force: true });
+      const initCommand = createSetupCommand({ tools: 'windsurf', force: true });
 
       await initCommand.execute(testDir);
 
@@ -230,7 +242,7 @@ describe('SetupCommand', () => {
 
     it('should configure codex as skills-only by default', async () => {
       const consoleSpy = vi.spyOn(console, 'log');
-      const initCommand = new SetupCommand({ tools: 'codex', force: true });
+      const initCommand = createSetupCommand({ tools: 'codex', force: true });
 
       await initCommand.execute(testDir);
 
@@ -253,7 +265,7 @@ describe('SetupCommand', () => {
 
     it('should keep skills-only init guidance for Claude Code', async () => {
       const consoleSpy = vi.spyOn(console, 'log');
-      const initCommand = new SetupCommand({ tools: 'claude', force: true });
+      const initCommand = createSetupCommand({ tools: 'claude', force: true });
 
       await initCommand.execute(testDir);
 
@@ -271,7 +283,7 @@ describe('SetupCommand', () => {
         featureFlags: {},
       });
       const legacyCommand = await writeLegacyCodexCommand('explore');
-      const initCommand = new SetupCommand({ tools: 'codex', force: true });
+      const initCommand = createSetupCommand({ tools: 'codex', force: true });
 
       await initCommand.execute(testDir);
 
@@ -283,7 +295,7 @@ describe('SetupCommand', () => {
     });
 
     it('should create skills for multiple tools at once', async () => {
-      const initCommand = new SetupCommand({ tools: 'claude,cursor', force: true });
+      const initCommand = createSetupCommand({ tools: 'claude,cursor', force: true });
 
       await initCommand.execute(testDir);
 
@@ -295,7 +307,7 @@ describe('SetupCommand', () => {
     });
 
     it('should select all tools with --tools all option', async () => {
-      const initCommand = new SetupCommand({ tools: 'all', force: true });
+      const initCommand = createSetupCommand({ tools: 'all', force: true });
 
       await initCommand.execute(testDir);
 
@@ -310,7 +322,7 @@ describe('SetupCommand', () => {
     });
 
     it('should skip tool configuration with --tools none option', async () => {
-      const initCommand = new SetupCommand({ tools: 'none', force: true });
+      const initCommand = createSetupCommand({ tools: 'none', force: true });
 
       await initCommand.execute(testDir);
 
@@ -328,13 +340,13 @@ describe('SetupCommand', () => {
     });
 
     it('should throw error for invalid tool names', async () => {
-      const initCommand = new SetupCommand({ tools: 'invalid-tool', force: true });
+      const initCommand = createSetupCommand({ tools: 'invalid-tool', force: true });
 
       await expect(initCommand.execute(testDir)).rejects.toThrow(/Invalid tool\(s\): invalid-tool/);
     });
 
     it('should handle comma-separated tool names with spaces', async () => {
-      const initCommand = new SetupCommand({ tools: 'claude, cursor', force: true });
+      const initCommand = createSetupCommand({ tools: 'claude, cursor', force: true });
 
       await initCommand.execute(testDir);
 
@@ -346,7 +358,7 @@ describe('SetupCommand', () => {
     });
 
     it('should reject combining reserved keywords with explicit tool ids', async () => {
-      const initCommand = new SetupCommand({ tools: 'all,claude', force: true });
+      const initCommand = createSetupCommand({ tools: 'all,claude', force: true });
 
       await expect(initCommand.execute(testDir)).rejects.toThrow(
         /Cannot combine reserved values "all" or "none" with specific tool IDs/
@@ -361,7 +373,7 @@ describe('SetupCommand', () => {
       const existingContent = 'schema: custom-schema\n';
       await fs.writeFile(configPath, existingContent);
 
-      const initCommand = new SetupCommand({ tools: 'claude', force: true });
+      const initCommand = createSetupCommand({ tools: 'claude', force: true });
       await initCommand.execute(testDir);
 
       const content = await fs.readFile(configPath, 'utf-8');
@@ -370,7 +382,7 @@ describe('SetupCommand', () => {
 
     it('should handle non-existent target directory', async () => {
       const newDir = path.join(testDir, 'new-project');
-      const initCommand = new SetupCommand({ tools: 'claude', force: true });
+      const initCommand = createSetupCommand({ tools: 'claude', force: true });
 
       await initCommand.execute(newDir);
 
@@ -379,11 +391,11 @@ describe('SetupCommand', () => {
     });
 
     it('should work in extend mode (re-running init)', async () => {
-      const initCommand1 = new SetupCommand({ tools: 'claude', force: true });
+      const initCommand1 = createSetupCommand({ tools: 'claude', force: true });
       await initCommand1.execute(testDir);
 
       // Run init again with a different tool
-      const initCommand2 = new SetupCommand({ tools: 'cursor', force: true });
+      const initCommand2 = createSetupCommand({ tools: 'cursor', force: true });
       await initCommand2.execute(testDir);
 
       // Both tools should have skills
@@ -405,7 +417,7 @@ context: |
 `
       );
 
-      const initCommand = new SetupCommand({ force: true });
+      const initCommand = createSetupCommand({ force: true });
       vi.spyOn(initCommand as any, 'canPromptInteractively').mockReturnValue(true);
       vi.spyOn(initCommand as any, 'getSelectedTools').mockResolvedValue(['claude']);
       inputMock.mockResolvedValue('ja');
@@ -418,7 +430,7 @@ context: |
     });
 
     it('should refresh skills on re-run for the same tool', async () => {
-      const initCommand1 = new SetupCommand({ tools: 'claude', force: true });
+      const initCommand1 = createSetupCommand({ tools: 'claude', force: true });
       await initCommand1.execute(testDir);
 
       const skillFile = path.join(testDir, '.claude', 'skills', 'xirang-explore', 'SKILL.md');
@@ -428,7 +440,7 @@ context: |
       await fs.writeFile(skillFile, '# Modified content\n');
 
       // Run init again
-      const initCommand2 = new SetupCommand({ tools: 'claude', force: true });
+      const initCommand2 = createSetupCommand({ tools: 'claude', force: true });
       await initCommand2.execute(testDir);
 
       const newContent = await fs.readFile(skillFile, 'utf-8');
@@ -438,7 +450,7 @@ context: |
 
   describe('skill content validation', () => {
     it('should generate valid SKILL.md with YAML frontmatter', async () => {
-      const initCommand = new SetupCommand({ tools: 'claude', force: true });
+      const initCommand = createSetupCommand({ tools: 'claude', force: true });
       await initCommand.execute(testDir);
 
       const skillFile = path.join(testDir, '.claude', 'skills', 'xirang-explore', 'SKILL.md');
@@ -455,7 +467,7 @@ context: |
     });
 
     it('should include explore mode instructions', async () => {
-      const initCommand = new SetupCommand({ tools: 'claude', force: true });
+      const initCommand = createSetupCommand({ tools: 'claude', force: true });
       await initCommand.execute(testDir);
 
       const skillFile = path.join(testDir, '.claude', 'skills', 'xirang-explore', 'SKILL.md');
@@ -466,7 +478,7 @@ context: |
     });
 
     it('should include propose skill instructions', async () => {
-      const initCommand = new SetupCommand({ tools: 'claude', force: true });
+      const initCommand = createSetupCommand({ tools: 'claude', force: true });
       await initCommand.execute(testDir);
 
       const skillFile = path.join(testDir, '.claude', 'skills', 'xirang-propose', 'SKILL.md');
@@ -476,7 +488,7 @@ context: |
     });
 
     it('should include apply-change skill instructions', async () => {
-      const initCommand = new SetupCommand({ tools: 'claude', force: true });
+      const initCommand = createSetupCommand({ tools: 'claude', force: true });
       await initCommand.execute(testDir);
 
       const skillFile = path.join(testDir, '.claude', 'skills', 'xirang-apply-change', 'SKILL.md');
@@ -487,7 +499,7 @@ context: |
     });
 
     it('should embed generatedBy version in skill files', async () => {
-      const initCommand = new SetupCommand({ tools: 'claude', force: true });
+      const initCommand = createSetupCommand({ tools: 'claude', force: true });
       await initCommand.execute(testDir);
 
       const skillFile = path.join(testDir, '.claude', 'skills', 'xirang-explore', 'SKILL.md');
@@ -500,7 +512,7 @@ context: |
 
   describe('command generation (skills-only)', () => {
     it('should NOT generate Claude Code slash commands (skills-only)', async () => {
-      const initCommand = new SetupCommand({ tools: 'claude', force: true });
+      const initCommand = createSetupCommand({ tools: 'claude', force: true });
       await initCommand.execute(testDir);
 
       const cmdFile = path.join(testDir, '.claude', 'commands', 'xirang', 'explore.md');
@@ -508,7 +520,7 @@ context: |
     });
 
     it('should NOT generate Cursor commands (skills-only)', async () => {
-      const initCommand = new SetupCommand({ tools: 'cursor', force: true });
+      const initCommand = createSetupCommand({ tools: 'cursor', force: true });
       await initCommand.execute(testDir);
 
       const cmdFile = path.join(testDir, '.cursor', 'commands', 'xirang-explore.md');
@@ -516,7 +528,7 @@ context: |
     });
 
     it('should NOT generate mapped bootstrap command path (skills-only)', async () => {
-      const initCommand = new SetupCommand({ tools: 'claude', force: true });
+      const initCommand = createSetupCommand({ tools: 'claude', force: true });
       await initCommand.execute(testDir);
 
       const bootstrapCmd = path.join(testDir, '.claude', 'commands', 'xirang', getCommandSlug('build') + '.md');
@@ -545,13 +557,13 @@ context: |
         }
       );
 
-      const initCommand = new SetupCommand({ tools: 'claude', force: true });
+      const initCommand = createSetupCommand({ tools: 'claude', force: true });
       await expect(initCommand.execute(readOnlyDir)).rejects.toThrow(/Insufficient permissions/);
     });
 
     it('should require --tools in non-interactive mode even when tools are detected', async () => {
       await fs.mkdir(path.join(testDir, '.claude'), { recursive: true });
-      const setupCommand = new SetupCommand({ interactive: false });
+      const setupCommand = createSetupCommand({ interactive: false });
 
       await expect(setupCommand.execute(testDir)).rejects.toThrow(/Non-interactive setup requires --tools/);
     });
@@ -559,7 +571,7 @@ context: |
 
   describe('tool-specific skills (skills-only, no adapters)', () => {
     it('should NOT generate Gemini CLI command TOML files', async () => {
-      const initCommand = new SetupCommand({ tools: 'gemini', force: true });
+      const initCommand = createSetupCommand({ tools: 'gemini', force: true });
       await initCommand.execute(testDir);
 
       const cmdFile = path.join(testDir, '.gemini', 'commands', 'xirang', 'explore.toml');
@@ -571,7 +583,7 @@ context: |
     });
 
     it('should NOT generate Windsurf command workflows', async () => {
-      const initCommand = new SetupCommand({ tools: 'windsurf', force: true });
+      const initCommand = createSetupCommand({ tools: 'windsurf', force: true });
       await initCommand.execute(testDir);
 
       const cmdFile = path.join(testDir, '.windsurf', 'workflows', 'xirang-explore.md');
@@ -579,7 +591,7 @@ context: |
     });
 
     it('should NOT generate Continue prompt files', async () => {
-      const initCommand = new SetupCommand({ tools: 'continue', force: true });
+      const initCommand = createSetupCommand({ tools: 'continue', force: true });
       await initCommand.execute(testDir);
 
       const cmdFile = path.join(testDir, '.continue', 'prompts', 'xirang-explore.prompt');
@@ -587,7 +599,7 @@ context: |
     });
 
     it('should NOT generate Cline workflow files', async () => {
-      const initCommand = new SetupCommand({ tools: 'cline', force: true });
+      const initCommand = createSetupCommand({ tools: 'cline', force: true });
       await initCommand.execute(testDir);
 
       const cmdFile = path.join(testDir, '.clinerules', 'workflows', 'xirang-explore.md');
@@ -595,7 +607,7 @@ context: |
     });
 
     it('should NOT generate GitHub Copilot prompt files', async () => {
-      const initCommand = new SetupCommand({ tools: 'github-copilot', force: true });
+      const initCommand = createSetupCommand({ tools: 'github-copilot', force: true });
       await initCommand.execute(testDir);
 
       const cmdFile = path.join(testDir, '.github', 'prompts', 'xirang-explore.prompt.md');
@@ -633,7 +645,7 @@ describe('Xirang skeleton generation', () => {
   });
 
   it('seeds the four partitions with a metamodel root that validates', async () => {
-    const initCommand = new SetupCommand({ tools: 'claude', force: true });
+    const initCommand = createSetupCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
     expect(SETUP_MODEL_FILE_MANIFEST.map((file) => file.relativePath)).toEqual([
@@ -657,12 +669,57 @@ describe('Xirang skeleton generation', () => {
       { identity: 'project', contract: 'optional', root: true, body: 'The single Project Root of the Semantic Model.' },
     ]);
     expect(parsed.model.elements[0].declaration).toMatchObject({
-      identity: 'project.root', kind: 'project', parent: null,
+      identity: 'project.root',
+      kind: 'project',
+      parent: null,
+      definition: TEST_PROJECT_DEFINITION,
     });
+    const rootUnit = await fs.readFile(path.join(testDir, '.xirang', 'model', 'elements', 'project.root.md'), 'utf8');
+    expect(rootUnit).toContain('\ndefinition:');
+    expect(rootUnit).not.toContain('\nsummary:');
+  });
+
+  it('persists the explicitly authorized Project Definition in non-interactive setup', async () => {
+    const projectDefinition = 'A complete Project Definition with explicit identity and scope boundaries.';
+    const initCommand = createSetupCommand({
+      tools: 'none',
+      force: true,
+      projectDefinition,
+    });
+
+    await initCommand.execute(testDir);
+
+    const parsed = await parseSemanticModel(modelRoot(testDir));
+    expect(parsed.model.elements[0].declaration.definition).toBe(projectDefinition);
+  });
+
+  it('collects the Project Definition during interactive setup', async () => {
+    const projectDefinition = '交互授权的完整 Project Definition，包含项目身份与范围边界。';
+    const initCommand = new SetupCommand({ force: true });
+    vi.spyOn(initCommand as any, 'canPromptInteractively').mockReturnValue(true);
+    vi.spyOn(initCommand as any, 'getSelectedTools').mockResolvedValue(['claude']);
+    inputMock
+      .mockResolvedValueOnce('zh-CN')
+      .mockResolvedValueOnce(projectDefinition);
+
+    await initCommand.execute(testDir);
+
+    const parsed = await parseSemanticModel(modelRoot(testDir));
+    expect(parsed.model.elements[0].declaration.definition).toBe(projectDefinition);
+    expect(inputMock).toHaveBeenCalledWith(expect.objectContaining({
+      message: expect.stringContaining('Project Definition'),
+    }));
+  });
+
+  it('fails closed before creating a workspace when non-interactive Project Definition input is absent', async () => {
+    const initCommand = new SetupCommand({ tools: 'none', force: true });
+
+    await expect(initCommand.execute(testDir)).rejects.toThrow('Non-interactive setup requires --project-definition');
+    expect(await directoryExists(path.join(testDir, '.xirang'))).toBe(false);
   });
 
   it('should not generate Xirang YAML files', async () => {
-    const initCommand = new SetupCommand({ tools: 'claude', force: true });
+    const initCommand = createSetupCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
     expect(await fileExists(path.join(testDir, '.xirang', 'project.xirang.yaml'))).toBe(false);
@@ -671,7 +728,7 @@ describe('Xirang skeleton generation', () => {
 
   it('should infer the Project Root title from package.json', async () => {
     await fs.writeFile(path.join(testDir, 'package.json'), JSON.stringify({ name: '@scope/my-awesome-project' }));
-    const initCommand = new SetupCommand({ tools: 'claude', force: true });
+    const initCommand = createSetupCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
     const unit = await fs.readFile(path.join(testDir, '.xirang', 'model', 'elements', 'project.root.md'), 'utf-8');
@@ -684,7 +741,7 @@ describe('Xirang skeleton generation', () => {
     const existingContent = "---\nentity: element-declaration\nidentity: project.root\n---\n";
     await fs.writeFile(path.join(elements, 'project.root.md'), existingContent);
 
-    const initCommand = new SetupCommand({ tools: 'claude', force: true });
+    const initCommand = createSetupCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
     expect(await fs.readFile(path.join(elements, 'project.root.md'), 'utf-8')).toBe(existingContent);
@@ -698,7 +755,7 @@ describe('Xirang skeleton generation', () => {
     await fs.writeFile(path.join(xirang, 'config.yaml'), 'schema: spec-driven\ncontext: keep\n');
     await fs.writeFile(path.join(xirang, 'user.txt'), 'keep\n');
 
-    const setupCommand = new SetupCommand({ tools: 'none', force: true });
+    const setupCommand = createSetupCommand({ tools: 'none', force: true });
     await setupCommand.execute(testDir);
 
     await expect(fs.readFile(path.join(elements, 'custom.md'), 'utf8')).resolves.toBe('custom unit\n');
@@ -712,7 +769,7 @@ describe('Xirang skeleton generation', () => {
     });
 
     const consoleSpy = vi.spyOn(console, 'log');
-    const setupCommand = new SetupCommand({ tools: 'claude', force: true });
+    const setupCommand = createSetupCommand({ tools: 'claude', force: true });
     await setupCommand.execute(testDir);
 
     const logCalls = consoleSpy.mock.calls.flat().map(String);
@@ -730,7 +787,7 @@ describe('Xirang skeleton generation', () => {
     });
 
     const consoleSpy = vi.spyOn(console, 'log');
-    const setupCommand = new SetupCommand({ tools: 'claude', force: true });
+    const setupCommand = createSetupCommand({ tools: 'claude', force: true });
     await setupCommand.execute(testDir);
 
     const logCalls = consoleSpy.mock.calls.flat().map(String);
@@ -749,7 +806,7 @@ describe('Xirang skeleton generation', () => {
     await fs.mkdir(path.join(testDir, '.xirang'), { recursive: true });
 
     const consoleSpy = vi.spyOn(console, 'log');
-    const initCommand = new SetupCommand({ tools: 'claude', force: true });
+    const initCommand = createSetupCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
     const logCalls = consoleSpy.mock.calls.flat().map(String);
@@ -796,7 +853,7 @@ describe('SetupCommand - profile and detection features', () => {
       delivery: 'both',
     } as any);
 
-    const initCommand = new SetupCommand({ tools: 'claude', force: true });
+    const initCommand = createSetupCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
     // All 6 registry workflows should be created
@@ -817,7 +874,7 @@ describe('SetupCommand - profile and detection features', () => {
 
   it('should reject --profile flag with friendly error', async () => {
     // --profile is now rejected at CLI level, but test SetupCommand directly
-    const initCommand = new SetupCommand({
+    const initCommand = createSetupCommand({
       tools: 'claude',
       force: true,
     });
@@ -832,7 +889,7 @@ describe('SetupCommand - profile and detection features', () => {
   it('should not use detected tools in non-interactive mode without --tools', async () => {
     await fs.mkdir(path.join(testDir, '.claude'), { recursive: true });
 
-    const setupCommand = new SetupCommand({ interactive: false, force: true });
+    const setupCommand = createSetupCommand({ interactive: false, force: true });
     await expect(setupCommand.execute(testDir)).rejects.toThrow(/Non-interactive setup requires --tools/);
   });
 
@@ -851,7 +908,7 @@ describe('SetupCommand - profile and detection features', () => {
 
     searchableMultiSelectMock.mockResolvedValue(['claude']);
 
-    const initCommand = new SetupCommand({ force: true });
+    const initCommand = createSetupCommand({ force: true });
     vi.spyOn(initCommand as any, 'canPromptInteractively').mockReturnValue(true);
 
     await initCommand.execute(testDir);
@@ -874,7 +931,7 @@ describe('SetupCommand - profile and detection features', () => {
 
     searchableMultiSelectMock.mockResolvedValue(['github-copilot']);
 
-    const initCommand = new SetupCommand({ force: true });
+    const initCommand = createSetupCommand({ force: true });
     vi.spyOn(initCommand as any, 'canPromptInteractively').mockReturnValue(true);
 
     await initCommand.execute(testDir);
@@ -896,7 +953,7 @@ describe('SetupCommand - profile and detection features', () => {
     } as unknown as Parameters<typeof saveGlobalConfig>[0];
     saveGlobalConfig(obsoleteConfig);
 
-    const initCommand = new SetupCommand({ tools: 'claude', force: true });
+    const initCommand = createSetupCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
     // All 6 workflows should be installed
@@ -920,7 +977,7 @@ describe('SetupCommand - profile and detection features', () => {
       featureFlags: {},
     });
 
-    const initCommand = new SetupCommand({ force: true });
+    const initCommand = createSetupCommand({ force: true });
     vi.spyOn(initCommand as any, 'canPromptInteractively').mockReturnValue(true);
     vi.spyOn(initCommand as any, 'getSelectedTools').mockResolvedValue(['claude']);
 
@@ -949,7 +1006,7 @@ describe('SetupCommand - profile and detection features', () => {
     } as unknown as Parameters<typeof saveGlobalConfig>[0];
     saveGlobalConfig(obsoleteConfig);
 
-    const initCommand = new SetupCommand({ tools: 'claude', force: true });
+    const initCommand = createSetupCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
     // Skills should exist
@@ -968,7 +1025,7 @@ describe('SetupCommand - profile and detection features', () => {
     } as unknown as Parameters<typeof saveGlobalConfig>[0];
     saveGlobalConfig(obsoleteConfig);
 
-    const initCommand = new SetupCommand({ tools: 'claude', force: true });
+    const initCommand = createSetupCommand({ tools: 'claude', force: true });
     await initCommand.execute(testDir);
 
     // Skills should exist (skills-only ignores stale delivery=commands)

@@ -4,7 +4,7 @@ identity: apply
 kind: capability
 parent: change-implementation
 title: "Apply"
-summary: "依据 Expected Semantic Model 落实项目改动的写入活动。"
+definition: "依据 Expected Semantic Model 落实项目改动的写入活动。"
 ---
 
 ## Requirements

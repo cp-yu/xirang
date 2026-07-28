@@ -16,10 +16,10 @@ describe('arch plan-remove command', () => {
       ],
       relationshipKinds: [{ identity: 'invokes' }],
       elements: [
-        { identity: 'project.root', kind: 'project', parent: null, title: 'Root', summary: 'Root summary' },
-        { identity: 'old.id', parent: 'project.root', title: 'Old', summary: 'Old summary' },
-        { identity: 'child.id', parent: 'old.id', title: 'Child', summary: 'Child summary' },
-        { identity: 'consumer.id', parent: 'project.root', title: 'Consumer', summary: 'Consumer summary' },
+        { identity: 'project.root', kind: 'project', parent: null, title: 'Root', definition: 'Root summary' },
+        { identity: 'old.id', parent: 'project.root', title: 'Old', definition: 'Old summary' },
+        { identity: 'child.id', parent: 'old.id', title: 'Child', definition: 'Child summary' },
+        { identity: 'consumer.id', parent: 'project.root', title: 'Consumer', definition: 'Consumer summary' },
       ],
       relationships: [{ source: 'consumer.id', kind: 'invokes', target: 'old.id' }],
     });
@@ -54,7 +54,7 @@ describe('arch plan-remove command', () => {
 
   it('classifies explicitly removed dependencies as Handled and keeps the rest unresolved', async () => {
     await writeChangeDelta(root, 'replace-old', {
-      'elements/new.id.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: new.id\nkind: capability\nparent: project.root\ntitle: New\nsummary: New summary\n---\n',
+      'elements/new.id.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: new.id\nkind: capability\nparent: project.root\ntitle: New\ndefinition: New summary\n---\n',
       'relationships/invokes.yaml': 'relationships:\n  - operation: REMOVED\n    source: consumer.id\n    kind: invokes\n    target: old.id\n',
     });
 

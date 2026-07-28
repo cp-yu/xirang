@@ -19,10 +19,10 @@ describe('compileChange', () => {
       ],
       relationshipKinds: [{ identity: 'invokes' }],
       elements: [
-        { identity: 'project.root', kind: 'project', parent: null, title: 'Root', summary: 'Root' },
-        { identity: 'old.id', parent: 'project.root', title: 'Old', summary: 'Old summary', requirements: OLD_CONTRACT },
-        { identity: 'old.child', parent: 'old.id', title: 'Child', summary: 'Child summary' },
-        { identity: 'consumer.id', parent: 'project.root', title: 'Consumer', summary: 'Consumer summary' },
+        { identity: 'project.root', kind: 'project', parent: null, title: 'Root', definition: 'Root' },
+        { identity: 'old.id', parent: 'project.root', title: 'Old', definition: 'Old summary', requirements: OLD_CONTRACT },
+        { identity: 'old.child', parent: 'old.id', title: 'Child', definition: 'Child summary' },
+        { identity: 'consumer.id', parent: 'project.root', title: 'Consumer', definition: 'Consumer summary' },
       ],
       relationships: [{ source: 'consumer.id', kind: 'invokes', target: 'old.id' }],
     });
@@ -32,7 +32,7 @@ describe('compileChange', () => {
 
   it('compiles Declaration and Contract deltas from one immutable Formal snapshot', async () => {
     await writeChangeDelta(root, 'change-a', {
-      'elements/old.id.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: old.id\nkind: capability\nparent: project.root\ntitle: Old\nsummary: Changed summary\n---\n\n'
+      'elements/old.id.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: old.id\nkind: capability\nparent: project.root\ntitle: Old\ndefinition: Changed summary\n---\n\n'
         + '## MODIFIED Requirements\n\n### Requirement: Old behavior\nThe system SHALL behave differently.\n\n#### Scenario: Existing scenario\n- **WHEN** old\n- **THEN** changed result\n',
     });
 
@@ -41,7 +41,7 @@ describe('compileChange', () => {
     expect(result.diagnostics).toEqual([]);
     expect(result.valid).toBe(true);
     const compiled = result.target!.elements.find(item => item.declaration.identity === 'old.id')!;
-    expect(compiled.declaration.summary).toBe('Changed summary');
+    expect(compiled.declaration.definition).toBe('Changed summary');
     expect(compiled.requirements[0].body).toContain('behave differently');
     expect(result.diff.entries).toEqual(expect.arrayContaining([
       expect.objectContaining({ kind: 'element-declaration', identity: 'old.id', operation: 'MODIFIED', declaredOperation: 'MODIFIED' }),
@@ -51,7 +51,7 @@ describe('compileChange', () => {
 
   it('reports identity precondition failures against the Formal model', async () => {
     await writeChangeDelta(root, 'broken', {
-      'elements/old.id.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: old.id\nkind: capability\nparent: project.root\ntitle: Old duplicate\nsummary: Duplicate\n---\n',
+      'elements/old.id.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: old.id\nkind: capability\nparent: project.root\ntitle: Old duplicate\ndefinition: Duplicate\n---\n',
       'elements/ghost.id.md': '---\noperation: REMOVED\nentity: element-declaration\nidentity: ghost.id\n---\n',
     });
 
@@ -83,7 +83,7 @@ describe('compileChange', () => {
       elements: [{ identity: 'old.id', kind: 'contracted', parent: 'root', requirements: OLD_CONTRACT }],
     }));
     await writeChangeDelta(root, 'remove-contract', {
-      'elements/old.id.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: old.id\nkind: contracted\nparent: root\ntitle: Old\nsummary: Old summary\n---\n\n'
+      'elements/old.id.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: old.id\nkind: contracted\nparent: root\ntitle: Old\ndefinition: Old summary\n---\n\n'
         + '## REMOVED Requirements\n\n### Requirement: Old behavior\n',
     });
 
@@ -110,7 +110,7 @@ describe('compileChange', () => {
 
   it('derives property and Scenario entries from Formal versus Expected comparison', async () => {
     await writeChangeDelta(root, 'detail', {
-      'elements/old.id.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: old.id\nkind: capability\nparent: project.root\ntitle: Old\nsummary: Changed summary\n---\n\n'
+      'elements/old.id.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: old.id\nkind: capability\nparent: project.root\ntitle: Old\ndefinition: Changed summary\n---\n\n'
         + '## MODIFIED Requirements\n\n### Requirement: Old behavior\nThe system SHALL behave differently.\n\n'
         + '#### Scenario: Existing scenario\n- **WHEN** old\n- **THEN** changed result\n\n'
         + '#### Scenario: New scenario\n- **WHEN** new\n- **THEN** result\n',
@@ -120,7 +120,7 @@ describe('compileChange', () => {
 
     const element = result.diff.entries.find(entry => entry.kind === 'element-declaration' && entry.identity === 'old.id');
     expect(element?.children).toEqual([
-      expect.objectContaining({ kind: 'property', identity: 'old.id.summary', operation: 'MODIFIED' }),
+      expect.objectContaining({ kind: 'property', identity: 'old.id.definition', operation: 'MODIFIED' }),
     ]);
     const requirement = result.diff.entries.find(entry => entry.kind === 'requirement' && entry.identity === 'old.id#Old behavior');
     expect(requirement?.children).toEqual(expect.arrayContaining([
@@ -131,7 +131,7 @@ describe('compileChange', () => {
 
   it('treats an already-synced change as applied when allowAlreadyApplied is set', async () => {
     await writeChangeDelta(root, 'applied', {
-      'elements/old.id.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: old.id\nkind: capability\nparent: project.root\ntitle: Old\nsummary: Old summary\n---\n',
+      'elements/old.id.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: old.id\nkind: capability\nparent: project.root\ntitle: Old\ndefinition: Old summary\n---\n',
     });
 
     expect((await compileChange(root, 'applied')).diagnostics.map(item => item.code))

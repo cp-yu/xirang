@@ -4,7 +4,7 @@ identity: verify
 kind: domain
 parent: change-implementation
 title: "Verify"
-summary: "由独立 Review 与 Optimization 反复确认和改进项目结果的活动。"
+definition: "由独立 Review 与 Optimization 反复确认和改进项目结果的活动。"
 ---
 
 ## Requirements

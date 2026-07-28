@@ -4,7 +4,7 @@ identity: explore
 kind: capability
 parent: intent-first-path
 title: "Explore"
-summary: "基于模型与项目证据澄清用户意图、范围、影响和设计。"
+definition: "基于模型与项目证据澄清用户意图、范围、影响和设计。"
 ---
 
 ## Requirements

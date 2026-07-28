@@ -4,7 +4,7 @@ identity: change-plan
 kind: capability
 parent: change
 title: "Change Plan"
-summary: "解释 Change 意图、关键决策与执行安排的辅助性制品集合。"
+definition: "解释 Change 意图、关键决策与执行安排的辅助性制品集合。"
 ---
 
 ## Requirements

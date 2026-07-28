@@ -4,7 +4,7 @@ import type { ModelElement, SemanticModel } from '../../../src/core/model/types.
 
 function element(identity: string, kind: string, parent: string | null, requirements = 0): ModelElement {
   return {
-    declaration: { identity, kind, parent, title: identity, summary: '' },
+    declaration: { identity, kind, parent, title: identity, definition: '' },
     requirements: Array.from({ length: requirements }, (_, index) => ({
       name: `R${index}`,
       body: 'SHALL hold.',

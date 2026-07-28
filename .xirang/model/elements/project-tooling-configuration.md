@@ -4,7 +4,7 @@ identity: project-tooling-configuration
 kind: capability
 parent: cli
 title: Project and Tooling Configuration
-summary: 建立和维护工作区、项目配置与所选 Agent 工具集成。
+definition: 建立和维护工作区、项目配置与所选 Agent 工具集成。
 ---
 
 ## Requirements

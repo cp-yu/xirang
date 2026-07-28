@@ -4,7 +4,7 @@ identity: change-derived-views
 kind: capability
 parent: derived-views
 title: "Change-derived Views"
-summary: "由当前模型与 Semantic Delta 推导的变更差异视图。"
+definition: "由当前模型与 Semantic Delta 推导的变更差异视图。"
 ---
 
 ## Requirements

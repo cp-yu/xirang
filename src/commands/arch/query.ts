@@ -1,7 +1,6 @@
 import { deriveLocalNames } from '../../core/likec4/local-names.js';
-import { modelRoot } from '../../core/model/paths.js';
-import { parseSemanticModel } from '../../core/model/parser.js';
 import type { ElementDeclaration, Relationship, Requirement, SemanticModel } from '../../core/model/types.js';
+import { readValidArchitecture } from './reader.js';
 
 export interface ArchQueryOptions {
   relations?: boolean;
@@ -68,7 +67,7 @@ export async function queryArchitecture(
   id: string,
   options: ArchQueryOptions = {},
 ): Promise<ArchQueryResult> {
-  const { model } = await parseSemanticModel(modelRoot(projectRoot));
+  const model = await readValidArchitecture(projectRoot);
   const elementById = buildElements(model, options.contract === true);
   const element = elementById.get(id);
   if (!element) {
@@ -131,7 +130,7 @@ export function formatArchitectureQueryText(result: ArchQueryResult): string {
     `Element: ${element.identity}`,
     `Type: ${element.kind}`,
     `Title: ${element.title}`,
-    `Summary: ${element.summary}`,
+    `Definition: ${element.definition}`,
   ];
   if (element.parent) lines.push(`Parent: ${element.parent}`);
   lines.push(`Contract: ${element.contract}${element.hasContract ? '' : ' (absent)'}`);

@@ -16,6 +16,18 @@ export const XIRANG_PHILOSOPHY = `
 `.trim();
 
 /**
+ * Fragment: Element Definition semantics
+ * Used in: build, explore, propose, snack
+ */
+export const ELEMENT_DEFINITION_SEMANTICS = `
+**Element Definition Semantics**
+
+- Definition SHALL 完整说明 Element 是什么、为何作为独立 Element 建模、包含什么、不包含什么，以及必要时如何区别于 parent、children 与 siblings。
+- Definition 不得只是 title 的改写或一句“用于……”摘要；它表达概念身份与范围边界，不表达实现文件、符号、调用关系或当前方案。
+- 职责、保证、约束、行为、Requirement、Scenario 与验收条件属于 Element Contract；方案与理由属于 \`design.md\`；变更动机与迁移历史属于 \`proposal.md\`。
+`.trim();
+
+/**
  * Fragment: Element Contract semantics
  * Used in: build, propose, snack
  */
@@ -23,7 +35,7 @@ export const ELEMENT_CONTRACT_SEMANTICS = `
 **Element Contract Semantics**
 
 - Element Contract SHALL 完整表达宿主 Element 在自身抽象层级承担的职责、保证、约束与行为；children 可以进一步精化或共同实现这些承诺，父子 Elements 可以在各自层级表达相互覆盖的完整语义。
-- Requirement SHALL 以稳定 identity 表达一项可独立演进的规范承诺。以该承诺能否独立新增、修改或移除判断边界，不得按句子、分句、\`SHALL\` 数量或目标条数机械拆分。只复述 Declaration summary 或 sibling Requirements 语义并集且不增加规范承诺的内容不形成 Requirement；独立的不变量、顺序、原子性、一致性或完成条件应保留。
+- Requirement SHALL 以稳定 identity 表达一项可独立演进的规范承诺。以该承诺能否独立新增、修改或移除判断边界，不得按句子、分句、\`SHALL\` 数量或目标条数机械拆分。只复述 Declaration definition 或 sibling Requirements 语义并集且不增加规范承诺的内容不形成 Requirement；独立的不变量、顺序、原子性、一致性或完成条件应保留。
 - Scenario SHALL 是具有规范约束力的 Requirement 组成，只具体化宿主 Requirement 在特定条件下的行为，不得引入可独立演进的承诺。Scenarios 不默认穷尽 Requirement 的全部适用情况，Scenario 不作为独立 Semantic Delta Entry，其变化由宿主 Requirement 的完整目标内容表达。
 `.trim();
 
@@ -41,14 +53,14 @@ Every Markdown unit declares its own \`entity\` in frontmatter. The partition do
 
 | entity | frontmatter fields |
 |---|---|
-| \`element-declaration\` | \`identity\`, \`kind\`, \`parent\`, \`title\`, \`summary\` |
+| \`element-declaration\` | \`identity\`, \`kind\`, \`parent\`, \`title\`, \`definition\` |
 | \`element-kind\` | \`identity\`, \`contract\`; optional \`root\`, \`parents\`, \`children\` |
 | \`relationship-kind\` | \`identity\`; optional \`sourceKinds\`, \`targetKinds\` |
 | \`authored-view\` | \`identity\`, \`include\`; optional \`of\`, \`title\`, \`autoLayout\` |
 
 - \`parent: null\` marks the single Project Root. \`include\` is \`'*'\` or a list of element identities; \`of\` is one element identity.
 - A \`relationships/\` file is a container of \`{source, kind, target}\` entries. A Relationship's identity is its entire content and it carries no other field.
-- An \`elements/\` unit body is exactly the \`## Requirements\` section: \`### Requirement: <name>\` with \`#### Scenario: <name>\` beneath it. Descriptive prose belongs to the Declaration's \`summary\` and MUST NOT be repeated in the Contract. Any other body content is a validation error.
+- An \`elements/\` unit body is exactly the \`## Requirements\` section: \`### Requirement: <name>\` with \`#### Scenario: <name>\` beneath it. Concept identity and scope prose belongs to the Declaration's \`definition\` and MUST NOT be repeated in the Contract. Any other body content is a validation error.
 - A \`views/\` unit has no body.
 - \`identity\` uses \`[A-Za-z0-9._-]+\` and contains no path separator. Element Kind and Relationship Kind identities are globally unique within the Metamodel. Do not encode a parent path or hierarchy position into an identity: position changes over time while identity does not.
 - Default file naming, non-normative: \`elements/<identity>.md\`, \`metamodel/<kind identity>.md\`, \`views/<view identity>.md\`, \`relationships/<relationship kind identity>.yaml\` grouped by Relationship Kind.
@@ -82,7 +94,7 @@ Every Markdown unit declares its own \`entity\` in frontmatter. The partition do
 
 | entity | frontmatter fields |
 |---|---|
-| \`element-declaration\` | \`identity\`, \`kind\`, \`parent\`, \`title\`, \`summary\` |
+| \`element-declaration\` | \`identity\`, \`kind\`, \`parent\`, \`title\`, \`definition\` |
 | \`element-kind\` | \`identity\`, \`contract\`; optional \`root\`, \`parents\`, \`children\` |
 | \`relationship-kind\` | \`identity\`; optional \`sourceKinds\`, \`targetKinds\` |
 | \`authored-view\` | \`identity\`, \`include\`; optional \`of\`, \`title\`, \`autoLayout\` |

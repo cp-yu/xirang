@@ -2,12 +2,10 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { searchArchitecture } from '../../src/commands/arch/search.js';
+import { formatArchitectureSearchText, searchArchitecture } from '../../src/commands/arch/search.js';
 import { minimalModel, writeProjectModel } from '../helpers/model-fixture.js';
 
-function contract(requirement: string): string {
-  return `## Requirements\n\n### Requirement: ${requirement}\nThe system SHALL behave.\n\n#### Scenario: Existing behavior\n- **WHEN** invoked\n- **THEN** behavior is preserved`;
-}
+const LONG_DEFINITION = `First paragraph ${'界'.repeat(130)}.\n\nSecond paragraph contains UnicodeNeedle.`;
 
 describe('architecture search', () => {
   let root: string;
@@ -19,20 +17,32 @@ describe('architecture search', () => {
         {
           identity: 'cap.impact',
           title: 'Impact Sweeper',
-          summary: 'Collects architecture context',
+          definition: 'Collects architecture context across the full project boundary.',
           requirements: [
+            '## Requirements',
+            '',
+            '### Requirement: Impact behavior',
+            'The system SHALL behave.',
+            '',
             '```md',
             '### Requirement: FencedOnlyToken',
             'Example only.',
             '```',
             '',
-            contract('Impact behavior'),
+            '#### Scenario: Existing behavior',
+            '- **WHEN** invoked',
+            '- **THEN** behavior is preserved',
           ].join('\n'),
         },
-        { identity: 'cap.exact', title: 'Exact Candidate', summary: 'Exact identity candidate' },
-        { identity: 'cap.summary-only', title: 'Summary Candidate', summary: 'Contains cap.exact in summary' },
-        { identity: 'cap.alpha', title: 'Match Alpha', summary: 'First stable match' },
-        { identity: 'cap.zeta', title: 'Match Zeta', summary: 'Second stable match' },
+        { identity: 'cap.exact', title: 'Exact Candidate', definition: 'Exact identity candidate definition.' },
+        { identity: 'cap.definition-only', title: 'Definition Candidate', definition: 'Contains cap.exact in the full Definition.' },
+        { identity: 'cap.alpha', title: 'Match Alpha', definition: 'First stable match definition.' },
+        { identity: 'cap.zeta', title: 'Match Zeta', definition: 'Second stable match definition.' },
+        {
+          identity: 'cap.long',
+          title: 'Long Definition',
+          definition: LONG_DEFINITION,
+        },
       ],
     }));
   });
@@ -51,7 +61,7 @@ describe('architecture search', () => {
       kind: 'capability',
       parent: 'root',
       title: 'Impact Sweeper',
-      summary: 'Collects architecture context',
+      definition: 'Collects architecture context across the full project boundary.',
     });
     expect(result.matches[0]).not.toHaveProperty('ownedSpecs');
     expect(result.matches[0].evidence).toEqual(expect.arrayContaining([
@@ -59,7 +69,7 @@ describe('architecture search', () => {
       { field: 'requirement', text: 'Impact behavior' },
     ]));
     expect(result.matches[0].evidence.map(item => item.field))
-      .not.toEqual(expect.arrayContaining(['fqn', 'specId', 'spec.purpose', 'spec.requirement']));
+      .not.toEqual(expect.arrayContaining(['summary', 'fqn', 'specId', 'spec.purpose', 'spec.requirement']));
     expect(result.diagnostics).toEqual([]);
   });
 
@@ -72,6 +82,31 @@ describe('architecture search', () => {
     const stable = await searchArchitecture(root, 'Match', { limit: 1 });
     expect(stable.matches.map(match => match.element.identity)).toEqual(['cap.alpha']);
     expect(stable.totalMatches).toBe(2);
+  });
+
+  it('searches and returns the complete Definition without Browser truncation', async () => {
+    const result = await searchArchitecture(root, 'UnicodeNeedle');
+
+    expect(result.matches).toHaveLength(1);
+    expect(result.matches[0].evidence).toEqual([{
+      field: 'definition',
+      text: LONG_DEFINITION,
+    }]);
+    expect(result.matches[0].evidence[0].text).not.toContain('...');
+  });
+
+  it('always includes the complete Definition in text for non-Definition matches', async () => {
+    const cases = [
+      { result: await searchArchitecture(root, 'cap.exact'), definition: 'Exact identity candidate definition.' },
+      { result: await searchArchitecture(root, 'Long Definition'), definition: LONG_DEFINITION },
+      { result: await searchArchitecture(root, 'Impact behavior'), definition: 'Collects architecture context across the full project boundary.' },
+    ];
+
+    for (const { result, definition } of cases) {
+      const text = formatArchitectureSearchText(result);
+      expect(text).toContain(`Definition: ${definition}`);
+    }
+    expect(formatArchitectureSearchText(cases[1].result)).not.toContain('...');
   });
 
   it('returns identical matches and ordering across process locale settings', async () => {

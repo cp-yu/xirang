@@ -4,7 +4,7 @@ identity: internal-agents
 kind: domain
 parent: agents
 title: "Internal Agents"
-summary: "在隔离 clean context 中承担独立判断的只读 Agents。"
+definition: "在隔离 clean context 中承担独立判断的只读 Agents。"
 ---
 
 ## Requirements
