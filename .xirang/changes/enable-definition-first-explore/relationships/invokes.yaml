@@ -1,0 +1,5 @@
+relationships:
+  - operation: ADDED
+    source: propose
+    kind: invokes
+    target: deterministic-operations

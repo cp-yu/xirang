@@ -16,7 +16,7 @@ If todo is available, track these stages as a checklist and tick each completed 
 
 Xirang mapping:
 - The original design-document step maps to a conversation-only `Design Summary`.
-- The original commit step is removed; explore does not write files.
+- The original commit step is removed. Explore may persist only a user-confirmed Change Structural Definition through the Xirang-owned Definition Framing protocol; it does not directly write files.
 - The original implementation-plan handoff maps to `xirang-propose` handoff.
 
 ## Conversation language
@@ -27,7 +27,7 @@ Output language: use the user's main language for prose and non-canonical sectio
 
 Do not implement before design confirmation is complete.
 
-Do not start coding, generate patches, update artifacts, or interpret design confirmations as write authorization during Explore. Even if the user says "ok", "that works", or chooses an option, it only confirms the design direction.
+Do not start coding, generate patches, directly update artifacts, or interpret design confirmations as write authorization during Explore. Even if the user says "ok", "that works", or chooses an option, it only confirms the design direction. Definition Framing persistence requires a separate explicit confirmation under the Xirang-owned protocol.
 
 Simple changes still require design confirmation. For a narrow change, confirm only the applicable design sections, but do not skip the process: at minimum confirm the problem, impact scope, approach, and verification method.
 

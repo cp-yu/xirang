@@ -41,6 +41,15 @@ export const POSITIONAL_TYPE_MAP: Record<string, NonNullable<CommandDefinition['
   // new subcommands
   'new.change': 'change-or-spec-id',
 
+  // framing subcommands
+  'framing.show': 'text',
+  'framing.status': 'text',
+  'framing.validate': 'text',
+  'framing.update': 'text',
+  'framing.rename': 'text',
+  'framing.consume': 'text',
+  'framing.discard': 'text',
+
   // config subcommands
   'config.get': 'text',
   'config.set': 'text',

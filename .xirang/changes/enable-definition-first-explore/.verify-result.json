@@ -1,0 +1,146 @@
+{
+  "timestamp": "2026-07-29T04:03:39.424Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "requirement": "隔离受控文件路径",
+      "task": "C14 验证 Windows CI path behavior",
+      "summary": "Native windows-latest execution remains unattested",
+      "message": "The Windows framing path tests, build, and lint gates are configured, and local path.win32 assertions pass, but this review environment cannot provide a successful native windows-latest job.",
+      "recommendation": "Attach a successful windows-latest run when CI is available; no local code remediation is indicated.",
+      "evidenceCitations": [
+        ".github/workflows/test-windows.yml:48",
+        ".xirang/changes/enable-definition-first-explore/tasks.md:229",
+        "test/core/framing/paths.test.ts:27"
+      ]
+    }
+  ],
+  "tasksFileHash": "975235daaa252ffc9c86bc4a862ca1ed847c76ba88a1adc06cbd5f47db9cd5f1",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".github/workflows/test-windows.yml",
+      ".xirang/changes/enable-definition-first-explore/tasks.md",
+      "src/commands/framing.ts",
+      "src/core/framing/consume.ts",
+      "src/core/templates/workflows/explore.ts",
+      "test/core/templates/definition-framing-reference.test.ts",
+      "test/core/templates/explore-template.test.ts",
+      "test/integration/framing-workflow.test.ts"
+    ],
+    "evidenceFingerprint": "917b9795face6dd32ec4f67a58f5487a11efb8942711b424cbf70561214490a0",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".github/workflows/test-windows.yml",
+        "hash": "5766a8b09b29538b094f8018f74482960d1d429b6813ad5a9dd20beea4289db9"
+      },
+      {
+        "path": ".xirang/changes/enable-definition-first-explore/tasks.md",
+        "hash": "975235daaa252ffc9c86bc4a862ca1ed847c76ba88a1adc06cbd5f47db9cd5f1"
+      },
+      {
+        "path": "src/commands/framing.ts",
+        "hash": "da2bcc1793e2de6199f9b92f721c1b8edd79ff108188ea95ec35e79cd777b2da"
+      },
+      {
+        "path": "src/core/framing/consume.ts",
+        "hash": "0dddf6d2e9a808cc04ceed309c7d5c54c66482e0b4dac71fd8855dd72f48b011"
+      },
+      {
+        "path": "src/core/templates/workflows/explore.ts",
+        "hash": "30634b807d97aa686603dfd29d877f190f6fac0c0f0ef741fbaa5c63f015795b"
+      },
+      {
+        "path": "test/core/templates/definition-framing-reference.test.ts",
+        "hash": "62e2b2cf3fb8b50abccb933deb303700896582024ddf0fda57b5b511d41394ef"
+      },
+      {
+        "path": "test/core/templates/explore-template.test.ts",
+        "hash": "d24e211d0cfc999615e3f293fa5efca427badd5489402a34637e5fe36fd53411"
+      },
+      {
+        "path": "test/integration/framing-workflow.test.ts",
+        "hash": "11d84abdc6e03ef9f1d07723285a5fce78e1f9f229b26fbb73d2ee0426aebcaa"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "3db2fc70258f81a2f32ccc51f560fd6fd242cb38",
+    "gitDiffSummary": "Clean-context review found no blockers. Current-source validation passes a 44-entry Change; architecture validation, 17 targeted files/96 tests, 160 full files/2045 tests, lint, build, identity audit, postinstall, packed install, generated parity, and diff check pass. Native Windows execution remains an evidence-only warning."
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-07-29T04:03:39.424Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "requirement": "隔离受控文件路径",
+          "task": "C14 验证 Windows CI path behavior",
+          "summary": "Native windows-latest execution remains unattested",
+          "message": "The Windows framing path tests, build, and lint gates are configured, and local path.win32 assertions pass, but this review environment cannot provide a successful native windows-latest job.",
+          "recommendation": "Attach a successful windows-latest run when CI is available; no local code remediation is indicated.",
+          "evidenceCitations": [
+            ".github/workflows/test-windows.yml:48",
+            ".xirang/changes/enable-definition-first-explore/tasks.md:229",
+            "test/core/framing/paths.test.ts:27"
+          ]
+        }
+      ],
+      "tasksFileHash": "975235daaa252ffc9c86bc4a862ca1ed847c76ba88a1adc06cbd5f47db9cd5f1",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".github/workflows/test-windows.yml",
+          ".xirang/changes/enable-definition-first-explore/tasks.md",
+          "src/commands/framing.ts",
+          "src/core/framing/consume.ts",
+          "src/core/templates/workflows/explore.ts",
+          "test/core/templates/definition-framing-reference.test.ts",
+          "test/core/templates/explore-template.test.ts",
+          "test/integration/framing-workflow.test.ts"
+        ],
+        "evidenceFingerprint": "917b9795face6dd32ec4f67a58f5487a11efb8942711b424cbf70561214490a0",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".github/workflows/test-windows.yml",
+            "hash": "5766a8b09b29538b094f8018f74482960d1d429b6813ad5a9dd20beea4289db9"
+          },
+          {
+            "path": ".xirang/changes/enable-definition-first-explore/tasks.md",
+            "hash": "975235daaa252ffc9c86bc4a862ca1ed847c76ba88a1adc06cbd5f47db9cd5f1"
+          },
+          {
+            "path": "src/commands/framing.ts",
+            "hash": "da2bcc1793e2de6199f9b92f721c1b8edd79ff108188ea95ec35e79cd777b2da"
+          },
+          {
+            "path": "src/core/framing/consume.ts",
+            "hash": "0dddf6d2e9a808cc04ceed309c7d5c54c66482e0b4dac71fd8855dd72f48b011"
+          },
+          {
+            "path": "src/core/templates/workflows/explore.ts",
+            "hash": "30634b807d97aa686603dfd29d877f190f6fac0c0f0ef741fbaa5c63f015795b"
+          },
+          {
+            "path": "test/core/templates/definition-framing-reference.test.ts",
+            "hash": "62e2b2cf3fb8b50abccb933deb303700896582024ddf0fda57b5b511d41394ef"
+          },
+          {
+            "path": "test/core/templates/explore-template.test.ts",
+            "hash": "d24e211d0cfc999615e3f293fa5efca427badd5489402a34637e5fe36fd53411"
+          },
+          {
+            "path": "test/integration/framing-workflow.test.ts",
+            "hash": "11d84abdc6e03ef9f1d07723285a5fce78e1f9f229b26fbb73d2ee0426aebcaa"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "3db2fc70258f81a2f32ccc51f560fd6fd242cb38",
+        "gitDiffSummary": "Clean-context review found no blockers. Current-source validation passes a 44-entry Change; architecture validation, 17 targeted files/96 tests, 160 full files/2045 tests, lint, build, identity audit, postinstall, packed install, generated parity, and diff check pass. Native Windows execution remains an evidence-only warning."
+      }
+    }
+  }
+}

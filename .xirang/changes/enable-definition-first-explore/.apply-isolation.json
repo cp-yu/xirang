@@ -1,0 +1,6 @@
+{
+  "method": "branch",
+  "branchName": "enable-definition-first-explore",
+  "originalBranch": "main",
+  "baseCommit": "3db2fc70258f81a2f32ccc51f560fd6fd242cb38"
+}

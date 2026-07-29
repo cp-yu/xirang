@@ -21,6 +21,7 @@ import { registerSyncCommand } from '../commands/sync.js';
 import { registerVerifyCommand } from '../commands/verify.js';
 import { registerArchCommand } from '../commands/arch/index.js';
 import { registerCandidateCommand } from '../commands/candidate.js';
+import { registerFramingCommand } from '../commands/framing.js';
 import {
   statusCommand,
   instructionsCommand,
@@ -153,6 +154,7 @@ registerSyncCommand(program);
 registerVerifyCommand(program);
 registerArchCommand(program);
 registerCandidateCommand(program);
+registerFramingCommand(program);
 
 program
   .command('list')

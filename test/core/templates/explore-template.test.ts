@@ -95,9 +95,11 @@ describe('explore template semantic impact', () => {
     expect(ref?.content).toContain('Before context reads, create the todo checklist');
   });
 
-  it('states the main explore agent is read-only', () => {
+  it('permits only explicitly confirmed CLI-managed structural persistence', () => {
     expect(template).toContain('Forbidden');
-    expect(template).toContain('Create, edit, delete any file or artifact');
+    expect(template).toContain('directly create, edit, or delete project or Change artifacts');
+    expect(template).toContain('explicit persistence confirmation');
+    expect(template).toContain('`xirang framing`');
     expect(template).toContain('produce a conversation-only `Design Summary`');
     expect(template).toContain('instruct the user to call `/xirang:propose <change-name>`');
   });
@@ -106,11 +108,24 @@ describe('explore template semantic impact', () => {
     expect(template).toContain('User confirmations ("ok", "option 2") approve design direction only, not file modification');
   });
 
-  it('keeps semantic navigation and the main Explore agent read-only', () => {
-    expect(template).toContain('The main Explore agent remains read-only');
+  it('keeps semantic navigation and non-framing artifacts read-only', () => {
+    expect(template).toContain('The main Explore agent remains read-only outside the managed Definition Framing exception');
     expect(template).toContain('`arch search` and `arch impact` are read-only');
-    expect(template).toContain('MUST NOT create or update project files');
+    expect(template).toContain('MUST NOT create or update project or Change artifacts');
     expect(template).not.toContain('Subagent Exception');
+  });
+
+  it('uses a complete persisted structural definition during Design Exploration when available', () => {
+    expect(template).toContain('Definition Framing is optional and begins only when the user chooses it');
+    expect(template).toContain('xirang framing list --json');
+    expect(template).toContain('xirang framing show <explorationId> --json');
+    expect(template).toContain('xirang framing status <explorationId> --json');
+    expect(template).toContain('xirang framing validate <explorationId> --json');
+    expect(template).toContain('On every resume, run all three before Design Exploration continues');
+    expect(template).toContain('Use `show` for the complete current payload, `status` for baseline drift, and `validate` for current impacts');
+    expect(template).toContain('Contract and Authored View impacts');
+    expect(template).toContain('invalidate the affected structural confirmations and downstream design decisions');
+    expect(template).toContain('When no Change Structural Definition exists, continue from the Semantic Model and project evidence');
   });
 
   it('routes active-change insights to future capture targets', () => {

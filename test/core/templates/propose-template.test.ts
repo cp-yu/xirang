@@ -216,6 +216,21 @@ describe('propose template post-validation flow', () => {
     expect(body).not.toContain('route non-behavior content to design/tasks/proposal/opsx-delta');
   });
 
+  it('conditionally consumes a confirmed structural definition after all gates pass', () => {
+    const body = getOpsxProposeSkillTemplate().instructions;
+    expect(body).toContain('xirang framing list --json');
+    expect(body).toContain('only when a Change Structural Definition exists');
+    expect(body).toContain('xirang framing show <explorationId> --json');
+    expect(body).toContain('complete current payload');
+    expect(body).toContain('xirang framing status <explorationId> --json');
+    expect(body).toContain('xirang framing validate <explorationId> --json');
+    expect(body).toContain('relevant drift, downstream impacts, and structural coverage');
+    expect(body).toContain('xirang framing consume <explorationId> --change "<name>" --json');
+    expect(body).toContain('change-structural-definition.md');
+    expect(body).toContain('When no Change Structural Definition exists, preserve the ordinary Propose path');
+    expect(body.indexOf('xirang framing consume')).toBeGreaterThan(body.indexOf('xirang validate --change "<name>" --json'));
+  });
+
   it('reports readiness after validation without writing a presentation artifact', () => {
     for (const body of getProposeBodies()) {
       const validationIndex = body.indexOf('xirang validate --change "<name>" --json');
