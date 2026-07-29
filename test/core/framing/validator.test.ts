@@ -43,6 +43,61 @@ describe('structural framing validation', () => {
     ]));
   });
 
+  it('preserves first-match updates and Contract impacts for duplicate source identities', () => {
+    const input = model();
+    input.elementKinds.push(
+      { identity: 'duplicate-kind', contract: 'optional', body: 'first' },
+      { identity: 'duplicate-kind', contract: 'optional', body: 'second' },
+    );
+    input.relationshipKinds.push(
+      { identity: 'duplicate-relation', body: 'first' },
+      { identity: 'duplicate-relation', body: 'second' },
+    );
+    input.elements.push(
+      { declaration: { identity: 'duplicate', kind: 'capability', parent: 'root', title: 'First', definition: 'First.' }, requirements: [] },
+      {
+        declaration: { identity: 'duplicate', kind: 'capability', parent: 'root', title: 'Second', definition: 'Second.' },
+        requirements: [{ name: 'Later', body: 'SHALL remain.', scenarios: [{ name: 'Later', body: '- **WHEN** used\n- **THEN** remains' }] }],
+      },
+    );
+    const before = structuredClone(input);
+    const result = validateStructuralDefinition(input, emptyPayload({
+      elementKinds: [{ identity: 'duplicate-kind', contract: 'optional', body: 'changed' }],
+      relationshipKinds: [{ identity: 'duplicate-relation', body: 'changed' }],
+      elements: [{ identity: 'duplicate', kind: 'capability', parent: 'root', title: 'Changed', definition: 'Changed.' }],
+    }));
+
+    expect(result.targetModel.elementKinds.filter(item => item.identity === 'duplicate-kind').map(item => item.body))
+      .toEqual(['changed', 'second']);
+    expect(result.targetModel.relationshipKinds.filter(item => item.identity === 'duplicate-relation').map(item => item.body))
+      .toEqual(['changed', 'second']);
+    const duplicates = result.targetModel.elements.filter(item => item.declaration.identity === 'duplicate');
+    expect(duplicates.map(item => item.declaration.title)).toEqual(['Changed', 'Second']);
+    expect(duplicates[0].requirements).toEqual([]);
+    expect(duplicates[1].requirements).toEqual(input.elements.at(-1)?.requirements);
+    expect(result.impacts).not.toContainEqual(expect.objectContaining({ code: 'AFFECTED_CONTRACT', identity: 'duplicate' }));
+    expect(result.diagnostics.map(item => item.code)).toContain('DUPLICATE_IDENTITY');
+    expect(input).toEqual(before);
+  });
+
+  it('removes every duplicate source identity', () => {
+    const input = model();
+    input.elementKinds.push(
+      { identity: 'duplicate-kind', contract: 'optional', body: 'first' },
+      { identity: 'duplicate-kind', contract: 'optional', body: 'second' },
+    );
+    input.elements.push(
+      { declaration: { identity: 'duplicate', kind: 'capability', parent: 'root', title: 'First', definition: 'First.' }, requirements: [] },
+      { declaration: { identity: 'duplicate', kind: 'capability', parent: 'root', title: 'Second', definition: 'Second.' }, requirements: [] },
+    );
+    const result = validateStructuralDefinition(input, emptyPayload({
+      elementKinds: [{ operation: 'REMOVED', identity: 'duplicate-kind' }],
+      elements: [{ operation: 'REMOVED', identity: 'duplicate' }],
+    }));
+    expect(result.targetModel.elementKinds.some(item => item.identity === 'duplicate-kind')).toBe(false);
+    expect(result.targetModel.elements.some(item => item.declaration.identity === 'duplicate')).toBe(false);
+  });
+
   it.each([
     ['missing parent', emptyPayload({ elements: [{ identity: 'new', kind: 'capability', parent: 'ghost', title: 'New', definition: 'New.' }] }), 'MISSING_PARENT'],
     ['hierarchy cycle', emptyPayload({ elements: [

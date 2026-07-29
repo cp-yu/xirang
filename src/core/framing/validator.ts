@@ -15,38 +15,57 @@ export interface StructuralValidationResult {
   targetModel: SemanticModel;
 }
 
-function replaceByIdentity<T extends { identity: string }>(items: T[], target: T): void {
-  const index = items.findIndex(item => item.identity === target.identity);
-  if (index < 0) items.push(target);
-  else items[index] = target;
+interface Removal {
+  operation: 'REMOVED';
+  identity: string;
+}
+
+function isRemoval<T extends { identity: string }>(value: T | Removal): value is Removal {
+  return 'operation' in value && value.operation === 'REMOVED';
+}
+
+function mergeByIdentity<T extends { identity: string }>(
+  existing: T[],
+  updates: ReadonlyArray<T | Removal>,
+): T[] {
+  const updatesById = new Map(updates.map(item => [item.identity, item]));
+  const replaced = new Set<string>();
+  const merged: T[] = [];
+  for (const item of existing) {
+    const update = updatesById.get(item.identity);
+    if (!update) merged.push(item);
+    else if (!isRemoval(update) && !replaced.has(item.identity)) {
+      merged.push({ ...update });
+      replaced.add(item.identity);
+    } else if (!isRemoval(update)) {
+      merged.push(item);
+    }
+  }
+  for (const update of updates) {
+    if (!isRemoval(update) && !replaced.has(update.identity)) merged.push({ ...update });
+  }
+  return merged;
 }
 
 function applyPayload(model: SemanticModel, payload: ChangeStructuralDefinitionPayload): SemanticModel {
   const target = structuredClone(model);
+  target.elementKinds = mergeByIdentity(target.elementKinds, payload.elementKinds);
+  target.relationshipKinds = mergeByIdentity(target.relationshipKinds, payload.relationshipKinds);
 
-  for (const item of payload.elementKinds) {
-    if (item.operation === 'REMOVED') {
-      target.elementKinds = target.elementKinds.filter(kind => kind.identity !== item.identity);
-    } else {
-      replaceByIdentity(target.elementKinds, { ...item });
-    }
-  }
-  for (const item of payload.relationshipKinds) {
-    if (item.operation === 'REMOVED') {
-      target.relationshipKinds = target.relationshipKinds.filter(kind => kind.identity !== item.identity);
-    } else {
-      replaceByIdentity(target.relationshipKinds, { ...item });
-    }
-  }
-  for (const item of payload.elements) {
-    if (item.operation === 'REMOVED') {
-      target.elements = target.elements.filter(element => element.declaration.identity !== item.identity);
-    } else {
-      const existing = target.elements.find(element => element.declaration.identity === item.identity);
-      const replacement = { declaration: { ...item }, requirements: existing?.requirements ?? [] };
-      const index = target.elements.findIndex(element => element.declaration.identity === item.identity);
-      if (index < 0) target.elements.push(replacement);
-      else target.elements[index] = replacement;
+  const elementUpdates = new Map(payload.elements.map(item => [item.identity, item]));
+  const replacedElements = new Set<string>();
+  target.elements = target.elements.flatMap(element => {
+    const identity = element.declaration.identity;
+    const update = elementUpdates.get(identity);
+    if (!update) return [element];
+    if (update.operation === 'REMOVED') return [];
+    if (replacedElements.has(identity)) return [element];
+    replacedElements.add(identity);
+    return [{ declaration: { ...update }, requirements: element.requirements }];
+  });
+  for (const update of payload.elements) {
+    if (update.operation !== 'REMOVED' && !replacedElements.has(update.identity)) {
+      target.elements.push({ declaration: { ...update }, requirements: [] });
     }
   }
   const relationships = new Map(target.relationships.map(item => [relationshipIdentity(item), item]));
@@ -113,9 +132,13 @@ export function validateStructuralDefinition(
   }
 
   const changedElements = new Set(payload.elements.map(item => item.identity));
+  const sourceElements = new Map<string, SemanticModel['elements'][number]>();
+  for (const element of model.elements) {
+    if (!sourceElements.has(element.declaration.identity)) sourceElements.set(element.declaration.identity, element);
+  }
   for (const item of payload.elements) {
     if (item.operation === 'REMOVED') continue;
-    const existing = model.elements.find(element => element.declaration.identity === item.identity);
+    const existing = sourceElements.get(item.identity);
     if (existing && existing.requirements.length > 0) {
       impacts.push({
         code: 'AFFECTED_CONTRACT',
