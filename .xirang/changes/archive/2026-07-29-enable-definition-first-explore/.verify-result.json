@@ -1,0 +1,639 @@
+{
+  "timestamp": "2026-07-29T04:03:39.424Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "requirement": "隔离受控文件路径",
+      "task": "C14 验证 Windows CI path behavior",
+      "summary": "Native windows-latest execution remains unattested",
+      "message": "The Windows framing path tests, build, and lint gates are configured, and local path.win32 assertions pass, but this review environment cannot provide a successful native windows-latest job.",
+      "recommendation": "Attach a successful windows-latest run when CI is available; no local code remediation is indicated.",
+      "evidenceCitations": [
+        ".github/workflows/test-windows.yml:48",
+        ".xirang/changes/enable-definition-first-explore/tasks.md:229",
+        "test/core/framing/paths.test.ts:27"
+      ]
+    }
+  ],
+  "tasksFileHash": "975235daaa252ffc9c86bc4a862ca1ed847c76ba88a1adc06cbd5f47db9cd5f1",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".github/workflows/test-windows.yml",
+      ".xirang/changes/enable-definition-first-explore/tasks.md",
+      "src/commands/framing.ts",
+      "src/core/framing/consume.ts",
+      "src/core/templates/workflows/explore.ts",
+      "test/core/templates/definition-framing-reference.test.ts",
+      "test/core/templates/explore-template.test.ts",
+      "test/integration/framing-workflow.test.ts"
+    ],
+    "evidenceFingerprint": "917b9795face6dd32ec4f67a58f5487a11efb8942711b424cbf70561214490a0",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".github/workflows/test-windows.yml",
+        "hash": "5766a8b09b29538b094f8018f74482960d1d429b6813ad5a9dd20beea4289db9"
+      },
+      {
+        "path": ".xirang/changes/enable-definition-first-explore/tasks.md",
+        "hash": "975235daaa252ffc9c86bc4a862ca1ed847c76ba88a1adc06cbd5f47db9cd5f1"
+      },
+      {
+        "path": "src/commands/framing.ts",
+        "hash": "da2bcc1793e2de6199f9b92f721c1b8edd79ff108188ea95ec35e79cd777b2da"
+      },
+      {
+        "path": "src/core/framing/consume.ts",
+        "hash": "0dddf6d2e9a808cc04ceed309c7d5c54c66482e0b4dac71fd8855dd72f48b011"
+      },
+      {
+        "path": "src/core/templates/workflows/explore.ts",
+        "hash": "30634b807d97aa686603dfd29d877f190f6fac0c0f0ef741fbaa5c63f015795b"
+      },
+      {
+        "path": "test/core/templates/definition-framing-reference.test.ts",
+        "hash": "62e2b2cf3fb8b50abccb933deb303700896582024ddf0fda57b5b511d41394ef"
+      },
+      {
+        "path": "test/core/templates/explore-template.test.ts",
+        "hash": "d24e211d0cfc999615e3f293fa5efca427badd5489402a34637e5fe36fd53411"
+      },
+      {
+        "path": "test/integration/framing-workflow.test.ts",
+        "hash": "11d84abdc6e03ef9f1d07723285a5fce78e1f9f229b26fbb73d2ee0426aebcaa"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "404f0761e4446e9110ec0e15d81920d381ae8cbb",
+    "gitDiffSummary": "Clean-context review found no blockers. Current-source validation passes a 44-entry Change; architecture validation, 17 targeted files/96 tests, 160 full files/2045 tests, lint, build, identity audit, postinstall, packed install, generated parity, and diff check pass. Native Windows execution remains an evidence-only warning.",
+    "timestamp": "2026-07-29T05:01:29.182Z"
+  },
+  "optimization": {
+    "status": "DEGRADED",
+    "attempts": [
+      {
+        "timestamp": "2026-07-29T04:09:55.338Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-29T04:16:18.255Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-07-29T04:21:46.370Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-29T04:22:34.234Z",
+        "type": "verification",
+        "result": "PASS",
+        "summary": "Previously verified implementation is unchanged and remains preserved at successful checkpoint fd44bed59de1905fda6bb94a92322ee040d3c4cc."
+      },
+      {
+        "timestamp": "2026-07-29T04:22:51.888Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-29T04:28:44.884Z",
+        "type": "verification",
+        "result": "PASS",
+        "summary": "Fresh reviewer verified ordering, absent/empty semantics, exact errors, deterministic round trip, and non-aliasing."
+      },
+      {
+        "timestamp": "2026-07-29T04:33:20.102Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-29T04:45:00.448Z",
+        "type": "verification",
+        "result": "FAIL_NEEDS_REMEDIATION"
+      },
+      {
+        "timestamp": "2026-07-29T04:54:15.774Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-29T05:01:29.172Z",
+        "type": "verification",
+        "result": "PASS",
+        "summary": "Corrected retry preserves first-match updates and Contract lookup, later duplicates, remove-all semantics, ordering, diagnostics, and Relationship behavior."
+      },
+      {
+        "timestamp": "2026-07-29T05:05:14.688Z",
+        "type": "optimization",
+        "status": "NO_OPTIMIZATION_NEEDED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-07-29T04:03:39.424Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "requirement": "隔离受控文件路径",
+          "task": "C14 验证 Windows CI path behavior",
+          "summary": "Native windows-latest execution remains unattested",
+          "message": "The Windows framing path tests, build, and lint gates are configured, and local path.win32 assertions pass, but this review environment cannot provide a successful native windows-latest job.",
+          "recommendation": "Attach a successful windows-latest run when CI is available; no local code remediation is indicated.",
+          "evidenceCitations": [
+            ".github/workflows/test-windows.yml:48",
+            ".xirang/changes/enable-definition-first-explore/tasks.md:229",
+            "test/core/framing/paths.test.ts:27"
+          ]
+        }
+      ],
+      "tasksFileHash": "975235daaa252ffc9c86bc4a862ca1ed847c76ba88a1adc06cbd5f47db9cd5f1",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".github/workflows/test-windows.yml",
+          ".xirang/changes/enable-definition-first-explore/tasks.md",
+          "src/commands/framing.ts",
+          "src/core/framing/consume.ts",
+          "src/core/templates/workflows/explore.ts",
+          "test/core/templates/definition-framing-reference.test.ts",
+          "test/core/templates/explore-template.test.ts",
+          "test/integration/framing-workflow.test.ts"
+        ],
+        "evidenceFingerprint": "917b9795face6dd32ec4f67a58f5487a11efb8942711b424cbf70561214490a0",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".github/workflows/test-windows.yml",
+            "hash": "5766a8b09b29538b094f8018f74482960d1d429b6813ad5a9dd20beea4289db9"
+          },
+          {
+            "path": ".xirang/changes/enable-definition-first-explore/tasks.md",
+            "hash": "975235daaa252ffc9c86bc4a862ca1ed847c76ba88a1adc06cbd5f47db9cd5f1"
+          },
+          {
+            "path": "src/commands/framing.ts",
+            "hash": "da2bcc1793e2de6199f9b92f721c1b8edd79ff108188ea95ec35e79cd777b2da"
+          },
+          {
+            "path": "src/core/framing/consume.ts",
+            "hash": "0dddf6d2e9a808cc04ceed309c7d5c54c66482e0b4dac71fd8855dd72f48b011"
+          },
+          {
+            "path": "src/core/templates/workflows/explore.ts",
+            "hash": "30634b807d97aa686603dfd29d877f190f6fac0c0f0ef741fbaa5c63f015795b"
+          },
+          {
+            "path": "test/core/templates/definition-framing-reference.test.ts",
+            "hash": "62e2b2cf3fb8b50abccb933deb303700896582024ddf0fda57b5b511d41394ef"
+          },
+          {
+            "path": "test/core/templates/explore-template.test.ts",
+            "hash": "d24e211d0cfc999615e3f293fa5efca427badd5489402a34637e5fe36fd53411"
+          },
+          {
+            "path": "test/integration/framing-workflow.test.ts",
+            "hash": "11d84abdc6e03ef9f1d07723285a5fce78e1f9f229b26fbb73d2ee0426aebcaa"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "3db2fc70258f81a2f32ccc51f560fd6fd242cb38",
+        "gitDiffSummary": "Clean-context review found no blockers. Current-source validation passes a 44-entry Change; architecture validation, 17 targeted files/96 tests, 160 full files/2045 tests, lint, build, identity audit, postinstall, packed install, generated parity, and diff check pass. Native Windows execution remains an evidence-only warning."
+      }
+    },
+    "findings": [
+      {
+        "status": "resolved",
+        "location": {
+          "files": [
+            "src/core/framing/baseline.ts"
+          ],
+          "symbols": [
+            "captureRelevantBaseline",
+            "elementTarget",
+            "relationshipTarget"
+          ]
+        },
+        "opportunity": "Baseline capture builds an element identity index but bypasses it when materializing entries, performs one relationship scan per target, and traverses Element Kind constraint closure twice.",
+        "impact": "Reuse identity maps and one closure traversal to change repeated target lookup from quadratic scans to indexed lookup and remove redundant graph traversal.",
+        "evidence": [
+          "src/core/framing/baseline.ts creates elementsById but elementTarget scans model.elements per relevant identity.",
+          "relationshipTarget scans model.relationships once per payload Relationship.",
+          "Relationship Kind constraints are seeded only after the first Element Kind closure, forcing a second closure traversal."
+        ],
+        "recommendation": "Build or reuse maps for all model collections, seed Relationship Kind constraints before one Element Kind closure, and materialize values directly from maps.",
+        "keyDesign": "Add a Relationship map keyed by relationshipIdentity, gather all direct Kind references before one worklist closure, and preserve byte-sorted arrays and shallow-cloned values.",
+        "preservationConstraints": [
+          "Preserve exact relevant-context closure and complete ancestor chains.",
+          "Preserve explicit exists:false entries.",
+          "Preserve UTF-8 byte ordering and normalized Kind constraints.",
+          "Preserve fresh, unrelated-drift, relevant-drift classifications and exact changed keys.",
+          "Do not include Contracts, Views, source paths, or excluded model data."
+        ],
+        "implementationOutline": [
+          "Add relationshipsById and remove linear-scan helpers.",
+          "Seed existing Relationship Kind sourceKinds and targetKinds before creating the Kind worklist.",
+          "Run one Kind closure and materialize from maps."
+        ],
+        "validation": [
+          "pnpm exec vitest run test/core/framing/baseline.test.ts test/core/framing/baseline.property.test.ts",
+          "Add a relationship-only multi-level Kind closure test.",
+          "pnpm exec vitest run test/core/framing/consume.test.ts test/integration/framing-workflow.test.ts"
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Removes provable quadratic lookup and redundant traversal in one pure function with deterministic behavior preserved.",
+        "id": "OPT-20260729T040955334Z-01",
+        "targetFileHashes": {
+          "src/core/framing/baseline.ts": "4b0c7c6f7888615fcb3032db62ac044bff9358240d01ce7512cf73274aba1d1c"
+        }
+      },
+      {
+        "status": "resolved",
+        "location": {
+          "files": [
+            "src/core/framing/document.ts"
+          ],
+          "symbols": [
+            "parseElementKinds",
+            "parseRelationshipKinds",
+            "optionalStringList"
+          ]
+        },
+        "opportunity": "Present optional Kind constraint lists are parsed and allocated twice.",
+        "impact": "Parse each optional constraint once to remove duplicate validation, traversal, and allocation.",
+        "evidence": [
+          "parseElementKinds and parseRelationshipKinds call optionalStringList twice per present constraint."
+        ],
+        "recommendation": "Parse each constraint into a local once.",
+        "keyDesign": "Compute local optional lists once while preserving absent versus explicit empty semantics.",
+        "preservationConstraints": [
+          "Preserve entry and list ordering.",
+          "Preserve absent versus explicit empty arrays.",
+          "Preserve errors and non-aliasing."
+        ],
+        "implementationOutline": [
+          "Compute optional-list locals once and reuse."
+        ],
+        "validation": [
+          "document/property tests",
+          "workspace/integration tests"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Definite duplicate work.",
+        "id": "OPT-20260729T040955334Z-02",
+        "targetFileHashes": {
+          "src/core/framing/document.ts": "7cca1af470e2784258abd7f2399e2a91656b86e27399fd90871f92631c96290d"
+        }
+      },
+      {
+        "status": "resolved",
+        "location": {
+          "files": [
+            "src/core/framing/validator.ts"
+          ],
+          "symbols": [
+            "applyPayload",
+            "replaceByIdentity",
+            "validateStructuralDefinition"
+          ]
+        },
+        "opportunity": "Structural target application repeatedly scans and reallocates complete model collections for each Kind and Element target, then rescans model.elements for affected Contracts.",
+        "impact": "Apply Element Kind, Relationship Kind, and Element targets in linear time relative to model plus payload size instead of repeated O(payload x model) scans and per-removal allocations.",
+        "evidence": [
+          "replaceByIdentity performs findIndex per non-removed Kind target.",
+          "applyPayload performs filter per removal and find/findIndex per Element target.",
+          "affected-Contract detection performs model.elements.find per target."
+        ],
+        "recommendation": "Apply identity-addressed categories through one indexed single-pass merge and reuse a source Element identity index for Contract impacts.",
+        "keyDesign": "Build target maps keyed by identity, traverse each existing cloned collection once preserving in-place order, append absent non-removed targets in payload order, retain Element requirements, and reuse one source Element identity map.",
+        "preservationConstraints": [
+          "Do not mutate SemanticModel or payload; preserve clone isolation.",
+          "Preserve positions for modifications, removals, and payload order for additions.",
+          "Preserve Element requirements and empty requirements only for additions.",
+          "Preserve Relationship behavior.",
+          "Preserve diagnostics, impacts, deduplication, ordering, and targetModel exactly.",
+          "Preserve constraint and declaration fields."
+        ],
+        "implementationOutline": [
+          "Introduce single-pass identity merge.",
+          "Use it for Element/Relationship Kinds and adapt Elements to retain requirements.",
+          "Reuse a source Element index for Contract impacts.",
+          "Remove obsolete repeated scans."
+        ],
+        "validation": [
+          "Add mixed add/modify/remove order coverage.",
+          "Cover Contract retention, new empty Contracts, input immutability, and impact order/deduplication.",
+          "pnpm exec vitest run test/core/framing/validator.test.ts test/core/framing/consume.test.ts test/integration/framing-workflow.test.ts",
+          "pnpm lint && pnpm build"
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Removes repeated full-model work from validate and consume with a closed ordering-preservation design.",
+        "id": "OPT-20260729T043320099Z-01",
+        "targetFileHashes": {
+          "src/core/framing/validator.ts": "c80e9e2233014dabe1fb3eafcbf956923722b8c8b5738dee7ef7e0e718bbc8ef"
+        },
+        "failureCount": 1
+      },
+      {
+        "status": "rejected",
+        "location": {
+          "files": [
+            "src/core/framing/consume.ts"
+          ],
+          "symbols": [
+            "coverageErrors",
+            "matchingEntry",
+            "normalizedCoverageTarget"
+          ]
+        },
+        "opportunity": "Coverage scans the full compiled Delta for each target and repeatedly normalizes/canonicalizes candidates.",
+        "impact": "Reduce coverage matching from O(targets x entries) to linear preprocessing plus constant-time checks.",
+        "evidence": [
+          "matchingEntry uses entries.some for every required target.",
+          "Candidate targets are normalized and canonicalized during each scan.",
+          "Four payload categories invoke independent scans."
+        ],
+        "recommendation": "Index Delta entries once by entity, identity, operation, and canonical target signature.",
+        "keyDesign": "Build a composite-key index with sentinel for REMOVED and signature Sets for ADDED/MODIFIED; preserve payload-loop error ordering.",
+        "preservationConstraints": [
+          "Preserve operation derivation and baseline lookup.",
+          "Preserve unordered constraint normalization without mutation.",
+          "Preserve any-match behavior.",
+          "Preserve exact errors and ordering.",
+          "Preserve Relationship identity and no-op behavior.",
+          "Do not change validation, drift, provenance, cleanup, or failure timing outside coverage matching."
+        ],
+        "implementationOutline": [
+          "Build coverage index once.",
+          "Canonicalize each Delta target once.",
+          "Replace repeated scans with membership checks.",
+          "Keep payload loops unchanged."
+        ],
+        "validation": [
+          "Extend consume coverage for reorder, late/duplicate/unrelated entries, and exact errors.",
+          "Retain Kind/no-op/REMOVED/four-category tests.",
+          "pnpm exec vitest run test/core/framing/consume.test.ts test/integration/framing-workflow.test.ts",
+          "pnpm lint && pnpm build"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Clear quadratic work but only during coverage, so lower priority than validator.",
+        "id": "OPT-20260729T043320099Z-02"
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-29T04:09:55.335Z",
+        "findingId": "OPT-20260729T040955334Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-29T04:09:55.335Z",
+        "findingId": "OPT-20260729T040955334Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "select",
+        "reason": "Removes provable quadratic lookup and redundant traversal in one pure function with deterministic behavior preserved.",
+        "timestamp": "2026-07-29T04:09:55.338Z",
+        "findingId": "OPT-20260729T040955334Z-01",
+        "hashes": {
+          "src/core/framing/baseline.ts": "6cba4b6463ebef88d14de2eef7f1fe01a331d099fd8163693ac0004cb83eb7f7"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-29T04:10:08.774Z",
+        "findingId": "OPT-20260729T040955334Z-01",
+        "hashes": {
+          "src/core/framing/baseline.ts": "6cba4b6463ebef88d14de2eef7f1fe01a331d099fd8163693ac0004cb83eb7f7"
+        }
+      },
+      {
+        "sequence": 5,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-29T04:16:18.255Z",
+        "findingId": "OPT-20260729T040955334Z-01"
+      },
+      {
+        "sequence": 6,
+        "action": "retain",
+        "reason": "Already implemented, independently verified, and saved in successful checkpoint fd44bed59de1905fda6bb94a92322ee040d3c4cc; retain as completed optimization history.",
+        "timestamp": "2026-07-29T04:21:46.367Z",
+        "findingId": "OPT-20260729T040955334Z-01"
+      },
+      {
+        "sequence": 7,
+        "action": "retain",
+        "reason": "Remains current and is the highest-priority actionable optimization. Optional Kind constraints are parsed twice per present field; local reuse preserves ordering, absent versus explicit-empty semantics, errors, and non-aliasing. No higher-value current opportunity is established.",
+        "timestamp": "2026-07-29T04:21:46.367Z",
+        "findingId": "OPT-20260729T040955334Z-02"
+      },
+      {
+        "sequence": 8,
+        "action": "select",
+        "reason": "Removes provable quadratic lookup and redundant traversal in one pure function with deterministic behavior preserved.",
+        "timestamp": "2026-07-29T04:21:46.370Z",
+        "findingId": "OPT-20260729T040955334Z-01",
+        "hashes": {
+          "src/core/framing/baseline.ts": "4b0c7c6f7888615fcb3032db62ac044bff9358240d01ce7512cf73274aba1d1c"
+        }
+      },
+      {
+        "sequence": 9,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-29T04:22:34.067Z",
+        "findingId": "OPT-20260729T040955334Z-01",
+        "hashes": {
+          "src/core/framing/baseline.ts": "4b0c7c6f7888615fcb3032db62ac044bff9358240d01ce7512cf73274aba1d1c"
+        }
+      },
+      {
+        "sequence": 10,
+        "action": "verified",
+        "reason": "Previously verified implementation is unchanged and remains preserved at successful checkpoint fd44bed59de1905fda6bb94a92322ee040d3c4cc.",
+        "timestamp": "2026-07-29T04:22:34.234Z",
+        "findingId": "OPT-20260729T040955334Z-01"
+      },
+      {
+        "sequence": 11,
+        "action": "resolve",
+        "reason": "Implementation is independently verified and saved in successful checkpoint fd44bed59de1905fda6bb94a92322ee040d3c4cc; direction complete.",
+        "timestamp": "2026-07-29T04:22:51.885Z",
+        "findingId": "OPT-20260729T040955334Z-01"
+      },
+      {
+        "sequence": 12,
+        "action": "retain",
+        "reason": "Remains current and is the highest-priority actionable optimization; parse each optional Kind constraint once while preserving parser behavior.",
+        "timestamp": "2026-07-29T04:22:51.885Z",
+        "findingId": "OPT-20260729T040955334Z-02"
+      },
+      {
+        "sequence": 13,
+        "action": "select",
+        "reason": "Definite duplicate work but lower runtime impact than baseline indexing.",
+        "timestamp": "2026-07-29T04:22:51.888Z",
+        "findingId": "OPT-20260729T040955334Z-02",
+        "hashes": {
+          "src/core/framing/document.ts": "7cca1af470e2784258abd7f2399e2a91656b86e27399fd90871f92631c96290d"
+        }
+      },
+      {
+        "sequence": 14,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-29T04:23:07.502Z",
+        "findingId": "OPT-20260729T040955334Z-02",
+        "hashes": {
+          "src/core/framing/document.ts": "7cca1af470e2784258abd7f2399e2a91656b86e27399fd90871f92631c96290d"
+        }
+      },
+      {
+        "sequence": 15,
+        "action": "verified",
+        "reason": "Fresh reviewer verified ordering, absent/empty semantics, exact errors, deterministic round trip, and non-aliasing.",
+        "timestamp": "2026-07-29T04:28:44.884Z",
+        "findingId": "OPT-20260729T040955334Z-02"
+      },
+      {
+        "sequence": 16,
+        "action": "resolve",
+        "reason": "Implementation is independently verified and saved in successful checkpoint 404f0761e4446e9110ec0e15d81920d381ae8cbb; focused suites pass and worktree/index were clean at checkpoint.",
+        "timestamp": "2026-07-29T04:33:20.099Z",
+        "findingId": "OPT-20260729T040955334Z-02"
+      },
+      {
+        "sequence": 17,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-29T04:33:20.099Z",
+        "findingId": "OPT-20260729T043320099Z-01"
+      },
+      {
+        "sequence": 18,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-29T04:33:20.099Z",
+        "findingId": "OPT-20260729T043320099Z-02"
+      },
+      {
+        "sequence": 19,
+        "action": "select",
+        "reason": "Removes repeated full-model work from validate and consume with a closed ordering-preservation design.",
+        "timestamp": "2026-07-29T04:33:20.102Z",
+        "findingId": "OPT-20260729T043320099Z-01",
+        "hashes": {
+          "src/core/framing/validator.ts": "c80e9e2233014dabe1fb3eafcbf956923722b8c8b5738dee7ef7e0e718bbc8ef"
+        }
+      },
+      {
+        "sequence": 20,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-29T04:33:33.700Z",
+        "findingId": "OPT-20260729T043320099Z-01",
+        "hashes": {
+          "src/core/framing/validator.ts": "c80e9e2233014dabe1fb3eafcbf956923722b8c8b5738dee7ef7e0e718bbc8ef"
+        }
+      },
+      {
+        "sequence": 21,
+        "action": "failed",
+        "reason": "Speculative reviewer rejected the optimization",
+        "timestamp": "2026-07-29T04:45:00.451Z",
+        "findingId": "OPT-20260729T043320099Z-01",
+        "evidence": [
+          "src/core/framing/validator.ts:27",
+          "src/core/framing/validator.ts:50",
+          "src/core/framing/validator.ts:128"
+        ]
+      },
+      {
+        "sequence": 22,
+        "action": "reprioritize",
+        "reason": "Retry once within optRetries=2 with first-occurrence-aware semantics: non-removal replaces only first duplicate, removal removes all, later duplicates remain unchanged, and Contract lookup is first-wins.",
+        "timestamp": "2026-07-29T04:54:15.771Z",
+        "findingId": "OPT-20260729T043320099Z-01"
+      },
+      {
+        "sequence": 23,
+        "action": "retain",
+        "reason": "Retain behind corrected validator retry; coverage indexing remains valid and lower priority.",
+        "timestamp": "2026-07-29T04:54:15.771Z",
+        "findingId": "OPT-20260729T043320099Z-02"
+      },
+      {
+        "sequence": 24,
+        "action": "select",
+        "reason": "Removes repeated full-model work from validate and consume with a closed ordering-preservation design.",
+        "timestamp": "2026-07-29T04:54:15.774Z",
+        "findingId": "OPT-20260729T043320099Z-01",
+        "hashes": {
+          "src/core/framing/validator.ts": "c80e9e2233014dabe1fb3eafcbf956923722b8c8b5738dee7ef7e0e718bbc8ef"
+        }
+      },
+      {
+        "sequence": 25,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-29T04:54:30.562Z",
+        "findingId": "OPT-20260729T043320099Z-01",
+        "hashes": {
+          "src/core/framing/validator.ts": "c80e9e2233014dabe1fb3eafcbf956923722b8c8b5738dee7ef7e0e718bbc8ef"
+        }
+      },
+      {
+        "sequence": 26,
+        "action": "verified",
+        "reason": "Corrected retry preserves first-match updates and Contract lookup, later duplicates, remove-all semantics, ordering, diagnostics, and Relationship behavior.",
+        "timestamp": "2026-07-29T05:01:29.172Z",
+        "findingId": "OPT-20260729T043320099Z-01"
+      },
+      {
+        "sequence": 27,
+        "action": "resolve",
+        "reason": "Corrected validator optimization is independently verified and saved at checkpoint 0418610ed1086ad828ac1d7b3f4c570f2ea1512b; focused suites pass and source is unchanged.",
+        "timestamp": "2026-07-29T05:05:14.688Z",
+        "findingId": "OPT-20260729T043320099Z-01"
+      },
+      {
+        "sequence": 28,
+        "action": "reject",
+        "reason": "One-shot coverage matching over the reviewed 44-entry Delta has no workload or profiling evidence of material cost; a composite index would add preservation-sensitive complexity and allocations, so reject as unjustified micro-optimization.",
+        "timestamp": "2026-07-29T05:05:14.688Z",
+        "findingId": "OPT-20260729T043320099Z-02"
+      }
+    ],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0,
+    "failedDirections": [
+      "OPT-20260729T043320099Z-01: Build target maps keyed by identity, traverse each existing cloned collection once preserving in-place order, append absent non-removed targets in payload order, retain Element requirements, and reuse one source Element identity map. — Speculative reviewer rejected the optimization"
+    ]
+  }
+}

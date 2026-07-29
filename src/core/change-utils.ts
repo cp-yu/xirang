@@ -12,7 +12,7 @@ export async function selectActiveChange(
   const { select } = await import('@inquirer/prompts');
   const entries = await fs.readdir(changesDir, { withFileTypes: true });
   const changeDirs = entries
-    .filter((entry) => entry.isDirectory() && entry.name !== 'archive')
+    .filter((entry) => entry.isDirectory() && entry.name !== 'archive' && !entry.name.startsWith('.'))
     .map((entry) => entry.name)
     .sort();
 

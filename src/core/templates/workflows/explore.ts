@@ -55,7 +55,7 @@ If todo is available, track these stages as a checklist and tick each completed 
 
 Xirang mapping:
 - The original design-document step maps to a conversation-only \`Design Summary\`.
-- The original commit step is removed; explore does not write files.
+- The original commit step is removed. Explore may persist only a user-confirmed Change Structural Definition through the Xirang-owned Definition Framing protocol; it does not directly write files.
 - The original implementation-plan handoff maps to \`xirang-propose\` handoff.
 
 ## Conversation language
@@ -66,7 +66,7 @@ ${CONVERSATION_LANGUAGE_GUIDANCE}
 
 Do not implement before design confirmation is complete.
 
-Do not start coding, generate patches, update artifacts, or interpret design confirmations as write authorization during Explore. Even if the user says "ok", "that works", or chooses an option, it only confirms the design direction.
+Do not start coding, generate patches, directly update artifacts, or interpret design confirmations as write authorization during Explore. Even if the user says "ok", "that works", or chooses an option, it only confirms the design direction. Definition Framing persistence requires a separate explicit confirmation under the Xirang-owned protocol.
 
 Simple changes still require design confirmation. For a narrow change, confirm only the applicable design sections, but do not skip the process: at minimum confirm the problem, impact scope, approach, and verification method.
 
@@ -148,6 +148,44 @@ Design Summary complete. Review the above design. If confirmed, use xirang-propo
 
 Do not use tool-specific call syntax in references. Do not imply that explore can create proposals, update designs, modify Element Contracts, commit files, or directly enter implementation.`;
 
+const DEFINITION_FRAMING_REFERENCE = `# Definition Framing Protocol
+
+Definition Framing is an optional Change Formation stage for confirming structural targets before Design Exploration. It begins only when the user chooses it after the Agent recommends it for material or uncertain structural scope. This protocol owns structural framing and persistence only; the Superpowers-style reference continues to own the overall exploration conversation.
+
+## Structural framing method
+
+1. Start with a causal definition: state the structural problem, why the current structure causes it, and what semantic outcome the Change must create. Separate causes from symptoms and implementation preferences.
+2. Clarify identity and boundaries before placement. For each proposed Element or Kind, define what it includes, what it excludes, and how it differs from nearby siblings. For a Relationship, define the source, target, and semantic meaning of its Kind.
+3. Decompose the structure as a MECE set along a single structural dimension at a time. Do not mix lifecycle stage, responsibility, deployment location, and implementation technique in one sibling set. If the set is not mutually exclusive and collectively sufficient for the confirmed scope, revise the dimension before continuing.
+4. Confirm in breadth-first (BFS) order: confirm the parent boundary, then the complete same-level structure, then descend one level. Do not finalize a child while unresolved siblings could change its identity or parent.
+5. When identity, Kind, parent, or Relationship choices have multiple reasonable interpretations, present bounded alternatives with their semantic consequences and request one user decision. Re-run the affected MECE and BFS checks after a revision.
+
+These steps govern structural decisions only. The Superpowers-style protocol still governs one-question conversation flow, overall option comparison, design section approval, and Design Summary handoff.
+
+## Persistence boundary
+
+- Persist only complete structural targets explicitly confirmed by the user: Element Kinds, Relationship Kinds, Element Declarations, and Relationships.
+- A design-direction confirmation is not an explicit persistence confirmation. Before every create or update, show the complete current payload and ask separately whether to persist that exact payload.
+- Use only \`xirang framing\` commands. Do not directly create, edit, rename, move, or delete the managed file.
+- Do not persist Contract content, Authored Views, design rationale, implementation details, or the Design Summary.
+- Every update is full replacement. Omitted targets are removed from the framing payload; deletion targets use only explicit \`operation: REMOVED\`.
+
+## Lifecycle
+
+1. Run \`xirang framing list --json\`. Resume the relevant record by immutable \`explorationId\`; do not infer identity from its slug or path.
+2. For a new record, prepare the complete payload, obtain explicit persistence confirmation, then pass it on stdin to \`xirang framing create --slug <slug> --json\`.
+3. Before resuming or replacing a record, run \`xirang framing show <explorationId> --json\`, \`xirang framing status <explorationId> --json\`, and \`xirang framing validate <explorationId> --json\`. On every resume, run all three before Design Exploration continues. Use \`show\` for the complete current payload, \`status\` for baseline drift, and \`validate\` for current impacts.
+4. After confirmation of a replacement payload, pass the complete payload on stdin to \`xirang framing update <explorationId> --json\`. Never merge omitted fields locally.
+5. Run \`xirang framing validate <explorationId> --json\` after create or update. Structural errors block Design Exploration. Contract and Authored View impacts require downstream design decisions but do not mutate those artifacts.
+6. Use \`xirang framing rename <explorationId> --slug <slug> --json\` only for a confirmed label change. The immutable identity remains unchanged.
+7. Use \`xirang framing discard <explorationId> --json\` only after explicit discard confirmation.
+
+## Change handling
+
+When a confirmed structural target changes, invalidate the affected structural confirmations and every downstream design decision that depends on them. Reconfirm the complete replacement payload first, then revisit the affected Contract, Authored View, data-flow, testing, and risk decisions. Unrelated design decisions remain valid.
+
+The framing record is an intermediate Change Formation artifact. Propose compiles it into the canonical Semantic Delta and freezes it as historical provenance; it does not become a third normative Change component.`;
+
 export function getExploreSkillTemplate(): SkillTemplate {
   return {
     name: 'xirang-explore',
@@ -156,6 +194,10 @@ export function getExploreSkillTemplate(): SkillTemplate {
       {
         path: 'references/explore-supperpowers-style.md',
         content: EXPLORE_SUPPERPOWERS_STYLE_REFERENCE,
+      },
+      {
+        path: 'references/definition-framing.md',
+        content: DEFINITION_FRAMING_REFERENCE,
       },
     ],
     instructions: `Enter explore mode: investigate, clarify, compare, and help the user think before implementation.
@@ -166,22 +208,23 @@ ${XIRANG_PHILOSOPHY}
 
 | Aspect | Value |
 |--------|-------|
-| **Stage** | \`EXPLORE\` - Read-only brainstorming |
-| **Allowed** | Read files, query CLI, ask questions, present options, Design Summary (conversation only) |
-| **Forbidden** | Create, edit, delete any file or artifact |
+| **Stage** | \`EXPLORE\` - Design exploration with optional managed Definition Framing |
+| **Allowed** | Read files, query CLI, ask questions, present options, Design Summary (conversation only), and use \`xirang framing\` after explicit persistence confirmation |
+| **Forbidden** | Implement code or directly create, edit, or delete project or Change artifacts |
 
 ## Required References
 
 - MUST read the project-root file \`.xirang/references/xirang-explore-supperpowers-style.md\` before exploring. DO NOT proceed without reading it first. It is the authoritative Superpowers brainstorming behavior guide for hard gate, context exploration, visual companion judgment, one-question discipline, options comparison, section approval, Design Summary review, and propose handoff.
-- Do not reconstruct or duplicate Superpowers behavior from this prompt. This prompt defines boundaries, context loading, semantic impact navigation, and proposal routing only.
+- MUST read \`.xirang/references/xirang-definition-framing.md\` before offering or resuming Definition Framing. It is the authoritative Xirang-owned protocol for the only persisted Explore artifact.
+- Do not reconstruct or duplicate Superpowers behavior from this prompt. Do not reconstruct or duplicate the Definition Framing protocol either. This prompt defines boundaries, context loading, semantic impact navigation, and proposal routing only.
 
 ## Hard Rules
 
-- User confirmations ("ok", "option 2") approve design direction only, not file modification.
+- User confirmations ("ok", "option 2") approve design direction only, not file modification. Managed persistence requires a separate explicit persistence confirmation for the exact complete payload.
 - Ask one clarification question at a time; do not auto-capture decisions into artifacts.
 - When ready, produce a conversation-only \`Design Summary\` and instruct the user to call \`/xirang:propose <change-name>\`.
 
-The main Explore agent remains read-only. \`arch search\` and \`arch impact\` are read-only; they and the main agent MUST NOT create or update project files.
+The main Explore agent remains read-only outside the managed Definition Framing exception. \`arch search\` and \`arch impact\` are read-only; they and the main agent MUST NOT create or update project or Change artifacts. Only \`xirang framing\` may persist the confirmed structural intermediate.
 
 ## Required Context
 
@@ -207,6 +250,16 @@ When a new module, workflow, command, configuration key, project concept, or unf
 6. Assess Element Definition impact only when an Element's concept identity or scope boundary changes. In that case, resolve the full concept and hierarchy boundary and include the complete target Definition in the Design Summary. Do not include a Definition rewrite for behavior-only or implementation-only changes.
 
 Read active Change artifacts completely when one is in scope, but do not pass a Change or Semantic Delta to \`arch impact\`. Before proposal readiness, recheck the selected focus Elements and evidence coverage; disclose gaps instead of inferring missing evidence.
+
+## Definition Framing and Design Exploration
+
+Definition Framing is optional and begins only when the user chooses it. Recommend it when the structural scope is material or cannot be confirmed reliably inside the later design discussion; otherwise proceed directly to Design Exploration.
+
+- Run \`xirang framing list --json\` before structural discussion. When the conversation selects a record, run \`xirang framing show <explorationId> --json\`, \`xirang framing status <explorationId> --json\`, and \`xirang framing validate <explorationId> --json\`. On every resume, run all three before Design Exploration continues. Use \`show\` for the complete current payload, \`status\` for baseline drift, and \`validate\` for current impacts.
+- When a Change Structural Definition exists, Design Exploration must use its complete current payload and reported Contract and Authored View impacts. Do not reconstruct it from a Design Summary or a prior message.
+- If a structural target changes, invalidate the affected structural confirmations and downstream design decisions, persist the explicitly confirmed complete replacement through the reference protocol, then reconfirm affected design sections.
+- When no Change Structural Definition exists, continue from the Semantic Model and project evidence. Do not create an empty framing record.
+- The Design Summary remains conversation-only. It may carry the \`explorationId\` for handoff, but it does not duplicate the structural payload.
 
 ## Simplicity Awareness
 

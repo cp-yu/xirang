@@ -37,6 +37,7 @@ ${ELEMENT_CONTRACT_SEMANTICS}
 1. Resolve a provisional kebab-case change ID. Ask one focused question when the requested change itself is unclear. Report status only at readiness, blocker, and final-summary points; do not emit per-artifact progress updates.
 2. Gather read-only evidence before any write.
    - Run \`xirang list --json\` and inspect relevant existing change artifacts when present.
+   - Run \`xirang framing list --json\`. Only when a Change Structural Definition exists for this handoff, select it by immutable \`explorationId\`, run \`xirang framing show <explorationId> --json\`, and use its complete current payload as the structural source. Do not reconstruct structural targets from the Design Summary. When no Change Structural Definition exists, preserve the ordinary Propose path from the Semantic Model, conversation, and project evidence.
    - Load the formal Xirang Semantic Model through the shared context above.
    - Run \`xirang arch search <query> --json\` to locate the Elements a request touches.
    - For known or affected Elements, run \`xirang arch query <identity> --relations --depth 2 --json\`, adding \`--contract\` when the current Element Contract matters.
@@ -76,7 +77,12 @@ ${ELEMENT_CONTRACT_SEMANTICS}
 10. Run combined change validation exactly once with \`xirang validate --change "<name>" --json\`. Do NOT run \`xirang sync\`.
     - ERROR from either scaffolding checks or combined change validation blocks ready-for-apply. Perform at most one repair pass, re-check once, and stop with the remaining blockers if any ERROR remains.
     - WARNING does not block ready-for-apply; retain it for the final summary.
-11. Finish with \`xirang status --change "<name>"\`. Summarize artifacts created or updated, validation errors and warnings, and readiness for \`/xirang:apply\`. Do NOT generate a presentation artifact or run a separate Diff command.
+11. Complete the structural handoff only when a Change Structural Definition exists.
+    - Run \`xirang framing status <explorationId> --json\` and \`xirang framing validate <explorationId> --json\` after the Change artifacts are complete. Recompute relevant drift, downstream impacts, and structural coverage against the complete current payload; relevant drift or structural errors return to Explore, and unresolved impacts block Formation completion.
+    - After combined Change validation succeeds, run \`xirang framing consume <explorationId> --change "<name>" --json\`. Consume atomically rechecks validation and structural coverage, freezes the exact source bytes at \`.xirang/changes/<name>/change-structural-definition.md\`, and removes the managed source only on success.
+    - The frozen \`change-structural-definition.md\` records Formation history only. Do not parse it as a later semantic source or use it in validation, Sync, or Change Closure.
+    - When no Change Structural Definition exists, preserve the ordinary Propose path and do not run framing validation or consume.
+12. Finish with \`xirang status --change "<name>"\`. Summarize artifacts created or updated, validation errors and warnings, and readiness for \`/xirang:apply\`. Do NOT generate a presentation artifact or run a separate Diff command.
 
 ## Artifact Contract
 

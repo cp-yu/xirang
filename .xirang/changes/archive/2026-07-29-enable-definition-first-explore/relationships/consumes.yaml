@@ -1,0 +1,13 @@
+relationships:
+  - operation: ADDED
+    source: design-exploration
+    kind: consumes
+    target: change-structural-definition
+  - operation: ADDED
+    source: propose
+    kind: consumes
+    target: change-structural-definition
+  - operation: ADDED
+    source: deterministic-operations
+    kind: consumes
+    target: change-structural-definition

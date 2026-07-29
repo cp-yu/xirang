@@ -23,22 +23,23 @@ Enter explore mode: investigate, clarify, compare, and help the user think befor
 
 | Aspect | Value |
 |--------|-------|
-| **Stage** | `EXPLORE` - Read-only brainstorming |
-| **Allowed** | Read files, query CLI, ask questions, present options, Design Summary (conversation only) |
-| **Forbidden** | Create, edit, delete any file or artifact |
+| **Stage** | `EXPLORE` - Design exploration with optional managed Definition Framing |
+| **Allowed** | Read files, query CLI, ask questions, present options, Design Summary (conversation only), and use `xirang framing` after explicit persistence confirmation |
+| **Forbidden** | Implement code or directly create, edit, or delete project or Change artifacts |
 
 ## Required References
 
 - MUST read the project-root file `.xirang/references/xirang-explore-supperpowers-style.md` before exploring. DO NOT proceed without reading it first. It is the authoritative Superpowers brainstorming behavior guide for hard gate, context exploration, visual companion judgment, one-question discipline, options comparison, section approval, Design Summary review, and propose handoff.
-- Do not reconstruct or duplicate Superpowers behavior from this prompt. This prompt defines boundaries, context loading, semantic impact navigation, and proposal routing only.
+- MUST read `.xirang/references/xirang-definition-framing.md` before offering or resuming Definition Framing. It is the authoritative Xirang-owned protocol for the only persisted Explore artifact.
+- Do not reconstruct or duplicate Superpowers behavior from this prompt. Do not reconstruct or duplicate the Definition Framing protocol either. This prompt defines boundaries, context loading, semantic impact navigation, and proposal routing only.
 
 ## Hard Rules
 
-- User confirmations ("ok", "option 2") approve design direction only, not file modification.
+- User confirmations ("ok", "option 2") approve design direction only, not file modification. Managed persistence requires a separate explicit persistence confirmation for the exact complete payload.
 - Ask one clarification question at a time; do not auto-capture decisions into artifacts.
 - When ready, produce a conversation-only `Design Summary` and instruct the user to call `/skill:xirang-propose <change-name>`.
 
-The main Explore agent remains read-only. `arch search` and `arch impact` are read-only; they and the main agent MUST NOT create or update project files.
+The main Explore agent remains read-only outside the managed Definition Framing exception. `arch search` and `arch impact` are read-only; they and the main agent MUST NOT create or update project or Change artifacts. Only `xirang framing` may persist the confirmed structural intermediate.
 
 ## Required Context
 
@@ -77,6 +78,16 @@ When a new module, workflow, command, configuration key, project concept, or unf
 6. Assess Element Definition impact only when an Element's concept identity or scope boundary changes. In that case, resolve the full concept and hierarchy boundary and include the complete target Definition in the Design Summary. Do not include a Definition rewrite for behavior-only or implementation-only changes.
 
 Read active Change artifacts completely when one is in scope, but do not pass a Change or Semantic Delta to `arch impact`. Before proposal readiness, recheck the selected focus Elements and evidence coverage; disclose gaps instead of inferring missing evidence.
+
+## Definition Framing and Design Exploration
+
+Definition Framing is optional and begins only when the user chooses it. Recommend it when the structural scope is material or cannot be confirmed reliably inside the later design discussion; otherwise proceed directly to Design Exploration.
+
+- Run `xirang framing list --json` before structural discussion. When the conversation selects a record, run `xirang framing show <explorationId> --json`, `xirang framing status <explorationId> --json`, and `xirang framing validate <explorationId> --json`. On every resume, run all three before Design Exploration continues. Use `show` for the complete current payload, `status` for baseline drift, and `validate` for current impacts.
+- When a Change Structural Definition exists, Design Exploration must use its complete current payload and reported Contract and Authored View impacts. Do not reconstruct it from a Design Summary or a prior message.
+- If a structural target changes, invalidate the affected structural confirmations and downstream design decisions, persist the explicitly confirmed complete replacement through the reference protocol, then reconfirm affected design sections.
+- When no Change Structural Definition exists, continue from the Semantic Model and project evidence. Do not create an empty framing record.
+- The Design Summary remains conversation-only. It may carry the `explorationId` for handoff, but it does not duplicate the structural payload.
 
 ## Simplicity Awareness
 

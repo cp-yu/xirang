@@ -44,3 +44,12 @@ Project and Tooling Configuration SHALL 在建立新 Xirang 工作区时收集 P
 
 - **WHEN** 用户在 macOS、Linux 或 Windows 上建立新项目
 - **THEN** CLI 通过平台路径 API 写入包含 `definition` 的 Project Root 单元，且结果不依赖路径分隔符
+
+### Requirement: 投影共享 Definition Framing 协议
+
+Project and Tooling Configuration SHALL 从 Xirang 托管的单一生成源向 Explore skill 与 `.xirang/references/xirang-definition-framing.md` 投影 Definition Framing 规则，SHALL NOT 运行时依赖用户级 `problem-framing` skill 或直接编辑 generated artifacts。
+
+#### Scenario: 刷新 Explore 工作面
+
+- **WHEN** CLI 同步所选 Agent 工具集成
+- **THEN** generated Explore skill 引用同版本 Xirang-owned Definition Framing reference

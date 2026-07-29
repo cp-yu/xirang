@@ -1,0 +1,9 @@
+relationships:
+  - operation: ADDED
+    source: definition-framing
+    kind: produces
+    target: change-structural-definition
+  - operation: ADDED
+    source: deterministic-operations
+    kind: produces
+    target: change-structural-definition

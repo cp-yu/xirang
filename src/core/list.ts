@@ -89,7 +89,7 @@ export class ListCommand {
     // Get all directories in changes (excluding archive)
     const entries = await fs.readdir(changesDir, { withFileTypes: true });
     const changeDirs = entries
-      .filter(entry => entry.isDirectory() && entry.name !== 'archive')
+      .filter(entry => entry.isDirectory() && entry.name !== 'archive' && !entry.name.startsWith('.'))
       .map(entry => entry.name);
 
     if (changeDirs.length === 0) {
