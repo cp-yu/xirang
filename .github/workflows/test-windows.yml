@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11.15.0
       - uses: actions/setup-node@v4
         with:
           node-version: '22.22.3'
@@ -55,9 +55,10 @@ jobs:
       - name: Run Windows vendored browser-server tests
         run: >-
           pnpm --dir likec4 exec vitest run --no-isolate
-          packages/vite-plugin/src/xirang/opsx-spec-handler.spec.ts
+          packages/vite-plugin/src/xirang/xirang-contract-handler.spec.ts
           packages/diagram/src/xirang/architectureView.spec.ts
+          packages/diagram/src/overlays/element-details/ContractsTab.spec.tsx
           packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx
-          packages/likec4-spa/src/xirang/HttpSpecLoader.spec.ts
+          packages/likec4-spa/src/xirang/HttpContractLoader.spec.ts
           packages/language-server/src/lsp/CompletionProvider.spec.ts
           packages/language-server/src/model/__tests__/model-parser.spec.ts

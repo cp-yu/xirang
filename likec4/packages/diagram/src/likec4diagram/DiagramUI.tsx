@@ -14,7 +14,7 @@ import {
   type XirangRuntimeVariant,
   useXirangVariants,
   xirangVariantRevision,
-} from '../xirang/SpecLoaderContext'
+} from '../xirang/ContractLoaderContext'
 import { Overlays } from '../overlays/Overlays'
 import { Search } from '../search/Search'
 import { RelationshipPopover } from './relationship-popover/RelationshipPopover'

@@ -7,7 +7,7 @@ import {
   type XirangRelationship,
   type XirangRuntimeVariant,
   xirangVariantRevision,
-} from './SpecLoaderContext'
+} from './ContractLoaderContext'
 
 type ViewNode = DiagramView['nodes'][number]
 type ViewEdge = DiagramView['edges'][number]

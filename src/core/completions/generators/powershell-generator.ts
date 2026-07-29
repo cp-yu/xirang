@@ -186,13 +186,13 @@ Register-ArgumentCompleter -CommandName xirang -ScriptBlock $opsxCompleter
         lines.push(`${indent}    [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", "Change: $_")`);
         lines.push(`${indent}}`);
         break;
-      case 'spec-id':
-        lines.push(`${indent}Get-OPSXSpecs | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {`);
-        lines.push(`${indent}    [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", "Spec: $_")`);
+      case 'contract-id':
+        lines.push(`${indent}Get-OPSXContracts | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {`);
+        lines.push(`${indent}    [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", "Contract: $_")`);
         lines.push(`${indent}}`);
         break;
-      case 'change-or-spec-id':
-        lines.push(`${indent}$items = @(Get-OPSXChanges) + @(Get-OPSXSpecs)`);
+      case 'change-or-contract-id':
+        lines.push(`${indent}$items = @(Get-OPSXChanges) + @(Get-OPSXContracts)`);
         lines.push(`${indent}$items | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {`);
         lines.push(`${indent}    [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_)`);
         lines.push(`${indent}}`);

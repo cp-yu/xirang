@@ -7,33 +7,33 @@ describe('introspect', () => {
     const program = new Command();
     program
       .command('validate')
-      .description('Validate changes and specs');
+      .description('Validate changes and contracts');
 
     const result = introspectCommands(program);
 
     expect(result).toHaveLength(1);
     expect(result[0].name).toBe('validate');
-    expect(result[0].description).toBe('Validate changes and specs');
+    expect(result[0].description).toBe('Validate changes and contracts');
   });
 
   it('递归提取子命令', () => {
     const program = new Command();
-    const specCmd = program
-      .command('spec')
-      .description('Manage specs');
+    const contractCmd = program
+      .command('contract')
+      .description('Manage Element Contracts');
 
-    specCmd
+    contractCmd
       .command('show')
-      .description('Show a spec');
+      .description('Show a contract');
 
-    specCmd
+    contractCmd
       .command('validate')
-      .description('Validate a spec');
+      .description('Validate a contract');
 
     const result = introspectCommands(program);
 
     expect(result).toHaveLength(1);
-    expect(result[0].name).toBe('spec');
+    expect(result[0].name).toBe('contract');
     expect(result[0].subcommands).toHaveLength(2);
     expect(result[0].subcommands?.[0].name).toBe('show');
     expect(result[0].subcommands?.[1].name).toBe('validate');
@@ -68,7 +68,7 @@ describe('introspect', () => {
       .description('Validate items');
 
     const typeOption = cmd.createOption('--type <type>', 'Specify type')
-      .choices(['change', 'spec']);
+      .choices(['change', 'contract']);
     cmd.addOption(typeOption);
 
     const result = introspectCommands(program);
@@ -76,7 +76,7 @@ describe('introspect', () => {
     const typeFlag = result[0].flags.find(f => f.name === 'type');
     expect(typeFlag).toBeDefined();
     expect(typeFlag?.takesValue).toBe(true);
-    expect(typeFlag?.values).toEqual(['change', 'spec']);
+    expect(typeFlag?.values).toEqual(['change', 'contract']);
   });
 
   it('提取位置参数', () => {
@@ -124,18 +124,18 @@ describe('introspect', () => {
 
   it('嵌套子命令的 positionalType 注入', () => {
     const program = new Command();
-    const specCmd = program
-      .command('spec')
-      .description('Manage specs');
+    const verifyCmd = program
+      .command('verify')
+      .description('Verification gates');
 
-    specCmd
-      .command('show [spec-id]')
-      .description('Show a spec');
+    verifyCmd
+      .command('phase1 [change-id]')
+      .description('Run phase 1');
 
     const result = introspectCommands(program);
 
     expect(result[0].subcommands).toHaveLength(1);
-    expect(result[0].subcommands?.[0].positionalType).toBe('spec-id');
+    expect(result[0].subcommands?.[0].positionalType).toBe('change-id');
   });
 
   it('为 Architecture Search 与 Impact 注入 positionalType', () => {

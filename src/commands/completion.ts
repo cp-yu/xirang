@@ -277,10 +277,10 @@ export class CompletionCommand {
           }
           break;
         }
-        case 'specs': {
-          const specIds = await this.completionProvider.getSpecIds();
-          for (const id of specIds) {
-            console.log(`${id}\tspecification`);
+        case 'contracts': {
+          const contractElementIds = await this.completionProvider.getContractElementIds();
+          for (const id of contractElementIds) {
+            console.log(`${id}\tElement Contract`);
           }
           break;
         }

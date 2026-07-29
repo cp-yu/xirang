@@ -26,7 +26,7 @@ export async function getActiveChangeIds(root: string = process.cwd()): Promise<
 }
 
 /** A Contract is not an independent object: its identity is the Element that carries it. */
-export async function getSpecIds(root: string = process.cwd()): Promise<string[]> {
+export async function getContractElementIds(root: string = process.cwd()): Promise<string[]> {
   const { model } = await parseSemanticModel(modelRoot(root));
   return model.elements
     .filter(element => element.requirements.length > 0)

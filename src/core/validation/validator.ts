@@ -1,12 +1,8 @@
 import { XIRANG_DIR_NAME } from '../config.js';
-import { ZodError } from 'zod';
-import { readFileSync, promises as fs } from 'fs';
+import { promises as fs } from 'fs';
 import path from 'path';
-import { SpecSchema, Spec } from '../schemas/index.js';
-import { MarkdownParser } from '../parsers/markdown-parser.js';
-import { ValidationReport, ValidationIssue, ValidationLevel } from './types.js';
+import { ValidationReport, ValidationIssue } from './types.js';
 import {
-  MIN_PURPOSE_LENGTH,
   MAX_REQUIREMENT_TEXT_LENGTH,
   VALIDATION_MESSAGES
 } from './constants.js';
@@ -15,17 +11,14 @@ import {
   normalizeRequirementName,
   extractRequirementsSection,
 } from '../parsers/requirement-blocks.js';
-import { findMainSpecStructureIssues } from '../parsers/spec-structure.js';
 import { splitFrontmatter } from '../model/frontmatter.js';
 import { normalizeProse, readEntity } from '../model/parser.js';
 import { PARTITIONS, type ModelElement } from '../model/types.js';
 import {
-  buildCodeFenceMask,
   containsShallOrMust as containsShallOrMustShared,
   extractRequirementBody,
   listNonFencedScenarioHeaders,
 } from '../parsers/requirement-text.js';
-import { FileSystemUtils } from '../../utils/file-system.js';
 
 export interface ChangeDeltaValidationContext {
   projectRoot?: string;
@@ -37,67 +30,6 @@ export class Validator {
 
   constructor(strictMode: boolean = false) {
     this.strictMode = strictMode;
-  }
-
-  async validateSpec(filePath: string): Promise<ValidationReport> {
-    const issues: ValidationIssue[] = [];
-    const specName = this.extractNameFromPath(filePath);
-    try {
-      const content = readFileSync(filePath, 'utf-8');
-      const parser = new MarkdownParser(content);
-      const spec = parser.parseSpec(specName);
-      const forSchema = this.specWithKeywordBodies(spec, parser.getRequirementKeywordTexts());
-      const result = SpecSchema.safeParse(forSchema);
-
-      if (!result.success) {
-        issues.push(...this.convertZodErrors(result.error));
-      }
-
-      issues.push(...this.applySpecRules(forSchema, content));
-    } catch (error) {
-      const baseMessage = error instanceof Error ? error.message : 'Unknown error';
-      const enriched = this.enrichTopLevelError(specName, baseMessage);
-      issues.push({
-        level: 'ERROR',
-        path: 'file',
-        message: enriched,
-      });
-    }
-    
-    return this.createReport(issues);
-  }
-
-  /**
-   * Validate spec content from a string (used for pre-write validation of rebuilt specs)
-   */
-  async validateSpecContent(specName: string, content: string): Promise<ValidationReport> {
-    const issues: ValidationIssue[] = [];
-    try {
-      const parser = new MarkdownParser(content);
-      const spec = parser.parseSpec(specName);
-      const forSchema = this.specWithKeywordBodies(spec, parser.getRequirementKeywordTexts());
-      const result = SpecSchema.safeParse(forSchema);
-      if (!result.success) {
-        issues.push(...this.convertZodErrors(result.error));
-      }
-      issues.push(...this.applySpecRules(forSchema, content));
-    } catch (error) {
-      const baseMessage = error instanceof Error ? error.message : 'Unknown error';
-      const enriched = this.enrichTopLevelError(specName, baseMessage);
-      issues.push({ level: 'ERROR', path: 'file', message: enriched });
-    }
-    return this.createReport(issues);
-  }
-
-  /** Feed full fence-aware bodies into schema/rules while parse display stays first-line. */
-  private specWithKeywordBodies(spec: Spec, keywordTexts: string[]): Spec {
-    return {
-      ...spec,
-      requirements: spec.requirements.map((req, index) => ({
-        ...req,
-        text: keywordTexts[index] ?? req.text,
-      })),
-    };
   }
 
   /**
@@ -189,7 +121,7 @@ export class Validator {
   validateElementContract(element: ModelElement, unitPath: string): ValidationReport {
     const issues: ValidationIssue[] = [];
     if (element.requirements.length === 0) {
-      issues.push({ level: 'ERROR', path: unitPath, message: VALIDATION_MESSAGES.SPEC_NO_REQUIREMENTS });
+      issues.push({ level: 'ERROR', path: unitPath, message: VALIDATION_MESSAGES.CONTRACT_NO_REQUIREMENTS });
     }
     for (const requirement of element.requirements) {
       if (!this.containsShallOrMust(requirement.body)) {
@@ -209,87 +141,12 @@ export class Validator {
     return this.createReport(issues);
   }
 
-  private convertZodErrors(error: ZodError): ValidationIssue[] {
-    return error.issues.map(err => ({
-      level: 'ERROR' as ValidationLevel,
-      path: err.path.join('.'),
-      message: err.message,
-    }));
-  }
-
-  private applySpecRules(spec: Spec, content: string): ValidationIssue[] {
-    const issues: ValidationIssue[] = [];
-
-    for (const structuralIssue of findMainSpecStructureIssues(content)) {
-      issues.push({
-        level: 'ERROR',
-        path: 'file',
-        line: structuralIssue.line,
-        message: structuralIssue.message,
-      });
-    }
-
-    for (const issue of this.findFormalScenarioOperationLabels(content)) {
-      issues.push(issue);
-    }
-    
-    if (spec.overview.length < MIN_PURPOSE_LENGTH) {
-      issues.push({
-        level: 'WARNING',
-        path: 'overview',
-        message: VALIDATION_MESSAGES.PURPOSE_TOO_BRIEF,
-      });
-    }
-    
-    spec.requirements.forEach((req, index) => {
-      if (req.text.length > MAX_REQUIREMENT_TEXT_LENGTH) {
-        issues.push({
-          level: 'INFO',
-          path: `requirements[${index}]`,
-          message: VALIDATION_MESSAGES.REQUIREMENT_TOO_LONG,
-        });
-      }
-      
-      if (req.scenarios.length === 0) {
-        issues.push({
-          level: 'WARNING',
-          path: `requirements[${index}].scenarios`,
-          message: `${VALIDATION_MESSAGES.REQUIREMENT_NO_SCENARIOS}. ${VALIDATION_MESSAGES.GUIDE_SCENARIO_FORMAT}`,
-        });
-      }
-    });
-    
-    return issues;
-  }
-
   private enrichTopLevelError(itemId: string, baseMessage: string): string {
     const msg = baseMessage.trim();
     if (msg === VALIDATION_MESSAGES.CHANGE_NO_DELTAS) {
       return `${msg}. ${VALIDATION_MESSAGES.GUIDE_NO_DELTAS}`;
     }
-    if (msg.includes('Spec must have a Purpose section') || msg.includes('Spec must have a Requirements section')) {
-      return `${msg}. ${VALIDATION_MESSAGES.GUIDE_MISSING_SPEC_SECTIONS}`;
-    }
     return msg;
-  }
-
-  private extractNameFromPath(filePath: string): string {
-    const normalizedPath = FileSystemUtils.toPosixPath(filePath);
-    const parts = normalizedPath.split('/');
-    
-    // Look for the directory name after 'specs' or 'changes'
-    for (let i = parts.length - 1; i >= 0; i--) {
-      if (parts[i] === 'specs' || parts[i] === 'changes') {
-        if (i < parts.length - 1) {
-          return parts[i + 1];
-        }
-      }
-    }
-    
-    // Fallback to filename without extension if not in expected structure
-    const fileName = parts[parts.length - 1] ?? '';
-    const dotIndex = fileName.lastIndexOf('.');
-    return dotIndex > 0 ? fileName.slice(0, dotIndex) : fileName;
   }
 
   private createReport(issues: ValidationIssue[]): ValidationReport {
@@ -353,23 +210,6 @@ export class Validator {
 
   private containsShallOrMust(text: string): boolean {
     return containsShallOrMustShared(text);
-  }
-
-  private findFormalScenarioOperationLabels(content: string): ValidationIssue[] {
-    const issues: ValidationIssue[] = [];
-    const lines = content.replace(/\r\n?/g, '\n').split('\n');
-    const fenceMask = buildCodeFenceMask(lines);
-    for (let i = 0; i < lines.length; i++) {
-      if (!fenceMask[i] && /^####\s+Scenario:\s+\[[^\]]+\]/.test(lines[i])) {
-        issues.push({
-          level: 'ERROR',
-          path: 'file',
-          line: i + 1,
-          message: 'Formal specs SHALL use canonical unlabeled Scenario headings',
-        });
-      }
-    }
-    return issues;
   }
 
   private countSurvivingScenarios(blockRaw: string): number {

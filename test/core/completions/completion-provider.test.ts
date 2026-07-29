@@ -113,50 +113,50 @@ describe('CompletionProvider', () => {
     });
   });
 
-  describe('getSpecIds', () => {
-    it('should return empty array when no specs exist', async () => {
-      const specIds = await provider.getSpecIds();
-      expect(specIds).toEqual([]);
+  describe('getContractElementIds', () => {
+    it('should return empty array when no Element Contracts exist', async () => {
+      const contractElementIds = await provider.getContractElementIds();
+      expect(contractElementIds).toEqual([]);
     });
 
     it('should return Element identities that carry a Contract', async () => {
-      await writeContracts(testDir, ['spec-1', 'spec-2']);
+      await writeContracts(testDir, ['contract-1', 'contract-2']);
 
-      const specIds = await provider.getSpecIds();
-      expect(specIds).toEqual(['spec-1', 'spec-2']);
+      const contractElementIds = await provider.getContractElementIds();
+      expect(contractElementIds).toEqual(['contract-1', 'contract-2']);
     });
 
     it('should cache results for the TTL duration', async () => {
-      await writeContracts(testDir, ['spec-1']);
+      await writeContracts(testDir, ['contract-1']);
 
-      const firstResult = await provider.getSpecIds();
-      expect(firstResult).toEqual(['spec-1']);
+      const firstResult = await provider.getContractElementIds();
+      expect(firstResult).toEqual(['contract-1']);
 
-      await writeContracts(testDir, ['spec-1', 'spec-2']);
+      await writeContracts(testDir, ['contract-1', 'contract-2']);
 
-      const secondResult = await provider.getSpecIds();
-      expect(secondResult).toEqual(['spec-1']);
+      const secondResult = await provider.getContractElementIds();
+      expect(secondResult).toEqual(['contract-1']);
     });
 
     it('should refresh cache after TTL expires', async () => {
       const shortTTLProvider = new CompletionProvider(50, testDir);
-      await writeContracts(testDir, ['spec-1']);
+      await writeContracts(testDir, ['contract-1']);
 
-      const firstResult = await shortTTLProvider.getSpecIds();
-      expect(firstResult).toEqual(['spec-1']);
+      const firstResult = await shortTTLProvider.getContractElementIds();
+      expect(firstResult).toEqual(['contract-1']);
 
-      await writeContracts(testDir, ['spec-1', 'spec-2']);
+      await writeContracts(testDir, ['contract-1', 'contract-2']);
 
       // Wait for cache to expire
       await new Promise(resolve => setTimeout(resolve, 60));
 
-      const secondResult = await shortTTLProvider.getSpecIds();
-      expect(secondResult).toEqual(['spec-1', 'spec-2']);
+      const secondResult = await shortTTLProvider.getContractElementIds();
+      expect(secondResult).toEqual(['contract-1', 'contract-2']);
     });
   });
 
   describe('getAllIds', () => {
-    it('should return both change and spec IDs', async () => {
+    it('should return both change and Contract Element IDs', async () => {
       const changesDir = path.join(testDir, '.xirang', 'changes');
       await fs.mkdir(changesDir, { recursive: true });
 
@@ -164,12 +164,12 @@ describe('CompletionProvider', () => {
       await fs.mkdir(path.join(changesDir, 'my-change'), { recursive: true });
       await fs.writeFile(path.join(changesDir, 'my-change', 'proposal.md'), '# Change');
 
-      await writeContracts(testDir, ['my-spec']);
+      await writeContracts(testDir, ['my-contract']);
 
       const result = await provider.getAllIds();
       expect(result).toEqual({
         changeIds: ['my-change'],
-        specIds: ['my-spec'],
+        contractElementIds: ['my-contract'],
       });
     });
 
@@ -177,7 +177,7 @@ describe('CompletionProvider', () => {
       const result = await provider.getAllIds();
       expect(result).toEqual({
         changeIds: [],
-        specIds: [],
+        contractElementIds: [],
       });
     });
   });
@@ -210,9 +210,9 @@ describe('CompletionProvider', () => {
     it('should report invalid cache when empty', () => {
       const stats = provider.getCacheStats();
       expect(stats.changeCache.valid).toBe(false);
-      expect(stats.specCache.valid).toBe(false);
+      expect(stats.contractCache.valid).toBe(false);
       expect(stats.changeCache.age).toBeUndefined();
-      expect(stats.specCache.age).toBeUndefined();
+      expect(stats.contractCache.age).toBeUndefined();
     });
 
     it('should report valid cache after data is fetched', async () => {

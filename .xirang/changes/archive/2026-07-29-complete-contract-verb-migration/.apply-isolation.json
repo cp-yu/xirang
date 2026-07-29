@@ -1,0 +1,7 @@
+{
+  "method": "branch",
+  "branchName": "complete-contract-verb-migration",
+  "originalBranch": "main",
+  "baseCommit": "59a04f065c3be62786835488782349a4fbd5c8e2",
+  "phase2BaselineCommit": "8303fc1081d6252d5b393a21e13c149544f51f78"
+}

@@ -6,27 +6,19 @@ import type { CommandDefinition } from './types.js';
  * This map supplements Commander.js introspection with completion semantics
  * that cannot be derived from the command tree structure alone.
  *
- * Format: dot-notation path (e.g., 'validate', 'spec.show', 'verify.phase1')
+ * Format: dot-notation path (e.g., 'validate', 'verify.phase1')
  */
 export const POSITIONAL_TYPE_MAP: Record<string, NonNullable<CommandDefinition['positionalType']>> = {
   // Top-level commands
   'setup': 'path',
   'update': 'path',
-  'validate': 'change-or-spec-id',
-  'show': 'change-or-spec-id',
+  'validate': 'change-or-contract-id',
+  'show': 'change-id',
   'archive': 'change-id',
   'sync': 'change-id',
-  'instructions': 'change-or-spec-id',
+  'instructions': 'change-or-contract-id',
   'help': 'text',
   'feedback': 'text',
-
-  // change subcommands
-  'change.show': 'change-id',
-  'change.validate': 'change-id',
-
-  // spec subcommands
-  'spec.show': 'spec-id',
-  'spec.validate': 'spec-id',
 
   // completion subcommands
   'completion.generate': 'shell',
@@ -39,7 +31,7 @@ export const POSITIONAL_TYPE_MAP: Record<string, NonNullable<CommandDefinition['
   'schema.fork': 'schema-name',
 
   // new subcommands
-  'new.change': 'change-or-spec-id',
+  'new.change': 'change-or-contract-id',
 
   // framing subcommands
   'framing.show': 'text',

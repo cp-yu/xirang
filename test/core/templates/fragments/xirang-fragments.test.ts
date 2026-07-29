@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -11,6 +13,22 @@ import {
   VERIFY_SIMPLE_CHANGE_FAST_PATH,
   VERIFY_STATE_MACHINE_DIAGRAM,
 } from '../../../../src/core/templates/fragments/xirang-fragments.js';
+
+describe('current CLI documentation', () => {
+  it('documents the implemented validate JSON envelope', () => {
+    const cli = readFileSync(path.join(process.cwd(), 'docs', 'cli.md'), 'utf8');
+    const json = cli.match(/\*\*Output \(JSON\):\*\*\n\n```json\n([\s\S]*?)\n```/)?.[1];
+
+    expect(json).toBeDefined();
+    const payload = JSON.parse(json!);
+    expect(payload.version).toBe('1.0');
+    expect(payload.items).toEqual([expect.objectContaining({ id: 'add-dark-mode', type: 'change', valid: true })]);
+    expect(payload.summary).toEqual({
+      totals: { items: 1, passed: 1, failed: 0 },
+      byType: { change: { items: 1, passed: 1, failed: 0 } },
+    });
+  });
+});
 
 describe('verify gate shared fragments', () => {
   it('exports non-empty strings', () => {
@@ -203,6 +221,20 @@ describe('Xirang shared context fragment', () => {
       'MUST stop',
     ]) {
       expect(XIRANG_SHARED_CONTEXT).toContain(token);
+    }
+  });
+
+  it('does not reintroduce retired public CLI or Browser forms', () => {
+    const generatedSource = [XIRANG_SHARED_CONTEXT, ARCHITECTURE_GENERATE_DELTA].join('\n');
+    for (const token of [
+      'xirang change show',
+      'xirang change list',
+      'xirang change validate',
+      '--specs',
+      '--type spec',
+      '/__xirang/spec',
+    ]) {
+      expect(generatedSource).not.toContain(token);
     }
   });
 

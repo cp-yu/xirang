@@ -23,7 +23,7 @@ describe('validate command enriched human output', () => {
     await fs.mkdir(changePath, { recursive: true });
     await fs.writeFile(path.join(changePath, 'proposal.md'), changeContent);
 
-    const result = await runCLI(['change', 'validate', changeId], { cwd: testDir });
+    const result = await runCLI(['validate', '--change', changeId], { cwd: testDir });
     expect(result.exitCode).not.toBe(0);
     expect(result.stderr).toContain('has issues');
     expect(result.stderr).toContain('Next steps:');

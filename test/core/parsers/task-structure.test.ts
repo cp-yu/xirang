@@ -39,9 +39,9 @@ describe('validateTaskStructure', () => {
 `,
     });
     const projectRoot = path.dirname(tempDir);
-    const mainSpecPath = path.join(projectRoot, '.xirang', 'model', 'elements', 'example.md');
-    fs.mkdirSync(path.dirname(mainSpecPath), { recursive: true });
-    fs.writeFileSync(mainSpecPath, `## Requirements
+    const formalElementPath = path.join(projectRoot, '.xirang', 'model', 'elements', 'example.md');
+    fs.mkdirSync(path.dirname(formalElementPath), { recursive: true });
+    fs.writeFileSync(formalElementPath, `## Requirements
 
 ### Requirement: Parser behavior
 
@@ -51,7 +51,7 @@ describe('validateTaskStructure', () => {
     try {
       expect(verifiesPaths).toHaveLength(2);
       expect(preservesPath).toBeDefined();
-      for (const [field, specPath] of [
+      for (const [field, elementPath] of [
         ...verifiesPaths.map((entry) => ['Verifies', entry] as const),
         ['Preserves', preservesPath!] as const,
       ]) {
@@ -68,7 +68,7 @@ describe('validateTaskStructure', () => {
 #### Checks
 
 - [ ] C1 Verify template path
-  - ${field}: \`${specPath}\` / Requirement "Parser behavior" / Scenario "Valid tasks pass"
+  - ${field}: \`${elementPath}\` / Requirement "Parser behavior" / Scenario "Valid tasks pass"
   - Command: \`pnpm test\`
 `, { changeDir: tempDir });
 
@@ -208,7 +208,7 @@ describe('validateTaskStructure', () => {
     }
   });
 
-  it('reports invalid Verifies spec paths', () => {
+  it('reports invalid Verifies Element paths', () => {
     const tempDir = createChangeDir({ 'example.md': '### Requirement: Parser behavior\n' });
 
     try {
@@ -238,7 +238,7 @@ describe('validateTaskStructure', () => {
       );
 
       expect(result.valid).toBe(false);
-      expect(result.issues.map((issue) => issue.code)).toContain('missing-verifies-spec');
+      expect(result.issues.map((issue) => issue.code)).toContain('missing-verifies-element');
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
@@ -508,7 +508,45 @@ describe('REMOVED requirement anchoring', () => {
 });
 
 describe('Preserves field anchoring', () => {
-  it('accepts Preserves with main spec path and Scenario', () => {
+  it('resolves Formal Elements from a canonical Change directory', () => {
+    const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'xirang-task-project-'));
+    const changeDir = path.join(projectRoot, '.xirang', 'changes', 'demo');
+    const formalElementPath = path.join(projectRoot, '.xirang', 'model', 'elements', 'auth.md');
+    fs.mkdirSync(changeDir, { recursive: true });
+    fs.mkdirSync(path.dirname(formalElementPath), { recursive: true });
+    fs.writeFileSync(formalElementPath, `## Requirements
+
+### Requirement: Login behavior
+
+#### Scenario: User authenticates
+`);
+
+    try {
+      const result = validateTaskStructure(`### Task 1: Refactor login
+
+**Goal**: Keep login behavior.
+
+**Files**:
+- Modify: \`src/auth.ts\`
+
+**Requirements**:
+- Preserve login
+
+#### Checks
+
+- [ ] C1 Verify login
+  - Preserves: \`.xirang/model/elements/auth.md\` / Requirement "Login behavior" / Scenario "User authenticates"
+  - Command: \`pnpm test\`
+`, { changeDir });
+
+      expect(result.valid).toBe(true);
+      expect(result.issues).toEqual([]);
+    } finally {
+      fs.rmSync(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('accepts Preserves with Formal Element path and Scenario', () => {
     const tempDir = createChangeDir({
       'example.md': `## ADDED Requirements
 
@@ -517,10 +555,10 @@ describe('Preserves field anchoring', () => {
     });
 
     const projectRoot = path.dirname(tempDir);
-    const mainSpecPath = path.join(projectRoot, '.xirang', 'model', 'elements', 'auth.md');
-    fs.mkdirSync(path.dirname(mainSpecPath), { recursive: true });
+    const formalElementPath = path.join(projectRoot, '.xirang', 'model', 'elements', 'auth.md');
+    fs.mkdirSync(path.dirname(formalElementPath), { recursive: true });
     fs.writeFileSync(
-      mainSpecPath,
+      formalElementPath,
       `## Requirements
 
 ### Requirement: Login behavior
@@ -716,10 +754,10 @@ describe('Preserves field anchoring', () => {
     });
 
     const projectRoot = path.dirname(tempDir);
-    const mainSpecPath = path.join(projectRoot, '.xirang', 'model', 'elements', 'auth.md');
-    fs.mkdirSync(path.dirname(mainSpecPath), { recursive: true });
+    const formalElementPath = path.join(projectRoot, '.xirang', 'model', 'elements', 'auth.md');
+    fs.mkdirSync(path.dirname(formalElementPath), { recursive: true });
     fs.writeFileSync(
-      mainSpecPath,
+      formalElementPath,
       `## Requirements
 
 ### Requirement: Login

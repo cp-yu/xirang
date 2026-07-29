@@ -56,11 +56,11 @@ import { useCallbackRef, useUpdateEffect } from '../../hooks'
 import { useCurrentViewModel } from '../../hooks/useCurrentViewModel'
 import { useDiagram } from '../../hooks/useDiagram'
 import type { OnNavigateTo } from '../../LikeC4Diagram.props'
-import { type XirangRuntimeVariant, useXirangVariants } from '../../xirang/SpecLoaderContext'
+import { type XirangRuntimeVariant, useXirangVariants } from '../../xirang/ContractLoaderContext'
 import { stopPropagation } from '../../utils'
 import * as styles from './ElementDetailsCard.css'
 import { MetadataProvider, MetadataValue } from './MetadataValue'
-import { SpecsTab } from './SpecsTab'
+import { ContractsTab } from './ContractsTab'
 import { TabPanelDeployments } from './TabPanelDeployments'
 import { TabPanelRelationships } from './TabPanelRelationships'
 import { TabPanelStructure } from './TabPanelStructure'
@@ -139,7 +139,7 @@ export function ElementDefinitionProperties({
 const MIN_PADDING = 24
 
 const TABS = ['Properties', 'Relationships', 'Views', 'Structure', 'Deployments'] as const
-type TabName = typeof TABS[number] | 'Specs'
+type TabName = typeof TABS[number] | 'Contracts'
 
 export function ElementDetailsCard({
   viewId,
@@ -170,7 +170,7 @@ export function ElementDetailsCard({
   const hasContract = typeof runtime.selected.contracts?.[stableElementId] === 'string'
 
   useEffect(() => {
-    if (activeTab === 'Specs' && !hasContract) {
+    if (activeTab === 'Contracts' && !hasContract) {
       setActiveTab('Properties')
     }
   }, [activeTab, hasContract, setActiveTab])
@@ -462,7 +462,7 @@ export function ElementDetailsCard({
                     {tab}
                   </TabsTab>
                 ))}
-                {hasContract && <TabsTab value="Specs">Specs</TabsTab>}
+                {hasContract && <TabsTab value="Contracts">Contracts</TabsTab>}
               </TabsList>
 
               <TabsPanel value="Properties">
@@ -552,11 +552,11 @@ export function ElementDetailsCard({
               </TabsPanel>
 
               {hasContract && (
-                <TabsPanel value="Specs">
-                  <SpecsTab
+                <TabsPanel value="Contracts">
+                  <ContractsTab
                     project={elementModel.projectId}
                     element={stableElementId}
-                    active={activeTab === 'Specs'}
+                    active={activeTab === 'Contracts'}
                   />
                 </TabsPanel>
               )}

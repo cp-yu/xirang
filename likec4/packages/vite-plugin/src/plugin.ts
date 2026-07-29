@@ -13,7 +13,7 @@ import type {
 import { detectAI } from './ai/detect-ai'
 import { iconBundlePlugin } from './icon-bundle-plugin'
 import { logger } from './logger'
-import { assertXirangProject, readXirangContract, XirangSpecError } from './xirang/xirang-spec-handler'
+import { assertXirangProject, readXirangContract, XirangContractError } from './xirang/xirang-contract-handler'
 import { enablePluginRPC } from './rpc'
 import { xirangChangeManifestChangedEvent } from './rpc/protocol'
 import { splitErrorMessage } from './rpc/sendError'
@@ -389,21 +389,21 @@ export function LikeC4VitePlugin({
         server.middlewares.use('/__xirang/changes', async (req, res) => {
           try {
             if (req.method !== 'GET') {
-              throw new XirangSpecError(405, 'Method not allowed')
+              throw new XirangContractError(405, 'Method not allowed')
             }
             const payload = JSON.parse(await fs.readFile(xirangChangeManifest, 'utf8')) as unknown
             if (!payload || typeof payload !== 'object' || (payload as { version?: unknown }).version !== 1
               || !Array.isArray((payload as { variants?: unknown }).variants)) {
-              throw new XirangSpecError(500, 'Invalid active change manifest')
+              throw new XirangContractError(500, 'Invalid active change manifest')
             }
             res.statusCode = 200
             res.setHeader('Content-Type', 'application/json; charset=utf-8')
             res.setHeader('Cache-Control', 'no-store')
             res.end(JSON.stringify(payload))
           } catch (error) {
-            const xirangError = error instanceof XirangSpecError
+            const xirangError = error instanceof XirangContractError
               ? error
-              : new XirangSpecError(500, 'Unable to read active change manifest')
+              : new XirangContractError(500, 'Unable to read active change manifest')
             res.statusCode = xirangError.statusCode
             res.setHeader('Content-Type', 'application/json; charset=utf-8')
             res.end(JSON.stringify({ error: xirangError.message }))
@@ -415,16 +415,16 @@ export function LikeC4VitePlugin({
         server.watcher.add(xirangChangeManifest)
         server.watcher.on('change', notifyManifest)
 
-        server.middlewares.use('/__xirang/spec', async (req, res) => {
+        server.middlewares.use('/__xirang/contract', async (req, res) => {
           try {
             if (req.method !== 'GET') {
-              throw new XirangSpecError(405, 'Method not allowed')
+              throw new XirangContractError(405, 'Method not allowed')
             }
             const requestUrl = new URL(req.url ?? '/', 'http://localhost')
             const project = requestUrl.searchParams.get('project')
             const element = requestUrl.searchParams.get('element')
             if (!project || !element) {
-              throw new XirangSpecError(400, 'Missing project or element')
+              throw new XirangContractError(400, 'Missing project or element')
             }
             assertXirangProject(project, likec4.projects())
             const manifest = JSON.parse(await fs.readFile(xirangChangeManifest, 'utf8')) as {
@@ -440,9 +440,9 @@ export function LikeC4VitePlugin({
             res.setHeader('Cache-Control', 'no-store')
             res.end(JSON.stringify(contract ?? { error: 'Contract not found' }))
           } catch (error) {
-            const xirangError = error instanceof XirangSpecError
+            const xirangError = error instanceof XirangContractError
               ? error
-              : new XirangSpecError(500, 'Unable to read Contract')
+              : new XirangContractError(500, 'Unable to read Contract')
             res.statusCode = xirangError.statusCode
             res.setHeader('Content-Type', 'application/json; charset=utf-8')
             res.end(JSON.stringify({ error: xirangError.message }))

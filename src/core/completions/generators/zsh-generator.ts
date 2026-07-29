@@ -237,9 +237,9 @@ compdef _opsx xirang
     switch (positionalType) {
       case 'change-id':
         return "'*: :_opsx_complete_changes'";
-      case 'spec-id':
-        return "'*: :_opsx_complete_specs'";
-      case 'change-or-spec-id':
+      case 'contract-id':
+        return "'*: :_opsx_complete_contracts'";
+      case 'change-or-contract-id':
         return "'*: :_opsx_complete_items'";
       case 'path':
         return "'*:path:_files'";

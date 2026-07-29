@@ -45,12 +45,12 @@ describe('ZshGenerator', () => {
         },
         {
           name: 'validate',
-          description: 'Validate specs',
+          description: 'Validate Element Contracts',
           flags: [],
         },
         {
           name: 'show',
-          description: 'Show a spec',
+          description: 'Show a contract',
           flags: [],
         },
       ];
@@ -58,8 +58,8 @@ describe('ZshGenerator', () => {
       const script = generator.generate(commands);
 
       expect(script).toContain("'init:Initialize Xirang'");
-      expect(script).toContain("'validate:Validate specs'");
-      expect(script).toContain("'show:Show a spec'");
+      expect(script).toContain("'validate:Validate Element Contracts'");
+      expect(script).toContain("'show:Show a contract'");
     });
 
     it('should generate command completion functions', () => {
@@ -71,7 +71,7 @@ describe('ZshGenerator', () => {
         },
         {
           name: 'validate',
-          description: 'Validate specs',
+          description: 'Validate Element Contracts',
           flags: [],
         },
       ];
@@ -86,7 +86,7 @@ describe('ZshGenerator', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'validate',
-          description: 'Validate specs',
+          description: 'Validate Element Contracts',
           flags: [
             {
               name: 'strict',
@@ -112,7 +112,7 @@ describe('ZshGenerator', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'show',
-          description: 'Show a spec',
+          description: 'Show a contract',
           flags: [
             {
               name: 'requirement',
@@ -134,13 +134,13 @@ describe('ZshGenerator', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'validate',
-          description: 'Validate specs',
+          description: 'Validate Element Contracts',
           flags: [
             {
               name: 'type',
               description: 'Specify item type',
               takesValue: true,
-              values: ['change', 'spec'],
+              values: ['change', 'contract'],
             },
           ],
         },
@@ -150,14 +150,14 @@ describe('ZshGenerator', () => {
 
       expect(script).toContain('--type');
       expect(script).toContain('[Specify item type]');
-      expect(script).toContain(':value:(change spec)');
+      expect(script).toContain(':value:(change contract)');
     });
 
     it('should handle flags with takesValue but no specific values', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'validate',
-          description: 'Validate specs',
+          description: 'Validate Element Contracts',
           flags: [
             {
               name: 'concurrency',
@@ -220,29 +220,29 @@ describe('ZshGenerator', () => {
       expect(script).toContain("'*: :_opsx_complete_changes'");
     });
 
-    it('should handle positional arguments for spec-id', () => {
+    it('should handle positional arguments for contract-id', () => {
       const commands: CommandDefinition[] = [
         {
-          name: 'show-spec',
-          description: 'Show a spec',
+          name: 'show-contract',
+          description: 'Show a contract',
           acceptsPositional: true,
-          positionalType: 'spec-id',
+          positionalType: 'contract-id',
           flags: [],
         },
       ];
 
       const script = generator.generate(commands);
 
-      expect(script).toContain("'*: :_opsx_complete_specs'");
+      expect(script).toContain("'*: :_opsx_complete_contracts'");
     });
 
-    it('should handle positional arguments for change-or-spec-id', () => {
+    it('should handle positional arguments for change-or-contract-id', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'show',
           description: 'Show an item',
           acceptsPositional: true,
-          positionalType: 'change-or-spec-id',
+          positionalType: 'change-or-contract-id',
           flags: [],
         },
       ];
@@ -307,15 +307,15 @@ describe('ZshGenerator', () => {
     it('should handle complex nested subcommands with flags', () => {
       const commands: CommandDefinition[] = [
         {
-          name: 'spec',
-          description: 'Manage specs',
+          name: 'contract',
+          description: 'Manage Element Contracts',
           flags: [],
           subcommands: [
             {
               name: 'validate',
-              description: 'Validate a spec',
+              description: 'Validate a contract',
               acceptsPositional: true,
-              positionalType: 'spec-id',
+              positionalType: 'contract-id',
               flags: [
                 {
                   name: 'strict',
@@ -333,11 +333,11 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('_opsx_spec() {');
-      expect(script).toContain('_opsx_spec_validate() {');
+      expect(script).toContain('_opsx_contract() {');
+      expect(script).toContain('_opsx_contract_validate() {');
       expect(script).toContain('--strict');
       expect(script).toContain('--json');
-      expect(script).toContain("'*: :_opsx_complete_specs'");
+      expect(script).toContain("'*: :_opsx_complete_contracts'");
     });
 
     it('should generate script that ends with compdef registration', () => {

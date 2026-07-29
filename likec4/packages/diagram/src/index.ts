@@ -126,11 +126,11 @@ export { DefaultMantineProvider } from './context/DefaultMantineProvider'
 export { FramerMotionConfig } from './context/FramerMotionConfig'
 export {
   type XirangContractContent,
-  type XirangSpecLoader,
+  type XirangContractLoader,
   type XirangDiffEntry,
   type XirangRuntimeManifest,
   type XirangRuntimeVariant,
-  XirangSpecLoaderProvider,
-  useXirangSpecLoader,
+  XirangContractLoaderProvider,
+  useXirangContractLoader,
   useXirangVariants,
-} from './xirang/SpecLoaderContext'
+} from './xirang/ContractLoaderContext'

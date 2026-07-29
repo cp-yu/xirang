@@ -1,4 +1,6 @@
 import { createHash } from 'node:crypto';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import { applySemanticDelta, parseSemanticDelta, type DeltaEntry, type SemanticDelta } from './model/delta.js';
 import type { ModelIndex } from './model/index-map.js';
 import { changeRoot, modelRoot } from './model/paths.js';
@@ -26,6 +28,7 @@ export interface CompileChangeOptions {
 }
 
 export interface CompiledChange {
+  title: string;
   formalFingerprint: string;
   changeFingerprint: string;
   target: SemanticModel | null;
@@ -36,6 +39,12 @@ export interface CompiledChange {
 
 function fingerprint(value: unknown): string {
   return createHash('sha256').update(canonicalJson(value)).digest('hex');
+}
+
+async function readChangeTitle(projectRoot: string, changeName: string): Promise<string> {
+  const proposal = await fs.readFile(path.join(changeRoot(projectRoot, changeName), 'proposal.md'), 'utf8').catch(() => '');
+  const heading = proposal.match(/^#\s+(?:Change:\s+)?(.+)$/im);
+  return heading?.[1].trim() || changeName;
 }
 
 export async function readFormalSemanticModel(projectRoot: string): Promise<ParsedModel> {
@@ -154,6 +163,7 @@ export async function compileChangeDelta(
     base,
     delta: parsed.delta,
     compiled: {
+      title: await readChangeTitle(projectRoot, changeName),
       formalFingerprint,
       changeFingerprint,
       target: parsed.diagnostics.some(item => item.level === 'ERROR') ? null : applied.expected,

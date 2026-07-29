@@ -1,7 +1,6 @@
 /**
  * Shared fence-aware requirement body extraction and keyword helpers.
- * Delta validation uses extractRequirementBody + containsShallOrMust directly.
- * Main-spec validation feeds full bodies into SpecSchema; display stays first-line.
+ * Element Contract and Delta validation use these helpers over requirement bodies.
  */
 
 const METADATA_LINE = /^\*\*[^*]+\*\*:/;
@@ -56,7 +55,7 @@ function isClosingFence(
   );
 }
 
-/** Whole-word SHALL/MUST detection shared by delta and main validation. */
+/** Whole-word SHALL/MUST detection shared by Contract and Delta validation. */
 export function containsShallOrMust(text: string): boolean {
   return /\b(SHALL|MUST)\b/.test(text);
 }
