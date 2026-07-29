@@ -1,0 +1,318 @@
+{
+  "timestamp": "2026-07-29T06:43:52.260Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "79008230c0581e9258ce0b1356e44ba8bcc3cc59c3c3080f5d6994dbb9e78222",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/remove-legacy-change-parser/design.md",
+      ".xirang/changes/remove-legacy-change-parser/elements/deterministic-operations.md",
+      ".xirang/changes/remove-legacy-change-parser/proposal.md",
+      ".xirang/changes/remove-legacy-change-parser/tasks.md",
+      "docs/architecture-integration.md",
+      "docs/cli.md",
+      "docs/xirang-integration.md",
+      "src/cli/index.ts",
+      "src/commands/change.ts",
+      "src/commands/show.ts",
+      "src/core/change-compiler.ts",
+      "src/core/change-diff-renderer.ts",
+      "src/core/model/delta.ts",
+      "src/core/model/parser.ts",
+      "src/core/parsers/markdown-parser.ts",
+      "src/core/parsers/spec-structure.ts",
+      "src/core/schemas/index.ts",
+      "src/core/validation/constants.ts",
+      "src/core/validation/validator.ts",
+      "test/commands/show.test.ts",
+      "test/commands/validate.enriched-output.test.ts",
+      "test/core/archive.test.ts",
+      "test/core/commands/change-command.list.test.ts",
+      "test/core/commands/change-command.show-validate.test.ts",
+      "test/core/parsers/markdown-parser.test.ts",
+      "test/core/validation.enriched-messages.test.ts",
+      "test/core/validation.test.ts",
+      "test/core/verify/freshness.test.ts"
+    ],
+    "evidenceFingerprint": "f23dbd6134bcf262a466defa55938a784365883c62899d7ef6215c968c07b41c",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/remove-legacy-change-parser/design.md",
+        "hash": "2b563a8f8d709cc236d6c4b3977db2289bc2b9a4658acf77ead4a3151d67a88b"
+      },
+      {
+        "path": ".xirang/changes/remove-legacy-change-parser/elements/deterministic-operations.md",
+        "hash": "74a17143eb30d5b7e3a89fbfcb49163327629163334469126b33bb1542eba5a1"
+      },
+      {
+        "path": ".xirang/changes/remove-legacy-change-parser/proposal.md",
+        "hash": "d3eedba68d9fc6e4de3ed7c20c361a2693ea30abac88aba3f96929c420b41d6e"
+      },
+      {
+        "path": ".xirang/changes/remove-legacy-change-parser/tasks.md",
+        "hash": "79008230c0581e9258ce0b1356e44ba8bcc3cc59c3c3080f5d6994dbb9e78222"
+      },
+      {
+        "path": "docs/architecture-integration.md",
+        "hash": "62f2128538f2730bdf54008738c35dab7ae76d9a76bd08675dd5bae1d479165f"
+      },
+      {
+        "path": "docs/cli.md",
+        "hash": "e117c8626c7ad107eb6433069e3be5acce560580622cd6cc71bbf653d63cc818"
+      },
+      {
+        "path": "docs/xirang-integration.md",
+        "hash": "8bd0851090d03ae8ac10ed494253ecbb4fa89e556d96e02b2d3b78a6b699316d"
+      },
+      {
+        "path": "src/cli/index.ts",
+        "hash": "28a05b2d88b82afc3b6056d60313f1c44cfd2e122ca81177e2a4a49e3604ee03"
+      },
+      {
+        "path": "src/commands/change.ts",
+        "hash": "98a29aafa3a45fe8587d28c06e1f39a47d0f35ea8f3bbf1df6f27f1f767a31db"
+      },
+      {
+        "path": "src/commands/show.ts",
+        "hash": "585d5c6e3fa7441c2a3e64864aaee9b9aa2322eb54b559d855f895468c5aae1b"
+      },
+      {
+        "path": "src/core/change-compiler.ts",
+        "hash": "cdd2e09e5845e5d0dcf210f66729e5e2c20d4f1e0a51c78c5b5305bffad55351"
+      },
+      {
+        "path": "src/core/change-diff-renderer.ts",
+        "hash": "474dfaa10c428e41d1bd88df3e7c6a7f5456d4043ebcda46f5f350a7fc8aedaa"
+      },
+      {
+        "path": "src/core/model/delta.ts",
+        "hash": "47ea096bcb7f3e6439118323e620a66f00b96d68782fe4425f7b95114fd169ff"
+      },
+      {
+        "path": "src/core/model/parser.ts",
+        "hash": "8df43148a1a461f7edacae6ecd88022fa6ae26a97b9b158845d813113751844b"
+      },
+      {
+        "path": "src/core/parsers/markdown-parser.ts",
+        "hash": "79bd31c38eccff211a7527e9dc2b331f53ed435ab92f7cb775ed43753aed4c67"
+      },
+      {
+        "path": "src/core/parsers/spec-structure.ts",
+        "hash": "fe60da54e708e38ae94af822d49e2914f3fac0e20f74f8cbdc42a2cf395f623f"
+      },
+      {
+        "path": "src/core/schemas/index.ts",
+        "hash": "3a960c38f259e512229d69b41ed7bb52e42014f19b25247831ddbe94868d834c"
+      },
+      {
+        "path": "src/core/validation/constants.ts",
+        "hash": "ad6fa26794167fcc5a1c7fb701ff9f11ec5e17dfc49e1bebc3aa2db7f08db4e4"
+      },
+      {
+        "path": "src/core/validation/validator.ts",
+        "hash": "e35eaaa5fec35ea1f1b810865667316e4b373b63d744a32355fa1984ec2a71e9"
+      },
+      {
+        "path": "test/commands/show.test.ts",
+        "hash": "29be10eff3e38f79d1712a1db806efe258a56b68688984ff43395811b0090fe7"
+      },
+      {
+        "path": "test/commands/validate.enriched-output.test.ts",
+        "hash": "9a9fada0e07be7cd78bedc97bb41456b36bbcbf06f4ad127a86afe9342af12e8"
+      },
+      {
+        "path": "test/core/archive.test.ts",
+        "hash": "3f9ec2700a54b02ac442cae767f3eae6a263be7fb7e66dffaa3817ff4f31557f"
+      },
+      {
+        "path": "test/core/commands/change-command.list.test.ts",
+        "hash": "d63180b2e8e51c389018d0e2d65b1aadb4d5029b27dfa1a0adfc3e7214badf26"
+      },
+      {
+        "path": "test/core/commands/change-command.show-validate.test.ts",
+        "hash": "a03a191070455533546d5539ace0ac9fca8dad43d3732fbe71e37223cca32a89"
+      },
+      {
+        "path": "test/core/parsers/markdown-parser.test.ts",
+        "hash": "a9a993e072e5c21a6b39ddd4746cc4d9deff430aa682cd48e5184abdc03a9124"
+      },
+      {
+        "path": "test/core/validation.enriched-messages.test.ts",
+        "hash": "74073d613a3b7ff0f9912028ba4ffb98a77ab5ff15a6b6081a98d24993b50616"
+      },
+      {
+        "path": "test/core/validation.test.ts",
+        "hash": "e919fda5b58571299c04ae62e84cde033129f19269d0db895a1d3c84e0687b30"
+      },
+      {
+        "path": "test/core/verify/freshness.test.ts",
+        "hash": "b341a142298a45e073e9c46edf29dae96a886950b4e0a5d983d1967e508edffd"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "0ffcac4549a5b7daa5987f443d1e812d70a6f687",
+    "gitDiffSummary": "Validated projectRoot and changeDir, resolved immutable baseCommit 0ffcac4549a5b7daa5987f443d1e812d70a6f687, and reviewed the union of git diff baseCommit...HEAD, final working-tree diff, and git status. All 30 changed paths are attributed to task Files entries or Change artifacts; all five declared deletions are complete. Legacy parser/schema/converter symbols, change-local specs parsing paths, and removed flags have no residual matches. `xirang arch validate --json` and `xirang validate --change remove-legacy-change-parser --json` passed; lint and build passed; all six declared checks passed; full `pnpm test` passed with 158 files and 2028 tests. No staged-file claim was made because the working tree intentionally contains staged and unstaged Change implementation state."
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-07-29T06:43:52.260Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "79008230c0581e9258ce0b1356e44ba8bcc3cc59c3c3080f5d6994dbb9e78222",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/remove-legacy-change-parser/design.md",
+          ".xirang/changes/remove-legacy-change-parser/elements/deterministic-operations.md",
+          ".xirang/changes/remove-legacy-change-parser/proposal.md",
+          ".xirang/changes/remove-legacy-change-parser/tasks.md",
+          "docs/architecture-integration.md",
+          "docs/cli.md",
+          "docs/xirang-integration.md",
+          "src/cli/index.ts",
+          "src/commands/change.ts",
+          "src/commands/show.ts",
+          "src/core/change-compiler.ts",
+          "src/core/change-diff-renderer.ts",
+          "src/core/model/delta.ts",
+          "src/core/model/parser.ts",
+          "src/core/parsers/markdown-parser.ts",
+          "src/core/parsers/spec-structure.ts",
+          "src/core/schemas/index.ts",
+          "src/core/validation/constants.ts",
+          "src/core/validation/validator.ts",
+          "test/commands/show.test.ts",
+          "test/commands/validate.enriched-output.test.ts",
+          "test/core/archive.test.ts",
+          "test/core/commands/change-command.list.test.ts",
+          "test/core/commands/change-command.show-validate.test.ts",
+          "test/core/parsers/markdown-parser.test.ts",
+          "test/core/validation.enriched-messages.test.ts",
+          "test/core/validation.test.ts",
+          "test/core/verify/freshness.test.ts"
+        ],
+        "evidenceFingerprint": "f23dbd6134bcf262a466defa55938a784365883c62899d7ef6215c968c07b41c",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/remove-legacy-change-parser/design.md",
+            "hash": "2b563a8f8d709cc236d6c4b3977db2289bc2b9a4658acf77ead4a3151d67a88b"
+          },
+          {
+            "path": ".xirang/changes/remove-legacy-change-parser/elements/deterministic-operations.md",
+            "hash": "74a17143eb30d5b7e3a89fbfcb49163327629163334469126b33bb1542eba5a1"
+          },
+          {
+            "path": ".xirang/changes/remove-legacy-change-parser/proposal.md",
+            "hash": "d3eedba68d9fc6e4de3ed7c20c361a2693ea30abac88aba3f96929c420b41d6e"
+          },
+          {
+            "path": ".xirang/changes/remove-legacy-change-parser/tasks.md",
+            "hash": "79008230c0581e9258ce0b1356e44ba8bcc3cc59c3c3080f5d6994dbb9e78222"
+          },
+          {
+            "path": "docs/architecture-integration.md",
+            "hash": "62f2128538f2730bdf54008738c35dab7ae76d9a76bd08675dd5bae1d479165f"
+          },
+          {
+            "path": "docs/cli.md",
+            "hash": "e117c8626c7ad107eb6433069e3be5acce560580622cd6cc71bbf653d63cc818"
+          },
+          {
+            "path": "docs/xirang-integration.md",
+            "hash": "8bd0851090d03ae8ac10ed494253ecbb4fa89e556d96e02b2d3b78a6b699316d"
+          },
+          {
+            "path": "src/cli/index.ts",
+            "hash": "28a05b2d88b82afc3b6056d60313f1c44cfd2e122ca81177e2a4a49e3604ee03"
+          },
+          {
+            "path": "src/commands/change.ts",
+            "hash": "98a29aafa3a45fe8587d28c06e1f39a47d0f35ea8f3bbf1df6f27f1f767a31db"
+          },
+          {
+            "path": "src/commands/show.ts",
+            "hash": "585d5c6e3fa7441c2a3e64864aaee9b9aa2322eb54b559d855f895468c5aae1b"
+          },
+          {
+            "path": "src/core/change-compiler.ts",
+            "hash": "cdd2e09e5845e5d0dcf210f66729e5e2c20d4f1e0a51c78c5b5305bffad55351"
+          },
+          {
+            "path": "src/core/change-diff-renderer.ts",
+            "hash": "474dfaa10c428e41d1bd88df3e7c6a7f5456d4043ebcda46f5f350a7fc8aedaa"
+          },
+          {
+            "path": "src/core/model/delta.ts",
+            "hash": "47ea096bcb7f3e6439118323e620a66f00b96d68782fe4425f7b95114fd169ff"
+          },
+          {
+            "path": "src/core/model/parser.ts",
+            "hash": "8df43148a1a461f7edacae6ecd88022fa6ae26a97b9b158845d813113751844b"
+          },
+          {
+            "path": "src/core/parsers/markdown-parser.ts",
+            "hash": "79bd31c38eccff211a7527e9dc2b331f53ed435ab92f7cb775ed43753aed4c67"
+          },
+          {
+            "path": "src/core/parsers/spec-structure.ts",
+            "hash": "fe60da54e708e38ae94af822d49e2914f3fac0e20f74f8cbdc42a2cf395f623f"
+          },
+          {
+            "path": "src/core/schemas/index.ts",
+            "hash": "3a960c38f259e512229d69b41ed7bb52e42014f19b25247831ddbe94868d834c"
+          },
+          {
+            "path": "src/core/validation/constants.ts",
+            "hash": "ad6fa26794167fcc5a1c7fb701ff9f11ec5e17dfc49e1bebc3aa2db7f08db4e4"
+          },
+          {
+            "path": "src/core/validation/validator.ts",
+            "hash": "e35eaaa5fec35ea1f1b810865667316e4b373b63d744a32355fa1984ec2a71e9"
+          },
+          {
+            "path": "test/commands/show.test.ts",
+            "hash": "29be10eff3e38f79d1712a1db806efe258a56b68688984ff43395811b0090fe7"
+          },
+          {
+            "path": "test/commands/validate.enriched-output.test.ts",
+            "hash": "9a9fada0e07be7cd78bedc97bb41456b36bbcbf06f4ad127a86afe9342af12e8"
+          },
+          {
+            "path": "test/core/archive.test.ts",
+            "hash": "3f9ec2700a54b02ac442cae767f3eae6a263be7fb7e66dffaa3817ff4f31557f"
+          },
+          {
+            "path": "test/core/commands/change-command.list.test.ts",
+            "hash": "d63180b2e8e51c389018d0e2d65b1aadb4d5029b27dfa1a0adfc3e7214badf26"
+          },
+          {
+            "path": "test/core/commands/change-command.show-validate.test.ts",
+            "hash": "a03a191070455533546d5539ace0ac9fca8dad43d3732fbe71e37223cca32a89"
+          },
+          {
+            "path": "test/core/parsers/markdown-parser.test.ts",
+            "hash": "a9a993e072e5c21a6b39ddd4746cc4d9deff430aa682cd48e5184abdc03a9124"
+          },
+          {
+            "path": "test/core/validation.enriched-messages.test.ts",
+            "hash": "74073d613a3b7ff0f9912028ba4ffb98a77ab5ff15a6b6081a98d24993b50616"
+          },
+          {
+            "path": "test/core/validation.test.ts",
+            "hash": "e919fda5b58571299c04ae62e84cde033129f19269d0db895a1d3c84e0687b30"
+          },
+          {
+            "path": "test/core/verify/freshness.test.ts",
+            "hash": "b341a142298a45e073e9c46edf29dae96a886950b4e0a5d983d1967e508edffd"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "0ffcac4549a5b7daa5987f443d1e812d70a6f687",
+        "gitDiffSummary": "Validated projectRoot and changeDir, resolved immutable baseCommit 0ffcac4549a5b7daa5987f443d1e812d70a6f687, and reviewed the union of git diff baseCommit...HEAD, final working-tree diff, and git status. All 30 changed paths are attributed to task Files entries or Change artifacts; all five declared deletions are complete. Legacy parser/schema/converter symbols, change-local specs parsing paths, and removed flags have no residual matches. `xirang arch validate --json` and `xirang validate --change remove-legacy-change-parser --json` passed; lint and build passed; all six declared checks passed; full `pnpm test` passed with 158 files and 2028 tests. No staged-file claim was made because the working tree intentionally contains staged and unstaged Change implementation state."
+      }
+    }
+  }
+}

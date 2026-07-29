@@ -211,39 +211,37 @@ The browser renders versioned `.xirang/architecture/**/*.c4`. Elements with entr
 
 ### `xirang show`
 
-Display details of a change or spec.
+Display an active Change proposal as Markdown or a compiler-derived semantic diff.
 
 ```
-xirang show [item-name] [options]
+xirang show [change-name] [options]
 ```
 
 **Arguments:**
 
 | Argument | Required | Description |
 |----------|----------|-------------|
-| `item-name` | No | Name of change or spec (prompts if omitted) |
+| `change-name` | No | Active Change identity (prompts if omitted) |
 
 **Options:**
 
 | Option | Description |
 |--------|-------------|
-| `--type <type>` | Specify type: `change` or `spec` (auto-detected if unambiguous) |
-| `--json` | Output as JSON |
+| `--json` | Output the compiled Change view as JSON |
 | `--no-interactive` | Disable prompts |
 
-**Change-specific options:**
+JSON output contains:
 
-| Option | Description |
-|--------|-------------|
-| `--deltas-only` | Show only delta specs (JSON mode) |
+| Field | Meaning |
+|-------|---------|
+| `id` | Change identity |
+| `title` | Title derived from `proposal.md` |
+| `valid` | Whether the four-partition Semantic Delta compiles to a valid Expected Semantic Model |
+| `summary` | Entity-level `total`, `ADDED`, `MODIFIED`, and `REMOVED` counts |
+| `entries` | Concise semantic differences keyed by entity kind and stable identity |
+| `diagnostics` | Structured compiler errors and warnings |
 
-**Spec-specific options:**
-
-| Option | Description |
-|--------|-------------|
-| `--requirements` | Show only requirements, exclude scenarios (JSON mode) |
-| `--no-scenarios` | Exclude scenario content (JSON mode) |
-| `-r, --requirement <id>` | Show specific requirement by 1-based index (JSON mode) |
+When `valid` is false, treat `entries` only as failed-compilation context, not as a valid target state.
 
 **Examples:**
 
@@ -251,13 +249,10 @@ xirang show [item-name] [options]
 # Interactive selection
 xirang show
 
-# Show a specific change
+# Show the proposal Markdown
 xirang show add-dark-mode
 
-# Show a specific spec
-xirang show auth --type spec
-
-# JSON output for parsing
+# Show the compiled Change view
 xirang show add-dark-mode --json
 ```
 
@@ -350,7 +345,7 @@ Validating add-dark-mode...
 
 ### `xirang archive`
 
-Archive a completed change after verify, sync, validation, and task gates pass. Archive does not write formal Specs or architecture; run `xirang sync` first when the change contains delta Specs or `architecture-delta.c4`.
+Archive a completed Change after verify, sync, validation, and task gates pass. Archive does not update the formal Semantic Model; run `xirang sync` first when the four-partition Semantic Delta has pending model changes.
 
 ```
 xirang archive [change-name] [options]
@@ -390,10 +385,10 @@ xirang archive update-ci-config --no-sync --yes
 **What it does:**
 
 1. Requires a fresh, archive-compatible verify result unless `--no-verify` is explicitly authorized
-2. Requires all delta Specs and `architecture-delta.c4` changes to be synced unless `--no-sync` is explicitly authorized
-3. Validates the change unless `--no-validate` is explicitly authorized
+2. Requires all four-partition Semantic Delta Entries to be synced unless `--no-sync` is explicitly authorized
+3. Validates the Change unless `--no-validate` is explicitly authorized
 4. Checks task completion and prompts when required
-5. Removes the consumed `architecture-delta.c4` and moves the change to `.xirang/changes/archive/YYYY-MM-DD-<name>/`
+5. Moves the complete Change to `.xirang/changes/archive/YYYY-MM-DD-<name>/` as audit history
 
 ---
 

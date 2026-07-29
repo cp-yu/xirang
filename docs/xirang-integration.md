@@ -1,38 +1,32 @@
 # Xirang Programmatic Integration
 
-The persisted Xirang Semantic Model is the only semantic authority. Programmatic consumers should read versioned `.xirang/architecture/**/*.c4` graph modules and element-owned `.xirang/specs/**/*.md` contract modules through Xirang/LikeC4 APIs or use the CLI. Source paths, imports, calls, and symbols remain current implementation evidence; they are not persisted semantic facts.
+The persisted Xirang Semantic Model is the only semantic authority. Programmatic consumers should use the CLI or read the four partitions under `.xirang/model/` through Xirang model APIs. Source paths, imports, calls, and symbols remain implementation evidence; they are not persisted semantic facts.
 
 ## Query Elements
 
 ```bash
-xirang arch query <element-id-or-fqn> --relations --depth 2 --json
+xirang arch query <identity> --relations --depth 2 --contract --json
+xirang arch search <query> --json
 xirang arch validate --json
 ```
 
-Query output canonicalizes identity to stable `elementId` and includes the current FQN, summary, parent, children, owned Specs, and directed semantic relationships.
+Query output uses stable identity and can include Declaration, parent, children, Element Contract, and directed semantic Relationships. File paths and generated LikeC4 names do not define identity.
 
 ## Read Element Contracts
 
-Each v1 Spec uses singular ownership frontmatter:
-
-```markdown
----
-element: order.submit
----
-```
-
-Build or consume the derived Spec registry rather than reading graph `metadata.specs`. One element may own multiple Specs; each Spec binds to at most one element. Integrations that read Markdown must require project-relative `.md` paths, authorize the element/path pair against the current registry, and enforce realpath containment under `.xirang/specs/`.
+An Element Contract is the `## Requirements` body of its Element unit under `.xirang/model/elements/`. Resolve an Element through the model identity index instead of constructing a file path from its identity. Each Requirement has a stable name within its host Element, and each Scenario remains part of its Requirement.
 
 ## Change Integration
 
-- Graph changes are declared in `.xirang/changes/<name>/architecture-delta.c4`.
-- Contract changes are declared in `.xirang/changes/<name>/specs/**/spec.md`.
-- Both module sets form one Target Semantic Model during validation.
-- `xirang sync <name>` validates and commits the Semantic Delta atomically.
-- `xirang archive <name>` enforces lifecycle gates and moves the change into audit history.
+- Semantic Delta Entries are declared under `.xirang/changes/<name>/{elements,metamodel,relationships,views}/`.
+- `proposal.md`, `design.md`, and `tasks.md` are Change Plan scaffolding and do not override Semantic Delta semantics.
+- `xirang show <name> --json` returns a compiler-derived Change view with `valid`, entity-level `summary`, concise `entries`, and `diagnostics`.
+- `xirang validate --change <name> --json` validates notation, applies the Delta to the current model, and validates the Expected Semantic Model.
+- `xirang sync <name>` applies a valid Semantic Delta atomically.
+- `xirang archive <name>` enforces lifecycle gates and moves the complete Change into audit history.
 
-See [Xirang Semantic Model And LikeC4](architecture-integration.md) for the authoring contract.
+See [Xirang Semantic Model And LikeC4](architecture-integration.md) for the persistence and authoring contract.
 
 ## External Or Legacy Input
 
-Former Xirang YAML bundles and unversioned LikeC4 models are never runtime fallbacks. `xirang-build` may consume them only as user-approved evidence or an explicit Candidate starting point.
+Former Xirang bundles, persisted LikeC4 graphs, change-local `specs/`, and `architecture-delta.c4` are never runtime fallbacks. Model build or migration may consume them only as explicitly authorized evidence.

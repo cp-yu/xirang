@@ -27,6 +27,7 @@ describe('validate command enriched human output', () => {
     expect(result.exitCode).not.toBe(0);
     expect(result.stderr).toContain('has issues');
     expect(result.stderr).toContain('Next steps:');
-    expect(result.stderr).toContain('xirang change show');
+    expect(result.stderr).toContain('xirang validate --change <id> --json');
+    expect(result.stderr).not.toContain('specs/');
   });
 });

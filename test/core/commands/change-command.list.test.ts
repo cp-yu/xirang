@@ -3,6 +3,7 @@ import { ChangeCommand } from '../../../src/commands/change.js';
 import path from 'path';
 import { promises as fs } from 'fs';
 import os from 'os';
+import { minimalModel, writeChangeDelta, writeProjectModel } from '../../helpers/model-fixture.js';
 
 describe('ChangeCommand.list', () => {
   let cmd: ChangeCommand;
@@ -13,9 +14,11 @@ describe('ChangeCommand.list', () => {
     cmd = new ChangeCommand();
     originalCwd = process.cwd();
     tempRoot = path.join(os.tmpdir(), `opsx-change-command-list-${Date.now()}`);
-    const changeDir = path.join(tempRoot, '.xirang', 'changes', 'demo');
-    await fs.mkdir(changeDir, { recursive: true });
-    const proposal = `# Change: Demo\n\n## Why\nTest list.\n\n## What Changes\n- **auth:** Add requirement`;
+    await writeProjectModel(tempRoot, minimalModel());
+    const changeDir = await writeChangeDelta(tempRoot, 'demo', {
+      'elements/auth.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: auth\nkind: capability\nparent: root\ntitle: Auth\ndefinition: Authentication capability.\n---\n',
+    });
+    const proposal = `# Change: Demo\n\n## Why\nTest list.\n\n## What Changes\nAdd authentication capability.`;
     await fs.writeFile(path.join(changeDir, 'proposal.md'), proposal, 'utf-8');
     await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n- [ ] Task 2\n', 'utf-8');
     process.chdir(tempRoot);
@@ -44,7 +47,7 @@ describe('ChangeCommand.list', () => {
         const item = parsed[0];
         expect(item).toHaveProperty('id');
         expect(item).toHaveProperty('title');
-        expect(item).toHaveProperty('deltaCount');
+        expect(item.deltaCount).toBe(1);
         expect(item).toHaveProperty('taskStatus');
         expect(item.taskStatus).toHaveProperty('total');
         expect(item.taskStatus).toHaveProperty('completed');
@@ -68,7 +71,7 @@ describe('ChangeCommand.list', () => {
       await cmd.list({ long: true });
       const longOut = logs.join('\n');
       expect(longOut).toMatch(/:\s/);
-      expect(longOut).toMatch(/\[deltas\s\d+\]/);
+      expect(longOut).toContain('[deltas 1]');
     } finally {
       console.log = origLog;
     }

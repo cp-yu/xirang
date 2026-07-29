@@ -1,116 +1,82 @@
 # Xirang Semantic Model And LikeC4
 
-Xirang has one durable Semantic Model. Versioned LikeC4 graph modules under `.xirang/architecture/` define the Project Root, element vocabulary, stable elements, refinement hierarchy, semantic relationships, and views. Markdown contract modules under `.xirang/specs/` define element-owned guarantees. Agents and CLI commands read these persisted files directly; Xirang does not require a public or persisted intermediate representation.
+Xirang has one durable Semantic Model. Its normative source is persisted under `.xirang/model/` in four partitions. LikeC4 is generated from the complete model into `.xirang/.cache-likec4/` for visualization and is never a persistence authority.
 
 ## Layout
 
 ```text
 .xirang/
-├── architecture/
-│   ├── specification.c4
-│   ├── model.c4
-│   ├── relations.c4
-│   └── views.c4
-└── specs/
-    └── <spec-id>/spec.md
+├── model/
+│   ├── metamodel/
+│   ├── elements/
+│   ├── relationships/
+│   └── views/
+└── .cache-likec4/
 ```
 
-A v1 graph declares its language version and metamodel explicitly. The metamodel may define project-specific element and relationship kinds. Nesting is open unless a kind declares `parents` or `children` constraints.
-
-```likec4
-xirang {
-  languageVersion '1'
-}
-
-specification {
-  element project {
-    xirang { root true contract required }
-  }
-  element area {
-    xirang { contract optional parents [project] }
-  }
-  element operation {
-    xirang { contract required parents [area] }
-  }
-  relationship invokes {
-    xirang { sourceKinds [operation] targetKinds [operation] }
-  }
-}
-
-model {
-  projectRoot = project 'Payments' 'Payment platform intent' {
-    metadata { elementId 'project.root' }
-
-    payments = area 'Payments' 'Payment processing area' {
-      metadata { elementId 'payments' }
-
-      authorize = operation 'Authorize' 'Authorize a payment' {
-        metadata { elementId 'payment.authorize' }
-      }
-    }
-  }
-}
-```
-
-`elementId` is the stable identity. The current LikeC4 FQN is a navigation path and may change when an element moves. Containment expresses abstraction and refinement, not ownership inferred from a fixed domain/capability depth.
-
-## Element Contracts
-
-Each v1 Spec binds to one element through singular frontmatter:
+Each Markdown unit declares its `entity` and stable `identity` in frontmatter. File names and directory positions are organizational only; hierarchy comes from Element `parent` identities.
 
 ```markdown
 ---
-element: payment.authorize
+entity: element-declaration
+identity: payment.authorize
+kind: operation
+parent: payments
+title: Authorize
+definition: Represents the payment authorization responsibility and boundary.
 ---
 
-# Payment Authorization
+## Requirements
 
-## Purpose
-Define the authorization contract.
+### Requirement: Authorize valid payments
+The operation SHALL authorize a valid payment request.
+
+#### Scenario: Valid request succeeds
+- **WHEN** a valid payment request is submitted
+- **THEN** authorization succeeds
 ```
 
-One element may own multiple Specs, but each Spec has at most one owner. The derived Spec registry scans `.xirang/specs/<spec-id>/spec.md`; graph metadata does not duplicate Spec paths. A metamodel kind may require a contract with `contract required` or allow it with `contract optional`.
+An Element unit combines one Element Declaration with at most one Element Contract. Metamodel units define Element Kinds and Relationship Kinds. Relationship YAML files are containers for directed `source`, `kind`, and `target` triples. Authored View units select model identities without adding normative semantics.
 
 ## Commands
 
 ```bash
 xirang view --port 5173
-xirang arch query payment.authorize --relations --depth 2
-xirang arch validate
-xirang arch export --format svg --output docs/architecture
+xirang arch query payment.authorize --relations --depth 2 --contract --json
+xirang arch search authorization --json
+xirang arch validate --json
 ```
 
-`xirang arch query` accepts a stable `elementId` or current FQN and returns the canonical `elementId`, parent, children, summary, owned Specs, and semantic relationships. `xirang view` uses the vendored LikeC4 source; there is no external runtime fallback.
+Queries address semantic objects by stable identity. Generated local names and LikeC4 FQNs are presentation details and are not persisted back into the model.
 
 ## Semantic Delta
 
-A change may contain graph operations in `.xirang/changes/<name>/architecture-delta.c4` and contract operations in `.xirang/changes/<name>/specs/**/spec.md`. Together they form one Semantic Delta.
+A Change uses the same four partitions under `.xirang/changes/<name>/`. Each Semantic Delta Entry declares `operation: ADDED|MODIFIED|REMOVED`, its entity type, and stable identity. ADDED and MODIFIED carry the complete target state; REMOVED carries identity only.
 
-```likec4
-model {
-  extend projectRoot.payments {
-    capture = operation 'Capture' 'Capture an authorized payment' {
-      metadata { elementId 'payment.capture' }
-    }
-  }
-
-  projectRoot.payments.capture -[invokes]-> projectRoot.payments.authorize
-}
+```text
+.xirang/changes/add-payment-capture/
+├── proposal.md
+├── design.md
+├── tasks.md
+├── elements/
+│   └── payment.capture.md
+├── metamodel/
+├── relationships/
+│   └── invokes.yaml
+└── views/
 ```
 
-Validate the combined target before implementation or sync:
+Requirement Entries live in the body of their host Element unit under `## ADDED Requirements`, `## MODIFIED Requirements`, or `## REMOVED Requirements`. Relationship Entries use ADDED or REMOVED because the complete triple is their identity.
+
+Validate the Expected Semantic Model before implementation or sync:
 
 ```bash
 xirang validate --change <name> --json
-xirang arch validate --delta .xirang/changes/<name>/architecture-delta.c4
+xirang arch validate --change <name> --json
 ```
 
-`xirang sync <name>` prepares and validates graph and contract modules together, then commits them atomically.
+`xirang show <name> --json` returns the compiler-derived `valid`, `summary`, concise `entries`, and `diagnostics`. `xirang sync <name>` validates and applies the Semantic Delta atomically to the formal model.
 
-## Specs Browser Security
+## Legacy Input
 
-The local endpoint accepts `GET /__opsx/spec?project=<project-id>&element=<element-id>&path=<relative-path>`. Every request is authorized against the current derived Spec registry. Absolute paths, backslashes, traversal segments, non-Markdown files, unregistered element/path pairs, missing files, and symlink escapes are rejected. Responses disable caching, and watcher events contain only the precise project-relative Spec path.
-
-## Legacy Models
-
-Unversioned domain/capability LikeC4 models are not canonical v1 source and are never silently rewritten. They may only be consumed by `xirang-build` as user-approved evidence or an explicit Candidate starting point.
+Persisted LikeC4 graphs, change-local `specs/`, and `architecture-delta.c4` are not current Semantic Model or Semantic Delta sources. They may be considered only as explicitly authorized evidence during model construction or migration.

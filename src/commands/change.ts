@@ -1,10 +1,9 @@
 import { XIRANG_DIR_NAME } from '../core/config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { JsonConverter } from '../core/converters/json-converter.js';
 import { Validator } from '../core/validation/validator.js';
-import { ChangeParser } from '../core/parsers/change-parser.js';
-import { Change } from '../core/schemas/index.js';
+import { compileChange, readFormalSemanticModel } from '../core/change-compiler.js';
+import { conciseDiffEntries } from '../core/change-diff-renderer.js';
 import { isInteractive } from '../utils/interactive.js';
 import { getActiveChangeIds } from '../utils/item-discovery.js';
 import { countTasksFromContent } from '../utils/task-progress.js';
@@ -13,19 +12,12 @@ import { countTasksFromContent } from '../utils/task-progress.js';
 const ARCHIVE_DIR = 'archive';
 
 export class ChangeCommand {
-  private converter: JsonConverter;
-
-  constructor() {
-    this.converter = new JsonConverter();
-  }
-
   /**
    * Show a change proposal.
-   * - Text mode: raw markdown passthrough (no filters)
-   * - JSON mode: minimal object with deltas; --deltas-only returns same object with filtered deltas
-   *   Note: --requirements-only is deprecated alias for --deltas-only
+   * - Text mode: raw markdown passthrough
+   * - JSON mode: compiler-derived semantic diff
    */
-  async show(changeName?: string, options?: { json?: boolean; requirementsOnly?: boolean; deltasOnly?: boolean; noInteractive?: boolean }): Promise<void> {
+  async show(changeName?: string, options?: { json?: boolean; noInteractive?: boolean }): Promise<void> {
     const changesPath = path.join(process.cwd(), XIRANG_DIR_NAME, 'changes');
 
     if (!changeName) {
@@ -59,30 +51,16 @@ export class ChangeCommand {
     }
 
     if (options?.json) {
-      const jsonOutput = await this.converter.convertChangeToJson(proposalPath);
-
-      if (options.requirementsOnly) {
-        console.error('Flag --requirements-only is deprecated; use --deltas-only instead.');
-      }
-
-      const parsed: Change = JSON.parse(jsonOutput);
-      const contentForTitle = await fs.readFile(proposalPath, 'utf-8');
-      const title = this.extractTitle(contentForTitle, changeName);
-      const id = parsed.name;
-      const deltas = parsed.deltas || [];
-
-      if (options.requirementsOnly || options.deltasOnly) {
-        const output = { id, title, deltaCount: deltas.length, deltas };
-        console.log(JSON.stringify(output, null, 2));
-      } else {
-        const output = {
-          id,
-          title,
-          deltaCount: deltas.length,
-          deltas,
-        };
-        console.log(JSON.stringify(output, null, 2));
-      }
+      const content = await fs.readFile(proposalPath, 'utf-8');
+      const compiled = await compileChange(process.cwd(), changeName);
+      console.log(JSON.stringify({
+        id: changeName,
+        title: this.extractTitle(content, changeName),
+        valid: compiled.valid,
+        summary: compiled.diff.summary,
+        entries: conciseDiffEntries(compiled.diff),
+        diagnostics: compiled.diagnostics,
+      }, null, 2));
     } else {
       const content = await fs.readFile(proposalPath, 'utf-8');
       console.log(content);
@@ -100,6 +78,7 @@ export class ChangeCommand {
     const changes = await this.getActiveChanges(changesPath);
     
     if (options?.json) {
+      const base = await readFormalSemanticModel(process.cwd());
       const changeDetails = await Promise.all(
         changes.map(async (changeName) => {
           const proposalPath = path.join(changesPath, changeName, 'proposal.md');
@@ -107,9 +86,7 @@ export class ChangeCommand {
           
           try {
             const content = await fs.readFile(proposalPath, 'utf-8');
-            const changeDir = path.join(changesPath, changeName);
-            const parser = new ChangeParser(content, changeDir);
-            const change = await parser.parseChangeWithDeltas(changeName);
+            const compiled = await compileChange(process.cwd(), changeName, { base });
             
             let taskStatus = { total: 0, completed: 0 };
             try {
@@ -125,7 +102,7 @@ export class ChangeCommand {
             return {
               id: changeName,
               title: this.extractTitle(content, changeName),
-              deltaCount: change.deltas.length,
+              deltaCount: compiled.diff.summary.total,
               taskStatus,
             };
           } catch (error) {
@@ -153,7 +130,8 @@ export class ChangeCommand {
         return;
       }
 
-      // Long format: id: title and minimal counts
+      // Long format: id, title, and compiler-derived counts
+      const base = await readFormalSemanticModel(process.cwd());
       for (const changeName of sorted) {
         const proposalPath = path.join(changesPath, changeName, 'proposal.md');
         const tasksPath = path.join(changesPath, changeName, 'tasks.md');
@@ -170,10 +148,8 @@ export class ChangeCommand {
               console.error(`Failed to read tasks file at ${tasksPath}:`, error);
             }
           }
-          const changeDir = path.join(changesPath, changeName);
-          const parser = new ChangeParser(await fs.readFile(proposalPath, 'utf-8'), changeDir);
-          const change = await parser.parseChangeWithDeltas(changeName);
-          const deltaCountText = ` [deltas ${change.deltas.length}]`;
+          const compiled = await compileChange(process.cwd(), changeName, { base });
+          const deltaCountText = ` [deltas ${compiled.diff.summary.total}]`;
           console.log(`${changeName}: ${title}${deltaCountText}${taskStatusText}`);
         } catch {
           console.log(`${changeName}: (unable to read)`);
@@ -270,9 +246,9 @@ export class ChangeCommand {
 
   private printNextSteps(): void {
     const bullets: string[] = [];
-    bullets.push('- Ensure change has deltas in specs/: use headers ## ADDED/MODIFIED/REMOVED Requirements');
-    bullets.push('- Each requirement MUST include at least one #### Scenario: block');
-    bullets.push('- Debug parsed deltas: xirang change show <id> --json --deltas-only');
+    bullets.push('- Ensure the change has Semantic Delta entries under elements/, metamodel/, relationships/, or views/');
+    bullets.push('- Each surviving Requirement MUST include at least one #### Scenario: block');
+    bullets.push('- Inspect compiler diagnostics: xirang validate --change <id> --json');
     console.error('Next steps:');
     bullets.forEach(b => console.error(`  ${b}`));
   }

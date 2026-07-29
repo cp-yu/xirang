@@ -2,12 +2,10 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { Validator } from '../../src/core/validation/validator.js';
-import { 
-  ScenarioSchema, 
-  RequirementSchema, 
-  SpecSchema, 
-  ChangeSchema,
-  DeltaSchema 
+import {
+  ScenarioSchema,
+  RequirementSchema,
+  SpecSchema,
 } from '../../src/core/schemas/index.js';
 
 describe('Validation Schemas', () => {
@@ -112,68 +110,6 @@ describe('Validation Schemas', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error.issues[0].message).toBe('Spec must have at least one requirement');
-      }
-    });
-  });
-
-  describe('ChangeSchema', () => {
-    it('should validate a valid change', () => {
-      const change = {
-        name: 'add-user-auth',
-        why: 'We need user authentication to secure the application and protect user data',
-        whatChanges: 'Add authentication module with login and logout capabilities',
-        deltas: [
-          {
-            spec: 'user-auth',
-            operation: 'ADDED',
-            description: 'Add new user authentication spec',
-          },
-        ],
-      };
-      
-      const result = ChangeSchema.safeParse(change);
-      expect(result.success).toBe(true);
-    });
-
-    it('should reject change with short why section', () => {
-      const change = {
-        name: 'add-user-auth',
-        why: 'Need auth',
-        whatChanges: 'Add authentication',
-        deltas: [
-          {
-            spec: 'user-auth',
-            operation: 'ADDED',
-            description: 'Add auth',
-          },
-        ],
-      };
-      
-      const result = ChangeSchema.safeParse(change);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toBe('Why section must be at least 50 characters');
-      }
-    });
-
-    it('should warn about too many deltas', () => {
-      const deltas = Array.from({ length: 11 }, (_, i) => ({
-        spec: `spec-${i}`,
-        operation: 'ADDED' as const,
-        description: `Add spec ${i}`,
-      }));
-      
-      const change = {
-        name: 'massive-change',
-        why: 'This is a massive change that affects many parts of the system',
-        whatChanges: 'Update everything',
-        deltas,
-      };
-      
-      const result = ChangeSchema.safeParse(change);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toBe('Consider splitting changes with more than 10 deltas');
       }
     });
   });
@@ -382,45 +318,6 @@ The system SHALL keep formal specs clean.
         expect(report.valid).toBe(false);
         expect(report.issues.some(i => i.message.includes('Formal specs SHALL use canonical unlabeled Scenario headings'))).toBe(true);
       }
-    });
-  });
-
-  describe('validateChange', () => {
-    it('should validate a valid change file', async () => {
-      const changeContent = `# Add User Authentication
-
-## Why
-We need to implement user authentication to secure the application and protect user data from unauthorized access.
-
-## What Changes
-- **user-auth:** Add new user authentication specification
-- **api-endpoints:** Modify to include auth endpoints`;
-
-      const changePath = path.join(testDir, 'change.md');
-      await fs.writeFile(changePath, changeContent);
-      
-      const validator = new Validator();
-      const report = await validator.validateChange(changePath);
-      
-      expect(report.valid).toBe(true);
-      expect(report.summary.errors).toBe(0);
-    });
-
-    it('should detect missing why section', async () => {
-      const changeContent = `# Add User Authentication
-
-## What Changes
-- **user-auth:** Add new user authentication specification`;
-
-      const changePath = path.join(testDir, 'change.md');
-      await fs.writeFile(changePath, changeContent);
-      
-      const validator = new Validator();
-      const report = await validator.validateChange(changePath);
-      
-      expect(report.valid).toBe(false);
-      expect(report.summary.errors).toBeGreaterThan(0);
-      expect(report.issues.some(i => i.message.includes('Why'))).toBe(true);
     });
   });
 

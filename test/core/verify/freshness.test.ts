@@ -164,15 +164,15 @@ describe('verify freshness engine', () => {
   it('refreshes matching evidence entries after sync and keeps freshness fresh', async () => {
     const changeDir = path.join(tempDir, '.xirang', 'changes', 'c1');
     const mainOpsxPath = path.join(tempDir, '.xirang', 'project.xirang.yaml');
-    const changeSpecPath = path.join(changeDir, 'specs', 'auth', 'spec.md');
+    const changeSpecPath = path.join(changeDir, 'elements', 'auth.md');
     await fs.mkdir(path.dirname(mainOpsxPath), { recursive: true });
     await fs.mkdir(path.dirname(changeSpecPath), { recursive: true });
     await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] task\n', 'utf-8');
     await fs.writeFile(mainOpsxPath, 'version: 1\n', 'utf-8');
-    await fs.writeFile(changeSpecPath, 'change spec\n', 'utf-8');
+    await fs.writeFile(changeSpecPath, '---\noperation: ADDED\nentity: element-declaration\nidentity: auth\nkind: capability\nparent: root\ntitle: Auth\ndefinition: Authentication capability.\n---\n', 'utf-8');
 
     const before = await computeEvidenceFingerprint(
-      ['.xirang/project.xirang.yaml', '.xirang/changes/c1/specs/auth/spec.md'],
+      ['.xirang/project.xirang.yaml', '.xirang/changes/c1/elements/auth.md'],
       tempDir
     );
     const result: VerifyResult = {
@@ -182,7 +182,7 @@ describe('verify freshness engine', () => {
       tasksFileHash: (await computeTasksFileHash(path.join(changeDir, 'tasks.md')))!,
       verificationContext: {
         contractVersion: '1.0',
-        evidenceFiles: ['.xirang/project.xirang.yaml', '.xirang/changes/c1/specs/auth/spec.md'],
+        evidenceFiles: ['.xirang/project.xirang.yaml', '.xirang/changes/c1/elements/auth.md'],
         evidenceFingerprint: before.hash,
         evidenceFingerprintEntries: before.entries,
       },
@@ -203,20 +203,20 @@ describe('verify freshness engine', () => {
     expect(refreshed.verificationContext.evidenceFingerprintEntries).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ path: '.xirang/project.xirang.yaml' }),
-        expect.objectContaining({ path: '.xirang/changes/c1/specs/auth/spec.md' }),
+        expect.objectContaining({ path: '.xirang/changes/c1/elements/auth.md' }),
       ])
     );
     const refreshedOpsxEntry = refreshed.verificationContext.evidenceFingerprintEntries?.find(
       (entry) => entry.path === '.xirang/project.xirang.yaml'
     );
     const unchangedChangeSpecEntry = refreshed.verificationContext.evidenceFingerprintEntries?.find(
-      (entry) => entry.path === '.xirang/changes/c1/specs/auth/spec.md'
+      (entry) => entry.path === '.xirang/changes/c1/elements/auth.md'
     );
     expect(refreshedOpsxEntry?.hash).not.toBe(
       before.entries.find((entry) => entry.path === '.xirang/project.xirang.yaml')?.hash
     );
     expect(unchangedChangeSpecEntry?.hash).toBe(
-      before.entries.find((entry) => entry.path === '.xirang/changes/c1/specs/auth/spec.md')?.hash
+      before.entries.find((entry) => entry.path === '.xirang/changes/c1/elements/auth.md')?.hash
     );
     expect((await checkFreshness(changeDir, tempDir)).status).toBe('FRESH');
   });
@@ -247,7 +247,7 @@ describe('verify freshness engine', () => {
     await fs.writeFile(verifyPath, `${JSON.stringify(result, null, 2)}\n`, 'utf-8');
     const originalContent = await fs.readFile(verifyPath, 'utf-8');
 
-    await refreshVerifyEvidenceAfterSync(changeDir, tempDir, ['.xirang/specs/auth/spec.md']);
+    await refreshVerifyEvidenceAfterSync(changeDir, tempDir, ['.xirang/model/elements/auth.md']);
 
     expect(await fs.readFile(verifyPath, 'utf-8')).toBe(originalContent);
   });

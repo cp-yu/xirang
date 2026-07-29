@@ -204,10 +204,8 @@ changeCmd
   .command('show [change-name]')
   .description('Show a change proposal in JSON or markdown format')
   .option('--json', 'Output as JSON')
-  .option('--deltas-only', 'Show only deltas (JSON only)')
-  .option('--requirements-only', 'Alias for --deltas-only (deprecated)')
   .option('--no-interactive', 'Disable interactive prompts')
-  .action(async (changeName?: string, options?: { json?: boolean; requirementsOnly?: boolean; deltasOnly?: boolean; noInteractive?: boolean }) => {
+  .action(async (changeName?: string, options?: { json?: boolean; noInteractive?: boolean }) => {
     try {
       const changeCommand = new ChangeCommand();
       await changeCommand.show(changeName, options);
@@ -304,10 +302,6 @@ program
   .description('Show a change')
   .option('--json', 'Output as JSON')
   .option('--no-interactive', 'Disable interactive prompts')
-  .option('--deltas-only', 'Show only deltas (JSON only)')
-  .option('--requirements-only', 'Alias for --deltas-only (deprecated)')
-  // allow unknown options to pass-through to underlying command implementation
-  .allowUnknownOption(true)
   .action(async (itemName?: string, options?: { json?: boolean; noInteractive?: boolean; [k: string]: any }) => {
     try {
       const showCommand = new ShowCommand();
