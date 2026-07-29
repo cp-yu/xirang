@@ -112,7 +112,7 @@
       "test/fixtures/contract-browser/.xirang/model/metamodel/project.md",
       "test/fixtures/contract-browser/.xirang/model/views/index.md"
     ],
-    "evidenceFingerprint": "51887d98f99d0971fed8ea2b9dde0d5d1c0381845ae60a40cbdb5bb4e07ad2cd",
+    "evidenceFingerprint": "aebac4b564dea04885e9121b7407b2940d53a2f4f54d10f51ccc97196239d233",
     "evidenceFingerprintEntries": [
       {
         "path": ".github/workflows/test-windows.yml",
@@ -148,7 +148,7 @@
       },
       {
         "path": ".xirang/model/elements/deterministic-operations.md",
-        "hash": "11a957bec70cc59030af498f1040f46fb3188a8857e9d525eb28ded05320c03c"
+        "hash": "f3c05fe551d854b349c8c489255c43dca8d2a53727100cee70cb9a3a21617eb9"
       },
       {
         "path": ".xirang/model/elements/project.root.md",
@@ -156,7 +156,7 @@
       },
       {
         "path": ".xirang/model/elements/semantic-browser.md",
-        "hash": "3d6a75fc32ed3b1c08dfaf3a493e6507b3d6ee089eb99fd051dc2f3a26a435e0"
+        "hash": "8b28aac963443d67be4a0030836e0dde5b0057306a6c76ae5612e63dc69cf91e"
       },
       {
         "path": ".xirang/model/elements/semantic-model.md",
@@ -488,7 +488,7 @@
     "timestamp": "2026-07-29T13:03:10.193Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "DEGRADED",
     "attempts": [
       {
         "timestamp": "2026-07-29T12:25:44.529Z",
@@ -509,6 +509,11 @@
         "timestamp": "2026-07-29T13:03:10.162Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-07-29T13:12:17.202Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
@@ -1065,7 +1070,7 @@
         "failureCount": 1
       },
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/likec4-spa/src/main.tsx"
@@ -1210,9 +1215,16 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-07-29T13:03:10.162Z",
         "findingId": "OPT-20260729T122544526Z-02"
+      },
+      {
+        "sequence": 11,
+        "action": "resolve",
+        "reason": "The optimization passed speculative review and is preserved in successful checkpoint 192ed3781; no further work remains for this finding.",
+        "timestamp": "2026-07-29T13:12:17.202Z",
+        "findingId": "OPT-20260729T122544526Z-02"
       }
     ],
-    "reconciliationSignature": "7ff9d7a6bae1bcc755943fd10951017b41967169db874429599263bd3838a773",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0,
     "failedDirections": [
       "OPT-20260729T122544526Z-01: Separate Contract identity extraction from model loading. A pure helper accepts a SemanticModel or ParsedModel and returns the same sorted Element identities. runBulkValidation owns a command-scoped lazy `getBase()` promise: Contract discovery awaits it when Contracts are requested, Change tasks await it and call compileChange with `{ base }`, and Contract tasks locate their Element and source module through that same ParsedModel. Do not introduce a process-wide or time-based cache. — Speculative reviewer rejected the optimization"
