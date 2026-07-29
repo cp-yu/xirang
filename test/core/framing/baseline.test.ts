@@ -47,6 +47,24 @@ describe('relevant Semantic Model baseline', () => {
     expect(JSON.stringify(baseline)).not.toContain('overview');
   });
 
+  it('captures a relationship-only multi-level Kind constraint closure once in deterministic order', () => {
+    const current = model();
+    current.elementKinds.push(
+      { identity: 'top', contract: 'optional', children: ['middle'], body: '' },
+      { identity: 'middle', contract: 'optional', parents: ['top'], children: ['leaf'], body: '' },
+      { identity: 'leaf', contract: 'optional', parents: ['middle'], body: '' },
+    );
+    current.relationshipKinds.push({ identity: 'bridges', sourceKinds: ['leaf'], targetKinds: ['leaf'], body: '' });
+    const baseline = captureRelevantBaseline(current, {
+      elementKinds: [], relationshipKinds: [], elements: [],
+      relationships: [{ source: 'a', kind: 'bridges', target: 'b' }],
+    });
+    expect(baseline.elementKinds.map(item => item.identity)).toEqual([
+      'capability', 'domain', 'leaf', 'middle', 'project', 'top',
+    ]);
+    expect(new Set(baseline.elementKinds.map(item => item.identity)).size).toBe(baseline.elementKinds.length);
+  });
+
   it('records explicit absence for new targets', () => {
     const baseline = captureRelevantBaseline(model(), {
       ...payload,

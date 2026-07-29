@@ -65,12 +65,24 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "3db2fc70258f81a2f32ccc51f560fd6fd242cb38",
-    "gitDiffSummary": "Clean-context review found no blockers. Current-source validation passes a 44-entry Change; architecture validation, 17 targeted files/96 tests, 160 full files/2045 tests, lint, build, identity audit, postinstall, packed install, generated parity, and diff check pass. Native Windows execution remains an evidence-only warning."
+    "gitHeadCommit": "104454e4c0efe02458fd48a0e2de20f62428692f",
+    "gitDiffSummary": "Clean-context review found no blockers. Current-source validation passes a 44-entry Change; architecture validation, 17 targeted files/96 tests, 160 full files/2045 tests, lint, build, identity audit, postinstall, packed install, generated parity, and diff check pass. Native Windows execution remains an evidence-only warning.",
+    "timestamp": "2026-07-29T04:16:18.263Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-07-29T04:09:55.338Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-29T04:16:18.255Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-07-29T04:03:39.424Z",
       "result": "PASS_WITH_WARNINGS",
@@ -141,6 +153,141 @@
         "gitHeadCommit": "3db2fc70258f81a2f32ccc51f560fd6fd242cb38",
         "gitDiffSummary": "Clean-context review found no blockers. Current-source validation passes a 44-entry Change; architecture validation, 17 targeted files/96 tests, 160 full files/2045 tests, lint, build, identity audit, postinstall, packed install, generated parity, and diff check pass. Native Windows execution remains an evidence-only warning."
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "src/core/framing/baseline.ts"
+          ],
+          "symbols": [
+            "captureRelevantBaseline",
+            "elementTarget",
+            "relationshipTarget"
+          ]
+        },
+        "opportunity": "Baseline capture builds an element identity index but bypasses it when materializing entries, performs one relationship scan per target, and traverses Element Kind constraint closure twice.",
+        "impact": "Reuse identity maps and one closure traversal to change repeated target lookup from quadratic scans to indexed lookup and remove redundant graph traversal.",
+        "evidence": [
+          "src/core/framing/baseline.ts creates elementsById but elementTarget scans model.elements per relevant identity.",
+          "relationshipTarget scans model.relationships once per payload Relationship.",
+          "Relationship Kind constraints are seeded only after the first Element Kind closure, forcing a second closure traversal."
+        ],
+        "recommendation": "Build or reuse maps for all model collections, seed Relationship Kind constraints before one Element Kind closure, and materialize values directly from maps.",
+        "keyDesign": "Add a Relationship map keyed by relationshipIdentity, gather all direct Kind references before one worklist closure, and preserve byte-sorted arrays and shallow-cloned values.",
+        "preservationConstraints": [
+          "Preserve exact relevant-context closure and complete ancestor chains.",
+          "Preserve explicit exists:false entries.",
+          "Preserve UTF-8 byte ordering and normalized Kind constraints.",
+          "Preserve fresh, unrelated-drift, relevant-drift classifications and exact changed keys.",
+          "Do not include Contracts, Views, source paths, or excluded model data."
+        ],
+        "implementationOutline": [
+          "Add relationshipsById and remove linear-scan helpers.",
+          "Seed existing Relationship Kind sourceKinds and targetKinds before creating the Kind worklist.",
+          "Run one Kind closure and materialize from maps."
+        ],
+        "validation": [
+          "pnpm exec vitest run test/core/framing/baseline.test.ts test/core/framing/baseline.property.test.ts",
+          "Add a relationship-only multi-level Kind closure test.",
+          "pnpm exec vitest run test/core/framing/consume.test.ts test/integration/framing-workflow.test.ts"
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Removes provable quadratic lookup and redundant traversal in one pure function with deterministic behavior preserved.",
+        "id": "OPT-20260729T040955334Z-01",
+        "targetFileHashes": {
+          "src/core/framing/baseline.ts": "6cba4b6463ebef88d14de2eef7f1fe01a331d099fd8163693ac0004cb83eb7f7"
+        }
+      },
+      {
+        "status": "pending",
+        "location": {
+          "files": [
+            "src/core/framing/document.ts"
+          ],
+          "symbols": [
+            "parseElementKinds",
+            "parseRelationshipKinds",
+            "optionalStringList"
+          ]
+        },
+        "opportunity": "Present optional Kind constraint lists are parsed and allocated twice.",
+        "impact": "Parse each optional constraint once to remove duplicate validation, traversal, and allocation.",
+        "evidence": [
+          "parseElementKinds and parseRelationshipKinds each call optionalStringList twice per present constraint."
+        ],
+        "recommendation": "Parse each constraint into a local constant once and reuse it.",
+        "keyDesign": "Compute local optional lists once while preserving absent versus explicit empty semantics.",
+        "preservationConstraints": [
+          "Preserve entry and list ordering.",
+          "Preserve absent versus explicit empty arrays.",
+          "Preserve error codes, labels, first-error ordering, and non-aliasing."
+        ],
+        "implementationOutline": [
+          "Compute optional-list locals once in each non-REMOVED parser branch and reuse them."
+        ],
+        "validation": [
+          "pnpm exec vitest run test/core/framing/document.test.ts test/core/framing/document.property.test.ts",
+          "pnpm exec vitest run test/core/framing/workspace.test.ts test/integration/framing-workflow.test.ts"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Definite duplicate work but lower runtime impact than baseline indexing.",
+        "id": "OPT-20260729T040955334Z-02"
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-29T04:09:55.335Z",
+        "findingId": "OPT-20260729T040955334Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-29T04:09:55.335Z",
+        "findingId": "OPT-20260729T040955334Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "select",
+        "reason": "Removes provable quadratic lookup and redundant traversal in one pure function with deterministic behavior preserved.",
+        "timestamp": "2026-07-29T04:09:55.338Z",
+        "findingId": "OPT-20260729T040955334Z-01",
+        "hashes": {
+          "src/core/framing/baseline.ts": "6cba4b6463ebef88d14de2eef7f1fe01a331d099fd8163693ac0004cb83eb7f7"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-29T04:10:08.774Z",
+        "findingId": "OPT-20260729T040955334Z-01",
+        "hashes": {
+          "src/core/framing/baseline.ts": "6cba4b6463ebef88d14de2eef7f1fe01a331d099fd8163693ac0004cb83eb7f7"
+        }
+      },
+      {
+        "sequence": 5,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-29T04:16:18.255Z",
+        "findingId": "OPT-20260729T040955334Z-01"
+      }
+    ],
+    "reconciliationSignature": "e51918a915bb1dc962b3258a79f61316ffc6e7bf42812efb5e4ba7b364aeda56",
+    "unchangedReconciliations": 0
   }
 }

@@ -3,10 +3,8 @@ import { relationshipIdentity, type ElementKind, type RelationshipKind, type Sem
 import type {
   ChangeStructuralDefinitionPayload,
   ElementKindTarget,
-  ElementTarget,
   RelevantSemanticModelBaseline,
   RelationshipKindTarget,
-  RelationshipTarget,
 } from './types.js';
 
 function elementKindTarget(kind: ElementKind): ElementKindTarget {
@@ -29,16 +27,6 @@ function relationshipKindTarget(kind: RelationshipKind): RelationshipKindTarget 
   };
 }
 
-function elementTarget(model: SemanticModel, identity: string): ElementTarget | undefined {
-  const element = model.elements.find(item => item.declaration.identity === identity);
-  return element ? { ...element.declaration } : undefined;
-}
-
-function relationshipTarget(model: SemanticModel, key: string): RelationshipTarget | undefined {
-  const relationship = model.relationships.find(item => relationshipIdentity(item) === key);
-  return relationship ? { ...relationship } : undefined;
-}
-
 function sorted(values: Iterable<string>): string[] {
   return [...values].sort(compareUtf8Bytes);
 }
@@ -50,6 +38,7 @@ export function captureRelevantBaseline(
   const elementsById = new Map(model.elements.map(item => [item.declaration.identity, item]));
   const elementKindsById = new Map(model.elementKinds.map(item => [item.identity, item]));
   const relationshipKindsById = new Map(model.relationshipKinds.map(item => [item.identity, item]));
+  const relationshipsById = new Map(model.relationships.map(item => [relationshipIdentity(item), item]));
   const elementIds = new Set<string>();
   const elementKindIds = new Set<string>();
   const relationshipKindIds = new Set<string>();
@@ -92,6 +81,10 @@ export function captureRelevantBaseline(
     }
   }
 
+  for (const identity of relationshipKindIds) {
+    const kind = relationshipKindsById.get(identity);
+    for (const reference of [...(kind?.sourceKinds ?? []), ...(kind?.targetKinds ?? [])]) elementKindIds.add(reference);
+  }
   const pendingKinds = [...elementKindIds];
   while (pendingKinds.length > 0) {
     const identity = pendingKinds.pop()!;
@@ -101,20 +94,6 @@ export function captureRelevantBaseline(
       if (!elementKindIds.has(reference)) {
         elementKindIds.add(reference);
         pendingKinds.push(reference);
-      }
-    }
-  }
-  for (const identity of relationshipKindIds) {
-    const kind = relationshipKindsById.get(identity);
-    for (const reference of [...(kind?.sourceKinds ?? []), ...(kind?.targetKinds ?? [])]) elementKindIds.add(reference);
-  }
-  const relationshipConstraintKinds = [...elementKindIds];
-  while (relationshipConstraintKinds.length > 0) {
-    const kind = elementKindsById.get(relationshipConstraintKinds.pop()!);
-    for (const reference of [...(kind?.parents ?? []), ...(kind?.children ?? [])]) {
-      if (!elementKindIds.has(reference)) {
-        elementKindIds.add(reference);
-        relationshipConstraintKinds.push(reference);
       }
     }
   }
@@ -133,15 +112,15 @@ export function captureRelevantBaseline(
         : { identity, exists: false };
     }),
     elements: sorted(elementIds).map(identity => {
-      const value = elementTarget(model, identity);
-      return value ? { identity, exists: true, value } : { identity, exists: false };
+      const value = elementsById.get(identity)?.declaration;
+      return value ? { identity, exists: true, value: { ...value } } : { identity, exists: false };
     }),
     relationships: [...payload.relationships]
       .map(target => ({ source: target.source, kind: target.kind, target: target.target }))
       .sort((left, right) => compareUtf8Bytes(relationshipIdentity(left), relationshipIdentity(right)))
       .map(target => {
-        const value = relationshipTarget(model, relationshipIdentity(target));
-        return value ? { ...target, exists: true, value } : { ...target, exists: false };
+        const value = relationshipsById.get(relationshipIdentity(target));
+        return value ? { ...target, exists: true, value: { ...value } } : { ...target, exists: false };
       }),
   };
 }

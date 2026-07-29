@@ -2,5 +2,6 @@
   "method": "branch",
   "branchName": "enable-definition-first-explore",
   "originalBranch": "main",
-  "baseCommit": "3db2fc70258f81a2f32ccc51f560fd6fd242cb38"
+  "baseCommit": "3db2fc70258f81a2f32ccc51f560fd6fd242cb38",
+  "phase2BaselineCommit": "104454e4c0efe02458fd48a0e2de20f62428692f"
 }
