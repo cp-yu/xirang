@@ -6,11 +6,10 @@ import { HttpContractLoader } from './xirang/HttpContractLoader'
 import { Routes } from './router'
 
 const contractLoader = new HttpContractLoader(fetch, likec4hot)
-const initialManifest = await contractLoader.variants(new AbortController().signal).catch(() => undefined)
 
 createRoot(document.getElementById('likec4-root')!).render(
   <StrictMode>
-    <XirangContractLoaderProvider loader={contractLoader} {...(initialManifest ? { initialManifest } : {})}>
+    <XirangContractLoaderProvider loader={contractLoader}>
       <Routes />
     </XirangContractLoaderProvider>
   </StrictMode>,

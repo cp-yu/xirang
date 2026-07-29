@@ -112,7 +112,7 @@
       "test/fixtures/contract-browser/.xirang/model/metamodel/project.md",
       "test/fixtures/contract-browser/.xirang/model/views/index.md"
     ],
-    "evidenceFingerprint": "f042767e1c33bdb51fa6391e7a919f67f6c8eb54b6632ab760f36afae2fae7a9",
+    "evidenceFingerprint": "51887d98f99d0971fed8ea2b9dde0d5d1c0381845ae60a40cbdb5bb4e07ad2cd",
     "evidenceFingerprintEntries": [
       {
         "path": ".github/workflows/test-windows.yml",
@@ -120,7 +120,7 @@
       },
       {
         "path": ".xirang/changes/complete-contract-verb-migration/.apply-isolation.json",
-        "hash": "5014bc0d1ed1e75b49df7e4f4c9a46225589e7ee48b975df503bd22291ce0051"
+        "hash": "8f8c44a428d3c6280fd39b1ad89ebe1fe08cef5300b174ce44b12d20c1494235"
       },
       {
         "path": ".xirang/changes/complete-contract-verb-migration/.xirang.yaml",
@@ -232,7 +232,7 @@
       },
       {
         "path": "likec4/packages/likec4-spa/src/main.tsx",
-        "hash": "3ae64191f904cd759cdfafebdaca7431e5f6f25dbe4081617d95bb3e5c25274b"
+        "hash": "9f631e52f647f45d9472ca84c67a321bb6ad38f977091dcdc712419caa036c3c"
       },
       {
         "path": "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.spec.ts",
@@ -484,11 +484,33 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "59a04f065c3be62786835488782349a4fbd5c8e2"
+    "gitHeadCommit": "8303fc1081d6252d5b393a21e13c149544f51f78",
+    "timestamp": "2026-07-29T13:03:10.193Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-07-29T12:25:44.529Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-29T12:35:44.524Z",
+        "type": "verification",
+        "result": "FAIL_NEEDS_REMEDIATION"
+      },
+      {
+        "timestamp": "2026-07-29T12:47:54.080Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-29T13:03:10.162Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-07-29T12:16:02.492Z",
       "result": "PASS_WITH_WARNINGS",
@@ -977,6 +999,223 @@
         "skippedEvidenceFiles": [],
         "gitHeadCommit": "59a04f065c3be62786835488782349a4fbd5c8e2"
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "rejected",
+        "location": {
+          "files": [
+            "src/commands/validate.ts",
+            "src/utils/item-discovery.ts"
+          ],
+          "symbols": [
+            "ValidateCommand.runBulkValidation",
+            "ValidateCommand.validateChangeWithPreview",
+            "validateElementContract",
+            "getContractElementIds"
+          ]
+        },
+        "opportunity": "Bulk validation repeatedly parses the complete Formal Semantic Model. Contract discovery parses it once, every Contract task parses it again, and every Change task invokes compileChange without the supported pre-parsed base. The current model contains 58 Contract-bearing Elements, so `validate --contracts` performs 59 whole-model parses before accounting for Change validation.",
+        "impact": "Use one immutable Formal Semantic Model snapshot per bulk invocation, reducing model parsing and four-partition filesystem I/O from O(contract count + change count) to O(1). This also avoids duplicate model allocations and ensures all items in one bulk result are evaluated against the same Formal state.",
+        "evidence": [
+          "src/utils/item-discovery.ts:29-34 parses the complete Semantic Model inside getContractElementIds before deriving Contract identities.",
+          "src/commands/validate.ts:251-254 invokes getContractElementIds during bulk discovery.",
+          "src/commands/validate.ts:270-275 invokes validateElementContract once per Contract task, while validateElementContract reparses the Formal model at src/commands/validate.ts:363-369.",
+          "src/commands/validate.ts:261-268 invokes validateChangeWithPreview once per Change, and src/commands/validate.ts:215 calls compileChange without a base.",
+          "src/core/change-compiler.ts:138 reparses the Formal model when CompileChangeOptions.base is absent; the existing base option proves that command-scoped reuse is supported.",
+          "Static filesystem inspection finds 58 `.xirang/model/elements/*.md` units containing `## Requirements`, making the repeated work multiplicative in the verified repository."
+        ],
+        "recommendation": "Create one lazily initialized ParsedModel promise inside bulk validation, derive Contract identities from that parsed model, pass the same ParsedModel to each Change compilation through `{ base }`, and pass it directly to Contract validation. Keep getContractElementIds as the standalone parsing API for other callers, backed by a pure identity-extraction helper that can also consume an already parsed model.",
+        "keyDesign": "Separate Contract identity extraction from model loading. A pure helper accepts a SemanticModel or ParsedModel and returns the same sorted Element identities. runBulkValidation owns a command-scoped lazy `getBase()` promise: Contract discovery awaits it when Contracts are requested, Change tasks await it and call compileChange with `{ base }`, and Contract tasks locate their Element and source module through that same ParsedModel. Do not introduce a process-wide or time-based cache.",
+        "preservationConstraints": [
+          "Preserve the exact Contract identity set and lexicographic ordering, including the rule that only Elements with at least one Requirement are included.",
+          "Preserve Change and Contract result IDs, types, issue contents, issue paths, summary counts, final result sorting, JSON envelope version, stdout/stderr routing, and exit codes.",
+          "Preserve strict-mode handling of warnings and the current per-item durationMs field semantics; numeric durations may decrease as a result of the optimization.",
+          "Preserve the configured queue concurrency and completion-order-independent result collection before the existing final ID sort.",
+          "Preserve model-index-based Contract unit paths and all compiler diagnostics, fingerprints, declared-operation checks, and diff output.",
+          "When Contract scope is requested, preserve the current behavior in which failure to discover the Formal model prevents queue construction. For Changes-only scope, preserve conversion of a shared model-load rejection into each affected item error through the existing task catch path.",
+          "Use one command-local immutable snapshot only; do not cache across CLI invocations or allow one item's processing to mutate the shared ParsedModel.",
+          "Do not change public CLI forms, Element Contract semantics, Change compilation semantics, or the four-partition model loader."
+        ],
+        "implementationOutline": [
+          "Extract a pure sorted Contract-identity selector in item-discovery and make getContractElementIds delegate to it after parsing.",
+          "Add a lazy command-scoped Formal model promise to runBulkValidation so concurrent tasks share one parse without changing Changes-only error handling.",
+          "Allow validateChangeWithPreview to receive the shared ParsedModel and pass it to compileChange through the existing base option.",
+          "Allow the internal Contract-validation helper to receive the shared ParsedModel and perform only Element/index lookup plus Validator.validateElementContract.",
+          "Add a multi-Contract and multi-Change regression fixture that observes Formal model file reads or parser calls and proves one parse per bulk invocation."
+        ],
+        "validation": [
+          "Run bulk validation tests for `--contracts`, `--changes`, and `--all` at concurrency 1 and greater than 1; assert unchanged item ordering, issues, summaries, types, and exit codes.",
+          "Add a read-count or parser-spy test with at least two Contracts and two Changes proving that all tasks share one Formal model parse.",
+          "Test an invalid or unreadable Formal model separately for Contracts-inclusive and Changes-only scopes to prove the existing error timing and item-error shape remain intact.",
+          "Run `pnpm exec vitest run test/commands/validate.test.ts test/commands/validate.enriched-output.test.ts test/core/change-compiler.test.ts`.",
+          "Run `pnpm lint && pnpm build`."
+        ],
+        "impactLevel": "high",
+        "confidence": "high",
+        "risk": "medium",
+        "cost": "medium",
+        "dependencies": [],
+        "priorityReason": "This is the highest-priority opportunity because the waste scales with every Contract and Change, is already amplified to at least 59 full parses in the current repository, and can reuse the compiler's established pre-parsed base contract without altering validation results. It outranks the startup-manifest finding, which removes one constant duplicate request.",
+        "id": "OPT-20260729T122544526Z-01",
+        "targetFileHashes": {
+          "src/commands/validate.ts": "3ccf5bf0fb39bb74c775a85453229b8358cf673de32c6b3b35aac162434e9de8",
+          "src/utils/item-discovery.ts": "cbbec37bd34b7a42a44988857973fbfd5ba56c06e910a84d91f0fdf7bee6bc66"
+        },
+        "failureCount": 1
+      },
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "likec4/packages/likec4-spa/src/main.tsx"
+          ],
+          "symbols": [
+            "initialManifest",
+            "XirangContractLoaderProvider bootstrap"
+          ]
+        },
+        "opportunity": "The SPA blocks React root creation on an eager active-variant manifest request and then the provider unconditionally requests the same manifest again when its effect mounts. The eager response is therefore only a seed for state that is immediately refreshed.",
+        "impact": "Remove one full `/__xirang/changes` request from every SPA startup, including server-side manifest file reading, JSON parsing and serialization, response transfer, and client JSON parsing. Removing the top-level await also lets React root creation begin immediately.",
+        "evidence": [
+          "likec4/packages/likec4-spa/src/main.tsx:8-13 awaits contractLoader.variants before createRoot and passes the result as initialManifest.",
+          "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx:148-162 unconditionally calls loader.variants when the provider effect mounts, even when initialManifest initialized the state.",
+          "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx:139-145 already initializes synchronously from globalThis.__OPSX_RUNTIME__ when no explicit initialManifest is passed.",
+          "likec4/packages/vite-plugin/src/plugin.ts:360-370 injects the configured runtime manifest into globalThis.__OPSX_RUNTIME__ before the application entry executes.",
+          "likec4/packages/vite-plugin/src/plugin.ts:389-410 shows that each duplicate `/__xirang/changes` request rereads, parses, validates, and serializes the complete manifest."
+        ],
+        "recommendation": "Remove the eager `contractLoader.variants(...)` call and the initialManifest prop construction from the SPA entry. Render the provider immediately with the loader; let its existing embedded-manifest initialization supply first-render variants and let its existing effect perform the single logical endpoint refresh and establish HMR subscription.",
+        "keyDesign": "Keep manifest lifecycle ownership in XirangContractLoaderProvider. The Vite-injected `__OPSX_RUNTIME__` snapshot supplies synchronous initial state when available, the provider effect refreshes from `/__xirang/changes`, and subscribeVariants triggers later refreshes. The SPA entry should only construct the HttpContractLoader and mount the provider.",
+        "preservationConstraints": [
+          "Preserve the XirangContractLoaderProvider public API and its support for explicit initialManifest values in other consumers.",
+          "Preserve immediate initialization from the embedded Formal and Change variants when the Vite plugin supplied `__OPSX_RUNTIME__`.",
+          "Preserve the default Formal fallback when neither an explicit nor embedded manifest is available.",
+          "Preserve the provider effect's endpoint refresh, selected-variant retention or Formal fallback, HMR subscription, abort behavior, cleanup, and ignored refresh failures.",
+          "Preserve `/__xirang/changes` and `/__xirang/contract` request and response contracts, 404 handling, Contract content, variants, diffs, diagnostics, and selectors.",
+          "Do not add a time-based, process-wide, or stale-while-revalidate cache and do not change shared provider semantics merely to optimize this SPA bootstrap.",
+          "Preserve operation without a configured Xirang manifest: the application must still mount, use the Formal fallback, and tolerate the provider refresh failure."
+        ],
+        "implementationOutline": [
+          "Delete the top-level variants request and initialManifest local from the SPA entry.",
+          "Mount XirangContractLoaderProvider with only the existing HttpContractLoader and children.",
+          "Add a focused bootstrap or provider integration test proving embedded variants are available on the initial render while the provider still performs its effect refresh.",
+          "Add request-count coverage showing the entry no longer issues a pre-render `/__xirang/changes` request and HMR still causes subsequent provider refreshes."
+        ],
+        "validation": [
+          "Run the provider integration test with an embedded manifest and assert initial variant visibility, one logical effect refresh, selected-ID preservation, and HMR refresh behavior.",
+          "Run the same test without an embedded manifest and with a rejected variants request; assert the Formal fallback renders and no unhandled error occurs.",
+          "Run `cd likec4 && ./node_modules/.bin/vitest run --no-isolate packages/likec4-spa/src/xirang/HttpContractLoader.spec.ts packages/diagram/src/overlays/element-details/ContractsTab.spec.tsx packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx`.",
+          "Run `pnpm test:e2e` to prove Formal and Change Contract browsing remains intact.",
+          "Run `pnpm likec4:typecheck && pnpm likec4:test`."
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "This is a statically guaranteed startup improvement with a very small implementation surface, but it ranks after command-scoped model reuse because it removes one constant request rather than multiplicative whole-model parsing across every validation item.",
+        "id": "OPT-20260729T122544526Z-02",
+        "targetFileHashes": {
+          "likec4/packages/likec4-spa/src/main.tsx": "3ae64191f904cd759cdfafebdaca7431e5f6f25dbe4081617d95bb3e5c25274b"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-29T12:25:44.527Z",
+        "findingId": "OPT-20260729T122544526Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-29T12:25:44.527Z",
+        "findingId": "OPT-20260729T122544526Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "select",
+        "reason": "This is the highest-priority opportunity because the waste scales with every Contract and Change, is already amplified to at least 59 full parses in the current repository, and can reuse the compiler's established pre-parsed base contract without altering validation results. It outranks the startup-manifest finding, which removes one constant duplicate request.",
+        "timestamp": "2026-07-29T12:25:44.529Z",
+        "findingId": "OPT-20260729T122544526Z-01",
+        "hashes": {
+          "src/commands/validate.ts": "3ccf5bf0fb39bb74c775a85453229b8358cf673de32c6b3b35aac162434e9de8",
+          "src/utils/item-discovery.ts": "cbbec37bd34b7a42a44988857973fbfd5ba56c06e910a84d91f0fdf7bee6bc66"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-29T12:26:05.986Z",
+        "findingId": "OPT-20260729T122544526Z-01",
+        "hashes": {
+          "src/commands/validate.ts": "3ccf5bf0fb39bb74c775a85453229b8358cf673de32c6b3b35aac162434e9de8",
+          "src/utils/item-discovery.ts": "cbbec37bd34b7a42a44988857973fbfd5ba56c06e910a84d91f0fdf7bee6bc66"
+        }
+      },
+      {
+        "sequence": 5,
+        "action": "failed",
+        "reason": "Speculative reviewer rejected the optimization",
+        "timestamp": "2026-07-29T12:35:44.526Z",
+        "findingId": "OPT-20260729T122544526Z-01",
+        "evidence": [
+          ".xirang/changes/complete-contract-verb-migration/.verify-result.json:1018-1036",
+          "test/commands/validate.test.ts:140-177",
+          "src/commands/validate.ts:251-361",
+          "src/core/model/parser.ts:334-352"
+        ]
+      },
+      {
+        "sequence": 6,
+        "action": "reject",
+        "reason": "Reject this direction for the current phase. The implementation has been rolled back, the persisted failedDirections records the command-scoped shared ParsedModel design as rejected, and the failure history supplies no concrete remediation that would distinguish a retry from the failed design. Repeating it would therefore violate failed-direction reconciliation even though the baseline still exhibits repeated model parsing.",
+        "timestamp": "2026-07-29T12:47:54.077Z",
+        "findingId": "OPT-20260729T122544526Z-01"
+      },
+      {
+        "sequence": 7,
+        "action": "reprioritize",
+        "reason": "This is now the highest-priority actionable finding. Current main.tsx still performs an awaited manifest request before createRoot, while XirangContractLoaderProvider initializes from the Vite-injected runtime manifest and unconditionally performs its own effect refresh. Removing only the SPA entry request statically eliminates one startup request and top-level render delay with low risk and without changing the shared provider or HTTP contracts.",
+        "timestamp": "2026-07-29T12:47:54.077Z",
+        "findingId": "OPT-20260729T122544526Z-02"
+      },
+      {
+        "sequence": 8,
+        "action": "select",
+        "reason": "This is a statically guaranteed startup improvement with a very small implementation surface, but it ranks after command-scoped model reuse because it removes one constant request rather than multiplicative whole-model parsing across every validation item.",
+        "timestamp": "2026-07-29T12:47:54.080Z",
+        "findingId": "OPT-20260729T122544526Z-02",
+        "hashes": {
+          "likec4/packages/likec4-spa/src/main.tsx": "3ae64191f904cd759cdfafebdaca7431e5f6f25dbe4081617d95bb3e5c25274b"
+        }
+      },
+      {
+        "sequence": 9,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-29T12:48:21.076Z",
+        "findingId": "OPT-20260729T122544526Z-02",
+        "hashes": {
+          "likec4/packages/likec4-spa/src/main.tsx": "3ae64191f904cd759cdfafebdaca7431e5f6f25dbe4081617d95bb3e5c25274b"
+        }
+      },
+      {
+        "sequence": 10,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-29T13:03:10.162Z",
+        "findingId": "OPT-20260729T122544526Z-02"
+      }
+    ],
+    "reconciliationSignature": "7ff9d7a6bae1bcc755943fd10951017b41967169db874429599263bd3838a773",
+    "unchangedReconciliations": 0,
+    "failedDirections": [
+      "OPT-20260729T122544526Z-01: Separate Contract identity extraction from model loading. A pure helper accepts a SemanticModel or ParsedModel and returns the same sorted Element identities. runBulkValidation owns a command-scoped lazy `getBase()` promise: Contract discovery awaits it when Contracts are requested, Change tasks await it and call compileChange with `{ base }`, and Contract tasks locate their Element and source module through that same ParsedModel. Do not introduce a process-wide or time-based cache. — Speculative reviewer rejected the optimization"
+    ]
   }
 }
