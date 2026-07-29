@@ -30,6 +30,18 @@ describe('compileChange', () => {
 
   afterEach(async () => fs.rm(root, { recursive: true, force: true }));
 
+  it('owns the Change title used by Show and List', async () => {
+    const titled = await writeChangeDelta(root, 'titled-change', {});
+    await fs.mkdir(titled, { recursive: true });
+    await fs.writeFile(path.join(titled, 'proposal.md'), '# Change: Compiler title\n\n## Why\nReason.\n');
+    const canonical = await writeChangeDelta(root, 'canonical-change', {});
+    await fs.mkdir(canonical, { recursive: true });
+    await fs.writeFile(path.join(canonical, 'proposal.md'), '## Why\nReason.\n\n## What Changes\nNone.\n');
+
+    expect((await compileChange(root, 'titled-change')).title).toBe('Compiler title');
+    expect((await compileChange(root, 'canonical-change')).title).toBe('canonical-change');
+  });
+
   it('compiles Declaration and Contract deltas from one immutable Formal snapshot', async () => {
     await writeChangeDelta(root, 'change-a', {
       'elements/old.id.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: old.id\nkind: capability\nparent: project.root\ntitle: Old\ndefinition: Changed summary\n---\n\n'

@@ -39,7 +39,7 @@ _opsx_completion() {
 
   # Use _init_completion if available (from bash-completion package)
   # The -n : option prevents colons from being treated as word separators
-  # (important for spec/change IDs that may contain colons)
+  # (important for contract/change IDs that may contain colons)
   # Otherwise, fall back to manual initialization
   if declare -F _init_completion >/dev/null 2>&1; then
     _init_completion -n : || return
@@ -162,10 +162,10 @@ complete -F _opsx_completion xirang
       case 'change-id':
         lines.push(`${indent}_opsx_complete_changes`);
         break;
-      case 'spec-id':
-        lines.push(`${indent}_opsx_complete_specs`);
+      case 'contract-id':
+        lines.push(`${indent}_opsx_complete_contracts`);
         break;
-      case 'change-or-spec-id':
+      case 'change-or-contract-id':
         lines.push(`${indent}_opsx_complete_items`);
         break;
       case 'shell':

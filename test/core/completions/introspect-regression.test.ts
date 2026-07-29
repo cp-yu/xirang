@@ -10,7 +10,7 @@ async function buildRealProgram(): Promise<Command> {
   // We can't directly import and run the full CLI setup due to side effects,
   // so we'll build a representative subset that covers all command patterns
   const program = new Command();
-  program.name('xirang').description('AI-native system for spec-driven development');
+  program.name('xirang').description('AI-native system for contract-driven development');
 
   // Top-level commands with various patterns
   program.command('setup [path]').description('Set up Xirang in your project');
@@ -19,16 +19,12 @@ async function buildRealProgram(): Promise<Command> {
   candidateCmd.command('status').option('--json');
   candidateCmd.command('validate').option('--json');
   candidateCmd.command('promote').requiredOption('--digest <reviewDigest>');
-  program.command('list').description('List items').option('--specs', 'List specs').option('--json', 'Output as JSON');
-  program.command('validate [item-name]').description('Validate changes and specs').option('--strict', 'Strict mode');
-  program.command('show [item-name]').description('Show a change or spec').option('--json', 'Output as JSON');
+  program.command('list').description('List active changes').option('--json', 'Output as JSON');
+  program.command('validate [item-name]').description('Validate changes and Element Contracts').option('--strict', 'Strict mode');
+  program.command('show [item-name]').description('Show a change').option('--json', 'Output as JSON');
   program.command('archive [change-name]').description('Archive a change').option('--no-validate', 'Skip validation');
 
   // Commands with subcommands
-  const specCmd = program.command('spec').description('Manage specs');
-  specCmd.command('show [spec-id]').description('Show a spec').option('--json', 'Output as JSON');
-  specCmd.command('validate [spec-id]').description('Validate a spec').option('--strict', 'Strict mode');
-
   const completionCmd = program.command('completion').description('Manage shell completions');
   completionCmd.command('generate [shell]').description('Generate completion script');
   completionCmd.command('install [shell]').description('Install completion script').option('--verbose', 'Verbose output');
@@ -74,13 +70,13 @@ describe('introspect-regression', () => {
     expect(script).toContain("'candidate:Manage the active Project Build Candidate");
     expect(script).not.toContain("'bootstrap:");
     expect(script).not.toContain("'migrate:");
-    expect(script).toContain("'list:List items");
+    expect(script).toContain("'list:List active changes");
     expect(script).toContain("'validate:Validate changes");
     expect(script).toContain("'show:Show a change");
     expect(script).toContain("'archive:Archive a change");
 
     // 验证子命令
-    expect(script).toContain("'spec:Manage specs");
+    expect(script).not.toContain("'contract:");
     expect(script).toContain("'completion:Manage shell completions");
     expect(script).toContain("'config:View and modify config");
     expect(script).toContain("'verify:Verification gates");
@@ -92,7 +88,7 @@ describe('introspect-regression', () => {
 
     // 验证动态补全函数引用（针对 positionalType）
     expect(script).toContain('_opsx_complete_changes'); // For change-id
-    expect(script).toContain('_opsx_complete_specs'); // For spec-id
+    expect(script).toContain('_opsx_complete_contracts'); // For contract-id
   });
 
   it('Bash 补全脚本覆盖率：包含所有命令和 flags', async () => {
@@ -115,7 +111,7 @@ describe('introspect-regression', () => {
     expect(script).toContain('validate');
     expect(script).toContain('show');
     expect(script).toContain('archive');
-    expect(script).toContain('spec');
+    expect(script).not.toContain(' contract ');
     expect(script).toContain('completion');
     expect(script).toContain('config');
     expect(script).toContain('verify');
@@ -138,11 +134,14 @@ describe('introspect-regression', () => {
     expect(archiveCmd?.acceptsPositional).toBe(true);
     expect(archiveCmd?.positionalType).toBe('change-id');
 
-    // 找到 spec.show（应该有 positionalType: 'spec-id'）
-    const specCmd = commands.find(c => c.name === 'spec');
-    const specShowCmd = specCmd?.subcommands?.find(c => c.name === 'show');
-    expect(specShowCmd?.acceptsPositional).toBe(true);
-    expect(specShowCmd?.positionalType).toBe('spec-id');
+    // 找到 validate 命令（应该补全 Change 与 Contract-bearing Element identities）
+    const validateCmd = commands.find(c => c.name === 'validate');
+    expect(validateCmd?.acceptsPositional).toBe(true);
+    expect(validateCmd?.positionalType).toBe('change-or-contract-id');
+
+    // show 只补全 Change identities
+    const showCmd = commands.find(c => c.name === 'show');
+    expect(showCmd?.positionalType).toBe('change-id');
 
     // 找到 completion.generate（应该有 positionalType: 'shell'）
     const completionCmd = commands.find(c => c.name === 'completion');
@@ -154,9 +153,9 @@ describe('introspect-regression', () => {
     const zshGenerator = new ZshGenerator();
     const zshScript = zshGenerator.generate(commands);
 
-    // change-id 和 spec-id 类型会生成对应的补全函数
+    // change-id 和 change-or-contract-id 类型会生成对应的补全函数
     expect(zshScript).toContain('_opsx_complete_changes');
-    expect(zshScript).toContain('_opsx_complete_specs');
+    expect(zshScript).toContain('_opsx_complete_contracts');
 
     // shell 类型使用固定值补全，不生成动态函数
     expect(zshScript).toContain('zsh');

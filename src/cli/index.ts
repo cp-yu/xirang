@@ -10,7 +10,6 @@ import { ListCommand } from '../core/list.js';
 import { ArchiveCommand } from '../core/archive.js';
 import { ViewCommand } from '../core/view.js';
 import { registerHelpCommand } from '../commands/help.js';
-import { ChangeCommand } from '../commands/change.js';
 import { ValidateCommand } from '../commands/validate.js';
 import { ShowCommand } from '../commands/show.js';
 import { CompletionCommand } from '../commands/completion.js';
@@ -162,11 +161,12 @@ program
   .option('--changes', 'List changes explicitly (default)')
   .option('--sort <order>', 'Sort order: "recent" (default) or "name"', 'recent')
   .option('--json', 'Output as JSON (for programmatic use)')
-  .action(async (options?: { changes?: boolean; sort?: string; json?: boolean }) => {
+  .option('--long', 'Show title, Delta count, and task status')
+  .action(async (options?: { changes?: boolean; sort?: string; json?: boolean; long?: boolean }) => {
     try {
       const listCommand = new ListCommand();
       const sort = options?.sort === 'name' ? 'name' : 'recent';
-      await listCommand.execute('.', { sort, json: options?.json });
+      await listCommand.execute('.', { sort, json: options?.json, long: options?.long });
     } catch (error) {
       console.log(); // Empty line for spacing
       ora().fail(`Error: ${(error as Error).message}`);
@@ -187,66 +187,6 @@ program
       console.log(); // Empty line for spacing
       ora().fail(`Error: ${(error as Error).message}`);
       process.exit(1);
-    }
-  });
-
-// Change command with subcommands
-const changeCmd = program
-  .command('change')
-  .description('Manage Xirang change proposals');
-
-// Deprecation notice for noun-based commands
-changeCmd.hook('preAction', () => {
-  console.error('Warning: The "xirang change ..." commands are deprecated. Prefer verb-first commands (e.g., "xirang list", "xirang validate --changes").');
-});
-
-changeCmd
-  .command('show [change-name]')
-  .description('Show a change proposal in JSON or markdown format')
-  .option('--json', 'Output as JSON')
-  .option('--no-interactive', 'Disable interactive prompts')
-  .action(async (changeName?: string, options?: { json?: boolean; noInteractive?: boolean }) => {
-    try {
-      const changeCommand = new ChangeCommand();
-      await changeCommand.show(changeName, options);
-    } catch (error) {
-      console.error(`Error: ${(error as Error).message}`);
-      process.exitCode = 1;
-    }
-  });
-
-changeCmd
-  .command('list')
-  .description('List all active changes (DEPRECATED: use "xirang list" instead)')
-  .option('--json', 'Output as JSON')
-  .option('--long', 'Show id and title with counts')
-  .action(async (options?: { json?: boolean; long?: boolean }) => {
-    try {
-      console.error('Warning: "xirang change list" is deprecated. Use "xirang list".');
-      const changeCommand = new ChangeCommand();
-      await changeCommand.list(options);
-    } catch (error) {
-      console.error(`Error: ${(error as Error).message}`);
-      process.exitCode = 1;
-    }
-  });
-
-changeCmd
-  .command('validate [change-name]')
-  .description('Validate a change proposal')
-  .option('--strict', 'Enable strict validation mode')
-  .option('--json', 'Output validation report as JSON')
-  .option('--no-interactive', 'Disable interactive prompts')
-  .action(async (changeName?: string, options?: { strict?: boolean; json?: boolean; noInteractive?: boolean }) => {
-    try {
-      const changeCommand = new ChangeCommand();
-      await changeCommand.validate(changeName, options);
-      if (typeof process.exitCode === 'number' && process.exitCode !== 0) {
-        process.exit(process.exitCode);
-      }
-    } catch (error) {
-      console.error(`Error: ${(error as Error).message}`);
-      process.exitCode = 1;
     }
   });
 
@@ -278,14 +218,14 @@ program
   .description('Validate changes and Element Contracts')
   .option('--all', 'Validate all changes and Element Contracts')
   .option('--changes', 'Validate all changes')
-  .option('--specs', 'Validate all Element Contracts')
+  .option('--contracts', 'Validate all Element Contracts')
   .option('--change <name>', 'Validate an explicit change')
-  .option('--type <type>', 'Specify item type when ambiguous: change|spec')
+  .option('--type <type>', 'Specify item type when ambiguous: change|contract')
   .option('--strict', 'Enable strict validation mode')
   .option('--json', 'Output validation results as JSON')
   .option('--concurrency <n>', 'Max concurrent validations (defaults to env XIRANG_CONCURRENCY or 6)')
   .option('--no-interactive', 'Disable interactive prompts')
-  .action(async (itemName?: string, options?: { all?: boolean; changes?: boolean; specs?: boolean; change?: string; type?: string; strict?: boolean; json?: boolean; noInteractive?: boolean; concurrency?: string }) => {
+  .action(async (itemName?: string, options?: { all?: boolean; changes?: boolean; contracts?: boolean; change?: string; type?: string; strict?: boolean; json?: boolean; noInteractive?: boolean; concurrency?: string }) => {
     try {
       const validateCommand = new ValidateCommand();
       await validateCommand.execute(itemName, options);

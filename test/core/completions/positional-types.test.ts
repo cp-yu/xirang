@@ -16,7 +16,7 @@ function collectPositionalCommandPaths(command: Command, parentPath = ''): strin
 
 describe('positional-types', () => {
   it('MAP 条目格式：每个条目的值为合法 PositionalType', () => {
-    const validTypes = ['change-id', 'spec-id', 'change-or-spec-id', 'path', 'shell', 'schema-name', 'text', 'element-id'];
+    const validTypes = ['change-id', 'contract-id', 'change-or-contract-id', 'path', 'shell', 'schema-name', 'text', 'element-id'];
 
     for (const [key, value] of Object.entries(POSITIONAL_TYPE_MAP)) {
       expect(validTypes).toContain(value);

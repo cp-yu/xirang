@@ -1,6 +1,6 @@
 import type { DiagramView } from '@likec4/core/types'
 import { describe, expect, it } from 'vitest'
-import { isXirangContractDiagnostic, type XirangRuntimeVariant } from './SpecLoaderContext'
+import { isXirangContractDiagnostic, type XirangRuntimeVariant } from './ContractLoaderContext'
 import { getArchitectureOverlayModel } from '../likec4diagram/DiagramUI'
 import { materializeXirangArchitectureView } from './architectureView'
 

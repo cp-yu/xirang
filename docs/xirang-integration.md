@@ -16,6 +16,10 @@ Query output uses stable identity and can include Declaration, parent, children,
 
 An Element Contract is the `## Requirements` body of its Element unit under `.xirang/model/elements/`. Resolve an Element through the model identity index instead of constructing a file path from its identity. Each Requirement has a stable name within its host Element, and each Scenario remains part of its Requirement.
 
+## Browser Contract API
+
+The embedded Semantic Browser reads Element Contracts from `/__xirang/contract` using `project`, `element`, and optional `variant` query parameters. A valid lookup returns the Element identity and Contract Markdown; a missing Contract returns 404 and is treated as no Contract. The endpoint is a local Browser transport, not a second semantic source.
+
 ## Change Integration
 
 - Semantic Delta Entries are declared under `.xirang/changes/<name>/{elements,metamodel,relationships,views}/`.

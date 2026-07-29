@@ -1,0 +1,982 @@
+{
+  "timestamp": "2026-07-29T12:16:02.492Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "Semantic Model alignment was necessarily degraded because `.xirang/model/views/` is absent and the Change contains only the `elements/` partition directory. The available Formal model validates, the two Element Delta units compile successfully, and all implementation checks pass, but absent collections cannot be treated as complete and empty.",
+      "evidence": [
+        ".xirang/model/elements/semantic-model.md:30-37",
+        ".xirang/changes/complete-contract-verb-migration/proposal.md:21-42",
+        ".xirang/changes/complete-contract-verb-migration/elements/deterministic-operations.md:41-45",
+        "filesystem inspection: .xirang/model contains metamodel/, elements/, and relationships/ but no views/",
+        "filesystem inspection: .xirang/changes/complete-contract-verb-migration contains elements/ but no metamodel/, relationships/, or views/"
+      ],
+      "writeBackPlan": []
+    }
+  ],
+  "tasksFileHash": "c81eefa4ee71de1471c6f9341b383a7de26a34faa6d5fa90ace0fd9b1bf297fe",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".github/workflows/test-windows.yml",
+      ".xirang/changes/complete-contract-verb-migration/.apply-isolation.json",
+      ".xirang/changes/complete-contract-verb-migration/.xirang.yaml",
+      ".xirang/changes/complete-contract-verb-migration/design.md",
+      ".xirang/changes/complete-contract-verb-migration/elements/deterministic-operations.md",
+      ".xirang/changes/complete-contract-verb-migration/elements/semantic-browser.md",
+      ".xirang/changes/complete-contract-verb-migration/proposal.md",
+      ".xirang/changes/complete-contract-verb-migration/tasks.md",
+      ".xirang/model/elements/deterministic-operations.md",
+      ".xirang/model/elements/project.root.md",
+      ".xirang/model/elements/semantic-browser.md",
+      ".xirang/model/elements/semantic-model.md",
+      ".xirang/model/metamodel/capability.md",
+      ".xirang/model/relationships/supports-presentation.yaml",
+      "docs/architecture-integration.md",
+      "docs/cli.md",
+      "docs/xirang-integration.md",
+      "likec4/packages/diagram/package.json",
+      "likec4/packages/diagram/src/index.ts",
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+      "likec4/packages/diagram/src/navigationpanel/NavigationPanelDropdown.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/ContractsTab.spec.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+      "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+      "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+      "likec4/packages/diagram/src/xirang/architectureView.ts",
+      "likec4/packages/likec4-spa/package.json",
+      "likec4/packages/likec4-spa/src/main.tsx",
+      "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.spec.ts",
+      "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts",
+      "likec4/packages/vite-plugin/package.json",
+      "likec4/packages/vite-plugin/src/plugin.ts",
+      "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.spec.ts",
+      "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts",
+      "package.json",
+      "playwright.config.ts",
+      "src/cli/index.ts",
+      "src/commands/completion.ts",
+      "src/commands/show.ts",
+      "src/commands/validate.ts",
+      "src/core/change-compiler.ts",
+      "src/core/completions/completion-provider.ts",
+      "src/core/completions/generators/bash-generator.ts",
+      "src/core/completions/generators/fish-generator.ts",
+      "src/core/completions/generators/powershell-generator.ts",
+      "src/core/completions/generators/zsh-generator.ts",
+      "src/core/completions/positional-types.ts",
+      "src/core/completions/templates/bash-templates.ts",
+      "src/core/completions/templates/fish-templates.ts",
+      "src/core/completions/templates/powershell-templates.ts",
+      "src/core/completions/templates/zsh-templates.ts",
+      "src/core/completions/types.ts",
+      "src/core/list.ts",
+      "src/core/model/parser.ts",
+      "src/core/model/types.ts",
+      "src/core/parsers/requirement-blocks.ts",
+      "src/core/parsers/requirement-text.ts",
+      "src/core/parsers/task-structure.ts",
+      "src/core/schemas/index.ts",
+      "src/core/templates/fragments/xirang-fragments.ts",
+      "src/core/validation/constants.ts",
+      "src/core/validation/validator.ts",
+      "src/utils/item-discovery.ts",
+      "test/commands/show.test.ts",
+      "test/commands/validate.enriched-output.test.ts",
+      "test/commands/validate.test.ts",
+      "test/core/change-compiler.test.ts",
+      "test/core/completions/completion-provider.test.ts",
+      "test/core/completions/generators/bash-generator.test.ts",
+      "test/core/completions/generators/fish-generator.test.ts",
+      "test/core/completions/generators/powershell-generator.test.ts",
+      "test/core/completions/generators/zsh-generator.test.ts",
+      "test/core/completions/introspect-regression.test.ts",
+      "test/core/completions/introspect.test.ts",
+      "test/core/completions/positional-types.test.ts",
+      "test/core/list.test.ts",
+      "test/core/model/parser.test.ts",
+      "test/core/parsers/task-structure.test.ts",
+      "test/core/templates/fragments/xirang-fragments.test.ts",
+      "test/core/templates/propose-template.test.ts",
+      "test/core/validation.test.ts",
+      "test/e2e/cleanup-generated-cache.ts",
+      "test/e2e/contract-browser.spec.ts",
+      "test/fixtures/contract-browser/.xirang/model/elements/long.md",
+      "test/fixtures/contract-browser/.xirang/model/elements/none.md",
+      "test/fixtures/contract-browser/.xirang/model/elements/project.root.md",
+      "test/fixtures/contract-browser/.xirang/model/elements/single.md",
+      "test/fixtures/contract-browser/.xirang/model/metamodel/capability.md",
+      "test/fixtures/contract-browser/.xirang/model/metamodel/project.md",
+      "test/fixtures/contract-browser/.xirang/model/views/index.md"
+    ],
+    "evidenceFingerprint": "f042767e1c33bdb51fa6391e7a919f67f6c8eb54b6632ab760f36afae2fae7a9",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".github/workflows/test-windows.yml",
+        "hash": "9f9ae330ff0669548e4bf175f292053939c87e71516b935130e2c8a190f3555b"
+      },
+      {
+        "path": ".xirang/changes/complete-contract-verb-migration/.apply-isolation.json",
+        "hash": "5014bc0d1ed1e75b49df7e4f4c9a46225589e7ee48b975df503bd22291ce0051"
+      },
+      {
+        "path": ".xirang/changes/complete-contract-verb-migration/.xirang.yaml",
+        "hash": "2976103ed6b60190e61a51c305fd25386db116adc384fffd02652f6b68266be6"
+      },
+      {
+        "path": ".xirang/changes/complete-contract-verb-migration/design.md",
+        "hash": "3f034fcabe9b80f37bfd8ffba7ac61b8ba2f0115452e1e4387356e9cf43a4dc5"
+      },
+      {
+        "path": ".xirang/changes/complete-contract-verb-migration/elements/deterministic-operations.md",
+        "hash": "0243c89d5d84bbb9685876363639cd621ff4cc9548f4ba32e909486b91271b12"
+      },
+      {
+        "path": ".xirang/changes/complete-contract-verb-migration/elements/semantic-browser.md",
+        "hash": "f58a981f91e93e322a980ba2dd37d6acb228408fffccb2cc639d37aa4a3546f6"
+      },
+      {
+        "path": ".xirang/changes/complete-contract-verb-migration/proposal.md",
+        "hash": "0c8a7240925cae24c20fa02886ca6c85e69b37f29448e99b288b9194ccbaab52"
+      },
+      {
+        "path": ".xirang/changes/complete-contract-verb-migration/tasks.md",
+        "hash": "c81eefa4ee71de1471c6f9341b383a7de26a34faa6d5fa90ace0fd9b1bf297fe"
+      },
+      {
+        "path": ".xirang/model/elements/deterministic-operations.md",
+        "hash": "11a957bec70cc59030af498f1040f46fb3188a8857e9d525eb28ded05320c03c"
+      },
+      {
+        "path": ".xirang/model/elements/project.root.md",
+        "hash": "772db7ba06ce5bcf6a120f6733a7184b94942e52f076d8cde6a21f055eda6648"
+      },
+      {
+        "path": ".xirang/model/elements/semantic-browser.md",
+        "hash": "3d6a75fc32ed3b1c08dfaf3a493e6507b3d6ee089eb99fd051dc2f3a26a435e0"
+      },
+      {
+        "path": ".xirang/model/elements/semantic-model.md",
+        "hash": "26ebb5990a935e84f03dccc357128220c3add8272dff604167a80de8c9054298"
+      },
+      {
+        "path": ".xirang/model/metamodel/capability.md",
+        "hash": "c96ac3aedeb9011ad49f4452279768c1f277ba5b3f177c88e337af0992f933a3"
+      },
+      {
+        "path": ".xirang/model/relationships/supports-presentation.yaml",
+        "hash": "c982141e6e3ecb274c549f0c8ba54fc695513529cffaeb4821d7fe323004e212"
+      },
+      {
+        "path": "docs/architecture-integration.md",
+        "hash": "7c71ba94796f0f350f4926a2474d9accf7a12c9b8e3bec30dcc648fc65556c4d"
+      },
+      {
+        "path": "docs/cli.md",
+        "hash": "94fa07414010039baa0d241aa15081ace1eacfd348504c60a9eb54357cebfb0e"
+      },
+      {
+        "path": "docs/xirang-integration.md",
+        "hash": "07457cd6c0024df8080f21ea7a7a0fab07a1b66e2faefbe23397efcec786d9cd"
+      },
+      {
+        "path": "likec4/packages/diagram/package.json",
+        "hash": "da6bbaa9b6e02f9c556f604023259cc8ed404b62eee7fbeb9e07a9c5614a6c4a"
+      },
+      {
+        "path": "likec4/packages/diagram/src/index.ts",
+        "hash": "9fb9d772f9646aa28dce945b6ca56a75db514d95f68863a73e8f5e10010b65d6"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+        "hash": "352729d0d501afc39396a3ddb272368ab5423433ac509bd8e2d93d07288c9f06"
+      },
+      {
+        "path": "likec4/packages/diagram/src/navigationpanel/NavigationPanelDropdown.tsx",
+        "hash": "b5f526b61c02716db2f5b35880e85101c3b7fd05f7601486e41bf572afbcdffb"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/ContractsTab.spec.tsx",
+        "hash": "5a4d04a810d3c5fef0e4530d06a017519efe73014e364f43e84cd1ae19c211c9"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
+        "hash": "50aff52195ab72438417b1bb23e82919376a699f9cfc6aa6fc709e99a55653df"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
+        "hash": "6b9a60ec8852b6af23714af936fdbb75f6bc7d140c03b0a39b674357212c7a8b"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+        "hash": "1877443ca57783a58cd1e234d58d9e422f824159070f6e242068d782f50000fd"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+        "hash": "715caf9815ede576dc8026a4c59b4bb57fb9af3957f08e1d4b5f27e873ea41e8"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+        "hash": "05d1d0c7f3fa0f167ad27b5e50f57a6fad49d6b63ea31f06b2a2d861079163a1"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+        "hash": "f0f5657a740ac90c9ab0171ca92ef30aebdba163a53bf2f688a67288f40a8f58"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/package.json",
+        "hash": "ecb598d780a1656a03624309ed93fbccd222e531930fc751d856198570e08ab1"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/main.tsx",
+        "hash": "3ae64191f904cd759cdfafebdaca7431e5f6f25dbe4081617d95bb3e5c25274b"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.spec.ts",
+        "hash": "f5cb48ddb31cd1a3248a87e8956b222eed0c09e2f49eb87824b21d647d66f68a"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts",
+        "hash": "15b50e55cb8204814d379cf20ea14ecb8ea1f58d2db08de01ba7680563e870e1"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/package.json",
+        "hash": "58842fecfad7e1b145c40770be6037022fade6031a734bdfef968513158bb759"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/plugin.ts",
+        "hash": "1d35950ef54f33acd8f72915421a7d022dedbf3b74366b3c342b18c9e3f004e5"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.spec.ts",
+        "hash": "ceb2898e768a5164643b903bb6cf19c88166b847f27e7d5d2a356eda401fb223"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts",
+        "hash": "4788e4526b4bcc91ecce7baa6d8a72c92ff416ca5442f93ac6556677d7f37c18"
+      },
+      {
+        "path": "package.json",
+        "hash": "b6ae4a7f40e2868b8743ba5aa5356c3c00a6f3db459ebd69c918c9c43e5a16c4"
+      },
+      {
+        "path": "playwright.config.ts",
+        "hash": "32088be469c726886ba48a8c7fd126d29b16760757158f37da3d61f6d87a4f47"
+      },
+      {
+        "path": "src/cli/index.ts",
+        "hash": "b27deda258b11e718116f1fae642b86381d7525449130e505b1323aa3d9a4e25"
+      },
+      {
+        "path": "src/commands/completion.ts",
+        "hash": "07c0f20ddbb1f89b0704184882d490db14a74ad9b980c42bde8badf38463145a"
+      },
+      {
+        "path": "src/commands/show.ts",
+        "hash": "64b904adea11a5328318425ea1c3410655a79dfc8e46f312b8a0a66187e85a23"
+      },
+      {
+        "path": "src/commands/validate.ts",
+        "hash": "3ccf5bf0fb39bb74c775a85453229b8358cf673de32c6b3b35aac162434e9de8"
+      },
+      {
+        "path": "src/core/change-compiler.ts",
+        "hash": "e617a3f84038d9ec331368dce7a7bc701a415a867575eb446e13aedeabba57ac"
+      },
+      {
+        "path": "src/core/completions/completion-provider.ts",
+        "hash": "35e1e2dae1ee7d2505ba2995e97a319a5f99257f57742cef06c899227853ab0a"
+      },
+      {
+        "path": "src/core/completions/generators/bash-generator.ts",
+        "hash": "17806dadb4d70a073020a36ecf25efe20474da24d192ab50d62ecbaf64218b20"
+      },
+      {
+        "path": "src/core/completions/generators/fish-generator.ts",
+        "hash": "4da127ccc8cfcfa1bbff32e61b1a4f32433dfb4058f6f80c96750215bc6e26b3"
+      },
+      {
+        "path": "src/core/completions/generators/powershell-generator.ts",
+        "hash": "716432d8f5cdf7077d3f662e209628d2a4f2d046d769b38a8c5780285a40653a"
+      },
+      {
+        "path": "src/core/completions/generators/zsh-generator.ts",
+        "hash": "9cc35f0f816c1ddd176835f1cae48a39bc21b805cf40a8d88f083b6f94c1ff62"
+      },
+      {
+        "path": "src/core/completions/positional-types.ts",
+        "hash": "7e67eceb46bd3c213c511a57cad566226ef24ec6ab48300970f5977f1fb42618"
+      },
+      {
+        "path": "src/core/completions/templates/bash-templates.ts",
+        "hash": "d081cc919b6c3546640a5130573a5b1fe7178eb6e8bda8e7040c688b5f61f8cd"
+      },
+      {
+        "path": "src/core/completions/templates/fish-templates.ts",
+        "hash": "dd52e4fe44e6c9d92b25a74029b4beebc52632064346b33db8eb8ff33db308de"
+      },
+      {
+        "path": "src/core/completions/templates/powershell-templates.ts",
+        "hash": "c67edd206dae046fd96ec4252d684ba989e523c64e0dda005a1a07a5fc867808"
+      },
+      {
+        "path": "src/core/completions/templates/zsh-templates.ts",
+        "hash": "6765e05a7ea93a6293487b0701db6152a1289d6d910c7002a73c8a4fa67cc14a"
+      },
+      {
+        "path": "src/core/completions/types.ts",
+        "hash": "279875bad45aea87f0c28f863f57108f900121405860c86ebe22dcfb5e31889c"
+      },
+      {
+        "path": "src/core/list.ts",
+        "hash": "bcfd6cee156c4b8604a361428c6422a8a76811a8afd51ce4d24b146a708b4d44"
+      },
+      {
+        "path": "src/core/model/parser.ts",
+        "hash": "8df43148a1a461f7edacae6ecd88022fa6ae26a97b9b158845d813113751844b"
+      },
+      {
+        "path": "src/core/model/types.ts",
+        "hash": "781f97e73beefdc9e6e06792f5467d362175696a9dfff6de3b4bd6a03c33d9a0"
+      },
+      {
+        "path": "src/core/parsers/requirement-blocks.ts",
+        "hash": "cddb7029c59a0d152161b9515c182e5a355a1ac1ce113f47647b5bafdbc205c8"
+      },
+      {
+        "path": "src/core/parsers/requirement-text.ts",
+        "hash": "21939cd76db06ac26221881bbb243381d46922a00d337450789986fceecf2060"
+      },
+      {
+        "path": "src/core/parsers/task-structure.ts",
+        "hash": "97179fcdec98643f8fe7d8104368543c89a54f0b7f32ceddc4482073f5f57ed6"
+      },
+      {
+        "path": "src/core/schemas/index.ts",
+        "hash": "15168b5ba08e24d15002630b576ac65b6c1ea3086ffb8a6e792f69c006f3ce38"
+      },
+      {
+        "path": "src/core/templates/fragments/xirang-fragments.ts",
+        "hash": "992e9cc6932b168161c54c62df56f10f5627087a3fe3da5c58ea3bd456653c65"
+      },
+      {
+        "path": "src/core/validation/constants.ts",
+        "hash": "bd6b2b991b7e4a00a4e54c57aa01461144869f5d243a18359b414add8e71adf0"
+      },
+      {
+        "path": "src/core/validation/validator.ts",
+        "hash": "e4afee3f8bee311e532e7d9a32dc3bfd22d1c0027d47b598d0f689c3924bb3e4"
+      },
+      {
+        "path": "src/utils/item-discovery.ts",
+        "hash": "cbbec37bd34b7a42a44988857973fbfd5ba56c06e910a84d91f0fdf7bee6bc66"
+      },
+      {
+        "path": "test/commands/show.test.ts",
+        "hash": "21093cfef3251f2ea2932d9bb231c636cda83110c091a04081f9529dfc3098db"
+      },
+      {
+        "path": "test/commands/validate.enriched-output.test.ts",
+        "hash": "9a6e6187bfb0cd5ccd51cf5b54519c4d0fb361370e129ab7281dff7d643f3d27"
+      },
+      {
+        "path": "test/commands/validate.test.ts",
+        "hash": "cd805fd329f154d95907eadecbd658ed971d551295d81ac4cc131714365b26a6"
+      },
+      {
+        "path": "test/core/change-compiler.test.ts",
+        "hash": "ecc4a22d4c5146ec5be4d7dfe7874966596e390c98642427f8ed00d8efb6d9ff"
+      },
+      {
+        "path": "test/core/completions/completion-provider.test.ts",
+        "hash": "ab2e14a1b166b1b062f9325e7368896d7e830d605402ef196deab43544487706"
+      },
+      {
+        "path": "test/core/completions/generators/bash-generator.test.ts",
+        "hash": "fc191c9b66b59405b6478fef0429a5d978c6c7bb33dc84da3cdf62f9d70aee4f"
+      },
+      {
+        "path": "test/core/completions/generators/fish-generator.test.ts",
+        "hash": "d7ddd66910bb393c07b9a3baccd95bfe080553c8d299302a58144767f618cbcd"
+      },
+      {
+        "path": "test/core/completions/generators/powershell-generator.test.ts",
+        "hash": "82b001ec26a90498c0300c461ac703ec6d3d8e921eb0ea9191d49918b8129416"
+      },
+      {
+        "path": "test/core/completions/generators/zsh-generator.test.ts",
+        "hash": "044b3547b63ecd9c77838608dd49ff8339ef5336d7cc495c7ae372a4c93a8441"
+      },
+      {
+        "path": "test/core/completions/introspect-regression.test.ts",
+        "hash": "cf8c6223a21abc9360a90159dc789609e5ad115f6505d86cb335c9a61ab63a73"
+      },
+      {
+        "path": "test/core/completions/introspect.test.ts",
+        "hash": "9c21b3131bfc3f5b439f7fb5d6c4eb5aeeb8b249622c0815990c7ccdd13b3976"
+      },
+      {
+        "path": "test/core/completions/positional-types.test.ts",
+        "hash": "ef51cb7d841589fafa401c5d3dd832fdb9376889a72d4ae2b2a9294916891701"
+      },
+      {
+        "path": "test/core/list.test.ts",
+        "hash": "f53a86e193f5f5004903d1dfae58dce0f6d713c3e4245fd76c096be9182fa556"
+      },
+      {
+        "path": "test/core/model/parser.test.ts",
+        "hash": "98fa7650154a477895ee8def62de3b1e5fa07adba49ac5deda9f799893a50fe3"
+      },
+      {
+        "path": "test/core/parsers/task-structure.test.ts",
+        "hash": "ee18dee9f2fd95ec8aa6598f9e922548a80ccd8f823bc07bd6eba75b958ff14b"
+      },
+      {
+        "path": "test/core/templates/fragments/xirang-fragments.test.ts",
+        "hash": "8333be08ae3d7372ab62283346472597e393604350dda3b6d4c62e1abdfe2631"
+      },
+      {
+        "path": "test/core/templates/propose-template.test.ts",
+        "hash": "53a3447ebf4f07ac17370a1f0009cd540683b5496467bb4e60bf28217e743945"
+      },
+      {
+        "path": "test/core/validation.test.ts",
+        "hash": "e64171a0cfc41cbdbe545cfecdb707ad82cb7b6f4d79a5715d1753648b5a4d1e"
+      },
+      {
+        "path": "test/e2e/cleanup-generated-cache.ts",
+        "hash": "ec021b37598f22e4b5126b351d6f31b0e8bd236261f851d4083e42fee0f038df"
+      },
+      {
+        "path": "test/e2e/contract-browser.spec.ts",
+        "hash": "3884ae058b2b57e15278ba78d3887828bdbfa79e3c736618a20de49d24dd53ba"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/model/elements/long.md",
+        "hash": "d3957ba530d866aaf5de79a206431e36e4711adf6e5f809ebcf19e1007271531"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/model/elements/none.md",
+        "hash": "01db64221f3ad083bd86e678fb969735f59fd3ce029be77644f84507ba293b99"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/model/elements/project.root.md",
+        "hash": "36a3e773e424509756fdbdc0de4be69b3e627e2ecb84f982a55706878fc68dc0"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/model/elements/single.md",
+        "hash": "8585ac5f569820404fa6ca22e80e41b45b102c98aa6917539cb310e9a0ff4da8"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/model/metamodel/capability.md",
+        "hash": "3b0fe3c78c3feb632c4001f1a84edb9bf722657af835d260093d333a0ee3efb0"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/model/metamodel/project.md",
+        "hash": "7a35a6530441627f25b8fcfbc278f5e1c772a918994c657c3039bc756ce8378b"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/model/views/index.md",
+        "hash": "41fda47178e7e964deab9669ff947d034f5293451680ef8c543465767be7320b"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "59a04f065c3be62786835488782349a4fbd5c8e2"
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-07-29T12:16:02.492Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "Semantic Model alignment was necessarily degraded because `.xirang/model/views/` is absent and the Change contains only the `elements/` partition directory. The available Formal model validates, the two Element Delta units compile successfully, and all implementation checks pass, but absent collections cannot be treated as complete and empty.",
+          "evidence": [
+            ".xirang/model/elements/semantic-model.md:30-37",
+            ".xirang/changes/complete-contract-verb-migration/proposal.md:21-42",
+            ".xirang/changes/complete-contract-verb-migration/elements/deterministic-operations.md:41-45",
+            "filesystem inspection: .xirang/model contains metamodel/, elements/, and relationships/ but no views/",
+            "filesystem inspection: .xirang/changes/complete-contract-verb-migration contains elements/ but no metamodel/, relationships/, or views/"
+          ],
+          "writeBackPlan": []
+        }
+      ],
+      "tasksFileHash": "c81eefa4ee71de1471c6f9341b383a7de26a34faa6d5fa90ace0fd9b1bf297fe",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".github/workflows/test-windows.yml",
+          ".xirang/changes/complete-contract-verb-migration/.apply-isolation.json",
+          ".xirang/changes/complete-contract-verb-migration/.xirang.yaml",
+          ".xirang/changes/complete-contract-verb-migration/design.md",
+          ".xirang/changes/complete-contract-verb-migration/elements/deterministic-operations.md",
+          ".xirang/changes/complete-contract-verb-migration/elements/semantic-browser.md",
+          ".xirang/changes/complete-contract-verb-migration/proposal.md",
+          ".xirang/changes/complete-contract-verb-migration/tasks.md",
+          ".xirang/model/elements/deterministic-operations.md",
+          ".xirang/model/elements/project.root.md",
+          ".xirang/model/elements/semantic-browser.md",
+          ".xirang/model/elements/semantic-model.md",
+          ".xirang/model/metamodel/capability.md",
+          ".xirang/model/relationships/supports-presentation.yaml",
+          "docs/architecture-integration.md",
+          "docs/cli.md",
+          "docs/xirang-integration.md",
+          "likec4/packages/diagram/package.json",
+          "likec4/packages/diagram/src/index.ts",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/navigationpanel/NavigationPanelDropdown.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/ContractsTab.spec.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+          "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+          "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+          "likec4/packages/diagram/src/xirang/architectureView.ts",
+          "likec4/packages/likec4-spa/package.json",
+          "likec4/packages/likec4-spa/src/main.tsx",
+          "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.spec.ts",
+          "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts",
+          "likec4/packages/vite-plugin/package.json",
+          "likec4/packages/vite-plugin/src/plugin.ts",
+          "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.spec.ts",
+          "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts",
+          "package.json",
+          "playwright.config.ts",
+          "src/cli/index.ts",
+          "src/commands/completion.ts",
+          "src/commands/show.ts",
+          "src/commands/validate.ts",
+          "src/core/change-compiler.ts",
+          "src/core/completions/completion-provider.ts",
+          "src/core/completions/generators/bash-generator.ts",
+          "src/core/completions/generators/fish-generator.ts",
+          "src/core/completions/generators/powershell-generator.ts",
+          "src/core/completions/generators/zsh-generator.ts",
+          "src/core/completions/positional-types.ts",
+          "src/core/completions/templates/bash-templates.ts",
+          "src/core/completions/templates/fish-templates.ts",
+          "src/core/completions/templates/powershell-templates.ts",
+          "src/core/completions/templates/zsh-templates.ts",
+          "src/core/completions/types.ts",
+          "src/core/list.ts",
+          "src/core/model/parser.ts",
+          "src/core/model/types.ts",
+          "src/core/parsers/requirement-blocks.ts",
+          "src/core/parsers/requirement-text.ts",
+          "src/core/parsers/task-structure.ts",
+          "src/core/schemas/index.ts",
+          "src/core/templates/fragments/xirang-fragments.ts",
+          "src/core/validation/constants.ts",
+          "src/core/validation/validator.ts",
+          "src/utils/item-discovery.ts",
+          "test/commands/show.test.ts",
+          "test/commands/validate.enriched-output.test.ts",
+          "test/commands/validate.test.ts",
+          "test/core/change-compiler.test.ts",
+          "test/core/completions/completion-provider.test.ts",
+          "test/core/completions/generators/bash-generator.test.ts",
+          "test/core/completions/generators/fish-generator.test.ts",
+          "test/core/completions/generators/powershell-generator.test.ts",
+          "test/core/completions/generators/zsh-generator.test.ts",
+          "test/core/completions/introspect-regression.test.ts",
+          "test/core/completions/introspect.test.ts",
+          "test/core/completions/positional-types.test.ts",
+          "test/core/list.test.ts",
+          "test/core/model/parser.test.ts",
+          "test/core/parsers/task-structure.test.ts",
+          "test/core/templates/fragments/xirang-fragments.test.ts",
+          "test/core/templates/propose-template.test.ts",
+          "test/core/validation.test.ts",
+          "test/e2e/cleanup-generated-cache.ts",
+          "test/e2e/contract-browser.spec.ts",
+          "test/fixtures/contract-browser/.xirang/model/elements/long.md",
+          "test/fixtures/contract-browser/.xirang/model/elements/none.md",
+          "test/fixtures/contract-browser/.xirang/model/elements/project.root.md",
+          "test/fixtures/contract-browser/.xirang/model/elements/single.md",
+          "test/fixtures/contract-browser/.xirang/model/metamodel/capability.md",
+          "test/fixtures/contract-browser/.xirang/model/metamodel/project.md",
+          "test/fixtures/contract-browser/.xirang/model/views/index.md"
+        ],
+        "evidenceFingerprint": "f042767e1c33bdb51fa6391e7a919f67f6c8eb54b6632ab760f36afae2fae7a9",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".github/workflows/test-windows.yml",
+            "hash": "9f9ae330ff0669548e4bf175f292053939c87e71516b935130e2c8a190f3555b"
+          },
+          {
+            "path": ".xirang/changes/complete-contract-verb-migration/.apply-isolation.json",
+            "hash": "5014bc0d1ed1e75b49df7e4f4c9a46225589e7ee48b975df503bd22291ce0051"
+          },
+          {
+            "path": ".xirang/changes/complete-contract-verb-migration/.xirang.yaml",
+            "hash": "2976103ed6b60190e61a51c305fd25386db116adc384fffd02652f6b68266be6"
+          },
+          {
+            "path": ".xirang/changes/complete-contract-verb-migration/design.md",
+            "hash": "3f034fcabe9b80f37bfd8ffba7ac61b8ba2f0115452e1e4387356e9cf43a4dc5"
+          },
+          {
+            "path": ".xirang/changes/complete-contract-verb-migration/elements/deterministic-operations.md",
+            "hash": "0243c89d5d84bbb9685876363639cd621ff4cc9548f4ba32e909486b91271b12"
+          },
+          {
+            "path": ".xirang/changes/complete-contract-verb-migration/elements/semantic-browser.md",
+            "hash": "f58a981f91e93e322a980ba2dd37d6acb228408fffccb2cc639d37aa4a3546f6"
+          },
+          {
+            "path": ".xirang/changes/complete-contract-verb-migration/proposal.md",
+            "hash": "0c8a7240925cae24c20fa02886ca6c85e69b37f29448e99b288b9194ccbaab52"
+          },
+          {
+            "path": ".xirang/changes/complete-contract-verb-migration/tasks.md",
+            "hash": "c81eefa4ee71de1471c6f9341b383a7de26a34faa6d5fa90ace0fd9b1bf297fe"
+          },
+          {
+            "path": ".xirang/model/elements/deterministic-operations.md",
+            "hash": "11a957bec70cc59030af498f1040f46fb3188a8857e9d525eb28ded05320c03c"
+          },
+          {
+            "path": ".xirang/model/elements/project.root.md",
+            "hash": "772db7ba06ce5bcf6a120f6733a7184b94942e52f076d8cde6a21f055eda6648"
+          },
+          {
+            "path": ".xirang/model/elements/semantic-browser.md",
+            "hash": "3d6a75fc32ed3b1c08dfaf3a493e6507b3d6ee089eb99fd051dc2f3a26a435e0"
+          },
+          {
+            "path": ".xirang/model/elements/semantic-model.md",
+            "hash": "26ebb5990a935e84f03dccc357128220c3add8272dff604167a80de8c9054298"
+          },
+          {
+            "path": ".xirang/model/metamodel/capability.md",
+            "hash": "c96ac3aedeb9011ad49f4452279768c1f277ba5b3f177c88e337af0992f933a3"
+          },
+          {
+            "path": ".xirang/model/relationships/supports-presentation.yaml",
+            "hash": "c982141e6e3ecb274c549f0c8ba54fc695513529cffaeb4821d7fe323004e212"
+          },
+          {
+            "path": "docs/architecture-integration.md",
+            "hash": "7c71ba94796f0f350f4926a2474d9accf7a12c9b8e3bec30dcc648fc65556c4d"
+          },
+          {
+            "path": "docs/cli.md",
+            "hash": "94fa07414010039baa0d241aa15081ace1eacfd348504c60a9eb54357cebfb0e"
+          },
+          {
+            "path": "docs/xirang-integration.md",
+            "hash": "07457cd6c0024df8080f21ea7a7a0fab07a1b66e2faefbe23397efcec786d9cd"
+          },
+          {
+            "path": "likec4/packages/diagram/package.json",
+            "hash": "da6bbaa9b6e02f9c556f604023259cc8ed404b62eee7fbeb9e07a9c5614a6c4a"
+          },
+          {
+            "path": "likec4/packages/diagram/src/index.ts",
+            "hash": "9fb9d772f9646aa28dce945b6ca56a75db514d95f68863a73e8f5e10010b65d6"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "hash": "352729d0d501afc39396a3ddb272368ab5423433ac509bd8e2d93d07288c9f06"
+          },
+          {
+            "path": "likec4/packages/diagram/src/navigationpanel/NavigationPanelDropdown.tsx",
+            "hash": "b5f526b61c02716db2f5b35880e85101c3b7fd05f7601486e41bf572afbcdffb"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/ContractsTab.spec.tsx",
+            "hash": "5a4d04a810d3c5fef0e4530d06a017519efe73014e364f43e84cd1ae19c211c9"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
+            "hash": "50aff52195ab72438417b1bb23e82919376a699f9cfc6aa6fc709e99a55653df"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
+            "hash": "6b9a60ec8852b6af23714af936fdbb75f6bc7d140c03b0a39b674357212c7a8b"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+            "hash": "1877443ca57783a58cd1e234d58d9e422f824159070f6e242068d782f50000fd"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+            "hash": "715caf9815ede576dc8026a4c59b4bb57fb9af3957f08e1d4b5f27e873ea41e8"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+            "hash": "05d1d0c7f3fa0f167ad27b5e50f57a6fad49d6b63ea31f06b2a2d861079163a1"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+            "hash": "f0f5657a740ac90c9ab0171ca92ef30aebdba163a53bf2f688a67288f40a8f58"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/package.json",
+            "hash": "ecb598d780a1656a03624309ed93fbccd222e531930fc751d856198570e08ab1"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/main.tsx",
+            "hash": "3ae64191f904cd759cdfafebdaca7431e5f6f25dbe4081617d95bb3e5c25274b"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.spec.ts",
+            "hash": "f5cb48ddb31cd1a3248a87e8956b222eed0c09e2f49eb87824b21d647d66f68a"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts",
+            "hash": "15b50e55cb8204814d379cf20ea14ecb8ea1f58d2db08de01ba7680563e870e1"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/package.json",
+            "hash": "58842fecfad7e1b145c40770be6037022fade6031a734bdfef968513158bb759"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/plugin.ts",
+            "hash": "1d35950ef54f33acd8f72915421a7d022dedbf3b74366b3c342b18c9e3f004e5"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.spec.ts",
+            "hash": "ceb2898e768a5164643b903bb6cf19c88166b847f27e7d5d2a356eda401fb223"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts",
+            "hash": "4788e4526b4bcc91ecce7baa6d8a72c92ff416ca5442f93ac6556677d7f37c18"
+          },
+          {
+            "path": "package.json",
+            "hash": "b6ae4a7f40e2868b8743ba5aa5356c3c00a6f3db459ebd69c918c9c43e5a16c4"
+          },
+          {
+            "path": "playwright.config.ts",
+            "hash": "32088be469c726886ba48a8c7fd126d29b16760757158f37da3d61f6d87a4f47"
+          },
+          {
+            "path": "src/cli/index.ts",
+            "hash": "b27deda258b11e718116f1fae642b86381d7525449130e505b1323aa3d9a4e25"
+          },
+          {
+            "path": "src/commands/completion.ts",
+            "hash": "07c0f20ddbb1f89b0704184882d490db14a74ad9b980c42bde8badf38463145a"
+          },
+          {
+            "path": "src/commands/show.ts",
+            "hash": "64b904adea11a5328318425ea1c3410655a79dfc8e46f312b8a0a66187e85a23"
+          },
+          {
+            "path": "src/commands/validate.ts",
+            "hash": "3ccf5bf0fb39bb74c775a85453229b8358cf673de32c6b3b35aac162434e9de8"
+          },
+          {
+            "path": "src/core/change-compiler.ts",
+            "hash": "e617a3f84038d9ec331368dce7a7bc701a415a867575eb446e13aedeabba57ac"
+          },
+          {
+            "path": "src/core/completions/completion-provider.ts",
+            "hash": "35e1e2dae1ee7d2505ba2995e97a319a5f99257f57742cef06c899227853ab0a"
+          },
+          {
+            "path": "src/core/completions/generators/bash-generator.ts",
+            "hash": "17806dadb4d70a073020a36ecf25efe20474da24d192ab50d62ecbaf64218b20"
+          },
+          {
+            "path": "src/core/completions/generators/fish-generator.ts",
+            "hash": "4da127ccc8cfcfa1bbff32e61b1a4f32433dfb4058f6f80c96750215bc6e26b3"
+          },
+          {
+            "path": "src/core/completions/generators/powershell-generator.ts",
+            "hash": "716432d8f5cdf7077d3f662e209628d2a4f2d046d769b38a8c5780285a40653a"
+          },
+          {
+            "path": "src/core/completions/generators/zsh-generator.ts",
+            "hash": "9cc35f0f816c1ddd176835f1cae48a39bc21b805cf40a8d88f083b6f94c1ff62"
+          },
+          {
+            "path": "src/core/completions/positional-types.ts",
+            "hash": "7e67eceb46bd3c213c511a57cad566226ef24ec6ab48300970f5977f1fb42618"
+          },
+          {
+            "path": "src/core/completions/templates/bash-templates.ts",
+            "hash": "d081cc919b6c3546640a5130573a5b1fe7178eb6e8bda8e7040c688b5f61f8cd"
+          },
+          {
+            "path": "src/core/completions/templates/fish-templates.ts",
+            "hash": "dd52e4fe44e6c9d92b25a74029b4beebc52632064346b33db8eb8ff33db308de"
+          },
+          {
+            "path": "src/core/completions/templates/powershell-templates.ts",
+            "hash": "c67edd206dae046fd96ec4252d684ba989e523c64e0dda005a1a07a5fc867808"
+          },
+          {
+            "path": "src/core/completions/templates/zsh-templates.ts",
+            "hash": "6765e05a7ea93a6293487b0701db6152a1289d6d910c7002a73c8a4fa67cc14a"
+          },
+          {
+            "path": "src/core/completions/types.ts",
+            "hash": "279875bad45aea87f0c28f863f57108f900121405860c86ebe22dcfb5e31889c"
+          },
+          {
+            "path": "src/core/list.ts",
+            "hash": "bcfd6cee156c4b8604a361428c6422a8a76811a8afd51ce4d24b146a708b4d44"
+          },
+          {
+            "path": "src/core/model/parser.ts",
+            "hash": "8df43148a1a461f7edacae6ecd88022fa6ae26a97b9b158845d813113751844b"
+          },
+          {
+            "path": "src/core/model/types.ts",
+            "hash": "781f97e73beefdc9e6e06792f5467d362175696a9dfff6de3b4bd6a03c33d9a0"
+          },
+          {
+            "path": "src/core/parsers/requirement-blocks.ts",
+            "hash": "cddb7029c59a0d152161b9515c182e5a355a1ac1ce113f47647b5bafdbc205c8"
+          },
+          {
+            "path": "src/core/parsers/requirement-text.ts",
+            "hash": "21939cd76db06ac26221881bbb243381d46922a00d337450789986fceecf2060"
+          },
+          {
+            "path": "src/core/parsers/task-structure.ts",
+            "hash": "97179fcdec98643f8fe7d8104368543c89a54f0b7f32ceddc4482073f5f57ed6"
+          },
+          {
+            "path": "src/core/schemas/index.ts",
+            "hash": "15168b5ba08e24d15002630b576ac65b6c1ea3086ffb8a6e792f69c006f3ce38"
+          },
+          {
+            "path": "src/core/templates/fragments/xirang-fragments.ts",
+            "hash": "992e9cc6932b168161c54c62df56f10f5627087a3fe3da5c58ea3bd456653c65"
+          },
+          {
+            "path": "src/core/validation/constants.ts",
+            "hash": "bd6b2b991b7e4a00a4e54c57aa01461144869f5d243a18359b414add8e71adf0"
+          },
+          {
+            "path": "src/core/validation/validator.ts",
+            "hash": "e4afee3f8bee311e532e7d9a32dc3bfd22d1c0027d47b598d0f689c3924bb3e4"
+          },
+          {
+            "path": "src/utils/item-discovery.ts",
+            "hash": "cbbec37bd34b7a42a44988857973fbfd5ba56c06e910a84d91f0fdf7bee6bc66"
+          },
+          {
+            "path": "test/commands/show.test.ts",
+            "hash": "21093cfef3251f2ea2932d9bb231c636cda83110c091a04081f9529dfc3098db"
+          },
+          {
+            "path": "test/commands/validate.enriched-output.test.ts",
+            "hash": "9a6e6187bfb0cd5ccd51cf5b54519c4d0fb361370e129ab7281dff7d643f3d27"
+          },
+          {
+            "path": "test/commands/validate.test.ts",
+            "hash": "cd805fd329f154d95907eadecbd658ed971d551295d81ac4cc131714365b26a6"
+          },
+          {
+            "path": "test/core/change-compiler.test.ts",
+            "hash": "ecc4a22d4c5146ec5be4d7dfe7874966596e390c98642427f8ed00d8efb6d9ff"
+          },
+          {
+            "path": "test/core/completions/completion-provider.test.ts",
+            "hash": "ab2e14a1b166b1b062f9325e7368896d7e830d605402ef196deab43544487706"
+          },
+          {
+            "path": "test/core/completions/generators/bash-generator.test.ts",
+            "hash": "fc191c9b66b59405b6478fef0429a5d978c6c7bb33dc84da3cdf62f9d70aee4f"
+          },
+          {
+            "path": "test/core/completions/generators/fish-generator.test.ts",
+            "hash": "d7ddd66910bb393c07b9a3baccd95bfe080553c8d299302a58144767f618cbcd"
+          },
+          {
+            "path": "test/core/completions/generators/powershell-generator.test.ts",
+            "hash": "82b001ec26a90498c0300c461ac703ec6d3d8e921eb0ea9191d49918b8129416"
+          },
+          {
+            "path": "test/core/completions/generators/zsh-generator.test.ts",
+            "hash": "044b3547b63ecd9c77838608dd49ff8339ef5336d7cc495c7ae372a4c93a8441"
+          },
+          {
+            "path": "test/core/completions/introspect-regression.test.ts",
+            "hash": "cf8c6223a21abc9360a90159dc789609e5ad115f6505d86cb335c9a61ab63a73"
+          },
+          {
+            "path": "test/core/completions/introspect.test.ts",
+            "hash": "9c21b3131bfc3f5b439f7fb5d6c4eb5aeeb8b249622c0815990c7ccdd13b3976"
+          },
+          {
+            "path": "test/core/completions/positional-types.test.ts",
+            "hash": "ef51cb7d841589fafa401c5d3dd832fdb9376889a72d4ae2b2a9294916891701"
+          },
+          {
+            "path": "test/core/list.test.ts",
+            "hash": "f53a86e193f5f5004903d1dfae58dce0f6d713c3e4245fd76c096be9182fa556"
+          },
+          {
+            "path": "test/core/model/parser.test.ts",
+            "hash": "98fa7650154a477895ee8def62de3b1e5fa07adba49ac5deda9f799893a50fe3"
+          },
+          {
+            "path": "test/core/parsers/task-structure.test.ts",
+            "hash": "ee18dee9f2fd95ec8aa6598f9e922548a80ccd8f823bc07bd6eba75b958ff14b"
+          },
+          {
+            "path": "test/core/templates/fragments/xirang-fragments.test.ts",
+            "hash": "8333be08ae3d7372ab62283346472597e393604350dda3b6d4c62e1abdfe2631"
+          },
+          {
+            "path": "test/core/templates/propose-template.test.ts",
+            "hash": "53a3447ebf4f07ac17370a1f0009cd540683b5496467bb4e60bf28217e743945"
+          },
+          {
+            "path": "test/core/validation.test.ts",
+            "hash": "e64171a0cfc41cbdbe545cfecdb707ad82cb7b6f4d79a5715d1753648b5a4d1e"
+          },
+          {
+            "path": "test/e2e/cleanup-generated-cache.ts",
+            "hash": "ec021b37598f22e4b5126b351d6f31b0e8bd236261f851d4083e42fee0f038df"
+          },
+          {
+            "path": "test/e2e/contract-browser.spec.ts",
+            "hash": "3884ae058b2b57e15278ba78d3887828bdbfa79e3c736618a20de49d24dd53ba"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/model/elements/long.md",
+            "hash": "d3957ba530d866aaf5de79a206431e36e4711adf6e5f809ebcf19e1007271531"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/model/elements/none.md",
+            "hash": "01db64221f3ad083bd86e678fb969735f59fd3ce029be77644f84507ba293b99"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/model/elements/project.root.md",
+            "hash": "36a3e773e424509756fdbdc0de4be69b3e627e2ecb84f982a55706878fc68dc0"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/model/elements/single.md",
+            "hash": "8585ac5f569820404fa6ca22e80e41b45b102c98aa6917539cb310e9a0ff4da8"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/model/metamodel/capability.md",
+            "hash": "3b0fe3c78c3feb632c4001f1a84edb9bf722657af835d260093d333a0ee3efb0"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/model/metamodel/project.md",
+            "hash": "7a35a6530441627f25b8fcfbc278f5e1c772a918994c657c3039bc756ce8378b"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/model/views/index.md",
+            "hash": "41fda47178e7e964deab9669ff947d034f5293451680ef8c543465767be7320b"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "59a04f065c3be62786835488782349a4fbd5c8e2"
+      }
+    }
+  }
+}

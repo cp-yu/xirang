@@ -157,10 +157,10 @@ ${commandCompletions}`;
       case 'change-id':
         lines.push(`complete -c xirang -n '${condition}' -a '(__fish_opsx_changes)' -f`);
         break;
-      case 'spec-id':
-        lines.push(`complete -c xirang -n '${condition}' -a '(__fish_opsx_specs)' -f`);
+      case 'contract-id':
+        lines.push(`complete -c xirang -n '${condition}' -a '(__fish_opsx_contracts)' -f`);
         break;
-      case 'change-or-spec-id':
+      case 'change-or-contract-id':
         lines.push(`complete -c xirang -n '${condition}' -a '(__fish_opsx_items)' -f`);
         break;
       case 'shell':

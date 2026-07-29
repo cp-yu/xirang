@@ -8,6 +8,7 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   reporter: 'list',
+  globalTeardown: './test/e2e/cleanup-generated-cache.ts',
   use: {
     baseURL: `http://localhost:${port}`,
     colorScheme: 'light',
@@ -16,18 +17,18 @@ export default defineConfig({
   projects: [
     {
       name: 'desktop',
-      grep: /browses absent|switches isolated/,
+      grep: /browses Element Contracts/,
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'mobile',
-      grep: /mobile dialog|switches isolated/,
+      grep: /mobile Contract dialog/,
       use: { ...devices['Pixel 7'] },
     },
   ],
   webServer: {
     command: `node ../../../bin/xirang.js view --port ${port}`,
-    cwd: './test/fixtures/spec-browser',
+    cwd: './test/fixtures/contract-browser',
     port,
     reuseExistingServer: false,
     timeout: 60_000,

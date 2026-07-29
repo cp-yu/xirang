@@ -28,13 +28,13 @@ function __fish_opsx_changes
     end
 end
 
-function __fish_opsx_specs
-    xirang __complete specs 2>/dev/null | while read -l id desc
+function __fish_opsx_contracts
+    xirang __complete contracts 2>/dev/null | while read -l id desc
         printf '%s\\t%s\\n' "$id" "$desc"
     end
 end
 
 function __fish_opsx_items
     __fish_opsx_changes
-    __fish_opsx_specs
+    __fish_opsx_contracts
 end`;

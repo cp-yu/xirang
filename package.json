@@ -1,11 +1,11 @@
 {
   "name": "xirang",
   "version": "0.0.1",
-  "description": "Human-intent programming framework with integrated architecture and specification browsing",
+  "description": "Human-intent programming framework with integrated Semantic Model and Element Contract browsing",
   "keywords": [
     "xirang",
-    "specs",
-    "architecture",
+    "semantic-model",
+    "contracts",
     "cli",
     "ai",
     "development"
@@ -51,7 +51,7 @@
     "dev": "tsc --watch",
     "dev:cli": "pnpm build && node bin/xirang.js",
     "test": "vitest run",
-    "test:e2e": "playwright test test/e2e/spec-browser.spec.ts",
+    "test:e2e": "playwright test test/e2e/contract-browser.spec.ts",
     "test:e2e:install": "playwright install chromium",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",

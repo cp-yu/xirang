@@ -2,7 +2,7 @@ import { RichText } from '@likec4/core'
 import { MantineProvider } from '@mantine/core'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import type { XirangRuntimeVariant } from '../../xirang/SpecLoaderContext'
+import type { XirangRuntimeVariant } from '../../xirang/ContractLoaderContext'
 import { ElementDefinitionProperties } from './ElementDetailsCard'
 
 describe('ElementDefinitionProperties', () => {

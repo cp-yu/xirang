@@ -60,12 +60,12 @@ describe('PowerShellGenerator', () => {
 				},
 				{
 					name: 'validate',
-					description: 'Validate specs',
+					description: 'Validate Element Contracts',
 					flags: [],
 				},
 				{
 					name: 'show',
-					description: 'Show a spec',
+					description: 'Show a contract',
 					flags: [],
 				},
 			];
@@ -75,9 +75,9 @@ describe('PowerShellGenerator', () => {
 			expect(script).toContain('"init"');
 			expect(script).toContain('Initialize Xirang');
 			expect(script).toContain('"validate"');
-			expect(script).toContain('Validate specs');
+			expect(script).toContain('Validate Element Contracts');
 			expect(script).toContain('"show"');
-			expect(script).toContain('Show a spec');
+			expect(script).toContain('Show a contract');
 		});
 
 		it('should use CompletionResult objects for completions', () => {
@@ -98,7 +98,7 @@ describe('PowerShellGenerator', () => {
 			const commands: CommandDefinition[] = [
 				{
 					name: 'validate',
-					description: 'Validate specs',
+					description: 'Validate Element Contracts',
 					flags: [
 						{
 							name: 'strict',
@@ -124,7 +124,7 @@ describe('PowerShellGenerator', () => {
 			const commands: CommandDefinition[] = [
 				{
 					name: 'show',
-					description: 'Show a spec',
+					description: 'Show a contract',
 					flags: [
 						{
 							name: 'requirement',
@@ -147,7 +147,7 @@ describe('PowerShellGenerator', () => {
 			const commands: CommandDefinition[] = [
 				{
 					name: 'validate',
-					description: 'Validate specs',
+					description: 'Validate Element Contracts',
 					flags: [
 						{
 							name: 'strict',
@@ -174,13 +174,13 @@ describe('PowerShellGenerator', () => {
 			const commands: CommandDefinition[] = [
 				{
 					name: 'validate',
-					description: 'Validate specs',
+					description: 'Validate Element Contracts',
 					flags: [
 						{
 							name: 'type',
 							description: 'Specify item type',
 							takesValue: true,
-							values: ['change', 'spec'],
+							values: ['change', 'contract'],
 						},
 					],
 				},
@@ -190,7 +190,7 @@ describe('PowerShellGenerator', () => {
 
 			expect(script).toContain('--type');
 			expect(script).toContain('change');
-			expect(script).toContain('spec');
+			expect(script).toContain('contract');
 		});
 
 		it('should handle commands with subcommands', () => {
@@ -284,29 +284,29 @@ describe('PowerShellGenerator', () => {
 			expect(script).toContain('Get-OPSXChanges');
 		});
 
-		it('should handle positional arguments for spec-id', () => {
+		it('should handle positional arguments for contract-id', () => {
 			const commands: CommandDefinition[] = [
 				{
-					name: 'show-spec',
-					description: 'Show a spec',
+					name: 'show-contract',
+					description: 'Show a contract',
 					acceptsPositional: true,
-					positionalType: 'spec-id',
+					positionalType: 'contract-id',
 					flags: [],
 				},
 			];
 
 			const script = generator.generate(commands);
 
-			expect(script).toContain('Get-OPSXSpecs');
+			expect(script).toContain('Get-OPSXContracts');
 		});
 
-		it('should handle positional arguments for change-or-spec-id', () => {
+		it('should handle positional arguments for change-or-contract-id', () => {
 			const commands: CommandDefinition[] = [
 				{
 					name: 'show',
 					description: 'Show an item',
 					acceptsPositional: true,
-					positionalType: 'change-or-spec-id',
+					positionalType: 'change-or-contract-id',
 					flags: [],
 				},
 			];
@@ -314,7 +314,7 @@ describe('PowerShellGenerator', () => {
 			const script = generator.generate(commands);
 
 			expect(script).toContain('Get-OPSXChanges');
-			expect(script).toContain('Get-OPSXSpecs');
+			expect(script).toContain('Get-OPSXContracts');
 		});
 
 		it('should handle positional arguments for shell with inline values', () => {
@@ -371,21 +371,21 @@ describe('PowerShellGenerator', () => {
 			expect(script).toContain('-split');
 		});
 
-		it('should generate dynamic completion helper for specs', () => {
+		it('should generate dynamic completion helper for contracts', () => {
 			const commands: CommandDefinition[] = [
 				{
-					name: 'show-spec',
-					description: 'Show a spec',
+					name: 'show-contract',
+					description: 'Show a contract',
 					acceptsPositional: true,
-					positionalType: 'spec-id',
+					positionalType: 'contract-id',
 					flags: [],
 				},
 			];
 
 			const script = generator.generate(commands);
 
-			expect(script).toContain('function Get-OPSXSpecs');
-			expect(script).toContain('xirang __complete specs 2>$null');
+			expect(script).toContain('function Get-OPSXContracts');
+			expect(script).toContain('xirang __complete contracts 2>$null');
 		});
 
 		it('should escape double quotes in descriptions', () => {
@@ -411,15 +411,15 @@ describe('PowerShellGenerator', () => {
 		it('should handle complex nested subcommands with flags', () => {
 			const commands: CommandDefinition[] = [
 				{
-					name: 'spec',
-					description: 'Manage specs',
+					name: 'contract',
+					description: 'Manage Element Contracts',
 					flags: [],
 					subcommands: [
 						{
 							name: 'validate',
-							description: 'Validate a spec',
+							description: 'Validate a contract',
 							acceptsPositional: true,
-							positionalType: 'spec-id',
+							positionalType: 'contract-id',
 							flags: [
 								{
 									name: 'strict',
@@ -437,11 +437,11 @@ describe('PowerShellGenerator', () => {
 
 			const script = generator.generate(commands);
 
-			expect(script).toContain('"spec"');
+			expect(script).toContain('"contract"');
 			expect(script).toContain('"validate"');
 			expect(script).toContain('--strict');
 			expect(script).toContain('--json');
-			expect(script).toContain('Get-OPSXSpecs');
+			expect(script).toContain('Get-OPSXContracts');
 		});
 
 		it('should not emit trailing commas in @() arrays', () => {

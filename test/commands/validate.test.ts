@@ -146,12 +146,32 @@ describe('top-level validate command', () => {
     expect(json.version).toBe('1.0');
   });
 
-  it('validates Element Contracts with --specs and respects --concurrency', async () => {
-    const result = await runCLI(['validate', '--specs', '--json', '--concurrency', '1'], { cwd: testDir });
+  it('validates Element Contracts with --contracts and respects --concurrency', async () => {
+    const result = await runCLI(['validate', '--contracts', '--json', '--concurrency', '1'], { cwd: testDir });
     expect(result.exitCode).toBe(0);
     const json = JSON.parse(result.stdout.trim());
     expect(json.items.map((item: { id: string }) => item.id)).toEqual(['alpha.id']);
-    expect(json.items.every((item: { type: string }) => item.type === 'spec')).toBe(true);
+    expect(json.items.every((item: { type: string }) => item.type === 'contract')).toBe(true);
+  });
+
+  it('validates one Element Contract with --type contract', async () => {
+    const result = await runCLI(['validate', 'alpha.id', '--type', 'contract', '--json'], { cwd: testDir });
+
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout).items[0]).toMatchObject({
+      id: 'alpha.id',
+      type: 'contract',
+      valid: true,
+    });
+  });
+
+  it.each([
+    ['--specs'],
+    ['alpha.id', '--type', 'spec'],
+  ])('rejects the removed spec validation form: %s', async (...args) => {
+    const result = await runCLI(['validate', ...args], { cwd: testDir });
+
+    expect(result.exitCode).not.toBe(0);
   });
 
   it('errors on ambiguous item names and suggests type override', async () => {
@@ -232,7 +252,7 @@ describe('top-level validate command', () => {
   });
 
   it('respects --no-interactive flag passed via CLI', async () => {
-    const result = await runCLI(['validate', '--specs', '--no-interactive'], {
+    const result = await runCLI(['validate', '--contracts', '--no-interactive'], {
       cwd: testDir,
       env: { ...process.env, XIRANG_INTERACTIVE: undefined },
     });

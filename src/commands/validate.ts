@@ -3,18 +3,18 @@ import ora from 'ora';
 import path from 'path';
 import { Validator } from '../core/validation/validator.js';
 import { isInteractive, resolveNoInteractive } from '../utils/interactive.js';
-import { getActiveChangeIds, getSpecIds } from '../utils/item-discovery.js';
+import { getActiveChangeIds, getContractElementIds } from '../utils/item-discovery.js';
 import { nearestMatches } from '../utils/match.js';
 import type { ValidationReport } from '../core/validation/types.js';
 import { readFormalSemanticModel, compileChange, type CompiledChange } from '../core/change-compiler.js';
 import { conciseDiffEntries, renderChangeDiff } from '../core/change-diff-renderer.js';
 
-type ItemType = 'change' | 'spec';
+type ItemType = 'change' | 'contract';
 
 interface ExecuteOptions {
   all?: boolean;
   changes?: boolean;
-  specs?: boolean;
+  contracts?: boolean;
   change?: string;
   type?: string;
   strict?: boolean;
@@ -42,10 +42,10 @@ export class ValidateCommand {
     }
 
     // Handle bulk flags first
-    if (options.all || options.changes || options.specs) {
+    if (options.all || options.changes || options.contracts) {
       await this.runBulkValidation({
         changes: !!options.all || !!options.changes,
-        specs: !!options.all || !!options.specs,
+        contracts: !!options.all || !!options.contracts,
       }, { strict: !!options.strict, json: !!options.json, concurrency: options.concurrency, noInteractive: resolveNoInteractive(options) });
       return;
     }
@@ -63,13 +63,18 @@ export class ValidateCommand {
 
     // Direct item validation with type detection or override
     const typeOverride = this.normalizeType(options.type);
+    if (options.type && !typeOverride) {
+      console.error(`Invalid type '${options.type}'. Expected change|contract.`);
+      process.exitCode = 1;
+      return;
+    }
     await this.validateDirectItem(itemName, { typeOverride, strict: !!options.strict, json: !!options.json });
   }
 
   private normalizeType(value?: string): ItemType | undefined {
     if (!value) return undefined;
     const v = value.toLowerCase();
-    if (v === 'change' || v === 'spec') return v;
+    if (v === 'change' || v === 'contract') return v;
     return undefined;
   }
 
@@ -78,22 +83,21 @@ export class ValidateCommand {
     const choice = await select({
       message: 'What would you like to validate?',
       choices: [
-        { name: 'All (changes + specs)', value: 'all' },
+        { name: 'All (changes + contracts)', value: 'all' },
         { name: 'All changes', value: 'changes' },
-        { name: 'All specs', value: 'specs' },
-        { name: 'Pick a specific change or spec', value: 'one' },
+        { name: 'All Element Contracts', value: 'contracts' },
+        { name: 'Pick a specific change or contract', value: 'one' },
       ],
     });
 
-    if (choice === 'all') return this.runBulkValidation({ changes: true, specs: true }, opts);
-    if (choice === 'changes') return this.runBulkValidation({ changes: true, specs: false }, opts);
-    if (choice === 'specs') return this.runBulkValidation({ changes: false, specs: true }, opts);
+    if (choice === 'all') return this.runBulkValidation({ changes: true, contracts: true }, opts);
+    if (choice === 'changes') return this.runBulkValidation({ changes: true, contracts: false }, opts);
+    if (choice === 'contracts') return this.runBulkValidation({ changes: false, contracts: true }, opts);
 
-    // one
-    const [changes, specs] = await Promise.all([getActiveChangeIds(), getSpecIds()]);
+    const [changes, contracts] = await Promise.all([getActiveChangeIds(), getContractElementIds()]);
     const items: { name: string; value: { type: ItemType; id: string } }[] = [];
     items.push(...changes.map(id => ({ name: `change/${id}`, value: { type: 'change' as const, id } })));
-    items.push(...specs.map(id => ({ name: `spec/${id}`, value: { type: 'spec' as const, id } })));
+    items.push(...contracts.map(id => ({ name: `contract/${id}`, value: { type: 'contract' as const, id } })));
     if (items.length === 0) {
       console.error('No items found to validate.');
       process.exitCode = 1;
@@ -107,29 +111,29 @@ export class ValidateCommand {
     console.error('Nothing to validate. Try one of:');
     console.error('  xirang validate --all');
     console.error('  xirang validate --changes');
-    console.error('  xirang validate --specs');
+    console.error('  xirang validate --contracts');
     console.error('  xirang validate <item-name>');
     console.error('Or run in an interactive terminal.');
   }
 
   private async validateDirectItem(itemName: string, opts: { typeOverride?: ItemType; strict: boolean; json: boolean }): Promise<void> {
-    const [changes, specs] = await Promise.all([getActiveChangeIds(), getSpecIds()]);
+    const [changes, contracts] = await Promise.all([getActiveChangeIds(), getContractElementIds()]);
     const isChange = changes.includes(itemName);
-    const isSpec = specs.includes(itemName);
+    const isContract = contracts.includes(itemName);
 
-    const type = opts.typeOverride ?? (isChange ? 'change' : isSpec ? 'spec' : undefined);
+    const type = opts.typeOverride ?? (isChange ? 'change' : isContract ? 'contract' : undefined);
 
     if (!type) {
       console.error(`Unknown item '${itemName}'`);
-      const suggestions = nearestMatches(itemName, [...changes, ...specs]);
+      const suggestions = nearestMatches(itemName, [...changes, ...contracts]);
       if (suggestions.length) console.error(`Did you mean: ${suggestions.join(', ')}?`);
       process.exitCode = 1;
       return;
     }
 
-    if (!opts.typeOverride && isChange && isSpec) {
-      console.error(`Ambiguous item '${itemName}' matches both a change and a spec.`);
-      console.error('Pass --type change|spec, or use: xirang change validate / xirang spec validate');
+    if (!opts.typeOverride && isChange && isContract) {
+      console.error(`Ambiguous item '${itemName}' matches both a change and an Element Contract.`);
+      console.error('Pass --type change|contract.');
       process.exitCode = 1;
       return;
     }
@@ -171,7 +175,7 @@ export class ValidateCommand {
     const start = Date.now();
     const report = await validateElementContract(validator, id);
     const durationMs = Date.now() - start;
-    this.printReport('spec', id, report, durationMs, opts.json);
+    this.printReport('contract', id, report, durationMs, opts.json);
     process.exitCode = report.valid ? 0 : 1;
   }
 
@@ -187,9 +191,9 @@ export class ValidateCommand {
       return;
     }
     if (report.valid) {
-      console.log(`${type === 'change' ? 'Change' : 'Specification'} '${id}' is valid`);
+      console.log(`${type === 'change' ? 'Change' : 'Element Contract'} '${id}' is valid`);
     } else {
-      console.error(`${type === 'change' ? 'Change' : 'Specification'} '${id}' has issues`);
+      console.error(`${type === 'change' ? 'Change' : 'Element Contract'} '${id}' has issues`);
       for (const issue of report.issues) {
         const label = issue.level === 'ERROR' ? 'ERROR' : issue.level;
         const prefix = issue.level === 'ERROR' ? '✗' : issue.level === 'WARNING' ? '⚠' : 'ℹ';
@@ -242,15 +246,14 @@ export class ValidateCommand {
     bullets.forEach(b => console.error(`  ${b}`));
   }
 
-  private async runBulkValidation(scope: { changes: boolean; specs: boolean }, opts: { strict: boolean; json: boolean; concurrency?: string; noInteractive?: boolean }): Promise<void> {
+  private async runBulkValidation(scope: { changes: boolean; contracts: boolean }, opts: { strict: boolean; json: boolean; concurrency?: string; noInteractive?: boolean }): Promise<void> {
     const spinner = !opts.json && !opts.noInteractive ? ora('Validating...').start() : undefined;
-    const [changeIds, specIds] = await Promise.all([
+    const [changeIds, contractIds] = await Promise.all([
       scope.changes ? getActiveChangeIds() : Promise.resolve<string[]>([]),
-      scope.specs ? getSpecIds() : Promise.resolve<string[]>([]),
+      scope.contracts ? getContractElementIds() : Promise.resolve<string[]>([]),
     ]);
 
     const DEFAULT_CONCURRENCY = 6;
-    const maxSuggestions = 5; // used by nearestMatches
     const concurrency = normalizeConcurrency(opts.concurrency) ?? normalizeConcurrency(process.env.XIRANG_CONCURRENCY) ?? DEFAULT_CONCURRENCY;
     const validator = new Validator(opts.strict);
     const queue: Array<() => Promise<BulkItemResult>> = [];
@@ -264,12 +267,12 @@ export class ValidateCommand {
         return { id, type: 'change' as const, valid: report.valid, issues: report.issues, durationMs };
       });
     }
-    for (const id of specIds) {
+    for (const id of contractIds) {
       queue.push(async () => {
         const start = Date.now();
         const report = await validateElementContract(validator, id);
         const durationMs = Date.now() - start;
-        return { id, type: 'spec' as const, valid: report.valid, issues: report.issues, durationMs };
+        return { id, type: 'contract' as const, valid: report.valid, issues: report.issues, durationMs };
       });
     }
 
@@ -280,7 +283,7 @@ export class ValidateCommand {
         totals: { items: 0, passed: 0, failed: 0 },
         byType: {
           ...(scope.changes ? { change: { items: 0, passed: 0, failed: 0 } } : {}),
-          ...(scope.specs ? { spec: { items: 0, passed: 0, failed: 0 } } : {}),
+          ...(scope.contracts ? { contract: { items: 0, passed: 0, failed: 0 } } : {}),
         },
       } as const;
 
@@ -315,7 +318,7 @@ export class ValidateCommand {
             })
             .catch((error: any) => {
               const message = error?.message || 'Unknown error';
-              const res: BulkItemResult = { id: getPlannedId(currentIndex, changeIds, specIds) ?? 'unknown', type: getPlannedType(currentIndex, changeIds, specIds) ?? 'change', valid: false, issues: [{ level: 'ERROR', path: 'file', message }], durationMs: 0 };
+              const res: BulkItemResult = { id: getPlannedId(currentIndex, changeIds, contractIds) ?? 'unknown', type: getPlannedType(currentIndex, changeIds, contractIds) ?? 'change', valid: false, issues: [{ level: 'ERROR', path: 'file', message }], durationMs: 0 };
               results.push(res);
               failed++;
             })
@@ -336,7 +339,7 @@ export class ValidateCommand {
       totals: { items: results.length, passed, failed },
       byType: {
         ...(scope.changes ? { change: summarizeType(results, 'change') } : {}),
-        ...(scope.specs ? { spec: summarizeType(results, 'spec') } : {}),
+        ...(scope.contracts ? { contract: summarizeType(results, 'contract') } : {}),
       },
     } as const;
 
@@ -399,17 +402,17 @@ function normalizeConcurrency(value?: string): number | undefined {
   return n;
 }
 
-function getPlannedId(index: number, changeIds: string[], specIds: string[]): string | undefined {
+function getPlannedId(index: number, changeIds: string[], contractIds: string[]): string | undefined {
   const totalChanges = changeIds.length;
   if (index < totalChanges) return changeIds[index];
-  const specIndex = index - totalChanges;
-  return specIds[specIndex];
+  const contractIndex = index - totalChanges;
+  return contractIds[contractIndex];
 }
 
-function getPlannedType(index: number, changeIds: string[], specIds: string[]): ItemType | undefined {
+function getPlannedType(index: number, changeIds: string[], contractIds: string[]): ItemType | undefined {
   const totalChanges = changeIds.length;
   if (index < totalChanges) return 'change';
-  const specIndex = index - totalChanges;
-  if (specIndex >= 0 && specIndex < specIds.length) return 'spec';
+  const contractIndex = index - totalChanges;
+  if (contractIndex >= 0 && contractIndex < contractIds.length) return 'contract';
   return undefined;
 }

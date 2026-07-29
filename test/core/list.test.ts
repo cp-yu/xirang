@@ -4,6 +4,7 @@ import path from 'path';
 import os from 'os';
 import { ListCommand } from '../../src/core/list.js';
 import { computeEvidenceFingerprint, computeTasksFileHash } from '../../src/core/verify/freshness.js';
+import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 
 describe('ListCommand', () => {
   let tempDir: string;
@@ -211,6 +212,46 @@ Regular text that should be ignored
       expect(logOutput.some(line => line.includes('completed') && line.includes('✓ Complete'))).toBe(true);
       expect(logOutput.some(line => line.includes('partial') && line.includes('1/3 tasks'))).toBe(true);
       expect(logOutput.some(line => line.includes('no-tasks') && line.includes('No tasks'))).toBe(true);
+    });
+
+    it('should include compiler-derived details in JSON and long output', async () => {
+      await writeProjectModel(tempDir, minimalModel());
+      const changeDir = await writeChangeDelta(tempDir, 'demo', {
+        'elements/auth.md': [
+          '---',
+          'operation: ADDED',
+          'entity: element-declaration',
+          'identity: auth',
+          'kind: capability',
+          'parent: root',
+          'title: Auth',
+          'definition: Authentication capability.',
+          '---',
+          '',
+        ].join('\n'),
+      });
+      await fs.writeFile(path.join(changeDir, 'proposal.md'), '## Why\nTest.\n\n## What Changes\nAdd auth.\n');
+      await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n- [ ] Task 2\n');
+
+      const listCommand = new ListCommand();
+      await listCommand.execute(tempDir, { json: true });
+
+      const output = JSON.parse(logOutput[0]);
+      expect(output).toMatchObject({
+        changes: [{
+          name: 'demo',
+          title: 'demo',
+          deltaCount: 1,
+          completedTasks: 1,
+          totalTasks: 2,
+        }],
+      });
+
+      logOutput = [];
+      await listCommand.execute(tempDir, { long: true });
+      expect(logOutput.some(line => line.includes('demo: demo'))).toBe(true);
+      expect(logOutput.some(line => line.includes('[deltas 1]'))).toBe(true);
+      expect(logOutput.some(line => line.includes('[tasks 1/2]'))).toBe(true);
     });
 
     it('should include verifyStatus in JSON output', async () => {

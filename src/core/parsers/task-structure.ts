@@ -19,7 +19,7 @@ export interface TaskStructureIssue {
     | 'uncovered-action'
     | 'missing-verifies'
     | 'invalid-verifies-path'
-    | 'missing-verifies-spec'
+    | 'missing-verifies-element'
     | 'missing-verifies-requirement'
     | 'missing-verifies-scenario'
     | 'verifies-cross-check-skipped'
@@ -50,7 +50,7 @@ interface TaskItem {
   preserves?: string;
 }
 
-interface SpecRequirement {
+interface ContractRequirement {
   name: string;
   scenarios: Set<string>;
   isRemoved?: boolean;
@@ -69,7 +69,7 @@ const CHECK_ID_RE = /^C\d+$/;
 const FIELD_RE = /^\s*-\s+(Covers|Verifies|Preserves|Command|Evidence|Expect):\s*(.*)$/;
 const TASK_FIELD_RE = /^\*\*(Goal|Files|Requirements)\*\*:\s*(.*)$/;
 const TASK_CHECKS_HEADING_RE = /^####\s+Checks\s*$/;
-const SPEC_PATH_RE = /`([^`]+)`/;
+const ELEMENT_PATH_RE = /`([^`]+)`/;
 const REQUIREMENT_RE = /\bRequirement\s+"([^"]+)"/;
 const REMOVED_REQUIREMENT_RE = /\bREMOVED\s+Requirement\s+"([^"]+)"/;
 const SCENARIOS_RE = /\bScenarios?\s+(.+)$/;
@@ -91,7 +91,7 @@ export function validateTaskStructure(
 
   const sections = findTaskSections(lines, mask);
   const issues: TaskStructureIssue[] = [];
-  const specFiles = options.changeDir ? listChangeSpecFiles(options.changeDir) : new Set<string>();
+  const elementUnits = options.changeDir ? listChangeElementUnits(options.changeDir) : new Set<string>();
 
   if (!sections.actions) {
     issues.push(error('missing-actions-section', 'Missing Actions section.'));
@@ -128,7 +128,7 @@ export function validateTaskStructure(
       }
     }
 
-    validateVerifies(item, specFiles, options.changeDir, issues);
+    validateVerifies(item, elementUnits, options.changeDir, issues);
 
     if (!hasEvidenceField(item)) {
       issues.push(error('missing-evidence-field', `Check ${item.id} must include Command, Evidence, or Expect.`, item.line));
@@ -157,7 +157,7 @@ function validateCoarseTasks(
   options: TaskStructureValidationOptions
 ): TaskStructureValidation {
   const issues: TaskStructureIssue[] = [];
-  const specFiles = options.changeDir ? listChangeSpecFiles(options.changeDir) : new Set<string>();
+  const elementUnits = options.changeDir ? listChangeElementUnits(options.changeDir) : new Set<string>();
   const checks: TaskItem[] = [];
 
   for (const task of tasks) {
@@ -188,7 +188,7 @@ function validateCoarseTasks(
       ? parseItems(lines, mask, fields.get('Checks')!)
       : [];
     for (const item of taskChecks) {
-      validateVerifies(item, specFiles, options.changeDir, issues);
+      validateVerifies(item, elementUnits, options.changeDir, issues);
       if (!hasEvidenceField(item)) {
         issues.push(error('missing-evidence-field', `Check ${item.id} must include Command, Evidence, or Expect.`, item.line));
       }
@@ -227,7 +227,7 @@ function hasEvidenceField(item: TaskItem): boolean {
 
 function validateVerifies(
   item: TaskItem,
-  specFiles: Set<string>,
+  elementUnits: Set<string>,
   changeDir: string | undefined,
   issues: TaskStructureIssue[]
 ): void {
@@ -239,7 +239,7 @@ function validateVerifies(
   }
 
   if (hasVerifies) {
-    validateVerifiesField(item, specFiles, changeDir, issues);
+    validateVerifiesField(item, elementUnits, changeDir, issues);
   }
 
   if (hasPreserves) {
@@ -249,17 +249,17 @@ function validateVerifies(
 
 function validateVerifiesField(
   item: TaskItem,
-  specFiles: Set<string>,
+  elementUnits: Set<string>,
   changeDir: string | undefined,
   issues: TaskStructureIssue[]
 ): void {
   const value = item.verifies!.trim();
 
-  if (!changeDir || specFiles.size === 0) {
+  if (!changeDir || elementUnits.size === 0) {
     issues.push(
       warning(
         'verifies-cross-check-skipped',
-        `Check ${item.id} Verifies could not be cross-checked because this change has no local specs.`,
+        `Check ${item.id} Verifies could not be cross-checked because this change has no local Contract delta units.`,
         item.line
       )
     );
@@ -267,24 +267,24 @@ function validateVerifiesField(
   }
 
   const parsed = parseVerifies(value);
-  if (!parsed || !isValidChangeSpecPath(parsed.specPath)) {
-    issues.push(error('invalid-verifies-path', `Check ${item.id} has an invalid Verifies spec path.`, item.line));
+  if (!parsed || !isValidChangeElementPath(parsed.elementPath)) {
+    issues.push(error('invalid-verifies-path', `Check ${item.id} has an invalid Verifies Element path.`, item.line));
     return;
   }
 
-  if (!specFiles.has(parsed.specPath)) {
+  if (!elementUnits.has(parsed.elementPath)) {
     issues.push(
       error(
-        'missing-verifies-spec',
-        `Check ${item.id} Verifies references missing spec ${parsed.specPath}.`,
+        'missing-verifies-element',
+        `Check ${item.id} Verifies references missing Element unit ${parsed.elementPath}.`,
         item.line
       )
     );
     return;
   }
 
-  const spec = parseSpecRequirements(fs.readFileSync(path.join(changeDir, parsed.specPath), 'utf8'));
-  const requirement = spec.get(parsed.requirement);
+  const contract = parseContractRequirements(fs.readFileSync(path.join(changeDir, parsed.elementPath), 'utf8'));
+  const requirement = contract.get(parsed.requirement);
   if (!requirement) {
     issues.push(
       error(
@@ -330,8 +330,8 @@ function validatePreservesField(
   const value = item.preserves!.trim();
 
   const parsed = parsePreserves(value);
-  if (!parsed || !isValidMainSpecPath(parsed.specPath)) {
-    issues.push(error('invalid-verifies-path', `Check ${item.id} has an invalid Preserves spec path.`, item.line));
+  if (!parsed || !isValidFormalElementPath(parsed.elementPath)) {
+    issues.push(error('invalid-verifies-path', `Check ${item.id} has an invalid Preserves Element path.`, item.line));
     return;
   }
 
@@ -339,22 +339,22 @@ function validatePreservesField(
     return;
   }
 
-  const projectRoot = path.dirname(changeDir);
-  const mainSpecPath = path.join(projectRoot, parsed.specPath);
+  const projectRoot = projectRootForChangeDir(changeDir);
+  const formalElementPath = path.join(projectRoot, parsed.elementPath);
 
-  if (!fs.existsSync(mainSpecPath)) {
+  if (!fs.existsSync(formalElementPath)) {
     issues.push(
       error(
-        'missing-verifies-spec',
-        `Check ${item.id} Preserves references missing spec ${parsed.specPath}.`,
+        'missing-verifies-element',
+        `Check ${item.id} Preserves references missing Element unit ${parsed.elementPath}.`,
         item.line
       )
     );
     return;
   }
 
-  const spec = parseSpecRequirements(fs.readFileSync(mainSpecPath, 'utf8'));
-  const requirement = spec.get(parsed.requirement);
+  const contract = parseContractRequirements(fs.readFileSync(formalElementPath, 'utf8'));
+  const requirement = contract.get(parsed.requirement);
   if (!requirement) {
     issues.push(
       error(
@@ -379,43 +379,52 @@ function validatePreservesField(
   }
 }
 
-function parseVerifies(value: string): { specPath: string; requirement: string; scenarios: string[]; isRemoved?: boolean } | undefined {
-  const specPath = value.match(SPEC_PATH_RE)?.[1]?.trim();
+function projectRootForChangeDir(changeDir: string): string {
+  const resolved = path.resolve(changeDir);
+  const changesDir = path.dirname(resolved);
+  const xirangDir = path.dirname(changesDir);
+  return path.basename(changesDir) === 'changes' && path.basename(xirangDir) === '.xirang'
+    ? path.dirname(xirangDir)
+    : path.dirname(resolved);
+}
+
+function parseVerifies(value: string): { elementPath: string; requirement: string; scenarios: string[]; isRemoved?: boolean } | undefined {
+  const elementPath = value.match(ELEMENT_PATH_RE)?.[1]?.trim();
 
   const removedMatch = value.match(REMOVED_REQUIREMENT_RE);
   if (removedMatch) {
     const requirement = removedMatch[1]?.trim();
-    if (!specPath || !requirement) {
+    if (!elementPath || !requirement) {
       return undefined;
     }
-    return { specPath, requirement, scenarios: [], isRemoved: true };
+    return { elementPath, requirement, scenarios: [], isRemoved: true };
   }
 
   const requirement = value.match(REQUIREMENT_RE)?.[1]?.trim();
   const scenarioText = value.match(SCENARIOS_RE)?.[1] ?? '';
   const scenarios = [...scenarioText.matchAll(SCENARIO_NAME_RE)].map((match) => match[1].trim());
 
-  if (!specPath || !requirement || scenarios.length === 0 || scenarios.some((scenario) => !scenario)) {
+  if (!elementPath || !requirement || scenarios.length === 0 || scenarios.some((scenario) => !scenario)) {
     return undefined;
   }
 
-  return { specPath, requirement, scenarios };
+  return { elementPath, requirement, scenarios };
 }
 
-function parsePreserves(value: string): { specPath: string; requirement: string; scenarios: string[] } | undefined {
-  const specPath = value.match(SPEC_PATH_RE)?.[1]?.trim();
+function parsePreserves(value: string): { elementPath: string; requirement: string; scenarios: string[] } | undefined {
+  const elementPath = value.match(ELEMENT_PATH_RE)?.[1]?.trim();
   const requirement = value.match(REQUIREMENT_RE)?.[1]?.trim();
   const scenarioText = value.match(SCENARIOS_RE)?.[1] ?? '';
   const scenarios = [...scenarioText.matchAll(SCENARIO_NAME_RE)].map((match) => match[1].trim());
 
-  if (!specPath || !requirement || scenarios.length === 0 || scenarios.some((scenario) => !scenario)) {
+  if (!elementPath || !requirement || scenarios.length === 0 || scenarios.some((scenario) => !scenario)) {
     return undefined;
   }
 
-  return { specPath, requirement, scenarios };
+  return { elementPath, requirement, scenarios };
 }
 
-function listChangeSpecFiles(changeDir: string): Set<string> {
+function listChangeElementUnits(changeDir: string): Set<string> {
   const elementsDir = path.join(changeDir, ELEMENTS_PARTITION);
   if (!fs.existsSync(elementsDir)) {
     return new Set();
@@ -431,30 +440,30 @@ function listChangeSpecFiles(changeDir: string): Set<string> {
   return files;
 }
 
-function hasInvalidPathChars(specPath: string): boolean {
+function hasInvalidPathChars(elementPath: string): boolean {
   return (
-    specPath.includes('\\') ||
-    specPath.startsWith('/') ||
-    path.win32.isAbsolute(specPath) ||
-    specPath.includes('../')
+    elementPath.includes('\\') ||
+    elementPath.startsWith('/') ||
+    path.win32.isAbsolute(elementPath) ||
+    elementPath.includes('../')
   );
 }
 
-function isValidChangeSpecPath(specPath: string): boolean {
-  if (hasInvalidPathChars(specPath) || specPath.startsWith('.xirang/')) {
+function isValidChangeElementPath(elementPath: string): boolean {
+  if (hasInvalidPathChars(elementPath) || elementPath.startsWith('.xirang/')) {
     return false;
   }
 
-  const parts = specPath.split('/');
+  const parts = elementPath.split('/');
   return parts.length === 2 && parts[0] === ELEMENTS_PARTITION && UNIT_FILE_RE.test(parts[1]);
 }
 
-function isValidMainSpecPath(specPath: string): boolean {
-  if (hasInvalidPathChars(specPath)) {
+function isValidFormalElementPath(elementPath: string): boolean {
+  if (hasInvalidPathChars(elementPath)) {
     return false;
   }
 
-  const parts = specPath.split('/');
+  const parts = elementPath.split('/');
   return (
     parts.length === 4 &&
     parts[0] === '.xirang' &&
@@ -464,9 +473,9 @@ function isValidMainSpecPath(specPath: string): boolean {
   );
 }
 
-function parseSpecRequirements(content: string): Map<string, SpecRequirement> {
-  const requirements = new Map<string, SpecRequirement>();
-  let current: SpecRequirement | undefined;
+function parseContractRequirements(content: string): Map<string, ContractRequirement> {
+  const requirements = new Map<string, ContractRequirement>();
+  let current: ContractRequirement | undefined;
   let inRemovedSection = false;
 
   for (const line of content.replace(/\r\n?/g, '\n').split('\n')) {

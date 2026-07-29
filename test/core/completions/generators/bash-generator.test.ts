@@ -46,12 +46,12 @@ describe('BashGenerator', () => {
         },
         {
           name: 'validate',
-          description: 'Validate specs',
+          description: 'Validate Element Contracts',
           flags: [],
         },
         {
           name: 'show',
-          description: 'Show a spec',
+          description: 'Show a contract',
           flags: [],
         },
       ];
@@ -67,7 +67,7 @@ describe('BashGenerator', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'validate',
-          description: 'Validate specs',
+          description: 'Validate Element Contracts',
           flags: [
             {
               name: 'strict',
@@ -91,7 +91,7 @@ describe('BashGenerator', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'show',
-          description: 'Show a spec',
+          description: 'Show a contract',
           flags: [
             {
               name: 'requirement',
@@ -113,7 +113,7 @@ describe('BashGenerator', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'validate',
-          description: 'Validate specs',
+          description: 'Validate Element Contracts',
           flags: [
             {
               name: 'strict',
@@ -138,13 +138,13 @@ describe('BashGenerator', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'validate',
-          description: 'Validate specs',
+          description: 'Validate Element Contracts',
           flags: [
             {
               name: 'type',
               description: 'Specify item type',
               takesValue: true,
-              values: ['change', 'spec'],
+              values: ['change', 'contract'],
             },
           ],
         },
@@ -154,14 +154,14 @@ describe('BashGenerator', () => {
 
       expect(script).toContain('--type');
       expect(script).toContain('change');
-      expect(script).toContain('spec');
+      expect(script).toContain('contract');
     });
 
     it('should handle flags with takesValue but no specific values', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'validate',
-          description: 'Validate specs',
+          description: 'Validate Element Contracts',
           flags: [
             {
               name: 'concurrency',
@@ -265,29 +265,29 @@ describe('BashGenerator', () => {
       expect(script).toContain('_opsx_complete_changes');
     });
 
-    it('should handle positional arguments for spec-id', () => {
+    it('should handle positional arguments for contract-id', () => {
       const commands: CommandDefinition[] = [
         {
-          name: 'show-spec',
-          description: 'Show a spec',
+          name: 'show-contract',
+          description: 'Show a contract',
           acceptsPositional: true,
-          positionalType: 'spec-id',
+          positionalType: 'contract-id',
           flags: [],
         },
       ];
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('_opsx_complete_specs');
+      expect(script).toContain('_opsx_complete_contracts');
     });
 
-    it('should handle positional arguments for change-or-spec-id', () => {
+    it('should handle positional arguments for change-or-contract-id', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'show',
           description: 'Show an item',
           acceptsPositional: true,
-          positionalType: 'change-or-spec-id',
+          positionalType: 'change-or-contract-id',
           flags: [],
         },
       ];
@@ -351,31 +351,31 @@ describe('BashGenerator', () => {
       expect(script).toContain('COMPREPLY=');
     });
 
-    it('should generate dynamic completion helper for specs', () => {
+    it('should generate dynamic completion helper for contracts', () => {
       const commands: CommandDefinition[] = [
         {
-          name: 'show-spec',
-          description: 'Show a spec',
+          name: 'show-contract',
+          description: 'Show a contract',
           acceptsPositional: true,
-          positionalType: 'spec-id',
+          positionalType: 'contract-id',
           flags: [],
         },
       ];
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('_opsx_complete_specs() {');
-      expect(script).toContain('xirang __complete specs 2>/dev/null');
+      expect(script).toContain('_opsx_complete_contracts() {');
+      expect(script).toContain('xirang __complete contracts 2>/dev/null');
       expect(script).toContain('cut -f1');
     });
 
-    it('should generate dynamic completion helper for items (changes and specs)', () => {
+    it('should generate dynamic completion helper for items (changes and contracts)', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'show',
           description: 'Show an item',
           acceptsPositional: true,
-          positionalType: 'change-or-spec-id',
+          positionalType: 'change-or-contract-id',
           flags: [],
         },
       ];
@@ -384,21 +384,21 @@ describe('BashGenerator', () => {
 
       expect(script).toContain('_opsx_complete_items() {');
       expect(script).toContain('xirang __complete changes 2>/dev/null');
-      expect(script).toContain('xirang __complete specs 2>/dev/null');
+      expect(script).toContain('xirang __complete contracts 2>/dev/null');
     });
 
     it('should handle complex nested subcommands with flags', () => {
       const commands: CommandDefinition[] = [
         {
-          name: 'spec',
-          description: 'Manage specs',
+          name: 'contract',
+          description: 'Manage Element Contracts',
           flags: [],
           subcommands: [
             {
               name: 'validate',
-              description: 'Validate a spec',
+              description: 'Validate a contract',
               acceptsPositional: true,
-              positionalType: 'spec-id',
+              positionalType: 'contract-id',
               flags: [
                 {
                   name: 'strict',
@@ -416,11 +416,11 @@ describe('BashGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('spec)');
+      expect(script).toContain('contract)');
       expect(script).toContain('validate');
       expect(script).toContain('--strict');
       expect(script).toContain('--json');
-      expect(script).toContain('_opsx_complete_specs');
+      expect(script).toContain('_opsx_complete_contracts');
     });
 
     it('should generate script that ends with complete registration', () => {

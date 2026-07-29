@@ -7,8 +7,8 @@ The Xirang CLI (`xirang`) provides terminal commands for project setup, validati
 | Category | Commands | Purpose |
 |----------|----------|---------|
 | **Setup** | `setup`, `update` | Set up and update Xirang in your project |
-| **Browsing** | `list`, `view`, `show` | Explore changes and specs |
-| **Validation** | `validate` | Check changes and specs for issues |
+| **Browsing** | `list`, `view`, `show` | Explore Changes and the Semantic Model |
+| **Validation** | `validate` | Check Changes and Element Contracts for issues |
 | **Lifecycle** | `archive` | Finalize completed changes |
 | **Workflow** | `status`, `instructions`, `templates`, `schemas` | Artifact-driven workflow support |
 | **Schemas** | `schema validate`, `schema which` | Inspect and validate built-in workflows |
@@ -28,7 +28,7 @@ These commands are interactive and designed for terminal use:
 | Command | Purpose |
 |---------|---------|
 | `xirang setup` | Initialize project (interactive prompts) |
-| `xirang view` | Local Architecture and Specs browser |
+| `xirang view` | Local Semantic Model and Element Contract browser |
 | `xirang config edit` | Open config in editor |
 | `xirang feedback` | Submit feedback via GitHub |
 | `xirang completion install` | Install shell completions |
@@ -39,7 +39,7 @@ These commands support `--json` output for programmatic use by AI agents and scr
 
 | Command | Human Use | Agent Use |
 |---------|-----------|-----------|
-| `xirang list` | Browse changes/specs | `--json` for structured data |
+| `xirang list` | Browse active Changes | `--json` for structured data |
 | `xirang show <item>` | Read content | `--json` for parsing |
 | `xirang validate` | Check for issues | `--all --json` for bulk validation |
 | `xirang status` | See artifact progress | `--json` for structured status |
@@ -113,12 +113,15 @@ xirang setup --force
 
 ```
 .xirang/
-├── architecture/       # Versioned graph modules and Project Root
-├── specs/              # Element-owned contract modules
-├── changes/            # Proposed Semantic Deltas
-└── config.yaml         # Project configuration
+├── model/
+│   ├── metamodel/       # Element and Relationship Kinds
+│   ├── elements/        # Declarations and Element Contracts
+│   ├── relationships/   # Typed semantic Relationships
+│   └── views/           # Authored Views
+├── changes/             # Proposed Semantic Deltas and Change Plans
+└── config.yaml          # Project configuration
 
-.claude/skills/         # Claude Code skills (if claude selected)
+.claude/skills/          # Claude Code skills (if claude selected)
 .codex/skills/          # Codex skills (if codex selected; always skills-only)
 .cursor/skills/         # Cursor skills (if cursor selected)
 ... (other tool configs)
@@ -159,7 +162,7 @@ xirang update
 
 ### `xirang list`
 
-List changes or specs in your project.
+List active Changes in your project.
 
 ```
 xirang list [options]
@@ -169,10 +172,10 @@ xirang list [options]
 
 | Option | Description |
 |--------|-------------|
-| `--specs` | List specs instead of changes |
-| `--changes` | List changes (default) |
+| `--changes` | List Changes explicitly (default) |
 | `--sort <order>` | Sort by `recent` (default) or `name` |
-| `--json` | Output as JSON |
+| `--json` | Output `{ changes: [...] }` with compiler-derived `title` and `deltaCount` |
+| `--long` | Show title, Delta count, and task status |
 
 **Examples:**
 
@@ -180,8 +183,8 @@ xirang list [options]
 # List all active changes
 xirang list
 
-# List all specs
-xirang list --specs
+# Detailed text output
+xirang list --long
 
 # JSON output for scripts
 xirang list --json
@@ -205,7 +208,7 @@ Start the vendored LikeC4 browser for the nearest `.xirang/` project.
 xirang view [--port <n>]
 ```
 
-The browser renders versioned `.xirang/architecture/**/*.c4`. Elements with entries in the derived Spec registry expose an on-demand Specs tab backed by authorized reads from `.xirang/specs/**/*.md`. The command uses the vendored LikeC4 engine and does not require or resolve an external installation.
+The browser renders the Semantic Model generated from `.xirang/model/`. Elements whose units contain Requirements expose an on-demand Contracts tab. The SPA loads the selected Formal or Change-derived Contract through the read-only `/__xirang/contract` endpoint. The command uses the vendored LikeC4 engine and does not require or resolve an external installation.
 
 ---
 
@@ -236,7 +239,7 @@ JSON output contains:
 |-------|---------|
 | `id` | Change identity |
 | `title` | Title derived from `proposal.md` |
-| `valid` | Whether the four-partition Semantic Delta compiles to a valid Expected Semantic Model |
+| `valid` | Whether the Semantic Delta compiles to a valid Expected Semantic Model |
 | `summary` | Entity-level `total`, `ADDED`, `MODIFIED`, and `REMOVED` counts |
 | `entries` | Concise semantic differences keyed by entity kind and stable identity |
 | `diagnostics` | Structured compiler errors and warnings |
@@ -262,7 +265,7 @@ xirang show add-dark-mode --json
 
 ### `xirang validate`
 
-Validate changes and specs for structural issues.
+Validate Changes and Element Contracts for structural issues.
 
 ```
 xirang validate [item-name] [options]
@@ -278,10 +281,11 @@ xirang validate [item-name] [options]
 
 | Option | Description |
 |--------|-------------|
-| `--all` | Validate all changes and specs |
-| `--changes` | Validate all changes |
-| `--specs` | Validate all specs |
-| `--type <type>` | Specify type when name is ambiguous: `change` or `spec` |
+| `--all` | Validate all Changes and Element Contracts |
+| `--changes` | Validate all Changes |
+| `--contracts` | Validate all Element Contracts |
+| `--change <name>` | Validate one named Change |
+| `--type <type>` | Specify an ambiguous item type: `change` or `contract` |
 | `--strict` | Enable strict validation mode |
 | `--json` | Output as JSON |
 | `--concurrency <n>` | Max parallel validations (default: 6, or `XIRANG_CONCURRENCY` env) |
@@ -299,6 +303,12 @@ xirang validate add-dark-mode
 # Validate all changes
 xirang validate --changes
 
+# Validate all Element Contracts
+xirang validate --contracts
+
+# Validate one Element Contract by Element identity
+xirang validate payment.authorize --type contract
+
 # Validate everything with JSON output (for CI/scripts)
 xirang validate --all --json
 
@@ -310,32 +320,32 @@ xirang validate --all --strict --concurrency 12
 
 ```
 Validating add-dark-mode...
-  ✓ proposal.md valid
-  ✓ specs/ui/spec.md valid
-  ⚠ design.md: missing "Technical Approach" section
+  ✓ Semantic Delta valid
+  ✓ Expected Semantic Model valid
 
-1 warning found
+Validation passed
 ```
 
 **Output (JSON):**
 
 ```json
 {
-  "version": "1.0.0",
-  "results": {
-    "changes": [
-      {
-        "name": "add-dark-mode",
-        "valid": true,
-        "warnings": ["design.md: missing 'Technical Approach' section"]
-      }
-    ]
-  },
+  "items": [
+    {
+      "id": "add-dark-mode",
+      "type": "change",
+      "valid": true,
+      "issues": [],
+      "durationMs": 42
+    }
+  ],
   "summary": {
-    "total": 1,
-    "valid": 1,
-    "invalid": 0
-  }
+    "totals": { "items": 1, "passed": 1, "failed": 0 },
+    "byType": {
+      "change": { "items": 1, "passed": 1, "failed": 0 }
+    }
+  },
+  "version": "1.0"
 }
 ```
 

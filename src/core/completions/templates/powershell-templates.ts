@@ -14,8 +14,8 @@ function Get-OPSXChanges {
     }
 }
 
-function Get-OPSXSpecs {
-    $output = xirang __complete specs 2>$null
+function Get-OPSXContracts {
+    $output = xirang __complete contracts 2>$null
     if ($output) {
         $output | ForEach-Object {
             ($_ -split "\\t")[0]

@@ -49,6 +49,8 @@ xirang arch validate --json
 
 Queries address semantic objects by stable identity. Generated local names and LikeC4 FQNs are presentation details and are not persisted back into the model.
 
+The embedded Browser presents Element Contracts through a Contracts tab. Its SPA requests the selected Formal or Change-derived Contract from `/__xirang/contract`.
+
 ## Semantic Delta
 
 A Change uses the same four partitions under `.xirang/changes/<name>/`. Each Semantic Delta Entry declares `operation: ADDED|MODIFIED|REMOVED`, its entity type, and stable identity. ADDED and MODIFIED carry the complete target state; REMOVED carries identity only.

@@ -50,7 +50,7 @@ export interface CommandDefinition {
   flags: FlagDefinition[];
 
   /**
-   * Subcommands (e.g., "change show", "spec validate")
+   * Subcommands (e.g., "verify phase1")
    */
   subcommands?: CommandDefinition[];
 
@@ -62,8 +62,8 @@ export interface CommandDefinition {
   /**
    * Type of positional argument for dynamic completion
    * - 'change-id': Complete with active change IDs
-   * - 'spec-id': Complete with spec IDs
-   * - 'change-or-spec-id': Complete with both changes and specs
+   * - 'contract-id': Complete with Contract-bearing Element IDs
+   * - 'change-or-contract-id': Complete with both Changes and Contract-bearing Elements
    * - 'path': Complete with file paths
    * - 'shell': Complete with supported shell names
    * - 'schema-name': Complete with available schema names
@@ -71,7 +71,7 @@ export interface CommandDefinition {
    * - 'element-id': Accept stable Semantic Model element IDs
    * - undefined: No specific completion
    */
-  positionalType?: 'change-id' | 'spec-id' | 'change-or-spec-id' | 'path' | 'shell' | 'schema-name' | 'text' | 'element-id';
+  positionalType?: 'change-id' | 'contract-id' | 'change-or-contract-id' | 'path' | 'shell' | 'schema-name' | 'text' | 'element-id';
 }
 
 /**
