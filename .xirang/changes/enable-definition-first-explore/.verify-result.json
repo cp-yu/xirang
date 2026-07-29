@@ -65,9 +65,9 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "104454e4c0efe02458fd48a0e2de20f62428692f",
+    "gitHeadCommit": "fd44bed59de1905fda6bb94a92322ee040d3c4cc",
     "gitDiffSummary": "Clean-context review found no blockers. Current-source validation passes a 44-entry Change; architecture validation, 17 targeted files/96 tests, 160 full files/2045 tests, lint, build, identity audit, postinstall, packed install, generated parity, and diff check pass. Native Windows execution remains an evidence-only warning.",
-    "timestamp": "2026-07-29T04:16:18.263Z"
+    "timestamp": "2026-07-29T04:28:44.894Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
@@ -81,6 +81,28 @@
         "timestamp": "2026-07-29T04:16:18.255Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-07-29T04:21:46.370Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-29T04:22:34.234Z",
+        "type": "verification",
+        "result": "PASS",
+        "summary": "Previously verified implementation is unchanged and remains preserved at successful checkpoint fd44bed59de1905fda6bb94a92322ee040d3c4cc."
+      },
+      {
+        "timestamp": "2026-07-29T04:22:51.888Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-29T04:28:44.884Z",
+        "type": "verification",
+        "result": "PASS",
+        "summary": "Fresh reviewer verified ordering, absent/empty semantics, exact errors, deterministic round trip, and non-aliasing."
       }
     ],
     "baseline": {
@@ -156,7 +178,7 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "src/core/framing/baseline.ts"
@@ -201,11 +223,11 @@
         "priorityReason": "Removes provable quadratic lookup and redundant traversal in one pure function with deterministic behavior preserved.",
         "id": "OPT-20260729T040955334Z-01",
         "targetFileHashes": {
-          "src/core/framing/baseline.ts": "6cba4b6463ebef88d14de2eef7f1fe01a331d099fd8163693ac0004cb83eb7f7"
+          "src/core/framing/baseline.ts": "4b0c7c6f7888615fcb3032db62ac044bff9358240d01ce7512cf73274aba1d1c"
         }
       },
       {
-        "status": "pending",
+        "status": "verified",
         "location": {
           "files": [
             "src/core/framing/document.ts"
@@ -241,7 +263,10 @@
         "cost": "low",
         "dependencies": [],
         "priorityReason": "Definite duplicate work but lower runtime impact than baseline indexing.",
-        "id": "OPT-20260729T040955334Z-02"
+        "id": "OPT-20260729T040955334Z-02",
+        "targetFileHashes": {
+          "src/core/framing/document.ts": "7cca1af470e2784258abd7f2399e2a91656b86e27399fd90871f92631c96290d"
+        }
       }
     ],
     "history": [
@@ -285,9 +310,91 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-07-29T04:16:18.255Z",
         "findingId": "OPT-20260729T040955334Z-01"
+      },
+      {
+        "sequence": 6,
+        "action": "retain",
+        "reason": "Already implemented, independently verified, and saved in successful checkpoint fd44bed59de1905fda6bb94a92322ee040d3c4cc; retain as completed optimization history.",
+        "timestamp": "2026-07-29T04:21:46.367Z",
+        "findingId": "OPT-20260729T040955334Z-01"
+      },
+      {
+        "sequence": 7,
+        "action": "retain",
+        "reason": "Remains current and is the highest-priority actionable optimization. Optional Kind constraints are parsed twice per present field; local reuse preserves ordering, absent versus explicit-empty semantics, errors, and non-aliasing. No higher-value current opportunity is established.",
+        "timestamp": "2026-07-29T04:21:46.367Z",
+        "findingId": "OPT-20260729T040955334Z-02"
+      },
+      {
+        "sequence": 8,
+        "action": "select",
+        "reason": "Removes provable quadratic lookup and redundant traversal in one pure function with deterministic behavior preserved.",
+        "timestamp": "2026-07-29T04:21:46.370Z",
+        "findingId": "OPT-20260729T040955334Z-01",
+        "hashes": {
+          "src/core/framing/baseline.ts": "4b0c7c6f7888615fcb3032db62ac044bff9358240d01ce7512cf73274aba1d1c"
+        }
+      },
+      {
+        "sequence": 9,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-29T04:22:34.067Z",
+        "findingId": "OPT-20260729T040955334Z-01",
+        "hashes": {
+          "src/core/framing/baseline.ts": "4b0c7c6f7888615fcb3032db62ac044bff9358240d01ce7512cf73274aba1d1c"
+        }
+      },
+      {
+        "sequence": 10,
+        "action": "verified",
+        "reason": "Previously verified implementation is unchanged and remains preserved at successful checkpoint fd44bed59de1905fda6bb94a92322ee040d3c4cc.",
+        "timestamp": "2026-07-29T04:22:34.234Z",
+        "findingId": "OPT-20260729T040955334Z-01"
+      },
+      {
+        "sequence": 11,
+        "action": "resolve",
+        "reason": "Implementation is independently verified and saved in successful checkpoint fd44bed59de1905fda6bb94a92322ee040d3c4cc; direction complete.",
+        "timestamp": "2026-07-29T04:22:51.885Z",
+        "findingId": "OPT-20260729T040955334Z-01"
+      },
+      {
+        "sequence": 12,
+        "action": "retain",
+        "reason": "Remains current and is the highest-priority actionable optimization; parse each optional Kind constraint once while preserving parser behavior.",
+        "timestamp": "2026-07-29T04:22:51.885Z",
+        "findingId": "OPT-20260729T040955334Z-02"
+      },
+      {
+        "sequence": 13,
+        "action": "select",
+        "reason": "Definite duplicate work but lower runtime impact than baseline indexing.",
+        "timestamp": "2026-07-29T04:22:51.888Z",
+        "findingId": "OPT-20260729T040955334Z-02",
+        "hashes": {
+          "src/core/framing/document.ts": "7cca1af470e2784258abd7f2399e2a91656b86e27399fd90871f92631c96290d"
+        }
+      },
+      {
+        "sequence": 14,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-29T04:23:07.502Z",
+        "findingId": "OPT-20260729T040955334Z-02",
+        "hashes": {
+          "src/core/framing/document.ts": "7cca1af470e2784258abd7f2399e2a91656b86e27399fd90871f92631c96290d"
+        }
+      },
+      {
+        "sequence": 15,
+        "action": "verified",
+        "reason": "Fresh reviewer verified ordering, absent/empty semantics, exact errors, deterministic round trip, and non-aliasing.",
+        "timestamp": "2026-07-29T04:28:44.884Z",
+        "findingId": "OPT-20260729T040955334Z-02"
       }
     ],
-    "reconciliationSignature": "e51918a915bb1dc962b3258a79f61316ffc6e7bf42812efb5e4ba7b364aeda56",
+    "reconciliationSignature": "2d46fe09ffb468ea8c378707bbe0745af9913c8409c9a23a64e899d99f5ccf31",
     "unchangedReconciliations": 0
   }
 }

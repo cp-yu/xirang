@@ -107,16 +107,14 @@ function parseElementKinds(value: unknown): ChangeStructuralDefinitionPayload['e
     if (item.root !== undefined && typeof item.root !== 'boolean') {
       fail('INVALID_PAYLOAD', `elementKinds[${index}].root must be boolean`);
     }
+    const parents = optionalStringList(item.parents, `elementKinds[${index}].parents`);
+    const children = optionalStringList(item.children, `elementKinds[${index}].children`);
     return {
       identity,
       contract: item.contract,
       ...(item.root === undefined ? {} : { root: item.root }),
-      ...(optionalStringList(item.parents, `elementKinds[${index}].parents`) === undefined
-        ? {}
-        : { parents: optionalStringList(item.parents, `elementKinds[${index}].parents`)! }),
-      ...(optionalStringList(item.children, `elementKinds[${index}].children`) === undefined
-        ? {}
-        : { children: optionalStringList(item.children, `elementKinds[${index}].children`)! }),
+      ...(parents === undefined ? {} : { parents }),
+      ...(children === undefined ? {} : { children }),
       body: text(item.body, `elementKinds[${index}].body`, true),
     };
   });
@@ -131,14 +129,12 @@ function parseRelationshipKinds(value: unknown): ChangeStructuralDefinitionPaylo
       return { operation: 'REMOVED', identity };
     }
     exactKeys(item, ['identity', 'sourceKinds', 'targetKinds', 'body'], `relationshipKinds[${index}]`);
+    const sourceKinds = optionalStringList(item.sourceKinds, `relationshipKinds[${index}].sourceKinds`);
+    const targetKinds = optionalStringList(item.targetKinds, `relationshipKinds[${index}].targetKinds`);
     return {
       identity,
-      ...(optionalStringList(item.sourceKinds, `relationshipKinds[${index}].sourceKinds`) === undefined
-        ? {}
-        : { sourceKinds: optionalStringList(item.sourceKinds, `relationshipKinds[${index}].sourceKinds`)! }),
-      ...(optionalStringList(item.targetKinds, `relationshipKinds[${index}].targetKinds`) === undefined
-        ? {}
-        : { targetKinds: optionalStringList(item.targetKinds, `relationshipKinds[${index}].targetKinds`)! }),
+      ...(sourceKinds === undefined ? {} : { sourceKinds }),
+      ...(targetKinds === undefined ? {} : { targetKinds }),
       body: text(item.body, `relationshipKinds[${index}].body`, true),
     };
   });
