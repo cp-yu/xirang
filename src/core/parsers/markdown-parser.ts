@@ -15,7 +15,6 @@ export interface Section {
 export class MarkdownParser {
   private lines: string[];
   private codeFenceLineMask: boolean[];
-  private currentLine: number;
   /** Full requirement bodies (header fallback) for shared keyword validation. */
   private lastRequirementKeywordTexts: string[] = [];
 
@@ -23,7 +22,6 @@ export class MarkdownParser {
     const normalized = MarkdownParser.normalizeContent(content);
     this.lines = normalized.split('\n');
     this.codeFenceLineMask = buildCodeFenceMask(this.lines);
-    this.currentLine = 0;
   }
 
   /** Full bodies aligned with the last parseSpec requirements list. */
@@ -33,10 +31,6 @@ export class MarkdownParser {
 
   protected static normalizeContent(content: string): string {
     return content.replace(/\r\n?/g, '\n');
-  }
-
-  protected static buildCodeFenceMask(lines: string[]): boolean[] {
-    return buildCodeFenceMask(lines);
   }
 
   parseSpec(name: string): Spec {

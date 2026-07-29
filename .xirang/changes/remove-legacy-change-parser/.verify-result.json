@@ -35,7 +35,7 @@
       "test/core/validation.test.ts",
       "test/core/verify/freshness.test.ts"
     ],
-    "evidenceFingerprint": "f23dbd6134bcf262a466defa55938a784365883c62899d7ef6215c968c07b41c",
+    "evidenceFingerprint": "80bfd4849ee1ddb02755cd169afb206a890a28da7fd8e72bfbf53eb144066c81",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/remove-legacy-change-parser/design.md",
@@ -95,7 +95,7 @@
       },
       {
         "path": "src/core/parsers/markdown-parser.ts",
-        "hash": "79bd31c38eccff211a7527e9dc2b331f53ed435ab92f7cb775ed43753aed4c67"
+        "hash": "4351e75e0fee8435962efcc421fc09d961c6f5a43ca8b23fde62481f56d5b122"
       },
       {
         "path": "src/core/parsers/spec-structure.ts",
@@ -151,12 +151,24 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "0ffcac4549a5b7daa5987f443d1e812d70a6f687",
-    "gitDiffSummary": "Validated projectRoot and changeDir, resolved immutable baseCommit 0ffcac4549a5b7daa5987f443d1e812d70a6f687, and reviewed the union of git diff baseCommit...HEAD, final working-tree diff, and git status. All 30 changed paths are attributed to task Files entries or Change artifacts; all five declared deletions are complete. Legacy parser/schema/converter symbols, change-local specs parsing paths, and removed flags have no residual matches. `xirang arch validate --json` and `xirang validate --change remove-legacy-change-parser --json` passed; lint and build passed; all six declared checks passed; full `pnpm test` passed with 158 files and 2028 tests. No staged-file claim was made because the working tree intentionally contains staged and unstaged Change implementation state."
+    "gitHeadCommit": "71db7c512668e9d3e0f00ef58cb8d9994c0b6a77",
+    "gitDiffSummary": "Validated projectRoot and changeDir, resolved immutable baseCommit 0ffcac4549a5b7daa5987f443d1e812d70a6f687, and reviewed the union of git diff baseCommit...HEAD, final working-tree diff, and git status. All 30 changed paths are attributed to task Files entries or Change artifacts; all five declared deletions are complete. Legacy parser/schema/converter symbols, change-local specs parsing paths, and removed flags have no residual matches. `xirang arch validate --json` and `xirang validate --change remove-legacy-change-parser --json` passed; lint and build passed; all six declared checks passed; full `pnpm test` passed with 158 files and 2028 tests. No staged-file claim was made because the working tree intentionally contains staged and unstaged Change implementation state.",
+    "timestamp": "2026-07-29T07:01:05.982Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-07-29T06:51:49.795Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-29T07:01:05.968Z",
+        "type": "verification",
+        "result": "PASS_WITH_WARNINGS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-07-29T06:43:52.260Z",
       "result": "PASS",
@@ -313,6 +325,99 @@
         "gitHeadCommit": "0ffcac4549a5b7daa5987f443d1e812d70a6f687",
         "gitDiffSummary": "Validated projectRoot and changeDir, resolved immutable baseCommit 0ffcac4549a5b7daa5987f443d1e812d70a6f687, and reviewed the union of git diff baseCommit...HEAD, final working-tree diff, and git status. All 30 changed paths are attributed to task Files entries or Change artifacts; all five declared deletions are complete. Legacy parser/schema/converter symbols, change-local specs parsing paths, and removed flags have no residual matches. `xirang arch validate --json` and `xirang validate --change remove-legacy-change-parser --json` passed; lint and build passed; all six declared checks passed; full `pnpm test` passed with 158 files and 2028 tests. No staged-file claim was made because the working tree intentionally contains staged and unstaged Change implementation state."
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "src/core/parsers/markdown-parser.ts"
+          ],
+          "symbols": [
+            "MarkdownParser.currentLine",
+            "MarkdownParser.buildCodeFenceMask"
+          ]
+        },
+        "opportunity": "MarkdownParser retains two dead implementation members after ChangeParser was deleted: currentLine is allocated and initialized for every parser instance but never read, and the protected static buildCodeFenceMask forwarding method has no surviving caller.",
+        "impact": "Removes one unnecessary property initialization and instance field from every MarkdownParser construction, and deletes a protected forwarding surface that existed only to support the removed legacy ChangeParser subclass.",
+        "evidence": [
+          "src/core/parsers/markdown-parser.ts:18 declares currentLine and line 26 initializes it, while repository-wide search finds no read or subsequent write.",
+          "src/core/parsers/markdown-parser.ts:38-40 defines the protected static buildCodeFenceMask forwarding method, while current code has no call to MarkdownParser.buildCodeFenceMask or a surviving MarkdownParser subclass.",
+          "At baseCommit 0ffcac4549a5b7daa5987f443d1e812d70a6f687, src/core/parsers/change-parser.ts:140 called ChangeParser.buildCodeFenceMask; that tracked file is deleted by this change.",
+          "src/core/parsers/markdown-parser.ts:25 already calls the imported buildCodeFenceMask function directly for the live parser path.",
+          "Targeted validation passed: test/core/commands/change-command.list.test.ts, test/core/commands/change-command.show-validate.test.ts, and test/core/parsers/markdown-parser.test.ts completed with 3 files and 18 tests passing."
+        ],
+        "recommendation": "Delete the unused currentLine declaration and constructor assignment, and delete the unused protected static buildCodeFenceMask forwarding method.",
+        "keyDesign": "Keep constructor normalization and direct fence-mask construction unchanged. MarkdownParser should retain only state consumed by parseSpec: normalized lines, the direct buildCodeFenceMask result, and lastRequirementKeywordTexts.",
+        "preservationConstraints": [
+          "Preserve parseSpec outputs, section hierarchy, requirement order, scenario order, fence handling, CRLF normalization, and all existing thrown error messages.",
+          "Preserve getRequirementKeywordTexts alignment and full-body behavior.",
+          "Keep the constructor's direct call to the shared buildCodeFenceMask function.",
+          "Keep normalizeContent behavior and the MarkdownParser public constructor and methods unchanged.",
+          "Do not restore ChangeParser, change-local specs parsing, legacy Change schemas, or any removed compatibility path.",
+          "Do not modify Element Contracts, CLI output contracts, Semantic Delta compilation, or model intent."
+        ],
+        "implementationOutline": [
+          "Remove the private currentLine field declaration.",
+          "Remove the constructor assignment to currentLine.",
+          "Remove the protected static buildCodeFenceMask forwarding method.",
+          "Confirm no current source or test references either removed member."
+        ],
+        "validation": [
+          "Run pnpm exec vitest run test/core/parsers/markdown-parser.test.ts test/specs/source-specs-normalization.test.ts.",
+          "Run pnpm exec vitest run test/core/validation.test.ts.",
+          "Run pnpm lint && pnpm build.",
+          "Run rg -n 'currentLine|protected static buildCodeFenceMask' src/core/parsers/markdown-parser.ts and confirm no matches."
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "This is the only admitted optimization: it deletes statically proven residual state and a forwarding surface left unnecessary by the core legacy-parser deletion, with no data-flow or contract change. Other observed opportunities, including list concurrency, repeated validation scans, and filesystem parallelism, have workload-dependent benefit or disproportionate preservation risk.",
+        "id": "OPT-20260729T065149793Z-01",
+        "targetFileHashes": {
+          "src/core/parsers/markdown-parser.ts": "79bd31c38eccff211a7527e9dc2b331f53ed435ab92f7cb775ed43753aed4c67"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-29T06:51:49.793Z",
+        "findingId": "OPT-20260729T065149793Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "select",
+        "reason": "This is the only admitted optimization: it deletes statically proven residual state and a forwarding surface left unnecessary by the core legacy-parser deletion, with no data-flow or contract change. Other observed opportunities, including list concurrency, repeated validation scans, and filesystem parallelism, have workload-dependent benefit or disproportionate preservation risk.",
+        "timestamp": "2026-07-29T06:51:49.795Z",
+        "findingId": "OPT-20260729T065149793Z-01",
+        "hashes": {
+          "src/core/parsers/markdown-parser.ts": "79bd31c38eccff211a7527e9dc2b331f53ed435ab92f7cb775ed43753aed4c67"
+        }
+      },
+      {
+        "sequence": 3,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-29T06:51:57.171Z",
+        "findingId": "OPT-20260729T065149793Z-01",
+        "hashes": {
+          "src/core/parsers/markdown-parser.ts": "79bd31c38eccff211a7527e9dc2b331f53ed435ab92f7cb775ed43753aed4c67"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-29T07:01:05.968Z",
+        "findingId": "OPT-20260729T065149793Z-01"
+      }
+    ],
+    "reconciliationSignature": "b23558d00426baf614c2c4389b7b3f768f99688d300fa7b30f912f7ce6663c52",
+    "unchangedReconciliations": 0
   }
 }

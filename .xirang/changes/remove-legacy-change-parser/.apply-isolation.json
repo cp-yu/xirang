@@ -2,5 +2,6 @@
   "method": "branch",
   "branchName": "remove-legacy-change-parser",
   "originalBranch": "main",
-  "baseCommit": "0ffcac4549a5b7daa5987f443d1e812d70a6f687"
+  "baseCommit": "0ffcac4549a5b7daa5987f443d1e812d70a6f687",
+  "phase2BaselineCommit": "71db7c512668e9d3e0f00ef58cb8d9994c0b6a77"
 }
