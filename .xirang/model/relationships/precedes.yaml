@@ -1,22 +1,25 @@
 relationships:
+  - source: apply
+    kind: precedes
+    target: review
+  - source: change-formation
+    kind: precedes
+    target: change-implementation
+  - source: change-implementation
+    kind: precedes
+    target: change-closure
+  - source: definition-framing
+    kind: precedes
+    target: design-exploration
   - source: explore
     kind: precedes
     target: propose
   - source: propose
     kind: precedes
     target: apply
-  - source: snack
-    kind: precedes
-    target: verify
-  - source: change-formation
-    kind: precedes
-    target: change-implementation
-  - source: apply
-    kind: precedes
-    target: review
   - source: review
     kind: precedes
     target: optimization
-  - source: change-implementation
+  - source: snack
     kind: precedes
-    target: change-closure
+    target: verify
