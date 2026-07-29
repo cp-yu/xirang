@@ -70,7 +70,7 @@
     "timestamp": "2026-07-29T05:01:29.182Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "DEGRADED",
     "attempts": [
       {
         "timestamp": "2026-07-29T04:09:55.338Z",
@@ -124,6 +124,11 @@
         "type": "verification",
         "result": "PASS",
         "summary": "Corrected retry preserves first-match updates and Contract lookup, later duplicates, remove-all semantics, ordering, diagnostics, and Relationship behavior."
+      },
+      {
+        "timestamp": "2026-07-29T05:05:14.688Z",
+        "type": "optimization",
+        "status": "NO_OPTIMIZATION_NEEDED"
       }
     ],
     "baseline": {
@@ -290,7 +295,7 @@
         }
       },
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "src/core/framing/validator.ts"
@@ -343,7 +348,7 @@
         "failureCount": 1
       },
       {
-        "status": "pending",
+        "status": "rejected",
         "location": {
           "files": [
             "src/core/framing/consume.ts"
@@ -609,10 +614,24 @@
         "reason": "Corrected retry preserves first-match updates and Contract lookup, later duplicates, remove-all semantics, ordering, diagnostics, and Relationship behavior.",
         "timestamp": "2026-07-29T05:01:29.172Z",
         "findingId": "OPT-20260729T043320099Z-01"
+      },
+      {
+        "sequence": 27,
+        "action": "resolve",
+        "reason": "Corrected validator optimization is independently verified and saved at checkpoint 0418610ed1086ad828ac1d7b3f4c570f2ea1512b; focused suites pass and source is unchanged.",
+        "timestamp": "2026-07-29T05:05:14.688Z",
+        "findingId": "OPT-20260729T043320099Z-01"
+      },
+      {
+        "sequence": 28,
+        "action": "reject",
+        "reason": "One-shot coverage matching over the reviewed 44-entry Delta has no workload or profiling evidence of material cost; a composite index would add preservation-sensitive complexity and allocations, so reject as unjustified micro-optimization.",
+        "timestamp": "2026-07-29T05:05:14.688Z",
+        "findingId": "OPT-20260729T043320099Z-02"
       }
     ],
-    "reconciliationSignature": "ed30fd43a1344fa5067a43da78de3d0af6e30a3d3daeb738d443d2b6b6df6c3c",
-    "unchangedReconciliations": 1,
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0,
     "failedDirections": [
       "OPT-20260729T043320099Z-01: Build target maps keyed by identity, traverse each existing cloned collection once preserving in-place order, append absent non-removed targets in payload order, retain Element requirements, and reuse one source Element identity map. — Speculative reviewer rejected the optimization"
     ]
