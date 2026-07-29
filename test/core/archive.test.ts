@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ArchiveCommand } from '../../src/core/archive.js';
-import { Validator } from '../../src/core/validation/validator.js';
 import { execFile } from 'child_process';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -320,17 +319,10 @@ git:
 
     it('should block archive with --no-sync --yes when pending deltas exist', async () => {
       const changeName = 'no-sync-bypass';
-      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
-      const specDir = path.join(changeDir, 'specs', 'gate');
-      await fs.mkdir(specDir, { recursive: true });
+      const changeDir = await writeChangeDelta(tempDir, changeName, {
+        'elements/gate.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: gate\nkind: capability\nparent: root\ntitle: Gate\ndefinition: Sync bypass gate.\n---\n',
+      });
       await writeFreshVerifyResult(changeDir);
-      await fs.writeFile(path.join(specDir, 'spec.md'), `## ADDED Requirements
-
-### Requirement: Bypassed sync gate
-
-#### Scenario: Sync bypassed
-- **WHEN** user runs archive with --no-sync
-- **THEN** sync gate is skipped`);
 
       await archiveCommand.execute(changeName, { yes: true, noVerify: true, noSync: true, noValidate: true });
 
@@ -341,13 +333,10 @@ git:
 
     it('should confirm before bypassing sync gate with --no-sync', async () => {
       const changeName = 'no-sync-confirm';
-      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
-      const specDir = path.join(changeDir, 'specs', 'gate');
-      await fs.mkdir(specDir, { recursive: true });
+      const changeDir = await writeChangeDelta(tempDir, changeName, {
+        'elements/gate.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: gate\nkind: capability\nparent: root\ntitle: Gate\ndefinition: Sync confirmation gate.\n---\n',
+      });
       await writeFreshVerifyResult(changeDir);
-      await fs.writeFile(path.join(specDir, 'spec.md'), `## ADDED Requirements
-
-### Requirement: Confirm sync bypass`);
 
       const { confirm } = await import('@inquirer/prompts');
       const mockConfirm = confirm as unknown as ReturnType<typeof vi.fn>;
@@ -426,23 +415,13 @@ git:
       await fs.mkdir(changeDir, { recursive: true });
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n');
 
-      const validateSpy = vi.spyOn(Validator.prototype, 'validateChange');
-      const deltaSpy = vi.spyOn(Validator.prototype, 'validateChangeDeltaSpecs');
+      await archiveCommand.execute(changeName, { yes: true, noVerify: true, validate: false });
 
-      try {
-        await archiveCommand.execute(changeName, { yes: true, noVerify: true, validate: false });
-
-        expect(validateSpy).not.toHaveBeenCalled();
-        expect(deltaSpy).not.toHaveBeenCalled();
-
-        const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
-        const archives = await fs.readdir(archiveDir);
-        expect(archives.length).toBe(1);
-        expect(archives[0]).toMatch(new RegExp(`\\d{4}-\\d{2}-\\d{2}-${changeName}`));
-      } finally {
-        validateSpy.mockRestore();
-        deltaSpy.mockRestore();
-      }
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('Validation skipped'));
+      const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
+      const archives = await fs.readdir(archiveDir);
+      expect(archives.length).toBe(1);
+      expect(archives[0]).toMatch(new RegExp(`\\d{4}-\\d{2}-\\d{2}-${changeName}`));
     });
   });
 

@@ -1,4 +1,4 @@
-import { Spec, Change, Requirement, Scenario, Delta, DeltaOperation } from '../schemas/index.js';
+import { Spec, Requirement, Scenario } from '../schemas/index.js';
 import {
   buildCodeFenceMask,
   extractRequirementBody,
@@ -15,7 +15,6 @@ export interface Section {
 export class MarkdownParser {
   private lines: string[];
   private codeFenceLineMask: boolean[];
-  private currentLine: number;
   /** Full requirement bodies (header fallback) for shared keyword validation. */
   private lastRequirementKeywordTexts: string[] = [];
 
@@ -23,7 +22,6 @@ export class MarkdownParser {
     const normalized = MarkdownParser.normalizeContent(content);
     this.lines = normalized.split('\n');
     this.codeFenceLineMask = buildCodeFenceMask(this.lines);
-    this.currentLine = 0;
   }
 
   /** Full bodies aligned with the last parseSpec requirements list. */
@@ -33,10 +31,6 @@ export class MarkdownParser {
 
   protected static normalizeContent(content: string): string {
     return content.replace(/\r\n?/g, '\n');
-  }
-
-  protected static buildCodeFenceMask(lines: string[]): boolean[] {
-    return buildCodeFenceMask(lines);
   }
 
   parseSpec(name: string): Spec {
@@ -62,33 +56,6 @@ export class MarkdownParser {
       metadata: {
         version: '1.0.0',
         format: 'xirang',
-      },
-    };
-  }
-
-  parseChange(name: string): Change {
-    const sections = this.parseSections();
-    const why = this.findSection(sections, 'Why')?.content || '';
-    const whatChanges = this.findSection(sections, 'What Changes')?.content || '';
-    
-    if (!why) {
-      throw new Error('Change must have a Why section');
-    }
-    
-    if (!whatChanges) {
-      throw new Error('Change must have a What Changes section');
-    }
-
-    const deltas = this.parseDeltas(whatChanges);
-
-    return {
-      name,
-      why: why.trim(),
-      whatChanges: whatChanges.trim(),
-      deltas,
-      metadata: {
-        version: '1.0.0',
-        format: 'xirang-change',
       },
     };
   }
@@ -198,38 +165,5 @@ export class MarkdownParser {
     }
     
     return scenarios;
-  }
-
-
-  protected parseDeltas(content: string): Delta[] {
-    const deltas: Delta[] = [];
-    const lines = content.split('\n');
-    
-    for (const line of lines) {
-      // Match both formats: **spec:** and **spec**:
-      const deltaMatch = line.match(/^\s*-\s*\*\*([^*:]+)(?::\*\*|\*\*:)\s*(.+)$/);
-      if (deltaMatch) {
-        const specName = deltaMatch[1].trim();
-        const description = deltaMatch[2].trim();
-        
-        let operation: DeltaOperation = 'MODIFIED';
-        const lowerDesc = description.toLowerCase();
-        
-        // Use word boundaries to avoid false matches (e.g., "address" matching "add")
-        if (/\badd(s|ed|ing)?\b/.test(lowerDesc) || /\bcreate(s|d|ing)?\b/.test(lowerDesc) || /\bnew\b/.test(lowerDesc)) {
-          operation = 'ADDED';
-        } else if (/\bremove(s|d|ing)?\b/.test(lowerDesc) || /\bdelete(s|d|ing)?\b/.test(lowerDesc)) {
-          operation = 'REMOVED';
-        }
-        
-        deltas.push({
-          spec: specName,
-          operation,
-          description,
-        });
-      }
-    }
-    
-    return deltas;
   }
 }

@@ -9,12 +9,3 @@ export {
   SpecSchema,
   type Spec,
 } from './spec.schema.js';
-
-export {
-  DeltaOperationType,
-  DeltaSchema,
-  ChangeSchema,
-  type DeltaOperation,
-  type Delta,
-  type Change,
-} from './change.schema.js';

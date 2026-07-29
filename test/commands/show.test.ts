@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { runCLI } from '../helpers/run-cli.js';
+import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 
 describe('top-level show command', () => {
   const projectRoot = process.cwd();
@@ -10,10 +11,13 @@ describe('top-level show command', () => {
 
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });
+    await writeProjectModel(testDir, minimalModel());
 
-    const changeContent = `# Change: Demo\n\n## Why\nBecause reasons.\n\n## What Changes\n- **auth:** Add requirement\n`;
-    await fs.mkdir(path.join(changesDir, 'demo'), { recursive: true });
-    await fs.writeFile(path.join(changesDir, 'demo', 'proposal.md'), changeContent, 'utf-8');
+    const changeContent = `# Change: Demo\n\n## Why\nBecause reasons.\n\n## What Changes\nAdd authentication capability.\n`;
+    const changeDir = await writeChangeDelta(testDir, 'demo', {
+      'elements/auth.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: auth\nkind: capability\nparent: root\ntitle: Auth\ndefinition: Authentication capability.\n---\n',
+    });
+    await fs.writeFile(path.join(changeDir, 'proposal.md'), changeContent, 'utf-8');
   });
 
   afterEach(async () => {
@@ -36,8 +40,14 @@ describe('top-level show command', () => {
     const result = await runCLI(['show', 'demo', '--json'], { cwd: testDir });
     expect(result.exitCode).toBe(0);
     const json = JSON.parse(result.stdout);
-    expect(json.id).toBe('demo');
-    expect(Array.isArray(json.deltas)).toBe(true);
+    expect(json).toEqual({
+      id: 'demo',
+      title: 'Demo',
+      valid: true,
+      summary: { total: 1, ADDED: 1, MODIFIED: 0, REMOVED: 0 },
+      entries: [{ kind: 'element-declaration', identity: 'auth', operation: 'ADDED' }],
+      diagnostics: [],
+    });
   });
 
   it('prints nearest matches when not found', async () => {

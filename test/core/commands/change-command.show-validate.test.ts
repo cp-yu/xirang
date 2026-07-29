@@ -3,6 +3,7 @@ import { ChangeCommand } from '../../../src/commands/change.js';
 import path from 'path';
 import { promises as fs } from 'fs';
 import os from 'os';
+import { minimalModel, writeChangeDelta, writeProjectModel } from '../../helpers/model-fixture.js';
 
 describe('ChangeCommand.show/validate', () => {
   let cmd: ChangeCommand;
@@ -14,10 +15,16 @@ describe('ChangeCommand.show/validate', () => {
     cmd = new ChangeCommand();
     originalCwd = process.cwd();
     tempRoot = path.join(os.tmpdir(), `opsx-change-command-${Date.now()}`);
-    const changesDir = path.join(tempRoot, '.xirang', 'changes', 'sample-change');
-    await fs.mkdir(changesDir, { recursive: true });
-    const proposal = `# Change: Sample Change\n\n## Why\nConsistency in tests.\n\n## What Changes\n- **auth:** Add requirement`;
+    await writeProjectModel(tempRoot, minimalModel());
+    const changesDir = await writeChangeDelta(tempRoot, 'sample-change', {
+      'elements/auth.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: auth\nkind: capability\nparent: root\ntitle: Auth\ndefinition: Authentication capability.\n---\n',
+    });
+    const proposal = `# Change: Sample Change\n\n## Why\nConsistency in tests.\n\n## What Changes\nAdd authentication capability.`;
     await fs.writeFile(path.join(changesDir, 'proposal.md'), proposal, 'utf-8');
+    const brokenDir = await writeChangeDelta(tempRoot, 'broken-change', {
+      'elements/root.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: root\nkind: project\nparent: null\ntitle: Duplicate root\ndefinition: Duplicate root.\n---\n',
+    });
+    await fs.writeFile(path.join(brokenDir, 'proposal.md'), proposal, 'utf-8');
     process.chdir(tempRoot);
     changeName = 'sample-change';
   });
@@ -27,7 +34,7 @@ describe('ChangeCommand.show/validate', () => {
     await fs.rm(tempRoot, { recursive: true, force: true });
   });
 
-  it('show --json prints JSON including deltas', async () => {
+  it('show --json prints the compiler-derived change view', async () => {
     const logs: string[] = [];
     const origLog = console.log;
     try {
@@ -37,10 +44,16 @@ describe('ChangeCommand.show/validate', () => {
 
       await cmd.show(changeName, { json: true });
 
-      const output = logs.join('\n');
-      const parsed = JSON.parse(output);
-      expect(parsed).toHaveProperty('deltas');
-      expect(Array.isArray(parsed.deltas)).toBe(true);
+      const parsed = JSON.parse(logs.join('\n'));
+      expect(parsed).toEqual({
+        id: 'sample-change',
+        title: 'Sample Change',
+        valid: true,
+        summary: { total: 1, ADDED: 1, MODIFIED: 0, REMOVED: 0 },
+        entries: [{ kind: 'element-declaration', identity: 'auth', operation: 'ADDED' }],
+        diagnostics: [],
+      });
+      expect(parsed).not.toHaveProperty('deltas');
     } finally {
       console.log = origLog;
     }
@@ -65,7 +78,7 @@ describe('ChangeCommand.show/validate', () => {
     }
   });
 
-  it('show --json --requirements-only returns minimal object with deltas (deprecated alias)', async () => {
+  it('show --json returns compiler diagnostics for an invalid change', async () => {
     const logs: string[] = [];
     const origLog = console.log;
     try {
@@ -73,17 +86,13 @@ describe('ChangeCommand.show/validate', () => {
         logs.push([msg, ...args].filter(Boolean).join(' '));
       };
 
-      await cmd.show(changeName, { json: true, requirementsOnly: true });
+      await cmd.show('broken-change', { json: true });
 
-      const output = logs.join('\n');
-      const parsed = JSON.parse(output);
-      expect(parsed).toHaveProperty('deltas');
-      expect(Array.isArray(parsed.deltas)).toBe(true);
-      if (parsed.deltas.length > 0) {
-        expect(parsed.deltas[0]).toHaveProperty('spec');
-        expect(parsed.deltas[0]).toHaveProperty('operation');
-        expect(parsed.deltas[0]).toHaveProperty('description');
-      }
+      const parsed = JSON.parse(logs.join('\n'));
+      expect(parsed.valid).toBe(false);
+      expect(parsed.diagnostics).toEqual(expect.arrayContaining([
+        expect.objectContaining({ code: 'ADDED_IDENTITY_EXISTS', identity: 'root' }),
+      ]));
     } finally {
       console.log = origLog;
     }
