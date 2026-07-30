@@ -55,7 +55,8 @@ describe('generateLikeC4 specification.c4', () => {
     expect(generateLikeC4(emptySemanticModel()).get('likec4.config.json')).toBe([
       '{',
       '  "name": "xirang",',
-      '  "implicitViews": false',
+      '  "implicitViews": false,',
+      '  "defaultLandscapeView": false',
       '}',
       '',
     ].join('\n'));

@@ -127,6 +127,14 @@ export const LikeC4ProjectJsonConfigSchema = z.object({
     .meta({
       description: 'Auto-generate scoped views for elements without explicit views. Defaults to false.',
     }),
+  defaultLandscapeView: z.boolean()
+    .optional()
+    .meta({
+      description: [
+        'Auto-generate the default "Landscape view" (id `index`) when the project declares none.',
+        'Set to false when the project owns its own entry view. Defaults to true.',
+      ].join('\n'),
+    }),
   landingPage: LandingPageSchema.optional(),
 })
   .meta({

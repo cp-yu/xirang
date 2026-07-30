@@ -139,7 +139,7 @@ describe('materializeXirangArchitectureView', () => {
     expect(new Set(colors).size).toBe(9)
     expect(colors.every(color => contrastWithWhite(color) >= 4.5)).toBe(true)
     expect(Math.min(...colors.flatMap((color, index) => colors.slice(index + 1).map(other => colorDistance(color, other))))).toBeGreaterThanOrEqual(35)
-    expect(perspectiveNodes.every(node => node.shape === 'component')).toBe(true)
+    expect(perspectiveNodes.every(node => node.shape === 'document')).toBe(true)
 
     const child = materializeXirangArchitectureView(modelView, source, 'full', 'perspective.0')
       .nodes.find(node => node.id === 'capability.a')!
@@ -348,8 +348,59 @@ describe('materializeXirangArchitectureView', () => {
 
   it('uses deterministic projection geometry independent from complete-model coordinates', () => {
     const target = materializeXirangArchitectureView(modelView, viewSource, 'full')
+    const alpha = target.nodes.find(item => item.id === 'alpha.id')!
 
-    expect(target.nodes.find(item => item.id === 'alpha.id')).toMatchObject({ x: 400, y: 40, width: 320, height: 180 })
+    expect(alpha).toMatchObject({ width: 320, height: 180 })
+    expect(materializeXirangArchitectureView(modelView, viewSource, 'full').nodes.find(item => item.id === 'alpha.id'))
+      .toEqual(alpha)
+  })
+
+  it('sizes the focus node as a container that encloses every direct child', () => {
+    for (const focus of ['project.root', 'perspective.0'] as const) {
+      const source: XirangViewSource = {
+        ...viewSource,
+        architecture: {
+          elements: [
+            declaration('project.root', 'Project', 'Project', null, 'project'),
+            declaration('perspective.0', 'Perspective', 'Perspective', 'project.root', 'perspective'),
+            ...Array.from({ length: 7 }, (_, index) =>
+              declaration(`child.${index}`, `Child ${index}`, `Child ${index}`, focus)),
+          ],
+          relationships: [],
+        },
+      }
+      const target = materializeXirangArchitectureView(modelView, source, 'full', focus)
+      const container = target.nodes.find(node => node.id === focus)!
+      const children = target.nodes.filter(node => node.parent === focus)
+
+      expect(children.length).toBeGreaterThanOrEqual(7)
+      for (const child of children) {
+        expect(child.x).toBeGreaterThan(container.x)
+        expect(child.y).toBeGreaterThan(container.y)
+        expect(child.x + child.width).toBeLessThan(container.x + container.width)
+        expect(child.y + child.height).toBeLessThan(container.y + container.height)
+      }
+      // The container must not be mistakeable for one more sibling cell.
+      expect(container.width).toBeGreaterThan(Math.max(...children.map(child => child.width)))
+      expect(container.height).toBeGreaterThan(Math.max(...children.map(child => child.height)))
+    }
+  })
+
+  it('keeps a childless focus at leaf size', () => {
+    const source: XirangViewSource = {
+      ...viewSource,
+      architecture: {
+        elements: [
+          declaration('project.root', 'Project', 'Project', null),
+          declaration('alpha.id', 'Alpha', 'Alpha', 'project.root'),
+        ],
+        relationships: [],
+      },
+    }
+    const target = materializeXirangArchitectureView(modelView, source, 'full', 'alpha.id')
+
+    expect(target.nodes).toHaveLength(1)
+    expect(target.nodes[0]).toMatchObject({ id: 'alpha.id', width: 320, height: 180 })
   })
 
   it('falls back to the grid without diagnostics when no modelView node carries the identity', () => {
@@ -359,9 +410,13 @@ describe('materializeXirangArchitectureView', () => {
     } as unknown as DiagramView
 
     const target = materializeXirangArchitectureView(withoutMetadata, viewSource, 'full')
+    const container = target.nodes.find(node => node.id === 'project.root')!
 
-    expect(target.nodes.map(item => [item.id, item.x, item.y]))
-      .toEqual([['project.root', 40, 40], ['alpha.id', 400, 40], ['gamma.id', 760, 40]])
+    expect(target.nodes.map(item => item.id)).toEqual(['project.root', 'alpha.id', 'gamma.id'])
+    for (const child of target.nodes.filter(node => node.parent === 'project.root')) {
+      expect(child.x).toBeGreaterThan(container.x)
+      expect(child.x + child.width).toBeLessThan(container.x + container.width)
+    }
     expect(getArchitectureOverlayModel(viewSource).diagnostics).toEqual([])
   })
 

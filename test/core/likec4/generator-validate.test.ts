@@ -80,6 +80,25 @@ describe('generateLikeC4 artifacts', () => {
     }
   });
 
+  it('exports the Model View as the only entry view when no index is authored', { timeout: 180_000 }, async () => {
+    const withoutAuthoredIndex: SemanticModel = { ...model, views: [] };
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-likec4-entry-'));
+    const outfile = path.join(os.tmpdir(), `xirang-likec4-${path.basename(dir)}.json`);
+    try {
+      for (const [file, content] of generateLikeC4(withoutAuthoredIndex)) {
+        await fs.writeFile(path.join(dir, file), content);
+      }
+      await runLikeC4(['export', 'json', '--skip-layout', '--project', 'xirang', '-o', outfile, dir]);
+      const generated = JSON.parse(await fs.readFile(outfile, 'utf8')) as { views: Record<string, unknown> };
+
+      // LikeC4 must not inject its own `index` Landscape view next to the Model View.
+      expect(Object.keys(generated.views)).toEqual(['model']);
+    } finally {
+      await fs.rm(dir, { recursive: true, force: true });
+      await fs.rm(outfile, { force: true });
+    }
+  });
+
   it('are produced without touching the file system', async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-likec4-purity-'));
     const cwd = process.cwd();

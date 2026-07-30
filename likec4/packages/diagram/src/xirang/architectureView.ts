@@ -77,14 +77,56 @@ function bounds(nodes: ViewNode[], fallback: DiagramView['bounds']): DiagramView
 
 type Geometry = Pick<ViewNode, 'x' | 'y' | 'width' | 'height'>
 
+const LEAF_WIDTH = 320
+const LEAF_HEIGHT = 180
+const CELL_GAP = 40
+const GRID_COLUMNS = 4
+const ORIGIN = 40
+/** Room for the container's own title above its children. */
+const CONTAINER_HEADER = 60
+const CONTAINER_PADDING = 40
+
 function gridGeometry(index: number): Geometry {
   return {
-    x: 40 + (index % 4) * 360,
-    y: 40 + Math.floor(index / 4) * 230,
-    width: 320,
-    height: 180,
+    x: ORIGIN + (index % GRID_COLUMNS) * (LEAF_WIDTH + CELL_GAP),
+    y: ORIGIN + Math.floor(index / GRID_COLUMNS) * (LEAF_HEIGHT + CELL_GAP + 10),
+    width: LEAF_WIDTH,
+    height: LEAF_HEIGHT,
   }
 }
+
+/**
+ * `parent` makes LikeC4 render a node inside its container, so the focus geometry must actually
+ * enclose the children grid. A flat grid shared by focus and children renders the focus as one more
+ * same-sized cell instead of a boundary.
+ */
+function containerLayout(childCount: number): { container: Geometry; child: (index: number) => Geometry } {
+  const columns = Math.min(Math.max(childCount, 1), GRID_COLUMNS)
+  const rows = Math.max(Math.ceil(childCount / GRID_COLUMNS), 1)
+  const insetX = ORIGIN + CONTAINER_PADDING
+  const insetY = ORIGIN + CONTAINER_HEADER
+  return {
+    container: {
+      x: ORIGIN,
+      y: ORIGIN,
+      width: columns * LEAF_WIDTH + (columns - 1) * CELL_GAP + CONTAINER_PADDING * 2,
+      height: CONTAINER_HEADER + rows * LEAF_HEIGHT + (rows - 1) * CELL_GAP + CONTAINER_PADDING,
+    },
+    child: (index: number) => ({
+      x: insetX + (index % GRID_COLUMNS) * (LEAF_WIDTH + CELL_GAP),
+      y: insetY + Math.floor(index / GRID_COLUMNS) * (LEAF_HEIGHT + CELL_GAP),
+      width: LEAF_WIDTH,
+      height: LEAF_HEIGHT,
+    }),
+  }
+}
+
+/**
+ * Perspectives need a shape that reads as a distinct boundary without fixed decoration: LikeC4's
+ * `component` draws two rects offset outside the node's left edge with their own stroke color, which
+ * neither respects the Perspective color nor survives being used as a focus container.
+ */
+const PERSPECTIVE_SHAPE = 'document' as const
 
 function perspectiveColor(index: number): ViewNode['color'] {
   const hue = (index * 137.508) % 360
@@ -218,20 +260,31 @@ export function materializeXirangArchitectureView(
     }
   }
 
-  const nodes = visibleDeclarations.map((declaration, index) => {
-    const parent = declaration.identity !== focus && declaration.parent === focus ? focus : null
+  const childDeclarations = visibleDeclarations.filter(declaration =>
+    declaration.identity !== focus && declaration.parent === focus)
+  const layout = containerLayout(childDeclarations.length)
+  const childIndexes = new Map(childDeclarations.map((declaration, index) => [declaration.identity, index]))
+
+  const nodes = visibleDeclarations.map(declaration => {
+    const childIndex = childIndexes.get(declaration.identity)
+    const parent = childIndex === undefined ? null : focus
     const modelNode = modelNodes.get(declaration.identity)
     const presentation = declaration.kind === 'perspective'
       ? {
-          shape: 'component' as const,
+          shape: PERSPECTIVE_SHAPE,
           color: perspectiveColors.get(declaration.identity) ?? 'primary' as const,
           modelRef: modelNode?.modelRef,
         }
       : modelNode ? { shape: modelNode.shape, color: modelNode.color, modelRef: modelNode.modelRef } : undefined
+    const geometry = childIndex !== undefined
+      ? layout.child(childIndex)
+      : childDeclarations.length > 0
+      ? layout.container
+      : gridGeometry(0)
     return createNode(
       declaration,
       parent,
-      gridGeometry(index),
+      geometry,
       declarationEntries.get(declaration.identity)?.operation,
       presentation,
     )

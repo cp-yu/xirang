@@ -299,8 +299,8 @@ export function buildModelData(
 
   const parsedViews = docs.flatMap(d => map(d.c4Views, toC4View(d)))
 
-  // Add index view if not present
-  if (!parsedViews.some(v => v.id === 'index')) {
+  // Add index view if not present, unless the project owns its own entry view
+  if (project.config.defaultLandscapeView !== false && !parsedViews.some(v => v.id === 'index')) {
     parsedViews.unshift({
       [_stage]: 'parsed',
       [_type]: 'element',

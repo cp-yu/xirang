@@ -55,6 +55,7 @@ export function createTestServices(options?: {
           exclude: projectConfig?.exclude || ['node_modules'],
           inferTechnologyFromIcon: projectConfig?.inferTechnologyFromIcon,
           implicitViews: projectConfig?.implicitViews ?? false,
+          defaultLandscapeView: projectConfig?.defaultLandscapeView,
         },
         folderUri: projectFolderUri,
       })

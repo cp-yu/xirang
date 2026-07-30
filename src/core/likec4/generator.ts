@@ -3,7 +3,9 @@ import type { ModelElement, SemanticModel } from '../model/types.js';
 import { definitionExcerpt } from './definition.js';
 import { createNamespace, deriveLocalNames, type LocalNames } from './local-names.js';
 
-const LIKEC4_PROJECT_CONFIG = '{\n  "name": "xirang",\n  "implicitViews": false\n}\n';
+/** `defaultLandscapeView: false` keeps LikeC4 from injecting an `index` View next to the Model View. */
+const LIKEC4_PROJECT_CONFIG =
+  '{\n  "name": "xirang",\n  "implicitViews": false,\n  "defaultLandscapeView": false\n}\n';
 
 function quote(value: string): string {
   return `'${value.replaceAll('\\', '\\\\').replaceAll("'", "\\'").replaceAll('\n', '\\n')}'`;

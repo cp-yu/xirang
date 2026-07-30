@@ -219,4 +219,71 @@ describe('LikeC4ModelBuilder -- view folders', () => {
     expect(keys(model.views)).toContain('__sys2')
     expect(keys(model.views)).not.toContain('__sys1')
   })
+
+  it('adds the default landscape view when the project does not opt out', async ({ expect }) => {
+    const { validate, buildModel } = createTestServices({ projectConfig: {} })
+    const { errors } = await validate(`
+      specification {
+        element component
+      }
+      model {
+        component sys1
+      }
+      views {
+        view v1 {
+          include *
+        }
+      }
+    `)
+    expect(errors).toEqual([])
+    const model = await buildModel()
+    expect(keys(model.views)).toEqual(['index', 'v1'])
+    expect(model.views['index']!.title).toBe('Landscape view')
+  })
+
+  it('omits the default landscape view when defaultLandscapeView is false', async ({ expect }) => {
+    const { validate, buildModel } = createTestServices({
+      projectConfig: { defaultLandscapeView: false },
+    })
+    const { errors } = await validate(`
+      specification {
+        element component
+      }
+      model {
+        component sys1
+      }
+      views {
+        view v1 {
+          include *
+        }
+      }
+    `)
+    expect(errors).toEqual([])
+    const model = await buildModel()
+    expect(keys(model.views)).toEqual(['v1'])
+  })
+
+  it('keeps an authored index view when defaultLandscapeView is false', async ({ expect }) => {
+    const { validate, buildModel } = createTestServices({
+      projectConfig: { defaultLandscapeView: false },
+    })
+    const { errors } = await validate(`
+      specification {
+        element component
+      }
+      model {
+        component sys1
+      }
+      views {
+        view index {
+          title 'Authored index'
+          include *
+        }
+      }
+    `)
+    expect(errors).toEqual([])
+    const model = await buildModel()
+    expect(keys(model.views)).toEqual(['index'])
+    expect(model.views['index']!.title).toBe('Authored index')
+  })
 })
