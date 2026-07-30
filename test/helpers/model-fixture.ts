@@ -21,14 +21,16 @@ export interface ElementKindFixture {
 
 export interface ModelFixture {
   elementKinds?: ElementKindFixture[];
-  relationshipKinds?: Array<{ identity: string; sourceKinds?: string[]; targetKinds?: string[] }>;
+  relationshipKinds?: Array<{ identity: string; sourceKinds?: string[]; targetKinds?: string[]; body?: string }>;
   elements?: ElementFixture[];
   relationships?: Array<{ source: string; kind: string; target: string }>;
   views?: Array<{ identity: string; include?: string }>;
 }
 
 function list(key: string, values?: string[]): string {
-  return values === undefined ? '' : `${key}:\n${values.map(item => `  - ${item}\n`).join('')}`;
+  if (values === undefined) return '';
+  if (values.length === 0) return `${key}: []\n`;
+  return `${key}:\n${values.map(item => `  - ${item}\n`).join('')}`;
 }
 
 export function elementKindUnit(kind: ElementKindFixture): string {
@@ -57,7 +59,7 @@ export async function writeModel(root: string, fixture: ModelFixture): Promise<v
   for (const kind of fixture.relationshipKinds ?? []) {
     await fs.writeFile(path.join(root, 'metamodel', `${kind.identity}.md`),
       `---\nentity: relationship-kind\nidentity: ${kind.identity}\n`
-      + list('sourceKinds', kind.sourceKinds) + list('targetKinds', kind.targetKinds) + '---\n', 'utf8');
+      + list('sourceKinds', kind.sourceKinds) + list('targetKinds', kind.targetKinds) + `---\n${kind.body ?? ''}`, 'utf8');
   }
   for (const element of fixture.elements ?? []) {
     await fs.writeFile(path.join(root, 'elements', `${element.identity}.md`), elementUnit(element), 'utf8');

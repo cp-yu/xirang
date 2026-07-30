@@ -80,6 +80,9 @@ Realization（落实过程）
 
 息壤（Xirang）是面向 Agent 的项目开发框架：它以 Semantic Model 结构化表达用户意图，以 Change 承载新的演进意图，并通过 Realization 由 Agent 落实 Change、持续构建和演进项目。
 
+还有一个挺好的描述：   Xirang 是面向 Agent 软件开发的人类意图编程框架。它持续维护“项目应该是什么、应该如何变化”，让 Agent 基于统一的项目认知完成需求探索、方案形成、代码实现、独立审查和变更收束。
+
+
 ## 1. Semantic Model
 
 Semantic Model 是项目用户意图的结构化语义表达。它以帮助用户从不同抽象层级理解、讨论和决策项目为首要目标，并为 Agent 导航、验证、实现和持续演进项目提供明确的语义依据。
