@@ -126,7 +126,7 @@
     "timestamp": "2026-07-30T10:48:12.648Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
         "timestamp": "2026-07-30T10:36:14.928Z",
@@ -137,6 +137,11 @@
         "timestamp": "2026-07-30T10:48:12.636Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-07-30T10:51:56.907Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
@@ -268,7 +273,7 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/diagram/src/xirang/architectureView.ts"
@@ -281,39 +286,25 @@
         "opportunity": "Current-layer relationship projection resolves both endpoints of every relationship by independently walking the declaration parent chain.",
         "impact": "Precomputing the focus-subtree endpoint projection reduces relationship mapping from O(R * D) parent lookups to O(E + R).",
         "evidence": [
-          "likec4/packages/diagram/src/xirang/architectureView.ts:246-254 defines mapEndpoint as a while-loop over declaration parents.",
-          "likec4/packages/diagram/src/xirang/architectureView.ts:263-265 invokes mapEndpoint separately for both endpoints of every target relationship.",
-          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:167-170 rematerializes the view on interactive focus/source/mode changes."
+          "The verified implementation and characterization tests are committed at checkpoint 2c8929379."
         ],
-        "recommendation": "Build a bounded identity-to-visible-endpoint index once after resolving focus, then use constant-time endpoint lookups in relationship aggregation.",
-        "keyDesign": "Construct parent-to-children adjacency from declarations. Map focus to itself, then traverse each direct child's subtree iteratively and map descendants to that direct child. Preserve existing declaration and relationship iteration order; the index is lookup-only.",
+        "recommendation": "Use the committed bounded identity-to-visible-endpoint index.",
+        "keyDesign": "Parent-to-children adjacency and an endpoint map preserve existing iteration order and projection semantics.",
         "preservationConstraints": [
-          "Focus resolution order remains unchanged.",
-          "Diff mode adds REMOVED declarations before ancestry indexing.",
-          "Visible nodes, order, geometry, metadata, bounds, and view identity remain equivalent.",
-          "Focus maps to itself; descendants map to nearest direct child; outside or unresolved identities remain unmapped.",
-          "Unmapped and self-collapsed relationships remain omitted.",
-          "Directed aggregation, targetRelationships iteration semantics, deduplication, UTF-8 ordering, and first-defined operation remain unchanged.",
-          "No Semantic Model, Semantic Delta, runtime protocol, diagnostics, or navigation behavior changes."
+          "All previously persisted preservation constraints remain verified."
         ],
         "implementationOutline": [
-          "Build parent-to-children identity adjacency while indexing declarations.",
-          "Traverse each direct-child subtree iteratively into an endpoint map.",
-          "Replace parent-chain walks with endpoint-map lookups.",
-          "Keep all downstream construction and sorting unchanged.",
-          "Add deep shared-endpoint preservation tests."
+          "Resolved by committed verified implementation."
         ],
         "validation": [
-          "Extend architectureView.spec.ts for deep descendants, outside endpoints, focus endpoints, self-collapse, directed aggregates, and stable ordering.",
-          "Run targeted diagram/navigation tests.",
-          "Run semantic-browser-model-view Browser E2E."
+          "Targeted tests, typecheck, and Browser E2E passed before checkpoint."
         ],
         "impactLevel": "medium",
         "confidence": "high",
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "Only admitted opportunity with a provable asymptotic improvement on the core focus-projection path and closed preservation constraints.",
+        "priorityReason": "Verified and committed; no further actionable findings remain.",
         "id": "OPT-20260730T103614926Z-01",
         "targetFileHashes": {
           "likec4/packages/diagram/src/xirang/architectureView.ts": "6910d72425a9226707a20901641a012da56bcb91bd144f2c89a13ec2576f4bec"
@@ -354,9 +345,16 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-07-30T10:48:12.637Z",
         "findingId": "OPT-20260730T103614926Z-01"
+      },
+      {
+        "sequence": 5,
+        "action": "resolve",
+        "reason": "Verified implementation is committed at checkpoint 2c8929379, and the fresh current-code scan found no additional practical optimization with fully closed preservation constraints.",
+        "timestamp": "2026-07-30T10:51:56.907Z",
+        "findingId": "OPT-20260730T103614926Z-01"
       }
     ],
-    "reconciliationSignature": "7e4b04357774d4211c631974842aba2e0948777b637147c38eca5f98e79cce15",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }

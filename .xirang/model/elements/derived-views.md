@@ -4,7 +4,7 @@ identity: derived-views
 kind: domain
 parent: view-composition
 title: Derived Views
-definition: 由模型或 Change 确定性推导、无需持久化的 Views。
+definition: Derived Views 是由 Semantic Model 或 Change 确定性推导、无需用户声明且不作为 durable artifact 持久化的 Views。它们独立建模以区别用户声明的 Authored Views；包含每个项目唯一的 Model View 与按活动 Change 形成的 Change-derived Views，不包含运行时 focus projection、布局状态或 Authored Views。
 ---
 
 ## Requirements
@@ -22,10 +22,10 @@ Derived View SHALL 由 Semantic Model 或 Change 自动且确定性推导。
 
 Derived View SHALL NOT 要求用户声明。
 
-#### Scenario: 请求未声明的下钻视图
+#### Scenario: 打开默认或 Change 视角
 
-- **WHEN** 用户请求一个 Element 的派生视图
-- **THEN** 系统直接从模型生成而不查找 Authored View
+- **WHEN** 用户打开 Model View 或一个活动 Change 的 Change-derived View
+- **THEN** 系统直接从适用 Semantic Model 或 Semantic Delta 派生该 View 而不查找 Authored View
 
 ### Requirement: 不持久化
 
@@ -52,9 +52,9 @@ Derived View SHALL NOT 作为 Semantic Delta Entry 的作用对象。
 
 ### Requirement: 提供两类派生视图
 
-Derived Views SHALL 包括 Element-derived Views 与 Change-derived Views。
+Derived Views SHALL 包括每个项目唯一的 Model View 与每个活动 Change 唯一的 Change-derived View，且 SHALL NOT 包括按 Element 生成的 Views。
 
 #### Scenario: 选择派生上下文
 
-- **WHEN** 用户查看 Element 或 Change
-- **THEN** 系统分别使用对应类型的 Derived View
+- **WHEN** 用户浏览当前 Semantic Model 或一个活动 Change
+- **THEN** 系统分别提供 Model View 或对应 Change-derived View，Element 下钻保持在所选 View identity 内
