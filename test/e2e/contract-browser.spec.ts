@@ -21,11 +21,14 @@ test.beforeEach(async ({ page }) => {
 })
 
 test('browses Element Contracts through the Contract endpoint and selectors', async ({ page }) => {
-  const response = await page.request.get('/__xirang/contract?project=xirang&element=single&variant=formal')
+  const response = await page.request.get('/__xirang/contract?project=xirang&element=single')
   expect(response.ok()).toBe(true)
   expect(await response.json()).toMatchObject({ element: 'single' })
 
-  const legacy = await page.request.get('/__xirang/spec?project=xirang&element=single&variant=formal', {
+  const removedParameter = await page.request.get('/__xirang/contract?project=xirang&element=single&variant=formal')
+  expect(removedParameter.status()).toBe(400)
+
+  const legacy = await page.request.get('/__xirang/spec?project=xirang&element=single', {
     headers: { accept: 'application/json' },
   })
   expect(legacy.ok()).toBe(false)
@@ -37,7 +40,7 @@ test('browses Element Contracts through the Contract endpoint and selectors', as
   dialog = await openDetails(page, 'single')
   await dialog.getByRole('tab', { name: 'Contracts' }).click()
   const contracts = dialog.locator('[data-xirang-contracts]')
-  await expect(contracts).toHaveAttribute('data-xirang-variant', 'formal')
+  await expect(contracts).toHaveAttribute('data-xirang-view-source', 'model')
   await expect(contracts.locator('[data-xirang-contract-content]')).toContainText('Single Contract behavior')
   await closeDetails(dialog)
 
@@ -46,6 +49,39 @@ test('browses Element Contracts through the Contract endpoint and selectors', as
   const content = dialog.locator('[data-xirang-contract-content]')
   await expect(content).toContainText('Long Contract section eight')
   expect(await content.evaluate(element => element.scrollHeight > element.clientHeight)).toBe(true)
+})
+
+test('opens an Authored View element as semantic focus in Model View', async ({ page }) => {
+  const dialog = await openDetails(page, 'single')
+  await dialog.locator('[data-xirang-open-in-model-view]').click()
+
+  await expect(page).toHaveURL(/\/view\/model\//)
+  await expect(page.locator('[data-xirang-focus-breadcrumb]')).toContainText('Single Contract')
+  await expect(page.locator('.react-flow__node[data-id="single"]')).toBeVisible()
+})
+
+test('keeps View source and canvas selection coherent across Change and Authored Views', async ({ page }) => {
+  const dialog = await openDetails(page, 'single')
+  await dialog.locator('[data-xirang-open-in-model-view]').click()
+  await expect(page.locator('[data-xirang-focus-breadcrumb]')).toContainText('Single Contract')
+
+  await page.getByRole('button', { name: 'Untitled View' }).click()
+  const dropdown = page.locator('[data-likec4-breadcrumbs-dropdown]')
+  await dropdown.getByLabel('View source').selectOption('change:browser-change')
+
+  await expect(page).toHaveURL(/\/view\/model\//)
+  await expect(page.locator('[data-xirang-architecture-overlay][data-xirang-architecture-mode]')).toBeVisible()
+  await expect(page.locator('[data-xirang-focus-breadcrumb]')).not.toContainText('Single Contract')
+  await expect(page.locator('[data-navigation-back]')).toBeDisabled()
+
+  await page.getByRole('button', { name: 'Untitled View' }).click()
+  await page.locator('[data-likec4-breadcrumbs-dropdown]')
+    .getByRole('button', { name: 'Xirang Contract Browser' })
+    .click()
+
+  await expect(page).toHaveURL(/\/view\/index\//)
+  await page.locator('button[title="Xirang Contract Browser"]').click()
+  await expect(page.locator('[data-likec4-breadcrumbs-dropdown]').getByLabel('View source')).toHaveValue('model')
 })
 
 test('keeps the Contract tab and content inside a mobile Contract dialog', async ({ page }) => {

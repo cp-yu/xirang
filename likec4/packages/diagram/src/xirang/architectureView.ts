@@ -5,8 +5,8 @@ import {
   type XirangDiffOperation,
   type XirangElementDeclaration,
   type XirangRelationship,
-  type XirangRuntimeVariant,
-  xirangVariantRevision,
+  type XirangViewSource,
+  xirangViewSourceRevision,
 } from './ContractLoaderContext'
 
 type ViewNode = DiagramView['nodes'][number]
@@ -27,8 +27,8 @@ const structuralKinds: ReadonlySet<XirangDiffKind> = new Set([
   'relationship',
 ])
 
-function structuralEntries(variant: XirangRuntimeVariant): XirangDiffEntry[] {
-  return variant.diff?.entries.filter(entry => structuralKinds.has(entry.kind)) ?? []
+function structuralEntries(source: XirangViewSource): XirangDiffEntry[] {
+  return source.diff?.entries.filter(entry => structuralKinds.has(entry.kind)) ?? []
 }
 
 function asDeclaration(value: unknown): XirangElementDeclaration | undefined {
@@ -48,6 +48,18 @@ function asRelationship(value: unknown): XirangRelationship | undefined {
 
 function relationshipId(relationship: XirangRelationship): string {
   return `${relationship.source}|${relationship.kind}|${relationship.target}`
+}
+
+const encoder = new TextEncoder()
+
+function compareUtf8Bytes(left: string, right: string): number {
+  const a = encoder.encode(left)
+  const b = encoder.encode(right)
+  const length = Math.min(a.length, b.length)
+  for (let index = 0; index < length; index++) {
+    if (a[index] !== b[index]) return a[index]! - b[index]!
+  }
+  return a.length - b.length
 }
 
 function center(node: ViewNode): [number, number] {
@@ -74,15 +86,35 @@ function gridGeometry(index: number): Geometry {
   }
 }
 
+function perspectiveColor(index: number): ViewNode['color'] {
+  const hue = (index * 137.508) % 360
+  const saturation = 68
+  const lightness = 30
+  const chroma = (1 - Math.abs(2 * lightness / 100 - 1)) * saturation / 100
+  const segment = hue / 60
+  const secondary = chroma * (1 - Math.abs(segment % 2 - 1))
+  const [red, green, blue] = segment < 1 ? [chroma, secondary, 0]
+    : segment < 2 ? [secondary, chroma, 0]
+    : segment < 3 ? [0, chroma, secondary]
+    : segment < 4 ? [0, secondary, chroma]
+    : segment < 5 ? [secondary, 0, chroma]
+    : [chroma, 0, secondary]
+  const match = lightness / 100 - chroma / 2
+  return `#${[red, green, blue]
+    .map(channel => Math.round((channel + match) * 255).toString(16).padStart(2, '0'))
+    .join('')}` as ViewNode['color']
+}
+
 function createNode(
   declaration: XirangElementDeclaration,
   parent: string | null,
   geometry: Geometry,
   operation?: XirangDiffOperation,
+  presentation?: { shape: ViewNode['shape']; color: ViewNode['color']; modelRef?: ViewNode['modelRef'] },
 ): ViewNode {
   return {
     id: declaration.identity,
-    modelRef: declaration.identity,
+    modelRef: presentation?.modelRef ?? declaration.identity,
     parent,
     level: parent ? 1 : 0,
     children: [],
@@ -91,8 +123,8 @@ function createNode(
     title: declaration.title,
     description: { txt: declaration.summary },
     metadata: { elementId: declaration.identity, definition: declaration.description },
-    shape: 'rectangle',
-    color: operation ? operationColor[operation] : 'primary',
+    shape: presentation?.shape ?? 'rectangle',
+    color: operation ? operationColor[operation] : presentation?.color ?? 'primary',
     style: { opacity: 15, size: 'md' },
     kind: 'el',
     ...geometry,
@@ -105,12 +137,21 @@ function createEdge(
   target: ViewNode,
   operation?: XirangDiffOperation,
 ): ViewEdge {
+  const [startX, startY] = center(source)
+  const [endX, endY] = center(target)
+  const controlOffset = (endX - startX) / 3
   return {
     id: `xirang:${relationshipId(relationship)}`,
     source: source.id,
     target: target.id,
     label: relationship.kind,
-    points: [center(source), center(target)],
+    points: [
+      [startX, startY],
+      [startX + controlOffset, startY],
+      [endX - controlOffset, endY],
+      [endX, endY],
+    ],
+    controlPoints: [{ x: (startX + endX) / 2, y: (startY + endY) / 2 }],
     parent: null,
     relations: [],
     color: operation ? operationColor[operation] : 'gray',
@@ -121,19 +162,20 @@ function createEdge(
 
 /**
  * Identity is the only alignment key: node ids, parents and edge endpoints are all identities.
- * The formal DiagramView is consulted for geometry alone, keyed by the `elementId` metadata the
+ * The Model View DiagramView is consulted for geometry alone, keyed by the `elementId` metadata the
  * generator anchors on each element; a miss falls back to the grid and is not a diagnostic.
  */
 export function materializeXirangArchitectureView(
-  formal: DiagramView,
-  variant: XirangRuntimeVariant,
+  modelView: DiagramView,
+  source: XirangViewSource,
   mode: 'full' | 'diff',
+  focusIdentity?: string,
+  previousAncestorPath: readonly string[] = [],
 ): DiagramView {
-  const architecture = variant.architecture
-  if (variant.kind !== 'change' || !architecture) return formal
+  const architecture = source.architecture
+  if (!architecture) return modelView
 
-  const entries = structuralEntries(variant)
-  if (entries.length === 0) return formal
+  const entries = structuralEntries(source)
   const declarationEntries = new Map(
     entries.filter(entry => entry.kind === 'element-declaration').map(entry => [entry.identity, entry]),
   )
@@ -141,72 +183,133 @@ export function materializeXirangArchitectureView(
     entries.filter(entry => entry.kind === 'relationship').map(entry => [entry.identity, entry]),
   )
   const declarations = new Map(architecture.elements.map(element => [element.declaration.identity, element.declaration]))
-  for (const entry of declarationEntries.values()) {
-    const removed = asDeclaration(entry.before)
-    if (entry.operation === 'REMOVED' && removed) declarations.set(removed.identity, removed)
-  }
-
-  const visible = new Set<string>()
-  if (mode === 'full') {
-    for (const element of architecture.elements) visible.add(element.declaration.identity)
-  } else {
-    for (const entry of entries) {
-      if (entry.kind === 'element-declaration') visible.add(entry.identity)
-      if (entry.kind === 'relationship') {
-        const relationship = asRelationship(entry.after) ?? asRelationship(entry.before)
-        if (relationship) {
-          visible.add(relationship.source)
-          visible.add(relationship.target)
-        }
-      }
-    }
-    for (const identity of [...visible]) {
-      let parent = declarations.get(identity)?.parent ?? null
-      while (parent) {
-        visible.add(parent)
-        parent = declarations.get(parent)?.parent ?? null
-      }
+  if (mode === 'diff') {
+    for (const entry of declarationEntries.values()) {
+      const removed = asDeclaration(entry.before)
+      if (entry.operation === 'REMOVED' && removed) declarations.set(removed.identity, removed)
     }
   }
 
-  const visibleDeclarations = [...declarations.values()].filter(declaration => visible.has(declaration.identity))
-  const visibleIdentities = new Set(visibleDeclarations.map(declaration => declaration.identity))
-  const formalGeometry = new Map<string, Geometry>(
-    formal.nodes.flatMap(node =>
-      typeof node.metadata?.['elementId'] === 'string'
-        ? [[node.metadata['elementId'], { x: node.x, y: node.y, width: node.width, height: node.height }] as const]
-        : []
-    ),
-  )
+  const root = [...declarations.values()]
+    .filter(declaration => declaration.parent === null)
+    .sort((left, right) => compareUtf8Bytes(left.identity, right.identity))[0]
+  const focus = [focusIdentity, ...previousAncestorPath, root?.identity]
+    .find((identity): identity is string => identity !== undefined && declarations.has(identity))
+  if (!focus) return modelView
+
+  const visibleDeclarations = [...declarations.values()]
+    .filter(declaration => declaration.identity === focus || declaration.parent === focus)
+  const perspectives = visibleDeclarations
+    .filter(declaration => declaration.kind === 'perspective')
+    .map(declaration => declaration.identity)
+    .sort(compareUtf8Bytes)
+  const perspectiveColors = new Map(perspectives.map((identity, index) => [identity, perspectiveColor(index)]))
+  const modelNodes = new Map(modelView.nodes.flatMap(node =>
+    typeof node.metadata?.['elementId'] === 'string' ? [[node.metadata['elementId'], node] as const] : []))
+  const identityByNodeId = new Map([...modelNodes].map(([identity, node]) => [node.id, identity]))
+  const relationIdsByTriple = new Map<string, string[]>()
+  for (const edge of modelView.edges) {
+    const sourceIdentity = identityByNodeId.get(edge.source)
+    const targetIdentity = identityByNodeId.get(edge.target)
+    if (!sourceIdentity || !targetIdentity || !edge.label) continue
+    for (const kind of edge.label.split(',').map(value => value.trim()).filter(Boolean)) {
+      const triple = `${sourceIdentity}|${kind}|${targetIdentity}`
+      relationIdsByTriple.set(triple, [...edge.relations])
+    }
+  }
+
   const nodes = visibleDeclarations.map((declaration, index) => {
-    const parent = declaration.parent && visibleIdentities.has(declaration.parent) ? declaration.parent : null
+    const parent = declaration.identity !== focus && declaration.parent === focus ? focus : null
+    const modelNode = modelNodes.get(declaration.identity)
+    const presentation = declaration.kind === 'perspective'
+      ? {
+          shape: 'component' as const,
+          color: perspectiveColors.get(declaration.identity) ?? 'primary' as const,
+          modelRef: modelNode?.modelRef,
+        }
+      : modelNode ? { shape: modelNode.shape, color: modelNode.color, modelRef: modelNode.modelRef } : undefined
     return createNode(
       declaration,
       parent,
-      formalGeometry.get(declaration.identity) ?? gridGeometry(index),
+      gridGeometry(index),
       declarationEntries.get(declaration.identity)?.operation,
+      presentation,
     )
   })
   const nodesById = new Map<string, ViewNode>(nodes.map(node => [node.id, node]))
+
+  const endpointByIdentity = new Map<string, string>([[focus, focus]])
+  const declarationChildren = new Map<string, string[]>()
+  for (const declaration of declarations.values()) {
+    if (!declaration.parent) continue
+    const children = declarationChildren.get(declaration.parent) ?? []
+    children.push(declaration.identity)
+    declarationChildren.set(declaration.parent, children)
+  }
+  for (const directChild of visibleDeclarations) {
+    if (directChild.parent !== focus) continue
+    const stack = [directChild.identity]
+    const visited = new Set<string>()
+    while (stack.length > 0) {
+      const identity = stack.pop()!
+      if (visited.has(identity)) continue
+      visited.add(identity)
+      endpointByIdentity.set(identity, directChild.identity)
+      const children = declarationChildren.get(identity) ?? []
+      for (let index = children.length - 1; index >= 0; index--) stack.push(children[index]!)
+    }
+  }
 
   const targetRelationships = mode === 'full'
     ? architecture.relationships
     : [...relationshipEntries.values()]
       .map(entry => asRelationship(entry.after) ?? asRelationship(entry.before))
       .filter((relationship): relationship is XirangRelationship => relationship !== undefined)
-  const formalEdges = new Map(formal.edges.map(edge => [`${edge.source}|${edge.target}`, edge]))
-  const edges = targetRelationships.flatMap(relationship => {
-    const source = nodesById.get(relationship.source)
-    const target = nodesById.get(relationship.target)
-    if (!source || !target) return []
-    const operation = relationshipEntries.get(relationshipId(relationship))?.operation
-    const existing = formalEdges.get(`${relationship.source}|${relationship.target}`)
-    return [{
-      ...(existing ?? createEdge(relationship, source, target, operation)),
-      color: operation ? operationColor[operation] : existing?.color ?? 'gray',
-      label: existing?.label ?? relationship.kind,
-    } as unknown as ViewEdge]
-  })
+  const aggregate = new Map<string, {
+    source: string
+    target: string
+    kinds: Set<string>
+    relations: Set<string>
+    triples: Set<string>
+    operation: XirangDiffOperation | undefined
+  }>()
+  for (const relationship of targetRelationships) {
+    const mappedSource = endpointByIdentity.get(relationship.source)
+    const mappedTarget = endpointByIdentity.get(relationship.target)
+    if (!mappedSource || !mappedTarget || mappedSource === mappedTarget) continue
+    const key = `${mappedSource}|${mappedTarget}`
+    const current = aggregate.get(key) ?? {
+      source: mappedSource,
+      target: mappedTarget,
+      kinds: new Set<string>(),
+      relations: new Set<string>(),
+      triples: new Set<string>(),
+      operation: undefined,
+    }
+    current.kinds.add(relationship.kind)
+    const triple = relationshipId(relationship)
+    current.triples.add(triple)
+    for (const relationId of relationIdsByTriple.get(triple) ?? []) {
+      current.relations.add(relationId)
+    }
+    current.operation ??= relationshipEntries.get(relationshipId(relationship))?.operation
+    aggregate.set(key, current)
+  }
+  const edges = [...aggregate.values()]
+    .sort((left, right) => compareUtf8Bytes(left.source, right.source) || compareUtf8Bytes(left.target, right.target))
+    .flatMap(item => {
+      const edgeSource = nodesById.get(item.source)
+      const edgeTarget = nodesById.get(item.target)
+      if (!edgeSource || !edgeTarget) return []
+      const kinds = [...item.kinds].sort(compareUtf8Bytes)
+      const relationship = { source: item.source, kind: kinds[0]!, target: item.target }
+      return [{
+        ...createEdge(relationship, edgeSource, edgeTarget, item.operation),
+        label: kinds.join(', '),
+        relations: [...item.relations].sort(compareUtf8Bytes),
+        xirangRelations: [...item.triples].sort(compareUtf8Bytes),
+      } as unknown as ViewEdge]
+    })
 
   const childrenByParent = new Map<string, ViewNode['children']>()
   const inEdgesByNode = new Map<string, ViewNode['inEdges']>()
@@ -232,10 +335,10 @@ export function materializeXirangArchitectureView(
   }
 
   return {
-    ...formal,
-    hash: `${formal.hash}:xirang:${xirangVariantRevision(variant)}:${mode}`,
+    ...modelView,
+    hash: `${modelView.hash}:xirang:${xirangViewSourceRevision(source)}:${mode}`,
     nodes,
     edges,
-    bounds: bounds(nodes, formal.bounds),
+    bounds: bounds(nodes, modelView.bounds),
   } as DiagramView
 }

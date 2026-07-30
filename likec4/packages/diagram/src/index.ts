@@ -129,8 +129,8 @@ export {
   type XirangContractLoader,
   type XirangDiffEntry,
   type XirangRuntimeManifest,
-  type XirangRuntimeVariant,
+  type XirangViewSource,
   XirangContractLoaderProvider,
   useXirangContractLoader,
-  useXirangVariants,
+  useXirangViewSources,
 } from './xirang/ContractLoaderContext'

@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { validateArchitectureCommand } from '../../src/commands/arch/validate.js';
 import { readModelTree } from '../../src/core/model/parser.js';
 import { modelRoot } from '../../src/core/model/paths.js';
+import { PERSPECTIVE_KIND } from '../../src/core/templates/model-skeleton.js';
 import { runCLI } from '../helpers/run-cli.js';
 import { writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 
@@ -19,6 +20,9 @@ describe('Semantic Model validation integration', () => {
     await writeProjectModel(root, {
       elementKinds: [
         { identity: 'project', contract: 'required', root: true, children: ['area'] },
+        { identity: 'domain' },
+        { identity: 'capability' },
+        { ...PERSPECTIVE_KIND },
         { identity: 'area', parents: ['project'], children: ['operation'] },
         { identity: 'operation', contract: 'required', parents: ['area'] },
         { identity: 'artifact', parents: ['operation'] },
@@ -49,7 +53,7 @@ describe('Semantic Model validation integration', () => {
       + `## ADDED Requirements\n\n${contract.replace('## Requirements\n\n', '')}\n`;
   }
 
-  it('validates the Formal Semantic Model', async () => {
+  it('validates the Semantic Model', async () => {
     expect(await validateArchitectureCommand(root)).toEqual({ success: true, errors: [], warnings: [] });
   });
 

@@ -54,7 +54,7 @@ export interface XirangSemanticModel {
   relationships: XirangRelationship[]
 }
 
-export interface XirangVariantDiagnostic {
+export interface XirangViewDiagnostic {
   level: 'ERROR' | 'WARNING'
   code: string
   path: string
@@ -62,13 +62,13 @@ export interface XirangVariantDiagnostic {
   identity?: string
 }
 
-export interface XirangRuntimeVariant {
+export interface XirangViewSource {
   id: string
   label: string
-  kind: 'formal' | 'change'
+  source: 'semantic-model' | 'change-derived-view'
   change?: string
   valid: boolean
-  formalFingerprint?: string
+  semanticModelFingerprint?: string
   changeFingerprint?: string
   partitionFingerprints?: Record<string, string>
   architecture?: XirangSemanticModel
@@ -78,56 +78,57 @@ export interface XirangRuntimeVariant {
     summary: { total: number } & Record<XirangDiffOperation, number>
     entries: XirangDiffEntry[]
   }
-  diagnostics: XirangVariantDiagnostic[]
+  diagnostics: XirangViewDiagnostic[]
 }
 
 /**
  * Contract diagnostics are the ones bound to a Requirement or Scenario identity. The `elements/`
  * partition carries Declaration and Contract alike, so a storage prefix cannot separate them.
  */
-export function isXirangContractDiagnostic(diagnostic: Pick<XirangVariantDiagnostic, 'identity'>): boolean {
+export function isXirangContractDiagnostic(diagnostic: Pick<XirangViewDiagnostic, 'identity'>): boolean {
   return diagnostic.identity !== undefined && diagnostic.identity.includes('#')
 }
 
-/** Stable refresh key: it changes whenever any partition of the selected variant changes. */
-export function xirangVariantRevision(variant: XirangRuntimeVariant): string {
-  const fingerprints = variant.partitionFingerprints
+/** Stable refresh key for a Semantic Model or Change-derived View source. */
+export function xirangViewSourceRevision(source: XirangViewSource): string {
+  const fingerprints = source.partitionFingerprints
   return fingerprints
     ? Object.keys(fingerprints).sort().map(partition => fingerprints[partition]).join('|')
-    : variant.changeFingerprint ?? variant.id
+    : source.changeFingerprint ?? source.id
 }
 
 export interface XirangRuntimeManifest {
-  version: 1
-  variants: XirangRuntimeVariant[]
+  version: 2
+  semanticModel: XirangViewSource
+  changes: Record<string, XirangViewSource>
 }
 
 export interface XirangContractLoader {
   /** `null` when the Element has no Contract; one Element carries at most one Contract. */
-  load(project: string, element: string, signal: AbortSignal, variant?: string): Promise<XirangContractContent | null>
-  variants?(signal: AbortSignal): Promise<XirangRuntimeManifest>
-  subscribeVariants?(listener: () => void): () => void
+  load(project: string, element: string, signal: AbortSignal, change?: string): Promise<XirangContractContent | null>
+  manifest?(signal: AbortSignal): Promise<XirangRuntimeManifest>
+  subscribeManifest?(listener: () => void): () => void
 }
 
 const XirangContractLoaderContext = createContext<XirangContractLoader | null>(null)
 
-export interface XirangVariantContextValue {
-  variants: readonly XirangRuntimeVariant[]
-  selected: XirangRuntimeVariant
+export interface XirangViewSourceContextValue {
+  sources: readonly XirangViewSource[]
+  selected: XirangViewSource
   select(id: string): void
 }
 
-const formalVariant: XirangRuntimeVariant = {
-  id: 'formal',
-  label: 'Current / Formal Architecture',
-  kind: 'formal',
+const modelViewSource: XirangViewSource = {
+  id: 'model',
+  label: 'Model View',
+  source: 'semantic-model',
   valid: true,
   diagnostics: [],
 }
 
-const XirangVariantContext = createContext<XirangVariantContextValue>({
-  variants: [formalVariant],
-  selected: formalVariant,
+const XirangViewSourceContext = createContext<XirangViewSourceContextValue>({
+  sources: [modelViewSource],
+  selected: modelViewSource,
   select: () => undefined,
 })
 
@@ -137,46 +138,47 @@ export function XirangContractLoaderProvider({
   children,
 }: PropsWithChildren<{ loader: XirangContractLoader; initialManifest?: XirangRuntimeManifest }>) {
   const embeddedManifest = (globalThis as typeof globalThis & { __OPSX_RUNTIME__?: XirangRuntimeManifest }).__OPSX_RUNTIME__
-  const initialVariants = initialManifest?.variants.length
-    ? initialManifest.variants
-    : embeddedManifest?.variants.length
-    ? embeddedManifest.variants
-    : [formalVariant]
-  const [variants, setVariants] = useState<readonly XirangRuntimeVariant[]>(initialVariants)
-  const [selectedId, setSelectedId] = useState('formal')
+  const initialSources = initialManifest
+    ? [initialManifest.semanticModel, ...Object.values(initialManifest.changes)]
+    : embeddedManifest
+    ? [embeddedManifest.semanticModel, ...Object.values(embeddedManifest.changes)]
+    : [modelViewSource]
+  const [sources, setSources] = useState<readonly XirangViewSource[]>(initialSources)
+  const [selectedId, setSelectedId] = useState('model')
 
   useEffect(() => {
-    if (!loader.variants) return
+    if (!loader.manifest) return
     let controller = new AbortController()
     const load = () => {
       controller.abort()
-      controller = new AbortController()
-      loader.variants!(controller.signal).then(manifest => {
-        if (controller.signal.aborted) return
-        const next = manifest.variants.length > 0 ? manifest.variants : [formalVariant]
-        setVariants(next)
-        setSelectedId(current => next.some(variant => variant.id === current) ? current : 'formal')
+      const request = new AbortController()
+      controller = request
+      loader.manifest!(request.signal).then(manifest => {
+        if (request.signal.aborted) return
+        const next = [manifest.semanticModel, ...Object.values(manifest.changes)]
+        setSources(next)
+        setSelectedId(current => next.some(source => source.id === current) ? current : 'model')
       }).catch(() => undefined)
     }
     load()
-    const unsubscribe = loader.subscribeVariants?.(load)
+    const unsubscribe = loader.subscribeManifest?.(load)
     return () => {
       controller.abort()
       unsubscribe?.()
     }
   }, [loader])
 
-  const value = useMemo<XirangVariantContextValue>(() => ({
-    variants,
-    selected: variants.find(variant => variant.id === selectedId) ?? variants[0] ?? formalVariant,
+  const value = useMemo<XirangViewSourceContextValue>(() => ({
+    sources,
+    selected: sources.find(source => source.id === selectedId) ?? sources[0] ?? modelViewSource,
     select: setSelectedId,
-  }), [selectedId, variants])
+  }), [selectedId, sources])
 
   return (
     <XirangContractLoaderContext.Provider value={loader}>
-      <XirangVariantContext.Provider value={value}>
+      <XirangViewSourceContext.Provider value={value}>
         {children}
-      </XirangVariantContext.Provider>
+      </XirangViewSourceContext.Provider>
     </XirangContractLoaderContext.Provider>
   )
 }
@@ -185,6 +187,6 @@ export function useXirangContractLoader(): XirangContractLoader | null {
   return useContext(XirangContractLoaderContext)
 }
 
-export function useXirangVariants(): XirangVariantContextValue {
-  return useContext(XirangVariantContext)
+export function useXirangViewSources(): XirangViewSourceContextValue {
+  return useContext(XirangViewSourceContext)
 }

@@ -1,3 +1,4 @@
+import { PERSPECTIVE_KIND } from '../templates/model-skeleton.js';
 import {
   relationshipIdentity,
   type ElementKind,
@@ -11,6 +12,31 @@ function error(code: string, message: string, identity?: string): ModelDiagnosti
   return { level: 'ERROR', code, path: '', message, ...(identity ? { identity } : {}) };
 }
 
+function warning(code: string, message: string, identity?: string): ModelDiagnostic {
+  return { level: 'WARNING', code, path: '', message, ...(identity ? { identity } : {}) };
+}
+
+function checkManagedPerspectiveKind(model: SemanticModel, diagnostics: ModelDiagnostic[]): void {
+  const declared = model.elementKinds.find(kind => kind.identity === PERSPECTIVE_KIND.identity);
+  if (!declared) {
+    if (!model.elements.some(element => element.declaration.kind === PERSPECTIVE_KIND.identity)) {
+      diagnostics.push(warning(
+        'MISSING_BUILTIN_PERSPECTIVE_KIND',
+        'Legacy Semantic Model is missing managed Element Kind perspective; run setup/update to add it',
+        PERSPECTIVE_KIND.identity,
+      ));
+    }
+    return;
+  }
+  if (JSON.stringify(declared) !== JSON.stringify(PERSPECTIVE_KIND)) {
+    diagnostics.push(error(
+      'CONFLICTING_BUILTIN_PERSPECTIVE_KIND',
+      'Element Kind perspective conflicts with the managed built-in definition',
+      PERSPECTIVE_KIND.identity,
+    ));
+  }
+}
+
 function checkIdentities(model: SemanticModel, diagnostics: ModelDiagnostic[]): void {
   const identities: Array<[string, string]> = [
     ...model.elements.map(item => ['element', item.declaration.identity] as [string, string]),
@@ -21,6 +47,16 @@ function checkIdentities(model: SemanticModel, diagnostics: ModelDiagnostic[]): 
   for (const [label, identity] of identities) {
     if (!IDENTITY.test(identity)) {
       diagnostics.push(error('INVALID_IDENTITY', `Invalid ${label} identity: ${identity}`, identity));
+    }
+  }
+
+  for (const view of model.views) {
+    if (view.identity === 'model') {
+      diagnostics.push(error(
+        'RESERVED_VIEW_IDENTITY',
+        'Authored View identity model is reserved for the default Model View',
+        view.identity,
+      ));
     }
   }
 
@@ -229,6 +265,7 @@ export function validateSemanticModel(model: SemanticModel): ModelDiagnostic[] {
   const diagnostics: ModelDiagnostic[] = [];
   const kinds = new Map(model.elementKinds.map(item => [item.identity, item]));
 
+  checkManagedPerspectiveKind(model, diagnostics);
   checkIdentities(model, diagnostics);
   checkKindReferences(model, kinds, diagnostics);
   checkHierarchy(model, kinds, diagnostics);

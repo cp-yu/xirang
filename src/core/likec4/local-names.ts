@@ -18,7 +18,7 @@ export const LIKEC4_RESERVED_NAMES: ReadonlySet<string> = new Set(
 /** Charset sanitizing then keyword avoidance; the result is a valid `Id` but not yet unique. */
 function baseName(source: string): string {
   const cleaned = source.replaceAll(/[^A-Za-z0-9_]/g, '_');
-  const prefixed = /^[A-Za-z_]/.test(cleaned) ? cleaned : `_${cleaned}`;
+  const prefixed = /^[A-Za-z_]/.test(cleaned) ? cleaned : `x_${cleaned}`;
   return LIKEC4_RESERVED_NAMES.has(prefixed) ? `_${prefixed}` : prefixed;
 }
 

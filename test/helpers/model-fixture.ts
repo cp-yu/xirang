@@ -1,6 +1,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { PARTITIONS } from '../../src/core/model/types.js';
+import { PERSPECTIVE_KIND } from '../../src/core/templates/model-skeleton.js';
 
 export interface ElementFixture {
   identity: string;
@@ -17,6 +18,7 @@ export interface ElementKindFixture {
   root?: boolean;
   parents?: string[];
   children?: string[];
+  body?: string;
 }
 
 export interface ModelFixture {
@@ -38,7 +40,7 @@ export function elementKindUnit(kind: ElementKindFixture): string {
     + (kind.root ? 'root: true\n' : '')
     + list('parents', kind.parents)
     + list('children', kind.children)
-    + '---\n';
+    + `---\n${kind.body ?? ''}`;
 }
 
 export function elementUnit(element: ElementFixture): string {
@@ -85,7 +87,9 @@ export function minimalModel(overrides: ModelFixture = {}): ModelFixture {
   return {
     elementKinds: [
       { identity: 'project', root: true },
+      { identity: 'domain' },
       { identity: 'capability' },
+      { ...PERSPECTIVE_KIND },
       ...(overrides.elementKinds ?? []),
     ],
     elements: [

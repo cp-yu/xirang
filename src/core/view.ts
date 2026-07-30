@@ -57,13 +57,24 @@ export const launchEmbeddedLikeC4: ViewLauncher = async ({ likec4SourceDir, chan
   await runLikeC4(args);
 };
 
-export interface ViewRuntimeVariant {
+export interface ViewRuntimeSemanticModel {
+  id: 'model';
+  label: 'Model View';
+  source: 'semantic-model';
+  valid: true;
+  partitionFingerprints: Record<Partition, string>;
+  architecture: BrowserSemanticModel;
+  contracts: Record<string, string>;
+  diagnostics: ChangeDiagnostic[];
+}
+
+export interface ViewRuntimeChangeDerivedView {
   id: string;
   label: string;
-  kind: 'formal' | 'change';
-  change?: string;
+  source: 'change-derived-view';
+  change: string;
   valid: boolean;
-  formalFingerprint?: string;
+  semanticModelFingerprint?: string;
   changeFingerprint?: string;
   partitionFingerprints?: Record<Partition, string>;
   diff?: ChangeDiff;
@@ -74,8 +85,9 @@ export interface ViewRuntimeVariant {
 }
 
 export interface ViewRuntimeSnapshot {
-  version: 1;
-  variants: ViewRuntimeVariant[];
+  version: 2;
+  semanticModel: ViewRuntimeSemanticModel;
+  changes: Record<string, ViewRuntimeChangeDerivedView>;
 }
 
 function runtimeFingerprint(value: unknown): string {
@@ -127,30 +139,31 @@ function partitionFingerprints(model: SemanticModel): Record<Partition, string> 
   ) as Record<Partition, string>;
 }
 
-async function buildFormalRuntimeVariant(projectRoot: string): Promise<ViewRuntimeVariant> {
+async function buildSemanticModelSource(projectRoot: string): Promise<ViewRuntimeSemanticModel> {
   const { model } = await readFormalSemanticModel(projectRoot);
   return {
-    id: 'formal',
-    label: 'Current / Formal Architecture',
-    kind: 'formal',
+    id: 'model',
+    label: 'Model View',
+    source: 'semantic-model',
     valid: true,
     partitionFingerprints: partitionFingerprints(model),
+    architecture: projectBrowserArchitecture(model),
     contracts: projectContracts(model),
     diagnostics: [],
   };
 }
 
-async function buildChangeRuntimeVariant(projectRoot: string, change: string): Promise<ViewRuntimeVariant> {
+async function buildChangeDerivedView(projectRoot: string, change: string): Promise<ViewRuntimeChangeDerivedView> {
   try {
     const compiled = await compileChange(projectRoot, change);
     const projection = compiled.target ? projectContracts(compiled.target) : undefined;
     return {
       id: `change:${change}`,
       label: change,
-      kind: 'change',
+      source: 'change-derived-view',
       change,
       valid: compiled.valid,
-      formalFingerprint: compiled.formalFingerprint,
+      semanticModelFingerprint: compiled.formalFingerprint,
       changeFingerprint: compiled.changeFingerprint,
       ...(compiled.target ? { partitionFingerprints: partitionFingerprints(compiled.target) } : {}),
       diff: projectBrowserDiff(compiled.diff),
@@ -162,7 +175,7 @@ async function buildChangeRuntimeVariant(projectRoot: string, change: string): P
     return {
       id: `change:${change}`,
       label: change,
-      kind: 'change',
+      source: 'change-derived-view',
       change,
       valid: false,
       diagnostics: [{
@@ -180,13 +193,13 @@ export async function buildViewRuntimeSnapshot(
   options: { previous?: ViewRuntimeSnapshot; onlyChange?: string } = {},
 ): Promise<ViewRuntimeSnapshot> {
   const changes = await listActiveChanges(projectRoot);
-  const previous = new Map(options.previous?.variants.map(variant => [variant.change, variant]));
-  const variants: ViewRuntimeVariant[] = [await buildFormalRuntimeVariant(projectRoot)];
+  const previous = options.previous?.changes ?? {};
+  const sources: Record<string, ViewRuntimeChangeDerivedView> = {};
   for (const change of changes) {
-    const cached = options.onlyChange && options.onlyChange !== change ? previous.get(change) : undefined;
-    variants.push(cached ?? await buildChangeRuntimeVariant(projectRoot, change));
+    const cached = options.onlyChange && options.onlyChange !== change ? previous[change] : undefined;
+    sources[change] = cached ?? await buildChangeDerivedView(projectRoot, change);
   }
-  return { version: 1, variants };
+  return { version: 2, semanticModel: await buildSemanticModelSource(projectRoot), changes: sources };
 }
 
 async function writeViewRuntimeSnapshot(snapshot: ViewRuntimeSnapshot, directory: string): Promise<string> {

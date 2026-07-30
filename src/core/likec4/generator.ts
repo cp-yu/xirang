@@ -3,7 +3,7 @@ import type { ModelElement, SemanticModel } from '../model/types.js';
 import { definitionExcerpt } from './definition.js';
 import { createNamespace, deriveLocalNames, type LocalNames } from './local-names.js';
 
-const LIKEC4_PROJECT_CONFIG = '{\n  "name": "xirang",\n  "implicitViews": true\n}\n';
+const LIKEC4_PROJECT_CONFIG = '{\n  "name": "xirang",\n  "implicitViews": false\n}\n';
 
 function quote(value: string): string {
   return `'${value.replaceAll('\\', '\\\\').replaceAll("'", "\\'").replaceAll('\n', '\\n')}'`;
@@ -94,11 +94,16 @@ function renderRelations(model: SemanticModel, names: LocalNames, kinds: Map<str
       || compareUtf8Bytes(left.kind, right.kind)
       || compareUtf8Bytes(left.target, right.target));
   return block('model', relationships.map(relationship =>
-    `  ${names.pathOf(relationship.source)} -[${nameOf(kinds, relationship.kind)}]-> ${names.pathOf(relationship.target)}`));
+    `  ${names.pathOf(relationship.source)} -[${nameOf(kinds, relationship.kind)}]-> ${names.pathOf(relationship.target)} ${quote(relationship.kind)}`));
 }
 
 function renderViews(model: SemanticModel, names: LocalNames, views: Map<string, string>): string {
-  const lines: string[] = [];
+  const lines: string[] = ['  view model {'];
+  for (const element of [...model.elements].sort((left, right) =>
+    compareUtf8Bytes(left.declaration.identity, right.declaration.identity))) {
+    lines.push(`    include ${names.pathOf(element.declaration.identity)}`);
+  }
+  lines.push('  }');
   for (const view of [...model.views].sort((left, right) => compareUtf8Bytes(left.identity, right.identity))) {
     const scope = view.of === undefined ? '' : ` of ${names.pathOf(view.of)}`;
     lines.push(`  view ${nameOf(views, view.identity)}${scope} {`);

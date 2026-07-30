@@ -58,7 +58,12 @@ describe('Candidate validation', () => {
     expect(formatCandidateValidation(first)).toContain('Formal comparison baseline: available');
     expect(formatCandidateValidation(first)).toContain('Formal diff entries: 0');
     expect(first.inventory.partitions).toEqual({
-      metamodel: ['metamodel/project.md'],
+      metamodel: [
+        'metamodel/capability.md',
+        'metamodel/domain.md',
+        'metamodel/perspective.md',
+        'metamodel/project.md',
+      ],
       elements: ['elements/project.root.md'],
       relationships: [],
       views: [],

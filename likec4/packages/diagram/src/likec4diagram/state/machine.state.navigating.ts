@@ -248,10 +248,12 @@ export const navigating = machine.createStateConfig({
         if (updatedHistory.length > 20) {
           updatedHistory.shift()
         }
+        const semanticFocusIdentity = context.lastOnNavigate?.focusIdentity ?? null
         updatedHistory.push({
           viewId: event.view.id,
           viewport: { ...nextViewport },
           viewportChangedManually: false,
+          focusIdentity: semanticFocusIdentity,
         })
 
         // Check if we need to focus on a specific element after navigation (from search)
@@ -263,6 +265,7 @@ export const navigating = machine.createStateConfig({
         enqueue.assign({
           ...mergeXYNodesEdges(context, eventWithXYData),
           viewportChangedManually: false,
+          focusIdentity: semanticFocusIdentity,
           lastOnNavigate: null,
           dynamicViewVariant: eventWithXYData.view._type === 'dynamic'
             ? eventWithXYData.view.variant

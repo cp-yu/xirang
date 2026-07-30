@@ -134,7 +134,7 @@ export async function impactArchitecture(
   const elementById = new Map(elements.map(element => [element.identity, element]));
   const requirementsById = new Map(model.elements.map(element => [element.declaration.identity, element.requirements]));
   const roots = elements.filter(element => kinds.get(element.kind)?.root === true);
-  if (roots.length !== 1) throw new Error(`Formal Semantic Model must contain exactly one Project Root; found ${roots.length}`);
+  if (roots.length !== 1) throw new Error(`Semantic Model must contain exactly one Project Root; found ${roots.length}`);
 
   const uniqueFocusIds = [...new Set(focusElementIds)].sort(compareCodePoints);
   for (const elementId of uniqueFocusIds) {

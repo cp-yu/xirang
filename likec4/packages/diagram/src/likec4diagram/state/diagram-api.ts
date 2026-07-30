@@ -96,20 +96,25 @@ export class DiagramApi<A extends Any = Unknown> {
    * Navigate to view
    * @param viewId - Target view ID
    * @param fromNode - Node from which navigation was triggered
-   * @param focusOnElement - Element FQN to focus after navigation (from search)
+   * @param focusOnElement - Element FQN to highlight after navigation (from search)
+   * @param focusIdentity - Semantic Element identity to establish as Model View focus
    */
-  navigateTo(viewId: ViewId<A>, fromNode?: NodeId, focusOnElement?: Fqn<A>): void {
+  navigateTo(viewId: ViewId<A>, fromNode?: NodeId, focusOnElement?: Fqn<A>, focusIdentity?: string): void {
     this.send({
       type: 'navigate.to',
       viewId: viewId as any,
       ...(fromNode && { fromNode }),
       ...(focusOnElement && { focusOnElement: focusOnElement as any }),
+      ...(focusIdentity && { focusIdentity }),
     })
   }
 
-  /**
-   * Navigate back or forward in history
-   */
+  /** Change focus within the current Model or Change-derived View without changing View identity. */
+  focusWithinView(focusIdentity: string | null): void {
+    this.send({ type: 'navigate.focus', focusIdentity })
+  }
+
+  /** Navigate back or forward in history */
   navigate(direction: 'back' | 'forward'): void {
     this.send({ type: `navigate.${direction}` })
   }

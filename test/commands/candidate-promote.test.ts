@@ -75,7 +75,7 @@ describe('Candidate promotion', () => {
     expect(manifest).not.toContain(root);
   });
 
-  it('promotes the first Formal Model when comparison is unavailable', async () => {
+  it('promotes the first Semantic Model when comparison is unavailable', async () => {
     await fs.rm(path.join(root, '.xirang', 'model'), { recursive: true, force: true });
     const validation = await validateCandidate(root);
 

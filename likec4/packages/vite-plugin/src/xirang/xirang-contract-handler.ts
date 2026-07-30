@@ -3,9 +3,13 @@ export interface XirangContractContent {
   md: string
 }
 
-export interface XirangRuntimeVariantSnapshot {
-  id?: string
+export interface XirangContractSourceSnapshot {
   contracts?: Record<string, string>
+}
+
+export interface XirangRuntimeManifestSnapshot {
+  semanticModel: XirangContractSourceSnapshot
+  changes: Record<string, XirangContractSourceSnapshot>
 }
 
 export class XirangContractError extends Error {
@@ -15,6 +19,13 @@ export class XirangContractError extends Error {
   ) {
     super(message)
   }
+}
+
+export function readXirangContractChange(searchParams: URLSearchParams): string | null {
+  if (searchParams.has('variant')) {
+    throw new XirangContractError(400, 'Unsupported query parameter: variant')
+  }
+  return searchParams.get('change')
 }
 
 export function assertXirangProject(project: string, projects: readonly { id: string }[]): void {
@@ -29,16 +40,18 @@ export function assertXirangProject(project: string, projects: readonly { id: st
  * Returns `null` when the Element carries no Contract.
  */
 export function readXirangContract(
-  variants: readonly XirangRuntimeVariantSnapshot[] | undefined,
-  variantId: string | null,
+  manifest: XirangRuntimeManifestSnapshot | undefined,
+  change: string | null,
   element: string,
 ): XirangContractContent | null {
-  const id = variantId ?? 'formal'
-  const variant = variants?.find(candidate => candidate.id === id)
-  if (!variant) {
-    throw new XirangContractError(404, 'Variant not found')
+  if (!manifest) {
+    throw new XirangContractError(404, change ? 'Change not found' : 'Semantic Model not found')
   }
-  const { contracts } = variant
+  const source = change === null ? manifest.semanticModel : manifest.changes[change]
+  if (!source) {
+    throw new XirangContractError(404, 'Change not found')
+  }
+  const { contracts } = source
   if (!contracts || !Object.hasOwn(contracts, element)) {
     return null
   }

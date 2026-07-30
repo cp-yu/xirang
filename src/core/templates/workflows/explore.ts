@@ -242,7 +242,7 @@ ${CONVERSATION_LANGUAGE_GUIDANCE}
 ## Semantic Impact
 
 When a new module, workflow, command, configuration key, project concept, or unfamiliar domain term affects scope:
-1. Run \`xirang arch search <query> --json\` against the Formal Semantic Model.
+1. Run \`xirang arch search <query> --json\` against the Semantic Model.
 2. Read the candidates in their Project Root and refinement context, then select one or more \`identity\` values as focus Elements. If no candidate or multiple plausible candidates remain, ask one clarification question instead of guessing.
 3. Run \`xirang arch impact <identities...> --depth 2 --json\` to load refinement context, canonical Relationship paths, and complete Element Contracts.
 4. Collect implementation evidence separately with CodeGraph, ACE, \`rg\`, and \`read\`; code paths, symbols, imports, and calls remain current implementation evidence only.

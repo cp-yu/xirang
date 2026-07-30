@@ -2,8 +2,10 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
+import { initializeCandidate } from '../../../src/core/candidate/workspace.js';
 import { promoteCandidate } from '../../../src/core/candidate/promotion.js';
 import { validateCandidate } from '../../../src/core/candidate/validator.js';
+import { PERSPECTIVE_KIND_FILE } from '../../../src/core/templates/model-skeleton.js';
 import { PARTITIONS } from '../../../src/core/model/types.js';
 
 const roots: string[] = [];
@@ -16,7 +18,9 @@ const CANDIDATE_FILES: Record<string, string> = {
   'candidate.yaml': 'schemaVersion: 1\ncreatedAt: 2030-01-02T03:04:05.000Z\nbaseline:\n  kind: clean\n  reference: null\n',
   'build.md': '# Build\n\nAuthority: tests.\n',
   'metamodel/project.md': '---\nentity: element-kind\nidentity: project\ncontract: optional\nroot: true\n---\n',
+  'metamodel/domain.md': '---\nentity: element-kind\nidentity: domain\ncontract: optional\n---\n',
   'metamodel/capability.md': '---\nentity: element-kind\nidentity: capability\ncontract: optional\n---\n',
+  'metamodel/perspective.md': PERSPECTIVE_KIND_FILE.render({ projectDefinition: '' }),
   'metamodel/invokes.md': '---\nentity: relationship-kind\nidentity: invokes\n---\n',
   'elements/root.md': '---\nentity: element-declaration\nidentity: root\nkind: project\nparent: null\ntitle: Root\ndefinition: Project root\n---\n',
   'elements/cap.a.md': '---\nentity: element-declaration\nidentity: cap.a\nkind: capability\nparent: root\ntitle: A\ndefinition: A capability\n---\n',
@@ -63,6 +67,17 @@ async function listPartitionFiles(root: string): Promise<string[]> {
 }
 
 describe('four-partition Candidate', () => {
+  it('seeds a clean Candidate with the managed Perspective Kind', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-candidate-clean-'));
+    roots.push(root);
+    await fs.mkdir(path.join(root, '.xirang'));
+
+    await initializeCandidate(root, { kind: 'clean' });
+
+    await expect(fs.readFile(path.join(root, '.xirang', 'candidate', 'metamodel', 'perspective.md'), 'utf8'))
+      .resolves.toContain('identity: perspective');
+  });
+
   it('validates a Candidate that uses the model partitions', async () => {
     const result = await validateCandidate(await createProject());
     expect(result.diagnostics).toEqual([]);
@@ -93,7 +108,9 @@ describe('four-partition Candidate', () => {
       'elements/cap.a.md',
       'elements/root.md',
       'metamodel/capability.md',
+      'metamodel/domain.md',
       'metamodel/invokes.md',
+      'metamodel/perspective.md',
       'metamodel/project.md',
       'relationships/invokes.yaml',
       'views/overview.md',

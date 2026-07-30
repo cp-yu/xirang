@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { validateSemanticModel } from '../../../src/core/model/validator.js';
+import { PERSPECTIVE_KIND } from '../../../src/core/templates/model-skeleton.js';
 import type { ModelElement, SemanticModel } from '../../../src/core/model/types.js';
 
 function element(identity: string, kind: string, parent: string | null, requirements = 0): ModelElement {
@@ -17,6 +18,7 @@ function model(overrides: Partial<SemanticModel> = {}): SemanticModel {
   return {
     elementKinds: [
       { identity: 'project', contract: 'optional', root: true, body: '' },
+      PERSPECTIVE_KIND,
       { identity: 'domain', contract: 'optional', parents: ['project'], body: '' },
       { identity: 'capability', contract: 'required', parents: ['domain'], body: '' },
     ],
@@ -41,6 +43,28 @@ describe('validateSemanticModel', () => {
     expect(validateSemanticModel(model())).toEqual([]);
   });
 
+  it('warns when a legacy model does not declare the managed Perspective Kind', () => {
+    const legacy = model({ elementKinds: model().elementKinds.filter(kind => kind.identity !== 'perspective') });
+    expect(validateSemanticModel(legacy)).toContainEqual(expect.objectContaining({
+      level: 'WARNING',
+      code: 'MISSING_BUILTIN_PERSPECTIVE_KIND',
+      identity: 'perspective',
+    }));
+  });
+
+  it('rejects a conflicting managed Perspective Kind', () => {
+    const conflicting = model({
+      elementKinds: model().elementKinds.map(kind => kind.identity === 'perspective'
+        ? { ...kind, contract: 'required' as const }
+        : kind),
+    });
+    expect(validateSemanticModel(conflicting)).toContainEqual(expect.objectContaining({
+      level: 'ERROR',
+      code: 'CONFLICTING_BUILTIN_PERSPECTIVE_KIND',
+      identity: 'perspective',
+    }));
+  });
+
   it('rejects identities outside [A-Za-z0-9._-]', () => {
     for (const bad of ['a/b', 'a b', '中文', 'a\tb', 'a#b']) {
       expect(codes(model({ views: [{ identity: bad, include: '*' }] }))).toContain('INVALID_IDENTITY');
@@ -52,6 +76,15 @@ describe('validateSemanticModel', () => {
     const clash = model({ relationshipKinds: [{ identity: 'capability', body: '' }] });
     expect(codes(clash)).toContain('DUPLICATE_KIND_IDENTITY');
     expect(codes(model())).not.toContain('DUPLICATE_KIND_IDENTITY');
+  });
+
+  it('reserves model for the default Model View', () => {
+    expect(validateSemanticModel(model({ views: [{ identity: 'model', include: '*' }] })))
+      .toContainEqual(expect.objectContaining({
+        level: 'ERROR',
+        code: 'RESERVED_VIEW_IDENTITY',
+        identity: 'model',
+      }));
   });
 
   it('detects duplicate element and view identities', () => {
@@ -73,6 +106,9 @@ describe('validateSemanticModel', () => {
     const deep = model({
       elementKinds: [
         { identity: 'project', contract: 'optional', root: true, body: '' },
+        { identity: 'domain', contract: 'optional', body: '' },
+        { identity: 'capability', contract: 'optional', body: '' },
+        PERSPECTIVE_KIND,
         { identity: 'node', contract: 'optional', body: '' },
       ],
       relationshipKinds: [],
@@ -90,6 +126,9 @@ describe('validateSemanticModel', () => {
     const hierarchy = model({
       elementKinds: [
         { identity: 'project', contract: 'optional', root: true, body: '' },
+        { identity: 'domain', contract: 'optional', body: '' },
+        { identity: 'capability', contract: 'optional', body: '' },
+        PERSPECTIVE_KIND,
         { identity: 'node', contract: 'optional', body: '' },
       ],
       relationshipKinds: [],
@@ -149,6 +188,9 @@ describe('validateSemanticModel', () => {
     const open = model({
       elementKinds: [
         { identity: 'project', contract: 'optional', root: true, body: '' },
+        { identity: 'domain', contract: 'optional', body: '' },
+        { identity: 'capability', contract: 'optional', body: '' },
+        PERSPECTIVE_KIND,
         { identity: 'free', contract: 'optional', body: '' },
       ],
       relationshipKinds: [],

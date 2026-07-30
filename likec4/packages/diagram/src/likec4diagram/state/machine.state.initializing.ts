@@ -54,6 +54,7 @@ export const isReady = machine.createStateConfig({
             viewId: context.view.id,
             viewport: { ...context.xyflow!.getViewport() },
             viewportChangedManually: false,
+            focusIdentity: context.focusIdentity,
           }],
         },
       })),

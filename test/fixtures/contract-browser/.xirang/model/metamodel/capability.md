@@ -4,4 +4,6 @@ identity: capability
 contract: optional
 parents:
   - project
+  - perspective
+  - capability
 ---

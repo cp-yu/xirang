@@ -26,7 +26,7 @@ describe('deriveLocalNames', () => {
 
   it('prefixes names that do not start with a letter or underscore', () => {
     const names = deriveLocalNames([element('domain.2fa', null), element('_ok', null)]);
-    expect(names.nameOf('domain.2fa')).toBe('_2fa');
+    expect(names.nameOf('domain.2fa')).toBe('x_2fa');
     expect(names.nameOf('_ok')).toBe('_ok');
   });
 

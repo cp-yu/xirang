@@ -23,9 +23,21 @@ describe('HttpContractLoader', () => {
     expect(parsed.pathname).toBe('/__xirang/contract')
     expect(parsed.searchParams.get('project')).toBe('default')
     expect(parsed.searchParams.get('element')).toBe('core.api')
-    expect(parsed.searchParams.get('variant')).toBe('formal')
+    expect(parsed.searchParams.has('change')).toBe(false)
+    expect(parsed.searchParams.has('variant')).toBe(false)
     expect(parsed.searchParams.has('path')).toBe(false)
     expect(options).toMatchObject({ signal: controller.signal })
+  })
+
+  it('addresses a Change Contract with the change parameter only', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(json({ element: 'core.api', md: '# API' }))
+    const loader = new HttpContractLoader(fetcher)
+
+    await loader.load('default', 'core.api', new AbortController().signal, 'auth')
+
+    const parsed = new URL(String(fetcher.mock.calls[0]![0]), 'http://localhost')
+    expect(parsed.searchParams.get('change')).toBe('auth')
+    expect(parsed.searchParams.has('variant')).toBe(false)
   })
 
   it('calls browser fetch with the global receiver', async () => {
@@ -72,7 +84,7 @@ describe('HttpContractLoader', () => {
     }
     const loader = new HttpContractLoader(fetch, hot)
     const subscriber = vi.fn()
-    const unsubscribe = loader.subscribeVariants(subscriber)
+    const unsubscribe = loader.subscribeManifest(subscriber)
 
     listeners.get('xirang:change-manifest-changed')?.({})
     expect(subscriber).toHaveBeenCalledOnce()

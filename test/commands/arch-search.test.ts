@@ -135,7 +135,7 @@ describe('architecture search', () => {
     expect(await searchArchitecture(root, 'FencedOnlyToken')).toMatchObject({ matches: [], totalMatches: 0 });
   });
 
-  it('reads only the Formal Semantic Model without changing the project', async () => {
+  it('reads only the Semantic Model without changing the project', async () => {
     const changeDir = path.join(root, '.xirang', 'changes', 'active', 'elements');
     await fs.mkdir(changeDir, { recursive: true });
     await fs.writeFile(path.join(changeDir, 'cap.impact.md'),

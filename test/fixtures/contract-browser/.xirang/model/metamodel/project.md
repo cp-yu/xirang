@@ -4,5 +4,6 @@ identity: project
 contract: optional
 root: true
 children:
+  - perspective
   - capability
 ---

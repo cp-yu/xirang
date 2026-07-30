@@ -18,7 +18,7 @@
 │       ├── 3. View Composition
 │       │   ├── 4. Authored Views
 │       │   └── 4. Derived Views
-│       │       ├── 5. Element-derived Views
+│       │       ├── 5. Model View
 │       │       └── 5. Change-derived Views
 │       └── 3. View Presentation
 │           ├── 4. Visual Presentation
@@ -157,11 +157,11 @@ Authored View 的声明可以持续存在并具有稳定 identity，但不为其
 
 Derived Views 是由 Semantic Model 或 Change 确定性派生的 Views。Derived View 无需用户声明，其内容随派生依据变化而重新确定。
 
-Derived View 不作为 Semantic Model 或 Change 的 durable artifact 持久化，也不作为 Semantic Delta Entry 的作用对象；系统可以生成可从当前输入重建的运行时表示或缓存。当前包括 Element-derived Views 与 Change-derived Views。
+Derived View 不作为 Semantic Model 或 Change 的 durable artifact 持久化，也不作为 Semantic Delta Entry 的作用对象；系统可以生成可从当前输入重建的运行时表示或缓存。当前包括 Model View 与 Change-derived Views。
 
-##### 5. Element-derived Views
+##### 5. Model View
 
-Element-derived Views 由 Element 及其 children 确定性推导，形成该 Element 的下钻视图。
+Model View 是由当前 Semantic Model 确定性派生的默认 View，稳定 identity 为 `model`。其层级 focus 与导航历史属于运行时呈现状态，不形成额外 View。
 
 ##### 5. Change-derived Views
 

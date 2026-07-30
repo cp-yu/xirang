@@ -56,7 +56,7 @@ import { useCallbackRef, useUpdateEffect } from '../../hooks'
 import { useCurrentViewModel } from '../../hooks/useCurrentViewModel'
 import { useDiagram } from '../../hooks/useDiagram'
 import type { OnNavigateTo } from '../../LikeC4Diagram.props'
-import { type XirangRuntimeVariant, useXirangVariants } from '../../xirang/ContractLoaderContext'
+import { type XirangViewSource, useXirangViewSources } from '../../xirang/ContractLoaderContext'
 import { stopPropagation } from '../../utils'
 import * as styles from './ElementDetailsCard.css'
 import { MetadataProvider, MetadataValue } from './MetadataValue'
@@ -104,23 +104,23 @@ type ElementDetailsCardProps = {
 }
 
 type ElementDefinitionPropertiesProps = {
-  selected: XirangRuntimeVariant
+  selected: XirangViewSource
   stableElementId: string
-  formalSummary: RichTextOrEmpty
-  formalDescription: RichTextOrEmpty
+  modelSummary: RichTextOrEmpty
+  modelDescription: RichTextOrEmpty
 }
 
 export function ElementDefinitionProperties({
   selected,
   stableElementId,
-  formalSummary,
-  formalDescription,
+  modelSummary,
+  modelDescription,
 }: ElementDefinitionPropertiesProps) {
-  const declaration = selected.kind === 'change'
+  const declaration = selected.source === 'change-derived-view'
     ? selected.architecture?.elements.find(item => item.declaration.identity === stableElementId)?.declaration
     : undefined
-  const summary = declaration ? RichText.from(declaration.summary) : formalSummary
-  const description = declaration ? RichText.from(declaration.description) : formalDescription
+  const summary = declaration ? RichText.from(declaration.summary) : modelSummary
+  const description = declaration ? RichText.from(declaration.description) : modelDescription
 
   return (
     <>
@@ -162,7 +162,7 @@ export function ElementDetailsCard({
   const nodeModel = fromNode ? viewModel.findNode(fromNode) : viewModel.findNodeWithElement(fqn)
 
   const elementModel = viewModel.$model.element(fqn)
-  const runtime = useXirangVariants()
+  const runtime = useXirangViewSources()
   const stableElementId = typeof elementModel.$element.metadata?.['elementId'] === 'string'
     ? elementModel.$element.metadata['elementId']
     : elementModel.id
@@ -428,6 +428,27 @@ export function ElementDetailsCard({
                     </ActionIcon>
                   </Tooltip>
                 </IfEnabled>
+                {viewId !== ('model' as ViewId) && (
+                  <Tooltip label="Open in Model View">
+                    <ActionIcon
+                      data-xirang-open-in-model-view
+                      size="lg"
+                      variant="default"
+                      radius="sm"
+                      onClick={e => {
+                        e.stopPropagation()
+                        runtime.select('model')
+                        diagram.navigateTo(
+                          'model' as scalar.ViewId,
+                          fromNode ?? undefined,
+                          undefined,
+                          stableElementId,
+                        )
+                      }}>
+                      <IconZoomScan style={{ width: '70%' }} />
+                    </ActionIcon>
+                  </Tooltip>
+                )}
                 {defaultView && (
                   <Tooltip label="Open default view">
                     <ActionIcon
@@ -471,8 +492,8 @@ export function ElementDetailsCard({
                     <ElementDefinitionProperties
                       selected={runtime.selected}
                       stableElementId={stableElementId}
-                      formalSummary={elementModel.summary}
-                      formalDescription={elementModel.description}
+                      modelSummary={elementModel.summary}
+                      modelDescription={elementModel.description}
                     />
                     {elementModel.technology && (
                       <ElementProperty title="technology">

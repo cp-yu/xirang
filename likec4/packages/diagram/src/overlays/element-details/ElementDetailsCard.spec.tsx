@@ -2,17 +2,17 @@ import { RichText } from '@likec4/core'
 import { MantineProvider } from '@mantine/core'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import type { XirangRuntimeVariant } from '../../xirang/ContractLoaderContext'
+import type { XirangViewSource } from '../../xirang/ContractLoaderContext'
 import { ElementDefinitionProperties } from './ElementDetailsCard'
 
 describe('ElementDefinitionProperties', () => {
   it('renders the selected Change excerpt and complete multi-paragraph Definition', () => {
     const definition = '完整的第一段 Definition，描述概念身份。\n\n第二段保留范围边界与 Unicode 🚀。'
     const excerpt = '完整的第一段 Definition，描述概念身份。'
-    const selected: XirangRuntimeVariant = {
+    const selected: XirangViewSource = {
       id: 'change:test',
       label: 'test',
-      kind: 'change',
+      source: 'change-derived-view',
       change: 'test',
       valid: true,
       diagnostics: [],
@@ -37,14 +37,14 @@ describe('ElementDefinitionProperties', () => {
         <ElementDefinitionProperties
           selected={selected}
           stableElementId="alpha.id"
-          formalSummary={RichText.from('stale formal summary')}
-          formalDescription={RichText.from('stale formal description')}
+          modelSummary={RichText.from('stale model summary')}
+          modelDescription={RichText.from('stale model description')}
         />
       </MantineProvider>,
     )
 
     expect(html).toContain(excerpt)
     expect(html).toContain(definition)
-    expect(html).not.toContain('stale formal')
+    expect(html).not.toContain('stale model')
   })
 })

@@ -25,7 +25,7 @@ ${SEMANTIC_MODEL_UNIT_NOTATION}
 1. Confirm that the project has been prepared with \`xirang setup\`, then run \`xirang candidate status --json\`.
 2. If a Candidate is active, present its baseline, inventory, and status. Ask the user to choose either to continue the active Candidate or explicitly authorize discarding it and initialize a replacement. If the user chooses to continue, preserve the active Candidate and skip Candidate initialization. Build MUST NOT silently continue, discard, or replace an active Candidate.
 3. Ask the user to choose the exploration scope: whole project, code and tests, documentation and current Xirang, or custom paths and rules.
-4. Only initialize when no Candidate is active or the user explicitly authorizes replacement. Resolve the Candidate baseline before authoring any Build file, summarize the Formal Model when it exists, ask the user to choose the starting point, then run exactly one applicable command:
+4. Only initialize when no Candidate is active or the user explicitly authorizes replacement. Resolve the Candidate baseline before authoring any Build file, summarize the Semantic Model when it exists, ask the user to choose the starting point, then run exactly one applicable command:
    - \`xirang candidate init --from current\`
    - \`xirang candidate init --from clean\`
    - \`xirang candidate init --from-path <path>\`

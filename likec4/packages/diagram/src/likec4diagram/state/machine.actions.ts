@@ -945,10 +945,11 @@ export const cancelAutoUnfocusTimer = () => machine.cancel('autoUnfocusTimer')
 
 export const handleNavigate = () =>
   machine.enqueueActions(({ enqueue, context, event }) => {
-    assertEvent(event, ['navigate.to', 'navigate.back', 'navigate.forward'])
+    assertEvent(event, ['navigate.to', 'navigate.focus', 'navigate.back', 'navigate.forward'])
     const {
       view,
       focusedNode,
+      focusIdentity,
       activeWalkthrough,
       dynamicViewVariant,
       viewport,
@@ -964,6 +965,7 @@ export const handleNavigate = () =>
         draft.viewport = { ...viewport }
         draft.viewportChangedManually = viewportChangedManually
         draft.focusedNode = focusedNode
+        draft.focusIdentity = focusIdentity
         if (view._type === 'dynamic') {
           draft.activeWalkthrough = activeWalkthrough?.stepId ?? null
           draft.dynamicViewVariant = dynamicViewVariant
@@ -982,6 +984,22 @@ export const handleNavigate = () =>
     }
 
     switch (event.type) {
+      case 'navigate.focus': {
+        const current = history[currentIndex]
+        if (!current) break
+        const next = { ...current, focusIdentity: event.focusIdentity }
+        enqueue.assign({
+          focusIdentity: event.focusIdentity,
+          navigationHistory: event.replaceHistory
+            ? { currentIndex: 0, history: [next] }
+            : {
+              currentIndex: currentIndex + 1,
+              history: [...history.slice(0, currentIndex + 1), next],
+            },
+          lastOnNavigate: null,
+        })
+        break
+      }
       case 'navigate.to': {
         enqueue.assign({
           navigationHistory: {
@@ -993,6 +1011,7 @@ export const handleNavigate = () =>
             toView: event.viewId,
             fromNode: event.fromNode ?? null,
             focusOnElement: event.focusOnElement ?? null,
+            focusIdentity: event.focusIdentity ?? null,
           },
         })
         enqueue(emitNavigateTo())
@@ -1001,6 +1020,14 @@ export const handleNavigate = () =>
       case 'navigate.back': {
         invariant(currentIndex > 0, 'Cannot navigate back')
         const stepBack = history[currentIndex - 1]!
+        if (stepBack.viewId === view.id) {
+          enqueue.assign({
+            focusIdentity: stepBack.focusIdentity ?? null,
+            navigationHistory: { currentIndex: currentIndex - 1, history },
+            lastOnNavigate: null,
+          })
+          break
+        }
         enqueue.assign({
           navigationHistory: {
             currentIndex: currentIndex - 1,
@@ -1014,6 +1041,14 @@ export const handleNavigate = () =>
       case 'navigate.forward': {
         invariant(currentIndex < history.length - 1, 'Cannot navigate forward')
         const stepForward = history[currentIndex + 1]!
+        if (stepForward.viewId === view.id) {
+          enqueue.assign({
+            focusIdentity: stepForward.focusIdentity ?? null,
+            navigationHistory: { currentIndex: currentIndex + 1, history },
+            lastOnNavigate: null,
+          })
+          break
+        }
         enqueue.assign({
           navigationHistory: {
             currentIndex: currentIndex + 1,

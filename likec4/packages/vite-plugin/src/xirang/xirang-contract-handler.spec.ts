@@ -1,11 +1,11 @@
 import { promises as fs } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
-import { assertXirangProject, readXirangContract } from './xirang-contract-handler'
+import { assertXirangProject, readXirangContract, readXirangContractChange } from './xirang-contract-handler'
 
-const variants = [
-  { id: 'formal', contracts: { 'core.api': '# API\n', 'core.other': '# Other\n' } },
-  { id: 'change:auth', contracts: { 'core.api': '# API (auth)\n' } },
-]
+const manifest = {
+  semanticModel: { contracts: { 'core.api': '# API\n', 'core.other': '# Other\n' } },
+  changes: { auth: { contracts: { 'core.api': '# API (auth)\n' } } },
+}
 
 describe('Xirang Contract handler', () => {
   it('rejects content access for an unknown model project', () => {
@@ -14,22 +14,27 @@ describe('Xirang Contract handler', () => {
     expect(() => assertXirangProject('default', [{ id: 'default' }])).not.toThrow()
   })
 
-  it('reads the Contract of the requested variant, defaulting to Formal', () => {
-    expect(readXirangContract(variants, 'formal', 'core.api')).toEqual({ element: 'core.api', md: '# API\n' })
-    expect(readXirangContract(variants, null, 'core.api')).toEqual({ element: 'core.api', md: '# API\n' })
-    expect(readXirangContract(variants, 'change:auth', 'core.api'))
+  it('reads the Contract from the Semantic Model or requested Change', () => {
+    expect(readXirangContract(manifest, null, 'core.api')).toEqual({ element: 'core.api', md: '# API\n' })
+    expect(readXirangContract(manifest, 'auth', 'core.api'))
       .toEqual({ element: 'core.api', md: '# API (auth)\n' })
   })
 
-  it('returns null for an Element without a Contract instead of failing', () => {
-    expect(readXirangContract(variants, 'change:auth', 'core.other')).toBeNull()
-    expect(readXirangContract([{ id: 'formal' }], 'formal', 'core.api')).toBeNull()
+  it('rejects the removed query parameter', () => {
+    expect(() => readXirangContractChange(new URLSearchParams({ variant: 'formal' })))
+      .toThrow(expect.objectContaining({ statusCode: 400, message: 'Unsupported query parameter: variant' }))
+    expect(readXirangContractChange(new URLSearchParams({ change: 'auth' }))).toBe('auth')
   })
 
-  it('rejects an unknown variant', () => {
-    expect(() => readXirangContract(variants, 'change:missing', 'core.api'))
-      .toThrow(expect.objectContaining({ statusCode: 404, message: 'Variant not found' }))
-    expect(() => readXirangContract(undefined, 'formal', 'core.api'))
+  it('returns null for an Element without a Contract instead of failing', () => {
+    expect(readXirangContract(manifest, 'auth', 'core.other')).toBeNull()
+    expect(readXirangContract({ semanticModel: {}, changes: {} }, null, 'core.api')).toBeNull()
+  })
+
+  it('rejects an unknown Change', () => {
+    expect(() => readXirangContract(manifest, 'missing', 'core.api'))
+      .toThrow(expect.objectContaining({ statusCode: 404, message: 'Change not found' }))
+    expect(() => readXirangContract(undefined, null, 'core.api'))
       .toThrow(expect.objectContaining({ statusCode: 404 }))
   })
 
@@ -50,7 +55,7 @@ describe('Xirang Contract handler', () => {
     const readFile = vi.spyOn(fs, 'readFile')
     const realpath = vi.spyOn(fs, 'realpath')
     try {
-      expect(readXirangContract(variants, 'formal', element)).toBeNull()
+      expect(readXirangContract(manifest, null, element)).toBeNull()
       expect(readFile).not.toHaveBeenCalled()
       expect(realpath).not.toHaveBeenCalled()
     } finally {

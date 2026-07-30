@@ -1,0 +1,360 @@
+{
+  "timestamp": "2026-07-30T10:29:42.501Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "The current Semantic Model has no physical views directory, and the Change has no physical relationships or views directories. Validation, compilation, Browser E2E, and the active Change fixture show no behavioral failure from these logically empty partitions.",
+      "requirement": "Semantic Model four-partition persistence",
+      "task": null,
+      "summary": "Logically empty partitions are represented by absent directories.",
+      "recommendation": "Do not add placeholder files with parser-visible semantics. If physical empty directories become mandatory, preserve them through lifecycle tooling or a non-semantic version-control mechanism.",
+      "evidenceCitations": [
+        ".xirang/model/views/:missing",
+        ".xirang/changes/semantic-browser-model-view/relationships/:missing",
+        ".xirang/changes/semantic-browser-model-view/views/:missing",
+        ".xirang/changes/semantic-browser-model-view/design.md:10-24"
+      ]
+    }
+  ],
+  "tasksFileHash": "c8e8db776dd5670383a5378b925e0df11a31eed48e21cfbd0855ab3f857aa5b6",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/semantic-browser-model-view/.apply-isolation.json",
+      ".xirang/changes/semantic-browser-model-view/design.md",
+      ".xirang/changes/semantic-browser-model-view/metamodel/perspective.md",
+      ".xirang/changes/semantic-browser-model-view/proposal.md",
+      ".xirang/changes/semantic-browser-model-view/tasks.md",
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+      "likec4/packages/diagram/src/likec4diagram/state/machine.actions.ts",
+      "likec4/packages/diagram/src/navigationpanel/NavigationPanelDropdown.tsx",
+      "likec4/packages/diagram/src/xirang/architectureView.ts",
+      "playwright.config.ts",
+      "src/core/likec4/generator.ts",
+      "src/core/model/validator.ts",
+      "src/core/setup.ts",
+      "src/core/templates/model-skeleton.ts",
+      "src/core/view.ts",
+      "test/core/setup.test.ts",
+      "test/e2e/contract-browser.spec.ts",
+      "test/e2e/semantic-browser-model-view.spec.ts",
+      "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md"
+    ],
+    "evidenceFingerprint": "458634dded0a653acc778e73e522c7d8c3b20351e3f9e6467e35aaaa0a1e99a6",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/semantic-browser-model-view/.apply-isolation.json",
+        "hash": "090fffcd47fed8a726fd01718b15997b337ce87a165fb0a6897dba9288e28c65"
+      },
+      {
+        "path": ".xirang/changes/semantic-browser-model-view/design.md",
+        "hash": "06f81e2c1b9284748dc87ed9999591f9fc72654d0237c0c00bd5c4b0629a58bf"
+      },
+      {
+        "path": ".xirang/changes/semantic-browser-model-view/metamodel/perspective.md",
+        "hash": "1763e0e7d89eeb0d3b6495a6e9dee4c570d410e62704288d61b24313a6dbb046"
+      },
+      {
+        "path": ".xirang/changes/semantic-browser-model-view/proposal.md",
+        "hash": "be6196338da3b608100da5dfc07740063d123307b1ac268e4c4ffa615c699794"
+      },
+      {
+        "path": ".xirang/changes/semantic-browser-model-view/tasks.md",
+        "hash": "c8e8db776dd5670383a5378b925e0df11a31eed48e21cfbd0855ab3f857aa5b6"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+        "hash": "99a26c3d0a47dac5d592a6ca8e06a622881a374eacea86ab0c5ff6b6e23463c8"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/state/machine.actions.ts",
+        "hash": "185659025bcff490f3b3aa2777ee81ed9078c7354d433ecb66993f89399b3888"
+      },
+      {
+        "path": "likec4/packages/diagram/src/navigationpanel/NavigationPanelDropdown.tsx",
+        "hash": "120406ba48eb55c06a70092eec41cb159770330f4efb8389a607a08f21f7e372"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+        "hash": "839abcbf17de47de35b22e6a80119357939c3a3cf938e00429b75973d67d37ba"
+      },
+      {
+        "path": "playwright.config.ts",
+        "hash": "69be447f80e00f46b35f953b4951edf2c0373e1e37b940916062f265b1f4d050"
+      },
+      {
+        "path": "src/core/likec4/generator.ts",
+        "hash": "bf07a366707de25fd6f74901de8ec2db7b8ed0c5186702aef8eae9e065db15ac"
+      },
+      {
+        "path": "src/core/model/validator.ts",
+        "hash": "93e1063694ef599350c2d9cd26a78c437f376f74b221a9587ae9b5532bad3497"
+      },
+      {
+        "path": "src/core/setup.ts",
+        "hash": "e52c87cba601c84cede4bbc0e41bcf0bc894233e2fe0153269b04e9170ce1841"
+      },
+      {
+        "path": "src/core/templates/model-skeleton.ts",
+        "hash": "c05b9479657a02565940f23846cf84e95135d17a5374f99bea6767307fa548fa"
+      },
+      {
+        "path": "src/core/view.ts",
+        "hash": "5b86d71982a1fb2aa1d74002c79e63f8f5abf92026c83447097e4d01296adf6b"
+      },
+      {
+        "path": "test/core/setup.test.ts",
+        "hash": "46dc3485eb02db93b3687846b1310e6f7f4abf1e6b0758781c22847d043c90e4"
+      },
+      {
+        "path": "test/e2e/contract-browser.spec.ts",
+        "hash": "210a043bec60f9f4e07aecf3bca60cc0b8c2bbff0d5a629cf9e514f1b24603e5"
+      },
+      {
+        "path": "test/e2e/semantic-browser-model-view.spec.ts",
+        "hash": "77bc4f1429092674a42aa74d741de6f09b6a57144117a1408571e56f85c8c532"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
+        "hash": "913199b86c6d8ff973da085416da4eed9a2be64073a43eca2ba815d50101401b"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "af388100e5b57b17fc4d48ddd76a3517adaa1cbc",
+    "gitDiffSummary": "Phase 1 independently reviewed complete working-tree implementation against baseline fedf36c88ff81fcff44f32e85bac568403262795.",
+    "timestamp": "2026-07-30T10:48:12.648Z"
+  },
+  "optimization": {
+    "status": "IMPROVED",
+    "attempts": [
+      {
+        "timestamp": "2026-07-30T10:36:14.928Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-30T10:48:12.636Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-07-30T10:51:56.907Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-07-30T10:29:42.501Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "The current Semantic Model has no physical views directory, and the Change has no physical relationships or views directories. Validation, compilation, Browser E2E, and the active Change fixture show no behavioral failure from these logically empty partitions.",
+          "requirement": "Semantic Model four-partition persistence",
+          "task": null,
+          "summary": "Logically empty partitions are represented by absent directories.",
+          "recommendation": "Do not add placeholder files with parser-visible semantics. If physical empty directories become mandatory, preserve them through lifecycle tooling or a non-semantic version-control mechanism.",
+          "evidenceCitations": [
+            ".xirang/model/views/:missing",
+            ".xirang/changes/semantic-browser-model-view/relationships/:missing",
+            ".xirang/changes/semantic-browser-model-view/views/:missing",
+            ".xirang/changes/semantic-browser-model-view/design.md:10-24"
+          ]
+        }
+      ],
+      "tasksFileHash": "c8e8db776dd5670383a5378b925e0df11a31eed48e21cfbd0855ab3f857aa5b6",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/semantic-browser-model-view/.apply-isolation.json",
+          ".xirang/changes/semantic-browser-model-view/design.md",
+          ".xirang/changes/semantic-browser-model-view/metamodel/perspective.md",
+          ".xirang/changes/semantic-browser-model-view/proposal.md",
+          ".xirang/changes/semantic-browser-model-view/tasks.md",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/likec4diagram/state/machine.actions.ts",
+          "likec4/packages/diagram/src/navigationpanel/NavigationPanelDropdown.tsx",
+          "likec4/packages/diagram/src/xirang/architectureView.ts",
+          "playwright.config.ts",
+          "src/core/likec4/generator.ts",
+          "src/core/model/validator.ts",
+          "src/core/setup.ts",
+          "src/core/templates/model-skeleton.ts",
+          "src/core/view.ts",
+          "test/core/setup.test.ts",
+          "test/e2e/contract-browser.spec.ts",
+          "test/e2e/semantic-browser-model-view.spec.ts",
+          "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md"
+        ],
+        "evidenceFingerprint": "41229db0f67fdb899118989d90528bcc7c3ee2836ae27117b055c6351a3b7e70",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/semantic-browser-model-view/.apply-isolation.json",
+            "hash": "fac94ee621f092afd91353b086eba915ba38d7906264307a92a6062cfc99e0bd"
+          },
+          {
+            "path": ".xirang/changes/semantic-browser-model-view/design.md",
+            "hash": "06f81e2c1b9284748dc87ed9999591f9fc72654d0237c0c00bd5c4b0629a58bf"
+          },
+          {
+            "path": ".xirang/changes/semantic-browser-model-view/metamodel/perspective.md",
+            "hash": "1763e0e7d89eeb0d3b6495a6e9dee4c570d410e62704288d61b24313a6dbb046"
+          },
+          {
+            "path": ".xirang/changes/semantic-browser-model-view/proposal.md",
+            "hash": "be6196338da3b608100da5dfc07740063d123307b1ac268e4c4ffa615c699794"
+          },
+          {
+            "path": ".xirang/changes/semantic-browser-model-view/tasks.md",
+            "hash": "c8e8db776dd5670383a5378b925e0df11a31eed48e21cfbd0855ab3f857aa5b6"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "hash": "99a26c3d0a47dac5d592a6ca8e06a622881a374eacea86ab0c5ff6b6e23463c8"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/state/machine.actions.ts",
+            "hash": "185659025bcff490f3b3aa2777ee81ed9078c7354d433ecb66993f89399b3888"
+          },
+          {
+            "path": "likec4/packages/diagram/src/navigationpanel/NavigationPanelDropdown.tsx",
+            "hash": "120406ba48eb55c06a70092eec41cb159770330f4efb8389a607a08f21f7e372"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+            "hash": "6910d72425a9226707a20901641a012da56bcb91bd144f2c89a13ec2576f4bec"
+          },
+          {
+            "path": "playwright.config.ts",
+            "hash": "69be447f80e00f46b35f953b4951edf2c0373e1e37b940916062f265b1f4d050"
+          },
+          {
+            "path": "src/core/likec4/generator.ts",
+            "hash": "bf07a366707de25fd6f74901de8ec2db7b8ed0c5186702aef8eae9e065db15ac"
+          },
+          {
+            "path": "src/core/model/validator.ts",
+            "hash": "93e1063694ef599350c2d9cd26a78c437f376f74b221a9587ae9b5532bad3497"
+          },
+          {
+            "path": "src/core/setup.ts",
+            "hash": "e52c87cba601c84cede4bbc0e41bcf0bc894233e2fe0153269b04e9170ce1841"
+          },
+          {
+            "path": "src/core/templates/model-skeleton.ts",
+            "hash": "c05b9479657a02565940f23846cf84e95135d17a5374f99bea6767307fa548fa"
+          },
+          {
+            "path": "src/core/view.ts",
+            "hash": "5b86d71982a1fb2aa1d74002c79e63f8f5abf92026c83447097e4d01296adf6b"
+          },
+          {
+            "path": "test/core/setup.test.ts",
+            "hash": "46dc3485eb02db93b3687846b1310e6f7f4abf1e6b0758781c22847d043c90e4"
+          },
+          {
+            "path": "test/e2e/contract-browser.spec.ts",
+            "hash": "210a043bec60f9f4e07aecf3bca60cc0b8c2bbff0d5a629cf9e514f1b24603e5"
+          },
+          {
+            "path": "test/e2e/semantic-browser-model-view.spec.ts",
+            "hash": "a2f18181edeb5c5afd32c3e470cdee4b95e44c1c8e51e87b00409cbf3fbbfe66"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
+            "hash": "913199b86c6d8ff973da085416da4eed9a2be64073a43eca2ba815d50101401b"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "fedf36c88ff81fcff44f32e85bac568403262795",
+        "gitDiffSummary": "Phase 1 independently reviewed complete working-tree implementation against baseline fedf36c88ff81fcff44f32e85bac568403262795."
+      }
+    },
+    "findings": [
+      {
+        "status": "resolved",
+        "location": {
+          "files": [
+            "likec4/packages/diagram/src/xirang/architectureView.ts"
+          ],
+          "symbols": [
+            "materializeXirangArchitectureView",
+            "mapEndpoint"
+          ]
+        },
+        "opportunity": "Current-layer relationship projection resolves both endpoints of every relationship by independently walking the declaration parent chain.",
+        "impact": "Precomputing the focus-subtree endpoint projection reduces relationship mapping from O(R * D) parent lookups to O(E + R).",
+        "evidence": [
+          "The verified implementation and characterization tests are committed at checkpoint 2c8929379."
+        ],
+        "recommendation": "Use the committed bounded identity-to-visible-endpoint index.",
+        "keyDesign": "Parent-to-children adjacency and an endpoint map preserve existing iteration order and projection semantics.",
+        "preservationConstraints": [
+          "All previously persisted preservation constraints remain verified."
+        ],
+        "implementationOutline": [
+          "Resolved by committed verified implementation."
+        ],
+        "validation": [
+          "Targeted tests, typecheck, and Browser E2E passed before checkpoint."
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Verified and committed; no further actionable findings remain.",
+        "id": "OPT-20260730T103614926Z-01",
+        "targetFileHashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.ts": "6910d72425a9226707a20901641a012da56bcb91bd144f2c89a13ec2576f4bec"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-30T10:36:14.926Z",
+        "findingId": "OPT-20260730T103614926Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "select",
+        "reason": "Only admitted opportunity with a provable asymptotic improvement on the core focus-projection path and closed preservation constraints.",
+        "timestamp": "2026-07-30T10:36:14.928Z",
+        "findingId": "OPT-20260730T103614926Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.ts": "6910d72425a9226707a20901641a012da56bcb91bd144f2c89a13ec2576f4bec"
+        }
+      },
+      {
+        "sequence": 3,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-30T10:36:22.332Z",
+        "findingId": "OPT-20260730T103614926Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.ts": "6910d72425a9226707a20901641a012da56bcb91bd144f2c89a13ec2576f4bec"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-30T10:48:12.637Z",
+        "findingId": "OPT-20260730T103614926Z-01"
+      },
+      {
+        "sequence": 5,
+        "action": "resolve",
+        "reason": "Verified implementation is committed at checkpoint 2c8929379, and the fresh current-code scan found no additional practical optimization with fully closed preservation constraints.",
+        "timestamp": "2026-07-30T10:51:56.907Z",
+        "findingId": "OPT-20260730T103614926Z-01"
+      }
+    ],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}

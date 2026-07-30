@@ -51,7 +51,7 @@
     "dev": "tsc --watch",
     "dev:cli": "pnpm build && node bin/xirang.js",
     "test": "vitest run",
-    "test:e2e": "playwright test test/e2e/contract-browser.spec.ts",
+    "test:e2e": "playwright test",
     "test:e2e:install": "playwright install chromium",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",

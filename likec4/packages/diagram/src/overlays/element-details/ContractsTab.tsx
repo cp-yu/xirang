@@ -5,11 +5,11 @@ import { Markdown } from '../../base-primitives'
 import {
   type XirangContractContent,
   type XirangDiffEntry,
-  type XirangRuntimeVariant,
+  type XirangViewSource,
   type XirangContractLoader,
   useXirangContractLoader,
-  useXirangVariants,
-  xirangVariantRevision,
+  useXirangViewSources,
+  xirangViewSourceRevision,
 } from '../../xirang/ContractLoaderContext'
 
 export type ContractLoadState =
@@ -24,13 +24,13 @@ export class XirangContractLoadController {
 
   constructor(private readonly update: (state: ContractLoadState) => void) {}
 
-  load(loader: XirangContractLoader, project: string, element: string, variant = 'formal'): void {
+  load(loader: XirangContractLoader, project: string, element: string, change?: string): void {
     this.abortController?.abort()
     const abortController = this.abortController = new AbortController()
     const requestId = ++this.requestId
     this.update({ status: 'loading', project, element })
 
-    loader.load(project, element, abortController.signal, variant).then(
+    loader.load(project, element, abortController.signal, change).then(
       content => {
         if (requestId === this.requestId && !abortController.signal.aborted) {
           this.update({ status: 'success', project, element, content })
@@ -76,7 +76,7 @@ export interface StructuredContractDiff {
       text: TextDiffLine[]
     }>
   }>
-  diagnostics: XirangRuntimeVariant['diagnostics']
+  diagnostics: XirangViewSource['diagnostics']
 }
 
 function body(value: unknown): string {
@@ -129,9 +129,9 @@ export function createTextDiff(before: string, after: string): TextDiffLine[] {
 }
 
 /** Requirement identity is `<element identity>#<name>`, so the host Element is the only filter key. */
-export function getStructuredContractDiff(variant: XirangRuntimeVariant, element: string): StructuredContractDiff {
+export function getStructuredContractDiff(source: XirangViewSource, element: string): StructuredContractDiff {
   const prefix = `${element}#`
-  const requirements = (variant.diff?.entries ?? [])
+  const requirements = (source.diff?.entries ?? [])
     .filter(entry => entry.kind === 'requirement' && entry.identity.startsWith(prefix))
   return {
     requirements: requirements.map(entry => ({
@@ -146,7 +146,7 @@ export function getStructuredContractDiff(variant: XirangRuntimeVariant, element
         text: createTextDiff(body(child.before), body(child.after)),
       })),
     })),
-    diagnostics: variant.diagnostics.filter(diagnostic => diagnostic.identity?.startsWith(prefix) ?? false),
+    diagnostics: source.diagnostics.filter(diagnostic => diagnostic.identity?.startsWith(prefix) ?? false),
   }
 }
 
@@ -190,10 +190,10 @@ export function ContractsTab({
   active: boolean
 }) {
   const loader = useXirangContractLoader()
-  const runtime = useXirangVariants()
+  const runtime = useXirangViewSources()
   const [state, setState] = useState<ContractLoadState>({ status: 'idle' })
   const controller = useMemo(() => new XirangContractLoadController(setState), [])
-  const revision = xirangVariantRevision(runtime.selected)
+  const revision = xirangViewSourceRevision(runtime.selected)
   const displayState = state.status === 'idle'
       || (state.project === project && state.element === element)
     ? state
@@ -208,16 +208,16 @@ export function ContractsTab({
     if (!active || !loader) {
       return
     }
-    controller.load(loader, project, element, runtime.selected.id)
+    controller.load(loader, project, element, runtime.selected.change)
     return () => controller.dispose()
   }, [active, controller, element, loader, project, runtime.selected.id, revision])
 
-  const structuredDiff = runtime.selected.kind === 'change'
+  const structuredDiff = runtime.selected.source === 'change-derived-view'
     ? getStructuredContractDiff(runtime.selected, element)
     : null
 
   return (
-    <Stack gap="sm" h="100%" data-xirang-contracts data-xirang-variant={runtime.selected.id}>
+    <Stack gap="sm" h="100%" data-xirang-contracts data-xirang-view-source={runtime.selected.id}>
       {displayState.status === 'loading' && (
         <ContractPath path={displayState.element}>Loading…</ContractPath>
       )}
