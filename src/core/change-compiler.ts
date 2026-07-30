@@ -22,7 +22,7 @@ import {
 } from './semantic-diff.js';
 
 export interface CompileChangeOptions {
-  /** Pre-parsed Formal Semantic Model; avoids re-reading the four partitions. */
+  /** Pre-parsed Semantic Model; avoids re-reading the four partitions. */
   base?: ParsedModel;
   allowAlreadyApplied?: boolean;
 }

@@ -4,16 +4,16 @@ import { Badge, Box, Button, Group, NativeSelect, Stack, Text } from '@mantine/c
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { ErrorBoundary } from '../components/ErrorFallback'
 import { useEnabledFeatures } from '../context/DiagramFeatures'
-import { selectDiagramSnapshot, useDiagramSelector } from '../hooks'
+import { selectDiagramSnapshot, useDiagramSelector, useOnDiagramEvent } from '../hooks'
 import { useDiagramActorRef } from '../hooks/useDiagram'
 import { NavigationPanel } from '../navigationpanel'
 import { materializeXirangArchitectureView } from '../xirang/architectureView'
 import {
   isXirangContractDiagnostic,
   type XirangDiffOperation,
-  type XirangRuntimeVariant,
-  useXirangVariants,
-  xirangVariantRevision,
+  type XirangViewSource,
+  useXirangViewSources,
+  xirangViewSourceRevision,
 } from '../xirang/ContractLoaderContext'
 import { Overlays } from '../overlays/Overlays'
 import { Search } from '../search/Search'
@@ -46,8 +46,8 @@ function countOperations(entries: readonly { operation: XirangDiffOperation }[])
   return counts
 }
 
-export function getArchitectureOverlayModel(variant: XirangRuntimeVariant) {
-  const entries = variant.diff?.entries.filter(entry => structuralDiffKinds.has(entry.kind)) ?? []
+export function getArchitectureOverlayModel(source: XirangViewSource) {
+  const entries = source.diff?.entries.filter(entry => structuralDiffKinds.has(entry.kind)) ?? []
   const changed = new Set<string>()
   const context = new Set<string>()
   for (const entry of entries) {
@@ -70,35 +70,150 @@ export function getArchitectureOverlayModel(variant: XirangRuntimeVariant) {
     changed: [...changed].sort(),
     context: [...context].sort(),
     counts: countOperations(entries),
-    diagnostics: variant.diagnostics.filter(diagnostic => !isXirangContractDiagnostic(diagnostic)),
+    diagnostics: source.diagnostics.filter(diagnostic => !isXirangContractDiagnostic(diagnostic)),
   }
 }
 
 function XirangArchitectureOverlay() {
-  const runtime = useXirangVariants()
+  const runtime = useXirangViewSources()
   const actorRef = useDiagramActorRef()
   const currentView = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.context.view))
-  const formalView = useRef(currentView)
-  const selectedVariant = useRef(runtime.selected)
-  selectedVariant.current = runtime.selected
+  const isReady = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.matches('ready')))
+  const focusIdentity = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.context.focusIdentity))
+  const modelView = useRef(currentView)
+  const selectedSource = useRef(runtime.selected)
+  const selectedSourceId = useRef(runtime.selected.id)
+  const previousFocusAncestors = useRef<string[]>([])
+  selectedSource.current = runtime.selected
   const [mode, setMode] = useState<'full' | 'diff'>('full')
+  const [relationshipDetails, setRelationshipDetails] = useState<string[]>([])
+  const declarations = new Map((runtime.selected.architecture?.elements ?? [])
+    .map(element => [element.declaration.identity, element.declaration]))
+  const rootIdentity = [...declarations.values()].find(declaration => declaration.parent === null)?.identity
+  const breadcrumbIdentities: string[] = []
+  let breadcrumbIdentity = focusIdentity ?? rootIdentity
+  while (breadcrumbIdentity && declarations.has(breadcrumbIdentity)) {
+    breadcrumbIdentities.unshift(breadcrumbIdentity)
+    breadcrumbIdentity = declarations.get(breadcrumbIdentity)?.parent ?? undefined
+  }
+  const breadcrumb = currentView.id === 'model' && breadcrumbIdentities.length > 0 && (
+    <Group
+      data-xirang-focus-breadcrumb
+      gap={2}
+      style={{ position: 'absolute', left: 16, top: 72, zIndex: 5, pointerEvents: 'all' }}
+    >
+      {breadcrumbIdentities.map(identity => (
+        <Button
+          key={identity}
+          data-xirang-focus-identity={identity}
+          size="compact-xs"
+          variant={identity === (focusIdentity ?? rootIdentity) ? 'filled' : 'subtle'}
+          onClick={() => actorRef.send({ type: 'navigate.focus', focusIdentity: identity })}
+        >
+          {declarations.get(identity)?.title ?? identity}
+        </Button>
+      ))}
+    </Group>
+  )
+
+  useOnDiagramEvent('nodeClick', event => {
+    if (currentView.id !== 'model') return
+    const identity = typeof event.node.metadata?.['elementId'] === 'string'
+      ? event.node.metadata['elementId']
+      : event.node.id
+    const hasChildren = selectedSource.current.architecture?.elements
+      .some(element => element.declaration.parent === identity) ?? false
+    if (hasChildren) actorRef.send({ type: 'navigate.focus', focusIdentity: identity })
+  })
+
+  useOnDiagramEvent('edgeClick', event => {
+    const edgeId = event.edge.id
+    const edge = currentView.edges.find(candidate => candidate.id === edgeId) as { xirangRelations?: string[] } | undefined
+    setRelationshipDetails(edge?.xirangRelations ?? [])
+  })
+
+  useOnDiagramEvent('paneClick', () => setRelationshipDetails([]))
 
   useEffect(() => {
-    if (!currentView.hash.includes(':xirang:')) formalView.current = currentView
+    if (currentView.id === 'model' && !currentView.hash.includes(':xirang:')) modelView.current = currentView
   }, [currentView])
 
   useEffect(() => {
-    const selected = selectedVariant.current
-    const view = selected.kind === 'change'
-      ? materializeXirangArchitectureView(formalView.current, selected, mode)
-      : formalView.current
+    if (!isReady || currentView.id !== 'model') return
+    const selected = selectedSource.current
+    const elements = selected.architecture?.elements ?? []
+    const declarations = new Map(elements.map(element => [element.declaration.identity, element.declaration]))
+    const rootIdentity = elements
+      .map(element => element.declaration)
+      .find(declaration => declaration.parent === null)?.identity
+    if (selectedSourceId.current !== selected.id) {
+      selectedSourceId.current = selected.id
+      previousFocusAncestors.current = []
+      actorRef.send({ type: 'navigate.focus', focusIdentity: rootIdentity ?? null, replaceHistory: true })
+      return
+    }
+    let previousAncestorPath = previousFocusAncestors.current
+    if (focusIdentity && declarations.has(focusIdentity)) {
+      previousAncestorPath = []
+      let ancestor = declarations.get(focusIdentity)?.parent
+      while (ancestor) {
+        previousAncestorPath.push(ancestor)
+        ancestor = declarations.get(ancestor)?.parent ?? null
+      }
+      previousFocusAncestors.current = previousAncestorPath
+    }
+    const resolvedFocus = [focusIdentity, ...previousAncestorPath, rootIdentity]
+      .find((identity): identity is string => !!identity && declarations.has(identity))
+    const view = selected.architecture
+      ? materializeXirangArchitectureView(modelView.current, selected, mode, focusIdentity ?? undefined, previousAncestorPath)
+      : modelView.current
     actorRef.send({ type: 'update.view', view, source: 'external' })
-  }, [actorRef, mode, runtime.selected.id, runtime.selected.kind, xirangVariantRevision(runtime.selected)])
+    if (focusIdentity && resolvedFocus !== focusIdentity) {
+      actorRef.send({ type: 'navigate.focus', focusIdentity: resolvedFocus ?? null })
+    }
+  }, [actorRef, currentView.id, focusIdentity, isReady, mode, runtime.selected.id, runtime.selected.source, xirangViewSourceRevision(runtime.selected)])
 
-  if (runtime.selected.kind !== 'change') return null
+  const relationshipPanel = relationshipDetails.length > 0 && (
+    <Stack
+      data-xirang-relationship-details
+      gap={4}
+      p="xs"
+      style={{
+        position: 'absolute',
+        right: 16,
+        bottom: 72,
+        zIndex: 5,
+        pointerEvents: 'all',
+        background: 'var(--mantine-color-body)',
+        border: '1px solid var(--mantine-color-default-border)',
+        borderRadius: 6,
+      }}
+    >
+      {relationshipDetails.map(triple => <Text key={triple} size="xs">{triple}</Text>)}
+    </Stack>
+  )
+
+  if (runtime.selected.source === 'semantic-model') {
+    return (
+      <>
+        {breadcrumb}
+        {relationshipPanel}
+        <Box
+          hidden
+          data-xirang-architecture-overlay
+          data-xirang-current-view={currentView.id}
+          data-xirang-current-view-hash={currentView.hash}
+          data-xirang-rendered-node-count={currentView.nodes.length}
+        />
+      </>
+    )
+  }
   const overlay = getArchitectureOverlayModel(runtime.selected)
   return (
-    <Box
+    <>
+      {breadcrumb}
+      {relationshipPanel}
+      <Box
       data-xirang-architecture-overlay
       data-xirang-architecture-mode={mode}
       data-xirang-changed-count={overlay.changed.length}
@@ -112,10 +227,10 @@ function XirangArchitectureOverlay() {
           <Badge size="xs" color={runtime.selected.valid ? 'green' : 'red'}>{runtime.selected.valid ? 'Valid' : 'Invalid'}</Badge>
         </Group>
         <NativeSelect
-          aria-label="Active change variant"
+          aria-label="Active Change"
           size="xs"
           value={runtime.selected.id}
-          data={runtime.variants.map(variant => ({ value: variant.id, label: variant.label }))}
+          data={runtime.sources.map(source => ({ value: source.id, label: source.label }))}
           onChange={event => runtime.select(event.currentTarget.value)}
         />
         <Group gap={4}>
@@ -128,7 +243,8 @@ function XirangArchitectureOverlay() {
           <Text key={index} size="xs" c={diagnostic.level === 'ERROR' ? 'red' : 'yellow'}>{diagnostic.message}</Text>
         ))}
       </Stack>
-    </Box>
+      </Box>
+    </>
   )
 }
 

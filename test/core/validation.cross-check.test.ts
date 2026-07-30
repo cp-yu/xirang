@@ -15,7 +15,7 @@ function deltaUnit(operation: string, body: string): string {
  * Requirement identity preconditions are resolved against the Formal model by `applySemanticDelta`;
  * the Validator only checks the notation carried by the change's Element units.
  */
-describe('Requirement delta cross-check against the Formal Semantic Model', () => {
+describe('Requirement delta cross-check against the Semantic Model', () => {
   const testDir = path.join(process.cwd(), 'test-cross-check-tmp');
 
   beforeEach(async () => {

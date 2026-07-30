@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type {
   XirangContractContent,
   XirangDiffEntry,
-  XirangRuntimeVariant,
+  XirangViewSource,
   XirangContractLoader,
 } from '../../xirang/ContractLoaderContext'
 import {
@@ -25,12 +25,13 @@ function deferred<T>() {
 
 function changeVariant(
   entries: XirangDiffEntry[],
-  diagnostics: XirangRuntimeVariant['diagnostics'] = [],
-): XirangRuntimeVariant {
+  diagnostics: XirangViewSource['diagnostics'] = [],
+): XirangViewSource {
   return {
     id: 'change:auth',
     label: 'auth',
-    kind: 'change',
+    source: 'change-derived-view',
+    change: 'auth',
     valid: true,
     diagnostics,
     diff: { summary: { total: entries.length, ADDED: 0, MODIFIED: 0, REMOVED: 0 }, entries },

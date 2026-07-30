@@ -1,0 +1,4 @@
+relationships:
+  - source: capability.leaf
+    kind: invokes
+    target: capability.peer

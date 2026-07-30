@@ -20,6 +20,7 @@ export const NavigationButtons = () => {
         gap: '0.5',
       })}>
       <PanelActionIcon
+        data-navigation-back
         disabled={!hasStepBack}
         onClick={e => {
           e.stopPropagation()
@@ -28,6 +29,7 @@ export const NavigationButtons = () => {
         <IconArrowLeft size={14} />
       </PanelActionIcon>
       <PanelActionIcon
+        data-navigation-forward
         disabled={!hasStepForward}
         onClick={e => {
           e.stopPropagation()

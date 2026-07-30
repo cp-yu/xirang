@@ -117,7 +117,7 @@ describe('ViewCommand', () => {
     }));
   });
 
-  it('projects Formal Contracts into the manifest keyed by Element identity', async () => {
+  it('projects Semantic Model Contracts into the manifest keyed by Element identity', async () => {
     await writeProjectModel(tempDir, minimalModel({
       elements: [
         { identity: 'zeta.id', parent: 'root', requirements: CONTRACT },
@@ -132,12 +132,13 @@ describe('ViewCommand', () => {
 
     await new ViewCommand(launch).execute(tempDir);
 
-    const formal = manifest!.variants[0]!;
-    expect(formal.id).toBe('formal');
-    expect(Object.keys(formal.contracts!)).toEqual(['alpha.id', 'zeta.id']);
-    expect(formal.contracts!['alpha.id']).toContain('### Requirement: Existing');
-    expect(formal.contracts!['alpha.id']).toContain('identity: alpha.id');
-    expect(formal.partitionFingerprints).toBeDefined();
+    const semanticModel = manifest!.semanticModel;
+    expect(manifest!.version).toBe(2);
+    expect(semanticModel.id).toBe('model');
+    expect(Object.keys(semanticModel.contracts!)).toEqual(['alpha.id', 'zeta.id']);
+    expect(semanticModel.contracts!['alpha.id']).toContain('### Requirement: Existing');
+    expect(semanticModel.contracts!['alpha.id']).toContain('identity: alpha.id');
+    expect(semanticModel.partitionFingerprints).toBeDefined();
   });
 
   it('projects the Expected Contract of a change under the same identity key', async () => {
@@ -145,14 +146,14 @@ describe('ViewCommand', () => {
     await writeChangeDelta(tempDir, 'a-change', { 'elements/alpha.id.md': requirementDelta('Alpha') });
 
     const snapshot = await buildViewRuntimeSnapshot(tempDir);
-    const change = snapshot.variants.find(variant => variant.id === 'change:a-change')!;
+    const change = snapshot.changes['a-change']!;
 
     expect(Object.keys(change.contracts!)).toEqual(['alpha.id']);
     expect(change.contracts!['alpha.id']).toContain('### Requirement: Alpha');
     expect(change.contracts!['alpha.id']).toContain('### Requirement: Existing');
   });
 
-  it('lists isolated active change variants deterministically and excludes archive', async () => {
+  it('indexes isolated active Changes deterministically and excludes archive', async () => {
     await writeBaseModel(tempDir);
     for (const change of ['z-change', 'a-change']) {
       await writeChangeDelta(tempDir, change, {
@@ -163,11 +164,9 @@ describe('ViewCommand', () => {
 
     const snapshot = await buildViewRuntimeSnapshot(tempDir);
 
-    expect(snapshot.variants.map(variant => variant.id)).toEqual([
-      'formal', 'change:a-change', 'change:z-change',
-    ]);
-    const alpha = snapshot.variants[1]!;
-    const zeta = snapshot.variants[2]!;
+    expect(Object.keys(snapshot.changes)).toEqual(['a-change', 'z-change']);
+    const alpha = snapshot.changes['a-change']!;
+    const zeta = snapshot.changes['z-change']!;
     expect(alpha.valid).toBe(true);
     expect(zeta.valid).toBe(true);
     expect(alpha.changeFingerprint).not.toBe(zeta.changeFingerprint);
@@ -183,19 +182,19 @@ describe('ViewCommand', () => {
     await writeChangeDelta(tempDir, 'contract-only', { 'elements/alpha.id.md': requirementDelta('Alpha') });
 
     const before = await buildViewRuntimeSnapshot(tempDir);
-    const beforeVariant = before.variants.find(variant => variant.id === 'change:contract-only')!;
-    expect(Object.keys(beforeVariant.partitionFingerprints!).sort())
+    const beforeSource = before.changes['contract-only']!;
+    expect(Object.keys(beforeSource.partitionFingerprints!).sort())
       .toEqual(['elements', 'metamodel', 'relationships', 'views']);
 
     await writeChangeDelta(tempDir, 'contract-only', {
       'views/detail.md': '---\noperation: ADDED\nentity: authored-view\nidentity: detail\ninclude: "*"\n---\n',
     });
     const after = await buildViewRuntimeSnapshot(tempDir, { previous: before, onlyChange: 'contract-only' });
-    const afterVariant = after.variants.find(variant => variant.id === 'change:contract-only')!;
+    const afterSource = after.changes['contract-only']!;
 
-    expect(afterVariant.changeFingerprint).not.toBe(beforeVariant.changeFingerprint);
-    expect(afterVariant.partitionFingerprints!.views).not.toBe(beforeVariant.partitionFingerprints!.views);
-    expect(afterVariant.partitionFingerprints!.elements).toBe(beforeVariant.partitionFingerprints!.elements);
+    expect(afterSource.changeFingerprint).not.toBe(beforeSource.changeFingerprint);
+    expect(afterSource.partitionFingerprints!.views).not.toBe(beforeSource.partitionFingerprints!.views);
+    expect(afterSource.partitionFingerprints!.elements).toBe(beforeSource.partitionFingerprints!.elements);
   });
 
   it('projects top-level Declarations without cloning child-only diff details', () => {
@@ -244,9 +243,9 @@ describe('ViewCommand', () => {
 
     const snapshot = await buildViewRuntimeSnapshot(tempDir);
 
-    expect(snapshot.variants).toEqual(expect.arrayContaining([
+    expect(snapshot.changes['broken']).toEqual(
       expect.objectContaining({ id: 'change:broken', valid: false, diagnostics: expect.any(Array) }),
-    ]));
+    );
   });
 
   it('fails without launching when no Xirang project exists', async () => {

@@ -48,14 +48,14 @@ describe('generateLikeC4 specification.c4', () => {
     };
     const files = generateLikeC4(model);
     expect(files.get('specification.c4')).toBe('specification {\n  element _views\n  relationship _include\n}\n');
-    expect(files.get('views.c4')).toBe('views {\n  view arch_title {\n    include *\n  }\n}\n');
+    expect(files.get('views.c4')).toBe('views {\n  view model {\n  }\n  view arch_title {\n    include *\n  }\n}\n');
   });
 
-  it('enables LikeC4 element-derived views in the generated project', () => {
+  it('disables LikeC4 implicit views in the generated project', () => {
     expect(generateLikeC4(emptySemanticModel()).get('likec4.config.json')).toBe([
       '{',
       '  "name": "xirang",',
-      '  "implicitViews": true',
+      '  "implicitViews": false',
       '}',
       '',
     ].join('\n'));
@@ -94,6 +94,11 @@ describe('generateLikeC4 views.c4', () => {
   it('emits views in identity byte order with optional properties omitted when absent', () => {
     expect(generateLikeC4(model).get('views.c4')).toBe([
       'views {',
+      '  view model {',
+      '    include root.architecture',
+      '    include root.cli',
+      '    include root',
+      '  }',
       '  view focus {',
       '    include root.cli',
       '    include root.architecture',
@@ -111,8 +116,14 @@ describe('generateLikeC4 views.c4', () => {
     ].join('\n'));
   });
 
-  it('emits an empty views block when there are no views', () => {
-    expect(generateLikeC4(emptySemanticModel()).get('views.c4')).toBe('views {\n}\n');
+  it('always emits the default model view', () => {
+    expect(generateLikeC4(emptySemanticModel()).get('views.c4')).toBe([
+      'views {',
+      '  view model {',
+      '  }',
+      '}',
+      '',
+    ].join('\n'));
   });
 });
 
@@ -214,9 +225,9 @@ describe('generateLikeC4 relations.c4', () => {
   it('emits derived endpoint paths ordered by source, kind then target', () => {
     expect(generateLikeC4(nested).get('relations.c4')).toBe([
       'model {',
-      '  root.architecture.parser -[covers]-> root.cli',
-      '  root.architecture.parser -[invokes]-> root.architecture.reader',
-      '  root.architecture.reader -[invokes]-> root.cli',
+      "  root.architecture.parser -[covers]-> root.cli 'covers'",
+      "  root.architecture.parser -[invokes]-> root.architecture.reader 'invokes'",
+      "  root.architecture.reader -[invokes]-> root.cli 'invokes'",
       '}',
       '',
     ].join('\n'));

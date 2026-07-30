@@ -7,6 +7,7 @@ import { serializeSemanticModel } from '../../../src/core/model/serializer.js';
 import { writeMinimal } from '../../../src/core/model/sync-writer.js';
 import { validateSemanticModel } from '../../../src/core/model/validator.js';
 import type { SemanticModel } from '../../../src/core/model/types.js';
+import { PERSPECTIVE_KIND } from '../../../src/core/templates/model-skeleton.js';
 import { createModelRoot } from './fixtures.js';
 
 const CAP_A = [
@@ -45,7 +46,9 @@ const CAP_A = [
 
 const MODEL: Record<string, string> = {
   'metamodel/project.md': '---\nentity: element-kind\nidentity: project\ncontract: optional\nroot: true\n---\n\nThe project root kind.\n',
+  'metamodel/domain.md': '---\nentity: element-kind\nidentity: domain\ncontract: optional\n---\n',
   'metamodel/capability.md': '---\nentity: element-kind\nidentity: capability\ncontract: required\nparents:\n  - project\n---\n\nA capability of the project.\n',
+  'metamodel/perspective.md': `---\nentity: element-kind\nidentity: perspective\ncontract: optional\nparents:\n  - project\n  - perspective\nchildren:\n  - perspective\n  - domain\n  - capability\n---\n\n${PERSPECTIVE_KIND.body}\n`,
   'metamodel/invokes.md': '---\nentity: relationship-kind\nidentity: invokes\nsourceKinds:\n  - capability\ntargetKinds:\n  - capability\n---\n',
   'elements/root.md': '---\nentity: element-declaration\nidentity: root\nkind: project\nparent: null\ntitle: Root\ndefinition: Project root\n---\n',
   'elements/cap.a.md': CAP_A,
@@ -192,6 +195,8 @@ describe('kernel pipeline end to end', () => {
       'elements/nested/deep/0-a.md': MODEL['elements/cap.a.md'],
       'elements/root-unit.md': MODEL['elements/root.md'],
       'metamodel/zzz-capability.md': MODEL['metamodel/capability.md'],
+      'metamodel/domain-kind.md': MODEL['metamodel/domain.md'],
+      'metamodel/perspective-kind.md': MODEL['metamodel/perspective.md'],
       'metamodel/aaa-project.md': MODEL['metamodel/project.md'],
       'metamodel/invokes-kind.md': MODEL['metamodel/invokes.md'],
       'relationships/everything.yaml': MODEL['relationships/invokes.yaml'],

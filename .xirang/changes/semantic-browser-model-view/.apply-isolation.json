@@ -1,0 +1,6 @@
+{
+  "method": "branch",
+  "branchName": "semantic-browser-model-view",
+  "originalBranch": "main",
+  "baseCommit": "fedf36c88ff81fcff44f32e85bac568403262795"
+}

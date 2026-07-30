@@ -58,6 +58,8 @@ export interface NavigationHistoryEntry {
     wasChangedManually: boolean
     value: Viewport
   }
+  // Focused semantic Element within a single Model or Change-derived View
+  focusIdentity?: string | null
   // Focused node in the view, if any
   focusedNode?: NodeId | null
   // If Dynamic View
@@ -116,6 +118,7 @@ export interface Context extends Input {
     toView: ViewId
     fromNode: NodeId | null
     focusOnElement?: Fqn | null
+    focusIdentity?: string | null
   }
   navigationHistory: NavigationHistory
   lastClickedNode: null | {
@@ -124,6 +127,7 @@ export interface Context extends Input {
     timestamp: number
   }
   focusedNode: NodeId | null
+  focusIdentity: string | null
   autoUnfocusTimer: boolean
   activeElementDetails: null | {
     fqn: Fqn
@@ -168,6 +172,7 @@ export function Context({ input }: { input: Input }): Context {
     lastOnNavigate: null,
     lastClickedNode: null,
     focusedNode: null,
+    focusIdentity: null,
     autoUnfocusTimer: false,
     activeElementDetails: null,
     viewportBefore: null,
@@ -232,7 +237,8 @@ export type Events =
   | { type: 'open.relationshipsBrowser'; fqn: Fqn }
   | { type: 'open.search'; search?: string }
   // | { type: 'close.overlay' }
-  | { type: 'navigate.to'; viewId: ViewId; fromNode?: NodeId | undefined; focusOnElement?: Fqn | undefined }
+  | { type: 'navigate.to'; viewId: ViewId; fromNode?: NodeId | undefined; focusOnElement?: Fqn | undefined; focusIdentity?: string | undefined }
+  | { type: 'navigate.focus'; focusIdentity: string | null; replaceHistory?: boolean }
   | { type: 'navigate.back' }
   | { type: 'navigate.forward' }
   | { type: 'layout.align'; mode: AlignmentMode }

@@ -91,7 +91,7 @@ export async function searchArchitecture(
 }
 
 export function formatArchitectureSearchText(result: ArchitectureSearchResult): string {
-  if (result.matches.length === 0) return `No Formal Semantic Model matches for: ${result.query}`;
+  if (result.matches.length === 0) return `No Semantic Model matches for: ${result.query}`;
   return result.matches.map(match => {
     const evidence = match.evidence
       .filter(item => item.field !== 'definition')

@@ -141,7 +141,7 @@ describe('introspect', () => {
   it('为 Architecture Search 与 Impact 注入 positionalType', () => {
     const program = new Command();
     const arch = program.command('arch').description('Architecture operations');
-    arch.command('search <query>').description('Search Formal Semantic Model');
+    arch.command('search <query>').description('Search Semantic Model');
     arch.command('impact <element-ids...>').description('Project semantic impact');
 
     const [definition] = introspectCommands(program);

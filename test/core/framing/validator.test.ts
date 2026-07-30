@@ -2,12 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { validateStructuralDefinition } from '../../../src/core/framing/validator.js';
 import type { ChangeStructuralDefinitionPayload } from '../../../src/core/framing/types.js';
 import type { SemanticModel } from '../../../src/core/model/types.js';
+import { PERSPECTIVE_KIND } from '../../../src/core/templates/model-skeleton.js';
 
 function model(): SemanticModel {
   return {
     elementKinds: [
       { identity: 'project', contract: 'optional', root: true, body: '' },
+      { identity: 'domain', contract: 'optional', body: '' },
       { identity: 'capability', contract: 'required', parents: ['project', 'capability'], body: '' },
+      { ...PERSPECTIVE_KIND },
     ],
     relationshipKinds: [{ identity: 'uses', sourceKinds: ['capability'], targetKinds: ['capability'], body: '' }],
     elements: [

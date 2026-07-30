@@ -88,7 +88,7 @@ export async function syncCommand(
 export function registerSyncCommand(program: Command): void {
   program
     .command('sync [change-name]')
-    .description('Sync a change into the Formal Semantic Model without archiving')
+    .description('Sync a change into the Semantic Model without archiving')
     .option('--no-validate', 'Skip validation while preparing sync output')
     .option('--no-verify', 'Skip verify gate before syncing')
     .action(async (changeName?: string, options: SyncOptions = {}) => {

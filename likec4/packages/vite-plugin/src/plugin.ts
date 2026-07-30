@@ -13,7 +13,7 @@ import type {
 import { detectAI } from './ai/detect-ai'
 import { iconBundlePlugin } from './icon-bundle-plugin'
 import { logger } from './logger'
-import { assertXirangProject, readXirangContract, XirangContractError } from './xirang/xirang-contract-handler'
+import { assertXirangProject, readXirangContract, readXirangContractChange, XirangContractError } from './xirang/xirang-contract-handler'
 import { enablePluginRPC } from './rpc'
 import { xirangChangeManifestChangedEvent } from './rpc/protocol'
 import { splitErrorMessage } from './rpc/sendError'
@@ -95,7 +95,7 @@ type SharedOptions = {
    */
   appConfig?: AppConfig
 
-  /** Runtime variant selector, semantic diff and Contract projection snapshot. */
+  /** Runtime manifest selector for semantic diff and Contract projections. */
   xirangChangeManifest?: string
 }
 
@@ -392,8 +392,9 @@ export function LikeC4VitePlugin({
               throw new XirangContractError(405, 'Method not allowed')
             }
             const payload = JSON.parse(await fs.readFile(xirangChangeManifest, 'utf8')) as unknown
-            if (!payload || typeof payload !== 'object' || (payload as { version?: unknown }).version !== 1
-              || !Array.isArray((payload as { variants?: unknown }).variants)) {
+            if (!payload || typeof payload !== 'object' || (payload as { version?: unknown }).version !== 2
+              || !(payload as { semanticModel?: unknown }).semanticModel
+              || typeof (payload as { changes?: unknown }).changes !== 'object') {
               throw new XirangContractError(500, 'Invalid active change manifest')
             }
             res.statusCode = 200
@@ -421,6 +422,7 @@ export function LikeC4VitePlugin({
               throw new XirangContractError(405, 'Method not allowed')
             }
             const requestUrl = new URL(req.url ?? '/', 'http://localhost')
+            const change = readXirangContractChange(requestUrl.searchParams)
             const project = requestUrl.searchParams.get('project')
             const element = requestUrl.searchParams.get('element')
             if (!project || !element) {
@@ -428,11 +430,12 @@ export function LikeC4VitePlugin({
             }
             assertXirangProject(project, likec4.projects())
             const manifest = JSON.parse(await fs.readFile(xirangChangeManifest, 'utf8')) as {
-              variants?: Array<{ id?: string; contracts?: Record<string, string> }>
+              semanticModel: { contracts?: Record<string, string> }
+              changes: Record<string, { contracts?: Record<string, string> }>
             }
             const contract = readXirangContract(
-              manifest.variants,
-              requestUrl.searchParams.get('variant'),
+              manifest,
+              change,
               element,
             )
             res.statusCode = contract ? 200 : 404

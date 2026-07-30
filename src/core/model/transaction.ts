@@ -152,7 +152,7 @@ export async function applySemanticDirectoryTransaction(
   };
   const currentFingerprint = semanticTreeFingerprint(await readSemanticTree(projectRoot));
   if (currentFingerprint !== formalFingerprint) {
-    throw new Error('Prepared sync is stale: Formal Semantic Model changed after validation');
+    throw new Error('Prepared sync is stale: Semantic Model changed after validation');
   }
 
   const formalRoot = modelRoot(projectRoot);
@@ -195,7 +195,7 @@ export async function applySemanticDirectoryTransaction(
     const verifyPrevious = async (): Promise<void> => {
       const backupFingerprint = semanticTreeFingerprint(await readSemanticDirectoryTree(backupRoot));
       if (backupFingerprint !== formalFingerprint) {
-        throw new Error('Formal Semantic Model changed while promotion was preparing its preimage.');
+        throw new Error('Semantic Model changed while promotion was preparing its preimage.');
       }
       await options.verifyPrevious?.(backupRoot);
     };
@@ -207,7 +207,7 @@ export async function applySemanticDirectoryTransaction(
     const assertInstalledTarget = async (): Promise<void> => {
       const installedFingerprint = semanticTreeFingerprint(await readSemanticTree(projectRoot));
       if (installedFingerprint !== targetFingerprint) {
-        throw new Error('Installed Formal Semantic Model does not exactly match the staged target.');
+        throw new Error('Installed Semantic Model does not exactly match the staged target.');
       }
     };
     await assertInstalledTarget();
@@ -270,7 +270,7 @@ export async function applySemanticTreeManifest(
   const filesystem = transactionFileSystem(options.filesystem);
   const currentFingerprint = semanticTreeFingerprint(await readSemanticTree(projectRoot));
   if (currentFingerprint !== formalFingerprint) {
-    throw new Error('Prepared sync is stale: Formal Semantic Model changed after validation');
+    throw new Error('Prepared sync is stale: Semantic Model changed after validation');
   }
   await assertManifestPreimages(projectRoot, manifest, filesystem);
 

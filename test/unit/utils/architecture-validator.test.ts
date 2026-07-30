@@ -3,9 +3,15 @@ import { validateArchitecture } from '../../../src/utils/architecture-validator.
 import { validateSemanticModel } from '../../../src/core/model/validator.js';
 import { parseSemanticModelFiles } from '../../../src/core/model/parser.js';
 import type { ModelDiagnostic } from '../../../src/core/model/types.js';
+import { PERSPECTIVE_KIND } from '../../../src/core/templates/model-skeleton.js';
 
 function report(files: Record<string, string>) {
-  const parsed = parseSemanticModelFiles(Object.entries(files));
+  const managed = {
+    'metamodel/domain.md': '---\nentity: element-kind\nidentity: domain\ncontract: optional\n---\n',
+    'metamodel/capability.md': CAPABILITY_KIND,
+    'metamodel/perspective.md': `---\nentity: element-kind\nidentity: perspective\ncontract: optional\nparents:\n  - project\n  - perspective\nchildren:\n  - perspective\n  - domain\n  - capability\n---\n\n${PERSPECTIVE_KIND.body}\n`,
+  };
+  const parsed = parseSemanticModelFiles(Object.entries({ ...managed, ...files }));
   return validateArchitecture([...parsed.diagnostics, ...validateSemanticModel(parsed.model)]);
 }
 

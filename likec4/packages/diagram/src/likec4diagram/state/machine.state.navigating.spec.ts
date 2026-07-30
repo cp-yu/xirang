@@ -147,6 +147,40 @@ describe('navigating state - dynamicViewVariant', () => {
     vi.useRealTimers()
   })
 
+  it('keeps View identity stable while recording focus history', () => {
+    const actor = createTestActor(mockElementView)
+    advanceToReady(actor, mockElementView)
+
+    actor.send({ type: 'navigate.focus', focusIdentity: 'project.root' })
+    actor.send({ type: 'navigate.focus', focusIdentity: 'project.root.child' })
+
+    expect(actor.getSnapshot().context.view.id).toBe(mockElementView.id)
+    expect(actor.getSnapshot().context.focusIdentity).toBe('project.root.child')
+    expect(actor.getSnapshot().context.navigationHistory.currentIndex).toBe(2)
+
+    actor.send({ type: 'navigate.back' })
+    expect(actor.getSnapshot().context.view.id).toBe(mockElementView.id)
+    expect(actor.getSnapshot().context.focusIdentity).toBe('project.root')
+
+    actor.send({ type: 'navigate.forward' })
+    expect(actor.getSnapshot().context.focusIdentity).toBe('project.root.child')
+    actor.stop()
+  })
+
+  it('replaces focus history when a new View source is selected', () => {
+    const actor = createTestActor(mockElementView)
+    advanceToReady(actor, mockElementView)
+
+    actor.send({ type: 'navigate.focus', focusIdentity: 'project.root' })
+    actor.send({ type: 'navigate.focus', focusIdentity: 'project.root.child' })
+    actor.send({ type: 'navigate.focus', focusIdentity: 'change.root', replaceHistory: true })
+
+    expect(actor.getSnapshot().context.focusIdentity).toBe('change.root')
+    expect(actor.getSnapshot().context.navigationHistory).toMatchObject({ currentIndex: 0 })
+    expect(actor.getSnapshot().context.navigationHistory.history).toHaveLength(1)
+    actor.stop()
+  })
+
   it('sets dynamicViewVariant to "sequence" when navigating from a non-dynamic view', () => {
     const actor = createTestActor(mockElementView)
 
