@@ -46,7 +46,7 @@ test('browses Model View through nested focus and history', async ({ page }) => 
   const relationship = page.getByRole('group', { name: /Relationship from Leaf Capability to Peer Capability/ })
   await relationship.click()
   await expect(page.locator('[data-xirang-relationship-details]')).toContainText('capability.leaf|invokes|capability.peer')
-  await leaf.hover()
+  await leaf.click()
   const openDetails = leaf.getByRole('button', { name: 'Open details' })
   await expect(openDetails).not.toHaveAttribute('inert', '')
   await openDetails.click({ force: true })

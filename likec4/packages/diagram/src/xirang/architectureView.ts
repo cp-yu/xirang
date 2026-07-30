@@ -238,20 +238,33 @@ export function materializeXirangArchitectureView(
   })
   const nodesById = new Map<string, ViewNode>(nodes.map(node => [node.id, node]))
 
+  const endpointByIdentity = new Map<string, string>([[focus, focus]])
+  const declarationChildren = new Map<string, string[]>()
+  for (const declaration of declarations.values()) {
+    if (!declaration.parent) continue
+    const children = declarationChildren.get(declaration.parent) ?? []
+    children.push(declaration.identity)
+    declarationChildren.set(declaration.parent, children)
+  }
+  for (const directChild of visibleDeclarations) {
+    if (directChild.parent !== focus) continue
+    const stack = [directChild.identity]
+    const visited = new Set<string>()
+    while (stack.length > 0) {
+      const identity = stack.pop()!
+      if (visited.has(identity)) continue
+      visited.add(identity)
+      endpointByIdentity.set(identity, directChild.identity)
+      const children = declarationChildren.get(identity) ?? []
+      for (let index = children.length - 1; index >= 0; index--) stack.push(children[index]!)
+    }
+  }
+
   const targetRelationships = mode === 'full'
     ? architecture.relationships
     : [...relationshipEntries.values()]
       .map(entry => asRelationship(entry.after) ?? asRelationship(entry.before))
       .filter((relationship): relationship is XirangRelationship => relationship !== undefined)
-  const mapEndpoint = (identity: string): string | undefined => {
-    if (identity === focus) return focus
-    let current = declarations.get(identity)
-    while (current?.parent) {
-      if (current.parent === focus) return current.identity
-      current = declarations.get(current.parent)
-    }
-    return undefined
-  }
   const aggregate = new Map<string, {
     source: string
     target: string
@@ -261,8 +274,8 @@ export function materializeXirangArchitectureView(
     operation: XirangDiffOperation | undefined
   }>()
   for (const relationship of targetRelationships) {
-    const mappedSource = mapEndpoint(relationship.source)
-    const mappedTarget = mapEndpoint(relationship.target)
+    const mappedSource = endpointByIdentity.get(relationship.source)
+    const mappedTarget = endpointByIdentity.get(relationship.target)
     if (!mappedSource || !mappedTarget || mappedSource === mappedTarget) continue
     const key = `${mappedSource}|${mappedTarget}`
     const current = aggregate.get(key) ?? {

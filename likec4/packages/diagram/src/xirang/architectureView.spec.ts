@@ -167,7 +167,7 @@ describe('materializeXirangArchitectureView', () => {
     expect(target.nodes.map(node => node.id)).toEqual(['alpha.id', 'alpha.deep'])
   })
 
-  it('aggregates descendant relationships and retains their original triples', () => {
+  it('aggregates deep descendant relationships with stable output', () => {
     const focused: XirangViewSource = {
       ...viewSource,
       architecture: {
@@ -175,12 +175,15 @@ describe('materializeXirangArchitectureView', () => {
           declaration('project.root', 'Project', 'Project', null),
           declaration('alpha.id', 'Alpha', 'Alpha', 'project.root'),
           declaration('gamma.id', 'Gamma', 'Gamma', 'project.root'),
-          declaration('alpha.deep', 'Alpha Deep', 'Alpha Deep', 'alpha.id'),
-          declaration('gamma.deep', 'Gamma Deep', 'Gamma Deep', 'gamma.id'),
+          declaration('alpha.mid', 'Alpha Mid', 'Alpha Mid', 'alpha.id'),
+          declaration('alpha.deep', 'Alpha Deep', 'Alpha Deep', 'alpha.mid'),
+          declaration('alpha.deep.two', 'Alpha Deep Two', 'Alpha Deep Two', 'alpha.mid'),
+          declaration('gamma.mid', 'Gamma Mid', 'Gamma Mid', 'gamma.id'),
+          declaration('gamma.deep', 'Gamma Deep', 'Gamma Deep', 'gamma.mid'),
         ],
         relationships: [
           { source: 'alpha.deep', kind: 'invokes', target: 'gamma.deep' },
-          { source: 'alpha.deep', kind: 'covers', target: 'gamma.deep' },
+          { source: 'alpha.deep.two', kind: 'covers', target: 'gamma.deep' },
           { source: 'alpha.deep', kind: 'invokes', target: 'alpha.id' },
           { source: 'missing', kind: 'external', target: 'gamma.deep' },
         ],
@@ -191,16 +194,20 @@ describe('materializeXirangArchitectureView', () => {
       ...modelView,
       nodes: [
         ...modelView.nodes,
+        node('projectRoot.alpha.mid', 'alpha.mid', 'Alpha Mid', 400),
         node('projectRoot.alpha.deep', 'alpha.deep', 'Alpha Deep', 400),
+        node('projectRoot.alpha.deep.two', 'alpha.deep.two', 'Alpha Deep Two', 400),
+        node('projectRoot.gamma.mid', 'gamma.mid', 'Gamma Mid', 760),
         node('projectRoot.gamma.deep', 'gamma.deep', 'Gamma Deep', 760),
       ],
       edges: [
-        { source: 'projectRoot.alpha.deep', target: 'projectRoot.gamma.deep', label: 'covers', relations: ['rel-covers'] },
+        { source: 'projectRoot.alpha.deep.two', target: 'projectRoot.gamma.deep', label: 'covers', relations: ['rel-covers'] },
         { source: 'projectRoot.alpha.deep', target: 'projectRoot.gamma.deep', label: 'invokes', relations: ['rel-invokes'] },
       ],
     } as unknown as DiagramView
     const target = materializeXirangArchitectureView(modelWithRelations, focused, 'full', 'project.root')
 
+    expect(target.nodes.map(node => node.id)).toEqual(['project.root', 'alpha.id', 'gamma.id'])
     expect(target.edges).toHaveLength(1)
     expect(target.edges[0]?.points).toHaveLength(4)
     expect(target.edges[0]?.controlPoints).toHaveLength(1)
@@ -209,6 +216,10 @@ describe('materializeXirangArchitectureView', () => {
       target: 'gamma.id',
       label: 'covers, invokes',
       relations: ['rel-covers', 'rel-invokes'],
+      xirangRelations: [
+        'alpha.deep.two|covers|gamma.deep',
+        'alpha.deep|invokes|gamma.deep',
+      ],
     })
   })
 

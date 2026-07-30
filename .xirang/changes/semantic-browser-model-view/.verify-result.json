@@ -41,11 +41,11 @@
       "test/e2e/semantic-browser-model-view.spec.ts",
       "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md"
     ],
-    "evidenceFingerprint": "41229db0f67fdb899118989d90528bcc7c3ee2836ae27117b055c6351a3b7e70",
+    "evidenceFingerprint": "458634dded0a653acc778e73e522c7d8c3b20351e3f9e6467e35aaaa0a1e99a6",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/semantic-browser-model-view/.apply-isolation.json",
-        "hash": "fac94ee621f092afd91353b086eba915ba38d7906264307a92a6062cfc99e0bd"
+        "hash": "090fffcd47fed8a726fd01718b15997b337ce87a165fb0a6897dba9288e28c65"
       },
       {
         "path": ".xirang/changes/semantic-browser-model-view/design.md",
@@ -77,7 +77,7 @@
       },
       {
         "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
-        "hash": "6910d72425a9226707a20901641a012da56bcb91bd144f2c89a13ec2576f4bec"
+        "hash": "839abcbf17de47de35b22e6a80119357939c3a3cf938e00429b75973d67d37ba"
       },
       {
         "path": "playwright.config.ts",
@@ -113,7 +113,7 @@
       },
       {
         "path": "test/e2e/semantic-browser-model-view.spec.ts",
-        "hash": "a2f18181edeb5c5afd32c3e470cdee4b95e44c1c8e51e87b00409cbf3fbbfe66"
+        "hash": "77bc4f1429092674a42aa74d741de6f09b6a57144117a1408571e56f85c8c532"
       },
       {
         "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
@@ -121,12 +121,24 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "fedf36c88ff81fcff44f32e85bac568403262795",
-    "gitDiffSummary": "Phase 1 independently reviewed complete working-tree implementation against baseline fedf36c88ff81fcff44f32e85bac568403262795."
+    "gitHeadCommit": "af388100e5b57b17fc4d48ddd76a3517adaa1cbc",
+    "gitDiffSummary": "Phase 1 independently reviewed complete working-tree implementation against baseline fedf36c88ff81fcff44f32e85bac568403262795.",
+    "timestamp": "2026-07-30T10:48:12.648Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-07-30T10:36:14.928Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-07-30T10:48:12.636Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-07-30T10:29:42.501Z",
       "result": "PASS_WITH_WARNINGS",
@@ -253,6 +265,98 @@
         "gitHeadCommit": "fedf36c88ff81fcff44f32e85bac568403262795",
         "gitDiffSummary": "Phase 1 independently reviewed complete working-tree implementation against baseline fedf36c88ff81fcff44f32e85bac568403262795."
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "likec4/packages/diagram/src/xirang/architectureView.ts"
+          ],
+          "symbols": [
+            "materializeXirangArchitectureView",
+            "mapEndpoint"
+          ]
+        },
+        "opportunity": "Current-layer relationship projection resolves both endpoints of every relationship by independently walking the declaration parent chain.",
+        "impact": "Precomputing the focus-subtree endpoint projection reduces relationship mapping from O(R * D) parent lookups to O(E + R).",
+        "evidence": [
+          "likec4/packages/diagram/src/xirang/architectureView.ts:246-254 defines mapEndpoint as a while-loop over declaration parents.",
+          "likec4/packages/diagram/src/xirang/architectureView.ts:263-265 invokes mapEndpoint separately for both endpoints of every target relationship.",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:167-170 rematerializes the view on interactive focus/source/mode changes."
+        ],
+        "recommendation": "Build a bounded identity-to-visible-endpoint index once after resolving focus, then use constant-time endpoint lookups in relationship aggregation.",
+        "keyDesign": "Construct parent-to-children adjacency from declarations. Map focus to itself, then traverse each direct child's subtree iteratively and map descendants to that direct child. Preserve existing declaration and relationship iteration order; the index is lookup-only.",
+        "preservationConstraints": [
+          "Focus resolution order remains unchanged.",
+          "Diff mode adds REMOVED declarations before ancestry indexing.",
+          "Visible nodes, order, geometry, metadata, bounds, and view identity remain equivalent.",
+          "Focus maps to itself; descendants map to nearest direct child; outside or unresolved identities remain unmapped.",
+          "Unmapped and self-collapsed relationships remain omitted.",
+          "Directed aggregation, targetRelationships iteration semantics, deduplication, UTF-8 ordering, and first-defined operation remain unchanged.",
+          "No Semantic Model, Semantic Delta, runtime protocol, diagnostics, or navigation behavior changes."
+        ],
+        "implementationOutline": [
+          "Build parent-to-children identity adjacency while indexing declarations.",
+          "Traverse each direct-child subtree iteratively into an endpoint map.",
+          "Replace parent-chain walks with endpoint-map lookups.",
+          "Keep all downstream construction and sorting unchanged.",
+          "Add deep shared-endpoint preservation tests."
+        ],
+        "validation": [
+          "Extend architectureView.spec.ts for deep descendants, outside endpoints, focus endpoints, self-collapse, directed aggregates, and stable ordering.",
+          "Run targeted diagram/navigation tests.",
+          "Run semantic-browser-model-view Browser E2E."
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Only admitted opportunity with a provable asymptotic improvement on the core focus-projection path and closed preservation constraints.",
+        "id": "OPT-20260730T103614926Z-01",
+        "targetFileHashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.ts": "6910d72425a9226707a20901641a012da56bcb91bd144f2c89a13ec2576f4bec"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-07-30T10:36:14.926Z",
+        "findingId": "OPT-20260730T103614926Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "select",
+        "reason": "Only admitted opportunity with a provable asymptotic improvement on the core focus-projection path and closed preservation constraints.",
+        "timestamp": "2026-07-30T10:36:14.928Z",
+        "findingId": "OPT-20260730T103614926Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.ts": "6910d72425a9226707a20901641a012da56bcb91bd144f2c89a13ec2576f4bec"
+        }
+      },
+      {
+        "sequence": 3,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-07-30T10:36:22.332Z",
+        "findingId": "OPT-20260730T103614926Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.ts": "6910d72425a9226707a20901641a012da56bcb91bd144f2c89a13ec2576f4bec"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-07-30T10:48:12.637Z",
+        "findingId": "OPT-20260730T103614926Z-01"
+      }
+    ],
+    "reconciliationSignature": "7e4b04357774d4211c631974842aba2e0948777b637147c38eca5f98e79cce15",
+    "unchangedReconciliations": 0
   }
 }
