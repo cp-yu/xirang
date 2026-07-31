@@ -6,7 +6,6 @@ import {
 } from '../../xirang/ContractLoaderContext'
 import {
   OperationBadge,
-  TextDiff,
   getStructuredContractDiff,
   createTextDiff,
   type TextDiffLine,
@@ -35,57 +34,97 @@ export function declarationFieldDiffs(
   ]
 }
 
-function DualPaneDiff({
-  before,
-  after,
-  changed,
-}: {
-  before: string
-  after: string
-  changed: boolean
-}) {
+/**
+ * Editor-style dual-pane diff: left panel shows removed lines (red bg),
+ * right panel shows added lines (green bg), unchanged lines on both sides.
+ */
+function DualPaneTextDiff({ before, after }: { before: string; after: string }) {
+  const lines = createTextDiff(before, after)
+  // Build left/right content arrays
+  const left: Array<{
+    text: string
+    op: 'removed' | 'unchanged'
+    words?: Array<{ operation: 'REMOVED' | 'ADDED' | 'UNCHANGED'; text: string }>
+  }> = []
+  const right: Array<{
+    text: string
+    op: 'added' | 'unchanged'
+    words?: Array<{ operation: 'REMOVED' | 'ADDED' | 'UNCHANGED'; text: string }>
+  }> = []
+  for (const line of lines) {
+    if (line.operation === 'REMOVED') {
+      left.push({ text: line.text, op: 'removed', words: line.words })
+      right.push({ text: '', op: 'unchanged' })
+    } else if (line.operation === 'ADDED') {
+      left.push({ text: '', op: 'unchanged' })
+      right.push({ text: line.text, op: 'added', words: line.words })
+    } else {
+      left.push({ text: line.text, op: 'unchanged' })
+      right.push({ text: line.text, op: 'unchanged' })
+    }
+  }
+  const maxLines = Math.max(left.length, right.length, 1)
+  const lineNumWidth = String(maxLines).length
+
+  const renderCell = (text: string, words?: Array<{ operation: string; text: string }>) => {
+    if (!words) return <>{text || '\u00A0'}</>
+    return (
+      <>
+        {words.map((word, i) => {
+          if (word.operation === 'UNCHANGED') return <span key={i} style={{ opacity: 0.7 }}>{word.text}</span>
+          if (word.operation === 'REMOVED') return <span key={i} style={{ background: 'rgba(255,0,0,0.2)', fontWeight: 700 }}>{word.text}</span>
+          if (word.operation === 'ADDED') return <span key={i} style={{ background: 'rgba(0,200,0,0.2)', fontWeight: 700 }}>{word.text}</span>
+          return <span key={i}>{word.text}</span>
+        })}
+      </>
+    )
+  }
+
   return (
-    <Group gap={0} wrap="nowrap" align="stretch" style={{ border: '1px solid var(--mantine-color-default-border)', borderRadius: 4 }}>
-      <Box
-        style={{
-          flex: 1,
-          minWidth: 0,
-          padding: 4,
-          ...(changed ? { background: 'rgba(250, 176, 5, 0.08)' } : {}),
-        }}
-      >
-        <Code
-          block
-          style={{
-            whiteSpace: 'pre-wrap',
-            overflow: 'auto',
-            maxHeight: '60vh',
-            fontSize: 11,
-            opacity: changed ? 1 : 0.6,
-          }}
-        >
-          {before || '—'}
-        </Code>
+    <Group gap={0} wrap="nowrap" align="stretch" style={{ border: '1px solid var(--mantine-color-default-border)', borderRadius: 4, fontFamily: 'monospace', fontSize: 11 }}>
+      {/* Left: Before */}
+      <Box style={{ flex: 1, minWidth: 0, overflow: 'auto', maxHeight: '60vh' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <tbody>
+            {left.map((line, i) => (
+              <tr
+                key={i}
+                style={{
+                  background: line.op === 'removed' ? 'rgba(255, 0, 0, 0.08)' : 'transparent',
+                }}
+              >
+                <td style={{ width: `${lineNumWidth + 1}ch`, padding: '0 4px', textAlign: 'right', color: 'var(--mantine-color-dimmed)', userSelect: 'none', borderRight: '1px solid var(--mantine-color-default-border)' }}>
+                  {line.text !== '' ? String(i + 1).padStart(lineNumWidth) : ''}
+                </td>
+                <td style={{ padding: '0 4px', whiteSpace: 'pre-wrap', opacity: line.op === 'unchanged' ? 0.7 : 1 }}>
+                  {renderCell(line.text, line.words)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </Box>
-      <Box
-        style={{
-          flex: 1,
-          minWidth: 0,
-          padding: 4,
-          ...(changed ? { background: 'rgba(250, 176, 5, 0.08)' } : {}),
-        }}
-      >
-        <Code
-          block
-          style={{
-            whiteSpace: 'pre-wrap',
-            overflow: 'auto',
-            maxHeight: '60vh',
-            fontSize: 11,
-          }}
-        >
-          {after || '—'}
-        </Code>
+      {/* Right: After */}
+      <Box style={{ flex: 1, minWidth: 0, overflow: 'auto', maxHeight: '60vh', borderLeft: '1px solid var(--mantine-color-default-border)' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <tbody>
+            {right.map((line, i) => (
+              <tr
+                key={i}
+                style={{
+                  background: line.op === 'added' ? 'rgba(0, 200, 0, 0.08)' : 'transparent',
+                }}
+              >
+                <td style={{ width: `${lineNumWidth + 1}ch`, padding: '0 4px', textAlign: 'right', color: 'var(--mantine-color-dimmed)', userSelect: 'none', borderRight: '1px solid var(--mantine-color-default-border)' }}>
+                  {line.text !== '' ? String(i + 1).padStart(lineNumWidth) : ''}
+                </td>
+                <td style={{ padding: '0 4px', whiteSpace: 'pre-wrap', opacity: line.op === 'unchanged' ? 0.7 : 1 }}>
+                  {renderCell(line.text, line.words)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </Box>
     </Group>
   )
@@ -109,7 +148,7 @@ function DeclarationDiff({ fields }: { fields: DeclarationFieldDiff[] }) {
         >
           <Text size="xs" fw={600} c="dimmed" mb={2}>{field.label}</Text>
           {field.longText ? (
-            <DualPaneDiff before={field.before} after={field.after} changed={field.changed} />
+            <DualPaneTextDiff before={field.before} after={field.after} />
           ) : (
             <Group gap={0} wrap="nowrap" align="stretch" style={{ border: '1px solid var(--mantine-color-default-border)', borderRadius: 4 }}>
               <Box
@@ -140,12 +179,10 @@ function DeclarationDiff({ fields }: { fields: DeclarationFieldDiff[] }) {
   )
 }
 
-function ContractDiffSide({
-  requirements,
-  label,
-  operation,
+function ContractRequirementDiff({
+  req,
 }: {
-  requirements: Array<{
+  req: {
     identity: string
     title: string
     text: TextDiffLine[]
@@ -154,59 +191,34 @@ function ContractDiffSide({
       title: string
       text: TextDiffLine[]
     }>
-  }>
-  label: string
-  operation: 'ADDED' | 'REMOVED' | 'UNCHANGED'
-}) {
-  if (requirements.length === 0) {
-    return (
-      <Box p="sm" style={{ opacity: 0.4 }}>
-        <Text size="xs" c="dimmed">(empty)</Text>
-      </Box>
-    )
   }
+}) {
+  const hasChanges = req.text.some(l => l.operation !== 'UNCHANGED')
+    || req.scenarios.some(s => s.text.some(l => l.operation !== 'UNCHANGED'))
+  const beforeLines = req.text.filter(l => l.operation !== 'ADDED').map(l => l.text)
+  const afterLines = req.text.filter(l => l.operation !== 'REMOVED').map(l => l.text)
+
   return (
-    <Stack gap="xs">
-      {requirements.map(req => {
-        const isRemoved = operation === 'REMOVED' || req.text.some(l => l.operation === 'REMOVED')
-        const isAdded = operation === 'ADDED' || req.text.some(l => l.operation === 'ADDED')
-        const opacity = isRemoved && !isAdded ? 0.4 : 1
+    <Box
+      p={4}
+      style={{
+        borderRadius: 4,
+        ...(hasChanges ? { background: 'rgba(250, 176, 5, 0.1)' } : {}),
+      }}
+    >
+      <Text size="xs" fw={600} c="dimmed" mb={2}>{req.title}</Text>
+      <DualPaneTextDiff before={beforeLines.join('\n')} after={afterLines.join('\n')} />
+      {req.scenarios.map(scenario => {
+        const sBefore = scenario.text.filter(l => l.operation !== 'ADDED').map(l => l.text)
+        const sAfter = scenario.text.filter(l => l.operation !== 'REMOVED').map(l => l.text)
         return (
-          <Box
-            key={req.identity}
-            p={4}
-            style={{
-              borderRadius: 4,
-              opacity,
-              ...(isRemoved || isAdded ? { background: 'rgba(250, 176, 5, 0.1)' } : {}),
-            }}
-          >
-            <Text size="xs" fw={600} c="dimmed" mb={2}>{req.title}</Text>
-            <Code
-              block
-              style={{
-                whiteSpace: 'pre-wrap',
-                fontSize: 11,
-                ...(isRemoved ? { opacity: 0.5 } : {}),
-              }}
-            >
-              {req.text.map((line, i) => (
-                <Box
-                  key={i}
-                  component="span"
-                  display="block"
-                  {...(line.operation === 'ADDED' ? { c: 'green' } : line.operation === 'REMOVED' ? { c: 'red' } : {})}
-                  {...(line.operation === 'UNCHANGED' ? { style: { opacity: .65 } } : {})}
-                >
-                  {line.text}
-                  {'\n'}
-                </Box>
-              ))}
-            </Code>
+          <Box key={scenario.identity} pl="sm" mt={2}>
+            <Text size="xs" c="dimmed" mb={2}>{scenario.title}</Text>
+            <DualPaneTextDiff before={sBefore.join('\n')} after={sAfter.join('\n')} />
           </Box>
         )
       })}
-    </Stack>
+    </Box>
   )
 }
 
@@ -245,24 +257,9 @@ export function DiffTab({
               {diagnostic.path}: {diagnostic.message}
             </Text>
           ))}
-          <Group gap="md" wrap="nowrap" align="stretch">
-            <Box style={{ flex: 1, minWidth: 0 }}>
-              <Text size="xs" fw={600} c="dimmed" mb={4}>Before</Text>
-              <ContractDiffSide
-                requirements={contractDiff.requirements}
-                label="before"
-                operation="REMOVED"
-              />
-            </Box>
-            <Box style={{ flex: 1, minWidth: 0 }}>
-              <Text size="xs" fw={600} c="dimmed" mb={4}>After</Text>
-              <ContractDiffSide
-                requirements={contractDiff.requirements}
-                label="after"
-                operation="ADDED"
-              />
-            </Box>
-          </Group>
+          {contractDiff.requirements.map(req => (
+            <ContractRequirementDiff key={req.identity} req={req} />
+          ))}
         </Stack>
       )}
       {fields.length === 0 && contractDiff.requirements.length === 0 && contractDiff.diagnostics.length === 0 && (
@@ -271,3 +268,6 @@ export function DiffTab({
     </Stack>
   )
 }
+
+/** Export for reuse in MetamodelDiffModal */
+export { DualPaneTextDiff }

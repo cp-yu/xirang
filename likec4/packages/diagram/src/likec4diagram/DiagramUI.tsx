@@ -8,6 +8,8 @@ import { selectDiagramSnapshot, useDiagramSelector, useOnDiagramEvent } from '..
 import { useDiagramActorRef } from '../hooks/useDiagram'
 import { NavigationPanel } from '../navigationpanel'
 import { materializeXirangArchitectureView } from '../xirang/architectureView'
+import { Markdown } from '../base-primitives'
+import { RichText } from '@likec4/core'
 import { MetamodelDiffModal } from '../overlays/element-details/MetamodelDiffModal'
 import {
   isXirangContractDiagnostic,
@@ -97,6 +99,7 @@ function XirangArchitectureOverlay() {
   const [relationshipDetails, setRelationshipDetails] = useState<string[]>([])
   const [relationshipModalOpened, setRelationshipModalOpened] = useState(false)
   const [metamodelEntry, setMetamodelEntry] = useState<{ entry: XirangDiffEntry; opened: boolean } | null>(null)
+  const [planFile, setPlanFile] = useState<{ name: string; content: string; opened: boolean } | null>(null)
   const declarations = new Map((runtime.selected.architecture?.elements ?? [])
     .map(element => [element.declaration.identity, element.declaration]))
   const rootIdentity = [...declarations.values()].find(declaration => declaration.parent === null)?.identity
@@ -318,6 +321,26 @@ function XirangArchitectureOverlay() {
             </Text>
           </UnstyledButton>
         ))}
+        {runtime.selected.changePlan && (
+          <Stack gap={2}>
+            <Text size="xs" fw={600} c="dimmed" mt={4}>Plan</Text>
+            {['design.md', 'proposal.md', 'tasks.md'].map(file => {
+              const content = runtime.selected.changePlan![file]
+              if (!content) return null
+              return (
+                <UnstyledButton
+                  key={file}
+                  size="xs"
+                  c="dimmed"
+                  onClick={() => setPlanFile({ name: file, content, opened: true })}
+                  style={{ textAlign: 'left', cursor: 'pointer' }}
+                >
+                  <Text size="xs" c="dimmed">📄 {file}</Text>
+                </UnstyledButton>
+              )
+            })}
+          </Stack>
+        )}
         {overlay.entries.length === 0 && <Text size="xs" c="dimmed">No semantic graph change</Text>}
         {overlay.diagnostics.map((diagnostic, index) => (
           <Text key={index} size="xs" c={diagnostic.level === 'ERROR' ? 'red' : 'yellow'}>{diagnostic.message}</Text>
@@ -329,6 +352,17 @@ function XirangArchitectureOverlay() {
         opened={metamodelEntry?.opened ?? false}
         onClose={() => setMetamodelEntry(null)}
       />
+      <Modal
+        opened={planFile?.opened ?? false}
+        onClose={() => setPlanFile(null)}
+        title={planFile?.name ?? ''}
+        size="xl"
+        data-xirang-plan-file
+      >
+        <Box style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+          <Markdown value={RichText.from({ md: planFile?.content ?? '' })} />
+        </Box>
+      </Modal>
     </>
   )
 }

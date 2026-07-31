@@ -302,6 +302,25 @@ export function materializeXirangArchitectureView(
       const declaration = entry.operation === 'REMOVED' ? asDeclaration(entry.before) : asDeclaration(entry.after)
       if (declaration) declarations.set(declaration.identity, declaration)
     }
+    // Include elements whose requirements/scenarios changed (contract-only deltas).
+    for (const entry of structuralEntries(source)) {
+      if (entry.kind === 'requirement' || entry.kind === 'scenario') {
+        const elementId = entry.identity.split('#')[0]!
+        if (!declarationEntries.has(elementId)) {
+          const declaration = architecture.elements
+            .find(element => element.declaration.identity === elementId)?.declaration
+          if (declaration) {
+            declarations.set(declaration.identity, declaration)
+            // Mark as MODIFIED so the diff view colors it amber.
+            declarationEntries.set(elementId, {
+              kind: 'element-declaration',
+              identity: elementId,
+              operation: 'MODIFIED',
+            })
+          }
+        }
+      }
+    }
     // Hierarchy confined to the delta: an unchanged parent is not a layout container.
     for (const declaration of declarations.values()) {
       if (declaration.parent !== null && !declarations.has(declaration.parent)) {

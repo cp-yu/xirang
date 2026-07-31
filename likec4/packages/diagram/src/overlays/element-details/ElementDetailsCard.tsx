@@ -171,14 +171,30 @@ export function ElementDetailsCard({
       ? elementModel.$element.metadata['elementId']
       : elementModel.id
     : fqn
-  const elementTitle = isAddedElement
+  const declaration = isAddedElement
     ? runtime.selected.architecture?.elements
-        .find(item => item.declaration.identity === fqn)?.declaration.title ?? fqn
-    : elementModel?.title ?? fqn
-  const elementKind = isAddedElement
-    ? runtime.selected.architecture?.elements
-        .find(item => item.declaration.identity === fqn)?.declaration.kind ?? '—'
-    : elementModel?.kind ?? '—'
+        .find(item => item.declaration.identity === fqn)?.declaration ?? null
+    : null
+  const elementTitle = declaration?.title ?? elementModel?.title ?? fqn
+  const elementKind = declaration?.kind ?? elementModel?.kind ?? '—'
+  const elementIcon = elementModel
+    ? IconRenderer({
+      element: {
+        id: fqn,
+        title: elementModel.title,
+        icon: nodeModel?.icon ?? elementModel.icon,
+      },
+      className: styles.elementIcon,
+    })
+    : null
+  const elementTags = elementModel?.tags ?? []
+  const elementTechnology = elementModel?.technology ?? null
+  const elementLinks = elementModel?.links ?? []
+  const elementMetadata = elementModel?.$element.metadata ?? null
+  const elementViews = elementModel ? [...elementModel.views()] : []
+  const elementDefaultView = elementModel?.defaultView?.$view ?? null
+  const elementColor = elementModel?.color ?? 'gray'
+  const elementProjectId = elementModel?.projectId ?? ''
   // The Contract projection is root-owned: an absent key means the Element has no Contract.
   const hasContract = typeof runtime.selected.contracts?.[stableElementId] === 'string'
   const hasDiff = runtime.selected.source === 'change-derived-view'
@@ -197,18 +213,18 @@ export function ElementDetailsCard({
   }, [activeTab, hasContract, hasDiff, setActiveTab])
 
   const [viewsOf, otherViews] = pipe(
-    [...elementModel.views()],
+    [...elementViews],
     map(v => v.$view),
     partition(v => v._type === 'element' && v.viewOf === fqn),
   )
 
-  let defaultView = nodeModel?.navigateTo?.$view ?? elementModel.defaultView?.$view ?? null
+  let defaultView = nodeModel?.navigateTo?.$view ?? elementDefaultView
   // Ignore default view if it's the current view
   if (defaultView?.id === viewId) {
     defaultView = null
   }
 
-  const defaultLink = only(elementModel.links)
+  const defaultLink = only(elementLinks)
   const controls = useDragControls()
 
   const isCompound = (nodeModel?.$node.children?.length ?? 0) > 0
@@ -276,17 +292,6 @@ export function ElementDetailsCard({
 
   const notation = nodeModel?.$node.notation ?? null
 
-  const elementIcon = elementModel
-    ? IconRenderer({
-      element: {
-        id: fqn,
-        title: elementModel.title,
-        icon: nodeModel?.icon ?? elementModel.icon,
-      },
-      className: styles.elementIcon,
-    })
-    : null
-
   useTimeoutEffect(() => {
     if (!ref.current?.open) {
       ref.current?.showModal()
@@ -302,120 +307,6 @@ export function ElementDetailsCard({
   }, 220)
 
   // For ADDED elements in a change (not in the base model), show a simplified card.
-  if (isAddedElement) {
-    const declaration = runtime.selected.architecture?.elements
-      .find(item => item.declaration.identity === fqn)?.declaration
-    return (
-      <m.dialog
-        ref={ref}
-        className={cx(styles.dialog, RemoveScroll.classNames.fullWidth)}
-        layout
-        initial={{
-          [styles.backdropBlur]: '0px',
-          [styles.backdropOpacity]: '5%',
-        }}
-        animate={{
-          [styles.backdropBlur]: '3px',
-          [styles.backdropOpacity]: '60%',
-        }}
-        exit={{
-          [styles.backdropBlur]: '0px',
-          [styles.backdropOpacity]: '0%',
-          transition: {
-            duration: 0.1,
-          },
-        }}
-        onClick={e => {
-          e.stopPropagation()
-          if ((e.target as any)?.nodeName?.toUpperCase() === 'DIALOG') {
-            ref.current?.close()
-          }
-        }}
-        onDoubleClick={stopPropagation}
-        onPointerDown={stopPropagation}
-        onClose={triggerClose}
-      >
-        <RemoveScroll forwardProps removeScrollBar={false}>
-          <m.div
-            layout
-            layoutRoot
-            drag
-            dragControls={controls}
-            dragElastic={0}
-            dragMomentum={false}
-            dragListener={false}
-            className={styles.card}
-            initial={{
-              top,
-              left,
-              width: _width,
-              height: _height,
-              opacity: 0,
-              originX,
-              originY,
-              scale: Math.max(fromScale, 0.65),
-            }}
-            animate={{
-              opacity: 1,
-              scale: 1,
-            }}
-            exit={{
-              opacity: 0,
-              scale: 0.9,
-              translateY: -10,
-              transition: {
-                duration: 0.1,
-              },
-            }}
-            style={{
-              width,
-              height,
-            }}>
-            <div className={styles.cardHeader} onPointerDown={e => controls.start(e)}>
-              <HStack alignItems="start" justify="space-between" gap={'sm'} mb={'sm'} flexWrap="nowrap">
-                <HStack
-                  alignItems="start"
-                  gap={'sm'}
-                  style={{ cursor: 'default', minWidth: 0, overflow: 'hidden' }}
-                  flexWrap="nowrap"
-                >
-                  <div style={{ minWidth: 0, overflow: 'hidden' }}>
-                    <Text component={'div'} className={styles.title}>
-                      {elementTitle}
-                    </Text>
-                  </div>
-                </HStack>
-                <CloseButton size={'lg'} onClick={triggerClose} />
-              </HStack>
-            </div>
-            <MetadataProvider>
-              <Box p="md">
-                <Stack gap="sm">
-                  <Text size="xs" c="dimmed">kind</Text>
-                  <Text>{elementKind}</Text>
-                  <Text size="xs" c="dimmed">parent</Text>
-                  <Text>{declaration?.parent ?? '—'}</Text>
-                  <Text size="xs" c="dimmed">title</Text>
-                  <Text>{declaration?.title ?? '—'}</Text>
-                  <Text size="xs" c="dimmed">definition</Text>
-                  <Markdown value={RichText.from(declaration?.description)} emptyText="no definition" />
-                </Stack>
-              </Box>
-            </MetadataProvider>
-            <m.div
-              className={styles.resizeHandle}
-              drag
-              dragElastic={0}
-              dragMomentum={false}
-              onDrag={handleDrag}
-              dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }} />
-          </m.div>
-        </RemoveScroll>
-      </m.dialog>
-    )
-  }
-
-  if (!elementModel) return null
 
   return (
     <m.dialog
@@ -456,7 +347,7 @@ export function ElementDetailsCard({
           dragElastic={0}
           dragMomentum={false}
           dragListener={false}
-          data-likec4-color={nodeModel?.color ?? elementModel.color}
+          data-likec4-color={nodeModel?.color ?? elementColor}
           className={styles.card}
           initial={{
             top,
@@ -494,11 +385,11 @@ export function ElementDetailsCard({
               >
                 {elementIcon}
                 <div style={{ minWidth: 0, overflow: 'hidden' }}>
-                  <Tooltip label={elementModel.title} openDelay={600} position="bottom-start">
+                  <Tooltip label={elementTitle} openDelay={600} position="bottom-start">
                     <Text
                       component={'div'}
                       className={styles.title}>
-                      {elementModel.title}
+                      {elementTitle}
                     </Text>
                   </Tooltip>
                   {notation && (
@@ -523,16 +414,16 @@ export function ElementDetailsCard({
                   }}
                   onClick={e => {
                     e.stopPropagation()
-                    diagram.openSearch(`kind:${elementModel.kind}`)
+                    diagram.openSearch(`kind:${elementKind}`)
                   }}
                 >
-                  {elementModel.kind}
+                  {elementKind}
                 </Badge>
               </div>
               <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
                 <SmallLabel>tags</SmallLabel>
                 <ElementTags
-                  tags={elementModel.tags}
+                  tags={elementTags}
                   onClick={tag => diagram.openSearch(`#${tag}`)} />
               </div>
               <ActionIconGroup
@@ -560,14 +451,14 @@ export function ElementDetailsCard({
                       onClick={e => {
                         e.stopPropagation()
                         diagram.openSource({
-                          element: elementModel.id,
+                          element: elementModel?.id ?? fqn,
                         })
                       }}>
                       <IconFileSymlink stroke={1.8} style={{ width: '62%' }} />
                     </ActionIcon>
                   </Tooltip>
                 </IfEnabled>
-                {viewId !== ('model' as ViewId) && (
+                {viewId !== ('model' as ViewId) && !isAddedElement && (
                   <Tooltip label="Open in Model View">
                     <ActionIcon
                       data-xirang-open-in-model-view
@@ -634,20 +525,20 @@ export function ElementDetailsCard({
                       selected={runtime.selected}
                       stableElementId={stableElementId}
                     />
-                    {elementModel.technology && (
+                    {elementTechnology && (
                       <ElementProperty title="technology">
-                        {elementModel.technology}
+                        {elementTechnology}
                       </ElementProperty>
                     )}
-                    {elementModel.links.length > 0 && (
+                    {elementLinks.length > 0 && (
                       <>
                         <PropertyLabel>links</PropertyLabel>
                         <HStack gap={'xs'} flexWrap="wrap">
-                          {elementModel.links.map((link, i) => <Link key={i} value={link} />)}
+                          {elementLinks.map((link, i) => <Link key={i} value={link} />)}
                         </HStack>
                       </>
                     )}
-                    {elementModel.$element.metadata && <ElementMetata value={elementModel.$element.metadata} />}
+                    {elementMetadata && <ElementMetata value={elementMetadata} />}
                   </Box>
                 </ScrollArea>
               </TabsPanel>
@@ -707,14 +598,14 @@ export function ElementDetailsCard({
 
               <TabsPanel value="Deployments">
                 <ScrollArea scrollbars="y" type="auto">
-                  <TabPanelDeployments elementFqn={elementModel.id} />
+                  <TabPanelDeployments elementFqn={elementModel?.id ?? fqn} />
                 </ScrollArea>
               </TabsPanel>
 
               {hasContract && (
                 <TabsPanel value="Contracts">
                   <ContractsTab
-                    project={elementModel.projectId}
+                    project={elementProjectId}
                     element={stableElementId}
                     active={activeTab === 'Contracts'}
                   />

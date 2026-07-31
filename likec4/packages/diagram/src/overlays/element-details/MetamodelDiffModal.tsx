@@ -1,5 +1,6 @@
-import { Box, Code, Group, Modal, Stack, Text } from '@mantine/core'
+import { Modal, Stack } from '@mantine/core'
 import { type XirangDiffEntry, type XirangDiffOperation } from '../../xirang/ContractLoaderContext'
+import { DualPaneTextDiff } from './DiffTab'
 
 const operationLabel: Record<XirangDiffOperation, string> = {
   ADDED: '+',
@@ -34,36 +35,10 @@ export function MetamodelDiffModal({
       data-xirang-metamodel-diff
     >
       <Stack gap="md">
-        <Group gap="xs" wrap="nowrap" align="stretch" style={{ minHeight: 200 }}>
-          <Box style={{ flex: 1, minWidth: 0 }}>
-            <Text size="xs" fw={600} c="dimmed" mb={4}>Before</Text>
-            <Code
-              block
-              style={{
-                whiteSpace: 'pre',
-                overflow: 'auto',
-                maxHeight: '60vh',
-                opacity: entry.operation === 'ADDED' ? 0.4 : 1,
-              }}
-            >
-              {formatJson(entry.before)}
-            </Code>
-          </Box>
-          <Box style={{ flex: 1, minWidth: 0 }}>
-            <Text size="xs" fw={600} c="dimmed" mb={4}>After</Text>
-            <Code
-              block
-              style={{
-                whiteSpace: 'pre',
-                overflow: 'auto',
-                maxHeight: '60vh',
-                opacity: entry.operation === 'REMOVED' ? 0.4 : 1,
-              }}
-            >
-              {formatJson(entry.after)}
-            </Code>
-          </Box>
-        </Group>
+        <DualPaneTextDiff
+          before={formatJson(entry.before)}
+          after={formatJson(entry.after)}
+        />
       </Stack>
     </Modal>
   )
