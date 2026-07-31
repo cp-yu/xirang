@@ -48,6 +48,7 @@
     "likec4:build": "pnpm --dir likec4 build",
     "likec4:test": "pnpm --dir likec4 test",
     "likec4:typecheck": "pnpm --dir likec4 typecheck",
+    "test:likec4": "pnpm likec4:build && vitest run test/core/likec4 test/core/view.test.ts test/integration/arch-command.test.ts",
     "dev": "tsc --watch",
     "dev:cli": "pnpm build && node bin/xirang.js",
     "test": "vitest run",

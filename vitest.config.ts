@@ -25,6 +25,11 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     globalSetup: './vitest.setup.ts',
+    // Enable the LikeC4 dist staleness safeguard for the test suite; production
+    // runs of the CLI keep using the shipped dist unconditionally.
+    env: {
+      XIRANG_LIKEC4_STALE_CHECK: '1',
+    },
     // Tests rely on per-file process isolation (e.g., `process.cwd()` assumptions).
     pool: 'forks',
     maxWorkers: resolveMaxWorkers(),

@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { describe, expect, it } from 'vitest';
+import { resolveLikeC4Command } from '../../../src/commands/arch/runner.js';
 import { LIKEC4_RESERVED_NAMES } from '../../../src/core/likec4/local-names.js';
 
 const run = promisify(execFile);
@@ -16,7 +17,6 @@ const ROLLED_BACK_XIRANG_KEYWORDS = [
 ];
 
 const grammarFile = fileURLToPath(new URL('../../../likec4/packages/language-server/src/like-c4.langium', import.meta.url));
-const bin = fileURLToPath(new URL('../../../likec4/packages/likec4/bin/likec4.mjs', import.meta.url));
 
 /**
  * Guards `LIKEC4_RESERVED_NAMES` against grammar drift: every literal of the vendored grammar is
@@ -36,7 +36,8 @@ describe('LIKEC4_RESERVED_NAMES', () => {
           `model {\n  ${literal} = capability 'T' 'S'\n}\n`,
         );
       }
-      const { stdout, stderr } = await run(process.execPath, [bin, 'validate', dir]).catch(error => error);
+      const { argv } = resolveLikeC4Command(['validate', dir]);
+      const { stdout, stderr } = await run(process.execPath, argv).catch(error => error);
       const rejected = new Set(
         [...`${stdout}${stderr}`.matchAll(/probe_([A-Za-z0-9_]+)\.c4/g)].map(match => match[1]!),
       );
