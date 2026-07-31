@@ -74,6 +74,21 @@ export const ElementNodeContainer = forwardRef<HTMLDivElement, ElementNodeContai
     textSize,
   } = ensureSizes(data.style ?? {})
 
+  // `generateBuiltInColorStyles` only generates selectors for registered palette names.
+  // Raw hex values (e.g. from perspectiveColor) bypass those rules, so inject the
+  // palette CSS variables as inline style to make shape rendering resolve them.
+  const hexStyle = (data.color as string).startsWith('#')
+    ? {
+        '--likec4-palette-fill': data.color,
+        '--likec4-palette-stroke': data.color,
+        '--likec4-palette-hiContrast': '#ffffff',
+        '--likec4-palette-loContrast': 'rgba(255,255,255,0.7)',
+        '--likec4-palette-relation-stroke': data.color,
+        '--likec4-palette-relation-label': '#ffffff',
+        '--likec4-palette-relation-label-bg': data.color,
+      }
+    : undefined
+
   return (
     <m.div
       ref={ref}
@@ -97,7 +112,7 @@ export const ElementNodeContainer = forwardRef<HTMLDivElement, ElementNodeContai
       {...(isDimmed !== false && {
         'data-likec4-dimmed': isDimmed,
       })}
-      style={style as MotionStyle}
+      style={{ ...hexStyle, ...style } as MotionStyle}
       tabIndex={-1}
       {...rest}
     >

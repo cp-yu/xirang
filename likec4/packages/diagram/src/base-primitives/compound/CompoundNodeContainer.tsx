@@ -61,6 +61,20 @@ export function CompoundNodeContainer({
     max: MAX_COMPOUND_DEPTH,
   })
 
+  // Raw hex colors from perspectiveColor bypass the registered-palette CSS selectors;
+  // inject palette variables inline so shape and text rendering resolve them.
+  const hexStyle = (data.color as string).startsWith('#')
+    ? {
+        '--likec4-palette-fill': data.color,
+        '--likec4-palette-stroke': data.color,
+        '--likec4-palette-hiContrast': '#ffffff',
+        '--likec4-palette-loContrast': 'rgba(255,255,255,0.7)',
+        '--likec4-palette-relation-stroke': data.color,
+        '--likec4-palette-relation-label': '#ffffff',
+        '--likec4-palette-relation-label-bg': data.color,
+      }
+    : undefined
+
   return (
     <m.div
       className={cx(
@@ -79,7 +93,7 @@ export function CompoundNodeContainer({
         ['--_border-transparency']: `${borderOpacity}%`,
         ['--_compound-transparency']: `${opacity}%`,
       }}
-      style={style as MotionStyle}
+      style={{ ...hexStyle, ...style } as MotionStyle}
       {...rest as any}
     >
       {children}
