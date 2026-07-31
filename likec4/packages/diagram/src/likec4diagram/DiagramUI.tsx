@@ -39,6 +39,8 @@ const selectChildren = selectDiagramSnapshot(s => ({
 }))
 
 const structuralDiffKinds = new Set(['element-declaration', 'element-kind', 'relationship-kind', 'authored-view', 'relationship'])
+/** Delta kinds with no graph representation; they are presented as text instead of nodes or edges. */
+const metamodelKinds = new Set(['element-kind', 'relationship-kind', 'authored-view'])
 
 function countOperations(entries: readonly { operation: XirangDiffOperation }[]): Record<XirangDiffOperation, number> {
   const counts: Record<XirangDiffOperation, number> = { ADDED: 0, MODIFIED: 0, REMOVED: 0 }
@@ -70,6 +72,9 @@ export function getArchitectureOverlayModel(source: XirangViewSource) {
     changed: [...changed].sort(),
     context: [...context].sort(),
     counts: countOperations(entries),
+    metamodel: entries
+      .filter(entry => metamodelKinds.has(entry.kind))
+      .sort((left, right) => left.kind.localeCompare(right.kind) || left.identity.localeCompare(right.identity)),
     diagnostics: source.diagnostics.filter(diagnostic => !isXirangContractDiagnostic(diagnostic)),
   }
 }
@@ -275,6 +280,7 @@ function XirangArchitectureOverlay() {
       data-xirang-architecture-mode={mode}
       data-xirang-changed-count={overlay.changed.length}
       data-xirang-context-count={overlay.context.length}
+      data-xirang-metamodel-count={overlay.metamodel.length}
       data-xirang-rendered-node-count={currentView.nodes.length}
       data-xirang-rendered-view-hash={currentView.hash}
       style={{ position: 'absolute', right: 16, top: 16, zIndex: 5, pointerEvents: 'all' }}
@@ -295,6 +301,11 @@ function XirangArchitectureOverlay() {
           <Button size="compact-xs" variant={mode === 'diff' ? 'filled' : 'subtle'} onClick={() => setMode('diff')}>Diff only</Button>
         </Group>
         <Text size="xs">+{overlay.counts.ADDED} ~{overlay.counts.MODIFIED} -{overlay.counts.REMOVED}</Text>
+        {overlay.metamodel.map(entry => (
+          <Text key={`${entry.kind}:${entry.identity}`} size="xs" c="dimmed">
+            {entry.operation === 'ADDED' ? '+' : entry.operation === 'REMOVED' ? '-' : '~'} {entry.kind} {entry.identity}
+          </Text>
+        ))}
         {overlay.entries.length === 0 && <Text size="xs" c="dimmed">No semantic graph change</Text>}
         {overlay.diagnostics.map((diagnostic, index) => (
           <Text key={index} size="xs" c={diagnostic.level === 'ERROR' ? 'red' : 'yellow'}>{diagnostic.message}</Text>
