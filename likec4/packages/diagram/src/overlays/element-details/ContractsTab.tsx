@@ -86,8 +86,13 @@ function body(value: unknown): string {
 }
 
 function wordDiff(before: string, after: string): TextDiffLine['words'] {
-  const left = before.split(/(\s+)/)
-  const right = after.split(/(\s+)/)
+  const split = (s: string) => {
+    const words = s.split(/(\s+)/)
+    // Fall back to character-level splitting for CJK text without spaces.
+    return words.length <= 1 && s.length > 0 ? s.split('') : words
+  }
+  const left = split(before)
+  const right = split(after)
   let prefix = 0
   while (prefix < left.length && prefix < right.length && left[prefix] === right[prefix]) prefix++
   let suffix = 0

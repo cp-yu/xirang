@@ -303,7 +303,7 @@ export function materializeXirangArchitectureView(
       if (declaration) declarations.set(declaration.identity, declaration)
     }
     // Include elements whose requirements/scenarios changed (contract-only deltas).
-    for (const entry of structuralEntries(source)) {
+    for (const entry of source.diff?.entries ?? []) {
       if (entry.kind === 'requirement' || entry.kind === 'scenario') {
         const elementId = entry.identity.split('#')[0]!
         if (!declarationEntries.has(elementId)) {

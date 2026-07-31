@@ -146,7 +146,9 @@ function XirangArchitectureOverlay() {
   useOnDiagramEvent('nodeDoubleClick', event => {
     if (currentView.id !== 'model') return
     const identity = nodeIdentity(event.node)
-    if (hasChildren(identity)) actorRef.send({ type: 'navigate.focus', focusIdentity: identity })
+    if (hasChildren(identity) && declarations.has(identity)) {
+      actorRef.send({ type: 'navigate.focus', focusIdentity: identity })
+    }
   })
 
   useOnDiagramEvent('edgeClick', event => {
