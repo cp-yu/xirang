@@ -314,6 +314,21 @@ export const emitNodeClick = () =>
       type: 'nodeClick',
       node,
       xynode: event.node,
+      ctrlKey: event.ctrlKey ?? false,
+    })
+  })
+
+export const emitNodeDoubleClick = () =>
+  machine.enqueueActions(({ context, event, enqueue }) => {
+    assertEvent(event, 'xyflow.nodeDoubleClick')
+    const node = findDiagramNode(context, event.node.id)
+    if (!node) {
+      return
+    }
+    enqueue.emit({
+      type: 'nodeDoubleClick',
+      node,
+      xynode: event.node,
     })
   })
 

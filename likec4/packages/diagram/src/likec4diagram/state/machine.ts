@@ -48,6 +48,18 @@ const _diagramMachine = machine.createMachine({
     'update.nodeData': {
       actions: assign(updateNodeData),
     },
+    /** Expansion is view-wide state, not per focus level: it must survive focus and history moves. */
+    'expand.toggle': {
+      actions: assign(({ context, event }) => {
+        const next = new Set(context.expandedNodes)
+        if (next.has(event.identity)) next.delete(event.identity)
+        else next.add(event.identity)
+        return { expandedNodes: next }
+      }),
+    },
+    'expand.set': {
+      actions: assign(({ event }) => ({ expandedNodes: event.expanded })),
+    },
     'update.edgeData': {
       actions: assign(updateEdgeData),
     },

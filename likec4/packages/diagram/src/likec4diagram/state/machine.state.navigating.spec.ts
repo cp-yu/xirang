@@ -263,3 +263,58 @@ describe('navigating state - dynamicViewVariant', () => {
     actor.stop()
   })
 })
+
+describe('expand state - view-wide expansion set', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('starts empty and toggles one identity at a time', () => {
+    const actor = createTestActor(mockElementView)
+    advanceToReady(actor, mockElementView)
+
+    expect([...actor.getSnapshot().context.expandedNodes]).toEqual([])
+
+    actor.send({ type: 'expand.toggle', identity: 'b' })
+    expect([...actor.getSnapshot().context.expandedNodes]).toEqual(['b'])
+
+    actor.send({ type: 'expand.toggle', identity: 'c' })
+    expect([...actor.getSnapshot().context.expandedNodes].sort()).toEqual(['b', 'c'])
+
+    actor.send({ type: 'expand.toggle', identity: 'b' })
+    expect([...actor.getSnapshot().context.expandedNodes]).toEqual(['c'])
+    actor.stop()
+  })
+
+  it('replaces the whole set on expand.set and clears it with an empty set', () => {
+    const actor = createTestActor(mockElementView)
+    advanceToReady(actor, mockElementView)
+
+    actor.send({ type: 'expand.set', expanded: new Set(['b', 'c', 'd']) })
+    expect([...actor.getSnapshot().context.expandedNodes].sort()).toEqual(['b', 'c', 'd'])
+
+    actor.send({ type: 'expand.set', expanded: new Set() })
+    expect([...actor.getSnapshot().context.expandedNodes]).toEqual([])
+    actor.stop()
+  })
+
+  /** Expansion belongs to the View, not to a focus level: drill-down and back must not reset it. */
+  it('survives focus changes and history navigation', () => {
+    const actor = createTestActor(mockElementView)
+    advanceToReady(actor, mockElementView)
+
+    actor.send({ type: 'expand.toggle', identity: 'c' })
+    actor.send({ type: 'navigate.focus', focusIdentity: 'a' })
+    actor.send({ type: 'navigate.focus', focusIdentity: 'b' })
+    expect([...actor.getSnapshot().context.expandedNodes]).toEqual(['c'])
+
+    actor.send({ type: 'navigate.back' })
+    expect(actor.getSnapshot().context.focusIdentity).toBe('a')
+    expect([...actor.getSnapshot().context.expandedNodes]).toEqual(['c'])
+    actor.stop()
+  })
+})

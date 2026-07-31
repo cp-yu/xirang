@@ -222,8 +222,20 @@ export function LikeC4DiagramXYFlow({
           return
         }
         e.stopPropagation()
-        diagram.send({ type: 'xyflow.nodeClick', node })
+        // `detail` counts clicks in the sequence: forwarding the 2nd one would let click handling
+        // (element details, focus) race the double-click intent.
+        if (e.detail >= 2) {
+          return
+        }
+        diagram.send({ type: 'xyflow.nodeClick', node, ctrlKey: e.ctrlKey })
         onNodeClick?.(diagram.findDiagramNode(node.id as NodeId)!, e)
+      })}
+      onNodeDoubleClick={useCallbackRef((e, node) => {
+        if (e.isPropagationStopped()) {
+          return
+        }
+        e.stopPropagation()
+        diagram.send({ type: 'xyflow.nodeDoubleClick', node })
       })}
       onEdgeClick={useCallbackRef((e, edge) => {
         if (e.isPropagationStopped()) {

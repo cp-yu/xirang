@@ -86,38 +86,93 @@ const ORIGIN = 40
 const CONTAINER_HEADER = 60
 const CONTAINER_PADDING = 40
 
-function gridGeometry(index: number): Geometry {
-  return {
-    x: ORIGIN + (index % GRID_COLUMNS) * (LEAF_WIDTH + CELL_GAP),
-    y: ORIGIN + Math.floor(index / GRID_COLUMNS) * (LEAF_HEIGHT + CELL_GAP + 10),
-    width: LEAF_WIDTH,
-    height: LEAF_HEIGHT,
+type Size = { width: number; height: number }
+
+/**
+ * The focus always shows its direct children; a deeper level is visible only when every ancestor up
+ * to the focus is expanded. Expansion is a view-wide set, so identities outside the focus subtree
+ * are simply never reached.
+ */
+type VisibleNode = { identity: string; children: VisibleNode[] }
+
+function visibleTree(
+  identity: string,
+  declarationChildren: Map<string, string[]>,
+  expandedNodes: ReadonlySet<string>,
+  isFocus: boolean,
+): VisibleNode {
+  const children = isFocus || expandedNodes.has(identity)
+    ? (declarationChildren.get(identity) ?? [])
+      .map(child => visibleTree(child, declarationChildren, expandedNodes, false))
+    : []
+  return { identity, children }
+}
+
+type Measured = { node: VisibleNode; size: Size; rows: Measured[][] }
+
+/**
+ * Leaves pack into a grid row; an expanded child is a container of unpredictable size, so it takes a
+ * row of its own instead of being packed against leaves.
+ */
+function packRows(children: readonly Measured[]): Measured[][] {
+  const rows: Measured[][] = []
+  let row: Measured[] = []
+  for (const child of children) {
+    if (child.rows.length > 0) {
+      if (row.length > 0) rows.push(row)
+      row = []
+      rows.push([child])
+      continue
+    }
+    row.push(child)
+    if (row.length === GRID_COLUMNS) {
+      rows.push(row)
+      row = []
+    }
   }
+  if (row.length > 0) rows.push(row)
+  return rows
 }
 
 /**
- * `parent` makes LikeC4 render a node inside its container, so the focus geometry must actually
- * enclose the children grid. A flat grid shared by focus and children renders the focus as one more
- * same-sized cell instead of a boundary.
+ * `parent` makes LikeC4 render a node inside its container, so every container geometry must
+ * actually enclose the rows beneath it. A flat grid shared by focus and children renders the focus
+ * as one more same-sized cell instead of a boundary, and sizes are measured bottom-up because a
+ * container's extent depends on how deep its own expanded subtree runs.
  */
-function containerLayout(childCount: number): { container: Geometry; child: (index: number) => Geometry } {
-  const columns = Math.min(Math.max(childCount, 1), GRID_COLUMNS)
-  const rows = Math.max(Math.ceil(childCount / GRID_COLUMNS), 1)
-  const insetX = ORIGIN + CONTAINER_PADDING
-  const insetY = ORIGIN + CONTAINER_HEADER
+function measure(node: VisibleNode): Measured {
+  if (node.children.length === 0) {
+    return { node, size: { width: LEAF_WIDTH, height: LEAF_HEIGHT }, rows: [] }
+  }
+  const rows = packRows(node.children.map(measure))
+  let contentWidth = 0
+  let contentHeight = 0
+  rows.forEach((row, index) => {
+    const rowWidth = row.reduce((sum, item) => sum + item.size.width, 0) + (row.length - 1) * CELL_GAP
+    contentWidth = Math.max(contentWidth, rowWidth)
+    contentHeight += Math.max(...row.map(item => item.size.height)) + (index > 0 ? CELL_GAP : 0)
+  })
   return {
-    container: {
-      x: ORIGIN,
-      y: ORIGIN,
-      width: columns * LEAF_WIDTH + (columns - 1) * CELL_GAP + CONTAINER_PADDING * 2,
-      height: CONTAINER_HEADER + rows * LEAF_HEIGHT + (rows - 1) * CELL_GAP + CONTAINER_PADDING,
+    node,
+    size: {
+      width: contentWidth + CONTAINER_PADDING * 2,
+      height: CONTAINER_HEADER + contentHeight + CONTAINER_PADDING,
     },
-    child: (index: number) => ({
-      x: insetX + (index % GRID_COLUMNS) * (LEAF_WIDTH + CELL_GAP),
-      y: insetY + Math.floor(index / GRID_COLUMNS) * (LEAF_HEIGHT + CELL_GAP),
-      width: LEAF_WIDTH,
-      height: LEAF_HEIGHT,
-    }),
+    rows,
+  }
+}
+
+/** Geometry is absolute at every level; the header offset is what keeps a container's title clear. */
+function place(measured: Measured, x: number, y: number, into: Map<string, Geometry>): void {
+  into.set(measured.node.identity, { x, y, ...measured.size })
+  let cursorY = y + CONTAINER_HEADER
+  for (const row of measured.rows) {
+    let cursorX = x + CONTAINER_PADDING
+    for (const item of row) {
+      place(item, cursorX, cursorY, into)
+      cursorX += item.size.width + CELL_GAP
+    }
+    cursorY += Math.max(...row.map(item => item.size.height)) + CELL_GAP
   }
 }
 
@@ -213,6 +268,7 @@ export function materializeXirangArchitectureView(
   mode: 'full' | 'diff',
   focusIdentity?: string,
   previousAncestorPath: readonly string[] = [],
+  expandedNodes: ReadonlySet<string> = new Set(),
 ): DiagramView {
   const architecture = source.architecture
   if (!architecture) return modelView
@@ -239,8 +295,20 @@ export function materializeXirangArchitectureView(
     .find((identity): identity is string => identity !== undefined && declarations.has(identity))
   if (!focus) return modelView
 
+  const declarationChildren = new Map<string, string[]>()
+  for (const declaration of declarations.values()) {
+    if (!declaration.parent) continue
+    const children = declarationChildren.get(declaration.parent) ?? []
+    children.push(declaration.identity)
+    declarationChildren.set(declaration.parent, children)
+  }
+
+  const layout = measure(visibleTree(focus, declarationChildren, expandedNodes, true))
+  const geometries = new Map<string, Geometry>()
+  place(layout, ORIGIN, ORIGIN, geometries)
+
   const visibleDeclarations = [...declarations.values()]
-    .filter(declaration => declaration.identity === focus || declaration.parent === focus)
+    .filter(declaration => geometries.has(declaration.identity))
   const perspectives = visibleDeclarations
     .filter(declaration => declaration.kind === 'perspective')
     .map(declaration => declaration.identity)
@@ -260,14 +328,7 @@ export function materializeXirangArchitectureView(
     }
   }
 
-  const childDeclarations = visibleDeclarations.filter(declaration =>
-    declaration.identity !== focus && declaration.parent === focus)
-  const layout = containerLayout(childDeclarations.length)
-  const childIndexes = new Map(childDeclarations.map((declaration, index) => [declaration.identity, index]))
-
   const nodes = visibleDeclarations.map(declaration => {
-    const childIndex = childIndexes.get(declaration.identity)
-    const parent = childIndex === undefined ? null : focus
     const modelNode = modelNodes.get(declaration.identity)
     const presentation = declaration.kind === 'perspective'
       ? {
@@ -276,42 +337,35 @@ export function materializeXirangArchitectureView(
           modelRef: modelNode?.modelRef,
         }
       : modelNode ? { shape: modelNode.shape, color: modelNode.color, modelRef: modelNode.modelRef } : undefined
-    const geometry = childIndex !== undefined
-      ? layout.child(childIndex)
-      : childDeclarations.length > 0
-      ? layout.container
-      : gridGeometry(0)
     return createNode(
       declaration,
-      parent,
-      geometry,
+      declaration.identity === focus ? null : declaration.parent,
+      geometries.get(declaration.identity)!,
       declarationEntries.get(declaration.identity)?.operation,
       presentation,
     )
   })
   const nodesById = new Map<string, ViewNode>(nodes.map(node => [node.id, node]))
 
-  const endpointByIdentity = new Map<string, string>([[focus, focus]])
-  const declarationChildren = new Map<string, string[]>()
-  for (const declaration of declarations.values()) {
-    if (!declaration.parent) continue
-    const children = declarationChildren.get(declaration.parent) ?? []
-    children.push(declaration.identity)
-    declarationChildren.set(declaration.parent, children)
-  }
-  for (const directChild of visibleDeclarations) {
-    if (directChild.parent !== focus) continue
-    const stack = [directChild.identity]
-    const visited = new Set<string>()
+  /**
+   * Every endpoint resolves to its deepest visible ancestor-or-self, so expanding a container moves
+   * its relationships from the container down onto the newly visible descendants. Pre-order keeps
+   * the deeper assignment last.
+   */
+  const endpointByIdentity = new Map<string, string>()
+  const assignEndpoints = (visible: VisibleNode): void => {
+    const stack = [visible.identity]
+    const seen = new Set<string>()
     while (stack.length > 0) {
       const identity = stack.pop()!
-      if (visited.has(identity)) continue
-      visited.add(identity)
-      endpointByIdentity.set(identity, directChild.identity)
-      const children = declarationChildren.get(identity) ?? []
-      for (let index = children.length - 1; index >= 0; index--) stack.push(children[index]!)
+      if (seen.has(identity)) continue
+      seen.add(identity)
+      endpointByIdentity.set(identity, visible.identity)
+      for (const child of declarationChildren.get(identity) ?? []) stack.push(child)
     }
+    for (const child of visible.children) assignEndpoints(child)
   }
+  assignEndpoints(layout.node)
 
   const targetRelationships = mode === 'full'
     ? architecture.relationships

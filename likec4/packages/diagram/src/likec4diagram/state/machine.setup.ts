@@ -128,6 +128,7 @@ export interface Context extends Input {
   }
   focusedNode: NodeId | null
   focusIdentity: string | null
+  expandedNodes: ReadonlySet<string>
   autoUnfocusTimer: boolean
   activeElementDetails: null | {
     fqn: Fqn
@@ -173,6 +174,7 @@ export function Context({ input }: { input: Input }): Context {
     lastClickedNode: null,
     focusedNode: null,
     focusIdentity: null,
+    expandedNodes: new Set<string>(),
     autoUnfocusTimer: false,
     activeElementDetails: null,
     viewportBefore: null,
@@ -198,7 +200,8 @@ export type Events =
   | { type: 'xyflow.init'; instance: XYFlowInstance }
   | { type: 'xyflow.applyChanges'; edges?: EdgeChange<Types.Edge>[]; nodes?: NodeChange<Types.Node>[] }
   | { type: 'xyflow.viewportMoved'; viewport: Viewport; manually: boolean }
-  | { type: 'xyflow.nodeClick'; node: Types.Node }
+  | { type: 'xyflow.nodeClick'; node: Types.Node; ctrlKey?: boolean }
+  | { type: 'xyflow.nodeDoubleClick'; node: Types.Node }
   | { type: 'xyflow.edgeClick'; edge: Types.Edge }
   | { type: 'xyflow.edgeDoubleClick'; edge: Types.Edge }
   | { type: 'xyflow.paneClick' }
@@ -239,6 +242,8 @@ export type Events =
   // | { type: 'close.overlay' }
   | { type: 'navigate.to'; viewId: ViewId; fromNode?: NodeId | undefined; focusOnElement?: Fqn | undefined; focusIdentity?: string | undefined }
   | { type: 'navigate.focus'; focusIdentity: string | null; replaceHistory?: boolean }
+  | { type: 'expand.toggle'; identity: string }
+  | { type: 'expand.set'; expanded: ReadonlySet<string> }
   | { type: 'navigate.back' }
   | { type: 'navigate.forward' }
   | { type: 'layout.align'; mode: AlignmentMode }
@@ -272,7 +277,8 @@ export type EmittedEvents =
   | { type: 'navigateTo'; viewId: ViewId }
   | { type: 'openSource'; params: OpenSourceParams }
   | { type: 'paneClick' }
-  | { type: 'nodeClick'; node: DiagramNode; xynode: Types.Node }
+  | { type: 'nodeClick'; node: DiagramNode; xynode: Types.Node; ctrlKey?: boolean }
+  | { type: 'nodeDoubleClick'; node: DiagramNode; xynode: Types.Node }
   | { type: 'edgeClick'; edge: DiagramEdge; xyedge: Types.Edge }
   | { type: 'edgeMouseEnter'; edge: Types.Edge; event: MouseEvent }
   | { type: 'edgeMouseLeave'; edge: Types.Edge; event: MouseEvent }

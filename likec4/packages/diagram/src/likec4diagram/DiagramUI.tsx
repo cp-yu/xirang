@@ -80,6 +80,7 @@ function XirangArchitectureOverlay() {
   const currentView = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.context.view))
   const isReady = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.matches('ready')))
   const focusIdentity = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.context.focusIdentity))
+  const expandedNodes = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.context.expandedNodes))
   const modelView = useRef(currentView)
   const selectedSource = useRef(runtime.selected)
   const selectedSourceId = useRef(runtime.selected.id)
@@ -90,6 +91,14 @@ function XirangArchitectureOverlay() {
   const declarations = new Map((runtime.selected.architecture?.elements ?? [])
     .map(element => [element.declaration.identity, element.declaration]))
   const rootIdentity = [...declarations.values()].find(declaration => declaration.parent === null)?.identity
+  const childrenByIdentity = new Map<string, string[]>()
+  for (const declaration of declarations.values()) {
+    if (!declaration.parent) continue
+    childrenByIdentity.set(declaration.parent, [...(childrenByIdentity.get(declaration.parent) ?? []), declaration.identity])
+  }
+  const hasChildren = (identity: string) => (childrenByIdentity.get(identity)?.length ?? 0) > 0
+  const nodeIdentity = (node: { id: string; metadata?: Readonly<Record<string, unknown>> | null | undefined }) =>
+    typeof node.metadata?.['elementId'] === 'string' ? node.metadata['elementId'] as string : node.id
   const breadcrumbIdentities: string[] = []
   let breadcrumbIdentity = focusIdentity ?? rootIdentity
   while (breadcrumbIdentity && declarations.has(breadcrumbIdentity)) {
@@ -117,13 +126,15 @@ function XirangArchitectureOverlay() {
   )
 
   useOnDiagramEvent('nodeClick', event => {
+    if (currentView.id !== 'model' || !event.ctrlKey) return
+    const identity = nodeIdentity(event.node)
+    if (hasChildren(identity)) actorRef.send({ type: 'expand.toggle', identity })
+  })
+
+  useOnDiagramEvent('nodeDoubleClick', event => {
     if (currentView.id !== 'model') return
-    const identity = typeof event.node.metadata?.['elementId'] === 'string'
-      ? event.node.metadata['elementId']
-      : event.node.id
-    const hasChildren = selectedSource.current.architecture?.elements
-      .some(element => element.declaration.parent === identity) ?? false
-    if (hasChildren) actorRef.send({ type: 'navigate.focus', focusIdentity: identity })
+    const identity = nodeIdentity(event.node)
+    if (hasChildren(identity)) actorRef.send({ type: 'navigate.focus', focusIdentity: identity })
   })
 
   useOnDiagramEvent('edgeClick', event => {
@@ -133,6 +144,50 @@ function XirangArchitectureOverlay() {
   })
 
   useOnDiagramEvent('paneClick', () => setRelationshipDetails([]))
+
+  /**
+   * Shift+N expands N levels below the focus, so the intermediate levels 1..N-1 are the ones that
+   * must carry expansion; Shift+1 is therefore the collapsed baseline and Shift+0 clears the set.
+   * `event.code` is required because Shift+2 reports `@` in `event.key` on a US layout.
+   * The handler reads mutable state through a ref so the listener binds once per view instead of
+   * being torn down and re-added on every render.
+   */
+  const expandDepthState = useRef({ focus: focusIdentity ?? rootIdentity, childrenByIdentity, hasChildren })
+  expandDepthState.current = { focus: focusIdentity ?? rootIdentity, childrenByIdentity, hasChildren }
+  useEffect(() => {
+    if (currentView.id !== 'model') return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return
+      const match = /^Digit([0-9])$/.exec(event.code)
+      if (!match) return
+      const target = event.target as HTMLElement | null
+      if (target && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))) return
+      event.preventDefault()
+      const depth = Number(match[1])
+      const { focus, childrenByIdentity: children, hasChildren: branch } = expandDepthState.current
+      if (depth <= 1 || !focus) {
+        actorRef.send({ type: 'expand.set', expanded: new Set() })
+        return
+      }
+      const expanded = new Set<string>()
+      let level = [focus]
+      for (let distance = 1; distance < depth; distance++) {
+        const next: string[] = []
+        for (const identity of level) {
+          for (const child of children.get(identity) ?? []) {
+            if (!branch(child)) continue
+            expanded.add(child)
+            next.push(child)
+          }
+        }
+        if (next.length === 0) break
+        level = next
+      }
+      actorRef.send({ type: 'expand.set', expanded })
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [actorRef, currentView.id])
 
   useEffect(() => {
     if (currentView.id === 'model' && !currentView.hash.includes(':xirang:')) modelView.current = currentView
@@ -165,13 +220,13 @@ function XirangArchitectureOverlay() {
     const resolvedFocus = [focusIdentity, ...previousAncestorPath, rootIdentity]
       .find((identity): identity is string => !!identity && declarations.has(identity))
     const view = selected.architecture
-      ? materializeXirangArchitectureView(modelView.current, selected, mode, focusIdentity ?? undefined, previousAncestorPath)
+      ? materializeXirangArchitectureView(modelView.current, selected, mode, focusIdentity ?? undefined, previousAncestorPath, expandedNodes)
       : modelView.current
     actorRef.send({ type: 'update.view', view, source: 'external' })
     if (focusIdentity && resolvedFocus !== focusIdentity) {
       actorRef.send({ type: 'navigate.focus', focusIdentity: resolvedFocus ?? null })
     }
-  }, [actorRef, currentView.id, focusIdentity, isReady, mode, runtime.selected.id, runtime.selected.source, xirangViewSourceRevision(runtime.selected)])
+  }, [actorRef, currentView.id, expandedNodes, focusIdentity, isReady, mode, runtime.selected.id, runtime.selected.source, xirangViewSourceRevision(runtime.selected)])
 
   const relationshipPanel = relationshipDetails.length > 0 && (
     <Stack

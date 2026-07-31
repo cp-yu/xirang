@@ -452,3 +452,92 @@ describe('materializeXirangArchitectureView', () => {
     expect(target.edges).toHaveLength(3)
   })
 })
+
+describe('materializeXirangArchitectureView expand-in-place', () => {
+  /** a > b > c > d, one letter one level, plus a leaf sibling at each level. */
+  const nested: XirangViewSource = {
+    ...viewSource,
+    architecture: {
+      elements: [
+        declaration('a', 'A', 'A', null),
+        declaration('b', 'B', 'B', 'a'),
+        declaration('a.leaf', 'A Leaf', 'A Leaf', 'a'),
+        declaration('c', 'C', 'C', 'b'),
+        declaration('b.leaf', 'B Leaf', 'B Leaf', 'b'),
+        declaration('d', 'D', 'D', 'c'),
+        declaration('c.leaf', 'C Leaf', 'C Leaf', 'c'),
+      ],
+      relationships: [],
+    },
+  }
+
+  const encloses = (outer: { x: number; y: number; width: number; height: number }, inner: typeof outer) =>
+    inner.x > outer.x && inner.y > outer.y
+    && inner.x + inner.width < outer.x + outer.width
+    && inner.y + inner.height < outer.y + outer.height
+
+  const disjoint = (a: { x: number; y: number; width: number; height: number }, b: typeof a) =>
+    a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y
+
+  it('keeps the direct-children projection when nothing is expanded', () => {
+    const collapsed = materializeXirangArchitectureView(modelView, nested, 'full', 'a', [], new Set())
+
+    expect(collapsed.nodes.map(node => node.id)).toEqual(['a', 'b', 'a.leaf'])
+    expect(collapsed).toEqual(materializeXirangArchitectureView(modelView, nested, 'full', 'a'))
+  })
+
+  it('reveals the children of an expanded direct child inside its container', () => {
+    const target = materializeXirangArchitectureView(modelView, nested, 'full', 'a', [], new Set(['b']))
+    const byId = new Map<string, DiagramView['nodes'][number]>(target.nodes.map(node => [node.id, node]))
+
+    expect([...byId.keys()].sort()).toEqual(['a', 'a.leaf', 'b', 'b.leaf', 'c'])
+    expect(byId.get('c')!.parent).toBe('b')
+    expect(byId.get('b.leaf')!.parent).toBe('b')
+    expect(byId.get('b')!.children).toEqual(['c', 'b.leaf'])
+    expect(encloses(byId.get('b')!, byId.get('c')!)).toBe(true)
+    expect(encloses(byId.get('b')!, byId.get('b.leaf')!)).toBe(true)
+    expect(encloses(byId.get('a')!, byId.get('b')!)).toBe(true)
+    expect(disjoint(byId.get('b')!, byId.get('a.leaf')!)).toBe(true)
+  })
+
+  it('nests multiple expanded levels simultaneously', () => {
+    const target = materializeXirangArchitectureView(modelView, nested, 'full', 'a', [], new Set(['b', 'c']))
+    const byId = new Map<string, DiagramView['nodes'][number]>(target.nodes.map(node => [node.id, node]))
+
+    expect([...byId.keys()].sort()).toEqual(['a', 'a.leaf', 'b', 'b.leaf', 'c', 'c.leaf', 'd'])
+    expect(byId.get('d')!.parent).toBe('c')
+    expect(encloses(byId.get('c')!, byId.get('d')!)).toBe(true)
+    expect(encloses(byId.get('b')!, byId.get('c')!)).toBe(true)
+    expect(encloses(byId.get('a')!, byId.get('b')!)).toBe(true)
+    expect(disjoint(byId.get('c')!, byId.get('b.leaf')!)).toBe(true)
+  })
+
+  it('ignores expanded identities outside the focus subtree', () => {
+    const outside = materializeXirangArchitectureView(modelView, nested, 'full', 'c', [], new Set(['b']))
+
+    expect(outside).toEqual(materializeXirangArchitectureView(modelView, nested, 'full', 'c'))
+  })
+
+  it('keeps an expanded childless identity at leaf size', () => {
+    const target = materializeXirangArchitectureView(modelView, nested, 'full', 'a', [], new Set(['a.leaf']))
+
+    expect(target.nodes.find(node => node.id === 'a.leaf')).toMatchObject({ width: 320, height: 180 })
+    expect(target.nodes.map(node => node.id)).toEqual(['a', 'b', 'a.leaf'])
+  })
+
+  it('maps relationships to the deepest visible endpoint once its ancestor is expanded', () => {
+    const related: XirangViewSource = {
+      ...nested,
+      architecture: {
+        elements: nested.architecture!.elements,
+        relationships: [{ source: 'c', kind: 'invokes', target: 'a.leaf' }],
+      },
+    }
+
+    const collapsed = materializeXirangArchitectureView(modelView, related, 'full', 'a', [], new Set())
+    expect(collapsed.edges.map(edge => [edge.source, edge.target])).toEqual([['b', 'a.leaf']])
+
+    const expanded = materializeXirangArchitectureView(modelView, related, 'full', 'a', [], new Set(['b']))
+    expect(expanded.edges.map(edge => [edge.source, edge.target])).toEqual([['c', 'a.leaf']])
+  })
+})

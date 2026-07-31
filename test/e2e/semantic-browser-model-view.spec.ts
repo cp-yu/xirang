@@ -31,12 +31,12 @@ test('browses Model View through nested focus and history', async ({ page }) => 
   await expectVisibleNodesDoNotOverlap(page)
 
   await page.screenshot({ path: test.info().outputPath('model-root.png'), fullPage: true })
-  await perspective.click()
+  await perspective.dblclick()
   const branch = page.locator('.react-flow__node[data-id="capability.drill"]')
   await expect(branch).toBeVisible()
   await expect(page).toHaveURL(/\/view\/model\//)
 
-  await branch.click()
+  await branch.dblclick()
   const leaf = page.locator('.react-flow__node[data-id="capability.leaf"]')
   await expect(leaf).toBeVisible()
   await expectVisibleNodesDoNotOverlap(page)
@@ -61,5 +61,24 @@ test('browses Model View through nested focus and history', async ({ page }) => 
   await page.locator('[data-navigation-back]').click()
   await expect(branch).toBeVisible()
   await page.locator('[data-navigation-back]').click()
+  await expect(perspective).toBeVisible()
+})
+
+test('expands in place with ctrl+click and collapses with Shift+0', async ({ page }) => {
+  const perspective = page.locator('.react-flow__node[data-id="perspective.browser"]')
+  await expect(perspective).toBeVisible()
+  const branch = page.locator('.react-flow__node[data-id="capability.drill"]')
+  await expect(branch).toHaveCount(0)
+
+  // Ctrl+click expands in place: the focus stays at the root while a deeper level becomes visible.
+  await perspective.click({ modifiers: ['Control'] })
+  await expect(branch).toBeVisible()
+  await expect(page.locator('[data-xirang-focus-breadcrumb]')).not.toContainText('Drill-down Capability')
+  await expectVisibleNodesDoNotOverlap(page)
+  await page.screenshot({ path: test.info().outputPath('model-expanded.png'), fullPage: true })
+
+  // Shift+2 keeps two levels visible, Shift+0 collapses everything back.
+  await page.locator('.react-flow__pane').press('Shift+Digit0')
+  await expect(branch).toHaveCount(0)
   await expect(perspective).toBeVisible()
 })

@@ -11,6 +11,7 @@ import {
   disableCompareWithLatest,
   emitEdgeClick,
   emitNodeClick,
+  emitNodeDoubleClick,
   emitOpenSource,
   emitOpenSourceOfView,
   emitPaneClick,
@@ -216,6 +217,9 @@ export const ready = machine.createStateConfig({
         assignLastClickedNode(),
         emitNodeClick(),
       ],
+    },
+    'xyflow.nodeDoubleClick': {
+      actions: emitNodeDoubleClick(),
     },
     'xyflow.nodeMouseEnter': {
       actions: onNodeMouseEnter(),

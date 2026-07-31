@@ -17,7 +17,7 @@ export default defineConfig({
   projects: [
     {
       name: 'desktop',
-      grep: /browses Element Contracts|opens an Authored View|keeps View source|browses Model View/,
+      grep: /browses Element Contracts|opens an Authored View|keeps View source|browses Model View|expands in place/,
       use: { ...devices['Desktop Chrome'] },
     },
     {
