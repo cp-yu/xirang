@@ -205,7 +205,9 @@ function XirangArchitectureOverlay() {
       selectedSourceId.current = selected.id
       previousFocusAncestors.current = []
       actorRef.send({ type: 'navigate.focus', focusIdentity: rootIdentity ?? null, replaceHistory: true })
-      return
+      // Send the view update immediately instead of returning,
+      // so the change-derived view is rendered even when focusIdentity
+      // is already the root identity and won't trigger a re-render.
     }
     let previousAncestorPath = previousFocusAncestors.current
     if (focusIdentity && declarations.has(focusIdentity)) {

@@ -5,18 +5,18 @@
 //
 // Portions of this file have been modified by NVIDIA CORPORATION & AFFILIATES.
 
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import { Link } from '@tanstack/react-router'
 
-import { StaticLikeC4Diagram } from '@likec4/diagram'
+import { StaticLikeC4Diagram, type XirangViewSource, useXirangViewSources } from '@likec4/diagram'
 import { useEffect, useState } from 'react'
 
 import type { DiagramView } from '@likec4/core/types'
 import { RichText } from '@likec4/core/types'
 import { Markdown, NavigationPanel } from '@likec4/diagram/custom'
 import { css } from '@likec4/styles/css'
-import { Box, Burger, Card, Container, Group, SimpleGrid, Text } from '@mantine/core'
+import { Badge, Box, Burger, Card, Container, Group, SimpleGrid, Text } from '@mantine/core'
 import { useDocumentTitle, useInViewport } from '@mantine/hooks'
 import { pageTitle } from 'likec4:app-config'
 import { randomInteger } from 'remeda'
@@ -37,6 +37,8 @@ function RouteComponent() {
   const { landingPage, title: projectTitle } = useCurrentProject()
   useDocumentTitle(projectTitle ?? pageTitle)
   const views = filterLandingPageViews(allViews, landingPage)
+  const runtime = useXirangViewSources()
+  const changeSources = runtime.sources.filter(s => s.source === 'change-derived-view')
   return (
     <Container size={'xl'}>
       <SidebarDrawer />
@@ -75,6 +77,7 @@ function RouteComponent() {
           </NavigationPanel.Body>
         </NavigationPanel.Root>
       </div>
+      <Text size="lg" fw={600} mt="md" mb="xs">Views</Text>
       <SimpleGrid
         p={{ base: 'md', sm: 'md' }}
         pt={{ base: 'sm', sm: 'sm' }}
@@ -84,6 +87,20 @@ function RouteComponent() {
       >
         {views.map((v) => <ViewCard key={v.id} view={v} />)}
       </SimpleGrid>
+      {changeSources.length > 0 && (
+        <>
+          <Text size="lg" fw={600} mt="xl" mb="xs">Active Changes</Text>
+          <SimpleGrid
+            p={{ base: 'md', sm: 'md' }}
+            pt={{ base: 'sm', sm: 'sm' }}
+            cols={{ base: 1, sm: 2, md: 3, xl: 4 }}
+            spacing={{ base: 10, sm: 'xl' }}
+            verticalSpacing={{ base: 'md', sm: 'xl' }}
+          >
+            {changeSources.map(s => <ChangeDerivedViewCard key={s.id} source={s} />)}
+          </SimpleGrid>
+        </>
+      )}
     </Container>
   )
 }
@@ -140,6 +157,51 @@ function ViewCard({ view }: { view: DiagramView }) {
         })}
       />
       <Link to={'/view/$viewId/'} params={{ viewId: view.id }} search className={styles.cardLink}></Link>
+    </Card>
+  )
+}
+
+function ChangeDerivedViewCard({ source }: { source: XirangViewSource }) {
+  const navigate = useNavigate()
+  const runtime = useXirangViewSources()
+  const diff = source.diff
+  const counts = diff?.summary ?? { total: 0, ADDED: 0, MODIFIED: 0, REMOVED: 0 }
+  const hasIssues = source.diagnostics.some(d => d.level === 'ERROR')
+
+  return (
+    <Card
+      shadow="xs"
+      padding="lg"
+      radius="sm"
+      className="group"
+      withBorder
+      component="a"
+      href={`/view/model/`}
+      onClick={e => {
+        e.preventDefault()
+        runtime.select(source.id)
+        void navigate({ to: '/view/$viewId/', params: { viewId: 'model' } })
+      }}
+      style={{ cursor: 'pointer' }}
+    >
+      <Group justify="space-between" mt="0" mb="sm">
+        <Text fw={500}>{source.label}</Text>
+        <Badge size="sm" color={source.valid ? 'green' : 'red'}>{source.valid ? 'Valid' : 'Invalid'}</Badge>
+      </Group>
+
+      <Group gap="xs" mb="xs">
+        {counts.ADDED > 0 && <Badge size="sm" color="green">+{counts.ADDED}</Badge>}
+        {counts.MODIFIED > 0 && <Badge size="sm" color="yellow">~{counts.MODIFIED}</Badge>}
+        {counts.REMOVED > 0 && <Badge size="sm" color="red">-{counts.REMOVED}</Badge>}
+      </Group>
+
+      {source.diagnostics.filter(d => d.level === 'ERROR').map((d, i) => (
+        <Text key={i} size="xs" c="red" className={css({ lineClamp: 2 })}>{d.message}</Text>
+      ))}
+
+      {!hasIssues && counts.total === 0 && (
+        <Text size="xs" c="dimmed">No semantic graph changes</Text>
+      )}
     </Card>
   )
 }
