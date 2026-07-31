@@ -544,17 +544,19 @@ export function ElementDetailsCard({
               </TabsPanel>
 
               <TabsPanel value="Relationships">
-                <DiagramFeatures
-                  overrides={{
-                    enableRelationshipBrowser: false,
-                    enableNavigateTo: false,
-                  }}>
-                  {opened && activeTab === 'Relationships' && (
-                    <TabPanelRelationships
-                      element={elementModel}
-                      node={nodeModel ?? null} />
-                  )}
-                </DiagramFeatures>
+                {elementModel && (
+                  <DiagramFeatures
+                    overrides={{
+                      enableRelationshipBrowser: false,
+                      enableNavigateTo: false,
+                    }}>
+                    {opened && activeTab === 'Relationships' && (
+                      <TabPanelRelationships
+                        element={elementModel}
+                        node={nodeModel ?? null} />
+                    )}
+                  </DiagramFeatures>
+                )}
               </TabsPanel>
 
               <TabsPanel value="Views">
@@ -591,9 +593,11 @@ export function ElementDetailsCard({
               </TabsPanel>
 
               <TabsPanel value="Structure">
-                <ScrollArea scrollbars="y" type="auto">
-                  <TabPanelStructure element={elementModel} />
-                </ScrollArea>
+                {elementModel && (
+                  <ScrollArea scrollbars="y" type="auto">
+                    <TabPanelStructure element={elementModel} />
+                  </ScrollArea>
+                )}
               </TabsPanel>
 
               <TabsPanel value="Deployments">

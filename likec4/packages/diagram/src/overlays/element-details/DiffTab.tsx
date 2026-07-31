@@ -44,23 +44,23 @@ function DualPaneTextDiff({ before, after }: { before: string; after: string }) 
   const left: Array<{
     text: string
     op: 'removed' | 'unchanged'
-    words?: Array<{ operation: 'REMOVED' | 'ADDED' | 'UNCHANGED'; text: string }>
+    words: Array<{ operation: 'REMOVED' | 'ADDED' | 'UNCHANGED'; text: string }> | undefined
   }> = []
   const right: Array<{
     text: string
     op: 'added' | 'unchanged'
-    words?: Array<{ operation: 'REMOVED' | 'ADDED' | 'UNCHANGED'; text: string }>
+    words: Array<{ operation: 'REMOVED' | 'ADDED' | 'UNCHANGED'; text: string }> | undefined
   }> = []
   for (const line of lines) {
     if (line.operation === 'REMOVED') {
       left.push({ text: line.text, op: 'removed', words: line.words })
-      right.push({ text: '', op: 'unchanged' })
+      right.push({ text: '', op: 'unchanged', words: undefined })
     } else if (line.operation === 'ADDED') {
-      left.push({ text: '', op: 'unchanged' })
+      left.push({ text: '', op: 'unchanged', words: undefined })
       right.push({ text: line.text, op: 'added', words: line.words })
     } else {
-      left.push({ text: line.text, op: 'unchanged' })
-      right.push({ text: line.text, op: 'unchanged' })
+      left.push({ text: line.text, op: 'unchanged', words: undefined })
+      right.push({ text: line.text, op: 'unchanged', words: undefined })
     }
   }
   const maxLines = Math.max(left.length, right.length, 1)
