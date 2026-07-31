@@ -7,8 +7,11 @@ export type LikeC4Runner = (args: string[]) => Promise<void>;
 
 // The LikeC4 CLI loads its runtime dependencies (language-server, language-services,
 // core, layouts, ...) from the built `dist/` of these packages. Sources newer than
-// the artifacts would make tests silently exercise a stale build, so they are the
-// scope of the staleness check.
+// the artifacts would make the viewer silently exercise a stale build, so they are
+// the scope of the staleness check.
+// The `diagram`, `react`, and `likec4-spa` packages are included because their src
+// files feed into the LikeC4 app bundle (__app__) and the xirang view depends on
+// them; changes to those files must be reflected without a manual likec4 rebuild.
 export const CLI_RUNTIME_PACKAGES = [
   'likec4',
   'language-server',
@@ -18,6 +21,9 @@ export const CLI_RUNTIME_PACKAGES = [
   'log',
   'config',
   'generators',
+  'diagram',
+  'react',
+  'likec4-spa',
 ] as const;
 
 export interface LikeC4Layout {
@@ -51,9 +57,9 @@ export interface LikeC4Launch {
   mode: 'dist' | 'source';
 }
 
-// Staleness detection is a development/test safeguard: in a published install the
-// shipped dist is authoritative and src mtimes are meaningless, so the check stays
-// off unless explicitly enabled (vitest.config.ts sets it for the test suite).
+// Staleness detection is enabled by default during development. In a published
+// install the shipped dist is authoritative and src mtimes are meaningless, so
+// set XIRANG_LIKEC4_STALE_CHECK=0 to disable.
 const STALE_CHECK_ENV = 'XIRANG_LIKEC4_STALE_CHECK';
 
 /**
@@ -63,7 +69,7 @@ const STALE_CHECK_ENV = 'XIRANG_LIKEC4_STALE_CHECK';
  * build. Otherwise always uses the built dist.
  */
 export function resolveLikeC4Command(args: string[], layout: LikeC4Layout = defaultLayout): LikeC4Launch {
-  if (process.env[STALE_CHECK_ENV] === '1' && isLikeC4DistStale(layout)) {
+  if (process.env[STALE_CHECK_ENV] !== '0' && isLikeC4DistStale(layout)) {
     return { argv: [layout.tsxCli, '--conditions=sources', layout.cliSource, ...args], mode: 'source' };
   }
   return { argv: [layout.distBin, ...args], mode: 'dist' };
@@ -71,7 +77,7 @@ export function resolveLikeC4Command(args: string[], layout: LikeC4Layout = defa
 
 const STALE_WARNING =
   'warning: LikeC4 sources are newer than dist; running the CLI from source (tsx).\n' +
-  'Run `pnpm likec4:build` to refresh the production build used by the browser and the xirang CLI.\n';
+  'Run `pnpm build` (or `pnpm --dir likec4 build`) to compile the production build.\n';
 
 export const runLikeC4: LikeC4Runner = async (args) => {
   const { argv, mode } = resolveLikeC4Command(args);

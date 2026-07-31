@@ -24,8 +24,18 @@ console.log('Compiling TypeScript...');
 try {
   runTsc(['--version']);
   runTsc();
-  console.log('\n✅ Build completed successfully!');
+  console.log('\n✅ TypeScript compiled successfully!');
 } catch (error) {
-  console.error('\n❌ Build failed!');
+  console.error('\n❌ TypeScript compilation failed!');
+  process.exit(1);
+}
+
+// Rebuild LikeC4 packages (diagram, react, likec4-spa, likec4 CLI, __app__)
+console.log('\nRebuilding LikeC4...');
+try {
+  execFileSync('pnpm', ['--dir', 'likec4', 'build'], { stdio: 'inherit' });
+  console.log('\n✅ LikeC4 rebuilt successfully!');
+} catch (error) {
+  console.error('\n❌ LikeC4 rebuild failed!');
   process.exit(1);
 }
