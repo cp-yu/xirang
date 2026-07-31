@@ -150,12 +150,12 @@ export function getStructuredContractDiff(source: XirangViewSource, element: str
   }
 }
 
-function OperationBadge({ operation }: { operation: XirangDiffEntry['operation'] }) {
+export function OperationBadge({ operation }: { operation: XirangDiffEntry['operation'] }) {
   const color = operation === 'ADDED' ? 'green' : operation === 'REMOVED' ? 'red' : 'yellow'
   return <Badge size="xs" color={color}>{operation}</Badge>
 }
 
-function TextDiff({ lines }: { lines: TextDiffLine[] }) {
+export function TextDiff({ lines }: { lines: TextDiffLine[] }) {
   return (
     <Code block data-xirang-text-diff>
       {lines.map((line, index) => (
@@ -178,6 +178,10 @@ function TextDiff({ lines }: { lines: TextDiffLine[] }) {
       ))}
     </Code>
   )
+}
+
+function stripFrontmatter(md: string): string {
+  return md.replace(/^---\n[\s\S]*?\n---\n?/, '')
 }
 
 export function ContractsTab({
@@ -212,10 +216,6 @@ export function ContractsTab({
     return () => controller.dispose()
   }, [active, controller, element, loader, project, runtime.selected.id, revision])
 
-  const structuredDiff = runtime.selected.source === 'change-derived-view'
-    ? getStructuredContractDiff(runtime.selected, element)
-    : null
-
   return (
     <Stack gap="sm" h="100%" data-xirang-contracts data-xirang-view-source={runtime.selected.id}>
       {displayState.status === 'loading' && (
@@ -224,34 +224,13 @@ export function ContractsTab({
       {displayState.status === 'error' && (
         <ContractPath path={displayState.element} color="red">{displayState.message}</ContractPath>
       )}
-      {structuredDiff && (structuredDiff.requirements.length > 0 || structuredDiff.diagnostics.length > 0) && (
-        <Stack gap="xs" data-xirang-structured-diff>
-          {structuredDiff.diagnostics.map((diagnostic, index) => (
-            <Text key={index} size="xs" c={diagnostic.level === 'ERROR' ? 'red' : 'yellow'}>
-              {diagnostic.path}: {diagnostic.message}
-            </Text>
-          ))}
-          {structuredDiff.requirements.map(requirement => (
-            <Stack key={requirement.identity} gap={4} p="xs" style={{ border: '1px solid var(--mantine-color-default-border)' }}>
-              <Group gap="xs"><OperationBadge operation={requirement.operation} /><Text fw={600}>{requirement.title}</Text></Group>
-              <TextDiff lines={requirement.text} />
-              {requirement.scenarios.map(scenario => (
-                <Stack key={scenario.identity} gap={4} pl="sm">
-                  <Group gap="xs"><OperationBadge operation={scenario.operation} /><Text size="sm">{scenario.title}</Text></Group>
-                  <TextDiff lines={scenario.text} />
-                </Stack>
-              ))}
-            </Stack>
-          ))}
-        </Stack>
-      )}
       {displayState.status === 'success' && displayState.content && (
         <>
           <Text size="xs" c="dimmed" style={{ userSelect: 'all' }}>
             {displayState.content.element}
           </Text>
           <Box data-xirang-contract-content style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-            <Markdown value={RichText.from({ md: displayState.content.md })} />
+            <Markdown value={RichText.from({ md: stripFrontmatter(displayState.content.md) })} />
           </Box>
         </>
       )}

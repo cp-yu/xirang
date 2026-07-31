@@ -1,6 +1,6 @@
 import { hasProp, isDynamicView } from '@likec4/core'
 import { useRerender } from '@react-hookz/web'
-import { Badge, Box, Button, Group, NativeSelect, Stack, Text } from '@mantine/core'
+import { Badge, Box, Button, Group, Modal, NativeSelect, Stack, Text, UnstyledButton } from '@mantine/core'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { ErrorBoundary } from '../components/ErrorFallback'
 import { useEnabledFeatures } from '../context/DiagramFeatures'
@@ -8,8 +8,10 @@ import { selectDiagramSnapshot, useDiagramSelector, useOnDiagramEvent } from '..
 import { useDiagramActorRef } from '../hooks/useDiagram'
 import { NavigationPanel } from '../navigationpanel'
 import { materializeXirangArchitectureView } from '../xirang/architectureView'
+import { MetamodelDiffModal } from '../overlays/element-details/MetamodelDiffModal'
 import {
   isXirangContractDiagnostic,
+  type XirangDiffEntry,
   type XirangDiffOperation,
   type XirangViewSource,
   useXirangViewSources,
@@ -93,6 +95,8 @@ function XirangArchitectureOverlay() {
   selectedSource.current = runtime.selected
   const [mode, setMode] = useState<'full' | 'diff'>('full')
   const [relationshipDetails, setRelationshipDetails] = useState<string[]>([])
+  const [relationshipModalOpened, setRelationshipModalOpened] = useState(false)
+  const [metamodelEntry, setMetamodelEntry] = useState<{ entry: XirangDiffEntry; opened: boolean } | null>(null)
   const declarations = new Map((runtime.selected.architecture?.elements ?? [])
     .map(element => [element.declaration.identity, element.declaration]))
   const rootIdentity = [...declarations.values()].find(declaration => declaration.parent === null)?.identity
@@ -145,10 +149,15 @@ function XirangArchitectureOverlay() {
   useOnDiagramEvent('edgeClick', event => {
     const edgeId = event.edge.id
     const edge = currentView.edges.find(candidate => candidate.id === edgeId) as { xirangRelations?: string[] } | undefined
-    setRelationshipDetails(edge?.xirangRelations ?? [])
+    const details = edge?.xirangRelations ?? []
+    setRelationshipDetails(details)
+    if (details.length > 0) setRelationshipModalOpened(true)
   })
 
-  useOnDiagramEvent('paneClick', () => setRelationshipDetails([]))
+  useOnDiagramEvent('paneClick', () => {
+    setRelationshipDetails([])
+    setRelationshipModalOpened(false)
+  })
 
   /**
    * Shift+N expands N levels below the focus, so the intermediate levels 1..N-1 are the ones that
@@ -235,24 +244,19 @@ function XirangArchitectureOverlay() {
     }
   }, [actorRef, currentView.id, expandedNodes, focusIdentity, isReady, mode, runtime.selected.id, runtime.selected.source, xirangViewSourceRevision(runtime.selected)])
 
-  const relationshipPanel = relationshipDetails.length > 0 && (
-    <Stack
+  const relationshipPanel = (
+    <Modal
+      opened={relationshipModalOpened}
+      onClose={() => setRelationshipModalOpened(false)}
+      title="Relationship Details"
+      size="md"
       data-xirang-relationship-details
-      gap={4}
-      p="xs"
-      style={{
-        position: 'absolute',
-        right: 16,
-        bottom: 72,
-        zIndex: 5,
-        pointerEvents: 'all',
-        background: 'var(--mantine-color-body)',
-        border: '1px solid var(--mantine-color-default-border)',
-        borderRadius: 6,
-      }}
     >
-      {relationshipDetails.map(triple => <Text key={triple} size="xs">{triple}</Text>)}
-    </Stack>
+      <Stack gap={4}>
+        {relationshipDetails.map(triple => <Text key={triple} size="sm">{triple}</Text>)}
+        {relationshipDetails.length === 0 && <Text size="sm" c="dimmed">No relationship details</Text>}
+      </Stack>
+    </Modal>
   )
 
   if (runtime.selected.source === 'semantic-model') {
@@ -302,9 +306,17 @@ function XirangArchitectureOverlay() {
         </Group>
         <Text size="xs">+{overlay.counts.ADDED} ~{overlay.counts.MODIFIED} -{overlay.counts.REMOVED}</Text>
         {overlay.metamodel.map(entry => (
-          <Text key={`${entry.kind}:${entry.identity}`} size="xs" c="dimmed">
-            {entry.operation === 'ADDED' ? '+' : entry.operation === 'REMOVED' ? '-' : '~'} {entry.kind} {entry.identity}
-          </Text>
+          <UnstyledButton
+            key={`${entry.kind}:${entry.identity}`}
+            size="xs"
+            c="dimmed"
+            onClick={() => setMetamodelEntry({ entry, opened: true })}
+            style={{ textAlign: 'left', cursor: 'pointer' }}
+          >
+            <Text size="xs" c="dimmed">
+              {entry.operation === 'ADDED' ? '+' : entry.operation === 'REMOVED' ? '-' : '~'} {entry.kind} {entry.identity}
+            </Text>
+          </UnstyledButton>
         ))}
         {overlay.entries.length === 0 && <Text size="xs" c="dimmed">No semantic graph change</Text>}
         {overlay.diagnostics.map((diagnostic, index) => (
@@ -312,6 +324,11 @@ function XirangArchitectureOverlay() {
         ))}
       </Stack>
       </Box>
+      <MetamodelDiffModal
+        entry={metamodelEntry?.entry ?? null}
+        opened={metamodelEntry?.opened ?? false}
+        onClose={() => setMetamodelEntry(null)}
+      />
     </>
   )
 }

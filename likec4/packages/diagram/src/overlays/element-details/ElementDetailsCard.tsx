@@ -8,7 +8,6 @@
 import {
   RichText,
   type Any,
-  type RichTextOrEmpty,
   type ComputedView,
   type DiagramView,
   type Element,
@@ -61,6 +60,7 @@ import { stopPropagation } from '../../utils'
 import * as styles from './ElementDetailsCard.css'
 import { MetadataProvider, MetadataValue } from './MetadataValue'
 import { ContractsTab } from './ContractsTab'
+import { DiffTab } from './DiffTab'
 import { TabPanelDeployments } from './TabPanelDeployments'
 import { TabPanelRelationships } from './TabPanelRelationships'
 import { TabPanelStructure } from './TabPanelStructure'
@@ -106,32 +106,26 @@ type ElementDetailsCardProps = {
 type ElementDefinitionPropertiesProps = {
   selected: XirangViewSource
   stableElementId: string
-  modelSummary: RichTextOrEmpty
-  modelDescription: RichTextOrEmpty
 }
 
 export function ElementDefinitionProperties({
   selected,
   stableElementId,
-  modelSummary,
-  modelDescription,
 }: ElementDefinitionPropertiesProps) {
-  const declaration = selected.source === 'change-derived-view'
-    ? selected.architecture?.elements.find(item => item.declaration.identity === stableElementId)?.declaration
-    : undefined
-  const summary = declaration ? RichText.from(declaration.summary) : modelSummary
-  const description = declaration ? RichText.from(declaration.description) : modelDescription
+  const declaration = selected.architecture?.elements
+    .find(item => item.declaration.identity === stableElementId)?.declaration
+    ?? null
 
   return (
     <>
-      {summary.nonEmpty && (
-        <>
-          <PropertyLabel>summary</PropertyLabel>
-          <Markdown value={summary} />
-        </>
-      )}
-      <PropertyLabel>description</PropertyLabel>
-      <Markdown value={description} emptyText="no description" />
+      <PropertyLabel>kind</PropertyLabel>
+      <Text>{declaration?.kind ?? '—'}</Text>
+      <PropertyLabel>parent</PropertyLabel>
+      <Text>{declaration?.parent ?? '—'}</Text>
+      <PropertyLabel>title</PropertyLabel>
+      <Text>{declaration?.title ?? '—'}</Text>
+      <PropertyLabel>definition</PropertyLabel>
+      <Markdown value={RichText.from(declaration?.description)} emptyText="no definition" />
     </>
   )
 }
@@ -139,7 +133,7 @@ export function ElementDefinitionProperties({
 const MIN_PADDING = 24
 
 const TABS = ['Properties', 'Relationships', 'Views', 'Structure', 'Deployments'] as const
-type TabName = typeof TABS[number] | 'Contracts'
+type TabName = typeof TABS[number] | 'Contracts' | 'Diff'
 
 export function ElementDetailsCard({
   viewId,
@@ -161,19 +155,46 @@ export function ElementDetailsCard({
   const viewModel = useCurrentViewModel()
   const nodeModel = fromNode ? viewModel.findNode(fromNode) : viewModel.findNodeWithElement(fqn)
 
-  const elementModel = viewModel.$model.element(fqn)
+  let elementModel
+  try {
+    elementModel = viewModel.$model.element(fqn)
+  } catch {
+    elementModel = null
+  }
   const runtime = useXirangViewSources()
-  const stableElementId = typeof elementModel.$element.metadata?.['elementId'] === 'string'
-    ? elementModel.$element.metadata['elementId']
-    : elementModel.id
+  // When the element is ADDED in a change (not in the base model), use the
+  // declaration from the change architecture for identification.
+  const isAddedElement = !elementModel
+    && runtime.selected.source === 'change-derived-view'
+  const stableElementId = elementModel
+    ? typeof elementModel.$element.metadata?.['elementId'] === 'string'
+      ? elementModel.$element.metadata['elementId']
+      : elementModel.id
+    : fqn
+  const elementTitle = isAddedElement
+    ? runtime.selected.architecture?.elements
+        .find(item => item.declaration.identity === fqn)?.declaration.title ?? fqn
+    : elementModel?.title ?? fqn
+  const elementKind = isAddedElement
+    ? runtime.selected.architecture?.elements
+        .find(item => item.declaration.identity === fqn)?.declaration.kind ?? '—'
+    : elementModel?.kind ?? '—'
   // The Contract projection is root-owned: an absent key means the Element has no Contract.
   const hasContract = typeof runtime.selected.contracts?.[stableElementId] === 'string'
+  const hasDiff = runtime.selected.source === 'change-derived-view'
+    && (runtime.selected.diff?.entries ?? []).some(
+      entry => (entry.kind === 'element-declaration' && entry.identity === stableElementId)
+        || (entry.kind === 'requirement' && entry.identity.startsWith(stableElementId + '#'))
+    )
 
   useEffect(() => {
     if (activeTab === 'Contracts' && !hasContract) {
       setActiveTab('Properties')
     }
-  }, [activeTab, hasContract, setActiveTab])
+    if (activeTab === 'Diff' && !hasDiff) {
+      setActiveTab('Properties')
+    }
+  }, [activeTab, hasContract, hasDiff, setActiveTab])
 
   const [viewsOf, otherViews] = pipe(
     [...elementModel.views()],
@@ -255,14 +276,16 @@ export function ElementDetailsCard({
 
   const notation = nodeModel?.$node.notation ?? null
 
-  const elementIcon = IconRenderer({
-    element: {
-      id: fqn,
-      title: elementModel.title,
-      icon: nodeModel?.icon ?? elementModel.icon,
-    },
-    className: styles.elementIcon,
-  })
+  const elementIcon = elementModel
+    ? IconRenderer({
+      element: {
+        id: fqn,
+        title: elementModel.title,
+        icon: nodeModel?.icon ?? elementModel.icon,
+      },
+      className: styles.elementIcon,
+    })
+    : null
 
   useTimeoutEffect(() => {
     if (!ref.current?.open) {
@@ -277,6 +300,122 @@ export function ElementDetailsCard({
   useTimeoutEffect(() => {
     setOpened(true)
   }, 220)
+
+  // For ADDED elements in a change (not in the base model), show a simplified card.
+  if (isAddedElement) {
+    const declaration = runtime.selected.architecture?.elements
+      .find(item => item.declaration.identity === fqn)?.declaration
+    return (
+      <m.dialog
+        ref={ref}
+        className={cx(styles.dialog, RemoveScroll.classNames.fullWidth)}
+        layout
+        initial={{
+          [styles.backdropBlur]: '0px',
+          [styles.backdropOpacity]: '5%',
+        }}
+        animate={{
+          [styles.backdropBlur]: '3px',
+          [styles.backdropOpacity]: '60%',
+        }}
+        exit={{
+          [styles.backdropBlur]: '0px',
+          [styles.backdropOpacity]: '0%',
+          transition: {
+            duration: 0.1,
+          },
+        }}
+        onClick={e => {
+          e.stopPropagation()
+          if ((e.target as any)?.nodeName?.toUpperCase() === 'DIALOG') {
+            ref.current?.close()
+          }
+        }}
+        onDoubleClick={stopPropagation}
+        onPointerDown={stopPropagation}
+        onClose={triggerClose}
+      >
+        <RemoveScroll forwardProps removeScrollBar={false}>
+          <m.div
+            layout
+            layoutRoot
+            drag
+            dragControls={controls}
+            dragElastic={0}
+            dragMomentum={false}
+            dragListener={false}
+            className={styles.card}
+            initial={{
+              top,
+              left,
+              width: _width,
+              height: _height,
+              opacity: 0,
+              originX,
+              originY,
+              scale: Math.max(fromScale, 0.65),
+            }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+            }}
+            exit={{
+              opacity: 0,
+              scale: 0.9,
+              translateY: -10,
+              transition: {
+                duration: 0.1,
+              },
+            }}
+            style={{
+              width,
+              height,
+            }}>
+            <div className={styles.cardHeader} onPointerDown={e => controls.start(e)}>
+              <HStack alignItems="start" justify="space-between" gap={'sm'} mb={'sm'} flexWrap="nowrap">
+                <HStack
+                  alignItems="start"
+                  gap={'sm'}
+                  style={{ cursor: 'default', minWidth: 0, overflow: 'hidden' }}
+                  flexWrap="nowrap"
+                >
+                  <div style={{ minWidth: 0, overflow: 'hidden' }}>
+                    <Text component={'div'} className={styles.title}>
+                      {elementTitle}
+                    </Text>
+                  </div>
+                </HStack>
+                <CloseButton size={'lg'} onClick={triggerClose} />
+              </HStack>
+            </div>
+            <MetadataProvider>
+              <Box p="md">
+                <Stack gap="sm">
+                  <Text size="xs" c="dimmed">kind</Text>
+                  <Text>{elementKind}</Text>
+                  <Text size="xs" c="dimmed">parent</Text>
+                  <Text>{declaration?.parent ?? '—'}</Text>
+                  <Text size="xs" c="dimmed">title</Text>
+                  <Text>{declaration?.title ?? '—'}</Text>
+                  <Text size="xs" c="dimmed">definition</Text>
+                  <Markdown value={RichText.from(declaration?.description)} emptyText="no definition" />
+                </Stack>
+              </Box>
+            </MetadataProvider>
+            <m.div
+              className={styles.resizeHandle}
+              drag
+              dragElastic={0}
+              dragMomentum={false}
+              onDrag={handleDrag}
+              dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }} />
+          </m.div>
+        </RemoveScroll>
+      </m.dialog>
+    )
+  }
+
+  if (!elementModel) return null
 
   return (
     <m.dialog
@@ -478,12 +617,14 @@ export function ElementDetailsCard({
                 panel: styles.tabsPanel,
               }}>
               <TabsList>
-                {TABS.map(tab => (
+                <TabsTab value="Properties">Properties</TabsTab>
+                {hasContract && <TabsTab value="Contracts">Contracts</TabsTab>}
+                {hasDiff && <TabsTab value="Diff">Diff</TabsTab>}
+                {TABS.slice(1).map(tab => (
                   <TabsTab key={tab} value={tab}>
                     {tab}
                   </TabsTab>
                 ))}
-                {hasContract && <TabsTab value="Contracts">Contracts</TabsTab>}
               </TabsList>
 
               <TabsPanel value="Properties">
@@ -492,8 +633,6 @@ export function ElementDetailsCard({
                     <ElementDefinitionProperties
                       selected={runtime.selected}
                       stableElementId={stableElementId}
-                      modelSummary={elementModel.summary}
-                      modelDescription={elementModel.description}
                     />
                     {elementModel.technology && (
                       <ElementProperty title="technology">
@@ -578,6 +717,14 @@ export function ElementDetailsCard({
                     project={elementModel.projectId}
                     element={stableElementId}
                     active={activeTab === 'Contracts'}
+                  />
+                </TabsPanel>
+              )}
+              {hasDiff && (
+                <TabsPanel value="Diff">
+                  <DiffTab
+                    element={stableElementId}
+                    active={activeTab === 'Diff'}
                   />
                 </TabsPanel>
               )}
