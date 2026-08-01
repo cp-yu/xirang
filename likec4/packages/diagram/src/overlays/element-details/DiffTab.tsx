@@ -71,12 +71,6 @@ function ContractRequirementDiff({
     <Box>
       <Text size="xs" fw={600} c="dimmed" mb={2}>{requirement.title}</Text>
       <XirangDiffViewer before={requirement.before} after={requirement.after} />
-      {requirement.scenarios.map(scenario => (
-        <Box key={scenario.identity} pl="sm" mt="xs">
-          <Text size="xs" c="dimmed" mb={2}>{scenario.title}</Text>
-          <XirangDiffViewer before={scenario.before} after={scenario.after} />
-        </Box>
-      ))}
     </Box>
   )
 }

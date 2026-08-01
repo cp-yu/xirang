@@ -63,21 +63,30 @@ export interface StructuredContractDiff {
     operation: 'ADDED' | 'MODIFIED' | 'REMOVED'
     before: string
     after: string
-    scenarios: Array<{
-      identity: string
-      title: string
-      operation: 'ADDED' | 'MODIFIED' | 'REMOVED'
-      before: string
-      after: string
-    }>
   }>
   diagnostics: XirangViewSource['diagnostics']
 }
 
-function body(value: unknown): string {
-  return value && typeof value === 'object' && typeof (value as { body?: unknown }).body === 'string'
-    ? (value as { body: string }).body
-    : ''
+interface RequirementLike {
+  body?: string
+  scenarios?: Array<{ name?: string; body?: string }>
+}
+
+/** Full requirement text: requirement body plus every Scenario, so one requirement renders as one diff. */
+function requirementText(value: unknown): string {
+  const requirement = value as RequirementLike | undefined
+  if (!requirement || typeof requirement !== 'object') return ''
+  const lines: string[] = []
+  if (typeof requirement.body === 'string' && requirement.body.trim() !== '') {
+    lines.push(requirement.body)
+  }
+  for (const scenario of requirement.scenarios ?? []) {
+    lines.push('', `#### Scenario: ${scenario.name ?? ''}`)
+    if (typeof scenario.body === 'string' && scenario.body.trim() !== '') {
+      lines.push('', scenario.body)
+    }
+  }
+  return lines.join('\n').trim()
 }
 
 /** Requirement identity is `<element identity>#<name>`, so the host Element is the only filter key. */
@@ -90,15 +99,8 @@ export function getStructuredContractDiff(source: XirangViewSource, element: str
       identity: entry.identity,
       title: entry.identity.slice(entry.identity.indexOf('#') + 1),
       operation: entry.operation,
-      before: body(entry.before),
-      after: body(entry.after),
-      scenarios: (entry.children ?? []).filter(child => child.kind === 'scenario').map(child => ({
-        identity: child.identity,
-        title: child.identity.slice(child.identity.lastIndexOf('#') + 1),
-        operation: child.operation,
-        before: body(child.before),
-        after: body(child.after),
-      })),
+      before: requirementText(entry.before),
+      after: requirementText(entry.after),
     })),
     diagnostics: source.diagnostics.filter(diagnostic => diagnostic.identity?.startsWith(prefix) ?? false),
   }

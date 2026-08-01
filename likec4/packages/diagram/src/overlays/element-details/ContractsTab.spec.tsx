@@ -113,35 +113,67 @@ describe('ContractsTab', () => {
     expect(states.at(-1)?.status).toBe('success')
   })
 
-  it('derives Requirement and Scenario badges from the unified Diff IR', () => {
+  it('renders a MODIFIED Requirement as one diff containing its Scenarios', () => {
     const model = getStructuredContractDiff(
       changeVariant([{
         kind: 'requirement',
         identity: 'auth.core_v1#Login',
         operation: 'MODIFIED',
-        before: { body: 'The system SHALL use password login.' },
-        after: { body: 'The system SHALL use secure password login.' },
-        children: [
-          { kind: 'scenario', identity: 'auth.core_v1#Login#Legacy', operation: 'REMOVED', before: { body: 'legacy' } },
-          { kind: 'scenario', identity: 'auth.core_v1#Login#MFA', operation: 'ADDED', after: { body: 'mfa' } },
-        ],
+        before: { body: 'The system SHALL use password login.', scenarios: [{ name: 'Legacy', body: 'legacy' }] },
+        after: {
+          body: 'The system SHALL use secure password login.',
+          scenarios: [
+            { name: 'Legacy', body: 'legacy' },
+            { name: 'MFA', body: 'mfa' },
+          ],
+        },
       }]),
       'auth.core_v1',
     )
 
     expect(model.requirements).toEqual([
-      expect.objectContaining({
+      {
+        identity: 'auth.core_v1#Login',
         title: 'Login',
         operation: 'MODIFIED',
-        scenarios: [
-          expect.objectContaining({ title: 'Legacy', operation: 'REMOVED' }),
-          expect.objectContaining({ title: 'MFA', operation: 'ADDED' }),
-        ],
-      }),
+        before: [
+          'The system SHALL use password login.',
+          '',
+          '#### Scenario: Legacy',
+          '',
+          'legacy',
+        ].join('\n'),
+        after: [
+          'The system SHALL use secure password login.',
+          '',
+          '#### Scenario: Legacy',
+          '',
+          'legacy',
+          '',
+          '#### Scenario: MFA',
+          '',
+          'mfa',
+        ].join('\n'),
+      },
     ])
+  })
+
+  it('merges ADDED Requirement text with its Scenarios into one diff', () => {
+    const model = getStructuredContractDiff(
+      changeVariant([{
+        kind: 'requirement',
+        identity: 'cap.a#Own',
+        operation: 'ADDED',
+        after: { body: 'own', scenarios: [{ name: 'Pseudo', body: 'if (a > 0) result = a + b' }] },
+      }]),
+      'cap.a',
+    )
+
     expect(model.requirements[0]).toMatchObject({
-      before: 'The system SHALL use password login.',
-      after: 'The system SHALL use secure password login.',
+      title: 'Own',
+      operation: 'ADDED',
+      before: '',
+      after: ['own', '', '#### Scenario: Pseudo', '', 'if (a > 0) result = a + b'].join('\n'),
     })
   })
 
