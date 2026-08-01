@@ -68,7 +68,7 @@ describe('verify result validator', () => {
 
     const invalid = validatePhase1Input({ result: 'BAD', issues: 'nope' });
     expect(invalid.valid).toBe(false);
-    expect(invalid.errors).toContain('result must be PASS, PASS_WITH_WARNINGS, or FAIL_NEEDS_REMEDIATION');
+    expect(invalid.errors).toContain('result must be PASS, PASS_WITH_WARNINGS, or FAIL_NEEDS_CORRECTIONS');
   });
 
   it('validates finding envelopes and rejects optimizer-owned IDs on add actions', () => {

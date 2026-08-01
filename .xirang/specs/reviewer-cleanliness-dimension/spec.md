@@ -150,7 +150,7 @@ Optimizer 发现 correctness、spec 或 artifact 冲突时 SHALL 返回 `blockin
 #### Scenario: optimizer 发现 spec 冲突
 - **WHEN** optimizer 读取代码时发现实现违反 requirement
 - **THEN** SHALL 返回 blockingObservations
-- **AND** 系统 SHALL 路由回 Phase 1 remediation
+- **AND** 系统 SHALL 路由回 Phase 1 Required Corrections
 
 ### Requirement: 规格外改动检测
 

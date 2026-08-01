@@ -12,7 +12,7 @@ Define the reviewed Finding-Driven Optimization Gate contract for 最优性检�
 
 系统 SHALL 在 Phase 1 通过后自动进入 Phase 2，除非配置或 CLI 显式跳过。Phase 2 MUST 至少 spawn 一次 optimizer；master agent MUST NOT 替代 optimizer 判断是否存在 actionable findings。
 
-Optimizer SHALL 返回合法 reconciliation envelope。若存在 `blockingObservations`，系统 SHALL 返回 Phase 1 remediation；否则系统 SHALL 持久化 findings 并选择首个 actionable finding，或在没有 actionable finding 时进入 `NOT_NEEDED`。
+Optimizer SHALL 返回合法 reconciliation envelope。若存在 `blockingObservations`，系统 SHALL 返回 Phase 1 Required Corrections；否则系统 SHALL 持久化 findings 并选择首个 actionable finding，或在没有 actionable finding 时进入 `NOT_NEEDED`。
 
 #### Scenario: Phase 1 PASS 后强制调用 optimizer
 - **WHEN** Phase 1 为 PASS 或 PASS_WITH_WARNINGS
@@ -52,7 +52,7 @@ Optimizer SHALL 返回合法 reconciliation envelope。若存在 `blockingObserv
 - **THEN** 系统 SHALL 执行 `git add -A && git commit -m "wip: opt-r${N} (OPT-20260712T140523123Z-01: ${description})"`
 
 #### Scenario: 失败波次回滚
-- **WHEN** speculative re-verify 返回 FAIL_NEEDS_REMEDIATION
+- **WHEN** speculative re-verify 返回 FAIL_NEEDS_CORRECTIONS
 - **AND** CLI 已更新 `.verify-result.json` 中的 history 与 `failedDirections`
 - **THEN** Apply SHALL 把更新后的 verify result 与包含 `phase2BaselineCommit` 的 `.apply-isolation.json` 快照到 repository 外，并分别记录 SHA-256
 - **AND** SHALL 执行 `git reset --hard HEAD` 和 `git clean -fd` 丢弃 speculative implementation

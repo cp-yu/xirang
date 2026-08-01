@@ -88,7 +88,7 @@ Worktree 方法 SHALL 从当前 `HEAD` 创建干净 worktree，不隐式携带�
 - `.xirang/changes/<name>/**`
 - task `Files` 路径
 - Check 引用路径
-- 未完成 Remediation 路径
+- 未完成 Required Corrections 路径
 - 用户明确确认的路径
 
 Apply SHALL 在目标 worktree 重现改动文件集的最终文件状态：复制修改和新增文件，并重现删除；无需保留 staged 与 unstaged 区分。集合外 dirty files SHALL 留在源工作区。

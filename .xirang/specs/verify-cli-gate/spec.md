@@ -22,7 +22,7 @@ Define the reviewed Consistency and Freshness Gate contract for Phase 1 入口�
 - **AND** SHALL 计算 `evidenceFingerprint`（`evidenceFiles` 文件内容哈希的 SHA-256）
 - **AND** SHALL 将 canonical Phase 1 payload 写入 `.verify-result.json`
 - **AND** 当 result 为 PASS/PASS_WITH_WARNINGS 时 SHALL 初始化 `optimization.status = PENDING_VERIFICATION`，防止 Phase 1-only 结果通过 sync/archive 门禁
-- **AND** 输出下一步指令：PASS/PASS_WITH_WARNINGS 时输出 "进入 Phase 2"，FAIL_NEEDS_REMEDIATION 时输出 "修复 CRITICAL issues"
+- **AND** 输出下一步指令：PASS/PASS_WITH_WARNINGS 时输出 "进入 Phase 2"，FAIL_NEEDS_CORRECTIONS 时输出 "修复 CRITICAL issues"
 - **AND** 以 exit 0 退出
 
 ### Requirement: Phase 2 双调用门禁
@@ -57,7 +57,7 @@ Define the reviewed Consistency and Freshness Gate contract for Phase 1 入口�
 - **AND** SHALL 要求下一步重新调用 optimizer，而非直接 seal
 
 #### Scenario: verification 失败但可重试
-- **WHEN** reviewer result 为 FAIL_NEEDS_REMEDIATION
+- **WHEN** reviewer result 为 FAIL_NEEDS_CORRECTIONS
 - **AND** 该 finding 方向失败次数小于 `optRetries`
 - **THEN** CLI SHALL 追加 failed event 和方向证据
 - **AND** SHALL 要求回滚并重新 reconciliation

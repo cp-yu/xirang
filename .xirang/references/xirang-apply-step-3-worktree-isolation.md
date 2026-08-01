@@ -3,7 +3,7 @@
 Use this reference only after Step 1 selects worktree isolation. Use native Git; do not delegate worktree creation to another skill.
 
 1. Record `originalBranch`, resolve the current `HEAD` SHA as the immutable evidence baseline `baseCommit`, and create a clean worktree from the current `HEAD`, normally with `git worktree add .worktrees/<change-name> -b <change-name> HEAD`. Existing dirty files are not carried implicitly.
-2. Build the changed file set from all files under `.xirang/changes/<name>/`, every task `Files` path, Check-referenced paths, unfinished Remediation paths, and user-confirmed paths. Do not infer ownership or add unrelated dirty files.
+2. Build the changed file set from all files under `.xirang/changes/<name>/`, every task `Files` path, Check-referenced paths, unfinished Required Corrections paths, and user-confirmed paths. Do not infer ownership or add unrelated dirty files.
 3. If one file appears to mix this change with unrelated edits, do not split or infer hunks. Ask the user to include the entire file, split it manually and retry, or abandon worktree isolation. Treat binary files as entire-file units.
 4. Reproduce the final state of each changed file set entry in the worktree: copy modified and added files, and reproduce deletions. The transfer does not preserve staged versus unstaged status.
 5. Compare source and target file state and SHA-256 for every present transferred entry. Represent a deleted final state as `sourceState: "deleted"` and `sourceHash: null`; never invent a hash for absent bytes. In the worktree, rerun status, apply instructions, and the targeted validation named by the affected Checks. Stop on any mismatch or validation failure.

@@ -47,14 +47,14 @@ element: cap.apply.change-workflow
 - **AND** 对每个行为或代码 Check，Master agent SHALL 先新增或更新 targeted test
 - **AND** Master agent SHALL 在实现前运行声明的 Check 命令或等价 targeted command，并确认预期失败
 - **AND** Master agent SHALL 只实现该 Check 所需的最小改动
-- **AND** Master agent SHALL 重跑同一命令或等价命令并确认通过后，才更新 task 或 remediation checkbox
+- **AND** Master agent SHALL 重跑同一命令或等价命令并确认通过后，才更新 task 或修正事项 checkbox
 
 #### Scenario: 非运行时文本制品不伪造 RED failure
 
 - **WHEN** pending Check 只修改非运行时文本或非运行时制品
 - **THEN** Apply workflow SHALL NOT 要求人为制造失败测试
 - **AND** Master agent SHALL 运行声明的验证命令或检查 `Evidence:` / `Expect:`
-- **AND** Master agent SHALL 只在最终证据通过后更新 task 或 remediation checkbox
+- **AND** Master agent SHALL 只在最终证据通过后更新 task 或修正事项 checkbox
 
 #### Scenario: Config、Schema 与模板默认按行为变更处理
 
@@ -67,7 +67,7 @@ element: cap.apply.change-workflow
 - **WHEN** Apply workflow 进入 Phase 0 implementation
 - **THEN** SHALL NOT 在 `.xirang/changes/<change-name>/.apply-steps/` 下创建文件
 - **AND** SHALL NOT 使用 `.apply-steps` 作为恢复或委托输入
-- **AND** 实现计划 SHALL 保留在当前 Master agent context 或 `tasks.md` remediation entries 中
+- **AND** 实现计划 SHALL 保留在当前 Master agent context 或 `tasks.md` Required Corrections entries 中
 
 #### Scenario: Apply workflow 不委托 implementer
 
@@ -78,7 +78,7 @@ element: cap.apply.change-workflow
 
 #### Scenario: Clean-context verify gate 保持不变
 
-- **WHEN** Phase 0 implementation 与 remediation 全部完成
+- **WHEN** Phase 0 implementation 与 Required Corrections 全部完成
 - **THEN** Apply workflow SHALL 在 Phase 1 继续启动 `xirang-reviewer`
 - **AND** optimization 启用时 SHALL 在 Phase 2 继续启动 `xirang-optimizer`
 - **AND** Master agent SHALL NOT 替代 reviewer 或 optimizer 的判断

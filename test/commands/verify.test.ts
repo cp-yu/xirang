@@ -395,7 +395,7 @@ describe('xirang verify command', () => {
     })], { cwd: tempDir });
     await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const failedWave = true;\n', 'utf-8');
     const failed = await runCLI(['verify', 'phase2', 'c1', '--type=verification', '--json', '--input', JSON.stringify({
-      result: 'FAIL_NEEDS_REMEDIATION', findingId: firstId, issues: [], summary: 'Ordering changed',
+      result: 'FAIL_NEEDS_CORRECTIONS', findingId: firstId, issues: [], summary: 'Ordering changed',
     })], { cwd: tempDir });
 
     const optimization = JSON.parse(failed.stdout).result.optimization;
@@ -554,7 +554,7 @@ describe('xirang verify command', () => {
       status: 'OPTIMIZATION_PROPOSED', mode: 'begin-implementation', findingId: selected.id,
     })], { cwd: tempDir });
     const failed = await runCLI(['verify', 'phase2', 'c1', '--type=verification', '--json', '--input', JSON.stringify({
-      result: 'FAIL_NEEDS_REMEDIATION', findingId: selected.id, issues: [], summary: 'Behavior changed',
+      result: 'FAIL_NEEDS_CORRECTIONS', findingId: selected.id, issues: [], summary: 'Behavior changed',
     })], { cwd: tempDir });
     expect(JSON.parse(failed.stdout).result.optimization.status).toBe('PENDING_VERIFICATION');
 
@@ -729,7 +729,7 @@ describe('xirang verify command', () => {
 
     expect(result.exitCode).toBe(2);
     expect(JSON.parse(result.stdout).errors).toContain(
-      'result must be PASS, PASS_WITH_WARNINGS, or FAIL_NEEDS_REMEDIATION'
+      'result must be PASS, PASS_WITH_WARNINGS, or FAIL_NEEDS_CORRECTIONS'
     );
   });
 
@@ -806,7 +806,7 @@ describe('xirang verify command', () => {
     );
   });
 
-  it('formats verify gate failures with remediation guidance', async () => {
+  it('formats verify gate failures with Required Corrections guidance', async () => {
     await runCLI([
       'verify',
       'phase1',
@@ -898,7 +898,7 @@ describe('xirang verify command', () => {
     })], { cwd: tempDir });
     await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const firstAttempt = true;\n', 'utf-8');
     const firstFailure = await runCLI(['verify', 'phase2', 'c1', '--type=verification', '--json', '--input', JSON.stringify({
-      result: 'FAIL_NEEDS_REMEDIATION', findingId: initial.id, issues: [], summary: 'Ordering changed',
+      result: 'FAIL_NEEDS_CORRECTIONS', findingId: initial.id, issues: [], summary: 'Ordering changed',
     })], { cwd: tempDir });
     const failedFinding = JSON.parse(firstFailure.stdout).result.optimization.findings[0];
     expect(failedFinding.status).toBe('failed');
@@ -917,7 +917,7 @@ describe('xirang verify command', () => {
     })], { cwd: tempDir });
     await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const secondAttempt = true;\n', 'utf-8');
     const exhausted = await runCLI(['verify', 'phase2', 'c1', '--type=verification', '--json', '--input', JSON.stringify({
-      result: 'FAIL_NEEDS_REMEDIATION', findingId: selected.id, issues: [], summary: 'Errors changed',
+      result: 'FAIL_NEEDS_CORRECTIONS', findingId: selected.id, issues: [], summary: 'Errors changed',
     })], { cwd: tempDir });
 
     const optimization = JSON.parse(exhausted.stdout).result.optimization;
@@ -1006,7 +1006,7 @@ describe('xirang verify command', () => {
     await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const changed = true;\n', 'utf-8');
 
     await runCLI(['verify', 'phase2', 'c1', '--type=verification', '--json', '--input', JSON.stringify({
-      result: 'FAIL_NEEDS_REMEDIATION', findingId, issues: [], summary: 'Behavior changed',
+      result: 'FAIL_NEEDS_CORRECTIONS', findingId, issues: [], summary: 'Behavior changed',
     })], { cwd: tempDir });
 
     await runCLI(['verify', 'phase2', 'c1', '--type=optimization', '--json', '--input', JSON.stringify({

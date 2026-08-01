@@ -24,6 +24,6 @@ describe('reviewer summary schema contract', () => {
     const instructions = getReviewerSubagentTemplate().prompt;
 
     expect(instructions).toContain('null');
-    expect(instructions).toContain('append_remediation');
+    expect(instructions).toContain('append_correction');
   });
 });

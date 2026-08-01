@@ -148,7 +148,7 @@ The skill SHALL provide clear feedback about the archive operation.
 The `/xirang:archive` skill SHALL consume prompt projection for archive-time sync guidance and artifact write-back guidance rather than relying on raw config interpretation inside the template body.
 
 #### Scenario: Archive guidance inherits projected authoring constraints
-- **WHEN** the skill explains embedded sync or remediation handling
+- **WHEN** the skill explains embedded sync or Required Corrections handling
 - **THEN** it SHALL use the shared prompt projection contract for prose guidance
 - **AND** SHALL preserve canonical structure and normative tokens unchanged
 

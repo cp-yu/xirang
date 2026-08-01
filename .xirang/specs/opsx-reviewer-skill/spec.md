@@ -61,7 +61,7 @@ Reviewer MUST NOT 把 `git diff` 的内容级输出（hunks、行变更）作为
 #### Scenario: 缺少定位信息
 
 - **WHEN** changeDir 未传入或路径不存在
-- **THEN** reviewer SHALL 返回 FAIL_NEEDS_REMEDIATION 和 CRITICAL issue "Missing required input: changeDir"
+- **THEN** reviewer SHALL 返回 FAIL_NEEDS_CORRECTIONS 和 CRITICAL issue "Missing required input: changeDir"
 - **AND** SHALL 停止，不执行进一步验证
 
 #### Scenario: 首次 verify 无 prior .verify-result.json
@@ -86,7 +86,7 @@ Reviewer MUST NOT 把 `git diff` 的内容级输出（hunks、行变更）作为
 #### Scenario: baseCommit 缺失或无效时关闭验证
 
 - **WHEN** `.apply-isolation.json` 缺少 `baseCommit` 或 Git 无法解析该 SHA
-- **THEN** reviewer SHALL 返回包含 CRITICAL issue 的 `FAIL_NEEDS_REMEDIATION`
+- **THEN** reviewer SHALL 返回包含 CRITICAL issue 的 `FAIL_NEEDS_CORRECTIONS`
 - **AND** SHALL NOT 以可移动 branch ref 猜测证据基线
 
 ### Requirement: 6 步验证协议
@@ -219,7 +219,7 @@ Reviewer MUST NOT 把 `git diff` 的内容级输出（hunks、行变更）作为
 - **AND** 文件仍存在时 SHALL 判定为 CRITICAL 并将该 Check 列入 writeBackPlan
 
 ### Requirement: 结构化输出合约
-`xirang-reviewer` skill SHALL 定义 reviewer MUST 返回的精确 JSON 输出 schema，包含以下字段：result（PASS/PASS_WITH_WARNINGS/FAIL_NEEDS_REMEDIATION）、issues（严重性+需求+任务+摘要+建议+证据引用）、summary（完整性/正确性/一致性/清洁性评分）、writeBackPlan（仅 CRITICAL 时存在）、evidenceFiles、gitDiffSummary。
+`xirang-reviewer` skill SHALL 定义 reviewer MUST 返回的精确 JSON 输出 schema，包含以下字段：result（PASS/PASS_WITH_WARNINGS/FAIL_NEEDS_CORRECTIONS）、issues（严重性+需求+任务+摘要+建议+证据引用）、summary（完整性/正确性/一致性/清洁性评分）、writeBackPlan（仅 CRITICAL 时存在）、evidenceFiles、gitDiffSummary。
 
 summary 对象 SHALL 包含四个维度对象：completeness、correctness、coherence、cleanliness，cleanliness 结构为：
 ```json
@@ -233,7 +233,7 @@ summary 对象 SHALL 包含四个维度对象：completeness、correctness、coh
 }
 ```
 
-`writeBackPlan` 条目 MUST 包含 taskLine、action（unmark/append_remediation）、remediationType（code_fix/artifact_fix）、requirement、summary 和 nextAction。规格外改动发现没有所属 checkbox，其条目的 taskLine SHALL 为 `null` 且 action SHALL 为 `append_remediation`；其余发现的 taskLine SHALL 保持精确 checkbox 文本。
+`writeBackPlan` 条目 MUST 包含 taskLine、action（unmark/append_correction）、correctionType（code_fix/artifact_fix）、requirement、summary 和 nextAction。规格外改动发现没有所属 checkbox，其条目的 taskLine SHALL 为 `null` 且 action SHALL 为 `append_correction`；其余发现的 taskLine SHALL 保持精确 checkbox 文本。
 
 #### Scenario: Reviewer 产出完整评估
 - **WHEN** reviewer 完成验证
@@ -256,8 +256,8 @@ summary 对象 SHALL 包含四个维度对象：completeness、correctness、coh
 
 - **WHEN** reviewer 将某个规格外改动判定为 CRITICAL
 - **THEN** 对应 writeBackPlan 条目的 taskLine SHALL 为 `null`
-- **AND** action SHALL 为 `append_remediation`
-- **AND** remediationType SHALL 为 `artifact_fix`（改动合理、补任务呈现）或 `code_fix`（改动不应存在、revert）
+- **AND** action SHALL 为 `append_correction`
+- **AND** correctionType SHALL 为 `artifact_fix`（改动合理、补任务呈现）或 `code_fix`（改动不应存在、revert）
 
 ### Requirement: 跨工具 skill 路径兼容
 `xirang-reviewer` skill 文件 SHALL 通过 `path.join()` 构建安装路径，确保在 Windows、macOS 和 Linux 上的正确性。Skill 指令中引用的文件路径 SHALL 使用相对 POSIX 路径（正斜杠）。

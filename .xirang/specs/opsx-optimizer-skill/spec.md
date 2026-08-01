@@ -14,7 +14,7 @@ Define the reviewed Agent Review Roles contract for Optimizer 角色与硬约束
 
 Optimizer SHALL 仅对当前 change base scope 内实现文件提出 actionable finding；一层展开文件仅用于理解。若发现 correctness、spec 或 artifact 冲突，SHALL 返回 `blockingObservations` 并停止选择 finding。
 
-#### Scenario: 发现 correctness 缺陷时回到 remediation
+#### Scenario: 发现 correctness 缺陷时回到 Required Corrections
 - **WHEN** optimizer 发现当前实现违反 spec requirement
 - **THEN** SHALL 返回带证据的 `blockingObservations`
 - **AND** SHALL NOT 选择 optimization finding

@@ -1,4 +1,4 @@
-export type VerifyResultStatus = 'PASS' | 'PASS_WITH_WARNINGS' | 'FAIL_NEEDS_REMEDIATION';
+export type VerifyResultStatus = 'PASS' | 'PASS_WITH_WARNINGS' | 'FAIL_NEEDS_CORRECTIONS';
 
 export type OptimizationStatus =
   | 'SKIPPED'

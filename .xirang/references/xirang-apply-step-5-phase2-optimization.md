@@ -14,7 +14,7 @@ Use git commits as checkpoints; never use stash or tags. Phase 0 and Phase 1 cre
    ```bash
    xirang verify phase2 "<change-name>" --type=optimization --input '<json>' --json
    ```
-5. If optimizer returns blockingObservations, return to Phase 1 remediation. If no finding is selected, Phase 2 is terminal. Otherwise read selected finding evidence, keyDesign, preservationConstraints, validation, and priorityReason.
+5. If optimizer returns blockingObservations, return to Phase 1 Required Corrections. If no finding is selected, Phase 2 is terminal. Otherwise read selected finding evidence, keyDesign, preservationConstraints, validation, and priorityReason.
 6. If project evidence contradicts the finding or keyDesign, submit masterChallenge and re-run fresh optimizer reconciliation. Do not skip or reject it yourself.
 7. Before editing, enforce selected-target freshness:
    ```bash
@@ -54,7 +54,7 @@ Phase 1 PASS / PASS_WITH_WARNINGS
   |
   v
 fresh optimizer reconciliation
-  |-- blockingObservations --> Phase 1 remediation
+  |-- blockingObservations --> Phase 1 Required Corrections
   |-- no actionable finding --> NOT_NEEDED or IMPROVED
   |-- selected finding ------> freshness gate -> implemented
                                       |

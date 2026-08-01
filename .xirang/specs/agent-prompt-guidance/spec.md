@@ -50,7 +50,7 @@ Define the reviewed Agent Review Roles contract for 共享 verify gate 指引片
   - `phase2 --type=optimization --files`（OPTIMIZATION_PROPOSED）：`{"status":"OPTIMIZATION_PROPOSED","summary":"..."}`
   - `phase2 --type=optimization`（SKIPPED）：`{"status":"SKIPPED"}`
   - `phase2 --type=verification`（PASS）：`{"result":"PASS","issues":[]}`
-  - `phase2 --type=verification`（FAIL）：`{"result":"FAIL_NEEDS_REMEDIATION","issues":[...],"behaviorRetryCounter":N}`
+  - `phase2 --type=verification`（FAIL）：`{"result":"FAIL_NEEDS_CORRECTIONS","issues":[...],"behaviorRetryCounter":N}`
 
 ### Requirement: Archive 模板 PENDING_VERIFICATION 恢复路径
 

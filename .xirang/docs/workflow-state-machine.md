@@ -15,7 +15,7 @@
 │       │                 │                 │                 │                 │
 │       │          ┌──────┴──────┐    ┌─────┴──────┐    ┌─────┴──────┐          │
 │       │          │ 任务不明确  │    │ FAIL_NEEDS │    │ 无delta   │          │
-│       │          │ 设计问题    │    │ _REMEDIATION│   │ specs     │          │
+│       │          │ 设计问题    │    │ _CORRECTIONS │   │ specs     │          │
 │       │          │ 错误/阻塞   │    │            │    │ 无xirang    │          │
 │       │          │ 用户中断    │    │ 回到APPLY  │    │ delta     │          │
 │       │          └──────┬──────┘    └─────┬──────┘    └───────────┘          │
@@ -35,7 +35,7 @@
    进入条件:                    进入条件:                     进入条件:
    • 用户提供名称/描述           • PROPOSE 完成                • APPLY 完成 (所有任务 [x])
    • 无前置工件要求              • 存在 proposal.md            • tasks.md 存在且有 checkbox
-                                • 存在 design.md             • 或存在 FAIL_NEEDS_REMEDIATION
+                                • 存在 design.md             • 或存在 FAIL_NEEDS_CORRECTIONS
                                 • 存在 tasks.md              • 用户执行 /xirang:verify
                                 • 存在 specs/ (spec-driven)
                                 • 用户执行 /xirang:apply
@@ -301,7 +301,7 @@
                     │  读取 .verify-result.json (如有)     │
                     │  ┌─────────────────────────────┐     │
                     │  │ result = FAIL_NEEDS_         │     │
-                    │  │           REMEDIATION        │     │
+                    │  │           CORRECTIONS         │     │
                     │  │ → 加载 CRITICAL issues       │     │
                     │  │   作为强制修复上下文          │     │
                     │  ├─────────────────────────────┤     │
@@ -315,7 +315,7 @@
                     │  │ → 永不读取/重放              │     │
                     │  │   optimization.attempts      │     │
                     │  ├─────────────────────────────┤     │
-                    │  │ tasks.md 有 ## Remediation   │     │
+                    │  │ tasks.md 有 ## Required Corrections   │     │
                     │  │ → 解析 [code_fix] /          │     │
                     │  │         [artifact_fix]       │     │
                     │  │ → 未检查条目 = 优先级工作    │     │
@@ -382,7 +382,7 @@
             │  │ (tasks.md)   │   │ 任务不明确 → 请求澄清│       │
             │  │ - [ ] [fix]  │   │ 设计问题 → 建议更新  │       │
             │  │  → - [x] [fix]│  │ 错误/阻塞 → 报告等待 │       │
-            │  │ (Remediation)│   │ 用户中断 → 停止处理  │       │
+            │  │ (Required Corrections)│   │ 用户中断 → 停止处理  │       │
             │  └──────┬───────┘   └────────┬───────────┘       │
             │         │                     │                   │
             │   继续循环(6a)           进入 A7 (暂停)            │
@@ -430,7 +430,7 @@
 
 | 条件 | 必须? | 说明 |
 |------|-------|------|
-| 所有 `tasks.md` checkbox 为 `[x]` | ✅ 是 | 包括 Remediation 条目 |
+| 所有 `tasks.md` checkbox 为 `[x]` | ✅ 是 | 包括 Required Corrections 条目 |
 | 无未解决的暂停条件 | ✅ 是 | 或因用户确认跳过 |
 
 ---
@@ -556,7 +556,7 @@
                          ┌─────────────┼─────────────┐
                          │             │             │
                     FAIL_NEEDS_    PASS_WITH_      PASS
-                    REMEDIATION    WARNINGS
+                    CORRECTIONS     WARNINGS
                          │             │             │
                          │             └──────┬──────┘
                          │                    │
@@ -567,7 +567,7 @@
     │  CRITICAL issues only:   │  │  准备 canonical Phase 1  │
     │  • [x] → [ ] 回退task    │  │  payload:                │
     │  • 追加/刷新              │  │  • timestamp             │
-    │    ## Remediation        │  │  • result: PASS/         │
+    │    ## Required Corrections        │  │  • result: PASS/         │
     │    - [ ] [code_fix] ...  │  │    PASS_WITH_WARNINGS    │
     │    - [ ] [artifact_fix]  │  │  • issues[]              │
     │                          │  │  • tasksFileHash         │
@@ -683,7 +683,7 @@
                          ┌─────────────────────┼─────────────────────┐
                          │                     │                     │
                     PASS /               FAIL_NEEDS_           FAIL_NEEDS_
-                    PASS_WITH_WARNINGS   REMEDIATION           REMEDIATION
+                    PASS_WITH_WARNINGS   CORRECTIONS            CORRECTIONS
                          │               (x1, x2)              (x3)
                          │                     │                     │
                          ▼                     ▼                     ▼
@@ -788,7 +788,7 @@
                               (0匹配 或 多匹配)           保留 P1 结果
   behaviorRetry     3         speculative re-verify       终端恢复,
                               失败 (FAIL_NEEDS_           DEGRADED,
-                              REMEDIATION)                result =
+                              CORRECTIONS)                 result =
                                                           PASS_WITH_WARNINGS
 ```
 
@@ -1099,7 +1099,7 @@ SYNC 可以是独立命令，也可以是 ARCHIVE 的内嵌步骤：
                     │  │ 复用 或 重跑后:              │     │
                     │  │                              │     │
                     │  │ result = FAIL_NEEDS_         │     │
-                    │  │           REMEDIATION:       │     │
+                    │  │           CORRECTIONS:        │     │
                     │  │ → HARD-BLOCK archive         │     │
                     │  │ → 展示 CRITICAL issues       │     │
                     │  │ → 指示用户修复 + 重跑        │     │
@@ -1231,7 +1231,7 @@ SYNC 可以是独立命令，也可以是 ARCHIVE 的内嵌步骤：
   .verify-result.json STALE             AR2 freshness 判定        运行 /xirang:verify
   optimization.status =                 AR2 archive               手动恢复 checkpoint
     ABORTED_UNSAFE                      compatibility 检查         或重跑 /xirang:verify
-  result = FAIL_NEEDS_REMEDIATION       AR2 result 检查            修复 CRITICAL issues
+  result = FAIL_NEEDS_CORRECTIONS       AR2 result 检查            修复 CRITICAL issues
                                                                     + /xirang:apply
                                                                     + /xirang:verify
   归档目标已存在                         AR6 路径检查              重命名或删除已有归档
@@ -1280,11 +1280,11 @@ SYNC 可以是独立命令，也可以是 ARCHIVE 的内嵌步骤：
                │    ┌─────────────┼─────────────┐           │
                │    │             │             │           │
                │  PASS /    PASS_WITH_    FAIL_NEEDS_       │
-               │  (PASS)    WARNINGS      REMEDIATION       │
+               │  (PASS)    WARNINGS      CORRECTIONS        │
                │    │             │             │           │
                │    │             │    CRITICAL issues      │
                │    │             │    → tasks.md 回退      │
-               │    │             │    → Remediation 清单   │
+               │    │             │    → Required Corrections 清单   │
                │    │             │             │           │
                │    │             │             └───────────┘
                │    │             │          (回到 APPLY 修复)

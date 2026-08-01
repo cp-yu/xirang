@@ -117,14 +117,14 @@ describe('apply change workflow template', () => {
 
     expect(rules).toHaveLength(9);
     expect(instructions).toContain('Phase 0 implementation — Master executes pending tasks serially');
-    expect(discipline).toContain('unfinished `## Remediation` `[code_fix]` and `[artifact_fix]` items before pending tasks');
+    expect(discipline).toContain('unfinished `## Required Corrections` `[code_fix]` and `[artifact_fix]` items before pending tasks');
     expect(discipline).toContain('Finish every Check in the current task before starting the next; never execute tasks in parallel');
     expect(discipline).toContain('Assess interface testability before writing tests');
     expect(discipline).toContain('Exercise public behavior; mock only injected system boundaries, never internal collaborators');
     expect(discipline).toContain('confirm the expected RED');
     expect(discipline).toContain('rerun the same check for GREEN');
     expect(discipline).toContain('Non-runtime text/artifact Checks do not require an artificial RED');
-    expect(discipline).toContain('Update Check and remediation checkboxes only after their evidence passes');
+    expect(discipline).toContain('Update Check and Required Corrections checkboxes only after their evidence passes');
     expect(discipline).toContain('two consecutive identical normalized errors');
     expect(discipline).toContain('three failed fixes in one task');
     expect(discipline).toContain('deletion, standard library, native platform support, installed dependencies, direct expressions');
@@ -176,7 +176,7 @@ describe('apply change workflow template', () => {
     expect(worktree).toContain('changed file set');
     expect(worktree).toContain('task `Files`');
     expect(worktree).toContain('Check-referenced paths');
-    expect(worktree).toContain('unfinished Remediation paths');
+    expect(worktree).toContain('unfinished Required Corrections paths');
     expect(worktree).toContain('user-confirmed paths');
     expect(worktree).toContain('SHA-256');
     expect(worktree).toContain('`sourceState: "deleted"` and `sourceHash: null`');
@@ -281,11 +281,11 @@ describe('apply change workflow template', () => {
     expect(applyReference('references/apply-step-6-phase3-seal.md')).toContain('xirang verify seal "<change-name>"');
   });
 
-  it('routes seal failure into remediation and recovery in the seal reference', () => {
+  it('routes seal failure into Required Corrections and recovery in the seal reference', () => {
     const reference = applyReference('references/apply-step-6-phase3-seal.md');
 
-    expect(reference).toContain('If seal fails, preserve diagnostics, convert them into remediation context');
-    expect(reference).toContain('map the remediation to the affected task');
+    expect(reference).toContain('If seal fails, preserve diagnostics, convert them into Required Corrections context');
+    expect(reference).toContain('map the corrections to the affected task');
     expect(reference).toContain('return to Phase 0 recovery');
     expect(reference).toContain('Do not pause on the first seal failure');
   });

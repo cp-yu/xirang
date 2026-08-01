@@ -165,7 +165,7 @@ Update command SHALL 报告新检测到的 AI tool directories，并指引用户
 
 #### Scenario: 在 OPSX 项目外运行
 - **WHEN** `.xirang/` directory 不存在
-- **THEN** update SHALL 报告 OPSX project 缺失，并提供 `xirang setup` remediation
+- **THEN** update SHALL 报告 OPSX project 缺失，并提供 `xirang setup` Required Corrections
 - **AND** SHALL 以非零状态退出
 
 ### Requirement: Extra workflows synchronized to the fixed workflow set

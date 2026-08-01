@@ -18,7 +18,7 @@ export const VALIDATION_MESSAGES = {
   // Warnings
   REQUIREMENT_TOO_LONG: `Requirement text is very long (>${MAX_REQUIREMENT_TEXT_LENGTH} characters). Consider breaking it down.`,
   
-  // Guidance snippets (appended to primary messages for remediation)
+  // Guidance snippets (appended to primary messages for required corrections)
   GUIDE_NO_DELTAS:
     'No deltas found. Add Semantic Delta units under elements/, metamodel/, relationships/, or views/. Element Contract entries use ## ADDED/MODIFIED/REMOVED Requirements, and each surviving Requirement includes at least one "#### Scenario:" block. Tip: run "xirang validate --change <change-id> --json" to inspect the Semantic Delta.',
   GUIDE_SCENARIO_FORMAT:

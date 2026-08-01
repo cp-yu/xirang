@@ -14,7 +14,7 @@ import type {
   VerifyResult,
 } from './types.js';
 
-const PHASE1_RESULTS = new Set(['PASS', 'PASS_WITH_WARNINGS', 'FAIL_NEEDS_REMEDIATION']);
+const PHASE1_RESULTS = new Set(['PASS', 'PASS_WITH_WARNINGS', 'FAIL_NEEDS_CORRECTIONS']);
 const OPTIMIZATION_INPUT_STATUSES = new Set([
   'NO_OPTIMIZATION_NEEDED',
   'OPTIMIZATION_PROPOSED',
@@ -69,7 +69,7 @@ export function validatePhase1Input(input: unknown): ValidationResult<Phase1Inpu
   }
 
   if (!PHASE1_RESULTS.has(String(input.result))) {
-    errors.push('result must be PASS, PASS_WITH_WARNINGS, or FAIL_NEEDS_REMEDIATION');
+    errors.push('result must be PASS, PASS_WITH_WARNINGS, or FAIL_NEEDS_CORRECTIONS');
   }
   if (!Array.isArray(input.issues)) {
     errors.push('issues must be an array');
@@ -187,7 +187,7 @@ export function validateVerifyResult(result: unknown): ValidationResult<VerifyRe
     errors.push('timestamp must be a non-empty string');
   }
   if (!PHASE1_RESULTS.has(String(result.result))) {
-    errors.push('result must be PASS, PASS_WITH_WARNINGS, or FAIL_NEEDS_REMEDIATION');
+    errors.push('result must be PASS, PASS_WITH_WARNINGS, or FAIL_NEEDS_CORRECTIONS');
   }
   if (!Array.isArray(result.issues)) {
     errors.push('issues must be an array');
@@ -334,7 +334,7 @@ function validateVerificationInput(input: unknown): ValidationResult<Phase2Verif
     return { valid: false, errors: ['input must be a JSON object'] };
   }
   if (!PHASE1_RESULTS.has(String(input.result))) {
-    errors.push('result must be PASS, PASS_WITH_WARNINGS, or FAIL_NEEDS_REMEDIATION');
+    errors.push('result must be PASS, PASS_WITH_WARNINGS, or FAIL_NEEDS_CORRECTIONS');
   }
   if (input.issues !== undefined) {
     if (!Array.isArray(input.issues)) {

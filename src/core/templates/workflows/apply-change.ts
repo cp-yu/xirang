@@ -20,7 +20,7 @@ const APPLY_STEP_1_PREPARATION_REFERENCE = `
 2. Run \`xirang status --change "<name>" --json\` and \`xirang instructions apply --change "<name>" --json\`. Read \`configProjection.prompt.fragments\` for \`proseLanguage\` and \`apply.defaultIsolation\`. Handle \`state: "needs_verify"\` by continuing at Phase 1 and \`state: "needs_seal"\` by continuing at Phase 2/3.
 3. Load the shared Xirang Semantic Model context before reading change artifacts.
 ${XIRANG_SHARED_CONTEXT}
-4. Read every context file listed by the CLI. Inspect \`changeDir/.verify-result.json\` and \`## Remediation\`; unresolved CRITICAL/code_fix/artifact_fix items take priority.
+4. Read every context file listed by the CLI. Inspect \`changeDir/.verify-result.json\` and \`## Required Corrections\`; unresolved CRITICAL/code_fix/artifact_fix items take priority.
 5. Use the shared query protocol to read affected elements, refinement, Element Contracts, and relationships.
 6. In a Git repository, run \`git branch --show-current\`, \`git rev-parse HEAD\`, and \`git status --short\`. Select branch, worktree, or current-branch isolation from explicit user input or \`apply.defaultIsolation\`; only \`ask\` prompts when no method was selected. If the provisional method is branch or current branch and the initial workspace is dirty, treat \`.xirang/changes/<name>/\` files as the Change itself: always baseline, never gate. Ask only about remaining dirty files: worktree isolation, include in baseline, or stop. Never alter that state automatically.
 7. Record the selected method for Step 3. Do not read the selected reference during Preparation. At Step 3, read exactly one matching reference:
@@ -61,7 +61,7 @@ const APPLY_STEP_3_WORKTREE_ISOLATION_REFERENCE = `
 Use this reference only after Step 1 selects worktree isolation. Use native Git; do not delegate worktree creation to another skill.
 
 1. Record \`originalBranch\`, resolve the current \`HEAD\` SHA as the immutable evidence baseline \`baseCommit\`, and create a clean worktree from the current \`HEAD\`, normally with \`git worktree add .worktrees/<change-name> -b <change-name> HEAD\`. Existing dirty files are not carried implicitly.
-2. Build the changed file set from all files under \`.xirang/changes/<name>/\`, every task \`Files\` path, Check-referenced paths, unfinished Remediation paths, and user-confirmed paths. Do not infer ownership or add unrelated dirty files.
+2. Build the changed file set from all files under \`.xirang/changes/<name>/\`, every task \`Files\` path, Check-referenced paths, unfinished Required Corrections paths, and user-confirmed paths. Do not infer ownership or add unrelated dirty files.
 3. If one file appears to mix this change with unrelated edits, do not split or infer hunks. Ask the user to include the entire file, split it manually and retry, or abandon worktree isolation. Treat binary files as entire-file units.
 4. Reproduce the final state of each changed file set entry in the worktree: copy modified and added files, and reproduce deletions. The transfer does not preserve staged versus unstaged status.
 5. Compare source and target file state and SHA-256 for every present transferred entry. Represent a deleted final state as \`sourceState: "deleted"\` and \`sourceHash: null\`; never invent a hash for absent bytes. In the worktree, rerun status, apply instructions, and the targeted validation named by the affected Checks. Stop on any mismatch or validation failure.
@@ -88,7 +88,7 @@ const APPLY_STEP_4_PHASE1_VERIFICATION_REFERENCE = `
 2. Validate the reviewer payload against the Phase 1 input contract. Reject malformed or incomplete payloads rather than repairing them by inference.
 3. Apply only CRITICAL \`writeBackPlan\` entries to \`tasks.md\`; do not write back WARNING or SUGGESTION items.
 4. After writeback completes, persist the validated reviewer payload with \`xirang verify phase1 "<change-name>" --input '<json>' --json\`. This ordering ensures the CLI records \`tasksFileHash\` from the final written tasks file.
-5. On FAIL_NEEDS_REMEDIATION, return to Phase 0. On PASS or PASS_WITH_WARNINGS, continue to Phase 2.
+5. On FAIL_NEEDS_CORRECTIONS, return to Phase 0. On PASS or PASS_WITH_WARNINGS, continue to Phase 2.
 `.trim();
 
 const APPLY_STEP_5_PHASE2_OPTIMIZATION_REFERENCE = `
@@ -108,7 +108,7 @@ Use git commits as checkpoints; never use stash or tags. Phase 0 and Phase 1 cre
    \`\`\`bash
    xirang verify phase2 "<change-name>" --type=optimization --input '<json>' --json
    \`\`\`
-5. If optimizer returns blockingObservations, return to Phase 1 remediation. If no finding is selected, Phase 2 is terminal. Otherwise read selected finding evidence, keyDesign, preservationConstraints, validation, and priorityReason.
+5. If optimizer returns blockingObservations, return to Phase 1 Required Corrections. If no finding is selected, Phase 2 is terminal. Otherwise read selected finding evidence, keyDesign, preservationConstraints, validation, and priorityReason.
 6. If project evidence contradicts the finding or keyDesign, submit masterChallenge and re-run fresh optimizer reconciliation. Do not skip or reject it yourself.
 7. Before editing, enforce selected-target freshness:
    \`\`\`bash
@@ -135,7 +135,7 @@ ${VERIFY_STATE_MACHINE_DIAGRAM}
 const APPLY_STEP_6_PHASE3_SEAL_REFERENCE = `
 # Apply Step 6: Phase 3 Seal
 
-Run \`xirang verify seal "<change-name>" --json\`. If seal fails, preserve diagnostics, convert them into remediation context, map the remediation to the affected task, and return to Phase 0 recovery. Do not pause on the first seal failure.
+Run \`xirang verify seal "<change-name>" --json\`. If seal fails, preserve diagnostics, convert them into Required Corrections context, map the corrections to the affected task, and return to Phase 0 recovery. Do not pause on the first seal failure.
 `.trim();
 
 const APPLY_STEP_7_OUTPUT_REFERENCE = `
@@ -168,13 +168,13 @@ For workflow-managed writes, read the resolved file definition before its instru
 ## Implementation Discipline
 
 - Before implementation, run \`xirang arch query <identity> --relations --depth 2 --contract --json\`, then read the returned Element Contract and current code.
-- Process unfinished \`## Remediation\` \`[code_fix]\` and \`[artifact_fix]\` items before pending tasks. Finish every Check in the current task before starting the next; never execute tasks in parallel.
+- Process unfinished \`## Required Corrections\` \`[code_fix]\` and \`[artifact_fix]\` items before pending tasks. Finish every Check in the current task before starting the next; never execute tasks in parallel.
 - Assess interface testability before writing tests for each behavior/code Check: inject external dependencies, prefer returned results over hidden side effects, and keep the public interface minimal.
 - Write or update a targeted test first. Exercise public behavior; mock only injected system boundaries, never internal collaborators.
 - Run the declared or equivalent targeted command and confirm the expected RED before implementation; make the minimal fix, then rerun the same check for GREEN.
 - Non-runtime text/artifact Checks do not require an artificial RED; run their declared command or inspect \`Evidence:\` and \`Expect:\` for final proof.
 - Prefer deletion, standard library, native platform support, installed dependencies, direct expressions, then minimal new code. Add no abstraction, dependency, or file unless required.
-- Update Check and remediation checkboxes only after their evidence passes. Preserve canonical headings, schema keys, IDs, commands, template tokens, and document-language projection.
+- Update Check and Required Corrections checkboxes only after their evidence passes. Preserve canonical headings, schema keys, IDs, commands, template tokens, and document-language projection.
 - For unexpected failures, read the full error, classify the layer, compare a working pattern, state one hypothesis, change one variable, and rerun the same check. Pause after two consecutive identical normalized errors or three failed fixes in one task.
 
 When Phase 3 seal passes, end with an explicit call-to-action: \`Archive ready. Run /xirang:archive <change-name> to complete the workflow.\``,

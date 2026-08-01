@@ -141,7 +141,7 @@ async function verifyPhase1(changeName: string, options: VerifyCommandOptions): 
   }
 
   await writeVerifyResult(changeDir, result);
-  const nextStep = result.result === 'FAIL_NEEDS_REMEDIATION'
+  const nextStep = result.result === 'FAIL_NEEDS_CORRECTIONS'
     ? 'Fix CRITICAL issues'
     : 'Enter Phase 2';
   writeOutput(options, { ok: true, nextStep, result }, nextStep);
@@ -334,14 +334,14 @@ async function handleFindingReconciliation(
 ): Promise<number> {
   const envelope = input.envelope as OptimizationEnvelope;
   if (envelope.blockingObservations.length > 0) {
-    current.result = 'FAIL_NEEDS_REMEDIATION';
+    current.result = 'FAIL_NEEDS_CORRECTIONS';
     current.issues.push(...envelope.blockingObservations.map((observation) => ({
       severity: 'CRITICAL',
       message: observation.issue,
       evidence: [observation.location, ...observation.evidence],
     })));
     await writeVerifyResult(changeDir, current);
-    writeOutput(options, { ok: false, reason: 'BLOCKING_OBSERVATIONS', result: current }, 'Optimizer found correctness or artifact conflicts. Return to Phase 1 remediation');
+    writeOutput(options, { ok: false, reason: 'BLOCKING_OBSERVATIONS', result: current }, 'Optimizer found correctness or artifact conflicts. Return to Phase 1 Required Corrections');
     return 1;
   }
 

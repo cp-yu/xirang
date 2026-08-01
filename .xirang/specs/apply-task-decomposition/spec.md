@@ -35,7 +35,7 @@ Subagent 委托 SHALL 使用 "delegate to the clean-context `xirang-reviewer` ag
 
 ### Requirement: Checks 是任务进度源
 
-系统 SHALL 使用 `tasks.md` 的 Checks 和 Remediation 记录 apply Phase 0 的进度与恢复工作。
+系统 SHALL 使用 `tasks.md` 的 Checks 和 Required Corrections 记录 apply Phase 0 的进度与恢复工作。
 
 #### Scenario: 完成 Check 后勾选
 
@@ -43,9 +43,9 @@ Subagent 委托 SHALL 使用 "delegate to the clean-context `xirang-reviewer` ag
 - **THEN** 系统在 `tasks.md` 中勾选对应 Check
 - **AND** 系统 SHALL NOT 在缺少完成证据时勾选
 
-#### Scenario: remediation 优先
+#### Scenario: Required Corrections 优先
 
-- **WHEN** `tasks.md` 包含未完成的 `## Remediation` 项
+- **WHEN** `tasks.md` 包含未完成的 `## Required Corrections` 项
 - **THEN** 系统优先处理相关 `[code_fix]` 或 `[artifact_fix]`
 - **AND** 系统在证据通过后勾选已解决项
 
@@ -79,7 +79,7 @@ Subagent 委托 SHALL 使用 "delegate to the clean-context `xirang-reviewer` ag
 #### Scenario: 同一错误重复失败快速暂停
 - **WHEN** 同一 task 的同一 normalized error signature 连续失败 2 次
 - **THEN** 系统 SHALL pause
-- **AND** pause 输出 SHALL 包含 task、check、command、failure kind、error summary 与已尝试 remediation
+- **AND** pause 输出 SHALL 包含 task、check、command、failure kind、error summary 与已尝试修正事项
 
 #### Scenario: 累计修复次数达到上限
 - **WHEN** 同一 task 累计 3 次修复仍未解决

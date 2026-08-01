@@ -35,6 +35,6 @@ New change、project config、change metadata 与 workflow CLI SHALL 保留 Sche
 
 #### Scenario: Bootstrap binding 被拒绝
 - **WHEN** config 或 change metadata 引用 `bootstrap`
-- **THEN** workflow context SHALL fail fast 并提供 `spec-driven` remediation
+- **THEN** workflow context SHALL fail fast 并提供 `spec-driven` Required Corrections
 - **AND** MUST NOT 静默改写磁盘文件或加载退役 schema
 

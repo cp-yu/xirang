@@ -156,7 +156,7 @@ Phase 1 PASS / PASS_WITH_WARNINGS
   |
   v
 fresh optimizer reconciliation
-  |-- blockingObservations --> Phase 1 remediation
+  |-- blockingObservations --> Phase 1 Required Corrections
   |-- no actionable finding --> NOT_NEEDED or IMPROVED
   |-- selected finding ------> freshness gate -> implemented
                                       |

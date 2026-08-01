@@ -5,9 +5,9 @@ element: cap.cli.validate
 # cli-validate Specification
 
 ## Purpose
-Define `xirang validate` behavior for validating changes and specs with actionable remediation guidance and structured output.
+Define `xirang validate` behavior for validating changes and specs with actionable Required Corrections guidance and structured output.
 ## Requirements
-### Requirement: Validation SHALL provide actionable remediation steps
+### Requirement: Validation SHALL provide actionable Required Corrections
 
 校验输出 SHALL 为每个错误提供可执行修复指引，包括期望结构、示例标题与建议命令。Requirement 正文校验 SHALL 基于完整 requirement body；change validation SHALL 只接受 `ADDED`、`MODIFIED`、`REMOVED` Requirement sections。
 
@@ -65,7 +65,7 @@ Error, warning, and info messages SHALL include:
 
 #### Scenario: Zod validation error
 - **WHEN** a schema validation fails
-- **THEN** the message SHALL include `file`, `path`, and a remediation hint if applicable
+- **THEN** the message SHALL include `file`, `path`, and a Required Corrections hint if applicable
 
 ### Requirement: Invalid results SHALL include a Next steps footer in human-readable output
 The CLI SHALL append a Next steps footer when the item is invalid and not using `--json`, including:
