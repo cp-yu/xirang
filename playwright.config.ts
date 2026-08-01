@@ -17,12 +17,12 @@ export default defineConfig({
   projects: [
     {
       name: 'desktop',
-      grep: /browses Element Contracts|opens an Authored View|keeps View source|browses Model View|expands in place/,
+      grep: /browses Element Contracts|opens an Authored View|keeps View source|browses Model View|handles ADDED projection|expands in place/,
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'mobile',
-      grep: /mobile Contract dialog|browses Model View/,
+      grep: /mobile Contract dialog|browses Model View|handles ADDED projection/,
       use: { ...devices['Pixel 7'] },
     },
   ],

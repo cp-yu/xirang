@@ -45,7 +45,10 @@ test('browses Model View through nested focus and history', async ({ page }) => 
   await expect(page.locator('.react-flow__edge')).not.toHaveCount(0)
   const relationship = page.getByRole('group', { name: /Relationship from Leaf Capability to Peer Capability/ })
   await relationship.click()
-  await expect(page.locator('[data-xirang-relationship-details]')).toContainText('capability.leaf|invokes|capability.peer')
+  const relationshipDetails = page.locator('[data-xirang-relationship-details]')
+  await expect(relationshipDetails).toContainText('capability.leaf|invokes|capability.peer')
+  await relationshipDetails.getByRole('button').click()
+  await expect(relationshipDetails).not.toBeVisible()
   await leaf.click()
   const openDetails = leaf.getByRole('button', { name: 'Open details' })
   await expect(openDetails).not.toHaveAttribute('inert', '')
@@ -62,6 +65,95 @@ test('browses Model View through nested focus and history', async ({ page }) => 
   await expect(branch).toBeVisible()
   await page.locator('[data-navigation-back]').click()
   await expect(perspective).toBeVisible()
+})
+
+test('handles ADDED projection interactions and split diffs', async ({ page }) => {
+  await page.getByRole('button', { name: 'Untitled View' }).click()
+  await page.locator('[data-likec4-breadcrumbs-dropdown]')
+    .getByLabel('View source')
+    .selectOption('change:browser-change')
+
+  const manifest = await page.request.get('/__xirang/changes')
+  expect(manifest.ok()).toBe(true)
+  expect((await manifest.json()).changes['browser-change'].diff.entries).toEqual(expect.arrayContaining([
+    expect.objectContaining({
+      kind: 'element-declaration',
+      identity: 'capability.added-parent',
+      operation: 'ADDED',
+    }),
+  ]))
+  const injected = await page.evaluate(() => (globalThis as typeof globalThis & {
+    __OPSX_RUNTIME__?: { changes?: Record<string, { diff?: { entries?: unknown[] } }> }
+  }).__OPSX_RUNTIME__)
+  expect(injected?.changes?.['browser-change']?.diff?.entries).toEqual(expect.arrayContaining([
+    expect.objectContaining({
+      kind: 'element-declaration',
+      identity: 'capability.added-parent',
+      operation: 'ADDED',
+    }),
+  ]))
+  let parent = page.locator('.react-flow__node[data-id="capability.added-parent"]')
+  const child = page.locator('.react-flow__node[data-id="capability.added-child"]')
+  await expect(parent).toBeVisible()
+  await expect(parent).toHaveAttribute('data-xirang-operation', 'ADDED')
+  await expect(child).toHaveCount(0)
+
+  await parent.click()
+  await page.waitForTimeout(600)
+  const expand = parent.getByRole('button', { name: 'Expand children' })
+  await expect(expand).not.toHaveAttribute('inert', '')
+  await expand.click()
+  await expect(child).toBeVisible()
+  await page.screenshot({ path: test.info().outputPath('added-parent-expanded.png'), fullPage: true })
+  await page.waitForTimeout(600)
+
+  parent = page.locator('.react-flow__node[data-id="capability.added-parent"]')
+  const collapse = parent.getByRole('button', { name: 'Collapse children' })
+  await expect(collapse).not.toHaveAttribute('inert', '')
+  await collapse.click()
+  await expect(child).toHaveCount(0)
+  await page.waitForTimeout(600)
+
+  parent = page.locator('.react-flow__node[data-id="capability.added-parent"]')
+  if (test.info().project.name === 'mobile') {
+    const openDetails = parent.getByRole('button', { name: 'Open details' })
+    await expect(openDetails).not.toHaveAttribute('inert', '')
+    await openDetails.click()
+  } else {
+    await parent.dblclick()
+  }
+  const dialog = page.locator('dialog[open]')
+  await expect(dialog).toBeVisible()
+  await expect(dialog).toContainText('Added Parent Capability')
+  await expect(dialog.getByRole('tab', { name: 'Properties' })).toBeVisible()
+  await expect(dialog.getByRole('tab', { name: 'Contracts' })).toBeVisible()
+  await expect(dialog.getByRole('tab', { name: 'Diff' })).toBeVisible()
+  await expect(dialog.getByRole('tab', { name: 'Relationships' })).toHaveCount(0)
+  await expect(dialog.getByRole('tab', { name: 'Structure' })).toHaveCount(0)
+  await expect(dialog.getByRole('tab', { name: 'Deployments' })).toHaveCount(0)
+
+  await dialog.getByRole('tab', { name: 'Diff' }).click()
+  const splitDiff = dialog.locator('[data-xirang-split-diff]').first()
+  await expect(splitDiff).toContainText('Before')
+  await expect(splitDiff).toContainText('After')
+  await expect(dialog.locator('[data-xirang-diff-tab]')).toContainText('Added Parent Capability')
+  expect(await dialog.locator('[data-xirang-diff-tab]').evaluate(element => getComputedStyle(element).overflowY)).toBe('auto')
+  await expect(splitDiff.locator('tbody tr')).not.toHaveCount(0)
+  expect(await splitDiff.locator('colgroup col').count()).toBe(6)
+  if (test.info().project.name === 'mobile') {
+    await splitDiff.evaluate((element) => {
+      element.scrollLeft = element.scrollWidth
+    })
+    expect(await splitDiff.evaluate(element => element.scrollLeft)).toBeGreaterThan(0)
+  }
+  await page.screenshot({ path: test.info().outputPath('added-details-diff.png'), fullPage: true })
+  const lastContractLine = dialog.locator('ins').filter({ hasText: 'The added parent SHALL keep later' }).last()
+  await lastContractLine.scrollIntoViewIfNeeded()
+  await expect(lastContractLine).toBeInViewport()
+  await page.screenshot({ path: test.info().outputPath('added-details-diff-scrolled.png'), fullPage: true })
+
+  await dialog.getByRole('button', { name: 'Close element details' }).click()
+  await expect(dialog).toHaveCount(0)
 })
 
 test('expands in place with ctrl+click and collapses with Shift+0', async ({ page }) => {
