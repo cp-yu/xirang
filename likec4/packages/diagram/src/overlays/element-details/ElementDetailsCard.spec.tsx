@@ -3,7 +3,25 @@ import { MantineProvider } from '@mantine/core'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import type { XirangViewSource } from '../../xirang/ContractLoaderContext'
-import { ElementDefinitionProperties } from './ElementDetailsCard'
+import { ElementDefinitionProperties, visibleElementDetailTabs } from './ElementDetailsCard'
+
+describe('visibleElementDetailTabs', () => {
+  it('keeps ADDED elements on Xirang-backed tabs only', () => {
+    expect(visibleElementDetailTabs({
+      isAddedElement: true,
+      hasContract: true,
+      hasDiff: true,
+    })).toEqual(['Properties', 'Contracts', 'Diff'])
+  })
+
+  it('retains the standard LikeC4 tabs for model-backed elements', () => {
+    expect(visibleElementDetailTabs({
+      isAddedElement: false,
+      hasContract: false,
+      hasDiff: false,
+    })).toEqual(['Properties', 'Relationships', 'Views', 'Structure', 'Deployments'])
+  })
+})
 
 describe('ElementDefinitionProperties', () => {
   it('renders declaration fields from the selected Change architecture', () => {
