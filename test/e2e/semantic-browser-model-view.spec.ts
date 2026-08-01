@@ -1,4 +1,21 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
+
+async function assertDiffViewerLayout(viewer: Locator): Promise<void> {
+  const table = viewer.locator('table').first()
+  const metrics = await table.evaluate(element => {
+    const container = element.parentElement
+    const rect = element.getBoundingClientRect()
+    return {
+      minWidth: getComputedStyle(element).minWidth,
+      width: rect.width,
+      containerWidth: container?.getBoundingClientRect().width ?? 0,
+    }
+  })
+  expect(metrics.minWidth).not.toBe('1000px')
+  expect(metrics.width).toBeLessThanOrEqual(metrics.containerWidth + 1)
+  await expect(viewer.locator('pre').filter({ hasText: 'Before' }).first()).toHaveCSS('margin', '0px')
+  await expect(viewer.locator('pre').filter({ hasText: 'After' }).first()).toHaveCSS('margin', '0px')
+}
 
 async function expectVisibleNodesDoNotOverlap(page: Page): Promise<void> {
   const boxes = await page.locator('.react-flow__node:visible').evaluateAll(nodes => nodes.map(node => {
@@ -140,6 +157,7 @@ test('handles ADDED projection interactions and split diffs', async ({ page }) =
   expect(await dialog.locator('[data-xirang-diff-tab]').evaluate(element => getComputedStyle(element).overflowY)).toBe('auto')
   await expect(splitDiff.locator('tbody tr')).not.toHaveCount(0)
   expect(await splitDiff.locator('colgroup col').count()).toBe(6)
+  await assertDiffViewerLayout(splitDiff)
   if (test.info().project.name === 'mobile') {
     await splitDiff.evaluate((element) => {
       element.scrollLeft = element.scrollWidth
@@ -154,6 +172,14 @@ test('handles ADDED projection interactions and split diffs', async ({ page }) =
 
   await dialog.getByRole('button', { name: 'Close element details' }).click()
   await expect(dialog).toHaveCount(0)
+
+  await page.getByRole('button', { name: '+ element-kind test-component' }).click()
+  const metamodelDialog = page.locator('[role="dialog"]:visible')
+  const metamodelDiff = metamodelDialog.locator('[data-xirang-split-diff]').first()
+  await expect(metamodelDiff).toBeVisible()
+  await assertDiffViewerLayout(metamodelDiff)
+  await metamodelDialog.press('Escape')
+  await expect(metamodelDialog).not.toBeVisible()
 })
 
 test('expands in place with ctrl+click and collapses with Shift+0', async ({ page }) => {

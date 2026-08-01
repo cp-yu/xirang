@@ -33,10 +33,19 @@ export function XirangDiffViewer({
           disableWorker
           useDarkTheme={colorScheme === 'dark'}
           styles={{
-            diffContainer: { fontSize: 11 },
+            diffContainer: {
+              fontSize: 11,
+              minWidth: '100%',
+              width: '100%',
+            },
             contentText: { fontFamily: 'monospace', lineHeight: 1.5 },
             line: { minHeight: 20 },
-            titleBlock: { padding: '6px 8px', fontSize: 11, fontWeight: 600 },
+            titleBlock: {
+              padding: '6px 8px',
+              fontSize: 11,
+              fontWeight: 600,
+              pre: { margin: 0 },
+            },
           }}
         />
       </Box>
