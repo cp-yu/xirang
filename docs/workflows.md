@@ -1,6 +1,6 @@
 # Workflows
 
-Xirang exposes six managed workflows over one Semantic Model: versioned LikeC4 graph modules plus element-owned Markdown contract modules.
+Xirang exposes six managed workflows over one Semantic Model: the four partitions under `.xirang/model/` (`metamodel/`, `elements/`, `relationships/`, `views/`).
 
 ## Current Surface
 

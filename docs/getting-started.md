@@ -12,7 +12,7 @@ Xirang helps you and your AI coding assistant agree on what to build before any 
 /xirang:propose ──► /xirang:apply ──► /xirang:archive
 ```
 
-Xirang installs a fixed managed workflow surface. `/xirang:archive` syncs the graph and contract modules of one Semantic Delta into the formal Xirang Semantic Model before archiving, and it runs a full verify gate before archive.
+Xirang installs a fixed managed workflow surface. `/xirang:archive` syncs one Semantic Delta into the formal Xirang Semantic Model before archiving, and it runs a full verify gate before archive.
 
 ## What Xirang Creates
 
@@ -20,20 +20,20 @@ After running `xirang setup`, your project has a minimal formal skeleton. Projec
 
 ```
 .xirang/
-├── architecture/       # Versioned graph modules and Project Root
-│   ├── specification.c4
-│   ├── model.c4
-│   ├── relations.c4
-│   └── views.c4
-├── specs/              # Element-owned contract modules
-│   └── <spec-id>/spec.md
+├── model/              # The formal Semantic Model
+│   ├── metamodel/      # Element and relationship kinds
+│   ├── elements/       # Element Declarations with their Contracts
+│   ├── relationships/  # Typed semantic relationships
+│   └── views/          # Authored views
 ├── changes/            # Proposed Semantic Deltas
 │   └── <change-name>/
 │       ├── proposal.md
 │       ├── design.md
 │       ├── tasks.md
-│       ├── architecture-delta.c4
-│       └── specs/<spec-id>/spec.md
+│       ├── metamodel/
+│       ├── elements/
+│       ├── relationships/
+│       └── views/
 ├── candidate/          # Optional active Project Build Candidate
 ├── history/            # Promotion and retired-workspace audit evidence
 └── config.yaml         # Project configuration
@@ -41,11 +41,11 @@ After running `xirang setup`, your project has a minimal formal skeleton. Projec
 
 **Three key directories:**
 
-- **`architecture/`** - The graph modules of the Xirang Semantic Model: Project Root, stable elements, refinement, semantic relationships, metamodel, and views.
+- **`model/`** - The four-partition Semantic Model: `metamodel/` (Element and Relationship Kinds), `elements/` (Element Declarations and their Contracts), `relationships/`, and `views/`. Each Markdown unit declares its `entity` and stable `identity` in frontmatter; file positions are organizational only.
 
-- **`specs/`** - Element-owned contract modules. Each v1 Spec uses singular `element: <elementId>` frontmatter; one element may own multiple Specs.
+- **`changes/`** - Proposed Semantic Deltas. Each change mirrors the four partitions under `.xirang/changes/<name>/` with `ADDED`/`MODIFIED`/`REMOVED` operations. Combined validation constructs the Expected Semantic Model before sync/archive.
 
-- **`changes/`** - Proposed graph and contract deltas. Combined validation constructs the Target Semantic Model before sync/archive.
+- **`candidate/`** - Optional active Project Build Candidate that can be promoted atomically into the Semantic Model.
 
 ## Understanding Artifacts
 
@@ -54,28 +54,28 @@ Each change folder contains artifacts that guide the work:
 | Artifact | Purpose |
 |----------|---------|
 | `proposal.md` | The "why" and "what" - captures intent, scope, and approach |
-| `specs/` | Delta specs showing ADDED/MODIFIED/REMOVED requirements |
+| `metamodel/`, `elements/`, `relationships/`, `views/` | Semantic Delta units showing ADDED/MODIFIED/REMOVED operations |
 | `design.md` | The "how" - technical approach and architecture decisions |
 | `tasks.md` | Implementation checklist with checkboxes |
 
 **Artifacts build on each other:**
 
 ```
-proposal ──► specs ──► design ──► tasks ──► implement
-   ▲           ▲          ▲                    │
-   └───────────┴──────────┴────────────────────┘
+proposal ──► delta ──► design ──► tasks ──► implement
+   ▲          ▲          ▲                    │
+   └──────────┴──────────┴────────────────────┘
             update as you learn
 ```
 
 You can always go back and refine earlier artifacts as you learn more during implementation.
 
-## How Delta Specs Work
+## How Semantic Delta Units Work
 
-Delta specs are the key concept in Xirang. They show what's changing relative to your current specs.
+Semantic Delta units are the key concept in Xirang. They show what's changing relative to your current Semantic Model.
 
 ### The Format
 
-Delta specs use sections to indicate the type of change:
+Delta units use `## ADDED/MODIFIED/REMOVED Requirements` sections to indicate the type of change:
 
 ```markdown
 # Delta for Auth
@@ -111,9 +111,9 @@ The system SHALL expire sessions after 30 minutes of inactivity.
 
 When you archive a change:
 
-1. **ADDED** requirements are appended to the main spec
+1. **ADDED** requirements are appended to the Element Contract
 2. **MODIFIED** requirements replace the existing version
-3. **REMOVED** requirements are deleted from the main spec
+3. **REMOVED** requirements are deleted from the Contract
 
 The change folder moves to `.xirang/changes/archive/` for audit history.
 
@@ -224,12 +224,12 @@ You: /xirang:archive
 AI:  Archiving add-dark-mode...
      ✓ No fresh verify result found, running full verify
      ✓ Full verify passed
-     ✓ Merged specs into .xirang/specs/ui/spec.md
+     ✓ Synced Semantic Delta into .xirang/model/
      ✓ Moved to .xirang/changes/archive/2025-01-24-add-dark-mode/
      Done! Ready for the next feature.
 ```
 
-Your delta specs are now part of the main specs, documenting how your system works.
+Your Semantic Delta is now part of the Semantic Model, documenting how your system works.
 
 ## Verifying and Reviewing
 
@@ -242,7 +242,7 @@ xirang list
 # View change details
 xirang show add-dark-mode
 
-# Validate spec formatting
+# Validate the Semantic Delta and Expected Semantic Model
 xirang validate add-dark-mode
 
 # Local Architecture and Specs browser

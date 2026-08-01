@@ -459,7 +459,7 @@ Progress: 2/4 artifacts complete
   "artifacts": [
     {"id": "proposal", "outputPath": "proposal.md", "status": "done"},
     {"id": "design", "outputPath": "design.md", "status": "ready"},
-    {"id": "specs", "outputPath": "specs/**/*.md", "status": "done"},
+    {"id": "specs", "outputPath": "{elements,metamodel,relationships,views}/**/*", "status": "done"},
     {"id": "tasks", "outputPath": "tasks.md", "status": "blocked", "missingDeps": ["design"]}
   ]
 }

@@ -7,7 +7,7 @@ Xirang exposes managed workflows as skills. It does not generate a parallel slas
 | Skill | Purpose |
 |---|---|
 | `/xirang:explore` | Investigate requirements without modifying code or artifacts |
-| `/xirang:propose` | Create proposal, design, tasks, delta Specs, and architecture delta when required |
+| `/xirang:propose` | Create proposal, design, tasks, and the four-partition Semantic Delta when required |
 | `/xirang:apply` | Implement an approved change with TDD and evidence-backed checks |
 | `/xirang:archive` | Verify, sync, and archive a completed change |
 | `/xirang:build` | Build a versioned Semantic Model candidate from repository evidence |
@@ -28,19 +28,19 @@ Discovers the nearest `.xirang/`, starts the vendored LikeC4 engine, and serves 
 ### Query
 
 ```bash
-xirang arch query <element-id> [--relations] [--depth <n>] [--json]
+xirang arch query <identity> [--relations] [--depth <n>] [--contract] [--json]
 ```
 
-Queries any Semantic Model element by stable `elementId` or current LikeC4 FQN. Output identity is canonicalized to `elementId`.
+Queries any Semantic Model element by stable `identity`. LikeC4 FQNs are derived generation artifacts and never address the persistent source; use `xirang arch search` to find an identity first.
 
 ### Validate
 
 ```bash
 xirang arch validate [--json]
-xirang arch validate --delta <architecture-delta.c4> [--json]
+xirang arch validate --change <name> [--json]
 ```
 
-Validates the formal Semantic Model graph or a change-local graph delta. Use `xirang validate --change <name> --json` for combined graph and contract validation.
+Validates the formal Semantic Model under `.xirang/model/`, or the Expected Semantic Model of an active change with `--change`. Use `xirang validate --change <name> --json` for combined Delta and model validation.
 
 ### Export
 
