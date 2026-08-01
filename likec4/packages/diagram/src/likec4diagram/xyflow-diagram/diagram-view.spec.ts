@@ -75,6 +75,39 @@ function testView(nodes: DiagramNode[], edges: DiagramEdge[]): TestView {
   }
 }
 
+describe('diagramToXY Xirang projection data', () => {
+  it('projects ADDED metadata to node data and observable DOM attributes', () => {
+    const added = testNode('test-entity', {
+      metadata: {
+        elementId: 'test-entity',
+        xirangOperation: 'ADDED',
+        xirangHasChildren: 'true',
+      },
+    })
+
+    const { xynodes } = diagramToXY({
+      view: testView([added], []),
+      currentViewId: undefined,
+      where: null,
+    })
+
+    expect(xynodes[0]).toMatchObject({
+      data: {
+        xirang: {
+          identity: 'test-entity',
+          operation: 'ADDED',
+          hasChildren: true,
+          expanded: false,
+        },
+      },
+      domAttributes: {
+        'data-xirang-operation': 'ADDED',
+        'data-xirang-identity': 'test-entity',
+      },
+    })
+  })
+})
+
 describe('diagramToXY accessibility', () => {
   it('adds screen-reader labels to element nodes and relationship edges', () => {
     const customer = testNode('customer', {

@@ -8,6 +8,7 @@ import {
   type XirangViewSource,
   xirangViewSourceRevision,
 } from './ContractLoaderContext'
+import { xirangProjectionMetadata } from './projectionNode'
 
 type ViewNode = DiagramView['nodes'][number]
 type ViewEdge = DiagramView['edges'][number]
@@ -206,16 +207,23 @@ function perspectiveColor(index: number): ViewNode['color'] {
   const chroma = (1 - Math.abs(2 * lightness / 100 - 1)) * saturation / 100
   const segment = hue / 60
   const secondary = chroma * (1 - Math.abs(segment % 2 - 1))
-  const [red, green, blue] = segment < 1 ? [chroma, secondary, 0]
-    : segment < 2 ? [secondary, chroma, 0]
-    : segment < 3 ? [0, chroma, secondary]
-    : segment < 4 ? [0, secondary, chroma]
-    : segment < 5 ? [secondary, 0, chroma]
+  const [red, green, blue] = segment < 1 ?
+    [chroma, secondary, 0]
+    : segment < 2 ?
+    [secondary, chroma, 0]
+    : segment < 3 ?
+    [0, chroma, secondary]
+    : segment < 4 ?
+    [0, secondary, chroma]
+    : segment < 5 ?
+    [secondary, 0, chroma]
     : [chroma, 0, secondary]
   const match = lightness / 100 - chroma / 2
-  return `#${[red, green, blue]
-    .map(channel => Math.round((channel + match) * 255).toString(16).padStart(2, '0'))
-    .join('')}` as ViewNode['color']
+  return `#${
+    [red, green, blue]
+      .map(channel => Math.round((channel + match) * 255).toString(16).padStart(2, '0'))
+      .join('')
+  }` as ViewNode['color']
 }
 
 function createNode(
@@ -223,6 +231,7 @@ function createNode(
   parent: string | null,
   geometry: Geometry,
   operation?: XirangDiffOperation,
+  hasChildren = false,
   presentation?: { shape: ViewNode['shape']; color: ViewNode['color']; modelRef?: ViewNode['modelRef'] },
 ): ViewNode {
   return {
@@ -235,7 +244,11 @@ function createNode(
     outEdges: [],
     title: declaration.title,
     description: { txt: declaration.summary },
-    metadata: { elementId: declaration.identity, definition: declaration.description },
+    metadata: {
+      elementId: declaration.identity,
+      definition: declaration.description,
+      ...(operation && xirangProjectionMetadata(declaration.identity, operation, hasChildren)),
+    },
     shape: presentation?.shape ?? 'rectangle',
     color: operation ? operationColor[operation] : presentation?.color ?? 'primary',
     style: { opacity: 15, size: 'md' },
@@ -345,10 +358,13 @@ export function materializeXirangArchitectureView(
   let layout: Measured
   if (mode === 'diff') {
     focus = DIFF_ROOT
-    declarationChildren.set(DIFF_ROOT, [...declarations.values()]
-      .filter(declaration => declaration.parent === null)
-      .map(declaration => declaration.identity)
-      .sort(compareUtf8Bytes))
+    declarationChildren.set(
+      DIFF_ROOT,
+      [...declarations.values()]
+        .filter(declaration => declaration.parent === null)
+        .map(declaration => declaration.identity)
+        .sort(compareUtf8Bytes),
+    )
     layout = measure(diffTree(DIFF_ROOT, declarationChildren))
   } else {
     const root = [...declarations.values()]
@@ -370,8 +386,11 @@ export function materializeXirangArchitectureView(
     .map(declaration => declaration.identity)
     .sort(compareUtf8Bytes)
   const perspectiveColors = new Map(perspectives.map((identity, index) => [identity, perspectiveColor(index)]))
-  const modelNodes = new Map(modelView.nodes.flatMap(node =>
-    typeof node.metadata?.['elementId'] === 'string' ? [[node.metadata['elementId'], node] as const] : []))
+  const modelNodes = new Map(
+    modelView.nodes.flatMap(node =>
+      typeof node.metadata?.['elementId'] === 'string' ? [[node.metadata['elementId'], node] as const] : []
+    ),
+  )
   const identityByNodeId = new Map([...modelNodes].map(([identity, node]) => [node.id, identity]))
   const relationIdsByTriple = new Map<string, string[]>()
   for (const edge of modelView.edges) {
@@ -388,16 +407,19 @@ export function materializeXirangArchitectureView(
     const modelNode = modelNodes.get(declaration.identity)
     const presentation = declaration.kind === 'perspective'
       ? {
-          shape: PERSPECTIVE_SHAPE,
-          color: perspectiveColors.get(declaration.identity) ?? 'primary' as const,
-          modelRef: modelNode?.modelRef,
-        }
-      : modelNode ? { shape: modelNode.shape, color: modelNode.color, modelRef: modelNode.modelRef } : undefined
+        shape: PERSPECTIVE_SHAPE,
+        color: perspectiveColors.get(declaration.identity) ?? 'primary' as const,
+        modelRef: modelNode?.modelRef,
+      }
+      : modelNode
+      ? { shape: modelNode.shape, color: modelNode.color, modelRef: modelNode.modelRef }
+      : undefined
     return createNode(
       declaration,
       declaration.identity === focus ? null : declaration.parent,
       geometries.get(declaration.identity)!,
       declarationEntries.get(declaration.identity)?.operation,
+      (declarationChildren.get(declaration.identity)?.length ?? 0) > 0,
       presentation,
     )
   })

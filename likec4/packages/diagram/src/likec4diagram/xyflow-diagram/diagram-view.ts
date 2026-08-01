@@ -24,6 +24,7 @@ import {
 import { hasAtLeast, pick } from 'remeda'
 import { ZIndexes } from '../../base/const'
 import { readableText } from '../../utils'
+import { readXirangProjectionNode } from '../../xirang/projectionNode'
 import type { Types } from '../types'
 
 function sentence(parts: Array<string | null | undefined>): string {
@@ -156,6 +157,7 @@ export function diagramToXY(opts: {
     }
 
     const id = ns + node.id as NodeId
+    const xirang = readXirangProjectionNode(node)
 
     const base = {
       id,
@@ -170,6 +172,12 @@ export function diagramToXY(opts: {
       initialWidth: node.width,
       initialHeight: node.height,
       hidden: node.kind !== GroupElementKind && !visiblePredicate(node),
+      ...(xirang && {
+        domAttributes: {
+          'data-xirang-operation': xirang.operation,
+          'data-xirang-identity': xirang.identity,
+        } as unknown as NonNullable<Types.Node['domAttributes']>,
+      }),
       ...(parent && {
         parentId: ns + parent.id,
       }),
@@ -198,6 +206,7 @@ export function diagramToXY(opts: {
         drifts: node.drifts ?? null,
         notes: node.notes,
         viewLayoutDir,
+        ...(xirang && { xirang }),
       } satisfies Types.CompoundNodeData
 
       switch (true) {
@@ -270,6 +279,7 @@ export function diagramToXY(opts: {
       isMultiple: node.style?.multiple ?? false,
       drifts: node.drifts ?? null,
       viewLayoutDir,
+      ...(xirang && { xirang }),
     } satisfies Types.LeafNodeData
 
     switch (true) {

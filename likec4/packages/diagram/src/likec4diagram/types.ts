@@ -26,6 +26,7 @@ import type {
   BaseNodeProps,
   NonOptional,
 } from '../base/types'
+import type { XirangProjectionNodeData } from '../xirang/projectionNode'
 
 export namespace Types {
   export type LeafNodeData = Simplify<
@@ -61,6 +62,7 @@ export namespace Types {
       isMultiple?: boolean | undefined
       icon: string | null
       drifts: NonEmptyReadonlyArray<DiagramNodeDriftReason> | null
+      xirang?: XirangProjectionNodeData | undefined
     }
   >
 
@@ -182,6 +184,7 @@ export namespace Types {
       depth: number
       icon?: IconUrl
       drifts: NonEmptyReadonlyArray<DiagramNodeDriftReason> | null
+      xirang?: XirangProjectionNodeData | undefined
     }
   >
 
