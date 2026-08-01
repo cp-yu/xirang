@@ -1,0 +1,368 @@
+{
+  "timestamp": "2026-08-01T10:06:13.267Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "f837c4acab2b13ff5e714d541e1319fd85646e6922ec8b66b2a40ef2391d0899",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/enhance-element-detail-diff-tab/architecture-delta.c4",
+      ".xirang/changes/enhance-element-detail-diff-tab/design.md",
+      ".xirang/changes/enhance-element-detail-diff-tab/elements/change-derived-views.md",
+      ".xirang/changes/enhance-element-detail-diff-tab/proposal.md",
+      ".xirang/changes/enhance-element-detail-diff-tab/specs/change-derived-views/spec.md",
+      ".xirang/changes/enhance-element-detail-diff-tab/tasks.md",
+      "likec4/packages/diagram/package.json",
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+      "likec4/packages/diagram/src/likec4diagram/custom/nodes/CompoundActions.tsx",
+      "likec4/packages/diagram/src/likec4diagram/custom/nodes/ElementActions.tsx",
+      "likec4/packages/diagram/src/likec4diagram/types.ts",
+      "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.spec.ts",
+      "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts",
+      "likec4/packages/diagram/src/overlays/element-details/ContractsTab.spec.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/DiffTab.spec.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/DiffTab.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/MetamodelDiffModal.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/XirangDiffViewer.spec.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/XirangDiffViewer.tsx",
+      "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+      "likec4/packages/diagram/src/xirang/architectureView.ts",
+      "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
+      "likec4/packages/diagram/src/xirang/projectionNode.ts",
+      "likec4/pnpm-workspace.yaml",
+      "playwright.config.ts",
+      "test/e2e/semantic-browser-model-view.spec.ts",
+      "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-child.md",
+      "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-parent.md",
+      "test/fixtures/contract-browser/.xirang/changes/browser-change/metamodel/test-component.md"
+    ],
+    "evidenceFingerprint": "adef32503c597ce08f6349a9503b03af83c6085bee77f3b1e0772bb50fd3b845",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/enhance-element-detail-diff-tab/architecture-delta.c4",
+        "hash": "bda321e5da9dbfa297db0f2e68c0325d9c5e7e54ad02d2be9195e08418a15632"
+      },
+      {
+        "path": ".xirang/changes/enhance-element-detail-diff-tab/design.md",
+        "hash": "77d5f81a7842ab3c3c16ef703b68934db6b4b1b7bf29a4e4f4abbdc8268332d0"
+      },
+      {
+        "path": ".xirang/changes/enhance-element-detail-diff-tab/elements/change-derived-views.md",
+        "hash": "85a55c57a7176d9624b71c81b20503a4108f73e04a2e63e971190307c742ee5d"
+      },
+      {
+        "path": ".xirang/changes/enhance-element-detail-diff-tab/proposal.md",
+        "hash": "6828055147290b4b42909f5b0d518a38355bc2c2cef7fa9cfe1acff57eabc027"
+      },
+      {
+        "path": ".xirang/changes/enhance-element-detail-diff-tab/specs/change-derived-views/spec.md",
+        "hash": "bf53c325df5aa5542f6c9e1a5d6ee7675809d4de3e6fdd0b077d343a04c75e6d"
+      },
+      {
+        "path": ".xirang/changes/enhance-element-detail-diff-tab/tasks.md",
+        "hash": "f837c4acab2b13ff5e714d541e1319fd85646e6922ec8b66b2a40ef2391d0899"
+      },
+      {
+        "path": "likec4/packages/diagram/package.json",
+        "hash": "e1145de2cb19925d9b16f786109e12888e8bd4acabdecf89c79c0c39ca763790"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/custom/nodes/CompoundActions.tsx",
+        "hash": "fb0f6e788e9f635ed2f4252de6dd1535226a6d214243f8bc51f0a9e6da709a31"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/custom/nodes/ElementActions.tsx",
+        "hash": "2cb82bdb4d84436f5ad60ce7222c8eef24808cf904b80b677b4f30ffb07a0622"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+        "hash": "269025455c14bb3a332b1efef9569b025a73538b17e38015964d4731cd286c9d"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/types.ts",
+        "hash": "cea63a5cc885000ca334e87e9f98f169a03a4dbf8c2108c36c897f6feb0498cf"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.spec.ts",
+        "hash": "4d71d21e897d0fc313453cc42cab5b3b34c4ddd5dcbd59efe456a742c0e3b709"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts",
+        "hash": "82ef81951c24165bf732558e9baac9eaed81dca51b478191cc197ebe25c2a390"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/ContractsTab.spec.tsx",
+        "hash": "b551f856fd0912fb2a46ba81b28d896c0674e2b2a08b5f23f6f62f2df6e5cbe7"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
+        "hash": "38779b6913d33cf752f005cc2fc01e3b145507cf7b91a87c5fce64ce6369034d"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/DiffTab.spec.tsx",
+        "hash": "ccf81fa7de42f7270c2e58f4097effb3f0667f96d452cf586cf7ee7891f4c0ef"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/DiffTab.tsx",
+        "hash": "6e86f2a6ea7afe8819cb17a7f60bac61177e2f793879a1e41cfd689ccf8054c0"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
+        "hash": "a6cb240a23284a7db00359eacdc51066a8e9c7ba0e2392ff682d0aa1fb8c1525"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+        "hash": "d64dbb7a29277b776510e949573dce28aa6337f6c7d59ea2f822fc628c8ed8c0"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/MetamodelDiffModal.tsx",
+        "hash": "5f2c19f56f2c5b37e0c1288f6bf1dd7aa65f7e091178230b0c034cc066abbace"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/XirangDiffViewer.spec.tsx",
+        "hash": "9f42c647fafaa95d5bdd279d0b4ab2622b15c8b614452cfcba709d85ef486d45"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/XirangDiffViewer.tsx",
+        "hash": "529e8ce5673df893e5ca4acb06c6f86c4c9f796c0d202ac801cf9930990a16d4"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+        "hash": "0a62f0301f21dc48b6c8c041842dc4730f1d03c29feda91968ea826fd4136bfa"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+        "hash": "4615690c14559d10d283f26247d52a1c2ab77175d1eebd57d2736908a493938d"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
+        "hash": "dc9908b57b663198025f929854923249a91e3582051039e751f5f28bb0963ef5"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/projectionNode.ts",
+        "hash": "c2d1940d7aa3f7d5a02c66a5df9de730a6bf8cf2d32166e172c11ca7d7cfeea4"
+      },
+      {
+        "path": "likec4/pnpm-workspace.yaml",
+        "hash": "3855058c7ffc8f92eb56b18048ea8631698855c97c5ab230b05ffff6cb64b4c0"
+      },
+      {
+        "path": "playwright.config.ts",
+        "hash": "0ff05a3fdc3cbf8b1069a3df9c50c7aeae45001a0f110241e25ab34976101385"
+      },
+      {
+        "path": "test/e2e/semantic-browser-model-view.spec.ts",
+        "hash": "c2ad60cc7acebe508210b3bac756cb6b92deb961f3bb916f9a7d6f50a99817c7"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-child.md",
+        "hash": "ee099e6a7eea701a565d575b01acd08e5962e8fa8bd89bba0de21265f0f792c7"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-parent.md",
+        "hash": "eb73076fa32c031b52251979c83e8cdf5b0b05ee647980b64393939ebd28c3eb"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/metamodel/test-component.md",
+        "hash": "f5315e52564dcd1ad5803bb6c74fc04528aef7411a9ba8941247799543d61c4c"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "1435988992e4e2e558a3658c7d62deda60f62c47"
+  },
+  "optimization": {
+    "status": "SKIPPED",
+    "attempts": [
+      {
+        "timestamp": "2026-08-01T10:07:55.053Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_APPLIED",
+        "summary": "Applied 3 optimizations: (1) childrenByIdentity quadratic spread eliminated in DiagramUI.tsx, (2) architecture.elements.find full scan replaced with identity index in architectureView.ts, (3) try/catch element lookup replaced with findElement in ElementDetailsCard.tsx. All 49 Vitest tests and 5 Playwright tests passed.",
+        "appliedChanges": [
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/xirang/architectureView.ts",
+          "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx"
+        ]
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-08-01T10:06:13.267Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "f837c4acab2b13ff5e714d541e1319fd85646e6922ec8b66b2a40ef2391d0899",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/enhance-element-detail-diff-tab/architecture-delta.c4",
+          ".xirang/changes/enhance-element-detail-diff-tab/design.md",
+          ".xirang/changes/enhance-element-detail-diff-tab/elements/change-derived-views.md",
+          ".xirang/changes/enhance-element-detail-diff-tab/proposal.md",
+          ".xirang/changes/enhance-element-detail-diff-tab/specs/change-derived-views/spec.md",
+          ".xirang/changes/enhance-element-detail-diff-tab/tasks.md",
+          "likec4/packages/diagram/package.json",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/likec4diagram/custom/nodes/CompoundActions.tsx",
+          "likec4/packages/diagram/src/likec4diagram/custom/nodes/ElementActions.tsx",
+          "likec4/packages/diagram/src/likec4diagram/types.ts",
+          "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.spec.ts",
+          "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts",
+          "likec4/packages/diagram/src/overlays/element-details/ContractsTab.spec.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/DiffTab.spec.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/DiffTab.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/MetamodelDiffModal.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/XirangDiffViewer.spec.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/XirangDiffViewer.tsx",
+          "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+          "likec4/packages/diagram/src/xirang/architectureView.ts",
+          "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
+          "likec4/packages/diagram/src/xirang/projectionNode.ts",
+          "likec4/pnpm-workspace.yaml",
+          "playwright.config.ts",
+          "test/e2e/semantic-browser-model-view.spec.ts",
+          "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-child.md",
+          "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-parent.md",
+          "test/fixtures/contract-browser/.xirang/changes/browser-change/metamodel/test-component.md"
+        ],
+        "evidenceFingerprint": "adef32503c597ce08f6349a9503b03af83c6085bee77f3b1e0772bb50fd3b845",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/enhance-element-detail-diff-tab/architecture-delta.c4",
+            "hash": "bda321e5da9dbfa297db0f2e68c0325d9c5e7e54ad02d2be9195e08418a15632"
+          },
+          {
+            "path": ".xirang/changes/enhance-element-detail-diff-tab/design.md",
+            "hash": "77d5f81a7842ab3c3c16ef703b68934db6b4b1b7bf29a4e4f4abbdc8268332d0"
+          },
+          {
+            "path": ".xirang/changes/enhance-element-detail-diff-tab/elements/change-derived-views.md",
+            "hash": "85a55c57a7176d9624b71c81b20503a4108f73e04a2e63e971190307c742ee5d"
+          },
+          {
+            "path": ".xirang/changes/enhance-element-detail-diff-tab/proposal.md",
+            "hash": "6828055147290b4b42909f5b0d518a38355bc2c2cef7fa9cfe1acff57eabc027"
+          },
+          {
+            "path": ".xirang/changes/enhance-element-detail-diff-tab/specs/change-derived-views/spec.md",
+            "hash": "bf53c325df5aa5542f6c9e1a5d6ee7675809d4de3e6fdd0b077d343a04c75e6d"
+          },
+          {
+            "path": ".xirang/changes/enhance-element-detail-diff-tab/tasks.md",
+            "hash": "f837c4acab2b13ff5e714d541e1319fd85646e6922ec8b66b2a40ef2391d0899"
+          },
+          {
+            "path": "likec4/packages/diagram/package.json",
+            "hash": "e1145de2cb19925d9b16f786109e12888e8bd4acabdecf89c79c0c39ca763790"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/custom/nodes/CompoundActions.tsx",
+            "hash": "fb0f6e788e9f635ed2f4252de6dd1535226a6d214243f8bc51f0a9e6da709a31"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/custom/nodes/ElementActions.tsx",
+            "hash": "2cb82bdb4d84436f5ad60ce7222c8eef24808cf904b80b677b4f30ffb07a0622"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "hash": "269025455c14bb3a332b1efef9569b025a73538b17e38015964d4731cd286c9d"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/types.ts",
+            "hash": "cea63a5cc885000ca334e87e9f98f169a03a4dbf8c2108c36c897f6feb0498cf"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.spec.ts",
+            "hash": "4d71d21e897d0fc313453cc42cab5b3b34c4ddd5dcbd59efe456a742c0e3b709"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts",
+            "hash": "82ef81951c24165bf732558e9baac9eaed81dca51b478191cc197ebe25c2a390"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/ContractsTab.spec.tsx",
+            "hash": "b551f856fd0912fb2a46ba81b28d896c0674e2b2a08b5f23f6f62f2df6e5cbe7"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
+            "hash": "38779b6913d33cf752f005cc2fc01e3b145507cf7b91a87c5fce64ce6369034d"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/DiffTab.spec.tsx",
+            "hash": "ccf81fa7de42f7270c2e58f4097effb3f0667f96d452cf586cf7ee7891f4c0ef"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/DiffTab.tsx",
+            "hash": "6e86f2a6ea7afe8819cb17a7f60bac61177e2f793879a1e41cfd689ccf8054c0"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
+            "hash": "a6cb240a23284a7db00359eacdc51066a8e9c7ba0e2392ff682d0aa1fb8c1525"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+            "hash": "d64dbb7a29277b776510e949573dce28aa6337f6c7d59ea2f822fc628c8ed8c0"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/MetamodelDiffModal.tsx",
+            "hash": "5f2c19f56f2c5b37e0c1288f6bf1dd7aa65f7e091178230b0c034cc066abbace"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/XirangDiffViewer.spec.tsx",
+            "hash": "9f42c647fafaa95d5bdd279d0b4ab2622b15c8b614452cfcba709d85ef486d45"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/XirangDiffViewer.tsx",
+            "hash": "529e8ce5673df893e5ca4acb06c6f86c4c9f796c0d202ac801cf9930990a16d4"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+            "hash": "0a62f0301f21dc48b6c8c041842dc4730f1d03c29feda91968ea826fd4136bfa"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+            "hash": "4615690c14559d10d283f26247d52a1c2ab77175d1eebd57d2736908a493938d"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
+            "hash": "dc9908b57b663198025f929854923249a91e3582051039e751f5f28bb0963ef5"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/projectionNode.ts",
+            "hash": "c2d1940d7aa3f7d5a02c66a5df9de730a6bf8cf2d32166e172c11ca7d7cfeea4"
+          },
+          {
+            "path": "likec4/pnpm-workspace.yaml",
+            "hash": "3855058c7ffc8f92eb56b18048ea8631698855c97c5ab230b05ffff6cb64b4c0"
+          },
+          {
+            "path": "playwright.config.ts",
+            "hash": "0ff05a3fdc3cbf8b1069a3df9c50c7aeae45001a0f110241e25ab34976101385"
+          },
+          {
+            "path": "test/e2e/semantic-browser-model-view.spec.ts",
+            "hash": "c2ad60cc7acebe508210b3bac756cb6b92deb961f3bb916f9a7d6f50a99817c7"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-child.md",
+            "hash": "ee099e6a7eea701a565d575b01acd08e5962e8fa8bd89bba0de21265f0f792c7"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-parent.md",
+            "hash": "eb73076fa32c031b52251979c83e8cdf5b0b05ee647980b64393939ebd28c3eb"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/metamodel/test-component.md",
+            "hash": "f5315e52564dcd1ad5803bb6c74fc04528aef7411a9ba8941247799543d61c4c"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "1435988992e4e2e558a3658c7d62deda60f62c47"
+      }
+    }
+  }
+}

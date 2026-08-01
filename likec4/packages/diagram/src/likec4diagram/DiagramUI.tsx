@@ -1,22 +1,26 @@
-import { hasProp, isDynamicView } from '@likec4/core'
+import { type Fqn, hasProp, isDynamicView, RichText } from '@likec4/core'
+import { Badge, Box, Button, Group, Modal, NativeSelect, Stack, Text, UnstyledButton } from '@mantine/core'
 import { useRerender } from '@react-hookz/web'
-import { Badge, Box, Button, Group, NativeSelect, Stack, Text } from '@mantine/core'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { Markdown } from '../base-primitives'
 import { ErrorBoundary } from '../components/ErrorFallback'
 import { useEnabledFeatures } from '../context/DiagramFeatures'
 import { selectDiagramSnapshot, useDiagramSelector, useOnDiagramEvent } from '../hooks'
-import { useDiagramActorRef } from '../hooks/useDiagram'
+import { useDiagram, useDiagramActorRef } from '../hooks/useDiagram'
 import { NavigationPanel } from '../navigationpanel'
+import { MetamodelDiffModal } from '../overlays/element-details/MetamodelDiffModal'
+import { Overlays } from '../overlays/Overlays'
+import { Search } from '../search/Search'
 import { materializeXirangArchitectureView } from '../xirang/architectureView'
 import {
-  isXirangContractDiagnostic,
+  type XirangDiffEntry,
   type XirangDiffOperation,
   type XirangViewSource,
+  isXirangContractDiagnostic,
   useXirangViewSources,
   xirangViewSourceRevision,
 } from '../xirang/ContractLoaderContext'
-import { Overlays } from '../overlays/Overlays'
-import { Search } from '../search/Search'
+import { addedXirangProjectionIdentity } from '../xirang/projectionNode'
 import { RelationshipPopover } from './relationship-popover/RelationshipPopover'
 import { FloatingSequenceActors, LayoutDriftFrame, NotationPanel, SequenceOutlinePanel } from './ui'
 
@@ -38,7 +42,15 @@ const selectChildren = selectDiagramSnapshot(s => ({
     }),
 }))
 
-const structuralDiffKinds = new Set(['element-declaration', 'element-kind', 'relationship-kind', 'authored-view', 'relationship'])
+const structuralDiffKinds = new Set([
+  'element-declaration',
+  'element-kind',
+  'relationship-kind',
+  'authored-view',
+  'relationship',
+])
+/** Delta kinds with no graph representation; they are presented as text instead of nodes or edges. */
+const metamodelKinds = new Set(['element-kind', 'relationship-kind', 'authored-view'])
 
 function countOperations(entries: readonly { operation: XirangDiffOperation }[]): Record<XirangDiffOperation, number> {
   const counts: Record<XirangDiffOperation, number> = { ADDED: 0, MODIFIED: 0, REMOVED: 0 }
@@ -53,8 +65,12 @@ export function getArchitectureOverlayModel(source: XirangViewSource) {
   for (const entry of entries) {
     if (entry.kind === 'element-declaration') {
       changed.add(entry.identity)
-      const beforeParent = entry.before && typeof entry.before === 'object' ? (entry.before as { parent?: unknown }).parent : null
-      const afterParent = entry.after && typeof entry.after === 'object' ? (entry.after as { parent?: unknown }).parent : null
+      const beforeParent = entry.before && typeof entry.before === 'object'
+        ? (entry.before as { parent?: unknown }).parent
+        : null
+      const afterParent = entry.after && typeof entry.after === 'object'
+        ? (entry.after as { parent?: unknown }).parent
+        : null
       if (typeof beforeParent === 'string') context.add(beforeParent)
       if (typeof afterParent === 'string') context.add(afterParent)
     }
@@ -70,31 +86,43 @@ export function getArchitectureOverlayModel(source: XirangViewSource) {
     changed: [...changed].sort(),
     context: [...context].sort(),
     counts: countOperations(entries),
+    metamodel: entries
+      .filter(entry => metamodelKinds.has(entry.kind))
+      .sort((left, right) => left.kind.localeCompare(right.kind) || left.identity.localeCompare(right.identity)),
     diagnostics: source.diagnostics.filter(diagnostic => !isXirangContractDiagnostic(diagnostic)),
   }
 }
 
 function XirangArchitectureOverlay() {
   const runtime = useXirangViewSources()
+  const selected = runtime.selected
+  const selectedRevision = xirangViewSourceRevision(selected)
   const actorRef = useDiagramActorRef()
+  const diagram = useDiagram()
   const currentView = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.context.view))
   const isReady = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.matches('ready')))
   const focusIdentity = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.context.focusIdentity))
   const expandedNodes = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.context.expandedNodes))
   const modelView = useRef(currentView)
-  const selectedSource = useRef(runtime.selected)
-  const selectedSourceId = useRef(runtime.selected.id)
+  const selectedSourceId = useRef(selected.id)
   const previousFocusAncestors = useRef<string[]>([])
-  selectedSource.current = runtime.selected
   const [mode, setMode] = useState<'full' | 'diff'>('full')
   const [relationshipDetails, setRelationshipDetails] = useState<string[]>([])
-  const declarations = new Map((runtime.selected.architecture?.elements ?? [])
+  const [relationshipModalOpened, setRelationshipModalOpened] = useState(false)
+  const [metamodelEntry, setMetamodelEntry] = useState<{ entry: XirangDiffEntry; opened: boolean } | null>(null)
+  const [planFile, setPlanFile] = useState<{ name: string; content: string; opened: boolean } | null>(null)
+  const declarations = new Map((selected.architecture?.elements ?? [])
     .map(element => [element.declaration.identity, element.declaration]))
   const rootIdentity = [...declarations.values()].find(declaration => declaration.parent === null)?.identity
   const childrenByIdentity = new Map<string, string[]>()
   for (const declaration of declarations.values()) {
     if (!declaration.parent) continue
-    childrenByIdentity.set(declaration.parent, [...(childrenByIdentity.get(declaration.parent) ?? []), declaration.identity])
+    let children = childrenByIdentity.get(declaration.parent)
+    if (!children) {
+      children = []
+      childrenByIdentity.set(declaration.parent, children)
+    }
+    children.push(declaration.identity)
   }
   const hasChildren = (identity: string) => (childrenByIdentity.get(identity)?.length ?? 0) > 0
   const nodeIdentity = (node: { id: string; metadata?: Readonly<Record<string, unknown>> | null | undefined }) =>
@@ -134,16 +162,30 @@ function XirangArchitectureOverlay() {
   useOnDiagramEvent('nodeDoubleClick', event => {
     if (currentView.id !== 'model') return
     const identity = nodeIdentity(event.node)
-    if (hasChildren(identity)) actorRef.send({ type: 'navigate.focus', focusIdentity: identity })
+    const addedIdentity = addedXirangProjectionIdentity(event.xynode.data)
+    if (addedIdentity) {
+      diagram.openElementDetails(addedIdentity as Fqn, event.node.id)
+      return
+    }
+    if (hasChildren(identity) && declarations.has(identity)) {
+      actorRef.send({ type: 'navigate.focus', focusIdentity: identity })
+    }
   })
 
   useOnDiagramEvent('edgeClick', event => {
     const edgeId = event.edge.id
-    const edge = currentView.edges.find(candidate => candidate.id === edgeId) as { xirangRelations?: string[] } | undefined
-    setRelationshipDetails(edge?.xirangRelations ?? [])
+    const edge = currentView.edges.find(candidate => candidate.id === edgeId) as
+      | { xirangRelations?: string[] }
+      | undefined
+    const details = edge?.xirangRelations ?? []
+    setRelationshipDetails(details)
+    if (details.length > 0) setRelationshipModalOpened(true)
   })
 
-  useOnDiagramEvent('paneClick', () => setRelationshipDetails([]))
+  useOnDiagramEvent('paneClick', () => {
+    setRelationshipDetails([])
+    setRelationshipModalOpened(false)
+  })
 
   /**
    * Shift+N expands N levels below the focus, so the intermediate levels 1..N-1 are the ones that
@@ -195,7 +237,6 @@ function XirangArchitectureOverlay() {
 
   useEffect(() => {
     if (!isReady || currentView.id !== 'model') return
-    const selected = selectedSource.current
     const elements = selected.architecture?.elements ?? []
     const declarations = new Map(elements.map(element => [element.declaration.identity, element.declaration]))
     const rootIdentity = elements
@@ -205,7 +246,9 @@ function XirangArchitectureOverlay() {
       selectedSourceId.current = selected.id
       previousFocusAncestors.current = []
       actorRef.send({ type: 'navigate.focus', focusIdentity: rootIdentity ?? null, replaceHistory: true })
-      return
+      // Send the view update immediately instead of returning,
+      // so the change-derived view is rendered even when focusIdentity
+      // is already the root identity and won't trigger a re-render.
     }
     let previousAncestorPath = previousFocusAncestors.current
     if (focusIdentity && declarations.has(focusIdentity)) {
@@ -220,35 +263,37 @@ function XirangArchitectureOverlay() {
     const resolvedFocus = [focusIdentity, ...previousAncestorPath, rootIdentity]
       .find((identity): identity is string => !!identity && declarations.has(identity))
     const view = selected.architecture
-      ? materializeXirangArchitectureView(modelView.current, selected, mode, focusIdentity ?? undefined, previousAncestorPath, expandedNodes)
+      ? materializeXirangArchitectureView(
+        modelView.current,
+        selected,
+        mode,
+        focusIdentity ?? undefined,
+        previousAncestorPath,
+        expandedNodes,
+      )
       : modelView.current
     actorRef.send({ type: 'update.view', view, source: 'external' })
     if (focusIdentity && resolvedFocus !== focusIdentity) {
       actorRef.send({ type: 'navigate.focus', focusIdentity: resolvedFocus ?? null })
     }
-  }, [actorRef, currentView.id, expandedNodes, focusIdentity, isReady, mode, runtime.selected.id, runtime.selected.source, xirangViewSourceRevision(runtime.selected)])
+  }, [actorRef, currentView.id, expandedNodes, focusIdentity, isReady, mode, selected, selectedRevision])
 
-  const relationshipPanel = relationshipDetails.length > 0 && (
-    <Stack
+  const relationshipPanel = (
+    <Modal
+      opened={relationshipModalOpened}
+      onClose={() => setRelationshipModalOpened(false)}
+      title="Relationship Details"
+      size="md"
       data-xirang-relationship-details
-      gap={4}
-      p="xs"
-      style={{
-        position: 'absolute',
-        right: 16,
-        bottom: 72,
-        zIndex: 5,
-        pointerEvents: 'all',
-        background: 'var(--mantine-color-body)',
-        border: '1px solid var(--mantine-color-default-border)',
-        borderRadius: 6,
-      }}
     >
-      {relationshipDetails.map(triple => <Text key={triple} size="xs">{triple}</Text>)}
-    </Stack>
+      <Stack gap={4}>
+        {relationshipDetails.map(triple => <Text key={triple} size="sm">{triple}</Text>)}
+        {relationshipDetails.length === 0 && <Text size="sm" c="dimmed">No relationship details</Text>}
+      </Stack>
+    </Modal>
   )
 
-  if (runtime.selected.source === 'semantic-model') {
+  if (selected.source === 'semantic-model') {
     return (
       <>
         {breadcrumb}
@@ -263,42 +308,105 @@ function XirangArchitectureOverlay() {
       </>
     )
   }
-  const overlay = getArchitectureOverlayModel(runtime.selected)
+  const overlay = getArchitectureOverlayModel(selected)
   return (
     <>
       {breadcrumb}
       {relationshipPanel}
       <Box
-      data-xirang-architecture-overlay
-      data-xirang-architecture-mode={mode}
-      data-xirang-changed-count={overlay.changed.length}
-      data-xirang-context-count={overlay.context.length}
-      data-xirang-rendered-node-count={currentView.nodes.length}
-      data-xirang-rendered-view-hash={currentView.hash}
-      style={{ position: 'absolute', right: 16, top: 16, zIndex: 5, pointerEvents: 'all' }}
-    >
-      <Stack gap={6} p="xs" style={{ background: 'var(--mantine-color-body)', border: '1px solid var(--mantine-color-default-border)', borderRadius: 6 }}>
-        <Group gap="xs"><Text size="xs" fw={600}>Change / {runtime.selected.label}</Text>
-          <Badge size="xs" color={runtime.selected.valid ? 'green' : 'red'}>{runtime.selected.valid ? 'Valid' : 'Invalid'}</Badge>
-        </Group>
-        <NativeSelect
-          aria-label="Active Change"
-          size="xs"
-          value={runtime.selected.id}
-          data={runtime.sources.map(source => ({ value: source.id, label: source.label }))}
-          onChange={event => runtime.select(event.currentTarget.value)}
-        />
-        <Group gap={4}>
-          <Button size="compact-xs" variant={mode === 'full' ? 'filled' : 'subtle'} onClick={() => setMode('full')}>Full context</Button>
-          <Button size="compact-xs" variant={mode === 'diff' ? 'filled' : 'subtle'} onClick={() => setMode('diff')}>Diff only</Button>
-        </Group>
-        <Text size="xs">+{overlay.counts.ADDED} ~{overlay.counts.MODIFIED} -{overlay.counts.REMOVED}</Text>
-        {overlay.entries.length === 0 && <Text size="xs" c="dimmed">No semantic graph change</Text>}
-        {overlay.diagnostics.map((diagnostic, index) => (
-          <Text key={index} size="xs" c={diagnostic.level === 'ERROR' ? 'red' : 'yellow'}>{diagnostic.message}</Text>
-        ))}
-      </Stack>
+        data-xirang-architecture-overlay
+        data-xirang-architecture-mode={mode}
+        data-xirang-changed-count={overlay.changed.length}
+        data-xirang-context-count={overlay.context.length}
+        data-xirang-metamodel-count={overlay.metamodel.length}
+        data-xirang-rendered-node-count={currentView.nodes.length}
+        data-xirang-rendered-view-hash={currentView.hash}
+        style={{ position: 'absolute', right: 16, top: 16, zIndex: 5, pointerEvents: 'all' }}
+      >
+        <Stack
+          gap={6}
+          p="xs"
+          style={{
+            background: 'var(--mantine-color-body)',
+            border: '1px solid var(--mantine-color-default-border)',
+            borderRadius: 6,
+          }}>
+          <Group gap="xs">
+            <Text size="xs" fw={600}>Change / {selected.label}</Text>
+            <Badge size="xs" color={selected.valid ? 'green' : 'red'}>{selected.valid ? 'Valid' : 'Invalid'}</Badge>
+          </Group>
+          <NativeSelect
+            aria-label="Active Change"
+            size="xs"
+            value={selected.id}
+            data={runtime.sources.map(source => ({ value: source.id, label: source.label }))}
+            onChange={event => runtime.select(event.currentTarget.value)}
+          />
+          <Group gap={4}>
+            <Button size="compact-xs" variant={mode === 'full' ? 'filled' : 'subtle'} onClick={() => setMode('full')}>
+              Full context
+            </Button>
+            <Button size="compact-xs" variant={mode === 'diff' ? 'filled' : 'subtle'} onClick={() => setMode('diff')}>
+              Diff only
+            </Button>
+          </Group>
+          <Text size="xs">+{overlay.counts.ADDED} ~{overlay.counts.MODIFIED} -{overlay.counts.REMOVED}</Text>
+          {overlay.metamodel.map(entry => (
+            <UnstyledButton
+              key={`${entry.kind}:${entry.identity}`}
+              size="xs"
+              c="dimmed"
+              onClick={() => setMetamodelEntry({ entry, opened: true })}
+              style={{ textAlign: 'left', cursor: 'pointer' }}
+            >
+              <Text size="xs" c="dimmed">
+                {entry.operation === 'ADDED' ? '+' : entry.operation === 'REMOVED' ? '-' : '~'} {entry.kind}{' '}
+                {entry.identity}
+              </Text>
+            </UnstyledButton>
+          ))}
+          {selected.changePlan && (
+            <Stack gap={2}>
+              <Text size="xs" fw={600} c="dimmed" mt={4}>Plan</Text>
+              {['design.md', 'proposal.md', 'tasks.md'].map(file => {
+                const content = selected.changePlan![file]
+                if (!content) return null
+                return (
+                  <UnstyledButton
+                    key={file}
+                    size="xs"
+                    c="dimmed"
+                    onClick={() => setPlanFile({ name: file, content, opened: true })}
+                    style={{ textAlign: 'left', cursor: 'pointer' }}
+                  >
+                    <Text size="xs" c="dimmed">📄 {file}</Text>
+                  </UnstyledButton>
+                )
+              })}
+            </Stack>
+          )}
+          {overlay.entries.length === 0 && <Text size="xs" c="dimmed">No semantic graph change</Text>}
+          {overlay.diagnostics.map((diagnostic, index) => (
+            <Text key={index} size="xs" c={diagnostic.level === 'ERROR' ? 'red' : 'yellow'}>{diagnostic.message}</Text>
+          ))}
+        </Stack>
       </Box>
+      <MetamodelDiffModal
+        entry={metamodelEntry?.entry ?? null}
+        opened={metamodelEntry?.opened ?? false}
+        onClose={() => setMetamodelEntry(null)}
+      />
+      <Modal
+        opened={planFile?.opened ?? false}
+        onClose={() => setPlanFile(null)}
+        title={planFile?.name ?? ''}
+        size="xl"
+        data-xirang-plan-file
+      >
+        <Box style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+          <Markdown value={RichText.from({ md: planFile?.content ?? '' })} />
+        </Box>
+      </Modal>
     </>
   )
 }

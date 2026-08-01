@@ -6,9 +6,7 @@
 // oxlint-disable no-misused-spread
 // oxlint-disable no-misused-spread
 import {
-  RichText,
   type Any,
-  type RichTextOrEmpty,
   type ComputedView,
   type DiagramView,
   type Element,
@@ -16,6 +14,7 @@ import {
   type NodeId,
   type scalar,
   type ViewId,
+  RichText,
 } from '@likec4/core/types'
 import { css, cx } from '@likec4/styles/css'
 import { HStack } from '@likec4/styles/jsx'
@@ -56,11 +55,12 @@ import { useCallbackRef, useUpdateEffect } from '../../hooks'
 import { useCurrentViewModel } from '../../hooks/useCurrentViewModel'
 import { useDiagram } from '../../hooks/useDiagram'
 import type { OnNavigateTo } from '../../LikeC4Diagram.props'
-import { type XirangViewSource, useXirangViewSources } from '../../xirang/ContractLoaderContext'
 import { stopPropagation } from '../../utils'
+import { type XirangViewSource, useXirangViewSources } from '../../xirang/ContractLoaderContext'
+import { ContractsTab } from './ContractsTab'
+import { DiffTab } from './DiffTab'
 import * as styles from './ElementDetailsCard.css'
 import { MetadataProvider, MetadataValue } from './MetadataValue'
-import { ContractsTab } from './ContractsTab'
 import { TabPanelDeployments } from './TabPanelDeployments'
 import { TabPanelRelationships } from './TabPanelRelationships'
 import { TabPanelStructure } from './TabPanelStructure'
@@ -106,32 +106,26 @@ type ElementDetailsCardProps = {
 type ElementDefinitionPropertiesProps = {
   selected: XirangViewSource
   stableElementId: string
-  modelSummary: RichTextOrEmpty
-  modelDescription: RichTextOrEmpty
 }
 
 export function ElementDefinitionProperties({
   selected,
   stableElementId,
-  modelSummary,
-  modelDescription,
 }: ElementDefinitionPropertiesProps) {
-  const declaration = selected.source === 'change-derived-view'
-    ? selected.architecture?.elements.find(item => item.declaration.identity === stableElementId)?.declaration
-    : undefined
-  const summary = declaration ? RichText.from(declaration.summary) : modelSummary
-  const description = declaration ? RichText.from(declaration.description) : modelDescription
+  const declaration = selected.architecture?.elements
+    .find(item => item.declaration.identity === stableElementId)?.declaration
+    ?? null
 
   return (
     <>
-      {summary.nonEmpty && (
-        <>
-          <PropertyLabel>summary</PropertyLabel>
-          <Markdown value={summary} />
-        </>
-      )}
-      <PropertyLabel>description</PropertyLabel>
-      <Markdown value={description} emptyText="no description" />
+      <PropertyLabel>kind</PropertyLabel>
+      <Text>{declaration?.kind ?? '—'}</Text>
+      <PropertyLabel>parent</PropertyLabel>
+      <Text>{declaration?.parent ?? '—'}</Text>
+      <PropertyLabel>title</PropertyLabel>
+      <Text>{declaration?.title ?? '—'}</Text>
+      <PropertyLabel>definition</PropertyLabel>
+      <Markdown value={RichText.from(declaration?.description)} emptyText="no definition" />
     </>
   )
 }
@@ -139,7 +133,24 @@ export function ElementDefinitionProperties({
 const MIN_PADDING = 24
 
 const TABS = ['Properties', 'Relationships', 'Views', 'Structure', 'Deployments'] as const
-type TabName = typeof TABS[number] | 'Contracts'
+type TabName = typeof TABS[number] | 'Contracts' | 'Diff'
+
+export function visibleElementDetailTabs({
+  isAddedElement,
+  hasContract,
+  hasDiff,
+}: {
+  isAddedElement: boolean
+  hasContract: boolean
+  hasDiff: boolean
+}): TabName[] {
+  return [
+    'Properties',
+    ...(hasContract ? ['Contracts' as const] : []),
+    ...(hasDiff ? ['Diff' as const] : []),
+    ...(isAddedElement ? [] : TABS.slice(1)),
+  ]
+}
 
 export function ElementDetailsCard({
   viewId,
@@ -161,33 +172,74 @@ export function ElementDetailsCard({
   const viewModel = useCurrentViewModel()
   const nodeModel = fromNode ? viewModel.findNode(fromNode) : viewModel.findNodeWithElement(fqn)
 
-  const elementModel = viewModel.$model.element(fqn)
+  const elementModel = viewModel.$model.findElement(fqn) ?? null
   const runtime = useXirangViewSources()
-  const stableElementId = typeof elementModel.$element.metadata?.['elementId'] === 'string'
-    ? elementModel.$element.metadata['elementId']
-    : elementModel.id
+  const declarationEntry = runtime.selected.source === 'change-derived-view'
+    ? runtime.selected.diff?.entries.find(entry => entry.kind === 'element-declaration' && entry.identity === fqn)
+    : undefined
+  const isAddedElement = !elementModel && declarationEntry?.operation === 'ADDED'
+  const stableElementId = elementModel
+    ? typeof elementModel.$element.metadata?.['elementId'] === 'string'
+      ? elementModel.$element.metadata['elementId']
+      : elementModel.id
+    : fqn
+  const declaration = isAddedElement
+    ? runtime.selected.architecture?.elements
+      .find(item => item.declaration.identity === fqn)?.declaration ?? null
+    : null
+  const elementTitle = declaration?.title ?? elementModel?.title ?? fqn
+  const elementKind = declaration?.kind ?? elementModel?.kind ?? '—'
+  const elementIcon = elementModel
+    ? IconRenderer({
+      element: {
+        id: fqn,
+        title: elementModel.title,
+        icon: nodeModel?.icon ?? elementModel.icon,
+      },
+      className: styles.elementIcon,
+    })
+    : null
+  const elementTags = elementModel?.tags ?? []
+  const elementTechnology = elementModel?.technology ?? null
+  const elementLinks = elementModel?.links ?? []
+  const elementMetadata = elementModel?.$element.metadata ?? null
+  const elementViews = elementModel ? [...elementModel.views()] : []
+  const elementDefaultView = elementModel?.defaultView?.$view ?? null
+  const elementColor = elementModel?.color ?? 'gray'
+  const elementProjectId = elementModel?.projectId ?? ''
   // The Contract projection is root-owned: an absent key means the Element has no Contract.
   const hasContract = typeof runtime.selected.contracts?.[stableElementId] === 'string'
+  const hasDiff = runtime.selected.source === 'change-derived-view'
+    && (runtime.selected.diff?.entries ?? []).some(
+      entry =>
+        (entry.kind === 'element-declaration' && entry.identity === stableElementId)
+        || (entry.kind === 'requirement' && entry.identity.startsWith(stableElementId + '#')),
+    )
+
+  const visibleTabs = useMemo(
+    () => visibleElementDetailTabs({ isAddedElement, hasContract, hasDiff }),
+    [hasContract, hasDiff, isAddedElement],
+  )
 
   useEffect(() => {
-    if (activeTab === 'Contracts' && !hasContract) {
+    if (!visibleTabs.includes(activeTab)) {
       setActiveTab('Properties')
     }
-  }, [activeTab, hasContract, setActiveTab])
+  }, [activeTab, setActiveTab, visibleTabs])
 
   const [viewsOf, otherViews] = pipe(
-    [...elementModel.views()],
+    [...elementViews],
     map(v => v.$view),
     partition(v => v._type === 'element' && v.viewOf === fqn),
   )
 
-  let defaultView = nodeModel?.navigateTo?.$view ?? elementModel.defaultView?.$view ?? null
+  let defaultView = nodeModel?.navigateTo?.$view ?? elementDefaultView
   // Ignore default view if it's the current view
   if (defaultView?.id === viewId) {
     defaultView = null
   }
 
-  const defaultLink = only(elementModel.links)
+  const defaultLink = only(elementLinks)
   const controls = useDragControls()
 
   const isCompound = (nodeModel?.$node.children?.length ?? 0) > 0
@@ -255,15 +307,6 @@ export function ElementDetailsCard({
 
   const notation = nodeModel?.$node.notation ?? null
 
-  const elementIcon = IconRenderer({
-    element: {
-      id: fqn,
-      title: elementModel.title,
-      icon: nodeModel?.icon ?? elementModel.icon,
-    },
-    className: styles.elementIcon,
-  })
-
   useTimeoutEffect(() => {
     if (!ref.current?.open) {
       ref.current?.showModal()
@@ -277,6 +320,8 @@ export function ElementDetailsCard({
   useTimeoutEffect(() => {
     setOpened(true)
   }, 220)
+
+  // For ADDED elements in a change (not in the base model), show a simplified card.
 
   return (
     <m.dialog
@@ -317,7 +362,7 @@ export function ElementDetailsCard({
           dragElastic={0}
           dragMomentum={false}
           dragListener={false}
-          data-likec4-color={nodeModel?.color ?? elementModel.color}
+          data-likec4-color={nodeModel?.color ?? elementColor}
           className={styles.card}
           initial={{
             top,
@@ -355,11 +400,11 @@ export function ElementDetailsCard({
               >
                 {elementIcon}
                 <div style={{ minWidth: 0, overflow: 'hidden' }}>
-                  <Tooltip label={elementModel.title} openDelay={600} position="bottom-start">
+                  <Tooltip label={elementTitle} openDelay={600} position="bottom-start">
                     <Text
                       component={'div'}
                       className={styles.title}>
-                      {elementModel.title}
+                      {elementTitle}
                     </Text>
                   </Tooltip>
                   {notation && (
@@ -369,7 +414,7 @@ export function ElementDetailsCard({
                   )}
                 </div>
               </HStack>
-              <CloseButton size={'lg'} onClick={triggerClose} />
+              <CloseButton aria-label="Close element details" size={'lg'} onClick={triggerClose} />
             </HStack>
             <HStack alignItems="baseline" gap={'sm'} flexWrap="nowrap">
               <div>
@@ -384,16 +429,16 @@ export function ElementDetailsCard({
                   }}
                   onClick={e => {
                     e.stopPropagation()
-                    diagram.openSearch(`kind:${elementModel.kind}`)
+                    diagram.openSearch(`kind:${elementKind}`)
                   }}
                 >
-                  {elementModel.kind}
+                  {elementKind}
                 </Badge>
               </div>
               <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
                 <SmallLabel>tags</SmallLabel>
                 <ElementTags
-                  tags={elementModel.tags}
+                  tags={elementTags}
                   onClick={tag => diagram.openSearch(`#${tag}`)} />
               </div>
               <ActionIconGroup
@@ -421,14 +466,14 @@ export function ElementDetailsCard({
                       onClick={e => {
                         e.stopPropagation()
                         diagram.openSource({
-                          element: elementModel.id,
+                          element: elementModel?.id ?? fqn,
                         })
                       }}>
                       <IconFileSymlink stroke={1.8} style={{ width: '62%' }} />
                     </ActionIcon>
                   </Tooltip>
                 </IfEnabled>
-                {viewId !== ('model' as ViewId) && (
+                {viewId !== ('model' as ViewId) && !isAddedElement && (
                   <Tooltip label="Open in Model View">
                     <ActionIcon
                       data-xirang-open-in-model-view
@@ -468,7 +513,7 @@ export function ElementDetailsCard({
           </div>
           <MetadataProvider>
             <Tabs
-              value={activeTab}
+              value={visibleTabs.includes(activeTab) ? activeTab : 'Properties'}
               onChange={v => setActiveTab(v as any)}
               variant="none"
               classNames={{
@@ -478,12 +523,11 @@ export function ElementDetailsCard({
                 panel: styles.tabsPanel,
               }}>
               <TabsList>
-                {TABS.map(tab => (
+                {visibleTabs.map(tab => (
                   <TabsTab key={tab} value={tab}>
                     {tab}
                   </TabsTab>
                 ))}
-                {hasContract && <TabsTab value="Contracts">Contracts</TabsTab>}
               </TabsList>
 
               <TabsPanel value="Properties">
@@ -492,92 +536,108 @@ export function ElementDetailsCard({
                     <ElementDefinitionProperties
                       selected={runtime.selected}
                       stableElementId={stableElementId}
-                      modelSummary={elementModel.summary}
-                      modelDescription={elementModel.description}
                     />
-                    {elementModel.technology && (
+                    {elementTechnology && (
                       <ElementProperty title="technology">
-                        {elementModel.technology}
+                        {elementTechnology}
                       </ElementProperty>
                     )}
-                    {elementModel.links.length > 0 && (
+                    {elementLinks.length > 0 && (
                       <>
                         <PropertyLabel>links</PropertyLabel>
                         <HStack gap={'xs'} flexWrap="wrap">
-                          {elementModel.links.map((link, i) => <Link key={i} value={link} />)}
+                          {elementLinks.map((link, i) => <Link key={i} value={link} />)}
                         </HStack>
                       </>
                     )}
-                    {elementModel.$element.metadata && <ElementMetata value={elementModel.$element.metadata} />}
+                    {elementMetadata && <ElementMetata value={elementMetadata} />}
                   </Box>
                 </ScrollArea>
               </TabsPanel>
 
-              <TabsPanel value="Relationships">
-                <DiagramFeatures
-                  overrides={{
-                    enableRelationshipBrowser: false,
-                    enableNavigateTo: false,
-                  }}>
-                  {opened && activeTab === 'Relationships' && (
-                    <TabPanelRelationships
-                      element={elementModel}
-                      node={nodeModel ?? null} />
+              {!isAddedElement && (
+                <>
+                  <TabsPanel value="Relationships">
+                    {elementModel && (
+                      <DiagramFeatures
+                        overrides={{
+                          enableRelationshipBrowser: false,
+                          enableNavigateTo: false,
+                        }}>
+                        {opened && activeTab === 'Relationships' && (
+                          <TabPanelRelationships
+                            element={elementModel}
+                            node={nodeModel ?? null} />
+                        )}
+                      </DiagramFeatures>
+                    )}
+                  </TabsPanel>
+
+                  <TabsPanel value="Views">
+                    <ScrollArea scrollbars="y" type="auto">
+                      <Stack gap={'lg'}>
+                        {viewsOf.length > 0 && (
+                          <Box>
+                            <Divider label="views of the element (scoped)" />
+                            <Stack gap={'sm'}>
+                              {viewsOf.map((view) => (
+                                <ViewButton
+                                  key={view.id}
+                                  view={view}
+                                  onNavigateTo={to => diagram.navigateTo(to as scalar.ViewId, fromNode ?? undefined)} />
+                              ))}
+                            </Stack>
+                          </Box>
+                        )}
+                        {otherViews.length > 0 && (
+                          <Box>
+                            <Divider label="views including this element" />
+                            <Stack gap={'sm'}>
+                              {otherViews.map((view) => (
+                                <ViewButton
+                                  key={view.id}
+                                  view={view}
+                                  onNavigateTo={to => diagram.navigateTo(to as scalar.ViewId, fromNode ?? undefined)} />
+                              ))}
+                            </Stack>
+                          </Box>
+                        )}
+                      </Stack>
+                    </ScrollArea>
+                  </TabsPanel>
+
+                  <TabsPanel value="Structure">
+                    {elementModel && (
+                      <ScrollArea scrollbars="y" type="auto">
+                        <TabPanelStructure element={elementModel} />
+                      </ScrollArea>
+                    )}
+                  </TabsPanel>
+
+                  {elementModel && (
+                    <TabsPanel value="Deployments">
+                      <ScrollArea scrollbars="y" type="auto">
+                        <TabPanelDeployments elementFqn={elementModel.id} />
+                      </ScrollArea>
+                    </TabsPanel>
                   )}
-                </DiagramFeatures>
-              </TabsPanel>
-
-              <TabsPanel value="Views">
-                <ScrollArea scrollbars="y" type="auto">
-                  <Stack gap={'lg'}>
-                    {viewsOf.length > 0 && (
-                      <Box>
-                        <Divider label="views of the element (scoped)" />
-                        <Stack gap={'sm'}>
-                          {viewsOf.map((view) => (
-                            <ViewButton
-                              key={view.id}
-                              view={view}
-                              onNavigateTo={to => diagram.navigateTo(to as scalar.ViewId, fromNode ?? undefined)} />
-                          ))}
-                        </Stack>
-                      </Box>
-                    )}
-                    {otherViews.length > 0 && (
-                      <Box>
-                        <Divider label="views including this element" />
-                        <Stack gap={'sm'}>
-                          {otherViews.map((view) => (
-                            <ViewButton
-                              key={view.id}
-                              view={view}
-                              onNavigateTo={to => diagram.navigateTo(to as scalar.ViewId, fromNode ?? undefined)} />
-                          ))}
-                        </Stack>
-                      </Box>
-                    )}
-                  </Stack>
-                </ScrollArea>
-              </TabsPanel>
-
-              <TabsPanel value="Structure">
-                <ScrollArea scrollbars="y" type="auto">
-                  <TabPanelStructure element={elementModel} />
-                </ScrollArea>
-              </TabsPanel>
-
-              <TabsPanel value="Deployments">
-                <ScrollArea scrollbars="y" type="auto">
-                  <TabPanelDeployments elementFqn={elementModel.id} />
-                </ScrollArea>
-              </TabsPanel>
+                </>
+              )}
 
               {hasContract && (
                 <TabsPanel value="Contracts">
                   <ContractsTab
-                    project={elementModel.projectId}
+                    project={elementProjectId}
                     element={stableElementId}
                     active={activeTab === 'Contracts'}
+                  />
+                </TabsPanel>
+              )}
+              {hasDiff && (
+                <TabsPanel value="Diff">
+                  <DiffTab
+                    element={stableElementId}
+                    active={activeTab === 'Diff'}
                   />
                 </TabsPanel>
               )}

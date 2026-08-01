@@ -63,8 +63,34 @@ const viewSource: XirangViewSource = {
   diff: {
     summary: { total: 4, ADDED: 2, MODIFIED: 1, REMOVED: 1 },
     entries: [
-      { kind: 'element-declaration', identity: 'alpha.id', operation: 'MODIFIED' },
-      { kind: 'element-declaration', identity: 'gamma.id', operation: 'ADDED' },
+      {
+        kind: 'element-declaration',
+        identity: 'alpha.id',
+        operation: 'MODIFIED',
+        after: {
+          identity: 'alpha.id',
+          kind: 'capability',
+          parent: 'project.root',
+          title: 'Alpha target',
+          definition: 'Changed',
+          summary: 'Changed',
+          description: 'Changed',
+        },
+      },
+      {
+        kind: 'element-declaration',
+        identity: 'gamma.id',
+        operation: 'ADDED',
+        after: {
+          identity: 'gamma.id',
+          kind: 'capability',
+          parent: 'project.root',
+          title: 'Gamma',
+          definition: 'Added',
+          summary: 'Added',
+          description: 'Added',
+        },
+      },
       {
         kind: 'element-declaration',
         identity: 'beta.id',
@@ -280,6 +306,30 @@ describe('materializeXirangArchitectureView', () => {
 
     expect(overlay.counts).toEqual({ ADDED: 2, MODIFIED: 1, REMOVED: 1 })
     expect(overlay.changed).toEqual(['alpha.id', 'beta.id', 'gamma.id'])
+    expect(overlay.metamodel).toEqual([])
+  })
+
+  it('lists metamodel entries separately from the graph overlay', () => {
+    const source: XirangViewSource = {
+      ...viewSource,
+      diff: {
+        summary: { total: 3, ADDED: 2, MODIFIED: 0, REMOVED: 1 },
+        entries: [
+          { kind: 'element-kind', identity: 'kind.a', operation: 'ADDED' },
+          { kind: 'authored-view', identity: 'views.v', operation: 'REMOVED' },
+          { kind: 'relationship-kind', identity: 'kind.b', operation: 'ADDED' },
+        ],
+      },
+    }
+    const overlay = getArchitectureOverlayModel(source)
+
+    expect(overlay.counts).toEqual({ ADDED: 2, MODIFIED: 0, REMOVED: 1 })
+    expect(overlay.changed).toEqual([])
+    expect(overlay.metamodel.map(entry => [entry.kind, entry.identity, entry.operation])).toEqual([
+      ['authored-view', 'views.v', 'REMOVED'],
+      ['element-kind', 'kind.a', 'ADDED'],
+      ['relationship-kind', 'kind.b', 'ADDED'],
+    ])
   })
 
   it('renders the selected complete target graph keyed by identity', () => {
@@ -321,12 +371,73 @@ describe('materializeXirangArchitectureView', () => {
     })
   })
 
-  it('keeps only changed graph, endpoints, and ancestor context in Diff only mode', () => {
+  it('keeps only changed elements in Diff only mode', () => {
     const target = materializeXirangArchitectureView(modelView, viewSource, 'diff')
 
-    expect(target.nodes.map(item => item.id)).toEqual(['project.root', 'alpha.id', 'gamma.id', 'beta.id'])
-    expect(target.nodes.find(item => item.id === 'beta.id')).toMatchObject({ color: 'red', parent: 'project.root' })
+    expect(target.nodes.map(item => item.id)).toEqual(['alpha.id', 'gamma.id', 'beta.id'])
+    expect(target.nodes.find(item => item.id === 'beta.id')).toMatchObject({ color: 'red', parent: null })
+    expect(target.nodes.find(item => item.id === 'alpha.id')).toMatchObject({ color: 'amber' })
+    expect(target.nodes.find(item => item.id === 'gamma.id')).toMatchObject({ color: 'green' })
     expect(target.edges).toHaveLength(1)
+  })
+
+  it('keeps delta hierarchy in Diff only mode when parent and child are both changed', () => {
+    const source: XirangViewSource = {
+      ...viewSource,
+      diff: {
+        summary: { total: 2, ADDED: 1, MODIFIED: 1, REMOVED: 0 },
+        entries: [
+          {
+            kind: 'element-declaration',
+            identity: 'project.root',
+            operation: 'MODIFIED',
+            after: {
+              identity: 'project.root',
+              kind: 'project',
+              parent: null,
+              title: 'Project',
+              definition: 'Changed',
+              summary: 'Changed',
+              description: 'Changed',
+            },
+          },
+          {
+            kind: 'element-declaration',
+            identity: 'alpha.id',
+            operation: 'ADDED',
+            after: {
+              identity: 'alpha.id',
+              kind: 'capability',
+              parent: 'project.root',
+              title: 'Alpha',
+              definition: 'Added',
+              summary: 'Added',
+              description: 'Added',
+            },
+          },
+        ],
+      },
+    }
+
+    const target = materializeXirangArchitectureView(modelView, source, 'diff')
+    expect(target.nodes.map(item => item.id)).toEqual(['project.root', 'alpha.id'])
+    expect(target.nodes.find(item => item.id === 'project.root')).toMatchObject({ parent: null, color: 'amber' })
+    expect(target.nodes.find(item => item.id === 'alpha.id')).toMatchObject({ parent: 'project.root', color: 'green' })
+  })
+
+  it('renders an empty graph in Diff only mode when no element changes exist', () => {
+    const source: XirangViewSource = {
+      ...viewSource,
+      diff: {
+        summary: { total: 1, ADDED: 1, MODIFIED: 0, REMOVED: 0 },
+        entries: [{ kind: 'relationship-kind', identity: 'kind.id', operation: 'ADDED' }],
+      },
+    }
+
+    const target = materializeXirangArchitectureView(modelView, source, 'diff')
+    expect(target.nodes).toEqual([])
+    expect(target.edges).toEqual([])
+    expect(target.hash).toContain(':xirang:')
   })
 
   it('stays stable when every derived local name changes but identities do not', () => {

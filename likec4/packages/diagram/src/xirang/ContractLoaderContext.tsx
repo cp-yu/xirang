@@ -79,6 +79,8 @@ export interface XirangViewSource {
     entries: XirangDiffEntry[]
   }
   diagnostics: XirangViewDiagnostic[]
+  /** Change plan files (design.md, proposal.md, tasks.md). */
+  changePlan?: Record<string, string>
 }
 
 /**

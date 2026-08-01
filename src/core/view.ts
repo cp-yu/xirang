@@ -82,6 +82,8 @@ export interface ViewRuntimeChangeDerivedView {
   /** element identity → Contract markdown; the only Contract transport to the Browser. */
   contracts?: Record<string, string>;
   diagnostics: ChangeDiagnostic[];
+  /** Change plan files (design.md, proposal.md, tasks.md — keys are file basenames). */
+  changePlan?: Record<string, string>;
 }
 
 export interface ViewRuntimeSnapshot {
@@ -157,6 +159,17 @@ async function buildChangeDerivedView(projectRoot: string, change: string): Prom
   try {
     const compiled = await compileChange(projectRoot, change);
     const projection = compiled.target ? projectContracts(compiled.target) : undefined;
+    const changeRoot = path.join(projectRoot, XIRANG_DIR_NAME, 'changes', change);
+    const planFiles = ['design.md', 'proposal.md', 'tasks.md'] as const;
+    const changePlan: Record<string, string> = {};
+    for (const file of planFiles) {
+      try {
+        const content = await fs.readFile(path.join(changeRoot, file), 'utf8');
+        changePlan[file] = content;
+      } catch {
+        // file may not exist
+      }
+    }
     return {
       id: `change:${change}`,
       label: change,
@@ -170,6 +183,7 @@ async function buildChangeDerivedView(projectRoot: string, change: string): Prom
       ...(compiled.target ? { architecture: projectBrowserArchitecture(compiled.target) } : {}),
       ...(projection ? { contracts: projection } : {}),
       diagnostics: compiled.diagnostics,
+      ...(Object.keys(changePlan).length > 0 ? { changePlan } : {}),
     };
   } catch (error) {
     return {

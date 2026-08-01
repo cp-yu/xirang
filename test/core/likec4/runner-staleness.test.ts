@@ -100,7 +100,7 @@ describe('resolveLikeC4Command', () => {
     });
   });
 
-  it('always uses dist when the staleness check is disabled (production default)', async () => {
+  it('always uses dist when the staleness check is disabled via env var', async () => {
     vi.stubEnv('XIRANG_LIKEC4_STALE_CHECK', '0');
     const { root, layout } = await fixture({ srcNewer: true });
     dirs.push(root);

@@ -8,6 +8,7 @@ import {
   type XirangViewSource,
   xirangViewSourceRevision,
 } from './ContractLoaderContext'
+import { xirangProjectionMetadata } from './projectionNode'
 
 type ViewNode = DiagramView['nodes'][number]
 type ViewEdge = DiagramView['edges'][number]
@@ -17,6 +18,9 @@ const operationColor: Record<XirangDiffOperation, ViewNode['color']> = {
   MODIFIED: 'amber',
   REMOVED: 'red',
 }
+
+/** Virtual layout root for Diff mode; a NUL can never collide with an element identity. */
+const DIFF_ROOT = '\u0000'
 
 /** Structural entity types; Contract entries (`requirement`, `scenario`) never reach the view. */
 const structuralKinds: ReadonlySet<XirangDiffKind> = new Set([
@@ -108,6 +112,19 @@ function visibleTree(
   return { identity, children }
 }
 
+/**
+ * Diff mode renders the delta itself: every changed element is visible and the hierarchy only
+ * connects changed elements. A virtual root (never rendered) holds the changed elements whose
+ * parent fell outside the delta, so they share one layout without a phantom node.
+ */
+function diffTree(identity: string, declarationChildren: Map<string, string[]>): VisibleNode {
+  return {
+    identity,
+    children: (declarationChildren.get(identity) ?? [])
+      .map(child => diffTree(child, declarationChildren)),
+  }
+}
+
 type Measured = { node: VisibleNode; size: Size; rows: Measured[][] }
 
 /**
@@ -190,16 +207,23 @@ function perspectiveColor(index: number): ViewNode['color'] {
   const chroma = (1 - Math.abs(2 * lightness / 100 - 1)) * saturation / 100
   const segment = hue / 60
   const secondary = chroma * (1 - Math.abs(segment % 2 - 1))
-  const [red, green, blue] = segment < 1 ? [chroma, secondary, 0]
-    : segment < 2 ? [secondary, chroma, 0]
-    : segment < 3 ? [0, chroma, secondary]
-    : segment < 4 ? [0, secondary, chroma]
-    : segment < 5 ? [secondary, 0, chroma]
+  const [red, green, blue] = segment < 1 ?
+    [chroma, secondary, 0]
+    : segment < 2 ?
+    [secondary, chroma, 0]
+    : segment < 3 ?
+    [0, chroma, secondary]
+    : segment < 4 ?
+    [0, secondary, chroma]
+    : segment < 5 ?
+    [secondary, 0, chroma]
     : [chroma, 0, secondary]
   const match = lightness / 100 - chroma / 2
-  return `#${[red, green, blue]
-    .map(channel => Math.round((channel + match) * 255).toString(16).padStart(2, '0'))
-    .join('')}` as ViewNode['color']
+  return `#${
+    [red, green, blue]
+      .map(channel => Math.round((channel + match) * 255).toString(16).padStart(2, '0'))
+      .join('')
+  }` as ViewNode['color']
 }
 
 function createNode(
@@ -207,6 +231,7 @@ function createNode(
   parent: string | null,
   geometry: Geometry,
   operation?: XirangDiffOperation,
+  hasChildren = false,
   presentation?: { shape: ViewNode['shape']; color: ViewNode['color']; modelRef?: ViewNode['modelRef'] },
 ): ViewNode {
   return {
@@ -219,7 +244,11 @@ function createNode(
     outEdges: [],
     title: declaration.title,
     description: { txt: declaration.summary },
-    metadata: { elementId: declaration.identity, definition: declaration.description },
+    metadata: {
+      elementId: declaration.identity,
+      definition: declaration.description,
+      ...(operation && xirangProjectionMetadata(declaration.identity, operation, hasChildren)),
+    },
     shape: presentation?.shape ?? 'rectangle',
     color: operation ? operationColor[operation] : presentation?.color ?? 'primary',
     style: { opacity: 15, size: 'md' },
@@ -280,20 +309,51 @@ export function materializeXirangArchitectureView(
   const relationshipEntries = new Map(
     entries.filter(entry => entry.kind === 'relationship').map(entry => [entry.identity, entry]),
   )
-  const declarations = new Map(architecture.elements.map(element => [element.declaration.identity, element.declaration]))
+  const declarations = new Map<string, XirangElementDeclaration>()
   if (mode === 'diff') {
     for (const entry of declarationEntries.values()) {
-      const removed = asDeclaration(entry.before)
-      if (entry.operation === 'REMOVED' && removed) declarations.set(removed.identity, removed)
+      const declaration = entry.operation === 'REMOVED' ? asDeclaration(entry.before) : asDeclaration(entry.after)
+      if (declaration) declarations.set(declaration.identity, declaration)
+    }
+    // Include elements whose requirements/scenarios changed (contract-only deltas).
+    const contractOnlyIds: string[] = []
+    for (const entry of source.diff?.entries ?? []) {
+      if (entry.kind === 'requirement' || entry.kind === 'scenario') {
+        const elementId = entry.identity.split('#')[0]!
+        if (!declarationEntries.has(elementId) && !contractOnlyIds.includes(elementId)) {
+          contractOnlyIds.push(elementId)
+        }
+      }
+    }
+    if (contractOnlyIds.length > 0) {
+      const archDeclarationIndex = new Map<string, XirangElementDeclaration>()
+      for (const element of architecture.elements) {
+        const id = element.declaration.identity
+        if (!archDeclarationIndex.has(id)) archDeclarationIndex.set(id, element.declaration)
+      }
+      for (const elementId of contractOnlyIds) {
+        const declaration = archDeclarationIndex.get(elementId)
+        if (declaration) {
+          declarations.set(declaration.identity, declaration)
+          declarationEntries.set(elementId, {
+            kind: 'element-declaration',
+            identity: elementId,
+            operation: 'MODIFIED',
+          })
+        }
+      }
+    }
+    // Hierarchy confined to the delta: an unchanged parent is not a layout container.
+    for (const declaration of declarations.values()) {
+      if (declaration.parent !== null && !declarations.has(declaration.parent)) {
+        declarations.set(declaration.identity, { ...declaration, parent: null })
+      }
+    }
+  } else {
+    for (const element of architecture.elements) {
+      declarations.set(element.declaration.identity, element.declaration)
     }
   }
-
-  const root = [...declarations.values()]
-    .filter(declaration => declaration.parent === null)
-    .sort((left, right) => compareUtf8Bytes(left.identity, right.identity))[0]
-  const focus = [focusIdentity, ...previousAncestorPath, root?.identity]
-    .find((identity): identity is string => identity !== undefined && declarations.has(identity))
-  if (!focus) return modelView
 
   const declarationChildren = new Map<string, string[]>()
   for (const declaration of declarations.values()) {
@@ -303,7 +363,28 @@ export function materializeXirangArchitectureView(
     declarationChildren.set(declaration.parent, children)
   }
 
-  const layout = measure(visibleTree(focus, declarationChildren, expandedNodes, true))
+  let focus: string
+  let layout: Measured
+  if (mode === 'diff') {
+    focus = DIFF_ROOT
+    declarationChildren.set(
+      DIFF_ROOT,
+      [...declarations.values()]
+        .filter(declaration => declaration.parent === null)
+        .map(declaration => declaration.identity)
+        .sort(compareUtf8Bytes),
+    )
+    layout = measure(diffTree(DIFF_ROOT, declarationChildren))
+  } else {
+    const root = [...declarations.values()]
+      .filter(declaration => declaration.parent === null)
+      .sort((left, right) => compareUtf8Bytes(left.identity, right.identity))[0]
+    const resolved = [focusIdentity, ...previousAncestorPath, root?.identity]
+      .find((identity): identity is string => identity !== undefined && declarations.has(identity))
+    if (!resolved) return modelView
+    focus = resolved
+    layout = measure(visibleTree(focus, declarationChildren, expandedNodes, true))
+  }
   const geometries = new Map<string, Geometry>()
   place(layout, ORIGIN, ORIGIN, geometries)
 
@@ -314,8 +395,11 @@ export function materializeXirangArchitectureView(
     .map(declaration => declaration.identity)
     .sort(compareUtf8Bytes)
   const perspectiveColors = new Map(perspectives.map((identity, index) => [identity, perspectiveColor(index)]))
-  const modelNodes = new Map(modelView.nodes.flatMap(node =>
-    typeof node.metadata?.['elementId'] === 'string' ? [[node.metadata['elementId'], node] as const] : []))
+  const modelNodes = new Map(
+    modelView.nodes.flatMap(node =>
+      typeof node.metadata?.['elementId'] === 'string' ? [[node.metadata['elementId'], node] as const] : []
+    ),
+  )
   const identityByNodeId = new Map([...modelNodes].map(([identity, node]) => [node.id, identity]))
   const relationIdsByTriple = new Map<string, string[]>()
   for (const edge of modelView.edges) {
@@ -332,16 +416,19 @@ export function materializeXirangArchitectureView(
     const modelNode = modelNodes.get(declaration.identity)
     const presentation = declaration.kind === 'perspective'
       ? {
-          shape: PERSPECTIVE_SHAPE,
-          color: perspectiveColors.get(declaration.identity) ?? 'primary' as const,
-          modelRef: modelNode?.modelRef,
-        }
-      : modelNode ? { shape: modelNode.shape, color: modelNode.color, modelRef: modelNode.modelRef } : undefined
+        shape: PERSPECTIVE_SHAPE,
+        color: perspectiveColors.get(declaration.identity) ?? 'primary' as const,
+        modelRef: modelNode?.modelRef,
+      }
+      : modelNode
+      ? { shape: modelNode.shape, color: modelNode.color, modelRef: modelNode.modelRef }
+      : undefined
     return createNode(
       declaration,
       declaration.identity === focus ? null : declaration.parent,
       geometries.get(declaration.identity)!,
       declarationEntries.get(declaration.identity)?.operation,
+      (declarationChildren.get(declaration.identity)?.length ?? 0) > 0,
       presentation,
     )
   })

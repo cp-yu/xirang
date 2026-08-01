@@ -1,0 +1,5 @@
+relationships:
+  - operation: REMOVED
+    source: cli
+    kind: supports-presentation
+    target: text-presentation

@@ -91,6 +91,7 @@
     "motion": "catalog:react",
     "nanostores": "catalog:react",
     "react": "catalog:react",
+    "react-diff-viewer-continued": "catalog:",
     "react-dom": "catalog:react",
     "react-error-boundary": "catalog:react",
     "remeda": "catalog:utils",
