@@ -19,3 +19,18 @@ test-entity SHALL 在活动 Change 的 Change-derived View 中以 ADDED 语义�
 - **WHEN** 用户打开本 Change 的 Change-derived View
 - **THEN** View 中 `test-entity` 以 ADDED 标记呈现
 - **AND** 其 Declaration（identity、kind、parent、title、definition）与 Contract（Requirement、Scenario）完整可见
+
+### Requirement: 支持伪代码形式的 Scenario 正文
+
+test-entity SHALL 接受伪代码形式的 Scenario 正文，不限于 WHEN/THEN/AND 结构。
+
+#### Scenario: 纯伪代码正文
+
+for i in 1..n-1:
+  for j in i+1..n:
+    if a[j] < a[i]: swap(a[i], a[j])
+
+#### Scenario: 混合正文
+
+- **WHEN** 用户打开本 Change 的 Change-derived View
+- **THEN** 伪代码与 WHEN/THEN/AND 正文均完整可见

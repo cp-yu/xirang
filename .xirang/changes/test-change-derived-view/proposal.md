@@ -18,7 +18,7 @@
 
 #### New Specs
 
-- `test-entity`: 测试 Element Contract 在 Change-derived View 中的呈现
+- `test-entity`: 测试 Element Contract 在 Change-derived View 中的呈现，含一个验证伪代码形式 Scenario 正文被接受的 Requirement
 
 #### Modified Specs
 

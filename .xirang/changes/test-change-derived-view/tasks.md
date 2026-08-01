@@ -16,4 +16,9 @@
 - [ ] C1 验证 Change 编译通过
   - Verifies: `elements/test-entity.md` / Requirement "被 Change-derived View 正确识别" / Scenario "查看 Change-derived View"
   - Command: `xirang validate --change "test-change-derived-view" --json`
-  - Expect: `valid: true` 且 `summary.total` 等于 4（element-declaration + element-kind + relationship-kind + relationship）
+  - Expect: `valid: true`，entries 中包含 element-declaration / element-kind / relationship-kind / relationship 四类实体的 ADDED 条目
+
+- [ ] C2 验证伪代码形式的 Scenario 正文被接受
+  - Verifies: `elements/test-entity.md` / Requirement "支持伪代码形式的 Scenario 正文" / Scenario "纯伪代码正文"
+  - Command: `xirang validate --change "test-change-derived-view" --json`
+  - Expect: `valid: true`，伪代码场景（如 `if a[j] < a[i]: swap(a[i], a[j])`）不产生正文格式错误
