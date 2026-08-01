@@ -5,7 +5,7 @@
 //
 // Portions of this file have been modified by NVIDIA CORPORATION & AFFILIATES.
 
-import { IconTransform, IconZoomScan } from '@tabler/icons-react'
+import { IconChevronDown, IconTransform, IconZoomScan } from '@tabler/icons-react'
 import { useMemo } from 'react'
 import { hasAtLeast } from 'remeda'
 import type { SimplifyDeep } from 'type-fest'
@@ -42,7 +42,7 @@ type WithExtraButtons = {
 export type ElementActionsProps =
   & SimplifyDeep<{
     selected?: boolean
-    data: Pick<Types.ElementNodeData, 'id' | 'modelFqn' | 'navigateTo' | 'title'> & BaseNodeData
+    data: Pick<Types.ElementNodeData, 'id' | 'modelFqn' | 'navigateTo' | 'title' | 'xirang'> & BaseNodeData
   }>
   & WithExtraButtons
 
@@ -77,7 +77,7 @@ export function ElementActions({
 }: ElementActionsProps) {
   const { enableNavigateTo, enableRelationshipBrowser } = useEnabledFeatures()
   const diagram = useDiagram()
-  const { id, navigateTo, modelFqn, title } = props.data
+  const { id, navigateTo, modelFqn, title, xirang } = props.data
   let buttons = useMemo(() => {
     const buttons = [] as ElementActionButtons.Item[]
     const labelTitle = readableText(title) || id
@@ -93,7 +93,18 @@ export function ElementActions({
         },
       })
     }
-    if (enableRelationshipBrowser) {
+    if (xirang?.operation === 'ADDED' && xirang.hasChildren) {
+      buttons.push({
+        key: 'xirang-expand',
+        ariaLabel: 'Expand children',
+        icon: <IconChevronDown />,
+        onClick: (e) => {
+          e.stopPropagation()
+          diagram.send({ type: 'expand.toggle', identity: xirang.identity })
+        },
+      })
+    }
+    if (enableRelationshipBrowser && xirang?.operation !== 'ADDED') {
       buttons.push({
         key: 'relationships',
         ariaLabel: `Browse ${labelTitle} relationships`,
@@ -105,7 +116,7 @@ export function ElementActions({
       })
     }
     return buttons
-  }, [enableNavigateTo, enableRelationshipBrowser, modelFqn, navigateTo, id, title, diagram])
+  }, [diagram, enableNavigateTo, enableRelationshipBrowser, modelFqn, navigateTo, id, title, xirang])
 
   if (extraButtons && hasAtLeast(extraButtons, 1)) {
     buttons = [...buttons, ...extraButtons]
