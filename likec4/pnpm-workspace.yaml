@@ -53,6 +53,7 @@ catalog:
   oxlint-tsgolint: 0.24.0
   pako: ^2.1.0
   playwright: 1.60.0
+  react-diff-viewer-continued: 4.4.0
   tsx: 4.22.5
   turbo: 2.10.5
   typescript: 6.0.3
