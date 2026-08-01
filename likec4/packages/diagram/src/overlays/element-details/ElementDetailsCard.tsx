@@ -172,12 +172,7 @@ export function ElementDetailsCard({
   const viewModel = useCurrentViewModel()
   const nodeModel = fromNode ? viewModel.findNode(fromNode) : viewModel.findNodeWithElement(fqn)
 
-  let elementModel
-  try {
-    elementModel = viewModel.$model.element(fqn)
-  } catch {
-    elementModel = null
-  }
+  const elementModel = viewModel.$model.findElement(fqn) ?? null
   const runtime = useXirangViewSources()
   const declarationEntry = runtime.selected.source === 'change-derived-view'
     ? runtime.selected.diff?.entries.find(entry => entry.kind === 'element-declaration' && entry.identity === fqn)

@@ -117,10 +117,12 @@ function XirangArchitectureOverlay() {
   const childrenByIdentity = new Map<string, string[]>()
   for (const declaration of declarations.values()) {
     if (!declaration.parent) continue
-    childrenByIdentity.set(declaration.parent, [
-      ...(childrenByIdentity.get(declaration.parent) ?? []),
-      declaration.identity,
-    ])
+    let children = childrenByIdentity.get(declaration.parent)
+    if (!children) {
+      children = []
+      childrenByIdentity.set(declaration.parent, children)
+    }
+    children.push(declaration.identity)
   }
   const hasChildren = (identity: string) => (childrenByIdentity.get(identity)?.length ?? 0) > 0
   const nodeIdentity = (node: { id: string; metadata?: Readonly<Record<string, unknown>> | null | undefined }) =>

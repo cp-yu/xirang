@@ -47,6 +47,8 @@
 - Create: `likec4/packages/diagram/src/overlays/element-details/DiffTab.tsx`
 - Create: `likec4/packages/diagram/src/overlays/element-details/XirangDiffViewer.tsx`
 - Modify: `likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx`
+- Modify: `likec4/packages/diagram/package.json`
+- Modify: `likec4/pnpm-workspace.yaml`
 - Test: `likec4/packages/diagram/src/overlays/element-details/DiffTab.spec.tsx`
 - Test: `likec4/packages/diagram/src/overlays/element-details/XirangDiffViewer.spec.tsx`
 
@@ -63,7 +65,7 @@
 - [x] C3 Diff tab 渲染 declaration + contract diff
   - Verifies: 标准双栏 diff 展示，支持纵向滚动，移动端横向滚动，ADDED 元素 Before 为空时自动滚动到 After
   - Command: `cd likec4/packages/diagram && pnpm vitest run --no-isolate src/overlays/element-details/DiffTab.spec.tsx`
-  - Evidence: 测试通过；e2e 验证 desktop 和 mobile 的 diff 滚动
+  - Evidence: Vitest 通过；Playwright 5/5 通过，覆盖 Element Diff 和 Metamodel Diff 的短内容宽度收缩、Before/After 标题 margin、桌面/移动端 diff 滚动；pnpm-lock.yaml 为依赖锁定生成产物
 
 ### Task 4: 调整全局 tab 顺序 + 条件渲染 Diff tab + ADDED 安全 tabs
 
@@ -105,8 +107,8 @@
 
 - [x] C5 Metamodel 行可点击弹出 diff
   - Verifies: 点击面板中的 metamodel 行弹出模态框，展示 before/after 内容
-  - Command: `cd likec4/packages/diagram && pnpm vitest run --no-isolate`
-  - Evidence: 测试通过
+  - Command: `pnpm exec playwright test test/e2e/semantic-browser-model-view.spec.ts --project=desktop --project=mobile`
+  - Evidence: Vitest 通过；Playwright 5/5 通过，验证 Metamodel diff modal 的 Before/After 展示、短内容不固定为 1000px 且表头不重叠
 
 ### Task 6: ADDED 元素投影与交互
 
@@ -116,6 +118,7 @@
 - Create: `likec4/packages/diagram/src/xirang/projectionNode.ts`
 - Modify: `likec4/packages/diagram/src/xirang/architectureView.ts`
 - Modify: `likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts`
+- Modify: `likec4/packages/diagram/src/likec4diagram/types.ts`
 - Modify: `likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx`
 - Modify: `likec4/packages/diagram/src/likec4diagram/custom/nodes/ElementActions.tsx`
 - Modify: `likec4/packages/diagram/src/likec4diagram/custom/nodes/CompoundActions.tsx`
@@ -145,6 +148,7 @@
 - Modify: `playwright.config.ts`
 - Modify: `test/e2e/semantic-browser-model-view.spec.ts`
 - Create: `test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-parent.md`
+- Create: `test/fixtures/contract-browser/.xirang/changes/browser-change/metamodel/test-component.md`
 - Create: `test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-child.md`
 
 **Requirements**:

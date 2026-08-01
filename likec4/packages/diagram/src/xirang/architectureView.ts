@@ -316,21 +316,30 @@ export function materializeXirangArchitectureView(
       if (declaration) declarations.set(declaration.identity, declaration)
     }
     // Include elements whose requirements/scenarios changed (contract-only deltas).
+    const contractOnlyIds: string[] = []
     for (const entry of source.diff?.entries ?? []) {
       if (entry.kind === 'requirement' || entry.kind === 'scenario') {
         const elementId = entry.identity.split('#')[0]!
-        if (!declarationEntries.has(elementId)) {
-          const declaration = architecture.elements
-            .find(element => element.declaration.identity === elementId)?.declaration
-          if (declaration) {
-            declarations.set(declaration.identity, declaration)
-            // Mark as MODIFIED so the diff view colors it amber.
-            declarationEntries.set(elementId, {
-              kind: 'element-declaration',
-              identity: elementId,
-              operation: 'MODIFIED',
-            })
-          }
+        if (!declarationEntries.has(elementId) && !contractOnlyIds.includes(elementId)) {
+          contractOnlyIds.push(elementId)
+        }
+      }
+    }
+    if (contractOnlyIds.length > 0) {
+      const archDeclarationIndex = new Map<string, XirangElementDeclaration>()
+      for (const element of architecture.elements) {
+        const id = element.declaration.identity
+        if (!archDeclarationIndex.has(id)) archDeclarationIndex.set(id, element.declaration)
+      }
+      for (const elementId of contractOnlyIds) {
+        const declaration = archDeclarationIndex.get(elementId)
+        if (declaration) {
+          declarations.set(declaration.identity, declaration)
+          declarationEntries.set(elementId, {
+            kind: 'element-declaration',
+            identity: elementId,
+            operation: 'MODIFIED',
+          })
         }
       }
     }
