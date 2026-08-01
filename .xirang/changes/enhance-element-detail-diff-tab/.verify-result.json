@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-08-01T09:52:55.917Z",
+  "timestamp": "2026-08-01T10:06:13.267Z",
   "result": "PASS",
   "issues": [],
   "tasksFileHash": "f837c4acab2b13ff5e714d541e1319fd85646e6922ec8b66b2a40ef2391d0899",
@@ -39,7 +39,7 @@
       "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-parent.md",
       "test/fixtures/contract-browser/.xirang/changes/browser-change/metamodel/test-component.md"
     ],
-    "evidenceFingerprint": "fcc5e31848df04b2bae4c1a2a8ee58b949b44c2ad489257ffeba533fbeaaacd0",
+    "evidenceFingerprint": "adef32503c597ce08f6349a9503b03af83c6085bee77f3b1e0772bb50fd3b845",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/enhance-element-detail-diff-tab/architecture-delta.c4",
@@ -79,7 +79,7 @@
       },
       {
         "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
-        "hash": "d566124b1713e4e20b50c797d2251eea0c6f3b52987fd96245af6413e078ea66"
+        "hash": "269025455c14bb3a332b1efef9569b025a73538b17e38015964d4731cd286c9d"
       },
       {
         "path": "likec4/packages/diagram/src/likec4diagram/types.ts",
@@ -115,7 +115,7 @@
       },
       {
         "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
-        "hash": "3cab7d8b6d72977d530e7524ffcad094b43de0956b5298bf9d4f2b2fe7ee2fa3"
+        "hash": "d64dbb7a29277b776510e949573dce28aa6337f6c7d59ea2f822fc628c8ed8c0"
       },
       {
         "path": "likec4/packages/diagram/src/overlays/element-details/MetamodelDiffModal.tsx",
@@ -135,7 +135,7 @@
       },
       {
         "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
-        "hash": "4977f7a95b31394bd08227fc4660d80f4ac4c71f36470be2f58d17dadd38c9c5"
+        "hash": "4615690c14559d10d283f26247d52a1c2ab77175d1eebd57d2736908a493938d"
       },
       {
         "path": "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
@@ -174,10 +174,22 @@
     "gitHeadCommit": "1435988992e4e2e558a3658c7d62deda60f62c47"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "status": "SKIPPED",
+    "attempts": [
+      {
+        "timestamp": "2026-08-01T10:07:55.053Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_APPLIED",
+        "summary": "Applied 3 optimizations: (1) childrenByIdentity quadratic spread eliminated in DiagramUI.tsx, (2) architecture.elements.find full scan replaced with identity index in architectureView.ts, (3) try/catch element lookup replaced with findElement in ElementDetailsCard.tsx. All 49 Vitest tests and 5 Playwright tests passed.",
+        "appliedChanges": [
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/xirang/architectureView.ts",
+          "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx"
+        ]
+      }
+    ],
     "baseline": {
-      "timestamp": "2026-08-01T09:52:55.917Z",
+      "timestamp": "2026-08-01T10:06:13.267Z",
       "result": "PASS",
       "issues": [],
       "tasksFileHash": "f837c4acab2b13ff5e714d541e1319fd85646e6922ec8b66b2a40ef2391d0899",
@@ -217,7 +229,7 @@
           "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-parent.md",
           "test/fixtures/contract-browser/.xirang/changes/browser-change/metamodel/test-component.md"
         ],
-        "evidenceFingerprint": "fcc5e31848df04b2bae4c1a2a8ee58b949b44c2ad489257ffeba533fbeaaacd0",
+        "evidenceFingerprint": "adef32503c597ce08f6349a9503b03af83c6085bee77f3b1e0772bb50fd3b845",
         "evidenceFingerprintEntries": [
           {
             "path": ".xirang/changes/enhance-element-detail-diff-tab/architecture-delta.c4",
@@ -257,7 +269,7 @@
           },
           {
             "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
-            "hash": "d566124b1713e4e20b50c797d2251eea0c6f3b52987fd96245af6413e078ea66"
+            "hash": "269025455c14bb3a332b1efef9569b025a73538b17e38015964d4731cd286c9d"
           },
           {
             "path": "likec4/packages/diagram/src/likec4diagram/types.ts",
@@ -293,7 +305,7 @@
           },
           {
             "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
-            "hash": "3cab7d8b6d72977d530e7524ffcad094b43de0956b5298bf9d4f2b2fe7ee2fa3"
+            "hash": "d64dbb7a29277b776510e949573dce28aa6337f6c7d59ea2f822fc628c8ed8c0"
           },
           {
             "path": "likec4/packages/diagram/src/overlays/element-details/MetamodelDiffModal.tsx",
@@ -313,7 +325,7 @@
           },
           {
             "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
-            "hash": "4977f7a95b31394bd08227fc4660d80f4ac4c71f36470be2f58d17dadd38c9c5"
+            "hash": "4615690c14559d10d283f26247d52a1c2ab77175d1eebd57d2736908a493938d"
           },
           {
             "path": "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
