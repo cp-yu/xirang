@@ -2,15 +2,14 @@ import { RichText } from '@likec4/core'
 import { describe, expect, it, vi } from 'vitest'
 import type {
   XirangContractContent,
+  XirangContractLoader,
   XirangDiffEntry,
   XirangViewSource,
-  XirangContractLoader,
 } from '../../xirang/ContractLoaderContext'
 import {
-  createTextDiff,
+  type ContractLoadState,
   getStructuredContractDiff,
   XirangContractLoadController,
-  type ContractLoadState,
 } from './ContractsTab'
 
 function deferred<T>() {
@@ -140,7 +139,10 @@ describe('ContractsTab', () => {
         ],
       }),
     ])
-    expect(model.requirements[0]?.text.flatMap(line => line.words ?? []).some(word => word.operation === 'ADDED')).toBe(true)
+    expect(model.requirements[0]).toMatchObject({
+      before: 'The system SHALL use password login.',
+      after: 'The system SHALL use secure password login.',
+    })
   })
 
   it('filters by host Element identity without crossing an identity boundary', () => {
@@ -161,8 +163,20 @@ describe('ContractsTab', () => {
       changeVariant(
         [{ kind: 'requirement', identity: 'auth.id#Login', operation: 'ADDED', after: { body: 'new' } }],
         [
-          { level: 'ERROR', code: 'CONTRACT', path: 'elements/auth.id.md', message: 'Bad Scenario', identity: 'auth.id#Login' },
-          { level: 'ERROR', code: 'DECLARATION', path: 'elements/auth.id.md', message: 'Bad kind', identity: 'auth.id' },
+          {
+            level: 'ERROR',
+            code: 'CONTRACT',
+            path: 'elements/auth.id.md',
+            message: 'Bad Scenario',
+            identity: 'auth.id#Login',
+          },
+          {
+            level: 'ERROR',
+            code: 'DECLARATION',
+            path: 'elements/auth.id.md',
+            message: 'Bad kind',
+            identity: 'auth.id',
+          },
           { level: 'ERROR', code: 'OTHER', path: 'elements/other.id.md', message: 'Bad', identity: 'other.id#Login' },
         ],
       ),
@@ -171,18 +185,6 @@ describe('ContractsTab', () => {
 
     expect(model.requirements).toHaveLength(1)
     expect(model.diagnostics).toEqual([expect.objectContaining({ code: 'CONTRACT' })])
-  })
-
-  it('builds line and inline word additions/removals while retaining unchanged context', () => {
-    const diff = createTextDiff('same\nold phrase here\ntail', 'same\nnew phrase here\ntail')
-
-    expect(diff.map(line => line.operation)).toEqual(['UNCHANGED', 'REMOVED', 'ADDED', 'UNCHANGED'])
-    expect(diff[1]?.words).toEqual(expect.arrayContaining([
-      expect.objectContaining({ operation: 'REMOVED', text: 'old' }),
-    ]))
-    expect(diff[2]?.words).toEqual(expect.arrayContaining([
-      expect.objectContaining({ operation: 'ADDED', text: 'new' }),
-    ]))
   })
 
   it('uses the existing sanitized RichText Markdown pipeline', () => {

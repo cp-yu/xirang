@@ -15,7 +15,7 @@ describe('declarationFieldDiffs', () => {
       { label: 'kind', before: 'capability', after: 'service', changed: true },
       { label: 'parent', before: 'project.root', after: 'project.root', changed: false },
       { label: 'title', before: 'Alpha', after: 'Alpha Service', changed: true },
-      { label: 'definition', before: 'Old def', after: 'New def', changed: true, longText: true },
+      { label: 'definition', before: 'Old def', after: 'New def', changed: true },
     ])
   })
 

@@ -1,6 +1,6 @@
 import { Modal, Stack } from '@mantine/core'
-import { type XirangDiffEntry, type XirangDiffOperation } from '../../xirang/ContractLoaderContext'
-import { DualPaneTextDiff } from './DiffTab'
+import type { XirangDiffEntry, XirangDiffOperation } from '../../xirang/ContractLoaderContext'
+import { XirangDiffViewer } from './XirangDiffViewer'
 
 const operationLabel: Record<XirangDiffOperation, string> = {
   ADDED: '+',
@@ -35,7 +35,7 @@ export function MetamodelDiffModal({
       data-xirang-metamodel-diff
     >
       <Stack gap="md">
-        <DualPaneTextDiff
+        <XirangDiffViewer
           before={formatJson(entry.before)}
           after={formatJson(entry.after)}
         />

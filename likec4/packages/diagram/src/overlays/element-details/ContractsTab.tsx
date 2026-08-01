@@ -1,12 +1,11 @@
 import { RichText } from '@likec4/core'
-import { Badge, Box, Code, Group, Stack, Text } from '@mantine/core'
+import { Box, Stack, Text } from '@mantine/core'
 import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Markdown } from '../../base-primitives'
 import {
   type XirangContractContent,
-  type XirangDiffEntry,
-  type XirangViewSource,
   type XirangContractLoader,
+  type XirangViewSource,
   useXirangContractLoader,
   useXirangViewSources,
   xirangViewSourceRevision,
@@ -57,23 +56,19 @@ export class XirangContractLoadController {
   }
 }
 
-export interface TextDiffLine {
-  operation: 'UNCHANGED' | 'ADDED' | 'REMOVED'
-  text: string
-  words?: Array<{ operation: 'UNCHANGED' | 'ADDED' | 'REMOVED'; text: string }>
-}
-
 export interface StructuredContractDiff {
   requirements: Array<{
     identity: string
     title: string
     operation: 'ADDED' | 'MODIFIED' | 'REMOVED'
-    text: TextDiffLine[]
+    before: string
+    after: string
     scenarios: Array<{
       identity: string
       title: string
       operation: 'ADDED' | 'MODIFIED' | 'REMOVED'
-      text: TextDiffLine[]
+      before: string
+      after: string
     }>
   }>
   diagnostics: XirangViewSource['diagnostics']
@@ -83,54 +78,6 @@ function body(value: unknown): string {
   return value && typeof value === 'object' && typeof (value as { body?: unknown }).body === 'string'
     ? (value as { body: string }).body
     : ''
-}
-
-function wordDiff(before: string, after: string): TextDiffLine['words'] {
-  const split = (s: string) => {
-    const words = s.split(/(\s+)/)
-    // Fall back to character-level splitting for CJK text without spaces.
-    return words.length <= 1 && s.length > 0 ? s.split('') : words
-  }
-  const left = split(before)
-  const right = split(after)
-  let prefix = 0
-  while (prefix < left.length && prefix < right.length && left[prefix] === right[prefix]) prefix++
-  let suffix = 0
-  while (suffix < left.length - prefix && suffix < right.length - prefix
-    && left[left.length - 1 - suffix] === right[right.length - 1 - suffix]) suffix++
-  return [
-    ...(prefix ? [{ operation: 'UNCHANGED' as const, text: left.slice(0, prefix).join('') }] : []),
-    ...(left.length - prefix - suffix ? [{ operation: 'REMOVED' as const, text: left.slice(prefix, left.length - suffix).join('') }] : []),
-    ...(right.length - prefix - suffix ? [{ operation: 'ADDED' as const, text: right.slice(prefix, right.length - suffix).join('') }] : []),
-    ...(suffix ? [{ operation: 'UNCHANGED' as const, text: left.slice(left.length - suffix).join('') }] : []),
-  ]
-}
-
-export function createTextDiff(before: string, after: string): TextDiffLine[] {
-  if (before === after) return before.split('\n').map(text => ({ operation: 'UNCHANGED', text }))
-  const beforeLines = before.split('\n')
-  const afterLines = after.split('\n')
-  let prefix = 0
-  while (prefix < beforeLines.length && prefix < afterLines.length && beforeLines[prefix] === afterLines[prefix]) prefix++
-  let suffix = 0
-  while (suffix < beforeLines.length - prefix && suffix < afterLines.length - prefix
-    && beforeLines[beforeLines.length - 1 - suffix] === afterLines[afterLines.length - 1 - suffix]) suffix++
-  const unchangedBefore = beforeLines.slice(0, prefix).map(text => ({ operation: 'UNCHANGED' as const, text }))
-  const removed = beforeLines.slice(prefix, beforeLines.length - suffix)
-  const added = afterLines.slice(prefix, afterLines.length - suffix)
-  const changed = removed.length === 1 && added.length === 1
-    ? [
-      { operation: 'REMOVED' as const, text: removed[0]!, words: wordDiff(removed[0]!, added[0]!) },
-      { operation: 'ADDED' as const, text: added[0]!, words: wordDiff(removed[0]!, added[0]!) },
-    ]
-    : [
-      ...removed.map(text => ({ operation: 'REMOVED' as const, text })),
-      ...added.map(text => ({ operation: 'ADDED' as const, text })),
-    ]
-  const unchangedAfter = suffix
-    ? beforeLines.slice(beforeLines.length - suffix).map(text => ({ operation: 'UNCHANGED' as const, text }))
-    : []
-  return [...unchangedBefore, ...changed, ...unchangedAfter]
 }
 
 /** Requirement identity is `<element identity>#<name>`, so the host Element is the only filter key. */
@@ -143,46 +90,18 @@ export function getStructuredContractDiff(source: XirangViewSource, element: str
       identity: entry.identity,
       title: entry.identity.slice(entry.identity.indexOf('#') + 1),
       operation: entry.operation,
-      text: createTextDiff(body(entry.before), body(entry.after)),
+      before: body(entry.before),
+      after: body(entry.after),
       scenarios: (entry.children ?? []).filter(child => child.kind === 'scenario').map(child => ({
         identity: child.identity,
         title: child.identity.slice(child.identity.lastIndexOf('#') + 1),
         operation: child.operation,
-        text: createTextDiff(body(child.before), body(child.after)),
+        before: body(child.before),
+        after: body(child.after),
       })),
     })),
     diagnostics: source.diagnostics.filter(diagnostic => diagnostic.identity?.startsWith(prefix) ?? false),
   }
-}
-
-export function OperationBadge({ operation }: { operation: XirangDiffEntry['operation'] }) {
-  const color = operation === 'ADDED' ? 'green' : operation === 'REMOVED' ? 'red' : 'yellow'
-  return <Badge size="xs" color={color}>{operation}</Badge>
-}
-
-export function TextDiff({ lines }: { lines: TextDiffLine[] }) {
-  return (
-    <Code block data-xirang-text-diff>
-      {lines.map((line, index) => (
-        <Box
-          key={index}
-          component="span"
-          display="block"
-          {...(line.operation === 'ADDED' ? { c: 'green' } : line.operation === 'REMOVED' ? { c: 'red' } : {})}
-          {...(line.operation === 'UNCHANGED' ? { style: { opacity: .65 } } : {})}
-        >
-          {line.words?.map((word, wordIndex) => (
-            <Box
-              key={wordIndex}
-              component={word.operation === 'REMOVED' ? 'del' : word.operation === 'ADDED' ? 'ins' : 'span'}
-              style={{ fontWeight: word.operation === 'UNCHANGED' ? undefined : 700 }}
-            >{word.text}</Box>
-          )) ?? line.text}
-          {'\n'}
-        </Box>
-      ))}
-    </Code>
-  )
 }
 
 function stripFrontmatter(md: string): string {
@@ -203,6 +122,7 @@ export function ContractsTab({
   const [state, setState] = useState<ContractLoadState>({ status: 'idle' })
   const controller = useMemo(() => new XirangContractLoadController(setState), [])
   const revision = xirangViewSourceRevision(runtime.selected)
+  const selectedChange = runtime.selected.change
   const displayState = state.status === 'idle'
       || (state.project === project && state.element === element)
     ? state
@@ -217,15 +137,13 @@ export function ContractsTab({
     if (!active || !loader) {
       return
     }
-    controller.load(loader, project, element, runtime.selected.change)
+    controller.load(loader, project, element, selectedChange)
     return () => controller.dispose()
-  }, [active, controller, element, loader, project, runtime.selected.id, revision])
+  }, [active, controller, element, loader, project, revision, selectedChange])
 
   return (
     <Stack gap="sm" h="100%" data-xirang-contracts data-xirang-view-source={runtime.selected.id}>
-      {displayState.status === 'loading' && (
-        <ContractPath path={displayState.element}>Loading…</ContractPath>
-      )}
+      {displayState.status === 'loading' && <ContractPath path={displayState.element}>Loading…</ContractPath>}
       {displayState.status === 'error' && (
         <ContractPath path={displayState.element} color="red">{displayState.message}</ContractPath>
       )}
