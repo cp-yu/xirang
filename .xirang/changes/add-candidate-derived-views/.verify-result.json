@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-08-02T13:53:59.548Z",
+  "timestamp": "2026-08-02T15:47:16.093Z",
   "result": "PASS",
   "issues": [],
   "tasksFileHash": "c2d0c5a6468044107ef97aef747dac59ee1c55e7085e407bef20304a8673263e",
@@ -15,12 +15,17 @@
       "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
       "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
       "likec4/packages/diagram/src/xirang/architectureView.ts",
+      "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
       "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts",
+      "likec4/packages/vite-plugin/src/plugin.ts",
+      "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.spec.ts",
       "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts",
+      "playwright.config.ts",
       "src/core/view.ts",
-      "test/core/view.test.ts"
+      "test/core/view.test.ts",
+      "test/e2e/semantic-browser-candidate-views.spec.ts"
     ],
-    "evidenceFingerprint": "4ee8c69be4569e71434254fd3ae9491a644bd4aab31b0700bede9cd4e1e32e6e",
+    "evidenceFingerprint": "12d95d86a5d2489645cd47cdec189584fe32f885b28b53d414567b1d9112ce4d",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/add-candidate-derived-views/design.md",
@@ -59,12 +64,28 @@
         "hash": "77ffedbd74ee5c7a1f6672deb04fa6b701acc34482c82382ba2dbfed149eb968"
       },
       {
+        "path": "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
+        "hash": "430873961aa60f7dab30f0bf24414e808df6f2ddd3f23a51d8c8bb422ac74d07"
+      },
+      {
         "path": "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts",
         "hash": "c65773ef3b963e08ca3a6a35b00550d2ff2c24963cdfc6d5c6d15f6e3567a9a5"
       },
       {
+        "path": "likec4/packages/vite-plugin/src/plugin.ts",
+        "hash": "cd2cf72622e136153ec3ffdd2445c05130b0d8803457229689632fe2ebe1c382"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.spec.ts",
+        "hash": "b3d6bcd983984b00622f39039722d12781fd807e85103640dca37b29a8701ff3"
+      },
+      {
         "path": "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts",
-        "hash": "fa80fa57737d204bc89fdc97fba80cda0ed1d9bc0db97e34078bc3b350b13ffa"
+        "hash": "aa9d8a99bb5ddbddcc971815f5833893afa9491b798290f0117c76d45789805e"
+      },
+      {
+        "path": "playwright.config.ts",
+        "hash": "aa882439507502880c3637c7dafdf33823805063c2c263da6e4ed57c19baa8d4"
       },
       {
         "path": "src/core/view.ts",
@@ -73,22 +94,26 @@
       {
         "path": "test/core/view.test.ts",
         "hash": "ea109cdc6b991b7b73d8fde328a227058f69c3e71cbbaa84fc71e5d0a4e86ecb"
+      },
+      {
+        "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
+        "hash": "790cab45fc489c95b61329f337a22766679ab78828295f1eac846f9d5dee8c23"
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "4d50529a8b93e6b46fe0ff1c7081658f10a928fd"
+    "gitHeadCommit": "a19b13140b044faad8bffa444a872788fa35bfbc"
   },
   "optimization": {
     "status": "NOT_NEEDED",
     "attempts": [
       {
-        "timestamp": "2026-08-02T13:57:16.234Z",
+        "timestamp": "2026-08-02T15:47:16.277Z",
         "type": "optimization",
         "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
-      "timestamp": "2026-08-02T13:53:59.548Z",
+      "timestamp": "2026-08-02T15:47:16.093Z",
       "result": "PASS",
       "issues": [],
       "tasksFileHash": "c2d0c5a6468044107ef97aef747dac59ee1c55e7085e407bef20304a8673263e",
@@ -104,12 +129,17 @@
           "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
           "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
           "likec4/packages/diagram/src/xirang/architectureView.ts",
+          "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
           "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts",
+          "likec4/packages/vite-plugin/src/plugin.ts",
+          "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.spec.ts",
           "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts",
+          "playwright.config.ts",
           "src/core/view.ts",
-          "test/core/view.test.ts"
+          "test/core/view.test.ts",
+          "test/e2e/semantic-browser-candidate-views.spec.ts"
         ],
-        "evidenceFingerprint": "4ee8c69be4569e71434254fd3ae9491a644bd4aab31b0700bede9cd4e1e32e6e",
+        "evidenceFingerprint": "12d95d86a5d2489645cd47cdec189584fe32f885b28b53d414567b1d9112ce4d",
         "evidenceFingerprintEntries": [
           {
             "path": ".xirang/changes/add-candidate-derived-views/design.md",
@@ -148,12 +178,28 @@
             "hash": "77ffedbd74ee5c7a1f6672deb04fa6b701acc34482c82382ba2dbfed149eb968"
           },
           {
+            "path": "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
+            "hash": "430873961aa60f7dab30f0bf24414e808df6f2ddd3f23a51d8c8bb422ac74d07"
+          },
+          {
             "path": "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts",
             "hash": "c65773ef3b963e08ca3a6a35b00550d2ff2c24963cdfc6d5c6d15f6e3567a9a5"
           },
           {
+            "path": "likec4/packages/vite-plugin/src/plugin.ts",
+            "hash": "cd2cf72622e136153ec3ffdd2445c05130b0d8803457229689632fe2ebe1c382"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.spec.ts",
+            "hash": "b3d6bcd983984b00622f39039722d12781fd807e85103640dca37b29a8701ff3"
+          },
+          {
             "path": "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts",
-            "hash": "fa80fa57737d204bc89fdc97fba80cda0ed1d9bc0db97e34078bc3b350b13ffa"
+            "hash": "aa9d8a99bb5ddbddcc971815f5833893afa9491b798290f0117c76d45789805e"
+          },
+          {
+            "path": "playwright.config.ts",
+            "hash": "aa882439507502880c3637c7dafdf33823805063c2c263da6e4ed57c19baa8d4"
           },
           {
             "path": "src/core/view.ts",
@@ -162,10 +208,14 @@
           {
             "path": "test/core/view.test.ts",
             "hash": "ea109cdc6b991b7b73d8fde328a227058f69c3e71cbbaa84fc71e5d0a4e86ecb"
+          },
+          {
+            "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
+            "hash": "790cab45fc489c95b61329f337a22766679ab78828295f1eac846f9d5dee8c23"
           }
         ],
         "skippedEvidenceFiles": [],
-        "gitHeadCommit": "4d50529a8b93e6b46fe0ff1c7081658f10a928fd"
+        "gitHeadCommit": "a19b13140b044faad8bffa444a872788fa35bfbc"
       }
     },
     "findings": [],
