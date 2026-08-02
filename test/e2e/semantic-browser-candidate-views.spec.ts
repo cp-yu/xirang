@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 async function selectViewSource(page: Page, sourceId: string): Promise<void> {
-  await page.getByRole('button', { name: /Model View|Candidate|Change/ }).first().click()
+  await page.getByRole('button', { name: 'Untitled View', exact: true }).click()
   const dropdown = page.locator('[data-likec4-breadcrumbs-dropdown]')
   await dropdown.getByLabel('View source').selectOption(sourceId)
 }
@@ -14,7 +14,7 @@ test.beforeEach(async ({ page }) => {
 test('browses the complete candidate model', async ({ page }) => {
   const dropdown = page.locator('[data-likec4-breadcrumbs-dropdown]')
 
-  await page.getByRole('button', { name: /Model View|Candidate|Change/ }).first().click()
+  await page.getByRole('button', { name: 'Untitled View', exact: true }).click()
   const viewSourceSelect = dropdown.getByLabel('View source')
   await expect(viewSourceSelect).toBeVisible()
 
@@ -29,6 +29,7 @@ test('browses the complete candidate model', async ({ page }) => {
   await expect(nodes).not.toHaveCount(0)
 
   const newCandidateNode = page.locator('.react-flow__node[data-id="capability.new-in-candidate"]')
+  await page.locator('.react-flow__node[data-id="perspective.browser"]').click({ modifiers: ['Control'] })
   await expect(newCandidateNode).toBeVisible({ timeout: 10_000 })
 
   const candidateNodeCount = await nodes.count()
@@ -38,7 +39,7 @@ test('browses the complete candidate model', async ({ page }) => {
 })
 
 test('reviews candidate changes in diff only mode', async ({ page }) => {
-  await page.getByRole('button', { name: /Model View|Candidate|Change/ }).first().click()
+  await page.getByRole('button', { name: 'Untitled View', exact: true }).click()
   const dropdown = page.locator('[data-likec4-breadcrumbs-dropdown]')
   await dropdown.getByLabel('View source').selectOption('candidate-diff')
 
@@ -57,7 +58,7 @@ test('reviews candidate changes in diff only mode', async ({ page }) => {
 })
 
 test('keeps invalid candidate sources diagnosable', async ({ page }) => {
-  await page.getByRole('button', { name: /Model View|Candidate|Change/ }).first().click()
+  await page.getByRole('button', { name: 'Untitled View', exact: true }).click()
   const dropdown = page.locator('[data-likec4-breadcrumbs-dropdown]')
   const viewSourceSelect = dropdown.getByLabel('View source')
 
@@ -70,4 +71,10 @@ test('keeps invalid candidate sources diagnosable', async ({ page }) => {
   expect(candidateDiffOption).toBeDefined()
 
   await page.screenshot({ path: test.info().outputPath('candidate-selector-visible.png'), fullPage: true })
+})
+
+test('shows candidate cards on the landing page', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByText('Candidate View')).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByText('Candidate Diff View')).toBeVisible({ timeout: 20_000 })
 })

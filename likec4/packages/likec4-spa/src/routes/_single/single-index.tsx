@@ -39,6 +39,7 @@ function RouteComponent() {
   const views = filterLandingPageViews(allViews, landingPage)
   const runtime = useXirangViewSources()
   const changeSources = runtime.sources.filter(s => s.source === 'change-derived-view')
+  const candidateSources = runtime.sources.filter(s => s.source === 'candidate' || s.source === 'candidate-diff')
   return (
     <Container size={'xl'}>
       <SidebarDrawer />
@@ -87,6 +88,20 @@ function RouteComponent() {
       >
         {views.map((v) => <ViewCard key={v.id} view={v} />)}
       </SimpleGrid>
+      {candidateSources.length > 0 && (
+        <>
+          <Text size="lg" fw={600} mt="xl" mb="xs">Candidate</Text>
+          <SimpleGrid
+            p={{ base: 'md', sm: 'md' }}
+            pt={{ base: 'sm', sm: 'sm' }}
+            cols={{ base: 1, sm: 2, md: 3, xl: 4 }}
+            spacing={{ base: 10, sm: 'xl' }}
+            verticalSpacing={{ base: 'md', sm: 'xl' }}
+          >
+            {candidateSources.map(s => <ChangeDerivedViewCard key={s.id} source={s} />)}
+          </SimpleGrid>
+        </>
+      )}
       {changeSources.length > 0 && (
         <>
           <Text size="lg" fw={600} mt="xl" mb="xs">Active Changes</Text>
@@ -164,8 +179,7 @@ function ViewCard({ view }: { view: DiagramView }) {
 function ChangeDerivedViewCard({ source }: { source: XirangViewSource }) {
   const navigate = useNavigate()
   const runtime = useXirangViewSources()
-  const diff = source.diff
-  const counts = diff?.summary ?? { total: 0, ADDED: 0, MODIFIED: 0, REMOVED: 0 }
+  const counts = source.diff?.summary
   const hasIssues = source.diagnostics.some(d => d.level === 'ERROR')
 
   return (
@@ -190,16 +204,16 @@ function ChangeDerivedViewCard({ source }: { source: XirangViewSource }) {
       </Group>
 
       <Group gap="xs" mb="xs">
-        {counts.ADDED > 0 && <Badge size="sm" color="green">+{counts.ADDED}</Badge>}
-        {counts.MODIFIED > 0 && <Badge size="sm" color="yellow">~{counts.MODIFIED}</Badge>}
-        {counts.REMOVED > 0 && <Badge size="sm" color="red">-{counts.REMOVED}</Badge>}
+        {counts && counts.ADDED > 0 && <Badge size="sm" color="green">+{counts.ADDED}</Badge>}
+        {counts && counts.MODIFIED > 0 && <Badge size="sm" color="yellow">~{counts.MODIFIED}</Badge>}
+        {counts && counts.REMOVED > 0 && <Badge size="sm" color="red">-{counts.REMOVED}</Badge>}
       </Group>
 
       {source.diagnostics.filter(d => d.level === 'ERROR').map((d, i) => (
         <Text key={i} size="xs" c="red" className={css({ lineClamp: 2 })}>{d.message}</Text>
       ))}
 
-      {!hasIssues && counts.total === 0 && (
+      {!hasIssues && counts && counts.total === 0 && (
         <Text size="xs" c="dimmed">No semantic graph changes</Text>
       )}
     </Card>
