@@ -1,0 +1,16 @@
+relationships:
+  - source: change-closure
+    kind: produces
+    target: semantic-model
+  - source: change-formation
+    kind: produces
+    target: change
+  - source: definition-framing
+    kind: produces
+    target: change-structural-definition
+  - source: deterministic-operations
+    kind: produces
+    target: change-structural-definition
+  - source: semantic-model-build
+    kind: produces
+    target: semantic-model
