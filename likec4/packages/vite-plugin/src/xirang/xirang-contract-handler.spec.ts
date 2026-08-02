@@ -1,6 +1,6 @@
 import { promises as fs } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
-import { assertXirangProject, parseXirangContractSource, readXirangContract, readXirangContractChange, XirangContractError } from './xirang-contract-handler'
+import { assertXirangManifest, assertXirangProject, parseXirangContractSource, readXirangContract, readXirangContractChange, XirangContractError } from './xirang-contract-handler'
 
 const manifest = {
   semanticModel: { contracts: { 'core.api': '# API\n', 'core.other': '# Other\n' } },
@@ -96,6 +96,26 @@ describe('parseXirangContractSource', () => {
     const params = new URLSearchParams({ source: 'candidate', change: 'auth' })
     expect(() => parseXirangContractSource(params)).toThrow(XirangContractError)
     expect(() => parseXirangContractSource(params)).toThrow('Cannot specify both source and change')
+  })
+})
+
+describe('assertXirangManifest', () => {
+  it('accepts a version 3 manifest with semanticModel and changes', () => {
+    expect(() => assertXirangManifest({ version: 3, semanticModel: {}, changes: {} })).not.toThrow()
+  })
+
+  it('rejects a version 2 manifest', () => {
+    expect(() => assertXirangManifest({ version: 2, semanticModel: {}, changes: {} }))
+      .toThrow(expect.objectContaining({ statusCode: 500, message: 'Invalid active change manifest' }))
+  })
+
+  it.each([
+    null,
+    'v3',
+    { version: 3, changes: {} },
+    { version: 3, semanticModel: {} },
+  ])('rejects malformed manifest %j', payload => {
+    expect(() => assertXirangManifest(payload)).toThrow(XirangContractError)
   })
 })
 

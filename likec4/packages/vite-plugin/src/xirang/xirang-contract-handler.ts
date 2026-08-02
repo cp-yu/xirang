@@ -14,6 +14,16 @@ export interface XirangRuntimeManifestSnapshot {
   changes: Record<string, XirangContractSourceSnapshot>
 }
 
+/** The runtime manifest is versioned; older snapshots are rejected, never downgraded. */
+export function assertXirangManifest(payload: unknown): asserts payload is XirangRuntimeManifestSnapshot {
+  if (!payload || typeof payload !== 'object'
+    || (payload as { version?: unknown }).version !== 3
+    || !(payload as { semanticModel?: unknown }).semanticModel
+    || typeof (payload as { changes?: unknown }).changes !== 'object') {
+    throw new XirangContractError(500, 'Invalid active change manifest')
+  }
+}
+
 export class XirangContractError extends Error {
   constructor(
     readonly statusCode: number,

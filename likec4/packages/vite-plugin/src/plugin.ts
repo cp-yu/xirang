@@ -13,7 +13,7 @@ import type {
 import { detectAI } from './ai/detect-ai'
 import { iconBundlePlugin } from './icon-bundle-plugin'
 import { logger } from './logger'
-import { assertXirangProject, parseXirangContractSource, readXirangContract, XirangContractError, type XirangRuntimeManifestSnapshot } from './xirang/xirang-contract-handler'
+import { assertXirangManifest, assertXirangProject, parseXirangContractSource, readXirangContract, XirangContractError, type XirangRuntimeManifestSnapshot } from './xirang/xirang-contract-handler'
 import { enablePluginRPC } from './rpc'
 import { xirangChangeManifestChangedEvent } from './rpc/protocol'
 import { splitErrorMessage } from './rpc/sendError'
@@ -392,11 +392,7 @@ export function LikeC4VitePlugin({
               throw new XirangContractError(405, 'Method not allowed')
             }
             const payload = JSON.parse(await fs.readFile(xirangChangeManifest, 'utf8')) as unknown
-            if (!payload || typeof payload !== 'object' || (payload as { version?: unknown }).version !== 2
-              || !(payload as { semanticModel?: unknown }).semanticModel
-              || typeof (payload as { changes?: unknown }).changes !== 'object') {
-              throw new XirangContractError(500, 'Invalid active change manifest')
-            }
+            assertXirangManifest(payload)
             res.statusCode = 200
             res.setHeader('Content-Type', 'application/json; charset=utf-8')
             res.setHeader('Cache-Control', 'no-store')

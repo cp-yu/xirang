@@ -1,32 +1,7 @@
 {
-  "timestamp": "2026-08-02T13:28:21.986Z",
-  "result": "PASS_WITH_WARNINGS",
-  "issues": [
-    {
-      "severity": "WARNING",
-      "message": "Live watcher had early-return for candidate/ paths; blocker found and fixed in-session. Unit tests for refreshes-both-candidate-sources exercise buildViewRuntimeSnapshot directly and do not cover watcher path.",
-      "requirement": "semantic-browser/Candidate-source-按输入刷新",
-      "evidence": [
-        "src/core/view.ts:386-400"
-      ]
-    },
-    {
-      "severity": "WARNING",
-      "message": "E2E test C20 checks selector presence only; does not verify Invalid label, diagnostics text, or absence of stale canvas data.",
-      "requirement": "semantic-browser/呈现-Candidate-目标与差异/Candidate-invalid",
-      "evidence": [
-        "test/e2e/semantic-browser-candidate-views.spec.ts:55-71"
-      ]
-    },
-    {
-      "severity": "WARNING",
-      "message": "buildCandidateSources parses candidate model from snapshot.files after validateCandidateSnapshot has already parsed it internally. No correctness risk.",
-      "requirement": "design-decision-2/单次-Candidate-snapshot",
-      "evidence": [
-        "src/core/view.ts:255-264"
-      ]
-    }
-  ],
+  "timestamp": "2026-08-02T13:53:59.548Z",
+  "result": "PASS",
+  "issues": [],
   "tasksFileHash": "c2d0c5a6468044107ef97aef747dac59ee1c55e7085e407bef20304a8673263e",
   "verificationContext": {
     "contractVersion": "1.0",
@@ -45,7 +20,7 @@
       "src/core/view.ts",
       "test/core/view.test.ts"
     ],
-    "evidenceFingerprint": "127c401e2c75f63c8f446aea0c0a3ff912ccc0e83d418cdf3f7100bd7cccf3d6",
+    "evidenceFingerprint": "4ee8c69be4569e71434254fd3ae9491a644bd4aab31b0700bede9cd4e1e32e6e",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/add-candidate-derived-views/design.md",
@@ -81,7 +56,7 @@
       },
       {
         "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
-        "hash": "57e5f24ad5f04c1407d8581d7f77aa8e9d10da95b774c07da0b4004cbc7e3854"
+        "hash": "77ffedbd74ee5c7a1f6672deb04fa6b701acc34482c82382ba2dbfed149eb968"
       },
       {
         "path": "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts",
@@ -93,7 +68,7 @@
       },
       {
         "path": "src/core/view.ts",
-        "hash": "145b9022d1ab169d78d08789b179ff692d431ab267b5f924c63c54f49d6b2dda"
+        "hash": "24c02aa4a42b60afea3454e593ee2c044bdad0e637e412887453a2401c54ac99"
       },
       {
         "path": "test/core/view.test.ts",
@@ -101,46 +76,21 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "c1e7fc99873b368470753ca6aa440cdaae5bd3e7"
+    "gitHeadCommit": "4d50529a8b93e6b46fe0ff1c7081658f10a928fd"
   },
   "optimization": {
-    "status": "SKIPPED",
+    "status": "NOT_NEEDED",
     "attempts": [
       {
-        "timestamp": "2026-08-02T13:34:28.392Z",
+        "timestamp": "2026-08-02T13:57:16.234Z",
         "type": "optimization",
-        "status": "SKIPPED"
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
-      "timestamp": "2026-08-02T13:28:21.986Z",
-      "result": "PASS_WITH_WARNINGS",
-      "issues": [
-        {
-          "severity": "WARNING",
-          "message": "Live watcher had early-return for candidate/ paths; blocker found and fixed in-session. Unit tests for refreshes-both-candidate-sources exercise buildViewRuntimeSnapshot directly and do not cover watcher path.",
-          "requirement": "semantic-browser/Candidate-source-按输入刷新",
-          "evidence": [
-            "src/core/view.ts:386-400"
-          ]
-        },
-        {
-          "severity": "WARNING",
-          "message": "E2E test C20 checks selector presence only; does not verify Invalid label, diagnostics text, or absence of stale canvas data.",
-          "requirement": "semantic-browser/呈现-Candidate-目标与差异/Candidate-invalid",
-          "evidence": [
-            "test/e2e/semantic-browser-candidate-views.spec.ts:55-71"
-          ]
-        },
-        {
-          "severity": "WARNING",
-          "message": "buildCandidateSources parses candidate model from snapshot.files after validateCandidateSnapshot has already parsed it internally. No correctness risk.",
-          "requirement": "design-decision-2/单次-Candidate-snapshot",
-          "evidence": [
-            "src/core/view.ts:255-264"
-          ]
-        }
-      ],
+      "timestamp": "2026-08-02T13:53:59.548Z",
+      "result": "PASS",
+      "issues": [],
       "tasksFileHash": "c2d0c5a6468044107ef97aef747dac59ee1c55e7085e407bef20304a8673263e",
       "verificationContext": {
         "contractVersion": "1.0",
@@ -159,7 +109,7 @@
           "src/core/view.ts",
           "test/core/view.test.ts"
         ],
-        "evidenceFingerprint": "127c401e2c75f63c8f446aea0c0a3ff912ccc0e83d418cdf3f7100bd7cccf3d6",
+        "evidenceFingerprint": "4ee8c69be4569e71434254fd3ae9491a644bd4aab31b0700bede9cd4e1e32e6e",
         "evidenceFingerprintEntries": [
           {
             "path": ".xirang/changes/add-candidate-derived-views/design.md",
@@ -195,7 +145,7 @@
           },
           {
             "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
-            "hash": "57e5f24ad5f04c1407d8581d7f77aa8e9d10da95b774c07da0b4004cbc7e3854"
+            "hash": "77ffedbd74ee5c7a1f6672deb04fa6b701acc34482c82382ba2dbfed149eb968"
           },
           {
             "path": "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts",
@@ -207,7 +157,7 @@
           },
           {
             "path": "src/core/view.ts",
-            "hash": "145b9022d1ab169d78d08789b179ff692d431ab267b5f924c63c54f49d6b2dda"
+            "hash": "24c02aa4a42b60afea3454e593ee2c044bdad0e637e412887453a2401c54ac99"
           },
           {
             "path": "test/core/view.test.ts",
@@ -215,8 +165,12 @@
           }
         ],
         "skippedEvidenceFiles": [],
-        "gitHeadCommit": "c1e7fc99873b368470753ca6aa440cdaae5bd3e7"
+        "gitHeadCommit": "4d50529a8b93e6b46fe0ff1c7081658f10a928fd"
       }
-    }
+    },
+    "findings": [],
+    "history": [],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
   }
 }
