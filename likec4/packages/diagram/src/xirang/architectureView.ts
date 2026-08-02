@@ -423,11 +423,14 @@ export function materializeXirangArchitectureView(
       : modelNode
       ? { shape: modelNode.shape, color: modelNode.color, modelRef: modelNode.modelRef }
       : undefined
+    const operation = source.source === 'candidate'
+      ? undefined
+      : declarationEntries.get(declaration.identity)?.operation
     return createNode(
       declaration,
       declaration.identity === focus ? null : declaration.parent,
       geometries.get(declaration.identity)!,
-      declarationEntries.get(declaration.identity)?.operation,
+      operation,
       (declarationChildren.get(declaration.identity)?.length ?? 0) > 0,
       presentation,
     )
@@ -497,8 +500,9 @@ export function materializeXirangArchitectureView(
       if (!edgeSource || !edgeTarget) return []
       const kinds = [...item.kinds].sort(compareUtf8Bytes)
       const relationship = { source: item.source, kind: kinds[0]!, target: item.target }
+      const operation = source.source === 'candidate' ? undefined : item.operation
       return [{
-        ...createEdge(relationship, edgeSource, edgeTarget, item.operation),
+        ...createEdge(relationship, edgeSource, edgeTarget, operation),
         label: kinds.join(', '),
         relations: [...item.relations].sort(compareUtf8Bytes),
         xirangRelations: [...item.triples].sort(compareUtf8Bytes),

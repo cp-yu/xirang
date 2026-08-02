@@ -65,11 +65,12 @@ export interface XirangViewDiagnostic {
 export interface XirangViewSource {
   id: string
   label: string
-  source: 'semantic-model' | 'change-derived-view'
+  source: 'semantic-model' | 'change-derived-view' | 'candidate' | 'candidate-diff'
   change?: string
   valid: boolean
   semanticModelFingerprint?: string
   changeFingerprint?: string
+  sourceFingerprint?: string
   partitionFingerprints?: Record<string, string>
   architecture?: XirangSemanticModel
   /** element identity → Contract markdown; absent key means the Element has no Contract. */
@@ -96,18 +97,20 @@ export function xirangViewSourceRevision(source: XirangViewSource): string {
   const fingerprints = source.partitionFingerprints
   return fingerprints
     ? Object.keys(fingerprints).sort().map(partition => fingerprints[partition]).join('|')
-    : source.changeFingerprint ?? source.id
+    : source.sourceFingerprint ?? source.changeFingerprint ?? source.id
 }
 
 export interface XirangRuntimeManifest {
-  version: 2
+  version: 3
   semanticModel: XirangViewSource
+  candidate?: XirangViewSource
+  candidateDiff?: XirangViewSource
   changes: Record<string, XirangViewSource>
 }
 
 export interface XirangContractLoader {
   /** `null` when the Element has no Contract; one Element carries at most one Contract. */
-  load(project: string, element: string, signal: AbortSignal, change?: string): Promise<XirangContractContent | null>
+  load(project: string, element: string, signal: AbortSignal, source?: string): Promise<XirangContractContent | null>
   manifest?(signal: AbortSignal): Promise<XirangRuntimeManifest>
   subscribeManifest?(listener: () => void): () => void
 }
@@ -140,10 +143,20 @@ export function XirangContractLoaderProvider({
   children,
 }: PropsWithChildren<{ loader: XirangContractLoader; initialManifest?: XirangRuntimeManifest }>) {
   const embeddedManifest = (globalThis as typeof globalThis & { __OPSX_RUNTIME__?: XirangRuntimeManifest }).__OPSX_RUNTIME__
+
+  function manifestToSources(m: XirangRuntimeManifest): XirangViewSource[] {
+    return [
+      m.semanticModel,
+      ...(m.candidate ? [m.candidate] : []),
+      ...(m.candidateDiff ? [m.candidateDiff] : []),
+      ...Object.values(m.changes),
+    ]
+  }
+
   const initialSources = initialManifest
-    ? [initialManifest.semanticModel, ...Object.values(initialManifest.changes)]
+    ? manifestToSources(initialManifest)
     : embeddedManifest
-    ? [embeddedManifest.semanticModel, ...Object.values(embeddedManifest.changes)]
+    ? manifestToSources(embeddedManifest)
     : [modelViewSource]
   const [sources, setSources] = useState<readonly XirangViewSource[]>(initialSources)
   const [selectedId, setSelectedId] = useState('model')
@@ -157,7 +170,7 @@ export function XirangContractLoaderProvider({
       controller = request
       loader.manifest!(request.signal).then(manifest => {
         if (request.signal.aborted) return
-        const next = [manifest.semanticModel, ...Object.values(manifest.changes)]
+        const next = manifestToSources(manifest)
         setSources(next)
         setSelectedId(current => next.some(source => source.id === current) ? current : 'model')
       }).catch(() => undefined)

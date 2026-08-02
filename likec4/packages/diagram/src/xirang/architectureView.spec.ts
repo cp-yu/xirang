@@ -652,3 +652,105 @@ describe('materializeXirangArchitectureView expand-in-place', () => {
     expect(expanded.edges.map(edge => [edge.source, edge.target])).toEqual([['c', 'a.leaf']])
   })
 })
+
+describe('materializeXirangArchitectureView candidate-only elements', () => {
+  it('materializes candidate only elements in full mode', () => {
+    const candidateSource: XirangViewSource = {
+      id: 'candidate',
+      label: 'Candidate',
+      source: 'candidate',
+      valid: true,
+      changeFingerprint: 'candidate-fp',
+      diagnostics: [],
+      architecture: {
+        elements: [
+          declaration('project.root', 'Project', 'Project', null),
+          declaration('alpha.id', 'Alpha', 'Alpha', 'project.root'),
+          declaration('new.id', 'New Element', 'Candidate-only element', 'project.root'),
+        ],
+        relationships: [{ source: 'alpha.id', kind: 'invokes', target: 'new.id' }],
+      },
+    }
+
+    const target = materializeXirangArchitectureView(modelView, candidateSource, 'full')
+    const newElement = target.nodes.find(node => node.id === 'new.id')
+
+    expect(target.nodes.map(node => node.id)).toEqual(['project.root', 'alpha.id', 'new.id'])
+    expect(newElement).toBeDefined()
+    expect(newElement).toMatchObject({
+      id: 'new.id',
+      modelRef: 'new.id',
+      title: 'New Element',
+      metadata: {
+        elementId: 'new.id',
+        definition: 'Candidate-only element',
+      },
+      parent: 'project.root',
+      shape: 'rectangle',
+      color: 'primary',
+    })
+    expect(newElement!.x).toBeGreaterThan(0)
+    expect(newElement!.y).toBeGreaterThan(0)
+    expect(newElement!.width).toBe(320)
+    expect(newElement!.height).toBe(180)
+
+    const edge = target.edges.find(e => e.source === 'alpha.id' && e.target === 'new.id')
+    expect(edge).toBeDefined()
+    expect(edge).toMatchObject({
+      source: 'alpha.id',
+      target: 'new.id',
+      label: 'invokes',
+    })
+  })
+
+  it('keeps candidate view free of diff state', () => {
+    const candidateSource: XirangViewSource = {
+      id: 'candidate',
+      label: 'Candidate',
+      source: 'candidate',
+      valid: true,
+      changeFingerprint: 'candidate-fp',
+      diagnostics: [],
+      architecture: {
+        elements: [
+          declaration('project.root', 'Project', 'Project', null),
+          declaration('alpha.id', 'Alpha', 'Alpha', 'project.root'),
+          declaration('new.id', 'New', 'New', 'project.root'),
+        ],
+        relationships: [{ source: 'alpha.id', kind: 'invokes', target: 'new.id' }],
+      },
+      diff: {
+        summary: { total: 2, ADDED: 1, MODIFIED: 1, REMOVED: 0 },
+        entries: [
+          {
+            kind: 'element-declaration',
+            identity: 'alpha.id',
+            operation: 'MODIFIED',
+            after: declaration('alpha.id', 'Alpha', 'Alpha', 'project.root').declaration,
+          },
+          {
+            kind: 'element-declaration',
+            identity: 'new.id',
+            operation: 'ADDED',
+            after: declaration('new.id', 'New', 'New', 'project.root').declaration,
+          },
+        ],
+      },
+    }
+
+    const target = materializeXirangArchitectureView(modelView, candidateSource, 'full')
+
+    expect(target.nodes.map(node => node.id)).toEqual(['project.root', 'alpha.id', 'new.id'])
+    for (const node of target.nodes) {
+      expect(node.color).not.toBe('green')
+      expect(node.color).not.toBe('amber')
+      expect(node.color).not.toBe('red')
+      expect(node.metadata?.['xirangOperation']).toBeUndefined()
+    }
+    for (const edge of target.edges) {
+      expect(edge.color).not.toBe('green')
+      expect(edge.color).not.toBe('amber')
+      expect(edge.color).not.toBe('red')
+    }
+  })
+})

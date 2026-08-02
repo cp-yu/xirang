@@ -124,7 +124,11 @@ export function ContractsTab({
   const [state, setState] = useState<ContractLoadState>({ status: 'idle' })
   const controller = useMemo(() => new XirangContractLoadController(setState), [])
   const revision = xirangViewSourceRevision(runtime.selected)
-  const selectedChange = runtime.selected.change
+  const selectedSource = runtime.selected.source === 'semantic-model'
+    ? undefined
+    : runtime.selected.source === 'change-derived-view'
+    ? (runtime.selected.change ? `change:${runtime.selected.change}` : undefined)
+    : runtime.selected.id // 'candidate' or 'candidate-diff'
   const displayState = state.status === 'idle'
       || (state.project === project && state.element === element)
     ? state
@@ -139,9 +143,9 @@ export function ContractsTab({
     if (!active || !loader) {
       return
     }
-    controller.load(loader, project, element, selectedChange)
+    controller.load(loader, project, element, selectedSource)
     return () => controller.dispose()
-  }, [active, controller, element, loader, project, revision, selectedChange])
+  }, [active, controller, element, loader, project, revision, selectedSource])
 
   return (
     <Stack gap="sm" h="100%" data-xirang-contracts data-xirang-view-source={runtime.selected.id}>

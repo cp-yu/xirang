@@ -1,0 +1,216 @@
+{
+  "timestamp": "2026-08-02T13:28:21.986Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "Live watcher had early-return for candidate/ paths; blocker found and fixed in-session. Unit tests for refreshes-both-candidate-sources exercise buildViewRuntimeSnapshot directly and do not cover watcher path.",
+      "requirement": "semantic-browser/Candidate-source-按输入刷新",
+      "evidence": [
+        "src/core/view.ts:386-400"
+      ]
+    },
+    {
+      "severity": "WARNING",
+      "message": "E2E test C20 checks selector presence only; does not verify Invalid label, diagnostics text, or absence of stale canvas data.",
+      "requirement": "semantic-browser/呈现-Candidate-目标与差异/Candidate-invalid",
+      "evidence": [
+        "test/e2e/semantic-browser-candidate-views.spec.ts:55-71"
+      ]
+    },
+    {
+      "severity": "WARNING",
+      "message": "buildCandidateSources parses candidate model from snapshot.files after validateCandidateSnapshot has already parsed it internally. No correctness risk.",
+      "requirement": "design-decision-2/单次-Candidate-snapshot",
+      "evidence": [
+        "src/core/view.ts:255-264"
+      ]
+    }
+  ],
+  "tasksFileHash": "c2d0c5a6468044107ef97aef747dac59ee1c55e7085e407bef20304a8673263e",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/add-candidate-derived-views/design.md",
+      ".xirang/changes/add-candidate-derived-views/elements/candidate-derived-view.md",
+      ".xirang/changes/add-candidate-derived-views/elements/candidate-diff-derived-view.md",
+      ".xirang/changes/add-candidate-derived-views/elements/semantic-browser.md",
+      ".xirang/changes/add-candidate-derived-views/proposal.md",
+      ".xirang/changes/add-candidate-derived-views/tasks.md",
+      "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
+      "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+      "likec4/packages/diagram/src/xirang/architectureView.ts",
+      "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts",
+      "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts",
+      "src/core/view.ts",
+      "test/core/view.test.ts"
+    ],
+    "evidenceFingerprint": "127c401e2c75f63c8f446aea0c0a3ff912ccc0e83d418cdf3f7100bd7cccf3d6",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/add-candidate-derived-views/design.md",
+        "hash": "68f02bc25fbe9ef663b61566b8ba274ffde870fc9dd5a37b24f037e2035662d1"
+      },
+      {
+        "path": ".xirang/changes/add-candidate-derived-views/elements/candidate-derived-view.md",
+        "hash": "bbbc42a362ea3fc2cb268edf5970431df89d2ffdaed685d66aa7c3f12e40063f"
+      },
+      {
+        "path": ".xirang/changes/add-candidate-derived-views/elements/candidate-diff-derived-view.md",
+        "hash": "6f9ef80e2e911283f90d80f32296bb2ba8d550bf90b367cb6912bba6d9d738f2"
+      },
+      {
+        "path": ".xirang/changes/add-candidate-derived-views/elements/semantic-browser.md",
+        "hash": "d6968ea5dbcad98ca876accf603d26a0cd4cb40d6147fb38843b140427e06a19"
+      },
+      {
+        "path": ".xirang/changes/add-candidate-derived-views/proposal.md",
+        "hash": "e621af0ad64be9b4151b9701ee08dff1fe71de168b531b12fe607769eca04869"
+      },
+      {
+        "path": ".xirang/changes/add-candidate-derived-views/tasks.md",
+        "hash": "c2d0c5a6468044107ef97aef747dac59ee1c55e7085e407bef20304a8673263e"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
+        "hash": "8ceabe5c9afad1631badc8e5e617940a39350d9c615ad9c2bc511fab54c22633"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+        "hash": "adb590ea6d337267838388937768bd6abb6f3e7d925fe48dad310ce63ea8868a"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+        "hash": "57e5f24ad5f04c1407d8581d7f77aa8e9d10da95b774c07da0b4004cbc7e3854"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts",
+        "hash": "c65773ef3b963e08ca3a6a35b00550d2ff2c24963cdfc6d5c6d15f6e3567a9a5"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts",
+        "hash": "fa80fa57737d204bc89fdc97fba80cda0ed1d9bc0db97e34078bc3b350b13ffa"
+      },
+      {
+        "path": "src/core/view.ts",
+        "hash": "145b9022d1ab169d78d08789b179ff692d431ab267b5f924c63c54f49d6b2dda"
+      },
+      {
+        "path": "test/core/view.test.ts",
+        "hash": "ea109cdc6b991b7b73d8fde328a227058f69c3e71cbbaa84fc71e5d0a4e86ecb"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "c1e7fc99873b368470753ca6aa440cdaae5bd3e7"
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-08-02T13:28:21.986Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "Live watcher had early-return for candidate/ paths; blocker found and fixed in-session. Unit tests for refreshes-both-candidate-sources exercise buildViewRuntimeSnapshot directly and do not cover watcher path.",
+          "requirement": "semantic-browser/Candidate-source-按输入刷新",
+          "evidence": [
+            "src/core/view.ts:386-400"
+          ]
+        },
+        {
+          "severity": "WARNING",
+          "message": "E2E test C20 checks selector presence only; does not verify Invalid label, diagnostics text, or absence of stale canvas data.",
+          "requirement": "semantic-browser/呈现-Candidate-目标与差异/Candidate-invalid",
+          "evidence": [
+            "test/e2e/semantic-browser-candidate-views.spec.ts:55-71"
+          ]
+        },
+        {
+          "severity": "WARNING",
+          "message": "buildCandidateSources parses candidate model from snapshot.files after validateCandidateSnapshot has already parsed it internally. No correctness risk.",
+          "requirement": "design-decision-2/单次-Candidate-snapshot",
+          "evidence": [
+            "src/core/view.ts:255-264"
+          ]
+        }
+      ],
+      "tasksFileHash": "c2d0c5a6468044107ef97aef747dac59ee1c55e7085e407bef20304a8673263e",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/add-candidate-derived-views/design.md",
+          ".xirang/changes/add-candidate-derived-views/elements/candidate-derived-view.md",
+          ".xirang/changes/add-candidate-derived-views/elements/candidate-diff-derived-view.md",
+          ".xirang/changes/add-candidate-derived-views/elements/semantic-browser.md",
+          ".xirang/changes/add-candidate-derived-views/proposal.md",
+          ".xirang/changes/add-candidate-derived-views/tasks.md",
+          "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
+          "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+          "likec4/packages/diagram/src/xirang/architectureView.ts",
+          "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts",
+          "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts",
+          "src/core/view.ts",
+          "test/core/view.test.ts"
+        ],
+        "evidenceFingerprint": "127c401e2c75f63c8f446aea0c0a3ff912ccc0e83d418cdf3f7100bd7cccf3d6",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/add-candidate-derived-views/design.md",
+            "hash": "68f02bc25fbe9ef663b61566b8ba274ffde870fc9dd5a37b24f037e2035662d1"
+          },
+          {
+            "path": ".xirang/changes/add-candidate-derived-views/elements/candidate-derived-view.md",
+            "hash": "bbbc42a362ea3fc2cb268edf5970431df89d2ffdaed685d66aa7c3f12e40063f"
+          },
+          {
+            "path": ".xirang/changes/add-candidate-derived-views/elements/candidate-diff-derived-view.md",
+            "hash": "6f9ef80e2e911283f90d80f32296bb2ba8d550bf90b367cb6912bba6d9d738f2"
+          },
+          {
+            "path": ".xirang/changes/add-candidate-derived-views/elements/semantic-browser.md",
+            "hash": "d6968ea5dbcad98ca876accf603d26a0cd4cb40d6147fb38843b140427e06a19"
+          },
+          {
+            "path": ".xirang/changes/add-candidate-derived-views/proposal.md",
+            "hash": "e621af0ad64be9b4151b9701ee08dff1fe71de168b531b12fe607769eca04869"
+          },
+          {
+            "path": ".xirang/changes/add-candidate-derived-views/tasks.md",
+            "hash": "c2d0c5a6468044107ef97aef747dac59ee1c55e7085e407bef20304a8673263e"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
+            "hash": "8ceabe5c9afad1631badc8e5e617940a39350d9c615ad9c2bc511fab54c22633"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+            "hash": "adb590ea6d337267838388937768bd6abb6f3e7d925fe48dad310ce63ea8868a"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+            "hash": "57e5f24ad5f04c1407d8581d7f77aa8e9d10da95b774c07da0b4004cbc7e3854"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts",
+            "hash": "c65773ef3b963e08ca3a6a35b00550d2ff2c24963cdfc6d5c6d15f6e3567a9a5"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts",
+            "hash": "fa80fa57737d204bc89fdc97fba80cda0ed1d9bc0db97e34078bc3b350b13ffa"
+          },
+          {
+            "path": "src/core/view.ts",
+            "hash": "145b9022d1ab169d78d08789b179ff692d431ab267b5f924c63c54f49d6b2dda"
+          },
+          {
+            "path": "test/core/view.test.ts",
+            "hash": "ea109cdc6b991b7b73d8fde328a227058f69c3e71cbbaa84fc71e5d0a4e86ecb"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "c1e7fc99873b368470753ca6aa440cdaae5bd3e7"
+      }
+    }
+  }
+}

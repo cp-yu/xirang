@@ -107,6 +107,12 @@ function XirangArchitectureOverlay() {
   const selectedSourceId = useRef(selected.id)
   const previousFocusAncestors = useRef<string[]>([])
   const [mode, setMode] = useState<'full' | 'diff'>('full')
+  /** Candidate View is always full; Candidate Diff View is always diff-only; Changes can toggle. */
+  const effectiveMode: 'full' | 'diff' = selected.source === 'candidate-diff'
+    ? 'diff'
+    : selected.source === 'candidate'
+    ? 'full'
+    : mode
   const [relationshipDetails, setRelationshipDetails] = useState<string[]>([])
   const [relationshipModalOpened, setRelationshipModalOpened] = useState(false)
   const [metamodelEntry, setMetamodelEntry] = useState<{ entry: XirangDiffEntry; opened: boolean } | null>(null)
@@ -266,7 +272,7 @@ function XirangArchitectureOverlay() {
       ? materializeXirangArchitectureView(
         modelView.current,
         selected,
-        mode,
+        effectiveMode,
         focusIdentity ?? undefined,
         previousAncestorPath,
         expandedNodes,
@@ -276,7 +282,7 @@ function XirangArchitectureOverlay() {
     if (focusIdentity && resolvedFocus !== focusIdentity) {
       actorRef.send({ type: 'navigate.focus', focusIdentity: resolvedFocus ?? null })
     }
-  }, [actorRef, currentView.id, expandedNodes, focusIdentity, isReady, mode, selected, selectedRevision])
+  }, [actorRef, currentView.id, effectiveMode, expandedNodes, focusIdentity, isReady, selected, selectedRevision])
 
   const relationshipPanel = (
     <Modal
@@ -342,6 +348,7 @@ function XirangArchitectureOverlay() {
             data={runtime.sources.map(source => ({ value: source.id, label: source.label }))}
             onChange={event => runtime.select(event.currentTarget.value)}
           />
+          {selected.source === 'change-derived-view' && (
           <Group gap={4}>
             <Button size="compact-xs" variant={mode === 'full' ? 'filled' : 'subtle'} onClick={() => setMode('full')}>
               Full context
@@ -350,6 +357,7 @@ function XirangArchitectureOverlay() {
               Diff only
             </Button>
           </Group>
+          )}
           <Text size="xs">+{overlay.counts.ADDED} ~{overlay.counts.MODIFIED} -{overlay.counts.REMOVED}</Text>
           {overlay.metamodel.map(entry => (
             <UnstyledButton

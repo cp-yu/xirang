@@ -13,9 +13,9 @@ export class HttpContractLoader implements XirangContractLoader {
   ) {}
 
   /** 404 is the "no Contract" answer, not a failure: one Element carries at most one Contract. */
-  async load(project: string, element: string, signal: AbortSignal, change?: string): Promise<XirangContractContent | null> {
+  async load(project: string, element: string, signal: AbortSignal, source?: string): Promise<XirangContractContent | null> {
     const query = new URLSearchParams({ project, element })
-    if (change !== undefined) query.set('change', change)
+    if (source !== undefined) query.set('source', source)
     const response = await this.fetcher.call(globalThis, `/__xirang/contract?${query}`, { signal })
     const payload = await response.json() as XirangContractContent | { error?: string }
     if (!response.ok) {
@@ -34,7 +34,7 @@ export class HttpContractLoader implements XirangContractLoader {
     if (!response.ok) {
       throw new Error('error' in payload && payload.error ? payload.error : `Unable to load active changes (${response.status})`)
     }
-    if (!('version' in payload) || payload.version !== 2
+    if (!('version' in payload) || payload.version !== 3
       || !('semanticModel' in payload) || !('changes' in payload)) {
       throw new Error('Invalid active change response')
     }

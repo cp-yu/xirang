@@ -36,11 +36,12 @@ function list(key: string, values?: string[]): string {
 }
 
 export function elementKindUnit(kind: ElementKindFixture): string {
-  return `---\nentity: element-kind\nidentity: ${kind.identity}\ncontract: ${kind.contract ?? 'optional'}\n`
+  const content = `---\nentity: element-kind\nidentity: ${kind.identity}\ncontract: ${kind.contract ?? 'optional'}\n`
     + (kind.root ? 'root: true\n' : '')
     + list('parents', kind.parents)
     + list('children', kind.children)
     + `---\n${kind.body ?? ''}`;
+  return content.endsWith('\n') ? content : `${content}\n`;
 }
 
 export function elementUnit(element: ElementFixture): string {
@@ -59,9 +60,13 @@ export async function writeModel(root: string, fixture: ModelFixture): Promise<v
     await fs.writeFile(path.join(root, 'metamodel', `${kind.identity}.md`), elementKindUnit(kind), 'utf8');
   }
   for (const kind of fixture.relationshipKinds ?? []) {
-    await fs.writeFile(path.join(root, 'metamodel', `${kind.identity}.md`),
-      `---\nentity: relationship-kind\nidentity: ${kind.identity}\n`
-      + list('sourceKinds', kind.sourceKinds) + list('targetKinds', kind.targetKinds) + `---\n${kind.body ?? ''}`, 'utf8');
+    const content = `---\nentity: relationship-kind\nidentity: ${kind.identity}\n`
+      + list('sourceKinds', kind.sourceKinds) + list('targetKinds', kind.targetKinds) + `---\n${kind.body ?? ''}`;
+    await fs.writeFile(
+      path.join(root, 'metamodel', `${kind.identity}.md`),
+      content.endsWith('\n') ? content : `${content}\n`,
+      'utf8',
+    );
   }
   for (const element of fixture.elements ?? []) {
     await fs.writeFile(path.join(root, 'elements', `${element.identity}.md`), elementUnit(element), 'utf8');

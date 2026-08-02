@@ -14,7 +14,7 @@ import { runLikeC4 } from '../../src/commands/arch/runner.js';
 import { definitionExcerpt } from '../../src/core/likec4/definition.js';
 import { likec4CacheDir } from '../../src/core/likec4/paths.js';
 import type { ChangeDiff } from '../../src/core/semantic-diff.js';
-import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
+import { minimalModel, writeChangeDelta, writeModel, writeProjectModel } from '../helpers/model-fixture.js';
 
 vi.mock('../../src/commands/arch/runner.js', () => ({ runLikeC4: vi.fn() }));
 
@@ -133,7 +133,7 @@ describe('ViewCommand', () => {
     await new ViewCommand(launch).execute(tempDir);
 
     const semanticModel = manifest!.semanticModel;
-    expect(manifest!.version).toBe(2);
+    expect(manifest!.version).toBe(3);
     expect(semanticModel.id).toBe('model');
     expect(Object.keys(semanticModel.contracts!)).toEqual(['alpha.id', 'zeta.id']);
     expect(semanticModel.contracts!['alpha.id']).toContain('### Requirement: Existing');
@@ -255,5 +255,207 @@ describe('ViewCommand', () => {
       '未找到 Xirang 项目',
     );
     expect(launch).not.toHaveBeenCalled();
+  });
+
+  it('builds the complete candidate source from one snapshot', async () => {
+    await writeBaseModel(tempDir);
+    const candidateRoot = path.join(tempDir, '.xirang', 'candidate');
+    await fs.mkdir(candidateRoot, { recursive: true });
+    await fs.writeFile(
+      path.join(candidateRoot, 'candidate.yaml'),
+      'schemaVersion: 1\ncreatedAt: "2025-01-01T00:00:00.000Z"\nbaseline:\n  kind: current\n  reference: .xirang\n',
+      'utf8',
+    );
+    await fs.writeFile(path.join(candidateRoot, 'build.md'), '# Build\n', 'utf8');
+    await writeModel(candidateRoot, minimalModel({
+      elements: [
+        { identity: 'alpha.id', parent: 'root', title: 'Alpha', definition: 'Alpha definition', requirements: CONTRACT },
+        { identity: 'beta.id', parent: 'root', title: 'Beta', definition: 'Beta candidate definition' },
+      ],
+    }));
+
+    const snapshot = await buildViewRuntimeSnapshot(tempDir);
+
+    expect(snapshot.candidate).toBeDefined();
+    expect(snapshot.candidate!.id).toBe('candidate');
+    expect(snapshot.candidate!.label).toBe('Candidate View');
+    expect(snapshot.candidate!.valid).toBe(true);
+    expect(snapshot.candidate!.architecture).toBeDefined();
+    expect(snapshot.candidate!.architecture!.elements.map(e => e.declaration.identity)).toContain('beta.id');
+    expect(snapshot.candidate!.contracts).toBeDefined();
+    expect(Object.keys(snapshot.candidate!.contracts!)).toEqual(['alpha.id']);
+    expect(snapshot.candidate!.diff).toBeUndefined();
+  });
+
+  it('retains invalid Candidate with diagnostics and partial architecture when parseable', async () => {
+    await writeBaseModel(tempDir);
+    const candidateRoot = path.join(tempDir, '.xirang', 'candidate');
+    await fs.mkdir(candidateRoot, { recursive: true });
+    await fs.writeFile(
+      path.join(candidateRoot, 'candidate.yaml'),
+      'schemaVersion: 1\ncreatedAt: "2025-01-01T00:00:00.000Z"\nbaseline:\n  kind: current\n  reference: .xirang\n',
+      'utf8',
+    );
+    await fs.writeFile(path.join(candidateRoot, 'build.md'), '# Build\n', 'utf8');
+    await writeModel(candidateRoot, minimalModel({
+      elements: [
+        { identity: 'ghost.id', parent: 'root', title: 'Ghost', definition: 'Ghost candidate' },
+      ],
+    }));
+    await fs.writeFile(
+      path.join(candidateRoot, 'elements', 'broken.md'),
+      '---\noperation: ADDED\nentity: element-declaration\nidentity: broken.id\nkind: capability\nparent: nonexistent\ntitle: Broken\ndefinition: Broken element\n---\n',
+      'utf8',
+    );
+
+    const snapshot = await buildViewRuntimeSnapshot(tempDir);
+
+    expect(snapshot.candidate).toBeDefined();
+    expect(snapshot.candidate!.valid).toBe(false);
+    expect(snapshot.candidate!.diagnostics.length).toBeGreaterThan(0);
+    expect(snapshot.candidate!.architecture).toBeDefined();
+    expect(snapshot.candidate!.architecture!.elements.map(e => e.declaration.identity)).toContain('ghost.id');
+  });
+
+  it('shares Candidate target and refresh state between Candidate View and Candidate Diff View', async () => {
+    await writeProjectModel(tempDir, minimalModel());
+    const candidateRoot = path.join(tempDir, '.xirang', 'candidate');
+    await fs.mkdir(candidateRoot, { recursive: true });
+    
+    // Write required candidate files
+    await fs.writeFile(
+      path.join(candidateRoot, 'candidate.yaml'),
+      'schemaVersion: 1\ncreatedAt: "2025-01-01T00:00:00.000Z"\nbaseline:\n  kind: current\n  reference: .xirang\n',
+      'utf8',
+    );
+    await fs.writeFile(path.join(candidateRoot, 'build.md'), '# Build\n', 'utf8');
+    
+    const modifiedModel = minimalModel();
+    modifiedModel.elements[0].definition = 'Modified definition for Candidate';
+    await writeModel(candidateRoot, modifiedModel);
+
+    const snapshot = await buildViewRuntimeSnapshot(tempDir);
+    expect(snapshot.candidate).toBeDefined();
+    expect(snapshot.candidateDiff).toBeDefined();
+    expect(snapshot.candidate!.partitionFingerprints).toEqual(snapshot.candidateDiff!.partitionFingerprints);
+    expect(snapshot.candidate!.sourceFingerprint).toBe(snapshot.candidateDiff!.sourceFingerprint);
+    expect(snapshot.candidate!.architecture).toEqual(snapshot.candidateDiff!.architecture);
+    expect(snapshot.candidateDiff!.diff).toBeDefined();
+  });
+});
+
+describe('Manifest version 3', () => {
+  let tempDir: string;
+
+  beforeEach(async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-view-manifest-'));
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  it('emits version 3 manifest with candidate sources', async () => {
+    await writeProjectModel(tempDir, minimalModel());
+    const candidateRoot = path.join(tempDir, '.xirang', 'candidate');
+    await fs.mkdir(candidateRoot, { recursive: true });
+    
+    await fs.writeFile(
+      path.join(candidateRoot, 'candidate.yaml'),
+      'schemaVersion: 1\ncreatedAt: "2025-01-01T00:00:00.000Z"\nbaseline:\n  kind: current\n  reference: .xirang\n',
+      'utf8',
+    );
+    await fs.writeFile(path.join(candidateRoot, 'build.md'), '# Build\n', 'utf8');
+    
+    const modifiedModel = minimalModel();
+    modifiedModel.elements[0].definition = 'Modified for candidate test';
+    await writeModel(candidateRoot, modifiedModel);
+
+    const snapshot = await buildViewRuntimeSnapshot(tempDir);
+    
+    expect(snapshot.version).toBe(3);
+    expect(snapshot.semanticModel).toBeDefined();
+    expect(snapshot.candidate).toBeDefined();
+    expect(snapshot.candidateDiff).toBeDefined();
+    
+    expect(snapshot.candidate!.valid).toBe(snapshot.candidateDiff!.valid);
+    expect(snapshot.candidate!.sourceFingerprint).toBe(snapshot.candidateDiff!.sourceFingerprint);
+    expect(snapshot.candidate!.diagnostics).toEqual(snapshot.candidateDiff!.diagnostics);
+  });
+
+  it('omits candidate sources when no active candidate exists', async () => {
+    await writeProjectModel(tempDir, minimalModel());
+
+    const snapshot = await buildViewRuntimeSnapshot(tempDir);
+    
+    expect(snapshot.version).toBe(3);
+    expect(snapshot.semanticModel).toBeDefined();
+    expect(snapshot.candidate).toBeUndefined();
+    expect(snapshot.candidateDiff).toBeUndefined();
+    expect(snapshot.changes).toBeDefined();
+  });
+
+  it('refreshes both candidate sources after candidate changes', async () => {
+    await writeProjectModel(tempDir, minimalModel());
+    await writeChangeDelta(tempDir, 'test-change', {
+      'elements/alpha.md': '---\noperation: ADDED\nentity: element\nidentity: alpha\nkind: component\nparent: project.id\n---\n# Alpha\n',
+    });
+    
+    const candidateRoot = path.join(tempDir, '.xirang', 'candidate');
+    await fs.mkdir(candidateRoot, { recursive: true });
+    await fs.writeFile(
+      path.join(candidateRoot, 'candidate.yaml'),
+      'schemaVersion: 1\ncreatedAt: "2025-01-01T00:00:00.000Z"\nbaseline:\n  kind: current\n  reference: .xirang\n',
+      'utf8',
+    );
+    await fs.writeFile(path.join(candidateRoot, 'build.md'), '# Build V1\n', 'utf8');
+    await writeModel(candidateRoot, minimalModel());
+
+    const before = await buildViewRuntimeSnapshot(tempDir);
+    const beforeCandidateFingerprint = before.candidate!.sourceFingerprint;
+    const beforeCandidateDiffFingerprint = before.candidateDiff!.sourceFingerprint;
+    const beforeModelFingerprint = before.semanticModel.sourceFingerprint;
+    const beforeChangeFingerprint = before.changes['test-change']!.sourceFingerprint;
+
+    await fs.writeFile(path.join(candidateRoot, 'build.md'), '# Build V2\n', 'utf8');
+
+    const after = await buildViewRuntimeSnapshot(tempDir, { previous: before });
+
+    expect(after.candidate!.sourceFingerprint).not.toBe(beforeCandidateFingerprint);
+    expect(after.candidateDiff!.sourceFingerprint).not.toBe(beforeCandidateDiffFingerprint);
+    expect(after.semanticModel.sourceFingerprint).toBe(beforeModelFingerprint);
+    expect(after.changes['test-change']!.sourceFingerprint).toBe(beforeChangeFingerprint);
+  });
+
+  it('refreshes model dependent sources after model changes', async () => {
+    await writeProjectModel(tempDir, minimalModel());
+    await writeChangeDelta(tempDir, 'test-change', {
+      'elements/alpha.md': '---\noperation: ADDED\nentity: element\nidentity: alpha\nkind: component\nparent: project.id\n---\n# Alpha\n',
+    });
+    
+    const candidateRoot = path.join(tempDir, '.xirang', 'candidate');
+    await fs.mkdir(candidateRoot, { recursive: true });
+    await fs.writeFile(
+      path.join(candidateRoot, 'candidate.yaml'),
+      'schemaVersion: 1\ncreatedAt: "2025-01-01T00:00:00.000Z"\nbaseline:\n  kind: current\n  reference: .xirang\n',
+      'utf8',
+    );
+    await fs.writeFile(path.join(candidateRoot, 'build.md'), '# Build\n', 'utf8');
+    await writeModel(candidateRoot, minimalModel());
+
+    const before = await buildViewRuntimeSnapshot(tempDir);
+    const beforeModelFingerprint = before.semanticModel.sourceFingerprint;
+    const beforeCandidateDiffFingerprint = before.candidateDiff!.sourceFingerprint;
+    const beforeChangeFingerprint = before.changes['test-change']!.sourceFingerprint;
+
+    const modifiedModel = minimalModel();
+    modifiedModel.elements[0].definition = 'Modified definition';
+    await writeProjectModel(tempDir, modifiedModel);
+
+    const after = await buildViewRuntimeSnapshot(tempDir, { previous: before });
+
+    expect(after.semanticModel.sourceFingerprint).not.toBe(beforeModelFingerprint);
+    expect(after.candidateDiff!.sourceFingerprint).not.toBe(beforeCandidateDiffFingerprint);
+    expect(after.changes['test-change']!.sourceFingerprint).not.toBe(beforeChangeFingerprint);
   });
 });

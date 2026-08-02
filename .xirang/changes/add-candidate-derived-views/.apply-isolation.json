@@ -1,0 +1,6 @@
+{
+  "method": "branch",
+  "branchName": "add-candidate-derived-views",
+  "originalBranch": "main",
+  "baseCommit": "c1e7fc99873b368470753ca6aa440cdaae5bd3e7"
+}
