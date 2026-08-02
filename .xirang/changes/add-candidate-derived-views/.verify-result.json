@@ -104,8 +104,14 @@
     "gitHeadCommit": "c1e7fc99873b368470753ca6aa440cdaae5bd3e7"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "status": "SKIPPED",
+    "attempts": [
+      {
+        "timestamp": "2026-08-02T13:34:28.392Z",
+        "type": "optimization",
+        "status": "SKIPPED"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-08-02T13:28:21.986Z",
       "result": "PASS_WITH_WARNINGS",

@@ -199,14 +199,15 @@ async function buildChangeDerivedView(projectRoot: string, change: string): Prom
     const projection = compiled.target ? projectContracts(compiled.target) : undefined;
     const changeRoot = path.join(projectRoot, XIRANG_DIR_NAME, 'changes', change);
     const planFiles = ['design.md', 'proposal.md', 'tasks.md'] as const;
+    const planResults = await Promise.allSettled(
+      planFiles.map(file =>
+        fs.readFile(path.join(changeRoot, file), 'utf8')
+          .then(content => [file, content] as const),
+      ),
+    );
     const changePlan: Record<string, string> = {};
-    for (const file of planFiles) {
-      try {
-        const content = await fs.readFile(path.join(changeRoot, file), 'utf8');
-        changePlan[file] = content;
-      } catch {
-        // file may not exist
-      }
+    for (const result of planResults) {
+      if (result.status === 'fulfilled') changePlan[result.value[0]] = result.value[1];
     }
     return {
       id: `change:${change}`,
@@ -327,15 +328,19 @@ export async function buildViewRuntimeSnapshot(
 ): Promise<ViewRuntimeSnapshot> {
   const changes = await listActiveChanges(projectRoot);
   const previous = options.previous?.changes ?? {};
-  const sources: Record<string, ViewRuntimeChangeDerivedView> = {};
-  for (const change of changes) {
-    const cached = options.onlyChange && options.onlyChange !== change ? previous[change] : undefined;
-    sources[change] = cached ?? await buildChangeDerivedView(projectRoot, change);
-  }
-  
-  const candidateSources = await buildCandidateSources(projectRoot);
-  const semanticModel = await buildSemanticModelSource(projectRoot);
-  
+  const entries = await Promise.all(
+    changes.map(async change => {
+      const cached = options.onlyChange && options.onlyChange !== change ? previous[change] : undefined;
+      return [change, cached ?? await buildChangeDerivedView(projectRoot, change)] as const;
+    }),
+  );
+  const sources = Object.fromEntries(entries);
+
+  const [candidateSources, semanticModel] = await Promise.all([
+    buildCandidateSources(projectRoot),
+    buildSemanticModelSource(projectRoot),
+  ]);
+
   return {
     version: 3,
     semanticModel,

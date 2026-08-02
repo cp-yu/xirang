@@ -131,6 +131,15 @@ const modelViewSource: XirangViewSource = {
   diagnostics: [],
 }
 
+function manifestToSources(m: XirangRuntimeManifest): XirangViewSource[] {
+  return [
+    m.semanticModel,
+    ...(m.candidate ? [m.candidate] : []),
+    ...(m.candidateDiff ? [m.candidateDiff] : []),
+    ...Object.values(m.changes),
+  ]
+}
+
 const XirangViewSourceContext = createContext<XirangViewSourceContextValue>({
   sources: [modelViewSource],
   selected: modelViewSource,
@@ -143,16 +152,6 @@ export function XirangContractLoaderProvider({
   children,
 }: PropsWithChildren<{ loader: XirangContractLoader; initialManifest?: XirangRuntimeManifest }>) {
   const embeddedManifest = (globalThis as typeof globalThis & { __OPSX_RUNTIME__?: XirangRuntimeManifest }).__OPSX_RUNTIME__
-
-  function manifestToSources(m: XirangRuntimeManifest): XirangViewSource[] {
-    return [
-      m.semanticModel,
-      ...(m.candidate ? [m.candidate] : []),
-      ...(m.candidateDiff ? [m.candidateDiff] : []),
-      ...Object.values(m.changes),
-    ]
-  }
-
   const initialSources = initialManifest
     ? manifestToSources(initialManifest)
     : embeddedManifest
