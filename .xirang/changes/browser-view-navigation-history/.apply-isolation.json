@@ -1,0 +1,6 @@
+{
+  "method": "branch",
+  "branchName": "browser-view-navigation-history",
+  "originalBranch": "main",
+  "baseCommit": "2eb5908167c5590810ce2a858923602c2ae4ec79"
+}

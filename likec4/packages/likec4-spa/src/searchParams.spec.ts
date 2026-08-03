@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { resolveForceColorScheme } from './searchParams'
+import { resolveForceColorScheme, searchParamsSchema } from './searchParams'
 
 describe('resolveForceColorScheme', () => {
   it('should force light/dark and pass through auto/undefined', () => {
@@ -7,6 +7,31 @@ describe('resolveForceColorScheme', () => {
     expect(resolveForceColorScheme('dark')).toBe('dark')
     expect(resolveForceColorScheme('auto')).toBeUndefined()
     expect(resolveForceColorScheme(undefined)).toBeUndefined()
+  })
+})
+
+describe('Xirang navigation params', () => {
+  it('defaults source to model and mode to full, focus undefined', () => {
+    const parsed = searchParamsSchema.parse({})
+    expect(parsed.source).toBe('model')
+    expect(parsed.mode).toBe('full')
+    expect(parsed.focus).toBeUndefined()
+  })
+
+  it('parses explicit source, focus and mode values', () => {
+    const parsed = searchParamsSchema.parse({
+      source: 'change:browser-change',
+      focus: 'capability.drill',
+      mode: 'diff',
+    })
+    expect(parsed.source).toBe('change:browser-change')
+    expect(parsed.focus).toBe('capability.drill')
+    expect(parsed.mode).toBe('diff')
+  })
+
+  it('coerces invalid mode to full', () => {
+    const parsed = searchParamsSchema.parse({ mode: 'bogus' })
+    expect(parsed.mode).toBe('full')
   })
 })
 

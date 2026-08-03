@@ -129,8 +129,10 @@ export {
   type XirangContractLoader,
   type XirangDiffEntry,
   type XirangRuntimeManifest,
+  type XirangViewMode,
   type XirangViewSource,
   XirangContractLoaderProvider,
+  resolveEffectiveMode,
   useXirangContractLoader,
   useXirangViewSources,
 } from './xirang/ContractLoaderContext'
