@@ -1,10 +1,12 @@
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { renderScalar, splitFrontmatter } from '../model/frontmatter.js';
+import { NODE_BORDER_VALUES, NODE_COLOR_VALUES, NODE_SHAPE_VALUES } from '../model/types.js';
 import { validateExplorationId, validateFramingSlug } from './paths.js';
 import type {
   ChangeStructuralDefinitionDocument,
   ChangeStructuralDefinitionMetadata,
   ChangeStructuralDefinitionPayload,
+  NodePresentationTarget,
   RelevantSemanticModelBaseline,
 } from './types.js';
 
@@ -92,6 +94,36 @@ function array(value: unknown, label: string): unknown[] {
   return value;
 }
 
+function parseNodePresentationTarget(raw: unknown, label: string): NodePresentationTarget | undefined {
+  if (raw === undefined || raw === null) return undefined;
+  if (typeof raw !== 'object' || Array.isArray(raw)) {
+    fail('INVALID_PAYLOAD', `${label} must be a mapping`);
+  }
+  const obj = raw as Record<string, unknown>;
+  const allowed = new Set<string>(['shape', 'color', 'border']);
+  const extras = Object.keys(obj).filter(k => !allowed.has(k));
+  if (extras.length > 0) {
+    fail('INVALID_PAYLOAD', `${label} contains unknown fields: ${extras.join(', ')}`);
+  }
+  const shape = obj.shape;
+  const color = obj.color;
+  const border = obj.border;
+  if (shape !== undefined && (typeof shape !== 'string' || !NODE_SHAPE_VALUES.includes(shape as never))) {
+    fail('INVALID_PAYLOAD', `${label}.shape has invalid value: ${String(shape)}`);
+  }
+  if (color !== undefined && (typeof color !== 'string' || !NODE_COLOR_VALUES.includes(color as never))) {
+    fail('INVALID_PAYLOAD', `${label}.color has invalid value: ${String(color)}`);
+  }
+  if (border !== undefined && (typeof border !== 'string' || !NODE_BORDER_VALUES.includes(border as never))) {
+    fail('INVALID_PAYLOAD', `${label}.border has invalid value: ${String(border)}`);
+  }
+  const result: NodePresentationTarget = {};
+  if (shape !== undefined) result.shape = shape as string;
+  if (color !== undefined) result.color = color as string;
+  if (border !== undefined) result.border = border as string;
+  return result;
+}
+
 function parseElementKinds(value: unknown): ChangeStructuralDefinitionPayload['elementKinds'] {
   return array(value, 'elementKinds').map((raw, index) => {
     const item = record(raw, `elementKinds[${index}]`);
@@ -100,7 +132,7 @@ function parseElementKinds(value: unknown): ChangeStructuralDefinitionPayload['e
       assertRemovalShape(item, ['identity'], `elementKinds[${index}]`);
       return { operation: 'REMOVED', identity };
     }
-    exactKeys(item, ['identity', 'contract', 'root', 'parents', 'children', 'body'], `elementKinds[${index}]`);
+    exactKeys(item, ['identity', 'contract', 'root', 'parents', 'children', 'nodePresentation', 'body'], `elementKinds[${index}]`);
     if (item.contract !== 'required' && item.contract !== 'optional') {
       fail('INVALID_PAYLOAD', `elementKinds[${index}].contract must be required or optional`);
     }
@@ -109,12 +141,14 @@ function parseElementKinds(value: unknown): ChangeStructuralDefinitionPayload['e
     }
     const parents = optionalStringList(item.parents, `elementKinds[${index}].parents`);
     const children = optionalStringList(item.children, `elementKinds[${index}].children`);
+    const nodePresentation = parseNodePresentationTarget(item.nodePresentation, `elementKinds[${index}].nodePresentation`);
     return {
       identity,
       contract: item.contract,
       ...(item.root === undefined ? {} : { root: item.root }),
       ...(parents === undefined ? {} : { parents }),
       ...(children === undefined ? {} : { children }),
+      ...(nodePresentation === undefined ? {} : { nodePresentation }),
       body: text(item.body, `elementKinds[${index}].body`, true),
     };
   });

@@ -56,6 +56,34 @@ const RELATIONSHIPS = [
   '',
 ].join('\n');
 
+const PERSPECTIVE_KIND = [
+  '---',
+  'entity: element-kind',
+  'identity: perspective',
+  'contract: optional',
+  'nodePresentation:',
+  '  shape: document',
+  '  color: indigo',
+  '  border: solid',
+  '---',
+  '',
+  'Perspective kind.',
+  '',
+].join('\n');
+
+const PERSPECTIVE_KIND_PARTIAL = [
+  '---',
+  'entity: element-kind',
+  'identity: perspective',
+  'contract: optional',
+  'nodePresentation:',
+  '  shape: document',
+  '---',
+  '',
+  'Perspective kind.',
+  '',
+].join('\n');
+
 describe('parseSemanticModel', () => {
   it('parses all four partitions', async () => {
     const root = await createModelRoot({
@@ -206,5 +234,95 @@ describe('parseSemanticModel', () => {
     const parsed = await parseSemanticModel('/nonexistent/model/root');
     expect(parsed.model).toEqual({ elementKinds: [], relationshipKinds: [], elements: [], relationships: [], views: [] });
     expect(parsed.diagnostics).toEqual([]);
+  });
+
+  describe('nodePresentation', () => {
+    it('parses element kind with complete nodePresentation', async () => {
+      const root = await createModelRoot({ 'metamodel/perspective.md': PERSPECTIVE_KIND });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toEqual([]);
+      expect(parsed.model.elementKinds[0].nodePresentation).toEqual({
+        shape: 'document',
+        color: 'indigo',
+        border: 'solid',
+      });
+    });
+
+    it('parses element kind with partial nodePresentation', async () => {
+      const root = await createModelRoot({ 'metamodel/perspective.md': PERSPECTIVE_KIND_PARTIAL });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toEqual([]);
+      expect(parsed.model.elementKinds[0].nodePresentation).toEqual({ shape: 'document' });
+    });
+
+    it('rejects unknown nodePresentation field', async () => {
+      const content = PERSPECTIVE_KIND.replace('border: solid', 'borderStyle: solid');
+      const root = await createModelRoot({ 'metamodel/perspective.md': content });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toHaveLength(1);
+      expect(parsed.diagnostics[0].code).toBe('INVALID_NODE_PRESENTATION');
+      expect(parsed.diagnostics[0].message).toContain('unknown fields');
+    });
+
+    it('rejects invalid shape value', async () => {
+      const content = PERSPECTIVE_KIND.replace('shape: document', 'shape: oval');
+      const root = await createModelRoot({ 'metamodel/perspective.md': content });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toHaveLength(1);
+      expect(parsed.diagnostics[0].code).toBe('INVALID_NODE_PRESENTATION');
+      expect(parsed.diagnostics[0].message).toContain('shape');
+    });
+
+    it('rejects invalid color value', async () => {
+      const content = PERSPECTIVE_KIND.replace('color: indigo', 'color: violet');
+      const root = await createModelRoot({ 'metamodel/perspective.md': content });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toHaveLength(1);
+      expect(parsed.diagnostics[0].code).toBe('INVALID_NODE_PRESENTATION');
+      expect(parsed.diagnostics[0].message).toContain('color');
+    });
+
+    it('rejects invalid border value', async () => {
+      const content = PERSPECTIVE_KIND.replace('border: solid', 'border: double');
+      const root = await createModelRoot({ 'metamodel/perspective.md': content });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toHaveLength(1);
+      expect(parsed.diagnostics[0].code).toBe('INVALID_NODE_PRESENTATION');
+      expect(parsed.diagnostics[0].message).toContain('border');
+    });
+
+    it('rejects non-mapping nodePresentation', async () => {
+      const content = [
+        '---',
+        'entity: element-kind',
+        'identity: perspective',
+        'contract: optional',
+        'nodePresentation: invalid',
+        '---',
+        '',
+      ].join('\n');
+      const root = await createModelRoot({ 'metamodel/perspective.md': content });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toHaveLength(1);
+      expect(parsed.diagnostics[0].code).toBe('INVALID_NODE_PRESENTATION');
+      expect(parsed.diagnostics[0].message).toContain('must be a mapping');
+    });
+
+    it('round-trips element kind with nodePresentation', async () => {
+      const root = await createModelRoot({ 'metamodel/perspective.md': PERSPECTIVE_KIND });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toEqual([]);
+      const kind = parsed.model.elementKinds[0];
+      expect(kind.nodePresentation).toBeDefined();
+      expect(kind.identity).toBe('perspective');
+      expect(kind.contract).toBe('optional');
+    });
+
+    it('accepts element kind without nodePresentation', async () => {
+      const root = await createModelRoot({ 'metamodel/k.md': '---\nentity: element-kind\nidentity: k\ncontract: optional\n---\n' });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toEqual([]);
+      expect(parsed.model.elementKinds[0].nodePresentation).toBeUndefined();
+    });
   });
 });

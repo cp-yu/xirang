@@ -1,5 +1,11 @@
 export type RemovalOperation = 'REMOVED';
 
+export interface NodePresentationTarget {
+  shape?: string;
+  color?: string;
+  border?: string;
+}
+
 export interface ElementKindTarget {
   operation?: never;
   identity: string;
@@ -7,6 +13,7 @@ export interface ElementKindTarget {
   root?: boolean;
   parents?: string[];
   children?: string[];
+  nodePresentation?: NodePresentationTarget;
   body: string;
 }
 

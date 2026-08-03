@@ -9,6 +9,9 @@ import { createModelIndex, type IndexedEntity, type IndexedRelationship, type Mo
 import {
   DEFAULT_PARTITION,
   ENTITY_TYPES,
+  NODE_BORDER_VALUES,
+  NODE_COLOR_VALUES,
+  NODE_SHAPE_VALUES,
   PARTITIONS,
   emptySemanticModel,
   type AuthoredView,
@@ -16,6 +19,10 @@ import {
   type EntityType,
   type ModelDiagnostic,
   type ModelElement,
+  type NodeBorder,
+  type NodeColor,
+  type NodePresentation,
+  type NodeShape,
   type Partition,
   type Relationship,
   type RelationshipKind,
@@ -48,6 +55,65 @@ function error(code: string, file: string, message: string, identity?: string): 
 
 function warning(code: string, file: string, message: string, identity?: string): ModelDiagnostic {
   return { level: 'WARNING', code, path: file, message, ...(identity ? { identity } : {}) };
+}
+
+const NODE_SHAPE_SET = new Set(NODE_SHAPE_VALUES);
+const NODE_COLOR_SET = new Set(NODE_COLOR_VALUES);
+const NODE_BORDER_SET = new Set(NODE_BORDER_VALUES);
+
+function parseNodePresentation(
+  raw: unknown,
+  file: string,
+  identity: string,
+  diagnostics: ModelDiagnostic[],
+): NodePresentation | undefined {
+  if (raw === undefined || raw === null) return undefined;
+  if (typeof raw !== 'object' || Array.isArray(raw)) {
+    diagnostics.push(error('INVALID_NODE_PRESENTATION', file, `Element kind ${identity} nodePresentation must be a mapping`, identity));
+    return undefined;
+  }
+  const obj = raw as Record<string, unknown>;
+  const allowed = new Set<string>(['shape', 'color', 'border']);
+  const unknown = Object.keys(obj).filter(k => !allowed.has(k));
+  if (unknown.length > 0) {
+    diagnostics.push(error('INVALID_NODE_PRESENTATION', file, `Element kind ${identity} nodePresentation contains unknown fields: ${unknown.sort().join(', ')}`, identity));
+  }
+  const shape = parseNodeShape(obj.shape, file, identity, diagnostics);
+  const color = parseNodeColor(obj.color, file, identity, diagnostics);
+  const border = parseNodeBorder(obj.border, file, identity, diagnostics);
+  if (shape === undefined && color === undefined && border === undefined) return undefined;
+  const result: NodePresentation = {};
+  if (shape !== undefined) result.shape = shape;
+  if (color !== undefined) result.color = color;
+  if (border !== undefined) result.border = border;
+  return result;
+}
+
+function parseNodeShape(value: unknown, file: string, identity: string, diagnostics: ModelDiagnostic[]): NodeShape | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string' || !NODE_SHAPE_SET.has(value)) {
+    diagnostics.push(error('INVALID_NODE_PRESENTATION', file, `Element kind ${identity} nodePresentation.shape has invalid value: ${String(value)}`, identity));
+    return undefined;
+  }
+  return value as NodeShape;
+}
+
+function parseNodeColor(value: unknown, file: string, identity: string, diagnostics: ModelDiagnostic[]): NodeColor | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string' || !NODE_COLOR_SET.has(value)) {
+    diagnostics.push(error('INVALID_NODE_PRESENTATION', file, `Element kind ${identity} nodePresentation.color has invalid value: ${String(value)}`, identity));
+    return undefined;
+  }
+  return value as NodeColor;
+}
+
+function parseNodeBorder(value: unknown, file: string, identity: string, diagnostics: ModelDiagnostic[]): NodeBorder | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string' || !NODE_BORDER_SET.has(value)) {
+    diagnostics.push(error('INVALID_NODE_PRESENTATION', file, `Element kind ${identity} nodePresentation.border has invalid value: ${String(value)}`, identity));
+    return undefined;
+  }
+  return value as NodeBorder;
 }
 
 function text(value: unknown): string | undefined {
@@ -174,6 +240,7 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
     if (contract !== 'required' && contract !== 'optional') {
       diagnostics.push(error('MISSING_CONTRACT', file, `Element kind ${identity} has no explicit contract`, identity));
     }
+    const nodePresentation = parseNodePresentation(data.nodePresentation, file, identity, diagnostics);
     return {
       entity,
       identity,
@@ -183,6 +250,7 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
         ...(typeof data.root === 'boolean' ? { root: data.root } : {}),
         ...(list(data.parents) ? { parents: list(data.parents)! } : {}),
         ...(list(data.children) ? { children: list(data.children)! } : {}),
+        ...(nodePresentation === undefined ? {} : { nodePresentation }),
         body: normalizeProse(body),
       },
       diagnostics,

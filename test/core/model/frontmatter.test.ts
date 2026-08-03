@@ -112,4 +112,39 @@ describe('renderFrontmatter', () => {
     const result = splitFrontmatter(renderFrontmatter('authored-view', values));
     expect(result).toEqual({ ok: true, data: { entity: 'authored-view', ...values }, body: '' });
   });
+
+  it('renders nodePresentation as nested mapping', () => {
+    const rendered = renderFrontmatter('element-kind', {
+      identity: 'perspective',
+      contract: 'optional',
+      nodePresentation: { shape: 'document', color: 'indigo', border: 'solid' },
+    });
+    expect(rendered).toContain('nodePresentation:');
+    expect(rendered).toContain('  shape: document');
+    expect(rendered).toContain('  color: indigo');
+    expect(rendered).toContain('  border: solid');
+  });
+
+  it('renders partial nodePresentation', () => {
+    const rendered = renderFrontmatter('element-kind', {
+      identity: 'perspective',
+      contract: 'optional',
+      nodePresentation: { shape: 'document' },
+    });
+    expect(rendered).toContain('nodePresentation:');
+    expect(rendered).toContain('  shape: document');
+    expect(rendered).not.toContain('color:');
+    expect(rendered).not.toContain('border:');
+  });
+
+  it('omits nodePresentation entirely when absent', () => {
+    const rendered = renderFrontmatter('element-kind', { identity: 'k', contract: 'optional' });
+    expect(rendered).not.toContain('nodePresentation');
+  });
+
+  it('round-trips nodePresentation through splitFrontmatter', () => {
+    const values = { identity: 'perspective', contract: 'optional', nodePresentation: { shape: 'document', color: 'indigo', border: 'solid' } };
+    const result = splitFrontmatter(renderFrontmatter('element-kind', values));
+    expect(result).toEqual({ ok: true, data: { entity: 'element-kind', ...values }, body: '' });
+  });
 });

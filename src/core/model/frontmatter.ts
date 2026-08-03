@@ -8,7 +8,7 @@ export type FrontmatterResult =
 /** Key order per entity type; `operation` and `entity` are always emitted first. */
 const KEY_ORDER: Record<EntityType, readonly string[]> = {
   'element-declaration': ['identity', 'kind', 'parent', 'title', 'definition'],
-  'element-kind': ['identity', 'contract', 'root', 'parents', 'children'],
+  'element-kind': ['identity', 'contract', 'root', 'parents', 'children', 'nodePresentation'],
   'relationship-kind': ['identity', 'sourceKinds', 'targetKinds'],
   'authored-view': ['identity', 'include', 'of', 'title', 'autoLayout'],
 };
@@ -67,10 +67,20 @@ function scalar(value: unknown): string {
   return isPlainSafe(text) ? text : JSON.stringify(text);
 }
 
+function renderMapping(key: string, obj: Record<string, unknown>): string {
+  const keys = Object.keys(obj);
+  if (keys.length === 0) return `${key}: {}`;
+  const lines = keys.map(k => `  ${k}: ${scalar(obj[k])}`);
+  return `${key}:\n${lines.join('\n')}\n`;
+}
+
 function renderEntry(key: string, value: unknown): string {
   if (Array.isArray(value)) {
     if (value.length === 0) return `${key}: []\n`;
     return `${key}:\n${value.map(item => `  - ${scalar(item)}\n`).join('')}`;
+  }
+  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+    return renderMapping(key, value as Record<string, unknown>);
   }
   return `${key}: ${scalar(value)}\n`;
 }
