@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: archive-verify-gate
-kind: capability
+kind: element
 parent: change-closure
 title: Archive Verify Gate
 definition: Archive Verify Gate 定义归档前必须具备的新鲜完整验证结果门禁：freshness 基于显式持久化的 verification context 判定，优化终局状态决定归档是否可复用结果，archive rerun 复用与 standalone verify 一致的 subagent-orchestrated execution model。

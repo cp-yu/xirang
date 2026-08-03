@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: semantic-browser
-kind: capability
+kind: element
 parent: interaction-surfaces
 title: Semantic Browser
 definition: Semantic Browser 是息壤的可视化语义界面。它使用 Views 呈现 Semantic Model 与 Change-derived information，使用户能够浏览不同抽象层级的 Elements、Element Contracts 与 Relationships，观察 Change 带来的语义差异，并据此理解、讨论、审查和决策项目。

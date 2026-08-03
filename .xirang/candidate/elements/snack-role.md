@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: snack-role
-kind: capability
+kind: element
 parent: agent
 title: Snack Role
 definition: Snack 是 Agent 在 Implementation-first Path 中、从已发生实现出发形成或调和 Change 的工作身份。它对照 Semantic Model 与实现证据写出或更新 Semantic Delta 以及 Plan 中的意图与决策说明；因实现已完成，不生成执行任务清单。

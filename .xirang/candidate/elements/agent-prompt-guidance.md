@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: agent-prompt-guidance
-kind: capability
+kind: element
 parent: agent-workbench-projection
 title: Agent Prompt Guidance
 definition: Agent Prompt Guidance 定义共享 verify gate 指引片段的契约：状态机流程图、JSON schema 速查表与错误恢复决策树，供 archive、verify、apply 三个 skill 模板复用，并包含 PENDING_VERIFICATION 恢复路径与简单变更快速路径的强制委托语义。

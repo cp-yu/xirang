@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: config-command
-kind: capability
+kind: element
 parent: cli
 title: Config Command
 definition: Config Command 定义 `xirang config` 命令族的子命令面：path/list/get/set/unset/reset/edit/project，配置值的类型转换、schema 校验、`--scope` 保留标志，以及 `config project` 查询归一化项目配置并与 instructions 配置投影一致。

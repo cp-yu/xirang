@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: authoring-help
-kind: capability
+kind: element
 parent: deterministic-operations
 title: Authoring Help
 definition: Authoring Help 定义 schema-backed authoring help 行为：`xirang help authoring` 从当前 Semantic Model 的 Metamodel 只读投影 Relationship Kinds，并输出文件级 authoring help、relation authoring help、JSON 输出与 Commander help 兼容。

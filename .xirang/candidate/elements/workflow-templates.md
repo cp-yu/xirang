@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: workflow-templates
-kind: capability
+kind: element
 parent: agent-workbench-projection
 title: Workflow Templates
 definition: Workflow Templates 定义 workflow 模板的生成契约：模板不内联 subagent 角色定义、verify 模板对 subagent 使用明确 delegation 指令、checkpoint state machine 表格、统一 CLI 查询接口、固定 workflow 集合、内部 subagent 引用替换与 definition-first authoring。

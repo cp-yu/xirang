@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: change-creation
-kind: capability
+kind: element
 parent: change
 title: Change Creation
 definition: Change Creation 定义创建与校验 Change 目录的规范：程序化创建 `.xirang/changes/<name>/`、拒绝重复与非法名称，并强制 kebab-case 命名约定。

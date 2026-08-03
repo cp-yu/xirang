@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: artifact-pipeline
-kind: capability
+kind: element
 parent: agent-workbench-projection
 title: Artifact Pipeline
 definition: Artifact Pipeline 定义生成 skill artifacts 的 canonical workflow manifest、Tool Profile Registry、ordered transform pipeline、shared artifact sync engine 与 fidelity guardrails。

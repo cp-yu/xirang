@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: arch-plan-remove
-kind: capability
+kind: element
 parent: deterministic-operations
 title: Arch Plan Remove
 definition: Arch Plan Remove 定义 `xirang arch plan-remove` 的删除影响规划行为：分析严格非级联删除一个 Element 所需显式处理的 containment、semantic relationships 与其他语义引用（Element 的 Contract 随宿主单元一并删除），并在选中 change 时按已处理/未处理分类。

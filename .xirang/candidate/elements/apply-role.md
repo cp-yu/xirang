@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: apply-role
-kind: capability
+kind: element
 parent: agent
 title: Apply Role
 definition: Apply 是 Agent 落实 Change 所描述项目改动的工作身份。它以 Expected Semantic Model 为目标，结合 Change Plan 与当前项目状态修改项目；在存在执行安排时按安排推进，并处理 Verify 返回的 Required Corrections 与已确认优化事项。

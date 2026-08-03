@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: snack-workflow-manifest
-kind: capability
+kind: element
 parent: agent-workbench-projection
 title: Snack Workflow Manifest
 definition: Snack Workflow Manifest 定义 WorkflowManifestRegistry 中 snack workflow manifest entry 的注册职责：snack 与五个核心工作流平行注册，`modeMembership` 标记为 `flexible`（过渡能力标签），该标签不影响运行时安装行为。

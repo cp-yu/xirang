@@ -16,9 +16,7 @@ export const ROOT_ELEMENT_IDENTITY = 'project.root';
 export const PERSPECTIVE_KIND: ElementKind = {
   identity: 'perspective',
   contract: 'optional',
-  parents: ['project', 'perspective'],
-  children: ['perspective', 'domain', 'capability'],
-  body: '`perspective` 标识从一个独立分解角度组织 descendants 的 Element。Perspective 本身表达该分解角度的概念边界，children 构成该角度下的抽象或进一步 Perspectives；它不是 View，也不以颜色、形状或布局定义语义。',
+  body: '`perspective` 标识从一个独立分解角度组织 descendants 的 Element。Perspective 本身表达该分解角度的概念边界，children 构成该角度下的抽象或进一步 Perspectives；它不是 View，也不以颜色、形状或布局定义语义。Perspective 的层级位置与其 children 的 Element Kind 不受 Metamodel 白名单限制，由抽象与细化关系决定。',
 };
 
 export const PERSPECTIVE_KIND_FILE: ModelFileManifestEntry = {
@@ -42,16 +40,9 @@ export const MODEL_FILE_MANIFEST: readonly ModelFileManifestEntry[] = [
     })}\nThe single Project Root of the Semantic Model.\n`,
   },
   {
-    relativePath: 'metamodel/domain.md',
+    relativePath: 'metamodel/element.md',
     render: () => renderFrontmatter('element-kind', {
-      identity: 'domain',
-      contract: 'optional',
-    }),
-  },
-  {
-    relativePath: 'metamodel/capability.md',
-    render: () => renderFrontmatter('element-kind', {
-      identity: 'capability',
+      identity: 'element',
       contract: 'optional',
     }),
   },

@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: internal-subagent-generation
-kind: capability
+kind: element
 parent: agent-workbench-projection
 title: Internal Subagent Generation
 definition: Internal Subagent Generation 定义 internal subagent 制品的生成契约：显式注册 `xirang-reviewer` 与 `xirang-optimizer`、per-tool subagent artifact 渲染、写入路径、工具元数据声明、init/update 集成、旧 internal 制品清理、权限模型编码与用户自定义 model 保留。

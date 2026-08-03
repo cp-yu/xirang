@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: skill-generation
-kind: capability
+kind: element
 parent: agent-workbench-projection
 title: Skill Generation
 definition: Skill Generation 定义共享 skill 片段与 frontmatter 的生成契约：`XIRANG_PHILOSOPHY` 共享片段注入 workflow skills 与 internal subagents，以及生成的 skill frontmatter 必须是合法 YAML。

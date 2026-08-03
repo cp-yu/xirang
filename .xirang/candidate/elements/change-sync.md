@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: change-sync
-kind: capability
+kind: element
 parent: change-closure
 title: Change Sync
 definition: Change Sync 定义将 Change 的四分区 Semantic Delta 同步到正式 Semantic Model 的行为：从 immutable Formal snapshot 物化完整 Target Semantic Model、联合验证、原子写入与回滚、幂等判定、evidence fingerprint 增量刷新，以及 `xirang sync` 命令面的选择与门禁行为。

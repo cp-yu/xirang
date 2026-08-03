@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: optimizer-findings
-kind: capability
+kind: element
 parent: verify
 title: Optimizer Findings
 definition: Optimizer Findings 定义 Phase 2 优化 finding 的数据合约与生命周期：finding 数据字段与稳定标识分配、状态与 reconciliation events、优先级与选择、优化波次 reconciliation 与循环终止。

@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: review
-kind: capability
+kind: element
 parent: verify
 title: Review
 definition: Review 是 Verify 中反复执行的正确性门禁，在每次 Apply 修改项目后进行。它由 Reviewer 作为 Internal Agent 在不受 Apply 阶段上下文影响的 clean context 中执行，独立评估 Change 是否完整落实、项目行为是否正确、实现是否遵循决策与约束、必要清理是否完成，并判断当前结果是否符合 Expected Semantic Model。

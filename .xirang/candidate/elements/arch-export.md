@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: arch-export
-kind: capability
+kind: element
 parent: deterministic-operations
 title: Arch Export
 definition: Arch Export 定义 `xirang arch export` 的架构图导出行为：将模型可视化导出为 PNG/SVG/PDF 图片，并在输出目录不存在时自动创建。

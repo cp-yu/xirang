@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: references-home
-kind: capability
+kind: element
 parent: agent-workbench-projection
 title: References Home
 definition: References Home 定义内置 reference 物化到 `.xirang/references/` 目录的行为：唯一物理位置、`xirang-` 前缀所有权边界、文件名唯一与工具中立校验，以及 `git.commitMessage` 路径覆盖路由。

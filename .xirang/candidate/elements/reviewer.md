@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: reviewer
-kind: capability
+kind: element
 parent: internal-agents
 title: Reviewer
 definition: Reviewer 评估当前项目状态是否完整、正确且一致地实现 Expected Semantic Model。它独立读取 Semantic Model、Change、项目状态与证据，先证据、后结论；阻塞问题形成 Required Corrections 返回 Apply。Review 通过时，当前状态才有资格成为 Checkpoint；Reviewer 不创建或恢复 Checkpoint，不修改项目。

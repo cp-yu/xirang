@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: change-archive
-kind: capability
+kind: element
 parent: change-closure
 title: Change Archive
 definition: Change Archive 定义归档已完成 Change 的行为：在 verify、sync、task 与 final validation gates 通过后将 active change directory 原样移动到 date-prefixed archive path、输出 git handoff 提醒，并由 Agent 在 CLI 完成后继续 git 流程；Archive 不创建、重算或覆盖任何 presentation artifact，也不执行 git 写操作。

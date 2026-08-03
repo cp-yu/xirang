@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: element-contract
-kind: capability
+kind: element
 parent: hierarchical-elements
 title: Element Contract
 definition: Element Contract 定义 Element 在一个确定模型状态中、其自身抽象层级上的完整规范性语义。它以该模型状态自身为视角，描述 Element 承担的职责、提供的保证、遵循的约束与表现的行为，只包含在该状态下成立的语义，不包含相对于其他模型状态的变更叙述。

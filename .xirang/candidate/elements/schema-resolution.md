@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: schema-resolution
-kind: capability
+kind: element
 parent: deterministic-operations
 title: Schema Resolution
 definition: Schema Resolution 定义项目本地 schema 解析行为：仅从 package 内置 schema 目录解析固定 `spec-driven` Schema，project-local 与 user data 目录不参与 lookup，不暴露内置 bootstrap schema，并保留 Schema binding 但合法值限于 `spec-driven`。

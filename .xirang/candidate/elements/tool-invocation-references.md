@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: tool-invocation-references
-kind: capability
+kind: element
 parent: agent-tool-integration
 title: Tool Invocation References
 definition: Tool Invocation References 定义 workflow 引用在不同工具表面上的渲染规则：通过显式工具表面元数据渲染用户可调用 workflow 引用，缺少精确语法时使用中性 skill invocation 文案，不通过字符串猜测生成引用。

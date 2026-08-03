@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: hierarchical-elements
-kind: domain
+kind: element
 parent: semantic-model
 title: Hierarchical Elements
 definition: 从 Project Root 开始、可任意深入的项目抽象结构。每个 Element 表达项目在某一抽象层级上可独立理解的语义单元，父 Element 表达较高层抽象，子 Element 对其进一步精化。

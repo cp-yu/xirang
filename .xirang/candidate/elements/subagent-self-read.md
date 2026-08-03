@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: subagent-self-read
-kind: capability
+kind: element
 parent: internal-agents
 title: Subagent Self-Read
 definition: Subagent Self-Read 定义 Reviewer/Optimizer subagent 的工具权限模型：允许 Read 与只读 Bash（测试、git 只读、搜索、构建验证），禁止 Edit/Write 及任何 Bash 文件修改绕行，并规定 L1 测试策略（默认静态判断、可疑时抽查）。

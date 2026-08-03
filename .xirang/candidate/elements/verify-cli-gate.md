@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: verify-cli-gate
-kind: capability
+kind: element
 parent: verify
 title: Verify CLI Gate
 definition: Verify CLI Gate 定义 `xirang verify` 命令面的门禁契约：Phase 1 入口门禁、Phase 2 双调用门禁（optimization reconciliation 与 speculative verification）、Seal 校验与 status 输出语义。

@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: workspace-update
-kind: capability
+kind: element
 parent: workspace-init-update
 title: Workspace Update
 definition: Workspace Update 定义 `xirang update` 刷新项目受管表面与迁移配置的行为：根据全局配置刷新 skills 指令、清理过时配置字段、迁移项目配置默认值、同步固定 workflow 集合、归档退役 workspace 并报告新检测工具。

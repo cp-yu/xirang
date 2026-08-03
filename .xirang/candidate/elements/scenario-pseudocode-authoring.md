@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: scenario-pseudocode-authoring
-kind: capability
+kind: element
 parent: scenario
 title: Scenario Pseudocode Authoring
 definition: Scenario Pseudocode Authoring 定义 Scenario 中使用伪代码块表达调用序列与算法流程的规范：伪代码块标注 `pseudocode` 语言、标识符引用稳定 identity，且验证器不强制校验伪代码语法。

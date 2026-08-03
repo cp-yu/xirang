@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: arch-validate
-kind: capability
+kind: element
 parent: deterministic-operations
 title: Arch Validate
 definition: Arch Validate 定义 `xirang arch validate` 的行为：验证当前 Semantic Model 的四分区记法与语义、支持 `--delta` 选项对 change-local delta 做目标模型校验，且不修改 Formal source。
@@ -29,7 +29,7 @@ definition: Arch Validate 定义 `xirang arch validate` 的行为：验证当前
 
 ### Requirement: arch validate SHALL 执行语义验证
 
-arch validate SHALL 在记法验证后执行语义检查，包括 ownership cardinality、precedes cycle 与 containment。
+arch validate SHALL 在记法验证后执行语义检查，包括 containment（恰有一个 parent、无环）、precedes cycle 与 Metamodel 约束。
 
 #### Scenario: 检查 precedes cycle
 
@@ -38,9 +38,9 @@ arch validate SHALL 在记法验证后执行语义检查，包括 ownership card
 - **THEN** SHALL 检测到 cycle
 - **AND** SHALL 输出错误 "Precedes cycle detected: A → B → C → A"
 - **AND** precedes relations MUST 形成 DAG
-#### Scenario: 检查 ownership cardinality
-- **WHEN** 一个 capability 被嵌套在多个 parents 中
-- **THEN** SHALL 检测到 ownership 违规并输出错误
+#### Scenario: 检查 containment cycle
+- **WHEN** 一个非根 Element 的 parent chain 形成 cycle
+- **THEN** SHALL 检测到 containment cycle 并输出错误
 #### Scenario: 检查非根 Element 恰有一个 parent
 - **WHEN** 一个非根 Element 没有 parent
 - **THEN** SHALL 输出 "Element <id> has no parent" 类错误

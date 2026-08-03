@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: branch-isolation
-kind: capability
+kind: element
 parent: apply
 title: Branch Isolation
 definition: Branch Isolation 定义 Apply 在正常连续执行路径中选择 Git 隔离方式、保护初始工作区状态、迁移 worktree 改动文件集并持久化证据基线的行为。它支持 branch、worktree 与 current-branch 三种方法，并将后续导航、merge 与 cleanup 交给 Archive。

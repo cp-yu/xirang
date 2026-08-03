@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: reviewer-protocol
-kind: capability
+kind: element
 parent: review
 title: Reviewer Protocol
 definition: Reviewer Protocol 定义 Reviewer 角色与硬约束、输入合约、6 步验证协议、严重性阈值与证据标准、三个验证维度、结构化输出合约与跨工具 skill 路径兼容。

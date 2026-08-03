@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: project-build-role
-kind: capability
+kind: element
 parent: agent
 title: Project Build Role
 definition: Project Build 是 Agent 构建或重建 Semantic Model 的工作身份。它在用户授权的探索范围与声明的权威依据下，编写完整的 Candidate Semantic Model，使用 CLI 做只读校验，向用户呈现 valid Candidate 与 review digest；仅在用户确认后，由 CLI 将 Candidate 原子提升为 Semantic Model。

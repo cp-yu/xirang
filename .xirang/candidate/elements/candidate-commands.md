@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: candidate-commands
-kind: capability
+kind: element
 parent: deterministic-operations
 title: Candidate Commands
 definition: Candidate Commands 定义 `xirang candidate` 命令面的生命周期行为：`init` 创建隔离 workspace、`status` 只读报告状态、`validate` 确定性只读校验并生成 reviewDigest、`promote` 在 digest 门禁与历史保留下原子替换 formal source。

@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: agent-tool-integration
-kind: capability
+kind: element
 parent: project-tooling-configuration
 title: Agent 工具集成选择与维护
 definition: Agent 工具集成选择与维护是 CLI 中为所选 Agent 工具选择、安装、刷新与同步生成制品的元数据能力。它维护各工具的 skillsDir/agentsDir/agentFormat 路径元数据与 workflow 引用的显式工具表面调用语法，使生成与更新行为在支持平台上保持一致。

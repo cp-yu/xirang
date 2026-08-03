@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: semantic-delta
-kind: domain
+kind: element
 parent: change
 title: Semantic Delta
 definition: Semantic Delta 是 Change 的规范性组成，由一组相对于当前 Semantic Model 声明的 Semantic Delta Entries 构成。它与当前 Semantic Model 共同唯一确定 Expected Semantic Model；持久化于 `.xirang/changes/<change>/` 的四分区，其修改语为 ADDED、MODIFIED 与 REMOVED。

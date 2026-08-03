@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: apply-workflow
-kind: capability
+kind: element
 parent: apply
 title: Apply Workflow
 definition: Apply Workflow 定义 `xirang-apply-change` 如何处理工作流状态，并由 Master agent 串行完成 Phase 0 后进入 clean-context 验证阶段；它处理 `needs_verify` 与 `needs_seal` 状态分支，并要求 Master agent 直接执行实现而不委托 implementer。

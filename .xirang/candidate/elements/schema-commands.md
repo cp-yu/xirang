@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: schema-commands
-kind: capability
+kind: element
 parent: deterministic-operations
 title: Schema Commands
 definition: Schema Commands 定义 `xirang schema which` 与 `xirang schema validate` 命令面：报告内置 schema 的 resolved source/location 与校验内置 schema 的 YAML、structure、FileDefinition、templates 与依赖图。

@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: semantic-delta-entry
-kind: capability
+kind: element
 parent: semantic-delta
 title: Semantic Delta Entry
 definition: Semantic Delta Entry 是 Semantic Delta 的组成单位。每个 Entry 由修改语、entity type 与 identity 构成：修改语确定应用方式，entity type 与 identity 共同确定作用对象；Entry 的 entity type 覆盖 Element Declaration、Requirement、Relationship、Element Kind、Relationship Kind 与 Authored View。

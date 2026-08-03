@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: derived-views
-kind: domain
+kind: element
 parent: view-composition
 title: Derived Views
 definition: Derived Views 是由 Semantic Model 或 Change 确定性派生的 Views。Derived View 无需用户声明，其内容随派生依据变化而重新确定；它不作为 Semantic Model 或 Change 的 durable artifact 持久化，也不作为 Semantic Delta Entry 的作用对象。

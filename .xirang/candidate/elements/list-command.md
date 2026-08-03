@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: list-command
-kind: capability
+kind: element
 parent: deterministic-operations
 title: List Command
 definition: List Command 定义 `xirang list` 的行为：扫描活动 changes，统计任务完成度，并支持 `--json`（含 verifyStatus）、`--long` 与 `--sort` 输出；它只表达当前 active-change 表面，不提供 Contract 扫描或 Contract JSON listing。

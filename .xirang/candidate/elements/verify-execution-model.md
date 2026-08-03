@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: verify-execution-model
-kind: capability
+kind: element
 parent: verify
 title: Verify Execution Model
 definition: Verify Execution Model 定义 verify 与 archive 复用的固定 subagent-orchestrated execution model：所有工具使用同一 subagent-orchestrated 模板骨架，顶层 agent 只负责输入收集、subagent orchestration、write-back 应用、checkpoint 管理与结果持久化，且不存在 reread fallback。

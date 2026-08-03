@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: scenario
-kind: capability
+kind: element
 parent: requirement
 title: Scenario
 definition: Scenario 是 Requirement 的规范性组成，用于表达该 Requirement 在特定条件下应表现的行为。它只能具体化宿主 Requirement 已定义的规范承诺，不得引入可独立演进的职责、保证、约束或行为。

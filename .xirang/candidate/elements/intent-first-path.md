@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: intent-first-path
-kind: domain
+kind: element
 parent: change-formation
 title: Intent-first Path
 definition: Intent-first Path 是 Change Formation 的路径之一：从用户意图出发，先形成 Change，再进入实现。该路径先通过 Explore 澄清意图、范围与影响并形成 Change 雏形，再通过 Propose 将雏形收成完整 Change，最终得到可进入 Change Implementation 的 Change。

@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: change-closure
-kind: capability
+kind: element
 parent: change-realization
 title: Change Closure
 definition: Change Closure 是 Change Realization 中将已验证的 Change 收束为项目新稳定状态的阶段。它以 Change Implementation 的有效验证结果为入口，先通过 Sync 将 Semantic Delta 应用于 Semantic Model，使 Expected Semantic Model 成为新的 Semantic Model；再通过 Archive 原样保存已完成的 Change 及其最终证据，并结束 Change 的活动状态。

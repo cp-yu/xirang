@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: agent-workbench-projection
-kind: capability
+kind: element
 parent: project-tooling-configuration
 title: Agent 工作面投影与同步
 definition: Agent 工作面投影与同步是 CLI 中维护息壤托管的 Agent 工作面及其 instructions、templates 与 references 的能力。它通过共享 artifact sync engine 与 canonical workflow manifest 生成六个固定 workflow skills 与 internal subagent artifacts，将共享片段与 references 物化到项目本地，并保证生成产物的行为等价与长度约束。

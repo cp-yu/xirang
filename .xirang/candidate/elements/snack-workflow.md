@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: snack-workflow
-kind: capability
+kind: element
 parent: snack
 title: Snack Workflow
 definition: Snack Workflow 定义 snack 从已写代码反向 reconcile proposal、delta Contracts、design 与 Semantic Delta 的 code-first workflow：条件式 artifact reconcile、多源代码证据、独立判断 Behavior/Architecture Source impact、definition-first authoring、不生成 `tasks.md` 与自检流程。

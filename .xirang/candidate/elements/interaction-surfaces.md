@@ -1,8 +1,8 @@
 ---
 entity: element-declaration
 identity: interaction-surfaces
-kind: domain
-parent: realization
+kind: element
+parent: collaboration-dimension
 title: Interaction Surfaces
 definition: Interaction Surfaces 是 Realization 中供用户与 Agents 配置、理解和操作息壤的交互界面体系。它建立和维护息壤项目、项目配置与 Agent 工具集成，提供确定性操作，并以 Views 呈现 Semantic Model 与 Change-derived information；CLI 支持 Text Presentation，Semantic Browser 支持 Visual Presentation。
 ---

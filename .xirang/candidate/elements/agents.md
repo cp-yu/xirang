@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: agents
-kind: domain
+kind: element
 parent: participants
 title: Agents
 definition: Agents 是可代表息壤推进 Realization 的执行主体。它们理解 Semantic Model 与项目证据，形成或调和 Change，实现 Change，组织独立评估，并在用户授权下推进模型构建与 Change 收束；Agents 分为 Agent 与 Internal Agents。

@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: command-reference-consistency
-kind: capability
+kind: element
 parent: cli
 title: Command Reference Consistency
 definition: Command Reference Consistency 定义活动命令引用与当前 CLI surface 的一致性契约：active user-facing 文档、模板、skills、prompts 与 active Specs 的命令示例必须与 `xirang --help` 一致；stale 引用清理须在生成源头进行，并按类别报告残留。

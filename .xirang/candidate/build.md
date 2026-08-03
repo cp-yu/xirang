@@ -2,7 +2,7 @@
 
 ## 授权范围
 
-本次 Build 从 clean Candidate 全量重建本项目 Xirang Semantic Model。唯一可写范围是 `.xirang/candidate/` 四个分区与临时 scaffolding；不得修改正式 `.xirang/model/`、`.xirang/specs/`、`.xirang/architecture/`、源代码、测试、generated skills 或其他项目文件。不提交、不暂存、不运行 promotion。
+本次 Build 从 clean Candidate 全量重建本项目 Xirang Semantic Model。主要可写范围是 `.xirang/candidate/` 四个分区与临时 scaffolding；因 Metamodel 与 CLI 内置约束（`PERSPECTIVE_KIND` JSON 相等校验）耦合，kind 体系调整同步修改 `src/core/templates/model-skeleton.ts`、`src/core/setup.ts` 与 `test/core/setup.test.ts`。不修改正式 `.xirang/model/`、`.xirang/specs/`、`.xirang/architecture/`、generated skills 或其他项目文件。不提交、不暂存、不运行 promotion。
 
 ## 权威顺序
 
@@ -18,18 +18,22 @@
 
 - 从 clean 重建，不从当前模型做增量修补。
 - `xirang-definition.md` 中所有编号概念构成主干 Elements。
-- 未编号的「语义对象 / 推进过程 / 协作结构」仅是 Text Presentation 分组，不是 Elements，也不持久化为 Authored Views。
+- 未编号的「语义对象 / 推进过程 / 协作结构」在模型中建模为 Perspective Elements，表达分解角度（2026-08-01 第二轮裁决）。
 - Candidate `views/` 为真实空目录；不得创建 `definition-*` Authored Views。
 - legacy spec 对应新模型 Contract 语料：仍适用的 Requirements/Scenarios 必须恢复，过时语义要迁移或排除并有证据。
+- **层级自由化（2026-08-01 第二轮裁决）**：层级只表达抽象→细化，Element Kind 不限制层级位置；移除 `perspective` 的 parents/children 白名单。
+- **移除 domain/capability（2026-08-01 第二轮裁决）**：Element Kinds 精简为 `project` / `perspective` / `element`，不保留 domain/capability，避免回归。
+- **顶层结构（2026-08-01 第二轮裁决）**：顶层为 `semantic-object`（语义对象）与 `realization`（perspective）；`realization` 再分为 `process-dimension`（推进过程）与 `collaboration-dimension`（协作结构）；`framework-identity` 归 `semantic-object`，`delivery-validation` 归 `process-dimension`。
+- **枝叶补充（2026-08-01 第二轮裁决）**：以 `xirang-definition.md` 为基础补充定义明确命名的子概念（element-kind、relationship-kind、proposal/design/tasks 文档、checkpoint、candidate、Definition Framing 四步），并纳入 legacy specs 仍在实现中的细节。
 
 ## 建模规则
 
-1. **Metamodel**：保持 CLI 内置 4 个 Element Kinds（project/domain/capability/perspective）；project root required/root true；保留 8 个 Relationship Kinds（constrains/consumes/invokes/precedes/produces/responsible-for/supports-presentation/validates）。`realization` 继续用 perspective（skeleton/validator/browser 明确管理该 Kind）；不得创建三个分组 perspective Elements。
-2. **主干**：63 个编号概念与 parent 严格按 `xirang-definition.md` 树（分析 §2.1 表）。当前缺失的 5 个 CLI 5.x 概念（workspace-init-update、project-config-management、agent-tool-integration、agent-workbench-projection、definition-framing-operations）必须新增。`semantic-model` 与 `change` 直接挂 `project.root`；`semantic-model-build`、`change-realization`、`participants`、`interaction-surfaces` 直接挂 `realization`。
+1. **Metamodel**：Element Kinds 为 project/perspective/element（2026-08-01 裁决移除 domain/capability）；project root required/root true；perspective 无 parents/children 白名单（层级由抽象→细化决定）；保留 8 个 Relationship Kinds（constrains/consumes/invokes/precedes/produces/responsible-for/supports-presentation/validates）。`metamodel/perspective.md` 与 `src/core/templates/model-skeleton.ts` 的 `PERSPECTIVE_KIND` 必须 JSON 相等（validator 强校验，故源码同步修改）。
+2. **主干**：63 个编号概念与 parent 严格按 `xirang-definition.md` 树（分析 §2.1 表）。顶层为 `semantic-object`（perspective）与 `realization`（perspective）；`realization` 下为 `process-dimension` 与 `collaboration-dimension`；`semantic-model`、`change`、`framework-identity` 挂 `semantic-object`；`semantic-model-build`、`change-realization`、`delivery-validation` 挂 `process-dimension`；`participants`、`interaction-surfaces` 挂 `collaboration-dimension`。
 3. **legacy specs 映射**：按分析 §4 处置。同一旧 owner 或明确同义重复的 specs 合入同一 Element Contract；每个原 Requirement/Scenario 必须被保留（经证据化术语迁移）或因退役行为明确排除。
 4. **排除**：5 个 stale specs（cli-diff、cli-change、cli-spec、spec-registry、spec-frontmatter）；首次版本 first-only 的 5 个 Sweeper specs 不恢复（已由 arch-search/arch-impact 替代）。
-5. **placement**：`telemetry` 挂 `cli`；`delivery-validation` 与 `framework-identity` 作为 `project.root` children。保留扁平稳定 identities，不编码 parent 路径。
-6. **Relationships**：采用当前 48 条有效 backbone relationships（当前模型 relationships/ 分区的实际条目；分析 §6 列表与之一致），新增 `framework-identity constrains workspace-init-update` 与 `delivery-validation validates framework-identity` 共 50 条。先确认所有 endpoints 存在。不从代码调用自动添加关系。
+5. **placement**：`telemetry` 挂 `cli`；`framework-identity` 挂 `semantic-object`；`delivery-validation` 挂 `process-dimension`。保留扁平稳定 identities，不编码 parent 路径。
+6. **Relationships**：沿用 50 条已确认 relationships（identity 为 source-kind-target，parent 变化不影响关系身份），新增元素（semantic-object/process-dimension/collaboration-dimension 等）由层级表达组织，不额外造关系。先确认所有 endpoints 存在。不从代码调用自动添加关系。
 7. **views/**：真实空目录，不含单元。显示分组由后续 skill Text Presentation 完成。
 
 ## 非显然证据选择

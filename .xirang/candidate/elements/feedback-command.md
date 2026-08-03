@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: feedback-command
-kind: capability
+kind: element
 parent: cli
 title: Feedback Command
 definition: Feedback Command 定义 `xirang feedback` 通过 `gh` CLI 安全创建 GitHub Issue 的行为，包括无 shell 注入的命令执行、gh 缺失/未认证时的 manual fallback、issue metadata 匿名化、错误处理、Agent feedback skill 与 shell completion。

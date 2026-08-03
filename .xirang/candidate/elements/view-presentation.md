@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: view-presentation
-kind: domain
+kind: perspective
 parent: views
 title: View Presentation
 definition: View Presentation 是 Views 按语义信息如何传达给用户划分的呈现维度。View 可以采用 Visual Presentation、Text Presentation，或者同时提供两种呈现方法；呈现方法不改变 View 的呈现视角、组成方式或所依据的规范性语义。

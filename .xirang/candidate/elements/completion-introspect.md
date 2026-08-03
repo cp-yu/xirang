@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: completion-introspect
-kind: capability
+kind: element
 parent: cli
 title: Completion Introspect
 definition: Completion Introspect 定义从 Commander.js 命令树运行时反射生成 `CommandDefinition[]` 的行为：命令元数据提取、集中式 `POSITIONAL_TYPE_MAP` 注入、与补全脚本生成器接口兼容，以及防漏测试确保 positionalType 完整性。

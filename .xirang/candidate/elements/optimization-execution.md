@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: optimization-execution
-kind: capability
+kind: element
 parent: verify
 title: Optimization Execution
 definition: Optimization Execution 定义 Phase 2 最优性检验执行协议：Phase 1 通过后强制调用 optimizer、checkpoint 与回滚、重试预算控制、优化结果持久化、speculative re-verify 与 NO_OPTIMIZATION_NEEDED 的 CLI 校验。

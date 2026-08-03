@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: visual-presentation
-kind: capability
+kind: element
 parent: view-presentation
 title: Visual Presentation
 definition: Visual Presentation 是通过图形元素、空间组织与视觉编码向用户传达 View 所组织语义信息的呈现方法。它可以提供选择、导航和下钻等交互，使用户能够观察整体结构并查看局部语义；图形布局、视觉样式与交互状态只服务于呈现。

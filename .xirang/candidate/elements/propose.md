@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: propose
-kind: capability
+kind: element
 parent: intent-first-path
 title: Propose
 definition: Propose 是 Intent-first Path 的收成阶段。它承接 Explore 形成的 Design Summary，以及存在时的 Change Structural Definition；Change Structural Definition 存在时，它将其中已确认的 Element Kinds、Relationship Kinds、Element Declarations 与 Relationships 分别编译为相应的 Semantic Delta Entries；两条路径均写出完整 Change Plan，并在 Formation 内完成必要审查与确认。

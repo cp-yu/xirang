@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: completion-command
-kind: capability
+kind: element
 parent: cli
 title: Completion Command
 definition: Completion Command 定义 `xirang completion` 为 Zsh、Bash、Fish 与 PowerShell 生成/安装/卸载 shell completion 的行为：native shell 行为集成、命令结构、shell 检测、基于运行时命令树的 completion 生成、动态 completion 与错误处理。

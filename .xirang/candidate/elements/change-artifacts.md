@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: change-artifacts
-kind: capability
+kind: element
 parent: change-plan
 title: Change Artifacts
 definition: Change Artifacts 定义 Change 制品集合的结构化语义：proposal/design/tasks 作为 compilation scaffolding，四分区 Semantic Delta 作为 behavior/architecture source；effective diff 仅由只读 `xirang validate --change` 以 ephemeral text/JSON 输出提供，不存在持久化 review artifact；Validation commands 保持只读，generated write behavior 由显式 workflow command 持有。

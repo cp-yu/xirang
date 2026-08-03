@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: views
-kind: domain
+kind: element
 parent: semantic-model
 title: Views
 definition: Views 是 Semantic Model 面向用户的呈现层。View 面向特定的理解、讨论、审查或决策目的，选择、组织并呈现 Semantic Model 的语义对象及与 Change 相关的派生信息；Views 不引入规范性语义，也不改变或替代 Semantic Model 与 Change 所表达的规范性语义。

@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: global-config
-kind: capability
+kind: element
 parent: project-config-management
 title: Global Config
 definition: Global Config 定义用户级全局配置的解析、读取与写入行为：遵循 XDG Base Directory 与平台回退、schema 演进合并、退役配置表面（profile、workflows、delivery、Propose routing）的静默过滤。

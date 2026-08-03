@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: arch-query
-kind: capability
+kind: element
 parent: deterministic-operations
 title: Arch Query
 definition: Arch Query 定义 `xirang arch query` 的结构化查询行为：按稳定 identity 或当前 FQN 定位 Element、`--relations` 返回持久化语义关系、`--depth` 展开 refinement 与 relation 邻接、`--json` 输出与不存在的 Element 处理。

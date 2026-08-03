@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: skill-template-length
-kind: capability
+kind: element
 parent: agent-workbench-projection
 title: Skill Template Length
 definition: Skill Template Length 定义生成 skill 行数限制的测试契约：验证所有 tool 变体的 `SKILL.md` 不超过 200 行、`referenceFiles[]` 不超过 500 行，并按文件分组报告超标。

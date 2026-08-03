@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: relationship-semantics
-kind: capability
+kind: element
 parent: relationships
 title: Relationship Semantics
 definition: Relationship Semantics 定义 Relationships 的关系词汇、端点约束与全图语义验证契约。关系 Kind 的权威由当前 Semantic Model 的 Metamodel 投影确定，containment 派生语义不作为持久化 edges。

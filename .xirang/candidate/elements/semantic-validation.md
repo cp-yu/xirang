@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: semantic-validation
-kind: capability
+kind: element
 parent: semantic-model
 title: Semantic Validation
 definition: Semantic Validation 定义 Semantic Model 语义验证器的检查契约：ownership cardinality、precedes DAG、metadata 完整性、结构化错误输出与 Kind 约束执行。它以当前四分区 Semantic Model 为对象，不依赖 LikeC4 nesting 或 legacy spec registry。

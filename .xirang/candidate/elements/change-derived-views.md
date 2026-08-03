@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: change-derived-views
-kind: capability
+kind: element
 parent: derived-views
 title: Change-derived Views
 definition: Change-derived Views 是面向一个 Change，由当前 Semantic Model 与该 Change 确定性派生的 Derived Views。它组织并呈现该 Change 的目标语义，以及目标语义相对于当前 Semantic Model 的变化，使用户能够理解、讨论、审查和决策该 Change。

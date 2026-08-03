@@ -1,8 +1,8 @@
 ---
 entity: element-declaration
 identity: delivery-validation
-kind: capability
-parent: project.root
+kind: element
+parent: process-dimension
 title: Delivery Validation
 definition: Delivery Validation 定义仓库当前维护的可执行交付面：Nix 打包/开发环境与 GitHub 跨平台验证工作流。它是项目自身的交付契约，作为 Project Root 的细化 Element 独立演进。
 ---

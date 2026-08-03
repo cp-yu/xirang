@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: validation-commands
-kind: capability
+kind: element
 parent: deterministic-operations
 title: Validation Commands
 definition: Validation Commands 定义 `xirang validate` 命令面的校验契约：顶层 validate 的选择与批量模式、显式 full-Change validation 与 concise preview、Requirement section 交叉校验、Scenario label 清洁度、fence-aware requirement 读取与 effective preview。

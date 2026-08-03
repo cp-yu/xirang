@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: relationships
-kind: capability
+kind: element
 parent: semantic-model
 title: Relationships
 definition: Relationships 是 Elements 之间显式的、类型化的语义联系。每个 Relationship 连接 source Element 与 target Element，并使用由 Metamodel 声明的 Relationship Kind，表达 Elements 之间的协作、依赖或约束；它补充 Hierarchical Elements 无法表达的联系。

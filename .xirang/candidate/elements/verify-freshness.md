@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: verify-freshness
-kind: capability
+kind: element
 parent: verify
 title: Verify Freshness
 definition: Verify Freshness 定义验证结果 freshness 判定引擎：`tasksFileHash` 计算、`evidenceFingerprint` 计算、`checkFreshness` 判定、archive compatibility 判定、gate failure 输出格式与 sync 后 evidence fingerprint 增量刷新。

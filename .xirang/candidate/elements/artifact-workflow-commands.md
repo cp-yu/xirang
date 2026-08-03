@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: artifact-workflow-commands
-kind: capability
+kind: element
 parent: deterministic-operations
 title: Artifact Workflow Commands
 definition: Artifact Workflow Commands 定义 artifact workflow CLI 行为：`status`、`instructions`、`templates` 与 `new change` 命令面，面向 scaffolded 与 active changes，包括 artifact 完成状态展示、enriched instructions、模板路径解析、schema apply block 与 apply instructions 生成。

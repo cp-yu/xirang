@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: authoring-conventions
-kind: capability
+kind: element
 parent: agent-workbench-projection
 title: Authoring Conventions
 definition: Authoring Conventions 定义契约与变更写作规范：Requirement-Scenario 结构、behavior-first 边界、稳态命名、progressive rigor、Header 即 identity、verb-first CLI 与 structure token/填充 prose 区分。其中项目目录结构语义已被 Semantic Model 四分区存储吸收，不在此重复。

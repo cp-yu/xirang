@@ -48,7 +48,7 @@ const MODEL: Record<string, string> = {
   'metamodel/project.md': '---\nentity: element-kind\nidentity: project\ncontract: optional\nroot: true\n---\n\nThe project root kind.\n',
   'metamodel/domain.md': '---\nentity: element-kind\nidentity: domain\ncontract: optional\n---\n',
   'metamodel/capability.md': '---\nentity: element-kind\nidentity: capability\ncontract: required\nparents:\n  - project\n---\n\nA capability of the project.\n',
-  'metamodel/perspective.md': `---\nentity: element-kind\nidentity: perspective\ncontract: optional\nparents:\n  - project\n  - perspective\nchildren:\n  - perspective\n  - domain\n  - capability\n---\n\n${PERSPECTIVE_KIND.body}\n`,
+  'metamodel/perspective.md': `---\nentity: element-kind\nidentity: perspective\ncontract: optional\n---\n\n${PERSPECTIVE_KIND.body}\n`,
   'metamodel/invokes.md': '---\nentity: relationship-kind\nidentity: invokes\nsourceKinds:\n  - capability\ntargetKinds:\n  - capability\n---\n',
   'elements/root.md': '---\nentity: element-declaration\nidentity: root\nkind: project\nparent: null\ntitle: Root\ndefinition: Project root\n---\n',
   'elements/cap.a.md': CAP_A,

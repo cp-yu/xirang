@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: cli
-kind: domain
+kind: element
 parent: interaction-surfaces
 title: CLI
 definition: CLI 是息壤的配置与确定性操作界面。它建立和维护息壤工作区、项目配置与所选 Agent 工具集成，管理息壤配置，并在 Realization 中提供结构化查询、状态管理、instructions 与 templates 投影、程序化校验、验证证据持久化及原子状态转换，使关键操作具有一致结果、可复现证据和明确失败语义。

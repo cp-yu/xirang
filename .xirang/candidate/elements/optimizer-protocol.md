@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: optimizer-protocol
-kind: capability
+kind: element
 parent: optimization
 title: Optimizer Protocol
 definition: Optimizer Protocol 定义 Optimizer 角色与硬约束、输入合约、优化原则与禁止项、Failed Directions 避重协议、一层依赖展开与 finding JSON 输出合约。

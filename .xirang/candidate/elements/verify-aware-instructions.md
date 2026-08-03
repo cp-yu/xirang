@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: verify-aware-instructions
-kind: capability
+kind: element
 parent: deterministic-operations
 title: Verify-aware Instructions
 definition: Verify-aware Instructions 定义 `xirang instructions apply` 集成 verify freshness 检查的行为：判定 change 的 `state` 时同时考虑 task checkbox 完成度与 verify 结果 freshness，产生 `needs_verify`、`needs_seal`、`all_done` 与 `ready` 状态。

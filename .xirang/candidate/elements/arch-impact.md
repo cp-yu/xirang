@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: arch-impact
-kind: capability
+kind: element
 parent: deterministic-operations
 title: Arch Impact
 definition: Arch Impact 定义 `xirang arch impact` 的影响分析行为：接受 focus Elements、返回 bounded Relationship subgraph、投影 canonical shortest paths、分离 refinement context、返回完整 Element Contracts，并且只处理 Formal Semantic Model。

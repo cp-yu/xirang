@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: snack-skill-generation
-kind: capability
+kind: element
 parent: agent-workbench-projection
 title: Snack Skill Generation
 definition: Snack Skill Generation 定义 snack skill 的生成管线职责：与核心工作流一致地纳入生成，生成的 snack skill MUST 表达 code-first artifact reconciliation、broader code-change evidence sources、conditional artifact updates 与 no-`tasks.md` 边界，且 instructions 部分不超过 200 行。

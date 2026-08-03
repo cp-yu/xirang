@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: recovery-protocol
-kind: capability
+kind: element
 parent: apply
 title: Recovery Protocol
 definition: Recovery Protocol 定义 Apply recovery loop 的失败处理纪律：诊断优先于修复、单变量修复约束、累计 3-strike 升级机制与连续相同错误快速 pause。

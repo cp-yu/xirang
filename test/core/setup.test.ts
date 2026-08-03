@@ -651,8 +651,7 @@ describe('Xirang skeleton generation', () => {
 
     expect(SETUP_MODEL_FILE_MANIFEST.map((file) => file.relativePath)).toEqual([
       'metamodel/project.md',
-      'metamodel/domain.md',
-      'metamodel/capability.md',
+      'metamodel/element.md',
       'metamodel/perspective.md',
       'elements/project.root.md',
     ]);
@@ -670,8 +669,7 @@ describe('Xirang skeleton generation', () => {
     expect(parsed.diagnostics).toEqual([]);
     expect(validateSemanticModel(parsed.model)).toEqual([]);
     expect(parsed.model.elementKinds).toEqual(expect.arrayContaining([
-      { identity: 'capability', contract: 'optional', body: '' },
-      { identity: 'domain', contract: 'optional', body: '' },
+      { identity: 'element', contract: 'optional', body: '' },
       PERSPECTIVE_KIND,
       { identity: 'project', contract: 'optional', root: true, body: 'The single Project Root of the Semantic Model.' },
     ]));
@@ -766,7 +764,7 @@ describe('Xirang skeleton generation', () => {
     const setupCommand = createSetupCommand({ tools: 'none', force: true });
     await setupCommand.execute(testDir);
 
-    for (const identity of ['perspective', 'domain', 'capability']) {
+    for (const identity of ['perspective', 'element']) {
       await expect(fs.readFile(path.join(metamodel, `${identity}.md`), 'utf8'))
         .resolves.toContain(`identity: ${identity}`);
     }
@@ -781,11 +779,17 @@ describe('Xirang skeleton generation', () => {
     const elements = path.join(model, 'elements');
     await fs.mkdir(metamodel, { recursive: true });
     await fs.mkdir(elements, { recursive: true });
-    const equivalentPerspective = `---\nchildren:\n  - perspective\n  - domain\n  - capability\nparents: [project, perspective]\ncontract: "optional"\nidentity: "perspective"\nentity: element-kind\n---\n\n${PERSPECTIVE_KIND.body}\n`;
+    const equivalentPerspective = `---
+contract: "optional"
+identity: "perspective"
+entity: element-kind
+---
+
+${PERSPECTIVE_KIND.body}
+`;
     await fs.writeFile(path.join(metamodel, 'custom-perspective.md'), equivalentPerspective);
     await fs.writeFile(path.join(metamodel, 'project.md'), '---\nentity: element-kind\nidentity: project\ncontract: optional\nroot: true\n---\n');
-    await fs.writeFile(path.join(metamodel, 'domain.md'), SETUP_MODEL_FILE_MANIFEST.find(file => file.relativePath === 'metamodel/domain.md')!.render({ projectName: '', projectDefinition: '' }));
-    await fs.writeFile(path.join(metamodel, 'capability.md'), SETUP_MODEL_FILE_MANIFEST.find(file => file.relativePath === 'metamodel/capability.md')!.render({ projectName: '', projectDefinition: '' }));
+    await fs.writeFile(path.join(metamodel, 'element.md'), SETUP_MODEL_FILE_MANIFEST.find(file => file.relativePath === 'metamodel/element.md')!.render({ projectName: '', projectDefinition: '' }));
     await fs.writeFile(path.join(elements, 'project.root.md'), '---\nentity: element-declaration\nidentity: project.root\nkind: project\nparent: null\ntitle: Project\ndefinition: Legacy project.\n---\n');
 
     const setupCommand = createSetupCommand({ tools: 'none', force: true });

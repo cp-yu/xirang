@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: reviewer-cleanliness
-kind: capability
+kind: element
 parent: review
 title: Reviewer Cleanliness
 definition: Reviewer Cleanliness 定义 Review 的 Cleanliness 验证维度：检测"本次变更应清理但未清理"的遗留物、工具无关的检测策略、Cleanliness summary schema、与 Optimizer 的职责边界，以及规格外改动检测与归因。

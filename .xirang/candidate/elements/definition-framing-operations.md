@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: definition-framing-operations
-kind: capability
+kind: element
 parent: deterministic-operations
 title: Definition Framing Operations
 definition: Definition Framing Operations 是 CLI 中管理 Change Structural Definition 的确定性操作集合。它通过 `xirang framing` commands 管理 Change Structural Definition 的持久化、查询、校验和生命周期转换，并根据其中记录的 Semantic Model 基准快照识别相关结构是否发生变化。

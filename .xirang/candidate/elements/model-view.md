@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: model-view
-kind: capability
+kind: element
 parent: derived-views
 title: Model View
 definition: Model View 是由当前 Semantic Model 确定性派生的默认 View，稳定 identity 为 `model`。其层级 focus 与导航历史属于运行时呈现状态，不形成额外 View。

@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: artifact-graph
-kind: capability
+kind: element
 parent: deterministic-operations
 title: Artifact Graph
 definition: Artifact Graph 定义 schema-driven workflows 使用的 artifact graph model：schema 加载、构建顺序计算、完成状态检测、ready/blocked 查询、完成检查与 schema 目录结构。

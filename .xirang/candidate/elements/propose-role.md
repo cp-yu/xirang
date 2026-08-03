@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: propose-role
-kind: capability
+kind: element
 parent: agent
 title: Propose Role
 definition: Propose 是 Agent 将 Change 雏形收成完整 Change 的工作身份。它以已确认设计为依据形成 Change，并复用 Explore 已形成的 Design Summary；Explore 形成了 Change Structural Definition 时，它通过 CLI 将该定义纳入目标 Change，并把其中已确认的结构目标编译为相应的 Semantic Delta Entries。

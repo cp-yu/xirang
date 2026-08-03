@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: element-declaration
-kind: capability
+kind: element
 parent: hierarchical-elements
 title: Element Declaration
 definition: Element Declaration 定义 Element 在 Semantic Model 中的稳定结构身份与完整概念语义；它以 identity、kind、parent、title 和 definition 声明该 Element 是什么、为何独立存在及其抽象边界，但不承载属于 Element Contract 的职责、保证、约束或行为。

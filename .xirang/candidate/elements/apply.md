@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: apply
-kind: capability
+kind: element
 parent: change-implementation
 title: Apply
 definition: Apply 是 Change Implementation 中落实项目改动的活动。它以 Expected Semantic Model 为目标，结合 Change Plan 与当前项目状态，落实 Change 要求的全部项目改动；在 `tasks.md` 存在时按其中的执行与验证安排推进；在 Verify 返回 Required Corrections 或已确认的优化事项时继续完成相应改动。

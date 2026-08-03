@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: config-projection
-kind: capability
+kind: element
 parent: project-config-management
 title: Config Projection
 definition: Config Projection 定义项目配置编译为 prompt/runtime projections 的契约：投影结构、共享 projection contract、prose language 字段边界、英文术语嵌入、projection fragment 作用域、surface-specific projection 与 legacy docLanguage fallback。

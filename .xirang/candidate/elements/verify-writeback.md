@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: verify-writeback
-kind: capability
+kind: element
 parent: verify
 title: Verify Writeback
 definition: Verify Writeback 定义 verify 如何将关键诊断结果回写到 change 工件：CRITICAL 级别 spec-code 不一致触发 `tasks.md` 任务 unmark、Required Corrections 清单生成、验证结果持久化到 `.verify-result.json` 与 freshness 判定上下文记录。

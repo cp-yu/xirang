@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: show-command
-kind: capability
+kind: element
 parent: deterministic-operations
 title: Show Command
 definition: Show Command 定义顶层 `xirang show` 的行为：无参数时以交互式列表选择活动 Change，直接展示只接受活动 Change；text 输出返回该 Change 的 `proposal.md`，JSON 输出返回编译后的 Change summary、entries 与 diagnostics。它只表达当前 active Change surface，不提供 Element 或 Contract 选择。

@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: preflight-scan
-kind: capability
+kind: element
 parent: apply
 title: Preflight Scan
 definition: Preflight Scan 定义 Apply 在实现前对 `tasks.md` 的一致性预检：检测 task 间互斥声明、task 与 change-local 目标语义的冲突，以及 task 依赖顺序问题；预检干净时无声继续。

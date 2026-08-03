@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: explore
-kind: capability
+kind: element
 parent: intent-first-path
 title: Explore
 definition: Explore 是 Intent-first Path 的起始阶段。它通过 Design Exploration，基于 Semantic Model 与项目证据澄清用户意图、范围、影响和设计，并形成不持久化的 Design Summary；当用户选择先处理 Change 的结构定义时，Explore 先进入 Definition Framing，形成 Change Structural Definition。

@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: propose-workflow
-kind: capability
+kind: element
 parent: propose
 title: Propose Workflow
 definition: Propose Workflow 定义 propose workflow 创建 change、分离 behavior/architecture source impact、生成完整制品并执行轻量验证的行为：semantic readiness 门禁、Design Summary 复用、definition-first authoring、架构范围 reconcile、post-propose validation 分级 gate 与状态输出收敛。

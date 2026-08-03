@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: apply-default-isolation
-kind: capability
+kind: element
 parent: project-config-management
 title: Apply Default Isolation
 definition: "Apply Default Isolation 定义项目配置默认物化契约中 `apply.defaultIsolation: ask` 的功能性默认值：在磁盘输出与 missing-only 迁移中包含该默认值，并保留用户既有值。"

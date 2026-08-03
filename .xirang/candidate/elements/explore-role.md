@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: explore-role
-kind: capability
+kind: element
 parent: agent
 title: Explore Role
 definition: Explore 是 Agent 在 Intent-first Path 中澄清用户意图、范围、影响和设计的工作身份。它结合 Semantic Model、CLI 查询与项目证据推进 Design Exploration，形成不持久化的 Design Summary；用户选择先处理 Change 的结构定义时，它先推进 Definition Framing，并通过 CLI 持久化用户明确确认的 Change Structural Definition。

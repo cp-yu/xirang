@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: tool-paths
-kind: capability
+kind: element
 parent: agent-tool-integration
 title: Tool Paths
 definition: Tool Paths 定义 AI 工具路径元数据：`AIToolOption` 的 `skillsDir`、`agentsDir` 与 `agentFormat` 字段，skills/subagent artifact 的写入路径规则与跨平台路径处理。

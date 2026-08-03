@@ -1,8 +1,8 @@
 ---
 entity: element-declaration
 identity: semantic-model-build
-kind: capability
-parent: realization
+kind: element
+parent: process-dimension
 title: Semantic Model Build
 definition: Semantic Model Build 是 Realization 推进过程中构建或重建 Semantic Model 的过程。它在用户授权的探索范围与声明的权威依据下，由 Agent 编写完整的 Candidate Semantic Model，由 CLI 做只读确定性校验并给出 review digest，用户确认后由 CLI 原子提升为 Semantic Model 并保留必要 history；本过程不通过 Semantic Delta 演进模型，也不落实单次 Change 的项目改动。
 ---

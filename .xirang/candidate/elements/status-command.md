@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: status-command
-kind: capability
+kind: element
 parent: deterministic-operations
 title: Status Command
 definition: Status Command 定义 `xirang status` 的行为：无 changes 时优雅退出，并保留既有 validateChangeExists 的错误路径行为。

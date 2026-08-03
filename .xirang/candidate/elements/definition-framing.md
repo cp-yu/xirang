@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: definition-framing
-kind: capability
+kind: element
 parent: explore
 title: Definition Framing
 definition: Definition Framing 是 Explore 中由用户选择进入的推荐阶段，用于在 Design Exploration 前先处理 Change 的结构定义。它以 Semantic Model 与项目证据为依据，通过因果定义、identity 与边界澄清、单维度分解和按 BFS 顺序确认同层结构，逐步确认 Change 涉及的 Element Kinds、Relationship Kinds、Element Declarations 与 Relationships。

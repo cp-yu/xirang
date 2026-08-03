@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: tdd-checkpoints
-kind: capability
+kind: element
 parent: apply
 title: TDD Checkpoints
 definition: TDD Checkpoints 定义 Apply Phase 0 在任务实现循环中执行的 TDD 质量检查点：接口可测试性检查、测试行为质量验证与 Mock 边界约束，确保接口可测试性、测试行为质量和 Mock 边界在进入实现与验证前得到约束。

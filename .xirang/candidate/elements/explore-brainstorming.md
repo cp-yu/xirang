@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: explore-brainstorming
-kind: capability
+kind: element
 parent: design-exploration
 title: Explore Brainstorming
 definition: Explore Brainstorming 定义 Explore 的只读设计澄清流程：6 步 brainstorming checklist、一次一问的提问纪律、2-3 方案对比、分段设计确认、Design Summary 生成、范围检查与拆解建议、捕获边界路由以及主代理只读边界。

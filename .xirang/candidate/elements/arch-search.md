@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: arch-search
-kind: capability
+kind: element
 parent: deterministic-operations
 title: Arch Search
 definition: Arch Search 定义 `xirang arch search` 的确定性文本检索行为：只读 Formal Semantic Model，在 Element identity、FQN、title、definition 与其单一 Contract 的 Requirement 名称及规范文本中执行确定性检索，使用稳定匹配优先级并返回可解释的统一结果。

@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: verify-orchestration
-kind: capability
+kind: element
 parent: verify
 title: Verify Orchestration
 definition: Verify Orchestration 定义 verify 工作流提示词的编排契约：Coordinator 角色声明、阶段模式标签、显式 subagent delegation 指令、subagent 超时与等待规则、checkpoint 有序执行步骤与语言一致性。它保证顶层 agent 只做编排与持久化，不替代 reviewer/optimizer 判断。

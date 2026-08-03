@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: project-config-management
-kind: capability
+kind: element
 parent: project-tooling-configuration
 title: 项目配置管理
 definition: 项目配置管理是 CLI 中读取和管理息壤项目配置的能力。它加载并校验 `.xirang/config.yaml`（含 `.yml` 别名）、维护用户级全局配置，管理配置默认值物化，并将配置编译为各 workflow surface 消费的 prompt/runtime projection。

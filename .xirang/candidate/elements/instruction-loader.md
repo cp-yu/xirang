@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: instruction-loader
-kind: capability
+kind: element
 parent: deterministic-operations
 title: Instruction Loader
 definition: Instruction Loader 定义从 schema 目录加载并富化 instruction templates 的行为：template loading、change context loading、template enrichment、status formatting 与 artifact current state projection。

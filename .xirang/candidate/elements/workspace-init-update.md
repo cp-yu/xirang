@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: workspace-init-update
-kind: capability
+kind: element
 parent: project-tooling-configuration
 title: 工作区初始化与更新
 definition: 工作区初始化与更新是 CLI 中初始化和更新息壤工作区的能力。它通过 `xirang setup` 与 `xirang update` 创建或保留 `.xirang` durable workspace、安装固定 Agent workflow 集合、刷新受管 Agent surfaces，并维护配置默认值与退役 workspace 的迁移。

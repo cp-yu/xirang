@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: workspace-init
-kind: capability
+kind: element
 parent: workspace-init-update
 title: Workspace Init
 definition: Workspace Init 定义 `xirang setup` 创建完整工作区的行为：创建或保留 `.xirang` durable core、`model/{metamodel,elements,relationships,views}` 四分区 Semantic Model skeleton、changes 与 references、固定 Agent workflow 集合，支持跨平台与 non-interactive 运行，并在成功后暴露 Project Build 引导。Element Contract 与 Element Declaration 共用同一 `elements/` 单元，不存在独立的 Contracts store。
@@ -25,7 +25,7 @@ definition: Workspace Init 定义 `xirang setup` 创建完整工作区的行为�
 - **AND** 仅在用户明确选择工具后刷新 managed Agent surfaces
 #### Scenario: First-run skeleton
 - **WHEN** `xirang setup` 在没有 Xirang workspace 的项目中运行
-- **THEN** SHALL 创建 `model/{metamodel,elements,relationships,views}` 四分区与 seed 单元（`metamodel/project.md`、`domain.md`、`capability.md`、`perspective.md`、`elements/project.root.md`）
+- **THEN** SHALL 创建 `model/{metamodel,elements,relationships,views}` 四分区与 seed 单元（`metamodel/project.md`、`element.md`、`perspective.md`、`elements/project.root.md`）
 - **AND** SHALL 创建 Project Root 与 managed Element Kinds 骨架
 - **AND** SHALL NOT 推断 project elements 或 Contracts
 - **AND** SHALL NOT 创建 `.c4` 文件或 `.xirang/architecture/`

@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: project-config-loading
-kind: capability
+kind: element
 parent: project-config-management
 title: Project Config Loading
 definition: Project Config Loading 定义 `.xirang/config.yaml` 的发现、解析、校验与安全回退行为：支持 `.yml` 别名、`proseLanguage` 优先、resilient field-by-field 解析、context 大小限制、git 配置节点加载与校验、normalized projection 输入暴露，以及退役配置节点的静默忽略。

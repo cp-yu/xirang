@@ -1,8 +1,8 @@
 ---
 entity: element-declaration
 identity: framework-identity
-kind: capability
-parent: project.root
+kind: element
+parent: semantic-object
 title: Framework Identity
 definition: Framework Identity 定义息壤开发框架的统一产品身份：唯一 `xirang` CLI 可执行入口、隐藏 `.xirang` durable workspace 与无兼容层合同。它是项目级身份不变量，可直接在 Project Root 下独立演进，不依赖实现结构。
 ---

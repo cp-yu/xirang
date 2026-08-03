@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: apply-verify-integration
-kind: capability
+kind: element
 parent: apply
 title: Apply Verify Integration
 definition: Apply Verify Integration 定义 Apply 与 Verify 的集成契约：Phase 1 先写回再持久化、Phase 2 finding 驱动优化循环、失败方向记录、主 agent 与 subagent 角色分工，以及配置驱动优化控制。

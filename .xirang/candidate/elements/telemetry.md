@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: telemetry
-kind: capability
+kind: element
 parent: cli
 title: Telemetry
 definition: Telemetry 定义息壤匿名使用遥测的行为：CLI 命令执行跟踪、隐私保护的 event 设计、用户 opt-out 机制、首次运行 notice 展示与 `xirang` executable identity 使用。它管理 PostHog 集成并确保遥测最小化、透明且尊重用户隐私。
