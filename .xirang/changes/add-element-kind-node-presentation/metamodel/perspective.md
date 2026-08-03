@@ -1,4 +1,5 @@
 ---
+operation: MODIFIED
 entity: element-kind
 identity: perspective
 contract: optional

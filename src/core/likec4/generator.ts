@@ -1,7 +1,8 @@
 import { compareUtf8Bytes } from '../candidate/canonical.js';
-import type { ModelElement, SemanticModel } from '../model/types.js';
+import type { ElementKind, ModelElement, SemanticModel } from '../model/types.js';
 import { definitionExcerpt } from './definition.js';
 import { createNamespace, deriveLocalNames, type LocalNames } from './local-names.js';
+import { toLikeC4Style } from './presentation-adapter.js';
 
 /** `defaultLandscapeView: false` keeps LikeC4 from injecting an `index` View next to the Model View. */
 const LIKEC4_PROJECT_CONFIG =
@@ -34,7 +35,14 @@ function renderSpecification(model: SemanticModel, kinds: Map<string, string>): 
   const declare = (keyword: string, items: readonly { identity: string }[]): string[] =>
     [...items]
       .sort((left, right) => compareUtf8Bytes(left.identity, right.identity))
-      .map(item => `  ${keyword} ${nameOf(kinds, item.identity)}`);
+      .map(item => {
+        const name = nameOf(kinds, item.identity);
+        const kind = model.elementKinds.find(k => k.identity === item.identity);
+        const style = kind ? toLikeC4Style(kind.nodePresentation) : undefined;
+        if (!style) return `  ${keyword} ${name}`;
+        const styleLines = [`  ${keyword} ${name} {`, '    style {', ...Object.entries(style).map(([k, v]) => `      ${k} ${v}`), '    }', '  }'];
+        return styleLines.join('\n');
+      });
   return block('specification', [
     ...declare('element', model.elementKinds),
     ...declare('relationship', model.relationshipKinds),

@@ -48,12 +48,31 @@ export interface ModelElement {
   requirements: Requirement[];
 }
 
+export type NodeShape = 'rectangle' | 'person' | 'browser' | 'mobile' | 'cylinder' | 'storage' | 'queue' | 'bucket' | 'document' | 'component';
+
+export const NODE_SHAPE_VALUES: readonly NodeShape[] = ['rectangle', 'person', 'browser', 'mobile', 'cylinder', 'storage', 'queue', 'bucket', 'document', 'component'];
+
+export type NodeColor = 'amber' | 'blue' | 'gray' | 'slate' | 'green' | 'indigo' | 'muted' | 'primary' | 'red' | 'secondary' | 'sky';
+
+export const NODE_COLOR_VALUES: readonly NodeColor[] = ['amber', 'blue', 'gray', 'slate', 'green', 'indigo', 'muted', 'primary', 'red', 'secondary', 'sky'];
+
+export type NodeBorder = 'solid' | 'dashed' | 'dotted' | 'none';
+
+export const NODE_BORDER_VALUES: readonly NodeBorder[] = ['solid', 'dashed', 'dotted', 'none'];
+
+export interface NodePresentation {
+  shape?: NodeShape;
+  color?: NodeColor;
+  border?: NodeBorder;
+}
+
 export interface ElementKind {
   identity: string;
   contract: 'required' | 'optional';
   root?: boolean;
   parents?: string[];
   children?: string[];
+  nodePresentation?: NodePresentation;
   /** Semantics shared by every instance of the kind; empty when absent. */
   body: string;
 }

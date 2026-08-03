@@ -14,6 +14,7 @@ function elementKindTarget(kind: ElementKind): ElementKindTarget {
     ...(kind.root === undefined ? {} : { root: kind.root }),
     ...(kind.parents === undefined ? {} : { parents: sorted(kind.parents) }),
     ...(kind.children === undefined ? {} : { children: sorted(kind.children) }),
+    ...(kind.nodePresentation === undefined ? {} : { nodePresentation: kind.nodePresentation }),
     body: kind.body,
   };
 }
