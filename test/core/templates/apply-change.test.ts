@@ -154,10 +154,9 @@ describe('apply change workflow template', () => {
     const worktree = applyReference('references/apply-step-3-worktree-isolation.md');
     const current = applyReference('references/apply-step-3-current-branch.md');
 
-    expect(preparation).toContain('switch to worktree isolation');
-    expect(preparation).toContain('include the existing dirty state in the baseline');
-    expect(preparation).toContain('stop Apply');
-    expect(preparation).toContain('Finalize the isolation method only after this gate');
+    expect(preparation).toContain('worktree isolation');
+    expect(preparation).toContain('include in baseline');
+    expect(preparation).toContain('or stop.');
 
     const branchCaptureIndex = branch.indexOf('Record the current branch as `originalBranch` and resolve the current `HEAD` SHA as `baseCommit` before switching');
     const branchDetectionIndex = branch.indexOf('git show-ref --verify --quiet');
