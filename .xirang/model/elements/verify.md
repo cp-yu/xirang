@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: verify
-kind: domain
+kind: element
 parent: change-implementation
-title: "Verify"
-definition: "由独立 Review 与 Optimization 反复确认和改进项目结果的活动。"
+title: Verify
+definition: Verify 是 Change Implementation 中独立评估并改进项目结果的活动，由 Review 与 Optimization 共同完成。Review 在每次 Apply 修改项目后执行；Optimization 仅在 Review 通过后执行；当最新项目状态通过 Review 且 Optimization 确认无需继续执行时，Verify 以仍然有效的验证证据确认 Change Implementation 可以进入 Change Closure。
 ---
 
 ## Requirements

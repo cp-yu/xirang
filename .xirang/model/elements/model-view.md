@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: model-view
-kind: capability
+kind: element
 parent: derived-views
 title: Model View
-definition: Model View 是由一个项目的完整 Semantic Model 确定性派生、作为 Semantic Browser 默认入口的唯一模型浏览 View。它为整个模型提供连续的层级浏览视角；当前 focus、导航历史与布局属于运行时呈现状态，不产生其他 Views。它不替代 Authored Views，也不承担特定 Change 的差异视角。
+definition: Model View 是由一个项目当前 Semantic Model 确定性派生、作为 Semantic Browser 默认入口的唯一模型浏览 View。它为当前模型提供连续的层级浏览视角；当前 focus、导航历史与布局属于运行时呈现状态，不产生其他 Views。它不替代 Candidate View、Candidate Diff View、Change-derived Views 或 Authored Views，也不承担 Candidate 或 Change 的差异审查。
 ---
 
 ## Requirements
@@ -48,7 +48,7 @@ Model View SHALL 以 Project Root 作为初始 focus，并在同一 View identit
 
 ### Requirement: 支持就地展开层级
 
-Model View SHALL 以一个属于该 View 的展开集合决定哪些可见 Element 就地呈现自身 children；展开集合 SHALL 独立于当前 focus，focus 变化与前进后退 SHALL NOT 重置它。展开一个 Element SHALL 使其成为容器并在其边界内完整包含自身 children，展开 SHALL 可逐层叠加至任意深度，且 SHALL NOT 改变 `model` identity 或产生其他 Views。没有 children 的 Element 加入展开集合 SHALL NOT 改变呈现。
+Model View SHALL 以一个属于该 View 的展开集合决定哪些可见 Element 就地呈现自身 children；展开集合 SHALL 独立于当前 focus，focus 变化与前进后退 SHALL NOT 重置它。展开一个 Element SHALL 使其成为容器并在其边界内完整包含自身 children，展开 SHALL 可逐层叠加至任意深度，且 SHALL NOT 改变 `model` identity 或产生其他 Views。
 
 #### Scenario: 就地展开具有 children 的 Element
 

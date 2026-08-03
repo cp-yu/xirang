@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: change-realization
-kind: domain
+kind: element
 parent: realization-process
 title: Change Realization
-definition: 将单次 Change 从形成、实现与验证推进到收束的新稳定状态。
+definition: Change Realization 是 Realization 推进过程中落实单次 Change 的过程。它通过 Change Formation 形成完整 Change，通过 Change Implementation 实现并验证，再通过 Change Closure 将经验证的 Semantic Delta 更新到 Semantic Model 并关闭 Change，使项目实现与语义模型进入新的稳定状态。
 ---
 
 ## Requirements

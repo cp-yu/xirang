@@ -1,0 +1,5 @@
+schemaVersion: 1
+createdAt: "2026-08-01T00:00:00.000Z"
+baseline:
+  kind: current
+  reference: .xirang

@@ -11,3 +11,6 @@ relationships:
   - source: verify
     kind: validates
     target: change-implementation
+  - source: delivery-validation
+    kind: validates
+    target: framework-identity

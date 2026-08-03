@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: views
-kind: domain
+kind: element
 parent: semantic-model
 title: Views
-definition: 面向用户选择并组织模型信息的呈现层。
+definition: Views 是 Semantic Model 面向用户的呈现层。View 面向特定的理解、讨论、审查或决策目的，选择、组织并呈现 Semantic Model 的语义对象及与 Change 相关的派生信息；Views 不引入规范性语义，也不改变或替代 Semantic Model 与 Change 所表达的规范性语义。
 ---
 
 ## Requirements
@@ -44,3 +44,12 @@ Views SHALL 以 View Composition 表达呈现视角如何形成，并以 View Pr
 
 - **WHEN** 一个 Authored View 或 Derived View 同时提供 Visual Presentation 与 Text Presentation
 - **THEN** 两种方法表达同一呈现视角且不改变该 View 的组成方式
+
+### Requirement: 排除纯程序化数据
+
+仅供程序消费的结构化数据 SHALL NOT 属于 Views。
+
+#### Scenario: CLI 输出结构化结果
+
+- **WHEN** CLI 输出仅供程序消费的 JSON 结果
+- **THEN** 该结果不因文本编码而成为 View

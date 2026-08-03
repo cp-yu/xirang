@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: text-presentation
-kind: capability
+kind: element
 parent: view-presentation
 title: Text Presentation
-definition: 通过人类可读文本呈现 Views 的方法。
+definition: Text Presentation 是通过人类可读文本向用户传达 View 所组织语义信息的呈现方法。它可以使用标题、段落、列表、表格或文本差异等形式组织内容，使用户能够阅读、引用和审查 View；文本的排版、措辞与输出载体只服务于呈现。
 ---
 
 ## Requirements

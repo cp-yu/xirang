@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: implementation-first-path
-kind: domain
+kind: element
 parent: change-formation
-title: "Implementation-first Path"
-definition: "从已经发生的项目实现出发形成完整 Change 的路径。"
+title: Implementation-first Path
+definition: Implementation-first Path 是 Change Formation 的路径之一：从已发生的项目实现出发，再形成完整 Change。该路径通过 Snack 对照 Semantic Model 与实现证据，形成完整 Change。
 ---
 
 ## Requirements

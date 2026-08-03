@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: participants
-kind: domain
+kind: element
 parent: collaboration-structure
 title: Participants
-definition: 参与意图授权、语义判断与项目落实的行为主体。
+definition: Participants 是 Realization 中参与意图授权、语义判断与项目落实的行为主体。由用户与 Agents 组成：用户保留意图与关键授权；Agents 依据 Semantic Model、Change、用户决策与项目证据推进 Realization，并通过 Interaction Surfaces 完成查询、投影与确定性操作。
 ---
 
 ## Requirements

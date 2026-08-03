@@ -439,12 +439,8 @@ export class SetupCommand {
     const parsed = await parseSemanticModel(modelPath);
     const managedFiles = [
       {
-        identity: 'domain',
-        file: SETUP_MODEL_FILE_MANIFEST.find(file => file.relativePath === 'metamodel/domain.md')!,
-      },
-      {
-        identity: 'capability',
-        file: SETUP_MODEL_FILE_MANIFEST.find(file => file.relativePath === 'metamodel/capability.md')!,
+        identity: 'element',
+        file: SETUP_MODEL_FILE_MANIFEST.find(file => file.relativePath === 'metamodel/element.md')!,
       },
       { identity: PERSPECTIVE_KIND.identity, file: PERSPECTIVE_KIND_FILE },
     ];

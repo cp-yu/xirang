@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: deterministic-operations
-kind: capability
+kind: element
 parent: cli
 title: Deterministic Operations
-definition: 为查询、校验、证据与原子状态转换提供一致结果的 CLI 操作集合。
+definition: Deterministic Operations 在 Realization 中提供结构化查询、状态管理、instructions 与 templates 投影、程序化校验、验证证据持久化及原子状态转换，使关键操作具有一致结果、可复现证据和明确失败语义。
 ---
 
 ## Requirements

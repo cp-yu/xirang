@@ -23,21 +23,22 @@ describe('HttpContractLoader', () => {
     expect(parsed.pathname).toBe('/__xirang/contract')
     expect(parsed.searchParams.get('project')).toBe('default')
     expect(parsed.searchParams.get('element')).toBe('core.api')
+    expect(parsed.searchParams.has('source')).toBe(false)
     expect(parsed.searchParams.has('change')).toBe(false)
     expect(parsed.searchParams.has('variant')).toBe(false)
     expect(parsed.searchParams.has('path')).toBe(false)
     expect(options).toMatchObject({ signal: controller.signal })
   })
 
-  it('addresses a Change Contract with the change parameter only', async () => {
+  it('addresses a Change Contract with the source parameter', async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(json({ element: 'core.api', md: '# API' }))
     const loader = new HttpContractLoader(fetcher)
 
-    await loader.load('default', 'core.api', new AbortController().signal, 'auth')
+    await loader.load('default', 'core.api', new AbortController().signal, 'change:auth')
 
     const parsed = new URL(String(fetcher.mock.calls[0]![0]), 'http://localhost')
-    expect(parsed.searchParams.get('change')).toBe('auth')
-    expect(parsed.searchParams.has('variant')).toBe(false)
+    expect(parsed.searchParams.get('source')).toBe('change:auth')
+    expect(parsed.searchParams.has('change')).toBe(false)
   })
 
   it('calls browser fetch with the global receiver', async () => {
@@ -92,5 +93,35 @@ describe('HttpContractLoader', () => {
 
     unsubscribe()
     expect(listeners.has('xirang:change-manifest-changed')).toBe(false)
+  })
+
+  describe('loads candidate contracts by source', () => {
+    it('loads candidate contract with source=candidate', async () => {
+      const fetcher = vi.fn<typeof fetch>().mockResolvedValue(json({ element: 'new-module', md: '# New Module' }))
+      const loader = new HttpContractLoader(fetcher)
+
+      await expect(loader.load('default', 'new-module', new AbortController().signal, 'candidate')).resolves.toEqual({
+        element: 'new-module',
+        md: '# New Module',
+      })
+
+      const parsed = new URL(String(fetcher.mock.calls[0]![0]), 'http://localhost')
+      expect(parsed.searchParams.get('source')).toBe('candidate')
+      expect(parsed.searchParams.has('change')).toBe(false)
+    })
+
+    it('loads candidate diff contract with source=candidate-diff', async () => {
+      const fetcher = vi.fn<typeof fetch>().mockResolvedValue(json({ element: 'modified-module', md: '# Modified Module' }))
+      const loader = new HttpContractLoader(fetcher)
+
+      await expect(loader.load('default', 'modified-module', new AbortController().signal, 'candidate-diff')).resolves.toEqual({
+        element: 'modified-module',
+        md: '# Modified Module',
+      })
+
+      const parsed = new URL(String(fetcher.mock.calls[0]![0]), 'http://localhost')
+      expect(parsed.searchParams.get('source')).toBe('candidate-diff')
+      expect(parsed.searchParams.has('change')).toBe(false)
+    })
   })
 })

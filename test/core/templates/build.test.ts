@@ -148,3 +148,60 @@ describe('xirang-build workflow', () => {
     expect(instructions).not.toContain('preserve Git status');
   });
 });
+
+describe('xirang-build 2026-08-03 rebuild lessons', () => {
+  it('treats Element Kind as a semantic label, not a hierarchy constraint, without encoding a fixed Kind policy', () => {
+    const skill = getBuildSkillTemplate();
+
+    expect(skill.instructions).toContain('Element Kind is a semantic label, not a hierarchy constraint');
+    expect(skill.instructions).toContain('any Kind may appear at any depth');
+    expect(skill.instructions).toContain('abstraction→refinement only');
+    expect(skill.instructions).not.toContain('Which Kinds a project uses');
+    expect(skill.instructions).not.toContain('not a framework rule');
+    expect(skill.instructions).not.toContain('do not encode a fixed Kind set');
+  });
+
+  it('does not put project-specific perspective decomposition into the shared fragment', () => {
+    const skill = getBuildSkillTemplate();
+
+    expect(skill.instructions).not.toContain('semantic-objects');
+    expect(skill.instructions).not.toContain('realization-process');
+    expect(skill.instructions).not.toContain('collaboration-structure');
+    expect(skill.instructions).not.toContain('decomposition viewpoint');
+  });
+
+  it('detects subagent availability and asks which model to use in the initial question round', () => {
+    const skill = getBuildSkillTemplate();
+
+    expect(skill.instructions).toContain('Detect whether subagents are available');
+    expect(skill.instructions).toContain('which model the subagent should use');
+    expect(skill.instructions).toContain('semantic choices that need agent support, not mechanical copying');
+  });
+
+  it('requires agent-selected placement and subagent editing for non-verbatim recovery', () => {
+    const skill = getBuildSkillTemplate();
+
+    expect(skill.instructions).toContain('which Element, which hierarchy level, which Contract Requirement or Scenario');
+    expect(skill.instructions).toContain('semantic choice that requires model understanding');
+    expect(skill.instructions).toContain('Copying content verbatim MAY be done directly');
+    expect(skill.instructions).toContain('MUST go through a subagent');
+    expect(skill.instructions).toContain('never resurrect retired behavior');
+  });
+
+  it('requires review to check recovered content against recorded exclusions', () => {
+    const skill = getBuildSkillTemplate();
+
+    expect(skill.instructions).toContain('recovered legacy/formal content matches current behavior');
+    expect(skill.instructions).toContain('does not resurrect retired vocabulary or recorded exclusions');
+  });
+
+  it('treats a user-modified digest as approval but an Agent-modified digest as review-invalidating', () => {
+    const skill = getBuildSkillTemplate();
+    const promoteIndex = skill.instructions.indexOf('xirang candidate promote --digest');
+
+    expect(promoteIndex).toBeGreaterThanOrEqual(0);
+    expect(skill.instructions).toContain('a change made by the user is user approval of the current content and MAY be promoted directly');
+    expect(skill.instructions).toContain('a change made by the Agent invalidates the review');
+    expect(skill.instructions).toContain('multiple review rounds and re-validation as the expected flow');
+  });
+});

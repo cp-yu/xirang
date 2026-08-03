@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: change-plan
-kind: capability
+kind: element
 parent: change
-title: "Change Plan"
-definition: "解释 Change 意图、关键决策与执行安排的辅助性制品集合。"
+title: Change Plan
+definition: Change Plan 是 Change 的辅助性组成。它通过 `proposal.md`、`design.md` 与 `tasks.md` 共同解释该 Change 的意图与路径；它帮助用户审查 Change，并帮助 Agent 生产与执行 Semantic Delta，但不独立定义目标语义。
 ---
 
 ## Requirements

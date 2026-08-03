@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: optimization
-kind: capability
+kind: element
 parent: verify
-title: "Optimization"
-definition: "在成功 Checkpoint 上评估可证明收益且保持目标语义的简化与效率改进。"
+title: Optimization
+definition: Optimization 是 Verify 中对已通过 Review 并保存为 Checkpoint 的代码实现进行优化评估的阶段。它由 Optimizer 作为 Internal Agent 在不受 Apply 阶段上下文影响的 clean context 中执行，判断哪些不必要的复杂度可以通过删除或简化消除，以及必要工作是否可以通过更合适的方式提高效率；每个优化事项都必须具有可说明的实际收益、充分的代码证据，并保持 Expected Semantic Model 与项目行为不变。
 ---
 
 ## Requirements

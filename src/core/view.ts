@@ -14,6 +14,8 @@ import { serializeElementUnit } from './model/serializer.js';
 import { PARTITIONS, type Partition, type SemanticModel } from './model/types.js';
 import type { ChangeDiagnostic, ChangeDiff } from './semantic-diff.js';
 import { runLikeC4 } from '../commands/arch/runner.js';
+import { validateCandidateSnapshot } from './candidate/validator.js';
+import { parseSemanticModelFiles } from './model/parser.js';
 
 export interface ViewLaunchOptions {
   projectRoot: string;
@@ -62,6 +64,7 @@ export interface ViewRuntimeSemanticModel {
   label: 'Model View';
   source: 'semantic-model';
   valid: true;
+  sourceFingerprint: string;
   partitionFingerprints: Record<Partition, string>;
   architecture: BrowserSemanticModel;
   contracts: Record<string, string>;
@@ -76,6 +79,7 @@ export interface ViewRuntimeChangeDerivedView {
   valid: boolean;
   semanticModelFingerprint?: string;
   changeFingerprint?: string;
+  sourceFingerprint?: string;
   partitionFingerprints?: Record<Partition, string>;
   diff?: ChangeDiff;
   architecture?: BrowserSemanticModel;
@@ -86,9 +90,37 @@ export interface ViewRuntimeChangeDerivedView {
   changePlan?: Record<string, string>;
 }
 
+export interface ViewRuntimeCandidateView {
+  id: 'candidate';
+  label: 'Candidate View';
+  source: 'candidate';
+  valid: boolean;
+  partitionFingerprints?: Record<Partition, string>;
+  sourceFingerprint?: string;
+  architecture?: BrowserSemanticModel;
+  contracts?: Record<string, string>;
+  diagnostics: ChangeDiagnostic[];
+}
+
+export interface ViewRuntimeCandidateDiffView {
+  id: 'candidate-diff';
+  label: 'Candidate Diff View';
+  source: 'candidate-diff';
+  valid: boolean;
+  semanticModelFingerprint?: string;
+  sourceFingerprint?: string;
+  partitionFingerprints?: Record<Partition, string>;
+  diff?: ChangeDiff;
+  architecture?: BrowserSemanticModel;
+  contracts?: Record<string, string>;
+  diagnostics: ChangeDiagnostic[];
+}
+
 export interface ViewRuntimeSnapshot {
-  version: 2;
+  version: 3;
   semanticModel: ViewRuntimeSemanticModel;
+  candidate?: ViewRuntimeCandidateView;
+  candidateDiff?: ViewRuntimeCandidateDiffView;
   changes: Record<string, ViewRuntimeChangeDerivedView>;
 }
 
@@ -129,6 +161,10 @@ export function projectBrowserDiff(diff: ChangeDiff): ChangeDiff {
   return { ...diff, entries: diff.entries.map(projectEntry) };
 }
 
+function hashString(content: string): string {
+  return createHash('sha256').update(content).digest('hex');
+}
+
 function partitionFingerprints(model: SemanticModel): Record<Partition, string> {
   const byPartition: Record<Partition, unknown> = {
     elements: model.elements,
@@ -143,12 +179,14 @@ function partitionFingerprints(model: SemanticModel): Record<Partition, string> 
 
 async function buildSemanticModelSource(projectRoot: string): Promise<ViewRuntimeSemanticModel> {
   const { model } = await readFormalSemanticModel(projectRoot);
+  const fingerprints = partitionFingerprints(model);
   return {
     id: 'model',
     label: 'Model View',
     source: 'semantic-model',
     valid: true,
-    partitionFingerprints: partitionFingerprints(model),
+    sourceFingerprint: hashString(JSON.stringify(fingerprints)),
+    partitionFingerprints: fingerprints,
     architecture: projectBrowserArchitecture(model),
     contracts: projectContracts(model),
     diagnostics: [],
@@ -161,14 +199,15 @@ async function buildChangeDerivedView(projectRoot: string, change: string): Prom
     const projection = compiled.target ? projectContracts(compiled.target) : undefined;
     const changeRoot = path.join(projectRoot, XIRANG_DIR_NAME, 'changes', change);
     const planFiles = ['design.md', 'proposal.md', 'tasks.md'] as const;
+    const planResults = await Promise.allSettled(
+      planFiles.map(file =>
+        fs.readFile(path.join(changeRoot, file), 'utf8')
+          .then(content => [file, content] as const),
+      ),
+    );
     const changePlan: Record<string, string> = {};
-    for (const file of planFiles) {
-      try {
-        const content = await fs.readFile(path.join(changeRoot, file), 'utf8');
-        changePlan[file] = content;
-      } catch {
-        // file may not exist
-      }
+    for (const result of planResults) {
+      if (result.status === 'fulfilled') changePlan[result.value[0]] = result.value[1];
     }
     return {
       id: `change:${change}`,
@@ -178,6 +217,7 @@ async function buildChangeDerivedView(projectRoot: string, change: string): Prom
       valid: compiled.valid,
       semanticModelFingerprint: compiled.formalFingerprint,
       changeFingerprint: compiled.changeFingerprint,
+      sourceFingerprint: hashString(compiled.formalFingerprint + compiled.changeFingerprint),
       ...(compiled.target ? { partitionFingerprints: partitionFingerprints(compiled.target) } : {}),
       diff: projectBrowserDiff(compiled.diff),
       ...(compiled.target ? { architecture: projectBrowserArchitecture(compiled.target) } : {}),
@@ -202,18 +242,111 @@ async function buildChangeDerivedView(projectRoot: string, change: string): Prom
   }
 }
 
+async function buildCandidateSources(
+  projectRoot: string,
+): Promise<{ candidate: ViewRuntimeCandidateView; candidateDiff: ViewRuntimeCandidateDiffView } | undefined> {
+  const candidateRoot = path.join(projectRoot, XIRANG_DIR_NAME, 'candidate');
+  const candidateExists = existsSync(candidateRoot);
+  if (!candidateExists) return undefined;
+
+  try {
+    const validation = await validateCandidateSnapshot(projectRoot);
+    const { result, snapshot } = validation;
+    
+    const candidateModel = parseSemanticModelFiles(
+      snapshot.files
+        .filter(file => PARTITIONS.some(p => file.path.startsWith(`${p}/`)))
+        .map(file => [file.path, file.bytes.toString('utf8')] as const),
+    );
+
+    const fingerprints = result.valid ? partitionFingerprints(candidateModel.model) : undefined;
+    const architecture = projectBrowserArchitecture(candidateModel.model);
+    const contracts = result.valid ? projectContracts(candidateModel.model) : undefined;
+    // Combined fingerprint includes both candidate content and formal model baseline so both
+    // candidate and candidateDiff invalidate together when either source changes.
+    const formalFp = result.comparison.baseline === 'formal' ? result.comparison.formalFingerprint : ''
+    const sourceFingerprint = snapshot.reviewDigest
+      ? hashString(snapshot.reviewDigest + formalFp)
+      : undefined;
+
+    const candidate: ViewRuntimeCandidateView = {
+      id: 'candidate',
+      label: 'Candidate View',
+      source: 'candidate',
+      valid: result.valid,
+      ...(fingerprints ? { partitionFingerprints: fingerprints } : {}),
+      ...(sourceFingerprint ? { sourceFingerprint } : {}),
+      ...(architecture ? { architecture } : {}),
+      ...(contracts ? { contracts } : {}),
+      diagnostics: result.diagnostics,
+    };
+
+    const candidateDiff: ViewRuntimeCandidateDiffView = {
+      id: 'candidate-diff',
+      label: 'Candidate Diff View',
+      source: 'candidate-diff',
+      valid: result.valid,
+      ...(result.comparison.baseline === 'formal' ? { semanticModelFingerprint: result.comparison.formalFingerprint } : {}),
+      ...(sourceFingerprint ? { sourceFingerprint } : {}),
+      ...(fingerprints ? { partitionFingerprints: fingerprints } : {}),
+      ...(result.diff ? { diff: projectBrowserDiff(result.diff) } : {}),
+      ...(architecture ? { architecture } : {}),
+      ...(contracts ? { contracts } : {}),
+      diagnostics: result.diagnostics,
+    };
+
+    return { candidate, candidateDiff };
+  } catch (error) {
+    const diagnostics: ChangeDiagnostic[] = [{
+      level: 'ERROR',
+      code: 'CANDIDATE_RUNTIME_FAILED',
+      path: path.posix.join('.xirang', 'candidate'),
+      message: error instanceof Error ? error.message : 'Unable to build Candidate sources',
+    }];
+    return {
+      candidate: {
+        id: 'candidate',
+        label: 'Candidate View',
+        source: 'candidate',
+        valid: false,
+        diagnostics,
+      },
+      candidateDiff: {
+        id: 'candidate-diff',
+        label: 'Candidate Diff View',
+        source: 'candidate-diff',
+        valid: false,
+        diagnostics,
+      },
+    };
+  }
+}
+
 export async function buildViewRuntimeSnapshot(
   projectRoot: string,
   options: { previous?: ViewRuntimeSnapshot; onlyChange?: string } = {},
 ): Promise<ViewRuntimeSnapshot> {
   const changes = await listActiveChanges(projectRoot);
   const previous = options.previous?.changes ?? {};
-  const sources: Record<string, ViewRuntimeChangeDerivedView> = {};
-  for (const change of changes) {
-    const cached = options.onlyChange && options.onlyChange !== change ? previous[change] : undefined;
-    sources[change] = cached ?? await buildChangeDerivedView(projectRoot, change);
-  }
-  return { version: 2, semanticModel: await buildSemanticModelSource(projectRoot), changes: sources };
+  const entries = await Promise.all(
+    changes.map(async change => {
+      const cached = options.onlyChange && options.onlyChange !== change ? previous[change] : undefined;
+      return [change, cached ?? await buildChangeDerivedView(projectRoot, change)] as const;
+    }),
+  );
+  const sources = Object.fromEntries(entries);
+
+  const [candidateSources, semanticModel] = await Promise.all([
+    buildCandidateSources(projectRoot),
+    buildSemanticModelSource(projectRoot),
+  ]);
+
+  return {
+    version: 3,
+    semanticModel,
+    ...(candidateSources ? { candidate: candidateSources.candidate, candidateDiff: candidateSources.candidateDiff } : {}),
+    changes: sources,
+  };
 }
 
 async function writeViewRuntimeSnapshot(snapshot: ViewRuntimeSnapshot, directory: string): Promise<string> {
@@ -258,6 +391,8 @@ export class ViewCommand {
           if (!filename) return;
           const normalized = filename.toString().split(path.sep).join('/');
           if (PARTITIONS.some(partition => normalized.startsWith(`model/${partition}/`))) {
+            refreshAll = true;
+          } else if (normalized.startsWith('candidate/')) {
             refreshAll = true;
           } else {
             const change = normalized.match(/^changes\/([^/]+)\//)?.[1];

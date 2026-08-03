@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: user
-kind: capability
+kind: element
 parent: participants
-title: "用户"
-definition: "表达和确认用户意图并保留关键裁决权的参与者。"
+title: 用户
+definition: 用户表达并确认用户意图，裁决无法仅从 Semantic Model、Change 与项目证据确定的语义与范围问题，并授权需要用户判断的重要决策与状态转换；用户不必亲自执行项目修改或确定性 CLI 操作。
 ---
 
 ## Requirements

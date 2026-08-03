@@ -11,3 +11,6 @@ relationships:
   - source: user
     kind: constrains
     target: agent
+  - source: framework-identity
+    kind: constrains
+    target: workspace-init-update

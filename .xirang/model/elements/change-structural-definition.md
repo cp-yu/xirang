@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: change-structural-definition
-kind: domain
+kind: element
 parent: definition-framing
 title: Change Structural Definition
-definition: Definition Framing 在 Propose 前持久化的、用户已确认的当前完整结构目标。
+definition: Change Structural Definition 由 Definition Framing 形成，用于在 Propose 之前持久化表达用户已确认的当前完整结构目标。它以 Element Kinds、Relationship Kinds、Element Declarations 与 Relationships 表达结构内容，并保存用于识别 Semantic Model 相关变化的基准快照；它不独立确定 Expected Semantic Model，也不是完整 Semantic Delta。
 ---
 
 ## Requirements

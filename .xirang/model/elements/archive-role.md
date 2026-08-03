@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: archive-role
-kind: capability
+kind: element
 parent: agent
-title: "Archive Role"
-definition: "在验证有效后编排 Change Closure 的 Agent 工作身份。"
+title: Archive Role
+definition: Archive 是 Agent 在验证有效后编排 Change Closure 的工作身份。它确认入口条件已满足，协调 CLI 将 Semantic Delta 应用于 Semantic Model，并保存已完成 Change 及其最终证据、结束 Change 的活动状态；Archive 不重新判定目标语义，也不替代 CLI 的原子状态转换。
 ---
 
 ## Requirements

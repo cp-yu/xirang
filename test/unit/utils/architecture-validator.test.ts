@@ -9,7 +9,7 @@ function report(files: Record<string, string>) {
   const managed = {
     'metamodel/domain.md': '---\nentity: element-kind\nidentity: domain\ncontract: optional\n---\n',
     'metamodel/capability.md': CAPABILITY_KIND,
-    'metamodel/perspective.md': `---\nentity: element-kind\nidentity: perspective\ncontract: optional\nparents:\n  - project\n  - perspective\nchildren:\n  - perspective\n  - domain\n  - capability\n---\n\n${PERSPECTIVE_KIND.body}\n`,
+    'metamodel/perspective.md': `---\nentity: element-kind\nidentity: perspective\ncontract: optional\n---\n\n${PERSPECTIVE_KIND.body}\n`,
   };
   const parsed = parseSemanticModelFiles(Object.entries({ ...managed, ...files }));
   return validateArchitecture([...parsed.diagnostics, ...validateSemanticModel(parsed.model)]);

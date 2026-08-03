@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: view-composition
-kind: domain
+kind: perspective
 parent: views
 title: View Composition
-definition: 按呈现视角形成方式组织 Authored Views 与 Derived Views 的组成维度。
+definition: View Composition 是 Views 按呈现视角的形成方式划分的组成维度。每个 View 要么由用户显式声明而成为 Authored View，要么由 Semantic Model 或 Change 确定性派生而成为 Derived View。
 ---
 
 ## Requirements
