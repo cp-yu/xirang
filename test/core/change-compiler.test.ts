@@ -3,7 +3,6 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { compileChange } from '../../src/core/change-compiler.js';
-import { PERSPECTIVE_KIND } from '../../src/core/templates/model-skeleton.js';
 import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 
 const OLD_CONTRACT = '## Requirements\n\n### Requirement: Old behavior\nThe system SHALL behave.\n\n#### Scenario: Existing scenario\n- **WHEN** old\n- **THEN** result';
@@ -18,7 +17,6 @@ describe('compileChange', () => {
         { identity: 'project', root: true, children: ['capability'] },
         { identity: 'domain' },
         { identity: 'capability', parents: ['project', 'capability'] },
-        { ...PERSPECTIVE_KIND },
       ],
       relationshipKinds: [{ identity: 'invokes' }],
       elements: [

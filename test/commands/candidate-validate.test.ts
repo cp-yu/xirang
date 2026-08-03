@@ -59,8 +59,6 @@ describe('Candidate validation', () => {
     expect(formatCandidateValidation(first)).toContain('Formal diff entries: 0');
     expect(first.inventory.partitions).toEqual({
       metamodel: [
-        'metamodel/element.md',
-        'metamodel/perspective.md',
         'metamodel/project.md',
       ],
       elements: ['elements/project.root.md'],

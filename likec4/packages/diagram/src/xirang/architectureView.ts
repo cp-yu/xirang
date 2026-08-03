@@ -193,39 +193,6 @@ function place(measured: Measured, x: number, y: number, into: Map<string, Geome
   }
 }
 
-/**
- * Perspectives need a shape that reads as a distinct boundary without fixed decoration: LikeC4's
- * `component` draws two rects offset outside the node's left edge with their own stroke color, which
- * neither respects the Perspective color nor survives being used as a focus container.
- */
-const PERSPECTIVE_SHAPE = 'document' as const
-
-function perspectiveColor(index: number): ViewNode['color'] {
-  const hue = (index * 137.508) % 360
-  const saturation = 68
-  const lightness = 30
-  const chroma = (1 - Math.abs(2 * lightness / 100 - 1)) * saturation / 100
-  const segment = hue / 60
-  const secondary = chroma * (1 - Math.abs(segment % 2 - 1))
-  const [red, green, blue] = segment < 1 ?
-    [chroma, secondary, 0]
-    : segment < 2 ?
-    [secondary, chroma, 0]
-    : segment < 3 ?
-    [0, chroma, secondary]
-    : segment < 4 ?
-    [0, secondary, chroma]
-    : segment < 5 ?
-    [secondary, 0, chroma]
-    : [chroma, 0, secondary]
-  const match = lightness / 100 - chroma / 2
-  return `#${
-    [red, green, blue]
-      .map(channel => Math.round((channel + match) * 255).toString(16).padStart(2, '0'))
-      .join('')
-  }` as ViewNode['color']
-}
-
 function createNode(
   declaration: XirangElementDeclaration,
   parent: string | null,
@@ -390,11 +357,6 @@ export function materializeXirangArchitectureView(
 
   const visibleDeclarations = [...declarations.values()]
     .filter(declaration => geometries.has(declaration.identity))
-  const perspectives = visibleDeclarations
-    .filter(declaration => declaration.kind === 'perspective')
-    .map(declaration => declaration.identity)
-    .sort(compareUtf8Bytes)
-  const perspectiveColors = new Map(perspectives.map((identity, index) => [identity, perspectiveColor(index)]))
   const modelNodes = new Map(
     modelView.nodes.flatMap(node =>
       typeof node.metadata?.['elementId'] === 'string' ? [[node.metadata['elementId'], node] as const] : []
@@ -414,13 +376,7 @@ export function materializeXirangArchitectureView(
 
   const nodes = visibleDeclarations.map(declaration => {
     const modelNode = modelNodes.get(declaration.identity)
-    const presentation = declaration.kind === 'perspective'
-      ? {
-        shape: PERSPECTIVE_SHAPE,
-        color: perspectiveColors.get(declaration.identity) ?? 'primary' as const,
-        modelRef: modelNode?.modelRef,
-      }
-      : modelNode
+    const presentation = modelNode
       ? { shape: modelNode.shape, color: modelNode.color, modelRef: modelNode.modelRef }
       : undefined
     const operation = source.source === 'candidate'

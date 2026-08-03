@@ -61,8 +61,7 @@ export function CompoundNodeContainer({
     max: MAX_COMPOUND_DEPTH,
   })
 
-  // Raw hex colors from perspectiveColor bypass the registered-palette CSS selectors;
-  // inject palette variables inline so shape and text rendering resolve them.
+  // Registered palette names use generated selectors; custom hex colors need inline variables.
   const hexStyle = (data.color as string).startsWith('#')
     ? {
         '--likec4-palette-fill': data.color,

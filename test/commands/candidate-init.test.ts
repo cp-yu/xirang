@@ -30,8 +30,6 @@ describe('Candidate initialization', () => {
     expect(await exists(path.join(candidate, 'candidate.yaml'))).toBe(true);
     expect(await exists(path.join(candidate, 'build.md'))).toBe(true);
     expect(await fs.readdir(path.join(candidate, 'metamodel'))).toEqual([
-      'element.md',
-      'perspective.md',
       'project.md',
     ]);
     expect(await fs.readdir(path.join(candidate, 'elements'))).toEqual(['project.root.md']);

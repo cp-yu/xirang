@@ -38,11 +38,8 @@ import { isMap, parseDocument } from 'yaml';
 import { ArtifactSyncEngine } from './templates/sync-engine.js';
 import {
   MODEL_FILE_MANIFEST,
-  PERSPECTIVE_KIND,
-  PERSPECTIVE_KIND_FILE,
   type ModelFileManifestEntry,
 } from './templates/model-skeleton.js';
-import { parseSemanticModel } from './model/parser.js';
 import { MODEL_DIR_NAME } from './model/paths.js';
 import { PARTITIONS } from './model/types.js';
 
@@ -129,7 +126,6 @@ export class SetupCommand {
     if (!extendMode) {
       await this.writeModelSkeleton(projectPath, xirangPath, projectDefinition!);
     }
-    await this.ensureManagedModelFiles(xirangPath);
 
     // Generate skills and commands for each tool
     const results = await this.generateSkillsAndCommands(projectPath, validatedTools);
@@ -430,39 +426,6 @@ export class SetupCommand {
       if (!fs.existsSync(filePath)) {
         await FileSystemUtils.writeFile(filePath, file.render(context));
       }
-    }
-  }
-
-  private async ensureManagedModelFiles(xirangPath: string): Promise<void> {
-    const context = { projectName: '', projectDefinition: '' };
-    const modelPath = path.join(xirangPath, MODEL_DIR_NAME);
-    const parsed = await parseSemanticModel(modelPath);
-    const managedFiles = [
-      {
-        identity: 'element',
-        file: SETUP_MODEL_FILE_MANIFEST.find(file => file.relativePath === 'metamodel/element.md')!,
-      },
-      { identity: PERSPECTIVE_KIND.identity, file: PERSPECTIVE_KIND_FILE },
-    ];
-    for (const { identity, file } of managedFiles) {
-      const expected = file.render(context);
-      const matchingKinds = parsed.model.elementKinds.filter(kind => kind.identity === identity);
-      if (matchingKinds.length > 1) {
-        throw new Error(`Managed Element Kind ${identity} has duplicate declarations`);
-      }
-      const existing = matchingKinds[0];
-      if (existing) {
-        if (file !== PERSPECTIVE_KIND_FILE) continue;
-        const module = parsed.index.moduleOf(identity);
-        if (!module) throw new Error(`Managed Element Kind ${identity} has no source module`);
-        const target = path.join(modelPath, ...module.path.split('/'));
-        if (JSON.stringify(existing) !== JSON.stringify(PERSPECTIVE_KIND)) {
-          throw new Error(`Managed Element Kind perspective conflicts with ${target}`);
-        }
-        continue;
-      }
-      const target = path.join(modelPath, ...file.relativePath.split('/'));
-      await FileSystemUtils.writeFile(target, expected);
     }
   }
 

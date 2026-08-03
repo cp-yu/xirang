@@ -1,7 +1,6 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { PARTITIONS } from '../../src/core/model/types.js';
-import { PERSPECTIVE_KIND } from '../../src/core/templates/model-skeleton.js';
 
 export interface ElementFixture {
   identity: string;
@@ -94,7 +93,6 @@ export function minimalModel(overrides: ModelFixture = {}): ModelFixture {
       { identity: 'project', root: true },
       { identity: 'domain' },
       { identity: 'capability' },
-      { ...PERSPECTIVE_KIND },
       ...(overrides.elementKinds ?? []),
     ],
     elements: [

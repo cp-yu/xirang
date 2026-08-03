@@ -150,15 +150,14 @@ describe('xirang-build workflow', () => {
 });
 
 describe('xirang-build 2026-08-03 rebuild lessons', () => {
-  it('treats Element Kind as a semantic label, not a hierarchy constraint, without encoding a fixed Kind policy', () => {
+  it('selects the most specific project-defined Kind without encoding hierarchy policy', () => {
     const skill = getBuildSkillTemplate();
 
-    expect(skill.instructions).toContain('Element Kind is a semantic label, not a hierarchy constraint');
-    expect(skill.instructions).toContain('any Kind may appear at any depth');
+    expect(skill.instructions).toContain('prefer the most specific existing Kind that accurately expresses the Element');
+    expect(skill.instructions).toContain('add or refine a Kind through the Metamodel');
+    expect(skill.instructions).toContain('Do not default to a generic Kind merely because it validates');
+    expect(skill.instructions).toContain('Any Kind may appear at any depth');
     expect(skill.instructions).toContain('abstraction→refinement only');
-    expect(skill.instructions).not.toContain('Which Kinds a project uses');
-    expect(skill.instructions).not.toContain('not a framework rule');
-    expect(skill.instructions).not.toContain('do not encode a fixed Kind set');
   });
 
   it('does not put project-specific perspective decomposition into the shared fragment', () => {

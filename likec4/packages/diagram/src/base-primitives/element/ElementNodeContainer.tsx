@@ -74,9 +74,7 @@ export const ElementNodeContainer = forwardRef<HTMLDivElement, ElementNodeContai
     textSize,
   } = ensureSizes(data.style ?? {})
 
-  // `generateBuiltInColorStyles` only generates selectors for registered palette names.
-  // Raw hex values (e.g. from perspectiveColor) bypass those rules, so inject the
-  // palette CSS variables as inline style to make shape rendering resolve them.
+  // Registered palette names use generated selectors; custom hex colors need inline variables.
   const hexStyle = (data.color as string).startsWith('#')
     ? {
         '--likec4-palette-fill': data.color,

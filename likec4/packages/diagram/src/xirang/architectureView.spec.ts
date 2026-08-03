@@ -126,50 +126,24 @@ function summarize(view: DiagramView) {
   }
 }
 
-function rgb(color: string): [number, number, number] {
-  return [1, 3, 5].map(offset => Number.parseInt(color.slice(offset, offset + 2), 16)) as [number, number, number]
-}
-
-function contrastWithWhite(color: string): number {
-  const channels = rgb(color).map(value => value / 255)
-    .map(value => value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4)
-  const luminance = 0.2126 * channels[0]! + 0.7152 * channels[1]! + 0.0722 * channels[2]!
-  return 1.05 / (luminance + 0.05)
-}
-
-function colorDistance(left: string, right: string): number {
-  const a = rgb(left)
-  const b = rgb(right)
-  return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2])
-}
-
 describe('materializeXirangArchitectureView', () => {
 
-  it('styles sibling Perspectives distinctly without affecting ordinary descendants', () => {
+  it('uses model shape regardless of declaration Kind while preserving diff color', () => {
     const source: XirangViewSource = {
       ...viewSource,
       architecture: {
         elements: [
           declaration('project.root', 'Project', 'Project', null, 'project'),
-          ...Array.from({ length: 9 }, (_, index) =>
-            declaration(`perspective.${index}`, `Perspective ${index}`, `Perspective ${index}`, 'project.root', 'perspective')),
-          declaration('capability.a', 'Capability', 'Capability', 'perspective.0'),
+          declaration('alpha.id', 'Alpha', 'Alpha', 'project.root', 'perspective'),
         ],
         relationships: [],
       },
     }
 
-    const root = materializeXirangArchitectureView(modelView, source, 'full')
-    const perspectiveNodes = root.nodes.filter(node => node.id.startsWith('perspective.'))
-    const colors = perspectiveNodes.map(node => node.color as string)
-    expect(new Set(colors).size).toBe(9)
-    expect(colors.every(color => contrastWithWhite(color) >= 4.5)).toBe(true)
-    expect(Math.min(...colors.flatMap((color, index) => colors.slice(index + 1).map(other => colorDistance(color, other))))).toBeGreaterThanOrEqual(35)
-    expect(perspectiveNodes.every(node => node.shape === 'document')).toBe(true)
+    const alpha = materializeXirangArchitectureView(modelView, source, 'full')
+      .nodes.find(node => node.id === 'alpha.id')!
 
-    const child = materializeXirangArchitectureView(modelView, source, 'full', 'perspective.0')
-      .nodes.find(node => node.id === 'capability.a')!
-    expect(child).toMatchObject({ shape: 'rectangle', color: 'primary' })
+    expect(alpha).toMatchObject({ shape: 'rectangle', color: 'amber' })
   })
 
   it('projects focus and direct children without changing the View identity', () => {

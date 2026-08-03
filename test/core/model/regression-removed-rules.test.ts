@@ -4,14 +4,12 @@ import { parseSemanticModel } from '../../../src/core/model/parser.js';
 import { serializeElementUnit } from '../../../src/core/model/serializer.js';
 import { validateSemanticModel } from '../../../src/core/model/validator.js';
 import type { SemanticModel } from '../../../src/core/model/types.js';
-import { PERSPECTIVE_KIND } from '../../../src/core/templates/model-skeleton.js';
 import { createModelRoot } from './fixtures.js';
 
 const MODEL: Record<string, string> = {
   'metamodel/project.md': '---\nentity: element-kind\nidentity: project\ncontract: optional\nroot: true\n---\n',
   'metamodel/domain.md': '---\nentity: element-kind\nidentity: domain\ncontract: optional\n---\n',
   'metamodel/capability.md': '---\nentity: element-kind\nidentity: capability\ncontract: optional\n---\n',
-  'metamodel/perspective.md': `---\nentity: element-kind\nidentity: perspective\ncontract: optional\n---\n\n${PERSPECTIVE_KIND.body}\n`,
   'elements/root.md': '---\nentity: element-declaration\nidentity: root\nkind: project\nparent: null\ntitle: Root\ndefinition: Root\n---\n',
   'elements/cap.a.md': '---\nentity: element-declaration\nidentity: cap.a\nkind: capability\nparent: root\ntitle: A\ndefinition: A\n---\n',
 };

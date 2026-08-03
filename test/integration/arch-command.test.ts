@@ -8,7 +8,6 @@ import { exportArchitecture } from '../../src/commands/arch/export.js';
 import { likec4CacheDir } from '../../src/core/likec4/paths.js';
 import { readModelTree } from '../../src/core/model/parser.js';
 import { modelRoot } from '../../src/core/model/paths.js';
-import { PERSPECTIVE_KIND } from '../../src/core/templates/model-skeleton.js';
 import { runCLI } from '../helpers/run-cli.js';
 import { writeProjectModel } from '../helpers/model-fixture.js';
 
@@ -35,7 +34,6 @@ describe('arch commands', () => {
         { identity: 'project' },
         { identity: 'domain' },
         { identity: 'capability' },
-        { ...PERSPECTIVE_KIND },
         { identity: 'area', parents: ['semanticProject'], children: ['operation'] },
         { identity: 'operation', parents: ['semanticProject', 'area'] },
       ],

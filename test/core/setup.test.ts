@@ -8,7 +8,6 @@ import { parseSemanticModel } from '../../src/core/model/parser.js';
 import { modelRoot } from '../../src/core/model/paths.js';
 import { validateSemanticModel } from '../../src/core/model/validator.js';
 import { PARTITIONS } from '../../src/core/model/types.js';
-import { PERSPECTIVE_KIND } from '../../src/core/templates/model-skeleton.js';
 import { getCommandSlug } from '../../src/core/shared/index.js';
 import { saveGlobalConfig, getGlobalConfig } from '../../src/core/global-config.js';
 
@@ -651,8 +650,6 @@ describe('Xirang skeleton generation', () => {
 
     expect(SETUP_MODEL_FILE_MANIFEST.map((file) => file.relativePath)).toEqual([
       'metamodel/project.md',
-      'metamodel/element.md',
-      'metamodel/perspective.md',
       'elements/project.root.md',
     ]);
     for (const partition of PARTITIONS) {
@@ -668,11 +665,9 @@ describe('Xirang skeleton generation', () => {
     const parsed = await parseSemanticModel(modelRoot(testDir));
     expect(parsed.diagnostics).toEqual([]);
     expect(validateSemanticModel(parsed.model)).toEqual([]);
-    expect(parsed.model.elementKinds).toEqual(expect.arrayContaining([
-      { identity: 'element', contract: 'optional', body: '' },
-      PERSPECTIVE_KIND,
+    expect(parsed.model.elementKinds).toEqual([
       { identity: 'project', contract: 'optional', root: true, body: 'The single Project Root of the Semantic Model.' },
-    ]));
+    ]);
     expect(parsed.model.elements[0].declaration).toMatchObject({
       identity: 'project.root',
       kind: 'project',
@@ -752,77 +747,22 @@ describe('Xirang skeleton generation', () => {
     expect(await fs.readFile(path.join(elements, 'project.root.md'), 'utf-8')).toBe(existingContent);
   });
 
-  it('adds the managed Perspective dependency closure in extend mode', async () => {
+  it('does not inject non-root Element Kinds in extend mode', async () => {
     const model = path.join(testDir, '.xirang', 'model');
     const metamodel = path.join(model, 'metamodel');
     const elements = path.join(model, 'elements');
     await fs.mkdir(metamodel, { recursive: true });
     await fs.mkdir(elements, { recursive: true });
     await fs.writeFile(path.join(metamodel, 'project.md'), '---\nentity: element-kind\nidentity: project\ncontract: optional\nroot: true\n---\n');
-    await fs.writeFile(path.join(elements, 'project.root.md'), '---\nentity: element-declaration\nidentity: project.root\nkind: project\nparent: null\ntitle: Project\ndefinition: Legacy minimal project.\n---\n');
+    await fs.writeFile(path.join(elements, 'project.root.md'), '---\nentity: element-declaration\nidentity: project.root\nkind: project\nparent: null\ntitle: Project\ndefinition: Existing project.\n---\n');
 
     const setupCommand = createSetupCommand({ tools: 'none', force: true });
     await setupCommand.execute(testDir);
 
-    for (const identity of ['perspective', 'element']) {
-      await expect(fs.readFile(path.join(metamodel, `${identity}.md`), 'utf8'))
-        .resolves.toContain(`identity: ${identity}`);
-    }
+    await expect(fs.readdir(metamodel)).resolves.toEqual(['project.md']);
     const parsed = await parseSemanticModel(model);
     expect(parsed.diagnostics).toEqual([]);
     expect(validateSemanticModel(parsed.model)).toEqual([]);
-  });
-
-  it('resolves managed Kinds by identity when filenames are noncanonical', async () => {
-    const model = path.join(testDir, '.xirang', 'model');
-    const metamodel = path.join(model, 'metamodel');
-    const elements = path.join(model, 'elements');
-    await fs.mkdir(metamodel, { recursive: true });
-    await fs.mkdir(elements, { recursive: true });
-    const equivalentPerspective = `---
-contract: "optional"
-identity: "perspective"
-entity: element-kind
----
-
-${PERSPECTIVE_KIND.body}
-`;
-    await fs.writeFile(path.join(metamodel, 'custom-perspective.md'), equivalentPerspective);
-    await fs.writeFile(path.join(metamodel, 'project.md'), '---\nentity: element-kind\nidentity: project\ncontract: optional\nroot: true\n---\n');
-    await fs.writeFile(path.join(metamodel, 'element.md'), SETUP_MODEL_FILE_MANIFEST.find(file => file.relativePath === 'metamodel/element.md')!.render({ projectName: '', projectDefinition: '' }));
-    await fs.writeFile(path.join(elements, 'project.root.md'), '---\nentity: element-declaration\nidentity: project.root\nkind: project\nparent: null\ntitle: Project\ndefinition: Legacy project.\n---\n');
-
-    const setupCommand = createSetupCommand({ tools: 'none', force: true });
-    await setupCommand.execute(testDir);
-
-    await expect(fs.stat(path.join(metamodel, 'perspective.md'))).rejects.toMatchObject({ code: 'ENOENT' });
-    const parsed = await parseSemanticModel(model);
-    expect(parsed.model.elementKinds.filter(kind => kind.identity === 'perspective')).toHaveLength(1);
-  });
-
-  it('rejects a conflicting managed Perspective Kind under a noncanonical filename', async () => {
-    const metamodel = path.join(testDir, '.xirang', 'model', 'metamodel');
-    await fs.mkdir(metamodel, { recursive: true });
-    const conflicting = '---\nentity: element-kind\nidentity: perspective\ncontract: required\n---\n';
-    const target = path.join(metamodel, 'custom-perspective.md');
-    await fs.writeFile(target, conflicting);
-
-    const setupCommand = createSetupCommand({ tools: 'none', force: true });
-    await expect(setupCommand.execute(testDir)).rejects.toThrow(/perspective/i);
-    await expect(fs.readFile(target, 'utf8')).resolves.toBe(conflicting);
-    await expect(fs.stat(path.join(metamodel, 'perspective.md'))).rejects.toMatchObject({ code: 'ENOENT' });
-  });
-
-  it('rejects a conflicting managed Perspective Kind without overwriting it', async () => {
-    const metamodel = path.join(testDir, '.xirang', 'model', 'metamodel');
-    await fs.mkdir(metamodel, { recursive: true });
-    const conflicting = '---\nentity: element-kind\nidentity: perspective\ncontract: required\n---\n';
-    const target = path.join(metamodel, 'perspective.md');
-    await fs.writeFile(target, conflicting);
-
-    const setupCommand = createSetupCommand({ tools: 'none', force: true });
-    await expect(setupCommand.execute(testDir)).rejects.toThrow(/perspective/i);
-    await expect(fs.readFile(target, 'utf8')).resolves.toBe(conflicting);
   });
 
   it('should preserve existing Semantic Model, config, and user files', async () => {
