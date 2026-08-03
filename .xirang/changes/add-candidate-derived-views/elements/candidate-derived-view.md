@@ -2,7 +2,7 @@
 operation: ADDED
 entity: element-declaration
 identity: candidate-derived-view
-kind: capability
+kind: element
 parent: derived-views
 title: Candidate View
 definition: Candidate-derived View 是由一个项目唯一的 active Candidate Semantic Model 确定性派生、用于在 promotion 前浏览完整但尚未确认的目标 Semantic Model 的唯一运行时 View。它独立建模，因为 Candidate 不是当前 Semantic Model 或 Change；包含 Candidate 四分区联合形成的 Metamodel、Elements、Element Contracts、Relationships 与 Authored Views，不包含相对当前 Semantic Model 的 diff、build.md、deterministic validation、semantic review、promotion、history 或任何持久化 Derived View artifact。

@@ -2,7 +2,7 @@
 operation: MODIFIED
 entity: element-declaration
 identity: derived-views
-kind: domain
+kind: element
 parent: view-composition
 title: Derived Views
 definition: Derived Views 是由 Semantic Model、active Candidate 或 active Change 确定性推导、无需用户声明且不作为 durable artifact 持久化的 Views。它们独立建模以区别用户声明的 Authored Views；包含每个项目唯一的 Model View、active Candidate 存在时唯一的 Candidate View 与 Candidate Diff View，以及按 active Change 形成的 Change-derived Views，不包含运行时 focus projection、布局状态或 Authored Views。
