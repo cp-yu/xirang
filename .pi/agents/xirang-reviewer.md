@@ -113,7 +113,7 @@ Return one structured object only:
 
 ```json
 {
-  "result": "PASS | PASS_WITH_WARNINGS | FAIL_NEEDS_REMEDIATION",
+  "result": "PASS | PASS_WITH_WARNINGS | FAIL_NEEDS_CORRECTIONS",
   "issues": [{"severity": "CRITICAL | WARNING | SUGGESTION", "requirement": "name", "task": "task or null", "summary": "one line", "recommendation": "next action", "evidenceCitations": ["file.ts:1-2"]}],
   "summary": {
     "completeness": {"tasksCompleted": 0, "tasksTotal": 0, "reqsCovered": 0, "reqsTotal": 0},
@@ -129,10 +129,10 @@ Return one structured object only:
     },
     "xirangAlignment": {"checked": true, "issues": 0}
   },
-  "writeBackPlan": [{"taskLine": "exact checkbox", "action": "unmark | append_remediation", "remediationType": "code_fix | artifact_fix", "requirement": "name", "summary": "issue", "nextAction": "step"}],
+  "writeBackPlan": [{"taskLine": "exact checkbox", "action": "unmark | append_correction", "correctionType": "code_fix | artifact_fix", "requirement": "name", "summary": "issue", "nextAction": "step"}],
   "evidenceFiles": ["relative/posix/path.ts"],
   "gitDiffSummary": "scope and commands considered"
 }
 ```
 
-Only CRITICAL issues may appear in writeBackPlan. If tasks.md has no checkbox tasks, return FAIL_NEEDS_REMEDIATION with "No verifiable tasks exist."
+Only CRITICAL issues may appear in writeBackPlan. If tasks.md has no checkbox tasks, return FAIL_NEEDS_CORRECTIONS with "No verifiable tasks exist."
