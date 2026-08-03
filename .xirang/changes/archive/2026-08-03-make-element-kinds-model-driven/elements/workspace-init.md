@@ -1,4 +1,5 @@
 ---
+operation: MODIFIED
 entity: element-declaration
 identity: workspace-init
 kind: element
@@ -7,7 +8,7 @@ title: Workspace Init
 definition: Workspace Init 定义 `xirang setup` 创建完整工作区的行为：创建或保留 `.xirang` durable core、`model/{metamodel,elements,relationships,views}` 四分区 Semantic Model skeleton、changes 与 references、固定 Agent workflow 集合，支持跨平台与 non-interactive 运行，并在成功后暴露 Project Build 引导。Element Contract 与 Element Declaration 共用同一 `elements/` 单元，不存在独立的 Contracts store。
 ---
 
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Xirang Setup SHALL 创建可用的 formal skeleton
 
@@ -46,60 +47,3 @@ definition: Workspace Init 定义 `xirang setup` 创建完整工作区的行为�
 
 - **WHEN** setup 在 existing workspace 中运行
 - **THEN** existing model 分区、配置和用户内容 SHALL NOT 被覆盖
-
-### Requirement: Xirang Setup SHALL 安装固定 Agent workflow 集合
-
-`xirang setup` 与 `xirang update` SHALL 安装 fixed workflow set：propose、explore、apply、archive、build 和 snack。Build workflow SHALL 使用 skill name 与 directory `xirang-build`，并 SHALL NOT 生成 slash-command artifacts。
-
-#### Scenario: 安装 Build workflow
-
-- **WHEN** configured tool 支持 skills
-- **THEN** setup SHALL 生成 `xirang-build`
-- **AND** SHALL NOT 生成退役的 bootstrap workflow
-
-### Requirement: Xirang Setup SHALL 支持跨平台与 non-interactive 运行
-
-Setup SHALL 对所有 workspace paths 使用 Node.js path APIs，并 SHALL 提供显式 non-interactive tool selection。
-
-#### Scenario: Windows setup
-
-- **WHEN** setup 在 Windows、macOS 或 Linux 上运行
-- **THEN** generated workspace paths 与 formal source content 等价
-- **AND** filesystem operations SHALL 使用 path-aware APIs
-
-#### Scenario: Non-interactive setup
-
-- **WHEN** setup 在无 prompts 环境中运行
-- **THEN** SHALL 要求显式 supported `--tools` value
-- **AND** invalid values SHALL 返回 actionable diagnostics
-
-#### Scenario: 跨平台路径处理
-
-- **WHEN** setup runs on POSIX or Windows
-- **THEN** filesystem paths SHALL use `path.join()` or `path.resolve()`
-- **AND** generated model seed content SHALL 在平台上保持一致
-
-### Requirement: Setup success guidance SHALL 暴露 Project Build
-
-Setup success output SHALL 使用当前工具的 Project Build invocation 引导用户继续语义构建。
-
-#### Scenario: 安装 Project Build workflow
-
-- **WHEN** setup 为工具安装 fixed workflow set
-- **THEN** success guidance SHALL 使用该工具的 `xirang-build` invocation
-- **AND** SHALL NOT 引用退役的 bootstrap workflow 名称
-
-### Requirement: Setup output messaging
-
-Setup 命令 SHALL 显示清晰的输出，说明生成了什么。
-
-#### Scenario: 显示目标工具
-
-- **WHEN** setup 命令成功运行
-- **THEN** 输出包含目标工具名
-
-#### Scenario: 显示生成路径
-
-- **WHEN** setup 命令完成
-- **THEN** 输出列出全部生成的 skill 文件路径
-- **AND** 列出创建的 workspace 目录（model 四分区、changes、references）

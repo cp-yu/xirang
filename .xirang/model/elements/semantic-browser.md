@@ -319,15 +319,6 @@ Semantic Browser SHALL 将深层 Relationship endpoints 映射到当前层最深
 - **WHEN** 一个 Relationship endpoint 的祖先被就地展开而该 endpoint 随之可见
 - **THEN** edge 连接该 endpoint 本身而不再连接其祖先容器
 
-### Requirement: 呈现 Perspective Elements
-
-Semantic Browser SHALL 只对 Kind 为 `perspective` 的可见 Elements 使用 `document` shape 与基于 identity 确定性分配的不同无障碍颜色；该 shape SHALL 将全部装饰限制在节点边界内；普通 descendants SHALL 保持自身 Kind 样式，且这些样式 SHALL NOT 写入 Semantic Model、Candidate 或 Semantic Delta。
-
-#### Scenario: 区分同层 Perspectives
-
-- **WHEN** 当前层包含多个 Kind 为 `perspective` 的 Elements
-- **THEN** 每个 Perspective 使用 `document` shape 与由 identity 确定的互不相同的无障碍颜色
-
 ### Requirement: focus 失效时确定性回退
 
 Semantic Model、Candidate 或 Semantic Delta 刷新使当前 focus 不再存在时，Semantic Browser SHALL 沿刷新前的 ancestor 链回退到最近仍存在的 Element，并在没有可用 ancestor 时回退 Project Root。

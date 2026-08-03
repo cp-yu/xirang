@@ -272,13 +272,19 @@ Candidate semantic review SHALL 检查每个 Definition 是否完整、是否混
 
 ### Requirement: Element Kind 是语义标签不约束层级
 
-Semantic Model Build 编写 Element Declaration 时 SHALL 将 Element Kind 视为语义标签，而非层级约束。任何 Kind 可出现在任意深度，父 Element 的 Kind 不限制子 Element 的 Kind。层级只表达抽象→细化。`parent` 字段必需，children 由 parents 推导获得。
+Semantic Model Build 编写 Element Declaration 时 SHALL 将 Element Kind 视为项目定义的语义标签，而非层级约束：优先选择最能准确表达该 Element 语义的最具体既有 Kind；当无合适 Kind 时，通过 Metamodel 新增或细化 Kind，而不是削弱 Element 的语义仅因能通过验证就使用泛化 Kind。任何 Kind 可出现在任意深度，父 Element 的 Kind 不限制子 Element 的 Kind。层级只表达抽象→细化。`parent` 字段必需，children 由 parents 推导获得。
 
 #### Scenario: 跨 kind 层级
 
-- **WHEN** Agent 编写一个 element 其 parent 是 perspective、自身是 element kind
+- **WHEN** Agent 编写一个 element 其为任意 Kind
 - **THEN** Build SHALL 接受该层级结构
 - **AND** SHALL NOT 因 kind 不匹配白名单而拒绝
+
+#### Scenario: 无合适 Kind 时通过 Metamodel 新增
+
+- **WHEN** 项目当前没有 Kind 能准确表达 Element 的语义
+- **THEN** Build SHALL 在 Metamodel 中新增或细化一个 Kind
+- **AND** SHALL NOT 使用一个虽然可验证但语义不匹配的泛化 Kind
 
 ### Requirement: 从 legacy 文档恢复语义需 agent 选择归属
 
