@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: change-formation
-kind: domain
+kind: element
 parent: change-realization
-title: "Change Formation"
-definition: "形成完整 Semantic Delta 与 Change Plan 并完成必要确认的阶段。"
+title: Change Formation
+definition: Change Formation 是 Change Realization 中形成完整 Change 的阶段。它在阶段内完成必要的审查与确认，并产出完整的 Semantic Delta 与 Change Plan；它可以通过 Intent-first Path 或 Implementation-first Path 完成。
 ---
 
 ## Requirements

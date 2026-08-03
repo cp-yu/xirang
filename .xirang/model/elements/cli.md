@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: cli
-kind: domain
+kind: element
 parent: interaction-surfaces
 title: CLI
-definition: 息壤的项目配置与确定性操作界面。
+definition: CLI 是息壤的配置与确定性操作界面。它建立和维护息壤工作区、项目配置与所选 Agent 工具集成，管理息壤配置，并在 Realization 中提供结构化查询、状态管理、instructions 与 templates 投影、程序化校验、验证证据持久化及原子状态转换，使关键操作具有一致结果、可复现证据和明确失败语义。
 ---
 
 ## Requirements
@@ -40,6 +40,12 @@ CLI SHALL 负责可确定性复现的操作，SHALL NOT 替代用户授权或 Ag
 
 - **WHEN** 用户运行 `xirang view` 且未提供 `--listen`
 - **THEN** CLI 不注入监听地址并保留 LikeC4 默认绑定行为
+
+#### Scenario: 自定义端口
+
+- **WHEN** 用户运行 `xirang view --port 8080`
+- **THEN** CLI 在端口 8080 启动浏览器服务
+- **AND** 输出服务器地址 `http://localhost:8080`
 
 ### Requirement: 提供 model-driven authoring help
 
@@ -85,6 +91,6 @@ CLI SHALL 负责可确定性复现的操作，SHALL NOT 替代用户授权或 Ag
 #### Scenario: Authoring help JSON 返回 Metamodel 声明
 
 - **WHEN** 用户运行 `xirang help authoring semantic-delta --json`
-- **THEN** stdout SHALL be valid JSON with `file`, `definition`, `relationshipDelta` 和 `relationshipKinds`
+- **THEN** stdout SHALL be valid JSON with `file`、`definition`、`relationshipDelta` 和 `relationshipKinds`
 - **AND** `relationshipKinds` SHALL 包含当前 Metamodel 声明的 Kind identity、可选 endpoint constraints 与 body
 - **AND** SHALL NOT 包含名为 `relations` 的虚构 Relationship entries 属性

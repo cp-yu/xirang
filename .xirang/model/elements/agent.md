@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: agent
-kind: domain
+kind: element
 parent: agents
-title: "Agent"
-definition: "与用户交互并端到端编排 Realization 的默认执行身份。"
+title: Agent
+definition: Agent 是与用户交互、并端到端编排 Realization 的默认执行身份。它可写入项目与 Change 制品，消费 CLI 的查询与投影，在需要时委托 Internal Agents；不得替代用户作出需明确授权的决策，也不得自行重做 CLI 已提供的确定性操作。
 ---
 
 ## Requirements

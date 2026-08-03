@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: relationships
-kind: capability
+kind: element
 parent: semantic-model
-title: "Relationships"
-definition: "Elements 之间显式、定向且类型化的语义联系。"
+title: Relationships
+definition: Relationships 是 Elements 之间显式的、类型化的语义联系。每个 Relationship 连接 source Element 与 target Element，并使用由 Metamodel 声明的 Relationship Kind，表达 Elements 之间的协作、依赖或约束；它补充 Hierarchical Elements 无法表达的联系。
 ---
 
 ## Requirements
@@ -29,3 +29,17 @@ Relationship 容器 SHALL 仅包含 `relationships` 列表，条目 SHALL 仅含
 #### Scenario: 按不同 Kind 重新分组
 - **WHEN** 相同 Relationship entries 被移动到不同容器文件
 - **THEN** 模型比较不报告语义差异
+
+### Requirement: 保持关系词汇精确
+Relationship SHALL 使用 Metamodel 声明的 Relationship Kind；containment 派生语义（`belongs_to`、`refines`、`abstracts`）SHALL NOT 作为持久化 relationship edges。
+
+#### Scenario: 持久化 containment 关系被拒绝
+- **WHEN** 模型显式声明 `belongs_to`、`refines` 或 `abstracts` edge
+- **THEN** validation SHALL 返回重复语义 ERROR
+
+### Requirement: 校验关系端点
+Relationship endpoints SHALL 引用可解析 Elements，并遵守 Metamodel 可选 `sourceKinds` 与 `targetKinds`；未声明 endpoint constraint 时默认开放。
+
+#### Scenario: Endpoint 约束违规
+- **WHEN** relationship endpoint kind 不满足显式 Metamodel constraint
+- **THEN** validation SHALL 返回包含 relation 与 endpoint kinds 的 ERROR

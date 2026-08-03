@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: explore
-kind: capability
+kind: element
 parent: intent-first-path
 title: Explore
-definition: Intent-first Path 中通过 Design Exploration 澄清用户意图、范围、影响和设计，并按用户选择先处理结构定义的起始阶段。
+definition: Explore 是 Intent-first Path 的起始阶段。它通过 Design Exploration，基于 Semantic Model 与项目证据澄清用户意图、范围、影响和设计，并形成不持久化的 Design Summary；当用户选择先处理 Change 的结构定义时，Explore 先进入 Definition Framing，形成 Change Structural Definition。
 ---
 
 ## Requirements
@@ -29,7 +29,7 @@ Explore SHALL 通过一次一问与方案比较推进设计。
 
 ### Requirement: 分段确认复杂变更设计
 
-对复杂变更，Explore SHALL 分段确认适用的 architecture、components、data flow、technology、testing 与 risks。
+对复杂变更，Explore SHALL 分段确认适用的行为、Element Contracts、Authored Views、implementation approach、data flow、technology、testing 与 risks。
 
 #### Scenario: 变更跨越多个设计维度
 

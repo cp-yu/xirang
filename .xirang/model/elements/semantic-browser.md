@@ -1,13 +1,29 @@
 ---
 entity: element-declaration
 identity: semantic-browser
-kind: capability
+kind: element
 parent: interaction-surfaces
 title: Semantic Browser
-definition: 以 Views 可视化浏览 Semantic Model 与 Change-derived information 的界面。
+definition: Semantic Browser 是息壤的可视化语义界面。它使用 Views 呈现 Semantic Model 与 Change-derived information，使用户能够浏览不同抽象层级的 Elements、Element Contracts 与 Relationships，观察 Change 带来的语义差异，并据此理解、讨论、审查和决策项目。
 ---
 
 ## Requirements
+
+### Requirement: 启动边界：项目根发现与无项目失败
+
+`xirang view` SHALL 从嵌套目录沿父目录向上发现最近的 `.xirang/` 项目根，并仅在该项目根下启动嵌入式浏览器；不存在 `.xirang/` 项目时 SHALL 以非零状态失败。
+
+#### Scenario: 项目根向上发现
+
+- **WHEN** 用户从 `.xirang/changes/some-change/` 等子目录运行 `xirang view`
+- **THEN** CLI 沿父目录向上查找最近包含 `.xirang/` 的目录作为项目根
+- **AND** 使用该项目根的 Formal source 与 active changes
+
+#### Scenario: 未找到项目
+
+- **WHEN** 用户在不包含 `.xirang/` 的目录运行 `xirang view`
+- **THEN** CLI 报错："未找到 Xirang 项目"
+- **AND** 以非零状态退出且不启动服务器
 
 ### Requirement: 支持分层语义浏览
 
@@ -111,6 +127,145 @@ Semantic Browser SHALL 通过 Xirang-specific Contract loader、provider、tab �
 
 - **WHEN** 自动化测试或 Browser integration 定位 Contract tab 与内容
 - **THEN** UI 暴露 `data-xirang-contracts` 与 `data-xirang-contract-content` selectors，且不暴露旧 `data-xirang-spec*` selectors
+#### Scenario: 仅本地交互浏览
+- **WHEN** 用户运行 `xirang view`
+- **THEN** 系统 SHALL 启动本地 Web 服务器并按需从模型 source 读取内容
+- **AND** SHALL NOT 生成包含 Contract 内容的静态 HTML
+#### Scenario: 无离线模式
+- **WHEN** 用户关闭 `xirang view` 服务器
+- **THEN** 浏览器 SHALL NOT 能继续访问 Contract 内容
+### Requirement: 条件式 Contracts tab 显示
+
+Semantic Browser SHALL 仅当当前选中 Element 在 Semantic Model 或 Change-derived projection 中存在其单一 Contract 时显示 `Contracts` tab；无 Contract 时隐藏该 tab，其他详情 tabs 保持可用。
+
+#### Scenario: Element 无 Contract 时隐藏 tab
+
+- **WHEN** 当前选中 Element 的 projection 中不存在 Contract
+- **THEN** 详情 SHALL NOT 显示 `Contracts` tab
+- **AND** 其他详情 tabs SHALL 保持可用
+
+#### Scenario: Element 有 Contract 时显示 tab
+
+- **WHEN** 当前选中 Element 的 projection 中存在其单一 Contract
+- **THEN** 详情 SHALL 显示 `Contracts` tab
+- **AND** SHALL 使用该 Element 的稳定 identity 关联内容
+
+### Requirement: Contract 异步加载状态
+
+Semantic Browser SHALL 为 Contract 加载呈现 Loading、Success 与 Error 三种状态，并在 Element 或 source 变化时清除前一 Element 的内容，旧请求不得显示 stale content。
+
+#### Scenario: 加载中状态
+
+- **WHEN** Contract 正在从加载器读取
+- **THEN** 内容区 SHALL 显示加载指示器
+- **AND** SHALL NOT 显示过期内容
+
+#### Scenario: 加载成功
+
+- **WHEN** Contract 成功加载
+- **THEN** 内容区 SHALL 渲染完整 Contract 内容
+- **AND** SHALL 显示宿主 Element identity
+
+#### Scenario: 加载失败
+
+- **WHEN** Contract 加载失败（网络错误、权限错误或不可读）
+- **THEN** 内容区 SHALL 显示错误消息与 Element identity
+- **AND** SHALL NOT 关闭详情弹窗其他 tabs
+
+#### Scenario: 切换 Element 清除旧状态
+
+- **WHEN** 用户从 Element A 切换到 B，或 source 变化使当前 selection 不再适用
+- **THEN** SHALL 清除 A 的 Contract state
+- **AND** SHALL NOT 短暂显示 A 的内容
+- **AND** 旧请求 SHALL 被取消或忽略，不得覆盖当前 state
+#### Scenario: 单一 Contract 加载
+- **WHEN** 用户打开 `Contracts` 标签且宿主 Element 携带单一 Contract
+- **THEN** SHALL 显示该 Contract 的完整 Markdown 与宿主 Element identity
+- **AND** SHALL NOT 显示 Contract selector
+#### Scenario: 单一 Contract 缺失
+- **WHEN** identity 索引无法定位对应 Element 单元或其正文无 Contract
+- **THEN** SHALL 在内容区显示 identity 与错误
+- **AND** SHALL NOT 关闭 element details
+### Requirement: 桌面与移动视口兼容
+
+Contract 详情弹窗、tabs 与可滚动内容 SHALL 在桌面和移动视口中保持 viewport containment，无溢出、无重叠。
+
+#### Scenario: 桌面视口
+
+- **WHEN** 在桌面浏览器中打开 Element 详情
+- **THEN** 详情弹窗 SHALL 不溢出视口
+- **AND** 长 Contract 内容 SHALL 可垂直滚动
+
+#### Scenario: 移动视口
+
+- **WHEN** 在移动设备视口中打开 Element 详情
+- **THEN** 弹窗 SHALL 位于视口边界内
+- **AND** tabs 与 Contract 内容 SHALL 位于弹窗边界内且无重叠
+- **AND** 长 Contract 内容 SHALL 可垂直滚动
+
+### Requirement: 安全渲染 Contract Markdown
+
+Semantic Browser SHALL 使用 Markdown 渲染管线渲染 Contract 内容，支持标准 Markdown 元素，并禁止执行脚本与危险 HTML。
+
+#### Scenario: 支持标准 Markdown 元素
+
+- **WHEN** 渲染 Contract Markdown
+- **THEN** 系统 SHALL 支持标题、段落、列表、表格、代码块与链接
+- **AND** SHALL 正确显示嵌套列表与多级标题
+
+#### Scenario: 禁止危险内容
+
+- **WHEN** Contract 内容包含 `<script>` 标签或事件处理属性
+- **THEN** 系统 SHALL 清理或转义这些内容
+- **AND** SHALL NOT 执行任何 JavaScript
+
+### Requirement: Contract source 热更新
+
+Semantic Browser 的服务端 SHALL 监听模型 source 变化，并在当前打开的 Contract 或当前浏览内容被修改后自动刷新。
+
+#### Scenario: 打开的 Contract 被修改
+
+- **WHEN** 用户在详情中打开某 Element 的 Contract
+- **AND** 该 source 在磁盘上被修改
+- **THEN** 系统 SHALL 使对应缓存失效
+- **AND** SHALL 自动重新读取并渲染更新后的内容
+
+#### Scenario: 未打开的内容修改不主动刷新
+
+- **WHEN** 某 source 被修改但用户未打开对应内容
+- **THEN** 系统 SHALL NOT 主动刷新该内容
+- **AND** 下次打开时 SHALL 读取最新内容
+#### Scenario: Active change 热更新
+- **WHEN** selected change 的 Contracts、四分区 delta 单元或 Formal dependencies 变化
+- **THEN** 系统 SHALL 定向失效对应 runtime cache
+- **AND** SHALL 通过 HMR 更新当前 view
+- **AND** Contracts-only 修改 SHALL NOT 强制重新计算无关 Architecture layout
+#### Scenario: 跨平台路径处理
+- **WHEN** 在 Windows、macOS 或 Linux 查找项目、active changes 或监听 source files
+- **THEN** 系统 SHALL 使用 Node.js path API 与 normalized project-relative paths
+- **AND** SHALL NOT 假设路径分隔符
+#### Scenario: Contract 文件修改
+- **WHEN** 用户在详情中打开某个 Element 的 Contract
+- **AND** 该 Contract 在磁盘上被修改
+- **THEN** 系统 SHALL 使该 Contract 缓存失效
+- **AND** SHALL 自动重新读取并渲染更新后的内容
+#### Scenario: change 级 source 变化定向失效
+- **WHEN** active change 中一个 source 文件变化
+- **THEN** SHALL 只失效该 Change 相关的 diff 与投影
+- **AND** SHALL NOT 仅因该修改重新布局 Architecture graph
+#### Scenario: Windows watcher path 规范化
+- **WHEN** Windows watcher 返回 backslash 分隔的 change source path
+- **THEN** 系统 SHALL 规范化为 project-relative cache key
+- **AND** SHALL 精确失效对应 active change 与 source
+### Requirement: Contract 内容只读展示
+
+Semantic Browser 中的 Contract 内容 SHALL 只读，不提供编辑功能。
+
+#### Scenario: 无编辑交互
+
+- **WHEN** 用户查看 Contract 内容
+- **THEN** 系统 SHALL NOT 提供文本编辑框或保存按钮
+- **AND** 用户 SHALL NOT 能在浏览器中直接修改 Contract
 
 ### Requirement: 只列出真实 Views
 
@@ -120,6 +275,24 @@ Semantic Browser 的 View selector SHALL 只列出唯一 Model View、实际 Aut
 
 - **WHEN** 项目包含 Authored Views 和活动 Changes
 - **THEN** selector 显示 `Model View`、这些 Authored Views 与对应 Change-derived Views，且没有 Element View entries
+
+#### Scenario: Archive change 不显示
+
+- **WHEN** change 位于 `.xirang/changes/archive/`
+- **THEN** selector SHALL NOT 显示该 change
+
+#### Scenario: Contract-only change 仍显示
+
+- **WHEN** active change 只包含 `elements/` Requirement delta 而没有结构单元 delta
+- **THEN** selector SHALL 仍显示该 change
+- **AND** 其 Architecture 区域 SHALL 显示无 semantic graph change
+
+#### Scenario: Change 编译 diagnostics 展示
+
+- **WHEN** selected change 的 delta 无法编译或 validation 失败
+- **THEN** 对应 Change-derived View SHALL 显示 diagnostics 并以 Invalid 标记
+- **AND** change selector SHALL 保留该 invalid change
+- **AND** 其他可编译的 Changes 与 Model View SHALL 继续可浏览
 
 ### Requirement: 保持 Authored View 声明视角
 
@@ -170,3 +343,38 @@ Semantic Browser SHALL 在 Change-derived View 的 Element Details 中将每个�
 
 - **WHEN** 用户在 Change-derived View 中查看一个 MODIFIED Requirement
 - **THEN** Browser 呈现单个 diff，其 before 与 after 均包含该 Requirement 正文与全部 Scenario 文本
+
+### Requirement: 按需安全读取 Contract 单元
+
+Semantic Browser 的服务端 SHALL 从当前 Semantic Model 或所选 Change 目标模型的 `.xirang/model/elements/` 单元构建 identity→content 索引（manifest），并按稳定 Element identity 提供 Contract 内容读取。请求 SHALL 携带 project identity 与 Element identity；授权 SHALL 以 identity 为 key 的查找完成，请求输入不触达文件系统；absolute、`..`、backslash、非 `.md` 与 symlink 逃逸类输入作为查找 miss 处理，不构成路径读取。未打开的 Contract 内容无需单独请求即随 manifest 可用；Browser 的标签可见性由 manifest 中的 contracts map 决定。
+
+#### Scenario: Identity 授权校验
+
+- **WHEN** browser 请求某 Element 的 Contract 内容
+- **THEN** request SHALL 携带当前 model project identity 与稳定 Element identity
+- **AND** server SHALL 以 identity 为 key 从 manifest 查找对应内容
+
+#### Scenario: 路径类输入不触达文件系统
+
+- **WHEN** 请求携带 absolute、包含 `..`、包含 backslash、非 `.md` 或 symlink 逃逸类路径输入
+- **THEN** 该输入仅作为 identity lookup miss 处理
+- **AND** SHALL NOT 作为路径读取任何文件
+
+#### Scenario: 路径授权校验
+
+- **WHEN** 请求的 identity 不在 manifest 中
+- **THEN** server SHALL 拒绝读取
+- **AND** SHALL NOT 仅凭路径存在授权
+
+#### Scenario: 符号链接逃逸
+
+- **WHEN** `.xirang/model/` 下存在指向目录外的 symlink
+- **THEN** 请求不会因该 symlink 触达目录外文件
+- **AND** 读取仅发生在本端 manifest 构建阶段对受管单元目录
+
+#### Scenario: Manifest 预载 Contract 内容
+
+- **WHEN** manifest 构建
+- **THEN** SHALL 将全部 Element Contract 内容序列化进 manifest
+- **AND** Browser 启动时获取该 manifest
+- **AND** 标签可见性由 manifest contracts map 决定，无需按请求读取未打开的单元

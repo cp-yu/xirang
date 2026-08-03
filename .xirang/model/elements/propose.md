@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: propose
-kind: capability
+kind: element
 parent: intent-first-path
 title: Propose
-definition: Intent-first Path 中把已确认设计及可用结构定义收成完整 Change 的阶段。
+definition: Propose 是 Intent-first Path 的收成阶段。它承接 Explore 形成的 Design Summary，以及存在时的 Change Structural Definition；Change Structural Definition 存在时，它将其中已确认的 Element Kinds、Relationship Kinds、Element Declarations 与 Relationships 分别编译为相应的 Semantic Delta Entries；两条路径均写出完整 Change Plan，并在 Formation 内完成必要审查与确认。
 ---
 
 ## Requirements
@@ -76,7 +76,7 @@ Propose SHALL NOT 将 Semantic Delta 同步到 Semantic Model，也 SHALL NOT �
 
 Propose SHALL 按共享 Element Contract、Requirement 与 Scenario 语义编写 Contract Delta，并以 Requirement 的独立演进边界确定 Entries。
 
-#### Scenario: 编写多个 Contract 义务
+#### Scenario: 编写多个 Requirement 义务
 
 - **WHEN** 已确认设计包含可独立变化的规范承诺
 - **THEN** Propose 将其表达为独立 Requirement Entries，并仅以 Scenarios 具体化各自宿主 Requirement

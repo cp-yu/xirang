@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: optimizer
-kind: capability
+kind: element
 parent: internal-agents
-title: "Optimizer"
-definition: "在已通过 Review 的状态上判断有价值行为保持优化的 Internal Agent。"
+title: Optimizer
+definition: Optimizer 在已通过 Review 并保存为 Checkpoint 的实现上，评估是否存在值得执行且不改变目标语义的优化。它输出可说明收益与证据的优化事项，由 Apply 实现后再经 Review；不修改代码，不推进 Checkpoint；正确性问题返回 Review，改变目标语义的建议形成新的 Change。
 ---
 
 ## Requirements

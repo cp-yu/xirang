@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: change-implementation
-kind: domain
+kind: element
 parent: change-realization
-title: "Change Implementation"
-definition: "落实 Change 并以独立评估确认项目符合 Expected Semantic Model 的阶段。"
+title: Change Implementation
+definition: Change Implementation 是 Change Realization 中落实 Change 并确认其结果的阶段。Agent 依据 Semantic Model、Semantic Delta 与 Change Plan，将 Change 描述的内容落实到项目，并通过独立评估与可复现证据确认项目结果与 Expected Semantic Model 一致；验证通过后，Change 可进入 Change Closure，本阶段不以 Semantic Delta 更新 Semantic Model，也不关闭 Change。
 ---
 
 ## Requirements

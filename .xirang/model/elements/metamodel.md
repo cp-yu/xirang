@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: metamodel
-kind: capability
+kind: element
 parent: semantic-model
 title: Metamodel
-definition: Semantic Model 使用的可扩展语义记法。
+definition: Semantic Model 使用的可扩展语义记法。它声明用于表达 Hierarchical Elements 的 Element Kinds 与用于表达 Relationships 的 Relationship Kinds，并可为每种 Kind 定义其所有实例共享的语义。
 ---
 
 ## Requirements
@@ -35,6 +35,15 @@ Element Kind SHALL 声明 `identity` 与 `contract`，并可声明 `root`、`par
 
 - **WHEN** Relationship Kind 限制允许的端点类型
 - **THEN** Metamodel 以 sourceKinds 与 targetKinds 声明并由模型验证器执行约束
+
+### Requirement: 默认开放 nesting
+
+未声明的 Kind pair constraint 不构成隐式禁止；显式声明的 parent/child 约束 SHALL 由验证器执行。
+
+#### Scenario: 未声明约束时通过
+
+- **WHEN** parent kind 与 child kind 均存在且 Metamodel 未声明对应限制
+- **THEN** containment SHALL 通过验证，不因深度或 kind pair 未列入固定表而失败
 
 ### Requirement: 管理内置 Perspective Kind
 

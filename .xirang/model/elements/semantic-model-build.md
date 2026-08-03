@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: semantic-model-build
-kind: capability
+kind: element
 parent: realization-process
 title: Semantic Model Build
-definition: 在授权范围和依据下构建或重建完整 Candidate Semantic Model 的过程。
+definition: Semantic Model Build 是 Realization 推进过程中构建或重建 Semantic Model 的过程。它在用户授权的探索范围与声明的权威依据下，由 Agent 编写完整的 Candidate Semantic Model，由 CLI 做只读确定性校验并给出 review digest，用户确认后由 CLI 原子提升为 Semantic Model 并保留必要 history；本过程不通过 Semantic Delta 演进模型，也不落实单次 Change 的项目改动。
 ---
 
 ## Requirements
@@ -18,6 +18,29 @@ Semantic Model Build SHALL 在用户授权的探索范围与声明的权威依�
 - **WHEN** 用户明确范围与权威来源
 - **THEN** Agent 只在授权边界内编译目标语义
 
+### Requirement: 选择探索范围与 Candidate 起点
+
+Build 启动时 SHALL 让用户选择探索范围（whole project、code and tests、documentation and current Xirang 或 custom paths and rules），并在当前 formal model 存在时显式选择 Candidate 起点（基于当前模型构建、重新构建或使用指定内容作为起点）。
+
+#### Scenario: 用户选择探索范围
+
+- **WHEN** Build 在无 active Candidate 时启动
+- **THEN** 用户声明的 source-of-truth 约束被记录在 `build.md`
+- **AND** 不静默将代码、测试、文档、配置、Git history 或当前 Xirang 指定为 source of truth
+
+#### Scenario: 用户选择基于当前模型构建
+
+- **WHEN** 用户选择“基于当前 Xirang 构建”
+- **THEN** Candidate 从当前 formal source 初始化，且 digest-confirmed promotion 前当前 formal source 保持不变
+
+#### Scenario: 用户选择重新构建
+
+- **WHEN** 用户选择“重新构建 Xirang”
+- **THEN** 初始化 clean Candidate skeleton，当前 formal source MAY 作为选定证据但不被复制到 Candidate
+#### Scenario: 用户指定构建起点
+- **WHEN** 用户选择"使用指定内容作为起点"
+- **THEN** Candidate 仅从用户批准的路径初始化
+- **AND** SHALL NOT 推断额外的 baseline 路径
 ### Requirement: 产出完整 Candidate
 
 Semantic Model Build SHALL 产出一个完整四分区 Candidate Semantic Model。
@@ -26,7 +49,15 @@ Semantic Model Build SHALL 产出一个完整四分区 Candidate Semantic Model�
 
 - **WHEN** 模型编写完成
 - **THEN** Candidate 联合包含 Metamodel、Elements、Relationships 与 Views
-
+#### Scenario: Candidate 按四分区编写
+- **WHEN** Agent 已解决所需的 semantic decisions
+- **THEN** SHALL 编写 `.xirang/candidate/{metamodel,elements,relationships,views}/`，使其共同组成一个 Candidate
+- **AND** 每个 `elements/<identity>.md` 单元 SHALL 同时承载一个 Element Declaration 与至多一个 Element Contract（正文 Requirements）
+- **AND** SHALL NOT 创建 `candidate/architecture`、`candidate/contracts` 或其他平行 Contract store
+#### Scenario: Required element 需要 contract
+- **WHEN** Agent 编写 `contract: required` 的 element kind
+- **THEN** 每个 required element SHALL 在其自身 `elements/` 单元正文中携带 Contract（至少一个 Requirement）
+- **AND** Agent SHALL 将缺失 Contract 视为 decision gap，不得创建 catch-all owner 或独立 Spec 单元
 ### Requirement: 不通过 Change 构建模型
 
 Semantic Model Build SHALL NOT 通过 Change 或 Semantic Delta 构建或重建 Semantic Model。
@@ -161,7 +192,10 @@ Element Contract 中只复述 Declaration Definition 或 sibling Requirements �
 
 - **WHEN** deterministic validation 没有 ERROR
 - **THEN** Build 在向用户呈现 digest 前执行独立 semantic review
-
+#### Scenario: 可选 subagent 加速探索
+- **WHEN** 并行探索有助于 Agent 理解用户批准的项目范围
+- **THEN** Agent MAY 使用 task-specific prompts 调用 subagents
+- **AND** Candidate validation 与 promotion SHALL NOT 依赖 subagent availability 或固定 subagent role
 ### Requirement: 只以阻塞语义问题拒绝审查
 
 Candidate semantic review SHALL 只以 `BLOCKER` 或 `HIGH` findings 判定 FAIL，SHALL NOT 将措辞偏好或非阻塞样式意见送入修正循环。

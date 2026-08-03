@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: internal-agents
-kind: domain
+kind: element
 parent: agents
-title: "Internal Agents"
-definition: "在隔离 clean context 中承担独立判断的只读 Agents。"
+title: Internal Agents
+definition: Internal Agents 是在与 Agent 隔离的 clean context 中承担无法由 CLI 确定性操作替代的独立判断的执行主体。它们通常只读，输出结构化结论供 Agent 消费；不修改项目，不关闭 Change，不提升 Semantic Model。
 ---
 
 ## Requirements

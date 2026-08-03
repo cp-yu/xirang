@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: requirement
-kind: capability
+kind: element
 parent: element-contract
 title: Requirement
-definition: Element Contract 中表达一项可独立演进规范承诺的稳定语义条目。
+definition: Requirement 是 Element Contract 中具有稳定 identity 的规范性语义条目，用于表达宿主 Element 在自身抽象层级上的一项可独立演进的职责、保证、约束或行为。
 ---
 
 ## Requirements

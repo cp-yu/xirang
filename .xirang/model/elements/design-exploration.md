@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: design-exploration
-kind: capability
+kind: element
 parent: explore
 title: Design Exploration
-definition: Explore 中基于 Semantic Model、项目证据与可用的已确认结构澄清和确认设计的阶段。
+definition: Design Exploration 是 Explore 中澄清和确认设计的阶段。它基于 Semantic Model 与项目证据，通过一次一问和方案比较推进设计；复杂变更分段确认适用的行为、Element Contracts、Authored Views、implementation approach、data flow、technology、testing 与 risks，窄变更至少确认 problem、impact scope、approach 与 verification method，最终形成不持久化的 Design Summary。
 ---
 
 ## Requirements

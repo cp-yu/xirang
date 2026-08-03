@@ -1,0 +1,9 @@
+schemaVersion: 1
+reviewDigest: 23159e6f89ade5ea414aca2c8a647647990db180617214ebe8587fa806422568
+promotedAt: 2026-08-03T06:11:55.199Z
+previousFormalFingerprint: 7201a40c69deb47012205e0d39bc35206234b77bf54a0e394d3d706b0a74ade5
+previous:
+  elements: previous/elements
+  metamodel: previous/metamodel
+  relationships: previous/relationships
+  views: previous/views

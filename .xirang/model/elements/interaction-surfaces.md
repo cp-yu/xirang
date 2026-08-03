@@ -1,10 +1,10 @@
 ---
 entity: element-declaration
 identity: interaction-surfaces
-kind: domain
+kind: element
 parent: collaboration-structure
 title: Interaction Surfaces
-definition: 供用户与 Agents 配置、理解和操作息壤的界面体系。
+definition: Interaction Surfaces 是 Realization 中供用户与 Agents 配置、理解和操作息壤的交互界面体系。它建立和维护息壤项目、项目配置与 Agent 工具集成，提供确定性操作，并以 Views 呈现 Semantic Model 与 Change-derived information；CLI 支持 Text Presentation，Semantic Browser 支持 Visual Presentation。
 ---
 
 ## Requirements
@@ -53,3 +53,12 @@ Interaction Surfaces SHALL NOT 构成新的规范性语义来源。
 
 - **WHEN** 界面组织或布局模型信息
 - **THEN** 规范语义仍由 Semantic Model、Change 与用户决策决定
+
+### Requirement: 保持呈现方法非独占
+
+CLI 与 Semantic Browser 对 Text/Visual Presentation 的支持 SHALL NOT 表示某种呈现方法被某一界面独占。
+
+#### Scenario: CLI 输出文本 View
+
+- **WHEN** CLI 以人类可读文本呈现模型信息
+- **THEN** 该文本呈现不因 CLI 存在而转归 Semantic Browser 所有
