@@ -3,7 +3,7 @@ import { Badge, Box, Button, Group, Modal, NativeSelect, Stack, Text, UnstyledBu
 import { IconGripVertical } from '@tabler/icons-react'
 import { useRerender } from '@react-hookz/web'
 import { motion, useDragControls } from 'motion/react'
-import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Markdown } from '../base-primitives'
 import { ErrorBoundary } from '../components/ErrorFallback'
 import { useEnabledFeatures } from '../context/DiagramFeatures'
@@ -117,28 +117,34 @@ function XirangArchitectureOverlay() {
   const [relationshipModalOpened, setRelationshipModalOpened] = useState(false)
   const [metamodelEntry, setMetamodelEntry] = useState<{ entry: XirangDiffEntry; opened: boolean } | null>(null)
   const [planFile, setPlanFile] = useState<{ name: string; content: string; opened: boolean } | null>(null)
-  const declarations = new Map((selected.architecture?.elements ?? [])
-    .map(element => [element.declaration.identity, element.declaration]))
-  const rootIdentity = [...declarations.values()].find(declaration => declaration.parent === null)?.identity
-  const childrenByIdentity = new Map<string, string[]>()
-  for (const declaration of declarations.values()) {
-    if (!declaration.parent) continue
-    let children = childrenByIdentity.get(declaration.parent)
-    if (!children) {
-      children = []
-      childrenByIdentity.set(declaration.parent, children)
+  const { declarations, childrenByIdentity, rootIdentity } = useMemo(() => {
+    const declarations = new Map((selected.architecture?.elements ?? [])
+      .map(element => [element.declaration.identity, element.declaration]))
+    const rootIdentity = [...declarations.values()].find(declaration => declaration.parent === null)?.identity
+    const childrenByIdentity = new Map<string, string[]>()
+    for (const declaration of declarations.values()) {
+      if (!declaration.parent) continue
+      let children = childrenByIdentity.get(declaration.parent)
+      if (!children) {
+        children = []
+        childrenByIdentity.set(declaration.parent, children)
+      }
+      children.push(declaration.identity)
     }
-    children.push(declaration.identity)
-  }
+    return { declarations, childrenByIdentity, rootIdentity }
+  }, [selected])
   const hasChildren = (identity: string) => (childrenByIdentity.get(identity)?.length ?? 0) > 0
   const nodeIdentity = (node: { id: string; metadata?: Readonly<Record<string, unknown>> | null | undefined }) =>
     typeof node.metadata?.['elementId'] === 'string' ? node.metadata['elementId'] as string : node.id
-  const breadcrumbIdentities: string[] = []
-  let breadcrumbIdentity = focusIdentity ?? rootIdentity
-  while (breadcrumbIdentity && declarations.has(breadcrumbIdentity)) {
-    breadcrumbIdentities.unshift(breadcrumbIdentity)
-    breadcrumbIdentity = declarations.get(breadcrumbIdentity)?.parent ?? undefined
-  }
+  const breadcrumbIdentities = useMemo(() => {
+    const identities: string[] = []
+    let breadcrumbIdentity = focusIdentity ?? rootIdentity
+    while (breadcrumbIdentity && declarations.has(breadcrumbIdentity)) {
+      identities.unshift(breadcrumbIdentity)
+      breadcrumbIdentity = declarations.get(breadcrumbIdentity)?.parent ?? undefined
+    }
+    return identities
+  }, [declarations, focusIdentity, rootIdentity])
   const breadcrumb = currentView.id === 'model' && breadcrumbIdentities.length > 0 && (
     <motion.div
       drag
@@ -314,6 +320,8 @@ function XirangArchitectureOverlay() {
     </Modal>
   )
 
+  const overlay = useMemo(() => getArchitectureOverlayModel(selected), [selected])
+
   if (enableStaticView) {
     return (
       <>
@@ -343,7 +351,6 @@ function XirangArchitectureOverlay() {
       </>
     )
   }
-  const overlay = getArchitectureOverlayModel(selected)
   return (
     <>
       {breadcrumb}
