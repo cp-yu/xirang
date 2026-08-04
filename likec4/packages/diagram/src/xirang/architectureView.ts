@@ -308,10 +308,12 @@ export function materializeXirangArchitectureView(
     }
     // Include elements whose requirements/scenarios changed (contract-only deltas).
     const contractOnlyIds: string[] = []
+    const seenContractOnlyIds = new Set<string>()
     for (const entry of source.diff?.entries ?? []) {
       if (entry.kind === 'requirement' || entry.kind === 'scenario') {
         const elementId = entry.identity.split('#')[0]!
-        if (!declarationEntries.has(elementId) && !contractOnlyIds.includes(elementId)) {
+        if (!declarationEntries.has(elementId) && !seenContractOnlyIds.has(elementId)) {
+          seenContractOnlyIds.add(elementId)
           contractOnlyIds.push(elementId)
         }
       }

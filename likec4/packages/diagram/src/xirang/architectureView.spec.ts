@@ -245,6 +245,26 @@ describe('materializeXirangArchitectureView', () => {
     expect(target.hash).toContain(':xirang:')
   })
 
+  it('deduplicates contract-only identities across diff entries', () => {
+    const source: XirangViewSource = {
+      ...viewSource,
+      diff: {
+        summary: { total: 3, ADDED: 0, MODIFIED: 3, REMOVED: 0 },
+        entries: [
+          { kind: 'requirement', identity: 'alpha.id#One', operation: 'MODIFIED' },
+          { kind: 'requirement', identity: 'alpha.id#Two', operation: 'MODIFIED' },
+          { kind: 'scenario', identity: 'alpha.id#One#case', operation: 'MODIFIED' },
+        ],
+      },
+    }
+
+    const target = materializeXirangArchitectureView(modelView, source, 'diff')
+    const alphaNodes = target.nodes.filter(node => node.id === 'alpha.id')
+    expect(alphaNodes).toHaveLength(1)
+    expect(target.nodes.map(node => node.id)).toEqual(['alpha.id'])
+    expect(target.hash).toContain(':xirang:')
+  })
+
   it('falls back along the previous ancestor path when focus disappears', () => {
     const target = materializeXirangArchitectureView(
       modelView,
