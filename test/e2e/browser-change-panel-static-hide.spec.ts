@@ -19,6 +19,18 @@ test('browses Model View and hides the Change panel on landing cards', async ({ 
   // Static cards must not show the floating Change panel (nor the focus breadcrumb).
   await expect(page.locator('[data-xirang-architecture-overlay]:visible')).toHaveCount(0)
   await expect(page.locator('[data-xirang-focus-breadcrumb]:visible')).toHaveCount(0)
+
+  // The sidebar hover preview is a static context too: no floating panel or breadcrumb.
+  await page.getByRole('button', { name: 'Toggle navigation' }).click()
+  const drawer = page.locator('[role="dialog"]').first()
+  await expect(drawer).toBeVisible({ timeout: 10_000 })
+  const leafRow = drawer.locator('button').filter({ has: page.locator('.tabler-icon-star-filled') }).first()
+  await expect(leafRow).toBeVisible()
+  await leafRow.hover()
+  const hoverPreview = page.locator('.mantine-HoverCard-dropdown .likec4-static-view').first()
+  await expect(hoverPreview).toBeVisible({ timeout: 10_000 })
+  await expect(hoverPreview.locator('[data-xirang-architecture-overlay]:visible')).toHaveCount(0)
+  await expect(hoverPreview.locator('[data-xirang-focus-breadcrumb]:visible')).toHaveCount(0)
 })
 
 test('browses Model View and exports without the Change panel', async ({ page }) => {
