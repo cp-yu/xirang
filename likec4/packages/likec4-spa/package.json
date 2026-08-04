@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@likec4/core": "workspace:*",
+    "@likec4/generators": "workspace:*",
     "immer": "catalog:utils",
     "react": "catalog:react",
     "react-dom": "catalog:react",

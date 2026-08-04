@@ -10,7 +10,7 @@ export function CopyButton({ text }: CopyToClipboardProps) {
     <MantineCopyButton value={text} timeout={2000}>
       {({ copied, copy }) => (
         <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position="right">
-          <ActionIcon color={copied ? 'teal' : 'gray'} variant={copied ? 'light' : 'subtle'} onClick={copy}>
+          <ActionIcon aria-label="Copy" color={copied ? 'teal' : 'gray'} variant={copied ? 'light' : 'subtle'} onClick={copy}>
             {copied ? <IconCheck style={{ width: rem(16) }} /> : <IconCopy style={{ width: rem(16) }} />}
           </ActionIcon>
         </Tooltip>

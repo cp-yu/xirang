@@ -170,3 +170,4 @@ opencode.json
 /.opsx/.cache/
 /.opsx/architecture/.likec4/
 .xirang/.cache-likec4/
+/.turbo/cache

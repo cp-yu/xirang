@@ -1,6 +1,8 @@
 import { type Fqn, hasProp, isDynamicView, RichText } from '@likec4/core'
 import { Badge, Box, Button, Group, Modal, NativeSelect, Stack, Text, UnstyledButton } from '@mantine/core'
+import { IconGripVertical } from '@tabler/icons-react'
 import { useRerender } from '@react-hookz/web'
+import { motion, useDragControls } from 'motion/react'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { Markdown } from '../base-primitives'
 import { ErrorBoundary } from '../components/ErrorFallback'
@@ -96,6 +98,9 @@ export function getArchitectureOverlayModel(source: XirangViewSource) {
 
 function XirangArchitectureOverlay() {
   const { sources, selected, select, mode, setMode } = useXirangViewSources()
+  const { enableStaticView } = useEnabledFeatures()
+  const dragControls = useDragControls()
+  const breadcrumbDragControls = useDragControls()
   const selectedRevision = xirangViewSourceRevision(selected)
   const actorRef = useDiagramActorRef()
   const diagram = useDiagram()
@@ -135,23 +140,38 @@ function XirangArchitectureOverlay() {
     breadcrumbIdentity = declarations.get(breadcrumbIdentity)?.parent ?? undefined
   }
   const breadcrumb = currentView.id === 'model' && breadcrumbIdentities.length > 0 && (
-    <Group
-      data-xirang-focus-breadcrumb
-      gap={2}
-      style={{ position: 'absolute', left: 16, top: 72, zIndex: 5, pointerEvents: 'all' }}
+    <motion.div
+      drag
+      dragControls={breadcrumbDragControls}
+      dragElastic={0}
+      dragMomentum={false}
+      dragListener={false}
+      style={{ position: 'absolute', left: 16, top: 72, zIndex: 5, pointerEvents: 'all', touchAction: 'none' }}
     >
-      {breadcrumbIdentities.map(identity => (
-        <Button
-          key={identity}
-          data-xirang-focus-identity={identity}
-          size="compact-xs"
-          variant={identity === (focusIdentity ?? rootIdentity) ? 'filled' : 'subtle'}
-          onClick={() => actorRef.send({ type: 'navigate.focus', focusIdentity: identity })}
-        >
-          {declarations.get(identity)?.title ?? identity}
-        </Button>
-      ))}
-    </Group>
+      <Group
+        data-xirang-focus-breadcrumb
+        data-xirang-drag-handle
+        gap={2}
+        onPointerDown={event => {
+          event.stopPropagation()
+          breadcrumbDragControls.start(event)
+        }}
+        style={{ cursor: 'grab' }}
+      >
+        <IconGripVertical size={12} />
+        {breadcrumbIdentities.map(identity => (
+          <Button
+            key={identity}
+            data-xirang-focus-identity={identity}
+            size="compact-xs"
+            variant={identity === (focusIdentity ?? rootIdentity) ? 'filled' : 'subtle'}
+            onClick={() => actorRef.send({ type: 'navigate.focus', focusIdentity: identity })}
+          >
+            {declarations.get(identity)?.title ?? identity}
+          </Button>
+        ))}
+      </Group>
+    </motion.div>
   )
 
   useOnDiagramEvent('nodeClick', event => {
@@ -294,6 +314,20 @@ function XirangArchitectureOverlay() {
     </Modal>
   )
 
+  if (enableStaticView) {
+    return (
+      <>
+        {relationshipPanel}
+        <Box
+          hidden
+          data-xirang-architecture-overlay
+          data-xirang-current-view={currentView.id}
+          data-xirang-current-view-hash={currentView.hash}
+          data-xirang-rendered-node-count={currentView.nodes.length}
+        />
+      </>
+    )
+  }
   if (selected.source === 'semantic-model') {
     return (
       <>
@@ -314,28 +348,43 @@ function XirangArchitectureOverlay() {
     <>
       {breadcrumb}
       {relationshipPanel}
-      <Box
-        data-xirang-architecture-overlay
-        data-xirang-architecture-mode={mode}
-        data-xirang-changed-count={overlay.changed.length}
-        data-xirang-context-count={overlay.context.length}
-        data-xirang-metamodel-count={overlay.metamodel.length}
-        data-xirang-rendered-node-count={currentView.nodes.length}
-        data-xirang-rendered-view-hash={currentView.hash}
-        style={{ position: 'absolute', right: 16, top: 16, zIndex: 5, pointerEvents: 'all' }}
+      <motion.div
+        drag
+        dragControls={dragControls}
+        dragElastic={0}
+        dragMomentum={false}
+        dragListener={false}
+        style={{ position: 'absolute', right: 16, top: 16, zIndex: 5, pointerEvents: 'all', touchAction: 'none' }}
       >
-        <Stack
-          gap={6}
-          p="xs"
-          style={{
-            background: 'var(--mantine-color-body)',
-            border: '1px solid var(--mantine-color-default-border)',
-            borderRadius: 6,
-          }}>
-          <Group gap="xs">
-            <Text size="xs" fw={600}>Change / {selected.label}</Text>
-            <Badge size="xs" color={selected.valid ? 'green' : 'red'}>{selected.valid ? 'Valid' : 'Invalid'}</Badge>
-          </Group>
+        <Box
+          data-xirang-architecture-overlay
+          data-xirang-architecture-mode={mode}
+          data-xirang-changed-count={overlay.changed.length}
+          data-xirang-context-count={overlay.context.length}
+          data-xirang-metamodel-count={overlay.metamodel.length}
+          data-xirang-rendered-node-count={currentView.nodes.length}
+          data-xirang-rendered-view-hash={currentView.hash}
+        >
+          <Stack
+            gap={6}
+            p="xs"
+            style={{
+              background: 'var(--mantine-color-body)',
+              border: '1px solid var(--mantine-color-default-border)',
+              borderRadius: 6,
+            }}>
+            <Group
+              data-xirang-drag-handle
+              gap="xs"
+              onPointerDown={event => {
+                event.stopPropagation()
+                dragControls.start(event)
+              }}
+              style={{ cursor: 'grab' }}>
+              <IconGripVertical size={12} />
+              <Text size="xs" fw={600}>Change / {selected.label}</Text>
+              <Badge size="xs" color={selected.valid ? 'green' : 'red'}>{selected.valid ? 'Valid' : 'Invalid'}</Badge>
+            </Group>
           <NativeSelect
             aria-label="Active Change"
             size="xs"
@@ -394,6 +443,7 @@ function XirangArchitectureOverlay() {
           ))}
         </Stack>
       </Box>
+      </motion.div>
       <MetamodelDiffModal
         entry={metamodelEntry?.entry ?? null}
         opened={metamodelEntry?.opened ?? false}
