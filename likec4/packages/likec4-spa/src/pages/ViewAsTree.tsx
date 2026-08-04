@@ -28,6 +28,13 @@ const fieldOptions: { label: string; value: ViewTreeField }[] = [
 const extensionFor = (format: string): string =>
   format === 'markdown' ? 'md' : format === 'json' ? 'json' : 'txt'
 
+const mimeFor = (format: string): string =>
+  format === 'json'
+    ? 'application/json;charset=utf-8'
+    : format === 'markdown'
+    ? 'text/markdown;charset=utf-8'
+    : 'text/plain;charset=utf-8'
+
 export function ViewAsTree() {
   const [view] = useCurrentView()
   const viewId = useCurrentViewId()
@@ -57,7 +64,7 @@ export function ViewAsTree() {
   }
 
   const download = () => {
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+    const blob = new Blob([content], { type: mimeFor(format) })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
