@@ -113,16 +113,24 @@ describe('renderFrontmatter', () => {
     expect(result).toEqual({ ok: true, data: { entity: 'authored-view', ...values }, body: '' });
   });
 
-  it('renders nodePresentation as nested mapping', () => {
+  it('serializes nodePresentation deterministically', () => {
     const rendered = renderFrontmatter('element-kind', {
       identity: 'perspective',
       contract: 'optional',
-      nodePresentation: { shape: 'document', color: 'indigo', border: 'solid' },
+      nodePresentation: { color: 'indigo', border: 'solid', shape: 'document' },
     });
     expect(rendered).toContain('nodePresentation:');
     expect(rendered).toContain('  shape: document');
     expect(rendered).toContain('  color: indigo');
     expect(rendered).toContain('  border: solid');
+    const subfields = rendered.split('\n').filter(line => /^  (shape|color|border):/.test(line));
+    expect(subfields).toEqual(['  shape: document', '  color: indigo', '  border: solid']);
+    const reference = renderFrontmatter('element-kind', {
+      identity: 'perspective',
+      contract: 'optional',
+      nodePresentation: { shape: 'document', color: 'indigo', border: 'solid' },
+    });
+    expect(rendered).toBe(reference);
   });
 
   it('renders partial nodePresentation', () => {

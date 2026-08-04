@@ -202,16 +202,33 @@ interface ApplyState {
   relationshipKinds: Map<string, RelationshipKind>;
   relationships: Map<string, Relationship>;
   views: Map<string, AuthoredView>;
+  /** element identities whose state entry is already an independent copy owned by this apply */
+  ownedElements: Set<string>;
 }
 
 function cloneState(base: SemanticModel): ApplyState {
   return {
-    elements: new Map(base.elements.map(item => [item.declaration.identity, structuredClone(item)])),
-    elementKinds: new Map(base.elementKinds.map(item => [item.identity, structuredClone(item)])),
-    relationshipKinds: new Map(base.relationshipKinds.map(item => [item.identity, structuredClone(item)])),
-    relationships: new Map(base.relationships.map(item => [relationshipIdentity(item), structuredClone(item)])),
-    views: new Map(base.views.map(item => [item.identity, structuredClone(item)])),
+    elements: new Map(base.elements.map(item => [item.declaration.identity, item])),
+    elementKinds: new Map(base.elementKinds.map(item => [item.identity, item])),
+    relationshipKinds: new Map(base.relationshipKinds.map(item => [item.identity, item])),
+    relationships: new Map(base.relationships.map(item => [relationshipIdentity(item), item])),
+    views: new Map(base.views.map(item => [item.identity, item])),
+    ownedElements: new Set(),
   };
+}
+
+/** Clones a host element plus its requirements array on the first requirement write, so the base is never mutated. */
+function ensureOwnedElement(state: ApplyState, host: string): ModelElement | undefined {
+  const element = state.elements.get(host);
+  if (!element) return undefined;
+  if (state.ownedElements.has(host)) return element;
+  const owned: ModelElement = {
+    declaration: element.declaration,
+    requirements: [...element.requirements],
+  };
+  state.elements.set(host, owned);
+  state.ownedElements.add(host);
+  return owned;
 }
 
 function applyEntry(state: ApplyState, entry: DeltaEntry, touched: Set<string>, diagnostics: ModelDiagnostic[]): void {
@@ -223,20 +240,21 @@ function applyEntry(state: ApplyState, entry: DeltaEntry, touched: Set<string>, 
       diagnostics.push(error(`${entry.operation}_IDENTITY_MISSING`, '', `Requirement host element does not exist: ${host}`, entry.identity));
       return;
     }
-    const index = element.requirements.findIndex(item => item.name === name);
+    const owned = ensureOwnedElement(state, host)!;
+    const index = owned.requirements.findIndex(item => item.name === name);
     if (entry.operation === 'ADDED') {
       if (index >= 0) {
         diagnostics.push(error('ADDED_IDENTITY_EXISTS', '', `ADDED requirement already exists: ${entry.identity}`, entry.identity));
         return;
       }
-      element.requirements.push(entry.target as Requirement);
+      owned.requirements.push(entry.target as Requirement);
     } else if (index < 0) {
       diagnostics.push(error(`${entry.operation}_IDENTITY_MISSING`, '', `${entry.operation} requirement does not exist: ${entry.identity}`, entry.identity));
       return;
     } else if (entry.operation === 'REMOVED') {
-      element.requirements.splice(index, 1);
+      owned.requirements.splice(index, 1);
     } else {
-      element.requirements[index] = entry.target as Requirement;
+      owned.requirements[index] = entry.target as Requirement;
     }
     touched.add(host);
     return;

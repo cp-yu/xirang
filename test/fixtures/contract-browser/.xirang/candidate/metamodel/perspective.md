@@ -2,6 +2,10 @@
 entity: element-kind
 identity: perspective
 contract: optional
+nodePresentation:
+  shape: document
+  color: indigo
+  border: solid
 parents:
   - project
   - perspective

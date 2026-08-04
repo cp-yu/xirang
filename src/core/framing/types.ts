@@ -1,9 +1,11 @@
+import type { NodeBorder, NodeColor, NodeShape } from '../model/types.js';
+
 export type RemovalOperation = 'REMOVED';
 
 export interface NodePresentationTarget {
-  shape?: string;
-  color?: string;
-  border?: string;
+  shape?: NodeShape;
+  color?: NodeColor;
+  border?: NodeBorder;
 }
 
 export interface ElementKindTarget {

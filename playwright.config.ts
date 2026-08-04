@@ -17,12 +17,12 @@ export default defineConfig({
   projects: [
     {
       name: 'desktop',
-      grep: /browses Element Contracts|opens an Authored View|keeps View source|browses Model View|handles ADDED projection|expands in place|browses the complete candidate model|reviews candidate changes in diff only mode|keeps invalid candidate sources diagnosable|shows candidate cards on the landing page/,
+      grep: /browses Element Contracts|opens an Authored View|keeps View source|browses Model View|handles ADDED projection|expands in place|browses the complete candidate model|reviews candidate changes in diff only mode|keeps invalid candidate sources diagnosable|shows candidate cards on the landing page|applies kind presentation|keeps operation color/,
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'mobile',
-      grep: /mobile Contract dialog|browses Model View|handles ADDED projection|browses the complete candidate model|reviews candidate changes in diff only mode|keeps invalid candidate sources diagnosable|shows candidate cards on the landing page/,
+      grep: /mobile Contract dialog|browses Model View|handles ADDED projection|browses the complete candidate model|reviews candidate changes in diff only mode|keeps invalid candidate sources diagnosable|shows candidate cards on the landing page|applies kind presentation|keeps operation color/,
       use: { ...devices['Pixel 7'] },
     },
   ],

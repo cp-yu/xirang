@@ -5,6 +5,7 @@ import {
   type XirangDiffOperation,
   type XirangElementDeclaration,
   type XirangRelationship,
+  type XirangSemanticModel,
   type XirangViewSource,
   xirangViewSourceRevision,
 } from './ContractLoaderContext'
@@ -199,7 +200,7 @@ function createNode(
   geometry: Geometry,
   operation?: XirangDiffOperation,
   hasChildren = false,
-  presentation?: { shape: ViewNode['shape']; color: ViewNode['color']; modelRef?: ViewNode['modelRef'] },
+  presentation?: { shape: ViewNode['shape']; color: ViewNode['color']; border?: ViewNode['style']['border']; modelRef?: ViewNode['modelRef'] },
 ): ViewNode {
   return {
     id: declaration.identity,
@@ -218,7 +219,7 @@ function createNode(
     },
     shape: presentation?.shape ?? 'rectangle',
     color: operation ? operationColor[operation] : presentation?.color ?? 'primary',
-    style: { opacity: 15, size: 'md' },
+    style: { opacity: 15, size: 'md', ...(presentation?.border ? { border: presentation.border } : {}) },
     kind: 'el',
     ...geometry,
   } as unknown as ViewNode
@@ -253,6 +254,29 @@ function createEdge(
   } as unknown as ViewEdge
 }
 
+type KindStyle = { shape?: ViewNode['shape']; color?: ViewNode['color']; border?: ViewNode['style']['border'] }
+
+/**
+ * Kind-scoped global default presentation, resolved from the source's own elementKinds so Model,
+ * Candidate and Change-derived sources apply the same Kind presentation uniformly. `modelRef`
+ * remains the rendered Model View's identity anchor when available. Builds a first-wins map so
+ * each materialization resolves every kind's style once instead of per visible node.
+ */
+function kindStylesByKind(architecture: XirangSemanticModel | undefined): Map<string, KindStyle> {
+  const styles = new Map<string, KindStyle>()
+  for (const elementKind of architecture?.elementKinds ?? []) {
+    if (styles.has(elementKind.identity)) continue
+    const presentation = elementKind.nodePresentation
+    if (!presentation) continue
+    const style: KindStyle = {}
+    if (presentation.shape) style.shape = presentation.shape as ViewNode['shape']
+    if (presentation.color) style.color = presentation.color as ViewNode['color']
+    if (presentation.border) style.border = presentation.border as ViewNode['style']['border']
+    if (Object.keys(style).length > 0) styles.set(elementKind.identity, style)
+  }
+  return styles
+}
+
 /**
  * Identity is the only alignment key: node ids, parents and edge endpoints are all identities.
  * The Model View DiagramView is consulted for geometry alone, keyed by the `elementId` metadata the
@@ -284,10 +308,12 @@ export function materializeXirangArchitectureView(
     }
     // Include elements whose requirements/scenarios changed (contract-only deltas).
     const contractOnlyIds: string[] = []
+    const seenContractOnlyIds = new Set<string>()
     for (const entry of source.diff?.entries ?? []) {
       if (entry.kind === 'requirement' || entry.kind === 'scenario') {
         const elementId = entry.identity.split('#')[0]!
-        if (!declarationEntries.has(elementId) && !contractOnlyIds.includes(elementId)) {
+        if (!declarationEntries.has(elementId) && !seenContractOnlyIds.has(elementId)) {
+          seenContractOnlyIds.add(elementId)
           contractOnlyIds.push(elementId)
         }
       }
@@ -374,11 +400,16 @@ export function materializeXirangArchitectureView(
     }
   }
 
+  const kindStyles = kindStylesByKind(architecture)
   const nodes = visibleDeclarations.map(declaration => {
     const modelNode = modelNodes.get(declaration.identity)
-    const presentation = modelNode
-      ? { shape: modelNode.shape, color: modelNode.color, modelRef: modelNode.modelRef }
-      : undefined
+    const kindStyle = kindStyles.get(declaration.kind)
+    const presentation = {
+      shape: kindStyle?.shape ?? modelNode?.shape ?? 'rectangle',
+      color: kindStyle?.color ?? modelNode?.color ?? 'primary',
+      border: kindStyle?.border ?? modelNode?.style?.border,
+      modelRef: (modelNode?.modelRef ?? declaration.identity) as ViewNode['modelRef'],
+    }
     const operation = source.source === 'candidate'
       ? undefined
       : declarationEntries.get(declaration.identity)?.operation

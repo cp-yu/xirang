@@ -1,6 +1,6 @@
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { renderScalar, splitFrontmatter } from '../model/frontmatter.js';
-import { NODE_BORDER_VALUES, NODE_COLOR_VALUES, NODE_SHAPE_VALUES } from '../model/types.js';
+import { validateNodePresentation } from '../model/node-presentation.js';
 import { validateExplorationId, validateFramingSlug } from './paths.js';
 import type {
   ChangeStructuralDefinitionDocument,
@@ -95,33 +95,19 @@ function array(value: unknown, label: string): unknown[] {
 }
 
 function parseNodePresentationTarget(raw: unknown, label: string): NodePresentationTarget | undefined {
-  if (raw === undefined || raw === null) return undefined;
-  if (typeof raw !== 'object' || Array.isArray(raw)) {
+  const validation = validateNodePresentation(raw);
+  if (validation.absent) return undefined;
+  if (validation.notMapping) {
     fail('INVALID_PAYLOAD', `${label} must be a mapping`);
   }
-  const obj = raw as Record<string, unknown>;
-  const allowed = new Set<string>(['shape', 'color', 'border']);
-  const extras = Object.keys(obj).filter(k => !allowed.has(k));
-  if (extras.length > 0) {
-    fail('INVALID_PAYLOAD', `${label} contains unknown fields: ${extras.join(', ')}`);
+  if (validation.unknownFields.length > 0) {
+    fail('INVALID_PAYLOAD', `${label} contains unknown fields: ${validation.unknownFields.join(', ')}`);
   }
-  const shape = obj.shape;
-  const color = obj.color;
-  const border = obj.border;
-  if (shape !== undefined && (typeof shape !== 'string' || !NODE_SHAPE_VALUES.includes(shape as never))) {
-    fail('INVALID_PAYLOAD', `${label}.shape has invalid value: ${String(shape)}`);
+  const firstInvalid = validation.invalidValues[0];
+  if (firstInvalid) {
+    fail('INVALID_PAYLOAD', `${label}.${firstInvalid.field} has invalid value: ${String(firstInvalid.value)}`);
   }
-  if (color !== undefined && (typeof color !== 'string' || !NODE_COLOR_VALUES.includes(color as never))) {
-    fail('INVALID_PAYLOAD', `${label}.color has invalid value: ${String(color)}`);
-  }
-  if (border !== undefined && (typeof border !== 'string' || !NODE_BORDER_VALUES.includes(border as never))) {
-    fail('INVALID_PAYLOAD', `${label}.border has invalid value: ${String(border)}`);
-  }
-  const result: NodePresentationTarget = {};
-  if (shape !== undefined) result.shape = shape as string;
-  if (color !== undefined) result.color = color as string;
-  if (border !== undefined) result.border = border as string;
-  return result;
+  return validation.presentation as NodePresentationTarget;
 }
 
 function parseElementKinds(value: unknown): ChangeStructuralDefinitionPayload['elementKinds'] {

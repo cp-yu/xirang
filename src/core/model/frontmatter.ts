@@ -17,6 +17,9 @@ export function frontmatterKeys(entity: EntityType): readonly string[] {
   return KEY_ORDER[entity];
 }
 
+/** Fixed subfield order for the nested `nodePresentation` mapping. */
+const NODE_PRESENTATION_KEY_ORDER = ['shape', 'color', 'border'] as const;
+
 export function normalizeLineEndings(content: string): string {
   return content.replace(/\r\n?/g, '\n');
 }
@@ -68,7 +71,9 @@ function scalar(value: unknown): string {
 }
 
 function renderMapping(key: string, obj: Record<string, unknown>): string {
-  const keys = Object.keys(obj);
+  const keys = key === 'nodePresentation'
+    ? NODE_PRESENTATION_KEY_ORDER.filter(k => k in obj)
+    : Object.keys(obj);
   if (keys.length === 0) return `${key}: {}`;
   const lines = keys.map(k => `  ${k}: ${scalar(obj[k])}`);
   return `${key}:\n${lines.join('\n')}\n`;

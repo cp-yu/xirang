@@ -42,6 +42,11 @@ export interface XirangModelElement {
   declaration: XirangElementDeclaration
 }
 
+export interface XirangElementKind {
+  identity: string
+  nodePresentation?: { shape?: string; color?: string; border?: string }
+}
+
 export interface XirangRelationship {
   source: string
   kind: string
@@ -52,6 +57,7 @@ export interface XirangRelationship {
 export interface XirangSemanticModel {
   elements: XirangModelElement[]
   relationships: XirangRelationship[]
+  elementKinds?: XirangElementKind[]
 }
 
 export interface XirangViewDiagnostic {

@@ -245,6 +245,26 @@ describe('materializeXirangArchitectureView', () => {
     expect(target.hash).toContain(':xirang:')
   })
 
+  it('deduplicates contract-only identities across diff entries', () => {
+    const source: XirangViewSource = {
+      ...viewSource,
+      diff: {
+        summary: { total: 3, ADDED: 0, MODIFIED: 3, REMOVED: 0 },
+        entries: [
+          { kind: 'requirement', identity: 'alpha.id#One', operation: 'MODIFIED' },
+          { kind: 'requirement', identity: 'alpha.id#Two', operation: 'MODIFIED' },
+          { kind: 'scenario', identity: 'alpha.id#One#case', operation: 'MODIFIED' },
+        ],
+      },
+    }
+
+    const target = materializeXirangArchitectureView(modelView, source, 'diff')
+    const alphaNodes = target.nodes.filter(node => node.id === 'alpha.id')
+    expect(alphaNodes).toHaveLength(1)
+    expect(target.nodes.map(node => node.id)).toEqual(['alpha.id'])
+    expect(target.hash).toContain(':xirang:')
+  })
+
   it('falls back along the previous ancestor path when focus disappears', () => {
     const target = materializeXirangArchitectureView(
       modelView,
@@ -624,6 +644,75 @@ describe('materializeXirangArchitectureView expand-in-place', () => {
 
     const expanded = materializeXirangArchitectureView(modelView, related, 'full', 'a', [], new Set(['b']))
     expect(expanded.edges.map(edge => [edge.source, edge.target])).toEqual([['c', 'a.leaf']])
+  })
+})
+
+describe('materializeXirangArchitectureView kind presentation', () => {
+  const presented = (kind = 'perspective'): XirangViewSource => ({
+    ...viewSource,
+    architecture: {
+      elements: [
+        declaration('project.root', 'Project', 'Project', null, 'project'),
+        declaration('alpha.id', 'Alpha', 'Alpha', 'project.root', kind),
+        declaration('gamma.id', 'Gamma', 'Gamma', 'project.root', kind),
+      ],
+      relationships: [],
+      elementKinds: [
+        { identity: 'project', nodePresentation: { shape: 'rectangle', color: 'blue' } },
+        { identity: kind, nodePresentation: { shape: 'document', color: 'indigo', border: 'solid' } },
+      ],
+    },
+    diff: { summary: { total: 0, ADDED: 0, MODIFIED: 0, REMOVED: 0 }, entries: [] },
+  })
+
+  it('applies kind presentation uniformly across sources', () => {
+    const model: XirangViewSource = {
+      ...presented(),
+      source: 'semantic-model',
+      label: 'Model View',
+    }
+    const candidate: XirangViewSource = {
+      ...presented(),
+      source: 'candidate',
+      label: 'Candidate',
+      id: 'candidate',
+      changeFingerprint: 'candidate-fp',
+    }
+    const change: XirangViewSource = {
+      ...presented(),
+      source: 'change-derived-view',
+      label: 'change',
+      id: 'change:test',
+    }
+
+    for (const source of [model, candidate, change]) {
+      const target = materializeXirangArchitectureView(modelView, source, 'full', 'project.root')
+      const alpha = target.nodes.find(node => node.id === 'alpha.id')!
+      const gamma = target.nodes.find(node => node.id === 'gamma.id')!
+      expect(alpha).toMatchObject({ shape: 'document', color: 'indigo' })
+      expect(gamma).toMatchObject({ shape: 'document', color: 'indigo' })
+    }
+  })
+
+  it('keeps operation color above kind color while preserving shape', () => {
+    const source: XirangViewSource = {
+      ...presented(),
+      diff: {
+        summary: { total: 1, ADDED: 1, MODIFIED: 0, REMOVED: 0 },
+        entries: [{
+          kind: 'element-declaration',
+          identity: 'gamma.id',
+          operation: 'ADDED',
+          after: presented().architecture!.elements.find(item => item.declaration.identity === 'gamma.id')!.declaration,
+        }],
+      },
+    }
+    const target = materializeXirangArchitectureView(modelView, source, 'full', 'project.root')
+    const alpha = target.nodes.find(node => node.id === 'alpha.id')!
+    const gamma = target.nodes.find(node => node.id === 'gamma.id')!
+
+    expect(alpha).toMatchObject({ shape: 'document', color: 'indigo' })
+    expect(gamma).toMatchObject({ shape: 'document', color: 'green' })
   })
 })
 

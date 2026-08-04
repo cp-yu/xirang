@@ -1,0 +1,7 @@
+{
+  "method": "branch",
+  "branchName": "add-element-kind-node-presentation",
+  "originalBranch": "main",
+  "baseCommit": "7579e4e20547a46b5a63bd35ddc4c1122947e309",
+  "phase2BaselineCommit": "73aaebb998565ab167b7f00a0981b28984d8a9a4"
+}

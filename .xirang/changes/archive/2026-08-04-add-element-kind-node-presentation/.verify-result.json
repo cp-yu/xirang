@@ -1,0 +1,1141 @@
+{
+  "timestamp": "2026-08-04T06:20:57.938Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "requirement": "视觉选择不构成规范性语义 / 使用规范 Kind 字段",
+      "task": "Task 4: LikeC4 adapter 与 Browser 统一消费",
+      "message": "Design decision 2 partially violated: browser materializer duplicates the Xirang→LikeC4 mapping in kindPresentation instead of sharing the single presentationAdapter function required by design.md",
+      "recommendation": "Extract the shared mapping (e.g. publish presentation-adapter from a package the likec4/diagram can import) or add a generator-vs-browser parity test asserting all enum values render identically; note the package boundary in design.md as an explicit deviation",
+      "evidence": [
+        ".xirang/changes/add-element-kind-node-presentation/design.md",
+        "likec4/packages/diagram/src/xirang/architectureView.ts",
+        "src/core/likec4/presentation-adapter.ts",
+        "src/core/likec4/generator.ts"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "requirement": "使用规范 Kind 字段",
+      "task": "Task 6: E2E 与边界验证",
+      "message": "Unaccounted change: playwright.config.ts adds the two new e2e test names to desktop/mobile grep filters; benign test infrastructure required for the new E2E to run in standard projects",
+      "recommendation": "Attribute playwright.config.ts to Task 6 in tasks.md Files section",
+      "evidence": [
+        "playwright.config.ts"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "requirement": "使用规范 Kind 字段",
+      "task": "Task 5 / Task 6",
+      "message": "Unaccounted change: 4 contract-browser fixture metamodel files (capability + perspective, model + candidate) gain nodePresentation; benign test fixtures required by E2E C18/C19 assertions",
+      "recommendation": "Attribute the fixture paths to Task 5/6 in tasks.md Files section",
+      "evidence": [
+        "test/fixtures/contract-browser/.xirang/model/metamodel/perspective.md",
+        "test/fixtures/contract-browser/.xirang/candidate/metamodel/perspective.md",
+        "test/fixtures/contract-browser/.xirang/model/metamodel/capability.md",
+        "test/fixtures/contract-browser/.xirang/candidate/metamodel/capability.md"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "requirement": "使用规范 Kind 字段",
+      "task": null,
+      "message": "Unaccounted change: test/core/typecheck.test.ts adds a tsc --noEmit build-gate test guarding the nodePresentation type changes; benign test infrastructure, passes",
+      "recommendation": "Attribute test/core/typecheck.test.ts to a task in tasks.md Files section",
+      "evidence": [
+        "test/core/typecheck.test.ts"
+      ]
+    }
+  ],
+  "tasksFileHash": "2258e444b91f3f9d73914fd78430af98c8a327ebdf889516a239fa79d40e9885",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/add-element-kind-node-presentation/design.md",
+      ".xirang/changes/add-element-kind-node-presentation/elements/metamodel.md",
+      ".xirang/changes/add-element-kind-node-presentation/elements/visual-presentation.md",
+      ".xirang/changes/add-element-kind-node-presentation/metamodel/perspective.md",
+      ".xirang/changes/add-element-kind-node-presentation/proposal.md",
+      ".xirang/changes/add-element-kind-node-presentation/tasks.md",
+      ".xirang/model/elements/metamodel.md",
+      ".xirang/model/elements/visual-presentation.md",
+      ".xirang/model/metamodel/perspective.md",
+      "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+      "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+      "likec4/packages/diagram/src/xirang/architectureView.ts",
+      "playwright.config.ts",
+      "src/core/framing/baseline.ts",
+      "src/core/framing/document.ts",
+      "src/core/framing/types.ts",
+      "src/core/likec4/definition.ts",
+      "src/core/likec4/generator.ts",
+      "src/core/likec4/presentation-adapter.ts",
+      "src/core/model/delta.ts",
+      "src/core/model/frontmatter.ts",
+      "src/core/model/parser.ts",
+      "src/core/model/types.ts",
+      "src/core/semantic-diff.ts",
+      "src/core/view.ts",
+      "test/core/framing/baseline.test.ts",
+      "test/core/framing/document.test.ts",
+      "test/core/likec4/generator.test.ts",
+      "test/core/model/delta.test.ts",
+      "test/core/model/frontmatter.test.ts",
+      "test/core/model/parser.test.ts",
+      "test/core/semantic-diff.test.ts",
+      "test/core/typecheck.test.ts",
+      "test/e2e/semantic-browser-node-presentation.spec.ts",
+      "test/fixtures/contract-browser/.xirang/candidate/metamodel/capability.md",
+      "test/fixtures/contract-browser/.xirang/candidate/metamodel/perspective.md",
+      "test/fixtures/contract-browser/.xirang/model/metamodel/capability.md",
+      "test/fixtures/contract-browser/.xirang/model/metamodel/perspective.md"
+    ],
+    "evidenceFingerprint": "03f217079eb2158b8efee9f2de9bdf1a17b9cab92b61780a4a4cbae0fd04a823",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/add-element-kind-node-presentation/design.md",
+        "hash": "4cdc9c2d27e7b664779b1737a2ef299e503241a479eb0e045ce2dfd1b80a76bd"
+      },
+      {
+        "path": ".xirang/changes/add-element-kind-node-presentation/elements/metamodel.md",
+        "hash": "020904651775281083f78fa6712f5a0f078de98d4c14d90a041cdb2ae7aff3f3"
+      },
+      {
+        "path": ".xirang/changes/add-element-kind-node-presentation/elements/visual-presentation.md",
+        "hash": "a81c8d40ea055602357beaac0b181b42cbf8cfe80efbc13e770bd7376533c2da"
+      },
+      {
+        "path": ".xirang/changes/add-element-kind-node-presentation/metamodel/perspective.md",
+        "hash": "24364dc702403c8235820d077a2097601a155417cf42d4012042e497feee45c1"
+      },
+      {
+        "path": ".xirang/changes/add-element-kind-node-presentation/proposal.md",
+        "hash": "3cf9f881723c6793f15fb3f4c1f61250c2ef92e0cdd228152d03d17dda3ab237"
+      },
+      {
+        "path": ".xirang/changes/add-element-kind-node-presentation/tasks.md",
+        "hash": "2258e444b91f3f9d73914fd78430af98c8a327ebdf889516a239fa79d40e9885"
+      },
+      {
+        "path": ".xirang/model/elements/metamodel.md",
+        "hash": "cdcb050e5071d9c1f2c0f961cddc0d6f49cc402deb9c8d0282655bbb1bbd471d"
+      },
+      {
+        "path": ".xirang/model/elements/visual-presentation.md",
+        "hash": "aab8ed63b765712771d696c74ce984d71f2ee09400aaa38ea0afb82000a78a66"
+      },
+      {
+        "path": ".xirang/model/metamodel/perspective.md",
+        "hash": "058ea9430db6401b5a3f81b9fec3316d7c25513db99ff1840339f9a6cac0c75b"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+        "hash": "7a2ec03f1483602d9e86a0de92bd30f515cb27151fe23ec8efa4d14a3b5cea0d"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+        "hash": "21dbcbc8ab4a75337daf9a1ba5bf56c455e23b905ddb601e0739d5ece0c70fff"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+        "hash": "a202c2c9024a9396dcad46c833f93f14a45658974456b4dcfd62b164d93c2fc6"
+      },
+      {
+        "path": "playwright.config.ts",
+        "hash": "f3c551f361bff247eeb295ce1be86de23b8c05d413aef208f4a2a9e031a4c8e0"
+      },
+      {
+        "path": "src/core/framing/baseline.ts",
+        "hash": "652c007ea8e77db31e3763dd4e6fb510eadc2d5c60d420adbf6fea9cb64c40f3"
+      },
+      {
+        "path": "src/core/framing/document.ts",
+        "hash": "7cdbe71e2cdcfa8cef02067edf3e57a489c94a5469a595e1e59e6448e93253f0"
+      },
+      {
+        "path": "src/core/framing/types.ts",
+        "hash": "a99df132e4c4500f342f0e18f56aca5686ebac29fa0cea9b8cf78518baa3188a"
+      },
+      {
+        "path": "src/core/likec4/definition.ts",
+        "hash": "2393d8e4a6b9ec583a2a0f0a4cec20cc424a7a76547eff886cdba8920d6a0cc7"
+      },
+      {
+        "path": "src/core/likec4/generator.ts",
+        "hash": "6edaaa5f554593be50b5098b310dfce95dd11d6635f5e5fcabca9ef5cea5f27e"
+      },
+      {
+        "path": "src/core/likec4/presentation-adapter.ts",
+        "hash": "875910364179eed79fbc267db84af04ee8d8f95ec5e9b1d6cb0a7d74d13fda2e"
+      },
+      {
+        "path": "src/core/model/delta.ts",
+        "hash": "227fe68aa7acc6a5bc83519a6ec9f76645e52c2e57342feab263cdf3afc3c434"
+      },
+      {
+        "path": "src/core/model/frontmatter.ts",
+        "hash": "d93230d7290b3e0507ac5bb1c946e4a35e878a075bf5eb60da83b4c98470988d"
+      },
+      {
+        "path": "src/core/model/parser.ts",
+        "hash": "5c06f4eee81a47595d9496799c550ece205a60bee4f2a37c4644f909c7569b01"
+      },
+      {
+        "path": "src/core/model/types.ts",
+        "hash": "bd02f36bab8893b674d09860ce15c082a2dd3083581d9da063ca44847ea02285"
+      },
+      {
+        "path": "src/core/semantic-diff.ts",
+        "hash": "08772a6b6aa0a51a3ee4f96d10c0f879154d68a7bdeb5de51f7e830fc6d099a9"
+      },
+      {
+        "path": "src/core/view.ts",
+        "hash": "a3a3a636530ca2e814711491c22f82441f5736d21b158197eec3fc7fcbfd8856"
+      },
+      {
+        "path": "test/core/framing/baseline.test.ts",
+        "hash": "97f52df2c46635b183ae5bd9af1199d77b2edb689c760f517acbbff4797c2662"
+      },
+      {
+        "path": "test/core/framing/document.test.ts",
+        "hash": "b37c5614ab9bf2657a38f738257c988c804d08fe9dfdbce37dfb4bfa07fcc387"
+      },
+      {
+        "path": "test/core/likec4/generator.test.ts",
+        "hash": "77ec19375188c3ef2950b9de9eb6a7799393e9f015f119c96bfb7fa60a59e98b"
+      },
+      {
+        "path": "test/core/model/delta.test.ts",
+        "hash": "47d3e5371e02511be0da7c35903e31b54b890f451fc17036c7046fb5d53d0507"
+      },
+      {
+        "path": "test/core/model/frontmatter.test.ts",
+        "hash": "bbf215d7a211ce5094fe9c9f35cb2fa6702f14f63a602c52e9a92dcf36780c90"
+      },
+      {
+        "path": "test/core/model/parser.test.ts",
+        "hash": "51d6dbf35473f31730df28029c63f8283d0552f508cedbb8407ea29aa6b8e43a"
+      },
+      {
+        "path": "test/core/semantic-diff.test.ts",
+        "hash": "a0f9fdf41a78e214cb147cfb770d085ac3b154988bebe9cfbec529c7afeb59d1"
+      },
+      {
+        "path": "test/core/typecheck.test.ts",
+        "hash": "b290e77b8d387b3e6e1e6985a3d0a92959bbdfea72e440fef3de012bd6fc5523"
+      },
+      {
+        "path": "test/e2e/semantic-browser-node-presentation.spec.ts",
+        "hash": "5004c894a59cfc07b08b252cb168afbfde38d5b078771a00ddc8212e769530bb"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/capability.md",
+        "hash": "0a5f4c33d5f8eee3fc309282a35efe6147eae59f696e5d7c1eb4411907bfe6b1"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/perspective.md",
+        "hash": "d9a7d468cb5771fba710172c6e703b77ba3ef49c276c9e6144c3d144adc75744"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/model/metamodel/capability.md",
+        "hash": "0a5f4c33d5f8eee3fc309282a35efe6147eae59f696e5d7c1eb4411907bfe6b1"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/model/metamodel/perspective.md",
+        "hash": "d9a7d468cb5771fba710172c6e703b77ba3ef49c276c9e6144c3d144adc75744"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "9b83a90ddaa41322bd43a19c13c4c8be8f4baf90",
+    "gitDiffSummary": "Working-tree diff (19 modified + 3 untracked) plus committed feature commits (aa93a1552..HEAD, which also carries the separately-archived browser-view-navigation-history change). Scope reviewed: model parser/serializer, delta, semantic-diff, view fingerprints, framing (types/document/baseline), LikeC4 adapter+generator, browser materializer, 6 task test files, e2e + fixtures + playwright config.",
+    "timestamp": "2026-08-04T08:02:24.855Z"
+  },
+  "optimization": {
+    "status": "IMPROVED",
+    "attempts": [
+      {
+        "timestamp": "2026-08-04T06:30:15.550Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-04T06:35:45.815Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-04T06:44:02.243Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-04T06:50:56.287Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-04T06:56:22.697Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-04T07:08:13.483Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-04T07:15:53.295Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-04T07:23:33.924Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-04T07:31:33.377Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-04T07:46:41.655Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-04T07:53:50.283Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-04T08:02:24.839Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-04T08:06:47.355Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-08-04T06:20:57.938Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "requirement": "视觉选择不构成规范性语义 / 使用规范 Kind 字段",
+          "task": "Task 4: LikeC4 adapter 与 Browser 统一消费",
+          "message": "Design decision 2 partially violated: browser materializer duplicates the Xirang→LikeC4 mapping in kindPresentation instead of sharing the single presentationAdapter function required by design.md",
+          "recommendation": "Extract the shared mapping (e.g. publish presentation-adapter from a package the likec4/diagram can import) or add a generator-vs-browser parity test asserting all enum values render identically; note the package boundary in design.md as an explicit deviation",
+          "evidence": [
+            ".xirang/changes/add-element-kind-node-presentation/design.md",
+            "likec4/packages/diagram/src/xirang/architectureView.ts",
+            "src/core/likec4/presentation-adapter.ts",
+            "src/core/likec4/generator.ts"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "requirement": "使用规范 Kind 字段",
+          "task": "Task 6: E2E 与边界验证",
+          "message": "Unaccounted change: playwright.config.ts adds the two new e2e test names to desktop/mobile grep filters; benign test infrastructure required for the new E2E to run in standard projects",
+          "recommendation": "Attribute playwright.config.ts to Task 6 in tasks.md Files section",
+          "evidence": [
+            "playwright.config.ts"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "requirement": "使用规范 Kind 字段",
+          "task": "Task 5 / Task 6",
+          "message": "Unaccounted change: 4 contract-browser fixture metamodel files (capability + perspective, model + candidate) gain nodePresentation; benign test fixtures required by E2E C18/C19 assertions",
+          "recommendation": "Attribute the fixture paths to Task 5/6 in tasks.md Files section",
+          "evidence": [
+            "test/fixtures/contract-browser/.xirang/model/metamodel/perspective.md",
+            "test/fixtures/contract-browser/.xirang/candidate/metamodel/perspective.md",
+            "test/fixtures/contract-browser/.xirang/model/metamodel/capability.md",
+            "test/fixtures/contract-browser/.xirang/candidate/metamodel/capability.md"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "requirement": "使用规范 Kind 字段",
+          "task": null,
+          "message": "Unaccounted change: test/core/typecheck.test.ts adds a tsc --noEmit build-gate test guarding the nodePresentation type changes; benign test infrastructure, passes",
+          "recommendation": "Attribute test/core/typecheck.test.ts to a task in tasks.md Files section",
+          "evidence": [
+            "test/core/typecheck.test.ts"
+          ]
+        }
+      ],
+      "tasksFileHash": "2258e444b91f3f9d73914fd78430af98c8a327ebdf889516a239fa79d40e9885",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/add-element-kind-node-presentation/design.md",
+          ".xirang/changes/add-element-kind-node-presentation/elements/metamodel.md",
+          ".xirang/changes/add-element-kind-node-presentation/elements/visual-presentation.md",
+          ".xirang/changes/add-element-kind-node-presentation/metamodel/perspective.md",
+          ".xirang/changes/add-element-kind-node-presentation/proposal.md",
+          ".xirang/changes/add-element-kind-node-presentation/tasks.md",
+          ".xirang/model/elements/metamodel.md",
+          ".xirang/model/elements/visual-presentation.md",
+          ".xirang/model/metamodel/perspective.md",
+          "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+          "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+          "likec4/packages/diagram/src/xirang/architectureView.ts",
+          "playwright.config.ts",
+          "src/core/framing/baseline.ts",
+          "src/core/framing/document.ts",
+          "src/core/framing/types.ts",
+          "src/core/likec4/definition.ts",
+          "src/core/likec4/generator.ts",
+          "src/core/likec4/presentation-adapter.ts",
+          "src/core/model/delta.ts",
+          "src/core/model/frontmatter.ts",
+          "src/core/model/parser.ts",
+          "src/core/model/types.ts",
+          "src/core/semantic-diff.ts",
+          "src/core/view.ts",
+          "test/core/framing/baseline.test.ts",
+          "test/core/framing/document.test.ts",
+          "test/core/likec4/generator.test.ts",
+          "test/core/model/delta.test.ts",
+          "test/core/model/frontmatter.test.ts",
+          "test/core/model/parser.test.ts",
+          "test/core/semantic-diff.test.ts",
+          "test/core/typecheck.test.ts",
+          "test/e2e/semantic-browser-node-presentation.spec.ts",
+          "test/fixtures/contract-browser/.xirang/candidate/metamodel/capability.md",
+          "test/fixtures/contract-browser/.xirang/candidate/metamodel/perspective.md",
+          "test/fixtures/contract-browser/.xirang/model/metamodel/capability.md",
+          "test/fixtures/contract-browser/.xirang/model/metamodel/perspective.md"
+        ],
+        "evidenceFingerprint": "cae33a8702a30541832d3e5db1000b423cbbb24c9ea7af1478dfcf638b4a9949",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/add-element-kind-node-presentation/design.md",
+            "hash": "4cdc9c2d27e7b664779b1737a2ef299e503241a479eb0e045ce2dfd1b80a76bd"
+          },
+          {
+            "path": ".xirang/changes/add-element-kind-node-presentation/elements/metamodel.md",
+            "hash": "020904651775281083f78fa6712f5a0f078de98d4c14d90a041cdb2ae7aff3f3"
+          },
+          {
+            "path": ".xirang/changes/add-element-kind-node-presentation/elements/visual-presentation.md",
+            "hash": "a81c8d40ea055602357beaac0b181b42cbf8cfe80efbc13e770bd7376533c2da"
+          },
+          {
+            "path": ".xirang/changes/add-element-kind-node-presentation/metamodel/perspective.md",
+            "hash": "24364dc702403c8235820d077a2097601a155417cf42d4012042e497feee45c1"
+          },
+          {
+            "path": ".xirang/changes/add-element-kind-node-presentation/proposal.md",
+            "hash": "3cf9f881723c6793f15fb3f4c1f61250c2ef92e0cdd228152d03d17dda3ab237"
+          },
+          {
+            "path": ".xirang/changes/add-element-kind-node-presentation/tasks.md",
+            "hash": "2258e444b91f3f9d73914fd78430af98c8a327ebdf889516a239fa79d40e9885"
+          },
+          {
+            "path": ".xirang/model/elements/metamodel.md",
+            "hash": "cdcb050e5071d9c1f2c0f961cddc0d6f49cc402deb9c8d0282655bbb1bbd471d"
+          },
+          {
+            "path": ".xirang/model/elements/visual-presentation.md",
+            "hash": "aab8ed63b765712771d696c74ce984d71f2ee09400aaa38ea0afb82000a78a66"
+          },
+          {
+            "path": ".xirang/model/metamodel/perspective.md",
+            "hash": "058ea9430db6401b5a3f81b9fec3316d7c25513db99ff1840339f9a6cac0c75b"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+            "hash": "56eb3e7c6bc2a21e39b9d331660a2f3a6776190a3414b6efe393579d584a2797"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+            "hash": "3bedb42287dbc955b518aa3314bb66e9143c1cc22c71672928e0371772f1988b"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+            "hash": "a202c2c9024a9396dcad46c833f93f14a45658974456b4dcfd62b164d93c2fc6"
+          },
+          {
+            "path": "playwright.config.ts",
+            "hash": "f3c551f361bff247eeb295ce1be86de23b8c05d413aef208f4a2a9e031a4c8e0"
+          },
+          {
+            "path": "src/core/framing/baseline.ts",
+            "hash": "652c007ea8e77db31e3763dd4e6fb510eadc2d5c60d420adbf6fea9cb64c40f3"
+          },
+          {
+            "path": "src/core/framing/document.ts",
+            "hash": "5e8d318926b478ed737db18ea704eda323dc684f7d245d8688b0a984000e8a8d"
+          },
+          {
+            "path": "src/core/framing/types.ts",
+            "hash": "a99df132e4c4500f342f0e18f56aca5686ebac29fa0cea9b8cf78518baa3188a"
+          },
+          {
+            "path": "src/core/likec4/definition.ts",
+            "hash": "2393d8e4a6b9ec583a2a0f0a4cec20cc424a7a76547eff886cdba8920d6a0cc7"
+          },
+          {
+            "path": "src/core/likec4/generator.ts",
+            "hash": "c0e0c0a7bd40d3331c6b3a4e1f9ecc70b2ba8149f8489f5a25588fc196eac1f7"
+          },
+          {
+            "path": "src/core/likec4/presentation-adapter.ts",
+            "hash": "875910364179eed79fbc267db84af04ee8d8f95ec5e9b1d6cb0a7d74d13fda2e"
+          },
+          {
+            "path": "src/core/model/delta.ts",
+            "hash": "47ea096bcb7f3e6439118323e620a66f00b96d68782fe4425f7b95114fd169ff"
+          },
+          {
+            "path": "src/core/model/frontmatter.ts",
+            "hash": "d93230d7290b3e0507ac5bb1c946e4a35e878a075bf5eb60da83b4c98470988d"
+          },
+          {
+            "path": "src/core/model/parser.ts",
+            "hash": "70b438f43aed14f47b5ea3832323302bcfb678e1029d764ac182cf745498c984"
+          },
+          {
+            "path": "src/core/model/types.ts",
+            "hash": "bd02f36bab8893b674d09860ce15c082a2dd3083581d9da063ca44847ea02285"
+          },
+          {
+            "path": "src/core/semantic-diff.ts",
+            "hash": "08772a6b6aa0a51a3ee4f96d10c0f879154d68a7bdeb5de51f7e830fc6d099a9"
+          },
+          {
+            "path": "src/core/view.ts",
+            "hash": "a3a3a636530ca2e814711491c22f82441f5736d21b158197eec3fc7fcbfd8856"
+          },
+          {
+            "path": "test/core/framing/baseline.test.ts",
+            "hash": "97f52df2c46635b183ae5bd9af1199d77b2edb689c760f517acbbff4797c2662"
+          },
+          {
+            "path": "test/core/framing/document.test.ts",
+            "hash": "b37c5614ab9bf2657a38f738257c988c804d08fe9dfdbce37dfb4bfa07fcc387"
+          },
+          {
+            "path": "test/core/likec4/generator.test.ts",
+            "hash": "4c0e81a0bb3f93b43e30af2a21cc073d69d0748adb71a136b1f3bf7210921d70"
+          },
+          {
+            "path": "test/core/model/delta.test.ts",
+            "hash": "6449edd5fd822351dd98492f9135c442019e4f53c8d0abaa9174634e9d92219b"
+          },
+          {
+            "path": "test/core/model/frontmatter.test.ts",
+            "hash": "bbf215d7a211ce5094fe9c9f35cb2fa6702f14f63a602c52e9a92dcf36780c90"
+          },
+          {
+            "path": "test/core/model/parser.test.ts",
+            "hash": "51d6dbf35473f31730df28029c63f8283d0552f508cedbb8407ea29aa6b8e43a"
+          },
+          {
+            "path": "test/core/semantic-diff.test.ts",
+            "hash": "a0f9fdf41a78e214cb147cfb770d085ac3b154988bebe9cfbec529c7afeb59d1"
+          },
+          {
+            "path": "test/core/typecheck.test.ts",
+            "hash": "b290e77b8d387b3e6e1e6985a3d0a92959bbdfea72e440fef3de012bd6fc5523"
+          },
+          {
+            "path": "test/e2e/semantic-browser-node-presentation.spec.ts",
+            "hash": "5004c894a59cfc07b08b252cb168afbfde38d5b078771a00ddc8212e769530bb"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/capability.md",
+            "hash": "0a5f4c33d5f8eee3fc309282a35efe6147eae59f696e5d7c1eb4411907bfe6b1"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/perspective.md",
+            "hash": "d9a7d468cb5771fba710172c6e703b77ba3ef49c276c9e6144c3d144adc75744"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/model/metamodel/capability.md",
+            "hash": "0a5f4c33d5f8eee3fc309282a35efe6147eae59f696e5d7c1eb4411907bfe6b1"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/model/metamodel/perspective.md",
+            "hash": "d9a7d468cb5771fba710172c6e703b77ba3ef49c276c9e6144c3d144adc75744"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "7579e4e20547a46b5a63bd35ddc4c1122947e309",
+        "gitDiffSummary": "Working-tree diff (19 modified + 3 untracked) plus committed feature commits (aa93a1552..HEAD, which also carries the separately-archived browser-view-navigation-history change). Scope reviewed: model parser/serializer, delta, semantic-diff, view fingerprints, framing (types/document/baseline), LikeC4 adapter+generator, browser materializer, 6 task test files, e2e + fixtures + playwright config."
+      }
+    },
+    "findings": [
+      {
+        "id": "OPT-20260804T063015546Z-01",
+        "status": "resolved",
+        "location": {
+          "files": [
+            "likec4/packages/diagram/src/xirang/architectureView.ts"
+          ],
+          "symbols": [
+            "materializeXirangArchitectureView"
+          ]
+        },
+        "opportunity": "Precompute a first-wins Map<kind identity, presentation style> once instead of per-node linear find.",
+        "impact": "O(nodes x kinds) -> O(nodes + kinds) with identical node styling.",
+        "evidence": [
+          "architectureView.ts kindPresentation per node",
+          "architectureView.spec.ts uniform sources"
+        ],
+        "recommendation": "Precompute kindStylesByKind once.",
+        "keyDesign": "First-wins Map keyed by kind identity; same field copy.",
+        "preservationConstraints": [
+          "Same style across sources",
+          "first-wins",
+          "undefined fallbacks",
+          "operation color priority"
+        ],
+        "implementationOutline": [
+          "build map once",
+          "resolve per node",
+          "run specs"
+        ],
+        "validation": [
+          "architectureView.spec.ts"
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Browser hot path."
+      },
+      {
+        "id": "OPT-20260804T063015546Z-02",
+        "status": "resolved",
+        "location": {
+          "files": [
+            "src/core/likec4/generator.ts"
+          ],
+          "symbols": [
+            "renderSpecification"
+          ]
+        },
+        "opportunity": "renderSpecification re-finds the element kind per item (O(K^2)).",
+        "impact": "Precompute styleByIdentity map once.",
+        "evidence": [
+          "generator.ts:40-41"
+        ],
+        "recommendation": "Precompute first-wins style map.",
+        "keyDesign": "styleByIdentity built once; declare reads by identity.",
+        "preservationConstraints": [
+          "bytes unchanged",
+          "first wins",
+          "relationship bare"
+        ],
+        "implementationOutline": [
+          "build map once",
+          "get by identity",
+          "run specs"
+        ],
+        "validation": [
+          "generator.test.ts"
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Proven index-precompute pattern."
+      },
+      {
+        "id": "OPT-20260804T063015546Z-03",
+        "status": "resolved",
+        "location": {
+          "files": [
+            "src/core/model/parser.ts",
+            "src/core/framing/document.ts"
+          ],
+          "symbols": [
+            "parseNodePresentation",
+            "parseNodePresentationTarget"
+          ]
+        },
+        "opportunity": "nodePresentation validation duplicated.",
+        "impact": "Single-point extension.",
+        "evidence": [
+          "node-presentation.ts:30",
+          "parser.ts:61",
+          "document.ts:98"
+        ],
+        "recommendation": "Extract shared validator.",
+        "keyDesign": "Shared pure validator.",
+        "preservationConstraints": [
+          "exact codes/messages",
+          "accumulate vs fail-fast",
+          "enum sets unchanged"
+        ],
+        "implementationOutline": [
+          "add shared validator",
+          "rewrite both",
+          "run suites"
+        ],
+        "validation": [
+          "parser.test.ts",
+          "document.test.ts"
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "medium",
+        "cost": "medium",
+        "dependencies": [],
+        "priorityReason": "Terminal — resolved in this reconciliation."
+      },
+      {
+        "id": "OPT-20260804T064402240Z-01",
+        "status": "resolved",
+        "location": {
+          "files": [
+            "likec4/packages/diagram/src/xirang/architectureView.ts"
+          ],
+          "symbols": [
+            "materializeXirangArchitectureView"
+          ]
+        },
+        "opportunity": "Diff-mode contract-only dedup O(n^2).",
+        "impact": "O(n^2)->O(n).",
+        "evidence": [
+          "architectureView.ts:311-316"
+        ],
+        "recommendation": "Companion Set.",
+        "keyDesign": "Set mirrors membership; array keeps order.",
+        "preservationConstraints": [
+          "at most once",
+          "order preserved",
+          "no layout change"
+        ],
+        "implementationOutline": [
+          "add Set",
+          "guard",
+          "add spec"
+        ],
+        "validation": [
+          "architectureView.spec.ts"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Top actionable; adds coverage."
+      },
+      {
+        "id": "OPT-20260804T065622692Z-01",
+        "status": "resolved",
+        "location": {
+          "files": [
+            "src/core/model/delta.ts"
+          ],
+          "symbols": [
+            "cloneState",
+            "ensureOwnedElement",
+            "applyEntry",
+            "applySemanticDelta"
+          ]
+        },
+        "opportunity": "cloneState deep-clones every item.",
+        "impact": "O(model size) -> O(touched) copy-on-write.",
+        "evidence": [
+          "delta.ts:209-217",
+          "delta.ts:221-231",
+          "delta.test.ts:308 aliasing regression"
+        ],
+        "recommendation": "Share references; clone-on-write host + requirements.",
+        "keyDesign": "cloneState shares refs; owned Set tracks independent elements.",
+        "preservationConstraints": [
+          "base never mutated",
+          "expected observably independent",
+          "order/touched/diagnostics unchanged"
+        ],
+        "implementationOutline": [
+          "share refs",
+          "clone-on-write",
+          "add regression"
+        ],
+        "validation": [
+          "delta.test.ts",
+          "kernel-e2e.test.ts",
+          "sync-writer.test.ts",
+          "typecheck gate"
+        ],
+        "impactLevel": "low",
+        "confidence": "medium",
+        "risk": "medium",
+        "cost": "medium",
+        "dependencies": [],
+        "priorityReason": "Resolved in this reconciliation."
+      },
+      {
+        "id": "OPT-20260804T071553291Z-01",
+        "status": "resolved",
+        "location": {
+          "files": [
+            "test/core/likec4/generator.test.ts"
+          ],
+          "symbols": [
+            "kindStylesByKind",
+            "toLikeC4Style"
+          ]
+        },
+        "opportunity": "Generator-vs-browser parity unasserted.",
+        "impact": "Guards enum-divergence risk.",
+        "evidence": [
+          "generator.test.ts parity spec"
+        ],
+        "recommendation": "Parity spec over all enum values.",
+        "keyDesign": "Materialize + compare with toLikeC4Style.",
+        "preservationConstraints": [
+          "no production change",
+          "enum sets untouched"
+        ],
+        "implementationOutline": [
+          "add parity describe",
+          "assert equality per value"
+        ],
+        "validation": [
+          "generator.test.ts",
+          "typecheck gate"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Test-only parity guard."
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-04T06:30:15.546Z",
+        "findingId": "OPT-20260804T063015546Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-04T06:30:15.546Z",
+        "findingId": "OPT-20260804T063015546Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-04T06:30:15.546Z",
+        "findingId": "OPT-20260804T063015546Z-03"
+      },
+      {
+        "sequence": 4,
+        "action": "select",
+        "reason": "Interactive browser hot path re-running on every materialization; per-node linear scan; in change's base-scope diff; local behavior-preserving index precompute.",
+        "timestamp": "2026-08-04T06:30:15.550Z",
+        "findingId": "OPT-20260804T063015546Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.ts": "3bedb42287dbc955b518aa3314bb66e9143c1cc22c71672928e0371772f1988b"
+        }
+      },
+      {
+        "sequence": 5,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-04T06:30:39.594Z",
+        "findingId": "OPT-20260804T063015546Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.ts": "3bedb42287dbc955b518aa3314bb66e9143c1cc22c71672928e0371772f1988b"
+        }
+      },
+      {
+        "sequence": 6,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-04T06:35:45.816Z",
+        "findingId": "OPT-20260804T063015546Z-01"
+      },
+      {
+        "sequence": 7,
+        "action": "resolve",
+        "reason": "Optimizer resolved verified finding",
+        "timestamp": "2026-08-04T06:44:02.240Z",
+        "findingId": "OPT-20260804T063015546Z-01"
+      },
+      {
+        "sequence": 8,
+        "action": "retain",
+        "reason": "Optimizer retains actionable finding",
+        "timestamp": "2026-08-04T06:44:02.240Z",
+        "findingId": "OPT-20260804T063015546Z-02"
+      },
+      {
+        "sequence": 9,
+        "action": "retain",
+        "reason": "Optimizer retains actionable finding",
+        "timestamp": "2026-08-04T06:44:02.240Z",
+        "findingId": "OPT-20260804T063015546Z-03"
+      },
+      {
+        "sequence": 10,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-04T06:44:02.240Z",
+        "findingId": "OPT-20260804T064402240Z-01"
+      },
+      {
+        "sequence": 11,
+        "action": "select",
+        "reason": "Same proven index-precompute pattern; lowest risk/cost of the remaining actionable findings.",
+        "timestamp": "2026-08-04T06:44:02.243Z",
+        "findingId": "OPT-20260804T063015546Z-02",
+        "hashes": {
+          "src/core/likec4/generator.ts": "c0e0c0a7bd40d3331c6b3a4e1f9ecc70b2ba8149f8489f5a25588fc196eac1f7"
+        }
+      },
+      {
+        "sequence": 12,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-04T06:44:19.174Z",
+        "findingId": "OPT-20260804T063015546Z-02",
+        "hashes": {
+          "src/core/likec4/generator.ts": "c0e0c0a7bd40d3331c6b3a4e1f9ecc70b2ba8149f8489f5a25588fc196eac1f7"
+        }
+      },
+      {
+        "sequence": 13,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-04T06:50:56.287Z",
+        "findingId": "OPT-20260804T063015546Z-02"
+      },
+      {
+        "sequence": 14,
+        "action": "resolve",
+        "reason": "Fresh read confirms verified implementation in current code; generator suite + tsc gate pass",
+        "timestamp": "2026-08-04T06:56:22.693Z",
+        "findingId": "OPT-20260804T063015546Z-02"
+      },
+      {
+        "sequence": 15,
+        "action": "retain",
+        "reason": "Still actionable: diff-mode contract-only dedup uses includes in loop; companion Set keeps array order",
+        "timestamp": "2026-08-04T06:56:22.693Z",
+        "findingId": "OPT-20260804T064402240Z-01"
+      },
+      {
+        "sequence": 16,
+        "action": "retain",
+        "reason": "Still actionable: nodePresentation validation duplicated in parser.ts and framing/document.ts",
+        "timestamp": "2026-08-04T06:56:22.693Z",
+        "findingId": "OPT-20260804T063015546Z-03"
+      },
+      {
+        "sequence": 17,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-04T06:56:22.693Z",
+        "findingId": "OPT-20260804T065622692Z-01"
+      },
+      {
+        "sequence": 18,
+        "action": "select",
+        "reason": "Real duplication with drift risk.",
+        "timestamp": "2026-08-04T06:56:22.697Z",
+        "findingId": "OPT-20260804T063015546Z-03",
+        "hashes": {
+          "src/core/model/parser.ts": "70b438f43aed14f47b5ea3832323302bcfb678e1029d764ac182cf745498c984",
+          "src/core/framing/document.ts": "5e8d318926b478ed737db18ea704eda323dc684f7d245d8688b0a984000e8a8d"
+        }
+      },
+      {
+        "sequence": 19,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-04T06:57:41.998Z",
+        "findingId": "OPT-20260804T063015546Z-03",
+        "hashes": {
+          "src/core/model/parser.ts": "70b438f43aed14f47b5ea3832323302bcfb678e1029d764ac182cf745498c984",
+          "src/core/framing/document.ts": "5e8d318926b478ed737db18ea704eda323dc684f7d245d8688b0a984000e8a8d"
+        }
+      },
+      {
+        "sequence": 20,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-04T07:08:13.483Z",
+        "findingId": "OPT-20260804T063015546Z-03"
+      },
+      {
+        "sequence": 21,
+        "action": "retain",
+        "reason": "Still actionable: diff-mode contract-only dedup uses includes in loop",
+        "timestamp": "2026-08-04T07:15:53.291Z",
+        "findingId": "OPT-20260804T064402240Z-01"
+      },
+      {
+        "sequence": 22,
+        "action": "retain",
+        "reason": "Still actionable: delta cloneState deep-clones whole model",
+        "timestamp": "2026-08-04T07:15:53.291Z",
+        "findingId": "OPT-20260804T065622692Z-01"
+      },
+      {
+        "sequence": 23,
+        "action": "resolve",
+        "reason": "Fresh read confirms shared validator implemented and verified",
+        "timestamp": "2026-08-04T07:15:53.291Z",
+        "findingId": "OPT-20260804T063015546Z-03"
+      },
+      {
+        "sequence": 24,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-04T07:15:53.291Z",
+        "findingId": "OPT-20260804T071553291Z-01"
+      },
+      {
+        "sequence": 25,
+        "action": "select",
+        "reason": "Top actionable; lowest cost/risk; adds missing coverage.",
+        "timestamp": "2026-08-04T07:15:53.295Z",
+        "findingId": "OPT-20260804T064402240Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.ts": "82b95b0f83b4ac91af95f631afaab7cde3549d25187ad66394089b03b36d22b5"
+        }
+      },
+      {
+        "sequence": 26,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-04T07:16:20.796Z",
+        "findingId": "OPT-20260804T064402240Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.ts": "82b95b0f83b4ac91af95f631afaab7cde3549d25187ad66394089b03b36d22b5"
+        }
+      },
+      {
+        "sequence": 27,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-04T07:23:33.925Z",
+        "findingId": "OPT-20260804T064402240Z-01"
+      },
+      {
+        "sequence": 28,
+        "action": "resolve",
+        "reason": "Fresh read confirms companion Set implementation and diff-mode dedup spec; reviewer PASS; checkpoint 14cc246f0",
+        "timestamp": "2026-08-04T07:31:33.374Z",
+        "findingId": "OPT-20260804T064402240Z-01"
+      },
+      {
+        "sequence": 29,
+        "action": "retain",
+        "reason": "Still actionable: generator-vs-browser parity test missing; closes Phase 1 WARNING mitigation",
+        "timestamp": "2026-08-04T07:31:33.374Z",
+        "findingId": "OPT-20260804T071553291Z-01"
+      },
+      {
+        "sequence": 30,
+        "action": "retain",
+        "reason": "Still actionable: delta cloneState deep-clones whole model; clone-on-write in requirement branch",
+        "timestamp": "2026-08-04T07:31:33.374Z",
+        "findingId": "OPT-20260804T065622692Z-01"
+      },
+      {
+        "sequence": 31,
+        "action": "select",
+        "reason": "Top actionable: test-only, closes Phase 1 WARNING.",
+        "timestamp": "2026-08-04T07:31:33.377Z",
+        "findingId": "OPT-20260804T071553291Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.spec.ts": "7a2ec03f1483602d9e86a0de92bd30f515cb27151fe23ec8efa4d14a3b5cea0d",
+          "test/core/likec4/generator.test.ts": "4c0e81a0bb3f93b43e30af2a21cc073d69d0748adb71a136b1f3bf7210921d70"
+        }
+      },
+      {
+        "sequence": 32,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-04T07:32:01.856Z",
+        "findingId": "OPT-20260804T071553291Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.spec.ts": "7a2ec03f1483602d9e86a0de92bd30f515cb27151fe23ec8efa4d14a3b5cea0d",
+          "test/core/likec4/generator.test.ts": "4c0e81a0bb3f93b43e30af2a21cc073d69d0748adb71a136b1f3bf7210921d70"
+        }
+      },
+      {
+        "sequence": 33,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-04T07:46:41.655Z",
+        "findingId": "OPT-20260804T071553291Z-01"
+      },
+      {
+        "sequence": 34,
+        "action": "resolve",
+        "reason": "Fresh read confirms generator-browser parity spec implemented; generator suite 24/24 + typecheck gate pass; checkpoint 9b83a90dd",
+        "timestamp": "2026-08-04T07:53:50.280Z",
+        "findingId": "OPT-20260804T071553291Z-01"
+      },
+      {
+        "sequence": 35,
+        "action": "retain",
+        "reason": "Still actionable: delta cloneState deep-clones whole model; clone-on-write in requirement branch",
+        "timestamp": "2026-08-04T07:53:50.280Z",
+        "findingId": "OPT-20260804T065622692Z-01"
+      },
+      {
+        "sequence": 36,
+        "action": "select",
+        "reason": "Only remaining non-terminal finding; real but modest win.",
+        "timestamp": "2026-08-04T07:53:50.283Z",
+        "findingId": "OPT-20260804T065622692Z-01",
+        "hashes": {
+          "src/core/model/delta.ts": "47ea096bcb7f3e6439118323e620a66f00b96d68782fe4425f7b95114fd169ff"
+        }
+      },
+      {
+        "sequence": 37,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-04T07:54:21.672Z",
+        "findingId": "OPT-20260804T065622692Z-01",
+        "hashes": {
+          "src/core/model/delta.ts": "47ea096bcb7f3e6439118323e620a66f00b96d68782fe4425f7b95114fd169ff"
+        }
+      },
+      {
+        "sequence": 38,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-04T08:02:24.839Z",
+        "findingId": "OPT-20260804T065622692Z-01"
+      },
+      {
+        "sequence": 39,
+        "action": "resolve",
+        "reason": "Fresh read confirms clone-on-write implemented and verified; all guarding suites green",
+        "timestamp": "2026-08-04T08:06:47.355Z",
+        "findingId": "OPT-20260804T065622692Z-01"
+      }
+    ],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}

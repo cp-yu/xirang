@@ -308,6 +308,23 @@ describe('parseSemanticModel', () => {
       expect(parsed.diagnostics[0].message).toContain('must be a mapping');
     });
 
+    it('rejects invalid nodePresentation values', async () => {
+      const cases = [
+        { label: 'unknown field', content: PERSPECTIVE_KIND.replace('border: solid', 'borderStyle: solid'), message: 'unknown fields' },
+        { label: 'invalid shape', content: PERSPECTIVE_KIND.replace('shape: document', 'shape: oval'), message: 'shape' },
+        { label: 'invalid color', content: PERSPECTIVE_KIND.replace('color: indigo', 'color: violet'), message: 'color' },
+        { label: 'invalid border', content: PERSPECTIVE_KIND.replace('border: solid', 'border: double'), message: 'border' },
+        { label: 'non-mapping', content: ['---', 'entity: element-kind', 'identity: perspective', 'contract: optional', 'nodePresentation: invalid', '---', '', 'Perspective kind.', ''].join('\n'), message: 'must be a mapping' },
+      ];
+      for (const item of cases) {
+        const root = await createModelRoot({ 'metamodel/perspective.md': item.content });
+        const parsed = await parseSemanticModel(root);
+        expect(parsed.diagnostics.length, item.label).toBeGreaterThan(0);
+        expect(parsed.diagnostics[0]!.code, item.label).toBe('INVALID_NODE_PRESENTATION');
+        expect(parsed.diagnostics[0]!.message, item.label).toContain(item.message);
+      }
+    });
+
     it('round-trips element kind with nodePresentation', async () => {
       const root = await createModelRoot({ 'metamodel/perspective.md': PERSPECTIVE_KIND });
       const parsed = await parseSemanticModel(root);
@@ -323,6 +340,15 @@ describe('parseSemanticModel', () => {
       const parsed = await parseSemanticModel(root);
       expect(parsed.diagnostics).toEqual([]);
       expect(parsed.model.elementKinds[0].nodePresentation).toBeUndefined();
+    });
+
+    it('perspective kind has nodePresentation', async () => {
+      const root = await createModelRoot({ 'metamodel/perspective.md': PERSPECTIVE_KIND });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toEqual([]);
+      const kind = parsed.model.elementKinds.find(item => item.identity === 'perspective');
+      expect(kind).toBeDefined();
+      expect(kind!.nodePresentation).toEqual({ shape: 'document', color: 'indigo', border: 'solid' });
     });
   });
 });
