@@ -92,7 +92,7 @@
       "test/fixtures/contract-browser/.xirang/model/metamodel/capability.md",
       "test/fixtures/contract-browser/.xirang/model/metamodel/perspective.md"
     ],
-    "evidenceFingerprint": "2eef88befcad868fb94ccb43ddf8ac5a2e64a3f5dcfec27f2cfd42281ee8be0e",
+    "evidenceFingerprint": "f59ebd971ca89b8d6f1ee59e653a26cdfbb00831788afdb76e7a26987d14f40d",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/add-element-kind-node-presentation/design.md",
@@ -152,7 +152,7 @@
       },
       {
         "path": "src/core/framing/document.ts",
-        "hash": "5e8d318926b478ed737db18ea704eda323dc684f7d245d8688b0a984000e8a8d"
+        "hash": "7cdbe71e2cdcfa8cef02067edf3e57a489c94a5469a595e1e59e6448e93253f0"
       },
       {
         "path": "src/core/framing/types.ts",
@@ -180,7 +180,7 @@
       },
       {
         "path": "src/core/model/parser.ts",
-        "hash": "70b438f43aed14f47b5ea3832323302bcfb678e1029d764ac182cf745498c984"
+        "hash": "5c06f4eee81a47595d9496799c550ece205a60bee4f2a37c4644f909c7569b01"
       },
       {
         "path": "src/core/model/types.ts",
@@ -248,9 +248,9 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "6554b0f65210fded575a0e500ebd256c1a6d125d",
+    "gitHeadCommit": "c1b00fcd5e01079efb4d8a3a7c78a29152a60fe5",
     "gitDiffSummary": "Working-tree diff (19 modified + 3 untracked) plus committed feature commits (aa93a1552..HEAD, which also carries the separately-archived browser-view-navigation-history change). Scope reviewed: model parser/serializer, delta, semantic-diff, view fingerprints, framing (types/document/baseline), LikeC4 adapter+generator, browser materializer, 6 task test files, e2e + fixtures + playwright config.",
-    "timestamp": "2026-08-04T06:50:56.303Z"
+    "timestamp": "2026-08-04T07:08:13.499Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
@@ -272,6 +272,16 @@
       },
       {
         "timestamp": "2026-08-04T06:50:56.287Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-04T06:56:22.697Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-04T07:08:13.483Z",
         "type": "verification",
         "result": "PASS"
       }
@@ -573,55 +583,45 @@
       },
       {
         "id": "OPT-20260804T063015546Z-02",
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "src/core/likec4/generator.ts"
           ],
           "symbols": [
-            "renderSpecification",
-            "generateLikeC4"
+            "renderSpecification"
           ]
         },
-        "opportunity": "renderSpecification re-finds the element kind being iterated (O(K^2) self-lookup) and runs the same find for relationship-kind identities that never match.",
-        "impact": "Removes a redundant O(K^2) scan plus per-item closure work from every LikeC4 generation with byte-identical output.",
+        "opportunity": "renderSpecification re-finds the element kind per item (O(K^2)).",
+        "impact": "Precompute styleByIdentity map once.",
         "evidence": [
-          "src/core/likec4/generator.ts:40-41 elementKinds.find per item",
-          "src/core/likec4/generator.ts:47-48 both declare calls close over the same find"
+          "generator.ts:40-41"
         ],
-        "recommendation": "Precompute a first-wins Map<identity, LikeC4StyleBlock | undefined> from model.elementKinds once and use styleByIdentity.get(item.identity); delete the .find.",
-        "keyDesign": "styleByIdentity built with if (!map.has(kind.identity)) map.set(kind.identity, toLikeC4Style(kind.nodePresentation)); declare reads the map by identity for element and relationship declarations.",
+        "recommendation": "Precompute first-wins style map.",
+        "keyDesign": "styleByIdentity built once; declare reads by identity.",
         "preservationConstraints": [
-          "specification.c4 bytes unchanged",
-          "First elementKind wins exactly as .find",
-          "Relationship kinds never emit a style block",
-          "toLikeC4Style(undefined|empty) stays undefined",
-          "Determinism preserved"
+          "bytes unchanged",
+          "first wins",
+          "relationship bare"
         ],
         "implementationOutline": [
-          "Add styleByIdentity map filled once from model.elementKinds",
-          "Replace lines 40-41 with styleByIdentity.get(item.identity)",
-          "Run generator spec suite"
+          "build map once",
+          "get by identity",
+          "run specs"
         ],
         "validation": [
-          "generates LikeC4 style block for nodePresentation",
-          "generates perspective with style block",
-          "outputs bare kind without nodePresentation",
-          "identical bytes across calls and input orders"
+          "generator.test.ts"
         ],
         "impactLevel": "medium",
         "confidence": "high",
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "Same proven index-precompute pattern; lowest risk/cost of the remaining actionable findings.",
-        "targetFileHashes": {
-          "src/core/likec4/generator.ts": "c0e0c0a7bd40d3331c6b3a4e1f9ecc70b2ba8149f8489f5a25588fc196eac1f7"
-        }
+        "priorityReason": "Proven index-precompute pattern."
       },
       {
         "id": "OPT-20260804T063015546Z-03",
-        "status": "pending",
+        "status": "verified",
         "location": {
           "files": [
             "src/core/model/parser.ts",
@@ -632,40 +632,41 @@
             "parseNodePresentationTarget"
           ]
         },
-        "opportunity": "nodePresentation mapping validation implemented twice with identical shape/enum rules; extension must be mirrored in two places and can drift silently.",
-        "impact": "Eliminates ~30 duplicated lines and makes future extension a single-point change while keeping both error contracts intact.",
+        "opportunity": "nodePresentation validation duplicated with identical rules.",
+        "impact": "Single-point extension; removes ~30 dup lines.",
         "evidence": [
-          "src/core/model/parser.ts:64-117 parseNodePresentation + enum checks",
-          "src/core/framing/document.ts:97-125 parseNodePresentationTarget + enum checks"
+          "parser.ts:64-117",
+          "document.ts:97-125"
         ],
-        "recommendation": "Extract one shared pure validator in a core module; parser maps errors to INVALID_NODE_PRESENTATION diagnostics, framing throws INVALID_PAYLOAD on first error.",
-        "keyDesign": "A single pure function validates mapping-ness, unknown keys, and the three enum fields in fixed order, returning normalized partial NodePresentation plus structured error list; call sites translate into existing error channels and preserve their distinct empty-result semantics.",
+        "recommendation": "Extract shared validator.",
+        "keyDesign": "Shared pure validator; call sites translate to their error channels.",
         "preservationConstraints": [
-          "parser: exact INVALID_NODE_PRESENTATION code/wording, continue-after-error, undefined when no valid field",
-          "framing: exact INVALID_PAYLOAD code/wording, hard-fail on first error, {} for empty mapping",
-          "error evaluation order unchanged",
-          "enum value sets and field order unchanged"
+          "exact codes/messages",
+          "parser accumulate vs framing fail-fast",
+          "enum sets unchanged"
         ],
         "implementationOutline": [
-          "Add shared validateNodePresentation importable by parser.ts and framing/document.ts",
-          "Rewrite parseNodePresentation to translate errors into diagnostics",
-          "Rewrite parseNodePresentationTarget to throw on first error",
-          "Hoist allowed-key set to shared module",
-          "Run parser and framing suites"
+          "add shared validator",
+          "rewrite both",
+          "run suites"
         ],
         "validation": [
-          "parser tests: complete/partial/unknown/non-mapping/invalid enum",
-          "framing document tests: unknown field and invalid enum throw INVALID_PAYLOAD",
-          "round-trip equivalence"
+          "parser.test.ts",
+          "document.test.ts"
         ],
         "impactLevel": "medium",
         "confidence": "high",
         "risk": "medium",
         "cost": "medium",
         "dependencies": [],
-        "priorityReason": "Genuine duplication with drift risk but cross-module refactor with two error channels; higher risk/cost than the generator precompute."
+        "priorityReason": "Real duplication with drift risk.",
+        "targetFileHashes": {
+          "src/core/model/parser.ts": "70b438f43aed14f47b5ea3832323302bcfb678e1029d764ac182cf745498c984",
+          "src/core/framing/document.ts": "5e8d318926b478ed737db18ea704eda323dc684f7d245d8688b0a984000e8a8d"
+        }
       },
       {
+        "id": "OPT-20260804T064402240Z-01",
         "status": "pending",
         "location": {
           "files": [
@@ -675,36 +676,80 @@
             "materializeXirangArchitectureView"
           ]
         },
-        "opportunity": "Diff-mode contract-only identity dedup uses Array.includes inside a loop over every diff entry, making materialization O(entries x contract-only ids).",
-        "impact": "O(n^2)->O(n) membership checks with identical dedup semantics and preserved encounter order.",
+        "opportunity": "Diff-mode contract-only dedup uses Array.includes in loop (O(n^2)).",
+        "impact": "O(n^2)->O(n) with identical dedup and order.",
         "evidence": [
-          "likec4/packages/diagram/src/xirang/architectureView.ts:310-317 contractOnlyIds.includes per diff entry",
-          "likec4/packages/diagram/src/xirang/architectureView.ts:325 ordered iteration"
+          "architectureView.ts:314"
         ],
-        "recommendation": "Keep the array for order and add a companion Set<string> for membership.",
-        "keyDesign": "A Set mirrors array membership while the array remains the ordered iteration source.",
+        "recommendation": "Add companion Set for membership.",
+        "keyDesign": "Set mirrors membership; array keeps order.",
         "preservationConstraints": [
-          "identity appears at most once",
-          "encounter order preserved",
-          "candidate/full modes and declarationEntries short-circuit unchanged",
-          "no observable layout change"
+          "identity at most once",
+          "order preserved",
+          "no layout change"
         ],
         "implementationOutline": [
-          "Add const seenContractIds = new Set<string>()",
-          "Guard with seenContractIds.has then add to both",
-          "Run architectureView.spec.ts"
+          "add Set",
+          "guard",
+          "run specs"
         ],
         "validation": [
-          "projects contract-only Changes from the target Project Root spec",
-          "diff-mode contract-only layout byte-identical"
+          "architectureView.spec.ts"
         ],
         "impactLevel": "low",
         "confidence": "high",
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "Statically provable quadratic-to-linear dedup, one-line and behavior-preserving; lowest impact of the actionable set.",
-        "id": "OPT-20260804T064402240Z-01"
+        "priorityReason": "One-line behavior-preserving dedup."
+      },
+      {
+        "status": "pending",
+        "location": {
+          "files": [
+            "src/core/model/delta.ts"
+          ],
+          "symbols": [
+            "cloneState",
+            "applySemanticDelta",
+            "applyEntry"
+          ]
+        },
+        "opportunity": "applySemanticDelta structuredClone()s every element/kind/relationship/view before applying the delta, even for single-requirement deltas.",
+        "impact": "O(model size) deep-copy per delta becomes O(delta-touched) with copy-on-write for large models and small deltas.",
+        "evidence": [
+          "src/core/model/delta.ts:173-183 cloneState structuredClone over all collections",
+          "src/core/model/delta.ts:139-173 applyEntry mutates only delta-named entries"
+        ],
+        "recommendation": "Make ApplyState collections shallow-copy-on-write: copy base Maps, keep shared immutable items, structuredClone an item only on first write.",
+        "keyDesign": "ApplyState maps initialized from base arrays with shared items; applyEntry deep-clones touched item before mutation; requirement entries clone host element + requirements array; REMOVED deletes without cloning.",
+        "preservationConstraints": [
+          "base model never mutated",
+          "requirement array mutations never alias base",
+          "expected order = base order + delta mutations",
+          "expected contains full model",
+          "diagnostics and entry order unchanged",
+          "REMOVED leaves no trace; touched set unchanged"
+        ],
+        "implementationOutline": [
+          "Change cloneState to copy Maps sharing items",
+          "Add per-item clone-on-write in applyEntry",
+          "Clone host element + requirements before requirement mutation",
+          "Run delta + serializer round-trip + kernel-e2e suites"
+        ],
+        "validation": [
+          "delta.test.ts full suite",
+          "regression: base bytes unchanged",
+          "expected order/content identical",
+          "touched set and diagnostics identical"
+        ],
+        "impactLevel": "low",
+        "confidence": "medium",
+        "risk": "medium",
+        "cost": "medium",
+        "dependencies": [],
+        "priorityReason": "Deferred: workload-dependent benefit; medium-risk refactor; candidate after OPT-04 and OPT-03 exhausted.",
+        "id": "OPT-20260804T065622692Z-01"
       }
     ],
     "history": [
@@ -810,9 +855,66 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-04T06:50:56.287Z",
         "findingId": "OPT-20260804T063015546Z-02"
+      },
+      {
+        "sequence": 14,
+        "action": "resolve",
+        "reason": "Fresh read confirms verified implementation in current code; generator suite + tsc gate pass",
+        "timestamp": "2026-08-04T06:56:22.693Z",
+        "findingId": "OPT-20260804T063015546Z-02"
+      },
+      {
+        "sequence": 15,
+        "action": "retain",
+        "reason": "Still actionable: diff-mode contract-only dedup uses includes in loop; companion Set keeps array order",
+        "timestamp": "2026-08-04T06:56:22.693Z",
+        "findingId": "OPT-20260804T064402240Z-01"
+      },
+      {
+        "sequence": 16,
+        "action": "retain",
+        "reason": "Still actionable: nodePresentation validation duplicated in parser.ts and framing/document.ts",
+        "timestamp": "2026-08-04T06:56:22.693Z",
+        "findingId": "OPT-20260804T063015546Z-03"
+      },
+      {
+        "sequence": 17,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-04T06:56:22.693Z",
+        "findingId": "OPT-20260804T065622692Z-01"
+      },
+      {
+        "sequence": 18,
+        "action": "select",
+        "reason": "Real duplication with drift risk.",
+        "timestamp": "2026-08-04T06:56:22.697Z",
+        "findingId": "OPT-20260804T063015546Z-03",
+        "hashes": {
+          "src/core/model/parser.ts": "70b438f43aed14f47b5ea3832323302bcfb678e1029d764ac182cf745498c984",
+          "src/core/framing/document.ts": "5e8d318926b478ed737db18ea704eda323dc684f7d245d8688b0a984000e8a8d"
+        }
+      },
+      {
+        "sequence": 19,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-04T06:57:41.998Z",
+        "findingId": "OPT-20260804T063015546Z-03",
+        "hashes": {
+          "src/core/model/parser.ts": "70b438f43aed14f47b5ea3832323302bcfb678e1029d764ac182cf745498c984",
+          "src/core/framing/document.ts": "5e8d318926b478ed737db18ea704eda323dc684f7d245d8688b0a984000e8a8d"
+        }
+      },
+      {
+        "sequence": 20,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-04T07:08:13.483Z",
+        "findingId": "OPT-20260804T063015546Z-03"
       }
     ],
-    "reconciliationSignature": "f74dd480ecf97e83e9cf5fb7a7c4a7de5286558792d2f63930c71729990923fd",
+    "reconciliationSignature": "273942a0fad15d4ec71c9de042c15d1a05e152f1e3198b705ec3d84f9cbcd06d",
     "unchangedReconciliations": 0
   }
 }

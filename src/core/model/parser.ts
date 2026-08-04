@@ -6,12 +6,10 @@ import { buildCodeFenceMask } from '../parsers/requirement-text.js';
 import { extractRequirementsSection } from '../parsers/requirement-blocks.js';
 import { normalizeLineEndings, splitFrontmatter } from './frontmatter.js';
 import { createModelIndex, type IndexedEntity, type IndexedRelationship, type ModelIndex, type SourceModule } from './index-map.js';
+import { validateNodePresentation } from './node-presentation.js';
 import {
   DEFAULT_PARTITION,
   ENTITY_TYPES,
-  NODE_BORDER_VALUES,
-  NODE_COLOR_VALUES,
-  NODE_SHAPE_VALUES,
   PARTITIONS,
   emptySemanticModel,
   type AuthoredView,
@@ -19,10 +17,7 @@ import {
   type EntityType,
   type ModelDiagnostic,
   type ModelElement,
-  type NodeBorder,
-  type NodeColor,
   type NodePresentation,
-  type NodeShape,
   type Partition,
   type Relationship,
   type RelationshipKind,
@@ -57,63 +52,25 @@ function warning(code: string, file: string, message: string, identity?: string)
   return { level: 'WARNING', code, path: file, message, ...(identity ? { identity } : {}) };
 }
 
-const NODE_SHAPE_SET = new Set<string>(NODE_SHAPE_VALUES);
-const NODE_COLOR_SET = new Set<string>(NODE_COLOR_VALUES);
-const NODE_BORDER_SET = new Set<string>(NODE_BORDER_VALUES);
-
 function parseNodePresentation(
   raw: unknown,
   file: string,
   identity: string,
   diagnostics: ModelDiagnostic[],
 ): NodePresentation | undefined {
-  if (raw === undefined || raw === null) return undefined;
-  if (typeof raw !== 'object' || Array.isArray(raw)) {
+  const validation = validateNodePresentation(raw);
+  if (validation.absent) return undefined;
+  if (validation.notMapping) {
     diagnostics.push(error('INVALID_NODE_PRESENTATION', file, `Element kind ${identity} nodePresentation must be a mapping`, identity));
     return undefined;
   }
-  const obj = raw as Record<string, unknown>;
-  const allowed = new Set<string>(['shape', 'color', 'border']);
-  const unknown = Object.keys(obj).filter(k => !allowed.has(k));
-  if (unknown.length > 0) {
-    diagnostics.push(error('INVALID_NODE_PRESENTATION', file, `Element kind ${identity} nodePresentation contains unknown fields: ${unknown.sort().join(', ')}`, identity));
+  if (validation.unknownFields.length > 0) {
+    diagnostics.push(error('INVALID_NODE_PRESENTATION', file, `Element kind ${identity} nodePresentation contains unknown fields: ${[...validation.unknownFields].sort().join(', ')}`, identity));
   }
-  const shape = parseNodeShape(obj.shape, file, identity, diagnostics);
-  const color = parseNodeColor(obj.color, file, identity, diagnostics);
-  const border = parseNodeBorder(obj.border, file, identity, diagnostics);
-  if (shape === undefined && color === undefined && border === undefined) return undefined;
-  const result: NodePresentation = {};
-  if (shape !== undefined) result.shape = shape;
-  if (color !== undefined) result.color = color;
-  if (border !== undefined) result.border = border;
-  return result;
-}
-
-function parseNodeShape(value: unknown, file: string, identity: string, diagnostics: ModelDiagnostic[]): NodeShape | undefined {
-  if (value === undefined) return undefined;
-  if (typeof value !== 'string' || !NODE_SHAPE_SET.has(value)) {
-    diagnostics.push(error('INVALID_NODE_PRESENTATION', file, `Element kind ${identity} nodePresentation.shape has invalid value: ${String(value)}`, identity));
-    return undefined;
+  for (const invalid of validation.invalidValues) {
+    diagnostics.push(error('INVALID_NODE_PRESENTATION', file, `Element kind ${identity} nodePresentation.${invalid.field} has invalid value: ${String(invalid.value)}`, identity));
   }
-  return value as NodeShape;
-}
-
-function parseNodeColor(value: unknown, file: string, identity: string, diagnostics: ModelDiagnostic[]): NodeColor | undefined {
-  if (value === undefined) return undefined;
-  if (typeof value !== 'string' || !NODE_COLOR_SET.has(value)) {
-    diagnostics.push(error('INVALID_NODE_PRESENTATION', file, `Element kind ${identity} nodePresentation.color has invalid value: ${String(value)}`, identity));
-    return undefined;
-  }
-  return value as NodeColor;
-}
-
-function parseNodeBorder(value: unknown, file: string, identity: string, diagnostics: ModelDiagnostic[]): NodeBorder | undefined {
-  if (value === undefined) return undefined;
-  if (typeof value !== 'string' || !NODE_BORDER_SET.has(value)) {
-    diagnostics.push(error('INVALID_NODE_PRESENTATION', file, `Element kind ${identity} nodePresentation.border has invalid value: ${String(value)}`, identity));
-    return undefined;
-  }
-  return value as NodeBorder;
+  return Object.keys(validation.presentation).length > 0 ? validation.presentation : undefined;
 }
 
 function text(value: unknown): string | undefined {
