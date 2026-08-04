@@ -80,6 +80,11 @@ describe('renderTreeText', () => {
   test('falls back to title when no field is selected', () => {
     expect(renderTreeText(roots, [])).toBe(renderTreeText(roots))
   })
+
+  test('canonicalizes field selection order regardless of input order', () => {
+    expect(renderTreeText(roots, ['kind', 'fqn'])).toBe(renderTreeText(roots, ['fqn', 'kind']))
+    expect(renderTreeMarkdown(roots, ['kind', 'title'])).toBe(renderTreeMarkdown(roots, ['title', 'kind']))
+  })
 })
 
 describe('renderTreeMarkdown', () => {

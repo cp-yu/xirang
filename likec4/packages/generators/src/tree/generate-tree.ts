@@ -16,6 +16,9 @@ export interface ViewTreeNode {
 /** The view node fields a tree line can carry. */
 export type ViewTreeField = 'title' | 'fqn' | 'kind'
 
+/** Fixed rendering order of the selectable line fields. */
+const FIELD_ORDER: readonly ViewTreeField[] = ['title', 'fqn', 'kind']
+
 export interface ViewTreeJsonNode {
   fqn: string
   title: string
@@ -63,8 +66,10 @@ export function buildViewTree(view: { nodes: readonly ViewNodeLike[] }): ViewTre
   return roots
 }
 
-const resolveFields = (fields: readonly ViewTreeField[]): readonly ViewTreeField[] =>
-  fields.length === 0 ? ['title'] : fields
+const resolveFields = (fields: readonly ViewTreeField[]): readonly ViewTreeField[] => {
+  const selected = FIELD_ORDER.filter(field => fields.includes(field))
+  return selected.length > 0 ? selected : ['title']
+}
 
 const nodeLabel = (node: ViewTreeNode, fields: readonly ViewTreeField[]): string => {
   const parts: string[] = []
