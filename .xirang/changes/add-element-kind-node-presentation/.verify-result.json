@@ -92,7 +92,7 @@
       "test/fixtures/contract-browser/.xirang/model/metamodel/capability.md",
       "test/fixtures/contract-browser/.xirang/model/metamodel/perspective.md"
     ],
-    "evidenceFingerprint": "a6d3a85d4abd3ad230cd22d6522dd69a5464fd325e1093deec2b5eb40899c9a6",
+    "evidenceFingerprint": "03f217079eb2158b8efee9f2de9bdf1a17b9cab92b61780a4a4cbae0fd04a823",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/add-element-kind-node-presentation/design.md",
@@ -172,7 +172,7 @@
       },
       {
         "path": "src/core/model/delta.ts",
-        "hash": "47ea096bcb7f3e6439118323e620a66f00b96d68782fe4425f7b95114fd169ff"
+        "hash": "227fe68aa7acc6a5bc83519a6ec9f76645e52c2e57342feab263cdf3afc3c434"
       },
       {
         "path": "src/core/model/frontmatter.ts",
@@ -208,7 +208,7 @@
       },
       {
         "path": "test/core/model/delta.test.ts",
-        "hash": "6449edd5fd822351dd98492f9135c442019e4f53c8d0abaa9174634e9d92219b"
+        "hash": "47d3e5371e02511be0da7c35903e31b54b890f451fc17036c7046fb5d53d0507"
       },
       {
         "path": "test/core/model/frontmatter.test.ts",
@@ -248,9 +248,9 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "14cc246f0527047eb133563446e03f31aa6450d3",
+    "gitHeadCommit": "9b83a90ddaa41322bd43a19c13c4c8be8f4baf90",
     "gitDiffSummary": "Working-tree diff (19 modified + 3 untracked) plus committed feature commits (aa93a1552..HEAD, which also carries the separately-archived browser-view-navigation-history change). Scope reviewed: model parser/serializer, delta, semantic-diff, view fingerprints, framing (types/document/baseline), LikeC4 adapter+generator, browser materializer, 6 task test files, e2e + fixtures + playwright config.",
-    "timestamp": "2026-08-04T07:46:41.671Z"
+    "timestamp": "2026-08-04T08:02:24.855Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
@@ -302,6 +302,16 @@
       },
       {
         "timestamp": "2026-08-04T07:46:41.655Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-04T07:53:50.283Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-04T08:02:24.839Z",
         "type": "verification",
         "result": "PASS"
       }
@@ -722,40 +732,42 @@
       },
       {
         "id": "OPT-20260804T065622692Z-01",
-        "status": "pending",
+        "status": "verified",
         "location": {
           "files": [
             "src/core/model/delta.ts"
           ],
           "symbols": [
             "cloneState",
-            "applySemanticDelta",
-            "applyEntry"
+            "applyEntry",
+            "applySemanticDelta"
           ]
         },
-        "opportunity": "applySemanticDelta structuredClone()s every item.",
+        "opportunity": "cloneState deep-clones every item with structuredClone before applying a delta.",
         "impact": "O(model size) -> O(touched) copy-on-write.",
         "evidence": [
           "delta.ts:207-213",
           "requirement branch sole in-place mutation"
         ],
-        "recommendation": "Shallow-copy Maps; clone-on-write in requirement branch.",
-        "keyDesign": "cloneState shares refs; requirement branch clones host + requirements.",
+        "recommendation": "Share references; clone-on-write host + requirements.",
+        "keyDesign": "cloneState shares refs; owned Set tracks independent elements; requirement branch clones before first write.",
         "preservationConstraints": [
           "base never mutated",
-          "no aliasing",
-          "order/content identical",
-          "diagnostics timing unchanged"
+          "expected observably independent for read-only consumers",
+          "order/touched/diagnostics unchanged",
+          "MODIFIED element-declaration carries previous.requirements"
         ],
         "implementationOutline": [
           "share refs in cloneState",
           "clone-on-write in requirement branch",
-          "add requirement base-alias regression"
+          "add aliasing regression",
+          "run suites"
         ],
         "validation": [
           "delta.test.ts",
           "kernel-e2e.test.ts",
           "sync-writer.test.ts",
+          "regression-removed-rules.test.ts",
           "typecheck gate"
         ],
         "impactLevel": "low",
@@ -763,14 +775,16 @@
         "risk": "medium",
         "cost": "medium",
         "dependencies": [],
-        "priorityReason": "Second: real but modest win; medium-risk."
+        "priorityReason": "Only remaining non-terminal finding; real but modest win.",
+        "targetFileHashes": {
+          "src/core/model/delta.ts": "47ea096bcb7f3e6439118323e620a66f00b96d68782fe4425f7b95114fd169ff"
+        }
       },
       {
         "id": "OPT-20260804T071553291Z-01",
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
-            "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
             "test/core/likec4/generator.test.ts"
           ],
           "symbols": [
@@ -778,26 +792,22 @@
             "toLikeC4Style"
           ]
         },
-        "opportunity": "Generator-vs-browser presentation parity unasserted.",
-        "impact": "Guards enum-divergence risk; closes Phase 1 WARNING alternative.",
+        "opportunity": "Generator-vs-browser parity unasserted.",
+        "impact": "Guards enum-divergence risk.",
         "evidence": [
-          "architectureView.ts",
-          "presentation-adapter.ts",
-          "design.md"
+          "generator.test.ts parity spec"
         ],
-        "recommendation": "Parametrized parity spec over all enum values.",
-        "keyDesign": "Materialization-driven parity, test-only.",
+        "recommendation": "Parity spec over all enum values.",
+        "keyDesign": "Materialize + compare with toLikeC4Style.",
         "preservationConstraints": [
           "no production change",
           "enum sets untouched"
         ],
         "implementationOutline": [
-          "import NODE_*_VALUES + toLikeC4Style",
           "add parity describe",
-          "assert rendered style equals toLikeC4Style"
+          "assert equality per value"
         ],
         "validation": [
-          "architectureView.spec.ts",
           "generator.test.ts",
           "typecheck gate"
         ],
@@ -806,11 +816,7 @@
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "Top actionable: test-only, closes Phase 1 WARNING.",
-        "targetFileHashes": {
-          "likec4/packages/diagram/src/xirang/architectureView.spec.ts": "7a2ec03f1483602d9e86a0de92bd30f515cb27151fe23ec8efa4d14a3b5cea0d",
-          "test/core/likec4/generator.test.ts": "4c0e81a0bb3f93b43e30af2a21cc073d69d0748adb71a136b1f3bf7210921d70"
-        }
+        "priorityReason": "Test-only parity guard."
       }
     ],
     "history": [
@@ -1078,9 +1084,50 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-04T07:46:41.655Z",
         "findingId": "OPT-20260804T071553291Z-01"
+      },
+      {
+        "sequence": 34,
+        "action": "resolve",
+        "reason": "Fresh read confirms generator-browser parity spec implemented; generator suite 24/24 + typecheck gate pass; checkpoint 9b83a90dd",
+        "timestamp": "2026-08-04T07:53:50.280Z",
+        "findingId": "OPT-20260804T071553291Z-01"
+      },
+      {
+        "sequence": 35,
+        "action": "retain",
+        "reason": "Still actionable: delta cloneState deep-clones whole model; clone-on-write in requirement branch",
+        "timestamp": "2026-08-04T07:53:50.280Z",
+        "findingId": "OPT-20260804T065622692Z-01"
+      },
+      {
+        "sequence": 36,
+        "action": "select",
+        "reason": "Only remaining non-terminal finding; real but modest win.",
+        "timestamp": "2026-08-04T07:53:50.283Z",
+        "findingId": "OPT-20260804T065622692Z-01",
+        "hashes": {
+          "src/core/model/delta.ts": "47ea096bcb7f3e6439118323e620a66f00b96d68782fe4425f7b95114fd169ff"
+        }
+      },
+      {
+        "sequence": 37,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-04T07:54:21.672Z",
+        "findingId": "OPT-20260804T065622692Z-01",
+        "hashes": {
+          "src/core/model/delta.ts": "47ea096bcb7f3e6439118323e620a66f00b96d68782fe4425f7b95114fd169ff"
+        }
+      },
+      {
+        "sequence": 38,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-04T08:02:24.839Z",
+        "findingId": "OPT-20260804T065622692Z-01"
       }
     ],
-    "reconciliationSignature": "ec0e9e010cc85025aa2d13dc061cfcfc2e95e947bc6231e8fc1a0a59d9066963",
+    "reconciliationSignature": "3fa2790c36686458edf829b6db7500468a0bffe0bfd3a1ab46073a2f63769f4e",
     "unchangedReconciliations": 0
   }
 }

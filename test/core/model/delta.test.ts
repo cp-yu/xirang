@@ -304,4 +304,23 @@ describe('applySemanticDelta', () => {
     applySemanticDelta(input, { entries: [{ operation: 'REMOVED', entity: 'element-declaration', identity: 'cap.a' }] });
     expect(input).toEqual(snapshot);
   });
+
+  it('does not mutate the base model when a requirement follows an element-declaration write', () => {
+    const input = base();
+    const snapshot = structuredClone(input);
+    const result = applySemanticDelta(input, {
+      entries: [
+        {
+          operation: 'MODIFIED',
+          entity: 'element-declaration',
+          identity: 'cap.a',
+          target: { identity: 'cap.a', kind: 'capability', parent: 'root', title: 'cap.a', definition: 'Changed boundary.' },
+        },
+        { operation: 'ADDED', entity: 'requirement', identity: 'cap.a#New', target: { name: 'New', body: 'B', scenarios: [] } },
+      ],
+    });
+    expect(result.diagnostics).toEqual([]);
+    expect(input).toEqual(snapshot);
+    expect(result.expected.elements[1].requirements.map(item => item.name)).toEqual(['Existing', 'New']);
+  });
 });
