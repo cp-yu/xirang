@@ -253,7 +253,7 @@
     "timestamp": "2026-08-04T08:02:24.855Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
         "timestamp": "2026-08-04T06:30:15.550Z",
@@ -314,6 +314,11 @@
         "timestamp": "2026-08-04T08:02:24.839Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-04T08:06:47.355Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
@@ -732,42 +737,41 @@
       },
       {
         "id": "OPT-20260804T065622692Z-01",
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "src/core/model/delta.ts"
           ],
           "symbols": [
             "cloneState",
+            "ensureOwnedElement",
             "applyEntry",
             "applySemanticDelta"
           ]
         },
-        "opportunity": "cloneState deep-clones every item with structuredClone before applying a delta.",
+        "opportunity": "cloneState deep-clones every item.",
         "impact": "O(model size) -> O(touched) copy-on-write.",
         "evidence": [
-          "delta.ts:207-213",
-          "requirement branch sole in-place mutation"
+          "delta.ts:209-217",
+          "delta.ts:221-231",
+          "delta.test.ts:308 aliasing regression"
         ],
         "recommendation": "Share references; clone-on-write host + requirements.",
-        "keyDesign": "cloneState shares refs; owned Set tracks independent elements; requirement branch clones before first write.",
+        "keyDesign": "cloneState shares refs; owned Set tracks independent elements.",
         "preservationConstraints": [
           "base never mutated",
-          "expected observably independent for read-only consumers",
-          "order/touched/diagnostics unchanged",
-          "MODIFIED element-declaration carries previous.requirements"
+          "expected observably independent",
+          "order/touched/diagnostics unchanged"
         ],
         "implementationOutline": [
-          "share refs in cloneState",
-          "clone-on-write in requirement branch",
-          "add aliasing regression",
-          "run suites"
+          "share refs",
+          "clone-on-write",
+          "add regression"
         ],
         "validation": [
           "delta.test.ts",
           "kernel-e2e.test.ts",
           "sync-writer.test.ts",
-          "regression-removed-rules.test.ts",
           "typecheck gate"
         ],
         "impactLevel": "low",
@@ -775,10 +779,7 @@
         "risk": "medium",
         "cost": "medium",
         "dependencies": [],
-        "priorityReason": "Only remaining non-terminal finding; real but modest win.",
-        "targetFileHashes": {
-          "src/core/model/delta.ts": "47ea096bcb7f3e6439118323e620a66f00b96d68782fe4425f7b95114fd169ff"
-        }
+        "priorityReason": "Resolved in this reconciliation."
       },
       {
         "id": "OPT-20260804T071553291Z-01",
@@ -1125,9 +1126,16 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-04T08:02:24.839Z",
         "findingId": "OPT-20260804T065622692Z-01"
+      },
+      {
+        "sequence": 39,
+        "action": "resolve",
+        "reason": "Fresh read confirms clone-on-write implemented and verified; all guarding suites green",
+        "timestamp": "2026-08-04T08:06:47.355Z",
+        "findingId": "OPT-20260804T065622692Z-01"
       }
     ],
-    "reconciliationSignature": "3fa2790c36686458edf829b6db7500468a0bffe0bfd3a1ab46073a2f63769f4e",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }
