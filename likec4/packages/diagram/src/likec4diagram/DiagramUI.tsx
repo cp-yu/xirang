@@ -279,11 +279,6 @@ function XirangArchitectureOverlay() {
 
   useEffect(() => {
     if (!isReady || currentView.id !== 'model') return
-    const elements = selected.architecture?.elements ?? []
-    const declarations = new Map(elements.map(element => [element.declaration.identity, element.declaration]))
-    const rootIdentity = elements
-      .map(element => element.declaration)
-      .find(declaration => declaration.parent === null)?.identity
     if (selectedSourceId.current !== selected.id) {
       selectedSourceId.current = selected.id
       previousFocusAncestors.current = []
@@ -318,7 +313,7 @@ function XirangArchitectureOverlay() {
     if (focusIdentity && resolvedFocus !== focusIdentity) {
       actorRef.send({ type: 'navigate.focus', focusIdentity: resolvedFocus ?? null })
     }
-  }, [actorRef, currentView.id, effectiveMode, expandedNodes, focusIdentity, isReady, selected, selectedRevision])
+  }, [actorRef, currentView.id, declarations, effectiveMode, expandedNodes, focusIdentity, isReady, rootIdentity, selected, selectedRevision])
 
   const relationshipPanel = (
     <Modal
