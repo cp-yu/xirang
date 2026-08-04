@@ -45,7 +45,7 @@
   - Verifies: `elements/semantic-browser.md` / Requirement "URL 编码导航状态并响应浏览器前进后退" / Scenario "下钻与 breadcrumb 跳转作为历史步"
   - Command: `pnpm --dir likec4 typecheck`
   - Expect: ViewReact 与 ViewEditor 均挂载 ViewHistoryBridge，typecheck 通过
-- [ ] C3 开发模式人工验证（一次性，无持久测试）
+- [x] C3 开发模式人工验证（一次性，无持久测试）
   - Verifies: `elements/semantic-browser.md` / Requirement "URL 编码导航状态并响应浏览器前进后退" / Scenario "下钻与 breadcrumb 跳转作为历史步"
   - Command: `pnpm --dir likec4/packages/likec4-spa dev` 启动后手动下钻并执行浏览器前进/后退
   - Expect: ViewEditor（RPC/HMR）路径下导航历史正常、编辑流程不回归
