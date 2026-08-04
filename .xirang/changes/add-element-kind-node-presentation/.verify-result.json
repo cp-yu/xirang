@@ -92,7 +92,7 @@
       "test/fixtures/contract-browser/.xirang/model/metamodel/capability.md",
       "test/fixtures/contract-browser/.xirang/model/metamodel/perspective.md"
     ],
-    "evidenceFingerprint": "cae33a8702a30541832d3e5db1000b423cbbb24c9ea7af1478dfcf638b4a9949",
+    "evidenceFingerprint": "cff207dc2a82df9978947c4d3166bf3fd28fbbab36f08cae2fd9c9d1cdd2d64a",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/add-element-kind-node-presentation/design.md",
@@ -136,7 +136,7 @@
       },
       {
         "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
-        "hash": "3bedb42287dbc955b518aa3314bb66e9143c1cc22c71672928e0371772f1988b"
+        "hash": "82b95b0f83b4ac91af95f631afaab7cde3549d25187ad66394089b03b36d22b5"
       },
       {
         "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
@@ -248,12 +248,24 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "7579e4e20547a46b5a63bd35ddc4c1122947e309",
-    "gitDiffSummary": "Working-tree diff (19 modified + 3 untracked) plus committed feature commits (aa93a1552..HEAD, which also carries the separately-archived browser-view-navigation-history change). Scope reviewed: model parser/serializer, delta, semantic-diff, view fingerprints, framing (types/document/baseline), LikeC4 adapter+generator, browser materializer, 6 task test files, e2e + fixtures + playwright config."
+    "gitHeadCommit": "73aaebb998565ab167b7f00a0981b28984d8a9a4",
+    "gitDiffSummary": "Working-tree diff (19 modified + 3 untracked) plus committed feature commits (aa93a1552..HEAD, which also carries the separately-archived browser-view-navigation-history change). Scope reviewed: model parser/serializer, delta, semantic-diff, view fingerprints, framing (types/document/baseline), LikeC4 adapter+generator, browser materializer, 6 task test files, e2e + fixtures + playwright config.",
+    "timestamp": "2026-08-04T06:35:45.832Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-08-04T06:30:15.550Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-04T06:35:45.815Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-08-04T06:20:57.938Z",
       "result": "PASS_WITH_WARNINGS",
@@ -507,6 +519,197 @@
         "gitHeadCommit": "7579e4e20547a46b5a63bd35ddc4c1122947e309",
         "gitDiffSummary": "Working-tree diff (19 modified + 3 untracked) plus committed feature commits (aa93a1552..HEAD, which also carries the separately-archived browser-view-navigation-history change). Scope reviewed: model parser/serializer, delta, semantic-diff, view fingerprints, framing (types/document/baseline), LikeC4 adapter+generator, browser materializer, 6 task test files, e2e + fixtures + playwright config."
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "likec4/packages/diagram/src/xirang/architectureView.ts"
+          ],
+          "symbols": [
+            "kindPresentation",
+            "materializeXirangArchitectureView"
+          ]
+        },
+        "opportunity": "kindPresentation performs a linear architecture.elementKinds.find per visible node inside materializeXirangArchitectureView, so each materialization costs O(nodes x kinds) instead of resolving each kind's presentation once.",
+        "impact": "Precomputing a first-wins kind->style map once per call reduces the hot path to O(nodes + kinds) with byte-identical node styling, scaling with model size instead of a per-node scan.",
+        "evidence": [
+          "likec4/packages/diagram/src/xirang/architectureView.ts:266 elementKinds.find per kind",
+          "likec4/packages/diagram/src/xirang/architectureView.ts:399 kindPresentation called inside visibleDeclarations.map"
+        ],
+        "recommendation": "Precompute a Map<string, presentation-style> once at the top of materializeXirangArchitectureView (first elementKind wins), then resolve kindStyle = kindStyles.get(declaration.kind) inside the node map.",
+        "keyDesign": "Build a single first-wins Map keyed by kind identity from architecture.elementKinds, mapping nodePresentation through the same shape/color/border field copy; reuse for every node.",
+        "preservationConstraints": [
+          "Same resolved style for an identical kind across Model, Candidate and Change-derived sources",
+          "First elementKind by array order wins for duplicate identities",
+          "undefined when architecture/elementKinds absent, kind unknown, or presentation empty; modelNode/default fallbacks remain",
+          "Diff operation color still overrides kind color; shape and border still come from kind presentation",
+          "Exact shape/color/border string values passed through untouched"
+        ],
+        "implementationOutline": [
+          "Before the nodes map, iterate architecture.elementKinds and set kindStyles.set(kind.identity, style) only when key absent",
+          "Extract current kindPresentation field-copy body into pure resolveStyle helper",
+          "Replace kindPresentation(architecture, declaration.kind) with kindStyles.get(declaration.kind)",
+          "Run architectureView.spec.ts suite"
+        ],
+        "validation": [
+          "applies kind presentation uniformly across sources spec",
+          "keeps operation color above kind color while preserving shape spec"
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Interactive browser hot path re-running on every materialization; per-node linear scan; in change's base-scope diff; local behavior-preserving index precompute.",
+        "id": "OPT-20260804T063015546Z-01",
+        "targetFileHashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.ts": "3bedb42287dbc955b518aa3314bb66e9143c1cc22c71672928e0371772f1988b"
+        }
+      },
+      {
+        "status": "pending",
+        "location": {
+          "files": [
+            "src/core/likec4/generator.ts"
+          ],
+          "symbols": [
+            "renderSpecification",
+            "generateLikeC4"
+          ]
+        },
+        "opportunity": "renderSpecification re-finds the element kind being iterated (O(K^2)) and searches elementKinds for relationship-kind identities that never match (dead work).",
+        "impact": "Removes a provably redundant O(K^2) scan plus per-item closure work from every LikeC4 generation; style source becomes explicit.",
+        "evidence": [
+          "src/core/likec4/generator.ts:35-41 declare iterates elementKinds then re-runs elementKinds.find",
+          "src/core/likec4/generator.ts:40-41 relationship find never matches"
+        ],
+        "recommendation": "Precompute a first-wins Map<identity, LikeC4StyleBlock | undefined> from model.elementKinds once and use styleByIdentity.get(item.identity); delete the .find.",
+        "keyDesign": "Before declare, build styleByIdentity with if (!map.has(kind.identity)) map.set(kind.identity, toLikeC4Style(kind.nodePresentation)); declare reads map by identity for both element and relationship declarations.",
+        "preservationConstraints": [
+          "specification.c4 bytes unchanged for all existing fixtures",
+          "First elementKind with a given identity wins exactly as .find did",
+          "Relationship kinds still never emit a style block",
+          "Determinism preserved"
+        ],
+        "implementationOutline": [
+          "Add const styleByIdentity = new Map<string, LikeC4StyleBlock | undefined>() filled once from model.elementKinds, setting only when key absent",
+          "Replace lines 40-41 with const style = styleByIdentity.get(item.identity)",
+          "Run generator spec suite"
+        ],
+        "validation": [
+          "generates LikeC4 style block for nodePresentation",
+          "generates perspective with style block",
+          "outputs bare kind without nodePresentation",
+          "produces identical bytes across calls and input orders"
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Same proven index-precompute pattern in one-shot generation path; lives in generator.ts modified by this change.",
+        "id": "OPT-20260804T063015546Z-02"
+      },
+      {
+        "status": "pending",
+        "location": {
+          "files": [
+            "src/core/model/parser.ts",
+            "src/core/framing/document.ts"
+          ],
+          "symbols": [
+            "parseNodePresentation",
+            "parseNodePresentationTarget"
+          ]
+        },
+        "opportunity": "nodePresentation mapping validation implemented twice with identical shape/enum rules; extending a field or enum must be mirrored in two places and can drift silently.",
+        "impact": "Eliminates ~30 duplicated lines and makes future extension a single-point change while keeping both error contracts intact.",
+        "evidence": [
+          "src/core/model/parser.ts:64-116 parseNodePresentation with allowed Set and enum checks",
+          "src/core/framing/document.ts:97-124 parseNodePresentationTarget with allowed Set and enum checks"
+        ],
+        "recommendation": "Extract one shared validator in a core module both can import; parser maps errors to INVALID_NODE_PRESENTATION diagnostics, framing throws INVALID_PAYLOAD on first error.",
+        "keyDesign": "A single pure function validates mapping-ness, unknown keys, and the three enum fields, returning normalized partial NodePresentation plus structured error list; call sites translate into existing error channels.",
+        "preservationConstraints": [
+          "parser: exact INVALID_NODE_PRESENTATION code, message wording, continue-after-error accumulation",
+          "framing: exact INVALID_PAYLOAD code and message wording, hard-fail on first invalid input",
+          "absent/empty mapping still yields undefined (parser) vs empty object (framing)",
+          "enum value sets and field order unchanged"
+        ],
+        "implementationOutline": [
+          "Add shared validateNodePresentation to core module importable by parser.ts and framing/document.ts",
+          "Rewrite parseNodePresentation to call it and translate each error into diagnostic",
+          "Rewrite parseNodePresentationTarget to call it and throw on first error",
+          "Hoist allowed-key set to shared module",
+          "Run parser and framing suites"
+        ],
+        "validation": [
+          "parser tests: complete/partial/unknown/non-mapping/invalid enum",
+          "framing document tests: unknown field and invalid enum throw INVALID_PAYLOAD",
+          "round-trip equivalence tests"
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "medium",
+        "cost": "medium",
+        "dependencies": [],
+        "priorityReason": "Genuine duplication with drift risk but cross-module refactor with two error channels, so higher risk/cost than index precomputes.",
+        "id": "OPT-20260804T063015546Z-03"
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-04T06:30:15.546Z",
+        "findingId": "OPT-20260804T063015546Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-04T06:30:15.546Z",
+        "findingId": "OPT-20260804T063015546Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-04T06:30:15.546Z",
+        "findingId": "OPT-20260804T063015546Z-03"
+      },
+      {
+        "sequence": 4,
+        "action": "select",
+        "reason": "Interactive browser hot path re-running on every materialization; per-node linear scan; in change's base-scope diff; local behavior-preserving index precompute.",
+        "timestamp": "2026-08-04T06:30:15.550Z",
+        "findingId": "OPT-20260804T063015546Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.ts": "3bedb42287dbc955b518aa3314bb66e9143c1cc22c71672928e0371772f1988b"
+        }
+      },
+      {
+        "sequence": 5,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-04T06:30:39.594Z",
+        "findingId": "OPT-20260804T063015546Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.ts": "3bedb42287dbc955b518aa3314bb66e9143c1cc22c71672928e0371772f1988b"
+        }
+      },
+      {
+        "sequence": 6,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-04T06:35:45.816Z",
+        "findingId": "OPT-20260804T063015546Z-01"
+      }
+    ],
+    "reconciliationSignature": "0b8055557ca517902aad23b1ce3ea1e75bd85145a589accd6246b9f6e1982d3d",
+    "unchangedReconciliations": 0
   }
 }

@@ -254,23 +254,27 @@ function createEdge(
   } as unknown as ViewEdge
 }
 
+type KindStyle = { shape?: ViewNode['shape']; color?: ViewNode['color']; border?: ViewNode['style']['border'] }
+
 /**
  * Kind-scoped global default presentation, resolved from the source's own elementKinds so Model,
  * Candidate and Change-derived sources apply the same Kind presentation uniformly. `modelRef`
- * remains the rendered Model View's identity anchor when available.
+ * remains the rendered Model View's identity anchor when available. Builds a first-wins map so
+ * each materialization resolves every kind's style once instead of per visible node.
  */
-function kindPresentation(
-  architecture: XirangSemanticModel | undefined,
-  kind: string,
-): { shape?: ViewNode['shape']; color?: ViewNode['color']; border?: ViewNode['style']['border'] } | undefined {
-  const elementKind = architecture?.elementKinds?.find(item => item.identity === kind)
-  const presentation = elementKind?.nodePresentation
-  if (!presentation) return undefined
-  const style: { shape?: ViewNode['shape']; color?: ViewNode['color']; border?: ViewNode['style']['border'] } = {}
-  if (presentation.shape) style.shape = presentation.shape as ViewNode['shape']
-  if (presentation.color) style.color = presentation.color as ViewNode['color']
-  if (presentation.border) style.border = presentation.border as ViewNode['style']['border']
-  return Object.keys(style).length > 0 ? style : undefined
+function kindStylesByKind(architecture: XirangSemanticModel | undefined): Map<string, KindStyle> {
+  const styles = new Map<string, KindStyle>()
+  for (const elementKind of architecture?.elementKinds ?? []) {
+    if (styles.has(elementKind.identity)) continue
+    const presentation = elementKind.nodePresentation
+    if (!presentation) continue
+    const style: KindStyle = {}
+    if (presentation.shape) style.shape = presentation.shape as ViewNode['shape']
+    if (presentation.color) style.color = presentation.color as ViewNode['color']
+    if (presentation.border) style.border = presentation.border as ViewNode['style']['border']
+    if (Object.keys(style).length > 0) styles.set(elementKind.identity, style)
+  }
+  return styles
 }
 
 /**
@@ -394,9 +398,10 @@ export function materializeXirangArchitectureView(
     }
   }
 
+  const kindStyles = kindStylesByKind(architecture)
   const nodes = visibleDeclarations.map(declaration => {
     const modelNode = modelNodes.get(declaration.identity)
-    const kindStyle = kindPresentation(architecture, declaration.kind)
+    const kindStyle = kindStyles.get(declaration.kind)
     const presentation = {
       shape: kindStyle?.shape ?? modelNode?.shape ?? 'rectangle',
       color: kindStyle?.color ?? modelNode?.color ?? 'primary',
