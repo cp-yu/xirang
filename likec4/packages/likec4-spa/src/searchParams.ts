@@ -22,6 +22,20 @@ export const searchParamsSchema = z.object({
     .optional()
     .catch(undefined)
     .transform(v => v as Fqn | undefined),
+  /** Xirang navigation state — source is the selected Model/Candidate/Change source. */
+  source: z.string()
+    .nonempty()
+    .default('model')
+    .catch('model'),
+  /** Xirang focus Element identity; absent means the Project Root. */
+  focus: z.string()
+    .nonempty()
+    .optional()
+    .catch(undefined),
+  /** Xirang diff display mode; candidate-diff is fixed to diff, candidate to full. */
+  mode: z.enum(['full', 'diff'])
+    .default('full')
+    .catch('full'),
 })
 
 export type SearchParams = z.infer<typeof searchParamsSchema>

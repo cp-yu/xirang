@@ -52,6 +52,7 @@ test('browses Model View through nested focus and history', async ({ page }) => 
   const branch = page.locator('.react-flow__node[data-id="capability.drill"]')
   await expect(branch).toBeVisible()
   await expect(page).toHaveURL(/\/view\/model\//)
+  await expect(page).toHaveURL(/focus=perspective\.browser/)
 
   await branch.dblclick()
   const leaf = page.locator('.react-flow__node[data-id="capability.leaf"]')
@@ -59,6 +60,23 @@ test('browses Model View through nested focus and history', async ({ page }) => 
   await expectVisibleNodesDoNotOverlap(page)
   await page.screenshot({ path: test.info().outputPath('model-leaf.png'), fullPage: true })
   await expect(page.locator('[data-xirang-focus-breadcrumb]')).toContainText('Drill-down Capability')
+  await expect(page).toHaveURL(/focus=capability\.drill/)
+
+  // Drill-down steps are browser history steps: back/forward restore focus and breadcrumb.
+  await page.evaluate(() => window.history.back())
+  await expect(page).toHaveURL(/focus=perspective\.browser/)
+  await expect(page.locator('[data-xirang-focus-breadcrumb]')).toContainText('Browser Perspective')
+  await page.evaluate(() => window.history.back())
+  await expect(page).toHaveURL(/\/view\/model\//)
+  await expect(page).not.toHaveURL(/focus=/)
+  await expect(perspective).toBeVisible()
+  await page.evaluate(() => window.history.forward())
+  await expect(page).toHaveURL(/focus=perspective\.browser/)
+  await expect(branch).toBeVisible()
+  await page.evaluate(() => window.history.forward())
+  await expect(page).toHaveURL(/focus=capability\.drill/)
+  await expect(leaf).toBeVisible()
+
   await expect(page.locator('.react-flow__edge')).not.toHaveCount(0)
   const relationship = page.getByRole('group', { name: /Relationship from Leaf Capability to Peer Capability/ })
   await relationship.click()

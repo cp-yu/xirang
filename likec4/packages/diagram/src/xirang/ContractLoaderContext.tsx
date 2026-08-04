@@ -121,6 +121,25 @@ export interface XirangViewSourceContextValue {
   sources: readonly XirangViewSource[]
   selected: XirangViewSource
   select(id: string): void
+  /** User-chosen diff display mode; effective mode is clamped per source. */
+  mode: XirangViewMode
+  setMode(mode: XirangViewMode): void
+}
+
+/** Diff display mode of a Xirang source. */
+export type XirangViewMode = 'full' | 'diff'
+
+/**
+ * Effective diff display mode for a source: candidate-diff is locked to `diff`,
+ * candidate to `full`; only other sources honor the user-chosen mode.
+ */
+export function resolveEffectiveMode(
+  source: XirangViewSource['source'],
+  mode: XirangViewMode,
+): XirangViewMode {
+  if (source === 'candidate-diff') return 'diff'
+  if (source === 'candidate') return 'full'
+  return mode
 }
 
 const modelViewSource: XirangViewSource = {
@@ -144,6 +163,8 @@ const XirangViewSourceContext = createContext<XirangViewSourceContextValue>({
   sources: [modelViewSource],
   selected: modelViewSource,
   select: () => undefined,
+  mode: 'full',
+  setMode: () => undefined,
 })
 
 export function XirangContractLoaderProvider({
@@ -159,6 +180,7 @@ export function XirangContractLoaderProvider({
     : [modelViewSource]
   const [sources, setSources] = useState<readonly XirangViewSource[]>(initialSources)
   const [selectedId, setSelectedId] = useState('model')
+  const [mode, setMode] = useState<XirangViewMode>('full')
 
   useEffect(() => {
     if (!loader.manifest) return
@@ -186,7 +208,9 @@ export function XirangContractLoaderProvider({
     sources,
     selected: sources.find(source => source.id === selectedId) ?? sources[0] ?? modelViewSource,
     select: setSelectedId,
-  }), [selectedId, sources])
+    mode,
+    setMode,
+  }), [selectedId, sources, mode])
 
   return (
     <XirangContractLoaderContext.Provider value={loader}>

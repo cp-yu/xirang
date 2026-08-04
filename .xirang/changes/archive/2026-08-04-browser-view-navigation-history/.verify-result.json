@@ -1,0 +1,294 @@
+{
+  "timestamp": "2026-08-03T15:20:36.234Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "requirement": "双击下钻与 Ctrl+click 展开的 model-only 门控改为仅限 Xirang architecture 视图 (Task 3 / design Decision 5)",
+      "task": "Task 3",
+      "recommendation": "Either change the gates in DiagramUI.tsx to `selected.source`-based checks per design, or document in code/design why the existing `currentView.id === 'model'` gate is behaviorally equivalent (all Xirang sources render under the /view/model/ route).",
+      "message": "Design Decision 5 and the Task 3 requirement are not literally implemented: drill-down/Ctrl+click/breadcrumb gates remain `currentView.id !== 'model'`; no code comment explains the deviation.",
+      "evidence": [
+        "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:158",
+        "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:164",
+        "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:201",
+        ".xirang/changes/browser-view-navigation-history/design.md:Decision 5",
+        ".xirang/changes/browser-view-navigation-history/tasks.md:Task 3 requirements"
+      ]
+    },
+    {
+      "severity": "WARNING",
+      "requirement": "三个参数均不进入 stripSearchParams 清理列表 (Task 1 / design Decision 1)",
+      "task": "Task 1",
+      "recommendation": "Confirm the defaults-only stripping is intended and update the design/task wording, or remove the three params from stripSearchParams if strict literal adherence is required.",
+      "message": "source/focus/mode were added to the root-route stripSearchParams list with default values (source:'model', focus:undefined, mode:'full'), contradicting the literal design wording '不进 stripSearchParams'; behavior is compatible (only default values are stripped, meaningful nav state is preserved, and the e2e root-URL assertion depends on it).",
+      "evidence": [
+        "likec4/packages/likec4-spa/src/routes/__root.tsx:36-42",
+        "likec4/packages/likec4-spa/src/searchParams.ts:25-38",
+        ".xirang/changes/browser-view-navigation-history/design.md:Decision 1",
+        ".xirang/changes/browser-view-navigation-history/tasks.md:Task 1 requirements"
+      ]
+    },
+    {
+      "severity": "WARNING",
+      "requirement": "Attribution universe / tasks Files completeness",
+      "task": "Task 2 / Task 1 / Task 3",
+      "recommendation": "Add Create: ViewHistoryBridge.tsx to Task 2 Files, Modify: __root.tsx to Task 1 Files, and Modify: diagram/src/index.ts to Task 3 Files.",
+      "message": "Three implementation files are absent from any task `Files:` list: ViewHistoryBridge.tsx, __root.tsx, and diagram/src/index.ts.",
+      "evidence": [
+        "likec4/packages/likec4-spa/src/xirang/ViewHistoryBridge.tsx:1-217",
+        "likec4/packages/likec4-spa/src/routes/__root.tsx:36-42",
+        "likec4/packages/diagram/src/index.ts:129-138",
+        ".xirang/changes/browser-view-navigation-history/tasks.md:Task 2 Files"
+      ]
+    },
+    {
+      "severity": "WARNING",
+      "requirement": "Task 2 C3 开发模式人工验证",
+      "task": "Task 2",
+      "recommendation": "Perform the one-time manual dev-mode verification and mark C3, or explicitly accept the documented risk in design.md Risks section.",
+      "message": "Checkbox C3 is still unchecked and no .verify-result.json exists; the one-time manual dev-mode (ViewEditor RPC/HMR) verification cannot be attested in an automated Phase 1 review.",
+      "evidence": [
+        ".xirang/changes/browser-view-navigation-history/tasks.md:46",
+        "likec4/packages/likec4-spa/src/pages/ViewEditor.tsx:100-102",
+        "likec4/packages/likec4-spa/src/pages/ViewReact.tsx:91-93"
+      ]
+    }
+  ],
+  "tasksFileHash": "c3f7d612581e75af25e504f434ff67a8b009da5d461436d5f636da81622f0d0a",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      "likec4/packages/diagram/src/index.ts",
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+      "likec4/packages/diagram/src/xirang/ContractLoaderContext.spec.tsx",
+      "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+      "likec4/packages/likec4-spa/src/pages/ViewEditor.tsx",
+      "likec4/packages/likec4-spa/src/pages/ViewReact.tsx",
+      "likec4/packages/likec4-spa/src/routes/__root.tsx",
+      "likec4/packages/likec4-spa/src/searchParams.spec.ts",
+      "likec4/packages/likec4-spa/src/searchParams.ts",
+      "likec4/packages/likec4-spa/src/xirang/ViewHistoryBridge.tsx",
+      "likec4/packages/likec4-spa/src/xirang/history-bridge.spec.ts",
+      "likec4/packages/likec4-spa/src/xirang/history-bridge.ts",
+      "test/e2e/semantic-browser-model-view.spec.ts",
+      "test/e2e/semantic-browser-navigation-history.spec.ts"
+    ],
+    "evidenceFingerprint": "6abbed8d5d56c8a2e962bd3d314f16d461dc20bb858ae70d75bcf94a4d4cec83",
+    "evidenceFingerprintEntries": [
+      {
+        "path": "likec4/packages/diagram/src/index.ts",
+        "hash": "b1cbeca253cc4b4000a43dc54860d71de791f395411e1a44ee6839ad3a48bd7c"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+        "hash": "281d5279bfd9aa792efdff11e2c7c6e421e88a4dd8c33b6fce8580c8b9560747"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.spec.tsx",
+        "hash": "83774fec0e2e94da023832bb21ec2a2106f0ad89c19e7b3b2033ca2d0e4a3aba"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+        "hash": "99209672bce4f1e84e94474f5e30019acd366e383717d6d1b15659aab420f0ee"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/pages/ViewEditor.tsx",
+        "hash": "ec9818cc7ada9dc7acd0058a652e86061c244c12cfdff6851b7d83cbfa1446b5"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/pages/ViewReact.tsx",
+        "hash": "30ccba2f1341710032d035a32c9a77770fd1f1b876c72b7e2de6f697105aae98"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/routes/__root.tsx",
+        "hash": "8a90fd2afde53f397182dc097dfed6f07ce9d27e987955d9b7114707deacd978"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/searchParams.spec.ts",
+        "hash": "23225e2dafbb821968d3f4df09733585157871a20ab0160c6f900c4bdb88f38f"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/searchParams.ts",
+        "hash": "3b66a7f120550c065966353dc1f5e42c7c84a5aa68ca3575874728fddf158a46"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/xirang/history-bridge.spec.ts",
+        "hash": "71e12aa16ebdb85c95ac06054ae064b680fc864575864040f86f6b38529f54d2"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/xirang/history-bridge.ts",
+        "hash": "9e712f73e1e2200a8174c4e56c09b37fcf7d5abf7bf0498bc35796e137c86dfd"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/xirang/ViewHistoryBridge.tsx",
+        "hash": "e7ddf97bcaff90ae1b5366a7694f9a401ca98fb6a4cdf846f4be4cab743dee45"
+      },
+      {
+        "path": "test/e2e/semantic-browser-model-view.spec.ts",
+        "hash": "4647ab9e81282c9748aae866c8d7ade7b85f8055b103687136fab847d4dc9174"
+      },
+      {
+        "path": "test/e2e/semantic-browser-navigation-history.spec.ts",
+        "hash": "9d13d5fc0bd2cba5fe4354f84b4b73055bfa00f6c8e4db525ffcd8cb8baf1450"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "2eb5908167c5590810ce2a858923602c2ae4ec79",
+    "gitDiffSummary": "baseCommit 2eb590816 resolves and equals HEAD (branch isolation); git diff base...HEAD --name-only is empty; scope from git status --short (10 modified + 4 untracked implementation/test files + change artifacts)."
+  },
+  "optimization": {
+    "status": "NOT_NEEDED",
+    "attempts": [
+      {
+        "timestamp": "2026-08-03T15:29:26.612Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-08-03T15:20:36.234Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "requirement": "双击下钻与 Ctrl+click 展开的 model-only 门控改为仅限 Xirang architecture 视图 (Task 3 / design Decision 5)",
+          "task": "Task 3",
+          "recommendation": "Either change the gates in DiagramUI.tsx to `selected.source`-based checks per design, or document in code/design why the existing `currentView.id === 'model'` gate is behaviorally equivalent (all Xirang sources render under the /view/model/ route).",
+          "message": "Design Decision 5 and the Task 3 requirement are not literally implemented: drill-down/Ctrl+click/breadcrumb gates remain `currentView.id !== 'model'`; no code comment explains the deviation.",
+          "evidence": [
+            "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:158",
+            "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:164",
+            "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:201",
+            ".xirang/changes/browser-view-navigation-history/design.md:Decision 5",
+            ".xirang/changes/browser-view-navigation-history/tasks.md:Task 3 requirements"
+          ]
+        },
+        {
+          "severity": "WARNING",
+          "requirement": "三个参数均不进入 stripSearchParams 清理列表 (Task 1 / design Decision 1)",
+          "task": "Task 1",
+          "recommendation": "Confirm the defaults-only stripping is intended and update the design/task wording, or remove the three params from stripSearchParams if strict literal adherence is required.",
+          "message": "source/focus/mode were added to the root-route stripSearchParams list with default values (source:'model', focus:undefined, mode:'full'), contradicting the literal design wording '不进 stripSearchParams'; behavior is compatible (only default values are stripped, meaningful nav state is preserved, and the e2e root-URL assertion depends on it).",
+          "evidence": [
+            "likec4/packages/likec4-spa/src/routes/__root.tsx:36-42",
+            "likec4/packages/likec4-spa/src/searchParams.ts:25-38",
+            ".xirang/changes/browser-view-navigation-history/design.md:Decision 1",
+            ".xirang/changes/browser-view-navigation-history/tasks.md:Task 1 requirements"
+          ]
+        },
+        {
+          "severity": "WARNING",
+          "requirement": "Attribution universe / tasks Files completeness",
+          "task": "Task 2 / Task 1 / Task 3",
+          "recommendation": "Add Create: ViewHistoryBridge.tsx to Task 2 Files, Modify: __root.tsx to Task 1 Files, and Modify: diagram/src/index.ts to Task 3 Files.",
+          "message": "Three implementation files are absent from any task `Files:` list: ViewHistoryBridge.tsx, __root.tsx, and diagram/src/index.ts.",
+          "evidence": [
+            "likec4/packages/likec4-spa/src/xirang/ViewHistoryBridge.tsx:1-217",
+            "likec4/packages/likec4-spa/src/routes/__root.tsx:36-42",
+            "likec4/packages/diagram/src/index.ts:129-138",
+            ".xirang/changes/browser-view-navigation-history/tasks.md:Task 2 Files"
+          ]
+        },
+        {
+          "severity": "WARNING",
+          "requirement": "Task 2 C3 开发模式人工验证",
+          "task": "Task 2",
+          "recommendation": "Perform the one-time manual dev-mode verification and mark C3, or explicitly accept the documented risk in design.md Risks section.",
+          "message": "Checkbox C3 is still unchecked and no .verify-result.json exists; the one-time manual dev-mode (ViewEditor RPC/HMR) verification cannot be attested in an automated Phase 1 review.",
+          "evidence": [
+            ".xirang/changes/browser-view-navigation-history/tasks.md:46",
+            "likec4/packages/likec4-spa/src/pages/ViewEditor.tsx:100-102",
+            "likec4/packages/likec4-spa/src/pages/ViewReact.tsx:91-93"
+          ]
+        }
+      ],
+      "tasksFileHash": "c3f7d612581e75af25e504f434ff67a8b009da5d461436d5f636da81622f0d0a",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          "likec4/packages/diagram/src/index.ts",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/xirang/ContractLoaderContext.spec.tsx",
+          "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+          "likec4/packages/likec4-spa/src/pages/ViewEditor.tsx",
+          "likec4/packages/likec4-spa/src/pages/ViewReact.tsx",
+          "likec4/packages/likec4-spa/src/routes/__root.tsx",
+          "likec4/packages/likec4-spa/src/searchParams.spec.ts",
+          "likec4/packages/likec4-spa/src/searchParams.ts",
+          "likec4/packages/likec4-spa/src/xirang/ViewHistoryBridge.tsx",
+          "likec4/packages/likec4-spa/src/xirang/history-bridge.spec.ts",
+          "likec4/packages/likec4-spa/src/xirang/history-bridge.ts",
+          "test/e2e/semantic-browser-model-view.spec.ts",
+          "test/e2e/semantic-browser-navigation-history.spec.ts"
+        ],
+        "evidenceFingerprint": "6abbed8d5d56c8a2e962bd3d314f16d461dc20bb858ae70d75bcf94a4d4cec83",
+        "evidenceFingerprintEntries": [
+          {
+            "path": "likec4/packages/diagram/src/index.ts",
+            "hash": "b1cbeca253cc4b4000a43dc54860d71de791f395411e1a44ee6839ad3a48bd7c"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "hash": "281d5279bfd9aa792efdff11e2c7c6e421e88a4dd8c33b6fce8580c8b9560747"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.spec.tsx",
+            "hash": "83774fec0e2e94da023832bb21ec2a2106f0ad89c19e7b3b2033ca2d0e4a3aba"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+            "hash": "99209672bce4f1e84e94474f5e30019acd366e383717d6d1b15659aab420f0ee"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/pages/ViewEditor.tsx",
+            "hash": "ec9818cc7ada9dc7acd0058a652e86061c244c12cfdff6851b7d83cbfa1446b5"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/pages/ViewReact.tsx",
+            "hash": "30ccba2f1341710032d035a32c9a77770fd1f1b876c72b7e2de6f697105aae98"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/routes/__root.tsx",
+            "hash": "8a90fd2afde53f397182dc097dfed6f07ce9d27e987955d9b7114707deacd978"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/searchParams.spec.ts",
+            "hash": "23225e2dafbb821968d3f4df09733585157871a20ab0160c6f900c4bdb88f38f"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/searchParams.ts",
+            "hash": "3b66a7f120550c065966353dc1f5e42c7c84a5aa68ca3575874728fddf158a46"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/xirang/history-bridge.spec.ts",
+            "hash": "71e12aa16ebdb85c95ac06054ae064b680fc864575864040f86f6b38529f54d2"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/xirang/history-bridge.ts",
+            "hash": "9e712f73e1e2200a8174c4e56c09b37fcf7d5abf7bf0498bc35796e137c86dfd"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/xirang/ViewHistoryBridge.tsx",
+            "hash": "e7ddf97bcaff90ae1b5366a7694f9a401ca98fb6a4cdf846f4be4cab743dee45"
+          },
+          {
+            "path": "test/e2e/semantic-browser-model-view.spec.ts",
+            "hash": "4647ab9e81282c9748aae866c8d7ade7b85f8055b103687136fab847d4dc9174"
+          },
+          {
+            "path": "test/e2e/semantic-browser-navigation-history.spec.ts",
+            "hash": "9d13d5fc0bd2cba5fe4354f84b4b73055bfa00f6c8e4db525ffcd8cb8baf1450"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "2eb5908167c5590810ce2a858923602c2ae4ec79",
+        "gitDiffSummary": "baseCommit 2eb590816 resolves and equals HEAD (branch isolation); git diff base...HEAD --name-only is empty; scope from git status --short (10 modified + 4 untracked implementation/test files + change artifacts)."
+      }
+    },
+    "findings": [],
+    "history": [],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}

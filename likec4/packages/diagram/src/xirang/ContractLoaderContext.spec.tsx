@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { XirangRuntimeManifest, XirangViewSource } from './ContractLoaderContext'
-import { xirangViewSourceRevision } from './ContractLoaderContext'
+import { resolveEffectiveMode, xirangViewSourceRevision } from './ContractLoaderContext'
 
 const modelSource: XirangViewSource = {
   id: 'model',
@@ -153,6 +153,17 @@ describe('hides candidate sources when candidate is absent', () => {
 })
 
 describe('locks candidate diff to diff only mode', () => {
+  it('resolveEffectiveMode locks candidate-diff to diff and candidate to full', () => {
+    expect(resolveEffectiveMode('candidate-diff', 'full')).toBe('diff')
+    expect(resolveEffectiveMode('candidate', 'diff')).toBe('full')
+  })
+
+  it('resolveEffectiveMode passes the chosen mode for model and change-derived', () => {
+    expect(resolveEffectiveMode('semantic-model', 'full')).toBe('full')
+    expect(resolveEffectiveMode('change-derived-view', 'diff')).toBe('diff')
+    expect(resolveEffectiveMode('change-derived-view', 'full')).toBe('full')
+  })
+
   it('candidate-diff source has distinct id and source identifying it as diff-only', () => {
     expect(candidateDiffSource.id).toBe('candidate-diff')
     expect(candidateDiffSource.source).toBe('candidate-diff')

@@ -17,6 +17,7 @@ import {
   type XirangDiffOperation,
   type XirangViewSource,
   isXirangContractDiagnostic,
+  resolveEffectiveMode,
   useXirangViewSources,
   xirangViewSourceRevision,
 } from '../xirang/ContractLoaderContext'
@@ -94,8 +95,7 @@ export function getArchitectureOverlayModel(source: XirangViewSource) {
 }
 
 function XirangArchitectureOverlay() {
-  const runtime = useXirangViewSources()
-  const selected = runtime.selected
+  const { sources, selected, select, mode, setMode } = useXirangViewSources()
   const selectedRevision = xirangViewSourceRevision(selected)
   const actorRef = useDiagramActorRef()
   const diagram = useDiagram()
@@ -106,13 +106,8 @@ function XirangArchitectureOverlay() {
   const modelView = useRef(currentView)
   const selectedSourceId = useRef(selected.id)
   const previousFocusAncestors = useRef<string[]>([])
-  const [mode, setMode] = useState<'full' | 'diff'>('full')
   /** Candidate View is always full; Candidate Diff View is always diff-only; Changes can toggle. */
-  const effectiveMode: 'full' | 'diff' = selected.source === 'candidate-diff'
-    ? 'diff'
-    : selected.source === 'candidate'
-    ? 'full'
-    : mode
+  const effectiveMode = resolveEffectiveMode(selected.source, mode)
   const [relationshipDetails, setRelationshipDetails] = useState<string[]>([])
   const [relationshipModalOpened, setRelationshipModalOpened] = useState(false)
   const [metamodelEntry, setMetamodelEntry] = useState<{ entry: XirangDiffEntry; opened: boolean } | null>(null)
@@ -345,8 +340,8 @@ function XirangArchitectureOverlay() {
             aria-label="Active Change"
             size="xs"
             value={selected.id}
-            data={runtime.sources.map(source => ({ value: source.id, label: source.label }))}
-            onChange={event => runtime.select(event.currentTarget.value)}
+            data={sources.map(source => ({ value: source.id, label: source.label }))}
+            onChange={event => select(event.currentTarget.value)}
           />
           {selected.source === 'change-derived-view' && (
           <Group gap={4}>
