@@ -92,7 +92,7 @@
       "test/fixtures/contract-browser/.xirang/model/metamodel/capability.md",
       "test/fixtures/contract-browser/.xirang/model/metamodel/perspective.md"
     ],
-    "evidenceFingerprint": "ecfc634aefcba023d62a2b19e25e337b084db995ff0261803f37431119c48e32",
+    "evidenceFingerprint": "a6d3a85d4abd3ad230cd22d6522dd69a5464fd325e1093deec2b5eb40899c9a6",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/add-element-kind-node-presentation/design.md",
@@ -204,7 +204,7 @@
       },
       {
         "path": "test/core/likec4/generator.test.ts",
-        "hash": "4c0e81a0bb3f93b43e30af2a21cc073d69d0748adb71a136b1f3bf7210921d70"
+        "hash": "77ec19375188c3ef2950b9de9eb6a7799393e9f015f119c96bfb7fa60a59e98b"
       },
       {
         "path": "test/core/model/delta.test.ts",
@@ -248,9 +248,9 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "47f5b6b29e0a98de55b4f7391f4319198170ece3",
+    "gitHeadCommit": "14cc246f0527047eb133563446e03f31aa6450d3",
     "gitDiffSummary": "Working-tree diff (19 modified + 3 untracked) plus committed feature commits (aa93a1552..HEAD, which also carries the separately-archived browser-view-navigation-history change). Scope reviewed: model parser/serializer, delta, semantic-diff, view fingerprints, framing (types/document/baseline), LikeC4 adapter+generator, browser materializer, 6 task test files, e2e + fixtures + playwright config.",
-    "timestamp": "2026-08-04T07:23:33.940Z"
+    "timestamp": "2026-08-04T07:46:41.671Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
@@ -292,6 +292,16 @@
       },
       {
         "timestamp": "2026-08-04T07:23:33.924Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-04T07:31:33.377Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-04T07:46:41.655Z",
         "type": "verification",
         "result": "PASS"
       }
@@ -674,7 +684,7 @@
       },
       {
         "id": "OPT-20260804T064402240Z-01",
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/diagram/src/xirang/architectureView.ts"
@@ -683,25 +693,22 @@
             "materializeXirangArchitectureView"
           ]
         },
-        "opportunity": "Diff-mode contract-only dedup uses Array.includes in loop (O(n^2)).",
-        "impact": "O(n^2) -> O(n) with identical dedup and order.",
+        "opportunity": "Diff-mode contract-only dedup O(n^2).",
+        "impact": "O(n^2)->O(n).",
         "evidence": [
-          "architectureView.ts:310-315",
-          "no diff-mode spec reaches push branch"
+          "architectureView.ts:311-316"
         ],
-        "recommendation": "Companion Set for membership; array keeps order.",
-        "keyDesign": "seenContractOnlyIds Set mirrors membership; array keeps first-occurrence order.",
+        "recommendation": "Companion Set.",
+        "keyDesign": "Set mirrors membership; array keeps order.",
         "preservationConstraints": [
-          "identity at most once",
+          "at most once",
           "order preserved",
-          "no layout change",
-          "declarationEntries-host skip unchanged"
+          "no layout change"
         ],
         "implementationOutline": [
           "add Set",
-          "guard with Set",
-          "add diff-mode contract-only spec",
-          "run suite"
+          "guard",
+          "add spec"
         ],
         "validation": [
           "architectureView.spec.ts"
@@ -711,10 +718,7 @@
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "Top actionable; lowest cost/risk; adds missing coverage.",
-        "targetFileHashes": {
-          "likec4/packages/diagram/src/xirang/architectureView.ts": "82b95b0f83b4ac91af95f631afaab7cde3549d25187ad66394089b03b36d22b5"
-        }
+        "priorityReason": "Top actionable; adds coverage."
       },
       {
         "id": "OPT-20260804T065622692Z-01",
@@ -729,43 +733,41 @@
             "applyEntry"
           ]
         },
-        "opportunity": "applySemanticDelta structuredClone()s every collection item before applying the delta.",
-        "impact": "O(model size) deep copy per delta -> O(delta-touched) copy-on-write.",
+        "opportunity": "applySemanticDelta structuredClone()s every item.",
+        "impact": "O(model size) -> O(touched) copy-on-write.",
         "evidence": [
           "delta.ts:207-213",
-          "requirement branch is only in-place shared-item mutation",
-          "delta.test.ts:301 covers only REMOVED element-declaration"
+          "requirement branch sole in-place mutation"
         ],
-        "recommendation": "Shallow-copy-on-write Maps; clone host element + requirements on first requirement write.",
-        "keyDesign": "cloneState shares item refs; requirement branch clones { ...element, requirements: [...element.requirements] } before mutation.",
+        "recommendation": "Shallow-copy Maps; clone-on-write in requirement branch.",
+        "keyDesign": "cloneState shares refs; requirement branch clones host + requirements.",
         "preservationConstraints": [
           "base never mutated",
-          "no requirements aliasing",
+          "no aliasing",
           "order/content identical",
-          "expected treated read-only",
-          "diagnostics timing unchanged",
-          "touched unchanged"
+          "diagnostics timing unchanged"
         ],
         "implementationOutline": [
-          "drop structuredClone",
+          "share refs in cloneState",
           "clone-on-write in requirement branch",
-          "add requirement-alias regression",
-          "run delta/kernel-e2e/serializer suites"
+          "add requirement base-alias regression"
         ],
         "validation": [
           "delta.test.ts",
           "kernel-e2e.test.ts",
-          "new requirement base-alias test"
+          "sync-writer.test.ts",
+          "typecheck gate"
         ],
         "impactLevel": "low",
         "confidence": "medium",
         "risk": "medium",
         "cost": "medium",
         "dependencies": [],
-        "priorityReason": "Second actionable: real win, medium-risk; de-risked by base-mutation guard + new alias test."
+        "priorityReason": "Second: real but modest win; medium-risk."
       },
       {
-        "status": "pending",
+        "id": "OPT-20260804T071553291Z-01",
+        "status": "verified",
         "location": {
           "files": [
             "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
@@ -776,36 +778,39 @@
             "toLikeC4Style"
           ]
         },
-        "opportunity": "Generator-vs-browser presentation parity is unasserted despite design.md documented cross-package deviation.",
-        "impact": "Guards documented enum-divergence risk; closes Phase 1 WARNING alternative recommendation.",
+        "opportunity": "Generator-vs-browser presentation parity unasserted.",
+        "impact": "Guards enum-divergence risk; closes Phase 1 WARNING alternative.",
         "evidence": [
-          "architectureView.ts:265-291",
-          "presentation-adapter.ts identity maps",
-          "uniform-sources test covers sources only",
-          "design.md Decision 2 + Risks"
+          "architectureView.ts",
+          "presentation-adapter.ts",
+          "design.md"
         ],
-        "recommendation": "Parametrized parity spec over all NodeShape/NodeColor/NodeBorder values.",
-        "keyDesign": "Assert toLikeC4Style and kindStylesByKind render identical strings for every enum value; test-only.",
+        "recommendation": "Parametrized parity spec over all enum values.",
+        "keyDesign": "Materialization-driven parity, test-only.",
         "preservationConstraints": [
           "no production change",
-          "enum values and design contract untouched"
+          "enum sets untouched"
         ],
         "implementationOutline": [
-          "enumerate enum sets",
-          "assert both mappings agree",
-          "run both suites"
+          "import NODE_*_VALUES + toLikeC4Style",
+          "add parity describe",
+          "assert rendered style equals toLikeC4Style"
         ],
         "validation": [
           "architectureView.spec.ts",
-          "generator.test.ts"
+          "generator.test.ts",
+          "typecheck gate"
         ],
         "impactLevel": "low",
         "confidence": "high",
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "Defensive parity guard for documented cross-package mapping deviation; test-only.",
-        "id": "OPT-20260804T071553291Z-01"
+        "priorityReason": "Top actionable: test-only, closes Phase 1 WARNING.",
+        "targetFileHashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.spec.ts": "7a2ec03f1483602d9e86a0de92bd30f515cb27151fe23ec8efa4d14a3b5cea0d",
+          "test/core/likec4/generator.test.ts": "4c0e81a0bb3f93b43e30af2a21cc073d69d0748adb71a136b1f3bf7210921d70"
+        }
       }
     ],
     "history": [
@@ -1023,9 +1028,59 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-04T07:23:33.925Z",
         "findingId": "OPT-20260804T064402240Z-01"
+      },
+      {
+        "sequence": 28,
+        "action": "resolve",
+        "reason": "Fresh read confirms companion Set implementation and diff-mode dedup spec; reviewer PASS; checkpoint 14cc246f0",
+        "timestamp": "2026-08-04T07:31:33.374Z",
+        "findingId": "OPT-20260804T064402240Z-01"
+      },
+      {
+        "sequence": 29,
+        "action": "retain",
+        "reason": "Still actionable: generator-vs-browser parity test missing; closes Phase 1 WARNING mitigation",
+        "timestamp": "2026-08-04T07:31:33.374Z",
+        "findingId": "OPT-20260804T071553291Z-01"
+      },
+      {
+        "sequence": 30,
+        "action": "retain",
+        "reason": "Still actionable: delta cloneState deep-clones whole model; clone-on-write in requirement branch",
+        "timestamp": "2026-08-04T07:31:33.374Z",
+        "findingId": "OPT-20260804T065622692Z-01"
+      },
+      {
+        "sequence": 31,
+        "action": "select",
+        "reason": "Top actionable: test-only, closes Phase 1 WARNING.",
+        "timestamp": "2026-08-04T07:31:33.377Z",
+        "findingId": "OPT-20260804T071553291Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.spec.ts": "7a2ec03f1483602d9e86a0de92bd30f515cb27151fe23ec8efa4d14a3b5cea0d",
+          "test/core/likec4/generator.test.ts": "4c0e81a0bb3f93b43e30af2a21cc073d69d0748adb71a136b1f3bf7210921d70"
+        }
+      },
+      {
+        "sequence": 32,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-04T07:32:01.856Z",
+        "findingId": "OPT-20260804T071553291Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.spec.ts": "7a2ec03f1483602d9e86a0de92bd30f515cb27151fe23ec8efa4d14a3b5cea0d",
+          "test/core/likec4/generator.test.ts": "4c0e81a0bb3f93b43e30af2a21cc073d69d0748adb71a136b1f3bf7210921d70"
+        }
+      },
+      {
+        "sequence": 33,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-04T07:46:41.655Z",
+        "findingId": "OPT-20260804T071553291Z-01"
       }
     ],
-    "reconciliationSignature": "040ce23b1d8b92fe0200a2a36b52f867e7b5b7963a23a312d6a27417e4d5203c",
+    "reconciliationSignature": "ec0e9e010cc85025aa2d13dc061cfcfc2e95e947bc6231e8fc1a0a59d9066963",
     "unchangedReconciliations": 0
   }
 }
