@@ -1,8 +1,8 @@
 import { compareUtf8Bytes } from '../candidate/canonical.js';
-import type { ElementKind, ModelElement, SemanticModel } from '../model/types.js';
+import type { ModelElement, SemanticModel } from '../model/types.js';
 import { definitionExcerpt } from './definition.js';
 import { createNamespace, deriveLocalNames, type LocalNames } from './local-names.js';
-import { toLikeC4Style } from './presentation-adapter.js';
+import { toLikeC4Style, type LikeC4StyleBlock } from './presentation-adapter.js';
 
 /** `defaultLandscapeView: false` keeps LikeC4 from injecting an `index` View next to the Model View. */
 const LIKEC4_PROJECT_CONFIG =
@@ -32,13 +32,16 @@ function nameOf(names: Map<string, string>, identity: string): string {
 
 /** Kind constraints live in the `metamodel/` frontmatter; LikeC4 only carries the names. */
 function renderSpecification(model: SemanticModel, kinds: Map<string, string>): string {
+  const styleByIdentity = new Map<string, LikeC4StyleBlock | undefined>();
+  for (const kind of model.elementKinds) {
+    if (!styleByIdentity.has(kind.identity)) styleByIdentity.set(kind.identity, toLikeC4Style(kind.nodePresentation));
+  }
   const declare = (keyword: string, items: readonly { identity: string }[]): string[] =>
     [...items]
       .sort((left, right) => compareUtf8Bytes(left.identity, right.identity))
       .map(item => {
         const name = nameOf(kinds, item.identity);
-        const kind = model.elementKinds.find(k => k.identity === item.identity);
-        const style = kind ? toLikeC4Style(kind.nodePresentation) : undefined;
+        const style = styleByIdentity.get(item.identity);
         if (!style) return `  ${keyword} ${name}`;
         const styleLines = [`  ${keyword} ${name} {`, '    style {', ...Object.entries(style).map(([k, v]) => `      ${k} ${v}`), '    }', '  }'];
         return styleLines.join('\n');
