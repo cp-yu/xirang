@@ -43,6 +43,35 @@ describe('buildViewTree', () => {
   })
 })
 
+describe('elementFqn identity resolution', () => {
+  test('prefers the deployment identity over the model element identity', () => {
+    const forest = buildViewTree({
+      nodes: [
+        { id: 'instance.x', title: 'Instance', kind: 'deployment', parent: null, children: [], deploymentRef: 'instance.x', modelRef: 'model.x' },
+      ],
+    })
+    expect(forest[0]!.fqn).toBe('instance.x')
+  })
+
+  test('falls back to the model element identity when no deployment is present', () => {
+    const forest = buildViewTree({
+      nodes: [
+        { id: 'local', title: 'X', kind: 'element', parent: null, children: [], modelRef: 'model.x' },
+      ],
+    })
+    expect(forest[0]!.fqn).toBe('model.x')
+  })
+
+  test('keeps metadata.elementId as the explicit override', () => {
+    const forest = buildViewTree({
+      nodes: [
+        { id: 'local', title: 'X', kind: 'element', parent: null, children: [], deploymentRef: 'dep.x', modelRef: 'model.x', metadata: { elementId: 'override.x' } },
+      ],
+    })
+    expect(forest[0]!.fqn).toBe('override.x')
+  })
+})
+
 describe('renderTreeText', () => {
   test('renders a box-drawing tree with default title field', () => {
     expect(renderTreeText(roots)).toBe([

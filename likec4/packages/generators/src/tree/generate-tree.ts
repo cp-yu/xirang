@@ -3,7 +3,8 @@ import { compareNatural } from '@likec4/core/utils'
 /**
  * A node in a view's hierarchy tree, resolved from the computed view nodes.
  * `id` is the view-local node id used for parent/child linkage; `fqn` is the
- * element identity shown by the `fqn` field (`metadata.elementId` when present).
+ * element identity shown by the `fqn` field (metadata override, then deployment
+ * identity, then model element identity, then the node id).
  */
 export interface ViewTreeNode {
   id: string
@@ -33,10 +34,19 @@ type ViewNodeLike = {
   parent: string | null
   children: readonly string[]
   metadata?: Readonly<Record<string, unknown>> | null
+  modelRef?: string
+  deploymentRef?: string
 }
 
+/**
+ * Resolves the node's element identity. Precedence: an explicit `metadata.elementId`
+ * override, then the deployment identity, then the model element identity, then the
+ * view-local node id as a last resort.
+ */
 const elementFqn = (node: ViewNodeLike): string =>
-  typeof node.metadata?.['elementId'] === 'string' ? node.metadata['elementId'] : node.id
+  typeof node.metadata?.['elementId'] === 'string'
+    ? node.metadata['elementId']
+    : node.deploymentRef ?? node.modelRef ?? node.id
 
 /**
  * Builds the hierarchy tree of a view from its nodes: every node without a parent present in
