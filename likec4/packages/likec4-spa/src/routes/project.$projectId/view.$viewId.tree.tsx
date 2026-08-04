@@ -1,18 +1,12 @@
 import { createFileRoute, stripSearchParams } from '@tanstack/react-router'
-import { z } from 'zod'
+import { treeSearchDefaults, treeSearchSchema } from '../../lib/tree-route-search'
 import { ViewAsTree } from '../../pages/ViewAsTree'
 
 export const Route = createFileRoute('/project/$projectId/view/$viewId/tree')({
-  validateSearch: z.object({
-    format: z.enum(['text', 'markdown', 'json']).optional().catch('text'),
-    fields: z.array(z.enum(['title', 'fqn', 'kind'])).optional().catch(['title']),
-  }),
+  validateSearch: treeSearchSchema,
   search: {
     middlewares: [
-      stripSearchParams({
-        format: 'text',
-        fields: ['title'],
-      }),
+      stripSearchParams(treeSearchDefaults),
     ],
   },
   component: ViewAsTree,

@@ -10,9 +10,8 @@ import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useMemo } from 'react'
 import { CopyToClipboard } from '../components/CopyToClipboard'
 import { useCurrentView, useCurrentViewId } from '../hooks'
+import { DEFAULT_TREE_FIELDS, DEFAULT_TREE_FORMAT, type TreeFormat } from '../lib/tree-route-search'
 import * as styles from './styles.css'
-
-type TreeFormat = 'text' | 'markdown' | 'json'
 
 const formatOptions: { label: string; value: TreeFormat }[] = [
   { label: 'Text', value: 'text' },
@@ -34,8 +33,8 @@ export function ViewAsTree() {
   const viewId = useCurrentViewId()
   const navigate = useNavigate()
   const search = useSearch({ strict: false }) as { format?: TreeFormat; fields?: ViewTreeField[] }
-  const format = search.format ?? 'text'
-  const fields = search.fields ?? ['title']
+  const format = search.format ?? DEFAULT_TREE_FORMAT
+  const fields = search.fields ?? DEFAULT_TREE_FIELDS
 
   const tree = useMemo(() => (view ? buildViewTree(view) : []), [view])
   const content = useMemo(() => {
