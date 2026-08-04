@@ -3,7 +3,7 @@ import { Badge, Box, Button, Group, Modal, NativeSelect, Stack, Text, UnstyledBu
 import { IconGripVertical } from '@tabler/icons-react'
 import { useRerender } from '@react-hookz/web'
 import { motion, useDragControls } from 'motion/react'
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react'
 import { Markdown } from '../base-primitives'
 import { ErrorBoundary } from '../components/ErrorFallback'
 import { useEnabledFeatures } from '../context/DiagramFeatures'
@@ -96,6 +96,28 @@ export function getArchitectureOverlayModel(source: XirangViewSource) {
   }
 }
 
+function FloatingChrome({
+  dragControls,
+  position,
+  children,
+}: PropsWithChildren<{
+  dragControls: ReturnType<typeof useDragControls>
+  position: { left?: number; right?: number; top: number }
+}>) {
+  return (
+    <motion.div
+      drag
+      dragControls={dragControls}
+      dragElastic={0}
+      dragMomentum={false}
+      dragListener={false}
+      style={{ position: 'absolute', zIndex: 5, pointerEvents: 'all', touchAction: 'none', ...position }}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
 function XirangArchitectureOverlay() {
   const { sources, selected, select, mode, setMode } = useXirangViewSources()
   const { enableStaticView } = useEnabledFeatures()
@@ -146,14 +168,7 @@ function XirangArchitectureOverlay() {
     return identities
   }, [declarations, focusIdentity, rootIdentity])
   const breadcrumb = currentView.id === 'model' && breadcrumbIdentities.length > 0 && (
-    <motion.div
-      drag
-      dragControls={breadcrumbDragControls}
-      dragElastic={0}
-      dragMomentum={false}
-      dragListener={false}
-      style={{ position: 'absolute', left: 16, top: 72, zIndex: 5, pointerEvents: 'all', touchAction: 'none' }}
-    >
+    <FloatingChrome dragControls={breadcrumbDragControls} position={{ left: 16, top: 72 }}>
       <Group
         data-xirang-focus-breadcrumb
         data-xirang-drag-handle
@@ -177,7 +192,7 @@ function XirangArchitectureOverlay() {
           </Button>
         ))}
       </Group>
-    </motion.div>
+    </FloatingChrome>
   )
 
   useOnDiagramEvent('nodeClick', event => {
@@ -355,14 +370,7 @@ function XirangArchitectureOverlay() {
     <>
       {breadcrumb}
       {relationshipPanel}
-      <motion.div
-        drag
-        dragControls={dragControls}
-        dragElastic={0}
-        dragMomentum={false}
-        dragListener={false}
-        style={{ position: 'absolute', right: 16, top: 16, zIndex: 5, pointerEvents: 'all', touchAction: 'none' }}
-      >
+      <FloatingChrome dragControls={dragControls} position={{ right: 16, top: 16 }}>
         <Box
           data-xirang-architecture-overlay
           data-xirang-architecture-mode={mode}
@@ -450,7 +458,7 @@ function XirangArchitectureOverlay() {
           ))}
         </Stack>
       </Box>
-      </motion.div>
+      </FloatingChrome>
       <MetamodelDiffModal
         entry={metamodelEntry?.entry ?? null}
         opened={metamodelEntry?.opened ?? false}
