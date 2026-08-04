@@ -19,27 +19,27 @@
 
 #### Checks
 
-- [ ] C1 验证 `nodePresentation` 完整声明解析
+- [x] C1 验证 `nodePresentation` 完整声明解析
   - Verifies: `elements/metamodel.md` / Requirement "使用规范 Kind 字段" / Scenario "Element Kind 声明节点呈现"
   - Command: `pnpm exec vitest run test/core/model/parser.test.ts -t "parses element kind with complete nodePresentation"`
   - Expect: `shape`、`color`、`border` 三个字段均正确解析
 
-- [ ] C2 验证部分声明解析
+- [x] C2 验证部分声明解析
   - Verifies: `elements/metamodel.md` / Requirement "使用规范 Kind 字段" / Scenario "Element Kind 声明节点呈现"
   - Command: `pnpm exec vitest run test/core/model/parser.test.ts -t "parses element kind with partial nodePresentation"`
   - Expect: 只声明 `shape` 时，其余字段为 `undefined`
 
-- [ ] C3 验证非法节点呈现值被拒绝
+- [x] C3 验证非法节点呈现值被拒绝
   - Verifies: `elements/metamodel.md` / Requirement "使用规范 Kind 字段" / Scenario "非法节点呈现值被拒绝"
   - Command: `pnpm exec vitest run test/core/model/parser.test.ts -t "rejects invalid nodePresentation values"`
   - Expect: 未知字段、非法枚举、错误类型均产生 `ERROR` diagnostic
 
-- [ ] C4 验证 serializer 嵌套 YAML 确定性输出
+- [x] C4 验证 serializer 嵌套 YAML 确定性输出
   - Verifies: `elements/metamodel.md` / Requirement "使用规范 Kind 字段" / Scenario "Element Kind 声明节点呈现"
   - Command: `pnpm exec vitest run test/core/model/frontmatter.test.ts -t "serializes nodePresentation deterministically"`
   - Expect: 字段顺序固定为 `shape`、`color`、`border`；key 顺序变化不影响语义等价
 
-- [ ] C5 验证 round-trip 等价
+- [x] C5 验证 round-trip 等价
   - Verifies: `elements/metamodel.md` / Requirement "使用规范 Kind 字段" / Scenario "Element Kind 声明节点呈现"
   - Command: `pnpm exec vitest run test/core/model/parser.test.ts -t "round-trips element kind with nodePresentation"`
   - Expect: parse → serialize → parse 结果与原始输入语义等价
@@ -63,17 +63,17 @@
 
 #### Checks
 
-- [ ] C6 验证 ADDED Element Kind 携带 `nodePresentation`
+- [x] C6 验证 ADDED Element Kind 携带 `nodePresentation`
   - Verifies: `elements/metamodel.md` / Requirement "使用规范 Kind 字段" / Scenario "Element Kind 声明节点呈现"
   - Command: `pnpm exec vitest run test/core/model/delta.test.ts -t "adds element kind with nodePresentation"`
   - Expect: ADDED 条目包含完整 `nodePresentation`
 
-- [ ] C7 验证 MODIFIED Element Kind 携带完整目标态
+- [x] C7 验证 MODIFIED Element Kind 携带完整目标态
   - Verifies: `elements/metamodel.md` / Requirement "使用规范 Kind 字段" / Scenario "Element Kind 声明节点呈现"
   - Command: `pnpm exec vitest run test/core/model/delta.test.ts -t "modifies element kind nodePresentation"`
   - Expect: MODIFIED 条目包含完整 `nodePresentation`，before/after 准确
 
-- [ ] C8 验证 presentation-only 变化不影响非相关 fingerprint
+- [x] C8 验证 presentation-only 变化不影响非相关 fingerprint
   - Verifies: `elements/visual-presentation.md` / Requirement "视觉选择不构成规范性语义" / Scenario "持久呈现配置不改变 Kind 语义"
   - Command: `pnpm exec vitest run test/core/semantic-diff.test.ts -t "does not change element contract or relationship fingerprints after presentation change"`
   - Expect: 仅 metamodel partition fingerprint 变化，elements/relationships/views fingerprint 不变
@@ -88,6 +88,7 @@
 - Modify: `src/core/framing/baseline.ts`
 - Test: `test/core/framing/document.test.ts`
 - Test: `test/core/framing/baseline.test.ts`
+- Test: `test/core/typecheck.test.ts`（核心 tsc 构建门禁，保护 nodePresentation 类型改动）
 
 **Requirements**:
 - `ElementKindTarget` 增加 `nodePresentation`
@@ -100,17 +101,17 @@
 
 #### Checks
 
-- [ ] C9 验证 framing create/update 保留 `nodePresentation`
+- [x] C9 验证 framing create/update 保留 `nodePresentation`
   - Verifies: `elements/metamodel.md` / Requirement "使用规范 Kind 字段" / Scenario "Element Kind 声明节点呈现"
   - Command: `pnpm exec vitest run test/core/framing/document.test.ts -t "preserves nodePresentation in framing payload"`
   - Expect: create/update 的 Element Kind target 包含完整 `nodePresentation`
 
-- [ ] C10 验证旧 framing record 兼容
+- [x] C10 验证旧 framing record 兼容
   - Verifies: `elements/metamodel.md` / Requirement "使用规范 Kind 字段" / Scenario "Element Kind 声明节点呈现"
   - Command: `pnpm exec vitest run test/core/framing/document.test.ts -t "accepts framing record without nodePresentation"`
   - Expect: 无 `nodePresentation` 的旧 record 解析成功且不产生错误
 
-- [ ] C11 验证 presentation drift 被识别为 relevant
+- [x] C11 验证 presentation drift 被识别为 relevant
   - Verifies: `elements/metamodel.md` / Requirement "使用规范 Kind 字段" / Scenario "Element Kind 声明节点呈现"
   - Command: `pnpm exec vitest run test/core/framing/baseline.test.ts -t "detects nodePresentation drift as relevant"`
   - Expect: baseline 中 `nodePresentation` 变化被报告为 relevant drift
@@ -136,22 +137,22 @@
 
 #### Checks
 
-- [ ] C12 验证 adapter 映射所有合法值
+- [x] C12 验证 adapter 映射所有合法值
   - Verifies: `elements/metamodel.md` / Requirement "使用规范 Kind 字段" / Scenario "Element Kind 声明节点呈现"
   - Command: `pnpm exec vitest run test/core/likec4/generator.test.ts -t "maps all valid nodePresentation values to LikeC4"`
   - Expect: 所有 Xirang 枚举值映射到正确 LikeC4 值
 
-- [ ] C13 验证 LikeC4 specification 生成正确
+- [x] C13 验证 LikeC4 specification 生成正确
   - Verifies: `elements/metamodel.md` / Requirement "使用规范 Kind 字段" / Scenario "Element Kind 声明节点呈现"
   - Command: `pnpm exec vitest run test/core/likec4/generator.test.ts -t "generates LikeC4 style block for nodePresentation"`
   - Expect: Element Kind 的 `nodePresentation` 正确生成为 LikeC4 `style { shape ... color ... border ... }`
 
-- [ ] C14 验证无配置时输出裸 Kind
+- [x] C14 验证无配置时输出裸 Kind
   - Verifies: `elements/metamodel.md` / Requirement "使用规范 Kind 字段" / Scenario "Element Kind 声明节点呈现"
   - Command: `pnpm exec vitest run test/core/likec4/generator.test.ts -t "outputs bare kind without nodePresentation"`
   - Expect: 无 `nodePresentation` 的 Kind 不生成 style block
 
-- [ ] C15 验证所有 Browser source 使用相同 presentation
+- [x] C15 验证所有 Browser source 使用相同 presentation
   - Verifies: `elements/metamodel.md` / Requirement "使用规范 Kind 字段" / Scenario "Element Kind 声明节点呈现"
   - Command: `pnpm --dir likec4 exec vitest run --no-isolate packages/diagram/src/xirang/architectureView.spec.ts -t "applies kind presentation uniformly across sources"`
   - Expect: Model、Candidate、Change-derived sources 对同一 Kind 使用相同 presentation
@@ -162,6 +163,10 @@
 
 **Files**:
 - Modify: `.xirang/model/metamodel/perspective.md`
+- Modify: `test/fixtures/contract-browser/.xirang/model/metamodel/perspective.md`（E2E fixture）
+- Modify: `test/fixtures/contract-browser/.xirang/candidate/metamodel/perspective.md`（E2E fixture）
+- Modify: `test/fixtures/contract-browser/.xirang/model/metamodel/capability.md`（E2E fixture，diff 覆盖测试用）
+- Modify: `test/fixtures/contract-browser/.xirang/candidate/metamodel/capability.md`（E2E fixture）
 - Test: `test/core/model/parser.test.ts`
 - Test: `test/core/likec4/generator.test.ts`
 
@@ -172,12 +177,12 @@
 
 #### Checks
 
-- [ ] C16 验证 `perspective` 获得正确 presentation
+- [x] C16 验证 `perspective` 获得正确 presentation
   - Verifies: `metamodel/perspective.md` / Requirement "Element Kind 声明" / Scenario "Kind 共享语义"
   - Command: `pnpm exec vitest run test/core/model/parser.test.ts -t "perspective kind has nodePresentation"`
   - Expect: `perspective` Kind 的 `nodePresentation` 为 `{ shape: 'document', color: 'indigo', border: 'solid' }`
 
-- [ ] C17 验证 LikeC4 生成正确包含 perspective style
+- [x] C17 验证 LikeC4 生成正确包含 perspective style
   - Verifies: `metamodel/perspective.md` / Requirement "Element Kind 声明" / Scenario "Kind 共享语义"
   - Command: `pnpm exec vitest run test/core/likec4/generator.test.ts -t "generates perspective with style block"`
   - Expect: LikeC4 specification 中 `perspective` 包含 `style { shape document color indigo border solid }`
@@ -188,6 +193,7 @@
 
 **Files**:
 - Test: `test/e2e/semantic-browser-node-presentation.spec.ts`
+- Modify: `playwright.config.ts`（desktop/mobile grep 纳入新 E2E 标题）
 
 **Requirements**:
 - desktop 和 mobile 视口均验证 Kind presentation 生效
@@ -196,12 +202,12 @@
 
 #### Checks
 
-- [ ] C18 验证 Model View 中 Kind presentation 生效
+- [x] C18 验证 Model View 中 Kind presentation 生效
   - Verifies: `elements/visual-presentation.md` / Requirement "视觉选择不构成规范性语义" / Scenario "持久呈现配置不改变 Kind 语义"
   - Command: `pnpm exec playwright test test/e2e/semantic-browser-node-presentation.spec.ts --project=desktop --project=mobile -g "applies kind presentation in model view"`
   - Expect: `perspective` Elements 显示 `document` shape 和 `indigo` 颜色
 
-- [ ] C19 验证 diff source 中 operation color 优先
+- [x] C19 验证 diff source 中 operation color 优先
   - Verifies: `elements/visual-presentation.md` / Requirement "视觉选择不构成规范性语义" / Scenario "持久呈现配置不改变 Kind 语义"
   - Command: `pnpm exec playwright test test/e2e/semantic-browser-node-presentation.spec.ts --project=desktop --project=mobile -g "keeps operation color above kind color in diff"`
   - Expect: Change-derived View 中 ADDED/MODIFIED 节点的状态色覆盖 Kind `color`，`shape` 和 `border` 保留

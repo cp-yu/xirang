@@ -88,6 +88,20 @@ describe('relevant Semantic Model baseline', () => {
     });
   });
 
+  it('detects nodePresentation drift as relevant', () => {
+    const current = model();
+    const baseline = captureRelevantBaseline(current, payload);
+    const changed = structuredClone(current);
+    changed.elementKinds.find(item => item.identity === 'capability')!.nodePresentation = {
+      shape: 'component',
+      color: 'green',
+      border: 'dashed',
+    };
+    const result = classifyBaselineDrift('old', 'new', baseline, changed, payload);
+    expect(result.status).toBe('relevant-drift');
+    expect(result.changed).toContain('element-kind:capability');
+  });
+
   it('classifies fresh, unrelated and relevant drift', () => {
     const initial = model();
     const baseline = captureRelevantBaseline(initial, payload);

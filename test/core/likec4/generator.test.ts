@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { generateLikeC4 } from '../../../src/core/likec4/generator.js';
-import { emptySemanticModel, type SemanticModel } from '../../../src/core/model/types.js';
+import { toLikeC4Style } from '../../../src/core/likec4/presentation-adapter.js';
+import { NODE_BORDER_VALUES, NODE_COLOR_VALUES, NODE_SHAPE_VALUES, emptySemanticModel, type SemanticModel } from '../../../src/core/model/types.js';
 
 function element(identity: string, parent: string | null, kind = 'capability', title = identity, definition = `${identity} definition.`): SemanticModel['elements'][number] {
   return { declaration: { identity, kind, parent, title, definition }, requirements: [] };
@@ -57,6 +58,73 @@ describe('generateLikeC4 specification.c4', () => {
       '  "name": "xirang",',
       '  "implicitViews": false,',
       '  "defaultLandscapeView": false',
+      '}',
+      '',
+    ].join('\n'));
+  });
+
+  it('maps all valid nodePresentation values to LikeC4', () => {
+    for (const shape of NODE_SHAPE_VALUES) {
+      expect(toLikeC4Style({ shape })).toEqual({ shape });
+    }
+    for (const color of NODE_COLOR_VALUES) {
+      expect(toLikeC4Style({ color })).toEqual({ color });
+    }
+    for (const border of NODE_BORDER_VALUES) {
+      expect(toLikeC4Style({ border })).toEqual({ border });
+    }
+    expect(toLikeC4Style({ shape: 'document', color: 'indigo', border: 'solid' }))
+      .toEqual({ shape: 'document', color: 'indigo', border: 'solid' });
+  });
+
+  it('generates LikeC4 style block for nodePresentation', () => {
+    const model: SemanticModel = {
+      ...emptySemanticModel(),
+      elementKinds: [{
+        identity: 'perspective',
+        contract: 'optional',
+        nodePresentation: { shape: 'document', color: 'indigo', border: 'solid' },
+        body: '',
+      }],
+    };
+    expect(generateLikeC4(model).get('specification.c4')).toBe([
+      'specification {',
+      '  element perspective {',
+      '    style {',
+      '      shape document',
+      '      color indigo',
+      '      border solid',
+      '    }',
+      '  }',
+      '}',
+      '',
+    ].join('\n'));
+  });
+
+  it('outputs bare kind without nodePresentation', () => {
+    expect(generateLikeC4(constrained).get('specification.c4')).toContain('  element capability\n');
+    expect(generateLikeC4(constrained).get('specification.c4')).not.toContain('style {');
+  });
+
+  it('generates perspective with style block', () => {
+    const model: SemanticModel = {
+      ...emptySemanticModel(),
+      elementKinds: [{
+        identity: 'perspective',
+        contract: 'optional',
+        nodePresentation: { shape: 'document', color: 'indigo', border: 'solid' },
+        body: '',
+      }],
+    };
+    expect(generateLikeC4(model).get('specification.c4')).toBe([
+      'specification {',
+      '  element perspective {',
+      '    style {',
+      '      shape document',
+      '      color indigo',
+      '      border solid',
+      '    }',
+      '  }',
       '}',
       '',
     ].join('\n'));

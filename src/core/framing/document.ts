@@ -1,6 +1,6 @@
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { renderScalar, splitFrontmatter } from '../model/frontmatter.js';
-import { NODE_BORDER_VALUES, NODE_COLOR_VALUES, NODE_SHAPE_VALUES } from '../model/types.js';
+import { NODE_BORDER_VALUES, NODE_COLOR_VALUES, NODE_SHAPE_VALUES, type NodeBorder, type NodeColor, type NodeShape } from '../model/types.js';
 import { validateExplorationId, validateFramingSlug } from './paths.js';
 import type {
   ChangeStructuralDefinitionDocument,
@@ -118,9 +118,9 @@ function parseNodePresentationTarget(raw: unknown, label: string): NodePresentat
     fail('INVALID_PAYLOAD', `${label}.border has invalid value: ${String(border)}`);
   }
   const result: NodePresentationTarget = {};
-  if (shape !== undefined) result.shape = shape as string;
-  if (color !== undefined) result.color = color as string;
-  if (border !== undefined) result.border = border as string;
+  if (shape !== undefined) result.shape = shape as NodeShape;
+  if (color !== undefined) result.color = color as NodeColor;
+  if (border !== undefined) result.border = border as NodeBorder;
   return result;
 }
 

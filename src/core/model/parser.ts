@@ -57,9 +57,9 @@ function warning(code: string, file: string, message: string, identity?: string)
   return { level: 'WARNING', code, path: file, message, ...(identity ? { identity } : {}) };
 }
 
-const NODE_SHAPE_SET = new Set(NODE_SHAPE_VALUES);
-const NODE_COLOR_SET = new Set(NODE_COLOR_VALUES);
-const NODE_BORDER_SET = new Set(NODE_BORDER_VALUES);
+const NODE_SHAPE_SET = new Set<string>(NODE_SHAPE_VALUES);
+const NODE_COLOR_SET = new Set<string>(NODE_COLOR_VALUES);
+const NODE_BORDER_SET = new Set<string>(NODE_BORDER_VALUES);
 
 function parseNodePresentation(
   raw: unknown,

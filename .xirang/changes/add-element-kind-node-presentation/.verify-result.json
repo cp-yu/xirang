@@ -1,28 +1,150 @@
 {
-  "timestamp": "2026-08-03T10:27:38.465Z",
-  "result": "PASS",
-  "issues": [],
-  "tasksFileHash": "9bdd1ecbde59f437b9a24b0385cd05efd85bea2455e3a79a2fb4ffd5d98e9c79",
+  "timestamp": "2026-08-04T06:20:57.938Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "requirement": "视觉选择不构成规范性语义 / 使用规范 Kind 字段",
+      "task": "Task 4: LikeC4 adapter 与 Browser 统一消费",
+      "message": "Design decision 2 partially violated: browser materializer duplicates the Xirang→LikeC4 mapping in kindPresentation instead of sharing the single presentationAdapter function required by design.md",
+      "recommendation": "Extract the shared mapping (e.g. publish presentation-adapter from a package the likec4/diagram can import) or add a generator-vs-browser parity test asserting all enum values render identically; note the package boundary in design.md as an explicit deviation",
+      "evidence": [
+        ".xirang/changes/add-element-kind-node-presentation/design.md",
+        "likec4/packages/diagram/src/xirang/architectureView.ts",
+        "src/core/likec4/presentation-adapter.ts",
+        "src/core/likec4/generator.ts"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "requirement": "使用规范 Kind 字段",
+      "task": "Task 6: E2E 与边界验证",
+      "message": "Unaccounted change: playwright.config.ts adds the two new e2e test names to desktop/mobile grep filters; benign test infrastructure required for the new E2E to run in standard projects",
+      "recommendation": "Attribute playwright.config.ts to Task 6 in tasks.md Files section",
+      "evidence": [
+        "playwright.config.ts"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "requirement": "使用规范 Kind 字段",
+      "task": "Task 5 / Task 6",
+      "message": "Unaccounted change: 4 contract-browser fixture metamodel files (capability + perspective, model + candidate) gain nodePresentation; benign test fixtures required by E2E C18/C19 assertions",
+      "recommendation": "Attribute the fixture paths to Task 5/6 in tasks.md Files section",
+      "evidence": [
+        "test/fixtures/contract-browser/.xirang/model/metamodel/perspective.md",
+        "test/fixtures/contract-browser/.xirang/candidate/metamodel/perspective.md",
+        "test/fixtures/contract-browser/.xirang/model/metamodel/capability.md",
+        "test/fixtures/contract-browser/.xirang/candidate/metamodel/capability.md"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "requirement": "使用规范 Kind 字段",
+      "task": null,
+      "message": "Unaccounted change: test/core/typecheck.test.ts adds a tsc --noEmit build-gate test guarding the nodePresentation type changes; benign test infrastructure, passes",
+      "recommendation": "Attribute test/core/typecheck.test.ts to a task in tasks.md Files section",
+      "evidence": [
+        "test/core/typecheck.test.ts"
+      ]
+    }
+  ],
+  "tasksFileHash": "2258e444b91f3f9d73914fd78430af98c8a327ebdf889516a239fa79d40e9885",
   "verificationContext": {
     "contractVersion": "1.0",
     "evidenceFiles": [
+      ".xirang/changes/add-element-kind-node-presentation/design.md",
+      ".xirang/changes/add-element-kind-node-presentation/elements/metamodel.md",
+      ".xirang/changes/add-element-kind-node-presentation/elements/visual-presentation.md",
+      ".xirang/changes/add-element-kind-node-presentation/metamodel/perspective.md",
+      ".xirang/changes/add-element-kind-node-presentation/proposal.md",
+      ".xirang/changes/add-element-kind-node-presentation/tasks.md",
+      ".xirang/model/elements/metamodel.md",
+      ".xirang/model/elements/visual-presentation.md",
       ".xirang/model/metamodel/perspective.md",
+      "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+      "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+      "likec4/packages/diagram/src/xirang/architectureView.ts",
+      "playwright.config.ts",
       "src/core/framing/baseline.ts",
       "src/core/framing/document.ts",
       "src/core/framing/types.ts",
+      "src/core/likec4/definition.ts",
       "src/core/likec4/generator.ts",
       "src/core/likec4/presentation-adapter.ts",
+      "src/core/model/delta.ts",
       "src/core/model/frontmatter.ts",
       "src/core/model/parser.ts",
       "src/core/model/types.ts",
+      "src/core/semantic-diff.ts",
+      "src/core/view.ts",
+      "test/core/framing/baseline.test.ts",
+      "test/core/framing/document.test.ts",
+      "test/core/likec4/generator.test.ts",
+      "test/core/model/delta.test.ts",
       "test/core/model/frontmatter.test.ts",
-      "test/core/model/parser.test.ts"
+      "test/core/model/parser.test.ts",
+      "test/core/semantic-diff.test.ts",
+      "test/core/typecheck.test.ts",
+      "test/e2e/semantic-browser-node-presentation.spec.ts",
+      "test/fixtures/contract-browser/.xirang/candidate/metamodel/capability.md",
+      "test/fixtures/contract-browser/.xirang/candidate/metamodel/perspective.md",
+      "test/fixtures/contract-browser/.xirang/model/metamodel/capability.md",
+      "test/fixtures/contract-browser/.xirang/model/metamodel/perspective.md"
     ],
-    "evidenceFingerprint": "8f16a0986b2d11e560e617bcfca2e8d92c2a05c4fa72ac148f9a0c628b89d314",
+    "evidenceFingerprint": "cae33a8702a30541832d3e5db1000b423cbbb24c9ea7af1478dfcf638b4a9949",
     "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/add-element-kind-node-presentation/design.md",
+        "hash": "4cdc9c2d27e7b664779b1737a2ef299e503241a479eb0e045ce2dfd1b80a76bd"
+      },
+      {
+        "path": ".xirang/changes/add-element-kind-node-presentation/elements/metamodel.md",
+        "hash": "020904651775281083f78fa6712f5a0f078de98d4c14d90a041cdb2ae7aff3f3"
+      },
+      {
+        "path": ".xirang/changes/add-element-kind-node-presentation/elements/visual-presentation.md",
+        "hash": "a81c8d40ea055602357beaac0b181b42cbf8cfe80efbc13e770bd7376533c2da"
+      },
+      {
+        "path": ".xirang/changes/add-element-kind-node-presentation/metamodel/perspective.md",
+        "hash": "24364dc702403c8235820d077a2097601a155417cf42d4012042e497feee45c1"
+      },
+      {
+        "path": ".xirang/changes/add-element-kind-node-presentation/proposal.md",
+        "hash": "3cf9f881723c6793f15fb3f4c1f61250c2ef92e0cdd228152d03d17dda3ab237"
+      },
+      {
+        "path": ".xirang/changes/add-element-kind-node-presentation/tasks.md",
+        "hash": "2258e444b91f3f9d73914fd78430af98c8a327ebdf889516a239fa79d40e9885"
+      },
+      {
+        "path": ".xirang/model/elements/metamodel.md",
+        "hash": "cdcb050e5071d9c1f2c0f961cddc0d6f49cc402deb9c8d0282655bbb1bbd471d"
+      },
+      {
+        "path": ".xirang/model/elements/visual-presentation.md",
+        "hash": "aab8ed63b765712771d696c74ce984d71f2ee09400aaa38ea0afb82000a78a66"
+      },
       {
         "path": ".xirang/model/metamodel/perspective.md",
         "hash": "058ea9430db6401b5a3f81b9fec3316d7c25513db99ff1840339f9a6cac0c75b"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+        "hash": "56eb3e7c6bc2a21e39b9d331660a2f3a6776190a3414b6efe393579d584a2797"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+        "hash": "3bedb42287dbc955b518aa3314bb66e9143c1cc22c71672928e0371772f1988b"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+        "hash": "a202c2c9024a9396dcad46c833f93f14a45658974456b4dcfd62b164d93c2fc6"
+      },
+      {
+        "path": "playwright.config.ts",
+        "hash": "f3c551f361bff247eeb295ce1be86de23b8c05d413aef208f4a2a9e031a4c8e0"
       },
       {
         "path": "src/core/framing/baseline.ts",
@@ -30,11 +152,15 @@
       },
       {
         "path": "src/core/framing/document.ts",
-        "hash": "e7e3943f050d7f744a3799de3ede7f387f86ea8fee88266b94ce34dbe3ed7826"
+        "hash": "5e8d318926b478ed737db18ea704eda323dc684f7d245d8688b0a984000e8a8d"
       },
       {
         "path": "src/core/framing/types.ts",
-        "hash": "1a1e51cefa42205ad7b8f1c2e9d83fb86397026adeae7d3bd265a93d85a7cfdc"
+        "hash": "a99df132e4c4500f342f0e18f56aca5686ebac29fa0cea9b8cf78518baa3188a"
+      },
+      {
+        "path": "src/core/likec4/definition.ts",
+        "hash": "2393d8e4a6b9ec583a2a0f0a4cec20cc424a7a76547eff886cdba8920d6a0cc7"
       },
       {
         "path": "src/core/likec4/generator.ts",
@@ -45,63 +171,236 @@
         "hash": "875910364179eed79fbc267db84af04ee8d8f95ec5e9b1d6cb0a7d74d13fda2e"
       },
       {
+        "path": "src/core/model/delta.ts",
+        "hash": "47ea096bcb7f3e6439118323e620a66f00b96d68782fe4425f7b95114fd169ff"
+      },
+      {
         "path": "src/core/model/frontmatter.ts",
-        "hash": "ed9bfb7746e11203296a73f9967a62804bbdaf53afaa5b94bb73270192a78a74"
+        "hash": "d93230d7290b3e0507ac5bb1c946e4a35e878a075bf5eb60da83b4c98470988d"
       },
       {
         "path": "src/core/model/parser.ts",
-        "hash": "f9de91fc39b593c5d75b4081aa3bb12d71aa9ac87532e476eedefaa07523cb05"
+        "hash": "70b438f43aed14f47b5ea3832323302bcfb678e1029d764ac182cf745498c984"
       },
       {
         "path": "src/core/model/types.ts",
         "hash": "bd02f36bab8893b674d09860ce15c082a2dd3083581d9da063ca44847ea02285"
       },
       {
+        "path": "src/core/semantic-diff.ts",
+        "hash": "08772a6b6aa0a51a3ee4f96d10c0f879154d68a7bdeb5de51f7e830fc6d099a9"
+      },
+      {
+        "path": "src/core/view.ts",
+        "hash": "a3a3a636530ca2e814711491c22f82441f5736d21b158197eec3fc7fcbfd8856"
+      },
+      {
+        "path": "test/core/framing/baseline.test.ts",
+        "hash": "97f52df2c46635b183ae5bd9af1199d77b2edb689c760f517acbbff4797c2662"
+      },
+      {
+        "path": "test/core/framing/document.test.ts",
+        "hash": "b37c5614ab9bf2657a38f738257c988c804d08fe9dfdbce37dfb4bfa07fcc387"
+      },
+      {
+        "path": "test/core/likec4/generator.test.ts",
+        "hash": "4c0e81a0bb3f93b43e30af2a21cc073d69d0748adb71a136b1f3bf7210921d70"
+      },
+      {
+        "path": "test/core/model/delta.test.ts",
+        "hash": "6449edd5fd822351dd98492f9135c442019e4f53c8d0abaa9174634e9d92219b"
+      },
+      {
         "path": "test/core/model/frontmatter.test.ts",
-        "hash": "7abe2dd1ede10abebdebade4659d8ff35809ca4727f8210820fa75e3a2cd3842"
+        "hash": "bbf215d7a211ce5094fe9c9f35cb2fa6702f14f63a602c52e9a92dcf36780c90"
       },
       {
         "path": "test/core/model/parser.test.ts",
-        "hash": "9028135a30476f565e30654432d7b8c91c583168ffb41b770bed4b97a92223e2"
+        "hash": "51d6dbf35473f31730df28029c63f8283d0552f508cedbb8407ea29aa6b8e43a"
+      },
+      {
+        "path": "test/core/semantic-diff.test.ts",
+        "hash": "a0f9fdf41a78e214cb147cfb770d085ac3b154988bebe9cfbec529c7afeb59d1"
+      },
+      {
+        "path": "test/core/typecheck.test.ts",
+        "hash": "b290e77b8d387b3e6e1e6985a3d0a92959bbdfea72e440fef3de012bd6fc5523"
+      },
+      {
+        "path": "test/e2e/semantic-browser-node-presentation.spec.ts",
+        "hash": "5004c894a59cfc07b08b252cb168afbfde38d5b078771a00ddc8212e769530bb"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/capability.md",
+        "hash": "0a5f4c33d5f8eee3fc309282a35efe6147eae59f696e5d7c1eb4411907bfe6b1"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/perspective.md",
+        "hash": "d9a7d468cb5771fba710172c6e703b77ba3ef49c276c9e6144c3d144adc75744"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/model/metamodel/capability.md",
+        "hash": "0a5f4c33d5f8eee3fc309282a35efe6147eae59f696e5d7c1eb4411907bfe6b1"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/model/metamodel/perspective.md",
+        "hash": "d9a7d468cb5771fba710172c6e703b77ba3ef49c276c9e6144c3d144adc75744"
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "aa93a15520f753b08a70cf595d397d98ce5bb0d0"
+    "gitHeadCommit": "7579e4e20547a46b5a63bd35ddc4c1122947e309",
+    "gitDiffSummary": "Working-tree diff (19 modified + 3 untracked) plus committed feature commits (aa93a1552..HEAD, which also carries the separately-archived browser-view-navigation-history change). Scope reviewed: model parser/serializer, delta, semantic-diff, view fingerprints, framing (types/document/baseline), LikeC4 adapter+generator, browser materializer, 6 task test files, e2e + fixtures + playwright config."
   },
   "optimization": {
-    "status": "SKIPPED",
-    "attempts": [
-      {
-        "timestamp": "2026-08-03T10:27:54.502Z",
-        "type": "optimization",
-        "status": "SKIPPED"
-      }
-    ],
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
     "baseline": {
-      "timestamp": "2026-08-03T10:27:38.465Z",
-      "result": "PASS",
-      "issues": [],
-      "tasksFileHash": "9bdd1ecbde59f437b9a24b0385cd05efd85bea2455e3a79a2fb4ffd5d98e9c79",
+      "timestamp": "2026-08-04T06:20:57.938Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "requirement": "视觉选择不构成规范性语义 / 使用规范 Kind 字段",
+          "task": "Task 4: LikeC4 adapter 与 Browser 统一消费",
+          "message": "Design decision 2 partially violated: browser materializer duplicates the Xirang→LikeC4 mapping in kindPresentation instead of sharing the single presentationAdapter function required by design.md",
+          "recommendation": "Extract the shared mapping (e.g. publish presentation-adapter from a package the likec4/diagram can import) or add a generator-vs-browser parity test asserting all enum values render identically; note the package boundary in design.md as an explicit deviation",
+          "evidence": [
+            ".xirang/changes/add-element-kind-node-presentation/design.md",
+            "likec4/packages/diagram/src/xirang/architectureView.ts",
+            "src/core/likec4/presentation-adapter.ts",
+            "src/core/likec4/generator.ts"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "requirement": "使用规范 Kind 字段",
+          "task": "Task 6: E2E 与边界验证",
+          "message": "Unaccounted change: playwright.config.ts adds the two new e2e test names to desktop/mobile grep filters; benign test infrastructure required for the new E2E to run in standard projects",
+          "recommendation": "Attribute playwright.config.ts to Task 6 in tasks.md Files section",
+          "evidence": [
+            "playwright.config.ts"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "requirement": "使用规范 Kind 字段",
+          "task": "Task 5 / Task 6",
+          "message": "Unaccounted change: 4 contract-browser fixture metamodel files (capability + perspective, model + candidate) gain nodePresentation; benign test fixtures required by E2E C18/C19 assertions",
+          "recommendation": "Attribute the fixture paths to Task 5/6 in tasks.md Files section",
+          "evidence": [
+            "test/fixtures/contract-browser/.xirang/model/metamodel/perspective.md",
+            "test/fixtures/contract-browser/.xirang/candidate/metamodel/perspective.md",
+            "test/fixtures/contract-browser/.xirang/model/metamodel/capability.md",
+            "test/fixtures/contract-browser/.xirang/candidate/metamodel/capability.md"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "requirement": "使用规范 Kind 字段",
+          "task": null,
+          "message": "Unaccounted change: test/core/typecheck.test.ts adds a tsc --noEmit build-gate test guarding the nodePresentation type changes; benign test infrastructure, passes",
+          "recommendation": "Attribute test/core/typecheck.test.ts to a task in tasks.md Files section",
+          "evidence": [
+            "test/core/typecheck.test.ts"
+          ]
+        }
+      ],
+      "tasksFileHash": "2258e444b91f3f9d73914fd78430af98c8a327ebdf889516a239fa79d40e9885",
       "verificationContext": {
         "contractVersion": "1.0",
         "evidenceFiles": [
+          ".xirang/changes/add-element-kind-node-presentation/design.md",
+          ".xirang/changes/add-element-kind-node-presentation/elements/metamodel.md",
+          ".xirang/changes/add-element-kind-node-presentation/elements/visual-presentation.md",
+          ".xirang/changes/add-element-kind-node-presentation/metamodel/perspective.md",
+          ".xirang/changes/add-element-kind-node-presentation/proposal.md",
+          ".xirang/changes/add-element-kind-node-presentation/tasks.md",
+          ".xirang/model/elements/metamodel.md",
+          ".xirang/model/elements/visual-presentation.md",
           ".xirang/model/metamodel/perspective.md",
+          "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+          "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+          "likec4/packages/diagram/src/xirang/architectureView.ts",
+          "playwright.config.ts",
           "src/core/framing/baseline.ts",
           "src/core/framing/document.ts",
           "src/core/framing/types.ts",
+          "src/core/likec4/definition.ts",
           "src/core/likec4/generator.ts",
           "src/core/likec4/presentation-adapter.ts",
+          "src/core/model/delta.ts",
           "src/core/model/frontmatter.ts",
           "src/core/model/parser.ts",
           "src/core/model/types.ts",
+          "src/core/semantic-diff.ts",
+          "src/core/view.ts",
+          "test/core/framing/baseline.test.ts",
+          "test/core/framing/document.test.ts",
+          "test/core/likec4/generator.test.ts",
+          "test/core/model/delta.test.ts",
           "test/core/model/frontmatter.test.ts",
-          "test/core/model/parser.test.ts"
+          "test/core/model/parser.test.ts",
+          "test/core/semantic-diff.test.ts",
+          "test/core/typecheck.test.ts",
+          "test/e2e/semantic-browser-node-presentation.spec.ts",
+          "test/fixtures/contract-browser/.xirang/candidate/metamodel/capability.md",
+          "test/fixtures/contract-browser/.xirang/candidate/metamodel/perspective.md",
+          "test/fixtures/contract-browser/.xirang/model/metamodel/capability.md",
+          "test/fixtures/contract-browser/.xirang/model/metamodel/perspective.md"
         ],
-        "evidenceFingerprint": "8f16a0986b2d11e560e617bcfca2e8d92c2a05c4fa72ac148f9a0c628b89d314",
+        "evidenceFingerprint": "cae33a8702a30541832d3e5db1000b423cbbb24c9ea7af1478dfcf638b4a9949",
         "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/add-element-kind-node-presentation/design.md",
+            "hash": "4cdc9c2d27e7b664779b1737a2ef299e503241a479eb0e045ce2dfd1b80a76bd"
+          },
+          {
+            "path": ".xirang/changes/add-element-kind-node-presentation/elements/metamodel.md",
+            "hash": "020904651775281083f78fa6712f5a0f078de98d4c14d90a041cdb2ae7aff3f3"
+          },
+          {
+            "path": ".xirang/changes/add-element-kind-node-presentation/elements/visual-presentation.md",
+            "hash": "a81c8d40ea055602357beaac0b181b42cbf8cfe80efbc13e770bd7376533c2da"
+          },
+          {
+            "path": ".xirang/changes/add-element-kind-node-presentation/metamodel/perspective.md",
+            "hash": "24364dc702403c8235820d077a2097601a155417cf42d4012042e497feee45c1"
+          },
+          {
+            "path": ".xirang/changes/add-element-kind-node-presentation/proposal.md",
+            "hash": "3cf9f881723c6793f15fb3f4c1f61250c2ef92e0cdd228152d03d17dda3ab237"
+          },
+          {
+            "path": ".xirang/changes/add-element-kind-node-presentation/tasks.md",
+            "hash": "2258e444b91f3f9d73914fd78430af98c8a327ebdf889516a239fa79d40e9885"
+          },
+          {
+            "path": ".xirang/model/elements/metamodel.md",
+            "hash": "cdcb050e5071d9c1f2c0f961cddc0d6f49cc402deb9c8d0282655bbb1bbd471d"
+          },
+          {
+            "path": ".xirang/model/elements/visual-presentation.md",
+            "hash": "aab8ed63b765712771d696c74ce984d71f2ee09400aaa38ea0afb82000a78a66"
+          },
           {
             "path": ".xirang/model/metamodel/perspective.md",
             "hash": "058ea9430db6401b5a3f81b9fec3316d7c25513db99ff1840339f9a6cac0c75b"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+            "hash": "56eb3e7c6bc2a21e39b9d331660a2f3a6776190a3414b6efe393579d584a2797"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+            "hash": "3bedb42287dbc955b518aa3314bb66e9143c1cc22c71672928e0371772f1988b"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+            "hash": "a202c2c9024a9396dcad46c833f93f14a45658974456b4dcfd62b164d93c2fc6"
+          },
+          {
+            "path": "playwright.config.ts",
+            "hash": "f3c551f361bff247eeb295ce1be86de23b8c05d413aef208f4a2a9e031a4c8e0"
           },
           {
             "path": "src/core/framing/baseline.ts",
@@ -109,11 +408,15 @@
           },
           {
             "path": "src/core/framing/document.ts",
-            "hash": "e7e3943f050d7f744a3799de3ede7f387f86ea8fee88266b94ce34dbe3ed7826"
+            "hash": "5e8d318926b478ed737db18ea704eda323dc684f7d245d8688b0a984000e8a8d"
           },
           {
             "path": "src/core/framing/types.ts",
-            "hash": "1a1e51cefa42205ad7b8f1c2e9d83fb86397026adeae7d3bd265a93d85a7cfdc"
+            "hash": "a99df132e4c4500f342f0e18f56aca5686ebac29fa0cea9b8cf78518baa3188a"
+          },
+          {
+            "path": "src/core/likec4/definition.ts",
+            "hash": "2393d8e4a6b9ec583a2a0f0a4cec20cc424a7a76547eff886cdba8920d6a0cc7"
           },
           {
             "path": "src/core/likec4/generator.ts",
@@ -124,28 +427,85 @@
             "hash": "875910364179eed79fbc267db84af04ee8d8f95ec5e9b1d6cb0a7d74d13fda2e"
           },
           {
+            "path": "src/core/model/delta.ts",
+            "hash": "47ea096bcb7f3e6439118323e620a66f00b96d68782fe4425f7b95114fd169ff"
+          },
+          {
             "path": "src/core/model/frontmatter.ts",
-            "hash": "ed9bfb7746e11203296a73f9967a62804bbdaf53afaa5b94bb73270192a78a74"
+            "hash": "d93230d7290b3e0507ac5bb1c946e4a35e878a075bf5eb60da83b4c98470988d"
           },
           {
             "path": "src/core/model/parser.ts",
-            "hash": "f9de91fc39b593c5d75b4081aa3bb12d71aa9ac87532e476eedefaa07523cb05"
+            "hash": "70b438f43aed14f47b5ea3832323302bcfb678e1029d764ac182cf745498c984"
           },
           {
             "path": "src/core/model/types.ts",
             "hash": "bd02f36bab8893b674d09860ce15c082a2dd3083581d9da063ca44847ea02285"
           },
           {
+            "path": "src/core/semantic-diff.ts",
+            "hash": "08772a6b6aa0a51a3ee4f96d10c0f879154d68a7bdeb5de51f7e830fc6d099a9"
+          },
+          {
+            "path": "src/core/view.ts",
+            "hash": "a3a3a636530ca2e814711491c22f82441f5736d21b158197eec3fc7fcbfd8856"
+          },
+          {
+            "path": "test/core/framing/baseline.test.ts",
+            "hash": "97f52df2c46635b183ae5bd9af1199d77b2edb689c760f517acbbff4797c2662"
+          },
+          {
+            "path": "test/core/framing/document.test.ts",
+            "hash": "b37c5614ab9bf2657a38f738257c988c804d08fe9dfdbce37dfb4bfa07fcc387"
+          },
+          {
+            "path": "test/core/likec4/generator.test.ts",
+            "hash": "4c0e81a0bb3f93b43e30af2a21cc073d69d0748adb71a136b1f3bf7210921d70"
+          },
+          {
+            "path": "test/core/model/delta.test.ts",
+            "hash": "6449edd5fd822351dd98492f9135c442019e4f53c8d0abaa9174634e9d92219b"
+          },
+          {
             "path": "test/core/model/frontmatter.test.ts",
-            "hash": "7abe2dd1ede10abebdebade4659d8ff35809ca4727f8210820fa75e3a2cd3842"
+            "hash": "bbf215d7a211ce5094fe9c9f35cb2fa6702f14f63a602c52e9a92dcf36780c90"
           },
           {
             "path": "test/core/model/parser.test.ts",
-            "hash": "9028135a30476f565e30654432d7b8c91c583168ffb41b770bed4b97a92223e2"
+            "hash": "51d6dbf35473f31730df28029c63f8283d0552f508cedbb8407ea29aa6b8e43a"
+          },
+          {
+            "path": "test/core/semantic-diff.test.ts",
+            "hash": "a0f9fdf41a78e214cb147cfb770d085ac3b154988bebe9cfbec529c7afeb59d1"
+          },
+          {
+            "path": "test/core/typecheck.test.ts",
+            "hash": "b290e77b8d387b3e6e1e6985a3d0a92959bbdfea72e440fef3de012bd6fc5523"
+          },
+          {
+            "path": "test/e2e/semantic-browser-node-presentation.spec.ts",
+            "hash": "5004c894a59cfc07b08b252cb168afbfde38d5b078771a00ddc8212e769530bb"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/capability.md",
+            "hash": "0a5f4c33d5f8eee3fc309282a35efe6147eae59f696e5d7c1eb4411907bfe6b1"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/perspective.md",
+            "hash": "d9a7d468cb5771fba710172c6e703b77ba3ef49c276c9e6144c3d144adc75744"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/model/metamodel/capability.md",
+            "hash": "0a5f4c33d5f8eee3fc309282a35efe6147eae59f696e5d7c1eb4411907bfe6b1"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/model/metamodel/perspective.md",
+            "hash": "d9a7d468cb5771fba710172c6e703b77ba3ef49c276c9e6144c3d144adc75744"
           }
         ],
         "skippedEvidenceFiles": [],
-        "gitHeadCommit": "aa93a15520f753b08a70cf595d397d98ce5bb0d0"
+        "gitHeadCommit": "7579e4e20547a46b5a63bd35ddc4c1122947e309",
+        "gitDiffSummary": "Working-tree diff (19 modified + 3 untracked) plus committed feature commits (aa93a1552..HEAD, which also carries the separately-archived browser-view-navigation-history change). Scope reviewed: model parser/serializer, delta, semantic-diff, view fingerprints, framing (types/document/baseline), LikeC4 adapter+generator, browser materializer, 6 task test files, e2e + fixtures + playwright config."
       }
     }
   }

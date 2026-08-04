@@ -128,6 +128,28 @@ describe('Change Structural Definition document', () => {
     }
   });
 
+  it('preserves nodePresentation in framing payload', () => {
+    const input: ChangeStructuralDefinitionDocument = {
+      ...document,
+      payload: {
+        ...document.payload,
+        elementKinds: [{
+          identity: 'perspective',
+          contract: 'optional',
+          nodePresentation: { shape: 'document', color: 'indigo', border: 'solid' },
+          body: 'Perspective kind.',
+        }],
+      },
+    };
+    expect(parseChangeStructuralDefinition(renderChangeStructuralDefinition(input)).payload.elementKinds[0])
+      .toEqual(input.payload.elementKinds[0]);
+  });
+
+  it('accepts framing record without nodePresentation', () => {
+    expect(parseChangeStructuralDefinition(renderChangeStructuralDefinition(document)).payload.elementKinds[0])
+      .not.toHaveProperty('nodePresentation');
+  });
+
   it('accepts minimal REMOVED entries and rejects duplicate identities or triples', () => {
     const removed: ChangeStructuralDefinitionDocument = {
       ...document,

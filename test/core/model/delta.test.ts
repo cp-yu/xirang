@@ -117,6 +117,61 @@ describe('parseSemanticDelta', () => {
     }]);
   });
 
+  it('adds element kind with nodePresentation', async () => {
+    const root = await createModelRoot({
+      'metamodel/perspective.md': [
+        '---',
+        'operation: ADDED',
+        'entity: element-kind',
+        'identity: perspective',
+        'contract: optional',
+        'nodePresentation:',
+        '  shape: document',
+        '  color: indigo',
+        '  border: solid',
+        '---',
+        '',
+        'Perspective kind.',
+        '',
+      ].join('\n'),
+    });
+
+    const { delta, diagnostics } = await parseSemanticDelta(root);
+    expect(diagnostics).toEqual([]);
+    expect(delta.entries).toEqual([{
+      operation: 'ADDED',
+      entity: 'element-kind',
+      identity: 'perspective',
+      target: {
+        identity: 'perspective',
+        contract: 'optional',
+        nodePresentation: { shape: 'document', color: 'indigo', border: 'solid' },
+        body: 'Perspective kind.',
+      },
+    }]);
+  });
+
+  it('modifies element kind nodePresentation', () => {
+    const result = applySemanticDelta(base(), {
+      entries: [{
+        operation: 'MODIFIED',
+        entity: 'element-kind',
+        identity: 'capability',
+        target: {
+          identity: 'capability',
+          contract: 'optional',
+          nodePresentation: { shape: 'component', color: 'green', border: 'dashed' },
+          body: '',
+        },
+      }],
+    });
+    expect(result.diagnostics).toEqual([]);
+    expect(result.expected.elementKinds.find(kind => kind.identity === 'capability')?.nodePresentation)
+      .toEqual({ shape: 'component', color: 'green', border: 'dashed' });
+    expect(result.expected.elementKinds.find(kind => kind.identity === 'project')?.nodePresentation).toBeUndefined();
+    expect([...result.touched]).toEqual(['capability']);
+  });
+
   it('supports all three operations on metamodel, views and relationships', async () => {
     const root = await createModelRoot({
       'metamodel/added.md': '---\noperation: ADDED\nentity: element-kind\nidentity: added\ncontract: optional\n---\n',

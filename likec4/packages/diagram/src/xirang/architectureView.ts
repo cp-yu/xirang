@@ -5,6 +5,7 @@ import {
   type XirangDiffOperation,
   type XirangElementDeclaration,
   type XirangRelationship,
+  type XirangSemanticModel,
   type XirangViewSource,
   xirangViewSourceRevision,
 } from './ContractLoaderContext'
@@ -199,7 +200,7 @@ function createNode(
   geometry: Geometry,
   operation?: XirangDiffOperation,
   hasChildren = false,
-  presentation?: { shape: ViewNode['shape']; color: ViewNode['color']; modelRef?: ViewNode['modelRef'] },
+  presentation?: { shape: ViewNode['shape']; color: ViewNode['color']; border?: ViewNode['style']['border']; modelRef?: ViewNode['modelRef'] },
 ): ViewNode {
   return {
     id: declaration.identity,
@@ -218,7 +219,7 @@ function createNode(
     },
     shape: presentation?.shape ?? 'rectangle',
     color: operation ? operationColor[operation] : presentation?.color ?? 'primary',
-    style: { opacity: 15, size: 'md' },
+    style: { opacity: 15, size: 'md', ...(presentation?.border ? { border: presentation.border } : {}) },
     kind: 'el',
     ...geometry,
   } as unknown as ViewNode
@@ -251,6 +252,25 @@ function createEdge(
     line: 'solid',
     head: 'normal',
   } as unknown as ViewEdge
+}
+
+/**
+ * Kind-scoped global default presentation, resolved from the source's own elementKinds so Model,
+ * Candidate and Change-derived sources apply the same Kind presentation uniformly. `modelRef`
+ * remains the rendered Model View's identity anchor when available.
+ */
+function kindPresentation(
+  architecture: XirangSemanticModel | undefined,
+  kind: string,
+): { shape?: ViewNode['shape']; color?: ViewNode['color']; border?: ViewNode['style']['border'] } | undefined {
+  const elementKind = architecture?.elementKinds?.find(item => item.identity === kind)
+  const presentation = elementKind?.nodePresentation
+  if (!presentation) return undefined
+  const style: { shape?: ViewNode['shape']; color?: ViewNode['color']; border?: ViewNode['style']['border'] } = {}
+  if (presentation.shape) style.shape = presentation.shape as ViewNode['shape']
+  if (presentation.color) style.color = presentation.color as ViewNode['color']
+  if (presentation.border) style.border = presentation.border as ViewNode['style']['border']
+  return Object.keys(style).length > 0 ? style : undefined
 }
 
 /**
@@ -376,9 +396,13 @@ export function materializeXirangArchitectureView(
 
   const nodes = visibleDeclarations.map(declaration => {
     const modelNode = modelNodes.get(declaration.identity)
-    const presentation = modelNode
-      ? { shape: modelNode.shape, color: modelNode.color, modelRef: modelNode.modelRef }
-      : undefined
+    const kindStyle = kindPresentation(architecture, declaration.kind)
+    const presentation = {
+      shape: kindStyle?.shape ?? modelNode?.shape ?? 'rectangle',
+      color: kindStyle?.color ?? modelNode?.color ?? 'primary',
+      border: kindStyle?.border ?? modelNode?.style?.border,
+      modelRef: (modelNode?.modelRef ?? declaration.identity) as ViewNode['modelRef'],
+    }
     const operation = source.source === 'candidate'
       ? undefined
       : declarationEntries.get(declaration.identity)?.operation

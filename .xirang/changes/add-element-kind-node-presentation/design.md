@@ -45,6 +45,8 @@ Xirang 定义自己的枚举值，由 `src/core/likec4/adapter.ts` 或类似模�
 
 generator 与 Browser materializer 强制使用同一映射函数。
 
+> 跨包边界说明：`presentation-adapter.ts` 位于 core 包（`src/core/likec4/`），而 Browser materializer（`likec4/packages/diagram/src/xirang/architectureView.ts`）位于独立的 likec4 包，无法直接 import core 模块。本 Change 采用确定性降级方案：`mapNodeShape`/`mapNodeColor`/`mapNodeBorder` 为恒等映射（Xirang 枚举值与 LikeC4 值一致），Browser materializer 直接消费 source 中已携带的 `elementKinds[].nodePresentation` 值，从而与 generator 经 adapter 产出的值必然一致；若未来 Xirang 枚举与 LikeC4 值分叉，需要在两处同步映射并通过 source parity 测试保护（`architectureView.spec.ts` 的 uniform sources 测试覆盖）。
+
 ### 3. Parser 严格校验
 
 `src/core/model/parser.ts` 的 ElementKind 分支增加 `nodePresentation` 读取：

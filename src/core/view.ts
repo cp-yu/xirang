@@ -165,7 +165,7 @@ function hashString(content: string): string {
   return createHash('sha256').update(content).digest('hex');
 }
 
-function partitionFingerprints(model: SemanticModel): Record<Partition, string> {
+export function partitionFingerprints(model: SemanticModel): Record<Partition, string> {
   const byPartition: Record<Partition, unknown> = {
     elements: model.elements,
     metamodel: [model.elementKinds, model.relationshipKinds],
