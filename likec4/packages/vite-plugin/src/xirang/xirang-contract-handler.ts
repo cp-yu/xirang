@@ -33,13 +33,6 @@ export class XirangContractError extends Error {
   }
 }
 
-export function readXirangContractChange(searchParams: URLSearchParams): string | null {
-  if (searchParams.has('variant')) {
-    throw new XirangContractError(400, 'Unsupported query parameter: variant')
-  }
-  return searchParams.get('change')
-}
-
 export type XirangContractSource =
   | { type: 'candidate' }
   | { type: 'candidate-diff' }
@@ -47,6 +40,10 @@ export type XirangContractSource =
   | null
 
 export function parseXirangContractSource(searchParams: URLSearchParams): XirangContractSource {
+  if (searchParams.has('variant')) {
+    throw new XirangContractError(400, 'Unsupported query parameter: variant')
+  }
+
   const source = searchParams.get('source')
   const change = searchParams.get('change')
   

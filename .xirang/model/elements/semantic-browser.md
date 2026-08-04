@@ -96,7 +96,7 @@ Definition excerpt SHALL 对 trim 后文本取空行前第一段，将段内换�
 
 ### Requirement: 通过 Contract 接口加载 Element Contract
 
-Semantic Browser SHALL 通过 Xirang-specific Contract loader、provider、tab 与 HTTP endpoint `/__xirang/contract`，按统一 source reference 加载 Semantic Model、active Candidate、Candidate Diff 或活动 Change target 中的 Element Contract；请求 MAY 使用 `source=change:<change-name>`、`source=candidate` 或 `source=candidate-diff` 选择来源，且 public exports、runtime state、errors 与 test selectors SHALL NOT 使用 `variant`、`formal` 或旧 Spec aliases。
+Semantic Browser SHALL 通过 Xirang-specific Contract loader、provider、tab 与 HTTP endpoint `/__xirang/contract`，按统一 source reference 加载 Semantic Model、active Candidate、Candidate Diff 或活动 Change target 中的 Element Contract；请求 MAY 使用 `source=change:<change-name>`、`source=candidate` 或 `source=candidate-diff` 选择来源。
 
 #### Scenario: 加载 Semantic Model Contract
 
@@ -123,20 +123,20 @@ Semantic Browser SHALL 通过 Xirang-specific Contract loader、provider、tab �
 - **WHEN** endpoint 对有效 project、element 与可选 source 返回 Contract not found
 - **THEN** loader 将该结果表示为无 Contract，而不是未处理异常
 
-#### Scenario: 新请求替代旧请求
+#### Scenario: Contract state 与当前选择一致
 
+- **WHEN** Contract tab 呈现
+- **THEN** Contract state 对应当前选中的 Element 与 View source，且仅反映最新加载请求的结果
+
+#### Scenario: 新请求替代旧请求
 - **WHEN** 用户在前一个 Contract request 完成前切换 Element、Model View、Candidate source 或 Change-derived View
 - **THEN** Browser 取消或忽略旧请求，且旧结果不得覆盖当前 Contract state
 
-#### Scenario: 拒绝旧接口术语
-
-- **WHEN** consumer 使用 `variant` 参数、`formal` source、旧 Xirang-specific runtime aliases、`/__xirang/spec` 或旧 Spec loader aliases
-- **THEN** Browser protocol 与 public exports 明确拒绝或不提供该接口
 
 #### Scenario: 使用 Contract selectors
 
 - **WHEN** 自动化测试或 Browser integration 定位 Contract tab 与内容
-- **THEN** UI 暴露 `data-xirang-contracts` 与 `data-xirang-contract-content` selectors，且不暴露旧 `data-xirang-spec*` selectors
+- **THEN** UI 暴露 `data-xirang-contracts` 与 `data-xirang-contract-content` selectors
 
 ### Requirement: 条件式 Contracts tab 显示
 

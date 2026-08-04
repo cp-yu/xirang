@@ -1,6 +1,6 @@
 import { promises as fs } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
-import { assertXirangManifest, assertXirangProject, parseXirangContractSource, readXirangContract, readXirangContractChange, XirangContractError } from './xirang-contract-handler'
+import { assertXirangManifest, assertXirangProject, parseXirangContractSource, readXirangContract, XirangContractError } from './xirang-contract-handler'
 
 const manifest = {
   semanticModel: { contracts: { 'core.api': '# API\n', 'core.other': '# Other\n' } },
@@ -18,12 +18,6 @@ describe('Xirang Contract handler', () => {
     expect(readXirangContract(manifest, null, 'core.api')).toEqual({ element: 'core.api', md: '# API\n' })
     expect(readXirangContract(manifest, { type: 'change', name: 'auth' }, 'core.api'))
       .toEqual({ element: 'core.api', md: '# API (auth)\n' })
-  })
-
-  it('rejects the removed query parameter', () => {
-    expect(() => readXirangContractChange(new URLSearchParams({ variant: 'formal' })))
-      .toThrow(expect.objectContaining({ statusCode: 400, message: 'Unsupported query parameter: variant' }))
-    expect(readXirangContractChange(new URLSearchParams({ change: 'auth' }))).toBe('auth')
   })
 
   it('returns null for an Element without a Contract instead of failing', () => {
