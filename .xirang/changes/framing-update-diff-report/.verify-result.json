@@ -66,7 +66,7 @@
       "test/core/templates/skill-templates-parity.test.ts",
       "test/integration/framing-workflow.test.ts"
     ],
-    "evidenceFingerprint": "881b0780033ea1cf40fa115aba5ed2d732817985c78175c88cf5c5ae52e321dd",
+    "evidenceFingerprint": "26645e12896b6cfe3dfd201204bf04b35cae73c5d717bfc3dbef180143daec7e",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/references/xirang-definition-framing.md",
@@ -90,7 +90,7 @@
       },
       {
         "path": "src/core/framing/workspace.ts",
-        "hash": "0b3579d708c2ab94221b5a4677abd47bf7ecbc0c7e0e6ea7541a83b84f63fa29"
+        "hash": "561ddcfa29cdbdda4048a275d2734dd26ca9b8665ba5c162150038dd5dc70cab"
       },
       {
         "path": "src/core/templates/workflows/explore.ts",
@@ -122,9 +122,9 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "1185319574c8e95731d0de70b49d63f0ebe4dbcc",
+    "gitHeadCommit": "605ffb114bdc16446ed502112ebc1398724d2238",
     "gitDiffSummary": "baseCommit 362a642a == HEAD; scope = git status (18 modified/added/untracked) + working-tree diff vs base",
-    "timestamp": "2026-08-05T08:16:05.740Z"
+    "timestamp": "2026-08-05T08:24:25.810Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
@@ -136,6 +136,16 @@
       },
       {
         "timestamp": "2026-08-05T08:16:05.730Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-05T08:19:15.331Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-05T08:24:25.800Z",
         "type": "verification",
         "result": "PASS"
       }
@@ -270,7 +280,7 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "src/core/framing/workspace.ts"
@@ -320,7 +330,7 @@
         }
       },
       {
-        "status": "pending",
+        "status": "verified",
         "location": {
           "files": [
             "src/core/framing/workspace.ts"
@@ -364,7 +374,10 @@
           "OPT-20260805T081303172Z-01"
         ],
         "priorityReason": "Pure local DRY simplification with identical observable behavior; depends on Finding 1.",
-        "id": "OPT-20260805T081303172Z-02"
+        "id": "OPT-20260805T081303172Z-02",
+        "targetFileHashes": {
+          "src/core/framing/workspace.ts": "0b3579d708c2ab94221b5a4677abd47bf7ecbc0c7e0e6ea7541a83b84f63fa29"
+        }
       }
     ],
     "history": [
@@ -408,9 +421,50 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-05T08:16:05.731Z",
         "findingId": "OPT-20260805T081303172Z-01"
+      },
+      {
+        "sequence": 6,
+        "action": "resolve",
+        "reason": "Finding 1 implemented and verified PASS; checkpoint opt-r1",
+        "timestamp": "2026-08-05T08:19:15.328Z",
+        "findingId": "OPT-20260805T081303172Z-01"
+      },
+      {
+        "sequence": 7,
+        "action": "retain",
+        "reason": "Finding 2 (activeKeyed/activeRelationships dedup) remains actionable",
+        "timestamp": "2026-08-05T08:19:15.328Z",
+        "findingId": "OPT-20260805T081303172Z-02"
+      },
+      {
+        "sequence": 8,
+        "action": "select",
+        "reason": "Pure local DRY simplification with identical observable behavior; depends on Finding 1.",
+        "timestamp": "2026-08-05T08:19:15.331Z",
+        "findingId": "OPT-20260805T081303172Z-02",
+        "hashes": {
+          "src/core/framing/workspace.ts": "0b3579d708c2ab94221b5a4677abd47bf7ecbc0c7e0e6ea7541a83b84f63fa29"
+        }
+      },
+      {
+        "sequence": 9,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-05T08:19:31.529Z",
+        "findingId": "OPT-20260805T081303172Z-02",
+        "hashes": {
+          "src/core/framing/workspace.ts": "0b3579d708c2ab94221b5a4677abd47bf7ecbc0c7e0e6ea7541a83b84f63fa29"
+        }
+      },
+      {
+        "sequence": 10,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-05T08:24:25.801Z",
+        "findingId": "OPT-20260805T081303172Z-02"
       }
     ],
-    "reconciliationSignature": "b13b25023b1afd3a5231f35b51ff98fbd679f829fae7b3bd409193189e0d3121",
+    "reconciliationSignature": "ee6b7b20c42fe7d382577a711deb677161d45a1210d81781b3675aa896349e6f",
     "unchangedReconciliations": 0
   }
 }

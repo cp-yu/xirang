@@ -141,22 +141,14 @@ function isEmptyPayload(payload: ChangeStructuralDefinitionPayload): boolean {
 type KeyedRemoval<T extends { identity: string }> = T | { operation: 'REMOVED'; identity: string };
 type RelationshipRemoval = RelationshipTarget | { operation: 'REMOVED'; source: string; kind: string; target: string };
 
-function isRemoval<T extends object>(item: T | { operation: 'REMOVED' }): item is { operation: 'REMOVED' } {
-  return 'operation' in item && (item as { operation?: 'REMOVED' }).operation === 'REMOVED';
+function isActiveTarget<T extends object>(item: T | { operation: 'REMOVED' }): item is T {
+  return !('operation' in item && (item as { operation?: 'REMOVED' }).operation === 'REMOVED');
 }
 
-function activeKeyed<T extends { identity: string }>(items: readonly KeyedRemoval<T>[]): Map<string, T> {
+function activeBy<T extends object>(items: readonly (T | { operation: 'REMOVED' })[], key: (item: T) => string): Map<string, T> {
   const map = new Map<string, T>();
   for (const item of items) {
-    if (!isRemoval(item)) map.set(item.identity, item);
-  }
-  return map;
-}
-
-function activeRelationships(items: readonly RelationshipRemoval[]): Map<string, RelationshipTarget> {
-  const map = new Map<string, RelationshipTarget>();
-  for (const item of items) {
-    if (!isRemoval(item)) map.set(relationshipIdentity(item), item);
+    if (isActiveTarget(item)) map.set(key(item), item);
   }
   return map;
 }
@@ -166,8 +158,8 @@ function diffKeyedPart<T extends { identity: string }>(
   previous: readonly KeyedRemoval<T>[],
   next: readonly KeyedRemoval<T>[],
 ): FramingKeyedDiffPart<T> {
-  const previousByIdentity = activeKeyed(previous);
-  const nextByIdentity = activeKeyed(next);
+  const previousByIdentity = activeBy<T>(previous, item => item.identity);
+  const nextByIdentity = activeBy<T>(next, item => item.identity);
   const added: string[] = [];
   const modified: FramingDiffModified<T>[] = [];
   const removed: T[] = [];
@@ -190,8 +182,8 @@ function diffRelationships(
   previous: readonly RelationshipRemoval[],
   next: readonly RelationshipRemoval[],
 ): FramingRelationshipDiffPart {
-  const previousByTriple = activeRelationships(previous);
-  const nextByTriple = activeRelationships(next);
+  const previousByTriple = activeBy<RelationshipTarget>(previous, relationshipIdentity);
+  const nextByTriple = activeBy<RelationshipTarget>(next, relationshipIdentity);
   const added: RelationshipTarget[] = [];
   const removed: RelationshipTarget[] = [];
   for (const [triple, item] of nextByTriple) {
