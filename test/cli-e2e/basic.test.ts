@@ -71,9 +71,11 @@ describe('xirang CLI e2e basics', () => {
     const pkg = JSON.parse(pkgRaw);
     expect(pkg.name).toBe('xirang-likec4');
     expect(pkg.dependencies).toMatchObject({
+      '@likec4/generators': 'workspace:*',
       react: 'catalog:react',
       'react-dom': 'catalog:react',
     });
+    expect(pkg.devDependencies).not.toHaveProperty('@likec4/generators');
   });
 
   it('shows dynamic tool ids in setup help', async () => {

@@ -45,6 +45,8 @@ export function isLikeC4DistStale(layout: LikeC4Layout = defaultLayout): boolean
   for (const pkg of CLI_RUNTIME_PACKAGES) {
     const src = path.join(layout.packagesRoot, pkg, 'src');
     const dist = path.join(layout.packagesRoot, pkg, 'dist');
+    // Production deploys contain the bundled CLI package, not workspace sources.
+    if (!existsSync(src)) continue;
     if (!existsSync(dist)) return true;
     if (newestMtime(src) > newestMtime(dist)) return true;
   }
@@ -66,7 +68,8 @@ const STALE_CHECK_ENV = 'XIRANG_LIKEC4_STALE_CHECK';
  * Resolves how to run a LikeC4 CLI invocation. With staleness detection enabled
  * (dev/test only), falls back to running the CLI from source (tsx with the
  * `sources` condition) when dist is stale, so tests never exercise a silent old
- * build. Otherwise always uses the built dist.
+ * build. Production deployments omit workspace sources, so their shipped dist
+ * remains authoritative.
  */
 export function resolveLikeC4Command(args: string[], layout: LikeC4Layout = defaultLayout): LikeC4Launch {
   if (process.env[STALE_CHECK_ENV] !== '0' && isLikeC4DistStale(layout)) {

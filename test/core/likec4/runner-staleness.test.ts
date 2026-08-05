@@ -82,6 +82,28 @@ describe('isLikeC4DistStale', () => {
 });
 
 describe('resolveLikeC4Command', () => {
+  it('uses the deployed dist when workspace sources are absent from a production install', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-likec4-production-layout-'));
+    dirs.push(root);
+    const packagesRoot = path.join(root, 'packages');
+    const distBin = path.join(packagesRoot, 'likec4', 'bin', 'likec4.mjs');
+    await fs.mkdir(path.dirname(distBin), { recursive: true });
+    await fs.mkdir(path.join(packagesRoot, 'likec4', 'dist'), { recursive: true });
+    await fs.writeFile(distBin, '#!/usr/bin/env node\n');
+
+    const layout: LikeC4Layout = {
+      packagesRoot,
+      distBin,
+      tsxCli: path.join(root, 'node_modules', 'tsx', 'dist', 'cli.mjs'),
+      cliSource: path.join(packagesRoot, 'likec4', 'src', 'cli', 'index.ts'),
+    };
+
+    expect(resolveLikeC4Command(['serve', '/tmp/x'], layout)).toEqual({
+      argv: [distBin, 'serve', '/tmp/x'],
+      mode: 'dist',
+    });
+  });
+
   it('runs the built dist when it is in sync with the sources', async () => {
     const { root, layout } = await fixture({});
     dirs.push(root);

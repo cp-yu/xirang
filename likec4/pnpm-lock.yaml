@@ -1779,6 +1779,9 @@ importers:
       '@likec4/core':
         specifier: workspace:*
         version: link:../core
+      '@likec4/generators':
+        specifier: workspace:*
+        version: link:../generators
       '@likec4/icons':
         specifier: workspace:*
         version: link:../icons
@@ -1861,9 +1864,6 @@ importers:
       '@likec4/diagram':
         specifier: workspace:*
         version: link:../diagram
-      '@likec4/generators':
-        specifier: workspace:*
-        version: link:../generators
       '@likec4/language-server':
         specifier: workspace:*
         version: link:../language-server
