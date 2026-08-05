@@ -43,7 +43,6 @@
   "scripts": {
     "lint": "eslint src/",
     "build": "node build.js",
-    "audit:identity": "node scripts/audit-xirang-identity.mjs",
     "likec4:install": "pnpm --dir likec4 install --frozen-lockfile",
     "likec4:build": "pnpm --dir likec4 build",
     "likec4:test": "pnpm --dir likec4 test",
