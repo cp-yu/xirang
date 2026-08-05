@@ -15,14 +15,17 @@ Xirang is a human-intent programming framework for agent-driven software develop
 
 ```text
 .xirang/
-├── architecture/        # Versioned graph modules and Project Root
-├── specs/               # Element-owned contract modules
-├── changes/             # Semantic Deltas and compilation scaffolding
-├── references/          # Managed workflow references
-└── config.yaml          # Project configuration
+├── model/
+│   ├── metamodel/        # Element Kinds and Relationship Kinds
+│   ├── elements/         # Element Declarations and Contracts
+│   ├── relationships/    # Relationships between Elements
+│   └── views/            # Authored Views
+├── changes/              # Semantic Deltas and compilation scaffolding
+├── references/           # Managed workflow references
+└── config.yaml           # Project configuration
 ```
 
-Every v1 graph element has a stable `elementId`; each Spec binds to one element through `element: <elementId>` frontmatter. `proposal.md`, `design.md`, and `tasks.md` guide compilation, but they do not replace the Semantic Model or create a persisted intermediate representation.
+Every Element has a stable `identity` and a Kind declared in the Metamodel. An Element's contract is the `## Requirements` body of its `elements/` unit. `proposal.md`, `design.md`, and `tasks.md` guide compilation, but they do not replace the Semantic Model or create a persisted intermediate representation.
 
 ## Requirements
 
@@ -63,7 +66,7 @@ Then use the managed workflow skills installed for your agent:
 
 Tool-specific invocation syntax is documented in [Supported Tools](docs/supported-tools.md).
 
-## Browse Architecture And Specs
+## Browse The Semantic Model
 
 From a project or any nested directory:
 
@@ -72,15 +75,13 @@ xirang view
 xirang view --port 5173
 ```
 
-`xirang view` discovers the nearest `.xirang/`, starts the vendored LikeC4 application, and renders `.xirang/architecture/**/*.c4`. Elements with entries in the derived Spec registry expose a Specs tab that loads their `.xirang/specs/**/*.md` contract modules on demand. The registry is derived from singular Spec frontmatter; graph metadata does not duplicate Spec paths.
-
-The local Spec API authorizes every element/path pair against the current registry and rejects unsafe, unregistered, non-Markdown, and symlink-escaping paths. Editing the current Spec refreshes its rendered content through a precise HMR event.
+`xirang view` discovers the nearest `.xirang/`, starts the embedded LikeC4 viewer, and renders the Semantic Model — Metamodel Kinds, Elements and their Contracts, Relationships, and Authored Views — across abstraction levels, together with change-derived diffs for active Changes.
 
 ## Common CLI Commands
 
 ```bash
 xirang list
-xirang show <change-or-spec>
+xirang show <change>
 xirang validate --all --strict
 xirang arch query <element-id> --relations --depth 2
 xirang arch validate
@@ -98,8 +99,7 @@ AI:  Created .xirang/changes/add-dark-mode/
      - proposal.md
      - design.md
      - tasks.md
-     - specs/**/spec.md
-     - architecture-delta.c4 when architecture changes
+     - elements/, metamodel/, relationships/, views/ delta units
 
 You: /xirang:apply
 AI:  Implemented each behavior through RED -> GREEN -> REFACTOR
@@ -134,7 +134,6 @@ pnpm run likec4:test
 pnpm run likec4:build
 pnpm run test:e2e:install
 pnpm run test:e2e
-node scripts/audit-xirang-identity.mjs
 ```
 
 Root and `likec4/` are independent pnpm workspaces. Root scripts use `pnpm --dir likec4` to orchestrate the vendored engine explicitly.

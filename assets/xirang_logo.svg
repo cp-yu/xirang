@@ -1,0 +1,13 @@
+<svg width="256" height="256" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Xirang (息壤) mark: the four Semantic Model partitions (metamodel, elements,
+       relationships, views) as earth strata tiles, with a sprout growing from the
+       views tile — growth emerges from the model. -->
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="#C05A3A"/>
+  <rect x="11" y="11" width="17" height="17" rx="5" fill="#EAD9C0"/>
+  <rect x="36" y="11" width="17" height="17" rx="5" fill="#E8C9A0"/>
+  <rect x="11" y="36" width="17" height="17" rx="5" fill="#E4C4A8"/>
+  <rect x="36" y="36" width="17" height="17" rx="5" fill="#EAD9C0"/>
+  <path d="M44.5 51 C44.5 48.5 44.5 46 44.5 43.5" stroke="#4A702C" stroke-width="2" stroke-linecap="round"/>
+  <path d="M44.5 45.5 C41.5 42.8 39.2 43.8 38.2 46 C40.4 47 43 45.8 44.5 45.5 Z" fill="#5E8C3A"/>
+  <path d="M44.5 45.5 C47.5 42.8 49.8 43.8 50.8 46 C48.6 47 46 45.8 44.5 45.5 Z" fill="#5E8C3A"/>
+</svg>
