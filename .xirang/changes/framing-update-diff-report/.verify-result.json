@@ -127,7 +127,7 @@
     "timestamp": "2026-08-05T08:24:25.810Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
         "timestamp": "2026-08-05T08:13:03.175Z",
@@ -148,6 +148,11 @@
         "timestamp": "2026-08-05T08:24:25.800Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-05T08:25:55.954Z",
+        "type": "optimization",
+        "status": "NO_OPTIMIZATION_NEEDED"
       }
     ],
     "baseline": {
@@ -330,7 +335,7 @@
         }
       },
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "src/core/framing/workspace.ts"
@@ -462,9 +467,16 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-05T08:24:25.801Z",
         "findingId": "OPT-20260805T081303172Z-02"
+      },
+      {
+        "sequence": 11,
+        "action": "resolve",
+        "reason": "Finding 2 implemented and verified PASS; checkpoint opt-r2",
+        "timestamp": "2026-08-05T08:25:55.954Z",
+        "findingId": "OPT-20260805T081303172Z-02"
       }
     ],
-    "reconciliationSignature": "ee6b7b20c42fe7d382577a711deb677161d45a1210d81781b3675aa896349e6f",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }
