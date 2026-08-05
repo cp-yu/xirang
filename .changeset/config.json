@@ -3,7 +3,7 @@
   "changelog": [
     "@changesets/changelog-github",
     {
-      "repo": "cp-yu/opsx"
+      "repo": "cp-yu/xirang"
     }
   ],
   "commit": false,
