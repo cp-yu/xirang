@@ -94,3 +94,24 @@ CLI SHALL 负责可确定性复现的操作，SHALL NOT 替代用户授权或 Ag
 - **THEN** stdout SHALL be valid JSON with `file`、`definition`、`relationshipDelta` 和 `relationshipKinds`
 - **AND** `relationshipKinds` SHALL 包含当前 Metamodel 声明的 Kind identity、可选 endpoint constraints 与 body
 - **AND** SHALL NOT 包含名为 `relations` 的虚构 Relationship entries 属性
+
+### Requirement: 从已安装运行时启动嵌入式 LikeC4
+
+`xirang view` SHALL 在缺少 LikeC4 workspace 源码的部署安装中从随包发布的 LikeC4 dist 启动嵌入式浏览器服务，且 SHALL NOT 因缺少 workspace 源码或 tsx 而失败；在包含 LikeC4 workspace 源码的开发环境中，CLI SHALL 在任一 CLI runtime 包的源码新于其 dist 产物时以 tsx 从源码运行，否则 SHALL 使用 dist。
+
+#### Scenario: 生产安装后启动浏览器服务
+
+- **WHEN** 用户通过 `scripts/build_and_install.sh` 全局安装 xirang 后运行 `xirang view`
+- **THEN** CLI 从随包部署的 LikeC4 dist 启动嵌入式浏览器服务
+- **AND** 不因缺少 workspace 源码或 tsx 而失败
+
+#### Scenario: 开发环境 dist 陈旧回退源码
+
+- **WHEN** 开发环境中任一 CLI runtime 包的源码新于其 dist 产物
+- **THEN** CLI 以 tsx 从源码运行
+- **AND** 输出重建生产构建的提示
+
+#### Scenario: 开发环境 dist 同步使用构建产物
+
+- **WHEN** 开发环境中所有 CLI runtime 包的 dist 产物均不陈旧
+- **THEN** CLI 使用 dist 运行
