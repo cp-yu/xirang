@@ -1,0 +1,482 @@
+{
+  "timestamp": "2026-08-05T08:05:37.609Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "Refactor files outside the declared attribution universe: src/core/framing/consume.ts and new src/core/framing/target-normalize.ts (normalizedCoverageTarget extraction) are not listed in tasks.md Files or proposal Source Impact",
+      "requirement": "返回全量替换的相对变化",
+      "task": "Task 1",
+      "recommendation": "Declare target-normalize.ts (new) and consume.ts (modified) in tasks.md Task 1 Files and proposal Source Impact to close the attribution gap",
+      "evidence": [
+        "src/core/framing/consume.ts:10",
+        "src/core/framing/consume.ts:64-80",
+        "src/core/framing/target-normalize.ts:1-22",
+        "src/core/framing/workspace.ts:185-186"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "Check C1 Command references test/core/framing/workspace.test.ts, but the comprehensive four-state diff tests live in test/core/framing/diff.test.ts (workspace.test.ts only covers added/removed)",
+      "requirement": "返回全量替换的相对变化",
+      "task": "Task 1",
+      "recommendation": "Update C1 Command/Expect to reference test/core/framing/diff.test.ts (which is the actual evidence file)",
+      "evidence": [
+        "test/core/framing/diff.test.ts:1-96",
+        "test/core/framing/workspace.test.ts:48-54"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "tasks.md Task 1 lists test/commands/framing-json.test.ts as Modify but the file was not modified; it only unit-tests envelope helpers and never exercises 'framing update', so no change was required",
+      "requirement": "返回全量替换的相对变化",
+      "task": "Task 1",
+      "recommendation": "Remove the file from Task 1 Files or document why no modification was needed",
+      "evidence": [
+        "test/commands/framing-json.test.ts:1-74",
+        ".xirang/changes/framing-update-diff-report/tasks.md"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "test/core/templates/skill-templates-parity.test.ts golden-hash update (getExploreSkillTemplate) is a mechanical test-support change not declared in any task Files",
+      "requirement": "组合替换前读取当前完整结构",
+      "task": "Task 2",
+      "recommendation": "Declare the parity-test update in Task 2 Files for traceability",
+      "evidence": [
+        "test/core/templates/skill-templates-parity.test.ts:20"
+      ]
+    }
+  ],
+  "tasksFileHash": "6673818e46c860c0a1d68d2ae244e90dcb804d7b75a19437bb2795de8117a59f",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/references/xirang-definition-framing.md",
+      "src/commands/framing.ts",
+      "src/core/framing/consume.ts",
+      "src/core/framing/target-normalize.ts",
+      "src/core/framing/types.ts",
+      "src/core/framing/workspace.ts",
+      "src/core/templates/workflows/explore.ts",
+      "test/commands/framing-json.test.ts",
+      "test/core/framing/diff.test.ts",
+      "test/core/framing/workspace.test.ts",
+      "test/core/templates/definition-framing-reference.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts",
+      "test/integration/framing-workflow.test.ts"
+    ],
+    "evidenceFingerprint": "26645e12896b6cfe3dfd201204bf04b35cae73c5d717bfc3dbef180143daec7e",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/references/xirang-definition-framing.md",
+        "hash": "d2f4dad880470ea8f072b71dc9e5a2a20a796adc8482b7a8f63c3d27465daafa"
+      },
+      {
+        "path": "src/commands/framing.ts",
+        "hash": "3e2674c4f4edbdc1d7dfdc34a095d9ceb23e9c3f69b257d8e8d24f0a19cf96df"
+      },
+      {
+        "path": "src/core/framing/consume.ts",
+        "hash": "3d18708026aefa9fe97b547ccaa2497e1c35070e58f9912b02bd4b5e99ab3b7a"
+      },
+      {
+        "path": "src/core/framing/target-normalize.ts",
+        "hash": "ec80f3b22c7030ed566550a355ca3dfea76f9c6ffda0f8f68a51aedb0822f18f"
+      },
+      {
+        "path": "src/core/framing/types.ts",
+        "hash": "2c07fc962aca94ec7248796f60907b16d523345374ea00da3ce93cb9b4b664b5"
+      },
+      {
+        "path": "src/core/framing/workspace.ts",
+        "hash": "561ddcfa29cdbdda4048a275d2734dd26ca9b8665ba5c162150038dd5dc70cab"
+      },
+      {
+        "path": "src/core/templates/workflows/explore.ts",
+        "hash": "bb54ecbb698d59d7d783d508b1e2bcc8522297b5d3e3d67fcbe91f8d613be1a9"
+      },
+      {
+        "path": "test/commands/framing-json.test.ts",
+        "hash": "c0901630ffbe44152e07ba20d8fd9ffed570ccdb95a70258bd851028c133002e"
+      },
+      {
+        "path": "test/core/framing/diff.test.ts",
+        "hash": "642c5611a6aea151522d20945c9a5ad19280ef3717980c77b5a9bbf9eaf83228"
+      },
+      {
+        "path": "test/core/framing/workspace.test.ts",
+        "hash": "a1dd66e370d7eb663c38d9f158f32659bacbbcfe2cfddcf9f0c0b1bf1bca5123"
+      },
+      {
+        "path": "test/core/templates/definition-framing-reference.test.ts",
+        "hash": "23ea3476f7a46c6d05baddd17f294728710b41058e4ee5e6a57176cc453a1271"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "eafd927dc26e8dbffb526d4828b6bd0c9af41a043b37ad56ca9e3ea114f46411"
+      },
+      {
+        "path": "test/integration/framing-workflow.test.ts",
+        "hash": "5edaa137ab2f78289f3881d612ee27713c79a6d9a786aa10fd7f7a9295dfc1b1"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "605ffb114bdc16446ed502112ebc1398724d2238",
+    "gitDiffSummary": "baseCommit 362a642a == HEAD; scope = git status (18 modified/added/untracked) + working-tree diff vs base",
+    "timestamp": "2026-08-05T08:24:25.810Z"
+  },
+  "optimization": {
+    "status": "IMPROVED",
+    "attempts": [
+      {
+        "timestamp": "2026-08-05T08:13:03.175Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-05T08:16:05.730Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-05T08:19:15.331Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-05T08:24:25.800Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-05T08:25:55.954Z",
+        "type": "optimization",
+        "status": "NO_OPTIMIZATION_NEEDED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-08-05T08:05:37.609Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "Refactor files outside the declared attribution universe: src/core/framing/consume.ts and new src/core/framing/target-normalize.ts (normalizedCoverageTarget extraction) are not listed in tasks.md Files or proposal Source Impact",
+          "requirement": "返回全量替换的相对变化",
+          "task": "Task 1",
+          "recommendation": "Declare target-normalize.ts (new) and consume.ts (modified) in tasks.md Task 1 Files and proposal Source Impact to close the attribution gap",
+          "evidence": [
+            "src/core/framing/consume.ts:10",
+            "src/core/framing/consume.ts:64-80",
+            "src/core/framing/target-normalize.ts:1-22",
+            "src/core/framing/workspace.ts:185-186"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "Check C1 Command references test/core/framing/workspace.test.ts, but the comprehensive four-state diff tests live in test/core/framing/diff.test.ts (workspace.test.ts only covers added/removed)",
+          "requirement": "返回全量替换的相对变化",
+          "task": "Task 1",
+          "recommendation": "Update C1 Command/Expect to reference test/core/framing/diff.test.ts (which is the actual evidence file)",
+          "evidence": [
+            "test/core/framing/diff.test.ts:1-96",
+            "test/core/framing/workspace.test.ts:48-54"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "tasks.md Task 1 lists test/commands/framing-json.test.ts as Modify but the file was not modified; it only unit-tests envelope helpers and never exercises 'framing update', so no change was required",
+          "requirement": "返回全量替换的相对变化",
+          "task": "Task 1",
+          "recommendation": "Remove the file from Task 1 Files or document why no modification was needed",
+          "evidence": [
+            "test/commands/framing-json.test.ts:1-74",
+            ".xirang/changes/framing-update-diff-report/tasks.md"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "test/core/templates/skill-templates-parity.test.ts golden-hash update (getExploreSkillTemplate) is a mechanical test-support change not declared in any task Files",
+          "requirement": "组合替换前读取当前完整结构",
+          "task": "Task 2",
+          "recommendation": "Declare the parity-test update in Task 2 Files for traceability",
+          "evidence": [
+            "test/core/templates/skill-templates-parity.test.ts:20"
+          ]
+        }
+      ],
+      "tasksFileHash": "6673818e46c860c0a1d68d2ae244e90dcb804d7b75a19437bb2795de8117a59f",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/references/xirang-definition-framing.md",
+          "src/commands/framing.ts",
+          "src/core/framing/consume.ts",
+          "src/core/framing/target-normalize.ts",
+          "src/core/framing/types.ts",
+          "src/core/framing/workspace.ts",
+          "src/core/templates/workflows/explore.ts",
+          "test/commands/framing-json.test.ts",
+          "test/core/framing/diff.test.ts",
+          "test/core/framing/workspace.test.ts",
+          "test/core/templates/definition-framing-reference.test.ts",
+          "test/core/templates/skill-templates-parity.test.ts",
+          "test/integration/framing-workflow.test.ts"
+        ],
+        "evidenceFingerprint": "1206823c76b723b4b148bd8c40f0a21e67d7797f0d988e5384c140d069bded3c",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/references/xirang-definition-framing.md",
+            "hash": "d2f4dad880470ea8f072b71dc9e5a2a20a796adc8482b7a8f63c3d27465daafa"
+          },
+          {
+            "path": "src/commands/framing.ts",
+            "hash": "3e2674c4f4edbdc1d7dfdc34a095d9ceb23e9c3f69b257d8e8d24f0a19cf96df"
+          },
+          {
+            "path": "src/core/framing/consume.ts",
+            "hash": "3d18708026aefa9fe97b547ccaa2497e1c35070e58f9912b02bd4b5e99ab3b7a"
+          },
+          {
+            "path": "src/core/framing/target-normalize.ts",
+            "hash": "ec80f3b22c7030ed566550a355ca3dfea76f9c6ffda0f8f68a51aedb0822f18f"
+          },
+          {
+            "path": "src/core/framing/types.ts",
+            "hash": "2c07fc962aca94ec7248796f60907b16d523345374ea00da3ce93cb9b4b664b5"
+          },
+          {
+            "path": "src/core/framing/workspace.ts",
+            "hash": "8f5ce6befaf4377f9d72388896643827f6f173706a07b16a5ecc6566af90d9be"
+          },
+          {
+            "path": "src/core/templates/workflows/explore.ts",
+            "hash": "bb54ecbb698d59d7d783d508b1e2bcc8522297b5d3e3d67fcbe91f8d613be1a9"
+          },
+          {
+            "path": "test/commands/framing-json.test.ts",
+            "hash": "c0901630ffbe44152e07ba20d8fd9ffed570ccdb95a70258bd851028c133002e"
+          },
+          {
+            "path": "test/core/framing/diff.test.ts",
+            "hash": "642c5611a6aea151522d20945c9a5ad19280ef3717980c77b5a9bbf9eaf83228"
+          },
+          {
+            "path": "test/core/framing/workspace.test.ts",
+            "hash": "a1dd66e370d7eb663c38d9f158f32659bacbbcfe2cfddcf9f0c0b1bf1bca5123"
+          },
+          {
+            "path": "test/core/templates/definition-framing-reference.test.ts",
+            "hash": "23ea3476f7a46c6d05baddd17f294728710b41058e4ee5e6a57176cc453a1271"
+          },
+          {
+            "path": "test/core/templates/skill-templates-parity.test.ts",
+            "hash": "eafd927dc26e8dbffb526d4828b6bd0c9af41a043b37ad56ca9e3ea114f46411"
+          },
+          {
+            "path": "test/integration/framing-workflow.test.ts",
+            "hash": "5edaa137ab2f78289f3881d612ee27713c79a6d9a786aa10fd7f7a9295dfc1b1"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "362a642a756ddfa8db7cad9c9a5d74631cc504eb",
+        "gitDiffSummary": "baseCommit 362a642a == HEAD; scope = git status (18 modified/added/untracked) + working-tree diff vs base"
+      }
+    },
+    "findings": [
+      {
+        "status": "resolved",
+        "location": {
+          "files": [
+            "src/core/framing/workspace.ts"
+          ],
+          "symbols": [
+            "relationshipTriple",
+            "activeRelationships"
+          ]
+        },
+        "opportunity": "workspace.ts re-implements the canonical relationship triple key as a local relationshipTriple helper, byte-identical to relationshipIdentity in src/core/model/types.ts which is already the codebase-wide key used by validator/consume/baseline/delta. The new diff code creates a second source of truth for the u0000-joined source/kind/target key, inviting silent drift.",
+        "impact": "Deletes the duplicate helper so the framing diff relationship keys are provably identical to the validator/consume/baseline keys; removes latent drift risk; removes 3 lines.",
+        "evidence": [
+          "src/core/framing/workspace.ts:164-166",
+          "src/core/model/types.ts:123-125",
+          "src/core/framing/validator.ts:71-74",
+          "src/core/framing/consume.ts:51,116",
+          "src/core/framing/types.ts:54-59"
+        ],
+        "recommendation": "Import relationshipIdentity from '../model/types.js' into workspace.ts and use it in activeRelationships in place of relationshipTriple; delete relationshipTriple.",
+        "keyDesign": "After the isRemoval guard inside activeRelationships, item narrows to RelationshipTarget, which is structurally assignable to Relationship; therefore relationshipIdentity(item) type-checks with no cast and yields the byte-identical triple key.",
+        "preservationConstraints": [
+          "Triple key format stays exactly source\\u0000kind\\u0000target",
+          "added/removed relationship ordering follows next/previous array order",
+          "REMOVED-marked relationship entries remain excluded from the active map",
+          "FramingPayloadDiff envelope shape and updateFraming return shape unchanged"
+        ],
+        "implementationOutline": [
+          "Import relationshipIdentity from '../model/types.js'",
+          "Replace relationshipTriple(item) with relationshipIdentity(item) in activeRelationships",
+          "Delete relationshipTriple",
+          "Run framing diff/workspace/integration tests and tsc"
+        ],
+        "validation": [
+          "diff.test.ts relationship test asserts exact triples",
+          "integration test asserts exact empty diff shape",
+          "tsc --noEmit proves assignability without cast"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Removes a real duplicate of a codebase-wide canonical helper already used by validator/consume/baseline/delta, closing a concrete latent drift risk; byte-identical behavior.",
+        "id": "OPT-20260805T081303172Z-01",
+        "targetFileHashes": {
+          "src/core/framing/workspace.ts": "8f5ce6befaf4377f9d72388896643827f6f173706a07b16a5ecc6566af90d9be"
+        }
+      },
+      {
+        "status": "resolved",
+        "location": {
+          "files": [
+            "src/core/framing/workspace.ts"
+          ],
+          "symbols": [
+            "activeKeyed",
+            "activeRelationships"
+          ]
+        },
+        "opportunity": "activeKeyed and activeRelationships are two structurally identical copies of the same loop (skip REMOVED entries, index the rest by key) that differ only in the key function.",
+        "impact": "Collapses both builders into a single generic activeBy(items, key) helper — one implementation of skip-REMOVED/index-by-key behavior, fewer lines, no behavior change.",
+        "evidence": [
+          "src/core/framing/workspace.ts:148-154",
+          "src/core/framing/workspace.ts:156-162",
+          "src/core/framing/workspace.ts:144-146"
+        ],
+        "recommendation": "Replace both with a single generic activeBy(items, key) helper; key functions are an identity accessor for keyed parts and relationshipIdentity for relationships.",
+        "keyDesign": "activeBy is generic over the item type; after isRemoval narrowing, item is T so key(item) type-checks. diffKeyedPart and diffRelationships keep their distinct return shapes, so only the map builders merge.",
+        "preservationConstraints": [
+          "Same skip-REMOVED semantics and identical map keys",
+          "Map insertion order preserved",
+          "FramingPayloadDiff envelope shape unchanged"
+        ],
+        "implementationOutline": [
+          "Introduce activeBy<T>(items, key)",
+          "diffKeyedPart uses activeBy with item.identity",
+          "diffRelationships uses activeBy with relationshipIdentity",
+          "Delete activeKeyed and activeRelationships",
+          "Run framing tests and tsc"
+        ],
+        "validation": [
+          "diff.test.ts exact added/modified/removed assertions unchanged",
+          "workspace/integration tests exact diff output unchanged",
+          "tsc --noEmit proves generic signature"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [
+          "OPT-20260805T081303172Z-01"
+        ],
+        "priorityReason": "Pure local DRY simplification with identical observable behavior; depends on Finding 1.",
+        "id": "OPT-20260805T081303172Z-02",
+        "targetFileHashes": {
+          "src/core/framing/workspace.ts": "0b3579d708c2ab94221b5a4677abd47bf7ecbc0c7e0e6ea7541a83b84f63fa29"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-05T08:13:03.172Z",
+        "findingId": "OPT-20260805T081303172Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-05T08:13:03.172Z",
+        "findingId": "OPT-20260805T081303172Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "select",
+        "reason": "Removes a real duplicate of a codebase-wide canonical helper already used by validator/consume/baseline/delta, closing a concrete latent drift risk; byte-identical behavior.",
+        "timestamp": "2026-08-05T08:13:03.175Z",
+        "findingId": "OPT-20260805T081303172Z-01",
+        "hashes": {
+          "src/core/framing/workspace.ts": "8f5ce6befaf4377f9d72388896643827f6f173706a07b16a5ecc6566af90d9be"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-05T08:13:13.802Z",
+        "findingId": "OPT-20260805T081303172Z-01",
+        "hashes": {
+          "src/core/framing/workspace.ts": "8f5ce6befaf4377f9d72388896643827f6f173706a07b16a5ecc6566af90d9be"
+        }
+      },
+      {
+        "sequence": 5,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-05T08:16:05.731Z",
+        "findingId": "OPT-20260805T081303172Z-01"
+      },
+      {
+        "sequence": 6,
+        "action": "resolve",
+        "reason": "Finding 1 implemented and verified PASS; checkpoint opt-r1",
+        "timestamp": "2026-08-05T08:19:15.328Z",
+        "findingId": "OPT-20260805T081303172Z-01"
+      },
+      {
+        "sequence": 7,
+        "action": "retain",
+        "reason": "Finding 2 (activeKeyed/activeRelationships dedup) remains actionable",
+        "timestamp": "2026-08-05T08:19:15.328Z",
+        "findingId": "OPT-20260805T081303172Z-02"
+      },
+      {
+        "sequence": 8,
+        "action": "select",
+        "reason": "Pure local DRY simplification with identical observable behavior; depends on Finding 1.",
+        "timestamp": "2026-08-05T08:19:15.331Z",
+        "findingId": "OPT-20260805T081303172Z-02",
+        "hashes": {
+          "src/core/framing/workspace.ts": "0b3579d708c2ab94221b5a4677abd47bf7ecbc0c7e0e6ea7541a83b84f63fa29"
+        }
+      },
+      {
+        "sequence": 9,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-05T08:19:31.529Z",
+        "findingId": "OPT-20260805T081303172Z-02",
+        "hashes": {
+          "src/core/framing/workspace.ts": "0b3579d708c2ab94221b5a4677abd47bf7ecbc0c7e0e6ea7541a83b84f63fa29"
+        }
+      },
+      {
+        "sequence": 10,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-05T08:24:25.801Z",
+        "findingId": "OPT-20260805T081303172Z-02"
+      },
+      {
+        "sequence": 11,
+        "action": "resolve",
+        "reason": "Finding 2 implemented and verified PASS; checkpoint opt-r2",
+        "timestamp": "2026-08-05T08:25:55.954Z",
+        "findingId": "OPT-20260805T081303172Z-02"
+      }
+    ],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}

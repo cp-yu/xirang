@@ -18,6 +18,8 @@ describe('Definition Framing reference projection', () => {
     expect(reference?.content).toContain('same-level structure');
     expect(reference?.content).toContain('identity, Kind, parent, or Relationship');
     expect(reference?.content).toContain('complete current payload');
+    expect(reference?.content).toContain('Before composing any replacement payload');
+    expect(reference?.content).toContain('context-amnesia signal');
     expect(reference?.content).toContain('xirang framing create');
     expect(reference?.content).toContain('xirang framing update');
     expect(reference?.content).toContain('xirang framing status');

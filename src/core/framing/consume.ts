@@ -7,6 +7,7 @@ import { relationshipIdentity } from '../model/types.js';
 import { validateChangeName } from '../../utils/change-utils.js';
 import { classifyBaselineDrift } from './baseline.js';
 import { projectRelativePosix } from './paths.js';
+import { normalizedCoverageTarget } from './target-normalize.js';
 import type {
   ChangeStructuralDefinitionDocument,
   RelevantSemanticModelBaseline,
@@ -49,26 +50,6 @@ function baselineMaps(baseline: RelevantSemanticModelBaseline) {
     elements: new Map(baseline.elements.map(item => [item.identity, item])),
     relationships: new Map(baseline.relationships.map(item => [relationshipIdentity(item), item])),
   };
-}
-
-function normalizedCoverageTarget(entity: DeltaEntry['entity'], target: unknown): unknown {
-  if (!target || typeof target !== 'object') return target;
-  const value = target as Record<string, unknown>;
-  if (entity === 'element-kind') {
-    return {
-      ...value,
-      ...(Array.isArray(value.parents) ? { parents: [...value.parents].sort() } : {}),
-      ...(Array.isArray(value.children) ? { children: [...value.children].sort() } : {}),
-    };
-  }
-  if (entity === 'relationship-kind') {
-    return {
-      ...value,
-      ...(Array.isArray(value.sourceKinds) ? { sourceKinds: [...value.sourceKinds].sort() } : {}),
-      ...(Array.isArray(value.targetKinds) ? { targetKinds: [...value.targetKinds].sort() } : {}),
-    };
-  }
-  return target;
 }
 
 function expectedOperation(

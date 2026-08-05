@@ -44,3 +44,17 @@ Definition Framing SHALL 仅在展示完整 payload、slug 与受控目标模式
 
 - **WHEN** 新的持久化确认更新 Element 的结构位置
 - **THEN** 依赖旧 hierarchy 的设计结论不得被静默保留
+
+### Requirement: 组合替换前读取当前完整结构
+
+Definition Framing SHALL 在组合任何 replacement payload 前通过 `xirang framing show` 读取完整当前 payload；replacement SHALL 由当前完整 payload 加上本次显式确认的变更组成，SHALL NOT 凭记忆重建或省略未确认删除；`framing update` 后 SHALL 审查返回的 diff，未获确认即从 payload 消失的目标视为上下文遗忘信号，SHALL 先调和再继续。
+
+#### Scenario: 组合前读取当前 payload
+
+- **WHEN** 需要更新已持久化的结构目标
+- **THEN** Definition Framing 先运行 `xirang framing show` 读取完整当前 payload 再组合 replacement
+
+#### Scenario: update 后审查 diff
+
+- **WHEN** `framing update` 返回的 diff 显示目标未获确认即消失
+- **THEN** Definition Framing 调和该目标后再继续

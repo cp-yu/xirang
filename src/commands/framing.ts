@@ -193,15 +193,11 @@ async function runValidate(projectRoot: string, explorationId: string): Promise<
 }
 
 async function runUpdate(projectRoot: string, explorationId: string, from?: string): Promise<FramingEnvelope> {
-  return envelope('framing update', async () => framingOkEnvelope(
-    'framing update',
-    publicRecord(await updateFraming(
-      projectRoot,
-      explorationId,
-      normalizeFramingPayload(await readInput(from)),
-      await semanticContext(projectRoot),
-    )),
-  ));
+  return envelope('framing update', async () => {
+    const payload = normalizeFramingPayload(await readInput(from));
+    const { record, diff } = await updateFraming(projectRoot, explorationId, payload, await semanticContext(projectRoot));
+    return framingOkEnvelope('framing update', { path: record.path, document: record.document, diff });
+  });
 }
 
 async function runRename(projectRoot: string, explorationId: string, slug: string): Promise<FramingEnvelope> {

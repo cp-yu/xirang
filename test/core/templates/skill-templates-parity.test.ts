@@ -17,7 +17,7 @@ import { generateSkillContent } from '../../../src/core/shared/skill-generation.
 import { runTransforms } from '../../../src/core/templates/transforms/index.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getExploreSkillTemplate: '6dc7d3617ba8984b85753016c8f80fe90d9d012b13e38e9eed061f30cc4213a5',
+  getExploreSkillTemplate: 'b831a97c2a09efa81694c61dd79515b70ec3b1a3b9bea45c49acbad2b43ddcd3',
   getApplyChangeSkillTemplate: '8d2f33c4e421c269b3487077d948362eafe45a0bcad002fa3742776ba43d78f2',
   getArchiveChangeSkillTemplate: '0bf75c0d29d9dc74b98d2ce524351cf73e45836b17fe42d17e07e853c1495101',
   getOpsxProposeSkillTemplate: '1919d1ea8bde91a99c4a45659f6c40e2fc74feda0f1f6c178ac1e397604f40c0',
