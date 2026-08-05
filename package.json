@@ -89,7 +89,7 @@
     "commander": "^14.0.0",
     "fast-glob": "^3.3.3",
     "ora": "^8.2.0",
-    "posthog-node": "^5.20.0",
+    "posthog-node": "5.20.0",
     "typescript": "^5.9.3",
     "yaml": "^2.8.2",
     "zod": "^4.0.17"

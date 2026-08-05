@@ -30,7 +30,7 @@ importers:
         specifier: ^8.2.0
         version: 8.2.0
       posthog-node:
-        specifier: ^5.20.0
+        specifier: 5.20.0
         version: 5.20.0
       typescript:
         specifier: ^5.9.3
