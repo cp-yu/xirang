@@ -46,8 +46,11 @@ describe('framing workspace', () => {
     expect((await listFramings(root)).map(item => item.document.metadata.slug)).toEqual(['first']);
 
     const updated = await updateFraming(root, identity, payload('replacement'), context);
-    expect(updated.document.payload.elements.map(item => item.identity)).toEqual(['replacement']);
-    expect(updated.document.payload.elements).not.toContainEqual(expect.objectContaining({ identity: 'a' }));
+    expect(updated.record.document.payload.elements.map(item => item.identity)).toEqual(['replacement']);
+    expect(updated.record.document.payload.elements).not.toContainEqual(expect.objectContaining({ identity: 'a' }));
+    expect(updated.diff.elements.removed).toEqual([expect.objectContaining({ identity: 'a' })]);
+    expect(updated.diff.elements.added).toEqual(['replacement']);
+    expect(updated.diff.elements.modified).toEqual([]);
 
     const renamed = await renameFraming(root, identity, 'renamed');
     expect(renamed.document.metadata.explorationId).toBe(identity);

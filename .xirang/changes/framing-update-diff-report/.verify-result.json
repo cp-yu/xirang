@@ -1,0 +1,260 @@
+{
+  "timestamp": "2026-08-05T08:05:37.609Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "Refactor files outside the declared attribution universe: src/core/framing/consume.ts and new src/core/framing/target-normalize.ts (normalizedCoverageTarget extraction) are not listed in tasks.md Files or proposal Source Impact",
+      "requirement": "返回全量替换的相对变化",
+      "task": "Task 1",
+      "recommendation": "Declare target-normalize.ts (new) and consume.ts (modified) in tasks.md Task 1 Files and proposal Source Impact to close the attribution gap",
+      "evidence": [
+        "src/core/framing/consume.ts:10",
+        "src/core/framing/consume.ts:64-80",
+        "src/core/framing/target-normalize.ts:1-22",
+        "src/core/framing/workspace.ts:185-186"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "Check C1 Command references test/core/framing/workspace.test.ts, but the comprehensive four-state diff tests live in test/core/framing/diff.test.ts (workspace.test.ts only covers added/removed)",
+      "requirement": "返回全量替换的相对变化",
+      "task": "Task 1",
+      "recommendation": "Update C1 Command/Expect to reference test/core/framing/diff.test.ts (which is the actual evidence file)",
+      "evidence": [
+        "test/core/framing/diff.test.ts:1-96",
+        "test/core/framing/workspace.test.ts:48-54"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "tasks.md Task 1 lists test/commands/framing-json.test.ts as Modify but the file was not modified; it only unit-tests envelope helpers and never exercises 'framing update', so no change was required",
+      "requirement": "返回全量替换的相对变化",
+      "task": "Task 1",
+      "recommendation": "Remove the file from Task 1 Files or document why no modification was needed",
+      "evidence": [
+        "test/commands/framing-json.test.ts:1-74",
+        ".xirang/changes/framing-update-diff-report/tasks.md"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "test/core/templates/skill-templates-parity.test.ts golden-hash update (getExploreSkillTemplate) is a mechanical test-support change not declared in any task Files",
+      "requirement": "组合替换前读取当前完整结构",
+      "task": "Task 2",
+      "recommendation": "Declare the parity-test update in Task 2 Files for traceability",
+      "evidence": [
+        "test/core/templates/skill-templates-parity.test.ts:20"
+      ]
+    }
+  ],
+  "tasksFileHash": "6673818e46c860c0a1d68d2ae244e90dcb804d7b75a19437bb2795de8117a59f",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/references/xirang-definition-framing.md",
+      "src/commands/framing.ts",
+      "src/core/framing/consume.ts",
+      "src/core/framing/target-normalize.ts",
+      "src/core/framing/types.ts",
+      "src/core/framing/workspace.ts",
+      "src/core/templates/workflows/explore.ts",
+      "test/commands/framing-json.test.ts",
+      "test/core/framing/diff.test.ts",
+      "test/core/framing/workspace.test.ts",
+      "test/core/templates/definition-framing-reference.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts",
+      "test/integration/framing-workflow.test.ts"
+    ],
+    "evidenceFingerprint": "1206823c76b723b4b148bd8c40f0a21e67d7797f0d988e5384c140d069bded3c",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/references/xirang-definition-framing.md",
+        "hash": "d2f4dad880470ea8f072b71dc9e5a2a20a796adc8482b7a8f63c3d27465daafa"
+      },
+      {
+        "path": "src/commands/framing.ts",
+        "hash": "3e2674c4f4edbdc1d7dfdc34a095d9ceb23e9c3f69b257d8e8d24f0a19cf96df"
+      },
+      {
+        "path": "src/core/framing/consume.ts",
+        "hash": "3d18708026aefa9fe97b547ccaa2497e1c35070e58f9912b02bd4b5e99ab3b7a"
+      },
+      {
+        "path": "src/core/framing/target-normalize.ts",
+        "hash": "ec80f3b22c7030ed566550a355ca3dfea76f9c6ffda0f8f68a51aedb0822f18f"
+      },
+      {
+        "path": "src/core/framing/types.ts",
+        "hash": "2c07fc962aca94ec7248796f60907b16d523345374ea00da3ce93cb9b4b664b5"
+      },
+      {
+        "path": "src/core/framing/workspace.ts",
+        "hash": "8f5ce6befaf4377f9d72388896643827f6f173706a07b16a5ecc6566af90d9be"
+      },
+      {
+        "path": "src/core/templates/workflows/explore.ts",
+        "hash": "bb54ecbb698d59d7d783d508b1e2bcc8522297b5d3e3d67fcbe91f8d613be1a9"
+      },
+      {
+        "path": "test/commands/framing-json.test.ts",
+        "hash": "c0901630ffbe44152e07ba20d8fd9ffed570ccdb95a70258bd851028c133002e"
+      },
+      {
+        "path": "test/core/framing/diff.test.ts",
+        "hash": "642c5611a6aea151522d20945c9a5ad19280ef3717980c77b5a9bbf9eaf83228"
+      },
+      {
+        "path": "test/core/framing/workspace.test.ts",
+        "hash": "a1dd66e370d7eb663c38d9f158f32659bacbbcfe2cfddcf9f0c0b1bf1bca5123"
+      },
+      {
+        "path": "test/core/templates/definition-framing-reference.test.ts",
+        "hash": "23ea3476f7a46c6d05baddd17f294728710b41058e4ee5e6a57176cc453a1271"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "eafd927dc26e8dbffb526d4828b6bd0c9af41a043b37ad56ca9e3ea114f46411"
+      },
+      {
+        "path": "test/integration/framing-workflow.test.ts",
+        "hash": "5edaa137ab2f78289f3881d612ee27713c79a6d9a786aa10fd7f7a9295dfc1b1"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "362a642a756ddfa8db7cad9c9a5d74631cc504eb",
+    "gitDiffSummary": "baseCommit 362a642a == HEAD; scope = git status (18 modified/added/untracked) + working-tree diff vs base"
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-08-05T08:05:37.609Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "Refactor files outside the declared attribution universe: src/core/framing/consume.ts and new src/core/framing/target-normalize.ts (normalizedCoverageTarget extraction) are not listed in tasks.md Files or proposal Source Impact",
+          "requirement": "返回全量替换的相对变化",
+          "task": "Task 1",
+          "recommendation": "Declare target-normalize.ts (new) and consume.ts (modified) in tasks.md Task 1 Files and proposal Source Impact to close the attribution gap",
+          "evidence": [
+            "src/core/framing/consume.ts:10",
+            "src/core/framing/consume.ts:64-80",
+            "src/core/framing/target-normalize.ts:1-22",
+            "src/core/framing/workspace.ts:185-186"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "Check C1 Command references test/core/framing/workspace.test.ts, but the comprehensive four-state diff tests live in test/core/framing/diff.test.ts (workspace.test.ts only covers added/removed)",
+          "requirement": "返回全量替换的相对变化",
+          "task": "Task 1",
+          "recommendation": "Update C1 Command/Expect to reference test/core/framing/diff.test.ts (which is the actual evidence file)",
+          "evidence": [
+            "test/core/framing/diff.test.ts:1-96",
+            "test/core/framing/workspace.test.ts:48-54"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "tasks.md Task 1 lists test/commands/framing-json.test.ts as Modify but the file was not modified; it only unit-tests envelope helpers and never exercises 'framing update', so no change was required",
+          "requirement": "返回全量替换的相对变化",
+          "task": "Task 1",
+          "recommendation": "Remove the file from Task 1 Files or document why no modification was needed",
+          "evidence": [
+            "test/commands/framing-json.test.ts:1-74",
+            ".xirang/changes/framing-update-diff-report/tasks.md"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "test/core/templates/skill-templates-parity.test.ts golden-hash update (getExploreSkillTemplate) is a mechanical test-support change not declared in any task Files",
+          "requirement": "组合替换前读取当前完整结构",
+          "task": "Task 2",
+          "recommendation": "Declare the parity-test update in Task 2 Files for traceability",
+          "evidence": [
+            "test/core/templates/skill-templates-parity.test.ts:20"
+          ]
+        }
+      ],
+      "tasksFileHash": "6673818e46c860c0a1d68d2ae244e90dcb804d7b75a19437bb2795de8117a59f",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/references/xirang-definition-framing.md",
+          "src/commands/framing.ts",
+          "src/core/framing/consume.ts",
+          "src/core/framing/target-normalize.ts",
+          "src/core/framing/types.ts",
+          "src/core/framing/workspace.ts",
+          "src/core/templates/workflows/explore.ts",
+          "test/commands/framing-json.test.ts",
+          "test/core/framing/diff.test.ts",
+          "test/core/framing/workspace.test.ts",
+          "test/core/templates/definition-framing-reference.test.ts",
+          "test/core/templates/skill-templates-parity.test.ts",
+          "test/integration/framing-workflow.test.ts"
+        ],
+        "evidenceFingerprint": "1206823c76b723b4b148bd8c40f0a21e67d7797f0d988e5384c140d069bded3c",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/references/xirang-definition-framing.md",
+            "hash": "d2f4dad880470ea8f072b71dc9e5a2a20a796adc8482b7a8f63c3d27465daafa"
+          },
+          {
+            "path": "src/commands/framing.ts",
+            "hash": "3e2674c4f4edbdc1d7dfdc34a095d9ceb23e9c3f69b257d8e8d24f0a19cf96df"
+          },
+          {
+            "path": "src/core/framing/consume.ts",
+            "hash": "3d18708026aefa9fe97b547ccaa2497e1c35070e58f9912b02bd4b5e99ab3b7a"
+          },
+          {
+            "path": "src/core/framing/target-normalize.ts",
+            "hash": "ec80f3b22c7030ed566550a355ca3dfea76f9c6ffda0f8f68a51aedb0822f18f"
+          },
+          {
+            "path": "src/core/framing/types.ts",
+            "hash": "2c07fc962aca94ec7248796f60907b16d523345374ea00da3ce93cb9b4b664b5"
+          },
+          {
+            "path": "src/core/framing/workspace.ts",
+            "hash": "8f5ce6befaf4377f9d72388896643827f6f173706a07b16a5ecc6566af90d9be"
+          },
+          {
+            "path": "src/core/templates/workflows/explore.ts",
+            "hash": "bb54ecbb698d59d7d783d508b1e2bcc8522297b5d3e3d67fcbe91f8d613be1a9"
+          },
+          {
+            "path": "test/commands/framing-json.test.ts",
+            "hash": "c0901630ffbe44152e07ba20d8fd9ffed570ccdb95a70258bd851028c133002e"
+          },
+          {
+            "path": "test/core/framing/diff.test.ts",
+            "hash": "642c5611a6aea151522d20945c9a5ad19280ef3717980c77b5a9bbf9eaf83228"
+          },
+          {
+            "path": "test/core/framing/workspace.test.ts",
+            "hash": "a1dd66e370d7eb663c38d9f158f32659bacbbcfe2cfddcf9f0c0b1bf1bca5123"
+          },
+          {
+            "path": "test/core/templates/definition-framing-reference.test.ts",
+            "hash": "23ea3476f7a46c6d05baddd17f294728710b41058e4ee5e6a57176cc453a1271"
+          },
+          {
+            "path": "test/core/templates/skill-templates-parity.test.ts",
+            "hash": "eafd927dc26e8dbffb526d4828b6bd0c9af41a043b37ad56ca9e3ea114f46411"
+          },
+          {
+            "path": "test/integration/framing-workflow.test.ts",
+            "hash": "5edaa137ab2f78289f3881d612ee27713c79a6d9a786aa10fd7f7a9295dfc1b1"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "362a642a756ddfa8db7cad9c9a5d74631cc504eb",
+        "gitDiffSummary": "baseCommit 362a642a == HEAD; scope = git status (18 modified/added/untracked) + working-tree diff vs base"
+      }
+    }
+  }
+}

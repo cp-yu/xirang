@@ -115,3 +115,28 @@ export interface ChangeStructuralDefinitionDocument {
   payload: ChangeStructuralDefinitionPayload;
   baseline: RelevantSemanticModelBaseline;
 }
+
+export interface FramingDiffModified<T> {
+  identity: string;
+  before: T;
+  after: T;
+}
+
+export interface FramingKeyedDiffPart<T> {
+  added: string[];
+  modified: FramingDiffModified<T>[];
+  removed: T[];
+}
+
+export interface FramingRelationshipDiffPart {
+  added: RelationshipTarget[];
+  modified: FramingDiffModified<RelationshipTarget>[];
+  removed: RelationshipTarget[];
+}
+
+export interface FramingPayloadDiff {
+  elementKinds: FramingKeyedDiffPart<ElementKindTarget>;
+  relationshipKinds: FramingKeyedDiffPart<RelationshipKindTarget>;
+  elements: FramingKeyedDiffPart<ElementTarget>;
+  relationships: FramingRelationshipDiffPart;
+}

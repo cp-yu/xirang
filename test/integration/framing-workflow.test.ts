@@ -69,6 +69,12 @@ describe('built framing CLI workflow', () => {
 
     const updated = run(root, ['framing', 'update', explorationId, '--from', payloadPath, '--json']);
     expect(updated.result!.document.metadata.explorationId).toBe(explorationId);
+    expect(updated.result!.diff).toEqual({
+      elementKinds: { added: [], modified: [], removed: [] },
+      relationshipKinds: { added: [], modified: [], removed: [] },
+      elements: { added: [], modified: [], removed: [] },
+      relationships: { added: [], modified: [], removed: [] },
+    });
     expect(run(root, ['framing', 'status', explorationId, '--json']).result).toMatchObject({ drift: 'fresh' });
     expect(run(root, ['framing', 'validate', explorationId, '--json'])).toMatchObject({ status: 'ok' });
 

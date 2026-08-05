@@ -1,8 +1,10 @@
 import { randomBytes } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import { canonicalJson } from '../semantic-diff.js';
 import { captureRelevantBaseline } from './baseline.js';
 import { parseChangeStructuralDefinition, renderChangeStructuralDefinition } from './document.js';
+import { normalizedCoverageTarget } from './target-normalize.js';
 import {
   assertContainedPath,
   framingChangesRoot,
@@ -15,6 +17,14 @@ import {
 import type {
   ChangeStructuralDefinitionDocument,
   ChangeStructuralDefinitionPayload,
+  ElementKindTarget,
+  ElementTarget,
+  FramingDiffModified,
+  FramingKeyedDiffPart,
+  FramingPayloadDiff,
+  FramingRelationshipDiffPart,
+  RelationshipKindTarget,
+  RelationshipTarget,
 } from './types.js';
 import type { SemanticModel } from '../model/types.js';
 
@@ -49,6 +59,11 @@ export interface FramingWorkspaceRecord {
   path: string;
   absolutePath: string;
   document: ChangeStructuralDefinitionDocument;
+}
+
+export interface FramingUpdateResult {
+  record: FramingWorkspaceRecord;
+  diff: FramingPayloadDiff;
 }
 
 function workspaceError(code: FramingWorkspaceErrorCode, message: string): never {
@@ -121,6 +136,87 @@ function isEmptyPayload(payload: ChangeStructuralDefinitionPayload): boolean {
     && payload.relationshipKinds.length === 0
     && payload.elements.length === 0
     && payload.relationships.length === 0;
+}
+
+type KeyedRemoval<T extends { identity: string }> = T | { operation: 'REMOVED'; identity: string };
+type RelationshipRemoval = RelationshipTarget | { operation: 'REMOVED'; source: string; kind: string; target: string };
+
+function isRemoval<T extends object>(item: T | { operation: 'REMOVED' }): item is { operation: 'REMOVED' } {
+  return 'operation' in item && (item as { operation?: 'REMOVED' }).operation === 'REMOVED';
+}
+
+function activeKeyed<T extends { identity: string }>(items: readonly KeyedRemoval<T>[]): Map<string, T> {
+  const map = new Map<string, T>();
+  for (const item of items) {
+    if (!isRemoval(item)) map.set(item.identity, item);
+  }
+  return map;
+}
+
+function activeRelationships(items: readonly RelationshipRemoval[]): Map<string, RelationshipTarget> {
+  const map = new Map<string, RelationshipTarget>();
+  for (const item of items) {
+    if (!isRemoval(item)) map.set(relationshipTriple(item), item);
+  }
+  return map;
+}
+
+function relationshipTriple(item: RelationshipRemoval): string {
+  return `${item.source}\u0000${item.kind}\u0000${item.target}`;
+}
+
+function diffKeyedPart<T extends { identity: string }>(
+  entity: 'element-kind' | 'relationship-kind' | 'element-declaration',
+  previous: readonly KeyedRemoval<T>[],
+  next: readonly KeyedRemoval<T>[],
+): FramingKeyedDiffPart<T> {
+  const previousByIdentity = activeKeyed(previous);
+  const nextByIdentity = activeKeyed(next);
+  const added: string[] = [];
+  const modified: FramingDiffModified<T>[] = [];
+  const removed: T[] = [];
+  for (const identity of nextByIdentity.keys()) {
+    if (!previousByIdentity.has(identity)) added.push(identity);
+  }
+  for (const [identity, before] of previousByIdentity) {
+    const after = nextByIdentity.get(identity);
+    if (after === undefined) {
+      removed.push(before);
+    } else if (canonicalJson(normalizedCoverageTarget(entity, before))
+      !== canonicalJson(normalizedCoverageTarget(entity, after))) {
+      modified.push({ identity, before, after });
+    }
+  }
+  return { added, modified, removed };
+}
+
+function diffRelationships(
+  previous: readonly RelationshipRemoval[],
+  next: readonly RelationshipRemoval[],
+): FramingRelationshipDiffPart {
+  const previousByTriple = activeRelationships(previous);
+  const nextByTriple = activeRelationships(next);
+  const added: RelationshipTarget[] = [];
+  const removed: RelationshipTarget[] = [];
+  for (const [triple, item] of nextByTriple) {
+    if (!previousByTriple.has(triple)) added.push(item);
+  }
+  for (const [triple, item] of previousByTriple) {
+    if (!nextByTriple.has(triple)) removed.push(item);
+  }
+  return { added, modified: [], removed };
+}
+
+export function diffFramingPayloads(
+  previous: ChangeStructuralDefinitionPayload,
+  next: ChangeStructuralDefinitionPayload,
+): FramingPayloadDiff {
+  return {
+    elementKinds: diffKeyedPart<ElementKindTarget>('element-kind', previous.elementKinds, next.elementKinds),
+    relationshipKinds: diffKeyedPart<RelationshipKindTarget>('relationship-kind', previous.relationshipKinds, next.relationshipKinds),
+    elements: diffKeyedPart<ElementTarget>('element-declaration', previous.elements, next.elements),
+    relationships: diffRelationships(previous.relationships, next.relationships),
+  };
 }
 
 async function assertRegularFile(target: string): Promise<void> {
@@ -226,7 +322,7 @@ export async function updateFraming(
   explorationId: string,
   payload: ChangeStructuralDefinitionPayload,
   context: FramingSemanticContext,
-): Promise<FramingWorkspaceRecord> {
+): Promise<FramingUpdateResult> {
   if (isEmptyPayload(payload)) workspaceError('EMPTY_PAYLOAD', 'Updated framing payload must not be empty');
   const current = await showFraming(projectRoot, explorationId);
   const document: ChangeStructuralDefinitionDocument = {
@@ -235,7 +331,7 @@ export async function updateFraming(
     baseline: captureRelevantBaseline(context.model, payload),
   };
   await atomicWrite(current.absolutePath, renderChangeStructuralDefinition(document));
-  return showFraming(projectRoot, explorationId);
+  return { record: await showFraming(projectRoot, explorationId), diff: diffFramingPayloads(current.document.payload, payload) };
 }
 
 export async function renameFraming(
