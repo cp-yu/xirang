@@ -17,20 +17,20 @@ import { generateSkillContent } from '../../../src/core/shared/skill-generation.
 import { runTransforms } from '../../../src/core/templates/transforms/index.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getExploreSkillTemplate: '786d6f8c6d3fdee636082f771f4fcc66bd3b97e858d423dc9c12d7e4e93e7b7f',
-  getApplyChangeSkillTemplate: '243e109479e11b7e368330999a1a017cb3d16bbf80f5c045c7fd0e75b82b1ebc',
+  getExploreSkillTemplate: '6dc7d3617ba8984b85753016c8f80fe90d9d012b13e38e9eed061f30cc4213a5',
+  getApplyChangeSkillTemplate: '8d2f33c4e421c269b3487077d948362eafe45a0bcad002fa3742776ba43d78f2',
   getArchiveChangeSkillTemplate: '0bf75c0d29d9dc74b98d2ce524351cf73e45836b17fe42d17e07e853c1495101',
-  getOpsxProposeSkillTemplate: '068f68b9a3ee517c50bec64641d23e796d188e35b163249c16aa964b1b2c8a05',
+  getOpsxProposeSkillTemplate: '1919d1ea8bde91a99c4a45659f6c40e2fc74feda0f1f6c178ac1e397604f40c0',
   getFeedbackSkillTemplate: 'b59e4e8f30b3671f5346445a7fbe9043cd559233c86fc78d086bbe94e084590b',
   getBuildSkillTemplate: '4ab4181a14e45909a6000556ffee70858b1ea172b9287bf5d307933f10284fa7',
-  getSnackSkillTemplate: 'bada489cfbe24b862cb230a2cd4bbaac093c3c6b93b68ef409fae023feec53b5',
+  getSnackSkillTemplate: '150f578efaed5521df58e0df1d71cb48f782291850b413459535ac29ee31c059',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'xirang-explore': '0fa4cddaea7cf04cb6737c8778e00e5a52baefbeb7ee9d57b1729ff0db2b2a4f',
+  'xirang-explore': '072c733b4f642ccb48da685acaaca188722b1b2f91cd72d8c557fa87b100a1fc',
   'xirang-apply-change': '9f94eacd4c69d4bd4d7a17683ce00bf9119a5983935b7e916a9c3de0c0b914b9',
   'xirang-archive-change': 'aa5499bc9fd059a6bb58668ad14052b870722a44905405851c24fac3399ee0c8',
-  'xirang-propose': 'ea1f2451751cec1bb6506c3025efad89fe9ab940b04696dd6c07a6c59a655b15',
+  'xirang-propose': '89b7a5977bc9a5f53addf55c161a3aba923d0d79cf9a4acd63d99282aa23d245',
 };
 
 function stableStringify(value: unknown): string {

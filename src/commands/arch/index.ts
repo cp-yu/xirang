@@ -6,6 +6,12 @@ import { exportArchitecture, type ExportFormat } from './export.js';
 import { registerPlanRemoveCommand } from './plan-remove.js';
 import { formatArchitectureSearchText, searchArchitecture } from './search.js';
 import { formatArchitectureImpactText, impactArchitecture } from './impact.js';
+import {
+  formatArchitectureSnapshotMarkdown,
+  formatArchitectureSnapshotText,
+  snapshotArchitecture,
+  treeToSnapshotJson,
+} from './snapshot.js';
 
 export function registerArchCommand(program: Command): void {
   const arch = program.command('arch').description('Query, search, analyze, validate, and export the Semantic Model');
@@ -48,6 +54,29 @@ export function registerArchCommand(program: Command): void {
       try {
         const result = await impactArchitecture(process.cwd(), elementIds, { depth: Number(options.depth) });
         console.log(options.json ? JSON.stringify(result, null, 2) : formatArchitectureImpactText(result));
+      } catch (error) {
+        console.error((error as Error).message);
+        process.exitCode = 1;
+      }
+    });
+  arch.command('snapshot')
+    .description('Project the complete Semantic Model skeleton (Declarations, Relationships, Metamodel) without Contracts')
+    .option('--format <format>', 'text, markdown, or json', 'text')
+    .action(async options => {
+      if (!['text', 'markdown', 'json'].includes(options.format)) {
+        console.error(`Unknown format: ${options.format}. Allowed choices are text, markdown, json.`);
+        process.exitCode = 1;
+        return;
+      }
+      try {
+        const result = await snapshotArchitecture(process.cwd());
+        if (options.format === 'json') {
+          console.log(JSON.stringify(treeToSnapshotJson(result), null, 2));
+        } else if (options.format === 'markdown') {
+          console.log(formatArchitectureSnapshotMarkdown(result));
+        } else {
+          console.log(formatArchitectureSnapshotText(result));
+        }
       } catch (error) {
         console.error((error as Error).message);
         process.exitCode = 1;

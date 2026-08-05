@@ -271,6 +271,48 @@ describe('arch commands', () => {
     await expect(fs.stat(output)).resolves.toMatchObject({});
   });
 
+  it('runs arch snapshot with default text, markdown, and json formats', async () => {
+    const text = await runCLI(['arch', 'snapshot'], { cwd: root });
+    expect(text.exitCode).toBe(0);
+    expect(text.stdout).toContain('project.root (semanticProject) | Project intent');
+    expect(text.stdout).toContain('payment.authorize (operation) | Authorize payment');
+    expect(text.stdout).toMatch(/└── |├── /);
+    expect(text.stdout).toContain('[relationships]');
+    expect(text.stdout).toContain('invokes: payment.authorize --> payment.audit');
+    expect(text.stdout).toContain('[metamodel]');
+
+    const markdown = await runCLI(['arch', 'snapshot', '--format', 'markdown'], { cwd: root });
+    expect(markdown.exitCode).toBe(0);
+    expect(markdown.stdout).toContain('- project.root (semanticProject) | Project intent');
+    expect(markdown.stdout).toContain('  - payments (area) | Payment refinement');
+
+    const json = await runCLI(['arch', 'snapshot', '--format', 'json'], { cwd: root });
+    expect(json.exitCode).toBe(0);
+    const parsed = JSON.parse(json.stdout);
+    expect(parsed.elements.map((element: { identity: string }) => element.identity).sort()).toEqual([
+      'payment.audit', 'payment.authorize', 'payments', 'project.root',
+    ]);
+    expect(parsed.relations).toEqual([
+      { source: 'payment.authorize', kind: 'invokes', target: 'payment.audit' },
+    ]);
+    expect(parsed.metamodel.elementKinds.length).toBeGreaterThan(0);
+    expect(json.stdout).not.toContain('Project behavior');
+    expect(json.stdout).not.toContain('## Requirements');
+  });
+
+  it('fails arch snapshot with non-zero exit when the model is missing and creates no files', async () => {
+    const empty = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-arch-snapshot-missing-'));
+    try {
+      const result = await runCLI(['arch', 'snapshot'], { cwd: empty });
+      expect(result.exitCode).not.toBe(0);
+      expect(result.stderr).toMatch(/unavailable|Semantic Model/i);
+      const files = await fs.readdir(empty, { recursive: true });
+      expect(files).toEqual([]);
+    } finally {
+      await fs.rm(empty, { recursive: true, force: true });
+    }
+  });
+
   it('reads the model exactly once per query', async () => {
     const readFileSpy = vi.spyOn(fs, 'readFile');
     try {
