@@ -1,0 +1,222 @@
+{
+  "timestamp": "2026-08-05T05:19:31.479Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "requirement": "snapshot SHALL 供 Agent 作为模型总览注入",
+      "task": "Task 2",
+      "summary": "Fragment updated and materialized to .pi/skills and .pi/agents via ArtifactSyncEngine after rebuilding dist; all six workflow surfaces now embed the arch snapshot guidance",
+      "message": "Fragment updated and materialized to .pi/skills and .pi/agents via ArtifactSyncEngine after rebuilding dist; all six workflow surfaces now embed the arch snapshot guidance"
+    }
+  ],
+  "tasksFileHash": "7ed0e3b9fb55528537ec01a29303d9aa36575753dcfa62b8fcf999f7f929b843",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".pi/agents/xirang-optimizer.md",
+      ".pi/agents/xirang-reviewer.md",
+      ".pi/skills/xirang-explore/SKILL.md",
+      ".pi/skills/xirang-propose/SKILL.md",
+      ".pi/skills/xirang-snack/SKILL.md",
+      ".xirang/changes/add-arch-snapshot-command/design.md",
+      ".xirang/changes/add-arch-snapshot-command/elements/arch-snapshot.md",
+      ".xirang/changes/add-arch-snapshot-command/elements/workflow-templates.md",
+      ".xirang/changes/add-arch-snapshot-command/proposal.md",
+      ".xirang/changes/add-arch-snapshot-command/tasks.md",
+      ".xirang/references/xirang-apply-step-1-preparation.md",
+      "src/commands/arch/index.ts",
+      "src/commands/arch/snapshot.ts",
+      "src/core/templates/fragments/xirang-fragments.ts",
+      "test/commands/arch-snapshot.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts",
+      "test/integration/arch-command.test.ts"
+    ],
+    "evidenceFingerprint": "9d7f23bf8c78b6052c0cffa6373c4024d38f23d41e549e0e6ad3c99c9f181e5c",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".pi/agents/xirang-optimizer.md",
+        "hash": "d6912a14022bdcd6fb742e209df4b09cef88503d3aee985b9941c56b91e76c1d"
+      },
+      {
+        "path": ".pi/agents/xirang-reviewer.md",
+        "hash": "04e87d9153397a9175510a1579beed74f92ab61723bde24256dddd21bb9b437a"
+      },
+      {
+        "path": ".pi/skills/xirang-explore/SKILL.md",
+        "hash": "de22aae0581c81b86de4fa73fed0722e1cce689b9ae5666e44486facb58ca916"
+      },
+      {
+        "path": ".pi/skills/xirang-propose/SKILL.md",
+        "hash": "2fe5484f2fd4f44bac41659309d367ba79c8978618a8d63701a44998c1f11c54"
+      },
+      {
+        "path": ".pi/skills/xirang-snack/SKILL.md",
+        "hash": "13778eeb63f855f728ff24150e23c1773e4dfaa516ef0d2e44013d76abdf6b16"
+      },
+      {
+        "path": ".xirang/changes/add-arch-snapshot-command/design.md",
+        "hash": "daf9a2f32f540e91a68fc9c7869ba7476414dec3b3e67a7aa3716d8756f0217a"
+      },
+      {
+        "path": ".xirang/changes/add-arch-snapshot-command/elements/arch-snapshot.md",
+        "hash": "e15d3709cbb1eafb7a4d7047cc6d53e358f642e8f34e7994640e9f187b87b864"
+      },
+      {
+        "path": ".xirang/changes/add-arch-snapshot-command/elements/workflow-templates.md",
+        "hash": "6a8453758ca457656d7142319484725936383234e4988d07dab84da9c4d564e3"
+      },
+      {
+        "path": ".xirang/changes/add-arch-snapshot-command/proposal.md",
+        "hash": "683939a7380f4dc5383cf2edb8b6662a271d8eec7917b9b191fb170f6f74346d"
+      },
+      {
+        "path": ".xirang/changes/add-arch-snapshot-command/tasks.md",
+        "hash": "7ed0e3b9fb55528537ec01a29303d9aa36575753dcfa62b8fcf999f7f929b843"
+      },
+      {
+        "path": ".xirang/references/xirang-apply-step-1-preparation.md",
+        "hash": "7dfd098983e7a7a3a125d8bb3021931445d167a2cd7abee63bcac53c2db1485e"
+      },
+      {
+        "path": "src/commands/arch/index.ts",
+        "hash": "f0d3ae73c3946c96f1c87c1aa9af0d6d34996ffa840c9b42b7f15725078d1797"
+      },
+      {
+        "path": "src/commands/arch/snapshot.ts",
+        "hash": "92d5bbe805c02dad2be41ae5f9b63b16d58e7bab80611ae31ecbe918d4ed2543"
+      },
+      {
+        "path": "src/core/templates/fragments/xirang-fragments.ts",
+        "hash": "843f5a6d2dc5f3a976bb5582dba2851f4bc4f305d2df50b371a6e006f357e726"
+      },
+      {
+        "path": "test/commands/arch-snapshot.test.ts",
+        "hash": "0da2f763cdeae9a851da0d5a303ab01b8a037e2d36851ee8c96128e013552c5d"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "35ced9d2dec42fa7e387a2df25cae292d5700e3118ff3abd5b3729221792251a"
+      },
+      {
+        "path": "test/integration/arch-command.test.ts",
+        "hash": "bdde94df8db869d1662e30b9a801ed2c9d2d712893f5e84399cceb6b9c292261"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "1ce27756cb0e2401c09432fd18427db3a80af86b"
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-08-05T05:19:31.479Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "requirement": "snapshot SHALL 供 Agent 作为模型总览注入",
+          "task": "Task 2",
+          "summary": "Fragment updated and materialized to .pi/skills and .pi/agents via ArtifactSyncEngine after rebuilding dist; all six workflow surfaces now embed the arch snapshot guidance",
+          "message": "Fragment updated and materialized to .pi/skills and .pi/agents via ArtifactSyncEngine after rebuilding dist; all six workflow surfaces now embed the arch snapshot guidance"
+        }
+      ],
+      "tasksFileHash": "7ed0e3b9fb55528537ec01a29303d9aa36575753dcfa62b8fcf999f7f929b843",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".pi/agents/xirang-optimizer.md",
+          ".pi/agents/xirang-reviewer.md",
+          ".pi/skills/xirang-explore/SKILL.md",
+          ".pi/skills/xirang-propose/SKILL.md",
+          ".pi/skills/xirang-snack/SKILL.md",
+          ".xirang/changes/add-arch-snapshot-command/design.md",
+          ".xirang/changes/add-arch-snapshot-command/elements/arch-snapshot.md",
+          ".xirang/changes/add-arch-snapshot-command/elements/workflow-templates.md",
+          ".xirang/changes/add-arch-snapshot-command/proposal.md",
+          ".xirang/changes/add-arch-snapshot-command/tasks.md",
+          ".xirang/references/xirang-apply-step-1-preparation.md",
+          "src/commands/arch/index.ts",
+          "src/commands/arch/snapshot.ts",
+          "src/core/templates/fragments/xirang-fragments.ts",
+          "test/commands/arch-snapshot.test.ts",
+          "test/core/templates/skill-templates-parity.test.ts",
+          "test/integration/arch-command.test.ts"
+        ],
+        "evidenceFingerprint": "9d7f23bf8c78b6052c0cffa6373c4024d38f23d41e549e0e6ad3c99c9f181e5c",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".pi/agents/xirang-optimizer.md",
+            "hash": "d6912a14022bdcd6fb742e209df4b09cef88503d3aee985b9941c56b91e76c1d"
+          },
+          {
+            "path": ".pi/agents/xirang-reviewer.md",
+            "hash": "04e87d9153397a9175510a1579beed74f92ab61723bde24256dddd21bb9b437a"
+          },
+          {
+            "path": ".pi/skills/xirang-explore/SKILL.md",
+            "hash": "de22aae0581c81b86de4fa73fed0722e1cce689b9ae5666e44486facb58ca916"
+          },
+          {
+            "path": ".pi/skills/xirang-propose/SKILL.md",
+            "hash": "2fe5484f2fd4f44bac41659309d367ba79c8978618a8d63701a44998c1f11c54"
+          },
+          {
+            "path": ".pi/skills/xirang-snack/SKILL.md",
+            "hash": "13778eeb63f855f728ff24150e23c1773e4dfaa516ef0d2e44013d76abdf6b16"
+          },
+          {
+            "path": ".xirang/changes/add-arch-snapshot-command/design.md",
+            "hash": "daf9a2f32f540e91a68fc9c7869ba7476414dec3b3e67a7aa3716d8756f0217a"
+          },
+          {
+            "path": ".xirang/changes/add-arch-snapshot-command/elements/arch-snapshot.md",
+            "hash": "e15d3709cbb1eafb7a4d7047cc6d53e358f642e8f34e7994640e9f187b87b864"
+          },
+          {
+            "path": ".xirang/changes/add-arch-snapshot-command/elements/workflow-templates.md",
+            "hash": "6a8453758ca457656d7142319484725936383234e4988d07dab84da9c4d564e3"
+          },
+          {
+            "path": ".xirang/changes/add-arch-snapshot-command/proposal.md",
+            "hash": "683939a7380f4dc5383cf2edb8b6662a271d8eec7917b9b191fb170f6f74346d"
+          },
+          {
+            "path": ".xirang/changes/add-arch-snapshot-command/tasks.md",
+            "hash": "7ed0e3b9fb55528537ec01a29303d9aa36575753dcfa62b8fcf999f7f929b843"
+          },
+          {
+            "path": ".xirang/references/xirang-apply-step-1-preparation.md",
+            "hash": "7dfd098983e7a7a3a125d8bb3021931445d167a2cd7abee63bcac53c2db1485e"
+          },
+          {
+            "path": "src/commands/arch/index.ts",
+            "hash": "f0d3ae73c3946c96f1c87c1aa9af0d6d34996ffa840c9b42b7f15725078d1797"
+          },
+          {
+            "path": "src/commands/arch/snapshot.ts",
+            "hash": "92d5bbe805c02dad2be41ae5f9b63b16d58e7bab80611ae31ecbe918d4ed2543"
+          },
+          {
+            "path": "src/core/templates/fragments/xirang-fragments.ts",
+            "hash": "843f5a6d2dc5f3a976bb5582dba2851f4bc4f305d2df50b371a6e006f357e726"
+          },
+          {
+            "path": "test/commands/arch-snapshot.test.ts",
+            "hash": "0da2f763cdeae9a851da0d5a303ab01b8a037e2d36851ee8c96128e013552c5d"
+          },
+          {
+            "path": "test/core/templates/skill-templates-parity.test.ts",
+            "hash": "35ced9d2dec42fa7e387a2df25cae292d5700e3118ff3abd5b3729221792251a"
+          },
+          {
+            "path": "test/integration/arch-command.test.ts",
+            "hash": "bdde94df8db869d1662e30b9a801ed2c9d2d712893f5e84399cceb6b9c292261"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "1ce27756cb0e2401c09432fd18427db3a80af86b"
+      }
+    }
+  }
+}
