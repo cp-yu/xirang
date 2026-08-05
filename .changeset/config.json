@@ -2,7 +2,9 @@
   "$schema": "https://unpkg.com/@changesets/config/schema.json",
   "changelog": [
     "@changesets/changelog-github",
-    { "repo": "Fission-AI/OpenSpec" }
+    {
+      "repo": "cp-yu/opsx"
+    }
   ],
   "commit": false,
   "fixed": [],
@@ -12,4 +14,3 @@
   "updateInternalDependencies": "patch",
   "ignore": []
 }
-

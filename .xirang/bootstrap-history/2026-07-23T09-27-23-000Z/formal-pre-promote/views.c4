@@ -1,6 +1,0 @@
-views {
-  view index {
-    include *
-    autoLayout TopBottom
-  }
-}

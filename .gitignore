@@ -164,10 +164,7 @@ opencode.json
 .github/*
 !.github/workflows/
 .github/workflows/*
-!.github/workflows/opsx-v2-cross-platform.yml
 .roadmap/
 /.pi-subagents/
-/.opsx/.cache/
-/.opsx/architecture/.likec4/
 .xirang/.cache-likec4/
 /.turbo/cache

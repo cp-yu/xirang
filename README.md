@@ -1,8 +1,8 @@
 <p align="center">
   <a href="https://github.com/cp-yu/xirang">
     <picture>
-      <source srcset="assets/opsx_bg.png">
-      <img src="assets/opsx_bg.png" alt="Xirang logo">
+      <source srcset="assets/xirang_bg.png">
+      <img src="assets/xirang_bg.png" alt="Xirang logo">
     </picture>
   </a>
 </p>
