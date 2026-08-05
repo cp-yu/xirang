@@ -63,7 +63,7 @@ function getCommandPath(command: Command): string {
 
 program
   .name('xirang')
-  .description('AI-native system for spec-driven development')
+  .description('AI-native system for semantic-model-driven development')
   .version(version);
 
 // Global options

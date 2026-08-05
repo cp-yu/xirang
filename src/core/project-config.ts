@@ -30,7 +30,7 @@ export const PROJECT_CONFIG_FUNCTIONAL_DEFAULTS = {
   },
 };
 
-const DEFAULT_PROJECT_SCHEMA = 'spec-driven';
+const DEFAULT_PROJECT_SCHEMA = 'semantic-model';
 
 export type ProjectConfigDefaultsMigrationResult =
   | { status: 'created'; path: string }
@@ -333,7 +333,7 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
       config.schema = schemaResult.data;
     } else if (raw.schema !== undefined) {
       console.warn(
-        `Unsupported schema '${String(raw.schema)}' in .xirang/config.yaml. Available: spec-driven`
+        `Unsupported schema '${String(raw.schema)}' in .xirang/config.yaml. Available: semantic-model`
       );
       return null;
     }

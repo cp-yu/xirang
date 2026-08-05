@@ -5,13 +5,13 @@ import { XIRANG_DIR_NAME } from '../core/config.js';
 import { readProjectConfig } from '../core/project-config.js';
 import type { BuiltInSchemaId } from '../core/artifact-graph/types.js';
 
-const DEFAULT_SCHEMA: BuiltInSchemaId = 'spec-driven';
+const DEFAULT_SCHEMA: BuiltInSchemaId = 'semantic-model';
 
 /**
  * Options for creating a change.
  */
 export interface CreateChangeOptions {
-  /** The workflow schema to use (default: 'spec-driven') */
+  /** The workflow schema to use (default: 'semantic-model') */
   schema?: string;
 }
 
@@ -104,7 +104,7 @@ export function validateChangeName(name: string): ValidationResult {
  * @example
  * // Creates .xirang/changes/add-auth/ with default schema
  * const result = await createChange('/path/to/project', 'add-auth')
- * console.log(result.schema) // 'spec-driven' or value from config
+ * console.log(result.schema) // 'semantic-model' or value from config
  *
  */
 export async function createChange(

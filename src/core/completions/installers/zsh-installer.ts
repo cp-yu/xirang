@@ -56,13 +56,13 @@ export class ZshInstaller {
     if (isOhMyZsh) {
       // Oh My Zsh custom completions directory
       return {
-        path: path.join(this.homeDir, '.oh-my-zsh', 'custom', 'completions', '_opsx'),
+        path: path.join(this.homeDir, '.oh-my-zsh', 'custom', 'completions', '_xirang'),
         isOhMyZsh: true,
       };
     } else {
       // Standard Zsh completions directory
       return {
-        path: path.join(this.homeDir, '.zsh', 'completions', '_opsx'),
+        path: path.join(this.homeDir, '.zsh', 'completions', '_xirang'),
         isOhMyZsh: false,
       };
     }

@@ -6,7 +6,7 @@
 export const ZSH_DYNAMIC_HELPERS = `# Dynamic completion helpers
 
 # Use xirang __complete to get available changes
-_opsx_complete_changes() {
+_xirang_complete_changes() {
   local -a changes
   while IFS=$'\\t' read -r id desc; do
     changes+=("$id:$desc")
@@ -15,7 +15,7 @@ _opsx_complete_changes() {
 }
 
 # Use xirang __complete to get available Element Contracts
-_opsx_complete_contracts() {
+_xirang_complete_contracts() {
   local -a contracts
   while IFS=$'\\t' read -r id desc; do
     contracts+=("$id:$desc")
@@ -24,7 +24,7 @@ _opsx_complete_contracts() {
 }
 
 # Get both changes and Element Contracts
-_opsx_complete_items() {
+_xirang_complete_items() {
   local -a items
   while IFS=$'\\t' read -r id desc; do
     items+=("$id:$desc")

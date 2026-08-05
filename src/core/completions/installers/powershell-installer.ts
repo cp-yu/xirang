@@ -200,7 +200,7 @@ export class PowerShellInstaller {
         }
 
         // Add Xirang completion configuration with markers
-        const opsxBlock = [
+        const xirangBlock = [
           '',
           '# Xirang:START - Xirang completion (managed block, do not edit manually)',
           scriptLine,
@@ -208,7 +208,7 @@ export class PowerShellInstaller {
           '',
         ].join('\n');
 
-        const newContent = profileContent + opsxBlock;
+        const newContent = profileContent + xirangBlock;
         await this.writeProfileFile(profilePath, newContent, fileEncoding, fileBom);
         anyConfigured = true;
       } catch (error) {

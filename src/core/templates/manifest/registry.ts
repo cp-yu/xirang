@@ -9,7 +9,7 @@ import {
   getExploreSkillTemplate,
   getApplyChangeSkillTemplate,
   getArchiveChangeSkillTemplate,
-  getOpsxProposeSkillTemplate,
+  getXirangProposeSkillTemplate,
   getBuildSkillTemplate,
   getSnackSkillTemplate,
 } from '../skill-templates.js';
@@ -31,7 +31,7 @@ const MANIFEST_ENTRIES: readonly WorkflowManifestEntry[] = [
       name: 'Propose change',
       description: 'Create proposal, design, and tasks from a request',
     },
-    getSkillTemplate: getOpsxProposeSkillTemplate,
+    getSkillTemplate: getXirangProposeSkillTemplate,
   },
   {
     workflowId: 'explore',

@@ -3,7 +3,7 @@ import { ZSH_DYNAMIC_HELPERS } from '../templates/zsh-templates.js';
 
 /**
  * Generates Zsh completion scripts for the Xirang CLI.
- * Follows Zsh completion system conventions using the _opsx function.
+ * Follows Zsh completion system conventions using the _xirang function.
  */
 export class ZshGenerator implements CompletionGenerator {
   readonly shell = 'zsh' as const;
@@ -27,7 +27,7 @@ export class ZshGenerator implements CompletionGenerator {
     const commandCaseLines: string[] = [];
     for (const cmd of commands) {
       commandCaseLines.push(`        ${cmd.name})`);
-      commandCaseLines.push(`          _opsx_${this.sanitizeFunctionName(cmd.name)}`);
+      commandCaseLines.push(`          _xirang_${this.sanitizeFunctionName(cmd.name)}`);
       commandCaseLines.push('          ;;');
     }
     const commandCases = commandCaseLines.join('\n');
@@ -49,7 +49,7 @@ export class ZshGenerator implements CompletionGenerator {
 # Zsh completion script for Xirang CLI
 # Auto-generated - do not edit manually
 
-_opsx() {
+_xirang() {
   local context state line
   typeset -A opt_args
 
@@ -76,7 +76,7 @@ ${commandCases}
 
 ${commandFunctions}
 ${helpers}
-compdef _opsx xirang
+compdef _xirang xirang
 `;
   }
 
@@ -84,7 +84,7 @@ compdef _opsx xirang
    * Generate completion function for a specific command
    */
   private generateCommandFunction(cmd: CommandDefinition): string[] {
-    const funcName = `_opsx_${this.sanitizeFunctionName(cmd.name)}`;
+    const funcName = `_xirang_${this.sanitizeFunctionName(cmd.name)}`;
     const lines: string[] = [];
 
     lines.push(`${funcName}() {`);
@@ -123,7 +123,7 @@ compdef _opsx xirang
 
       for (const subcmd of cmd.subcommands) {
         lines.push(`        ${subcmd.name})`);
-        lines.push(`          _opsx_${this.sanitizeFunctionName(cmd.name)}_${this.sanitizeFunctionName(subcmd.name)}`);
+        lines.push(`          _xirang_${this.sanitizeFunctionName(cmd.name)}_${this.sanitizeFunctionName(subcmd.name)}`);
         lines.push('          ;;');
       }
 
@@ -168,7 +168,7 @@ compdef _opsx xirang
    * Generate completion function for a subcommand
    */
   private generateSubcommandFunction(parentName: string, subcmd: CommandDefinition): string[] {
-    const funcName = `_opsx_${this.sanitizeFunctionName(parentName)}_${this.sanitizeFunctionName(subcmd.name)}`;
+    const funcName = `_xirang_${this.sanitizeFunctionName(parentName)}_${this.sanitizeFunctionName(subcmd.name)}`;
     const lines: string[] = [];
 
     lines.push(`${funcName}() {`);
@@ -236,11 +236,11 @@ compdef _opsx xirang
   private generatePositionalSpec(positionalType?: string): string {
     switch (positionalType) {
       case 'change-id':
-        return "'*: :_opsx_complete_changes'";
+        return "'*: :_xirang_complete_changes'";
       case 'contract-id':
-        return "'*: :_opsx_complete_contracts'";
+        return "'*: :_xirang_complete_contracts'";
       case 'change-or-contract-id':
-        return "'*: :_opsx_complete_items'";
+        return "'*: :_xirang_complete_items'";
       case 'path':
         return "'*:path:_files'";
       case 'shell':

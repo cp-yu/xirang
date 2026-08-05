@@ -1,4 +1,4 @@
-name: spec-driven
+name: semantic-model
 version: 1
 description: Default Xirang workflow - proposal → specs → design → tasks
 artifacts:

@@ -9,7 +9,7 @@ export type { SkillTemplate } from './types.js';
 export { getExploreSkillTemplate } from './workflows/explore.js';
 export { getApplyChangeSkillTemplate } from './workflows/apply-change.js';
 export { getArchiveChangeSkillTemplate } from './workflows/archive-change.js';
-export { getOpsxProposeSkillTemplate } from './workflows/propose.js';
+export { getXirangProposeSkillTemplate } from './workflows/propose.js';
 export { getBuildSkillTemplate } from './workflows/build.js';
 export { getSnackSkillTemplate } from './workflows/snack.js';
 export { getFeedbackSkillTemplate } from './workflows/feedback.js';

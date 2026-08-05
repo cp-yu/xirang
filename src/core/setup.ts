@@ -52,7 +52,7 @@ const { version: XIRANG_VERSION } = require('../../package.json');
 // Constants
 // -----------------------------------------------------------------------------
 
-const DEFAULT_SCHEMA = 'spec-driven';
+const DEFAULT_SCHEMA = 'semantic-model';
 
 const PROGRESS_SPINNER = {
   interval: 80,
@@ -89,8 +89,8 @@ export class SetupCommand {
 
   async execute(targetPath: string): Promise<void> {
     const projectPath = path.resolve(targetPath);
-    const opsxDir = XIRANG_DIR_NAME;
-    const xirangPath = path.join(projectPath, opsxDir);
+    const xirangDir = XIRANG_DIR_NAME;
+    const xirangPath = path.join(projectPath, xirangDir);
 
     // Validation happens silently in the background
     const extendMode = await this.validate(projectPath, xirangPath);
