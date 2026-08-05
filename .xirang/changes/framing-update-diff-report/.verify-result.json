@@ -66,7 +66,7 @@
       "test/core/templates/skill-templates-parity.test.ts",
       "test/integration/framing-workflow.test.ts"
     ],
-    "evidenceFingerprint": "1206823c76b723b4b148bd8c40f0a21e67d7797f0d988e5384c140d069bded3c",
+    "evidenceFingerprint": "881b0780033ea1cf40fa115aba5ed2d732817985c78175c88cf5c5ae52e321dd",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/references/xirang-definition-framing.md",
@@ -90,7 +90,7 @@
       },
       {
         "path": "src/core/framing/workspace.ts",
-        "hash": "8f5ce6befaf4377f9d72388896643827f6f173706a07b16a5ecc6566af90d9be"
+        "hash": "0b3579d708c2ab94221b5a4677abd47bf7ecbc0c7e0e6ea7541a83b84f63fa29"
       },
       {
         "path": "src/core/templates/workflows/explore.ts",
@@ -122,12 +122,24 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "362a642a756ddfa8db7cad9c9a5d74631cc504eb",
-    "gitDiffSummary": "baseCommit 362a642a == HEAD; scope = git status (18 modified/added/untracked) + working-tree diff vs base"
+    "gitHeadCommit": "1185319574c8e95731d0de70b49d63f0ebe4dbcc",
+    "gitDiffSummary": "baseCommit 362a642a == HEAD; scope = git status (18 modified/added/untracked) + working-tree diff vs base",
+    "timestamp": "2026-08-05T08:16:05.740Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-08-05T08:13:03.175Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-05T08:16:05.730Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-08-05T08:05:37.609Z",
       "result": "PASS_WITH_WARNINGS",
@@ -255,6 +267,150 @@
         "gitHeadCommit": "362a642a756ddfa8db7cad9c9a5d74631cc504eb",
         "gitDiffSummary": "baseCommit 362a642a == HEAD; scope = git status (18 modified/added/untracked) + working-tree diff vs base"
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "src/core/framing/workspace.ts"
+          ],
+          "symbols": [
+            "relationshipTriple",
+            "activeRelationships"
+          ]
+        },
+        "opportunity": "workspace.ts re-implements the canonical relationship triple key as a local relationshipTriple helper, byte-identical to relationshipIdentity in src/core/model/types.ts which is already the codebase-wide key used by validator/consume/baseline/delta. The new diff code creates a second source of truth for the u0000-joined source/kind/target key, inviting silent drift.",
+        "impact": "Deletes the duplicate helper so the framing diff relationship keys are provably identical to the validator/consume/baseline keys; removes latent drift risk; removes 3 lines.",
+        "evidence": [
+          "src/core/framing/workspace.ts:164-166",
+          "src/core/model/types.ts:123-125",
+          "src/core/framing/validator.ts:71-74",
+          "src/core/framing/consume.ts:51,116",
+          "src/core/framing/types.ts:54-59"
+        ],
+        "recommendation": "Import relationshipIdentity from '../model/types.js' into workspace.ts and use it in activeRelationships in place of relationshipTriple; delete relationshipTriple.",
+        "keyDesign": "After the isRemoval guard inside activeRelationships, item narrows to RelationshipTarget, which is structurally assignable to Relationship; therefore relationshipIdentity(item) type-checks with no cast and yields the byte-identical triple key.",
+        "preservationConstraints": [
+          "Triple key format stays exactly source\\u0000kind\\u0000target",
+          "added/removed relationship ordering follows next/previous array order",
+          "REMOVED-marked relationship entries remain excluded from the active map",
+          "FramingPayloadDiff envelope shape and updateFraming return shape unchanged"
+        ],
+        "implementationOutline": [
+          "Import relationshipIdentity from '../model/types.js'",
+          "Replace relationshipTriple(item) with relationshipIdentity(item) in activeRelationships",
+          "Delete relationshipTriple",
+          "Run framing diff/workspace/integration tests and tsc"
+        ],
+        "validation": [
+          "diff.test.ts relationship test asserts exact triples",
+          "integration test asserts exact empty diff shape",
+          "tsc --noEmit proves assignability without cast"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Removes a real duplicate of a codebase-wide canonical helper already used by validator/consume/baseline/delta, closing a concrete latent drift risk; byte-identical behavior.",
+        "id": "OPT-20260805T081303172Z-01",
+        "targetFileHashes": {
+          "src/core/framing/workspace.ts": "8f5ce6befaf4377f9d72388896643827f6f173706a07b16a5ecc6566af90d9be"
+        }
+      },
+      {
+        "status": "pending",
+        "location": {
+          "files": [
+            "src/core/framing/workspace.ts"
+          ],
+          "symbols": [
+            "activeKeyed",
+            "activeRelationships"
+          ]
+        },
+        "opportunity": "activeKeyed and activeRelationships are two structurally identical copies of the same loop (skip REMOVED entries, index the rest by key) that differ only in the key function.",
+        "impact": "Collapses both builders into a single generic activeBy(items, key) helper — one implementation of skip-REMOVED/index-by-key behavior, fewer lines, no behavior change.",
+        "evidence": [
+          "src/core/framing/workspace.ts:148-154",
+          "src/core/framing/workspace.ts:156-162",
+          "src/core/framing/workspace.ts:144-146"
+        ],
+        "recommendation": "Replace both with a single generic activeBy(items, key) helper; key functions are an identity accessor for keyed parts and relationshipIdentity for relationships.",
+        "keyDesign": "activeBy is generic over the item type; after isRemoval narrowing, item is T so key(item) type-checks. diffKeyedPart and diffRelationships keep their distinct return shapes, so only the map builders merge.",
+        "preservationConstraints": [
+          "Same skip-REMOVED semantics and identical map keys",
+          "Map insertion order preserved",
+          "FramingPayloadDiff envelope shape unchanged"
+        ],
+        "implementationOutline": [
+          "Introduce activeBy<T>(items, key)",
+          "diffKeyedPart uses activeBy with item.identity",
+          "diffRelationships uses activeBy with relationshipIdentity",
+          "Delete activeKeyed and activeRelationships",
+          "Run framing tests and tsc"
+        ],
+        "validation": [
+          "diff.test.ts exact added/modified/removed assertions unchanged",
+          "workspace/integration tests exact diff output unchanged",
+          "tsc --noEmit proves generic signature"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [
+          "OPT-20260805T081303172Z-01"
+        ],
+        "priorityReason": "Pure local DRY simplification with identical observable behavior; depends on Finding 1.",
+        "id": "OPT-20260805T081303172Z-02"
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-05T08:13:03.172Z",
+        "findingId": "OPT-20260805T081303172Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-05T08:13:03.172Z",
+        "findingId": "OPT-20260805T081303172Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "select",
+        "reason": "Removes a real duplicate of a codebase-wide canonical helper already used by validator/consume/baseline/delta, closing a concrete latent drift risk; byte-identical behavior.",
+        "timestamp": "2026-08-05T08:13:03.175Z",
+        "findingId": "OPT-20260805T081303172Z-01",
+        "hashes": {
+          "src/core/framing/workspace.ts": "8f5ce6befaf4377f9d72388896643827f6f173706a07b16a5ecc6566af90d9be"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-05T08:13:13.802Z",
+        "findingId": "OPT-20260805T081303172Z-01",
+        "hashes": {
+          "src/core/framing/workspace.ts": "8f5ce6befaf4377f9d72388896643827f6f173706a07b16a5ecc6566af90d9be"
+        }
+      },
+      {
+        "sequence": 5,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-05T08:16:05.731Z",
+        "findingId": "OPT-20260805T081303172Z-01"
+      }
+    ],
+    "reconciliationSignature": "b13b25023b1afd3a5231f35b51ff98fbd679f829fae7b3bd409193189e0d3121",
+    "unchangedReconciliations": 0
   }
 }

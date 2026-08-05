@@ -26,7 +26,7 @@ import type {
   RelationshipKindTarget,
   RelationshipTarget,
 } from './types.js';
-import type { SemanticModel } from '../model/types.js';
+import { relationshipIdentity, type SemanticModel } from '../model/types.js';
 
 const MANAGED_FILE = /^\.explore-(.+)-(\d{8}T\d{6}Z-[a-f0-9]{8})\.md$/;
 
@@ -156,13 +156,9 @@ function activeKeyed<T extends { identity: string }>(items: readonly KeyedRemova
 function activeRelationships(items: readonly RelationshipRemoval[]): Map<string, RelationshipTarget> {
   const map = new Map<string, RelationshipTarget>();
   for (const item of items) {
-    if (!isRemoval(item)) map.set(relationshipTriple(item), item);
+    if (!isRemoval(item)) map.set(relationshipIdentity(item), item);
   }
   return map;
-}
-
-function relationshipTriple(item: RelationshipRemoval): string {
-  return `${item.source}\u0000${item.kind}\u0000${item.target}`;
 }
 
 function diffKeyedPart<T extends { identity: string }>(
