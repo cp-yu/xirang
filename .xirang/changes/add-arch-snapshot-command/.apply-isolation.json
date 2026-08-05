@@ -2,5 +2,6 @@
   "method": "branch",
   "branchName": "add-arch-snapshot-command",
   "originalBranch": "main",
-  "baseCommit": "1ce27756cb0e2401c09432fd18427db3a80af86b"
+  "baseCommit": "1ce27756cb0e2401c09432fd18427db3a80af86b",
+  "phase2BaselineCommit": "acfd9a41cbeffb7665fe4bbdf9aa1e1ba9354c7c"
 }

@@ -32,7 +32,7 @@
       "test/core/templates/skill-templates-parity.test.ts",
       "test/integration/arch-command.test.ts"
     ],
-    "evidenceFingerprint": "9d7f23bf8c78b6052c0cffa6373c4024d38f23d41e549e0e6ad3c99c9f181e5c",
+    "evidenceFingerprint": "3e790ab545d519aa87a3a467bc2ddfe8e877c036ae73bf6bb5bb34b05370285b",
     "evidenceFingerprintEntries": [
       {
         "path": ".pi/agents/xirang-optimizer.md",
@@ -84,7 +84,7 @@
       },
       {
         "path": "src/commands/arch/snapshot.ts",
-        "hash": "92d5bbe805c02dad2be41ae5f9b63b16d58e7bab80611ae31ecbe918d4ed2543"
+        "hash": "979f79a739836622bb0a4f6cdb015bf8c8500084f81e0388eb82c362ff2335c2"
       },
       {
         "path": "src/core/templates/fragments/xirang-fragments.ts",
@@ -104,11 +104,23 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "1ce27756cb0e2401c09432fd18427db3a80af86b"
+    "gitHeadCommit": "acfd9a41cbeffb7665fe4bbdf9aa1e1ba9354c7c",
+    "timestamp": "2026-08-05T05:29:14.256Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-08-05T05:26:09.606Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-05T05:29:14.243Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-08-05T05:19:31.479Z",
       "result": "PASS_WITH_WARNINGS",
@@ -217,6 +229,124 @@
         "skippedEvidenceFiles": [],
         "gitHeadCommit": "1ce27756cb0e2401c09432fd18427db3a80af86b"
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "src/commands/arch/snapshot.ts"
+          ]
+        },
+        "opportunity": "SnapshotJson is a structural duplicate of ArchitectureSnapshotResult; treeToSnapshotJson deep-copies elements/metamodel even though the result is never mutated.",
+        "impact": "Removes duplicate public type and per-snapshot allocations with byte-identical JSON output.",
+        "evidence": [
+          "Delete the SnapshotJson interface, change treeToSnapshotJson to return ArchitectureSnapshotResult and return result directly."
+        ],
+        "recommendation": "Delete the SnapshotJson interface, change treeToSnapshotJson to return ArchitectureSnapshotResult and return result directly.",
+        "keyDesign": "Single result type owns the JSON projection; serializer becomes an identity pass over an immutable value.",
+        "preservationConstraints": [
+          "JSON output must remain byte-identical (same keys, key order, values)",
+          "treeToSnapshotJson must remain exported with same parameter type; index.ts call site unchanged",
+          "No Contract content may appear; deterministic ordering and statistics untouched"
+        ],
+        "implementationOutline": [
+          "Remove SnapshotJson interface",
+          "Change treeToSnapshotJson return type to ArchitectureSnapshotResult and return result"
+        ],
+        "validation": [
+          "npx vitest run test/commands/arch-snapshot.test.ts test/integration/arch-command.test.ts"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Dead public type duplication plus per-snapshot allocations, byte-identical output provable, zero test churn.",
+        "id": "OPT-20260805T052609601Z-01",
+        "targetFileHashes": {
+          "src/commands/arch/snapshot.ts": "92d5bbe805c02dad2be41ae5f9b63b16d58e7bab80611ae31ecbe918d4ed2543"
+        }
+      },
+      {
+        "status": "pending",
+        "location": {
+          "files": [
+            "src/commands/arch/snapshot.ts"
+          ]
+        },
+        "opportunity": "buildTree's sortRecursive re-sorts an already globally identity-sorted flat list (buildModelTree sorts childrenOf and sortElements), making it a provable no-op.",
+        "impact": "Removes redundant O(n log n) recursive sort from every text/markdown render.",
+        "evidence": [
+          "Delete the sortRecursive closure and its invocation in buildTree; document the pre-sorted-by-identity precondition."
+        ],
+        "recommendation": "Delete the sortRecursive closure and its invocation in buildTree; document the pre-sorted-by-identity precondition.",
+        "keyDesign": "Single-pass tree build consuming the already-sorted flat projection; ordering invariant owned by buildModelTree.",
+        "preservationConstraints": [
+          "Text/markdown node order must remain identity-sorted (do NOT remove sortElements or childrenOf sort in buildModelTree)",
+          "buildTree must remain private with same output shape; nodeLabel and renderers untouched",
+          "Orphan-as-root fallback branch must stay as-is"
+        ],
+        "implementationOutline": [
+          "Delete sortRecursive closure and sortRecursive(roots) call",
+          "Extend buildTree doc comment with precondition"
+        ],
+        "validation": [
+          "npx vitest run test/commands/arch-snapshot.test.ts test/integration/arch-command.test.ts"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Statically provable dead sorting work on already-sorted input.",
+        "id": "OPT-20260805T052609601Z-02"
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-05T05:26:09.602Z",
+        "findingId": "OPT-20260805T052609601Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-05T05:26:09.602Z",
+        "findingId": "OPT-20260805T052609601Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "select",
+        "reason": "Dead public type duplication plus per-snapshot allocations, byte-identical output provable, zero test churn.",
+        "timestamp": "2026-08-05T05:26:09.606Z",
+        "findingId": "OPT-20260805T052609601Z-01",
+        "hashes": {
+          "src/commands/arch/snapshot.ts": "92d5bbe805c02dad2be41ae5f9b63b16d58e7bab80611ae31ecbe918d4ed2543"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-05T05:26:19.433Z",
+        "findingId": "OPT-20260805T052609601Z-01",
+        "hashes": {
+          "src/commands/arch/snapshot.ts": "92d5bbe805c02dad2be41ae5f9b63b16d58e7bab80611ae31ecbe918d4ed2543"
+        }
+      },
+      {
+        "sequence": 5,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-05T05:29:14.244Z",
+        "findingId": "OPT-20260805T052609601Z-01"
+      }
+    ],
+    "reconciliationSignature": "722f9cd99a7b2190ed0bc60757f6d2a406305b83124b41bda69f1279f887732d",
+    "unchangedReconciliations": 0
   }
 }

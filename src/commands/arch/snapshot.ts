@@ -35,13 +35,6 @@ export interface ArchitectureSnapshotResult {
   };
 }
 
-export interface SnapshotJson {
-  elements: SnapshotElement[];
-  relations: Relationship[];
-  metamodel: SnapshotMetamodel;
-  statistics: ArchitectureSnapshotResult['statistics'];
-}
-
 function sortElements(declarations: SnapshotElement[]): SnapshotElement[] {
   return [...declarations].sort((left, right) => compareCodePoints(left.identity, right.identity));
 }
@@ -167,16 +160,8 @@ export function formatArchitectureSnapshotMarkdown(result: ArchitectureSnapshotR
   return [renderTreeMarkdown(result.elements), '', relations, '', metamodel].join('\n');
 }
 
-export function treeToSnapshotJson(result: ArchitectureSnapshotResult): SnapshotJson {
-  return {
-    elements: result.elements.map(element => ({ ...element })),
-    relations: result.relations,
-    metamodel: {
-      elementKinds: result.metamodel.elementKinds.map(kind => ({ ...kind })),
-      relationshipKinds: result.metamodel.relationshipKinds.map(kind => ({ ...kind })),
-    },
-    statistics: result.statistics,
-  };
+export function treeToSnapshotJson(result: ArchitectureSnapshotResult): ArchitectureSnapshotResult {
+  return result;
 }
 
 export async function snapshotArchitecture(
