@@ -108,7 +108,7 @@
     "timestamp": "2026-08-05T06:31:25.629Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
         "timestamp": "2026-08-05T05:26:09.606Z",
@@ -139,6 +139,11 @@
         "timestamp": "2026-08-05T06:31:25.616Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-05T06:32:52.590Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
@@ -284,7 +289,7 @@
       },
       {
         "id": "OPT-20260805T052609601Z-02",
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "src/commands/arch/snapshot.ts"
@@ -311,10 +316,7 @@
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "dead sorting work",
-        "targetFileHashes": {
-          "src/commands/arch/snapshot.ts": "9c4c35735979c26f2b1f5825dd3699b58900daf5165891fee039cd46bfbbbf1e"
-        }
+        "priorityReason": "dead sorting work"
       }
     ],
     "history": [
@@ -440,9 +442,16 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-05T06:31:25.617Z",
         "findingId": "OPT-20260805T052609601Z-02"
+      },
+      {
+        "sequence": 16,
+        "action": "resolve",
+        "reason": "Implemented and verified",
+        "timestamp": "2026-08-05T06:32:52.590Z",
+        "findingId": "OPT-20260805T052609601Z-02"
       }
     ],
-    "reconciliationSignature": "145ef91e9e57d438a855af1ac4f7affb32b5c95863415315ddfe44b9305a3937",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }
