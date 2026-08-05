@@ -1,9 +1,12 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { runLikeC4 } from '../../../src/commands/arch/runner.js';
 import { generateLikeC4 } from '../../../src/core/likec4/generator.js';
+import { parseSemanticModel } from '../../../src/core/model/parser.js';
+import { modelRoot } from '../../../src/core/model/paths.js';
 import type { ModelElement, SemanticModel } from '../../../src/core/model/types.js';
 
 function element(identity: string, parent: string | null, kind: string): ModelElement {
@@ -109,6 +112,45 @@ describe('generateLikeC4 artifacts', () => {
     } finally {
       process.chdir(cwd);
       await fs.rm(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+/**
+ * Regression guard for the graphviz `unflatten` layout failure: long summary
+ * excerpts (before the fix, up to 120 code points) widened LikeC4 node labels
+ * until the `model` view failed to lay out ("layouted 0 of 1 views"). No reduced
+ * synthetic fixture reproduces the failure — it only occurs at the full project
+ * geometry, so this test lays out the project's own Semantic Model view.
+ */
+describe('project Semantic Model view layout', () => {
+  const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
+
+  it('lays out successfully with every edge routed', { timeout: 180_000 }, async () => {
+    const { model: projectModel } = await parseSemanticModel(modelRoot(projectRoot));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-layout-regression-'));
+    const outfile = path.join(os.tmpdir(), `xirang-layout-${path.basename(dir)}.json`);
+    try {
+      for (const [file, content] of generateLikeC4(projectModel)) {
+        await fs.writeFile(path.join(dir, file), content);
+      }
+      await runLikeC4(['export', 'json', '--project', 'xirang', '-o', outfile, dir]);
+      const generated = JSON.parse(await fs.readFile(outfile, 'utf8')) as {
+        projectId: string;
+        views: Record<string, {
+          nodes: Array<{ id: string }>;
+          edges: Array<{ id: string; points?: number[][] }>;
+        }>;
+      };
+      expect(generated.projectId).toBe('xirang');
+      const modelView = generated.views['model'];
+      expect(modelView, 'project Semantic Model must have a model view').toBeDefined();
+      expect(modelView.nodes.length).toBeGreaterThan(0);
+      const unrouted = modelView.edges.filter(edge => !Array.isArray(edge.points) || edge.points.length < 2);
+      expect(unrouted, 'unrouted edges — likely a summary-length layout regression; see EXCERPT_LIMIT in src/core/likec4/definition.ts').toEqual([]);
+    } finally {
+      await fs.rm(dir, { recursive: true, force: true });
+      await fs.rm(outfile, { force: true });
     }
   });
 });

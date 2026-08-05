@@ -264,11 +264,11 @@ describe('generateLikeC4 model.c4', () => {
 
   it('projects a deterministic summary excerpt and the full Definition', () => {
     const cases = [
-      { definition: 'a'.repeat(119), summary: 'a'.repeat(119) },
-      { definition: 'a'.repeat(120), summary: 'a'.repeat(120) },
-      { definition: 'a'.repeat(121), summary: `${'a'.repeat(120)}...` },
-      { definition: '😀'.repeat(121), summary: `${'😀'.repeat(120)}...` },
-      { definition: '  First   paragraph\nwith\tspaces.  \n\nSecond paragraph remains full.  ', summary: 'First paragraph with spaces.' },
+      { definition: 'a'.repeat(24), summary: 'a'.repeat(24) },
+      { definition: 'a'.repeat(25), summary: 'a'.repeat(25) },
+      { definition: 'a'.repeat(26), summary: `${'a'.repeat(25)}...` },
+      { definition: '😀'.repeat(26), summary: `${'😀'.repeat(25)}...` },
+      { definition: '  First   paragraph.  \n\nSecond paragraph remains full.  ', summary: 'First paragraph.' },
     ];
 
     for (const [index, item] of cases.entries()) {
@@ -280,6 +280,23 @@ describe('generateLikeC4 model.c4', () => {
       const output = generateLikeC4(model).get('model.c4')!;
       expect(output).toContain(`= capability 'Capability' '${item.summary}' {`);
       expect(output).toContain(`description '${item.definition.replaceAll('\\', '\\\\').replaceAll("'", "\\'").replaceAll('\n', '\\n')}'`);
+    }
+  });
+
+  it('bounds every summary excerpt in the generated artifacts', () => {
+    const long = '长'.repeat(200);
+    const model: SemanticModel = {
+      ...emptySemanticModel(),
+      elementKinds: [{ identity: 'capability', contract: 'optional', body: '' }],
+      elements: Array.from({ length: 6 }, (_, i) => element(`cap.${i}`, null, 'capability', `Capability ${i}`, long)),
+    };
+    const output = generateLikeC4(model).get('model.c4')!;
+    const summaries = [...output.matchAll(/= capability '[^']+' '([^']*)' \{/g)].map(match => match[1]);
+    expect(summaries).toHaveLength(6);
+    // EXCERPT_LIMIT (25) plus the '...' suffix; long summaries widen LikeC4 node labels
+    // and can push the view into a graphviz unflatten layout failure.
+    for (const summary of summaries) {
+      expect([...summary].length).toBeLessThanOrEqual(28);
     }
   });
 

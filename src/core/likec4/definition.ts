@@ -1,6 +1,6 @@
 import type { ElementDeclaration, SemanticModel } from '../model/types.js';
 
-const EXCERPT_LIMIT = 120;
+const EXCERPT_LIMIT = 25;
 
 export interface BrowserElementDeclaration extends ElementDeclaration {
   summary: string;

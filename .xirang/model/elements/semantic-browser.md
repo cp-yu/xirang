@@ -82,16 +82,16 @@ Semantic Browser SHALL 在 Semantic Model、Candidate View、Candidate Diff View
 
 ### Requirement: 确定性派生 Definition Excerpt
 
-Definition excerpt SHALL 对 trim 后文本取空行前第一段，将段内换行与连续空白折叠为单空格，并按 Unicode code points 限制为 120 个；超限时 SHALL 截断并追加 `...`，且 SHALL NOT 使用 LLM 或持久化结果。
+Definition excerpt SHALL 对 trim 后文本取空行前第一段，将段内换行与连续空白折叠为单空格，并按 Unicode code points 限制为 25 个；超限时 SHALL 截断并追加 `...`，且 SHALL NOT 使用 LLM 或持久化结果。
 
 #### Scenario: Definition 超过显示上限
 
-- **WHEN** 第一段规范化后超过 120 Unicode code points
-- **THEN** Browser summary 包含前 120 个 code points 和 `...`，description 保持完整原文
+- **WHEN** 第一段规范化后超过 25 Unicode code points
+- **THEN** Browser summary 包含前 25 个 code points 和 `...`，description 保持完整原文
 
 #### Scenario: Definition 不超过显示上限
 
-- **WHEN** 第一段规范化后不超过 120 Unicode code points
+- **WHEN** 第一段规范化后不超过 25 Unicode code points
 - **THEN** Browser summary 原样使用该规范化段落且不追加省略号
 
 ### Requirement: 通过 Contract 接口加载 Element Contract
