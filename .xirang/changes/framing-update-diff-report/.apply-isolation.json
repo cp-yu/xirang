@@ -3,5 +3,5 @@
   "branchName": "framing-update-diff-report",
   "originalBranch": "main",
   "baseCommit": "362a642a756ddfa8db7cad9c9a5d74631cc504eb",
-  "phase2BaselineCommit": "4f3feeaca41d5f532674d340032023a9e5257841"
+  "phase2BaselineCommit": "878cd09ccd02760b3a8ce271a08f0b808c44f01a"
 }
