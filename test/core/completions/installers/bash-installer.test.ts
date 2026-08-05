@@ -11,7 +11,7 @@ describe('BashInstaller', () => {
 
   beforeEach(async () => {
     // Create a temporary home directory for testing
-    testHomeDir = path.join(os.tmpdir(), `opsx-bash-test-${randomUUID()}`);
+    testHomeDir = path.join(os.tmpdir(), `xirang-bash-test-${randomUUID()}`);
     await fs.mkdir(testHomeDir, { recursive: true });
     installer = new BashInstaller(testHomeDir);
   });
@@ -62,7 +62,7 @@ describe('BashInstaller', () => {
   });
 
   describe('install', () => {
-    const testScript = '# Bash completion script for Xirang CLI\n_opsx_completion() {\n  echo "test"\n}\n';
+    const testScript = '# Bash completion script for Xirang CLI\n_xirang_completion() {\n  echo "test"\n}\n';
 
     it('should install to bash-completion path', async () => {
       const result = await installer.install(testScript);
@@ -201,12 +201,12 @@ describe('BashInstaller', () => {
 
     it('should update completion when content differs', async () => {
       // First installation
-      const firstScript = '# Bash completion v1\n_opsx_completion() {\n  echo "version 1"\n}\n';
+      const firstScript = '# Bash completion v1\n_xirang_completion() {\n  echo "version 1"\n}\n';
       const firstResult = await installer.install(firstScript);
       expect(firstResult.success).toBe(true);
 
       // Second installation with different script
-      const secondScript = '# Bash completion v2\n_opsx_completion() {\n  echo "version 2"\n}\n';
+      const secondScript = '# Bash completion v2\n_xirang_completion() {\n  echo "version 2"\n}\n';
       const secondResult = await installer.install(secondScript);
 
       expect(secondResult.success).toBe(true);
@@ -250,7 +250,7 @@ describe('BashInstaller', () => {
   });
 
   describe('uninstall', () => {
-    const testScript = '# Bash completion script\n_opsx_completion() {}\n';
+    const testScript = '# Bash completion script\n_xirang_completion() {}\n';
 
     it('should remove installed completion script', async () => {
       // Install first

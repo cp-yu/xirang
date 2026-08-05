@@ -112,7 +112,7 @@ describe('createChange', () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `opsx-test-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `xirang-test-${randomUUID()}`);
     await fs.mkdir(testDir, { recursive: true });
   });
 
@@ -134,16 +134,16 @@ describe('createChange', () => {
 
       const metaPath = path.join(testDir, '.xirang', 'changes', 'add-auth', '.xirang.yaml');
       const content = await fs.readFile(metaPath, 'utf-8');
-      expect(content).toContain('schema: spec-driven');
+      expect(content).toContain('schema: semantic-model');
       expect(content).toMatch(/created: \d{4}-\d{2}-\d{2}/);
     });
 
     it('should create .xirang.yaml with custom schema', async () => {
-      await createChange(testDir, 'add-auth', { schema: 'spec-driven' });
+      await createChange(testDir, 'add-auth', { schema: 'semantic-model' });
 
       const metaPath = path.join(testDir, '.xirang', 'changes', 'add-auth', '.xirang.yaml');
       const content = await fs.readFile(metaPath, 'utf-8');
-      expect(content).toContain('schema: spec-driven');
+      expect(content).toContain('schema: semantic-model');
     });
   });
 
@@ -163,7 +163,7 @@ describe('createChange', () => {
       );
 
       await expect(createChange(testDir, 'add-auth')).resolves.toEqual({
-        schema: 'spec-driven',
+        schema: 'semantic-model',
       });
       await expect(
         fs.stat(path.join(testDir, '.xirang', 'changes', 'add-auth'))

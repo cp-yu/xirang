@@ -15,7 +15,7 @@ describe('complete target delta Specs', () => {
   });
 
   it('accepts canonical unlabeled Scenarios as the complete MODIFIED target set', async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-delta-validation-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-delta-validation-'));
     const changeDir = await writeChangeDelta(tempDir, 'change', {
       'elements/auth.id.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: auth.id\nkind: capability\nparent: root\ntitle: Auth\ndefinition: Auth\n---\n\n'
         + '## MODIFIED Requirements\n\n### Requirement: Login\nThe system SHALL support login.\n\n'
@@ -29,7 +29,7 @@ describe('complete target delta Specs', () => {
   });
 
   it('reports notation issues at the Element delta unit path', async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-delta-validation-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-delta-validation-'));
     const changeDir = await writeChangeDelta(tempDir, 'change', {
       'elements/auth.id.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: auth.id\nkind: capability\nparent: root\ntitle: Auth\ndefinition: Auth\n---\n\n'
         + '## ADDED Requirements\n\n### Requirement: Login\nThis text has no normative keyword.\n\n'

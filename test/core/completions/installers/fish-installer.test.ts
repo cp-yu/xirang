@@ -10,7 +10,7 @@ describe('FishInstaller', () => {
   let installer: FishInstaller;
 
   beforeEach(async () => {
-    testHomeDir = path.join(os.tmpdir(), `opsx-fish-test-${randomUUID()}`);
+    testHomeDir = path.join(os.tmpdir(), `xirang-fish-test-${randomUUID()}`);
     await fs.mkdir(testHomeDir, { recursive: true });
     installer = new FishInstaller(testHomeDir);
   });
@@ -76,7 +76,7 @@ describe('FishInstaller', () => {
 
   describe('install', () => {
     const mockCompletionScript = `# Fish completion script for Xirang CLI
-function __fish_opsx
+function __fish_xirang
     echo "test"
 end
 
@@ -131,7 +131,7 @@ complete -c xirang -a 'init' -d 'Initialize Xirang'
 
       // Update with different content
       const updatedScript = `# Fish completion script for Xirang CLI
-function __fish_opsx_new
+function __fish_xirang_new
     echo "updated"
 end
 
@@ -230,7 +230,7 @@ complete -c xirang -a 'validate' -d 'Validate specs'
 
     it('should handle completion script with special characters', async () => {
       const specialScript = `# Fish completion script with special chars: ' " \` $ \\
-function __fish_opsx
+function __fish_xirang
     echo "test's \\"quoted\\" text"
 end
 `;

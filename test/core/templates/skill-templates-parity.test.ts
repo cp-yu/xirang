@@ -9,7 +9,7 @@ import {
   getArchiveChangeSkillTemplate,
   getExploreSkillTemplate,
   getFeedbackSkillTemplate,
-  getOpsxProposeSkillTemplate,
+  getXirangProposeSkillTemplate,
   getBuildSkillTemplate,
   getSnackSkillTemplate,
 } from '../../../src/core/templates/skill-templates.js';
@@ -20,7 +20,7 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
   getExploreSkillTemplate: 'b831a97c2a09efa81694c61dd79515b70ec3b1a3b9bea45c49acbad2b43ddcd3',
   getApplyChangeSkillTemplate: '8d2f33c4e421c269b3487077d948362eafe45a0bcad002fa3742776ba43d78f2',
   getArchiveChangeSkillTemplate: '0bf75c0d29d9dc74b98d2ce524351cf73e45836b17fe42d17e07e853c1495101',
-  getOpsxProposeSkillTemplate: '1919d1ea8bde91a99c4a45659f6c40e2fc74feda0f1f6c178ac1e397604f40c0',
+  getXirangProposeSkillTemplate: '1919d1ea8bde91a99c4a45659f6c40e2fc74feda0f1f6c178ac1e397604f40c0',
   getFeedbackSkillTemplate: 'b59e4e8f30b3671f5346445a7fbe9043cd559233c86fc78d086bbe94e084590b',
   getBuildSkillTemplate: '4ab4181a14e45909a6000556ffee70858b1ea172b9287bf5d307933f10284fa7',
   getSnackSkillTemplate: '150f578efaed5521df58e0df1d71cb48f782291850b413459535ac29ee31c059',
@@ -59,7 +59,7 @@ describe('skill templates split parity', () => {
       getExploreSkillTemplate,
       getApplyChangeSkillTemplate,
       getArchiveChangeSkillTemplate,
-      getOpsxProposeSkillTemplate,
+      getXirangProposeSkillTemplate,
       getFeedbackSkillTemplate,
       getBuildSkillTemplate,
       getSnackSkillTemplate,
@@ -79,7 +79,7 @@ describe('skill templates split parity', () => {
       ['xirang-explore', getExploreSkillTemplate],
       ['xirang-apply-change', getApplyChangeSkillTemplate],
       ['xirang-archive-change', getArchiveChangeSkillTemplate],
-      ['xirang-propose', getOpsxProposeSkillTemplate],
+      ['xirang-propose', getXirangProposeSkillTemplate],
     ];
 
     const actualHashes = Object.fromEntries(
@@ -95,7 +95,7 @@ describe('skill templates split parity', () => {
   it('renders every tracked workflow surface with canonical Semantic Model guidance', () => {
     const version = JSON.parse(readFileSync(path.resolve('package.json'), 'utf-8')).version as string;
     const skillFactories: Array<[string, () => SkillTemplate]> = [
-      ['propose', getOpsxProposeSkillTemplate],
+      ['propose', getXirangProposeSkillTemplate],
       ['explore', getExploreSkillTemplate],
       ['apply', getApplyChangeSkillTemplate],
       ['archive', getArchiveChangeSkillTemplate],

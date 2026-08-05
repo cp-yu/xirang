@@ -7,7 +7,7 @@ Configure Xirang to generate artifacts in languages other than English.
 Set `docLanguage` in your `.xirang/config.yaml`:
 
 ```yaml
-schema: spec-driven
+schema: semantic-model
 docLanguage: pt-BR
 
 context: |
@@ -72,7 +72,7 @@ context: |
 Language settings work alongside your other project context:
 
 ```yaml
-schema: spec-driven
+schema: semantic-model
 docLanguage: pt-BR
 
 context: |

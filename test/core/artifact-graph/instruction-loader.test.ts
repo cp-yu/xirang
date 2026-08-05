@@ -17,7 +17,7 @@ function canonicalPath(filePath: string): string {
 describe('instruction-loader', () => {
   describe('loadTemplate', () => {
     it('loads the proposal source-impact template', () => {
-      const template = loadTemplate('spec-driven', 'proposal.md');
+      const template = loadTemplate('semantic-model', 'proposal.md');
 
       for (const heading of [
         '## Why',
@@ -49,7 +49,7 @@ describe('instruction-loader', () => {
     });
 
     it('should throw TemplateLoadError for non-existent template', () => {
-      expect(() => loadTemplate('spec-driven', 'nonexistent.md')).toThrow(
+      expect(() => loadTemplate('semantic-model', 'nonexistent.md')).toThrow(
         TemplateLoadError
       );
     });
@@ -62,7 +62,7 @@ describe('instruction-loader', () => {
 
     it('should include template path in error', () => {
       try {
-        loadTemplate('spec-driven', 'nonexistent.md');
+        loadTemplate('semantic-model', 'nonexistent.md');
         expect.fail('Should have thrown');
       } catch (err) {
         expect(err).toBeInstanceOf(TemplateLoadError);
@@ -75,7 +75,7 @@ describe('instruction-loader', () => {
     let tempDir: string;
 
     beforeEach(() => {
-      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-test-'));
+      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'xirang-test-'));
     });
 
     afterEach(() => {
@@ -85,17 +85,17 @@ describe('instruction-loader', () => {
     it('should load context with default schema', () => {
       const context = loadChangeContext(tempDir, 'my-change');
 
-      expect(context.schemaName).toBe('spec-driven');
+      expect(context.schemaName).toBe('semantic-model');
       expect(context.changeName).toBe('my-change');
-      expect(context.graph.getName()).toBe('spec-driven');
+      expect(context.graph.getName()).toBe('semantic-model');
       expect(context.completed.size).toBe(0);
     });
 
     it('should load context with explicit schema', () => {
-      const context = loadChangeContext(tempDir, 'my-change', 'spec-driven');
+      const context = loadChangeContext(tempDir, 'my-change', 'semantic-model');
 
-      expect(context.schemaName).toBe('spec-driven');
-      expect(context.graph.getName()).toBe('spec-driven');
+      expect(context.schemaName).toBe('semantic-model');
+      expect(context.graph.getName()).toBe('semantic-model');
     });
 
     it('should detect completed artifacts', () => {
@@ -119,26 +119,26 @@ describe('instruction-loader', () => {
       // Create change directory with metadata file
       const changeDir = path.join(tempDir, '.xirang', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
-      fs.writeFileSync(path.join(changeDir, '.xirang.yaml'), 'schema: spec-driven\ncreated: "2025-01-05"\n');
+      fs.writeFileSync(path.join(changeDir, '.xirang.yaml'), 'schema: semantic-model\ncreated: "2025-01-05"\n');
 
       // Load without explicit schema - should detect from metadata
       const context = loadChangeContext(tempDir, 'my-change');
 
-      expect(context.schemaName).toBe('spec-driven');
-      expect(context.graph.getName()).toBe('spec-driven');
+      expect(context.schemaName).toBe('semantic-model');
+      expect(context.graph.getName()).toBe('semantic-model');
     });
 
     it('should use explicit schema over metadata schema', () => {
-      // Create change directory with metadata file using spec-driven
+      // Create change directory with metadata file using semantic-model
       const changeDir = path.join(tempDir, '.xirang', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
-      fs.writeFileSync(path.join(changeDir, '.xirang.yaml'), 'schema: spec-driven\n');
+      fs.writeFileSync(path.join(changeDir, '.xirang.yaml'), 'schema: semantic-model\n');
 
       // Load with explicit schema - should override metadata
-      const context = loadChangeContext(tempDir, 'my-change', 'spec-driven');
+      const context = loadChangeContext(tempDir, 'my-change', 'semantic-model');
 
-      expect(context.schemaName).toBe('spec-driven');
-      expect(context.graph.getName()).toBe('spec-driven');
+      expect(context.schemaName).toBe('semantic-model');
+      expect(context.graph.getName()).toBe('semantic-model');
     });
 
     it('should fall back to default when no metadata and no explicit schema', () => {
@@ -148,7 +148,7 @@ describe('instruction-loader', () => {
 
       const context = loadChangeContext(tempDir, 'my-change');
 
-      expect(context.schemaName).toBe('spec-driven');
+      expect(context.schemaName).toBe('semantic-model');
     });
   });
 
@@ -156,7 +156,7 @@ describe('instruction-loader', () => {
     let tempDir: string;
 
     beforeEach(() => {
-      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-test-'));
+      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'xirang-test-'));
     });
 
     afterEach(() => {
@@ -169,7 +169,7 @@ describe('instruction-loader', () => {
 
       expect(instructions.changeName).toBe('my-change');
       expect(instructions.artifactId).toBe('proposal');
-      expect(instructions.schemaName).toBe('spec-driven');
+      expect(instructions.schemaName).toBe('semantic-model');
       expect(instructions.outputPath).toBe('proposal.md');
       expect(instructions.currentState).toEqual({ completed: false, outputs: [] });
       expect(instructions.definition).toEqual(expect.objectContaining({
@@ -232,7 +232,7 @@ describe('instruction-loader', () => {
       });
     });
 
-    it('projects precise semantic boundaries for spec-driven artifacts', () => {
+    it('projects precise semantic boundaries for semantic-model artifacts', () => {
       const context = loadChangeContext(tempDir, 'my-change');
       const proposal = generateInstructions(context, 'proposal').definition;
       const specs = generateInstructions(context, 'specs').definition;
@@ -348,7 +348,7 @@ describe('instruction-loader', () => {
       expect(projected.currentState.completionMarker?.path).toBe(path.join(context.changeDir, '.delta-noop'));
     });
 
-    it('projects one definition-first authoring order for every spec-driven artifact', () => {
+    it('projects one definition-first authoring order for every semantic-model artifact', () => {
       const context = loadChangeContext(tempDir, 'my-change');
 
       for (const artifactId of ['proposal', 'specs', 'design', 'tasks']) {
@@ -369,7 +369,7 @@ describe('instruction-loader', () => {
     it('falls back to change metadata when project schema is unsupported', () => {
       const changeDir = path.join(tempDir, '.xirang', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
-      fs.writeFileSync(path.join(changeDir, '.xirang.yaml'), 'schema: spec-driven\n');
+      fs.writeFileSync(path.join(changeDir, '.xirang.yaml'), 'schema: semantic-model\n');
       fs.writeFileSync(
         path.join(tempDir, '.xirang', 'config.yaml'),
         'schema: custom-schema\n'
@@ -378,7 +378,7 @@ describe('instruction-loader', () => {
       const context = loadChangeContext(tempDir, 'my-change');
 
       const instructions = generateInstructions(context, 'proposal');
-      expect(instructions.schemaName).toBe('spec-driven');
+      expect(instructions.schemaName).toBe('semantic-model');
       expect(instructions.outputPath).toBe('proposal.md');
     });
 
@@ -496,7 +496,7 @@ describe('instruction-loader', () => {
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 context: |
   Tech stack: TypeScript, React
   API style: RESTful
@@ -528,7 +528,7 @@ context: |
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 context: |
   Line 1
   Line 2
@@ -548,7 +548,7 @@ context: |
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 context: |
   Special: < > & " ' @ # $ % [ ] { }
 `
@@ -566,7 +566,7 @@ context: |
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 rules:
   proposal:
     - Include rollback plan
@@ -595,7 +595,7 @@ rules:
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 rules:
   proposal:
     - Include rollback plan
@@ -615,7 +615,7 @@ rules:
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 context: Some context
 rules:
   proposal: []
@@ -635,7 +635,7 @@ rules:
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 context: Project context here
 rules:
   proposal:
@@ -665,7 +665,7 @@ rules:
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 context: Project context only
 `
         );
@@ -684,7 +684,7 @@ context: Project context only
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 rules:
   proposal:
     - Rule only
@@ -714,7 +714,7 @@ rules:
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 proseLanguage: 中文
 rules:
   proposal:
@@ -757,7 +757,7 @@ rules:
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 rules:
   proposal:
     - Valid rule
@@ -776,7 +776,7 @@ rules:
 
       it('should deduplicate validation warnings within session', () => {
         // Create a fresh temp directory to avoid cache pollution
-        const freshTempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-test-'));
+        const freshTempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'xirang-test-'));
 
         try {
           // Create project config with a uniquely named invalid artifact ID
@@ -784,7 +784,7 @@ rules:
           fs.mkdirSync(configDir, { recursive: true });
           fs.writeFileSync(
             path.join(configDir, 'config.yaml'),
-            `schema: spec-driven
+            `schema: semantic-model
 rules:
   unique-invalid-artifact-${Date.now()}:
     - Invalid rule
@@ -817,7 +817,7 @@ rules:
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 rules:
   proposal:
     - Rule 1
@@ -838,7 +838,7 @@ rules:
     let tempDir: string;
 
     beforeEach(() => {
-      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-test-'));
+      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'xirang-test-'));
     });
 
     afterEach(() => {
@@ -850,7 +850,7 @@ rules:
       const status = formatChangeStatus(context);
 
       expect(status.changeName).toBe('my-change');
-      expect(status.schemaName).toBe('spec-driven');
+      expect(status.schemaName).toBe('semantic-model');
       expect(status.isComplete).toBe(false);
 
       // proposal has no deps, should be ready
@@ -898,7 +898,7 @@ rules:
       fs.mkdirSync(changeDir, { recursive: true });
       fs.mkdirSync(path.join(changeDir, 'elements'), { recursive: true });
 
-      // Create all required files for spec-driven schema
+      // Create all required files for semantic-model schema
       fs.writeFileSync(path.join(changeDir, 'proposal.md'), '# Proposal');
       fs.writeFileSync(path.join(changeDir, 'elements', 'test.md'), '# Delta');
       fs.writeFileSync(path.join(changeDir, 'design.md'), '# Design');

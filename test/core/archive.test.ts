@@ -36,9 +36,9 @@ describe('ArchiveCommand', () => {
     process.chdir(tempDir);
     
     // Create Xirang structure
-    const opsxDir = path.join(tempDir, '.xirang');
-    await fs.mkdir(path.join(opsxDir, 'changes'), { recursive: true });
-    await fs.mkdir(path.join(opsxDir, 'changes', 'archive'), { recursive: true });
+    const xirangDir = path.join(tempDir, '.xirang');
+    await fs.mkdir(path.join(xirangDir, 'changes'), { recursive: true });
+    await fs.mkdir(path.join(xirangDir, 'changes', 'archive'), { recursive: true });
     await writeModelFixture();
     
     // Suppress console.log during tests
@@ -154,7 +154,7 @@ describe('ArchiveCommand', () => {
       const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n', 'utf-8');
-      await fs.writeFile(path.join(tempDir, '.xirang', 'config.yaml'), `schema: spec-driven
+      await fs.writeFile(path.join(tempDir, '.xirang', 'config.yaml'), `schema: semantic-model
 git:
   autoCommit: auto
 `, 'utf-8');
@@ -177,7 +177,7 @@ git:
       const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n', 'utf-8');
-      await fs.writeFile(path.join(tempDir, '.xirang', 'config.yaml'), `schema: spec-driven
+      await fs.writeFile(path.join(tempDir, '.xirang', 'config.yaml'), `schema: semantic-model
 git:
   autoCommit: manual
 `, 'utf-8');

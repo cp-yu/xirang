@@ -45,7 +45,7 @@ describe('project-config', () => {
   let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-test-config-'));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'xirang-test-config-'));
     consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
@@ -56,10 +56,10 @@ describe('project-config', () => {
 
   describe('materializeProjectConfigDefaults', () => {
     it('should include only functional disk defaults', () => {
-      const defaults = materializeProjectConfigDefaults({ schema: 'spec-driven' });
+      const defaults = materializeProjectConfigDefaults({ schema: 'semantic-model' });
 
       expect(defaults).toEqual({
-        schema: 'spec-driven',
+        schema: 'semantic-model',
         optimization: {
           enabled: true,
           optRetries: 2,
@@ -77,7 +77,7 @@ describe('project-config', () => {
 
     it('should preserve explicit proseLanguage without adding other optional fields', () => {
       const defaults = materializeProjectConfigDefaults({
-        schema: 'spec-driven',
+        schema: 'semantic-model',
         proseLanguage: 'zh-CN',
       });
 
@@ -105,7 +105,7 @@ describe('project-config', () => {
         path: configPath,
       });
       expect(parsed).toEqual({
-        schema: 'spec-driven',
+        schema: 'semantic-model',
         optimization: {
           enabled: true,
           optRetries: 2,
@@ -159,7 +159,7 @@ context: keep me
       const configPath = path.join(configDir, 'config.yaml');
       fs.writeFileSync(
         configPath,
-        `schema: spec-driven
+        `schema: semantic-model
 git:
   merge:
     strategy: ff-only
@@ -189,7 +189,7 @@ git:
       const configPath = path.join(configDir, 'config.yaml');
       fs.writeFileSync(
         configPath,
-        `schema: spec-driven
+        `schema: semantic-model
 optimization:
 git: disabled
 `
@@ -213,7 +213,7 @@ git: disabled
       const configDir = path.join(tempDir, '.xirang');
       fs.mkdirSync(configDir, { recursive: true });
       const ymlPath = path.join(configDir, 'config.yml');
-      fs.writeFileSync(ymlPath, 'schema: spec-driven\n');
+      fs.writeFileSync(ymlPath, 'schema: semantic-model\n');
 
       const result = migrateProjectConfigDefaults(tempDir);
 
@@ -285,7 +285,7 @@ git: disabled
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 proseLanguage: zh-CN
 context: |
   Tech stack: TypeScript, React
@@ -302,7 +302,7 @@ rules:
         const config = readProjectConfig(tempDir);
 
         expect(config).toEqual({
-          schema: 'spec-driven',
+          schema: 'semantic-model',
           proseLanguage: 'zh-CN',
           context: 'Tech stack: TypeScript, React\nAPI style: RESTful\n',
           git: gitConfig(),
@@ -319,7 +319,7 @@ rules:
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 docLanguage: zh-CN
 `
         );
@@ -336,7 +336,7 @@ docLanguage: zh-CN
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 proseLanguage: 中文
 docLanguage: zh-CN
 `
@@ -352,12 +352,12 @@ docLanguage: zh-CN
       it('should parse minimal config with schema only', () => {
         const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
-        fs.writeFileSync(path.join(configDir, 'config.yaml'), 'schema: spec-driven\n');
+        fs.writeFileSync(path.join(configDir, 'config.yaml'), 'schema: semantic-model\n');
 
         const config = readProjectConfig(tempDir);
 
         expect(config).toEqual({
-          schema: 'spec-driven',
+          schema: 'semantic-model',
           git: gitConfig(),
         });
         expect(consoleWarnSpy).not.toHaveBeenCalled();
@@ -368,7 +368,7 @@ docLanguage: zh-CN
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 optimization:
   enabled: false
 `
@@ -377,7 +377,7 @@ optimization:
         const config = readProjectConfig(tempDir);
 
         expect(config).toEqual({
-          schema: 'spec-driven',
+          schema: 'semantic-model',
           optimization: {
             enabled: false,
             optRetries: 2,
@@ -390,7 +390,7 @@ optimization:
         const configDir = path.join(tempDir, '.xirang');
         const configPath = path.join(configDir, 'config.yaml');
         fs.mkdirSync(configDir, { recursive: true });
-        const source = `schema: spec-driven
+        const source = `schema: semantic-model
 propose:
   smartRouting: false
   requireExplore: false
@@ -402,7 +402,7 @@ apply:
         const config = readProjectConfig(tempDir);
 
         expect(config).toEqual({
-          schema: 'spec-driven',
+          schema: 'semantic-model',
           apply: {
             defaultIsolation: 'worktree',
           },
@@ -417,7 +417,7 @@ apply:
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 git:
   commitMessage:
     boundary: docs/boundary.md
@@ -433,7 +433,7 @@ git:
         const config = readProjectConfig(tempDir);
 
         expect(config).toEqual({
-          schema: 'spec-driven',
+          schema: 'semantic-model',
           git: gitConfig({
             strategy: 'squash',
             deleteAfterArchive: true,
@@ -450,12 +450,12 @@ git:
       it('should fill default git archive policy when git node is missing', () => {
         const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
-        fs.writeFileSync(path.join(configDir, 'config.yaml'), 'schema: spec-driven\n');
+        fs.writeFileSync(path.join(configDir, 'config.yaml'), 'schema: semantic-model\n');
 
         const config = readProjectConfig(tempDir);
 
         expect(config).toEqual({
-          schema: 'spec-driven',
+          schema: 'semantic-model',
           git: gitConfig(),
         });
         expect(consoleWarnSpy).not.toHaveBeenCalled();
@@ -466,7 +466,7 @@ git:
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 git:
   merge:
     strategy: ff-only
@@ -484,7 +484,7 @@ git:
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 git:
   autoCommit: manual
   commitMessage:
@@ -544,7 +544,7 @@ context: Valid context here
 
         expect(readProjectConfig(tempDir)).toBeNull();
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-          "Unsupported schema 'custom-schema' in .xirang/config.yaml. Available: spec-driven"
+          "Unsupported schema 'custom-schema' in .xirang/config.yaml. Available: semantic-model"
         );
       });
 
@@ -553,7 +553,7 @@ context: Valid context here
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 context: 123
 rules:
   proposal:
@@ -564,7 +564,7 @@ rules:
         const config = readProjectConfig(tempDir);
 
         expect(config).toEqual({
-          schema: 'spec-driven',
+          schema: 'semantic-model',
           git: gitConfig(),
           rules: {
             proposal: ['Valid rule'],
@@ -580,7 +580,7 @@ rules:
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 proseLanguage: 123
 context: Valid context
 `
@@ -589,7 +589,7 @@ context: Valid context
         const config = readProjectConfig(tempDir);
 
         expect(config).toEqual({
-          schema: 'spec-driven',
+          schema: 'semantic-model',
           context: 'Valid context',
           git: gitConfig(),
         });
@@ -603,7 +603,7 @@ context: Valid context
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 context: Valid context
 rules: ["not", "an", "object"]
 `
@@ -612,7 +612,7 @@ rules: ["not", "an", "object"]
         const config = readProjectConfig(tempDir);
 
         expect(config).toEqual({
-          schema: 'spec-driven',
+          schema: 'semantic-model',
           context: 'Valid context',
           git: gitConfig(),
         });
@@ -626,7 +626,7 @@ rules: ["not", "an", "object"]
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 optimization: "bad"
 context: Valid context
 `
@@ -635,7 +635,7 @@ context: Valid context
         const config = readProjectConfig(tempDir);
 
         expect(config).toEqual({
-          schema: 'spec-driven',
+          schema: 'semantic-model',
           context: 'Valid context',
           git: gitConfig(),
         });
@@ -650,7 +650,7 @@ context: Valid context
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 context: Valid context
 rules:
 `
@@ -660,7 +660,7 @@ rules:
 
         // Should still parse schema and context despite null rules
         expect(config).toEqual({
-          schema: 'spec-driven',
+          schema: 'semantic-model',
           context: 'Valid context',
           git: gitConfig(),
         });
@@ -674,7 +674,7 @@ rules:
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 rules:
   proposal:
     - Valid rule
@@ -687,7 +687,7 @@ rules:
         const config = readProjectConfig(tempDir);
 
         expect(config).toEqual({
-          schema: 'spec-driven',
+          schema: 'semantic-model',
           git: gitConfig(),
           rules: {
             proposal: ['Valid rule'],
@@ -704,7 +704,7 @@ rules:
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 rules:
   proposal:
     - Valid rule
@@ -717,7 +717,7 @@ rules:
         const config = readProjectConfig(tempDir);
 
         expect(config).toEqual({
-          schema: 'spec-driven',
+          schema: 'semantic-model',
           git: gitConfig(),
           rules: {
             proposal: ['Valid rule', 'Another valid rule'],
@@ -733,7 +733,7 @@ rules:
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 rules:
   proposal:
     - ""
@@ -746,7 +746,7 @@ rules:
         const config = readProjectConfig(tempDir);
 
         expect(config).toEqual({
-          schema: 'spec-driven',
+          schema: 'semantic-model',
           git: gitConfig(),
           rules: {
             specs: ['Valid rule'],
@@ -799,7 +799,7 @@ rules:
         const smallContext = 'a'.repeat(1000); // 1KB
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven\ncontext: "${smallContext}"\n`
+          `schema: semantic-model\ncontext: "${smallContext}"\n`
         );
 
         const config = readProjectConfig(tempDir);
@@ -816,13 +816,13 @@ rules:
         const largeContext = 'a'.repeat(51 * 1024); // 51KB
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven\ncontext: "${largeContext}"\n`
+          `schema: semantic-model\ncontext: "${largeContext}"\n`
         );
 
         const config = readProjectConfig(tempDir);
 
         expect(config).toEqual({
-          schema: 'spec-driven',
+          schema: 'semantic-model',
           git: gitConfig(),
         });
         expect(config?.context).toBeUndefined();
@@ -840,7 +840,7 @@ rules:
         const exactContext = 'a'.repeat(50 * 1024); // Exactly 50KB
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven\ncontext: "${exactContext}"\n`
+          `schema: semantic-model\ncontext: "${exactContext}"\n`
         );
 
         const config = readProjectConfig(tempDir);
@@ -858,7 +858,7 @@ rules:
         const contextWithUnicode = '☃'.repeat(18000); // ~54KB in UTF-8 (18000 * 3 bytes)
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 context: |
   ${contextWithUnicode}
 `
@@ -879,7 +879,7 @@ context: |
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          'schema: spec-driven\ncontext: from yaml\n'
+          'schema: semantic-model\ncontext: from yaml\n'
         );
         fs.writeFileSync(
           path.join(configDir, 'config.yml'),
@@ -888,7 +888,7 @@ context: |
 
         const config = readProjectConfig(tempDir);
 
-        expect(config?.schema).toBe('spec-driven');
+        expect(config?.schema).toBe('semantic-model');
         expect(config?.context).toBe('from yaml');
       });
 
@@ -902,7 +902,7 @@ context: |
 
         expect(readProjectConfig(tempDir)).toBeNull();
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-          "Unsupported schema 'bootstrap' in .xirang/config.yaml. Available: spec-driven"
+          "Unsupported schema 'bootstrap' in .xirang/config.yaml. Available: semantic-model"
         );
       });
 
@@ -930,7 +930,7 @@ context: |
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 context: |
   Line 1: Tech stack
   Line 2: API conventions
@@ -950,7 +950,7 @@ context: |
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 context: |
   Special chars: : @ # $ % & * [ ] { }
   Quotes: "double" 'single'
@@ -971,7 +971,7 @@ context: |
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 rules:
   proposal:
     - "Use <template> tags in docs"
@@ -1000,7 +1000,7 @@ rules:
       };
       const validIds = new Set(['proposal', 'specs', 'design', 'tasks']);
 
-      const warnings = validateConfigRules(rules, validIds, 'spec-driven');
+      const warnings = validateConfigRules(rules, validIds, 'semantic-model');
 
       expect(warnings).toEqual([]);
     });
@@ -1013,11 +1013,11 @@ rules:
       };
       const validIds = new Set(['proposal', 'specs', 'design', 'tasks']);
 
-      const warnings = validateConfigRules(rules, validIds, 'spec-driven');
+      const warnings = validateConfigRules(rules, validIds, 'semantic-model');
 
       expect(warnings).toHaveLength(2);
       expect(warnings[0]).toContain('Unknown artifact ID in rules: "testplan"');
-      expect(warnings[0]).toContain('Valid IDs for schema "spec-driven": design, proposal, specs, tasks');
+      expect(warnings[0]).toContain('Valid IDs for schema "semantic-model": design, proposal, specs, tasks');
       expect(warnings[1]).toContain('Unknown artifact ID in rules: "documentation"');
     });
 
@@ -1029,7 +1029,7 @@ rules:
       };
       const validIds = new Set(['proposal', 'specs']);
 
-      const warnings = validateConfigRules(rules, validIds, 'spec-driven');
+      const warnings = validateConfigRules(rules, validIds, 'semantic-model');
 
       expect(warnings).toHaveLength(3);
     });
@@ -1038,7 +1038,7 @@ rules:
       const rules = {};
       const validIds = new Set(['proposal', 'specs']);
 
-      const warnings = validateConfigRules(rules, validIds, 'spec-driven');
+      const warnings = validateConfigRules(rules, validIds, 'semantic-model');
 
       expect(warnings).toEqual([]);
     });
@@ -1047,7 +1047,7 @@ rules:
   describe('config projection', () => {
     it('normalizes whitespace while preserving whitelist fields', () => {
       const normalized = normalizeProjectConfig({
-        schema: ' spec-driven ',
+        schema: ' semantic-model ',
         proseLanguage: ' 中文 ',
         context: '  Team context  ',
         optimization: {
@@ -1078,7 +1078,7 @@ rules:
       } as any);
 
       expect(normalized).toEqual({
-        schema: 'spec-driven',
+        schema: 'semantic-model',
         proseLanguage: '中文',
         context: 'Team context',
         optimization: {
@@ -1107,7 +1107,7 @@ rules:
     it('builds a prompt projection bundle without leaking raw config structure', () => {
       const bundle = buildConfigProjectionBundle(
         {
-          schema: 'spec-driven',
+          schema: 'semantic-model',
           proseLanguage: '中文',
           context: 'Tech stack: TypeScript',
           rules: {
@@ -1141,7 +1141,7 @@ rules:
     it('projects git settings for archive prompt consumers', () => {
       const bundle = buildConfigProjectionBundle(
         {
-          schema: 'spec-driven',
+          schema: 'semantic-model',
         git: {
           ...gitConfig(),
         },
@@ -1168,7 +1168,7 @@ rules:
     it('keeps archive git projection lines available to archive skill prompts', () => {
       const projection = projectConfigForPrompt(
         {
-          schema: 'spec-driven',
+          schema: 'semantic-model',
         git: {
           ...gitConfig({
             strategy: 'squash',
@@ -1201,7 +1201,7 @@ rules:
     it('exposes archive git settings through runtime projection', () => {
       const projection = projectConfigForRuntime(
         {
-          schema: 'spec-driven',
+          schema: 'semantic-model',
         git: {
           ...gitConfig({
             strategy: 'squash',
@@ -1247,7 +1247,7 @@ rules:
     it('omits invalid or missing fields from runtime projection and marks proseLanguage as fingerprint-affecting', () => {
       const runtimeProjection = projectConfigForRuntime(
         {
-          schema: 'spec-driven',
+          schema: 'semantic-model',
           proseLanguage: '中文',
           rules: {},
         },

@@ -49,11 +49,11 @@ describe('SetupCommand', () => {
   let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `opsx-setup-test-${Date.now()}`);
+    testDir = path.join(os.tmpdir(), `xirang-setup-test-${Date.now()}`);
     await fs.mkdir(testDir, { recursive: true });
     originalEnv = { ...process.env };
     // Use a temp dir for global config to avoid reading real config
-    configTempDir = path.join(os.tmpdir(), `opsx-config-setup-${Date.now()}`);
+    configTempDir = path.join(os.tmpdir(), `xirang-config-setup-${Date.now()}`);
     await fs.mkdir(configTempDir, { recursive: true });
     process.env.XDG_CONFIG_HOME = configTempDir;
 
@@ -89,14 +89,14 @@ describe('SetupCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const opsxPath = path.join(testDir, '.xirang');
-      expect(await directoryExists(opsxPath)).toBe(true);
+      const xirangPath = path.join(testDir, '.xirang');
+      expect(await directoryExists(xirangPath)).toBe(true);
       for (const partition of PARTITIONS) {
-        expect(await directoryExists(path.join(opsxPath, 'model', partition))).toBe(true);
+        expect(await directoryExists(path.join(xirangPath, 'model', partition))).toBe(true);
       }
-      expect(await directoryExists(path.join(opsxPath, 'specs'))).toBe(false);
-      expect(await directoryExists(path.join(opsxPath, 'changes'))).toBe(true);
-      expect(await directoryExists(path.join(opsxPath, 'changes', 'archive'))).toBe(true);
+      expect(await directoryExists(path.join(xirangPath, 'specs'))).toBe(false);
+      expect(await directoryExists(path.join(xirangPath, 'changes'))).toBe(true);
+      expect(await directoryExists(path.join(xirangPath, 'changes', 'archive'))).toBe(true);
     });
 
     it('should create config.yaml in non-interactive mode without --force', async () => {
@@ -118,7 +118,7 @@ describe('SetupCommand', () => {
 
       const content = await fs.readFile(configPath, 'utf-8');
       const parsed = parseYaml(content);
-      expect(content).toContain('schema: spec-driven');
+      expect(content).toContain('schema: semantic-model');
       expect(content).toContain('optimization:');
       expect(content).toContain('  enabled: true');
       expect(content).toContain('  optRetries: 2');
@@ -157,7 +157,7 @@ describe('SetupCommand', () => {
 
       const configPath = path.join(testDir, '.xirang', 'config.yaml');
       const content = await fs.readFile(configPath, 'utf-8');
-      expect(content).toContain('schema: spec-driven');
+      expect(content).toContain('schema: semantic-model');
       expect(content).toContain('proseLanguage: zh-CN');
     });
 
@@ -193,7 +193,7 @@ describe('SetupCommand', () => {
         'opsx-ff-change',
         'opsx-sync-specs',
         'opsx-bulk-archive-change',
-        'opsx-verify-change',
+        'xirang-verify-change',
       ];
 
       for (const skillName of removedSkillNames) {
@@ -327,11 +327,11 @@ describe('SetupCommand', () => {
       await initCommand.execute(testDir);
 
       // Should create the durable core but no skills.
-      const opsxPath = path.join(testDir, '.xirang');
-      expect(await directoryExists(path.join(opsxPath, 'model', 'elements'))).toBe(true);
-      expect(await directoryExists(path.join(opsxPath, 'changes'))).toBe(true);
-      expect(await directoryExists(path.join(opsxPath, 'references'))).toBe(true);
-      expect(await fileExists(path.join(opsxPath, 'config.yaml'))).toBe(true);
+      const xirangPath = path.join(testDir, '.xirang');
+      expect(await directoryExists(path.join(xirangPath, 'model', 'elements'))).toBe(true);
+      expect(await directoryExists(path.join(xirangPath, 'changes'))).toBe(true);
+      expect(await directoryExists(path.join(xirangPath, 'references'))).toBe(true);
+      expect(await fileExists(path.join(xirangPath, 'config.yaml'))).toBe(true);
       expect(vi.mocked(console.log).mock.calls.flat().join('\n')).not.toContain('/xirang:');
 
       // No tool-specific directories should be created
@@ -367,9 +367,9 @@ describe('SetupCommand', () => {
 
     it('should not create config.yaml if it already exists', async () => {
       // Pre-create config.yaml
-      const opsxDir = path.join(testDir, '.xirang');
-      await fs.mkdir(opsxDir, { recursive: true });
-      const configPath = path.join(opsxDir, 'config.yaml');
+      const xirangDir = path.join(testDir, '.xirang');
+      await fs.mkdir(xirangDir, { recursive: true });
+      const configPath = path.join(xirangDir, 'config.yaml');
       const existingContent = 'schema: custom-schema\n';
       await fs.writeFile(configPath, existingContent);
 
@@ -386,8 +386,8 @@ describe('SetupCommand', () => {
 
       await initCommand.execute(newDir);
 
-      const opsxPath = path.join(newDir, '.xirang');
-      expect(await directoryExists(opsxPath)).toBe(true);
+      const xirangPath = path.join(newDir, '.xirang');
+      expect(await directoryExists(xirangPath)).toBe(true);
     });
 
     it('should work in extend mode (re-running init)', async () => {
@@ -407,11 +407,11 @@ describe('SetupCommand', () => {
     });
 
     it('should update existing config.yaml with proseLanguage in extend mode', async () => {
-      const opsxDir = path.join(testDir, '.xirang');
-      await fs.mkdir(opsxDir, { recursive: true });
+      const xirangDir = path.join(testDir, '.xirang');
+      await fs.mkdir(xirangDir, { recursive: true });
       await fs.writeFile(
-        path.join(opsxDir, 'config.yaml'),
-        `schema: spec-driven
+        path.join(xirangDir, 'config.yaml'),
+        `schema: semantic-model
 context: |
   Existing project context
 `
@@ -424,7 +424,7 @@ context: |
 
       await initCommand.execute(testDir);
 
-      const content = await fs.readFile(path.join(opsxDir, 'config.yaml'), 'utf-8');
+      const content = await fs.readFile(path.join(xirangDir, 'config.yaml'), 'utf-8');
       expect(content).toContain('proseLanguage: ja');
       expect(content).toContain('Existing project context');
     });
@@ -622,10 +622,10 @@ describe('Xirang skeleton generation', () => {
   let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `opsx-opsx-test-${Date.now()}`);
+    testDir = path.join(os.tmpdir(), `xirang-test-${Date.now()}`);
     await fs.mkdir(testDir, { recursive: true });
     originalEnv = { ...process.env };
-    configTempDir = path.join(os.tmpdir(), `opsx-config-opsx-${Date.now()}`);
+    configTempDir = path.join(os.tmpdir(), `xirang-config-xirang-${Date.now()}`);
     await fs.mkdir(configTempDir, { recursive: true });
     process.env.XDG_CONFIG_HOME = configTempDir;
     vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -770,14 +770,14 @@ describe('Xirang skeleton generation', () => {
     const elements = path.join(xirang, 'model', 'elements');
     await fs.mkdir(elements, { recursive: true });
     await fs.writeFile(path.join(elements, 'custom.md'), 'custom unit\n');
-    await fs.writeFile(path.join(xirang, 'config.yaml'), 'schema: spec-driven\ncontext: keep\n');
+    await fs.writeFile(path.join(xirang, 'config.yaml'), 'schema: semantic-model\ncontext: keep\n');
     await fs.writeFile(path.join(xirang, 'user.txt'), 'keep\n');
 
     const setupCommand = createSetupCommand({ tools: 'none', force: true });
     await setupCommand.execute(testDir);
 
     await expect(fs.readFile(path.join(elements, 'custom.md'), 'utf8')).resolves.toBe('custom unit\n');
-    await expect(fs.readFile(path.join(xirang, 'config.yaml'), 'utf8')).resolves.toBe('schema: spec-driven\ncontext: keep\n');
+    await expect(fs.readFile(path.join(xirang, 'config.yaml'), 'utf8')).resolves.toBe('schema: semantic-model\ncontext: keep\n');
     await expect(fs.readFile(path.join(xirang, 'user.txt'), 'utf8')).resolves.toBe('keep\n');
   });
 
@@ -841,11 +841,11 @@ describe('SetupCommand - profile and detection features', () => {
   let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `opsx-init-profile-test-${Date.now()}`);
+    testDir = path.join(os.tmpdir(), `xirang-init-profile-test-${Date.now()}`);
     await fs.mkdir(testDir, { recursive: true });
     originalEnv = { ...process.env };
     // Use a temp dir for global config to avoid polluting real config
-    configTempDir = path.join(os.tmpdir(), `opsx-config-test-${Date.now()}`);
+    configTempDir = path.join(os.tmpdir(), `xirang-config-test-${Date.now()}`);
     await fs.mkdir(configTempDir, { recursive: true });
     process.env.XDG_CONFIG_HOME = configTempDir;
     vi.spyOn(console, 'log').mockImplementation(() => {});

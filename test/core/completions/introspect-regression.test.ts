@@ -63,7 +63,7 @@ describe('introspect-regression', () => {
 
     // 验证基本结构
     expect(script).toContain('#compdef xirang');
-    expect(script).toContain('_opsx() {');
+    expect(script).toContain('_xirang() {');
 
     // 验证顶层命令
     expect(script).toContain("'setup:Set up Xirang");
@@ -87,8 +87,8 @@ describe('introspect-regression', () => {
     expect(script).toContain('--verbose');
 
     // 验证动态补全函数引用（针对 positionalType）
-    expect(script).toContain('_opsx_complete_changes'); // For change-id
-    expect(script).toContain('_opsx_complete_contracts'); // For contract-id
+    expect(script).toContain('_xirang_complete_changes'); // For change-id
+    expect(script).toContain('_xirang_complete_contracts'); // For contract-id
   });
 
   it('Bash 补全脚本覆盖率：包含所有命令和 flags', async () => {
@@ -99,7 +99,7 @@ describe('introspect-regression', () => {
     const script = generator.generate(commands);
 
     // 验证基本结构
-    expect(script).toContain('_opsx_completion()');
+    expect(script).toContain('_xirang_completion()');
     expect(script).toContain('COMPREPLY=()');
 
     // 验证顶层命令列表
@@ -122,7 +122,7 @@ describe('introspect-regression', () => {
     expect(script).toContain('--verbose');
 
     // 验证补全注册
-    expect(script).toContain('complete -F _opsx_completion xirang');
+    expect(script).toContain('complete -F _xirang_completion xirang');
   });
 
   it('验证 positionalType 合并后动态补全函数引用正确', async () => {
@@ -154,8 +154,8 @@ describe('introspect-regression', () => {
     const zshScript = zshGenerator.generate(commands);
 
     // change-id 和 change-or-contract-id 类型会生成对应的补全函数
-    expect(zshScript).toContain('_opsx_complete_changes');
-    expect(zshScript).toContain('_opsx_complete_contracts');
+    expect(zshScript).toContain('_xirang_complete_changes');
+    expect(zshScript).toContain('_xirang_complete_contracts');
 
     // shell 类型使用固定值补全，不生成动态函数
     expect(zshScript).toContain('zsh');

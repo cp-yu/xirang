@@ -49,7 +49,7 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `opsx-sync-engine-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `xirang-sync-engine-${randomUUID()}`);
     await fs.mkdir(path.join(testDir, '.xirang'), { recursive: true });
   });
 

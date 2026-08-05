@@ -19,7 +19,7 @@ describe('CompletionProvider', () => {
   let provider: CompletionProvider;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `opsx-test-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `xirang-test-${randomUUID()}`);
     await fs.mkdir(testDir, { recursive: true });
     provider = new CompletionProvider(2000, testDir);
   });

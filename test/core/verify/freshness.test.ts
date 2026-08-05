@@ -19,7 +19,7 @@ describe('verify freshness engine', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-verify-freshness-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-verify-freshness-'));
   });
 
   afterEach(async () => {

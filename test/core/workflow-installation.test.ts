@@ -19,7 +19,7 @@ describe('workflow installation planning', () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `opsx-workflow-installation-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `xirang-workflow-installation-${randomUUID()}`);
     await fs.mkdir(path.join(testDir, '.xirang'), { recursive: true });
   });
 

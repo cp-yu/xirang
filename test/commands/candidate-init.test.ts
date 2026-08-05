@@ -14,7 +14,7 @@ describe('Candidate initialization', () => {
   let root: string;
 
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-candidate-init-'));
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-candidate-init-'));
     await fs.mkdir(path.join(root, '.xirang'), { recursive: true });
   });
 

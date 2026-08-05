@@ -33,7 +33,7 @@ describe('ZshGenerator', () => {
 
       expect(script).toContain('#compdef xirang');
       expect(script).toContain('# Zsh completion script for Xirang CLI');
-      expect(script).toContain('_opsx() {');
+      expect(script).toContain('_xirang() {');
     });
 
     it('should include all commands in the command list', () => {
@@ -78,8 +78,8 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('_opsx_init() {');
-      expect(script).toContain('_opsx_validate() {');
+      expect(script).toContain('_xirang_init() {');
+      expect(script).toContain('_xirang_validate() {');
     });
 
     it('should handle commands with flags', () => {
@@ -200,8 +200,8 @@ describe('ZshGenerator', () => {
 
       expect(script).toContain("'show:Show a change'");
       expect(script).toContain("'list:List changes'");
-      expect(script).toContain('_opsx_change_show() {');
-      expect(script).toContain('_opsx_change_list() {');
+      expect(script).toContain('_xirang_change_show() {');
+      expect(script).toContain('_xirang_change_list() {');
     });
 
     it('should handle positional arguments for change-id', () => {
@@ -217,7 +217,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain("'*: :_opsx_complete_changes'");
+      expect(script).toContain("'*: :_xirang_complete_changes'");
     });
 
     it('should handle positional arguments for contract-id', () => {
@@ -233,7 +233,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain("'*: :_opsx_complete_contracts'");
+      expect(script).toContain("'*: :_xirang_complete_contracts'");
     });
 
     it('should handle positional arguments for change-or-contract-id', () => {
@@ -249,7 +249,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain("'*: :_opsx_complete_items'");
+      expect(script).toContain("'*: :_xirang_complete_items'");
     });
 
     it('should handle positional arguments for paths', () => {
@@ -301,7 +301,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('_opsx_my_command() {');
+      expect(script).toContain('_xirang_my_command() {');
     });
 
     it('should handle complex nested subcommands with flags', () => {
@@ -333,11 +333,11 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('_opsx_contract() {');
-      expect(script).toContain('_opsx_contract_validate() {');
+      expect(script).toContain('_xirang_contract() {');
+      expect(script).toContain('_xirang_contract_validate() {');
       expect(script).toContain('--strict');
       expect(script).toContain('--json');
-      expect(script).toContain("'*: :_opsx_complete_contracts'");
+      expect(script).toContain("'*: :_xirang_complete_contracts'");
     });
 
     it('should generate script that ends with compdef registration', () => {
@@ -351,7 +351,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script.trim().endsWith('compdef _opsx xirang')).toBe(true);
+      expect(script.trim().endsWith('compdef _xirang xirang')).toBe(true);
     });
 
     it('should handle empty command list', () => {
@@ -360,7 +360,7 @@ describe('ZshGenerator', () => {
       const script = generator.generate(commands);
 
       expect(script).toContain('#compdef xirang');
-      expect(script).toContain('_opsx() {');
+      expect(script).toContain('_xirang() {');
     });
 
     it('should handle commands with no flags', () => {
@@ -374,7 +374,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('_opsx_view() {');
+      expect(script).toContain('_xirang_view() {');
       expect(script).toContain('_arguments');
     });
   });

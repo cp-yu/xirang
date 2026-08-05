@@ -35,7 +35,7 @@ describe('xirang verify command', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-verify-cli-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-verify-cli-'));
     await fs.mkdir(path.join(tempDir, '.xirang', 'changes', 'c1'), { recursive: true });
     await fs.mkdir(path.join(tempDir, 'src'), { recursive: true });
     await fs.writeFile(path.join(tempDir, '.xirang', 'changes', 'c1', 'tasks.md'), '- [x] task\n', 'utf-8');
@@ -282,7 +282,7 @@ describe('xirang verify command', () => {
   it('reconciles resolved, invalidated, and new findings after a successful wave', async () => {
     await fs.writeFile(
       path.join(tempDir, '.xirang', 'config.yaml'),
-      'schema: spec-driven\noptimization:\n  enabled: true\n  optRetries: 1\n',
+      'schema: semantic-model\noptimization:\n  enabled: true\n  optRetries: 1\n',
       'utf-8'
     );
     await runCLI(['verify', 'phase1', 'c1', '--input', JSON.stringify({
@@ -356,7 +356,7 @@ describe('xirang verify command', () => {
   it('records masterChallenge and rejects one exhausted direction without blocking others', async () => {
     await fs.writeFile(
       path.join(tempDir, '.xirang', 'config.yaml'),
-      'schema: spec-driven\noptimization:\n  enabled: true\n  optRetries: 1\n',
+      'schema: semantic-model\noptimization:\n  enabled: true\n  optRetries: 1\n',
       'utf-8'
     );
     await runCLI(['verify', 'phase1', 'c1', '--input', JSON.stringify({
@@ -541,7 +541,7 @@ describe('xirang verify command', () => {
   });
 
   it('requires reconciliation after an exhausted direction before terminating', async () => {
-    await fs.writeFile(path.join(tempDir, '.xirang', 'config.yaml'), 'schema: spec-driven\noptimization:\n  optRetries: 1\n', 'utf-8');
+    await fs.writeFile(path.join(tempDir, '.xirang', 'config.yaml'), 'schema: semantic-model\noptimization:\n  optRetries: 1\n', 'utf-8');
     await runCLI(['verify', 'phase1', 'c1', '--input', JSON.stringify({
       result: 'PASS', issues: [], evidenceFiles: ['src/a.ts'],
     })], { cwd: tempDir });
@@ -833,7 +833,7 @@ describe('xirang verify command', () => {
   it('allows SKIPPED to close Phase 2 when optimization is disabled', async () => {
     await fs.writeFile(
       path.join(tempDir, '.xirang', 'config.yaml'),
-      'schema: spec-driven\noptimization:\n  enabled: false\n',
+      'schema: semantic-model\noptimization:\n  enabled: false\n',
       'utf-8'
     );
     await runCLI([
@@ -877,7 +877,7 @@ describe('xirang verify command', () => {
   it('uses optRetries per finding direction and preserves failedDirections', async () => {
     await fs.writeFile(
       path.join(tempDir, '.xirang', 'config.yaml'),
-      'schema: spec-driven\noptimization:\n  enabled: true\n  optRetries: 2\n',
+      'schema: semantic-model\noptimization:\n  enabled: true\n  optRetries: 2\n',
       'utf-8'
     );
     await runCLI(['verify', 'phase1', 'c1', '--input', JSON.stringify({
@@ -978,7 +978,7 @@ describe('xirang verify command', () => {
   it('does NOT recalculate evidenceFingerprint on DEGRADED path', async () => {
     await fs.writeFile(
       path.join(tempDir, '.xirang', 'config.yaml'),
-      'schema: spec-driven\noptimization:\n  enabled: true\n  optRetries: 1\n',
+      'schema: semantic-model\noptimization:\n  enabled: true\n  optRetries: 1\n',
       'utf-8'
     );
 

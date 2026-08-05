@@ -6,18 +6,18 @@ import {
   XIRANG_PHILOSOPHY,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import {
-  getOpsxProposeSkillTemplate,
+  getXirangProposeSkillTemplate,
 } from '../../../src/core/templates/workflows/propose.js';
 
 function getProposeBodies(): string[] {
   return [
-    getOpsxProposeSkillTemplate().instructions,
+    getXirangProposeSkillTemplate().instructions,
   ];
 }
 
 describe('propose template post-validation flow', () => {
   it('authors and validates four-partition Semantic Delta units', () => {
-    const instructions = getOpsxProposeSkillTemplate().instructions;
+    const instructions = getXirangProposeSkillTemplate().instructions;
     expect(instructions).toContain('.xirang/changes/<name>/elements/<identity>.md');
     expect(instructions).toContain('relationships/<relationship kind identity>.yaml');
     expect(instructions).toContain('metamodel/<kind identity>.md');
@@ -38,13 +38,13 @@ describe('propose template post-validation flow', () => {
   });
 
   it('includes the Xirang philosophy and shared Contract semantics in the skill surface', () => {
-    const instructions = getOpsxProposeSkillTemplate().instructions;
+    const instructions = getXirangProposeSkillTemplate().instructions;
     expect(instructions).toContain(XIRANG_PHILOSOPHY);
     expect(instructions).toContain(ELEMENT_CONTRACT_SEMANTICS);
   });
 
   it('writes complete target Definitions and stops when their boundaries remain unresolved', () => {
-    const instructions = getOpsxProposeSkillTemplate().instructions;
+    const instructions = getXirangProposeSkillTemplate().instructions;
     expect(instructions).toContain(ELEMENT_DEFINITION_SEMANTICS);
     expect(instructions).toContain('complete target Definition');
     expect(instructions).toContain('not a summary of what changed');
@@ -52,7 +52,7 @@ describe('propose template post-validation flow', () => {
   });
 
   it('resolves new and existing change identity without rename semantics', () => {
-    const instructions = getOpsxProposeSkillTemplate().instructions;
+    const instructions = getXirangProposeSkillTemplate().instructions;
     expect(instructions).toContain('explicitly requests a new change');
     expect(instructions).toContain('ask for a different ID');
     expect(instructions).toContain('explicitly requests an existing change');
@@ -64,7 +64,7 @@ describe('propose template post-validation flow', () => {
   });
 
   it('navigates the formal Semantic Model before authoring', () => {
-    const instructions = getOpsxProposeSkillTemplate().instructions;
+    const instructions = getXirangProposeSkillTemplate().instructions;
     expect(instructions).toContain('.xirang/model/{metamodel,elements,relationships,views}/');
     expect(instructions).toContain('xirang arch search <query> --json');
     expect(instructions).toContain('xirang arch query <identity> --relations --depth 2 --json');
@@ -73,7 +73,7 @@ describe('propose template post-validation flow', () => {
   });
 
   it('defers definition-first ordering to the artifact instruction projection', () => {
-    const instructions = getOpsxProposeSkillTemplate().instructions;
+    const instructions = getXirangProposeSkillTemplate().instructions;
     expect(instructions).toContain('follow the authoring order in the returned `instruction`');
     expect(instructions).toContain('Keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs');
     expect(instructions).not.toContain('Use `content.includes` and `content.excludes` to decide');
@@ -96,7 +96,7 @@ describe('propose template post-validation flow', () => {
   });
 
   it('authors Contract deltas from formal requirement titles without check-delta', () => {
-    const template = getOpsxProposeSkillTemplate();
+    const template = getXirangProposeSkillTemplate();
     expect(template.instructions).toMatch(/read the exact Requirement titles from the formal Element Contract/i);
     expect(template.instructions).toContain('combined change validation');
     expect(template.instructions).not.toContain('xirang check-delta');
@@ -151,7 +151,7 @@ describe('propose template post-validation flow', () => {
   });
 
   it('checks readiness before creating a new change', () => {
-    const body = getOpsxProposeSkillTemplate().instructions;
+    const body = getXirangProposeSkillTemplate().instructions;
     expect(body.indexOf('Assess semantic readiness')).toBeGreaterThanOrEqual(0);
     expect(body.indexOf('xirang new change "<name>"')).toBeGreaterThan(body.indexOf('Assess semantic readiness'));
     expect(body).toContain('do not create a change directory or modify project files');
@@ -159,7 +159,7 @@ describe('propose template post-validation flow', () => {
   });
 
   it('keeps readiness and override state out of artifacts', () => {
-    const body = getOpsxProposeSkillTemplate().instructions;
+    const body = getXirangProposeSkillTemplate().instructions;
     expect(body).toContain('Keep readiness, missing-item, and override state in the conversation only');
     expect(body).not.toContain('proposal HTML comment');
     expect(body).not.toContain('<!--');
@@ -178,7 +178,7 @@ describe('propose template post-validation flow', () => {
   });
 
   it('determines Contract and structural scopes as one Semantic Delta', () => {
-    const body = getOpsxProposeSkillTemplate().instructions;
+    const body = getXirangProposeSkillTemplate().instructions;
     for (const token of [
       'Contract and structural scopes of one Semantic Delta',
       'Behavior Source',
@@ -193,14 +193,14 @@ describe('propose template post-validation flow', () => {
   });
 
   it('uses proposal Behavior Source as the Element Contract delta input', () => {
-    const body = getOpsxProposeSkillTemplate().instructions;
+    const body = getXirangProposeSkillTemplate().instructions;
     expect(body).toContain('for exactly the identities declared under proposal `Behavior Source`');
     expect(body).toMatch(/read the exact Requirement titles from the formal Element Contract/i);
     expect(body).not.toContain('xirang check-delta');
   });
 
   it('reconciles Architecture Source after Specs and Design', () => {
-    const body = getOpsxProposeSkillTemplate().instructions;
+    const body = getXirangProposeSkillTemplate().instructions;
     const designIndex = body.indexOf('After Specs and Design are complete');
     const deltaIndex = body.indexOf('relationships/<relationship kind identity>.yaml', designIndex);
     expect(designIndex).toBeGreaterThanOrEqual(0);
@@ -211,13 +211,13 @@ describe('propose template post-validation flow', () => {
   });
 
   it('does not duplicate the resolved Specs content boundary', () => {
-    const body = getOpsxProposeSkillTemplate().instructions;
+    const body = getXirangProposeSkillTemplate().instructions;
     expect(body).toContain('Follow the returned Specs authoring contract');
     expect(body).not.toContain('route non-behavior content to design/tasks/proposal/opsx-delta');
   });
 
   it('conditionally consumes a confirmed structural definition after all gates pass', () => {
-    const body = getOpsxProposeSkillTemplate().instructions;
+    const body = getXirangProposeSkillTemplate().instructions;
     expect(body).toContain('xirang framing list --json');
     expect(body).toContain('only when a Change Structural Definition exists');
     expect(body).toContain('xirang framing show <explorationId> --json');
@@ -248,7 +248,7 @@ describe('propose template post-validation flow', () => {
   });
 
   it('limits workflow status output to readiness, blockers, and final summary', () => {
-    const body = getOpsxProposeSkillTemplate().instructions;
+    const body = getXirangProposeSkillTemplate().instructions;
     expect(body).toContain('Report status only at readiness, blocker, and final-summary points');
     expect(body).not.toContain('announce each artifact');
   });
@@ -272,7 +272,7 @@ describe('propose template post-validation flow', () => {
   });
 
   it('routes Test Maintenance across design and tasks', () => {
-    const body = getOpsxProposeSkillTemplate().instructions;
+    const body = getXirangProposeSkillTemplate().instructions;
     expect(body).toContain('obsolete-test rationale from **Test Maintenance** to `design.md`');
     expect(body).toContain('concrete test updates/removals to `tasks.md`');
   });

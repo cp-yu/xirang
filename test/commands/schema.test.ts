@@ -8,18 +8,18 @@ describe('schema command', () => {
   let tempDir: string;
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-schema-command-'));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'xirang-schema-command-'));
   });
 
   afterEach(() => fs.rmSync(tempDir, { recursive: true, force: true }));
 
   it('reports a built-in package schema', async () => {
-    const result = await runCLI(['schema', 'which', 'spec-driven', '--json'], { cwd: tempDir });
+    const result = await runCLI(['schema', 'which', 'semantic-model', '--json'], { cwd: tempDir });
     expect(result.exitCode).toBe(0);
     expect(JSON.parse(result.stdout)).toEqual({
-      name: 'spec-driven',
+      name: 'semantic-model',
       source: 'package',
-      path: expect.stringContaining(path.join('schemas', 'spec-driven')),
+      path: expect.stringContaining(path.join('schemas', 'semantic-model')),
     });
   });
 
@@ -27,22 +27,22 @@ describe('schema command', () => {
     const result = await runCLI(['schema', 'which', '--all', '--json'], { cwd: tempDir });
     expect(result.exitCode).toBe(0);
     expect(JSON.parse(result.stdout).map(({ name, source }: { name: string; source: string }) => ({ name, source }))).toEqual([
-      { name: 'spec-driven', source: 'package' },
+      { name: 'semantic-model', source: 'package' },
     ]);
   });
 
   it('rejects unknown schemas with the valid IDs', async () => {
     const result = await runCLI(['schema', 'which', 'custom'], { cwd: tempDir });
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('Available schemas: spec-driven');
+    expect(result.stderr).toContain('Available schemas: semantic-model');
   });
 
   it('validates one built-in schema', async () => {
-    const result = await runCLI(['schema', 'validate', 'spec-driven', '--json'], { cwd: tempDir });
+    const result = await runCLI(['schema', 'validate', 'semantic-model', '--json'], { cwd: tempDir });
     expect(result.exitCode).toBe(0);
     expect(JSON.parse(result.stdout)).toEqual({
-      name: 'spec-driven',
-      path: expect.stringContaining(path.join('schemas', 'spec-driven')),
+      name: 'semantic-model',
+      path: expect.stringContaining(path.join('schemas', 'semantic-model')),
       valid: true,
       issues: [],
     });
@@ -53,7 +53,7 @@ describe('schema command', () => {
     expect(result.exitCode).toBe(0);
     const output = JSON.parse(result.stdout);
     expect(output.valid).toBe(true);
-    expect(output.schemas.map((schema: { name: string }) => schema.name)).toEqual(['spec-driven']);
+    expect(output.schemas.map((schema: { name: string }) => schema.name)).toEqual(['semantic-model']);
   });
 
   it('does not register init or fork', async () => {

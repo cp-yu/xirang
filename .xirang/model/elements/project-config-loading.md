@@ -69,7 +69,7 @@ definition: Project Config Loading 定义 `.xirang/config.yaml` 的发现、解�
 系统 SHALL 逐字段独立解析配置，收集有效字段并对无效字段告警，而不整体拒绝配置。
 
 #### Scenario: Schema field is valid
-- **WHEN** config 包含 `schema: "spec-driven"`
+- **WHEN** config 包含 `schema: "semantic-model"`
 - **THEN** schema field 包含在返回配置中
 
 #### Scenario: Schema field is invalid type

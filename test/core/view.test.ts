@@ -36,7 +36,7 @@ describe('ViewCommand', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-view-test-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-view-test-'));
   });
 
   afterEach(async () => {

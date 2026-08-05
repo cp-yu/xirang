@@ -24,7 +24,7 @@ describe('Semantic Model sync workflow', () => {
   let root: string;
 
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-architecture-sync-'));
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-architecture-sync-'));
     await writeProjectModel(root, minimalModel({
       elements: [{ identity: 'cap.existing', parent: 'root', title: 'Existing', definition: 'Existing summary', requirements: CONTRACT }],
     }));

@@ -37,7 +37,7 @@
    • 无前置工件要求              • 存在 proposal.md            • tasks.md 存在且有 checkbox
                                 • 存在 design.md             • 或存在 FAIL_NEEDS_CORRECTIONS
                                 • 存在 tasks.md              • 用户执行 /xirang:verify
-                                • 存在 specs/ (spec-driven)
+                                • 存在 specs/ (semantic-model)
                                 • 用户执行 /xirang:apply
 
    退出条件:                    退出条件:                     退出条件:
@@ -158,7 +158,7 @@
     ┌──────────────────────────────────────┐
     │  P4-SPECIAL. OPSX_DELTA_GENERATE     │
     │  ─────────────────                   │
-    │  (仅 spec-driven schema,             │
+    │  (仅 semantic-model schema,             │
     │   在 specs 工件完成后)               │
     │                                      │
     │  读取 proposal.md → 提取能力列表     │
@@ -207,7 +207,7 @@
               └────────────────┘
 ```
 
-### PROPOSE 工件创建顺序 (spec-driven schema)
+### PROPOSE 工件创建顺序 (semantic-model schema)
 
 ```
   proposal.md ──▶ design.md ──▶ specs/<cap>/spec.md ──▶ tasks.md
@@ -225,7 +225,7 @@
 | `proposal.md` 存在 | ✅ 是 | 变更的 What + Why |
 | `design.md` 存在 | ✅ 是 | 变更的 How |
 | `tasks.md` 存在且含 checkbox | ✅ 是 | 实现步骤清单 |
-| `specs/` (spec-driven) | ✅ 是 | Delta 规格文件 |
+| `specs/` (semantic-model) | ✅ 是 | Delta 规格文件 |
 | 验证通过 | ❌ 否 | Warning-only, 不阻塞 |
 
 ---

@@ -34,7 +34,7 @@ definition: Verify-aware Instructions 定义 `xirang instructions apply` 集成 
 - **AND** `optimization.status` 为 `PENDING_VERIFICATION`
 - **THEN** `state` SHALL 为 `'needs_seal'`
 
-#### Scenario: 非 spec-driven schema 无 tracksFile
+#### Scenario: 非 semantic-model schema 无 tracksFile
 
 - **WHEN** schema 未配置 `apply.tracks`（`tracksFile` 为 null）
 - **AND** required artifacts 全部存在

@@ -11,7 +11,7 @@ describe('Candidate build history', () => {
   let root: string;
 
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-candidate-history-'));
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-candidate-history-'));
     await new SetupCommand({
       tools: 'none',
       force: true,

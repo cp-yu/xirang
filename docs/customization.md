@@ -5,7 +5,7 @@ Xirang provides project-level configuration and built-in schema inspection:
 | Level | What it does | Best for |
 |-------|--------------|----------|
 | **Project Config** | Set defaults, inject context/rules | Most teams |
-| **Built-in Schemas** | Select and inspect `spec-driven` | All projects |
+| **Built-in Schemas** | Select and inspect `semantic-model` | All projects |
 
 ---
 
@@ -28,7 +28,7 @@ This walks you through creating a config interactively. Or create one manually:
 
 ```yaml
 # .xirang/config.yaml
-schema: spec-driven
+schema: semantic-model
 docLanguage: zh-CN
 
 context: |
@@ -56,7 +56,7 @@ rules:
 
 ```bash
 # Without config
-xirang new change my-feature --schema spec-driven
+xirang new change my-feature --schema semantic-model
 
 # With config - schema is automatic
 xirang new change my-feature
@@ -101,7 +101,7 @@ When Xirang needs a schema, it checks in this order:
 1. CLI flag: `--schema <name>`
 2. Change metadata (`.xirang.yaml` in the change folder)
 3. Project config (`.xirang/config.yaml`)
-4. Default (`spec-driven`)
+4. Default (`semantic-model`)
 
 ---
 
@@ -109,25 +109,25 @@ When Xirang needs a schema, it checks in this order:
 
 Xirang resolves one package-owned schema:
 
-- `spec-driven` for proposal, specs, design, tasks, and apply workflows.
+- `semantic-model` for proposal, specs, design, tasks, and apply workflows.
 
 Project-local `.xirang/schemas/` directories and user schema directories are ignored. `xirang schema init` and `xirang schema fork` are not available.
 
 Validate one or both built-in schemas:
 
 ```bash
-xirang schema validate spec-driven
+xirang schema validate semantic-model
 xirang schema validate
 ```
 
 Inspect their package locations:
 
 ```bash
-xirang schema which spec-driven
+xirang schema which semantic-model
 xirang schema which --all
 ```
 
-Schema binding still follows CLI option → change metadata → project config → `spec-driven`, and no retired schema name is accepted.
+Schema binding still follows CLI option → change metadata → project config → `semantic-model`, and no retired schema name is accepted.
 
 ## See Also
 

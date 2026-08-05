@@ -32,7 +32,7 @@ describe('FishGenerator', () => {
       const script = generator.generate(commands);
 
       expect(script).toContain('# Fish completion script for Xirang CLI');
-      expect(script).toContain('function __fish_opsx');
+      expect(script).toContain('function __fish_xirang');
     });
 
     it('should generate helper functions for Fish', () => {
@@ -46,8 +46,8 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('function __fish_opsx_using_subcommand');
-      expect(script).toContain('function __fish_opsx_no_subcommand');
+      expect(script).toContain('function __fish_xirang_using_subcommand');
+      expect(script).toContain('function __fish_xirang_no_subcommand');
       expect(script).toContain('commandline -opc');
     });
 
@@ -224,7 +224,7 @@ describe('FishGenerator', () => {
       expect(script).toContain("'change'");
       expect(script).toContain("'show'");
       expect(script).toContain("'list'");
-      expect(script).toContain("__fish_opsx_using_subcommand change");
+      expect(script).toContain("__fish_xirang_using_subcommand change");
     });
 
     it('should handle positional arguments for change-id', () => {
@@ -240,7 +240,7 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('__fish_opsx_changes');
+      expect(script).toContain('__fish_xirang_changes');
     });
 
     it('should handle positional arguments for contract-id', () => {
@@ -256,7 +256,7 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('__fish_opsx_contracts');
+      expect(script).toContain('__fish_xirang_contracts');
     });
 
     it('should handle positional arguments for change-or-contract-id', () => {
@@ -272,7 +272,7 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('__fish_opsx_items');
+      expect(script).toContain('__fish_xirang_items');
     });
 
     it('should handle positional arguments for shell with inline values', () => {
@@ -307,7 +307,7 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('function __fish_opsx_changes');
+      expect(script).toContain('function __fish_xirang_changes');
       expect(script).toContain('xirang __complete changes 2>/dev/null');
       expect(script).toContain('while read -l id desc');
       expect(script).toContain('printf');
@@ -326,7 +326,7 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('function __fish_opsx_contracts');
+      expect(script).toContain('function __fish_xirang_contracts');
       expect(script).toContain('xirang __complete contracts 2>/dev/null');
     });
 
@@ -343,9 +343,9 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('function __fish_opsx_items');
-      expect(script).toContain('__fish_opsx_changes');
-      expect(script).toContain('__fish_opsx_contracts');
+      expect(script).toContain('function __fish_xirang_items');
+      expect(script).toContain('__fish_xirang_changes');
+      expect(script).toContain('__fish_xirang_contracts');
     });
 
     it('should escape single quotes in descriptions', () => {
@@ -400,7 +400,7 @@ describe('FishGenerator', () => {
       expect(script).toContain("'validate'");
       expect(script).toContain("-l strict");
       expect(script).toContain("-l json");
-      expect(script).toContain('__fish_opsx_contracts');
+      expect(script).toContain('__fish_xirang_contracts');
     });
 
     it('should handle empty command list', () => {
@@ -409,7 +409,7 @@ describe('FishGenerator', () => {
       const script = generator.generate(commands);
 
       expect(script).toContain('# Fish completion script');
-      expect(script).toContain('function __fish_opsx');
+      expect(script).toContain('function __fish_xirang');
     });
 
     it('should handle commands with no flags', () => {

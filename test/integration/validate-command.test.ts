@@ -15,7 +15,7 @@ describe('Semantic Model validation integration', () => {
   let root: string;
 
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-model-validation-'));
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-model-validation-'));
     await writeProjectModel(root, {
       elementKinds: [
         { identity: 'project', contract: 'required', root: true, children: ['area'] },

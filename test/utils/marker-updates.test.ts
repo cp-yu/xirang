@@ -10,7 +10,7 @@ describe('FileSystemUtils.updateFileWithMarkers', () => {
   const END_MARKER = '<!-- XIRANG:END -->';
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `opsx-marker-test-${Date.now()}`);
+    testDir = path.join(os.tmpdir(), `xirang-marker-test-${Date.now()}`);
     await fs.mkdir(testDir, { recursive: true });
   });
 

@@ -13,7 +13,7 @@ describe('ListCommand', () => {
 
   beforeEach(async () => {
     // Create temp directory
-    tempDir = path.join(os.tmpdir(), `opsx-list-test-${Date.now()}`);
+    tempDir = path.join(os.tmpdir(), `xirang-list-test-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
 
     // Mock console.log to capture output

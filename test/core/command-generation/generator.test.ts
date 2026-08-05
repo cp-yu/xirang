@@ -36,11 +36,11 @@ describe('command-generation/generator', () => {
     });
 
     it('should use command slug for path', () => {
-      const content: CommandContent = { ...sampleContent, id: 'bootstrap-opsx', commandSlug: 'bootstrap' };
+      const content: CommandContent = { ...sampleContent, id: 'bootstrap-xirang', commandSlug: 'bootstrap' };
       const result = generateCommand(content, claudeAdapter);
 
       expect(result.path).toContain('bootstrap.md');
-      expect(result.path).not.toContain('bootstrap-opsx.md');
+      expect(result.path).not.toContain('bootstrap-xirang.md');
     });
 
     it('should work with custom adapter', () => {
