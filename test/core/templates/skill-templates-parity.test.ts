@@ -21,7 +21,7 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
   getApplyChangeSkillTemplate: '8d2f33c4e421c269b3487077d948362eafe45a0bcad002fa3742776ba43d78f2',
   getArchiveChangeSkillTemplate: '0bf75c0d29d9dc74b98d2ce524351cf73e45836b17fe42d17e07e853c1495101',
   getXirangProposeSkillTemplate: '1919d1ea8bde91a99c4a45659f6c40e2fc74feda0f1f6c178ac1e397604f40c0',
-  getFeedbackSkillTemplate: 'b59e4e8f30b3671f5346445a7fbe9043cd559233c86fc78d086bbe94e084590b',
+  getFeedbackSkillTemplate: 'a75ff723b3b24ba2c61aee4243d2db6cfc5ee71e3adc2309ab30e7ce1503fbca',
   getBuildSkillTemplate: '4ab4181a14e45909a6000556ffee70858b1ea172b9287bf5d307933f10284fa7',
   getSnackSkillTemplate: '150f578efaed5521df58e0df1d71cb48f782291850b413459535ac29ee31c059',
 };
