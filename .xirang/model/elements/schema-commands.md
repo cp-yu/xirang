@@ -11,10 +11,10 @@ definition: Schema Commands 定义 `xirang schema which` 与 `xirang schema vali
 
 ### Requirement: Built-in Schema inspection
 
-`xirang schema which [name]` SHALL 报告内置 `spec-driven` schema 的 package location。`--all` SHALL 列出内置 Schema；JSON output SHALL 包含 `name`、`source: package` 与 `path`，MUST NOT 包含 shadowing 信息。
+`xirang schema which [name]` SHALL 报告内置 `semantic-model` schema 的 package location。`--all` SHALL 列出内置 Schema；JSON output SHALL 包含 `name`、`source: package` 与 `path`，MUST NOT 包含 shadowing 信息。
 
 #### Scenario: 查询内置 Schema
-- **WHEN** 用户执行 `xirang schema which spec-driven`
+- **WHEN** 用户执行 `xirang schema which semantic-model`
 - **THEN** 系统 SHALL 显示 package source 与完整 Schema directory path
 
 #### Scenario: 查询未知 Schema
@@ -30,7 +30,7 @@ definition: Schema Commands 定义 `xirang schema which` 与 `xirang schema vali
 `xirang schema validate [name]` SHALL 校验一个或全部内置 Schema 的 YAML、Zod structure、`FileDefinition`、templates、artifact dependency DAG 与 file references。命令 SHALL 保留 JSON 与 verbose output。
 
 #### Scenario: 校验一个内置 Schema
-- **WHEN** 用户执行 `xirang schema validate spec-driven --json`
+- **WHEN** 用户执行 `xirang schema validate semantic-model --json`
 - **THEN** 输出 SHALL 包含 `valid`、`name`、package `path` 与 `issues`
 - **AND** validation SHALL 包含 file definition 与 template existence checks
 

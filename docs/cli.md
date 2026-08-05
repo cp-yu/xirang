@@ -439,7 +439,7 @@ xirang status --change add-dark-mode --json
 
 ```
 Change: add-dark-mode
-Schema: spec-driven
+Schema: semantic-model
 Progress: 2/4 artifacts complete
 
 [x] proposal
@@ -453,7 +453,7 @@ Progress: 2/4 artifacts complete
 ```json
 {
   "changeName": "add-dark-mode",
-  "schemaName": "spec-driven",
+  "schemaName": "semantic-model",
   "isComplete": false,
   "applyRequires": ["tasks"],
   "artifacts": [
@@ -528,7 +528,7 @@ xirang templates [options]
 
 | Option | Description |
 |--------|-------------|
-| `--schema <name>` | Schema to inspect (default: `spec-driven`) |
+| `--schema <name>` | Schema to inspect (default: `semantic-model`) |
 | `--json` | Output as JSON |
 
 **Examples:**
@@ -544,13 +544,13 @@ xirang templates --json
 **Output (text):**
 
 ```
-Schema: spec-driven
+Schema: semantic-model
 
 Templates:
-  proposal  → <package>/schemas/spec-driven/templates/proposal.md
-  specs     → <package>/schemas/spec-driven/templates/spec.md
-  design    → <package>/schemas/spec-driven/templates/design.md
-  tasks     → <package>/schemas/spec-driven/templates/tasks.md
+  proposal  → <package>/schemas/semantic-model/templates/proposal.md
+  specs     → <package>/schemas/semantic-model/templates/spec.md
+  design    → <package>/schemas/semantic-model/templates/design.md
+  tasks     → <package>/schemas/semantic-model/templates/tasks.md
 ```
 
 ---
@@ -580,8 +580,8 @@ xirang schemas
 ```
 Available schemas:
 
-  spec-driven (package)
-    The default spec-driven development workflow
+  semantic-model (package)
+    The default semantic-model development workflow
     Flow: proposal → specs → design → tasks
 
 ```
@@ -590,7 +590,7 @@ Available schemas:
 
 ## Schema Commands
 
-Xirang ships exactly one package-owned schema: `spec-driven`. Project-local and user override schemas are not resolved, and `schema init` and `schema fork` are not available.
+Xirang ships exactly one package-owned schema: `semantic-model`. Project-local and user override schemas are not resolved, and `schema init` and `schema fork` are not available.
 
 ### `xirang schema validate`
 
@@ -617,7 +617,7 @@ xirang schema validate [name] [options]
 
 ```bash
 # Validate a specific built-in schema
-xirang schema validate spec-driven
+xirang schema validate semantic-model
 
 # Validate both built-in schemas
 xirang schema validate
@@ -650,14 +650,14 @@ xirang schema which [name] [options]
 
 ```bash
 # Check where a schema comes from
-xirang schema which spec-driven
+xirang schema which semantic-model
 ```
 
 **Output:**
 
 ```
-spec-driven resolves from: package
-  Source: <package>/schemas/spec-driven
+semantic-model resolves from: package
+  Source: <package>/schemas/semantic-model
 ```
 
 **Resolution:**

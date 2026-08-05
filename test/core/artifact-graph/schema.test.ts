@@ -262,9 +262,9 @@ ${definition.replace(current, replacement)}`;
       }
     });
 
-    it('requires definitions on every spec-driven artifact', () => {
+    it('requires definitions on every semantic-model artifact', () => {
       expect(() => parseSchema(`
-name: spec-driven
+name: semantic-model
 version: 1
 artifacts:
   - id: proposal

@@ -51,14 +51,14 @@ describe('UpdateCommand', () => {
 
   beforeEach(async () => {
     // Create a temporary test directory
-    testDir = path.join(os.tmpdir(), `opsx-test-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `xirang-test-${randomUUID()}`);
     await fs.mkdir(testDir, { recursive: true });
     originalEnv = { ...process.env };
     process.env.CODEX_HOME = path.join(testDir, 'codex-home');
 
     // Create xirang directory
-    const opsxDir = path.join(testDir, '.xirang');
-    await fs.mkdir(opsxDir, { recursive: true });
+    const xirangDir = path.join(testDir, '.xirang');
+    await fs.mkdir(xirangDir, { recursive: true });
 
     updateCommand = new UpdateCommand();
 
@@ -340,7 +340,7 @@ Old instructions content
         'opsx-ff-change',
         'opsx-sync-specs',
         'opsx-bulk-archive-change',
-        'opsx-verify-change',
+        'xirang-verify-change',
       ];
 
       for (const skillName of nonCoreSkillNames) {

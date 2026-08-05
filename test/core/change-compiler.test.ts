@@ -11,7 +11,7 @@ describe('compileChange', () => {
   let root: string;
 
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-change-compiler-'));
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-change-compiler-'));
     await writeProjectModel(root, {
       elementKinds: [
         { identity: 'project', root: true, children: ['capability'] },

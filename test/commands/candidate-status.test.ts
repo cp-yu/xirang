@@ -12,7 +12,7 @@ describe('Candidate status', () => {
   let root: string;
 
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-candidate-status-'));
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-candidate-status-'));
     await fs.mkdir(path.join(root, '.xirang'), { recursive: true });
   });
 

@@ -16,7 +16,7 @@ describe('artifact-graph/state', () => {
   });
 
   beforeEach(() => {
-    tempDir = path.join(os.tmpdir(), `opsx-state-test-${Date.now()}`);
+    tempDir = path.join(os.tmpdir(), `xirang-state-test-${Date.now()}`);
     fs.mkdirSync(tempDir, { recursive: true });
   });
 

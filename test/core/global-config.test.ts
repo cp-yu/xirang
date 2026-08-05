@@ -20,7 +20,7 @@ describe('global-config', () => {
 
   beforeEach(() => {
     // Create temp directory for tests
-    tempDir = path.join(os.tmpdir(), `opsx-global-config-test-${Date.now()}`);
+    tempDir = path.join(os.tmpdir(), `xirang-global-config-test-${Date.now()}`);
     fs.mkdirSync(tempDir, { recursive: true });
 
     // Save original env

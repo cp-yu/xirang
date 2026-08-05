@@ -72,7 +72,7 @@ describe('command-generation/adapters', () => {
       expect(cursorAdapter.toolId).toBe('cursor');
     });
 
-    it('should generate correct file path with opsx- prefix', () => {
+    it('should generate correct file path with xirang- prefix', () => {
       const filePath = cursorAdapter.getFilePath('explore');
       expect(filePath).toBe(path.join('.cursor', 'commands', 'xirang-explore.md'));
     });

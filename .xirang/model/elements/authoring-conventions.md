@@ -218,8 +218,8 @@ The change `elements/` 分区的 delta 单元 SHALL contain:
 - Normalized header matching for requirement identification
 - Complete requirements using the structured format
 - Clear indication of change type for each requirement
-### Requirement: spec-driven instruction 区分结构 token 和填充 prose
-Spec-driven artifact instructions SHALL 明确 parse-sensitive 结构 token 保持 canonical，agent 填充的新写或改写 prose 跟随 `proseLanguage`。
+### Requirement: semantic-model instruction 区分结构 token 和填充 prose
+Semantic-model artifact instructions SHALL 明确 parse-sensitive 结构 token 保持 canonical，agent 填充的新写或改写 prose 跟随 `proseLanguage`。
 
 #### Scenario: specs instruction 标注 Requirement 和 Scenario title 语言
 - **WHEN** agent 创建 delta contract

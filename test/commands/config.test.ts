@@ -12,7 +12,7 @@ describe('config command integration', () => {
 
   beforeEach(() => {
     // Create unique temp directory for each test
-    tempDir = path.join(os.tmpdir(), `opsx-config-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    tempDir = path.join(os.tmpdir(), `xirang-config-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     fs.mkdirSync(tempDir, { recursive: true });
 
     // Save original env and set XDG_CONFIG_HOME
@@ -123,7 +123,7 @@ describe('config project command', () => {
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    tempDir = path.join(os.tmpdir(), `opsx-project-config-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    tempDir = path.join(os.tmpdir(), `xirang-project-config-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     fs.mkdirSync(tempDir, { recursive: true });
     originalCwd = process.cwd();
     process.chdir(tempDir);
@@ -148,7 +148,7 @@ describe('config project command', () => {
     fs.mkdirSync(path.join(tempDir, '.xirang'), { recursive: true });
     fs.writeFileSync(
       path.join(tempDir, '.xirang', 'config.yaml'),
-      `schema: spec-driven
+      `schema: semantic-model
 proseLanguage: 中文
 context: Project context
 optimization:
@@ -177,7 +177,7 @@ rules:
 
     const output = JSON.parse(consoleLogSpy.mock.calls[0][0]);
     expect(output).toEqual({
-      schema: 'spec-driven',
+      schema: 'semantic-model',
       proseLanguage: '中文',
       context: 'Project context',
       optimization: {
@@ -215,7 +215,7 @@ rules:
     fs.mkdirSync(path.join(tempDir, '.xirang'), { recursive: true });
     fs.writeFileSync(
       path.join(tempDir, '.xirang', 'config.yaml'),
-      `schema: spec-driven
+      `schema: semantic-model
 proseLanguage: 中文
 rules: {}
 `,
@@ -225,7 +225,7 @@ rules: {}
     await runProjectCommand([]);
 
     const output = consoleLogSpy.mock.calls[0][0];
-    expect(output).toContain('schema: spec-driven');
+    expect(output).toContain('schema: semantic-model');
     expect(output).toContain('proseLanguage: 中文');
     expect(output).toContain('rules: {}');
     expect(output).not.toContain('propose');

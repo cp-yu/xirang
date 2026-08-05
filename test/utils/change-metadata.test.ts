@@ -16,12 +16,12 @@ describe('ChangeMetadataSchema', () => {
   describe('valid metadata', () => {
     it('should accept valid schema with created date', () => {
       const result = ChangeMetadataSchema.safeParse({
-        schema: 'spec-driven',
+        schema: 'semantic-model',
         created: '2025-01-05',
       });
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.schema).toBe('spec-driven');
+        expect(result.data.schema).toBe('semantic-model');
         expect(result.data.created).toBe('2025-01-05');
       }
     });
@@ -49,7 +49,7 @@ describe('ChangeMetadataSchema', () => {
 
     it('should reject invalid date format', () => {
       const result = ChangeMetadataSchema.safeParse({
-        schema: 'spec-driven',
+        schema: 'semantic-model',
         created: '01/05/2025', // Wrong format
       });
       expect(result.success).toBe(false);
@@ -57,7 +57,7 @@ describe('ChangeMetadataSchema', () => {
 
     it('should reject non-ISO date format', () => {
       const result = ChangeMetadataSchema.safeParse({
-        schema: 'spec-driven',
+        schema: 'semantic-model',
         created: '2025-1-5', // Missing leading zeros
       });
       expect(result.success).toBe(false);
@@ -70,7 +70,7 @@ describe('writeChangeMetadata', () => {
   let changeDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `opsx-test-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `xirang-test-${randomUUID()}`);
     changeDir = path.join(testDir, '.xirang', 'changes', 'test-change');
     await fs.mkdir(changeDir, { recursive: true });
   });
@@ -81,14 +81,14 @@ describe('writeChangeMetadata', () => {
 
   it('should write valid YAML metadata file', async () => {
     writeChangeMetadata(changeDir, {
-      schema: 'spec-driven',
+      schema: 'semantic-model',
       created: '2025-01-05',
     });
 
     const metaPath = path.join(changeDir, '.xirang.yaml');
     const content = await fs.readFile(metaPath, 'utf-8');
 
-    expect(content).toContain('schema: spec-driven');
+    expect(content).toContain('schema: semantic-model');
     expect(content).toContain('created: 2025-01-05');
   });
 
@@ -107,7 +107,7 @@ describe('readChangeMetadata', () => {
   let changeDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `opsx-test-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `xirang-test-${randomUUID()}`);
     changeDir = path.join(testDir, '.xirang', 'changes', 'test-change');
     await fs.mkdir(changeDir, { recursive: true });
   });
@@ -125,13 +125,13 @@ describe('readChangeMetadata', () => {
     const metaPath = path.join(changeDir, '.xirang.yaml');
     await fs.writeFile(
       metaPath,
-      'schema: spec-driven\ncreated: "2025-01-05"\n',
+      'schema: semantic-model\ncreated: "2025-01-05"\n',
       'utf-8'
     );
 
     const result = readChangeMetadata(changeDir);
     expect(result).toEqual({
-      schema: 'spec-driven',
+      schema: 'semantic-model',
       created: '2025-01-05',
     });
   });
@@ -154,7 +154,7 @@ describe('readChangeMetadata', () => {
     const metaPath = path.join(changeDir, '.xirang.yaml');
     await fs.writeFile(metaPath, 'schema: unknown-schema\n', 'utf-8');
 
-    expect(() => readChangeMetadata(changeDir)).toThrow(/spec-driven/);
+    expect(() => readChangeMetadata(changeDir)).toThrow(/semantic-model/);
   });
 });
 
@@ -163,7 +163,7 @@ describe('resolveSchemaForChange', () => {
   let changeDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `opsx-test-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `xirang-test-${randomUUID()}`);
     changeDir = path.join(testDir, '.xirang', 'changes', 'test-change');
     await fs.mkdir(changeDir, { recursive: true });
   });
@@ -174,24 +174,24 @@ describe('resolveSchemaForChange', () => {
 
   it('should reject unsupported explicit schema', async () => {
     const metaPath = path.join(changeDir, '.xirang.yaml');
-    await fs.writeFile(metaPath, 'schema: spec-driven\n', 'utf-8');
+    await fs.writeFile(metaPath, 'schema: semantic-model\n', 'utf-8');
 
     expect(() => resolveSchemaForChange(changeDir, 'custom-schema')).toThrow(
-      /Available: spec-driven/
+      /Available: semantic-model/
     );
   });
 
   it('should return schema from metadata when no explicit schema', async () => {
     const metaPath = path.join(changeDir, '.xirang.yaml');
-    await fs.writeFile(metaPath, 'schema: spec-driven\n', 'utf-8');
+    await fs.writeFile(metaPath, 'schema: semantic-model\n', 'utf-8');
 
     const result = resolveSchemaForChange(changeDir);
-    expect(result).toBe('spec-driven');
+    expect(result).toBe('semantic-model');
   });
 
   it('should return default when no metadata and no explicit schema', () => {
     const result = resolveSchemaForChange(changeDir);
-    expect(result).toBe('spec-driven');
+    expect(result).toBe('semantic-model');
   });
 
   it('should fail when metadata read fails', async () => {
@@ -206,13 +206,13 @@ describe('resolveSchemaForChange', () => {
     await fs.mkdir(configDir, { recursive: true });
     await fs.writeFile(path.join(configDir, 'config.yaml'), 'schema: bootstrap\n', 'utf-8');
 
-    expect(resolveSchemaForChange(changeDir)).toBe('spec-driven');
+    expect(resolveSchemaForChange(changeDir)).toBe('semantic-model');
   });
 });
 
 describe('validateSchemaName', () => {
   it('should accept valid schema name', () => {
-    expect(() => validateSchemaName('spec-driven')).not.toThrow();
+    expect(() => validateSchemaName('semantic-model')).not.toThrow();
   });
 
   it('should throw for unknown schema', () => {

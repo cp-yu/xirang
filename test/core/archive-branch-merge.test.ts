@@ -29,7 +29,7 @@ async function writeFile(projectRoot: string, relativePath: string, content: str
 async function setupRepo(): Promise<string> {
   const projectRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-archive-merge-'));
   await fs.mkdir(path.join(projectRoot, '.xirang', 'changes', 'archive'), { recursive: true });
-await writeFile(projectRoot, '.xirang/config.yaml', `schema: spec-driven
+await writeFile(projectRoot, '.xirang/config.yaml', `schema: semantic-model
 git:
   merge:
     strategy: no-ff
@@ -215,7 +215,7 @@ ADDED:
 
   it('does not delete the feature branch when archive cleanup is enabled', async () => {
     projectRoot = await setupRepo();
-await writeFile(projectRoot, '.xirang/config.yaml', `schema: spec-driven
+await writeFile(projectRoot, '.xirang/config.yaml', `schema: semantic-model
 git:
   merge:
     strategy: no-ff
@@ -235,7 +235,7 @@ git:
 
   it('archives files with agent handoff when legacy autoCommit is manual', async () => {
     projectRoot = await setupRepo();
-    await writeFile(projectRoot, '.xirang/config.yaml', `schema: spec-driven
+    await writeFile(projectRoot, '.xirang/config.yaml', `schema: semantic-model
 git:
   autoCommit: manual
   archive:

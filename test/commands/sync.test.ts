@@ -27,7 +27,7 @@ describe('syncCommand', () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-sync-test-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-sync-test-'));
     await fs.mkdir(path.join(tempDir, '.xirang', 'changes', 'archive'), { recursive: true });
     await writeProjectModel(tempDir, minimalModel({
       elements: [{ identity: 'auth', parent: 'root', title: 'Auth', definition: 'Auth summary', requirements: CONTRACT }],

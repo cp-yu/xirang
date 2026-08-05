@@ -32,7 +32,7 @@ describe('PowerShellGenerator', () => {
 			const script = generator.generate(commands);
 
 			expect(script).toContain('# PowerShell completion script for Xirang CLI');
-			expect(script).toContain('$opsxCompleter = {');
+			expect(script).toContain('$xirangCompleter = {');
 			expect(script).toContain('Register-ArgumentCompleter');
 		});
 
@@ -48,7 +48,7 @@ describe('PowerShellGenerator', () => {
 			const script = generator.generate(commands);
 
 			expect(script).toContain('Register-ArgumentCompleter -CommandName xirang');
-			expect(script).toContain('-ScriptBlock $opsxCompleter');
+			expect(script).toContain('-ScriptBlock $xirangCompleter');
 		});
 
 		it('should include all commands with descriptions', () => {
@@ -478,7 +478,7 @@ describe('PowerShellGenerator', () => {
 			const script = generator.generate(commands);
 
 			expect(script).toContain('# PowerShell completion script');
-			expect(script).toContain('$opsxCompleter = {');
+			expect(script).toContain('$xirangCompleter = {');
 			expect(script).toContain('Register-ArgumentCompleter');
 		});
 

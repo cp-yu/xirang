@@ -27,7 +27,7 @@ describe('Candidate validation', () => {
   let candidate: string;
 
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-candidate-validate-'));
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-candidate-validate-'));
     await new SetupCommand({
       tools: 'none',
       force: true,

@@ -25,7 +25,7 @@ const validTasks = (verifies = '`elements/example.md` / Requirement "Parser beha
 
 describe('validateTaskStructure', () => {
   it('accepts the task template Verifies and Preserves path examples', () => {
-    const template = fs.readFileSync(path.join(process.cwd(), 'schemas/spec-driven/templates/tasks.md'), 'utf8');
+    const template = fs.readFileSync(path.join(process.cwd(), 'schemas/semantic-model/templates/tasks.md'), 'utf8');
     const verifiesPaths = [...template.matchAll(/- Verifies: `([^`]+)`/g)]
       .map((match) => match[1].replace(/<(?:identity|capability)>/g, 'example'));
     const preservesPath = template.match(/- Preserves: `([^`]+)`/)?.[1]
@@ -274,7 +274,7 @@ describe('validateTaskStructure', () => {
   });
 
   it('downgrades Verifies cross-checking to warning when no change Element units exist', () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-task-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'xirang-task-'));
 
     try {
       const result = validateTaskStructure(validTasks('manual verification'), { changeDir: tempDir });
@@ -359,7 +359,7 @@ describe('validateTaskStructure', () => {
 });
 
 function createChangeDir(units: Record<string, string>): string {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-task-'));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'xirang-task-'));
   for (const [relativePath, content] of Object.entries(units)) {
     const target = path.join(tempDir, 'elements', relativePath);
     fs.mkdirSync(path.dirname(target), { recursive: true });

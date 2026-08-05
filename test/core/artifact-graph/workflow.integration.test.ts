@@ -24,7 +24,7 @@ describe('artifact-graph workflow integration', () => {
 
   beforeEach(() => {
     // Use a unique temp directory for each test
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opsx-workflow-test-'));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'xirang-workflow-test-'));
   });
 
   afterEach(() => {
@@ -34,14 +34,14 @@ describe('artifact-graph workflow integration', () => {
     }
   });
 
-  describe('spec-driven workflow', () => {
+  describe('semantic-model workflow', () => {
     it('should progress through complete workflow', () => {
       // 1. Resolve the real built-in schema
-      const schema = resolveSchema('spec-driven');
+      const schema = resolveSchema('semantic-model');
       const graph = ArtifactGraph.fromSchema(schema);
 
       // Verify schema structure
-      expect(graph.getName()).toBe('spec-driven');
+      expect(graph.getName()).toBe('semantic-model');
       expect(graph.getAllArtifacts()).toHaveLength(4);
 
       // 2. Initial state - nothing complete, only proposal is ready
@@ -92,7 +92,7 @@ describe('artifact-graph workflow integration', () => {
     });
 
     it('should handle out-of-order file creation', () => {
-      const schema = resolveSchema('spec-driven');
+      const schema = resolveSchema('semantic-model');
       const graph = ArtifactGraph.fromSchema(schema);
 
       // Create files in wrong order - design before proposal
@@ -113,7 +113,7 @@ describe('artifact-graph workflow integration', () => {
     });
 
     it('marks specs done for a relationships-only Semantic Delta', () => {
-      const schema = resolveSchema('spec-driven');
+      const schema = resolveSchema('semantic-model');
       const graph = ArtifactGraph.fromSchema(schema);
       fs.writeFileSync(path.join(tempDir, 'proposal.md'), '# Proposal');
       const relationshipsDir = path.join(tempDir, 'relationships');
@@ -125,7 +125,7 @@ describe('artifact-graph workflow integration', () => {
     });
 
     it('marks specs done and tasks ready for a no-Delta completion marker', () => {
-      const schema = resolveSchema('spec-driven');
+      const schema = resolveSchema('semantic-model');
       const graph = ArtifactGraph.fromSchema(schema);
       fs.writeFileSync(path.join(tempDir, 'proposal.md'), '# Proposal');
       fs.writeFileSync(path.join(tempDir, 'design.md'), '# Design');
@@ -140,7 +140,7 @@ describe('artifact-graph workflow integration', () => {
 
   describe('build order consistency', () => {
     it('should return consistent build order across multiple calls', () => {
-      const schema = resolveSchema('spec-driven');
+      const schema = resolveSchema('semantic-model');
       const graph = ArtifactGraph.fromSchema(schema);
 
       const order1 = graph.getBuildOrder();
@@ -154,7 +154,7 @@ describe('artifact-graph workflow integration', () => {
 
   describe('empty and edge cases', () => {
     it('should handle empty change directory gracefully', () => {
-      const schema = resolveSchema('spec-driven');
+      const schema = resolveSchema('semantic-model');
       const graph = ArtifactGraph.fromSchema(schema);
 
       // Directory exists but is empty
@@ -164,7 +164,7 @@ describe('artifact-graph workflow integration', () => {
     });
 
     it('should handle non-existent change directory', () => {
-      const schema = resolveSchema('spec-driven');
+      const schema = resolveSchema('semantic-model');
       const graph = ArtifactGraph.fromSchema(schema);
 
       const nonExistentDir = path.join(tempDir, 'does-not-exist');
@@ -173,7 +173,7 @@ describe('artifact-graph workflow integration', () => {
     });
 
     it('should not count non-matching files in glob directories', () => {
-      const schema = resolveSchema('spec-driven');
+      const schema = resolveSchema('semantic-model');
       const graph = ArtifactGraph.fromSchema(schema);
 
       // Create specs directory with wrong file types

@@ -21,7 +21,7 @@ describe('tool-detection', () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `opsx-test-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `xirang-test-${randomUUID()}`);
     await fs.mkdir(testDir, { recursive: true });
   });
 

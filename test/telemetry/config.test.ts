@@ -35,7 +35,7 @@ describe('telemetry/config', () => {
 
   beforeEach(() => {
     // Create temp directory for tests
-    tempDir = path.join(os.tmpdir(), `opsx-telemetry-test-${randomUUID()}`);
+    tempDir = path.join(os.tmpdir(), `xirang-telemetry-test-${randomUUID()}`);
     fs.mkdirSync(tempDir, { recursive: true });
 
     // Mock HOME/USERPROFILE to point to temp dir

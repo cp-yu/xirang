@@ -1,4 +1,4 @@
-schema: spec-driven
+schema: semantic-model
 
 context: |
   Tech stack: TypeScript, Node.js (≥22.22.3), ESM modules

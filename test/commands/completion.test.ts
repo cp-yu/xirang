@@ -13,7 +13,7 @@ vi.mock('../../src/core/completions/installers/zsh-installer.js', () => ({
   ZshInstaller: vi.fn().mockImplementation(() => ({
     install: vi.fn().mockResolvedValue({
       success: true,
-      installedPath: '/home/user/.oh-my-zsh/completions/_opsx',
+      installedPath: '/home/user/.oh-my-zsh/completions/_xirang',
       isOhMyZsh: true,
       message: 'Completion script installed successfully for Oh My Zsh',
       instructions: [
@@ -24,7 +24,7 @@ vi.mock('../../src/core/completions/installers/zsh-installer.js', () => ({
     }),
     uninstall: vi.fn().mockResolvedValue({
       success: true,
-      message: 'Completion script removed from /home/user/.oh-my-zsh/completions/_opsx',
+      message: 'Completion script removed from /home/user/.oh-my-zsh/completions/_xirang',
     }),
   })),
 }));
@@ -76,7 +76,7 @@ describe('CompletionCommand', () => {
       expect(consoleLogSpy).toHaveBeenCalled();
       const output = consoleLogSpy.mock.calls[0][0];
       expect(output).toContain('#compdef xirang');
-      expect(output).toContain('_opsx() {');
+      expect(output).toContain('_xirang() {');
     });
 
     it('should auto-detect Zsh shell when no shell specified', async () => {

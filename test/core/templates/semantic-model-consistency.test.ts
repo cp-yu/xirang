@@ -4,14 +4,14 @@ import { XIRANG_SHARED_CONTEXT } from '../../../src/core/templates/fragments/xir
 import { getApplyChangeSkillTemplate } from '../../../src/core/templates/workflows/apply-change.js';
 import { getExploreSkillTemplate } from '../../../src/core/templates/workflows/explore.js';
 import { getOptimizerSubagentTemplate } from '../../../src/core/templates/workflows/optimizer.js';
-import { getOpsxProposeSkillTemplate } from '../../../src/core/templates/workflows/propose.js';
+import { getXirangProposeSkillTemplate } from '../../../src/core/templates/workflows/propose.js';
 import { getReviewerSubagentTemplate } from '../../../src/core/templates/workflows/reviewer.js';
 import { getSnackSkillTemplate } from '../../../src/core/templates/workflows/snack.js';
 
 function activeGuidance(): string[] {
   const templates = [
     getExploreSkillTemplate(),
-    getOpsxProposeSkillTemplate(),
+    getXirangProposeSkillTemplate(),
     getApplyChangeSkillTemplate(),
     getSnackSkillTemplate(),
     getReviewerSubagentTemplate(),

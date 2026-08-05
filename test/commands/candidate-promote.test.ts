@@ -33,7 +33,7 @@ describe('Candidate promotion', () => {
   let candidate: string;
 
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-candidate-promote-'));
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-candidate-promote-'));
     await new SetupCommand({
       tools: 'none',
       force: true,

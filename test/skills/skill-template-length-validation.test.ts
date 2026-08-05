@@ -107,13 +107,13 @@ describe('skill template length validation', () => {
 
   it('splits one file into separate rows when variant line counts differ', () => {
     const report = formatOverLimitReport([
-      { dirName: 'opsx-verify', variant: 'default', filePath: 'SKILL.md', lines: 580, limit: MAX_SKILL_LINES },
-      { dirName: 'opsx-verify', variant: 'claude', filePath: 'SKILL.md', lines: 604, limit: MAX_SKILL_LINES },
-      { dirName: 'opsx-verify', variant: 'codex', filePath: 'SKILL.md', lines: 604, limit: MAX_SKILL_LINES },
+      { dirName: 'xirang-verify', variant: 'default', filePath: 'SKILL.md', lines: 580, limit: MAX_SKILL_LINES },
+      { dirName: 'xirang-verify', variant: 'claude', filePath: 'SKILL.md', lines: 604, limit: MAX_SKILL_LINES },
+      { dirName: 'xirang-verify', variant: 'codex', filePath: 'SKILL.md', lines: 604, limit: MAX_SKILL_LINES },
     ]);
 
-    expect(report).toContain('• opsx-verify/SKILL.md (claude, codex): 604 lines (+404, limit 200)');
-    expect(report).toContain('• opsx-verify/SKILL.md (default): 580 lines (+380, limit 200)');
+    expect(report).toContain('• xirang-verify/SKILL.md (claude, codex): 604 lines (+404, limit 200)');
+    expect(report).toContain('• xirang-verify/SKILL.md (default): 580 lines (+380, limit 200)');
   });
 
   it('reports reference files independently instead of summing a skill directory', () => {

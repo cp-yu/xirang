@@ -12,7 +12,7 @@ describe('artifact-workflow CLI commands', () => {
   let changesDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-artifact-workflow-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-artifact-workflow-'));
     changesDir = path.join(tempDir, '.xirang', 'changes');
     await fs.mkdir(changesDir, { recursive: true });
   });
@@ -161,7 +161,7 @@ describe('artifact-workflow CLI commands', () => {
       const result = await runCLI(['status', '--change', 'minimal-change'], { cwd: tempDir });
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('minimal-change');
-      expect(result.stdout).toContain('spec-driven');
+      expect(result.stdout).toContain('semantic-model');
       expect(result.stdout).toContain('1/4 artifacts complete');
     });
 
@@ -185,7 +185,7 @@ describe('artifact-workflow CLI commands', () => {
 
       const json = JSON.parse(result.stdout);
       expect(json.changeName).toBe('json-change');
-      expect(json.schemaName).toBe('spec-driven');
+      expect(json.schemaName).toBe('semantic-model');
       expect(json.isComplete).toBe(false);
       expect(Array.isArray(json.artifacts)).toBe(true);
       expect(json.artifacts).toHaveLength(4);
@@ -243,11 +243,11 @@ describe('artifact-workflow CLI commands', () => {
     it('supports --schema option', async () => {
       await createTestChange('schema-change');
 
-      const result = await runCLI(['status', '--change', 'schema-change', '--schema', 'spec-driven'], {
+      const result = await runCLI(['status', '--change', 'schema-change', '--schema', 'semantic-model'], {
         cwd: tempDir,
       });
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('spec-driven');
+      expect(result.stdout).toContain('semantic-model');
     });
 
     it('errors for unknown schema', async () => {
@@ -405,7 +405,7 @@ describe('artifact-workflow CLI commands', () => {
     it('shows template paths for default schema', async () => {
       const result = await runCLI(['templates'], { cwd: tempDir });
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('Schema: spec-driven');
+      expect(result.stdout).toContain('Schema: semantic-model');
       expect(result.stdout).toContain('proposal:');
       expect(result.stdout).toContain('design:');
       expect(result.stdout).toContain('specs:');
@@ -413,9 +413,9 @@ describe('artifact-workflow CLI commands', () => {
     });
 
     it('shows template paths for specified schema', async () => {
-      const result = await runCLI(['templates', '--schema', 'spec-driven'], { cwd: tempDir });
+      const result = await runCLI(['templates', '--schema', 'semantic-model'], { cwd: tempDir });
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('Schema: spec-driven');
+      expect(result.stdout).toContain('Schema: semantic-model');
       expect(result.stdout).toContain('proposal:');
       expect(result.stdout).toContain('design:');
     });
@@ -487,7 +487,7 @@ describe('artifact-workflow CLI commands', () => {
   });
 
   describe('instructions apply command', () => {
-    it('shows apply instructions for spec-driven schema with tasks', async () => {
+    it('shows apply instructions for semantic-model schema with tasks', async () => {
       await createTestChange('apply-change', ['proposal', 'design', 'specs', 'tasks']);
 
       const result = await runCLI(['instructions', 'apply', '--change', 'apply-change'], {
@@ -495,13 +495,13 @@ describe('artifact-workflow CLI commands', () => {
       });
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('## Apply: apply-change');
-      expect(result.stdout).toContain('Schema: spec-driven');
+      expect(result.stdout).toContain('Schema: semantic-model');
       expect(result.stdout).toContain('### Context Files');
       expect(result.stdout).toContain('### Instruction');
     });
 
     it('shows blocked state when required artifacts are missing', async () => {
-      // Only create proposal - missing tasks (required by spec-driven apply block)
+      // Only create proposal - missing tasks (required by semantic-model apply block)
       await createTestChange('blocked-apply', ['proposal']);
 
       const result = await runCLI(['instructions', 'apply', '--change', 'blocked-apply'], {
@@ -518,7 +518,7 @@ describe('artifact-workflow CLI commands', () => {
       await createTestChange('json-apply', ['proposal', 'design', 'specs', 'tasks']);
       await fs.writeFile(
         path.join(tempDir, '.xirang', 'config.yaml'),
-        `schema: spec-driven
+        `schema: semantic-model
 proseLanguage: 中文
 apply:
   defaultIsolation: branch
@@ -546,7 +546,7 @@ rules: {}
         path.join(changesDir, 'json-apply', 'elements', 'test-element.md')
       );
       expect(json.changeName).toBe('json-apply');
-      expect(json.schemaName).toBe('spec-driven');
+      expect(json.schemaName).toBe('semantic-model');
       expect(json.state).toBe('ready');
       expect(json.contextFiles).toBeDefined();
       expect(typeof json.contextFiles).toBe('object');
@@ -564,7 +564,7 @@ rules: {}
       await createTestChange('text-apply-projection', ['proposal', 'design', 'specs', 'tasks']);
       await fs.writeFile(
         path.join(tempDir, '.xirang', 'config.yaml'),
-        `schema: spec-driven
+        `schema: semantic-model
 proseLanguage: 中文
 apply:
   defaultIsolation: worktree
@@ -714,7 +714,7 @@ rules: {}
       );
       expect(result.exitCode).toBe(1);
       expect(getOutput(result)).toContain('Available schemas:');
-      expect(getOutput(result)).toContain('spec-driven');
+      expect(getOutput(result)).toContain('semantic-model');
     });
 
     it('shows schema instruction from apply block', async () => {
@@ -724,7 +724,7 @@ rules: {}
         cwd: tempDir,
       });
       expect(result.exitCode).toBe(0);
-      // Should show the instruction from spec-driven schema apply block
+      // Should show the instruction from semantic-model schema apply block
       expect(result.stdout).toContain('strict red/green TDD');
       expect(result.stdout).toContain('confirm the expected failure before implementation');
       expect(result.stdout).not.toContain('directly implement each pending task');
@@ -849,20 +849,20 @@ rules: {}
       expect(json.instruction).toContain('ready to be archived');
     });
 
-    it('uses spec-driven schema apply configuration', async () => {
-      // Create a spec-driven style change with all artifacts
+    it('uses semantic-model schema apply configuration', async () => {
+      // Create a semantic-model style change with all artifacts
       await createTestChange('apply-schema-test', ['proposal', 'design', 'specs', 'tasks']);
 
       const result = await runCLI(
-        ['instructions', 'apply', '--change', 'apply-schema-test', '--schema', 'spec-driven'],
+        ['instructions', 'apply', '--change', 'apply-schema-test', '--schema', 'semantic-model'],
         { cwd: tempDir }
       );
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('Schema: spec-driven');
+      expect(result.stdout).toContain('Schema: semantic-model');
     });
 
-    it('spec-driven schema uses apply block configuration', async () => {
-      // Verify that spec-driven schema uses its apply block (requires: [tasks])
+    it('semantic-model schema uses apply block configuration', async () => {
+      // Verify that semantic-model schema uses its apply block (requires: [tasks])
       await createTestChange('apply-config-test', ['proposal', 'design', 'specs', 'tasks']);
 
       const result = await runCLI(
@@ -872,8 +872,8 @@ rules: {}
       expect(result.exitCode).toBe(0);
 
       const json = JSON.parse(result.stdout);
-      // spec-driven schema has apply block with requires: [tasks], so should be ready
-      expect(json.schemaName).toBe('spec-driven');
+      // semantic-model schema has apply block with requires: [tasks], so should be ready
+      expect(json.schemaName).toBe('semantic-model');
       expect(json.state).toBe('ready');
     });
 
@@ -916,34 +916,34 @@ rules: {}
   describe('project config integration', () => {
     describe('new change uses config schema', () => {
       it('creates change with schema from project config', async () => {
-        // Create project config with spec-driven schema
+        // Create project config with semantic-model schema
         // Note: changesDir is already at tempDir/.xirang/changes (created in beforeEach)
         await fs.writeFile(
           path.join(tempDir, '.xirang', 'config.yaml'),
-          'schema: spec-driven\n'
+          'schema: semantic-model\n'
         );
 
         // Create a new change without specifying schema
         const result = await runCLI(['new', 'change', 'test-change'], { cwd: tempDir, timeoutMs: 30000 });
         expect(result.exitCode).toBe(0);
 
-        // Verify the change was created with spec-driven schema
+        // Verify the change was created with semantic-model schema
         const metadataPath = path.join(changesDir, 'test-change', '.xirang.yaml');
         const metadata = await fs.readFile(metadataPath, 'utf-8');
-        expect(metadata).toContain('schema: spec-driven');
+        expect(metadata).toContain('schema: semantic-model');
       }, 60000);
 
       it('CLI schema overrides config schema', async () => {
-        // Create project config with spec-driven schema
+        // Create project config with semantic-model schema
         // Note: xirang directory already exists (from changesDir creation in beforeEach)
         await fs.writeFile(
           path.join(tempDir, '.xirang', 'config.yaml'),
-          'schema: spec-driven\n'
+          'schema: semantic-model\n'
         );
 
         // Create change with explicit schema
         const result = await runCLI(
-          ['new', 'change', 'override-test', '--schema', 'spec-driven'],
+          ['new', 'change', 'override-test', '--schema', 'semantic-model'],
           { cwd: tempDir, timeoutMs: 30000 }
         );
         expect(result.exitCode).toBe(0);
@@ -951,7 +951,7 @@ rules: {}
         // Verify the change uses the CLI-specified schema
         const metadataPath = path.join(changesDir, 'override-test', '.xirang.yaml');
         const metadata = await fs.readFile(metadataPath, 'utf-8');
-        expect(metadata).toContain('schema: spec-driven');
+        expect(metadata).toContain('schema: semantic-model');
       }, 60000);
     });
 
@@ -961,7 +961,7 @@ rules: {}
         // Note: xirang directory already exists (from changesDir creation in beforeEach)
         await fs.writeFile(
           path.join(tempDir, '.xirang', 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 context: |
   Tech stack: TypeScript, React
   API style: RESTful
@@ -996,7 +996,7 @@ rules:
         // Note: xirang directory already exists (from changesDir creation in beforeEach)
         await fs.writeFile(
           path.join(tempDir, '.xirang', 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 rules:
   proposal:
     - Include rollback plan
@@ -1030,7 +1030,7 @@ rules:
         );
         expect(statusResult.exitCode).toBe(0);
         expect(statusResult.stdout).toContain('no-config-change');
-        expect(statusResult.stdout).toContain('spec-driven'); // Default schema
+        expect(statusResult.stdout).toContain('semantic-model'); // Default schema
 
         // Instructions command should work
         const instrResult = await runCLI(
@@ -1046,7 +1046,7 @@ rules:
         const changeDir = await createTestChange('metadata-only-change');
         await fs.writeFile(
           path.join(changeDir, '.xirang.yaml'),
-          'schema: spec-driven\ncreated: "2025-01-05"\n'
+          'schema: semantic-model\ncreated: "2025-01-05"\n'
         );
 
         // Status should use schema from metadata
@@ -1055,7 +1055,7 @@ rules:
           { cwd: tempDir, timeoutMs: 30000 }
         );
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('spec-driven');
+        expect(result.stdout).toContain('semantic-model');
       }, 60000);
     });
 
@@ -1065,7 +1065,7 @@ rules:
         // Note: xirang directory already exists (from changesDir creation in beforeEach)
         await fs.writeFile(
           path.join(tempDir, '.xirang', 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 context: Initial context
 `
         );
@@ -1084,7 +1084,7 @@ context: Initial context
         // Update config
         await fs.writeFile(
           path.join(tempDir, '.xirang', 'config.yaml'),
-          `schema: spec-driven
+          `schema: semantic-model
 context: Updated context
 `
         );

@@ -27,7 +27,7 @@ describe('arch commands', () => {
   let root: string;
 
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'opsx-arch-command-'));
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-arch-command-'));
     await writeProjectModel(root, {
       elementKinds: [
         { identity: 'semanticProject', contract: 'required', root: true, children: ['area', 'operation'] },

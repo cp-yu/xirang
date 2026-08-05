@@ -409,8 +409,8 @@ Schemas define the artifact types and their dependencies for a workflow.
 ### How Schemas Work
 
 ```yaml
-# package schemas/spec-driven/schema.yaml
-name: spec-driven
+# package schemas/semantic-model/schema.yaml
+name: semantic-model
 artifacts:
   - id: proposal
     generates: proposal.md
@@ -454,9 +454,9 @@ artifacts:
 
 ### Built-in Schemas
 
-**spec-driven** (default)
+**semantic-model** (default)
 
-The standard workflow for spec-driven development:
+The standard workflow for semantic-model development:
 
 ```
 proposal → delta → design → tasks → implement
@@ -464,7 +464,7 @@ proposal → delta → design → tasks → implement
 
 Best for: Most feature work where you want to agree on requirements before implementation.
 
-Xirang resolves only the package-owned `spec-driven` schema. Project-local and user override schemas are not supported. Project Build uses the Candidate contract directly rather than a separate artifact schema.
+Xirang resolves only the package-owned `semantic-model` schema. Project-local and user override schemas are not supported. Project Build uses the Candidate contract directly rather than a separate artifact schema.
 
 ## Archive
 

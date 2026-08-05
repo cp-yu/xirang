@@ -43,7 +43,7 @@ definition: Artifact Workflow Commands 定义 artifact workflow CLI 行为：`st
 - **THEN** the system displays an error listing all available change directories
 ### Requirement: Instructions Command
 
-系统 SHALL 输出创建 artifact 的 enriched instructions，包括 scaffolded changes。对于 spec-driven `tasks` artifact，生成的 instructions SHALL 要求 `tasks.md` 将实现目标与可执行验证 Checks 分离，并要求每个 Check 声明其验证锚点（`Verifies:` 或 `Preserves:`）。
+系统 SHALL 输出创建 artifact 的 enriched instructions，包括 scaffolded changes。对于 semantic-model `tasks` artifact，生成的 instructions SHALL 要求 `tasks.md` 将实现目标与可执行验证 Checks 分离，并要求每个 Check 声明其验证锚点（`Verifies:` 或 `Preserves:`）。
 
 #### Scenario: Show enriched instructions
 
@@ -134,13 +134,13 @@ definition: Artifact Workflow Commands 定义 artifact workflow CLI 行为：`st
 #### Scenario: Templates JSON output
 - **WHEN** 用户运行 `xirang templates --json`
 - **THEN** 系统输出 artifact IDs 到 template paths 的 JSON mapping
-#### Scenario: 非 spec-driven schema 被拒绝
+#### Scenario: 非 semantic-model schema 被拒绝
 - **WHEN** user runs `xirang templates --schema tdd`
-- **THEN** the system rejects the schema：`Schema 'tdd' not found. Available schemas: spec-driven`
+- **THEN** the system rejects the schema：`Schema 'tdd' not found. Available schemas: semantic-model`
 - **AND** 不以任何非内置 ID 显示模板路径
 #### Scenario: Template resolution source
 - **WHEN** displaying template paths
-- **THEN** the system SHALL 报告 package-only source（`spec-driven`）
+- **THEN** the system SHALL 报告 package-only source（`semantic-model`）
 - **AND** 不存在 user override source
 ### Requirement: New Change Command
 系统 SHALL 创建新的 change 目录并进行校验。
@@ -191,8 +191,8 @@ definition: Artifact Workflow Commands 定义 artifact workflow CLI 行为：`st
 #### Scenario: Apply instructions JSON output
 - **WHEN** 用户运行 `xirang instructions apply --change <id> --json`
 - **THEN** 系统输出包含 `contextFiles`、`instruction`、`tracks` 与 `applyRequires` 的 JSON
-#### Scenario: Spec-driven missing artifacts 返回 Propose
-- **WHEN** spec-driven change 缺少 apply-required artifact、tracking file 不存在或 tracking file 无可执行 tasks
+#### Scenario: Semantic-model missing artifacts 返回 Propose
+- **WHEN** semantic-model change 缺少 apply-required artifact、tracking file 不存在或 tracking file 无可执行 tasks
 - **THEN** Apply state SHALL 为 blocked
 - **AND** instruction SHALL 指示返回 Propose workflow reconcile 缺失 prerequisite
 - **AND** MUST NOT 指示 `xirang-apply-change` 创建缺失 artifact

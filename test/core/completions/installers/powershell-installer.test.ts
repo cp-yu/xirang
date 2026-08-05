@@ -12,7 +12,7 @@ describe('PowerShellInstaller', () => {
   let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(async () => {
-    testHomeDir = path.join(os.tmpdir(), `opsx-powershell-test-${randomUUID()}`);
+    testHomeDir = path.join(os.tmpdir(), `xirang-powershell-test-${randomUUID()}`);
     await fs.mkdir(testHomeDir, { recursive: true });
     installer = new PowerShellInstaller(testHomeDir);
     originalPlatform = process.platform;
@@ -368,11 +368,11 @@ describe('PowerShellInstaller', () => {
 
   describe('install', () => {
     const mockCompletionScript = `# PowerShell completion script for Xirang
-$opsxCompleter = {
+$xirangCompleter = {
     param($wordToComplete, $commandAst, $cursorPosition)
     # Completion logic here
 }
-Register-ArgumentCompleter -CommandName xirang -ScriptBlock $opsxCompleter
+Register-ArgumentCompleter -CommandName xirang -ScriptBlock $xirangCompleter
 `;
 
     it('should install completion script for the first time', async () => {
@@ -713,8 +713,8 @@ Register-ArgumentCompleter -CommandName xirang -ScriptBlock $opsxCompleter
 
   describe('uninstall', () => {
     const mockCompletionScript = `# PowerShell completion script
-$opsxCompleter = {}
-Register-ArgumentCompleter -CommandName xirang -ScriptBlock $opsxCompleter
+$xirangCompleter = {}
+Register-ArgumentCompleter -CommandName xirang -ScriptBlock $xirangCompleter
 `;
 
     it('should successfully uninstall when completion script exists', async () => {

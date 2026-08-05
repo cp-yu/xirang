@@ -13,7 +13,7 @@ describe('artifact-graph/outputs', () => {
   let tempDir: string;
 
   beforeEach(() => {
-    tempDir = path.join(os.tmpdir(), `opsx-outputs-test-${Date.now()}`);
+    tempDir = path.join(os.tmpdir(), `xirang-outputs-test-${Date.now()}`);
     fs.mkdirSync(tempDir, { recursive: true });
   });
 
@@ -110,7 +110,7 @@ describe('artifact-graph/outputs', () => {
   });
 
   it('expands the specs artifact brace pattern across all Semantic Delta partitions', () => {
-    const generates = resolveSchema('spec-driven').artifacts.find(({ id }) => id === 'specs')?.generates;
+    const generates = resolveSchema('semantic-model').artifacts.find(({ id }) => id === 'specs')?.generates;
     expect(generates).toBe('{elements,metamodel,relationships,views}/**/*');
 
     const files = [

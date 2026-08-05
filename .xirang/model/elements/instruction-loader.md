@@ -32,7 +32,7 @@ definition: Instruction Loader 定义从 schema 目录加载并富化 instructio
 - **THEN** 系统返回带空 completed set 的 context
 #### Scenario: Load context with schema binding
 - **WHEN** `loadChangeContext(projectRoot, changeName, schemaName)` is called
-- **THEN** the system validates `schemaName` against the sole legal built-in ID `spec-driven`
+- **THEN** the system validates `schemaName` against the sole legal built-in ID `semantic-model`
 - **AND** 非内置 ID SHALL 被拒绝（`Schema not found`），不加载任何用户/自定义 schema
 ### Requirement: Template Enrichment
 系统 SHALL 以 change-specific context 富化 templates。

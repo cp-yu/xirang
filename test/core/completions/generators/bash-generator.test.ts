@@ -32,7 +32,7 @@ describe('BashGenerator', () => {
       const script = generator.generate(commands);
 
       expect(script).toContain('# Bash completion script for Xirang CLI');
-      expect(script).toContain('_opsx_completion() {');
+      expect(script).toContain('_xirang_completion() {');
       expect(script).toContain('local cur prev words cword');
       expect(script).toContain('_init_completion -n : || return');
     });
@@ -262,7 +262,7 @@ describe('BashGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('_opsx_complete_changes');
+      expect(script).toContain('_xirang_complete_changes');
     });
 
     it('should handle positional arguments for contract-id', () => {
@@ -278,7 +278,7 @@ describe('BashGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('_opsx_complete_contracts');
+      expect(script).toContain('_xirang_complete_contracts');
     });
 
     it('should handle positional arguments for change-or-contract-id', () => {
@@ -294,7 +294,7 @@ describe('BashGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('_opsx_complete_items');
+      expect(script).toContain('_xirang_complete_items');
     });
 
     it('should handle positional arguments for shell', () => {
@@ -345,7 +345,7 @@ describe('BashGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('_opsx_complete_changes() {');
+      expect(script).toContain('_xirang_complete_changes() {');
       expect(script).toContain('xirang __complete changes 2>/dev/null');
       expect(script).toContain('cut -f1');
       expect(script).toContain('COMPREPLY=');
@@ -364,7 +364,7 @@ describe('BashGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('_opsx_complete_contracts() {');
+      expect(script).toContain('_xirang_complete_contracts() {');
       expect(script).toContain('xirang __complete contracts 2>/dev/null');
       expect(script).toContain('cut -f1');
     });
@@ -382,7 +382,7 @@ describe('BashGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('_opsx_complete_items() {');
+      expect(script).toContain('_xirang_complete_items() {');
       expect(script).toContain('xirang __complete changes 2>/dev/null');
       expect(script).toContain('xirang __complete contracts 2>/dev/null');
     });
@@ -420,7 +420,7 @@ describe('BashGenerator', () => {
       expect(script).toContain('validate');
       expect(script).toContain('--strict');
       expect(script).toContain('--json');
-      expect(script).toContain('_opsx_complete_contracts');
+      expect(script).toContain('_xirang_complete_contracts');
     });
 
     it('should generate script that ends with complete registration', () => {
@@ -434,7 +434,7 @@ describe('BashGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script.trim().endsWith('complete -F _opsx_completion xirang')).toBe(true);
+      expect(script.trim().endsWith('complete -F _xirang_completion xirang')).toBe(true);
     });
 
     it('should handle empty command list', () => {
@@ -443,8 +443,8 @@ describe('BashGenerator', () => {
       const script = generator.generate(commands);
 
       expect(script).toContain('# Bash completion script');
-      expect(script).toContain('_opsx_completion() {');
-      expect(script).toContain('complete -F _opsx_completion xirang');
+      expect(script).toContain('_xirang_completion() {');
+      expect(script).toContain('complete -F _xirang_completion xirang');
     });
 
     it('should handle commands with no flags', () => {
