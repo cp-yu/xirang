@@ -197,6 +197,15 @@ function ExportButton() {
           )}>
           Export as .puml
         </MenuItem>
+        <MenuItem
+          renderRoot={(props) => (
+            <Link
+              to={isInsideProject ? '/project/$projectId/view/$viewId/tree' : '/view/$viewId/tree'}
+              search
+              {...props} />
+          )}>
+          Export hierarchy tree
+        </MenuItem>
         <MenuItem disabled={isDrawioLoading} onClick={handleDrawioExport}>Export to Draw.io</MenuItem>
         <MenuItem disabled>Export to Miro</MenuItem>
         <MenuItem disabled>Export to Notion</MenuItem>

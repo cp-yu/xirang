@@ -244,6 +244,7 @@ function GuardedExportPage({ diagram, isJpeg }: { diagram: LayoutedView; isJpeg:
           enableSearch={false}
           nodesSelectable={false}
           enableElementTags={false}
+          static
           onInitialized={() => {
             if (!viewportRef.current) {
               console.error('viewportRef.current is null')

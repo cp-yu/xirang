@@ -1,7 +1,9 @@
 import { type Fqn, hasProp, isDynamicView, RichText } from '@likec4/core'
 import { Badge, Box, Button, Group, Modal, NativeSelect, Stack, Text, UnstyledButton } from '@mantine/core'
+import { IconGripVertical } from '@tabler/icons-react'
 import { useRerender } from '@react-hookz/web'
-import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { motion, useDragControls } from 'motion/react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react'
 import { Markdown } from '../base-primitives'
 import { ErrorBoundary } from '../components/ErrorFallback'
 import { useEnabledFeatures } from '../context/DiagramFeatures'
@@ -94,8 +96,33 @@ export function getArchitectureOverlayModel(source: XirangViewSource) {
   }
 }
 
+function FloatingChrome({
+  dragControls,
+  position,
+  children,
+}: PropsWithChildren<{
+  dragControls: ReturnType<typeof useDragControls>
+  position: { left?: number; right?: number; top: number }
+}>) {
+  return (
+    <motion.div
+      drag
+      dragControls={dragControls}
+      dragElastic={0}
+      dragMomentum={false}
+      dragListener={false}
+      style={{ position: 'absolute', zIndex: 5, pointerEvents: 'all', touchAction: 'none', ...position }}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
 function XirangArchitectureOverlay() {
   const { sources, selected, select, mode, setMode } = useXirangViewSources()
+  const { enableStaticView } = useEnabledFeatures()
+  const dragControls = useDragControls()
+  const breadcrumbDragControls = useDragControls()
   const selectedRevision = xirangViewSourceRevision(selected)
   const actorRef = useDiagramActorRef()
   const diagram = useDiagram()
@@ -112,46 +139,60 @@ function XirangArchitectureOverlay() {
   const [relationshipModalOpened, setRelationshipModalOpened] = useState(false)
   const [metamodelEntry, setMetamodelEntry] = useState<{ entry: XirangDiffEntry; opened: boolean } | null>(null)
   const [planFile, setPlanFile] = useState<{ name: string; content: string; opened: boolean } | null>(null)
-  const declarations = new Map((selected.architecture?.elements ?? [])
-    .map(element => [element.declaration.identity, element.declaration]))
-  const rootIdentity = [...declarations.values()].find(declaration => declaration.parent === null)?.identity
-  const childrenByIdentity = new Map<string, string[]>()
-  for (const declaration of declarations.values()) {
-    if (!declaration.parent) continue
-    let children = childrenByIdentity.get(declaration.parent)
-    if (!children) {
-      children = []
-      childrenByIdentity.set(declaration.parent, children)
+  const { declarations, childrenByIdentity, rootIdentity } = useMemo(() => {
+    const declarations = new Map((selected.architecture?.elements ?? [])
+      .map(element => [element.declaration.identity, element.declaration]))
+    const rootIdentity = [...declarations.values()].find(declaration => declaration.parent === null)?.identity
+    const childrenByIdentity = new Map<string, string[]>()
+    for (const declaration of declarations.values()) {
+      if (!declaration.parent) continue
+      let children = childrenByIdentity.get(declaration.parent)
+      if (!children) {
+        children = []
+        childrenByIdentity.set(declaration.parent, children)
+      }
+      children.push(declaration.identity)
     }
-    children.push(declaration.identity)
-  }
+    return { declarations, childrenByIdentity, rootIdentity }
+  }, [selected])
   const hasChildren = (identity: string) => (childrenByIdentity.get(identity)?.length ?? 0) > 0
   const nodeIdentity = (node: { id: string; metadata?: Readonly<Record<string, unknown>> | null | undefined }) =>
     typeof node.metadata?.['elementId'] === 'string' ? node.metadata['elementId'] as string : node.id
-  const breadcrumbIdentities: string[] = []
-  let breadcrumbIdentity = focusIdentity ?? rootIdentity
-  while (breadcrumbIdentity && declarations.has(breadcrumbIdentity)) {
-    breadcrumbIdentities.unshift(breadcrumbIdentity)
-    breadcrumbIdentity = declarations.get(breadcrumbIdentity)?.parent ?? undefined
-  }
+  const breadcrumbIdentities = useMemo(() => {
+    const identities: string[] = []
+    let breadcrumbIdentity = focusIdentity ?? rootIdentity
+    while (breadcrumbIdentity && declarations.has(breadcrumbIdentity)) {
+      identities.unshift(breadcrumbIdentity)
+      breadcrumbIdentity = declarations.get(breadcrumbIdentity)?.parent ?? undefined
+    }
+    return identities
+  }, [declarations, focusIdentity, rootIdentity])
   const breadcrumb = currentView.id === 'model' && breadcrumbIdentities.length > 0 && (
-    <Group
-      data-xirang-focus-breadcrumb
-      gap={2}
-      style={{ position: 'absolute', left: 16, top: 72, zIndex: 5, pointerEvents: 'all' }}
-    >
-      {breadcrumbIdentities.map(identity => (
-        <Button
-          key={identity}
-          data-xirang-focus-identity={identity}
-          size="compact-xs"
-          variant={identity === (focusIdentity ?? rootIdentity) ? 'filled' : 'subtle'}
-          onClick={() => actorRef.send({ type: 'navigate.focus', focusIdentity: identity })}
-        >
-          {declarations.get(identity)?.title ?? identity}
-        </Button>
-      ))}
-    </Group>
+    <FloatingChrome dragControls={breadcrumbDragControls} position={{ left: 16, top: 72 }}>
+      <Group
+        data-xirang-focus-breadcrumb
+        data-xirang-drag-handle
+        gap={2}
+        onPointerDown={event => {
+          event.stopPropagation()
+          breadcrumbDragControls.start(event)
+        }}
+        style={{ cursor: 'grab' }}
+      >
+        <IconGripVertical size={12} />
+        {breadcrumbIdentities.map(identity => (
+          <Button
+            key={identity}
+            data-xirang-focus-identity={identity}
+            size="compact-xs"
+            variant={identity === (focusIdentity ?? rootIdentity) ? 'filled' : 'subtle'}
+            onClick={() => actorRef.send({ type: 'navigate.focus', focusIdentity: identity })}
+          >
+            {declarations.get(identity)?.title ?? identity}
+          </Button>
+        ))}
+      </Group>
+    </FloatingChrome>
   )
 
   useOnDiagramEvent('nodeClick', event => {
@@ -238,11 +279,6 @@ function XirangArchitectureOverlay() {
 
   useEffect(() => {
     if (!isReady || currentView.id !== 'model') return
-    const elements = selected.architecture?.elements ?? []
-    const declarations = new Map(elements.map(element => [element.declaration.identity, element.declaration]))
-    const rootIdentity = elements
-      .map(element => element.declaration)
-      .find(declaration => declaration.parent === null)?.identity
     if (selectedSourceId.current !== selected.id) {
       selectedSourceId.current = selected.id
       previousFocusAncestors.current = []
@@ -277,7 +313,7 @@ function XirangArchitectureOverlay() {
     if (focusIdentity && resolvedFocus !== focusIdentity) {
       actorRef.send({ type: 'navigate.focus', focusIdentity: resolvedFocus ?? null })
     }
-  }, [actorRef, currentView.id, effectiveMode, expandedNodes, focusIdentity, isReady, selected, selectedRevision])
+  }, [actorRef, currentView.id, declarations, effectiveMode, expandedNodes, focusIdentity, isReady, rootIdentity, selected, selectedRevision])
 
   const relationshipPanel = (
     <Modal
@@ -294,6 +330,22 @@ function XirangArchitectureOverlay() {
     </Modal>
   )
 
+  const overlay = useMemo(() => getArchitectureOverlayModel(selected), [selected])
+
+  if (enableStaticView) {
+    return (
+      <>
+        {relationshipPanel}
+        <Box
+          hidden
+          data-xirang-architecture-overlay
+          data-xirang-current-view={currentView.id}
+          data-xirang-current-view-hash={currentView.hash}
+          data-xirang-rendered-node-count={currentView.nodes.length}
+        />
+      </>
+    )
+  }
   if (selected.source === 'semantic-model') {
     return (
       <>
@@ -309,33 +361,40 @@ function XirangArchitectureOverlay() {
       </>
     )
   }
-  const overlay = getArchitectureOverlayModel(selected)
   return (
     <>
       {breadcrumb}
       {relationshipPanel}
-      <Box
-        data-xirang-architecture-overlay
-        data-xirang-architecture-mode={mode}
-        data-xirang-changed-count={overlay.changed.length}
-        data-xirang-context-count={overlay.context.length}
-        data-xirang-metamodel-count={overlay.metamodel.length}
-        data-xirang-rendered-node-count={currentView.nodes.length}
-        data-xirang-rendered-view-hash={currentView.hash}
-        style={{ position: 'absolute', right: 16, top: 16, zIndex: 5, pointerEvents: 'all' }}
-      >
-        <Stack
-          gap={6}
-          p="xs"
-          style={{
-            background: 'var(--mantine-color-body)',
-            border: '1px solid var(--mantine-color-default-border)',
-            borderRadius: 6,
-          }}>
-          <Group gap="xs">
-            <Text size="xs" fw={600}>Change / {selected.label}</Text>
-            <Badge size="xs" color={selected.valid ? 'green' : 'red'}>{selected.valid ? 'Valid' : 'Invalid'}</Badge>
-          </Group>
+      <FloatingChrome dragControls={dragControls} position={{ right: 16, top: 16 }}>
+        <Box
+          data-xirang-architecture-overlay
+          data-xirang-architecture-mode={mode}
+          data-xirang-changed-count={overlay.changed.length}
+          data-xirang-context-count={overlay.context.length}
+          data-xirang-metamodel-count={overlay.metamodel.length}
+          data-xirang-rendered-node-count={currentView.nodes.length}
+          data-xirang-rendered-view-hash={currentView.hash}
+        >
+          <Stack
+            gap={6}
+            p="xs"
+            style={{
+              background: 'var(--mantine-color-body)',
+              border: '1px solid var(--mantine-color-default-border)',
+              borderRadius: 6,
+            }}>
+            <Group
+              data-xirang-drag-handle
+              gap="xs"
+              onPointerDown={event => {
+                event.stopPropagation()
+                dragControls.start(event)
+              }}
+              style={{ cursor: 'grab' }}>
+              <IconGripVertical size={12} />
+              <Text size="xs" fw={600}>Change / {selected.label}</Text>
+              <Badge size="xs" color={selected.valid ? 'green' : 'red'}>{selected.valid ? 'Valid' : 'Invalid'}</Badge>
+            </Group>
           <NativeSelect
             aria-label="Active Change"
             size="xs"
@@ -394,6 +453,7 @@ function XirangArchitectureOverlay() {
           ))}
         </Stack>
       </Box>
+      </FloatingChrome>
       <MetamodelDiffModal
         entry={metamodelEntry?.entry ?? null}
         opened={metamodelEntry?.opened ?? false}

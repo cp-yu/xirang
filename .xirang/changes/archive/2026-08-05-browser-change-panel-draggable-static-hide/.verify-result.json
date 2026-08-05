@@ -1,0 +1,659 @@
+{
+  "timestamp": "2026-08-04T17:05:24.518Z",
+  "result": "PASS",
+  "issues": [
+    {
+      "severity": "SUGGESTION",
+      "requirement": null,
+      "task": null,
+      "message": ".gitignore adds '/.turbo/cache' (build-cache ignore); benign tooling outside this change's and the sibling's declared Files scope.",
+      "recommendation": "Accept as incidental tooling hygiene.",
+      "evidenceCitations": [
+        ".gitignore"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "requirement": "静态渲染上下文不呈现浮动 Change 面板",
+      "task": null,
+      "message": "Sidebar hover-preview scenario is implemented (DiagramsTree DiagramPreview uses StaticLikeC4Diagram, which now defaults static=true) but is not directly asserted by an e2e test; only landing cards, /export/model, and the interactive page are e2e-covered.",
+      "recommendation": "Optional: add a hover-preview assertion to the landing-cards test for direct coverage.",
+      "evidenceCitations": [
+        "likec4/packages/likec4-spa/src/components/sidebar/DiagramsTree.tsx"
+      ]
+    }
+  ],
+  "tasksFileHash": "00c04d71d14d35a7ba0edbb0f16085a27cd3f79a191dc77e780d5d5e894604d2",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/browser-change-panel-draggable-static-hide/design.md",
+      ".xirang/changes/browser-change-panel-draggable-static-hide/elements/semantic-browser.md",
+      ".xirang/changes/browser-change-panel-draggable-static-hide/proposal.md",
+      ".xirang/changes/browser-change-panel-draggable-static-hide/tasks.md",
+      "likec4/packages/diagram/src/LikeC4Diagram.props.ts",
+      "likec4/packages/diagram/src/LikeC4Diagram.tsx",
+      "likec4/packages/diagram/src/StaticLikeC4Diagram.tsx",
+      "likec4/packages/diagram/src/context/DiagramFeatures.tsx",
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+      "likec4/packages/likec4-spa/src/pages/ExportPage.tsx",
+      "test/e2e/browser-change-panel-static-hide.spec.ts"
+    ],
+    "evidenceFingerprint": "b0162b360090c45f2b4af6febcd3478256e7e0c4c17c5f40256ba355698aed4f",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/browser-change-panel-draggable-static-hide/design.md",
+        "hash": "3f80799876c59bff2672da633ad329f866ef262d844d1bfea6caca0e945d9864"
+      },
+      {
+        "path": ".xirang/changes/browser-change-panel-draggable-static-hide/elements/semantic-browser.md",
+        "hash": "63d90bdde464176e6f0967a671983fc9e959fdc8b457d6fcb1b72003befec58a"
+      },
+      {
+        "path": ".xirang/changes/browser-change-panel-draggable-static-hide/proposal.md",
+        "hash": "0b6f85e559cb5b283ed90d2eb39c4b61441b1cac660b0e7726923ed744bd5bbf"
+      },
+      {
+        "path": ".xirang/changes/browser-change-panel-draggable-static-hide/tasks.md",
+        "hash": "00c04d71d14d35a7ba0edbb0f16085a27cd3f79a191dc77e780d5d5e894604d2"
+      },
+      {
+        "path": "likec4/packages/diagram/src/context/DiagramFeatures.tsx",
+        "hash": "f83a8e4295d5d70c43a0ccbb4d9fbab008ce0a7581982e83e8c4d1fd93763759"
+      },
+      {
+        "path": "likec4/packages/diagram/src/LikeC4Diagram.props.ts",
+        "hash": "7b503b3dfe58775abc8557fccb30ef1cc7a7636a12910d83773a008ba232dced"
+      },
+      {
+        "path": "likec4/packages/diagram/src/LikeC4Diagram.tsx",
+        "hash": "2de62319a6b16232b8418bbee88993e5aed7cfaa5b63266acaf0bd948aa86147"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+        "hash": "4ae949f45c1ed3bbca89ebf4caddbb472d7aae5d2417fb2f0a2aece13fcc269c"
+      },
+      {
+        "path": "likec4/packages/diagram/src/StaticLikeC4Diagram.tsx",
+        "hash": "8b3a3f1cd5c534a47bb8fce9e66de1a63bc7b7e16e77bfe202ada2f2cdfc9008"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/pages/ExportPage.tsx",
+        "hash": "74c98c05fca1a20fe21e8198b234abcbe6c6857bf673d797dca1143365b32374"
+      },
+      {
+        "path": "test/e2e/browser-change-panel-static-hide.spec.ts",
+        "hash": "53e54ffaedb55a16e0a40395bf6cc53f2dc36f4e3e15269923133042d44ee907"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "1415a0ce50a9f477f89f5bf60317b83278965b96",
+    "gitDiffSummary": "baseCommit 5319a0a01 == HEAD (apply-isolation method none); scope = git status --short union. Evidence: 6 implementation source files + new e2e spec + change artifacts. Sibling change files attributed to browser-view-tree-export. Verified: forced diagram+spa typecheck pass, 38/38 unit tests pass, 32/32 e2e (desktop+mobile) pass including all 6 change-specific tests.",
+    "timestamp": "2026-08-04T18:04:53.414Z"
+  },
+  "optimization": {
+    "status": "IMPROVED",
+    "attempts": [
+      {
+        "timestamp": "2026-08-04T17:12:23.291Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-04T17:19:05.183Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-04T17:27:25.508Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-04T17:33:40.154Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-04T17:37:18.978Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-04T17:53:36.613Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-04T17:53:43.765Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-04T17:57:03.615Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-04T18:04:53.404Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-04T18:07:40.355Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-08-04T17:05:24.518Z",
+      "result": "PASS",
+      "issues": [
+        {
+          "severity": "SUGGESTION",
+          "requirement": null,
+          "task": null,
+          "message": ".gitignore adds '/.turbo/cache' (build-cache ignore); benign tooling outside this change's and the sibling's declared Files scope.",
+          "recommendation": "Accept as incidental tooling hygiene.",
+          "evidenceCitations": [
+            ".gitignore"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "requirement": "静态渲染上下文不呈现浮动 Change 面板",
+          "task": null,
+          "message": "Sidebar hover-preview scenario is implemented (DiagramsTree DiagramPreview uses StaticLikeC4Diagram, which now defaults static=true) but is not directly asserted by an e2e test; only landing cards, /export/model, and the interactive page are e2e-covered.",
+          "recommendation": "Optional: add a hover-preview assertion to the landing-cards test for direct coverage.",
+          "evidenceCitations": [
+            "likec4/packages/likec4-spa/src/components/sidebar/DiagramsTree.tsx"
+          ]
+        }
+      ],
+      "tasksFileHash": "00c04d71d14d35a7ba0edbb0f16085a27cd3f79a191dc77e780d5d5e894604d2",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/browser-change-panel-draggable-static-hide/design.md",
+          ".xirang/changes/browser-change-panel-draggable-static-hide/elements/semantic-browser.md",
+          ".xirang/changes/browser-change-panel-draggable-static-hide/proposal.md",
+          ".xirang/changes/browser-change-panel-draggable-static-hide/tasks.md",
+          "likec4/packages/diagram/src/LikeC4Diagram.props.ts",
+          "likec4/packages/diagram/src/LikeC4Diagram.tsx",
+          "likec4/packages/diagram/src/StaticLikeC4Diagram.tsx",
+          "likec4/packages/diagram/src/context/DiagramFeatures.tsx",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/likec4-spa/src/pages/ExportPage.tsx",
+          "test/e2e/browser-change-panel-static-hide.spec.ts"
+        ],
+        "evidenceFingerprint": "4882025bc6a1c841e0b9b2c8f775ee41cfcf377d5a6350e5f275aaaaa547e85f",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/browser-change-panel-draggable-static-hide/design.md",
+            "hash": "3f80799876c59bff2672da633ad329f866ef262d844d1bfea6caca0e945d9864"
+          },
+          {
+            "path": ".xirang/changes/browser-change-panel-draggable-static-hide/elements/semantic-browser.md",
+            "hash": "63d90bdde464176e6f0967a671983fc9e959fdc8b457d6fcb1b72003befec58a"
+          },
+          {
+            "path": ".xirang/changes/browser-change-panel-draggable-static-hide/proposal.md",
+            "hash": "0b6f85e559cb5b283ed90d2eb39c4b61441b1cac660b0e7726923ed744bd5bbf"
+          },
+          {
+            "path": ".xirang/changes/browser-change-panel-draggable-static-hide/tasks.md",
+            "hash": "00c04d71d14d35a7ba0edbb0f16085a27cd3f79a191dc77e780d5d5e894604d2"
+          },
+          {
+            "path": "likec4/packages/diagram/src/context/DiagramFeatures.tsx",
+            "hash": "f83a8e4295d5d70c43a0ccbb4d9fbab008ce0a7581982e83e8c4d1fd93763759"
+          },
+          {
+            "path": "likec4/packages/diagram/src/LikeC4Diagram.props.ts",
+            "hash": "7b503b3dfe58775abc8557fccb30ef1cc7a7636a12910d83773a008ba232dced"
+          },
+          {
+            "path": "likec4/packages/diagram/src/LikeC4Diagram.tsx",
+            "hash": "2de62319a6b16232b8418bbee88993e5aed7cfaa5b63266acaf0bd948aa86147"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "hash": "383c1f70eec81bf9d6a27d8fea0a65ab4d46a765ab71823609e5f92a7b6448a7"
+          },
+          {
+            "path": "likec4/packages/diagram/src/StaticLikeC4Diagram.tsx",
+            "hash": "8b3a3f1cd5c534a47bb8fce9e66de1a63bc7b7e16e77bfe202ada2f2cdfc9008"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/pages/ExportPage.tsx",
+            "hash": "74c98c05fca1a20fe21e8198b234abcbe6c6857bf673d797dca1143365b32374"
+          },
+          {
+            "path": "test/e2e/browser-change-panel-static-hide.spec.ts",
+            "hash": "cb012202cc5092bf97af2510b5b223f7dfb2ad9d85363693df522bc17cce33af"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "5319a0a014eb170cc0ee1df28fa9f04d82469896",
+        "gitDiffSummary": "baseCommit 5319a0a01 == HEAD (apply-isolation method none); scope = git status --short union. Evidence: 6 implementation source files + new e2e spec + change artifacts. Sibling change files attributed to browser-view-tree-export. Verified: forced diagram+spa typecheck pass, 38/38 unit tests pass, 32/32 e2e (desktop+mobile) pass including all 6 change-specific tests."
+      }
+    },
+    "findings": [
+      {
+        "status": "resolved",
+        "location": {
+          "files": [
+            "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx"
+          ],
+          "symbols": [
+            "XirangArchitectureOverlay",
+            "getArchitectureOverlayModel"
+          ]
+        },
+        "opportunity": "XirangArchitectureOverlay re-renders on every diagram-state change (4 useDiagramSelector subscriptions) and on each render rebuilds the declarations Map, childrenByIdentity Map, breadcrumbIdentities ancestor walk, and calls getArchitectureOverlayModel(selected) which filters diff entries, builds changed/context Sets and runs three sorts. selected is referentially stable across these re-renders (provider useMemo on [selectedId, sources, mode]), so all of this O(elements + entries*log(entries)) work is redundant between interactions.",
+        "impact": "Removes repeated allocation and sorting of element/diff maps on every focus/expand/view-update interaction, reducing per-interaction work from O(elements + entries*log(entries)) to O(1) for unchanged selected.",
+        "evidence": [
+          "DiagramUI.tsx:120-133 declarations Map + rootIdentity + childrenByIdentity rebuilt every render",
+          "DiagramUI.tsx:136-140 breadcrumbIdentities while-loop rebuilt every render",
+          "DiagramUI.tsx:346 overlay = getArchitectureOverlayModel(selected) recomputed every render",
+          "DiagramUI.tsx:101-117 component subscribes via useDiagramSelector to currentView/isReady/focusIdentity/expandedNodes",
+          "ContractLoaderContext.tsx:213-219 provider memoizes value with useMemo([selectedId, sources, mode])"
+        ],
+        "recommendation": "Wrap the derived computations in useMemo keyed on their true inputs: declarations/childrenByIdentity/rootIdentity on [selected]; breadcrumbIdentities on [declarations, focusIdentity, rootIdentity]; overlay on [selected]. Keep all hooks unconditional and ordered before the early returns.",
+        "keyDesign": "Add useMemo to the react import. Compute declarations/childrenByIdentity/rootIdentity in one useMemo([selected]); breadcrumbIdentities in useMemo([declarations, focusIdentity, rootIdentity]); overlay in useMemo([selected]). Memoized values are pure functions of their keys, so diagram-state re-renders return cached results.",
+        "preservationConstraints": [
+          "All hooks (including new useMemo calls) must remain unconditional and in the same order, before the enableStaticView and semantic-model early returns",
+          "Memo invalidation must close over every input: selected for declarations/childrenByIdentity/rootIdentity/overlay; focusIdentity and rootIdentity for breadcrumbIdentities",
+          "A manifest reload producing a new selected object must invalidate all memos",
+          "rootIdentity must remain the unique declaration with parent === null; breadcrumb ancestor chain order (unshift) preserved",
+          "getArchitectureOverlayModel output (sorted changed/context/metamodel, counts, diagnostics) must stay value-identical",
+          "No change to rendered DOM, data-xirang-* attributes, drag behavior, or the static-mode hidden marker Box"
+        ],
+        "validation": [
+          "Unit specs still pass: architectureView.spec.ts, ContractLoaderContext.spec.tsx, diagram-view.spec.ts",
+          "e2e 'drags the Change panel' proves interactive panel/breadcrumb render and drag unchanged",
+          "e2e 'hides the Change panel on landing cards' and 'exports without the Change panel' prove static-mode hidden marker unchanged"
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "priorityReason": "Removes provably redundant O(elements + entries*log(entries)) work on every diagram interaction with referentially stable selected making memo keys provably correct.",
+        "implementationOutline": [
+          "Add useMemo to the react import in DiagramUI.tsx",
+          "Wrap declarations/rootIdentity/childrenByIdentity block in one useMemo(() => ({ declarations, childrenByIdentity, rootIdentity }), [selected])",
+          "Wrap breadcrumbIdentities while-loop in useMemo(..., [declarations, focusIdentity, rootIdentity])",
+          "Replace `const overlay = getArchitectureOverlayModel(selected)` with a useMemo keyed on [selected]",
+          "Run `cd likec4 && pnpm --filter @likec4/diagram typecheck`; run diagram unit specs; run the change e2e specs on desktop+mobile"
+        ],
+        "dependencies": [],
+        "id": "OPT-20260804T171223287Z-01",
+        "targetFileHashes": {
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "383c1f70eec81bf9d6a27d8fea0a65ab4d46a765ab71823609e5f92a7b6448a7"
+        }
+      },
+      {
+        "status": "resolved",
+        "location": {
+          "files": [
+            "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx"
+          ],
+          "symbols": [
+            "XirangArchitectureOverlay",
+            "breadcrumb",
+            "XirangArchitectureOverlay panel motion.div"
+          ]
+        },
+        "opportunity": "The panel and focus breadcrumb each carry an identical motion.div drag configuration plus an identical drag-handle Group pattern — the drag behavior contract is duplicated verbatim in two places.",
+        "impact": "Removes ~20 duplicated lines and establishes a single source of truth for the floating-chrome drag contract, reducing future behavioral drift risk.",
+        "evidence": [
+          "DiagramUI.tsx:143-152 breadcrumb motion.div drag config",
+          "DiagramUI.tsx:351-356 panel motion.div drag config",
+          "DiagramUI.tsx:153-161 and 377-384 both handles are Group[data-xirang-drag-handle] with onPointerDown + cursor grab + IconGripVertical"
+        ],
+        "recommendation": "Extract a small FloatingChrome component wrapping the shared motion.div configuration (accepting dragControls, position, children); keep the two handle Groups inline if the breadcrumb's extra data-xirang-focus-breadcrumb attribute must be preserved.",
+        "keyDesign": "function FloatingChrome({ dragControls, position, children }) returning motion.div with drag/dragControls/dragElastic=0/dragMomentum=false/dragListener=false and style {position:absolute, zIndex:5, pointerEvents:all, touchAction:none, ...position}. Panel position {right:16, top:16}; breadcrumb {left:16, top:72}. DOM/data-attribute structure inside stays byte-identical.",
+        "preservationConstraints": [
+          "Drag semantics identical: handle-only start, no momentum, no elastic, touch-action none",
+          "Panel anchored right:16/top:16; breadcrumb left:16/top:72",
+          "Preserve data-xirang-focus-breadcrumb on the breadcrumb Group and data-xirang-drag-handle with exactly one grip svg per handle",
+          "Preserve data-xirang-architecture-overlay and data-xirang-architecture-mode on the panel Box",
+          "stopPropagation + dragControls.start must fire only on handle pointerdown; panel-internal controls must not start a drag"
+        ],
+        "validation": [
+          "e2e 'drags the Change panel' proves panel and breadcrumb still drag with [data-xirang-drag-handle] svg count 1 per handle",
+          "e2e static-hide/export specs prove data-xirang-architecture-overlay and data-xirang-focus-breadcrumb presence/absence unchanged",
+          "Diagram unit specs still pass"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "priorityReason": "Pure duplication removal with modest impact, trivially safe.",
+        "implementationOutline": [
+          "Add a module-private FloatingChrome helper in DiagramUI.tsx",
+          "Replace the breadcrumb motion.div and panel motion.div with FloatingChrome usages passing dragControls and position",
+          "Verify the handle Groups remain structurally unchanged (breadcrumb keeps data-xirang-focus-breadcrumb)",
+          "Run `cd likec4 && pnpm --filter @likec4/diagram typecheck` and the change e2e specs on desktop+mobile"
+        ],
+        "dependencies": [],
+        "id": "OPT-20260804T171223287Z-02",
+        "targetFileHashes": {
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "6496f52c681df43ec14b0c7fec49e1c4e649680a38d76cb38f470f71d15941b7"
+        }
+      },
+      {
+        "status": "resolved",
+        "location": {
+          "files": [
+            "test/e2e/browser-change-panel-static-hide.spec.ts"
+          ],
+          "symbols": [
+            "test 'browses Model View and hides the Change panel on landing cards'"
+          ]
+        },
+        "opportunity": "The Phase 1 SUGGESTION remains open: the sidebar hover-preview static context is implemented but no e2e directly asserts the hover preview shows no floating Change panel or breadcrumb.",
+        "impact": "Directly closes the non-terminal Phase 1 coverage gap for the '侧边栏悬停预览不显示浮动面板' scenario.",
+        "evidence": [
+          ".verify-result.json SUGGESTION: 'Sidebar hover-preview scenario is implemented ... but is not directly asserted by an e2e test'",
+          "likec4/packages/likec4-spa/src/components/sidebar/DiagramsTree.tsx DiagramPreviewHoverCard renders DiagramPreview which uses StaticLikeC4Diagram (default static=true)"
+        ],
+        "recommendation": "Extend the landing-cards e2e test: after selecting a change source and returning to '/', hover a sidebar view entry that has a preview, then assert the hover preview contains no visible [data-xirang-architecture-overlay] and no visible [data-xirang-focus-breadcrumb].",
+        "keyDesign": "Reuse the existing landing-cards test flow. Add a hover interaction on a sidebar view row and assert the hover preview's own .likec4-static-view container has overlay/breadcrumb :visible count 0. Keep the test name containing 'browses Model View' for grep matching.",
+        "preservationConstraints": [
+          "Test-only change; no production behavior or DOM change",
+          "Keep the test name matching the existing playwright desktop/mobile grep patterns; no grep list changes",
+          "Assertions must target the hover preview's own static container, not the interactive page overlay",
+          "Must not make the e2e suite materially slower"
+        ],
+        "validation": [
+          "The extended landing-cards e2e passes on desktop+mobile",
+          "Existing 32/32 e2e suite still passes"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "priorityReason": "Test hardening reconciling the open Phase 1 SUGGESTION.",
+        "implementationOutline": [
+          "In browser-change-panel-static-hide.spec.ts landing-cards test, after the card assertions, locate a sidebar view entry with a preview and hover it",
+          "Wait for the .likec4-static-view hover preview to be visible, then assert no visible [data-xirang-architecture-overlay] and no visible [data-xirang-focus-breadcrumb] inside it",
+          "Run `pnpm likec4:build && pnpm exec playwright test --project=desktop --project=mobile -g \"hides the Change panel on landing cards\"`"
+        ],
+        "dependencies": [],
+        "id": "OPT-20260804T171223287Z-03",
+        "targetFileHashes": {
+          "test/e2e/browser-change-panel-static-hide.spec.ts": "53e54ffaedb55a16e0a40395bf6cc53f2dc36f4e3e15269923133042d44ee907"
+        }
+      },
+      {
+        "status": "resolved",
+        "location": {
+          "files": [
+            "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx"
+          ],
+          "symbols": [
+            "XirangArchitectureOverlay",
+            "materialize useEffect"
+          ]
+        },
+        "opportunity": "OPT-01 memoized declarations/rootIdentity in render scope, but the materialize useEffect still rebuilds the identical declarations Map and rootIdentity from selected.architecture?.elements on every focus/expand/mode/view update, duplicating the same O(elements) work the memo already caches.",
+        "impact": "Removes a redundant O(elements) Map allocation and root-identity scan from every XirangArchitectureOverlay materialize effect run; ancestor walk, materialize call, and view sends unchanged.",
+        "evidence": [
+          "DiagramUI.tsx render-scope useMemo([selected]) computes declarations Map, rootIdentity (parent === null), childrenByIdentity",
+          "DiagramUI.tsx materialize effect rebuilds new Map(elements.map(...)) and .find(declaration.parent === null) from the same selected.architecture?.elements",
+          "Effect deps already include selected and selectedRevision"
+        ],
+        "recommendation": "Delete the effect-local elements/declarations/rootIdentity derivation and close over the render-scope memoized declarations/rootIdentity; add declarations and rootIdentity to the effect dependency array.",
+        "keyDesign": "The materialize effect reads the memoized declarations Map and rootIdentity from the render scope. Because the memo is keyed on [selected] and the effect already depends on selected, referential stability guarantees fresh values exactly when they change and no extra runs.",
+        "preservationConstraints": [
+          "Effect-visible declarations/rootIdentity must equal the current derivation",
+          "Adding declarations/rootIdentity to the deps array must not change effect firing frequency",
+          "selectedSourceId-change navigate.focus, previousAncestorPath walk order, resolvedFocus, materializeXirangArchitectureView call, and update.view/navigate.focus sends must remain identical",
+          "No new hooks and no change to hook order"
+        ],
+        "implementationOutline": [
+          "In the materialize useEffect, remove the local elements/declarations/rootIdentity derivation",
+          "Reference the render-scope memoized declarations/rootIdentity inside the effect; add declarations and rootIdentity to the effect dependency array",
+          "Run `cd likec4 && pnpm --filter @likec4/diagram typecheck`; run diagram unit specs",
+          "Run the change e2e specs (drags the Change panel + static-hide) on desktop and mobile"
+        ],
+        "validation": [
+          "Diagram unit specs still pass",
+          "e2e 'drags the Change panel' proves selecting a change source still materializes the view and drag behavior unchanged",
+          "e2e landing-cards and export static-hide specs unchanged"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Statically provable duplication of the OPT-01 memoized derivation inside a per-interaction effect with no new effect invocations; ranks second behind OPT-03.",
+        "id": "OPT-20260804T173718974Z-01",
+        "targetFileHashes": {
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "303b7afc05c3115c898c20062f76234e2f4f137c4870439a0755d111ef77633f"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-04T17:12:23.287Z",
+        "findingId": "OPT-20260804T171223287Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-04T17:12:23.287Z",
+        "findingId": "OPT-20260804T171223287Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-04T17:12:23.287Z",
+        "findingId": "OPT-20260804T171223287Z-03"
+      },
+      {
+        "sequence": 4,
+        "action": "select",
+        "reason": "Removes provably redundant O(elements + entries*log(entries)) work on every diagram interaction with referentially stable selected making memo keys provably correct.",
+        "timestamp": "2026-08-04T17:12:23.291Z",
+        "findingId": "OPT-20260804T171223287Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "383c1f70eec81bf9d6a27d8fea0a65ab4d46a765ab71823609e5f92a7b6448a7"
+        }
+      },
+      {
+        "sequence": 5,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-04T17:12:46.544Z",
+        "findingId": "OPT-20260804T171223287Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "383c1f70eec81bf9d6a27d8fea0a65ab4d46a765ab71823609e5f92a7b6448a7"
+        }
+      },
+      {
+        "sequence": 6,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-04T17:19:05.184Z",
+        "findingId": "OPT-20260804T171223287Z-01"
+      },
+      {
+        "sequence": 7,
+        "action": "resolve",
+        "reason": "Verified (PASS) and checkpoint committed 91206566a; terminal.",
+        "timestamp": "2026-08-04T17:27:25.504Z",
+        "findingId": "OPT-20260804T171223287Z-01"
+      },
+      {
+        "sequence": 8,
+        "action": "retain",
+        "reason": "Open declared Element Contract coverage gap (sidebar hover-preview not e2e-asserted); test-only, high confidence, low risk/cost; ranks first.",
+        "timestamp": "2026-08-04T17:27:25.504Z",
+        "findingId": "OPT-20260804T171223287Z-03"
+      },
+      {
+        "sequence": 9,
+        "action": "retain",
+        "reason": "Floating-chrome drag configuration duplicated verbatim in two places; extraction removes ~20 lines, trivially safe; ranks second.",
+        "timestamp": "2026-08-04T17:27:25.504Z",
+        "findingId": "OPT-20260804T171223287Z-02"
+      },
+      {
+        "sequence": 10,
+        "action": "select",
+        "reason": "Pure duplication removal with modest impact, trivially safe.",
+        "timestamp": "2026-08-04T17:27:25.508Z",
+        "findingId": "OPT-20260804T171223287Z-02",
+        "hashes": {
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "6496f52c681df43ec14b0c7fec49e1c4e649680a38d76cb38f470f71d15941b7"
+        }
+      },
+      {
+        "sequence": 11,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-04T17:27:39.701Z",
+        "findingId": "OPT-20260804T171223287Z-02",
+        "hashes": {
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "6496f52c681df43ec14b0c7fec49e1c4e649680a38d76cb38f470f71d15941b7"
+        }
+      },
+      {
+        "sequence": 12,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-04T17:33:40.155Z",
+        "findingId": "OPT-20260804T171223287Z-02"
+      },
+      {
+        "sequence": 13,
+        "action": "resolve",
+        "reason": "Verified PASS and checkpoint committed 5ff6d1f5e; FloatingChrome extraction terminal.",
+        "timestamp": "2026-08-04T17:37:18.974Z",
+        "findingId": "OPT-20260804T171223287Z-02"
+      },
+      {
+        "sequence": 14,
+        "action": "retain",
+        "reason": "Open coverage gap persists: sidebar hover-preview scenario implemented but not e2e-asserted. Test-only, high confidence, low risk/cost; ranks first.",
+        "timestamp": "2026-08-04T17:37:18.974Z",
+        "findingId": "OPT-20260804T171223287Z-03"
+      },
+      {
+        "sequence": 15,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-04T17:37:18.974Z",
+        "findingId": "OPT-20260804T173718974Z-01"
+      },
+      {
+        "sequence": 16,
+        "action": "select",
+        "reason": "Test hardening reconciling the open Phase 1 SUGGESTION.",
+        "timestamp": "2026-08-04T17:37:18.978Z",
+        "findingId": "OPT-20260804T171223287Z-03",
+        "hashes": {
+          "test/e2e/browser-change-panel-static-hide.spec.ts": "cb012202cc5092bf97af2510b5b223f7dfb2ad9d85363693df522bc17cce33af"
+        }
+      },
+      {
+        "sequence": 17,
+        "action": "retain",
+        "reason": "Re-selected to refresh target hashes after the test file was edited; content re-verified fully realized (spec lines 22-33), test-only, e2e 6/6. Will verify then resolve.",
+        "timestamp": "2026-08-04T17:53:36.609Z",
+        "findingId": "OPT-20260804T171223287Z-03"
+      },
+      {
+        "sequence": 18,
+        "action": "retain",
+        "reason": "Materialize useEffect still rebuilds declarations Map + rootIdentity from selected.architecture?.elements, duplicating the render-scope useMemo([selected]) derivation. Closing over memoized values with deps addition is firing-frequency-neutral. Sole actionable finding.",
+        "timestamp": "2026-08-04T17:53:36.609Z",
+        "findingId": "OPT-20260804T173718974Z-01"
+      },
+      {
+        "sequence": 19,
+        "action": "select",
+        "reason": "Test hardening reconciling the open Phase 1 SUGGESTION.",
+        "timestamp": "2026-08-04T17:53:36.613Z",
+        "findingId": "OPT-20260804T171223287Z-03",
+        "hashes": {
+          "test/e2e/browser-change-panel-static-hide.spec.ts": "53e54ffaedb55a16e0a40395bf6cc53f2dc36f4e3e15269923133042d44ee907"
+        }
+      },
+      {
+        "sequence": 20,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-04T17:53:43.593Z",
+        "findingId": "OPT-20260804T171223287Z-03",
+        "hashes": {
+          "test/e2e/browser-change-panel-static-hide.spec.ts": "53e54ffaedb55a16e0a40395bf6cc53f2dc36f4e3e15269923133042d44ee907"
+        }
+      },
+      {
+        "sequence": 21,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-04T17:53:43.766Z",
+        "findingId": "OPT-20260804T171223287Z-03"
+      },
+      {
+        "sequence": 22,
+        "action": "resolve",
+        "reason": "Verified PASS persisted at HEAD 1415a0ce5 (opt-r3). Implementation fully realized and closes the Phase 1 SUGGESTION and '侧边栏悬停预览不显示浮动面板' scenario. Terminal.",
+        "timestamp": "2026-08-04T17:57:03.612Z",
+        "findingId": "OPT-20260804T171223287Z-03"
+      },
+      {
+        "sequence": 23,
+        "action": "retain",
+        "reason": "Materialize useEffect still rebuilds declarations Map + rootIdentity from selected.architecture?.elements, duplicating the render-scope useMemo([selected]) derivation. Closing over memoized values with deps addition is firing-frequency-neutral. Sole actionable finding.",
+        "timestamp": "2026-08-04T17:57:03.612Z",
+        "findingId": "OPT-20260804T173718974Z-01"
+      },
+      {
+        "sequence": 24,
+        "action": "select",
+        "reason": "Statically provable duplication of the OPT-01 memoized derivation inside a per-interaction effect with no new effect invocations; ranks second behind OPT-03.",
+        "timestamp": "2026-08-04T17:57:03.615Z",
+        "findingId": "OPT-20260804T173718974Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "303b7afc05c3115c898c20062f76234e2f4f137c4870439a0755d111ef77633f"
+        }
+      },
+      {
+        "sequence": 25,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-04T17:57:24.410Z",
+        "findingId": "OPT-20260804T173718974Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "303b7afc05c3115c898c20062f76234e2f4f137c4870439a0755d111ef77633f"
+        }
+      },
+      {
+        "sequence": 26,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-04T18:04:53.404Z",
+        "findingId": "OPT-20260804T173718974Z-01"
+      },
+      {
+        "sequence": 27,
+        "action": "resolve",
+        "reason": "OPT-20260804T173718974Z-01 verified PASS (fresh reviewer) and checkpoint e0671c988 committed; current code no longer contains the duplicated derivation. No remaining actionable findings.",
+        "timestamp": "2026-08-04T18:07:40.354Z",
+        "findingId": "OPT-20260804T173718974Z-01"
+      }
+    ],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}

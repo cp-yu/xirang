@@ -29,6 +29,10 @@ const FeatureNames = [
    */
   'Vscode',
   'ElementTags',
+  /**
+   * Rendering in a static context (thumbnail, preview, export)
+   */
+  'StaticView',
 ] as const
 export type FeatureName = typeof FeatureNames[number]
 
@@ -66,6 +70,7 @@ export const DefaultFeatures: EnabledFeatures = {
   enableVscode: false,
   enableElementTags: false,
   enableNotes: false,
+  enableStaticView: false,
 }
 const DiagramFeaturesContext = createContext<EnabledFeatures>(DefaultFeatures)
 

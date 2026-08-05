@@ -129,9 +129,9 @@ Semantic Browser SHALL 通过 Xirang-specific Contract loader、provider、tab �
 - **THEN** Contract state 对应当前选中的 Element 与 View source，且仅反映最新加载请求的结果
 
 #### Scenario: 新请求替代旧请求
+
 - **WHEN** 用户在前一个 Contract request 完成前切换 Element、Model View、Candidate source 或 Change-derived View
 - **THEN** Browser 取消或忽略旧请求，且旧结果不得覆盖当前 Contract state
-
 
 #### Scenario: 使用 Contract selectors
 
@@ -467,3 +467,110 @@ Semantic Browser SHALL 将 Model View、Candidate View、Candidate Diff View 与
 - **WHEN** 用户导航到 Authored View 路由
 - **THEN** Xirang 导航参数不作用于该 View
 - **AND** 该 View 的 URL 不保留 source、focus 或 mode 参数
+
+### Requirement: 浮动 Change 面板可拖动
+
+Semantic Browser 的浮动 Change 面板 SHALL 可通过面板头部拖动手柄在 diagram 容器内移动；拖动 SHALL NOT 触发 diagram 平移，且面板内控件交互（View source 选择、Full/Diff 切换、Plan 文档入口）SHALL 保持可用。面板位置是运行时呈现状态，SHALL NOT 持久化。
+
+#### Scenario: 拖动 Change 面板
+
+- **WHEN** 用户按住面板头部拖动手柄并在 diagram 容器内移动指针
+- **THEN** 面板跟随指针移动
+- **AND** diagram 视图 SHALL NOT 随之平移或缩放
+
+#### Scenario: 面板内控件交互不受拖动干扰
+
+- **WHEN** 用户点击面板内 View source 选择器、Full/Diff 切换按钮或 Plan 文档入口
+- **THEN** 对应操作正常响应
+- **AND** 该交互 SHALL NOT 启动面板拖动
+
+#### Scenario: 刷新后面板位置复位
+
+- **WHEN** 用户拖动面板后刷新页面
+- **THEN** 面板回到默认位置
+- **AND** 拖动位置 SHALL NOT 在会话间保留
+
+#### Scenario: 拖动手柄带视觉提示
+
+- **WHEN** 面板头部拖动手柄渲染
+- **THEN** 头部 SHALL 显示 grip 图标与 grab 光标作为可拖动提示
+- **AND** 提示 SHALL NOT 影响面板内控件交互
+
+### Requirement: focus breadcrumb 可拖动
+
+Semantic Browser 的 focus breadcrumb 导航 SHALL 可通过拖动手柄在 diagram 容器内移动，使用户可将它移开以避免遮挡编辑器控件；拖动 SHALL NOT 触发 diagram 平移，且 breadcrumb 内元素按钮的 focus 导航 SHALL 保持可用。
+
+#### Scenario: 拖动 breadcrumb
+
+- **WHEN** 用户按住 breadcrumb 拖动手柄并在 diagram 容器内移动指针
+- **THEN** breadcrumb 跟随指针移动
+- **AND** diagram 视图 SHALL NOT 随之平移或缩放
+
+#### Scenario: breadcrumb 按钮仍可导航
+
+- **WHEN** 用户点击 breadcrumb 内的元素按钮
+- **THEN** 对应元素成为 focus
+- **AND** 该点击 SHALL NOT 启动拖动
+
+### Requirement: 静态渲染上下文不呈现浮动 Change 面板
+
+Semantic Browser 的浮动 Change 面板与 breadcrumb 导航 SHALL 仅在交互式渲染中呈现；在静态渲染上下文——首页视图卡片、侧边栏视图悬停预览与 PNG/JPG 导出图——SHALL NOT 呈现。
+
+#### Scenario: 首页视图卡片不显示浮动面板
+
+- **WHEN** 首页渲染视图卡片网格
+- **THEN** 每张卡片中的静态视图 SHALL NOT 显示浮动 Change 面板或 breadcrumb
+
+#### Scenario: 侧边栏悬停预览不显示浮动面板
+
+- **WHEN** 用户在侧边栏视图条目上悬停以显示预览
+- **THEN** 预览 SHALL NOT 显示浮动 Change 面板或 breadcrumb
+
+#### Scenario: 导出图不包含浮动面板
+
+- **WHEN** 用户将视图导出为 PNG 或 JPEG 图像
+- **THEN** 导出图像 SHALL NOT 包含浮动 Change 面板或 breadcrumb
+
+#### Scenario: 交互式页面仍呈现浮动面板
+
+- **WHEN** 用户在交互式页面（如 `/view/model/`）浏览 Change-derived View 或 Candidate
+- **THEN** 浮动 Change 面板 SHALL 正常呈现且可拖动
+- **AND** 面板行为与静态渲染无关
+
+### Requirement: 提供当前 view 的层级树导出
+
+Semantic Browser SHALL 为当前 view 提供层级树导出：按视图内呈现元素的父子层级构建树，根为视图根元素，子元素按声明层级嵌套，且树 SHALL 仅包含当前 view 呈现的元素。
+
+#### Scenario: 导出当前 view 层级树
+
+- **WHEN** 用户从导出菜单选择层级树导出
+- **THEN** 打开层级树导出页，内容为当前 view 的元素层级树
+- **AND** 根节点为当前 view 的根元素，子孙按父子关系嵌套
+
+#### Scenario: 树仅含当前 view 元素
+
+- **WHEN** 当前 view 只呈现模型的一部分元素
+- **THEN** 层级树 SHALL 只包含该 view 呈现的元素及其层级
+- **AND** SHALL NOT 混入 view 之外的模型元素
+
+### Requirement: 层级树多格式与字段选择
+
+层级树导出 SHALL 支持三种序列化格式——纯文本缩进树（`├──`/`└──` 树形线）、Markdown 嵌套列表与 JSON 结构化层级——由用户在导出页选择；文本与 Markdown 每行内容 SHALL 按 `title`/`fqn`/`kind` 字段组合呈现，JSON SHALL 恒包含 `title`、`fqn`、`kind` 与 `children`。
+
+#### Scenario: 切换导出格式
+
+- **WHEN** 用户在层级树导出页选择纯文本、Markdown 或 JSON 格式
+- **THEN** 内容按所选格式重新渲染
+- **AND** 复制与下载的文件扩展名与所选格式一致（`.tree.txt`/`.tree.md`/`.tree.json`）
+
+#### Scenario: 选择每行字段
+
+- **WHEN** 用户勾选 `title`、`fqn` 与 `kind` 字段
+- **THEN** 文本与 Markdown 的每行按选中字段组合呈现
+- **AND** 未选中的字段不出现在行内容中
+
+#### Scenario: JSON 输出全字段
+
+- **WHEN** 格式为 JSON
+- **THEN** 输出为嵌套 JSON，每个节点包含 `title`、`fqn`、`kind` 与 `children`
+- **AND** 不受字段选择影响

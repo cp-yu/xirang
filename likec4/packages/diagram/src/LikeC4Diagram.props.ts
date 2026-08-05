@@ -269,6 +269,14 @@ export interface LikeC4DiagramProperties<A extends Any = Unknown> {
   reduceGraphics?: 'auto' | boolean | undefined
 
   /**
+   * Render the diagram in a static context (thumbnail, preview, export image).
+   * Static rendering suppresses interactive floating chrome such as the Change overlay panel.
+   *
+   * @default false
+   */
+  static?: boolean | undefined
+
+  /**
    * Render icon for an element, bundled or remote
    * By default, if icon is http:// or https://, it will be rendered as an image
    *

@@ -22,6 +22,7 @@ export type StaticLikeC4DiagramProps<A extends Any> = Pick<
   | 'renderNodes'
   | 'dynamicViewVariant'
   | 'where'
+  | 'static'
 >
 
 /**
@@ -38,6 +39,7 @@ export function StaticLikeC4Diagram<A extends Any = UnknownLayouted>({
   enableRelationshipBrowser = enableRelationshipDetails,
   background = 'transparent',
   className,
+  static: isStatic = true,
   ...rest
 }: StaticLikeC4DiagramProps<A>): JSX.Element {
   return (
@@ -62,6 +64,7 @@ export function StaticLikeC4Diagram<A extends Any = UnknownLayouted>({
       nodesSelectable={false}
       enableElementTags={false}
       enableNotes={false}
+      static={isStatic}
       {...rest}
     />
   )

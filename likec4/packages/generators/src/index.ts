@@ -20,6 +20,8 @@ export {
 export { generateMermaid } from './mmd/generate-mmd'
 export { generateLikeC4Model } from './model/generate-likec4-model'
 export { generatePuml } from './puml/generate-puml'
+export { buildViewTree, renderTreeMarkdown, renderTreeText, treeToJson } from './tree/generate-tree'
+export type { ViewTreeField, ViewTreeJsonNode, ViewTreeNode } from './tree/generate-tree'
 export { generateReactNext } from './react-next/generate-react-next'
 export { generateReactTypes } from './react/generate-react-types'
 export { generateViewsDataDTs, generateViewsDataJs, generateViewsDataTs } from './views-data-ts/generate-views-data'

@@ -1,0 +1,711 @@
+{
+  "timestamp": "2026-08-04T18:09:48.607Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "requirement": "层级树多格式与字段选择",
+      "task": "Task 4",
+      "message": "Check C1 command `pnpm test:e2e -- -g \"exports a hierarchy tree\"` fails with 'No tests found' (EXIT 1): pnpm forwards `--`, so Playwright treats `-g` as a file filter. The e2e itself passes when run as `pnpm exec playwright test --project=desktop --project=mobile -g \"exports a hierarchy tree\"` (2/2).",
+      "recommendation": "Fix the documented command in tasks.md (drop `--` or use `pnpm exec playwright test -g ...`); no implementation change needed.",
+      "evidenceCitations": [
+        "tasks.md",
+        "playwright.config.ts"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "requirement": "层级树多格式与字段选择",
+      "task": "Task 2",
+      "message": "likec4/pnpm-lock.yaml contains a mechanical vitest `@types/node@22 -> @types/node@24` drift unrelated to the tree-export feature (lockfile regenerated under a different node environment). Classified mechanical benign.",
+      "recommendation": "Regenerate the lockfile in the canonical environment so the snapshot diff only carries the `@likec4/generators` workspace link.",
+      "evidenceCitations": [
+        "likec4/pnpm-lock.yaml"
+      ]
+    }
+  ],
+  "tasksFileHash": "08c042be11a4f7dc4560f32cdf3f43582d789070d5dd0d9ec25ac6d9f93a3475",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/browser-view-tree-export/design.md",
+      ".xirang/changes/browser-view-tree-export/elements/semantic-browser.md",
+      ".xirang/changes/browser-view-tree-export/proposal.md",
+      ".xirang/changes/browser-view-tree-export/tasks.md",
+      "likec4/packages/generators/src/index.ts",
+      "likec4/packages/generators/src/tree/generate-tree.spec.ts",
+      "likec4/packages/generators/src/tree/generate-tree.ts",
+      "likec4/packages/likec4-spa/package.json",
+      "likec4/packages/likec4-spa/src/components/CopyToClipboard.tsx",
+      "likec4/packages/likec4-spa/src/components/view-page/Header.tsx",
+      "likec4/packages/likec4-spa/src/pages/ViewAsTree.tsx",
+      "likec4/packages/likec4-spa/src/routeTree.gen.ts",
+      "likec4/packages/likec4-spa/src/routes/_single/view.$viewId.tree.tsx",
+      "likec4/packages/likec4-spa/src/routes/project.$projectId/view.$viewId.tree.tsx",
+      "likec4/pnpm-lock.yaml",
+      "playwright.config.ts",
+      "test/e2e/browser-view-tree-export.spec.ts"
+    ],
+    "evidenceFingerprint": "9e143dec53a21a69cd217a6535deab893f1990a0a59af8dad8ad5f6c50e13c7d",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/browser-view-tree-export/design.md",
+        "hash": "8fc772b3d1d963e9ef02ff8ed46144b23c062ddca23e4be145a579960ad2a8ef"
+      },
+      {
+        "path": ".xirang/changes/browser-view-tree-export/elements/semantic-browser.md",
+        "hash": "12417f02d581949af2e0f111421325e2b20a70a456106291a6cbfc9f2dea111d"
+      },
+      {
+        "path": ".xirang/changes/browser-view-tree-export/proposal.md",
+        "hash": "0abd4b089dc120efeb44f2796c54960edd58614e7e1edf95748e1aaaaa2d1c87"
+      },
+      {
+        "path": ".xirang/changes/browser-view-tree-export/tasks.md",
+        "hash": "08c042be11a4f7dc4560f32cdf3f43582d789070d5dd0d9ec25ac6d9f93a3475"
+      },
+      {
+        "path": "likec4/packages/generators/src/index.ts",
+        "hash": "f1f743397048295eb3b16cdb1d023a1d72fa6e52c893f7985a62a3948778ec66"
+      },
+      {
+        "path": "likec4/packages/generators/src/tree/generate-tree.spec.ts",
+        "hash": "dd38414b76f2dbb24423f244c7a5c81fe7e298dcdb89d68dfac6e0b4833dfc50"
+      },
+      {
+        "path": "likec4/packages/generators/src/tree/generate-tree.ts",
+        "hash": "a43d27fbc7207a07f878e2877dc1666893bef7682d7ab694ffa0b0279ded5c1a"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/package.json",
+        "hash": "6ab6033499e50698781a483d5e6ec8166e8fdc429ede2d8b4cd07237c54fd54e"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/components/CopyToClipboard.tsx",
+        "hash": "facc25533bcaa4edca9e9e86ca2d06ab36a420e1ca2c4baa7c3f8d1fe9f9a3db"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/components/view-page/Header.tsx",
+        "hash": "019b635cc8aa117096c2e43ed86e69ead23af224c1f13d06a9b22e7ad419ae8e"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/pages/ViewAsTree.tsx",
+        "hash": "7af8a0aaf5a32f5d9a44ee76c2268f3e17b18722850fb0e78063c834ca081dc1"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/routes/_single/view.$viewId.tree.tsx",
+        "hash": "935e0ed162bb8a50fa36b3d507b29f25c31af4c8f4afc65f4418d25efae09ea1"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/routes/project.$projectId/view.$viewId.tree.tsx",
+        "hash": "8954acad41223a0e9f616861fd3affd05da386b170efce890abb03a79673233e"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/routeTree.gen.ts",
+        "hash": "32c21db6f4b18864e8316c0191c0e53ec1b2c2aed223045a2752d0966681d826"
+      },
+      {
+        "path": "likec4/pnpm-lock.yaml",
+        "hash": "9458f95c2b4adaad5aeb7e8389be1a2cf4e80c0dbb83c5e86fbb43c98b5f4268"
+      },
+      {
+        "path": "playwright.config.ts",
+        "hash": "7b2a124078fe135eb30c6c0db9dc8461d78098ab4fd198762b49b5213e9b31a2"
+      },
+      {
+        "path": "test/e2e/browser-view-tree-export.spec.ts",
+        "hash": "23ff7802a387344e7d429dfaa6b63b1192cba01c601ed657cb3a4e8f9fe9b8a1"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "6ed6723ba26b14f9c201d46a951884b81c4dcafb",
+    "gitDiffSummary": "HEAD == baseCommit 5319a0a01 (valid). All change work is uncommitted. Scope from git status --short union: tree-export files plus sibling change browser-change-panel-draggable-static-hide files (declared in that change's tasks.md). pnpm-lock.yaml updated for the new workspace dep (mechanical, plus unrelated vitest types drift). Verified via vitest (9 pass), spa typecheck (exit 0), e2e (2 pass).",
+    "timestamp": "2026-08-04T18:47:25.099Z"
+  },
+  "optimization": {
+    "status": "IMPROVED",
+    "attempts": [
+      {
+        "timestamp": "2026-08-04T18:15:45.577Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-04T18:20:31.720Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-04T18:25:49.245Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-04T18:29:39.250Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-04T18:34:09.963Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-04T18:36:18.692Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-04T18:40:45.834Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-04T18:47:25.086Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-04T18:51:06.941Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-08-04T18:09:48.607Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "requirement": "层级树多格式与字段选择",
+          "task": "Task 4",
+          "message": "Check C1 command `pnpm test:e2e -- -g \"exports a hierarchy tree\"` fails with 'No tests found' (EXIT 1): pnpm forwards `--`, so Playwright treats `-g` as a file filter. The e2e itself passes when run as `pnpm exec playwright test --project=desktop --project=mobile -g \"exports a hierarchy tree\"` (2/2).",
+          "recommendation": "Fix the documented command in tasks.md (drop `--` or use `pnpm exec playwright test -g ...`); no implementation change needed.",
+          "evidenceCitations": [
+            "tasks.md",
+            "playwright.config.ts"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "requirement": "层级树多格式与字段选择",
+          "task": "Task 2",
+          "message": "likec4/pnpm-lock.yaml contains a mechanical vitest `@types/node@22 -> @types/node@24` drift unrelated to the tree-export feature (lockfile regenerated under a different node environment). Classified mechanical benign.",
+          "recommendation": "Regenerate the lockfile in the canonical environment so the snapshot diff only carries the `@likec4/generators` workspace link.",
+          "evidenceCitations": [
+            "likec4/pnpm-lock.yaml"
+          ]
+        }
+      ],
+      "tasksFileHash": "08c042be11a4f7dc4560f32cdf3f43582d789070d5dd0d9ec25ac6d9f93a3475",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/browser-view-tree-export/design.md",
+          ".xirang/changes/browser-view-tree-export/elements/semantic-browser.md",
+          ".xirang/changes/browser-view-tree-export/proposal.md",
+          ".xirang/changes/browser-view-tree-export/tasks.md",
+          "likec4/packages/generators/src/index.ts",
+          "likec4/packages/generators/src/tree/generate-tree.spec.ts",
+          "likec4/packages/generators/src/tree/generate-tree.ts",
+          "likec4/packages/likec4-spa/package.json",
+          "likec4/packages/likec4-spa/src/components/CopyToClipboard.tsx",
+          "likec4/packages/likec4-spa/src/components/view-page/Header.tsx",
+          "likec4/packages/likec4-spa/src/pages/ViewAsTree.tsx",
+          "likec4/packages/likec4-spa/src/routeTree.gen.ts",
+          "likec4/packages/likec4-spa/src/routes/_single/view.$viewId.tree.tsx",
+          "likec4/packages/likec4-spa/src/routes/project.$projectId/view.$viewId.tree.tsx",
+          "likec4/pnpm-lock.yaml",
+          "playwright.config.ts",
+          "test/e2e/browser-view-tree-export.spec.ts"
+        ],
+        "evidenceFingerprint": "158b31729ed1997a263374530fbf69be1bbe9c9406e2379280c1a7bbd42ab094",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/browser-view-tree-export/design.md",
+            "hash": "8fc772b3d1d963e9ef02ff8ed46144b23c062ddca23e4be145a579960ad2a8ef"
+          },
+          {
+            "path": ".xirang/changes/browser-view-tree-export/elements/semantic-browser.md",
+            "hash": "12417f02d581949af2e0f111421325e2b20a70a456106291a6cbfc9f2dea111d"
+          },
+          {
+            "path": ".xirang/changes/browser-view-tree-export/proposal.md",
+            "hash": "0abd4b089dc120efeb44f2796c54960edd58614e7e1edf95748e1aaaaa2d1c87"
+          },
+          {
+            "path": ".xirang/changes/browser-view-tree-export/tasks.md",
+            "hash": "08c042be11a4f7dc4560f32cdf3f43582d789070d5dd0d9ec25ac6d9f93a3475"
+          },
+          {
+            "path": "likec4/packages/generators/src/index.ts",
+            "hash": "f1f743397048295eb3b16cdb1d023a1d72fa6e52c893f7985a62a3948778ec66"
+          },
+          {
+            "path": "likec4/packages/generators/src/tree/generate-tree.spec.ts",
+            "hash": "c18abc2d713e5dfb8df8465d244aa6a7a2fcdbaac77c923becfcf8e49a784a81"
+          },
+          {
+            "path": "likec4/packages/generators/src/tree/generate-tree.ts",
+            "hash": "78ec0caac1c2052072b2c16d6ed5c09422c09455c8d26051f7a4215ea6be1b24"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/package.json",
+            "hash": "6ab6033499e50698781a483d5e6ec8166e8fdc429ede2d8b4cd07237c54fd54e"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/components/CopyToClipboard.tsx",
+            "hash": "facc25533bcaa4edca9e9e86ca2d06ab36a420e1ca2c4baa7c3f8d1fe9f9a3db"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/components/view-page/Header.tsx",
+            "hash": "019b635cc8aa117096c2e43ed86e69ead23af224c1f13d06a9b22e7ad419ae8e"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/pages/ViewAsTree.tsx",
+            "hash": "a6ec2b52ae9b533587b5bd212018d8978bf62805239a4e98c34c11a3db49c906"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/routes/_single/view.$viewId.tree.tsx",
+            "hash": "5f799610d947d17fda8c000154148898b822f6870c817e0def7238a8c1c146fe"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/routes/project.$projectId/view.$viewId.tree.tsx",
+            "hash": "5f71e4431293487579b4fd0ffe4f30be1220b9bc629166a2e6374c54dc94e1f3"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/routeTree.gen.ts",
+            "hash": "32c21db6f4b18864e8316c0191c0e53ec1b2c2aed223045a2752d0966681d826"
+          },
+          {
+            "path": "likec4/pnpm-lock.yaml",
+            "hash": "9458f95c2b4adaad5aeb7e8389be1a2cf4e80c0dbb83c5e86fbb43c98b5f4268"
+          },
+          {
+            "path": "playwright.config.ts",
+            "hash": "7b2a124078fe135eb30c6c0db9dc8461d78098ab4fd198762b49b5213e9b31a2"
+          },
+          {
+            "path": "test/e2e/browser-view-tree-export.spec.ts",
+            "hash": "23ff7802a387344e7d429dfaa6b63b1192cba01c601ed657cb3a4e8f9fe9b8a1"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "e0671c9881a8c462380c09dbead2e7974b47fd3c",
+        "gitDiffSummary": "HEAD == baseCommit 5319a0a01 (valid). All change work is uncommitted. Scope from git status --short union: tree-export files plus sibling change browser-change-panel-draggable-static-hide files (declared in that change's tasks.md). pnpm-lock.yaml updated for the new workspace dep (mechanical, plus unrelated vitest types drift). Verified via vitest (9 pass), spa typecheck (exit 0), e2e (2 pass)."
+      }
+    },
+    "findings": [
+      {
+        "status": "resolved",
+        "location": {
+          "files": [
+            "likec4/packages/generators/src/tree/generate-tree.ts"
+          ],
+          "symbols": [
+            "nodeLabel",
+            "resolveFields",
+            "renderTreeText",
+            "renderTreeMarkdown"
+          ]
+        },
+        "opportunity": "ViewAsTree builds the fields array in checkbox-toggle order, so a user who unchecks and rechecks a field produces a non-canonical array such as ['fqn','kind','title']. nodeLabel then renders fields in array order, so text/Markdown lines become '[fqn] (kind) Title' instead of the documented fixed order '标题 [fqn] (kind)'.",
+        "impact": "Text and Markdown export lines become order-stable for any field-selection sequence, matching the documented fixed order and the snapshot contract.",
+        "evidence": [
+          "generate-tree.ts: nodeLabel iterates fields in array order; resolveFields only substitutes ['title'] when empty",
+          "ViewAsTree.tsx: checkbox onChange re-adding a field moves it to the end",
+          "generate-tree.spec.ts: snapshots only exercise canonical order ['title','fqn','kind']"
+        ],
+        "recommendation": "Canonicalize the selected field order inside resolveFields to the fixed ['title','fqn','kind'] sequence (filter the fixed order by membership).",
+        "keyDesign": "Add FIELD_ORDER = ['title','fqn','kind']; resolveFields = (fields.length === 0 ? ['title'] : fields) then FIELD_ORDER.filter(f => selected.includes(f)). nodeLabel keeps its switch. treeToJson untouched.",
+        "preservationConstraints": [
+          "Line content for canonical field arrays (all current snapshots and e2e) must be byte-identical",
+          "JSON output unaffected",
+          "Unselected fields never appear in text/Markdown lines",
+          "Empty array falls back to ['title']",
+          "No duplicates introduced (filter by membership is idempotent)"
+        ],
+        "implementationOutline": [
+          "Add the FIELD_ORDER constant",
+          "Rewrite resolveFields to filter the fixed order by membership",
+          "Keep nodeLabel and both renderers otherwise unchanged",
+          "Add a unit test asserting renderTreeText(roots, ['kind','title']) equals renderTreeText(roots, ['title','kind'])"
+        ],
+        "validation": [
+          "vitest run src/tree/generate-tree.spec.ts — existing snapshots unchanged plus the new order-insensitivity assertion",
+          "spa typecheck"
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Statically provable, user-reachable deviation from the documented fixed field order with a low-risk, behavior-preserving fix confined to the generators module and its unit tests.",
+        "id": "OPT-20260804T181545572Z-01",
+        "targetFileHashes": {
+          "likec4/packages/generators/src/tree/generate-tree.ts": "78ec0caac1c2052072b2c16d6ed5c09422c09455c8d26051f7a4215ea6be1b24"
+        }
+      },
+      {
+        "id": "OPT-20260804T181545572Z-02",
+        "status": "resolved",
+        "location": {
+          "files": [
+            "likec4/packages/generators/src/tree/generate-tree.ts"
+          ],
+          "symbols": [
+            "elementFqn",
+            "ViewNodeLike",
+            "buildViewTree"
+          ]
+        },
+        "opportunity": "elementFqn resolves fqn only from metadata.elementId or node.id, and ViewNodeLike omits modelRef/deploymentRef even though the real ComputedNode contract exposes both. Latent robustness/typing gap.",
+        "impact": "ViewNodeLike matches the ComputedNode identity contract; fqn is guaranteed to be the element or deployment identity with a documented precedence chain, at zero change to current output.",
+        "evidence": [
+          "generate-tree.ts elementFqn = metadata.elementId ?? node.id; ViewNodeLike lacks modelRef/deploymentRef",
+          "ComputedNode declares modelRef?: aux.Fqn and deploymentRef?: aux.DeploymentFqn",
+          "element views set id === modelRef === fqn; deployment views set deploymentRef === id",
+          "group/dynamic nodes carry no refs"
+        ],
+        "recommendation": "Extend ViewNodeLike with modelRef?: string and deploymentRef?: string; resolve fqn as metadata.elementId ?? deploymentRef ?? modelRef ?? id (deploymentRef must precede modelRef).",
+        "keyDesign": "elementFqn = typeof metadata?.elementId === 'string' ? metadata.elementId : (node.deploymentRef ?? node.modelRef ?? node.id). JSDoc documents precedence: metadata.elementId > deploymentRef > modelRef > id.",
+        "preservationConstraints": [
+          "Current fixtures/tests have no metadata.elementId and element-view node.id === modelRef -> output byte-identical",
+          "Deployment-view node.id === deploymentRef -> output byte-identical; deploymentRef before modelRef",
+          "Group/dynamic nodes carry no refs -> id fallback unchanged",
+          "metadata.elementId precedence preserved and documented",
+          "No change to tree structure, sorting, or serializers"
+        ],
+        "implementationOutline": [
+          "Add modelRef?: string; deploymentRef?: string to ViewNodeLike",
+          "Update elementFqn to the metadata.elementId ?? deploymentRef ?? modelRef ?? id chain with JSDoc",
+          "Add a deployment-view unit test pinning deployment identity",
+          "Run generator unit tests and spa typecheck"
+        ],
+        "validation": [
+          "vitest run src/tree/generate-tree.spec.ts — existing snapshots unchanged plus deployment identity assertion",
+          "pnpm --filter @likec4/spa typecheck"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Statically provable typing/robustness improvement confined to the generators module; byte-identical output; only remaining actionable.",
+        "targetFileHashes": {
+          "likec4/packages/generators/src/tree/generate-tree.ts": "24c701c609bd207ff53ecfe034fbfff46877217bc1d6ca697d04b61f660ad58e"
+        }
+      },
+      {
+        "status": "resolved",
+        "location": {
+          "files": [
+            "likec4/packages/likec4-spa/src/routes/_single/view.$viewId.tree.tsx",
+            "likec4/packages/likec4-spa/src/routes/project.$projectId/view.$viewId.tree.tsx",
+            "likec4/packages/likec4-spa/src/pages/ViewAsTree.tsx"
+          ],
+          "symbols": [
+            "validateSearch",
+            "stripSearchParams",
+            "TreeFormat"
+          ]
+        },
+        "opportunity": "The zod search schema and stripSearchParams defaults are byte-identical across the two tree route files, and ViewAsTree re-declares the same defaults plus a TreeFormat union duplicating the schema enum. Three places must stay in sync.",
+        "impact": "Single source of truth for the tree search contract; schema, defaults, and page behavior cannot drift.",
+        "evidence": [
+          "Both route files contain identical validateSearch + stripSearchParams",
+          "ViewAsTree re-declares format/fields defaults and type TreeFormat"
+        ],
+        "recommendation": "Extract a shared treeSearchSchema (zod schema + strip defaults + TreeFormat type + default constants) imported by both routes and ViewAsTree.",
+        "keyDesign": "New module likec4-spa/src/lib/tree-route-search.ts exporting treeSearchSchema, DEFAULT_TREE_FORMAT, DEFAULT_TREE_FIELDS, type TreeFormat.",
+        "preservationConstraints": [
+          "Identical validation semantics",
+          "Same defaults 'text' and ['title']",
+          "Route component and search-param serialization unchanged"
+        ],
+        "implementationOutline": [
+          "Create the shared module with schema, defaults, and type",
+          "Refactor both route files to import it",
+          "Refactor ViewAsTree to use the shared type and defaults",
+          "Run spa typecheck"
+        ],
+        "validation": [
+          "pnpm --filter @likec4/spa typecheck",
+          "e2e re-run"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "High-confidence DRY improvement with zero behavior change; maintenance-oriented.",
+        "id": "OPT-20260804T181545572Z-03",
+        "targetFileHashes": {
+          "likec4/packages/likec4-spa/src/routes/_single/view.$viewId.tree.tsx": "5f799610d947d17fda8c000154148898b822f6870c817e0def7238a8c1c146fe",
+          "likec4/packages/likec4-spa/src/routes/project.$projectId/view.$viewId.tree.tsx": "5f71e4431293487579b4fd0ffe4f30be1220b9bc629166a2e6374c54dc94e1f3",
+          "likec4/packages/likec4-spa/src/pages/ViewAsTree.tsx": "a6ec2b52ae9b533587b5bd212018d8978bf62805239a4e98c34c11a3db49c906"
+        }
+      },
+      {
+        "id": "OPT-20260804T181545572Z-04",
+        "status": "resolved",
+        "location": {
+          "files": [
+            "likec4/packages/likec4-spa/src/pages/ViewAsTree.tsx"
+          ],
+          "symbols": [
+            "download",
+            "extensionFor"
+          ]
+        },
+        "opportunity": "The download always creates a Blob with type text/plain;charset=utf-8 regardless of format, so .tree.json files are served as plain text instead of application/json and .tree.md as plain text instead of text/markdown.",
+        "impact": "Downloaded JSON/Markdown files carry correct MIME metadata; filename and byte content unchanged.",
+        "evidence": [
+          "ViewAsTree.tsx download(): Blob text/plain for all formats",
+          "extensionFor already maps format -> txt|md|json"
+        ],
+        "recommendation": "Add a format-to-MIME mapping next to extensionFor and use it in the Blob constructor.",
+        "keyDesign": "const mimeFor = (format: TreeFormat) => format === 'json' ? 'application/json;charset=utf-8' : format === 'markdown' ? 'text/markdown;charset=utf-8' : 'text/plain;charset=utf-8'; download uses new Blob([content], { type: mimeFor(format) }).",
+        "preservationConstraints": [
+          "Same file byte content and filename",
+          "Copy-to-clipboard unchanged",
+          "No change to format/field selection or rendering",
+          "charset retained in every MIME value"
+        ],
+        "implementationOutline": [
+          "Add mimeFor beside extensionFor",
+          "Use mimeFor(format) in the Blob constructor",
+          "Run spa typecheck",
+          "Re-run the tree-export e2e"
+        ],
+        "validation": [
+          "pnpm --filter @likec4/spa typecheck",
+          "tree-export e2e download assertion retains filename and content"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Trivial, safe download-metadata fix with high confidence and no observable behavior delta.",
+        "targetFileHashes": {
+          "likec4/packages/likec4-spa/src/pages/ViewAsTree.tsx": "a5b1b965e328fd58cc122da5fe0c31450bc057274ffb417d8a73533d37dc5fae"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-04T18:15:45.573Z",
+        "findingId": "OPT-20260804T181545572Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-04T18:15:45.573Z",
+        "findingId": "OPT-20260804T181545572Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-04T18:15:45.573Z",
+        "findingId": "OPT-20260804T181545572Z-03"
+      },
+      {
+        "sequence": 4,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-04T18:15:45.573Z",
+        "findingId": "OPT-20260804T181545572Z-04"
+      },
+      {
+        "sequence": 5,
+        "action": "select",
+        "reason": "Statically provable, user-reachable deviation from the documented fixed field order with a low-risk, behavior-preserving fix confined to the generators module and its unit tests.",
+        "timestamp": "2026-08-04T18:15:45.577Z",
+        "findingId": "OPT-20260804T181545572Z-01",
+        "hashes": {
+          "likec4/packages/generators/src/tree/generate-tree.ts": "78ec0caac1c2052072b2c16d6ed5c09422c09455c8d26051f7a4215ea6be1b24"
+        }
+      },
+      {
+        "sequence": 6,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-04T18:16:06.628Z",
+        "findingId": "OPT-20260804T181545572Z-01",
+        "hashes": {
+          "likec4/packages/generators/src/tree/generate-tree.ts": "78ec0caac1c2052072b2c16d6ed5c09422c09455c8d26051f7a4215ea6be1b24"
+        }
+      },
+      {
+        "sequence": 7,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-04T18:20:31.721Z",
+        "findingId": "OPT-20260804T181545572Z-01"
+      },
+      {
+        "sequence": 8,
+        "action": "resolve",
+        "reason": "Verified PASS (fresh reviewer) and checkpoint af6113684 committed; field-order canonicalization terminal.",
+        "timestamp": "2026-08-04T18:25:49.241Z",
+        "findingId": "OPT-20260804T181545572Z-01"
+      },
+      {
+        "sequence": 9,
+        "action": "retain",
+        "reason": "Byte-identical validateSearch/stripSearchParams across the two tree routes; ViewAsTree re-declares TreeFormat and defaults. Extraction to a shared module removes a 3-way drift hazard. Behavior-preserving. Ranks first.",
+        "timestamp": "2026-08-04T18:25:49.241Z",
+        "findingId": "OPT-20260804T181545572Z-03"
+      },
+      {
+        "sequence": 10,
+        "action": "retain",
+        "reason": "Download Blob always text/plain regardless of format; adding a format->MIME mapping preserves filename/content and fixes metadata. Trivial and safe. Ranks second.",
+        "timestamp": "2026-08-04T18:25:49.241Z",
+        "findingId": "OPT-20260804T181545572Z-04"
+      },
+      {
+        "sequence": 11,
+        "action": "reprioritize",
+        "reason": "Valid latent robustness improvement, ranked last. Evidence corrected: modelRef-first changes deployment-view fqn from the deployment instance id to the element identity (untested delta). Keep metadata.elementId precedence; add a deployment-view unit test during implementation. Ranks third.",
+        "timestamp": "2026-08-04T18:25:49.241Z",
+        "findingId": "OPT-20260804T181545572Z-02"
+      },
+      {
+        "sequence": 12,
+        "action": "select",
+        "reason": "High-confidence DRY improvement with zero behavior change; maintenance-oriented.",
+        "timestamp": "2026-08-04T18:25:49.245Z",
+        "findingId": "OPT-20260804T181545572Z-03",
+        "hashes": {
+          "likec4/packages/likec4-spa/src/routes/_single/view.$viewId.tree.tsx": "5f799610d947d17fda8c000154148898b822f6870c817e0def7238a8c1c146fe",
+          "likec4/packages/likec4-spa/src/routes/project.$projectId/view.$viewId.tree.tsx": "5f71e4431293487579b4fd0ffe4f30be1220b9bc629166a2e6374c54dc94e1f3",
+          "likec4/packages/likec4-spa/src/pages/ViewAsTree.tsx": "a6ec2b52ae9b533587b5bd212018d8978bf62805239a4e98c34c11a3db49c906"
+        }
+      },
+      {
+        "sequence": 13,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-04T18:25:57.098Z",
+        "findingId": "OPT-20260804T181545572Z-03",
+        "hashes": {
+          "likec4/packages/likec4-spa/src/routes/_single/view.$viewId.tree.tsx": "5f799610d947d17fda8c000154148898b822f6870c817e0def7238a8c1c146fe",
+          "likec4/packages/likec4-spa/src/routes/project.$projectId/view.$viewId.tree.tsx": "5f71e4431293487579b4fd0ffe4f30be1220b9bc629166a2e6374c54dc94e1f3",
+          "likec4/packages/likec4-spa/src/pages/ViewAsTree.tsx": "a6ec2b52ae9b533587b5bd212018d8978bf62805239a4e98c34c11a3db49c906"
+        }
+      },
+      {
+        "sequence": 14,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-04T18:29:39.250Z",
+        "findingId": "OPT-20260804T181545572Z-03"
+      },
+      {
+        "sequence": 15,
+        "action": "resolve",
+        "reason": "Verified PASS (fresh reviewer) and checkpoint 5e19fb89b committed; shared search contract module terminal.",
+        "timestamp": "2026-08-04T18:34:09.961Z",
+        "findingId": "OPT-20260804T181545572Z-03"
+      },
+      {
+        "sequence": 16,
+        "action": "retain",
+        "reason": "Blob still hardcodes text/plain for every format; format->MIME mapping is trivial, zero behavior delta. Ranks first.",
+        "timestamp": "2026-08-04T18:34:09.961Z",
+        "findingId": "OPT-20260804T181545572Z-04"
+      },
+      {
+        "sequence": 17,
+        "action": "reprioritize",
+        "reason": "Corrected design: metadata.elementId top precedence, deploymentRef before modelRef (deployment identity preserved); add deployment-view unit test. Ranks second.",
+        "timestamp": "2026-08-04T18:34:09.961Z",
+        "findingId": "OPT-20260804T181545572Z-02"
+      },
+      {
+        "sequence": 18,
+        "action": "select",
+        "reason": "Trivial, safe download-metadata fix with high confidence and no observable behavior delta.",
+        "timestamp": "2026-08-04T18:34:09.963Z",
+        "findingId": "OPT-20260804T181545572Z-04",
+        "hashes": {
+          "likec4/packages/likec4-spa/src/pages/ViewAsTree.tsx": "a5b1b965e328fd58cc122da5fe0c31450bc057274ffb417d8a73533d37dc5fae"
+        }
+      },
+      {
+        "sequence": 19,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-04T18:34:16.458Z",
+        "findingId": "OPT-20260804T181545572Z-04",
+        "hashes": {
+          "likec4/packages/likec4-spa/src/pages/ViewAsTree.tsx": "a5b1b965e328fd58cc122da5fe0c31450bc057274ffb417d8a73533d37dc5fae"
+        }
+      },
+      {
+        "sequence": 20,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-04T18:36:18.692Z",
+        "findingId": "OPT-20260804T181545572Z-04"
+      },
+      {
+        "sequence": 21,
+        "action": "resolve",
+        "reason": "Verified PASS (fresh reviewer) at checkpoint 6ed6723ba; MIME mapping terminal.",
+        "timestamp": "2026-08-04T18:40:45.831Z",
+        "findingId": "OPT-20260804T181545572Z-04"
+      },
+      {
+        "sequence": 22,
+        "action": "reprioritize",
+        "reason": "Sole remaining non-terminal actionable; ranks first. Confidence raised to high on fresh verification.",
+        "timestamp": "2026-08-04T18:40:45.831Z",
+        "findingId": "OPT-20260804T181545572Z-02"
+      },
+      {
+        "sequence": 23,
+        "action": "select",
+        "reason": "Statically provable typing/robustness improvement confined to the generators module; byte-identical output; only remaining actionable.",
+        "timestamp": "2026-08-04T18:40:45.834Z",
+        "findingId": "OPT-20260804T181545572Z-02",
+        "hashes": {
+          "likec4/packages/generators/src/tree/generate-tree.ts": "24c701c609bd207ff53ecfe034fbfff46877217bc1d6ca697d04b61f660ad58e"
+        }
+      },
+      {
+        "sequence": 24,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-04T18:41:03.790Z",
+        "findingId": "OPT-20260804T181545572Z-02",
+        "hashes": {
+          "likec4/packages/generators/src/tree/generate-tree.ts": "24c701c609bd207ff53ecfe034fbfff46877217bc1d6ca697d04b61f660ad58e"
+        }
+      },
+      {
+        "sequence": 25,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-04T18:47:25.087Z",
+        "findingId": "OPT-20260804T181545572Z-02"
+      },
+      {
+        "sequence": 26,
+        "action": "resolve",
+        "reason": "Verified PASS (fresh reviewer) and checkpoint 079f6506c committed; canonical element identity resolution terminal. No remaining actionable findings.",
+        "timestamp": "2026-08-04T18:51:06.941Z",
+        "findingId": "OPT-20260804T181545572Z-02"
+      }
+    ],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}
