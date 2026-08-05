@@ -34,7 +34,7 @@ export class BashGenerator implements CompletionGenerator {
     return `# Bash completion script for Xirang CLI
 # Auto-generated - do not edit manually
 
-_opsx_completion() {
+_xirang_completion() {
   local cur prev words cword
 
   # Use _init_completion if available (from bash-completion package)
@@ -71,7 +71,7 @@ ${commandCases}
 }
 
 ${helpers}
-complete -F _opsx_completion xirang
+complete -F _xirang_completion xirang
 `;
   }
 
@@ -160,13 +160,13 @@ complete -F _opsx_completion xirang
 
     switch (positionalType) {
       case 'change-id':
-        lines.push(`${indent}_opsx_complete_changes`);
+        lines.push(`${indent}_xirang_complete_changes`);
         break;
       case 'contract-id':
-        lines.push(`${indent}_opsx_complete_contracts`);
+        lines.push(`${indent}_xirang_complete_contracts`);
         break;
       case 'change-or-contract-id':
-        lines.push(`${indent}_opsx_complete_items`);
+        lines.push(`${indent}_xirang_complete_items`);
         break;
       case 'shell':
         lines.push(`${indent}local shells="zsh bash fish powershell"`);

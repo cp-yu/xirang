@@ -385,7 +385,7 @@ async function applyManifestEntry(
   }
 
   await filesystem.mkdir(path.dirname(target), { recursive: true });
-  const temporary = path.join(path.dirname(target), `.${path.basename(target)}.opsx-sync-${index}.tmp`);
+  const temporary = path.join(path.dirname(target), `.${path.basename(target)}.xirang-sync-${index}.tmp`);
   try {
     await filesystem.writeFile(temporary, entry.postimage!);
     try {

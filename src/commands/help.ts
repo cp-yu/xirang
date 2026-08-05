@@ -27,8 +27,8 @@ interface AuthoringHelp {
   relationshipKinds: RelationshipKind[];
 }
 
-const FILE_LOOKUP: Record<AuthoringTopic, { schema: 'spec-driven'; artifactId: string }> = {
-  'semantic-delta': { schema: 'spec-driven', artifactId: 'specs' },
+const FILE_LOOKUP: Record<AuthoringTopic, { schema: 'semantic-model'; artifactId: string }> = {
+  'semantic-delta': { schema: 'semantic-model', artifactId: 'specs' },
 };
 
 export class AuthoringHelpCommand {

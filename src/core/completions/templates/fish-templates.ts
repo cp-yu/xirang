@@ -4,7 +4,7 @@
  */
 
 export const FISH_STATIC_HELPERS = `# Helper function to check if a subcommand is present
-function __fish_opsx_using_subcommand
+function __fish_xirang_using_subcommand
     set -l cmd (commandline -opc)
     set -e cmd[1]
     for i in $argv
@@ -15,26 +15,26 @@ function __fish_opsx_using_subcommand
     return 1
 end
 
-function __fish_opsx_no_subcommand
+function __fish_xirang_no_subcommand
     set -l cmd (commandline -opc)
     test (count $cmd) -eq 1
 end`;
 
 export const FISH_DYNAMIC_HELPERS = `# Dynamic completion helpers
 
-function __fish_opsx_changes
+function __fish_xirang_changes
     xirang __complete changes 2>/dev/null | while read -l id desc
         printf '%s\\t%s\\n' "$id" "$desc"
     end
 end
 
-function __fish_opsx_contracts
+function __fish_xirang_contracts
     xirang __complete contracts 2>/dev/null | while read -l id desc
         printf '%s\\t%s\\n' "$id" "$desc"
     end
 end
 
-function __fish_opsx_items
-    __fish_opsx_changes
-    __fish_opsx_contracts
+function __fish_xirang_items
+    __fish_xirang_changes
+    __fish_xirang_contracts
 end`;

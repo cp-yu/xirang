@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import { parse as parseYaml } from 'yaml';
-import { SchemaYamlSchema, type SchemaYaml, type Artifact } from './types.js';
+import { BUILT_IN_SCHEMA_IDS, SchemaYamlSchema, type SchemaYaml, type Artifact } from './types.js';
 
 export class SchemaValidationError extends Error {
   constructor(message: string) {
@@ -43,7 +43,7 @@ export function parseSchema(yamlContent: string): SchemaYaml {
 
   const schema = result.data;
 
-  if (schema.name === 'spec-driven') {
+  if ((BUILT_IN_SCHEMA_IDS as readonly string[]).includes(schema.name)) {
     for (const artifact of schema.artifacts) {
       if (!artifact.definition) {
         throw new SchemaValidationError(

@@ -142,7 +142,7 @@ export function readChangeMetadata(
  * 1. Explicit schema (if provided)
  * 2. Schema from .xirang.yaml metadata (if exists)
  * 3. Schema from .xirang/config.yaml (if exists)
- * 4. Default 'spec-driven'
+ * 4. Default 'semantic-model'
  *
  * @param changeDir - The path to the change directory
  * @param explicitSchema - Optional explicit schema override
@@ -173,5 +173,5 @@ export function resolveSchemaForChange(
   }
 
   // 4. Default
-  return 'spec-driven';
+  return 'semantic-model';
 }

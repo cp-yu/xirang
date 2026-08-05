@@ -18,7 +18,7 @@ const ART_COLUMN_WIDTH = 24;
 export function getWelcomeText(): string[] {
   return [
     chalk.white.bold('Welcome to Xirang'),
-    chalk.dim('A lightweight spec-driven framework'),
+    chalk.dim('A lightweight semantic-model-driven framework'),
     '',
     chalk.white('This setup will configure:'),
     chalk.dim('  • Agent Skills for AI tools'),

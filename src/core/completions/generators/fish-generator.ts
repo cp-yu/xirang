@@ -20,7 +20,7 @@ export class FishGenerator implements CompletionGenerator {
     for (const cmd of commands) {
       topLevelLines.push(`# ${cmd.name} command`);
       topLevelLines.push(
-        `complete -c xirang -n '__fish_opsx_no_subcommand' -a '${cmd.name}' -d '${this.escapeDescription(cmd.description)}'`
+        `complete -c xirang -n '__fish_xirang_no_subcommand' -a '${cmd.name}' -d '${this.escapeDescription(cmd.description)}'`
       );
     }
     const topLevelCommands = topLevelLines.join('\n');
@@ -61,38 +61,38 @@ ${commandCompletions}`;
       // Add subcommand completions
       for (const subcmd of cmd.subcommands) {
         lines.push(
-          `complete -c xirang -n '__fish_opsx_using_subcommand ${cmd.name}; and not __fish_opsx_using_subcommand ${subcmd.name}' -a '${subcmd.name}' -d '${this.escapeDescription(subcmd.description)}'`
+          `complete -c xirang -n '__fish_xirang_using_subcommand ${cmd.name}; and not __fish_xirang_using_subcommand ${subcmd.name}' -a '${subcmd.name}' -d '${this.escapeDescription(subcmd.description)}'`
         );
       }
       lines.push('');
 
       // Add flags for parent command
       for (const flag of cmd.flags) {
-        lines.push(...this.generateFlagCompletion(flag, `__fish_opsx_using_subcommand ${cmd.name}`));
+        lines.push(...this.generateFlagCompletion(flag, `__fish_xirang_using_subcommand ${cmd.name}`));
       }
 
       // Add completions for each subcommand
       for (const subcmd of cmd.subcommands) {
         lines.push(`# ${cmd.name} ${subcmd.name} flags`);
         for (const flag of subcmd.flags) {
-          lines.push(...this.generateFlagCompletion(flag, `__fish_opsx_using_subcommand ${cmd.name}; and __fish_opsx_using_subcommand ${subcmd.name}`));
+          lines.push(...this.generateFlagCompletion(flag, `__fish_xirang_using_subcommand ${cmd.name}; and __fish_xirang_using_subcommand ${subcmd.name}`));
         }
 
         // Add positional completions for subcommand
         if (subcmd.acceptsPositional) {
-          lines.push(...this.generatePositionalCompletion(subcmd.positionalType, `__fish_opsx_using_subcommand ${cmd.name}; and __fish_opsx_using_subcommand ${subcmd.name}`));
+          lines.push(...this.generatePositionalCompletion(subcmd.positionalType, `__fish_xirang_using_subcommand ${cmd.name}; and __fish_xirang_using_subcommand ${subcmd.name}`));
         }
       }
     } else {
       // Command without subcommands
       lines.push(`# ${cmd.name} flags`);
       for (const flag of cmd.flags) {
-        lines.push(...this.generateFlagCompletion(flag, `__fish_opsx_using_subcommand ${cmd.name}`));
+        lines.push(...this.generateFlagCompletion(flag, `__fish_xirang_using_subcommand ${cmd.name}`));
       }
 
       // Add positional completions
       if (cmd.acceptsPositional) {
-        lines.push(...this.generatePositionalCompletion(cmd.positionalType, `__fish_opsx_using_subcommand ${cmd.name}`));
+        lines.push(...this.generatePositionalCompletion(cmd.positionalType, `__fish_xirang_using_subcommand ${cmd.name}`));
       }
     }
 
@@ -155,13 +155,13 @@ ${commandCompletions}`;
 
     switch (positionalType) {
       case 'change-id':
-        lines.push(`complete -c xirang -n '${condition}' -a '(__fish_opsx_changes)' -f`);
+        lines.push(`complete -c xirang -n '${condition}' -a '(__fish_xirang_changes)' -f`);
         break;
       case 'contract-id':
-        lines.push(`complete -c xirang -n '${condition}' -a '(__fish_opsx_contracts)' -f`);
+        lines.push(`complete -c xirang -n '${condition}' -a '(__fish_xirang_contracts)' -f`);
         break;
       case 'change-or-contract-id':
-        lines.push(`complete -c xirang -n '${condition}' -a '(__fish_opsx_items)' -f`);
+        lines.push(`complete -c xirang -n '${condition}' -a '(__fish_xirang_items)' -f`);
         break;
       case 'shell':
         lines.push(`complete -c xirang -n '${condition}' -a 'zsh bash fish powershell' -f`);
