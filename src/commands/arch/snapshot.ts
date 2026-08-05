@@ -39,7 +39,11 @@ function sortElements(declarations: SnapshotElement[]): SnapshotElement[] {
   return [...declarations].sort((left, right) => compareCodePoints(left.identity, right.identity));
 }
 
-/** Builds the nested element tree from a flat declaration list; parents are never repeated. */
+/**
+ * Builds the nested element tree from a flat declaration list; parents are never repeated.
+ * Precondition: input elements and each parent's children are pre-sorted by identity
+ * (owned by buildModelTree), so no further sorting is needed here.
+ */
 function buildTree(elements: readonly SnapshotElement[]): SnapshotTreeNode[] {
   const byId = new Map<string, SnapshotTreeNode>(
     elements.map(element => [element.identity, {
@@ -59,11 +63,6 @@ function buildTree(elements: readonly SnapshotElement[]): SnapshotTreeNode[] {
       roots.push(node);
     }
   }
-  const sortRecursive = (nodes: SnapshotTreeNode[]) => {
-    nodes.sort((left, right) => compareCodePoints(left.identity, right.identity));
-    for (const node of nodes) sortRecursive(node.children);
-  };
-  sortRecursive(roots);
   return roots;
 }
 

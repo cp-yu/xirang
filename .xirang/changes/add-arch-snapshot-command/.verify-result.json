@@ -32,7 +32,7 @@
       "test/core/templates/skill-templates-parity.test.ts",
       "test/integration/arch-command.test.ts"
     ],
-    "evidenceFingerprint": "3e790ab545d519aa87a3a467bc2ddfe8e877c036ae73bf6bb5bb34b05370285b",
+    "evidenceFingerprint": "e87d47b5ad948225b09b14f083387a2347c6e9e1173343f018e750af96729c13",
     "evidenceFingerprintEntries": [
       {
         "path": ".pi/agents/xirang-optimizer.md",
@@ -84,7 +84,7 @@
       },
       {
         "path": "src/commands/arch/snapshot.ts",
-        "hash": "979f79a739836622bb0a4f6cdb015bf8c8500084f81e0388eb82c362ff2335c2"
+        "hash": "9c4c35735979c26f2b1f5825dd3699b58900daf5165891fee039cd46bfbbbf1e"
       },
       {
         "path": "src/core/templates/fragments/xirang-fragments.ts",
@@ -104,8 +104,8 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "acfd9a41cbeffb7665fe4bbdf9aa1e1ba9354c7c",
-    "timestamp": "2026-08-05T05:29:14.256Z"
+    "gitHeadCommit": "ae7bdd851673bb76256752daab60d77f7f53f674",
+    "timestamp": "2026-08-05T06:31:25.629Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
@@ -117,6 +117,26 @@
       },
       {
         "timestamp": "2026-08-05T05:29:14.243Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-05T06:26:27.391Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-05T06:30:24.695Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-05T06:30:45.743Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-05T06:31:25.616Z",
         "type": "verification",
         "result": "PASS"
       }
@@ -232,75 +252,69 @@
     },
     "findings": [
       {
+        "id": "OPT-20260805T052609601Z-01",
+        "status": "resolved",
+        "location": {
+          "files": [
+            "src/commands/arch/snapshot.ts"
+          ]
+        },
+        "opportunity": "Delete duplicate SnapshotJson interface.",
+        "impact": "Removes duplicate public type and per-snapshot allocations.",
+        "evidence": [
+          "snapshot.ts had duplicate SnapshotJson"
+        ],
+        "recommendation": "Return result directly",
+        "keyDesign": "Single result type",
+        "preservationConstraints": [
+          "byte-identical JSON"
+        ],
+        "implementationOutline": [
+          "remove interface"
+        ],
+        "validation": [
+          "vitest"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "dead code elimination"
+      },
+      {
+        "id": "OPT-20260805T052609601Z-02",
         "status": "verified",
         "location": {
           "files": [
             "src/commands/arch/snapshot.ts"
           ]
         },
-        "opportunity": "SnapshotJson is a structural duplicate of ArchitectureSnapshotResult; treeToSnapshotJson deep-copies elements/metamodel even though the result is never mutated.",
-        "impact": "Removes duplicate public type and per-snapshot allocations with byte-identical JSON output.",
+        "opportunity": "Remove redundant sortRecursive from buildTree.",
+        "impact": "Removes redundant sort on already-sorted input.",
         "evidence": [
-          "Delete the SnapshotJson interface, change treeToSnapshotJson to return ArchitectureSnapshotResult and return result directly."
+          "buildModelTree pre-sorts"
         ],
-        "recommendation": "Delete the SnapshotJson interface, change treeToSnapshotJson to return ArchitectureSnapshotResult and return result directly.",
-        "keyDesign": "Single result type owns the JSON projection; serializer becomes an identity pass over an immutable value.",
+        "recommendation": "Delete sortRecursive",
+        "keyDesign": "Single-pass tree build",
         "preservationConstraints": [
-          "JSON output must remain byte-identical (same keys, key order, values)",
-          "treeToSnapshotJson must remain exported with same parameter type; index.ts call site unchanged",
-          "No Contract content may appear; deterministic ordering and statistics untouched"
+          "identity order preserved"
         ],
         "implementationOutline": [
-          "Remove SnapshotJson interface",
-          "Change treeToSnapshotJson return type to ArchitectureSnapshotResult and return result"
+          "delete closure"
         ],
         "validation": [
-          "npx vitest run test/commands/arch-snapshot.test.ts test/integration/arch-command.test.ts"
+          "vitest"
         ],
         "impactLevel": "low",
         "confidence": "high",
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "Dead public type duplication plus per-snapshot allocations, byte-identical output provable, zero test churn.",
-        "id": "OPT-20260805T052609601Z-01",
+        "priorityReason": "dead sorting work",
         "targetFileHashes": {
-          "src/commands/arch/snapshot.ts": "92d5bbe805c02dad2be41ae5f9b63b16d58e7bab80611ae31ecbe918d4ed2543"
+          "src/commands/arch/snapshot.ts": "9c4c35735979c26f2b1f5825dd3699b58900daf5165891fee039cd46bfbbbf1e"
         }
-      },
-      {
-        "status": "pending",
-        "location": {
-          "files": [
-            "src/commands/arch/snapshot.ts"
-          ]
-        },
-        "opportunity": "buildTree's sortRecursive re-sorts an already globally identity-sorted flat list (buildModelTree sorts childrenOf and sortElements), making it a provable no-op.",
-        "impact": "Removes redundant O(n log n) recursive sort from every text/markdown render.",
-        "evidence": [
-          "Delete the sortRecursive closure and its invocation in buildTree; document the pre-sorted-by-identity precondition."
-        ],
-        "recommendation": "Delete the sortRecursive closure and its invocation in buildTree; document the pre-sorted-by-identity precondition.",
-        "keyDesign": "Single-pass tree build consuming the already-sorted flat projection; ordering invariant owned by buildModelTree.",
-        "preservationConstraints": [
-          "Text/markdown node order must remain identity-sorted (do NOT remove sortElements or childrenOf sort in buildModelTree)",
-          "buildTree must remain private with same output shape; nodeLabel and renderers untouched",
-          "Orphan-as-root fallback branch must stay as-is"
-        ],
-        "implementationOutline": [
-          "Delete sortRecursive closure and sortRecursive(roots) call",
-          "Extend buildTree doc comment with precondition"
-        ],
-        "validation": [
-          "npx vitest run test/commands/arch-snapshot.test.ts test/integration/arch-command.test.ts"
-        ],
-        "impactLevel": "low",
-        "confidence": "high",
-        "risk": "low",
-        "cost": "low",
-        "dependencies": [],
-        "priorityReason": "Statically provable dead sorting work on already-sorted input.",
-        "id": "OPT-20260805T052609601Z-02"
       }
     ],
     "history": [
@@ -344,9 +358,91 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-05T05:29:14.244Z",
         "findingId": "OPT-20260805T052609601Z-01"
+      },
+      {
+        "sequence": 6,
+        "action": "retain",
+        "reason": "Verified; keep for history",
+        "timestamp": "2026-08-05T06:26:27.388Z",
+        "findingId": "OPT-20260805T052609601Z-01"
+      },
+      {
+        "sequence": 7,
+        "action": "retain",
+        "reason": "Pending; keep actionable",
+        "timestamp": "2026-08-05T06:26:27.388Z",
+        "findingId": "OPT-20260805T052609601Z-02"
+      },
+      {
+        "sequence": 8,
+        "action": "select",
+        "reason": "dead code elimination",
+        "timestamp": "2026-08-05T06:26:27.391Z",
+        "findingId": "OPT-20260805T052609601Z-01",
+        "hashes": {
+          "src/commands/arch/snapshot.ts": "9c4c35735979c26f2b1f5825dd3699b58900daf5165891fee039cd46bfbbbf1e"
+        }
+      },
+      {
+        "sequence": 9,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-05T06:30:05.644Z",
+        "findingId": "OPT-20260805T052609601Z-01",
+        "hashes": {
+          "src/commands/arch/snapshot.ts": "9c4c35735979c26f2b1f5825dd3699b58900daf5165891fee039cd46bfbbbf1e"
+        }
+      },
+      {
+        "sequence": 10,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-05T06:30:24.695Z",
+        "findingId": "OPT-20260805T052609601Z-01"
+      },
+      {
+        "sequence": 11,
+        "action": "resolve",
+        "reason": "Implemented and verified by fresh reviewer",
+        "timestamp": "2026-08-05T06:30:45.740Z",
+        "findingId": "OPT-20260805T052609601Z-01"
+      },
+      {
+        "sequence": 12,
+        "action": "retain",
+        "reason": "Pending; keep actionable",
+        "timestamp": "2026-08-05T06:30:45.740Z",
+        "findingId": "OPT-20260805T052609601Z-02"
+      },
+      {
+        "sequence": 13,
+        "action": "select",
+        "reason": "dead sorting work",
+        "timestamp": "2026-08-05T06:30:45.743Z",
+        "findingId": "OPT-20260805T052609601Z-02",
+        "hashes": {
+          "src/commands/arch/snapshot.ts": "9c4c35735979c26f2b1f5825dd3699b58900daf5165891fee039cd46bfbbbf1e"
+        }
+      },
+      {
+        "sequence": 14,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-05T06:31:06.236Z",
+        "findingId": "OPT-20260805T052609601Z-02",
+        "hashes": {
+          "src/commands/arch/snapshot.ts": "9c4c35735979c26f2b1f5825dd3699b58900daf5165891fee039cd46bfbbbf1e"
+        }
+      },
+      {
+        "sequence": 15,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-05T06:31:25.617Z",
+        "findingId": "OPT-20260805T052609601Z-02"
       }
     ],
-    "reconciliationSignature": "722f9cd99a7b2190ed0bc60757f6d2a406305b83124b41bda69f1279f887732d",
+    "reconciliationSignature": "145ef91e9e57d438a855af1ac4f7affb32b5c95863415315ddfe44b9305a3937",
     "unchangedReconciliations": 0
   }
 }
