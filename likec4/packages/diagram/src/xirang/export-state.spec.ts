@@ -66,5 +66,7 @@ describe('export snapshot storage round-trip', () => {
     expect(readXirangExportSnapshotFromStorage(storage)).toBeNull()
     storage.setItem(XIRANG_EXPORT_SNAPSHOT_KEY, JSON.stringify({ source: 42 }))
     expect(readXirangExportSnapshotFromStorage(storage)).toBeNull()
+    storage.setItem(XIRANG_EXPORT_SNAPSHOT_KEY, JSON.stringify({ source: 'model', mode: 'banana', expanded: [] }))
+    expect(readXirangExportSnapshotFromStorage(storage)).toBeNull()
   })
 })

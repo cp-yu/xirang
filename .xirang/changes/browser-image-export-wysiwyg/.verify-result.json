@@ -33,7 +33,7 @@
       "playwright.config.ts",
       "test/e2e/semantic-browser-image-export.spec.ts"
     ],
-    "evidenceFingerprint": "0b488fb86cd539680ab80c08864bd7a14272930180d78a5460371d6995de119d",
+    "evidenceFingerprint": "944fc490ee357beaee60653a8f924c2e77e06a538fbe08617200b587bf8c1aba",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/browser-image-export-wysiwyg/design.md",
@@ -81,11 +81,11 @@
       },
       {
         "path": "likec4/packages/diagram/src/xirang/export-state.spec.ts",
-        "hash": "a31d11953b2f50944eb0c9c96011721c7d7dc47121c72e8f30631a3252765004"
+        "hash": "43f9e483a9572c89caaa83946b28e5c98f9b26a4fe12581afe869dd35ee9d226"
       },
       {
         "path": "likec4/packages/diagram/src/xirang/export-state.ts",
-        "hash": "8b78b1a736cb6dc171dc629ebb5f2bf5d2b9cdee2d0bbf1dbedc8896df29355a"
+        "hash": "052816a564e0df711a59560a648c344328fca95e3b89952243f72929c81c0e0b"
       },
       {
         "path": "likec4/packages/likec4-spa/src/components/view-page/Header.tsx",
@@ -105,9 +105,9 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "a02782c69a0560d9a8260693e415ec16645bb088",
+    "gitHeadCommit": "d954fe9ba070a559d0f3977161016e55eb1610be",
     "gitDiffSummary": "Branch browser-image-export-wysiwyg; HEAD == baseCommit 900c4d469; change scope from git status union (19 files: 13 code/test + 6 change artifacts), all attributed to task Files or change artifacts; unit tests 6/6, e2e 3/3, typechecks and bundle builds passed.",
-    "timestamp": "2026-08-06T06:17:54.819Z"
+    "timestamp": "2026-08-06T06:23:06.764Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
@@ -154,6 +154,16 @@
       },
       {
         "timestamp": "2026-08-06T06:17:54.807Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-06T06:18:17.886Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-06T06:23:06.751Z",
         "type": "verification",
         "result": "PASS"
       }
@@ -416,7 +426,7 @@
         }
       },
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/likec4-spa/src/pages/ExportPage.tsx"
@@ -460,7 +470,7 @@
         }
       },
       {
-        "status": "pending",
+        "status": "verified",
         "location": {
           "files": [
             "likec4/packages/diagram/src/xirang/export-state.ts"
@@ -499,7 +509,10 @@
         "cost": "low",
         "dependencies": [],
         "priorityReason": "Closes a type-unsoundness gap and extends fail-closed normalization; purely defensive.",
-        "id": "OPT-20260806T053540905Z-05"
+        "id": "OPT-20260806T053540905Z-05",
+        "targetFileHashes": {
+          "likec4/packages/diagram/src/xirang/export-state.ts": "8b78b1a736cb6dc171dc629ebb5f2bf5d2b9cdee2d0bbf1dbedc8896df29355a"
+        }
       },
       {
         "status": "pending",
@@ -838,9 +851,57 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-06T06:17:54.807Z",
         "findingId": "OPT-20260806T053540905Z-04"
+      },
+      {
+        "sequence": 39,
+        "action": "resolve",
+        "reason": "Implemented, verified and checkpointed (opt-r4); closed.",
+        "timestamp": "2026-08-06T06:18:17.882Z",
+        "findingId": "OPT-20260806T053540905Z-04"
+      },
+      {
+        "sequence": 40,
+        "action": "retain",
+        "reason": "Still present; unsound mode cast in read normalizer",
+        "timestamp": "2026-08-06T06:18:17.882Z",
+        "findingId": "OPT-20260806T053540905Z-05"
+      },
+      {
+        "sequence": 41,
+        "action": "retain",
+        "reason": "Still present; type-only update.inputs Omit extension",
+        "timestamp": "2026-08-06T06:18:17.882Z",
+        "findingId": "OPT-20260806T053540905Z-06"
+      },
+      {
+        "sequence": 42,
+        "action": "select",
+        "reason": "Closes a type-unsoundness gap and extends fail-closed normalization; purely defensive.",
+        "timestamp": "2026-08-06T06:18:17.886Z",
+        "findingId": "OPT-20260806T053540905Z-05",
+        "hashes": {
+          "likec4/packages/diagram/src/xirang/export-state.ts": "8b78b1a736cb6dc171dc629ebb5f2bf5d2b9cdee2d0bbf1dbedc8896df29355a"
+        }
+      },
+      {
+        "sequence": 43,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-06T06:18:40.101Z",
+        "findingId": "OPT-20260806T053540905Z-05",
+        "hashes": {
+          "likec4/packages/diagram/src/xirang/export-state.ts": "8b78b1a736cb6dc171dc629ebb5f2bf5d2b9cdee2d0bbf1dbedc8896df29355a"
+        }
+      },
+      {
+        "sequence": 44,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-06T06:23:06.751Z",
+        "findingId": "OPT-20260806T053540905Z-05"
       }
     ],
-    "reconciliationSignature": "96de19152901bf8ca36377d1550426bb0b476a59de0d7586e0b1cd38955f5b1d",
+    "reconciliationSignature": "f029d6c99a19d9c935480d5a0ce8b4688174d96ff2806d6e7b368ee4145b296a",
     "unchangedReconciliations": 0
   }
 }

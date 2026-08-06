@@ -34,11 +34,11 @@ export function readXirangExportSnapshotFromStorage(storage?: Storage): XirangEx
   if (!raw) return null
   try {
     const parsed = JSON.parse(raw) as Partial<XirangExportSnapshot>
-    if (typeof parsed.source !== 'string' || typeof parsed.mode !== 'string') return null
+    if (typeof parsed.source !== 'string' || (parsed.mode !== 'full' && parsed.mode !== 'diff')) return null
     if (!Array.isArray(parsed.expanded)) return null
     return {
       source: parsed.source,
-      mode: parsed.mode as XirangViewMode,
+      mode: parsed.mode,
       focus: typeof parsed.focus === 'string' ? parsed.focus : null,
       expanded: parsed.expanded.filter((entry): entry is string => typeof entry === 'string'),
     }
