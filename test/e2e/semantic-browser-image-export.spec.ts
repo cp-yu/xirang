@@ -54,9 +54,9 @@ test('exports the current focus and expand-in-place state', async ({ page }) => 
   await expect(drill).toBeVisible()
   await drill.click({ modifiers: ['Control'] })
   await expect(page.locator('.react-flow__node[data-id="capability.leaf"]')).toBeVisible()
-  await page.waitForTimeout(600)
+  await expect.poll(async () => visibleNodeIds(page), { timeout: 10_000 })
+    .toEqual(['capability.drill', 'capability.leaf', 'capability.peer', 'perspective.browser'])
   const onScreen = await visibleNodeIds(page)
-  expect(onScreen).toEqual(['capability.drill', 'capability.leaf', 'capability.peer', 'perspective.browser'])
 
   // The Header export carries the current state into the export tab via sessionStorage.
   const snapshot = await exportPngAndReadSnapshot(page)
@@ -70,8 +70,7 @@ test('exports the current focus and expand-in-place state', async ({ page }) => 
   // The export page renders exactly the on-screen node set (same-tab navigation keeps sessionStorage).
   await page.goto('/export/model/?download=false')
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
-  await page.waitForTimeout(1000)
-  expect(await visibleNodeIds(page)).toEqual(onScreen)
+  await expect.poll(async () => visibleNodeIds(page), { timeout: 10_000 }).toEqual(onScreen)
 })
 
 test('exports a change source in diff mode', async ({ page }) => {
@@ -96,15 +95,12 @@ test('exports a change source in diff mode', async ({ page }) => {
 
   await page.goto('/export/model/?download=false')
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
-  await page.waitForTimeout(1000)
-  await expect(page.locator('.react-flow__node[data-id="capability.added-parent"]')).toBeVisible()
+  await expect.poll(async () => visibleNodeIds(page), { timeout: 10_000 }).toContain('capability.added-parent')
 })
 
 test('exports without a snapshot', async ({ page }) => {
   await page.goto('/export/model/?download=false')
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
-  await page.waitForTimeout(1000)
-  const nodes = await visibleNodeIds(page)
-  expect(nodes.length).toBeGreaterThan(0)
+  await expect.poll(async () => (await visibleNodeIds(page)).length, { timeout: 10_000 }).toBeGreaterThan(0)
   await expect(page.locator('[data-testid="export-page"]')).toBeVisible()
 })

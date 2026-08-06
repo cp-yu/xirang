@@ -33,7 +33,7 @@
       "playwright.config.ts",
       "test/e2e/semantic-browser-image-export.spec.ts"
     ],
-    "evidenceFingerprint": "78615372cf14c30430194c59c74edaf52887ac4764d65240b6df06a1df5cd6b2",
+    "evidenceFingerprint": "64255d98db842390de7ab65c176273f0bef5880456e7fd66c5a34ba3ab912c78",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/browser-image-export-wysiwyg/design.md",
@@ -101,13 +101,13 @@
       },
       {
         "path": "test/e2e/semantic-browser-image-export.spec.ts",
-        "hash": "b4d36ec61cba83b9ff7cdbfe03b9b60e79e6d12e2fd846f32eedd23a9d3025d4"
+        "hash": "bdb57f2bb28df5d1acc75037e554a861144fa849296de5eed67537d8ab67ef2d"
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "79854d348924eb457cae218d37757cf9f0e4b172",
+    "gitHeadCommit": "a5429167fdc9abf3452c0ebc08daab01c93fbbb5",
     "gitDiffSummary": "Branch browser-image-export-wysiwyg; HEAD == baseCommit 900c4d469; change scope from git status union (19 files: 13 code/test + 6 change artifacts), all attributed to task Files or change artifacts; unit tests 6/6, e2e 3/3, typechecks and bundle builds passed.",
-    "timestamp": "2026-08-06T05:42:25.773Z"
+    "timestamp": "2026-08-06T05:53:56.573Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
@@ -119,6 +119,16 @@
       },
       {
         "timestamp": "2026-08-06T05:42:25.761Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-06T05:49:40.325Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-06T05:53:56.561Z",
         "type": "verification",
         "result": "PASS"
       }
@@ -236,7 +246,7 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/likec4-spa/src/components/view-page/Header.tsx"
@@ -284,7 +294,7 @@
         }
       },
       {
-        "status": "pending",
+        "status": "verified",
         "location": {
           "files": [
             "test/e2e/semantic-browser-image-export.spec.ts"
@@ -325,7 +335,10 @@
         "cost": "medium",
         "dependencies": [],
         "priorityReason": "Directly hardens the acceptance e2e that proves the feature; benefit is test reliability rather than product behavior.",
-        "id": "OPT-20260806T053540905Z-02"
+        "id": "OPT-20260806T053540905Z-02",
+        "targetFileHashes": {
+          "test/e2e/semantic-browser-image-export.spec.ts": "b4d36ec61cba83b9ff7cdbfe03b9b60e79e6d12e2fd846f32eedd23a9d3025d4"
+        }
       },
       {
         "status": "pending",
@@ -570,9 +583,78 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-06T05:42:25.761Z",
         "findingId": "OPT-20260806T053540905Z-01"
+      },
+      {
+        "sequence": 10,
+        "action": "resolve",
+        "reason": "Implemented, verified and checkpointed (opt-r1); closed.",
+        "timestamp": "2026-08-06T05:49:40.320Z",
+        "findingId": "OPT-20260806T053540905Z-01"
+      },
+      {
+        "sequence": 11,
+        "action": "retain",
+        "reason": "Still present; awaiting priority",
+        "timestamp": "2026-08-06T05:49:40.320Z",
+        "findingId": "OPT-20260806T053540905Z-02"
+      },
+      {
+        "sequence": 12,
+        "action": "retain",
+        "reason": "Still present; awaiting priority",
+        "timestamp": "2026-08-06T05:49:40.320Z",
+        "findingId": "OPT-20260806T053540905Z-03"
+      },
+      {
+        "sequence": 13,
+        "action": "retain",
+        "reason": "Still present; awaiting priority",
+        "timestamp": "2026-08-06T05:49:40.320Z",
+        "findingId": "OPT-20260806T053540905Z-04"
+      },
+      {
+        "sequence": 14,
+        "action": "retain",
+        "reason": "Still present; awaiting priority",
+        "timestamp": "2026-08-06T05:49:40.320Z",
+        "findingId": "OPT-20260806T053540905Z-05"
+      },
+      {
+        "sequence": 15,
+        "action": "retain",
+        "reason": "Still present; awaiting priority",
+        "timestamp": "2026-08-06T05:49:40.320Z",
+        "findingId": "OPT-20260806T053540905Z-06"
+      },
+      {
+        "sequence": 16,
+        "action": "select",
+        "reason": "Directly hardens the acceptance e2e that proves the feature; benefit is test reliability rather than product behavior.",
+        "timestamp": "2026-08-06T05:49:40.325Z",
+        "findingId": "OPT-20260806T053540905Z-02",
+        "hashes": {
+          "test/e2e/semantic-browser-image-export.spec.ts": "b4d36ec61cba83b9ff7cdbfe03b9b60e79e6d12e2fd846f32eedd23a9d3025d4"
+        }
+      },
+      {
+        "sequence": 17,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-06T05:50:02.310Z",
+        "findingId": "OPT-20260806T053540905Z-02",
+        "hashes": {
+          "test/e2e/semantic-browser-image-export.spec.ts": "b4d36ec61cba83b9ff7cdbfe03b9b60e79e6d12e2fd846f32eedd23a9d3025d4"
+        }
+      },
+      {
+        "sequence": 18,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-06T05:53:56.561Z",
+        "findingId": "OPT-20260806T053540905Z-02"
       }
     ],
-    "reconciliationSignature": "d5d841dbb9b99b96602711858246298cfa41403c312c2623d531fe0bbf143ec9",
+    "reconciliationSignature": "142ccf5e721893ca61710928e4bf17a3340eaba7f1b4a1f30ff429ddd27882b4",
     "unchangedReconciliations": 0
   }
 }
