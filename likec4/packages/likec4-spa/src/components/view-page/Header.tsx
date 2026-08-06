@@ -1,4 +1,9 @@
-import { useLikeC4Projects } from '@likec4/diagram'
+import {
+  clearXirangExportSnapshotFromStorage,
+  getXirangExportSnapshot,
+  useLikeC4Projects,
+  writeXirangExportSnapshotToStorage,
+} from '@likec4/diagram'
 import {
   Button,
   Divider,
@@ -107,6 +112,21 @@ function ExportButton() {
   const project = useCurrentProject()
   const viewId = useCurrentViewId()
 
+  /**
+   * Carries the current Xirang view state (source, mode, focus, expansion) to the export tab:
+   * the new tab clones sessionStorage, so the PNG/JPG export page can reproduce the on-screen view.
+   * Authored views keep the default export behavior.
+   */
+  const handleImageExport = useCallback(() => {
+    if (viewId !== 'model') return
+    const snapshot = getXirangExportSnapshot()
+    if (snapshot) {
+      writeXirangExportSnapshotToStorage(snapshot)
+    } else {
+      clearXirangExportSnapshotFromStorage()
+    }
+  }, [viewId])
+
   const handleDrawioExport = useCallback(async () => {
     try {
       setIsDrawioLoading(true)
@@ -138,6 +158,7 @@ function ExportButton() {
       <MenuDropdown>
         <MenuLabel>Current view</MenuLabel>
         <MenuItem
+          onClick={handleImageExport}
           renderRoot={(props) => (
             <Link
               target="_blank"
@@ -149,6 +170,7 @@ function ExportButton() {
           Export as .png
         </MenuItem>
         <MenuItem
+          onClick={handleImageExport}
           renderRoot={(props) => (
             <Link
               target="_blank"

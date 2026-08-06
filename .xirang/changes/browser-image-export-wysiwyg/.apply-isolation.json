@@ -1,0 +1,6 @@
+{
+  "method": "branch",
+  "branchName": "browser-image-export-wysiwyg",
+  "originalBranch": "main",
+  "baseCommit": "900c4d46929fca818cf545256dc980ee23088c0b"
+}

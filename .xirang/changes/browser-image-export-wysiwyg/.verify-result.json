@@ -1,0 +1,226 @@
+{
+  "timestamp": "2026-08-06T05:26:00.833Z",
+  "result": "PASS",
+  "issues": [
+    {
+      "severity": "SUGGESTION",
+      "requirement": "图片导出所见即所得",
+      "task": "Task 4",
+      "message": "Check C6 declares `pnpm --filter @likec4/diagram typecheck` but Task 4's only file (ExportPage.tsx) lives in @likec4/spa; actual spa typecheck (C5) covers it and passed, so no behavior impact",
+      "recommendation": "Optionally re-scope C6 to `pnpm --filter @likec4/spa typecheck` for check-command accuracy; not required for correctness"
+    }
+  ],
+  "tasksFileHash": "b6535ab7ae2671aa4e79234e958e6020378e7c45b8183a6e45357b86867a7568",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "executionMode": "subagent-reviewer",
+    "evidenceFiles": [
+      ".xirang/changes/browser-image-export-wysiwyg/design.md",
+      ".xirang/changes/browser-image-export-wysiwyg/elements/semantic-browser.md",
+      ".xirang/changes/browser-image-export-wysiwyg/proposal.md",
+      ".xirang/changes/browser-image-export-wysiwyg/tasks.md",
+      "likec4/packages/diagram/src/LikeC4Diagram.props.ts",
+      "likec4/packages/diagram/src/LikeC4Diagram.tsx",
+      "likec4/packages/diagram/src/index.ts",
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+      "likec4/packages/diagram/src/likec4diagram/state/DiagramActorProvider.tsx",
+      "likec4/packages/diagram/src/likec4diagram/state/machine.setup.spec.ts",
+      "likec4/packages/diagram/src/likec4diagram/state/machine.setup.ts",
+      "likec4/packages/diagram/src/xirang/export-state.spec.ts",
+      "likec4/packages/diagram/src/xirang/export-state.ts",
+      "likec4/packages/likec4-spa/src/components/view-page/Header.tsx",
+      "likec4/packages/likec4-spa/src/pages/ExportPage.tsx",
+      "playwright.config.ts",
+      "test/e2e/semantic-browser-image-export.spec.ts"
+    ],
+    "evidenceFingerprint": "baadb6493906cd9621e459b20be8c87bbc8a121eca3d6bceb7afa12a0517e211",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/browser-image-export-wysiwyg/design.md",
+        "hash": "70b0daa04c0e5bbdf151783bc0d2972816ac0dc7d716beed3518f175590a1957"
+      },
+      {
+        "path": ".xirang/changes/browser-image-export-wysiwyg/elements/semantic-browser.md",
+        "hash": "65bd11707c9338cb415e5d9349bbbf6f27dc3b27a81dd99d32f8c7819b721a84"
+      },
+      {
+        "path": ".xirang/changes/browser-image-export-wysiwyg/proposal.md",
+        "hash": "78e8fd94d4d73907057bec1a178a4fa740b628c2e49fa4b01bb016fc57a17466"
+      },
+      {
+        "path": ".xirang/changes/browser-image-export-wysiwyg/tasks.md",
+        "hash": "b6535ab7ae2671aa4e79234e958e6020378e7c45b8183a6e45357b86867a7568"
+      },
+      {
+        "path": "likec4/packages/diagram/src/index.ts",
+        "hash": "eaf812919a9ed45b20d30b217a4e289511706d49daa74dc5a128996c914fe699"
+      },
+      {
+        "path": "likec4/packages/diagram/src/LikeC4Diagram.props.ts",
+        "hash": "1fca0e617cfc433d633fce176107220b28776b5067989e8fb3266ce1e92909d0"
+      },
+      {
+        "path": "likec4/packages/diagram/src/LikeC4Diagram.tsx",
+        "hash": "211524df883a7d5ffe693ff8cd8ec1627bd259beb0f8427a1302423461a3d316"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+        "hash": "3ac748015d9464ca7ea9d9ba2ade59b393d85fcbce1b9ab1969a11bdea271f21"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/state/DiagramActorProvider.tsx",
+        "hash": "250aabe9b0cb1825ed0d6f2cebafde40e819b7394bca30f06c36f7b469a697ec"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/state/machine.setup.spec.ts",
+        "hash": "19f26df691bb15950e9a31e133d495e8a27445489065b38b97eb1de498f259d9"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/state/machine.setup.ts",
+        "hash": "3a4cc7730393f264c42a49c2a4ae0b13a0b89726e29e1944be19d586cf8f84e0"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/export-state.spec.ts",
+        "hash": "a31d11953b2f50944eb0c9c96011721c7d7dc47121c72e8f30631a3252765004"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/export-state.ts",
+        "hash": "8b78b1a736cb6dc171dc629ebb5f2bf5d2b9cdee2d0bbf1dbedc8896df29355a"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/components/view-page/Header.tsx",
+        "hash": "8b149addef26dfd6baeea3fb680fd8eed33d1fc97e46882f20c66be2b279a001"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/pages/ExportPage.tsx",
+        "hash": "acb2611dd7738e560ce924d5818d8bf6da6f6950faf1c94398f92c066963085a"
+      },
+      {
+        "path": "playwright.config.ts",
+        "hash": "95ef03015bcc0d49ecb4cae88f71a79b98ee4f267fd11fa2c951a0f93daff802"
+      },
+      {
+        "path": "test/e2e/semantic-browser-image-export.spec.ts",
+        "hash": "b4d36ec61cba83b9ff7cdbfe03b9b60e79e6d12e2fd846f32eedd23a9d3025d4"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "900c4d46929fca818cf545256dc980ee23088c0b",
+    "gitDiffSummary": "Branch browser-image-export-wysiwyg; HEAD == baseCommit 900c4d469; change scope from git status union (19 files: 13 code/test + 6 change artifacts), all attributed to task Files or change artifacts; unit tests 6/6, e2e 3/3, typechecks and bundle builds passed."
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-08-06T05:26:00.833Z",
+      "result": "PASS",
+      "issues": [
+        {
+          "severity": "SUGGESTION",
+          "requirement": "图片导出所见即所得",
+          "task": "Task 4",
+          "message": "Check C6 declares `pnpm --filter @likec4/diagram typecheck` but Task 4's only file (ExportPage.tsx) lives in @likec4/spa; actual spa typecheck (C5) covers it and passed, so no behavior impact",
+          "recommendation": "Optionally re-scope C6 to `pnpm --filter @likec4/spa typecheck` for check-command accuracy; not required for correctness"
+        }
+      ],
+      "tasksFileHash": "b6535ab7ae2671aa4e79234e958e6020378e7c45b8183a6e45357b86867a7568",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "executionMode": "subagent-reviewer",
+        "evidenceFiles": [
+          ".xirang/changes/browser-image-export-wysiwyg/design.md",
+          ".xirang/changes/browser-image-export-wysiwyg/elements/semantic-browser.md",
+          ".xirang/changes/browser-image-export-wysiwyg/proposal.md",
+          ".xirang/changes/browser-image-export-wysiwyg/tasks.md",
+          "likec4/packages/diagram/src/LikeC4Diagram.props.ts",
+          "likec4/packages/diagram/src/LikeC4Diagram.tsx",
+          "likec4/packages/diagram/src/index.ts",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/likec4diagram/state/DiagramActorProvider.tsx",
+          "likec4/packages/diagram/src/likec4diagram/state/machine.setup.spec.ts",
+          "likec4/packages/diagram/src/likec4diagram/state/machine.setup.ts",
+          "likec4/packages/diagram/src/xirang/export-state.spec.ts",
+          "likec4/packages/diagram/src/xirang/export-state.ts",
+          "likec4/packages/likec4-spa/src/components/view-page/Header.tsx",
+          "likec4/packages/likec4-spa/src/pages/ExportPage.tsx",
+          "playwright.config.ts",
+          "test/e2e/semantic-browser-image-export.spec.ts"
+        ],
+        "evidenceFingerprint": "baadb6493906cd9621e459b20be8c87bbc8a121eca3d6bceb7afa12a0517e211",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/browser-image-export-wysiwyg/design.md",
+            "hash": "70b0daa04c0e5bbdf151783bc0d2972816ac0dc7d716beed3518f175590a1957"
+          },
+          {
+            "path": ".xirang/changes/browser-image-export-wysiwyg/elements/semantic-browser.md",
+            "hash": "65bd11707c9338cb415e5d9349bbbf6f27dc3b27a81dd99d32f8c7819b721a84"
+          },
+          {
+            "path": ".xirang/changes/browser-image-export-wysiwyg/proposal.md",
+            "hash": "78e8fd94d4d73907057bec1a178a4fa740b628c2e49fa4b01bb016fc57a17466"
+          },
+          {
+            "path": ".xirang/changes/browser-image-export-wysiwyg/tasks.md",
+            "hash": "b6535ab7ae2671aa4e79234e958e6020378e7c45b8183a6e45357b86867a7568"
+          },
+          {
+            "path": "likec4/packages/diagram/src/index.ts",
+            "hash": "eaf812919a9ed45b20d30b217a4e289511706d49daa74dc5a128996c914fe699"
+          },
+          {
+            "path": "likec4/packages/diagram/src/LikeC4Diagram.props.ts",
+            "hash": "1fca0e617cfc433d633fce176107220b28776b5067989e8fb3266ce1e92909d0"
+          },
+          {
+            "path": "likec4/packages/diagram/src/LikeC4Diagram.tsx",
+            "hash": "211524df883a7d5ffe693ff8cd8ec1627bd259beb0f8427a1302423461a3d316"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "hash": "3ac748015d9464ca7ea9d9ba2ade59b393d85fcbce1b9ab1969a11bdea271f21"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/state/DiagramActorProvider.tsx",
+            "hash": "250aabe9b0cb1825ed0d6f2cebafde40e819b7394bca30f06c36f7b469a697ec"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/state/machine.setup.spec.ts",
+            "hash": "19f26df691bb15950e9a31e133d495e8a27445489065b38b97eb1de498f259d9"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/state/machine.setup.ts",
+            "hash": "3a4cc7730393f264c42a49c2a4ae0b13a0b89726e29e1944be19d586cf8f84e0"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/export-state.spec.ts",
+            "hash": "a31d11953b2f50944eb0c9c96011721c7d7dc47121c72e8f30631a3252765004"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/export-state.ts",
+            "hash": "8b78b1a736cb6dc171dc629ebb5f2bf5d2b9cdee2d0bbf1dbedc8896df29355a"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/components/view-page/Header.tsx",
+            "hash": "8b149addef26dfd6baeea3fb680fd8eed33d1fc97e46882f20c66be2b279a001"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/pages/ExportPage.tsx",
+            "hash": "acb2611dd7738e560ce924d5818d8bf6da6f6950faf1c94398f92c066963085a"
+          },
+          {
+            "path": "playwright.config.ts",
+            "hash": "95ef03015bcc0d49ecb4cae88f71a79b98ee4f267fd11fa2c951a0f93daff802"
+          },
+          {
+            "path": "test/e2e/semantic-browser-image-export.spec.ts",
+            "hash": "b4d36ec61cba83b9ff7cdbfe03b9b60e79e6d12e2fd846f32eedd23a9d3025d4"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "900c4d46929fca818cf545256dc980ee23088c0b",
+        "gitDiffSummary": "Branch browser-image-export-wysiwyg; HEAD == baseCommit 900c4d469; change scope from git status union (19 files: 13 code/test + 6 change artifacts), all attributed to task Files or change artifacts; unit tests 6/6, e2e 3/3, typechecks and bundle builds passed."
+      }
+    }
+  }
+}

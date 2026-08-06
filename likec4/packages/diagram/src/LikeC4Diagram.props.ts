@@ -295,6 +295,18 @@ export interface LikeC4DiagramProperties<A extends Any = Unknown> {
   where?: WhereOperator<A> | undefined
 
   /**
+   * Xirang: initial focus Element identity for the diagram state machine;
+   * absent means the Project Root. Used by static export seeding.
+   */
+  initialFocusIdentity?: string | null | undefined
+
+  /**
+   * Xirang: initial expand-in-place set for the diagram state machine.
+   * Used by static export seeding.
+   */
+  initialExpanded?: ReadonlySet<string> | undefined
+
+  /**
    * Override ReactFlow props
    */
   reactFlowProps?: OverrideReactFlowProps | undefined

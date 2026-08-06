@@ -84,6 +84,10 @@ export interface Input {
   where: WhereOperator | null
   dynamicViewVariant?: DynamicViewDisplayVariant | undefined
   features?: EnabledFeatures
+  /** Xirang: initial focus Element identity; absent means the root. */
+  initialFocusIdentity?: string | null | undefined
+  /** Xirang: initial expand-in-place set, used by static export seeding. */
+  initialExpanded?: ReadonlySet<string> | undefined
 }
 
 export type ToggledFeatures = {
@@ -173,8 +177,8 @@ export function Context({ input }: { input: Input }): Context {
     lastOnNavigate: null,
     lastClickedNode: null,
     focusedNode: null,
-    focusIdentity: null,
-    expandedNodes: new Set<string>(),
+    focusIdentity: input.initialFocusIdentity ?? null,
+    expandedNodes: input.initialExpanded ?? new Set<string>(),
     autoUnfocusTimer: false,
     activeElementDetails: null,
     viewportBefore: null,
