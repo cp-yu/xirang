@@ -27,12 +27,12 @@
 
 #### Checks
 
-- [ ] C1 验证 Relationship Kind presentation schema
+- [x] C1 验证 Relationship Kind presentation schema
   - Verifies: `elements/metamodel.md` / Requirement "使用规范 Kind 字段" / Scenarios "Relationship Kind 声明关系呈现", "Relationship presentation 缺失", "非法 Kind presentation 被拒绝"
   - Command: `pnpm exec vitest run test/core/model test/core/semantic-diff.test.ts test/core/framing/document.test.ts test/core/framing/baseline.test.ts`
   - Expect: 合法完整与部分 presentation 可按固定字段顺序往返、进入 framing baseline 与 semantic fingerprint/diff，非法字段和值返回 `ERROR`，缺失字段使用默认值
 
-- [ ] C2 验证 Authored View exclude 选择规则
+- [x] C2 验证 Authored View exclude 选择规则
   - Verifies: `elements/authored-views.md` / Requirement "声明选择范围" / Scenarios "选择并排除子树", "exclude 缺失", "exclude 包含未知 identity"
   - Command: `pnpm exec vitest run test/core/model test/core/semantic-diff.test.ts test/core/view.test.ts test/core/framing/baseline.test.ts`
   - Expect: exclude 优先剪枝、缺失默认、未知 identity 校验、不同输入排列的规范化与 semantic diff/fingerprint 均通过
@@ -57,20 +57,21 @@
 
 #### Checks
 
-- [ ] C3 验证统一原生 LikeC4 lowering
+- [x] C3 验证统一原生 LikeC4 lowering
   - Verifies: `elements/semantic-browser.md` / Requirement "保持 LikeC4 投影有效" / Scenarios "生成 runtime projection", "LikeC4 无法表达 source Relationship"
   - Command: `pnpm exec vitest run test/core/likec4 test/core/view.test.ts`
   - Expect: Model、Authored、Change 与 Candidate 使用同一 lowering 产出确定性原生 LikeC4 内容，self 与 ancestor-chain Relationships 被确定性省略，相同输入产生相同 projection key，且 root package 不出现 compute/layout 调用
 
-- [ ] C4 验证多根 Authored View virtual root
+- [x] C4 验证多根 Authored View virtual root
   - Verifies: `elements/authored-views.md` / Requirement "使用 Virtual Projection Root" / Scenarios "Authored View 包含多个顶层 Elements", "Model 存在唯一 Project Root"
-  - Command: `pnpm exec vitest run test/core/view.test.ts`
-  - Expect: Authored 多根投影可布局且 virtual root 不成为 Element，Model 继续使用真实 Project Root
+  - Command: `pnpm exec vitest run test/core/likec4 test/core/view.test.ts`
+  - Expect: Authored 多根投影经真实 Graphviz 布局成功且 virtual root 不成为 Element，Model 继续使用真实 Project Root
 
 - [ ] C25 验证 Derived Views 的组合边界
   - Verifies: `elements/derived-views.md` / Requirement "提供四类派生视图" / Scenarios "选择派生上下文", "Candidate 不存在"
   - Command: `pnpm exec vitest run test/core/view.test.ts`
-  - Expect: Model/Candidate 保持独立 View selections，Change-derived 由当前 View、单个 Change 与 Mode 组合，且不生成 Change View identity
+  - Expect: Model/Candidate 保持独立 View selections，Change-derived 由当前 View、单个 Change 与 Mode 组合，且 manifest 不为每个 Change 生成 View identity 字段
+  - Note: 依赖 Task 6 移除混合 source list 后才能满足，在该任务中验证
 
 ### Task 3: 实现 Projection Service、分区 Manifest 与原子缓存刷新
 

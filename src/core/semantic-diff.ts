@@ -119,6 +119,7 @@ export function normalizeSemanticModel(model: SemanticModel): SemanticModel {
     views: sortByIdentity(model.views).map(view => ({
       ...view,
       ...(Array.isArray(view.include) ? { include: sortStrings(view.include)! } : {}),
+      ...(view.exclude ? { exclude: sortStrings(view.exclude)! } : {}),
     })),
   };
 }

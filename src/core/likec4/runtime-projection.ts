@@ -1,25 +1,19 @@
 import { createHash } from 'node:crypto';
 import { compareUtf8Bytes } from '../candidate/canonical.js';
-import type { SemanticModel } from '../model/types.js';
+import type { AuthoredView, ModelElement, SemanticModel } from '../model/types.js';
+import { generateLikeC4 } from './generator.js';
 
 export type ViewSelection =
   | { type: 'model' }
-  | {
-      type: 'authored';
-      view: {
-        identity: string;
-        include: '*' | string[];
-        exclude?: string[];
-        title?: string;
-      };
-    };
-
-export interface ChangeSelection {
-  changeId: string;
-  delta: SemanticModel; // Expected model after applying change
-}
+  | { type: 'authored'; view: AuthoredView };
 
 export type PresentationMode = 'complete' | 'complete-with-diff' | 'diff-only';
+
+/** `target` is the Expected Semantic Model of the selected Change. */
+export interface ChangeSelection {
+  changeId: string;
+  target: SemanticModel;
+}
 
 export interface ProjectionDescriptor {
   model: SemanticModel;
@@ -31,16 +25,11 @@ export interface ProjectionDescriptor {
 }
 
 export interface RuntimeProjection {
-  likec4Model: {
-    elements: string[];
-    relationships: Array<{ source: string; kind: string; target: string }>;
-  };
-  likec4View: {
-    identity: string;
-    include: string[];
-    exclude?: string[];
-    of?: string;
-  };
+  /** Native LikeC4 sources keyed by file name, ready for the official parser. */
+  files: Map<string, string>;
+  /** Selected Element identities in byte order. */
+  selection: string[];
+  /** Multiple mutually independent top-level selections need a non-semantic projection root. */
   virtualRoot: boolean;
 }
 
@@ -50,188 +39,148 @@ export interface ProjectionKeyParams {
   changeSelection: { changeId: string } | null;
   presentationMode: PresentationMode;
   focus: string | null;
-  expanded: string[];
+  expanded: readonly string[];
 }
 
-/**
- * Compute descendants closure for a given element identity.
- */
-function computeDescendants(identity: string, model: SemanticModel): Set<string> {
-  const descendants = new Set<string>();
-  const childrenMap = new Map<string | null, string[]>();
-  
+function childrenByParent(model: SemanticModel): Map<string | null, string[]> {
+  const children = new Map<string | null, string[]>();
   for (const element of model.elements) {
     const parent = element.declaration.parent;
-    if (!childrenMap.has(parent)) childrenMap.set(parent, []);
-    childrenMap.get(parent)!.push(element.declaration.identity);
+    const siblings = children.get(parent) ?? [];
+    siblings.push(element.declaration.identity);
+    children.set(parent, siblings);
   }
-
-  const visit = (id: string) => {
-    descendants.add(id);
-    for (const child of childrenMap.get(id) ?? []) {
-      visit(child);
-    }
-  };
-
-  visit(identity);
-  return descendants;
+  return children;
 }
 
-/**
- * Compute the selection set for a view, applying include and exclude.
- */
+function collectSubtree(identity: string, children: Map<string | null, string[]>, into: Set<string>): void {
+  into.add(identity);
+  for (const child of children.get(identity) ?? []) collectSubtree(child, children, into);
+}
+
+/** `exclude` takes precedence and prunes the whole descendants subtree of each match. */
 function computeSelection(viewSelection: ViewSelection, model: SemanticModel): Set<string> {
-  if (viewSelection.type === 'model') {
-    return new Set(model.elements.map(e => e.declaration.identity));
-  }
+  const known = new Set(model.elements.map(element => element.declaration.identity));
+  if (viewSelection.type === 'model') return known;
 
-  if (viewSelection.type !== 'authored') {
-    throw new Error('Unexpected view selection type');
-  }
-
-  const { view } = viewSelection;
+  const children = childrenByParent(model);
   const selected = new Set<string>();
-
-  // Step 1: Apply include with descendants closure
-  const includeList = view.include === '*' 
-    ? model.elements.map(e => e.declaration.identity)
-    : view.include;
-
-  for (const identity of includeList) {
-    const descendants = computeDescendants(identity, model);
-    for (const desc of descendants) {
-      selected.add(desc);
-    }
+  const included = viewSelection.view.include === '*'
+    ? [...known]
+    : viewSelection.view.include;
+  for (const identity of included) {
+    if (known.has(identity)) collectSubtree(identity, children, selected);
   }
-
-  // Step 2: Apply exclude to prune entire subtrees
-  if (view.exclude && view.exclude.length > 0) {
-    for (const identity of view.exclude) {
-      const descendants = computeDescendants(identity, model);
-      for (const desc of descendants) {
-        selected.delete(desc);
-      }
-    }
+  for (const identity of viewSelection.view.exclude ?? []) {
+    if (!known.has(identity)) continue;
+    const pruned = new Set<string>();
+    collectSubtree(identity, children, pruned);
+    for (const item of pruned) selected.delete(item);
   }
-
   return selected;
 }
 
-/**
- * Check if an Authored View has multiple top-level roots.
- */
-function needsVirtualRoot(selection: Set<string>, model: SemanticModel): boolean {
-  const parentMap = new Map(
-    model.elements.map(e => [e.declaration.identity, e.declaration.parent])
-  );
+function isAncestor(ancestor: string, descendant: string, parents: Map<string, string | null>): boolean {
+  let parent = parents.get(descendant) ?? null;
+  while (parent !== null) {
+    if (parent === ancestor) return true;
+    parent = parents.get(parent) ?? null;
+  }
+  return false;
+}
 
+/** Roots are selected Elements whose parent is absent from the selection. */
+function selectionRoots(selection: Set<string>, parents: Map<string, string | null>): string[] {
   const roots: string[] = [];
   for (const identity of selection) {
-    const parent = parentMap.get(identity);
-    if (parent === null || parent === undefined || !selection.has(parent)) {
-      roots.push(identity);
-    }
+    const parent = parents.get(identity) ?? null;
+    if (parent === null || !selection.has(parent)) roots.push(identity);
   }
-
-  return roots.length > 1;
+  return roots.sort(compareUtf8Bytes);
 }
 
 /**
- * Create a runtime projection from semantic model and view parameters.
- * This generates the native LikeC4 model and view that will be passed to
- * the official LikeC4 parser → validator → compute-view → Graphviz pipeline.
+ * Prunes the target model to the selection and reparents severed Elements, so the result is a
+ * self-contained Semantic Model that the shared `generateLikeC4()` lowering can render.
  */
-export function createRuntimeProjection(descriptor: ProjectionDescriptor): RuntimeProjection {
-  const { model, viewSelection, changeSelection } = descriptor;
-  
-  // For now, we only implement 'complete' mode without change overlay
-  // TODO: Implement change-derived projections in later tasks
-  const effectiveModel = changeSelection?.delta ?? model;
-  
-  const selection = computeSelection(viewSelection, effectiveModel);
-  const virtualRoot = viewSelection.type === 'authored' 
-    && needsVirtualRoot(selection, effectiveModel);
+function projectSemanticModel(
+  target: SemanticModel,
+  selection: Set<string>,
+  viewSelection: ViewSelection,
+): SemanticModel {
+  const parents = new Map(target.elements.map(element =>
+    [element.declaration.identity, element.declaration.parent] as const));
 
-  // Filter elements to selected ones
-  const selectedElements = [...selection].sort(compareUtf8Bytes);
-
-  // Filter relationships: both endpoints must be in selection
-  const selectedRelationships = effectiveModel.relationships
-    .filter(rel => selection.has(rel.source) && selection.has(rel.target))
-    .filter(rel => {
-      // Exclude self-relationships and ancestor-chain relationships
-      // LikeC4 cannot express these
-      if (rel.source === rel.target) return false;
-      
-      const parentMap = new Map(
-        effectiveModel.elements.map(e => [e.declaration.identity, e.declaration.parent])
-      );
-      
-      const isAncestor = (ancestor: string, descendant: string): boolean => {
-        let current = parentMap.get(descendant) ?? null;
-        while (current !== null) {
-          if (current === ancestor) return true;
-          current = parentMap.get(current) ?? null;
-        }
-        return false;
-      };
-
-      return !isAncestor(rel.source, rel.target) && !isAncestor(rel.target, rel.source);
+  const elements: ModelElement[] = target.elements
+    .filter(element => selection.has(element.declaration.identity))
+    .map(element => {
+      const parent = element.declaration.parent;
+      const reachable = parent !== null && selection.has(parent);
+      return reachable ? element : { ...element, declaration: { ...element.declaration, parent: null } };
     });
 
-  let viewIdentity: string;
-  if (viewSelection.type === 'model') {
-    viewIdentity = 'model';
-  } else if (viewSelection.type === 'authored') {
-    viewIdentity = viewSelection.view.identity;
-  } else {
-    throw new Error('Unexpected view selection type');
+  // LikeC4 cannot express self or ancestor-chain endpoints; Xirang keeps them in its own source.
+  const relationships = target.relationships.filter(relationship =>
+    selection.has(relationship.source)
+    && selection.has(relationship.target)
+    && relationship.source !== relationship.target
+    && !isAncestor(relationship.source, relationship.target, parents)
+    && !isAncestor(relationship.target, relationship.source, parents));
+
+  // `exclude` is already applied, so the projected view carries the resolved selection only.
+  const views: AuthoredView[] = [];
+  if (viewSelection.type === 'authored') {
+    const { identity, of, title, autoLayout } = viewSelection.view;
+    views.push({
+      identity,
+      include: [...selection].sort(compareUtf8Bytes),
+      ...(of !== undefined && selection.has(of) ? { of } : {}),
+      ...(title !== undefined ? { title } : {}),
+      ...(autoLayout !== undefined ? { autoLayout } : {}),
+    });
   }
 
   return {
-    likec4Model: {
-      elements: selectedElements,
-      relationships: selectedRelationships.map(r => ({
-        source: r.source,
-        kind: r.kind,
-        target: r.target,
-      })),
-    },
-    likec4View: {
-      identity: viewIdentity,
-      include: selectedElements,
-    },
-    virtualRoot,
+    elementKinds: target.elementKinds,
+    relationshipKinds: target.relationshipKinds,
+    elements,
+    relationships,
+    views,
   };
 }
 
 /**
- * Compute a deterministic projection key from parameters.
- * Same inputs always produce the same key.
+ * Lowers one visible semantic projection to native LikeC4 sources. Model, Authored, Change and
+ * Candidate selections all pass through this single lowering; the official LikeC4 parser,
+ * validator, compute-view and Graphviz layout run on the returned files in the view server.
  */
-export function computeProjectionKey(params: ProjectionKeyParams): string {
-  const {
-    modelFingerprint,
-    viewSelection,
-    changeSelection,
-    presentationMode,
-    focus,
-    expanded,
-  } = params;
+export function createRuntimeProjection(descriptor: ProjectionDescriptor): RuntimeProjection {
+  const target = descriptor.changeSelection?.target ?? descriptor.model;
+  const selection = computeSelection(descriptor.viewSelection, target);
+  const parents = new Map(target.elements.map(element =>
+    [element.declaration.identity, element.declaration.parent] as const));
+  const projected = projectSemanticModel(target, selection, descriptor.viewSelection);
 
-  // Sort expanded for deterministic key
-  const sortedExpanded = [...expanded].sort(compareUtf8Bytes);
-
-  const keyData = {
-    fingerprint: modelFingerprint,
-    view: viewSelection,
-    change: changeSelection?.changeId ?? null,
-    mode: presentationMode,
-    focus: focus ?? null,
-    expanded: sortedExpanded,
+  return {
+    files: generateLikeC4(projected),
+    selection: [...selection].sort(compareUtf8Bytes),
+    virtualRoot: descriptor.viewSelection.type === 'authored'
+      && selectionRoots(selection, parents).length > 1,
   };
+}
 
-  const hash = createHash('sha256');
-  hash.update(JSON.stringify(keyData));
-  return hash.digest('hex').slice(0, 16);
+/** Same descriptor always yields the same key; `expanded` is order-insensitive. */
+export function computeProjectionKey(params: ProjectionKeyParams): string {
+  const view = params.viewSelection.type === 'model'
+    ? 'model'
+    : `authored:${params.viewSelection.view.identity}`;
+  const payload = JSON.stringify({
+    fingerprint: params.modelFingerprint,
+    view,
+    change: params.changeSelection?.changeId ?? null,
+    mode: params.presentationMode,
+    focus: params.focus ?? null,
+    expanded: [...params.expanded].sort(compareUtf8Bytes),
+  });
+  return createHash('sha256').update(payload).digest('hex').slice(0, 32);
 }

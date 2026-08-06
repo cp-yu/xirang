@@ -222,6 +222,7 @@ function checkViews(model: SemanticModel, diagnostics: ModelDiagnostic[]): void 
     const references = [
       ...(view.of === undefined ? [] : [view.of]),
       ...(view.include === '*' ? [] : view.include),
+      ...(view.exclude ?? []),
     ];
     for (const reference of references) {
       if (!elements.has(reference)) {

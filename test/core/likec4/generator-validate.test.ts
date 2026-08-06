@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { runLikeC4 } from '../../../src/commands/arch/runner.js';
 import { generateLikeC4 } from '../../../src/core/likec4/generator.js';
+import { createRuntimeProjection } from '../../../src/core/likec4/runtime-projection.js';
 import { parseSemanticModel } from '../../../src/core/model/parser.js';
 import { modelRoot } from '../../../src/core/model/paths.js';
 import type { ModelElement, SemanticModel } from '../../../src/core/model/types.js';
@@ -96,6 +97,72 @@ describe('generateLikeC4 artifacts', () => {
 
       // LikeC4 must not inject its own `index` Landscape view next to the Model View.
       expect(Object.keys(generated.views)).toEqual(['model']);
+    } finally {
+      await fs.rm(dir, { recursive: true, force: true });
+      await fs.rm(outfile, { force: true });
+    }
+  });
+
+  it('accepts a pruned Authored projection whose severed Elements are reparented', { timeout: 180_000 }, async () => {
+    // `domain.architecture` is selected without its parent, and `exclude` prunes one subtree:
+    // the projection must still be valid native LikeC4, not just plausible text.
+    const projection = createRuntimeProjection({
+      model,
+      viewSelection: {
+        type: 'authored',
+        view: { identity: 'arch.detail', include: ['domain.architecture'], exclude: ['y.views'] },
+      },
+      changeSelection: null,
+      presentationMode: 'complete',
+      focus: null,
+      expanded: [],
+    });
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-likec4-projection-'));
+    try {
+      for (const [file, content] of projection.files) await fs.writeFile(path.join(dir, file), content);
+      await expect(runLikeC4(['validate', dir])).resolves.toBeUndefined();
+      expect(projection.selection).not.toContain('y.views');
+      expect(projection.selection).not.toContain('project.main');
+    } finally {
+      await fs.rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('lays out a multi-root Authored projection without materializing the virtual root', { timeout: 180_000 }, async () => {
+    const projection = createRuntimeProjection({
+      model,
+      viewSelection: { type: 'authored', view: { identity: 'arch.detail', include: ['domain.architecture', 'domain.cli'] } },
+      changeSelection: null,
+      presentationMode: 'complete',
+      focus: null,
+      expanded: [],
+    });
+    expect(projection.virtualRoot).toBe(true);
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-likec4-projection-layout-'));
+    const outfile = path.join(os.tmpdir(), `xirang-likec4-${path.basename(dir)}.json`);
+    try {
+      for (const [file, content] of projection.files) await fs.writeFile(path.join(dir, file), content);
+      await runLikeC4(['export', 'json', '--project', 'xirang', '-o', outfile, dir]);
+      const generated = JSON.parse(await fs.readFile(outfile, 'utf8')) as {
+        views: Record<string, {
+          nodes: Array<{ parent: string | null; metadata?: { elementId?: string } }>;
+          edges: Array<{ points?: unknown }>;
+        }>;
+      };
+      const view = generated.views['arch_detail'];
+      expect(view).toBeDefined();
+      expect(view!.nodes.length).toBeGreaterThan(0);
+      // Graphviz owns the routing: every edge must arrive with computed points.
+      for (const edge of view!.edges) expect(edge.points).toBeDefined();
+      // The virtual root is a projection concern only: it never becomes an Element, so both
+      // independent selections stay top-level and no extra node carries a stable identity.
+      const identities = view!.nodes.map(node => node.metadata?.elementId);
+      expect(identities).toContain('domain.architecture');
+      expect(identities).toContain('domain.cli');
+      expect(identities.every(identity => identity !== undefined)).toBe(true);
+      const topLevel = view!.nodes.filter(node => node.parent === null)
+        .map(node => node.metadata?.elementId);
+      expect(topLevel).toEqual(['domain.architecture', 'domain.cli']);
     } finally {
       await fs.rm(dir, { recursive: true, force: true });
       await fs.rm(outfile, { force: true });

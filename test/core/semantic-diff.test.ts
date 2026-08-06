@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { partitionFingerprints } from '../../src/core/view.js';
-import { semanticModelFingerprint, type ChangeDiff } from '../../src/core/semantic-diff.js';
+import { normalizeSemanticModel, semanticModelFingerprint, type ChangeDiff } from '../../src/core/semantic-diff.js';
 import { createSemanticDiff } from '../../src/core/semantic-diff.js';
 import { emptySemanticModel, type SemanticModel } from '../../src/core/model/types.js';
 
@@ -47,6 +47,37 @@ describe('presentation-only fingerprint isolation', () => {
     expect(afterFingerprints.elements).toBe(beforeFingerprints.elements);
     expect(afterFingerprints.relationships).toBe(beforeFingerprints.relationships);
     expect(afterFingerprints.views).toBe(beforeFingerprints.views);
+  });
+
+  it('treats a permuted Authored View exclude as the same semantics', () => {
+    const left: SemanticModel = { ...base(), views: [{ identity: 'overview', include: ['root'], exclude: ['a', 'b'] }] };
+    const right: SemanticModel = { ...base(), views: [{ identity: 'overview', include: ['root'], exclude: ['b', 'a'] }] };
+
+    // `exclude` is an unordered set for semantic comparison, exactly like `include`.
+    expect(semanticModelFingerprint(right)).toBe(semanticModelFingerprint(left));
+    expect(normalizeSemanticModel(right).views).toEqual(normalizeSemanticModel(left).views);
+  });
+
+  it('separates a changed Authored View exclude from an unchanged one', () => {
+    const before: SemanticModel = { ...base(), views: [{ identity: 'overview', include: ['root'], exclude: ['a'] }] };
+    const after: SemanticModel = { ...base(), views: [{ identity: 'overview', include: ['root'], exclude: ['a', 'b'] }] };
+
+    expect(partitionFingerprints(after).views).not.toBe(partitionFingerprints(before).views);
+  });
+
+  it('carries Relationship Kind presentation into the metamodel fingerprint only', () => {
+    const before = base();
+    const after: SemanticModel = {
+      ...before,
+      relationshipKinds: [{ identity: 'organizes', presentation: { color: 'blue', line: 'dotted' }, body: '' }],
+    };
+
+    const beforeFingerprints = partitionFingerprints(before);
+    const afterFingerprints = partitionFingerprints(after);
+
+    expect(afterFingerprints.metamodel).not.toBe(beforeFingerprints.metamodel);
+    expect(afterFingerprints.relationships).toBe(beforeFingerprints.relationships);
+    expect(afterFingerprints.elements).toBe(beforeFingerprints.elements);
   });
 
   it('reports presentation change as an element-kind MODIFIED diff', () => {
