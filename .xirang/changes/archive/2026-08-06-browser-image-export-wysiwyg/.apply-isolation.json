@@ -1,0 +1,7 @@
+{
+  "method": "branch",
+  "branchName": "browser-image-export-wysiwyg",
+  "originalBranch": "main",
+  "baseCommit": "900c4d46929fca818cf545256dc980ee23088c0b",
+  "phase2BaselineCommit": "79854d348924eb457cae218d37757cf9f0e4b172"
+}

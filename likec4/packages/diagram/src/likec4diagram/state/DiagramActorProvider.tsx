@@ -34,6 +34,8 @@ export function DiagramActorProvider({
   where = null,
   children,
   dynamicViewVariant: _defaultVariant,
+  initialFocusIdentity,
+  initialExpanded,
 }: PropsWithChildren<{
   id: string
   view: DiagramView
@@ -44,6 +46,8 @@ export function DiagramActorProvider({
   fitViewPadding: ViewPaddings
   where?: WhereOperator | null
   dynamicViewVariant?: DynamicViewDisplayVariant | undefined
+  initialFocusIdentity?: string | null | undefined
+  initialExpanded?: ReadonlySet<string> | undefined
 }>) {
   const xystore = useStoreApi<Types.Node, Types.Edge>()
 
@@ -71,6 +75,8 @@ export function DiagramActorProvider({
         where,
         features,
         dynamicViewVariant: _defaultVariant,
+        initialFocusIdentity,
+        initialExpanded,
       },
     },
   )

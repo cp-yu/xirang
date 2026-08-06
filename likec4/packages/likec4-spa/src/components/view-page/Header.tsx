@@ -1,4 +1,9 @@
-import { useLikeC4Projects } from '@likec4/diagram'
+import {
+  clearXirangExportSnapshotFromStorage,
+  getXirangExportSnapshot,
+  useLikeC4Projects,
+  writeXirangExportSnapshotToStorage,
+} from '@likec4/diagram'
 import {
   Button,
   Divider,
@@ -107,6 +112,33 @@ function ExportButton() {
   const project = useCurrentProject()
   const viewId = useCurrentViewId()
 
+  /**
+   * Carries the current Xirang view state (source, mode, focus, expansion) to the export tab:
+   * window.open keeps an opener so the new tab clones sessionStorage, letting the PNG/JPG export
+   * page reproduce the on-screen view. Authored views keep the default export behavior.
+   */
+  const handleImageExport = useCallback((event: React.MouseEvent<HTMLElement>) => {
+    if (viewId !== 'model') {
+      // Authored-view exports must start from the documented no-snapshot fallback,
+      // never inherit a snapshot left by a prior Model View export.
+      clearXirangExportSnapshotFromStorage()
+      return
+    }
+    const snapshot = getXirangExportSnapshot()
+    if (!snapshot) {
+      clearXirangExportSnapshotFromStorage()
+      return
+    }
+    writeXirangExportSnapshotToStorage(snapshot)
+    // target=_blank implies rel=noopener in modern browsers, which prevents sessionStorage
+    // cloning into the export tab; window.open keeps the opener so the clone happens.
+    event.preventDefault()
+    const href = event.currentTarget?.getAttribute('href')
+    if (href) {
+      window.open(href, '_blank')
+    }
+  }, [viewId])
+
   const handleDrawioExport = useCallback(async () => {
     try {
       setIsDrawioLoading(true)
@@ -138,6 +170,7 @@ function ExportButton() {
       <MenuDropdown>
         <MenuLabel>Current view</MenuLabel>
         <MenuItem
+          onClick={handleImageExport}
           renderRoot={(props) => (
             <Link
               target="_blank"
@@ -149,6 +182,7 @@ function ExportButton() {
           Export as .png
         </MenuItem>
         <MenuItem
+          onClick={handleImageExport}
           renderRoot={(props) => (
             <Link
               target="_blank"

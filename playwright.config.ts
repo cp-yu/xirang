@@ -17,7 +17,7 @@ export default defineConfig({
   projects: [
     {
       name: 'desktop',
-      grep: /browses Element Contracts|opens an Authored View|keeps View source|browses Model View|handles ADDED projection|expands in place|browses the complete candidate model|reviews candidate changes in diff only mode|keeps invalid candidate sources diagnosable|shows candidate cards on the landing page|applies kind presentation|keeps operation color|exports a hierarchy tree/,
+      grep: /browses Element Contracts|opens an Authored View|keeps View source|browses Model View|handles ADDED projection|expands in place|browses the complete candidate model|reviews candidate changes in diff only mode|keeps invalid candidate sources diagnosable|shows candidate cards on the landing page|applies kind presentation|keeps operation color|exports a hierarchy tree|exports the current focus|exports a change source|exports without a snapshot|exports the complete model structure for file formats/,
       use: { ...devices['Desktop Chrome'] },
     },
     {

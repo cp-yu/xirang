@@ -1,0 +1,220 @@
+{
+  "timestamp": "2026-08-06T07:54:06.546Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "333bfa6bb9d1b87aef64a69958f3bc092d94cd142491cfb6656c28a6e71ab038",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "executionMode": "subagent-reviewer",
+    "evidenceFiles": [
+      ".xirang/changes/browser-image-export-wysiwyg/design.md",
+      ".xirang/changes/browser-image-export-wysiwyg/elements/semantic-browser.md",
+      ".xirang/changes/browser-image-export-wysiwyg/proposal.md",
+      ".xirang/changes/browser-image-export-wysiwyg/tasks.md",
+      "likec4/packages/diagram/src/LikeC4Diagram.props.ts",
+      "likec4/packages/diagram/src/LikeC4Diagram.tsx",
+      "likec4/packages/diagram/src/index.ts",
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+      "likec4/packages/diagram/src/likec4diagram/state/DiagramActorProvider.tsx",
+      "likec4/packages/diagram/src/likec4diagram/state/machine.setup.spec.ts",
+      "likec4/packages/diagram/src/likec4diagram/state/machine.setup.ts",
+      "likec4/packages/diagram/src/xirang/export-state.spec.ts",
+      "likec4/packages/diagram/src/xirang/export-state.ts",
+      "likec4/packages/likec4-spa/src/components/view-page/Header.tsx",
+      "likec4/packages/likec4-spa/src/pages/ExportPage.tsx",
+      "playwright.config.ts",
+      "test/e2e/semantic-browser-image-export.spec.ts"
+    ],
+    "evidenceFingerprint": "d4854af37c4c4408324d0796452d98ed21cc4a4074d552b15d996d66503dd80d",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/browser-image-export-wysiwyg/design.md",
+        "hash": "7798e19ef58d01a8c64c0e3b7df73b90917c031dff31078c60a78ef0a0da3d51"
+      },
+      {
+        "path": ".xirang/changes/browser-image-export-wysiwyg/elements/semantic-browser.md",
+        "hash": "279c4de4986eaa8f5382ffb97d4c81849efc1629a57614c11c6dce9896d3bdd7"
+      },
+      {
+        "path": ".xirang/changes/browser-image-export-wysiwyg/proposal.md",
+        "hash": "7c38841adbb58ede83b9a716716c9d2f2e6693a340df61dcfd3808aad5f66e10"
+      },
+      {
+        "path": ".xirang/changes/browser-image-export-wysiwyg/tasks.md",
+        "hash": "333bfa6bb9d1b87aef64a69958f3bc092d94cd142491cfb6656c28a6e71ab038"
+      },
+      {
+        "path": "likec4/packages/diagram/src/index.ts",
+        "hash": "eaf812919a9ed45b20d30b217a4e289511706d49daa74dc5a128996c914fe699"
+      },
+      {
+        "path": "likec4/packages/diagram/src/LikeC4Diagram.props.ts",
+        "hash": "1fca0e617cfc433d633fce176107220b28776b5067989e8fb3266ce1e92909d0"
+      },
+      {
+        "path": "likec4/packages/diagram/src/LikeC4Diagram.tsx",
+        "hash": "211524df883a7d5ffe693ff8cd8ec1627bd259beb0f8427a1302423461a3d316"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+        "hash": "3ac748015d9464ca7ea9d9ba2ade59b393d85fcbce1b9ab1969a11bdea271f21"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/state/DiagramActorProvider.tsx",
+        "hash": "250aabe9b0cb1825ed0d6f2cebafde40e819b7394bca30f06c36f7b469a697ec"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/state/machine.setup.spec.ts",
+        "hash": "19f26df691bb15950e9a31e133d495e8a27445489065b38b97eb1de498f259d9"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/state/machine.setup.ts",
+        "hash": "7cba08f64e49bdf3f4b6c683c6b2f1d3d1d64a9d38117bccd2813813143c9e6c"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/export-state.spec.ts",
+        "hash": "43f9e483a9572c89caaa83946b28e5c98f9b26a4fe12581afe869dd35ee9d226"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/export-state.ts",
+        "hash": "052816a564e0df711a59560a648c344328fca95e3b89952243f72929c81c0e0b"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/components/view-page/Header.tsx",
+        "hash": "76c3bee195b931e2310613215fcd6569935e1425fa2f2f866c7e096aefd387b8"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/pages/ExportPage.tsx",
+        "hash": "59f89235cda7f52d6a29a56aec856b4028cdca3fab64ac7385be2e21d02c4efa"
+      },
+      {
+        "path": "playwright.config.ts",
+        "hash": "3afac53b875202229ccf47d60e2b8d8fcb6518d5caf98de4433941f42e46cdb3"
+      },
+      {
+        "path": "test/e2e/semantic-browser-image-export.spec.ts",
+        "hash": "944cd9325032755513faa008530fe1cd20aaa2c892010c5c219bb74d38dd6b5d"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "951bce93449b8a3be43859d01cd11429acf0cbcd",
+    "gitDiffSummary": "Contract updated: added Requirement '文件类导出保持完整模型结构' (dot/d2/mmd/puml/Draw.io/tree export complete model structure, declared scope). New e2e C11 guards it. Desktop export e2e 4/4, regression suites green; no file-export code changes."
+  },
+  "optimization": {
+    "status": "NOT_NEEDED",
+    "attempts": [
+      {
+        "timestamp": "2026-08-06T07:54:06.728Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-08-06T07:54:06.546Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "333bfa6bb9d1b87aef64a69958f3bc092d94cd142491cfb6656c28a6e71ab038",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "executionMode": "subagent-reviewer",
+        "evidenceFiles": [
+          ".xirang/changes/browser-image-export-wysiwyg/design.md",
+          ".xirang/changes/browser-image-export-wysiwyg/elements/semantic-browser.md",
+          ".xirang/changes/browser-image-export-wysiwyg/proposal.md",
+          ".xirang/changes/browser-image-export-wysiwyg/tasks.md",
+          "likec4/packages/diagram/src/LikeC4Diagram.props.ts",
+          "likec4/packages/diagram/src/LikeC4Diagram.tsx",
+          "likec4/packages/diagram/src/index.ts",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/likec4diagram/state/DiagramActorProvider.tsx",
+          "likec4/packages/diagram/src/likec4diagram/state/machine.setup.spec.ts",
+          "likec4/packages/diagram/src/likec4diagram/state/machine.setup.ts",
+          "likec4/packages/diagram/src/xirang/export-state.spec.ts",
+          "likec4/packages/diagram/src/xirang/export-state.ts",
+          "likec4/packages/likec4-spa/src/components/view-page/Header.tsx",
+          "likec4/packages/likec4-spa/src/pages/ExportPage.tsx",
+          "playwright.config.ts",
+          "test/e2e/semantic-browser-image-export.spec.ts"
+        ],
+        "evidenceFingerprint": "d4854af37c4c4408324d0796452d98ed21cc4a4074d552b15d996d66503dd80d",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/browser-image-export-wysiwyg/design.md",
+            "hash": "7798e19ef58d01a8c64c0e3b7df73b90917c031dff31078c60a78ef0a0da3d51"
+          },
+          {
+            "path": ".xirang/changes/browser-image-export-wysiwyg/elements/semantic-browser.md",
+            "hash": "279c4de4986eaa8f5382ffb97d4c81849efc1629a57614c11c6dce9896d3bdd7"
+          },
+          {
+            "path": ".xirang/changes/browser-image-export-wysiwyg/proposal.md",
+            "hash": "7c38841adbb58ede83b9a716716c9d2f2e6693a340df61dcfd3808aad5f66e10"
+          },
+          {
+            "path": ".xirang/changes/browser-image-export-wysiwyg/tasks.md",
+            "hash": "333bfa6bb9d1b87aef64a69958f3bc092d94cd142491cfb6656c28a6e71ab038"
+          },
+          {
+            "path": "likec4/packages/diagram/src/index.ts",
+            "hash": "eaf812919a9ed45b20d30b217a4e289511706d49daa74dc5a128996c914fe699"
+          },
+          {
+            "path": "likec4/packages/diagram/src/LikeC4Diagram.props.ts",
+            "hash": "1fca0e617cfc433d633fce176107220b28776b5067989e8fb3266ce1e92909d0"
+          },
+          {
+            "path": "likec4/packages/diagram/src/LikeC4Diagram.tsx",
+            "hash": "211524df883a7d5ffe693ff8cd8ec1627bd259beb0f8427a1302423461a3d316"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "hash": "3ac748015d9464ca7ea9d9ba2ade59b393d85fcbce1b9ab1969a11bdea271f21"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/state/DiagramActorProvider.tsx",
+            "hash": "250aabe9b0cb1825ed0d6f2cebafde40e819b7394bca30f06c36f7b469a697ec"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/state/machine.setup.spec.ts",
+            "hash": "19f26df691bb15950e9a31e133d495e8a27445489065b38b97eb1de498f259d9"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/state/machine.setup.ts",
+            "hash": "7cba08f64e49bdf3f4b6c683c6b2f1d3d1d64a9d38117bccd2813813143c9e6c"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/export-state.spec.ts",
+            "hash": "43f9e483a9572c89caaa83946b28e5c98f9b26a4fe12581afe869dd35ee9d226"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/export-state.ts",
+            "hash": "052816a564e0df711a59560a648c344328fca95e3b89952243f72929c81c0e0b"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/components/view-page/Header.tsx",
+            "hash": "76c3bee195b931e2310613215fcd6569935e1425fa2f2f866c7e096aefd387b8"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/pages/ExportPage.tsx",
+            "hash": "59f89235cda7f52d6a29a56aec856b4028cdca3fab64ac7385be2e21d02c4efa"
+          },
+          {
+            "path": "playwright.config.ts",
+            "hash": "3afac53b875202229ccf47d60e2b8d8fcb6518d5caf98de4433941f42e46cdb3"
+          },
+          {
+            "path": "test/e2e/semantic-browser-image-export.spec.ts",
+            "hash": "944cd9325032755513faa008530fe1cd20aaa2c892010c5c219bb74d38dd6b5d"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "951bce93449b8a3be43859d01cd11429acf0cbcd",
+        "gitDiffSummary": "Contract updated: added Requirement '文件类导出保持完整模型结构' (dot/d2/mmd/puml/Draw.io/tree export complete model structure, declared scope). New e2e C11 guards it. Desktop export e2e 4/4, regression suites green; no file-export code changes."
+      }
+    },
+    "findings": [],
+    "history": [],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}

@@ -24,6 +24,7 @@ import {
   xirangViewSourceRevision,
 } from '../xirang/ContractLoaderContext'
 import { addedXirangProjectionIdentity } from '../xirang/projectionNode'
+import { setXirangExportSnapshot } from '../xirang/export-state'
 import { RelationshipPopover } from './relationship-popover/RelationshipPopover'
 import { FloatingSequenceActors, LayoutDriftFrame, NotationPanel, SequenceOutlinePanel } from './ui'
 
@@ -314,6 +315,18 @@ function XirangArchitectureOverlay() {
       actorRef.send({ type: 'navigate.focus', focusIdentity: resolvedFocus ?? null })
     }
   }, [actorRef, currentView.id, declarations, effectiveMode, expandedNodes, focusIdentity, isReady, rootIdentity, selected, selectedRevision])
+
+  // Mirror the interactive view state so the Header export can reproduce it in the export tab.
+  // Static rendering (the export page) never writes: its own defaults must not overwrite the snapshot.
+  useEffect(() => {
+    if (enableStaticView) return
+    setXirangExportSnapshot({
+      source: selected.id,
+      mode: effectiveMode,
+      focus: focusIdentity,
+      expanded: [...expandedNodes].sort(),
+    })
+  }, [enableStaticView, effectiveMode, expandedNodes, focusIdentity, selected.id])
 
   const relationshipPanel = (
     <Modal

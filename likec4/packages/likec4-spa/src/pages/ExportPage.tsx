@@ -6,13 +6,20 @@
 // Portions of this file have been modified by NVIDIA CORPORATION & AFFILIATES.
 
 import { type LayoutedView, type NodeNotation, type RichTextOrEmpty, RichText } from '@likec4/core'
-import { LikeC4Diagram, pickViewBounds, useLikeC4Styles } from '@likec4/diagram'
+import {
+  LikeC4Diagram,
+  pickViewBounds,
+  readXirangExportSnapshotFromStorage,
+  type XirangExportSnapshot,
+  useLikeC4Styles,
+  useXirangViewSources,
+} from '@likec4/diagram'
 import { ElementShape, Markdown } from '@likec4/diagram/custom'
 import { Box } from '@likec4/styles/jsx'
 import { LoadingOverlay } from '@mantine/core'
 import { useSearch } from '@tanstack/react-router'
 import type { CSSProperties } from 'react'
-import { useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useCurrentView, useTransparentBackground } from '../hooks'
 import {
   computeExportPageLayout,
@@ -111,6 +118,29 @@ async function downloadAsJpeg({
 }
 
 /**
+ * Applies the interactive view state (source and display mode) to the export page's
+ * Xirang source context once, mirroring the ViewHistoryBridge URL→context pattern.
+ * The materialization effect then re-projects the view from the frozen snapshot.
+ */
+function ApplyXirangExportState({
+  snapshot,
+  onApplied,
+}: {
+  snapshot: XirangExportSnapshot
+  onApplied: () => void
+}) {
+  const { select, setMode } = useXirangViewSources()
+  useEffect(() => {
+    select(snapshot.source)
+    setMode(snapshot.mode)
+    onApplied()
+    // Apply once with the frozen snapshot; the export page has no live navigation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  return null
+}
+
+/**
  * Renders the single-view export page used by browser downloads and CLI screenshots.
  */
 export function ExportPage() {
@@ -120,17 +150,41 @@ export function ExportPage() {
 
   useTransparentBackground(!isJpeg)
 
+  // Frozen at mount: the interactive view state cloned into this tab by the Header export,
+  // with the machine seed values derived exactly once alongside the snapshot read.
+  const [seed] = useState(() => {
+    const snapshot = readXirangExportSnapshotFromStorage()
+    return {
+      snapshot,
+      focus: snapshot?.focus ?? undefined,
+      expanded: snapshot ? new Set(snapshot.expanded) : undefined,
+    }
+  })
+
   if (!diagram) {
     return <div>Loading...</div>
   }
 
-  return <GuardedExportPage diagram={diagram} isJpeg={isJpeg} />
+  return <GuardedExportPage diagram={diagram} isJpeg={isJpeg} seed={seed} />
 }
 
 /**
  * Renders the measured export viewport for a loaded diagram.
  */
-function GuardedExportPage({ diagram, isJpeg }: { diagram: LayoutedView; isJpeg: boolean }) {
+function GuardedExportPage({
+  diagram,
+  isJpeg,
+  seed,
+}: {
+  diagram: LayoutedView
+  isJpeg: boolean
+  seed: {
+    snapshot: XirangExportSnapshot | null
+    focus: string | undefined
+    expanded: Set<string> | undefined
+  }
+}) {
+  const { snapshot, focus: initialFocusIdentity, expanded: initialExpanded } = seed
   const {
     padding = 20,
     download = false,
@@ -146,6 +200,10 @@ function GuardedExportPage({ diagram, isJpeg }: { diagram: LayoutedView; isJpeg:
 
   // to track if download has already occurred
   const downloadedRef = useRef(false)
+  // The download waits until the snapshot is applied so the captured pixels are the final view;
+  // a missing snapshot (direct export URL open) means no gating.
+  const snapshotAppliedRef = useRef(snapshot === null)
+  const initializedRef = useRef(false)
 
   const bounds = pickViewBounds(diagram, dynamic)
   const viewDescription = RichText.from(diagram.description)
@@ -161,8 +219,11 @@ function GuardedExportPage({ diagram, isJpeg }: { diagram: LayoutedView; isJpeg:
   })
 
   const downloadDiagram = () => {
+    if (!download || !snapshotAppliedRef.current) {
+      return
+    }
     const viewport = viewportRef.current
-    if (!download || !viewport || !diagram || downloadedRef.current) {
+    if (!viewport || !diagram || downloadedRef.current) {
       return
     }
     const loadingOverlay = loadingOverlayRef.current
@@ -183,6 +244,24 @@ function GuardedExportPage({ diagram, isJpeg }: { diagram: LayoutedView; isJpeg:
       })
     }
   }
+  const downloadDiagramRef = useRef(downloadDiagram)
+  downloadDiagramRef.current = downloadDiagram
+
+  // Single scheduling site: downloads once both the snapshot is applied and the diagram is
+  // initialized, so the captured pixels are the final view. A missing snapshot means no gating.
+  const maybeScheduleDownload = () => {
+    if (!download || !snapshotAppliedRef.current || !initializedRef.current || downloadedRef.current) {
+      return
+    }
+    window.setTimeout(downloadDiagramRef.current, 500)
+  }
+  const maybeScheduleDownloadRef = useRef(maybeScheduleDownload)
+  maybeScheduleDownloadRef.current = maybeScheduleDownload
+
+  const handleSnapshotApplied = useCallback(() => {
+    snapshotAppliedRef.current = true
+    maybeScheduleDownloadRef.current()
+  }, [])
 
   return (
     <Box
@@ -245,6 +324,8 @@ function GuardedExportPage({ diagram, isJpeg }: { diagram: LayoutedView; isJpeg:
           nodesSelectable={false}
           enableElementTags={false}
           static
+          initialFocusIdentity={initialFocusIdentity}
+          initialExpanded={initialExpanded}
           onInitialized={() => {
             if (!viewportRef.current) {
               console.error('viewportRef.current is null')
@@ -258,11 +339,13 @@ function GuardedExportPage({ diagram, isJpeg }: { diagram: LayoutedView; isJpeg:
               el.style.transform = 'translate(' + x + 'px, ' + y + 'px)'
             })
 
-            if (download) {
-              window.setTimeout(downloadDiagram, 500)
-            }
+            initializedRef.current = true
+            maybeScheduleDownloadRef.current()
           }}
         />
+        {snapshot && (
+          <ApplyXirangExportState snapshot={snapshot} onApplied={handleSnapshotApplied} />
+        )}
       </Box>
       {layout.description && (
         <ExportDescriptionPanel
