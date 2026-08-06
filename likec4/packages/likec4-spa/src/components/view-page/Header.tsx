@@ -118,7 +118,12 @@ function ExportButton() {
    * Authored views keep the default export behavior.
    */
   const handleImageExport = useCallback(() => {
-    if (viewId !== 'model') return
+    if (viewId !== 'model') {
+      // Authored-view exports must start from the documented no-snapshot fallback,
+      // never inherit a snapshot left by a prior Model View export.
+      clearXirangExportSnapshotFromStorage()
+      return
+    }
     const snapshot = getXirangExportSnapshot()
     if (snapshot) {
       writeXirangExportSnapshotToStorage(snapshot)
