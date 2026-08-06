@@ -114,10 +114,10 @@ function ExportButton() {
 
   /**
    * Carries the current Xirang view state (source, mode, focus, expansion) to the export tab:
-   * the new tab clones sessionStorage, so the PNG/JPG export page can reproduce the on-screen view.
-   * Authored views keep the default export behavior.
+   * window.open keeps an opener so the new tab clones sessionStorage, letting the PNG/JPG export
+   * page reproduce the on-screen view. Authored views keep the default export behavior.
    */
-  const handleImageExport = useCallback(() => {
+  const handleImageExport = useCallback((event: React.MouseEvent<HTMLElement>) => {
     if (viewId !== 'model') {
       // Authored-view exports must start from the documented no-snapshot fallback,
       // never inherit a snapshot left by a prior Model View export.
@@ -125,10 +125,17 @@ function ExportButton() {
       return
     }
     const snapshot = getXirangExportSnapshot()
-    if (snapshot) {
-      writeXirangExportSnapshotToStorage(snapshot)
-    } else {
+    if (!snapshot) {
       clearXirangExportSnapshotFromStorage()
+      return
+    }
+    writeXirangExportSnapshotToStorage(snapshot)
+    // target=_blank implies rel=noopener in modern browsers, which prevents sessionStorage
+    // cloning into the export tab; window.open keeps the opener so the clone happens.
+    event.preventDefault()
+    const href = event.currentTarget?.getAttribute('href')
+    if (href) {
+      window.open(href, '_blank')
     }
   }, [viewId])
 

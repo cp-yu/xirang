@@ -103,15 +103,15 @@
   - Command: `cd likec4 && pnpm --filter @likec4/spa build && pnpm --filter xirang-likec4 build`
   - Expect: 两个构建均成功，顺序为先 spa 再 xirang-likec4
 
-- [x] C8 e2e：Model View 聚焦 + 展开导出（含 Header 快照写入）
+- [x] C8 e2e：Model View 聚焦 + 展开导出（含 Header 快照写入与 popup 验证）
   - Verifies: `elements/semantic-browser.md` / Requirement "图片导出所见即所得" / Scenario "导出聚焦且就地展开的 Model View"
   - Command: `pnpm exec playwright test test/e2e/semantic-browser-image-export.spec.ts --project=desktop`
-  - Expect: 交互视图下钻并就地展开后点击 Header 的 Export → PNG，断言当前标签页 `sessionStorage['xirang:export-snapshot']` 已写入且含 focus 与展开 identity；随后同标签页打开导出 URL，断言导出页渲染节点 id 集合与交互视图一致（Header 的 sessionStorage 写入是导出页正确渲染的前置环节）
+  - Expect: 交互视图下钻并就地展开后点击 Header 的 Export → PNG，断言当前标签页 `sessionStorage['xirang:export-snapshot']` 已写入且含 focus 与展开 identity；断言新开导出标签页（popup）渲染节点 id 集合与交互视图一致（Header 用 `window.open` 保留 opener 使 sessionStorage 克隆进导出标签页，是导出页正确渲染的前置环节）
 
 - [x] C9 e2e：Change 源 diff 导出
   - Verifies: `elements/semantic-browser.md` / Requirement "图片导出所见即所得" / Scenario "导出 Change-derived View 的 diff 呈现"
   - Command: `pnpm exec playwright test test/e2e/semantic-browser-image-export.spec.ts --project=desktop`
-  - Expect: 导出页渲染 Change 目标模型与 diff 内容（断言含 change source 的节点）
+  - Expect: 导出页（popup）渲染 Change 目标模型与 diff 内容（断言 popup 节点含 change source 的 ADDED 元素）
 
 - [x] C10 e2e：无快照回退
   - Verifies: `elements/semantic-browser.md` / Requirement "图片导出所见即所得" / Scenario "导出页直接打开且无前置呈现状态"

@@ -18,7 +18,7 @@ Semantic Browser 的 PNG/JPG 导出当前不等于屏上内容：`ExportPage` �
 ## Decisions
 
 1. **快照 store（新增 `diagram/src/xirang/export-state.ts`）**：模块级 `{source, mode, focus, expanded: string[]}` + `getSnapshot`/`setSnapshot`。`XirangArchitectureOverlay` 用一个 effect 在状态变化时镜像当前 `selected.id`/`mode`/`focusIdentity`/`expandedNodes`；`enableStaticView` 时跳过——导出页自身的 overlay 不会覆盖快照。选模块 store 而非持续写 sessionStorage：交互时零 I/O，点击导出时一次性传输。
-2. **sessionStorage 传输**：Header 在 `viewId === 'model'` 的 PNG/JPG 点击时把 store 快照写入 `sessionStorage['xirang:export-snapshot']`；既有 `target="_blank"` 链接让新标签页自动克隆 sessionStorage。URL 仍只携带 `download`/`source`/`focus`/`mode` 等小参数，不膨胀。无快照（直接打开导出 URL）时导出页回退现状。
+2. **sessionStorage 传输**：Header 在 `viewId === 'model'` 的 PNG/JPG 点击时把 store 快照写入 `sessionStorage['xirang:export-snapshot']`，并用 `window.open` 打开导出标签页——保留 opener 使新标签页克隆 sessionStorage（`target="_blank"` 隐式 `rel=noopener`，Chromium 不克隆，已实测确认）。URL 仍只携带 `download`/`source`/`focus`/`mode` 等小参数，不膨胀。无快照（直接打开导出 URL）时导出页回退现状。
 3. **机器播种（向后兼容）**：`machine.setup.ts` 的 `Input`/`Context` 增加可选 `initialFocusIdentity?: string | null`、`initialExpanded?: ReadonlySet<string>`，`Context()` 用 `?? null` / `?? new Set()` 初始化；`DiagramActorProvider` 与 `LikeC4Diagram` 透传可选 prop。交互视图不传 → 行为不变。导出页从快照读出 focus/expanded 传入，机器首次 materialize 即当前视图。
 4. **source/mode 应用**：`useXirangViewSources` 是 React context，不在机器内。ExportPage 加一个小桥组件（沿用 ViewHistoryBridge 的 URL→context 模式），挂载时 `select(snapshot.source)` + `setMode(snapshot.mode)`，覆盖 Candidate / Change / Diff 视图导出。
 5. **下载门控**：ExportPage 的自动下载（`onInitialized` + 500ms）在快照应用前不触发，保证截图内容与播种/桥接后的最终渲染一致；无快照时立即允许（现状行为）。

@@ -9,18 +9,33 @@ async function visibleNodeIds(page: Page): Promise<string[]> {
   )
 }
 
-async function exportPngAndReadSnapshot(page: Page): Promise<Record<string, unknown>> {
+async function exportPngAndCapturePopup(page: Page): Promise<{
+  snapshot: Record<string, unknown> | null
+  popupNodes: string[] | null
+}> {
   await page.getByRole('button', { name: 'Export', exact: true }).click()
   const popupPromise = page.waitForEvent('popup', { timeout: 5000 }).catch(() => null)
   await page.getByRole('menuitem', { name: 'Export as .png' }).click()
   const popup = await popupPromise
-  if (popup) {
-    await popup.close().catch(() => undefined)
-  }
-  return page.evaluate(() => {
+  const snapshot = await page.evaluate(() => {
     const raw = sessionStorage.getItem('xirang:export-snapshot')
     return raw ? JSON.parse(raw) : null
   })
+  let popupNodes: string[] | null = null
+  if (popup) {
+    // The popup auto-downloads and closes itself; capture the rendered nodes before that.
+    try {
+      await expect.poll(async () => popup.locator('.react-flow__node:visible').count(), { timeout: 5000 })
+        .toBeGreaterThan(0)
+      popupNodes = await popup.locator('.react-flow__node:visible').evaluateAll(nodes =>
+        nodes.map(node => node.getAttribute('data-id') ?? '').filter(Boolean).sort()
+      )
+    } catch {
+      popupNodes = null
+    }
+    await popup.close().catch(() => undefined)
+  }
+  return { snapshot, popupNodes }
 }
 
 async function dragChangePanelAway(page: Page): Promise<void> {
@@ -58,19 +73,16 @@ test('exports the current focus and expand-in-place state', async ({ page }) => 
     .toEqual(['capability.drill', 'capability.leaf', 'capability.peer', 'perspective.browser'])
   const onScreen = await visibleNodeIds(page)
 
-  // The Header export carries the current state into the export tab via sessionStorage.
-  const snapshot = await exportPngAndReadSnapshot(page)
+  // The Header export carries the current state into the export tab via sessionStorage;
+  // the actual export tab must render the on-screen node set (WYSIWYG).
+  const { snapshot, popupNodes } = await exportPngAndCapturePopup(page)
   expect(snapshot).toMatchObject({
     source: 'model',
     mode: 'full',
     focus: 'perspective.browser',
   })
   expect(snapshot?.expanded).toContain('capability.drill')
-
-  // The export page renders exactly the on-screen node set (same-tab navigation keeps sessionStorage).
-  await page.goto('/export/model/?download=false')
-  await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
-  await expect.poll(async () => visibleNodeIds(page), { timeout: 10_000 }).toEqual(onScreen)
+  expect(popupNodes).toEqual(onScreen)
 })
 
 test('exports a change source in diff mode', async ({ page }) => {
@@ -87,15 +99,12 @@ test('exports a change source in diff mode', async ({ page }) => {
   // The floating Change panel overlaps the Header export button; drag it clear first.
   await dragChangePanelAway(page)
 
-  const snapshot = await exportPngAndReadSnapshot(page)
+  const { snapshot, popupNodes } = await exportPngAndCapturePopup(page)
   expect(snapshot).toMatchObject({
     source: 'change:browser-change',
     mode: 'diff',
   })
-
-  await page.goto('/export/model/?download=false')
-  await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
-  await expect.poll(async () => visibleNodeIds(page), { timeout: 10_000 }).toContain('capability.added-parent')
+  expect(popupNodes).toContain('capability.added-parent')
 })
 
 test('exports without a snapshot', async ({ page }) => {

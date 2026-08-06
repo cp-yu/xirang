@@ -1,16 +1,8 @@
 {
-  "timestamp": "2026-08-06T05:26:00.833Z",
+  "timestamp": "2026-08-06T07:25:05.076Z",
   "result": "PASS",
-  "issues": [
-    {
-      "severity": "SUGGESTION",
-      "requirement": "图片导出所见即所得",
-      "task": "Task 4",
-      "message": "Check C6 declares `pnpm --filter @likec4/diagram typecheck` but Task 4's only file (ExportPage.tsx) lives in @likec4/spa; actual spa typecheck (C5) covers it and passed, so no behavior impact",
-      "recommendation": "Optionally re-scope C6 to `pnpm --filter @likec4/spa typecheck` for check-command accuracy; not required for correctness"
-    }
-  ],
-  "tasksFileHash": "b6535ab7ae2671aa4e79234e958e6020378e7c45b8183a6e45357b86867a7568",
+  "issues": [],
+  "tasksFileHash": "31e29ba86d9423c0d7f356b50f7b4a2337b81ec4800312c860f110dce44cf0fd",
   "verificationContext": {
     "contractVersion": "1.0",
     "executionMode": "subagent-reviewer",
@@ -33,11 +25,11 @@
       "playwright.config.ts",
       "test/e2e/semantic-browser-image-export.spec.ts"
     ],
-    "evidenceFingerprint": "841cdea723cb8fc64e0d75aa7fd81cf088a29feec9088c710c8c8d6c8053a766",
+    "evidenceFingerprint": "a62fd9c0b25ca1111459b4bc6f909a0bd94cc9e63b619f9d3df4a6d0685570e9",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/browser-image-export-wysiwyg/design.md",
-        "hash": "70b0daa04c0e5bbdf151783bc0d2972816ac0dc7d716beed3518f175590a1957"
+        "hash": "dcb4ed4a579dbf4b701a74c7ba91dc1aa36033d2bcc85a2d9b97cf5e4261d5cd"
       },
       {
         "path": ".xirang/changes/browser-image-export-wysiwyg/elements/semantic-browser.md",
@@ -49,7 +41,7 @@
       },
       {
         "path": ".xirang/changes/browser-image-export-wysiwyg/tasks.md",
-        "hash": "b6535ab7ae2671aa4e79234e958e6020378e7c45b8183a6e45357b86867a7568"
+        "hash": "31e29ba86d9423c0d7f356b50f7b4a2337b81ec4800312c860f110dce44cf0fd"
       },
       {
         "path": "likec4/packages/diagram/src/index.ts",
@@ -89,7 +81,7 @@
       },
       {
         "path": "likec4/packages/likec4-spa/src/components/view-page/Header.tsx",
-        "hash": "05b7a980d60c185323bbacfd5dd3371ae392086d690545b367538645b2b697c6"
+        "hash": "76c3bee195b931e2310613215fcd6569935e1425fa2f2f866c7e096aefd387b8"
       },
       {
         "path": "likec4/packages/likec4-spa/src/pages/ExportPage.tsx",
@@ -101,101 +93,27 @@
       },
       {
         "path": "test/e2e/semantic-browser-image-export.spec.ts",
-        "hash": "bdb57f2bb28df5d1acc75037e554a861144fa849296de5eed67537d8ab67ef2d"
+        "hash": "5411313b40742f5fae4c1ac15e07ac88b7b5ff63e658f6dbe31b3111eaa1f3fc"
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "7f98b905c5e0f542960fd44e90f89fc765fca588",
-    "gitDiffSummary": "Branch browser-image-export-wysiwyg; HEAD == baseCommit 900c4d469; change scope from git status union (19 files: 13 code/test + 6 change artifacts), all attributed to task Files or change artifacts; unit tests 6/6, e2e 3/3, typechecks and bundle builds passed.",
-    "timestamp": "2026-08-06T06:28:20.635Z"
+    "gitHeadCommit": "f20631e765e6c0d253c7ac43f10e1f823b9db6a3",
+    "gitDiffSummary": "Corrected implementation: Header PNG/JPG export uses window.open (keeps opener) so the export tab clones sessionStorage; e2e now asserts the popup renders the on-screen node set. Desktop e2e 13/13 (incl. 3 export), mobile 9/9, unit 102/102, typechecks pass."
   },
   "optimization": {
-    "status": "IMPROVED",
+    "status": "NOT_NEEDED",
     "attempts": [
       {
-        "timestamp": "2026-08-06T05:35:40.910Z",
-        "type": "optimization",
-        "status": "OPTIMIZATION_PROPOSED"
-      },
-      {
-        "timestamp": "2026-08-06T05:42:25.761Z",
-        "type": "verification",
-        "result": "PASS"
-      },
-      {
-        "timestamp": "2026-08-06T05:49:40.325Z",
-        "type": "optimization",
-        "status": "OPTIMIZATION_PROPOSED"
-      },
-      {
-        "timestamp": "2026-08-06T05:53:56.561Z",
-        "type": "verification",
-        "result": "PASS"
-      },
-      {
-        "timestamp": "2026-08-06T05:59:19.145Z",
-        "type": "optimization",
-        "status": "OPTIMIZATION_PROPOSED"
-      },
-      {
-        "timestamp": "2026-08-06T06:10:04.394Z",
-        "type": "optimization",
-        "status": "OPTIMIZATION_PROPOSED"
-      },
-      {
-        "timestamp": "2026-08-06T06:10:19.406Z",
-        "type": "verification",
-        "result": "PASS"
-      },
-      {
-        "timestamp": "2026-08-06T06:10:33.402Z",
-        "type": "optimization",
-        "status": "OPTIMIZATION_PROPOSED"
-      },
-      {
-        "timestamp": "2026-08-06T06:17:54.807Z",
-        "type": "verification",
-        "result": "PASS"
-      },
-      {
-        "timestamp": "2026-08-06T06:18:17.886Z",
-        "type": "optimization",
-        "status": "OPTIMIZATION_PROPOSED"
-      },
-      {
-        "timestamp": "2026-08-06T06:23:06.751Z",
-        "type": "verification",
-        "result": "PASS"
-      },
-      {
-        "timestamp": "2026-08-06T06:23:28.165Z",
-        "type": "optimization",
-        "status": "OPTIMIZATION_PROPOSED"
-      },
-      {
-        "timestamp": "2026-08-06T06:28:20.621Z",
-        "type": "verification",
-        "result": "PASS"
-      },
-      {
-        "timestamp": "2026-08-06T06:28:36.381Z",
+        "timestamp": "2026-08-06T07:25:25.227Z",
         "type": "optimization",
         "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
-      "timestamp": "2026-08-06T05:26:00.833Z",
+      "timestamp": "2026-08-06T07:25:05.076Z",
       "result": "PASS",
-      "issues": [
-        {
-          "severity": "SUGGESTION",
-          "requirement": "图片导出所见即所得",
-          "task": "Task 4",
-          "message": "Check C6 declares `pnpm --filter @likec4/diagram typecheck` but Task 4's only file (ExportPage.tsx) lives in @likec4/spa; actual spa typecheck (C5) covers it and passed, so no behavior impact",
-          "recommendation": "Optionally re-scope C6 to `pnpm --filter @likec4/spa typecheck` for check-command accuracy; not required for correctness"
-        }
-      ],
-      "tasksFileHash": "b6535ab7ae2671aa4e79234e958e6020378e7c45b8183a6e45357b86867a7568",
+      "issues": [],
+      "tasksFileHash": "31e29ba86d9423c0d7f356b50f7b4a2337b81ec4800312c860f110dce44cf0fd",
       "verificationContext": {
         "contractVersion": "1.0",
         "executionMode": "subagent-reviewer",
@@ -218,11 +136,11 @@
           "playwright.config.ts",
           "test/e2e/semantic-browser-image-export.spec.ts"
         ],
-        "evidenceFingerprint": "baadb6493906cd9621e459b20be8c87bbc8a121eca3d6bceb7afa12a0517e211",
+        "evidenceFingerprint": "a62fd9c0b25ca1111459b4bc6f909a0bd94cc9e63b619f9d3df4a6d0685570e9",
         "evidenceFingerprintEntries": [
           {
             "path": ".xirang/changes/browser-image-export-wysiwyg/design.md",
-            "hash": "70b0daa04c0e5bbdf151783bc0d2972816ac0dc7d716beed3518f175590a1957"
+            "hash": "dcb4ed4a579dbf4b701a74c7ba91dc1aa36033d2bcc85a2d9b97cf5e4261d5cd"
           },
           {
             "path": ".xirang/changes/browser-image-export-wysiwyg/elements/semantic-browser.md",
@@ -234,7 +152,7 @@
           },
           {
             "path": ".xirang/changes/browser-image-export-wysiwyg/tasks.md",
-            "hash": "b6535ab7ae2671aa4e79234e958e6020378e7c45b8183a6e45357b86867a7568"
+            "hash": "31e29ba86d9423c0d7f356b50f7b4a2337b81ec4800312c860f110dce44cf0fd"
           },
           {
             "path": "likec4/packages/diagram/src/index.ts",
@@ -262,23 +180,23 @@
           },
           {
             "path": "likec4/packages/diagram/src/likec4diagram/state/machine.setup.ts",
-            "hash": "3a4cc7730393f264c42a49c2a4ae0b13a0b89726e29e1944be19d586cf8f84e0"
+            "hash": "7cba08f64e49bdf3f4b6c683c6b2f1d3d1d64a9d38117bccd2813813143c9e6c"
           },
           {
             "path": "likec4/packages/diagram/src/xirang/export-state.spec.ts",
-            "hash": "a31d11953b2f50944eb0c9c96011721c7d7dc47121c72e8f30631a3252765004"
+            "hash": "43f9e483a9572c89caaa83946b28e5c98f9b26a4fe12581afe869dd35ee9d226"
           },
           {
             "path": "likec4/packages/diagram/src/xirang/export-state.ts",
-            "hash": "8b78b1a736cb6dc171dc629ebb5f2bf5d2b9cdee2d0bbf1dbedc8896df29355a"
+            "hash": "052816a564e0df711a59560a648c344328fca95e3b89952243f72929c81c0e0b"
           },
           {
             "path": "likec4/packages/likec4-spa/src/components/view-page/Header.tsx",
-            "hash": "8b149addef26dfd6baeea3fb680fd8eed33d1fc97e46882f20c66be2b279a001"
+            "hash": "76c3bee195b931e2310613215fcd6569935e1425fa2f2f866c7e096aefd387b8"
           },
           {
             "path": "likec4/packages/likec4-spa/src/pages/ExportPage.tsx",
-            "hash": "acb2611dd7738e560ce924d5818d8bf6da6f6950faf1c94398f92c066963085a"
+            "hash": "59f89235cda7f52d6a29a56aec856b4028cdca3fab64ac7385be2e21d02c4efa"
           },
           {
             "path": "playwright.config.ts",
@@ -286,687 +204,16 @@
           },
           {
             "path": "test/e2e/semantic-browser-image-export.spec.ts",
-            "hash": "b4d36ec61cba83b9ff7cdbfe03b9b60e79e6d12e2fd846f32eedd23a9d3025d4"
+            "hash": "5411313b40742f5fae4c1ac15e07ac88b7b5ff63e658f6dbe31b3111eaa1f3fc"
           }
         ],
         "skippedEvidenceFiles": [],
-        "gitHeadCommit": "900c4d46929fca818cf545256dc980ee23088c0b",
-        "gitDiffSummary": "Branch browser-image-export-wysiwyg; HEAD == baseCommit 900c4d469; change scope from git status union (19 files: 13 code/test + 6 change artifacts), all attributed to task Files or change artifacts; unit tests 6/6, e2e 3/3, typechecks and bundle builds passed."
+        "gitHeadCommit": "f20631e765e6c0d253c7ac43f10e1f823b9db6a3",
+        "gitDiffSummary": "Corrected implementation: Header PNG/JPG export uses window.open (keeps opener) so the export tab clones sessionStorage; e2e now asserts the popup renders the on-screen node set. Desktop e2e 13/13 (incl. 3 export), mobile 9/9, unit 102/102, typechecks pass."
       }
     },
-    "findings": [
-      {
-        "status": "resolved",
-        "location": {
-          "files": [
-            "likec4/packages/likec4-spa/src/components/view-page/Header.tsx"
-          ],
-          "symbols": [
-            "handleImageExport",
-            "ExportButton"
-          ]
-        },
-        "opportunity": "handleImageExport returns early for non-model views without clearing sessionStorage, so a snapshot left by a prior Model View PNG/JPG export is later read unconditionally by any authored-view export page, seeding its diagram machine with foreign focus/expanded and gating its download behind ApplyXirangExportState — contradicting the documented no-snapshot fallback for non-Xirang views.",
-        "impact": "Restores the design's no-snapshot fallback invariant for authored-view exports; removes latent foreign-state seeding and download gating on non-Xirang export pages; no change to any exported image.",
-        "evidence": [
-          "Header.tsx:120-127 handleImageExport returns early for non-model views without clearing sessionStorage",
-          "ExportPage.tsx:154 reads xirang:export-snapshot unconditionally at mount",
-          "ExportPage.tsx:305-306,327 seeds initialFocusIdentity/initialExpanded and mounts ApplyXirangExportState whenever a snapshot exists",
-          "design.md: non-Xirang views and other formats keep existing behavior; no-snapshot falls back"
-        ],
-        "recommendation": "In handleImageExport, for the non-model branch call clearXirangExportSnapshotFromStorage() before returning.",
-        "keyDesign": "Single owner for the storage key: Header is the only writer and every export click first reconciles the key to the intended state (model view -> write/clear current snapshot; any other view -> always clear).",
-        "preservationConstraints": [
-          "Model View PNG/JPG clicks must still write the current module snapshot to sessionStorage before the export tab opens",
-          "Authored-view exports must keep producing the same image; clearing only removes latent machine seeding and ApplyXirangExportState gating",
-          "dot/mmd/d2/puml/tree/Draw.io export branches are untouched",
-          "Storage side effects stay limited to the export click; no change to the module store or ExportPage read logic"
-        ],
-        "implementationOutline": [
-          "In handleImageExport, replace the bare early return with clearXirangExportSnapshotFromStorage() for non-model views",
-          "Keep the dependency array [viewId]",
-          "Leave ExportPage and export-state.ts unchanged"
-        ],
-        "validation": [
-          "Existing export-state unit tests remain green",
-          "e2e C8 still passes: model-view PNG click writes the snapshot with focus and expanded",
-          "e2e C10 still passes: direct export URL without snapshot falls back"
-        ],
-        "impactLevel": "medium",
-        "confidence": "high",
-        "risk": "low",
-        "cost": "low",
-        "dependencies": [],
-        "priorityReason": "Only finding that removes latent state-dependent behavior contradicting the documented fallback invariant; one-branch change with high confidence and low risk.",
-        "id": "OPT-20260806T053540905Z-01",
-        "targetFileHashes": {
-          "likec4/packages/likec4-spa/src/components/view-page/Header.tsx": "8b149addef26dfd6baeea3fb680fd8eed33d1fc97e46882f20c66be2b279a001"
-        }
-      },
-      {
-        "status": "resolved",
-        "location": {
-          "files": [
-            "test/e2e/semantic-browser-image-export.spec.ts"
-          ],
-          "symbols": [
-            "exports the current focus and expand-in-place state",
-            "exports a change source in diff mode",
-            "exports without a snapshot",
-            "visibleNodeIds"
-          ]
-        },
-        "opportunity": "The new spec asserts WYSIWYG node-set equality using hard-coded sleeps (waitForTimeout(600)/1000) that can flake or assert a stale DOM on slow CI.",
-        "impact": "Deterministic assertions bound to the actually-rendered node set; the WYSIWYG equivalence claim is proven by polling the real DOM instead of a fixed time budget.",
-        "evidence": [
-          "semantic-browser-image-export.spec.ts:57 waitForTimeout(600) before the on-screen node-set equality assertion",
-          "semantic-browser-image-export.spec.ts:73,99,106 waitForTimeout(1000) before export-page node assertions",
-          "visibleNodeIds(page) already isolates the asserted signal"
-        ],
-        "recommendation": "Replace each node-set sleep with expect.poll(async () => visibleNodeIds(page)).toEqual(expected).",
-        "keyDesign": "The asserted signal is already extracted into visibleNodeIds; poll until the set equals the baseline rather than sleeping a fixed budget.",
-        "preservationConstraints": [
-          "Same node-id extraction and lexicographic sort semantics",
-          "Test 1 keeps the exact 4-node set equality; Test 2 keeps the change-source diff assertion; Test 3 keeps the non-empty fallback assertion",
-          "The initial .react-flow__pane visibility waits and pre-export state setup stay unchanged"
-        ],
-        "implementationOutline": [
-          "Replace waitForTimeout before node assertions with expect.poll(visibleNodeIds) over the same expected value",
-          "Keep sleeps only where they pace non-asserted UI transitions, or drop them once polling covers the assertion",
-          "Re-run the three tests against a rebuilt bundle"
-        ],
-        "validation": [
-          "pnpm exec playwright test test/e2e/semantic-browser-image-export.spec.ts --project=desktop — all 3 pass deterministically",
-          "Confirm the polled assertion still fails when WYSIWYG is broken"
-        ],
-        "impactLevel": "medium",
-        "confidence": "medium",
-        "risk": "medium",
-        "cost": "medium",
-        "dependencies": [],
-        "priorityReason": "Directly hardens the acceptance e2e that proves the feature; benefit is test reliability rather than product behavior.",
-        "id": "OPT-20260806T053540905Z-02",
-        "targetFileHashes": {
-          "test/e2e/semantic-browser-image-export.spec.ts": "b4d36ec61cba83b9ff7cdbfe03b9b60e79e6d12e2fd846f32eedd23a9d3025d4"
-        }
-      },
-      {
-        "status": "resolved",
-        "location": {
-          "files": [
-            "likec4/packages/likec4-spa/src/pages/ExportPage.tsx"
-          ],
-          "symbols": [
-            "GuardedExportPage",
-            "downloadDiagram",
-            "handleSnapshotApplied",
-            "onInitialized"
-          ]
-        },
-        "opportunity": "Download scheduling is duplicated across onInitialized and handleSnapshotApplied (two setTimeout(...,500) sites guarded by two refs plus a downloadDiagramRef indirection); the first-scheduled timer in the snapshot path always fires as a no-op and the 500ms constant can drift.",
-        "impact": "Single source of truth for the snapshot-applied AND diagram-initialized trigger; removes the guaranteed no-op timer and the duplicated 500ms constant.",
-        "evidence": [
-          "ExportPage.tsx:192-193 snapshotAppliedRef/initializedRef",
-          "ExportPage.tsx:208-209 downloadDiagram early return on snapshotAppliedRef",
-          "ExportPage.tsx:234-240 downloadDiagramRef + setTimeout(downloadDiagramRef.current, 500)",
-          "ExportPage.tsx:320-323 onInitialized sets initializedRef and independently setTimeout(downloadDiagram, 500)"
-        ],
-        "recommendation": "Introduce a single maybeScheduleDownload() guarding snapshotAppliedRef && initializedRef && !downloadedRef, call it from both onInitialized and handleSnapshotApplied, delete the inline setTimeout branches, keep the 500ms constant in one place.",
-        "keyDesign": "One guard function over the two condition refs; both event sites invoke it; single 500ms schedule; keep downloadDiagramRef for closure freshness.",
-        "preservationConstraints": [
-          "No-snapshot path must still download at onInitialized + 500ms exactly as today",
-          "Snapshot path must still download 500ms after the later of (applied, initialized)",
-          "Download still fires at most once and only when download=true",
-          "LoadingOverlay hide, triggerDownload, and window.close order remain unchanged"
-        ],
-        "implementationOutline": [
-          "Extract maybeScheduleDownload reading the three refs",
-          "Call it from onInitialized and handleSnapshotApplied",
-          "Remove the inline setTimeouts and the duplicated 500 constant",
-          "Re-run SPA typecheck and the download-path e2e tests"
-        ],
-        "validation": [
-          "cd likec4 && pnpm --filter @likec4/spa typecheck",
-          "e2e C8/C9 still capture the expected focused/diff view; direct export URL still downloads"
-        ],
-        "impactLevel": "low",
-        "confidence": "high",
-        "risk": "low",
-        "cost": "low",
-        "dependencies": [],
-        "priorityReason": "Maintainability: one scheduling path instead of two duplicated 500ms branches with a guaranteed no-op timer.",
-        "id": "OPT-20260806T053540905Z-03",
-        "targetFileHashes": {
-          "likec4/packages/likec4-spa/src/pages/ExportPage.tsx": "cdc1befc1f65ea63de385e7aa2b7a4ac259437d3a81b70bffa4d925886895194"
-        }
-      },
-      {
-        "status": "resolved",
-        "location": {
-          "files": [
-            "likec4/packages/likec4-spa/src/pages/ExportPage.tsx"
-          ],
-          "symbols": [
-            "ExportPage",
-            "GuardedExportPage"
-          ]
-        },
-        "opportunity": "initialExpanded={snapshot ? new Set(...) : undefined} and initialFocusIdentity are re-derived on every GuardedExportPage render although the snapshot is frozen at mount and the machine consumes the seed only at actor creation.",
-        "impact": "Removes per-render Set/derivation churn on the export page and makes the seeded-once-at-mount intent explicit.",
-        "evidence": [
-          "ExportPage.tsx:154 snapshot read once via useState initializer",
-          "ExportPage.tsx:305-306 inline new Set(snapshot.expanded) per render",
-          "DiagramActorProvider.tsx useActorRef consumes input only at actor creation"
-        ],
-        "recommendation": "Derive focus/expanded in the same mount-time initializer and thread the precomputed values into GuardedExportPage.",
-        "keyDesign": "Seed derivation colocated with the frozen snapshot read so it runs exactly once per export-page load.",
-        "preservationConstraints": [
-          "For a given snapshot the values passed to LikeC4Diagram must be identical",
-          "Machine seeding semantics unchanged; no-snapshot path passes undefined/undefined"
-        ],
-        "implementationOutline": [
-          "Move focus/expanded derivation into the useState initializer next to the snapshot read",
-          "Pass precomputed values as props to GuardedExportPage",
-          "Run SPA typecheck and the e2e seeding test"
-        ],
-        "validation": [
-          "e2e C8 still renders the focused/expanded node set; e2e C10 still falls back",
-          "cd likec4 && pnpm --filter @likec4/spa typecheck"
-        ],
-        "impactLevel": "low",
-        "confidence": "high",
-        "risk": "low",
-        "cost": "low",
-        "dependencies": [],
-        "priorityReason": "Micro allocation/derivation removal on a page that re-renders rarely; trivially safe and cheap.",
-        "id": "OPT-20260806T053540905Z-04",
-        "targetFileHashes": {
-          "likec4/packages/likec4-spa/src/pages/ExportPage.tsx": "cdc1befc1f65ea63de385e7aa2b7a4ac259437d3a81b70bffa4d925886895194"
-        }
-      },
-      {
-        "status": "resolved",
-        "location": {
-          "files": [
-            "likec4/packages/diagram/src/xirang/export-state.ts"
-          ],
-          "symbols": [
-            "readXirangExportSnapshotFromStorage"
-          ]
-        },
-        "opportunity": "The read normalizer only checks typeof parsed.mode === 'string' before the unsound cast `parsed.mode as XirangViewMode`; a malformed mode flows into setMode and resolveEffectiveMode instead of failing fast to the null fallback.",
-        "impact": "Fail-closed normalization: any payload whose mode is not 'full' or 'diff' is rejected as null, keeping the export page on the default fallback and removing the type-unsound cast.",
-        "evidence": [
-          "export-state.ts:37 typeof parsed.mode === 'string' guard",
-          "export-state.ts:41 `mode: parsed.mode as XirangViewMode`",
-          "ExportPage.tsx ApplyXirangExportState consumes snapshot.mode via setMode"
-        ],
-        "recommendation": "Reject anything outside the 'full'|'diff' union (parsed.mode !== 'full' && parsed.mode !== 'diff'), replacing the unsound cast with a normalized union value.",
-        "keyDesign": "Normalize-to-null on any union violation, consistent with the existing malformed-payload handling.",
-        "preservationConstraints": [
-          "All valid snapshots ('full' and 'diff') must round-trip identically",
-          "The returns-null-on-malformed contract extends to invalid mode values",
-          "No change to the writer, module store, or ExportPage consumption"
-        ],
-        "implementationOutline": [
-          "Add the union check to the existing guard",
-          "Drop the as-cast",
-          "Add a spec case for an invalid mode returning null"
-        ],
-        "validation": [
-          "Extend export-state.spec.ts with mode:'banana' -> null",
-          "cd likec4 && pnpm --filter @likec4/diagram exec vitest run --no-isolate src/xirang/export-state.spec.ts",
-          "cd likec4 && pnpm --filter @likec4/diagram typecheck"
-        ],
-        "impactLevel": "low",
-        "confidence": "high",
-        "risk": "low",
-        "cost": "low",
-        "dependencies": [],
-        "priorityReason": "Closes a type-unsoundness gap and extends fail-closed normalization; purely defensive.",
-        "id": "OPT-20260806T053540905Z-05",
-        "targetFileHashes": {
-          "likec4/packages/diagram/src/xirang/export-state.ts": "8b78b1a736cb6dc171dc629ebb5f2bf5d2b9cdee2d0bbf1dbedc8896df29355a"
-        }
-      },
-      {
-        "status": "resolved",
-        "location": {
-          "files": [
-            "likec4/packages/diagram/src/likec4diagram/state/machine.setup.ts"
-          ],
-          "symbols": [
-            "Input",
-            "Events",
-            "update.inputs"
-          ]
-        },
-        "opportunity": "Adding initialFocusIdentity/initialExpanded to Input widened the update.inputs event payload; updateInputs spreads them into context as inert fields because seeding only happens in Context() at actor creation, creating a silent no-op trap.",
-        "impact": "Keeps the machine's public event contract honest: the update channel no longer advertises mount-only seed fields that have no runtime effect.",
-        "evidence": [
-          "machine.setup.ts:88-90 Input gains the seed fields",
-          "machine.setup.ts:239 update.inputs payload now includes them",
-          "machine.actions.ts:158-161 updateInputs stores them as inert keys",
-          "DiagramActorProvider.tsx sends only the six runtime toggles"
-        ],
-        "recommendation": "Exclude the seed fields from the update.inputs payload type by extending the Omit union with 'initialFocusIdentity' | 'initialExpanded'.",
-        "keyDesign": "Seed fields are creation-time-only by design; the update channel must not advertise values it cannot apply.",
-        "preservationConstraints": [
-          "No current caller sends these fields via update.inputs",
-          "Type-level change only — zero runtime behavior change",
-          "Interactive view and export page seeding unchanged; existing seeding specs remain green"
-        ],
-        "implementationOutline": [
-          "Change the update.inputs Omit key union to include 'initialFocusIdentity' | 'initialExpanded'",
-          "Run diagram typecheck and machine.setup unit test"
-        ],
-        "validation": [
-          "cd likec4 && pnpm --filter @likec4/diagram typecheck",
-          "cd likec4 && pnpm --filter @likec4/diagram exec vitest run --no-isolate src/likec4diagram/state/machine.setup.spec.ts"
-        ],
-        "impactLevel": "low",
-        "confidence": "high",
-        "risk": "low",
-        "cost": "low",
-        "dependencies": [],
-        "priorityReason": "Type-honesty cleanup with no runtime effect; closes a genuine API trap introduced by this change.",
-        "id": "OPT-20260806T053540905Z-06",
-        "targetFileHashes": {
-          "likec4/packages/diagram/src/likec4diagram/state/machine.setup.ts": "3a4cc7730393f264c42a49c2a4ae0b13a0b89726e29e1944be19d586cf8f84e0"
-        }
-      }
-    ],
-    "history": [
-      {
-        "sequence": 1,
-        "action": "add",
-        "reason": "Optimizer added finding",
-        "timestamp": "2026-08-06T05:35:40.905Z",
-        "findingId": "OPT-20260806T053540905Z-01"
-      },
-      {
-        "sequence": 2,
-        "action": "add",
-        "reason": "Optimizer added finding",
-        "timestamp": "2026-08-06T05:35:40.905Z",
-        "findingId": "OPT-20260806T053540905Z-02"
-      },
-      {
-        "sequence": 3,
-        "action": "add",
-        "reason": "Optimizer added finding",
-        "timestamp": "2026-08-06T05:35:40.905Z",
-        "findingId": "OPT-20260806T053540905Z-03"
-      },
-      {
-        "sequence": 4,
-        "action": "add",
-        "reason": "Optimizer added finding",
-        "timestamp": "2026-08-06T05:35:40.905Z",
-        "findingId": "OPT-20260806T053540905Z-04"
-      },
-      {
-        "sequence": 5,
-        "action": "add",
-        "reason": "Optimizer added finding",
-        "timestamp": "2026-08-06T05:35:40.905Z",
-        "findingId": "OPT-20260806T053540905Z-05"
-      },
-      {
-        "sequence": 6,
-        "action": "add",
-        "reason": "Optimizer added finding",
-        "timestamp": "2026-08-06T05:35:40.905Z",
-        "findingId": "OPT-20260806T053540905Z-06"
-      },
-      {
-        "sequence": 7,
-        "action": "select",
-        "reason": "Only finding that removes latent state-dependent behavior contradicting the documented fallback invariant; one-branch change with high confidence and low risk.",
-        "timestamp": "2026-08-06T05:35:40.910Z",
-        "findingId": "OPT-20260806T053540905Z-01",
-        "hashes": {
-          "likec4/packages/likec4-spa/src/components/view-page/Header.tsx": "8b149addef26dfd6baeea3fb680fd8eed33d1fc97e46882f20c66be2b279a001"
-        }
-      },
-      {
-        "sequence": 8,
-        "action": "implemented",
-        "reason": "Master began implementation after freshness check",
-        "timestamp": "2026-08-06T05:37:11.390Z",
-        "findingId": "OPT-20260806T053540905Z-01",
-        "hashes": {
-          "likec4/packages/likec4-spa/src/components/view-page/Header.tsx": "8b149addef26dfd6baeea3fb680fd8eed33d1fc97e46882f20c66be2b279a001"
-        }
-      },
-      {
-        "sequence": 9,
-        "action": "verified",
-        "reason": "Fresh reviewer verified preservation constraints",
-        "timestamp": "2026-08-06T05:42:25.761Z",
-        "findingId": "OPT-20260806T053540905Z-01"
-      },
-      {
-        "sequence": 10,
-        "action": "resolve",
-        "reason": "Implemented, verified and checkpointed (opt-r1); closed.",
-        "timestamp": "2026-08-06T05:49:40.320Z",
-        "findingId": "OPT-20260806T053540905Z-01"
-      },
-      {
-        "sequence": 11,
-        "action": "retain",
-        "reason": "Still present; awaiting priority",
-        "timestamp": "2026-08-06T05:49:40.320Z",
-        "findingId": "OPT-20260806T053540905Z-02"
-      },
-      {
-        "sequence": 12,
-        "action": "retain",
-        "reason": "Still present; awaiting priority",
-        "timestamp": "2026-08-06T05:49:40.320Z",
-        "findingId": "OPT-20260806T053540905Z-03"
-      },
-      {
-        "sequence": 13,
-        "action": "retain",
-        "reason": "Still present; awaiting priority",
-        "timestamp": "2026-08-06T05:49:40.320Z",
-        "findingId": "OPT-20260806T053540905Z-04"
-      },
-      {
-        "sequence": 14,
-        "action": "retain",
-        "reason": "Still present; awaiting priority",
-        "timestamp": "2026-08-06T05:49:40.320Z",
-        "findingId": "OPT-20260806T053540905Z-05"
-      },
-      {
-        "sequence": 15,
-        "action": "retain",
-        "reason": "Still present; awaiting priority",
-        "timestamp": "2026-08-06T05:49:40.320Z",
-        "findingId": "OPT-20260806T053540905Z-06"
-      },
-      {
-        "sequence": 16,
-        "action": "select",
-        "reason": "Directly hardens the acceptance e2e that proves the feature; benefit is test reliability rather than product behavior.",
-        "timestamp": "2026-08-06T05:49:40.325Z",
-        "findingId": "OPT-20260806T053540905Z-02",
-        "hashes": {
-          "test/e2e/semantic-browser-image-export.spec.ts": "b4d36ec61cba83b9ff7cdbfe03b9b60e79e6d12e2fd846f32eedd23a9d3025d4"
-        }
-      },
-      {
-        "sequence": 17,
-        "action": "implemented",
-        "reason": "Master began implementation after freshness check",
-        "timestamp": "2026-08-06T05:50:02.310Z",
-        "findingId": "OPT-20260806T053540905Z-02",
-        "hashes": {
-          "test/e2e/semantic-browser-image-export.spec.ts": "b4d36ec61cba83b9ff7cdbfe03b9b60e79e6d12e2fd846f32eedd23a9d3025d4"
-        }
-      },
-      {
-        "sequence": 18,
-        "action": "verified",
-        "reason": "Fresh reviewer verified preservation constraints",
-        "timestamp": "2026-08-06T05:53:56.561Z",
-        "findingId": "OPT-20260806T053540905Z-02"
-      },
-      {
-        "sequence": 19,
-        "action": "resolve",
-        "reason": "Implemented, verified and checkpointed (opt-r2); closed.",
-        "timestamp": "2026-08-06T05:59:19.142Z",
-        "findingId": "OPT-20260806T053540905Z-02"
-      },
-      {
-        "sequence": 20,
-        "action": "reprioritize",
-        "reason": "Ranked first: only pending finding with a correctness/contract dimension (unsound mode cast); cheapest validation",
-        "timestamp": "2026-08-06T05:59:19.142Z",
-        "findingId": "OPT-20260806T053540905Z-05"
-      },
-      {
-        "sequence": 21,
-        "action": "retain",
-        "reason": "Still present; duplicated download scheduling",
-        "timestamp": "2026-08-06T05:59:19.142Z",
-        "findingId": "OPT-20260806T053540905Z-03"
-      },
-      {
-        "sequence": 22,
-        "action": "retain",
-        "reason": "Still present; type-only update.inputs Omit extension",
-        "timestamp": "2026-08-06T05:59:19.142Z",
-        "findingId": "OPT-20260806T053540905Z-06"
-      },
-      {
-        "sequence": 23,
-        "action": "retain",
-        "reason": "Still present; per-render new Set derivation",
-        "timestamp": "2026-08-06T05:59:19.142Z",
-        "findingId": "OPT-20260806T053540905Z-04"
-      },
-      {
-        "sequence": 24,
-        "action": "select",
-        "reason": "Maintainability: one scheduling path instead of two duplicated 500ms branches with a guaranteed no-op timer.",
-        "timestamp": "2026-08-06T05:59:19.145Z",
-        "findingId": "OPT-20260806T053540905Z-03",
-        "hashes": {
-          "likec4/packages/likec4-spa/src/pages/ExportPage.tsx": "acb2611dd7738e560ce924d5818d8bf6da6f6950faf1c94398f92c066963085a"
-        }
-      },
-      {
-        "sequence": 25,
-        "action": "retain",
-        "reason": "Recovering selected finding to pending for fresh selection",
-        "timestamp": "2026-08-06T06:10:04.391Z",
-        "findingId": "OPT-20260806T053540905Z-03"
-      },
-      {
-        "sequence": 26,
-        "action": "retain",
-        "reason": "Recovering selected finding to pending for fresh selection",
-        "timestamp": "2026-08-06T06:10:04.391Z",
-        "findingId": "OPT-20260806T053540905Z-04"
-      },
-      {
-        "sequence": 27,
-        "action": "retain",
-        "reason": "Recovering selected finding to pending for fresh selection",
-        "timestamp": "2026-08-06T06:10:04.391Z",
-        "findingId": "OPT-20260806T053540905Z-05"
-      },
-      {
-        "sequence": 28,
-        "action": "retain",
-        "reason": "Recovering selected finding to pending for fresh selection",
-        "timestamp": "2026-08-06T06:10:04.391Z",
-        "findingId": "OPT-20260806T053540905Z-06"
-      },
-      {
-        "sequence": 29,
-        "action": "select",
-        "reason": "Maintainability: one scheduling path instead of two duplicated 500ms branches with a guaranteed no-op timer.",
-        "timestamp": "2026-08-06T06:10:04.394Z",
-        "findingId": "OPT-20260806T053540905Z-03",
-        "hashes": {
-          "likec4/packages/likec4-spa/src/pages/ExportPage.tsx": "cdc1befc1f65ea63de385e7aa2b7a4ac259437d3a81b70bffa4d925886895194"
-        }
-      },
-      {
-        "sequence": 30,
-        "action": "implemented",
-        "reason": "Master began implementation after freshness check",
-        "timestamp": "2026-08-06T06:10:19.230Z",
-        "findingId": "OPT-20260806T053540905Z-03",
-        "hashes": {
-          "likec4/packages/likec4-spa/src/pages/ExportPage.tsx": "cdc1befc1f65ea63de385e7aa2b7a4ac259437d3a81b70bffa4d925886895194"
-        }
-      },
-      {
-        "sequence": 31,
-        "action": "verified",
-        "reason": "Fresh reviewer verified preservation constraints",
-        "timestamp": "2026-08-06T06:10:19.406Z",
-        "findingId": "OPT-20260806T053540905Z-03"
-      },
-      {
-        "sequence": 32,
-        "action": "resolve",
-        "reason": "Implemented, verified and checkpointed (opt-r3); closed.",
-        "timestamp": "2026-08-06T06:10:33.399Z",
-        "findingId": "OPT-20260806T053540905Z-03"
-      },
-      {
-        "sequence": 33,
-        "action": "retain",
-        "reason": "Still present; per-render new Set derivation",
-        "timestamp": "2026-08-06T06:10:33.399Z",
-        "findingId": "OPT-20260806T053540905Z-04"
-      },
-      {
-        "sequence": 34,
-        "action": "retain",
-        "reason": "Still present; unsound mode cast in read normalizer",
-        "timestamp": "2026-08-06T06:10:33.399Z",
-        "findingId": "OPT-20260806T053540905Z-05"
-      },
-      {
-        "sequence": 35,
-        "action": "retain",
-        "reason": "Still present; type-only update.inputs Omit extension",
-        "timestamp": "2026-08-06T06:10:33.399Z",
-        "findingId": "OPT-20260806T053540905Z-06"
-      },
-      {
-        "sequence": 36,
-        "action": "select",
-        "reason": "Micro allocation/derivation removal on a page that re-renders rarely; trivially safe and cheap.",
-        "timestamp": "2026-08-06T06:10:33.402Z",
-        "findingId": "OPT-20260806T053540905Z-04",
-        "hashes": {
-          "likec4/packages/likec4-spa/src/pages/ExportPage.tsx": "cdc1befc1f65ea63de385e7aa2b7a4ac259437d3a81b70bffa4d925886895194"
-        }
-      },
-      {
-        "sequence": 37,
-        "action": "implemented",
-        "reason": "Master began implementation after freshness check",
-        "timestamp": "2026-08-06T06:11:00.603Z",
-        "findingId": "OPT-20260806T053540905Z-04",
-        "hashes": {
-          "likec4/packages/likec4-spa/src/pages/ExportPage.tsx": "cdc1befc1f65ea63de385e7aa2b7a4ac259437d3a81b70bffa4d925886895194"
-        }
-      },
-      {
-        "sequence": 38,
-        "action": "verified",
-        "reason": "Fresh reviewer verified preservation constraints",
-        "timestamp": "2026-08-06T06:17:54.807Z",
-        "findingId": "OPT-20260806T053540905Z-04"
-      },
-      {
-        "sequence": 39,
-        "action": "resolve",
-        "reason": "Implemented, verified and checkpointed (opt-r4); closed.",
-        "timestamp": "2026-08-06T06:18:17.882Z",
-        "findingId": "OPT-20260806T053540905Z-04"
-      },
-      {
-        "sequence": 40,
-        "action": "retain",
-        "reason": "Still present; unsound mode cast in read normalizer",
-        "timestamp": "2026-08-06T06:18:17.882Z",
-        "findingId": "OPT-20260806T053540905Z-05"
-      },
-      {
-        "sequence": 41,
-        "action": "retain",
-        "reason": "Still present; type-only update.inputs Omit extension",
-        "timestamp": "2026-08-06T06:18:17.882Z",
-        "findingId": "OPT-20260806T053540905Z-06"
-      },
-      {
-        "sequence": 42,
-        "action": "select",
-        "reason": "Closes a type-unsoundness gap and extends fail-closed normalization; purely defensive.",
-        "timestamp": "2026-08-06T06:18:17.886Z",
-        "findingId": "OPT-20260806T053540905Z-05",
-        "hashes": {
-          "likec4/packages/diagram/src/xirang/export-state.ts": "8b78b1a736cb6dc171dc629ebb5f2bf5d2b9cdee2d0bbf1dbedc8896df29355a"
-        }
-      },
-      {
-        "sequence": 43,
-        "action": "implemented",
-        "reason": "Master began implementation after freshness check",
-        "timestamp": "2026-08-06T06:18:40.101Z",
-        "findingId": "OPT-20260806T053540905Z-05",
-        "hashes": {
-          "likec4/packages/diagram/src/xirang/export-state.ts": "8b78b1a736cb6dc171dc629ebb5f2bf5d2b9cdee2d0bbf1dbedc8896df29355a"
-        }
-      },
-      {
-        "sequence": 44,
-        "action": "verified",
-        "reason": "Fresh reviewer verified preservation constraints",
-        "timestamp": "2026-08-06T06:23:06.751Z",
-        "findingId": "OPT-20260806T053540905Z-05"
-      },
-      {
-        "sequence": 45,
-        "action": "resolve",
-        "reason": "Implemented, verified and checkpointed (opt-r5); closed.",
-        "timestamp": "2026-08-06T06:23:28.162Z",
-        "findingId": "OPT-20260806T053540905Z-05"
-      },
-      {
-        "sequence": 46,
-        "action": "retain",
-        "reason": "Still present; type-only update.inputs Omit extension",
-        "timestamp": "2026-08-06T06:23:28.162Z",
-        "findingId": "OPT-20260806T053540905Z-06"
-      },
-      {
-        "sequence": 47,
-        "action": "select",
-        "reason": "Type-honesty cleanup with no runtime effect; closes a genuine API trap introduced by this change.",
-        "timestamp": "2026-08-06T06:23:28.165Z",
-        "findingId": "OPT-20260806T053540905Z-06",
-        "hashes": {
-          "likec4/packages/diagram/src/likec4diagram/state/machine.setup.ts": "3a4cc7730393f264c42a49c2a4ae0b13a0b89726e29e1944be19d586cf8f84e0"
-        }
-      },
-      {
-        "sequence": 48,
-        "action": "implemented",
-        "reason": "Master began implementation after freshness check",
-        "timestamp": "2026-08-06T06:23:51.031Z",
-        "findingId": "OPT-20260806T053540905Z-06",
-        "hashes": {
-          "likec4/packages/diagram/src/likec4diagram/state/machine.setup.ts": "3a4cc7730393f264c42a49c2a4ae0b13a0b89726e29e1944be19d586cf8f84e0"
-        }
-      },
-      {
-        "sequence": 49,
-        "action": "verified",
-        "reason": "Fresh reviewer verified preservation constraints",
-        "timestamp": "2026-08-06T06:28:20.621Z",
-        "findingId": "OPT-20260806T053540905Z-06"
-      },
-      {
-        "sequence": 50,
-        "action": "resolve",
-        "reason": "Implemented, verified and checkpointed (opt-r6); closed. No actionable findings remain.",
-        "timestamp": "2026-08-06T06:28:36.381Z",
-        "findingId": "OPT-20260806T053540905Z-06"
-      }
-    ],
+    "findings": [],
+    "history": [],
     "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
