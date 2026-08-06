@@ -3,7 +3,10 @@ import { describe, expect, it, vi } from 'vitest'
 import { assertXirangManifest, assertXirangProject, parseXirangContractSource, readXirangContract, XirangContractError } from './xirang-contract-handler'
 
 const manifest = {
-  semanticModel: { contracts: { 'core.api': '# API\n', 'core.other': '# Other\n' } },
+  version: 4 as const,
+  modelFingerprint: 'f0',
+  model: { contracts: { 'core.api': '# API\n', 'core.other': '# Other\n' } },
+  authoredViews: {},
   changes: { auth: { contracts: { 'core.api': '# API (auth)\n' } } },
 }
 
@@ -22,7 +25,11 @@ describe('Xirang Contract handler', () => {
 
   it('returns null for an Element without a Contract instead of failing', () => {
     expect(readXirangContract(manifest, { type: 'change', name: 'auth' }, 'core.other')).toBeNull()
-    expect(readXirangContract({ semanticModel: {}, changes: {} }, null, 'core.api')).toBeNull()
+    expect(readXirangContract(
+      { version: 4, modelFingerprint: 'f0', model: {}, authoredViews: {}, changes: {} },
+      null,
+      'core.api',
+    )).toBeNull()
   })
 
   it('rejects an unknown Change', () => {
@@ -94,20 +101,24 @@ describe('parseXirangContractSource', () => {
 })
 
 describe('assertXirangManifest', () => {
-  it('accepts a version 3 manifest with semanticModel and changes', () => {
-    expect(() => assertXirangManifest({ version: 3, semanticModel: {}, changes: {} })).not.toThrow()
+  const valid = { version: 4, modelFingerprint: 'f0', model: {}, authoredViews: {}, changes: {} }
+
+  it('accepts a version 4 partitioned manifest', () => {
+    expect(() => assertXirangManifest(valid)).not.toThrow()
   })
 
-  it('rejects a version 2 manifest', () => {
-    expect(() => assertXirangManifest({ version: 2, semanticModel: {}, changes: {} }))
-      .toThrow(expect.objectContaining({ statusCode: 500, message: 'Invalid active change manifest' }))
+  it.each([2, 3])('rejects an older manifest version %i instead of migrating it', version => {
+    expect(() => assertXirangManifest({ ...valid, version }))
+      .toThrow(expect.objectContaining({ statusCode: 500 }))
   })
 
   it.each([
     null,
-    'v3',
-    { version: 3, changes: {} },
-    { version: 3, semanticModel: {} },
+    'v4',
+    { ...valid, model: undefined },
+    { ...valid, authoredViews: undefined },
+    { ...valid, changes: undefined },
+    { ...valid, modelFingerprint: undefined },
   ])('rejects malformed manifest %j', payload => {
     expect(() => assertXirangManifest(payload)).toThrow(XirangContractError)
   })
@@ -115,7 +126,10 @@ describe('assertXirangManifest', () => {
 
 describe('readXirangContract with source parameter', () => {
   const manifestWithCandidate = {
-    semanticModel: { contracts: { 'elem-1': '# Model contract' } },
+    version: 4 as const,
+    modelFingerprint: 'f0',
+    authoredViews: {},
+    model: { contracts: { 'elem-1': '# Model contract' } },
     candidate: { contracts: { 'elem-1': '# Candidate contract', 'elem-2': '# New contract' } },
     candidateDiff: { contracts: { 'elem-1': '# Candidate contract', 'elem-2': '# New contract' } },
     changes: { 'auth': { contracts: { 'elem-3': '# Auth contract' } } },
@@ -148,7 +162,10 @@ describe('readXirangContract with source parameter', () => {
 
   it('throws 404 when candidate source not found', () => {
     const manifestWithoutCandidate = {
-      semanticModel: { contracts: {} },
+      version: 4 as const,
+      modelFingerprint: 'f0',
+      model: { contracts: {} },
+      authoredViews: {},
       changes: {},
     }
     expect(() => 
