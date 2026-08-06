@@ -33,7 +33,7 @@
       "playwright.config.ts",
       "test/e2e/semantic-browser-image-export.spec.ts"
     ],
-    "evidenceFingerprint": "64255d98db842390de7ab65c176273f0bef5880456e7fd66c5a34ba3ab912c78",
+    "evidenceFingerprint": "0b488fb86cd539680ab80c08864bd7a14272930180d78a5460371d6995de119d",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/browser-image-export-wysiwyg/design.md",
@@ -93,7 +93,7 @@
       },
       {
         "path": "likec4/packages/likec4-spa/src/pages/ExportPage.tsx",
-        "hash": "acb2611dd7738e560ce924d5818d8bf6da6f6950faf1c94398f92c066963085a"
+        "hash": "59f89235cda7f52d6a29a56aec856b4028cdca3fab64ac7385be2e21d02c4efa"
       },
       {
         "path": "playwright.config.ts",
@@ -105,9 +105,9 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "a5429167fdc9abf3452c0ebc08daab01c93fbbb5",
+    "gitHeadCommit": "a02782c69a0560d9a8260693e415ec16645bb088",
     "gitDiffSummary": "Branch browser-image-export-wysiwyg; HEAD == baseCommit 900c4d469; change scope from git status union (19 files: 13 code/test + 6 change artifacts), all attributed to task Files or change artifacts; unit tests 6/6, e2e 3/3, typechecks and bundle builds passed.",
-    "timestamp": "2026-08-06T05:53:56.573Z"
+    "timestamp": "2026-08-06T06:17:54.819Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
@@ -136,6 +136,26 @@
         "timestamp": "2026-08-06T05:59:19.145Z",
         "type": "optimization",
         "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-06T06:10:04.394Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-06T06:10:19.406Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-06T06:10:33.402Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-06T06:17:54.807Z",
+        "type": "verification",
+        "result": "PASS"
       }
     ],
     "baseline": {
@@ -346,7 +366,7 @@
         }
       },
       {
-        "status": "selected",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/likec4-spa/src/pages/ExportPage.tsx"
@@ -392,11 +412,11 @@
         "priorityReason": "Maintainability: one scheduling path instead of two duplicated 500ms branches with a guaranteed no-op timer.",
         "id": "OPT-20260806T053540905Z-03",
         "targetFileHashes": {
-          "likec4/packages/likec4-spa/src/pages/ExportPage.tsx": "acb2611dd7738e560ce924d5818d8bf6da6f6950faf1c94398f92c066963085a"
+          "likec4/packages/likec4-spa/src/pages/ExportPage.tsx": "cdc1befc1f65ea63de385e7aa2b7a4ac259437d3a81b70bffa4d925886895194"
         }
       },
       {
-        "status": "pending",
+        "status": "verified",
         "location": {
           "files": [
             "likec4/packages/likec4-spa/src/pages/ExportPage.tsx"
@@ -434,7 +454,10 @@
         "cost": "low",
         "dependencies": [],
         "priorityReason": "Micro allocation/derivation removal on a page that re-renders rarely; trivially safe and cheap.",
-        "id": "OPT-20260806T053540905Z-04"
+        "id": "OPT-20260806T053540905Z-04",
+        "targetFileHashes": {
+          "likec4/packages/likec4-spa/src/pages/ExportPage.tsx": "cdc1befc1f65ea63de385e7aa2b7a4ac259437d3a81b70bffa4d925886895194"
+        }
       },
       {
         "status": "pending",
@@ -705,9 +728,119 @@
         "hashes": {
           "likec4/packages/likec4-spa/src/pages/ExportPage.tsx": "acb2611dd7738e560ce924d5818d8bf6da6f6950faf1c94398f92c066963085a"
         }
+      },
+      {
+        "sequence": 25,
+        "action": "retain",
+        "reason": "Recovering selected finding to pending for fresh selection",
+        "timestamp": "2026-08-06T06:10:04.391Z",
+        "findingId": "OPT-20260806T053540905Z-03"
+      },
+      {
+        "sequence": 26,
+        "action": "retain",
+        "reason": "Recovering selected finding to pending for fresh selection",
+        "timestamp": "2026-08-06T06:10:04.391Z",
+        "findingId": "OPT-20260806T053540905Z-04"
+      },
+      {
+        "sequence": 27,
+        "action": "retain",
+        "reason": "Recovering selected finding to pending for fresh selection",
+        "timestamp": "2026-08-06T06:10:04.391Z",
+        "findingId": "OPT-20260806T053540905Z-05"
+      },
+      {
+        "sequence": 28,
+        "action": "retain",
+        "reason": "Recovering selected finding to pending for fresh selection",
+        "timestamp": "2026-08-06T06:10:04.391Z",
+        "findingId": "OPT-20260806T053540905Z-06"
+      },
+      {
+        "sequence": 29,
+        "action": "select",
+        "reason": "Maintainability: one scheduling path instead of two duplicated 500ms branches with a guaranteed no-op timer.",
+        "timestamp": "2026-08-06T06:10:04.394Z",
+        "findingId": "OPT-20260806T053540905Z-03",
+        "hashes": {
+          "likec4/packages/likec4-spa/src/pages/ExportPage.tsx": "cdc1befc1f65ea63de385e7aa2b7a4ac259437d3a81b70bffa4d925886895194"
+        }
+      },
+      {
+        "sequence": 30,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-06T06:10:19.230Z",
+        "findingId": "OPT-20260806T053540905Z-03",
+        "hashes": {
+          "likec4/packages/likec4-spa/src/pages/ExportPage.tsx": "cdc1befc1f65ea63de385e7aa2b7a4ac259437d3a81b70bffa4d925886895194"
+        }
+      },
+      {
+        "sequence": 31,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-06T06:10:19.406Z",
+        "findingId": "OPT-20260806T053540905Z-03"
+      },
+      {
+        "sequence": 32,
+        "action": "resolve",
+        "reason": "Implemented, verified and checkpointed (opt-r3); closed.",
+        "timestamp": "2026-08-06T06:10:33.399Z",
+        "findingId": "OPT-20260806T053540905Z-03"
+      },
+      {
+        "sequence": 33,
+        "action": "retain",
+        "reason": "Still present; per-render new Set derivation",
+        "timestamp": "2026-08-06T06:10:33.399Z",
+        "findingId": "OPT-20260806T053540905Z-04"
+      },
+      {
+        "sequence": 34,
+        "action": "retain",
+        "reason": "Still present; unsound mode cast in read normalizer",
+        "timestamp": "2026-08-06T06:10:33.399Z",
+        "findingId": "OPT-20260806T053540905Z-05"
+      },
+      {
+        "sequence": 35,
+        "action": "retain",
+        "reason": "Still present; type-only update.inputs Omit extension",
+        "timestamp": "2026-08-06T06:10:33.399Z",
+        "findingId": "OPT-20260806T053540905Z-06"
+      },
+      {
+        "sequence": 36,
+        "action": "select",
+        "reason": "Micro allocation/derivation removal on a page that re-renders rarely; trivially safe and cheap.",
+        "timestamp": "2026-08-06T06:10:33.402Z",
+        "findingId": "OPT-20260806T053540905Z-04",
+        "hashes": {
+          "likec4/packages/likec4-spa/src/pages/ExportPage.tsx": "cdc1befc1f65ea63de385e7aa2b7a4ac259437d3a81b70bffa4d925886895194"
+        }
+      },
+      {
+        "sequence": 37,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-06T06:11:00.603Z",
+        "findingId": "OPT-20260806T053540905Z-04",
+        "hashes": {
+          "likec4/packages/likec4-spa/src/pages/ExportPage.tsx": "cdc1befc1f65ea63de385e7aa2b7a4ac259437d3a81b70bffa4d925886895194"
+        }
+      },
+      {
+        "sequence": 38,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-06T06:17:54.807Z",
+        "findingId": "OPT-20260806T053540905Z-04"
       }
     ],
-    "reconciliationSignature": "4959fac69ea71cc943bcfaa3b928fe0e6d2f2f8c0dcdd117986fd5e979560fcb",
+    "reconciliationSignature": "96de19152901bf8ca36377d1550426bb0b476a59de0d7586e0b1cd38955f5b1d",
     "unchangedReconciliations": 0
   }
 }

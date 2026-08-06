@@ -150,14 +150,22 @@ export function ExportPage() {
 
   useTransparentBackground(!isJpeg)
 
-  // Frozen at mount: the interactive view state cloned into this tab by the Header export.
-  const [snapshot] = useState(() => readXirangExportSnapshotFromStorage())
+  // Frozen at mount: the interactive view state cloned into this tab by the Header export,
+  // with the machine seed values derived exactly once alongside the snapshot read.
+  const [seed] = useState(() => {
+    const snapshot = readXirangExportSnapshotFromStorage()
+    return {
+      snapshot,
+      focus: snapshot?.focus ?? undefined,
+      expanded: snapshot ? new Set(snapshot.expanded) : undefined,
+    }
+  })
 
   if (!diagram) {
     return <div>Loading...</div>
   }
 
-  return <GuardedExportPage diagram={diagram} isJpeg={isJpeg} snapshot={snapshot} />
+  return <GuardedExportPage diagram={diagram} isJpeg={isJpeg} seed={seed} />
 }
 
 /**
@@ -166,12 +174,17 @@ export function ExportPage() {
 function GuardedExportPage({
   diagram,
   isJpeg,
-  snapshot,
+  seed,
 }: {
   diagram: LayoutedView
   isJpeg: boolean
-  snapshot: XirangExportSnapshot | null
+  seed: {
+    snapshot: XirangExportSnapshot | null
+    focus: string | undefined
+    expanded: Set<string> | undefined
+  }
 }) {
+  const { snapshot, focus: initialFocusIdentity, expanded: initialExpanded } = seed
   const {
     padding = 20,
     download = false,
@@ -311,8 +324,8 @@ function GuardedExportPage({
           nodesSelectable={false}
           enableElementTags={false}
           static
-          initialFocusIdentity={snapshot?.focus ?? undefined}
-          initialExpanded={snapshot ? new Set(snapshot.expanded) : undefined}
+          initialFocusIdentity={initialFocusIdentity}
+          initialExpanded={initialExpanded}
           onInitialized={() => {
             if (!viewportRef.current) {
               console.error('viewportRef.current is null')
