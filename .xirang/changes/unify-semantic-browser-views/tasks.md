@@ -37,9 +37,9 @@
   - Command: `pnpm exec vitest run test/core/model test/core/semantic-diff.test.ts test/core/view.test.ts test/core/framing/baseline.test.ts`
   - Expect: exclude 优先剪枝、缺失默认、未知 identity 校验、不同输入排列的规范化与 semantic diff/fingerprint 均通过
 
-### Task 2: 建立原生 LikeC4 Runtime Projection 核心
+### Task 2: 建立原生 LikeC4 Runtime Projection Lowering
 
-**Goal**: 将可见 semantic projection 转换为原生 LikeC4 model/view，并通过官方 parser、validator、compute-view 与 Graphviz layout 生成结果。
+**Goal**: 在 root package 中将可见 semantic projection lowering 为确定性原生 LikeC4 model/view 内容与 projection key，供 Task 3 的服务端官方管线消费；root package 不直接调用 LikeC4 parser、compute-view 或 Graphviz。
 
 **Files**:
 - Modify: `src/core/likec4/generator.ts`
@@ -53,13 +53,14 @@
 - projection 在 LikeC4 compute/layout 之前形成，不直接构造最终 geometry 或 spline。
 - 多根 Authored View 使用非语义 virtual root，且不进入模型或 details。
 - projection key 由 fingerprints、View、Change、Mode、focus 与排序后的 expanded set 确定。
+- lowering 位于 root package，不 import `@likec4/core`、`@likec4/layouts` 或 Graphviz；官方管线调用属于 Task 3 的 vite-plugin 范围。
 
 #### Checks
 
-- [ ] C3 验证统一原生 LikeC4 projection
-  - Verifies: `elements/semantic-browser.md` / Requirement "服务端计算 Runtime Projection" / Scenario "请求有效 projection"
+- [ ] C3 验证统一原生 LikeC4 lowering
+  - Verifies: `elements/semantic-browser.md` / Requirement "保持 LikeC4 投影有效" / Scenarios "生成 runtime projection", "LikeC4 无法表达 source Relationship"
   - Command: `pnpm exec vitest run test/core/likec4 test/core/view.test.ts`
-  - Expect: 所有 projection 类型通过官方 LikeC4 compute/layout，重复输入产生相同 projection key
+  - Expect: Model、Authored、Change 与 Candidate 使用同一 lowering 产出确定性原生 LikeC4 内容，self 与 ancestor-chain Relationships 被确定性省略，相同输入产生相同 projection key，且 root package 不出现 compute/layout 调用
 
 - [ ] C4 验证多根 Authored View virtual root
   - Verifies: `elements/authored-views.md` / Requirement "使用 Virtual Projection Root" / Scenarios "Authored View 包含多个顶层 Elements", "Model 存在唯一 Project Root"
@@ -93,6 +94,7 @@
 - 基础 `.cache-likec4` 按显式文件清单完整生成、临时校验和原子替换。
 - 失败时保留 last-known-good 并发布 diagnostics，成功后失效旧 projections 并发送一次 HMR。
 - 所有路径使用 Node.js path API 和 normalized project-relative keys。
+- handler 在 vite-plugin 内依次调用官方 LikeC4 parser、validator、compute-view 与 Graphviz layout，并返回 layouted view，不自行计算 geometry 或 spline。
 
 #### Checks
 
@@ -110,6 +112,11 @@
   - Verifies: `elements/semantic-browser.md` / Requirement "原子刷新基础 LikeC4 缓存" / Scenario "跨平台处理缓存路径"
   - Command: `pnpm exec vitest run test/core/view.test.ts --testNamePattern="Windows|path|cache"`
   - Expect: POSIX 与 Windows 分隔符均映射到相同 project-relative dependency key，显式文件清单控制替换范围
+
+- [ ] C27 验证 projection 经过官方 LikeC4 管线
+  - Verifies: `elements/semantic-browser.md` / Requirement "服务端计算 Runtime Projection" / Scenarios "请求有效 projection", "请求使用旧 fingerprint"
+  - Command: `cd likec4 && pnpm --filter @likec4/vite-plugin exec vitest run src/xirang`
+  - Expect: handler 依次经过官方 parser、validator、compute-view 与 Graphviz layout 返回 layouted view 与 projection key，stale fingerprint 返回结构化 diagnostic 而不返回 view
 
 ### Task 4: 重构 Semantic Browser Controller 与三个控件
 
