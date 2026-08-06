@@ -110,7 +110,7 @@
     "timestamp": "2026-08-06T06:28:20.635Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
         "timestamp": "2026-08-06T05:35:40.910Z",
@@ -176,6 +176,11 @@
         "timestamp": "2026-08-06T06:28:20.621Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-06T06:28:36.381Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
@@ -525,7 +530,7 @@
         }
       },
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/diagram/src/likec4diagram/state/machine.setup.ts"
@@ -953,9 +958,16 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-06T06:28:20.621Z",
         "findingId": "OPT-20260806T053540905Z-06"
+      },
+      {
+        "sequence": 50,
+        "action": "resolve",
+        "reason": "Implemented, verified and checkpointed (opt-r6); closed. No actionable findings remain.",
+        "timestamp": "2026-08-06T06:28:36.381Z",
+        "findingId": "OPT-20260806T053540905Z-06"
       }
     ],
-    "reconciliationSignature": "dca724b83cc57f1483a2604693c4ac4dc6dfcde81396f0209644aa4d293b4c99",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }
