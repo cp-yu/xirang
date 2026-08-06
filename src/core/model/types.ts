@@ -60,6 +60,25 @@ export type NodeBorder = 'solid' | 'dashed' | 'dotted' | 'none';
 
 export const NODE_BORDER_VALUES: readonly NodeBorder[] = ['solid', 'dashed', 'dotted', 'none'];
 
+export type RelationshipColor = 'amber' | 'blue' | 'gray' | 'green' | 'indigo' | 'muted' | 'primary' | 'red' | 'secondary' | 'sky' | 'slate';
+
+export const RELATIONSHIP_COLOR_VALUES: readonly RelationshipColor[] = ['amber', 'blue', 'gray', 'green', 'indigo', 'muted', 'primary', 'red', 'secondary', 'sky', 'slate'];
+
+export type RelationshipLine = 'solid' | 'dashed' | 'dotted';
+
+export const RELATIONSHIP_LINE_VALUES: readonly RelationshipLine[] = ['solid', 'dashed', 'dotted'];
+
+export type RelationshipArrow = 'none' | 'normal' | 'onormal' | 'dot' | 'odot' | 'diamond' | 'odiamond' | 'crow' | 'open' | 'vee';
+
+export const RELATIONSHIP_ARROW_VALUES: readonly RelationshipArrow[] = ['none', 'normal', 'onormal', 'dot', 'odot', 'diamond', 'odiamond', 'crow', 'open', 'vee'];
+
+export interface RelationshipPresentation {
+  color?: RelationshipColor;
+  line?: RelationshipLine;
+  head?: RelationshipArrow;
+  tail?: RelationshipArrow;
+}
+
 export interface NodePresentation {
   shape?: NodeShape;
   color?: NodeColor;
@@ -81,6 +100,7 @@ export interface RelationshipKind {
   identity: string;
   sourceKinds?: string[];
   targetKinds?: string[];
+  presentation?: RelationshipPresentation;
   /** Semantics shared by every instance of the kind; empty when absent. */
   body: string;
 }
@@ -95,6 +115,7 @@ export interface Relationship {
 export interface AuthoredView {
   identity: string;
   include: '*' | string[];
+  exclude?: string[];
   of?: string;
   title?: string;
   autoLayout?: string;
