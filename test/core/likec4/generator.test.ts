@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { generateLikeC4 } from '../../../src/core/likec4/generator.js';
-import { toLikeC4Style } from '../../../src/core/likec4/presentation-adapter.js';
-import { NODE_BORDER_VALUES, NODE_COLOR_VALUES, NODE_SHAPE_VALUES, emptySemanticModel, type SemanticModel } from '../../../src/core/model/types.js';
+import { toLikeC4RelationshipStyle, toLikeC4Style } from '../../../src/core/likec4/presentation-adapter.js';
+import { NODE_BORDER_VALUES, NODE_COLOR_VALUES, NODE_SHAPE_VALUES, RELATIONSHIP_ARROW_VALUES, RELATIONSHIP_COLOR_VALUES, RELATIONSHIP_LINE_VALUES, emptySemanticModel, type SemanticModel } from '../../../src/core/model/types.js';
 import { materializeXirangArchitectureView } from '../../../likec4/packages/diagram/src/xirang/architectureView.js';
 import type { XirangViewSource } from '../../../likec4/packages/diagram/src/xirang/ContractLoaderContext.js';
 
@@ -106,6 +106,51 @@ describe('generateLikeC4 specification.c4', () => {
   it('outputs bare kind without nodePresentation', () => {
     expect(generateLikeC4(constrained).get('specification.c4')).toContain('  element capability\n');
     expect(generateLikeC4(constrained).get('specification.c4')).not.toContain('style {');
+  });
+
+  it('maps all valid relationship presentation values to LikeC4', () => {
+    for (const color of RELATIONSHIP_COLOR_VALUES) {
+      expect(toLikeC4RelationshipStyle({ color })).toEqual({ color });
+    }
+    for (const line of RELATIONSHIP_LINE_VALUES) {
+      expect(toLikeC4RelationshipStyle({ line })).toEqual({ line });
+    }
+    for (const head of RELATIONSHIP_ARROW_VALUES) {
+      expect(toLikeC4RelationshipStyle({ head })).toEqual({ head });
+    }
+    for (const tail of RELATIONSHIP_ARROW_VALUES) {
+      expect(toLikeC4RelationshipStyle({ tail })).toEqual({ tail });
+    }
+    expect(toLikeC4RelationshipStyle({ color: 'blue', line: 'dashed', head: 'diamond', tail: 'normal' }))
+      .toEqual({ color: 'blue', line: 'dashed', head: 'diamond', tail: 'normal' });
+  });
+
+  it('generates LikeC4 style block for relationship presentation', () => {
+    const model: SemanticModel = {
+      ...emptySemanticModel(),
+      relationshipKinds: [{
+        identity: 'critical-invokes',
+        presentation: { color: 'red', line: 'dashed', head: 'diamond', tail: 'normal' },
+        body: '',
+      }],
+    };
+    expect(generateLikeC4(model).get('specification.c4')).toBe([
+      'specification {',
+      '  relationship critical_invokes {',
+      '    style {',
+      '      color red',
+      '      line dashed',
+      '      head diamond',
+      '      tail normal',
+      '    }',
+      '  }',
+      '}',
+      '',
+    ].join('\n'));
+  });
+
+  it('outputs bare relationship kind without presentation', () => {
+    expect(generateLikeC4(constrained).get('specification.c4')).toContain('  relationship invokes\n');
   });
 
   it('generates perspective with style block', () => {
