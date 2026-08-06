@@ -234,11 +234,20 @@ function GuardedExportPage({
   const downloadDiagramRef = useRef(downloadDiagram)
   downloadDiagramRef.current = downloadDiagram
 
+  // Single scheduling site: downloads once both the snapshot is applied and the diagram is
+  // initialized, so the captured pixels are the final view. A missing snapshot means no gating.
+  const maybeScheduleDownload = () => {
+    if (!download || !snapshotAppliedRef.current || !initializedRef.current || downloadedRef.current) {
+      return
+    }
+    window.setTimeout(downloadDiagramRef.current, 500)
+  }
+  const maybeScheduleDownloadRef = useRef(maybeScheduleDownload)
+  maybeScheduleDownloadRef.current = maybeScheduleDownload
+
   const handleSnapshotApplied = useCallback(() => {
     snapshotAppliedRef.current = true
-    if (initializedRef.current) {
-      window.setTimeout(downloadDiagramRef.current, 500)
-    }
+    maybeScheduleDownloadRef.current()
   }, [])
 
   return (
@@ -318,9 +327,7 @@ function GuardedExportPage({
             })
 
             initializedRef.current = true
-            if (download) {
-              window.setTimeout(downloadDiagram, 500)
-            }
+            maybeScheduleDownloadRef.current()
           }}
         />
         {snapshot && (

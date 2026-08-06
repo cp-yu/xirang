@@ -131,6 +131,11 @@
         "timestamp": "2026-08-06T05:53:56.561Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-06T05:59:19.145Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
@@ -294,7 +299,7 @@
         }
       },
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "test/e2e/semantic-browser-image-export.spec.ts"
@@ -341,7 +346,7 @@
         }
       },
       {
-        "status": "pending",
+        "status": "selected",
         "location": {
           "files": [
             "likec4/packages/likec4-spa/src/pages/ExportPage.tsx"
@@ -385,7 +390,10 @@
         "cost": "low",
         "dependencies": [],
         "priorityReason": "Maintainability: one scheduling path instead of two duplicated 500ms branches with a guaranteed no-op timer.",
-        "id": "OPT-20260806T053540905Z-03"
+        "id": "OPT-20260806T053540905Z-03",
+        "targetFileHashes": {
+          "likec4/packages/likec4-spa/src/pages/ExportPage.tsx": "acb2611dd7738e560ce924d5818d8bf6da6f6950faf1c94398f92c066963085a"
+        }
       },
       {
         "status": "pending",
@@ -652,9 +660,54 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-06T05:53:56.561Z",
         "findingId": "OPT-20260806T053540905Z-02"
+      },
+      {
+        "sequence": 19,
+        "action": "resolve",
+        "reason": "Implemented, verified and checkpointed (opt-r2); closed.",
+        "timestamp": "2026-08-06T05:59:19.142Z",
+        "findingId": "OPT-20260806T053540905Z-02"
+      },
+      {
+        "sequence": 20,
+        "action": "reprioritize",
+        "reason": "Ranked first: only pending finding with a correctness/contract dimension (unsound mode cast); cheapest validation",
+        "timestamp": "2026-08-06T05:59:19.142Z",
+        "findingId": "OPT-20260806T053540905Z-05"
+      },
+      {
+        "sequence": 21,
+        "action": "retain",
+        "reason": "Still present; duplicated download scheduling",
+        "timestamp": "2026-08-06T05:59:19.142Z",
+        "findingId": "OPT-20260806T053540905Z-03"
+      },
+      {
+        "sequence": 22,
+        "action": "retain",
+        "reason": "Still present; type-only update.inputs Omit extension",
+        "timestamp": "2026-08-06T05:59:19.142Z",
+        "findingId": "OPT-20260806T053540905Z-06"
+      },
+      {
+        "sequence": 23,
+        "action": "retain",
+        "reason": "Still present; per-render new Set derivation",
+        "timestamp": "2026-08-06T05:59:19.142Z",
+        "findingId": "OPT-20260806T053540905Z-04"
+      },
+      {
+        "sequence": 24,
+        "action": "select",
+        "reason": "Maintainability: one scheduling path instead of two duplicated 500ms branches with a guaranteed no-op timer.",
+        "timestamp": "2026-08-06T05:59:19.145Z",
+        "findingId": "OPT-20260806T053540905Z-03",
+        "hashes": {
+          "likec4/packages/likec4-spa/src/pages/ExportPage.tsx": "acb2611dd7738e560ce924d5818d8bf6da6f6950faf1c94398f92c066963085a"
+        }
       }
     ],
-    "reconciliationSignature": "142ccf5e721893ca61710928e4bf17a3340eaba7f1b4a1f30ff429ddd27882b4",
+    "reconciliationSignature": "4959fac69ea71cc943bcfaa3b928fe0e6d2f2f8c0dcdd117986fd5e979560fcb",
     "unchangedReconciliations": 0
   }
 }
