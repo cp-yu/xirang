@@ -236,7 +236,7 @@ export type Events =
     xyedges: Types.Edge[]
   }
   | { type: 'update.view-bounds'; bounds: BBox }
-  | { type: 'update.inputs'; inputs: Partial<Omit<Input, 'view' | 'xystore' | 'dynamicViewVariant' | 'features'>> }
+  | { type: 'update.inputs'; inputs: Partial<Omit<Input, 'view' | 'xystore' | 'dynamicViewVariant' | 'features' | 'initialFocusIdentity' | 'initialExpanded'>> }
   | { type: 'update.features'; features: EnabledFeatures }
   | ({ type: 'open.source' } & OpenSourceParams)
   | { type: 'open.elementDetails'; fqn: Fqn; fromNode?: NodeId | undefined }
