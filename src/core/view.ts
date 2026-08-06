@@ -117,8 +117,10 @@ export interface ViewRuntimeCandidateDiffView {
 }
 
 export interface ViewRuntimeSnapshot {
-  version: 3;
-  semanticModel: ViewRuntimeSemanticModel;
+  version: 4;
+  modelFingerprint: string;
+  model: ViewRuntimeSemanticModel;
+  authoredViews: Record<string, { title: string; include: string[]; exclude?: string[] }>;
   candidate?: ViewRuntimeCandidateView;
   candidateDiff?: ViewRuntimeCandidateDiffView;
   changes: Record<string, ViewRuntimeChangeDerivedView>;
@@ -341,9 +343,22 @@ export async function buildViewRuntimeSnapshot(
     buildSemanticModelSource(projectRoot),
   ]);
 
+  // Build authoredViews from parsed model
+  const { model } = await readFormalSemanticModel(projectRoot);
+  const authoredViews: Record<string, { title: string; include: string[]; exclude?: string[] }> = {};
+  for (const view of model.views) {
+    authoredViews[view.identity] = {
+      title: view.title ?? view.identity,
+      include: view.include === '*' ? ['*'] : view.include,
+      ...(view.exclude && view.exclude.length > 0 ? { exclude: view.exclude } : {}),
+    };
+  }
+
   return {
-    version: 3,
-    semanticModel,
+    version: 4,
+    modelFingerprint: semanticModel.sourceFingerprint,
+    model: semanticModel,
+    authoredViews,
     ...(candidateSources ? { candidate: candidateSources.candidate, candidateDiff: candidateSources.candidateDiff } : {}),
     changes: sources,
   };

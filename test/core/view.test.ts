@@ -132,8 +132,8 @@ describe('ViewCommand', () => {
 
     await new ViewCommand(launch).execute(tempDir);
 
-    const semanticModel = manifest!.semanticModel;
-    expect(manifest!.version).toBe(3);
+    const semanticModel = manifest!.model;
+    expect(manifest!.version).toBe(4);
     expect(semanticModel.id).toBe('model');
     expect(Object.keys(semanticModel.contracts!)).toEqual(['alpha.id', 'zeta.id']);
     expect(semanticModel.contracts!['alpha.id']).toContain('### Requirement: Existing');
@@ -373,8 +373,8 @@ describe('Manifest version 3', () => {
 
     const snapshot = await buildViewRuntimeSnapshot(tempDir);
     
-    expect(snapshot.version).toBe(3);
-    expect(snapshot.semanticModel).toBeDefined();
+    expect(snapshot.version).toBe(4);
+    expect(snapshot.model).toBeDefined();
     expect(snapshot.candidate).toBeDefined();
     expect(snapshot.candidateDiff).toBeDefined();
     
@@ -388,8 +388,8 @@ describe('Manifest version 3', () => {
 
     const snapshot = await buildViewRuntimeSnapshot(tempDir);
     
-    expect(snapshot.version).toBe(3);
-    expect(snapshot.semanticModel).toBeDefined();
+    expect(snapshot.version).toBe(4);
+    expect(snapshot.model).toBeDefined();
     expect(snapshot.candidate).toBeUndefined();
     expect(snapshot.candidateDiff).toBeUndefined();
     expect(snapshot.changes).toBeDefined();
@@ -414,7 +414,7 @@ describe('Manifest version 3', () => {
     const before = await buildViewRuntimeSnapshot(tempDir);
     const beforeCandidateFingerprint = before.candidate!.sourceFingerprint;
     const beforeCandidateDiffFingerprint = before.candidateDiff!.sourceFingerprint;
-    const beforeModelFingerprint = before.semanticModel.sourceFingerprint;
+    const beforeModelFingerprint = before.model.sourceFingerprint;
     const beforeChangeFingerprint = before.changes['test-change']!.sourceFingerprint;
 
     await fs.writeFile(path.join(candidateRoot, 'build.md'), '# Build V2\n', 'utf8');
@@ -423,7 +423,7 @@ describe('Manifest version 3', () => {
 
     expect(after.candidate!.sourceFingerprint).not.toBe(beforeCandidateFingerprint);
     expect(after.candidateDiff!.sourceFingerprint).not.toBe(beforeCandidateDiffFingerprint);
-    expect(after.semanticModel.sourceFingerprint).toBe(beforeModelFingerprint);
+    expect(after.model.sourceFingerprint).toBe(beforeModelFingerprint);
     expect(after.changes['test-change']!.sourceFingerprint).toBe(beforeChangeFingerprint);
   });
 
@@ -444,7 +444,7 @@ describe('Manifest version 3', () => {
     await writeModel(candidateRoot, minimalModel());
 
     const before = await buildViewRuntimeSnapshot(tempDir);
-    const beforeModelFingerprint = before.semanticModel.sourceFingerprint;
+    const beforeModelFingerprint = before.model.sourceFingerprint;
     const beforeCandidateDiffFingerprint = before.candidateDiff!.sourceFingerprint;
     const beforeChangeFingerprint = before.changes['test-change']!.sourceFingerprint;
 
@@ -454,7 +454,7 @@ describe('Manifest version 3', () => {
 
     const after = await buildViewRuntimeSnapshot(tempDir, { previous: before });
 
-    expect(after.semanticModel.sourceFingerprint).not.toBe(beforeModelFingerprint);
+    expect(after.model.sourceFingerprint).not.toBe(beforeModelFingerprint);
     expect(after.candidateDiff!.sourceFingerprint).not.toBe(beforeCandidateDiffFingerprint);
     expect(after.changes['test-change']!.sourceFingerprint).not.toBe(beforeChangeFingerprint);
   });
