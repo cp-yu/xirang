@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-08-06T07:25:05.076Z",
+  "timestamp": "2026-08-06T07:54:06.546Z",
   "result": "PASS",
   "issues": [],
-  "tasksFileHash": "31e29ba86d9423c0d7f356b50f7b4a2337b81ec4800312c860f110dce44cf0fd",
+  "tasksFileHash": "333bfa6bb9d1b87aef64a69958f3bc092d94cd142491cfb6656c28a6e71ab038",
   "verificationContext": {
     "contractVersion": "1.0",
     "executionMode": "subagent-reviewer",
@@ -25,23 +25,23 @@
       "playwright.config.ts",
       "test/e2e/semantic-browser-image-export.spec.ts"
     ],
-    "evidenceFingerprint": "a62fd9c0b25ca1111459b4bc6f909a0bd94cc9e63b619f9d3df4a6d0685570e9",
+    "evidenceFingerprint": "d4854af37c4c4408324d0796452d98ed21cc4a4074d552b15d996d66503dd80d",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/browser-image-export-wysiwyg/design.md",
-        "hash": "dcb4ed4a579dbf4b701a74c7ba91dc1aa36033d2bcc85a2d9b97cf5e4261d5cd"
+        "hash": "7798e19ef58d01a8c64c0e3b7df73b90917c031dff31078c60a78ef0a0da3d51"
       },
       {
         "path": ".xirang/changes/browser-image-export-wysiwyg/elements/semantic-browser.md",
-        "hash": "65bd11707c9338cb415e5d9349bbbf6f27dc3b27a81dd99d32f8c7819b721a84"
+        "hash": "279c4de4986eaa8f5382ffb97d4c81849efc1629a57614c11c6dce9896d3bdd7"
       },
       {
         "path": ".xirang/changes/browser-image-export-wysiwyg/proposal.md",
-        "hash": "78e8fd94d4d73907057bec1a178a4fa740b628c2e49fa4b01bb016fc57a17466"
+        "hash": "7c38841adbb58ede83b9a716716c9d2f2e6693a340df61dcfd3808aad5f66e10"
       },
       {
         "path": ".xirang/changes/browser-image-export-wysiwyg/tasks.md",
-        "hash": "31e29ba86d9423c0d7f356b50f7b4a2337b81ec4800312c860f110dce44cf0fd"
+        "hash": "333bfa6bb9d1b87aef64a69958f3bc092d94cd142491cfb6656c28a6e71ab038"
       },
       {
         "path": "likec4/packages/diagram/src/index.ts",
@@ -89,31 +89,31 @@
       },
       {
         "path": "playwright.config.ts",
-        "hash": "95ef03015bcc0d49ecb4cae88f71a79b98ee4f267fd11fa2c951a0f93daff802"
+        "hash": "3afac53b875202229ccf47d60e2b8d8fcb6518d5caf98de4433941f42e46cdb3"
       },
       {
         "path": "test/e2e/semantic-browser-image-export.spec.ts",
-        "hash": "5411313b40742f5fae4c1ac15e07ac88b7b5ff63e658f6dbe31b3111eaa1f3fc"
+        "hash": "944cd9325032755513faa008530fe1cd20aaa2c892010c5c219bb74d38dd6b5d"
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "f20631e765e6c0d253c7ac43f10e1f823b9db6a3",
-    "gitDiffSummary": "Corrected implementation: Header PNG/JPG export uses window.open (keeps opener) so the export tab clones sessionStorage; e2e now asserts the popup renders the on-screen node set. Desktop e2e 13/13 (incl. 3 export), mobile 9/9, unit 102/102, typechecks pass."
+    "gitHeadCommit": "951bce93449b8a3be43859d01cd11429acf0cbcd",
+    "gitDiffSummary": "Contract updated: added Requirement '文件类导出保持完整模型结构' (dot/d2/mmd/puml/Draw.io/tree export complete model structure, declared scope). New e2e C11 guards it. Desktop export e2e 4/4, regression suites green; no file-export code changes."
   },
   "optimization": {
     "status": "NOT_NEEDED",
     "attempts": [
       {
-        "timestamp": "2026-08-06T07:25:25.227Z",
+        "timestamp": "2026-08-06T07:54:06.728Z",
         "type": "optimization",
         "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
-      "timestamp": "2026-08-06T07:25:05.076Z",
+      "timestamp": "2026-08-06T07:54:06.546Z",
       "result": "PASS",
       "issues": [],
-      "tasksFileHash": "31e29ba86d9423c0d7f356b50f7b4a2337b81ec4800312c860f110dce44cf0fd",
+      "tasksFileHash": "333bfa6bb9d1b87aef64a69958f3bc092d94cd142491cfb6656c28a6e71ab038",
       "verificationContext": {
         "contractVersion": "1.0",
         "executionMode": "subagent-reviewer",
@@ -136,23 +136,23 @@
           "playwright.config.ts",
           "test/e2e/semantic-browser-image-export.spec.ts"
         ],
-        "evidenceFingerprint": "a62fd9c0b25ca1111459b4bc6f909a0bd94cc9e63b619f9d3df4a6d0685570e9",
+        "evidenceFingerprint": "d4854af37c4c4408324d0796452d98ed21cc4a4074d552b15d996d66503dd80d",
         "evidenceFingerprintEntries": [
           {
             "path": ".xirang/changes/browser-image-export-wysiwyg/design.md",
-            "hash": "dcb4ed4a579dbf4b701a74c7ba91dc1aa36033d2bcc85a2d9b97cf5e4261d5cd"
+            "hash": "7798e19ef58d01a8c64c0e3b7df73b90917c031dff31078c60a78ef0a0da3d51"
           },
           {
             "path": ".xirang/changes/browser-image-export-wysiwyg/elements/semantic-browser.md",
-            "hash": "65bd11707c9338cb415e5d9349bbbf6f27dc3b27a81dd99d32f8c7819b721a84"
+            "hash": "279c4de4986eaa8f5382ffb97d4c81849efc1629a57614c11c6dce9896d3bdd7"
           },
           {
             "path": ".xirang/changes/browser-image-export-wysiwyg/proposal.md",
-            "hash": "78e8fd94d4d73907057bec1a178a4fa740b628c2e49fa4b01bb016fc57a17466"
+            "hash": "7c38841adbb58ede83b9a716716c9d2f2e6693a340df61dcfd3808aad5f66e10"
           },
           {
             "path": ".xirang/changes/browser-image-export-wysiwyg/tasks.md",
-            "hash": "31e29ba86d9423c0d7f356b50f7b4a2337b81ec4800312c860f110dce44cf0fd"
+            "hash": "333bfa6bb9d1b87aef64a69958f3bc092d94cd142491cfb6656c28a6e71ab038"
           },
           {
             "path": "likec4/packages/diagram/src/index.ts",
@@ -200,16 +200,16 @@
           },
           {
             "path": "playwright.config.ts",
-            "hash": "95ef03015bcc0d49ecb4cae88f71a79b98ee4f267fd11fa2c951a0f93daff802"
+            "hash": "3afac53b875202229ccf47d60e2b8d8fcb6518d5caf98de4433941f42e46cdb3"
           },
           {
             "path": "test/e2e/semantic-browser-image-export.spec.ts",
-            "hash": "5411313b40742f5fae4c1ac15e07ac88b7b5ff63e658f6dbe31b3111eaa1f3fc"
+            "hash": "944cd9325032755513faa008530fe1cd20aaa2c892010c5c219bb74d38dd6b5d"
           }
         ],
         "skippedEvidenceFiles": [],
-        "gitHeadCommit": "f20631e765e6c0d253c7ac43f10e1f823b9db6a3",
-        "gitDiffSummary": "Corrected implementation: Header PNG/JPG export uses window.open (keeps opener) so the export tab clones sessionStorage; e2e now asserts the popup renders the on-screen node set. Desktop e2e 13/13 (incl. 3 export), mobile 9/9, unit 102/102, typechecks pass."
+        "gitHeadCommit": "951bce93449b8a3be43859d01cd11429acf0cbcd",
+        "gitDiffSummary": "Contract updated: added Requirement '文件类导出保持完整模型结构' (dot/d2/mmd/puml/Draw.io/tree export complete model structure, declared scope). New e2e C11 guards it. Desktop export e2e 4/4, regression suites green; no file-export code changes."
       }
     },
     "findings": [],

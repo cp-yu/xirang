@@ -11,7 +11,7 @@ Semantic Browser 的 PNG/JPG 导出当前不等于屏上内容：`ExportPage` �
 
 **Non-Goals:**
 - 不重构"导出页运行交互式机器"这一现状架构；修复是喂给它当前状态而非默认状态。
-- 不改变 dot/mmd/drawio/json 的导出行为。
+- 不改变 dot/d2/mmd/puml/Draw.io/层级树的导出行为——它们仍导出完整模型结构，不反映当前 focus 与就地展开；该范围作为既定边界记录在 `semantic-browser` 契约的“文件类导出保持完整模型结构”Requirement 中，是项目承认的能力边界而非缺陷回退对象。
 - 不把 expanded 编码进 URL（规模不可扩展，已否决）。
 - 不新增服务端状态或 HTTP endpoint（overkill，已否决）。
 

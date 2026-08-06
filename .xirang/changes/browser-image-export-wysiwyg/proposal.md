@@ -16,7 +16,7 @@ None
 
 #### Modified Specs
 
-- `semantic-browser`: 新增"图片导出所见即所得"的可观察行为——PNG/JPG 导出必须反映当前 source、显示模式、focus 与就地展开状态，且不改变既有导出入口与选项。
+- `semantic-browser`: 新增两个可观察行为——(1) “图片导出所见即所得”：PNG/JPG 导出必须反映当前 source、显示模式、focus 与就地展开状态，且不改变既有导出入口与选项；(2) “文件类导出保持完整模型结构”：dot、d2、mmd、puml、Draw.io 与层级树导出呈现完整模型结构、不反映当前 focus 与就地展开，该范围作为既定边界写入契约。
 
 ### Architecture Source
 
@@ -39,6 +39,6 @@ None
 ## Impact
 
 - 浏览器端：`likec4/packages/likec4-spa`（ExportPage、Header）与 `likec4/packages/diagram`（状态机 input、DiagramActorProvider、LikeC4Diagram、XirangArchitectureOverlay、新增导出快照 store）。
-- 行为：Model View 及 Candidate / Change / Diff 视图的 PNG/JPG 导出变为 WYSIWYG；无快照时（直接打开导出 URL）回退现状。
+- 行为：Model View 及 Candidate / Change / Diff 视图的 PNG/JPG 导出变为 WYSIWYG；无快照时（直接打开导出 URL）回退现状。文件类导出（dot/d2/mmd/puml/Draw.io/层级树）保持完整模型结构，作为既定范围在契约中记录。
 - 无新增依赖；沿用 sessionStorage、XState 机器 input、html-to-image 既有机制。
 - 验证需重建 SPA 与 xirang-likec4 bundle 后再跑 Playwright。

@@ -29,3 +29,17 @@ Semantic Browser SHALL 通过既有图片导出入口导出与当前屏上呈现
 
 - **WHEN** 用户直接打开导出页 URL 且不存在由交互视图写入的导出快照
 - **THEN** 导出行为回退到既有默认行为，不产生错误且不导出意外内容
+
+### Requirement: 文件类导出保持完整模型结构
+
+Semantic Browser 的 dot、d2、mmd、puml、Draw.io 与层级树导出 SHALL 导出当前所选 source 的完整模型结构（全部 Elements 与其层级），SHALL NOT 反映当前 focus 与就地展开状态；该行为是导出能力的既定范围而非缺陷，图片导出（PNG/JPG）按“图片导出所见即所得”呈现当前视图。
+
+#### Scenario: 导出 dot/mmd/puml/d2/Draw.io 文件
+
+- **WHEN** 用户在聚焦并就地展开后导出 dot、d2、mmd、puml 或 Draw.io
+- **THEN** 导出内容为完整模型结构，包含全部 Elements 与其层级，与当前 focus 和就地展开无关
+
+#### Scenario: 导出层级树
+
+- **WHEN** 用户在聚焦后导出层级树
+- **THEN** 树包含当前 source 的完整模型层级，而非仅当前 focus 视图

@@ -113,3 +113,26 @@ test('exports without a snapshot', async ({ page }) => {
   await expect.poll(async () => (await visibleNodeIds(page)).length, { timeout: 10_000 }).toBeGreaterThan(0)
   await expect(page.locator('[data-testid="export-page"]')).toBeVisible()
 })
+
+test('exports the complete model structure for file formats', async ({ page }) => {
+  await page.goto('/view/model/')
+  await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
+
+  // Focus and expand in place, then verify file-format exports stay global (declared scope).
+  await page.locator('.react-flow__node[data-id="perspective.browser"]').dblclick()
+  await expect(page).toHaveURL(/focus=perspective\.browser/)
+  await page.locator('.react-flow__node[data-id="capability.drill"]').click({ modifiers: ['Control'] })
+  await expect(page.locator('.react-flow__node[data-id="capability.leaf"]')).toBeVisible()
+
+  // dot exports the complete compiled model view, independent of focus/expansion.
+  await page.goto('/view/model/dot')
+  const dotSource = page.locator('pre').first()
+  await expect(dotSource).toContainText('root.browser.drill.leaf', { timeout: 20_000 })
+  await expect(dotSource).toContainText('root.long')
+
+  // The hierarchy tree still shows the complete model hierarchy.
+  await page.goto('/view/model/tree')
+  const treeBody = page.locator('body')
+  await expect(treeBody).toContainText('Leaf Capability', { timeout: 20_000 })
+  await expect(treeBody).toContainText('Long Contract')
+})

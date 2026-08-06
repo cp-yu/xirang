@@ -117,3 +117,22 @@
   - Verifies: `elements/semantic-browser.md` / Requirement "图片导出所见即所得" / Scenario "导出页直接打开且无前置呈现状态"
   - Command: `pnpm exec playwright test test/e2e/semantic-browser-image-export.spec.ts --project=desktop`
   - Expect: 直接打开导出 URL 不报错，渲染回退行为与现状一致
+
+### Task 6: 记录文件类导出为完整模型结构（既定范围）
+
+**Goal**: 确认 dot/d2/mmd/puml/Draw.io 与层级树导出呈现完整模型结构、不反映当前 focus 与就地展开，作为既定范围写入契约（不改变导出行为）。
+
+**Files**:
+- Modify: `.xirang/changes/browser-image-export-wysiwyg/elements/semantic-browser.md`
+- Modify: `test/e2e/semantic-browser-image-export.spec.ts`
+- Modify: `playwright.config.ts`
+
+**Requirements**:
+- dot、d2、mmd、puml、Draw.io 与层级树导出保持完整模型结构，不反映当前 focus 与就地展开（既定范围，非缺陷）
+
+#### Checks
+
+- [x] C11 e2e：文件类导出完整模型结构
+  - Verifies: `elements/semantic-browser.md` / Requirement "文件类导出保持完整模型结构" / Scenario "导出 dot/mmd/puml/d2/Draw.io 文件"
+  - Command: `pnpm exec playwright test test/e2e/semantic-browser-image-export.spec.ts --project=desktop`
+  - Expect: 聚焦并就地展开后，dot 源仍含全部元素（如 `root.browser.drill.leaf`、`root.long`），层级树仍含完整层级（如 `Leaf Capability`、`Long Contract`），与当前 focus/展开无关
