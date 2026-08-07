@@ -99,9 +99,9 @@
 
 #### Checks
 
-- [ ] C5 验证 version 4 manifest 与 stale fingerprint
+- [x] C5 验证 version 4 manifest 与 stale fingerprint
   - Verifies: `elements/semantic-browser.md` / Requirement "使用分区 Runtime Manifest" / Scenarios "构建普通 Browser 状态", "Candidate 可用", "读取旧 manifest"
-  - Command: `pnpm exec vitest run test/core/view.test.ts likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.spec.ts likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts likec4/packages/vite-plugin/src/plugin.spec.ts`
+  - Command: `pnpm exec vitest run test/core/view.test.ts && cd likec4 && pnpm --filter @likec4/vite-plugin exec vitest run --no-isolate src/xirang src/plugin.spec.ts`
   - Expect: version 4 分区稳定，旧 version 与 stale fingerprint 返回明确协议 diagnostics
 
 - [ ] C6 验证原子缓存刷新和 last-known-good
@@ -114,7 +114,7 @@
   - Command: `pnpm exec vitest run test/core/view.test.ts --testNamePattern="Windows|path|cache"`
   - Expect: POSIX 与 Windows 分隔符均映射到相同 project-relative dependency key，显式文件清单控制替换范围
 
-- [ ] C27 验证 projection 经过官方 LikeC4 管线
+- [x] C27 验证 projection 经过官方 LikeC4 管线
   - Verifies: `elements/semantic-browser.md` / Requirement "服务端计算 Runtime Projection" / Scenarios "请求有效 projection", "请求使用旧 fingerprint"
   - Command: `cd likec4 && pnpm --filter @likec4/vite-plugin exec vitest run src/xirang`
   - Expect: base model 经官方 parser 与 validator 建立后，handler 对每个 request 经官方 adhoc compute-view 与 Graphviz layout 返回 layouted view 与 projection key，stale fingerprint 返回结构化 diagnostic 而不返回 view

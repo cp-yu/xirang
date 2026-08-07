@@ -14,6 +14,8 @@ import { detectAI } from './ai/detect-ai'
 import { iconBundlePlugin } from './icon-bundle-plugin'
 import { logger } from './logger'
 import { assertXirangManifest, assertXirangProject, parseXirangContractSource, readXirangContract, XirangContractError, type XirangRuntimeManifestSnapshot } from './xirang/xirang-contract-handler'
+import { ProjectionCache } from './xirang/projection-cache'
+import { handleProjection, parseProjectionRequest, type ProjectionResponse } from './xirang/xirang-projection-handler'
 import { enablePluginRPC } from './rpc'
 import { xirangChangeManifestChangedEvent } from './rpc/protocol'
 import { splitErrorMessage } from './rpc/sendError'
@@ -386,6 +388,8 @@ export function LikeC4VitePlugin({
       )
 
       if (xirangChangeManifest) {
+        const xirangProjectionCache = new ProjectionCache<ProjectionResponse>(200)
+
         server.middlewares.use('/__xirang/changes', async (req, res) => {
           try {
             if (req.method !== 'GET') {
@@ -439,6 +443,46 @@ export function LikeC4VitePlugin({
             const xirangError = error instanceof XirangContractError
               ? error
               : new XirangContractError(500, 'Unable to read Contract')
+            res.statusCode = xirangError.statusCode
+            res.setHeader('Content-Type', 'application/json; charset=utf-8')
+            res.end(JSON.stringify({ error: xirangError.message }))
+          }
+        })
+
+        server.middlewares.use('/__xirang/projection', async (req, res) => {
+          try {
+            if (req.method !== 'POST') {
+              throw new XirangContractError(405, 'Method not allowed')
+            }
+            const chunks: Buffer[] = []
+            await new Promise<void>((resolve, reject) => {
+              req.on('data', (chunk: Buffer) => chunks.push(chunk))
+              req.on('end', resolve)
+              req.on('error', reject)
+            })
+            const body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown
+            const parsed = parseProjectionRequest(body)
+            if (!parsed.ok) {
+              res.statusCode = parsed.statusCode
+              res.setHeader('Content-Type', 'application/json; charset=utf-8')
+              res.end(JSON.stringify({ error: parsed.message }))
+              return
+            }
+            const project = likec4.projects()[0]!
+            const result = await handleProjection(parsed.request, {
+              readManifest: () => fs.readFile(xirangChangeManifest, 'utf8'),
+              views: likec4.views,
+              cache: xirangProjectionCache,
+              projectId: project.id,
+            })
+            res.statusCode = 200
+            res.setHeader('Content-Type', 'application/json; charset=utf-8')
+            res.setHeader('Cache-Control', 'no-store')
+            res.end(JSON.stringify(result))
+          } catch (error) {
+            const xirangError = error instanceof XirangContractError
+              ? error
+              : new XirangContractError(500, 'Unable to compute projection')
             res.statusCode = xirangError.statusCode
             res.setHeader('Content-Type', 'application/json; charset=utf-8')
             res.end(JSON.stringify({ error: xirangError.message }))
