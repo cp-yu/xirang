@@ -53,11 +53,17 @@ export interface XirangRelationship {
   target: string
 }
 
+export interface XirangRelationshipKind {
+  identity: string
+  presentation?: { color?: string; line?: string; head?: string; tail?: string }
+}
+
 /** The part of the Semantic Model IR the Browser consumes; identity is the only reference. */
 export interface XirangSemanticModel {
   elements: XirangModelElement[]
   relationships: XirangRelationship[]
   elementKinds?: XirangElementKind[]
+  relationshipKinds?: XirangRelationshipKind[]
 }
 
 export interface XirangViewDiagnostic {

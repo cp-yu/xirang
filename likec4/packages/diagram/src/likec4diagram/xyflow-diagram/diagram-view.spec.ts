@@ -4,7 +4,7 @@
 
 import { type DiagramEdge, type DiagramNode, type DiagramView, GroupElementKind, scalar } from '@likec4/core'
 import { describe, expect, it } from 'vitest'
-import { diagramToXY } from './diagram-view'
+import { diagramToXY, projectionViewportTransition } from './diagram-view'
 
 type TestView = Pick<DiagramView, 'id' | 'nodes' | 'edges' | 'bounds' | '_type' | 'autoLayout'>
 
@@ -75,6 +75,29 @@ function testView(nodes: DiagramNode[], edges: DiagramEdge[]): TestView {
   }
 }
 
+describe('projectionViewportTransition', () => {
+  it('allows fit only for the initial projection', () => {
+    const next = testView([testNode('a')], [])
+    expect(projectionViewportTransition(null, next as DiagramView, { x: 0, y: 0, zoom: 1 }))
+      .toEqual({ fit: true, viewport: null })
+  })
+
+  it('keeps the viewport unchanged for an incremental projection without an anchor', () => {
+    const previous = testView([testNode('a')], [])
+    const next = testView([testNode('a', { x: 500, y: 300 })], [])
+    const viewport = { x: 20, y: 30, zoom: 1.5 }
+    expect(projectionViewportTransition(previous as DiagramView, next as DiagramView, viewport))
+      .toEqual({ fit: false, viewport })
+  })
+
+  it('compensates viewport movement to preserve an anchor screen position', () => {
+    const previous = testView([testNode('a', { x: 100, y: 80 })], [])
+    const next = testView([testNode('a', { x: 300, y: 180 })], [])
+    expect(projectionViewportTransition(previous as DiagramView, next as DiagramView, { x: 40, y: 60, zoom: 2 }, 'a'))
+      .toEqual({ fit: false, viewport: { x: -360, y: -140, zoom: 2 } })
+  })
+})
+
 describe('diagramToXY Xirang projection data', () => {
   it('projects ADDED metadata to node data and observable DOM attributes', () => {
     const added = testNode('test-entity', {
@@ -104,6 +127,23 @@ describe('diagramToXY Xirang projection data', () => {
         'data-xirang-operation': 'ADDED',
         'data-xirang-identity': 'test-entity',
       },
+    })
+  })
+  it('projects Relationship diff metadata without changing business presentation', () => {
+    const a = testNode('a')
+    const b = testNode('b')
+    const edge = testEdge('a-b', a, b, {
+      color: 'purple',
+      line: 'dotted',
+      head: 'vee',
+      metadata: { xirangOperation: 'MODIFIED', xirangRelation: 'a|calls|b' },
+    } as never)
+    const { xyedges } = diagramToXY({ view: testView([a, b], [edge]), currentViewId: undefined, where: null })
+    expect(xyedges[0]?.data).toMatchObject({
+      color: 'purple',
+      line: 'dotted',
+      head: 'vee',
+      xirang: { operation: 'MODIFIED', relation: 'a|calls|b' },
     })
   })
 })

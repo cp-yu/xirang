@@ -225,13 +225,17 @@ export type Events =
   | {
     type: 'update.view'
     view: DiagramView
-    source?: 'editor' | 'external'
+    source?: 'editor' | 'external' | 'projection'
+    anchorIdentity?: string | null
+    initialProjection?: boolean
   }
   | {
     // Same as 'update.view', but with XYFlow nodes and edges
     type: 'update.view'
     view: DiagramView
-    source?: 'editor' | 'external'
+    source?: 'editor' | 'external' | 'projection'
+    anchorIdentity?: string | null
+    initialProjection?: boolean
     xynodes: Types.Node[]
     xyedges: Types.Edge[]
   }

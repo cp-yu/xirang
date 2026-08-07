@@ -177,22 +177,22 @@
 
 #### Checks
 
-- [ ] C11 验证 diff overlay 保留业务 presentation
+- [x] C11 验证 diff overlay 保留业务 presentation
   - Verifies: `elements/visual-presentation.md` / Requirement "叠加差异而不覆盖业务呈现" / Scenarios "呈现修改的 Relationship", "呈现 REMOVED Element", "非颜色识别"
   - Command: `cd likec4 && pnpm --filter @likec4/diagram exec vitest run --no-isolate src/xirang/*.spec.ts src/likec4diagram/xyflow-diagram/diagram-view.spec.ts`
   - Expect: 前景样式、underlay、图标与 ghost opacity 可同时断言
 
-- [ ] C12 验证 Relationship edges 独立存在
+- [x] C12 验证 Relationship edges 独立存在
   - Verifies: `elements/visual-presentation.md` / Requirement "分离 Relationship Edges" / Scenarios "同时呈现两个方向", "一个方向发生变化", "同向 Relationships 具有不同 Kind presentation"
   - Command: `cd likec4 && pnpm --filter @likec4/diagram exec vitest run --no-isolate src/xirang/architectureView.spec.ts`
   - Expect: reciprocal 与同向不同 Kind 的 edges 均具有独立 path、arrow、metadata、点击详情和 diff state
 
-- [ ] C13 验证视觉锚点与 viewport
+- [x] C13 验证视觉锚点与 viewport
   - Verifies: `elements/visual-presentation.md` / Requirement "在重新布局时保持视觉锚点" / Scenarios "就地展开 Element", "首次打开 projection"
   - Command: `cd likec4 && pnpm --filter @likec4/diagram exec vitest run --no-isolate src/likec4diagram/xyflow-diagram/diagram-view.spec.ts`
   - Expect: 增量 projection 不自动 fit，触发节点保持屏幕锚点，首次打开可 fit
 
-- [ ] C14 验证旧自制布局路径不再存在
+- [x] C14 验证旧自制布局路径不再存在
   - Verifies: `elements/semantic-browser.md` / Requirement "保持 LikeC4 投影有效" / Scenario "生成 runtime projection"
   - Command: `! rg "materializeXirangArchitectureView|function measure\(|function place\(|function createEdge\(" likec4/packages/diagram/src/xirang/architectureView.ts`
   - Expect: 正常 Diagram path 不再包含旧固定网格、手工 geometry 或中心 spline symbols

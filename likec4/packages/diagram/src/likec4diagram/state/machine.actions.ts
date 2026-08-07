@@ -32,6 +32,7 @@ import type { OpenSourceParams } from '../../LikeC4Diagram.props'
 import { convertToXYFlow } from '../convert-to-xyflow'
 import type { Types } from '../types'
 import { createLayoutConstraints } from '../useLayoutConstraints'
+import { projectionViewportTransition } from '../xyflow-diagram/diagram-view'
 import { type AlignmentMode, getAligner, toNodeRect } from './aligners'
 import {
   focusNodesEdges,
@@ -1101,6 +1102,19 @@ export const updateView = () =>
       }
 
       enqueue(sendSynced())
+
+      if (event.source === 'projection') {
+        const transition = projectionViewportTransition(
+          event.initialProjection ? null : context.view,
+          nextView,
+          context.viewport,
+          event.anchorIdentity,
+        )
+        enqueue(cancelFitDiagram())
+        if (transition.fit) enqueue(raiseFitDiagram())
+        else enqueue(setViewport({ viewport: transition.viewport, duration: 0 }))
+        return
+      }
 
       if (context.toggledFeatures.enableCompareWithLatest === true && context.view._layout !== nextView._layout) {
         if (nextView._layout === 'auto' && context.viewportOnAutoLayout) {

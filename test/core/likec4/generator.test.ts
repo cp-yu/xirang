@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { generateLikeC4 } from '../../../src/core/likec4/generator.js';
 import { toLikeC4RelationshipStyle, toLikeC4Style } from '../../../src/core/likec4/presentation-adapter.js';
 import { NODE_BORDER_VALUES, NODE_COLOR_VALUES, NODE_SHAPE_VALUES, RELATIONSHIP_ARROW_VALUES, RELATIONSHIP_COLOR_VALUES, RELATIONSHIP_LINE_VALUES, emptySemanticModel, type SemanticModel } from '../../../src/core/model/types.js';
-import { materializeXirangArchitectureView } from '../../../likec4/packages/diagram/src/xirang/architectureView.js';
+import { applyXirangPresentationOverlay } from '../../../likec4/packages/diagram/src/xirang/architectureView.js';
 import type { XirangViewSource } from '../../../likec4/packages/diagram/src/xirang/ContractLoaderContext.js';
 
 function element(identity: string, parent: string | null, kind = 'capability', title = identity, definition = `${identity} definition.`): SemanticModel['elements'][number] {
@@ -477,7 +477,7 @@ describe('generator-browser presentation parity', () => {
 
   it('resolves every shape value identically to the generator adapter', () => {
     for (const shape of NODE_SHAPE_VALUES) {
-      const rendered = materializeXirangArchitectureView(modelView, sourceFor({ shape }), 'full')
+      const rendered = applyXirangPresentationOverlay(modelView, sourceFor({ shape }))
         .nodes[0] as unknown as { shape: string };
       expect(rendered.shape).toBe(toLikeC4Style({ shape })!.shape);
     }
@@ -485,7 +485,7 @@ describe('generator-browser presentation parity', () => {
 
   it('resolves every color value identically to the generator adapter', () => {
     for (const color of NODE_COLOR_VALUES) {
-      const rendered = materializeXirangArchitectureView(modelView, sourceFor({ color }), 'full')
+      const rendered = applyXirangPresentationOverlay(modelView, sourceFor({ color }))
         .nodes[0] as unknown as { color: string };
       expect(rendered.color).toBe(toLikeC4Style({ color })!.color);
     }
@@ -493,7 +493,7 @@ describe('generator-browser presentation parity', () => {
 
   it('resolves every border value identically to the generator adapter', () => {
     for (const border of NODE_BORDER_VALUES) {
-      const rendered = materializeXirangArchitectureView(modelView, sourceFor({ border }), 'full')
+      const rendered = applyXirangPresentationOverlay(modelView, sourceFor({ border }))
         .nodes[0] as unknown as { style: { border?: string } };
       expect(rendered.style.border).toBe(toLikeC4Style({ border })!.border);
     }

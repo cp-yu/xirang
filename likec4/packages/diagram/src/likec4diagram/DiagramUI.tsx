@@ -13,7 +13,7 @@ import { NavigationPanel } from '../navigationpanel'
 import { MetamodelDiffModal } from '../overlays/element-details/MetamodelDiffModal'
 import { Overlays } from '../overlays/Overlays'
 import { Search } from '../search/Search'
-import { materializeXirangArchitectureView } from '../xirang/architectureView'
+import { applyXirangPresentationOverlay, expandXirangRelationshipEdges } from '../xirang/architectureView'
 import {
   type XirangDiffEntry,
   type XirangDiffOperation,
@@ -133,6 +133,7 @@ function XirangArchitectureOverlay() {
   const expandedNodes = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.context.expandedNodes))
   const modelView = useRef(currentView)
   const selectedSourceId = useRef(selected.id)
+  const hasProjection = useRef(false)
   const previousFocusAncestors = useRef<string[]>([])
   /** Candidate View is always full; Candidate Diff View is always diff-only; Changes can toggle. */
   const effectiveMode = resolveEffectiveMode(selected.source, mode)
@@ -301,16 +302,16 @@ function XirangArchitectureOverlay() {
     const resolvedFocus = [focusIdentity, ...previousAncestorPath, rootIdentity]
       .find((identity): identity is string => !!identity && declarations.has(identity))
     const view = selected.architecture
-      ? materializeXirangArchitectureView(
-        modelView.current,
-        selected,
-        effectiveMode,
-        focusIdentity ?? undefined,
-        previousAncestorPath,
-        expandedNodes,
-      )
+      ? applyXirangPresentationOverlay(expandXirangRelationshipEdges(modelView.current, selected), selected)
       : modelView.current
-    actorRef.send({ type: 'update.view', view, source: 'external' })
+    actorRef.send({
+      type: 'update.view',
+      view,
+      source: 'projection',
+      anchorIdentity: focusIdentity ?? rootIdentity ?? null,
+      initialProjection: !hasProjection.current,
+    })
+    hasProjection.current = true
     if (focusIdentity && resolvedFocus !== focusIdentity) {
       actorRef.send({ type: 'navigate.focus', focusIdentity: resolvedFocus ?? null })
     }
