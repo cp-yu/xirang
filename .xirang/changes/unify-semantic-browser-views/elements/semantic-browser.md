@@ -52,12 +52,13 @@ Semantic Browser runtime manifest SHALL 使用 `version: 4`，分别表达 `mode
 
 ### Requirement: 服务端计算 Runtime Projection
 
-Semantic Browser SHALL 由服务端根据 View Selection、可选 Change Selection、Presentation Mode、focus、expanded set 与 expected model fingerprint 生成原生 LikeC4 model/view，并依次通过 LikeC4 parser、validator、compute-view 与 Graphviz layout 返回 layouted projection；Browser SHALL NOT 在已 layout 的 view 上自行计算最终节点 geometry 或 Relationship spline。
+Semantic Browser SHALL 由服务端根据 View Selection、可选 Change Selection、Presentation Mode、focus、expanded set 与 expected model fingerprint 确定当前可见 projection，并通过官方 LikeC4 compute-view 与 Graphviz layout 返回 layouted projection；该 projection SHALL 基于已由官方 parser 与 validator 建立的 base model，服务端 SHALL NOT 为单次 request 重复 parse 或 validate 同一 base model；Browser SHALL NOT 在已 layout 的 view 上自行计算最终节点 geometry 或 Relationship spline。
 
 #### Scenario: 请求有效 projection
 
 - **WHEN** Controller 提交与当前模型 fingerprint 一致的 projection descriptor
-- **THEN** 服务端返回 projection key、layouted `DiagramView` 与 diagnostics
+- **THEN** 服务端以官方 include/exclude predicates 在已 parse 且已 validate 的 base model 上计算该 projection
+- **AND** 返回 projection key、layouted `DiagramView` 与 diagnostics
 - **AND** 该 view 的 geometry 与 routing 来自 LikeC4/Graphviz 官方管线
 
 #### Scenario: 请求使用旧 fingerprint
@@ -167,12 +168,12 @@ Semantic Browser SHALL 将当前 Semantic Model、一个可选活动 Change 与�
 
 ### Requirement: 保持 LikeC4 投影有效
 
-Semantic Browser SHALL 关闭 `implicitViews`，将每个 runtime semantic projection 转为原生 LikeC4 model/view 并完整经过官方 parser、validator、compute-view 与 Graphviz layout；投影 SHALL 省略 LikeC4 无法表示的 self 与 ancestor-chain Relationships，同时保持 siblings、跨子树关系及 source 中的原始 Relationships 不变。
+Semantic Browser SHALL 关闭 `implicitViews`，将受管语义内容降为原生 LikeC4 model 内容并由官方 parser 与 validator 建立 base model，再让每个 runtime semantic projection 完整经过官方 compute-view 与 Graphviz layout；降级与投影 SHALL 省略 LikeC4 无法表示的 self 与 ancestor-chain Relationships，同时保持 siblings、跨子树关系及 source 中的原始 Relationships 不变。
 
 #### Scenario: 生成 runtime projection
 
 - **WHEN** 服务端从 Model、Authored selection、Change target 或 Candidate 生成当前可见投影
-- **THEN** 原生 LikeC4 内容通过官方管线生成唯一 layouted result
+- **THEN** 该投影在已 parse 与 validate 的 base model 上经官方 compute-view 与 Graphviz layout 生成唯一 layouted result
 - **AND** Browser 不再通过固定网格或中心曲线重建最终 `DiagramView`
 
 #### Scenario: LikeC4 无法表达 source Relationship

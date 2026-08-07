@@ -12,7 +12,7 @@
 
 - 将 Model 与 Authored View 统一为一个 Semantic Browser route 下的 View Selection，并保留 focus、下钻、就地展开、breadcrumb 与历史导航。
 - 将 View Selection、单个 Change Selection 与 Presentation Mode 建模为三个正交状态。
-- 让每个 runtime projection 在服务端生成原生 LikeC4 内容，并完整经过官方 parser、validator、compute-view 与 Graphviz layout。
+- 让受管语义内容在服务端降为原生 LikeC4 并由官方 parser 与 validator 建立 base model，再让每个 runtime projection 经官方 compute-view 与 Graphviz layout 得到最终结果。
 - 使用独立 diff overlay 保留 Element 与 Relationship 的业务 presentation，并让 reciprocal Relationships 始终可分别观察和操作。
 - 为 Authored View 增加 `exclude`，为 Relationship Kind 增加 Kind 级 `presentation`。
 - 通过原子基础缓存重建、fingerprint 与有界 runtime projection cache 保证热更新一致性。
@@ -35,20 +35,27 @@ Semantic Model 是规范持久化层；服务端 projection service 将当前模
 
 选择该结构是为了复用 LikeC4 的官方 parser、compute、Graphviz routing 与后续升级。拒绝直接构造 `ComputedView`，因为其内部不变量不是稳定集成边界；拒绝继续构造最终 `DiagramView`，因为这会复制 LikeC4 的 geometry、routing 与样式默认逻辑。
 
-### 2. 将 runtime projection 放在 LikeC4 compute/layout 之前
+### 2. 将 runtime projection 分为 base model 与 per-request compute 两层
 
-服务端按以下顺序处理投影：
+服务端按以下顺序处理投影，parse 与 validate 属于 base model 层，每个 request 只承担 compute-view 与 layout：
 
 ```text
-Semantic Model + View Selection + optional Change + Mode + focus/expanded
-  -> visible semantic projection
-  -> native LikeC4 model/view
-  -> parser
-  -> validator
-  -> compute-view
+[base model 层，随源变化重建一次]
+Semantic Model / Candidate / Change target
+  -> native LikeC4 model 内容（同一 generateLikeC4 lowering）
+  -> 官方 parser
+  -> 官方 validator
+  -> base LikeC4Model
+
+[per-request 层，随 Browser 状态变化]
+base LikeC4Model + View Selection + optional Change + Mode + focus/expanded
+  -> include/exclude predicates
+  -> 官方 compute-view（adhoc view）
   -> Graphviz layout
-  -> DiagramView
+  -> layouted DiagramView
 ```
+
+每请求投影使用官方 `views.adhocView(predicates, projectId)`，它接受与 element view 相同的 include/exclude predicates 并复用官方 `computeElementView`。选择该边界的原因是 root package 不在 vendored LikeC4 的 pnpm workspace 内，也不能在运行时依赖 `@likec4/language-services`；把 parse/validate 收敛到 base 层可避免在两个包内重复 lowering，并省去每请求的重复 parse 成本。
 
 `materializeXirangArchitectureView()`、`measure()`、`place()` 和中心曲线 `createEdge()` 不再是正常渲染路径。Xirang 仅通过薄适配携带稳定 identity、Contract availability、diff operation 与详情所需 metadata。
 
@@ -112,7 +119,7 @@ A→B 与 B→A 保持两个独立 edge identities、样式、diff operations、
 
 ### 10. 服务端 projection API 与缓存
 
-projection request 通过 Vite plugin 提供的 `POST /__xirang/projection` HTTP middleware 传输，包含 View Selection、optional Change、mode、focus、排序后的 expanded set 与 expected model fingerprint。服务端 handler 校验 payload 与 fingerprint 后生成 projection，并返回 projection key、layouted `DiagramView` 与 diagnostics；SPA 使用独立 `HttpProjectionLoader` 调用该 endpoint，HMR 继续通过 versioned protocol event 通知 manifest 更新。
+projection request 通过 Vite plugin 提供的 `POST /__xirang/projection` HTTP middleware 传输，包含 View Selection、optional Change、mode、focus、排序后的 expanded set 与 expected model fingerprint。服务端 handler 校验 payload 与 fingerprint 后，把 Browser 状态翻译为 include/exclude predicates 并调用官方 `views.adhocView()`，返回 projection key、layouted `DiagramView` 与 diagnostics；SPA 使用独立 `HttpProjectionLoader` 调用该 endpoint，HMR 继续通过 versioned protocol event 通知 manifest 更新。
 
 基础 `.cache-likec4` 继续持久保存显式文件清单中的生成内容。生成文件由现有常量或新增明确常量列出，不通过 glob 或模糊 pattern 判断删除目标。源变化时先在临时目录完整生成和校验，再原子替换。所有路径使用 Node.js `path.join()`、`path.resolve()` 与 normalized project-relative keys，Windows watcher 的 backslash 输入必须规范化。
 

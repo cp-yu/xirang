@@ -11,7 +11,7 @@ definition: Visual Presentation 是通过图形元素、空间组织与视觉编
 
 ### Requirement: 使用原生 LikeC4 布局管线
 
-Visual Presentation SHALL 将每个 Semantic Browser runtime projection 转为原生 LikeC4 model/view，并通过 LikeC4 parser、validator、compute-view 与 Graphviz layout 产生最终 geometry 与 Relationship routing；正常呈现 SHALL NOT 在 layout 后使用另一套固定网格或手工 spline 替换结果。
+Visual Presentation SHALL 基于由官方 LikeC4 parser 与 validator 建立的 base model，让每个 Semantic Browser runtime projection 通过官方 compute-view 与 Graphviz layout 产生最终 geometry 与 Relationship routing；正常呈现 SHALL NOT 在 layout 后使用另一套固定网格或手工 spline 替换结果。
 
 #### Scenario: 呈现 Model 与等价 Authored View
 

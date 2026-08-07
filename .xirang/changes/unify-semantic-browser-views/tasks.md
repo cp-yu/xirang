@@ -95,7 +95,7 @@
 - 基础 `.cache-likec4` 按显式文件清单完整生成、临时校验和原子替换。
 - 失败时保留 last-known-good 并发布 diagnostics，成功后失效旧 projections 并发送一次 HMR。
 - 所有路径使用 Node.js path API 和 normalized project-relative keys。
-- handler 在 vite-plugin 内依次调用官方 LikeC4 parser、validator、compute-view 与 Graphviz layout，并返回 layouted view，不自行计算 geometry 或 spline。
+- base model 由官方 parser 与 validator 建立一次；handler 在 vite-plugin 内对每个 request 调用官方 adhoc compute-view 与 Graphviz layout，返回 layouted view，不自行计算 geometry 或 spline。
 
 #### Checks
 
@@ -117,7 +117,7 @@
 - [ ] C27 验证 projection 经过官方 LikeC4 管线
   - Verifies: `elements/semantic-browser.md` / Requirement "服务端计算 Runtime Projection" / Scenarios "请求有效 projection", "请求使用旧 fingerprint"
   - Command: `cd likec4 && pnpm --filter @likec4/vite-plugin exec vitest run src/xirang`
-  - Expect: handler 依次经过官方 parser、validator、compute-view 与 Graphviz layout 返回 layouted view 与 projection key，stale fingerprint 返回结构化 diagnostic 而不返回 view
+  - Expect: base model 经官方 parser 与 validator 建立后，handler 对每个 request 经官方 adhoc compute-view 与 Graphviz layout 返回 layouted view 与 projection key，stale fingerprint 返回结构化 diagnostic 而不返回 view
 
 ### Task 4: 重构 Semantic Browser Controller 与三个控件
 
