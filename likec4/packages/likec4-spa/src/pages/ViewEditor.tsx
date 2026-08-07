@@ -14,6 +14,7 @@ import { LazyAIChat } from '../aichat'
 import { NotFound } from '../components/NotFound'
 import { useLikeC4ModelAtom } from '../context/safeCtx'
 import { useCurrentProject, useCurrentView } from '../hooks'
+import { SemanticBrowserControls } from '../xirang/SemanticBrowserController'
 import { ViewHistoryBridge } from '../xirang/ViewHistoryBridge'
 import { FocusElementFromUrl, ListenForDiagramStateChanges, OpenRelationshipBrowserFromUrl } from './ViewReact'
 
@@ -97,6 +98,7 @@ export function ViewEditor() {
           })
         }}
       >
+        <SemanticBrowserControls />
         <ListenForDiagramStateChanges />
         <ViewHistoryBridge />
         <OpenRelationshipBrowserFromUrl />

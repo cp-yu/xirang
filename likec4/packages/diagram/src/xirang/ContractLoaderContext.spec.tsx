@@ -94,9 +94,11 @@ const changeSource: XirangViewSource = {
   diagnostics: [],
 }
 
-const v3ManifestWithCandidate: XirangRuntimeManifest = {
-  version: 3,
-  semanticModel: modelSource,
+const v4ManifestWithCandidate: XirangRuntimeManifest = {
+  version: 4,
+  modelFingerprint: 'model-fp',
+  model: modelSource,
+  authoredViews: {},
   candidate: candidateSource,
   candidateDiff: candidateDiffSource,
   changes: {
@@ -104,9 +106,11 @@ const v3ManifestWithCandidate: XirangRuntimeManifest = {
   },
 }
 
-const v3ManifestWithoutCandidate: XirangRuntimeManifest = {
-  version: 3,
-  semanticModel: modelSource,
+const v4ManifestWithoutCandidate: XirangRuntimeManifest = {
+  version: 4,
+  modelFingerprint: 'model-fp',
+  model: modelSource,
+  authoredViews: {},
   changes: {
     'auth-change': changeSource,
   },
@@ -114,11 +118,11 @@ const v3ManifestWithoutCandidate: XirangRuntimeManifest = {
 
 describe('lists model candidate candidate diff and change sources', () => {
   it('includes candidate and candidateDiff in correct order when present', () => {
-    const { semanticModel, candidate, candidateDiff, changes } = v3ManifestWithCandidate
+    const { model, candidate, candidateDiff, changes } = v4ManifestWithCandidate
 
     // Expected source order: Model, Candidate, Candidate Diff, Changes
     const sources = [
-      semanticModel,
+      model,
       ...(candidate ? [candidate] : []),
       ...(candidateDiff ? [candidateDiff] : []),
       ...Object.values(changes),
@@ -137,10 +141,10 @@ describe('lists model candidate candidate diff and change sources', () => {
 
 describe('hides candidate sources when candidate is absent', () => {
   it('omits candidate and candidateDiff from sources when manifest has none', () => {
-    const { semanticModel, changes } = v3ManifestWithoutCandidate
+    const { model, changes } = v4ManifestWithoutCandidate
 
     const sources = [
-      semanticModel,
+      model,
       ...Object.values(changes),
     ]
 

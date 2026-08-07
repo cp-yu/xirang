@@ -11,27 +11,30 @@ describe('resolveForceColorScheme', () => {
 })
 
 describe('Xirang navigation params', () => {
-  it('defaults source to model and mode to full, focus undefined', () => {
+  it('defaults view to model, mode to complete, change and focus undefined', () => {
     const parsed = searchParamsSchema.parse({})
-    expect(parsed.source).toBe('model')
-    expect(parsed.mode).toBe('full')
+    expect(parsed.view).toBe('model')
+    expect(parsed.change).toBeUndefined()
+    expect(parsed.mode).toBe('complete')
     expect(parsed.focus).toBeUndefined()
   })
 
-  it('parses explicit source, focus and mode values', () => {
+  it('parses explicit view, change, focus and mode values', () => {
     const parsed = searchParamsSchema.parse({
-      source: 'change:browser-change',
+      view: 'overview',
+      change: 'browser-change',
       focus: 'capability.drill',
-      mode: 'diff',
+      mode: 'diff-only',
     })
-    expect(parsed.source).toBe('change:browser-change')
+    expect(parsed.view).toBe('overview')
+    expect(parsed.change).toBe('browser-change')
     expect(parsed.focus).toBe('capability.drill')
-    expect(parsed.mode).toBe('diff')
+    expect(parsed.mode).toBe('diff-only')
   })
 
-  it('coerces invalid mode to full', () => {
+  it('coerces invalid mode to complete', () => {
     const parsed = searchParamsSchema.parse({ mode: 'bogus' })
-    expect(parsed.mode).toBe('full')
+    expect(parsed.mode).toBe('complete')
   })
 })
 

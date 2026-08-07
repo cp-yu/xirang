@@ -141,17 +141,17 @@
 
 #### Checks
 
-- [ ] C8 验证三维 Controller 状态机
+- [x] C8 验证三维 Controller 状态机
   - Verifies: `elements/semantic-browser.md` / Requirement "提供三维独立控制" / Scenarios "无 Change 时限制模式", "选择和清除 Change"
   - Command: `cd likec4 && pnpm --filter @likec4/diagram exec vitest run --no-isolate src/xirang/ContractLoaderContext.spec.tsx && pnpm --filter @likec4/spa exec vitest run src/xirang`
   - Expect: View、Change 与 Mode 独立变化，默认值和 disabled 状态符合 Contract
 
-- [ ] C9 验证 URL、history 与 expanded 边界
+- [x] C9 验证 URL、history 与 expanded 边界
   - Verifies: `elements/semantic-browser.md` / Requirement "URL 编码导航状态并响应浏览器前进后退" / Scenarios "控件变化", "expanded 不进入 URL", "深链恢复"
   - Command: `cd likec4 && pnpm --filter @likec4/spa exec vitest run src/xirang`
   - Expect: URL 可恢复四项状态且不包含 expanded identities，history 同步无循环
 
-- [ ] C10 验证 View Selection 状态协调
+- [x] C10 验证 View Selection 状态协调
   - Verifies: `elements/semantic-browser.md` / Requirement "协调 View Selection 运行时状态" / Scenarios "切换到仍包含当前 focus 的 Authored View", "切换后 focus 不可用", "当前 Change 在新 View 中无差异"
   - Command: `cd likec4 && pnpm --filter @likec4/spa exec vitest run src/xirang`
   - Expect: 合法状态保留、失效状态裁剪且无差异时不偷偷切换维度

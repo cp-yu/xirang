@@ -23,6 +23,7 @@ import { useEffect, useRef } from 'react'
 import { NotFound } from '../components/NotFound'
 import { headerOps } from '../components/view-page/state'
 import { useCurrentView } from '../hooks'
+import { SemanticBrowserControls } from '../xirang/SemanticBrowserController'
 import { ViewHistoryBridge } from '../xirang/ViewHistoryBridge'
 
 export function ViewReact() {
@@ -88,6 +89,7 @@ export function ViewReact() {
         })
       }}
     >
+      <SemanticBrowserControls />
       <ListenForDiagramStateChanges />
       <ViewHistoryBridge />
       <OpenRelationshipBrowserFromUrl />

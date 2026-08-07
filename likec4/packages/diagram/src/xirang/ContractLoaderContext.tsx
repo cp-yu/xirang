@@ -81,6 +81,10 @@ export interface XirangViewSource {
   architecture?: XirangSemanticModel
   /** element identity → Contract markdown; absent key means the Element has no Contract. */
   contracts?: Record<string, string>
+  /** Resolved Authored View boundary, present only for View Selection descriptors. */
+  selection?: string[]
+  roots?: string[]
+  virtualRoot?: boolean
   diff?: {
     summary: { total: number } & Record<XirangDiffOperation, number>
     entries: XirangDiffEntry[]
@@ -106,9 +110,18 @@ export function xirangViewSourceRevision(source: XirangViewSource): string {
     : source.sourceFingerprint ?? source.changeFingerprint ?? source.id
 }
 
+export interface XirangAuthoredViewDescriptor {
+  title: string
+  selection: string[]
+  roots: string[]
+  virtualRoot: boolean
+}
+
 export interface XirangRuntimeManifest {
-  version: 3
-  semanticModel: XirangViewSource
+  version: 4
+  modelFingerprint: string
+  model: XirangViewSource
+  authoredViews: Record<string, XirangAuthoredViewDescriptor>
   candidate?: XirangViewSource
   candidateDiff?: XirangViewSource
   changes: Record<string, XirangViewSource>
@@ -157,8 +170,17 @@ const modelViewSource: XirangViewSource = {
 }
 
 function manifestToSources(m: XirangRuntimeManifest): XirangViewSource[] {
+  const authored = Object.entries(m.authoredViews).map(([id, view]) => ({
+    ...m.model,
+    id,
+    label: view.title,
+    selection: view.selection,
+    roots: view.roots,
+    virtualRoot: view.virtualRoot,
+  }))
   return [
-    m.semanticModel,
+    m.model,
+    ...authored,
     ...(m.candidate ? [m.candidate] : []),
     ...(m.candidateDiff ? [m.candidateDiff] : []),
     ...Object.values(m.changes),

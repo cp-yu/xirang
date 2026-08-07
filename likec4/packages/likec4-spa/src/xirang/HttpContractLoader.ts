@@ -30,15 +30,17 @@ export class HttpContractLoader implements XirangContractLoader {
 
   async manifest(signal: AbortSignal): Promise<XirangRuntimeManifest> {
     const response = await this.fetcher.call(globalThis, '/__xirang/changes', { signal })
-    const payload = await response.json() as XirangRuntimeManifest | { error?: string }
+    const payload = await response.json() as unknown
     if (!response.ok) {
-      throw new Error('error' in payload && payload.error ? payload.error : `Unable to load active changes (${response.status})`)
+      const errorPayload = payload as { error?: unknown }
+      throw new Error(typeof errorPayload.error === 'string' ? errorPayload.error : `Unable to load active changes (${response.status})`)
     }
-    if (!('version' in payload) || payload.version !== 3
-      || !('semanticModel' in payload) || !('changes' in payload)) {
+    if (!payload || typeof payload !== 'object'
+      || (payload as { version?: unknown }).version !== 4
+      || !('model' in payload) || !('authoredViews' in payload) || !('changes' in payload)) {
       throw new Error('Invalid active change response')
     }
-    return payload
+    return payload as unknown as XirangRuntimeManifest
   }
 
   subscribeManifest(listener: () => void): () => void {
