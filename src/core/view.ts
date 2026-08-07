@@ -376,6 +376,15 @@ async function writeViewRuntimeSnapshot(snapshot: ViewRuntimeSnapshot, directory
   return target;
 }
 
+/**
+ * Normalizes a filesystem watcher path to a forward-slash, relative-to-XIRANG_DIR string.
+ * Handles both POSIX and Windows separators so the same detection keys work on all platforms.
+ */
+export function normalizeWatcherPath(raw: Buffer | string): string {
+  // Replace both `\` and `/` with `/` to handle Windows paths on any host OS.
+  return raw.toString().replace(/\\/g, '/');
+}
+
 export class ViewCommand {
   constructor(private readonly launch: ViewLauncher = launchEmbeddedLikeC4) {}
 
@@ -410,7 +419,7 @@ export class ViewCommand {
       try {
         sourceWatcher = watch(path.join(projectRoot, XIRANG_DIR_NAME), { recursive: true }, (_event, filename) => {
           if (!filename) return;
-          const normalized = filename.toString().split(path.sep).join('/');
+          const normalized = normalizeWatcherPath(filename);
           if (PARTITIONS.some(partition => normalized.startsWith(`model/${partition}/`))) {
             refreshAll = true;
           } else if (normalized.startsWith('candidate/')) {

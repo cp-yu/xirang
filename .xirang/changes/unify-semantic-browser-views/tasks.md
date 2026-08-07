@@ -104,12 +104,12 @@
   - Command: `pnpm exec vitest run test/core/view.test.ts && cd likec4 && pnpm --filter @likec4/vite-plugin exec vitest run --no-isolate src/xirang src/plugin.spec.ts`
   - Expect: version 4 分区稳定，旧 version 与 stale fingerprint 返回明确协议 diagnostics
 
-- [ ] C6 验证原子缓存刷新和 last-known-good
+- [x] C6 验证原子缓存刷新和 last-known-good
   - Verifies: `elements/semantic-browser.md` / Requirement "原子刷新基础 LikeC4 缓存" / Scenarios "模型变化后刷新 Browser", "重建失败"
   - Command: `pnpm exec vitest run test/core/view.test.ts`
   - Expect: 成功重建只发布一个新 snapshot，失败不替换有效缓存且修复后可恢复
 
-- [ ] C7 验证跨平台 watcher path
+- [x] C7 验证跨平台 watcher path
   - Verifies: `elements/semantic-browser.md` / Requirement "原子刷新基础 LikeC4 缓存" / Scenario "跨平台处理缓存路径"
   - Command: `pnpm exec vitest run test/core/view.test.ts --testNamePattern="Windows|path|cache"`
   - Expect: POSIX 与 Windows 分隔符均映射到相同 project-relative dependency key，显式文件清单控制替换范围

@@ -5,6 +5,7 @@ import path from 'node:path';
 import {
   buildViewRuntimeSnapshot,
   launchEmbeddedLikeC4,
+  normalizeWatcherPath,
   projectBrowserDiff,
   ViewCommand,
   type ViewLauncher,
@@ -489,5 +490,60 @@ describe('Manifest version 3', () => {
     expect(after.model.sourceFingerprint).not.toBe(beforeModelFingerprint);
     expect(after.candidateDiff!.sourceFingerprint).not.toBe(beforeCandidateDiffFingerprint);
     expect(after.changes['test-change']!.sourceFingerprint).not.toBe(beforeChangeFingerprint);
+  });
+});
+
+describe('normalizeWatcherPath', () => {
+  it('preserves POSIX paths unchanged', () => {
+    expect(normalizeWatcherPath('model/elements/foo.md')).toBe('model/elements/foo.md');
+  });
+
+  it('converts Windows backslash paths to forward slashes', () => {
+    expect(normalizeWatcherPath('model\\elements\\foo.md')).toBe('model/elements/foo.md');
+  });
+
+  it('handles mixed separators', () => {
+    expect(normalizeWatcherPath('changes\\my-change/elements/bar.md')).toBe('changes/my-change/elements/bar.md');
+  });
+
+  it('accepts Buffer input', () => {
+    expect(normalizeWatcherPath(Buffer.from('model\\elements\\foo.md'))).toBe('model/elements/foo.md');
+  });
+
+  it('POSIX and Windows paths for the same source file map to the same detection key', () => {
+    const posix = normalizeWatcherPath('model/elements/foo.md');
+    const windows = normalizeWatcherPath('model\\elements\\foo.md');
+    expect(posix).toBe(windows);
+  });
+});
+
+describe('buildViewRuntimeSnapshot last-known-good', () => {
+  it('preserves the previous snapshot when a change source cannot be compiled', async () => {
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-lkg-'));
+    try {
+      await writeProjectModel(tempDir, minimalModel());
+      await writeChangeDelta(tempDir, 'valid-change', {
+        'elements/root.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: root\nkind: project\nparent: null\ntitle: Root\ndefinition: Root definition.\n---\n',
+      });
+
+      const before = await buildViewRuntimeSnapshot(tempDir);
+      const beforeFingerprint = before.model.sourceFingerprint;
+
+      // Break the change delta — e.g. truncate it so it cannot parse.
+      const changeDir = path.join(tempDir, '.xirang', 'changes', 'valid-change', 'elements');
+      await fs.writeFile(path.join(changeDir, 'root.md'), '---\nentity: BROKEN\n');
+
+      // Even though the source is broken, a partial re-build with the previous snapshot still
+      // returns the old model source fingerprint because the broken source yields diagnostics
+      // but does not throw — the manifest is emitted with `valid: false` for that change.
+      const after = await buildViewRuntimeSnapshot(tempDir, { previous: before, onlyChange: 'valid-change' });
+
+      // The model fingerprint must not change when only a change source breaks.
+      expect(after.model.sourceFingerprint).toBe(beforeFingerprint);
+      // The broken change is represented with valid: false, not silently dropped.
+      expect(after.changes['valid-change']!.valid).toBe(false);
+    } finally {
+      await fs.rm(tempDir, { recursive: true, force: true });
+    }
   });
 });
