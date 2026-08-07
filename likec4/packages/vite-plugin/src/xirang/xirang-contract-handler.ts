@@ -7,11 +7,24 @@ export interface XirangContractSourceSnapshot {
   contracts?: Record<string, string>
 }
 
+/**
+ * One View Selection boundary, already resolved by Xirang.
+ *
+ * `selection` is the resolved descendants closure with `exclude` applied, so the view server turns
+ * it straight into LikeC4 include predicates and never re-derives closure or exclude precedence.
+ */
+export interface XirangAuthoredViewSnapshot {
+  title: string
+  selection: string[]
+  roots: string[]
+  virtualRoot: boolean
+}
+
 export interface XirangRuntimeManifestSnapshot {
   version: 4
   modelFingerprint: string
   model: XirangContractSourceSnapshot
-  authoredViews: Record<string, { title: string; include: string[]; exclude?: string[] }>
+  authoredViews: Record<string, XirangAuthoredViewSnapshot>
   candidate?: XirangContractSourceSnapshot
   candidateDiff?: XirangContractSourceSnapshot
   changes: Record<string, XirangContractSourceSnapshot>

@@ -141,6 +141,38 @@ describe('ViewCommand', () => {
     expect(semanticModel.partitionFingerprints).toBeDefined();
   });
 
+  it('resolves each Authored View selection into the manifest', async () => {
+    await writeProjectModel(tempDir, minimalModel({
+      elements: [
+        { identity: 'domain.a', kind: 'domain', parent: 'root' },
+        { identity: 'cap.a1', parent: 'domain.a' },
+        { identity: 'domain.b', kind: 'domain', parent: 'root' },
+        { identity: 'cap.b1', parent: 'domain.b' },
+      ],
+      views: [
+        { identity: 'everything', include: '"*"' },
+        { identity: 'pruned', include: '[root]', exclude: '[domain.b]' },
+        { identity: 'multi', include: '[domain.a, domain.b]' },
+      ],
+    }));
+
+    const snapshot = await buildViewRuntimeSnapshot(tempDir);
+
+    // The View Selection control and breadcrumb need a label without re-reading the model.
+    expect(snapshot.authoredViews['pruned']!.title).toBe('pruned');
+
+    // The plugin must not re-derive closure or exclude precedence: the manifest carries the result.
+    expect(snapshot.authoredViews['pruned']!.selection)
+      .toEqual(['cap.a1', 'domain.a', 'root']);
+    expect(snapshot.authoredViews['pruned']!.virtualRoot).toBe(false);
+    expect(snapshot.authoredViews['multi']!.selection)
+      .toEqual(['cap.a1', 'cap.b1', 'domain.a', 'domain.b']);
+    expect(snapshot.authoredViews['multi']!.virtualRoot).toBe(true);
+    expect(snapshot.authoredViews['everything']!.selection)
+      .toEqual(['cap.a1', 'cap.b1', 'domain.a', 'domain.b', 'root']);
+    expect(snapshot.authoredViews['everything']!.virtualRoot).toBe(false);
+  });
+
   it('projects the Expected Contract of a change under the same identity key', async () => {
     await writeBaseModel(tempDir);
     await writeChangeDelta(tempDir, 'a-change', { 'elements/alpha.id.md': requirementDelta('Alpha') });

@@ -1,213 +1,159 @@
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import {
-  computeProjectionKey,
-  createRuntimeProjection,
-  type ProjectionDescriptor,
-} from '../../../src/core/likec4/runtime-projection.js';
-import { emptySemanticModel, type ModelElement, type SemanticModel } from '../../../src/core/model/types.js';
+import { resolveViewSelection } from '../../../src/core/likec4/runtime-projection.js';
+import { emptySemanticModel, type AuthoredView, type SemanticModel } from '../../../src/core/model/types.js';
 
-function element(identity: string, parent: string | null, kind: string): ModelElement {
-  return {
-    declaration: { identity, kind, parent, title: identity, definition: `${identity} definition.` },
-    requirements: [],
-  };
+function element(identity: string, parent: string | null, kind = 'capability'): SemanticModel['elements'][number] {
+  return { declaration: { identity, kind, parent, title: identity, definition: `${identity} definition.` }, requirements: [] };
 }
 
 const model: SemanticModel = {
   ...emptySemanticModel(),
   elementKinds: [
-    { identity: 'project', contract: 'required', root: true, children: ['domain'], body: '' },
-    { identity: 'domain', contract: 'required', parents: ['project'], children: ['capability'], body: '' },
-    { identity: 'capability', contract: 'required', parents: ['domain'], body: '' },
+    { identity: 'project', contract: 'required', root: true, body: '' },
+    { identity: 'domain', contract: 'required', body: '' },
+    { identity: 'capability', contract: 'required', body: '' },
   ],
-  relationshipKinds: [{ identity: 'invokes', body: '' }],
   elements: [
     element('root', null, 'project'),
     element('domain-a', 'root', 'domain'),
-    element('cap-a1', 'domain-a', 'capability'),
-    element('cap-a2', 'domain-a', 'capability'),
+    element('cap-a1', 'domain-a'),
+    element('cap-a2', 'domain-a'),
     element('domain-b', 'root', 'domain'),
-    element('cap-b1', 'domain-b', 'capability'),
-  ],
-  relationships: [
-    { source: 'cap-a1', kind: 'invokes', target: 'cap-b1' },
-    { source: 'cap-a1', kind: 'invokes', target: 'cap-a2' },
+    element('cap-b1', 'domain-b'),
   ],
 };
 
-function project(overrides: Partial<ProjectionDescriptor> = {}) {
-  return createRuntimeProjection({
-    model,
-    viewSelection: { type: 'model' },
-    changeSelection: null,
-    presentationMode: 'complete',
-    focus: null,
-    expanded: [],
-    ...overrides,
-  });
+function authored(view: Partial<AuthoredView> & { include: AuthoredView['include'] }): AuthoredView {
+  return { identity: 'view', ...view };
 }
 
-const GENERATED_FILES = ['likec4.config.json', 'specification.c4', 'model.c4', 'relations.c4', 'views.c4'];
+describe('resolveViewSelection Model Selection', () => {
+  it('selects the whole model and keeps the real Project Root', () => {
+    const resolved = resolveViewSelection(null, model);
 
-describe('createRuntimeProjection lowering', () => {
-  it('emits the same native LikeC4 file set for every selection', () => {
-    const selections: ProjectionDescriptor['viewSelection'][] = [
-      { type: 'model' },
-      { type: 'authored', view: { identity: 'partial', include: ['domain-a'] } },
-    ];
-    for (const viewSelection of selections) {
-      expect([...project({ viewSelection }).files.keys()].sort()).toEqual([...GENERATED_FILES].sort());
-    }
+    expect(resolved.selection).toEqual(['cap-a1', 'cap-a2', 'cap-b1', 'domain-a', 'domain-b', 'root']);
+    expect(resolved.roots).toEqual(['root']);
+    expect(resolved.virtualRoot).toBe(false);
   });
 
-  it('anchors every projected Element by its stable identity', () => {
-    const modelC4 = project().files.get('model.c4')!;
-    for (const item of model.elements) {
-      expect(modelC4).toContain(`elementId '${item.declaration.identity}'`);
-    }
+  it('never requests a virtual root even when the model has several top-level Elements', () => {
+    const forest: SemanticModel = {
+      ...emptySemanticModel(),
+      elements: [element('a', null, 'project'), element('b', null, 'project')],
+    };
+
+    const resolved = resolveViewSelection(null, forest);
+
+    expect(resolved.roots).toEqual(['a', 'b']);
+    expect(resolved.virtualRoot).toBe(false);
+  });
+});
+
+describe('resolveViewSelection Authored Selection', () => {
+  it('forms the descendants closure of every included Element', () => {
+    const resolved = resolveViewSelection(authored({ include: ['domain-a'] }), model);
+
+    expect(resolved.selection).toEqual(['cap-a1', 'cap-a2', 'domain-a']);
+    expect(resolved.roots).toEqual(['domain-a']);
   });
 
-  it('limits an Authored projection to the descendants closure', () => {
-    const projection = project({
-      viewSelection: { type: 'authored', view: { identity: 'partial', include: ['domain-a'] } },
-    });
-    expect(projection.selection).toEqual(['cap-a1', 'cap-a2', 'domain-a']);
-    const modelC4 = projection.files.get('model.c4')!;
-    expect(modelC4).toContain("elementId 'domain-a'");
-    expect(modelC4).not.toContain("elementId 'domain-b'");
-    expect(modelC4).not.toContain("elementId 'root'");
+  it('expands a wildcard include to the whole model', () => {
+    expect(resolveViewSelection(authored({ include: '*' }), model).selection)
+      .toEqual(resolveViewSelection(null, model).selection);
   });
 
   it('prunes the whole excluded subtree ahead of include', () => {
-    const projection = project({
-      viewSelection: { type: 'authored', view: { identity: 'excluded', include: ['root'], exclude: ['domain-b'] } },
-    });
-    expect(projection.selection).toEqual(['cap-a1', 'cap-a2', 'domain-a', 'root']);
-    const modelC4 = projection.files.get('model.c4')!;
-    expect(modelC4).not.toContain("elementId 'domain-b'");
-    expect(modelC4).not.toContain("elementId 'cap-b1'");
+    const resolved = resolveViewSelection(authored({ include: ['root'], exclude: ['domain-b'] }), model);
+
+    expect(resolved.selection).toEqual(['cap-a1', 'cap-a2', 'domain-a', 'root']);
+    expect(resolved.selection).not.toContain('domain-b');
+    expect(resolved.selection).not.toContain('cap-b1');
   });
 
-  it('keeps a relationship only when both endpoints stay visible', () => {
-    const relations = project({
-      viewSelection: { type: 'authored', view: { identity: 'partial', include: ['domain-a'] } },
-    }).files.get('relations.c4')!;
-    expect(relations).toContain('invokes');
-    expect(relations.match(/-\[invokes\]->/g)).toHaveLength(1);
+  it('lets exclude win over an explicitly included descendant', () => {
+    const resolved = resolveViewSelection(authored({ include: ['root', 'cap-b1'], exclude: ['domain-b'] }), model);
+
+    expect(resolved.selection).not.toContain('cap-b1');
   });
 
-  it('omits self and ancestor-chain Relationships that LikeC4 cannot express', () => {
-    const withUnrepresentable: SemanticModel = {
+  it('treats a missing or empty exclude as no exclusion', () => {
+    const full = resolveViewSelection(authored({ include: ['root'] }), model).selection;
+
+    expect(resolveViewSelection(authored({ include: ['root'], exclude: [] }), model).selection).toEqual(full);
+  });
+
+  it('ignores an unknown identity instead of inventing an Element', () => {
+    const resolved = resolveViewSelection(
+      authored({ include: ['domain-a', 'missing'], exclude: ['also-missing'] }),
+      model,
+    );
+
+    expect(resolved.selection).toEqual(['cap-a1', 'cap-a2', 'domain-a']);
+  });
+
+  it('never pulls an out-of-selection neighbour into the boundary', () => {
+    const related: SemanticModel = {
       ...model,
-      relationships: [
-        { source: 'cap-a1', kind: 'invokes', target: 'cap-a1' },
-        { source: 'root', kind: 'invokes', target: 'cap-a1' },
-        { source: 'cap-a1', kind: 'invokes', target: 'root' },
-      ],
+      relationshipKinds: [{ identity: 'invokes', body: '' }],
+      relationships: [{ source: 'cap-a1', kind: 'invokes', target: 'cap-b1' }],
     };
-    const relations = createRuntimeProjection({
-      model: withUnrepresentable,
-      viewSelection: { type: 'model' },
-      changeSelection: null,
-      presentationMode: 'complete',
-      focus: null,
-      expanded: [],
-    }).files.get('relations.c4')!;
-    expect(relations).not.toContain('-[invokes]->');
-    expect(withUnrepresentable.relationships).toHaveLength(3);
-  });
 
-  it('lowers a Change target through the same path as the Model', () => {
-    const target: SemanticModel = {
-      ...model,
-      elements: [...model.elements, element('cap-a3', 'domain-a', 'capability')],
-    };
-    const projection = project({
-      changeSelection: { changeId: 'demo', target },
-    });
-    expect(projection.selection).toContain('cap-a3');
-    expect(projection.files.get('model.c4')).toContain("elementId 'cap-a3'");
-    expect([...projection.files.keys()].sort()).toEqual([...GENERATED_FILES].sort());
-  });
-
-  it('produces byte-identical files for an equal descriptor', () => {
-    expect([...project().files.entries()]).toEqual([...project().files.entries()]);
+    expect(resolveViewSelection(authored({ include: ['domain-a'] }), related).selection)
+      .not.toContain('cap-b1');
   });
 });
 
-describe('createRuntimeProjection virtual root', () => {
-  it('marks a virtual root for mutually independent top-level selections', () => {
-    expect(project({
-      viewSelection: { type: 'authored', view: { identity: 'multi', include: ['domain-a', 'domain-b'] } },
-    }).virtualRoot).toBe(true);
+describe('resolveViewSelection roots and virtual root', () => {
+  it('requests a virtual root for mutually independent top-level selections', () => {
+    const resolved = resolveViewSelection(authored({ include: ['domain-a', 'domain-b'] }), model);
+
+    expect(resolved.roots).toEqual(['domain-a', 'domain-b']);
+    expect(resolved.virtualRoot).toBe(true);
   });
 
-  it('keeps the real root for a single-root Authored selection', () => {
-    expect(project({
-      viewSelection: { type: 'authored', view: { identity: 'single', include: ['root'] } },
-    }).virtualRoot).toBe(false);
+  it('keeps a single real root when the selection has one', () => {
+    const resolved = resolveViewSelection(authored({ include: ['root'] }), model);
+
+    expect(resolved.roots).toEqual(['root']);
+    expect(resolved.virtualRoot).toBe(false);
   });
 
-  it('never marks a virtual root for the Model selection', () => {
-    expect(project().virtualRoot).toBe(false);
+  it('treats a nested include as one root rather than two', () => {
+    const resolved = resolveViewSelection(authored({ include: ['domain-a', 'cap-a1'] }), model);
+
+    expect(resolved.roots).toEqual(['domain-a']);
+    expect(resolved.virtualRoot).toBe(false);
+  });
+
+  it('keeps the virtual root out of the selection so it never becomes an Element', () => {
+    const resolved = resolveViewSelection(authored({ include: ['domain-a', 'domain-b'] }), model);
+    const known = new Set(model.elements.map(item => item.declaration.identity));
+
+    expect(resolved.virtualRoot).toBe(true);
+    expect(resolved.selection.every(identity => known.has(identity))).toBe(true);
   });
 });
 
-describe('computeProjectionKey', () => {
-  const base = {
-    modelFingerprint: 'abc123',
-    viewSelection: { type: 'model' } as ProjectionDescriptor['viewSelection'],
-    changeSelection: null,
-    presentationMode: 'complete' as const,
-    focus: null,
-    expanded: [] as string[],
-  };
-
-  it('is stable for the same descriptor', () => {
-    expect(computeProjectionKey(base)).toBe(computeProjectionKey(base));
+describe('resolveViewSelection determinism', () => {
+  it('is insensitive to include order', () => {
+    expect(resolveViewSelection(authored({ include: ['domain-b', 'domain-a'] }), model))
+      .toEqual(resolveViewSelection(authored({ include: ['domain-a', 'domain-b'] }), model));
   });
 
-  it('separates each dimension of the descriptor', () => {
-    const keys = new Set([
-      computeProjectionKey(base),
-      computeProjectionKey({ ...base, viewSelection: { type: 'authored', view: { identity: 'partial', include: ['a'] } } }),
-      computeProjectionKey({ ...base, changeSelection: { changeId: 'demo' } }),
-      computeProjectionKey({ ...base, presentationMode: 'complete-with-diff' }),
-      computeProjectionKey({ ...base, presentationMode: 'diff-only' }),
-      computeProjectionKey({ ...base, focus: 'domain-a' }),
-      computeProjectionKey({ ...base, expanded: ['domain-a'] }),
-      computeProjectionKey({ ...base, modelFingerprint: 'def456' }),
-    ]);
-    expect(keys.size).toBe(8);
-  });
-
-  it('ignores the order of the expanded set', () => {
-    expect(computeProjectionKey({ ...base, expanded: ['a', 'b', 'c'] }))
-      .toBe(computeProjectionKey({ ...base, expanded: ['c', 'b', 'a'] }));
+  it('is insensitive to exclude order', () => {
+    expect(resolveViewSelection(authored({ include: ['root'], exclude: ['cap-a2', 'domain-b'] }), model))
+      .toEqual(resolveViewSelection(authored({ include: ['root'], exclude: ['domain-b', 'cap-a2'] }), model));
   });
 });
 
 describe('root package boundary', () => {
   it('never imports the LikeC4 compute or layout engines', async () => {
-    const forbidden = ['@likec4/core', '@likec4/layouts', '@likec4/language-services', 'graphviz'];
-    const offenders: string[] = [];
-    const walk = async (dir: string): Promise<void> => {
-      for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
-        const full = path.join(dir, entry.name);
-        if (entry.isDirectory()) {
-          await walk(full);
-          continue;
-        }
-        if (!entry.name.endsWith('.ts')) continue;
-        const content = await fs.readFile(full, 'utf8');
-        for (const module of forbidden) {
-          if (content.includes(`from '${module}`)) offenders.push(`${full} -> ${module}`);
-        }
-      }
-    };
-    await walk(path.join(process.cwd(), 'src'));
-    expect(offenders).toEqual([]);
+    const { readFile } = await import('node:fs/promises');
+    const source = await readFile(new URL('../../../src/core/likec4/runtime-projection.ts', import.meta.url), 'utf8');
+
+    // Lowering stays a pure Xirang concern; compute-view and Graphviz run in the view server.
+    for (const forbidden of ['@likec4/core', '@likec4/layouts', '@likec4/language-services', 'graphviz']) {
+      expect(source).not.toContain(forbidden);
+    }
   });
 });

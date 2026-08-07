@@ -10,6 +10,7 @@ import {
   projectBrowserDeclaration,
   type BrowserSemanticModel,
 } from './likec4/definition.js';
+import { resolveViewSelection, type ResolvedViewSelection } from './likec4/runtime-projection.js';
 import { serializeElementUnit } from './model/serializer.js';
 import { PARTITIONS, type Partition, type SemanticModel } from './model/types.js';
 import type { ChangeDiagnostic, ChangeDiff } from './semantic-diff.js';
@@ -116,11 +117,16 @@ export interface ViewRuntimeCandidateDiffView {
   diagnostics: ChangeDiagnostic[];
 }
 
+/** A View Selection entry: its display label plus the resolved selection boundary. */
+export interface ViewRuntimeAuthoredView extends ResolvedViewSelection {
+  title: string;
+}
+
 export interface ViewRuntimeSnapshot {
   version: 4;
   modelFingerprint: string;
   model: ViewRuntimeSemanticModel;
-  authoredViews: Record<string, { title: string; include: string[]; exclude?: string[] }>;
+  authoredViews: Record<string, ViewRuntimeAuthoredView>;
   candidate?: ViewRuntimeCandidateView;
   candidateDiff?: ViewRuntimeCandidateDiffView;
   changes: Record<string, ViewRuntimeChangeDerivedView>;
@@ -343,14 +349,14 @@ export async function buildViewRuntimeSnapshot(
     buildSemanticModelSource(projectRoot),
   ]);
 
-  // Build authoredViews from parsed model
+  // The Browser server consumes the resolved selection directly, so closure, exclude precedence
+  // and virtual-root detection stay in one place instead of being re-derived per consumer.
   const { model } = await readFormalSemanticModel(projectRoot);
-  const authoredViews: Record<string, { title: string; include: string[]; exclude?: string[] }> = {};
+  const authoredViews: Record<string, ViewRuntimeAuthoredView> = {};
   for (const view of model.views) {
     authoredViews[view.identity] = {
       title: view.title ?? view.identity,
-      include: view.include === '*' ? ['*'] : view.include,
-      ...(view.exclude && view.exclude.length > 0 ? { exclude: view.exclude } : {}),
+      ...resolveViewSelection(view, model),
     };
   }
 

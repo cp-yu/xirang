@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ProjectionCache } from '../../../src/core/likec4/projection-cache.js';
+import { ProjectionCache } from './projection-cache'
 
 describe('ProjectionCache', () => {
   it('returns a stored projection by key', () => {

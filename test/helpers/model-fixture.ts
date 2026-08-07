@@ -25,7 +25,7 @@ export interface ModelFixture {
   relationshipKinds?: Array<{ identity: string; sourceKinds?: string[]; targetKinds?: string[]; body?: string }>;
   elements?: ElementFixture[];
   relationships?: Array<{ source: string; kind: string; target: string }>;
-  views?: Array<{ identity: string; include?: string }>;
+  views?: Array<{ identity: string; include?: string; exclude?: string }>;
 }
 
 function list(key: string, values?: string[]): string {
@@ -82,7 +82,9 @@ export async function writeModel(root: string, fixture: ModelFixture): Promise<v
   }
   for (const view of fixture.views ?? []) {
     await fs.writeFile(path.join(root, 'views', `${view.identity}.md`),
-      `---\nentity: authored-view\nidentity: ${view.identity}\ninclude: ${view.include ?? '"*"'}\n---\n`, 'utf8');
+      `---\nentity: authored-view\nidentity: ${view.identity}\ninclude: ${view.include ?? '"*"'}\n`
+      + (view.exclude === undefined ? '' : `exclude: ${view.exclude}\n`)
+      + '---\n', 'utf8');
   }
 }
 
