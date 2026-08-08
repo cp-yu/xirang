@@ -43,16 +43,17 @@ export function readXirangProjectionNode(node: ProjectionNode): XirangProjection
 }
 
 export interface XirangProjectionEdgeData {
-  operation: XirangDiffOperation
+  operation?: XirangDiffOperation
   relation?: string
 }
 
 export function readXirangProjectionEdge(edge: ProjectionNode): XirangProjectionEdgeData | null {
-  const operation = edge.metadata?.['xirangOperation']
-  if (typeof operation !== 'string' || !operations.has(operation as XirangDiffOperation)) return null
+  const rawOperation = edge.metadata?.['xirangOperation']
   const relation = edge.metadata?.['xirangRelation']
+  if (typeof rawOperation !== 'string' && typeof relation !== 'string') return null
+  if (rawOperation !== undefined && !operations.has(rawOperation as XirangDiffOperation)) return null
   return {
-    operation: operation as XirangDiffOperation,
+    ...(typeof rawOperation === 'string' ? { operation: rawOperation as XirangDiffOperation } : {}),
     ...(typeof relation === 'string' ? { relation } : {}),
   }
 }

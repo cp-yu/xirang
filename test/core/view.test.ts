@@ -181,6 +181,11 @@ describe('ViewCommand', () => {
     const snapshot = await buildViewRuntimeSnapshot(tempDir);
     const change = snapshot.changes['a-change']!;
 
+    expect(change).not.toHaveProperty('id');
+    expect(change).not.toHaveProperty('source');
+    expect(change.diffLikec4Sources).toBeDefined();
+    expect(change.diffLikec4ElementPaths).toBeDefined();
+    expect(change.diffSourceFingerprint).toBeDefined();
     expect(Object.keys(change.contracts!)).toEqual(['alpha.id']);
     expect(change.contracts!['alpha.id']).toContain('### Requirement: Alpha');
     expect(change.contracts!['alpha.id']).toContain('### Requirement: Existing');
@@ -277,7 +282,7 @@ describe('ViewCommand', () => {
     const snapshot = await buildViewRuntimeSnapshot(tempDir);
 
     expect(snapshot.changes['broken']).toEqual(
-      expect.objectContaining({ id: 'change:broken', valid: false, diagnostics: expect.any(Array) }),
+      expect.objectContaining({ change: 'broken', valid: false, diagnostics: expect.any(Array) }),
     );
   });
 
@@ -510,6 +515,11 @@ describe('normalizeWatcherPath', () => {
     expect(normalizeWatcherPath(Buffer.from('model\\elements\\foo.md'))).toBe('model/elements/foo.md');
   });
 
+  it('resolves relative paths against a managed root and rejects traversal', () => {
+    const root = path.join(os.tmpdir(), 'xirang-watch-root');
+    expect(normalizeWatcherPath('model\\elements\\foo.md', root)).toBe('model/elements/foo.md');
+    expect(normalizeWatcherPath('../outside.md', root)).toBeNull();
+  });
   it('POSIX and Windows paths for the same source file map to the same detection key', () => {
     const posix = normalizeWatcherPath('model/elements/foo.md');
     const windows = normalizeWatcherPath('model\\elements\\foo.md');

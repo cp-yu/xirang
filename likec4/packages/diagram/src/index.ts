@@ -55,6 +55,7 @@ export {
   selectDiagramContext,
   selectDiagramSnapshot,
   useDiagram,
+  useDiagramActorRef,
   useDiagramContext,
   useDiagramSelector,
   useOnDiagramEvent,
@@ -125,6 +126,7 @@ export { SearchControl } from './components/SearchControl'
 export { DefaultMantineProvider } from './context/DefaultMantineProvider'
 export { FramerMotionConfig } from './context/FramerMotionConfig'
 export {
+  type XirangChangeSource,
   type XirangContractContent,
   type XirangContractLoader,
   type XirangDiffEntry,

@@ -2,7 +2,7 @@ import { compareUtf8Bytes } from '../candidate/canonical.js';
 import type { ModelElement, SemanticModel } from '../model/types.js';
 import { definitionExcerpt } from './definition.js';
 import { createNamespace, deriveLocalNames, type LocalNames } from './local-names.js';
-import { toLikeC4RelationshipStyle, toLikeC4Style, type LikeC4RelationshipStyle, type LikeC4StyleBlock } from './presentation-adapter.js';
+import { toLikeC4Style, type LikeC4StyleBlock } from './presentation-adapter.js';
 
 /** `defaultLandscapeView: false` keeps LikeC4 from injecting an `index` View next to the Model View. */
 const LIKEC4_PROJECT_CONFIG =
@@ -39,13 +39,6 @@ function renderSpecification(model: SemanticModel, kinds: Map<string, string>): 
     }
   }
 
-  const relationshipStyleByIdentity = new Map<string, LikeC4RelationshipStyle | undefined>();
-  for (const kind of model.relationshipKinds) {
-    if (!relationshipStyleByIdentity.has(kind.identity)) {
-      relationshipStyleByIdentity.set(kind.identity, toLikeC4RelationshipStyle(kind.presentation));
-    }
-  }
-
   const declareElements = (items: readonly { identity: string }[]): string[] =>
     [...items]
       .sort((left, right) => compareUtf8Bytes(left.identity, right.identity))
@@ -60,19 +53,7 @@ function renderSpecification(model: SemanticModel, kinds: Map<string, string>): 
   const declareRelationships = (items: readonly { identity: string }[]): string[] =>
     [...items]
       .sort((left, right) => compareUtf8Bytes(left.identity, right.identity))
-      .map(item => {
-        const name = nameOf(kinds, item.identity);
-        const style = relationshipStyleByIdentity.get(item.identity);
-        if (!style) return `  relationship ${name}`;
-        const styleLines = [
-          `  relationship ${name} {`,
-          '    style {',
-          ...Object.entries(style).map(([k, v]) => `      ${k} ${v}`),
-          '    }',
-          '  }',
-        ];
-        return styleLines.join('\n');
-      });
+      .map(item => `  relationship ${nameOf(kinds, item.identity)}`);
 
   return block('specification', [
     ...declareElements(model.elementKinds),

@@ -1,5 +1,13 @@
-import { createContext, type PropsWithChildren, useContext, useEffect, useMemo, useState } from 'react'
-import type { XirangRuntimeManifest, XirangViewMode, XirangViewSource } from '@likec4/diagram'
+import { type XirangRuntimeManifest, type XirangViewMode, type XirangViewSource, useXirangViewSources } from '@likec4/diagram'
+import { HttpProjectionLoader } from './HttpProjectionLoader'
+import { selectDiagramSnapshot, useDiagramActorRef, useDiagramSelector } from '@likec4/diagram'
+import { type DiagramView } from '@likec4/core/types'
+import { useNavigate, useSearch } from '@tanstack/react-router'
+import { createContext, type PropsWithChildren, useContext, useEffect, useMemo, useRef, useState } from 'react'
+
+type XirangChangeSource = Omit<XirangViewSource, 'id' | 'source'> & { change: string }
+
+const projectionLoader = new HttpProjectionLoader<DiagramView>()
 
 export type SemanticBrowserViewSelection = 'model' | string
 export type SemanticBrowserChangeSelection = string | null
@@ -61,13 +69,15 @@ export interface SemanticBrowserManifest {
   modelFingerprint: string
   model: XirangViewSource
   authoredViews: Record<string, { title: string; selection: string[]; roots: string[]; virtualRoot: boolean }>
-  changes: Record<string, XirangViewSource>
+  changes: Record<string, XirangChangeSource>
   candidate?: XirangViewSource
   candidateDiff?: XirangViewSource
 }
 
 function sourceForView(manifest: SemanticBrowserManifest, view: string): string[] {
   if (view === 'model') return identities(manifest.model)
+  if (view === 'candidate') return manifest.candidate ? identities(manifest.candidate) : []
+  if (view === 'candidate-diff') return manifest.candidateDiff ? identities(manifest.candidateDiff) : []
   return manifest.authoredViews[view]?.selection ?? []
 }
 
@@ -76,7 +86,12 @@ function identities(source: XirangViewSource): string[] {
 }
 
 function validViews(manifest: SemanticBrowserManifest): Set<string> {
-  return new Set(['model', ...Object.keys(manifest.authoredViews)])
+  return new Set([
+    'model',
+    ...Object.keys(manifest.authoredViews),
+    ...(manifest.candidate ? ['candidate'] : []),
+    ...(manifest.candidateDiff ? ['candidate-diff'] : []),
+  ])
 }
 
 function validChanges(manifest: SemanticBrowserManifest): Set<string> {
@@ -89,13 +104,22 @@ function defaultMode(change: string | null): SemanticBrowserMode {
 
 function clampState(state: SemanticBrowserState, manifest: SemanticBrowserManifest): SemanticBrowserState {
   const viewSelection = validViews(manifest).has(state.viewSelection) ? state.viewSelection : 'model'
-  const changeSelection = state.changeSelection && validChanges(manifest).has(state.changeSelection)
+  const candidateView = viewSelection === 'candidate' || viewSelection === 'candidate-diff'
+  const changeSelection = !candidateView && state.changeSelection && validChanges(manifest).has(state.changeSelection)
     ? state.changeSelection
     : null
-  const allowed = new Set(sourceForView(manifest, viewSelection))
+  const changeSource = state.changeSelection ? manifest.changes[state.changeSelection] : undefined
+  const allowed = new Set([
+    ...sourceForView(manifest, viewSelection),
+    ...(changeSource?.architecture?.elements ?? []).map(element => element.declaration.identity),
+  ])
   const focus = state.focus && allowed.has(state.focus) ? state.focus : null
   const expanded = new Set([...state.expanded].filter(identity => allowed.has(identity)))
-  const presentationMode = changeSelection === null
+  const presentationMode = viewSelection === 'candidate-diff'
+    ? 'diff-only'
+    : viewSelection === 'candidate'
+    ? 'complete'
+    : changeSelection === null
     ? 'complete'
     : state.presentationMode
   return { viewSelection, changeSelection, presentationMode, focus, expanded }
@@ -244,10 +268,150 @@ export function SemanticBrowserRuntimeProvider({
   return <SemanticBrowserControllerProvider manifest={manifest}>{children}</SemanticBrowserControllerProvider>
 }
 
+export function SemanticBrowserRouteSync() {
+  const controller = useContext(SemanticBrowserControllerContext)
+  const navigate = useNavigate()
+  const search = useSearch({ from: '__root__' })
+  const runtime = useXirangViewSources()
+  const actorRef = useDiagramActorRef()
+  const diagramFocus = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.context.focusIdentity))
+  const diagramReady = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.matches('ready')))
+  const diagramExpanded = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.context.expandedNodes))
+  const initializedUrl = useRef(false)
+  const applyingUrl = useRef(false)
+  const seenUrl = useRef('')
+  const pendingUrl = useRef<string | null>(null)
+  const lastCommitted = useRef('')
+
+  useEffect(() => {
+    if (!controller) return
+    runtime.select(controller.state.viewSelection)
+    const abort = new AbortController()
+    projectionLoader.load(
+      projectionRequestForSemanticBrowser(controller.state, controller.manifest.modelFingerprint),
+      abort.signal,
+    ).then(result => {
+      if (abort.signal.aborted) return
+      runtime.applyBrowserProjection({
+        viewId: controller.state.viewSelection,
+        change: controller.state.changeSelection,
+        mode: controller.state.presentationMode === 'diff-only' ? 'diff' : 'full',
+        showDiff: controller.state.presentationMode !== 'complete',
+        projectionKey: result.projectionKey,
+        view: result.view,
+      })
+    }).catch(error => {
+      if (!abort.signal.aborted) console.error('Unable to load Semantic Browser projection', error)
+    })
+    return () => abort.abort()
+  }, [controller?.manifest.modelFingerprint, controller?.state, runtime.applyBrowserProjection, runtime.select])
+
+  useEffect(() => {
+    if (!controller) return
+    const current = JSON.stringify({
+      view: search.view === 'model' ? undefined : search.view,
+      change: search.change,
+      mode: search.mode === 'complete' ? undefined : search.mode,
+      focus: search.focus,
+    })
+    if (current === seenUrl.current) return
+    if (current === pendingUrl.current) {
+      pendingUrl.current = null
+      seenUrl.current = current
+      return
+    }
+    if (pendingUrl.current !== null) return
+    seenUrl.current = current
+    initializedUrl.current = true
+    if (current === lastCommitted.current) return
+    applyingUrl.current = true
+    controller.dispatch({ type: 'view.select', view: search.view })
+    controller.dispatch({ type: 'change.select', change: search.change ?? null })
+    controller.dispatch({ type: 'mode.select', mode: search.mode })
+    controller.dispatch({ type: 'focus.select', focus: search.focus ?? null })
+  }, [controller, search.change, search.focus, search.mode, search.view])
+
+  useEffect(() => {
+    if (!controller || !initializedUrl.current) return
+    const next = encodeSemanticBrowserUrl(controller.state)
+    const key = JSON.stringify(next)
+    const current = JSON.stringify({ view: search.view === 'model' ? undefined : search.view, change: search.change, mode: search.mode === 'complete' ? undefined : search.mode, focus: search.focus })
+    if (applyingUrl.current) {
+      if (key === current) {
+        applyingUrl.current = false
+        lastCommitted.current = current
+      }
+      return
+    }
+    if (key === lastCommitted.current) return
+    if (key === current) return
+    lastCommitted.current = key
+    pendingUrl.current = key
+    void navigate({
+      to: './',
+      viewTransition: false,
+      search: previous => {
+        const nextSearch = { ...previous, ...next }
+        for (const key of ['view', 'change', 'mode', 'focus'] as const) {
+          if (!(key in next)) delete nextSearch[key]
+        }
+        return nextSearch
+      },
+    })
+  }, [controller, navigate, search.change, search.focus, search.mode, search.view, controller?.state])
+
+  const architectureRoot = runtime.selected.roots?.[0]
+    ?? runtime.selected.architecture?.elements.find(element => element.declaration.parent === null)?.declaration.identity
+  const targetFocus = controller?.state.focus ?? architectureRoot ?? null
+  const diagramTargetFocus = diagramFocus ?? architectureRoot ?? null
+  const diagramExpandedKey = JSON.stringify([...diagramExpanded].sort())
+  const controllerExpandedKey = JSON.stringify([...(controller?.state.expanded ?? [])].sort())
+  const previousDiagramExpanded = useRef(diagramExpandedKey)
+  const previousControllerExpanded = useRef(controllerExpandedKey)
+
+  useEffect(() => {
+    if (!controller || !architectureRoot || !diagramReady) return
+    if (diagramTargetFocus !== targetFocus) {
+      actorRef.send({ type: 'navigate.focus', focusIdentity: targetFocus })
+    }
+  }, [actorRef, architectureRoot, controller, diagramReady, diagramTargetFocus, targetFocus])
+
+  useEffect(() => {
+    if (!controller || !architectureRoot) return
+    const diagramChanged = diagramExpandedKey !== previousDiagramExpanded.current
+    const controllerChanged = controllerExpandedKey !== previousControllerExpanded.current
+    previousDiagramExpanded.current = diagramExpandedKey
+    previousControllerExpanded.current = controllerExpandedKey
+    if (diagramExpandedKey === controllerExpandedKey) return
+    if (diagramChanged && !controllerChanged) {
+      controller.dispatch({ type: 'expanded.set', expanded: diagramExpanded })
+      return
+    }
+    actorRef.send({ type: 'expand.set', expanded: new Set(controller.state.expanded) })
+  }, [actorRef, architectureRoot, controller, controllerExpandedKey, diagramExpanded, diagramExpandedKey])
+
+  useEffect(() => {
+    if (!controller || !architectureRoot) return
+    const semanticFocus = diagramTargetFocus === architectureRoot ? null : diagramTargetFocus
+    if (semanticFocus !== controller.state.focus
+      && !(semanticFocus === null && controller.state.focus !== null)) {
+      controller.dispatch({ type: 'focus.select', focus: semanticFocus })
+    }
+  }, [architectureRoot, controller, diagramTargetFocus])
+  useEffect(() => {
+    if (!controller) return
+    const state = historyStateForSemanticBrowser(controller.state)
+    window.history.replaceState({ ...window.history.state, xirang: state }, '')
+  }, [controller, controller?.state])
+
+  return null
+}
+
 export function SemanticBrowserControls() {
   const controller = useContext(SemanticBrowserControllerContext)
   if (!controller) return null
   const { manifest, state, selectView, selectChange, selectMode } = controller
+  if (state.viewSelection === 'candidate' || state.viewSelection === 'candidate-diff') return null
   const viewOptions = [
     { value: 'model', label: 'Model View' },
     ...Object.entries(manifest.authoredViews).map(([id, view]) => ({ value: id, label: view.title })),
@@ -285,7 +449,7 @@ export function useSemanticBrowserController(): SemanticBrowserControllerValue {
 export function effectiveModeForSource(source: XirangViewSource['source'], mode: SemanticBrowserMode): XirangViewMode {
   if (source === 'candidate-diff') return 'diff'
   if (source === 'candidate') return 'full'
-  return mode === 'complete' ? 'full' : 'diff'
+  return mode === 'diff-only' ? 'diff' : 'full'
 }
 
 export type { XirangRuntimeManifest }

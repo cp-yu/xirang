@@ -1,0 +1,176 @@
+{
+  "timestamp": "2026-08-08T10:14:48.697Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "f583af8b5b596d5c52c6f04c583b36fe1447382d584fd072d81293468aae8164",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/unify-semantic-browser-views/.apply-isolation.json",
+      ".xirang/changes/unify-semantic-browser-views/design.md",
+      ".xirang/changes/unify-semantic-browser-views/tasks.md",
+      "likec4/packages/diagram/src/index.ts",
+      "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+      "likec4/packages/diagram/src/xirang/architectureView.ts",
+      "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
+      "likec4/packages/vite-plugin/src/xirang/projection-cache.ts",
+      "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
+      "test/core/likec4/generator-validate.test.ts",
+      "test/core/likec4/runtime-projection.test.ts",
+      "test/core/view.test.ts",
+      "test/e2e/semantic-browser-model-view.spec.ts",
+      "test/fixtures/contract-browser/.xirang/model/views/model-equivalent.md"
+    ],
+    "evidenceFingerprint": "27be89d9aa6abfb07a0f1405707fea784fc52a9a5307c072b1b92aab0037a17c",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/unify-semantic-browser-views/.apply-isolation.json",
+        "hash": "7b1306919d03ab2e9be36a8872ddd6bd0401fb7e363c6ab656013a8deef44450"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-browser-views/design.md",
+        "hash": "be2d40582e8cf4e04aa72e34dc4ee71dff421963918f8ba96dce33b30d725743"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-browser-views/tasks.md",
+        "hash": "f583af8b5b596d5c52c6f04c583b36fe1447382d584fd072d81293468aae8164"
+      },
+      {
+        "path": "likec4/packages/diagram/src/index.ts",
+        "hash": "a1b3ef80c18ee171ec1725df75f2a4b641c9b56fe0757862c216ac7c79628366"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+        "hash": "d1e78fdc5aa4094ab482dd1ad5323f2214eb1e9f652fb4017634e5dd1424f0d7"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+        "hash": "b4e58c80fa9d38876c4f8679154e86bfded542885c4afadc72d366de501d1999"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
+        "hash": "5f197b9eba73bc91bf9da006d1267cd57f11ce1aa63a17ba78399b99a678c580"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/xirang/projection-cache.ts",
+        "hash": "081590cc336ad744323dc1ab7850c0059640fcc2a4fd5da05d094b855f3ec00e"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
+        "hash": "a7fd93bb6f35f9199137052d155d54b97b2215914db4048cc2b674e936950cf1"
+      },
+      {
+        "path": "test/core/likec4/generator-validate.test.ts",
+        "hash": "144c587615161a3dd65a9d79f741f2680826fa8b2e66b6b3961a8a861b392d2b"
+      },
+      {
+        "path": "test/core/likec4/runtime-projection.test.ts",
+        "hash": "bc738d905f4838f30abc7700afdd00c2f9c9323d9f5c72c2c735804996cfa265"
+      },
+      {
+        "path": "test/core/view.test.ts",
+        "hash": "74608d7848e2dc747774c3a233511ed453b764328fa39a66eaf7d98332ad3c19"
+      },
+      {
+        "path": "test/e2e/semantic-browser-model-view.spec.ts",
+        "hash": "d7ca15cc4acd3312bd00eeae97944f6ffc4ff39072fdbe46397328de157d6615"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/model/views/model-equivalent.md",
+        "hash": "8b4c48caecada244e07de347c355361e70893fabef2f9524a2816ffde77f9420"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "9ccc009fd4664a5b83b0b5425bb71a063f877c48"
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-08-08T10:14:48.697Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "f583af8b5b596d5c52c6f04c583b36fe1447382d584fd072d81293468aae8164",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/unify-semantic-browser-views/.apply-isolation.json",
+          ".xirang/changes/unify-semantic-browser-views/design.md",
+          ".xirang/changes/unify-semantic-browser-views/tasks.md",
+          "likec4/packages/diagram/src/index.ts",
+          "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+          "likec4/packages/diagram/src/xirang/architectureView.ts",
+          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
+          "likec4/packages/vite-plugin/src/xirang/projection-cache.ts",
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
+          "test/core/likec4/generator-validate.test.ts",
+          "test/core/likec4/runtime-projection.test.ts",
+          "test/core/view.test.ts",
+          "test/e2e/semantic-browser-model-view.spec.ts",
+          "test/fixtures/contract-browser/.xirang/model/views/model-equivalent.md"
+        ],
+        "evidenceFingerprint": "27be89d9aa6abfb07a0f1405707fea784fc52a9a5307c072b1b92aab0037a17c",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/unify-semantic-browser-views/.apply-isolation.json",
+            "hash": "7b1306919d03ab2e9be36a8872ddd6bd0401fb7e363c6ab656013a8deef44450"
+          },
+          {
+            "path": ".xirang/changes/unify-semantic-browser-views/design.md",
+            "hash": "be2d40582e8cf4e04aa72e34dc4ee71dff421963918f8ba96dce33b30d725743"
+          },
+          {
+            "path": ".xirang/changes/unify-semantic-browser-views/tasks.md",
+            "hash": "f583af8b5b596d5c52c6f04c583b36fe1447382d584fd072d81293468aae8164"
+          },
+          {
+            "path": "likec4/packages/diagram/src/index.ts",
+            "hash": "a1b3ef80c18ee171ec1725df75f2a4b641c9b56fe0757862c216ac7c79628366"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+            "hash": "d1e78fdc5aa4094ab482dd1ad5323f2214eb1e9f652fb4017634e5dd1424f0d7"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+            "hash": "b4e58c80fa9d38876c4f8679154e86bfded542885c4afadc72d366de501d1999"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
+            "hash": "5f197b9eba73bc91bf9da006d1267cd57f11ce1aa63a17ba78399b99a678c580"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/xirang/projection-cache.ts",
+            "hash": "081590cc336ad744323dc1ab7850c0059640fcc2a4fd5da05d094b855f3ec00e"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
+            "hash": "a7fd93bb6f35f9199137052d155d54b97b2215914db4048cc2b674e936950cf1"
+          },
+          {
+            "path": "test/core/likec4/generator-validate.test.ts",
+            "hash": "144c587615161a3dd65a9d79f741f2680826fa8b2e66b6b3961a8a861b392d2b"
+          },
+          {
+            "path": "test/core/likec4/runtime-projection.test.ts",
+            "hash": "bc738d905f4838f30abc7700afdd00c2f9c9323d9f5c72c2c735804996cfa265"
+          },
+          {
+            "path": "test/core/view.test.ts",
+            "hash": "74608d7848e2dc747774c3a233511ed453b764328fa39a66eaf7d98332ad3c19"
+          },
+          {
+            "path": "test/e2e/semantic-browser-model-view.spec.ts",
+            "hash": "d7ca15cc4acd3312bd00eeae97944f6ffc4ff39072fdbe46397328de157d6615"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/model/views/model-equivalent.md",
+            "hash": "8b4c48caecada244e07de347c355361e70893fabef2f9524a2816ffde77f9420"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "9ccc009fd4664a5b83b0b5425bb71a063f877c48"
+      }
+    }
+  }
+}

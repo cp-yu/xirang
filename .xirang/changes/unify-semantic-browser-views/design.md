@@ -115,7 +115,7 @@ Relationship Kind 可声明可选 `presentation`，字段为 `color`、`line`、
 
 presentation 只存在于 Relationship Kind，不允许单个 Relationship 或 View 覆盖。现有 Relationship Kinds 不增加显式值。
 
-A→B 与 B→A 保持两个独立 edge identities、样式、diff operations、labels 与详情映射。所有 Xirang source Relationships 均使用独立 visual edges；同向不同 Kind、presentation 或 diff operation 的 Relationships 也不得聚合。禁止 edge concentration 或方向合并，并使用 Graphviz 分别 routing。
+A→B 与 B→A 保持两个独立 edge identities、样式、diff operations、labels 与详情映射。官方 compute/layout 前，同向且映射到相同可见 endpoints 的 Relationships 聚合为一条携带全部 relation ids 的 layout edge，避免 Graphviz 对大量平行边重复 routing；布局后按稳定三元组恢复独立 visual edges，并重新应用各自的 Kind presentation、diff operation 与详情 identity。共享 geometry 不改变 Relationship 语义或交互身份。
 
 ### 10. 服务端 projection API 与缓存
 

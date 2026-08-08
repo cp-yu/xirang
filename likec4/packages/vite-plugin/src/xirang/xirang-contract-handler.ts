@@ -4,7 +4,16 @@ export interface XirangContractContent {
 }
 
 export interface XirangContractSourceSnapshot {
+  sourceFingerprint?: string
+  diffSourceFingerprint?: string
+  diff?: { entries: Array<{ kind: string; identity: string; operation: 'ADDED' | 'MODIFIED' | 'REMOVED' }> }
+  architecture?: { elements: Array<{ declaration: { identity: string; parent: string | null } }> }
+  diffArchitecture?: { elements: Array<{ declaration: { identity: string; parent: string | null } }> }
   contracts?: Record<string, string>
+  likec4Sources?: Record<string, string>
+  likec4ElementPaths?: Record<string, string>
+  diffLikec4Sources?: Record<string, string>
+  diffLikec4ElementPaths?: Record<string, string>
 }
 
 /**

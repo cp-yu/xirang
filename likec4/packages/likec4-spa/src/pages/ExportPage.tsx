@@ -119,8 +119,7 @@ async function downloadAsJpeg({
 
 /**
  * Applies the interactive view state (source and display mode) to the export page's
- * Xirang source context once, mirroring the ViewHistoryBridge URL→context pattern.
- * The materialization effect then re-projects the view from the frozen snapshot.
+ * Xirang controller state once before rendering the frozen projection snapshot.
  */
 function ApplyXirangExportState({
   snapshot,
@@ -131,7 +130,7 @@ function ApplyXirangExportState({
 }) {
   const { select, setMode } = useXirangViewSources()
   useEffect(() => {
-    select(snapshot.source)
+    select(snapshot.view)
     setMode(snapshot.mode)
     onApplied()
     // Apply once with the frozen snapshot; the export page has no live navigation.
@@ -165,7 +164,8 @@ export function ExportPage() {
     return <div>Loading...</div>
   }
 
-  return <GuardedExportPage diagram={diagram} isJpeg={isJpeg} seed={seed} />
+  const exportDiagram = seed.snapshot?.projection ?? diagram
+  return <GuardedExportPage diagram={exportDiagram} isJpeg={isJpeg} seed={seed} />
 }
 
 /**

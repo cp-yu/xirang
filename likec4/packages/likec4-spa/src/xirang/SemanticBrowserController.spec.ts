@@ -33,7 +33,15 @@ const manifest: SemanticBrowserManifest = {
   authoredViews: {
     api: { title: 'API', selection: ['root', 'root.api'], roots: ['root'], virtualRoot: false },
   },
-  changes: { auth: { id: 'change:auth', label: 'auth', source: 'change-derived-view', change: 'auth', valid: true, diagnostics: [] } },
+  changes: { auth: { label: 'auth', change: 'auth', valid: true, diagnostics: [] } },
+  candidate: {
+    id: 'candidate', label: 'Candidate View', source: 'candidate', valid: true, diagnostics: [],
+    architecture: { elements: [], relationships: [] },
+  },
+  candidateDiff: {
+    id: 'candidate-diff', label: 'Candidate Diff View', source: 'candidate-diff', valid: true, diagnostics: [],
+    architecture: { elements: [], relationships: [] },
+  },
 }
 
 describe('SemanticBrowserController state machine', () => {
@@ -47,6 +55,19 @@ describe('SemanticBrowserController state machine', () => {
     expect(html.indexOf('Change Selection')).toBeLessThan(html.indexOf('Presentation Mode'))
     expect(html).toContain('<option value="complete-with-diff" disabled="">')
     expect(html).toContain('<option value="diff-only" disabled="">')
+  })
+
+  it('keeps Candidate review outside the ordinary controls and fixes Candidate Diff to diff-only', () => {
+    const candidate = createSemanticBrowserState(manifest, { view: 'candidate', change: 'auth', mode: 'diff-only' })
+    expect(candidate).toMatchObject({ viewSelection: 'candidate', changeSelection: null, presentationMode: 'complete' })
+    const diff = createSemanticBrowserState(manifest, { view: 'candidate-diff', change: 'auth', mode: 'complete' })
+    expect(diff).toMatchObject({ viewSelection: 'candidate-diff', changeSelection: null, presentationMode: 'diff-only' })
+    const html = renderToStaticMarkup(createElement(
+      SemanticBrowserControllerProvider,
+      { manifest, initialUrl: { view: 'candidate-diff' } },
+      createElement(SemanticBrowserControls),
+    ))
+    expect(html).toBe('')
   })
 
   it('uses complete without a change and complete-with-diff when a change is selected', () => {

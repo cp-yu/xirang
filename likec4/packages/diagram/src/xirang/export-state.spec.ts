@@ -9,7 +9,8 @@ import {
 
 function snapshot(overrides: Partial<XirangExportSnapshot> = {}): XirangExportSnapshot {
   return {
-    source: 'model',
+    view: 'model',
+    change: null,
     mode: 'full' as XirangViewMode,
     focus: null,
     expanded: [],
@@ -39,14 +40,16 @@ describe('export snapshot storage round-trip', () => {
   it('persists a full snapshot through storage', () => {
     const storage = mockStorage()
     writeXirangExportSnapshotToStorage(snapshot({
-      source: 'change:browser-change',
+      view: 'model',
+      change: 'browser-change',
       mode: 'diff' as XirangViewMode,
       focus: 'capability.added-parent',
       expanded: ['capability.added-child'],
     }), storage)
     expect(storage.getItem(XIRANG_EXPORT_SNAPSHOT_KEY)).toContain('capability.added-parent')
     expect(readXirangExportSnapshotFromStorage(storage)).toEqual(snapshot({
-      source: 'change:browser-change',
+      view: 'model',
+      change: 'browser-change',
       mode: 'diff' as XirangViewMode,
       focus: 'capability.added-parent',
       expanded: ['capability.added-child'],
@@ -64,9 +67,9 @@ describe('export snapshot storage round-trip', () => {
     expect(readXirangExportSnapshotFromStorage(storage)).toBeNull()
     storage.setItem(XIRANG_EXPORT_SNAPSHOT_KEY, 'not-json')
     expect(readXirangExportSnapshotFromStorage(storage)).toBeNull()
-    storage.setItem(XIRANG_EXPORT_SNAPSHOT_KEY, JSON.stringify({ source: 42 }))
+    storage.setItem(XIRANG_EXPORT_SNAPSHOT_KEY, JSON.stringify({ view: 42 }))
     expect(readXirangExportSnapshotFromStorage(storage)).toBeNull()
-    storage.setItem(XIRANG_EXPORT_SNAPSHOT_KEY, JSON.stringify({ source: 'model', mode: 'banana', expanded: [] }))
+    storage.setItem(XIRANG_EXPORT_SNAPSHOT_KEY, JSON.stringify({ view: 'model', mode: 'banana', expanded: [] }))
     expect(readXirangExportSnapshotFromStorage(storage)).toBeNull()
   })
 })

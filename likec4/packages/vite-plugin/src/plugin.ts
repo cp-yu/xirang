@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs'
 import type { ProjectId } from '@likec4/core/types'
 import type { LikeC4LanguageServices } from '@likec4/language-services'
-import { fromWorkspace } from '@likec4/language-services/node'
+import { fromSources, fromWorkspace } from '@likec4/language-services/node'
 import { loggable } from '@likec4/log'
 import type { AnyTextAdapter } from '@tanstack/ai'
 import pDebounce from 'p-debounce'
@@ -14,6 +14,7 @@ import { detectAI } from './ai/detect-ai'
 import { iconBundlePlugin } from './icon-bundle-plugin'
 import { logger } from './logger'
 import { assertXirangManifest, assertXirangProject, parseXirangContractSource, readXirangContract, XirangContractError, type XirangRuntimeManifestSnapshot } from './xirang/xirang-contract-handler'
+import { BaseModelCache } from './xirang/base-model-cache'
 import { ProjectionCache } from './xirang/projection-cache'
 import { handleProjection, parseProjectionRequest, type ProjectionResponse } from './xirang/xirang-projection-handler'
 import { enablePluginRPC } from './rpc'
@@ -389,18 +390,35 @@ export function LikeC4VitePlugin({
 
       if (xirangChangeManifest) {
         const xirangProjectionCache = new ProjectionCache<ProjectionResponse>(200)
+        const xirangBaseModelCache = new BaseModelCache(sources => fromSources(sources))
+        let acceptedManifestRaw = await fs.readFile(xirangChangeManifest, 'utf8')
+        const initialManifest = JSON.parse(acceptedManifestRaw) as unknown
+        assertXirangManifest(initialManifest)
+        let acceptedManifest: XirangRuntimeManifestSnapshot = initialManifest
+        const sourceEntries = (manifest: XirangRuntimeManifestSnapshot) => [
+          [manifest.model.sourceFingerprint ?? manifest.modelFingerprint, manifest.model.likec4Sources] as const,
+          ...Object.values(manifest.changes).flatMap(source => [
+            [source.sourceFingerprint, source.likec4Sources] as const,
+            [source.diffSourceFingerprint, source.diffLikec4Sources] as const,
+          ]),
+          [manifest.candidate?.sourceFingerprint, manifest.candidate?.likec4Sources] as const,
+          [manifest.candidateDiff?.sourceFingerprint, manifest.candidateDiff?.likec4Sources] as const,
+        ].filter((entry): entry is readonly [string, Record<string, string>] => !!entry[0] && !!entry[1])
+        const prewarmManifest = async (manifest: XirangRuntimeManifestSnapshot) => {
+          await Promise.all(sourceEntries(manifest).map(([fingerprint, sources]) => xirangBaseModelCache.get(fingerprint, sources)))
+        }
+        await prewarmManifest(acceptedManifest)
+        server.httpServer?.once('close', () => void xirangBaseModelCache.dispose())
 
         server.middlewares.use('/__xirang/changes', async (req, res) => {
           try {
             if (req.method !== 'GET') {
               throw new XirangContractError(405, 'Method not allowed')
             }
-            const payload = JSON.parse(await fs.readFile(xirangChangeManifest, 'utf8')) as unknown
-            assertXirangManifest(payload)
             res.statusCode = 200
             res.setHeader('Content-Type', 'application/json; charset=utf-8')
             res.setHeader('Cache-Control', 'no-store')
-            res.end(JSON.stringify(payload))
+            res.end(acceptedManifestRaw)
           } catch (error) {
             const xirangError = error instanceof XirangContractError
               ? error
@@ -410,10 +428,29 @@ export function LikeC4VitePlugin({
             res.end(JSON.stringify({ error: xirangError.message }))
           }
         })
-        const notifyManifest = (changedPath: string) => {
-          if (changedPath === xirangChangeManifest) server.hot.send(xirangChangeManifestChangedEvent, {})
+        const notifyManifest = async (changedPath: string) => {
+          if (changedPath !== xirangChangeManifest) return
+          try {
+            const candidateRaw = await fs.readFile(xirangChangeManifest, 'utf8')
+            if (candidateRaw === acceptedManifestRaw) return
+            const manifest = JSON.parse(candidateRaw) as unknown
+            assertXirangManifest(manifest)
+            await prewarmManifest(manifest)
+            const fingerprints = new Set([
+              manifest.modelFingerprint,
+              ...sourceEntries(manifest).map(([fingerprint]) => fingerprint),
+            ])
+            acceptedManifest = manifest
+            acceptedManifestRaw = candidateRaw
+            xirangProjectionCache.retainFingerprints(fingerprints)
+            await xirangBaseModelCache.retainFingerprints(fingerprints)
+            server.hot.send(xirangChangeManifestChangedEvent, {})
+          } catch (error) {
+            logger.error(String(error))
+          }
         }
         server.watcher.add(xirangChangeManifest)
+        server.watcher.on('add', notifyManifest)
         server.watcher.on('change', notifyManifest)
 
         server.middlewares.use('/__xirang/contract', async (req, res) => {
@@ -429,9 +466,8 @@ export function LikeC4VitePlugin({
               throw new XirangContractError(400, 'Missing project or element')
             }
             assertXirangProject(project, likec4.projects())
-            const manifest = JSON.parse(await fs.readFile(xirangChangeManifest, 'utf8')) as XirangRuntimeManifestSnapshot
             const contract = readXirangContract(
-              manifest,
+              acceptedManifest,
               source,
               element,
             )
@@ -470,8 +506,9 @@ export function LikeC4VitePlugin({
             }
             const project = likec4.projects()[0]!
             const result = await handleProjection(parsed.request, {
-              readManifest: () => fs.readFile(xirangChangeManifest, 'utf8'),
+              readManifest: async () => acceptedManifestRaw,
               views: likec4.views,
+              loadSources: (sources, fingerprint) => xirangBaseModelCache.get(fingerprint, sources),
               cache: xirangProjectionCache,
               projectId: project.id,
             })

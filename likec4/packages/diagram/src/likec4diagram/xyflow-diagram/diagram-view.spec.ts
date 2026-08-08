@@ -99,6 +99,13 @@ describe('projectionViewportTransition', () => {
 })
 
 describe('diagramToXY Xirang projection data', () => {
+  it('exposes semantic identity without requiring diff metadata', () => {
+    const node = testNode('generated.fqn', { metadata: { elementId: 'semantic.identity' } })
+    const { xynodes } = diagramToXY({ view: testView([node], []), currentViewId: undefined, where: null })
+
+    expect(xynodes[0]?.domAttributes).toEqual({ 'data-xirang-identity': 'semantic.identity' })
+  })
+
   it('projects ADDED metadata to node data and observable DOM attributes', () => {
     const added = testNode('test-entity', {
       metadata: {

@@ -47,6 +47,12 @@ export function toLikeC4Style(presentation: NodePresentation | undefined): LikeC
   return Object.keys(style).length > 0 ? style : undefined;
 }
 
+/**
+ * Canonical mapping from Xirang Relationship presentation to LikeC4 legal values.
+ * Relationship styles are not lowered into specification.c4 (parallel relationships are
+ * aggregated pre-layout); this mapping stays the single source of truth that keeps the
+ * post-layout browser overlay values aligned with LikeC4's legal set.
+ */
 export function toLikeC4RelationshipStyle(presentation: RelationshipPresentation | undefined): LikeC4RelationshipStyle | undefined {
   if (!presentation) return undefined;
   const style: LikeC4RelationshipStyle = {};

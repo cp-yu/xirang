@@ -19,7 +19,7 @@ const document: ChangeStructuralDefinitionDocument = {
       { identity: 'stage', contract: 'optional', parents: [], children: ['capability'], body: '第一行\n第二行' },
     ],
     relationshipKinds: [
-      { identity: 'guides', sourceKinds: ['stage'], targetKinds: [], body: 'Guidance relation.' },
+      { identity: 'guides', sourceKinds: ['stage'], targetKinds: [], presentation: { color: 'blue', line: 'dashed', head: 'normal' }, body: 'Guidance relation.' },
     ],
     elements: [
       {

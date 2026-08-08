@@ -304,6 +304,7 @@ export const RelationshipEdge = memoEdge<Types.EdgeProps<'relationship'>>((props
     <>
       <EdgeContainer
         {...props}
+        data-xirang-relation={props.data.xirang?.relation}
         className={css({
           '& .react-flow__edge-interaction': {
             cursor: enabledEditing && selected ? 'copy' : undefined,

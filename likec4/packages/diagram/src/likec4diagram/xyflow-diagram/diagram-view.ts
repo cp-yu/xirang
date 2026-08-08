@@ -200,6 +200,7 @@ export function diagramToXY(opts: {
 
     const id = ns + node.id as NodeId
     const xirang = readXirangProjectionNode(node)
+    const xirangIdentity = node.metadata?.['elementId']
 
     const base = {
       id,
@@ -214,10 +215,10 @@ export function diagramToXY(opts: {
       initialWidth: node.width,
       initialHeight: node.height,
       hidden: node.kind !== GroupElementKind && !visiblePredicate(node),
-      ...(xirang && {
+      ...(typeof xirangIdentity === 'string' && {
         domAttributes: {
-          'data-xirang-operation': xirang.operation,
-          'data-xirang-identity': xirang.identity,
+          'data-xirang-identity': xirangIdentity,
+          ...(xirang ? { 'data-xirang-operation': xirang.operation } : {}),
         } as unknown as NonNullable<Types.Node['domAttributes']>,
       }),
       ...(parent && {

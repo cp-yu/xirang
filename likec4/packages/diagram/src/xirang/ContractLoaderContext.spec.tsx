@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { XirangRuntimeManifest, XirangViewSource } from './ContractLoaderContext'
+import type { XirangChangeSource, XirangRuntimeManifest, XirangViewSource } from './ContractLoaderContext'
 import { resolveEffectiveMode, xirangViewSourceRevision } from './ContractLoaderContext'
 
 const modelSource: XirangViewSource = {
@@ -84,10 +84,8 @@ const candidateDiffSource: XirangViewSource = {
   },
 }
 
-const changeSource: XirangViewSource = {
-  id: 'change:auth-change',
+const changeSource: XirangChangeSource = {
   label: 'auth-change',
-  source: 'change-derived-view',
   change: 'auth-change',
   valid: true,
   sourceFingerprint: 'change-fp',
@@ -116,43 +114,32 @@ const v4ManifestWithoutCandidate: XirangRuntimeManifest = {
   },
 }
 
-describe('lists model candidate candidate diff and change sources', () => {
-  it('includes candidate and candidateDiff in correct order when present', () => {
+describe('keeps change input separate from view source identities', () => {
+  it('lists Model, Candidate, and Candidate Diff without enumerating Changes as Views', () => {
     const { model, candidate, candidateDiff, changes } = v4ManifestWithCandidate
-
-    // Expected source order: Model, Candidate, Candidate Diff, Changes
     const sources = [
       model,
       ...(candidate ? [candidate] : []),
       ...(candidateDiff ? [candidateDiff] : []),
-      ...Object.values(changes),
     ]
 
-    expect(sources[0]!.id).toBe('model')
-    expect(sources[0]!.source).toBe('semantic-model')
-    expect(sources[1]!.id).toBe('candidate')
-    expect(sources[1]!.source).toBe('candidate')
-    expect(sources[2]!.id).toBe('candidate-diff')
-    expect(sources[2]!.source).toBe('candidate-diff')
-    expect(sources[3]!.id).toBe('change:auth-change')
-    expect(sources[3]!.source).toBe('change-derived-view')
+    expect(sources.map(source => source.id)).toEqual(['model', 'candidate', 'candidate-diff'])
+    expect(changes['auth-change']).not.toHaveProperty('id')
+    expect(changes['auth-change']).not.toHaveProperty('source')
   })
 })
 
 describe('hides candidate sources when candidate is absent', () => {
-  it('omits candidate and candidateDiff from sources when manifest has none', () => {
-    const { model, changes } = v4ManifestWithoutCandidate
-
+  it('leaves Model as the only derived View source when manifest has no Candidate', () => {
+    const { model, candidate, candidateDiff, changes } = v4ManifestWithoutCandidate
     const sources = [
       model,
-      ...Object.values(changes),
+      ...(candidate ? [candidate] : []),
+      ...(candidateDiff ? [candidateDiff] : []),
     ]
 
-    expect(sources.every(s => s.source !== 'candidate')).toBe(true)
-    expect(sources.every(s => s.source !== 'candidate-diff')).toBe(true)
-    expect(sources).toHaveLength(2)
-    expect(sources[0]!.id).toBe('model')
-    expect(sources[1]!.id).toBe('change:auth-change')
+    expect(sources.map(source => source.id)).toEqual(['model'])
+    expect(Object.keys(changes)).toEqual(['auth-change'])
   })
 })
 

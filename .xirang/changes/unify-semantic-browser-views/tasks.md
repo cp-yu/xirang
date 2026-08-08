@@ -6,9 +6,8 @@
 - Modify: `src/core/model/frontmatter.ts`
 - Modify: `src/core/model/types.ts`
 - Modify: `src/core/model/parser.ts`
-- Modify: `src/core/model/serializer.ts`
 - Modify: `src/core/model/validator.ts`
-- Modify: `src/core/model/delta.ts`
+- Modify: `src/core/model/relationship-presentation.ts`
 - Modify: `src/core/semantic-diff.ts`
 - Modify: `src/core/framing/types.ts`
 - Modify: `src/core/framing/document.ts`
@@ -16,7 +15,6 @@
 - Test: `test/core/model/`
 - Test: `test/core/semantic-diff.test.ts`
 - Test: `test/core/framing/document.test.ts`
-- Test: `test/core/framing/baseline.test.ts`
 
 **Requirements**:
 - `exclude` 缺失或空列表等价于空集合，并优先剪除完整 descendants 子树。
@@ -67,7 +65,7 @@
   - Command: `pnpm exec vitest run test/core/likec4 test/core/view.test.ts`
   - Expect: Authored 多根投影经真实 Graphviz 布局成功且 virtual root 不成为 Element，Model 继续使用真实 Project Root
 
-- [ ] C25 验证 Derived Views 的组合边界
+- [x] C25 验证 Derived Views 的组合边界
   - Verifies: `elements/derived-views.md` / Requirement "提供四类派生视图" / Scenarios "选择派生上下文", "Candidate 不存在"
   - Command: `pnpm exec vitest run test/core/view.test.ts`
   - Expect: Model/Candidate 保持独立 View selections，Change-derived 由当前 View、单个 Change 与 Mode 组合，且 manifest 不为每个 Change 生成 View identity 字段
@@ -79,15 +77,19 @@
 
 **Files**:
 - Modify: `src/core/view.ts`
-- Create: `src/core/likec4/projection-cache.ts`
+- Create: `likec4/packages/vite-plugin/src/xirang/projection-cache.ts`
+- Create: `src/core/likec4/artifact-cache.ts`
 - Modify: `likec4/packages/vite-plugin/src/plugin.ts`
-- Modify: `likec4/packages/vite-plugin/src/rpc/protocol.ts`
 - Create: `likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts`
 - Modify: `likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts`
+- Create: `likec4/packages/vite-plugin/src/xirang/base-model-cache.ts`
 - Test: `test/core/view.test.ts`
 - Create: `likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts`
 - Test: `likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.spec.ts`
 - Create: `likec4/packages/vite-plugin/src/plugin.spec.ts`
+- Create: `likec4/packages/vite-plugin/src/xirang/base-model-cache.spec.ts`
+- Test: `likec4/packages/vite-plugin/src/xirang/projection-cache.spec.ts`
+- Test: `test/core/likec4/artifact-cache.test.ts`
 
 **Requirements**:
 - manifest 分区表达 model、authoredViews、changes、candidate 与 candidateDiff。
@@ -162,11 +164,15 @@
 
 **Files**:
 - Modify: `likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx`
+- Modify: `likec4/packages/diagram/src/index.ts`
+- Modify: `likec4/packages/diagram/src/likec4diagram/state/machine.actions.ts`
+- Modify: `likec4/packages/diagram/src/likec4diagram/state/machine.setup.ts`
+- Modify: `likec4/packages/diagram/src/likec4diagram/types.ts`
+- Modify: `likec4/packages/diagram/src/likec4diagram/custom/edges/RelationshipEdge.tsx`
 - Modify: `likec4/packages/diagram/src/xirang/architectureView.ts`
 - Modify: `likec4/packages/diagram/src/xirang/projectionNode.ts`
 - Modify: `likec4/packages/diagram/src/likec4diagram/xyflow-diagram/`
 - Test: `likec4/packages/diagram/src/xirang/architectureView.spec.ts`
-- Test: `likec4/packages/diagram/src/xirang/projectionNode.spec.ts`
 - Test: `likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.spec.ts`
 
 **Requirements**:
@@ -204,9 +210,10 @@
 **Files**:
 - Modify: `likec4/packages/diagram/src/navigationpanel/NavigationPanelDropdown.tsx`
 - Delete: `likec4/packages/likec4-spa/src/xirang/ViewHistoryBridge.tsx`
-- Modify: `likec4/packages/diagram/src/overlays/element-details/`
 - Modify: `likec4/packages/diagram/src/xirang/export-state.ts`
 - Modify: `likec4/packages/likec4-spa/src/`
+- Modify: `src/commands/arch/export.ts`
+- Modify: `playwright.config.ts`
 - Test: `test/e2e/semantic-browser-candidate-views.spec.ts`
 - Test: `test/e2e/semantic-browser-image-export.spec.ts`
 
@@ -218,17 +225,17 @@
 
 #### Checks
 
-- [ ] C15 验证旧 View 与 Change UI 被移除
+- [x] C15 验证旧 View 与 Change UI 被移除
   - Verifies: `elements/semantic-browser.md` / REMOVED Requirement "浮动 Change 面板可拖动"
   - Command: `! rg "ViewHistoryBridge|data-xirang-change-selector|Active Change|Change / \{selected.label\}" likec4/packages/diagram/src likec4/packages/likec4-spa/src`
   - Expect: 旧 route bridge、混合 selector 与浮动 Change panel 不再存在
 
-- [ ] C16 保持 Candidate Build Review 行为
+- [x] C16 保持 Candidate Build Review 行为
   - Preserves: `.xirang/model/elements/semantic-browser.md` / Requirement "呈现 Candidate 目标与差异" / Scenarios "浏览 active Candidate", "审查 Candidate diff", "Candidate invalid"
   - Command: `pnpm exec playwright test test/e2e/semantic-browser-candidate-views.spec.ts --project=desktop --project=mobile`
   - Expect: Candidate 仍完整呈现、Candidate Diff 固定 diff-only，且不进入普通 Browser 三个控件
 
-- [ ] C17 验证图片导出 projection 一致性
+- [x] C17 验证图片导出 projection 一致性
   - Verifies: `elements/semantic-browser.md` / Requirement "图片导出所见即所得" / Scenarios "导出聚焦且就地展开的 Authored View", "导出 Complete with diff", "无前置 snapshot"
   - Command: `pnpm exec playwright test test/e2e/semantic-browser-image-export.spec.ts --project=desktop --project=mobile`
   - Expect: 导出节点与 edge 集合匹配屏上 projection，交互 chrome 被排除，无 snapshot 时 fallback 正常
@@ -238,7 +245,6 @@
 **Goal**: 以源码测试、类型检查、正确 bundle 构建顺序和 desktop/mobile Playwright 证明完整 Change 行为。
 
 **Files**:
-- Modify: `.github/workflows/`
 - Test: `test/e2e/semantic-browser-model-view.spec.ts`
 - Test: `test/e2e/semantic-browser-navigation-history.spec.ts`
 - Test: `test/e2e/semantic-browser-node-presentation.spec.ts`
@@ -252,23 +258,22 @@
 
 #### Checks
 
-- [ ] C18 验证 Windows CI 路径行为
-  - Verifies: `elements/semantic-browser.md` / Requirement "原子刷新基础 LikeC4 缓存" / Scenario "跨平台处理缓存路径"
-  - Command: `pnpm exec vitest run test/core/model test/core/view.test.ts`
-  - Evidence: Windows CI job 在 Node.js 22 上执行相同 schema、cache 与 watcher tests
-  - Expect: Windows、Linux 与 macOS 使用相同 project-relative keys 和显式生成文件清单
+- [x] C18 不纳入本 Change 的 Windows CI 实机验证（用户裁决）
+  - Verifies: 不适用；跨平台 path/watcher 行为继续由 C7 的确定性单元测试约束
+  - Evidence: 用户明确裁决本 Change 不执行 Windows CI；不将未运行的 Windows job 记为通过
+  - Expect: 不阻塞本 Change Closure，且不声称已获得 Windows 实机证据
 
-- [ ] C19 执行 LikeC4 unit 与 typecheck
+- [x] C19 执行 LikeC4 unit 与 typecheck
   - Verifies: `elements/visual-presentation.md` / Requirement "使用原生 LikeC4 布局管线" / Scenarios "呈现 Model 与等价 Authored View", "Graphviz 失败"
   - Command: `cd likec4 && pnpm --filter @likec4/diagram exec vitest run --no-isolate src/overlays/element-details/*.spec.tsx src/xirang/*.spec.ts src/likec4diagram/xyflow-diagram/diagram-view.spec.ts && pnpm --filter @likec4/diagram typecheck`
   - Expect: Diagram unit/component tests 与 typecheck 全部通过
 
-- [ ] C20 按正确顺序重建 Browser bundle
+- [x] C20 按正确顺序重建 Browser bundle
   - Verifies: `elements/semantic-browser.md` / Requirement "服务端计算 Runtime Projection" / Scenario "请求有效 projection"
   - Command: `cd likec4 && pnpm --filter @likec4/spa build && pnpm --filter xirang-likec4 build`
   - Expect: SPA 先完成构建，`xirang-likec4` 后嵌入最新 bundle，Playwright 不读取旧产物
 
-- [ ] C21 执行 desktop/mobile Semantic Browser E2E
+- [x] C21 执行 desktop/mobile Semantic Browser E2E
   - Verifies: `elements/semantic-browser.md` / Requirement "支持分层语义浏览" / Scenarios "下钻 Model 或 Authored View", "浏览 Element 详情"
   - Command: `pnpm exec playwright test test/e2e/semantic-browser-model-view.spec.ts test/e2e/semantic-browser-navigation-history.spec.ts test/e2e/semantic-browser-node-presentation.spec.ts --project=desktop --project=mobile`
   - Expect: 两个 viewport 中控件、focus、展开、URL、presentation、diff 与详情无重叠、空白画布或 hover-only 阻塞
@@ -278,8 +283,11 @@
 **Goal**: 使用 screenAnswer 的等价 Model/Authored 内容验证真实 Graphviz 质量、HMR freshness、reciprocal routing 与三种模式，不创建长期截图基线。
 
 **Files**:
+- Modify: `test/helpers/model-fixture.ts`
+- Create: `test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.peer.md`
+- Create: `test/fixtures/contract-browser/.xirang/changes/browser-change/relationships/invokes.yaml`
+- Create: `test/fixtures/contract-browser/.xirang/model/views/model-equivalent.md`
 - Test: `test/e2e/semantic-browser-model-view.spec.ts`
-- Test: `test-results/`
 
 **Requirements**:
 - Model 与等价 Authored View 使用同一原生 LikeC4/Graphviz 质量。
@@ -289,24 +297,25 @@
 
 #### Checks
 
-- [ ] C22 一次性验证等价 View 与 HMR
+- [x] C22 一次性验证等价 View 与 HMR
   - Verifies: `elements/semantic-browser.md` / Requirement "原子刷新基础 LikeC4 缓存" / Scenario "模型变化后刷新 Browser"
   - Command: `pnpm exec playwright test test/e2e/semantic-browser-model-view.spec.ts --project=desktop --project=mobile`
   - Evidence: 保存 screenAnswer Model 与 `app-overview` 对照截图、模型修改前后 fingerprint/HMR 日志和非空 canvas 检查
   - Expect: 无需重启即可显示新内容，Model/Authored 不再因渲染路径不同产生网格与 routing 质量差异
 
-- [ ] C23 一次性验证 Relationship edges 与 diff overlay
+- [x] C23 一次性验证 Relationship edges 与 diff overlay
   - Verifies: `elements/visual-presentation.md` / Requirement "分离 Relationship Edges" / Scenarios "同时呈现两个方向", "同向 Relationships 具有不同 Kind presentation"
-  - Evidence: 保存 reciprocal 与同向不同 Kind edges 的独立路径/箭头/点击详情，以及业务 style 与 ADDED/MODIFIED/REMOVED overlay 共存的 desktop/mobile 截图和 DOM/canvas assertions
-  - Expect: 每个 source Relationship 均可见可选，颜色不是唯一 diff 通道，REMOVED ghost 可查看详情
+  - Command: `pnpm exec vitest run test/core/likec4/generator.test.ts test/core/likec4/generator-validate.test.ts && cd likec4 && pnpm --filter @likec4/vite-plugin exec vitest run src/xirang/xirang-projection-handler.spec.ts && pnpm --filter @likec4/diagram exec vitest run src/xirang/architectureView.spec.ts && cd .. && pnpm exec playwright test test/e2e/semantic-browser-model-view.spec.ts --project=desktop --project=mobile`
+  - Evidence: 官方 LikeC4/Graphviz layout 将 32 条同向不同 Kind 关系聚合为 1 条 geometry edge，同时保留 32 个 relation identities；post-layout Xirang expansion 恢复独立 Kind presentation；desktop/mobile Change mode 验证 Relationship REMOVED overlay 与节点 ghost 共存。用户手测确认同向不同 Kind presentation 生效；原先手测不可响应的根因是 lowering 对每个 Kind 声明 multiple true 迫使 Graphviz 对每条平行关系独立 routing，现改为 pre-layout 聚合（不发出 multiple true，复用官方 relations 聚合）后布局工作量不随平行关系数线性爆炸。
+  - Expect: 每个 source Relationship 的语义 identity 保留，几何计算不按平行关系数重复爆炸，Kind presentation 与 diff overlay 共存；reciprocal 方向保持独立 edge identity
 
-- [ ] C24 验证三种 Presentation Mode 行为
+- [x] C24 验证三种 Presentation Mode 行为
   - Verifies: `elements/change-derived-views.md` / Requirement "呈现 Change 语义差异" / Scenarios "Complete with diff", "Diff only", "Complete"
   - Command: `pnpm exec vitest run test/core/view.test.ts && pnpm exec playwright test test/e2e/semantic-browser-model-view.spec.ts --project=desktop --project=mobile`
   - Evidence: 保存三个 modes 的节点/edge identities、REMOVED ghosts、必要 context 与 diff overlay assertions
   - Expect: Complete 无 overlay，Complete with diff 保留完整目标上下文与联合图，Diff only 只保留差异及必要上下文
 
-- [ ] C26 验证 Change 制品门禁
+- [x] C26 验证 Change 制品门禁
   - Verifies: `elements/derived-views.md` / Requirement "自动确定性推导" / Scenario "Change 与 View 组合改变"
   - Command: `pnpm xirang validate --change unify-semantic-browser-views --json && git diff --check`
   - Expect: combined Change validation 成功且无 whitespace error

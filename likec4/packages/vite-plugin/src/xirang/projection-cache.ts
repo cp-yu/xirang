@@ -38,6 +38,17 @@ export class ProjectionCache<T> {
     }
   }
 
+  /** Drops every entry not built from one of the active fingerprints. */
+  retainFingerprints(fingerprints: ReadonlySet<string>): number {
+    let dropped = 0;
+    for (const [key, entry] of [...this.entries]) {
+      if (fingerprints.has(entry.fingerprint)) continue;
+      this.entries.delete(key);
+      dropped += 1;
+    }
+    return dropped;
+  }
+
   /** Drops every entry not built from `fingerprint`; returns how many were dropped. */
   retainFingerprint(fingerprint: string): number {
     let dropped = 0;

@@ -125,7 +125,7 @@ describe('generateLikeC4 specification.c4', () => {
       .toEqual({ color: 'blue', line: 'dashed', head: 'diamond', tail: 'normal' });
   });
 
-  it('generates LikeC4 style block for relationship presentation', () => {
+  it('keeps relationship presentation out of the aggregated pre-layout kind', () => {
     const model: SemanticModel = {
       ...emptySemanticModel(),
       relationshipKinds: [{
@@ -136,21 +136,14 @@ describe('generateLikeC4 specification.c4', () => {
     };
     expect(generateLikeC4(model).get('specification.c4')).toBe([
       'specification {',
-      '  relationship critical_invokes {',
-      '    style {',
-      '      color red',
-      '      line dashed',
-      '      head diamond',
-      '      tail normal',
-      '    }',
-      '  }',
+      '  relationship critical_invokes',
       '}',
       '',
     ].join('\n'));
   });
 
-  it('outputs bare relationship kind without presentation', () => {
-    expect(generateLikeC4(constrained).get('specification.c4')).toContain('  relationship invokes\n');
+  it('does not request independent Graphviz layout for parallel semantic relationships', () => {
+    expect(generateLikeC4(constrained).get('specification.c4')).not.toContain('multiple true');
   });
 
   it('generates perspective with style block', () => {

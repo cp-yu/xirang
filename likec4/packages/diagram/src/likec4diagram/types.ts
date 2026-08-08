@@ -291,7 +291,7 @@ export namespace Types {
        */
       stepnum?: number
       xirang?: {
-        operation: 'ADDED' | 'MODIFIED' | 'REMOVED'
+        operation?: 'ADDED' | 'MODIFIED' | 'REMOVED'
         relation?: string
       }
     }

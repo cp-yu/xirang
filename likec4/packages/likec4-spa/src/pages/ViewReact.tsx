@@ -23,8 +23,7 @@ import { useEffect, useRef } from 'react'
 import { NotFound } from '../components/NotFound'
 import { headerOps } from '../components/view-page/state'
 import { useCurrentView } from '../hooks'
-import { SemanticBrowserControls } from '../xirang/SemanticBrowserController'
-import { ViewHistoryBridge } from '../xirang/ViewHistoryBridge'
+import { SemanticBrowserControls, SemanticBrowserRouteSync } from '../xirang/SemanticBrowserController'
 
 export function ViewReact() {
   const navigate = useNavigate()
@@ -91,7 +90,7 @@ export function ViewReact() {
     >
       <SemanticBrowserControls />
       <ListenForDiagramStateChanges />
-      <ViewHistoryBridge />
+      <SemanticBrowserRouteSync />
       <OpenRelationshipBrowserFromUrl />
       <FocusElementFromUrl />
     </LikeC4Diagram>

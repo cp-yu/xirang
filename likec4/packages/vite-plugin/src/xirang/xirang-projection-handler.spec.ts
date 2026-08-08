@@ -4,6 +4,7 @@ import {
   computeProjectionKey,
   handleProjection,
   parseProjectionRequest,
+  type ProjectionRequest,
 } from './xirang-projection-handler'
 import { ProjectionCache } from './projection-cache'
 import { XirangContractError } from './xirang-contract-handler'
@@ -66,7 +67,7 @@ describe('parseProjectionRequest', () => {
 })
 
 describe('computeProjectionKey', () => {
-  const base = { viewId: 'model', mode: 'complete' as const, focus: null, expanded: [], expectedFingerprint: FINGERPRINT }
+  const base = { viewId: 'model', change: null, mode: 'complete' as const, focus: null, expanded: [], expectedFingerprint: FINGERPRINT }
 
   it('is deterministic for the same request', () => {
     expect(computeProjectionKey(base)).toBe(computeProjectionKey(base))
@@ -84,8 +85,9 @@ describe('computeProjectionKey', () => {
       computeProjectionKey({ ...base, mode: 'complete-with-diff' }),
       computeProjectionKey({ ...base, focus: 'domain-a' }),
       computeProjectionKey({ ...base, expanded: ['domain-a'] }),
+      computeProjectionKey({ ...base, expectedFingerprint: 'other-fingerprint' }),
     ])
-    expect(keys.size).toBe(5)
+    expect(keys.size).toBe(6)
   })
 })
 
@@ -93,7 +95,7 @@ describe('assertFingerprintFresh', () => {
   it('passes when fingerprints match', () => {
     const manifest = JSON.parse(makeManifest()) as { version: 4; modelFingerprint: string; model: {}; authoredViews: {}; changes: {} }
     expect(() => assertFingerprintFresh(
-      { viewId: 'model', mode: 'complete', focus: null, expanded: [], expectedFingerprint: FINGERPRINT },
+      { viewId: 'model', change: null, mode: 'complete', focus: null, expanded: [], expectedFingerprint: FINGERPRINT },
       manifest,
     )).not.toThrow()
   })
@@ -103,7 +105,7 @@ describe('assertFingerprintFresh', () => {
     let caught: unknown
     try {
       assertFingerprintFresh(
-        { viewId: 'model', mode: 'complete', focus: null, expanded: [], expectedFingerprint: 'old-fp' },
+        { viewId: 'model', change: null, mode: 'complete', focus: null, expanded: [], expectedFingerprint: 'old-fp' },
         manifest,
       )
     } catch (err) {
@@ -121,6 +123,7 @@ describe('assertFingerprintFresh', () => {
 describe('handleProjection', () => {
   const validRequest = {
     viewId: 'model',
+    change: null,
     mode: 'complete' as const,
     focus: null,
     expanded: [],
@@ -153,6 +156,182 @@ describe('handleProjection', () => {
       ctx,
     )).rejects.toBeInstanceOf(XirangContractError)
     expect(diagrams).not.toHaveBeenCalled()
+  })
+
+  it('loads a Change target through its root-lowered LikeC4 sources', async () => {
+    const diagrams = vi.fn(async () => [fakeView('model')])
+    const loadSources = vi.fn(async () => ({ diagrams }))
+    const request = { ...validRequest, change: 'next' }
+    const result = await handleProjection(request, {
+      readManifest: async () => JSON.stringify({
+        version: 4,
+        modelFingerprint: FINGERPRINT,
+        model: { contracts: {} },
+        authoredViews: {},
+        changes: { next: { likec4Sources: { 'model.c4': 'model {}' } } },
+      }),
+      views: { diagrams: vi.fn(async () => []) },
+      loadSources,
+      cache: new ProjectionCache(50),
+      projectId: 'xirang',
+    })
+
+    expect(result.view.id).toBe('model')
+    expect(loadSources).toHaveBeenCalledWith({ 'model.c4': 'model {}' }, expect.any(String))
+    expect(diagrams).toHaveBeenCalledWith('xirang')
+  })
+
+  it('loads the before-after union source for diff-capable Change modes', async () => {
+    const diagrams = vi.fn(async () => [fakeView('model')])
+    const loadSources = vi.fn(async () => ({ diagrams }))
+    await handleProjection({ ...validRequest, change: 'next', mode: 'complete-with-diff' }, {
+      readManifest: async () => JSON.stringify({
+        version: 4,
+        modelFingerprint: FINGERPRINT,
+        model: { contracts: {} },
+        authoredViews: {},
+        changes: {
+          next: {
+            sourceFingerprint: 'change-fingerprint',
+            diffSourceFingerprint: 'union-fingerprint',
+            likec4Sources: { 'model.c4': 'after' },
+            diffLikec4Sources: { 'model.c4': 'union' },
+          },
+        },
+      }),
+      views: { diagrams: vi.fn(async () => []) },
+      loadSources,
+      cache: new ProjectionCache(50),
+      projectId: 'xirang',
+    })
+
+    expect(loadSources).toHaveBeenCalledWith({ 'model.c4': 'union' }, 'union-fingerprint')
+  })
+
+  it('selects mode-specific Change sources and diff-only identities', async () => {
+    const adhocView = vi.fn(async (_predicates: any[], _projectId?: string) => fakeView('next'))
+    const loadSources = vi.fn(async (_sources: Record<string, string>, _fingerprint: string) => ({
+      diagrams: async () => [],
+      viewsService: { adhocView },
+    }))
+    const manifest = {
+      version: 4,
+      modelFingerprint: FINGERPRINT,
+      model: { contracts: {} },
+      authoredViews: {},
+      changes: {
+        next: {
+          sourceFingerprint: 'after-fingerprint',
+          diffSourceFingerprint: 'union-fingerprint',
+          architecture: { elements: [
+            { declaration: { identity: 'root', parent: null } },
+            { declaration: { identity: 'added', parent: 'root' } },
+            { declaration: { identity: 'removed', parent: 'root' } },
+          ] },
+          diffArchitecture: { elements: [
+            { declaration: { identity: 'root', parent: null } },
+            { declaration: { identity: 'added', parent: 'root' } },
+            { declaration: { identity: 'removed', parent: 'root' } },
+          ] },
+          diff: { entries: [{ kind: 'element-declaration', identity: 'removed' }] },
+          likec4Sources: { 'model.c4': 'after' },
+          likec4ElementPaths: { root: 'root', added: 'root.added', removed: 'root.removed' },
+          diffLikec4Sources: { 'model.c4': 'union' },
+          diffLikec4ElementPaths: { root: 'root', added: 'root.added', removed: 'root.removed' },
+        },
+      },
+    }
+    const make = (mode: ProjectionRequest['mode']) => handleProjection({ ...validRequest, change: 'next', mode }, {
+      readManifest: async () => JSON.stringify(manifest),
+      views: { diagrams: async () => [] },
+      loadSources,
+      cache: new ProjectionCache(50),
+      projectId: 'xirang',
+    })
+
+    await make('complete')
+    await make('complete-with-diff')
+    await make('diff-only')
+
+    expect(loadSources.mock.calls.map(call => call[0])).toEqual([
+      { 'model.c4': 'after' },
+      { 'model.c4': 'union' },
+      { 'model.c4': 'union' },
+    ])
+    const diffOnlyPredicates = adhocView.mock.calls[2]?.[0] as Array<{ include?: Array<{ ref: { model: string } }> }>
+    expect(diffOnlyPredicates[0]?.include?.map(item => item.ref.model)).toContain('root.removed')
+    expect(diffOnlyPredicates[0]?.include?.map(item => item.ref.model)).not.toContain('root.added')
+  })
+
+  it('uses the same root projection for Model and equivalent Authored selections', async () => {
+    const adhocView = vi.fn(async (_predicates: any[], _projectId?: string) => fakeView('adhoc'))
+    const manifest = {
+      version: 4,
+      modelFingerprint: FINGERPRINT,
+      model: {
+        sourceFingerprint: FINGERPRINT,
+        architecture: { elements: [
+          { declaration: { identity: 'root', parent: null } },
+          { declaration: { identity: 'a', parent: 'root' } },
+          { declaration: { identity: 'b', parent: 'root' } },
+        ] },
+        likec4Sources: { 'model.c4': 'model {}' },
+        likec4ElementPaths: { root: 'root', a: 'root.a', b: 'root.b' },
+      },
+      authoredViews: {
+        equivalent: { title: 'Equivalent', selection: ['root', 'a', 'b'], roots: ['root'], virtualRoot: false },
+      },
+      changes: {},
+    }
+    const context = {
+      readManifest: async () => JSON.stringify(manifest),
+      views: { diagrams: async () => [] },
+      loadSources: async () => ({ diagrams: async () => [], viewsService: { adhocView } }),
+      cache: new ProjectionCache<Awaited<ReturnType<typeof handleProjection>>>(50),
+      projectId: 'xirang',
+    }
+
+    await handleProjection(validRequest, context)
+    await handleProjection({ ...validRequest, viewId: 'equivalent' }, context)
+
+    expect(adhocView.mock.calls[0]?.[0]).toEqual(adhocView.mock.calls[1]?.[0])
+  })
+
+  it('carries every relation from an aggregated official edge as stable Xirang triples', async () => {
+    const view = {
+      ...fakeView('model'),
+      edges: [{ id: 'edge', source: 'root_a', target: 'root_b', relations: ['rel-1', 'rel-2'] }],
+    } as unknown as LayoutedView
+    const context = makeContext()
+    context.readManifest = async () => JSON.stringify({
+      version: 4,
+      modelFingerprint: FINGERPRINT,
+      model: {
+        sourceFingerprint: FINGERPRINT,
+        contracts: {},
+        likec4Sources: { 'model.c4': 'model {}' },
+        likec4ElementPaths: { 'root.a': 'root_a', 'root.b': 'root_b' },
+      },
+      authoredViews: {},
+      changes: {},
+    })
+    const result = await handleProjection(validRequest, {
+      ...context,
+      loadSources: async () => ({
+        diagrams: async () => [view],
+        computedModel: async () => ({
+          findRelationship: id => ({
+            source: { id: 'root_a' },
+            target: { id: 'root_b' },
+            kind: id === 'rel-1' ? 'calls' : 'reads',
+            title: id === 'rel-1' ? 'invokes' : 'observes',
+          }),
+        }),
+      }),
+    })
+
+    expect((result.view.edges[0] as unknown as { metadata: { xirangRelations: string[] } }).metadata.xirangRelations)
+      .toEqual(['root.a|invokes|root.b', 'root.a|observes|root.b'])
   })
 
   it('returns a cached response without re-calling the views service on repeat', async () => {
@@ -189,6 +368,59 @@ describe('handleProjection', () => {
 })
 
 describe('official LikeC4 pipeline integration', () => {
+  it('lays out Model and equivalent Authored roots identically', { timeout: 120_000 }, async () => {
+    const sources = {
+      'likec4.config.json': '{"name":"xirang","implicitViews":false,"defaultLandscapeView":false}',
+      'specification.c4': 'specification {\n  element project\n  element capability\n}\n',
+      'model.c4': [
+        'model {',
+        "  root = project 'Root' 'Root' {",
+        "    a = capability 'A' 'A'",
+        "    group = capability 'Group' 'Group' {",
+        "      child = capability 'Child' 'Child'",
+        '    }',
+        '  }',
+        '}',
+        '',
+      ].join('\n'),
+      'relations.c4': 'model {}\n',
+      'views.c4': 'views {\n  view model { include * }\n  view equivalent { include * }\n}\n',
+    }
+    const manifest = {
+      version: 4,
+      modelFingerprint: FINGERPRINT,
+      model: {
+        sourceFingerprint: FINGERPRINT,
+        architecture: { elements: [
+          { declaration: { identity: 'root', parent: null } },
+          { declaration: { identity: 'a', parent: 'root' } },
+          { declaration: { identity: 'group', parent: 'root' } },
+          { declaration: { identity: 'child', parent: 'group' } },
+        ] },
+        likec4Sources: sources,
+        likec4ElementPaths: { root: 'root', a: 'root.a', group: 'root.group', child: 'root.group.child' },
+      },
+      authoredViews: {
+        equivalent: { title: 'Equivalent', selection: ['root', 'a', 'group', 'child'], roots: ['root'], virtualRoot: false },
+      },
+      changes: {},
+    }
+    const makeContext = () => ({
+      readManifest: async () => JSON.stringify(manifest),
+      views: { diagrams: async () => [] },
+      loadSources: async (input: Record<string, string>) => (await import('@likec4/language-services/node')).fromSources(input),
+      cache: new ProjectionCache<Awaited<ReturnType<typeof handleProjection>>>(50),
+      projectId: 'xirang',
+    })
+    const request = { viewId: 'model' as const, change: null, mode: 'complete' as const, focus: null, expanded: [], expectedFingerprint: FINGERPRINT }
+    const [model, authored] = await Promise.all([
+      handleProjection(request, makeContext()),
+      handleProjection({ ...request, viewId: 'equivalent' }, makeContext()),
+    ])
+
+    expect(authored.view.nodes).toEqual(model.view.nodes)
+  })
+
   it('diagrams() returns a layouted view with Graphviz geometry', { timeout: 120_000 }, async () => {
     const { fromSources } = await import('@likec4/language-services/node')
     const likec4 = await fromSources({
@@ -223,5 +455,64 @@ describe('official LikeC4 pipeline integration', () => {
     // The handler calls diagrams() on the same base; geometry cannot come from a custom renderer.
     expect(modelView!.nodes.some(n => n.x !== 0 || n.y !== 0)).toBe(true)
     await likec4.dispose()
+  })
+
+  it('lays out a virtualRoot Authored selection through official Graphviz without a synthetic Element', { timeout: 120_000 }, async () => {
+    const sources = {
+      'likec4.config.json': '{"name":"xirang","implicitViews":false,"defaultLandscapeView":false}',
+      'specification.c4': 'specification {\n  element project\n  element capability\n}\n',
+      'model.c4': [
+        'model {',
+        "  a = project 'Alpha' 'Alpha project' {",
+        "    metadata { elementId 'alpha' }",
+        '  }',
+        "  b = capability 'Beta' 'Beta capability' {",
+        "    metadata { elementId 'beta' }",
+        '  }',
+        '}',
+        '',
+      ].join('\n'),
+      'relations.c4': 'model {}\n',
+      'views.c4': 'views {\n  view model { include * }\n}\n',
+    }
+    const manifest = {
+      version: 4,
+      modelFingerprint: FINGERPRINT,
+      model: {
+        sourceFingerprint: FINGERPRINT,
+        architecture: { elements: [
+          { declaration: { identity: 'alpha', parent: null } },
+          { declaration: { identity: 'beta', parent: null } },
+        ] },
+        likec4Sources: sources,
+        likec4ElementPaths: { alpha: 'a', beta: 'b' },
+      },
+      authoredViews: {
+        multi: { title: 'Multi', selection: ['alpha', 'beta'], roots: ['alpha', 'beta'], virtualRoot: true },
+      },
+      changes: {},
+    }
+    const context = {
+      readManifest: async () => JSON.stringify(manifest),
+      views: { diagrams: async () => [] },
+      loadSources: async (input: Record<string, string>) => (await import('@likec4/language-services/node')).fromSources(input),
+      cache: new ProjectionCache<Awaited<ReturnType<typeof handleProjection>>>(50),
+      projectId: 'xirang',
+    }
+    const result = await handleProjection(
+      { viewId: 'multi', change: null, mode: 'complete', focus: null, expanded: [], expectedFingerprint: FINGERPRINT },
+      context,
+    )
+
+    expect(result.view.id).toBe('multi')
+    const modelRefs = result.view.nodes.map(node => node.modelRef)
+    // Both independent roots are laid out by Graphviz and no synthetic virtual-root Element appears.
+    expect(new Set(modelRefs)).toEqual(new Set(['a', 'b']))
+    for (const node of result.view.nodes) {
+      expect(node.x, `${node.id} must have x`).toBeTypeOf('number')
+      expect(node.y, `${node.id} must have y`).toBeTypeOf('number')
+      expect(node.width, `${node.id} must have width`).toBeGreaterThan(0)
+      expect(node.height, `${node.id} must have height`).toBeGreaterThan(0)
+    }
   })
 })

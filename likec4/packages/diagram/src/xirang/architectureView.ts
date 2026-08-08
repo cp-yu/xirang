@@ -80,10 +80,11 @@ export function applyXirangPresentationOverlay(
       .find(element => element.declaration.identity === identity)?.declaration as XirangElementDeclaration | undefined
     const style = declaration ? kindStyles.get(declaration.kind) : undefined
     const operation = identity ? elementOperations.get(identity) : undefined
+    const hasSemanticChildren = source.architecture?.elements.some(element => element.declaration.parent === identity) ?? false
     const metadata = {
       ...(node.metadata ?? {}),
       ...(identity ? { elementId: identity } : {}),
-      ...(operation ? xirangProjectionMetadata(identity!, operation, node.children.length > 0) : {}),
+      ...(operation ? xirangProjectionMetadata(identity!, operation, hasSemanticChildren) : {}),
     }
     return {
       ...node,
@@ -108,6 +109,7 @@ export function applyXirangPresentationOverlay(
       metadata: {
         ...((edge as ViewEdge & { metadata?: Readonly<Record<string, unknown>> }).metadata ?? {}),
         ...(triples.length > 0 ? { xirangRelations: triples } : {}),
+        ...(triples.length === 1 ? { xirangRelation: triples[0] } : {}),
         ...(relationshipOperation ? { xirangOperation: relationshipOperation } : {}),
       },
     } as ViewEdge
