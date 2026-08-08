@@ -406,6 +406,12 @@ export function SemanticBrowserRouteSync() {
   useEffect(() => {
     if (!controller) return
     const state = historyStateForSemanticBrowser(controller.state)
+    const serialized = JSON.stringify(state)
+    // Only write when the Xirang history payload actually differs. Writing a fresh
+    // state object on every effect run notifies the router (TanStack patches
+    // replaceState), which can re-mount this route and re-run the effect forever.
+    const current = (window.history.state as { xirang?: SemanticBrowserHistoryState } | null)?.xirang
+    if (current && JSON.stringify(current) === serialized) return
     window.history.replaceState({ ...window.history.state, xirang: state }, '')
   }, [controller, controller?.state])
 
