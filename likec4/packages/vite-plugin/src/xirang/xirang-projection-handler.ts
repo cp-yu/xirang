@@ -93,6 +93,12 @@ function attachRelationshipMetadata(
 ): LayoutedView {
   if (!model) return view
   const reverse = new Map(Object.entries(paths).map(([identity, path]) => [path, identity]))
+  const relationshipOperations = new Map<string, 'ADDED' | 'MODIFIED' | 'REMOVED'>()
+  for (const entry of diffEntries) {
+    if (entry.kind === 'relationship' && !relationshipOperations.has(entry.identity)) {
+      relationshipOperations.set(entry.identity, entry.operation)
+    }
+  }
   return {
     ...view,
     edges: view.edges.map(edge => {
@@ -106,7 +112,7 @@ function attachRelationshipMetadata(
         return source && target && kind ? [`${source}|${kind}|${target}`] : []
       })
       const operation = triples
-        .map(identity => diffEntries.find(entry => entry.kind === 'relationship' && entry.identity === identity)?.operation)
+        .map(identity => relationshipOperations.get(identity))
         .find((value): value is 'ADDED' | 'MODIFIED' | 'REMOVED' => value !== undefined)
       if (triples.length === 0 && !operation) return edge
       return {

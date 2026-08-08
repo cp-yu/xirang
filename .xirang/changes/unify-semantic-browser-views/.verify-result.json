@@ -81,8 +81,8 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "8bde9d7d455210e69a6e776101b0733269c4e053",
-    "timestamp": "2026-08-08T10:57:35.396Z"
+    "gitHeadCommit": "454dcf28e26ba6ad1bb66ee6a0db72be0760d986",
+    "timestamp": "2026-08-08T11:10:58.337Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
@@ -109,6 +109,21 @@
       },
       {
         "timestamp": "2026-08-08T10:57:35.385Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-08T11:03:14.511Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-08T11:07:33.661Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-08T11:10:58.325Z",
         "type": "verification",
         "result": "PASS"
       }
@@ -244,7 +259,7 @@
         "priorityReason": "Implemented, verified PASS by fresh reviewer, committed as wip:opt-r1; resolved in this reconciliation."
       },
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts"
@@ -256,14 +271,14 @@
         "id": "OPT-20260808T103930164Z-02",
         "opportunity": "children(identity) re-filtered the entire element list per call and children(root) was called twice per root; selectedIdentities was a write-only dead store.",
         "impact": "Each first-time projection request builds include predicates with a single element pass instead of per-root full scans, removing multiplicative scans and the write-only bookkeeping.",
+        "recommendation": "Implemented: childrenByParent Map built once per request, children closure replaced with map lookup, rootChildren hoisted, selectedIdentities removed.",
+        "keyDesign": "Single pass over architecture.elements pushing each identity into its parent bucket in model order (applying authored-boundary filter exactly as today); all consumers use the map lookup; selectedIdentities removed because it is never read.",
         "evidence": [
           "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:196-204 childrenByParent single-pass map",
           "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:205 children closure = childrenByParent.get(identity) ?? []",
           "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:231-232 rootChildren hoisted once per root",
           "zero remaining selectedIdentities references"
         ],
-        "recommendation": "Implemented in current working tree: childrenByParent Map built once per request, children closure replaced with map lookup, rootChildren hoisted, selectedIdentities removed.",
-        "keyDesign": "Single pass over architecture.elements pushing each identity into its parent bucket in model order (applying authored-boundary filter exactly as today); all consumers use the map lookup; selectedIdentities removed because it is never read.",
         "preservationConstraints": [
           "include-predicate order and content remain identical; per-parent buckets preserve model array order",
           "authoredBoundary membership filtering applied inside the same single pass",
@@ -287,13 +302,10 @@
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "Implementation already present in working tree; retained and re-selected so freshness gate records current hashes and reviewer verification completes.",
-        "targetFileHashes": {
-          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts": "8afdfa01165c81a7a0edd23a5eef272def4331fdd23b3678af8e9aabbb931010"
-        }
+        "priorityReason": "Implemented, verified PASS by fresh reviewer, committed as wip:opt-r2; resolved in this reconciliation via resolve action."
       },
       {
-        "status": "pending",
+        "status": "verified",
         "location": {
           "files": [
             "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts"
@@ -303,33 +315,42 @@
           ]
         },
         "id": "OPT-20260808T103930164Z-03",
-        "opportunity": "For every relation triple of every layouted edge, diffEntries.find(...) linearly scans the full diff entry list, making projection response enrichment O(edges x triples x diffEntries).",
-        "impact": "For projections over a Change with many relationship diff entries, edge enrichment drops from per-triple linear scan to O(1) map lookups.",
+        "opportunity": "For every relation triple of every layouted edge, diffEntries.find(...) linearly scanned the full diff entry list, making projection response enrichment O(edges x triples x diffEntries) on the cache-miss path.",
+        "impact": "Edge enrichment in attachRelationshipMetadata drops from per-triple linear scan over all diff entries to O(1) map lookups, reducing the whole call to O(diffEntries + edges x triples).",
         "evidence": [
-          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:109 nested linear scan over diffEntries per triple"
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:96-100 relationshipOperations first-occurrence-wins map built once before edges.map",
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:114-116 per-triple O(1) lookup with preserved trailing first-defined-operation .find"
         ],
-        "recommendation": "Precompute a Map<string, 'ADDED'|'MODIFIED'|'REMOVED'> from diffEntries (first occurrence wins) once per attachRelationshipMetadata call, then replace the per-triple .find with relationshipOperations.get(identity).",
-        "keyDesign": "Single map built before the view.edges.map loop; identical first-match semantics to .find; absent entries yield undefined so no xirangOperation is attached.",
+        "recommendation": "Implemented in current working tree: precompute a first-occurrence-wins relationshipOperations Map once per attachRelationshipMetadata call, replace the per-triple .find with relationshipOperations.get(identity).",
+        "keyDesign": "Single relationshipOperations map built before the edges.map loop; only kind === 'relationship' entries are keys; a key is set only when absent (identical to Array.find semantics); absent identity yields undefined so no xirangOperation is attached; triple order preserved.",
         "preservationConstraints": [
-          "First-match semantics preserved by only setting a map key when not already present",
-          "Non-relationship diff entries ignored exactly as today; edges without triples or operations pass through unchanged",
-          "Metadata and response shape unchanged"
+          "First-match semantics preserved: map only sets a key when not already present",
+          "Non-relationship diff entries are ignored exactly as today",
+          "Edges without triples or without a matching operation pass through unchanged",
+          "xirangRelations/xirangRelation/xirangOperation metadata and the overall response shape unchanged",
+          "diffEntries type guarantees operation is always 'ADDED'|'MODIFIED'|'REMOVED', so no undefined-valued map keys are possible",
+          "Map is built once per call, not per edge, because diffEntries is identical for every edge"
         ],
         "implementationOutline": [
-          "Precompute the relationship operation map at the top of attachRelationshipMetadata",
-          "Replace the per-triple .find chain with relationshipOperations.get(identity)",
-          "Run xirang-projection-handler.spec.ts"
+          "After the guard, iterate diffEntries once building relationshipOperations (skip non-relationship kinds, set only absent keys)",
+          "Replace the per-triple .find chain with triples.map(identity => relationshipOperations.get(identity)).find((value): value is 'ADDED'|'MODIFIED'|'REMOVED' => value !== undefined)",
+          "Run likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts (69 tests) and typecheck",
+          "Confirm the aggregated-edge test still asserts xirangRelations and diff-operation assertions hold"
         ],
         "validation": [
-          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts assertions on xirangRelations/xirangOperation metadata must stay green",
-          "cd likec4 && pnpm --filter @likec4/vite-plugin exec vitest run src/xirang"
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts xirangRelations/xirangOperation assertions stay green",
+          "cd likec4 && pnpm --filter @likec4/vite-plugin exec vitest run src/xirang (69 tests)",
+          "typecheck clean"
         ],
         "impactLevel": "low",
         "confidence": "high",
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "Still applicable at line 109 after OPT-02 rewrite; trivially safe, same file; ordered last behind OPT-02."
+        "priorityReason": "Implementation already present in working tree; retained and re-selected so freshness gate records current hashes and reviewer verification completes.",
+        "targetFileHashes": {
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts": "49104c54931d1e273829862bef9927b4fcff416d300256a8c1c0499f9e2e9fab"
+        }
       }
     ],
     "history": [
@@ -452,9 +473,67 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-08T10:57:35.385Z",
         "findingId": "OPT-20260808T103930164Z-02"
+      },
+      {
+        "sequence": 16,
+        "action": "resolve",
+        "reason": "Terminal: implemented, committed as 454dcf28 (wip: opt-r2), re-verified. childrenByParent single-pass map, children closure = map lookup, rootChildren hoisted, selectedIdentities dead store removed (zero references); file hash matches recorded targetFileHashes; 4 files / 69 vite-plugin xirang tests pass.",
+        "timestamp": "2026-08-08T11:03:14.508Z",
+        "findingId": "OPT-20260808T103930164Z-02"
+      },
+      {
+        "sequence": 17,
+        "action": "retain",
+        "reason": "Validated against current code: line 109 still runs diffEntries.find(...) per relation triple inside view.edges.map, so enrichment is O(edges x triples x diffEntries) on cache miss. Recommendation holds: precompute a first-occurrence-wins relationshipOperations map once per call; behavior-preserving. Only actionable finding, low impact / high confidence / low risk / low cost.",
+        "timestamp": "2026-08-08T11:03:14.508Z",
+        "findingId": "OPT-20260808T103930164Z-03"
+      },
+      {
+        "sequence": 18,
+        "action": "select",
+        "reason": "Only remaining actionable finding, in the same file as the just-resolved OPT-02; map precompute is statically provable, trivially safe (identical first-match semantics), low cost.",
+        "timestamp": "2026-08-08T11:03:14.511Z",
+        "findingId": "OPT-20260808T103930164Z-03",
+        "hashes": {
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts": "8afdfa01165c81a7a0edd23a5eef272def4331fdd23b3678af8e9aabbb931010"
+        }
+      },
+      {
+        "sequence": 19,
+        "action": "retain",
+        "reason": "STALE_FINDING recovery: the working tree already fully implements OPT-03 (relationshipOperations first-occurrence-wins map precomputed once per attachRelationshipMetadata call; per-triple O(1) lookup). Include-predicate and metadata behavior preserved; 69 vite-plugin xirang tests pass; typecheck clean. Retain selected->pending so the CLI re-selects with fresh hashes, the begin-implementation gate passes, and reviewer verification completes. Do not re-implement.",
+        "timestamp": "2026-08-08T11:07:33.658Z",
+        "findingId": "OPT-20260808T103930164Z-03"
+      },
+      {
+        "sequence": 20,
+        "action": "select",
+        "reason": "Implementation already present in working tree; retained and re-selected so freshness gate records current hashes and reviewer verification completes.",
+        "timestamp": "2026-08-08T11:07:33.661Z",
+        "findingId": "OPT-20260808T103930164Z-03",
+        "hashes": {
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts": "49104c54931d1e273829862bef9927b4fcff416d300256a8c1c0499f9e2e9fab"
+        }
+      },
+      {
+        "sequence": 21,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-08T11:07:42.547Z",
+        "findingId": "OPT-20260808T103930164Z-03",
+        "hashes": {
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts": "49104c54931d1e273829862bef9927b4fcff416d300256a8c1c0499f9e2e9fab"
+        }
+      },
+      {
+        "sequence": 22,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-08T11:10:58.325Z",
+        "findingId": "OPT-20260808T103930164Z-03"
       }
     ],
-    "reconciliationSignature": "f37d987ee45ff77dddfc5a26cfe796da4feeb93ee9f6ef928954035441d0d174",
+    "reconciliationSignature": "8027c2d30c9937204e12c49803cf0298f7bb2663b85a88d4a5fdd70a9fae9a38",
     "unchangedReconciliations": 0
   }
 }
