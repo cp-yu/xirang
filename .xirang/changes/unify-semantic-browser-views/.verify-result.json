@@ -1,29 +1,7 @@
 {
-  "timestamp": "2026-08-08T10:14:48.697Z",
-  "result": "FAIL_NEEDS_CORRECTIONS",
-  "issues": [
-    {
-      "severity": "CRITICAL",
-      "message": "Spec/implementation conflict: the change delta contract Requirement '分离 Relationship Edges' still declared 'SHALL 由 Graphviz 分别 routing；… 不得集中或合并为同一路径', but the implementation aggregates same-direction relationships pre-layout (bare kinds, no multiple true, official relations aggregation into one geometry edge) and post-layout expanded visual edges share that single Graphviz path. design.md Decision 9 was amended but the declared element contract was not.",
-      "evidence": [
-        ".xirang/changes/unify-semantic-browser-views/elements/visual-presentation.md",
-        ".xirang/changes/unify-semantic-browser-views/design.md",
-        "src/core/likec4/generator.ts",
-        "likec4/packages/diagram/src/xirang/architectureView.ts",
-        "test/core/likec4/generator-validate.test.ts"
-      ]
-    },
-    {
-      "severity": "CRITICAL",
-      "message": "Correctness regression from the aggregation fix: relationship Kind presentation was only re-applied for aggregated multi-triple edges; single non-aggregated relationship edges passed through unchanged and rendered LikeC4 defaults because the generator no longer lowers relationship style blocks into specification.c4.",
-      "evidence": [
-        "likec4/packages/diagram/src/xirang/architectureView.ts",
-        "src/core/likec4/generator.ts",
-        "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
-        "test/fixtures/contract-browser/.xirang/model/metamodel/invokes.md"
-      ]
-    }
-  ],
+  "timestamp": "2026-08-08T10:35:10.212Z",
+  "result": "PASS",
+  "issues": [],
   "tasksFileHash": "f583af8b5b596d5c52c6f04c583b36fe1447382d584fd072d81293468aae8164",
   "verificationContext": {
     "contractVersion": "1.0",
@@ -43,11 +21,11 @@
       "test/e2e/semantic-browser-model-view.spec.ts",
       "test/fixtures/contract-browser/.xirang/model/views/model-equivalent.md"
     ],
-    "evidenceFingerprint": "27be89d9aa6abfb07a0f1405707fea784fc52a9a5307c072b1b92aab0037a17c",
+    "evidenceFingerprint": "a1706363dcb508d15d22b16a9c990da50d948b0853d4b855796c06d187a8b7bb",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/unify-semantic-browser-views/.apply-isolation.json",
-        "hash": "7b1306919d03ab2e9be36a8872ddd6bd0401fb7e363c6ab656013a8deef44450"
+        "hash": "050dc7d5ca4844e32e63e9338bab98363e1b0cef6cd54af922de3cfe5701ae39"
       },
       {
         "path": ".xirang/changes/unify-semantic-browser-views/design.md",
@@ -63,11 +41,11 @@
       },
       {
         "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
-        "hash": "d1e78fdc5aa4094ab482dd1ad5323f2214eb1e9f652fb4017634e5dd1424f0d7"
+        "hash": "ed268c70ff04f04f76cbcded86ee13184cee71a60db8e970dd9421f7859d7608"
       },
       {
         "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
-        "hash": "b4e58c80fa9d38876c4f8679154e86bfded542885c4afadc72d366de501d1999"
+        "hash": "7a1671d2ee73a0a762d84374ccfff4ce85115a0ddc1f62a436707ebdb1162e9b"
       },
       {
         "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
@@ -103,13 +81,25 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "9ccc009fd4664a5b83b0b5425bb71a063f877c48"
+    "gitHeadCommit": "cde7c5fb93c4ba123e9eaaa62d8c47055effb77e",
+    "timestamp": "2026-08-08T10:43:35.067Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-08-08T10:39:30.168Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-08T10:43:35.055Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
-      "timestamp": "2026-08-08T10:14:48.697Z",
+      "timestamp": "2026-08-08T10:35:10.212Z",
       "result": "PASS",
       "issues": [],
       "tasksFileHash": "f583af8b5b596d5c52c6f04c583b36fe1447382d584fd072d81293468aae8164",
@@ -131,11 +121,11 @@
           "test/e2e/semantic-browser-model-view.spec.ts",
           "test/fixtures/contract-browser/.xirang/model/views/model-equivalent.md"
         ],
-        "evidenceFingerprint": "27be89d9aa6abfb07a0f1405707fea784fc52a9a5307c072b1b92aab0037a17c",
+        "evidenceFingerprint": "53e961951acd8f76016852aca19ca96280c5261c71975684a84774d63a716ecf",
         "evidenceFingerprintEntries": [
           {
             "path": ".xirang/changes/unify-semantic-browser-views/.apply-isolation.json",
-            "hash": "7b1306919d03ab2e9be36a8872ddd6bd0401fb7e363c6ab656013a8deef44450"
+            "hash": "050dc7d5ca4844e32e63e9338bab98363e1b0cef6cd54af922de3cfe5701ae39"
           },
           {
             "path": ".xirang/changes/unify-semantic-browser-views/design.md",
@@ -151,11 +141,11 @@
           },
           {
             "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
-            "hash": "d1e78fdc5aa4094ab482dd1ad5323f2214eb1e9f652fb4017634e5dd1424f0d7"
+            "hash": "ed268c70ff04f04f76cbcded86ee13184cee71a60db8e970dd9421f7859d7608"
           },
           {
             "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
-            "hash": "b4e58c80fa9d38876c4f8679154e86bfded542885c4afadc72d366de501d1999"
+            "hash": "54b86f76c62c5d610b5062cd83c93c07708824e601aba70dd68acf7083188b25"
           },
           {
             "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
@@ -191,8 +181,190 @@
           }
         ],
         "skippedEvidenceFiles": [],
-        "gitHeadCommit": "9ccc009fd4664a5b83b0b5425bb71a063f877c48"
+        "gitHeadCommit": "cde7c5fb93c4ba123e9eaaa62d8c47055effb77e"
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "likec4/packages/diagram/src/xirang/architectureView.ts"
+          ],
+          "symbols": [
+            "applyXirangPresentationOverlay"
+          ]
+        },
+        "opportunity": "The per-projection overlay runs in the browser on every Semantic Browser interaction (focus, expanded, mode, view change re-apply it via DiagramUI.tsx). Inside nodes.map it scans the full element list twice per node (.find for declaration, .some for semantic children), and inside edges.map it re-filters the diff entries per edge and per relation triple via structuralEntries(source) plus .find. One projection apply is O(nodes x elements + edges x diffEntries) instead of O(nodes + elements + diffEntries).",
+        "impact": "For a model with hundreds of elements and a Change with many diff entries, every interaction drops from quadratic to linear scans, reducing per-interaction work and frame latency in the interactive Semantic Browser.",
+        "evidence": [
+          "likec4/packages/diagram/src/xirang/architectureView.ts:80 element .find inside per-node map",
+          "likec4/packages/diagram/src/xirang/architectureView.ts:83 .some for parent identities inside per-node map",
+          "likec4/packages/diagram/src/xirang/architectureView.ts:104-106 structuralEntries(source).find per edge and per triple",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx applyXirangPresentationOverlay call"
+        ],
+        "recommendation": "Hoist three indexes above the nodes.map/edges.map loops: Map<identity, declaration> (first-occurrence-wins), Set of identities appearing as any element parent, and Map<relationship identity, operation> for relationship diff entries; replace per-node .find/.some and per-triple .find with O(1) lookups.",
+        "keyDesign": "Reuse the map-based idiom already present (operationByIdentity, kindStylesByKind). Build indexes once per call, then nodes resolve declaration and hasSemanticChildren via maps, edges resolve operation from the relationship-op map.",
+        "preservationConstraints": [
+          "Node/edge iteration order and object shapes unchanged; official layout geometry untouched",
+          "Maps built first-occurrence-wins to match .find() semantics",
+          "hasSemanticChildren stays true iff some element declares parent === identity; empty when source.architecture absent",
+          "Per-edge xirangOperation keeps first-relationship-operation-wins behavior",
+          "Element Contracts, public contracts, and Xirang Semantic Model intent are not touched"
+        ],
+        "implementationOutline": [
+          "Build elementsByIdentity, parentIdentities, relationshipOperations at top of applyXirangPresentationOverlay (only when source.architecture present)",
+          "Replace per-node lookups and per-triple .find chain",
+          "Run architectureView.spec.ts and diagram typecheck"
+        ],
+        "validation": [
+          "likec4/packages/diagram/src/xirang/architectureView.spec.ts (6 tests) must stay green",
+          "cd likec4 && pnpm --filter @likec4/diagram typecheck"
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Highest-frequency hotspot: the overlay executes on every Semantic Browser interaction; quadratic scans are statically provable; localized low-risk index hoist consistent with existing map helpers.",
+        "id": "OPT-20260808T103930164Z-01",
+        "targetFileHashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.ts": "54b86f76c62c5d610b5062cd83c93c07708824e601aba70dd68acf7083188b25"
+        }
+      },
+      {
+        "status": "pending",
+        "location": {
+          "files": [
+            "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts"
+          ],
+          "symbols": [
+            "handleProjection"
+          ]
+        },
+        "opportunity": "children(identity) re-filters the entire element list on every call, and the Model Selection branch calls children(root) twice per root (include predicates and selectedIdentities), so building the include predicate set for a large model is O(roots x elements x 2 + expanded x elements) instead of O(elements + roots + expanded). The diff-only collectBoundary recursion pays the same per-call scan.",
+        "impact": "Each first-time projection request (cache miss) for a large model builds its include predicates with a single element pass instead of per-root full scans, removing a multiplicative scan from the request path.",
+        "evidence": [
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:196-199 children closure filters whole element list per call",
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:232-233 children(root) called twice per root",
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:247 collectBoundary re-scans on each recursion step"
+        ],
+        "recommendation": "Build one Map<string, string[]> of children-by-parent (respecting authoredBoundary) once per request and replace the children closure with children.get(identity) ?? []; hoist per-root results into a local variable computed once per root.",
+        "keyDesign": "Single pass over architecture.elements pushing each identity into its parent bucket in model order (applying the optional authored-boundary filter exactly as today); all consumers use the map lookup.",
+        "preservationConstraints": [
+          "include-predicate order and selectedIdentities remain identical; per-parent buckets preserve model array order",
+          "authoredBoundary membership filtering applied inside the same single pass",
+          "Empty result when architecture is absent",
+          "No change to projection key, response shape, or cache semantics"
+        ],
+        "implementationOutline": [
+          "Build childrenByParent map once per request",
+          "Replace children closure usages and double per-root scan",
+          "Run xirang-projection-handler.spec.ts"
+        ],
+        "validation": [
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts must stay green",
+          "cd likec4 && pnpm --filter @likec4/vite-plugin exec vitest run src/xirang"
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Server-side pure waste is doubled (two identical O(elements) scans per root) and statically provable with zero behavior-surface change; ranked after the client overlay because it only runs on projection cache misses.",
+        "id": "OPT-20260808T103930164Z-02"
+      },
+      {
+        "status": "pending",
+        "location": {
+          "files": [
+            "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts"
+          ],
+          "symbols": [
+            "attachRelationshipMetadata"
+          ]
+        },
+        "opportunity": "For every relation triple of every layouted edge, diffEntries.find(...) linearly scans the full diff entry list, making projection response enrichment O(edges x triples x diffEntries).",
+        "impact": "For projections over a Change with many relationship diff entries, edge enrichment drops from per-triple linear scan to O(1) map lookups, shrinking per-request server work on cache misses.",
+        "evidence": [
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:108-111 nested linear scan over diffEntries per triple"
+        ],
+        "recommendation": "Precompute a Map<string, ADDED|MODIFIED|REMOVED> from diffEntries (first occurrence wins) once per call, then replace the .find with relationshipOperations.get(identity).",
+        "keyDesign": "Single map built before the view.edges.map loop; identical first-match semantics to .find; absent entries yield undefined so no xirangOperation is attached.",
+        "preservationConstraints": [
+          "First-match semantics preserved by only setting a map key when not already present",
+          "Non-relationship diff entries ignored exactly as today; edges without triples or operations pass through unchanged",
+          "Metadata and response shape unchanged"
+        ],
+        "implementationOutline": [
+          "Precompute relationship operation map in attachRelationshipMetadata",
+          "Replace the per-triple .find chain",
+          "Run xirang-projection-handler.spec.ts"
+        ],
+        "validation": [
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts assertions on xirangRelations/xirangOperation metadata must stay green",
+          "cd likec4 && pnpm --filter @likec4/vite-plugin exec vitest run src/xirang"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Smallest absolute win (diff entry lists bounded by Change size) but trivially safe and in the same file as the previous finding; ordered last among the actionable adds.",
+        "id": "OPT-20260808T103930164Z-03"
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-08T10:39:30.164Z",
+        "findingId": "OPT-20260808T103930164Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-08T10:39:30.164Z",
+        "findingId": "OPT-20260808T103930164Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-08T10:39:30.164Z",
+        "findingId": "OPT-20260808T103930164Z-03"
+      },
+      {
+        "sequence": 4,
+        "action": "select",
+        "reason": "Highest-frequency hotspot: the overlay executes on every Semantic Browser interaction; quadratic scans are statically provable; localized low-risk index hoist consistent with existing map helpers.",
+        "timestamp": "2026-08-08T10:39:30.168Z",
+        "findingId": "OPT-20260808T103930164Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.ts": "54b86f76c62c5d610b5062cd83c93c07708824e601aba70dd68acf7083188b25"
+        }
+      },
+      {
+        "sequence": 5,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-08T10:39:45.847Z",
+        "findingId": "OPT-20260808T103930164Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.ts": "54b86f76c62c5d610b5062cd83c93c07708824e601aba70dd68acf7083188b25"
+        }
+      },
+      {
+        "sequence": 6,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-08T10:43:35.056Z",
+        "findingId": "OPT-20260808T103930164Z-01"
+      }
+    ],
+    "reconciliationSignature": "9817d21a49ce62726dbede74627e394c2da8f4cd0e7fee290768da0b26212576",
+    "unchangedReconciliations": 0
   }
 }

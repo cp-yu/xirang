@@ -74,13 +74,26 @@ export function applyXirangPresentationOverlay(
 ): DiagramView {
   const elementOperations = operationByIdentity(source)
   const kindStyles = kindStylesByKind(source)
+  const elementsByIdentity = new Map<string, XirangElementDeclaration>()
+  const parentIdentities = new Set<string>()
+  for (const element of source.architecture?.elements ?? []) {
+    if (!elementsByIdentity.has(element.declaration.identity)) {
+      elementsByIdentity.set(element.declaration.identity, element.declaration)
+    }
+    if (element.declaration.parent !== null) parentIdentities.add(element.declaration.parent)
+  }
+  const relationshipOperations = new Map<string, XirangDiffOperation>()
+  for (const entry of structuralEntries(source)) {
+    if (entry.kind === 'relationship' && operations.has(entry.operation) && !relationshipOperations.has(entry.identity)) {
+      relationshipOperations.set(entry.identity, entry.operation)
+    }
+  }
   const nodes = layoutedView.nodes.map(node => {
     const identity = nodeIdentity(node)
-    const declaration = source.architecture?.elements
-      .find(element => element.declaration.identity === identity)?.declaration as XirangElementDeclaration | undefined
+    const declaration = identity ? elementsByIdentity.get(identity) : undefined
     const style = declaration ? kindStyles.get(declaration.kind) : undefined
     const operation = identity ? elementOperations.get(identity) : undefined
-    const hasSemanticChildren = source.architecture?.elements.some(element => element.declaration.parent === identity) ?? false
+    const hasSemanticChildren = identity ? parentIdentities.has(identity) : false
     const metadata = {
       ...(node.metadata ?? {}),
       ...(identity ? { elementId: identity } : {}),
@@ -102,7 +115,7 @@ export function applyXirangPresentationOverlay(
   const edges = layoutedView.edges.map(edge => {
     const triples = relationshipIdentity(edge)
     const relationshipOperation = triples
-      .map(identity => structuralEntries(source).find(entry => entry.kind === 'relationship' && entry.identity === identity)?.operation)
+      .map(identity => relationshipOperations.get(identity))
       .find((operation): operation is XirangDiffOperation => operation !== undefined)
     return {
       ...edge,
