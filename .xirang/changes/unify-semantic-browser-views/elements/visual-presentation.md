@@ -48,13 +48,12 @@ Visual Presentation SHALL 将 Element Kind 与 Relationship Kind presentation �
 
 ### Requirement: 分离 Relationship Edges
 
-Visual Presentation SHALL 为每个 Xirang Relationship 保留独立 visual edge，分别使用各自 identity、Kind presentation、diff state、label、arrow 与 details mapping，并 SHALL 由 Graphviz 分别 routing；A→B 与 B→A、同向不同 Kind 或同向不同 diff operation 均不得集中或合并为同一路径。
+Visual Presentation SHALL 为每个 Xirang Relationship 保留独立 visual edge，分别使用各自 identity、Kind presentation、diff state、label、arrow 与 details mapping。布局前，映射到相同可见 endpoints 的同向 Relationships 聚合为单条携带全部 relation identities 的官方 Graphviz edge 以复用 geometry，避免平行关系数导致的布局/内存爆炸；布局后，Xirang 依据聚合 edge 携带的 identities 恢复独立 visual edges，并重新应用各自的 Kind presentation 与 diff state。A→B 与 B→A 作为不同方向由 Graphviz 分别 routing，不得方向合并；同向不同 Kind 或同向不同 diff operation 的 Relationships 保持独立 identity、label、presentation 与详情映射，共享 geometry 不改变语义或交互身份。
 
 #### Scenario: 同时呈现两个方向
 
 - **WHEN** 当前 projection 包含 A→B 与 B→A
-- **THEN** 两条路径与两个方向箭头在视觉上可区分
-- **AND** 任一 edge 可独立 hover、选择和打开详情
+- **THEN** 两个方向的路径由 Graphviz 分别 routing，且任一 edge 可独立 hover、选择和打开详情
 
 #### Scenario: 一个方向发生变化
 

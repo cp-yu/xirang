@@ -1,7 +1,29 @@
 {
   "timestamp": "2026-08-08T10:14:48.697Z",
-  "result": "PASS",
-  "issues": [],
+  "result": "FAIL_NEEDS_CORRECTIONS",
+  "issues": [
+    {
+      "severity": "CRITICAL",
+      "message": "Spec/implementation conflict: the change delta contract Requirement '分离 Relationship Edges' still declared 'SHALL 由 Graphviz 分别 routing；… 不得集中或合并为同一路径', but the implementation aggregates same-direction relationships pre-layout (bare kinds, no multiple true, official relations aggregation into one geometry edge) and post-layout expanded visual edges share that single Graphviz path. design.md Decision 9 was amended but the declared element contract was not.",
+      "evidence": [
+        ".xirang/changes/unify-semantic-browser-views/elements/visual-presentation.md",
+        ".xirang/changes/unify-semantic-browser-views/design.md",
+        "src/core/likec4/generator.ts",
+        "likec4/packages/diagram/src/xirang/architectureView.ts",
+        "test/core/likec4/generator-validate.test.ts"
+      ]
+    },
+    {
+      "severity": "CRITICAL",
+      "message": "Correctness regression from the aggregation fix: relationship Kind presentation was only re-applied for aggregated multi-triple edges; single non-aggregated relationship edges passed through unchanged and rendered LikeC4 defaults because the generator no longer lowers relationship style blocks into specification.c4.",
+      "evidence": [
+        "likec4/packages/diagram/src/xirang/architectureView.ts",
+        "src/core/likec4/generator.ts",
+        "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+        "test/fixtures/contract-browser/.xirang/model/metamodel/invokes.md"
+      ]
+    }
+  ],
   "tasksFileHash": "f583af8b5b596d5c52c6f04c583b36fe1447382d584fd072d81293468aae8164",
   "verificationContext": {
     "contractVersion": "1.0",

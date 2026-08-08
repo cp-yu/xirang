@@ -119,37 +119,42 @@ export function applyXirangPresentationOverlay(
 }
 
 /**
- * Expands a layouted edge carrying multiple Xirang relation identities into independent visual
- * edges. Geometry is reused from the official path; identity, metadata and click targets remain
+ * Expands a layouted edge carrying Xirang relation identities into independent visual edges.
+ * Geometry is reused from the official path; identity, metadata and click targets remain
  * independent so reciprocal and same-direction relationships cannot be merged semantically.
+ * Kind presentation is applied to every relation edge, including single-relation edges, because
+ * the generator no longer lowers relationship styles into specification.c4.
  */
 export function expandXirangRelationshipEdges(
   layoutedView: DiagramView,
   source?: XirangViewSource,
 ): DiagramView {
+  const relationshipKinds = new Map((source?.architecture?.relationshipKinds ?? [])
+    .map(kind => [kind.identity, kind.presentation] as const))
   const edges = layoutedView.edges.flatMap(edge => {
     const triples = relationshipIdentity(edge)
-    if (triples.length <= 1) return [edge]
-    const relationshipKinds = new Map((source?.architecture?.relationshipKinds ?? [])
-      .map(kind => [kind.identity, kind.presentation] as const))
+    if (triples.length === 0) return [edge]
+    const single = triples.length === 1
     return triples.map((triple, index) => {
       const kind = triple.split('|')[1]
       const presentation = kind ? relationshipKinds.get(kind) : undefined
       return {
         ...edge,
-        id: `${edge.id}:xirang:${index}:${triple}`,
-        label: kind ?? edge.label,
+        id: single ? edge.id : `${edge.id}:xirang:${index}:${triple}`,
+        label: single ? (edge.label ?? kind) : (kind ?? edge.label),
         ...(presentation?.color ? { color: presentation.color } : {}),
         ...(presentation?.line ? { line: presentation.line } : {}),
         ...(presentation?.head ? { head: presentation.head } : {}),
         ...(presentation?.tail ? { tail: presentation.tail } : {}),
         metadata: {
           ...((edge as ViewEdge & { metadata?: Readonly<Record<string, unknown>> }).metadata ?? {}),
-          xirangRelation: triple,
+          ...(single ? {} : { xirangRelation: triple }),
         },
         xirangRelations: [triple],
       } as unknown as ViewEdge
     })
   })
-  return edges.length === layoutedView.edges.length ? layoutedView : { ...layoutedView, edges }
+  const changed = edges.length !== layoutedView.edges.length
+    || edges.some((edge, index) => edge !== layoutedView.edges[index])
+  return changed ? { ...layoutedView, edges } : layoutedView
 }

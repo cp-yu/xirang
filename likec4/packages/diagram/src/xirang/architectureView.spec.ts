@@ -104,4 +104,21 @@ describe('expandXirangRelationshipEdges', () => {
     const edge = { id: 'edge', source: 'a', target: 'b', label: 'calls', points: [], relations: [], xirangRelations: ['a|calls|b'] }
     expect(expandXirangRelationshipEdges(baseView([edge] as never)).edges).toHaveLength(1)
   })
+
+  it('applies Kind presentation to a single non-aggregated relationship edge', () => {
+    const edge = { id: 'edge', source: 'a', target: 'b', label: 'calls', points: [], relations: [], xirangRelations: ['a|calls|b'] }
+    const presented = {
+      ...source,
+      architecture: {
+        ...source.architecture!,
+        relationshipKinds: [
+          { identity: 'calls', presentation: { color: 'purple', line: 'solid', head: 'crow', tail: 'dot' } },
+        ],
+      },
+    }
+    const result = expandXirangRelationshipEdges(baseView([edge] as never), presented)
+    expect(result.edges).toHaveLength(1)
+    expect(result.edges[0]).toMatchObject({ id: 'edge', color: 'purple', line: 'solid', head: 'crow', tail: 'dot' })
+    expect((result.edges[0] as unknown as { xirangRelations?: string[] }).xirangRelations).toEqual(['a|calls|b'])
+  })
 })
