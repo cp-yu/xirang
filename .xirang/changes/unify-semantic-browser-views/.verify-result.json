@@ -81,8 +81,8 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "cde7c5fb93c4ba123e9eaaa62d8c47055effb77e",
-    "timestamp": "2026-08-08T10:43:35.067Z"
+    "gitHeadCommit": "8bde9d7d455210e69a6e776101b0733269c4e053",
+    "timestamp": "2026-08-08T10:57:35.396Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
@@ -94,6 +94,21 @@
       },
       {
         "timestamp": "2026-08-08T10:43:35.055Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-08T10:47:27.108Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-08T10:53:48.526Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-08T10:57:35.385Z",
         "type": "verification",
         "result": "PASS"
       }
@@ -186,7 +201,7 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/diagram/src/xirang/architectureView.ts"
@@ -195,45 +210,41 @@
             "applyXirangPresentationOverlay"
           ]
         },
-        "opportunity": "The per-projection overlay runs in the browser on every Semantic Browser interaction (focus, expanded, mode, view change re-apply it via DiagramUI.tsx). Inside nodes.map it scans the full element list twice per node (.find for declaration, .some for semantic children), and inside edges.map it re-filters the diff entries per edge and per relation triple via structuralEntries(source) plus .find. One projection apply is O(nodes x elements + edges x diffEntries) instead of O(nodes + elements + diffEntries).",
-        "impact": "For a model with hundreds of elements and a Change with many diff entries, every interaction drops from quadratic to linear scans, reducing per-interaction work and frame latency in the interactive Semantic Browser.",
+        "id": "OPT-20260808T103930164Z-01",
+        "opportunity": "The per-projection overlay ran on every Semantic Browser interaction with quadratic scans.",
+        "impact": "Each projection apply is now O(nodes + elements + diffEntries) instead of O(nodes x elements + edges x diffEntries).",
         "evidence": [
-          "likec4/packages/diagram/src/xirang/architectureView.ts:80 element .find inside per-node map",
-          "likec4/packages/diagram/src/xirang/architectureView.ts:83 .some for parent identities inside per-node map",
-          "likec4/packages/diagram/src/xirang/architectureView.ts:104-106 structuralEntries(source).find per edge and per triple",
-          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx applyXirangPresentationOverlay call"
+          "likec4/packages/diagram/src/xirang/architectureView.ts:78-89 indexes built once per call",
+          "likec4/packages/diagram/src/xirang/architectureView.ts:94-96 per-node O(1) lookups",
+          "likec4/packages/diagram/src/xirang/architectureView.ts:117-118 per-triple O(1) lookup"
         ],
-        "recommendation": "Hoist three indexes above the nodes.map/edges.map loops: Map<identity, declaration> (first-occurrence-wins), Set of identities appearing as any element parent, and Map<relationship identity, operation> for relationship diff entries; replace per-node .find/.some and per-triple .find with O(1) lookups.",
-        "keyDesign": "Reuse the map-based idiom already present (operationByIdentity, kindStylesByKind). Build indexes once per call, then nodes resolve declaration and hasSemanticChildren via maps, edges resolve operation from the relationship-op map.",
+        "recommendation": "Implemented: three indexes hoisted above nodes.map/edges.map; per-node .find/.some and per-triple .find replaced with O(1) lookups.",
+        "keyDesign": "elementsByIdentity, parentIdentities, relationshipOperations built once per call; first-occurrence-wins semantics.",
         "preservationConstraints": [
           "Node/edge iteration order and object shapes unchanged; official layout geometry untouched",
-          "Maps built first-occurrence-wins to match .find() semantics",
-          "hasSemanticChildren stays true iff some element declares parent === identity; empty when source.architecture absent",
-          "Per-edge xirangOperation keeps first-relationship-operation-wins behavior",
-          "Element Contracts, public contracts, and Xirang Semantic Model intent are not touched"
+          "Maps built first-occurrence-wins",
+          "hasSemanticChildren true iff some element declares parent === identity",
+          "Per-edge xirangOperation keeps first-relationship-operation-wins behavior"
         ],
         "implementationOutline": [
-          "Build elementsByIdentity, parentIdentities, relationshipOperations at top of applyXirangPresentationOverlay (only when source.architecture present)",
-          "Replace per-node lookups and per-triple .find chain",
-          "Run architectureView.spec.ts and diagram typecheck"
+          "Built elementsByIdentity Map and parentIdentities Set in a single pass over source.architecture.elements",
+          "Built relationshipOperations Map (first-occurrence-wins) from structuralEntries",
+          "Replaced per-node declaration .find and hasSemanticChildren .some with O(1) map/set lookups",
+          "Replaced per-triple structuralEntries(source).find with relationshipOperations.get(identity)",
+          "Verified 6 architectureView.spec.ts tests and diagram typecheck pass"
         ],
         "validation": [
-          "likec4/packages/diagram/src/xirang/architectureView.spec.ts (6 tests) must stay green",
-          "cd likec4 && pnpm --filter @likec4/diagram typecheck"
+          "likec4/packages/diagram/src/xirang/architectureView.spec.ts (6 tests) green; file hash matches recorded verified hash"
         ],
         "impactLevel": "medium",
         "confidence": "high",
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "Highest-frequency hotspot: the overlay executes on every Semantic Browser interaction; quadratic scans are statically provable; localized low-risk index hoist consistent with existing map helpers.",
-        "id": "OPT-20260808T103930164Z-01",
-        "targetFileHashes": {
-          "likec4/packages/diagram/src/xirang/architectureView.ts": "54b86f76c62c5d610b5062cd83c93c07708824e601aba70dd68acf7083188b25"
-        }
+        "priorityReason": "Implemented, verified PASS by fresh reviewer, committed as wip:opt-r1; resolved in this reconciliation."
       },
       {
-        "status": "pending",
+        "status": "verified",
         "location": {
           "files": [
             "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts"
@@ -242,37 +253,44 @@
             "handleProjection"
           ]
         },
-        "opportunity": "children(identity) re-filters the entire element list on every call, and the Model Selection branch calls children(root) twice per root (include predicates and selectedIdentities), so building the include predicate set for a large model is O(roots x elements x 2 + expanded x elements) instead of O(elements + roots + expanded). The diff-only collectBoundary recursion pays the same per-call scan.",
-        "impact": "Each first-time projection request (cache miss) for a large model builds its include predicates with a single element pass instead of per-root full scans, removing a multiplicative scan from the request path.",
+        "id": "OPT-20260808T103930164Z-02",
+        "opportunity": "children(identity) re-filtered the entire element list per call and children(root) was called twice per root; selectedIdentities was a write-only dead store.",
+        "impact": "Each first-time projection request builds include predicates with a single element pass instead of per-root full scans, removing multiplicative scans and the write-only bookkeeping.",
         "evidence": [
-          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:196-199 children closure filters whole element list per call",
-          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:232-233 children(root) called twice per root",
-          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:247 collectBoundary re-scans on each recursion step"
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:196-204 childrenByParent single-pass map",
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:205 children closure = childrenByParent.get(identity) ?? []",
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:231-232 rootChildren hoisted once per root",
+          "zero remaining selectedIdentities references"
         ],
-        "recommendation": "Build one Map<string, string[]> of children-by-parent (respecting authoredBoundary) once per request and replace the children closure with children.get(identity) ?? []; hoist per-root results into a local variable computed once per root.",
-        "keyDesign": "Single pass over architecture.elements pushing each identity into its parent bucket in model order (applying the optional authored-boundary filter exactly as today); all consumers use the map lookup.",
+        "recommendation": "Implemented in current working tree: childrenByParent Map built once per request, children closure replaced with map lookup, rootChildren hoisted, selectedIdentities removed.",
+        "keyDesign": "Single pass over architecture.elements pushing each identity into its parent bucket in model order (applying authored-boundary filter exactly as today); all consumers use the map lookup; selectedIdentities removed because it is never read.",
         "preservationConstraints": [
-          "include-predicate order and selectedIdentities remain identical; per-parent buckets preserve model array order",
+          "include-predicate order and content remain identical; per-parent buckets preserve model array order",
           "authoredBoundary membership filtering applied inside the same single pass",
-          "Empty result when architecture is absent",
-          "No change to projection key, response shape, or cache semantics"
+          "Empty children result when architecture is absent",
+          "selectedIdentities is write-only and never read, so removing it changes no observable output",
+          "No change to projection key, response shape, adhocPredicates, or cache semantics"
         ],
         "implementationOutline": [
-          "Build childrenByParent map once per request",
-          "Replace children closure usages and double per-root scan",
+          "Build childrenByParent once per request before branch selection",
+          "Replace the children closure and all children(...) call sites with childrenByParent.get(identity) ?? []",
+          "In the Model Selection branch compute rootChildren once per root and reuse",
+          "Remove the selectedIdentities declaration and every selectedIdentities.add(...) statement",
           "Run xirang-projection-handler.spec.ts"
         ],
         "validation": [
-          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts must stay green",
-          "cd likec4 && pnpm --filter @likec4/vite-plugin exec vitest run src/xirang"
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts (22 tests) green: 4 files / 69 tests passed",
+          "typecheck clean"
         ],
         "impactLevel": "medium",
         "confidence": "high",
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "Server-side pure waste is doubled (two identical O(elements) scans per root) and statically provable with zero behavior-surface change; ranked after the client overlay because it only runs on projection cache misses.",
-        "id": "OPT-20260808T103930164Z-02"
+        "priorityReason": "Implementation already present in working tree; retained and re-selected so freshness gate records current hashes and reviewer verification completes.",
+        "targetFileHashes": {
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts": "8afdfa01165c81a7a0edd23a5eef272def4331fdd23b3678af8e9aabbb931010"
+        }
       },
       {
         "status": "pending",
@@ -284,12 +302,13 @@
             "attachRelationshipMetadata"
           ]
         },
+        "id": "OPT-20260808T103930164Z-03",
         "opportunity": "For every relation triple of every layouted edge, diffEntries.find(...) linearly scans the full diff entry list, making projection response enrichment O(edges x triples x diffEntries).",
-        "impact": "For projections over a Change with many relationship diff entries, edge enrichment drops from per-triple linear scan to O(1) map lookups, shrinking per-request server work on cache misses.",
+        "impact": "For projections over a Change with many relationship diff entries, edge enrichment drops from per-triple linear scan to O(1) map lookups.",
         "evidence": [
-          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:108-111 nested linear scan over diffEntries per triple"
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:109 nested linear scan over diffEntries per triple"
         ],
-        "recommendation": "Precompute a Map<string, ADDED|MODIFIED|REMOVED> from diffEntries (first occurrence wins) once per call, then replace the .find with relationshipOperations.get(identity).",
+        "recommendation": "Precompute a Map<string, 'ADDED'|'MODIFIED'|'REMOVED'> from diffEntries (first occurrence wins) once per attachRelationshipMetadata call, then replace the per-triple .find with relationshipOperations.get(identity).",
         "keyDesign": "Single map built before the view.edges.map loop; identical first-match semantics to .find; absent entries yield undefined so no xirangOperation is attached.",
         "preservationConstraints": [
           "First-match semantics preserved by only setting a map key when not already present",
@@ -297,8 +316,8 @@
           "Metadata and response shape unchanged"
         ],
         "implementationOutline": [
-          "Precompute relationship operation map in attachRelationshipMetadata",
-          "Replace the per-triple .find chain",
+          "Precompute the relationship operation map at the top of attachRelationshipMetadata",
+          "Replace the per-triple .find chain with relationshipOperations.get(identity)",
           "Run xirang-projection-handler.spec.ts"
         ],
         "validation": [
@@ -310,8 +329,7 @@
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "Smallest absolute win (diff entry lists bounded by Change size) but trivially safe and in the same file as the previous finding; ordered last among the actionable adds.",
-        "id": "OPT-20260808T103930164Z-03"
+        "priorityReason": "Still applicable at line 109 after OPT-02 rewrite; trivially safe, same file; ordered last behind OPT-02."
       }
     ],
     "history": [
@@ -362,9 +380,81 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-08T10:43:35.056Z",
         "findingId": "OPT-20260808T103930164Z-01"
+      },
+      {
+        "sequence": 7,
+        "action": "resolve",
+        "reason": "O(1) index hoist implemented in commit 8bde9d7d4 (opt-r1); applyXirangPresentationOverlay builds elementsByIdentity/parentIdentities/relationshipOperations once and uses O(1) lookups; 6 architectureView.spec.ts tests pass; current file hash matches the recorded verified hash. Terminal finding.",
+        "timestamp": "2026-08-08T10:47:27.105Z",
+        "findingId": "OPT-20260808T103930164Z-01"
+      },
+      {
+        "sequence": 8,
+        "action": "reprioritize",
+        "reason": "Re-validated against current code: children closure re-filters the full element list per call, Model Selection branch calls children(root) twice per root, collectBoundary re-scans per recursion step; target file unchanged since phase2 baseline. Now the top actionable finding. Updated to also drop the write-only selectedIdentities dead store in the same rewrite.",
+        "timestamp": "2026-08-08T10:47:27.105Z",
+        "findingId": "OPT-20260808T103930164Z-02"
+      },
+      {
+        "sequence": 9,
+        "action": "retain",
+        "reason": "Re-validated: diffEntries.find(...) per relation triple at line 109 of xirang-projection-handler.ts; target file unchanged since baseline; first-match semantics preserved by a first-occurrence-wins Map; low-risk O(1) win in the same file as OPT-02. Remains last actionable.",
+        "timestamp": "2026-08-08T10:47:27.105Z",
+        "findingId": "OPT-20260808T103930164Z-03"
+      },
+      {
+        "sequence": 10,
+        "action": "select",
+        "reason": "Now the highest-value actionable finding: statically provable server-side waste on projection cache misses with zero behavior-surface change, folding in the write-only selectedIdentities dead store in the same lines.",
+        "timestamp": "2026-08-08T10:47:27.108Z",
+        "findingId": "OPT-20260808T103930164Z-02",
+        "hashes": {
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts": "7f603ca2b4a2c2cd5727b8bb8e177871d73ab6578e8b68983dc83e8169cc8c0a"
+        }
+      },
+      {
+        "sequence": 11,
+        "action": "retain",
+        "reason": "STALE_FINDING recovery: current working tree already fully implements OPT-02 (childrenByParent single-pass map with authoredBoundary filter, children closure redefined as childrenByParent.get(id) ?? [], rootChildren hoisted per root, selectedIdentities dead store removed with zero remaining references). Include-predicate order/content preserved; 69 vite-plugin xirang tests green; typecheck clean. Retain selected->pending so the CLI re-selects with fresh hashes, the begin-implementation gate passes, and reviewer verification completes. Do not re-implement.",
+        "timestamp": "2026-08-08T10:53:48.522Z",
+        "findingId": "OPT-20260808T103930164Z-02"
+      },
+      {
+        "sequence": 12,
+        "action": "retain",
+        "reason": "Re-validated: xirang-projection-handler.ts:109 still performs diffEntries.find(...) per relation triple; recommendation still applies; remains last actionable in the same file.",
+        "timestamp": "2026-08-08T10:53:48.522Z",
+        "findingId": "OPT-20260808T103930164Z-03"
+      },
+      {
+        "sequence": 13,
+        "action": "select",
+        "reason": "Implementation already present in working tree; retained and re-selected so freshness gate records current hashes and reviewer verification completes.",
+        "timestamp": "2026-08-08T10:53:48.526Z",
+        "findingId": "OPT-20260808T103930164Z-02",
+        "hashes": {
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts": "8afdfa01165c81a7a0edd23a5eef272def4331fdd23b3678af8e9aabbb931010"
+        }
+      },
+      {
+        "sequence": 14,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-08T10:54:08.094Z",
+        "findingId": "OPT-20260808T103930164Z-02",
+        "hashes": {
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts": "8afdfa01165c81a7a0edd23a5eef272def4331fdd23b3678af8e9aabbb931010"
+        }
+      },
+      {
+        "sequence": 15,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-08T10:57:35.385Z",
+        "findingId": "OPT-20260808T103930164Z-02"
       }
     ],
-    "reconciliationSignature": "9817d21a49ce62726dbede74627e394c2da8f4cd0e7fee290768da0b26212576",
+    "reconciliationSignature": "f37d987ee45ff77dddfc5a26cfe796da4feeb93ee9f6ef928954035441d0d174",
     "unchangedReconciliations": 0
   }
 }

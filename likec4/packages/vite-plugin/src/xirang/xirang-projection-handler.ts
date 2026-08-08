@@ -193,26 +193,26 @@ export async function handleProjection(
   const architecture = projectionSource.architecture
   const paths = projectionSource.likec4ElementPaths ?? {}
   const authoredBoundary = authoredSelection ? new Set(authoredSelection) : undefined
-  const children = (identity: string) => architecture?.elements
-    .filter(element => element.declaration.parent === identity
-      && (!authoredBoundary || authoredBoundary.has(element.declaration.identity)))
-    .map(element => element.declaration.identity) ?? []
-  const selectedIdentities = new Set<string>()
+  const childrenByParent = new Map<string, string[]>()
+  for (const element of architecture?.elements ?? []) {
+    if (authoredBoundary && !authoredBoundary.has(element.declaration.identity)) continue
+    const parent = element.declaration.parent
+    if (parent === null) continue
+    const siblings = childrenByParent.get(parent)
+    if (siblings) siblings.push(element.declaration.identity)
+    else childrenByParent.set(parent, [element.declaration.identity])
+  }
+  const children = (identity: string) => childrenByParent.get(identity) ?? []
   const includeExpressions: Array<{ ref: { model: string }; selector?: 'children' | 'expanded' | 'descendants' }> = []
   if (request.viewId === 'candidate' || request.viewId === 'candidate-diff') {
     for (const element of architecture?.elements ?? []) {
-      selectedIdentities.add(element.declaration.identity)
       includeExpressions.push({ ref: { model: paths[element.declaration.identity] ?? element.declaration.identity } })
     }
   } else if (request.focus) {
-    selectedIdentities.add(request.focus)
     includeExpressions.push({ ref: { model: paths[request.focus] ?? request.focus } })
     includeExpressions.push({ ref: { model: paths[request.focus] ?? request.focus }, selector: 'children' })
-    for (const child of children(request.focus)) selectedIdentities.add(child)
     for (const expanded of request.expanded) {
-      selectedIdentities.add(expanded)
       includeExpressions.push({ ref: { model: paths[expanded] ?? expanded }, selector: 'children' })
-      for (const child of children(expanded)) selectedIdentities.add(child)
     }
   } else if (authoredView) {
     const visibleRoots = authoredView.virtualRoot
@@ -221,7 +221,6 @@ export async function handleProjection(
         ? children(authoredView.roots[0]!)
         : authoredView.roots
     for (const identity of visibleRoots) {
-      selectedIdentities.add(identity)
       includeExpressions.push({ ref: { model: paths[identity] ?? identity } })
     }
   } else {
@@ -229,13 +228,11 @@ export async function handleProjection(
       .filter(element => element.declaration.parent === null)
       .map(element => element.declaration.identity) ?? []
     for (const root of roots) {
-      includeExpressions.push(...children(root).map(identity => ({ ref: { model: paths[identity] ?? identity } })))
-      for (const child of children(root)) selectedIdentities.add(child)
+      const rootChildren = children(root)
+      includeExpressions.push(...rootChildren.map(identity => ({ ref: { model: paths[identity] ?? identity } })))
     }
     for (const expanded of request.expanded) {
-      selectedIdentities.add(expanded)
       includeExpressions.push({ ref: { model: paths[expanded] ?? expanded }, selector: 'children' })
-      for (const child of children(expanded)) selectedIdentities.add(child)
     }
   }
   if (request.mode === 'diff-only' && request.change && source.diff) {
