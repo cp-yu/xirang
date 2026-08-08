@@ -319,13 +319,11 @@ describe('handleProjection', () => {
       ...context,
       loadSources: async () => ({
         diagrams: async () => [view],
-        computedModel: async () => ({
-          findRelationship: id => ({
-            source: { id: 'root_a' },
-            target: { id: 'root_b' },
-            kind: id === 'rel-1' ? 'calls' : 'reads',
-            title: id === 'rel-1' ? 'invokes' : 'observes',
-          }),
+        parsedModel: async () => ({
+          relationships: () => [
+            { id: 'rel-1', source: 'root_a', target: 'root_b', title: 'invokes', kind: 'calls' },
+            { id: 'rel-2', source: 'root_a', target: 'root_b', title: 'observes', kind: 'reads' },
+          ],
         }),
       }),
     })
@@ -514,5 +512,56 @@ describe('official LikeC4 pipeline integration', () => {
       expect(node.width, `${node.id} must have width`).toBeGreaterThan(0)
       expect(node.height, `${node.id} must have height`).toBeGreaterThan(0)
     }
+  })
+
+  it('attaches stable triples from the parsed model without a super-linear computedModel', { timeout: 120_000 }, async () => {
+    const sources = {
+      'likec4.config.json': '{"name":"xirang","implicitViews":false,"defaultLandscapeView":false}',
+      'specification.c4': 'specification {\n  element project\n  element capability\n  relationship invokes\n}\n',
+      'model.c4': [
+        'model {',
+        "  a = project 'Alpha' 'Alpha project' {",
+        "    metadata { elementId 'alpha' }",
+        '  }',
+        "  b = capability 'Beta' 'Beta capability' {",
+        "    metadata { elementId 'beta' }",
+        '  }',
+        '}',
+        '',
+      ].join('\n'),
+      'relations.c4': "model {\n  a -[invokes]-> b 'invokes'\n}\n",
+      'views.c4': 'views {\n  view model { include * }\n}\n',
+    }
+    const manifest = {
+      version: 4,
+      modelFingerprint: FINGERPRINT,
+      model: {
+        sourceFingerprint: FINGERPRINT,
+        architecture: { elements: [
+          { declaration: { identity: 'alpha', parent: null } },
+          { declaration: { identity: 'beta', parent: null } },
+        ] },
+        likec4Sources: sources,
+        likec4ElementPaths: { alpha: 'a', beta: 'b' },
+      },
+      authoredViews: {},
+      changes: {},
+    }
+    const context = {
+      readManifest: async () => JSON.stringify(manifest),
+      views: { diagrams: async () => [] },
+      loadSources: async (input: Record<string, string>) => (await import('@likec4/language-services/node')).fromSources(input),
+      cache: new ProjectionCache<Awaited<ReturnType<typeof handleProjection>>>(50),
+      projectId: 'xirang',
+    }
+    const result = await handleProjection(
+      { viewId: 'model', change: null, mode: 'complete', focus: null, expanded: [], expectedFingerprint: FINGERPRINT },
+      context,
+    )
+
+    const edge = result.view.edges.find(candidate => candidate.source === 'a' && candidate.target === 'b')
+    expect(edge).toBeDefined()
+    expect((edge as unknown as { metadata?: { xirangRelations?: string[] } }).metadata?.xirangRelations)
+      .toEqual(['alpha|invokes|beta'])
   })
 })

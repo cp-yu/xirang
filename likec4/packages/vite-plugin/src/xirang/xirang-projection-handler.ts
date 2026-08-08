@@ -81,17 +81,62 @@ export function assertFingerprintFresh(request: ProjectionRequest, manifest: Xir
  * Handles `POST /__xirang/projection`. The `views` argument and `readManifest` are injected so
  * the pure functions are unit-testable without an HTTP server.
  */
+type ParsedRelationshipShape = Record<string, unknown> & {
+  id?: string
+  source?: { id?: string } | string
+  target?: { id?: string } | string
+  title?: string | null
+  kind?: string | null
+  $relationship?: Record<string, unknown> & {
+    id?: string
+    source?: { id?: string } | string
+    target?: { id?: string } | string
+    title?: string | null
+    kind?: string | null
+  }
+}
+
+function endpointId(endpoint: { id?: string } | string | undefined): string | undefined {
+  if (typeof endpoint === 'string') return endpoint
+  return typeof endpoint?.id === 'string' ? endpoint.id : undefined
+}
+
+/**
+ * Builds a relation-id → { source, target, kind } map from the lightweight parsed model.
+ * The parsed model (before view computation or layout) exposes the same deterministic
+ * relation ids as the computed model but builds in milliseconds, so the projection request
+ * path never pays the super-linear `computedModel()` cost.
+ */
+async function buildRelationshipMap(
+  likec4: { parsedModel?(): Promise<{ relationships(): Iterable<unknown> }> } | undefined,
+): Promise<Map<string, { source: string; target: string; kind: string | null }> | undefined> {
+  if (!likec4?.parsedModel) return undefined
+  const parsed = await likec4.parsedModel()
+  const map = new Map<string, { source: string; target: string; kind: string | null }>()
+  for (const rawRel of parsed.relationships()) {
+    const rel = (rawRel ?? {}) as ParsedRelationshipShape
+    const raw = (rel.$relationship ?? {}) as ParsedRelationshipShape
+    const source = endpointId(rel.source) ?? endpointId(raw.source)
+    const target = endpointId(rel.target) ?? endpointId(raw.target)
+    const kind = (rel.title ?? rel.kind) ?? (raw.title ?? raw.kind) ?? null
+    const id = typeof rel.id === 'string' ? rel.id : raw.id
+    if (typeof id !== 'string' || !source || !target) continue
+    map.set(id, { source, target, kind })
+  }
+  return map
+}
+
 /**
  * Carries semantic relationship triples beside LikeC4's official edge geometry. The browser may
  * split and decorate these edges, but never needs to infer identity from an opaque generated id.
  */
 function attachRelationshipMetadata(
   view: LayoutedView,
-  model: { findRelationship(id: string, type: 'model'): { source: { id: string }; target: { id: string }; kind?: string | null; title?: string | null } | null } | undefined,
+  relationships: ReadonlyMap<string, { source: string; target: string; kind: string | null }> | undefined,
   paths: Record<string, string>,
   diffEntries: ReadonlyArray<{ kind: string; identity: string; operation: 'ADDED' | 'MODIFIED' | 'REMOVED' }> = [],
 ): LayoutedView {
-  if (!model) return view
+  if (!relationships) return view
   const reverse = new Map(Object.entries(paths).map(([identity, path]) => [path, identity]))
   const relationshipOperations = new Map<string, 'ADDED' | 'MODIFIED' | 'REMOVED'>()
   for (const entry of diffEntries) {
@@ -104,11 +149,11 @@ function attachRelationshipMetadata(
     edges: view.edges.map(edge => {
       const relations = (edge as unknown as { relations?: string[] }).relations ?? []
       const triples = relations.flatMap(id => {
-        const relationship = model.findRelationship(id, 'model')
+        const relationship = relationships.get(id)
         if (!relationship) return []
-        const source = reverse.get(relationship.source.id)
-        const target = reverse.get(relationship.target.id)
-        const kind = relationship.title ?? relationship.kind ?? undefined
+        const source = reverse.get(relationship.source)
+        const target = reverse.get(relationship.target)
+        const kind = relationship.kind
         return source && target && kind ? [`${source}|${kind}|${target}`] : []
       })
       const operation = triples
@@ -135,6 +180,7 @@ export async function handleProjection(
     views: { diagrams(projectId?: string): Promise<LayoutedView[]> }
     loadSources?: (sources: Record<string, string>, fingerprint: string) => Promise<{
       diagrams(projectId?: string): Promise<LayoutedView[]>
+      parsedModel?: () => Promise<{ relationships(): Iterable<unknown> }>
       computedModel?: (projectId?: string) => Promise<{
         findRelationship(id: string, type: 'model'): {
           source: { id: string }
@@ -288,7 +334,7 @@ export async function handleProjection(
     : await (likec4 ? likec4.diagrams(context.projectId) : context.views.diagrams(context.projectId))
       .then(diagrams => diagrams.find(v => v.id === diagramId))
   const enrichedProjectionView = projectionView && likec4
-    ? attachRelationshipMetadata(projectionView, likec4.computedModel ? await likec4.computedModel(context.projectId) : undefined, paths, source.diff?.entries)
+    ? attachRelationshipMetadata(projectionView, await buildRelationshipMap(likec4), paths, source.diff?.entries)
     : projectionView
   const view = enrichedProjectionView
     ? ({ ...enrichedProjectionView, id: diagramId as typeof enrichedProjectionView.id } as typeof enrichedProjectionView)

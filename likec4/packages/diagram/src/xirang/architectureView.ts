@@ -60,7 +60,8 @@ function nodeIdentity(node: ViewNode): string | undefined {
 }
 
 function relationshipIdentity(edge: ViewEdge): string[] {
-  const xirangRelations = (edge as ViewEdge & { xirangRelations?: unknown }).xirangRelations
+  const edgeWithMetadata = edge as ViewEdge & { xirangRelations?: unknown; metadata?: { xirangRelations?: unknown } }
+  const xirangRelations = edgeWithMetadata.xirangRelations ?? edgeWithMetadata.metadata?.xirangRelations
   return Array.isArray(xirangRelations) ? xirangRelations.filter((value): value is string => typeof value === 'string') : []
 }
 
