@@ -85,7 +85,7 @@
     "timestamp": "2026-08-08T11:10:58.337Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
         "timestamp": "2026-08-08T10:39:30.168Z",
@@ -126,6 +126,11 @@
         "timestamp": "2026-08-08T11:10:58.325Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-08T11:11:21.051Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
@@ -305,7 +310,7 @@
         "priorityReason": "Implemented, verified PASS by fresh reviewer, committed as wip:opt-r2; resolved in this reconciliation via resolve action."
       },
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts"
@@ -321,21 +326,20 @@
           "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:96-100 relationshipOperations first-occurrence-wins map built once before edges.map",
           "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:114-116 per-triple O(1) lookup with preserved trailing first-defined-operation .find"
         ],
-        "recommendation": "Implemented in current working tree: precompute a first-occurrence-wins relationshipOperations Map once per attachRelationshipMetadata call, replace the per-triple .find with relationshipOperations.get(identity).",
+        "recommendation": "Implemented: relationshipOperations Map precomputed once per attachRelationshipMetadata call, per-triple .find replaced with map lookup.",
         "keyDesign": "Single relationshipOperations map built before the edges.map loop; only kind === 'relationship' entries are keys; a key is set only when absent (identical to Array.find semantics); absent identity yields undefined so no xirangOperation is attached; triple order preserved.",
         "preservationConstraints": [
           "First-match semantics preserved: map only sets a key when not already present",
           "Non-relationship diff entries are ignored exactly as today",
           "Edges without triples or without a matching operation pass through unchanged",
           "xirangRelations/xirangRelation/xirangOperation metadata and the overall response shape unchanged",
-          "diffEntries type guarantees operation is always 'ADDED'|'MODIFIED'|'REMOVED', so no undefined-valued map keys are possible",
-          "Map is built once per call, not per edge, because diffEntries is identical for every edge"
+          "diffEntries type guarantees operation is always 'ADDED'|'MODIFIED'|'REMOVED'",
+          "Map is built once per call, not per edge"
         ],
         "implementationOutline": [
-          "After the guard, iterate diffEntries once building relationshipOperations (skip non-relationship kinds, set only absent keys)",
-          "Replace the per-triple .find chain with triples.map(identity => relationshipOperations.get(identity)).find((value): value is 'ADDED'|'MODIFIED'|'REMOVED' => value !== undefined)",
-          "Run likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts (69 tests) and typecheck",
-          "Confirm the aggregated-edge test still asserts xirangRelations and diff-operation assertions hold"
+          "After the guard, iterate diffEntries once building relationshipOperations",
+          "Replace the per-triple .find chain with relationshipOperations.get(identity)",
+          "Run xirang-projection-handler.spec.ts (69 tests) and typecheck"
         ],
         "validation": [
           "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts xirangRelations/xirangOperation assertions stay green",
@@ -347,10 +351,7 @@
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "Implementation already present in working tree; retained and re-selected so freshness gate records current hashes and reviewer verification completes.",
-        "targetFileHashes": {
-          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts": "49104c54931d1e273829862bef9927b4fcff416d300256a8c1c0499f9e2e9fab"
-        }
+        "priorityReason": "Implemented, verified PASS by fresh reviewer, committed as wip:opt-r3; resolved in this reconciliation via resolve action."
       }
     ],
     "history": [
@@ -531,9 +532,16 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-08T11:10:58.325Z",
         "findingId": "OPT-20260808T103930164Z-03"
+      },
+      {
+        "sequence": 23,
+        "action": "resolve",
+        "reason": "Terminal: implemented, committed as 52aa7b51 (wip: opt-r3), speculatively verified PASS by fresh reviewer (6/6 constraints, 20k-trial equivalence harness, 69/69 vite-plugin xirang tests, typecheck clean). relationshipOperations first-occurrence-wins map precomputed once per attachRelationshipMetadata call; per-triple O(1) lookup preserves first-match semantics.",
+        "timestamp": "2026-08-08T11:11:21.051Z",
+        "findingId": "OPT-20260808T103930164Z-03"
       }
     ],
-    "reconciliationSignature": "8027c2d30c9937204e12c49803cf0298f7bb2663b85a88d4a5fdd70a9fae9a38",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }
