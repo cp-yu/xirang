@@ -105,6 +105,15 @@ describe('expandXirangRelationshipEdges', () => {
     expect(expandXirangRelationshipEdges(baseView([edge] as never)).edges).toHaveLength(1)
   })
 
+  it('reads aggregated triples from edge.metadata (server transport) and expands them', () => {
+    // The server attaches xirangRelations inside metadata; the browser must not depend on a top-level field.
+    const edge = { id: 'edge', source: 'a', target: 'b', label: 'calls,reads', points: [], relations: [], metadata: { xirangRelations: ['a|calls|b', 'a|reads|b'] } }
+    const result = expandXirangRelationshipEdges(baseView([edge] as never))
+    expect(result.edges).toHaveLength(2)
+    expect(new Set(result.edges.map(item => item.id)).size).toBe(2)
+    expect(result.edges.map(item => item.label)).toEqual(['calls', 'reads'])
+  })
+
   it('applies Kind presentation to a single non-aggregated relationship edge', () => {
     const edge = { id: 'edge', source: 'a', target: 'b', label: 'calls', points: [], relations: [], xirangRelations: ['a|calls|b'] }
     const presented = {

@@ -181,14 +181,6 @@ export async function handleProjection(
     loadSources?: (sources: Record<string, string>, fingerprint: string) => Promise<{
       diagrams(projectId?: string): Promise<LayoutedView[]>
       parsedModel?: () => Promise<{ relationships(): Iterable<unknown> }>
-      computedModel?: (projectId?: string) => Promise<{
-        findRelationship(id: string, type: 'model'): {
-          source: { id: string }
-          target: { id: string }
-          kind?: string | null
-          title?: string | null
-        } | null
-      }>
       viewsService?: { adhocView(predicates: any[], projectId?: string): Promise<LayoutedView> }
     }>
     cache: ProjectionCache<ProjectionResponse>
