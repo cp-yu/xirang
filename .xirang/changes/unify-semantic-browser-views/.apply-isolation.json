@@ -2,5 +2,6 @@
   "method": "branch",
   "branchName": "apply/unify-semantic-browser-views",
   "originalBranch": "main",
-  "baseCommit": "038423c484f8b1e25d1e2fa7da1dcfe5fc8fcd01"
+  "baseCommit": "038423c484f8b1e25d1e2fa7da1dcfe5fc8fcd01",
+  "phase2BaselineCommit": "68c77f68629133c220db20b3846d01da29e14227"
 }
