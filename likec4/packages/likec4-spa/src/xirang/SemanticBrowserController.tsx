@@ -287,21 +287,26 @@ export function SemanticBrowserRouteSync() {
     if (!controller) return
     runtime.select(controller.state.viewSelection)
     const abort = new AbortController()
-    projectionLoader.load(
-      projectionRequestForSemanticBrowser(controller.state, controller.manifest.modelFingerprint),
-      abort.signal,
-    ).then(result => {
+    const request = projectionRequestForSemanticBrowser(controller.state, controller.manifest.modelFingerprint)
+    // Defer the request by one microtask and check the abort signal before sending so
+    // React StrictMode's mount→cleanup→mount double-fire in dev never ships a
+    // throwaway projection request that the cleanup would abort anyway.
+    void Promise.resolve().then(async () => {
       if (abort.signal.aborted) return
-      runtime.applyBrowserProjection({
-        viewId: controller.state.viewSelection,
-        change: controller.state.changeSelection,
-        mode: controller.state.presentationMode === 'diff-only' ? 'diff' : 'full',
-        showDiff: controller.state.presentationMode !== 'complete',
-        projectionKey: result.projectionKey,
-        view: result.view,
-      })
-    }).catch(error => {
-      if (!abort.signal.aborted) console.error('Unable to load Semantic Browser projection', error)
+      try {
+        const result = await projectionLoader.load(request, abort.signal)
+        if (abort.signal.aborted) return
+        runtime.applyBrowserProjection({
+          viewId: controller.state.viewSelection,
+          change: controller.state.changeSelection,
+          mode: controller.state.presentationMode === 'diff-only' ? 'diff' : 'full',
+          showDiff: controller.state.presentationMode !== 'complete',
+          projectionKey: result.projectionKey,
+          view: result.view,
+        })
+      } catch (error) {
+        if (!abort.signal.aborted) console.error('Unable to load Semantic Browser projection', error)
+      }
     })
     return () => abort.abort()
   }, [controller?.manifest.modelFingerprint, controller?.state, runtime.applyBrowserProjection, runtime.select])
