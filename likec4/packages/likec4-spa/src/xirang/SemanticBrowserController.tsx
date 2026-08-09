@@ -275,7 +275,6 @@ export function SemanticBrowserRouteSync() {
   const runtime = useXirangViewSources()
   const actorRef = useDiagramActorRef()
   const diagramFocus = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.context.focusIdentity))
-  const diagramReady = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.matches('ready')))
   const diagramExpanded = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.context.expandedNodes))
   const initializedUrl = useRef(false)
   const applyingUrl = useRef(false)
@@ -304,6 +303,10 @@ export function SemanticBrowserRouteSync() {
           projectionKey: result.projectionKey,
           view: result.view,
         })
+        // The controller (URL / selection) is the single source of truth for focus.
+        // Drive the actor once per projection apply rather than reactively, so the
+        // controller→actor and actor→controller syncs cannot fight and oscillate.
+        actorRef.send({ type: 'navigate.focus', focusIdentity: request.focus ?? null, replaceHistory: true })
       } catch (error) {
         if (!abort.signal.aborted) console.error('Unable to load Semantic Browser projection', error)
       }
@@ -367,19 +370,11 @@ export function SemanticBrowserRouteSync() {
 
   const architectureRoot = runtime.selected.roots?.[0]
     ?? runtime.selected.architecture?.elements.find(element => element.declaration.parent === null)?.declaration.identity
-  const targetFocus = controller?.state.focus ?? architectureRoot ?? null
   const diagramTargetFocus = diagramFocus ?? architectureRoot ?? null
   const diagramExpandedKey = JSON.stringify([...diagramExpanded].sort())
   const controllerExpandedKey = JSON.stringify([...(controller?.state.expanded ?? [])].sort())
   const previousDiagramExpanded = useRef(diagramExpandedKey)
   const previousControllerExpanded = useRef(controllerExpandedKey)
-
-  useEffect(() => {
-    if (!controller || !architectureRoot || !diagramReady) return
-    if (diagramTargetFocus !== targetFocus) {
-      actorRef.send({ type: 'navigate.focus', focusIdentity: targetFocus })
-    }
-  }, [actorRef, architectureRoot, controller, diagramReady, diagramTargetFocus, targetFocus])
 
   useEffect(() => {
     if (!controller || !architectureRoot) return
