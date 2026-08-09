@@ -1,3 +1,4 @@
+import { MantineProvider } from '@mantine/core'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
@@ -47,9 +48,13 @@ const manifest: SemanticBrowserManifest = {
 describe('SemanticBrowserController state machine', () => {
   it('renders View, Change and Mode controls in fixed order and disables diff modes without a change', () => {
     const html = renderToStaticMarkup(createElement(
-      SemanticBrowserControllerProvider,
-      { manifest },
-      createElement(SemanticBrowserControls),
+      MantineProvider,
+      null,
+      createElement(
+        SemanticBrowserControllerProvider,
+        { manifest },
+        createElement(SemanticBrowserControls),
+      ),
     ))
     expect(html.indexOf('View Selection')).toBeLessThan(html.indexOf('Change Selection'))
     expect(html.indexOf('Change Selection')).toBeLessThan(html.indexOf('Presentation Mode'))
@@ -63,11 +68,15 @@ describe('SemanticBrowserController state machine', () => {
     const diff = createSemanticBrowserState(manifest, { view: 'candidate-diff', change: 'auth', mode: 'complete' })
     expect(diff).toMatchObject({ viewSelection: 'candidate-diff', changeSelection: null, presentationMode: 'diff-only' })
     const html = renderToStaticMarkup(createElement(
-      SemanticBrowserControllerProvider,
-      { manifest, initialUrl: { view: 'candidate-diff' } },
-      createElement(SemanticBrowserControls),
+      MantineProvider,
+      null,
+      createElement(
+        SemanticBrowserControllerProvider,
+        { manifest, initialUrl: { view: 'candidate-diff' } },
+        createElement(SemanticBrowserControls),
+      ),
     ))
-    expect(html).toBe('')
+    expect(html).not.toContain('data-xirang-controller')
   })
 
   it('uses complete without a change and complete-with-diff when a change is selected', () => {

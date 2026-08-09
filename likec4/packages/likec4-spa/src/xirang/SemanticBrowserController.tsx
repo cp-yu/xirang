@@ -1,3 +1,5 @@
+import { css } from '@likec4/styles/css'
+import { Group, NativeSelect, Paper } from '@mantine/core'
 import { type XirangRuntimeManifest, type XirangViewMode, type XirangViewSource, useXirangViewSources } from '@likec4/diagram'
 import { HttpProjectionLoader } from './HttpProjectionLoader'
 import { selectDiagramSnapshot, useDiagramActorRef, useDiagramSelector } from '@likec4/diagram'
@@ -422,6 +424,15 @@ export function SemanticBrowserRouteSync() {
   return null
 }
 
+const semanticBrowserControls = css({
+  position: 'absolute',
+  zIndex: 5,
+  left: '4',
+  top: '[112px]',
+  maxWidth: '[calc(100% - 32px)]',
+  pointerEvents: 'all',
+})
+
 export function SemanticBrowserControls() {
   const controller = useContext(SemanticBrowserControllerContext)
   if (!controller) return null
@@ -441,17 +452,42 @@ export function SemanticBrowserControls() {
     { value: 'diff-only', label: 'Diff only', disabled: state.changeSelection === null },
   ]
   return (
-    <div data-xirang-controller role="toolbar" aria-label="Semantic Browser controls">
-      <select aria-label="View Selection" value={state.viewSelection} onChange={event => selectView(event.currentTarget.value)}>
-        {viewOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-      </select>
-      <select aria-label="Change Selection" value={state.changeSelection ?? ''} onChange={event => selectChange(event.currentTarget.value || null)}>
-        {changeOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-      </select>
-      <select aria-label="Presentation Mode" value={state.presentationMode} onChange={event => selectMode(event.currentTarget.value as SemanticBrowserMode)}>
-        {modeOptions.map(option => <option key={option.value} value={option.value} disabled={option.disabled}>{option.label}</option>)}
-      </select>
-    </div>
+    <Paper
+      className={semanticBrowserControls}
+      data-xirang-controller
+      role="toolbar"
+      aria-label="Semantic Browser controls"
+      p="xs"
+      radius="md"
+      shadow="sm"
+      withBorder>
+      <Group gap="xs" wrap="wrap">
+        <NativeSelect
+          aria-label="View Selection"
+          label="View"
+          size="xs"
+          value={state.viewSelection}
+          data={viewOptions}
+          onChange={event => selectView(event.currentTarget.value)}
+        />
+        <NativeSelect
+          aria-label="Change Selection"
+          label="Change"
+          size="xs"
+          value={state.changeSelection ?? ''}
+          data={changeOptions}
+          onChange={event => selectChange(event.currentTarget.value || null)}
+        />
+        <NativeSelect
+          aria-label="Presentation Mode"
+          label="Mode"
+          size="xs"
+          value={state.presentationMode}
+          data={modeOptions}
+          onChange={event => selectMode(event.currentTarget.value as SemanticBrowserMode)}
+        />
+      </Group>
+    </Paper>
   )
 }
 

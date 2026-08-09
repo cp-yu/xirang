@@ -28,9 +28,18 @@ test.beforeEach(async ({ page }) => {
 test('browses Model View through nested focus and history', async ({ page }) => {
   const perspective = page.locator('.react-flow__node[data-xirang-identity="perspective.browser"]')
   await expect(perspective).toBeVisible()
-  await expect(page.locator('.react-flow__node')).not.toHaveCount(0)
   await expect(page.locator('body')).not.toContainText('untitled')
   await expectVisibleNodesDoNotOverlap(page)
+
+  const breadcrumb = page.locator('[data-xirang-focus-breadcrumb]')
+  const controls = page.locator('[data-xirang-controller]')
+  await expect(breadcrumb).toBeVisible()
+  await expect(controls).toBeVisible()
+  const breadcrumbBox = await breadcrumb.boundingBox()
+  const controlsBox = await controls.boundingBox()
+  expect(breadcrumbBox).not.toBeNull()
+  expect(controlsBox).not.toBeNull()
+  expect(controlsBox!.y).toBeGreaterThanOrEqual(breadcrumbBox!.y + breadcrumbBox!.height)
 
   await page.screenshot({ path: test.info().outputPath('model-root.png'), fullPage: true })
   await perspective.dblclick()
