@@ -25,5 +25,11 @@ export const cssCodeBlock = css({
 
 export const viewWithTopPadding = css({
   height: '100%',
-  paddingTop: '[var(--header-height)]',
+  // Mobile: the floating navigation panel is a full-width bar at the top, so the
+  // page controls must clear it. Desktop: the panel floats at the top-right and
+  // does not overlap the content.
+  paddingTop: '[40px]',
+  md: {
+    paddingTop: '0',
+  },
 })
