@@ -1,3 +1,0 @@
-model {
-  root.browser.drill.leaf -[invokes]-> root.browser.drill.peer 'invokes'
-}
