@@ -1,91 +1,71 @@
 {
-  "timestamp": "2026-08-09T09:46:35.874Z",
+  "timestamp": "2026-08-09T14:13:53.154Z",
   "result": "PASS",
   "issues": [],
   "tasksFileHash": "f583af8b5b596d5c52c6f04c583b36fe1447382d584fd072d81293468aae8164",
   "verificationContext": {
     "contractVersion": "1.0",
     "evidenceFiles": [
-      "likec4/packages/diagram/src/LikeC4Diagram.tsx",
-      "likec4/packages/diagram/src/navigationpanel/NavigationPanel.tsx",
-      "likec4/packages/likec4-spa/src/pages/ViewReact.tsx",
-      "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
-      "test/e2e/semantic-browser-model-view.spec.ts"
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/MetamodelDiffModal.tsx",
+      "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx"
     ],
-    "evidenceFingerprint": "69a36a183f9900dffff7a9469c35ef4b344cc4bd4ed26f1f704ff35d01e8c825",
+    "evidenceFingerprint": "a26327df3e8f13b3d0428a899fe85d9a1aec2c4474828d26d0b8ec0b1e274074",
     "evidenceFingerprintEntries": [
       {
-        "path": "likec4/packages/diagram/src/LikeC4Diagram.tsx",
-        "hash": "764dd1e5b6a341811431c4b4f8b6e41b4aa16822c4b00c2d21a59bd027d6cec9"
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+        "hash": "d950962eb6d59e6123fcc36afaebea312a6199fb731fd383fb1e92285daf55ee"
       },
       {
-        "path": "likec4/packages/diagram/src/navigationpanel/NavigationPanel.tsx",
-        "hash": "2f79e29848da955ba278bd699c2e20e35f3037837b408bf32e22c2a44ba933ca"
+        "path": "likec4/packages/diagram/src/overlays/element-details/MetamodelDiffModal.tsx",
+        "hash": "5f2c19f56f2c5b37e0c1288f6bf1dd7aa65f7e091178230b0c034cc066abbace"
       },
       {
-        "path": "likec4/packages/likec4-spa/src/pages/ViewReact.tsx",
-        "hash": "a45d80579a86b5eda40a742e7f7c1d94834e85504847b5dcf1831625060e4bc2"
-      },
-      {
-        "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
-        "hash": "0749bb0b88f99255b9190123a18692cc541d3bbfd7b800eaafee457fbb3e8725"
-      },
-      {
-        "path": "test/e2e/semantic-browser-model-view.spec.ts",
-        "hash": "19d448e9cd41049d93eb5bf5d5e04bd31389435aa798d847a058a3a22a2aada5"
+        "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+        "hash": "01ebbcf570fecd82384f084af265bc8f99a956695d33102d9952d8aba4a93949"
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "38a0954df795bb3b74650cf1d9f8049cea993289"
+    "gitHeadCommit": "559fd8d15b2a06999dca2828ad123ee3b143701f"
   },
   "optimization": {
     "status": "NOT_NEEDED",
     "attempts": [
       {
-        "timestamp": "2026-08-09T09:46:36.272Z",
+        "timestamp": "2026-08-09T14:13:53.572Z",
         "type": "optimization",
         "status": "NO_OPTIMIZATION_NEEDED"
       }
     ],
     "baseline": {
-      "timestamp": "2026-08-09T09:46:35.874Z",
+      "timestamp": "2026-08-09T14:13:53.154Z",
       "result": "PASS",
       "issues": [],
       "tasksFileHash": "f583af8b5b596d5c52c6f04c583b36fe1447382d584fd072d81293468aae8164",
       "verificationContext": {
         "contractVersion": "1.0",
         "evidenceFiles": [
-          "likec4/packages/diagram/src/LikeC4Diagram.tsx",
-          "likec4/packages/diagram/src/navigationpanel/NavigationPanel.tsx",
-          "likec4/packages/likec4-spa/src/pages/ViewReact.tsx",
-          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
-          "test/e2e/semantic-browser-model-view.spec.ts"
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/MetamodelDiffModal.tsx",
+          "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx"
         ],
-        "evidenceFingerprint": "69a36a183f9900dffff7a9469c35ef4b344cc4bd4ed26f1f704ff35d01e8c825",
+        "evidenceFingerprint": "a26327df3e8f13b3d0428a899fe85d9a1aec2c4474828d26d0b8ec0b1e274074",
         "evidenceFingerprintEntries": [
           {
-            "path": "likec4/packages/diagram/src/LikeC4Diagram.tsx",
-            "hash": "764dd1e5b6a341811431c4b4f8b6e41b4aa16822c4b00c2d21a59bd027d6cec9"
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "hash": "d950962eb6d59e6123fcc36afaebea312a6199fb731fd383fb1e92285daf55ee"
           },
           {
-            "path": "likec4/packages/diagram/src/navigationpanel/NavigationPanel.tsx",
-            "hash": "2f79e29848da955ba278bd699c2e20e35f3037837b408bf32e22c2a44ba933ca"
+            "path": "likec4/packages/diagram/src/overlays/element-details/MetamodelDiffModal.tsx",
+            "hash": "5f2c19f56f2c5b37e0c1288f6bf1dd7aa65f7e091178230b0c034cc066abbace"
           },
           {
-            "path": "likec4/packages/likec4-spa/src/pages/ViewReact.tsx",
-            "hash": "a45d80579a86b5eda40a742e7f7c1d94834e85504847b5dcf1831625060e4bc2"
-          },
-          {
-            "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
-            "hash": "0749bb0b88f99255b9190123a18692cc541d3bbfd7b800eaafee457fbb3e8725"
-          },
-          {
-            "path": "test/e2e/semantic-browser-model-view.spec.ts",
-            "hash": "19d448e9cd41049d93eb5bf5d5e04bd31389435aa798d847a058a3a22a2aada5"
+            "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+            "hash": "01ebbcf570fecd82384f084af265bc8f99a956695d33102d9952d8aba4a93949"
           }
         ],
         "skippedEvidenceFiles": [],
-        "gitHeadCommit": "38a0954df795bb3b74650cf1d9f8049cea993289"
+        "gitHeadCommit": "559fd8d15b2a06999dca2828ad123ee3b143701f"
       }
     },
     "findings": [],
