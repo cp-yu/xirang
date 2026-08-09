@@ -1,81 +1,71 @@
 {
-  "timestamp": "2026-08-09T08:04:14.171Z",
+  "timestamp": "2026-08-09T08:40:14.136Z",
   "result": "PASS",
   "issues": [],
   "tasksFileHash": "f583af8b5b596d5c52c6f04c583b36fe1447382d584fd072d81293468aae8164",
   "verificationContext": {
     "contractVersion": "1.0",
     "evidenceFiles": [
-      "likec4/packages/diagram/src/xirang/architectureView.ts",
+      "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
       "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
-      "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
-      "test/e2e/semantic-browser-performance.spec.ts"
+      "test/e2e/semantic-browser-model-view.spec.ts"
     ],
-    "evidenceFingerprint": "2406ce5177065edab0d9202447a866f0267f1d8504620f781973954e458ef3d7",
+    "evidenceFingerprint": "3a1733039de360a8d1555bede871bd6f3ba30dedfc8b244cf881347c23d36496",
     "evidenceFingerprintEntries": [
       {
-        "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
-        "hash": "df83cc56d55d96b4f99e869e74272cfc681ef62f5376081ac3377f89d8988854"
+        "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
+        "hash": "71ee3eaf00a757907eb7a212a6d19b660e600832be460a35940cd7fac3e73d91"
       },
       {
         "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
-        "hash": "f783533e54ff8add261ad25472363f9159669fd9e73a7eee46a771ba6a309ad3"
+        "hash": "37972a133fde209e1b4e48790135f9d76a84ba3e96b39c0e6f17744a2f53e358"
       },
       {
-        "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
-        "hash": "b3e7ac4566fd3074321cbb853fb340d00e262e35d6a2573d8adbcb4d94e3cf50"
-      },
-      {
-        "path": "test/e2e/semantic-browser-performance.spec.ts",
-        "hash": "59b35a408f00896f295ed0a561a817d1ca26afa2eb3b0e695724ad45d19d51ca"
+        "path": "test/e2e/semantic-browser-model-view.spec.ts",
+        "hash": "8ac88e21ed7413d46be44ab3e2e4dda9c3086d376c42bfd46c4d01f6db6e56ff"
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "b47782dc1f4bc7d9faffe357448b49327db9127e"
+    "gitHeadCommit": "2770188dd777c8b2b80e7e72e95b51bccca680b3"
   },
   "optimization": {
     "status": "NOT_NEEDED",
     "attempts": [
       {
-        "timestamp": "2026-08-09T08:04:14.539Z",
+        "timestamp": "2026-08-09T08:40:17.502Z",
         "type": "optimization",
         "status": "NO_OPTIMIZATION_NEEDED"
       }
     ],
     "baseline": {
-      "timestamp": "2026-08-09T08:04:14.171Z",
+      "timestamp": "2026-08-09T08:40:14.136Z",
       "result": "PASS",
       "issues": [],
       "tasksFileHash": "f583af8b5b596d5c52c6f04c583b36fe1447382d584fd072d81293468aae8164",
       "verificationContext": {
         "contractVersion": "1.0",
         "evidenceFiles": [
-          "likec4/packages/diagram/src/xirang/architectureView.ts",
+          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
           "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
-          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
-          "test/e2e/semantic-browser-performance.spec.ts"
+          "test/e2e/semantic-browser-model-view.spec.ts"
         ],
-        "evidenceFingerprint": "2406ce5177065edab0d9202447a866f0267f1d8504620f781973954e458ef3d7",
+        "evidenceFingerprint": "3a1733039de360a8d1555bede871bd6f3ba30dedfc8b244cf881347c23d36496",
         "evidenceFingerprintEntries": [
           {
-            "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
-            "hash": "df83cc56d55d96b4f99e869e74272cfc681ef62f5376081ac3377f89d8988854"
+            "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
+            "hash": "71ee3eaf00a757907eb7a212a6d19b660e600832be460a35940cd7fac3e73d91"
           },
           {
             "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
-            "hash": "f783533e54ff8add261ad25472363f9159669fd9e73a7eee46a771ba6a309ad3"
+            "hash": "37972a133fde209e1b4e48790135f9d76a84ba3e96b39c0e6f17744a2f53e358"
           },
           {
-            "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
-            "hash": "b3e7ac4566fd3074321cbb853fb340d00e262e35d6a2573d8adbcb4d94e3cf50"
-          },
-          {
-            "path": "test/e2e/semantic-browser-performance.spec.ts",
-            "hash": "59b35a408f00896f295ed0a561a817d1ca26afa2eb3b0e695724ad45d19d51ca"
+            "path": "test/e2e/semantic-browser-model-view.spec.ts",
+            "hash": "8ac88e21ed7413d46be44ab3e2e4dda9c3086d376c42bfd46c4d01f6db6e56ff"
           }
         ],
         "skippedEvidenceFiles": [],
-        "gitHeadCommit": "b47782dc1f4bc7d9faffe357448b49327db9127e"
+        "gitHeadCommit": "2770188dd777c8b2b80e7e72e95b51bccca680b3"
       }
     },
     "findings": [],
