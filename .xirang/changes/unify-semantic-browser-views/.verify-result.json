@@ -1,24 +1,34 @@
 {
-  "timestamp": "2026-08-09T09:09:40.732Z",
+  "timestamp": "2026-08-09T09:46:35.874Z",
   "result": "PASS",
   "issues": [],
   "tasksFileHash": "f583af8b5b596d5c52c6f04c583b36fe1447382d584fd072d81293468aae8164",
   "verificationContext": {
     "contractVersion": "1.0",
     "evidenceFiles": [
-      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+      "likec4/packages/diagram/src/LikeC4Diagram.tsx",
+      "likec4/packages/diagram/src/navigationpanel/NavigationPanel.tsx",
+      "likec4/packages/likec4-spa/src/pages/ViewReact.tsx",
       "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
       "test/e2e/semantic-browser-model-view.spec.ts"
     ],
-    "evidenceFingerprint": "8c6f8cc186e4a99050f8d8b2ef1d78440b3e3bf7bb0e993e2c01534382dcdc2f",
+    "evidenceFingerprint": "69a36a183f9900dffff7a9469c35ef4b344cc4bd4ed26f1f704ff35d01e8c825",
     "evidenceFingerprintEntries": [
       {
-        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
-        "hash": "c7c7a8149b2562f0d2b1a1e2973799323f2ab34f5c6054968f64441c3b93f807"
+        "path": "likec4/packages/diagram/src/LikeC4Diagram.tsx",
+        "hash": "764dd1e5b6a341811431c4b4f8b6e41b4aa16822c4b00c2d21a59bd027d6cec9"
+      },
+      {
+        "path": "likec4/packages/diagram/src/navigationpanel/NavigationPanel.tsx",
+        "hash": "2f79e29848da955ba278bd699c2e20e35f3037837b408bf32e22c2a44ba933ca"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/pages/ViewReact.tsx",
+        "hash": "a45d80579a86b5eda40a742e7f7c1d94834e85504847b5dcf1831625060e4bc2"
       },
       {
         "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
-        "hash": "e774bfb6b9d6c435f6f9d991ded4f4e147e8ebb9a74eecfe620ef1bde0b717df"
+        "hash": "0749bb0b88f99255b9190123a18692cc541d3bbfd7b800eaafee457fbb3e8725"
       },
       {
         "path": "test/e2e/semantic-browser-model-view.spec.ts",
@@ -26,38 +36,48 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "82b48910ff0b198cfcb2eda174a954a0d7498e4f"
+    "gitHeadCommit": "38a0954df795bb3b74650cf1d9f8049cea993289"
   },
   "optimization": {
     "status": "NOT_NEEDED",
     "attempts": [
       {
-        "timestamp": "2026-08-09T09:09:41.114Z",
+        "timestamp": "2026-08-09T09:46:36.272Z",
         "type": "optimization",
         "status": "NO_OPTIMIZATION_NEEDED"
       }
     ],
     "baseline": {
-      "timestamp": "2026-08-09T09:09:40.732Z",
+      "timestamp": "2026-08-09T09:46:35.874Z",
       "result": "PASS",
       "issues": [],
       "tasksFileHash": "f583af8b5b596d5c52c6f04c583b36fe1447382d584fd072d81293468aae8164",
       "verificationContext": {
         "contractVersion": "1.0",
         "evidenceFiles": [
-          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/LikeC4Diagram.tsx",
+          "likec4/packages/diagram/src/navigationpanel/NavigationPanel.tsx",
+          "likec4/packages/likec4-spa/src/pages/ViewReact.tsx",
           "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
           "test/e2e/semantic-browser-model-view.spec.ts"
         ],
-        "evidenceFingerprint": "8c6f8cc186e4a99050f8d8b2ef1d78440b3e3bf7bb0e993e2c01534382dcdc2f",
+        "evidenceFingerprint": "69a36a183f9900dffff7a9469c35ef4b344cc4bd4ed26f1f704ff35d01e8c825",
         "evidenceFingerprintEntries": [
           {
-            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
-            "hash": "c7c7a8149b2562f0d2b1a1e2973799323f2ab34f5c6054968f64441c3b93f807"
+            "path": "likec4/packages/diagram/src/LikeC4Diagram.tsx",
+            "hash": "764dd1e5b6a341811431c4b4f8b6e41b4aa16822c4b00c2d21a59bd027d6cec9"
+          },
+          {
+            "path": "likec4/packages/diagram/src/navigationpanel/NavigationPanel.tsx",
+            "hash": "2f79e29848da955ba278bd699c2e20e35f3037837b408bf32e22c2a44ba933ca"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/pages/ViewReact.tsx",
+            "hash": "a45d80579a86b5eda40a742e7f7c1d94834e85504847b5dcf1831625060e4bc2"
           },
           {
             "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
-            "hash": "e774bfb6b9d6c435f6f9d991ded4f4e147e8ebb9a74eecfe620ef1bde0b717df"
+            "hash": "0749bb0b88f99255b9190123a18692cc541d3bbfd7b800eaafee457fbb3e8725"
           },
           {
             "path": "test/e2e/semantic-browser-model-view.spec.ts",
@@ -65,7 +85,7 @@
           }
         ],
         "skippedEvidenceFiles": [],
-        "gitHeadCommit": "82b48910ff0b198cfcb2eda174a954a0d7498e4f"
+        "gitHeadCommit": "38a0954df795bb3b74650cf1d9f8049cea993289"
       }
     },
     "findings": [],
