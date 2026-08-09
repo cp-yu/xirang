@@ -3,7 +3,7 @@ import { Box, Button, Group, Modal, Stack, Text } from '@mantine/core'
 import { IconGripVertical } from '@tabler/icons-react'
 import { useRerender } from '@react-hookz/web'
 import { motion, useDragControls } from 'motion/react'
-import { memo, useCallback, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type PropsWithChildren, type ReactNode } from 'react'
 import { ErrorBoundary } from '../components/ErrorFallback'
 import { useEnabledFeatures } from '../context/DiagramFeatures'
 import { selectDiagramSnapshot, useDiagramSelector, useOnDiagramEvent } from '../hooks'
@@ -368,7 +368,7 @@ function XirangArchitectureOverlay() {
   )
 }
 
-export const LikeC4DiagramUI = memo(() => {
+export const LikeC4DiagramUI = memo(({ navigationPanelExtra }: { navigationPanelExtra?: ReactNode }) => {
   const {
     enableControls,
     enableNotations,
@@ -391,7 +391,7 @@ export const LikeC4DiagramUI = memo(() => {
     <ErrorBoundary onReset={handleReset}>
       {isSequenceView && <FloatingSequenceActors isActiveWalkthrough={isActiveWalkthrough} />}
       {isActiveWalkthrough && <SequenceOutlinePanel />}
-      {enableControls && actors.navigation && !isActiveWalkthrough && <NavigationPanel actorRef={actors.navigation} />}
+      {enableControls && actors.navigation && !isActiveWalkthrough && <NavigationPanel actorRef={actors.navigation} extra={navigationPanelExtra} />}
       {actors.overlays && <Overlays overlaysActorRef={actors.overlays} />}
       {enableNotations && <NotationPanel />}
       {enableSearch && actors.search && <Search searchActorRef={actors.search} />}

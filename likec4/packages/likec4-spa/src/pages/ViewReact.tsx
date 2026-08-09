@@ -23,7 +23,7 @@ import { useEffect, useRef } from 'react'
 import { NotFound } from '../components/NotFound'
 import { headerOps } from '../components/view-page/state'
 import { useCurrentView } from '../hooks'
-import { SemanticBrowserControls, SemanticBrowserRouteSync } from '../xirang/SemanticBrowserController'
+import { SemanticBrowserControls, SemanticBrowserMobileControls, SemanticBrowserRouteSync } from '../xirang/SemanticBrowserController'
 
 export function ViewReact() {
   const navigate = useNavigate()
@@ -87,8 +87,9 @@ export function ViewReact() {
           to: '/',
         })
       }}
+      navigationPanelExtra={<SemanticBrowserControls />}
     >
-      <SemanticBrowserControls />
+      <SemanticBrowserMobileControls />
       <ListenForDiagramStateChanges />
       <SemanticBrowserRouteSync />
       <OpenRelationshipBrowserFromUrl />

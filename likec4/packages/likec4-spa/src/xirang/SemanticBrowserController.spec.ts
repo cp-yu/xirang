@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import {
   SemanticBrowserControllerProvider,
-  SemanticBrowserControls,
+  SemanticBrowserMobileControls,
   createSemanticBrowserState,
   encodeSemanticBrowserUrl,
   historyStateForSemanticBrowser,
@@ -46,6 +46,8 @@ const manifest: SemanticBrowserManifest = {
 }
 
 describe('SemanticBrowserController state machine', () => {
+  // SSR renders without matchMedia, so useMediaQuery is false and only the mobile
+  // variant mounts; both variants share the same select structure and logic.
   it('renders View, Change and Mode controls in fixed order and disables diff modes without a change', () => {
     const html = renderToStaticMarkup(createElement(
       MantineProvider,
@@ -53,7 +55,7 @@ describe('SemanticBrowserController state machine', () => {
       createElement(
         SemanticBrowserControllerProvider,
         { manifest },
-        createElement(SemanticBrowserControls),
+        createElement(SemanticBrowserMobileControls),
       ),
     ))
     expect(html.indexOf('View Selection')).toBeLessThan(html.indexOf('Change Selection'))
@@ -73,7 +75,7 @@ describe('SemanticBrowserController state machine', () => {
       createElement(
         SemanticBrowserControllerProvider,
         { manifest, initialUrl: { view: 'candidate-diff' } },
-        createElement(SemanticBrowserControls),
+        createElement(SemanticBrowserMobileControls),
       ),
     ))
     expect(html).not.toContain('data-xirang-controller')

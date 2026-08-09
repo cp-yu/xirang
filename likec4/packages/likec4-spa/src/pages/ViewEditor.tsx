@@ -14,7 +14,7 @@ import { LazyAIChat } from '../aichat'
 import { NotFound } from '../components/NotFound'
 import { useLikeC4ModelAtom } from '../context/safeCtx'
 import { useCurrentProject, useCurrentView } from '../hooks'
-import { SemanticBrowserControls, SemanticBrowserRouteSync } from '../xirang/SemanticBrowserController'
+import { SemanticBrowserControls, SemanticBrowserMobileControls, SemanticBrowserRouteSync } from '../xirang/SemanticBrowserController'
 import { FocusElementFromUrl, ListenForDiagramStateChanges, OpenRelationshipBrowserFromUrl } from './ViewReact'
 
 export function ViewEditor() {
@@ -96,8 +96,9 @@ export function ViewEditor() {
             to: '/',
           })
         }}
+        navigationPanelExtra={<SemanticBrowserControls />}
       >
-        <SemanticBrowserControls />
+        <SemanticBrowserMobileControls />
         <ListenForDiagramStateChanges />
         <SemanticBrowserRouteSync />
         <OpenRelationshipBrowserFromUrl />

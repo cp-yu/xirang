@@ -90,6 +90,7 @@ export function LikeC4Diagram<A extends Any = Any>({
   renderNodes,
   initialFocusIdentity,
   initialExpanded,
+  navigationPanelExtra,
   children,
 }: LikeC4DiagramProps<A>): JSX.Element {
   const id = useId()
@@ -215,7 +216,7 @@ export function LikeC4Diagram<A extends Any = Any>({
                           >
                             {children}
                           </LikeC4DiagramXYFlow>
-                          <LikeC4DiagramUI />
+                          <LikeC4DiagramUI navigationPanelExtra={navigationPanelExtra} />
                         </CurrentViewModelProvider>
                       </DiagramActorProvider>
                     </XYFlowProvider>

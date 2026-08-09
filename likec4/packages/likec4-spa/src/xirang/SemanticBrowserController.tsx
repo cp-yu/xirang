@@ -1,5 +1,7 @@
 import { css } from '@likec4/styles/css'
+import { hstack } from '@likec4/styles/patterns'
 import { NativeSelect } from '@mantine/core'
+import { useMediaQuery } from '@mantine/hooks'
 import { type XirangRuntimeManifest, type XirangViewMode, type XirangViewSource, useXirangViewSources } from '@likec4/diagram'
 import { HttpProjectionLoader } from './HttpProjectionLoader'
 import { selectDiagramSnapshot, useDiagramActorRef, useDiagramSelector } from '@likec4/diagram'
@@ -424,7 +426,21 @@ export function SemanticBrowserRouteSync() {
   return null
 }
 
-const semanticBrowserChrome = css({
+const semanticBrowserControlsBar = hstack({
+  layerStyle: 'likec4.panel',
+  position: 'relative',
+  gap: 'xs',
+  pointerEvents: 'all',
+  width: 'max-content',
+  maxWidth: 'calc(100vw - 2 * {spacing.xs})',
+  flexWrap: 'wrap',
+})
+
+/**
+ * Mobile: rendered as a canvas child so the chip pans with the flow and never
+ * blocks nodes brought into view; the fixed panel slot would cover them.
+ */
+const semanticBrowserControlsChip = css({
   position: 'absolute',
   top: '[44px]',
   left: '0',
@@ -440,18 +456,12 @@ const semanticBrowserChrome = css({
   width: 'max-content',
   maxWidth: 'calc(100vw - 2 * {spacing.xs})',
   zIndex: 5,
-  sm: {
-    top: '0',
-    margin: 'sm',
-    maxWidth: 'calc(100vw - 2 * {spacing.md})',
-  },
 })
 
-export function SemanticBrowserControls() {
+function SemanticBrowserControlsSelects() {
   const controller = useContext(SemanticBrowserControllerContext)
   if (!controller) return null
   const { manifest, state, selectView, selectChange, selectMode } = controller
-  if (state.viewSelection === 'candidate' || state.viewSelection === 'candidate-diff') return null
   const viewOptions = [
     { value: 'model', label: 'Model View' },
     ...Object.entries(manifest.authoredViews).map(([id, view]) => ({ value: id, label: view.title })),
@@ -466,11 +476,7 @@ export function SemanticBrowserControls() {
     { value: 'diff-only', label: 'Diff only', disabled: state.changeSelection === null },
   ]
   return (
-    <div
-      className={semanticBrowserChrome}
-      data-xirang-controller
-      role="toolbar"
-      aria-label="Semantic Browser controls">
+    <>
       <NativeSelect
         aria-label="View Selection"
         label="View"
@@ -495,8 +501,37 @@ export function SemanticBrowserControls() {
         data={modeOptions}
         onChange={event => selectMode(event.currentTarget.value as SemanticBrowserMode)}
       />
+    </>
+  )
+}
+
+function SemanticBrowserControlsShell({ className }: { className: string }) {
+  const controller = useContext(SemanticBrowserControllerContext)
+  if (!controller) return null
+  if (controller.state.viewSelection === 'candidate' || controller.state.viewSelection === 'candidate-diff') return null
+  return (
+    <div
+      className={className}
+      data-xirang-controller
+      role="toolbar"
+      aria-label="Semantic Browser controls">
+      <SemanticBrowserControlsSelects />
     </div>
   )
+}
+
+/** Desktop: rendered in the navigation panel slot, merged into the top-left chrome. */
+export function SemanticBrowserControls() {
+  const isDesktop = useMediaQuery('(min-width: 48em)') ?? true
+  if (!isDesktop) return null
+  return <SemanticBrowserControlsShell className={semanticBrowserControlsBar} />
+}
+
+/** Mobile: rendered in the diagram canvas so it pans with the flow. */
+export function SemanticBrowserMobileControls() {
+  const isDesktop = useMediaQuery('(min-width: 48em)') ?? true
+  if (isDesktop) return null
+  return <SemanticBrowserControlsShell className={semanticBrowserControlsChip} />
 }
 
 export function useSemanticBrowserController(): SemanticBrowserControllerValue {
