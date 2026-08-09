@@ -1,11 +1,12 @@
 import { type Fqn, hasProp, isDynamicView, RichText } from '@likec4/core'
-import { Badge, Box, Button, Group, Modal, NativeSelect, Stack, Text, UnstyledButton } from '@mantine/core'
+import { css } from '@likec4/styles/css'
+import { Badge, Box, Button, Group, Modal, Stack, Text, UnstyledButton } from '@mantine/core'
 import { IconGripVertical } from '@tabler/icons-react'
 import { useRerender } from '@react-hookz/web'
 import { motion, useDragControls } from 'motion/react'
-import { memo, useCallback, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react'
-import { Markdown } from '../base-primitives'
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type PropsWithChildren, type ReactNode } from 'react'
 import { ErrorBoundary } from '../components/ErrorFallback'
+import { Markdown } from '../base-primitives'
 import { useEnabledFeatures } from '../context/DiagramFeatures'
 import { selectDiagramSnapshot, useDiagramSelector, useOnDiagramEvent } from '../hooks'
 import { useDiagram, useDiagramActorRef } from '../hooks/useDiagram'
@@ -13,7 +14,7 @@ import { NavigationPanel } from '../navigationpanel'
 import { MetamodelDiffModal } from '../overlays/element-details/MetamodelDiffModal'
 import { Overlays } from '../overlays/Overlays'
 import { Search } from '../search/Search'
-import { materializeXirangArchitectureView } from '../xirang/architectureView'
+import { applyXirangPresentationOverlay, expandXirangRelationshipEdges } from '../xirang/architectureView'
 import {
   type XirangDiffEntry,
   type XirangDiffOperation,
@@ -97,13 +98,28 @@ export function getArchitectureOverlayModel(source: XirangViewSource) {
   }
 }
 
+/** Right-side inspection panel for the selected Change: plan files, metamodel diffs, diagnostics. */
+const changeDetailsPanel = css({
+  position: 'absolute',
+  top: '[64px]',
+  right: '4',
+  zIndex: 5,
+  pointerEvents: 'all',
+  maxWidth: 'calc(100vw - 2 * {spacing.md})',
+  layerStyle: 'likec4.panel',
+  display: 'none',
+  sm: {
+    display: 'block',
+  },
+})
+
 function FloatingChrome({
   dragControls,
   position,
   children,
 }: PropsWithChildren<{
   dragControls: ReturnType<typeof useDragControls>
-  position: { left?: number; right?: number; top: number }
+  position: { left?: number; right?: number; top?: number; bottom?: number }
 }>) {
   return (
     <motion.div
@@ -120,9 +136,8 @@ function FloatingChrome({
 }
 
 function XirangArchitectureOverlay() {
-  const { sources, selected, select, mode, setMode } = useXirangViewSources()
+  const { selected, mode } = useXirangViewSources()
   const { enableStaticView } = useEnabledFeatures()
-  const dragControls = useDragControls()
   const breadcrumbDragControls = useDragControls()
   const selectedRevision = xirangViewSourceRevision(selected)
   const actorRef = useDiagramActorRef()
@@ -133,6 +148,7 @@ function XirangArchitectureOverlay() {
   const expandedNodes = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.context.expandedNodes))
   const modelView = useRef(currentView)
   const selectedSourceId = useRef(selected.id)
+  const hasProjection = useRef(false)
   const previousFocusAncestors = useRef<string[]>([])
   /** Candidate View is always full; Candidate Diff View is always diff-only; Changes can toggle. */
   const effectiveMode = resolveEffectiveMode(selected.source, mode)
@@ -140,6 +156,7 @@ function XirangArchitectureOverlay() {
   const [relationshipModalOpened, setRelationshipModalOpened] = useState(false)
   const [metamodelEntry, setMetamodelEntry] = useState<{ entry: XirangDiffEntry; opened: boolean } | null>(null)
   const [planFile, setPlanFile] = useState<{ name: string; content: string; opened: boolean } | null>(null)
+  const overlay = useMemo(() => getArchitectureOverlayModel(selected), [selected])
   const { declarations, childrenByIdentity, rootIdentity } = useMemo(() => {
     const declarations = new Map((selected.architecture?.elements ?? [])
       .map(element => [element.declaration.identity, element.declaration]))
@@ -158,7 +175,11 @@ function XirangArchitectureOverlay() {
   }, [selected])
   const hasChildren = (identity: string) => (childrenByIdentity.get(identity)?.length ?? 0) > 0
   const nodeIdentity = (node: { id: string; metadata?: Readonly<Record<string, unknown>> | null | undefined }) =>
-    typeof node.metadata?.['elementId'] === 'string' ? node.metadata['elementId'] as string : node.id
+    typeof node.metadata?.['xirangIdentity'] === 'string'
+      ? node.metadata['xirangIdentity'] as string
+      : typeof node.metadata?.['elementId'] === 'string'
+        ? node.metadata['elementId'] as string
+        : node.id
   const breadcrumbIdentities = useMemo(() => {
     const identities: string[] = []
     let breadcrumbIdentity = focusIdentity ?? rootIdentity
@@ -168,8 +189,8 @@ function XirangArchitectureOverlay() {
     }
     return identities
   }, [declarations, focusIdentity, rootIdentity])
-  const breadcrumb = currentView.id === 'model' && breadcrumbIdentities.length > 0 && (
-    <FloatingChrome dragControls={breadcrumbDragControls} position={{ left: 16, top: 72 }}>
+  const breadcrumb = selected.id === 'model' && breadcrumbIdentities.length > 0 && (
+    <FloatingChrome dragControls={breadcrumbDragControls} position={{ left: 60, bottom: 16 }}>
       <Group
         data-xirang-focus-breadcrumb
         data-xirang-drag-handle
@@ -178,7 +199,7 @@ function XirangArchitectureOverlay() {
           event.stopPropagation()
           breadcrumbDragControls.start(event)
         }}
-        style={{ cursor: 'grab' }}
+        style={{ cursor: 'grab', flexWrap: 'wrap', maxWidth: 'calc(100vw - 80px)' }}
       >
         <IconGripVertical size={12} />
         {breadcrumbIdentities.map(identity => (
@@ -196,14 +217,16 @@ function XirangArchitectureOverlay() {
     </FloatingChrome>
   )
 
+  const isInteractiveBrowserSource = selected.id !== 'candidate' && selected.id !== 'candidate-diff'
+
   useOnDiagramEvent('nodeClick', event => {
-    if (currentView.id !== 'model' || !event.ctrlKey) return
+    if (!isInteractiveBrowserSource || !event.ctrlKey) return
     const identity = nodeIdentity(event.node)
     if (hasChildren(identity)) actorRef.send({ type: 'expand.toggle', identity })
   })
 
   useOnDiagramEvent('nodeDoubleClick', event => {
-    if (currentView.id !== 'model') return
+    if (!isInteractiveBrowserSource) return
     const identity = nodeIdentity(event.node)
     const addedIdentity = addedXirangProjectionIdentity(event.xynode.data)
     if (addedIdentity) {
@@ -216,11 +239,15 @@ function XirangArchitectureOverlay() {
   })
 
   useOnDiagramEvent('edgeClick', event => {
+    const clicked = event.edge as unknown as { xirangRelations?: string[] }
+    const directRelation = (event.xyedge.data as typeof event.xyedge.data & {
+      xirang?: { relation?: string }
+    }).xirang?.relation
     const edgeId = event.edge.id
     const edge = currentView.edges.find(candidate => candidate.id === edgeId) as
       | { xirangRelations?: string[] }
       | undefined
-    const details = edge?.xirangRelations ?? []
+    const details = directRelation ? [directRelation] : clicked.xirangRelations ?? edge?.xirangRelations ?? []
     setRelationshipDetails(details)
     if (details.length > 0) setRelationshipModalOpened(true)
   })
@@ -240,7 +267,7 @@ function XirangArchitectureOverlay() {
   const expandDepthState = useRef({ focus: focusIdentity ?? rootIdentity, childrenByIdentity, hasChildren })
   expandDepthState.current = { focus: focusIdentity ?? rootIdentity, childrenByIdentity, hasChildren }
   useEffect(() => {
-    if (currentView.id !== 'model') return
+    if (!isInteractiveBrowserSource) return
     const onKeyDown = (event: KeyboardEvent) => {
       if (!event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return
       const match = /^Digit([0-9])$/.exec(event.code)
@@ -272,18 +299,18 @@ function XirangArchitectureOverlay() {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [actorRef, currentView.id])
+  }, [actorRef, selected.id])
 
   useEffect(() => {
-    if (currentView.id === 'model' && !currentView.hash.includes(':xirang:')) modelView.current = currentView
+    if (selected.id === 'model' && !currentView.hash.includes(':xirang:')) modelView.current = currentView
   }, [currentView])
 
   useEffect(() => {
-    if (!isReady || currentView.id !== 'model') return
+    if (!isReady) return
     if (selectedSourceId.current !== selected.id) {
       selectedSourceId.current = selected.id
       previousFocusAncestors.current = []
-      actorRef.send({ type: 'navigate.focus', focusIdentity: rootIdentity ?? null, replaceHistory: true })
+      if (isInteractiveBrowserSource && !focusIdentity) actorRef.send({ type: 'navigate.focus', focusIdentity: rootIdentity ?? null, replaceHistory: true })
       // Send the view update immediately instead of returning,
       // so the change-derived view is rendered even when focusIdentity
       // is already the root identity and won't trigger a re-render.
@@ -300,17 +327,18 @@ function XirangArchitectureOverlay() {
     }
     const resolvedFocus = [focusIdentity, ...previousAncestorPath, rootIdentity]
       .find((identity): identity is string => !!identity && declarations.has(identity))
+    const projectionView = selected.projection ?? modelView.current
     const view = selected.architecture
-      ? materializeXirangArchitectureView(
-        modelView.current,
-        selected,
-        effectiveMode,
-        focusIdentity ?? undefined,
-        previousAncestorPath,
-        expandedNodes,
-      )
-      : modelView.current
-    actorRef.send({ type: 'update.view', view, source: 'external' })
+      ? applyXirangPresentationOverlay(expandXirangRelationshipEdges(projectionView, selected), selected)
+      : projectionView
+    actorRef.send({
+      type: 'update.view',
+      view,
+      source: 'projection',
+      anchorIdentity: focusIdentity ?? rootIdentity ?? null,
+      initialProjection: !hasProjection.current,
+    })
+    hasProjection.current = true
     if (focusIdentity && resolvedFocus !== focusIdentity) {
       actorRef.send({ type: 'navigate.focus', focusIdentity: resolvedFocus ?? null })
     }
@@ -321,12 +349,14 @@ function XirangArchitectureOverlay() {
   useEffect(() => {
     if (enableStaticView) return
     setXirangExportSnapshot({
-      source: selected.id,
+      view: selected.id,
+      change: selected.change ?? null,
       mode: effectiveMode,
       focus: focusIdentity,
       expanded: [...expandedNodes].sort(),
+      projection: currentView,
     })
-  }, [enableStaticView, effectiveMode, expandedNodes, focusIdentity, selected.id])
+  }, [currentView, enableStaticView, effectiveMode, expandedNodes, focusIdentity, selected.change, selected.id])
 
   const relationshipPanel = (
     <Modal
@@ -343,130 +373,53 @@ function XirangArchitectureOverlay() {
     </Modal>
   )
 
-  const overlay = useMemo(() => getArchitectureOverlayModel(selected), [selected])
+  const changeDetails = !enableStaticView && (selected.change || selected.diff || selected.changePlan) && (
+    <Stack className={changeDetailsPanel} p="xs" gap={4}>
+      <Group gap="xs">
+        <Text size="xs" fw={600}>Change · {selected.label}</Text>
+        <Badge size="xs" color={selected.valid ? 'green' : 'red'}>{selected.valid ? 'Valid' : 'Invalid'}</Badge>
+      </Group>
+      <Text size="xs" c="dimmed">+{overlay.counts.ADDED} ~{overlay.counts.MODIFIED} -{overlay.counts.REMOVED}</Text>
+      {overlay.metamodel.map(entry => (
+        <UnstyledButton
+          key={`${entry.kind}:${entry.identity}`}
+          onClick={() => setMetamodelEntry({ entry, opened: true })}
+          style={{ textAlign: 'left' }}
+        >
+          <Text size="xs" c="dimmed">
+            {entry.operation === 'ADDED' ? '+' : entry.operation === 'REMOVED' ? '-' : '~'} {entry.kind} {entry.identity}
+          </Text>
+        </UnstyledButton>
+      ))}
+      {selected.changePlan && (
+        <Stack gap={2}>
+          <Text size="xs" fw={600} c="dimmed" mt={4}>Plan</Text>
+          {['design.md', 'proposal.md', 'tasks.md'].map(file => {
+            const content = selected.changePlan![file]
+            if (!content) return null
+            return (
+              <UnstyledButton
+                key={file}
+                onClick={() => setPlanFile({ name: file, content, opened: true })}
+                style={{ textAlign: 'left' }}
+              >
+                <Text size="xs" c="dimmed">📄 {file}</Text>
+              </UnstyledButton>
+            )
+          })}
+        </Stack>
+      )}
+      {overlay.diagnostics.map((diagnostic, index) => (
+        <Text key={index} size="xs" c={diagnostic.level === 'ERROR' ? 'red' : 'yellow'}>{diagnostic.message}</Text>
+      ))}
+    </Stack>
+  )
 
-  if (enableStaticView) {
-    return (
-      <>
-        {relationshipPanel}
-        <Box
-          hidden
-          data-xirang-architecture-overlay
-          data-xirang-current-view={currentView.id}
-          data-xirang-current-view-hash={currentView.hash}
-          data-xirang-rendered-node-count={currentView.nodes.length}
-        />
-      </>
-    )
-  }
-  if (selected.source === 'semantic-model') {
-    return (
-      <>
-        {breadcrumb}
-        {relationshipPanel}
-        <Box
-          hidden
-          data-xirang-architecture-overlay
-          data-xirang-current-view={currentView.id}
-          data-xirang-current-view-hash={currentView.hash}
-          data-xirang-rendered-node-count={currentView.nodes.length}
-        />
-      </>
-    )
-  }
   return (
     <>
-      {breadcrumb}
+      {!enableStaticView && breadcrumb}
       {relationshipPanel}
-      <FloatingChrome dragControls={dragControls} position={{ right: 16, top: 16 }}>
-        <Box
-          data-xirang-architecture-overlay
-          data-xirang-architecture-mode={mode}
-          data-xirang-changed-count={overlay.changed.length}
-          data-xirang-context-count={overlay.context.length}
-          data-xirang-metamodel-count={overlay.metamodel.length}
-          data-xirang-rendered-node-count={currentView.nodes.length}
-          data-xirang-rendered-view-hash={currentView.hash}
-        >
-          <Stack
-            gap={6}
-            p="xs"
-            style={{
-              background: 'var(--mantine-color-body)',
-              border: '1px solid var(--mantine-color-default-border)',
-              borderRadius: 6,
-            }}>
-            <Group
-              data-xirang-drag-handle
-              gap="xs"
-              onPointerDown={event => {
-                event.stopPropagation()
-                dragControls.start(event)
-              }}
-              style={{ cursor: 'grab' }}>
-              <IconGripVertical size={12} />
-              <Text size="xs" fw={600}>Change / {selected.label}</Text>
-              <Badge size="xs" color={selected.valid ? 'green' : 'red'}>{selected.valid ? 'Valid' : 'Invalid'}</Badge>
-            </Group>
-          <NativeSelect
-            aria-label="Active Change"
-            size="xs"
-            value={selected.id}
-            data={sources.map(source => ({ value: source.id, label: source.label }))}
-            onChange={event => select(event.currentTarget.value)}
-          />
-          {selected.source === 'change-derived-view' && (
-          <Group gap={4}>
-            <Button size="compact-xs" variant={mode === 'full' ? 'filled' : 'subtle'} onClick={() => setMode('full')}>
-              Full context
-            </Button>
-            <Button size="compact-xs" variant={mode === 'diff' ? 'filled' : 'subtle'} onClick={() => setMode('diff')}>
-              Diff only
-            </Button>
-          </Group>
-          )}
-          <Text size="xs">+{overlay.counts.ADDED} ~{overlay.counts.MODIFIED} -{overlay.counts.REMOVED}</Text>
-          {overlay.metamodel.map(entry => (
-            <UnstyledButton
-              key={`${entry.kind}:${entry.identity}`}
-              size="xs"
-              c="dimmed"
-              onClick={() => setMetamodelEntry({ entry, opened: true })}
-              style={{ textAlign: 'left', cursor: 'pointer' }}
-            >
-              <Text size="xs" c="dimmed">
-                {entry.operation === 'ADDED' ? '+' : entry.operation === 'REMOVED' ? '-' : '~'} {entry.kind}{' '}
-                {entry.identity}
-              </Text>
-            </UnstyledButton>
-          ))}
-          {selected.changePlan && (
-            <Stack gap={2}>
-              <Text size="xs" fw={600} c="dimmed" mt={4}>Plan</Text>
-              {['design.md', 'proposal.md', 'tasks.md'].map(file => {
-                const content = selected.changePlan![file]
-                if (!content) return null
-                return (
-                  <UnstyledButton
-                    key={file}
-                    size="xs"
-                    c="dimmed"
-                    onClick={() => setPlanFile({ name: file, content, opened: true })}
-                    style={{ textAlign: 'left', cursor: 'pointer' }}
-                  >
-                    <Text size="xs" c="dimmed">📄 {file}</Text>
-                  </UnstyledButton>
-                )
-              })}
-            </Stack>
-          )}
-          {overlay.entries.length === 0 && <Text size="xs" c="dimmed">No semantic graph change</Text>}
-          {overlay.diagnostics.map((diagnostic, index) => (
-            <Text key={index} size="xs" c={diagnostic.level === 'ERROR' ? 'red' : 'yellow'}>{diagnostic.message}</Text>
-          ))}
-        </Stack>
-      </Box>
-      </FloatingChrome>
+      {changeDetails}
       <MetamodelDiffModal
         entry={metamodelEntry?.entry ?? null}
         opened={metamodelEntry?.opened ?? false}
@@ -483,11 +436,20 @@ function XirangArchitectureOverlay() {
           <Markdown value={RichText.from({ md: planFile?.content ?? '' })} />
         </Box>
       </Modal>
+      <Box
+        hidden
+        data-xirang-architecture-overlay
+        data-xirang-current-view={currentView.id}
+        data-xirang-current-view-hash={currentView.hash}
+        data-xirang-rendered-node-count={currentView.nodes.length}
+        data-xirang-source={selected.id}
+        data-xirang-architecture-mode={effectiveMode}
+      />
     </>
   )
 }
 
-export const LikeC4DiagramUI = memo(() => {
+export const LikeC4DiagramUI = memo(({ navigationPanelExtra }: { navigationPanelExtra?: ReactNode }) => {
   const {
     enableControls,
     enableNotations,
@@ -510,7 +472,7 @@ export const LikeC4DiagramUI = memo(() => {
     <ErrorBoundary onReset={handleReset}>
       {isSequenceView && <FloatingSequenceActors isActiveWalkthrough={isActiveWalkthrough} />}
       {isActiveWalkthrough && <SequenceOutlinePanel />}
-      {enableControls && actors.navigation && !isActiveWalkthrough && <NavigationPanel actorRef={actors.navigation} />}
+      {enableControls && actors.navigation && !isActiveWalkthrough && <NavigationPanel actorRef={actors.navigation} extra={navigationPanelExtra} />}
       {actors.overlays && <Overlays overlaysActorRef={actors.overlays} />}
       {enableNotations && <NotationPanel />}
       {enableSearch && actors.search && <Search searchActorRef={actors.search} />}

@@ -198,6 +198,93 @@ describe('parseSemanticModel', () => {
     ]);
   });
 
+  describe('Authored View exclude', () => {
+    it('parses view with exclude list', async () => {
+      const content = [
+        '---',
+        'entity: authored-view',
+        'identity: partial',
+        'include:',
+        '  - a',
+        '  - b',
+        'exclude:',
+        '  - c',
+        '  - d',
+        '---',
+        '',
+      ].join('\n');
+      const root = await createModelRoot({ 'views/partial.md': content });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toEqual([]);
+      expect(parsed.model.views[0]).toEqual({
+        identity: 'partial',
+        include: ['a', 'b'],
+        exclude: ['c', 'd'],
+      });
+    });
+
+    it('accepts view without exclude', async () => {
+      const content = [
+        '---',
+        'entity: authored-view',
+        'identity: full',
+        'include: "*"',
+        '---',
+        '',
+      ].join('\n');
+      const root = await createModelRoot({ 'views/full.md': content });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toEqual([]);
+      expect(parsed.model.views[0]).toEqual({
+        identity: 'full',
+        include: '*',
+      });
+    });
+
+    it('treats empty exclude as absent', async () => {
+      const content = [
+        '---',
+        'entity: authored-view',
+        'identity: partial',
+        'include:',
+        '  - a',
+        'exclude: []',
+        '---',
+        '',
+      ].join('\n');
+      const root = await createModelRoot({ 'views/partial.md': content });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toEqual([]);
+      expect(parsed.model.views[0]).toEqual({
+        identity: 'partial',
+        include: ['a'],
+      });
+    });
+
+    it('rejects non-list exclude', async () => {
+      const content = [
+        '---',
+        'entity: authored-view',
+        'identity: broken',
+        'include: "*"',
+        'exclude: "not-a-list"',
+        '---',
+        '',
+      ].join('\n');
+      const root = await createModelRoot({ 'views/broken.md': content });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toEqual([
+        {
+          level: 'ERROR',
+          code: 'INVALID_VIEW_EXCLUDE',
+          path: 'views/broken.md',
+          message: 'Authored view broken exclude must be a list of identities',
+          identity: 'broken',
+        },
+      ]);
+    });
+  });
+
   it('rejects contract content outside the Requirements section', async () => {
     const head = '---\nentity: element-declaration\nidentity: a\nkind: capability\ntitle: A\ndefinition: Capability A.\n---\n';
     for (const body of [
@@ -349,6 +436,162 @@ describe('parseSemanticModel', () => {
       const kind = parsed.model.elementKinds.find(item => item.identity === 'perspective');
       expect(kind).toBeDefined();
       expect(kind!.nodePresentation).toEqual({ shape: 'document', color: 'indigo', border: 'solid' });
+    });
+  });
+
+  describe('Relationship Kind presentation', () => {
+    it('parses relationship kind with complete presentation', async () => {
+      const content = [
+        '---',
+        'entity: relationship-kind',
+        'identity: invokes',
+        'presentation:',
+        '  color: blue',
+        '  line: dashed',
+        '  head: normal',
+        '  tail: none',
+        '---',
+        '',
+        'Call edges.',
+        '',
+      ].join('\n');
+      const root = await createModelRoot({ 'metamodel/invokes.md': content });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toEqual([]);
+      expect(parsed.model.relationshipKinds[0].presentation).toEqual({
+        color: 'blue',
+        line: 'dashed',
+        head: 'normal',
+        tail: 'none',
+      });
+    });
+
+    it('parses relationship kind with partial presentation', async () => {
+      const content = [
+        '---',
+        'entity: relationship-kind',
+        'identity: invokes',
+        'presentation:',
+        '  color: blue',
+        '---',
+        '',
+        'Call edges.',
+        '',
+      ].join('\n');
+      const root = await createModelRoot({ 'metamodel/invokes.md': content });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toEqual([]);
+      expect(parsed.model.relationshipKinds[0].presentation).toEqual({ color: 'blue' });
+    });
+
+    it('accepts relationship kind without presentation', async () => {
+      const content = '---\nentity: relationship-kind\nidentity: invokes\n---\n\nCall edges.\n';
+      const root = await createModelRoot({ 'metamodel/invokes.md': content });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toEqual([]);
+      expect(parsed.model.relationshipKinds[0].presentation).toBeUndefined();
+    });
+
+    it('rejects unknown presentation field', async () => {
+      const content = [
+        '---',
+        'entity: relationship-kind',
+        'identity: invokes',
+        'presentation:',
+        '  color: blue',
+        '  width: 3',
+        '---',
+        '',
+      ].join('\n');
+      const root = await createModelRoot({ 'metamodel/invokes.md': content });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toHaveLength(1);
+      expect(parsed.diagnostics[0].code).toBe('INVALID_RELATIONSHIP_PRESENTATION');
+      expect(parsed.diagnostics[0].message).toContain('unknown fields');
+    });
+
+    it('rejects invalid color value', async () => {
+      const content = [
+        '---',
+        'entity: relationship-kind',
+        'identity: invokes',
+        'presentation:',
+        '  color: purple',
+        '---',
+        '',
+      ].join('\n');
+      const root = await createModelRoot({ 'metamodel/invokes.md': content });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toHaveLength(1);
+      expect(parsed.diagnostics[0].code).toBe('INVALID_RELATIONSHIP_PRESENTATION');
+      expect(parsed.diagnostics[0].message).toContain('color');
+    });
+
+    it('rejects invalid line value', async () => {
+      const content = [
+        '---',
+        'entity: relationship-kind',
+        'identity: invokes',
+        'presentation:',
+        '  line: zigzag',
+        '---',
+        '',
+      ].join('\n');
+      const root = await createModelRoot({ 'metamodel/invokes.md': content });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toHaveLength(1);
+      expect(parsed.diagnostics[0].code).toBe('INVALID_RELATIONSHIP_PRESENTATION');
+      expect(parsed.diagnostics[0].message).toContain('line');
+    });
+
+    it('rejects invalid head value', async () => {
+      const content = [
+        '---',
+        'entity: relationship-kind',
+        'identity: invokes',
+        'presentation:',
+        '  head: star',
+        '---',
+        '',
+      ].join('\n');
+      const root = await createModelRoot({ 'metamodel/invokes.md': content });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toHaveLength(1);
+      expect(parsed.diagnostics[0].code).toBe('INVALID_RELATIONSHIP_PRESENTATION');
+      expect(parsed.diagnostics[0].message).toContain('head');
+    });
+
+    it('rejects invalid tail value', async () => {
+      const content = [
+        '---',
+        'entity: relationship-kind',
+        'identity: invokes',
+        'presentation:',
+        '  tail: cross',
+        '---',
+        '',
+      ].join('\n');
+      const root = await createModelRoot({ 'metamodel/invokes.md': content });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toHaveLength(1);
+      expect(parsed.diagnostics[0].code).toBe('INVALID_RELATIONSHIP_PRESENTATION');
+      expect(parsed.diagnostics[0].message).toContain('tail');
+    });
+
+    it('rejects non-mapping presentation', async () => {
+      const content = [
+        '---',
+        'entity: relationship-kind',
+        'identity: invokes',
+        'presentation: invalid',
+        '---',
+        '',
+      ].join('\n');
+      const root = await createModelRoot({ 'metamodel/invokes.md': content });
+      const parsed = await parseSemanticModel(root);
+      expect(parsed.diagnostics).toHaveLength(1);
+      expect(parsed.diagnostics[0].code).toBe('INVALID_RELATIONSHIP_PRESENTATION');
+      expect(parsed.diagnostics[0].message).toContain('must be a mapping');
     });
   });
 });

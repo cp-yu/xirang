@@ -5,6 +5,7 @@ import path from 'node:path';
 import {
   buildViewRuntimeSnapshot,
   launchEmbeddedLikeC4,
+  normalizeWatcherPath,
   projectBrowserDiff,
   ViewCommand,
   type ViewLauncher,
@@ -132,13 +133,45 @@ describe('ViewCommand', () => {
 
     await new ViewCommand(launch).execute(tempDir);
 
-    const semanticModel = manifest!.semanticModel;
-    expect(manifest!.version).toBe(3);
+    const semanticModel = manifest!.model;
+    expect(manifest!.version).toBe(4);
     expect(semanticModel.id).toBe('model');
     expect(Object.keys(semanticModel.contracts!)).toEqual(['alpha.id', 'zeta.id']);
     expect(semanticModel.contracts!['alpha.id']).toContain('### Requirement: Existing');
     expect(semanticModel.contracts!['alpha.id']).toContain('identity: alpha.id');
     expect(semanticModel.partitionFingerprints).toBeDefined();
+  });
+
+  it('resolves each Authored View selection into the manifest', async () => {
+    await writeProjectModel(tempDir, minimalModel({
+      elements: [
+        { identity: 'domain.a', kind: 'domain', parent: 'root' },
+        { identity: 'cap.a1', parent: 'domain.a' },
+        { identity: 'domain.b', kind: 'domain', parent: 'root' },
+        { identity: 'cap.b1', parent: 'domain.b' },
+      ],
+      views: [
+        { identity: 'everything', include: '"*"' },
+        { identity: 'pruned', include: '[root]', exclude: '[domain.b]' },
+        { identity: 'multi', include: '[domain.a, domain.b]' },
+      ],
+    }));
+
+    const snapshot = await buildViewRuntimeSnapshot(tempDir);
+
+    // The View Selection control and breadcrumb need a label without re-reading the model.
+    expect(snapshot.authoredViews['pruned']!.title).toBe('pruned');
+
+    // The plugin must not re-derive closure or exclude precedence: the manifest carries the result.
+    expect(snapshot.authoredViews['pruned']!.selection)
+      .toEqual(['cap.a1', 'domain.a', 'root']);
+    expect(snapshot.authoredViews['pruned']!.virtualRoot).toBe(false);
+    expect(snapshot.authoredViews['multi']!.selection)
+      .toEqual(['cap.a1', 'cap.b1', 'domain.a', 'domain.b']);
+    expect(snapshot.authoredViews['multi']!.virtualRoot).toBe(true);
+    expect(snapshot.authoredViews['everything']!.selection)
+      .toEqual(['cap.a1', 'cap.b1', 'domain.a', 'domain.b', 'root']);
+    expect(snapshot.authoredViews['everything']!.virtualRoot).toBe(false);
   });
 
   it('projects the Expected Contract of a change under the same identity key', async () => {
@@ -148,6 +181,11 @@ describe('ViewCommand', () => {
     const snapshot = await buildViewRuntimeSnapshot(tempDir);
     const change = snapshot.changes['a-change']!;
 
+    expect(change).not.toHaveProperty('id');
+    expect(change).not.toHaveProperty('source');
+    expect(change.diffLikec4Sources).toBeDefined();
+    expect(change.diffLikec4ElementPaths).toBeDefined();
+    expect(change.diffSourceFingerprint).toBeDefined();
     expect(Object.keys(change.contracts!)).toEqual(['alpha.id']);
     expect(change.contracts!['alpha.id']).toContain('### Requirement: Alpha');
     expect(change.contracts!['alpha.id']).toContain('### Requirement: Existing');
@@ -244,7 +282,7 @@ describe('ViewCommand', () => {
     const snapshot = await buildViewRuntimeSnapshot(tempDir);
 
     expect(snapshot.changes['broken']).toEqual(
-      expect.objectContaining({ id: 'change:broken', valid: false, diagnostics: expect.any(Array) }),
+      expect.objectContaining({ change: 'broken', valid: false, diagnostics: expect.any(Array) }),
     );
   });
 
@@ -373,8 +411,8 @@ describe('Manifest version 3', () => {
 
     const snapshot = await buildViewRuntimeSnapshot(tempDir);
     
-    expect(snapshot.version).toBe(3);
-    expect(snapshot.semanticModel).toBeDefined();
+    expect(snapshot.version).toBe(4);
+    expect(snapshot.model).toBeDefined();
     expect(snapshot.candidate).toBeDefined();
     expect(snapshot.candidateDiff).toBeDefined();
     
@@ -388,8 +426,8 @@ describe('Manifest version 3', () => {
 
     const snapshot = await buildViewRuntimeSnapshot(tempDir);
     
-    expect(snapshot.version).toBe(3);
-    expect(snapshot.semanticModel).toBeDefined();
+    expect(snapshot.version).toBe(4);
+    expect(snapshot.model).toBeDefined();
     expect(snapshot.candidate).toBeUndefined();
     expect(snapshot.candidateDiff).toBeUndefined();
     expect(snapshot.changes).toBeDefined();
@@ -414,7 +452,7 @@ describe('Manifest version 3', () => {
     const before = await buildViewRuntimeSnapshot(tempDir);
     const beforeCandidateFingerprint = before.candidate!.sourceFingerprint;
     const beforeCandidateDiffFingerprint = before.candidateDiff!.sourceFingerprint;
-    const beforeModelFingerprint = before.semanticModel.sourceFingerprint;
+    const beforeModelFingerprint = before.model.sourceFingerprint;
     const beforeChangeFingerprint = before.changes['test-change']!.sourceFingerprint;
 
     await fs.writeFile(path.join(candidateRoot, 'build.md'), '# Build V2\n', 'utf8');
@@ -423,7 +461,7 @@ describe('Manifest version 3', () => {
 
     expect(after.candidate!.sourceFingerprint).not.toBe(beforeCandidateFingerprint);
     expect(after.candidateDiff!.sourceFingerprint).not.toBe(beforeCandidateDiffFingerprint);
-    expect(after.semanticModel.sourceFingerprint).toBe(beforeModelFingerprint);
+    expect(after.model.sourceFingerprint).toBe(beforeModelFingerprint);
     expect(after.changes['test-change']!.sourceFingerprint).toBe(beforeChangeFingerprint);
   });
 
@@ -444,7 +482,7 @@ describe('Manifest version 3', () => {
     await writeModel(candidateRoot, minimalModel());
 
     const before = await buildViewRuntimeSnapshot(tempDir);
-    const beforeModelFingerprint = before.semanticModel.sourceFingerprint;
+    const beforeModelFingerprint = before.model.sourceFingerprint;
     const beforeCandidateDiffFingerprint = before.candidateDiff!.sourceFingerprint;
     const beforeChangeFingerprint = before.changes['test-change']!.sourceFingerprint;
 
@@ -454,8 +492,68 @@ describe('Manifest version 3', () => {
 
     const after = await buildViewRuntimeSnapshot(tempDir, { previous: before });
 
-    expect(after.semanticModel.sourceFingerprint).not.toBe(beforeModelFingerprint);
+    expect(after.model.sourceFingerprint).not.toBe(beforeModelFingerprint);
     expect(after.candidateDiff!.sourceFingerprint).not.toBe(beforeCandidateDiffFingerprint);
     expect(after.changes['test-change']!.sourceFingerprint).not.toBe(beforeChangeFingerprint);
+  });
+});
+
+describe('normalizeWatcherPath', () => {
+  it('preserves POSIX paths unchanged', () => {
+    expect(normalizeWatcherPath('model/elements/foo.md')).toBe('model/elements/foo.md');
+  });
+
+  it('converts Windows backslash paths to forward slashes', () => {
+    expect(normalizeWatcherPath('model\\elements\\foo.md')).toBe('model/elements/foo.md');
+  });
+
+  it('handles mixed separators', () => {
+    expect(normalizeWatcherPath('changes\\my-change/elements/bar.md')).toBe('changes/my-change/elements/bar.md');
+  });
+
+  it('accepts Buffer input', () => {
+    expect(normalizeWatcherPath(Buffer.from('model\\elements\\foo.md'))).toBe('model/elements/foo.md');
+  });
+
+  it('resolves relative paths against a managed root and rejects traversal', () => {
+    const root = path.join(os.tmpdir(), 'xirang-watch-root');
+    expect(normalizeWatcherPath('model\\elements\\foo.md', root)).toBe('model/elements/foo.md');
+    expect(normalizeWatcherPath('../outside.md', root)).toBeNull();
+  });
+  it('POSIX and Windows paths for the same source file map to the same detection key', () => {
+    const posix = normalizeWatcherPath('model/elements/foo.md');
+    const windows = normalizeWatcherPath('model\\elements\\foo.md');
+    expect(posix).toBe(windows);
+  });
+});
+
+describe('buildViewRuntimeSnapshot last-known-good', () => {
+  it('preserves the previous snapshot when a change source cannot be compiled', async () => {
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-lkg-'));
+    try {
+      await writeProjectModel(tempDir, minimalModel());
+      await writeChangeDelta(tempDir, 'valid-change', {
+        'elements/root.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: root\nkind: project\nparent: null\ntitle: Root\ndefinition: Root definition.\n---\n',
+      });
+
+      const before = await buildViewRuntimeSnapshot(tempDir);
+      const beforeFingerprint = before.model.sourceFingerprint;
+
+      // Break the change delta — e.g. truncate it so it cannot parse.
+      const changeDir = path.join(tempDir, '.xirang', 'changes', 'valid-change', 'elements');
+      await fs.writeFile(path.join(changeDir, 'root.md'), '---\nentity: BROKEN\n');
+
+      // Even though the source is broken, a partial re-build with the previous snapshot still
+      // returns the old model source fingerprint because the broken source yields diagnostics
+      // but does not throw — the manifest is emitted with `valid: false` for that change.
+      const after = await buildViewRuntimeSnapshot(tempDir, { previous: before, onlyChange: 'valid-change' });
+
+      // The model fingerprint must not change when only a change source breaks.
+      expect(after.model.sourceFingerprint).toBe(beforeFingerprint);
+      // The broken change is represented with valid: false, not silently dropped.
+      expect(after.changes['valid-change']!.valid).toBe(false);
+    } finally {
+      await fs.rm(tempDir, { recursive: true, force: true });
+    }
   });
 });

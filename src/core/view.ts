@@ -3,15 +3,18 @@ import { existsSync, promises as fs, watch, type FSWatcher } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { XIRANG_DIR_NAME } from './config.js';
-import { compileChange, readFormalSemanticModel } from './change-compiler.js';
+import { compileChangeDelta, readFormalSemanticModel } from './change-compiler.js';
+import { deriveLocalNames } from './likec4/local-names.js';
+import { generateLikeC4 } from './likec4/generator.js';
 import { generateLikeC4Artifacts } from '../commands/arch/export.js';
 import {
   projectBrowserArchitecture,
   projectBrowserDeclaration,
   type BrowserSemanticModel,
 } from './likec4/definition.js';
+import { resolveViewSelection, type ResolvedViewSelection } from './likec4/runtime-projection.js';
 import { serializeElementUnit } from './model/serializer.js';
-import { PARTITIONS, type Partition, type SemanticModel } from './model/types.js';
+import { PARTITIONS, relationshipIdentity, type Partition, type SemanticModel } from './model/types.js';
 import type { ChangeDiagnostic, ChangeDiff } from './semantic-diff.js';
 import { runLikeC4 } from '../commands/arch/runner.js';
 import { validateCandidateSnapshot } from './candidate/validator.js';
@@ -59,6 +62,18 @@ export const launchEmbeddedLikeC4: ViewLauncher = async ({ likec4SourceDir, chan
   await runLikeC4(args);
 };
 
+function runtimeLikeC4(model: SemanticModel): { likec4Sources: Record<string, string>; likec4ElementPaths: Record<string, string> };
+function runtimeLikeC4(model: SemanticModel, sourcesKey: 'diffLikec4Sources', pathsKey: 'diffLikec4ElementPaths'): { diffLikec4Sources: Record<string, string>; diffLikec4ElementPaths: Record<string, string> };
+function runtimeLikeC4(
+  model: SemanticModel,
+  sourcesKey: 'likec4Sources' | 'diffLikec4Sources' = 'likec4Sources',
+  pathsKey: 'likec4ElementPaths' | 'diffLikec4ElementPaths' = 'likec4ElementPaths',
+): { likec4Sources?: Record<string, string>; likec4ElementPaths?: Record<string, string>; diffLikec4Sources?: Record<string, string>; diffLikec4ElementPaths?: Record<string, string> } {
+  const names = deriveLocalNames(model.elements);
+  const sources = Object.fromEntries(generateLikeC4(model));
+  const paths = Object.fromEntries(model.elements.map(element => [element.declaration.identity, names.pathOf(element.declaration.identity)]));
+  return { [sourcesKey]: sources, [pathsKey]: paths };
+}
 export interface ViewRuntimeSemanticModel {
   id: 'model';
   label: 'Model View';
@@ -68,23 +83,29 @@ export interface ViewRuntimeSemanticModel {
   partitionFingerprints: Record<Partition, string>;
   architecture: BrowserSemanticModel;
   contracts: Record<string, string>;
+  likec4Sources: Record<string, string>;
+  likec4ElementPaths: Record<string, string>;
   diagnostics: ChangeDiagnostic[];
 }
 
 export interface ViewRuntimeChangeDerivedView {
-  id: string;
-  label: string;
-  source: 'change-derived-view';
   change: string;
+  label: string;
   valid: boolean;
   semanticModelFingerprint?: string;
   changeFingerprint?: string;
   sourceFingerprint?: string;
+  diffSourceFingerprint?: string;
   partitionFingerprints?: Record<Partition, string>;
   diff?: ChangeDiff;
   architecture?: BrowserSemanticModel;
+  diffArchitecture?: BrowserSemanticModel;
   /** element identity → Contract markdown; the only Contract transport to the Browser. */
   contracts?: Record<string, string>;
+  likec4Sources?: Record<string, string>;
+  likec4ElementPaths?: Record<string, string>;
+  diffLikec4Sources?: Record<string, string>;
+  diffLikec4ElementPaths?: Record<string, string>;
   diagnostics: ChangeDiagnostic[];
   /** Change plan files (design.md, proposal.md, tasks.md — keys are file basenames). */
   changePlan?: Record<string, string>;
@@ -99,6 +120,8 @@ export interface ViewRuntimeCandidateView {
   sourceFingerprint?: string;
   architecture?: BrowserSemanticModel;
   contracts?: Record<string, string>;
+  likec4Sources?: Record<string, string>;
+  likec4ElementPaths?: Record<string, string>;
   diagnostics: ChangeDiagnostic[];
 }
 
@@ -113,12 +136,20 @@ export interface ViewRuntimeCandidateDiffView {
   diff?: ChangeDiff;
   architecture?: BrowserSemanticModel;
   contracts?: Record<string, string>;
+  likec4Sources?: Record<string, string>;
   diagnostics: ChangeDiagnostic[];
 }
 
+/** A View Selection entry: its display label plus the resolved selection boundary. */
+export interface ViewRuntimeAuthoredView extends ResolvedViewSelection {
+  title: string;
+}
+
 export interface ViewRuntimeSnapshot {
-  version: 3;
-  semanticModel: ViewRuntimeSemanticModel;
+  version: 4;
+  modelFingerprint: string;
+  model: ViewRuntimeSemanticModel;
+  authoredViews: Record<string, ViewRuntimeAuthoredView>;
   candidate?: ViewRuntimeCandidateView;
   candidateDiff?: ViewRuntimeCandidateDiffView;
   changes: Record<string, ViewRuntimeChangeDerivedView>;
@@ -189,14 +220,35 @@ async function buildSemanticModelSource(projectRoot: string): Promise<ViewRuntim
     partitionFingerprints: fingerprints,
     architecture: projectBrowserArchitecture(model),
     contracts: projectContracts(model),
+    ...runtimeLikeC4(model),
     diagnostics: [],
   };
 }
 
+function unionSemanticModels(before: SemanticModel, after: SemanticModel): SemanticModel {
+  const elements = new Map(before.elements.map(item => [item.declaration.identity, item]))
+  for (const item of after.elements) elements.set(item.declaration.identity, item)
+  const elementKinds = new Map(before.elementKinds.map(item => [item.identity, item]))
+  for (const item of after.elementKinds) elementKinds.set(item.identity, item)
+  const relationshipKinds = new Map(before.relationshipKinds.map(item => [item.identity, item]))
+  for (const item of after.relationshipKinds) relationshipKinds.set(item.identity, item)
+  const relationships = new Map(before.relationships.map(item => [relationshipIdentity(item), item]))
+  for (const item of after.relationships) relationships.set(relationshipIdentity(item), item)
+  return {
+    ...after,
+    elementKinds: [...elementKinds.values()],
+    relationshipKinds: [...relationshipKinds.values()],
+    elements: [...elements.values()],
+    relationships: [...relationships.values()],
+  }
+}
+
 async function buildChangeDerivedView(projectRoot: string, change: string): Promise<ViewRuntimeChangeDerivedView> {
   try {
-    const compiled = await compileChange(projectRoot, change);
+    const compiledDelta = await compileChangeDelta(projectRoot, change);
+    const compiled = compiledDelta.compiled;
     const projection = compiled.target ? projectContracts(compiled.target) : undefined;
+    const diffModel = compiled.target ? unionSemanticModels(compiledDelta.base.model, compiled.target) : undefined;
     const changeRoot = path.join(projectRoot, XIRANG_DIR_NAME, 'changes', change);
     const planFiles = ['design.md', 'proposal.md', 'tasks.md'] as const;
     const planResults = await Promise.allSettled(
@@ -210,27 +262,27 @@ async function buildChangeDerivedView(projectRoot: string, change: string): Prom
       if (result.status === 'fulfilled') changePlan[result.value[0]] = result.value[1];
     }
     return {
-      id: `change:${change}`,
-      label: change,
-      source: 'change-derived-view',
       change,
+      label: change,
       valid: compiled.valid,
       semanticModelFingerprint: compiled.formalFingerprint,
       changeFingerprint: compiled.changeFingerprint,
       sourceFingerprint: hashString(compiled.formalFingerprint + compiled.changeFingerprint),
+      ...(diffModel ? { diffSourceFingerprint: hashString(JSON.stringify(partitionFingerprints(diffModel))) } : {}),
       ...(compiled.target ? { partitionFingerprints: partitionFingerprints(compiled.target) } : {}),
       diff: projectBrowserDiff(compiled.diff),
       ...(compiled.target ? { architecture: projectBrowserArchitecture(compiled.target) } : {}),
+      ...(diffModel ? { diffArchitecture: projectBrowserArchitecture(diffModel) } : {}),
+      ...(compiled.target ? { ...runtimeLikeC4(compiled.target) } : {}),
+      ...(diffModel ? { ...runtimeLikeC4(diffModel, 'diffLikec4Sources', 'diffLikec4ElementPaths') } : {}),
       ...(projection ? { contracts: projection } : {}),
       diagnostics: compiled.diagnostics,
       ...(Object.keys(changePlan).length > 0 ? { changePlan } : {}),
     };
   } catch (error) {
     return {
-      id: `change:${change}`,
-      label: change,
-      source: 'change-derived-view',
       change,
+      label: change,
       valid: false,
       diagnostics: [{
         level: 'ERROR',
@@ -278,6 +330,7 @@ async function buildCandidateSources(
       ...(sourceFingerprint ? { sourceFingerprint } : {}),
       ...(architecture ? { architecture } : {}),
       ...(contracts ? { contracts } : {}),
+      ...(result.valid ? { ...runtimeLikeC4(candidateModel.model) } : {}),
       diagnostics: result.diagnostics,
     };
 
@@ -292,6 +345,7 @@ async function buildCandidateSources(
       ...(result.diff ? { diff: projectBrowserDiff(result.diff) } : {}),
       ...(architecture ? { architecture } : {}),
       ...(contracts ? { contracts } : {}),
+      ...(result.valid ? { ...runtimeLikeC4(candidateModel.model) } : {}),
       diagnostics: result.diagnostics,
     };
 
@@ -341,9 +395,22 @@ export async function buildViewRuntimeSnapshot(
     buildSemanticModelSource(projectRoot),
   ]);
 
+  // The Browser server consumes the resolved selection directly, so closure, exclude precedence
+  // and virtual-root detection stay in one place instead of being re-derived per consumer.
+  const { model } = await readFormalSemanticModel(projectRoot);
+  const authoredViews: Record<string, ViewRuntimeAuthoredView> = {};
+  for (const view of model.views) {
+    authoredViews[view.identity] = {
+      title: view.title ?? view.identity,
+      ...resolveViewSelection(view, model),
+    };
+  }
+
   return {
-    version: 3,
-    semanticModel,
+    version: 4,
+    modelFingerprint: semanticModel.sourceFingerprint,
+    model: semanticModel,
+    authoredViews,
     ...(candidateSources ? { candidate: candidateSources.candidate, candidateDiff: candidateSources.candidateDiff } : {}),
     changes: sources,
   };
@@ -351,8 +418,24 @@ export async function buildViewRuntimeSnapshot(
 
 async function writeViewRuntimeSnapshot(snapshot: ViewRuntimeSnapshot, directory: string): Promise<string> {
   const target = path.join(directory, 'xirang-change-manifest.json');
-  await fs.writeFile(target, JSON.stringify(snapshot));
+  const temporary = `${target}.${process.pid}.${Date.now()}.tmp`;
+  await fs.writeFile(temporary, JSON.stringify(snapshot));
+  await fs.rename(temporary, target);
   return target;
+}
+
+/**
+ * Normalizes a filesystem watcher path to a forward-slash, relative-to-XIRANG_DIR string.
+ * Handles both POSIX and Windows separators so the same detection keys work on all platforms.
+ */
+export function normalizeWatcherPath(raw: Buffer | string, root?: string): string | null {
+  const value = raw.toString().replace(/\\/g, '/');
+  if (!root) return value;
+  const rootPath = path.resolve(root);
+  const absolute = path.resolve(rootPath, value);
+  const relative = path.relative(rootPath, absolute);
+  if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) return null;
+  return relative.split(path.sep).join('/');
 }
 
 export class ViewCommand {
@@ -379,17 +462,21 @@ export class ViewCommand {
         refreshAll = false;
         refreshChanges.clear();
         refreshing = refreshing.then(async () => {
-          if (all) runtimeSnapshot = await buildViewRuntimeSnapshot(projectRoot);
+          let next = runtimeSnapshot;
+          if (all) next = await buildViewRuntimeSnapshot(projectRoot);
           else for (const change of changes) {
-            runtimeSnapshot = await buildViewRuntimeSnapshot(projectRoot, { previous: runtimeSnapshot, onlyChange: change });
+            next = await buildViewRuntimeSnapshot(projectRoot, { previous: next, onlyChange: change });
           }
-          await writeViewRuntimeSnapshot(runtimeSnapshot, snapshotDirectory);
+          if (all) await generateLikeC4Artifacts(projectRoot);
+          await writeViewRuntimeSnapshot(next, snapshotDirectory);
+          runtimeSnapshot = next;
         }).catch(() => undefined);
       };
       try {
         sourceWatcher = watch(path.join(projectRoot, XIRANG_DIR_NAME), { recursive: true }, (_event, filename) => {
           if (!filename) return;
-          const normalized = filename.toString().split(path.sep).join('/');
+          const normalized = normalizeWatcherPath(filename, path.join(projectRoot, XIRANG_DIR_NAME));
+          if (!normalized) return;
           if (PARTITIONS.some(partition => normalized.startsWith(`model/${partition}/`))) {
             refreshAll = true;
           } else if (normalized.startsWith('candidate/')) {

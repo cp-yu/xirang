@@ -7,6 +7,7 @@ import { extractRequirementsSection } from '../parsers/requirement-blocks.js';
 import { normalizeLineEndings, splitFrontmatter } from './frontmatter.js';
 import { createModelIndex, type IndexedEntity, type IndexedRelationship, type ModelIndex, type SourceModule } from './index-map.js';
 import { validateNodePresentation } from './node-presentation.js';
+import { validateRelationshipPresentation } from './relationship-presentation.js';
 import {
   DEFAULT_PARTITION,
   ENTITY_TYPES,
@@ -21,6 +22,7 @@ import {
   type Partition,
   type Relationship,
   type RelationshipKind,
+  type RelationshipPresentation,
   type Requirement,
   type Scenario,
   type SemanticModel,
@@ -69,6 +71,27 @@ function parseNodePresentation(
   }
   for (const invalid of validation.invalidValues) {
     diagnostics.push(error('INVALID_NODE_PRESENTATION', file, `Element kind ${identity} nodePresentation.${invalid.field} has invalid value: ${String(invalid.value)}`, identity));
+  }
+  return Object.keys(validation.presentation).length > 0 ? validation.presentation : undefined;
+}
+
+function parseRelationshipPresentation(
+  raw: unknown,
+  file: string,
+  identity: string,
+  diagnostics: ModelDiagnostic[],
+): RelationshipPresentation | undefined {
+  const validation = validateRelationshipPresentation(raw);
+  if (validation.absent) return undefined;
+  if (validation.notMapping) {
+    diagnostics.push(error('INVALID_RELATIONSHIP_PRESENTATION', file, `Relationship kind ${identity} presentation must be a mapping`, identity));
+    return undefined;
+  }
+  if (validation.unknownFields.length > 0) {
+    diagnostics.push(error('INVALID_RELATIONSHIP_PRESENTATION', file, `Relationship kind ${identity} presentation contains unknown fields: ${[...validation.unknownFields].sort().join(', ')}`, identity));
+  }
+  for (const invalid of validation.invalidValues) {
+    diagnostics.push(error('INVALID_RELATIONSHIP_PRESENTATION', file, `Relationship kind ${identity} presentation.${invalid.field} has invalid value: ${String(invalid.value)}`, identity));
   }
   return Object.keys(validation.presentation).length > 0 ? validation.presentation : undefined;
 }
@@ -215,6 +238,7 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
   }
 
   if (entity === 'relationship-kind') {
+    const presentation = parseRelationshipPresentation(data.presentation, file, identity, diagnostics);
     return {
       entity,
       identity,
@@ -222,6 +246,7 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
         identity,
         ...(list(data.sourceKinds) ? { sourceKinds: list(data.sourceKinds)! } : {}),
         ...(list(data.targetKinds) ? { targetKinds: list(data.targetKinds)! } : {}),
+        ...(presentation === undefined ? {} : { presentation }),
         body: normalizeProse(body),
       },
       diagnostics,
@@ -235,12 +260,17 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
   if (include === undefined) {
     diagnostics.push(error('INVALID_VIEW_INCLUDE', file, `Authored view ${identity} has no valid include`, identity));
   }
+  const exclude = list(data.exclude);
+  if (data.exclude !== undefined && exclude === undefined) {
+    diagnostics.push(error('INVALID_VIEW_EXCLUDE', file, `Authored view ${identity} exclude must be a list of identities`, identity));
+  }
   return {
     entity,
     identity,
     view: {
       identity,
       include: include ?? [],
+      ...(exclude !== undefined && exclude.length > 0 ? { exclude } : {}),
       ...(text(data.of) !== undefined ? { of: text(data.of)! } : {}),
       ...(text(data.title) !== undefined ? { title: text(data.title)! } : {}),
       ...(text(data.autoLayout) !== undefined ? { autoLayout: text(data.autoLayout)! } : {}),

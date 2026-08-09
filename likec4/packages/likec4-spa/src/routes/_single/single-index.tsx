@@ -38,7 +38,6 @@ function RouteComponent() {
   useDocumentTitle(projectTitle ?? pageTitle)
   const views = filterLandingPageViews(allViews, landingPage)
   const runtime = useXirangViewSources()
-  const changeSources = runtime.sources.filter(s => s.source === 'change-derived-view')
   const candidateSources = runtime.sources.filter(s => s.source === 'candidate' || s.source === 'candidate-diff')
   return (
     <Container size={'xl'}>
@@ -98,21 +97,7 @@ function RouteComponent() {
             spacing={{ base: 10, sm: 'xl' }}
             verticalSpacing={{ base: 'md', sm: 'xl' }}
           >
-            {candidateSources.map(s => <ChangeDerivedViewCard key={s.id} source={s} />)}
-          </SimpleGrid>
-        </>
-      )}
-      {changeSources.length > 0 && (
-        <>
-          <Text size="lg" fw={600} mt="xl" mb="xs">Active Changes</Text>
-          <SimpleGrid
-            p={{ base: 'md', sm: 'md' }}
-            pt={{ base: 'sm', sm: 'sm' }}
-            cols={{ base: 1, sm: 2, md: 3, xl: 4 }}
-            spacing={{ base: 10, sm: 'xl' }}
-            verticalSpacing={{ base: 'md', sm: 'xl' }}
-          >
-            {changeSources.map(s => <ChangeDerivedViewCard key={s.id} source={s} />)}
+            {candidateSources.map(s => <CandidateViewCard key={s.id} source={s} />)}
           </SimpleGrid>
         </>
       )}
@@ -176,9 +161,8 @@ function ViewCard({ view }: { view: DiagramView }) {
   )
 }
 
-function ChangeDerivedViewCard({ source }: { source: XirangViewSource }) {
+function CandidateViewCard({ source }: { source: XirangViewSource }) {
   const navigate = useNavigate()
-  const runtime = useXirangViewSources()
   const counts = source.diff?.summary
   const hasIssues = source.diagnostics.some(d => d.level === 'ERROR')
 
@@ -193,8 +177,11 @@ function ChangeDerivedViewCard({ source }: { source: XirangViewSource }) {
       href={`/view/model/`}
       onClick={e => {
         e.preventDefault()
-        runtime.select(source.id)
-        void navigate({ to: '/view/$viewId/', params: { viewId: 'model' } })
+        void navigate({
+          to: '/view/$viewId/',
+          params: { viewId: 'model' },
+          search: previous => ({ ...previous, view: source.id }),
+        })
       }}
       style={{ cursor: 'pointer' }}
     >

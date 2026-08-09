@@ -1,4 +1,5 @@
-import { createContext, type PropsWithChildren, useContext, useEffect, useMemo, useState } from 'react'
+import type { DiagramView } from '@likec4/core/types'
+import { createContext, type PropsWithChildren, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
 export interface XirangContractContent {
   element: string
@@ -53,11 +54,17 @@ export interface XirangRelationship {
   target: string
 }
 
+export interface XirangRelationshipKind {
+  identity: string
+  presentation?: { color?: string; line?: string; head?: string; tail?: string }
+}
+
 /** The part of the Semantic Model IR the Browser consumes; identity is the only reference. */
 export interface XirangSemanticModel {
   elements: XirangModelElement[]
   relationships: XirangRelationship[]
   elementKinds?: XirangElementKind[]
+  relationshipKinds?: XirangRelationshipKind[]
 }
 
 export interface XirangViewDiagnostic {
@@ -81,10 +88,17 @@ export interface XirangViewSource {
   architecture?: XirangSemanticModel
   /** element identity → Contract markdown; absent key means the Element has no Contract. */
   contracts?: Record<string, string>
+  /** Resolved Authored View boundary, present only for View Selection descriptors. */
+  selection?: string[]
+  roots?: string[]
+  virtualRoot?: boolean
   diff?: {
     summary: { total: number } & Record<XirangDiffOperation, number>
     entries: XirangDiffEntry[]
   }
+  /** Official layouted projection for the current Browser controller state. */
+  projection?: DiagramView
+  projectionKey?: string
   diagnostics: XirangViewDiagnostic[]
   /** Change plan files (design.md, proposal.md, tasks.md). */
   changePlan?: Record<string, string>
@@ -106,12 +120,25 @@ export function xirangViewSourceRevision(source: XirangViewSource): string {
     : source.sourceFingerprint ?? source.changeFingerprint ?? source.id
 }
 
+export interface XirangAuthoredViewDescriptor {
+  title: string
+  selection: string[]
+  roots: string[]
+  virtualRoot: boolean
+}
+
+export interface XirangChangeSource extends Omit<XirangViewSource, 'id' | 'source'> {
+  change: string
+}
+
 export interface XirangRuntimeManifest {
-  version: 3
-  semanticModel: XirangViewSource
+  version: 4
+  modelFingerprint: string
+  model: XirangViewSource
+  authoredViews: Record<string, XirangAuthoredViewDescriptor>
   candidate?: XirangViewSource
   candidateDiff?: XirangViewSource
-  changes: Record<string, XirangViewSource>
+  changes: Record<string, XirangChangeSource>
 }
 
 export interface XirangContractLoader {
@@ -130,6 +157,14 @@ export interface XirangViewSourceContextValue {
   /** User-chosen diff display mode; effective mode is clamped per source. */
   mode: XirangViewMode
   setMode(mode: XirangViewMode): void
+  applyBrowserProjection(selection: {
+    viewId: string
+    change: string | null
+    mode: XirangViewMode
+    showDiff: boolean
+    projectionKey: string
+    view: DiagramView
+  }): void
 }
 
 /** Diff display mode of a Xirang source. */
@@ -157,11 +192,19 @@ const modelViewSource: XirangViewSource = {
 }
 
 function manifestToSources(m: XirangRuntimeManifest): XirangViewSource[] {
+  const authored = Object.entries(m.authoredViews).map(([id, view]) => ({
+    ...m.model,
+    id,
+    label: view.title,
+    selection: view.selection,
+    roots: view.roots,
+    virtualRoot: view.virtualRoot,
+  }))
   return [
-    m.semanticModel,
+    m.model,
+    ...authored,
     ...(m.candidate ? [m.candidate] : []),
     ...(m.candidateDiff ? [m.candidateDiff] : []),
-    ...Object.values(m.changes),
   ]
 }
 
@@ -171,6 +214,7 @@ const XirangViewSourceContext = createContext<XirangViewSourceContextValue>({
   select: () => undefined,
   mode: 'full',
   setMode: () => undefined,
+  applyBrowserProjection: () => undefined,
 })
 
 export function XirangContractLoaderProvider({
@@ -178,15 +222,28 @@ export function XirangContractLoaderProvider({
   initialManifest,
   children,
 }: PropsWithChildren<{ loader: XirangContractLoader; initialManifest?: XirangRuntimeManifest }>) {
-  const embeddedManifest = (globalThis as typeof globalThis & { __OPSX_RUNTIME__?: XirangRuntimeManifest }).__OPSX_RUNTIME__
-  const initialSources = initialManifest
-    ? manifestToSources(initialManifest)
-    : embeddedManifest
-    ? manifestToSources(embeddedManifest)
-    : [modelViewSource]
+  const embeddedManifest = (globalThis as typeof globalThis & { __OPSX_RUNTIME__?: unknown }).__OPSX_RUNTIME__
+  const initialRuntime = initialManifest
+    ?? (embeddedManifest
+      && typeof embeddedManifest === 'object'
+      && (embeddedManifest as { version?: unknown }).version === 4
+      && 'model' in embeddedManifest
+      && 'authoredViews' in embeddedManifest
+      && 'changes' in embeddedManifest
+      ? embeddedManifest as XirangRuntimeManifest
+      : null)
+  const initialSources = initialRuntime ? manifestToSources(initialRuntime) : [modelViewSource]
+  const [manifest, setManifest] = useState<XirangRuntimeManifest | null>(initialRuntime)
   const [sources, setSources] = useState<readonly XirangViewSource[]>(initialSources)
   const [selectedId, setSelectedId] = useState('model')
   const [mode, setMode] = useState<XirangViewMode>('full')
+  const [browserProjection, setBrowserProjection] = useState<{
+    viewId: string
+    change: string | null
+    showDiff: boolean
+    projectionKey: string
+    view: DiagramView
+  } | null>(null)
 
   useEffect(() => {
     if (!loader.manifest) return
@@ -198,6 +255,7 @@ export function XirangContractLoaderProvider({
       loader.manifest!(request.signal).then(manifest => {
         if (request.signal.aborted) return
         const next = manifestToSources(manifest)
+        setManifest(manifest)
         setSources(next)
         setSelectedId(current => next.some(source => source.id === current) ? current : 'model')
       }).catch(() => undefined)
@@ -210,13 +268,46 @@ export function XirangContractLoaderProvider({
     }
   }, [loader])
 
-  const value = useMemo<XirangViewSourceContextValue>(() => ({
-    sources,
-    selected: sources.find(source => source.id === selectedId) ?? sources[0] ?? modelViewSource,
-    select: setSelectedId,
-    mode,
-    setMode,
-  }), [selectedId, sources, mode])
+  const applyBrowserProjection = useCallback((selection: {
+    viewId: string
+    change: string | null
+    mode: XirangViewMode
+    showDiff: boolean
+    projectionKey: string
+    view: DiagramView
+  }) => {
+    setSelectedId(selection.viewId)
+    setMode(selection.mode)
+    setBrowserProjection(selection)
+  }, [])
+
+  const value = useMemo<XirangViewSourceContextValue>(() => {
+    const base = sources.find(source => source.id === selectedId) ?? sources[0] ?? modelViewSource
+    let selected = base
+    if (browserProjection && browserProjection.viewId === base.id) {
+      const change = browserProjection.change ? manifest?.changes[browserProjection.change] : undefined
+      const selectedChange = change && !browserProjection.showDiff
+        ? (({ diff: _diff, ...rest }) => rest)(change)
+        : change
+      selected = {
+        ...(selectedChange ?? base),
+        id: base.id,
+        label: base.label,
+        source: change ? 'change-derived-view' : base.source,
+        ...(change ? { change: change.change } : {}),
+        projection: browserProjection.view,
+        projectionKey: browserProjection.projectionKey,
+      }
+    }
+    return {
+      sources,
+      selected,
+      select: setSelectedId,
+      mode,
+      setMode,
+      applyBrowserProjection,
+    }
+  }, [applyBrowserProjection, browserProjection, manifest, mode, selectedId, sources])
 
   return (
     <XirangContractLoaderContext.Provider value={loader}>

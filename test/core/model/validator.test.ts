@@ -199,6 +199,17 @@ describe('validateSemanticModel', () => {
     expect(codes(duplicated)).toContain('DUPLICATE_RELATION');
   });
 
+  it('rejects an exclude entry that references an undeclared Element', () => {
+    expect(codes(model({ views: [{ identity: 'overview', include: ['root'], exclude: ['ghost'] }] })))
+      .toContain('UNRESOLVED_VIEW_REFERENCE');
+    expect(validateSemanticModel(model({
+      views: [{ identity: 'overview', include: ['root'], exclude: ['domain.a'] }],
+    }))).toEqual([]);
+    expect(validateSemanticModel(model({
+      views: [{ identity: 'overview', include: ['root'], exclude: [] }],
+    }))).toEqual([]);
+  });
+
   it('requires a Requirement only when the Element Kind declares contract: required', () => {
     expect(codes(model({
       elements: [element('root', 'project', null), element('domain.a', 'domain', 'root'), element('cap.a', 'capability', 'domain.a', 0)],

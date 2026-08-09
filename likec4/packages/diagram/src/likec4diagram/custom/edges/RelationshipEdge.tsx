@@ -297,16 +297,42 @@ export const RelationshipEdge = memoEdge<Types.EdgeProps<'relationship'>>((props
       stepNum: props.data.stepnum,
     } :
     undefined
+  const xirangOperation = props.data.xirang?.operation
+  const xirangGlyph = xirangOperation === 'ADDED' ? '+' : xirangOperation === 'REMOVED' ? '-' : '~'
 
   return (
     <>
       <EdgeContainer
         {...props}
+        data-xirang-relation={props.data.xirang?.relation}
         className={css({
           '& .react-flow__edge-interaction': {
             cursor: enabledEditing && selected ? 'copy' : undefined,
           },
         })}>
+        {xirangOperation && (
+          <>
+            <path
+              d={edgePath}
+              data-xirang-edge-underlay
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={8}
+              strokeDasharray="4 3"
+              opacity={0.28}
+              pointerEvents="none"
+            />
+            <text
+              x={labelX}
+              y={labelY}
+              data-xirang-edge-diff
+              aria-label={`Relationship ${xirangOperation}`}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              pointerEvents="none"
+            >{xirangGlyph}</text>
+          </>
+        )}
         <EdgePath
           edgeProps={props}
           svgPath={edgePath}

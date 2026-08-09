@@ -9,8 +9,8 @@ export type FrontmatterResult =
 const KEY_ORDER: Record<EntityType, readonly string[]> = {
   'element-declaration': ['identity', 'kind', 'parent', 'title', 'definition'],
   'element-kind': ['identity', 'contract', 'root', 'parents', 'children', 'nodePresentation'],
-  'relationship-kind': ['identity', 'sourceKinds', 'targetKinds'],
-  'authored-view': ['identity', 'include', 'of', 'title', 'autoLayout'],
+  'relationship-kind': ['identity', 'sourceKinds', 'targetKinds', 'presentation'],
+  'authored-view': ['identity', 'include', 'exclude', 'of', 'title', 'autoLayout'],
 };
 
 export function frontmatterKeys(entity: EntityType): readonly string[] {
@@ -19,6 +19,9 @@ export function frontmatterKeys(entity: EntityType): readonly string[] {
 
 /** Fixed subfield order for the nested `nodePresentation` mapping. */
 const NODE_PRESENTATION_KEY_ORDER = ['shape', 'color', 'border'] as const;
+
+/** Fixed subfield order for the nested `presentation` mapping in relationship-kind. */
+const RELATIONSHIP_PRESENTATION_KEY_ORDER = ['color', 'line', 'head', 'tail'] as const;
 
 export function normalizeLineEndings(content: string): string {
   return content.replace(/\r\n?/g, '\n');
@@ -73,6 +76,8 @@ function scalar(value: unknown): string {
 function renderMapping(key: string, obj: Record<string, unknown>): string {
   const keys = key === 'nodePresentation'
     ? NODE_PRESENTATION_KEY_ORDER.filter(k => k in obj)
+    : key === 'presentation'
+    ? RELATIONSHIP_PRESENTATION_KEY_ORDER.filter(k => k in obj)
     : Object.keys(obj);
   if (keys.length === 0) return `${key}: {}`;
   const lines = keys.map(k => `  ${k}: ${scalar(obj[k])}`);

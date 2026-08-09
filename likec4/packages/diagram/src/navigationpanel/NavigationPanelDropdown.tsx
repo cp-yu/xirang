@@ -16,7 +16,6 @@ import {
   Divider,
   Highlight,
   Input,
-  NativeSelect,
   PopoverDropdown,
   ScrollAreaAutosize,
   UnstyledButton,
@@ -48,7 +47,6 @@ import { isArray, isEmpty, pipe, sort } from 'remeda'
 import { type NavigationLinkProps, NavigationLink } from '../components/NavigationLink'
 import { useOnDiagramEvent } from '../hooks/useDiagram'
 import { useLikeC4Model } from '../hooks/useLikeC4Model'
-import { useXirangViewSources } from '../xirang/ContractLoaderContext'
 import { Tooltip } from './_common'
 import type { NavigationPanelActorContext, NavigationPanelActorSnapshot } from './actor'
 import { ProjectsMenu } from './dropdown/ProjectsMenu'
@@ -73,7 +71,6 @@ const hasSearchQuerySelector = selectNavigationContext(s => s.searchQuery.trim()
 export const NavigationPanelDropdown = memo(() => {
   const actor = useNavigationActor()
   const hasSearchQuery = useNavigationActorSelector(hasSearchQuerySelector)
-  const runtime = useXirangViewSources()
 
   useOnDiagramEvent('paneClick', () => {
     actor.closeDropdown()
@@ -104,22 +101,6 @@ export const NavigationPanelDropdown = memo(() => {
       onMouseLeave={() => actor.send({ type: 'dropdown.mouseLeave' })}
       onMouseEnter={() => actor.send({ type: 'dropdown.mouseEnter' })}
     >
-      {runtime.sources.length > 1 && (
-        <NativeSelect
-          aria-label="View source"
-          size="xs"
-          value={runtime.selected.id}
-          data={runtime.sources.map(source => ({
-            value: source.id,
-            label: source.source === 'semantic-model' ? source.label : `Change / ${source.label}`,
-          }))}
-          onChange={event => {
-            runtime.select(event.currentTarget.value)
-            actor.selectView('model' as ViewId)
-          }}
-          data-xirang-change-selector
-        />
-      )}
       <ProjectsMenu />
       <HStack gap="xs">
         <SearchInput
@@ -175,7 +156,6 @@ const compare = compareNaturalHierarchically(VIEW_FOLDERS_SEPARATOR)
 const SearchResults = memo(() => {
   const likec4model = useLikeC4Model()
   const actor = useNavigationActor()
-  const runtime = useXirangViewSources()
   const searchQuery = useSelector(actor.actorRef, selectSearchQuery)
   const deferredSearchQuery = useDeferredValue(searchQuery)
   const isSearchByPath = deferredSearchQuery.includes(VIEW_FOLDERS_SEPARATOR)
@@ -228,7 +208,6 @@ const SearchResults = memo(() => {
             highlight={highlight}
             onClick={e => {
               e.stopPropagation()
-              runtime.select('model')
               actor.selectView(v.id)
             }}
             data-likec4-focusable
@@ -486,14 +465,12 @@ const FolderColumns = memo(() => {
 function FolderColumn({ data, isLast }: { data: FolderColumnData; isLast: boolean }) {
   const ref = useRef<HTMLDivElement>(null)
   const actor = useNavigationActorRef()
-  const runtime = useXirangViewSources()
 
   const onItemClicked = (item: ColumnItem) => (e: ReactMouseEvent) => {
     e.stopPropagation()
     if (item.type === 'folder') {
       actor.send({ type: 'select.folder', folderPath: item.folderPath })
     } else {
-      runtime.select('model')
       actor.send({ type: 'select.view', viewId: item.viewId })
     }
   }

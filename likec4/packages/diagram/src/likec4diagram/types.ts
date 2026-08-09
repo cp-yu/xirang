@@ -290,6 +290,10 @@ export namespace Types {
        * (backward compatibility)
        */
       stepnum?: number
+      xirang?: {
+        operation?: 'ADDED' | 'MODIFIED' | 'REMOVED'
+        relation?: string
+      }
     }
   >
 

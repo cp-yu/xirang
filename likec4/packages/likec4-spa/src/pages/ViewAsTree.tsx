@@ -80,7 +80,7 @@ export function ViewAsTree() {
   }
 
   return (
-    <Box className={styles.viewWithTopPadding} p="sm">
+    <Box className={styles.viewWithTopPadding} px="sm" pb="sm">
       <Group gap="sm" mb="sm" wrap="wrap">
         <SegmentedControl
           size="xs"

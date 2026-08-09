@@ -8,7 +8,7 @@ import {
 import { useSelector } from '@xstate/react'
 import { AnimatePresence, LayoutGroup } from 'motion/react'
 import * as m from 'motion/react-m'
-import { memo, useEffect } from 'react'
+import { memo, useEffect, type ReactNode } from 'react'
 import { useOptionalCurrentViewModel } from '../hooks/useCurrentViewModel'
 import { selectDiagramContext, useDiagramSelector } from '../hooks/useDiagram'
 import { useMantinePortalProps } from '../hooks/useMantinePortalProps'
@@ -44,7 +44,7 @@ type NavigationPanelMode =
   | 'walkthrough'
 
 const stateHasActiveTag = (state: NavigationPanelActorSnapshot) => state.hasTag('active')
-export const NavigationPanel = memo<{ actorRef: NavigationPanelActorRef }>(({ actorRef }) => {
+export const NavigationPanel = memo<{ actorRef: NavigationPanelActorRef; extra?: ReactNode }>(({ actorRef, extra }) => {
   const {
     view,
     mode,
@@ -124,6 +124,7 @@ export const NavigationPanel = memo<{ actorRef: NavigationPanelActorRef }>(({ ac
               </LayoutGroup>
               {opened && <NavigationPanelDropdown />}
             </Popover>
+            {extra}
             <ComparePanel />
             {mode === 'walkthrough' && <WalkthroughPanel />}
             <EditorPanel />

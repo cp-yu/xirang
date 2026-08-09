@@ -1,4 +1,4 @@
-import type { NodeBorder, NodeColor, NodeShape } from '../model/types.js';
+import type { NodeBorder, NodeColor, NodeShape, RelationshipPresentation } from '../model/types.js';
 
 export type RemovalOperation = 'REMOVED';
 
@@ -29,6 +29,7 @@ export interface RelationshipKindTarget {
   identity: string;
   sourceKinds?: string[];
   targetKinds?: string[];
+  presentation?: RelationshipPresentation;
   body: string;
 }
 

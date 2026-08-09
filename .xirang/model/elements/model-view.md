@@ -4,19 +4,19 @@ identity: model-view
 kind: element
 parent: derived-views
 title: Model View
-definition: Model View 是由一个项目当前 Semantic Model 确定性派生、作为 Semantic Browser 默认入口的唯一模型浏览 View。它为当前模型提供连续的层级浏览视角；当前 focus、导航历史与布局属于运行时呈现状态，不产生其他 Views。它不替代 Candidate View、Candidate Diff View、Change-derived Views 或 Authored Views，也不承担 Candidate 或 Change 的差异审查。
+definition: Model View 是由项目当前 Semantic Model 确定性派生、作为 Semantic Browser 默认 View Selection 的唯一模型浏览视角。它在单一 Browser route 中提供完整模型选择边界，并可与一个活动 Change 和 Presentation Mode 正交组合；focus、导航历史、展开集合与布局属于运行时呈现状态，不产生其他 View identities。它不替代 Authored Views、Candidate View 或 Candidate Diff View，也不成为独立的 Change source。
 ---
 
 ## Requirements
 
 ### Requirement: 提供唯一默认 Model View
 
-每个 Xirang 项目 SHALL 自动提供且只提供一个 identity 为 `model` 的 Model View；该 identity SHALL 为系统保留且 SHALL NOT 被 Authored View 使用。
+每个 Xirang 项目 SHALL 自动提供且只提供一个 identity 为 `model` 的 Model View Selection；该 identity SHALL 为系统保留且 SHALL NOT 被 Authored View 使用。
 
 #### Scenario: 打开项目模型
 
 - **WHEN** 用户打开任意有效 Xirang 项目
-- **THEN** View selector 包含唯一的 `Model View` 且其 identity 为 `model`
+- **THEN** View Selection 包含唯一 Model 选项且其 identity 为 `model`
 
 #### Scenario: Authored View 使用保留 identity
 
@@ -25,42 +25,62 @@ definition: Model View 是由一个项目当前 Semantic Model 确定性派生�
 
 ### Requirement: 从 Semantic Model 确定性派生
 
-Model View SHALL 由完整 Semantic Model 确定性派生，并 SHALL NOT 持久化为 Authored View 或按 Element 生成其他 View identities。
+Model View SHALL 由完整 Semantic Model 和当前 runtime state 确定性派生，并 SHALL NOT 持久化为 Authored View、生成独立 LikeC4 route 或按 Element 生成其他 View identities。
 
-#### Scenario: 相同模型重复生成
+#### Scenario: 相同输入重复生成
 
-- **WHEN** Browser 对相同 Semantic Model 重建 Model View
-- **THEN** 得到语义等价的单一 View 且不存在按 Element 生成的 View
+- **WHEN** 服务端对相同 Semantic Model fingerprint、focus、expanded set、Change 与 mode 重建 Model projection
+- **THEN** 得到语义等价的原生 LikeC4 projection 与相同 projection key
 
 ### Requirement: 在单一 View 内维护层级焦点
 
-Model View SHALL 以 Project Root 作为初始 focus，并在同一 View identity 内以 focus Element、direct children、展开集合内后代与当前层可表达的 Relationships 形成运行时投影；breadcrumb 与前进后退历史 SHALL 只改变 focus。下钻 SHALL 由区别于就地展开的显式交互触发，使两种浏览方式并存且互不替代。
+Model View SHALL 以 Project Root 作为默认 focus，并在 `model` View Selection 内以 focus Element、direct children、展开集合内后代与当前层可表达的 Relationships 形成 runtime projection；breadcrumb 与前进后退 SHALL 只改变 focus，下钻 SHALL 与就地展开保持为不同交互。
 
 #### Scenario: 下钻具有 children 的 Element
 
-- **WHEN** 用户在 Model View 中以下钻交互进入一个具有 children 的 Element
-- **THEN** Browser 保持 `model` identity 并以该 Element 更新 focus、投影与 breadcrumb
+- **WHEN** 用户在 Model View 中下钻具有 children 的 Element
+- **THEN** Browser 保持 `model` View Selection 并更新 focus、projection 与 breadcrumb
 
-#### Scenario: 选择末端 Element
+#### Scenario: 选择 leaf Element
 
 - **WHEN** 用户选择没有 children 的 Element
-- **THEN** Browser 打开其 details 或 Contract 且不创建空 View
+- **THEN** Browser 打开 details 或 Contract
+- **AND** 不创建空 View 或新 route
 
 ### Requirement: 支持就地展开层级
 
-Model View SHALL 以一个属于该 View 的展开集合决定哪些可见 Element 就地呈现自身 children；展开集合 SHALL 独立于当前 focus，focus 变化与前进后退 SHALL NOT 重置它。展开一个 Element SHALL 使其成为容器并在其边界内完整包含自身 children，展开 SHALL 可逐层叠加至任意深度，且 SHALL NOT 改变 `model` identity 或产生其他 Views。
+Model View SHALL 以属于当前 Controller 会话的 expanded set 决定哪些可见 Elements 就地呈现 children；expanded SHALL 与 focus 独立、可逐层叠加，并 SHALL NOT 改变 `model` identity。expanded SHALL 不进入 URL，浏览器前进后退 MAY 通过 history state 恢复，页面刷新后 SHALL 使用当前 focus 的默认折叠状态。
 
 #### Scenario: 就地展开具有 children 的 Element
 
 - **WHEN** 用户对当前层一个具有 children 的 Element 请求就地展开
-- **THEN** Browser 保持当前 focus 与 `model` identity，并在该 Element 的边界内呈现其 children
+- **THEN** Browser 保持当前 focus 与 `model` identity
+- **AND** 通过新的 Graphviz projection 呈现其 children
 
-#### Scenario: 展开状态跨 focus 变化保持
+#### Scenario: expanded 跨 focus 变化保持
 
-- **WHEN** 用户在展开若干 Element 后下钻或经 breadcrumb、前进后退改变 focus
-- **THEN** 展开集合保持不变，新 focus 下位于该集合内的后代仍然就地展开
+- **WHEN** 用户在展开若干 Elements 后改变 focus
+- **THEN** 当前 Controller 会话中的 expanded set 保持
+- **AND** 仅当前选择内可达的 expanded Elements 参与 projection
 
 #### Scenario: 按层级深度批量展开
 
 - **WHEN** 用户请求从当前 focus 展开至第 N 层
-- **THEN** Browser 将 focus 之下第 1 至 N-1 层中具有 children 的 Element 置为展开，N 不大于 1 时展开集合为空
+- **THEN** Browser 将 focus 下第 1 至 N-1 层中具有 children 的 Elements 加入 expanded set
+- **AND** N 不大于 1 时 expanded set 为空
+
+### Requirement: 与 Change Selection 和 Presentation Mode 正交组合
+
+Model View SHALL 作为 View Selection 与无 Change 或一个活动 Change Selection 组合，并在有 Change 时支持 `complete`、`complete-with-diff` 与 `diff-only`；该组合 SHALL 形成 runtime projection，SHALL NOT 创建或持久化新的 View identity。
+
+#### Scenario: 查看 Model 目标态
+
+- **WHEN** 用户选择 Model、一个活动 Change 与 `complete`
+- **THEN** Browser 在 `model` View Selection 中呈现 after model
+- **AND** 不添加 diff overlay
+
+#### Scenario: 查看 Model 差异
+
+- **WHEN** 用户选择 Model、一个活动 Change 与 diff-capable mode
+- **THEN** Browser 在相同 `model` View Selection 中呈现对应联合 projection
+- **AND** focus 与展开交互继续可用

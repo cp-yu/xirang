@@ -6,43 +6,34 @@ test.beforeEach(async ({ page }) => {
 })
 
 test('keeps View source and full/diff mode as history steps', async ({ page }) => {
-  await page.getByRole('button', { name: 'Untitled View' }).click()
-  const dropdown = page.locator('[data-likec4-breadcrumbs-dropdown]')
-  await expect(dropdown).toBeVisible()
-  const viewSource = dropdown.getByLabel('View source')
+  const change = page.getByLabel('Change Selection')
+  const mode = page.getByLabel('Presentation Mode')
 
-  // Switching the source is one history step carrying the new source.
-  await viewSource.selectOption('change:browser-change')
-  await expect(page).toHaveURL(/source=change%3Abrowser-change/)
-  await expect(page.locator('[data-xirang-architecture-overlay][data-xirang-architecture-mode]')).toBeVisible()
+  await change.selectOption('browser-change')
+  await expect(page).toHaveURL(/change=browser-change/)
 
-  // Toggling full/diff is one history step carrying the mode.
-  await page.getByRole('button', { name: 'Diff only' }).click()
-  await expect(page).toHaveURL(/mode=diff/)
+  await mode.selectOption('diff-only')
+  await expect(page).toHaveURL(/mode=diff-only/)
 
-  // Browser back/forward restores the display mode (full is the default, so it is stripped).
   await page.evaluate(() => window.history.back())
-  await expect(page).not.toHaveURL(/mode=diff/)
+  await expect(page).not.toHaveURL(/mode=diff-only/)
+  await expect(page).toHaveURL(/change=browser-change/)
   await page.evaluate(() => window.history.forward())
-  await expect(page).toHaveURL(/mode=diff/)
+  await expect(page).toHaveURL(/mode=diff-only/)
 
-  // Browser back returns to the previous source, forward re-applies the change source.
   await page.evaluate(() => window.history.back())
-  await expect(page).not.toHaveURL(/mode=diff/)
   await page.evaluate(() => window.history.back())
-  await expect(page).not.toHaveURL(/source=change/)
+  await expect(page).not.toHaveURL(/change=browser-change/)
   await page.evaluate(() => window.history.forward())
-  await expect(page).toHaveURL(/source=change%3Abrowser-change/)
+  await expect(page).toHaveURL(/change=browser-change/)
 })
 
 test('browses Model View deep link and strips Xirang params on Authored Views', async ({ page }) => {
-  // A deep link with a focus parameter restores the focused layer.
-  await page.goto('/view/model/?source=model&focus=perspective.browser')
+  await page.goto('/view/model/?focus=perspective.browser')
   await expect(page.locator('[data-xirang-focus-breadcrumb]')).toContainText('Browser Perspective')
   await expect(page).toHaveURL(/focus=perspective\.browser/)
 
-  // Authored View routes must not carry Xirang navigation params.
-  await page.goto('/view/index/?source=model&focus=perspective.browser&mode=diff')
-  await expect(page).toHaveURL(/\/view\/index\//)
-  await expect(page).not.toHaveURL(/[\?&](source|focus|mode)=/)
+  await page.getByLabel('View Selection').selectOption('index')
+  await expect(page).toHaveURL(/view=index/)
+  await expect(page).not.toHaveURL(/focus=/)
 })

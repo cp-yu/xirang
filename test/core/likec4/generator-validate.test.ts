@@ -101,6 +101,46 @@ describe('generateLikeC4 artifacts', () => {
       await fs.rm(outfile, { force: true });
     }
   });
+  it('aggregates parallel semantic relationships before layout', { timeout: 180_000 }, async () => {
+    const parallelCount = 32;
+    const parallelModel: SemanticModel = {
+      elementKinds: [
+        { identity: 'project', contract: 'optional', root: true, body: '' },
+        { identity: 'capability', contract: 'optional', body: '' },
+      ],
+      relationshipKinds: Array.from({ length: parallelCount }, (_, index) => ({
+        identity: `kind-${index}`,
+        presentation: { color: index % 2 === 0 ? 'blue' : 'red' },
+        body: '',
+      })),
+      elements: [
+        element('root', null, 'project'),
+        element('source', 'root', 'capability'),
+        element('target', 'root', 'capability'),
+      ],
+      relationships: Array.from({ length: parallelCount }, (_, index) => ({
+        source: 'source',
+        kind: `kind-${index}`,
+        target: 'target',
+      })),
+      views: [],
+    };
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-likec4-parallel-'));
+    const outfile = path.join(os.tmpdir(), `xirang-likec4-${path.basename(dir)}.json`);
+    try {
+      for (const [file, content] of generateLikeC4(parallelModel)) await fs.writeFile(path.join(dir, file), content);
+      await runLikeC4(['export', 'json', '--project', 'xirang', '-o', outfile, dir]);
+      const generated = JSON.parse(await fs.readFile(outfile, 'utf8')) as {
+        views: Record<string, { edges: Array<{ relations?: string[] }> }>;
+      };
+      expect(generated.views['model']?.edges).toHaveLength(1);
+      expect(generated.views['model']?.edges[0]?.relations).toHaveLength(parallelCount);
+    } finally {
+      await fs.rm(dir, { recursive: true, force: true });
+      await fs.rm(outfile, { force: true });
+    }
+  });
+
 
   it('are produced without touching the file system', async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-likec4-purity-'));

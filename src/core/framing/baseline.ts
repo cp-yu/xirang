@@ -24,6 +24,7 @@ function relationshipKindTarget(kind: RelationshipKind): RelationshipKindTarget 
     identity: kind.identity,
     ...(kind.sourceKinds === undefined ? {} : { sourceKinds: sorted(kind.sourceKinds) }),
     ...(kind.targetKinds === undefined ? {} : { targetKinds: sorted(kind.targetKinds) }),
+    ...(kind.presentation === undefined ? {} : { presentation: kind.presentation }),
     body: kind.body,
   };
 }

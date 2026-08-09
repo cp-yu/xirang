@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test'
 async function visibleNodeIds(page: Page): Promise<string[]> {
   return page.locator('.react-flow__node:visible').evaluateAll(nodes =>
     nodes
-      .map(node => node.getAttribute('data-id') ?? '')
+      .map(node => node.getAttribute('data-xirang-identity') ?? node.getAttribute('data-id') ?? '')
       .filter(Boolean)
       .sort()
   )
@@ -28,7 +28,7 @@ async function exportPngAndCapturePopup(page: Page): Promise<{
       await expect.poll(async () => popup.locator('.react-flow__node:visible').count(), { timeout: 5000 })
         .toBeGreaterThan(0)
       popupNodes = await popup.locator('.react-flow__node:visible').evaluateAll(nodes =>
-        nodes.map(node => node.getAttribute('data-id') ?? '').filter(Boolean).sort()
+        nodes.map(node => node.getAttribute('data-xirang-identity') ?? node.getAttribute('data-id') ?? '').filter(Boolean).sort()
       )
     } catch {
       popupNodes = null
@@ -38,37 +38,21 @@ async function exportPngAndCapturePopup(page: Page): Promise<{
   return { snapshot, popupNodes }
 }
 
-async function dragChangePanelAway(page: Page): Promise<void> {
-  const panel = page.locator('[data-xirang-architecture-overlay][data-xirang-architecture-mode]')
-  await expect(panel).toBeVisible()
-  const handle = panel.getByText(/^Change \//)
-  const handleBox = await handle.boundingBox()
-  const before = await panel.boundingBox()
-  await page.mouse.move(handleBox!.x + handleBox!.width / 2, handleBox!.y + handleBox!.height / 2)
-  await page.mouse.down()
-  await page.mouse.move(
-    handleBox!.x + handleBox!.width / 2 - 300,
-    handleBox!.y + handleBox!.height / 2 + 200,
-    { steps: 12 },
-  )
-  await page.mouse.up()
-  await expect.poll(async () => (await panel.boundingBox())?.x).toBeLessThan(before!.x - 100)
-}
 
 test('exports the current focus and expand-in-place state', async ({ page }) => {
   await page.goto('/view/model/')
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
 
   // Focus into perspective.browser, then expand capability.drill in place.
-  const perspective = page.locator('.react-flow__node[data-id="perspective.browser"]')
-  await expect(perspective).toBeVisible()
-  await perspective.dblclick()
+  await page.goto('/view/model/?focus=perspective.browser')
   await expect(page).toHaveURL(/focus=perspective\.browser/)
+  const perspective = page.locator('.react-flow__node[data-xirang-identity="perspective.browser"]')
+  await expect(perspective).toBeVisible()
 
-  const drill = page.locator('.react-flow__node[data-id="capability.drill"]')
+  const drill = page.locator('.react-flow__node[data-xirang-identity="capability.drill"]')
   await expect(drill).toBeVisible()
   await drill.click({ modifiers: ['Control'] })
-  await expect(page.locator('.react-flow__node[data-id="capability.leaf"]')).toBeVisible()
+  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.leaf"]')).toBeVisible()
   await expect.poll(async () => visibleNodeIds(page), { timeout: 10_000 })
     .toEqual(['capability.drill', 'capability.leaf', 'capability.peer', 'perspective.browser'])
   const onScreen = await visibleNodeIds(page)
@@ -77,7 +61,8 @@ test('exports the current focus and expand-in-place state', async ({ page }) => 
   // the actual export tab must render the on-screen node set (WYSIWYG).
   const { snapshot, popupNodes } = await exportPngAndCapturePopup(page)
   expect(snapshot).toMatchObject({
-    source: 'model',
+    view: 'model',
+    change: null,
     mode: 'full',
     focus: 'perspective.browser',
   })
@@ -89,19 +74,14 @@ test('exports a change source in diff mode', async ({ page }) => {
   await page.goto('/view/model/')
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
 
-  await page.getByRole('button', { name: 'Untitled View' }).click()
-  await page.locator('[data-likec4-breadcrumbs-dropdown]')
-    .getByLabel('View source')
-    .selectOption('change:browser-change')
-  await page.getByRole('button', { name: 'Diff only' }).click()
-  await expect(page.locator('.react-flow__node[data-id="capability.added-parent"]')).toBeVisible()
-
-  // The floating Change panel overlaps the Header export button; drag it clear first.
-  await dragChangePanelAway(page)
+  await page.getByLabel('Change Selection').selectOption('browser-change')
+  await page.getByLabel('Presentation Mode').selectOption('diff-only')
+  await expect(page.locator('[data-xirang-architecture-mode]')).toHaveAttribute('data-xirang-architecture-mode', 'diff')
 
   const { snapshot, popupNodes } = await exportPngAndCapturePopup(page)
   expect(snapshot).toMatchObject({
-    source: 'change:browser-change',
+    view: 'model',
+    change: 'browser-change',
     mode: 'diff',
   })
   expect(popupNodes).toContain('capability.added-parent')
@@ -119,10 +99,10 @@ test('exports the complete model structure for file formats', async ({ page }) =
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
 
   // Focus and expand in place, then verify file-format exports stay global (declared scope).
-  await page.locator('.react-flow__node[data-id="perspective.browser"]').dblclick()
+  await page.goto('/view/model/?focus=perspective.browser')
   await expect(page).toHaveURL(/focus=perspective\.browser/)
-  await page.locator('.react-flow__node[data-id="capability.drill"]').click({ modifiers: ['Control'] })
-  await expect(page.locator('.react-flow__node[data-id="capability.leaf"]')).toBeVisible()
+  await page.locator('.react-flow__node[data-xirang-identity="capability.drill"]').click({ modifiers: ['Control'] })
+  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.leaf"]')).toBeVisible()
 
   // dot exports the complete compiled model view, independent of focus/expansion.
   await page.goto('/view/model/dot')

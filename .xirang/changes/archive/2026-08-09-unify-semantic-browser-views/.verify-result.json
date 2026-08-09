@@ -1,0 +1,76 @@
+{
+  "timestamp": "2026-08-09T14:13:53.154Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "f583af8b5b596d5c52c6f04c583b36fe1447382d584fd072d81293468aae8164",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/MetamodelDiffModal.tsx",
+      "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx"
+    ],
+    "evidenceFingerprint": "a26327df3e8f13b3d0428a899fe85d9a1aec2c4474828d26d0b8ec0b1e274074",
+    "evidenceFingerprintEntries": [
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+        "hash": "d950962eb6d59e6123fcc36afaebea312a6199fb731fd383fb1e92285daf55ee"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/MetamodelDiffModal.tsx",
+        "hash": "5f2c19f56f2c5b37e0c1288f6bf1dd7aa65f7e091178230b0c034cc066abbace"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+        "hash": "01ebbcf570fecd82384f084af265bc8f99a956695d33102d9952d8aba4a93949"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "559fd8d15b2a06999dca2828ad123ee3b143701f"
+  },
+  "optimization": {
+    "status": "NOT_NEEDED",
+    "attempts": [
+      {
+        "timestamp": "2026-08-09T14:13:53.572Z",
+        "type": "optimization",
+        "status": "NO_OPTIMIZATION_NEEDED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-08-09T14:13:53.154Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "f583af8b5b596d5c52c6f04c583b36fe1447382d584fd072d81293468aae8164",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/MetamodelDiffModal.tsx",
+          "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx"
+        ],
+        "evidenceFingerprint": "a26327df3e8f13b3d0428a899fe85d9a1aec2c4474828d26d0b8ec0b1e274074",
+        "evidenceFingerprintEntries": [
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "hash": "d950962eb6d59e6123fcc36afaebea312a6199fb731fd383fb1e92285daf55ee"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/MetamodelDiffModal.tsx",
+            "hash": "5f2c19f56f2c5b37e0c1288f6bf1dd7aa65f7e091178230b0c034cc066abbace"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+            "hash": "01ebbcf570fecd82384f084af265bc8f99a956695d33102d9952d8aba4a93949"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "559fd8d15b2a06999dca2828ad123ee3b143701f"
+      }
+    },
+    "findings": [],
+    "history": [],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}

@@ -1,6 +1,7 @@
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { renderScalar, splitFrontmatter } from '../model/frontmatter.js';
 import { validateNodePresentation } from '../model/node-presentation.js';
+import { validateRelationshipPresentation } from '../model/relationship-presentation.js';
 import { validateExplorationId, validateFramingSlug } from './paths.js';
 import type {
   ChangeStructuralDefinitionDocument,
@@ -110,6 +111,16 @@ function parseNodePresentationTarget(raw: unknown, label: string): NodePresentat
   return validation.presentation as NodePresentationTarget;
 }
 
+function parseRelationshipPresentationTarget(raw: unknown, label: string) {
+  const validation = validateRelationshipPresentation(raw);
+  if (validation.absent) return undefined;
+  if (validation.notMapping) fail('INVALID_PAYLOAD', `${label} must be a mapping`);
+  if (validation.unknownFields.length > 0) fail('INVALID_PAYLOAD', `${label} contains unknown fields: ${validation.unknownFields.join(', ')}`);
+  const firstInvalid = validation.invalidValues[0];
+  if (firstInvalid) fail('INVALID_PAYLOAD', `${label}.${firstInvalid.field} has invalid value: ${String(firstInvalid.value)}`);
+  return validation.presentation;
+}
+
 function parseElementKinds(value: unknown): ChangeStructuralDefinitionPayload['elementKinds'] {
   return array(value, 'elementKinds').map((raw, index) => {
     const item = record(raw, `elementKinds[${index}]`);
@@ -148,13 +159,15 @@ function parseRelationshipKinds(value: unknown): ChangeStructuralDefinitionPaylo
       assertRemovalShape(item, ['identity'], `relationshipKinds[${index}]`);
       return { operation: 'REMOVED', identity };
     }
-    exactKeys(item, ['identity', 'sourceKinds', 'targetKinds', 'body'], `relationshipKinds[${index}]`);
+    exactKeys(item, ['identity', 'sourceKinds', 'targetKinds', 'presentation', 'body'], `relationshipKinds[${index}]`);
     const sourceKinds = optionalStringList(item.sourceKinds, `relationshipKinds[${index}].sourceKinds`);
     const targetKinds = optionalStringList(item.targetKinds, `relationshipKinds[${index}].targetKinds`);
+    const presentation = parseRelationshipPresentationTarget(item.presentation, `relationshipKinds[${index}].presentation`);
     return {
       identity,
       ...(sourceKinds === undefined ? {} : { sourceKinds }),
       ...(targetKinds === undefined ? {} : { targetKinds }),
+      ...(presentation === undefined ? {} : { presentation }),
       body: text(item.body, `relationshipKinds[${index}].body`, true),
     };
   });

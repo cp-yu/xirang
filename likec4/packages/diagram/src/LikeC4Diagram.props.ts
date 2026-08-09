@@ -307,6 +307,12 @@ export interface LikeC4DiagramProperties<A extends Any = Unknown> {
   initialExpanded?: ReadonlySet<string> | undefined
 
   /**
+   * Xirang: extra content rendered inside the top-left navigation panel (below the
+   * view title bar), styled as a `likec4.panel` bar by the caller.
+   */
+  navigationPanelExtra?: ReactNode | undefined
+
+  /**
    * Override ReactFlow props
    */
   reactFlowProps?: OverrideReactFlowProps | undefined

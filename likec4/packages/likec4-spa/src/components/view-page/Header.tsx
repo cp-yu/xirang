@@ -51,7 +51,6 @@ export const Header = memo(() => {
         {headerVisible && (
           <NavigationPanel.Root
             panelPosition="right"
-            hideBelow={'md'}
             initial={{ opacity: 0, y: -20, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -50 }}>
@@ -115,15 +114,9 @@ function ExportButton() {
   /**
    * Carries the current Xirang view state (source, mode, focus, expansion) to the export tab:
    * window.open keeps an opener so the new tab clones sessionStorage, letting the PNG/JPG export
-   * page reproduce the on-screen view. Authored views keep the default export behavior.
+   * page reproduce the on-screen view.
    */
   const handleImageExport = useCallback((event: React.MouseEvent<HTMLElement>) => {
-    if (viewId !== 'model') {
-      // Authored-view exports must start from the documented no-snapshot fallback,
-      // never inherit a snapshot left by a prior Model View export.
-      clearXirangExportSnapshotFromStorage()
-      return
-    }
     const snapshot = getXirangExportSnapshot()
     if (!snapshot) {
       clearXirangExportSnapshotFromStorage()
@@ -137,7 +130,7 @@ function ExportButton() {
     if (href) {
       window.open(href, '_blank')
     }
-  }, [viewId])
+  }, [])
 
   const handleDrawioExport = useCallback(async () => {
     try {
@@ -161,8 +154,7 @@ function ExportButton() {
           size="sm"
           color="gray"
           px={'sm'}
-          rightSection={<IconChevronDown opacity={0.5} size={14} />}
-          visibleFrom="md">
+          rightSection={<IconChevronDown opacity={0.5} size={14} />}>
           Export
         </Button>
       </MenuTarget>

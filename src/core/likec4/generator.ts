@@ -32,23 +32,32 @@ function nameOf(names: Map<string, string>, identity: string): string {
 
 /** Kind constraints live in the `metamodel/` frontmatter; LikeC4 only carries the names. */
 function renderSpecification(model: SemanticModel, kinds: Map<string, string>): string {
-  const styleByIdentity = new Map<string, LikeC4StyleBlock | undefined>();
+  const elementStyleByIdentity = new Map<string, LikeC4StyleBlock | undefined>();
   for (const kind of model.elementKinds) {
-    if (!styleByIdentity.has(kind.identity)) styleByIdentity.set(kind.identity, toLikeC4Style(kind.nodePresentation));
+    if (!elementStyleByIdentity.has(kind.identity)) {
+      elementStyleByIdentity.set(kind.identity, toLikeC4Style(kind.nodePresentation));
+    }
   }
-  const declare = (keyword: string, items: readonly { identity: string }[]): string[] =>
+
+  const declareElements = (items: readonly { identity: string }[]): string[] =>
     [...items]
       .sort((left, right) => compareUtf8Bytes(left.identity, right.identity))
       .map(item => {
         const name = nameOf(kinds, item.identity);
-        const style = styleByIdentity.get(item.identity);
-        if (!style) return `  ${keyword} ${name}`;
-        const styleLines = [`  ${keyword} ${name} {`, '    style {', ...Object.entries(style).map(([k, v]) => `      ${k} ${v}`), '    }', '  }'];
+        const style = elementStyleByIdentity.get(item.identity);
+        if (!style) return `  element ${name}`;
+        const styleLines = [`  element ${name} {`, '    style {', ...Object.entries(style).map(([k, v]) => `      ${k} ${v}`), '    }', '  }'];
         return styleLines.join('\n');
       });
+
+  const declareRelationships = (items: readonly { identity: string }[]): string[] =>
+    [...items]
+      .sort((left, right) => compareUtf8Bytes(left.identity, right.identity))
+      .map(item => `  relationship ${nameOf(kinds, item.identity)}`);
+
   return block('specification', [
-    ...declare('element', model.elementKinds),
-    ...declare('relationship', model.relationshipKinds),
+    ...declareElements(model.elementKinds),
+    ...declareRelationships(model.relationshipKinds),
   ]);
 }
 

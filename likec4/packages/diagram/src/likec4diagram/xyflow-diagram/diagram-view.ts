@@ -24,7 +24,7 @@ import {
 import { hasAtLeast, pick } from 'remeda'
 import { ZIndexes } from '../../base/const'
 import { readableText } from '../../utils'
-import { readXirangProjectionNode } from '../../xirang/projectionNode'
+import { readXirangProjectionEdge, readXirangProjectionNode } from '../../xirang/projectionNode'
 import type { Types } from '../types'
 
 function sentence(parts: Array<string | null | undefined>): string {
@@ -71,6 +71,48 @@ function edgeAriaLabel(edge: DiagramEdge, source: DiagramNode, target: DiagramNo
     notes && `Notes: ${notes}`,
     edge.navigateTo && `Opens view ${edge.navigateTo}`,
   ])
+}
+
+export interface ProjectionViewport {
+  x: number
+  y: number
+  zoom: number
+}
+
+export type ProjectionViewportTransition =
+  | { fit: true; viewport: null }
+  | { fit: false; viewport: ProjectionViewport }
+
+function projectionNodeIdentity(node: DiagramNode): string {
+  const metadataIdentity = node.metadata?.['elementId']
+  return typeof metadataIdentity === 'string' ? metadataIdentity : node.modelRef ?? node.id
+}
+
+/**
+ * Keeps a projection anchor at the same screen position across Graphviz relayouts.
+ * Initial render may fit; incremental renders never implicitly fit the whole graph.
+ */
+export function projectionViewportTransition(
+  previous: Pick<DiagramView, 'nodes'> | null,
+  next: Pick<DiagramView, 'nodes'>,
+  viewport: ProjectionViewport,
+  anchorIdentity?: string | null,
+): ProjectionViewportTransition {
+  if (!previous) return { fit: true, viewport: null }
+  if (!anchorIdentity) return { fit: false, viewport }
+  const before = previous.nodes.find(node => projectionNodeIdentity(node) === anchorIdentity)
+  const after = next.nodes.find(node => projectionNodeIdentity(node) === anchorIdentity)
+  if (!before || !after) return { fit: false, viewport }
+  const beforeCenter = { x: before.x + before.width / 2, y: before.y + before.height / 2 }
+  const afterCenter = { x: after.x + after.width / 2, y: after.y + after.height / 2 }
+  return {
+    fit: false,
+    viewport: {
+      ...viewport,
+      x: viewport.x + (beforeCenter.x - afterCenter.x) * viewport.zoom,
+      y: viewport.y + (beforeCenter.y - afterCenter.y) * viewport.zoom,
+    },
+  }
 }
 
 /**
@@ -158,6 +200,7 @@ export function diagramToXY(opts: {
 
     const id = ns + node.id as NodeId
     const xirang = readXirangProjectionNode(node)
+    const xirangIdentity = node.metadata?.['elementId']
 
     const base = {
       id,
@@ -172,10 +215,10 @@ export function diagramToXY(opts: {
       initialWidth: node.width,
       initialHeight: node.height,
       hidden: node.kind !== GroupElementKind && !visiblePredicate(node),
-      ...(xirang && {
+      ...(typeof xirangIdentity === 'string' && {
         domAttributes: {
-          'data-xirang-operation': xirang.operation,
-          'data-xirang-identity': xirang.identity,
+          'data-xirang-identity': xirangIdentity,
+          ...(xirang ? { 'data-xirang-operation': xirang.operation } : {}),
         } as unknown as NonNullable<Types.Node['domAttributes']>,
       }),
       ...(parent && {
@@ -327,6 +370,8 @@ export function diagramToXY(opts: {
       continue
     }
 
+    const xirang = readXirangProjectionEdge(edge as unknown as { metadata?: Readonly<Record<string, string | string[] | undefined>> })
+
     xyedges.push({
       id,
       type: 'relationship',
@@ -357,6 +402,7 @@ export function diagramToXY(opts: {
         ...(isDynamic && isStepPath(edge.id) && {
           stepnum: stepnum++,
         }),
+        ...(xirang && { xirang }),
       },
       interactionWidth: 20,
     })

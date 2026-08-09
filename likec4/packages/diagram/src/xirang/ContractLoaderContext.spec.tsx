@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { XirangRuntimeManifest, XirangViewSource } from './ContractLoaderContext'
+import type { XirangChangeSource, XirangRuntimeManifest, XirangViewSource } from './ContractLoaderContext'
 import { resolveEffectiveMode, xirangViewSourceRevision } from './ContractLoaderContext'
 
 const modelSource: XirangViewSource = {
@@ -84,19 +84,19 @@ const candidateDiffSource: XirangViewSource = {
   },
 }
 
-const changeSource: XirangViewSource = {
-  id: 'change:auth-change',
+const changeSource: XirangChangeSource = {
   label: 'auth-change',
-  source: 'change-derived-view',
   change: 'auth-change',
   valid: true,
   sourceFingerprint: 'change-fp',
   diagnostics: [],
 }
 
-const v3ManifestWithCandidate: XirangRuntimeManifest = {
-  version: 3,
-  semanticModel: modelSource,
+const v4ManifestWithCandidate: XirangRuntimeManifest = {
+  version: 4,
+  modelFingerprint: 'model-fp',
+  model: modelSource,
+  authoredViews: {},
   candidate: candidateSource,
   candidateDiff: candidateDiffSource,
   changes: {
@@ -104,51 +104,42 @@ const v3ManifestWithCandidate: XirangRuntimeManifest = {
   },
 }
 
-const v3ManifestWithoutCandidate: XirangRuntimeManifest = {
-  version: 3,
-  semanticModel: modelSource,
+const v4ManifestWithoutCandidate: XirangRuntimeManifest = {
+  version: 4,
+  modelFingerprint: 'model-fp',
+  model: modelSource,
+  authoredViews: {},
   changes: {
     'auth-change': changeSource,
   },
 }
 
-describe('lists model candidate candidate diff and change sources', () => {
-  it('includes candidate and candidateDiff in correct order when present', () => {
-    const { semanticModel, candidate, candidateDiff, changes } = v3ManifestWithCandidate
-
-    // Expected source order: Model, Candidate, Candidate Diff, Changes
+describe('keeps change input separate from view source identities', () => {
+  it('lists Model, Candidate, and Candidate Diff without enumerating Changes as Views', () => {
+    const { model, candidate, candidateDiff, changes } = v4ManifestWithCandidate
     const sources = [
-      semanticModel,
+      model,
       ...(candidate ? [candidate] : []),
       ...(candidateDiff ? [candidateDiff] : []),
-      ...Object.values(changes),
     ]
 
-    expect(sources[0]!.id).toBe('model')
-    expect(sources[0]!.source).toBe('semantic-model')
-    expect(sources[1]!.id).toBe('candidate')
-    expect(sources[1]!.source).toBe('candidate')
-    expect(sources[2]!.id).toBe('candidate-diff')
-    expect(sources[2]!.source).toBe('candidate-diff')
-    expect(sources[3]!.id).toBe('change:auth-change')
-    expect(sources[3]!.source).toBe('change-derived-view')
+    expect(sources.map(source => source.id)).toEqual(['model', 'candidate', 'candidate-diff'])
+    expect(changes['auth-change']).not.toHaveProperty('id')
+    expect(changes['auth-change']).not.toHaveProperty('source')
   })
 })
 
 describe('hides candidate sources when candidate is absent', () => {
-  it('omits candidate and candidateDiff from sources when manifest has none', () => {
-    const { semanticModel, changes } = v3ManifestWithoutCandidate
-
+  it('leaves Model as the only derived View source when manifest has no Candidate', () => {
+    const { model, candidate, candidateDiff, changes } = v4ManifestWithoutCandidate
     const sources = [
-      semanticModel,
-      ...Object.values(changes),
+      model,
+      ...(candidate ? [candidate] : []),
+      ...(candidateDiff ? [candidateDiff] : []),
     ]
 
-    expect(sources.every(s => s.source !== 'candidate')).toBe(true)
-    expect(sources.every(s => s.source !== 'candidate-diff')).toBe(true)
-    expect(sources).toHaveLength(2)
-    expect(sources[0]!.id).toBe('model')
-    expect(sources[1]!.id).toBe('change:auth-change')
+    expect(sources.map(source => source.id)).toEqual(['model'])
+    expect(Object.keys(changes)).toEqual(['auth-change'])
   })
 })
 

@@ -4,11 +4,36 @@ export interface XirangContractContent {
 }
 
 export interface XirangContractSourceSnapshot {
+  sourceFingerprint?: string
+  diffSourceFingerprint?: string
+  diff?: { entries: Array<{ kind: string; identity: string; operation: 'ADDED' | 'MODIFIED' | 'REMOVED' }> }
+  architecture?: { elements: Array<{ declaration: { identity: string; parent: string | null } }> }
+  diffArchitecture?: { elements: Array<{ declaration: { identity: string; parent: string | null } }> }
   contracts?: Record<string, string>
+  likec4Sources?: Record<string, string>
+  likec4ElementPaths?: Record<string, string>
+  diffLikec4Sources?: Record<string, string>
+  diffLikec4ElementPaths?: Record<string, string>
+}
+
+/**
+ * One View Selection boundary, already resolved by Xirang.
+ *
+ * `selection` is the resolved descendants closure with `exclude` applied, so the view server turns
+ * it straight into LikeC4 include predicates and never re-derives closure or exclude precedence.
+ */
+export interface XirangAuthoredViewSnapshot {
+  title: string
+  selection: string[]
+  roots: string[]
+  virtualRoot: boolean
 }
 
 export interface XirangRuntimeManifestSnapshot {
-  semanticModel: XirangContractSourceSnapshot
+  version: 4
+  modelFingerprint: string
+  model: XirangContractSourceSnapshot
+  authoredViews: Record<string, XirangAuthoredViewSnapshot>
   candidate?: XirangContractSourceSnapshot
   candidateDiff?: XirangContractSourceSnapshot
   changes: Record<string, XirangContractSourceSnapshot>
@@ -17,10 +42,12 @@ export interface XirangRuntimeManifestSnapshot {
 /** The runtime manifest is versioned; older snapshots are rejected, never downgraded. */
 export function assertXirangManifest(payload: unknown): asserts payload is XirangRuntimeManifestSnapshot {
   if (!payload || typeof payload !== 'object'
-    || (payload as { version?: unknown }).version !== 3
-    || !(payload as { semanticModel?: unknown }).semanticModel
-    || typeof (payload as { changes?: unknown }).changes !== 'object') {
-    throw new XirangContractError(500, 'Invalid active change manifest')
+    || (payload as { version?: unknown }).version !== 4
+    || !(payload as { model?: unknown }).model
+    || typeof (payload as { authoredViews?: unknown }).authoredViews !== 'object'
+    || typeof (payload as { changes?: unknown }).changes !== 'object'
+    || typeof (payload as { modelFingerprint?: unknown }).modelFingerprint !== 'string') {
+    throw new XirangContractError(500, 'Invalid runtime manifest: expected version 4 with model, authoredViews, changes, and modelFingerprint')
   }
 }
 
@@ -94,7 +121,7 @@ export function readXirangContract(
   let contractSource: XirangContractSourceSnapshot | undefined
   
   if (source === null) {
-    contractSource = manifest.semanticModel
+    contractSource = manifest.model
   } else if (source.type === 'candidate') {
     contractSource = manifest.candidate
     if (!contractSource) {
