@@ -393,11 +393,20 @@ export function SemanticBrowserRouteSync() {
   useEffect(() => {
     if (!controller || !architectureRoot) return
     const semanticFocus = diagramTargetFocus === architectureRoot ? null : diagramTargetFocus
-    if (semanticFocus !== controller.state.focus
-      && !(semanticFocus === null && controller.state.focus !== null)) {
+    if (semanticFocus === null) {
+      // The actor is at the model root. Clear the controller focus only when the user
+      // explicitly navigated to the root element (breadcrumb click, diagramFocus is the
+      // root id); when the actor is still at its default null state a deep-link
+      // projection is in flight and the controller focus must not be cleared.
+      if (diagramFocus === architectureRoot && controller.state.focus !== null) {
+        controller.dispatch({ type: 'focus.select', focus: null })
+      }
+      return
+    }
+    if (semanticFocus !== controller.state.focus) {
       controller.dispatch({ type: 'focus.select', focus: semanticFocus })
     }
-  }, [architectureRoot, controller, diagramTargetFocus])
+  }, [architectureRoot, controller, diagramFocus, diagramTargetFocus])
   useEffect(() => {
     if (!controller) return
     const state = historyStateForSemanticBrowser(controller.state)
