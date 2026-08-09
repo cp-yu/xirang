@@ -1,18 +1,22 @@
-import { type Fqn, hasProp, isDynamicView } from '@likec4/core'
-import { Box, Button, Group, Modal, Stack, Text } from '@mantine/core'
+import { type Fqn, hasProp, isDynamicView, RichText } from '@likec4/core'
+import { css } from '@likec4/styles/css'
+import { Badge, Box, Button, Group, Modal, Stack, Text, UnstyledButton } from '@mantine/core'
 import { IconGripVertical } from '@tabler/icons-react'
 import { useRerender } from '@react-hookz/web'
 import { motion, useDragControls } from 'motion/react'
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type PropsWithChildren, type ReactNode } from 'react'
 import { ErrorBoundary } from '../components/ErrorFallback'
+import { Markdown } from '../base-primitives'
 import { useEnabledFeatures } from '../context/DiagramFeatures'
 import { selectDiagramSnapshot, useDiagramSelector, useOnDiagramEvent } from '../hooks'
 import { useDiagram, useDiagramActorRef } from '../hooks/useDiagram'
 import { NavigationPanel } from '../navigationpanel'
+import { MetamodelDiffModal } from '../overlays/element-details/MetamodelDiffModal'
 import { Overlays } from '../overlays/Overlays'
 import { Search } from '../search/Search'
 import { applyXirangPresentationOverlay, expandXirangRelationshipEdges } from '../xirang/architectureView'
 import {
+  type XirangDiffEntry,
   type XirangDiffOperation,
   type XirangViewSource,
   isXirangContractDiagnostic,
@@ -94,6 +98,21 @@ export function getArchitectureOverlayModel(source: XirangViewSource) {
   }
 }
 
+/** Right-side inspection panel for the selected Change: plan files, metamodel diffs, diagnostics. */
+const changeDetailsPanel = css({
+  position: 'absolute',
+  top: '[64px]',
+  right: '4',
+  zIndex: 5,
+  pointerEvents: 'all',
+  maxWidth: 'calc(100vw - 2 * {spacing.md})',
+  layerStyle: 'likec4.panel',
+  display: 'none',
+  sm: {
+    display: 'block',
+  },
+})
+
 function FloatingChrome({
   dragControls,
   position,
@@ -135,6 +154,9 @@ function XirangArchitectureOverlay() {
   const effectiveMode = resolveEffectiveMode(selected.source, mode)
   const [relationshipDetails, setRelationshipDetails] = useState<string[]>([])
   const [relationshipModalOpened, setRelationshipModalOpened] = useState(false)
+  const [metamodelEntry, setMetamodelEntry] = useState<{ entry: XirangDiffEntry; opened: boolean } | null>(null)
+  const [planFile, setPlanFile] = useState<{ name: string; content: string; opened: boolean } | null>(null)
+  const overlay = useMemo(() => getArchitectureOverlayModel(selected), [selected])
   const { declarations, childrenByIdentity, rootIdentity } = useMemo(() => {
     const declarations = new Map((selected.architecture?.elements ?? [])
       .map(element => [element.declaration.identity, element.declaration]))
@@ -351,10 +373,69 @@ function XirangArchitectureOverlay() {
     </Modal>
   )
 
+  const changeDetails = !enableStaticView && (selected.change || selected.diff || selected.changePlan) && (
+    <Stack className={changeDetailsPanel} p="xs" gap={4}>
+      <Group gap="xs">
+        <Text size="xs" fw={600}>Change · {selected.label}</Text>
+        <Badge size="xs" color={selected.valid ? 'green' : 'red'}>{selected.valid ? 'Valid' : 'Invalid'}</Badge>
+      </Group>
+      <Text size="xs" c="dimmed">+{overlay.counts.ADDED} ~{overlay.counts.MODIFIED} -{overlay.counts.REMOVED}</Text>
+      {overlay.metamodel.map(entry => (
+        <UnstyledButton
+          key={`${entry.kind}:${entry.identity}`}
+          onClick={() => setMetamodelEntry({ entry, opened: true })}
+          style={{ textAlign: 'left' }}
+        >
+          <Text size="xs" c="dimmed">
+            {entry.operation === 'ADDED' ? '+' : entry.operation === 'REMOVED' ? '-' : '~'} {entry.kind} {entry.identity}
+          </Text>
+        </UnstyledButton>
+      ))}
+      {selected.changePlan && (
+        <Stack gap={2}>
+          <Text size="xs" fw={600} c="dimmed" mt={4}>Plan</Text>
+          {['design.md', 'proposal.md', 'tasks.md'].map(file => {
+            const content = selected.changePlan![file]
+            if (!content) return null
+            return (
+              <UnstyledButton
+                key={file}
+                onClick={() => setPlanFile({ name: file, content, opened: true })}
+                style={{ textAlign: 'left' }}
+              >
+                <Text size="xs" c="dimmed">📄 {file}</Text>
+              </UnstyledButton>
+            )
+          })}
+        </Stack>
+      )}
+      {overlay.diagnostics.map((diagnostic, index) => (
+        <Text key={index} size="xs" c={diagnostic.level === 'ERROR' ? 'red' : 'yellow'}>{diagnostic.message}</Text>
+      ))}
+    </Stack>
+  )
+
   return (
     <>
       {!enableStaticView && breadcrumb}
       {relationshipPanel}
+      {changeDetails}
+      <MetamodelDiffModal
+        entry={metamodelEntry?.entry ?? null}
+        opened={metamodelEntry?.opened ?? false}
+        onClose={() => setMetamodelEntry(null)}
+      />
+      <Modal
+        opened={planFile?.opened ?? false}
+        onClose={() => setPlanFile(null)}
+        title={planFile?.name ?? ''}
+        size="xl"
+        data-xirang-plan-file
+      >
+        <Box style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+          <Markdown value={RichText.from({ md: planFile?.content ?? '' })} />
+        </Box>
+      </Modal>
       <Box
         hidden
         data-xirang-architecture-overlay
