@@ -100,7 +100,7 @@ function FloatingChrome({
   children,
 }: PropsWithChildren<{
   dragControls: ReturnType<typeof useDragControls>
-  position: { left?: number; right?: number; top: number }
+  position: { left?: number; right?: number; top?: number; bottom?: number }
 }>) {
   return (
     <motion.div
@@ -168,7 +168,7 @@ function XirangArchitectureOverlay() {
     return identities
   }, [declarations, focusIdentity, rootIdentity])
   const breadcrumb = selected.id === 'model' && breadcrumbIdentities.length > 0 && (
-    <FloatingChrome dragControls={breadcrumbDragControls} position={{ left: 16, top: 72 }}>
+    <FloatingChrome dragControls={breadcrumbDragControls} position={{ left: 60, bottom: 16 }}>
       <Group
         data-xirang-focus-breadcrumb
         data-xirang-drag-handle
@@ -177,7 +177,7 @@ function XirangArchitectureOverlay() {
           event.stopPropagation()
           breadcrumbDragControls.start(event)
         }}
-        style={{ cursor: 'grab' }}
+        style={{ cursor: 'grab', flexWrap: 'wrap', maxWidth: 'calc(100vw - 80px)' }}
       >
         <IconGripVertical size={12} />
         {breadcrumbIdentities.map(identity => (

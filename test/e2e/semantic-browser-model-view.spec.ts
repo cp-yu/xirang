@@ -39,7 +39,12 @@ test('browses Model View through nested focus and history', async ({ page }) => 
   const controlsBox = await controls.boundingBox()
   expect(breadcrumbBox).not.toBeNull()
   expect(controlsBox).not.toBeNull()
-  expect(controlsBox!.y).toBeGreaterThanOrEqual(breadcrumbBox!.y + breadcrumbBox!.height)
+  // Controls live in the top-left chrome; the breadcrumb docks bottom-left.
+  expect(controlsBox!.y).toBeLessThan(breadcrumbBox!.y)
+  // The breadcrumb clears the bottom-left zoom controls (+/-/fit/fullscreen).
+  const zoom = await page.locator('.react-flow__controls').boundingBox()
+  expect(zoom).not.toBeNull()
+  expect(breadcrumbBox!.x).toBeGreaterThanOrEqual(zoom!.x + zoom!.width)
 
   await page.screenshot({ path: test.info().outputPath('model-root.png'), fullPage: true })
   await perspective.dblclick()
