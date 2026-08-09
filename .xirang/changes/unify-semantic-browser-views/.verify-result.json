@@ -1,71 +1,71 @@
 {
-  "timestamp": "2026-08-09T08:40:14.136Z",
+  "timestamp": "2026-08-09T09:09:40.732Z",
   "result": "PASS",
   "issues": [],
   "tasksFileHash": "f583af8b5b596d5c52c6f04c583b36fe1447382d584fd072d81293468aae8164",
   "verificationContext": {
     "contractVersion": "1.0",
     "evidenceFiles": [
-      "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
       "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
       "test/e2e/semantic-browser-model-view.spec.ts"
     ],
-    "evidenceFingerprint": "3a1733039de360a8d1555bede871bd6f3ba30dedfc8b244cf881347c23d36496",
+    "evidenceFingerprint": "8c6f8cc186e4a99050f8d8b2ef1d78440b3e3bf7bb0e993e2c01534382dcdc2f",
     "evidenceFingerprintEntries": [
       {
-        "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
-        "hash": "71ee3eaf00a757907eb7a212a6d19b660e600832be460a35940cd7fac3e73d91"
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+        "hash": "c7c7a8149b2562f0d2b1a1e2973799323f2ab34f5c6054968f64441c3b93f807"
       },
       {
         "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
-        "hash": "37972a133fde209e1b4e48790135f9d76a84ba3e96b39c0e6f17744a2f53e358"
+        "hash": "e774bfb6b9d6c435f6f9d991ded4f4e147e8ebb9a74eecfe620ef1bde0b717df"
       },
       {
         "path": "test/e2e/semantic-browser-model-view.spec.ts",
-        "hash": "8ac88e21ed7413d46be44ab3e2e4dda9c3086d376c42bfd46c4d01f6db6e56ff"
+        "hash": "19d448e9cd41049d93eb5bf5d5e04bd31389435aa798d847a058a3a22a2aada5"
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "2770188dd777c8b2b80e7e72e95b51bccca680b3"
+    "gitHeadCommit": "82b48910ff0b198cfcb2eda174a954a0d7498e4f"
   },
   "optimization": {
     "status": "NOT_NEEDED",
     "attempts": [
       {
-        "timestamp": "2026-08-09T08:40:17.502Z",
+        "timestamp": "2026-08-09T09:09:41.114Z",
         "type": "optimization",
         "status": "NO_OPTIMIZATION_NEEDED"
       }
     ],
     "baseline": {
-      "timestamp": "2026-08-09T08:40:14.136Z",
+      "timestamp": "2026-08-09T09:09:40.732Z",
       "result": "PASS",
       "issues": [],
       "tasksFileHash": "f583af8b5b596d5c52c6f04c583b36fe1447382d584fd072d81293468aae8164",
       "verificationContext": {
         "contractVersion": "1.0",
         "evidenceFiles": [
-          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
           "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
           "test/e2e/semantic-browser-model-view.spec.ts"
         ],
-        "evidenceFingerprint": "3a1733039de360a8d1555bede871bd6f3ba30dedfc8b244cf881347c23d36496",
+        "evidenceFingerprint": "8c6f8cc186e4a99050f8d8b2ef1d78440b3e3bf7bb0e993e2c01534382dcdc2f",
         "evidenceFingerprintEntries": [
           {
-            "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
-            "hash": "71ee3eaf00a757907eb7a212a6d19b660e600832be460a35940cd7fac3e73d91"
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "hash": "c7c7a8149b2562f0d2b1a1e2973799323f2ab34f5c6054968f64441c3b93f807"
           },
           {
             "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
-            "hash": "37972a133fde209e1b4e48790135f9d76a84ba3e96b39c0e6f17744a2f53e358"
+            "hash": "e774bfb6b9d6c435f6f9d991ded4f4e147e8ebb9a74eecfe620ef1bde0b717df"
           },
           {
             "path": "test/e2e/semantic-browser-model-view.spec.ts",
-            "hash": "8ac88e21ed7413d46be44ab3e2e4dda9c3086d376c42bfd46c4d01f6db6e56ff"
+            "hash": "19d448e9cd41049d93eb5bf5d5e04bd31389435aa798d847a058a3a22a2aada5"
           }
         ],
         "skippedEvidenceFiles": [],
-        "gitHeadCommit": "2770188dd777c8b2b80e7e72e95b51bccca680b3"
+        "gitHeadCommit": "82b48910ff0b198cfcb2eda174a954a0d7498e4f"
       }
     },
     "findings": [],
