@@ -1,4 +1,6 @@
+import { execFile } from 'node:child_process';
 import { promises as fs } from 'node:fs';
+import { promisify } from 'node:util';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -10,6 +12,7 @@ import {
 import { writeProjectModel } from '../helpers/model-fixture.js';
 
 const CONTRACT = '## Requirements\n\n### Requirement: Hidden behavior\nThe system SHALL behave.\n\n#### Scenario: Hidden scenario\n- **WHEN** invoked\n- **THEN** it works';
+const execFileAsync = promisify(execFile);
 
 describe('architecture outline', () => {
   let root: string;
@@ -190,6 +193,16 @@ architecture:
     expect(markdown).toContain('  - payments (area) Payments');
     expect(markdown).toContain('[definition unloaded]');
     expect(`${text}\n${markdown}`).not.toContain('...');
+  });
+
+  it.each(['depths', 'formatters'])('handles deep hierarchy %s without call-stack recursion', async mode => {
+    const fixture = path.join(process.cwd(), 'test', 'fixtures', 'arch-outline-deep-process.fixture.mjs');
+
+    await expect(execFileAsync(process.execPath, [
+      '--stack-size=128',
+      fixture,
+      mode,
+    ], { cwd: process.cwd() })).resolves.toMatchObject({ stderr: '' });
   });
 
   it('is deterministic and does not create project state', async () => {

@@ -37,6 +37,7 @@
 - Modify: `src/commands/arch/index.ts`
 - Create: `test/commands/arch-outline.test.ts`
 - Test: `test/commands/arch-snapshot.test.ts`
+- Test support: `test/fixtures/arch-outline-deep-process.fixture.mjs`
 - Test: `test/integration/arch-command.test.ts`
 
 **Requirements**:
@@ -173,3 +174,4 @@
 - [x] [code_fix] C1 schema defaults 重复 functional default literal；所有 schema default 表达式需引用 `PROJECT_CONFIG_FUNCTIONAL_DEFAULTS`。
 - [x] [code_fix] C10 Snack 仍逐 candidate query；生成源需改为按需选择 identities 后执行一次 batch `arch query`，并重新生成托管 surface。
 - [x] [artifact_fix] C13 `.xirang/references/xirang-apply-step-1-preparation.md` 与 `.xirang/references/xirang-self-read-protocol.md` 未列入 Task 4 Files 和验证范围；需补充归属或移除变更。
+- [x] [code_fix] C3 `arch outline` 的 hierarchy depth 计算和 text/Markdown rendering 使用按层递归，任意深度合法 hierarchy 可触发 call-stack overflow；改为 iterative traversal，并补 deepest-first 20,000 层与双 formatter 受限 stack 回归。

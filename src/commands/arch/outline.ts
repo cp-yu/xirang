@@ -56,16 +56,20 @@ function hierarchyDepths(model: SemanticModel): Map<string, number> {
   );
   const depths = new Map<string, number>();
 
-  const resolve = (identity: string): number => {
-    const existing = depths.get(identity);
-    if (existing !== undefined) return existing;
-    const parent = parents.get(identity);
-    const depth = parent === null ? 0 : resolve(parent!) + 1;
-    depths.set(identity, depth);
-    return depth;
-  };
-
-  for (const identity of parents.keys()) resolve(identity);
+  for (const identity of parents.keys()) {
+    if (depths.has(identity)) continue;
+    const trail: string[] = [];
+    let current: string | null = identity;
+    while (current !== null && !depths.has(current)) {
+      trail.push(current);
+      current = parents.get(current) ?? null;
+    }
+    let depth = current === null ? -1 : depths.get(current)!;
+    for (let index = trail.length - 1; index >= 0; index -= 1) {
+      depth += 1;
+      depths.set(trail[index], depth);
+    }
+  }
   return depths;
 }
 
@@ -188,13 +192,24 @@ function renderMetamodel(result: ArchitectureOutlineResult, markdown: boolean): 
 
 export function formatArchitectureOutlineText(result: ArchitectureOutlineResult): string {
   const lines: string[] = [];
-  const walk = (node: OutlineTreeNode, prefix: string, isLast: boolean): void => {
+  const roots = buildOutlineTree(result.elements);
+  const stack = roots.map((node, index) => ({
+    node,
+    prefix: '',
+    isLast: index === roots.length - 1,
+  })).reverse();
+  while (stack.length > 0) {
+    const { node, prefix, isLast } = stack.pop()!;
     lines.push(`${prefix}${isLast ? '└── ' : '├── '}${outlineNodeLabel(node)}`);
     const childPrefix = prefix + (isLast ? '    ' : '│   ');
-    node.childNodes.forEach((child, index) => walk(child, childPrefix, index === node.childNodes.length - 1));
-  };
-  const roots = buildOutlineTree(result.elements);
-  roots.forEach((root, index) => walk(root, '', index === roots.length - 1));
+    for (let index = node.childNodes.length - 1; index >= 0; index -= 1) {
+      stack.push({
+        node: node.childNodes[index],
+        prefix: childPrefix,
+        isLast: index === node.childNodes.length - 1,
+      });
+    }
+  }
   return [
     ...lines,
     '',
@@ -206,11 +221,16 @@ export function formatArchitectureOutlineText(result: ArchitectureOutlineResult)
 
 export function formatArchitectureOutlineMarkdown(result: ArchitectureOutlineResult): string {
   const lines: string[] = [];
-  const walk = (node: OutlineTreeNode, depth: number): void => {
+  const stack = buildOutlineTree(result.elements)
+    .map(node => ({ node, depth: 0 }))
+    .reverse();
+  while (stack.length > 0) {
+    const { node, depth } = stack.pop()!;
     lines.push(`${'  '.repeat(depth)}- ${outlineNodeLabel(node)}`);
-    for (const child of node.childNodes) walk(child, depth + 1);
-  };
-  for (const root of buildOutlineTree(result.elements)) walk(root, 0);
+    for (let index = node.childNodes.length - 1; index >= 0; index -= 1) {
+      stack.push({ node: node.childNodes[index], depth: depth + 1 });
+    }
+  }
   return [
     ...lines,
     '',

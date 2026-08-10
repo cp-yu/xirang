@@ -1,10 +1,10 @@
 {
-  "timestamp": "2026-08-10T14:22:00.972Z",
+  "timestamp": "2026-08-10T16:24:51.803Z",
   "result": "PASS_WITH_WARNINGS",
   "issues": [
     {
       "severity": "WARNING",
-      "message": "The change passes its directed verification, but the pre-existing Formal Semantic Model still has five unrelated Contract validation failures because six role Requirements use MAY without SHALL or MUST.",
+      "message": "The change passes directed verification, but the pre-existing Formal Semantic Model has five unrelated Contract validation failures because six Requirements use MAY without SHALL or MUST.",
       "requirement": "Semantic Model validation baseline",
       "task": null,
       "recommendation": "Repair the baseline role Contracts in a separate change; no correction to optimize-agent-semantic-context-loading is required.",
@@ -17,7 +17,7 @@
       ]
     }
   ],
-  "tasksFileHash": "0b1124c69ebc8bbe4bc6d5f65c71f7550875384a39c0f869f5d18102de433468",
+  "tasksFileHash": "2b9d62a484aea4d62a1250ab0a871f679add17a5d2da798fd05c66d13b31b13b",
   "verificationContext": {
     "contractVersion": "1.0",
     "evidenceFiles": [
@@ -27,8 +27,6 @@
       ".pi/skills/xirang-explore/SKILL.md",
       ".pi/skills/xirang-propose/SKILL.md",
       ".pi/skills/xirang-snack/SKILL.md",
-      ".xirang/changes/optimize-agent-semantic-context-loading/.apply-isolation.json",
-      ".xirang/changes/optimize-agent-semantic-context-loading/.verify-result.json",
       ".xirang/changes/optimize-agent-semantic-context-loading/design.md",
       ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-impact.md",
       ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-outline.md",
@@ -40,17 +38,6 @@
       ".xirang/changes/optimize-agent-semantic-context-loading/elements/workflow-templates.md",
       ".xirang/changes/optimize-agent-semantic-context-loading/proposal.md",
       ".xirang/changes/optimize-agent-semantic-context-loading/tasks.md",
-      ".xirang/model/elements/agent.md",
-      ".xirang/model/elements/apply-role.md",
-      ".xirang/model/elements/archive-role.md",
-      ".xirang/model/elements/project-build-role.md",
-      ".xirang/model/elements/propose-role.md",
-      ".xirang/references/xirang-apply-step-1-preparation.md",
-      ".xirang/references/xirang-self-read-protocol.md",
-      "README.md",
-      "docs/architecture-integration.md",
-      "docs/commands.md",
-      "docs/xirang-integration.md",
       "src/commands/arch/impact.ts",
       "src/commands/arch/index.ts",
       "src/commands/arch/outline.ts",
@@ -69,19 +56,14 @@
       "test/commands/arch-impact.test.ts",
       "test/commands/arch-outline.test.ts",
       "test/commands/arch-query.test.ts",
+      "test/commands/arch-snapshot.test.ts",
       "test/core/project-config.test.ts",
-      "test/core/templates/apply-change.test.ts",
-      "test/core/templates/explore-template.test.ts",
-      "test/core/templates/fragments/xirang-fragments.test.ts",
-      "test/core/templates/optimizer-template.test.ts",
-      "test/core/templates/propose-template.test.ts",
-      "test/core/templates/reviewer-template.test.ts",
-      "test/core/templates/skill-templates-parity.test.ts",
-      "test/core/templates/snack-template.test.ts",
+      "test/core/templates",
       "test/fixtures/arch-impact-locale-process.fixture.ts",
+      "test/fixtures/arch-outline-deep-process.fixture.mjs",
       "test/integration/arch-command.test.ts"
     ],
-    "evidenceFingerprint": "23c7e0fc30868f10d43d7dae7bac93071ceb8c1dfbe88059e46181f9c6396db5",
+    "evidenceFingerprint": "ad26f70df4e869e905c00a907024613922a4a14837da67e40917c28817793cf8",
     "evidenceFingerprintEntries": [
       {
         "path": ".pi/agents/xirang-optimizer.md",
@@ -106,10 +88,6 @@
       {
         "path": ".pi/skills/xirang-snack/SKILL.md",
         "hash": "066111a623470afe26aaf082313205ef1d98094ad33b7e5878e9295109b09a5e"
-      },
-      {
-        "path": ".xirang/changes/optimize-agent-semantic-context-loading/.apply-isolation.json",
-        "hash": "7f017740fbd1bc950b8aa423add62d4a1aa8d8de94243e0c4a82768b4bd5f340"
       },
       {
         "path": ".xirang/changes/optimize-agent-semantic-context-loading/design.md",
@@ -153,51 +131,7 @@
       },
       {
         "path": ".xirang/changes/optimize-agent-semantic-context-loading/tasks.md",
-        "hash": "7fd0cd3283ba5a2cbd059ba5065fe437b695b8ec2e8934d5aa34bc1435d04e9f"
-      },
-      {
-        "path": ".xirang/model/elements/agent.md",
-        "hash": "f3dc7821efca0df28de28f80ca9cf785f0bac058fafd86e2a76c557b9b0cdc8f"
-      },
-      {
-        "path": ".xirang/model/elements/apply-role.md",
-        "hash": "f8831865b13cafda424cffd638cd7d98077fdbd26da057432d5c6c45caefea6f"
-      },
-      {
-        "path": ".xirang/model/elements/archive-role.md",
-        "hash": "29d7b1b0fce1582821ed48c1c805e030d5fe4fe9c922cdf465f97224db9bd85e"
-      },
-      {
-        "path": ".xirang/model/elements/project-build-role.md",
-        "hash": "724517d8bd5fc7a47e9324aed9d19ef400f99b6dbdca9e71addddea90551d227"
-      },
-      {
-        "path": ".xirang/model/elements/propose-role.md",
-        "hash": "f6de6b478f70e875f8822db22569f89fe790a99f91a00bf929d0e89734ed7045"
-      },
-      {
-        "path": ".xirang/references/xirang-apply-step-1-preparation.md",
-        "hash": "1856cd041fd38d7e864cb4991c7023337da220d070ef97536b32ab6870803bfc"
-      },
-      {
-        "path": ".xirang/references/xirang-self-read-protocol.md",
-        "hash": "676f17c36e0478f4dd3390934d6137484e022a5bda91020eee0a1cb7d2d72c77"
-      },
-      {
-        "path": "docs/architecture-integration.md",
-        "hash": "0df23e44e8b179421da31d395a38308c088b6f421d9fa5037944a9dfead340bf"
-      },
-      {
-        "path": "docs/commands.md",
-        "hash": "41e13d0d0c0bfbbe214c49a0b3ba51b40948adb8a0f608121a8610d7e9924e17"
-      },
-      {
-        "path": "docs/xirang-integration.md",
-        "hash": "a0b097efd7c7468d5c4f40b33869d3acf7b57c804649732898f74b4ce7525d3a"
-      },
-      {
-        "path": "README.md",
-        "hash": "761898b37e41a4584477518fa26ea2b166129ecb33509b77b4d4a4d67787d9d0"
+        "hash": "2b9d62a484aea4d62a1250ab0a871f679add17a5d2da798fd05c66d13b31b13b"
       },
       {
         "path": "src/commands/arch/impact.ts",
@@ -209,7 +143,7 @@
       },
       {
         "path": "src/commands/arch/outline.ts",
-        "hash": "66839cedb5c74b9b6b2b8e3989e5cb8de70873baa9ae306572f5f45fe3d9f529"
+        "hash": "36c5d900d776ca4f9cf17dbbd5a723f31e8b278d377f266b9a0155871283825b"
       },
       {
         "path": "src/commands/arch/query.ts",
@@ -265,51 +199,27 @@
       },
       {
         "path": "test/commands/arch-outline.test.ts",
-        "hash": "cdcb921f7a8977459558c6f8403e1958d7ff6b8406d4902dad7bb0e0fe60bd51"
+        "hash": "c0002d699cf5f0335aa40e1ff40023c7f14f41e02166864a8c488f981e097fb0"
       },
       {
         "path": "test/commands/arch-query.test.ts",
         "hash": "4af2c7ab32b55b946e1c414d48a90d6aafb85e974ee555cc3766092aed95b7fa"
       },
       {
+        "path": "test/commands/arch-snapshot.test.ts",
+        "hash": "36c3b682e0ef75b4587e058fcfcbb5765197debe51ddb4afb37ea75e3afdb0b3"
+      },
+      {
         "path": "test/core/project-config.test.ts",
         "hash": "765aec803d71bbef783d3f3d63b915d04c9f752e96c494c61248e233fbb0397e"
       },
       {
-        "path": "test/core/templates/apply-change.test.ts",
-        "hash": "28ed20f946783aa0f8ba955b816d9753769a0b3e3d4a1b4e0a1b96e261bcf811"
-      },
-      {
-        "path": "test/core/templates/explore-template.test.ts",
-        "hash": "711eaaf129793804ce2a23e87f2d531a1975d53e9824d7b53384e21f7e8d4958"
-      },
-      {
-        "path": "test/core/templates/fragments/xirang-fragments.test.ts",
-        "hash": "ea451fb64822d3e9ff8af65330ee830c9596685ef3bfdbe6cd1c0f3f309b4347"
-      },
-      {
-        "path": "test/core/templates/optimizer-template.test.ts",
-        "hash": "fb887de0e9d13899294ad583da0f556123b8114fd95f3a15cf94d9ba13f98e49"
-      },
-      {
-        "path": "test/core/templates/propose-template.test.ts",
-        "hash": "7abacb014c5c68548198e5f016736b6ac8f89e4ae085d9438678f297aa4070ff"
-      },
-      {
-        "path": "test/core/templates/reviewer-template.test.ts",
-        "hash": "64501592e8771c8aa487c99808d15744b5cf179ebfc98103519cb19ebfe8e8bb"
-      },
-      {
-        "path": "test/core/templates/skill-templates-parity.test.ts",
-        "hash": "9a5a85a56f9893c53ced2cca6ed3f4c3a76e60311c83bf4c0c346f0dd3372a4f"
-      },
-      {
-        "path": "test/core/templates/snack-template.test.ts",
-        "hash": "e2ac69f77c700b67ec0f7b512da704add55cfbe8b5544b15dc64f440aeb5c5fe"
-      },
-      {
         "path": "test/fixtures/arch-impact-locale-process.fixture.ts",
         "hash": "be7144b5039e3db49371654114589891728f660fc3bd741d3dc8a964e0ef99b9"
+      },
+      {
+        "path": "test/fixtures/arch-outline-deep-process.fixture.mjs",
+        "hash": "442e2a5bd77f9d74164d6a1fe65c7ee998fa064c3cbc009f0e260511bda9fdf0"
       },
       {
         "path": "test/integration/arch-command.test.ts",
@@ -317,44 +227,21 @@
       }
     ],
     "skippedEvidenceFiles": [
-      ".xirang/changes/optimize-agent-semantic-context-loading/.verify-result.json"
+      "test/core/templates"
     ],
-    "gitHeadCommit": "591f3bf1655ab063ba6b2d3fed75ae9c1a8abb07",
-    "gitDiffSummary": "Validated immutable base da4cfacb96cba7e9791d0e36ef90ce45df8fc545. HEAD equals the baseline, so git diff <baseCommit>...HEAD --name-only was empty; git status --short supplied 44 attributed modified/untracked paths and git diff --cached was empty. Read all Change and Delta units, implementation, tests, generated Pi surfaces, references, and public documentation. pnpm build passed. The full directed suite passed 23 files and 312 tests; the C7 query/integration suite passed 22 tests and the required README/docs/src/.pi/.xirang/references absence search returned no obsolete query navigation calls. Combined change validation and Expected Semantic Model validation passed without warnings. Current-model outline contained 154 Elements, 50 Relationships, 11 Kinds, one root, and 49546 bytes; impact was 19013 bytes with no definition, contract, requirement, or scenario paths, and repeated output hashes matched. Review findings: no blockers. Residual risk: five unrelated pre-existing Formal Contract validation failures disclosed as a warning.",
-    "timestamp": "2026-08-10T15:58:08.288Z"
+    "gitHeadCommit": "bb5ccc6ca4e1d67d2072844582c4a508c1f43fe5",
+    "gitDiffSummary": "Validated immutable base da4cfacb96cba7e9791d0e36ef90ce45df8fc545. The base-to-HEAD scope contains 45 files; git status adds four uncommitted entries, three already in that scope plus the attributed deep-outline fixture. The normalized union contains 46 attributed files, and the staged index is empty."
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [
-      {
-        "timestamp": "2026-08-10T14:36:24.650Z",
-        "type": "optimization",
-        "status": "OPTIMIZATION_PROPOSED"
-      },
-      {
-        "timestamp": "2026-08-10T14:45:41.804Z",
-        "type": "verification",
-        "result": "PASS"
-      },
-      {
-        "timestamp": "2026-08-10T15:13:05.522Z",
-        "type": "optimization",
-        "status": "OPTIMIZATION_PROPOSED"
-      },
-      {
-        "timestamp": "2026-08-10T15:58:08.267Z",
-        "type": "verification",
-        "result": "PASS_WITH_WARNINGS",
-        "summary": "Fresh reviewer passed all 25 requirements and 77 scenarios. The frontier-sort removal preserves canonical shortest-path selection across reversed input permutations, all directed suites and build pass, repeated outline and impact hashes remain byte-identical, and no unaccounted changes remain."
-      }
-    ],
+    "attempts": [],
     "baseline": {
-      "timestamp": "2026-08-10T14:22:00.972Z",
+      "timestamp": "2026-08-10T16:24:51.803Z",
       "result": "PASS_WITH_WARNINGS",
       "issues": [
         {
           "severity": "WARNING",
-          "message": "The change passes its directed verification, but the pre-existing Formal Semantic Model still has five unrelated Contract validation failures because six role Requirements use MAY without SHALL or MUST.",
+          "message": "The change passes directed verification, but the pre-existing Formal Semantic Model has five unrelated Contract validation failures because six Requirements use MAY without SHALL or MUST.",
           "requirement": "Semantic Model validation baseline",
           "task": null,
           "recommendation": "Repair the baseline role Contracts in a separate change; no correction to optimize-agent-semantic-context-loading is required.",
@@ -367,7 +254,7 @@
           ]
         }
       ],
-      "tasksFileHash": "0b1124c69ebc8bbe4bc6d5f65c71f7550875384a39c0f869f5d18102de433468",
+      "tasksFileHash": "2b9d62a484aea4d62a1250ab0a871f679add17a5d2da798fd05c66d13b31b13b",
       "verificationContext": {
         "contractVersion": "1.0",
         "evidenceFiles": [
@@ -377,8 +264,6 @@
           ".pi/skills/xirang-explore/SKILL.md",
           ".pi/skills/xirang-propose/SKILL.md",
           ".pi/skills/xirang-snack/SKILL.md",
-          ".xirang/changes/optimize-agent-semantic-context-loading/.apply-isolation.json",
-          ".xirang/changes/optimize-agent-semantic-context-loading/.verify-result.json",
           ".xirang/changes/optimize-agent-semantic-context-loading/design.md",
           ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-impact.md",
           ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-outline.md",
@@ -390,17 +275,6 @@
           ".xirang/changes/optimize-agent-semantic-context-loading/elements/workflow-templates.md",
           ".xirang/changes/optimize-agent-semantic-context-loading/proposal.md",
           ".xirang/changes/optimize-agent-semantic-context-loading/tasks.md",
-          ".xirang/model/elements/agent.md",
-          ".xirang/model/elements/apply-role.md",
-          ".xirang/model/elements/archive-role.md",
-          ".xirang/model/elements/project-build-role.md",
-          ".xirang/model/elements/propose-role.md",
-          ".xirang/references/xirang-apply-step-1-preparation.md",
-          ".xirang/references/xirang-self-read-protocol.md",
-          "README.md",
-          "docs/architecture-integration.md",
-          "docs/commands.md",
-          "docs/xirang-integration.md",
           "src/commands/arch/impact.ts",
           "src/commands/arch/index.ts",
           "src/commands/arch/outline.ts",
@@ -419,19 +293,14 @@
           "test/commands/arch-impact.test.ts",
           "test/commands/arch-outline.test.ts",
           "test/commands/arch-query.test.ts",
+          "test/commands/arch-snapshot.test.ts",
           "test/core/project-config.test.ts",
-          "test/core/templates/apply-change.test.ts",
-          "test/core/templates/explore-template.test.ts",
-          "test/core/templates/fragments/xirang-fragments.test.ts",
-          "test/core/templates/optimizer-template.test.ts",
-          "test/core/templates/propose-template.test.ts",
-          "test/core/templates/reviewer-template.test.ts",
-          "test/core/templates/skill-templates-parity.test.ts",
-          "test/core/templates/snack-template.test.ts",
+          "test/core/templates",
           "test/fixtures/arch-impact-locale-process.fixture.ts",
+          "test/fixtures/arch-outline-deep-process.fixture.mjs",
           "test/integration/arch-command.test.ts"
         ],
-        "evidenceFingerprint": "dcdaea6557ed4ecf29e6c3c38b9150c58943073bc9129b7dfe64f2251ed4f67a",
+        "evidenceFingerprint": "ad26f70df4e869e905c00a907024613922a4a14837da67e40917c28817793cf8",
         "evidenceFingerprintEntries": [
           {
             "path": ".pi/agents/xirang-optimizer.md",
@@ -456,10 +325,6 @@
           {
             "path": ".pi/skills/xirang-snack/SKILL.md",
             "hash": "066111a623470afe26aaf082313205ef1d98094ad33b7e5878e9295109b09a5e"
-          },
-          {
-            "path": ".xirang/changes/optimize-agent-semantic-context-loading/.apply-isolation.json",
-            "hash": "c77466288d101103886a78ed40b8969e3d10cf3c4fcfd5d5cdc48a484dde28cb"
           },
           {
             "path": ".xirang/changes/optimize-agent-semantic-context-loading/design.md",
@@ -503,55 +368,11 @@
           },
           {
             "path": ".xirang/changes/optimize-agent-semantic-context-loading/tasks.md",
-            "hash": "0b1124c69ebc8bbe4bc6d5f65c71f7550875384a39c0f869f5d18102de433468"
-          },
-          {
-            "path": ".xirang/model/elements/agent.md",
-            "hash": "f3dc7821efca0df28de28f80ca9cf785f0bac058fafd86e2a76c557b9b0cdc8f"
-          },
-          {
-            "path": ".xirang/model/elements/apply-role.md",
-            "hash": "f8831865b13cafda424cffd638cd7d98077fdbd26da057432d5c6c45caefea6f"
-          },
-          {
-            "path": ".xirang/model/elements/archive-role.md",
-            "hash": "29d7b1b0fce1582821ed48c1c805e030d5fe4fe9c922cdf465f97224db9bd85e"
-          },
-          {
-            "path": ".xirang/model/elements/project-build-role.md",
-            "hash": "724517d8bd5fc7a47e9324aed9d19ef400f99b6dbdca9e71addddea90551d227"
-          },
-          {
-            "path": ".xirang/model/elements/propose-role.md",
-            "hash": "f6de6b478f70e875f8822db22569f89fe790a99f91a00bf929d0e89734ed7045"
-          },
-          {
-            "path": ".xirang/references/xirang-apply-step-1-preparation.md",
-            "hash": "1856cd041fd38d7e864cb4991c7023337da220d070ef97536b32ab6870803bfc"
-          },
-          {
-            "path": ".xirang/references/xirang-self-read-protocol.md",
-            "hash": "676f17c36e0478f4dd3390934d6137484e022a5bda91020eee0a1cb7d2d72c77"
-          },
-          {
-            "path": "docs/architecture-integration.md",
-            "hash": "0df23e44e8b179421da31d395a38308c088b6f421d9fa5037944a9dfead340bf"
-          },
-          {
-            "path": "docs/commands.md",
-            "hash": "41e13d0d0c0bfbbe214c49a0b3ba51b40948adb8a0f608121a8610d7e9924e17"
-          },
-          {
-            "path": "docs/xirang-integration.md",
-            "hash": "a0b097efd7c7468d5c4f40b33869d3acf7b57c804649732898f74b4ce7525d3a"
-          },
-          {
-            "path": "README.md",
-            "hash": "761898b37e41a4584477518fa26ea2b166129ecb33509b77b4d4a4d67787d9d0"
+            "hash": "2b9d62a484aea4d62a1250ab0a871f679add17a5d2da798fd05c66d13b31b13b"
           },
           {
             "path": "src/commands/arch/impact.ts",
-            "hash": "72e25025e8523916516a32e790e4e32ec72f57ddb689dcef472ee2fef0282a67"
+            "hash": "28101d6de7e69edcfa18635924b4320896e495a7e41eff7fbe2de8b58a25c61d"
           },
           {
             "path": "src/commands/arch/index.ts",
@@ -559,7 +380,7 @@
           },
           {
             "path": "src/commands/arch/outline.ts",
-            "hash": "66839cedb5c74b9b6b2b8e3989e5cb8de70873baa9ae306572f5f45fe3d9f529"
+            "hash": "36c5d900d776ca4f9cf17dbbd5a723f31e8b278d377f266b9a0155871283825b"
           },
           {
             "path": "src/commands/arch/query.ts",
@@ -567,7 +388,7 @@
           },
           {
             "path": "src/commands/arch/snapshot.ts",
-            "hash": "9a054e01b98b47d18dc29497f15be7f8ed8eb4b78dd1585421a42dc244f340c5"
+            "hash": "6670c454bb26bd446ac723426a77f6c8d2065c0f0938d004237211fca61fc11c"
           },
           {
             "path": "src/core/config-projection.ts",
@@ -611,55 +432,31 @@
           },
           {
             "path": "test/commands/arch-impact.test.ts",
-            "hash": "40432623b532ee0fe336555dda787f0be41054bad671da322db367478310628a"
+            "hash": "e14a09bf3ca8b9c4dce71c21caf6c0575e5b443a9a39b07bb8dddfb8966dc340"
           },
           {
             "path": "test/commands/arch-outline.test.ts",
-            "hash": "cdcb921f7a8977459558c6f8403e1958d7ff6b8406d4902dad7bb0e0fe60bd51"
+            "hash": "c0002d699cf5f0335aa40e1ff40023c7f14f41e02166864a8c488f981e097fb0"
           },
           {
             "path": "test/commands/arch-query.test.ts",
             "hash": "4af2c7ab32b55b946e1c414d48a90d6aafb85e974ee555cc3766092aed95b7fa"
           },
           {
+            "path": "test/commands/arch-snapshot.test.ts",
+            "hash": "36c3b682e0ef75b4587e058fcfcbb5765197debe51ddb4afb37ea75e3afdb0b3"
+          },
+          {
             "path": "test/core/project-config.test.ts",
             "hash": "765aec803d71bbef783d3f3d63b915d04c9f752e96c494c61248e233fbb0397e"
           },
           {
-            "path": "test/core/templates/apply-change.test.ts",
-            "hash": "28ed20f946783aa0f8ba955b816d9753769a0b3e3d4a1b4e0a1b96e261bcf811"
-          },
-          {
-            "path": "test/core/templates/explore-template.test.ts",
-            "hash": "711eaaf129793804ce2a23e87f2d531a1975d53e9824d7b53384e21f7e8d4958"
-          },
-          {
-            "path": "test/core/templates/fragments/xirang-fragments.test.ts",
-            "hash": "ea451fb64822d3e9ff8af65330ee830c9596685ef3bfdbe6cd1c0f3f309b4347"
-          },
-          {
-            "path": "test/core/templates/optimizer-template.test.ts",
-            "hash": "fb887de0e9d13899294ad583da0f556123b8114fd95f3a15cf94d9ba13f98e49"
-          },
-          {
-            "path": "test/core/templates/propose-template.test.ts",
-            "hash": "7abacb014c5c68548198e5f016736b6ac8f89e4ae085d9438678f297aa4070ff"
-          },
-          {
-            "path": "test/core/templates/reviewer-template.test.ts",
-            "hash": "64501592e8771c8aa487c99808d15744b5cf179ebfc98103519cb19ebfe8e8bb"
-          },
-          {
-            "path": "test/core/templates/skill-templates-parity.test.ts",
-            "hash": "9a5a85a56f9893c53ced2cca6ed3f4c3a76e60311c83bf4c0c346f0dd3372a4f"
-          },
-          {
-            "path": "test/core/templates/snack-template.test.ts",
-            "hash": "e2ac69f77c700b67ec0f7b512da704add55cfbe8b5544b15dc64f440aeb5c5fe"
-          },
-          {
             "path": "test/fixtures/arch-impact-locale-process.fixture.ts",
             "hash": "be7144b5039e3db49371654114589891728f660fc3bd741d3dc8a964e0ef99b9"
+          },
+          {
+            "path": "test/fixtures/arch-outline-deep-process.fixture.mjs",
+            "hash": "442e2a5bd77f9d74164d6a1fe65c7ee998fa064c3cbc009f0e260511bda9fdf0"
           },
           {
             "path": "test/integration/arch-command.test.ts",
@@ -667,204 +464,11 @@
           }
         ],
         "skippedEvidenceFiles": [
-          ".xirang/changes/optimize-agent-semantic-context-loading/.verify-result.json"
+          "test/core/templates"
         ],
-        "gitHeadCommit": "da4cfacb96cba7e9791d0e36ef90ce45df8fc545",
-        "gitDiffSummary": "Validated immutable base da4cfacb96cba7e9791d0e36ef90ce45df8fc545. HEAD equals the baseline, so git diff <baseCommit>...HEAD --name-only was empty; git status --short supplied 44 attributed modified/untracked paths and git diff --cached was empty. Read all Change and Delta units, implementation, tests, generated Pi surfaces, references, and public documentation. pnpm build passed. The full directed suite passed 23 files and 312 tests; the C7 query/integration suite passed 22 tests and the required README/docs/src/.pi/.xirang/references absence search returned no obsolete query navigation calls. Combined change validation and Expected Semantic Model validation passed without warnings. Current-model outline contained 154 Elements, 50 Relationships, 11 Kinds, one root, and 49546 bytes; impact was 19013 bytes with no definition, contract, requirement, or scenario paths, and repeated output hashes matched. Review findings: no blockers. Residual risk: five unrelated pre-existing Formal Contract validation failures disclosed as a warning."
+        "gitHeadCommit": "bb5ccc6ca4e1d67d2072844582c4a508c1f43fe5",
+        "gitDiffSummary": "Validated immutable base da4cfacb96cba7e9791d0e36ef90ce45df8fc545. The base-to-HEAD scope contains 45 files; git status adds four uncommitted entries, three already in that scope plus the attributed deep-outline fixture. The normalized union contains 46 attributed files, and the staged index is empty."
       }
-    },
-    "findings": [
-      {
-        "status": "resolved",
-        "location": {
-          "files": [
-            "src/commands/arch/impact.ts",
-            "src/commands/arch/snapshot.ts"
-          ],
-          "symbols": [
-            "impactArchitecture",
-            "buildModelTree",
-            "renderRelationsText"
-          ]
-        },
-        "opportunity": "Several model indexes and relation-group accumulators rebuild arrays with spread syntax on every append. This repeatedly copies the complete bucket, producing quadratic allocation and copy work for high-fanout hierarchies, high-degree relationship nodes, and large relationship-kind groups.",
-        "impact": "Use direct bucket mutation to make index construction and text relation grouping linear in the number of inserted entries, reducing transient allocations and CPU time while preserving the existing stable sorting and output projections.",
-        "evidence": [
-          "src/commands/arch/snapshot.ts:71-77 uses childrenOf.set(parent, [...(childrenOf.get(parent) ?? []), identity]) for every child.",
-          "src/commands/arch/snapshot.ts:114-119 uses byKind.set(kind, [...(byKind.get(kind) ?? []), relationText]) for every relationship.",
-          "src/commands/arch/impact.ts:110-116 uses the same copy-on-append pattern for refinement children.",
-          "src/commands/arch/impact.ts:146-152 uses copy-on-append for both endpoints of every relationship while constructing adjacency.",
-          "The current formal outline contains 154 Elements and 50 Relationships. Its 153 parent-child links require approximately 578 copied references with the current pattern versus 153 pushes; adjacency performs 100 endpoint insertions and approximately 265 copied references versus 100 pushes; snapshot relation grouping performs approximately 213 copied strings versus 50 pushes."
-        ],
-        "recommendation": "Initialize each map bucket once and append with push. Retain the existing compareCodePoints sorting passes after construction, and retain endpoint deduplication for self-loop relationships.",
-        "keyDesign": "Use mutable per-key accumulation inside the existing single-pass builders: retrieve the bucket, create and store an empty bucket when absent, then push the new identity, relationship, or formatted string. Keep final bucket sorting and all outer canonical sorting unchanged so mutation is internal and the public result remains immutable by convention.",
-        "preservationConstraints": [
-          "Preserve the exact children arrays and compareCodePoints ordering returned by buildModelTree and impact refinementContext traversal.",
-          "Preserve relationship deduplication by source, kind, and target before adjacency construction.",
-          "Preserve self-loop behavior: a relationship whose source equals target must be inserted into one adjacency bucket, not twice.",
-          "Preserve all relationship duplicates and input ordering semantics in renderRelationsText unless an existing canonical projection already removes them.",
-          "Preserve relation path direction, canonical shortest-path selection, diagnostics, error timing, read-only behavior, and all JSON/text/markdown schemas.",
-          "Do not mutate SemanticModel arrays or any returned public object owned by callers."
-        ],
-        "implementationOutline": [
-          "Replace copy-on-append childrenOf construction in snapshot.ts and impact.ts with get-or-create bucket followed by push.",
-          "Replace copy-on-append adjacency construction in impact.ts while retaining the existing unique endpoint iteration.",
-          "Replace copy-on-append byKind construction in snapshot.ts with get-or-create bucket followed by push.",
-          "Leave all final stable sorting and formatter joins in place.",
-          "Add focused high-fanout and high-degree fixtures that compare the optimized projections with the existing deterministic expected ordering, including self-loop and repeated relationship cases."
-        ],
-        "validation": [
-          "Run pnpm vitest run test/commands/arch-snapshot.test.ts test/commands/arch-outline.test.ts test/commands/arch-impact.test.ts; existing semantic projection, ordering, cycle, and read-only tests must remain passing.",
-          "Run the focused high-fanout regression tests and assert children, adjacency-derived relations, relationPaths, refinementContext, and formatted relation groups are unchanged.",
-          "Run pnpm build to prove the optimized command implementations typecheck and compile.",
-          "Run node bin/xirang.js arch outline --format json and node bin/xirang.js arch impact deterministic-operations --depth 2 --json twice, asserting stable semantic output and unchanged projection boundaries."
-        ],
-        "impactLevel": "medium",
-        "confidence": "high",
-        "risk": "low",
-        "cost": "low",
-        "dependencies": [],
-        "priorityReason": "This ranks first because it has direct static evidence, an immediate linearity improvement across both identity loading paths and snapshot formatting, low implementation risk, and no dependency on profiling or cache behavior.",
-        "id": "OPT-20260810T143624647Z-01",
-        "targetFileHashes": {
-          "src/commands/arch/impact.ts": "72e25025e8523916516a32e790e4e32ec72f57ddb689dcef472ee2fef0282a67",
-          "src/commands/arch/snapshot.ts": "9a054e01b98b47d18dc29497f15be7f8ed8eb4b78dd1585421a42dc244f340c5"
-        }
-      },
-      {
-        "status": "verified",
-        "location": {
-          "files": [
-            "src/commands/arch/impact.ts"
-          ],
-          "symbols": [
-            "canonicalPaths"
-          ]
-        },
-        "opportunity": "canonicalPaths sorts a copied frontier at every relationship-traversal depth even though candidate selection compares the complete path key independently of traversal order and all externally returned collections are sorted later.",
-        "impact": "Avoid an unnecessary array copy and frontier sort at each traversal depth, reducing CPU and transient allocations for high-degree models and larger requested depths while preserving the selected canonical paths.",
-        "evidence": [
-          "src/commands/arch/impact.ts:69 sorts [...frontier] before traversing each depth.",
-          "src/commands/arch/impact.ts:79-81 selects the lexicographically smallest candidate by comparing pathKey values, so the selected path does not depend on frontier iteration order.",
-          "src/commands/arch/impact.ts:74-77 compares every competing candidate for an adjacent Element and retains the minimum path key.",
-          "src/commands/arch/impact.ts:163-164 sorts relationPaths by focus and related identity, and src/commands/arch/impact.ts:227 sorts the final elements array, so intermediate Map insertion order is not externally observable.",
-          "The existing high-degree regression establishes deterministic adjacency and self-loop behavior but does not cover canonical path selection with an unsorted frontier."
-        ],
-        "recommendation": "Iterate frontier directly in canonicalPaths and remove only the per-depth copied-frontier sort. Retain sorted adjacency, complete pathKey comparison, visited-path filtering, final relationPaths sorting, and final identity sorting.",
-        "keyDesign": "Keep breadth-first layers and the existing candidates Map. For each layer, traverse the current frontier in its existing order, compare every candidate path against the current candidate for the same adjacent identity using pathKey, then promote candidates to paths exactly as today. Determinism and canonical selection must come from explicit path comparison and final projection sorting rather than frontier ordering.",
-        "preservationConstraints": [
-          "Preserve one shortest path per focus Element and related Element.",
-          "Preserve lexicographic path selection across all equal-length candidates using source, kind, and target sequence.",
-          "Preserve incoming and outgoing traversal labels, relationship direction, cycle termination, and requested depth bounds.",
-          "Preserve the complete depth-bounded relations subgraph, including non-canonical edges and self-loop behavior.",
-          "Preserve deterministic ordering of relationPaths, elements, relations, and all JSON/text projections.",
-          "Do not mutate SemanticModel relationships, adjacency input arrays, or returned public objects."
-        ],
-        "implementationOutline": [
-          "Change canonicalPaths to iterate frontier without a copied sort.",
-          "Leave adjacency construction and compareRelations sorting unchanged.",
-          "Leave pathKey candidate comparison and paths.has filtering unchanged.",
-          "Retain final relationPaths and elements sorting.",
-          "Add an unsorted multi-branch equal-length path regression."
-        ],
-        "validation": [
-          "Run pnpm vitest run test/commands/arch-impact.test.ts and assert canonical shortest-path, cycle, high-degree, self-loop, and locale tests pass.",
-          "Add an unsorted-frontier equal-path regression proving the lexicographically smallest path remains selected.",
-          "Run pnpm build.",
-          "Run impact twice on the current model and assert identical JSON."
-        ],
-        "impactLevel": "low",
-        "confidence": "high",
-        "risk": "low",
-        "cost": "low",
-        "dependencies": [],
-        "priorityReason": "This is the next scoped opportunity after resolving the completed bucket-accumulation finding: direct static evidence, low-risk local implementation, and explicit canonical-path validation.",
-        "id": "OPT-20260810T151305519Z-01",
-        "targetFileHashes": {
-          "src/commands/arch/impact.ts": "02f74bc25700597b9868442d293db2fd0f31f7a3919617e2cb736ef58467965a"
-        }
-      }
-    ],
-    "history": [
-      {
-        "sequence": 1,
-        "action": "add",
-        "reason": "Optimizer added finding",
-        "timestamp": "2026-08-10T14:36:24.648Z",
-        "findingId": "OPT-20260810T143624647Z-01"
-      },
-      {
-        "sequence": 2,
-        "action": "select",
-        "reason": "This ranks first because it has direct static evidence, an immediate linearity improvement across both identity loading paths and snapshot formatting, low implementation risk, and no dependency on profiling or cache behavior.",
-        "timestamp": "2026-08-10T14:36:24.650Z",
-        "findingId": "OPT-20260810T143624647Z-01",
-        "hashes": {
-          "src/commands/arch/impact.ts": "72e25025e8523916516a32e790e4e32ec72f57ddb689dcef472ee2fef0282a67",
-          "src/commands/arch/snapshot.ts": "9a054e01b98b47d18dc29497f15be7f8ed8eb4b78dd1585421a42dc244f340c5"
-        }
-      },
-      {
-        "sequence": 3,
-        "action": "implemented",
-        "reason": "Master began implementation after freshness check",
-        "timestamp": "2026-08-10T14:37:01.124Z",
-        "findingId": "OPT-20260810T143624647Z-01",
-        "hashes": {
-          "src/commands/arch/impact.ts": "72e25025e8523916516a32e790e4e32ec72f57ddb689dcef472ee2fef0282a67",
-          "src/commands/arch/snapshot.ts": "9a054e01b98b47d18dc29497f15be7f8ed8eb4b78dd1585421a42dc244f340c5"
-        }
-      },
-      {
-        "sequence": 4,
-        "action": "verified",
-        "reason": "Fresh reviewer verified preservation constraints",
-        "timestamp": "2026-08-10T14:45:41.804Z",
-        "findingId": "OPT-20260810T143624647Z-01"
-      },
-      {
-        "sequence": 5,
-        "action": "resolve",
-        "reason": "Resolve as independently completed at checkpoint 591f3bf1655ab063ba6b2d3fed75ae9c1a8abb07. Current impact and snapshot hashes match the checkpoint implementation, which replaces copy-on-append rebuilding with direct bucket mutation while retaining canonical sorting, self-loop handling, relation deduplication, and public projections. Focused tests passed and the checkpoint is clean.",
-        "timestamp": "2026-08-10T15:13:05.519Z",
-        "findingId": "OPT-20260810T143624647Z-01"
-      },
-      {
-        "sequence": 6,
-        "action": "add",
-        "reason": "Optimizer added finding",
-        "timestamp": "2026-08-10T15:13:05.519Z",
-        "findingId": "OPT-20260810T151305519Z-01"
-      },
-      {
-        "sequence": 7,
-        "action": "select",
-        "reason": "This is the next scoped opportunity after resolving the completed bucket-accumulation finding: direct static evidence, low-risk local implementation, and explicit canonical-path validation.",
-        "timestamp": "2026-08-10T15:13:05.522Z",
-        "findingId": "OPT-20260810T151305519Z-01",
-        "hashes": {
-          "src/commands/arch/impact.ts": "02f74bc25700597b9868442d293db2fd0f31f7a3919617e2cb736ef58467965a"
-        }
-      },
-      {
-        "sequence": 8,
-        "action": "implemented",
-        "reason": "Master began implementation after freshness check",
-        "timestamp": "2026-08-10T15:13:28.843Z",
-        "findingId": "OPT-20260810T151305519Z-01",
-        "hashes": {
-          "src/commands/arch/impact.ts": "02f74bc25700597b9868442d293db2fd0f31f7a3919617e2cb736ef58467965a"
-        }
-      },
-      {
-        "sequence": 9,
-        "action": "verified",
-        "reason": "Fresh reviewer passed all 25 requirements and 77 scenarios. The frontier-sort removal preserves canonical shortest-path selection across reversed input permutations, all directed suites and build pass, repeated outline and impact hashes remain byte-identical, and no unaccounted changes remain.",
-        "timestamp": "2026-08-10T15:58:08.267Z",
-        "findingId": "OPT-20260810T151305519Z-01"
-      }
-    ],
-    "reconciliationSignature": "fc913356b1e10a413df6b3c69b1a50d636e62f3a13c3a78196999495cc027fd0",
-    "unchangedReconciliations": 0
+    }
   }
 }
