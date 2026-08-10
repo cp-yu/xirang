@@ -74,10 +74,15 @@ export function formatArchitectureQueryText(result: ArchQueryResult): string {
       `Parent: ${element.parent ?? '(none)'}`,
       `Contract: ${element.contract}${element.hasContract ? '' : ' (absent)'}`,
     ];
+    const appendBody = (body: string, indentation: string): void => {
+      for (const line of body.split('\n')) lines.push(`${indentation}${line}`);
+    };
     for (const requirement of element.requirements ?? []) {
       lines.push(`  Requirement: ${requirement.name}`);
+      appendBody(requirement.body, '    ');
       for (const scenario of requirement.scenarios) {
         lines.push(`    Scenario: ${scenario.name}`);
+        appendBody(scenario.body, '      ');
       }
     }
     return lines.join('\n');

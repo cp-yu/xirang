@@ -1,4 +1,6 @@
+import { execFile } from 'node:child_process';
 import { promises as fs } from 'node:fs';
+import { promisify } from 'node:util';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -12,6 +14,7 @@ import {
 import { writeProjectModel } from '../helpers/model-fixture.js';
 
 const CONTRACT = '## Requirements\n\n### Requirement: Stable behavior\nThe system SHALL behave.\n\n#### Scenario: Existing behavior\n- **WHEN** invoked\n- **THEN** behavior is preserved';
+const execFileAsync = promisify(execFile);
 
 describe('architecture snapshot', () => {
   let root: string;
@@ -103,6 +106,16 @@ describe('architecture snapshot', () => {
 
     expect(elements.find(element => element.identity === 'project.root')?.children).toEqual(childIds);
     expect(elements).toHaveLength(childIds.length + 1);
+  });
+
+  it('formats a deep hierarchy without call-stack recursion', async () => {
+    const fixture = path.join(process.cwd(), 'test', 'fixtures', 'arch-outline-deep-process.fixture.mjs');
+
+    await expect(execFileAsync(process.execPath, [
+      '--stack-size=128',
+      fixture,
+      'snapshot-formatters',
+    ], { cwd: process.cwd() })).resolves.toMatchObject({ stderr: '' });
   });
 
   it('renders a box-drawing text tree with identity (kind) | definition and no title', async () => {

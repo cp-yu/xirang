@@ -89,27 +89,40 @@ export function buildModelTree(model: SemanticModel): SnapshotElement[] {
 
 const nodeLabel = (node: SnapshotTreeNode): string => `${node.identity} (${node.kind}) | ${node.definition}`;
 
-const renderTextNode = (node: SnapshotTreeNode, prefix: string, isLast: boolean, lines: string[]): void => {
-  lines.push(`${prefix}${isLast ? '└── ' : '├── '}${nodeLabel(node)}`);
-  const childPrefix = prefix + (isLast ? '    ' : '│   ');
-  node.children.forEach((child, index) => renderTextNode(child, childPrefix, index === node.children.length - 1, lines));
-};
-
 function renderTreeText(elements: readonly SnapshotElement[]): string {
   const roots = buildTree(elements);
   const lines: string[] = [];
-  roots.forEach((root, index) => renderTextNode(root, '', index === roots.length - 1, lines));
+  const stack = roots.map((node, index) => ({
+    node,
+    prefix: '',
+    isLast: index === roots.length - 1,
+  })).reverse();
+  while (stack.length > 0) {
+    const { node, prefix, isLast } = stack.pop()!;
+    lines.push(`${prefix}${isLast ? '└── ' : '├── '}${nodeLabel(node)}`);
+    const childPrefix = prefix + (isLast ? '    ' : '│   ');
+    for (let index = node.children.length - 1; index >= 0; index -= 1) {
+      stack.push({
+        node: node.children[index],
+        prefix: childPrefix,
+        isLast: index === node.children.length - 1,
+      });
+    }
+  }
   return lines.join('\n');
 }
 
 function renderTreeMarkdown(elements: readonly SnapshotElement[]): string {
   const roots = buildTree(elements);
   const lines: string[] = [];
-  const walk = (node: SnapshotTreeNode, depth: number) => {
+  const stack = roots.map(node => ({ node, depth: 0 })).reverse();
+  while (stack.length > 0) {
+    const { node, depth } = stack.pop()!;
     lines.push(`${'  '.repeat(depth)}- ${nodeLabel(node)}`);
-    for (const child of node.children) walk(child, depth + 1);
-  };
-  for (const root of roots) walk(root, 0);
+    for (let index = node.children.length - 1; index >= 0; index -= 1) {
+      stack.push({ node: node.children[index], depth: depth + 1 });
+    }
+  }
   return lines.join('\n');
 }
 

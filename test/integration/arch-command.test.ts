@@ -88,6 +88,18 @@ describe('arch commands', () => {
     expect(invalid.stderr).toContain("unknown option '--change'");
   });
 
+  it('renders complete Contracts and canonical paths through the default CLI format', async () => {
+    const query = await runCLI(['arch', 'query', 'project.root', '--contract'], { cwd: root });
+    const impact = await runCLI(['arch', 'impact', 'payment.authorize'], { cwd: root });
+
+    expect(query.exitCode).toBe(0);
+    expect(query.stdout).toContain('    The project SHALL behave.');
+    expect(query.stdout).toContain('      - **WHEN** used\n      - **THEN** it works');
+    expect(impact.exitCode).toBe(0);
+    expect(impact.stdout).toContain('Canonical paths:');
+    expect(impact.stdout).toContain('payment.authorize => payment.audit: payment.authorize --invokes [outgoing]--> payment.audit');
+  });
+
   it('keeps first-run telemetry notices out of JSON stdout in a TTY', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 204 }));
 

@@ -6,6 +6,10 @@ import {
   formatArchitectureOutlineText,
   outlineArchitecture,
 } from '../../dist/commands/arch/outline.js';
+import {
+  formatArchitectureSnapshotMarkdown,
+  formatArchitectureSnapshotText,
+} from '../../dist/commands/arch/snapshot.js';
 
 const mode = process.argv[2];
 const depth = mode === 'depths' ? 20_000 : 1_000;
@@ -67,6 +71,22 @@ if (mode === 'depths') {
   };
   if (!formatArchitectureOutlineText(result).includes(identities.at(-1))) throw new Error('text output omitted deepest Element');
   if (!formatArchitectureOutlineMarkdown(result).includes(identities.at(-1))) throw new Error('Markdown output omitted deepest Element');
+} else if (mode === 'snapshot-formatters') {
+  const elements = identities.map((identity, index) => ({
+    identity,
+    kind: index === 0 ? 'project' : 'capability',
+    definition: `Definition of ${identity}.`,
+    parent: index === 0 ? null : identities[index - 1],
+    children: index === depth - 1 ? [] : [identities[index + 1]],
+  }));
+  const result = {
+    elements,
+    relations: [],
+    metamodel: { elementKinds: [], relationshipKinds: [] },
+    statistics: { elementCount: elements.length, relationshipCount: 0, kindCount: 0 },
+  };
+  if (!formatArchitectureSnapshotText(result).includes(identities.at(-1))) throw new Error('snapshot text output omitted deepest Element');
+  if (!formatArchitectureSnapshotMarkdown(result).includes(identities.at(-1))) throw new Error('snapshot Markdown output omitted deepest Element');
 } else {
   throw new Error(`Unknown mode: ${mode}`);
 }

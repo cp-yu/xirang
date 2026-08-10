@@ -175,3 +175,7 @@
 - [x] [code_fix] C10 Snack 仍逐 candidate query；生成源需改为按需选择 identities 后执行一次 batch `arch query`，并重新生成托管 surface。
 - [x] [artifact_fix] C13 `.xirang/references/xirang-apply-step-1-preparation.md` 与 `.xirang/references/xirang-self-read-protocol.md` 未列入 Task 4 Files 和验证范围；需补充归属或移除变更。
 - [x] [code_fix] C3 `arch outline` 的 hierarchy depth 计算和 text/Markdown rendering 使用按层递归，任意深度合法 hierarchy 可触发 call-stack overflow；改为 iterative traversal，并补 deepest-first 20,000 层与双 formatter 受限 stack 回归。
+- [x] [code_fix] C3 `arch snapshot` 的 text/Markdown rendering 仍使用按层递归，任意深度合法 hierarchy 可触发 call-stack overflow；改为 iterative traversal，并复用受限 stack deep-chain 回归。
+- [x] [code_fix] C6 `arch query --contract` 的 human-readable formatter 只输出 Requirement/Scenario name，遗漏 body；按原始行完整输出两级 body，并补 unit/CLI 回归。
+- [x] [code_fix] C9 `arch impact` 的 human-readable formatter 遗漏 canonical relation paths 与 traversal direction；输出稳定 path section，并补 unit/CLI 回归。
+- [x] [artifact_fix] C12 Explore Delta 将只读边界写成绝对禁止 artifact persistence，但既有 Explore Role 与 generated workflow 允许用户单独确认后的 CLI-managed Definition Framing；明确该唯一例外，仍禁止 Agent 直接写文件或修改项目、Semantic Model 与普通 Change artifacts。

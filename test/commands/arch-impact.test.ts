@@ -82,6 +82,10 @@ describe('architecture impact', () => {
       { source: 'cap.focus', kind: 'invokes', target: 'cap.alpha', traversal: 'outgoing' },
       { source: 'cap.alpha', kind: 'invokes', target: 'cap.target', traversal: 'outgoing' },
     ]);
+    const text = formatArchitectureImpactText(result);
+    expect(text).toContain('Canonical paths:');
+    expect(text).toContain('cap.focus => cap.target: cap.focus --invokes [outgoing]--> cap.alpha --invokes [outgoing]--> cap.target');
+    expect(text).toContain('cap.focus => cap.incoming: cap.focus --observes [incoming]--> cap.incoming');
     expect(result.relations).toEqual(expect.arrayContaining([
       { source: 'cap.beta', kind: 'invokes', target: 'cap.target' },
       { source: 'cap.target', kind: 'observes', target: 'cap.alpha' },

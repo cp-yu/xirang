@@ -1,15 +1,15 @@
 {
-  "timestamp": "2026-08-10T16:24:51.803Z",
+  "timestamp": "2026-08-10T17:14:31.600Z",
   "result": "PASS_WITH_WARNINGS",
   "issues": [
     {
       "severity": "WARNING",
-      "message": "The change passes directed verification, but the pre-existing Formal Semantic Model has five unrelated Contract validation failures because six Requirements use MAY without SHALL or MUST.",
+      "message": "Formal Semantic Model contract validation remains failing for five unrelated baseline role Elements because six Requirements use MAY without SHALL or MUST.",
       "requirement": "Semantic Model validation baseline",
       "task": null,
       "recommendation": "Repair the baseline role Contracts in a separate change; no correction to optimize-agent-semantic-context-loading is required.",
       "evidenceCitations": [
-        ".xirang/model/elements/agent.md:12-27",
+        ".xirang/model/elements/agent.md:12-13",
         ".xirang/model/elements/apply-role.md:12-13",
         ".xirang/model/elements/archive-role.md:19-20",
         ".xirang/model/elements/project-build-role.md:12-14",
@@ -17,7 +17,7 @@
       ]
     }
   ],
-  "tasksFileHash": "2b9d62a484aea4d62a1250ab0a871f679add17a5d2da798fd05c66d13b31b13b",
+  "tasksFileHash": "96942fa4324f8d5029ac39b94cb7c9dc75564d76dc691676dacf0c7d9249a6e0",
   "verificationContext": {
     "contractVersion": "1.0",
     "evidenceFiles": [
@@ -27,17 +27,22 @@
       ".pi/skills/xirang-explore/SKILL.md",
       ".pi/skills/xirang-propose/SKILL.md",
       ".pi/skills/xirang-snack/SKILL.md",
+      ".xirang/changes/optimize-agent-semantic-context-loading/.apply-isolation.json",
       ".xirang/changes/optimize-agent-semantic-context-loading/design.md",
       ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-impact.md",
       ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-outline.md",
       ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-query.md",
       ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-snapshot.md",
       ".xirang/changes/optimize-agent-semantic-context-loading/elements/explore-brainstorming.md",
-      ".xirang/changes/optimize-agent-semantic-context-loading/elements/project-tooling-configuration.md",
-      ".xirang/changes/optimize-agent-semantic-context-loading/elements/task-decomposition.md",
       ".xirang/changes/optimize-agent-semantic-context-loading/elements/workflow-templates.md",
       ".xirang/changes/optimize-agent-semantic-context-loading/proposal.md",
       ".xirang/changes/optimize-agent-semantic-context-loading/tasks.md",
+      ".xirang/references/xirang-apply-step-1-preparation.md",
+      ".xirang/references/xirang-self-read-protocol.md",
+      "README.md",
+      "docs/architecture-integration.md",
+      "docs/commands.md",
+      "docs/xirang-integration.md",
       "src/commands/arch/impact.ts",
       "src/commands/arch/index.ts",
       "src/commands/arch/outline.ts",
@@ -63,7 +68,7 @@
       "test/fixtures/arch-outline-deep-process.fixture.mjs",
       "test/integration/arch-command.test.ts"
     ],
-    "evidenceFingerprint": "ad26f70df4e869e905c00a907024613922a4a14837da67e40917c28817793cf8",
+    "evidenceFingerprint": "023e3cb8d3a9c314574af335e0d1e4fb51073840523eb869ffe06a559c8c8c9c",
     "evidenceFingerprintEntries": [
       {
         "path": ".pi/agents/xirang-optimizer.md",
@@ -90,6 +95,10 @@
         "hash": "066111a623470afe26aaf082313205ef1d98094ad33b7e5878e9295109b09a5e"
       },
       {
+        "path": ".xirang/changes/optimize-agent-semantic-context-loading/.apply-isolation.json",
+        "hash": "f335c26f62908af5ae8b82851f35ff754a90f46f8ee380759bb62c0012ceac7a"
+      },
+      {
         "path": ".xirang/changes/optimize-agent-semantic-context-loading/design.md",
         "hash": "c66e0b4f3236d91f02902750591dce3585bac415d2a7fdccfdcfd66bc06711fd"
       },
@@ -111,15 +120,7 @@
       },
       {
         "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/explore-brainstorming.md",
-        "hash": "72a7a787f7dfb282f86e7ae48aa0b327c5f062875662cbfd243be046208863ec"
-      },
-      {
-        "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/project-tooling-configuration.md",
-        "hash": "ab57f28b94e99b931cce15e22076b842e243b820c0fcdc3550eb87ce1c56020e"
-      },
-      {
-        "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/task-decomposition.md",
-        "hash": "420fa211af65f7b034ba260135e823dcf20925d2e812f0f37b9df770cebb9f09"
+        "hash": "9b3173e9c39d15a611ca59ed05665ffaaeb6c987fc452d76932a241952b21d78"
       },
       {
         "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/workflow-templates.md",
@@ -131,11 +132,35 @@
       },
       {
         "path": ".xirang/changes/optimize-agent-semantic-context-loading/tasks.md",
-        "hash": "2b9d62a484aea4d62a1250ab0a871f679add17a5d2da798fd05c66d13b31b13b"
+        "hash": "96942fa4324f8d5029ac39b94cb7c9dc75564d76dc691676dacf0c7d9249a6e0"
+      },
+      {
+        "path": ".xirang/references/xirang-apply-step-1-preparation.md",
+        "hash": "1856cd041fd38d7e864cb4991c7023337da220d070ef97536b32ab6870803bfc"
+      },
+      {
+        "path": ".xirang/references/xirang-self-read-protocol.md",
+        "hash": "676f17c36e0478f4dd3390934d6137484e022a5bda91020eee0a1cb7d2d72c77"
+      },
+      {
+        "path": "docs/architecture-integration.md",
+        "hash": "0df23e44e8b179421da31d395a38308c088b6f421d9fa5037944a9dfead340bf"
+      },
+      {
+        "path": "docs/commands.md",
+        "hash": "41e13d0d0c0bfbbe214c49a0b3ba51b40948adb8a0f608121a8610d7e9924e17"
+      },
+      {
+        "path": "docs/xirang-integration.md",
+        "hash": "a0b097efd7c7468d5c4f40b33869d3acf7b57c804649732898f74b4ce7525d3a"
+      },
+      {
+        "path": "README.md",
+        "hash": "761898b37e41a4584477518fa26ea2b166129ecb33509b77b4d4a4d67787d9d0"
       },
       {
         "path": "src/commands/arch/impact.ts",
-        "hash": "28101d6de7e69edcfa18635924b4320896e495a7e41eff7fbe2de8b58a25c61d"
+        "hash": "ee8e24da00ab92e03e9d9d9864577f6ecf952cca67dd432527b4b726b7ad56b7"
       },
       {
         "path": "src/commands/arch/index.ts",
@@ -147,11 +172,11 @@
       },
       {
         "path": "src/commands/arch/query.ts",
-        "hash": "e2604e4f8c33a54e76695beedd698e7af97ea3eab7b8c4134ca6633bb81739b3"
+        "hash": "56fb8569033cf33b9638f5764d0e943a7b1408ea9ece82ca951548515702fad8"
       },
       {
         "path": "src/commands/arch/snapshot.ts",
-        "hash": "6670c454bb26bd446ac723426a77f6c8d2065c0f0938d004237211fca61fc11c"
+        "hash": "0b57fbdfa8abe1abd0d74d3ee7e2ae10ba38c4fc4891515460caab63e6c75a5d"
       },
       {
         "path": "src/core/config-projection.ts",
@@ -195,7 +220,7 @@
       },
       {
         "path": "test/commands/arch-impact.test.ts",
-        "hash": "e14a09bf3ca8b9c4dce71c21caf6c0575e5b443a9a39b07bb8dddfb8966dc340"
+        "hash": "9732bb6036d79262229611ab0f37cd0efab9bd992d3847e885927fd4a4048cd8"
       },
       {
         "path": "test/commands/arch-outline.test.ts",
@@ -203,11 +228,11 @@
       },
       {
         "path": "test/commands/arch-query.test.ts",
-        "hash": "4af2c7ab32b55b946e1c414d48a90d6aafb85e974ee555cc3766092aed95b7fa"
+        "hash": "49ea2d898b3b9338dcb6f87028281b643bd2e294956a3d9c7afb6854f875bfff"
       },
       {
         "path": "test/commands/arch-snapshot.test.ts",
-        "hash": "36c3b682e0ef75b4587e058fcfcbb5765197debe51ddb4afb37ea75e3afdb0b3"
+        "hash": "0211d0415f9095925878ff8fd480aae976893e94c9396e504321fc40ee8c538c"
       },
       {
         "path": "test/core/project-config.test.ts",
@@ -219,34 +244,34 @@
       },
       {
         "path": "test/fixtures/arch-outline-deep-process.fixture.mjs",
-        "hash": "442e2a5bd77f9d74164d6a1fe65c7ee998fa064c3cbc009f0e260511bda9fdf0"
+        "hash": "62bfb7fe579eef29014a5e2742f6b485c7390b7cfa6e4f6ec868c49cc221f422"
       },
       {
         "path": "test/integration/arch-command.test.ts",
-        "hash": "92b170d8bed99cb7fd7c4f11c9169391c44100a462d20adf33891999131fc5c4"
+        "hash": "63d8c93b0245146c260e28e75f9a9f0316778c13e78c45aab33b0aa7b8b53801"
       }
     ],
     "skippedEvidenceFiles": [
       "test/core/templates"
     ],
-    "gitHeadCommit": "bb5ccc6ca4e1d67d2072844582c4a508c1f43fe5",
-    "gitDiffSummary": "Validated immutable base da4cfacb96cba7e9791d0e36ef90ce45df8fc545. The base-to-HEAD scope contains 45 files; git status adds four uncommitted entries, three already in that scope plus the attributed deep-outline fixture. The normalized union contains 46 attributed files, and the staged index is empty."
+    "gitHeadCommit": "df99e5e90ba0816a37cdb258ec666f3f98e7c4fa",
+    "gitDiffSummary": "Build passed. Directed verification passed 24 test files and 325 tests, including deep 20,000-level iterative outline and formatter checks. Change and Expected Semantic Model validation passed. Outline and identity-only impact payloads were generated with stable repeated hashes; no staged files are present. Repository entrypoint node bin/xirang.js was used because the globally installed xirang executable is stale and lacks arch outline."
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
     "attempts": [],
     "baseline": {
-      "timestamp": "2026-08-10T16:24:51.803Z",
+      "timestamp": "2026-08-10T17:14:31.600Z",
       "result": "PASS_WITH_WARNINGS",
       "issues": [
         {
           "severity": "WARNING",
-          "message": "The change passes directed verification, but the pre-existing Formal Semantic Model has five unrelated Contract validation failures because six Requirements use MAY without SHALL or MUST.",
+          "message": "Formal Semantic Model contract validation remains failing for five unrelated baseline role Elements because six Requirements use MAY without SHALL or MUST.",
           "requirement": "Semantic Model validation baseline",
           "task": null,
           "recommendation": "Repair the baseline role Contracts in a separate change; no correction to optimize-agent-semantic-context-loading is required.",
           "evidenceCitations": [
-            ".xirang/model/elements/agent.md:12-27",
+            ".xirang/model/elements/agent.md:12-13",
             ".xirang/model/elements/apply-role.md:12-13",
             ".xirang/model/elements/archive-role.md:19-20",
             ".xirang/model/elements/project-build-role.md:12-14",
@@ -254,7 +279,7 @@
           ]
         }
       ],
-      "tasksFileHash": "2b9d62a484aea4d62a1250ab0a871f679add17a5d2da798fd05c66d13b31b13b",
+      "tasksFileHash": "96942fa4324f8d5029ac39b94cb7c9dc75564d76dc691676dacf0c7d9249a6e0",
       "verificationContext": {
         "contractVersion": "1.0",
         "evidenceFiles": [
@@ -264,17 +289,22 @@
           ".pi/skills/xirang-explore/SKILL.md",
           ".pi/skills/xirang-propose/SKILL.md",
           ".pi/skills/xirang-snack/SKILL.md",
+          ".xirang/changes/optimize-agent-semantic-context-loading/.apply-isolation.json",
           ".xirang/changes/optimize-agent-semantic-context-loading/design.md",
           ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-impact.md",
           ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-outline.md",
           ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-query.md",
           ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-snapshot.md",
           ".xirang/changes/optimize-agent-semantic-context-loading/elements/explore-brainstorming.md",
-          ".xirang/changes/optimize-agent-semantic-context-loading/elements/project-tooling-configuration.md",
-          ".xirang/changes/optimize-agent-semantic-context-loading/elements/task-decomposition.md",
           ".xirang/changes/optimize-agent-semantic-context-loading/elements/workflow-templates.md",
           ".xirang/changes/optimize-agent-semantic-context-loading/proposal.md",
           ".xirang/changes/optimize-agent-semantic-context-loading/tasks.md",
+          ".xirang/references/xirang-apply-step-1-preparation.md",
+          ".xirang/references/xirang-self-read-protocol.md",
+          "README.md",
+          "docs/architecture-integration.md",
+          "docs/commands.md",
+          "docs/xirang-integration.md",
           "src/commands/arch/impact.ts",
           "src/commands/arch/index.ts",
           "src/commands/arch/outline.ts",
@@ -300,7 +330,7 @@
           "test/fixtures/arch-outline-deep-process.fixture.mjs",
           "test/integration/arch-command.test.ts"
         ],
-        "evidenceFingerprint": "ad26f70df4e869e905c00a907024613922a4a14837da67e40917c28817793cf8",
+        "evidenceFingerprint": "023e3cb8d3a9c314574af335e0d1e4fb51073840523eb869ffe06a559c8c8c9c",
         "evidenceFingerprintEntries": [
           {
             "path": ".pi/agents/xirang-optimizer.md",
@@ -327,6 +357,10 @@
             "hash": "066111a623470afe26aaf082313205ef1d98094ad33b7e5878e9295109b09a5e"
           },
           {
+            "path": ".xirang/changes/optimize-agent-semantic-context-loading/.apply-isolation.json",
+            "hash": "f335c26f62908af5ae8b82851f35ff754a90f46f8ee380759bb62c0012ceac7a"
+          },
+          {
             "path": ".xirang/changes/optimize-agent-semantic-context-loading/design.md",
             "hash": "c66e0b4f3236d91f02902750591dce3585bac415d2a7fdccfdcfd66bc06711fd"
           },
@@ -348,15 +382,7 @@
           },
           {
             "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/explore-brainstorming.md",
-            "hash": "72a7a787f7dfb282f86e7ae48aa0b327c5f062875662cbfd243be046208863ec"
-          },
-          {
-            "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/project-tooling-configuration.md",
-            "hash": "ab57f28b94e99b931cce15e22076b842e243b820c0fcdc3550eb87ce1c56020e"
-          },
-          {
-            "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/task-decomposition.md",
-            "hash": "420fa211af65f7b034ba260135e823dcf20925d2e812f0f37b9df770cebb9f09"
+            "hash": "9b3173e9c39d15a611ca59ed05665ffaaeb6c987fc452d76932a241952b21d78"
           },
           {
             "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/workflow-templates.md",
@@ -368,11 +394,35 @@
           },
           {
             "path": ".xirang/changes/optimize-agent-semantic-context-loading/tasks.md",
-            "hash": "2b9d62a484aea4d62a1250ab0a871f679add17a5d2da798fd05c66d13b31b13b"
+            "hash": "96942fa4324f8d5029ac39b94cb7c9dc75564d76dc691676dacf0c7d9249a6e0"
+          },
+          {
+            "path": ".xirang/references/xirang-apply-step-1-preparation.md",
+            "hash": "1856cd041fd38d7e864cb4991c7023337da220d070ef97536b32ab6870803bfc"
+          },
+          {
+            "path": ".xirang/references/xirang-self-read-protocol.md",
+            "hash": "676f17c36e0478f4dd3390934d6137484e022a5bda91020eee0a1cb7d2d72c77"
+          },
+          {
+            "path": "docs/architecture-integration.md",
+            "hash": "0df23e44e8b179421da31d395a38308c088b6f421d9fa5037944a9dfead340bf"
+          },
+          {
+            "path": "docs/commands.md",
+            "hash": "41e13d0d0c0bfbbe214c49a0b3ba51b40948adb8a0f608121a8610d7e9924e17"
+          },
+          {
+            "path": "docs/xirang-integration.md",
+            "hash": "a0b097efd7c7468d5c4f40b33869d3acf7b57c804649732898f74b4ce7525d3a"
+          },
+          {
+            "path": "README.md",
+            "hash": "761898b37e41a4584477518fa26ea2b166129ecb33509b77b4d4a4d67787d9d0"
           },
           {
             "path": "src/commands/arch/impact.ts",
-            "hash": "28101d6de7e69edcfa18635924b4320896e495a7e41eff7fbe2de8b58a25c61d"
+            "hash": "ee8e24da00ab92e03e9d9d9864577f6ecf952cca67dd432527b4b726b7ad56b7"
           },
           {
             "path": "src/commands/arch/index.ts",
@@ -384,11 +434,11 @@
           },
           {
             "path": "src/commands/arch/query.ts",
-            "hash": "e2604e4f8c33a54e76695beedd698e7af97ea3eab7b8c4134ca6633bb81739b3"
+            "hash": "56fb8569033cf33b9638f5764d0e943a7b1408ea9ece82ca951548515702fad8"
           },
           {
             "path": "src/commands/arch/snapshot.ts",
-            "hash": "6670c454bb26bd446ac723426a77f6c8d2065c0f0938d004237211fca61fc11c"
+            "hash": "0b57fbdfa8abe1abd0d74d3ee7e2ae10ba38c4fc4891515460caab63e6c75a5d"
           },
           {
             "path": "src/core/config-projection.ts",
@@ -432,7 +482,7 @@
           },
           {
             "path": "test/commands/arch-impact.test.ts",
-            "hash": "e14a09bf3ca8b9c4dce71c21caf6c0575e5b443a9a39b07bb8dddfb8966dc340"
+            "hash": "9732bb6036d79262229611ab0f37cd0efab9bd992d3847e885927fd4a4048cd8"
           },
           {
             "path": "test/commands/arch-outline.test.ts",
@@ -440,11 +490,11 @@
           },
           {
             "path": "test/commands/arch-query.test.ts",
-            "hash": "4af2c7ab32b55b946e1c414d48a90d6aafb85e974ee555cc3766092aed95b7fa"
+            "hash": "49ea2d898b3b9338dcb6f87028281b643bd2e294956a3d9c7afb6854f875bfff"
           },
           {
             "path": "test/commands/arch-snapshot.test.ts",
-            "hash": "36c3b682e0ef75b4587e058fcfcbb5765197debe51ddb4afb37ea75e3afdb0b3"
+            "hash": "0211d0415f9095925878ff8fd480aae976893e94c9396e504321fc40ee8c538c"
           },
           {
             "path": "test/core/project-config.test.ts",
@@ -456,18 +506,18 @@
           },
           {
             "path": "test/fixtures/arch-outline-deep-process.fixture.mjs",
-            "hash": "442e2a5bd77f9d74164d6a1fe65c7ee998fa064c3cbc009f0e260511bda9fdf0"
+            "hash": "62bfb7fe579eef29014a5e2742f6b485c7390b7cfa6e4f6ec868c49cc221f422"
           },
           {
             "path": "test/integration/arch-command.test.ts",
-            "hash": "92b170d8bed99cb7fd7c4f11c9169391c44100a462d20adf33891999131fc5c4"
+            "hash": "63d8c93b0245146c260e28e75f9a9f0316778c13e78c45aab33b0aa7b8b53801"
           }
         ],
         "skippedEvidenceFiles": [
           "test/core/templates"
         ],
-        "gitHeadCommit": "bb5ccc6ca4e1d67d2072844582c4a508c1f43fe5",
-        "gitDiffSummary": "Validated immutable base da4cfacb96cba7e9791d0e36ef90ce45df8fc545. The base-to-HEAD scope contains 45 files; git status adds four uncommitted entries, three already in that scope plus the attributed deep-outline fixture. The normalized union contains 46 attributed files, and the staged index is empty."
+        "gitHeadCommit": "df99e5e90ba0816a37cdb258ec666f3f98e7c4fa",
+        "gitDiffSummary": "Build passed. Directed verification passed 24 test files and 325 tests, including deep 20,000-level iterative outline and formatter checks. Change and Expected Semantic Model validation passed. Outline and identity-only impact payloads were generated with stable repeated hashes; no staged files are present. Repository entrypoint node bin/xirang.js was used because the globally installed xirang executable is stale and lacks arch outline."
       }
     }
   }

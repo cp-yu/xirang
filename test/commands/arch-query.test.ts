@@ -85,6 +85,7 @@ describe('architecture query', () => {
 
   it('attaches complete Contracts only to explicitly requested identities', async () => {
     const result = await queryArchitecture(root, ['cap.long'], { contract: true });
+    const text = formatArchitectureQueryText(result);
 
     expect(Object.keys(result.elements)).toEqual(['cap.long']);
     expect(result.elements['cap.long'].requirements).toEqual([{
@@ -95,6 +96,10 @@ describe('architecture query', () => {
         body: '- **WHEN** invoked\n- **THEN** behavior is preserved',
       }],
     }]);
+    expect(text).toContain('  Requirement: Stable behavior');
+    expect(text).toContain('    The system SHALL behave.');
+    expect(text).toContain('    Scenario: Existing behavior');
+    expect(text).toContain('      - **WHEN** invoked\n      - **THEN** behavior is preserved');
     expect(JSON.stringify(result)).not.toContain('cap.related');
   });
 

@@ -258,5 +258,14 @@ export function formatArchitectureImpactText(result: ArchitectureImpactResult): 
   for (const relation of result.relations) {
     lines.push(`${relation.source} --${relation.kind}--> ${relation.target}`);
   }
+  if (result.relationPaths.length > 0) lines.push('Canonical paths:');
+  for (const relationPath of result.relationPaths) {
+    let path = relationPath.focusElementId;
+    for (const step of relationPath.steps) {
+      const adjacent = step.traversal === 'outgoing' ? step.target : step.source;
+      path += ` --${step.kind} [${step.traversal}]--> ${adjacent}`;
+    }
+    lines.push(`${relationPath.focusElementId} => ${relationPath.relatedElementId}: ${path}`);
+  }
   return lines.join('\n');
 }
