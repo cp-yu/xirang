@@ -1,0 +1,184 @@
+{
+  "timestamp": "2026-08-10T06:45:11.549Z",
+  "result": "PASS",
+  "issues": [
+    {
+      "severity": "SUGGESTION",
+      "requirement": "呈现 Change 目标与差异",
+      "task": "Task 2",
+      "message": "REMOVED badge opacity assertion checks only the badge element's computed opacity (always 1), not effective rendered opacity; correctness is established by code analysis instead of the test",
+      "recommendation": "Optionally strengthen: assert the badge is not a descendant of the opacity-dimmed .likec4-element-node/compound container",
+      "evidence": [
+        "test/e2e/semantic-browser-model-view.spec.ts",
+        "likec4/packages/diagram/src/base-primitives/element/ElementNodeContainer.tsx"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "requirement": "呈现 Change 目标与差异",
+      "task": "Task 1",
+      "message": "outline-offset 8px is realized via spacing token (outlineOffset: '2' -> var(--spacing-2) = 8px) but is not directly asserted in the e2e test",
+      "recommendation": "Optionally add an outline-offset assertion (8px) to the four-state e2e test",
+      "evidence": [
+        "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+        "test/e2e/semantic-browser-model-view.spec.ts"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "requirement": "呈现 Change 目标与差异",
+      "task": "Task 2",
+      "message": "DeploymentNode and CompoundDeploymentNode badge mounting is code-verified but not covered by e2e (fixture exercises element/compound-element nodes only)",
+      "recommendation": "Optionally extend the fixture or add a unit assertion covering deployment/compound-deployment badge rendering",
+      "evidence": [
+        "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx"
+      ]
+    }
+  ],
+  "tasksFileHash": "a3d1f242812659a22af8ba65d96b047391c4fb6bab5c34ceb6c2739686c1be9e",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/diff-node-presentation-emphasis/elements/semantic-browser.md",
+      ".xirang/model/elements/semantic-browser.md",
+      "likec4/packages/diagram/src/base-primitives/compound/CompoundNodeContainer.tsx",
+      "likec4/packages/diagram/src/base-primitives/element/ElementNodeContainer.tsx",
+      "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+      "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts",
+      "likec4/packages/diagram/src/xirang/architectureView.ts",
+      "test/e2e/semantic-browser-model-view.spec.ts"
+    ],
+    "evidenceFingerprint": "f7553882e0f9b4bf6d4e23e43d791ba9c84ea5677d8bfc1b8b275af78ccc2bfc",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/diff-node-presentation-emphasis/elements/semantic-browser.md",
+        "hash": "2338d9e171deb633be236209e24beae364e00bb92a913fc2a3de652156a82fa6"
+      },
+      {
+        "path": ".xirang/model/elements/semantic-browser.md",
+        "hash": "86085b06d1d5a8aed7a729bc2c76d554207c6babfd73f56f9bfbd690275759b8"
+      },
+      {
+        "path": "likec4/packages/diagram/src/base-primitives/compound/CompoundNodeContainer.tsx",
+        "hash": "3c868b934b02150ad4067a85c25961872482e981c2c6e61dad4024e191847393"
+      },
+      {
+        "path": "likec4/packages/diagram/src/base-primitives/element/ElementNodeContainer.tsx",
+        "hash": "3ab5c797df9333abac09dc43d5c54bcc223c72ed3e2dab15ab87b31df7d8b81e"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+        "hash": "eef20f28fcc3458869bad2767691a8310a627ad6e3928b76c770d91cbe2e9ca3"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts",
+        "hash": "d88b98a11f795ec85b80e7bbd72861eb0acac9a0131b4c3c36c205a00105f356"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+        "hash": "7cc4fc5d2539660f6070f19f82d0bc8417add142ba0194bb5004ba1ecbe3ebd1"
+      },
+      {
+        "path": "test/e2e/semantic-browser-model-view.spec.ts",
+        "hash": "c3dcdf6d59bc31075291123e5926e17f3b3d5fc61c6208d1f30012acba979b74"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "c802cbc12bd362926f2753dfc70cae2467b8ad32",
+    "gitDiffSummary": "baseCommit c802cbc12 == HEAD; implementation in working tree. git diff HEAD --name-only = {nodes.tsx, semantic-browser-model-view.spec.ts}; both declared in tasks.md Files. git status = 2 modified files + untracked change dir. Attribution covers 100% scope."
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-08-10T06:45:11.549Z",
+      "result": "PASS",
+      "issues": [
+        {
+          "severity": "SUGGESTION",
+          "requirement": "呈现 Change 目标与差异",
+          "task": "Task 2",
+          "message": "REMOVED badge opacity assertion checks only the badge element's computed opacity (always 1), not effective rendered opacity; correctness is established by code analysis instead of the test",
+          "recommendation": "Optionally strengthen: assert the badge is not a descendant of the opacity-dimmed .likec4-element-node/compound container",
+          "evidence": [
+            "test/e2e/semantic-browser-model-view.spec.ts",
+            "likec4/packages/diagram/src/base-primitives/element/ElementNodeContainer.tsx"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "requirement": "呈现 Change 目标与差异",
+          "task": "Task 1",
+          "message": "outline-offset 8px is realized via spacing token (outlineOffset: '2' -> var(--spacing-2) = 8px) but is not directly asserted in the e2e test",
+          "recommendation": "Optionally add an outline-offset assertion (8px) to the four-state e2e test",
+          "evidence": [
+            "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+            "test/e2e/semantic-browser-model-view.spec.ts"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "requirement": "呈现 Change 目标与差异",
+          "task": "Task 2",
+          "message": "DeploymentNode and CompoundDeploymentNode badge mounting is code-verified but not covered by e2e (fixture exercises element/compound-element nodes only)",
+          "recommendation": "Optionally extend the fixture or add a unit assertion covering deployment/compound-deployment badge rendering",
+          "evidence": [
+            "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx"
+          ]
+        }
+      ],
+      "tasksFileHash": "a3d1f242812659a22af8ba65d96b047391c4fb6bab5c34ceb6c2739686c1be9e",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/diff-node-presentation-emphasis/elements/semantic-browser.md",
+          ".xirang/model/elements/semantic-browser.md",
+          "likec4/packages/diagram/src/base-primitives/compound/CompoundNodeContainer.tsx",
+          "likec4/packages/diagram/src/base-primitives/element/ElementNodeContainer.tsx",
+          "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+          "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts",
+          "likec4/packages/diagram/src/xirang/architectureView.ts",
+          "test/e2e/semantic-browser-model-view.spec.ts"
+        ],
+        "evidenceFingerprint": "f7553882e0f9b4bf6d4e23e43d791ba9c84ea5677d8bfc1b8b275af78ccc2bfc",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/diff-node-presentation-emphasis/elements/semantic-browser.md",
+            "hash": "2338d9e171deb633be236209e24beae364e00bb92a913fc2a3de652156a82fa6"
+          },
+          {
+            "path": ".xirang/model/elements/semantic-browser.md",
+            "hash": "86085b06d1d5a8aed7a729bc2c76d554207c6babfd73f56f9bfbd690275759b8"
+          },
+          {
+            "path": "likec4/packages/diagram/src/base-primitives/compound/CompoundNodeContainer.tsx",
+            "hash": "3c868b934b02150ad4067a85c25961872482e981c2c6e61dad4024e191847393"
+          },
+          {
+            "path": "likec4/packages/diagram/src/base-primitives/element/ElementNodeContainer.tsx",
+            "hash": "3ab5c797df9333abac09dc43d5c54bcc223c72ed3e2dab15ab87b31df7d8b81e"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+            "hash": "eef20f28fcc3458869bad2767691a8310a627ad6e3928b76c770d91cbe2e9ca3"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts",
+            "hash": "d88b98a11f795ec85b80e7bbd72861eb0acac9a0131b4c3c36c205a00105f356"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+            "hash": "7cc4fc5d2539660f6070f19f82d0bc8417add142ba0194bb5004ba1ecbe3ebd1"
+          },
+          {
+            "path": "test/e2e/semantic-browser-model-view.spec.ts",
+            "hash": "c3dcdf6d59bc31075291123e5926e17f3b3d5fc61c6208d1f30012acba979b74"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "c802cbc12bd362926f2753dfc70cae2467b8ad32",
+        "gitDiffSummary": "baseCommit c802cbc12 == HEAD; implementation in working tree. git diff HEAD --name-only = {nodes.tsx, semantic-browser-model-view.spec.ts}; both declared in tasks.md Files. git status = 2 modified files + untracked change dir. Attribution covers 100% scope."
+      }
+    }
+  }
+}

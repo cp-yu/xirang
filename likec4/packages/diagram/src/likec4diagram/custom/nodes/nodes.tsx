@@ -99,20 +99,23 @@ export function ElementNode(props: Types.NodeProps<'element'>) {
   const { enableElementTags, enableElementDetails, enableReadOnly, enableCompareWithLatest, enableNotes } =
     useEnabledFeatures()
   return (
-    <ElementNodeContainer
-      className={diffOutlineByOperation(props.data.xirang?.operation)}
-      nodeProps={props}
-    >
-      {enableCompareWithLatest && <NodeDrifts nodeProps={props} />}
-      <ElementShape {...props} />
-      <ElementData {...props} aria-hidden />
-      {enableElementTags && <ElementTags {...props} />}
-      <ElementActions {...props} />
-      {enableElementDetails && <ElementDetailsButtonWithHandler {...props} />}
-      {!enableReadOnly && <ElementToolbar {...props} />}
-      {enableNotes && <NodeNotes {...props} />}
-      <DefaultHandles direction={props.data.viewLayoutDir} />
-    </ElementNodeContainer>
+    <>
+      <NodeDiffBadge operation={props.data.xirang?.operation} />
+      <ElementNodeContainer
+        className={diffOutlineByOperation(props.data.xirang?.operation)}
+        nodeProps={props}
+      >
+        {enableCompareWithLatest && <NodeDrifts nodeProps={props} />}
+        <ElementShape {...props} />
+        <ElementData {...props} aria-hidden />
+        {enableElementTags && <ElementTags {...props} />}
+        <ElementActions {...props} />
+        {enableElementDetails && <ElementDetailsButtonWithHandler {...props} />}
+        {!enableReadOnly && <ElementToolbar {...props} />}
+        {enableNotes && <NodeNotes {...props} />}
+        <DefaultHandles direction={props.data.viewLayoutDir} />
+      </ElementNodeContainer>
+    </>
   )
 }
 
@@ -120,20 +123,23 @@ export function DeploymentNode(props: Types.NodeProps<'deployment'>) {
   const { enableElementTags, enableElementDetails, enableReadOnly, enableCompareWithLatest, enableNotes } =
     useEnabledFeatures()
   return (
-    <ElementNodeContainer
-      className={diffOutlineByOperation(props.data.xirang?.operation)}
-      nodeProps={props}
-    >
-      {enableCompareWithLatest && <NodeDrifts nodeProps={props} />}
-      <ElementShape {...props} />
-      <ElementData {...props} aria-hidden />
-      {enableElementTags && <ElementTags {...props} />}
-      <DeploymentElementActions {...props} />
-      {enableElementDetails && <ElementDetailsButtonWithHandler {...props} />}
-      {!enableReadOnly && <DeploymentElementToolbar {...props} />}
-      {enableNotes && <NodeNotes {...props} />}
-      <DefaultHandles direction={props.data.viewLayoutDir} />
-    </ElementNodeContainer>
+    <>
+      <NodeDiffBadge operation={props.data.xirang?.operation} />
+      <ElementNodeContainer
+        className={diffOutlineByOperation(props.data.xirang?.operation)}
+        nodeProps={props}
+      >
+        {enableCompareWithLatest && <NodeDrifts nodeProps={props} />}
+        <ElementShape {...props} />
+        <ElementData {...props} aria-hidden />
+        {enableElementTags && <ElementTags {...props} />}
+        <DeploymentElementActions {...props} />
+        {enableElementDetails && <ElementDetailsButtonWithHandler {...props} />}
+        {!enableReadOnly && <DeploymentElementToolbar {...props} />}
+        {enableNotes && <NodeNotes {...props} />}
+        <DefaultHandles direction={props.data.viewLayoutDir} />
+      </ElementNodeContainer>
+    </>
   )
 }
 
@@ -146,27 +152,66 @@ const compoundHasDrifts = css({
 
 const diffOutline = {
   ADDED: css({
-    outlineColor: 'likec4.compare.manual.outline',
-    outlineWidth: '2px',
+    outlineColor: '[#ff9f0a]',
+    outlineWidth: '3px',
     outlineStyle: 'dotted',
-    outlineOffset: '1.5',
+    outlineOffset: '2',
   }),
   MODIFIED: css({
-    outlineColor: 'likec4.compare.manual.outline',
-    outlineWidth: '4px',
+    outlineColor: '[#ff9f0a]',
+    outlineWidth: '5px',
     outlineStyle: 'solid',
-    outlineOffset: '1.5',
+    outlineOffset: '2',
   }),
   REMOVED: css({
-    outlineColor: 'likec4.compare.manual.outline',
-    outlineWidth: '2px',
+    outlineColor: '[#ff9f0a]',
+    outlineWidth: '3px',
     outlineStyle: 'dashed',
-    outlineOffset: '1.5',
+    outlineOffset: '2',
   }),
 } satisfies Record<'ADDED' | 'MODIFIED' | 'REMOVED', string>
 
 const diffOutlineByOperation = (operation: 'ADDED' | 'MODIFIED' | 'REMOVED' | undefined) =>
   operation ? diffOutline[operation] : undefined
+
+const nodeDiffBadge = css({
+  position: 'absolute',
+  top: '[-7px]',
+  left: '[-7px]',
+  minWidth: '[18px]',
+  height: '[18px]',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: '[4px]',
+  backgroundColor: '[#ff9f0a]',
+  color: '[#ffffff]',
+  fontSize: '[13px]',
+  fontWeight: '[700]',
+  lineHeight: '[1]',
+  pointerEvents: 'none',
+  zIndex: '[20]',
+  boxShadow: '[0 1px 3px rgba(0, 0, 0, 0.35)]',
+})
+
+const diffBadgeGlyph: Record<'ADDED' | 'MODIFIED' | 'REMOVED', string> = {
+  ADDED: '+',
+  MODIFIED: '~',
+  REMOVED: '−',
+}
+
+/**
+ * Renders a corner badge for changed nodes. It sits outside the node container so it stays
+ * fully opaque even when the container itself is dimmed (e.g. a 45% REMOVED ghost).
+ */
+function NodeDiffBadge({ operation }: { operation: 'ADDED' | 'MODIFIED' | 'REMOVED' | undefined }) {
+  if (!operation) return null
+  return (
+    <span className={nodeDiffBadge} data-xirang-node-diff aria-label={`Element ${operation}`}>
+      {diffBadgeGlyph[operation]}
+    </span>
+  )
+}
 
 const hasDrifts = (props: Types.NodeProps) => {
   return props.data.drifts && props.data.drifts.length > 0
@@ -176,17 +221,20 @@ export function CompoundElementNode(props: Types.NodeProps<'compound-element'>) 
   const { enableElementDetails, enableReadOnly, enableCompareWithLatest } = useEnabledFeatures()
   const showDrifts = enableCompareWithLatest && hasDrifts(props)
   return (
-    <CompoundNodeContainer
-      className={cx(showDrifts && compoundHasDrifts, diffOutlineByOperation(props.data.xirang?.operation))}
-      nodeProps={props}
-    >
-      {enableCompareWithLatest && <NodeDrifts nodeProps={props} />}
-      <CompoundTitle {...props} aria-hidden />
-      <CompoundActions {...props} />
-      {enableElementDetails && <CompoundDetailsButtonWithHandler {...props} />}
-      {!enableReadOnly && <CompoundElementToolbar {...props} />}
-      <DefaultHandles direction={props.data.viewLayoutDir} />
-    </CompoundNodeContainer>
+    <>
+      <NodeDiffBadge operation={props.data.xirang?.operation} />
+      <CompoundNodeContainer
+        className={cx(showDrifts && compoundHasDrifts, diffOutlineByOperation(props.data.xirang?.operation))}
+        nodeProps={props}
+      >
+        {enableCompareWithLatest && <NodeDrifts nodeProps={props} />}
+        <CompoundTitle {...props} aria-hidden />
+        <CompoundActions {...props} />
+        {enableElementDetails && <CompoundDetailsButtonWithHandler {...props} />}
+        {!enableReadOnly && <CompoundElementToolbar {...props} />}
+        <DefaultHandles direction={props.data.viewLayoutDir} />
+      </CompoundNodeContainer>
+    </>
   )
 }
 
@@ -194,17 +242,20 @@ export function CompoundDeploymentNode(props: Types.NodeProps<'compound-deployme
   const { enableElementDetails, enableReadOnly, enableCompareWithLatest } = useEnabledFeatures()
   const showDrifts = enableCompareWithLatest && hasDrifts(props)
   return (
-    <CompoundNodeContainer
-      className={cx(showDrifts && compoundHasDrifts, diffOutlineByOperation(props.data.xirang?.operation))}
-      nodeProps={props}
-    >
-      {enableCompareWithLatest && <NodeDrifts nodeProps={props} />}
-      <CompoundTitle {...props} aria-hidden />
-      <CompoundActions {...props} />
-      {enableElementDetails && <CompoundDetailsButtonWithHandler {...props} />}
-      {!enableReadOnly && <CompoundDeploymentToolbar {...props} />}
-      <DefaultHandles direction={props.data.viewLayoutDir} />
-    </CompoundNodeContainer>
+    <>
+      <NodeDiffBadge operation={props.data.xirang?.operation} />
+      <CompoundNodeContainer
+        className={cx(showDrifts && compoundHasDrifts, diffOutlineByOperation(props.data.xirang?.operation))}
+        nodeProps={props}
+      >
+        {enableCompareWithLatest && <NodeDrifts nodeProps={props} />}
+        <CompoundTitle {...props} aria-hidden />
+        <CompoundActions {...props} />
+        {enableElementDetails && <CompoundDetailsButtonWithHandler {...props} />}
+        {!enableReadOnly && <CompoundDeploymentToolbar {...props} />}
+        <DefaultHandles direction={props.data.viewLayoutDir} />
+      </CompoundNodeContainer>
+    </>
   )
 }
 
