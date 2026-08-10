@@ -81,7 +81,7 @@
       "test/fixtures/arch-impact-locale-process.fixture.ts",
       "test/integration/arch-command.test.ts"
     ],
-    "evidenceFingerprint": "936a1d3d874e04f594fe53b89916370fe51996da34e308457da62bbe0e88a27e",
+    "evidenceFingerprint": "23c7e0fc30868f10d43d7dae7bac93071ceb8c1dfbe88059e46181f9c6396db5",
     "evidenceFingerprintEntries": [
       {
         "path": ".pi/agents/xirang-optimizer.md",
@@ -153,7 +153,7 @@
       },
       {
         "path": ".xirang/changes/optimize-agent-semantic-context-loading/tasks.md",
-        "hash": "0b1124c69ebc8bbe4bc6d5f65c71f7550875384a39c0f869f5d18102de433468"
+        "hash": "7fd0cd3283ba5a2cbd059ba5065fe437b695b8ec2e8934d5aa34bc1435d04e9f"
       },
       {
         "path": ".xirang/model/elements/agent.md",
@@ -201,7 +201,7 @@
       },
       {
         "path": "src/commands/arch/impact.ts",
-        "hash": "02f74bc25700597b9868442d293db2fd0f31f7a3919617e2cb736ef58467965a"
+        "hash": "28101d6de7e69edcfa18635924b4320896e495a7e41eff7fbe2de8b58a25c61d"
       },
       {
         "path": "src/commands/arch/index.ts",
@@ -261,7 +261,7 @@
       },
       {
         "path": "test/commands/arch-impact.test.ts",
-        "hash": "e655fff81a8efccf4f5c48e2af153eb9c9d9d137dfb07a111b0460171910037b"
+        "hash": "e14a09bf3ca8b9c4dce71c21caf6c0575e5b443a9a39b07bb8dddfb8966dc340"
       },
       {
         "path": "test/commands/arch-outline.test.ts",
@@ -319,9 +319,9 @@
     "skippedEvidenceFiles": [
       ".xirang/changes/optimize-agent-semantic-context-loading/.verify-result.json"
     ],
-    "gitHeadCommit": "7766e13dffba741d3556d8a3ddcd36d54e85649f",
+    "gitHeadCommit": "591f3bf1655ab063ba6b2d3fed75ae9c1a8abb07",
     "gitDiffSummary": "Validated immutable base da4cfacb96cba7e9791d0e36ef90ce45df8fc545. HEAD equals the baseline, so git diff <baseCommit>...HEAD --name-only was empty; git status --short supplied 44 attributed modified/untracked paths and git diff --cached was empty. Read all Change and Delta units, implementation, tests, generated Pi surfaces, references, and public documentation. pnpm build passed. The full directed suite passed 23 files and 312 tests; the C7 query/integration suite passed 22 tests and the required README/docs/src/.pi/.xirang/references absence search returned no obsolete query navigation calls. Combined change validation and Expected Semantic Model validation passed without warnings. Current-model outline contained 154 Elements, 50 Relationships, 11 Kinds, one root, and 49546 bytes; impact was 19013 bytes with no definition, contract, requirement, or scenario paths, and repeated output hashes matched. Review findings: no blockers. Residual risk: five unrelated pre-existing Formal Contract validation failures disclosed as a warning.",
-    "timestamp": "2026-08-10T14:45:41.825Z"
+    "timestamp": "2026-08-10T15:58:08.288Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
@@ -335,6 +335,17 @@
         "timestamp": "2026-08-10T14:45:41.804Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-10T15:13:05.522Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-10T15:58:08.267Z",
+        "type": "verification",
+        "result": "PASS_WITH_WARNINGS",
+        "summary": "Fresh reviewer passed all 25 requirements and 77 scenarios. The frontier-sort removal preserves canonical shortest-path selection across reversed input permutations, all directed suites and build pass, repeated outline and impact hashes remain byte-identical, and no unaccounted changes remain."
       }
     ],
     "baseline": {
@@ -664,7 +675,7 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "src/commands/arch/impact.ts",
@@ -719,6 +730,59 @@
           "src/commands/arch/impact.ts": "72e25025e8523916516a32e790e4e32ec72f57ddb689dcef472ee2fef0282a67",
           "src/commands/arch/snapshot.ts": "9a054e01b98b47d18dc29497f15be7f8ed8eb4b78dd1585421a42dc244f340c5"
         }
+      },
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "src/commands/arch/impact.ts"
+          ],
+          "symbols": [
+            "canonicalPaths"
+          ]
+        },
+        "opportunity": "canonicalPaths sorts a copied frontier at every relationship-traversal depth even though candidate selection compares the complete path key independently of traversal order and all externally returned collections are sorted later.",
+        "impact": "Avoid an unnecessary array copy and frontier sort at each traversal depth, reducing CPU and transient allocations for high-degree models and larger requested depths while preserving the selected canonical paths.",
+        "evidence": [
+          "src/commands/arch/impact.ts:69 sorts [...frontier] before traversing each depth.",
+          "src/commands/arch/impact.ts:79-81 selects the lexicographically smallest candidate by comparing pathKey values, so the selected path does not depend on frontier iteration order.",
+          "src/commands/arch/impact.ts:74-77 compares every competing candidate for an adjacent Element and retains the minimum path key.",
+          "src/commands/arch/impact.ts:163-164 sorts relationPaths by focus and related identity, and src/commands/arch/impact.ts:227 sorts the final elements array, so intermediate Map insertion order is not externally observable.",
+          "The existing high-degree regression establishes deterministic adjacency and self-loop behavior but does not cover canonical path selection with an unsorted frontier."
+        ],
+        "recommendation": "Iterate frontier directly in canonicalPaths and remove only the per-depth copied-frontier sort. Retain sorted adjacency, complete pathKey comparison, visited-path filtering, final relationPaths sorting, and final identity sorting.",
+        "keyDesign": "Keep breadth-first layers and the existing candidates Map. For each layer, traverse the current frontier in its existing order, compare every candidate path against the current candidate for the same adjacent identity using pathKey, then promote candidates to paths exactly as today. Determinism and canonical selection must come from explicit path comparison and final projection sorting rather than frontier ordering.",
+        "preservationConstraints": [
+          "Preserve one shortest path per focus Element and related Element.",
+          "Preserve lexicographic path selection across all equal-length candidates using source, kind, and target sequence.",
+          "Preserve incoming and outgoing traversal labels, relationship direction, cycle termination, and requested depth bounds.",
+          "Preserve the complete depth-bounded relations subgraph, including non-canonical edges and self-loop behavior.",
+          "Preserve deterministic ordering of relationPaths, elements, relations, and all JSON/text projections.",
+          "Do not mutate SemanticModel relationships, adjacency input arrays, or returned public objects."
+        ],
+        "implementationOutline": [
+          "Change canonicalPaths to iterate frontier without a copied sort.",
+          "Leave adjacency construction and compareRelations sorting unchanged.",
+          "Leave pathKey candidate comparison and paths.has filtering unchanged.",
+          "Retain final relationPaths and elements sorting.",
+          "Add an unsorted multi-branch equal-length path regression."
+        ],
+        "validation": [
+          "Run pnpm vitest run test/commands/arch-impact.test.ts and assert canonical shortest-path, cycle, high-degree, self-loop, and locale tests pass.",
+          "Add an unsorted-frontier equal-path regression proving the lexicographically smallest path remains selected.",
+          "Run pnpm build.",
+          "Run impact twice on the current model and assert identical JSON."
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "This is the next scoped opportunity after resolving the completed bucket-accumulation finding: direct static evidence, low-risk local implementation, and explicit canonical-path validation.",
+        "id": "OPT-20260810T151305519Z-01",
+        "targetFileHashes": {
+          "src/commands/arch/impact.ts": "02f74bc25700597b9868442d293db2fd0f31f7a3919617e2cb736ef58467965a"
+        }
       }
     ],
     "history": [
@@ -757,9 +821,50 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-10T14:45:41.804Z",
         "findingId": "OPT-20260810T143624647Z-01"
+      },
+      {
+        "sequence": 5,
+        "action": "resolve",
+        "reason": "Resolve as independently completed at checkpoint 591f3bf1655ab063ba6b2d3fed75ae9c1a8abb07. Current impact and snapshot hashes match the checkpoint implementation, which replaces copy-on-append rebuilding with direct bucket mutation while retaining canonical sorting, self-loop handling, relation deduplication, and public projections. Focused tests passed and the checkpoint is clean.",
+        "timestamp": "2026-08-10T15:13:05.519Z",
+        "findingId": "OPT-20260810T143624647Z-01"
+      },
+      {
+        "sequence": 6,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-10T15:13:05.519Z",
+        "findingId": "OPT-20260810T151305519Z-01"
+      },
+      {
+        "sequence": 7,
+        "action": "select",
+        "reason": "This is the next scoped opportunity after resolving the completed bucket-accumulation finding: direct static evidence, low-risk local implementation, and explicit canonical-path validation.",
+        "timestamp": "2026-08-10T15:13:05.522Z",
+        "findingId": "OPT-20260810T151305519Z-01",
+        "hashes": {
+          "src/commands/arch/impact.ts": "02f74bc25700597b9868442d293db2fd0f31f7a3919617e2cb736ef58467965a"
+        }
+      },
+      {
+        "sequence": 8,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-10T15:13:28.843Z",
+        "findingId": "OPT-20260810T151305519Z-01",
+        "hashes": {
+          "src/commands/arch/impact.ts": "02f74bc25700597b9868442d293db2fd0f31f7a3919617e2cb736ef58467965a"
+        }
+      },
+      {
+        "sequence": 9,
+        "action": "verified",
+        "reason": "Fresh reviewer passed all 25 requirements and 77 scenarios. The frontier-sort removal preserves canonical shortest-path selection across reversed input permutations, all directed suites and build pass, repeated outline and impact hashes remain byte-identical, and no unaccounted changes remain.",
+        "timestamp": "2026-08-10T15:58:08.267Z",
+        "findingId": "OPT-20260810T151305519Z-01"
       }
     ],
-    "reconciliationSignature": "d5e8606c7a7a8686d00d54a2b84be7d7242f83de792da95f47a0a900e3fe4e20",
+    "reconciliationSignature": "fc913356b1e10a413df6b3c69b1a50d636e62f3a13c3a78196999495cc027fd0",
     "unchangedReconciliations": 0
   }
 }

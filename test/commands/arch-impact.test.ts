@@ -89,6 +89,47 @@ describe('architecture impact', () => {
     expect(result.relationPaths.every(item => item.steps.length <= 2)).toBe(true);
   });
 
+  it('selects the same canonical path from an unsorted frontier across input permutations', async () => {
+    const relationships = [
+      { source: 'a.branch', kind: 'observes', target: 'm.focus' },
+      { source: 'm.focus', kind: 'invokes', target: '0.branch' },
+      { source: 'a.branch', kind: 'invokes', target: 'z.target' },
+      { source: '0.branch', kind: 'invokes', target: 'z.target' },
+    ];
+    const roots = await Promise.all([0, 1].map(async permutation => {
+      const fixtureRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-arch-impact-frontier-'));
+      await writeProjectModel(fixtureRoot, {
+        elementKinds: [
+          { identity: 'project', contract: 'required', root: true, children: ['capability'] },
+          { identity: 'capability', parents: ['project'], children: [] },
+        ],
+        relationshipKinds: [{ identity: 'invokes' }, { identity: 'observes' }],
+        elements: [
+          { identity: 'project.root', kind: 'project', parent: null, title: 'Project', definition: 'Project intent', requirements: CONTRACT },
+          { identity: 'm.focus', parent: 'project.root', title: 'Focus', definition: 'Focus' },
+          { identity: 'a.branch', parent: 'project.root', title: 'A', definition: 'A' },
+          { identity: '0.branch', parent: 'project.root', title: 'Zero', definition: 'Zero' },
+          { identity: 'z.target', parent: 'project.root', title: 'Target', definition: 'Target' },
+        ],
+        relationships: permutation === 0 ? relationships : [...relationships].reverse(),
+      });
+      return fixtureRoot;
+    }));
+
+    try {
+      const results = await Promise.all(roots.map(fixtureRoot => impactArchitecture(fixtureRoot, ['m.focus'], { depth: 2 })));
+      const targetPath = results[0].relationPaths.find(path => path.relatedElementId === 'z.target');
+
+      expect(results[1]).toEqual(results[0]);
+      expect(targetPath?.steps).toEqual([
+        { source: 'a.branch', kind: 'observes', target: 'm.focus', traversal: 'incoming' },
+        { source: 'a.branch', kind: 'invokes', target: 'z.target', traversal: 'outgoing' },
+      ]);
+    } finally {
+      await Promise.all(roots.map(fixtureRoot => fs.rm(fixtureRoot, { recursive: true, force: true })));
+    }
+  });
+
   it('preserves high-degree ordering and inserts a self-loop into adjacency once', async () => {
     const highDegreeRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-arch-impact-high-degree-'));
     const targets = Array.from({ length: 32 }, (_, index) => `cap.target-${String(index).padStart(2, '0')}`);

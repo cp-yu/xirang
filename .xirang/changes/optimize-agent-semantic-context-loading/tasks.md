@@ -36,6 +36,7 @@
 - Modify: `src/commands/arch/snapshot.ts`
 - Modify: `src/commands/arch/index.ts`
 - Create: `test/commands/arch-outline.test.ts`
+- Test: `test/commands/arch-snapshot.test.ts`
 - Test: `test/integration/arch-command.test.ts`
 
 **Requirements**:
@@ -48,7 +49,7 @@
 
 - [x] C3 验证完整结构覆盖和内容边界
   - Verifies: `elements/arch-outline.md` / Requirement "arch outline SHALL 投影完整模型结构" / Scenarios "输出全部 Element hierarchy", "输出全部 Relationships", "输出完整 Metamodel Kinds", "排除 Views 与 Contracts"
-  - Command: `pnpm vitest run test/commands/arch-outline.test.ts test/integration/arch-command.test.ts`
+  - Command: `pnpm vitest run test/commands/arch-outline.test.ts test/commands/arch-snapshot.test.ts test/integration/arch-command.test.ts`
   - Expect: 深层 Element 始终可发现，全部 Relationships 与 Kind definition 存在，JSON 中不存在 Authored Views、Requirements 或 Scenarios。
 
 - [x] C4 验证 Definition depth 语义和 CLI override

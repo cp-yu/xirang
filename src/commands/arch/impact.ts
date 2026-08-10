@@ -66,7 +66,7 @@ function canonicalPaths(
 
   for (let currentDepth = 1; currentDepth <= depth; currentDepth += 1) {
     const candidates = new Map<string, ArchitectureRelationPathStep[]>();
-    for (const [current, currentPath] of [...frontier].sort(([left], [right]) => compareCodePoints(left, right))) {
+    for (const [current, currentPath] of frontier) {
       for (const relation of adjacency.get(current) ?? []) {
         const outgoing = relation.source === current;
         const adjacent = outgoing ? relation.target : relation.source;
