@@ -85,3 +85,8 @@
   - Verifies: `elements/semantic-browser.md` / Requirement "呈现 Change 目标与差异" / Scenario "Diff only 模式"
   - Command: `cd test/fixtures/contract-browser && node ../../../bin/xirang.js validate --change browser-change --json`
   - Expect: 校验 PASS，无 ERROR
+
+- [x] C10 Verify 非结构性 delta 不触发架构图 diff
+  - Verifies: `elements/semantic-browser.md` / Requirement "呈现 Change 目标与差异" / Scenario "无 diff 时默认呈现"
+  - Command: `cd likec4 && pnpm --filter @likec4/diagram exec vitest run src/xirang/architectureView.spec.ts`
+  - Expect: requirement-only diff 保持节点 opacity 100%，不产生节点/边 diff 呈现

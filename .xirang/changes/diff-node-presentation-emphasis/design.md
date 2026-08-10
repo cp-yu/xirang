@@ -9,6 +9,7 @@
 - outline 采用醒目的橙黄描边并加粗，线型/宽度组合两两可辨
 - 为 changed 节点新增左上角 `+`/`~`/`−` 徽标作为独立 diff 通道，REMOVED 徽标保持 100% 醒目
 - 保持布局几何、交互能力与关系边徽标不变；导出（PNG/JPG）所见即所得
+- 仅在 Semantic Delta 含 `element-declaration` 或 `relationship` 条目时启用节点/边 diff 透明度；纯 contract、requirement、property 或 kind 变化不压暗架构图
 
 **Non-Goals:**
 - 不按状态区分 outline 颜色（三态共用橙黄，状态靠线型/宽度/透明度/徽标区分）
@@ -40,9 +41,14 @@
 - 复用关系边徽标的字符约定（`+`/`~`/`−`），视觉语言一致
 - 徽标为纯呈现元素，不捕获指针事件（`pointer-events: none`），不改变交互
 
-**4. unchanged 不变**
+**4. 结构性 delta 才启用图上 diff**
 
-unchanged 节点维持 25% 透明度、无 outline、无徽标。
+节点与关系边是架构图上的 diff 载体，因此只对 `element-declaration` 与 `relationship` delta 应用 25%/45%/100% 透明度和对应徽标。Element Contract、requirement、property、element-kind 等不直接对应当前图节点或边的变化，不得触发整图压暗；这类 Change 在 `complete-with-diff` 中保持正常模型可读，在 `diff-only` 中不伪造节点差异。
+
+**5. unchanged 不变**
+
+在存在结构性 diff 的视图中，unchanged 节点维持 25% 透明度、无 outline、无徽标。
+
 
 ## Risks / Trade-offs
 

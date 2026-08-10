@@ -78,7 +78,9 @@ export function applyXirangPresentationOverlay(
 ): DiagramView {
   const elementOperations = operationByIdentity(source)
   const kindStyles = kindStylesByKind(source)
-  const diffActive = source.diff !== undefined
+  const diffActive = structuralEntries(source).some(entry =>
+    entry.kind === 'element-declaration' || entry.kind === 'relationship',
+  )
   const elementsByIdentity = new Map<string, XirangElementDeclaration>()
   const parentIdentities = new Set<string>()
   for (const element of source.architecture?.elements ?? []) {

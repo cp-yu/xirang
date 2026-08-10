@@ -86,6 +86,18 @@ describe('applyXirangPresentationOverlay', () => {
     expect(after.nodes[1]!.style.opacity).toBe(45)
   })
 
+  it('keeps the model readable when a change has no structural diff', () => {
+    const contractOnlySource: XirangViewSource = {
+      ...source,
+      diff: {
+        summary: { total: 1, ADDED: 0, MODIFIED: 1, REMOVED: 0 },
+        entries: [{ kind: 'requirement', identity: 'semantic-browser:requirement', operation: 'MODIFIED' }],
+      },
+    }
+    const after = applyXirangPresentationOverlay(baseView(), contractOnlySource)
+    expect(after.nodes.map(node => node.style.opacity)).toEqual([100, 100, 100, 100])
+  })
+
   it('keeps default opacity when no diff is active', () => {
     const { diff: _diff, ...noDiffSource } = source
     const after = applyXirangPresentationOverlay(baseView(), noDiffSource)
