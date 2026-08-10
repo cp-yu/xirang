@@ -81,7 +81,7 @@
       "test/fixtures/arch-impact-locale-process.fixture.ts",
       "test/integration/arch-command.test.ts"
     ],
-    "evidenceFingerprint": "dcdaea6557ed4ecf29e6c3c38b9150c58943073bc9129b7dfe64f2251ed4f67a",
+    "evidenceFingerprint": "936a1d3d874e04f594fe53b89916370fe51996da34e308457da62bbe0e88a27e",
     "evidenceFingerprintEntries": [
       {
         "path": ".pi/agents/xirang-optimizer.md",
@@ -109,7 +109,7 @@
       },
       {
         "path": ".xirang/changes/optimize-agent-semantic-context-loading/.apply-isolation.json",
-        "hash": "c77466288d101103886a78ed40b8969e3d10cf3c4fcfd5d5cdc48a484dde28cb"
+        "hash": "7f017740fbd1bc950b8aa423add62d4a1aa8d8de94243e0c4a82768b4bd5f340"
       },
       {
         "path": ".xirang/changes/optimize-agent-semantic-context-loading/design.md",
@@ -201,7 +201,7 @@
       },
       {
         "path": "src/commands/arch/impact.ts",
-        "hash": "72e25025e8523916516a32e790e4e32ec72f57ddb689dcef472ee2fef0282a67"
+        "hash": "02f74bc25700597b9868442d293db2fd0f31f7a3919617e2cb736ef58467965a"
       },
       {
         "path": "src/commands/arch/index.ts",
@@ -217,7 +217,7 @@
       },
       {
         "path": "src/commands/arch/snapshot.ts",
-        "hash": "9a054e01b98b47d18dc29497f15be7f8ed8eb4b78dd1585421a42dc244f340c5"
+        "hash": "6670c454bb26bd446ac723426a77f6c8d2065c0f0938d004237211fca61fc11c"
       },
       {
         "path": "src/core/config-projection.ts",
@@ -261,7 +261,7 @@
       },
       {
         "path": "test/commands/arch-impact.test.ts",
-        "hash": "40432623b532ee0fe336555dda787f0be41054bad671da322db367478310628a"
+        "hash": "e655fff81a8efccf4f5c48e2af153eb9c9d9d137dfb07a111b0460171910037b"
       },
       {
         "path": "test/commands/arch-outline.test.ts",
@@ -319,12 +319,24 @@
     "skippedEvidenceFiles": [
       ".xirang/changes/optimize-agent-semantic-context-loading/.verify-result.json"
     ],
-    "gitHeadCommit": "da4cfacb96cba7e9791d0e36ef90ce45df8fc545",
-    "gitDiffSummary": "Validated immutable base da4cfacb96cba7e9791d0e36ef90ce45df8fc545. HEAD equals the baseline, so git diff <baseCommit>...HEAD --name-only was empty; git status --short supplied 44 attributed modified/untracked paths and git diff --cached was empty. Read all Change and Delta units, implementation, tests, generated Pi surfaces, references, and public documentation. pnpm build passed. The full directed suite passed 23 files and 312 tests; the C7 query/integration suite passed 22 tests and the required README/docs/src/.pi/.xirang/references absence search returned no obsolete query navigation calls. Combined change validation and Expected Semantic Model validation passed without warnings. Current-model outline contained 154 Elements, 50 Relationships, 11 Kinds, one root, and 49546 bytes; impact was 19013 bytes with no definition, contract, requirement, or scenario paths, and repeated output hashes matched. Review findings: no blockers. Residual risk: five unrelated pre-existing Formal Contract validation failures disclosed as a warning."
+    "gitHeadCommit": "7766e13dffba741d3556d8a3ddcd36d54e85649f",
+    "gitDiffSummary": "Validated immutable base da4cfacb96cba7e9791d0e36ef90ce45df8fc545. HEAD equals the baseline, so git diff <baseCommit>...HEAD --name-only was empty; git status --short supplied 44 attributed modified/untracked paths and git diff --cached was empty. Read all Change and Delta units, implementation, tests, generated Pi surfaces, references, and public documentation. pnpm build passed. The full directed suite passed 23 files and 312 tests; the C7 query/integration suite passed 22 tests and the required README/docs/src/.pi/.xirang/references absence search returned no obsolete query navigation calls. Combined change validation and Expected Semantic Model validation passed without warnings. Current-model outline contained 154 Elements, 50 Relationships, 11 Kinds, one root, and 49546 bytes; impact was 19013 bytes with no definition, contract, requirement, or scenario paths, and repeated output hashes matched. Review findings: no blockers. Residual risk: five unrelated pre-existing Formal Contract validation failures disclosed as a warning.",
+    "timestamp": "2026-08-10T14:45:41.825Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-08-10T14:36:24.650Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-10T14:45:41.804Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-08-10T14:22:00.972Z",
       "result": "PASS_WITH_WARNINGS",
@@ -649,6 +661,105 @@
         "gitHeadCommit": "da4cfacb96cba7e9791d0e36ef90ce45df8fc545",
         "gitDiffSummary": "Validated immutable base da4cfacb96cba7e9791d0e36ef90ce45df8fc545. HEAD equals the baseline, so git diff <baseCommit>...HEAD --name-only was empty; git status --short supplied 44 attributed modified/untracked paths and git diff --cached was empty. Read all Change and Delta units, implementation, tests, generated Pi surfaces, references, and public documentation. pnpm build passed. The full directed suite passed 23 files and 312 tests; the C7 query/integration suite passed 22 tests and the required README/docs/src/.pi/.xirang/references absence search returned no obsolete query navigation calls. Combined change validation and Expected Semantic Model validation passed without warnings. Current-model outline contained 154 Elements, 50 Relationships, 11 Kinds, one root, and 49546 bytes; impact was 19013 bytes with no definition, contract, requirement, or scenario paths, and repeated output hashes matched. Review findings: no blockers. Residual risk: five unrelated pre-existing Formal Contract validation failures disclosed as a warning."
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "src/commands/arch/impact.ts",
+            "src/commands/arch/snapshot.ts"
+          ],
+          "symbols": [
+            "impactArchitecture",
+            "buildModelTree",
+            "renderRelationsText"
+          ]
+        },
+        "opportunity": "Several model indexes and relation-group accumulators rebuild arrays with spread syntax on every append. This repeatedly copies the complete bucket, producing quadratic allocation and copy work for high-fanout hierarchies, high-degree relationship nodes, and large relationship-kind groups.",
+        "impact": "Use direct bucket mutation to make index construction and text relation grouping linear in the number of inserted entries, reducing transient allocations and CPU time while preserving the existing stable sorting and output projections.",
+        "evidence": [
+          "src/commands/arch/snapshot.ts:71-77 uses childrenOf.set(parent, [...(childrenOf.get(parent) ?? []), identity]) for every child.",
+          "src/commands/arch/snapshot.ts:114-119 uses byKind.set(kind, [...(byKind.get(kind) ?? []), relationText]) for every relationship.",
+          "src/commands/arch/impact.ts:110-116 uses the same copy-on-append pattern for refinement children.",
+          "src/commands/arch/impact.ts:146-152 uses copy-on-append for both endpoints of every relationship while constructing adjacency.",
+          "The current formal outline contains 154 Elements and 50 Relationships. Its 153 parent-child links require approximately 578 copied references with the current pattern versus 153 pushes; adjacency performs 100 endpoint insertions and approximately 265 copied references versus 100 pushes; snapshot relation grouping performs approximately 213 copied strings versus 50 pushes."
+        ],
+        "recommendation": "Initialize each map bucket once and append with push. Retain the existing compareCodePoints sorting passes after construction, and retain endpoint deduplication for self-loop relationships.",
+        "keyDesign": "Use mutable per-key accumulation inside the existing single-pass builders: retrieve the bucket, create and store an empty bucket when absent, then push the new identity, relationship, or formatted string. Keep final bucket sorting and all outer canonical sorting unchanged so mutation is internal and the public result remains immutable by convention.",
+        "preservationConstraints": [
+          "Preserve the exact children arrays and compareCodePoints ordering returned by buildModelTree and impact refinementContext traversal.",
+          "Preserve relationship deduplication by source, kind, and target before adjacency construction.",
+          "Preserve self-loop behavior: a relationship whose source equals target must be inserted into one adjacency bucket, not twice.",
+          "Preserve all relationship duplicates and input ordering semantics in renderRelationsText unless an existing canonical projection already removes them.",
+          "Preserve relation path direction, canonical shortest-path selection, diagnostics, error timing, read-only behavior, and all JSON/text/markdown schemas.",
+          "Do not mutate SemanticModel arrays or any returned public object owned by callers."
+        ],
+        "implementationOutline": [
+          "Replace copy-on-append childrenOf construction in snapshot.ts and impact.ts with get-or-create bucket followed by push.",
+          "Replace copy-on-append adjacency construction in impact.ts while retaining the existing unique endpoint iteration.",
+          "Replace copy-on-append byKind construction in snapshot.ts with get-or-create bucket followed by push.",
+          "Leave all final stable sorting and formatter joins in place.",
+          "Add focused high-fanout and high-degree fixtures that compare the optimized projections with the existing deterministic expected ordering, including self-loop and repeated relationship cases."
+        ],
+        "validation": [
+          "Run pnpm vitest run test/commands/arch-snapshot.test.ts test/commands/arch-outline.test.ts test/commands/arch-impact.test.ts; existing semantic projection, ordering, cycle, and read-only tests must remain passing.",
+          "Run the focused high-fanout regression tests and assert children, adjacency-derived relations, relationPaths, refinementContext, and formatted relation groups are unchanged.",
+          "Run pnpm build to prove the optimized command implementations typecheck and compile.",
+          "Run node bin/xirang.js arch outline --format json and node bin/xirang.js arch impact deterministic-operations --depth 2 --json twice, asserting stable semantic output and unchanged projection boundaries."
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "This ranks first because it has direct static evidence, an immediate linearity improvement across both identity loading paths and snapshot formatting, low implementation risk, and no dependency on profiling or cache behavior.",
+        "id": "OPT-20260810T143624647Z-01",
+        "targetFileHashes": {
+          "src/commands/arch/impact.ts": "72e25025e8523916516a32e790e4e32ec72f57ddb689dcef472ee2fef0282a67",
+          "src/commands/arch/snapshot.ts": "9a054e01b98b47d18dc29497f15be7f8ed8eb4b78dd1585421a42dc244f340c5"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-10T14:36:24.648Z",
+        "findingId": "OPT-20260810T143624647Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "select",
+        "reason": "This ranks first because it has direct static evidence, an immediate linearity improvement across both identity loading paths and snapshot formatting, low implementation risk, and no dependency on profiling or cache behavior.",
+        "timestamp": "2026-08-10T14:36:24.650Z",
+        "findingId": "OPT-20260810T143624647Z-01",
+        "hashes": {
+          "src/commands/arch/impact.ts": "72e25025e8523916516a32e790e4e32ec72f57ddb689dcef472ee2fef0282a67",
+          "src/commands/arch/snapshot.ts": "9a054e01b98b47d18dc29497f15be7f8ed8eb4b78dd1585421a42dc244f340c5"
+        }
+      },
+      {
+        "sequence": 3,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-10T14:37:01.124Z",
+        "findingId": "OPT-20260810T143624647Z-01",
+        "hashes": {
+          "src/commands/arch/impact.ts": "72e25025e8523916516a32e790e4e32ec72f57ddb689dcef472ee2fef0282a67",
+          "src/commands/arch/snapshot.ts": "9a054e01b98b47d18dc29497f15be7f8ed8eb4b78dd1585421a42dc244f340c5"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-10T14:45:41.804Z",
+        "findingId": "OPT-20260810T143624647Z-01"
+      }
+    ],
+    "reconciliationSignature": "d5e8606c7a7a8686d00d54a2b84be7d7242f83de792da95f47a0a900e3fe4e20",
+    "unchangedReconciliations": 0
   }
 }

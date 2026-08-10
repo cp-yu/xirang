@@ -72,7 +72,9 @@ export function buildModelTree(model: SemanticModel): SnapshotElement[] {
   for (const element of model.elements) {
     const parent = element.declaration.parent;
     if (parent === null) continue;
-    childrenOf.set(parent, [...(childrenOf.get(parent) ?? []), element.declaration.identity]);
+    const children = childrenOf.get(parent);
+    if (children) children.push(element.declaration.identity);
+    else childrenOf.set(parent, [element.declaration.identity]);
   }
   for (const list of childrenOf.values()) list.sort(compareCodePoints);
 
@@ -114,7 +116,10 @@ function renderTreeMarkdown(elements: readonly SnapshotElement[]): string {
 function renderRelationsText(relations: readonly Relationship[]): string {
   const byKind = new Map<string, string[]>();
   for (const relation of relations) {
-    byKind.set(relation.kind, [...(byKind.get(relation.kind) ?? []), `${relation.source} --> ${relation.target}`]);
+    const relations = byKind.get(relation.kind);
+    const rendered = `${relation.source} --> ${relation.target}`;
+    if (relations) relations.push(rendered);
+    else byKind.set(relation.kind, [rendered]);
   }
   const kinds = [...byKind.keys()].sort(compareCodePoints);
   const lines = ['[relationships]'];

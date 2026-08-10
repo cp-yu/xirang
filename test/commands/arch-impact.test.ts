@@ -89,6 +89,40 @@ describe('architecture impact', () => {
     expect(result.relationPaths.every(item => item.steps.length <= 2)).toBe(true);
   });
 
+  it('preserves high-degree ordering and inserts a self-loop into adjacency once', async () => {
+    const highDegreeRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-arch-impact-high-degree-'));
+    const targets = Array.from({ length: 32 }, (_, index) => `cap.target-${String(index).padStart(2, '0')}`);
+    try {
+      await writeProjectModel(highDegreeRoot, {
+        elementKinds: [
+          { identity: 'project', contract: 'required', root: true, children: ['capability'] },
+          { identity: 'capability', parents: ['project'], children: [] },
+        ],
+        relationshipKinds: [{ identity: 'invokes' }, { identity: 'observes' }],
+        elements: [
+          { identity: 'project.root', kind: 'project', parent: null, title: 'Project', definition: 'Project intent', requirements: CONTRACT },
+          { identity: 'cap.focus', parent: 'project.root', title: 'Focus', definition: 'Focus' },
+          ...targets.map(identity => ({ identity, parent: 'project.root', title: identity, definition: identity })),
+        ],
+        relationships: [
+          ...[...targets].reverse().map(target => ({ source: 'cap.focus', kind: 'invokes', target })),
+          { source: 'cap.focus', kind: 'observes', target: 'cap.focus' },
+        ],
+      });
+
+      const result = await impactArchitecture(highDegreeRoot, ['cap.focus'], { depth: 1 });
+
+      expect(result.relations.filter(relation => relation.source === 'cap.focus')).toEqual([
+        ...targets.map(target => ({ source: 'cap.focus', kind: 'invokes', target })),
+        { source: 'cap.focus', kind: 'observes', target: 'cap.focus' },
+      ]);
+      expect(result.relationPaths).toHaveLength(targets.length);
+      expect(result.relationPaths.some(path => path.relatedElementId === 'cap.focus')).toBe(false);
+    } finally {
+      await fs.rm(highDegreeRoot, { recursive: true, force: true });
+    }
+  });
+
   it('projects identity-only payloads without Definitions or Contracts', async () => {
     const result = await impactArchitecture(root, ['cap.focus'], { depth: 0 });
     const text = formatArchitectureImpactText(result);

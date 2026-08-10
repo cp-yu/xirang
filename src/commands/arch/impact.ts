@@ -111,7 +111,9 @@ export async function impactArchitecture(
   for (const element of model.elements) {
     const parent = element.declaration.parent;
     if (parent === null) continue;
-    childrenOf.set(parent, [...(childrenOf.get(parent) ?? []), element.declaration.identity]);
+    const children = childrenOf.get(parent);
+    if (children) children.push(element.declaration.identity);
+    else childrenOf.set(parent, [element.declaration.identity]);
   }
   for (const children of childrenOf.values()) children.sort(compareCodePoints);
 
@@ -146,7 +148,9 @@ export async function impactArchitecture(
   const adjacency = new Map<string, Relationship[]>();
   for (const relation of uniqueRelations) {
     for (const endpoint of new Set([relation.source, relation.target])) {
-      adjacency.set(endpoint, [...(adjacency.get(endpoint) ?? []), relation]);
+      const relations = adjacency.get(endpoint);
+      if (relations) relations.push(relation);
+      else adjacency.set(endpoint, [relation]);
     }
   }
   for (const adjacent of adjacency.values()) adjacent.sort(compareRelations);

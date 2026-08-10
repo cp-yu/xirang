@@ -85,6 +85,26 @@ describe('architecture snapshot', () => {
     expect(alpha.children).toEqual(['cap.beta']);
   });
 
+  it('sorts high-fanout children without changing the flat projection', () => {
+    const childIds = Array.from({ length: 64 }, (_, index) => `cap.${String(index).padStart(2, '0')}`);
+    const elements = buildModelTree({
+      elementKinds: [{ identity: 'project', contract: 'required', root: true, body: '' }],
+      relationshipKinds: [],
+      elements: [
+        { declaration: { identity: 'project.root', kind: 'project', parent: null, title: 'Project', definition: 'Project intent' }, requirements: [] },
+        ...[...childIds].reverse().map(identity => ({
+          declaration: { identity, kind: 'capability', parent: 'project.root', title: identity, definition: identity },
+          requirements: [],
+        })),
+      ],
+      relationships: [],
+      views: [],
+    });
+
+    expect(elements.find(element => element.identity === 'project.root')?.children).toEqual(childIds);
+    expect(elements).toHaveLength(childIds.length + 1);
+  });
+
   it('renders a box-drawing text tree with identity (kind) | definition and no title', async () => {
     const result = await snapshotArchitecture(root);
     const text = formatArchitectureSnapshotText(result);
