@@ -41,13 +41,18 @@
 - 复用关系边徽标的字符约定（`+`/`~`/`−`），视觉语言一致
 - 徽标为纯呈现元素，不捕获指针事件（`pointer-events: none`），不改变交互
 
-**4. 结构性 delta 才启用图上 diff**
+**4. 宿主可投影的 delta 才启用图上 diff**
 
-节点与关系边是架构图上的 diff 载体，因此只对 `element-declaration` 与 `relationship` delta 应用 25%/45%/100% 透明度和对应徽标。Element Contract、requirement、property、element-kind 等不直接对应当前图节点或边的变化，不得触发整图压暗；这类 Change 在 `complete-with-diff` 中保持正常模型可读，在 `diff-only` 中不伪造节点差异。
+节点与关系边是架构图上的 diff 载体。下列 delta 启用 25%/45%/100% 透明度与徽标：
+- `element-declaration`：直接标在对应节点
+- `relationship`：标在对应边
+- `requirement` / `scenario` / `property`：identity 形如 `host#...`，将 operation 投影到宿主 element 节点（例如 requirement MODIFIED → 宿主节点 MODIFIED 橙黄实线 + `~`）
+
+仅 metamodel（`element-kind` / `relationship-kind` / `authored-view`）变化不伪造节点 diff，不压暗架构图；文本差异仍在 Element Details / DiffTab 呈现。`diff-only` 已会保留 requirement 宿主及其祖先，因此宿主节点必须带 operation，否则会出现“只剩祖先路径、却无任何强调”的空白观感。
 
 **5. unchanged 不变**
 
-在存在结构性 diff 的视图中，unchanged 节点维持 25% 透明度、无 outline、无徽标。
+在 diff overlay 激活时，unchanged 节点维持 25% 透明度（compound 走 `--_compound-transparency`）、无 outline、无徽标。
 
 
 ## Risks / Trade-offs

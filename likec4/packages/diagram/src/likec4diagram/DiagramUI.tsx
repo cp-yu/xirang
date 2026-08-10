@@ -54,6 +54,8 @@ const structuralDiffKinds = new Set([
   'authored-view',
   'relationship',
 ])
+/** Contract children host on an element via `host#...`; they surface as node-level MODIFIED/ADDED/REMOVED. */
+const hostContractKinds = new Set(['requirement', 'scenario', 'property'])
 /** Delta kinds with no graph representation; they are presented as text instead of nodes or edges. */
 const metamodelKinds = new Set(['element-kind', 'relationship-kind', 'authored-view'])
 
@@ -64,7 +66,9 @@ function countOperations(entries: readonly { operation: XirangDiffOperation }[])
 }
 
 export function getArchitectureOverlayModel(source: XirangViewSource) {
-  const entries = source.diff?.entries.filter(entry => structuralDiffKinds.has(entry.kind)) ?? []
+  const allEntries = source.diff?.entries ?? []
+  const entries = allEntries.filter(entry => structuralDiffKinds.has(entry.kind))
+  const hostContractEntries = allEntries.filter(entry => hostContractKinds.has(entry.kind))
   const changed = new Set<string>()
   const context = new Set<string>()
   for (const entry of entries) {
@@ -85,12 +89,28 @@ export function getArchitectureOverlayModel(source: XirangViewSource) {
       if (target) context.add(target)
     }
   }
+  const elementDeclarationOps = new Set(
+    entries.filter(entry => entry.kind === 'element-declaration').map(entry => entry.identity),
+  )
+  const hostOps = new Map<string, XirangDiffOperation>()
+  for (const entry of hostContractEntries) {
+    const host = entry.identity.split('#')[0]
+    if (!host) continue
+    changed.add(host)
+    // Element-declaration already accounts for this host in counts.
+    if (elementDeclarationOps.has(host) || hostOps.has(host)) continue
+    hostOps.set(host, entry.operation)
+  }
   for (const identity of changed) context.delete(identity)
+  const counted: Array<{ operation: XirangDiffOperation }> = [
+    ...entries.filter(entry => entry.kind === 'element-declaration' || entry.kind === 'relationship'),
+    ...[...hostOps.values()].map(operation => ({ operation })),
+  ]
   return {
     entries,
     changed: [...changed].sort(),
     context: [...context].sort(),
-    counts: countOperations(entries),
+    counts: countOperations(counted),
     metamodel: entries
       .filter(entry => metamodelKinds.has(entry.kind))
       .sort((left, right) => left.kind.localeCompare(right.kind) || left.identity.localeCompare(right.identity)),

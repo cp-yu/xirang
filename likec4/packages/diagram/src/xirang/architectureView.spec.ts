@@ -86,16 +86,67 @@ describe('applyXirangPresentationOverlay', () => {
     expect(after.nodes[1]!.style.opacity).toBe(45)
   })
 
-  it('keeps the model readable when a change has no structural diff', () => {
+  it('marks the host element MODIFIED when only its contract requirement changes', () => {
     const contractOnlySource: XirangViewSource = {
+      ...source,
+      architecture: {
+        ...source.architecture!,
+        elements: [
+          ...(source.architecture?.elements ?? []),
+          { declaration: { identity: 'semantic-browser', kind: 'service', parent: null, title: 'SB', definition: '', summary: '', description: '' } },
+        ],
+      },
+      diff: {
+        summary: { total: 1, ADDED: 0, MODIFIED: 1, REMOVED: 0 },
+        entries: [{ kind: 'requirement', identity: 'semantic-browser#呈现 Change 目标与差异', operation: 'MODIFIED' }],
+      },
+    }
+    const view = baseView()
+    const withHost = {
+      ...view,
+      nodes: [
+        ...view.nodes,
+        {
+          id: 'semantic-browser',
+          modelRef: 'semantic-browser',
+          parent: null,
+          children: [],
+          inEdges: [],
+          outEdges: [],
+          title: 'SB',
+          description: { txt: 'SB' },
+          metadata: { elementId: 'semantic-browser' },
+          x: 100,
+          y: 700,
+          width: 120,
+          height: 80,
+          shape: 'rectangle',
+          color: 'blue',
+          style: { opacity: 100 },
+          kind: 'el',
+        },
+      ],
+    } as unknown as DiagramView
+    const after = applyXirangPresentationOverlay(withHost, contractOnlySource)
+    const host = after.nodes.find(node => node.id === 'semantic-browser')
+    expect(host?.metadata).toMatchObject({ xirangOperation: 'MODIFIED' })
+    expect(host?.style.opacity).toBe(100)
+    // ancestors / siblings without ops are dimmed once a host-contract diff is active
+    expect(after.nodes.filter(node => node.id !== 'semantic-browser').map(node => node.style.opacity))
+      .toEqual([25, 25, 25, 25])
+  })
+
+  it('does not invent element operations for kind-only metamodel diffs', () => {
+    const kindOnlySource: XirangViewSource = {
       ...source,
       diff: {
         summary: { total: 1, ADDED: 0, MODIFIED: 1, REMOVED: 0 },
-        entries: [{ kind: 'requirement', identity: 'semantic-browser:requirement', operation: 'MODIFIED' }],
+        entries: [{ kind: 'element-kind', identity: 'service', operation: 'MODIFIED' }],
       },
     }
-    const after = applyXirangPresentationOverlay(baseView(), contractOnlySource)
+    const after = applyXirangPresentationOverlay(baseView(), kindOnlySource)
     expect(after.nodes.map(node => node.style.opacity)).toEqual([100, 100, 100, 100])
+    expect(after.nodes.every(node => !node.metadata?.['xirangOperation'])).toBe(true)
   })
 
   it('keeps default opacity when no diff is active', () => {
