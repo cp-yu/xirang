@@ -1,0 +1,138 @@
+{
+  "timestamp": "2026-08-10T09:40:21.131Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "00b32fdc6d626d79cff431d1558679d0798b0d3092b38fc0c4f33792efec3a75",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/diff-node-presentation-emphasis/design.md",
+      ".xirang/changes/diff-node-presentation-emphasis/elements/semantic-browser.md",
+      ".xirang/changes/diff-node-presentation-emphasis/proposal.md",
+      ".xirang/changes/diff-node-presentation-emphasis/tasks.md",
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+      "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+      "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+      "likec4/packages/diagram/src/xirang/architectureView.ts",
+      "test/e2e/semantic-browser-model-view.spec.ts"
+    ],
+    "evidenceFingerprint": "67b7975dfa8dcaa768d652f88095e7aea5e80a08d0e32f3ac9a03a95d2476190",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/diff-node-presentation-emphasis/design.md",
+        "hash": "5d01f95a957f3c4e0005fdd088e4c5b47bb2419f940d8ae159bb7ac35ac41473"
+      },
+      {
+        "path": ".xirang/changes/diff-node-presentation-emphasis/elements/semantic-browser.md",
+        "hash": "2338d9e171deb633be236209e24beae364e00bb92a913fc2a3de652156a82fa6"
+      },
+      {
+        "path": ".xirang/changes/diff-node-presentation-emphasis/proposal.md",
+        "hash": "5a37627b29fe90f432b50bc9a68e00be0058fe9f7f8ea642f00270f07f6b65fe"
+      },
+      {
+        "path": ".xirang/changes/diff-node-presentation-emphasis/tasks.md",
+        "hash": "00b32fdc6d626d79cff431d1558679d0798b0d3092b38fc0c4f33792efec3a75"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+        "hash": "4ee6b62b28b48c1384615991388ece2ce3cf48ee7ae33b6c1eb5374babd5510a"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+        "hash": "83894ec646d74bd695f3e6040a6ad7d79887b357b3d9117929b2e5bb7de8df2c"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+        "hash": "7e6b6263efb516604ae84628b70c0be89c85d96c7d7334009a9ced1e6ff97ba1"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+        "hash": "a344adff1dc4811511ef54b194b73b5f9cca16f02dbb1246aea480374b2a0cac"
+      },
+      {
+        "path": "test/e2e/semantic-browser-model-view.spec.ts",
+        "hash": "fa2fccdcb28a304aa144bf2b8c6fb85625e705c3f314779944ea33fd3c03686b"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "e8d4f2fba26985635edb2a96ca3c4144c5a6e0cf",
+    "gitDiffSummary": "Branch diff-node-presentation-emphasis vs base c802cbc12. Implementation committed through e8d4f2fba. Scope: nodes.tsx outlines+badges; architectureView host-contract ops; DiagramUI panel counts; e2e four-state; change artifacts. Attribution 100% within change."
+  },
+  "optimization": {
+    "status": "NOT_NEEDED",
+    "attempts": [
+      {
+        "timestamp": "2026-08-10T09:44:22.512Z",
+        "type": "optimization",
+        "status": "NO_OPTIMIZATION_NEEDED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-08-10T09:40:21.131Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "00b32fdc6d626d79cff431d1558679d0798b0d3092b38fc0c4f33792efec3a75",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/diff-node-presentation-emphasis/design.md",
+          ".xirang/changes/diff-node-presentation-emphasis/elements/semantic-browser.md",
+          ".xirang/changes/diff-node-presentation-emphasis/proposal.md",
+          ".xirang/changes/diff-node-presentation-emphasis/tasks.md",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+          "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+          "likec4/packages/diagram/src/xirang/architectureView.ts",
+          "test/e2e/semantic-browser-model-view.spec.ts"
+        ],
+        "evidenceFingerprint": "67b7975dfa8dcaa768d652f88095e7aea5e80a08d0e32f3ac9a03a95d2476190",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/diff-node-presentation-emphasis/design.md",
+            "hash": "5d01f95a957f3c4e0005fdd088e4c5b47bb2419f940d8ae159bb7ac35ac41473"
+          },
+          {
+            "path": ".xirang/changes/diff-node-presentation-emphasis/elements/semantic-browser.md",
+            "hash": "2338d9e171deb633be236209e24beae364e00bb92a913fc2a3de652156a82fa6"
+          },
+          {
+            "path": ".xirang/changes/diff-node-presentation-emphasis/proposal.md",
+            "hash": "5a37627b29fe90f432b50bc9a68e00be0058fe9f7f8ea642f00270f07f6b65fe"
+          },
+          {
+            "path": ".xirang/changes/diff-node-presentation-emphasis/tasks.md",
+            "hash": "00b32fdc6d626d79cff431d1558679d0798b0d3092b38fc0c4f33792efec3a75"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+            "hash": "4ee6b62b28b48c1384615991388ece2ce3cf48ee7ae33b6c1eb5374babd5510a"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "hash": "83894ec646d74bd695f3e6040a6ad7d79887b357b3d9117929b2e5bb7de8df2c"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+            "hash": "7e6b6263efb516604ae84628b70c0be89c85d96c7d7334009a9ced1e6ff97ba1"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+            "hash": "a344adff1dc4811511ef54b194b73b5f9cca16f02dbb1246aea480374b2a0cac"
+          },
+          {
+            "path": "test/e2e/semantic-browser-model-view.spec.ts",
+            "hash": "fa2fccdcb28a304aa144bf2b8c6fb85625e705c3f314779944ea33fd3c03686b"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "e8d4f2fba26985635edb2a96ca3c4144c5a6e0cf",
+        "gitDiffSummary": "Branch diff-node-presentation-emphasis vs base c802cbc12. Implementation committed through e8d4f2fba. Scope: nodes.tsx outlines+badges; architectureView host-contract ops; DiagramUI panel counts; e2e four-state; change artifacts. Attribution 100% within change."
+      }
+    },
+    "findings": [],
+    "history": [],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}

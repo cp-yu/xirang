@@ -24,6 +24,9 @@ const structuralKinds = new Set([
   'relationship',
 ])
 
+/** Contract children host on an element identity via `host#...` / `host#...#...`. */
+const hostContractKinds = new Set(['requirement', 'scenario', 'property'])
+
 const operations = new Set<XirangDiffOperation>(['ADDED', 'MODIFIED', 'REMOVED'])
 
 /** Diff-mode node opacity per operation; unchanged nodes (no operation) dim to 25. */
@@ -33,12 +36,24 @@ function structuralEntries(source: XirangViewSource): XirangDiffEntry[] {
   return source.diff?.entries.filter(entry => structuralKinds.has(entry.kind)) ?? []
 }
 
+function hostElementIdentity(entry: XirangDiffEntry): string | undefined {
+  if (!hostContractKinds.has(entry.kind)) return undefined
+  const host = entry.identity.split('#')[0]
+  return host || undefined
+}
+
+/** Element-declaration wins; otherwise the strongest host-contract op marks the element. */
 function operationByIdentity(source: XirangViewSource): Map<string, XirangDiffOperation> {
   const result = new Map<string, XirangDiffOperation>()
-  for (const entry of structuralEntries(source)) {
+  for (const entry of source.diff?.entries ?? []) {
     if (entry.kind === 'element-declaration' && operations.has(entry.operation)) {
       result.set(entry.identity, entry.operation)
     }
+  }
+  for (const entry of source.diff?.entries ?? []) {
+    const host = hostElementIdentity(entry)
+    if (!host || !operations.has(entry.operation) || result.has(host)) continue
+    result.set(host, entry.operation)
   }
   return result
 }
@@ -78,7 +93,11 @@ export function applyXirangPresentationOverlay(
 ): DiagramView {
   const elementOperations = operationByIdentity(source)
   const kindStyles = kindStylesByKind(source)
-  const diffActive = source.diff !== undefined
+  const diffActive = (source.diff?.entries ?? []).some(entry =>
+    entry.kind === 'element-declaration'
+    || entry.kind === 'relationship'
+    || hostContractKinds.has(entry.kind),
+  )
   const elementsByIdentity = new Map<string, XirangElementDeclaration>()
   const parentIdentities = new Set<string>()
   for (const element of source.architecture?.elements ?? []) {

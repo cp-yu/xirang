@@ -165,7 +165,21 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
     return {
       outlineStyle: style.outlineStyle,
       outlineWidth: parseFloat(style.outlineWidth) || 0,
+      outlineColor: style.outlineColor,
       opacity: parseFloat(style.opacity),
+    }
+  })
+
+  const nodeBadgeStyle = (locator: ReturnType<Page['locator']>) => locator.evaluate(node => {
+    const style = getComputedStyle(node)
+    const rect = node.getBoundingClientRect()
+    return {
+      width: rect.width,
+      height: rect.height,
+      backgroundColor: style.backgroundColor,
+      color: style.color,
+      fontSize: parseFloat(style.fontSize),
+      borderWidth: parseFloat(style.borderTopWidth),
     }
   })
 
@@ -178,7 +192,20 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
     .toHaveAttribute('data-xirang-operation', 'ADDED')
   const addedStyle = await nodeStyle(added)
   expect(addedStyle.outlineStyle).toBe('dotted')
-  expect(addedStyle.outlineWidth).toBeGreaterThan(0)
+  expect(addedStyle.outlineWidth).toBe(3)
+  expect(addedStyle.outlineColor).toMatch(/255, 159, 10/)
+  const addedBadge = page.locator('.react-flow__node[data-xirang-identity="capability.added-parent"] [data-xirang-node-diff]')
+  await expect(addedBadge).toBeVisible()
+  expect(await addedBadge.textContent()).toBe('+')
+  expect(await addedBadge.evaluate(node => parseFloat(getComputedStyle(node).opacity))).toBe(1)
+
+  expect((await nodeBadgeStyle(addedBadge)).width).toBeGreaterThanOrEqual(24)
+  expect((await nodeBadgeStyle(addedBadge)).height).toBe(24)
+  expect((await nodeBadgeStyle(addedBadge)).fontSize).toBeGreaterThanOrEqual(16)
+  expect((await nodeBadgeStyle(addedBadge)).borderWidth).toBeGreaterThanOrEqual(2)
+  expect((await nodeBadgeStyle(addedBadge)).backgroundColor).toMatch(/255, 159, 10/)
+  expect((await nodeBadgeStyle(addedBadge)).color).toMatch(/255, 255, 255/)
+  expect((await addedBadge.boundingBox())?.x).toBeGreaterThanOrEqual((await added.boundingBox())?.x ?? 0)
 
   // Drill focus: unchanged assistant node + edge, MODIFIED leaf, REMOVED peer.
   await page.goto('/view/model/?change=browser-change&mode=complete-with-diff&focus=capability.drill')
@@ -200,7 +227,11 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
     .toHaveAttribute('data-xirang-operation', 'MODIFIED')
   const modifiedStyle = await nodeStyle(leaf)
   expect(modifiedStyle.outlineStyle).toBe('solid')
-  expect(modifiedStyle.outlineWidth).toBeGreaterThan(addedStyle.outlineWidth)
+  expect(modifiedStyle.outlineWidth).toBe(5)
+  expect(modifiedStyle.outlineColor).toMatch(/255, 159, 10/)
+  const modifiedBadge = page.locator('.react-flow__node[data-xirang-identity="capability.leaf"] [data-xirang-node-diff]')
+  await expect(modifiedBadge).toBeVisible()
+  expect(await modifiedBadge.textContent()).toBe('~')
 
   const peer = page.locator('.react-flow__node[data-xirang-identity="capability.peer"] .likec4-element-node')
   await expect(peer).toBeVisible()
@@ -208,7 +239,14 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
     .toHaveAttribute('data-xirang-operation', 'REMOVED')
   const removedStyle = await nodeStyle(peer)
   expect(removedStyle.outlineStyle).toBe('dashed')
+  expect(removedStyle.outlineWidth).toBe(3)
+  expect(removedStyle.outlineColor).toMatch(/255, 159, 10/)
   expect(removedStyle.opacity).toBeCloseTo(0.45, 2)
+  const removedBadge = page.locator('.react-flow__node[data-xirang-identity="capability.peer"] [data-xirang-node-diff]')
+  await expect(removedBadge).toBeVisible()
+  expect(await removedBadge.textContent()).toBe('−')
+  // The badge sits outside the dimmed container and stays fully opaque.
+  expect(await removedBadge.evaluate(node => parseFloat(getComputedStyle(node).opacity))).toBe(1)
 
   // The removed leaf→peer relationship keeps its diff badge.
   await expect(page.locator('[data-xirang-edge-diff][aria-label="Relationship REMOVED"]')).toBeVisible()
@@ -219,6 +257,7 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
   const plainLeaf = page.locator('.react-flow__node[data-xirang-identity="single"] .likec4-element-node')
   await expect(plainLeaf).toBeVisible()
   expect((await nodeStyle(plainLeaf)).opacity).toBeGreaterThan(0.9)
+  await expect(page.locator('[data-xirang-node-diff]')).toHaveCount(0)
 })
 
 test('expands in place with ctrl+click and collapses with Shift+0', async ({ page }) => {
