@@ -33,9 +33,10 @@
 
 **3. 节点徽标（新增 `NodeDiffBadge`）**
 
-按 `data.xirang.operation` 渲染：ADDED `+`、MODIFIED `~`、REMOVED `−`。徽标为绝对定位的左上角小角标（约 18px，橙黄底白字），`data-xirang-node-diff` 属性，**以 100% 透明度呈现**（独立于宿主节点 opacity，REMOVED 节点 45% ghost 时徽标仍醒目）。挂载到 ElementNode / DeploymentNode / CompoundElementNode / CompoundDeploymentNode 的容器内。
+按 `data.xirang.operation` 渲染：ADDED `+`、MODIFIED `~`、REMOVED `−`。徽标为绝对定位的左上角角标（24px × 24px，橙黄底白字），`data-xirang-node-diff` 属性，**以 100% 透明度呈现**（独立于宿主节点 opacity，REMOVED 节点 45% ghost 时徽标仍醒目）。挂载到 ElementNode / DeploymentNode / CompoundElementNode / CompoundDeploymentNode 的 React Flow node wrapper 内、宿主容器外。
 
 - 位置：左上角，与右侧的 Element Details 按钮、compound 的 expand/collapse 按钮不冲突
+- 尺寸：24px × 24px，16px 加粗字形，白色描边；徽标放在节点 wrapper 左上角内部，避免视口边缘裁切
 - 复用关系边徽标的字符约定（`+`/`~`/`−`），视觉语言一致
 - 徽标为纯呈现元素，不捕获指针事件（`pointer-events: none`），不改变交互
 
@@ -46,8 +47,8 @@ unchanged 节点维持 25% 透明度、无 outline、无徽标。
 ## Risks / Trade-offs
 
 - [加粗 outline 外扩约 11–13px 可能贴近相邻节点] → outline 不占布局，仅视觉贴近；节点间距通常足够，apply 阶段截图验证
-- [徽标与节点标题/左上角内容重叠] → 小尺寸 + 绝对定位到容器左上角外侧（offset 负值外置或角内叠加），e2e 断言可见性
-- [REMOVED 徽标 100% 但宿主 45%] → 明确期望：徽标独立于宿主透明度，作为"此处有 removed"的显式标记
+- [徽标与节点标题/左上角内容重叠] → 24px 徽标位于 wrapper 左上角，保持与标题和操作按钮的间距；e2e 断言尺寸、位置与可见性
+- [REMOVED 徽标 100% 但宿主 45%] → 明确期望：徽标独立于宿主透明度，作为“此处有 removed”的显式标记
 - [导出继承依赖 DOM 元素] → outline 走 CSS class、徽标走 DOM 元素，截图自动捕获，一次性截图验证
 
 ## Migration Plan

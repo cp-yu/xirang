@@ -170,6 +170,19 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
     }
   })
 
+  const nodeBadgeStyle = (locator: ReturnType<Page['locator']>) => locator.evaluate(node => {
+    const style = getComputedStyle(node)
+    const rect = node.getBoundingClientRect()
+    return {
+      width: rect.width,
+      height: rect.height,
+      backgroundColor: style.backgroundColor,
+      color: style.color,
+      fontSize: parseFloat(style.fontSize),
+      borderWidth: parseFloat(style.borderTopWidth),
+    }
+  })
+
   // Root focus: ADDED compound node with dotted outline.
   await page.goto('/view/model/?change=browser-change&mode=complete-with-diff')
 
@@ -185,6 +198,14 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
   await expect(addedBadge).toBeVisible()
   expect(await addedBadge.textContent()).toBe('+')
   expect(await addedBadge.evaluate(node => parseFloat(getComputedStyle(node).opacity))).toBe(1)
+
+  expect((await nodeBadgeStyle(addedBadge)).width).toBeGreaterThanOrEqual(24)
+  expect((await nodeBadgeStyle(addedBadge)).height).toBe(24)
+  expect((await nodeBadgeStyle(addedBadge)).fontSize).toBeGreaterThanOrEqual(16)
+  expect((await nodeBadgeStyle(addedBadge)).borderWidth).toBeGreaterThanOrEqual(2)
+  expect((await nodeBadgeStyle(addedBadge)).backgroundColor).toMatch(/255, 159, 10/)
+  expect((await nodeBadgeStyle(addedBadge)).color).toMatch(/255, 255, 255/)
+  expect((await addedBadge.boundingBox())?.x).toBeGreaterThanOrEqual((await added.boundingBox())?.x ?? 0)
 
   // Drill focus: unchanged assistant node + edge, MODIFIED leaf, REMOVED peer.
   await page.goto('/view/model/?change=browser-change&mode=complete-with-diff&focus=capability.drill')
