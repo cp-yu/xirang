@@ -2,5 +2,6 @@
   "method": "branch",
   "branchName": "diff-node-presentation-emphasis",
   "originalBranch": "main",
-  "baseCommit": "c802cbc12bd362926f2753dfc70cae2467b8ad32"
+  "baseCommit": "c802cbc12bd362926f2753dfc70cae2467b8ad32",
+  "phase2BaselineCommit": "5111e78ae7d6e619ac52c3017fd79ae0d32fbcf9"
 }
