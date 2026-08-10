@@ -89,7 +89,7 @@
     "timestamp": "2026-08-10T06:57:53.652Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
         "timestamp": "2026-08-10T06:51:39.844Z",
@@ -100,6 +100,11 @@
         "timestamp": "2026-08-10T06:57:53.644Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-10T07:00:35.721Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
@@ -194,7 +199,7 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx"
@@ -333,9 +338,23 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-10T06:57:53.644Z",
         "findingId": "OPT-20260810T065139841Z-01"
+      },
+      {
+        "sequence": 6,
+        "action": "resolve",
+        "reason": "Terminal: implemented per keyDesign and reviewer-verified (PASS); no further value on this direction",
+        "timestamp": "2026-08-10T07:00:35.721Z",
+        "findingId": "OPT-20260810T065139841Z-01"
+      },
+      {
+        "sequence": 7,
+        "action": "retain",
+        "reason": "Remains deferred: RelationshipEdge.tsx is outside base scope; durable item for a follow-up change",
+        "timestamp": "2026-08-10T07:00:35.721Z",
+        "findingId": "OPT-20260810T065139841Z-02"
       }
     ],
-    "reconciliationSignature": "b0c19fe528e9457786821d049e371f4f11c36ae9980b68d37c5392a8d23a1761",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }
