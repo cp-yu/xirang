@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { formatArchitectureQueryText, queryArchitecture } from '../../src/commands/arch/query.js';
+import { formatArchitectureImpactText, impactArchitecture } from '../../src/commands/arch/impact.js';
 import { validateArchitectureCommand } from '../../src/commands/arch/validate.js';
 import { exportArchitecture } from '../../src/commands/arch/export.js';
 import { likec4CacheDir } from '../../src/core/likec4/paths.js';
@@ -78,7 +79,7 @@ describe('arch commands', () => {
     const impact = await runCLI(['arch', 'impact', 'payment.authorize', '--json'], { cwd: root });
     expect(impact.exitCode).toBe(0);
     expect(JSON.parse(impact.stdout)).toMatchObject({
-      focusElements: [{ identity: 'payment.authorize' }],
+      focusElements: ['payment.authorize'],
       relations: [{ source: 'payment.authorize', kind: 'invokes', target: 'payment.audit' }],
     });
 
@@ -113,7 +114,7 @@ describe('arch commands', () => {
         expect(search.exitCode).toBe(0);
         expect(impact.exitCode).toBe(0);
         expect(JSON.parse(search.stdout)).toMatchObject({ matches: [{ element: { identity: 'payment.authorize' } }] });
-        expect(JSON.parse(impact.stdout)).toMatchObject({ focusElements: [{ identity: 'payment.authorize' }] });
+        expect(JSON.parse(impact.stdout)).toMatchObject({ focusElements: ['payment.authorize'] });
         expect(search.stderr).toContain('Xirang collects anonymous usage stats');
         expect(impact.stderr).toContain('Xirang collects anonymous usage stats');
       });
@@ -122,10 +123,11 @@ describe('arch commands', () => {
     }
   });
 
-  it('queries by stable identity and rejects a derived FQN', async () => {
-    const result = await queryArchitecture(root, 'payment.authorize');
+  it('queries a batch by stable identities and rejects derived FQNs', async () => {
+    const result = await queryArchitecture(root, ['payment.authorize', 'payment.audit', 'payment.authorize']);
 
-    expect(result.element).toEqual({
+    expect(Object.keys(result.elements)).toEqual(['payment.audit', 'payment.authorize']);
+    expect(result.elements['payment.authorize']).toEqual({
       identity: 'payment.authorize',
       kind: 'operation',
       parent: 'payments',
@@ -133,59 +135,62 @@ describe('arch commands', () => {
       definition: 'Authorize payment',
       contract: 'optional',
       hasContract: true,
-      children: [],
     });
-    expect(result.element).not.toHaveProperty('fqn');
-    expect(result.element).not.toHaveProperty('specs');
-    expect(result.element).not.toHaveProperty('contractPolicy');
-    expect(result.element).not.toHaveProperty('requirements');
+    expect(JSON.stringify(result)).not.toMatch(/children|refinement|relatedElements|relations/);
+    expect(result.elements['payment.authorize']).not.toHaveProperty('fqn');
+    expect(result.elements['payment.authorize']).not.toHaveProperty('requirements');
 
-    await expect(queryArchitecture(root, 'root.payments.authorize'))
+    await expect(queryArchitecture(root, ['root.payments.authorize']))
       .rejects.toThrow('Element must use stable identity, not FQN');
-    await expect(queryArchitecture(root, 'cap.missing')).rejects.toThrow('Element not found: cap.missing');
+    await expect(queryArchitecture(root, ['cap.missing']))
+      .rejects.toThrow('Element not found: cap.missing');
   });
 
-  it('inlines the complete Contract only when --contract is requested', async () => {
-    const withoutContract = await queryArchitecture(root, 'project.root');
-    expect(withoutContract.element.hasContract).toBe(true);
-    expect(withoutContract.element.requirements).toBeUndefined();
+  it('inlines complete Contracts only for explicitly requested identities', async () => {
+    const withoutContract = await queryArchitecture(root, ['project.root']);
+    expect(withoutContract.elements['project.root'].hasContract).toBe(true);
+    expect(withoutContract.elements['project.root'].requirements).toBeUndefined();
 
-    const withContract = await queryArchitecture(root, 'project.root', { contract: true });
-    expect(withContract.element.requirements).toEqual([{
+    const withContract = await queryArchitecture(root, ['project.root'], { contract: true });
+    expect(withContract.elements['project.root'].requirements).toEqual([{
       name: 'Project behavior',
       body: 'The project SHALL behave.',
       scenarios: [{ name: 'Existing', body: '- **WHEN** used\n- **THEN** it works' }],
     }]);
+    expect(withContract.elements).not.toHaveProperty('payment.authorize');
 
-    const empty = await queryArchitecture(root, 'payment.audit', { contract: true });
-    expect(empty.element.hasContract).toBe(false);
-    expect(empty.element.requirements).toEqual([]);
+    const empty = await queryArchitecture(root, ['payment.audit'], { contract: true });
+    expect(empty.elements['payment.audit'].hasContract).toBe(false);
+    expect(empty.elements['payment.audit'].requirements).toEqual([]);
 
     const cli = await runCLI(['arch', 'query', 'project.root', '--contract', '--json'], { cwd: root });
-    expect(JSON.parse(cli.stdout).element.requirements[0].name).toBe('Project behavior');
+    expect(JSON.parse(cli.stdout).elements['project.root'].requirements[0].name).toBe('Project behavior');
+  });
+
+  it('rejects removed query navigation options and fails unknown batches atomically', async () => {
+    const relations = await runCLI(['arch', 'query', 'payment.authorize', '--relations'], { cwd: root });
+    const depth = await runCLI(['arch', 'query', 'payment.authorize', '--depth', '2'], { cwd: root });
+    const unknown = await runCLI(['arch', 'query', 'payment.authorize', 'missing', '--json'], { cwd: root });
+
+    expect(relations.exitCode).toBe(1);
+    expect(relations.stderr).toContain("unknown option '--relations'");
+    expect(depth.exitCode).toBe(1);
+    expect(depth.stderr).toContain("unknown option '--depth'");
+    expect(unknown.exitCode).toBe(1);
+    expect(unknown.stdout).toBe('');
+    expect(unknown.stderr).toContain('Element not found: missing');
   });
 
   it('expands containment and relation endpoints by identity', async () => {
-    const result = await queryArchitecture(root, 'project.root', { depth: 2, relations: true });
+    const result = await impactArchitecture(root, ['project.root'], { depth: 2 });
 
-    expect(result.refinement).toEqual([
-      expect.objectContaining({ identity: 'payments', parent: 'project.root', depth: 1 }),
-      expect.objectContaining({ identity: 'payment.audit', parent: 'payments', depth: 2 }),
-      expect.objectContaining({ identity: 'payment.authorize', parent: 'payments', depth: 2 }),
-    ]);
-    expect(result.relations).toEqual([
-      { source: 'payment.authorize', kind: 'invokes', target: 'payment.audit', depth: 2 },
-    ]);
-    expect(result.relations?.[0]).not.toHaveProperty('description');
-    expect(formatArchitectureQueryText(result)).toContain('[depth 2] Element: payment.authorize');
-  });
-
-  it('returns a JSON-serializable result with related elements at bounded depth', async () => {
-    const result = await queryArchitecture(root, 'payment.authorize', { relations: true, depth: 2 });
-    expect(result.relatedElements).toEqual([
-      expect.objectContaining({ element: expect.objectContaining({ identity: 'payment.audit' }), depth: 1 }),
-    ]);
-    expect(JSON.parse(JSON.stringify(result))).toMatchObject({ element: { identity: 'payment.authorize' } });
+    expect(result.refinementContext).toEqual(expect.arrayContaining([
+      expect.objectContaining({ elementId: 'payments', direction: 'descendant', depth: 1 }),
+      expect.objectContaining({ elementId: 'payment.audit', direction: 'descendant', depth: 2 }),
+      expect.objectContaining({ elementId: 'payment.authorize', direction: 'descendant', depth: 2 }),
+    ]));
+    expect(result.relations).toEqual([]);
+    expect(formatArchitectureImpactText(result)).toContain('Element identities:');
   });
 
   it('validates .xirang/model without invoking LikeC4', async () => {
@@ -271,6 +276,33 @@ describe('arch commands', () => {
     await expect(fs.stat(output)).resolves.toMatchObject({});
   });
 
+  it('runs arch outline in all formats and rejects invalid definition depths', async () => {
+    const text = await runCLI(['arch', 'outline'], { cwd: root });
+    const markdown = await runCLI(['arch', 'outline', '--format', 'markdown'], { cwd: root });
+    const json = await runCLI(['arch', 'outline', '--format', 'json'], { cwd: root });
+
+    expect(text.exitCode).toBe(0);
+    expect(text.stdout).toContain('project.root (semanticProject) Project');
+    expect(markdown.exitCode).toBe(0);
+    expect(markdown.stdout).toContain('- project.root (semanticProject) Project');
+    expect(json.exitCode).toBe(0);
+    expect(JSON.parse(json.stdout)).toMatchObject({
+      elementDefinitionDepth: 2,
+      elements: [
+        expect.objectContaining({ identity: 'payment.audit' }),
+        expect.objectContaining({ identity: 'payment.authorize' }),
+        expect.objectContaining({ identity: 'payments' }),
+        expect.objectContaining({ identity: 'project.root' }),
+      ],
+    });
+
+    for (const depth of ['-1', '1.5', 'invalid']) {
+      const invalid = await runCLI(['arch', 'outline', '--definition-depth', depth], { cwd: root });
+      expect(invalid.exitCode).not.toBe(0);
+      expect(invalid.stderr).toContain('non-negative integer');
+    }
+  });
+
   it('runs arch snapshot with default text, markdown, and json formats', async () => {
     const text = await runCLI(['arch', 'snapshot'], { cwd: root });
     expect(text.exitCode).toBe(0);
@@ -316,7 +348,7 @@ describe('arch commands', () => {
   it('reads the model exactly once per query', async () => {
     const readFileSpy = vi.spyOn(fs, 'readFile');
     try {
-      const result = await queryArchitecture(root, 'payment.authorize', { relations: true });
+      const result = await queryArchitecture(root, ['payment.authorize']);
       const counts = new Map<string, number>();
       for (const [file] of readFileSpy.mock.calls) {
         const key = String(file);

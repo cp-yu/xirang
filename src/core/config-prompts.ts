@@ -44,6 +44,15 @@ export function serializeConfig(config: Partial<ProjectConfig>): string {
   lines.push('#     Domain: e-commerce platform');
   lines.push('');
 
+  // Architecture outline projection
+  lines.push('# Agent semantic-model outline projection (optional)');
+  if (materialized.architecture) {
+    lines.push('architecture:');
+    lines.push('  outline:');
+    lines.push(`    elementDefinitionDepth: ${materialized.architecture.outline.elementDefinitionDepth}`);
+  }
+  lines.push('');
+
   // Optimization section with comments
   lines.push('# Verify Phase 2 optimization policy (optional)');
   lines.push('# Set enabled: false to keep verify in Phase 1 conformance-only mode.');

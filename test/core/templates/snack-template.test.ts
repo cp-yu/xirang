@@ -86,6 +86,11 @@ describe('snack template artifact reconciliation', () => {
     expect(instructions).toMatch(/do not.*tasks\.md|tasks\.md.*not.*generat|not.*generate.*tasks\.md/i);
   });
 
+  it('loads selected candidate Contracts with one batch query', () => {
+    expect(instructions).toContain('`xirang arch query <selected-identities...> --contract --json`');
+    expect(instructions).not.toContain('`xirang arch query <identity> --contract --json` for each candidate');
+  });
+
   it('determines Contract and structural scopes as one Semantic Delta', () => {
     for (const token of [
       'Determine Element Contract impact',

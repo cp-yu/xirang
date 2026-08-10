@@ -46,7 +46,7 @@ ${XIRANG_SHARED_CONTEXT}
    - CodeGraph MAY accelerate symbol/call/import discovery; otherwise use ACE, \`rg\`, and \`read\`. Never read \`.codegraph/codegraph.db\`.
    - Treat code locations and call/import edges as implementation evidence, not as proof that the Xirang Semantic Model must change. Do not create elements from uncertain file-name inference.
 5. Determine Element Contract impact.
-   - Run \`xirang arch query <identity> --contract --json\` for each candidate Element and keep its current Requirements.
+   - Select only the candidate Element identities whose current Contracts are needed, then run one batch \`xirang arch query <selected-identities...> --contract --json\` and keep their current Requirements.
    - Add an identity to **Modified Specs** only when the observable requirements of its Element Contract change. Add it to **New Specs** only for genuinely new observable behavior not governed by an existing Element Contract.
    - An optional-contract Element without a Contract does not by itself require a new one; mark missing coverage \`[REVIEW NEEDED]\`.
    - Behavior-preserving refactors create no Contract delta; later Checks use \`Preserves:\` against formal Element Contracts.

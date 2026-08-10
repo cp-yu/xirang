@@ -2,15 +2,17 @@
 
 The persisted Xirang Semantic Model is the only semantic authority. Programmatic consumers should use the CLI or read the four partitions under `.xirang/model/` through Xirang model APIs. Source paths, imports, calls, and symbols remain implementation evidence; they are not persisted semantic facts.
 
-## Query Elements
+## Load Semantic Context
 
 ```bash
-xirang arch query <identity> --relations --depth 2 --contract --json
+xirang arch outline --format json
 xirang arch search <query> --json
+xirang arch impact <identity> --depth 2 --json
+xirang arch query <selected-identities...> --contract --json
 xirang arch validate --json
 ```
 
-Query output uses stable identity and can include Declaration, parent, children, Element Contract, and directed semantic Relationships. File paths and generated LikeC4 names do not define identity.
+Outline returns the complete Element hierarchy, all Relationships, and complete Metamodel Kinds with depth-bounded Definitions. Impact returns identity-only refinement and Relationship context plus canonical paths. Batch query returns complete Declarations for only the explicit stable identities and optionally their owned Contracts; it does not expand children or Relationships. File paths and generated LikeC4 names do not define identity.
 
 ## Read Element Contracts
 

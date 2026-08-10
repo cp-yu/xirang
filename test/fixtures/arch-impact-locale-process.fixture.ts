@@ -34,7 +34,7 @@ describe.runIf(Boolean(outputPath))('arch impact locale process fixture', () => 
 
       const result = await impactArchitecture(root, ['cap.focus']);
       await fs.writeFile(outputPath!, JSON.stringify(result));
-      expect(result.elements.map(element => element.identity)).toEqual([
+      expect(result.elements).toEqual([
         'cap.I', 'cap.focus', 'cap.i', 'cap.target', 'project.root',
       ]);
     } finally {

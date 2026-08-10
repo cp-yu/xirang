@@ -13,6 +13,11 @@ import { z } from 'zod';
 import { BuiltInSchemaIdSchema } from './artifact-graph/types.js';
 
 export const PROJECT_CONFIG_FUNCTIONAL_DEFAULTS = {
+  architecture: {
+    outline: {
+      elementDefinitionDepth: 2,
+    },
+  },
   optimization: {
     enabled: true,
     optRetries: 2,
@@ -90,11 +95,28 @@ export const ProjectConfigSchema = z.object({
     .optional()
     .describe('Project context injected into all artifact instructions'),
 
+  // Optional: Agent semantic-model outline projection
+  architecture: z
+    .object({
+      outline: z
+        .object({
+          elementDefinitionDepth: z.number().int().min(0).optional().default(
+            PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture.outline.elementDefinitionDepth
+          ),
+        })
+        .optional()
+        .default({ ...PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture.outline }),
+    })
+    .optional()
+    .describe('Agent semantic-model outline projection settings'),
+
   // Optional: verify Phase 2 optimization policy
   optimization: z
     .object({
-      enabled: z.boolean().optional().default(true),
-      optRetries: z.number().int().min(0).max(10).optional().default(2),
+      enabled: z.boolean().optional().default(PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization.enabled),
+      optRetries: z.number().int().min(0).max(10).optional().default(
+        PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization.optRetries
+      ),
     })
     .optional()
     .describe('Project-level Phase 2 optimization policy for verify workflows'),
@@ -102,7 +124,9 @@ export const ProjectConfigSchema = z.object({
   // Optional: apply-stage implementation policy
   apply: z
     .object({
-      defaultIsolation: z.enum(['ask', 'branch', 'worktree', 'none']).optional().default('ask'),
+      defaultIsolation: z.enum(['ask', 'branch', 'worktree', 'none']).optional().default(
+        PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.apply.defaultIsolation
+      ),
     })
     .optional()
     .describe('Apply-stage branch/worktree isolation policy'),
@@ -119,16 +143,20 @@ export const ProjectConfigSchema = z.object({
         .optional(),
       merge: z
         .object({
-          strategy: z.enum(['no-ff', 'ff-only', 'squash']).optional().default('no-ff'),
+          strategy: z.enum(['no-ff', 'ff-only', 'squash']).optional().default(
+            PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.git.merge.strategy
+          ),
         })
         .optional()
-        .default({ strategy: 'no-ff' }),
+        .default({ ...PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.git.merge }),
       branch: z
         .object({
-          deleteAfterArchive: z.boolean().optional().default(false),
+          deleteAfterArchive: z.boolean().optional().default(
+            PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.git.branch.deleteAfterArchive
+          ),
         })
         .optional()
-        .default({ deleteAfterArchive: false }),
+        .default({ ...PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.git.branch }),
     })
     .optional()
     .describe('Git archive and merge policy'),
@@ -149,6 +177,7 @@ const MAX_CONTEXT_SIZE = 50 * 1024; // 50KB hard limit
 
 type MaterializedProjectConfigDefaults = Pick<ProjectConfig, 'schema'> &
   Partial<Pick<ProjectConfig, 'proseLanguage'>> & {
+    architecture: typeof PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture;
     optimization: typeof PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization;
     apply: typeof PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.apply;
     git: typeof PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.git;
@@ -156,6 +185,11 @@ type MaterializedProjectConfigDefaults = Pick<ProjectConfig, 'schema'> &
 
 function cloneFunctionalDefaults() {
   return {
+    architecture: {
+      outline: {
+        ...PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture.outline,
+      },
+    },
     optimization: {
       ...PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization,
     },
@@ -267,6 +301,11 @@ export function migrateProjectConfigDefaults(projectRoot: string): ProjectConfig
   const defaults = materializeProjectConfigDefaults({ schema: DEFAULT_PROJECT_SCHEMA });
   let changed = false;
   changed = setMissingPath(document, ['schema'], defaults.schema) || changed;
+  changed = setMissingPath(
+    document,
+    ['architecture', 'outline', 'elementDefinitionDepth'],
+    defaults.architecture.outline.elementDefinitionDepth
+  ) || changed;
   changed = setMissingPath(document, ['optimization', 'enabled'], defaults.optimization.enabled) || changed;
   changed = setMissingPath(document, ['optimization', 'optRetries'], defaults.optimization.optRetries) || changed;
   changed = setMissingPath(document, ['apply', 'defaultIsolation'], defaults.apply.defaultIsolation) || changed;
@@ -379,11 +418,40 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
       }
     }
 
+    // Parse architecture outline projection settings using Zod
+    if (raw.architecture !== undefined) {
+      const architectureField = z.object({
+        outline: z
+          .object({
+            elementDefinitionDepth: z
+              .number()
+              .int()
+              .min(0)
+              .optional()
+              .default(PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture.outline.elementDefinitionDepth),
+          })
+          .optional()
+          .default({ ...PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture.outline }),
+      });
+      const architectureResult = architectureField.safeParse(raw.architecture);
+
+      if (architectureResult.success) {
+        config.architecture = architectureResult.data;
+      } else {
+        config.architecture = cloneFunctionalDefaults().architecture;
+        console.warn(
+          `Invalid 'architecture.outline.elementDefinitionDepth' field in config (must be a non-negative integer)`
+        );
+      }
+    }
+
     // Parse optimization field using Zod
     if (raw.optimization !== undefined) {
       const optimizationField = z.object({
-        enabled: z.boolean().optional().default(true),
-        optRetries: z.number().int().min(0).max(10).optional().default(2),
+        enabled: z.boolean().optional().default(PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization.enabled),
+        optRetries: z.number().int().min(0).max(10).optional().default(
+          PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization.optRetries
+        ),
       });
       const optimizationResult = optimizationField.safeParse(raw.optimization);
 
@@ -397,7 +465,9 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
     // Parse apply field using Zod
     if (raw.apply !== undefined) {
       const applyField = z.object({
-        defaultIsolation: z.enum(['ask', 'branch', 'worktree', 'none']).optional().default('ask'),
+        defaultIsolation: z.enum(['ask', 'branch', 'worktree', 'none']).optional().default(
+          PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.apply.defaultIsolation
+        ),
       });
       const applyResult = applyField.safeParse(raw.apply);
 

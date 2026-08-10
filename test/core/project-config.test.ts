@@ -8,6 +8,7 @@ import {
   migrateProjectConfigDefaults,
   readProjectConfig,
   validateConfigRules,
+  type ProjectConfig,
 } from '../../src/core/project-config.js';
 import {
   buildConfigProjectionBundle,
@@ -60,6 +61,11 @@ describe('project-config', () => {
 
       expect(defaults).toEqual({
         schema: 'semantic-model',
+        architecture: {
+          outline: {
+            elementDefinitionDepth: 2,
+          },
+        },
         optimization: {
           enabled: true,
           optRetries: 2,
@@ -106,6 +112,11 @@ describe('project-config', () => {
       });
       expect(parsed).toEqual({
         schema: 'semantic-model',
+        architecture: {
+          outline: {
+            elementDefinitionDepth: 2,
+          },
+        },
         optimization: {
           enabled: true,
           optRetries: 2,
@@ -213,7 +224,11 @@ git: disabled
       const configDir = path.join(tempDir, '.xirang');
       fs.mkdirSync(configDir, { recursive: true });
       const ymlPath = path.join(configDir, 'config.yml');
-      fs.writeFileSync(ymlPath, 'schema: semantic-model\n');
+      fs.writeFileSync(ymlPath, `schema: semantic-model
+architecture:
+  outline:
+    elementDefinitionDepth: 4
+`);
 
       const result = migrateProjectConfigDefaults(tempDir);
 
@@ -222,7 +237,9 @@ git: disabled
         path: ymlPath,
       });
       expect(fs.existsSync(path.join(configDir, 'config.yaml'))).toBe(false);
-      expect(parseYaml(fs.readFileSync(ymlPath, 'utf-8')).git.merge.strategy).toBe('no-ff');
+      const parsed = parseYaml(fs.readFileSync(ymlPath, 'utf-8'));
+      expect(parsed.architecture.outline.elementDefinitionDepth).toBe(4);
+      expect(parsed.git.merge.strategy).toBe('no-ff');
     });
 
     it('should leave invalid yaml unchanged and report skipped migration', () => {
@@ -280,6 +297,54 @@ git: disabled
 
   describe('readProjectConfig', () => {
     describe('resilient parsing', () => {
+      it.each([
+        ['negative', '  outline:\n    elementDefinitionDepth: -1'],
+        ['non-integer', '  outline:\n    elementDefinitionDepth: 1.5'],
+        ['invalid outline shape', '  outline: invalid'],
+      ])('should fall back for %s architecture outline config', (_label, architectureValue) => {
+        const configDir = path.join(tempDir, '.xirang');
+        fs.mkdirSync(configDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(configDir, 'config.yaml'),
+          `schema: semantic-model
+context: keep me
+architecture:
+${architectureValue}
+`
+        );
+
+        const config = readProjectConfig(tempDir);
+
+        expect(config?.architecture).toEqual({
+          outline: {
+            elementDefinitionDepth: 2,
+          },
+        });
+        expect(config?.context).toBe('keep me');
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          expect.stringContaining("Invalid 'architecture.outline.elementDefinitionDepth'")
+        );
+      });
+
+      it('should preserve a legal architecture outline depth from config.yml', () => {
+        const configDir = path.join(tempDir, '.xirang');
+        fs.mkdirSync(configDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(configDir, 'config.yml'),
+          `schema: semantic-model
+architecture:
+  outline:
+    elementDefinitionDepth: 4
+`
+        );
+
+        expect(readProjectConfig(tempDir)?.architecture).toEqual({
+          outline: {
+            elementDefinitionDepth: 4,
+          },
+        });
+      });
+
       it('should parse complete valid config', () => {
         const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
@@ -1045,6 +1110,56 @@ rules:
   });
 
   describe('config projection', () => {
+    it('uses the effective outline depth for a legal partial architecture config', () => {
+      const config = {
+        schema: 'semantic-model',
+        architecture: {},
+      } as ProjectConfig;
+
+      expect(normalizeProjectConfig(config).architecture).toEqual({
+        outline: {
+          elementDefinitionDepth: 2,
+        },
+      });
+    });
+
+    it('projects the effective architecture outline depth for agents', () => {
+      const defaultBundle = buildConfigProjectionBundle(
+        {
+          schema: 'semantic-model',
+          rules: {},
+        },
+        { surface: 'apply' }
+      );
+      const configuredBundle = buildConfigProjectionBundle(
+        {
+          schema: 'semantic-model',
+          architecture: {
+            outline: {
+              elementDefinitionDepth: 4,
+            },
+          },
+          rules: {},
+        },
+        { surface: 'apply' }
+      );
+
+      expect(defaultBundle.normalized.architecture).toEqual({
+        outline: {
+          elementDefinitionDepth: 2,
+        },
+      });
+      expect(defaultBundle.prompt.fragments).toContainEqual({
+        key: 'architecture',
+        scope: 'global',
+        lines: ['architecture.outline.elementDefinitionDepth: 2'],
+      });
+      expect(configuredBundle.normalized.architecture.outline.elementDefinitionDepth).toBe(4);
+      expect(configuredBundle.prompt.compiledLines).toContain(
+        'architecture.outline.elementDefinitionDepth: 4'
+      );
+    });
+
     it('normalizes whitespace while preserving whitelist fields', () => {
       const normalized = normalizeProjectConfig({
         schema: ' semantic-model ',
@@ -1081,6 +1196,11 @@ rules:
         schema: 'semantic-model',
         proseLanguage: '中文',
         context: 'Team context',
+        architecture: {
+          outline: {
+            elementDefinitionDepth: 2,
+          },
+        },
         optimization: {
           enabled: false,
           optRetries: 2,
@@ -1126,6 +1246,7 @@ rules:
         expect.objectContaining({ key: 'proseLanguage', scope: 'global' }),
         expect.objectContaining({ key: 'context', scope: 'global' }),
         expect.objectContaining({ key: 'rules', scope: 'artifact', lines: ['Include rollback plan'] }),
+        expect.objectContaining({ key: 'architecture', scope: 'global' }),
       ]);
       expect(bundle.prompt.compiledLines.join('\n')).toContain('Use 中文 for natural-language prose');
       expect(bundle.prompt.compiledLines.join('\n')).toContain('task titles, check names, Requirement titles, Scenario titles');
@@ -1162,6 +1283,11 @@ rules:
             'git.branch.deleteAfterArchive: false',
           ],
         }),
+        expect.objectContaining({
+          key: 'architecture',
+          scope: 'global',
+          lines: ['architecture.outline.elementDefinitionDepth: 2'],
+        }),
       ]);
     });
 
@@ -1194,6 +1320,11 @@ rules:
             'git.merge.strategy: squash',
             'git.branch.deleteAfterArchive: true',
           ],
+        }),
+        expect.objectContaining({
+          key: 'architecture',
+          scope: 'global',
+          lines: ['architecture.outline.elementDefinitionDepth: 2'],
         }),
       ]);
     });

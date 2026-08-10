@@ -1,0 +1,654 @@
+{
+  "timestamp": "2026-08-10T14:22:00.972Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "The change passes its directed verification, but the pre-existing Formal Semantic Model still has five unrelated Contract validation failures because six role Requirements use MAY without SHALL or MUST.",
+      "requirement": "Semantic Model validation baseline",
+      "task": null,
+      "recommendation": "Repair the baseline role Contracts in a separate change; no correction to optimize-agent-semantic-context-loading is required.",
+      "evidenceCitations": [
+        ".xirang/model/elements/agent.md:12-27",
+        ".xirang/model/elements/apply-role.md:12-13",
+        ".xirang/model/elements/archive-role.md:19-20",
+        ".xirang/model/elements/project-build-role.md:12-14",
+        ".xirang/model/elements/propose-role.md:12-14"
+      ]
+    }
+  ],
+  "tasksFileHash": "0b1124c69ebc8bbe4bc6d5f65c71f7550875384a39c0f869f5d18102de433468",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".pi/agents/xirang-optimizer.md",
+      ".pi/agents/xirang-reviewer.md",
+      ".pi/skills/xirang-apply-change/SKILL.md",
+      ".pi/skills/xirang-explore/SKILL.md",
+      ".pi/skills/xirang-propose/SKILL.md",
+      ".pi/skills/xirang-snack/SKILL.md",
+      ".xirang/changes/optimize-agent-semantic-context-loading/.apply-isolation.json",
+      ".xirang/changes/optimize-agent-semantic-context-loading/.verify-result.json",
+      ".xirang/changes/optimize-agent-semantic-context-loading/design.md",
+      ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-impact.md",
+      ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-outline.md",
+      ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-query.md",
+      ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-snapshot.md",
+      ".xirang/changes/optimize-agent-semantic-context-loading/elements/explore-brainstorming.md",
+      ".xirang/changes/optimize-agent-semantic-context-loading/elements/project-tooling-configuration.md",
+      ".xirang/changes/optimize-agent-semantic-context-loading/elements/task-decomposition.md",
+      ".xirang/changes/optimize-agent-semantic-context-loading/elements/workflow-templates.md",
+      ".xirang/changes/optimize-agent-semantic-context-loading/proposal.md",
+      ".xirang/changes/optimize-agent-semantic-context-loading/tasks.md",
+      ".xirang/model/elements/agent.md",
+      ".xirang/model/elements/apply-role.md",
+      ".xirang/model/elements/archive-role.md",
+      ".xirang/model/elements/project-build-role.md",
+      ".xirang/model/elements/propose-role.md",
+      ".xirang/references/xirang-apply-step-1-preparation.md",
+      ".xirang/references/xirang-self-read-protocol.md",
+      "README.md",
+      "docs/architecture-integration.md",
+      "docs/commands.md",
+      "docs/xirang-integration.md",
+      "src/commands/arch/impact.ts",
+      "src/commands/arch/index.ts",
+      "src/commands/arch/outline.ts",
+      "src/commands/arch/query.ts",
+      "src/commands/arch/snapshot.ts",
+      "src/core/config-projection.ts",
+      "src/core/config-prompts.ts",
+      "src/core/project-config.ts",
+      "src/core/templates/fragments/xirang-fragments.ts",
+      "src/core/templates/workflows/apply-change.ts",
+      "src/core/templates/workflows/explore.ts",
+      "src/core/templates/workflows/optimizer.ts",
+      "src/core/templates/workflows/propose.ts",
+      "src/core/templates/workflows/reviewer.ts",
+      "src/core/templates/workflows/snack.ts",
+      "test/commands/arch-impact.test.ts",
+      "test/commands/arch-outline.test.ts",
+      "test/commands/arch-query.test.ts",
+      "test/core/project-config.test.ts",
+      "test/core/templates/apply-change.test.ts",
+      "test/core/templates/explore-template.test.ts",
+      "test/core/templates/fragments/xirang-fragments.test.ts",
+      "test/core/templates/optimizer-template.test.ts",
+      "test/core/templates/propose-template.test.ts",
+      "test/core/templates/reviewer-template.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts",
+      "test/core/templates/snack-template.test.ts",
+      "test/fixtures/arch-impact-locale-process.fixture.ts",
+      "test/integration/arch-command.test.ts"
+    ],
+    "evidenceFingerprint": "dcdaea6557ed4ecf29e6c3c38b9150c58943073bc9129b7dfe64f2251ed4f67a",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".pi/agents/xirang-optimizer.md",
+        "hash": "6c8063f3b0acb908216c57f0a0fe1e68c111846b7f38ba36205351dd3f691597"
+      },
+      {
+        "path": ".pi/agents/xirang-reviewer.md",
+        "hash": "e67d7dd1826bb2a9a5bee15782506db0e3979dc488185d66559e854d13115f9b"
+      },
+      {
+        "path": ".pi/skills/xirang-apply-change/SKILL.md",
+        "hash": "7293cafb8bd45218f171a141a64c640f755f99ef534c5de5abdccd2fa3e4edad"
+      },
+      {
+        "path": ".pi/skills/xirang-explore/SKILL.md",
+        "hash": "f1347ba23b4bf2159c782c11e4d8efc06b461caab968181c5728b92fee1a2196"
+      },
+      {
+        "path": ".pi/skills/xirang-propose/SKILL.md",
+        "hash": "821680e95229cd5ca23c5fb7c2bba5f84cd6f01a997d9f9621f8e8e86af8c469"
+      },
+      {
+        "path": ".pi/skills/xirang-snack/SKILL.md",
+        "hash": "066111a623470afe26aaf082313205ef1d98094ad33b7e5878e9295109b09a5e"
+      },
+      {
+        "path": ".xirang/changes/optimize-agent-semantic-context-loading/.apply-isolation.json",
+        "hash": "c77466288d101103886a78ed40b8969e3d10cf3c4fcfd5d5cdc48a484dde28cb"
+      },
+      {
+        "path": ".xirang/changes/optimize-agent-semantic-context-loading/design.md",
+        "hash": "c66e0b4f3236d91f02902750591dce3585bac415d2a7fdccfdcfd66bc06711fd"
+      },
+      {
+        "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-impact.md",
+        "hash": "476ff6f8d8584d5062b6d773c3046aecf929b76f9b3fcdf078cd8b5935be6882"
+      },
+      {
+        "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-outline.md",
+        "hash": "79732ee038b3f3026915126acd981582039282316dff20910d02886f8c295859"
+      },
+      {
+        "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-query.md",
+        "hash": "9fc0f2ae02f655cdc002a7b2d8d76aabed758af58187ec0f677f764019fe7880"
+      },
+      {
+        "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-snapshot.md",
+        "hash": "d5cfb06183e2032cc00032902fdd69bb7d46d1a5376bc0e8be34007c3aab3676"
+      },
+      {
+        "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/explore-brainstorming.md",
+        "hash": "72a7a787f7dfb282f86e7ae48aa0b327c5f062875662cbfd243be046208863ec"
+      },
+      {
+        "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/project-tooling-configuration.md",
+        "hash": "ab57f28b94e99b931cce15e22076b842e243b820c0fcdc3550eb87ce1c56020e"
+      },
+      {
+        "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/task-decomposition.md",
+        "hash": "420fa211af65f7b034ba260135e823dcf20925d2e812f0f37b9df770cebb9f09"
+      },
+      {
+        "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/workflow-templates.md",
+        "hash": "a3228a40af1e28d7ea2f706c3520722f29addc020177313dff6b6dfd8c56620f"
+      },
+      {
+        "path": ".xirang/changes/optimize-agent-semantic-context-loading/proposal.md",
+        "hash": "41cf1ed549d9ae2e9184306bf0e4db459b6b432a5d319a00e117cfa4b3f30e0e"
+      },
+      {
+        "path": ".xirang/changes/optimize-agent-semantic-context-loading/tasks.md",
+        "hash": "0b1124c69ebc8bbe4bc6d5f65c71f7550875384a39c0f869f5d18102de433468"
+      },
+      {
+        "path": ".xirang/model/elements/agent.md",
+        "hash": "f3dc7821efca0df28de28f80ca9cf785f0bac058fafd86e2a76c557b9b0cdc8f"
+      },
+      {
+        "path": ".xirang/model/elements/apply-role.md",
+        "hash": "f8831865b13cafda424cffd638cd7d98077fdbd26da057432d5c6c45caefea6f"
+      },
+      {
+        "path": ".xirang/model/elements/archive-role.md",
+        "hash": "29d7b1b0fce1582821ed48c1c805e030d5fe4fe9c922cdf465f97224db9bd85e"
+      },
+      {
+        "path": ".xirang/model/elements/project-build-role.md",
+        "hash": "724517d8bd5fc7a47e9324aed9d19ef400f99b6dbdca9e71addddea90551d227"
+      },
+      {
+        "path": ".xirang/model/elements/propose-role.md",
+        "hash": "f6de6b478f70e875f8822db22569f89fe790a99f91a00bf929d0e89734ed7045"
+      },
+      {
+        "path": ".xirang/references/xirang-apply-step-1-preparation.md",
+        "hash": "1856cd041fd38d7e864cb4991c7023337da220d070ef97536b32ab6870803bfc"
+      },
+      {
+        "path": ".xirang/references/xirang-self-read-protocol.md",
+        "hash": "676f17c36e0478f4dd3390934d6137484e022a5bda91020eee0a1cb7d2d72c77"
+      },
+      {
+        "path": "docs/architecture-integration.md",
+        "hash": "0df23e44e8b179421da31d395a38308c088b6f421d9fa5037944a9dfead340bf"
+      },
+      {
+        "path": "docs/commands.md",
+        "hash": "41e13d0d0c0bfbbe214c49a0b3ba51b40948adb8a0f608121a8610d7e9924e17"
+      },
+      {
+        "path": "docs/xirang-integration.md",
+        "hash": "a0b097efd7c7468d5c4f40b33869d3acf7b57c804649732898f74b4ce7525d3a"
+      },
+      {
+        "path": "README.md",
+        "hash": "761898b37e41a4584477518fa26ea2b166129ecb33509b77b4d4a4d67787d9d0"
+      },
+      {
+        "path": "src/commands/arch/impact.ts",
+        "hash": "72e25025e8523916516a32e790e4e32ec72f57ddb689dcef472ee2fef0282a67"
+      },
+      {
+        "path": "src/commands/arch/index.ts",
+        "hash": "4d12498246a5857cb1941f4ff99d40cf7fc95d67b91d099ddcfead3591407720"
+      },
+      {
+        "path": "src/commands/arch/outline.ts",
+        "hash": "66839cedb5c74b9b6b2b8e3989e5cb8de70873baa9ae306572f5f45fe3d9f529"
+      },
+      {
+        "path": "src/commands/arch/query.ts",
+        "hash": "e2604e4f8c33a54e76695beedd698e7af97ea3eab7b8c4134ca6633bb81739b3"
+      },
+      {
+        "path": "src/commands/arch/snapshot.ts",
+        "hash": "9a054e01b98b47d18dc29497f15be7f8ed8eb4b78dd1585421a42dc244f340c5"
+      },
+      {
+        "path": "src/core/config-projection.ts",
+        "hash": "89378e301d43ab7a2957df75ebd0896a15294a17ecf9577ce8d3e4e8d30ee462"
+      },
+      {
+        "path": "src/core/config-prompts.ts",
+        "hash": "2b30a625eecf1d2e392ed01d42a32ee09289e085c7971a85b46102eacbb5d740"
+      },
+      {
+        "path": "src/core/project-config.ts",
+        "hash": "5e375166945e12e5d508876ca3b50caa5f0207a60539151ce00c52a18a18682f"
+      },
+      {
+        "path": "src/core/templates/fragments/xirang-fragments.ts",
+        "hash": "ec90ad8439e7c8224b496b6d4879709a4c2af48e49b309a4d458d6d86a516ada"
+      },
+      {
+        "path": "src/core/templates/workflows/apply-change.ts",
+        "hash": "7c0586cb568bfc46c2d82f86d557b7529efc9d26eb0c18afaa63a71e2bebf130"
+      },
+      {
+        "path": "src/core/templates/workflows/explore.ts",
+        "hash": "0d56eff9ec28cbe12c1251b4014cc5b55d2d7bb4b0d44c8d78489f01d5892e4a"
+      },
+      {
+        "path": "src/core/templates/workflows/optimizer.ts",
+        "hash": "8decf5cbdfea7f197b09f3e3546974bba2d74c5380d3629f9a68f4ce325cb1b7"
+      },
+      {
+        "path": "src/core/templates/workflows/propose.ts",
+        "hash": "626d03d2a38d5b8935a44129c2c551832a5f8f85a80237777aa36624e09069b3"
+      },
+      {
+        "path": "src/core/templates/workflows/reviewer.ts",
+        "hash": "e2c6bd6ee0bd1f84baaaf393717566c92a683860971cd16f5f767ff2aabd130d"
+      },
+      {
+        "path": "src/core/templates/workflows/snack.ts",
+        "hash": "4583d743843dddf211e53c6f0b5183735832560ce9bbbf9c3e81c0c82a8b69a5"
+      },
+      {
+        "path": "test/commands/arch-impact.test.ts",
+        "hash": "40432623b532ee0fe336555dda787f0be41054bad671da322db367478310628a"
+      },
+      {
+        "path": "test/commands/arch-outline.test.ts",
+        "hash": "cdcb921f7a8977459558c6f8403e1958d7ff6b8406d4902dad7bb0e0fe60bd51"
+      },
+      {
+        "path": "test/commands/arch-query.test.ts",
+        "hash": "4af2c7ab32b55b946e1c414d48a90d6aafb85e974ee555cc3766092aed95b7fa"
+      },
+      {
+        "path": "test/core/project-config.test.ts",
+        "hash": "765aec803d71bbef783d3f3d63b915d04c9f752e96c494c61248e233fbb0397e"
+      },
+      {
+        "path": "test/core/templates/apply-change.test.ts",
+        "hash": "28ed20f946783aa0f8ba955b816d9753769a0b3e3d4a1b4e0a1b96e261bcf811"
+      },
+      {
+        "path": "test/core/templates/explore-template.test.ts",
+        "hash": "711eaaf129793804ce2a23e87f2d531a1975d53e9824d7b53384e21f7e8d4958"
+      },
+      {
+        "path": "test/core/templates/fragments/xirang-fragments.test.ts",
+        "hash": "ea451fb64822d3e9ff8af65330ee830c9596685ef3bfdbe6cd1c0f3f309b4347"
+      },
+      {
+        "path": "test/core/templates/optimizer-template.test.ts",
+        "hash": "fb887de0e9d13899294ad583da0f556123b8114fd95f3a15cf94d9ba13f98e49"
+      },
+      {
+        "path": "test/core/templates/propose-template.test.ts",
+        "hash": "7abacb014c5c68548198e5f016736b6ac8f89e4ae085d9438678f297aa4070ff"
+      },
+      {
+        "path": "test/core/templates/reviewer-template.test.ts",
+        "hash": "64501592e8771c8aa487c99808d15744b5cf179ebfc98103519cb19ebfe8e8bb"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "9a5a85a56f9893c53ced2cca6ed3f4c3a76e60311c83bf4c0c346f0dd3372a4f"
+      },
+      {
+        "path": "test/core/templates/snack-template.test.ts",
+        "hash": "e2ac69f77c700b67ec0f7b512da704add55cfbe8b5544b15dc64f440aeb5c5fe"
+      },
+      {
+        "path": "test/fixtures/arch-impact-locale-process.fixture.ts",
+        "hash": "be7144b5039e3db49371654114589891728f660fc3bd741d3dc8a964e0ef99b9"
+      },
+      {
+        "path": "test/integration/arch-command.test.ts",
+        "hash": "92b170d8bed99cb7fd7c4f11c9169391c44100a462d20adf33891999131fc5c4"
+      }
+    ],
+    "skippedEvidenceFiles": [
+      ".xirang/changes/optimize-agent-semantic-context-loading/.verify-result.json"
+    ],
+    "gitHeadCommit": "da4cfacb96cba7e9791d0e36ef90ce45df8fc545",
+    "gitDiffSummary": "Validated immutable base da4cfacb96cba7e9791d0e36ef90ce45df8fc545. HEAD equals the baseline, so git diff <baseCommit>...HEAD --name-only was empty; git status --short supplied 44 attributed modified/untracked paths and git diff --cached was empty. Read all Change and Delta units, implementation, tests, generated Pi surfaces, references, and public documentation. pnpm build passed. The full directed suite passed 23 files and 312 tests; the C7 query/integration suite passed 22 tests and the required README/docs/src/.pi/.xirang/references absence search returned no obsolete query navigation calls. Combined change validation and Expected Semantic Model validation passed without warnings. Current-model outline contained 154 Elements, 50 Relationships, 11 Kinds, one root, and 49546 bytes; impact was 19013 bytes with no definition, contract, requirement, or scenario paths, and repeated output hashes matched. Review findings: no blockers. Residual risk: five unrelated pre-existing Formal Contract validation failures disclosed as a warning."
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-08-10T14:22:00.972Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "The change passes its directed verification, but the pre-existing Formal Semantic Model still has five unrelated Contract validation failures because six role Requirements use MAY without SHALL or MUST.",
+          "requirement": "Semantic Model validation baseline",
+          "task": null,
+          "recommendation": "Repair the baseline role Contracts in a separate change; no correction to optimize-agent-semantic-context-loading is required.",
+          "evidenceCitations": [
+            ".xirang/model/elements/agent.md:12-27",
+            ".xirang/model/elements/apply-role.md:12-13",
+            ".xirang/model/elements/archive-role.md:19-20",
+            ".xirang/model/elements/project-build-role.md:12-14",
+            ".xirang/model/elements/propose-role.md:12-14"
+          ]
+        }
+      ],
+      "tasksFileHash": "0b1124c69ebc8bbe4bc6d5f65c71f7550875384a39c0f869f5d18102de433468",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".pi/agents/xirang-optimizer.md",
+          ".pi/agents/xirang-reviewer.md",
+          ".pi/skills/xirang-apply-change/SKILL.md",
+          ".pi/skills/xirang-explore/SKILL.md",
+          ".pi/skills/xirang-propose/SKILL.md",
+          ".pi/skills/xirang-snack/SKILL.md",
+          ".xirang/changes/optimize-agent-semantic-context-loading/.apply-isolation.json",
+          ".xirang/changes/optimize-agent-semantic-context-loading/.verify-result.json",
+          ".xirang/changes/optimize-agent-semantic-context-loading/design.md",
+          ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-impact.md",
+          ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-outline.md",
+          ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-query.md",
+          ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-snapshot.md",
+          ".xirang/changes/optimize-agent-semantic-context-loading/elements/explore-brainstorming.md",
+          ".xirang/changes/optimize-agent-semantic-context-loading/elements/project-tooling-configuration.md",
+          ".xirang/changes/optimize-agent-semantic-context-loading/elements/task-decomposition.md",
+          ".xirang/changes/optimize-agent-semantic-context-loading/elements/workflow-templates.md",
+          ".xirang/changes/optimize-agent-semantic-context-loading/proposal.md",
+          ".xirang/changes/optimize-agent-semantic-context-loading/tasks.md",
+          ".xirang/model/elements/agent.md",
+          ".xirang/model/elements/apply-role.md",
+          ".xirang/model/elements/archive-role.md",
+          ".xirang/model/elements/project-build-role.md",
+          ".xirang/model/elements/propose-role.md",
+          ".xirang/references/xirang-apply-step-1-preparation.md",
+          ".xirang/references/xirang-self-read-protocol.md",
+          "README.md",
+          "docs/architecture-integration.md",
+          "docs/commands.md",
+          "docs/xirang-integration.md",
+          "src/commands/arch/impact.ts",
+          "src/commands/arch/index.ts",
+          "src/commands/arch/outline.ts",
+          "src/commands/arch/query.ts",
+          "src/commands/arch/snapshot.ts",
+          "src/core/config-projection.ts",
+          "src/core/config-prompts.ts",
+          "src/core/project-config.ts",
+          "src/core/templates/fragments/xirang-fragments.ts",
+          "src/core/templates/workflows/apply-change.ts",
+          "src/core/templates/workflows/explore.ts",
+          "src/core/templates/workflows/optimizer.ts",
+          "src/core/templates/workflows/propose.ts",
+          "src/core/templates/workflows/reviewer.ts",
+          "src/core/templates/workflows/snack.ts",
+          "test/commands/arch-impact.test.ts",
+          "test/commands/arch-outline.test.ts",
+          "test/commands/arch-query.test.ts",
+          "test/core/project-config.test.ts",
+          "test/core/templates/apply-change.test.ts",
+          "test/core/templates/explore-template.test.ts",
+          "test/core/templates/fragments/xirang-fragments.test.ts",
+          "test/core/templates/optimizer-template.test.ts",
+          "test/core/templates/propose-template.test.ts",
+          "test/core/templates/reviewer-template.test.ts",
+          "test/core/templates/skill-templates-parity.test.ts",
+          "test/core/templates/snack-template.test.ts",
+          "test/fixtures/arch-impact-locale-process.fixture.ts",
+          "test/integration/arch-command.test.ts"
+        ],
+        "evidenceFingerprint": "dcdaea6557ed4ecf29e6c3c38b9150c58943073bc9129b7dfe64f2251ed4f67a",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".pi/agents/xirang-optimizer.md",
+            "hash": "6c8063f3b0acb908216c57f0a0fe1e68c111846b7f38ba36205351dd3f691597"
+          },
+          {
+            "path": ".pi/agents/xirang-reviewer.md",
+            "hash": "e67d7dd1826bb2a9a5bee15782506db0e3979dc488185d66559e854d13115f9b"
+          },
+          {
+            "path": ".pi/skills/xirang-apply-change/SKILL.md",
+            "hash": "7293cafb8bd45218f171a141a64c640f755f99ef534c5de5abdccd2fa3e4edad"
+          },
+          {
+            "path": ".pi/skills/xirang-explore/SKILL.md",
+            "hash": "f1347ba23b4bf2159c782c11e4d8efc06b461caab968181c5728b92fee1a2196"
+          },
+          {
+            "path": ".pi/skills/xirang-propose/SKILL.md",
+            "hash": "821680e95229cd5ca23c5fb7c2bba5f84cd6f01a997d9f9621f8e8e86af8c469"
+          },
+          {
+            "path": ".pi/skills/xirang-snack/SKILL.md",
+            "hash": "066111a623470afe26aaf082313205ef1d98094ad33b7e5878e9295109b09a5e"
+          },
+          {
+            "path": ".xirang/changes/optimize-agent-semantic-context-loading/.apply-isolation.json",
+            "hash": "c77466288d101103886a78ed40b8969e3d10cf3c4fcfd5d5cdc48a484dde28cb"
+          },
+          {
+            "path": ".xirang/changes/optimize-agent-semantic-context-loading/design.md",
+            "hash": "c66e0b4f3236d91f02902750591dce3585bac415d2a7fdccfdcfd66bc06711fd"
+          },
+          {
+            "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-impact.md",
+            "hash": "476ff6f8d8584d5062b6d773c3046aecf929b76f9b3fcdf078cd8b5935be6882"
+          },
+          {
+            "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-outline.md",
+            "hash": "79732ee038b3f3026915126acd981582039282316dff20910d02886f8c295859"
+          },
+          {
+            "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-query.md",
+            "hash": "9fc0f2ae02f655cdc002a7b2d8d76aabed758af58187ec0f677f764019fe7880"
+          },
+          {
+            "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/arch-snapshot.md",
+            "hash": "d5cfb06183e2032cc00032902fdd69bb7d46d1a5376bc0e8be34007c3aab3676"
+          },
+          {
+            "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/explore-brainstorming.md",
+            "hash": "72a7a787f7dfb282f86e7ae48aa0b327c5f062875662cbfd243be046208863ec"
+          },
+          {
+            "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/project-tooling-configuration.md",
+            "hash": "ab57f28b94e99b931cce15e22076b842e243b820c0fcdc3550eb87ce1c56020e"
+          },
+          {
+            "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/task-decomposition.md",
+            "hash": "420fa211af65f7b034ba260135e823dcf20925d2e812f0f37b9df770cebb9f09"
+          },
+          {
+            "path": ".xirang/changes/optimize-agent-semantic-context-loading/elements/workflow-templates.md",
+            "hash": "a3228a40af1e28d7ea2f706c3520722f29addc020177313dff6b6dfd8c56620f"
+          },
+          {
+            "path": ".xirang/changes/optimize-agent-semantic-context-loading/proposal.md",
+            "hash": "41cf1ed549d9ae2e9184306bf0e4db459b6b432a5d319a00e117cfa4b3f30e0e"
+          },
+          {
+            "path": ".xirang/changes/optimize-agent-semantic-context-loading/tasks.md",
+            "hash": "0b1124c69ebc8bbe4bc6d5f65c71f7550875384a39c0f869f5d18102de433468"
+          },
+          {
+            "path": ".xirang/model/elements/agent.md",
+            "hash": "f3dc7821efca0df28de28f80ca9cf785f0bac058fafd86e2a76c557b9b0cdc8f"
+          },
+          {
+            "path": ".xirang/model/elements/apply-role.md",
+            "hash": "f8831865b13cafda424cffd638cd7d98077fdbd26da057432d5c6c45caefea6f"
+          },
+          {
+            "path": ".xirang/model/elements/archive-role.md",
+            "hash": "29d7b1b0fce1582821ed48c1c805e030d5fe4fe9c922cdf465f97224db9bd85e"
+          },
+          {
+            "path": ".xirang/model/elements/project-build-role.md",
+            "hash": "724517d8bd5fc7a47e9324aed9d19ef400f99b6dbdca9e71addddea90551d227"
+          },
+          {
+            "path": ".xirang/model/elements/propose-role.md",
+            "hash": "f6de6b478f70e875f8822db22569f89fe790a99f91a00bf929d0e89734ed7045"
+          },
+          {
+            "path": ".xirang/references/xirang-apply-step-1-preparation.md",
+            "hash": "1856cd041fd38d7e864cb4991c7023337da220d070ef97536b32ab6870803bfc"
+          },
+          {
+            "path": ".xirang/references/xirang-self-read-protocol.md",
+            "hash": "676f17c36e0478f4dd3390934d6137484e022a5bda91020eee0a1cb7d2d72c77"
+          },
+          {
+            "path": "docs/architecture-integration.md",
+            "hash": "0df23e44e8b179421da31d395a38308c088b6f421d9fa5037944a9dfead340bf"
+          },
+          {
+            "path": "docs/commands.md",
+            "hash": "41e13d0d0c0bfbbe214c49a0b3ba51b40948adb8a0f608121a8610d7e9924e17"
+          },
+          {
+            "path": "docs/xirang-integration.md",
+            "hash": "a0b097efd7c7468d5c4f40b33869d3acf7b57c804649732898f74b4ce7525d3a"
+          },
+          {
+            "path": "README.md",
+            "hash": "761898b37e41a4584477518fa26ea2b166129ecb33509b77b4d4a4d67787d9d0"
+          },
+          {
+            "path": "src/commands/arch/impact.ts",
+            "hash": "72e25025e8523916516a32e790e4e32ec72f57ddb689dcef472ee2fef0282a67"
+          },
+          {
+            "path": "src/commands/arch/index.ts",
+            "hash": "4d12498246a5857cb1941f4ff99d40cf7fc95d67b91d099ddcfead3591407720"
+          },
+          {
+            "path": "src/commands/arch/outline.ts",
+            "hash": "66839cedb5c74b9b6b2b8e3989e5cb8de70873baa9ae306572f5f45fe3d9f529"
+          },
+          {
+            "path": "src/commands/arch/query.ts",
+            "hash": "e2604e4f8c33a54e76695beedd698e7af97ea3eab7b8c4134ca6633bb81739b3"
+          },
+          {
+            "path": "src/commands/arch/snapshot.ts",
+            "hash": "9a054e01b98b47d18dc29497f15be7f8ed8eb4b78dd1585421a42dc244f340c5"
+          },
+          {
+            "path": "src/core/config-projection.ts",
+            "hash": "89378e301d43ab7a2957df75ebd0896a15294a17ecf9577ce8d3e4e8d30ee462"
+          },
+          {
+            "path": "src/core/config-prompts.ts",
+            "hash": "2b30a625eecf1d2e392ed01d42a32ee09289e085c7971a85b46102eacbb5d740"
+          },
+          {
+            "path": "src/core/project-config.ts",
+            "hash": "5e375166945e12e5d508876ca3b50caa5f0207a60539151ce00c52a18a18682f"
+          },
+          {
+            "path": "src/core/templates/fragments/xirang-fragments.ts",
+            "hash": "ec90ad8439e7c8224b496b6d4879709a4c2af48e49b309a4d458d6d86a516ada"
+          },
+          {
+            "path": "src/core/templates/workflows/apply-change.ts",
+            "hash": "7c0586cb568bfc46c2d82f86d557b7529efc9d26eb0c18afaa63a71e2bebf130"
+          },
+          {
+            "path": "src/core/templates/workflows/explore.ts",
+            "hash": "0d56eff9ec28cbe12c1251b4014cc5b55d2d7bb4b0d44c8d78489f01d5892e4a"
+          },
+          {
+            "path": "src/core/templates/workflows/optimizer.ts",
+            "hash": "8decf5cbdfea7f197b09f3e3546974bba2d74c5380d3629f9a68f4ce325cb1b7"
+          },
+          {
+            "path": "src/core/templates/workflows/propose.ts",
+            "hash": "626d03d2a38d5b8935a44129c2c551832a5f8f85a80237777aa36624e09069b3"
+          },
+          {
+            "path": "src/core/templates/workflows/reviewer.ts",
+            "hash": "e2c6bd6ee0bd1f84baaaf393717566c92a683860971cd16f5f767ff2aabd130d"
+          },
+          {
+            "path": "src/core/templates/workflows/snack.ts",
+            "hash": "4583d743843dddf211e53c6f0b5183735832560ce9bbbf9c3e81c0c82a8b69a5"
+          },
+          {
+            "path": "test/commands/arch-impact.test.ts",
+            "hash": "40432623b532ee0fe336555dda787f0be41054bad671da322db367478310628a"
+          },
+          {
+            "path": "test/commands/arch-outline.test.ts",
+            "hash": "cdcb921f7a8977459558c6f8403e1958d7ff6b8406d4902dad7bb0e0fe60bd51"
+          },
+          {
+            "path": "test/commands/arch-query.test.ts",
+            "hash": "4af2c7ab32b55b946e1c414d48a90d6aafb85e974ee555cc3766092aed95b7fa"
+          },
+          {
+            "path": "test/core/project-config.test.ts",
+            "hash": "765aec803d71bbef783d3f3d63b915d04c9f752e96c494c61248e233fbb0397e"
+          },
+          {
+            "path": "test/core/templates/apply-change.test.ts",
+            "hash": "28ed20f946783aa0f8ba955b816d9753769a0b3e3d4a1b4e0a1b96e261bcf811"
+          },
+          {
+            "path": "test/core/templates/explore-template.test.ts",
+            "hash": "711eaaf129793804ce2a23e87f2d531a1975d53e9824d7b53384e21f7e8d4958"
+          },
+          {
+            "path": "test/core/templates/fragments/xirang-fragments.test.ts",
+            "hash": "ea451fb64822d3e9ff8af65330ee830c9596685ef3bfdbe6cd1c0f3f309b4347"
+          },
+          {
+            "path": "test/core/templates/optimizer-template.test.ts",
+            "hash": "fb887de0e9d13899294ad583da0f556123b8114fd95f3a15cf94d9ba13f98e49"
+          },
+          {
+            "path": "test/core/templates/propose-template.test.ts",
+            "hash": "7abacb014c5c68548198e5f016736b6ac8f89e4ae085d9438678f297aa4070ff"
+          },
+          {
+            "path": "test/core/templates/reviewer-template.test.ts",
+            "hash": "64501592e8771c8aa487c99808d15744b5cf179ebfc98103519cb19ebfe8e8bb"
+          },
+          {
+            "path": "test/core/templates/skill-templates-parity.test.ts",
+            "hash": "9a5a85a56f9893c53ced2cca6ed3f4c3a76e60311c83bf4c0c346f0dd3372a4f"
+          },
+          {
+            "path": "test/core/templates/snack-template.test.ts",
+            "hash": "e2ac69f77c700b67ec0f7b512da704add55cfbe8b5544b15dc64f440aeb5c5fe"
+          },
+          {
+            "path": "test/fixtures/arch-impact-locale-process.fixture.ts",
+            "hash": "be7144b5039e3db49371654114589891728f660fc3bd741d3dc8a964e0ef99b9"
+          },
+          {
+            "path": "test/integration/arch-command.test.ts",
+            "hash": "92b170d8bed99cb7fd7c4f11c9169391c44100a462d20adf33891999131fc5c4"
+          }
+        ],
+        "skippedEvidenceFiles": [
+          ".xirang/changes/optimize-agent-semantic-context-loading/.verify-result.json"
+        ],
+        "gitHeadCommit": "da4cfacb96cba7e9791d0e36ef90ce45df8fc545",
+        "gitDiffSummary": "Validated immutable base da4cfacb96cba7e9791d0e36ef90ce45df8fc545. HEAD equals the baseline, so git diff <baseCommit>...HEAD --name-only was empty; git status --short supplied 44 attributed modified/untracked paths and git diff --cached was empty. Read all Change and Delta units, implementation, tests, generated Pi surfaces, references, and public documentation. pnpm build passed. The full directed suite passed 23 files and 312 tests; the C7 query/integration suite passed 22 tests and the required README/docs/src/.pi/.xirang/references absence search returned no obsolete query navigation calls. Combined change validation and Expected Semantic Model validation passed without warnings. Current-model outline contained 154 Elements, 50 Relationships, 11 Kinds, one root, and 49546 bytes; impact was 19013 bytes with no definition, contract, requirement, or scenario paths, and repeated output hashes matched. Review findings: no blockers. Residual risk: five unrelated pre-existing Formal Contract validation failures disclosed as a warning."
+      }
+    }
+  }
+}

@@ -206,8 +206,10 @@ describe('Xirang shared context fragment', () => {
       'refinement',
       'one Element has at most one Contract',
       '`contract` field of its Element Kind',
-      'semantic relationships',
-      'xirang arch query <identity> --relations --depth <n> --json',
+      'directed Relationships',
+      'xirang arch outline --format json',
+      'xirang arch impact <identity> --depth <n> --json',
+      'xirang arch query <identities...> --contract --json',
       '--contract',
       'elements/<identity>.md',
       'metamodel/<kind identity>.md',
@@ -222,6 +224,16 @@ describe('Xirang shared context fragment', () => {
     ]) {
       expect(XIRANG_SHARED_CONTEXT).toContain(token);
     }
+  });
+
+  it('defines deterministic context reload rules and bounded projections', () => {
+    expect(XIRANG_SHARED_CONTEXT).toContain('overall Semantic Model understanding is unclear');
+    expect(XIRANG_SHARED_CONTEXT).toContain('xirang arch outline --format json');
+    expect(XIRANG_SHARED_CONTEXT).toContain('specific Element Definition or Contract is unclear');
+    expect(XIRANG_SHARED_CONTEXT).toContain('batch `arch query`');
+    expect(XIRANG_SHARED_CONTEXT).toContain('MUST NOT guess');
+    expect(XIRANG_SHARED_CONTEXT).toContain('architecture.outline.elementDefinitionDepth');
+    expect(XIRANG_SHARED_CONTEXT).toContain('identity-only');
   });
 
   it('does not reintroduce retired public CLI or Browser forms', () => {

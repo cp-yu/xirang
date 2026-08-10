@@ -163,6 +163,12 @@ export function treeToSnapshotJson(result: ArchitectureSnapshotResult): Architec
   return result;
 }
 
+export function sortArchitectureRelationships(relations: readonly Relationship[]): Relationship[] {
+  return [...relations].sort((left, right) => compareCodePoints(left.kind, right.kind)
+    || compareCodePoints(left.source, right.source)
+    || compareCodePoints(left.target, right.target));
+}
+
 export async function snapshotArchitecture(
   projectRoot: string,
 ): Promise<ArchitectureSnapshotResult> {
@@ -172,9 +178,7 @@ export async function snapshotArchitecture(
   }
 
   const elements = buildModelTree(model);
-  const relations = [...model.relationships].sort((left, right) => compareCodePoints(left.kind, right.kind)
-    || compareCodePoints(left.source, right.source)
-    || compareCodePoints(left.target, right.target));
+  const relations = sortArchitectureRelationships(model.relationships);
   const elementKinds = model.elementKinds.map(kind => ({
     identity: kind.identity,
     contract: kind.contract,

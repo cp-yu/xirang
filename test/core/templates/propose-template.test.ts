@@ -67,7 +67,9 @@ describe('propose template post-validation flow', () => {
     const instructions = getXirangProposeSkillTemplate().instructions;
     expect(instructions).toContain('.xirang/model/{metamodel,elements,relationships,views}/');
     expect(instructions).toContain('xirang arch search <query> --json');
-    expect(instructions).toContain('xirang arch query <identity> --relations --depth 2 --json');
+    expect(instructions).toContain('xirang arch impact <identities...> --depth 2 --json');
+    expect(instructions).toContain('xirang arch query <selected-identities...> --contract --json');
+    expect(instructions).not.toMatch(/arch query[^\n]*(--relations|--depth)/);
     expect(instructions).not.toContain('.xirang/architecture/');
     expect(instructions).not.toContain('.xirang/project.xirang.yaml');
   });
@@ -168,7 +170,8 @@ describe('propose template post-validation flow', () => {
   it('treats an Element Contract as the body of one Element unit', () => {
     for (const body of getProposeBodies()) {
       expect(body).toContain('one Element has at most one Contract');
-      expect(body).toContain('xirang arch query <identity> --relations --depth 2 --json');
+      expect(body).toContain('xirang arch query <selected-identities...> --contract --json');
+      expect(body).not.toMatch(/arch query[^\n]*(--relations|--depth)/);
       expect(body).toContain('An optional-contract Element without a Contract does not by itself require a new one');
       expect(body).toContain('genuinely new observable behavior');
       expect(body).not.toContain('`capabilities` string array');
