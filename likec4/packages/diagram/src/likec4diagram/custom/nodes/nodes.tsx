@@ -24,6 +24,7 @@ import { useEnabledFeatures } from '../../../context/DiagramFeatures'
 import { useCallbackRef } from '../../../hooks'
 import { useDiagram } from '../../../hooks/useDiagram'
 import type { Types } from '../../types'
+import type { XirangDiffOperation } from '../../../xirang/ContractLoaderContext'
 import { CompoundActions } from './CompoundActions'
 import { DeploymentElementActions, ElementActions } from './ElementActions'
 import { NodeDrifts } from './NodeDrifts'
@@ -150,29 +151,28 @@ const compoundHasDrifts = css({
   outlineOffset: '1.5',
 })
 
+const outlineBase = css({
+  outlineColor: '[#ff9f0a]',
+  outlineOffset: '2',
+})
+
 const diffOutline = {
   ADDED: css({
-    outlineColor: '[#ff9f0a]',
     outlineWidth: '3px',
     outlineStyle: 'dotted',
-    outlineOffset: '2',
   }),
   MODIFIED: css({
-    outlineColor: '[#ff9f0a]',
     outlineWidth: '5px',
     outlineStyle: 'solid',
-    outlineOffset: '2',
   }),
   REMOVED: css({
-    outlineColor: '[#ff9f0a]',
     outlineWidth: '3px',
     outlineStyle: 'dashed',
-    outlineOffset: '2',
   }),
-} satisfies Record<'ADDED' | 'MODIFIED' | 'REMOVED', string>
+} satisfies Record<XirangDiffOperation, string>
 
-const diffOutlineByOperation = (operation: 'ADDED' | 'MODIFIED' | 'REMOVED' | undefined) =>
-  operation ? diffOutline[operation] : undefined
+const diffOutlineByOperation = (operation: XirangDiffOperation | undefined) =>
+  operation ? cx(outlineBase, diffOutline[operation]) : undefined
 
 const nodeDiffBadge = css({
   position: 'absolute',
@@ -194,7 +194,7 @@ const nodeDiffBadge = css({
   boxShadow: '[0 1px 3px rgba(0, 0, 0, 0.35)]',
 })
 
-const diffBadgeGlyph: Record<'ADDED' | 'MODIFIED' | 'REMOVED', string> = {
+const diffBadgeGlyph: Record<XirangDiffOperation, string> = {
   ADDED: '+',
   MODIFIED: '~',
   REMOVED: '−',
@@ -204,7 +204,7 @@ const diffBadgeGlyph: Record<'ADDED' | 'MODIFIED' | 'REMOVED', string> = {
  * Renders a corner badge for changed nodes. It sits outside the node container so it stays
  * fully opaque even when the container itself is dimmed (e.g. a 45% REMOVED ghost).
  */
-function NodeDiffBadge({ operation }: { operation: 'ADDED' | 'MODIFIED' | 'REMOVED' | undefined }) {
+function NodeDiffBadge({ operation }: { operation: XirangDiffOperation | undefined }) {
   if (!operation) return null
   return (
     <span className={nodeDiffBadge} data-xirang-node-diff aria-label={`Element ${operation}`}>
