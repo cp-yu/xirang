@@ -54,7 +54,7 @@ test('exports the current focus and expand-in-place state', async ({ page }) => 
   await drill.click({ modifiers: ['Control'] })
   await expect(page.locator('.react-flow__node[data-xirang-identity="capability.leaf"]')).toBeVisible()
   await expect.poll(async () => visibleNodeIds(page), { timeout: 10_000 })
-    .toEqual(['capability.drill', 'capability.leaf', 'capability.peer', 'perspective.browser'])
+    .toEqual(['capability.assistant', 'capability.drill', 'capability.leaf', 'capability.peer', 'perspective.browser'])
   const onScreen = await visibleNodeIds(page)
 
   // The Header export carries the current state into the export tab via sessionStorage;

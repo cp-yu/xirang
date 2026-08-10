@@ -1,3 +1,4 @@
+import { styleDefaults } from '@likec4/core/styles'
 import { type Color, type ComputedNodeStyle, type ElementShape, ensureSizes } from '@likec4/core/types'
 import { cx } from '@likec4/styles/css'
 import { elementNode } from '@likec4/styles/recipes'
@@ -73,6 +74,9 @@ export const ElementNodeContainer = forwardRef<HTMLDivElement, ElementNodeContai
     padding,
     textSize,
   } = ensureSizes(data.style ?? {})
+  // The LikeC4 default style opacity is the "unspecified" sentinel; only deliberate dimming
+  // (the Xirang diff overlay's 25/45 values) should affect the rendered element.
+  const opacity = data.style?.opacity
 
   // Registered palette names use generated selectors; custom hex colors need inline variables.
   const hexStyle = (data.color as string).startsWith('#')
@@ -110,7 +114,7 @@ export const ElementNodeContainer = forwardRef<HTMLDivElement, ElementNodeContai
       {...(isDimmed !== false && {
         'data-likec4-dimmed': isDimmed,
       })}
-      style={{ ...hexStyle, ...style } as MotionStyle}
+      style={{ ...hexStyle, ...(typeof opacity === 'number' && opacity < 100 && opacity !== styleDefaults.opacity ? { opacity: opacity / 100 } : {}), ...style } as MotionStyle}
       tabIndex={-1}
       {...rest}
     >

@@ -1,4 +1,7 @@
 relationships:
+  - source: capability.assistant
+    kind: invokes
+    target: capability.leaf
   - source: capability.leaf
     kind: invokes
     target: capability.peer

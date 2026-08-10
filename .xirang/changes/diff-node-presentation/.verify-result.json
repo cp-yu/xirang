@@ -1,0 +1,232 @@
+{
+  "timestamp": "2026-08-10T04:15:18.640Z",
+  "result": "PASS",
+  "issues": [
+    {
+      "severity": "SUGGESTION",
+      "requirement": "呈现 Change 目标与差异",
+      "task": "Task 2",
+      "message": "Task 2 Files declare custom/nodes/index.tsx and CompoundActions.tsx as Modify but neither was actually modified",
+      "recommendation": "Trim the two unmodified declarations from Task 2 Files, or note they were considered and needed no change",
+      "evidence": [
+        ".xirang/changes/diff-node-presentation/tasks.md",
+        "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "requirement": "呈现 Change 目标与差异",
+      "task": "Task 1",
+      "message": "architectureView.ts replaces the whole edge style object with {opacity:25} for unchanged edges; safe today (no other edge style props exist) but fragile to future additions",
+      "recommendation": "Merge as {...edge.style, opacity: 25} instead of replacing",
+      "evidence": [
+        "likec4/packages/diagram/src/xirang/architectureView.ts"
+      ]
+    }
+  ],
+  "tasksFileHash": "8ea4c18bd2ef8c23a4dfdc527bf030a228745c2c7c27074e0a26ba69534f705b",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/diff-node-presentation/.apply-isolation.json",
+      ".xirang/changes/diff-node-presentation/elements/semantic-browser.md",
+      ".xirang/changes/diff-node-presentation/tasks.md",
+      "likec4/packages/diagram/src/base-primitives/element/ElementNodeContainer.tsx",
+      "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+      "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.spec.ts",
+      "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts",
+      "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+      "likec4/packages/diagram/src/xirang/architectureView.ts",
+      "playwright.config.ts",
+      "test/e2e/semantic-browser-image-export.spec.ts",
+      "test/e2e/semantic-browser-model-view.spec.ts",
+      "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
+      "test/fixtures/contract-browser/.xirang/model/elements/capability.assistant.md",
+      "test/fixtures/contract-browser/.xirang/model/relationships/invokes.yaml"
+    ],
+    "evidenceFingerprint": "ab9cc1b966e7965ce11078964b232f33ec78315cdafe76c12f7bb1bcbe2ec79a",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/diff-node-presentation/.apply-isolation.json",
+        "hash": "e55f0f5a019d52f5c2eabbc9f3c2d450034401d14460f11ad5d937ca822f58f3"
+      },
+      {
+        "path": ".xirang/changes/diff-node-presentation/elements/semantic-browser.md",
+        "hash": "c871ce99ee7a68427a506ae496388b3075866ca99d2558c9129b58d6b001c3a7"
+      },
+      {
+        "path": ".xirang/changes/diff-node-presentation/tasks.md",
+        "hash": "8ea4c18bd2ef8c23a4dfdc527bf030a228745c2c7c27074e0a26ba69534f705b"
+      },
+      {
+        "path": "likec4/packages/diagram/src/base-primitives/element/ElementNodeContainer.tsx",
+        "hash": "3ab5c797df9333abac09dc43d5c54bcc223c72ed3e2dab15ab87b31df7d8b81e"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+        "hash": "d5245805073db6e47a6dd60dbc8e97f33012e3e01cd9ccedb75f43516abd3de8"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.spec.ts",
+        "hash": "3e83436ecafaed5bae18a2b604f9217ac3c3ceb1eaff32e032994a7d1b38f43d"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts",
+        "hash": "d88b98a11f795ec85b80e7bbd72861eb0acac9a0131b4c3c36c205a00105f356"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+        "hash": "f49dbc94a0773f291e47d66c80f2fa83287df06e44e9173e4586ec6f5a26acdc"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+        "hash": "b302bc399a23c5605e55a9b43fc7c70babd478a3f8a3d3b7a8455a372c7a1698"
+      },
+      {
+        "path": "playwright.config.ts",
+        "hash": "795e529203e4703cf54e0a02658332abacdb9d23e0455a10fd21db43c15af39f"
+      },
+      {
+        "path": "test/e2e/semantic-browser-image-export.spec.ts",
+        "hash": "efed26eb5aef4e17ffbf120e8e2eb8078473d310a75f66738d1a16641c555179"
+      },
+      {
+        "path": "test/e2e/semantic-browser-model-view.spec.ts",
+        "hash": "d1c07e885fe22aa0454752b3c3ca8a63a20aee9748d7e15fff2331022849d8a6"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
+        "hash": "58aa9224446ca89d7a7d3e76e41dcbd7609da687f7ec0f7e08385c05acc98c3f"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/model/elements/capability.assistant.md",
+        "hash": "837717ea94681a025251d75cd5d31255cc6776aa307418ebda6a3b4dab079bc0"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/model/relationships/invokes.yaml",
+        "hash": "0a6c80abaecc2156d030a45484352e9f9527a0efb7b92f7ab2c236c77eed29c5"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "c881e4d21ad55e4882fb711d03c32319d8656249",
+    "gitDiffSummary": "baseCommit c881e4d == HEAD; change is uncommitted working-tree state (branch diff-node-presentation). Scope from git status --short: 11 modified files + 2 untracked paths (.xirang/changes/diff-node-presentation/, test/fixtures/contract-browser/.xirang/model/elements/capability.assistant.md). All scope entries attributed to Task 1/2/3 Files or change artifacts; no unaccounted changes. No staged files."
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-08-10T04:15:18.640Z",
+      "result": "PASS",
+      "issues": [
+        {
+          "severity": "SUGGESTION",
+          "requirement": "呈现 Change 目标与差异",
+          "task": "Task 2",
+          "message": "Task 2 Files declare custom/nodes/index.tsx and CompoundActions.tsx as Modify but neither was actually modified",
+          "recommendation": "Trim the two unmodified declarations from Task 2 Files, or note they were considered and needed no change",
+          "evidence": [
+            ".xirang/changes/diff-node-presentation/tasks.md",
+            "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "requirement": "呈现 Change 目标与差异",
+          "task": "Task 1",
+          "message": "architectureView.ts replaces the whole edge style object with {opacity:25} for unchanged edges; safe today (no other edge style props exist) but fragile to future additions",
+          "recommendation": "Merge as {...edge.style, opacity: 25} instead of replacing",
+          "evidence": [
+            "likec4/packages/diagram/src/xirang/architectureView.ts"
+          ]
+        }
+      ],
+      "tasksFileHash": "8ea4c18bd2ef8c23a4dfdc527bf030a228745c2c7c27074e0a26ba69534f705b",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/diff-node-presentation/.apply-isolation.json",
+          ".xirang/changes/diff-node-presentation/elements/semantic-browser.md",
+          ".xirang/changes/diff-node-presentation/tasks.md",
+          "likec4/packages/diagram/src/base-primitives/element/ElementNodeContainer.tsx",
+          "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+          "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.spec.ts",
+          "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts",
+          "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+          "likec4/packages/diagram/src/xirang/architectureView.ts",
+          "playwright.config.ts",
+          "test/e2e/semantic-browser-image-export.spec.ts",
+          "test/e2e/semantic-browser-model-view.spec.ts",
+          "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
+          "test/fixtures/contract-browser/.xirang/model/elements/capability.assistant.md",
+          "test/fixtures/contract-browser/.xirang/model/relationships/invokes.yaml"
+        ],
+        "evidenceFingerprint": "ab9cc1b966e7965ce11078964b232f33ec78315cdafe76c12f7bb1bcbe2ec79a",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/diff-node-presentation/.apply-isolation.json",
+            "hash": "e55f0f5a019d52f5c2eabbc9f3c2d450034401d14460f11ad5d937ca822f58f3"
+          },
+          {
+            "path": ".xirang/changes/diff-node-presentation/elements/semantic-browser.md",
+            "hash": "c871ce99ee7a68427a506ae496388b3075866ca99d2558c9129b58d6b001c3a7"
+          },
+          {
+            "path": ".xirang/changes/diff-node-presentation/tasks.md",
+            "hash": "8ea4c18bd2ef8c23a4dfdc527bf030a228745c2c7c27074e0a26ba69534f705b"
+          },
+          {
+            "path": "likec4/packages/diagram/src/base-primitives/element/ElementNodeContainer.tsx",
+            "hash": "3ab5c797df9333abac09dc43d5c54bcc223c72ed3e2dab15ab87b31df7d8b81e"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+            "hash": "d5245805073db6e47a6dd60dbc8e97f33012e3e01cd9ccedb75f43516abd3de8"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.spec.ts",
+            "hash": "3e83436ecafaed5bae18a2b604f9217ac3c3ceb1eaff32e032994a7d1b38f43d"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts",
+            "hash": "d88b98a11f795ec85b80e7bbd72861eb0acac9a0131b4c3c36c205a00105f356"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+            "hash": "f49dbc94a0773f291e47d66c80f2fa83287df06e44e9173e4586ec6f5a26acdc"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+            "hash": "b302bc399a23c5605e55a9b43fc7c70babd478a3f8a3d3b7a8455a372c7a1698"
+          },
+          {
+            "path": "playwright.config.ts",
+            "hash": "795e529203e4703cf54e0a02658332abacdb9d23e0455a10fd21db43c15af39f"
+          },
+          {
+            "path": "test/e2e/semantic-browser-image-export.spec.ts",
+            "hash": "efed26eb5aef4e17ffbf120e8e2eb8078473d310a75f66738d1a16641c555179"
+          },
+          {
+            "path": "test/e2e/semantic-browser-model-view.spec.ts",
+            "hash": "d1c07e885fe22aa0454752b3c3ca8a63a20aee9748d7e15fff2331022849d8a6"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
+            "hash": "58aa9224446ca89d7a7d3e76e41dcbd7609da687f7ec0f7e08385c05acc98c3f"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/model/elements/capability.assistant.md",
+            "hash": "837717ea94681a025251d75cd5d31255cc6776aa307418ebda6a3b4dab079bc0"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/model/relationships/invokes.yaml",
+            "hash": "0a6c80abaecc2156d030a45484352e9f9527a0efb7b92f7ab2c236c77eed29c5"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "c881e4d21ad55e4882fb711d03c32319d8656249",
+        "gitDiffSummary": "baseCommit c881e4d == HEAD; change is uncommitted working-tree state (branch diff-node-presentation). Scope from git status --short: 11 modified files + 2 untracked paths (.xirang/changes/diff-node-presentation/, test/fixtures/contract-browser/.xirang/model/elements/capability.assistant.md). All scope entries attributed to Task 1/2/3 Files or change artifacts; no unaccounted changes. No staged files."
+      }
+    }
+  }
+}

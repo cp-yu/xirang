@@ -371,6 +371,7 @@ export function diagramToXY(opts: {
     }
 
     const xirang = readXirangProjectionEdge(edge as unknown as { metadata?: Readonly<Record<string, string | string[] | undefined>> })
+    const edgeOpacity = (edge as DiagramEdge & { style?: { opacity?: number } }).style?.opacity
 
     xyedges.push({
       id,
@@ -381,6 +382,7 @@ export function diagramToXY(opts: {
       zIndex: ZIndexes.Edge,
       hidden: !visiblePredicate(edge),
       deletable,
+      ...(typeof edgeOpacity === 'number' && edgeOpacity < 100 ? { style: { opacity: edgeOpacity / 100 } } : {}),
       data: {
         id: edge.id,
         label: edge.label,
