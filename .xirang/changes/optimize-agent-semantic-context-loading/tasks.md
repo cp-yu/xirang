@@ -152,5 +152,5 @@
 - [ ] C14 一次性核对当前模型 payload 边界与字节数
   - Verifies: `elements/arch-impact.md` / Requirement "arch impact SHALL 共享统一输出投影" / Scenario "projection 不包含完整语义"
   - Command: `pnpm build && node bin/xirang.js arch outline --format json | wc -c && node bin/xirang.js arch impact deterministic-operations --depth 2 --json | wc -c`
-  - Evidence: 记录当前 154 Elements、50 Relationships 模型的 outline 与 identity-only impact 字节数，并检查 impact JSON 不含 `definition`、`contracts`、`requirements` 或 `scenarios`。
+  - Evidence: 记录当前模型的 outline 与 identity-only impact 字节数；本次基线为 154 Elements、50 Relationships，但该数量仅作运行时记录，不作为固定验收条件。检查 impact JSON 不含 `definition`、`contracts`、`requirements` 或 `scenarios`。
   - Expect: 输出边界符合 Delta，且相较旧完整 Definition/Contract 聚合 payload 明显缩小；不新增 persistent benchmark 文件。

@@ -177,11 +177,11 @@
 
 - [ ] C14 执行完整相关测试与 typecheck
   - Verifies: `elements/config-projection.md` / Requirement "原样投影结构拆分选择" / Scenario "非结构 workflow 不消费拆分指导"
-  - Command: `pnpm exec vitest run test/core/project-config.test.ts test/commands/config.test.ts test/core/setup.test.ts test/core/update.test.ts test/core/templates && pnpm typecheck`
+  - Command: `pnpm exec vitest run test/core/project-config.test.ts test/commands/config.test.ts test/core/setup.test.ts test/core/update.test.ts test/core/templates && pnpm exec tsc --noEmit`
   - Expect: 所有配置、迁移、模板测试与 TypeScript typecheck 通过
 
 - [ ] C15 一次性检查当前 Project Root 拆分一致性
   - Verifies: `elements/semantic-model-build.md` / Requirement "按项目配置形成 Candidate hierarchy" / Scenario "独立语义审查检查拆分一致性"
   - Command: `xirang arch query project.root --relations --depth 3 --contract --json && xirang arch validate --json`
-  - Evidence: 使用 `xirang-project-decomposition` skill 对 depth 1-3 sibling sets 做只读检查，记录无混合分解维度或明确列出需后续 Change 处理的既有偏差
+  - Evidence: 使用 `xirang-project-decomposition` skill 对 depth 1-3 sibling sets 做只读检查，记录无混合分解维度或明确列出需后续 Change 处理的既有偏差。该检查是本 Change 的结构拆分基线门禁，必须在 `optimize-agent-semantic-context-loading` 移除 `arch query --relations/--depth` 前完成；若两个 Change 合并实施，则将本检查改写为 `arch outline -> arch impact -> arch query` 协议后再执行
   - Expect: Formal Semantic Model validation 成功，本 Change 不修改现有 hierarchy
