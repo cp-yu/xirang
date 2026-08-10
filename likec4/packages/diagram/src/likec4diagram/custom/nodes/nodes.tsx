@@ -6,7 +6,7 @@
 // Portions of this file have been modified by NVIDIA CORPORATION & AFFILIATES.
 
 import type { Fqn, NodeId } from '@likec4/core'
-import { css } from '@likec4/styles/css'
+import { css, cx } from '@likec4/styles/css'
 import {
   type ElementTagsProps,
   CompoundDetailsButton,
@@ -99,7 +99,10 @@ export function ElementNode(props: Types.NodeProps<'element'>) {
   const { enableElementTags, enableElementDetails, enableReadOnly, enableCompareWithLatest, enableNotes } =
     useEnabledFeatures()
   return (
-    <ElementNodeContainer nodeProps={props}>
+    <ElementNodeContainer
+      className={diffOutlineByOperation(props.data.xirang?.operation)}
+      nodeProps={props}
+    >
       {enableCompareWithLatest && <NodeDrifts nodeProps={props} />}
       <ElementShape {...props} />
       <ElementData {...props} aria-hidden />
@@ -117,7 +120,10 @@ export function DeploymentNode(props: Types.NodeProps<'deployment'>) {
   const { enableElementTags, enableElementDetails, enableReadOnly, enableCompareWithLatest, enableNotes } =
     useEnabledFeatures()
   return (
-    <ElementNodeContainer nodeProps={props}>
+    <ElementNodeContainer
+      className={diffOutlineByOperation(props.data.xirang?.operation)}
+      nodeProps={props}
+    >
       {enableCompareWithLatest && <NodeDrifts nodeProps={props} />}
       <ElementShape {...props} />
       <ElementData {...props} aria-hidden />
@@ -138,6 +144,30 @@ const compoundHasDrifts = css({
   outlineOffset: '1.5',
 })
 
+const diffOutline = {
+  ADDED: css({
+    outlineColor: 'likec4.compare.manual.outline',
+    outlineWidth: '2px',
+    outlineStyle: 'dotted',
+    outlineOffset: '1.5',
+  }),
+  MODIFIED: css({
+    outlineColor: 'likec4.compare.manual.outline',
+    outlineWidth: '4px',
+    outlineStyle: 'solid',
+    outlineOffset: '1.5',
+  }),
+  REMOVED: css({
+    outlineColor: 'likec4.compare.manual.outline',
+    outlineWidth: '2px',
+    outlineStyle: 'dashed',
+    outlineOffset: '1.5',
+  }),
+} satisfies Record<'ADDED' | 'MODIFIED' | 'REMOVED', string>
+
+const diffOutlineByOperation = (operation: 'ADDED' | 'MODIFIED' | 'REMOVED' | undefined) =>
+  operation ? diffOutline[operation] : undefined
+
 const hasDrifts = (props: Types.NodeProps) => {
   return props.data.drifts && props.data.drifts.length > 0
 }
@@ -147,7 +177,7 @@ export function CompoundElementNode(props: Types.NodeProps<'compound-element'>) 
   const showDrifts = enableCompareWithLatest && hasDrifts(props)
   return (
     <CompoundNodeContainer
-      className={showDrifts ? compoundHasDrifts : undefined}
+      className={cx(showDrifts && compoundHasDrifts, diffOutlineByOperation(props.data.xirang?.operation))}
       nodeProps={props}
     >
       {enableCompareWithLatest && <NodeDrifts nodeProps={props} />}
@@ -165,7 +195,7 @@ export function CompoundDeploymentNode(props: Types.NodeProps<'compound-deployme
   const showDrifts = enableCompareWithLatest && hasDrifts(props)
   return (
     <CompoundNodeContainer
-      className={showDrifts ? compoundHasDrifts : undefined}
+      className={cx(showDrifts && compoundHasDrifts, diffOutlineByOperation(props.data.xirang?.operation))}
       nodeProps={props}
     >
       {enableCompareWithLatest && <NodeDrifts nodeProps={props} />}

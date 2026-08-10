@@ -5,7 +5,7 @@ identity: capability.leaf
 kind: capability
 parent: capability.drill
 title: Leaf Capability
-definition: Terminates the nested Model View navigation branch.
+definition: Terminates the nested Model View navigation branch with Change-derived View diff presentation.
 ---
 
 ## MODIFIED Requirements

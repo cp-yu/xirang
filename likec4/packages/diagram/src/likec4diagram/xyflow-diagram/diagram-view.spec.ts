@@ -153,6 +153,22 @@ describe('diagramToXY Xirang projection data', () => {
       xirang: { operation: 'MODIFIED', relation: 'a|calls|b' },
     })
   })
+
+  it('forwards a dimmed edge opacity to the xyflow edge style', () => {
+    const a = testNode('a')
+    const b = testNode('b')
+    const edge = testEdge('a-b', a, b, { style: { opacity: 25 } } as never)
+    const { xyedges } = diagramToXY({ view: testView([a, b], [edge]), currentViewId: undefined, where: null })
+    expect(xyedges[0]?.style).toEqual({ opacity: 0.25 })
+  })
+
+  it('omits the edge style when opacity is at full', () => {
+    const a = testNode('a')
+    const b = testNode('b')
+    const edge = testEdge('a-b', a, b, { style: { opacity: 100 } } as never)
+    const { xyedges } = diagramToXY({ view: testView([a, b], [edge]), currentViewId: undefined, where: null })
+    expect(xyedges[0]?.style).toBeUndefined()
+  })
 })
 
 describe('diagramToXY accessibility', () => {

@@ -26,6 +26,9 @@ const structuralKinds = new Set([
 
 const operations = new Set<XirangDiffOperation>(['ADDED', 'MODIFIED', 'REMOVED'])
 
+/** Diff-mode node opacity per operation; unchanged nodes (no operation) dim to 25. */
+const diffNodeOpacity: Record<XirangDiffOperation, number> = { ADDED: 100, MODIFIED: 100, REMOVED: 45 }
+
 function structuralEntries(source: XirangViewSource): XirangDiffEntry[] {
   return source.diff?.entries.filter(entry => structuralKinds.has(entry.kind)) ?? []
 }
@@ -75,6 +78,7 @@ export function applyXirangPresentationOverlay(
 ): DiagramView {
   const elementOperations = operationByIdentity(source)
   const kindStyles = kindStylesByKind(source)
+  const diffActive = source.diff !== undefined
   const elementsByIdentity = new Map<string, XirangElementDeclaration>()
   const parentIdentities = new Set<string>()
   for (const element of source.architecture?.elements ?? []) {
@@ -107,7 +111,7 @@ export function applyXirangPresentationOverlay(
       style: {
         ...node.style,
         ...(style?.border ? { border: style.border } : {}),
-        ...(operation === 'REMOVED' ? { opacity: Math.min(node.style.opacity ?? 100, 45) } : {}),
+        ...(diffActive ? { opacity: operation ? diffNodeOpacity[operation] : 25 } : {}),
       },
       metadata,
     } as ViewNode
@@ -120,6 +124,7 @@ export function applyXirangPresentationOverlay(
       .find((operation): operation is XirangDiffOperation => operation !== undefined)
     return {
       ...edge,
+      ...(diffActive && !relationshipOperation ? { style: { opacity: 25 } } : {}),
       metadata: {
         ...((edge as ViewEdge & { metadata?: Readonly<Record<string, unknown>> }).metadata ?? {}),
         ...(triples.length > 0 ? { xirangRelations: triples } : {}),

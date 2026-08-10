@@ -1,0 +1,343 @@
+{
+  "timestamp": "2026-08-10T04:15:18.640Z",
+  "result": "PASS",
+  "issues": [
+    {
+      "severity": "SUGGESTION",
+      "requirement": "呈现 Change 目标与差异",
+      "task": "Task 2",
+      "message": "Task 2 Files declare custom/nodes/index.tsx and CompoundActions.tsx as Modify but neither was actually modified",
+      "recommendation": "Trim the two unmodified declarations from Task 2 Files, or note they were considered and needed no change",
+      "evidence": [
+        ".xirang/changes/diff-node-presentation/tasks.md",
+        "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "requirement": "呈现 Change 目标与差异",
+      "task": "Task 1",
+      "message": "architectureView.ts replaces the whole edge style object with {opacity:25} for unchanged edges; safe today (no other edge style props exist) but fragile to future additions",
+      "recommendation": "Merge as {...edge.style, opacity: 25} instead of replacing",
+      "evidence": [
+        "likec4/packages/diagram/src/xirang/architectureView.ts"
+      ]
+    }
+  ],
+  "tasksFileHash": "8ea4c18bd2ef8c23a4dfdc527bf030a228745c2c7c27074e0a26ba69534f705b",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/diff-node-presentation/.apply-isolation.json",
+      ".xirang/changes/diff-node-presentation/elements/semantic-browser.md",
+      ".xirang/changes/diff-node-presentation/tasks.md",
+      "likec4/packages/diagram/src/base-primitives/element/ElementNodeContainer.tsx",
+      "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+      "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.spec.ts",
+      "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts",
+      "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+      "likec4/packages/diagram/src/xirang/architectureView.ts",
+      "playwright.config.ts",
+      "test/e2e/semantic-browser-image-export.spec.ts",
+      "test/e2e/semantic-browser-model-view.spec.ts",
+      "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
+      "test/fixtures/contract-browser/.xirang/model/elements/capability.assistant.md",
+      "test/fixtures/contract-browser/.xirang/model/relationships/invokes.yaml"
+    ],
+    "evidenceFingerprint": "72a169e9a039cb5ab7d33832e9e906e04219ee3d85a1e799020d4bccf928e4d8",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/diff-node-presentation/.apply-isolation.json",
+        "hash": "7660a0ecf0e65aa1016cbba98ea0df28621ac86b82816c98ff87c373b265b685"
+      },
+      {
+        "path": ".xirang/changes/diff-node-presentation/elements/semantic-browser.md",
+        "hash": "c871ce99ee7a68427a506ae496388b3075866ca99d2558c9129b58d6b001c3a7"
+      },
+      {
+        "path": ".xirang/changes/diff-node-presentation/tasks.md",
+        "hash": "8ea4c18bd2ef8c23a4dfdc527bf030a228745c2c7c27074e0a26ba69534f705b"
+      },
+      {
+        "path": "likec4/packages/diagram/src/base-primitives/element/ElementNodeContainer.tsx",
+        "hash": "3ab5c797df9333abac09dc43d5c54bcc223c72ed3e2dab15ab87b31df7d8b81e"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+        "hash": "d5245805073db6e47a6dd60dbc8e97f33012e3e01cd9ccedb75f43516abd3de8"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.spec.ts",
+        "hash": "3e83436ecafaed5bae18a2b604f9217ac3c3ceb1eaff32e032994a7d1b38f43d"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts",
+        "hash": "d88b98a11f795ec85b80e7bbd72861eb0acac9a0131b4c3c36c205a00105f356"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+        "hash": "f49dbc94a0773f291e47d66c80f2fa83287df06e44e9173e4586ec6f5a26acdc"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+        "hash": "7cc4fc5d2539660f6070f19f82d0bc8417add142ba0194bb5004ba1ecbe3ebd1"
+      },
+      {
+        "path": "playwright.config.ts",
+        "hash": "795e529203e4703cf54e0a02658332abacdb9d23e0455a10fd21db43c15af39f"
+      },
+      {
+        "path": "test/e2e/semantic-browser-image-export.spec.ts",
+        "hash": "efed26eb5aef4e17ffbf120e8e2eb8078473d310a75f66738d1a16641c555179"
+      },
+      {
+        "path": "test/e2e/semantic-browser-model-view.spec.ts",
+        "hash": "d1c07e885fe22aa0454752b3c3ca8a63a20aee9748d7e15fff2331022849d8a6"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
+        "hash": "58aa9224446ca89d7a7d3e76e41dcbd7609da687f7ec0f7e08385c05acc98c3f"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/model/elements/capability.assistant.md",
+        "hash": "837717ea94681a025251d75cd5d31255cc6776aa307418ebda6a3b4dab079bc0"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/model/relationships/invokes.yaml",
+        "hash": "0a6c80abaecc2156d030a45484352e9f9527a0efb7b92f7ab2c236c77eed29c5"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "95fd1a35187e97d7d676855ed4b0312dd69a60ae",
+    "gitDiffSummary": "baseCommit c881e4d == HEAD; change is uncommitted working-tree state (branch diff-node-presentation). Scope from git status --short: 11 modified files + 2 untracked paths (.xirang/changes/diff-node-presentation/, test/fixtures/contract-browser/.xirang/model/elements/capability.assistant.md). All scope entries attributed to Task 1/2/3 Files or change artifacts; no unaccounted changes. No staged files.",
+    "timestamp": "2026-08-10T04:24:50.714Z"
+  },
+  "optimization": {
+    "status": "IMPROVED",
+    "attempts": [
+      {
+        "timestamp": "2026-08-10T04:21:40.003Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-10T04:24:50.702Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-10T04:30:05.790Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-08-10T04:15:18.640Z",
+      "result": "PASS",
+      "issues": [
+        {
+          "severity": "SUGGESTION",
+          "requirement": "呈现 Change 目标与差异",
+          "task": "Task 2",
+          "message": "Task 2 Files declare custom/nodes/index.tsx and CompoundActions.tsx as Modify but neither was actually modified",
+          "recommendation": "Trim the two unmodified declarations from Task 2 Files, or note they were considered and needed no change",
+          "evidence": [
+            ".xirang/changes/diff-node-presentation/tasks.md",
+            "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "requirement": "呈现 Change 目标与差异",
+          "task": "Task 1",
+          "message": "architectureView.ts replaces the whole edge style object with {opacity:25} for unchanged edges; safe today (no other edge style props exist) but fragile to future additions",
+          "recommendation": "Merge as {...edge.style, opacity: 25} instead of replacing",
+          "evidence": [
+            "likec4/packages/diagram/src/xirang/architectureView.ts"
+          ]
+        }
+      ],
+      "tasksFileHash": "8ea4c18bd2ef8c23a4dfdc527bf030a228745c2c7c27074e0a26ba69534f705b",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/diff-node-presentation/.apply-isolation.json",
+          ".xirang/changes/diff-node-presentation/elements/semantic-browser.md",
+          ".xirang/changes/diff-node-presentation/tasks.md",
+          "likec4/packages/diagram/src/base-primitives/element/ElementNodeContainer.tsx",
+          "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+          "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.spec.ts",
+          "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts",
+          "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+          "likec4/packages/diagram/src/xirang/architectureView.ts",
+          "playwright.config.ts",
+          "test/e2e/semantic-browser-image-export.spec.ts",
+          "test/e2e/semantic-browser-model-view.spec.ts",
+          "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
+          "test/fixtures/contract-browser/.xirang/model/elements/capability.assistant.md",
+          "test/fixtures/contract-browser/.xirang/model/relationships/invokes.yaml"
+        ],
+        "evidenceFingerprint": "ab9cc1b966e7965ce11078964b232f33ec78315cdafe76c12f7bb1bcbe2ec79a",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/diff-node-presentation/.apply-isolation.json",
+            "hash": "e55f0f5a019d52f5c2eabbc9f3c2d450034401d14460f11ad5d937ca822f58f3"
+          },
+          {
+            "path": ".xirang/changes/diff-node-presentation/elements/semantic-browser.md",
+            "hash": "c871ce99ee7a68427a506ae496388b3075866ca99d2558c9129b58d6b001c3a7"
+          },
+          {
+            "path": ".xirang/changes/diff-node-presentation/tasks.md",
+            "hash": "8ea4c18bd2ef8c23a4dfdc527bf030a228745c2c7c27074e0a26ba69534f705b"
+          },
+          {
+            "path": "likec4/packages/diagram/src/base-primitives/element/ElementNodeContainer.tsx",
+            "hash": "3ab5c797df9333abac09dc43d5c54bcc223c72ed3e2dab15ab87b31df7d8b81e"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+            "hash": "d5245805073db6e47a6dd60dbc8e97f33012e3e01cd9ccedb75f43516abd3de8"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.spec.ts",
+            "hash": "3e83436ecafaed5bae18a2b604f9217ac3c3ceb1eaff32e032994a7d1b38f43d"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts",
+            "hash": "d88b98a11f795ec85b80e7bbd72861eb0acac9a0131b4c3c36c205a00105f356"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+            "hash": "f49dbc94a0773f291e47d66c80f2fa83287df06e44e9173e4586ec6f5a26acdc"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+            "hash": "b302bc399a23c5605e55a9b43fc7c70babd478a3f8a3d3b7a8455a372c7a1698"
+          },
+          {
+            "path": "playwright.config.ts",
+            "hash": "795e529203e4703cf54e0a02658332abacdb9d23e0455a10fd21db43c15af39f"
+          },
+          {
+            "path": "test/e2e/semantic-browser-image-export.spec.ts",
+            "hash": "efed26eb5aef4e17ffbf120e8e2eb8078473d310a75f66738d1a16641c555179"
+          },
+          {
+            "path": "test/e2e/semantic-browser-model-view.spec.ts",
+            "hash": "d1c07e885fe22aa0454752b3c3ca8a63a20aee9748d7e15fff2331022849d8a6"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
+            "hash": "58aa9224446ca89d7a7d3e76e41dcbd7609da687f7ec0f7e08385c05acc98c3f"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/model/elements/capability.assistant.md",
+            "hash": "837717ea94681a025251d75cd5d31255cc6776aa307418ebda6a3b4dab079bc0"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/model/relationships/invokes.yaml",
+            "hash": "0a6c80abaecc2156d030a45484352e9f9527a0efb7b92f7ab2c236c77eed29c5"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "c881e4d21ad55e4882fb711d03c32319d8656249",
+        "gitDiffSummary": "baseCommit c881e4d == HEAD; change is uncommitted working-tree state (branch diff-node-presentation). Scope from git status --short: 11 modified files + 2 untracked paths (.xirang/changes/diff-node-presentation/, test/fixtures/contract-browser/.xirang/model/elements/capability.assistant.md). All scope entries attributed to Task 1/2/3 Files or change artifacts; no unaccounted changes. No staged files."
+      }
+    },
+    "findings": [
+      {
+        "status": "resolved",
+        "location": {
+          "files": [
+            "likec4/packages/diagram/src/xirang/architectureView.ts"
+          ],
+          "symbols": [
+            "applyXirangPresentationOverlay"
+          ]
+        },
+        "opportunity": "Three mutually-exclusive conditional object spreads (lines 111-113) compute the same diff-mode node style.opacity; they repeat the diffActive gate three times and depend on the reader inferring that exactly one branch applies. One four-state opacity mapping expresses the same decision once and makes the mapping (REMOVED 45 / ADDED+MODIFIED 100 / unchanged 25) explicit.",
+        "impact": "Removes 2 redundant conditional branches and 3 repeated diffActive gates; aligns with the file's existing map-based style (operations set, elementOperations map) and with the diffOutline map in nodes.tsx, reducing risk of branch drift in future diff-state changes.",
+        "evidence": [
+          "likec4/packages/diagram/src/xirang/architectureView.ts:111-113: `...(diffActive && operation === 'REMOVED' ? { opacity: 45 } : {}), ...(diffActive && (operation === 'ADDED' || operation === 'MODIFIED') ? { opacity: 100 } : {}), ...(diffActive && operation === undefined ? { opacity: 25 } : {})`",
+          "operationByIdentity inserts entries only when `operations.has(entry.operation)` with operations = {ADDED, MODIFIED, REMOVED}, so `operation` is closed over {ADDED, MODIFIED, REMOVED, undefined}",
+          "line 78: `const diffActive = source.diff !== undefined`; non-diff mode must leave node.style.opacity untouched.",
+          "Verified: architectureView.spec.ts (4 four-state/no-diff node cases) and diagram-view.spec.ts pass on baseline; typecheck passes."
+        ],
+        "recommendation": "Replace the three spreads with a single lookup-driven spread backed by a small module-level map: `const diffNodeOpacity: Record<XirangDiffOperation, number> = { ADDED: 100, MODIFIED: 100, REMOVED: 45 }` next to the existing `operations` set, then `...(diffActive ? { opacity: operation ? diffNodeOpacity[operation] : 25 } : {})`.",
+        "keyDesign": "Module-level `diffNodeOpacity` map (ADDED:100, MODIFIED:100, REMOVED:45) adjacent to the `operations` set in architectureView.ts; in the node map, `...(diffActive ? { opacity: operation ? diffNodeOpacity[operation] : 25 } : {})`. The map mirrors the diffOutline shape in nodes.tsx so four-state opacity and outline live in the same shape.",
+        "preservationConstraints": [
+          "diffActive gate stays the single switch: no diff → node.style.opacity untouched (node.style spread unchanged).",
+          "REMOVED → 45, ADDED/MODIFIED → 100, unchanged (operation undefined) → 25 when diff is active.",
+          "operation can only be ADDED | MODIFIED | REMOVED | undefined because elementOperations is filtered by the closed `operations` set; merged expression must not change behavior for any value in that closed set.",
+          "Overlay must keep producing style.opacity as 0-100 integers so the downstream /100 conversions in ElementNodeContainer and diagramToXY are unaffected (25→0.25, 45→0.45)."
+        ],
+        "implementationOutline": [
+          "Add `const diffNodeOpacity: Record<XirangDiffOperation, number> = { ADDED: 100, MODIFIED: 100, REMOVED: 45 }` near the `operations` set in architectureView.ts.",
+          "Replace the three opacity spreads with `...(diffActive ? { opacity: operation ? diffNodeOpacity[operation] : 25 } : {})`.",
+          "Run `cd likec4 && pnpm --filter @likec4/diagram exec vitest run --no-isolate src/xirang/architectureView.spec.ts` — all existing four-state and no-diff tests must pass unchanged.",
+          "Run `cd likec4 && pnpm --filter @likec4/diagram typecheck`."
+        ],
+        "validation": [
+          "architectureView.spec.ts existing cases: unchanged→25, ADDED/MODIFIED→100, REMOVED→45, no-diff default→100, and REMOVED-with-sentinel-15→45 all still pass unchanged.",
+          "Unit run proves behavior preservation for every reachable operation value and for diffActive=false."
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Only statically-provable, behavior-preserving simplification inside base scope: the operation domain is closed so preservation fully closes.",
+        "id": "OPT-20260810T042140000Z-01",
+        "targetFileHashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.ts": "b302bc399a23c5605e55a9b43fc7c70babd478a3f8a3d3b7a8455a372c7a1698"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-10T04:21:40.000Z",
+        "findingId": "OPT-20260810T042140000Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "select",
+        "reason": "Only statically-provable, behavior-preserving simplification inside base scope: the operation domain is closed so preservation fully closes.",
+        "timestamp": "2026-08-10T04:21:40.003Z",
+        "findingId": "OPT-20260810T042140000Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.ts": "b302bc399a23c5605e55a9b43fc7c70babd478a3f8a3d3b7a8455a372c7a1698"
+        }
+      },
+      {
+        "sequence": 3,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-10T04:22:09.540Z",
+        "findingId": "OPT-20260810T042140000Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/xirang/architectureView.ts": "b302bc399a23c5605e55a9b43fc7c70babd478a3f8a3d3b7a8455a372c7a1698"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-10T04:24:50.703Z",
+        "findingId": "OPT-20260810T042140000Z-01"
+      },
+      {
+        "sequence": 5,
+        "action": "resolve",
+        "reason": "Implemented and reviewer-verified (PASS); no further optimization value on this direction",
+        "timestamp": "2026-08-10T04:30:05.790Z",
+        "findingId": "OPT-20260810T042140000Z-01"
+      }
+    ],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}

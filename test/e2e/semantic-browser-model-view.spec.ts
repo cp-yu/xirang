@@ -159,6 +159,68 @@ test('renders each Change presentation mode with distinct membership and overlay
   await page.screenshot({ path: test.info().outputPath('change-modes-diff-only.png'), fullPage: true })
 })
 
+test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
+  const nodeStyle = (locator: ReturnType<Page['locator']>) => locator.evaluate(node => {
+    const style = getComputedStyle(node)
+    return {
+      outlineStyle: style.outlineStyle,
+      outlineWidth: parseFloat(style.outlineWidth) || 0,
+      opacity: parseFloat(style.opacity),
+    }
+  })
+
+  // Root focus: ADDED compound node with dotted outline.
+  await page.goto('/view/model/?change=browser-change&mode=complete-with-diff')
+
+  const added = page.locator('.react-flow__node[data-xirang-identity="capability.added-parent"] .likec4-element-node')
+  await expect(added).toBeVisible()
+  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.added-parent"]'))
+    .toHaveAttribute('data-xirang-operation', 'ADDED')
+  const addedStyle = await nodeStyle(added)
+  expect(addedStyle.outlineStyle).toBe('dotted')
+  expect(addedStyle.outlineWidth).toBeGreaterThan(0)
+
+  // Drill focus: unchanged assistant node + edge, MODIFIED leaf, REMOVED peer.
+  await page.goto('/view/model/?change=browser-change&mode=complete-with-diff&focus=capability.drill')
+
+  const unchangedLeaf = page.locator('.react-flow__node[data-xirang-identity="capability.assistant"] .likec4-element-node')
+  await expect(unchangedLeaf).toBeVisible()
+  const unchangedStyle = await nodeStyle(unchangedLeaf)
+  expect(unchangedStyle.opacity).toBeCloseTo(0.25, 2)
+  expect(unchangedStyle.outlineStyle).toBe('none')
+
+  // The only edge without a diff badge here is the unchanged assistant→leaf relationship, dimmed to 25%.
+  const unchangedEdge = page.locator('.react-flow__edge:visible:not(:has([data-xirang-edge-diff])) .likec4-edge-container')
+  await expect(unchangedEdge).toHaveCount(1)
+  expect(await unchangedEdge.evaluate(node => parseFloat(getComputedStyle(node).opacity))).toBeCloseTo(0.25, 2)
+
+  const leaf = page.locator('.react-flow__node[data-xirang-identity="capability.leaf"] .likec4-element-node')
+  await expect(leaf).toBeVisible()
+  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.leaf"]'))
+    .toHaveAttribute('data-xirang-operation', 'MODIFIED')
+  const modifiedStyle = await nodeStyle(leaf)
+  expect(modifiedStyle.outlineStyle).toBe('solid')
+  expect(modifiedStyle.outlineWidth).toBeGreaterThan(addedStyle.outlineWidth)
+
+  const peer = page.locator('.react-flow__node[data-xirang-identity="capability.peer"] .likec4-element-node')
+  await expect(peer).toBeVisible()
+  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.peer"]'))
+    .toHaveAttribute('data-xirang-operation', 'REMOVED')
+  const removedStyle = await nodeStyle(peer)
+  expect(removedStyle.outlineStyle).toBe('dashed')
+  expect(removedStyle.opacity).toBeCloseTo(0.45, 2)
+
+  // The removed leaf→peer relationship keeps its diff badge.
+  await expect(page.locator('[data-xirang-edge-diff][aria-label="Relationship REMOVED"]')).toBeVisible()
+
+  // Complete mode (no diff overlay) keeps leaf nodes at full opacity — the LikeC4 default
+  // style opacity must not leak into the rendered element.
+  await page.goto('/view/model/?change=browser-change&mode=complete')
+  const plainLeaf = page.locator('.react-flow__node[data-xirang-identity="single"] .likec4-element-node')
+  await expect(plainLeaf).toBeVisible()
+  expect((await nodeStyle(plainLeaf)).opacity).toBeGreaterThan(0.9)
+})
+
 test('expands in place with ctrl+click and collapses with Shift+0', async ({ page }) => {
   const perspective = page.locator('.react-flow__node[data-xirang-identity="perspective.browser"]')
   await expect(perspective).toBeVisible()
