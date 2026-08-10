@@ -42,7 +42,7 @@ Semantic Browser SHALL 在单一 route 中使用 Model 或 Authored View Selecti
 
 ### Requirement: 呈现 Change 目标与差异
 
-Semantic Browser SHALL 将当前 Semantic Model、一个可选活动 Change 与当前 View Selection 确定性组合，并提供 `complete`、`complete-with-diff` 与 `diff-only` 三种 Presentation Mode；系统 SHALL NOT 为每个 Change 创建独立可选 View source。diff overlay 激活时，Browser SHALL 以不依赖颜色的四态视觉区分节点与关系边：unchanged 节点与边以 25% 透明度且无 outline 呈现，ADDED 节点以 100% 透明度与点线 outline 呈现，MODIFIED 节点以 100% 透明度与加粗 outline 呈现，REMOVED 节点以 45% ghost 透明度与虚线 outline 呈现，changed 关系边保留其 `+`/`~`/`−` 徽标。
+Semantic Browser SHALL 将当前 Semantic Model、一个可选活动 Change 与当前 View Selection 确定性组合，并提供 `complete`、`complete-with-diff` 与 `diff-only` 三种 Presentation Mode；系统 SHALL NOT 为每个 Change 创建独立可选 View source。diff overlay 激活时，Browser SHALL 以橙黄描边与徽标区分四态节点与关系边：unchanged 节点与边以 25% 透明度且无 outline、无徽标呈现；ADDED 节点以 100% 透明度、橙黄点线 outline 与 `+` 徽标呈现；MODIFIED 节点以 100% 透明度、加粗橙黄实线 outline 与 `~` 徽标呈现；REMOVED 节点以 45% ghost 透明度、橙黄虚线 outline 与 `−` 徽标呈现，且其徽标保持 100% 透明度；changed 关系边保留其 `+`/`~`/`−` 徽标。
 
 #### Scenario: Complete 模式
 
@@ -65,10 +65,10 @@ Semantic Browser SHALL 将当前 Semantic Model、一个可选活动 Change 与�
 #### Scenario: 四态节点视觉区分
 
 - **WHEN** diff overlay 激活且 View 同时包含 ADDED、MODIFIED、REMOVED 与 unchanged 元素
-- **THEN** unchanged 元素以 25% 透明度且无 outline 呈现
-- **AND** ADDED 元素以 100% 透明度与点线 outline 呈现
-- **AND** MODIFIED 元素以 100% 透明度与加粗 outline 呈现
-- **AND** REMOVED 元素以 45% ghost 透明度与虚线 outline 呈现
+- **THEN** unchanged 元素以 25% 透明度且无 outline、无徽标呈现
+- **AND** ADDED 元素以 100% 透明度、橙黄点线 outline 与 `+` 徽标呈现
+- **AND** MODIFIED 元素以 100% 透明度、加粗橙黄实线 outline 与 `~` 徽标呈现，其 outline 宽于 ADDED
+- **AND** REMOVED 元素以 45% ghost 透明度、橙黄虚线 outline 与 `−` 徽标呈现，且 `−` 徽标保持 100% 透明度
 
 #### Scenario: 关系边视觉区分
 
