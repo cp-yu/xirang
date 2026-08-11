@@ -36,7 +36,7 @@
       "test/core/likec4/generator.test.ts",
       "test/e2e/semantic-browser-model-view.spec.ts"
     ],
-    "evidenceFingerprint": "545e6206ee88803b8b052f1d77e3df975c9457a404d44fb14b1efcb16e08773d",
+    "evidenceFingerprint": "f63b4c53aea6b364394e22ae8514bd0be93ab15253e22c1eddf24285e1204cb7",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/fix-compound-view-unflatten/design.md",
@@ -60,7 +60,7 @@
       },
       {
         "path": "likec4/packages/layouts/src/graphviz/GraphvizLayoter.ts",
-        "hash": "727f3f3d96b8e6e4a50bd170fc4321f20a583d7ef0cef22fe727d0ca77dcdcec"
+        "hash": "2ef6f87b91cc21534641f38037d1b0c86b64f2e4af95e02a1bef34396122a857"
       },
       {
         "path": "likec4/packages/layouts/src/graphviz/GraphvizLayouter.spec.ts",
@@ -84,12 +84,12 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "c17dbfbcbdfe288ed2a6fba584c874a213df426a",
+    "gitHeadCommit": "748de5803584387e13ca953911e9f499f64a5a2b",
     "gitDiffSummary": "baseCommit da06ba363 == HEAD; all changes uncommitted on branch fix-compound-view-unflatten. Unit vitest 3/3, layouts typecheck, full-project layout regression, stale-diagnostic grep, 3-package rebuild, dist-mode export, playwright e2e 11/11, xirang view server log grep all passed.",
-    "timestamp": "2026-08-11T17:05:24.133Z"
+    "timestamp": "2026-08-11T17:25:24.223Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
         "timestamp": "2026-08-11T16:59:08.428Z",
@@ -103,6 +103,26 @@
       },
       {
         "timestamp": "2026-08-11T17:22:06.532Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-11T17:22:54.057Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-11T17:25:04.542Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-11T17:25:24.212Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-11T17:25:44.424Z",
         "type": "optimization",
         "status": "OPTIMIZATION_PROPOSED"
       }
@@ -242,7 +262,7 @@
         }
       },
       {
-        "status": "implemented",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/layouts/src/graphviz/GraphvizLayoter.ts"
@@ -289,7 +309,7 @@
         }
       },
       {
-        "status": "pending",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/layouts/src/graphviz/GraphvizLayoter.ts"
@@ -327,7 +347,10 @@
         "cost": "low",
         "dependencies": [],
         "priorityReason": "maintainability; strengthens the invariant F2 relies on",
-        "id": "OPT-20260811T165908425Z-03"
+        "id": "OPT-20260811T165908425Z-03",
+        "targetFileHashes": {
+          "likec4/packages/layouts/src/graphviz/GraphvizLayoter.ts": "2ef6f87b91cc21534641f38037d1b0c86b64f2e4af95e02a1bef34396122a857"
+        }
       }
     ],
     "history": [
@@ -419,9 +442,64 @@
         "hashes": {
           "likec4/packages/layouts/src/graphviz/GraphvizLayoter.ts": "2ef6f87b91cc21534641f38037d1b0c86b64f2e4af95e02a1bef34396122a857"
         }
+      },
+      {
+        "sequence": 12,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-11T17:22:54.057Z",
+        "findingId": "OPT-20260811T165908425Z-02"
+      },
+      {
+        "sequence": 13,
+        "action": "resolve",
+        "reason": "single normalization point verified PASS",
+        "timestamp": "2026-08-11T17:25:04.539Z",
+        "findingId": "OPT-20260811T165908425Z-02"
+      },
+      {
+        "sequence": 14,
+        "action": "retain",
+        "reason": "keep for implementation",
+        "timestamp": "2026-08-11T17:25:04.539Z",
+        "findingId": "OPT-20260811T165908425Z-03"
+      },
+      {
+        "sequence": 15,
+        "action": "select",
+        "reason": "maintainability; strengthens the invariant F2 relies on",
+        "timestamp": "2026-08-11T17:25:04.542Z",
+        "findingId": "OPT-20260811T165908425Z-03",
+        "hashes": {
+          "likec4/packages/layouts/src/graphviz/GraphvizLayoter.ts": "2ef6f87b91cc21534641f38037d1b0c86b64f2e4af95e02a1bef34396122a857"
+        }
+      },
+      {
+        "sequence": 16,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-11T17:25:24.043Z",
+        "findingId": "OPT-20260811T165908425Z-03",
+        "hashes": {
+          "likec4/packages/layouts/src/graphviz/GraphvizLayoter.ts": "2ef6f87b91cc21534641f38037d1b0c86b64f2e4af95e02a1bef34396122a857"
+        }
+      },
+      {
+        "sequence": 17,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-11T17:25:24.212Z",
+        "findingId": "OPT-20260811T165908425Z-03"
+      },
+      {
+        "sequence": 18,
+        "action": "resolve",
+        "reason": "single-gate dot() verified PASS",
+        "timestamp": "2026-08-11T17:25:44.424Z",
+        "findingId": "OPT-20260811T165908425Z-03"
       }
     ],
-    "reconciliationSignature": "26f4c24750740f08fed48473ce4c65ddb5b39de06b4ab97b45424c697d8ad5a1",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }
