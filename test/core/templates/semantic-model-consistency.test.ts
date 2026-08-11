@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { XIRANG_SHARED_CONTEXT } from '../../../src/core/templates/fragments/xirang-fragments.js';
+import {
+  STRUCTURAL_DECOMPOSITION_GUIDANCE,
+  XIRANG_SHARED_CONTEXT,
+} from '../../../src/core/templates/fragments/xirang-fragments.js';
 import { getApplyChangeSkillTemplate } from '../../../src/core/templates/workflows/apply-change.js';
+import { getArchiveChangeSkillTemplate } from '../../../src/core/templates/workflows/archive-change.js';
+import { getBuildSkillTemplate } from '../../../src/core/templates/workflows/build.js';
 import { getExploreSkillTemplate } from '../../../src/core/templates/workflows/explore.js';
 import { getOptimizerSubagentTemplate } from '../../../src/core/templates/workflows/optimizer.js';
 import { getXirangProposeSkillTemplate } from '../../../src/core/templates/workflows/propose.js';
@@ -28,6 +33,28 @@ describe('generated Xirang Semantic Model guidance', () => {
   it('reuses one shared context across relevant workflow surfaces', () => {
     for (const guidance of activeGuidance()) {
       expect(guidance).toContain(XIRANG_SHARED_CONTEXT);
+    }
+  });
+
+  it('includes structural decomposition guidance only in hierarchy-forming workflows', () => {
+    const structural = [
+      getBuildSkillTemplate().instructions,
+      getExploreSkillTemplate().instructions,
+      getXirangProposeSkillTemplate().instructions,
+      getSnackSkillTemplate().instructions,
+    ];
+    const nonStructural = [
+      getApplyChangeSkillTemplate().instructions,
+      getArchiveChangeSkillTemplate().instructions,
+      getReviewerSubagentTemplate().prompt,
+      getOptimizerSubagentTemplate().prompt,
+    ];
+
+    for (const guidance of structural) {
+      expect(guidance).toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
+    }
+    for (const guidance of nonStructural) {
+      expect(guidance).not.toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
     }
   });
 

@@ -7,6 +7,7 @@ import {
   ARTIFACT_DOC_LANGUAGE_CONTRACT,
   ELEMENT_CONTRACT_SEMANTICS,
   ELEMENT_DEFINITION_SEMANTICS,
+  STRUCTURAL_DECOMPOSITION_GUIDANCE,
   XIRANG_PHILOSOPHY,
   XIRANG_SHARED_CONTEXT,
 } from '../fragments/xirang-fragments.js';
@@ -25,6 +26,8 @@ ${XIRANG_PHILOSOPHY}
 ${ELEMENT_DEFINITION_SEMANTICS}
 
 ${ELEMENT_CONTRACT_SEMANTICS}
+
+${STRUCTURAL_DECOMPOSITION_GUIDANCE}
 
 Treat \`proposal.md\`, \`design.md\`, and the Delta units under \`{metamodel,elements,relationships,views}/\` as conditional artifacts: create them when missing, update them when stale or inconsistent, and leave them unchanged when current.
 
@@ -53,7 +56,10 @@ ${XIRANG_SHARED_CONTEXT}
 6. Determine structural impact.
    - Declare impact only when Element Declarations, refinement, Relationships, Kinds, or Views change.
    - Reconcile a Definition only when user intent, existing semantic artifacts, or other authoritative evidence establishes its complete concept identity and scope boundary. Do not infer a Definition from file names, symbols, imports, or call relationships; when the required conceptual boundary is unresolved, stop and ask one focused question instead of guessing.
-   - Implementation-only movement, symbol renaming, helper extraction, and mechanical call/import changes do not by themselves change the structure.
+   - Implementation-only movement, symbol renaming, helper extraction, and mechanical call/import changes do not by themselves change the structure. Treat file moves, symbol renames, imports, or calls as mechanical evidence and do not invoke decomposition guidance for them.
+   - Apply the Structural Decomposition Guidance only when conversation context, the Xirang Semantic Model, and authorized evidence requires a new or reorganized durable hierarchy.
+   - If decomposition guidance suggests structure that exceeds user intent or authoritative evidence, do not write the suggested structure; mark the decision for user confirmation.
+   - If required decomposition guidance is unavailable or insufficient, stop structural reconciliation and report its logical name instead of guessing or falling back.
    - If no structural fact changes, set the compatible Architecture Source scope to \`None\`. If impact remains unresolved, stop and ask one focused question; do not write structural Delta units or claim reconciliation complete.
 7. Reconcile the Contract and structural scopes as one Semantic Delta; both address the same Element identity space.
 8. Reconcile \`proposal.md\`.

@@ -11,6 +11,9 @@ describe('Definition Framing reference projection', () => {
     expect(reference?.content).toContain('Definition Framing');
     expect(reference?.content).toContain('user chooses');
     expect(reference?.content).toContain('explicit persistence confirmation');
+    expect(reference?.content).toContain('Before proposing or confirming hierarchy targets');
+    expect(reference?.content).toContain('configured decomposition guidance');
+    expect(reference?.content).toContain('stop the affected structural framing');
     expect(reference?.content).toContain('causal definition');
     expect(reference?.content).toContain('MECE');
     expect(reference?.content).toContain('single structural dimension');

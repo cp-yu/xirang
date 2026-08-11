@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { XIRANG_PHILOSOPHY } from '../../../src/core/templates/fragments/xirang-fragments.js';
+import {
+  STRUCTURAL_DECOMPOSITION_GUIDANCE,
+  XIRANG_PHILOSOPHY,
+} from '../../../src/core/templates/fragments/xirang-fragments.js';
 import { getExploreSkillTemplate } from '../../../src/core/templates/skill-templates.js';
 
 describe('explore template semantic impact', () => {
@@ -132,6 +135,16 @@ describe('explore template semantic impact', () => {
     expect(template).toContain('Contract and Authored View impacts');
     expect(template).toContain('invalidate the affected structural confirmations and downstream design decisions');
     expect(template).toContain('When no Change Structural Definition exists, continue from the Semantic Model and project evidence');
+  });
+
+  it('applies decomposition guidance only when structural design is required', () => {
+    expect(template).toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
+    expect(template).toContain('xirang config project --json');
+    expect(template).toContain('before comparing structural options');
+    expect(template).toContain('adds Elements, changes a parent, or reorganizes a sibling set');
+    expect(template).toContain('Contract-only');
+    expect(template).toContain('do not invoke the decomposition skill');
+    expect(template).toContain('does not relax the Explore read-only boundary');
   });
 
   it('routes active-change insights to future capture targets', () => {

@@ -7,6 +7,7 @@
 import type { SkillTemplate } from '../types.js';
 import {
   ELEMENT_DEFINITION_SEMANTICS,
+  STRUCTURAL_DECOMPOSITION_GUIDANCE,
   XIRANG_PHILOSOPHY,
   XIRANG_SHARED_CONTEXT,
 } from '../fragments/xirang-fragments.js';
@@ -154,6 +155,8 @@ Definition Framing is an optional Change Formation stage for confirming structur
 
 ## Structural framing method
 
+Before proposing or confirming hierarchy targets, apply the configured decomposition guidance from the parent Explore skill. If that guidance is unavailable or insufficient, stop the affected structural framing and ask the user; do not create or update a framing payload.
+
 1. Start with a causal definition: state the structural problem, why the current structure causes it, and what semantic outcome the Change must create. Separate causes from symptoms and implementation preferences.
 2. Clarify identity and boundaries before placement. For each proposed Element or Kind, define what it includes, what it excludes, and how it differs from nearby siblings. For a Relationship, define the source, target, and semantic meaning of its Kind.
 3. Decompose the structure as a MECE set along a single structural dimension at a time. Do not mix lifecycle stage, responsibility, deployment location, and implementation technique in one sibling set. If the set is not mutually exclusive and collectively sufficient for the confirmed scope, revise the dimension before continuing.
@@ -238,6 +241,8 @@ ${XIRANG_SHARED_CONTEXT}
 
 ${ELEMENT_DEFINITION_SEMANTICS}
 
+${STRUCTURAL_DECOMPOSITION_GUIDANCE}
+
 ${CONVERSATION_LANGUAGE_GUIDANCE}
 
 ## Semantic Impact
@@ -254,6 +259,8 @@ When a new module, workflow, command, configuration key, project concept, or unf
 Read active Change artifacts completely when one is in scope, but do not pass a Change or Semantic Delta to \`arch impact\`. Before proposal readiness, recheck the selected focus Elements and evidence coverage; disclose gaps instead of inferring missing evidence.
 
 ## Definition Framing and Design Exploration
+
+Apply decomposition guidance before comparing structural options only when the confirmed intent adds Elements, changes a parent, or reorganizes a sibling set. For Contract-only, behavior-only, or implementation-only exploration, do not invoke the decomposition skill or invent hierarchy work. Invoking a custom decomposition skill is read-only design assistance and does not relax the Explore read-only boundary.
 
 Definition Framing is optional and begins only when the user chooses it. Recommend it when the structural scope is material or cannot be confirmed reliably inside the later design discussion; otherwise proceed directly to Design Exploration.
 

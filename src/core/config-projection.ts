@@ -7,6 +7,9 @@ export interface NormalizedProjectConfig {
   schema?: string;
   proseLanguage?: string;
   context?: string;
+  decomposition?:
+    | { method: string }
+    | { skill: string };
   architecture: {
     outline: {
       elementDefinitionDepth: number;
@@ -53,7 +56,7 @@ export interface ProjectionScope {
 }
 
 export interface ProjectionFragment {
-  key: 'proseLanguage' | 'context' | 'rules' | 'git' | 'apply' | 'architecture';
+  key: 'proseLanguage' | 'context' | 'decomposition' | 'rules' | 'git' | 'apply' | 'architecture';
   scope: 'global' | 'artifact';
   lines: string[];
 }
@@ -134,6 +137,7 @@ export function normalizeProjectConfig(config: ProjectConfig | null): Normalized
     schema: normalizeString(config.schema),
     proseLanguage: normalizeString(config.proseLanguage),
     context: normalizeString(config.context),
+    decomposition: config.decomposition ? { ...config.decomposition } : undefined,
     architecture,
     optimization: config.optimization
       ? {
@@ -271,6 +275,29 @@ const projectionRules: ProjectionRule[] = [
     },
   },
   {
+    key: 'decomposition',
+    buildPrompt(config, scope) {
+      if (!config.decomposition || !['build', 'explore', 'propose', 'snack'].includes(scope.surface)) {
+        return null;
+      }
+
+      const [key, value] = 'method' in config.decomposition
+        ? ['method', config.decomposition.method]
+        : ['skill', config.decomposition.skill];
+      return {
+        key: 'decomposition',
+        scope: 'global',
+        lines: [`decomposition.${key}: ${value}`],
+      };
+    },
+    buildRuntime() {
+      return null;
+    },
+    affectsFingerprint() {
+      return false;
+    },
+  },
+  {
     key: 'rules',
     buildPrompt(config, scope) {
       return buildArtifactRulesFragment(config, scope);
@@ -352,11 +379,10 @@ const projectionRules: ProjectionRule[] = [
   },
 ];
 
-export function projectConfigForPrompt(
-  config: ProjectConfig | null,
+function compilePromptProjection(
+  normalized: NormalizedProjectConfig,
   scope: { surface: string; artifactId?: string }
 ): PromptProjection {
-  const normalized = normalizeProjectConfig(config);
   const fragments = projectionRules
     .map((rule) => rule.buildPrompt(normalized, scope))
     .filter((fragment): fragment is ProjectionFragment => fragment !== null);
@@ -368,6 +394,13 @@ export function projectConfigForPrompt(
     compiledLines: fragments.flatMap((fragment) => fragment.lines),
     canonicalTokenPolicy: CANONICAL_TOKEN_POLICY,
   };
+}
+
+export function projectConfigForPrompt(
+  config: ProjectConfig | null,
+  scope: { surface: string; artifactId?: string }
+): PromptProjection {
+  return compilePromptProjection(normalizeProjectConfig(config), scope);
 }
 
 export function projectConfigForRuntime(
@@ -401,9 +434,11 @@ export function buildConfigProjectionBundle(
   config: ProjectConfig | null,
   scope: { surface: string; artifactId?: string }
 ): ConfigProjectionBundle {
+  const normalized = normalizeProjectConfig(config);
+
   return {
-    normalized: normalizeProjectConfig(config),
-    prompt: projectConfigForPrompt(config, scope),
+    normalized,
+    prompt: compilePromptProjection(normalized, scope),
   };
 }
 

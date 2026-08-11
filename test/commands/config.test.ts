@@ -151,6 +151,8 @@ describe('config project command', () => {
       `schema: semantic-model
 proseLanguage: 中文
 context: Project context
+decomposition:
+  skill: xirang-project-decomposition
 optimization:
   enabled: false
   optRetries: 1
@@ -180,6 +182,14 @@ rules:
       schema: 'semantic-model',
       proseLanguage: '中文',
       context: 'Project context',
+      decomposition: {
+        skill: 'xirang-project-decomposition',
+      },
+      architecture: {
+        outline: {
+          elementDefinitionDepth: 2,
+        },
+      },
       optimization: {
         enabled: false,
         optRetries: 1,
@@ -208,7 +218,14 @@ rules:
   it('prints minimal JSON when config.yaml is missing', async () => {
     await runProjectCommand(['--json']);
 
-    expect(JSON.parse(consoleLogSpy.mock.calls[0][0])).toEqual({ rules: {} });
+    expect(JSON.parse(consoleLogSpy.mock.calls[0][0])).toEqual({
+      architecture: {
+        outline: {
+          elementDefinitionDepth: 2,
+        },
+      },
+      rules: {},
+    });
   });
 
   it('prints YAML-like text without --json', async () => {

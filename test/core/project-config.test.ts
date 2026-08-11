@@ -61,6 +61,9 @@ describe('project-config', () => {
 
       expect(defaults).toEqual({
         schema: 'semantic-model',
+        decomposition: {
+          method: 'c4',
+        },
         architecture: {
           outline: {
             elementDefinitionDepth: 2,
@@ -112,6 +115,9 @@ describe('project-config', () => {
       });
       expect(parsed).toEqual({
         schema: 'semantic-model',
+        decomposition: {
+          method: 'c4',
+        },
         architecture: {
           outline: {
             elementDefinitionDepth: 2,
@@ -239,7 +245,27 @@ architecture:
       expect(fs.existsSync(path.join(configDir, 'config.yaml'))).toBe(false);
       const parsed = parseYaml(fs.readFileSync(ymlPath, 'utf-8'));
       expect(parsed.architecture.outline.elementDefinitionDepth).toBe(4);
+      expect(parsed.decomposition).toEqual({ method: 'c4' });
       expect(parsed.git.merge.strategy).toBe('no-ff');
+    });
+
+    it('should preserve an existing decomposition skill during missing-only migration', () => {
+      const configDir = path.join(tempDir, '.xirang');
+      fs.mkdirSync(configDir, { recursive: true });
+      const configPath = path.join(configDir, 'config.yaml');
+      fs.writeFileSync(
+        configPath,
+        `schema: semantic-model
+decomposition:
+  skill: project-modeling
+`
+      );
+
+      migrateProjectConfigDefaults(tempDir);
+      const parsed = parseYaml(fs.readFileSync(configPath, 'utf-8'));
+
+      expect(parsed.decomposition).toEqual({ skill: 'project-modeling' });
+      expect(parsed.decomposition).not.toHaveProperty('method');
     });
 
     it('should leave invalid yaml unchanged and report skipped migration', () => {
@@ -296,6 +322,54 @@ architecture:
   });
 
   describe('readProjectConfig', () => {
+    describe('decomposition', () => {
+      it.each([
+        ['method', 'c4', { method: 'c4' }],
+        ['skill', 'xirang-project-decomposition', { skill: 'xirang-project-decomposition' }],
+      ] as const)('loads an opaque %s selection', (key, value, expected) => {
+        const configDir = path.join(tempDir, '.xirang');
+        fs.mkdirSync(configDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(configDir, 'config.yaml'),
+          `schema: semantic-model\ndecomposition:\n  ${key}: ${value}\n`
+        );
+
+        const config = readProjectConfig(tempDir);
+
+        expect(config?.decomposition).toEqual(expected);
+        expect(consoleWarnSpy).not.toHaveBeenCalled();
+      });
+
+      it('uses c4 when the field is missing', () => {
+        const configDir = path.join(tempDir, '.xirang');
+        fs.mkdirSync(configDir, { recursive: true });
+        fs.writeFileSync(path.join(configDir, 'config.yaml'), 'schema: semantic-model\n');
+
+        expect(readProjectConfig(tempDir)?.decomposition).toEqual({ method: 'c4' });
+      });
+
+      it.each([
+        ['both branches', '  method: c4\n  skill: custom'],
+        ['no branch', '{}'],
+        ['empty method', '  method: "  "'],
+        ['unknown key', '  method: c4\n  extra: true'],
+        ['raw string', 'c4'],
+      ])('warns and omits an invalid tagged union: %s', (_label, value) => {
+        const configDir = path.join(tempDir, '.xirang');
+        fs.mkdirSync(configDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(configDir, 'config.yaml'),
+          `schema: semantic-model\ndecomposition: ${value.startsWith('  ') ? `\n${value}` : value}\ncontext: keep me\n`
+        );
+
+        const config = readProjectConfig(tempDir);
+
+        expect(config?.decomposition).toBeUndefined();
+        expect(config?.context).toBe('keep me');
+        expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("Invalid 'decomposition' field"));
+      });
+    });
+
     describe('resilient parsing', () => {
       it.each([
         ['negative', '  outline:\n    elementDefinitionDepth: -1'],
@@ -368,6 +442,7 @@ rules:
 
         expect(config).toEqual({
           schema: 'semantic-model',
+          decomposition: { method: 'c4' },
           proseLanguage: 'zh-CN',
           context: 'Tech stack: TypeScript, React\nAPI style: RESTful\n',
           git: gitConfig(),
@@ -423,6 +498,7 @@ docLanguage: zh-CN
 
         expect(config).toEqual({
           schema: 'semantic-model',
+          decomposition: { method: 'c4' },
           git: gitConfig(),
         });
         expect(consoleWarnSpy).not.toHaveBeenCalled();
@@ -443,6 +519,7 @@ optimization:
 
         expect(config).toEqual({
           schema: 'semantic-model',
+          decomposition: { method: 'c4' },
           optimization: {
             enabled: false,
             optRetries: 2,
@@ -468,6 +545,7 @@ apply:
 
         expect(config).toEqual({
           schema: 'semantic-model',
+          decomposition: { method: 'c4' },
           apply: {
             defaultIsolation: 'worktree',
           },
@@ -499,6 +577,7 @@ git:
 
         expect(config).toEqual({
           schema: 'semantic-model',
+          decomposition: { method: 'c4' },
           git: gitConfig({
             strategy: 'squash',
             deleteAfterArchive: true,
@@ -521,6 +600,7 @@ git:
 
         expect(config).toEqual({
           schema: 'semantic-model',
+          decomposition: { method: 'c4' },
           git: gitConfig(),
         });
         expect(consoleWarnSpy).not.toHaveBeenCalled();
@@ -630,6 +710,7 @@ rules:
 
         expect(config).toEqual({
           schema: 'semantic-model',
+          decomposition: { method: 'c4' },
           git: gitConfig(),
           rules: {
             proposal: ['Valid rule'],
@@ -655,6 +736,7 @@ context: Valid context
 
         expect(config).toEqual({
           schema: 'semantic-model',
+          decomposition: { method: 'c4' },
           context: 'Valid context',
           git: gitConfig(),
         });
@@ -678,6 +760,7 @@ rules: ["not", "an", "object"]
 
         expect(config).toEqual({
           schema: 'semantic-model',
+          decomposition: { method: 'c4' },
           context: 'Valid context',
           git: gitConfig(),
         });
@@ -701,6 +784,7 @@ context: Valid context
 
         expect(config).toEqual({
           schema: 'semantic-model',
+          decomposition: { method: 'c4' },
           context: 'Valid context',
           git: gitConfig(),
         });
@@ -726,6 +810,7 @@ rules:
         // Should still parse schema and context despite null rules
         expect(config).toEqual({
           schema: 'semantic-model',
+          decomposition: { method: 'c4' },
           context: 'Valid context',
           git: gitConfig(),
         });
@@ -753,6 +838,7 @@ rules:
 
         expect(config).toEqual({
           schema: 'semantic-model',
+          decomposition: { method: 'c4' },
           git: gitConfig(),
           rules: {
             proposal: ['Valid rule'],
@@ -783,6 +869,7 @@ rules:
 
         expect(config).toEqual({
           schema: 'semantic-model',
+          decomposition: { method: 'c4' },
           git: gitConfig(),
           rules: {
             proposal: ['Valid rule', 'Another valid rule'],
@@ -812,6 +899,7 @@ rules:
 
         expect(config).toEqual({
           schema: 'semantic-model',
+          decomposition: { method: 'c4' },
           git: gitConfig(),
           rules: {
             specs: ['Valid rule'],
@@ -888,6 +976,7 @@ rules:
 
         expect(config).toEqual({
           schema: 'semantic-model',
+          decomposition: { method: 'c4' },
           git: gitConfig(),
         });
         expect(config?.context).toBeUndefined();
@@ -1259,6 +1348,32 @@ rules:
       expect(bundle.prompt.compiledLines.join('\n')).not.toContain('Use Given/When/Then');
     });
 
+    it('normalizes config only once when building a projection bundle', () => {
+      const trimRule = vi.fn(() => 'Keep duplicates');
+      const trimEmptyRule = vi.fn(() => '');
+      const config = {
+        schema: 'semantic-model',
+        decomposition: { skill: 'project-decomposition' },
+        rules: {
+          ' proposal ': [
+            { trim: trimRule },
+            { trim: trimRule },
+            { trim: trimEmptyRule },
+          ],
+        },
+      } as unknown as ProjectConfig;
+      const scope = { surface: 'propose', artifactId: 'proposal' };
+
+      const bundle = buildConfigProjectionBundle(config, scope);
+
+      expect(trimRule).toHaveBeenCalledTimes(2);
+      expect(trimEmptyRule).toHaveBeenCalledTimes(1);
+      expect(bundle.normalized.rules).toEqual({
+        proposal: ['Keep duplicates', 'Keep duplicates'],
+      });
+      expect(bundle.prompt).toEqual(projectConfigForPrompt(config, scope));
+    });
+
     it('projects git settings for archive prompt consumers', () => {
       const bundle = buildConfigProjectionBundle(
         {
@@ -1373,6 +1488,50 @@ rules:
           ],
         }),
       ]);
+    });
+
+    it('projects opaque decomposition selections only to structural workflows', () => {
+      const methodProjection = projectConfigForPrompt(
+        {
+          schema: 'semantic-model',
+          decomposition: { method: 'c4' },
+          rules: {},
+        },
+        { surface: 'build' }
+      );
+      const skillProjection = projectConfigForPrompt(
+        {
+          schema: 'semantic-model',
+          decomposition: { skill: 'xirang-project-decomposition' },
+          rules: {},
+        },
+        { surface: 'explore' }
+      );
+      const applyProjection = projectConfigForPrompt(
+        {
+          schema: 'semantic-model',
+          decomposition: { method: 'c4' },
+          rules: {},
+        },
+        { surface: 'apply' }
+      );
+
+      expect(normalizeProjectConfig({
+        schema: 'semantic-model',
+        decomposition: { skill: 'xirang-project-decomposition' },
+      }).decomposition).toEqual({ skill: 'xirang-project-decomposition' });
+      expect(methodProjection.fragments).toContainEqual({
+        key: 'decomposition',
+        scope: 'global',
+        lines: ['decomposition.method: c4'],
+      });
+      expect(skillProjection.fragments).toContainEqual({
+        key: 'decomposition',
+        scope: 'global',
+        lines: ['decomposition.skill: xirang-project-decomposition'],
+      });
+      expect(applyProjection.fragments.some((fragment) => fragment.key === 'decomposition')).toBe(false);
+      expect(methodProjection.compiledLines.join('\n')).not.toMatch(/container|component|\.pi\/skills/);
     });
 
     it('omits invalid or missing fields from runtime projection and marks proseLanguage as fingerprint-affecting', () => {

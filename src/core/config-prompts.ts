@@ -33,6 +33,18 @@ export function serializeConfig(config: Partial<ProjectConfig>): string {
   }
   lines.push('');
 
+  // Hierarchy decomposition selection
+  lines.push('# Hierarchy decomposition selection (choose exactly one branch)');
+  if (materialized.decomposition) {
+    lines.push('decomposition:');
+    if ('method' in materialized.decomposition) {
+      lines.push(`  method: ${materialized.decomposition.method}`);
+    } else {
+      lines.push(`  skill: ${materialized.decomposition.skill}`);
+    }
+  }
+  lines.push('');
+
   // Context section with comments
   lines.push('# Project context (optional)');
   lines.push('# This is shown to AI when creating artifacts.');

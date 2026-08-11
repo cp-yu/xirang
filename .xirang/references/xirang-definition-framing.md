@@ -4,6 +4,8 @@ Definition Framing is an optional Change Formation stage for confirming structur
 
 ## Structural framing method
 
+Before proposing or confirming hierarchy targets, apply the configured decomposition guidance from the parent Explore skill. If that guidance is unavailable or insufficient, stop the affected structural framing and ask the user; do not create or update a framing payload.
+
 1. Start with a causal definition: state the structural problem, why the current structure causes it, and what semantic outcome the Change must create. Separate causes from symptoms and implementation preferences.
 2. Clarify identity and boundaries before placement. For each proposed Element or Kind, define what it includes, what it excludes, and how it differs from nearby siblings. For a Relationship, define the source, target, and semantic meaning of its Kind.
 3. Decompose the structure as a MECE set along a single structural dimension at a time. Do not mix lifecycle stage, responsibility, deployment location, and implementation technique in one sibling set. If the set is not mutually exclusive and collectively sufficient for the confirmed scope, revise the dimension before continuing.

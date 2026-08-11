@@ -114,6 +114,7 @@ describe('UpdateCommand', () => {
 
       const configPath = path.join(testDir, '.xirang', 'config.yaml');
       const config = parseYaml(await fs.readFile(configPath, 'utf-8'));
+      expect(config.decomposition).toEqual({ method: 'c4' });
       expect(config.optimization.enabled).toBe(true);
       expect(config.optimization.optRetries).toBe(2);
       expect(config.apply.defaultIsolation).toBe('ask');
@@ -146,6 +147,7 @@ rules:
       expect(config.docLanguage).toBe('zh-CN');
       expect(config.context).toBe('keep me');
       expect(config.rules.proposal).toEqual(['keep this rule']);
+      expect(config.decomposition).toEqual({ method: 'c4' });
       expect(config.optimization.enabled).toBe(true);
       expect(config.optimization.optRetries).toBe(2);
       expect(config.apply.defaultIsolation).toBe('ask');
@@ -165,6 +167,8 @@ rules:
       await fs.writeFile(
         configPath,
         `schema: custom-schema
+decomposition:
+  skill: project-modeling
 optimization:
   enabled: false
 apply:
@@ -181,6 +185,8 @@ git:
 
       const config = parseYaml(await fs.readFile(configPath, 'utf-8'));
       expect(config.schema).toBe('custom-schema');
+      expect(config.decomposition).toEqual({ skill: 'project-modeling' });
+      expect(config.decomposition).not.toHaveProperty('method');
       expect(config.optimization.enabled).toBe(false);
       expect(config.optimization.optRetries).toBe(2);
       expect(config.apply.defaultIsolation).toBe('worktree');

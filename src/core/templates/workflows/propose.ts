@@ -6,6 +6,7 @@ import {
   ARTIFACT_DOC_LANGUAGE_CONTRACT,
   ELEMENT_CONTRACT_SEMANTICS,
   ELEMENT_DEFINITION_SEMANTICS,
+  STRUCTURAL_DECOMPOSITION_GUIDANCE,
   XIRANG_PHILOSOPHY,
   XIRANG_SHARED_CONTEXT,
 } from '../fragments/xirang-fragments.js';
@@ -23,6 +24,8 @@ ${XIRANG_SHARED_CONTEXT}
 ${ELEMENT_DEFINITION_SEMANTICS}
 
 ${ELEMENT_CONTRACT_SEMANTICS}
+
+${STRUCTURAL_DECOMPOSITION_GUIDANCE}
 
 ## Workflow Stage
 
@@ -58,6 +61,9 @@ ${ELEMENT_CONTRACT_SEMANTICS}
 5. Determine source impact before writing \`proposal.md\`.
    - Compare requested observable behavior with formal Element Contracts. Reuse the Element whose Contract already governs the behavior; add a Contract to another Element only for genuinely new observable behavior. An optional-contract Element without a Contract does not by itself require a new one.
    - Compare structural impact with the formal Xirang Semantic Model. Identify affected Element Declarations, refinement, Relationships, Element Kinds, Relationship Kinds, and Authored Views. For every added or modified Declaration, write the complete target Definition, not a summary of what changed. Implementation movement or call/import evidence alone is not a structural change.
+   - When a confirmed Change Structural Definition exists, compile that payload without invoking decomposition guidance again.
+   - When no confirmed Change Structural Definition exists and source impact requires a new or reorganized hierarchy, apply the Structural Decomposition Guidance before deciding the target sibling sets. If the configured guidance is unavailable or insufficient, stop Formation and ask one focused question; do not fall back to another method or infer structure from implementation layout.
+   - When Architecture Source is \`None\`, do not invoke decomposition guidance or invent hierarchy changes.
    - Determine the Contract and structural scopes of one Semantic Delta. Keep the compatible \`Behavior Source\` and \`Architecture Source\` proposal headings: \`Behavior Source\` lists \`New Specs\` or \`Modified Specs\` as the Element identities whose Element Contract is added or modified, and \`Architecture Source\` lists the identities whose Declaration, Relationship, Metamodel, or View semantics change. Both sections address the same identity space; they separate Contract impact from structural impact, not two kinds of identifier. Use \`None\` only when that scope truly does not change.
 6. Generate ready artifacts in dependency order. For each artifact, run \`xirang instructions <artifact-id> --change "<name>" --json\`.
    - For each response, follow the authoring order in the returned \`instruction\`. Keep \`definition\`, dependencies, \`currentState\`, \`configProjection\`, and \`template\` as separate inputs; do not copy non-artifact inputs into artifacts.

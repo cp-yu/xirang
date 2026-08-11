@@ -47,6 +47,14 @@ Propose a new change or update an existing change, generating all artifacts need
 - Requirement SHALL 以稳定 identity 表达一项可独立演进的规范承诺。以该承诺能否独立新增、修改或移除判断边界，不得按句子、分句、`SHALL` 数量或目标条数机械拆分。只复述 Declaration definition 或 sibling Requirements 语义并集且不增加规范承诺的内容不形成 Requirement；独立的不变量、顺序、原子性、一致性或完成条件应保留。
 - Scenario SHALL 是具有规范约束力的 Requirement 组成，只具体化宿主 Requirement 在特定条件下的行为，不得引入可独立演进的承诺。Scenarios 不默认穷尽 Requirement 的全部适用情况，Scenario 不作为独立 Semantic Delta Entry，其变化由宿主 Requirement 的完整目标内容表达。
 
+**Structural Decomposition Guidance**
+
+- Before forming or reorganizing an Element hierarchy, run `xirang config project --json` and read the normalized `decomposition` selection from its JSON output. Do not inspect or reinterpret the raw config.
+- For `method`, treat its value as an opaque method name and use only method knowledge you clearly possess. If its meaning or application is ambiguous, stop hierarchy formation and ask the user once; never substitute another method.
+- For `skill`, invoke its value as a logical skill name. If the skill is unavailable, fails, or returns insufficient guidance, stop hierarchy formation and ask the user once; never infer a tool-specific path or fall back to another method.
+- Decomposition guidance selects the dimension used for hierarchy abstraction and refinement. It does not override authorized user intent, the Xirang Semantic Model, Element Contracts, Relationships, evidence authority, or the current workflow's read/write boundary.
+- Keep every same sibling set on one dimension, make it MECE for the confirmed scope, and confirm breadth-first. Do not mix responsibility, lifecycle, deployment, or implementation dimensions within one sibling set.
+
 ## Workflow Stage
 
 | Aspect | Value |
@@ -81,6 +89,9 @@ Propose a new change or update an existing change, generating all artifacts need
 5. Determine source impact before writing `proposal.md`.
    - Compare requested observable behavior with formal Element Contracts. Reuse the Element whose Contract already governs the behavior; add a Contract to another Element only for genuinely new observable behavior. An optional-contract Element without a Contract does not by itself require a new one.
    - Compare structural impact with the formal Xirang Semantic Model. Identify affected Element Declarations, refinement, Relationships, Element Kinds, Relationship Kinds, and Authored Views. For every added or modified Declaration, write the complete target Definition, not a summary of what changed. Implementation movement or call/import evidence alone is not a structural change.
+   - When a confirmed Change Structural Definition exists, compile that payload without invoking decomposition guidance again.
+   - When no confirmed Change Structural Definition exists and source impact requires a new or reorganized hierarchy, apply the Structural Decomposition Guidance before deciding the target sibling sets. If the configured guidance is unavailable or insufficient, stop Formation and ask one focused question; do not fall back to another method or infer structure from implementation layout.
+   - When Architecture Source is `None`, do not invoke decomposition guidance or invent hierarchy changes.
    - Determine the Contract and structural scopes of one Semantic Delta. Keep the compatible `Behavior Source` and `Architecture Source` proposal headings: `Behavior Source` lists `New Specs` or `Modified Specs` as the Element identities whose Element Contract is added or modified, and `Architecture Source` lists the identities whose Declaration, Relationship, Metamodel, or View semantics change. Both sections address the same identity space; they separate Contract impact from structural impact, not two kinds of identifier. Use `None` only when that scope truly does not change.
 6. Generate ready artifacts in dependency order. For each artifact, run `xirang instructions <artifact-id> --change "<name>" --json`.
    - For each response, follow the authoring order in the returned `instruction`. Keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs; do not copy non-artifact inputs into artifacts.

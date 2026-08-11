@@ -119,6 +119,8 @@ describe('SetupCommand', () => {
       const content = await fs.readFile(configPath, 'utf-8');
       const parsed = parseYaml(content);
       expect(content).toContain('schema: semantic-model');
+      expect(content).toContain('decomposition:');
+      expect(content).toContain('  method: c4');
       expect(content).toContain('optimization:');
       expect(content).toContain('  enabled: true');
       expect(content).toContain('  optRetries: 2');
@@ -138,6 +140,8 @@ describe('SetupCommand', () => {
       expect(parsed.git.merge).not.toHaveProperty('commitMessage');
       expect(parsed.git.merge.strategy).toBe('no-ff');
       expect(parsed.git.branch.deleteAfterArchive).toBe(false);
+      expect(parsed.decomposition).toEqual({ method: 'c4' });
+      expect(parsed.decomposition).not.toHaveProperty('skill');
       expect(parsed).not.toHaveProperty('propose');
       expect(parsed.apply).toEqual({
         defaultIsolation: 'ask',
@@ -365,12 +369,14 @@ describe('SetupCommand', () => {
       );
     });
 
-    it('should not create config.yaml if it already exists', async () => {
-      // Pre-create config.yaml
+    it('should preserve an existing decomposition skill without adding a method', async () => {
       const xirangDir = path.join(testDir, '.xirang');
       await fs.mkdir(xirangDir, { recursive: true });
       const configPath = path.join(xirangDir, 'config.yaml');
-      const existingContent = 'schema: custom-schema\n';
+      const existingContent = `schema: semantic-model
+decomposition:
+  skill: project-modeling
+`;
       await fs.writeFile(configPath, existingContent);
 
       const initCommand = createSetupCommand({ tools: 'claude', force: true });
@@ -378,6 +384,7 @@ describe('SetupCommand', () => {
 
       const content = await fs.readFile(configPath, 'utf-8');
       expect(content).toBe(existingContent);
+      expect(parseYaml(content).decomposition).toEqual({ skill: 'project-modeling' });
     });
 
     it('should handle non-existent target directory', async () => {
