@@ -201,6 +201,11 @@ export class GraphvizLayouter implements Disposable {
     if (!isElementView(params.view)) {
       return normalizeDot(dot)
     }
+    if (printer.hasEdgesWithCompounds) {
+      // unflatten chains disconnected nodes with invisible edges, which breaks
+      // compound routing (lhead/ltail); such views must go straight to Graphviz
+      return normalizeDot(dot)
+    }
     try {
       logger.trace`unflattening dot`
       dot = await this.graphviz.unflatten(dot)

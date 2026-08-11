@@ -1,0 +1,184 @@
+{
+  "timestamp": "2026-08-11T16:47:08.685Z",
+  "result": "PASS",
+  "issues": [
+    {
+      "severity": "SUGGESTION",
+      "message": "test/core/likec4/generator.test.ts is modified (comment-only: replaces stale summary-length layout-failure diagnostic with pointer to new guards) but is not declared in any task Files; benign mechanical change, aligned with Task 3 requirement intent",
+      "requirement": "跳过 Compound Projection 的 disconnected-node chaining 预处理",
+      "task": "Task 3",
+      "recommendation": "Declare test/core/likec4/generator.test.ts in Task 3 Files (artifact_fix) so the attribution universe covers it",
+      "evidenceCitations": [
+        "test/core/likec4/generator.test.ts:331-336"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "design.md Decision 1 rationale wording drift corrected in-place (constructor-established topology)",
+      "requirement": "跳过 Compound Projection 的 disconnected-node chaining 预处理",
+      "task": null,
+      "recommendation": "None"
+    }
+  ],
+  "tasksFileHash": "527fe19b6d8c68236ace12da47cc9f14a7e2db4d0c520c6e9f937ce88d6cedd1",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/fix-compound-view-unflatten/design.md",
+      ".xirang/changes/fix-compound-view-unflatten/elements/visual-presentation.md",
+      ".xirang/changes/fix-compound-view-unflatten/proposal.md",
+      ".xirang/changes/fix-compound-view-unflatten/tasks.md",
+      "likec4/packages/layouts/src/graphviz/DotPrinter.ts",
+      "likec4/packages/layouts/src/graphviz/GraphvizLayoter.ts",
+      "likec4/packages/layouts/src/graphviz/GraphvizLayouter.spec.ts",
+      "likec4/packages/layouts/src/graphviz/wasm/GraphvizWasmAdapter.ts",
+      "test/core/likec4/generator-validate.test.ts",
+      "test/core/likec4/generator.test.ts",
+      "test/e2e/semantic-browser-model-view.spec.ts"
+    ],
+    "evidenceFingerprint": "4acccc8581d2a79c6e73785c1a66f0682779b62c2faaa23e7d6b74f677a5eb6f",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/fix-compound-view-unflatten/design.md",
+        "hash": "e8704924ba427b2b4c62f06c79dc048c40e72bf774e968171e90116fd5881a79"
+      },
+      {
+        "path": ".xirang/changes/fix-compound-view-unflatten/elements/visual-presentation.md",
+        "hash": "af095176e2669447ea23f6bc0e5acbcff6190b793a045632c4f61e4999ca5bd6"
+      },
+      {
+        "path": ".xirang/changes/fix-compound-view-unflatten/proposal.md",
+        "hash": "f0293281e043ad32f2d434363b50c115049e2ab5cd5d0687187140cfdab28254"
+      },
+      {
+        "path": ".xirang/changes/fix-compound-view-unflatten/tasks.md",
+        "hash": "527fe19b6d8c68236ace12da47cc9f14a7e2db4d0c520c6e9f937ce88d6cedd1"
+      },
+      {
+        "path": "likec4/packages/layouts/src/graphviz/DotPrinter.ts",
+        "hash": "f4f952242c94b62500ef8a5834df3d5c217ae704e126d69ce688d4cb6e8b59e6"
+      },
+      {
+        "path": "likec4/packages/layouts/src/graphviz/GraphvizLayoter.ts",
+        "hash": "727f3f3d96b8e6e4a50bd170fc4321f20a583d7ef0cef22fe727d0ca77dcdcec"
+      },
+      {
+        "path": "likec4/packages/layouts/src/graphviz/GraphvizLayouter.spec.ts",
+        "hash": "f043ec220afb0e64b583d629389cd749569856d930f92ee76e9a996cdc8743b7"
+      },
+      {
+        "path": "likec4/packages/layouts/src/graphviz/wasm/GraphvizWasmAdapter.ts",
+        "hash": "3d636edc4834577a695381c524cdc8198a9bcb652b244e1f5d6ed048db417e5a"
+      },
+      {
+        "path": "test/core/likec4/generator-validate.test.ts",
+        "hash": "88ee0a4d33dd0ffd3118e134bf99dba3374f253b5ba1c37a5d1e70f36b13c3d8"
+      },
+      {
+        "path": "test/core/likec4/generator.test.ts",
+        "hash": "b51139b39ea688e6e9be9c12cdcfa685c1c21fa0a2bb6c283cb822284c170306"
+      },
+      {
+        "path": "test/e2e/semantic-browser-model-view.spec.ts",
+        "hash": "fa2fccdcb28a304aa144bf2b8c6fb85625e705c3f314779944ea33fd3c03686b"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "da06ba363ba493a64b8bd2c6bb31dd068e6c9758",
+    "gitDiffSummary": "baseCommit da06ba363 == HEAD; all changes uncommitted on branch fix-compound-view-unflatten. Unit vitest 3/3, layouts typecheck, full-project layout regression, stale-diagnostic grep, 3-package rebuild, dist-mode export, playwright e2e 11/11, xirang view server log grep all passed."
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-08-11T16:47:08.685Z",
+      "result": "PASS",
+      "issues": [
+        {
+          "severity": "SUGGESTION",
+          "message": "test/core/likec4/generator.test.ts is modified (comment-only: replaces stale summary-length layout-failure diagnostic with pointer to new guards) but is not declared in any task Files; benign mechanical change, aligned with Task 3 requirement intent",
+          "requirement": "跳过 Compound Projection 的 disconnected-node chaining 预处理",
+          "task": "Task 3",
+          "recommendation": "Declare test/core/likec4/generator.test.ts in Task 3 Files (artifact_fix) so the attribution universe covers it",
+          "evidenceCitations": [
+            "test/core/likec4/generator.test.ts:331-336"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "design.md Decision 1 rationale wording drift corrected in-place (constructor-established topology)",
+          "requirement": "跳过 Compound Projection 的 disconnected-node chaining 预处理",
+          "task": null,
+          "recommendation": "None"
+        }
+      ],
+      "tasksFileHash": "527fe19b6d8c68236ace12da47cc9f14a7e2db4d0c520c6e9f937ce88d6cedd1",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/fix-compound-view-unflatten/design.md",
+          ".xirang/changes/fix-compound-view-unflatten/elements/visual-presentation.md",
+          ".xirang/changes/fix-compound-view-unflatten/proposal.md",
+          ".xirang/changes/fix-compound-view-unflatten/tasks.md",
+          "likec4/packages/layouts/src/graphviz/DotPrinter.ts",
+          "likec4/packages/layouts/src/graphviz/GraphvizLayoter.ts",
+          "likec4/packages/layouts/src/graphviz/GraphvizLayouter.spec.ts",
+          "likec4/packages/layouts/src/graphviz/wasm/GraphvizWasmAdapter.ts",
+          "test/core/likec4/generator-validate.test.ts",
+          "test/core/likec4/generator.test.ts",
+          "test/e2e/semantic-browser-model-view.spec.ts"
+        ],
+        "evidenceFingerprint": "4acccc8581d2a79c6e73785c1a66f0682779b62c2faaa23e7d6b74f677a5eb6f",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/fix-compound-view-unflatten/design.md",
+            "hash": "e8704924ba427b2b4c62f06c79dc048c40e72bf774e968171e90116fd5881a79"
+          },
+          {
+            "path": ".xirang/changes/fix-compound-view-unflatten/elements/visual-presentation.md",
+            "hash": "af095176e2669447ea23f6bc0e5acbcff6190b793a045632c4f61e4999ca5bd6"
+          },
+          {
+            "path": ".xirang/changes/fix-compound-view-unflatten/proposal.md",
+            "hash": "f0293281e043ad32f2d434363b50c115049e2ab5cd5d0687187140cfdab28254"
+          },
+          {
+            "path": ".xirang/changes/fix-compound-view-unflatten/tasks.md",
+            "hash": "527fe19b6d8c68236ace12da47cc9f14a7e2db4d0c520c6e9f937ce88d6cedd1"
+          },
+          {
+            "path": "likec4/packages/layouts/src/graphviz/DotPrinter.ts",
+            "hash": "f4f952242c94b62500ef8a5834df3d5c217ae704e126d69ce688d4cb6e8b59e6"
+          },
+          {
+            "path": "likec4/packages/layouts/src/graphviz/GraphvizLayoter.ts",
+            "hash": "727f3f3d96b8e6e4a50bd170fc4321f20a583d7ef0cef22fe727d0ca77dcdcec"
+          },
+          {
+            "path": "likec4/packages/layouts/src/graphviz/GraphvizLayouter.spec.ts",
+            "hash": "f043ec220afb0e64b583d629389cd749569856d930f92ee76e9a996cdc8743b7"
+          },
+          {
+            "path": "likec4/packages/layouts/src/graphviz/wasm/GraphvizWasmAdapter.ts",
+            "hash": "3d636edc4834577a695381c524cdc8198a9bcb652b244e1f5d6ed048db417e5a"
+          },
+          {
+            "path": "test/core/likec4/generator-validate.test.ts",
+            "hash": "88ee0a4d33dd0ffd3118e134bf99dba3374f253b5ba1c37a5d1e70f36b13c3d8"
+          },
+          {
+            "path": "test/core/likec4/generator.test.ts",
+            "hash": "b51139b39ea688e6e9be9c12cdcfa685c1c21fa0a2bb6c283cb822284c170306"
+          },
+          {
+            "path": "test/e2e/semantic-browser-model-view.spec.ts",
+            "hash": "fa2fccdcb28a304aa144bf2b8c6fb85625e705c3f314779944ea33fd3c03686b"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "da06ba363ba493a64b8bd2c6bb31dd068e6c9758",
+        "gitDiffSummary": "baseCommit da06ba363 == HEAD; all changes uncommitted on branch fix-compound-view-unflatten. Unit vitest 3/3, layouts typecheck, full-project layout regression, stale-diagnostic grep, 3-package rebuild, dist-mode export, playwright e2e 11/11, xirang view server log grep all passed."
+      }
+    }
+  }
+}

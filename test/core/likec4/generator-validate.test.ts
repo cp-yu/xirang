@@ -157,11 +157,12 @@ describe('generateLikeC4 artifacts', () => {
 });
 
 /**
- * Regression guard for the graphviz `unflatten` layout failure: long summary
- * excerpts (before the fix, up to 120 code points) widened LikeC4 node labels
- * until the `model` view failed to lay out ("layouted 0 of 1 views"). No reduced
- * synthetic fixture reproduces the failure — it only occurs at the full project
- * geometry, so this test lays out the project's own Semantic Model view.
+ * Regression guard for the graphviz `unflatten` layout failure: `unflatten`
+ * chains disconnected nodes with invisible edges, which breaks compound routing
+ * (`lhead`/`ltail`) on deep hierarchical views and drops the `model` view
+ * ("layouted 0 of 1 views"). The failure only reproduces at the full project
+ * geometry, so this test lays out the project's own Semantic Model view and
+ * asserts that layout preserves every computed node and edge.
  */
 describe('project Semantic Model view layout', () => {
   const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
@@ -169,28 +170,43 @@ describe('project Semantic Model view layout', () => {
   it('lays out successfully with every edge routed', { timeout: 180_000 }, async () => {
     const { model: projectModel } = await parseSemanticModel(modelRoot(projectRoot));
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-layout-regression-'));
-    const outfile = path.join(os.tmpdir(), `xirang-layout-${path.basename(dir)}.json`);
+    const before = path.join(os.tmpdir(), `xirang-layout-before-${path.basename(dir)}.json`);
+    const after = path.join(os.tmpdir(), `xirang-layout-after-${path.basename(dir)}.json`);
     try {
       for (const [file, content] of generateLikeC4(projectModel)) {
         await fs.writeFile(path.join(dir, file), content);
       }
-      await runLikeC4(['export', 'json', '--project', 'xirang', '-o', outfile, dir]);
-      const generated = JSON.parse(await fs.readFile(outfile, 'utf8')) as {
+      await runLikeC4(['export', 'json', '--skip-layout', '--project', 'xirang', '-o', before, dir]);
+      await runLikeC4(['export', 'json', '--project', 'xirang', '-o', after, dir]);
+      const beforeJson = JSON.parse(await fs.readFile(before, 'utf8')) as {
+        projectId: string;
+        views: Record<string, {
+          nodes: Array<{ id: string }>;
+          edges: Array<{ id: string }>;
+        }>;
+      };
+      const afterJson = JSON.parse(await fs.readFile(after, 'utf8')) as {
         projectId: string;
         views: Record<string, {
           nodes: Array<{ id: string }>;
           edges: Array<{ id: string; points?: number[][] }>;
         }>;
       };
-      expect(generated.projectId).toBe('xirang');
-      const modelView = generated.views['model'];
-      expect(modelView, 'project Semantic Model must have a model view').toBeDefined();
-      expect(modelView.nodes.length).toBeGreaterThan(0);
+      expect(afterJson.projectId).toBe('xirang');
+      const computedView = beforeJson.views['model'];
+      expect(computedView, 'project Semantic Model must have a model view').toBeDefined();
+      expect(computedView.nodes.length).toBeGreaterThan(0);
+      const modelView = afterJson.views['model'];
+      expect(modelView, 'project Semantic Model must have a layouted model view').toBeDefined();
+      // Graphviz may drop edges it cannot route; identity alignment proves completeness
+      expect(modelView.nodes.map(node => node.id).sort()).toEqual(computedView.nodes.map(node => node.id).sort());
+      expect(modelView.edges.map(edge => edge.id).sort()).toEqual(computedView.edges.map(edge => edge.id).sort());
       const unrouted = modelView.edges.filter(edge => !Array.isArray(edge.points) || edge.points.length < 2);
-      expect(unrouted, 'unrouted edges — likely a summary-length layout regression; see EXCERPT_LIMIT in src/core/likec4/definition.ts').toEqual([]);
+      expect(unrouted, 'unrouted edges — likely a compound-view unflatten layout regression; see GraphvizLayouter.dot()').toEqual([]);
     } finally {
       await fs.rm(dir, { recursive: true, force: true });
-      await fs.rm(outfile, { force: true });
+      await fs.rm(before, { force: true });
+      await fs.rm(after, { force: true });
     }
   });
 });
