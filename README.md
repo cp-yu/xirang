@@ -83,7 +83,9 @@ xirang view --port 5173
 xirang list
 xirang show <change>
 xirang validate --all --strict
-xirang arch query <element-id> --relations --depth 2
+xirang arch outline --format json
+xirang arch impact <element-id> --depth 2 --json
+xirang arch query <element-id> --contract --json
 xirang arch validate
 xirang arch export --format svg --output docs/architecture
 xirang view --port 5173

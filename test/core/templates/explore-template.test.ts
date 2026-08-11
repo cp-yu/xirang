@@ -26,9 +26,14 @@ describe('explore template semantic impact', () => {
     expect(template).toContain('xirang arch search <query> --json');
     expect(template).toContain('focus Elements');
     expect(template).toContain('xirang arch impact <identities...> --depth 2 --json');
+    expect(template).toContain('xirang arch query <selected-identities...> --contract --json');
+    expect(template).toContain('identity-only');
+    expect(template).toContain('re-query that identity');
     expect(template).toContain('Semantic Model');
     expect(template).not.toContain('Formal Semantic Model');
     expect(template).toContain('Relationship adjacency');
+    expect(template.indexOf('xirang arch impact <identities...> --depth 2 --json'))
+      .toBeLessThan(template.indexOf('xirang arch query <selected-identities...> --contract --json'));
   });
 
   it('collects implementation evidence separately and keeps judgments in the main agent', () => {

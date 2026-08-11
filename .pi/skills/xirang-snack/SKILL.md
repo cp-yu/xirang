@@ -49,7 +49,12 @@ Treat `proposal.md`, `design.md`, and the Delta units under `{metamodel,elements
 - Use `identity` as the only way to reference a semantic object. FQN, syntax position, and derived local names are generation artifacts and never appear in a persistent source.
 - Read relevant parent and children as abstraction/refinement context. Do not assume a fixed element-kind hierarchy or treat nesting as ownership.
 - An Element Contract is the body of its Element unit: one Element has at most one Contract, expressed as `## Requirements`, and whether a Contract is required comes from the `contract` field of its Element Kind.
-- Run `xirang arch snapshot` to inject the complete Semantic Model skeleton — all Element Declarations, Relationships, and Metamodel Kinds, without Contracts. Use it as the on-board project overview, then use `xirang arch query <identity> --relations --depth <n> --json` for parent, children, and incoming/outgoing semantic relationships, adding `--contract` to inline the complete Element Contract.
+- Run `xirang arch outline --format json` for the complete Element hierarchy, all Relationships, and complete Metamodel Kinds. `architecture.outline.elementDefinitionDepth` controls only which Element Definitions are loaded; it never hides Elements or loads Contracts.
+- Use `xirang arch impact <identity> --depth <n> --json` to discover identity-only refinement context, directed Relationships, and canonical paths. Impact does not return Element Definitions or Contracts.
+- Use one batch `xirang arch query <identities...> --contract --json` to read the complete Declarations and owned Contracts for only the explicit identities needed for the current decision.
+- If overall Semantic Model understanding is unclear after context compression, a long session, or a context switch, re-run `xirang arch outline --format json`.
+- If a specific Element Definition or Contract is unclear or may have been forgotten, re-run `xirang arch query <identity> --json`, adding `--contract` when needed. Reload multiple known Elements with one batch `arch query`; do not automatically query every identity returned by impact.
+- The Agent MUST NOT guess missing Definition or Contract semantics from identity, title, an old summary, residual conversation context, or implementation evidence.
 - Default unit naming is `elements/<identity>.md`, `metamodel/<kind identity>.md`, `views/<view identity>.md`, and `relationships/<relationship kind identity>.yaml` grouped by Relationship Kind; a change reuses these names under `.xirang/changes/<name>/`. Directory and file names carry no model semantics: every entry declares its own `entity` and `identity`, and loading locates entries by those, never by path.
 - Treat code paths, symbols, imports, and calls from CodeGraph or ACE/`rg`/`read` as current implementation evidence only; do not promote them to elements or relationships without declared model intent.
 - If the model is missing, report `Semantic Model unavailable`. If it is incomplete or unsupported, identify the root, identity, contract, or relationship gap.
@@ -60,7 +65,7 @@ Treat `proposal.md`, `design.md`, and the Delta units under `{metamodel,elements
    - CodeGraph MAY accelerate symbol/call/import discovery; otherwise use ACE, `rg`, and `read`. Never read `.codegraph/codegraph.db`.
    - Treat code locations and call/import edges as implementation evidence, not as proof that the Xirang Semantic Model must change. Do not create elements from uncertain file-name inference.
 5. Determine Element Contract impact.
-   - Run `xirang arch query <identity> --contract --json` for each candidate Element and keep its current Requirements.
+   - Select only the candidate Element identities whose current Contracts are needed, then run one batch `xirang arch query <selected-identities...> --contract --json` and keep their current Requirements.
    - Add an identity to **Modified Specs** only when the observable requirements of its Element Contract change. Add it to **New Specs** only for genuinely new observable behavior not governed by an existing Element Contract.
    - An optional-contract Element without a Contract does not by itself require a new one; mark missing coverage `[REVIEW NEEDED]`.
    - Behavior-preserving refactors create no Contract delta; later Checks use `Preserves:` against formal Element Contracts.

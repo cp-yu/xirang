@@ -25,9 +25,20 @@ describe('apply change workflow template', () => {
 
   it('queries the Semantic Model by identity before implementation', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
-    expect(instructions).toContain('xirang arch query <identity> --relations --depth 2 --contract --json');
+    expect(instructions).toContain('xirang arch impact <identity> --depth 2 --json');
+    expect(instructions).toContain('xirang arch query <selected-identities...> --contract --json');
+    expect(instructions).not.toMatch(/arch query[^\n]*(--relations|--depth)/);
     expect(instructions).not.toContain('elementId');
     expect(instructions).not.toContain('owned Specs');
+  });
+
+  it('routes recovery through impact discovery before batch semantic reads', () => {
+    const preparation = applyReference('references/apply-step-1-preparation.md');
+    const impactIndex = preparation.indexOf('xirang arch impact <identity> --depth <n> --json');
+    const queryIndex = preparation.indexOf('xirang arch query <identities...> --contract --json');
+
+    expect(impactIndex).toBeGreaterThan(-1);
+    expect(queryIndex).toBeGreaterThan(impactIndex);
   });
 
   it('keeps the Xirang philosophy in the skill surface', () => {
@@ -92,7 +103,9 @@ describe('apply change workflow template', () => {
     expect(instructions).toContain('## Flow Outline');
     expect(instructions).toContain('Step 1: Preparation');
     expect(instructions).not.toContain('capabilities: []');
-    expect(preparation).toContain('xirang arch query <identity> --relations --depth <n> --json');
+    expect(preparation).toContain('xirang arch impact <identity> --depth <n> --json');
+    expect(preparation).toContain('xirang arch query <identities...> --contract --json');
+    expect(preparation).not.toMatch(/arch query[^\n]*(--relations|--depth)/);
     expect(preparation).toContain('one Element has at most one Contract');
   });
 

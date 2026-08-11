@@ -11,7 +11,7 @@ definition: Explore Brainstorming 定义 Explore 的只读设计澄清流程：6
 
 ### Requirement: Explore 主代理保持只读
 
-Explore main agent SHALL 保持只读：检查文件、搜索代码、运行只读 CLI、提问、比较方案并生成只存在于对话中的 Design Summary；SHALL NOT 创建、编辑、删除、格式化、重新生成或 patch 项目文件和 artifacts。当 Explore 需要影响面发现时，main agent SHALL 先使用 `xirang arch search` 浏览 Formal Semantic Model 并选择一个或多个 focus Element identities，再使用 identity-only `xirang arch impact` 获取 refinement、Relationships 与 canonical paths，最后通过 batch `xirang arch query` 只读取判断所需 identities 的完整 Definitions 与 Contracts。
+Explore main agent SHALL 对项目实现、Formal Semantic Model 以及普通项目或 Change artifacts 保持只读：可检查文件、搜索代码、运行只读 CLI、提问、比较方案并生成只存在于对话中的 Design Summary；SHALL NOT 直接创建、编辑、删除、格式化、重新生成或 patch 项目文件和 artifacts。唯一例外是用户对完整、明确 payload 作出单独持久化确认后，Agent MAY 调用 CLI-managed Definition Framing；该 CLI 操作只持久化 Change Structural Definition，不由 Agent 直接写入文件。除该例外外，Explore SHALL NOT 创建或更新任何项目或 Change artifacts。当 Explore 需要影响面发现时，main agent SHALL 先使用 `xirang arch search` 浏览 Formal Semantic Model 并选择一个或多个 focus Element identities，再使用 identity-only `xirang arch impact` 获取 refinement、Relationships 与 canonical paths，最后通过 batch `xirang arch query` 只读取判断所需 identities 的完整 Definitions 与 Contracts。
 
 #### Scenario: Explore 不写入制品
 
@@ -19,6 +19,7 @@ Explore main agent SHALL 保持只读：检查文件、搜索代码、运行只�
 - **THEN** main explore agent SHALL 将结果保留在对话状态中
 - **AND** SHALL 生成只存在于对话中的 `Design Summary`
 - **AND** SHALL 在需要生成 artifacts 时指示用户调用 propose workflow
+- **AND** 除用户明确确认完整 payload 后调用 CLI-managed Definition Framing 外，SHALL NOT 直接创建或更新项目或 Change artifacts
 
 #### Scenario: Explore 直接获取 semantic impact context
 

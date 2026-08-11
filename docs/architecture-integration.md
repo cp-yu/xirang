@@ -42,12 +42,14 @@ An Element unit combines one Element Declaration with at most one Element Contra
 
 ```bash
 xirang view --port 5173
-xirang arch query payment.authorize --relations --depth 2 --contract --json
+xirang arch outline --format json
 xirang arch search authorization --json
+xirang arch impact payment.authorize --depth 2 --json
+xirang arch query payment.authorize --contract --json
 xirang arch validate --json
 ```
 
-Queries address semantic objects by stable identity. Generated local names and LikeC4 FQNs are presentation details and are not persisted back into the model.
+Outline projects the complete model structure. Impact discovers identity-only refinement and Relationship context, and batch query reads complete Declarations and optional owned Contracts for explicit stable identities. Generated local names and LikeC4 FQNs are presentation details and are not persisted back into the model.
 
 The embedded Browser presents Element Contracts through a Contracts tab. Its SPA requests the selected Formal or Change-derived Contract from `/__xirang/contract`.
 

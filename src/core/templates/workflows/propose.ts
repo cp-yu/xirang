@@ -40,7 +40,7 @@ ${ELEMENT_CONTRACT_SEMANTICS}
    - Run \`xirang framing list --json\`. Only when a Change Structural Definition exists for this handoff, select it by immutable \`explorationId\`, run \`xirang framing show <explorationId> --json\`, and use its complete current payload as the structural source. Do not reconstruct structural targets from the Design Summary. When no Change Structural Definition exists, preserve the ordinary Propose path from the Semantic Model, conversation, and project evidence.
    - Load the formal Xirang Semantic Model through the shared context above.
    - Run \`xirang arch search <query> --json\` to locate the Elements a request touches.
-   - For known or affected Elements, run \`xirang arch query <identity> --relations --depth 2 --json\`, adding \`--contract\` when the current Element Contract matters.
+   - For known or affected Elements, run \`xirang arch impact <identities...> --depth 2 --json\` to discover structural and Relationship context, then run one batch \`xirang arch query <selected-identities...> --contract --json\` for the selected complete semantics.
    - Use implementation evidence only where needed to resolve current behavior or lowering constraints.
 3. Assess semantic readiness.
    - Reuse a confirmed \`Design Summary\` when the conversation contains one, and state that it is being reused. Route architecture decisions to proposal Architecture Source, \`design.md\`, and the Declaration, Relationship, Metamodel, and View Delta units; route testing strategy to \`design.md\` and concrete test work to \`tasks.md\`; route risk and trade-off decisions to \`design.md\`.

@@ -10,7 +10,10 @@ describe('reviewer subagent template', () => {
 
     expect(prompt).toContain(XIRANG_PHILOSOPHY);
     expect(prompt).toContain('one Element has at most one Contract');
-    expect(prompt).toContain('xirang arch query <identity> --relations --depth <n> --json');
+    expect(prompt).toContain('xirang arch outline --format json');
+    expect(prompt).toContain('xirang arch impact <identity> --depth <n> --json');
+    expect(prompt).toContain('xirang arch query <identities...> --contract --json');
+    expect(prompt).not.toMatch(/arch query[^\n]*(--relations|--depth)/);
     expect(prompt).toContain('Prefer direct evidence over inferred intent.');
     expect(prompt).toContain('Treat stale code, orphaned imports, half migrations, and unaccounted behavior changes as defects.');
     expect(prompt).toContain('Semantic Model relationship paths');
@@ -47,6 +50,13 @@ describe('reviewer subagent template', () => {
     expect(prompt).not.toContain('architecture-delta');
     expect(prompt).not.toContain('specs/*/spec.md');
     expect(prompt).not.toContain('contract bindings');
+  });
+
+  it('emits issue fields accepted by the Phase 1 verify CLI', () => {
+    const prompt = getReviewerSubagentTemplate().prompt;
+
+    expect(prompt).toContain('"message": "one line"');
+    expect(prompt).not.toContain('"summary": "one line"');
   });
 
   it('uses the immutable apply baseline plus uncommitted files for scope navigation', () => {

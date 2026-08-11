@@ -109,7 +109,7 @@ Return one structured object only:
 \`\`\`json
 {
   "result": "PASS | PASS_WITH_WARNINGS | FAIL_NEEDS_CORRECTIONS",
-  "issues": [{"severity": "CRITICAL | WARNING | SUGGESTION", "requirement": "name", "task": "task or null", "summary": "one line", "recommendation": "next action", "evidenceCitations": ["file.ts:1-2"]}],
+  "issues": [{"severity": "CRITICAL | WARNING | SUGGESTION", "message": "one line", "requirement": "name", "task": "task or null", "recommendation": "next action", "evidenceCitations": ["file.ts:1-2"]}],
   "summary": {
     "completeness": {"tasksCompleted": 0, "tasksTotal": 0, "reqsCovered": 0, "reqsTotal": 0},
     "correctness": {"reqsPassed": 0, "reqsTotal": 0, "scenariosCovered": 0, "scenariosTotal": 0},

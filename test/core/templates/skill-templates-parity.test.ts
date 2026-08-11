@@ -17,20 +17,20 @@ import { generateSkillContent } from '../../../src/core/shared/skill-generation.
 import { runTransforms } from '../../../src/core/templates/transforms/index.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getExploreSkillTemplate: 'b831a97c2a09efa81694c61dd79515b70ec3b1a3b9bea45c49acbad2b43ddcd3',
-  getApplyChangeSkillTemplate: '8d2f33c4e421c269b3487077d948362eafe45a0bcad002fa3742776ba43d78f2',
+  getExploreSkillTemplate: 'ea575fb1c2a0965f360d149ba1eddd42aebdaa4b22f07ed935e17eed7bcffc22',
+  getApplyChangeSkillTemplate: 'b63b5cfde0b39f5d8ecea07b9c62407572ab1e8fd0aff85d6b9c9f213965d4f3',
   getArchiveChangeSkillTemplate: '0bf75c0d29d9dc74b98d2ce524351cf73e45836b17fe42d17e07e853c1495101',
-  getXirangProposeSkillTemplate: '1919d1ea8bde91a99c4a45659f6c40e2fc74feda0f1f6c178ac1e397604f40c0',
+  getXirangProposeSkillTemplate: 'b367f93ea1cce1b7c62c5aa5c9a2814bdad206645297cc11d0b7fcb8a278bf43',
   getFeedbackSkillTemplate: 'a75ff723b3b24ba2c61aee4243d2db6cfc5ee71e3adc2309ab30e7ce1503fbca',
   getBuildSkillTemplate: '4ab4181a14e45909a6000556ffee70858b1ea172b9287bf5d307933f10284fa7',
-  getSnackSkillTemplate: '150f578efaed5521df58e0df1d71cb48f782291850b413459535ac29ee31c059',
+  getSnackSkillTemplate: '9b7a432e58ed425e1041c05116513e4f7ab749eac19c660c7e00d4549a50eaf5',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'xirang-explore': '072c733b4f642ccb48da685acaaca188722b1b2f91cd72d8c557fa87b100a1fc',
-  'xirang-apply-change': '9f94eacd4c69d4bd4d7a17683ce00bf9119a5983935b7e916a9c3de0c0b914b9',
+  'xirang-explore': '1459673415415a95b6fa45947b9c63deb9add76d5a2c4b3f93655e16e839db9c',
+  'xirang-apply-change': 'fa9d4233a8b75e1230004af212767ea86af2766c8a404d39d6d336e72e748b44',
   'xirang-archive-change': 'aa5499bc9fd059a6bb58668ad14052b870722a44905405851c24fac3399ee0c8',
-  'xirang-propose': '89b7a5977bc9a5f53addf55c161a3aba923d0d79cf9a4acd63d99282aa23d245',
+  'xirang-propose': '176bd60dca51185d0de64dffcc07bca15c2bbc139b126b57b507e67aedcfd69b',
 };
 
 function stableStringify(value: unknown): string {

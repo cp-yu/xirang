@@ -1,10 +1,5 @@
 import { deriveLocalNames } from '../../core/likec4/local-names.js';
-import type {
-  ElementDeclaration,
-  Relationship,
-  Requirement,
-  SemanticModel,
-} from '../../core/model/types.js';
+import type { Relationship, SemanticModel } from '../../core/model/types.js';
 import { compareCodePoints } from '../../utils/stable-order.js';
 import { readValidArchitecture } from './reader.js';
 
@@ -12,14 +7,9 @@ export interface ArchitectureImpactOptions {
   depth?: number;
 }
 
-export interface ArchitectureImpactElement extends ElementDeclaration {
-  contract: 'required' | 'optional';
-  children: string[];
-}
-
 export interface ArchitectureRefinementContext {
   focusElementId: string;
-  element: ArchitectureImpactElement;
+  elementId: string;
   direction: 'ancestor' | 'descendant';
   depth: number;
 }
@@ -34,24 +24,16 @@ export interface ArchitectureRelationPath {
   steps: ArchitectureRelationPathStep[];
 }
 
-export interface ArchitectureImpactContract {
-  elementId: string;
-  requirements: Requirement[];
-}
-
 export interface ArchitectureImpactResult {
-  focusElements: ArchitectureImpactElement[];
-  elements: ArchitectureImpactElement[];
+  focusElements: string[];
+  elements: string[];
   refinementContext: ArchitectureRefinementContext[];
   relations: Relationship[];
   relationPaths: ArchitectureRelationPath[];
-  contracts: ArchitectureImpactContract[];
   statistics: {
     focusElementCount: number;
     elementCount: number;
     relationCount: number;
-    contractCount: number;
-    contractBytes: number;
   };
   diagnostics: string[];
 }
@@ -84,7 +66,7 @@ function canonicalPaths(
 
   for (let currentDepth = 1; currentDepth <= depth; currentDepth += 1) {
     const candidates = new Map<string, ArchitectureRelationPathStep[]>();
-    for (const [current, currentPath] of [...frontier].sort(([left], [right]) => compareCodePoints(left, right))) {
+    for (const [current, currentPath] of frontier) {
       for (const relation of adjacency.get(current) ?? []) {
         const outgoing = relation.source === current;
         const adjacent = outgoing ? relation.target : relation.source;
@@ -113,31 +95,37 @@ export async function impactArchitecture(
   options: ArchitectureImpactOptions = {},
 ): Promise<ArchitectureImpactResult> {
   const depth = options.depth ?? 2;
-  if (!Number.isInteger(depth) || depth < 0) throw new Error('Impact depth must be a non-negative integer');
-  if (focusElementIds.length === 0) throw new Error('At least one focus Element is required');
+  if (!Number.isInteger(depth) || depth < 0) {
+    throw new Error('Impact depth must be a non-negative integer');
+  }
+  if (focusElementIds.length === 0) {
+    throw new Error('At least one focus Element is required');
+  }
 
   const model = await readValidArchitecture(projectRoot);
   const kinds = new Map(model.elementKinds.map(kind => [kind.identity, kind]));
+  const elementById = new Map(
+    model.elements.map(element => [element.declaration.identity, element.declaration]),
+  );
   const childrenOf = new Map<string, string[]>();
   for (const element of model.elements) {
     const parent = element.declaration.parent;
     if (parent === null) continue;
-    childrenOf.set(parent, [...(childrenOf.get(parent) ?? []), element.declaration.identity]);
+    const children = childrenOf.get(parent);
+    if (children) children.push(element.declaration.identity);
+    else childrenOf.set(parent, [element.declaration.identity]);
   }
-  for (const list of childrenOf.values()) list.sort(compareCodePoints);
+  for (const children of childrenOf.values()) children.sort(compareCodePoints);
 
-  const elements = model.elements.map((element): ArchitectureImpactElement => ({
-    ...element.declaration,
-    contract: kinds.get(element.declaration.kind)?.contract ?? 'optional',
-    children: childrenOf.get(element.declaration.identity) ?? [],
-  }));
-  const elementById = new Map(elements.map(element => [element.identity, element]));
-  const requirementsById = new Map(model.elements.map(element => [element.declaration.identity, element.requirements]));
-  const roots = elements.filter(element => kinds.get(element.kind)?.root === true);
-  if (roots.length !== 1) throw new Error(`Semantic Model must contain exactly one Project Root; found ${roots.length}`);
+  const roots = model.elements
+    .map(element => element.declaration)
+    .filter(element => kinds.get(element.kind)?.root === true);
+  if (roots.length !== 1) {
+    throw new Error(`Semantic Model must contain exactly one Project Root; found ${roots.length}`);
+  }
 
-  const uniqueFocusIds = [...new Set(focusElementIds)].sort(compareCodePoints);
-  for (const elementId of uniqueFocusIds) {
+  const focusElements = [...new Set(focusElementIds)].sort(compareCodePoints);
+  for (const elementId of focusElements) {
     if (elementById.has(elementId)) continue;
     if (isDerivedFqn(model, elementId)) {
       throw new Error(`Focus Element must use stable elementId, not FQN: ${elementId}. Use xirang arch search first.`);
@@ -145,29 +133,37 @@ export async function impactArchitecture(
     throw new Error(`Focus Element not found: ${elementId}. Use xirang arch search first.`);
   }
 
-  const uniqueRelations = [...new Map(model.relationships.map(relation => [relationKey(relation), relation])).values()]
-    .sort(compareRelations);
+  const uniqueRelations = [...new Map(
+    model.relationships.map(relation => [relationKey(relation), relation]),
+  ).values()].sort(compareRelations);
   for (const relation of uniqueRelations) {
-    if (!elementById.has(relation.source)) throw new Error(`Relationship source not found: ${relation.source}`);
-    if (!elementById.has(relation.target)) throw new Error(`Relationship target not found: ${relation.target}`);
+    if (!elementById.has(relation.source)) {
+      throw new Error(`Relationship source not found: ${relation.source}`);
+    }
+    if (!elementById.has(relation.target)) {
+      throw new Error(`Relationship target not found: ${relation.target}`);
+    }
   }
 
   const adjacency = new Map<string, Relationship[]>();
   for (const relation of uniqueRelations) {
     for (const endpoint of new Set([relation.source, relation.target])) {
-      adjacency.set(endpoint, [...(adjacency.get(endpoint) ?? []), relation]);
+      const relations = adjacency.get(endpoint);
+      if (relations) relations.push(relation);
+      else adjacency.set(endpoint, [relation]);
     }
   }
   for (const adjacent of adjacency.values()) adjacent.sort(compareRelations);
 
-  const reachableIds = new Set(uniqueFocusIds);
+  const reachableIds = new Set(focusElements);
   const relationPaths: ArchitectureRelationPath[] = [];
-  for (const focusElementId of uniqueFocusIds) {
+  for (const focusElementId of focusElements) {
     const paths = canonicalPaths(focusElementId, depth, adjacency);
     for (const [relatedElementId, steps] of paths) {
       reachableIds.add(relatedElementId);
-      if (relatedElementId === focusElementId) continue;
-      relationPaths.push({ focusElementId, relatedElementId, steps });
+      if (relatedElementId !== focusElementId) {
+        relationPaths.push({ focusElementId, relatedElementId, steps });
+      }
     }
   }
   relationPaths.sort((left, right) => compareCodePoints(left.focusElementId, right.focusElementId)
@@ -175,7 +171,7 @@ export async function impactArchitecture(
 
   const refinementContext: ArchitectureRefinementContext[] = [];
   const contextElementIds = new Set<string>();
-  for (const focusElementId of uniqueFocusIds) {
+  for (const focusElementId of focusElements) {
     let current = elementById.get(focusElementId)!;
     const seenAncestors = new Set([focusElementId]);
     let ancestorDepth = 0;
@@ -183,34 +179,43 @@ export async function impactArchitecture(
       ancestorDepth += 1;
       const parent = elementById.get(current.parent);
       if (!parent) throw new Error(`Refinement parent not found: ${current.parent}`);
-      if (seenAncestors.has(parent.identity)) throw new Error(`Refinement cycle detected at: ${parent.identity}`);
+      if (seenAncestors.has(parent.identity)) {
+        throw new Error(`Refinement cycle detected at: ${parent.identity}`);
+      }
       seenAncestors.add(parent.identity);
       contextElementIds.add(parent.identity);
-      refinementContext.push({ focusElementId, element: parent, direction: 'ancestor', depth: ancestorDepth });
+      refinementContext.push({
+        focusElementId,
+        elementId: parent.identity,
+        direction: 'ancestor',
+        depth: ancestorDepth,
+      });
       current = parent;
     }
     if (current.identity !== roots[0].identity) {
       throw new Error(`Focus Element ancestor chain does not reach Project Root: ${focusElementId}`);
     }
 
-    let frontier = [elementById.get(focusElementId)!];
+    let frontier = [focusElementId];
     const seenDescendants = new Set([focusElementId]);
     for (let descendantDepth = 1; descendantDepth <= depth; descendantDepth += 1) {
-      const next = frontier.flatMap(element => element.children)
-        .map(elementId => {
-          const child = elementById.get(elementId);
-          if (!child) throw new Error(`Refinement child not found: ${elementId}`);
-          return child;
-        })
-        .filter(child => {
-          if (seenDescendants.has(child.identity)) return false;
-          seenDescendants.add(child.identity);
+      const next = frontier
+        .flatMap(elementId => childrenOf.get(elementId) ?? [])
+        .filter(elementId => {
+          if (seenDescendants.has(elementId)) return false;
+          seenDescendants.add(elementId);
           return true;
         })
-        .sort((left, right) => compareCodePoints(left.identity, right.identity));
-      for (const child of next) {
-        contextElementIds.add(child.identity);
-        refinementContext.push({ focusElementId, element: child, direction: 'descendant', depth: descendantDepth });
+        .sort(compareCodePoints);
+      if (next.length === 0) break;
+      for (const elementId of next) {
+        contextElementIds.add(elementId);
+        refinementContext.push({
+          focusElementId,
+          elementId,
+          direction: 'descendant',
+          depth: descendantDepth,
+        });
       }
       frontier = next;
     }
@@ -218,36 +223,23 @@ export async function impactArchitecture(
   refinementContext.sort((left, right) => compareCodePoints(left.focusElementId, right.focusElementId)
     || compareCodePoints(left.direction, right.direction)
     || left.depth - right.depth
-    || compareCodePoints(left.element.identity, right.element.identity));
+    || compareCodePoints(left.elementId, right.elementId));
 
-  const returnedIds = new Set([...reachableIds, ...contextElementIds]);
-  const returnedElements = [...returnedIds].map(elementId => elementById.get(elementId)!)
-    .sort((left, right) => compareCodePoints(left.identity, right.identity));
-  const relations = uniqueRelations.filter(relation => reachableIds.has(relation.source) && reachableIds.has(relation.target));
+  const elements = [...new Set([...reachableIds, ...contextElementIds])].sort(compareCodePoints);
+  const relations = uniqueRelations.filter(
+    relation => reachableIds.has(relation.source) && reachableIds.has(relation.target),
+  );
 
-  const contracts: ArchitectureImpactContract[] = [];
-  for (const element of returnedElements) {
-    const requirements = requirementsById.get(element.identity) ?? [];
-    if (element.contract === 'required' && requirements.length === 0) {
-      throw new Error(`Required Element Contract missing: ${element.identity}`);
-    }
-    if (requirements.length > 0) contracts.push({ elementId: element.identity, requirements });
-  }
-
-  const focusElements = uniqueFocusIds.map(elementId => elementById.get(elementId)!);
   return {
     focusElements,
-    elements: returnedElements,
+    elements,
     refinementContext,
     relations,
     relationPaths,
-    contracts,
     statistics: {
       focusElementCount: focusElements.length,
-      elementCount: returnedElements.length,
+      elementCount: elements.length,
       relationCount: relations.length,
-      contractCount: contracts.length,
-      contractBytes: contracts.reduce((total, contract) => total + Buffer.byteLength(JSON.stringify(contract.requirements)), 0),
     },
     diagnostics: [],
   };
@@ -255,16 +247,26 @@ export async function impactArchitecture(
 
 export function formatArchitectureImpactText(result: ArchitectureImpactResult): string {
   const lines = [
-    `Focus Elements: ${result.focusElements.map(element => element.identity).join(', ')}`,
-    `Elements: ${result.statistics.elementCount}`,
+    `Focus Elements: ${result.focusElements.join(', ')}`,
+    `Element identities: ${result.elements.join(', ')}`,
     `Relationships: ${result.statistics.relationCount}`,
-    `Contracts: ${result.statistics.contractCount}`,
   ];
-  for (const element of result.elements) {
-    lines.push(`Element: ${element.identity}`, `Definition: ${element.definition}`);
+  for (const context of result.refinementContext) {
+    lines.push(
+      `${context.focusElementId} ${context.direction} ${context.elementId} [depth ${context.depth}]`,
+    );
   }
   for (const relation of result.relations) {
     lines.push(`${relation.source} --${relation.kind}--> ${relation.target}`);
+  }
+  if (result.relationPaths.length > 0) lines.push('Canonical paths:');
+  for (const relationPath of result.relationPaths) {
+    let path = relationPath.focusElementId;
+    for (const step of relationPath.steps) {
+      const adjacent = step.traversal === 'outgoing' ? step.target : step.source;
+      path += ` --${step.kind} [${step.traversal}]--> ${adjacent}`;
+    }
+    lines.push(`${relationPath.focusElementId} => ${relationPath.relatedElementId}: ${path}`);
   }
   return lines.join('\n');
 }

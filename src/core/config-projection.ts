@@ -1,9 +1,17 @@
-import type { ProjectConfig } from './project-config.js';
+import {
+  PROJECT_CONFIG_FUNCTIONAL_DEFAULTS,
+  type ProjectConfig,
+} from './project-config.js';
 
 export interface NormalizedProjectConfig {
   schema?: string;
   proseLanguage?: string;
   context?: string;
+  architecture: {
+    outline: {
+      elementDefinitionDepth: number;
+    };
+  };
   optimization?: {
     enabled: boolean;
     optRetries: number;
@@ -45,7 +53,7 @@ export interface ProjectionScope {
 }
 
 export interface ProjectionFragment {
-  key: 'proseLanguage' | 'context' | 'rules' | 'git' | 'apply';
+  key: 'proseLanguage' | 'context' | 'rules' | 'git' | 'apply' | 'architecture';
   scope: 'global' | 'artifact';
   lines: string[];
 }
@@ -99,8 +107,16 @@ function normalizeString(value: string | undefined): string | undefined {
 }
 
 export function normalizeProjectConfig(config: ProjectConfig | null): NormalizedProjectConfig {
+  const architecture = {
+    outline: {
+      elementDefinitionDepth:
+        config?.architecture?.outline?.elementDefinitionDepth
+        ?? PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture.outline.elementDefinitionDepth,
+    },
+  };
+
   if (!config) {
-    return { rules: {} };
+    return { architecture, rules: {} };
   }
 
   const rules = Object.fromEntries(
@@ -118,6 +134,7 @@ export function normalizeProjectConfig(config: ProjectConfig | null): Normalized
     schema: normalizeString(config.schema),
     proseLanguage: normalizeString(config.proseLanguage),
     context: normalizeString(config.context),
+    architecture,
     optimization: config.optimization
       ? {
           enabled: config.optimization.enabled !== false,
@@ -305,6 +322,24 @@ const projectionRules: ProjectionRule[] = [
         scope: 'global',
         lines: [
           `apply.defaultIsolation: ${config.apply.defaultIsolation}`,
+        ],
+      };
+    },
+    buildRuntime() {
+      return null;
+    },
+    affectsFingerprint() {
+      return false;
+    },
+  },
+  {
+    key: 'architecture',
+    buildPrompt(config) {
+      return {
+        key: 'architecture',
+        scope: 'global',
+        lines: [
+          `architecture.outline.elementDefinitionDepth: ${config.architecture.outline.elementDefinitionDepth}`,
         ],
       };
     },

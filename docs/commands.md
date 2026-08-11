@@ -25,13 +25,29 @@ xirang view [--port <n>]
 
 Discovers the nearest `.xirang/`, starts the vendored LikeC4 engine, and serves graph elements with contracts authorized by the derived Spec registry.
 
+### Outline
+
+```bash
+xirang arch outline [--definition-depth <n>] [--format text|markdown|json]
+```
+
+Projects the complete Element hierarchy, all Relationships, and complete Metamodel Kinds. Definition depth controls only which Element Definitions are loaded; it does not hide Elements or load Contracts.
+
+### Impact
+
+```bash
+xirang arch impact <identities...> [--depth <n>] [--json]
+```
+
+Discovers identity-only refinement context, directed Relationships, and canonical paths around explicit focus Elements. Use the returned identities to select a bounded semantic read.
+
 ### Query
 
 ```bash
-xirang arch query <identity> [--relations] [--depth <n>] [--contract] [--json]
+xirang arch query <identities...> [--contract] [--json]
 ```
 
-Queries any Semantic Model element by stable `identity`. LikeC4 FQNs are derived generation artifacts and never address the persistent source; use `xirang arch search` to find an identity first.
+Reads complete Declarations for explicit stable identities, with complete owned Contracts only when `--contract` is present. The command is atomic for a batch: an unknown identity fails the whole request. LikeC4 FQNs are derived generation artifacts and never address the persistent source; use `xirang arch search` to find identities first.
 
 ### Validate
 

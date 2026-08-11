@@ -72,7 +72,9 @@ export function buildModelTree(model: SemanticModel): SnapshotElement[] {
   for (const element of model.elements) {
     const parent = element.declaration.parent;
     if (parent === null) continue;
-    childrenOf.set(parent, [...(childrenOf.get(parent) ?? []), element.declaration.identity]);
+    const children = childrenOf.get(parent);
+    if (children) children.push(element.declaration.identity);
+    else childrenOf.set(parent, [element.declaration.identity]);
   }
   for (const list of childrenOf.values()) list.sort(compareCodePoints);
 
@@ -87,34 +89,50 @@ export function buildModelTree(model: SemanticModel): SnapshotElement[] {
 
 const nodeLabel = (node: SnapshotTreeNode): string => `${node.identity} (${node.kind}) | ${node.definition}`;
 
-const renderTextNode = (node: SnapshotTreeNode, prefix: string, isLast: boolean, lines: string[]): void => {
-  lines.push(`${prefix}${isLast ? '└── ' : '├── '}${nodeLabel(node)}`);
-  const childPrefix = prefix + (isLast ? '    ' : '│   ');
-  node.children.forEach((child, index) => renderTextNode(child, childPrefix, index === node.children.length - 1, lines));
-};
-
 function renderTreeText(elements: readonly SnapshotElement[]): string {
   const roots = buildTree(elements);
   const lines: string[] = [];
-  roots.forEach((root, index) => renderTextNode(root, '', index === roots.length - 1, lines));
+  const stack = roots.map((node, index) => ({
+    node,
+    prefix: '',
+    isLast: index === roots.length - 1,
+  })).reverse();
+  while (stack.length > 0) {
+    const { node, prefix, isLast } = stack.pop()!;
+    lines.push(`${prefix}${isLast ? '└── ' : '├── '}${nodeLabel(node)}`);
+    const childPrefix = prefix + (isLast ? '    ' : '│   ');
+    for (let index = node.children.length - 1; index >= 0; index -= 1) {
+      stack.push({
+        node: node.children[index],
+        prefix: childPrefix,
+        isLast: index === node.children.length - 1,
+      });
+    }
+  }
   return lines.join('\n');
 }
 
 function renderTreeMarkdown(elements: readonly SnapshotElement[]): string {
   const roots = buildTree(elements);
   const lines: string[] = [];
-  const walk = (node: SnapshotTreeNode, depth: number) => {
+  const stack = roots.map(node => ({ node, depth: 0 })).reverse();
+  while (stack.length > 0) {
+    const { node, depth } = stack.pop()!;
     lines.push(`${'  '.repeat(depth)}- ${nodeLabel(node)}`);
-    for (const child of node.children) walk(child, depth + 1);
-  };
-  for (const root of roots) walk(root, 0);
+    for (let index = node.children.length - 1; index >= 0; index -= 1) {
+      stack.push({ node: node.children[index], depth: depth + 1 });
+    }
+  }
   return lines.join('\n');
 }
 
 function renderRelationsText(relations: readonly Relationship[]): string {
   const byKind = new Map<string, string[]>();
   for (const relation of relations) {
-    byKind.set(relation.kind, [...(byKind.get(relation.kind) ?? []), `${relation.source} --> ${relation.target}`]);
+    const relations = byKind.get(relation.kind);
+    const rendered = `${relation.source} --> ${relation.target}`;
+    if (relations) relations.push(rendered);
+    else byKind.set(relation.kind, [rendered]);
   }
   const kinds = [...byKind.keys()].sort(compareCodePoints);
   const lines = ['[relationships]'];
@@ -163,6 +181,12 @@ export function treeToSnapshotJson(result: ArchitectureSnapshotResult): Architec
   return result;
 }
 
+export function sortArchitectureRelationships(relations: readonly Relationship[]): Relationship[] {
+  return [...relations].sort((left, right) => compareCodePoints(left.kind, right.kind)
+    || compareCodePoints(left.source, right.source)
+    || compareCodePoints(left.target, right.target));
+}
+
 export async function snapshotArchitecture(
   projectRoot: string,
 ): Promise<ArchitectureSnapshotResult> {
@@ -172,9 +196,7 @@ export async function snapshotArchitecture(
   }
 
   const elements = buildModelTree(model);
-  const relations = [...model.relationships].sort((left, right) => compareCodePoints(left.kind, right.kind)
-    || compareCodePoints(left.source, right.source)
-    || compareCodePoints(left.target, right.target));
+  const relations = sortArchitectureRelationships(model.relationships);
   const elementKinds = model.elementKinds.map(kind => ({
     identity: kind.identity,
     contract: kind.contract,
