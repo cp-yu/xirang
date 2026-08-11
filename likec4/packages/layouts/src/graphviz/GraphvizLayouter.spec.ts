@@ -118,11 +118,16 @@ describe('GraphvizLayouter element view preprocessing', () => {
   it('skips unflatten when the view has compound endpoint edges', async () => {
     // cloud is a container (compound); the edge customer -> cloud has a compound endpoint
     const { view, styles } = compoundEndpointView()
-    expect(new ElementViewPrinter(view, styles as never).hasEdgesWithCompounds).toBe(true)
+    const printer = new ElementViewPrinter(view, styles as never)
+    expect(printer.hasEdgesWithCompounds).toBe(true)
+    const printed = printer.print()
+    // normalizeDot strips the GraphClusterSpace margin marker (50.1) from the raw print
+    expect(printed).toContain('50.1')
     const port = new RecordingPort()
     const layouter = new GraphvizLayouter(port)
     try {
-      await layouter.dot({ view, styles: styles as never })
+      const dot = await layouter.dot({ view, styles: styles as never })
+      expect(dot).not.toContain('50.1')
       expect(port.unflattenCalls).toBe(0)
     } finally {
       layouter.dispose()

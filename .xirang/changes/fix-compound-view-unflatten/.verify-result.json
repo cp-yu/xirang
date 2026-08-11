@@ -36,7 +36,7 @@
       "test/core/likec4/generator.test.ts",
       "test/e2e/semantic-browser-model-view.spec.ts"
     ],
-    "evidenceFingerprint": "4acccc8581d2a79c6e73785c1a66f0682779b62c2faaa23e7d6b74f677a5eb6f",
+    "evidenceFingerprint": "545e6206ee88803b8b052f1d77e3df975c9457a404d44fb14b1efcb16e08773d",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/fix-compound-view-unflatten/design.md",
@@ -64,7 +64,7 @@
       },
       {
         "path": "likec4/packages/layouts/src/graphviz/GraphvizLayouter.spec.ts",
-        "hash": "f043ec220afb0e64b583d629389cd749569856d930f92ee76e9a996cdc8743b7"
+        "hash": "b9fd942042cb4c7a2e16cd65214ffba65e0be241b20585de57e28f41c11c3554"
       },
       {
         "path": "likec4/packages/layouts/src/graphviz/wasm/GraphvizWasmAdapter.ts",
@@ -84,12 +84,24 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "da06ba363ba493a64b8bd2c6bb31dd068e6c9758",
-    "gitDiffSummary": "baseCommit da06ba363 == HEAD; all changes uncommitted on branch fix-compound-view-unflatten. Unit vitest 3/3, layouts typecheck, full-project layout regression, stale-diagnostic grep, 3-package rebuild, dist-mode export, playwright e2e 11/11, xirang view server log grep all passed."
+    "gitHeadCommit": "c17dbfbcbdfe288ed2a6fba584c874a213df426a",
+    "gitDiffSummary": "baseCommit da06ba363 == HEAD; all changes uncommitted on branch fix-compound-view-unflatten. Unit vitest 3/3, layouts typecheck, full-project layout regression, stale-diagnostic grep, 3-package rebuild, dist-mode export, playwright e2e 11/11, xirang view server log grep all passed.",
+    "timestamp": "2026-08-11T17:05:24.133Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-08-11T16:59:08.428Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-11T17:05:24.123Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-08-11T16:47:08.685Z",
       "result": "PASS",
@@ -179,6 +191,188 @@
         "gitHeadCommit": "da06ba363ba493a64b8bd2c6bb31dd068e6c9758",
         "gitDiffSummary": "baseCommit da06ba363 == HEAD; all changes uncommitted on branch fix-compound-view-unflatten. Unit vitest 3/3, layouts typecheck, full-project layout regression, stale-diagnostic grep, 3-package rebuild, dist-mode export, playwright e2e 11/11, xirang view server log grep all passed."
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "likec4/packages/layouts/src/graphviz/GraphvizLayouter.spec.ts"
+          ],
+          "symbols": [
+            "skips unflatten when the view has compound endpoint edges"
+          ]
+        },
+        "opportunity": "compound-skip branch observable contract includes normalizeDot margin-strip, but the unit test asserts only unflattenCalls === 0",
+        "impact": "lock the full output contract of the compound-skip branch at unit level",
+        "evidence": [
+          "GraphvizLayouter.spec.ts:118-130",
+          "GraphvizLayoter.ts:204-208",
+          "DotPrinter.ts:325"
+        ],
+        "recommendation": "spec-only hardening: assert printer.print() contains 50.1 and dot() output does not",
+        "keyDesign": "spec-local assertion using the same filter semantics; no production code change",
+        "preservationConstraints": [
+          "compound element view dot() output remains normalizeDot(printer.print())",
+          "call-count assertions unchanged",
+          "no production code change"
+        ],
+        "implementationOutline": [
+          "bind printer and assert printed contains 50.1 while dot() output does not",
+          "run unit vitest and typecheck"
+        ],
+        "validation": [
+          "vitest GraphvizLayouter.spec.ts",
+          "layouts typecheck"
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "closes the only observable-contract gap in the new branch",
+        "id": "OPT-20260811T165908425Z-01",
+        "targetFileHashes": {
+          "likec4/packages/layouts/src/graphviz/GraphvizLayouter.spec.ts": "f043ec220afb0e64b583d629389cd749569856d930f92ee76e9a996cdc8743b7"
+        }
+      },
+      {
+        "status": "pending",
+        "location": {
+          "files": [
+            "likec4/packages/layouts/src/graphviz/GraphvizLayoter.ts"
+          ],
+          "symbols": [
+            "layout",
+            "svg",
+            "normalizeDot"
+          ]
+        },
+        "opportunity": "layout() and svg() apply normalizeDot twice (idempotent second pass)",
+        "impact": "one fewer full-string pass per layout and per SVG render",
+        "evidence": [
+          "GraphvizLayoter.ts:143/148",
+          "GraphvizLayoter.ts:157/159",
+          "dot() normalizes on all exits"
+        ],
+        "recommendation": "delete the second normalizeDot in layout() and svg()",
+        "keyDesign": "dot() remains the sole normalization point; output byte-identical due to idempotence",
+        "preservationConstraints": [
+          "layout() returned dot byte-identical",
+          "dotToJson receives normalized dot",
+          "svg passes normalized dot",
+          "aiLayout and layoutProjectsView untouched"
+        ],
+        "implementationOutline": [
+          "remove redundant normalizeDot in layout() and svg()",
+          "run unit tests, typecheck, full-project regression"
+        ],
+        "validation": [
+          "vitest GraphvizLayouter.spec.ts",
+          "generator-validate layout test",
+          "layouts typecheck"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "static evidence of double normalization; small real saving",
+        "id": "OPT-20260811T165908425Z-02"
+      },
+      {
+        "status": "pending",
+        "location": {
+          "files": [
+            "likec4/packages/layouts/src/graphviz/GraphvizLayoter.ts"
+          ],
+          "symbols": [
+            "dot"
+          ]
+        },
+        "opportunity": "dot() has three identical normalizeDot exits; single-exit control flow would make the invariant structural",
+        "impact": "drift-proof single conditional around the only mutating step",
+        "evidence": [
+          "GraphvizLayoter.ts:201-215"
+        ],
+        "recommendation": "restructure to single gate: if (isElementView && !hasEdgesWithCompounds) { unflatten } return normalizeDot(dot)",
+        "keyDesign": "one conditional gate around unflatten; one normalized exit; error handling verbatim",
+        "preservationConstraints": [
+          "non-element views skip unflatten",
+          "compound views skip; flat call exactly once with (1,false,3)",
+          "unflatten error warn-and-continue unchanged",
+          "byte-identical outputs",
+          "no change to layoutProjectsView/aiLayout/printToDot/GraphvizPort"
+        ],
+        "implementationOutline": [
+          "replace two early returns + fall-through with single gate",
+          "run unit tests, typecheck, full-project regression"
+        ],
+        "validation": [
+          "vitest GraphvizLayouter.spec.ts",
+          "generator-validate layout test",
+          "layouts typecheck"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "maintainability; strengthens the invariant F2 relies on",
+        "id": "OPT-20260811T165908425Z-03"
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-11T16:59:08.425Z",
+        "findingId": "OPT-20260811T165908425Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-11T16:59:08.425Z",
+        "findingId": "OPT-20260811T165908425Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-11T16:59:08.425Z",
+        "findingId": "OPT-20260811T165908425Z-03"
+      },
+      {
+        "sequence": 4,
+        "action": "select",
+        "reason": "closes the only observable-contract gap in the new branch",
+        "timestamp": "2026-08-11T16:59:08.428Z",
+        "findingId": "OPT-20260811T165908425Z-01",
+        "hashes": {
+          "likec4/packages/layouts/src/graphviz/GraphvizLayouter.spec.ts": "f043ec220afb0e64b583d629389cd749569856d930f92ee76e9a996cdc8743b7"
+        }
+      },
+      {
+        "sequence": 5,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-11T16:59:28.746Z",
+        "findingId": "OPT-20260811T165908425Z-01",
+        "hashes": {
+          "likec4/packages/layouts/src/graphviz/GraphvizLayouter.spec.ts": "f043ec220afb0e64b583d629389cd749569856d930f92ee76e9a996cdc8743b7"
+        }
+      },
+      {
+        "sequence": 6,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-11T17:05:24.123Z",
+        "findingId": "OPT-20260811T165908425Z-01"
+      }
+    ],
+    "reconciliationSignature": "35fb7297911c65d0d44475ba5f2400623c7b6ac710470a6803b1df00fa93a32f",
+    "unchangedReconciliations": 0
   }
 }
