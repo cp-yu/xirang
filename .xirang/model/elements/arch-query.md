@@ -4,76 +4,89 @@ identity: arch-query
 kind: element
 parent: deterministic-operations
 title: Arch Query
-definition: Arch Query 定义 `xirang arch query` 的结构化查询行为：按稳定 identity 或当前 FQN 定位 Element、`--relations` 返回持久化语义关系、`--depth` 展开 refinement 与 relation 邻接、`--json` 输出与不存在的 Element 处理。
+definition: Arch Query 定义 `xirang arch query` 的显式语义读取行为：它接受一个或多个稳定 Element identities，确定性返回这些显式请求对象的完整 Element Declarations，并仅在调用方指定 `--contract` 时附加同一批对象的完整 Element Contracts；它不发现影响范围、不展开 children/refinement 或 semantic relationship adjacency，也不接受派生 FQN。
 ---
 
 ## Requirements
 
 ### Requirement: arch query 命令 SHALL 查询 Element 详情
 
-`xirang arch query <element-id-or-fqn>` SHALL 查询任意 kind 的 Semantic Model element。命令 SHALL 接受稳定 identity 或当前 FQN，并以稳定 identity 作为 canonical output identity。
+`xirang arch query <element-ids...>` SHALL 接受一个或多个稳定 Element identities，去重并按稳定 identity 确定性排序后读取 Formal Semantic Model。命令 SHALL NOT 接受派生 FQN 或将未知输入猜测为其他 identity。
 
 #### Scenario: 通过稳定 identity 查询
-- **GIVEN** model 包含某 element 且当前 FQN 与 stable identity 不同
-- **WHEN** 运行 `xirang arch query <element-id>`
-- **THEN** SHALL 输出 Element identity、kind、FQN、title、definition、parent 与 contract policy
 
-#### Scenario: 通过 FQN 查询
-- **WHEN** 运行带当前 FQN 的 `xirang arch query`
-- **THEN** SHALL 定位同一 element
-- **AND** canonical output SHALL 仍使用稳定 identity
+- **WHEN** 用户传入一个存在的稳定 identity
+- **THEN** SHALL 输出该 Element 的 identity、kind、title、完整 definition、parent、contract policy 与 hasContract
+- **AND** canonical output identity SHALL 与输入对应的稳定 identity 一致
 
-#### Scenario: 输出 element-owned Contracts
-- **WHEN** 查询的 Element 在其单元中携带 Contract（requirements 非空）
-- **THEN** query SHALL 输出该 Element 的 contract policy、hasContract 与（`--contract` 时）完整 Requirements
-- **AND** MUST NOT 从 metadata 字段读取索引
-#### Scenario: 通过稳定 elementId 查询
-- **GIVEN** model 包含 `identity: payment.authorize` 且当前 FQN 为 `project.orders.payment.authorize`
-- **WHEN** 运行 `xirang arch query payment.authorize`
-- **THEN** SHALL 输出 `Element: payment.authorize`
-- **AND** SHALL 输出 kind、FQN、title、definition、parent 与 contract policy
-#### Scenario: Query guidance 与新版 output 一致
-- **WHEN** 检查 fragment
-- **THEN** SHALL 说明 parent、children、Contracts 与 incoming/outgoing relationships
-- **AND** SHALL 使用 identity 作为 canonical identity
-- **AND** SHALL NOT 承诺 code-map refs
-### Requirement: arch query SHALL 支持 --relations 选项
+#### Scenario: 批量查询稳定排序
 
-`--relations` SHALL 返回 element 的持久化 semantic relationships，并 SHALL 将 endpoints 归一化为稳定 identity。Containment 派生的 `belongs_to`、`refines` 与 `abstracts` MUST NOT 伪装成 persisted relationship records。
+- **WHEN** 用户传入多个 identities 且包含重复值
+- **THEN** query SHALL 在一个结果中返回去重后的全部显式 Elements
+- **AND** collection 与 text blocks SHALL 按稳定 identity 确定性排序
 
-#### Scenario: 查询 semantic relationships
-- **WHEN** element 有 semantic relations
-- **THEN** output SHALL 保留 relation kind、direction 与 canonical endpoints
+#### Scenario: 输出 element-owned Contract
 
-### Requirement: arch query SHALL 支持 --depth 选项
+- **WHEN** 显式请求的 Element 在其单元中携带 Contract 且用户传入 `--contract`
+- **THEN** query SHALL 从该 Element 自身单元返回完整 Requirements 与 Scenarios
+- **AND** MUST NOT 从 metadata、path pattern 或相关 Element 推测 Contract
 
-`--depth N` SHALL 同时支持按 semantic relationship 邻接和 refinement hierarchy 展开到指定深度，并 SHALL 标注 context 来源。
+#### Scenario: 派生 FQN 被拒绝
 
-#### Scenario: 深度查询包含 refinement
-- **WHEN** 查询 parent element 并使用 `--depth 2`
-- **THEN** SHALL 包含两层 descendants 与其 depth
-- **AND** SHALL 提供确定性 Refinement Overview
-
-#### Scenario: Element 移动后仍可查询
-- **GIVEN** element 的 FQN 因 parent 变化而改变
-- **WHEN** 以稳定 identity 查询
-- **THEN** SHALL 返回移动后的当前 FQN 与正确 parent
+- **WHEN** 输入匹配当前生成的 FQN 但不是稳定 identity
+- **THEN** 命令 SHALL 非零退出
+- **AND** SHALL 指示调用方使用 stable identity
 
 ### Requirement: arch query SHALL 支持 --json 输出
 
-`--json` SHALL 输出包含 `element`、`refinement`、可选 `relations` 与 owned `contracts` 的结构化 JSON。
+`--json` SHALL 输出 identity-keyed `elements` map；每个 entry SHALL 只表示一个显式请求 Element，并可在 `--contract` 时携带该 Element 的完整 `requirements`。Human-readable 与 JSON 输出 SHALL 从同一个 canonical result object 生成。
 
 #### Scenario: JSON 格式输出
-- **WHEN** 运行带 `--relations --json` 的查询
-- **THEN** SHALL 输出有效 JSON
-- **AND** `element.id` SHALL 为稳定 identity
-- **AND** SHALL 包含当前 `fqn`、`kind`、`parent`、`children` 与 `contracts`
+
+- **WHEN** 用户运行 `xirang arch query element-a element-b --contract --json`
+- **THEN** 输出 SHALL 为有效 JSON，且 `elements` SHALL 只包含 `element-a` 与 `element-b`
+- **AND** 每个 entry SHALL 包含完整 Declaration fields、contract policy、hasContract 与适用的 requirements
+
+#### Scenario: JSON 不包含导航 projection
+
+- **WHEN** 用户运行任意 JSON query
+- **THEN** result SHALL NOT 包含 `refinement`、`relatedElements`、`relations` 或 `children`
+- **AND** SHALL NOT 包含未显式请求 identity 的语义内容
 
 ### Requirement: arch query SHALL 处理不存在的 element
 
-查询不存在的 identity 与 FQN SHALL 以非零状态失败并返回清晰错误。
+查询任一不存在的稳定 identity 或派生 FQN SHALL 以非零状态失败并返回清晰错误；批量请求 SHALL fail as a whole，MUST NOT 静默返回部分结果。
 
 #### Scenario: Element 不存在
+
 - **WHEN** 运行 `xirang arch query missing.element`
 - **THEN** SHALL 输出 `Element not found: missing.element`
 - **AND** exit code SHALL 非零
+
+#### Scenario: 批量请求包含未知 identity
+
+- **WHEN** 批量请求同时包含存在与不存在的 identities
+- **THEN** 整个 command SHALL 非零退出并报告未知 identity
+- **AND** SHALL NOT 输出看似完整的部分 `elements` result
+
+### Requirement: arch query SHALL 限定显式读取边界
+
+`arch query` SHALL 只为命令行显式请求的稳定 identities 返回完整语义。每个结果 SHALL 包含完整 Element Declaration 的 `identity`、`kind`、`title`、`definition` 与 `parent`，并 SHALL 包含 Element Kind 派生的 contract policy 与 `hasContract`；`parent` 是规范 Declaration 字段，MUST NOT 作为导航扩展被移除。
+
+#### Scenario: 不自动返回导航对象
+
+- **WHEN** 显式请求的 Element 具有 parent、children、refinement descendants 或 semantic Relationships
+- **THEN** query SHALL 只返回该显式 Element 及其规范 `parent` 字段
+- **AND** SHALL NOT 返回 `children`、`refinement`、`relatedElements`、Relationship adjacency 或未请求 Element 的 Definition
+
+#### Scenario: Contract 只作用于显式 identities
+
+- **WHEN** 用户为多个 identities 传入 `--contract`
+- **THEN** query SHALL 只为这些显式 identities 中携带 Contract 的 Elements 返回完整 Requirements 与 Scenarios
+- **AND** SHALL NOT 向 parent、children、refinement 或 related Elements 广播 Contract
+
+#### Scenario: 未请求 Contract 时只返回存在状态
+
+- **WHEN** 用户省略 `--contract`
+- **THEN** query SHALL 返回 contract policy 与 `hasContract`
+- **AND** SHALL NOT 返回 Requirements 或 Scenarios

@@ -4,7 +4,7 @@ identity: arch-snapshot
 kind: element
 parent: deterministic-operations
 title: Arch Snapshot
-definition: Arch Snapshot 定义 `xirang arch snapshot` 的模型骨架投影行为：一次性输出全部 Element Declarations、全部 Relationships 与 Metamodel Kinds（含定义），不含 Element Contract；以 text / markdown / json 三格式序列化，供 Agent 在 workflow 启动时作为项目模型总览注入上下文；只处理 Formal Semantic Model。
+definition: Arch Snapshot 定义 `xirang arch snapshot` 的完整模型导出行为：一次性输出全部 Element Declarations 及其完整 Definitions、全部 Relationships 与 Metamodel Kinds（含定义），不含 Element Contract；它以 text、markdown 与 json 三格式服务于完整检查、调试和离线处理，只读取 Formal Semantic Model，不承担 Agent workflow 的默认模型认知加载职责。
 ---
 
 ## Requirements
@@ -89,13 +89,3 @@ Element Declarations SHALL 以嵌套树呈现：缩进表达 parent/children 层
 - **WHEN** Formal Semantic Model 不存在或校验失败
 - **THEN** 命令 SHALL 非零退出
 - **AND** SHALL 报告模型不可用或具体校验错误
-
-### Requirement: snapshot SHALL 供 Agent 作为模型总览注入
-
-Workflow skill 的共享 Semantic Model context fragment SHALL 指引 Agent 在需要项目模型总览时先运行 `xirang arch snapshot`，再用 `xirang arch query` 按需点查具体 Element 的 detail 与 Contract。
-
-#### Scenario: shared context 指引 snapshot
-
-- **WHEN** 检查 workflow skill 的 shared context fragment
-- **THEN** fragment SHALL 包含先运行 `xirang arch snapshot` 获取模型骨架总览的指引
-- **AND** SHALL 说明 Contract 需用 `xirang arch query --contract` 点查
