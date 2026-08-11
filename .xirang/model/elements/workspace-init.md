@@ -103,3 +103,25 @@ Setup 命令 SHALL 显示清晰的输出，说明生成了什么。
 - **WHEN** setup 命令完成
 - **THEN** 输出列出全部生成的 skill 文件路径
 - **AND** 列出创建的 workspace 目录（model 四分区、changes、references）
+
+### Requirement: Setup 物化默认结构拆分方法
+
+`xirang setup` SHALL 通过共享 project config default materialization contract 在新工作区配置中写入 `decomposition: { method: c4 }`，并 SHALL 保留 existing workspace 中用户已配置的 `decomposition.method` 或 `decomposition.skill`。
+
+#### Scenario: 新项目获得显式默认方法
+
+- **WHEN** setup 创建新的 `.xirang/config.yaml`
+- **THEN** 配置包含 `decomposition.method: c4`
+- **AND** 不包含 `decomposition.skill`
+
+#### Scenario: Existing project 保留用户 skill
+
+- **WHEN** existing workspace 配置包含 `decomposition: { skill: project-modeling }`
+- **THEN** setup 保留该 mapping
+- **AND** 不添加 `method: c4`
+
+#### Scenario: 跨平台 setup 写入相同默认值
+
+- **WHEN** setup 在 Windows、macOS 或 Linux 上创建项目配置
+- **THEN** 使用 Node.js path API 定位配置文件
+- **AND** 写入语义相同的 `decomposition.method: c4`

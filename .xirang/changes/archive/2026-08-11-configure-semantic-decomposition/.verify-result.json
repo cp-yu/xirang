@@ -309,7 +309,7 @@
     "timestamp": "2026-08-11T08:12:27.889Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
         "timestamp": "2026-08-11T08:04:19.624Z",
@@ -320,6 +320,11 @@
         "timestamp": "2026-08-11T08:12:27.869Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-11T08:16:22.073Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
@@ -634,7 +639,7 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "src/core/config-projection.ts"
@@ -722,9 +727,16 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-11T08:12:27.869Z",
         "findingId": "OPT-20260811T080419620Z-01"
+      },
+      {
+        "sequence": 5,
+        "action": "resolve",
+        "reason": "The verified implementation is present at checkpoint a939d33f55d977049ce5266e7a5da7d5335b5c5d: buildConfigProjectionBundle now normalizes once and passes the resulting NormalizedProjectConfig directly to the private compilePromptProjection helper. The focused 90-test config suite and TypeScript typecheck pass, the worktree is clean, and the current scan found no further meaningful statically provable optimization in tracked base-scope implementation files.",
+        "timestamp": "2026-08-11T08:16:22.073Z",
+        "findingId": "OPT-20260811T080419620Z-01"
       }
     ],
-    "reconciliationSignature": "51bb4a803755997fbf943b1aee49a08205877e202214c0bb92d6b5cb80888e00",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }
