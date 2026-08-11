@@ -3,6 +3,7 @@ import {
   ELEMENT_CONTRACT_SEMANTICS,
   ELEMENT_DEFINITION_SEMANTICS,
   SEMANTIC_MODEL_UNIT_NOTATION,
+  STRUCTURAL_DECOMPOSITION_GUIDANCE,
   XIRANG_PHILOSOPHY,
 } from '../fragments/xirang-fragments.js';
 
@@ -18,6 +19,8 @@ ${ELEMENT_DEFINITION_SEMANTICS}
 
 ${ELEMENT_CONTRACT_SEMANTICS}
 
+${STRUCTURAL_DECOMPOSITION_GUIDANCE}
+
 ${SEMANTIC_MODEL_UNIT_NOTATION}
 
 ## Workflow
@@ -32,7 +35,7 @@ ${SEMANTIC_MODEL_UNIT_NOTATION}
    - \`xirang candidate init --from-path <path>\`
 6. After initialization succeeds or active-Candidate continuation is confirmed, write \`.xirang/candidate/build.md\` with the authorized scope, authority order, current requirements, and explicit exclusions. Current user requirements have highest priority.
 7. Explore the authorized scope in any useful order. Code, tests, documents, configuration, Git history, and current Xirang are evidence only unless the user explicitly designates them as source of truth. Subagents MAY accelerate read-only exploration.
-8. Run the conditional Modeling Decision Gate after exploration and before the first Candidate model write.
+8. Run the conditional Modeling Decision Gate after exploration and before the first Candidate hierarchy write. Apply the Structural Decomposition Guidance before choosing or confirming a hierarchy dimension.
    - Ask only when multiple reasonable choices would change identity, hierarchy, Contract, Kind, Relationship, or Authored View semantics. Do not block on implementation details or wording preferences that cannot change the target Semantic Model.
    - Resolve decisions in dependency order: authority conflicts → Element identity and boundaries → hierarchy → Metamodel → Contracts → Relationships → Authored Views.
    - Present bounded options with trade-offs and ask one decision at a time. If no semantic choice remains, continue without asking.
@@ -47,7 +50,7 @@ ${SEMANTIC_MODEL_UNIT_NOTATION}
 12. After deterministic validation succeeds, delegate one complete semantic review to a generic read-only subagent with a clean context.
     - Provide the absolute project root, Candidate root, \`build.md\`, current \`reviewDigest\`, authorized scope, authority order, recorded user rulings, validation result, review checklist, and output contract.
     - Require the subagent to independently read build.md, all four Candidate partitions, authority sources, and necessary project evidence. Main-Agent completion claims are not evidence.
-    - Review authorization coverage, unauthorized durable semantics, hierarchy, Kinds, Definitions, Definition boundaries against parent/children/siblings, Contracts, Requirement boundaries, Scenario confinement, Relationships, Authored Views, cross-level overlap, and exception provenance. Check that recovered legacy/formal content matches current behavior and does not resurrect retired vocabulary or recorded exclusions. Any Candidate modification invalidates the review.
+    - Review authorization coverage, unauthorized durable semantics, hierarchy, Kinds, Definitions, Definition boundaries against parent/children/siblings, Contracts, Requirement boundaries, Scenario confinement, Relationships, Authored Views, cross-level overlap, and exception provenance. Check that the selected decomposition guidance is applied consistently and that the same sibling set does not mix responsibility, lifecycle, deployment, or implementation dimensions. Check that recovered legacy/formal content matches current behavior and does not resurrect retired vocabulary or recorded exclusions. Any Candidate modification invalidates the review.
     - Require one structured result with this exact contract:
 
 \`\`\`json

@@ -1,5 +1,8 @@
 schema: semantic-model
 
+decomposition:
+  skill: xirang-project-decomposition
+
 context: |
   Tech stack: TypeScript, Node.js (≥22.22.3), ESM modules
   Package manager: pnpm
@@ -42,3 +45,6 @@ git:
     deleteAfterArchive: false
 apply:
   defaultIsolation: ask
+architecture:
+  outline:
+    elementDefinitionDepth: 2

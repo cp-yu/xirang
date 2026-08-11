@@ -7,6 +7,9 @@ export interface NormalizedProjectConfig {
   schema?: string;
   proseLanguage?: string;
   context?: string;
+  decomposition?:
+    | { method: string }
+    | { skill: string };
   architecture: {
     outline: {
       elementDefinitionDepth: number;
@@ -53,7 +56,7 @@ export interface ProjectionScope {
 }
 
 export interface ProjectionFragment {
-  key: 'proseLanguage' | 'context' | 'rules' | 'git' | 'apply' | 'architecture';
+  key: 'proseLanguage' | 'context' | 'decomposition' | 'rules' | 'git' | 'apply' | 'architecture';
   scope: 'global' | 'artifact';
   lines: string[];
 }
@@ -134,6 +137,7 @@ export function normalizeProjectConfig(config: ProjectConfig | null): Normalized
     schema: normalizeString(config.schema),
     proseLanguage: normalizeString(config.proseLanguage),
     context: normalizeString(config.context),
+    decomposition: config.decomposition ? { ...config.decomposition } : undefined,
     architecture,
     optimization: config.optimization
       ? {
@@ -265,6 +269,29 @@ const projectionRules: ProjectionRule[] = [
         scope: 'global',
         lines: [config.context],
       };
+    },
+    affectsFingerprint() {
+      return false;
+    },
+  },
+  {
+    key: 'decomposition',
+    buildPrompt(config, scope) {
+      if (!config.decomposition || !['build', 'explore', 'propose', 'snack'].includes(scope.surface)) {
+        return null;
+      }
+
+      const [key, value] = 'method' in config.decomposition
+        ? ['method', config.decomposition.method]
+        : ['skill', config.decomposition.skill];
+      return {
+        key: 'decomposition',
+        scope: 'global',
+        lines: [`decomposition.${key}: ${value}`],
+      };
+    },
+    buildRuntime() {
+      return null;
     },
     affectsFingerprint() {
       return false;

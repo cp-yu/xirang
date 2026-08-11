@@ -16,6 +16,20 @@ export const XIRANG_PHILOSOPHY = `
 `.trim();
 
 /**
+ * Fragment: Structural decomposition selection
+ * Used in: build, explore, propose, snack
+ */
+export const STRUCTURAL_DECOMPOSITION_GUIDANCE = `
+**Structural Decomposition Guidance**
+
+- Before forming or reorganizing an Element hierarchy, run \`xirang config project --json\` and read the normalized \`decomposition\` selection from its JSON output. Do not inspect or reinterpret the raw config.
+- For \`method\`, treat its value as an opaque method name and use only method knowledge you clearly possess. If its meaning or application is ambiguous, stop hierarchy formation and ask the user once; never substitute another method.
+- For \`skill\`, invoke its value as a logical skill name. If the skill is unavailable, fails, or returns insufficient guidance, stop hierarchy formation and ask the user once; never infer a tool-specific path or fall back to another method.
+- Decomposition guidance selects the dimension used for hierarchy abstraction and refinement. It does not override authorized user intent, the Xirang Semantic Model, Element Contracts, Relationships, evidence authority, or the current workflow's read/write boundary.
+- Keep every same sibling set on one dimension, make it MECE for the confirmed scope, and confirm breadth-first. Do not mix responsibility, lifecycle, deployment, or implementation dimensions within one sibling set.
+`.trim();
+
+/**
  * Fragment: Element Definition semantics
  * Used in: build, explore, propose, snack
  */

@@ -31,6 +31,14 @@ Reconcile Xirang artifacts from already-written code (code-first artifact reconc
 - Requirement SHALL 以稳定 identity 表达一项可独立演进的规范承诺。以该承诺能否独立新增、修改或移除判断边界，不得按句子、分句、`SHALL` 数量或目标条数机械拆分。只复述 Declaration definition 或 sibling Requirements 语义并集且不增加规范承诺的内容不形成 Requirement；独立的不变量、顺序、原子性、一致性或完成条件应保留。
 - Scenario SHALL 是具有规范约束力的 Requirement 组成，只具体化宿主 Requirement 在特定条件下的行为，不得引入可独立演进的承诺。Scenarios 不默认穷尽 Requirement 的全部适用情况，Scenario 不作为独立 Semantic Delta Entry，其变化由宿主 Requirement 的完整目标内容表达。
 
+**Structural Decomposition Guidance**
+
+- Before forming or reorganizing an Element hierarchy, run `xirang config project --json` and read the normalized `decomposition` selection from its JSON output. Do not inspect or reinterpret the raw config.
+- For `method`, treat its value as an opaque method name and use only method knowledge you clearly possess. If its meaning or application is ambiguous, stop hierarchy formation and ask the user once; never substitute another method.
+- For `skill`, invoke its value as a logical skill name. If the skill is unavailable, fails, or returns insufficient guidance, stop hierarchy formation and ask the user once; never infer a tool-specific path or fall back to another method.
+- Decomposition guidance selects the dimension used for hierarchy abstraction and refinement. It does not override authorized user intent, the Xirang Semantic Model, Element Contracts, Relationships, evidence authority, or the current workflow's read/write boundary.
+- Keep every same sibling set on one dimension, make it MECE for the confirmed scope, and confirm breadth-first. Do not mix responsibility, lifecycle, deployment, or implementation dimensions within one sibling set.
+
 Treat `proposal.md`, `design.md`, and the Delta units under `{metamodel,elements,relationships,views}/` as conditional artifacts: create them when missing, update them when stale or inconsistent, and leave them unchanged when current.
 
 ## Input
@@ -72,7 +80,10 @@ Treat `proposal.md`, `design.md`, and the Delta units under `{metamodel,elements
 6. Determine structural impact.
    - Declare impact only when Element Declarations, refinement, Relationships, Kinds, or Views change.
    - Reconcile a Definition only when user intent, existing semantic artifacts, or other authoritative evidence establishes its complete concept identity and scope boundary. Do not infer a Definition from file names, symbols, imports, or call relationships; when the required conceptual boundary is unresolved, stop and ask one focused question instead of guessing.
-   - Implementation-only movement, symbol renaming, helper extraction, and mechanical call/import changes do not by themselves change the structure.
+   - Implementation-only movement, symbol renaming, helper extraction, and mechanical call/import changes do not by themselves change the structure. Treat file moves, symbol renames, imports, or calls as mechanical evidence and do not invoke decomposition guidance for them.
+   - Apply the Structural Decomposition Guidance only when conversation context, the Xirang Semantic Model, and authorized evidence requires a new or reorganized durable hierarchy.
+   - If decomposition guidance suggests structure that exceeds user intent or authoritative evidence, do not write the suggested structure; mark the decision for user confirmation.
+   - If required decomposition guidance is unavailable or insufficient, stop structural reconciliation and report its logical name instead of guessing or falling back.
    - If no structural fact changes, set the compatible Architecture Source scope to `None`. If impact remains unresolved, stop and ask one focused question; do not write structural Delta units or claim reconciliation complete.
 7. Reconcile the Contract and structural scopes as one Semantic Delta; both address the same Element identity space.
 8. Reconcile `proposal.md`.

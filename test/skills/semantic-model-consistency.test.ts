@@ -17,6 +17,22 @@ describe('generated internal agent semantic context', () => {
     }
   });
 
+  it('loads normalized decomposition in checked-in structural workflow skills', () => {
+    for (const file of [
+      '.pi/skills/xirang-build/SKILL.md',
+      '.pi/skills/xirang-explore/SKILL.md',
+      '.pi/skills/xirang-propose/SKILL.md',
+      '.pi/skills/xirang-snack/SKILL.md',
+    ]) {
+      const content = readFileSync(path.resolve(file), 'utf8');
+      const configRead = content.indexOf('xirang config project --json');
+      const methodGuidance = content.indexOf('For `method`');
+
+      expect(configRead, file).toBeGreaterThanOrEqual(0);
+      expect(methodGuidance, file).toBeGreaterThan(configRead);
+    }
+  });
+
   it('keeps checked-in Pi skills and agents on the canonical vocabulary', () => {
     const generatedFiles = [
       '.pi/skills/xirang-apply-change/SKILL.md',

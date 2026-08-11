@@ -148,6 +148,13 @@ vite.config.ts.timestamp-*
 CLAUDE.md
 .DS_Store
 
+# Pi
+.pi/*
+!.pi/skills/
+.pi/skills/*
+!.pi/skills/xirang-build/
+!.pi/skills/xirang-project-decomposition/
+
 # Pnpm
 .pnpm-store/
 result
@@ -158,7 +165,6 @@ opencode.json
 
 # Codex
 .codex/
-.pi/
 .ace-tool/
 .npm-cache
 .github/*

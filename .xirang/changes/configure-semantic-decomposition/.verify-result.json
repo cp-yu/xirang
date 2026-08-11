@@ -1,0 +1,624 @@
+{
+  "timestamp": "2026-08-11T07:58:19.068Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "C11 is not reproducible with the installed `xirang` executable: `xirang config project --json` omits `decomposition`, while the repository-local `node bin/xirang.js config project --json` returns the configured custom skill.",
+      "requirement": "加载结构拆分配置 / 加载 skill 名",
+      "task": "C11",
+      "recommendation": "Refresh the installed `xirang` executable from the current worktree or change C11 to invoke `node bin/xirang.js`, then rerun the literal jq assertion.",
+      "evidenceCitations": [
+        ".xirang/changes/configure-semantic-decomposition/tasks.md:147-150",
+        ".xirang/config.yaml:3-4",
+        "src/commands/config.ts:71-85",
+        "test/commands/config.test.ts:147-215"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "Residual model risk is explicitly deferred: three pre-existing sibling sets still mix composition or process dimensions with operational or delivery elements.",
+      "requirement": "按项目配置形成 Candidate hierarchy / 独立语义审查检查拆分一致性",
+      "task": "C15",
+      "recommendation": "Use a follow-up semantic Change to reconcile `change-creation`, `semantic-validation`, and `delivery-validation` with the selected project decomposition method.",
+      "evidenceCitations": [
+        ".xirang/changes/configure-semantic-decomposition/tasks.md:187-191",
+        ".xirang/model/elements/change.md:3-7",
+        ".xirang/model/elements/change-creation.md:3-7",
+        ".xirang/model/elements/semantic-model.md:3-7",
+        ".xirang/model/elements/semantic-validation.md:3-7",
+        ".xirang/model/elements/realization-process.md:3-7",
+        ".xirang/model/elements/delivery-validation.md:3-7"
+      ]
+    }
+  ],
+  "tasksFileHash": "696553644c945de4bbd989f57af9a4dc8c9edd3ae87d2d967110641ececfe806",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".gitignore",
+      ".pi/skills/xirang-build/SKILL.md",
+      ".pi/skills/xirang-explore/SKILL.md",
+      ".pi/skills/xirang-project-decomposition/SKILL.md",
+      ".pi/skills/xirang-propose/SKILL.md",
+      ".pi/skills/xirang-snack/SKILL.md",
+      ".xirang/changes/configure-semantic-decomposition/.apply-isolation.json",
+      ".xirang/changes/configure-semantic-decomposition/.verify-result.json",
+      ".xirang/changes/configure-semantic-decomposition/.xirang.yaml",
+      ".xirang/changes/configure-semantic-decomposition/design.md",
+      ".xirang/changes/configure-semantic-decomposition/elements/config-projection.md",
+      ".xirang/changes/configure-semantic-decomposition/elements/definition-framing.md",
+      ".xirang/changes/configure-semantic-decomposition/elements/explore-brainstorming.md",
+      ".xirang/changes/configure-semantic-decomposition/elements/project-config-loading.md",
+      ".xirang/changes/configure-semantic-decomposition/elements/propose-workflow.md",
+      ".xirang/changes/configure-semantic-decomposition/elements/semantic-model-build.md",
+      ".xirang/changes/configure-semantic-decomposition/elements/skill-generation.md",
+      ".xirang/changes/configure-semantic-decomposition/elements/snack-workflow.md",
+      ".xirang/changes/configure-semantic-decomposition/elements/workspace-init.md",
+      ".xirang/changes/configure-semantic-decomposition/elements/workspace-update.md",
+      ".xirang/changes/configure-semantic-decomposition/proposal.md",
+      ".xirang/changes/configure-semantic-decomposition/tasks.md",
+      ".xirang/config.yaml",
+      ".xirang/model/elements/change-creation.md",
+      ".xirang/model/elements/change.md",
+      ".xirang/model/elements/delivery-validation.md",
+      ".xirang/model/elements/project.root.md",
+      ".xirang/model/elements/realization-process.md",
+      ".xirang/model/elements/semantic-model.md",
+      ".xirang/model/elements/semantic-validation.md",
+      ".xirang/references/xirang-definition-framing.md",
+      "src/commands/config.ts",
+      "src/core/config-projection.ts",
+      "src/core/config-prompts.ts",
+      "src/core/project-config.ts",
+      "src/core/templates/fragments/xirang-fragments.ts",
+      "src/core/templates/workflows/build.ts",
+      "src/core/templates/workflows/explore.ts",
+      "src/core/templates/workflows/propose.ts",
+      "src/core/templates/workflows/snack.ts",
+      "test/commands/config.test.ts",
+      "test/core/project-config.test.ts",
+      "test/core/setup.test.ts",
+      "test/core/templates/build.test.ts",
+      "test/core/templates/definition-framing-reference.test.ts",
+      "test/core/templates/explore-template.test.ts",
+      "test/core/templates/propose-template.test.ts",
+      "test/core/templates/semantic-model-consistency.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts",
+      "test/core/templates/snack-template.test.ts",
+      "test/core/update.test.ts",
+      "test/skills/semantic-model-consistency.test.ts",
+      "test/skills/skill-template-length-validation.test.ts"
+    ],
+    "evidenceFingerprint": "7594c665fd64d753b45faa3f619fabf41b25e7d68b6d3692aefa552a221cf2f9",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".gitignore",
+        "hash": "7f6f10a4820653a8f6e01ca3769adf8652fa2ffd5dbe6994c14babd6555e3631"
+      },
+      {
+        "path": ".pi/skills/xirang-build/SKILL.md",
+        "hash": "db29f2a63bc50cf58bff51ec40a961d1e9e7bca8ba8b4c40f6767f6fd1bba934"
+      },
+      {
+        "path": ".pi/skills/xirang-explore/SKILL.md",
+        "hash": "ce8f4323d568253c064ba5748da20c36d5a9d08282c968894131b4e92ff33260"
+      },
+      {
+        "path": ".pi/skills/xirang-project-decomposition/SKILL.md",
+        "hash": "9105ab4e8c34cbbdb53f451989d7cf41f1da68d896abadcfcc33c1e68a77b349"
+      },
+      {
+        "path": ".pi/skills/xirang-propose/SKILL.md",
+        "hash": "c3aa323c197685f41c233b618ffd8274d8e43f2cdfdc736d5d0bed560c19e053"
+      },
+      {
+        "path": ".pi/skills/xirang-snack/SKILL.md",
+        "hash": "905ded196a13988309058fe8c5542f4fd2ae1bc916fc356dd7c7d8d92777cc8f"
+      },
+      {
+        "path": ".xirang/changes/configure-semantic-decomposition/.apply-isolation.json",
+        "hash": "1b70ab11f113ce77072aa5d37a3ea71af8e88460282d0dd61f4a05efd1d213d2"
+      },
+      {
+        "path": ".xirang/changes/configure-semantic-decomposition/.xirang.yaml",
+        "hash": "ded42957446ee25bb1f15c298806d3ad0cb900f91580139a500475705f42b147"
+      },
+      {
+        "path": ".xirang/changes/configure-semantic-decomposition/design.md",
+        "hash": "c207f5428807be32abc3fc4b8df249c419de381a9a8474d9aaa24c37a7d5679a"
+      },
+      {
+        "path": ".xirang/changes/configure-semantic-decomposition/elements/config-projection.md",
+        "hash": "9222a858ca555d5941d9b5bebae1832b137a8fbd63391f3fce9f31d0f851f1d2"
+      },
+      {
+        "path": ".xirang/changes/configure-semantic-decomposition/elements/definition-framing.md",
+        "hash": "f44eabcc4606849eef6c84b683c7667b3af11a1d3095bfa1ca96f021e3552308"
+      },
+      {
+        "path": ".xirang/changes/configure-semantic-decomposition/elements/explore-brainstorming.md",
+        "hash": "e60ad5289961fbc1ff59c0f69dbb9f8c1fe2490b26f6f00e9877a687bf38e662"
+      },
+      {
+        "path": ".xirang/changes/configure-semantic-decomposition/elements/project-config-loading.md",
+        "hash": "9ba67a748ec724f010d8d396573e8231d4f84d6f60c2c469fb71a70acb07d135"
+      },
+      {
+        "path": ".xirang/changes/configure-semantic-decomposition/elements/propose-workflow.md",
+        "hash": "df8c6a96e099453c501d9ccd4b6f89c4be20194b791248110ecc7a51ad51edf5"
+      },
+      {
+        "path": ".xirang/changes/configure-semantic-decomposition/elements/semantic-model-build.md",
+        "hash": "030d4609520549c3e1e91a6e606c7fe13d34c39a9c8910edfe5efc3bbd31c76a"
+      },
+      {
+        "path": ".xirang/changes/configure-semantic-decomposition/elements/skill-generation.md",
+        "hash": "5680146c1a9473e738b4c0c94fe41d02bec59c964ae1b9d2ab3adadbde28c768"
+      },
+      {
+        "path": ".xirang/changes/configure-semantic-decomposition/elements/snack-workflow.md",
+        "hash": "867e2857202b307fd5f1a8e3b7976b9dfade92a7bc8938295fb923ded5f71c37"
+      },
+      {
+        "path": ".xirang/changes/configure-semantic-decomposition/elements/workspace-init.md",
+        "hash": "1aa34c9f399aec9b02fa43155afa245fd7da7f87eb1fceecf0356612446410f8"
+      },
+      {
+        "path": ".xirang/changes/configure-semantic-decomposition/elements/workspace-update.md",
+        "hash": "fe1f8b560af4430a741bb9b6ab39ead5c0e2200185ddc621440b334fd2192942"
+      },
+      {
+        "path": ".xirang/changes/configure-semantic-decomposition/proposal.md",
+        "hash": "1d5c25ad85e9ae2c9fb505875dcc837fa214e245bdc6f2ddbdaa655530f249dd"
+      },
+      {
+        "path": ".xirang/changes/configure-semantic-decomposition/tasks.md",
+        "hash": "696553644c945de4bbd989f57af9a4dc8c9edd3ae87d2d967110641ececfe806"
+      },
+      {
+        "path": ".xirang/config.yaml",
+        "hash": "10850001586a725ec701355337f8e1951a4e661df844c1188c66b3de567c1d99"
+      },
+      {
+        "path": ".xirang/model/elements/change-creation.md",
+        "hash": "170ce3c760c0117f8a534db9663f3da028dd33bb92db2807f5cd1411cbe643bc"
+      },
+      {
+        "path": ".xirang/model/elements/change.md",
+        "hash": "a56628623dfd076ba660dcb9716c3f0ac79ac05a677b31c4171a0866a13bcb31"
+      },
+      {
+        "path": ".xirang/model/elements/delivery-validation.md",
+        "hash": "773d3f96ee313147e7cc4f50a84fc8cb0b534b3988172243f86baba344541753"
+      },
+      {
+        "path": ".xirang/model/elements/project.root.md",
+        "hash": "731ff9f2454566d04f63e0dea57e74b8b1e82a776f8cf8ea0b2146fde66bc922"
+      },
+      {
+        "path": ".xirang/model/elements/realization-process.md",
+        "hash": "566f8b78ed1ea59e88b2a2ef7daac2b47b99f5cf2eeb9e4bcf7ed1148823e593"
+      },
+      {
+        "path": ".xirang/model/elements/semantic-model.md",
+        "hash": "c410c1bdac90e256070d74db1e1c05f6cf94a122c615cbfb344234a4547fb5cd"
+      },
+      {
+        "path": ".xirang/model/elements/semantic-validation.md",
+        "hash": "ddaf8b56832db9f01af203caa54b26945f4aece249cb23a36d575ddee0265cfb"
+      },
+      {
+        "path": ".xirang/references/xirang-definition-framing.md",
+        "hash": "644095e8443af0e6ff5c21b0560682b063a08f929928cd7db2dd26743e0c4b6e"
+      },
+      {
+        "path": "src/commands/config.ts",
+        "hash": "49b6351d4030dfef01d63f8309b7d8e21d5fd53f5ce1fe730938f9e3b21d35be"
+      },
+      {
+        "path": "src/core/config-projection.ts",
+        "hash": "3d3d0ab6197de6960e4784c1a4050f312503000eaf7f0e8f59d2338a39164d59"
+      },
+      {
+        "path": "src/core/config-prompts.ts",
+        "hash": "aeb36491a87613668799225a25f982af8809ccb82e3c71dc1d8a4d23471d897d"
+      },
+      {
+        "path": "src/core/project-config.ts",
+        "hash": "4c030e9b4aabcd92729fb5cab4c2c98317f6daf487378f5d728ed316161c5f70"
+      },
+      {
+        "path": "src/core/templates/fragments/xirang-fragments.ts",
+        "hash": "72a52e59aed2fed98301e612e0be6fc0efc96e150f48d8f6961fd7bf9286706f"
+      },
+      {
+        "path": "src/core/templates/workflows/build.ts",
+        "hash": "052c378cabcec2c13bf5d351bd598bfb6156d96e44cfc3f1cb6e14cd5dcf878e"
+      },
+      {
+        "path": "src/core/templates/workflows/explore.ts",
+        "hash": "07d2fd2befcac2e090292780774b8e424aad6bf8b8fc2508c41081dadae7710c"
+      },
+      {
+        "path": "src/core/templates/workflows/propose.ts",
+        "hash": "f82d91ae64d88a2b25f3a022794d9f5136fa694b9e9f8aaa777920029b9a9140"
+      },
+      {
+        "path": "src/core/templates/workflows/snack.ts",
+        "hash": "ddab85f45f040d4f4055bd81c21dcbf49f8a76131d76299499443243aaf03ecf"
+      },
+      {
+        "path": "test/commands/config.test.ts",
+        "hash": "1cbf7e73b887ae1928c6afb19d093b7fbcd57d6402dd3a4bdd863108a9f139a7"
+      },
+      {
+        "path": "test/core/project-config.test.ts",
+        "hash": "961c7fa168006439cc3a718458cf47f2226544bb76ba12edcd9d8adb877878cb"
+      },
+      {
+        "path": "test/core/setup.test.ts",
+        "hash": "462ded42776ba2bf6eaa9c394ca4db65d0f19c3ae37757e793f42536eb9662b5"
+      },
+      {
+        "path": "test/core/templates/build.test.ts",
+        "hash": "0dad2d31ba69ab20bc0e1169771404a3b2403ea20ed6ef8777be8ffbd1c764c7"
+      },
+      {
+        "path": "test/core/templates/definition-framing-reference.test.ts",
+        "hash": "67aeb989e5d6354311dea8aaa9057ae6e8f8e72acb1de71fbdf6776f9bccdbd1"
+      },
+      {
+        "path": "test/core/templates/explore-template.test.ts",
+        "hash": "c19612d271ccf5ac023f26512d354ec1648b69d4ca93bfb00cadb988b4eebbb4"
+      },
+      {
+        "path": "test/core/templates/propose-template.test.ts",
+        "hash": "2c2e69f78fd29805b31d8c202c6ca943548bd278c174aff8fad314ad381038c1"
+      },
+      {
+        "path": "test/core/templates/semantic-model-consistency.test.ts",
+        "hash": "12e3165988b14e65b0558bb7d60fd3f5fc0333f0a03915f2f3baa2524ea88c5f"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "0625eff893cae2df4d0b09a28c8da7ae71cd924056c1c6ea89bb86b412d05140"
+      },
+      {
+        "path": "test/core/templates/snack-template.test.ts",
+        "hash": "94c631b46ec82a618ec48c8d71a0b18aadd7273fb292b36803c706734929e3b3"
+      },
+      {
+        "path": "test/core/update.test.ts",
+        "hash": "a9c6606432132b2ebe094d3208d6d582d559f9fa6e6884d6500a467fc3511157"
+      },
+      {
+        "path": "test/skills/semantic-model-consistency.test.ts",
+        "hash": "24b5da4c7e199b3dd5c0718444de64ec0d469ffd654fc0f65884e1de9b45011b"
+      },
+      {
+        "path": "test/skills/skill-template-length-validation.test.ts",
+        "hash": "aaf32a0cd605f5c92a302dbeba3b8b400fb569fb7767ef39f782befc6b82beb0"
+      }
+    ],
+    "skippedEvidenceFiles": [
+      ".xirang/changes/configure-semantic-decomposition/.verify-result.json"
+    ],
+    "gitHeadCommit": "cc56b2aff8392300990cf461ec39d052d08dd07d",
+    "gitDiffSummary": "Validated baseCommit cc56b2aff8392300990cf461ec39d052d08dd07d; HEAD equals the immutable baseline, so `git diff <baseCommit>...HEAD --name-only` is empty. `git status --short --untracked-files=all` contains 27 modified and 4 untracked files, all covered by task declarations or Change artifacts. Reviewed final contents across that scope and Semantic Model candidates. Change validation, Expected Semantic Model validation, formal model validation, repository-local normalized custom-skill assertion, project-skill isolation search, diff check, TypeScript typecheck, 22-file/420-test relevant suite, 24-file/427-test expanded suite, and 3-file/10-test parity/length suite passed. Repository-local outline/impact/query/validate C15 evidence passed. The installed executable remains stale for literal C11 and omits the new decomposition field."
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-08-11T07:58:19.068Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "C11 is not reproducible with the installed `xirang` executable: `xirang config project --json` omits `decomposition`, while the repository-local `node bin/xirang.js config project --json` returns the configured custom skill.",
+          "requirement": "加载结构拆分配置 / 加载 skill 名",
+          "task": "C11",
+          "recommendation": "Refresh the installed `xirang` executable from the current worktree or change C11 to invoke `node bin/xirang.js`, then rerun the literal jq assertion.",
+          "evidenceCitations": [
+            ".xirang/changes/configure-semantic-decomposition/tasks.md:147-150",
+            ".xirang/config.yaml:3-4",
+            "src/commands/config.ts:71-85",
+            "test/commands/config.test.ts:147-215"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "Residual model risk is explicitly deferred: three pre-existing sibling sets still mix composition or process dimensions with operational or delivery elements.",
+          "requirement": "按项目配置形成 Candidate hierarchy / 独立语义审查检查拆分一致性",
+          "task": "C15",
+          "recommendation": "Use a follow-up semantic Change to reconcile `change-creation`, `semantic-validation`, and `delivery-validation` with the selected project decomposition method.",
+          "evidenceCitations": [
+            ".xirang/changes/configure-semantic-decomposition/tasks.md:187-191",
+            ".xirang/model/elements/change.md:3-7",
+            ".xirang/model/elements/change-creation.md:3-7",
+            ".xirang/model/elements/semantic-model.md:3-7",
+            ".xirang/model/elements/semantic-validation.md:3-7",
+            ".xirang/model/elements/realization-process.md:3-7",
+            ".xirang/model/elements/delivery-validation.md:3-7"
+          ]
+        }
+      ],
+      "tasksFileHash": "696553644c945de4bbd989f57af9a4dc8c9edd3ae87d2d967110641ececfe806",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".gitignore",
+          ".pi/skills/xirang-build/SKILL.md",
+          ".pi/skills/xirang-explore/SKILL.md",
+          ".pi/skills/xirang-project-decomposition/SKILL.md",
+          ".pi/skills/xirang-propose/SKILL.md",
+          ".pi/skills/xirang-snack/SKILL.md",
+          ".xirang/changes/configure-semantic-decomposition/.apply-isolation.json",
+          ".xirang/changes/configure-semantic-decomposition/.verify-result.json",
+          ".xirang/changes/configure-semantic-decomposition/.xirang.yaml",
+          ".xirang/changes/configure-semantic-decomposition/design.md",
+          ".xirang/changes/configure-semantic-decomposition/elements/config-projection.md",
+          ".xirang/changes/configure-semantic-decomposition/elements/definition-framing.md",
+          ".xirang/changes/configure-semantic-decomposition/elements/explore-brainstorming.md",
+          ".xirang/changes/configure-semantic-decomposition/elements/project-config-loading.md",
+          ".xirang/changes/configure-semantic-decomposition/elements/propose-workflow.md",
+          ".xirang/changes/configure-semantic-decomposition/elements/semantic-model-build.md",
+          ".xirang/changes/configure-semantic-decomposition/elements/skill-generation.md",
+          ".xirang/changes/configure-semantic-decomposition/elements/snack-workflow.md",
+          ".xirang/changes/configure-semantic-decomposition/elements/workspace-init.md",
+          ".xirang/changes/configure-semantic-decomposition/elements/workspace-update.md",
+          ".xirang/changes/configure-semantic-decomposition/proposal.md",
+          ".xirang/changes/configure-semantic-decomposition/tasks.md",
+          ".xirang/config.yaml",
+          ".xirang/model/elements/change-creation.md",
+          ".xirang/model/elements/change.md",
+          ".xirang/model/elements/delivery-validation.md",
+          ".xirang/model/elements/project.root.md",
+          ".xirang/model/elements/realization-process.md",
+          ".xirang/model/elements/semantic-model.md",
+          ".xirang/model/elements/semantic-validation.md",
+          ".xirang/references/xirang-definition-framing.md",
+          "src/commands/config.ts",
+          "src/core/config-projection.ts",
+          "src/core/config-prompts.ts",
+          "src/core/project-config.ts",
+          "src/core/templates/fragments/xirang-fragments.ts",
+          "src/core/templates/workflows/build.ts",
+          "src/core/templates/workflows/explore.ts",
+          "src/core/templates/workflows/propose.ts",
+          "src/core/templates/workflows/snack.ts",
+          "test/commands/config.test.ts",
+          "test/core/project-config.test.ts",
+          "test/core/setup.test.ts",
+          "test/core/templates/build.test.ts",
+          "test/core/templates/definition-framing-reference.test.ts",
+          "test/core/templates/explore-template.test.ts",
+          "test/core/templates/propose-template.test.ts",
+          "test/core/templates/semantic-model-consistency.test.ts",
+          "test/core/templates/skill-templates-parity.test.ts",
+          "test/core/templates/snack-template.test.ts",
+          "test/core/update.test.ts",
+          "test/skills/semantic-model-consistency.test.ts",
+          "test/skills/skill-template-length-validation.test.ts"
+        ],
+        "evidenceFingerprint": "7594c665fd64d753b45faa3f619fabf41b25e7d68b6d3692aefa552a221cf2f9",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".gitignore",
+            "hash": "7f6f10a4820653a8f6e01ca3769adf8652fa2ffd5dbe6994c14babd6555e3631"
+          },
+          {
+            "path": ".pi/skills/xirang-build/SKILL.md",
+            "hash": "db29f2a63bc50cf58bff51ec40a961d1e9e7bca8ba8b4c40f6767f6fd1bba934"
+          },
+          {
+            "path": ".pi/skills/xirang-explore/SKILL.md",
+            "hash": "ce8f4323d568253c064ba5748da20c36d5a9d08282c968894131b4e92ff33260"
+          },
+          {
+            "path": ".pi/skills/xirang-project-decomposition/SKILL.md",
+            "hash": "9105ab4e8c34cbbdb53f451989d7cf41f1da68d896abadcfcc33c1e68a77b349"
+          },
+          {
+            "path": ".pi/skills/xirang-propose/SKILL.md",
+            "hash": "c3aa323c197685f41c233b618ffd8274d8e43f2cdfdc736d5d0bed560c19e053"
+          },
+          {
+            "path": ".pi/skills/xirang-snack/SKILL.md",
+            "hash": "905ded196a13988309058fe8c5542f4fd2ae1bc916fc356dd7c7d8d92777cc8f"
+          },
+          {
+            "path": ".xirang/changes/configure-semantic-decomposition/.apply-isolation.json",
+            "hash": "1b70ab11f113ce77072aa5d37a3ea71af8e88460282d0dd61f4a05efd1d213d2"
+          },
+          {
+            "path": ".xirang/changes/configure-semantic-decomposition/.xirang.yaml",
+            "hash": "ded42957446ee25bb1f15c298806d3ad0cb900f91580139a500475705f42b147"
+          },
+          {
+            "path": ".xirang/changes/configure-semantic-decomposition/design.md",
+            "hash": "c207f5428807be32abc3fc4b8df249c419de381a9a8474d9aaa24c37a7d5679a"
+          },
+          {
+            "path": ".xirang/changes/configure-semantic-decomposition/elements/config-projection.md",
+            "hash": "9222a858ca555d5941d9b5bebae1832b137a8fbd63391f3fce9f31d0f851f1d2"
+          },
+          {
+            "path": ".xirang/changes/configure-semantic-decomposition/elements/definition-framing.md",
+            "hash": "f44eabcc4606849eef6c84b683c7667b3af11a1d3095bfa1ca96f021e3552308"
+          },
+          {
+            "path": ".xirang/changes/configure-semantic-decomposition/elements/explore-brainstorming.md",
+            "hash": "e60ad5289961fbc1ff59c0f69dbb9f8c1fe2490b26f6f00e9877a687bf38e662"
+          },
+          {
+            "path": ".xirang/changes/configure-semantic-decomposition/elements/project-config-loading.md",
+            "hash": "9ba67a748ec724f010d8d396573e8231d4f84d6f60c2c469fb71a70acb07d135"
+          },
+          {
+            "path": ".xirang/changes/configure-semantic-decomposition/elements/propose-workflow.md",
+            "hash": "df8c6a96e099453c501d9ccd4b6f89c4be20194b791248110ecc7a51ad51edf5"
+          },
+          {
+            "path": ".xirang/changes/configure-semantic-decomposition/elements/semantic-model-build.md",
+            "hash": "030d4609520549c3e1e91a6e606c7fe13d34c39a9c8910edfe5efc3bbd31c76a"
+          },
+          {
+            "path": ".xirang/changes/configure-semantic-decomposition/elements/skill-generation.md",
+            "hash": "5680146c1a9473e738b4c0c94fe41d02bec59c964ae1b9d2ab3adadbde28c768"
+          },
+          {
+            "path": ".xirang/changes/configure-semantic-decomposition/elements/snack-workflow.md",
+            "hash": "867e2857202b307fd5f1a8e3b7976b9dfade92a7bc8938295fb923ded5f71c37"
+          },
+          {
+            "path": ".xirang/changes/configure-semantic-decomposition/elements/workspace-init.md",
+            "hash": "1aa34c9f399aec9b02fa43155afa245fd7da7f87eb1fceecf0356612446410f8"
+          },
+          {
+            "path": ".xirang/changes/configure-semantic-decomposition/elements/workspace-update.md",
+            "hash": "fe1f8b560af4430a741bb9b6ab39ead5c0e2200185ddc621440b334fd2192942"
+          },
+          {
+            "path": ".xirang/changes/configure-semantic-decomposition/proposal.md",
+            "hash": "1d5c25ad85e9ae2c9fb505875dcc837fa214e245bdc6f2ddbdaa655530f249dd"
+          },
+          {
+            "path": ".xirang/changes/configure-semantic-decomposition/tasks.md",
+            "hash": "696553644c945de4bbd989f57af9a4dc8c9edd3ae87d2d967110641ececfe806"
+          },
+          {
+            "path": ".xirang/config.yaml",
+            "hash": "10850001586a725ec701355337f8e1951a4e661df844c1188c66b3de567c1d99"
+          },
+          {
+            "path": ".xirang/model/elements/change-creation.md",
+            "hash": "170ce3c760c0117f8a534db9663f3da028dd33bb92db2807f5cd1411cbe643bc"
+          },
+          {
+            "path": ".xirang/model/elements/change.md",
+            "hash": "a56628623dfd076ba660dcb9716c3f0ac79ac05a677b31c4171a0866a13bcb31"
+          },
+          {
+            "path": ".xirang/model/elements/delivery-validation.md",
+            "hash": "773d3f96ee313147e7cc4f50a84fc8cb0b534b3988172243f86baba344541753"
+          },
+          {
+            "path": ".xirang/model/elements/project.root.md",
+            "hash": "731ff9f2454566d04f63e0dea57e74b8b1e82a776f8cf8ea0b2146fde66bc922"
+          },
+          {
+            "path": ".xirang/model/elements/realization-process.md",
+            "hash": "566f8b78ed1ea59e88b2a2ef7daac2b47b99f5cf2eeb9e4bcf7ed1148823e593"
+          },
+          {
+            "path": ".xirang/model/elements/semantic-model.md",
+            "hash": "c410c1bdac90e256070d74db1e1c05f6cf94a122c615cbfb344234a4547fb5cd"
+          },
+          {
+            "path": ".xirang/model/elements/semantic-validation.md",
+            "hash": "ddaf8b56832db9f01af203caa54b26945f4aece249cb23a36d575ddee0265cfb"
+          },
+          {
+            "path": ".xirang/references/xirang-definition-framing.md",
+            "hash": "644095e8443af0e6ff5c21b0560682b063a08f929928cd7db2dd26743e0c4b6e"
+          },
+          {
+            "path": "src/commands/config.ts",
+            "hash": "49b6351d4030dfef01d63f8309b7d8e21d5fd53f5ce1fe730938f9e3b21d35be"
+          },
+          {
+            "path": "src/core/config-projection.ts",
+            "hash": "3d3d0ab6197de6960e4784c1a4050f312503000eaf7f0e8f59d2338a39164d59"
+          },
+          {
+            "path": "src/core/config-prompts.ts",
+            "hash": "aeb36491a87613668799225a25f982af8809ccb82e3c71dc1d8a4d23471d897d"
+          },
+          {
+            "path": "src/core/project-config.ts",
+            "hash": "4c030e9b4aabcd92729fb5cab4c2c98317f6daf487378f5d728ed316161c5f70"
+          },
+          {
+            "path": "src/core/templates/fragments/xirang-fragments.ts",
+            "hash": "72a52e59aed2fed98301e612e0be6fc0efc96e150f48d8f6961fd7bf9286706f"
+          },
+          {
+            "path": "src/core/templates/workflows/build.ts",
+            "hash": "052c378cabcec2c13bf5d351bd598bfb6156d96e44cfc3f1cb6e14cd5dcf878e"
+          },
+          {
+            "path": "src/core/templates/workflows/explore.ts",
+            "hash": "07d2fd2befcac2e090292780774b8e424aad6bf8b8fc2508c41081dadae7710c"
+          },
+          {
+            "path": "src/core/templates/workflows/propose.ts",
+            "hash": "f82d91ae64d88a2b25f3a022794d9f5136fa694b9e9f8aaa777920029b9a9140"
+          },
+          {
+            "path": "src/core/templates/workflows/snack.ts",
+            "hash": "ddab85f45f040d4f4055bd81c21dcbf49f8a76131d76299499443243aaf03ecf"
+          },
+          {
+            "path": "test/commands/config.test.ts",
+            "hash": "1cbf7e73b887ae1928c6afb19d093b7fbcd57d6402dd3a4bdd863108a9f139a7"
+          },
+          {
+            "path": "test/core/project-config.test.ts",
+            "hash": "961c7fa168006439cc3a718458cf47f2226544bb76ba12edcd9d8adb877878cb"
+          },
+          {
+            "path": "test/core/setup.test.ts",
+            "hash": "462ded42776ba2bf6eaa9c394ca4db65d0f19c3ae37757e793f42536eb9662b5"
+          },
+          {
+            "path": "test/core/templates/build.test.ts",
+            "hash": "0dad2d31ba69ab20bc0e1169771404a3b2403ea20ed6ef8777be8ffbd1c764c7"
+          },
+          {
+            "path": "test/core/templates/definition-framing-reference.test.ts",
+            "hash": "67aeb989e5d6354311dea8aaa9057ae6e8f8e72acb1de71fbdf6776f9bccdbd1"
+          },
+          {
+            "path": "test/core/templates/explore-template.test.ts",
+            "hash": "c19612d271ccf5ac023f26512d354ec1648b69d4ca93bfb00cadb988b4eebbb4"
+          },
+          {
+            "path": "test/core/templates/propose-template.test.ts",
+            "hash": "2c2e69f78fd29805b31d8c202c6ca943548bd278c174aff8fad314ad381038c1"
+          },
+          {
+            "path": "test/core/templates/semantic-model-consistency.test.ts",
+            "hash": "12e3165988b14e65b0558bb7d60fd3f5fc0333f0a03915f2f3baa2524ea88c5f"
+          },
+          {
+            "path": "test/core/templates/skill-templates-parity.test.ts",
+            "hash": "0625eff893cae2df4d0b09a28c8da7ae71cd924056c1c6ea89bb86b412d05140"
+          },
+          {
+            "path": "test/core/templates/snack-template.test.ts",
+            "hash": "94c631b46ec82a618ec48c8d71a0b18aadd7273fb292b36803c706734929e3b3"
+          },
+          {
+            "path": "test/core/update.test.ts",
+            "hash": "a9c6606432132b2ebe094d3208d6d582d559f9fa6e6884d6500a467fc3511157"
+          },
+          {
+            "path": "test/skills/semantic-model-consistency.test.ts",
+            "hash": "24b5da4c7e199b3dd5c0718444de64ec0d469ffd654fc0f65884e1de9b45011b"
+          },
+          {
+            "path": "test/skills/skill-template-length-validation.test.ts",
+            "hash": "aaf32a0cd605f5c92a302dbeba3b8b400fb569fb7767ef39f782befc6b82beb0"
+          }
+        ],
+        "skippedEvidenceFiles": [
+          ".xirang/changes/configure-semantic-decomposition/.verify-result.json"
+        ],
+        "gitHeadCommit": "cc56b2aff8392300990cf461ec39d052d08dd07d",
+        "gitDiffSummary": "Validated baseCommit cc56b2aff8392300990cf461ec39d052d08dd07d; HEAD equals the immutable baseline, so `git diff <baseCommit>...HEAD --name-only` is empty. `git status --short --untracked-files=all` contains 27 modified and 4 untracked files, all covered by task declarations or Change artifacts. Reviewed final contents across that scope and Semantic Model candidates. Change validation, Expected Semantic Model validation, formal model validation, repository-local normalized custom-skill assertion, project-skill isolation search, diff check, TypeScript typecheck, 22-file/420-test relevant suite, 24-file/427-test expanded suite, and 3-file/10-test parity/length suite passed. Repository-local outline/impact/query/validate C15 evidence passed. The installed executable remains stale for literal C11 and omits the new decomposition field."
+      }
+    }
+  }
+}

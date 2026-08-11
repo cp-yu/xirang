@@ -13,6 +13,9 @@ import { z } from 'zod';
 import { BuiltInSchemaIdSchema } from './artifact-graph/types.js';
 
 export const PROJECT_CONFIG_FUNCTIONAL_DEFAULTS = {
+  decomposition: {
+    method: 'c4' as const,
+  },
   architecture: {
     outline: {
       elementDefinitionDepth: 2,
@@ -43,6 +46,10 @@ export type ProjectConfigDefaultsMigrationResult =
   | { status: 'unchanged'; path: string }
   | { status: 'skipped'; path: string; reason: 'invalid-yaml' | 'non-object' };
 
+const decompositionField = z.union([
+  z.object({ method: z.string().trim().min(1) }).strict(),
+  z.object({ skill: z.string().trim().min(1) }).strict(),
+]);
 const gitMergeStrategyField = z.enum(['no-ff', 'ff-only', 'squash']);
 const gitDeleteAfterArchiveField = z.boolean();
 const gitCommitMessagePathField = z
@@ -87,6 +94,11 @@ export const ProjectConfigSchema = z.object({
     .min(1)
     .optional()
     .describe('Deprecated alias for proseLanguage'),
+
+  // Optional: hierarchy decomposition selection
+  decomposition: decompositionField
+    .optional()
+    .describe('Opaque decomposition method or logical custom skill name'),
 
   // Optional: project context (injected into all artifact instructions)
   // Max size: 50KB (enforced during parsing)
@@ -177,6 +189,7 @@ const MAX_CONTEXT_SIZE = 50 * 1024; // 50KB hard limit
 
 type MaterializedProjectConfigDefaults = Pick<ProjectConfig, 'schema'> &
   Partial<Pick<ProjectConfig, 'proseLanguage'>> & {
+    decomposition: typeof PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.decomposition;
     architecture: typeof PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture;
     optimization: typeof PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization;
     apply: typeof PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.apply;
@@ -185,6 +198,9 @@ type MaterializedProjectConfigDefaults = Pick<ProjectConfig, 'schema'> &
 
 function cloneFunctionalDefaults() {
   return {
+    decomposition: {
+      ...PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.decomposition,
+    },
     architecture: {
       outline: {
         ...PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture.outline,
@@ -301,6 +317,7 @@ export function migrateProjectConfigDefaults(projectRoot: string): ProjectConfig
   const defaults = materializeProjectConfigDefaults({ schema: DEFAULT_PROJECT_SCHEMA });
   let changed = false;
   changed = setMissingPath(document, ['schema'], defaults.schema) || changed;
+  changed = setMissingPath(document, ['decomposition'], defaults.decomposition) || changed;
   changed = setMissingPath(
     document,
     ['architecture', 'outline', 'elementDefinitionDepth'],
@@ -395,6 +412,20 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
         config.proseLanguage = proseLanguageResult.data;
       } else {
         console.warn(`Invalid 'docLanguage' field in config (must be non-empty string)`);
+      }
+    }
+
+    // Parse decomposition as a strict tagged union. Invalid explicit values fail closed.
+    if (raw.decomposition === undefined) {
+      config.decomposition = { ...PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.decomposition };
+    } else {
+      const decompositionResult = decompositionField.safeParse(raw.decomposition);
+      if (decompositionResult.success) {
+        config.decomposition = decompositionResult.data;
+      } else {
+        console.warn(
+          `Invalid 'decomposition' field in config (must contain exactly one non-empty method or skill)`
+        );
       }
     }
 

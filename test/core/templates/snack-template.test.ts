@@ -4,6 +4,7 @@ import {
   ARCHITECTURE_GENERATE_DELTA,
   ELEMENT_CONTRACT_SEMANTICS,
   ELEMENT_DEFINITION_SEMANTICS,
+  STRUCTURAL_DECOMPOSITION_GUIDANCE,
   XIRANG_PHILOSOPHY,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import { getSnackSkillTemplate } from '../../../src/core/templates/skill-templates.js';
@@ -139,6 +140,18 @@ describe('snack template artifact reconciliation', () => {
     expect(instructions).toContain('implementation evidence, not as proof that the Xirang Semantic Model must change');
     expect(instructions).toContain('Implementation-only movement, symbol renaming, helper extraction');
     expect(instructions).toContain('mechanical call/import changes do not by themselves change the structure');
+  });
+
+  it('uses decomposition only for authorized durable hierarchy reconciliation', () => {
+    expect(instructions).toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
+    expect(instructions).toContain('xirang config project --json');
+    expect(instructions).toContain('authorized evidence requires a new or reorganized durable hierarchy');
+    expect(instructions).toContain('file moves, symbol renames, imports, or calls');
+    expect(instructions).toContain('do not invoke decomposition guidance');
+    expect(instructions).toContain('exceeds user intent or authoritative evidence');
+    expect(instructions).toContain('do not write the suggested structure');
+    expect(instructions).toContain('unavailable or insufficient');
+    expect(instructions).toContain('stop structural reconciliation');
   });
 
   it('reconciles proposal Source Impact from separate decisions', () => {

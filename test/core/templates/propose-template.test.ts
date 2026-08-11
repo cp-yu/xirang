@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ELEMENT_CONTRACT_SEMANTICS,
   ELEMENT_DEFINITION_SEMANTICS,
+  STRUCTURAL_DECOMPOSITION_GUIDANCE,
   XIRANG_PHILOSOPHY,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import {
@@ -217,6 +218,20 @@ describe('propose template post-validation flow', () => {
     const body = getXirangProposeSkillTemplate().instructions;
     expect(body).toContain('Follow the returned Specs authoring contract');
     expect(body).not.toContain('route non-behavior content to design/tasks/proposal/opsx-delta');
+  });
+
+  it('uses decomposition only when Propose must form an unconfirmed hierarchy', () => {
+    const instructions = getXirangProposeSkillTemplate().instructions;
+
+    expect(instructions).toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
+    expect(instructions).toContain('xirang config project --json');
+    expect(instructions).toContain('no confirmed Change Structural Definition exists');
+    expect(instructions).toContain('new or reorganized hierarchy');
+    expect(instructions).toContain('compile that payload without invoking decomposition guidance again');
+    expect(instructions).toContain('Architecture Source is `None`');
+    expect(instructions).toContain('do not invoke decomposition guidance');
+    expect(instructions).toContain('stop Formation and ask one focused question');
+    expect(instructions).toContain('do not fall back to another method');
   });
 
   it('conditionally consumes a confirmed structural definition after all gates pass', () => {
