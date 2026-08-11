@@ -134,6 +134,15 @@ describe('architecture impact', () => {
     }
   });
 
+  it('terminates a leaf impact at a huge valid depth', async () => {
+    const fixture = path.join(process.cwd(), 'test', 'fixtures', 'arch-outline-deep-process.fixture.mjs');
+
+    await expect(execFileAsync(process.execPath, [
+      fixture,
+      'impact-leaf',
+    ], { cwd: process.cwd(), timeout: 1000 })).resolves.toMatchObject({ stderr: '' });
+  });
+
   it('preserves high-degree ordering and inserts a self-loop into adjacency once', async () => {
     const highDegreeRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-arch-impact-high-degree-'));
     const targets = Array.from({ length: 32 }, (_, index) => `cap.target-${String(index).padStart(2, '0')}`);

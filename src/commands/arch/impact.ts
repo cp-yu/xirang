@@ -207,6 +207,7 @@ export async function impactArchitecture(
           return true;
         })
         .sort(compareCodePoints);
+      if (next.length === 0) break;
       for (const elementId of next) {
         contextElementIds.add(elementId);
         refinementContext.push({

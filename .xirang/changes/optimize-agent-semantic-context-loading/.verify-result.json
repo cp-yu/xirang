@@ -68,7 +68,7 @@
       "test/fixtures/arch-outline-deep-process.fixture.mjs",
       "test/integration/arch-command.test.ts"
     ],
-    "evidenceFingerprint": "023e3cb8d3a9c314574af335e0d1e4fb51073840523eb869ffe06a559c8c8c9c",
+    "evidenceFingerprint": "cc283fc15fa25d5902b0798f256fcc044714176e1532916030e59cd46e7aff9b",
     "evidenceFingerprintEntries": [
       {
         "path": ".pi/agents/xirang-optimizer.md",
@@ -96,7 +96,7 @@
       },
       {
         "path": ".xirang/changes/optimize-agent-semantic-context-loading/.apply-isolation.json",
-        "hash": "f335c26f62908af5ae8b82851f35ff754a90f46f8ee380759bb62c0012ceac7a"
+        "hash": "66ac58c0260a8d42b8f78da4dd0ac503127e30e8f23a6f94d47215b36081d342"
       },
       {
         "path": ".xirang/changes/optimize-agent-semantic-context-loading/design.md",
@@ -160,7 +160,7 @@
       },
       {
         "path": "src/commands/arch/impact.ts",
-        "hash": "ee8e24da00ab92e03e9d9d9864577f6ecf952cca67dd432527b4b726b7ad56b7"
+        "hash": "4471a4a964e7b6030ab7398ed0c7ad1859e2be6bd3541701c8cc7e471af255e7"
       },
       {
         "path": "src/commands/arch/index.ts",
@@ -220,7 +220,7 @@
       },
       {
         "path": "test/commands/arch-impact.test.ts",
-        "hash": "9732bb6036d79262229611ab0f37cd0efab9bd992d3847e885927fd4a4048cd8"
+        "hash": "ebde1ea2a17e10c09219b9110d0bb56315fdc5a543db7753166b7e7d426207c5"
       },
       {
         "path": "test/commands/arch-outline.test.ts",
@@ -244,7 +244,7 @@
       },
       {
         "path": "test/fixtures/arch-outline-deep-process.fixture.mjs",
-        "hash": "62bfb7fe579eef29014a5e2742f6b485c7390b7cfa6e4f6ec868c49cc221f422"
+        "hash": "f2d114688f5d1fe97262c231238903266b3c66428fbaaeaef1713ab3f8302e96"
       },
       {
         "path": "test/integration/arch-command.test.ts",
@@ -254,12 +254,25 @@
     "skippedEvidenceFiles": [
       "test/core/templates"
     ],
-    "gitHeadCommit": "df99e5e90ba0816a37cdb258ec666f3f98e7c4fa",
-    "gitDiffSummary": "Build passed. Directed verification passed 24 test files and 325 tests, including deep 20,000-level iterative outline and formatter checks. Change and Expected Semantic Model validation passed. Outline and identity-only impact payloads were generated with stable repeated hashes; no staged files are present. Repository entrypoint node bin/xirang.js was used because the globally installed xirang executable is stale and lacks arch outline."
+    "gitHeadCommit": "b4ecacba3fafb09893f7b912d7f34f35d3472466",
+    "gitDiffSummary": "Build passed. Directed verification passed 24 test files and 325 tests, including deep 20,000-level iterative outline and formatter checks. Change and Expected Semantic Model validation passed. Outline and identity-only impact payloads were generated with stable repeated hashes; no staged files are present. Repository entrypoint node bin/xirang.js was used because the globally installed xirang executable is stale and lacks arch outline.",
+    "timestamp": "2026-08-11T04:37:58.233Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-08-10T17:20:36.491Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-11T04:37:58.212Z",
+        "type": "verification",
+        "result": "PASS_WITH_WARNINGS",
+        "summary": "Fresh reviewer found no blockers. The empty-frontier guard preserves breadth-first descendant inclusion, ordering, accumulated context, and identity-only output. Build passed, all 10 impact tests passed including the Number.MAX_SAFE_INTEGER leaf regression, repeated impact hashes remain byte-identical at 305adc49ad60d12107225f21df7b96704c14ddc091b6d46adcf2d7c1f6bbf551, both edited TypeScript files are LSP-clean, and git diff --check passed."
+      }
+    ],
     "baseline": {
       "timestamp": "2026-08-10T17:14:31.600Z",
       "result": "PASS_WITH_WARNINGS",
@@ -519,6 +532,99 @@
         "gitHeadCommit": "df99e5e90ba0816a37cdb258ec666f3f98e7c4fa",
         "gitDiffSummary": "Build passed. Directed verification passed 24 test files and 325 tests, including deep 20,000-level iterative outline and formatter checks. Change and Expected Semantic Model validation passed. Outline and identity-only impact payloads were generated with stable repeated hashes; no staged files are present. Repository entrypoint node bin/xirang.js was used because the globally installed xirang executable is stale and lacks arch outline."
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "src/commands/arch/impact.ts"
+          ],
+          "symbols": [
+            "impactArchitecture"
+          ]
+        },
+        "opportunity": "The refinement descendant traversal continues through every requested depth after its frontier becomes empty. A leaf focus Element with a large valid --depth therefore performs potentially billions of allocation and loop iterations even though no additional descendants can be discovered.",
+        "impact": "Terminate descendant traversal when no unseen children remain. This changes work after subtree exhaustion from O(requested depth) empty iterations to O(actual descendant depth), preventing excessive CPU use for sparse hierarchies and large valid depth values.",
+        "evidence": [
+          "src/commands/arch/impact.ts:201 loops until descendantDepth exceeds the caller-controlled depth.",
+          "src/commands/arch/impact.ts:202-209 creates, filters, and sorts a next array even when frontier is empty.",
+          "src/commands/arch/impact.ts:219 assigns the empty next array back to frontier but does not terminate the loop.",
+          "src/commands/arch/index.ts accepts any decimal depth that Number converts to a non-negative integer, and impactArchitecture imposes no upper bound.",
+          "The final refinementContext is sorted independently at src/commands/arch/impact.ts:222-225, so iterations after the frontier is empty cannot contribute observable records or ordering."
+        ],
+        "recommendation": "Break the descendant breadth-first loop immediately when the computed next frontier is empty.",
+        "keyDesign": "Retain the current breadth-first traversal, seenDescendants set, per-layer ordering, context accumulation, and final canonical sort. After computing next and before advancing another depth, terminate if next.length is zero; otherwise emit the same records and promote next to frontier.",
+        "preservationConstraints": [
+          "Preserve inclusion of every unseen descendant whose containment depth is less than or equal to the requested depth.",
+          "Preserve each descendant record's focusElementId, elementId, direction, and depth.",
+          "Preserve complete ancestor traversal, ancestor cycle detection, and Project Root reachability validation.",
+          "Preserve stable refinementContext ordering across focus identity, direction, depth, and element identity.",
+          "Preserve Relationship traversal, canonical paths, elements, relations, statistics, diagnostics, errors, and JSON/text schemas.",
+          "Preserve read-only behavior and do not mutate SemanticModel declarations or children arrays."
+        ],
+        "implementationOutline": [
+          "Add an empty-frontier termination condition to the descendant breadth-first loop in impactArchitecture.",
+          "Keep children bucket sorting, seenDescendants filtering, record construction, and final refinementContext sorting unchanged.",
+          "Add a test calling impactArchitecture for a leaf Element with a large valid depth and assert it resolves with only the expected ancestor context and no descendant records.",
+          "Retain existing bounded descendant tests to prove depth semantics and output ordering remain unchanged."
+        ],
+        "validation": [
+          "Run pnpm build.",
+          "Run pnpm vitest run test/commands/arch-impact.test.ts.",
+          "Add a leaf-focus regression using a large valid depth and assert it resolves with only the expected ancestor context and no descendant records.",
+          "Assert existing depth-zero, depth-one, multi-focus, cycle, canonical-path, locale-determinism, and identity-only projection tests remain passing.",
+          "Residual risk: very large depths over genuinely deep or broad reachable hierarchies still require work proportional to the output, as required by the Contract."
+        ],
+        "impactLevel": "high",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "This ranks first because caller-controlled depth causes statically provable unbounded empty work after subtree exhaustion, while the correction is local, behavior-preserving, independently testable, and does not repeat the completed bucket-accumulation or canonical-frontier-sort directions.",
+        "id": "OPT-20260810T172036488Z-01",
+        "targetFileHashes": {
+          "src/commands/arch/impact.ts": "ee8e24da00ab92e03e9d9d9864577f6ecf952cca67dd432527b4b726b7ad56b7"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-10T17:20:36.488Z",
+        "findingId": "OPT-20260810T172036488Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "select",
+        "reason": "This ranks first because caller-controlled depth causes statically provable unbounded empty work after subtree exhaustion, while the correction is local, behavior-preserving, independently testable, and does not repeat the completed bucket-accumulation or canonical-frontier-sort directions.",
+        "timestamp": "2026-08-10T17:20:36.491Z",
+        "findingId": "OPT-20260810T172036488Z-01",
+        "hashes": {
+          "src/commands/arch/impact.ts": "ee8e24da00ab92e03e9d9d9864577f6ecf952cca67dd432527b4b726b7ad56b7"
+        }
+      },
+      {
+        "sequence": 3,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-10T17:21:00.476Z",
+        "findingId": "OPT-20260810T172036488Z-01",
+        "hashes": {
+          "src/commands/arch/impact.ts": "ee8e24da00ab92e03e9d9d9864577f6ecf952cca67dd432527b4b726b7ad56b7"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "verified",
+        "reason": "Fresh reviewer found no blockers. The empty-frontier guard preserves breadth-first descendant inclusion, ordering, accumulated context, and identity-only output. Build passed, all 10 impact tests passed including the Number.MAX_SAFE_INTEGER leaf regression, repeated impact hashes remain byte-identical at 305adc49ad60d12107225f21df7b96704c14ddc091b6d46adcf2d7c1f6bbf551, both edited TypeScript files are LSP-clean, and git diff --check passed.",
+        "timestamp": "2026-08-11T04:37:58.212Z",
+        "findingId": "OPT-20260810T172036488Z-01"
+      }
+    ],
+    "reconciliationSignature": "f984b78c80b319609aef9a3b9d6caa0f33f2883c985102b47aea6efc5ef53af0",
+    "unchangedReconciliations": 0
   }
 }

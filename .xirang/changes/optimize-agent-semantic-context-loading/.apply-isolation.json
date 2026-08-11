@@ -3,5 +3,5 @@
   "branchName": "optimize-agent-semantic-context-loading",
   "originalBranch": "main",
   "baseCommit": "da4cfacb96cba7e9791d0e36ef90ce45df8fc545",
-  "phase2BaselineCommit": "df99e5e90ba0816a37cdb258ec666f3f98e7c4fa"
+  "phase2BaselineCommit": "b4ecacba3fafb09893f7b912d7f34f35d3472466"
 }

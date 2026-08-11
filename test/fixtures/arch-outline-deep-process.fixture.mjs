@@ -10,6 +10,7 @@ import {
   formatArchitectureSnapshotMarkdown,
   formatArchitectureSnapshotText,
 } from '../../dist/commands/arch/snapshot.js';
+import { impactArchitecture } from '../../dist/commands/arch/impact.js';
 
 const mode = process.argv[2];
 const depth = mode === 'depths' ? 20_000 : 1_000;
@@ -39,6 +40,20 @@ async function writeDeepModel(root) {
     const identity = index < depth - 1 ? identities[depth - index - 1] : identities[0];
     return fs.writeFile(path.join(modelRoot, 'elements', `${identity}.md`), content, 'utf8');
   }));
+}
+
+async function writeLeafModel(root) {
+  const modelRoot = path.join(root, '.xirang', 'model');
+  await Promise.all(['metamodel', 'elements', 'relationships', 'views'].map(partition =>
+    fs.mkdir(path.join(modelRoot, partition), { recursive: true })));
+  await fs.writeFile(path.join(modelRoot, 'metamodel', 'project.md'),
+    `---\nentity: element-kind\nidentity: project\ncontract: optional\nroot: true\n${list('children', ['capability'])}---\n`, 'utf8');
+  await fs.writeFile(path.join(modelRoot, 'metamodel', 'capability.md'),
+    `---\nentity: element-kind\nidentity: capability\ncontract: optional\n${list('parents', ['project'])}children: []\n---\n`, 'utf8');
+  await fs.writeFile(path.join(modelRoot, 'elements', 'project.root.md'),
+    elementUnit('project.root', 'project', null), 'utf8');
+  await fs.writeFile(path.join(modelRoot, 'elements', 'leaf.md'),
+    elementUnit('leaf', 'capability', 'project.root'), 'utf8');
 }
 
 if (mode === 'depths') {
@@ -87,6 +102,17 @@ if (mode === 'depths') {
   };
   if (!formatArchitectureSnapshotText(result).includes(identities.at(-1))) throw new Error('snapshot text output omitted deepest Element');
   if (!formatArchitectureSnapshotMarkdown(result).includes(identities.at(-1))) throw new Error('snapshot Markdown output omitted deepest Element');
+} else if (mode === 'impact-leaf') {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-impact-leaf-'));
+  try {
+    await writeLeafModel(root);
+    const result = await impactArchitecture(root, ['leaf'], { depth: Number.MAX_SAFE_INTEGER });
+    if (result.refinementContext.some(context => context.direction === 'descendant')) {
+      throw new Error('leaf impact returned descendant context');
+    }
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+  }
 } else {
   throw new Error(`Unknown mode: ${mode}`);
 }
