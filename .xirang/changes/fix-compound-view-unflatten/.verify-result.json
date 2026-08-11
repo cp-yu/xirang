@@ -100,6 +100,11 @@
         "timestamp": "2026-08-11T17:05:24.123Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-11T17:22:06.532Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
@@ -194,7 +199,7 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/layouts/src/graphviz/GraphvizLayouter.spec.ts"
@@ -237,7 +242,7 @@
         }
       },
       {
-        "status": "pending",
+        "status": "implemented",
         "location": {
           "files": [
             "likec4/packages/layouts/src/graphviz/GraphvizLayoter.ts"
@@ -278,7 +283,10 @@
         "cost": "low",
         "dependencies": [],
         "priorityReason": "static evidence of double normalization; small real saving",
-        "id": "OPT-20260811T165908425Z-02"
+        "id": "OPT-20260811T165908425Z-02",
+        "targetFileHashes": {
+          "likec4/packages/layouts/src/graphviz/GraphvizLayoter.ts": "2ef6f87b91cc21534641f38037d1b0c86b64f2e4af95e02a1bef34396122a857"
+        }
       },
       {
         "status": "pending",
@@ -370,9 +378,50 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-11T17:05:24.123Z",
         "findingId": "OPT-20260811T165908425Z-01"
+      },
+      {
+        "sequence": 7,
+        "action": "resolve",
+        "reason": "spec-only test hardening verified PASS",
+        "timestamp": "2026-08-11T17:22:06.529Z",
+        "findingId": "OPT-20260811T165908425Z-01"
+      },
+      {
+        "sequence": 8,
+        "action": "retain",
+        "reason": "keep for implementation",
+        "timestamp": "2026-08-11T17:22:06.529Z",
+        "findingId": "OPT-20260811T165908425Z-02"
+      },
+      {
+        "sequence": 9,
+        "action": "retain",
+        "reason": "keep for implementation",
+        "timestamp": "2026-08-11T17:22:06.529Z",
+        "findingId": "OPT-20260811T165908425Z-03"
+      },
+      {
+        "sequence": 10,
+        "action": "select",
+        "reason": "static evidence of double normalization; small real saving",
+        "timestamp": "2026-08-11T17:22:06.532Z",
+        "findingId": "OPT-20260811T165908425Z-02",
+        "hashes": {
+          "likec4/packages/layouts/src/graphviz/GraphvizLayoter.ts": "2ef6f87b91cc21534641f38037d1b0c86b64f2e4af95e02a1bef34396122a857"
+        }
+      },
+      {
+        "sequence": 11,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-11T17:22:30.084Z",
+        "findingId": "OPT-20260811T165908425Z-02",
+        "hashes": {
+          "likec4/packages/layouts/src/graphviz/GraphvizLayoter.ts": "2ef6f87b91cc21534641f38037d1b0c86b64f2e4af95e02a1bef34396122a857"
+        }
       }
     ],
-    "reconciliationSignature": "35fb7297911c65d0d44475ba5f2400623c7b6ac710470a6803b1df00fa93a32f",
+    "reconciliationSignature": "26f4c24750740f08fed48473ce4c65ddb5b39de06b4ab97b45424c697d8ad5a1",
     "unchangedReconciliations": 0
   }
 }

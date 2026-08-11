@@ -145,8 +145,6 @@ export class GraphvizLayouter implements Disposable {
         )
       }
 
-      dot = normalizeDot(dot)
-
       logger.trace`layouting view ${params.view.id} done`
       return { dot, diagram }
     } catch (e) {
@@ -185,7 +183,6 @@ export class GraphvizLayouter implements Disposable {
 
   async svg<A extends AnyAux>(params: LayoutTaskParams<A>) {
     let dot = await this.dot(params)
-    dot = normalizeDot(dot)
     const svg = await this.graphviz.svg(dot)
     return {
       svg,
@@ -198,19 +195,15 @@ export class GraphvizLayouter implements Disposable {
     logger.trace`generating dot for view ${params.view.id}`
     const printer = getPrinter(params)
     let dot = printer.print()
-    if (!isElementView(params.view)) {
-      return normalizeDot(dot)
-    }
-    if (printer.hasEdgesWithCompounds) {
+    if (isElementView(params.view) && !printer.hasEdgesWithCompounds) {
       // unflatten chains disconnected nodes with invisible edges, which breaks
       // compound routing (lhead/ltail); such views must go straight to Graphviz
-      return normalizeDot(dot)
-    }
-    try {
-      logger.trace`unflattening dot`
-      dot = await this.graphviz.unflatten(dot)
-    } catch (error) {
-      logger.warn(`Error during unflatten: ${params.view.id}`, { error })
+      try {
+        logger.trace`unflattening dot`
+        dot = await this.graphviz.unflatten(dot)
+      } catch (error) {
+        logger.warn(`Error during unflatten: ${params.view.id}`, { error })
+      }
     }
     return normalizeDot(dot)
   }
