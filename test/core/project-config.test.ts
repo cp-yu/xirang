@@ -1348,6 +1348,32 @@ rules:
       expect(bundle.prompt.compiledLines.join('\n')).not.toContain('Use Given/When/Then');
     });
 
+    it('normalizes config only once when building a projection bundle', () => {
+      const trimRule = vi.fn(() => 'Keep duplicates');
+      const trimEmptyRule = vi.fn(() => '');
+      const config = {
+        schema: 'semantic-model',
+        decomposition: { skill: 'project-decomposition' },
+        rules: {
+          ' proposal ': [
+            { trim: trimRule },
+            { trim: trimRule },
+            { trim: trimEmptyRule },
+          ],
+        },
+      } as unknown as ProjectConfig;
+      const scope = { surface: 'propose', artifactId: 'proposal' };
+
+      const bundle = buildConfigProjectionBundle(config, scope);
+
+      expect(trimRule).toHaveBeenCalledTimes(2);
+      expect(trimEmptyRule).toHaveBeenCalledTimes(1);
+      expect(bundle.normalized.rules).toEqual({
+        proposal: ['Keep duplicates', 'Keep duplicates'],
+      });
+      expect(bundle.prompt).toEqual(projectConfigForPrompt(config, scope));
+    });
+
     it('projects git settings for archive prompt consumers', () => {
       const bundle = buildConfigProjectionBundle(
         {

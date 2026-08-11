@@ -2,5 +2,6 @@
   "method": "branch",
   "branchName": "configure-semantic-decomposition",
   "originalBranch": "main",
-  "baseCommit": "cc56b2aff8392300990cf461ec39d052d08dd07d"
+  "baseCommit": "cc56b2aff8392300990cf461ec39d052d08dd07d",
+  "phase2BaselineCommit": "f4c878369d5e863859227c2b5f291e460a03fd71"
 }

@@ -90,7 +90,7 @@
       "test/skills/semantic-model-consistency.test.ts",
       "test/skills/skill-template-length-validation.test.ts"
     ],
-    "evidenceFingerprint": "7594c665fd64d753b45faa3f619fabf41b25e7d68b6d3692aefa552a221cf2f9",
+    "evidenceFingerprint": "a4e826feea12f25466b27573323b46f7bf641e7e9c9c0387e0f77e68f31e82cb",
     "evidenceFingerprintEntries": [
       {
         "path": ".gitignore",
@@ -118,7 +118,7 @@
       },
       {
         "path": ".xirang/changes/configure-semantic-decomposition/.apply-isolation.json",
-        "hash": "1b70ab11f113ce77072aa5d37a3ea71af8e88460282d0dd61f4a05efd1d213d2"
+        "hash": "bd945aa6981b3987957f87fd0ec3b5d1a2ff58f9ee340bf4c7383966a3b44d02"
       },
       {
         "path": ".xirang/changes/configure-semantic-decomposition/.xirang.yaml",
@@ -218,7 +218,7 @@
       },
       {
         "path": "src/core/config-projection.ts",
-        "hash": "3d3d0ab6197de6960e4784c1a4050f312503000eaf7f0e8f59d2338a39164d59"
+        "hash": "a939b5d6c65bea9f03b910646ef53258e47b9947175634edbc633d98211ffec1"
       },
       {
         "path": "src/core/config-prompts.ts",
@@ -254,7 +254,7 @@
       },
       {
         "path": "test/core/project-config.test.ts",
-        "hash": "961c7fa168006439cc3a718458cf47f2226544bb76ba12edcd9d8adb877878cb"
+        "hash": "dda4e2db9dd45229eb689cbf0c4ccbcc8ca7bb53d0644dfdb5174e312beafa71"
       },
       {
         "path": "test/core/setup.test.ts",
@@ -304,12 +304,24 @@
     "skippedEvidenceFiles": [
       ".xirang/changes/configure-semantic-decomposition/.verify-result.json"
     ],
-    "gitHeadCommit": "cc56b2aff8392300990cf461ec39d052d08dd07d",
-    "gitDiffSummary": "Validated baseCommit cc56b2aff8392300990cf461ec39d052d08dd07d; HEAD equals the immutable baseline, so `git diff <baseCommit>...HEAD --name-only` is empty. `git status --short --untracked-files=all` contains 27 modified and 4 untracked files, all covered by task declarations or Change artifacts. Reviewed final contents across that scope and Semantic Model candidates. Change validation, Expected Semantic Model validation, formal model validation, repository-local normalized custom-skill assertion, project-skill isolation search, diff check, TypeScript typecheck, 22-file/420-test relevant suite, 24-file/427-test expanded suite, and 3-file/10-test parity/length suite passed. Repository-local outline/impact/query/validate C15 evidence passed. The installed executable remains stale for literal C11 and omits the new decomposition field."
+    "gitHeadCommit": "f4c878369d5e863859227c2b5f291e460a03fd71",
+    "gitDiffSummary": "Validated baseCommit cc56b2aff8392300990cf461ec39d052d08dd07d; HEAD equals the immutable baseline, so `git diff <baseCommit>...HEAD --name-only` is empty. `git status --short --untracked-files=all` contains 27 modified and 4 untracked files, all covered by task declarations or Change artifacts. Reviewed final contents across that scope and Semantic Model candidates. Change validation, Expected Semantic Model validation, formal model validation, repository-local normalized custom-skill assertion, project-skill isolation search, diff check, TypeScript typecheck, 22-file/420-test relevant suite, 24-file/427-test expanded suite, and 3-file/10-test parity/length suite passed. Repository-local outline/impact/query/validate C15 evidence passed. The installed executable remains stale for literal C11 and omits the new decomposition field.",
+    "timestamp": "2026-08-11T08:12:27.889Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-08-11T08:04:19.624Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-11T08:12:27.869Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-08-11T07:58:19.068Z",
       "result": "PASS_WITH_WARNINGS",
@@ -619,6 +631,100 @@
         "gitHeadCommit": "cc56b2aff8392300990cf461ec39d052d08dd07d",
         "gitDiffSummary": "Validated baseCommit cc56b2aff8392300990cf461ec39d052d08dd07d; HEAD equals the immutable baseline, so `git diff <baseCommit>...HEAD --name-only` is empty. `git status --short --untracked-files=all` contains 27 modified and 4 untracked files, all covered by task declarations or Change artifacts. Reviewed final contents across that scope and Semantic Model candidates. Change validation, Expected Semantic Model validation, formal model validation, repository-local normalized custom-skill assertion, project-skill isolation search, diff check, TypeScript typecheck, 22-file/420-test relevant suite, 24-file/427-test expanded suite, and 3-file/10-test parity/length suite passed. Repository-local outline/impact/query/validate C15 evidence passed. The installed executable remains stale for literal C11 and omits the new decomposition field."
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "src/core/config-projection.ts"
+          ],
+          "symbols": [
+            "normalizeProjectConfig",
+            "projectConfigForPrompt",
+            "buildConfigProjectionBundle"
+          ]
+        },
+        "opportunity": "buildConfigProjectionBundle unconditionally normalizes the same ProjectConfig twice: once for its normalized result and again through projectConfigForPrompt. Each pass rebuilds the normalized object and traverses, trims, filters, and reallocates every configured rules entry.",
+        "impact": "Compile each projection bundle with one normalization pass, eliminating one complete rules traversal and the associated transient arrays and objects on every bundle construction while simplifying the projection data flow.",
+        "evidence": [
+          "src/core/config-projection.ts:125-134 maps, trims, filters, and reconstructs the complete rules collection during every normalizeProjectConfig call.",
+          "src/core/config-projection.ts:382-397 shows projectConfigForPrompt always calling normalizeProjectConfig before compiling prompt fragments.",
+          "src/core/config-projection.ts:427-434 shows buildConfigProjectionBundle calling normalizeProjectConfig directly and then calling projectConfigForPrompt with the same raw config, causing the second normalization unconditionally.",
+          "src/core/artifact-graph/instruction-loader.ts:332-335 constructs this bundle for artifact instruction loading, so the duplicate work occurs on a production projection path.",
+          "The current focused baseline remains green: pnpm exec vitest run test/core/project-config.test.ts test/commands/config.test.ts passed 89 tests, and node bin/xirang.js arch validate --json returned success with no errors or warnings."
+        ],
+        "recommendation": "Introduce a private prompt-projection compiler that accepts an already normalized config. Keep projectConfigForPrompt as the public raw-config entry point by normalizing once and delegating, while buildConfigProjectionBundle computes one normalized value and passes that same value to the private compiler.",
+        "keyDesign": "Separate normalization from prompt compilation with a private function such as compilePromptProjection(normalized, scope). Public projectConfigForPrompt remains API-compatible and delegates after one normalization; buildConfigProjectionBundle stores one normalized result and delegates directly to the compiler. Do not expose a second public normalized-config API or add caching.",
+        "preservationConstraints": [
+          "Preserve the exported signatures and return shapes of normalizeProjectConfig, projectConfigForPrompt, and buildConfigProjectionBundle.",
+          "Preserve exact normalized property presence, values, rule-key last-write behavior after trimming, rule item ordering, duplicate rule items, and empty-key or empty-item filtering.",
+          "Preserve prompt fragment inclusion, fragment ordering, line ordering, compiledLines ordering, surface and artifactId values, and canonicalTokenPolicy identity and contents.",
+          "Preserve decomposition method and skill names exactly, including their restriction to build, explore, propose, and snack prompt surfaces.",
+          "Preserve null-config defaults, architecture depth fallback, git/apply/optimization defaults, string trimming, and omission of invalid or absent optional values.",
+          "Do not mutate the input config, introduce persistent caching, change I/O, or alter exception timing for malformed programmatic inputs."
+        ],
+        "implementationOutline": [
+          "Extract the fragment mapping and PromptProjection assembly currently inside projectConfigForPrompt into a private helper that accepts NormalizedProjectConfig and the existing prompt scope.",
+          "Change projectConfigForPrompt to normalize its raw ProjectConfig exactly once and pass the result to the helper.",
+          "Change buildConfigProjectionBundle to assign normalizeProjectConfig(config) once, return that object as normalized, and compile prompt from it through the helper.",
+          "Keep projectConfigForRuntime unchanged because it already normalizes only once."
+        ],
+        "validation": [
+          "Run pnpm exec vitest run test/core/project-config.test.ts test/commands/config.test.ts to preserve normalized config, decomposition projection, archive projection, and command output behavior.",
+          "Extend test/core/project-config.test.ts with bundle cases containing whitespace-normalized rule keys, empty rules, duplicate rule items, method and skill decomposition branches, null config, and archive git settings; assert the bundle output remains exactly equal to the pre-refactor public projections.",
+          "Run pnpm exec tsc --noEmit to verify the private normalized compiler does not weaken public ProjectConfig or NormalizedProjectConfig typing.",
+          "Run the relevant artifact instruction-loader tests to confirm production bundle consumers retain identical configProjection output."
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "This is the only statically proven, behavior-preserving optimization in the tracked implementation scope that removes unconditional duplicate work without relying on profiling assumptions; it has a closed preservation surface and a small implementation cost.",
+        "id": "OPT-20260811T080419620Z-01",
+        "targetFileHashes": {
+          "src/core/config-projection.ts": "3d3d0ab6197de6960e4784c1a4050f312503000eaf7f0e8f59d2338a39164d59"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-11T08:04:19.621Z",
+        "findingId": "OPT-20260811T080419620Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "select",
+        "reason": "This is the only statically proven, behavior-preserving optimization in the tracked implementation scope that removes unconditional duplicate work without relying on profiling assumptions; it has a closed preservation surface and a small implementation cost.",
+        "timestamp": "2026-08-11T08:04:19.624Z",
+        "findingId": "OPT-20260811T080419620Z-01",
+        "hashes": {
+          "src/core/config-projection.ts": "3d3d0ab6197de6960e4784c1a4050f312503000eaf7f0e8f59d2338a39164d59"
+        }
+      },
+      {
+        "sequence": 3,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-11T08:04:32.475Z",
+        "findingId": "OPT-20260811T080419620Z-01",
+        "hashes": {
+          "src/core/config-projection.ts": "3d3d0ab6197de6960e4784c1a4050f312503000eaf7f0e8f59d2338a39164d59"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-11T08:12:27.869Z",
+        "findingId": "OPT-20260811T080419620Z-01"
+      }
+    ],
+    "reconciliationSignature": "51bb4a803755997fbf943b1aee49a08205877e202214c0bb92d6b5cb80888e00",
+    "unchangedReconciliations": 0
   }
 }

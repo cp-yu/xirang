@@ -379,11 +379,10 @@ const projectionRules: ProjectionRule[] = [
   },
 ];
 
-export function projectConfigForPrompt(
-  config: ProjectConfig | null,
+function compilePromptProjection(
+  normalized: NormalizedProjectConfig,
   scope: { surface: string; artifactId?: string }
 ): PromptProjection {
-  const normalized = normalizeProjectConfig(config);
   const fragments = projectionRules
     .map((rule) => rule.buildPrompt(normalized, scope))
     .filter((fragment): fragment is ProjectionFragment => fragment !== null);
@@ -395,6 +394,13 @@ export function projectConfigForPrompt(
     compiledLines: fragments.flatMap((fragment) => fragment.lines),
     canonicalTokenPolicy: CANONICAL_TOKEN_POLICY,
   };
+}
+
+export function projectConfigForPrompt(
+  config: ProjectConfig | null,
+  scope: { surface: string; artifactId?: string }
+): PromptProjection {
+  return compilePromptProjection(normalizeProjectConfig(config), scope);
 }
 
 export function projectConfigForRuntime(
@@ -428,9 +434,11 @@ export function buildConfigProjectionBundle(
   config: ProjectConfig | null,
   scope: { surface: string; artifactId?: string }
 ): ConfigProjectionBundle {
+  const normalized = normalizeProjectConfig(config);
+
   return {
-    normalized: normalizeProjectConfig(config),
-    prompt: projectConfigForPrompt(config, scope),
+    normalized,
+    prompt: compilePromptProjection(normalized, scope),
   };
 }
 
