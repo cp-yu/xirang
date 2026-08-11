@@ -10,7 +10,7 @@ definition: Agent 是与用户交互、并端到端编排 Realization 的默认�
 ## Requirements
 
 ### Requirement: 写入获授权制品
-Agent MAY 在授权范围内写入项目与 Change 制品。
+Agent SHALL 在授权范围内写入项目与 Change 制品。
 
 #### Scenario: Apply 获准修改项目
 - **WHEN** Change 已进入 Implementation
@@ -24,7 +24,7 @@ Agent SHALL 消费 CLI 提供的查询与投影结果推进编排。
 - **THEN** 它使用 CLI 查询结果
 
 ### Requirement: 按需委托 Internal Agents
-Agent MAY 在需要独立判断时委托 Internal Agents。
+Agent SHALL 在需要独立判断时委托 Internal Agents。
 
 #### Scenario: 当前实现需要 Review
 - **WHEN** Apply 完成一次修改

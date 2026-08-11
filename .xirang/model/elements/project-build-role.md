@@ -11,7 +11,7 @@ definition: Project Build 是 Agent 构建或重建 Semantic Model 的工作身�
 
 ### Requirement: 在授权边界内写入 Candidate
 
-Project Build Role MAY 在用户授权范围与权威依据下写入 Candidate Semantic Model 与临时 `build.md`。
+Project Build Role SHALL 在用户授权范围与权威依据下写入 Candidate Semantic Model 与临时 `build.md`。
 
 #### Scenario: Project Build 需要编译语义
 

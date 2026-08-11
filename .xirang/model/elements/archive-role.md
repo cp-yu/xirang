@@ -17,7 +17,7 @@ Archive Role SHALL 依据 Change Closure 的阶段规则调用 CLI 提供的 Syn
 - **THEN** Agent 调用对应 CLI 操作
 
 ### Requirement: 限定 Closure 制品处理范围
-Archive Role MAY 在 Change Closure 范围内协调保存已完成 Change 与最终证据。
+Archive Role SHALL 在 Change Closure 范围内协调保存已完成 Change 与最终证据。
 
 #### Scenario: CLI 需要 Closure 制品输入
 - **WHEN** Agent 编排归档操作

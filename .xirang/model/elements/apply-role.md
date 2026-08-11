@@ -10,7 +10,7 @@ definition: Apply 是 Agent 落实 Change 所描述项目改动的工作身份�
 ## Requirements
 
 ### Requirement: 写入项目实现
-Apply Role MAY 在 Change Implementation 范围内修改项目文件。
+Apply Role SHALL 在 Change Implementation 范围内修改项目文件。
 
 #### Scenario: Apply 识别待落实改动
 - **WHEN** 当前状态不符合 Expected Semantic Model

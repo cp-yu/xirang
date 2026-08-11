@@ -11,7 +11,7 @@ definition: Propose 是 Agent 将 Change 雏形收成完整 Change 的工作身�
 
 ### Requirement: 写入 Change 制品
 
-Propose Role MAY 在授权范围内写入 Semantic Delta 与 Change Plan 制品。
+Propose Role SHALL 在授权范围内写入 Semantic Delta 与 Change Plan 制品。
 
 #### Scenario: Propose 编译完整 Change
 
