@@ -63,7 +63,7 @@
       "test/e2e/semantic-browser-candidate-views.spec.ts",
       "test/e2e/semantic-browser-model-view.spec.ts"
     ],
-    "evidenceFingerprint": "bbd772f35047765ab024446c39b9c3dd6cfe6891657b338e81e76180472fb9e1",
+    "evidenceFingerprint": "d76eca3aa5724e417629b2ba7b5bb8e34b74221710a1b3266e0dc5487c0470fe",
     "evidenceFingerprintEntries": [
       {
         "path": ".gitignore",
@@ -91,7 +91,7 @@
       },
       {
         "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
-        "hash": "5384b5bd85f9f5b15ef91afe1716e5fc447895c8d4e2c7edf7db5024a809590a"
+        "hash": "ebc3dbb2300a0d51e657089eda15b828a8f258c01adc80772489c6fdb91d502c"
       },
       {
         "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
@@ -117,12 +117,24 @@
     "skippedEvidenceFiles": [
       ".xirang/changes/restore-homepage-change-entry/.verify-result.json"
     ],
-    "gitHeadCommit": "d4542229d4821a4ea742b5299fb0337910552d29",
-    "gitDiffSummary": "baseCommit aa546f8e0 resolves (validated via git cat-file); git diff aa546f8e0...HEAD --name-only lists 14 files; git status --short is empty. All 4 previous CRITICALs verified fixed in final contents: (1) four-state badge assertions toBeCloseTo(24,3) with zoom division and viewport-settle waits (model-view.spec.ts:180-215); (2) drill/no-fit covered by fits test (dblclick drill, focus=capability.drill URL, node center stable <4px, model-view.spec.ts:326-343) and expands test transform-unchanged assertion (model-view.spec.ts:288-292); (3) no tracked .cache-likec4-staging files in HEAD (git ls-tree -r HEAD clean) and .gitignore rules added (lines 175-178), untracked copies confirmed ignored via git check-ignore; (4) C7 command now desktop+mobile full suite (tasks.md:85) with both new test titles registered in both project greps (playwright.config.ts:20,25). Attribution: every behavior file declared in Task Files except .gitignore (SUGGESTION)."
+    "gitHeadCommit": "d1824f255cf55293a8886804ec8164c062112776",
+    "gitDiffSummary": "baseCommit aa546f8e0 resolves (validated via git cat-file); git diff aa546f8e0...HEAD --name-only lists 14 files; git status --short is empty. All 4 previous CRITICALs verified fixed in final contents: (1) four-state badge assertions toBeCloseTo(24,3) with zoom division and viewport-settle waits (model-view.spec.ts:180-215); (2) drill/no-fit covered by fits test (dblclick drill, focus=capability.drill URL, node center stable <4px, model-view.spec.ts:326-343) and expands test transform-unchanged assertion (model-view.spec.ts:288-292); (3) no tracked .cache-likec4-staging files in HEAD (git ls-tree -r HEAD clean) and .gitignore rules added (lines 175-178), untracked copies confirmed ignored via git check-ignore; (4) C7 command now desktop+mobile full suite (tasks.md:85) with both new test titles registered in both project greps (playwright.config.ts:20,25). Attribution: every behavior file declared in Task Files except .gitignore (SUGGESTION).",
+    "timestamp": "2026-08-12T19:27:46.895Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-08-12T19:12:04.124Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-12T19:27:46.884Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-08-12T19:02:56.081Z",
       "result": "PASS_WITH_WARNINGS",
@@ -245,6 +257,149 @@
         "gitHeadCommit": "d4542229d4821a4ea742b5299fb0337910552d29",
         "gitDiffSummary": "baseCommit aa546f8e0 resolves (validated via git cat-file); git diff aa546f8e0...HEAD --name-only lists 14 files; git status --short is empty. All 4 previous CRITICALs verified fixed in final contents: (1) four-state badge assertions toBeCloseTo(24,3) with zoom division and viewport-settle waits (model-view.spec.ts:180-215); (2) drill/no-fit covered by fits test (dblclick drill, focus=capability.drill URL, node center stable <4px, model-view.spec.ts:326-343) and expands test transform-unchanged assertion (model-view.spec.ts:288-292); (3) no tracked .cache-likec4-staging files in HEAD (git ls-tree -r HEAD clean) and .gitignore rules added (lines 175-178), untracked copies confirmed ignored via git check-ignore; (4) C7 command now desktop+mobile full suite (tasks.md:85) with both new test titles registered in both project greps (playwright.config.ts:20,25). Attribution: every behavior file declared in Task Files except .gitignore (SUGGESTION)."
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx"
+          ],
+          "symbols": [
+            "XirangArchitectureOverlay"
+          ]
+        },
+        "opportunity": "Three refs track overlapping projection/selection state: selectedSourceId (id-change branch, lines 170/335-337), hasProjection (first-projection fit, lines 171/375-377), and previousSelection (fit on View/Change/Mode selection change, lines 175/353-356). They can collapse into one nullable ref: the stored value is always the previous run's full selection {id, change, effectiveMode}, so the id-change branch and the first-run fit can both be derived from it.",
+        "impact": "Removes 2 refs and 2 per-run bookkeeping assignments from the effect that hosts the anchor/fit regression the change fixed; one source of truth for 'previous selection' reduces the invariant surface future edits must keep in sync.",
+        "evidence": [
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:170-175 (three overlapping refs)",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:335-337 (id-change branch reads selectedSourceId)",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:353-356 (selectionChanged computed and ref written every ready run)",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:375-377 (initialProjection: !hasProjection.current || selectionChanged; hasProjection.current = true)",
+          "grep confirms selectedSourceId and hasProjection are referenced nowhere else in the package"
+        ],
+        "recommendation": "Replace the three refs with one `previousSelection = useRef<{ id: string; change: string | null; mode: XirangViewMode } | null>(null)`. Compute `selectionChanged = previousSelection.current === null || previousSelection.current.id !== selected.id || previousSelection.current.change !== (selected.change ?? null) || previousSelection.current.mode !== effectiveMode` before mutation. Run the focus-reset branch only when `previousSelection.current !== null && previousSelection.current.id !== selected.id`. Send update.view with `initialProjection: selectionChanged` and delete the hasProjection ref entirely.",
+        "keyDesign": "One nullable ref holding the previous {id, change, effectiveMode}; `null` replaces `!hasProjection.current` for the first-projection fit, and the stored id replaces selectedSourceId for the id-change branch.",
+        "preservationConstraints": [
+          "First projection after ready MUST still fit (null ref -> selectionChanged true)",
+          "Fit MUST fire only on id/effectiveMode/change selection change, never on focus drills or expand-in-place (initialProjection false path keeps the projectionViewportTransition viewport compensation with anchorIdentity: focusIdentity ?? null)",
+          "The id-change branch MUST still reset previousFocusAncestors and send navigate.focus to breadcrumbRoot when interactive and focus is null, and MUST be skipped on the first ready run (base selectedSourceId is initialized to the initial selected.id, so its branch never fires first)",
+          "The !isReady early return MUST NOT advance the merged ref, so the first ready run still fits",
+          "update.view MUST still be sent immediately on id change (no early return), preserving change-derived rendering when focusIdentity already equals the root",
+          "No changes to machine.setup.ts / machine.actions.ts (outside base scope) and no event-schema change"
+        ],
+        "implementationOutline": [
+          "Delete selectedSourceId and hasProjection refs; declare previousSelection as nullable",
+          "Compute selectionChanged before the focus-reset branch, reading the stored value",
+          "Gate the focus-reset branch on stored !== null && stored.id !== selected.id",
+          "Write previousSelection.current = { id: selected.id, change: selected.change ?? null, mode: effectiveMode } after the branch",
+          "Use initialProjection: selectionChanged and remove hasProjection.current = true"
+        ],
+        "validation": [
+          "likec4: pnpm --filter @likec4/diagram exec vitest run --no-isolate src/xirang/ContractLoaderContext.spec.tsx src/xirang/architectureView.spec.ts (25 passed) and pnpm --filter @likec4/diagram typecheck prove no type/unit regression",
+          "test/e2e/semantic-browser-model-view.spec.ts 'fits the diagram after switching' desktop+mobile proves first fit + mode/change/view re-fit + drill viewport stability",
+          "test/e2e/semantic-browser-candidate-views.spec.ts 'opens an active change from the landing page' desktop+mobile proves quick-entry fit and on-screen regression guard",
+          "'browses Model View through nested focus and history' and 'expands in place with ctrl+click and collapses with Shift+0' prove drill/expand do not fit"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Only production-code simplification in base scope and it lives exactly where the anchor/fit regression occurred; it outranks the test-side DRY finding because it shrinks state invariants rather than duplicated assertions.",
+        "id": "OPT-20260812T191204121Z-01",
+        "targetFileHashes": {
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "5384b5bd85f9f5b15ef91afe1716e5fc447895c8d4e2c7edf7db5024a809590a"
+        }
+      },
+      {
+        "status": "pending",
+        "location": {
+          "files": [
+            "test/e2e/semantic-browser-model-view.spec.ts",
+            "test/e2e/semantic-browser-candidate-views.spec.ts"
+          ],
+          "symbols": [
+            "viewportTransform",
+            "allNodesWithinViewport"
+          ]
+        },
+        "opportunity": "The flake-sensitive 'wait until the viewport transform settles' heuristic (two samples 80ms apart must be equal, 10s timeout) is defined twice and polled four times inside model-view.spec.ts, and the 'every node inside the viewport' predicate is written inline twice in candidate-views.spec.ts. Each can be hoisted to module scope within its existing spec file, with no new shared file.",
+        "impact": "One canonical settle helper and one canonical fit predicate per spec file, removing ~20 duplicated lines of the most flake-sensitive assertion logic; future fixes (e.g., timeout tuning) land in one place.",
+        "evidence": [
+          "test/e2e/semantic-browser-model-view.spec.ts:193 (viewportTransform def 1), 196-199, 225-228 (settle polls in four-state test)",
+          "test/e2e/semantic-browser-model-view.spec.ts:306 (viewportTransform def 2), 309 (allNodesWithinViewport def), 320-323, 334-337 (settle polls in fits test)",
+          "test/e2e/semantic-browser-candidate-views.spec.ts:61-67 (inline onScreen evaluate) and 75-80 (inline all-nodes poll duplicating the same predicate)"
+        ],
+        "recommendation": "Hoist module-level `const viewportTransform = (page: Page) => ...` and `async function waitForViewportSettled(page: Page)` into semantic-browser-model-view.spec.ts and a module-level `async function allNodesWithinViewport(page: Page)` into semantic-browser-candidate-views.spec.ts; replace the inline duplicates with calls. Do not create a new shared helper file (would exit base scope) and do not rename any test titles.",
+        "keyDesign": "Per-file module-scope helpers; identical poll conditions (two equal samples 80ms apart, timeout 10_000) and identical node-in-viewport predicate (right > 0 && left < innerWidth && bottom > 0 && top < innerHeight, count > 0).",
+        "preservationConstraints": [
+          "Test titles MUST NOT change: playwright.config.ts desktop/mobile greps whitelist 'fits the diagram after switching' and 'opens an active change from the landing page' by exact title",
+          "Poll timing and predicates MUST stay identical so Phase 1 stability fixes (zoom-compensated badge measurement, settle-before-measure) are not disturbed",
+          "No production code touched"
+        ],
+        "implementationOutline": [
+          "Add the two module-level helpers at the top of semantic-browser-model-view.spec.ts",
+          "Replace the four settle-poll blocks and the two viewportTransform definitions with helper calls",
+          "Add the module-level allNodesWithinViewport helper to semantic-browser-candidate-views.spec.ts and replace the inline evaluate/poll"
+        ],
+        "validation": [
+          "pnpm exec playwright test test/e2e/semantic-browser-model-view.spec.ts --project=desktop --project=mobile (C7 command) proves all fit/drill/expand assertions unchanged",
+          "pnpm exec playwright test test/e2e/semantic-browser-candidate-views.spec.ts --project=desktop --project=mobile proves the landing-page quick-entry assertions unchanged"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Below the DiagramUI ref merge: pure test-side DRY, optional pre-archive polish, and it requires re-running the e2e suites the Phase 1 baseline already passed.",
+        "id": "OPT-20260812T191204121Z-02"
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-12T19:12:04.121Z",
+        "findingId": "OPT-20260812T191204121Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-12T19:12:04.121Z",
+        "findingId": "OPT-20260812T191204121Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "select",
+        "reason": "Only production-code simplification in base scope and it lives exactly where the anchor/fit regression occurred; it outranks the test-side DRY finding because it shrinks state invariants rather than duplicated assertions.",
+        "timestamp": "2026-08-12T19:12:04.124Z",
+        "findingId": "OPT-20260812T191204121Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "5384b5bd85f9f5b15ef91afe1716e5fc447895c8d4e2c7edf7db5024a809590a"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-12T19:12:13.867Z",
+        "findingId": "OPT-20260812T191204121Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "5384b5bd85f9f5b15ef91afe1716e5fc447895c8d4e2c7edf7db5024a809590a"
+        }
+      },
+      {
+        "sequence": 5,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-12T19:27:46.884Z",
+        "findingId": "OPT-20260812T191204121Z-01"
+      }
+    ],
+    "reconciliationSignature": "b7ce4984c06b5c57ffd8d1fe20497d537f22a4136d42910d856ba4a3aaca867c",
+    "unchangedReconciliations": 0
   }
 }
