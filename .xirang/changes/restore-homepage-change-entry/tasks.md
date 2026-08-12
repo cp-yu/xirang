@@ -12,7 +12,7 @@
 
 - [x] C1 context value 暴露 changes 且 sources 不变
   - Verifies: `elements/semantic-browser.md` / Requirement "首页提供 Candidate 与活动 Change 快速入口" / Scenario "无活动 Change 时隐藏入口"
-  - Command: `cd likec4 && pnpm --filter @likec4/diagram exec vitest run --no-isolate src/xirang/ContractLoaderContext.spec.ts src/xirang/architectureView.spec.ts`
+  - Command: `cd likec4 && pnpm --filter @likec4/diagram exec vitest run --no-isolate src/xirang/ContractLoaderContext.spec.tsx src/xirang/architectureView.spec.ts`
   - Expect: 既有 spec 全过（含 "keeps change input separate from view source identities"），无回归
 
 - [x] C2 类型检查通过
@@ -69,6 +69,7 @@
 - Modify: `likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx`（选择变化时以 `initialProjection` 标志发送投影更新）
 - Test: `test/e2e/semantic-browser-model-view.spec.ts`
 - Modify: `playwright.config.ts`（desktop/mobile grep 白名单注册新用例标题）
+- Modify: `.gitignore`（忽略生成的 LikeC4 staging 缓存目录）
 
 **Requirements**:
 - `elements/semantic-browser.md` / Requirement "切换 View、Change 或 Mode 后自动适配视口"
