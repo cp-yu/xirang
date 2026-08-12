@@ -267,6 +267,9 @@ export async function handleProjection(
     for (const identity of visibleRoots) {
       includeExpressions.push({ ref: { model: paths[identity] ?? identity } })
     }
+    for (const expanded of request.expanded) {
+      includeExpressions.push({ ref: { model: paths[expanded] ?? expanded }, selector: 'children' })
+    }
   } else {
     const roots = architecture?.elements
       .filter(element => element.declaration.parent === null)

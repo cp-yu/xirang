@@ -398,6 +398,7 @@ export async function readModelTree(root: string): Promise<Map<string, Buffer>> 
       throw cause;
     }
     for (const entry of entries) {
+      if (entry.name.startsWith('.')) continue;
       const child = `${relative}/${entry.name}`;
       if (entry.isDirectory()) await visit(path.join(directory, entry.name), child);
       else if (entry.isFile()) files.set(child, await fs.readFile(path.join(directory, entry.name)));

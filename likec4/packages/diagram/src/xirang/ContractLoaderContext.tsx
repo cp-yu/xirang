@@ -56,6 +56,8 @@ export interface XirangRelationship {
 
 export interface XirangRelationshipKind {
   identity: string
+  /** Relationship-kind semantics shared by every instance of the kind. */
+  body?: string
   presentation?: { color?: string; line?: string; head?: string; tail?: string }
 }
 

@@ -37,3 +37,20 @@ test('browses Model View deep link and strips Xirang params on Authored Views', 
   await expect(page).toHaveURL(/view=index/)
   await expect(page).not.toHaveURL(/focus=/)
 })
+
+test('scopes an Authored View projection and keeps its focus breadcrumb', async ({ page }) => {
+  // The authored `index` selection excludes perspective.browser; the Model View shows 4 roots.
+  await page.getByLabel('View Selection').selectOption('index')
+  await expect(page).toHaveURL(/view=index/)
+  await expect(page.locator('.react-flow__node:visible')).toHaveCount(3)
+  await expect(page.locator('[data-xirang-identity="perspective.browser"]')).toHaveCount(0)
+  for (const identity of ['long', 'none', 'single']) {
+    await expect(page.locator(`.react-flow__node[data-xirang-identity="${identity}"]`)).toBeVisible()
+  }
+
+  // The breadcrumb starts at the view root and follows focus changes inside the view.
+  const breadcrumb = page.locator('[data-xirang-focus-breadcrumb]')
+  await expect(breadcrumb).toBeVisible()
+  await expect(breadcrumb).toContainText('Long Contract')
+  await expect(page).not.toHaveURL(/focus=/)
+})

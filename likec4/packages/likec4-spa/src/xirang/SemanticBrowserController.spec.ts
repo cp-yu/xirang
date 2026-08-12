@@ -8,6 +8,7 @@ import {
   createSemanticBrowserState,
   encodeSemanticBrowserUrl,
   historyStateForSemanticBrowser,
+  mirrorActorFocus,
   projectionRequestForSemanticBrowser,
   reconcileSemanticBrowserState,
   reduceSemanticBrowserState,
@@ -150,5 +151,35 @@ describe('SemanticBrowserController state machine', () => {
       expanded: ['root.api', 'root.db'],
       expectedFingerprint: 'model-fp',
     })
+  })
+})
+
+describe('mirrorActorFocus', () => {
+  const modelState = createSemanticBrowserState(manifest, { view: 'model' })
+  const authoredState = createSemanticBrowserState(manifest, { view: 'api' })
+
+  it('mirrors an actor focus that is inside the view', () => {
+    expect(mirrorActorFocus(authoredState, manifest, 'root.api', 'root')).toBe('root.api')
+  })
+
+  it('never mirrors an actor focus outside the view (would be clamped and loop)', () => {
+    expect(mirrorActorFocus(authoredState, manifest, 'root.db', 'root')).toBeNull()
+    // View root with no controller focus: nothing to clear.
+    expect(mirrorActorFocus(authoredState, manifest, 'root', 'root')).toBeNull()
+  })
+
+  it('clears the controller focus only when the actor reaches the view root with a focus set', () => {
+    const focused = createSemanticBrowserState(manifest, { view: 'api', focus: 'root.api' })
+    expect(mirrorActorFocus(focused, manifest, 'root', 'root')).toBe('clear')
+  })
+
+  it('leaves the model-view actor at its default null focus untouched', () => {
+    expect(mirrorActorFocus(modelState, manifest, null, 'root')).toBeNull()
+    expect(mirrorActorFocus(modelState, manifest, 'root', 'root')).toBeNull()
+  })
+
+  it('does not mirror an actor focus the controller already holds', () => {
+    const focused = createSemanticBrowserState(manifest, { view: 'api', focus: 'root.api' })
+    expect(mirrorActorFocus(focused, manifest, 'root.api', 'root')).toBeNull()
   })
 })

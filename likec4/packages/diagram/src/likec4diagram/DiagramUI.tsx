@@ -200,16 +200,20 @@ function XirangArchitectureOverlay() {
       : typeof node.metadata?.['elementId'] === 'string'
         ? node.metadata['elementId'] as string
         : node.id
+  const breadcrumbRoot = selected.roots?.[0] ?? rootIdentity
+  const viewScope = selected.selection ? new Set(selected.selection) : null
   const breadcrumbIdentities = useMemo(() => {
     const identities: string[] = []
-    let breadcrumbIdentity = focusIdentity ?? rootIdentity
+    let breadcrumbIdentity = focusIdentity ?? breadcrumbRoot
     while (breadcrumbIdentity && declarations.has(breadcrumbIdentity)) {
       identities.unshift(breadcrumbIdentity)
-      breadcrumbIdentity = declarations.get(breadcrumbIdentity)?.parent ?? undefined
+      const parent = declarations.get(breadcrumbIdentity)?.parent ?? null
+      if (parent === null || (viewScope !== null && !viewScope.has(parent))) break
+      breadcrumbIdentity = parent
     }
     return identities
-  }, [declarations, focusIdentity, rootIdentity])
-  const breadcrumb = selected.id === 'model' && breadcrumbIdentities.length > 0 && (
+  }, [declarations, focusIdentity, breadcrumbRoot, viewScope])
+  const breadcrumb = selected.source === 'semantic-model' && breadcrumbIdentities.length > 0 && (
     <FloatingChrome dragControls={breadcrumbDragControls} position={{ left: 60, bottom: 16 }}>
       <Group
         data-xirang-focus-breadcrumb
@@ -227,7 +231,7 @@ function XirangArchitectureOverlay() {
             key={identity}
             data-xirang-focus-identity={identity}
             size="compact-xs"
-            variant={identity === (focusIdentity ?? rootIdentity) ? 'filled' : 'subtle'}
+            variant={identity === (focusIdentity ?? breadcrumbRoot) ? 'filled' : 'subtle'}
             onClick={() => actorRef.send({ type: 'navigate.focus', focusIdentity: identity })}
           >
             {declarations.get(identity)?.title ?? identity}
@@ -284,8 +288,8 @@ function XirangArchitectureOverlay() {
    * The handler reads mutable state through a ref so the listener binds once per view instead of
    * being torn down and re-added on every render.
    */
-  const expandDepthState = useRef({ focus: focusIdentity ?? rootIdentity, childrenByIdentity, hasChildren })
-  expandDepthState.current = { focus: focusIdentity ?? rootIdentity, childrenByIdentity, hasChildren }
+  const expandDepthState = useRef({ focus: focusIdentity ?? breadcrumbRoot, childrenByIdentity, hasChildren })
+  expandDepthState.current = { focus: focusIdentity ?? breadcrumbRoot, childrenByIdentity, hasChildren }
   useEffect(() => {
     if (!isInteractiveBrowserSource) return
     const onKeyDown = (event: KeyboardEvent) => {
@@ -330,7 +334,7 @@ function XirangArchitectureOverlay() {
     if (selectedSourceId.current !== selected.id) {
       selectedSourceId.current = selected.id
       previousFocusAncestors.current = []
-      if (isInteractiveBrowserSource && !focusIdentity) actorRef.send({ type: 'navigate.focus', focusIdentity: rootIdentity ?? null, replaceHistory: true })
+      if (isInteractiveBrowserSource && !focusIdentity) actorRef.send({ type: 'navigate.focus', focusIdentity: breadcrumbRoot ?? null, replaceHistory: true })
       // Send the view update immediately instead of returning,
       // so the change-derived view is rendered even when focusIdentity
       // is already the root identity and won't trigger a re-render.

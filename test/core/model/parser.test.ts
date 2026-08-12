@@ -109,6 +109,20 @@ describe('parseSemanticModel', () => {
     ]);
   });
 
+  it('ignores dotfiles in partitions so VCS placeholders never break parsing', async () => {
+    const root = await createModelRoot({
+      'metamodel/project.md': ROOT_KIND,
+      'elements/cap.reader.md': CAPABILITY,
+      'views/.gitkeep': '',
+      'relationships/.DS_Store': '\u0000\u0000',
+    });
+
+    const parsed = await parseSemanticModel(root);
+    expect(parsed.diagnostics).toEqual([]);
+    expect(parsed.model.views).toEqual([]);
+    expect(parsed.model.relationships).toEqual([]);
+  });
+
   it('preserves requirement order and scenario order', async () => {
     const root = await createModelRoot({ 'elements/cap.reader.md': CAPABILITY });
     const [element] = (await parseSemanticModel(root)).model.elements;

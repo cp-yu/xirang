@@ -297,6 +297,43 @@ describe('handleProjection', () => {
     expect(adhocView.mock.calls[0]?.[0]).toEqual(adhocView.mock.calls[1]?.[0])
   })
 
+  it('expands in place inside an Authored view through expanded children selectors', async () => {
+    const adhocView = vi.fn(async (_predicates: any[], _projectId?: string) => fakeView('adhoc'))
+    const manifest = {
+      version: 4,
+      modelFingerprint: FINGERPRINT,
+      model: {
+        sourceFingerprint: FINGERPRINT,
+        architecture: { elements: [
+          { declaration: { identity: 'root', parent: null } },
+          { declaration: { identity: 'a', parent: 'root' } },
+          { declaration: { identity: 'a.child', parent: 'a' } },
+          { declaration: { identity: 'b', parent: 'root' } },
+        ] },
+        likec4Sources: { 'model.c4': 'model {}' },
+        likec4ElementPaths: { root: 'root', a: 'root.a', 'a.child': 'root.a.child', b: 'root.b' },
+      },
+      authoredViews: {
+        scoped: { title: 'Scoped', selection: ['root', 'a', 'a.child', 'b'], roots: ['root'], virtualRoot: false },
+      },
+      changes: {},
+    }
+    const context = {
+      readManifest: async () => JSON.stringify(manifest),
+      views: { diagrams: async () => [] },
+      loadSources: async () => ({ diagrams: async () => [], viewsService: { adhocView } }),
+      cache: new ProjectionCache<Awaited<ReturnType<typeof handleProjection>>>(50),
+      projectId: 'xirang',
+    }
+
+    await handleProjection({ ...validRequest, viewId: 'scoped', expanded: ['a'] }, context)
+
+    const predicates = adhocView.mock.calls[0]?.[0] as Array<{ include?: Array<{ ref: { model: string }; selector?: string }> }>
+    const include = predicates[0]?.include ?? []
+    expect(include.map(item => `${item.ref.model}${item.selector ? `:${item.selector}` : ''}`))
+      .toEqual(['root.a', 'root.b', 'root.a:children'])
+  })
+
   it('carries every relation from an aggregated official edge as stable Xirang triples', async () => {
     const view = {
       ...fakeView('model'),

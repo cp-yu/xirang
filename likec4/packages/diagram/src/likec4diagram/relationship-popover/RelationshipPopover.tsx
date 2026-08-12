@@ -6,9 +6,9 @@
 // Portions of this file have been modified by NVIDIA CORPORATION & AFFILIATES.
 
 import { autoPlacement, autoUpdate, computePosition, hide, offset, size } from '@floating-ui/dom'
-import { nameFromFqn } from '@likec4/core'
+import { nameFromFqn, RichText } from '@likec4/core'
 import type { LikeC4Model } from '@likec4/core/model'
-import type { DiagramEdge, DiagramNode, EdgeId, ViewId } from '@likec4/core/types'
+import type { Color, DiagramEdge, DiagramNode, EdgeId, ViewId } from '@likec4/core/types'
 import { css, cx } from '@likec4/styles/css'
 import { Box, HStack, styled, VStack } from '@likec4/styles/jsx'
 import { bleed } from '@likec4/styles/patterns'
@@ -47,6 +47,8 @@ import { selectDiagramContext, useDiagram, useDiagramSelector, useOnDiagramEvent
 import { useLikeC4Model } from '../../hooks/useLikeC4Model'
 import { roundDpr } from '../../utils'
 import { findDiagramEdge, findDiagramNode } from '../state/utils'
+import { useXirangViewSources } from '../../xirang/ContractLoaderContext'
+import { readXirangTriples, resolveXirangRelations, type XirangRelationView } from './xirang-relations'
 import { RelationshipPopoverActorLogic } from './actor'
 import { Endpoint, RelationshipTitle } from './components'
 
@@ -70,6 +72,7 @@ const selector = selectDiagramContext(c => {
 
 export const RelationshipPopover = memo(() => {
   const likec4model = useLikeC4Model()
+  const xirangSource = useXirangViewSources().selected
   const actorRef = useActorRef(RelationshipPopoverActorLogic)
   const diagram = useDiagram()
   const { viewId, selected } = useDiagramSelector(selector)
@@ -136,7 +139,43 @@ export const RelationshipPopover = memo(() => {
     shallowEqual,
   )
 
-  if (!diagramEdge || !sourceNode || !targetNode || isEmpty(diagramEdge.relations)) {
+  if (!diagramEdge || !sourceNode || !targetNode) {
+    return null
+  }
+
+  // Projection edges carry Xirang relationship identities; the LikeC4 relation ids they
+  // reference are computed from the projection's virtual sources and never resolve in the
+  // SPA model, so relationships are resolved from the architecture instead.
+  const xirangTriples = readXirangTriples(diagramEdge)
+  if (xirangTriples && xirangSource.architecture) {
+    const xirangRelations = resolveXirangRelations(xirangTriples, xirangSource.architecture)
+    const nodeIdentity = (node: DiagramNode): string | null => {
+      const identity = node.metadata?.['elementId']
+      return typeof identity === 'string' ? identity : null
+    }
+    const isDirect = (relation: XirangRelationView) =>
+      relation.source === nodeIdentity(sourceNode) && relation.target === nodeIdentity(targetNode)
+    const direct = xirangRelations.filter(isDirect)
+    const nested = xirangRelations.filter(relation => !isDirect(relation))
+    if (direct.length === 0 && nested.length === 0) {
+      return null
+    }
+    return (
+      <PortalToContainer>
+        <RelationshipPopoverInternal
+          viewId={viewId}
+          direct={direct.map(relation => ({ kind: 'xirang' as const, relation }))}
+          nested={nested.map(relation => ({ kind: 'xirang' as const, relation }))}
+          diagramEdge={diagramEdge}
+          sourceNode={sourceNode}
+          targetNode={targetNode}
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave} />
+      </PortalToContainer>
+    )
+  }
+
+  if (isEmpty(diagramEdge.relations)) {
     return null
   }
 
@@ -171,8 +210,8 @@ export const RelationshipPopover = memo(() => {
     <PortalToContainer>
       <RelationshipPopoverInternal
         viewId={viewId}
-        direct={direct}
-        nested={nested}
+        direct={direct.map(relation => ({ kind: 'likec4' as const, relation }))}
+        nested={nested.map(relation => ({ kind: 'likec4' as const, relation }))}
         diagramEdge={diagramEdge}
         sourceNode={sourceNode}
         targetNode={targetNode}
@@ -188,10 +227,14 @@ const getEdgeLabelElement = (edgeId: string, container: HTMLElement | null | und
     null
 }
 
+type PopoverRelation =
+  | { kind: 'likec4'; relation: LikeC4Model.AnyRelation }
+  | { kind: 'xirang'; relation: XirangRelationView }
+
 type RelationshipPopoverInternalProps = {
   viewId: ViewId
-  direct: LikeC4Model.AnyRelation[]
-  nested: LikeC4Model.AnyRelation[]
+  direct: PopoverRelation[]
+  nested: PopoverRelation[]
   diagramEdge: DiagramEdge
   sourceNode: DiagramNode
   targetNode: DiagramNode
@@ -284,23 +327,25 @@ const RelationshipPopoverInternal = ({
   const diagram = useDiagram()
 
   const renderRelationship = useCallback(
-    (relationship: LikeC4Model.AnyRelation, index: number) => (
-      <Fragment key={relationship.id}>
+    (item: PopoverRelation, index: number) => (
+      <Fragment key={item.kind === 'xirang' ? item.relation.triple : item.relation.id}>
         {index > 0 && <Divider />}
-        <Relationship
-          viewId={viewId}
-          relationship={relationship}
-          sourceNode={sourceNode}
-          targetNode={targetNode}
-          onNavigateTo={enableNavigateTo
-            ? (viewId: ViewId) => {
-              diagram.navigateTo(viewId)
-            }
-            : undefined}
-          {...(onOpenSource && enableVscode && {
-            onOpenSource: () => onOpenSource({ relation: relationship.id }),
-          })}
-        />
+        {item.kind === 'xirang'
+          ? <XirangRelationship relation={item.relation} sourceColor={sourceNode.color} targetColor={targetNode.color} />
+          : <Relationship
+            viewId={viewId}
+            relationship={item.relation}
+            sourceNode={sourceNode}
+            targetNode={targetNode}
+            onNavigateTo={enableNavigateTo
+              ? (viewId: ViewId) => {
+                diagram.navigateTo(viewId)
+              }
+              : undefined}
+            {...(onOpenSource && enableVscode && {
+              onOpenSource: () => onOpenSource({ relation: item.relation.id }),
+            })}
+          />}
       </Fragment>
     ),
     [viewId, sourceNode, targetNode, diagram, enableNavigateTo, onOpenSource, enableVscode],
@@ -616,6 +661,74 @@ const Label = styled('div', {
     color: 'text.dimmed',
   },
 })
+
+/** Relationship row for projection edges, rendered from the Xirang architecture. */
+const XirangRelationship = ({
+  relation,
+  sourceColor,
+  targetColor,
+}: {
+  relation: XirangRelationView
+  sourceColor: Color
+  targetColor: Color
+}) => {
+  return (
+    <VStack
+      className={bleed({
+        block: '2',
+        inline: '2',
+        paddingY: '2.5',
+        paddingX: '2',
+        gap: '1',
+        rounded: 'sm',
+        backgroundColor: {
+          _hover: {
+            base: 'mantine.gray[1]',
+            _dark: 'mantine.dark[5]/70',
+          },
+        },
+      })}
+    >
+      <HStack gap={'0.5'}>
+        <TooltipGroup openDelay={200}>
+          <Tooltip label={relation.source} offset={2} position="top-start">
+            <Endpoint likec4color={sourceColor}>
+              {relation.sourceLabel}
+            </Endpoint>
+          </Tooltip>
+          <IconArrowRight stroke={2.5} size={'11px'} opacity={0.65} />
+          <Tooltip label={relation.target} offset={2} position="top-start">
+            <Endpoint likec4color={targetColor}>
+              {relation.targetLabel}
+            </Endpoint>
+          </Tooltip>
+        </TooltipGroup>
+      </HStack>
+      <HStack gap={'xs'} alignItems="center">
+        <RelationshipTitle>{relation.kind}</RelationshipTitle>
+      </HStack>
+      {relation.description && (
+        <>
+          <Label>description</Label>
+          <Box
+            css={{
+              paddingLeft: '2.5',
+              py: '1.5',
+              borderLeftWidth: '2',
+              borderLeftStyle: 'dotted',
+              borderLeftColor: {
+                base: 'mantine.gray[3]',
+                _dark: 'mantine.dark[4]',
+              },
+            }}
+          >
+            <Markdown value={RichText.from(relation.description)} fontSize={'sm'} textScale={0.875} />
+          </Box>
+        </>
+      )}
+    </VStack>
+  )
+}
 
 const Tooltip = MantineTooltip.withProps({
   color: 'dark',

@@ -171,6 +171,7 @@ async function readSnapshot(candidateRoot: string, diagnostics: ChangeDiagnostic
       const entries = await fs.readdir(absolute);
       entries.sort(compareUtf8Bytes);
       for (const entry of entries) {
+        if (entry.startsWith('.')) continue;
         await visit(path.join(absolute, entry), relative ? `${relative}/${entry}` : entry);
       }
       return;

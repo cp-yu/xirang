@@ -301,6 +301,23 @@ Authored View SHALL 以持久化 `include`、`exclude` 与可选 `of` 确定 Vie
 - **THEN** Browser 只显露该 View 选择闭包内且未被 `exclude` 剪除的 descendants
 - **AND** Authored View 文件保持不变
 
+#### Scenario: 切换后呈现声明边界内内容
+
+- **WHEN** 用户从 Model View 切换到 Authored View
+- **THEN** 投影只呈现该 View 选择闭包内的 Elements，边界外 Elements 不呈现
+- **AND** 初始 focus 为该 View 的根 Element，不引用 View 外 Element
+
+#### Scenario: 在 Authored View 内就地展开
+
+- **WHEN** 用户在 Authored View 内就地展开选择闭包内的 Element
+- **THEN** Browser 以与 Model View 一致的方式呈现其 children
+
+#### Scenario: 在 Authored View 内显示 focus breadcrumb
+
+- **WHEN** 用户在 Authored View 内下钻到闭包内 Element
+- **THEN** focus breadcrumb 以该 View 根为起点呈现路径
+- **AND** 路径在该 View 边界处截断，不包含 View 外祖先
+
 ### Requirement: 聚合当前层 Relationships
 
 Semantic Browser SHALL 将每个深层 Relationship 的 endpoints 映射到当前层最深的可见 Element；仅当两个 endpoints 均可映射且映射结果不同时形成 visual edge。每个 source Relationship SHALL 保留独立 edge identity、routing、Kind presentation、diff state 与详情三元组，即使多个 Relationships 具有相同可见 source/target；系统 SHALL NOT 合并同向不同 Kinds、同向不同 diff states 或 A→B 与 B→A。
@@ -321,6 +338,12 @@ Semantic Browser SHALL 将每个深层 Relationship 的 endpoints 映射到当�
 - **WHEN** 多个 Relationships 映射到相同可见 source/target，但使用不同 Kind presentation
 - **THEN** 每个 Relationship 保留独立 visual edge、label 与 presentation
 - **AND** 任一 Relationship 的 diff operation 只作用于自身 edge
+
+#### Scenario: 查看投影边的关系详情
+
+- **WHEN** 用户悬停投影视图中的关系边
+- **THEN** 关系详情按 Xirang 关系三元组（`source|kind|target`）与 relationship-kind 语义呈现
+- **AND** 呈现不依赖 LikeC4 relation id 在浏览器模型中的查找
 
 ### Requirement: focus 失效时确定性回退
 

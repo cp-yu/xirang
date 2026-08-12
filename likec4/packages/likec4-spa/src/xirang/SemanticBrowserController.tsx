@@ -106,17 +106,48 @@ function defaultMode(change: string | null): SemanticBrowserMode {
   return change === null ? 'complete' : 'complete-with-diff'
 }
 
+/** Identities the actor may focus in a view; shared by clamping and the actor→controller mirror. */
+function focusableIdentities(
+  state: Pick<SemanticBrowserState, 'viewSelection' | 'changeSelection'>,
+  manifest: SemanticBrowserManifest,
+): Set<string> {
+  const changeSource = state.changeSelection ? manifest.changes[state.changeSelection] : undefined
+  return new Set([
+    ...sourceForView(manifest, state.viewSelection),
+    ...(changeSource?.architecture?.elements ?? []).map(element => element.declaration.identity),
+  ])
+}
+
+/**
+ * Focus the controller should mirror from the actor: `'clear'` when the actor reached the
+ * view root (breadcrumb click), a focus identity when the actor navigated inside the view,
+ * or `null` when the controller already agrees or the actor focus is outside the view.
+ * Out-of-view actor focus must never be mirrored: the clamp would reject it and the effect
+ * would re-fire forever, starving in-flight projections.
+ */
+export function mirrorActorFocus(
+  state: SemanticBrowserState,
+  manifest: SemanticBrowserManifest,
+  diagramFocus: string | null,
+  architectureRoot: string,
+): 'clear' | string | null {
+  const semanticFocus = (diagramFocus ?? architectureRoot) === architectureRoot ? null : diagramFocus
+  if (semanticFocus === null) {
+    // Clear only when the user explicitly navigated to the root element (breadcrumb click,
+    // diagramFocus is the root id); a null actor focus means a deep-link projection is in
+    // flight and the controller focus must not be cleared.
+    return diagramFocus === architectureRoot && state.focus !== null ? 'clear' : null
+  }
+  return semanticFocus !== state.focus && focusableIdentities(state, manifest).has(semanticFocus) ? semanticFocus : null
+}
+
 function clampState(state: SemanticBrowserState, manifest: SemanticBrowserManifest): SemanticBrowserState {
   const viewSelection = validViews(manifest).has(state.viewSelection) ? state.viewSelection : 'model'
   const candidateView = viewSelection === 'candidate' || viewSelection === 'candidate-diff'
   const changeSelection = !candidateView && state.changeSelection && validChanges(manifest).has(state.changeSelection)
     ? state.changeSelection
     : null
-  const changeSource = state.changeSelection ? manifest.changes[state.changeSelection] : undefined
-  const allowed = new Set([
-    ...sourceForView(manifest, viewSelection),
-    ...(changeSource?.architecture?.elements ?? []).map(element => element.declaration.identity),
-  ])
+  const allowed = focusableIdentities(state, manifest)
   const focus = state.focus && allowed.has(state.focus) ? state.focus : null
   const expanded = new Set([...state.expanded].filter(identity => allowed.has(identity)))
   const presentationMode = viewSelection === 'candidate-diff'
@@ -382,7 +413,6 @@ export function SemanticBrowserRouteSync() {
 
   const architectureRoot = runtime.selected.roots?.[0]
     ?? runtime.selected.architecture?.elements.find(element => element.declaration.parent === null)?.declaration.identity
-  const diagramTargetFocus = diagramFocus ?? architectureRoot ?? null
   const diagramExpandedKey = JSON.stringify([...diagramExpanded].sort())
   const controllerExpandedKey = JSON.stringify([...(controller?.state.expanded ?? [])].sort())
   const previousDiagramExpanded = useRef(diagramExpandedKey)
@@ -404,21 +434,10 @@ export function SemanticBrowserRouteSync() {
 
   useEffect(() => {
     if (!controller || !architectureRoot) return
-    const semanticFocus = diagramTargetFocus === architectureRoot ? null : diagramTargetFocus
-    if (semanticFocus === null) {
-      // The actor is at the model root. Clear the controller focus only when the user
-      // explicitly navigated to the root element (breadcrumb click, diagramFocus is the
-      // root id); when the actor is still at its default null state a deep-link
-      // projection is in flight and the controller focus must not be cleared.
-      if (diagramFocus === architectureRoot && controller.state.focus !== null) {
-        controller.dispatch({ type: 'focus.select', focus: null })
-      }
-      return
-    }
-    if (semanticFocus !== controller.state.focus) {
-      controller.dispatch({ type: 'focus.select', focus: semanticFocus })
-    }
-  }, [architectureRoot, controller, diagramFocus, diagramTargetFocus])
+    const mirrored = mirrorActorFocus(controller.state, controller.manifest, diagramFocus, architectureRoot)
+    if (mirrored === 'clear') controller.dispatch({ type: 'focus.select', focus: null })
+    else if (mirrored !== null) controller.dispatch({ type: 'focus.select', focus: mirrored })
+  }, [architectureRoot, controller, diagramFocus])
   useEffect(() => {
     if (!controller) return
     const state = historyStateForSemanticBrowser(controller.state)
