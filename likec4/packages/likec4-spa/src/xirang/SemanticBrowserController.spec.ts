@@ -9,6 +9,7 @@ import {
   encodeSemanticBrowserUrl,
   historyStateForSemanticBrowser,
   projectionRequestForSemanticBrowser,
+  reconcileSemanticBrowserState,
   reduceSemanticBrowserState,
   type SemanticBrowserManifest,
 } from './SemanticBrowserController'
@@ -90,6 +91,23 @@ describe('SemanticBrowserController state machine', () => {
     const cleared = reduceSemanticBrowserState(withChange, { type: 'change.select', change: null }, manifest)
     expect(cleared.presentationMode).toBe('complete')
   })
+
+  it('clears an archived Change and its diff expansion when the manifest refreshes', () => {
+    const state = createSemanticBrowserState(
+      manifest,
+      { change: 'auth', mode: 'diff-only', focus: 'root.api' },
+      { expanded: ['root.api', 'root.db'] },
+    );
+    const nextManifest: SemanticBrowserManifest = { ...manifest, changes: {} };
+    const next = reconcileSemanticBrowserState(state, nextManifest);
+
+    expect(next).toMatchObject({
+      changeSelection: null,
+      presentationMode: 'complete',
+      focus: 'root.api',
+    });
+    expect([...next.expanded]).toEqual([]);
+  });
 
   it('keeps the three dimensions independent', () => {
     const initial = createSemanticBrowserState(manifest, { change: 'auth', focus: 'root.api' })

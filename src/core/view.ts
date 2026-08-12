@@ -438,6 +438,23 @@ export function normalizeWatcherPath(raw: Buffer | string, root?: string): strin
   return relative.split(path.sep).join('/');
 }
 
+export function changeFromWatcherPath(normalized: string): string | null {
+  const change = normalized.match(/^changes\/([^/]+)(?:\/|$)/)?.[1];
+  return change && change !== 'archive' ? change : null;
+}
+
+export type WatcherRefresh = { all: true } | { all: false; change: string };
+
+export function watcherRefreshForPath(normalized: string | null): WatcherRefresh | null {
+  if (normalized === null || normalized === 'changes/archive' || normalized.startsWith('changes/archive/')) {
+    return { all: true };
+  }
+  if (PARTITIONS.some(partition => normalized.startsWith(`model/${partition}/`))) return { all: true };
+  if (normalized === 'candidate' || normalized.startsWith('candidate/')) return { all: true };
+  const change = changeFromWatcherPath(normalized);
+  return change ? { all: false, change } : null;
+}
+
 export class ViewCommand {
   constructor(private readonly launch: ViewLauncher = launchEmbeddedLikeC4) {}
 
@@ -474,18 +491,14 @@ export class ViewCommand {
       };
       try {
         sourceWatcher = watch(path.join(projectRoot, XIRANG_DIR_NAME), { recursive: true }, (_event, filename) => {
-          if (!filename) return;
-          const normalized = normalizeWatcherPath(filename, path.join(projectRoot, XIRANG_DIR_NAME));
-          if (!normalized) return;
-          if (PARTITIONS.some(partition => normalized.startsWith(`model/${partition}/`))) {
-            refreshAll = true;
-          } else if (normalized.startsWith('candidate/')) {
-            refreshAll = true;
-          } else {
-            const change = normalized.match(/^changes\/([^/]+)\//)?.[1];
-            if (!change || change === 'archive') return;
-            refreshChanges.add(change);
-          }
+          const normalized = filename
+            ? normalizeWatcherPath(filename, path.join(projectRoot, XIRANG_DIR_NAME))
+            : null;
+          if (filename && !normalized) return;
+          const requested = watcherRefreshForPath(normalized);
+          if (!requested) return;
+          if (requested.all) refreshAll = true;
+          else refreshChanges.add(requested.change);
           if (refreshTimer) clearTimeout(refreshTimer);
           refreshTimer = setTimeout(refresh, 75);
         });

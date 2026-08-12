@@ -30,6 +30,47 @@ describe('transactional LikeC4 artifact cache', () => {
     }
   });
 
+  it('keeps the live cache directory stable for recursive watchers', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-cache-'));
+    const target = likec4CacheDir(root);
+    await fs.mkdir(target, { recursive: true });
+    await fs.writeFile(path.join(target, 'old.txt'), 'old');
+    const before = await fs.stat(target);
+    try {
+      await generateLikeC4Artifacts(root, model, async () => undefined);
+      const after = await fs.stat(target);
+
+      expect(after.ino).toBe(before.ino);
+      expect((await fs.readdir(path.dirname(target))).some(entry => entry.startsWith('.cache-likec4-backup-'))).toBe(false);
+    } finally {
+      await fs.rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it('restores the live cache when publication fails', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-cache-'));
+    const target = likec4CacheDir(root);
+    await fs.mkdir(target, { recursive: true });
+    await fs.writeFile(path.join(target, 'old.txt'), 'old');
+    try {
+      await expect(generateLikeC4Artifacts(
+        root,
+        model,
+        async () => undefined,
+        async (_source, live) => {
+          await fs.rm(path.join(live, 'old.txt'));
+          await fs.writeFile(path.join(live, 'partial.txt'), 'partial');
+          throw new Error('publish failed');
+        },
+      )).rejects.toThrow('publish failed');
+
+      expect(await fs.readFile(path.join(target, 'old.txt'), 'utf8')).toBe('old');
+      await expect(fs.stat(path.join(target, 'partial.txt'))).rejects.toMatchObject({ code: 'ENOENT' });
+    } finally {
+      await fs.rm(root, { recursive: true, force: true });
+    }
+  });
+
   it('retains the live cache when validation fails', async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-cache-'));
     const target = likec4CacheDir(root);

@@ -129,6 +129,14 @@ function clampState(state: SemanticBrowserState, manifest: SemanticBrowserManife
   return { viewSelection, changeSelection, presentationMode, focus, expanded }
 }
 
+export function reconcileSemanticBrowserState(
+  state: SemanticBrowserState,
+  manifest: SemanticBrowserManifest,
+): SemanticBrowserState {
+  const changeRemoved = state.changeSelection !== null && !validChanges(manifest).has(state.changeSelection)
+  return clampState(changeRemoved ? { ...state, expanded: new Set() } : state, manifest)
+}
+
 export function createSemanticBrowserState(
   manifest: SemanticBrowserManifest,
   url: SemanticBrowserUrlState = {},
@@ -222,7 +230,7 @@ export function SemanticBrowserControllerProvider({
 }>) {
   const [state, setState] = useState(() => createSemanticBrowserState(manifest, initialUrl, initialHistory))
   useEffect(() => {
-    setState(current => clampState(current, manifest))
+    setState(current => reconcileSemanticBrowserState(current, manifest))
   }, [manifest])
   const dispatch = (action: SemanticBrowserAction) => {
     setState(current => reduceSemanticBrowserState(current, action, manifest))

@@ -4,10 +4,12 @@ import os from 'node:os';
 import path from 'node:path';
 import {
   buildViewRuntimeSnapshot,
+  changeFromWatcherPath,
   launchEmbeddedLikeC4,
   normalizeWatcherPath,
   projectBrowserDiff,
   ViewCommand,
+  watcherRefreshForPath,
   type ViewLauncher,
   type ViewRuntimeSnapshot,
 } from '../../src/core/view.js';
@@ -213,6 +215,32 @@ describe('ViewCommand', () => {
     expect(zeta.diff?.entries.some(entry => entry.identity.includes('#Zeta'))).toBe(true);
     expect(zeta.architecture?.elements.map(element => element.declaration.identity))
       .toEqual(expect.arrayContaining(['root', 'alpha.id']));
+  });
+
+  it('removes an archived Change from the live manifest', async () => {
+    await writeBaseModel(tempDir);
+    await writeChangeDelta(tempDir, 'archive-me', { 'elements/alpha.id.md': requirementDelta('Archive') });
+    const launch: ViewLauncher = async options => {
+      const readManifest = async () => JSON.parse(
+        await fs.readFile(options.changeManifestFile, 'utf8'),
+      ) as ViewRuntimeSnapshot;
+      expect((await readManifest()).changes['archive-me']).toBeDefined();
+
+      const changesDir = path.join(tempDir, '.xirang', 'changes');
+      await fs.mkdir(path.join(changesDir, 'archive'), { recursive: true });
+      await fs.rename(
+        path.join(changesDir, 'archive-me'),
+        path.join(changesDir, 'archive', '2026-01-01-archive-me'),
+      );
+
+      for (let attempt = 0; attempt < 50; attempt += 1) {
+        if (!(await readManifest()).changes['archive-me']) return;
+        await new Promise(resolve => setTimeout(resolve, 20));
+      }
+      throw new Error('Live manifest retained the archived Change');
+    };
+
+    await new ViewCommand(launch).execute(tempDir);
   });
 
   it('reports one fingerprint per Semantic Model partition', async () => {
@@ -524,6 +552,29 @@ describe('normalizeWatcherPath', () => {
     const posix = normalizeWatcherPath('model/elements/foo.md');
     const windows = normalizeWatcherPath('model\\elements\\foo.md');
     expect(posix).toBe(windows);
+  });
+});
+
+describe('changeFromWatcherPath', () => {
+  it('detects both a Change directory event and its descendants', () => {
+    expect(changeFromWatcherPath('changes/my-change')).toBe('my-change');
+    expect(changeFromWatcherPath('changes/my-change/elements/foo.md')).toBe('my-change');
+  });
+
+  it('ignores archive and unrelated paths', () => {
+    expect(changeFromWatcherPath('changes/archive/2026-01-01-my-change')).toBeNull();
+    expect(changeFromWatcherPath('model/elements/foo.md')).toBeNull();
+  });
+});
+
+describe('watcherRefreshForPath', () => {
+  it('refreshes all sources for archive-side and missing-filename events', () => {
+    expect(watcherRefreshForPath('changes/archive/2026-01-01-my-change')).toEqual({ all: true });
+    expect(watcherRefreshForPath(null)).toEqual({ all: true });
+  });
+
+  it('refreshes only the affected active Change for its events', () => {
+    expect(watcherRefreshForPath('changes/my-change')).toEqual({ all: false, change: 'my-change' });
   });
 });
 
