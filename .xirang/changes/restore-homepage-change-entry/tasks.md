@@ -63,3 +63,4 @@
 ## Required Corrections
 
 - [x] [artifact_fix] `playwright.config.ts` desktop/mobile 项目 grep 白名单新增用例标题 `opens an active change from the landing page`（无该注册新用例不会执行，C3/C5 将空转）；已补充声明到 Task 3 Files 与 proposal.md Impact，无需代码改动
+- [x] [code_fix] 首页点击进入 change-derived-view 后白板：`DiagramUI` 投影更新以 `focusIdentity ?? rootIdentity` 作视口锚点，无 focus 时锚定 root，跨布局（基础视图 → diff-only 投影）root 位置差 ~18k px，视口补偿后画布看向空白；已改为仅在存在真实 focus 时锚定（`anchorIdentity: focusIdentity ?? null`），并在 e2e 新增“至少一个节点与视口相交”回归断言

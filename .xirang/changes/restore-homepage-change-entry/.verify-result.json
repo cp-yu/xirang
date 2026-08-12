@@ -72,7 +72,7 @@
     "timestamp": "2026-08-12T14:50:27.774Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
         "timestamp": "2026-08-12T14:38:22.355Z",
@@ -83,6 +83,11 @@
         "timestamp": "2026-08-12T14:50:27.766Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-12T14:54:46.180Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
@@ -160,7 +165,7 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx"
@@ -208,7 +213,7 @@
         "priorityReason": "Only statically provable duplication in the base scope: the two card components differ in exactly two lines and the three grids share one config; high confidence (byte-level identical bodies), low risk (same-file presentational refactor, navigate semantics pinned by two e2e tests), low cost, medium impact. The remaining base-scope code (ContractLoaderContext `changes` channel +4 lines, playwright grep registration, 18-line e2e test) is already minimal and correct with no further simplification or efficiency opportunity.",
         "id": "OPT-20260812T143822352Z-01",
         "targetFileHashes": {
-          "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx": "2a32588a63f9471c5c70f87318155dbd62cbe1304639eb60f8a18e5d4803ba04"
+          "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx": "62875e5f79ac12cbb82665de37ba122e13b5fa1de2362a930b2cfa9b45cbd592"
         }
       }
     ],
@@ -246,9 +251,16 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-12T14:50:27.766Z",
         "findingId": "OPT-20260812T143822352Z-01"
+      },
+      {
+        "sequence": 5,
+        "action": "resolve",
+        "reason": "Implemented and verified. Current code at HEAD a7fb3e76a (opt-r1 checkpoint) confirms the full opportunity is realized: duplicated ChangeDerivedViewCard/CandidateViewCard bodies (~46 lines) unified into one SourceCard with single-source-of-truth badge/diagnostic/count/empty-state rendering. Preservation verified against current code: candidate navigation `{...prev, view: s.id}` (no change/mode keys), change navigation `{...prev, view:'model', change: c.change, mode:'diff-only'}`, card keys `s.id`/`c.change`, identical Card props/DOM (shadow xs, padding lg, radius sm, group, withBorder, component a, href /view/model/, cursor pointer), badge colors/order, ERROR diagnostics xs/red/lineClamp 2 keyed by index, 'No semantic graph changes' iff `errorDiagnostics.length === 0 && counts && counts.total === 0` (semantically identical to prior `!hasIssues && ...`), section visibility and headings unchanged. Non-substantive deviation from keyDesign: `onOpen: () => void` callback instead of `search` builder prop; navigate semantics identical (e2e URL assertions pass). Fresh reviewer verification PASS recorded in .verify-result.json (vitest 25 passed, tsc --build --force exit 0, playwright desktop+mobile 10 passed). Re-scan of all base-scope files (single-index.tsx, ContractLoaderContext.tsx changes channel, playwright.config.ts grep registration, semantic-browser-candidate-views.spec.ts) finds no further statically provable, behavior-preserving, meaningful opportunity: only residual duplication is the three identical 6-prop SimpleGrid configs, which this finding explicitly marked optional and is a ~12-line layout-config dedup across adjacent sections sharing layout by design — below the meaningful admission bar; micro-stylistic items (`counts && counts.ADDED > 0`) have zero behavior delta and are not meaningful. Phase 2 confirmed complete.",
+        "timestamp": "2026-08-12T14:54:46.180Z",
+        "findingId": "OPT-20260812T143822352Z-01"
       }
     ],
-    "reconciliationSignature": "caeca5ed93cf216ebd7060af68e4f1d4b9d07a43a841c2ef29815c72fb29440a",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }

@@ -55,6 +55,17 @@ test('opens an active change from the landing page', async ({ page }) => {
   await expect(removed).toBeVisible()
   await expect(removed).toHaveAttribute('data-xirang-operation', 'REMOVED')
 
+  // The projection viewport must stay on-screen: a regression anchored the
+  // viewport transition on the root identity and shifted the canvas ~18k px
+  // away, leaving every node off-screen (blank board).
+  const onScreen = await page.evaluate(() =>
+    [...document.querySelectorAll('.react-flow__node')].some(node => {
+      const r = node.getBoundingClientRect()
+      return r.right > 0 && r.left < window.innerWidth && r.bottom > 0 && r.top < window.innerHeight
+    }),
+  )
+  expect(onScreen).toBe(true)
+
   // Change inspection panel is hidden below the sm breakpoint (mobile).
   if ((page.viewportSize()?.width ?? 0) >= 768) {
     await expect(page.getByText(/Change · Model View/)).toBeVisible()

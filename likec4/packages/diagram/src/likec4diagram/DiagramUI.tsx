@@ -359,7 +359,11 @@ function XirangArchitectureOverlay() {
       type: 'update.view',
       view,
       source: 'projection',
-      anchorIdentity: focusIdentity ?? rootIdentity ?? null,
+      // Anchor the viewport only on a real semantic focus; anchoring on the
+      // breadcrumb root across unrelated layouts shifts the viewport to a
+      // distant region of the canvas (blank screen after entering a
+      // change-derived view from the landing page).
+      anchorIdentity: focusIdentity ?? null,
       initialProjection: !hasProjection.current,
     })
     hasProjection.current = true
