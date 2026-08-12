@@ -174,3 +174,7 @@ opencode.json
 /.pi-subagents/
 .xirang/.cache-likec4/
 /.turbo/cache
+
+# Generated LikeC4 staging workspaces
+.xirang/.cache-likec4-staging-*/
+test/fixtures/contract-browser/.xirang/.cache-likec4-staging-*/

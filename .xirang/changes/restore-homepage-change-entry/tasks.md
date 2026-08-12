@@ -82,10 +82,12 @@
 
 - [x] C7 下钻与就地展开不触发适配
   - Verifies: `elements/semantic-browser.md` / Requirement "切换 View、Change 或 Mode 后自动适配视口" / Scenario "下钻与就地展开不触发适配"
-  - Command: `pnpm exec playwright test test/e2e/semantic-browser-model-view.spec.ts --project=desktop`
-  - Expect: 既有下钻与 expand 用例（handles ADDED projection、renders each Change presentation mode 等）保持通过
+  - Command: `pnpm exec playwright test test/e2e/semantic-browser-model-view.spec.ts --project=desktop --project=mobile`
+  - Expect: 全量通过：钻取后节点屏幕位置稳定（fit 用例内断言）、expand 后 viewport transform 不变（expands 用例内断言）；既有下钻与 expand 用例保持通过
 
 ## Required Corrections
+
+- [x] [code_fix] C7 全量套件中 four-state diff visuals 徽标尺寸断言失败（fit 缩放后 getBoundingClientRect 按 zoom 补偿产生浮点误差 23.9999 < 24，且 fit 动画期间读取 bbox 导致顺序依赖）：宽度改 toBeCloseTo(24, 3)，测量前等待 viewport transform 稳定（两次采样一致），并补齐“下钻节点屏幕位置稳定”与“expand 后 transform 不变”断言；C7 命令改为 desktop+mobile 全量
 
 - [x] [artifact_fix] `playwright.config.ts` desktop/mobile 项目 grep 白名单新增用例标题 `opens an active change from the landing page`（无该注册新用例不会执行，C3/C5 将空转）；已补充声明到 Task 3 Files 与 proposal.md Impact，无需代码改动
 - [x] [code_fix] 首页点击进入 change-derived-view 后白板：`DiagramUI` 投影更新以 `focusIdentity ?? rootIdentity` 作视口锚点，无 focus 时锚定 root，跨布局（基础视图 → diff-only 投影）root 位置差 ~18k px，视口补偿后画布看向空白；已改为仅在存在真实 focus 时锚定（`anchorIdentity: focusIdentity ?? null`），并在 e2e 新增“至少一个节点与视口相交”回归断言

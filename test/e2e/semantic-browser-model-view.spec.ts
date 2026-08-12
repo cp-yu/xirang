@@ -190,6 +190,15 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
   // Root focus: ADDED compound node with dotted outline.
   await page.goto('/view/model/?change=browser-change&mode=complete-with-diff')
 
+  const viewportTransform = () =>
+    page.locator('.react-flow__viewport').evaluate(el => getComputedStyle(el).transform)
+  // Auto-fit may animate the viewport; wait until the transform settles before measuring.
+  await expect.poll(async () => {
+    const before = await viewportTransform()
+    await page.waitForTimeout(80)
+    return await viewportTransform() === before
+  }, { timeout: 10_000 }).toBe(true)
+
   const added = page.locator('.react-flow__node[data-xirang-identity="capability.added-parent"] .likec4-element-node')
   await expect(added).toBeVisible()
   await expect(page.locator('.react-flow__node[data-xirang-identity="capability.added-parent"]'))
@@ -203,7 +212,7 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
   expect(await addedBadge.textContent()).toBe('+')
   expect(await addedBadge.evaluate(node => parseFloat(getComputedStyle(node).opacity))).toBe(1)
 
-  expect((await nodeBadgeStyle(addedBadge)).width).toBeGreaterThanOrEqual(24)
+  expect((await nodeBadgeStyle(addedBadge)).width).toBeCloseTo(24, 3)
   expect((await nodeBadgeStyle(addedBadge)).height).toBeCloseTo(24, 3)
   expect((await nodeBadgeStyle(addedBadge)).fontSize).toBeGreaterThanOrEqual(16)
   expect((await nodeBadgeStyle(addedBadge)).borderWidth).toBeGreaterThanOrEqual(2)
@@ -213,6 +222,11 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
 
   // Drill focus: unchanged assistant node + edge, MODIFIED leaf, REMOVED peer.
   await page.goto('/view/model/?change=browser-change&mode=complete-with-diff&focus=capability.drill')
+  await expect.poll(async () => {
+    const before = await viewportTransform()
+    await page.waitForTimeout(80)
+    return await viewportTransform() === before
+  }, { timeout: 10_000 }).toBe(true)
 
   const unchangedLeaf = page.locator('.react-flow__node[data-xirang-identity="capability.assistant"] .likec4-element-node')
   await expect(unchangedLeaf).toBeVisible()
@@ -270,9 +284,11 @@ test('expands in place with ctrl+click and collapses with Shift+0', async ({ pag
   const branch = page.locator('.react-flow__node[data-xirang-identity="capability.drill"]')
   await expect(branch).toHaveCount(0)
 
-  // Shift+3 expands three levels in place while keeping the current focus.
+  // Shift+3 expands three levels in place while keeping the current focus and viewport.
+  const beforeExpand = await page.locator('.react-flow__viewport').evaluate(el => getComputedStyle(el).transform)
   await page.locator('.react-flow__pane').press('Shift+Digit3')
   await expect(branch).toBeVisible()
+  expect(await page.locator('.react-flow__viewport').evaluate(el => getComputedStyle(el).transform)).toBe(beforeExpand)
   await expect(page.locator('[data-xirang-focus-breadcrumb]')).not.toContainText('Drill-down Capability')
   await expectVisibleNodesDoNotOverlap(page)
   await page.screenshot({ path: test.info().outputPath('model-expanded.png'), fullPage: true })
@@ -300,6 +316,34 @@ test('fits the diagram after switching', async ({ page }) => {
 
   // Deep-link entry (same as the homepage quick-entry flow) fits the first projection.
   await expect.poll(allNodesWithinViewport, { timeout: 10_000 }).toBe(true)
+  // Wait for the entry fit animation to settle before measuring.
+  await expect.poll(async () => {
+    const before = await viewportTransform()
+    await page.waitForTimeout(80)
+    return await viewportTransform() === before
+  }, { timeout: 10_000 }).toBe(true)
+
+  // Focus drill keeps the user's position: the clicked node stays at the same screen spot.
+  const drillNode = page.locator('.react-flow__node[data-xirang-identity="capability.drill"]')
+  await expect(drillNode).toBeVisible()
+  const drillBoxBefore = await drillNode.boundingBox()
+  await drillNode.dblclick({ position: { x: 12, y: 12 } })
+  await expect(page).toHaveURL(/focus=capability\.drill/)
+  await expect(drillNode).toBeVisible()
+  // Wait for the anchor compensation to settle before measuring.
+  await expect.poll(async () => {
+    const before = await viewportTransform()
+    await page.waitForTimeout(80)
+    return await viewportTransform() === before
+  }, { timeout: 10_000 }).toBe(true)
+  const drillBoxAfter = await drillNode.boundingBox()
+  // The anchor compensation keeps the drilled node's center at the same screen position.
+  const center = (box: { x: number; y: number; width: number; height: number } | null) =>
+    box ? { x: box.x + box.width / 2, y: box.y + box.height / 2 } : { x: 0, y: 0 }
+  const centerBefore = center(drillBoxBefore)
+  const centerAfter = center(drillBoxAfter)
+  expect(Math.abs(centerAfter.x - centerBefore.x)).toBeLessThan(4)
+  expect(Math.abs(centerAfter.y - centerBefore.y)).toBeLessThan(4)
 
   // Mode switch re-fits the new content.
   const beforeMode = await viewportTransform()
