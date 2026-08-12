@@ -26,6 +26,7 @@
 
 **Files**:
 - Modify: `likec4/packages/likec4-spa/src/routes/_single/single-index.tsx`
+- Modify: `likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx`（投影视口锚点：无真实 focus 时不锚定 root，避免跨布局视口漂移）
 
 **Requirements**:
 - `elements/semantic-browser.md` / Requirement "首页提供 Candidate 与活动 Change 快速入口"

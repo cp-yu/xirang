@@ -42,4 +42,5 @@ Semantic Browser 单一路由化后，首页（`/` → `/single-index/`）只保
 - `likec4/packages/likec4-spa/src/routes/_single/single-index.tsx`: 新增 Active Changes 区块与 Change 卡片组件
 - `test/e2e/semantic-browser-candidate-views.spec.ts`: 新增首页 Change 卡片点击直达 diff-only 的用例（desktop + mobile）
 - `playwright.config.ts`: desktop/mobile 项目 grep 白名单注册新用例标题（否则新用例不会执行）
+- `likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx`: 投影更新视口锚点改为仅在存在真实 focus 时生效（修复首页点击进入 change-derived view 后白板）
 - 无新依赖、无数据或配置变更
