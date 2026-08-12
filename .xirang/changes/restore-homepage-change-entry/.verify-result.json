@@ -1,22 +1,55 @@
 {
-  "timestamp": "2026-08-12T16:50:19.680Z",
-  "result": "PASS",
+  "timestamp": "2026-08-12T19:02:56.081Z",
+  "result": "PASS_WITH_WARNINGS",
   "issues": [
     {
+      "severity": "WARNING",
+      "message": "C7 full-suite run flaked twice on the pre-existing HMR test 'refreshes the model through HMR' (fingerprint poll 20s timeout); test is byte-identical to base aa546f8e0 and no server-side file is in the diff scope, so it is environmental flakiness, not a change defect",
+      "requirement": "切换 View、Change 或 Mode 后自动适配视口",
+      "task": "C7 下钻与就地展开不触发适配",
+      "recommendation": "Monitor HMR test stability; optional future bump of the 20s fingerprint poll timeout or watcher tuning. Do not block this change.",
+      "evidenceCitations": [
+        "test/e2e/semantic-browser-model-view.spec.ts:110-134",
+        ".xirang/changes/restore-homepage-change-entry/tasks.md:85"
+      ]
+    },
+    {
       "severity": "SUGGESTION",
-      "message": ".verify-result.json still records the previous round's FAIL_NEEDS_CORRECTIONS verdict with gitHeadCommit 98cd7bbb7; regenerate it from this round's PASS verdict",
+      "message": ".gitignore change (staging-workspace ignore rules, fix for removed committed fixture cache) is not declared in any task Files section",
       "requirement": "首页提供 Candidate 与活动 Change 快速入口",
       "task": null,
-      "recommendation": "regenerate .verify-result.json from this fresh verdict before archive",
+      "recommendation": "artifact_fix: add '.gitignore' to the relevant task Files in tasks.md before archive",
+      "evidenceCitations": [
+        ".gitignore:175-178",
+        ".xirang/changes/restore-homepage-change-entry/tasks.md:1-90"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": ".verify-result.json still records the prior round's verdict with gitHeadCommit 83c088a4b and pre-correction evidence fingerprints; regenerate from this round's verdict",
+      "requirement": "首页提供 Candidate 与活动 Change 快速入口",
+      "task": null,
+      "recommendation": "regenerate .verify-result.json from this fresh PASS_WITH_WARNINGS verdict before archive",
       "evidenceCitations": [
         ".xirang/changes/restore-homepage-change-entry/.verify-result.json:1-40"
       ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "C1 command names ContractLoaderContext.spec.ts but the file is ContractLoaderContext.spec.tsx; vitest resolves it and ran the intended 25 tests, so it is cosmetic",
+      "requirement": "首页提供 Candidate 与活动 Change 快速入口",
+      "task": "C1 context value 暴露 changes 且 sources 不变",
+      "recommendation": "artifact_fix: correct the filename in the C1 Command line",
+      "evidenceCitations": [
+        ".xirang/changes/restore-homepage-change-entry/tasks.md:15"
+      ]
     }
   ],
-  "tasksFileHash": "3303c69bbd67e1d82857bb163329d4254fd9744d1fadb2ab8ee0215eb4f12916",
+  "tasksFileHash": "075ea4330d18b2035dfd0196b1e6e9755461e29a3731c82ecfa4af94cc2df9af",
   "verificationContext": {
     "contractVersion": "1.0",
     "evidenceFiles": [
+      ".gitignore",
       ".xirang/changes/restore-homepage-change-entry/.verify-result.json",
       ".xirang/changes/restore-homepage-change-entry/design.md",
       ".xirang/changes/restore-homepage-change-entry/elements/semantic-browser.md",
@@ -27,25 +60,30 @@
       "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
       "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
       "playwright.config.ts",
-      "test/e2e/semantic-browser-candidate-views.spec.ts"
+      "test/e2e/semantic-browser-candidate-views.spec.ts",
+      "test/e2e/semantic-browser-model-view.spec.ts"
     ],
-    "evidenceFingerprint": "a2bf3bfad00cf7bc9a7578ae788e137060149bd81009028ed5d79feadd3e55ac",
+    "evidenceFingerprint": "bbd772f35047765ab024446c39b9c3dd6cfe6891657b338e81e76180472fb9e1",
     "evidenceFingerprintEntries": [
       {
+        "path": ".gitignore",
+        "hash": "4bf3c04fc1a89681195c9dde0ec6048075b7411780f66833f7365f2a042c0bea"
+      },
+      {
         "path": ".xirang/changes/restore-homepage-change-entry/design.md",
-        "hash": "407b07fffcd74377595943ba775d384acc243aafafc0d56cfdc83f14fcb16066"
+        "hash": "bcd8121c3253717fbc9fa9f0f3da515a16163d5b831fc34962bf29ee98a02a2c"
       },
       {
         "path": ".xirang/changes/restore-homepage-change-entry/elements/semantic-browser.md",
-        "hash": "dcc69620077aad4e35aa0c49f43269ff68ebc75ed48e53be46426feadf8afb53"
+        "hash": "29a9c9cda81f51b77ed4fe4f6b31df7d8c8e8aa845bdc9a0371864701a361e49"
       },
       {
         "path": ".xirang/changes/restore-homepage-change-entry/proposal.md",
-        "hash": "5a87d4cad48ebae22082c844ba56be15514f4da9381e86437b4fe4d176c9d685"
+        "hash": "286b0e2d61f3444b9f1156a0a151cac1911c2dbaa42888f13ae3502b9cbe7a3b"
       },
       {
         "path": ".xirang/changes/restore-homepage-change-entry/tasks.md",
-        "hash": "3303c69bbd67e1d82857bb163329d4254fd9744d1fadb2ab8ee0215eb4f12916"
+        "hash": "075ea4330d18b2035dfd0196b1e6e9755461e29a3731c82ecfa4af94cc2df9af"
       },
       {
         "path": ".xirang/model/elements/semantic-browser.md",
@@ -53,7 +91,7 @@
       },
       {
         "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
-        "hash": "8a5e7b98198260da3ff03aa3a3d622e58e7056079908b6c3cc0f701fd69c709f"
+        "hash": "5384b5bd85f9f5b15ef91afe1716e5fc447895c8d4e2c7edf7db5024a809590a"
       },
       {
         "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
@@ -65,58 +103,78 @@
       },
       {
         "path": "playwright.config.ts",
-        "hash": "a06b5054333ea31fe00e2b1eedea401181c822b20195e276669c70275977da81"
+        "hash": "9192b4fd08bc33476eb5d3739a5e0b4c0596e606fc25a090034ec6a663f60c41"
       },
       {
         "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
-        "hash": "d79ca90a00f881b2a7e843ba9477ebbea479147f9fc91e497210e5b00e01a30c"
+        "hash": "705b69ff21fc2769080ef79d8bfb64d91785585925e14bd5b8f7e988f142bbdb"
+      },
+      {
+        "path": "test/e2e/semantic-browser-model-view.spec.ts",
+        "hash": "1586c0688089ae1b151ed8bed6219954329c2fa4c7d2c06aff546f64dbd8224c"
       }
     ],
     "skippedEvidenceFiles": [
       ".xirang/changes/restore-homepage-change-entry/.verify-result.json"
     ],
-    "gitHeadCommit": "83c088a4baac13aa9836b72f503a837e0e5bd01b",
-    "gitDiffSummary": "baseCommit aa546f8e0 resolves; HEAD 83c088a4b on branch restore-homepage-change-entry. git diff aa546f8e0...HEAD --name-only lists 7 change artifacts plus DiagramUI.tsx, ContractLoaderContext.tsx, single-index.tsx, playwright.config.ts, semantic-browser-candidate-views.spec.ts. git status --short is empty (no staged or untracked files; .xirang/.cache-likec4-staging-* directory confirmed absent). Attribution: every non-artifact file is declared in Task 1/2/3 Files; DiagramUI.tsx now declared in tasks.md:29 and proposal.md:45. Ran: C1 vitest (25 passed), @likec4/diagram typecheck (tsc --build exit 0), playwright candidate-views desktop+mobile (10 passed incl. new 'opens an active change from the landing page'), playwright model-view desktop (6 passed), C4 grep Active Changes (changes.length > 0 at single-index.tsx:116).",
-    "timestamp": "2026-08-12T17:05:06.034Z"
+    "gitHeadCommit": "d4542229d4821a4ea742b5299fb0337910552d29",
+    "gitDiffSummary": "baseCommit aa546f8e0 resolves (validated via git cat-file); git diff aa546f8e0...HEAD --name-only lists 14 files; git status --short is empty. All 4 previous CRITICALs verified fixed in final contents: (1) four-state badge assertions toBeCloseTo(24,3) with zoom division and viewport-settle waits (model-view.spec.ts:180-215); (2) drill/no-fit covered by fits test (dblclick drill, focus=capability.drill URL, node center stable <4px, model-view.spec.ts:326-343) and expands test transform-unchanged assertion (model-view.spec.ts:288-292); (3) no tracked .cache-likec4-staging files in HEAD (git ls-tree -r HEAD clean) and .gitignore rules added (lines 175-178), untracked copies confirmed ignored via git check-ignore; (4) C7 command now desktop+mobile full suite (tasks.md:85) with both new test titles registered in both project greps (playwright.config.ts:20,25). Attribution: every behavior file declared in Task Files except .gitignore (SUGGESTION)."
   },
   "optimization": {
-    "status": "IMPROVED",
-    "attempts": [
-      {
-        "timestamp": "2026-08-12T16:59:15.927Z",
-        "type": "optimization",
-        "status": "OPTIMIZATION_PROPOSED"
-      },
-      {
-        "timestamp": "2026-08-12T17:05:06.024Z",
-        "type": "verification",
-        "result": "PASS"
-      },
-      {
-        "timestamp": "2026-08-12T17:10:59.184Z",
-        "type": "optimization",
-        "status": "OPTIMIZATION_PROPOSED"
-      }
-    ],
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
     "baseline": {
-      "timestamp": "2026-08-12T16:50:19.680Z",
-      "result": "PASS",
+      "timestamp": "2026-08-12T19:02:56.081Z",
+      "result": "PASS_WITH_WARNINGS",
       "issues": [
         {
+          "severity": "WARNING",
+          "message": "C7 full-suite run flaked twice on the pre-existing HMR test 'refreshes the model through HMR' (fingerprint poll 20s timeout); test is byte-identical to base aa546f8e0 and no server-side file is in the diff scope, so it is environmental flakiness, not a change defect",
+          "requirement": "切换 View、Change 或 Mode 后自动适配视口",
+          "task": "C7 下钻与就地展开不触发适配",
+          "recommendation": "Monitor HMR test stability; optional future bump of the 20s fingerprint poll timeout or watcher tuning. Do not block this change.",
+          "evidenceCitations": [
+            "test/e2e/semantic-browser-model-view.spec.ts:110-134",
+            ".xirang/changes/restore-homepage-change-entry/tasks.md:85"
+          ]
+        },
+        {
           "severity": "SUGGESTION",
-          "message": ".verify-result.json still records the previous round's FAIL_NEEDS_CORRECTIONS verdict with gitHeadCommit 98cd7bbb7; regenerate it from this round's PASS verdict",
+          "message": ".gitignore change (staging-workspace ignore rules, fix for removed committed fixture cache) is not declared in any task Files section",
           "requirement": "首页提供 Candidate 与活动 Change 快速入口",
           "task": null,
-          "recommendation": "regenerate .verify-result.json from this fresh verdict before archive",
+          "recommendation": "artifact_fix: add '.gitignore' to the relevant task Files in tasks.md before archive",
+          "evidenceCitations": [
+            ".gitignore:175-178",
+            ".xirang/changes/restore-homepage-change-entry/tasks.md:1-90"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": ".verify-result.json still records the prior round's verdict with gitHeadCommit 83c088a4b and pre-correction evidence fingerprints; regenerate from this round's verdict",
+          "requirement": "首页提供 Candidate 与活动 Change 快速入口",
+          "task": null,
+          "recommendation": "regenerate .verify-result.json from this fresh PASS_WITH_WARNINGS verdict before archive",
           "evidenceCitations": [
             ".xirang/changes/restore-homepage-change-entry/.verify-result.json:1-40"
           ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "C1 command names ContractLoaderContext.spec.ts but the file is ContractLoaderContext.spec.tsx; vitest resolves it and ran the intended 25 tests, so it is cosmetic",
+          "requirement": "首页提供 Candidate 与活动 Change 快速入口",
+          "task": "C1 context value 暴露 changes 且 sources 不变",
+          "recommendation": "artifact_fix: correct the filename in the C1 Command line",
+          "evidenceCitations": [
+            ".xirang/changes/restore-homepage-change-entry/tasks.md:15"
+          ]
         }
       ],
-      "tasksFileHash": "3303c69bbd67e1d82857bb163329d4254fd9744d1fadb2ab8ee0215eb4f12916",
+      "tasksFileHash": "075ea4330d18b2035dfd0196b1e6e9755461e29a3731c82ecfa4af94cc2df9af",
       "verificationContext": {
         "contractVersion": "1.0",
         "evidenceFiles": [
+          ".gitignore",
           ".xirang/changes/restore-homepage-change-entry/.verify-result.json",
           ".xirang/changes/restore-homepage-change-entry/design.md",
           ".xirang/changes/restore-homepage-change-entry/elements/semantic-browser.md",
@@ -127,25 +185,30 @@
           "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
           "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
           "playwright.config.ts",
-          "test/e2e/semantic-browser-candidate-views.spec.ts"
+          "test/e2e/semantic-browser-candidate-views.spec.ts",
+          "test/e2e/semantic-browser-model-view.spec.ts"
         ],
-        "evidenceFingerprint": "6a41c0939fd4222746d65ea68c09f26df29f1973e84ad1f861282a544b285dea",
+        "evidenceFingerprint": "bbd772f35047765ab024446c39b9c3dd6cfe6891657b338e81e76180472fb9e1",
         "evidenceFingerprintEntries": [
           {
+            "path": ".gitignore",
+            "hash": "4bf3c04fc1a89681195c9dde0ec6048075b7411780f66833f7365f2a042c0bea"
+          },
+          {
             "path": ".xirang/changes/restore-homepage-change-entry/design.md",
-            "hash": "407b07fffcd74377595943ba775d384acc243aafafc0d56cfdc83f14fcb16066"
+            "hash": "bcd8121c3253717fbc9fa9f0f3da515a16163d5b831fc34962bf29ee98a02a2c"
           },
           {
             "path": ".xirang/changes/restore-homepage-change-entry/elements/semantic-browser.md",
-            "hash": "dcc69620077aad4e35aa0c49f43269ff68ebc75ed48e53be46426feadf8afb53"
+            "hash": "29a9c9cda81f51b77ed4fe4f6b31df7d8c8e8aa845bdc9a0371864701a361e49"
           },
           {
             "path": ".xirang/changes/restore-homepage-change-entry/proposal.md",
-            "hash": "5a87d4cad48ebae22082c844ba56be15514f4da9381e86437b4fe4d176c9d685"
+            "hash": "286b0e2d61f3444b9f1156a0a151cac1911c2dbaa42888f13ae3502b9cbe7a3b"
           },
           {
             "path": ".xirang/changes/restore-homepage-change-entry/tasks.md",
-            "hash": "3303c69bbd67e1d82857bb163329d4254fd9744d1fadb2ab8ee0215eb4f12916"
+            "hash": "075ea4330d18b2035dfd0196b1e6e9755461e29a3731c82ecfa4af94cc2df9af"
           },
           {
             "path": ".xirang/model/elements/semantic-browser.md",
@@ -153,7 +216,7 @@
           },
           {
             "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
-            "hash": "8a5e7b98198260da3ff03aa3a3d622e58e7056079908b6c3cc0f701fd69c709f"
+            "hash": "5384b5bd85f9f5b15ef91afe1716e5fc447895c8d4e2c7edf7db5024a809590a"
           },
           {
             "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
@@ -161,113 +224,27 @@
           },
           {
             "path": "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
-            "hash": "62875e5f79ac12cbb82665de37ba122e13b5fa1de2362a930b2cfa9b45cbd592"
+            "hash": "a4bc4832a83700742a38e83a6cf9c9ecafde509b3ed3d54e552692562243c16e"
           },
           {
             "path": "playwright.config.ts",
-            "hash": "a06b5054333ea31fe00e2b1eedea401181c822b20195e276669c70275977da81"
+            "hash": "9192b4fd08bc33476eb5d3739a5e0b4c0596e606fc25a090034ec6a663f60c41"
           },
           {
             "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
-            "hash": "d79ca90a00f881b2a7e843ba9477ebbea479147f9fc91e497210e5b00e01a30c"
+            "hash": "705b69ff21fc2769080ef79d8bfb64d91785585925e14bd5b8f7e988f142bbdb"
+          },
+          {
+            "path": "test/e2e/semantic-browser-model-view.spec.ts",
+            "hash": "1586c0688089ae1b151ed8bed6219954329c2fa4c7d2c06aff546f64dbd8224c"
           }
         ],
         "skippedEvidenceFiles": [
           ".xirang/changes/restore-homepage-change-entry/.verify-result.json"
         ],
-        "gitHeadCommit": "83c088a4baac13aa9836b72f503a837e0e5bd01b",
-        "gitDiffSummary": "baseCommit aa546f8e0 resolves; HEAD 83c088a4b on branch restore-homepage-change-entry. git diff aa546f8e0...HEAD --name-only lists 7 change artifacts plus DiagramUI.tsx, ContractLoaderContext.tsx, single-index.tsx, playwright.config.ts, semantic-browser-candidate-views.spec.ts. git status --short is empty (no staged or untracked files; .xirang/.cache-likec4-staging-* directory confirmed absent). Attribution: every non-artifact file is declared in Task 1/2/3 Files; DiagramUI.tsx now declared in tasks.md:29 and proposal.md:45. Ran: C1 vitest (25 passed), @likec4/diagram typecheck (tsc --build exit 0), playwright candidate-views desktop+mobile (10 passed incl. new 'opens an active change from the landing page'), playwright model-view desktop (6 passed), C4 grep Active Changes (changes.length > 0 at single-index.tsx:116)."
+        "gitHeadCommit": "d4542229d4821a4ea742b5299fb0337910552d29",
+        "gitDiffSummary": "baseCommit aa546f8e0 resolves (validated via git cat-file); git diff aa546f8e0...HEAD --name-only lists 14 files; git status --short is empty. All 4 previous CRITICALs verified fixed in final contents: (1) four-state badge assertions toBeCloseTo(24,3) with zoom division and viewport-settle waits (model-view.spec.ts:180-215); (2) drill/no-fit covered by fits test (dblclick drill, focus=capability.drill URL, node center stable <4px, model-view.spec.ts:326-343) and expands test transform-unchanged assertion (model-view.spec.ts:288-292); (3) no tracked .cache-likec4-staging files in HEAD (git ls-tree -r HEAD clean) and .gitignore rules added (lines 175-178), untracked copies confirmed ignored via git check-ignore; (4) C7 command now desktop+mobile full suite (tasks.md:85) with both new test titles registered in both project greps (playwright.config.ts:20,25). Attribution: every behavior file declared in Task Files except .gitignore (SUGGESTION)."
       }
-    },
-    "findings": [
-      {
-        "status": "resolved",
-        "location": {
-          "files": [
-            "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx"
-          ],
-          "symbols": [
-            "RouteComponent"
-          ]
-        },
-        "opportunity": "The three landing-page SimpleGrid sections (Views, Candidate, Active Changes) repeat the identical five-prop grid config at lines 83-89, 95-101, and 119-125; extracting a small shared grid wrapper removes the triplication.",
-        "impact": "Single source of truth for the landing-page card grid layout; future column/spacing/padding changes are made in one place. Rendered DOM remains byte-identical.",
-        "evidence": [
-          "single-index.tsx:84-88, 96-100, 120-124: p={{ base: 'md', sm: 'md' }}, pt={{ base: 'sm', sm: 'sm' }}, cols={{ base: 1, sm: 2, md: 3, xl: 4 }}, spacing={{ base: 10, sm: 'xl' }}, verticalSpacing={{ base: 'md', sm: 'xl' }} are character-for-character identical across all three sections",
-          "Prior finding OPT-20260812T143822352Z-01 already noted the three identical grid configs as the remaining optional dedup; it was not implemented"
-        ],
-        "recommendation": "Add a CardGrid component rendering the single SimpleGrid with the five shared props and wrapping children; use it in all three sections while leaving section headings and visibility conditions unchanged.",
-        "keyDesign": "function CardGrid({ children }: PropsWithChildren<{}>) returns <SimpleGrid p={...} pt={...} cols={...} spacing={...} verticalSpacing={...}>{children}</SimpleGrid>; each section renders its <Text> heading followed by <CardGrid>{...cards}</CardGrid>. No prop parameterization is needed because all three sites use identical values.",
-        "preservationConstraints": [
-          "Rendered SimpleGrid DOM attributes and responsive breakpoints must stay identical (same five prop values) so existing e2e selectors and breakpoints are unaffected",
-          "Section headings remain unchanged (Views mt=md, Candidate and Active Changes mt=xl); visibility conditions candidateSources.length > 0 and changes.length > 0 must remain",
-          "No changes to SourceCard, navigation search objects, ContractLoaderContext.tsx, playwright.config.ts, or the e2e spec"
-        ],
-        "implementationOutline": [
-          "Add CardGrid below RouteComponent with the shared five SimpleGrid props",
-          "Replace the three SimpleGrid open/close tags with CardGrid, keeping children mappings unchanged",
-          "Run the spa typecheck/build and the e2e spec on desktop+mobile to prove zero behavioral delta"
-        ],
-        "validation": [
-          "pnpm exec playwright test test/e2e/semantic-browser-candidate-views.spec.ts --project=desktop --project=mobile — proves landing-page sections and cards still render and navigate identically",
-          "cd likec4 && pnpm --filter @likec4/spa typecheck (or the C5 build sequence) — proves the wrapper compiles"
-        ],
-        "impactLevel": "low",
-        "confidence": "high",
-        "risk": "low",
-        "cost": "low",
-        "dependencies": [],
-        "priorityReason": "Only remaining statically provable duplication in base scope after OPT-20260812T143822352Z-01 removed the card-body duplication; ~10 lines of presentational props, behavior-preserving, so it ranks low.",
-        "id": "OPT-20260812T165915924Z-01",
-        "targetFileHashes": {
-          "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx": "62875e5f79ac12cbb82665de37ba122e13b5fa1de2362a930b2cfa9b45cbd592"
-        }
-      }
-    ],
-    "history": [
-      {
-        "sequence": 1,
-        "action": "add",
-        "reason": "Optimizer added finding",
-        "timestamp": "2026-08-12T16:59:15.925Z",
-        "findingId": "OPT-20260812T165915924Z-01"
-      },
-      {
-        "sequence": 2,
-        "action": "select",
-        "reason": "Only remaining statically provable duplication in base scope after OPT-20260812T143822352Z-01 removed the card-body duplication; ~10 lines of presentational props, behavior-preserving, so it ranks low.",
-        "timestamp": "2026-08-12T16:59:15.927Z",
-        "findingId": "OPT-20260812T165915924Z-01",
-        "hashes": {
-          "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx": "62875e5f79ac12cbb82665de37ba122e13b5fa1de2362a930b2cfa9b45cbd592"
-        }
-      },
-      {
-        "sequence": 3,
-        "action": "implemented",
-        "reason": "Master began implementation after freshness check",
-        "timestamp": "2026-08-12T16:59:23.587Z",
-        "findingId": "OPT-20260812T165915924Z-01",
-        "hashes": {
-          "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx": "62875e5f79ac12cbb82665de37ba122e13b5fa1de2362a930b2cfa9b45cbd592"
-        }
-      },
-      {
-        "sequence": 4,
-        "action": "verified",
-        "reason": "Fresh reviewer verified preservation constraints",
-        "timestamp": "2026-08-12T17:05:06.025Z",
-        "findingId": "OPT-20260812T165915924Z-01"
-      },
-      {
-        "sequence": 5,
-        "action": "resolve",
-        "reason": "Only remaining statically provable duplication in base scope; now implemented and verified, so resolution outranks any new speculation.",
-        "timestamp": "2026-08-12T17:10:59.184Z",
-        "findingId": "OPT-20260812T165915924Z-01"
-      }
-    ],
-    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
-    "unchangedReconciliations": 0
+    }
   }
 }
