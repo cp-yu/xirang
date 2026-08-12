@@ -1,5 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
 
+/** Browser-side predicate body, shared by the on-screen and auto-fit assertions. */
+const nodeInViewport = `(node) => {
+  const rect = node.getBoundingClientRect()
+  return rect.right > 0 && rect.left < window.innerWidth && rect.bottom > 0 && rect.top < window.innerHeight
+}`
+
 async function openCandidate(page: Page, label: 'Candidate View' | 'Candidate Diff View'): Promise<void> {
   await page.goto('/')
   await page.getByText(label, { exact: true }).click()
@@ -58,12 +64,9 @@ test('opens an active change from the landing page', async ({ page }) => {
   // The projection viewport must stay on-screen: a regression anchored the
   // viewport transition on the root identity and shifted the canvas ~18k px
   // away, leaving every node off-screen (blank board).
-  const onScreen = await page.evaluate(() =>
-    [...document.querySelectorAll('.react-flow__node')].some(node => {
-      const r = node.getBoundingClientRect()
-      return r.right > 0 && r.left < window.innerWidth && r.bottom > 0 && r.top < window.innerHeight
-    }),
-  )
+  const onScreen = await page.evaluate(`
+    [...document.querySelectorAll('.react-flow__node')].some(${nodeInViewport})
+  `)
   expect(onScreen).toBe(true)
 
   // Change inspection panel is hidden below the sm breakpoint (mobile).
@@ -72,11 +75,10 @@ test('opens an active change from the landing page', async ({ page }) => {
   }
 
   // The quick-entry projection auto-fits: every node sits inside the viewport.
-  await expect.poll(() => page.evaluate(() => {
-    const nodes = [...document.querySelectorAll('.react-flow__node')]
-    return nodes.length > 0 && nodes.every(node => {
-      const rect = node.getBoundingClientRect()
-      return rect.right > 0 && rect.left < window.innerWidth && rect.bottom > 0 && rect.top < window.innerHeight
-    })
-  }), { timeout: 10_000 }).toBe(true)
+  await expect.poll(() => page.evaluate(`
+    (() => {
+      const nodes = [...document.querySelectorAll('.react-flow__node')]
+      return nodes.length > 0 && nodes.every(${nodeInViewport})
+    })()
+  `), { timeout: 10_000 }).toBe(true)
 })
