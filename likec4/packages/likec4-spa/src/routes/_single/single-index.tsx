@@ -10,7 +10,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Link } from '@tanstack/react-router'
 
 import { StaticLikeC4Diagram, type XirangViewSource, useXirangViewSources } from '@likec4/diagram'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type PropsWithChildren } from 'react'
 
 import type { DiagramView } from '@likec4/core/types'
 import { RichText } from '@likec4/core/types'
@@ -80,25 +80,13 @@ function RouteComponent() {
         </NavigationPanel.Root>
       </div>
       <Text size="lg" fw={600} mt="md" mb="xs">Views</Text>
-      <SimpleGrid
-        p={{ base: 'md', sm: 'md' }}
-        pt={{ base: 'sm', sm: 'sm' }}
-        cols={{ base: 1, sm: 2, md: 3, xl: 4 }}
-        spacing={{ base: 10, sm: 'xl' }}
-        verticalSpacing={{ base: 'md', sm: 'xl' }}
-      >
+      <CardGrid>
         {views.map((v) => <ViewCard key={v.id} view={v} />)}
-      </SimpleGrid>
+      </CardGrid>
       {candidateSources.length > 0 && (
         <>
           <Text size="lg" fw={600} mt="xl" mb="xs">Candidate</Text>
-          <SimpleGrid
-            p={{ base: 'md', sm: 'md' }}
-            pt={{ base: 'sm', sm: 'sm' }}
-            cols={{ base: 1, sm: 2, md: 3, xl: 4 }}
-            spacing={{ base: 10, sm: 'xl' }}
-            verticalSpacing={{ base: 'md', sm: 'xl' }}
-          >
+          <CardGrid>
             {candidateSources.map(s => (
               <SourceCard
                 key={s.id}
@@ -110,19 +98,13 @@ function RouteComponent() {
                 })}
               />
             ))}
-          </SimpleGrid>
+          </CardGrid>
         </>
       )}
       {changes.length > 0 && (
         <>
           <Text size="lg" fw={600} mt="xl" mb="xs">Active Changes</Text>
-          <SimpleGrid
-            p={{ base: 'md', sm: 'md' }}
-            pt={{ base: 'sm', sm: 'sm' }}
-            cols={{ base: 1, sm: 2, md: 3, xl: 4 }}
-            spacing={{ base: 10, sm: 'xl' }}
-            verticalSpacing={{ base: 'md', sm: 'xl' }}
-          >
+          <CardGrid>
             {changes.map(c => (
               <SourceCard
                 key={c.change}
@@ -134,10 +116,24 @@ function RouteComponent() {
                 })}
               />
             ))}
-          </SimpleGrid>
+          </CardGrid>
         </>
       )}
     </Container>
+  )
+}
+
+function CardGrid({ children }: PropsWithChildren<{}>) {
+  return (
+    <SimpleGrid
+      p={{ base: 'md', sm: 'md' }}
+      pt={{ base: 'sm', sm: 'sm' }}
+      cols={{ base: 1, sm: 2, md: 3, xl: 4 }}
+      spacing={{ base: 10, sm: 'xl' }}
+      verticalSpacing={{ base: 'md', sm: 'xl' }}
+    >
+      {children}
+    </SimpleGrid>
   )
 }
 

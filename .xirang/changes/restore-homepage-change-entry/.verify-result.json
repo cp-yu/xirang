@@ -1,37 +1,15 @@
 {
-  "timestamp": "2026-08-12T16:45:16.574Z",
-  "result": "FAIL_NEEDS_CORRECTIONS",
+  "timestamp": "2026-08-12T16:50:19.680Z",
+  "result": "PASS",
   "issues": [
     {
-      "severity": "CRITICAL",
-      "message": "Unaccounted change: likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
-      "requirement": "首页提供 Candidate 与活动 Change 快速入口",
-      "task": "Task 2",
-      "recommendation": "supplement task/spec (artifact_fix): add likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx to a task Files entry and to proposal.md Impact so the viewport-anchor behavior fix is formally attributed",
-      "evidenceCitations": [
-        "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:359-366",
-        ".xirang/changes/restore-homepage-change-entry/tasks.md:24-66",
-        ".xirang/changes/restore-homepage-change-entry/proposal.md:41-44"
-      ]
-    },
-    {
       "severity": "SUGGESTION",
-      "message": ".verify-result.json is stale: it still records gitHeadCommit 0b105446a and an evidence fingerprint without DiagramUI.tsx, so it does not reflect the 98cd7bbb7 correction",
+      "message": ".verify-result.json still records the previous round's FAIL_NEEDS_CORRECTIONS verdict with gitHeadCommit 98cd7bbb7; regenerate it from this round's PASS verdict",
       "requirement": "首页提供 Candidate 与活动 Change 快速入口",
       "task": null,
-      "recommendation": "regenerate .verify-result.json from this round's verdict before commit/archive",
+      "recommendation": "regenerate .verify-result.json from this fresh verdict before archive",
       "evidenceCitations": [
         ".xirang/changes/restore-homepage-change-entry/.verify-result.json:1-40"
-      ]
-    },
-    {
-      "severity": "SUGGESTION",
-      "message": "Untracked generated staging cache .xirang/.cache-likec4-staging-vPnFAz/ remains outside the e2e cleanup path (cleanup-generated-cache.ts only removes test/fixtures/contract-browser/.xirang/.cache-likec4)",
-      "requirement": "首页提供 Candidate 与活动 Change 快速入口",
-      "task": null,
-      "recommendation": "remove the directory or add it to the cleanup/gitignore list; content is generated model.c4/relations.c4/specification.c4/views.c4 staging, no behavior impact",
-      "evidenceCitations": [
-        "test/e2e/cleanup-generated-cache.ts:5-8"
       ]
     }
   ],
@@ -46,14 +24,12 @@
       ".xirang/changes/restore-homepage-change-entry/tasks.md",
       ".xirang/model/elements/semantic-browser.md",
       "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
-      "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts",
       "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
       "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
       "playwright.config.ts",
-      "test/e2e/cleanup-generated-cache.ts",
       "test/e2e/semantic-browser-candidate-views.spec.ts"
     ],
-    "evidenceFingerprint": "8532cff8b5a4c98f344b44415fd80d21c3ea6b574a171980ddb7f718f1a16ff5",
+    "evidenceFingerprint": "a2bf3bfad00cf7bc9a7578ae788e137060149bd81009028ed5d79feadd3e55ac",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/restore-homepage-change-entry/design.md",
@@ -80,24 +56,16 @@
         "hash": "8a5e7b98198260da3ff03aa3a3d622e58e7056079908b6c3cc0f701fd69c709f"
       },
       {
-        "path": "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts",
-        "hash": "d88b98a11f795ec85b80e7bbd72861eb0acac9a0131b4c3c36c205a00105f356"
-      },
-      {
         "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
         "hash": "36697b44d776a933981e145e6c0fea52d98ec199a1ec91717475662e0c44743f"
       },
       {
         "path": "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
-        "hash": "62875e5f79ac12cbb82665de37ba122e13b5fa1de2362a930b2cfa9b45cbd592"
+        "hash": "a4bc4832a83700742a38e83a6cf9c9ecafde509b3ed3d54e552692562243c16e"
       },
       {
         "path": "playwright.config.ts",
         "hash": "a06b5054333ea31fe00e2b1eedea401181c822b20195e276669c70275977da81"
-      },
-      {
-        "path": "test/e2e/cleanup-generated-cache.ts",
-        "hash": "ec021b37598f22e4b5126b351d6f31b0e8bd236261f851d4083e42fee0f038df"
       },
       {
         "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
@@ -107,7 +75,187 @@
     "skippedEvidenceFiles": [
       ".xirang/changes/restore-homepage-change-entry/.verify-result.json"
     ],
-    "gitHeadCommit": "98cd7bbb785a379415559617dea6fc09826778ef",
-    "gitDiffSummary": "baseCommit aa546f8e0 resolves; HEAD 98cd7bbb7 on branch restore-homepage-change-entry with 2 commits ahead (0b105446a checkpoint, a7fb3e76a opt-r1, 98cd7bbb7 fix). git diff aa546f8e0...HEAD --name-only lists the change artifacts plus DiagramUI.tsx, ContractLoaderContext.tsx, single-index.tsx, playwright.config.ts, semantic-browser-candidate-views.spec.ts. git status --short shows only untracked .xirang/.cache-likec4-staging-vPnFAz/ (generated staging cache); no staged files. Ran: vitest C1 (25 passed), forced tsc --build --force (exit 0), machine.state.navigating.spec.ts (9 passed), C5 build @likec4/spa + xirang-likec4 (both exit 0), playwright candidate-views desktop+mobile (10 passed incl. new viewport-intersection assertion), playwright model-view desktop (6 passed), C4 grep Active Changes (changes.length > 0 at single-index.tsx:116)."
+    "gitHeadCommit": "83c088a4baac13aa9836b72f503a837e0e5bd01b",
+    "gitDiffSummary": "baseCommit aa546f8e0 resolves; HEAD 83c088a4b on branch restore-homepage-change-entry. git diff aa546f8e0...HEAD --name-only lists 7 change artifacts plus DiagramUI.tsx, ContractLoaderContext.tsx, single-index.tsx, playwright.config.ts, semantic-browser-candidate-views.spec.ts. git status --short is empty (no staged or untracked files; .xirang/.cache-likec4-staging-* directory confirmed absent). Attribution: every non-artifact file is declared in Task 1/2/3 Files; DiagramUI.tsx now declared in tasks.md:29 and proposal.md:45. Ran: C1 vitest (25 passed), @likec4/diagram typecheck (tsc --build exit 0), playwright candidate-views desktop+mobile (10 passed incl. new 'opens an active change from the landing page'), playwright model-view desktop (6 passed), C4 grep Active Changes (changes.length > 0 at single-index.tsx:116).",
+    "timestamp": "2026-08-12T17:05:06.034Z"
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [
+      {
+        "timestamp": "2026-08-12T16:59:15.927Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-12T17:05:06.024Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-08-12T16:50:19.680Z",
+      "result": "PASS",
+      "issues": [
+        {
+          "severity": "SUGGESTION",
+          "message": ".verify-result.json still records the previous round's FAIL_NEEDS_CORRECTIONS verdict with gitHeadCommit 98cd7bbb7; regenerate it from this round's PASS verdict",
+          "requirement": "首页提供 Candidate 与活动 Change 快速入口",
+          "task": null,
+          "recommendation": "regenerate .verify-result.json from this fresh verdict before archive",
+          "evidenceCitations": [
+            ".xirang/changes/restore-homepage-change-entry/.verify-result.json:1-40"
+          ]
+        }
+      ],
+      "tasksFileHash": "3303c69bbd67e1d82857bb163329d4254fd9744d1fadb2ab8ee0215eb4f12916",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/restore-homepage-change-entry/.verify-result.json",
+          ".xirang/changes/restore-homepage-change-entry/design.md",
+          ".xirang/changes/restore-homepage-change-entry/elements/semantic-browser.md",
+          ".xirang/changes/restore-homepage-change-entry/proposal.md",
+          ".xirang/changes/restore-homepage-change-entry/tasks.md",
+          ".xirang/model/elements/semantic-browser.md",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+          "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
+          "playwright.config.ts",
+          "test/e2e/semantic-browser-candidate-views.spec.ts"
+        ],
+        "evidenceFingerprint": "6a41c0939fd4222746d65ea68c09f26df29f1973e84ad1f861282a544b285dea",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/restore-homepage-change-entry/design.md",
+            "hash": "407b07fffcd74377595943ba775d384acc243aafafc0d56cfdc83f14fcb16066"
+          },
+          {
+            "path": ".xirang/changes/restore-homepage-change-entry/elements/semantic-browser.md",
+            "hash": "dcc69620077aad4e35aa0c49f43269ff68ebc75ed48e53be46426feadf8afb53"
+          },
+          {
+            "path": ".xirang/changes/restore-homepage-change-entry/proposal.md",
+            "hash": "5a87d4cad48ebae22082c844ba56be15514f4da9381e86437b4fe4d176c9d685"
+          },
+          {
+            "path": ".xirang/changes/restore-homepage-change-entry/tasks.md",
+            "hash": "3303c69bbd67e1d82857bb163329d4254fd9744d1fadb2ab8ee0215eb4f12916"
+          },
+          {
+            "path": ".xirang/model/elements/semantic-browser.md",
+            "hash": "177dff1075488b706655cfce39b104a4e27e1aae118090231f0c140920181da7"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "hash": "8a5e7b98198260da3ff03aa3a3d622e58e7056079908b6c3cc0f701fd69c709f"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+            "hash": "36697b44d776a933981e145e6c0fea52d98ec199a1ec91717475662e0c44743f"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
+            "hash": "62875e5f79ac12cbb82665de37ba122e13b5fa1de2362a930b2cfa9b45cbd592"
+          },
+          {
+            "path": "playwright.config.ts",
+            "hash": "a06b5054333ea31fe00e2b1eedea401181c822b20195e276669c70275977da81"
+          },
+          {
+            "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
+            "hash": "d79ca90a00f881b2a7e843ba9477ebbea479147f9fc91e497210e5b00e01a30c"
+          }
+        ],
+        "skippedEvidenceFiles": [
+          ".xirang/changes/restore-homepage-change-entry/.verify-result.json"
+        ],
+        "gitHeadCommit": "83c088a4baac13aa9836b72f503a837e0e5bd01b",
+        "gitDiffSummary": "baseCommit aa546f8e0 resolves; HEAD 83c088a4b on branch restore-homepage-change-entry. git diff aa546f8e0...HEAD --name-only lists 7 change artifacts plus DiagramUI.tsx, ContractLoaderContext.tsx, single-index.tsx, playwright.config.ts, semantic-browser-candidate-views.spec.ts. git status --short is empty (no staged or untracked files; .xirang/.cache-likec4-staging-* directory confirmed absent). Attribution: every non-artifact file is declared in Task 1/2/3 Files; DiagramUI.tsx now declared in tasks.md:29 and proposal.md:45. Ran: C1 vitest (25 passed), @likec4/diagram typecheck (tsc --build exit 0), playwright candidate-views desktop+mobile (10 passed incl. new 'opens an active change from the landing page'), playwright model-view desktop (6 passed), C4 grep Active Changes (changes.length > 0 at single-index.tsx:116)."
+      }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx"
+          ],
+          "symbols": [
+            "RouteComponent"
+          ]
+        },
+        "opportunity": "The three landing-page SimpleGrid sections (Views, Candidate, Active Changes) repeat the identical five-prop grid config at lines 83-89, 95-101, and 119-125; extracting a small shared grid wrapper removes the triplication.",
+        "impact": "Single source of truth for the landing-page card grid layout; future column/spacing/padding changes are made in one place. Rendered DOM remains byte-identical.",
+        "evidence": [
+          "single-index.tsx:84-88, 96-100, 120-124: p={{ base: 'md', sm: 'md' }}, pt={{ base: 'sm', sm: 'sm' }}, cols={{ base: 1, sm: 2, md: 3, xl: 4 }}, spacing={{ base: 10, sm: 'xl' }}, verticalSpacing={{ base: 'md', sm: 'xl' }} are character-for-character identical across all three sections",
+          "Prior finding OPT-20260812T143822352Z-01 already noted the three identical grid configs as the remaining optional dedup; it was not implemented"
+        ],
+        "recommendation": "Add a CardGrid component rendering the single SimpleGrid with the five shared props and wrapping children; use it in all three sections while leaving section headings and visibility conditions unchanged.",
+        "keyDesign": "function CardGrid({ children }: PropsWithChildren<{}>) returns <SimpleGrid p={...} pt={...} cols={...} spacing={...} verticalSpacing={...}>{children}</SimpleGrid>; each section renders its <Text> heading followed by <CardGrid>{...cards}</CardGrid>. No prop parameterization is needed because all three sites use identical values.",
+        "preservationConstraints": [
+          "Rendered SimpleGrid DOM attributes and responsive breakpoints must stay identical (same five prop values) so existing e2e selectors and breakpoints are unaffected",
+          "Section headings remain unchanged (Views mt=md, Candidate and Active Changes mt=xl); visibility conditions candidateSources.length > 0 and changes.length > 0 must remain",
+          "No changes to SourceCard, navigation search objects, ContractLoaderContext.tsx, playwright.config.ts, or the e2e spec"
+        ],
+        "implementationOutline": [
+          "Add CardGrid below RouteComponent with the shared five SimpleGrid props",
+          "Replace the three SimpleGrid open/close tags with CardGrid, keeping children mappings unchanged",
+          "Run the spa typecheck/build and the e2e spec on desktop+mobile to prove zero behavioral delta"
+        ],
+        "validation": [
+          "pnpm exec playwright test test/e2e/semantic-browser-candidate-views.spec.ts --project=desktop --project=mobile — proves landing-page sections and cards still render and navigate identically",
+          "cd likec4 && pnpm --filter @likec4/spa typecheck (or the C5 build sequence) — proves the wrapper compiles"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Only remaining statically provable duplication in base scope after OPT-20260812T143822352Z-01 removed the card-body duplication; ~10 lines of presentational props, behavior-preserving, so it ranks low.",
+        "id": "OPT-20260812T165915924Z-01",
+        "targetFileHashes": {
+          "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx": "62875e5f79ac12cbb82665de37ba122e13b5fa1de2362a930b2cfa9b45cbd592"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-12T16:59:15.925Z",
+        "findingId": "OPT-20260812T165915924Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "select",
+        "reason": "Only remaining statically provable duplication in base scope after OPT-20260812T143822352Z-01 removed the card-body duplication; ~10 lines of presentational props, behavior-preserving, so it ranks low.",
+        "timestamp": "2026-08-12T16:59:15.927Z",
+        "findingId": "OPT-20260812T165915924Z-01",
+        "hashes": {
+          "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx": "62875e5f79ac12cbb82665de37ba122e13b5fa1de2362a930b2cfa9b45cbd592"
+        }
+      },
+      {
+        "sequence": 3,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-12T16:59:23.587Z",
+        "findingId": "OPT-20260812T165915924Z-01",
+        "hashes": {
+          "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx": "62875e5f79ac12cbb82665de37ba122e13b5fa1de2362a930b2cfa9b45cbd592"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-12T17:05:06.025Z",
+        "findingId": "OPT-20260812T165915924Z-01"
+      }
+    ],
+    "reconciliationSignature": "81620b2deb786d5139c6d826f247b84f2072bd8d16a0305fb97ec0cfe6583cdc",
+    "unchangedReconciliations": 0
   }
 }
