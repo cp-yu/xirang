@@ -40,6 +40,8 @@ entity: authored-view
 identity: <view identity>
 include:
   - <element identity>
+exclude:
+  - <element identity>
 ---
 ```
 

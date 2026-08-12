@@ -101,7 +101,7 @@ Deterministic Operations SHALL 持久化 Verify 与 Change Closure 使用的可�
 
 ### Requirement: 规范化无权威顺序集合
 
-语义比较 SHALL 将 Elements、Relationships、Kinds、Authored Views 及 `parents`、`children`、`sourceKinds`、`targetKinds`、`include` 作为无序集合规范化后比较。
+语义比较 SHALL 将 Elements、Relationships、Kinds、Authored Views 及 `parents`、`children`、`sourceKinds`、`targetKinds`、`include`、`exclude` 作为无序集合规范化后比较。
 
 #### Scenario: 仅集合排列变化
 

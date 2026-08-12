@@ -128,7 +128,7 @@ LikeC4 SHALL NOT 参与 Semantic Model 的规范持久化。
 
 ### Requirement: 只以 Identity 建立引用
 
-`parent`、Relationship endpoints、Kind 的 `parents`、`children`、`sourceKinds`、`targetKinds` 以及 View 的 `of`、`include` SHALL 只引用对应语义对象的 identity。
+`parent`、Relationship endpoints、Kind 的 `parents`、`children`、`sourceKinds`、`targetKinds` 以及 View 的 `of`、`include`、`exclude` SHALL 只引用对应语义对象的 identity。
 
 #### Scenario: 被引用单元改名
 
@@ -209,9 +209,9 @@ Element Kind 的 `parents`、`children` 与 Relationship Kind 的 `sourceKinds`�
 
 ### Requirement: 验证 Authored View 引用
 
-Authored View 的 `of` 与 list-form `include` SHALL 只引用已声明的 Elements；`include: '*'` SHALL 不要求逐项引用检查。
+Authored View 的 `of`、list-form `include` 与 `exclude` SHALL 只引用已声明的 Elements；`include: '*'` SHALL 不要求逐项引用检查。
 
 #### Scenario: View 引用未声明 Element
 
-- **WHEN** Validator 无法解析 `of` 或 list-form `include` 中的 Element identity
+- **WHEN** Validator 无法解析 `of`、list-form `include` 或 `exclude` 中的 Element identity
 - **THEN** Validator 返回 `UNRESOLVED_VIEW_REFERENCE` ERROR

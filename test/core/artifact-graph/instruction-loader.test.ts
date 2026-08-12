@@ -318,7 +318,7 @@ describe('instruction-loader', () => {
         'element-declaration: identity, kind, parent, title, definition',
         'element-kind: identity, contract; optional root, parents, children',
         'relationship-kind: identity; optional sourceKinds, targetKinds',
-        'authored-view: identity, include; optional of, title, autoLayout',
+        'authored-view: identity, include; optional exclude, of, title, autoLayout',
         '[A-Za-z0-9._-]+',
         '## ADDED Requirements',
         '## MODIFIED Requirements',

@@ -83,10 +83,10 @@ Delta 侧在 `.xirang/changes/<change>/` 的对应分区使用相同命名。
 | `element-declaration` | `identity`、`kind`、`parent`、`title`、`summary` |
 | `element-kind` | `identity`、`contract`，可选 `root`、`parents`、`children` |
 | `relationship-kind` | `identity`，可选 `sourceKinds`、`targetKinds` |
-| `authored-view` | `identity`、`include`，可选 `of`、`title`、`autoLayout` |
+| `authored-view` | `identity`、`include`，可选 `exclude`、`of`、`title`、`autoLayout` |
 | Relationship 条目 | `source`、`kind`、`target` |
 
-`parent` 为 null 时表示 Project Root。`include` 取值为 `'*'` 或 element identity 列表；`of` 为单个 element identity。
+`parent` 为 null 时表示 Project Root。`include` 取值为 `'*'` 或 element identity 列表；`exclude` 为 element identity 列表，其整棵后代子树从视图选择中剪除，优先级高于 `include`；`of` 为单个 element identity。
 
 Relationship 的 identity 即其全部内容，不含任何其他字段。
 
@@ -119,7 +119,7 @@ Relationship 条目由所在的 `relationships` 列表标识，Requirement 条�
 
 ## 引用规则
 
-持久源中一律以 identity 引用语义对象：`parent` 引用 Element identity，Relationship 的 `source` 与 `target` 引用 Element identity，`parents`、`children`、`sourceKinds`、`targetKinds` 引用 Kind identity，`of` 与 `include` 引用 Element identity。
+持久源中一律以 identity 引用语义对象：`parent` 引用 Element identity，Relationship 的 `source` 与 `target` 引用 Element identity，`parents`、`children`、`sourceKinds`、`targetKinds` 引用 Kind identity，`of`、`include` 与 `exclude` 引用 Element identity。
 
 FQN、语法位置与派生局部名不进入持久源。因此单元之间不存在位置引用，任一实体的改名、移动或重新分组都不要求改写其他单元。
 
@@ -186,7 +186,7 @@ Relationship 不支持 MODIFIED：其 identity 即全部内容，不存在可在
 规范化后比较，顺序不构成差异：
 
 - Elements、Relationships、Kinds、Authored Views 各自的集合
-- `parents`、`children`、`sourceKinds`、`targetKinds`、`include` 等以集合为语义的列表字段
+- `parents`、`children`、`sourceKinds`、`targetKinds`、`include`、`exclude` 等以集合为语义的列表字段
 
 保留顺序并参与比较：
 

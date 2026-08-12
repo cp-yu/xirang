@@ -65,7 +65,7 @@ artifacts:
       - element-declaration: identity, kind, parent, title, definition
       - element-kind: identity, contract; optional root, parents, children
       - relationship-kind: identity; optional sourceKinds, targetKinds
-      - authored-view: identity, include; optional of, title, autoLayout
+      - authored-view: identity, include; optional exclude, of, title, autoLayout
       - Every identity uses `[A-Za-z0-9._-]+`, never a path separator, and must not encode parent hierarchy.
       - Default filenames are organizational conventions only; unchanged partitions stay empty.
 

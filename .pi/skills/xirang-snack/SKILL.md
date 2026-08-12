@@ -108,7 +108,7 @@ Every Markdown unit declares its own `entity` in frontmatter. The partition does
 | `element-declaration` | `identity`, `kind`, `parent`, `title`, `definition` |
 | `element-kind` | `identity`, `contract`; optional `root`, `parents`, `children` |
 | `relationship-kind` | `identity`; optional `sourceKinds`, `targetKinds` |
-| `authored-view` | `identity`, `include`; optional `of`, `title`, `autoLayout` |
+| `authored-view` | `identity`, `include`; optional `exclude`, `of`, `title`, `autoLayout` |
 
 - `identity` uses `[A-Za-z0-9._-]+`, contains no path separator, and does not encode parent hierarchy
 - Before writing, follow the authoring order in the returned `instruction`; keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs
