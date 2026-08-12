@@ -1,0 +1,6 @@
+{
+  "method": "branch",
+  "branchName": "restore-homepage-change-entry",
+  "originalBranch": "main",
+  "baseCommit": "aa546f8e0"
+}

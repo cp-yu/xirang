@@ -154,6 +154,8 @@ const XirangContractLoaderContext = createContext<XirangContractLoader | null>(n
 
 export interface XirangViewSourceContextValue {
   sources: readonly XirangViewSource[]
+  /** Active change inputs, separate from view source identities. */
+  changes: readonly XirangChangeSource[]
   selected: XirangViewSource
   select(id: string): void
   /** User-chosen diff display mode; effective mode is clamped per source. */
@@ -212,6 +214,7 @@ function manifestToSources(m: XirangRuntimeManifest): XirangViewSource[] {
 
 const XirangViewSourceContext = createContext<XirangViewSourceContextValue>({
   sources: [modelViewSource],
+  changes: [],
   selected: modelViewSource,
   select: () => undefined,
   mode: 'full',
@@ -303,6 +306,7 @@ export function XirangContractLoaderProvider({
     }
     return {
       sources,
+      changes: manifest ? Object.values(manifest.changes) : [],
       selected,
       select: setSelectedId,
       mode,

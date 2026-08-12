@@ -17,12 +17,12 @@ export default defineConfig({
   projects: [
     {
       name: 'desktop',
-      grep: /browses Element Contracts|opens an Authored View|keeps View source|browses Model View|scopes an Authored View projection and keeps its focus breadcrumb|handles ADDED projection|refreshes the model through HMR|renders each Change presentation mode|renders four-state diff visuals|expands in place|bounded projection request count|double-click navigation settles|browses the complete candidate model|reviews candidate changes in diff only mode|keeps invalid candidate sources diagnosable|shows candidate cards on the landing page|applies kind presentation|keeps operation color|exports a hierarchy tree|exports the current focus|exports a change source|exports without a snapshot|exports the complete model structure for file formats/,
+      grep: /browses Element Contracts|opens an Authored View|keeps View source|browses Model View|scopes an Authored View projection and keeps its focus breadcrumb|handles ADDED projection|refreshes the model through HMR|renders each Change presentation mode|renders four-state diff visuals|expands in place|bounded projection request count|double-click navigation settles|browses the complete candidate model|reviews candidate changes in diff only mode|keeps invalid candidate sources diagnosable|shows candidate cards on the landing page|opens an active change from the landing page|applies kind presentation|keeps operation color|exports a hierarchy tree|exports the current focus|exports a change source|exports without a snapshot|exports the complete model structure for file formats/,
       use: { ...devices['Desktop Chrome'], channel: 'chrome' },
     },
     {
       name: 'mobile',
-      grep: /mobile Contract dialog|browses Model View|handles ADDED projection|refreshes the model through HMR|renders each Change presentation mode|renders four-state diff visuals|browses the complete candidate model|reviews candidate changes in diff only mode|keeps invalid candidate sources diagnosable|shows candidate cards on the landing page|applies kind presentation|keeps operation color|exports a hierarchy tree|exports the current focus|exports a change source|exports without a snapshot|exports the complete model structure for file formats/,
+      grep: /mobile Contract dialog|browses Model View|handles ADDED projection|refreshes the model through HMR|renders each Change presentation mode|renders four-state diff visuals|browses the complete candidate model|reviews candidate changes in diff only mode|keeps invalid candidate sources diagnosable|shows candidate cards on the landing page|opens an active change from the landing page|applies kind presentation|keeps operation color|exports a hierarchy tree|exports the current focus|exports a change source|exports without a snapshot|exports the complete model structure for file formats/,
       use: { ...devices['Pixel 7'], channel: 'chrome' },
     },
   ],

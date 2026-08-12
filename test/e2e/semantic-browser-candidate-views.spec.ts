@@ -42,3 +42,21 @@ test('shows candidate cards on the landing page', async ({ page }) => {
   await expect(page.getByText('Candidate View')).toBeVisible({ timeout: 20_000 })
   await expect(page.getByText('Candidate Diff View')).toBeVisible({ timeout: 20_000 })
 })
+
+test('opens an active change from the landing page', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByText('Active Changes')).toBeVisible({ timeout: 20_000 })
+  await page.getByText('browser-change', { exact: true }).click()
+
+  await expect(page).toHaveURL(/change=browser-change/)
+  await expect(page).toHaveURL(/mode=diff-only/)
+  await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
+  const removed = page.locator('.react-flow__node[data-xirang-identity="capability.peer"]')
+  await expect(removed).toBeVisible()
+  await expect(removed).toHaveAttribute('data-xirang-operation', 'REMOVED')
+
+  // Change inspection panel is hidden below the sm breakpoint (mobile).
+  if ((page.viewportSize()?.width ?? 0) >= 768) {
+    await expect(page.getByText(/Change · Model View/)).toBeVisible()
+  }
+})
