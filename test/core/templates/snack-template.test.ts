@@ -41,6 +41,16 @@ describe('snack template artifact reconciliation', () => {
   const template = getSnackSkillTemplate();
   const instructions = template.instructions;
 
+  it('creates a new change by default and updates only on explicit request', () => {
+    expect(instructions).toContain('Default to creating a new change');
+    expect(instructions).toContain('explicitly asks to update the current or an existing change');
+    expect(instructions).toContain('derive a new kebab-case change ID');
+    expect(instructions).toContain('ask the user for a change ID instead of guessing');
+    expect(instructions).toContain('Supplying an existing change ID does not by itself select update mode');
+    expect(instructions).toContain('ask for a different ID');
+    expect(instructions).not.toContain('If omitted, run `xirang list --json` and reuse');
+  });
+
   it('defers definition-first ordering to each artifact instruction projection', () => {
     expect(instructions).toContain('follow the authoring order in the returned `instruction`');
     expect(instructions).toContain('Keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs');

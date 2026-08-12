@@ -44,13 +44,15 @@ Treat `proposal.md`, `design.md`, and the Delta units under `{metamodel,elements
 ## Input
 
 - Optional `<change-name>` (kebab-case).
-- If omitted, run `xirang list --json` and reuse the single active change; if multiple or none, ask which change name to target.
+- Default to creating a new change. If no name is supplied, derive a new kebab-case change ID from the implementation evidence; if the evidence cannot produce a clear ID, ask the user for a change ID instead of guessing. Confirm that the ID is unused with `xirang list --json`.
+- Update an active change only when the user explicitly asks to update the current or an existing change. Supplying an existing change ID does not by itself select update mode.
 
 ## Flow
 
 1. Resolve change name and reconcile mode.
-   - If `.xirang/changes/<name>/` does not exist, run `xirang new change "<name>"` and create only artifacts required by evidence.
-   - Otherwise read the current proposal, design, and Delta units; classify each as **missing**, **stale**, **inconsistent**, or **current** and preserve unrelated human-authored content.
+   - In the default new-change mode, if `.xirang/changes/<name>/` does not exist, run `xirang new change "<name>"` and create only artifacts required by evidence. If the ID already exists, stop and ask for a different ID; do not update it or synthesize an alternative ID.
+   - In update mode, use the explicitly named change. If the user explicitly asks to update the current change without naming it, run `xirang list --json` and reuse the single active change; if multiple or none exist, ask which existing change to target.
+   - Before updating, read the current proposal, design, and Delta units; classify each as **missing**, **stale**, **inconsistent**, or **current** and preserve unrelated human-authored content.
 2. Load the shared Xirang Semantic Model context.
 **Xirang Semantic Model Context**
 - Resolve the absolute Project Root, then load the Semantic Model from `.xirang/model/{metamodel,elements,relationships,views}/` and locate the unique Project Root Element, whose `parent` is null.

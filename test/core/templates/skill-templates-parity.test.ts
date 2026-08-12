@@ -23,7 +23,7 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
   getXirangProposeSkillTemplate: '7128008299ef3cae00532cdbe34ded2945cc5e99da675d232b3fed3752435f94',
   getFeedbackSkillTemplate: 'a75ff723b3b24ba2c61aee4243d2db6cfc5ee71e3adc2309ab30e7ce1503fbca',
   getBuildSkillTemplate: '132ee6486c1919a51c2913333d0ca6c95481fe8e723f79d6cd46c5994bb9e9e2',
-  getSnackSkillTemplate: '990442cfc992d39e9b8776c2c02eff61fef087abfc881381964472b59f668fce',
+  getSnackSkillTemplate: 'ed914df6502b02eb4556aadfa49e4aa4b4a4bf255883378d125fe3bf781f8ab6',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
@@ -31,6 +31,7 @@ const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
   'xirang-apply-change': 'fa9d4233a8b75e1230004af212767ea86af2766c8a404d39d6d336e72e748b44',
   'xirang-archive-change': 'aa5499bc9fd059a6bb58668ad14052b870722a44905405851c24fac3399ee0c8',
   'xirang-propose': '2c2e5d72aea3769d862327ffdcd5134d49402f4c93269f0b3361774f916a13c6',
+  'xirang-snack': 'f46f3ff0a7b5318108ffd1aa1e16192f5bb457c280908f7f503d0256d165fbec',
 };
 
 function stableStringify(value: unknown): string {
@@ -80,6 +81,7 @@ describe('skill templates split parity', () => {
       ['xirang-apply-change', getApplyChangeSkillTemplate],
       ['xirang-archive-change', getArchiveChangeSkillTemplate],
       ['xirang-propose', getXirangProposeSkillTemplate],
+      ['xirang-snack', getSnackSkillTemplate],
     ];
 
     const actualHashes = Object.fromEntries(
@@ -90,6 +92,15 @@ describe('skill templates split parity', () => {
     );
 
     expect(actualHashes).toEqual(EXPECTED_GENERATED_SKILL_CONTENT_HASHES);
+  });
+
+  it('keeps the tracked Pi snack skill equal to the transformed canonical template', () => {
+    const version = JSON.parse(readFileSync(path.resolve('package.json'), 'utf-8')).version as string;
+    const rendered = generateSkillContent(getSnackSkillTemplate(), version, (instructions) =>
+      runTransforms(instructions, { toolId: 'pi', workflowId: 'snack', artifactType: 'skill' })
+    );
+
+    expect(readFileSync(path.resolve('.pi/skills/xirang-snack/SKILL.md'), 'utf-8')).toBe(rendered);
   });
 
   it('renders every tracked workflow surface with canonical Semantic Model guidance', () => {

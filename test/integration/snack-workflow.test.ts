@@ -121,6 +121,10 @@ describe('snack workflow integration', () => {
       '3. **Sync and archive**: `xirang sync "<change-name>" --no-verify && xirang archive "<change-name>" --no-verify`'
     );
     expect(snackSkill).toContain('4. **Continue development**');
+    expect(snackSkill).toContain('Default to creating a new change');
+    expect(snackSkill).toContain('explicitly asks to update the current or an existing change');
+    expect(snackSkill).toContain('Supplying an existing change ID does not by itself select update mode');
+    expect(snackSkill).not.toContain('If omitted, run `xirang list --json` and reuse');
     expect(snackSkill).toMatch(/no architecture-level changes detected|Do NOT generate `tasks.md`/);
     // instructions portion (after YAML frontmatter) must stay <= 200 lines
     expect(instructionLineCount(snackSkill)).toBeLessThanOrEqual(200);
@@ -162,6 +166,10 @@ describe('snack workflow integration', () => {
     expect(refreshed).toContain('git diff HEAD');
     expect(refreshed).toMatch(/commit[/-]?range|commit range/i);
     expect(refreshed).toMatch(/reconcil/i);
+    expect(refreshed).toContain('Default to creating a new change');
+    expect(refreshed).toContain('explicitly asks to update the current or an existing change');
+    expect(refreshed).toContain('Supplying an existing change ID does not by itself select update mode');
+    expect(refreshed).not.toContain('If omitted, run `xirang list --json` and reuse');
     expect(instructionLineCount(refreshed)).toBeLessThanOrEqual(200);
   });
 });
