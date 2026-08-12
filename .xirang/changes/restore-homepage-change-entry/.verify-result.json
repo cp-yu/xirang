@@ -80,7 +80,7 @@
     "timestamp": "2026-08-12T17:05:06.034Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
         "timestamp": "2026-08-12T16:59:15.927Z",
@@ -91,6 +91,11 @@
         "timestamp": "2026-08-12T17:05:06.024Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-12T17:10:59.184Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
@@ -176,7 +181,7 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx"
@@ -253,9 +258,16 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-12T17:05:06.025Z",
         "findingId": "OPT-20260812T165915924Z-01"
+      },
+      {
+        "sequence": 5,
+        "action": "resolve",
+        "reason": "Only remaining statically provable duplication in base scope; now implemented and verified, so resolution outranks any new speculation.",
+        "timestamp": "2026-08-12T17:10:59.184Z",
+        "findingId": "OPT-20260812T165915924Z-01"
       }
     ],
-    "reconciliationSignature": "81620b2deb786d5139c6d826f247b84f2072bd8d16a0305fb97ec0cfe6583cdc",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }
