@@ -1,0 +1,56 @@
+model {
+  root = project 'Xirang Contract Browser' 'Browser fixture project r...' {
+    description 'Browser fixture project root for Element Contract end-to-end coverage.'
+    metadata {
+      elementId 'project.root'
+    }
+    long = capability 'Long Contract' 'Browser fixture Element w...' {
+      description 'Browser fixture Element with enough Contract content to require scrolling.'
+      metadata {
+        elementId 'long'
+      }
+    }
+    none = capability 'No Contract' 'Browser fixture Element w...' {
+      description 'Browser fixture Element without an Element Contract.'
+      metadata {
+        elementId 'none'
+      }
+    }
+    browser = perspective 'Browser Perspective' 'Groups the nested browser...' {
+      description 'Groups the nested browser behavior used for Model View navigation coverage.'
+      metadata {
+        elementId 'perspective.browser'
+      }
+      drill = capability 'Drill-down Capability' 'Provides a nested branch ...' {
+        description 'Provides a nested branch for continuous Model View navigation.'
+        metadata {
+          elementId 'capability.drill'
+        }
+        assistant = capability 'Assistant Capability' 'Browser fixture Element t...' {
+          description 'Browser fixture Element that stays unchanged, providing an unchanged relationship edge in the drill subtree for diff presentation coverage.'
+          metadata {
+            elementId 'capability.assistant'
+          }
+        }
+        leaf = capability 'Leaf Capability' 'Terminates the nested Mod...' {
+          description 'Terminates the nested Model View navigation branch.'
+          metadata {
+            elementId 'capability.leaf'
+          }
+        }
+        peer = capability 'Peer Capability' 'Provides a visible relati...' {
+          description 'Provides a visible relationship target in the leaf refinement context.'
+          metadata {
+            elementId 'capability.peer'
+          }
+        }
+      }
+    }
+    single = capability 'Single Contract' 'Browser fixture Element w...' {
+      description 'Browser fixture Element with one concise Element Contract.'
+      metadata {
+        elementId 'single'
+      }
+    }
+  }
+}

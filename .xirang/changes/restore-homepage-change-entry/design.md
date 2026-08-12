@@ -36,6 +36,10 @@ Semantic Browser 单一路由化（`unify-semantic-browser-views`）后，`likec
 
 `test/e2e/semantic-browser-candidate-views.spec.ts` 是既有的首页入口 spec（"shows candidate cards on the landing page"），新增用例覆盖 Change 卡片：首页可见 `browser-change` 卡片 → 点击 → URL 含 `change=browser-change&mode=diff-only`、diff-only 差异节点与 Change 审查面板可见。desktop + mobile 双 project 运行。既有用例不改动。
 
+### 4. View/Change/Mode 切换后自动适配视口
+
+切换 View Selection、Change Selection 或 Presentation Mode 后，新 projection 应用时应自动缩放并居中（fit），使内容完整可见；focus 下钻与就地展开引起的 projection 更新不得触发 fit。实现复用 `update.view` 事件的 `initialProjection` 标志：DiagramUI 投影 effect 跟踪上一轮 `{view, change, mode}` 选择，选择变化时以 `initialProjection: true` 发送，`updateView` 现有逻辑在该标志下执行 `raiseFitDiagram`（transition(null, ...) → fit），无需扩展事件 schema；下钻与展开时标志为 false，视口保持。
+
 ## Risks / Trade-offs
 
 - `changes` 是新增只读 API 面：默认空数组、不参与选择状态机，无破坏性；`XirangChangeSource` 类型已由 `@likec4/diagram` 导出，无需新增导出

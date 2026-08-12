@@ -16,7 +16,7 @@ Semantic Browser 单一路由化后，首页（`/` → `/single-index/`）只保
 
 #### Modified Specs
 
-- `semantic-browser`: 首页为 Candidate View、Candidate Diff View 与每个活动 Change 提供快速入口卡片，点击以对应 `view`/`change`/`mode` 状态打开单一 route（Change 默认 `diff-only`）
+- `semantic-browser`: 首页为 Candidate View、Candidate Diff View 与每个活动 Change 提供快速入口卡片，点击以对应 `view`/`change`/`mode` 状态打开单一 route（Change 默认 `diff-only`）；切换 View、Change 或 Mode 后新 projection 自动缩放居中使内容完整可见
 
 ### Architecture Source
 
@@ -42,5 +42,6 @@ Semantic Browser 单一路由化后，首页（`/` → `/single-index/`）只保
 - `likec4/packages/likec4-spa/src/routes/_single/single-index.tsx`: 新增 Active Changes 区块与 Change 卡片组件
 - `test/e2e/semantic-browser-candidate-views.spec.ts`: 新增首页 Change 卡片点击直达 diff-only 的用例（desktop + mobile）
 - `playwright.config.ts`: desktop/mobile 项目 grep 白名单注册新用例标题（否则新用例不会执行）
-- `likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx`: 投影更新视口锚点改为仅在存在真实 focus 时生效（修复首页点击进入 change-derived view 后白板）
+- `likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx`: 投影更新视口锚点改为仅在存在真实 focus 时生效（修复首页点击进入 change-derived view 后白板）；View/Change/Mode 切换后新 projection 自动适配视口
+- `test/e2e/semantic-browser-model-view.spec.ts`: 新增切换 View/Change/Mode 后自动适配视口用例
 - 无新依赖、无数据或配置变更

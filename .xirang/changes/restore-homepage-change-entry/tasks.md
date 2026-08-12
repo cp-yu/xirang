@@ -61,6 +61,30 @@
   - Command: `cd likec4 && pnpm --filter @likec4/spa build && pnpm --filter xirang-likec4 build && cd .. && pnpm exec playwright test test/e2e/semantic-browser-candidate-views.spec.ts --project=desktop --project=mobile`
   - Expect: 顺序固定为先 `@likec4/spa` 再 `xirang-likec4`；新用例与全部既有用例在 desktop 与 mobile 均通过
 
+### Task 4: View/Change/Mode 切换后自动适配视口
+
+**Goal**: 切换 View Selection、Change Selection 或 Presentation Mode 后，新 projection 自动缩放居中使内容完整可见；focus 下钻与就地展开不触发。
+
+**Files**:
+- Modify: `likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx`（选择变化时以 `initialProjection` 标志发送投影更新）
+- Test: `test/e2e/semantic-browser-model-view.spec.ts`
+- Modify: `playwright.config.ts`（desktop/mobile grep 白名单注册新用例标题）
+
+**Requirements**:
+- `elements/semantic-browser.md` / Requirement "切换 View、Change 或 Mode 后自动适配视口"
+
+#### Checks
+
+- [x] C6 切换 Mode/Change/View 后自动适配
+  - Verifies: `elements/semantic-browser.md` / Requirement "切换 View、Change 或 Mode 后自动适配视口" / Scenario "切换 Mode 后适配"、"切换 Change 后适配"、"切换 View 后适配"、"快速入口进入后适配"
+  - Command: `pnpm exec playwright test test/e2e/semantic-browser-model-view.spec.ts --project=desktop --project=mobile -g "fits the diagram after switching" && pnpm exec playwright test test/e2e/semantic-browser-candidate-views.spec.ts --project=desktop --project=mobile`
+  - Expect: 新用例通过：每次切换后 viewport transform 变化且全部节点位于视口内；首页卡片进入后全部节点位于视口内
+
+- [x] C7 下钻与就地展开不触发适配
+  - Verifies: `elements/semantic-browser.md` / Requirement "切换 View、Change 或 Mode 后自动适配视口" / Scenario "下钻与就地展开不触发适配"
+  - Command: `pnpm exec playwright test test/e2e/semantic-browser-model-view.spec.ts --project=desktop`
+  - Expect: 既有下钻与 expand 用例（handles ADDED projection、renders each Change presentation mode 等）保持通过
+
 ## Required Corrections
 
 - [x] [artifact_fix] `playwright.config.ts` desktop/mobile 项目 grep 白名单新增用例标题 `opens an active change from the landing page`（无该注册新用例不会执行，C3/C5 将空转）；已补充声明到 Task 3 Files 与 proposal.md Impact，无需代码改动

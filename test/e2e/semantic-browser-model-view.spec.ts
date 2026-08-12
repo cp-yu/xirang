@@ -173,9 +173,13 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
   const nodeBadgeStyle = (locator: ReturnType<Page['locator']>) => locator.evaluate(node => {
     const style = getComputedStyle(node)
     const rect = node.getBoundingClientRect()
+    // The badge box is measured in viewport pixels; divide by the diagram zoom
+    // so auto-fit zoom levels do not distort the diagram-space size assertions.
+    const viewport = document.querySelector('.react-flow__viewport')
+    const zoom = viewport ? new DOMMatrixReadOnly(getComputedStyle(viewport).transform).a : 1
     return {
-      width: rect.width,
-      height: rect.height,
+      width: rect.width / zoom,
+      height: rect.height / zoom,
       backgroundColor: style.backgroundColor,
       color: style.color,
       fontSize: parseFloat(style.fontSize),
@@ -200,7 +204,7 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
   expect(await addedBadge.evaluate(node => parseFloat(getComputedStyle(node).opacity))).toBe(1)
 
   expect((await nodeBadgeStyle(addedBadge)).width).toBeGreaterThanOrEqual(24)
-  expect((await nodeBadgeStyle(addedBadge)).height).toBe(24)
+  expect((await nodeBadgeStyle(addedBadge)).height).toBeCloseTo(24, 3)
   expect((await nodeBadgeStyle(addedBadge)).fontSize).toBeGreaterThanOrEqual(16)
   expect((await nodeBadgeStyle(addedBadge)).borderWidth).toBeGreaterThanOrEqual(2)
   expect((await nodeBadgeStyle(addedBadge)).backgroundColor).toMatch(/255, 159, 10/)
@@ -277,4 +281,44 @@ test('expands in place with ctrl+click and collapses with Shift+0', async ({ pag
   await page.locator('.react-flow__pane').press('Shift+Digit0')
   await expect(branch).toHaveCount(0)
   await expect(perspective).toBeVisible()
+})
+
+test('fits the diagram after switching', async ({ page }) => {
+  await page.goto('/view/model/?change=browser-change&mode=diff-only')
+  await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
+
+  const viewportTransform = () =>
+    page.locator('.react-flow__viewport').evaluate(el => getComputedStyle(el).transform)
+  const nodeCount = () => page.locator('.react-flow__node').count()
+  const allNodesWithinViewport = () => page.evaluate(() => {
+    const nodes = [...document.querySelectorAll('.react-flow__node')]
+    return nodes.length > 0 && nodes.every(node => {
+      const rect = node.getBoundingClientRect()
+      return rect.right > 0 && rect.left < window.innerWidth && rect.bottom > 0 && rect.top < window.innerHeight
+    })
+  })
+
+  // Deep-link entry (same as the homepage quick-entry flow) fits the first projection.
+  await expect.poll(allNodesWithinViewport, { timeout: 10_000 }).toBe(true)
+
+  // Mode switch re-fits the new content.
+  const beforeMode = await viewportTransform()
+  await page.getByLabel('Presentation Mode').selectOption('complete-with-diff')
+  await expect.poll(async () =>
+    await allNodesWithinViewport() && await viewportTransform() !== beforeMode, { timeout: 10_000 }).toBe(true)
+
+  // Change switch re-fits the new content.
+  const beforeChangeTransform = await viewportTransform()
+  const beforeChangeCount = await nodeCount()
+  await page.getByLabel('Change Selection').selectOption('')
+  await expect.poll(async () =>
+    await allNodesWithinViewport()
+      && (await viewportTransform() !== beforeChangeTransform || await nodeCount() !== beforeChangeCount),
+  { timeout: 10_000 }).toBe(true)
+
+  // View switch re-fits the new content.
+  const beforeView = await viewportTransform()
+  await page.getByLabel('View Selection').selectOption('model-equivalent')
+  await expect.poll(async () =>
+    await allNodesWithinViewport() && await viewportTransform() !== beforeView, { timeout: 10_000 }).toBe(true)
 })

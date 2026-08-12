@@ -31,3 +31,37 @@ Semantic Browser 首页 SHALL 为 Candidate View、Candidate Diff View 与每个
 
 - **WHEN** 不存在活动 Change
 - **THEN** 首页 SHALL 不呈现活动 Change 快速入口区块
+
+### Requirement: 切换 View、Change 或 Mode 后自动适配视口
+
+Semantic Browser SHALL 在 View Selection、Change Selection 或 Presentation Mode 切换产生的新 projection 应用后，自动缩放并居中，使该 projection 的全部内容完整可见；由 focus 下钻或就地展开引起的 projection 更新 SHALL NOT 触发自动适配，SHALL 保持用户当前视口。
+
+#### Scenario: 切换 View 后适配
+
+- **WHEN** 用户在交互式 Browser 中切换 View Selection
+- **THEN** 新 projection 应用后视口自动缩放并居中
+- **AND** 该 projection 的全部内容完整可见
+
+#### Scenario: 切换 Change 后适配
+
+- **WHEN** 用户切换 Change Selection
+- **THEN** 新 Change-derived projection 应用后视口自动缩放并居中
+- **AND** 该 projection 的全部内容完整可见
+
+#### Scenario: 切换 Mode 后适配
+
+- **WHEN** 用户切换 Presentation Mode
+- **THEN** 新 projection 应用后视口自动缩放并居中
+- **AND** 该 projection 的全部内容完整可见
+
+#### Scenario: 快速入口进入后适配
+
+- **WHEN** 用户通过首页快速入口卡片以 `view`/`change`/`mode` 状态打开单一 route
+- **THEN** 首个 projection 应用后视口自动缩放并居中
+- **AND** 该 projection 的全部内容完整可见
+
+#### Scenario: 下钻与就地展开不触发适配
+
+- **WHEN** 用户下钻 focus 或就地展开后代
+- **THEN** 视口保持用户当前位置
+- **AND** 不自动缩放或居中

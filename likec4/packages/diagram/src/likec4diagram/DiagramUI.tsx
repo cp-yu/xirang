@@ -172,6 +172,7 @@ function XirangArchitectureOverlay() {
   const previousFocusAncestors = useRef<string[]>([])
   /** Candidate View is always full; Candidate Diff View is always diff-only; Changes can toggle. */
   const effectiveMode = resolveEffectiveMode(selected.source, mode)
+  const previousSelection = useRef({ id: selected.id, change: selected.change ?? null, mode: effectiveMode })
   const [relationshipDetails, setRelationshipDetails] = useState<string[]>([])
   const [relationshipModalOpened, setRelationshipModalOpened] = useState(false)
   const [metamodelEntry, setMetamodelEntry] = useState<{ entry: XirangDiffEntry; opened: boolean } | null>(null)
@@ -351,6 +352,10 @@ function XirangArchitectureOverlay() {
     }
     const resolvedFocus = [focusIdentity, ...previousAncestorPath, rootIdentity]
       .find((identity): identity is string => !!identity && declarations.has(identity))
+    const selectionChanged = previousSelection.current.id !== selected.id
+      || previousSelection.current.change !== (selected.change ?? null)
+      || previousSelection.current.mode !== effectiveMode
+    previousSelection.current = { id: selected.id, change: selected.change ?? null, mode: effectiveMode }
     const projectionView = selected.projection ?? modelView.current
     const view = selected.architecture
       ? applyXirangPresentationOverlay(expandXirangRelationshipEdges(projectionView, selected), selected)
@@ -364,7 +369,10 @@ function XirangArchitectureOverlay() {
       // distant region of the canvas (blank screen after entering a
       // change-derived view from the landing page).
       anchorIdentity: focusIdentity ?? null,
-      initialProjection: !hasProjection.current,
+      // Fit on the first projection and whenever the View/Change/Mode
+      // selection changes (including the quick-entry path); focus drills and
+      // expand-in-place keep the current viewport.
+      initialProjection: !hasProjection.current || selectionChanged,
     })
     hasProjection.current = true
     if (focusIdentity && resolvedFocus !== focusIdentity) {

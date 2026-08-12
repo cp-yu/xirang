@@ -1,0 +1,19 @@
+specification {
+  element capability {
+    style {
+      shape component
+      color blue
+      border dashed
+    }
+  }
+  element domain
+  element perspective {
+    style {
+      shape document
+      color indigo
+      border solid
+    }
+  }
+  element project
+  relationship invokes
+}

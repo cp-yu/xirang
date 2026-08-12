@@ -70,4 +70,13 @@ test('opens an active change from the landing page', async ({ page }) => {
   if ((page.viewportSize()?.width ?? 0) >= 768) {
     await expect(page.getByText(/Change · Model View/)).toBeVisible()
   }
+
+  // The quick-entry projection auto-fits: every node sits inside the viewport.
+  await expect.poll(() => page.evaluate(() => {
+    const nodes = [...document.querySelectorAll('.react-flow__node')]
+    return nodes.length > 0 && nodes.every(node => {
+      const rect = node.getBoundingClientRect()
+      return rect.right > 0 && rect.left < window.innerWidth && rect.bottom > 0 && rect.top < window.innerHeight
+    })
+  }), { timeout: 10_000 }).toBe(true)
 })
