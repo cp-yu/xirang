@@ -130,6 +130,19 @@ describe('propose template post-validation flow', () => {
     }
   });
 
+  it('forms tasks around independently implementable and verifiable TDD loops', () => {
+    const body = getXirangProposeSkillTemplate().instructions;
+
+    expect(body).toContain('independently implementable and verifiable end-to-end loop');
+    expect(body).toContain('Production code, configuration, generated surfaces, and tests');
+    expect(body).toContain('MUST remain in one task');
+    expect(body).toContain('each task reaches its own GREEN independently');
+    expect(body).toContain('depends only on an earlier task that is already GREEN');
+    expect(body).toMatch(/a task's RED\/GREEN cycle MUST NOT depend on a later task/i);
+    expect(body).toContain('Do not split tasks by component, module, directory, file type, or Requirement count');
+    expect(body).toContain('reconcile task boundaries before declaring the Change ready for Apply');
+  });
+
   it('uses Design Summary or semantic readiness without mechanical scoring', () => {
     for (const body of getProposeBodies()) {
       expect(body).toContain('confirmed `Design Summary`');

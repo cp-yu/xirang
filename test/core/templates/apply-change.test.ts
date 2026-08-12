@@ -146,6 +146,16 @@ describe('apply change workflow template', () => {
     expect(instructions).not.toContain('Pocock');
   });
 
+  it('runs task-level TDD before one change-level Phase 1 review', () => {
+    const instructions = getApplyChangeSkillTemplate().instructions;
+
+    expect(instructions).toContain('Each task is one TDD loop');
+    expect(instructions).toContain('Completing one ordinary task MUST NOT trigger Phase 1');
+    expect(instructions).toContain('Only after every pending task and Required Correction is complete');
+    expect(instructions).toContain('one change-level review of that completed Phase 0 state');
+    expect(instructions).toContain('require another change-level Review after recovery completes');
+  });
+
   it('keeps apply Phase 2 checkpoint commands in the Phase 2 reference', () => {
     const reference = applyReference('references/apply-step-5-phase2-optimization.md');
 

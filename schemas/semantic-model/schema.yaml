@@ -149,11 +149,11 @@ artifacts:
       `### Task N:` headings and nested checkboxes to track progress.
 
       Required structure:
-      - Create one `### Task N: <name>` section per component or coherent work unit
+      - Create one `### Task N: <name>` section per independently implementable and verifiable end-to-end loop
       - Each task MUST include `**Goal**:`, `**Files**:`, `**Requirements**:`, and `#### Checks`
       - `Files` MUST use POSIX project-relative paths and label each path as `Create:`, `Modify:`, `Delete:`, or `Test:`
       - File-level deletions (including moves and merges that produce deletions) use `Delete:` declaration; generated-surface changes (such as skill regeneration directories) should be declared at directory granularity
-      - `Requirements` MUST contain no more than 5 bullet items per task; split complex work into multiple tasks
+      - `Requirements` MUST contain no more than 5 high-level implementation constraints per task; consolidate details or move verification detail into Checks rather than splitting one loop by count
       - `Checks` are executable verification items and MUST use checkbox IDs prefixed with `C`: `- [ ] C1 Verify ...`
       - Each check MUST include `Verifies:` or `Preserves:` before executable evidence fields
       - `Verifies:` identifies the change-local spec requirement and scenario(s); for deletion deliverables, use `Verifies: ... / REMOVED Requirement "<name>"` (no Scenario required)
@@ -168,7 +168,10 @@ artifacts:
       - Task titles, check names, requirements bullet prose, and Evidence:/Expect: descriptions follow `proseLanguage` when configured.
       - Structural labels such as `### Task N:`, `Goal`, `Files`, `Requirements`, `Checks`, `Verifies:`, `Command:`, `Evidence:`, and `Expect:` remain canonical.
       - Examples show structure only. When `proseLanguage` is configured, do not carry over ordinary English example prose into generated artifacts.
-      - Generate one task from each major component in the design or Design Summary
+      - Derive end-to-end loops from the design or Design Summary, then form task boundaries by TDD closure rather than implementation topology: production code, configuration, generated surfaces, and tests that jointly deliver one behavior MUST stay in one task even when they span components, modules, directories, or file types
+      - Split work only when each task reaches its own GREEN independently, or when an explicit delivery sequence makes a task depend only on an earlier task that is already GREEN
+      - A task's RED/GREEN cycle MUST NOT depend on a later task; after drafting all tasks, cross-check Goals, Files, Requirements, and Checks and reconcile task boundaries before declaring the Change ready for Apply
+      - Do not split tasks by component, module, directory, file type, or Requirement count
       - Put technical stack constraints and boundary conditions under Requirements, not free-form prose
       - Validation work maps to checks for invalid-input behavior
       - Bug fixes map to a check that reproduces the failure and proves the regression fix

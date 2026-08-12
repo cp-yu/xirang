@@ -374,6 +374,12 @@ describe('artifact-workflow CLI commands', () => {
       expect(json.instruction).toContain('executable Checks');
       expect(json.instruction).toContain('non-runtime text or non-runtime artifact changes do not require artificial failing tests');
       expect(json.instruction).toContain('config, schema, template, workflow template, and agent instruction template changes default to behavior Checks');
+      expect(json.instruction).toContain('independently implementable and verifiable end-to-end loop');
+      expect(json.instruction).toContain('MUST stay in one task');
+      expect(json.instruction).toContain('depend only on an earlier task that is already GREEN');
+      expect(json.instruction).toContain('MUST NOT depend on a later task');
+      expect(json.instruction).not.toContain('Generate one task from each major component');
+      expect(json.instruction).not.toContain('split complex work into multiple tasks');
       expect(json.instruction).not.toContain('decompose into detailed TDD cycles');
       expect(json.instruction).toContain('Design Summary');
     });

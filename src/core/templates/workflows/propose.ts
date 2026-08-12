@@ -80,6 +80,7 @@ ${STRUCTURAL_DECOMPOSITION_GUIDANCE}
 9. Check compilation scaffolding before semantic-source validation.
    - Run \`xirang instructions proposal --change "<name>" --json\` and \`xirang instructions design --change "<name>" --json\`; compare each file with its current resolved definition and template.
    - Run \`xirang instructions tasks --change "<name>" --json\` and use deterministic \`validateTaskStructure\`. Support Actions and coarse \`### Task N:\`, Goal, Files, Requirements, Checks, Covers:, Verifies:, change-local \`Verifies:\` Element unit paths, Requirement/Scenario references, Command:, Evidence:, and Expect:. Do NOT invent semantic lint rules beyond the current templates. Do NOT judge whether a check is semantically sufficient.
+   - Before ready-for-apply, review all coarse task boundaries as independently implementable and verifiable end-to-end loops. Production code, configuration, generated surfaces, and tests that jointly deliver one behavior MUST remain in one task. Split only when each task reaches its own GREEN independently, or when it depends only on an earlier task that is already GREEN; a task's RED/GREEN cycle MUST NOT depend on a later task. Do not split tasks by component, module, directory, file type, or Requirement count; when cross-task dependencies violate independent verification, reconcile task boundaries before declaring the Change ready for Apply.
 10. Run combined change validation exactly once with \`xirang validate --change "<name>" --json\`. Do NOT run \`xirang sync\`.
     - ERROR from either scaffolding checks or combined change validation blocks ready-for-apply. Perform at most one repair pass, re-check once, and stop with the remaining blockers if any ERROR remains.
     - WARNING does not block ready-for-apply; retain it for the final summary.
@@ -94,7 +95,7 @@ ${STRUCTURAL_DECOMPOSITION_GUIDANCE}
 
 ${ARTIFACT_DOC_LANGUAGE_CONTRACT}
 
-Keep tasks coarse: \`### Task N:\`, \`Goal\`, \`Files\`, \`Requirements\`, and nested Checks; at most 5 Requirements per task. Preserve canonical headings, IDs, schema keys, paths, commands, BDD keywords, and code identifiers.`,
+Keep tasks coarse and aligned to TDD closure: each \`### Task N:\` is one independently implementable and verifiable end-to-end loop with one \`Goal\`, \`Files\`, no more than 5 high-level \`Requirements\`, and nested Checks. Preserve canonical headings, IDs, schema keys, paths, commands, BDD keywords, and code identifiers.`,
     license: 'MIT',
     compatibility: 'Requires xirang CLI.',
     metadata: { author: 'xirang', version: '1.0' },
