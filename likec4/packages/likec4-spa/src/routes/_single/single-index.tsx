@@ -9,7 +9,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import { Link } from '@tanstack/react-router'
 
-import { StaticLikeC4Diagram, type XirangChangeSource, type XirangViewSource, useXirangViewSources } from '@likec4/diagram'
+import { StaticLikeC4Diagram, type XirangViewSource, useXirangViewSources } from '@likec4/diagram'
 import { useEffect, useState } from 'react'
 
 import type { DiagramView } from '@likec4/core/types'
@@ -38,6 +38,7 @@ function RouteComponent() {
   useDocumentTitle(projectTitle ?? pageTitle)
   const views = filterLandingPageViews(allViews, landingPage)
   const runtime = useXirangViewSources()
+  const navigate = useNavigate()
   const candidateSources = runtime.sources.filter(s => s.source === 'candidate' || s.source === 'candidate-diff')
   const changes = runtime.changes
   return (
@@ -98,7 +99,17 @@ function RouteComponent() {
             spacing={{ base: 10, sm: 'xl' }}
             verticalSpacing={{ base: 'md', sm: 'xl' }}
           >
-            {candidateSources.map(s => <CandidateViewCard key={s.id} source={s} />)}
+            {candidateSources.map(s => (
+              <SourceCard
+                key={s.id}
+                source={s}
+                onOpen={() => void navigate({
+                  to: '/view/$viewId/',
+                  params: { viewId: 'model' },
+                  search: previous => ({ ...previous, view: s.id }),
+                })}
+              />
+            ))}
           </SimpleGrid>
         </>
       )}
@@ -112,7 +123,17 @@ function RouteComponent() {
             spacing={{ base: 10, sm: 'xl' }}
             verticalSpacing={{ base: 'md', sm: 'xl' }}
           >
-            {changes.map(c => <ChangeDerivedViewCard key={c.change} source={c} />)}
+            {changes.map(c => (
+              <SourceCard
+                key={c.change}
+                source={c}
+                onOpen={() => void navigate({
+                  to: '/view/$viewId/',
+                  params: { viewId: 'model' },
+                  search: previous => ({ ...previous, view: 'model', change: c.change, mode: 'diff-only' }),
+                })}
+              />
+            ))}
           </SimpleGrid>
         </>
       )}
@@ -176,10 +197,15 @@ function ViewCard({ view }: { view: DiagramView }) {
   )
 }
 
-function ChangeDerivedViewCard({ source }: { source: XirangChangeSource }) {
-  const navigate = useNavigate()
+function SourceCard({
+  source,
+  onOpen,
+}: {
+  source: Pick<XirangViewSource, 'label' | 'valid' | 'diagnostics' | 'diff'>
+  onOpen: () => void
+}) {
   const counts = source.diff?.summary
-  const hasIssues = source.diagnostics.some(d => d.level === 'ERROR')
+  const errorDiagnostics = source.diagnostics.filter(d => d.level === 'ERROR')
 
   return (
     <Card
@@ -192,11 +218,7 @@ function ChangeDerivedViewCard({ source }: { source: XirangChangeSource }) {
       href={`/view/model/`}
       onClick={e => {
         e.preventDefault()
-        void navigate({
-          to: '/view/$viewId/',
-          params: { viewId: 'model' },
-          search: previous => ({ ...previous, view: 'model', change: source.change, mode: 'diff-only' }),
-        })
+        onOpen()
       }}
       style={{ cursor: 'pointer' }}
     >
@@ -211,57 +233,11 @@ function ChangeDerivedViewCard({ source }: { source: XirangChangeSource }) {
         {counts && counts.REMOVED > 0 && <Badge size="sm" color="red">-{counts.REMOVED}</Badge>}
       </Group>
 
-      {source.diagnostics.filter(d => d.level === 'ERROR').map((d, i) => (
+      {errorDiagnostics.map((d, i) => (
         <Text key={i} size="xs" c="red" className={css({ lineClamp: 2 })}>{d.message}</Text>
       ))}
 
-      {!hasIssues && counts && counts.total === 0 && (
-        <Text size="xs" c="dimmed">No semantic graph changes</Text>
-      )}
-    </Card>
-  )
-}
-
-function CandidateViewCard({ source }: { source: XirangViewSource }) {
-  const navigate = useNavigate()
-  const counts = source.diff?.summary
-  const hasIssues = source.diagnostics.some(d => d.level === 'ERROR')
-
-  return (
-    <Card
-      shadow="xs"
-      padding="lg"
-      radius="sm"
-      className="group"
-      withBorder
-      component="a"
-      href={`/view/model/`}
-      onClick={e => {
-        e.preventDefault()
-        void navigate({
-          to: '/view/$viewId/',
-          params: { viewId: 'model' },
-          search: previous => ({ ...previous, view: source.id }),
-        })
-      }}
-      style={{ cursor: 'pointer' }}
-    >
-      <Group justify="space-between" mt="0" mb="sm">
-        <Text fw={500}>{source.label}</Text>
-        <Badge size="sm" color={source.valid ? 'green' : 'red'}>{source.valid ? 'Valid' : 'Invalid'}</Badge>
-      </Group>
-
-      <Group gap="xs" mb="xs">
-        {counts && counts.ADDED > 0 && <Badge size="sm" color="green">+{counts.ADDED}</Badge>}
-        {counts && counts.MODIFIED > 0 && <Badge size="sm" color="yellow">~{counts.MODIFIED}</Badge>}
-        {counts && counts.REMOVED > 0 && <Badge size="sm" color="red">-{counts.REMOVED}</Badge>}
-      </Group>
-
-      {source.diagnostics.filter(d => d.level === 'ERROR').map((d, i) => (
-        <Text key={i} size="xs" c="red" className={css({ lineClamp: 2 })}>{d.message}</Text>
-      ))}
-
-      {!hasIssues && counts && counts.total === 0 && (
+      {errorDiagnostics.length === 0 && counts && counts.total === 0 && (
         <Text size="xs" c="dimmed">No semantic graph changes</Text>
       )}
     </Card>

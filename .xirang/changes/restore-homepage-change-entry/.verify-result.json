@@ -27,7 +27,7 @@
       "playwright.config.ts",
       "test/e2e/semantic-browser-candidate-views.spec.ts"
     ],
-    "evidenceFingerprint": "11d6bfb84867f91c9dd8e098d0862fc0c0830e229827c8f2fdf8cd794a6d9385",
+    "evidenceFingerprint": "853d2e6ca1c70ad42105bafa93fa9dcda66cdcf989ae5df7f9e3c82fde51bfe0",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/restore-homepage-change-entry/elements/semantic-browser.md",
@@ -55,7 +55,7 @@
       },
       {
         "path": "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
-        "hash": "2a32588a63f9471c5c70f87318155dbd62cbe1304639eb60f8a18e5d4803ba04"
+        "hash": "62875e5f79ac12cbb82665de37ba122e13b5fa1de2362a930b2cfa9b45cbd592"
       },
       {
         "path": "playwright.config.ts",
@@ -67,12 +67,24 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "aa546f8e08cf2437ca4f41c17382d7db1c60825b",
-    "gitDiffSummary": "baseCommit aa546f8e0 == HEAD (branch restore-homepage-change-entry); implementation changes are uncommitted working-tree edits to ContractLoaderContext.tsx, single-index.tsx, playwright.config.ts, semantic-browser-candidate-views.spec.ts; change artifacts staged under .xirang/changes/restore-homepage-change-entry/ with the artifact-fix delta (proposal.md Impact line, tasks.md Task 3 Files declaration + Required Corrections entry + checkbox markings) unstaged on top. Commands: git diff aa546f8e0...HEAD --name-only (empty), git status --short, sha256 comparison vs prior evidence fingerprint (identical for all code files), vitest (25 passed), forced tsc --build --force (exit 0), playwright desktop+mobile (10 passed), xirang validate (Passed)."
+    "gitHeadCommit": "0b105446acc9932b9644aba18c4826acc1066480",
+    "gitDiffSummary": "baseCommit aa546f8e0 == HEAD (branch restore-homepage-change-entry); implementation changes are uncommitted working-tree edits to ContractLoaderContext.tsx, single-index.tsx, playwright.config.ts, semantic-browser-candidate-views.spec.ts; change artifacts staged under .xirang/changes/restore-homepage-change-entry/ with the artifact-fix delta (proposal.md Impact line, tasks.md Task 3 Files declaration + Required Corrections entry + checkbox markings) unstaged on top. Commands: git diff aa546f8e0...HEAD --name-only (empty), git status --short, sha256 comparison vs prior evidence fingerprint (identical for all code files), vitest (25 passed), forced tsc --build --force (exit 0), playwright desktop+mobile (10 passed), xirang validate (Passed).",
+    "timestamp": "2026-08-12T14:50:27.774Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-08-12T14:38:22.355Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-12T14:50:27.766Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-08-12T14:34:30.123Z",
       "result": "PASS",
@@ -145,6 +157,98 @@
         "gitHeadCommit": "aa546f8e08cf2437ca4f41c17382d7db1c60825b",
         "gitDiffSummary": "baseCommit aa546f8e0 == HEAD (branch restore-homepage-change-entry); implementation changes are uncommitted working-tree edits to ContractLoaderContext.tsx, single-index.tsx, playwright.config.ts, semantic-browser-candidate-views.spec.ts; change artifacts staged under .xirang/changes/restore-homepage-change-entry/ with the artifact-fix delta (proposal.md Impact line, tasks.md Task 3 Files declaration + Required Corrections entry + checkbox markings) unstaged on top. Commands: git diff aa546f8e0...HEAD --name-only (empty), git status --short, sha256 comparison vs prior evidence fingerprint (identical for all code files), vitest (25 passed), forced tsc --build --force (exit 0), playwright desktop+mobile (10 passed), xirang validate (Passed)."
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx"
+          ],
+          "symbols": [
+            "ChangeDerivedViewCard",
+            "CandidateViewCard",
+            "RouteComponent"
+          ]
+        },
+        "opportunity": "ChangeDerivedViewCard (lines 179-224) and CandidateViewCard (lines 226-271) are byte-identical in all 46 body lines except the component signature and the navigate() search object; a normalized diff shows no other differences. The duplicated markup (Card props, Valid/Invalid badge, ADDED/MODIFIED/REMOVED count badges, ERROR diagnostics list, 'No semantic graph changes' text) must be maintained in two places and can drift. The three SimpleGrid sections (Views, Candidate, Active Changes) also repeat the identical 6-prop grid config.",
+        "impact": "Removes ~46 duplicated lines plus the three identical grid configs; badge/diagnostic/count presentation has a single source of truth; a future change (e.g., a new diagnostic level, count badge style, or empty-state wording) touches one component instead of two.",
+        "evidence": [
+          "single-index.tsx:179-224 vs 226-271: normalized diff produces exactly 2 differing lines (signature and search object); every other line is identical",
+          "single-index.tsx:181-182 vs 227-228: identical `const counts = source.diff?.summary` / `const hasIssues = source.diagnostics.some(d => d.level === 'ERROR')`",
+          "single-index.tsx:205-219 vs 251-265: identical Badge colors/order (+green, ~yellow, -red), ERROR diagnostic Text (size xs, red, lineClamp 2, key by index), 'No semantic graph changes' condition `!hasIssues && counts && counts.total === 0`",
+          "single-index.tsx:82-90, 94-102, 108-116: identical SimpleGrid props (p, pt, cols base:1/sm:2/md:3/xl:4, spacing, verticalSpacing)"
+        ],
+        "recommendation": "Extract one `SourceCard` component taking `source: Pick<XirangViewSource, 'label' | 'valid' | 'diagnostics' | 'diff'>` and a `search` builder callback for navigate(); render it from both the candidateSources and changes maps with their respective search lambdas. Optionally extract the shared grid config into a small `CardGrid` wrapper used by all three sections. Both cards' navigate semantics and rendered DOM stay exactly as today.",
+        "keyDesign": "`function SourceCard({ source, search }: { source: Pick<XirangViewSource, 'label'|'valid'|'diagnostics'|'diff'>, search: (previous: RouteSearch) => RouteSearch })` computes `counts = source.diff?.summary`, `errorDiagnostics = source.diagnostics.filter(d => d.level === 'ERROR')` and `hasIssues = errorDiagnostics.length > 0` once, then renders the single Card body; click handler stays `e.preventDefault(); void navigate({ to: '/view/$viewId/', params: { viewId: 'model' }, search })`. Usages: `{candidateSources.map(s => <SourceCard key={s.id} source={s} search={prev => ({ ...prev, view: s.id })} />)}` and `{changes.map(c => <SourceCard key={c.change} source={c} search={prev => ({ ...prev, view: 'model', change: c.change, mode: 'diff-only' })} />)}`. `XirangChangeSource extends Omit<XirangViewSource, 'id'|'source'>` structurally satisfies the Pick, so no type exports or context changes are needed.",
+        "preservationConstraints": [
+          "Candidate card navigation MUST remain `{ ...previous, view: source.id }` with no change/mode keys (e2e 'reviews candidate changes in diff only mode' asserts `view=candidate-diff` and no 'Full context' toggle; 'browses the complete candidate model' asserts `view=candidate`)",
+          "Change card navigation MUST remain `{ ...previous, view: 'model', change: source.change, mode: 'diff-only' }` (e2e 'opens an active change from the landing page' asserts URL contains `change=browser-change` and `mode=diff-only`)",
+          "Card keys: candidate cards `s.id`, change cards `c.change`",
+          "Rendered DOM/text must stay identical: Card props (shadow xs, padding lg, radius sm, className group, withBorder, component a, href `/view/model/`, cursor pointer), 'Valid'/'Invalid' badge colors, count badge order/colors, ERROR diagnostics size xs red lineClamp 2 keyed by index, 'No semantic graph changes' only when `!hasIssues && counts && counts.total === 0`",
+          "Section visibility conditions unchanged: Candidate section when `candidateSources.length > 0`, Active Changes section when `changes.length > 0`; section headings 'Candidate' / 'Active Changes' and their text sizes unchanged (e2e `getByText('Active Changes')`, `getByText('browser-change', { exact: true })`)",
+          "No changes to ContractLoaderContext.tsx, playwright.config.ts, or the e2e spec; the `changes` context channel and `manifestToSources` stay as-is"
+        ],
+        "implementationOutline": [
+          "Add `SourceCard({ source, search })` whose body is the exact current ChangeDerivedViewCard body, with `errorDiagnostics`/`hasIssues` computed from one filter pass",
+          "Replace `ChangeDerivedViewCard` usage with `search={prev => ({ ...prev, view: 'model', change: c.change, mode: 'diff-only' })}`",
+          "Replace `CandidateViewCard` usage with `search={prev => ({ ...prev, view: s.id })}`; delete both old components",
+          "Optionally extract `CardGrid` wrapping the shared SimpleGrid props and use it in all three sections (Views, Candidate, Active Changes)",
+          "Run the C5 build/typecheck and the e2e spec on desktop + mobile to prove zero behavioral delta"
+        ],
+        "validation": [
+          "`pnpm exec playwright test test/e2e/semantic-browser-candidate-views.spec.ts --project=desktop --project=mobile` — proves 'shows candidate cards on the landing page', 'keeps invalid candidate sources diagnosable', 'opens an active change from the landing page', 'browses the complete candidate model', 'reviews candidate changes in diff only mode' still pass (URL search params, text selectors, card rendering, diff-only projection)",
+          "`cd likec4 && pnpm --filter @likec4/spa typecheck` (or the C5 sequence `pnpm --filter @likec4/spa build && pnpm --filter xirang-likec4 build`) — proves the shared component accepts both XirangViewSource and XirangChangeSource structurally"
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Only statically provable duplication in the base scope: the two card components differ in exactly two lines and the three grids share one config; high confidence (byte-level identical bodies), low risk (same-file presentational refactor, navigate semantics pinned by two e2e tests), low cost, medium impact. The remaining base-scope code (ContractLoaderContext `changes` channel +4 lines, playwright grep registration, 18-line e2e test) is already minimal and correct with no further simplification or efficiency opportunity.",
+        "id": "OPT-20260812T143822352Z-01",
+        "targetFileHashes": {
+          "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx": "2a32588a63f9471c5c70f87318155dbd62cbe1304639eb60f8a18e5d4803ba04"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-12T14:38:22.352Z",
+        "findingId": "OPT-20260812T143822352Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "select",
+        "reason": "Only statically provable duplication in the base scope: the two card components differ in exactly two lines and the three grids share one config; high confidence (byte-level identical bodies), low risk (same-file presentational refactor, navigate semantics pinned by two e2e tests), low cost, medium impact. The remaining base-scope code (ContractLoaderContext `changes` channel +4 lines, playwright grep registration, 18-line e2e test) is already minimal and correct with no further simplification or efficiency opportunity.",
+        "timestamp": "2026-08-12T14:38:22.355Z",
+        "findingId": "OPT-20260812T143822352Z-01",
+        "hashes": {
+          "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx": "2a32588a63f9471c5c70f87318155dbd62cbe1304639eb60f8a18e5d4803ba04"
+        }
+      },
+      {
+        "sequence": 3,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-12T14:38:34.512Z",
+        "findingId": "OPT-20260812T143822352Z-01",
+        "hashes": {
+          "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx": "2a32588a63f9471c5c70f87318155dbd62cbe1304639eb60f8a18e5d4803ba04"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-12T14:50:27.766Z",
+        "findingId": "OPT-20260812T143822352Z-01"
+      }
+    ],
+    "reconciliationSignature": "caeca5ed93cf216ebd7060af68e4f1d4b9d07a43a841c2ef29815c72fb29440a",
+    "unchangedReconciliations": 0
   }
 }
