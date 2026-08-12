@@ -4,7 +4,7 @@ identity: task-decomposition
 kind: element
 parent: apply
 title: Task Decomposition
-definition: Task Decomposition 定义 Apply Phase 0 如何把 `tasks.md` 中的粗粒度任务转化为当前 Master agent 直接执行的实现工作：严格 TDD、证据收集、任务勾选、诊断优先的失败处理与累计修复上限。
+definition: Task Decomposition 定义 Apply Phase 0 如何按 `tasks.md` 中的 TDD 闭环任务连续执行实现工作：严格 TDD、证据收集、任务勾选、诊断优先的失败处理与累计修复上限。
 ---
 
 ## Requirements

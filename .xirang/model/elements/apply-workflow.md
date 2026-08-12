@@ -24,9 +24,12 @@ definition: Apply Workflow 定义 `xirang-apply-change` 如何处理工作流状
 - **WHEN** `instructions apply --json` 返回 `state: 'needs_seal'`
 - **THEN** 模板 SHALL 指示 Agent 进入 Phase 2/3 流程
 - **AND** SHALL NOT 中断流程或要求用户手动触发
+
 #### Scenario: Dashboard 分类标签不声称完成
+
 - **WHEN** Dashboard 展示 task 全部完成的 change
 - **THEN** 分类标签 SHALL 显示为 "Tasks Done" 而非 "Completed Changes"
+
 ### Requirement: Apply Phase 0 SHALL 由 Master agent 直接执行
 
 `xirang-apply-change` workflow SHALL 要求 Master agent 在 Phase 0 通过严格 TDD 执行 `tasks.md` 中的 pending Checks。Workflow SHALL NOT 生成或读取 `.apply-steps`，也 SHALL NOT 委托 implementer subagent 执行编码。
@@ -77,14 +80,19 @@ definition: Apply Workflow 定义 `xirang-apply-change` 如何处理工作流状
 - **THEN** Apply workflow SHALL 在 Phase 1 继续启动 `xirang-reviewer`
 - **AND** optimization 启用时 SHALL 在 Phase 2 继续启动 `xirang-optimizer`
 - **AND** Master agent SHALL NOT 替代 reviewer 或 optimizer 的判断
+
 #### Scenario: apply workflow 不 dispatch implementer
+
 - **WHEN** Master agent 执行 apply Phase 0
 - **THEN** 系统直接实现 pending task
 - **AND** 系统 SHALL NOT dispatch coding subagent
+
 #### Scenario: clean-context gate 保持不变
+
 - **WHEN** Phase 0 实现完成
 - **THEN** 系统仍 SHALL 使用 reviewer subagent 进行 Phase 1 判断
 - **AND** 系统仍 SHALL 使用 optimizer subagent 判断 Phase 2 优化机会
+
 ### Requirement: Apply 完成时输出 archive 指引
 
 Apply 阶段在所有 task 完成且 seal 通过后，SHALL 显式输出下一步操作指引，引导用户进入归档。
@@ -96,3 +104,24 @@ Apply 阶段在所有 task 完成且 seal 通过后，SHALL 显式输出下一�
 - **AND** call-to-action SHALL 引用 archive workflow 的工具适配 invocation
 - **AND** SHALL NOT 仅报告 sealed 状态而省略操作指引
 - **AND** SHALL NOT 在 workflow 模板 source text 中硬编码特定工具的 archive 调用语法
+
+### Requirement: Apply 完成全部 Tasks 后统一进入 Change 级 Review
+
+`xirang-apply-change` workflow SHALL 将每个 task 作为单一 TDD loop 连续执行；单个 task 完成 SHALL NOT 触发 Phase 1、Phase 2 或 workflow handoff。全部 pending tasks 与 Required Corrections 完成后，SHALL 进入一次 Change-level Phase 1 Review；此后 Review 或 Seal 产生的修正 SHALL 在 recovery 完成后重新接受 Change-level Review。
+
+#### Scenario: 普通 task 完成不切换阶段
+
+- **WHEN** 一个 pending task 的 Checks 全部通过
+- **THEN** Apply SHALL 直接继续下一 task
+- **AND** SHALL NOT 触发 Phase 1、Phase 2 或 workflow handoff
+
+#### Scenario: 全部完成后统一 Review
+
+- **WHEN** 所有 pending tasks 与 Required Corrections 完成
+- **THEN** Apply SHALL 进入一次 Change-level Phase 1 Review
+
+#### Scenario: 修正后重新 Review
+
+- **WHEN** Phase 1 或 Phase 3 失败产生 Required Corrections
+- **AND** recovery 完成
+- **THEN** 修改后的 Change 状态 SHALL 重新接受 Change-level Review
