@@ -1,0 +1,7 @@
+{
+  "method": "branch",
+  "branchName": "fix-compound-view-unflatten",
+  "originalBranch": "main",
+  "baseCommit": "da06ba363ba493a64b8bd2c6bb31dd068e6c9758",
+  "phase2BaselineCommit": "cf37a12f35d9bb42bb602a00f196f65de6397373"
+}

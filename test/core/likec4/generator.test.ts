@@ -331,8 +331,9 @@ describe('generateLikeC4 model.c4', () => {
     const output = generateLikeC4(model).get('model.c4')!;
     const summaries = [...output.matchAll(/= capability '[^']+' '([^']*)' \{/g)].map(match => match[1]);
     expect(summaries).toHaveLength(6);
-    // EXCERPT_LIMIT (25) plus the '...' suffix; long summaries widen LikeC4 node labels
-    // and can push the view into a graphviz unflatten layout failure.
+    // EXCERPT_LIMIT (25) plus the '...' suffix; long summaries widen LikeC4 node labels.
+    // The compound-view unflatten regression is guarded by GraphvizLayouter.dot()
+    // and the full-project layout test in generator-validate.test.ts.
     for (const summary of summaries) {
       expect([...summary].length).toBeLessThanOrEqual(28);
     }
