@@ -42,7 +42,7 @@
       "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
       "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.peer.md"
     ],
-    "evidenceFingerprint": "d26ba7922b44955d959d24b122f43663d14976c5c23281e7a8404e73efd8ca2b",
+    "evidenceFingerprint": "fd7d10e218c3fb8de8d5ebdb4a5037f5c5a7d49ad5a6e8838de2051ef5013976",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/browser-diff-markers/design.md",
@@ -74,11 +74,11 @@
       },
       {
         "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
-        "hash": "8f41e3338360df8c349e341101ba8eb745882d0a2c12c0ecf8b90ab04aa8c63d"
+        "hash": "1dd7d9059cbf79f0f6d7e9c1d48e10f16b1d93596b11ee2e3690af9ad2751cb0"
       },
       {
         "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
-        "hash": "5da9f0acc42c8605c8fc72f37a5e65210f575bffeb824b66b974a1ef10511ae6"
+        "hash": "55ea9ae081add4df7374b2f61527a4ded0c84d0975251799904cf262f3fe106a"
       },
       {
         "path": "likec4/packages/diagram/src/likec4diagram/state/machine.actions.ts",
@@ -138,9 +138,9 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "204d21f86de8c73b526b3c6ba5aa5aa5bfecfe0e",
+    "gitHeadCommit": "0ddb1acfaeead9444848011bee0880a962278178",
     "gitDiffSummary": "baseCommit 7af0ac18 equals HEAD; all implementation evidence uncommitted working tree, 23 paths all attributed. Live re-runs: vitest targeted 11+17+24+2 and full 195/195, typecheck clean, spa+xirang-likec4 builds green, playwright desktop(8)+mobile(7)=15 pass, xirang validate browser-diff-markers Passed (2 semantic changes), xirang validate --all 157 passed.",
-    "timestamp": "2026-08-13T18:46:48.101Z"
+    "timestamp": "2026-08-13T19:12:14.669Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
@@ -152,6 +152,16 @@
       },
       {
         "timestamp": "2026-08-13T18:46:48.089Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-13T19:04:23.587Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-13T19:12:14.657Z",
         "type": "verification",
         "result": "PASS"
       }
@@ -302,61 +312,42 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "id": "OPT-20260813T183954468Z-01",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/diagram/src/xirang/architectureView.ts"
           ],
           "symbols": [
-            "applyXirangPresentationOverlay",
-            "elementOperationByIdentity",
-            "requirementCountsByIdentity",
-            "structuralEntries",
-            "structuralKinds"
+            "applyXirangPresentationOverlay"
           ]
         },
-        "opportunity": "applyXirangPresentationOverlay scans source.diff.entries four separate times per projection update: elementOperationByIdentity, requirementCountsByIdentity, a diffActive .some pass, and structuralEntries (full pass allocating an intermediate array filtered down to kind==='relationship'). The structuralEntries helper and its structuralKinds set have no other consumers.",
-        "impact": "Collapses four O(n) scans over diff entries into one and removes one intermediate array allocation plus two dead module-level declarations (structuralEntries, structuralKinds). Recomputes on every focus drill, expand/collapse, mode, and selection change.",
+        "opportunity": "applyXirangPresentationOverlay scanned diff entries in four passes.",
+        "impact": "Single-pass classification implemented.",
         "evidence": [
-          "likec4/packages/diagram/src/xirang/architectureView.ts:32-34 structuralEntries filters all structural kinds into an intermediate array",
-          "likec4/packages/diagram/src/xirang/architectureView.ts:37-45 elementOperationByIdentity makes a full pass over entries",
-          "likec4/packages/diagram/src/xirang/architectureView.ts:48-59 requirementCountsByIdentity makes a second full pass over entries",
-          "likec4/packages/diagram/src/xirang/architectureView.ts:94-99 applyXirangPresentationOverlay calls both helpers and runs a third .some pass for diffActive",
-          "likec4/packages/diagram/src/xirang/architectureView.ts:108-113 relationshipOperations loops structuralEntries(source) and discards every non-relationship kind",
-          "grep across likec4/packages/diagram/src: structuralEntries and structuralKinds are referenced only inside architectureView.ts"
+          "architectureView.ts contains classifyDiffEntries; helpers deleted"
         ],
-        "recommendation": "Classify every diff entry in one for loop inside applyXirangPresentationOverlay that updates elementOperations, requirementCounts, relationshipOperations, and diffActive together, preserving the exact predicates and map write order; then delete structuralEntries and structuralKinds.",
-        "keyDesign": "Single-pass diff classification: one loop over source.diff?.entries ?? [] with branch-on-kind accumulation - element-declaration operations into a Map (last write wins), requirement entries aggregated per identity.split('#')[0] host into XirangRequirementCounts, relationship operations into a Map (first write wins), and a boolean diffActive set by any element-declaration or relationship entry.",
+        "recommendation": "Implemented and verified.",
+        "keyDesign": "Single-pass diff classification.",
         "preservationConstraints": [
-          "diffActive must remain true when ANY entry has kind 'element-declaration' or 'relationship' even when entry.operation is not in the operations set",
-          "Element operations: only kind==='element-declaration' && operations.has(entry.operation); later entries for the same identity must overwrite earlier ones (last write wins)",
-          "Requirement counts: only kind==='requirement' && operations.has(entry.operation); host is entry.identity.split('#')[0]; empty hosts skipped; scenario/property entries ignored; identical 'added,modified,removed' xirangRequirementCounts strings",
-          "Relationship operations: only kind==='relationship' && operations.has(entry.operation) and the FIRST entry per identity wins",
-          "Node geometry, kind styles, elementId metadata, xirangProjectionMetadata output, opacity values (100/100/45/25), and edge metadata must remain identical for every input, including sources with no diff and kind-only metamodel diffs"
+          "identical outputs verified"
         ],
         "implementationOutline": [
-          "In applyXirangPresentationOverlay, replace the three helper calls, the diffActive .some, and the structuralEntries loop with one for loop over source.diff?.entries ?? [] that populates all four results",
-          "Delete elementOperationByIdentity, requirementCountsByIdentity, structuralEntries, and the structuralKinds constant (no remaining callers)",
-          "Leave the nodes.map and edges.map sections untouched",
-          "Run the targeted vitest spec and typecheck from the validation commands"
+          "done"
         ],
         "validation": [
-          "cd likec4 && pnpm --filter @likec4/diagram exec vitest run --no-isolate src/xirang/architectureView.spec.ts - all existing specs pass unchanged, proving behavior preservation",
-          "cd likec4 && pnpm --filter @likec4/diagram typecheck - proves the deleted helpers have no remaining consumers and types stay clean"
+          "vitest 20/20, typecheck clean"
         ],
         "impactLevel": "low",
         "confidence": "high",
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "Ranks first because applyXirangPresentationOverlay recomputes on every projection update (focus, expand, mode, selection changes) while the other candidates run only on selection change or in test code; it also deletes dead code introduced by this change and has full spec coverage for preservation.",
-        "id": "OPT-20260813T183954468Z-01",
-        "targetFileHashes": {
-          "likec4/packages/diagram/src/xirang/architectureView.ts": "a8a26c8f35629c43f7d64027958b6055716a9f8428bea4e290f0798225069102"
-        }
+        "priorityReason": "Resolved."
       },
       {
-        "status": "pending",
+        "id": "OPT-20260813T183954468Z-02",
+        "status": "verified",
         "location": {
           "files": [
             "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx"
@@ -366,41 +357,42 @@
             "countOperations"
           ]
         },
-        "opportunity": "getArchitectureOverlayModel makes three separate passes over diff entries after the initial filter: the changed/context loop, a second entries.filter that builds the counted array consumed by countOperations, and a third entries.filter that builds the metamodel array. countOperations exists only to consume the second filter's intermediate array.",
-        "impact": "One classification loop replaces three passes and removes two intermediate array allocations; the overlay model recomputes on every view-source/change/mode selection, and the countOperations helper is deleted. The returned entries/changed/context/counts/metamodel shape is unchanged.",
+        "opportunity": "getArchitectureOverlayModel makes three separate passes over diff entries after the initial filter; countOperations only consumes the intermediate counted array.",
+        "impact": "One loop replaces three passes and removes two intermediate allocations; countOperations deleted; returned shape unchanged.",
         "evidence": [
-          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:72-73 allEntries.filter into entries (first allocation)",
-          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:76-93 first loop over entries builds changed/context",
-          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:95 entries.filter into counted (second allocation) then countOperations makes a second pass",
-          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:100-103 entries.filter into metamodel (third allocation, third pass)",
-          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:60-64 countOperations is only called from getArchitectureOverlayModel"
+          "DiagramUI.tsx:95 entries.filter into counted then countOperations second pass",
+          "DiagramUI.tsx:100-103 metamodel filter third pass",
+          "countOperations only called from getArchitectureOverlayModel"
         ],
-        "recommendation": "Accumulate counts and the metamodel list inside the single existing loop over entries (or fold the initial filter into it), then sort metamodel/changed/context exactly as today; delete countOperations and keep the identical return shape.",
-        "keyDesign": "Single-pass overlay-model assembly: initialize counts to {ADDED:0,MODIFIED:0,REMOVED:0}, collect metamodel entries, and update changed/context in one loop over the structural entries; keep the identical sort orders and the identical returned object fields.",
+        "recommendation": "Accumulate counts and metamodel inside the single existing loop over entries; delete countOperations; keep identical return shape.",
+        "keyDesign": "Single-pass overlay-model assembly with identical sort orders and returned fields.",
         "preservationConstraints": [
           "counts must come only from element-declaration and relationship entries and always return {ADDED,MODIFIED,REMOVED} with zero defaults",
-          "changed must receive every element-declaration identity regardless of operation validity; context must receive before/after parent values (string-typed only) and both non-empty parts of relationship identity split('|'), then remove all changed identities",
-          "entries must keep the original diff order; metamodel sort (kind ascending, then identity ascending) and the diagnostics filter must be unchanged",
-          "The returned object keeps fields entries, changed, context, counts, metamodel, diagnostics, and the changeDetailsPanel rendering of +N ~N -N and metamodel buttons stays identical"
+          "changed must receive every element-declaration identity regardless of operation validity; context must receive before/after parent values and relationship endpoints, then remove all changed identities",
+          "entries must keep the original diff order; metamodel sort and diagnostics filter unchanged",
+          "The returned object keeps fields entries, changed, context, counts, metamodel, diagnostics"
         ],
         "implementationOutline": [
-          "Merge the changed/context loop, counted extraction, and metamodel extraction into a single loop, accumulating counts and a metamodel array",
+          "Merge loops into one",
           "Delete countOperations",
-          "Run DiagramUI.spec.ts and typecheck from the validation commands"
+          "Run DiagramUI.spec.ts and typecheck"
         ],
         "validation": [
-          "cd likec4 && pnpm --filter @likec4/diagram exec vitest run --no-isolate src/likec4diagram/DiagramUI.spec.ts - existing specs prove structural-only counts (1/1/1) and requirement-only 0/0/0 with empty changed",
-          "cd likec4 && pnpm --filter @likec4/diagram typecheck - proves countOperations has no remaining callers and types stay clean"
+          "vitest DiagramUI.spec.ts",
+          "typecheck"
         ],
         "impactLevel": "low",
         "confidence": "high",
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "Ranks second because it applies the same single-pass keyDesign on a strictly less frequent path (useMemo recomputed only when the selected view source changes).",
-        "id": "OPT-20260813T183954468Z-02"
+        "priorityReason": "Ranks first among remaining findings: runtime code simplification with verified keyDesign pattern.",
+        "targetFileHashes": {
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "5da9f0acc42c8605c8fc72f37a5e65210f575bffeb824b66b974a1ef10511ae6"
+        }
       },
       {
+        "id": "OPT-20260813T183954468Z-03",
         "status": "pending",
         "location": {
           "files": [
@@ -410,37 +402,75 @@
             "opens ADDED element details by single click with semantic identity"
           ]
         },
-        "opportunity": "The new e2e test inserts two fixed page.waitForTimeout(400) sleeps between the selecting first click and the details-opening second click. Fixed sleeps always cost their full duration and still race slow CI machines, adding flake risk and ~800ms of dead wall time per project run.",
-        "impact": "Replacing both 400ms sleeps with an assertion on the observable selection state removes ~800ms of fixed latency per project run and eliminates a timing flake without weakening any assertion.",
+        "opportunity": "Two fixed page.waitForTimeout(400) sleeps between selecting first click and details-opening second click add ~800ms dead wall time per project run.",
+        "impact": "Replacing both sleeps with a selected-state assertion removes ~800ms fixed latency and eliminates timing flake.",
         "evidence": [
-          "test/e2e/semantic-browser-model-view.spec.ts:129-131 first click, fixed 400ms sleep, then second click in the complete-with-diff sequence",
-          "test/e2e/semantic-browser-model-view.spec.ts:149-151 identical pattern in the complete-mode sequence",
-          "The second click only opens details because the machine requires a selected node: machine.state.ready.idle.ts guards 'click: selected node' plus 'enabled: ElementDetails' route to openElementDetails()",
-          "@xyflow/react 12.11.0 NodeWrapper applies class 'selected' to the .react-flow__node element when node.selected is set"
+          "spec lines 130/150 waitForTimeout(400)",
+          "machine guard requires selected node; @xyflow/react 12.11.0 NodeWrapper gains class 'selected'"
         ],
-        "recommendation": "Replace both await page.waitForTimeout(400) calls with await expect(parent).toHaveClass(/selected/) before the second click.",
-        "keyDesign": "Event-based waiting: assert the exact observable state the interaction depends on (the node being selected) instead of sleeping a fixed duration.",
+        "recommendation": "Replace both waitForTimeout(400) calls with await expect(parent).toHaveClass(/selected/).",
+        "keyDesign": "Event-based waiting on the observable selection state.",
         "preservationConstraints": [
-          "Both click sequences must still perform exactly two clicks at position {x:20,y:20} on the same node locator",
-          "All existing dialog assertions stay unchanged",
-          "Must remain green on both the desktop and mobile projects configured in playwright.config.ts",
-          "No application code changes: this touches only test waiting"
+          "two clicks at {x:20,y:20} on same locator",
+          "dialog assertions unchanged",
+          "green on desktop and mobile",
+          "test-only change"
         ],
         "implementationOutline": [
-          "After the first click in the complete-with-diff sequence, replace waitForTimeout(400) with await expect(parent).toHaveClass(/selected/)",
-          "Repeat the same replacement in the complete-mode sequence",
-          "Run the desktop and mobile Playwright projects for the spec file from the validation command"
+          "replace sleeps with toHaveClass(/selected/) in both sequences",
+          "run both Playwright projects"
         ],
         "validation": [
-          "pnpm exec playwright test test/e2e/semantic-browser-model-view.spec.ts --project=desktop --project=mobile - proves the deterministic wait keeps the updated test green and removes ~800ms of fixed sleep per project"
+          "playwright desktop + mobile"
         ],
         "impactLevel": "low",
-        "confidence": "medium",
+        "confidence": "high",
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "Ranks third because it is test-only (no runtime behavior gain) and its confidence depends on the DOM selection-class detail.",
-        "id": "OPT-20260813T183954468Z-03"
+        "priorityReason": "Ranks after OPT-02 because it is test-only."
+      },
+      {
+        "status": "pending",
+        "location": {
+          "files": [
+            "test/e2e/semantic-browser-model-view.spec.ts"
+          ],
+          "symbols": [
+            "handles ADDED projection interactions and split diffs"
+          ]
+        },
+        "opportunity": "The sibling ADDED-interaction test carries two fixed page.waitForTimeout(600) sleeps that are each immediately followed by Playwright web-first auto-waiting assertions (not.toHaveAttribute('inert','')), so the sleeps add only fixed wall time (~1.2s per project run).",
+        "impact": "Deleting both sleeps removes ~1.2s fixed latency per project run (~2.4s across desktop+mobile) without weakening any assertion.",
+        "evidence": [
+          "test/e2e/semantic-browser-model-view.spec.ts:108 waitForTimeout(600) sits between parent.click() and the expect(expand).not.toHaveAttribute('inert','') assertion",
+          "test/e2e/semantic-browser-model-view.spec.ts:114 waitForTimeout(600) sits after expect(child).toBeVisible() and before the collapse assertion",
+          "Playwright web-first assertions retry until pass (default 5s): not.toHaveAttribute waits for the button to exist and lack inert"
+        ],
+        "recommendation": "Delete both await page.waitForTimeout(600) lines and keep the surrounding click/assertion sequences identical.",
+        "keyDesign": "Assertion-driven synchronization: rely on Playwright web-first retries instead of fixed-duration sleeps.",
+        "preservationConstraints": [
+          "Both click sequences must still perform the exact same clicks and assertions; only the two waitForTimeout(600) lines are removed",
+          "The Expand-children click must still occur after the selecting parent.click() and before the child visibility assertion",
+          "The collapse assertion must remain the synchronization point for the post-expansion projection update",
+          "Must remain green on both the desktop and mobile projects",
+          "No application code changes: this touches only test waiting"
+        ],
+        "implementationOutline": [
+          "Delete the waitForTimeout(600) at line 108",
+          "Delete the waitForTimeout(600) at line 114",
+          "Run the desktop and mobile Playwright projects for the spec file"
+        ],
+        "validation": [
+          "pnpm exec playwright test test/e2e/semantic-browser-model-view.spec.ts --project=desktop --project=mobile"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Ranks after OPT-03 because it adds no new assertion: it only removes the two remaining 600ms sleeps that are already redundant with the following auto-waiting inert assertions.",
+        "id": "OPT-20260813T190423583Z-01"
       }
     ],
     "history": [
@@ -491,9 +521,64 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-13T18:46:48.089Z",
         "findingId": "OPT-20260813T183954468Z-01"
+      },
+      {
+        "sequence": 7,
+        "action": "resolve",
+        "reason": "Confirmed in HEAD: single-pass classifyDiffEntries present, deleted helpers absent, durable spec cases added; targeted vitest and typecheck green.",
+        "timestamp": "2026-08-13T19:04:23.584Z",
+        "findingId": "OPT-20260813T183954468Z-01"
+      },
+      {
+        "sequence": 8,
+        "action": "retain",
+        "reason": "Still valid against current code: getArchitectureOverlayModel still performs separate counted filter pass plus countOperations and a third metamodel filter pass; countOperations only called from getArchitectureOverlayModel.",
+        "timestamp": "2026-08-13T19:04:23.584Z",
+        "findingId": "OPT-20260813T183954468Z-02"
+      },
+      {
+        "sequence": 9,
+        "action": "retain",
+        "reason": "Still valid: both waitForTimeout(400) calls remain; selected-class mechanism verified statically in installed @xyflow/react 12.11.0 dist.",
+        "timestamp": "2026-08-13T19:04:23.584Z",
+        "findingId": "OPT-20260813T183954468Z-03"
+      },
+      {
+        "sequence": 10,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-13T19:04:23.584Z",
+        "findingId": "OPT-20260813T190423583Z-01"
+      },
+      {
+        "sequence": 11,
+        "action": "select",
+        "reason": "Ranks first among remaining findings: runtime code simplification with verified keyDesign pattern.",
+        "timestamp": "2026-08-13T19:04:23.587Z",
+        "findingId": "OPT-20260813T183954468Z-02",
+        "hashes": {
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "5da9f0acc42c8605c8fc72f37a5e65210f575bffeb824b66b974a1ef10511ae6"
+        }
+      },
+      {
+        "sequence": 12,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-13T19:04:28.936Z",
+        "findingId": "OPT-20260813T183954468Z-02",
+        "hashes": {
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "5da9f0acc42c8605c8fc72f37a5e65210f575bffeb824b66b974a1ef10511ae6"
+        }
+      },
+      {
+        "sequence": 13,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-13T19:12:14.657Z",
+        "findingId": "OPT-20260813T183954468Z-02"
       }
     ],
-    "reconciliationSignature": "83554e36f7e1395feb002b2e14654a34e8f323e2d213507c3dadd20cce4c53db",
+    "reconciliationSignature": "31d5247d201000762994714cb94f92c0861a8e55203ed4d1fb4a0222b7d30b89",
     "unchangedReconciliations": 0
   }
 }

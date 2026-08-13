@@ -54,14 +54,6 @@ const structuralDiffKinds = new Set([
   'authored-view',
   'relationship',
 ])
-/** Delta kinds with no graph representation; they are presented as text instead of nodes or edges. */
-const metamodelKinds = new Set(['element-kind', 'relationship-kind', 'authored-view'])
-
-function countOperations(entries: readonly { operation: XirangDiffOperation }[]): Record<XirangDiffOperation, number> {
-  const counts: Record<XirangDiffOperation, number> = { ADDED: 0, MODIFIED: 0, REMOVED: 0 }
-  for (const entry of entries) counts[entry.operation] += 1
-  return counts
-}
 
 /**
  * Right-side inspection panel model for the selected Change. Counts cover structural
@@ -69,13 +61,15 @@ function countOperations(entries: readonly { operation: XirangDiffOperation }[])
  * as per-node count badges and Diff tabs, not panel counters.
  */
 export function getArchitectureOverlayModel(source: XirangViewSource) {
-  const allEntries = source.diff?.entries ?? []
-  const entries = allEntries.filter(entry => structuralDiffKinds.has(entry.kind))
+  const entries = (source.diff?.entries ?? []).filter(entry => structuralDiffKinds.has(entry.kind))
   const changed = new Set<string>()
   const context = new Set<string>()
+  const counts: Record<XirangDiffOperation, number> = { ADDED: 0, MODIFIED: 0, REMOVED: 0 }
+  const metamodel = [] as typeof entries
   for (const entry of entries) {
     if (entry.kind === 'element-declaration') {
       changed.add(entry.identity)
+      counts[entry.operation] += 1
       const beforeParent = entry.before && typeof entry.before === 'object'
         ? (entry.before as { parent?: unknown }).parent
         : null
@@ -84,23 +78,22 @@ export function getArchitectureOverlayModel(source: XirangViewSource) {
         : null
       if (typeof beforeParent === 'string') context.add(beforeParent)
       if (typeof afterParent === 'string') context.add(afterParent)
-    }
-    if (entry.kind === 'relationship') {
+    } else if (entry.kind === 'relationship') {
+      counts[entry.operation] += 1
       const [source, , target] = entry.identity.split('|')
       if (source) context.add(source)
       if (target) context.add(target)
+    } else {
+      metamodel.push(entry)
     }
   }
   for (const identity of changed) context.delete(identity)
-  const counted = entries.filter(entry => entry.kind === 'element-declaration' || entry.kind === 'relationship')
   return {
     entries,
     changed: [...changed].sort(),
     context: [...context].sort(),
-    counts: countOperations(counted),
-    metamodel: entries
-      .filter(entry => metamodelKinds.has(entry.kind))
-      .sort((left, right) => left.kind.localeCompare(right.kind) || left.identity.localeCompare(right.identity)),
+    counts,
+    metamodel: metamodel.sort((left, right) => left.kind.localeCompare(right.kind) || left.identity.localeCompare(right.identity)),
     diagnostics: source.diagnostics.filter(diagnostic => !isXirangContractDiagnostic(diagnostic)),
   }
 }
