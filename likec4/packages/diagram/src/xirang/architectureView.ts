@@ -1,6 +1,5 @@
 import type { DiagramView } from '@likec4/core/types'
 import type {
-  XirangDiffEntry,
   XirangDiffOperation,
   XirangElementDeclaration,
   XirangViewSource,
@@ -16,46 +15,46 @@ type KindStyle = {
   border?: ViewNode['style']['border']
 }
 
-const structuralKinds = new Set([
-  'element-declaration',
-  'element-kind',
-  'relationship-kind',
-  'authored-view',
-  'relationship',
-])
-
 const operations = new Set<XirangDiffOperation>(['ADDED', 'MODIFIED', 'REMOVED'])
 
 /** Diff-mode node opacity per operation; unchanged nodes (no operation) dim to 25. */
 const diffNodeOpacity: Record<XirangDiffOperation, number> = { ADDED: 100, MODIFIED: 100, REMOVED: 45 }
 
-function structuralEntries(source: XirangViewSource): XirangDiffEntry[] {
-  return source.diff?.entries.filter(entry => structuralKinds.has(entry.kind)) ?? []
+interface DiffClassification {
+  /** element-declaration 操作（last write wins）；只驱动 outline。 */
+  elementOperations: Map<string, XirangDiffOperation>
+  /** requirement 级变更按宿主聚合计数；scenario/property 不计。 */
+  requirementCounts: Map<string, XirangRequirementCounts>
+  /** relationship 操作（first write wins）。 */
+  relationshipOperations: Map<string, XirangDiffOperation>
+  /** 存在 element-declaration 或 relationship 级 entry（不看 operation 合法性）时激活 dimming。 */
+  diffActive: boolean
 }
 
-/** Element 级操作只由 element-declaration entries 决定；requirement 级变更不打 outline。 */
-function elementOperationByIdentity(source: XirangViewSource): Map<string, XirangDiffOperation> {
-  const result = new Map<string, XirangDiffOperation>()
+/** 单次遍历把 diff entries 分类为 element 操作、requirement 计数与 relationship 操作。 */
+function classifyDiffEntries(source: XirangViewSource): DiffClassification {
+  const elementOperations = new Map<string, XirangDiffOperation>()
+  const requirementCounts = new Map<string, XirangRequirementCounts>()
+  const relationshipOperations = new Map<string, XirangDiffOperation>()
+  let diffActive = false
   for (const entry of source.diff?.entries ?? []) {
-    if (entry.kind === 'element-declaration' && operations.has(entry.operation)) {
-      result.set(entry.identity, entry.operation)
+    if (entry.kind === 'element-declaration' || entry.kind === 'relationship') diffActive = true
+    if (!operations.has(entry.operation)) continue
+    if (entry.kind === 'element-declaration') {
+      elementOperations.set(entry.identity, entry.operation)
+    } else if (entry.kind === 'relationship') {
+      if (!relationshipOperations.has(entry.identity)) {
+        relationshipOperations.set(entry.identity, entry.operation)
+      }
+    } else if (entry.kind === 'requirement') {
+      const host = entry.identity.split('#')[0]
+      if (!host) continue
+      const counts = requirementCounts.get(host) ?? { added: 0, modified: 0, removed: 0 }
+      counts[entry.operation.toLowerCase() as 'added' | 'modified' | 'removed'] += 1
+      requirementCounts.set(host, counts)
     }
   }
-  return result
-}
-
-/** 按宿主元素聚合 requirement 级变更计数；scenario/property 不计。 */
-function requirementCountsByIdentity(source: XirangViewSource): Map<string, XirangRequirementCounts> {
-  const result = new Map<string, XirangRequirementCounts>()
-  for (const entry of source.diff?.entries ?? []) {
-    if (entry.kind !== 'requirement' || !operations.has(entry.operation)) continue
-    const host = entry.identity.split('#')[0]
-    if (!host) continue
-    const counts = result.get(host) ?? { added: 0, modified: 0, removed: 0 }
-    counts[entry.operation.toLowerCase() as 'added' | 'modified' | 'removed'] += 1
-    result.set(host, counts)
-  }
-  return result
+  return { elementOperations, requirementCounts, relationshipOperations, diffActive }
 }
 
 function kindStylesByKind(source: XirangViewSource): Map<string, KindStyle> {
@@ -91,12 +90,8 @@ export function applyXirangPresentationOverlay(
   layoutedView: DiagramView,
   source: XirangViewSource,
 ): DiagramView {
-  const elementOperations = elementOperationByIdentity(source)
-  const requirementCounts = requirementCountsByIdentity(source)
+  const { elementOperations, requirementCounts, relationshipOperations, diffActive } = classifyDiffEntries(source)
   const kindStyles = kindStylesByKind(source)
-  const diffActive = (source.diff?.entries ?? []).some(entry =>
-    entry.kind === 'element-declaration' || entry.kind === 'relationship',
-  )
   const elementsByIdentity = new Map<string, XirangElementDeclaration>()
   const parentIdentities = new Set<string>()
   for (const element of source.architecture?.elements ?? []) {
@@ -104,12 +99,6 @@ export function applyXirangPresentationOverlay(
       elementsByIdentity.set(element.declaration.identity, element.declaration)
     }
     if (element.declaration.parent !== null) parentIdentities.add(element.declaration.parent)
-  }
-  const relationshipOperations = new Map<string, XirangDiffOperation>()
-  for (const entry of structuralEntries(source)) {
-    if (entry.kind === 'relationship' && operations.has(entry.operation) && !relationshipOperations.has(entry.identity)) {
-      relationshipOperations.set(entry.identity, entry.operation)
-    }
   }
   const nodes = layoutedView.nodes.map(node => {
     const identity = nodeIdentity(node)

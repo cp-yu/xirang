@@ -1,6 +1,6 @@
 import type { DiagramView } from '@likec4/core/types'
 import { describe, expect, it } from 'vitest'
-import type { XirangViewSource } from './ContractLoaderContext'
+import type { XirangDiffOperation, XirangViewSource } from './ContractLoaderContext'
 import { applyXirangPresentationOverlay, expandXirangRelationshipEdges } from './architectureView'
 
 const baseView = (edges: DiagramView['edges'] = []): DiagramView => ({
@@ -177,6 +177,52 @@ describe('applyXirangPresentationOverlay', () => {
     const host = after.nodes.find(node => node.id === 'a')
     expect(host?.metadata).toMatchObject({ xirangOperation: 'MODIFIED', xirangRequirementCounts: '1,0,0' })
     expect(host?.style.opacity).toBe(100)
+  })
+
+  it('dims unchanged nodes when an element-declaration entry has an invalid operation', () => {
+    const invalidOpSource: XirangViewSource = {
+      ...source,
+      diff: {
+        summary: { total: 1, ADDED: 0, MODIFIED: 0, REMOVED: 0 },
+        entries: [{ kind: 'element-declaration', identity: 'a', operation: 'INVALID' as XirangDiffOperation }],
+      },
+    }
+    const after = applyXirangPresentationOverlay(baseView(), invalidOpSource)
+    expect(after.nodes.find(node => node.id === 'b')!.style.opacity).toBe(25)
+    expect(after.nodes.every(node => !node.metadata?.['xirangOperation'])).toBe(true)
+  })
+
+  it('keeps the last element-declaration operation per identity', () => {
+    const duplicateSource: XirangViewSource = {
+      ...source,
+      diff: {
+        summary: { total: 2, ADDED: 0, MODIFIED: 1, REMOVED: 1 },
+        entries: [
+          { kind: 'element-declaration', identity: 'a', operation: 'MODIFIED' },
+          { kind: 'element-declaration', identity: 'a', operation: 'REMOVED' },
+        ],
+      },
+    }
+    const after = applyXirangPresentationOverlay(baseView(), duplicateSource)
+    const nodeA = after.nodes.find(node => node.id === 'a')
+    expect(nodeA?.metadata).toMatchObject({ xirangOperation: 'REMOVED' })
+    expect(nodeA?.style.opacity).toBe(45)
+  })
+
+  it('keeps the first relationship operation per identity', () => {
+    const duplicateEdgeSource: XirangViewSource = {
+      ...source,
+      diff: {
+        summary: { total: 2, ADDED: 1, MODIFIED: 0, REMOVED: 1 },
+        entries: [
+          { kind: 'relationship', identity: 'a|calls|b', operation: 'ADDED' },
+          { kind: 'relationship', identity: 'a|calls|b', operation: 'REMOVED' },
+        ],
+      },
+    }
+    const edge = { id: 'edge', source: 'a', target: 'b', label: 'calls', points: [], relations: [], xirangRelations: ['a|calls|b'] }
+    const after = applyXirangPresentationOverlay(baseView([edge] as never), duplicateEdgeSource)
+    expect((after.edges[0] as { metadata?: Record<string, unknown> }).metadata).toMatchObject({ xirangOperation: 'ADDED' })
   })
 
   it('does not invent element operations for kind-only metamodel diffs', () => {
