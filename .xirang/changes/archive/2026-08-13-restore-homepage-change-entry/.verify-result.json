@@ -63,7 +63,7 @@
       "test/e2e/semantic-browser-candidate-views.spec.ts",
       "test/e2e/semantic-browser-model-view.spec.ts"
     ],
-    "evidenceFingerprint": "f86049c6f4291d403e21a711d64378af9dd57bc5890bac09a1306564593f4aee",
+    "evidenceFingerprint": "7ccf06efae24842fddf3590566da7df0e6a57ba21b12975097d267b257e9c699",
     "evidenceFingerprintEntries": [
       {
         "path": ".gitignore",
@@ -87,7 +87,7 @@
       },
       {
         "path": ".xirang/model/elements/semantic-browser.md",
-        "hash": "177dff1075488b706655cfce39b104a4e27e1aae118090231f0c140920181da7"
+        "hash": "dee60eb05eecef0d21879e44db6df8f1e4b8bb44e93c24009da828e2c556e483"
       },
       {
         "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
