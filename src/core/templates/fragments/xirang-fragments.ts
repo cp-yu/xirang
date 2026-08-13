@@ -133,27 +133,6 @@ Every Markdown unit declares its own \`entity\` in frontmatter. The partition do
 `.trim();
 
 
-/**
- * Fragment: Post-propose warning validation
- * Used in: propose
- */
-export const ARCHITECTURE_POST_PROPOSE_VALIDATION = `
-**Run post-propose validation**:
-- 先执行计划一致性复核：对照 change-local Contracts、design.md 与 Semantic Delta 检测 tasks.md 的语义矛盾；发现矛盾时自行修正制品，仅当矛盾反映与用户意图或已确认决策不对齐时，一次性呈现全部发现并等待用户裁决。
-- Validate the generated change with \`xirang validate --change "<name>" --json\`.
-- Validate the Expected Semantic Model with \`xirang arch validate --change "<name>" --json\`.
-- Do NOT run \`xirang sync\` because validation must not mutate formal source
-- Run lightweight structure checks for \`proposal.md\` and \`design.md\` against the current schema templates, not scattered examples:
-  - Read \`xirang instructions proposal --change "<name>" --json\` and \`xirang instructions design --change "<name>" --json\`
-  - Check only key required headings and checkbox structure
-- \`tasks.md\` 任务结构校验由 \`xirang validate --change\` 的确定性操作承担，不再手工执行等价检查
-- If warnings are found, do exactly one repair pass on the generated artifacts, then re-check once
-- Final summary MUST separate:
-  - fixed warnings
-  - remaining warnings
-  - skipped checks
-- Even with remaining warnings, you MAY still declare the change ready for \`/xirang:apply\`, but disclose the residual issues explicitly
-`.trim();
 
 /**
  * Fragment: Verify state machine diagram

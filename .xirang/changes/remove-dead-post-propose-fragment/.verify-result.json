@@ -1,0 +1,86 @@
+{
+  "timestamp": "2026-08-13T13:10:06.157Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "627c81b9d1784e8c60b9b709a77c938d2962ea35a57c045aaae630e907cc3b44",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/remove-dead-post-propose-fragment/elements/validation-commands.md",
+      ".xirang/changes/remove-dead-post-propose-fragment/tasks.md",
+      "src/core/templates/fragments/xirang-fragments.ts",
+      "src/core/validation/validator.ts",
+      "test/commands/validate.test.ts"
+    ],
+    "evidenceFingerprint": "940993579661532991e9173684f4e559ece283cc33dd5ff13183f028d29ea323",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/remove-dead-post-propose-fragment/elements/validation-commands.md",
+        "hash": "480f8c9bdbcd35461b1f6e4025a1300771221d783b9feaf99cb85d4c63cf4535"
+      },
+      {
+        "path": ".xirang/changes/remove-dead-post-propose-fragment/tasks.md",
+        "hash": "627c81b9d1784e8c60b9b709a77c938d2962ea35a57c045aaae630e907cc3b44"
+      },
+      {
+        "path": "src/core/templates/fragments/xirang-fragments.ts",
+        "hash": "97b183b949e485ef9c819ac650d86f2a3a74cb32106517a77cfea110fb99ba93"
+      },
+      {
+        "path": "src/core/validation/validator.ts",
+        "hash": "d3bc00a5cc53e8f9b18d883eba810b782ab8845a91d3ac12052b85579b28853a"
+      },
+      {
+        "path": "test/commands/validate.test.ts",
+        "hash": "b687cb7b0bd8731c8b595fb7925fd09defe482f0c961afde80deac7c515ceb4a"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "a88a43cde0869a71b21ffe90771c4083a93e0f6a"
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-08-13T13:10:06.157Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "627c81b9d1784e8c60b9b709a77c938d2962ea35a57c045aaae630e907cc3b44",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/remove-dead-post-propose-fragment/elements/validation-commands.md",
+          ".xirang/changes/remove-dead-post-propose-fragment/tasks.md",
+          "src/core/templates/fragments/xirang-fragments.ts",
+          "src/core/validation/validator.ts",
+          "test/commands/validate.test.ts"
+        ],
+        "evidenceFingerprint": "940993579661532991e9173684f4e559ece283cc33dd5ff13183f028d29ea323",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/remove-dead-post-propose-fragment/elements/validation-commands.md",
+            "hash": "480f8c9bdbcd35461b1f6e4025a1300771221d783b9feaf99cb85d4c63cf4535"
+          },
+          {
+            "path": ".xirang/changes/remove-dead-post-propose-fragment/tasks.md",
+            "hash": "627c81b9d1784e8c60b9b709a77c938d2962ea35a57c045aaae630e907cc3b44"
+          },
+          {
+            "path": "src/core/templates/fragments/xirang-fragments.ts",
+            "hash": "97b183b949e485ef9c819ac650d86f2a3a74cb32106517a77cfea110fb99ba93"
+          },
+          {
+            "path": "src/core/validation/validator.ts",
+            "hash": "d3bc00a5cc53e8f9b18d883eba810b782ab8845a91d3ac12052b85579b28853a"
+          },
+          {
+            "path": "test/commands/validate.test.ts",
+            "hash": "b687cb7b0bd8731c8b595fb7925fd09defe482f0c961afde80deac7c515ceb4a"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "a88a43cde0869a71b21ffe90771c4083a93e0f6a"
+      }
+    }
+  }
+}
