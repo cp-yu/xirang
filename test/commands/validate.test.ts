@@ -113,6 +113,27 @@ describe('top-level validate command', () => {
     expect(json.items[0].issues.some((issue: { path: string }) => issue.path === 'tasks.md')).toBe(true);
   });
 
+  it('accepts a no-delta change carrying the .delta-noop marker', async () => {
+    await fs.mkdir(path.join(changesDir, 'c-nodelta'), { recursive: true });
+    await fs.writeFile(path.join(changesDir, 'c-nodelta', 'proposal.md'), '# No Delta\n\n## Why\nMarker-only change.\n', 'utf-8');
+    await fs.writeFile(path.join(changesDir, 'c-nodelta', '.delta-noop'), '', 'utf-8');
+
+    const result = await runCLI(['validate', '--change', 'c-nodelta', '--json'], { cwd: testDir });
+    const json = JSON.parse(result.stdout.trim());
+    expect(json.items[0].valid).toBe(true);
+    expect(json.items[0].issues.some((issue: { message: string }) => issue.message.includes('at least one delta'))).toBe(false);
+  });
+
+  it('reports a no-delta change without the .delta-noop marker', async () => {
+    await fs.mkdir(path.join(changesDir, 'c-empty'), { recursive: true });
+    await fs.writeFile(path.join(changesDir, 'c-empty', 'proposal.md'), '# Empty\n\n## Why\nEmpty change.\n', 'utf-8');
+
+    const result = await runCLI(['validate', '--change', 'c-empty', '--json'], { cwd: testDir });
+    const json = JSON.parse(result.stdout.trim());
+    expect(json.items[0].valid).toBe(false);
+    expect(json.items[0].issues.some((issue: { message: string }) => issue.message.includes('at least one delta'))).toBe(true);
+  });
+
   it('validates explicit --change with the same semantics as the positional form', async () => {
     const positional = await runCLI(['validate', 'c1', '--type', 'change', '--json'], { cwd: testDir });
     const explicit = await runCLI(['validate', '--change', 'c1', '--json'], { cwd: testDir });

@@ -522,3 +522,17 @@ validate 命令 SHALL 校验 tasks.md 中 Check 的 Verifies 锚点：与 change
 
 - **WHEN** Check 锚点引用的 Scenario 标题与 change-local Contract 的 canonical 标题不一致
 - **THEN** 校验输出 SHALL 标记锚点报错
+
+### Requirement: 无 delta change 的显式标记
+
+validate 命令 SHALL 将 change-local `.delta-noop` 标记识别为显式无 delta 声明：存在该标记且 change 不携带任何 Semantic Delta 单元时，SHALL 不报无 delta 错误；标记不存在且无任何 delta 单元时，SHALL 报无 delta 错误。
+
+#### Scenario: 标记存在时豁免无 delta 报错
+
+- **WHEN** change 目录存在 `.delta-noop` 且四分区为空
+- **THEN** validate SHALL 不报无 delta 错误
+
+#### Scenario: 无标记且无 delta 时仍报错
+
+- **WHEN** change 目录不存在 `.delta-noop` 且四分区为空
+- **THEN** validate SHALL 报无 delta 错误

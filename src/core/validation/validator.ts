@@ -110,7 +110,7 @@ export class Validator {
       });
     }
 
-    if (!context?.allowAlreadyApplied && !await carriesSemanticDelta(changeDir)) {
+    if (!context?.allowAlreadyApplied && !await carriesSemanticDelta(changeDir) && !await declaresExplicitNoDelta(changeDir)) {
       issues.push({ level: 'ERROR', path: 'file', message: this.enrichTopLevelError('change', VALIDATION_MESSAGES.CHANGE_NO_DELTAS) });
     }
 
@@ -236,6 +236,11 @@ async function carriesSemanticDelta(changeDir: string): Promise<boolean> {
     if (entries.some(entry => entry.isFile() || entry.isDirectory())) return true;
   }
   return false;
+}
+
+/** `.delta-noop` is the explicit declaration that a Change intentionally carries no Semantic Delta. */
+async function declaresExplicitNoDelta(changeDir: string): Promise<boolean> {
+  return fs.stat(path.join(changeDir, '.delta-noop')).then(() => true).catch(() => false);
 }
 
 /** Requirement deltas live in the `elements/` partition of the change; paths locate the unit itself. */
