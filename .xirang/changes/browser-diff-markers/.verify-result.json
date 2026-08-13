@@ -42,7 +42,7 @@
       "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
       "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.peer.md"
     ],
-    "evidenceFingerprint": "fd7d10e218c3fb8de8d5ebdb4a5037f5c5a7d49ad5a6e8838de2051ef5013976",
+    "evidenceFingerprint": "d0d56f1c38f3c2a10d8bb9c32c7d5dd996954f4aefe2176b8a869cb970a18322",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/browser-diff-markers/design.md",
@@ -122,7 +122,7 @@
       },
       {
         "path": "test/e2e/semantic-browser-model-view.spec.ts",
-        "hash": "ff8f2ae68b6bec9f29a8cf87256acdfaed083a8612d7adb3c57e4026d41ecdac"
+        "hash": "a89d5300027bc03fd5db8c02197d5a30153d4105eac06f92b0f2054d801b36f6"
       },
       {
         "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-parent.md",
@@ -138,9 +138,9 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "0ddb1acfaeead9444848011bee0880a962278178",
+    "gitHeadCommit": "c1a1e41f3191242d6364dc18e22c16b2909f7b6f",
     "gitDiffSummary": "baseCommit 7af0ac18 equals HEAD; all implementation evidence uncommitted working tree, 23 paths all attributed. Live re-runs: vitest targeted 11+17+24+2 and full 195/195, typecheck clean, spa+xirang-likec4 builds green, playwright desktop(8)+mobile(7)=15 pass, xirang validate browser-diff-markers Passed (2 semantic changes), xirang validate --all 157 passed.",
-    "timestamp": "2026-08-13T19:12:14.669Z"
+    "timestamp": "2026-08-13T19:28:24.255Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
@@ -162,6 +162,16 @@
       },
       {
         "timestamp": "2026-08-13T19:12:14.657Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-13T19:18:55.779Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-13T19:28:24.242Z",
         "type": "verification",
         "result": "PASS"
       }
@@ -347,7 +357,7 @@
       },
       {
         "id": "OPT-20260813T183954468Z-02",
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx"
@@ -386,14 +396,11 @@
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "Ranks first among remaining findings: runtime code simplification with verified keyDesign pattern.",
-        "targetFileHashes": {
-          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "5da9f0acc42c8605c8fc72f37a5e65210f575bffeb824b66b974a1ef10511ae6"
-        }
+        "priorityReason": "Ranks first among remaining findings: runtime code simplification with verified keyDesign pattern."
       },
       {
         "id": "OPT-20260813T183954468Z-03",
-        "status": "pending",
+        "status": "merged",
         "location": {
           "files": [
             "test/e2e/semantic-browser-model-view.spec.ts"
@@ -431,7 +438,7 @@
         "priorityReason": "Ranks after OPT-02 because it is test-only."
       },
       {
-        "status": "pending",
+        "status": "merged",
         "location": {
           "files": [
             "test/e2e/semantic-browser-model-view.spec.ts"
@@ -471,6 +478,53 @@
         "dependencies": [],
         "priorityReason": "Ranks after OPT-03 because it adds no new assertion: it only removes the two remaining 600ms sleeps that are already redundant with the following auto-waiting inert assertions.",
         "id": "OPT-20260813T190423583Z-01"
+      },
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "test/e2e/semantic-browser-model-view.spec.ts"
+          ],
+          "symbols": [
+            "opens ADDED element details by single click with semantic identity",
+            "handles ADDED projection interactions and split diffs"
+          ]
+        },
+        "opportunity": "The spec still carries four fixed sleeps: two waitForTimeout(400) between the selecting first click and the details-opening second click, and two waitForTimeout(600) that are each immediately followed by Playwright auto-waiting assertions. Together they add ~2.0s of fixed wall time per project run (~4.0s across desktop+mobile), and the 400ms ones gate a machine-guarded click on wall-clock time instead of observable state.",
+        "impact": "Removing all four sleeps removes ~2.0s fixed latency per project run and replaces the two timing-based selection gates with deterministic state-based synchronization. No assertion is weakened: the removed 600ms waits are already redundant with the following not.toHaveAttribute('inert','') auto-waits.",
+        "evidence": [
+          "test/e2e/semantic-browser-model-view.spec.ts:130 and :150 - page.waitForTimeout(400) sits between the selecting first click and the details-opening second click",
+          "test/e2e/semantic-browser-model-view.spec.ts:108 - waitForTimeout(600) between parent.click() and expect(expand).not.toHaveAttribute('inert',''); :114 - waitForTimeout(600) between child visibility assertion and collapse assertion",
+          "machine.setup.ts guard 'click: selected node' requires event.node.selected === true before the second click opens element details",
+          "Installed @xyflow/react 12.11.0 NodeWrapper renders the className token 'selected' directly from store node.selected"
+        ],
+        "recommendation": "Delete the two waitForTimeout(600) lines and keep surrounding sequences identical. Replace both waitForTimeout(400) lines with await expect(parent).toHaveClass(/(^|\\s)selected(\\s|$)/) after the first click of each sequence.",
+        "keyDesign": "Assertion-driven synchronization: fixed-duration sleeps replaced by Playwright web-first assertions observing the exact states the application consumes.",
+        "preservationConstraints": [
+          "Only the four wait lines change: every click position {x:20,y:20}, locator, dialog assertion, Diff-tab assertion and screenshot remains byte-identical",
+          "In the ADDED-interaction test the Expand-children click must still occur after the selecting parent.click() and before the child visibility assertion",
+          "In both details sequences the second click on the same node must still open the details dialog",
+          "Test-only change: no application code, fixtures, or configuration files touched",
+          "Must remain green on both the desktop and mobile Playwright projects"
+        ],
+        "implementationOutline": [
+          "Delete the two waitForTimeout(600) lines",
+          "Replace both waitForTimeout(400) lines with await expect(parent).toHaveClass(/(^|\\s)selected(\\s|$)/)",
+          "Run the spec on desktop and mobile projects"
+        ],
+        "validation": [
+          "pnpm exec playwright test test/e2e/semantic-browser-model-view.spec.ts --project=desktop --project=mobile"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Sole remaining actionable work: both pending findings are test-only sleeps in one spec validated by one Playwright command.",
+        "id": "OPT-20260813T191855776Z-01",
+        "targetFileHashes": {
+          "test/e2e/semantic-browser-model-view.spec.ts": "ff8f2ae68b6bec9f29a8cf87256acdfaed083a8612d7adb3c57e4026d41ecdac"
+        }
       }
     ],
     "history": [
@@ -576,9 +630,54 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-13T19:12:14.657Z",
         "findingId": "OPT-20260813T183954468Z-02"
+      },
+      {
+        "sequence": 14,
+        "action": "merge",
+        "reason": "Both pending findings touch only fixed sleeps in the same e2e spec, are validated by the same Playwright command, and share the same assertion-driven keyDesign; merging collapses two sequential implement/verify cycles into one without losing any preservation constraint.",
+        "timestamp": "2026-08-13T19:18:55.777Z",
+        "findingId": "OPT-20260813T191855776Z-01",
+        "findingIds": [
+          "OPT-20260813T183954468Z-03",
+          "OPT-20260813T190423583Z-01"
+        ]
+      },
+      {
+        "sequence": 15,
+        "action": "resolve",
+        "reason": "Confirmed in HEAD: getArchitectureOverlayModel assembles entries/changed/context/counts/metamodel in one loop, countOperations absent, DiagramUI.spec.ts carries durable cases; checkpointed after vitest and typecheck passed.",
+        "timestamp": "2026-08-13T19:18:55.777Z",
+        "findingId": "OPT-20260813T183954468Z-02"
+      },
+      {
+        "sequence": 16,
+        "action": "select",
+        "reason": "Sole remaining actionable work: both pending findings are test-only sleeps in one spec validated by one Playwright command.",
+        "timestamp": "2026-08-13T19:18:55.779Z",
+        "findingId": "OPT-20260813T191855776Z-01",
+        "hashes": {
+          "test/e2e/semantic-browser-model-view.spec.ts": "ff8f2ae68b6bec9f29a8cf87256acdfaed083a8612d7adb3c57e4026d41ecdac"
+        }
+      },
+      {
+        "sequence": 17,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-13T19:19:02.291Z",
+        "findingId": "OPT-20260813T191855776Z-01",
+        "hashes": {
+          "test/e2e/semantic-browser-model-view.spec.ts": "ff8f2ae68b6bec9f29a8cf87256acdfaed083a8612d7adb3c57e4026d41ecdac"
+        }
+      },
+      {
+        "sequence": 18,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-13T19:28:24.242Z",
+        "findingId": "OPT-20260813T191855776Z-01"
       }
     ],
-    "reconciliationSignature": "31d5247d201000762994714cb94f92c0861a8e55203ed4d1fb4a0222b7d30b89",
+    "reconciliationSignature": "3e86b58fdaebf6ab9806197de50b0e5c234f6d582e292a85f9aacef8657ea21b",
     "unchangedReconciliations": 0
   }
 }

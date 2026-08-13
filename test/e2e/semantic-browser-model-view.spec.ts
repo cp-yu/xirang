@@ -105,13 +105,11 @@ test('handles ADDED projection interactions and split diffs', async ({ page }) =
   await expect(child).toHaveCount(0)
 
   await parent.click()
-  await page.waitForTimeout(600)
   const expand = parent.getByRole('button', { name: 'Expand children' })
   await expect(expand).not.toHaveAttribute('inert', '')
   await expand.click()
   await expect(child).toBeVisible()
   await page.screenshot({ path: test.info().outputPath('added-parent-expanded.png'), fullPage: true })
-  await page.waitForTimeout(600)
 
   parent = page.locator('.react-flow__node[data-xirang-identity="capability.added-parent"]')
   const collapse = parent.getByRole('button', { name: 'Collapse children' })
@@ -125,9 +123,9 @@ test('opens ADDED element details by single click with semantic identity', async
   const parent = page.locator('.react-flow__node[data-xirang-identity="capability.added-parent"]')
   await expect(parent).toBeVisible()
 
-  // 首次点击选中节点，第二次点击同一节点打开详情面板。
+  // 首次点击选中节点，等 selection 落地后第二次点击同一节点打开详情面板。
   await parent.click({ position: { x: 20, y: 20 } })
-  await page.waitForTimeout(400)
+  await expect(parent).toHaveClass(/(^|\s)selected(\s|$)/)
   await parent.click({ position: { x: 20, y: 20 } })
 
   const dialog = page.locator('dialog[open]')
@@ -147,7 +145,7 @@ test('opens ADDED element details by single click with semantic identity', async
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
   await expect(parent).toBeVisible()
   await parent.click({ position: { x: 20, y: 20 } })
-  await page.waitForTimeout(400)
+  await expect(parent).toHaveClass(/(^|\s)selected(\s|$)/)
   await parent.click({ position: { x: 20, y: 20 } })
   const completeDialog = page.locator('dialog[open]')
   await expect(completeDialog).toContainText('Added Parent Capability')
