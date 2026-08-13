@@ -1,0 +1,474 @@
+{
+  "timestamp": "2026-08-12T19:02:56.081Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "C7 full-suite run flaked twice on the pre-existing HMR test 'refreshes the model through HMR' (fingerprint poll 20s timeout); test is byte-identical to base aa546f8e0 and no server-side file is in the diff scope, so it is environmental flakiness, not a change defect",
+      "requirement": "切换 View、Change 或 Mode 后自动适配视口",
+      "task": "C7 下钻与就地展开不触发适配",
+      "recommendation": "Monitor HMR test stability; optional future bump of the 20s fingerprint poll timeout or watcher tuning. Do not block this change.",
+      "evidenceCitations": [
+        "test/e2e/semantic-browser-model-view.spec.ts:110-134",
+        ".xirang/changes/restore-homepage-change-entry/tasks.md:85"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": ".gitignore change (staging-workspace ignore rules, fix for removed committed fixture cache) is not declared in any task Files section",
+      "requirement": "首页提供 Candidate 与活动 Change 快速入口",
+      "task": null,
+      "recommendation": "artifact_fix: add '.gitignore' to the relevant task Files in tasks.md before archive",
+      "evidenceCitations": [
+        ".gitignore:175-178",
+        ".xirang/changes/restore-homepage-change-entry/tasks.md:1-90"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": ".verify-result.json still records the prior round's verdict with gitHeadCommit 83c088a4b and pre-correction evidence fingerprints; regenerate from this round's verdict",
+      "requirement": "首页提供 Candidate 与活动 Change 快速入口",
+      "task": null,
+      "recommendation": "regenerate .verify-result.json from this fresh PASS_WITH_WARNINGS verdict before archive",
+      "evidenceCitations": [
+        ".xirang/changes/restore-homepage-change-entry/.verify-result.json:1-40"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "C1 command names ContractLoaderContext.spec.ts but the file is ContractLoaderContext.spec.tsx; vitest resolves it and ran the intended 25 tests, so it is cosmetic",
+      "requirement": "首页提供 Candidate 与活动 Change 快速入口",
+      "task": "C1 context value 暴露 changes 且 sources 不变",
+      "recommendation": "artifact_fix: correct the filename in the C1 Command line",
+      "evidenceCitations": [
+        ".xirang/changes/restore-homepage-change-entry/tasks.md:15"
+      ]
+    }
+  ],
+  "tasksFileHash": "075ea4330d18b2035dfd0196b1e6e9755461e29a3731c82ecfa4af94cc2df9af",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".gitignore",
+      ".xirang/changes/restore-homepage-change-entry/.verify-result.json",
+      ".xirang/changes/restore-homepage-change-entry/design.md",
+      ".xirang/changes/restore-homepage-change-entry/elements/semantic-browser.md",
+      ".xirang/changes/restore-homepage-change-entry/proposal.md",
+      ".xirang/changes/restore-homepage-change-entry/tasks.md",
+      ".xirang/model/elements/semantic-browser.md",
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+      "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+      "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
+      "playwright.config.ts",
+      "test/e2e/semantic-browser-candidate-views.spec.ts",
+      "test/e2e/semantic-browser-model-view.spec.ts"
+    ],
+    "evidenceFingerprint": "7ccf06efae24842fddf3590566da7df0e6a57ba21b12975097d267b257e9c699",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".gitignore",
+        "hash": "4bf3c04fc1a89681195c9dde0ec6048075b7411780f66833f7365f2a042c0bea"
+      },
+      {
+        "path": ".xirang/changes/restore-homepage-change-entry/design.md",
+        "hash": "bcd8121c3253717fbc9fa9f0f3da515a16163d5b831fc34962bf29ee98a02a2c"
+      },
+      {
+        "path": ".xirang/changes/restore-homepage-change-entry/elements/semantic-browser.md",
+        "hash": "29a9c9cda81f51b77ed4fe4f6b31df7d8c8e8aa845bdc9a0371864701a361e49"
+      },
+      {
+        "path": ".xirang/changes/restore-homepage-change-entry/proposal.md",
+        "hash": "286b0e2d61f3444b9f1156a0a151cac1911c2dbaa42888f13ae3502b9cbe7a3b"
+      },
+      {
+        "path": ".xirang/changes/restore-homepage-change-entry/tasks.md",
+        "hash": "075ea4330d18b2035dfd0196b1e6e9755461e29a3731c82ecfa4af94cc2df9af"
+      },
+      {
+        "path": ".xirang/model/elements/semantic-browser.md",
+        "hash": "dee60eb05eecef0d21879e44db6df8f1e4b8bb44e93c24009da828e2c556e483"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+        "hash": "ebc3dbb2300a0d51e657089eda15b828a8f258c01adc80772489c6fdb91d502c"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+        "hash": "36697b44d776a933981e145e6c0fea52d98ec199a1ec91717475662e0c44743f"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
+        "hash": "a4bc4832a83700742a38e83a6cf9c9ecafde509b3ed3d54e552692562243c16e"
+      },
+      {
+        "path": "playwright.config.ts",
+        "hash": "9192b4fd08bc33476eb5d3739a5e0b4c0596e606fc25a090034ec6a663f60c41"
+      },
+      {
+        "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
+        "hash": "e9523b0da0b9486794aec2652f90de35bcfb96763b65786fad85568e57ea3912"
+      },
+      {
+        "path": "test/e2e/semantic-browser-model-view.spec.ts",
+        "hash": "726ffe1759589fc014d6184ac57b639875939ace9a7b522481fb795f8d9c86e3"
+      }
+    ],
+    "skippedEvidenceFiles": [
+      ".xirang/changes/restore-homepage-change-entry/.verify-result.json"
+    ],
+    "gitHeadCommit": "3fa0bbaac1828b55860dfee331dc662eebb3de9d",
+    "gitDiffSummary": "baseCommit aa546f8e0 resolves (validated via git cat-file); git diff aa546f8e0...HEAD --name-only lists 14 files; git status --short is empty. All 4 previous CRITICALs verified fixed in final contents: (1) four-state badge assertions toBeCloseTo(24,3) with zoom division and viewport-settle waits (model-view.spec.ts:180-215); (2) drill/no-fit covered by fits test (dblclick drill, focus=capability.drill URL, node center stable <4px, model-view.spec.ts:326-343) and expands test transform-unchanged assertion (model-view.spec.ts:288-292); (3) no tracked .cache-likec4-staging files in HEAD (git ls-tree -r HEAD clean) and .gitignore rules added (lines 175-178), untracked copies confirmed ignored via git check-ignore; (4) C7 command now desktop+mobile full suite (tasks.md:85) with both new test titles registered in both project greps (playwright.config.ts:20,25). Attribution: every behavior file declared in Task Files except .gitignore (SUGGESTION).",
+    "timestamp": "2026-08-12T19:47:19.766Z"
+  },
+  "optimization": {
+    "status": "IMPROVED",
+    "attempts": [
+      {
+        "timestamp": "2026-08-12T19:12:04.124Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-12T19:27:46.884Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-12T19:47:06.428Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-12T19:47:19.756Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-12T19:47:31.087Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-08-12T19:02:56.081Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "C7 full-suite run flaked twice on the pre-existing HMR test 'refreshes the model through HMR' (fingerprint poll 20s timeout); test is byte-identical to base aa546f8e0 and no server-side file is in the diff scope, so it is environmental flakiness, not a change defect",
+          "requirement": "切换 View、Change 或 Mode 后自动适配视口",
+          "task": "C7 下钻与就地展开不触发适配",
+          "recommendation": "Monitor HMR test stability; optional future bump of the 20s fingerprint poll timeout or watcher tuning. Do not block this change.",
+          "evidenceCitations": [
+            "test/e2e/semantic-browser-model-view.spec.ts:110-134",
+            ".xirang/changes/restore-homepage-change-entry/tasks.md:85"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": ".gitignore change (staging-workspace ignore rules, fix for removed committed fixture cache) is not declared in any task Files section",
+          "requirement": "首页提供 Candidate 与活动 Change 快速入口",
+          "task": null,
+          "recommendation": "artifact_fix: add '.gitignore' to the relevant task Files in tasks.md before archive",
+          "evidenceCitations": [
+            ".gitignore:175-178",
+            ".xirang/changes/restore-homepage-change-entry/tasks.md:1-90"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": ".verify-result.json still records the prior round's verdict with gitHeadCommit 83c088a4b and pre-correction evidence fingerprints; regenerate from this round's verdict",
+          "requirement": "首页提供 Candidate 与活动 Change 快速入口",
+          "task": null,
+          "recommendation": "regenerate .verify-result.json from this fresh PASS_WITH_WARNINGS verdict before archive",
+          "evidenceCitations": [
+            ".xirang/changes/restore-homepage-change-entry/.verify-result.json:1-40"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "C1 command names ContractLoaderContext.spec.ts but the file is ContractLoaderContext.spec.tsx; vitest resolves it and ran the intended 25 tests, so it is cosmetic",
+          "requirement": "首页提供 Candidate 与活动 Change 快速入口",
+          "task": "C1 context value 暴露 changes 且 sources 不变",
+          "recommendation": "artifact_fix: correct the filename in the C1 Command line",
+          "evidenceCitations": [
+            ".xirang/changes/restore-homepage-change-entry/tasks.md:15"
+          ]
+        }
+      ],
+      "tasksFileHash": "075ea4330d18b2035dfd0196b1e6e9755461e29a3731c82ecfa4af94cc2df9af",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".gitignore",
+          ".xirang/changes/restore-homepage-change-entry/.verify-result.json",
+          ".xirang/changes/restore-homepage-change-entry/design.md",
+          ".xirang/changes/restore-homepage-change-entry/elements/semantic-browser.md",
+          ".xirang/changes/restore-homepage-change-entry/proposal.md",
+          ".xirang/changes/restore-homepage-change-entry/tasks.md",
+          ".xirang/model/elements/semantic-browser.md",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+          "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
+          "playwright.config.ts",
+          "test/e2e/semantic-browser-candidate-views.spec.ts",
+          "test/e2e/semantic-browser-model-view.spec.ts"
+        ],
+        "evidenceFingerprint": "bbd772f35047765ab024446c39b9c3dd6cfe6891657b338e81e76180472fb9e1",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".gitignore",
+            "hash": "4bf3c04fc1a89681195c9dde0ec6048075b7411780f66833f7365f2a042c0bea"
+          },
+          {
+            "path": ".xirang/changes/restore-homepage-change-entry/design.md",
+            "hash": "bcd8121c3253717fbc9fa9f0f3da515a16163d5b831fc34962bf29ee98a02a2c"
+          },
+          {
+            "path": ".xirang/changes/restore-homepage-change-entry/elements/semantic-browser.md",
+            "hash": "29a9c9cda81f51b77ed4fe4f6b31df7d8c8e8aa845bdc9a0371864701a361e49"
+          },
+          {
+            "path": ".xirang/changes/restore-homepage-change-entry/proposal.md",
+            "hash": "286b0e2d61f3444b9f1156a0a151cac1911c2dbaa42888f13ae3502b9cbe7a3b"
+          },
+          {
+            "path": ".xirang/changes/restore-homepage-change-entry/tasks.md",
+            "hash": "075ea4330d18b2035dfd0196b1e6e9755461e29a3731c82ecfa4af94cc2df9af"
+          },
+          {
+            "path": ".xirang/model/elements/semantic-browser.md",
+            "hash": "177dff1075488b706655cfce39b104a4e27e1aae118090231f0c140920181da7"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "hash": "5384b5bd85f9f5b15ef91afe1716e5fc447895c8d4e2c7edf7db5024a809590a"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+            "hash": "36697b44d776a933981e145e6c0fea52d98ec199a1ec91717475662e0c44743f"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
+            "hash": "a4bc4832a83700742a38e83a6cf9c9ecafde509b3ed3d54e552692562243c16e"
+          },
+          {
+            "path": "playwright.config.ts",
+            "hash": "9192b4fd08bc33476eb5d3739a5e0b4c0596e606fc25a090034ec6a663f60c41"
+          },
+          {
+            "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
+            "hash": "705b69ff21fc2769080ef79d8bfb64d91785585925e14bd5b8f7e988f142bbdb"
+          },
+          {
+            "path": "test/e2e/semantic-browser-model-view.spec.ts",
+            "hash": "1586c0688089ae1b151ed8bed6219954329c2fa4c7d2c06aff546f64dbd8224c"
+          }
+        ],
+        "skippedEvidenceFiles": [
+          ".xirang/changes/restore-homepage-change-entry/.verify-result.json"
+        ],
+        "gitHeadCommit": "d4542229d4821a4ea742b5299fb0337910552d29",
+        "gitDiffSummary": "baseCommit aa546f8e0 resolves (validated via git cat-file); git diff aa546f8e0...HEAD --name-only lists 14 files; git status --short is empty. All 4 previous CRITICALs verified fixed in final contents: (1) four-state badge assertions toBeCloseTo(24,3) with zoom division and viewport-settle waits (model-view.spec.ts:180-215); (2) drill/no-fit covered by fits test (dblclick drill, focus=capability.drill URL, node center stable <4px, model-view.spec.ts:326-343) and expands test transform-unchanged assertion (model-view.spec.ts:288-292); (3) no tracked .cache-likec4-staging files in HEAD (git ls-tree -r HEAD clean) and .gitignore rules added (lines 175-178), untracked copies confirmed ignored via git check-ignore; (4) C7 command now desktop+mobile full suite (tasks.md:85) with both new test titles registered in both project greps (playwright.config.ts:20,25). Attribution: every behavior file declared in Task Files except .gitignore (SUGGESTION)."
+      }
+    },
+    "findings": [
+      {
+        "status": "resolved",
+        "location": {
+          "files": [
+            "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx"
+          ],
+          "symbols": [
+            "XirangArchitectureOverlay"
+          ]
+        },
+        "opportunity": "Three refs track overlapping projection/selection state: selectedSourceId (id-change branch, lines 170/335-337), hasProjection (first-projection fit, lines 171/375-377), and previousSelection (fit on View/Change/Mode selection change, lines 175/353-356). They can collapse into one nullable ref: the stored value is always the previous run's full selection {id, change, effectiveMode}, so the id-change branch and the first-run fit can both be derived from it.",
+        "impact": "Removes 2 refs and 2 per-run bookkeeping assignments from the effect that hosts the anchor/fit regression the change fixed; one source of truth for 'previous selection' reduces the invariant surface future edits must keep in sync.",
+        "evidence": [
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:170-175 (three overlapping refs)",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:335-337 (id-change branch reads selectedSourceId)",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:353-356 (selectionChanged computed and ref written every ready run)",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:375-377 (initialProjection: !hasProjection.current || selectionChanged; hasProjection.current = true)",
+          "grep confirms selectedSourceId and hasProjection are referenced nowhere else in the package"
+        ],
+        "recommendation": "Replace the three refs with one `previousSelection = useRef<{ id: string; change: string | null; mode: XirangViewMode } | null>(null)`. Compute `selectionChanged = previousSelection.current === null || previousSelection.current.id !== selected.id || previousSelection.current.change !== (selected.change ?? null) || previousSelection.current.mode !== effectiveMode` before mutation. Run the focus-reset branch only when `previousSelection.current !== null && previousSelection.current.id !== selected.id`. Send update.view with `initialProjection: selectionChanged` and delete the hasProjection ref entirely.",
+        "keyDesign": "One nullable ref holding the previous {id, change, effectiveMode}; `null` replaces `!hasProjection.current` for the first-projection fit, and the stored id replaces selectedSourceId for the id-change branch.",
+        "preservationConstraints": [
+          "First projection after ready MUST still fit (null ref -> selectionChanged true)",
+          "Fit MUST fire only on id/effectiveMode/change selection change, never on focus drills or expand-in-place (initialProjection false path keeps the projectionViewportTransition viewport compensation with anchorIdentity: focusIdentity ?? null)",
+          "The id-change branch MUST still reset previousFocusAncestors and send navigate.focus to breadcrumbRoot when interactive and focus is null, and MUST be skipped on the first ready run (base selectedSourceId is initialized to the initial selected.id, so its branch never fires first)",
+          "The !isReady early return MUST NOT advance the merged ref, so the first ready run still fits",
+          "update.view MUST still be sent immediately on id change (no early return), preserving change-derived rendering when focusIdentity already equals the root",
+          "No changes to machine.setup.ts / machine.actions.ts (outside base scope) and no event-schema change"
+        ],
+        "implementationOutline": [
+          "Delete selectedSourceId and hasProjection refs; declare previousSelection as nullable",
+          "Compute selectionChanged before the focus-reset branch, reading the stored value",
+          "Gate the focus-reset branch on stored !== null && stored.id !== selected.id",
+          "Write previousSelection.current = { id: selected.id, change: selected.change ?? null, mode: effectiveMode } after the branch",
+          "Use initialProjection: selectionChanged and remove hasProjection.current = true"
+        ],
+        "validation": [
+          "likec4: pnpm --filter @likec4/diagram exec vitest run --no-isolate src/xirang/ContractLoaderContext.spec.tsx src/xirang/architectureView.spec.ts (25 passed) and pnpm --filter @likec4/diagram typecheck prove no type/unit regression",
+          "test/e2e/semantic-browser-model-view.spec.ts 'fits the diagram after switching' desktop+mobile proves first fit + mode/change/view re-fit + drill viewport stability",
+          "test/e2e/semantic-browser-candidate-views.spec.ts 'opens an active change from the landing page' desktop+mobile proves quick-entry fit and on-screen regression guard",
+          "'browses Model View through nested focus and history' and 'expands in place with ctrl+click and collapses with Shift+0' prove drill/expand do not fit"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Only production-code simplification in base scope and it lives exactly where the anchor/fit regression occurred; it outranks the test-side DRY finding because it shrinks state invariants rather than duplicated assertions.",
+        "id": "OPT-20260812T191204121Z-01",
+        "targetFileHashes": {
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "5384b5bd85f9f5b15ef91afe1716e5fc447895c8d4e2c7edf7db5024a809590a"
+        }
+      },
+      {
+        "status": "resolved",
+        "location": {
+          "files": [
+            "test/e2e/semantic-browser-model-view.spec.ts",
+            "test/e2e/semantic-browser-candidate-views.spec.ts"
+          ],
+          "symbols": [
+            "viewportTransform",
+            "allNodesWithinViewport"
+          ]
+        },
+        "opportunity": "The flake-sensitive 'wait until the viewport transform settles' heuristic (two samples 80ms apart must be equal, 10s timeout) is defined twice and polled four times inside model-view.spec.ts, and the 'every node inside the viewport' predicate is written inline twice in candidate-views.spec.ts. Each can be hoisted to module scope within its existing spec file, with no new shared file.",
+        "impact": "One canonical settle helper and one canonical fit predicate per spec file, removing ~20 duplicated lines of the most flake-sensitive assertion logic; future fixes (e.g., timeout tuning) land in one place.",
+        "evidence": [
+          "test/e2e/semantic-browser-model-view.spec.ts:193 (viewportTransform def 1), 196-199, 225-228 (settle polls in four-state test)",
+          "test/e2e/semantic-browser-model-view.spec.ts:306 (viewportTransform def 2), 309 (allNodesWithinViewport def), 320-323, 334-337 (settle polls in fits test)",
+          "test/e2e/semantic-browser-candidate-views.spec.ts:61-67 (inline onScreen evaluate) and 75-80 (inline all-nodes poll duplicating the same predicate)"
+        ],
+        "recommendation": "Hoist module-level `const viewportTransform = (page: Page) => ...` and `async function waitForViewportSettled(page: Page)` into semantic-browser-model-view.spec.ts and a module-level `async function allNodesWithinViewport(page: Page)` into semantic-browser-candidate-views.spec.ts; replace the inline duplicates with calls. Do not create a new shared helper file (would exit base scope) and do not rename any test titles.",
+        "keyDesign": "Per-file module-scope helpers; identical poll conditions (two equal samples 80ms apart, timeout 10_000) and identical node-in-viewport predicate (right > 0 && left < innerWidth && bottom > 0 && top < innerHeight, count > 0).",
+        "preservationConstraints": [
+          "Test titles MUST NOT change: playwright.config.ts desktop/mobile greps whitelist 'fits the diagram after switching' and 'opens an active change from the landing page' by exact title",
+          "Poll timing and predicates MUST stay identical so Phase 1 stability fixes (zoom-compensated badge measurement, settle-before-measure) are not disturbed",
+          "No production code touched"
+        ],
+        "implementationOutline": [
+          "Add the two module-level helpers at the top of semantic-browser-model-view.spec.ts",
+          "Replace the four settle-poll blocks and the two viewportTransform definitions with helper calls",
+          "Add the module-level allNodesWithinViewport helper to semantic-browser-candidate-views.spec.ts and replace the inline evaluate/poll"
+        ],
+        "validation": [
+          "pnpm exec playwright test test/e2e/semantic-browser-model-view.spec.ts --project=desktop --project=mobile (C7 command) proves all fit/drill/expand assertions unchanged",
+          "pnpm exec playwright test test/e2e/semantic-browser-candidate-views.spec.ts --project=desktop --project=mobile proves the landing-page quick-entry assertions unchanged"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Below the DiagramUI ref merge: pure test-side DRY, optional pre-archive polish, and it requires re-running the e2e suites the Phase 1 baseline already passed.",
+        "id": "OPT-20260812T191204121Z-02",
+        "targetFileHashes": {
+          "test/e2e/semantic-browser-model-view.spec.ts": "726ffe1759589fc014d6184ac57b639875939ace9a7b522481fb795f8d9c86e3",
+          "test/e2e/semantic-browser-candidate-views.spec.ts": "e9523b0da0b9486794aec2652f90de35bcfb96763b65786fad85568e57ea3912"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-12T19:12:04.121Z",
+        "findingId": "OPT-20260812T191204121Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-12T19:12:04.121Z",
+        "findingId": "OPT-20260812T191204121Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "select",
+        "reason": "Only production-code simplification in base scope and it lives exactly where the anchor/fit regression occurred; it outranks the test-side DRY finding because it shrinks state invariants rather than duplicated assertions.",
+        "timestamp": "2026-08-12T19:12:04.124Z",
+        "findingId": "OPT-20260812T191204121Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "5384b5bd85f9f5b15ef91afe1716e5fc447895c8d4e2c7edf7db5024a809590a"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-12T19:12:13.867Z",
+        "findingId": "OPT-20260812T191204121Z-01",
+        "hashes": {
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "5384b5bd85f9f5b15ef91afe1716e5fc447895c8d4e2c7edf7db5024a809590a"
+        }
+      },
+      {
+        "sequence": 5,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-12T19:27:46.884Z",
+        "findingId": "OPT-20260812T191204121Z-01"
+      },
+      {
+        "sequence": 6,
+        "action": "resolve",
+        "reason": "Implemented and committed in 9d0e55557. Fresh read of likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx confirms all five preservation constraints: (1) null previousSelection makes selectionChanged true on the first ready run, so the first projection still fits; (2) selectionChanged reads only id/change/effectiveMode, so focus drills and expand-in-place keep initialProjection false with the anchorIdentity: focusIdentity ?? null compensation preserved; (3) the id-change branch is gated on previousSelectionState !== null (skipped on first ready run), still resets previousFocusAncestors and sends navigate.focus when isInteractiveBrowserSource && !focusIdentity; (4) the ref is written only after the !isReady early return; (5) update.view is sent immediately on id change with no early return. selectedSourceId and hasProjection are fully removed (grep: zero matches), and the commit touches only DiagramUI.tsx and the verify artifact (no machine setup/actions, no event-schema change). Fresh validation: pnpm --filter @likec4/diagram exec vitest run --no-isolate src/xirang/ContractLoaderContext.spec.tsx src/xirang/architectureView.spec.ts -> 25/25 passed; pnpm --filter @likec4/diagram typecheck -> clean. Finding history already recorded verified with verification PASS at 2026-08-12T19:27:46Z; this reconcile closes it.",
+        "timestamp": "2026-08-12T19:47:06.425Z",
+        "findingId": "OPT-20260812T191204121Z-01"
+      },
+      {
+        "sequence": 7,
+        "action": "retain",
+        "reason": "Still earns implementation - fresh re-verification on current code confirms the duplication is unchanged: viewportTransform is defined twice in test/e2e/semantic-browser-model-view.spec.ts (lines 193 and 306), the two-sample/80ms/10s settle poll is duplicated four times (196-199, 225-228, 320-323, 334-337), and the per-node in-viewport predicate (right > 0 && left < innerWidth && bottom > 0 && top < innerHeight) is duplicated inline in test/e2e/semantic-browser-candidate-views.spec.ts (61-66 onScreen evaluate, 75-81 fit poll). All admission gates pass: actual benefit (single point of tuning for the most flake-sensitive assertion logic), static evidence, full behavior-preservation closure, no production files, no config change, low risk/cost, high confidence. Design refinement required over the original wording: the candidate-views onScreen guard MUST keep its one-shot '.some' semantics (blank-board regression guard may run mid-fit-animation) and only the fit poll uses '.every' plus nodes.length > 0 - hoist one shared per-node predicate and use it in both, do not replace onScreen with the all-nodes helper. Also fold in the expands-test inline transform reads (model-view.spec.ts:288, 291) to use the hoisted viewportTransform. Test titles, poll timings, and predicates must stay identical (desktop/mobile grep whitelist in playwright.config.ts:20,25). Validation after implementation: re-run both spec files under --project=desktop --project=mobile (C7-style). Known pre-existing HMR fingerprint-poll flake is environmental and unrelated to these files.",
+        "timestamp": "2026-08-12T19:47:06.425Z",
+        "findingId": "OPT-20260812T191204121Z-02"
+      },
+      {
+        "sequence": 8,
+        "action": "select",
+        "reason": "Below the DiagramUI ref merge: pure test-side DRY, optional pre-archive polish, and it requires re-running the e2e suites the Phase 1 baseline already passed.",
+        "timestamp": "2026-08-12T19:47:06.428Z",
+        "findingId": "OPT-20260812T191204121Z-02",
+        "hashes": {
+          "test/e2e/semantic-browser-model-view.spec.ts": "726ffe1759589fc014d6184ac57b639875939ace9a7b522481fb795f8d9c86e3",
+          "test/e2e/semantic-browser-candidate-views.spec.ts": "e9523b0da0b9486794aec2652f90de35bcfb96763b65786fad85568e57ea3912"
+        }
+      },
+      {
+        "sequence": 9,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-12T19:47:19.591Z",
+        "findingId": "OPT-20260812T191204121Z-02",
+        "hashes": {
+          "test/e2e/semantic-browser-model-view.spec.ts": "726ffe1759589fc014d6184ac57b639875939ace9a7b522481fb795f8d9c86e3",
+          "test/e2e/semantic-browser-candidate-views.spec.ts": "e9523b0da0b9486794aec2652f90de35bcfb96763b65786fad85568e57ea3912"
+        }
+      },
+      {
+        "sequence": 10,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-12T19:47:19.756Z",
+        "findingId": "OPT-20260812T191204121Z-02"
+      },
+      {
+        "sequence": 11,
+        "action": "resolve",
+        "reason": "Implemented in 3fa0bbaac and verified: module-level viewportTransform/waitForViewportSettled helpers in model-view.spec and the shared nodeInViewport predicate in candidate-views.spec; test titles, poll timings and .some/.every semantics preserved; both suites green (13/13 + 10/10 desktop+mobile); fresh reviewer PASS.",
+        "timestamp": "2026-08-12T19:47:31.087Z",
+        "findingId": "OPT-20260812T191204121Z-02"
+      }
+    ],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}

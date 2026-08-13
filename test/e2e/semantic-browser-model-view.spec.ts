@@ -25,6 +25,17 @@ test.beforeEach(async ({ page }) => {
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
 })
 
+const viewportTransform = (page: Page) =>
+  page.locator('.react-flow__viewport').evaluate(el => getComputedStyle(el).transform)
+
+async function waitForViewportSettled(page: Page): Promise<void> {
+  await expect.poll(async () => {
+    const before = await viewportTransform(page)
+    await page.waitForTimeout(80)
+    return await viewportTransform(page) === before
+  }, { timeout: 10_000 }).toBe(true)
+}
+
 test('browses Model View through nested focus and history', async ({ page }) => {
   const perspective = page.locator('.react-flow__node[data-xirang-identity="perspective.browser"]')
   await expect(perspective).toBeVisible()
@@ -173,9 +184,13 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
   const nodeBadgeStyle = (locator: ReturnType<Page['locator']>) => locator.evaluate(node => {
     const style = getComputedStyle(node)
     const rect = node.getBoundingClientRect()
+    // The badge box is measured in viewport pixels; divide by the diagram zoom
+    // so auto-fit zoom levels do not distort the diagram-space size assertions.
+    const viewport = document.querySelector('.react-flow__viewport')
+    const zoom = viewport ? new DOMMatrixReadOnly(getComputedStyle(viewport).transform).a : 1
     return {
-      width: rect.width,
-      height: rect.height,
+      width: rect.width / zoom,
+      height: rect.height / zoom,
       backgroundColor: style.backgroundColor,
       color: style.color,
       fontSize: parseFloat(style.fontSize),
@@ -185,6 +200,9 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
 
   // Root focus: ADDED compound node with dotted outline.
   await page.goto('/view/model/?change=browser-change&mode=complete-with-diff')
+
+  // Auto-fit may animate the viewport; wait until the transform settles before measuring.
+  await waitForViewportSettled(page)
 
   const added = page.locator('.react-flow__node[data-xirang-identity="capability.added-parent"] .likec4-element-node')
   await expect(added).toBeVisible()
@@ -199,8 +217,8 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
   expect(await addedBadge.textContent()).toBe('+')
   expect(await addedBadge.evaluate(node => parseFloat(getComputedStyle(node).opacity))).toBe(1)
 
-  expect((await nodeBadgeStyle(addedBadge)).width).toBeGreaterThanOrEqual(24)
-  expect((await nodeBadgeStyle(addedBadge)).height).toBe(24)
+  expect((await nodeBadgeStyle(addedBadge)).width).toBeCloseTo(24, 3)
+  expect((await nodeBadgeStyle(addedBadge)).height).toBeCloseTo(24, 3)
   expect((await nodeBadgeStyle(addedBadge)).fontSize).toBeGreaterThanOrEqual(16)
   expect((await nodeBadgeStyle(addedBadge)).borderWidth).toBeGreaterThanOrEqual(2)
   expect((await nodeBadgeStyle(addedBadge)).backgroundColor).toMatch(/255, 159, 10/)
@@ -209,6 +227,7 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
 
   // Drill focus: unchanged assistant node + edge, MODIFIED leaf, REMOVED peer.
   await page.goto('/view/model/?change=browser-change&mode=complete-with-diff&focus=capability.drill')
+  await waitForViewportSettled(page)
 
   const unchangedLeaf = page.locator('.react-flow__node[data-xirang-identity="capability.assistant"] .likec4-element-node')
   await expect(unchangedLeaf).toBeVisible()
@@ -266,9 +285,11 @@ test('expands in place with ctrl+click and collapses with Shift+0', async ({ pag
   const branch = page.locator('.react-flow__node[data-xirang-identity="capability.drill"]')
   await expect(branch).toHaveCount(0)
 
-  // Shift+3 expands three levels in place while keeping the current focus.
+  // Shift+3 expands three levels in place while keeping the current focus and viewport.
+  const beforeExpand = await viewportTransform(page)
   await page.locator('.react-flow__pane').press('Shift+Digit3')
   await expect(branch).toBeVisible()
+  expect(await viewportTransform(page)).toBe(beforeExpand)
   await expect(page.locator('[data-xirang-focus-breadcrumb]')).not.toContainText('Drill-down Capability')
   await expectVisibleNodesDoNotOverlap(page)
   await page.screenshot({ path: test.info().outputPath('model-expanded.png'), fullPage: true })
@@ -277,4 +298,62 @@ test('expands in place with ctrl+click and collapses with Shift+0', async ({ pag
   await page.locator('.react-flow__pane').press('Shift+Digit0')
   await expect(branch).toHaveCount(0)
   await expect(perspective).toBeVisible()
+})
+
+test('fits the diagram after switching', async ({ page }) => {
+  await page.goto('/view/model/?change=browser-change&mode=diff-only')
+  await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
+
+  const nodeCount = () => page.locator('.react-flow__node').count()
+  const allNodesWithinViewport = () => page.evaluate(() => {
+    const nodes = [...document.querySelectorAll('.react-flow__node')]
+    return nodes.length > 0 && nodes.every(node => {
+      const rect = node.getBoundingClientRect()
+      return rect.right > 0 && rect.left < window.innerWidth && rect.bottom > 0 && rect.top < window.innerHeight
+    })
+  })
+
+  // Deep-link entry (same as the homepage quick-entry flow) fits the first projection.
+  await expect.poll(allNodesWithinViewport, { timeout: 10_000 }).toBe(true)
+  // Wait for the entry fit animation to settle before measuring.
+  await waitForViewportSettled(page)
+
+  // Focus drill keeps the user's position: the clicked node stays at the same screen spot.
+  const drillNode = page.locator('.react-flow__node[data-xirang-identity="capability.drill"]')
+  await expect(drillNode).toBeVisible()
+  const drillBoxBefore = await drillNode.boundingBox()
+  await drillNode.dblclick({ position: { x: 12, y: 12 } })
+  await expect(page).toHaveURL(/focus=capability\.drill/)
+  await expect(drillNode).toBeVisible()
+  // Wait for the anchor compensation to settle before measuring.
+  await waitForViewportSettled(page)
+  const drillBoxAfter = await drillNode.boundingBox()
+  // The anchor compensation keeps the drilled node's center at the same screen position.
+  const center = (box: { x: number; y: number; width: number; height: number } | null) =>
+    box ? { x: box.x + box.width / 2, y: box.y + box.height / 2 } : { x: 0, y: 0 }
+  const centerBefore = center(drillBoxBefore)
+  const centerAfter = center(drillBoxAfter)
+  expect(Math.abs(centerAfter.x - centerBefore.x)).toBeLessThan(4)
+  expect(Math.abs(centerAfter.y - centerBefore.y)).toBeLessThan(4)
+
+  // Mode switch re-fits the new content.
+  const beforeMode = await viewportTransform(page)
+  await page.getByLabel('Presentation Mode').selectOption('complete-with-diff')
+  await expect.poll(async () =>
+    await allNodesWithinViewport() && await viewportTransform(page) !== beforeMode, { timeout: 10_000 }).toBe(true)
+
+  // Change switch re-fits the new content.
+  const beforeChangeTransform = await viewportTransform(page)
+  const beforeChangeCount = await nodeCount()
+  await page.getByLabel('Change Selection').selectOption('')
+  await expect.poll(async () =>
+    await allNodesWithinViewport()
+      && (await viewportTransform(page) !== beforeChangeTransform || await nodeCount() !== beforeChangeCount),
+  { timeout: 10_000 }).toBe(true)
+
+  // View switch re-fits the new content.
+  const beforeView = await viewportTransform(page)
+  await page.getByLabel('View Selection').selectOption('model-equivalent')
+  await expect.poll(async () =>
+    await allNodesWithinViewport() && await viewportTransform(page) !== beforeView, { timeout: 10_000 }).toBe(true)
 })

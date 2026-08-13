@@ -10,7 +10,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Link } from '@tanstack/react-router'
 
 import { StaticLikeC4Diagram, type XirangViewSource, useXirangViewSources } from '@likec4/diagram'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type PropsWithChildren } from 'react'
 
 import type { DiagramView } from '@likec4/core/types'
 import { RichText } from '@likec4/core/types'
@@ -38,7 +38,9 @@ function RouteComponent() {
   useDocumentTitle(projectTitle ?? pageTitle)
   const views = filterLandingPageViews(allViews, landingPage)
   const runtime = useXirangViewSources()
+  const navigate = useNavigate()
   const candidateSources = runtime.sources.filter(s => s.source === 'candidate' || s.source === 'candidate-diff')
+  const changes = runtime.changes
   return (
     <Container size={'xl'}>
       <SidebarDrawer />
@@ -78,30 +80,60 @@ function RouteComponent() {
         </NavigationPanel.Root>
       </div>
       <Text size="lg" fw={600} mt="md" mb="xs">Views</Text>
-      <SimpleGrid
-        p={{ base: 'md', sm: 'md' }}
-        pt={{ base: 'sm', sm: 'sm' }}
-        cols={{ base: 1, sm: 2, md: 3, xl: 4 }}
-        spacing={{ base: 10, sm: 'xl' }}
-        verticalSpacing={{ base: 'md', sm: 'xl' }}
-      >
+      <CardGrid>
         {views.map((v) => <ViewCard key={v.id} view={v} />)}
-      </SimpleGrid>
+      </CardGrid>
       {candidateSources.length > 0 && (
         <>
           <Text size="lg" fw={600} mt="xl" mb="xs">Candidate</Text>
-          <SimpleGrid
-            p={{ base: 'md', sm: 'md' }}
-            pt={{ base: 'sm', sm: 'sm' }}
-            cols={{ base: 1, sm: 2, md: 3, xl: 4 }}
-            spacing={{ base: 10, sm: 'xl' }}
-            verticalSpacing={{ base: 'md', sm: 'xl' }}
-          >
-            {candidateSources.map(s => <CandidateViewCard key={s.id} source={s} />)}
-          </SimpleGrid>
+          <CardGrid>
+            {candidateSources.map(s => (
+              <SourceCard
+                key={s.id}
+                source={s}
+                onOpen={() => void navigate({
+                  to: '/view/$viewId/',
+                  params: { viewId: 'model' },
+                  search: previous => ({ ...previous, view: s.id }),
+                })}
+              />
+            ))}
+          </CardGrid>
+        </>
+      )}
+      {changes.length > 0 && (
+        <>
+          <Text size="lg" fw={600} mt="xl" mb="xs">Active Changes</Text>
+          <CardGrid>
+            {changes.map(c => (
+              <SourceCard
+                key={c.change}
+                source={c}
+                onOpen={() => void navigate({
+                  to: '/view/$viewId/',
+                  params: { viewId: 'model' },
+                  search: previous => ({ ...previous, view: 'model', change: c.change, mode: 'diff-only' }),
+                })}
+              />
+            ))}
+          </CardGrid>
         </>
       )}
     </Container>
+  )
+}
+
+function CardGrid({ children }: PropsWithChildren<{}>) {
+  return (
+    <SimpleGrid
+      p={{ base: 'md', sm: 'md' }}
+      pt={{ base: 'sm', sm: 'sm' }}
+      cols={{ base: 1, sm: 2, md: 3, xl: 4 }}
+      spacing={{ base: 10, sm: 'xl' }}
+      verticalSpacing={{ base: 'md', sm: 'xl' }}
+    >
+      {children}
+    </SimpleGrid>
   )
 }
 
@@ -161,10 +193,15 @@ function ViewCard({ view }: { view: DiagramView }) {
   )
 }
 
-function CandidateViewCard({ source }: { source: XirangViewSource }) {
-  const navigate = useNavigate()
+function SourceCard({
+  source,
+  onOpen,
+}: {
+  source: Pick<XirangViewSource, 'label' | 'valid' | 'diagnostics' | 'diff'>
+  onOpen: () => void
+}) {
   const counts = source.diff?.summary
-  const hasIssues = source.diagnostics.some(d => d.level === 'ERROR')
+  const errorDiagnostics = source.diagnostics.filter(d => d.level === 'ERROR')
 
   return (
     <Card
@@ -177,11 +214,7 @@ function CandidateViewCard({ source }: { source: XirangViewSource }) {
       href={`/view/model/`}
       onClick={e => {
         e.preventDefault()
-        void navigate({
-          to: '/view/$viewId/',
-          params: { viewId: 'model' },
-          search: previous => ({ ...previous, view: source.id }),
-        })
+        onOpen()
       }}
       style={{ cursor: 'pointer' }}
     >
@@ -196,11 +229,11 @@ function CandidateViewCard({ source }: { source: XirangViewSource }) {
         {counts && counts.REMOVED > 0 && <Badge size="sm" color="red">-{counts.REMOVED}</Badge>}
       </Group>
 
-      {source.diagnostics.filter(d => d.level === 'ERROR').map((d, i) => (
+      {errorDiagnostics.map((d, i) => (
         <Text key={i} size="xs" c="red" className={css({ lineClamp: 2 })}>{d.message}</Text>
       ))}
 
-      {!hasIssues && counts && counts.total === 0 && (
+      {errorDiagnostics.length === 0 && counts && counts.total === 0 && (
         <Text size="xs" c="dimmed">No semantic graph changes</Text>
       )}
     </Card>
