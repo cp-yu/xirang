@@ -139,23 +139,14 @@ Every Markdown unit declares its own \`entity\` in frontmatter. The partition do
  */
 export const ARCHITECTURE_POST_PROPOSE_VALIDATION = `
 **Run post-propose validation**:
+- 先执行计划一致性复核：对照 change-local Contracts、design.md 与 Semantic Delta 检测 tasks.md 的语义矛盾；发现矛盾时自行修正制品，仅当矛盾反映与用户意图或已确认决策不对齐时，一次性呈现全部发现并等待用户裁决。
 - Validate the generated change with \`xirang validate --change "<name>" --json\`.
 - Validate the Expected Semantic Model with \`xirang arch validate --change "<name>" --json\`.
 - Do NOT run \`xirang sync\` because validation must not mutate formal source
-- Run lightweight structure checks for \`proposal.md\`, \`design.md\`, and \`tasks.md\` against the current schema templates, not scattered examples:
-  - Read \`xirang instructions proposal --change "<name>" --json\`, \`xirang instructions design --change "<name>" --json\`, and \`xirang instructions tasks --change "<name>" --json\`
+- Run lightweight structure checks for \`proposal.md\` and \`design.md\` against the current schema templates, not scattered examples:
+  - Read \`xirang instructions proposal --change "<name>" --json\` and \`xirang instructions design --change "<name>" --json\`
   - Check only key required headings and checkbox structure
-  - For \`tasks.md\`, run a deterministic task structure check equivalent to \`validateTaskStructure\` in \`src/core/parsers/task-structure.ts\`
-  - Programmatically verify either legacy \`Actions\`/\`Checks\` sections or coarse \`### Task N:\` sections with \`Goal\`, \`Files\`, \`Requirements\`, and nested \`Checks\`
-  - For legacy tasks, verify \`A\`-prefixed action checkboxes, \`C\`-prefixed check checkboxes, required \`Covers:\` fields, valid \`Covers:\` references, and every action covered by at least one check
-  - For coarse tasks, verify each task has no more than 5 requirements and at least one nested \`C\`-prefixed check
-  - For every check, verify required non-empty \`Verifies:\` or \`Preserves:\` field
-  - When \`Verifies:\` anchors an ordinary requirement, verify change-local \`Verifies:\` Element unit paths (\`elements/<identity>.md\`) plus Requirement/Scenario references when change-local Element units exist
-  - When \`Verifies:\` anchors a REMOVED requirement, verify it uses \`REMOVED Requirement "<name>"\` syntax (no Scenario required) and the REMOVED requirement exists in the Delta unit
-  - When \`Preserves:\` is present, verify it uses the formal Element unit path (\`.xirang/model/elements/<identity>.md\`) with Requirement and ≥1 Scenario names, and the path whitelist does not relax \`Verifies:\` constraints
-  - Verify at least one \`Command:\`, \`Evidence:\`, or \`Expect:\` field per check
-  - Do NOT invent semantic lint rules beyond the current templates
-  - Do NOT judge whether a check is semantically sufficient; defer semantic suitability to verify/reviewer
+- \`tasks.md\` 任务结构校验由 \`xirang validate --change\` 的确定性操作承担，不再手工执行等价检查
 - If warnings are found, do exactly one repair pass on the generated artifacts, then re-check once
 - Final summary MUST separate:
   - fixed warnings

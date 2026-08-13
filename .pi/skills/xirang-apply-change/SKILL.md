@@ -24,18 +24,17 @@ For workflow-managed writes, read the resolved file definition before its instru
 ## Flow Outline
 
 1. Step 1: Preparation — read `.xirang/references/xirang-apply-step-1-preparation.md`.
-2. Step 2: Pre-flight scan — read `.xirang/references/xirang-apply-step-2-preflight-scan.md`.
-3. Step 3: Isolation router — read the one method reference selected by Step 1; do not load mutually exclusive methods.
-4. Phase 0 implementation — Master executes pending tasks serially with the implementation discipline below.
-5. Step 4: Phase 1 verification — read `.xirang/references/xirang-apply-step-4-phase1-verification.md` and delegate to the clean-context `xirang-reviewer` agent.
-6. Step 5: Phase 2 optimization — read `.xirang/references/xirang-apply-step-5-phase2-optimization.md` and delegate to the clean-context `xirang-optimizer` agent when eligible.
-7. Step 6: Phase 3 seal — read `.xirang/references/xirang-apply-step-6-phase3-seal.md`.
-8. Step 7: Output — read `.xirang/references/xirang-apply-step-7-output.md`.
+2. Step 2: Isolation router — read the one method reference selected by Step 1; do not load mutually exclusive methods.
+3. Phase 0 implementation — Master executes pending tasks serially as task-level TDD loops until all are complete; completing one task does not leave Phase 0.
+4. Step 3: Phase 1 verification — only after every pending task and Required Correction is complete, read `.xirang/references/xirang-apply-step-3-phase1-verification.md` and delegate to the clean-context `xirang-reviewer` agent for one change-level review of that completed Phase 0 state. A failed Review or Seal may return corrections to Phase 0; after those corrections are complete, the modified Change state requires another change-level Review.
+5. Step 4: Phase 2 optimization — read `.xirang/references/xirang-apply-step-4-phase2-optimization.md` and delegate to the clean-context `xirang-optimizer` agent when eligible.
+6. Step 5: Phase 3 seal — read `.xirang/references/xirang-apply-step-5-phase3-seal.md`.
+7. Step 6: Output — read `.xirang/references/xirang-apply-step-6-output.md`.
 
 ## Implementation Discipline
 
 - Before implementation, run `xirang arch impact <identity> --depth 2 --json` to discover affected identities and relationships, then run `xirang arch query <selected-identities...> --contract --json` for the explicit Elements whose Contracts and Declarations are needed; read the returned Element Contracts and current code.
-- Process unfinished `## Required Corrections` `[code_fix]` and `[artifact_fix]` items before pending tasks. Finish every Check in the current task before starting the next; never execute tasks in parallel.
+- Process unfinished `## Required Corrections` `[code_fix]` and `[artifact_fix]` items before pending tasks. Each task is one TDD loop. Finish every Check in the current task before starting the next; never execute tasks in parallel. Completing one ordinary task MUST NOT trigger Phase 1, Phase 2, or a workflow handoff. Only after every pending task and Required Correction is complete may Apply enter a change-level Phase 1 review; any subsequent Review or Seal corrections modify the Change state and require another change-level Review after recovery completes.
 - Assess interface testability before writing tests for each behavior/code Check: inject external dependencies, prefer returned results over hidden side effects, and keep the public interface minimal.
 - Write or update a targeted test first. Exercise public behavior; mock only injected system boundaries, never internal collaborators.
 - Run the declared or equivalent targeted command and confirm the expected RED before implementation; make the minimal fix, then rerun the same check for GREEN.

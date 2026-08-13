@@ -1,4 +1,4 @@
-# Apply Step 3: Branch Isolation
+# Apply Step 2: Branch Isolation
 
 Use this reference only after Step 1 selects branch isolation.
 

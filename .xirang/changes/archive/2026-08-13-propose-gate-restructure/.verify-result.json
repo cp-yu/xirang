@@ -1,0 +1,575 @@
+{
+  "timestamp": "2026-08-13T10:25:52.940Z",
+  "result": "PASS",
+  "issues": [
+    {
+      "severity": "SUGGESTION",
+      "message": "ARCHITECTURE_POST_PROPOSE_VALIDATION export is unused (no importer) — pre-existing at baseline, content edited by this change; deferred per S3",
+      "requirement": null,
+      "task": null,
+      "recommendation": "后续 change 单独清理该死导出或接入调用方；本轮不阻塞",
+      "evidenceCitations": [
+        "src/core/templates/fragments/xirang-fragments.ts:140"
+      ]
+    }
+  ],
+  "tasksFileHash": "80f9a2bc1b8c2642a9ce50b6169042e5d52066f8d9de02987d49a9fe0275f1a3",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".pi/skills/xirang-apply-change/SKILL.md",
+      ".pi/skills/xirang-propose/SKILL.md",
+      ".xirang/changes/propose-gate-restructure/elements/post-propose-validation.md",
+      ".xirang/changes/propose-gate-restructure/elements/propose-workflow.md",
+      ".xirang/changes/propose-gate-restructure/elements/validation-commands.md",
+      ".xirang/changes/propose-gate-restructure/tasks.md",
+      ".xirang/references/xirang-apply-step-1-preparation.md",
+      "src/commands/validate.ts",
+      "src/core/artifact-graph/instruction-loader.ts",
+      "src/core/parsers/task-structure.ts",
+      "src/core/templates/fragments/xirang-fragments.ts",
+      "src/core/templates/workflows/apply-change.ts",
+      "src/core/templates/workflows/propose.ts",
+      "test/commands/validate.test.ts",
+      "test/core/parsers/task-structure.test.ts",
+      "test/core/templates/apply-change.test.ts",
+      "test/core/templates/propose-template.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts",
+      "test/core/workflow-installation.test.ts"
+    ],
+    "evidenceFingerprint": "fc18facb8ffb9e591e17ea2ce6943a638364eecd051c5b37c158315525e9a9ec",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".pi/skills/xirang-apply-change/SKILL.md",
+        "hash": "0941f9133e5ae2e00c7b53e9ab22b123d8cb0d3ecfed3341f583ccc97f96eb7f"
+      },
+      {
+        "path": ".pi/skills/xirang-propose/SKILL.md",
+        "hash": "2124148231afe64f5bf1d6310fcbba69808bd508fa6227c23b78a357b60f0d8b"
+      },
+      {
+        "path": ".xirang/changes/propose-gate-restructure/elements/post-propose-validation.md",
+        "hash": "634dc22a153b05a61b3c1dd4730adba91dc651df7be6b45ec2ccf7a37f2af79d"
+      },
+      {
+        "path": ".xirang/changes/propose-gate-restructure/elements/propose-workflow.md",
+        "hash": "40ef34db6ea2190c08dc6196623df964916871a0fd117620c58db4b550c71601"
+      },
+      {
+        "path": ".xirang/changes/propose-gate-restructure/elements/validation-commands.md",
+        "hash": "83dee285dea81b40b8645951ce6c97b31b9a9c092ae6e0aae3a45810fc885ee0"
+      },
+      {
+        "path": ".xirang/changes/propose-gate-restructure/tasks.md",
+        "hash": "80f9a2bc1b8c2642a9ce50b6169042e5d52066f8d9de02987d49a9fe0275f1a3"
+      },
+      {
+        "path": ".xirang/references/xirang-apply-step-1-preparation.md",
+        "hash": "f37c8a891c1ba55f76b8b1dfc6c7e204e7c478bed7a34d4eac6bc7be50948e63"
+      },
+      {
+        "path": "src/commands/validate.ts",
+        "hash": "d61c5f840964ca741242f0aa56d2db9db2394a20228173c932585b6693780a71"
+      },
+      {
+        "path": "src/core/artifact-graph/instruction-loader.ts",
+        "hash": "1340874f6075520d64aede203cb9a6c4b29a141a79f20dcbac005c841f1a892c"
+      },
+      {
+        "path": "src/core/parsers/task-structure.ts",
+        "hash": "7eb8e732507636193942674821760e6b0ef6c6d5462b80716ed8a7edbf40d86b"
+      },
+      {
+        "path": "src/core/templates/fragments/xirang-fragments.ts",
+        "hash": "97b15f9963034f023bc0e63ae86ce08d2fbfdbaf2121396a3df24e632ad6e423"
+      },
+      {
+        "path": "src/core/templates/workflows/apply-change.ts",
+        "hash": "4b84fc4c913d536f2ee60635879795faa27f28f2c173a78049e9d306e2d621ca"
+      },
+      {
+        "path": "src/core/templates/workflows/propose.ts",
+        "hash": "f6ec486bac4e6f8c7a45b9a389380e256a1a0a5bbac38c0f897680a58af6cc1d"
+      },
+      {
+        "path": "test/commands/validate.test.ts",
+        "hash": "e80dd6f0d852fb8b74b62f5fdcfc414651d3606416a1a499a0d1e4b625e046d8"
+      },
+      {
+        "path": "test/core/parsers/task-structure.test.ts",
+        "hash": "bf04d7232d8b440b75654dd691a04ab58f6e814ba69629b7bd01dda64e216cbe"
+      },
+      {
+        "path": "test/core/templates/apply-change.test.ts",
+        "hash": "3e50e0242fc9e1ca5ad28ecbad8309dd1bba74a4df8d2aaff8794b9e7414cd29"
+      },
+      {
+        "path": "test/core/templates/propose-template.test.ts",
+        "hash": "5c70219341e1552ee6741d73fef8069dd505dda5313b619bddd53846f742b380"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "3497a5fb2527fa78a47bddeb2803af725026c502bc9db024eef2b0a98e450332"
+      },
+      {
+        "path": "test/core/workflow-installation.test.ts",
+        "hash": "a4ff1bbbb1dc78b3720a3f967ed9b4d1cb72113884a18a4d96eae58cee392344"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "21cce4fb11005032f4890fa5567d8ae488bacf90",
+    "gitDiffSummary": "baseCommit 887cc50c==HEAD，scope=git diff HEAD --name-status(38 files)+git status --short(2 untracked change artifacts)。覆盖: Task1 validate 接线与 task-structure 检测; Task2 apply 流程/references 重排+删除 preflight; Task3 propose 收尾门禁与 fragment; Task4 术语统一与生成面再生成。验证命令: pnpm vitest run(5 文件,110 用例全绿)、pnpm build、node bin/xirang.js validate/arch validate --change --json(均通过)、grep 残留扫描(src/.pi/.xirang 全空)、临时 fixture e2e 后删除。",
+    "timestamp": "2026-08-13T10:40:52.291Z"
+  },
+  "optimization": {
+    "status": "IMPROVED",
+    "attempts": [
+      {
+        "timestamp": "2026-08-13T10:36:58.024Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-13T10:40:52.279Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-13T10:49:23.250Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-08-13T10:25:52.940Z",
+      "result": "PASS",
+      "issues": [
+        {
+          "severity": "SUGGESTION",
+          "message": "ARCHITECTURE_POST_PROPOSE_VALIDATION export is unused (no importer) — pre-existing at baseline, content edited by this change; deferred per S3",
+          "requirement": null,
+          "task": null,
+          "recommendation": "后续 change 单独清理该死导出或接入调用方；本轮不阻塞",
+          "evidenceCitations": [
+            "src/core/templates/fragments/xirang-fragments.ts:140"
+          ]
+        }
+      ],
+      "tasksFileHash": "80f9a2bc1b8c2642a9ce50b6169042e5d52066f8d9de02987d49a9fe0275f1a3",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".pi/skills/xirang-apply-change/SKILL.md",
+          ".pi/skills/xirang-propose/SKILL.md",
+          ".xirang/changes/propose-gate-restructure/elements/post-propose-validation.md",
+          ".xirang/changes/propose-gate-restructure/elements/propose-workflow.md",
+          ".xirang/changes/propose-gate-restructure/elements/validation-commands.md",
+          ".xirang/changes/propose-gate-restructure/tasks.md",
+          ".xirang/references/xirang-apply-step-1-preparation.md",
+          "src/commands/validate.ts",
+          "src/core/artifact-graph/instruction-loader.ts",
+          "src/core/parsers/task-structure.ts",
+          "src/core/templates/fragments/xirang-fragments.ts",
+          "src/core/templates/workflows/apply-change.ts",
+          "src/core/templates/workflows/propose.ts",
+          "test/commands/validate.test.ts",
+          "test/core/parsers/task-structure.test.ts",
+          "test/core/templates/apply-change.test.ts",
+          "test/core/templates/propose-template.test.ts",
+          "test/core/templates/skill-templates-parity.test.ts",
+          "test/core/workflow-installation.test.ts"
+        ],
+        "evidenceFingerprint": "00f2cbc68e7a0bceab36827c3cbfccd6d4e6aaa2f6604fa5fff5d1a427b758a3",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".pi/skills/xirang-apply-change/SKILL.md",
+            "hash": "0941f9133e5ae2e00c7b53e9ab22b123d8cb0d3ecfed3341f583ccc97f96eb7f"
+          },
+          {
+            "path": ".pi/skills/xirang-propose/SKILL.md",
+            "hash": "2124148231afe64f5bf1d6310fcbba69808bd508fa6227c23b78a357b60f0d8b"
+          },
+          {
+            "path": ".xirang/changes/propose-gate-restructure/elements/post-propose-validation.md",
+            "hash": "634dc22a153b05a61b3c1dd4730adba91dc651df7be6b45ec2ccf7a37f2af79d"
+          },
+          {
+            "path": ".xirang/changes/propose-gate-restructure/elements/propose-workflow.md",
+            "hash": "40ef34db6ea2190c08dc6196623df964916871a0fd117620c58db4b550c71601"
+          },
+          {
+            "path": ".xirang/changes/propose-gate-restructure/elements/validation-commands.md",
+            "hash": "83dee285dea81b40b8645951ce6c97b31b9a9c092ae6e0aae3a45810fc885ee0"
+          },
+          {
+            "path": ".xirang/changes/propose-gate-restructure/tasks.md",
+            "hash": "80f9a2bc1b8c2642a9ce50b6169042e5d52066f8d9de02987d49a9fe0275f1a3"
+          },
+          {
+            "path": ".xirang/references/xirang-apply-step-1-preparation.md",
+            "hash": "f37c8a891c1ba55f76b8b1dfc6c7e204e7c478bed7a34d4eac6bc7be50948e63"
+          },
+          {
+            "path": "src/commands/validate.ts",
+            "hash": "d61c5f840964ca741242f0aa56d2db9db2394a20228173c932585b6693780a71"
+          },
+          {
+            "path": "src/core/artifact-graph/instruction-loader.ts",
+            "hash": "1340874f6075520d64aede203cb9a6c4b29a141a79f20dcbac005c841f1a892c"
+          },
+          {
+            "path": "src/core/parsers/task-structure.ts",
+            "hash": "eafffe5369de411edb54e12c55606d778d291dc14e2e434dd612e5d2ebc48185"
+          },
+          {
+            "path": "src/core/templates/fragments/xirang-fragments.ts",
+            "hash": "97b15f9963034f023bc0e63ae86ce08d2fbfdbaf2121396a3df24e632ad6e423"
+          },
+          {
+            "path": "src/core/templates/workflows/apply-change.ts",
+            "hash": "4b84fc4c913d536f2ee60635879795faa27f28f2c173a78049e9d306e2d621ca"
+          },
+          {
+            "path": "src/core/templates/workflows/propose.ts",
+            "hash": "f6ec486bac4e6f8c7a45b9a389380e256a1a0a5bbac38c0f897680a58af6cc1d"
+          },
+          {
+            "path": "test/commands/validate.test.ts",
+            "hash": "e80dd6f0d852fb8b74b62f5fdcfc414651d3606416a1a499a0d1e4b625e046d8"
+          },
+          {
+            "path": "test/core/parsers/task-structure.test.ts",
+            "hash": "bf04d7232d8b440b75654dd691a04ab58f6e814ba69629b7bd01dda64e216cbe"
+          },
+          {
+            "path": "test/core/templates/apply-change.test.ts",
+            "hash": "3e50e0242fc9e1ca5ad28ecbad8309dd1bba74a4df8d2aaff8794b9e7414cd29"
+          },
+          {
+            "path": "test/core/templates/propose-template.test.ts",
+            "hash": "5c70219341e1552ee6741d73fef8069dd505dda5313b619bddd53846f742b380"
+          },
+          {
+            "path": "test/core/templates/skill-templates-parity.test.ts",
+            "hash": "3497a5fb2527fa78a47bddeb2803af725026c502bc9db024eef2b0a98e450332"
+          },
+          {
+            "path": "test/core/workflow-installation.test.ts",
+            "hash": "a4ff1bbbb1dc78b3720a3f967ed9b4d1cb72113884a18a4d96eae58cee392344"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "887cc50c81d6991180f5d05bddef379da3c3e8c9",
+        "gitDiffSummary": "baseCommit 887cc50c==HEAD，scope=git diff HEAD --name-status(38 files)+git status --short(2 untracked change artifacts)。覆盖: Task1 validate 接线与 task-structure 检测; Task2 apply 流程/references 重排+删除 preflight; Task3 propose 收尾门禁与 fragment; Task4 术语统一与生成面再生成。验证命令: pnpm vitest run(5 文件,110 用例全绿)、pnpm build、node bin/xirang.js validate/arch validate --change --json(均通过)、grep 残留扫描(src/.pi/.xirang 全空)、临时 fixture e2e 后删除。"
+      }
+    },
+    "findings": [
+      {
+        "id": "OPT-20260813T103658021Z-01",
+        "status": "resolved",
+        "location": {
+          "files": [
+            "src/core/parsers/task-structure.ts"
+          ],
+          "symbols": [
+            "parseVerifies",
+            "parsePreserves"
+          ]
+        },
+        "opportunity": "parsePreserves（434-450）的函数体与 parseVerifies（409-432）中非 REMOVED 分支完全重复：都执行 REQUIREMENT_RE 匹配、remainder 切片、SCENARIOS_RE/SCENARIO_NAME_RE 提取与 undefined 守卫。本 change 的 diff 显示同一次 remainder 切片修复被重复应用到两个函数，锚点语法未来的任何改动都必须双写维护。",
+        "impact": "单一锚点语法实现；删除约 20 行重复；消除已由本 change 历史证实的双写维护陷阱；降低 Verifies/Preserves 解析语义分叉风险。",
+        "evidence": [
+          "src/core/parsers/task-structure.ts:409-450 — parseVerifies 尾部与 parsePreserves 全体逐字一致（REQUIREMENT_RE 匹配、value.slice(requirementMatch.index! + requirementMatch[0].length)、SCENARIOS_RE/SCENARIO_NAME_RE 提取、elementPath/requirement/scenarios 守卫）",
+          "git diff 887cc50c...HEAD -- src/core/parsers/task-structure.ts — 同一 remainder 切片改动同时应用于 parseVerifies 与 parsePreserves 两处"
+        ],
+        "recommendation": "提取共享 helper parseAnchorReference(value): { elementPath, requirement, scenarios } | undefined 承载通用锚点解析；parseVerifies 先做 REMOVED_REQUIREMENT_RE 短路再委托 helper；parsePreserves 直接委托 helper。两个函数保持现有签名与返回语义。",
+        "keyDesign": "单一锚点引用语法解析器：通用路径解析 `elements/<identity>.md` / Requirement \"...\" / Scenario \"...\" 锚点；REMOVED 语法只在 Verifies 包装层短路（返回 { isRemoved: true, scenarios: [] }，且仅在 elementPath 与 requirement 都存在时）；undefined-on-invalid 契约不变；不触碰 validateVerifiesField/validatePreservesField 的校验流程。",
+        "preservationConstraints": [
+          "对任意输入返回完全相同的结果：elementPath、requirement、scenarios 缺失或 scenarios 为空/含空串时精确返回 undefined",
+          "REMOVED_REQUIREMENT_RE 短路顺序不变：先于 REQUIREMENT_RE 匹配，仅当 elementPath 与 requirement 同时存在时返回 isRemoved 结果",
+          "Scenario 提取只取首个 REQUIREMENT_RE 匹配之后的文本（remainder 切片）——「Requirement 标题包含 Scenario 一词」的回归修复必须保持",
+          "Preserves 路径不识别 REMOVED 语法（与现状一致，继续走通用解析）",
+          "issues 数组的 code/message/line/severity 与顺序完全不变；CLI JSON 输出与 exit code 不变"
+        ],
+        "implementationOutline": [
+          "先运行 pnpm vitest run test/core/parsers/task-structure.test.ts 确认既有 32 个用例全绿作为重构基线",
+          "从 parseVerifies 尾部提取 parseAnchorReference helper（参数 value，返回 { elementPath, requirement, scenarios } | undefined）",
+          "parseVerifies 保留 REMOVED 短路分支，非 REMOVED 路径改为 return parseAnchorReference(value)",
+          "parsePreserves 改为 return parseAnchorReference(value)",
+          "运行目标测试、pnpm lint、pnpm build 与 node bin/xirang.js validate --change propose-gate-restructure --json 确认零回归"
+        ],
+        "validation": [
+          "pnpm vitest run test/core/parsers/task-structure.test.ts test/commands/validate.test.ts — 证明 Verifies/Preserves/REMOVED 锚定与「Requirement 标题含 Scenario」回归用例在合并后输出一致",
+          "pnpm build — helper 提取后的类型检查通过",
+          "node bin/xirang.js validate --change propose-gate-restructure --json — 本 change 自身 tasks.md 仍零 issue"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "唯一不依赖工作负载的静态收益：锚点语法重复由本 change 双写编辑证实，且可由现有 32 用例测试套完全闭合保持语义；优先于随 tasks.md 规模变化的复杂度/I/O 项，以及 Phase 1 已明确延后的 dead-export 清理。",
+        "targetFileHashes": {
+          "src/core/parsers/task-structure.ts": "eafffe5369de411edb54e12c55606d778d291dc14e2e434dd612e5d2ebc48185"
+        }
+      },
+      {
+        "id": "OPT-20260813T103658021Z-02",
+        "status": "deferred",
+        "location": {
+          "files": [
+            "src/core/parsers/task-structure.ts"
+          ],
+          "symbols": [
+            "validateFileDeclarations"
+          ]
+        },
+        "opportunity": "依赖顺序检测在每个非 Create 条目上执行 entries.slice(i + 1).find(...)，整体 O(n²) 且每迭代分配新数组；可用一次反向预计算（Map path→最近的后序 Create 条目）加正向发射实现 O(n)。",
+        "impact": "消除二次扫描与切片数组分配；收益仅在 tasks.md Files 声明规模大时才体现（实际通常 <50 条），属 workload-dependent，按决策规则 deferred。",
+        "evidence": [
+          "src/core/parsers/task-structure.ts:664-674 — entries.slice(i + 1).find(item => item.operation === 'Create' && item.path === entry.path) 位于外层 for 循环内"
+        ],
+        "recommendation": "反向遍历 entries 建立 laterCreateByPath Map（每路径记录最近的后序 Create 条目），保存每索引查询结果后按原条目顺序正向发射 issue，保持输出顺序。",
+        "keyDesign": "单次反向预计算 + 正向发射：Map<string, TaskFileEntry> 记录每路径最近后序 Create；正向循环按 entry.line 顺序 push task-dependency-order error；冲突检测段保持不变。",
+        "preservationConstraints": [
+          "报告的配对与现状一致：每个更早的 Modify/Delete 条目只报告第一个后序 Create（最近后序 Create 即第一个）",
+          "错误消息文本、issue 行号（entry.line）、severity 不变",
+          "issue 顺序不变：全部 task-file-conflict 先于 task-dependency-order，且后者按条目顺序",
+          "JSON 输出与 exit code 不变"
+        ],
+        "implementationOutline": [
+          "添加一个覆盖 3 条目以上同路径序列的测试锁定当前报告配对与顺序",
+          "反向预计算最近后序 Create Map",
+          "正向发射并保留现有消息与行号"
+        ],
+        "validation": [
+          "pnpm vitest run test/core/parsers/task-structure.test.ts — 既有冲突/依赖顺序用例 + 新增顺序锁定用例全绿"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "静态可证的复杂度改进但收益取决于条目规模，实际工作负载下收益可忽略，故延后；排在被选中的纯重复消除项之后。"
+      },
+      {
+        "id": "OPT-20260813T103658021Z-03",
+        "status": "deferred",
+        "location": {
+          "files": [
+            "src/core/parsers/task-structure.ts"
+          ],
+          "symbols": [
+            "validateVerifiesField",
+            "validatePreservesField"
+          ]
+        },
+        "opportunity": "每个引用同一 change-local unit 的 Check 都会重复执行 fs.readFileSync + parseContractRequirements（task-structure.ts:304），Preserves 对 formal unit 同样重复（:374）；多 Check 引用同一 unit 时产生重复 I/O 与解析。",
+        "impact": "一次校验调用内缓存已解析 Contract（Map<unitPath, Map<Requirement, ContractRequirement>>）可消除重复读取；收益随 Check 数量增长，属 workload-dependent，按决策规则 deferred。",
+        "evidence": [
+          "src/core/parsers/task-structure.ts:304 — parseContractRequirements(fs.readFileSync(path.join(changeDir, parsed.elementPath), 'utf8')) 在每个 Check 的 validateVerifiesField 调用中执行",
+          "src/core/parsers/task-structure.ts:374 — Preserves 路径同样每个 Check 重读 formal unit"
+        ],
+        "recommendation": "在 validateTaskStructure 单次调用作用域建立懒加载缓存，按 unit 路径缓存解析结果；parseContractRequirements 保持纯函数。",
+        "keyDesign": "每调用一个 Map 缓存：validateCoarseTasks 创建缓存并传递给两个 validate 函数；缓存生命周期限定单次校验，避免跨调用陈旧内容。",
+        "preservationConstraints": [
+          "issues 内容、消息、行号、顺序不变",
+          "文件读取失败行为不变（异常传播方式与时机保持与现状一致）",
+          "单次调用内文件内容视为稳定输入，缓存不引入跨调用状态"
+        ],
+        "implementationOutline": [
+          "为 validateVerifiesField/validatePreservesField 增加可选 cache 参数",
+          "validateTaskStructure/validateCoarseTasks 各创建一次 cache 并透传",
+          "运行既有测试确认输出不变"
+        ],
+        "validation": [
+          "pnpm vitest run test/core/parsers/task-structure.test.ts — 既有锚定用例输出不变"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "真实但 workload-dependent 的重复 I/O；文件小、Check 数有限，本轮不选。"
+      },
+      {
+        "id": "OPT-20260813T103658021Z-04",
+        "status": "deferred",
+        "location": {
+          "files": [
+            "src/core/templates/fragments/xirang-fragments.ts"
+          ],
+          "symbols": [
+            "ARCHITECTURE_POST_PROPOSE_VALIDATION"
+          ]
+        },
+        "opportunity": "ARCHITECTURE_POST_PROPOSE_VALIDATION 导出在 src/ 与 test/ 无任何导入（grep 仅命中声明处），本 change 编辑了其内容但仍是死代码；同模块 VERIFY_SIMPLE_CHANGE_FAST_PATH 同样无导入。死片段与 propose.ts 步骤 10 形成第二套收尾门禁表述，存在漂移风险。",
+        "impact": "删除约 18 行死模板文本，消除与权威 propose 模板分叉的第二表述；属基线即存在的死导出，Phase 1 审查已明确将清理延后到 follow-up change。",
+        "evidence": [
+          "grep -rn ARCHITECTURE_POST_PROPOSE_VALIDATION src/ test/ — 仅声明处 src/core/templates/fragments/xirang-fragments.ts:140",
+          ".verify-result.json issues[0] — Phase 1 SUGGESTION：unused export，deferred per S3（后续 change 单独清理）",
+          "grep -rn VERIFY_SIMPLE_CHANGE_FAST_PATH src/ — 同样仅声明处 :218"
+        ],
+        "recommendation": "在后续 change 中删除该死导出（连同同模块其他无导入片段，如 VERIFY_SIMPLE_CHANGE_FAST_PATH）；不要在本 change 将其接入 propose.ts——接入会改变生成模板输出与 parity 测试，必须由 Semantic Model 授权。",
+        "keyDesign": "纯删除：先确认无 src/core/index.ts 重导出、无 .pi 生成面引用，再移除常量与 JSDoc；skill 生成输出保持不变。",
+        "preservationConstraints": [
+          "无导入方，删除不改变任何生成 skill 输出、parity 测试或 CLI 行为",
+          "删除前 grep 确认 src/、test/、.pi/ 均无引用",
+          "不改动 propose.ts 对片段的导入集合"
+        ],
+        "implementationOutline": [
+          "grep 确认零引用",
+          "删除 ARCHITECTURE_POST_PROPOSE_VALIDATION（及同模块其他确认无引用的片段）",
+          "pnpm build + skill-templates-parity 测试确认生成面不变"
+        ],
+        "validation": [
+          "grep -rn ARCHITECTURE_POST_PROPOSE_VALIDATION src/ test/ .pi/skills/ 零命中",
+          "pnpm build",
+          "pnpm vitest run test/core/templates/skill-templates-parity.test.ts"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "行为保持的死代码删除，但该导出在基线即已死、Phase 1 已将其清理明确延后到 follow-up change，尊重该 scoping，本轮 deferred。"
+      },
+      {
+        "status": "deferred",
+        "location": {
+          "files": [
+            "src/commands/validate.ts"
+          ],
+          "symbols": [
+            "validateChangeWithPreview"
+          ]
+        },
+        "opportunity": "validateChangeWithPreview 串行 await 三个相互独立的只读校验：compileChange（formal model + change delta 编译）、validator.validateChangeDeltaSpecs（change 四分区）、validateTasksStructure（tasks.md）。三者输入不相交、无共享可变状态，可并发执行。",
+        "impact": "降低 xirang validate 命令端到端延迟（重叠三个 I/O 密集读取）；收益随 formal model 规模与 change 规模变化，属 workload-dependent，按决策规则 deferred。",
+        "evidence": [
+          "src/commands/validate.ts:217-233 — const compiled = await compileChange(...); const notationReport = await validator.validateChangeDeltaSpecs(changeDir); ... return { report: mergeValidationReports(notationReport, compilerReport, await this.validateTasksStructure(changeDir)), compiled } 串行执行",
+          "src/core/validation/validator.ts — validateChangeDeltaSpecs 无 console 输出（grep console. 零命中）且无写操作，三校验均只读",
+          "src/commands/validate.ts:290-297 — mergeValidationReports 按参数位置顺序拼接 issues，输出顺序由参数顺序决定而非执行顺序"
+        ],
+        "recommendation": "用 Promise.all([compileChange(process.cwd(), id), validator.validateChangeDeltaSpecs(changeDir), this.validateTasksStructure(changeDir)]) 并发执行三个校验，按原顺序解构后传入 mergeValidationReports，保持串行等价输出。",
+        "keyDesign": "并发只读校验：三个 Promise 并行启动，结果按 notation、compiler、tasks 原顺序合并；Validator 实例无共享写入；compileChange 拒绝时其余只读校验先完成但结果被丢弃，异常传播与打印保持现状。",
+        "preservationConstraints": [
+          "issues 顺序不变：mergeValidationReports(notationReport, compilerReport, tasksReport) 参数顺序保持",
+          "JSON/文本输出内容与 exit code 不变",
+          "compileChange 抛错时错误传播与打印不变；其余两个校验仅执行只读文件访问，不产生用户可见副作用",
+          "validateChangeWithPreview 返回值结构与 compiled 预览不变"
+        ],
+        "implementationOutline": [
+          "将三个串行 await 改为 Promise.all 并按原顺序解构",
+          "运行 pnpm vitest run test/commands/validate.test.ts 确认 23 个既有用例输出顺序与结果不变",
+          "运行 node bin/xirang.js validate --change propose-gate-restructure --json 确认零回归"
+        ],
+        "validation": [
+          "pnpm vitest run test/commands/validate.test.ts — 证明并发化后输出顺序与结果不变",
+          "node bin/xirang.js validate --change propose-gate-restructure --json — 本 change 校验结果不变"
+        ],
+        "impactLevel": "low",
+        "confidence": "medium",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "静态可证的真实并行机会，但收益取决于模型规模与校验耗时，实际单次 validate 已亚秒级；按决策规则 workload-dependent 项一律 deferred，排在本轮全部候选之末，不优先于任何可闭合的语义重复消除。",
+        "id": "OPT-20260813T104923250Z-01"
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-13T10:36:58.021Z",
+        "findingId": "OPT-20260813T103658021Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-13T10:36:58.021Z",
+        "findingId": "OPT-20260813T103658021Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-13T10:36:58.021Z",
+        "findingId": "OPT-20260813T103658021Z-03"
+      },
+      {
+        "sequence": 4,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-13T10:36:58.021Z",
+        "findingId": "OPT-20260813T103658021Z-04"
+      },
+      {
+        "sequence": 5,
+        "action": "select",
+        "reason": "唯一不依赖工作负载的静态收益：锚点语法重复由本 change 双写编辑证实，且可由现有 32 用例测试套完全闭合保持语义；优先于随 tasks.md 规模变化的复杂度/I/O 项，以及 Phase 1 已明确延后的 dead-export 清理。",
+        "timestamp": "2026-08-13T10:36:58.024Z",
+        "findingId": "OPT-20260813T103658021Z-01",
+        "hashes": {
+          "src/core/parsers/task-structure.ts": "eafffe5369de411edb54e12c55606d778d291dc14e2e434dd612e5d2ebc48185"
+        }
+      },
+      {
+        "sequence": 6,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-13T10:37:03.732Z",
+        "findingId": "OPT-20260813T103658021Z-01",
+        "hashes": {
+          "src/core/parsers/task-structure.ts": "eafffe5369de411edb54e12c55606d778d291dc14e2e434dd612e5d2ebc48185"
+        }
+      },
+      {
+        "sequence": 7,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-13T10:40:52.279Z",
+        "findingId": "OPT-20260813T103658021Z-01"
+      },
+      {
+        "sequence": 8,
+        "action": "resolve",
+        "reason": "已实现并通过 verification PASS：parseAnchorReference helper 已落地（src/core/parsers/task-structure.ts:421-443），parseVerifies 保留 REMOVED 短路后委托、parsePreserves 直接委托，签名与 undefined-on-invalid 契约不变；本轮实测 6 个测试文件 122 用例全绿（含 task-structure 32 用例）、pnpm build 与 pnpm lint 通过、xirang validate --change propose-gate-restructure --json 零 issue。verified 在 CLI 状态机中仍属 non-terminal，关闭为 resolved 是保留已验证成果的正确终态。",
+        "timestamp": "2026-08-13T10:49:23.250Z",
+        "findingId": "OPT-20260813T103658021Z-01"
+      },
+      {
+        "sequence": 9,
+        "action": "retain",
+        "reason": "代码未变：validateFileDeclarations 仍执行 entries.slice(i + 1).find(...)（现 src/core/parsers/task-structure.ts:661），O(n²) 与每迭代切片分配仅在 Files 声明规模大时显效，实际 tasks.md 条目通常 <50；按决策规则 workload-dependent 项保持 deferred。",
+        "timestamp": "2026-08-13T10:49:23.250Z",
+        "findingId": "OPT-20260813T103658021Z-02"
+      },
+      {
+        "sequence": 10,
+        "action": "retain",
+        "reason": "代码未变：每个 Check 的 Verifies/Preserves 仍独立执行 readFileSync + parseContractRequirements（现 :304 与 :374）；收益随引用同一 unit 的 Check 数量增长，属 workload-dependent，保持 deferred。",
+        "timestamp": "2026-08-13T10:49:23.250Z",
+        "findingId": "OPT-20260813T103658021Z-03"
+      },
+      {
+        "sequence": 11,
+        "action": "retain",
+        "reason": "新鲜 grep 复核：ARCHITECTURE_POST_PROPOSE_VALIDATION 在 src/ 与 test/ 仍零导入（仅声明处 src/core/templates/fragments/xirang-fragments.ts:140；src/core/templates/index.ts 无 fragments barrel 重导出）；Phase 1 已明确将清理划归 follow-up change，保持 deferred。证据修正：VERIFY_SIMPLE_CHANGE_FAST_PATH 被既有测试 test/core/templates/fragments/xirang-fragments.test.ts 导入，未来清理范围应仅限 ARCHITECTURE_POST_PROPOSE_VALIDATION，不要连带删除 VERIFY_SIMPLE_CHANGE_FAST_PATH。",
+        "timestamp": "2026-08-13T10:49:23.250Z",
+        "findingId": "OPT-20260813T103658021Z-04"
+      },
+      {
+        "sequence": 12,
+        "action": "add",
+        "reason": "新增发现：validateChangeWithPreview 三项独立只读校验串行执行；收益随模型规模变化属 workload-dependent，按决策规则直接以 deferred 登记，供后续轮次评估。",
+        "timestamp": "2026-08-13T10:49:23.250Z",
+        "findingId": "OPT-20260813T104923250Z-01"
+      }
+    ],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}

@@ -4,7 +4,7 @@ identity: propose-workflow
 kind: element
 parent: propose
 title: Propose Workflow
-definition: Propose Workflow 定义 propose workflow 创建 change、分离 behavior/architecture source impact、生成完整制品并执行轻量验证的行为：semantic readiness 门禁、Design Summary 复用、definition-first authoring、架构范围 reconcile、post-propose validation 分级 gate 与状态输出收敛。
+definition: Propose Workflow 定义 propose workflow 创建 change、分离 behavior/architecture source impact、生成完整制品并执行轻量验证的行为：semantic readiness 门禁、Design Summary 复用、制品定义先行写作、架构范围 reconcile、post-propose validation 一致性验证门禁与状态输出收敛。
 ---
 
 ## Requirements
@@ -147,29 +147,6 @@ Proposal SHALL 保留 canonical `## Source Impact` 兼容结构，并分别声�
 - **THEN** propose MUST NOT 仅凭该状态创建 Contract 单元
 - **AND** required element 缺失 contract SHALL 作为 source completeness gap 处理
 
-### Requirement: Propose 使用 definition-first authoring
-
-每个 artifact 写入前，workflow SHALL 读取 resolved definition，按 content boundaries 路由语义，再执行 artifact instruction 与 template。Delta Contracts SHALL 只包含 canonical unlabeled target-state Requirements 与 Scenarios；完成 artifacts 后 SHALL 使用统一 change compiler 审阅 effective changes。
-
-#### Scenario: Scenario operations 通过 diff 审阅
-
-- **WHEN** Agent 已完成 delta Contracts、design、结构目标与 combined validation
-- **THEN** Agent MUST NOT 手写或生成 Scenario operation labels
-- **AND** SHALL 审阅 validate concise preview
-- **AND** 非预期 operation SHALL 阻塞 ready-for-apply 并要求修正 source
-
-#### Scenario: Specs 按 Behavior Source 生成
-
-- **WHEN** propose 创建 change-local Contracts
-- **THEN** SHALL 只消费 proposal Behavior Source 中的 Element identities
-- **AND** SHALL 读取 Formal Contract 的 exact Requirement titles 后 author delta
-
-#### Scenario: Specs boundary 不重复定义
-
-- **WHEN** workflow 生成 Contracts
-- **THEN** SHALL 依赖 `xirang instructions specs --change "<name>" --json` 返回的 definition（Element-owned Contract delta authoring 指导）
-- **AND** SHALL NOT 在 workflow template 维护竞争的 behavior boundary
-
 ### Requirement: Propose 在架构 delta 前 reconcile architecture scope
 
 Contracts 与 `design.md` 完成后，propose SHALL 重新读取 proposal graph scope、design decisions、formal Semantic Model 与 implementation evidence，再生成结构目标。Workflow SHALL 在完整 Target Semantic Model 上联合检查 Element Declarations、Relationships 与 Element Contracts。
@@ -203,61 +180,6 @@ Contracts 与 `design.md` 完成后，propose SHALL 重新读取 proposal graph 
 - **WHEN** Architecture Source 为 None
 - **THEN** SHALL 省略 `metamodel/`、`relationships/` 与 `views/` delta 单元
 - **AND** SHALL NOT 创建空 model 单元
-
-### Requirement: Post-propose validation 使用分级 gate
-
-Propose SHALL 使用 combined compiler validation 与 effective diff review 作为分级 gate。ERROR 或非预期 effective operation 阻塞 apply；WARNING 只披露。ERROR 最多修复一轮并复检一次。
-
-#### Scenario: Combined Semantic Delta validation
-
-- **WHEN** apply-required artifacts 已生成
-- **THEN** SHALL 联合验证结构、containment、relationships、contracts 与 strict removals
-- **AND** SHALL 输出 concise effective preview
-
-#### Scenario: ERROR 阻塞
-
-- **WHEN** validation 产生 ERROR
-- **THEN** SHALL 最多修复并复检一轮
-- **AND** 残留 ERROR SHALL 阻塞 ready-for-apply
-
-#### Scenario: Effective diff 不符合 intent
-
-- **WHEN** 预览显示未授权或遗漏的 operation
-- **THEN** SHALL 修正 durable source 后重新 validate
-- **AND** MUST NOT 通过编辑只读 preview 输出解决
-
-#### Scenario: Validation 全部通过
-
-- **WHEN** validation 无 ERROR 且 effective diff 已审阅
-- **THEN** SHALL 以只读 preview 记录 effective diff 已审阅；不生成或持久化 review artifact
-- **AND** final summary SHALL 声明 ready-for-apply
-
-#### Scenario: 验证与审阅 delta
-
-- **WHEN** Agent 完成 change artifacts
-- **THEN** SHALL 指导运行 `xirang validate --change <name> --json`
-- **AND** validation 无 ERROR 后 SHALL 运行 `xirang validate --change "<name>"` 的只读预览
-- **AND** SHALL 要求 Agent 审阅 unexpected operations
-- **AND** MUST NOT 运行 Scenario label command
-
-#### Scenario: Combined validation 与只读 preview
-
-- **WHEN** apply-required artifacts 已生成
-- **THEN** SHALL 运行 `xirang validate --change "<name>" --json`
-- **AND** validation 无 ERROR 后 SHALL 运行 `xirang validate --change "<name>"` 的只读预览
-- **AND** MUST NOT 执行 sync
-
-#### Scenario: Lightweight auxiliary checks
-
-- **WHEN** 检查 proposal、design 与 tasks
-- **THEN** SHALL 使用 resolved definitions/templates 与 deterministic task structure validation
-- **AND** SHALL NOT 发明额外 semantic lint
-
-#### Scenario: Warning-only handoff
-
-- **WHEN**修复轮次后只剩 WARNING
-- **THEN** summary SHALL 披露 remaining warnings
-- **AND** MAY 声明 apply-ready
 
 ### Requirement: Propose 状态输出保持收敛
 
@@ -328,3 +250,26 @@ Propose 生成 `tasks.md` 时 SHALL 以可独立实现与验证的完整闭环�
 - **WHEN** Propose 准备声明 Change ready-for-apply
 - **THEN** SHALL 交叉检查 Goals、Files、Requirements 与 Checks
 - **AND** 发现 task 依赖后续 task 时 SHALL reconcile 边界后再声明
+
+### Requirement: Propose 使用制品定义先行写作
+
+每个 artifact 写入前，workflow SHALL 读取 resolved definition，按 content boundaries 路由语义，再执行 artifact instruction 与 template。Delta Contracts SHALL 只包含 canonical unlabeled target-state Requirements 与 Scenarios；完成 artifacts 后 SHALL 使用统一 change compiler 审阅 effective changes。
+
+#### Scenario: Scenario operations 通过 diff 审阅
+
+- **WHEN** Agent 已完成 delta Contracts、design、结构目标与 combined validation
+- **THEN** Agent MUST NOT 手写或生成 Scenario operation labels
+- **AND** SHALL 审阅 validate concise preview
+- **AND** 非预期 operation SHALL 阻塞 ready-for-apply 并要求修正 source
+
+#### Scenario: Specs 按 Behavior Source 生成
+
+- **WHEN** propose 创建 change-local Contracts
+- **THEN** SHALL 只消费 proposal Behavior Source 中的 Element identities
+- **AND** SHALL 读取 Formal Contract 的 exact Requirement titles 后 author delta
+
+#### Scenario: Specs boundary 不重复定义
+
+- **WHEN** workflow 生成 Contracts
+- **THEN** SHALL 依赖 `xirang instructions specs --change "<name>" --json` 返回的 definition（Element-owned Contract delta authoring 指导）
+- **AND** SHALL NOT 在 workflow template 维护竞争的 behavior boundary

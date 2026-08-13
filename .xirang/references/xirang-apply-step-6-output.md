@@ -1,3 +1,3 @@
-# Apply Step 7: Output
+# Apply Step 6: Output
 
 Report schema, progress, current task, completed tasks this session, and final sealed/archive-ready status. Continue archive from the same Apply workspace. Apply MUST NOT switch branches and MUST NOT remove the worktree; the Archive workflow owns branch return and isolation cleanup. Keep edits minimal, use Node path handling for generated paths, update task checkboxes only after evidence passes, and preserve canonical artifact headings/tokens and configured document language projection.

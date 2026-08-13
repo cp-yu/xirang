@@ -1,4 +1,4 @@
-# Apply Step 5: Phase 2 Optimization
+# Apply Step 4: Phase 2 Optimization
 
 Use git commits as checkpoints; never use stash or tags. Phase 0 and Phase 1 create no commits.
 

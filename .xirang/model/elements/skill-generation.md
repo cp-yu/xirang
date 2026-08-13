@@ -30,7 +30,7 @@ definition: Skill Generation 定义共享 skill 片段与 frontmatter 的生成�
 #### Scenario: 片段排除操作规则
 
 - **WHEN** `XIRANG_PHILOSOPHY` 被读取
-- **THEN** 文本 MUST NOT 包含 definition-first、canonical syntax 或 validation gate 指令
+- **THEN** 文本 MUST NOT 包含制品定义先行写作、canonical syntax 或 validation gate 指令
 - **AND** MUST NOT 包含独立 AST/IR pipeline、static analysis pass 或 decompilation 类比
 
 #### Scenario: 片段定义统一 Xirang Semantic Model

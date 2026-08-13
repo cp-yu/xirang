@@ -1,4 +1,4 @@
-# Apply Step 4: Phase 1 Verification
+# Apply Step 3: Phase 1 Verification
 
 1. Delegate to the clean-context `xirang-reviewer` agent with `context: "fresh"` and the current changeName, absolute changeDir, and absolute projectRoot.
 2. Validate the reviewer payload against the Phase 1 input contract. Reject malformed or incomplete payloads rather than repairing them by inference.

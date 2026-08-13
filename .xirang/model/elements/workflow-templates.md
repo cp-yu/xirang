@@ -4,7 +4,7 @@ identity: workflow-templates
 kind: element
 parent: agent-workbench-projection
 title: Workflow Templates
-definition: Workflow Templates 定义 workflow 模板的生成契约：模板不内联 subagent 角色定义、verify 模板对 subagent 使用明确 delegation 指令、checkpoint state machine 表格、统一 CLI 查询接口、固定 workflow 集合、内部 subagent 引用替换与 definition-first authoring。
+definition: Workflow Templates 定义 workflow 模板的生成契约：模板不内联 subagent 角色定义、verify 模板对 subagent 使用明确 delegation 指令、checkpoint state machine 表格、统一 CLI 查询接口、固定 workflow 集合、内部 subagent 引用替换与制品定义先行写作。
 ---
 
 ## Requirements
@@ -127,20 +127,8 @@ Workflow skill 模板的 instructions SHALL 以共享 Xirang Philosophy 开头�
 #### Scenario: Apply skill 的 instructions 结构
 
 - **WHEN** `getApplyChangeSkillTemplate()` 生成 apply skill instructions
-- **THEN** instructions SHALL 以 Xirang Philosophy 开头，后接 definition-first authoring 规则、Flow Outline 和 Implementation Discipline
+- **THEN** instructions SHALL 以 Xirang Philosophy 开头，后接制品定义先行写作规则、Flow Outline 和 Implementation Discipline
 - **AND** 每个流程步骤 SHALL 指向独立的 `.xirang/references/xirang-apply-step-<N>-<name>.md` 文件
-
-### Requirement: Agent definition-first authoring
-
-编写 Project Build source 的 workflow template SHALL 消费 Candidate contract 与 CLI command surface，且 SHALL NOT 重新引入 phase-specific bootstrap instructions。
-
-#### Scenario: Build skill authoring
-
-- **WHEN** 生成 `xirang-build`
-- **THEN** SHALL 指导 Agent 询问 exploration scope 与 build starting point
-- **AND** SHALL 指导 Agent 编写 `build.md` 与四分区 Candidate
-- **AND** SHALL 指导 Agent 使用 `xirang candidate validate` diagnostics
-- **AND** SHALL NOT 要求退役的 bootstrap instructions、scan/map files 或固定 subagent roles
 
 ### Requirement: apply skill SHALL 读取架构上下文
 
@@ -231,3 +219,15 @@ Core workflow templates SHALL 指导 Agent 将不清楚、上下文压缩后可�
 - **WHEN** Agent 同时需要多个已知 identities 的完整语义
 - **THEN** Agent SHALL 使用一次 batch `arch query` 显式请求这些 identities
 - **AND** SHALL NOT 为方便而自动加载 impact 返回的全部 identities
+
+### Requirement: Agent 制品定义先行写作
+
+编写 Project Build source 的 workflow template SHALL 消费 Candidate contract 与 CLI command surface，且 SHALL NOT 重新引入 phase-specific bootstrap instructions。
+
+#### Scenario: Build skill authoring
+
+- **WHEN** 生成 `xirang-build`
+- **THEN** SHALL 指导 Agent 询问 exploration scope 与 build starting point
+- **AND** SHALL 指导 Agent 编写 `build.md` 与四分区 Candidate
+- **AND** SHALL 指导 Agent 使用 `xirang candidate validate` diagnostics
+- **AND** SHALL NOT 要求退役的 bootstrap instructions、scan/map files 或固定 subagent roles

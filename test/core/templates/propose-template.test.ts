@@ -17,6 +17,27 @@ function getProposeBodies(): string[] {
 }
 
 describe('propose template post-validation flow', () => {
+  it('runs the consistency gate as semantic review before deterministic validation', () => {
+    const instructions = getXirangProposeSkillTemplate().instructions;
+
+    expect(instructions).toContain('先执行计划一致性复核');
+    expect(instructions).toContain('自行修正制品');
+    expect(instructions).toContain('仅当矛盾反映与用户意图或已确认决策不对齐');
+    expect(instructions).toContain('一次性呈现全部发现并等待用户裁决');
+
+    const reviewIndex = instructions.indexOf('先执行计划一致性复核');
+    const validateIndex = instructions.indexOf('`xirang validate --change "<name>" --json` 承担联合验证');
+    expect(reviewIndex).toBeGreaterThan(-1);
+    expect(validateIndex).toBeGreaterThan(reviewIndex);
+  });
+
+  it('leaves deterministic task structure checks to combined validation', () => {
+    const instructions = getXirangProposeSkillTemplate().instructions;
+
+    expect(instructions).not.toContain('equivalent to `validateTaskStructure`');
+    expect(instructions).toContain('任务结构校验');
+  });
+
   it('authors and validates four-partition Semantic Delta units', () => {
     const instructions = getXirangProposeSkillTemplate().instructions;
     expect(instructions).toContain('.xirang/changes/<name>/elements/<identity>.md');
@@ -85,10 +106,9 @@ describe('propose template post-validation flow', () => {
   it('uses one blocking combined validation with a single repair pass', () => {
     for (const body of getProposeBodies()) {
       expect(body.match(/xirang validate --change "<name>" --json/g)).toHaveLength(1);
-      expect(body).toContain('ERROR from either scaffolding checks or combined change validation blocks ready-for-apply');
+      expect(body).toContain('确定性校验或 scaffolding checks 的报错阻塞 ready-for-apply');
       expect(body).toContain('WARNING does not block');
-      expect(body).toContain('at most one repair pass');
-      expect(body).toContain('re-check once');
+      expect(body).toContain('最多修复一轮、复检一次');
       expect(body).toContain('Do NOT run `xirang sync`');
       expect(body).not.toContain('--artifacts specs');
       expect(body).not.toContain('--artifacts opsx-delta');
@@ -111,7 +131,7 @@ describe('propose template post-validation flow', () => {
       expect(body).toContain('xirang instructions proposal --change "<name>" --json');
       expect(body).toContain('xirang instructions design --change "<name>" --json');
       expect(body).toContain('xirang instructions tasks --change "<name>" --json');
-      expect(body).toContain('validateTaskStructure');
+      expect(body).toContain('任务结构校验由步骤 10 的 combined validation 以确定性操作承担');
       expect(body).toContain('Actions');
       expect(body).toContain('### Task N:');
       expect(body).toContain('Goal');

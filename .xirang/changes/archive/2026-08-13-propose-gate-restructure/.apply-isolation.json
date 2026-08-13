@@ -1,0 +1,7 @@
+{
+  "method": "branch",
+  "branchName": "propose-gate-restructure",
+  "originalBranch": "main",
+  "baseCommit": "887cc50c81d6991180f5d05bddef379da3c3e8c9",
+  "phase2BaselineCommit": "21cce4fb11005032f4890fa5567d8ae488bacf90"
+}

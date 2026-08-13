@@ -1,4 +1,5 @@
 import { XIRANG_DIR_NAME } from '../core/config.js';
+import { promises as fs } from 'fs';
 import ora from 'ora';
 import path from 'path';
 import { Validator } from '../core/validation/validator.js';
@@ -8,6 +9,7 @@ import { nearestMatches } from '../utils/match.js';
 import type { ValidationReport } from '../core/validation/types.js';
 import { readFormalSemanticModel, compileChange, type CompiledChange } from '../core/change-compiler.js';
 import { conciseDiffEntries, renderChangeDiff } from '../core/change-diff-renderer.js';
+import { validateTaskStructure } from '../core/parsers/task-structure.js';
 
 type ItemType = 'change' | 'contract';
 
@@ -228,7 +230,33 @@ export class ValidateCommand {
         info: 0,
       },
     };
-    return { report: mergeValidationReports(notationReport, compilerReport), compiled };
+    return { report: mergeValidationReports(notationReport, compilerReport, await this.validateTasksStructure(changeDir)), compiled };
+  }
+
+  private async validateTasksStructure(changeDir: string): Promise<ValidationReport> {
+    const tasksPath = path.join(changeDir, 'tasks.md');
+    const content = await fs.readFile(tasksPath, 'utf8').catch(() => '');
+    if (content === '') {
+      return { valid: true, issues: [], summary: { errors: 0, warnings: 0, info: 0 } };
+    }
+
+    const result = validateTaskStructure(content, { changeDir });
+    const issues = result.issues.map((issue) => ({
+      level: issue.severity === 'error' ? 'ERROR' as const : 'WARNING' as const,
+      path: 'tasks.md',
+      ...(issue.line ? { line: issue.line } : {}),
+      message: `${issue.code}: ${issue.message}`,
+    }));
+
+    return {
+      valid: result.valid,
+      issues,
+      summary: {
+        errors: issues.filter((issue) => issue.level === 'ERROR').length,
+        warnings: issues.filter((issue) => issue.level === 'WARNING').length,
+        info: 0,
+      },
+    };
   }
 
   private printNextSteps(type: ItemType): void {

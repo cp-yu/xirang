@@ -246,7 +246,7 @@ export function loadChangeContext(
  * Instruction projection contract:
  * 1. definition or fileDefinitions - file semantics and write boundary
  * 2. dependencies/current state - authoring context
- * 3. instruction - shared definition-first order plus artifact-specific guidance
+ * 3. instruction - shared 制品定义先行 order plus artifact-specific guidance
  * 4. template - canonical output structure
  *
  * Config projection and compatibility fields remain separate constraints and are never artifact content.
