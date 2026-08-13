@@ -1,0 +1,292 @@
+{
+  "timestamp": "2026-08-13T18:26:24.780Z",
+  "result": "PASS",
+  "issues": [
+    {
+      "severity": "SUGGESTION",
+      "message": "Stale gitignored build output likec4/packages/diagram/dist/overlays/element-details/ElementDetailsCard.d.ts still declares isAddedElement (predates the change, out of git scope; shipped bundles were rebuilt fresh)",
+      "requirement": "支持 Element 级别的变更差异审查",
+      "task": null,
+      "recommendation": "Run pnpm --filter @likec4/diagram build locally to refresh the gitignored dist declarations",
+      "evidenceCitations": [
+        "likec4/packages/diagram/dist/overlays/element-details/ElementDetailsCard.d.ts:18-19",
+        "likec4/packages/diagram/.gitignore:2"
+      ]
+    }
+  ],
+  "tasksFileHash": "8fdfce4f8601b0b32eeb85fce28871ae79492a7e3a5e06c516ae1a6911a532f2",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/browser-diff-markers/design.md",
+      ".xirang/changes/browser-diff-markers/elements/change-derived-views.md",
+      ".xirang/changes/browser-diff-markers/elements/semantic-browser.md",
+      ".xirang/changes/browser-diff-markers/proposal.md",
+      ".xirang/changes/browser-diff-markers/tasks.md",
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+      "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.spec.tsx",
+      "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+      "likec4/packages/diagram/src/likec4diagram/state/machine.actions.ts",
+      "likec4/packages/diagram/src/overlays/element-details/ElementDetails.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/actor.ts",
+      "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+      "likec4/packages/diagram/src/xirang/architectureView.ts",
+      "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
+      "likec4/packages/diagram/src/xirang/projectionNode.ts",
+      "playwright.config.ts",
+      "test/e2e/semantic-browser-model-view.spec.ts",
+      "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-parent.md",
+      "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
+      "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.peer.md"
+    ],
+    "evidenceFingerprint": "7e83b8104a68df40481c1e873659c0fa42ab64442229ab905bf46dfdd5d04bba",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/browser-diff-markers/design.md",
+        "hash": "776fdb049a53b79a2fb14af62dff32334c5295881b358074a0bebce834d1c3c8"
+      },
+      {
+        "path": ".xirang/changes/browser-diff-markers/elements/change-derived-views.md",
+        "hash": "1ba183f1c9148d074485910e4b34008d34e8f9c09ae73a35c052bd81d22f5451"
+      },
+      {
+        "path": ".xirang/changes/browser-diff-markers/elements/semantic-browser.md",
+        "hash": "5359f42d874f32617c48a75b5101699e670143063cf50bdac235b39ecf6ddac1"
+      },
+      {
+        "path": ".xirang/changes/browser-diff-markers/proposal.md",
+        "hash": "74bea117f0888c9f018f0ae44204b11d975566c0bd15dcae79a23f761adb7230"
+      },
+      {
+        "path": ".xirang/changes/browser-diff-markers/tasks.md",
+        "hash": "8fdfce4f8601b0b32eeb85fce28871ae79492a7e3a5e06c516ae1a6911a532f2"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.spec.tsx",
+        "hash": "039daf0df1d7b85172c268c842049be28d05153d3142844ee8d3930a3c0b92a0"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+        "hash": "2ce658af9b69b720c97c78de0c96e0e2a98e1ccc006a324ddb655db36082fd77"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
+        "hash": "8f41e3338360df8c349e341101ba8eb745882d0a2c12c0ecf8b90ab04aa8c63d"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+        "hash": "5da9f0acc42c8605c8fc72f37a5e65210f575bffeb824b66b974a1ef10511ae6"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/state/machine.actions.ts",
+        "hash": "fc418967777a5cd55e1aa7599c53d6c344f617eaa6f0279f7d3effa8cfe45e6f"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/actor.ts",
+        "hash": "0829267c9b769f779a571f9722fdef74845ffdb8a2261efbcccd9ac9e4da9d4f"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetails.tsx",
+        "hash": "ba69a3dddda9c341c30fb831a3a6dc8111f75ed68893fa20e212c73f2ad9942a"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
+        "hash": "ee7d3eb11cf6d8492f812d4e819450012e7a3e8c04f029b706ab9f48b5930adc"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+        "hash": "d256680944c758f7a5d665bd7c327d53e232fe88c70e8465655d995cbc5d4b53"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+        "hash": "24eb5523fd35c0bbeb9e59392c90e43b67a92a0817666cc02d229f1acc6e0cda"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+        "hash": "a8a26c8f35629c43f7d64027958b6055716a9f8428bea4e290f0798225069102"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
+        "hash": "c433c624130582310169a9b98a6b28e5a640bc553976b424ccb14403a7f4fde1"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/projectionNode.ts",
+        "hash": "cf1664fa1fbe6adfb7c48e85f860a3b59d6cf9a699519df2d80ab4ac7b8a8e39"
+      },
+      {
+        "path": "playwright.config.ts",
+        "hash": "e5c41892d25f4b6db10f913697315e586e7e41450ac0a815fd8e9a5cc68d999c"
+      },
+      {
+        "path": "test/e2e/semantic-browser-model-view.spec.ts",
+        "hash": "ff8f2ae68b6bec9f29a8cf87256acdfaed083a8612d7adb3c57e4026d41ecdac"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-parent.md",
+        "hash": "eb73076fa32c031b52251979c83e8cdf5b0b05ee647980b64393939ebd28c3eb"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
+        "hash": "58aa9224446ca89d7a7d3e76e41dcbd7609da687f7ec0f7e08385c05acc98c3f"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.peer.md",
+        "hash": "0ce7121cd96c0484718dd0e00d24de422c6199d521b7aa51247a601462e8ef7f"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "7af0ac18bde0aab1b0f5368ec7a8095fe25837f0",
+    "gitDiffSummary": "baseCommit 7af0ac18 equals HEAD; all implementation evidence uncommitted working tree, 23 paths all attributed. Live re-runs: vitest targeted 11+17+24+2 and full 195/195, typecheck clean, spa+xirang-likec4 builds green, playwright desktop(8)+mobile(7)=15 pass, xirang validate browser-diff-markers Passed (2 semantic changes), xirang validate --all 157 passed."
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-08-13T18:26:24.780Z",
+      "result": "PASS",
+      "issues": [
+        {
+          "severity": "SUGGESTION",
+          "message": "Stale gitignored build output likec4/packages/diagram/dist/overlays/element-details/ElementDetailsCard.d.ts still declares isAddedElement (predates the change, out of git scope; shipped bundles were rebuilt fresh)",
+          "requirement": "支持 Element 级别的变更差异审查",
+          "task": null,
+          "recommendation": "Run pnpm --filter @likec4/diagram build locally to refresh the gitignored dist declarations",
+          "evidenceCitations": [
+            "likec4/packages/diagram/dist/overlays/element-details/ElementDetailsCard.d.ts:18-19",
+            "likec4/packages/diagram/.gitignore:2"
+          ]
+        }
+      ],
+      "tasksFileHash": "8fdfce4f8601b0b32eeb85fce28871ae79492a7e3a5e06c516ae1a6911a532f2",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/browser-diff-markers/design.md",
+          ".xirang/changes/browser-diff-markers/elements/change-derived-views.md",
+          ".xirang/changes/browser-diff-markers/elements/semantic-browser.md",
+          ".xirang/changes/browser-diff-markers/proposal.md",
+          ".xirang/changes/browser-diff-markers/tasks.md",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.spec.tsx",
+          "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+          "likec4/packages/diagram/src/likec4diagram/state/machine.actions.ts",
+          "likec4/packages/diagram/src/overlays/element-details/ElementDetails.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/actor.ts",
+          "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+          "likec4/packages/diagram/src/xirang/architectureView.ts",
+          "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
+          "likec4/packages/diagram/src/xirang/projectionNode.ts",
+          "playwright.config.ts",
+          "test/e2e/semantic-browser-model-view.spec.ts",
+          "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-parent.md",
+          "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
+          "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.peer.md"
+        ],
+        "evidenceFingerprint": "7e83b8104a68df40481c1e873659c0fa42ab64442229ab905bf46dfdd5d04bba",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/browser-diff-markers/design.md",
+            "hash": "776fdb049a53b79a2fb14af62dff32334c5295881b358074a0bebce834d1c3c8"
+          },
+          {
+            "path": ".xirang/changes/browser-diff-markers/elements/change-derived-views.md",
+            "hash": "1ba183f1c9148d074485910e4b34008d34e8f9c09ae73a35c052bd81d22f5451"
+          },
+          {
+            "path": ".xirang/changes/browser-diff-markers/elements/semantic-browser.md",
+            "hash": "5359f42d874f32617c48a75b5101699e670143063cf50bdac235b39ecf6ddac1"
+          },
+          {
+            "path": ".xirang/changes/browser-diff-markers/proposal.md",
+            "hash": "74bea117f0888c9f018f0ae44204b11d975566c0bd15dcae79a23f761adb7230"
+          },
+          {
+            "path": ".xirang/changes/browser-diff-markers/tasks.md",
+            "hash": "8fdfce4f8601b0b32eeb85fce28871ae79492a7e3a5e06c516ae1a6911a532f2"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.spec.tsx",
+            "hash": "039daf0df1d7b85172c268c842049be28d05153d3142844ee8d3930a3c0b92a0"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
+            "hash": "2ce658af9b69b720c97c78de0c96e0e2a98e1ccc006a324ddb655db36082fd77"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
+            "hash": "8f41e3338360df8c349e341101ba8eb745882d0a2c12c0ecf8b90ab04aa8c63d"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "hash": "5da9f0acc42c8605c8fc72f37a5e65210f575bffeb824b66b974a1ef10511ae6"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/state/machine.actions.ts",
+            "hash": "fc418967777a5cd55e1aa7599c53d6c344f617eaa6f0279f7d3effa8cfe45e6f"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/actor.ts",
+            "hash": "0829267c9b769f779a571f9722fdef74845ffdb8a2261efbcccd9ac9e4da9d4f"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetails.tsx",
+            "hash": "ba69a3dddda9c341c30fb831a3a6dc8111f75ed68893fa20e212c73f2ad9942a"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
+            "hash": "ee7d3eb11cf6d8492f812d4e819450012e7a3e8c04f029b706ab9f48b5930adc"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+            "hash": "d256680944c758f7a5d665bd7c327d53e232fe88c70e8465655d995cbc5d4b53"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+            "hash": "24eb5523fd35c0bbeb9e59392c90e43b67a92a0817666cc02d229f1acc6e0cda"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+            "hash": "a8a26c8f35629c43f7d64027958b6055716a9f8428bea4e290f0798225069102"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
+            "hash": "c433c624130582310169a9b98a6b28e5a640bc553976b424ccb14403a7f4fde1"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/projectionNode.ts",
+            "hash": "cf1664fa1fbe6adfb7c48e85f860a3b59d6cf9a699519df2d80ab4ac7b8a8e39"
+          },
+          {
+            "path": "playwright.config.ts",
+            "hash": "e5c41892d25f4b6db10f913697315e586e7e41450ac0a815fd8e9a5cc68d999c"
+          },
+          {
+            "path": "test/e2e/semantic-browser-model-view.spec.ts",
+            "hash": "ff8f2ae68b6bec9f29a8cf87256acdfaed083a8612d7adb3c57e4026d41ecdac"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-parent.md",
+            "hash": "eb73076fa32c031b52251979c83e8cdf5b0b05ee647980b64393939ebd28c3eb"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
+            "hash": "58aa9224446ca89d7a7d3e76e41dcbd7609da687f7ec0f7e08385c05acc98c3f"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.peer.md",
+            "hash": "0ce7121cd96c0484718dd0e00d24de422c6199d521b7aa51247a601462e8ef7f"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "7af0ac18bde0aab1b0f5368ec7a8095fe25837f0",
+        "gitDiffSummary": "baseCommit 7af0ac18 equals HEAD; all implementation evidence uncommitted working tree, 23 paths all attributed. Live re-runs: vitest targeted 11+17+24+2 and full 195/195, typecheck clean, spa+xirang-likec4 builds green, playwright desktop(8)+mobile(7)=15 pass, xirang validate browser-diff-markers Passed (2 semantic changes), xirang validate --all 157 passed."
+      }
+    }
+  }
+}

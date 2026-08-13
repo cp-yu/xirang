@@ -56,7 +56,7 @@ import { useCurrentViewModel } from '../../hooks/useCurrentViewModel'
 import { useDiagram } from '../../hooks/useDiagram'
 import type { OnNavigateTo } from '../../LikeC4Diagram.props'
 import { stopPropagation } from '../../utils'
-import { type XirangViewSource, useXirangViewSources } from '../../xirang/ContractLoaderContext'
+import { type XirangElementDeclaration, type XirangModelElement, type XirangViewSource, useXirangViewSources } from '../../xirang/ContractLoaderContext'
 import { ContractsTab } from './ContractsTab'
 import { DiffTab } from './DiffTab'
 import * as styles from './ElementDetailsCard.css'
@@ -101,6 +101,7 @@ type ElementDetailsCardProps = {
   rectFromNode: Rect | null
   onClose: () => void
   fqn: Fqn
+  identity: string | null
 }
 
 type ElementDefinitionPropertiesProps = {
@@ -135,12 +136,54 @@ const MIN_PADDING = 24
 const TABS = ['Properties', 'Relationships', 'Views', 'Structure', 'Deployments'] as const
 type TabName = typeof TABS[number] | 'Contracts' | 'Diff'
 
+export interface ElementDetailsResolutionInput {
+  fqn: string
+  /** 详情 actor 从投影节点 data 解析的语义 identity，优先级最高。 */
+  identity?: string | null
+  nodeMetadata: Readonly<Record<string, string | string[] | undefined>> | null | undefined
+  elementMetadata: Readonly<Record<string, string | string[] | undefined>> | null | undefined
+  elementId: string | null
+  hasBaseModelElement: boolean
+  architectureElements: readonly XirangModelElement[] | undefined
+}
+
+export interface ElementDetailsResolution {
+  /** 语义 identity：优先投影节点 metadata，回退 element model，再回退 fqn。 */
+  stableElementId: string
+  /** 元素不在基础 LikeC4 model 中时，从所选 architecture 按 identity 解析的 declaration。 */
+  declaration: XirangElementDeclaration | null
+  /** 元素不在基础 LikeC4 model 中且 declaration 存在时为 true。 */
+  isProjectionElement: boolean
+}
+
+/**
+ * 解析 Element Details 面板的语义 identity 与 projection declaration。
+ * ADDED 元素只存在于投影与 union model 中，LikeC4 FQN 无法作为查询 key，
+ * 投影节点 metadata 携带的语义 identity 是唯一稳定引用。
+ */
+export function resolveElementDetails(input: ElementDetailsResolutionInput): ElementDetailsResolution {
+  const nodeIdentity = input.identity
+    ?? input.nodeMetadata?.['xirangIdentity']
+    ?? input.nodeMetadata?.['elementId']
+  const metadataIdentity = typeof nodeIdentity === 'string' && nodeIdentity !== ''
+    ? nodeIdentity
+    : typeof input.elementMetadata?.['elementId'] === 'string' && input.elementMetadata['elementId'] !== ''
+      ? input.elementMetadata['elementId']
+      : null
+  const stableElementId = metadataIdentity
+    ?? (typeof input.elementId === 'string' && input.elementId !== '' ? input.elementId : input.fqn)
+  const declaration = !input.hasBaseModelElement
+    ? input.architectureElements?.find(element => element.declaration.identity === stableElementId)?.declaration ?? null
+    : null
+  return { stableElementId, declaration, isProjectionElement: !input.hasBaseModelElement && declaration !== null }
+}
+
 export function visibleElementDetailTabs({
-  isAddedElement,
+  isProjectionElement,
   hasContract,
   hasDiff,
 }: {
-  isAddedElement: boolean
+  isProjectionElement: boolean
   hasContract: boolean
   hasDiff: boolean
 }): TabName[] {
@@ -148,7 +191,7 @@ export function visibleElementDetailTabs({
     'Properties',
     ...(hasContract ? ['Contracts' as const] : []),
     ...(hasDiff ? ['Diff' as const] : []),
-    ...(isAddedElement ? [] : TABS.slice(1)),
+    ...(isProjectionElement ? [] : TABS.slice(1)),
   ]
 }
 
@@ -157,6 +200,7 @@ export function ElementDetailsCard({
   fromNode,
   rectFromNode,
   fqn,
+  identity,
   onClose,
 }: ElementDetailsCardProps) {
   const [opened, setOpened] = useState(false)
@@ -174,19 +218,15 @@ export function ElementDetailsCard({
 
   const elementModel = viewModel.$model.findElement(fqn) ?? null
   const runtime = useXirangViewSources()
-  const declarationEntry = runtime.selected.source === 'change-derived-view'
-    ? runtime.selected.diff?.entries.find(entry => entry.kind === 'element-declaration' && entry.identity === fqn)
-    : undefined
-  const isAddedElement = !elementModel && declarationEntry?.operation === 'ADDED'
-  const stableElementId = elementModel
-    ? typeof elementModel.$element.metadata?.['elementId'] === 'string'
-      ? elementModel.$element.metadata['elementId']
-      : elementModel.id
-    : fqn
-  const declaration = isAddedElement
-    ? runtime.selected.architecture?.elements
-      .find(item => item.declaration.identity === fqn)?.declaration ?? null
-    : null
+  const { stableElementId, declaration, isProjectionElement } = resolveElementDetails({
+    fqn,
+    identity,
+    nodeMetadata: nodeModel?.$node.metadata,
+    elementMetadata: elementModel?.$element.metadata,
+    elementId: elementModel?.id ?? null,
+    hasBaseModelElement: elementModel !== null,
+    architectureElements: runtime.selected.architecture?.elements,
+  })
   const elementTitle = declaration?.title ?? elementModel?.title ?? fqn
   const elementKind = declaration?.kind ?? elementModel?.kind ?? '—'
   const elementIcon = elementModel
@@ -217,8 +257,8 @@ export function ElementDetailsCard({
     )
 
   const visibleTabs = useMemo(
-    () => visibleElementDetailTabs({ isAddedElement, hasContract, hasDiff }),
-    [hasContract, hasDiff, isAddedElement],
+    () => visibleElementDetailTabs({ isProjectionElement, hasContract, hasDiff }),
+    [hasContract, hasDiff, isProjectionElement],
   )
 
   useEffect(() => {
@@ -473,7 +513,7 @@ export function ElementDetailsCard({
                     </ActionIcon>
                   </Tooltip>
                 </IfEnabled>
-                {viewId !== ('model' as ViewId) && !isAddedElement && (
+                {viewId !== ('model' as ViewId) && !isProjectionElement && (
                   <Tooltip label="Open in Model View">
                     <ActionIcon
                       data-xirang-open-in-model-view
@@ -555,7 +595,7 @@ export function ElementDetailsCard({
                 </ScrollArea>
               </TabsPanel>
 
-              {!isAddedElement && (
+              {!isProjectionElement && (
                 <>
                   <TabsPanel value="Relationships">
                     {elementModel && (

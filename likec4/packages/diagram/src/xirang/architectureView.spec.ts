@@ -86,7 +86,7 @@ describe('applyXirangPresentationOverlay', () => {
     expect(after.nodes[1]!.style.opacity).toBe(45)
   })
 
-  it('marks the host element MODIFIED when only its contract requirement changes', () => {
+  it('does not outline the host element when only its contract requirement changes', () => {
     const contractOnlySource: XirangViewSource = {
       ...source,
       architecture: {
@@ -129,11 +129,54 @@ describe('applyXirangPresentationOverlay', () => {
     } as unknown as DiagramView
     const after = applyXirangPresentationOverlay(withHost, contractOnlySource)
     const host = after.nodes.find(node => node.id === 'semantic-browser')
-    expect(host?.metadata).toMatchObject({ xirangOperation: 'MODIFIED' })
+    expect(host?.metadata).toMatchObject({ xirangRequirementCounts: '0,1,0' })
+    expect(host?.metadata).not.toHaveProperty('xirangOperation')
     expect(host?.style.opacity).toBe(100)
-    // ancestors / siblings without ops are dimmed once a host-contract diff is active
-    expect(after.nodes.filter(node => node.id !== 'semantic-browser').map(node => node.style.opacity))
-      .toEqual([25, 25, 25, 25])
+    // 纯 contract 变更不激活 dimming
+    expect(after.nodes.map(node => node.style.opacity)).toEqual([100, 100, 100, 100, 100])
+  })
+
+  it('aggregates multiple requirement operations into one host node metadata', () => {
+    const mixedContractSource: XirangViewSource = {
+      ...source,
+      architecture: {
+        ...source.architecture!,
+        elements: [
+          { declaration: { identity: 'a', kind: 'service', parent: null, title: 'A', definition: '', summary: '', description: '' } },
+        ],
+      },
+      diff: {
+        summary: { total: 4, ADDED: 2, MODIFIED: 1, REMOVED: 1 },
+        entries: [
+          { kind: 'requirement', identity: 'a#新增一', operation: 'ADDED' },
+          { kind: 'requirement', identity: 'a#新增二', operation: 'ADDED' },
+          { kind: 'requirement', identity: 'a#修改一', operation: 'MODIFIED' },
+          { kind: 'requirement', identity: 'a#移除一', operation: 'REMOVED' },
+        ],
+      },
+    }
+    const after = applyXirangPresentationOverlay(baseView(), mixedContractSource)
+    const host = after.nodes.find(node => node.id === 'a')
+    expect(host?.metadata).toMatchObject({ xirangRequirementCounts: '2,1,1' })
+    expect(host?.metadata).not.toHaveProperty('xirangOperation')
+    expect(host?.style.opacity).toBe(100)
+  })
+
+  it('combines element operation with requirement counts on the same node', () => {
+    const bothSource: XirangViewSource = {
+      ...source,
+      diff: {
+        summary: { total: 2, ADDED: 1, MODIFIED: 1, REMOVED: 0 },
+        entries: [
+          { kind: 'element-declaration', identity: 'a', operation: 'MODIFIED' },
+          { kind: 'requirement', identity: 'a#新增一', operation: 'ADDED' },
+        ],
+      },
+    }
+    const after = applyXirangPresentationOverlay(baseView(), bothSource)
+    const host = after.nodes.find(node => node.id === 'a')
+    expect(host?.metadata).toMatchObject({ xirangOperation: 'MODIFIED', xirangRequirementCounts: '1,0,0' })
+    expect(host?.style.opacity).toBe(100)
   })
 
   it('does not invent element operations for kind-only metamodel diffs', () => {

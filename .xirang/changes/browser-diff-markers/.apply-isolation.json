@@ -1,0 +1,6 @@
+{
+  "method": "branch",
+  "branchName": "browser-diff-markers",
+  "originalBranch": "main",
+  "baseCommit": "7af0ac18bde0aab1b0f5368ec7a8095fe25837f0"
+}

@@ -2,9 +2,18 @@ import type { XirangDiffOperation } from './ContractLoaderContext'
 
 const operations = new Set<XirangDiffOperation>(['ADDED', 'MODIFIED', 'REMOVED'])
 
+export interface XirangRequirementCounts {
+  added: number
+  modified: number
+  removed: number
+}
+
+export const EMPTY_REQUIREMENT_COUNTS: XirangRequirementCounts = { added: 0, modified: 0, removed: 0 }
+
 export interface XirangProjectionNodeData {
   identity: string
-  operation: XirangDiffOperation
+  operation?: XirangDiffOperation
+  requirementCounts: XirangRequirementCounts
   hasChildren: boolean
   expanded: boolean
 }
@@ -16,27 +25,46 @@ type ProjectionNode = {
 
 export function xirangProjectionMetadata(
   identity: string,
-  operation: XirangDiffOperation,
+  operation: XirangDiffOperation | undefined,
   hasChildren: boolean,
+  requirementCounts: XirangRequirementCounts = EMPTY_REQUIREMENT_COUNTS,
 ): Readonly<Record<string, string>> {
+  const counts = `${requirementCounts.added},${requirementCounts.modified},${requirementCounts.removed}`
   return {
     xirangIdentity: identity,
-    xirangOperation: operation,
+    ...(operation ? { xirangOperation: operation } : {}),
+    ...(requirementCounts.added || requirementCounts.modified || requirementCounts.removed
+      ? { xirangRequirementCounts: counts }
+      : {}),
     xirangHasChildren: String(hasChildren),
   }
+}
+
+/** `added,modified,removed`；缺失或非法时按零计数处理。 */
+export function readXirangRequirementCounts(raw: string | string[] | undefined): XirangRequirementCounts {
+  if (typeof raw !== 'string') return EMPTY_REQUIREMENT_COUNTS
+  const parts = raw.split(',').map(part => Number(part))
+  const added = parts[0]
+  const modified = parts[1]
+  const removed = parts[2]
+  if (added === undefined || modified === undefined || removed === undefined
+    || !Number.isInteger(added) || !Number.isInteger(modified) || !Number.isInteger(removed)) {
+    return EMPTY_REQUIREMENT_COUNTS
+  }
+  return { added, modified, removed }
 }
 
 export function readXirangProjectionNode(node: ProjectionNode): XirangProjectionNodeData | null {
   const identity = node.metadata?.['xirangIdentity'] ?? node.metadata?.['elementId']
   const operation = node.metadata?.['xirangOperation']
-  if (
-    typeof identity !== 'string' || typeof operation !== 'string' || !operations.has(operation as XirangDiffOperation)
-  ) {
+  if (typeof identity !== 'string' || identity === '') return null
+  if (operation !== undefined && (typeof operation !== 'string' || !operations.has(operation as XirangDiffOperation))) {
     return null
   }
   return {
     identity,
-    operation: operation as XirangDiffOperation,
+    ...(typeof operation === 'string' ? { operation: operation as XirangDiffOperation } : {}),
+    requirementCounts: readXirangRequirementCounts(node.metadata?.['xirangRequirementCounts']),
     hasChildren: node.metadata?.['xirangHasChildren'] === 'true',
     expanded: (node.children?.length ?? 0) > 0,
   }

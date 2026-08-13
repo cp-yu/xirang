@@ -5,7 +5,7 @@ import type {
   XirangElementDeclaration,
   XirangViewSource,
 } from './ContractLoaderContext'
-import { xirangProjectionMetadata } from './projectionNode'
+import { xirangProjectionMetadata, type XirangRequirementCounts } from './projectionNode'
 
 type ViewNode = DiagramView['nodes'][number]
 type ViewEdge = DiagramView['edges'][number]
@@ -24,9 +24,6 @@ const structuralKinds = new Set([
   'relationship',
 ])
 
-/** Contract children host on an element identity via `host#...` / `host#...#...`. */
-const hostContractKinds = new Set(['requirement', 'scenario', 'property'])
-
 const operations = new Set<XirangDiffOperation>(['ADDED', 'MODIFIED', 'REMOVED'])
 
 /** Diff-mode node opacity per operation; unchanged nodes (no operation) dim to 25. */
@@ -36,24 +33,27 @@ function structuralEntries(source: XirangViewSource): XirangDiffEntry[] {
   return source.diff?.entries.filter(entry => structuralKinds.has(entry.kind)) ?? []
 }
 
-function hostElementIdentity(entry: XirangDiffEntry): string | undefined {
-  if (!hostContractKinds.has(entry.kind)) return undefined
-  const host = entry.identity.split('#')[0]
-  return host || undefined
-}
-
-/** Element-declaration wins; otherwise the strongest host-contract op marks the element. */
-function operationByIdentity(source: XirangViewSource): Map<string, XirangDiffOperation> {
+/** Element 级操作只由 element-declaration entries 决定；requirement 级变更不打 outline。 */
+function elementOperationByIdentity(source: XirangViewSource): Map<string, XirangDiffOperation> {
   const result = new Map<string, XirangDiffOperation>()
   for (const entry of source.diff?.entries ?? []) {
     if (entry.kind === 'element-declaration' && operations.has(entry.operation)) {
       result.set(entry.identity, entry.operation)
     }
   }
+  return result
+}
+
+/** 按宿主元素聚合 requirement 级变更计数；scenario/property 不计。 */
+function requirementCountsByIdentity(source: XirangViewSource): Map<string, XirangRequirementCounts> {
+  const result = new Map<string, XirangRequirementCounts>()
   for (const entry of source.diff?.entries ?? []) {
-    const host = hostElementIdentity(entry)
-    if (!host || !operations.has(entry.operation) || result.has(host)) continue
-    result.set(host, entry.operation)
+    if (entry.kind !== 'requirement' || !operations.has(entry.operation)) continue
+    const host = entry.identity.split('#')[0]
+    if (!host) continue
+    const counts = result.get(host) ?? { added: 0, modified: 0, removed: 0 }
+    counts[entry.operation.toLowerCase() as 'added' | 'modified' | 'removed'] += 1
+    result.set(host, counts)
   }
   return result
 }
@@ -91,12 +91,11 @@ export function applyXirangPresentationOverlay(
   layoutedView: DiagramView,
   source: XirangViewSource,
 ): DiagramView {
-  const elementOperations = operationByIdentity(source)
+  const elementOperations = elementOperationByIdentity(source)
+  const requirementCounts = requirementCountsByIdentity(source)
   const kindStyles = kindStylesByKind(source)
   const diffActive = (source.diff?.entries ?? []).some(entry =>
-    entry.kind === 'element-declaration'
-    || entry.kind === 'relationship'
-    || hostContractKinds.has(entry.kind),
+    entry.kind === 'element-declaration' || entry.kind === 'relationship',
   )
   const elementsByIdentity = new Map<string, XirangElementDeclaration>()
   const parentIdentities = new Set<string>()
@@ -117,11 +116,15 @@ export function applyXirangPresentationOverlay(
     const declaration = identity ? elementsByIdentity.get(identity) : undefined
     const style = declaration ? kindStyles.get(declaration.kind) : undefined
     const operation = identity ? elementOperations.get(identity) : undefined
+    const counts = identity ? requirementCounts.get(identity) : undefined
     const hasSemanticChildren = identity ? parentIdentities.has(identity) : false
+    const hasCounts = counts !== undefined && (counts.added > 0 || counts.modified > 0 || counts.removed > 0)
     const metadata = {
       ...(node.metadata ?? {}),
       ...(identity ? { elementId: identity } : {}),
-      ...(operation ? xirangProjectionMetadata(identity!, operation, hasSemanticChildren) : {}),
+      ...(identity && (operation || hasCounts)
+        ? xirangProjectionMetadata(identity, operation, hasSemanticChildren, counts)
+        : {}),
     }
     return {
       ...node,

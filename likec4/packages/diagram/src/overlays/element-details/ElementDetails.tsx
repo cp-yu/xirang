@@ -14,6 +14,7 @@ const selector = (s: ElementDetailsSnapshot) => ({
   fromNode: s.context.initiatedFrom.node,
   rectFromNode: s.context.initiatedFrom.clientRect,
   fqn: s.context.subject,
+  identity: s.context.identity,
 })
 
 export function ElementDetails({

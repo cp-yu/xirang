@@ -118,6 +118,42 @@ test('handles ADDED projection interactions and split diffs', async ({ page }) =
   await expect(collapse).not.toHaveAttribute('inert', '')
 })
 
+test('opens ADDED element details by single click with semantic identity', async ({ page }) => {
+  await page.goto('/view/model/?change=browser-change&mode=complete-with-diff')
+  await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
+
+  const parent = page.locator('.react-flow__node[data-xirang-identity="capability.added-parent"]')
+  await expect(parent).toBeVisible()
+
+  // 首次点击选中节点，第二次点击同一节点打开详情面板。
+  await parent.click({ position: { x: 20, y: 20 } })
+  await page.waitForTimeout(400)
+  await parent.click({ position: { x: 20, y: 20 } })
+
+  const dialog = page.locator('dialog[open]')
+  await expect(dialog).toBeVisible()
+  await expect(dialog).toContainText('Added Parent Capability')
+  await expect(dialog).not.toContainText('root.project.capability.added_parent')
+  await expect(dialog.getByText('capability', { exact: true }).first()).toBeVisible()
+
+  // Diff 标签页展示 declaration 与 contract 的 before/after diff。
+  await dialog.getByRole('tab', { name: 'Diff' }).click()
+  const diffTab = dialog.locator('[data-xirang-diff-tab]')
+  await expect(diffTab).toBeVisible()
+  await expect(diffTab).toContainText('Added parent behavior')
+
+  // complete 模式（无 diff overlay）同样以语义 identity 渲染声明内容。
+  await page.goto('/view/model/?change=browser-change&mode=complete')
+  await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
+  await expect(parent).toBeVisible()
+  await parent.click({ position: { x: 20, y: 20 } })
+  await page.waitForTimeout(400)
+  await parent.click({ position: { x: 20, y: 20 } })
+  const completeDialog = page.locator('dialog[open]')
+  await expect(completeDialog).toContainText('Added Parent Capability')
+  await expect(completeDialog.getByRole('tab', { name: 'Diff' })).toHaveCount(0)
+})
+
 test('refreshes the model through HMR and keeps an equivalent Authored layout', async ({ page }) => {
   await page.getByLabel('View Selection').selectOption('model-equivalent')
   await expect(page).toHaveURL(/view=model-equivalent/)
@@ -214,14 +250,14 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
   expect(addedStyle.outlineColor).toMatch(/255, 159, 10/)
   const addedBadge = page.locator('.react-flow__node[data-xirang-identity="capability.added-parent"] [data-xirang-node-diff]')
   await expect(addedBadge).toBeVisible()
-  expect(await addedBadge.textContent()).toBe('+')
+  expect(await addedBadge.textContent()).toBe('+2')
   expect(await addedBadge.evaluate(node => parseFloat(getComputedStyle(node).opacity))).toBe(1)
 
-  expect((await nodeBadgeStyle(addedBadge)).width).toBeCloseTo(24, 3)
+  expect((await nodeBadgeStyle(addedBadge)).width).toBeGreaterThanOrEqual(24)
   expect((await nodeBadgeStyle(addedBadge)).height).toBeCloseTo(24, 3)
   expect((await nodeBadgeStyle(addedBadge)).fontSize).toBeGreaterThanOrEqual(16)
   expect((await nodeBadgeStyle(addedBadge)).borderWidth).toBeGreaterThanOrEqual(2)
-  expect((await nodeBadgeStyle(addedBadge)).backgroundColor).toMatch(/255, 159, 10/)
+  expect((await nodeBadgeStyle(addedBadge)).backgroundColor).toMatch(/47, 158, 68/)
   expect((await nodeBadgeStyle(addedBadge)).color).toMatch(/255, 255, 255/)
   expect((await addedBadge.boundingBox())?.x).toBeGreaterThanOrEqual((await added.boundingBox())?.x ?? 0)
 
@@ -250,7 +286,8 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
   expect(modifiedStyle.outlineColor).toMatch(/255, 159, 10/)
   const modifiedBadge = page.locator('.react-flow__node[data-xirang-identity="capability.leaf"] [data-xirang-node-diff]')
   await expect(modifiedBadge).toBeVisible()
-  expect(await modifiedBadge.textContent()).toBe('~')
+  expect(await modifiedBadge.textContent()).toBe('~1')
+  expect((await nodeBadgeStyle(modifiedBadge)).backgroundColor).toMatch(/255, 159, 10/)
 
   const peer = page.locator('.react-flow__node[data-xirang-identity="capability.peer"] .likec4-element-node')
   await expect(peer).toBeVisible()
@@ -261,11 +298,8 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
   expect(removedStyle.outlineWidth).toBe(3)
   expect(removedStyle.outlineColor).toMatch(/255, 159, 10/)
   expect(removedStyle.opacity).toBeCloseTo(0.45, 2)
-  const removedBadge = page.locator('.react-flow__node[data-xirang-identity="capability.peer"] [data-xirang-node-diff]')
-  await expect(removedBadge).toBeVisible()
-  expect(await removedBadge.textContent()).toBe('−')
-  // The badge sits outside the dimmed container and stays fully opaque.
-  expect(await removedBadge.evaluate(node => parseFloat(getComputedStyle(node).opacity))).toBe(1)
+  // peer 只有 element 级 REMOVED，无 requirement 变更：只有 outline，无计数徽章。
+  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.peer"] [data-xirang-node-diff]')).toHaveCount(0)
 
   // The removed leaf→peer relationship keeps its diff badge.
   await expect(page.locator('[data-xirang-edge-diff][aria-label="Relationship REMOVED"]')).toBeVisible()
