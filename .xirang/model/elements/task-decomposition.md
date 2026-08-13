@@ -21,14 +21,14 @@ Apply 阶段的 Master agent SHALL 读取 `tasks.md` 中的 pending task，并�
 
 #### Scenario: 非隔离流程步骤指向 reference
 
-- **WHEN** apply agent 执行到 Preparation、Pre-flight Scan、Phase 1/2/3 verification 或 Output
+- **WHEN** apply agent 执行到 Preparation、Phase 1/2/3 verification 或 Output
 - **THEN** agent SHALL 读取对应的 `.xirang/references/xirang-apply-step-<N>-<name>.md`
 - **AND** skill body 中该步骤 SHALL 只提供一行描述和文件路径
 
 #### Scenario: 隔离方法只读取一个 reference
 
 - **WHEN** Preparation 已选择 branch、worktree 或 current-branch 方法
-- **THEN** agent SHALL 只读取所选方法的 Step 3 reference
+- **THEN** agent SHALL 只读取所选方法的 Step 2 reference
 - **AND** MUST NOT 读取另外两个互斥方法 reference
 
 ### Requirement: Checks 是任务进度源

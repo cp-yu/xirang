@@ -122,7 +122,7 @@
     "timestamp": "2026-08-13T10:40:52.291Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
         "timestamp": "2026-08-13T10:36:58.024Z",
@@ -133,6 +133,11 @@
         "timestamp": "2026-08-13T10:40:52.279Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-13T10:49:23.250Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
@@ -260,7 +265,8 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "id": "OPT-20260813T103658021Z-01",
+        "status": "resolved",
         "location": {
           "files": [
             "src/core/parsers/task-structure.ts"
@@ -303,12 +309,12 @@
         "cost": "low",
         "dependencies": [],
         "priorityReason": "唯一不依赖工作负载的静态收益：锚点语法重复由本 change 双写编辑证实，且可由现有 32 用例测试套完全闭合保持语义；优先于随 tasks.md 规模变化的复杂度/I/O 项，以及 Phase 1 已明确延后的 dead-export 清理。",
-        "id": "OPT-20260813T103658021Z-01",
         "targetFileHashes": {
           "src/core/parsers/task-structure.ts": "eafffe5369de411edb54e12c55606d778d291dc14e2e434dd612e5d2ebc48185"
         }
       },
       {
+        "id": "OPT-20260813T103658021Z-02",
         "status": "deferred",
         "location": {
           "files": [
@@ -344,10 +350,10 @@
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "静态可证的复杂度改进但收益取决于条目规模，实际工作负载下收益可忽略，故延后；排在被选中的纯重复消除项之后。",
-        "id": "OPT-20260813T103658021Z-02"
+        "priorityReason": "静态可证的复杂度改进但收益取决于条目规模，实际工作负载下收益可忽略，故延后；排在被选中的纯重复消除项之后。"
       },
       {
+        "id": "OPT-20260813T103658021Z-03",
         "status": "deferred",
         "location": {
           "files": [
@@ -384,10 +390,10 @@
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "真实但 workload-dependent 的重复 I/O；文件小、Check 数有限，本轮不选。",
-        "id": "OPT-20260813T103658021Z-03"
+        "priorityReason": "真实但 workload-dependent 的重复 I/O；文件小、Check 数有限，本轮不选。"
       },
       {
+        "id": "OPT-20260813T103658021Z-04",
         "status": "deferred",
         "location": {
           "files": [
@@ -426,8 +432,49 @@
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "行为保持的死代码删除，但该导出在基线即已死、Phase 1 已将其清理明确延后到 follow-up change，尊重该 scoping，本轮 deferred。",
-        "id": "OPT-20260813T103658021Z-04"
+        "priorityReason": "行为保持的死代码删除，但该导出在基线即已死、Phase 1 已将其清理明确延后到 follow-up change，尊重该 scoping，本轮 deferred。"
+      },
+      {
+        "status": "deferred",
+        "location": {
+          "files": [
+            "src/commands/validate.ts"
+          ],
+          "symbols": [
+            "validateChangeWithPreview"
+          ]
+        },
+        "opportunity": "validateChangeWithPreview 串行 await 三个相互独立的只读校验：compileChange（formal model + change delta 编译）、validator.validateChangeDeltaSpecs（change 四分区）、validateTasksStructure（tasks.md）。三者输入不相交、无共享可变状态，可并发执行。",
+        "impact": "降低 xirang validate 命令端到端延迟（重叠三个 I/O 密集读取）；收益随 formal model 规模与 change 规模变化，属 workload-dependent，按决策规则 deferred。",
+        "evidence": [
+          "src/commands/validate.ts:217-233 — const compiled = await compileChange(...); const notationReport = await validator.validateChangeDeltaSpecs(changeDir); ... return { report: mergeValidationReports(notationReport, compilerReport, await this.validateTasksStructure(changeDir)), compiled } 串行执行",
+          "src/core/validation/validator.ts — validateChangeDeltaSpecs 无 console 输出（grep console. 零命中）且无写操作，三校验均只读",
+          "src/commands/validate.ts:290-297 — mergeValidationReports 按参数位置顺序拼接 issues，输出顺序由参数顺序决定而非执行顺序"
+        ],
+        "recommendation": "用 Promise.all([compileChange(process.cwd(), id), validator.validateChangeDeltaSpecs(changeDir), this.validateTasksStructure(changeDir)]) 并发执行三个校验，按原顺序解构后传入 mergeValidationReports，保持串行等价输出。",
+        "keyDesign": "并发只读校验：三个 Promise 并行启动，结果按 notation、compiler、tasks 原顺序合并；Validator 实例无共享写入；compileChange 拒绝时其余只读校验先完成但结果被丢弃，异常传播与打印保持现状。",
+        "preservationConstraints": [
+          "issues 顺序不变：mergeValidationReports(notationReport, compilerReport, tasksReport) 参数顺序保持",
+          "JSON/文本输出内容与 exit code 不变",
+          "compileChange 抛错时错误传播与打印不变；其余两个校验仅执行只读文件访问，不产生用户可见副作用",
+          "validateChangeWithPreview 返回值结构与 compiled 预览不变"
+        ],
+        "implementationOutline": [
+          "将三个串行 await 改为 Promise.all 并按原顺序解构",
+          "运行 pnpm vitest run test/commands/validate.test.ts 确认 23 个既有用例输出顺序与结果不变",
+          "运行 node bin/xirang.js validate --change propose-gate-restructure --json 确认零回归"
+        ],
+        "validation": [
+          "pnpm vitest run test/commands/validate.test.ts — 证明并发化后输出顺序与结果不变",
+          "node bin/xirang.js validate --change propose-gate-restructure --json — 本 change 校验结果不变"
+        ],
+        "impactLevel": "low",
+        "confidence": "medium",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "静态可证的真实并行机会，但收益取决于模型规模与校验耗时，实际单次 validate 已亚秒级；按决策规则 workload-dependent 项一律 deferred，排在本轮全部候选之末，不优先于任何可闭合的语义重复消除。",
+        "id": "OPT-20260813T104923250Z-01"
       }
     ],
     "history": [
@@ -485,9 +532,44 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-13T10:40:52.279Z",
         "findingId": "OPT-20260813T103658021Z-01"
+      },
+      {
+        "sequence": 8,
+        "action": "resolve",
+        "reason": "已实现并通过 verification PASS：parseAnchorReference helper 已落地（src/core/parsers/task-structure.ts:421-443），parseVerifies 保留 REMOVED 短路后委托、parsePreserves 直接委托，签名与 undefined-on-invalid 契约不变；本轮实测 6 个测试文件 122 用例全绿（含 task-structure 32 用例）、pnpm build 与 pnpm lint 通过、xirang validate --change propose-gate-restructure --json 零 issue。verified 在 CLI 状态机中仍属 non-terminal，关闭为 resolved 是保留已验证成果的正确终态。",
+        "timestamp": "2026-08-13T10:49:23.250Z",
+        "findingId": "OPT-20260813T103658021Z-01"
+      },
+      {
+        "sequence": 9,
+        "action": "retain",
+        "reason": "代码未变：validateFileDeclarations 仍执行 entries.slice(i + 1).find(...)（现 src/core/parsers/task-structure.ts:661），O(n²) 与每迭代切片分配仅在 Files 声明规模大时显效，实际 tasks.md 条目通常 <50；按决策规则 workload-dependent 项保持 deferred。",
+        "timestamp": "2026-08-13T10:49:23.250Z",
+        "findingId": "OPT-20260813T103658021Z-02"
+      },
+      {
+        "sequence": 10,
+        "action": "retain",
+        "reason": "代码未变：每个 Check 的 Verifies/Preserves 仍独立执行 readFileSync + parseContractRequirements（现 :304 与 :374）；收益随引用同一 unit 的 Check 数量增长，属 workload-dependent，保持 deferred。",
+        "timestamp": "2026-08-13T10:49:23.250Z",
+        "findingId": "OPT-20260813T103658021Z-03"
+      },
+      {
+        "sequence": 11,
+        "action": "retain",
+        "reason": "新鲜 grep 复核：ARCHITECTURE_POST_PROPOSE_VALIDATION 在 src/ 与 test/ 仍零导入（仅声明处 src/core/templates/fragments/xirang-fragments.ts:140；src/core/templates/index.ts 无 fragments barrel 重导出）；Phase 1 已明确将清理划归 follow-up change，保持 deferred。证据修正：VERIFY_SIMPLE_CHANGE_FAST_PATH 被既有测试 test/core/templates/fragments/xirang-fragments.test.ts 导入，未来清理范围应仅限 ARCHITECTURE_POST_PROPOSE_VALIDATION，不要连带删除 VERIFY_SIMPLE_CHANGE_FAST_PATH。",
+        "timestamp": "2026-08-13T10:49:23.250Z",
+        "findingId": "OPT-20260813T103658021Z-04"
+      },
+      {
+        "sequence": 12,
+        "action": "add",
+        "reason": "新增发现：validateChangeWithPreview 三项独立只读校验串行执行；收益随模型规模变化属 workload-dependent，按决策规则直接以 deferred 登记，供后续轮次评估。",
+        "timestamp": "2026-08-13T10:49:23.250Z",
+        "findingId": "OPT-20260813T104923250Z-01"
       }
     ],
-    "reconciliationSignature": "fc147eb5aae525800aa1d4ae70d974eddaa40ba5bda64ff02aafe989759023fb",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }

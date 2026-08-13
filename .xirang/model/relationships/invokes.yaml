@@ -8,6 +8,9 @@ relationships:
   - source: explore
     kind: invokes
     target: deterministic-operations
+  - source: post-propose-validation
+    kind: invokes
+    target: deterministic-operations
   - source: propose
     kind: invokes
     target: deterministic-operations

@@ -4,7 +4,7 @@ identity: snack-workflow
 kind: element
 parent: snack
 title: Snack Workflow
-definition: Snack Workflow 定义 snack 从已写代码反向 reconcile proposal、delta Contracts、design 与 Semantic Delta 的 code-first workflow：条件式 artifact reconcile、多源代码证据、独立判断 Behavior/Architecture Source impact、definition-first authoring、不生成 `tasks.md` 与自检流程。
+definition: Snack Workflow 定义 snack 从已写代码反向 reconcile proposal、delta Contracts、design 与 Semantic Delta 的 code-first workflow：条件式 artifact reconcile、多源代码证据、独立判断 Behavior/Architecture Source impact、制品定义先行写作、不生成 `tasks.md` 与自检流程。
 ---
 
 ## Requirements
@@ -134,16 +134,6 @@ Snack SHALL 运行 proposal instructions，并使用 canonical `## Source Impact
 - **AND** 同一列表 SHALL 驱动后续 delta Contracts
 - **AND** MUST NOT 使用 Xirang capability ID 作为 Contract 目录名
 
-### Requirement: Snack 使用 definition-first authoring
-
-每个 artifact 写入前，snack SHALL 读取 resolved `definition`，按内容归属判断，遵守 write policy，再执行 `instruction` 并填充 `template`。Projection、context、rules 与 reasoning MUST NOT 被复制进 artifact。
-
-#### Scenario: Design 保持 template
-
-- **WHEN** snack reconcile `design.md`
-- **THEN** SHALL 保持 Context、Goals / Non-Goals、Decisions、Risks / Trade-offs
-- **AND** inferred content SHALL 标记 `[INFERRED FROM CODE]`
-
 ### Requirement: Snack 始终生成 reconciliation result
 
 Snack SHALL 始终报告一个 Semantic Model reconciliation result：有 graph change 时生成 real Semantic Delta，只有 contract changes 时省略 graph delta，未解决 decision 时停止。
@@ -212,3 +202,13 @@ Snack Workflow SHALL 仅当 conversation context、Formal Semantic Model 与 imp
 - **WHEN** 已确认需要结构 reconciliation 但配置的 skill 找不到或调用失败
 - **THEN** Snack fail closed 并报告逻辑名称
 - **AND** 不生成猜测性的 hierarchy Delta
+
+### Requirement: Snack 使用制品定义先行写作
+
+每个 artifact 写入前，snack SHALL 读取 resolved `definition`，按内容归属判断，遵守 write policy，再执行 `instruction` 并填充 `template`。Projection、context、rules 与 reasoning MUST NOT 被复制进 artifact。
+
+#### Scenario: Design 保持 template
+
+- **WHEN** snack reconcile `design.md`
+- **THEN** SHALL 保持 Context、Goals / Non-Goals、Decisions、Risks / Trade-offs
+- **AND** inferred content SHALL 标记 `[INFERRED FROM CODE]`
