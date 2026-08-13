@@ -40,7 +40,7 @@
     "timestamp": "2026-08-13T13:17:05.030Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
         "timestamp": "2026-08-13T13:13:51.197Z",
@@ -51,6 +51,11 @@
         "timestamp": "2026-08-13T13:17:05.022Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-13T13:21:35.453Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
@@ -96,7 +101,7 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "src/core/templates/fragments/xirang-fragments.ts"
@@ -136,10 +141,7 @@
         "cost": "low",
         "dependencies": [],
         "priorityReason": "This is the only finding that survived the admission gates. It ranks ahead of excluded candidates (parallelizing the two fs checks in validator.ts:113, tightening declaresExplicitNoDelta to isFile(), extending GUIDE_NO_DELTAS text, cleaning other dead exports) because it is the only one with (a) actual benefit — completing this change's own dead-code removal, (b) static evidence visible in the current file, and (c) fully closable preservation constraints. The excluded candidates fail admission: the fs.stat directory-name edge is literally permitted by the Requirement's wording ('change 目录存在 .delta-noop'), GUIDE_NO_DELTAS changes observable CLI output in a file (constants.ts) outside base scope, parallelization has no measurable benefit on a cold validation path, and other dead exports are an explicit design non-goal. Cost is a single-line deletion verified by the existing parity suite.",
-        "id": "OPT-20260813T131351193Z-01",
-        "targetFileHashes": {
-          "src/core/templates/fragments/xirang-fragments.ts": "97b183b949e485ef9c819ac650d86f2a3a74cb32106517a77cfea110fb99ba93"
-        }
+        "id": "OPT-20260813T131351193Z-01"
       }
     ],
     "history": [
@@ -176,9 +178,16 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-13T13:17:05.022Z",
         "findingId": "OPT-20260813T131351193Z-01"
+      },
+      {
+        "sequence": 5,
+        "action": "resolve",
+        "reason": "已实现并通过 verification PASS：残留三空行已折叠为单空行，12 个片段分隔符全部为单空行；删除导出零引用残留；29/29 测试全绿。",
+        "timestamp": "2026-08-13T13:21:35.453Z",
+        "findingId": "OPT-20260813T131351193Z-01"
       }
     ],
-    "reconciliationSignature": "9ca73c5f11a3e842f5b244e8a50607b5ff0abc9057bfb144e5b4da36ffb02f5d",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }
