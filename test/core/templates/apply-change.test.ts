@@ -17,7 +17,7 @@ const applyReference = (path: string) => {
 describe('apply change workflow template', () => {
   it('keeps the generated apply reference set complete', () => {
     const references = getApplyChangeSkillTemplate().referenceFiles ?? [];
-    expect(references).toHaveLength(9);
+    expect(references).toHaveLength(8);
     for (const reference of references) {
       expect(reference.content.length).toBeGreaterThan(0);
     }
@@ -63,17 +63,16 @@ describe('apply change workflow template', () => {
 
     expect(template.referenceFiles?.map((file) => file.path)).toEqual([
       'references/apply-step-1-preparation.md',
-      'references/apply-step-2-preflight-scan.md',
-      'references/apply-step-3-branch-isolation.md',
-      'references/apply-step-3-worktree-isolation.md',
-      'references/apply-step-3-current-branch.md',
-      'references/apply-step-4-phase1-verification.md',
-      'references/apply-step-5-phase2-optimization.md',
-      'references/apply-step-6-phase3-seal.md',
-      'references/apply-step-7-output.md',
+      'references/apply-step-2-branch-isolation.md',
+      'references/apply-step-2-worktree-isolation.md',
+      'references/apply-step-2-current-branch.md',
+      'references/apply-step-3-phase1-verification.md',
+      'references/apply-step-4-phase2-optimization.md',
+      'references/apply-step-5-phase3-seal.md',
+      'references/apply-step-6-output.md',
     ]);
 
-    for (const reference of template.referenceFiles?.filter((file) => !file.path.includes('apply-step-3-')) ?? []) {
+    for (const reference of template.referenceFiles?.filter((file) => !file.path.includes('apply-step-2-')) ?? []) {
       const sharedPath = `.xirang/references/xirang-${reference.path.replace('references/', '')}`;
 
       expect(template.instructions).toContain(sharedPath);
@@ -84,16 +83,28 @@ describe('apply change workflow template', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
     const preparation = applyReference('references/apply-step-1-preparation.md');
 
-    expect(instructions).toContain('Step 3: Isolation router');
-    expect(instructions).not.toContain('xirang-apply-step-3-branch-isolation.md');
-    expect(instructions).not.toContain('xirang-apply-step-3-worktree-isolation.md');
-    expect(instructions).not.toContain('xirang-apply-step-3-current-branch.md');
-    expect(preparation).toContain('At Step 3, read exactly one');
-    expect(preparation).toContain('xirang-apply-step-3-branch-isolation.md');
-    expect(preparation).toContain('xirang-apply-step-3-worktree-isolation.md');
-    expect(preparation).toContain('xirang-apply-step-3-current-branch.md');
+    expect(instructions).toContain('Step 2: Isolation router');
+    expect(instructions).not.toContain('xirang-apply-step-2-branch-isolation.md');
+    expect(instructions).not.toContain('xirang-apply-step-2-worktree-isolation.md');
+    expect(instructions).not.toContain('xirang-apply-step-2-current-branch.md');
+    expect(preparation).toContain('At Step 2, read exactly one');
+    expect(preparation).toContain('xirang-apply-step-2-branch-isolation.md');
+    expect(preparation).toContain('xirang-apply-step-2-worktree-isolation.md');
+    expect(preparation).toContain('xirang-apply-step-2-current-branch.md');
     expect(preparation).toContain('MUST NOT read the other two');
     expect(preparation).toContain('Do not read the selected reference during Preparation');
+  });
+
+  it('carries no Pre-flight step in the apply workflow', () => {
+    const instructions = getApplyChangeSkillTemplate().instructions;
+
+    expect(instructions).not.toMatch(/Pre-flight|preflight/);
+    expect(instructions).toContain('Step 1: Preparation');
+    expect(instructions).toContain('Step 2: Isolation router');
+    expect(instructions).toContain('Step 3: Phase 1 verification');
+    expect(instructions).toContain('Step 4: Phase 2 optimization');
+    expect(instructions).toContain('Step 5: Phase 3 seal');
+    expect(instructions).toContain('Step 6: Output');
   });
 
   it('keeps flow details in step references instead of the skill outline', () => {
@@ -157,7 +168,7 @@ describe('apply change workflow template', () => {
   });
 
   it('keeps apply Phase 2 checkpoint commands in the Phase 2 reference', () => {
-    const reference = applyReference('references/apply-step-5-phase2-optimization.md');
+    const reference = applyReference('references/apply-step-4-phase2-optimization.md');
 
     expect(reference).toContain('git commit -m "wip: opt-checkpoint-r0 (baseline)"');
     expect(reference).toContain('git commit -m "wip: opt-r${N} (${findingId}: ${description})"');
@@ -173,9 +184,9 @@ describe('apply change workflow template', () => {
 
   it('defines native git isolation and keeps dirty-state routing out of method references', () => {
     const preparation = applyReference('references/apply-step-1-preparation.md');
-    const branch = applyReference('references/apply-step-3-branch-isolation.md');
-    const worktree = applyReference('references/apply-step-3-worktree-isolation.md');
-    const current = applyReference('references/apply-step-3-current-branch.md');
+    const branch = applyReference('references/apply-step-2-branch-isolation.md');
+    const worktree = applyReference('references/apply-step-2-worktree-isolation.md');
+    const current = applyReference('references/apply-step-2-current-branch.md');
 
     expect(preparation).toContain('worktree isolation');
     expect(preparation).toContain('include in baseline');
@@ -217,9 +228,9 @@ describe('apply change workflow template', () => {
 
   it('persists separate navigation and immutable evidence baselines', () => {
     const isolationReferences = [
-      applyReference('references/apply-step-3-branch-isolation.md'),
-      applyReference('references/apply-step-3-worktree-isolation.md'),
-      applyReference('references/apply-step-3-current-branch.md'),
+      applyReference('references/apply-step-2-branch-isolation.md'),
+      applyReference('references/apply-step-2-worktree-isolation.md'),
+      applyReference('references/apply-step-2-current-branch.md'),
     ].join('\n');
 
     expect(isolationReferences).toContain('originalBranch');
@@ -228,17 +239,8 @@ describe('apply change workflow template', () => {
     expect(isolationReferences).toContain('git status --short');
   });
 
-  it('waits for pre-flight finding decisions and matches label-free scenario titles', () => {
-    const reference = applyReference('references/apply-step-2-preflight-scan.md');
-
-    expect(reference).toContain('remove the scenario operation label');
-    expect(reference).toContain('modify `tasks.md`');
-    expect(reference).toContain('explicitly confirm that the findings are ignored');
-    expect(reference).toContain('proceed silently when the scan is clean');
-  });
-
   it('applies critical Phase 1 writeback before recording the reviewer payload', () => {
-    const reference = applyReference('references/apply-step-4-phase1-verification.md');
+    const reference = applyReference('references/apply-step-3-phase1-verification.md');
     const validationIndex = reference.indexOf('Validate the reviewer payload');
     const writebackIndex = reference.indexOf('Apply only CRITICAL `writeBackPlan` entries');
     const recordIndex = reference.indexOf('xirang verify phase1 "<change-name>"');
@@ -250,7 +252,7 @@ describe('apply change workflow template', () => {
   });
 
   it('preserves persistent failed-direction state across speculative rollback', () => {
-    const reference = applyReference('references/apply-step-5-phase2-optimization.md');
+    const reference = applyReference('references/apply-step-4-phase2-optimization.md');
     const verificationIndex = reference.indexOf('--type=verification');
     const snapshotIndex = reference.indexOf('repository-external temporary file');
     const rollbackIndex = reference.indexOf('git reset --hard HEAD');
@@ -267,7 +269,7 @@ describe('apply change workflow template', () => {
   });
 
   it('orders finding reconciliation, freshness gate, master implementation, and reviewer verification', () => {
-    const content = applyReference('references/apply-step-5-phase2-optimization.md');
+    const content = applyReference('references/apply-step-4-phase2-optimization.md');
 
     const reconciliationIndex = content.indexOf('optimizer reconciliation envelope');
     const freshnessIndex = content.indexOf('mode":"begin-implementation');
@@ -298,13 +300,13 @@ describe('apply change workflow template', () => {
     expect(instructions).not.toContain('invoke the `xirang-reviewer` skill');
     expect(instructions).not.toContain('invoke the `xirang-optimizer` skill');
 
-    expect(applyReference('references/apply-step-4-phase1-verification.md')).toContain('xirang verify phase1 "<change-name>"');
-    expect(applyReference('references/apply-step-5-phase2-optimization.md')).toContain('xirang verify phase2');
-    expect(applyReference('references/apply-step-6-phase3-seal.md')).toContain('xirang verify seal "<change-name>"');
+    expect(applyReference('references/apply-step-3-phase1-verification.md')).toContain('xirang verify phase1 "<change-name>"');
+    expect(applyReference('references/apply-step-4-phase2-optimization.md')).toContain('xirang verify phase2');
+    expect(applyReference('references/apply-step-5-phase3-seal.md')).toContain('xirang verify seal "<change-name>"');
   });
 
   it('routes seal failure into Required Corrections and recovery in the seal reference', () => {
-    const reference = applyReference('references/apply-step-6-phase3-seal.md');
+    const reference = applyReference('references/apply-step-5-phase3-seal.md');
 
     expect(reference).toContain('If seal fails, preserve diagnostics, convert them into Required Corrections context');
     expect(reference).toContain('map the corrections to the affected task');
@@ -320,7 +322,7 @@ describe('apply change workflow template', () => {
   });
 
   it('leaves branch and worktree cleanup to archive in the active apply workspace', () => {
-    const output = applyReference('references/apply-step-7-output.md');
+    const output = applyReference('references/apply-step-6-output.md');
 
     expect(output).toContain('same Apply workspace');
     expect(output).toContain('MUST NOT switch branches');

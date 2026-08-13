@@ -1,4 +1,4 @@
-# Apply Step 3: Worktree Isolation
+# Apply Step 2: Worktree Isolation
 
 Use this reference only after Step 1 selects worktree isolation. Use native Git; do not delegate worktree creation to another skill.
 

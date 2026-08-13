@@ -23,7 +23,9 @@ export interface TaskStructureIssue {
     | 'missing-verifies-requirement'
     | 'missing-verifies-scenario'
     | 'verifies-cross-check-skipped'
-    | 'missing-evidence-field';
+    | 'missing-evidence-field'
+    | 'task-file-conflict'
+    | 'task-dependency-order';
   message: string;
   line?: number;
   severity: 'error' | 'warning';
@@ -61,6 +63,15 @@ interface CoarseTask {
   title: string;
   line: number;
   range: { start: number; end: number };
+}
+
+type FileOperation = 'Create' | 'Modify' | 'Delete';
+
+interface TaskFileEntry {
+  taskId: string;
+  operation: FileOperation;
+  path: string;
+  line: number;
 }
 
 const CHECKBOX_RE = /^\s*-\s+\[[ xX]\]\s+(\S+)/;
@@ -159,6 +170,7 @@ function validateCoarseTasks(
   const issues: TaskStructureIssue[] = [];
   const elementUnits = options.changeDir ? listChangeElementUnits(options.changeDir) : new Set<string>();
   const checks: TaskItem[] = [];
+  const fileEntries: TaskFileEntry[] = [];
 
   for (const task of tasks) {
     if (!task.title) {
@@ -194,7 +206,13 @@ function validateCoarseTasks(
       }
     }
     checks.push(...taskChecks);
+
+    if (fields.has('Files')) {
+      fileEntries.push(...parseTaskFiles(lines, mask, fields.get('Files')!, task.id));
+    }
   }
+
+  validateFileDeclarations(fileEntries, issues);
 
   return {
     valid: issues.every((issue) => issue.severity !== 'error'),
@@ -400,8 +418,10 @@ function parseVerifies(value: string): { elementPath: string; requirement: strin
     return { elementPath, requirement, scenarios: [], isRemoved: true };
   }
 
-  const requirement = value.match(REQUIREMENT_RE)?.[1]?.trim();
-  const scenarioText = value.match(SCENARIOS_RE)?.[1] ?? '';
+  const requirementMatch = value.match(REQUIREMENT_RE);
+  const requirement = requirementMatch?.[1]?.trim();
+  const remainder = requirementMatch ? value.slice(requirementMatch.index! + requirementMatch[0].length) : value;
+  const scenarioText = remainder.match(SCENARIOS_RE)?.[1] ?? '';
   const scenarios = [...scenarioText.matchAll(SCENARIO_NAME_RE)].map((match) => match[1].trim());
 
   if (!elementPath || !requirement || scenarios.length === 0 || scenarios.some((scenario) => !scenario)) {
@@ -413,8 +433,10 @@ function parseVerifies(value: string): { elementPath: string; requirement: strin
 
 function parsePreserves(value: string): { elementPath: string; requirement: string; scenarios: string[] } | undefined {
   const elementPath = value.match(ELEMENT_PATH_RE)?.[1]?.trim();
-  const requirement = value.match(REQUIREMENT_RE)?.[1]?.trim();
-  const scenarioText = value.match(SCENARIOS_RE)?.[1] ?? '';
+  const requirementMatch = value.match(REQUIREMENT_RE);
+  const requirement = requirementMatch?.[1]?.trim();
+  const remainder = requirementMatch ? value.slice(requirementMatch.index! + requirementMatch[0].length) : value;
+  const scenarioText = remainder.match(SCENARIOS_RE)?.[1] ?? '';
   const scenarios = [...scenarioText.matchAll(SCENARIO_NAME_RE)].map((match) => match[1].trim());
 
   if (!elementPath || !requirement || scenarios.length === 0 || scenarios.some((scenario) => !scenario)) {
@@ -583,6 +605,74 @@ function countListItemsInField(
     }
   }
   return count;
+}
+
+const TASK_FILE_RE = /^\s*-\s+(Create|Modify|Delete):\s*`([^`]+)`\s*$/;
+
+function parseTaskFiles(
+  lines: string[],
+  mask: boolean[],
+  range: { start: number; end: number },
+  taskId: string
+): TaskFileEntry[] {
+  const entries: TaskFileEntry[] = [];
+  for (let i = range.start; i < range.end; i++) {
+    if (mask[i]) {
+      continue;
+    }
+    const match = lines[i].match(TASK_FILE_RE);
+    if (match) {
+      entries.push({ taskId, operation: match[1] as FileOperation, path: match[2], line: i + 1 });
+    }
+  }
+  return entries;
+}
+
+function conflictingOperations(left: FileOperation, right: FileOperation): boolean {
+  if (left === 'Delete' || right === 'Delete') {
+    return true;
+  }
+  return left === 'Create' && right === 'Create';
+}
+
+function validateFileDeclarations(entries: TaskFileEntry[], issues: TaskStructureIssue[]): void {
+  const byPath = new Map<string, TaskFileEntry[]>();
+  for (const entry of entries) {
+    const group = byPath.get(entry.path) ?? [];
+    group.push(entry);
+    byPath.set(entry.path, group);
+  }
+
+  for (const [filePath, group] of byPath) {
+    for (let i = 0; i < group.length; i++) {
+      for (let j = i + 1; j < group.length; j++) {
+        const left = group[i];
+        const right = group[j];
+        if (left.taskId !== right.taskId && conflictingOperations(left.operation, right.operation)) {
+          issues.push(error(
+            'task-file-conflict',
+            `Task ${left.taskId} and Task ${right.taskId} declare conflicting operations on \`${filePath}\`.`,
+            right.line
+          ));
+        }
+      }
+    }
+  }
+
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    if (entry.operation === 'Create') {
+      continue;
+    }
+    const laterCreate = entries.slice(i + 1).find(item => item.operation === 'Create' && item.path === entry.path);
+    if (laterCreate) {
+      issues.push(error(
+        'task-dependency-order',
+        `Task ${entry.taskId} declares ${entry.operation} on \`${entry.path}\` which Task ${laterCreate.taskId} creates later.`,
+        entry.line
+      ));
+    }
+  }
 }
 
 function parseItems(

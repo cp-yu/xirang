@@ -21,8 +21,8 @@
 4. Read every context file listed by the CLI. Inspect `changeDir/.verify-result.json` and `## Required Corrections`; unresolved CRITICAL/code_fix/artifact_fix items take priority.
 5. Use the shared query protocol to read affected elements, refinement, Element Contracts, and relationships.
 6. In a Git repository, run `git branch --show-current`, `git rev-parse HEAD`, and `git status --short`. Select branch, worktree, or current-branch isolation from explicit user input or `apply.defaultIsolation`; only `ask` prompts when no method was selected. If the provisional method is branch or current branch and the initial workspace is dirty, treat `.xirang/changes/<name>/` files as the Change itself: always baseline, never gate. Ask only about remaining dirty files: worktree isolation, include in baseline, or stop. Never alter that state automatically.
-7. Record the selected method for Step 3. Do not read the selected reference during Preparation. At Step 3, read exactly one matching reference:
-   - branch: `.xirang/references/xirang-apply-step-3-branch-isolation.md`
-   - worktree: `.xirang/references/xirang-apply-step-3-worktree-isolation.md`
-   - none/current branch: `.xirang/references/xirang-apply-step-3-current-branch.md`
+7. Record the selected method for Step 2. Do not read the selected reference during Preparation. At Step 2, read exactly one matching reference:
+   - branch: `.xirang/references/xirang-apply-step-2-branch-isolation.md`
+   - worktree: `.xirang/references/xirang-apply-step-2-worktree-isolation.md`
+   - none/current branch: `.xirang/references/xirang-apply-step-2-current-branch.md`
    The selected reference is the complete method contract. You MUST NOT read the other two isolation references.

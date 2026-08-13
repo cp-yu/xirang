@@ -1,4 +1,4 @@
-# Apply Step 3: Current Branch
+# Apply Step 2: Current Branch
 
 Use this reference only after Step 1 selects current-branch isolation.
 

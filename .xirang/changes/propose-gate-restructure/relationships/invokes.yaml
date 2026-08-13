@@ -1,0 +1,5 @@
+relationships:
+  - operation: ADDED
+    source: post-propose-validation
+    kind: invokes
+    target: deterministic-operations

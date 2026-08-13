@@ -70,6 +70,49 @@ describe('top-level validate command', () => {
     expect(result.stderr).toContain('Nothing to validate. Try one of:');
   });
 
+  it('reports task structure issues from tasks.md in change validation', async () => {
+    const tasksContent = [
+      '### Task 1: First',
+      '',
+      '**Goal**: Create a file.',
+      '',
+      '**Files**:',
+      '- Create: `src/shared.ts`',
+      '',
+      '**Requirements**:',
+      '- Keep declarations consistent',
+      '',
+      '#### Checks',
+      '',
+      '- [ ] C1 Verify',
+      '  - Verifies: `elements/alpha.id.md` / Requirement "Validator SHALL support alpha change deltas" / Scenario "Apply alpha delta"',
+      '  - Command: `pnpm test`',
+      '',
+      '### Task 2: Second',
+      '',
+      '**Goal**: Create the same file.',
+      '',
+      '**Files**:',
+      '- Create: `src/shared.ts`',
+      '',
+      '**Requirements**:',
+      '- Keep declarations consistent',
+      '',
+      '#### Checks',
+      '',
+      '- [ ] C2 Verify',
+      '  - Verifies: `elements/alpha.id.md` / Requirement "Validator SHALL support alpha change deltas" / Scenario "Apply alpha delta"',
+      '  - Command: `pnpm test`',
+    ].join('\n');
+    await fs.writeFile(path.join(changesDir, 'c1', 'tasks.md'), tasksContent, 'utf-8');
+
+    const result = await runCLI(['validate', '--change', 'c1', '--json'], { cwd: testDir });
+    const json = JSON.parse(result.stdout.trim());
+    expect(json.items[0].valid).toBe(false);
+    expect(json.items[0].issues.some((issue: { message: string }) => issue.message.includes('task-file-conflict'))).toBe(true);
+    expect(json.items[0].issues.some((issue: { path: string }) => issue.path === 'tasks.md')).toBe(true);
+  });
+
   it('validates explicit --change with the same semantics as the positional form', async () => {
     const positional = await runCLI(['validate', 'c1', '--type', 'change', '--json'], { cwd: testDir });
     const explicit = await runCLI(['validate', '--change', 'c1', '--json'], { cwd: testDir });

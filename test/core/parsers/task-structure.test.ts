@@ -391,6 +391,32 @@ The system SHALL validate task references.
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
   });
+
+  it('ignores the word Scenario inside Requirement titles when parsing anchors', () => {
+    const tempDir = createChangeDir({
+      'example.md': `## ADDED Requirements
+
+### Requirement: 支持伪代码形式的 Scenario 正文
+The system SHALL accept pseudocode bodies.
+
+#### Scenario: 纯伪代码正文
+- **WHEN** a pseudocode body is authored
+- **THEN** the body is accepted
+`,
+    });
+
+    try {
+      const result = validateTaskStructure(
+        '### Task 1: Anchor\n\n**Goal**: Verify anchors.\n\n**Files**:\n- Test: `test/a.ts`\n\n**Requirements**:\n- Keep anchors consistent\n\n#### Checks\n\n- [ ] C1 Verify\n  - Verifies: `elements/example.md` / Requirement "支持伪代码形式的 Scenario 正文" / Scenario "纯伪代码正文"\n  - Command: `pnpm test`\n',
+        { changeDir: tempDir }
+      );
+
+      expect(result.valid).toBe(true);
+      expect(result.issues.map((issue) => issue.code)).not.toContain('missing-verifies-scenario');
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
 });
 
 describe('REMOVED requirement anchoring', () => {
@@ -792,6 +818,144 @@ describe('Preserves field anchoring', () => {
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });
       fs.rmSync(path.join(projectRoot, '.xirang'), { recursive: true, force: true });
+    }
+  });
+});
+
+describe('coarse Task file declaration checks', () => {
+  const coarseTasks = (filesA: string, filesB: string) => `### Task 1: First
+
+**Goal**: Deliver first behavior.
+
+**Files**:
+${filesA}
+**Requirements**:
+- Keep file declarations consistent
+
+#### Checks
+
+- [ ] C1 Verify first behavior
+  - Verifies: \`elements/example.md\` / Requirement "Parser behavior" / Scenario "Valid tasks pass"
+  - Command: \`pnpm test\`
+
+### Task 2: Second
+
+**Goal**: Deliver second behavior.
+
+**Files**:
+${filesB}
+**Requirements**:
+- Keep file declarations consistent
+
+#### Checks
+
+- [ ] C2 Verify second behavior
+  - Verifies: \`elements/example.md\` / Requirement "Parser behavior" / Scenario "Valid tasks pass"
+  - Command: \`pnpm test\`
+`;
+
+  const createChangeDir = (files: Record<string, string>): string => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'task-structure-'));
+    const elementsDir = path.join(tempDir, 'elements');
+    fs.mkdirSync(elementsDir, { recursive: true });
+    for (const [name, content] of Object.entries(files)) {
+      fs.writeFileSync(path.join(elementsDir, name), content);
+    }
+    return tempDir;
+  };
+
+  it('reports conflicting Create declarations on the same path', () => {
+    const tempDir = createChangeDir({ 'example.md': `## ADDED Requirements
+
+### Requirement: Parser behavior
+
+#### Scenario: Valid tasks pass
+` });
+    try {
+      const result = validateTaskStructure(
+        coarseTasks('- Create: `src/shared.ts`\n', '- Create: `src/shared.ts`\n'),
+        { changeDir: tempDir }
+      );
+      expect(result.issues.map((issue) => issue.code)).toContain('task-file-conflict');
+      expect(result.valid).toBe(false);
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('reports Delete conflicting with any other declaration on the same path', () => {
+    const tempDir = createChangeDir({ 'example.md': `## ADDED Requirements
+
+### Requirement: Parser behavior
+
+#### Scenario: Valid tasks pass
+` });
+    try {
+      const result = validateTaskStructure(
+        coarseTasks('- Modify: `src/shared.ts`\n', '- Delete: `src/shared.ts`\n'),
+        { changeDir: tempDir }
+      );
+      expect(result.issues.map((issue) => issue.code)).toContain('task-file-conflict');
+      expect(result.valid).toBe(false);
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('reports Modify or Delete before a later Create as dependency order', () => {
+    const tempDir = createChangeDir({ 'example.md': `## ADDED Requirements
+
+### Requirement: Parser behavior
+
+#### Scenario: Valid tasks pass
+` });
+    try {
+      const result = validateTaskStructure(
+        coarseTasks('- Modify: `src/shared.ts`\n', '- Create: `src/shared.ts`\n'),
+        { changeDir: tempDir }
+      );
+      expect(result.issues.map((issue) => issue.code)).toContain('task-dependency-order');
+      expect(result.valid).toBe(false);
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('accepts Create followed by Modify on the same path', () => {
+    const tempDir = createChangeDir({ 'example.md': `## ADDED Requirements
+
+### Requirement: Parser behavior
+
+#### Scenario: Valid tasks pass
+` });
+    try {
+      const result = validateTaskStructure(
+        coarseTasks('- Create: `src/shared.ts`\n', '- Modify: `src/shared.ts`\n'),
+        { changeDir: tempDir }
+      );
+      expect(result.issues.map((issue) => issue.code)).not.toContain('task-file-conflict');
+      expect(result.issues.map((issue) => issue.code)).not.toContain('task-dependency-order');
+      expect(result.valid).toBe(true);
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('accepts sequential Modify declarations on the same path', () => {
+    const tempDir = createChangeDir({ 'example.md': `## ADDED Requirements
+
+### Requirement: Parser behavior
+
+#### Scenario: Valid tasks pass
+` });
+    try {
+      const result = validateTaskStructure(
+        coarseTasks('- Modify: `src/shared.ts`\n', '- Modify: `src/shared.ts`\n'),
+        { changeDir: tempDir }
+      );
+      expect(result.valid).toBe(true);
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
     }
   });
 });

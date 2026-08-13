@@ -23,27 +23,15 @@ ${XIRANG_SHARED_CONTEXT}
 4. Read every context file listed by the CLI. Inspect \`changeDir/.verify-result.json\` and \`## Required Corrections\`; unresolved CRITICAL/code_fix/artifact_fix items take priority.
 5. Use the shared query protocol to read affected elements, refinement, Element Contracts, and relationships.
 6. In a Git repository, run \`git branch --show-current\`, \`git rev-parse HEAD\`, and \`git status --short\`. Select branch, worktree, or current-branch isolation from explicit user input or \`apply.defaultIsolation\`; only \`ask\` prompts when no method was selected. If the provisional method is branch or current branch and the initial workspace is dirty, treat \`.xirang/changes/<name>/\` files as the Change itself: always baseline, never gate. Ask only about remaining dirty files: worktree isolation, include in baseline, or stop. Never alter that state automatically.
-7. Record the selected method for Step 3. Do not read the selected reference during Preparation. At Step 3, read exactly one matching reference:
-   - branch: \`.xirang/references/xirang-apply-step-3-branch-isolation.md\`
-   - worktree: \`.xirang/references/xirang-apply-step-3-worktree-isolation.md\`
-   - none/current branch: \`.xirang/references/xirang-apply-step-3-current-branch.md\`
+7. Record the selected method for Step 2. Do not read the selected reference during Preparation. At Step 2, read exactly one matching reference:
+   - branch: \`.xirang/references/xirang-apply-step-2-branch-isolation.md\`
+   - worktree: \`.xirang/references/xirang-apply-step-2-worktree-isolation.md\`
+   - none/current branch: \`.xirang/references/xirang-apply-step-2-current-branch.md\`
    The selected reference is the complete method contract. You MUST NOT read the other two isolation references.
 `.trim();
 
-const APPLY_STEP_2_PREFLIGHT_SCAN_REFERENCE = `
-# Apply Step 2: Pre-flight Scan
-
-Before isolation, scan all tasks in tasks.md for contradictions and dependency-ordering issues across Goals, Files, Requirements, and Checks:
-- Conflicting declarations on the same file or interface across different tasks
-- Task declarations that conflict with change-local specs or design.md
-- Earlier task depending on output of a later task, for example Task N's Files declares Modify on a path created by Task M's Files where M > N
-- When matching a Check \`Verifies:\` anchor to a Scenario heading, remove the scenario operation label such as \`[ADDED]\`, \`[MODIFIED]\`, or \`[REMOVED]\` and compare the label-free title
-- Present all findings at once, then wait for the user to modify \`tasks.md\` or explicitly confirm that the findings are ignored
-- proceed silently when the scan is clean
-`.trim();
-
-const APPLY_STEP_3_BRANCH_ISOLATION_REFERENCE = `
-# Apply Step 3: Branch Isolation
+const APPLY_STEP_2_BRANCH_ISOLATION_REFERENCE = `
+# Apply Step 2: Branch Isolation
 
 Use this reference only after Step 1 selects branch isolation.
 
@@ -55,8 +43,8 @@ Use this reference only after Step 1 selects branch isolation.
 6. Keep \`git status --short\` files in verification scope in addition to \`git diff <baseCommit>...HEAD --name-only\`.
 `.trim();
 
-const APPLY_STEP_3_WORKTREE_ISOLATION_REFERENCE = `
-# Apply Step 3: Worktree Isolation
+const APPLY_STEP_2_WORKTREE_ISOLATION_REFERENCE = `
+# Apply Step 2: Worktree Isolation
 
 Use this reference only after Step 1 selects worktree isolation. Use native Git; do not delegate worktree creation to another skill.
 
@@ -70,8 +58,8 @@ Use this reference only after Step 1 selects worktree isolation. Use native Git;
 8. Phase 0 through Phase 3 run only in the worktree. Add \`git status --short\` files to evidence scope alongside \`git diff <baseCommit>...HEAD --name-only\`.
 `.trim();
 
-const APPLY_STEP_3_CURRENT_BRANCH_REFERENCE = `
-# Apply Step 3: Current Branch
+const APPLY_STEP_2_CURRENT_BRANCH_REFERENCE = `
+# Apply Step 2: Current Branch
 
 Use this reference only after Step 1 selects current-branch isolation.
 
@@ -81,8 +69,8 @@ Use this reference only after Step 1 selects current-branch isolation.
 4. Keep \`git status --short\` files in verification scope in addition to \`git diff <baseCommit>...HEAD --name-only\`.
 `.trim();
 
-const APPLY_STEP_4_PHASE1_VERIFICATION_REFERENCE = `
-# Apply Step 4: Phase 1 Verification
+const APPLY_STEP_3_PHASE1_VERIFICATION_REFERENCE = `
+# Apply Step 3: Phase 1 Verification
 
 1. Delegate to the clean-context \`xirang-reviewer\` agent with \`context: "fresh"\` and the current changeName, absolute changeDir, and absolute projectRoot.
 2. Validate the reviewer payload against the Phase 1 input contract. Reject malformed or incomplete payloads rather than repairing them by inference.
@@ -91,8 +79,8 @@ const APPLY_STEP_4_PHASE1_VERIFICATION_REFERENCE = `
 5. On FAIL_NEEDS_CORRECTIONS, return to Phase 0. On PASS or PASS_WITH_WARNINGS, continue to Phase 2.
 `.trim();
 
-const APPLY_STEP_5_PHASE2_OPTIMIZATION_REFERENCE = `
-# Apply Step 5: Phase 2 Optimization
+const APPLY_STEP_4_PHASE2_OPTIMIZATION_REFERENCE = `
+# Apply Step 4: Phase 2 Optimization
 
 Use git commits as checkpoints; never use stash or tags. Phase 0 and Phase 1 create no commits.
 
@@ -132,14 +120,14 @@ ${VERIFY_ERROR_RECOVERY_GUIDE}
 ${VERIFY_STATE_MACHINE_DIAGRAM}
 `.trim();
 
-const APPLY_STEP_6_PHASE3_SEAL_REFERENCE = `
-# Apply Step 6: Phase 3 Seal
+const APPLY_STEP_5_PHASE3_SEAL_REFERENCE = `
+# Apply Step 5: Phase 3 Seal
 
 Run \`xirang verify seal "<change-name>" --json\`. If seal fails, preserve diagnostics, convert them into Required Corrections context, map the corrections to the affected task, and return to Phase 0 recovery. Do not pause on the first seal failure.
 `.trim();
 
-const APPLY_STEP_7_OUTPUT_REFERENCE = `
-# Apply Step 7: Output
+const APPLY_STEP_6_OUTPUT_REFERENCE = `
+# Apply Step 6: Output
 
 Report schema, progress, current task, completed tasks this session, and final sealed/archive-ready status. Continue archive from the same Apply workspace. Apply MUST NOT switch branches and MUST NOT remove the worktree; the Archive workflow owns branch return and isolation cleanup. Keep edits minimal, use Node path handling for generated paths, update task checkboxes only after evidence passes, and preserve canonical artifact headings/tokens and configured document language projection.
 `.trim();
@@ -157,13 +145,12 @@ For workflow-managed writes, read the resolved file definition before its instru
 ## Flow Outline
 
 1. Step 1: Preparation — read \`.xirang/references/xirang-apply-step-1-preparation.md\`.
-2. Step 2: Pre-flight scan — read \`.xirang/references/xirang-apply-step-2-preflight-scan.md\`.
-3. Step 3: Isolation router — read the one method reference selected by Step 1; do not load mutually exclusive methods.
-4. Phase 0 implementation — Master executes pending tasks serially as task-level TDD loops until all are complete; completing one task does not leave Phase 0.
-5. Step 4: Phase 1 verification — only after every pending task and Required Correction is complete, read \`.xirang/references/xirang-apply-step-4-phase1-verification.md\` and delegate to the clean-context \`xirang-reviewer\` agent for one change-level review of that completed Phase 0 state. A failed Review or Seal may return corrections to Phase 0; after those corrections are complete, the modified Change state requires another change-level Review.
-6. Step 5: Phase 2 optimization — read \`.xirang/references/xirang-apply-step-5-phase2-optimization.md\` and delegate to the clean-context \`xirang-optimizer\` agent when eligible.
-7. Step 6: Phase 3 seal — read \`.xirang/references/xirang-apply-step-6-phase3-seal.md\`.
-8. Step 7: Output — read \`.xirang/references/xirang-apply-step-7-output.md\`.
+2. Step 2: Isolation router — read the one method reference selected by Step 1; do not load mutually exclusive methods.
+3. Phase 0 implementation — Master executes pending tasks serially as task-level TDD loops until all are complete; completing one task does not leave Phase 0.
+4. Step 3: Phase 1 verification — only after every pending task and Required Correction is complete, read \`.xirang/references/xirang-apply-step-3-phase1-verification.md\` and delegate to the clean-context \`xirang-reviewer\` agent for one change-level review of that completed Phase 0 state. A failed Review or Seal may return corrections to Phase 0; after those corrections are complete, the modified Change state requires another change-level Review.
+5. Step 4: Phase 2 optimization — read \`.xirang/references/xirang-apply-step-4-phase2-optimization.md\` and delegate to the clean-context \`xirang-optimizer\` agent when eligible.
+6. Step 5: Phase 3 seal — read \`.xirang/references/xirang-apply-step-5-phase3-seal.md\`.
+7. Step 6: Output — read \`.xirang/references/xirang-apply-step-6-output.md\`.
 
 ## Implementation Discipline
 
@@ -183,14 +170,13 @@ When Phase 3 seal passes, end with an explicit call-to-action: \`Archive ready. 
     metadata: { author: 'xirang', version: '1.0' },
     referenceFiles: [
       { path: 'references/apply-step-1-preparation.md', content: APPLY_STEP_1_PREPARATION_REFERENCE },
-      { path: 'references/apply-step-2-preflight-scan.md', content: APPLY_STEP_2_PREFLIGHT_SCAN_REFERENCE },
-      { path: 'references/apply-step-3-branch-isolation.md', content: APPLY_STEP_3_BRANCH_ISOLATION_REFERENCE },
-      { path: 'references/apply-step-3-worktree-isolation.md', content: APPLY_STEP_3_WORKTREE_ISOLATION_REFERENCE },
-      { path: 'references/apply-step-3-current-branch.md', content: APPLY_STEP_3_CURRENT_BRANCH_REFERENCE },
-      { path: 'references/apply-step-4-phase1-verification.md', content: APPLY_STEP_4_PHASE1_VERIFICATION_REFERENCE },
-      { path: 'references/apply-step-5-phase2-optimization.md', content: APPLY_STEP_5_PHASE2_OPTIMIZATION_REFERENCE },
-      { path: 'references/apply-step-6-phase3-seal.md', content: APPLY_STEP_6_PHASE3_SEAL_REFERENCE },
-      { path: 'references/apply-step-7-output.md', content: APPLY_STEP_7_OUTPUT_REFERENCE },
+      { path: 'references/apply-step-2-branch-isolation.md', content: APPLY_STEP_2_BRANCH_ISOLATION_REFERENCE },
+      { path: 'references/apply-step-2-worktree-isolation.md', content: APPLY_STEP_2_WORKTREE_ISOLATION_REFERENCE },
+      { path: 'references/apply-step-2-current-branch.md', content: APPLY_STEP_2_CURRENT_BRANCH_REFERENCE },
+      { path: 'references/apply-step-3-phase1-verification.md', content: APPLY_STEP_3_PHASE1_VERIFICATION_REFERENCE },
+      { path: 'references/apply-step-4-phase2-optimization.md', content: APPLY_STEP_4_PHASE2_OPTIMIZATION_REFERENCE },
+      { path: 'references/apply-step-5-phase3-seal.md', content: APPLY_STEP_5_PHASE3_SEAL_REFERENCE },
+      { path: 'references/apply-step-6-output.md', content: APPLY_STEP_6_OUTPUT_REFERENCE },
     ],
   };
 }

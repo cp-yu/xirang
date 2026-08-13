@@ -1,0 +1,250 @@
+{
+  "timestamp": "2026-08-13T10:25:52.940Z",
+  "result": "PASS",
+  "issues": [
+    {
+      "severity": "SUGGESTION",
+      "message": "ARCHITECTURE_POST_PROPOSE_VALIDATION export is unused (no importer) — pre-existing at baseline, content edited by this change; deferred per S3",
+      "requirement": null,
+      "task": null,
+      "recommendation": "后续 change 单独清理该死导出或接入调用方；本轮不阻塞",
+      "evidenceCitations": [
+        "src/core/templates/fragments/xirang-fragments.ts:140"
+      ]
+    }
+  ],
+  "tasksFileHash": "80f9a2bc1b8c2642a9ce50b6169042e5d52066f8d9de02987d49a9fe0275f1a3",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".pi/skills/xirang-apply-change/SKILL.md",
+      ".pi/skills/xirang-propose/SKILL.md",
+      ".xirang/changes/propose-gate-restructure/elements/post-propose-validation.md",
+      ".xirang/changes/propose-gate-restructure/elements/propose-workflow.md",
+      ".xirang/changes/propose-gate-restructure/elements/validation-commands.md",
+      ".xirang/changes/propose-gate-restructure/tasks.md",
+      ".xirang/references/xirang-apply-step-1-preparation.md",
+      "src/commands/validate.ts",
+      "src/core/artifact-graph/instruction-loader.ts",
+      "src/core/parsers/task-structure.ts",
+      "src/core/templates/fragments/xirang-fragments.ts",
+      "src/core/templates/workflows/apply-change.ts",
+      "src/core/templates/workflows/propose.ts",
+      "test/commands/validate.test.ts",
+      "test/core/parsers/task-structure.test.ts",
+      "test/core/templates/apply-change.test.ts",
+      "test/core/templates/propose-template.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts",
+      "test/core/workflow-installation.test.ts"
+    ],
+    "evidenceFingerprint": "00f2cbc68e7a0bceab36827c3cbfccd6d4e6aaa2f6604fa5fff5d1a427b758a3",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".pi/skills/xirang-apply-change/SKILL.md",
+        "hash": "0941f9133e5ae2e00c7b53e9ab22b123d8cb0d3ecfed3341f583ccc97f96eb7f"
+      },
+      {
+        "path": ".pi/skills/xirang-propose/SKILL.md",
+        "hash": "2124148231afe64f5bf1d6310fcbba69808bd508fa6227c23b78a357b60f0d8b"
+      },
+      {
+        "path": ".xirang/changes/propose-gate-restructure/elements/post-propose-validation.md",
+        "hash": "634dc22a153b05a61b3c1dd4730adba91dc651df7be6b45ec2ccf7a37f2af79d"
+      },
+      {
+        "path": ".xirang/changes/propose-gate-restructure/elements/propose-workflow.md",
+        "hash": "40ef34db6ea2190c08dc6196623df964916871a0fd117620c58db4b550c71601"
+      },
+      {
+        "path": ".xirang/changes/propose-gate-restructure/elements/validation-commands.md",
+        "hash": "83dee285dea81b40b8645951ce6c97b31b9a9c092ae6e0aae3a45810fc885ee0"
+      },
+      {
+        "path": ".xirang/changes/propose-gate-restructure/tasks.md",
+        "hash": "80f9a2bc1b8c2642a9ce50b6169042e5d52066f8d9de02987d49a9fe0275f1a3"
+      },
+      {
+        "path": ".xirang/references/xirang-apply-step-1-preparation.md",
+        "hash": "f37c8a891c1ba55f76b8b1dfc6c7e204e7c478bed7a34d4eac6bc7be50948e63"
+      },
+      {
+        "path": "src/commands/validate.ts",
+        "hash": "d61c5f840964ca741242f0aa56d2db9db2394a20228173c932585b6693780a71"
+      },
+      {
+        "path": "src/core/artifact-graph/instruction-loader.ts",
+        "hash": "1340874f6075520d64aede203cb9a6c4b29a141a79f20dcbac005c841f1a892c"
+      },
+      {
+        "path": "src/core/parsers/task-structure.ts",
+        "hash": "eafffe5369de411edb54e12c55606d778d291dc14e2e434dd612e5d2ebc48185"
+      },
+      {
+        "path": "src/core/templates/fragments/xirang-fragments.ts",
+        "hash": "97b15f9963034f023bc0e63ae86ce08d2fbfdbaf2121396a3df24e632ad6e423"
+      },
+      {
+        "path": "src/core/templates/workflows/apply-change.ts",
+        "hash": "4b84fc4c913d536f2ee60635879795faa27f28f2c173a78049e9d306e2d621ca"
+      },
+      {
+        "path": "src/core/templates/workflows/propose.ts",
+        "hash": "f6ec486bac4e6f8c7a45b9a389380e256a1a0a5bbac38c0f897680a58af6cc1d"
+      },
+      {
+        "path": "test/commands/validate.test.ts",
+        "hash": "e80dd6f0d852fb8b74b62f5fdcfc414651d3606416a1a499a0d1e4b625e046d8"
+      },
+      {
+        "path": "test/core/parsers/task-structure.test.ts",
+        "hash": "bf04d7232d8b440b75654dd691a04ab58f6e814ba69629b7bd01dda64e216cbe"
+      },
+      {
+        "path": "test/core/templates/apply-change.test.ts",
+        "hash": "3e50e0242fc9e1ca5ad28ecbad8309dd1bba74a4df8d2aaff8794b9e7414cd29"
+      },
+      {
+        "path": "test/core/templates/propose-template.test.ts",
+        "hash": "5c70219341e1552ee6741d73fef8069dd505dda5313b619bddd53846f742b380"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "3497a5fb2527fa78a47bddeb2803af725026c502bc9db024eef2b0a98e450332"
+      },
+      {
+        "path": "test/core/workflow-installation.test.ts",
+        "hash": "a4ff1bbbb1dc78b3720a3f967ed9b4d1cb72113884a18a4d96eae58cee392344"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "887cc50c81d6991180f5d05bddef379da3c3e8c9",
+    "gitDiffSummary": "baseCommit 887cc50c==HEAD，scope=git diff HEAD --name-status(38 files)+git status --short(2 untracked change artifacts)。覆盖: Task1 validate 接线与 task-structure 检测; Task2 apply 流程/references 重排+删除 preflight; Task3 propose 收尾门禁与 fragment; Task4 术语统一与生成面再生成。验证命令: pnpm vitest run(5 文件,110 用例全绿)、pnpm build、node bin/xirang.js validate/arch validate --change --json(均通过)、grep 残留扫描(src/.pi/.xirang 全空)、临时 fixture e2e 后删除。"
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-08-13T10:25:52.940Z",
+      "result": "PASS",
+      "issues": [
+        {
+          "severity": "SUGGESTION",
+          "message": "ARCHITECTURE_POST_PROPOSE_VALIDATION export is unused (no importer) — pre-existing at baseline, content edited by this change; deferred per S3",
+          "requirement": null,
+          "task": null,
+          "recommendation": "后续 change 单独清理该死导出或接入调用方；本轮不阻塞",
+          "evidenceCitations": [
+            "src/core/templates/fragments/xirang-fragments.ts:140"
+          ]
+        }
+      ],
+      "tasksFileHash": "80f9a2bc1b8c2642a9ce50b6169042e5d52066f8d9de02987d49a9fe0275f1a3",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".pi/skills/xirang-apply-change/SKILL.md",
+          ".pi/skills/xirang-propose/SKILL.md",
+          ".xirang/changes/propose-gate-restructure/elements/post-propose-validation.md",
+          ".xirang/changes/propose-gate-restructure/elements/propose-workflow.md",
+          ".xirang/changes/propose-gate-restructure/elements/validation-commands.md",
+          ".xirang/changes/propose-gate-restructure/tasks.md",
+          ".xirang/references/xirang-apply-step-1-preparation.md",
+          "src/commands/validate.ts",
+          "src/core/artifact-graph/instruction-loader.ts",
+          "src/core/parsers/task-structure.ts",
+          "src/core/templates/fragments/xirang-fragments.ts",
+          "src/core/templates/workflows/apply-change.ts",
+          "src/core/templates/workflows/propose.ts",
+          "test/commands/validate.test.ts",
+          "test/core/parsers/task-structure.test.ts",
+          "test/core/templates/apply-change.test.ts",
+          "test/core/templates/propose-template.test.ts",
+          "test/core/templates/skill-templates-parity.test.ts",
+          "test/core/workflow-installation.test.ts"
+        ],
+        "evidenceFingerprint": "00f2cbc68e7a0bceab36827c3cbfccd6d4e6aaa2f6604fa5fff5d1a427b758a3",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".pi/skills/xirang-apply-change/SKILL.md",
+            "hash": "0941f9133e5ae2e00c7b53e9ab22b123d8cb0d3ecfed3341f583ccc97f96eb7f"
+          },
+          {
+            "path": ".pi/skills/xirang-propose/SKILL.md",
+            "hash": "2124148231afe64f5bf1d6310fcbba69808bd508fa6227c23b78a357b60f0d8b"
+          },
+          {
+            "path": ".xirang/changes/propose-gate-restructure/elements/post-propose-validation.md",
+            "hash": "634dc22a153b05a61b3c1dd4730adba91dc651df7be6b45ec2ccf7a37f2af79d"
+          },
+          {
+            "path": ".xirang/changes/propose-gate-restructure/elements/propose-workflow.md",
+            "hash": "40ef34db6ea2190c08dc6196623df964916871a0fd117620c58db4b550c71601"
+          },
+          {
+            "path": ".xirang/changes/propose-gate-restructure/elements/validation-commands.md",
+            "hash": "83dee285dea81b40b8645951ce6c97b31b9a9c092ae6e0aae3a45810fc885ee0"
+          },
+          {
+            "path": ".xirang/changes/propose-gate-restructure/tasks.md",
+            "hash": "80f9a2bc1b8c2642a9ce50b6169042e5d52066f8d9de02987d49a9fe0275f1a3"
+          },
+          {
+            "path": ".xirang/references/xirang-apply-step-1-preparation.md",
+            "hash": "f37c8a891c1ba55f76b8b1dfc6c7e204e7c478bed7a34d4eac6bc7be50948e63"
+          },
+          {
+            "path": "src/commands/validate.ts",
+            "hash": "d61c5f840964ca741242f0aa56d2db9db2394a20228173c932585b6693780a71"
+          },
+          {
+            "path": "src/core/artifact-graph/instruction-loader.ts",
+            "hash": "1340874f6075520d64aede203cb9a6c4b29a141a79f20dcbac005c841f1a892c"
+          },
+          {
+            "path": "src/core/parsers/task-structure.ts",
+            "hash": "eafffe5369de411edb54e12c55606d778d291dc14e2e434dd612e5d2ebc48185"
+          },
+          {
+            "path": "src/core/templates/fragments/xirang-fragments.ts",
+            "hash": "97b15f9963034f023bc0e63ae86ce08d2fbfdbaf2121396a3df24e632ad6e423"
+          },
+          {
+            "path": "src/core/templates/workflows/apply-change.ts",
+            "hash": "4b84fc4c913d536f2ee60635879795faa27f28f2c173a78049e9d306e2d621ca"
+          },
+          {
+            "path": "src/core/templates/workflows/propose.ts",
+            "hash": "f6ec486bac4e6f8c7a45b9a389380e256a1a0a5bbac38c0f897680a58af6cc1d"
+          },
+          {
+            "path": "test/commands/validate.test.ts",
+            "hash": "e80dd6f0d852fb8b74b62f5fdcfc414651d3606416a1a499a0d1e4b625e046d8"
+          },
+          {
+            "path": "test/core/parsers/task-structure.test.ts",
+            "hash": "bf04d7232d8b440b75654dd691a04ab58f6e814ba69629b7bd01dda64e216cbe"
+          },
+          {
+            "path": "test/core/templates/apply-change.test.ts",
+            "hash": "3e50e0242fc9e1ca5ad28ecbad8309dd1bba74a4df8d2aaff8794b9e7414cd29"
+          },
+          {
+            "path": "test/core/templates/propose-template.test.ts",
+            "hash": "5c70219341e1552ee6741d73fef8069dd505dda5313b619bddd53846f742b380"
+          },
+          {
+            "path": "test/core/templates/skill-templates-parity.test.ts",
+            "hash": "3497a5fb2527fa78a47bddeb2803af725026c502bc9db024eef2b0a98e450332"
+          },
+          {
+            "path": "test/core/workflow-installation.test.ts",
+            "hash": "a4ff1bbbb1dc78b3720a3f967ed9b4d1cb72113884a18a4d96eae58cee392344"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "887cc50c81d6991180f5d05bddef379da3c3e8c9",
+        "gitDiffSummary": "baseCommit 887cc50c==HEAD，scope=git diff HEAD --name-status(38 files)+git status --short(2 untracked change artifacts)。覆盖: Task1 validate 接线与 task-structure 检测; Task2 apply 流程/references 重排+删除 preflight; Task3 propose 收尾门禁与 fragment; Task4 术语统一与生成面再生成。验证命令: pnpm vitest run(5 文件,110 用例全绿)、pnpm build、node bin/xirang.js validate/arch validate --change --json(均通过)、grep 残留扫描(src/.pi/.xirang 全空)、临时 fixture e2e 后删除。"
+      }
+    }
+  }
+}
