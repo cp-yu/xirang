@@ -2,5 +2,6 @@
   "method": "branch",
   "branchName": "remove-dead-post-propose-fragment",
   "originalBranch": "main",
-  "baseCommit": "a88a43cde0869a71b21ffe90771c4083a93e0f6a"
+  "baseCommit": "a88a43cde0869a71b21ffe90771c4083a93e0f6a",
+  "phase2BaselineCommit": "f3b4dbd792088db51f5eb863d36d32dd0ddc6b73"
 }

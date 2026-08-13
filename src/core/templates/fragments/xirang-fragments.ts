@@ -132,8 +132,6 @@ Every Markdown unit declares its own \`entity\` in frontmatter. The partition do
 - Use current code only as implementation evidence; it MUST NOT override the Xirang Semantic Model
 `.trim();
 
-
-
 /**
  * Fragment: Verify state machine diagram
  * Used in: apply-change

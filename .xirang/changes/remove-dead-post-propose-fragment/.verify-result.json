@@ -12,7 +12,7 @@
       "src/core/validation/validator.ts",
       "test/commands/validate.test.ts"
     ],
-    "evidenceFingerprint": "940993579661532991e9173684f4e559ece283cc33dd5ff13183f028d29ea323",
+    "evidenceFingerprint": "b079850dcae82527c888e337c9e153dc20517a67aafff1f3c73b9a095ddc965c",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/remove-dead-post-propose-fragment/elements/validation-commands.md",
@@ -24,7 +24,7 @@
       },
       {
         "path": "src/core/templates/fragments/xirang-fragments.ts",
-        "hash": "97b183b949e485ef9c819ac650d86f2a3a74cb32106517a77cfea110fb99ba93"
+        "hash": "489f5140cf40d24ffafca0bdec29e48389050bffa9f209365fb733b8194df47b"
       },
       {
         "path": "src/core/validation/validator.ts",
@@ -36,11 +36,23 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "a88a43cde0869a71b21ffe90771c4083a93e0f6a"
+    "gitHeadCommit": "f3b4dbd792088db51f5eb863d36d32dd0ddc6b73",
+    "timestamp": "2026-08-13T13:17:05.030Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-08-13T13:13:51.197Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-13T13:17:05.022Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-08-13T13:10:06.157Z",
       "result": "PASS",
@@ -81,6 +93,92 @@
         "skippedEvidenceFiles": [],
         "gitHeadCommit": "a88a43cde0869a71b21ffe90771c4083a93e0f6a"
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "src/core/templates/fragments/xirang-fragments.ts"
+          ],
+          "symbols": [
+            "(whitespace between ARCHITECTURE_GENERATE_DELTA and VERIFY_STATE_MACHINE_DIAGRAM)"
+          ]
+        },
+        "opportunity": "Deleting ARCHITECTURE_POST_PROPOSE_VALIDATION left its separator blank lines behind: lines 134-136 of xirang-fragments.ts now hold three consecutive blank lines between ARCHITECTURE_GENERATE_DELTA's closing `.trim();` (line 133) and the `/** Fragment: Verify state machine diagram` comment (line 137), while every other fragment export in the file is separated by exactly one blank line. The dead-code removal this change exists to perform is incomplete by one line.",
+        "impact": "Completes the cleanup with zero behavior change: the blank lines sit between template literals, outside any string, and each fragment is an independently `.trim()`'d constant, so generated skill output, parity hashes, and CLI output are unaffected. Restores the file's uniform single-blank-line separator style (11 of 11 other separators use exactly one blank line).",
+        "evidence": [
+          "sed -n '130,140p' src/core/templates/fragments/xirang-fragments.ts | cat -A shows `.trim();` followed by three `$`-only lines before `/**` (lines 134, 135, 136 blank)",
+          "same check at the file's other 11 fragment boundaries (e.g. lines 103-105, 161-163) shows exactly one blank line between `.trim();` and the next `/**`",
+          "git diff baseCommit...HEAD hunk for xirang-fragments.ts shows the removed 21-line block was flanked by blank lines that survived the deletion"
+        ],
+        "recommendation": "Delete two of the three blank lines at src/core/templates/fragments/xirang-fragments.ts:134-136 so exactly one blank line separates the ARCHITECTURE_GENERATE_DELTA export from the VERIFY_STATE_MACHINE_DIAGRAM comment, matching the file's existing style. Do not touch any template literal content.",
+        "keyDesign": "Keep the file's invariant: exactly one blank line between any two fragment exports, with template literal bodies byte-identical. The change is a single-line deletion in the base scope file, verified by the existing parity test.",
+        "preservationConstraints": [
+          "Template literal contents of every fragment must remain byte-identical (they are exported `.trim()` constants consumed by skill templates)",
+          "Generated skill output and skill-templates-parity hashes must stay unchanged",
+          "No other line in the file may change; VERIFY_SIMPLE_CHANGE_FAST_PATH and all other exports untouched",
+          "Observable CLI behavior, Element Contracts, and the Semantic Delta (elements/validation-commands.md) untouched"
+        ],
+        "implementationOutline": [
+          "In src/core/templates/fragments/xirang-fragments.ts, remove two of the three blank lines (134-136) between `.trim();` (133) and `/**` (137)",
+          "Run `git diff -- src/core/templates/fragments/xirang-fragments.ts` and confirm the diff is exactly 2 deleted blank lines",
+          "Run `npx vitest run test/core/templates/skill-templates-parity.test.ts` and `npx vitest run test/commands/validate.test.ts` to confirm parity hashes and validate behavior unchanged"
+        ],
+        "validation": [
+          "skill-templates-parity.test.ts (4/4): proves generated skill output and parity hashes are unchanged by the whitespace collapse",
+          "validate.test.ts (25/25): proves no behavioral regression in the change validation path touched by this change",
+          "git diff: proves the implementation touched exactly the two blank lines and nothing else"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "This is the only finding that survived the admission gates. It ranks ahead of excluded candidates (parallelizing the two fs checks in validator.ts:113, tightening declaresExplicitNoDelta to isFile(), extending GUIDE_NO_DELTAS text, cleaning other dead exports) because it is the only one with (a) actual benefit — completing this change's own dead-code removal, (b) static evidence visible in the current file, and (c) fully closable preservation constraints. The excluded candidates fail admission: the fs.stat directory-name edge is literally permitted by the Requirement's wording ('change 目录存在 .delta-noop'), GUIDE_NO_DELTAS changes observable CLI output in a file (constants.ts) outside base scope, parallelization has no measurable benefit on a cold validation path, and other dead exports are an explicit design non-goal. Cost is a single-line deletion verified by the existing parity suite.",
+        "id": "OPT-20260813T131351193Z-01",
+        "targetFileHashes": {
+          "src/core/templates/fragments/xirang-fragments.ts": "97b183b949e485ef9c819ac650d86f2a3a74cb32106517a77cfea110fb99ba93"
+        }
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-13T13:13:51.194Z",
+        "findingId": "OPT-20260813T131351193Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "select",
+        "reason": "This is the only finding that survived the admission gates. It ranks ahead of excluded candidates (parallelizing the two fs checks in validator.ts:113, tightening declaresExplicitNoDelta to isFile(), extending GUIDE_NO_DELTAS text, cleaning other dead exports) because it is the only one with (a) actual benefit — completing this change's own dead-code removal, (b) static evidence visible in the current file, and (c) fully closable preservation constraints. The excluded candidates fail admission: the fs.stat directory-name edge is literally permitted by the Requirement's wording ('change 目录存在 .delta-noop'), GUIDE_NO_DELTAS changes observable CLI output in a file (constants.ts) outside base scope, parallelization has no measurable benefit on a cold validation path, and other dead exports are an explicit design non-goal. Cost is a single-line deletion verified by the existing parity suite.",
+        "timestamp": "2026-08-13T13:13:51.197Z",
+        "findingId": "OPT-20260813T131351193Z-01",
+        "hashes": {
+          "src/core/templates/fragments/xirang-fragments.ts": "97b183b949e485ef9c819ac650d86f2a3a74cb32106517a77cfea110fb99ba93"
+        }
+      },
+      {
+        "sequence": 3,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-13T13:14:04.488Z",
+        "findingId": "OPT-20260813T131351193Z-01",
+        "hashes": {
+          "src/core/templates/fragments/xirang-fragments.ts": "97b183b949e485ef9c819ac650d86f2a3a74cb32106517a77cfea110fb99ba93"
+        }
+      },
+      {
+        "sequence": 4,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-13T13:17:05.022Z",
+        "findingId": "OPT-20260813T131351193Z-01"
+      }
+    ],
+    "reconciliationSignature": "9ca73c5f11a3e842f5b244e8a50607b5ff0abc9057bfb144e5b4da36ffb02f5d",
+    "unchangedReconciliations": 0
   }
 }
