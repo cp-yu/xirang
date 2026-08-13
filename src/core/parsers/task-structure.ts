@@ -418,20 +418,14 @@ function parseVerifies(value: string): { elementPath: string; requirement: strin
     return { elementPath, requirement, scenarios: [], isRemoved: true };
   }
 
-  const requirementMatch = value.match(REQUIREMENT_RE);
-  const requirement = requirementMatch?.[1]?.trim();
-  const remainder = requirementMatch ? value.slice(requirementMatch.index! + requirementMatch[0].length) : value;
-  const scenarioText = remainder.match(SCENARIOS_RE)?.[1] ?? '';
-  const scenarios = [...scenarioText.matchAll(SCENARIO_NAME_RE)].map((match) => match[1].trim());
-
-  if (!elementPath || !requirement || scenarios.length === 0 || scenarios.some((scenario) => !scenario)) {
-    return undefined;
-  }
-
-  return { elementPath, requirement, scenarios };
+  return parseAnchorReference(value);
 }
 
 function parsePreserves(value: string): { elementPath: string; requirement: string; scenarios: string[] } | undefined {
+  return parseAnchorReference(value);
+}
+
+function parseAnchorReference(value: string): { elementPath: string; requirement: string; scenarios: string[] } | undefined {
   const elementPath = value.match(ELEMENT_PATH_RE)?.[1]?.trim();
   const requirementMatch = value.match(REQUIREMENT_RE);
   const requirement = requirementMatch?.[1]?.trim();
