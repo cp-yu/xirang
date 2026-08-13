@@ -143,7 +143,7 @@
     "timestamp": "2026-08-13T19:28:24.255Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
         "timestamp": "2026-08-13T18:39:54.472Z",
@@ -174,6 +174,11 @@
         "timestamp": "2026-08-13T19:28:24.242Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-13T19:34:06.925Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
@@ -480,7 +485,7 @@
         "id": "OPT-20260813T190423583Z-01"
       },
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "test/e2e/semantic-browser-model-view.spec.ts"
@@ -521,10 +526,7 @@
         "cost": "low",
         "dependencies": [],
         "priorityReason": "Sole remaining actionable work: both pending findings are test-only sleeps in one spec validated by one Playwright command.",
-        "id": "OPT-20260813T191855776Z-01",
-        "targetFileHashes": {
-          "test/e2e/semantic-browser-model-view.spec.ts": "ff8f2ae68b6bec9f29a8cf87256acdfaed083a8612d7adb3c57e4026d41ecdac"
-        }
+        "id": "OPT-20260813T191855776Z-01"
       }
     ],
     "history": [
@@ -675,9 +677,16 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-13T19:28:24.242Z",
         "findingId": "OPT-20260813T191855776Z-01"
+      },
+      {
+        "sequence": 19,
+        "action": "resolve",
+        "reason": "Verified implementation committed at checkpoint bb04b7766: all four fixed sleeps removed/replaced with selected-state assertions; fresh reviewer verification PASS; playwright desktop+mobile green. Terminal.",
+        "timestamp": "2026-08-13T19:34:06.925Z",
+        "findingId": "OPT-20260813T191855776Z-01"
       }
     ],
-    "reconciliationSignature": "3e86b58fdaebf6ab9806197de50b0e5c234f6d582e292a85f9aacef8657ea21b",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }
