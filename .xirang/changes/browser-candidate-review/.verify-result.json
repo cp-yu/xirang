@@ -196,7 +196,7 @@
     "timestamp": "2026-08-14T12:07:48.017Z"
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
+    "status": "IMPROVED",
     "attempts": [
       {
         "timestamp": "2026-08-14T10:27:49.622Z",
@@ -232,6 +232,11 @@
         "timestamp": "2026-08-14T12:07:48.004Z",
         "type": "verification",
         "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-14T12:23:26.121Z",
+        "type": "optimization",
+        "status": "NO_OPTIMIZATION_NEEDED"
       }
     ],
     "baseline": {
@@ -582,6 +587,7 @@
       {
         "id": "OPT-20260814T102749617Z-04",
         "status": "deferred",
+        "title": null,
         "location": {
           "files": [
             "likec4/packages/vite-plugin/src/plugin.ts"
@@ -594,6 +600,9 @@
         },
         "opportunity": "plugin.ts sourceEntries lists candidateDiff only as [sourceFingerprint, likec4Sources] (plugin.ts:396-405); the union pair [diffSourceFingerprint, diffLikec4Sources] that handleProjection loads for candidate-diff (xirang-projection-handler.ts:255-260) is never prewarmed and is evicted from the base-model cache on every manifest refresh because the retention set is derived from sourceEntries (plugin.ts:438-447). Changes' diff pairs already get both treatments (plugin.ts:402).",
         "impact": "Removes the cold parse+layout of the before-after union on the first candidate-diff request after server start or after any manifest refresh; benefit only materializes when the user opens Candidate Diff, so it is workload-dependent.",
+        "recommendation": "Add `[manifest.candidateDiff?.diffSourceFingerprint, manifest.candidateDiff?.diffLikec4Sources] as const` to sourceEntries so the union sources are prewarmed and retained exactly like change-derived diff sources. plugin.ts is outside this change's base scope, so this must ride a follow-up change.",
+        "keyDesign": "Mirror the existing change pair (plugin.ts:402): same tuple shape, same filter that drops missing fingerprints/sources, no new cache semantics.",
+        "priorityReason": "Real but workload-dependent cold-start cost on a scope-outside file (plugin.ts is not in the base scope of this change); per the decision rules workload-dependent items are deferred and scope-outside opportunities are reported as deferred.",
         "evidence": [
           "likec4/packages/vite-plugin/src/plugin.ts:396-405 sourceEntries includes changes' diffSourceFingerprint/diffLikec4Sources but not candidateDiff's",
           "likec4/packages/vite-plugin/src/plugin.ts:408 prewarmManifest prewarms only sourceEntries pairs",
@@ -601,8 +610,6 @@
           "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:255-260 projectionSource uses source.diffSourceFingerprint + source.diffLikec4Sources for candidate-diff",
           "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts:8,15 XirangContractSourceSnapshot already types both fields, so the fix is one tuple"
         ],
-        "recommendation": "Add `[manifest.candidateDiff?.diffSourceFingerprint, manifest.candidateDiff?.diffLikec4Sources] as const` to sourceEntries so the union sources are prewarmed and retained exactly like change-derived diff sources. plugin.ts is outside this change's base scope, so this must ride a follow-up change.",
-        "keyDesign": "Mirror the existing change pair (plugin.ts:402): same tuple shape, same filter that drops missing fingerprints/sources, no new cache semantics.",
         "preservationConstraints": [
           "The filter `!!entry[0] && !!entry[1]` already drops candidateDiff manifests without union sources (invalid candidate, formal-absent baseline)",
           "Prewarming only parses the union sources; layout still happens per projection request",
@@ -617,16 +624,16 @@
           "cd likec4 && pnpm --filter @likec4/vite-plugin typecheck",
           "cd likec4 && pnpm --filter @likec4/vite-plugin exec vitest run --no-isolate src/xirang/xirang-projection-handler.spec.ts"
         ],
+        "dependencies": [],
         "impactLevel": "low",
         "confidence": "high",
         "risk": "low",
-        "cost": "low",
-        "dependencies": [],
-        "priorityReason": "Real but workload-dependent cold-start cost on a scope-outside file (plugin.ts is not in the base scope of this change); per the decision rules workload-dependent items are deferred and scope-outside opportunities are reported as deferred."
+        "cost": "low"
       },
       {
         "id": "OPT-20260814T102749617Z-05",
         "status": "deferred",
+        "title": null,
         "location": {
           "files": [
             "src/core/view.ts"
@@ -637,13 +644,14 @@
         },
         "opportunity": "buildCandidateSources unconditionally materializes the Candidate Diff union on every snapshot build: unionSemanticModels + projectBrowserArchitecture(unionModel) + partitionFingerprints(unionModel) (a JSON.stringify of the whole union model) + runtimeLikeC4(unionModel) (full LikeC4 source text generation), even when the user never opens Candidate Diff. The manifest JSON written on every refresh then carries the union LikeC4 text alongside the candidate text.",
         "impact": "Skipping or lazily generating the union would cut per-refresh CPU and manifest size for large models; the benefit scales with model size and candidate-edit frequency and depends on whether Candidate Diff is opened, so it is workload-dependent.",
+        "recommendation": "Do not change now. A follow-up change could generate diffLikec4Sources lazily (e.g., a manifest-driven on-demand endpoint or separate snapshot section built only when candidate-diff is first requested), after profiling real model sizes and refresh rates.",
+        "keyDesign": "On-demand union materialization scoped to candidate-diff projection requests, with the current eager output kept as the correctness fallback.",
+        "priorityReason": "The waste is statically provable but the benefit is proportional to model size, refresh frequency, and whether Candidate Diff is opened at all; per the decision rules it is deferred, and its redesign cost (cross-package lazy delivery) exceeds the current-round budget.",
         "evidence": [
           "src/core/view.ts:323-338 union computation plus runtimeLikeC4(unionModel, 'diffLikec4Sources', 'diffLikec4ElementPaths') runs whenever result.valid && unionModel, before any projection request",
           "src/core/view.ts:512 writeViewRuntimeSnapshot JSON-serializes the whole snapshot including the union LikeC4 text on every refresh",
           "Lazy delivery would require the projection handler or manifest protocol to request union sources on demand, crossing the core/vite-plugin package boundary"
         ],
-        "recommendation": "Do not change now. A follow-up change could generate diffLikec4Sources lazily (e.g., a manifest-driven on-demand endpoint or separate snapshot section built only when candidate-diff is first requested), after profiling real model sizes and refresh rates.",
-        "keyDesign": "On-demand union materialization scoped to candidate-diff projection requests, with the current eager output kept as the correctness fallback.",
         "preservationConstraints": [
           "diffSourceFingerprint, diffArchitecture, diffLikec4Sources, and diffLikec4ElementPaths must remain present and identical whenever Candidate Diff is requested",
           "The removed-ghost fallback to candidate-only target sources must keep working"
@@ -657,12 +665,11 @@
           "pnpm exec vitest run test/core/view.test.ts",
           "pnpm exec playwright test test/e2e/semantic-browser-candidate-views.spec.ts --project=desktop --project=mobile"
         ],
+        "dependencies": [],
         "impactLevel": "low",
         "confidence": "high",
         "risk": "low",
-        "cost": "medium",
-        "dependencies": [],
-        "priorityReason": "The waste is statically provable but the benefit is proportional to model size, refresh frequency, and whether Candidate Diff is opened at all; per the decision rules it is deferred, and its redesign cost (cross-package lazy delivery) exceeds the current-round budget."
+        "cost": "medium"
       },
       {
         "status": "invalidated",
@@ -742,6 +749,7 @@
       {
         "id": "OPT-20260814T113734969Z-01",
         "status": "deferred",
+        "title": null,
         "location": {
           "files": [
             "src/core/candidate/validator.ts",
@@ -754,6 +762,9 @@
         },
         "opportunity": "Per snapshot build the Candidate is still parsed twice and the formal Semantic Model a second time: validateCandidateSnapshot re-reads and parses all four formal partitions inside the validator (validator.ts:329-341 readModelTree + parseSemanticModelFiles) even though buildViewRuntimeSnapshot already hoisted one formal parse (view.ts:402, OPT-01 verified), and the validator parses the candidate partitions for validation (validator.ts:277,316) without surfacing the parsed model, forcing buildCandidateSources to parse the same candidate files again from snapshot.files (view.ts:313-316). Two formal plus two candidate whole-model parses remain per snapshot build.",
         "impact": "Removes one four-partition formal parse and one candidate parse from every `xirang view` launch and every 75ms-debounced watcher refresh; the duplicate work is unconditional. The fix surface is the validator API (accept a pre-parsed formal base and expose the parsed candidate model), which lives outside this change's base scope.",
+        "recommendation": "Do not change in this round (validator.ts is outside this change's base scope). Follow-up change: let validateCandidateSnapshot accept an optional pre-parsed formal base (options.base) and return the parsed candidate model in the snapshot, so buildViewRuntimeSnapshot threads the hoisted formal into the validator and buildCandidateSources reuses the parsed candidate model.",
+        "keyDesign": "Threaded-model contract: validateCandidateSnapshot(projectRoot, { base?: ParsedModel }) skips its internal readModelTree/parse when base is supplied; CandidateSnapshotValidation.snapshot carries the parsed candidate model so buildCandidateSources drops its own parseSemanticModelFiles call. Fingerprints, diff entries, diagnostics and the candidate validator index remain derived from the same in-memory models, byte-identical to today.",
+        "priorityReason": "Statically provable duplicate parse per snapshot build, but the required edit is in src/core/candidate/validator.ts outside this change's base scope, so it is recorded deferred per the scope rule; it logically builds on the OPT-01 hoist, which is now resolved.",
         "evidence": [
           "src/core/view.ts:402 hoisted `const formal = await readFormalSemanticModel(projectRoot)` (OPT-01 verified; grep shows exactly 1 in view.ts)",
           "src/core/candidate/validator.ts:329-341 readModelTree(modelRoot(projectRoot)) + parseSemanticModelFiles re-parses the same formal partitions per validateCandidateSnapshot call",
@@ -761,8 +772,6 @@
           "src/core/view.ts:310-316 buildCandidateSources calls validateCandidateSnapshot then parses the identical candidate partition files from snapshot.files",
           "src/core/candidate/promotion.ts:28,208 validateCandidateSnapshot is also called by promotion, so the existing no-options signature must keep working"
         ],
-        "recommendation": "Do not change in this round (validator.ts is outside this change's base scope). Follow-up change: let validateCandidateSnapshot accept an optional pre-parsed formal base (options.base) and return the parsed candidate model in the snapshot, so buildViewRuntimeSnapshot threads the hoisted formal into the validator and buildCandidateSources reuses the parsed candidate model.",
-        "keyDesign": "Threaded-model contract: validateCandidateSnapshot(projectRoot, { base?: ParsedModel }) skips its internal readModelTree/parse when base is supplied; CandidateSnapshotValidation.snapshot carries the parsed candidate model so buildCandidateSources drops its own parseSemanticModelFiles call. Fingerprints, diff entries, diagnostics and the candidate validator index remain derived from the same in-memory models, byte-identical to today.",
         "preservationConstraints": [
           "Validation diagnostics and comparison (baseline 'formal'/'absent', formalFingerprint, diff entries) are derived from the same parsed models and stay identical",
           "Promotion and any other validateCandidateSnapshot callers keep the no-options signature with identical output",
@@ -779,17 +788,18 @@
           "candidate validator spec suite — diagnostics and comparison identical with and without base",
           "grep readModelTree in the view snapshot path shows the validator skips the formal read when base is supplied"
         ],
-        "impactLevel": "low",
-        "confidence": "high",
-        "risk": "low",
-        "cost": "medium",
         "dependencies": [
           "OPT-20260814T102749617Z-01"
         ],
-        "priorityReason": "Statically provable duplicate parse per snapshot build, but the required edit is in src/core/candidate/validator.ts outside this change's base scope, so it is recorded deferred per the scope rule; it logically builds on the OPT-01 hoist, which is now resolved."
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "medium"
       },
       {
-        "status": "verified",
+        "id": "OPT-20260814T115130899Z-01",
+        "status": "resolved",
+        "title": null,
         "location": {
           "files": [
             "src/core/view.ts"
@@ -801,6 +811,9 @@
         },
         "opportunity": "buildCandidateSources derives the candidate model's LikeC4 runtime sources twice per snapshot build: runtimeLikeC4(candidateModel.model) runs at view.ts:347 (spread into candidate.likec4Sources/likec4ElementPaths) and again at view.ts:367 (spread into candidateDiff.likec4Sources/likec4ElementPaths) with identical input and identical default keys. Each call re-runs deriveLocalNames, generateLikeC4 (full LikeC4 source text generation) and the element path map over the same immutable candidateModel. The sibling derivations (projectBrowserArchitecture, partitionFingerprints, projectContracts) are already computed once and shared between the two sections, so the duplicate generation is an oversight, not a design.",
         "impact": "Halves candidate LikeC4 source generation on every `xirang view` launch and every 75ms-debounced watcher refresh when a candidate exists; the saving scales with candidate model size (Edera candidate: 84 nodes / 685 diff entries). Output is provably identical: same pure function, same argument, both spreads guarded by the same result.valid.",
+        "recommendation": "In buildCandidateSources, hoist `const candidateRuntime = result.valid ? runtimeLikeC4(candidateModel.model) : null` and spread it at both sites (`...(candidateRuntime ? { ...candidateRuntime } : {})`). No consumer-facing field, key name, or serialization order changes.",
+        "keyDesign": "One runtimeLikeC4 derivation per snapshot build for the candidate model, following the existing architecture/fingerprints/contracts share-once pattern. The manifest JSON still carries both candidate.likec4Sources and candidateDiff.likec4Sources sections with unchanged shape; only the duplicate generation work disappears.",
+        "priorityReason": "Only new actionable finding: unconditional duplicate derivation inside base scope (src/core/view.ts) with provably identical output, ranking above the deferred items which are scope-outside (plugin.ts, validator.ts) or workload-dependent (eager union generation).",
         "evidence": [
           "src/core/view.ts:347 `...(result.valid ? { ...runtimeLikeC4(candidateModel.model) } : {})` in the candidate section",
           "src/core/view.ts:367 `...(result.valid ? { ...runtimeLikeC4(candidateModel.model) } : {})` in the candidateDiff section",
@@ -808,8 +821,6 @@
           "src/core/view.ts:312-317 candidateModel is a const parsed once and never mutated between the two call sites",
           "src/core/view.ts:340-346 architecture, fingerprints, and contracts are each computed once and spread into both sections, showing the share-once pattern the duplicate call breaks"
         ],
-        "recommendation": "In buildCandidateSources, hoist `const candidateRuntime = result.valid ? runtimeLikeC4(candidateModel.model) : null` and spread it at both sites (`...(candidateRuntime ? { ...candidateRuntime } : {})`). No consumer-facing field, key name, or serialization order changes.",
-        "keyDesign": "One runtimeLikeC4 derivation per snapshot build for the candidate model, following the existing architecture/fingerprints/contracts share-once pattern. The manifest JSON still carries both candidate.likec4Sources and candidateDiff.likec4Sources sections with unchanged shape; only the duplicate generation work disappears.",
         "preservationConstraints": [
           "Invalid candidates (result.valid === false) still produce no likec4Sources/likec4ElementPaths in either section, exactly as today: both spreads are guarded by result.valid and the hoisted call keeps the same guard",
           "candidate.likec4Sources/likec4ElementPaths and candidateDiff.likec4Sources/likec4ElementPaths keep identical content and key insertion order, so the serialized manifest is unchanged",
@@ -830,16 +841,11 @@
           "grep -c 'runtimeLikeC4(candidateModel.model)' src/core/view.ts returns exactly 1",
           "pnpm exec vitest run test/core/view-likec4-once.test.ts — 1/1; proves the duplicate derivation guard"
         ],
+        "dependencies": [],
         "impactLevel": "low",
         "confidence": "high",
         "risk": "low",
-        "cost": "low",
-        "dependencies": [],
-        "priorityReason": "Only new actionable finding: unconditional duplicate derivation inside base scope (src/core/view.ts) with provably identical output, ranking above the deferred items which are scope-outside (plugin.ts, validator.ts) or workload-dependent (eager union generation).",
-        "id": "OPT-20260814T115130899Z-01",
-        "targetFileHashes": {
-          "src/core/view.ts": "3185cd13e14c590608a48bff4a7d34accdd1a2c9bfd6f3cfafa7587b2ef7cfce"
-        }
+        "cost": "low"
       }
     ],
     "history": [
@@ -1089,9 +1095,37 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-14T12:07:48.004Z",
         "findingId": "OPT-20260814T115130899Z-01"
+      },
+      {
+        "sequence": 33,
+        "action": "resolve",
+        "reason": "Implementation confirmed in HEAD 709c0112c (wip: opt-r2). src/core/view.ts:323 hoists `const candidateRuntime = result.valid ? runtimeLikeC4(candidateModel.model) : null` exactly once and both the candidate (view.ts:349) and candidateDiff (view.ts:369) sections spread `...(candidateRuntime ? { ...candidateRuntime } : {})`; grep shows exactly one `runtimeLikeC4(candidateModel.model)` call site, the union derivation `runtimeLikeC4(unionModel, ...)` is a different input and correctly unshared, and the regression guard test/core/view-likec4-once.test.ts asserts exactly 3 generateLikeC4/deriveLocalNames calls per snapshot build. Fresh-reviewer verification PASS for all 5 preservation constraints is persisted at history sequence 32 (2026-08-14T12:07:48.004Z). The duplicate candidate LikeC4 derivation no longer exists; the opportunity is gone.",
+        "timestamp": "2026-08-14T12:23:26.121Z",
+        "findingId": "OPT-20260814T115130899Z-01"
+      },
+      {
+        "sequence": 34,
+        "action": "retain",
+        "reason": "Still deferred: likec4/packages/vite-plugin/src/plugin.ts:396-405 sourceEntries still lists candidateDiff only as [sourceFingerprint, likec4Sources] without the union pair [diffSourceFingerprint, diffLikec4Sources], so the union sources are neither prewarmed nor retained across manifest refreshes. plugin.ts has no diff in the base scope (git diff a18fe4802...HEAD --name-only), so it remains a scope-outside, workload-dependent follow-up.",
+        "timestamp": "2026-08-14T12:23:26.121Z",
+        "findingId": "OPT-20260814T102749617Z-04"
+      },
+      {
+        "sequence": 35,
+        "action": "retain",
+        "reason": "Still deferred: src/core/view.ts buildCandidateSources still eagerly materializes the Candidate Diff union (unionSemanticModels at view.ts:326-328 plus runtimeLikeC4(unionModel, 'diffLikec4Sources', 'diffLikec4ElementPaths') at view.ts:366 plus partitionFingerprints on the union) on every snapshot build regardless of whether Candidate Diff is ever opened. The benefit remains workload-dependent and the lazy-delivery redesign crosses the core/vite-plugin package boundary, so it stays a follow-up.",
+        "timestamp": "2026-08-14T12:23:26.121Z",
+        "findingId": "OPT-20260814T102749617Z-05"
+      },
+      {
+        "sequence": 36,
+        "action": "retain",
+        "reason": "Still deferred: src/core/view.ts:310 calls validateCandidateSnapshot(projectRoot) with no options.base, src/core/candidate/validator.ts:329-336 re-reads the formal four partitions via readModelTree + parseSemanticModelFiles on every snapshot build, and buildCandidateSources (view.ts:313-319) re-parses the candidate partition files from snapshot.files because the validator does not surface the parsed model. The fix surface (validator API) is outside this change's base scope. Its dependency OPT-20260814T102749617Z-01 is resolved, but the edit itself awaits a follow-up change.",
+        "timestamp": "2026-08-14T12:23:26.121Z",
+        "findingId": "OPT-20260814T113734969Z-01"
       }
     ],
-    "reconciliationSignature": "0a9d75ff7a1383a4078d96db1a89356cff4622254ac27a9f104f8b22dd51f97f",
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
 }
