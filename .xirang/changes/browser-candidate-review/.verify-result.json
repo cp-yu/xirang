@@ -79,7 +79,7 @@
       "test/fixtures/contract-browser/.xirang/candidate/relationships/invokes.yaml",
       "test/fixtures/contract-browser/.xirang/candidate/relationships/references.yaml"
     ],
-    "evidenceFingerprint": "3a889d14fc36582f7d1b46c466a0c9b9334c8dde79fdc02b8d387b01c91ba92b",
+    "evidenceFingerprint": "1341e4beda2c81c04922528a1ab74cadfdc0f3f8c6e90153442579a03ce19fc9",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/browser-candidate-review/design.md",
@@ -107,7 +107,7 @@
       },
       {
         "path": ".xirang/changes/browser-candidate-review/tasks.md",
-        "hash": "f96404674e3b27e30cb5c5c7e3d08267ed9498aef3470a0029d653f6d4bcac27"
+        "hash": "8044fbf7d9ba61f3d1475556ed6cdec3b541d838233505b7aa03839ece404daa"
       },
       {
         "path": "likec4/packages/diagram/src/likec4diagram/custom/edges/RelationshipEdge.tsx",
@@ -151,7 +151,7 @@
       },
       {
         "path": "src/core/view.ts",
-        "hash": "e5cd800993c5ed0a17ee6ead4319cfdf16db07f6c6df9cf55e8672c8e1682e58"
+        "hash": "3185cd13e14c590608a48bff4a7d34accdd1a2c9bfd6f3cfafa7587b2ef7cfce"
       },
       {
         "path": "test/core/view.test.ts",
@@ -191,9 +191,9 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "a17a83e4c36ef94e0b5ae9d6e9c167451052587f",
+    "gitHeadCommit": "7498cdd26bf1d2c571b0024066fbbd5968704ff8",
     "gitDiffSummary": "baseCommit a18fe4802 == HEAD (git cat-file -t: commit); git diff <base>...HEAD --name-only is empty; all evidence is uncommitted: 14 modified files + 7 untracked (6 fixture + .xirang/changes/). No residue of expandXirangRelationshipEdges or isInteractiveBrowserSource (multi-file grep empty). git diff --check clean. Commands run: vitest DiagramUI.spec 7/7, architectureView.spec+projectionNode.spec 29/29, projection-handler.spec 32/32, test/core/view.test.ts 33/33; typecheck @likec4/diagram + @likec4/vite-plugin clean; @likec4/spa + xirang-likec4 builds; playwright candidate-views desktop+mobile 10/10, model-view 'renders four-state diff visuals' 2/2, full regression desktop+mobile 45/45; arch outline/query/validate --change browser-candidate-review (no errors). Edera one-time probes: candidate manifest has 685 diff entries / 48 metamodel entries (16 element-kind, 22 relationship-kind, 10 authored-view), candidate baseline projection = 9 nodes, union layout fails (QueueGraphvizLayoter) and the deterministic candidate-only fallback engages (84 nodes, removed ghosts dropped as designed), 3 merged edges each carry 2 changed relationships.",
-    "timestamp": "2026-08-14T11:22:47.842Z"
+    "timestamp": "2026-08-14T12:07:48.017Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
@@ -205,6 +205,31 @@
       },
       {
         "timestamp": "2026-08-14T11:22:47.829Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-14T11:37:34.970Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-14T11:37:42.814Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-14T11:37:42.989Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-14T11:51:30.902Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-14T12:07:48.004Z",
         "type": "verification",
         "result": "PASS"
       }
@@ -408,7 +433,7 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "src/core/view.ts"
@@ -465,7 +490,8 @@
         }
       },
       {
-        "status": "implemented",
+        "id": "OPT-20260814T102749617Z-02",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
@@ -511,11 +537,11 @@
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "Outranks the test-hardening item below because it closes a visible spec-text-vs-render mismatch every candidate review session sees, while the next item only adds coverage for a path that already behaves correctly.",
-        "id": "OPT-20260814T102749617Z-02"
+        "priorityReason": "Outranks the test-hardening item below because it closes a visible spec-text-vs-render mismatch every candidate review session sees, while the next item only adds coverage for a path that already behaves correctly."
       },
       {
-        "status": "implemented",
+        "id": "OPT-20260814T102749617Z-03",
+        "status": "resolved",
         "location": {
           "files": [
             "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts"
@@ -551,10 +577,10 @@
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "Ranked after the glyph fix (visible behavior vs coverage-only) and before all deferred items; it is cheap, behavior-free, and closes a Phase 1 suggestion that guards a contract scenario this change explicitly introduces.",
-        "id": "OPT-20260814T102749617Z-03"
+        "priorityReason": "Ranked after the glyph fix (visible behavior vs coverage-only) and before all deferred items; it is cheap, behavior-free, and closes a Phase 1 suggestion that guards a contract scenario this change explicitly introduces."
       },
       {
+        "id": "OPT-20260814T102749617Z-04",
         "status": "deferred",
         "location": {
           "files": [
@@ -596,10 +622,10 @@
         "risk": "low",
         "cost": "low",
         "dependencies": [],
-        "priorityReason": "Real but workload-dependent cold-start cost on a scope-outside file (plugin.ts is not in the base scope of this change); per the decision rules workload-dependent items are deferred and scope-outside opportunities are reported as deferred.",
-        "id": "OPT-20260814T102749617Z-04"
+        "priorityReason": "Real but workload-dependent cold-start cost on a scope-outside file (plugin.ts is not in the base scope of this change); per the decision rules workload-dependent items are deferred and scope-outside opportunities are reported as deferred."
       },
       {
+        "id": "OPT-20260814T102749617Z-05",
         "status": "deferred",
         "location": {
           "files": [
@@ -636,11 +662,10 @@
         "risk": "low",
         "cost": "medium",
         "dependencies": [],
-        "priorityReason": "The waste is statically provable but the benefit is proportional to model size, refresh frequency, and whether Candidate Diff is opened at all; per the decision rules it is deferred, and its redesign cost (cross-package lazy delivery) exceeds the current-round budget.",
-        "id": "OPT-20260814T102749617Z-05"
+        "priorityReason": "The waste is statically provable but the benefit is proportional to model size, refresh frequency, and whether Candidate Diff is opened at all; per the decision rules it is deferred, and its redesign cost (cross-package lazy delivery) exceeds the current-round budget."
       },
       {
-        "status": "deferred",
+        "status": "invalidated",
         "location": {
           "files": [
             ".xirang/changes/browser-candidate-review/tasks.md",
@@ -679,7 +704,7 @@
         "id": "OPT-20260814T102749617Z-06"
       },
       {
-        "status": "deferred",
+        "status": "invalidated",
         "location": {
           "files": [
             ".xirang/changes/browser-candidate-review/tasks.md"
@@ -713,6 +738,108 @@
         "dependencies": [],
         "priorityReason": "Scope-outside scaffolding correction, deferred with the other Phase 1 issue records; keeps every non-terminal Phase 1 finding reconciled while respecting the optimizer's no-edit constraints.",
         "id": "OPT-20260814T102749617Z-07"
+      },
+      {
+        "id": "OPT-20260814T113734969Z-01",
+        "status": "deferred",
+        "location": {
+          "files": [
+            "src/core/candidate/validator.ts",
+            "src/core/view.ts"
+          ],
+          "symbols": [
+            "validateCandidateDirectory",
+            "buildCandidateSources"
+          ]
+        },
+        "opportunity": "Per snapshot build the Candidate is still parsed twice and the formal Semantic Model a second time: validateCandidateSnapshot re-reads and parses all four formal partitions inside the validator (validator.ts:329-341 readModelTree + parseSemanticModelFiles) even though buildViewRuntimeSnapshot already hoisted one formal parse (view.ts:402, OPT-01 verified), and the validator parses the candidate partitions for validation (validator.ts:277,316) without surfacing the parsed model, forcing buildCandidateSources to parse the same candidate files again from snapshot.files (view.ts:313-316). Two formal plus two candidate whole-model parses remain per snapshot build.",
+        "impact": "Removes one four-partition formal parse and one candidate parse from every `xirang view` launch and every 75ms-debounced watcher refresh; the duplicate work is unconditional. The fix surface is the validator API (accept a pre-parsed formal base and expose the parsed candidate model), which lives outside this change's base scope.",
+        "evidence": [
+          "src/core/view.ts:402 hoisted `const formal = await readFormalSemanticModel(projectRoot)` (OPT-01 verified; grep shows exactly 1 in view.ts)",
+          "src/core/candidate/validator.ts:329-341 readModelTree(modelRoot(projectRoot)) + parseSemanticModelFiles re-parses the same formal partitions per validateCandidateSnapshot call",
+          "src/core/candidate/validator.ts:277,316 parseCandidateSemanticModel parses the candidate partitions for validation without surfacing the ParsedModel",
+          "src/core/view.ts:310-316 buildCandidateSources calls validateCandidateSnapshot then parses the identical candidate partition files from snapshot.files",
+          "src/core/candidate/promotion.ts:28,208 validateCandidateSnapshot is also called by promotion, so the existing no-options signature must keep working"
+        ],
+        "recommendation": "Do not change in this round (validator.ts is outside this change's base scope). Follow-up change: let validateCandidateSnapshot accept an optional pre-parsed formal base (options.base) and return the parsed candidate model in the snapshot, so buildViewRuntimeSnapshot threads the hoisted formal into the validator and buildCandidateSources reuses the parsed candidate model.",
+        "keyDesign": "Threaded-model contract: validateCandidateSnapshot(projectRoot, { base?: ParsedModel }) skips its internal readModelTree/parse when base is supplied; CandidateSnapshotValidation.snapshot carries the parsed candidate model so buildCandidateSources drops its own parseSemanticModelFiles call. Fingerprints, diff entries, diagnostics and the candidate validator index remain derived from the same in-memory models, byte-identical to today.",
+        "preservationConstraints": [
+          "Validation diagnostics and comparison (baseline 'formal'/'absent', formalFingerprint, diff entries) are derived from the same parsed models and stay identical",
+          "Promotion and any other validateCandidateSnapshot callers keep the no-options signature with identical output",
+          "No observable snapshot/manifest field changes; only the parse count drops"
+        ],
+        "implementationOutline": [
+          "Extend validateCandidateSnapshot with optional options.base and a snapshot-carried parsed candidate model",
+          "Thread the hoisted formal from buildViewRuntimeSnapshot into the validator call",
+          "Replace parseSemanticModelFiles(snapshot.files) in buildCandidateSources with the returned parsed model",
+          "Run test/core/view.test.ts, candidate validator specs, and xirang arch validate --change browser-candidate-review"
+        ],
+        "validation": [
+          "pnpm exec vitest run test/core/view.test.ts test/core/view-parse-count.test.ts — snapshot content unchanged",
+          "candidate validator spec suite — diagnostics and comparison identical with and without base",
+          "grep readModelTree in the view snapshot path shows the validator skips the formal read when base is supplied"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "medium",
+        "dependencies": [
+          "OPT-20260814T102749617Z-01"
+        ],
+        "priorityReason": "Statically provable duplicate parse per snapshot build, but the required edit is in src/core/candidate/validator.ts outside this change's base scope, so it is recorded deferred per the scope rule; it logically builds on the OPT-01 hoist, which is now resolved."
+      },
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "src/core/view.ts"
+          ],
+          "symbols": [
+            "buildCandidateSources",
+            "runtimeLikeC4"
+          ]
+        },
+        "opportunity": "buildCandidateSources derives the candidate model's LikeC4 runtime sources twice per snapshot build: runtimeLikeC4(candidateModel.model) runs at view.ts:347 (spread into candidate.likec4Sources/likec4ElementPaths) and again at view.ts:367 (spread into candidateDiff.likec4Sources/likec4ElementPaths) with identical input and identical default keys. Each call re-runs deriveLocalNames, generateLikeC4 (full LikeC4 source text generation) and the element path map over the same immutable candidateModel. The sibling derivations (projectBrowserArchitecture, partitionFingerprints, projectContracts) are already computed once and shared between the two sections, so the duplicate generation is an oversight, not a design.",
+        "impact": "Halves candidate LikeC4 source generation on every `xirang view` launch and every 75ms-debounced watcher refresh when a candidate exists; the saving scales with candidate model size (Edera candidate: 84 nodes / 685 diff entries). Output is provably identical: same pure function, same argument, both spreads guarded by the same result.valid.",
+        "evidence": [
+          "src/core/view.ts:347 `...(result.valid ? { ...runtimeLikeC4(candidateModel.model) } : {})` in the candidate section",
+          "src/core/view.ts:367 `...(result.valid ? { ...runtimeLikeC4(candidateModel.model) } : {})` in the candidateDiff section",
+          "src/core/view.ts:68-77 runtimeLikeC4 is pure: deriveLocalNames(model.elements), Object.fromEntries(generateLikeC4(model)), and an element path map over the input model; no external state",
+          "src/core/view.ts:312-317 candidateModel is a const parsed once and never mutated between the two call sites",
+          "src/core/view.ts:340-346 architecture, fingerprints, and contracts are each computed once and spread into both sections, showing the share-once pattern the duplicate call breaks"
+        ],
+        "recommendation": "In buildCandidateSources, hoist `const candidateRuntime = result.valid ? runtimeLikeC4(candidateModel.model) : null` and spread it at both sites (`...(candidateRuntime ? { ...candidateRuntime } : {})`). No consumer-facing field, key name, or serialization order changes.",
+        "keyDesign": "One runtimeLikeC4 derivation per snapshot build for the candidate model, following the existing architecture/fingerprints/contracts share-once pattern. The manifest JSON still carries both candidate.likec4Sources and candidateDiff.likec4Sources sections with unchanged shape; only the duplicate generation work disappears.",
+        "preservationConstraints": [
+          "Invalid candidates (result.valid === false) still produce no likec4Sources/likec4ElementPaths in either section, exactly as today: both spreads are guarded by result.valid and the hoisted call keeps the same guard",
+          "candidate.likec4Sources/likec4ElementPaths and candidateDiff.likec4Sources/likec4ElementPaths keep identical content and key insertion order, so the serialized manifest is unchanged",
+          "The hoisted result object may be referenced by both snapshot sections; consumers (writeViewRuntimeSnapshot JSON.stringify, test assertions) only read and never mutate; a future consumer that mutates must clone",
+          "A runtimeLikeC4 failure still surfaces through the same try/catch as CANDIDATE_RUNTIME_FAILED and never reaches the snapshot",
+          "The onlyChange refresh path reuses the same shared derivation; snapshot outputs remain identical across refresh modes"
+        ],
+        "implementationOutline": [
+          "In buildCandidateSources, after computing candidateModel, add `const candidateRuntime = result.valid ? runtimeLikeC4(candidateModel.model) : null`",
+          "Replace both `...(result.valid ? { ...runtimeLikeC4(candidateModel.model) } : {})` spreads with `...(candidateRuntime ? { ...candidateRuntime } : {})`",
+          "Run test/core/view.test.ts (33 tests incl. candidate/candidateDiff source assertions), test/core/view-parse-count.test.ts, and pnpm build",
+          "Add regression guard test/core/view-likec4-once.test.ts asserting exactly 3 generateLikeC4 calls per snapshot build (fails with expected 3 got 4 against the pre-fix duplicate call)"
+        ],
+        "validation": [
+          "pnpm exec vitest run test/core/view.test.ts — 33/33; candidate and candidateDiff likec4Sources/likec4ElementPaths assertions prove output content unchanged",
+          "pnpm exec vitest run test/core/view-parse-count.test.ts — formal parse economy unchanged",
+          "pnpm build — compiles clean",
+          "grep -c 'runtimeLikeC4(candidateModel.model)' src/core/view.ts returns exactly 1",
+          "pnpm exec vitest run test/core/view-likec4-once.test.ts — 1/1; proves the duplicate derivation guard"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Only new actionable finding: unconditional duplicate derivation inside base scope (src/core/view.ts) with provably identical output, ranking above the deferred items which are scope-outside (plugin.ts, validator.ts) or workload-dependent (eager union generation).",
+        "id": "OPT-20260814T115130899Z-01",
+        "targetFileHashes": {
+          "src/core/view.ts": "3185cd13e14c590608a48bff4a7d34accdd1a2c9bfd6f3cfafa7587b2ef7cfce"
+        }
       }
     ],
     "history": [
@@ -823,9 +950,148 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-14T11:22:47.829Z",
         "findingId": "OPT-20260814T102749617Z-01"
+      },
+      {
+        "sequence": 14,
+        "action": "resolve",
+        "reason": "Checkpoint 7498cdd26 committed the implementation and the fresh reviewer returned PASS. Current code holds exactly one readFormalSemanticModel (src/core/view.ts:402), test/core/view-parse-count.test.ts passes 1/1, and compileChangeDelta receives { base: formal }. Verified finding closes as resolved.",
+        "timestamp": "2026-08-14T11:37:34.970Z",
+        "findingId": "OPT-20260814T102749617Z-01"
+      },
+      {
+        "sequence": 15,
+        "action": "retain",
+        "reason": "Implementation confirmed present and committed: DiagramUI.tsx lines 431/442/452 and RelationshipEdge.tsx line 306 all render U+2212, and the e2e assertion at semantic-browser-candidate-views.spec.ts:76 asserts '−2'. Optimizer reconciliation cannot transition implemented→verified (verifier-only); retain so the master runs xirang verify phase2 --type=verification with findingId OPT-20260814T102749617Z-02.",
+        "timestamp": "2026-08-14T11:37:34.970Z",
+        "findingId": "OPT-20260814T102749617Z-02"
+      },
+      {
+        "sequence": 16,
+        "action": "retain",
+        "reason": "Implementation confirmed present and committed: the 'keeps contract-only Candidate Diff hosts visible through requirement entries' case exists in xirang-projection-handler.spec.ts and the suite passes 33/33. Retain so the master runs verification with findingId OPT-20260814T102749617Z-03 after OPT-02 verifies.",
+        "timestamp": "2026-08-14T11:37:34.970Z",
+        "findingId": "OPT-20260814T102749617Z-03"
+      },
+      {
+        "sequence": 17,
+        "action": "retain",
+        "reason": "Still deferred: plugin.ts has no diff in the base scope (git diff a18fe48027..HEAD --name-only) and sourceEntries still lists candidateDiff only as [sourceFingerprint, likec4Sources] without the union pair.",
+        "timestamp": "2026-08-14T11:37:34.970Z",
+        "findingId": "OPT-20260814T102749617Z-04"
+      },
+      {
+        "sequence": 18,
+        "action": "retain",
+        "reason": "Still deferred: buildCandidateSources still eagerly materializes the Candidate Diff union (unionSemanticModels + runtimeLikeC4) on every snapshot build; benefit remains workload-dependent.",
+        "timestamp": "2026-08-14T11:37:34.970Z",
+        "findingId": "OPT-20260814T102749617Z-05"
+      },
+      {
+        "sequence": 19,
+        "action": "invalidate",
+        "reason": "Underlying issue eliminated: the master follow-up committed in 7498cdd26 now declares all seven candidate fixture paths (layer/module/references/service/system.md, references.yaml, invokes.yaml) in tasks.md Task 2 Files, so the attribution gap no longer exists.",
+        "timestamp": "2026-08-14T11:37:34.970Z",
+        "findingId": "OPT-20260814T102749617Z-06"
+      },
+      {
+        "sequence": 20,
+        "action": "invalidate",
+        "reason": "Underlying issue eliminated: Task 3 Files in the committed tasks.md no longer declares Modify for xyflow-diagram/diagram-view.ts, so the stale declaration no longer exists.",
+        "timestamp": "2026-08-14T11:37:34.970Z",
+        "findingId": "OPT-20260814T102749617Z-07"
+      },
+      {
+        "sequence": 21,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-14T11:37:34.970Z",
+        "findingId": "OPT-20260814T113734969Z-01"
+      },
+      {
+        "sequence": 22,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-14T11:37:42.815Z",
+        "findingId": "OPT-20260814T102749617Z-02"
+      },
+      {
+        "sequence": 23,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-14T11:37:42.989Z",
+        "findingId": "OPT-20260814T102749617Z-03"
+      },
+      {
+        "sequence": 24,
+        "action": "add",
+        "reason": "Newly discovered in the closing reconcile: the candidate LikeC4 sources are generated twice per snapshot build with identical input; a share-once hoist is statically provable and behavior-preserving.",
+        "timestamp": "2026-08-14T11:51:30.899Z",
+        "findingId": "OPT-20260814T115130899Z-01"
+      },
+      {
+        "sequence": 25,
+        "action": "resolve",
+        "reason": "Closing reconcile: implementation committed in checkpoint 7498cdd26 and the fresh-reviewer verification verdict PASS is persisted (history sequence 22, 2026-08-14T11:37:42.814Z). Current code renders U+2212 '−' at DiagramUI.tsx:431/442/452 and at the single-char edge glyph site RelationshipEdge.tsx:306 (the documented scope extension), and the e2e assertion at semantic-browser-candidate-views.spec.ts:76 asserts '−2'. The spec-text-vs-render mismatch no longer exists; the opportunity is gone.",
+        "timestamp": "2026-08-14T11:51:30.899Z",
+        "findingId": "OPT-20260814T102749617Z-02"
+      },
+      {
+        "sequence": 26,
+        "action": "resolve",
+        "reason": "Closing reconcile: verification verdict PASS is persisted (history sequence 23, 2026-08-14T11:37:42.989Z). The spec-only hardening test 'keeps contract-only Candidate Diff hosts visible through requirement entries' is present at xirang-projection-handler.spec.ts:496 and the suite passes 33/33 with no production change. The coverage gap no longer exists; the opportunity is gone.",
+        "timestamp": "2026-08-14T11:51:30.899Z",
+        "findingId": "OPT-20260814T102749617Z-03"
+      },
+      {
+        "sequence": 27,
+        "action": "retain",
+        "reason": "Still deferred: plugin.ts has no diff in the base scope (git diff a18fe48027..HEAD --name-only) and sourceEntries (plugin.ts:396-405) still lists candidateDiff only as [sourceFingerprint, likec4Sources] without the union pair; the workload-dependent cold-start benefit remains on a scope-outside file.",
+        "timestamp": "2026-08-14T11:51:30.899Z",
+        "findingId": "OPT-20260814T102749617Z-04"
+      },
+      {
+        "sequence": 28,
+        "action": "retain",
+        "reason": "Still deferred: buildCandidateSources still eagerly materializes the Candidate Diff union (unionSemanticModels at src/core/view.ts:323-338 plus runtimeLikeC4 union generation at :364) on every snapshot build; the benefit remains workload-dependent and the redesign (cross-package lazy delivery) exceeds this round's budget.",
+        "timestamp": "2026-08-14T11:51:30.899Z",
+        "findingId": "OPT-20260814T102749617Z-05"
+      },
+      {
+        "sequence": 29,
+        "action": "retain",
+        "reason": "Still deferred: validateCandidateSnapshot (src/core/candidate/validator.ts:376) still has no options.base and re-reads the formal partitions (validator.ts:330-341), and buildCandidateSources still re-parses candidate files from snapshot.files (src/core/view.ts:313-317); the fix surface (validator API) remains outside this change's base scope. Its dependency OPT-20260814T102749617Z-01 is now resolved.",
+        "timestamp": "2026-08-14T11:51:30.899Z",
+        "findingId": "OPT-20260814T113734969Z-01"
+      },
+      {
+        "sequence": 30,
+        "action": "select",
+        "reason": "Only new actionable finding: unconditional duplicate derivation inside base scope (src/core/view.ts) with provably identical output, ranking above the deferred items which are scope-outside (plugin.ts, validator.ts) or workload-dependent (eager union generation).",
+        "timestamp": "2026-08-14T11:51:30.902Z",
+        "findingId": "OPT-20260814T115130899Z-01",
+        "hashes": {
+          "src/core/view.ts": "3185cd13e14c590608a48bff4a7d34accdd1a2c9bfd6f3cfafa7587b2ef7cfce"
+        }
+      },
+      {
+        "sequence": 31,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-14T11:51:57.726Z",
+        "findingId": "OPT-20260814T115130899Z-01",
+        "hashes": {
+          "src/core/view.ts": "3185cd13e14c590608a48bff4a7d34accdd1a2c9bfd6f3cfafa7587b2ef7cfce"
+        }
+      },
+      {
+        "sequence": 32,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-14T12:07:48.004Z",
+        "findingId": "OPT-20260814T115130899Z-01"
       }
     ],
-    "reconciliationSignature": "f739344775c779f6ef7b2a20b46e2d798bdaada4aa6d7c695d3b5e36934c04b1",
+    "reconciliationSignature": "0a9d75ff7a1383a4078d96db1a89356cff4622254ac27a9f104f8b22dd51f97f",
     "unchangedReconciliations": 0
   }
 }

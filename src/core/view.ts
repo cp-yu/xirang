@@ -319,6 +319,8 @@ async function buildCandidateSources(
     const fingerprints = result.valid ? partitionFingerprints(candidateModel.model) : undefined;
     const architecture = projectBrowserArchitecture(candidateModel.model);
     const contracts = result.valid ? projectContracts(candidateModel.model) : undefined;
+    // Derived once and shared by both candidate and candidateDiff sections.
+    const candidateRuntime = result.valid ? runtimeLikeC4(candidateModel.model) : null;
     // Candidate Diff renders before-only objects (removed ghosts) from the formal+candidate union,
     // mirroring change-derived diff views that load the before-after union sources.
     const unionModel = result.comparison.baseline === 'formal'
@@ -344,7 +346,7 @@ async function buildCandidateSources(
       ...(sourceFingerprint ? { sourceFingerprint } : {}),
       ...(architecture ? { architecture } : {}),
       ...(contracts ? { contracts } : {}),
-      ...(result.valid ? { ...runtimeLikeC4(candidateModel.model) } : {}),
+      ...(candidateRuntime ? { ...candidateRuntime } : {}),
       diagnostics: result.diagnostics,
     };
 
@@ -364,7 +366,7 @@ async function buildCandidateSources(
         ...runtimeLikeC4(unionModel, 'diffLikec4Sources', 'diffLikec4ElementPaths'),
       } : {}),
       ...(contracts ? { contracts } : {}),
-      ...(result.valid ? { ...runtimeLikeC4(candidateModel.model) } : {}),
+      ...(candidateRuntime ? { ...candidateRuntime } : {}),
       diagnostics: result.diagnostics,
     };
 
