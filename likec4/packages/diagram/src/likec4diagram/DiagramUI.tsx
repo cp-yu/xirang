@@ -14,9 +14,10 @@ import { NavigationPanel } from '../navigationpanel'
 import { MetamodelDiffModal } from '../overlays/element-details/MetamodelDiffModal'
 import { Overlays } from '../overlays/Overlays'
 import { Search } from '../search/Search'
-import { applyXirangPresentationOverlay, expandXirangRelationshipEdges } from '../xirang/architectureView'
+import { applyXirangPresentationOverlay, applyXirangRelationshipPresentation } from '../xirang/architectureView'
 import {
   type XirangDiffEntry,
+  type XirangDiffKind,
   type XirangDiffOperation,
   type XirangViewSource,
   isXirangContractDiagnostic,
@@ -105,6 +106,7 @@ const changeDetailsPanel = css({
   right: '4',
   zIndex: 5,
   pointerEvents: 'all',
+  width: 'max-content',
   maxWidth: 'calc(100vw - 2 * {spacing.md})',
   layerStyle: 'likec4.panel',
   display: 'none',
@@ -112,6 +114,37 @@ const changeDetailsPanel = css({
     display: 'block',
   },
 })
+
+/** Metamodel entries above this count collapse into group summary rows. */
+export const METAMODEL_COLLAPSE_THRESHOLD = 6
+
+const metamodelGroupOrder = [
+  { kind: 'element-kind', label: 'Kind' },
+  { kind: 'relationship-kind', label: 'Relationship' },
+  { kind: 'authored-view', label: 'View' },
+] as const
+
+export interface MetamodelGroup {
+  kind: XirangDiffKind
+  label: string
+  entries: XirangDiffEntry[]
+  counts: Record<XirangDiffOperation, number>
+}
+
+/** Groups metamodel diff entries into fixed-order Kind/Relationship/View groups; collapsed when total exceeds the threshold. */
+export function getMetamodelGroups(
+  entries: readonly XirangDiffEntry[],
+  threshold: number = METAMODEL_COLLAPSE_THRESHOLD,
+): { collapsed: boolean; groups: MetamodelGroup[] } {
+  const groups = metamodelGroupOrder.flatMap(({ kind, label }) => {
+    const groupEntries = entries.filter(entry => entry.kind === kind)
+    if (groupEntries.length === 0) return []
+    const counts: Record<XirangDiffOperation, number> = { ADDED: 0, MODIFIED: 0, REMOVED: 0 }
+    for (const entry of groupEntries) counts[entry.operation] += 1
+    return [{ kind, label, entries: groupEntries, counts }]
+  })
+  return { collapsed: entries.length > threshold, groups }
+}
 
 function FloatingChrome({
   dragControls,
@@ -156,6 +189,8 @@ function XirangArchitectureOverlay() {
   const [relationshipModalOpened, setRelationshipModalOpened] = useState(false)
   const [metamodelEntry, setMetamodelEntry] = useState<{ entry: XirangDiffEntry; opened: boolean } | null>(null)
   const [planFile, setPlanFile] = useState<{ name: string; content: string; opened: boolean } | null>(null)
+  const [expandedMetamodelGroup, setExpandedMetamodelGroup] = useState<XirangDiffKind | null>(null)
+  useEffect(() => setExpandedMetamodelGroup(null), [selectedRevision])
   const overlay = useMemo(() => getArchitectureOverlayModel(selected), [selected])
   const { declarations, childrenByIdentity, rootIdentity } = useMemo(() => {
     const declarations = new Map((selected.architecture?.elements ?? [])
@@ -193,7 +228,7 @@ function XirangArchitectureOverlay() {
     }
     return identities
   }, [declarations, focusIdentity, breadcrumbRoot, viewScope])
-  const breadcrumb = selected.source === 'semantic-model' && breadcrumbIdentities.length > 0 && (
+  const breadcrumb = (selected.source === 'semantic-model' || selected.source === 'candidate' || selected.source === 'candidate-diff') && breadcrumbIdentities.length > 0 && (
     <FloatingChrome dragControls={breadcrumbDragControls} position={{ left: 60, bottom: 16 }}>
       <Group
         data-xirang-focus-breadcrumb
@@ -221,16 +256,13 @@ function XirangArchitectureOverlay() {
     </FloatingChrome>
   )
 
-  const isInteractiveBrowserSource = selected.id !== 'candidate' && selected.id !== 'candidate-diff'
-
   useOnDiagramEvent('nodeClick', event => {
-    if (!isInteractiveBrowserSource || !event.ctrlKey) return
+    if (!event.ctrlKey) return
     const identity = nodeIdentity(event.node)
     if (hasChildren(identity)) actorRef.send({ type: 'expand.toggle', identity })
   })
 
   useOnDiagramEvent('nodeDoubleClick', event => {
-    if (!isInteractiveBrowserSource) return
     const identity = nodeIdentity(event.node)
     const addedIdentity = addedXirangProjectionIdentity(event.xynode.data)
     if (addedIdentity) {
@@ -271,7 +303,6 @@ function XirangArchitectureOverlay() {
   const expandDepthState = useRef({ focus: focusIdentity ?? breadcrumbRoot, childrenByIdentity, hasChildren })
   expandDepthState.current = { focus: focusIdentity ?? breadcrumbRoot, childrenByIdentity, hasChildren }
   useEffect(() => {
-    if (!isInteractiveBrowserSource) return
     const onKeyDown = (event: KeyboardEvent) => {
       if (!event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return
       const match = /^Digit([0-9])$/.exec(event.code)
@@ -318,7 +349,7 @@ function XirangArchitectureOverlay() {
       || previousSelectionState.mode !== effectiveMode
     if (previousSelectionState !== null && previousSelectionState.id !== selected.id) {
       previousFocusAncestors.current = []
-      if (isInteractiveBrowserSource && !focusIdentity) actorRef.send({ type: 'navigate.focus', focusIdentity: breadcrumbRoot ?? null, replaceHistory: true })
+      if (!focusIdentity) actorRef.send({ type: 'navigate.focus', focusIdentity: breadcrumbRoot ?? null, replaceHistory: true })
       // Send the view update immediately instead of returning,
       // so the change-derived view is rendered even when focusIdentity
       // is already the root identity and won't trigger a re-render.
@@ -338,7 +369,7 @@ function XirangArchitectureOverlay() {
       .find((identity): identity is string => !!identity && declarations.has(identity))
     const projectionView = selected.projection ?? modelView.current
     const view = selected.architecture
-      ? applyXirangPresentationOverlay(expandXirangRelationshipEdges(projectionView, selected), selected)
+      ? applyXirangPresentationOverlay(applyXirangRelationshipPresentation(projectionView, selected), selected)
       : projectionView
     actorRef.send({
       type: 'update.view',
@@ -388,6 +419,20 @@ function XirangArchitectureOverlay() {
     </Modal>
   )
 
+  const metamodelGroups = useMemo(() => getMetamodelGroups(overlay.metamodel), [overlay.metamodel])
+
+  const metamodelEntryRow = (entry: XirangDiffEntry) => (
+    <UnstyledButton
+      key={`${entry.kind}:${entry.identity}`}
+      onClick={() => setMetamodelEntry({ entry, opened: true })}
+      style={{ textAlign: 'left' }}
+    >
+      <Text size="xs" c="dimmed">
+        {entry.operation === 'ADDED' ? '+' : entry.operation === 'REMOVED' ? '-' : '~'} {entry.kind} {entry.identity}
+      </Text>
+    </UnstyledButton>
+  )
+
   const changeDetails = !enableStaticView && (selected.change || selected.diff || selected.changePlan) && (
     <Stack className={changeDetailsPanel} p="xs" gap={4}>
       <Group gap="xs">
@@ -395,16 +440,20 @@ function XirangArchitectureOverlay() {
         <Badge size="xs" color={selected.valid ? 'green' : 'red'}>{selected.valid ? 'Valid' : 'Invalid'}</Badge>
       </Group>
       <Text size="xs" c="dimmed">+{overlay.counts.ADDED} ~{overlay.counts.MODIFIED} -{overlay.counts.REMOVED}</Text>
-      {overlay.metamodel.map(entry => (
-        <UnstyledButton
-          key={`${entry.kind}:${entry.identity}`}
-          onClick={() => setMetamodelEntry({ entry, opened: true })}
-          style={{ textAlign: 'left' }}
-        >
-          <Text size="xs" c="dimmed">
-            {entry.operation === 'ADDED' ? '+' : entry.operation === 'REMOVED' ? '-' : '~'} {entry.kind} {entry.identity}
-          </Text>
-        </UnstyledButton>
+      {!metamodelGroups.collapsed && overlay.metamodel.map(metamodelEntryRow)}
+      {metamodelGroups.collapsed && metamodelGroups.groups.map(group => (
+        <Stack key={group.kind} gap={0}>
+          <UnstyledButton
+            data-xirang-metamodel-group={group.kind}
+            onClick={() => setExpandedMetamodelGroup(current => current === group.kind ? null : group.kind)}
+            style={{ textAlign: 'left' }}
+          >
+            <Text size="xs" c="dimmed" fw={600}>
+              {expandedMetamodelGroup === group.kind ? '▾' : '▸'} {group.label} +{group.counts.ADDED} ~{group.counts.MODIFIED} -{group.counts.REMOVED}
+            </Text>
+          </UnstyledButton>
+          {expandedMetamodelGroup === group.kind && group.entries.map(metamodelEntryRow)}
+        </Stack>
       ))}
       {selected.changePlan && (
         <Stack gap={2}>

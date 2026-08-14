@@ -1,7 +1,7 @@
 import type { DiagramView } from '@likec4/core/types'
 import { describe, expect, it } from 'vitest'
 import type { XirangDiffOperation, XirangViewSource } from './ContractLoaderContext'
-import { applyXirangPresentationOverlay, expandXirangRelationshipEdges } from './architectureView'
+import { applyXirangPresentationOverlay, applyXirangRelationshipPresentation } from './architectureView'
 
 const baseView = (edges: DiagramView['edges'] = []): DiagramView => ({
   id: 'model',
@@ -267,11 +267,35 @@ describe('applyXirangPresentationOverlay', () => {
     })
     expect(after.edges[0]).toMatchObject({ color: 'purple', line: 'dashed', head: 'vee', metadata: { xirangOperation: 'MODIFIED' } })
   })
+
+  it('aggregates relationship diff counts on merged edges and keeps single-operation glyphs', () => {
+    const edges = [
+      { id: 'merged', source: 'a', target: 'b', label: '[...]', points: [], relations: [], xirangRelations: ['a|calls|b', 'a|reads|b'] },
+      { id: 'single', source: 'c', target: 'd', label: 'calls', points: [], relations: [], xirangRelations: ['c|calls|d'] },
+    ]
+    const after = applyXirangPresentationOverlay(baseView(edges as never), {
+      ...source,
+      diff: {
+        summary: { total: 3, ADDED: 1, MODIFIED: 1, REMOVED: 1 },
+        entries: [
+          { kind: 'relationship', identity: 'a|calls|b', operation: 'ADDED' },
+          { kind: 'relationship', identity: 'a|reads|b', operation: 'REMOVED' },
+          { kind: 'relationship', identity: 'c|calls|d', operation: 'MODIFIED' },
+        ],
+      },
+    })
+    const mergedMetadata = (after.edges[0] as unknown as { metadata?: Record<string, unknown> }).metadata
+    const singleMetadata = (after.edges[1] as unknown as { metadata?: Record<string, unknown> }).metadata
+    expect(mergedMetadata).toMatchObject({ xirangRelationCounts: '1,0,1' })
+    expect(mergedMetadata).not.toHaveProperty('xirangOperation')
+    expect(singleMetadata).toMatchObject({ xirangOperation: 'MODIFIED' })
+    expect(singleMetadata).not.toHaveProperty('xirangRelationCounts')
+  })
 })
 
-describe('expandXirangRelationshipEdges', () => {
-  it('keeps reciprocal edges and expands same-endpoint relationships independently', () => {
-    const edge = { id: 'edge', source: 'a', target: 'b', label: 'calls,reads', points: [], relations: [], xirangRelations: ['a|calls|b', 'a|reads|b'] }
+describe('applyXirangRelationshipPresentation', () => {
+  it('merges same-endpoint relationships into one edge with the layout label', () => {
+    const edge = { id: 'edge', source: 'a', target: 'b', label: '[...]', points: [], relations: [], xirangRelations: ['a|calls|b', 'a|reads|b'] }
     const presented = {
       ...source,
       architecture: {
@@ -282,15 +306,11 @@ describe('expandXirangRelationshipEdges', () => {
         ],
       },
     }
-    const result = expandXirangRelationshipEdges(baseView([edge] as never), presented)
-    expect(result.edges).toHaveLength(2)
-    expect(new Set(result.edges.map(item => item.id)).size).toBe(2)
-    expect(result.edges.map(item => item.label)).toEqual(['calls', 'reads'])
-    expect(result.edges).toMatchObject([
-      { color: 'red', line: 'dashed', head: 'vee', tail: 'dot' },
-      { color: 'blue', line: 'dotted', head: 'diamond', tail: 'none' },
-    ])
-    expect(result.edges.every(item => item.source === 'a' && item.target === 'b')).toBe(true)
+    const result = applyXirangRelationshipPresentation(baseView([edge] as never), presented)
+    expect(result.edges).toHaveLength(1)
+    expect(result.edges[0]).toMatchObject({ id: 'edge', label: '[...]' })
+    expect(result.edges[0]).not.toHaveProperty('color')
+    expect((result.edges[0] as unknown as { xirangRelations?: string[] }).xirangRelations).toEqual(['a|calls|b', 'a|reads|b'])
   })
 
   it('keeps reciprocal edges as separate identities with independent metadata', () => {
@@ -298,7 +318,7 @@ describe('expandXirangRelationshipEdges', () => {
       { id: 'forward', source: 'a', target: 'b', label: 'calls', points: [], relations: [], xirangRelations: ['a|calls|b'] },
       { id: 'reverse', source: 'b', target: 'a', label: 'depends', points: [], relations: [], xirangRelations: ['b|depends|a'] },
     ]
-    const result = expandXirangRelationshipEdges(baseView(edges as never))
+    const result = applyXirangRelationshipPresentation(baseView(edges as never))
     expect(result.edges).toHaveLength(2)
     expect(result.edges.map(item => [item.source, item.target, item.id])).toEqual([
       ['a', 'b', 'forward'],
@@ -308,16 +328,16 @@ describe('expandXirangRelationshipEdges', () => {
 
   it('does not alter a native independent edge', () => {
     const edge = { id: 'edge', source: 'a', target: 'b', label: 'calls', points: [], relations: [], xirangRelations: ['a|calls|b'] }
-    expect(expandXirangRelationshipEdges(baseView([edge] as never)).edges).toHaveLength(1)
+    expect(applyXirangRelationshipPresentation(baseView([edge] as never)).edges).toHaveLength(1)
   })
 
-  it('reads aggregated triples from edge.metadata (server transport) and expands them', () => {
+  it('reads aggregated triples from edge.metadata (server transport) and keeps them merged', () => {
     // The server attaches xirangRelations inside metadata; the browser must not depend on a top-level field.
-    const edge = { id: 'edge', source: 'a', target: 'b', label: 'calls,reads', points: [], relations: [], metadata: { xirangRelations: ['a|calls|b', 'a|reads|b'] } }
-    const result = expandXirangRelationshipEdges(baseView([edge] as never))
-    expect(result.edges).toHaveLength(2)
-    expect(new Set(result.edges.map(item => item.id)).size).toBe(2)
-    expect(result.edges.map(item => item.label)).toEqual(['calls', 'reads'])
+    const edge = { id: 'edge', source: 'a', target: 'b', label: '[...]', points: [], relations: [], metadata: { xirangRelations: ['a|calls|b', 'a|reads|b'] } }
+    const result = applyXirangRelationshipPresentation(baseView([edge] as never))
+    expect(result.edges).toHaveLength(1)
+    expect(result.edges[0]!.id).toBe('edge')
+    expect((result.edges[0] as unknown as { xirangRelations?: string[] }).xirangRelations).toEqual(['a|calls|b', 'a|reads|b'])
   })
 
   it('applies Kind presentation to a single non-aggregated relationship edge', () => {
@@ -331,7 +351,7 @@ describe('expandXirangRelationshipEdges', () => {
         ],
       },
     }
-    const result = expandXirangRelationshipEdges(baseView([edge] as never), presented)
+    const result = applyXirangRelationshipPresentation(baseView([edge] as never), presented)
     expect(result.edges).toHaveLength(1)
     expect(result.edges[0]).toMatchObject({ id: 'edge', color: 'purple', line: 'solid', head: 'crow', tail: 'dot' })
     expect((result.edges[0] as unknown as { xirangRelations?: string[] }).xirangRelations).toEqual(['a|calls|b'])

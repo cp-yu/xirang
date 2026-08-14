@@ -408,6 +408,34 @@ describe('ViewCommand', () => {
     expect(snapshot.candidate!.architecture).toEqual(snapshot.candidateDiff!.architecture);
     expect(snapshot.candidateDiff!.diff).toBeDefined();
   });
+
+  it('provides the before-after union sources to Candidate Diff for removed ghosts', async () => {
+    await writeBaseModel(tempDir);
+    const candidateRoot = path.join(tempDir, '.xirang', 'candidate');
+    await fs.mkdir(candidateRoot, { recursive: true });
+    await fs.writeFile(
+      path.join(candidateRoot, 'candidate.yaml'),
+      'schemaVersion: 1\ncreatedAt: "2025-01-01T00:00:00.000Z"\nbaseline:\n  kind: current\n  reference: .xirang\n',
+      'utf8',
+    );
+    await fs.writeFile(path.join(candidateRoot, 'build.md'), '# Build\n', 'utf8');
+    await writeModel(candidateRoot, minimalModel({
+      elements: [
+        { identity: 'alpha.id', parent: 'root', title: 'Alpha', definition: 'Alpha candidate definition', requirements: CONTRACT },
+        { identity: 'gamma.id', parent: 'root', title: 'Gamma', definition: 'Gamma definition' },
+      ],
+    }));
+
+    const snapshot = await buildViewRuntimeSnapshot(tempDir);
+    const diffView = snapshot.candidateDiff!;
+    expect(diffView.diffLikec4Sources).toBeDefined();
+    expect(diffView.diffLikec4ElementPaths).toBeDefined();
+    expect(diffView.diffArchitecture!.elements.map(element => element.declaration.identity)).toEqual(
+      expect.arrayContaining(['alpha.id', 'gamma.id']),
+    );
+    expect(diffView.diffSourceFingerprint).toBeDefined();
+    expect(diffView.diffSourceFingerprint).not.toBe(diffView.sourceFingerprint);
+  });
 });
 
 describe('Manifest version 3', () => {

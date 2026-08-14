@@ -130,18 +130,30 @@ export function applyXirangPresentationOverlay(
 
   const edges = layoutedView.edges.map(edge => {
     const triples = relationshipIdentity(edge)
-    const relationshipOperation = triples
-      .map(identity => relationshipOperations.get(identity))
-      .find((operation): operation is XirangDiffOperation => operation !== undefined)
+    const counts = { added: 0, modified: 0, removed: 0 }
+    const changedTriples = triples.filter(identity => relationshipOperations.has(identity))
+    for (const identity of changedTriples) {
+      const operation = relationshipOperations.get(identity)
+      if (operation) counts[operation.toLowerCase() as 'added' | 'modified' | 'removed'] += 1
+    }
+    const changedTotal = counts.added + counts.modified + counts.removed
+    const relationshipOperation = changedTriples.length === 1
+      ? relationshipOperations.get(changedTriples[0]!)
+      : undefined
+    const inheritedMetadata = (edge as ViewEdge & { metadata?: Readonly<Record<string, unknown>> }).metadata ?? {}
+    const metadata = { ...inheritedMetadata }
+    delete metadata['xirangOperation']
+    delete metadata['xirangRelationCounts']
+    Object.assign(metadata, {
+      ...(triples.length > 0 ? { xirangRelations: triples } : {}),
+      ...(triples.length === 1 ? { xirangRelation: triples[0] } : {}),
+      ...(relationshipOperation ? { xirangOperation: relationshipOperation } : {}),
+      ...(changedTotal > 1 ? { xirangRelationCounts: `${counts.added},${counts.modified},${counts.removed}` } : {}),
+    })
     return {
       ...edge,
-      ...(diffActive && !relationshipOperation ? { style: { opacity: 25 } } : {}),
-      metadata: {
-        ...((edge as ViewEdge & { metadata?: Readonly<Record<string, unknown>> }).metadata ?? {}),
-        ...(triples.length > 0 ? { xirangRelations: triples } : {}),
-        ...(triples.length === 1 ? { xirangRelation: triples[0] } : {}),
-        ...(relationshipOperation ? { xirangOperation: relationshipOperation } : {}),
-      },
+      ...(diffActive && changedTotal === 0 ? { style: { opacity: 25 } } : {}),
+      metadata,
     } as ViewEdge
   })
 
@@ -149,40 +161,39 @@ export function applyXirangPresentationOverlay(
 }
 
 /**
- * Expands a layouted edge carrying Xirang relation identities into independent visual edges.
- * Geometry is reused from the official path; identity, metadata and click targets remain
- * independent so reciprocal and same-direction relationships cannot be merged semantically.
- * Kind presentation is applied to every relation edge, including single-relation edges, because
- * the generator no longer lowers relationship styles into specification.c4.
+ * Applies per-kind presentation to single-relation edges and keeps multi-relation edges merged:
+ * relationships that map to the same visible source/target stay on the layouted edge (aggregated
+ * LikeC4 label), carrying all relation triples for details and diff aggregation. Geometry and ids
+ * are never changed; reciprocal (A→B / B→A) edges remain independent because they are distinct
+ * layout edges.
  */
-export function expandXirangRelationshipEdges(
+export function applyXirangRelationshipPresentation(
   layoutedView: DiagramView,
   source?: XirangViewSource,
 ): DiagramView {
   const relationshipKinds = new Map((source?.architecture?.relationshipKinds ?? [])
     .map(kind => [kind.identity, kind.presentation] as const))
-  const edges = layoutedView.edges.flatMap(edge => {
+  const edges = layoutedView.edges.map(edge => {
     const triples = relationshipIdentity(edge)
-    if (triples.length === 0) return [edge]
-    const single = triples.length === 1
-    return triples.map((triple, index) => {
-      const kind = triple.split('|')[1]
-      const presentation = kind ? relationshipKinds.get(kind) : undefined
-      return {
-        ...edge,
-        id: single ? edge.id : `${edge.id}:xirang:${index}:${triple}`,
-        label: single ? (edge.label ?? kind) : (kind ?? edge.label),
-        ...(presentation?.color ? { color: presentation.color } : {}),
-        ...(presentation?.line ? { line: presentation.line } : {}),
-        ...(presentation?.head ? { head: presentation.head } : {}),
-        ...(presentation?.tail ? { tail: presentation.tail } : {}),
-        metadata: {
-          ...((edge as ViewEdge & { metadata?: Readonly<Record<string, unknown>> }).metadata ?? {}),
-          ...(single ? {} : { xirangRelation: triple }),
-        },
-        xirangRelations: [triple],
-      } as unknown as ViewEdge
-    })
+    if (triples.length === 0) return edge
+    if (triples.length > 1) {
+      return { ...edge, xirangRelations: triples } as unknown as ViewEdge
+    }
+    const kind = triples[0]!.split('|')[1]
+    const presentation = kind ? relationshipKinds.get(kind) : undefined
+    return {
+      ...edge,
+      label: edge.label ?? kind,
+      ...(presentation?.color ? { color: presentation.color } : {}),
+      ...(presentation?.line ? { line: presentation.line } : {}),
+      ...(presentation?.head ? { head: presentation.head } : {}),
+      ...(presentation?.tail ? { tail: presentation.tail } : {}),
+      metadata: {
+        ...((edge as ViewEdge & { metadata?: Readonly<Record<string, unknown>> }).metadata ?? {}),
+        xirangRelations: triples,
+      },
+      xirangRelations: triples,
+    } as unknown as ViewEdge
   })
   const changed = edges.length !== layoutedView.edges.length
     || edges.some((edge, index) => edge !== layoutedView.edges[index])

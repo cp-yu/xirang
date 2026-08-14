@@ -77,6 +77,43 @@ export function assertFingerprintFresh(request: ProjectionRequest, manifest: Xir
   }
 }
 
+type XirangArchitectureElement = { declaration: { identity: string; parent: string | null } }
+
+/**
+ * Computes the diff-driven visible set as include predicates: changed elements, their
+ * in-boundary ancestors, changed relationship endpoints and changed-Contract hosts.
+ */
+export function diffDrivenIncludes(
+  architecture: { elements: XirangArchitectureElement[] } | undefined,
+  paths: Record<string, string>,
+  diffEntries: ReadonlyArray<{ kind: string; identity: string }>,
+  boundary: ReadonlySet<string>,
+): Array<{ ref: { model: string } }> {
+  const elementsByIdentity = new Map((architecture?.elements ?? []).map(element => [element.declaration.identity, element]))
+  const visible = new Set<string>()
+  for (const entry of diffEntries) {
+    if (entry.kind === 'element-declaration' && boundary.has(entry.identity)) visible.add(entry.identity)
+    if (entry.kind === 'relationship') {
+      const [sourceIdentity, , targetIdentity] = entry.identity.split('|')
+      if (sourceIdentity && boundary.has(sourceIdentity)) visible.add(sourceIdentity)
+      if (targetIdentity && boundary.has(targetIdentity)) visible.add(targetIdentity)
+    }
+    const host = entry.identity.split('#')[0]
+    if (host && boundary.has(host) && (entry.kind === 'requirement' || entry.kind === 'scenario' || entry.kind === 'property')) visible.add(host)
+  }
+  for (const identity of [...visible]) {
+    let parent = elementsByIdentity.get(identity)?.declaration.parent ?? null
+    while (parent !== null && boundary.has(parent)) {
+      visible.add(parent)
+      parent = elementsByIdentity.get(parent)?.declaration.parent ?? null
+    }
+  }
+  return [...visible].map(identity => {
+    const path = paths[identity]
+    return { ref: { model: path === undefined ? identity : path } }
+  })
+}
+
 /**
  * Handles `POST /__xirang/projection`. The `views` argument and `readManifest` are injected so
  * the pure functions are unit-testable without an HTTP server.
@@ -212,7 +249,7 @@ export async function handleProjection(
     throw new XirangContractError(404, request.change ? `Change ${request.change} not found` : `View ${request.viewId} not found`)
   }
 
-  const projectionSource = request.change && request.mode !== 'complete' && source.diffLikec4Sources
+  const projectionSource = (request.change || request.viewId === 'candidate-diff') && request.mode !== 'complete' && source.diffLikec4Sources
     ? {
         ...source,
         sourceFingerprint: source.diffSourceFingerprint ?? source.sourceFingerprint,
@@ -248,11 +285,7 @@ export async function handleProjection(
   }
   const children = (identity: string) => childrenByParent.get(identity) ?? []
   const includeExpressions: Array<{ ref: { model: string }; selector?: 'children' | 'expanded' | 'descendants' }> = []
-  if (request.viewId === 'candidate' || request.viewId === 'candidate-diff') {
-    for (const element of architecture?.elements ?? []) {
-      includeExpressions.push({ ref: { model: paths[element.declaration.identity] ?? element.declaration.identity } })
-    }
-  } else if (request.focus) {
+  if (request.focus) {
     includeExpressions.push({ ref: { model: paths[request.focus] ?? request.focus } })
     includeExpressions.push({ ref: { model: paths[request.focus] ?? request.focus }, selector: 'children' })
     for (const expanded of request.expanded) {
@@ -282,7 +315,7 @@ export async function handleProjection(
       includeExpressions.push({ ref: { model: paths[expanded] ?? expanded }, selector: 'children' })
     }
   }
-  if (request.mode === 'diff-only' && request.change && source.diff) {
+  if (request.mode === 'diff-only' && source.diff && (request.change || request.viewId === 'candidate-diff')) {
     const elementsByIdentity = new Map((architecture?.elements ?? []).map(element => [element.declaration.identity, element]))
     const boundary = new Set<string>()
     const collectBoundary = (identity: string) => {
@@ -293,43 +326,45 @@ export async function handleProjection(
     if (request.focus) collectBoundary(request.focus)
     else if (authoredSelection) for (const identity of authoredSelection) boundary.add(identity)
     else for (const identity of elementsByIdentity.keys()) boundary.add(identity)
-
-    const visible = new Set<string>()
-    for (const entry of source.diff.entries) {
-      if (entry.kind === 'element-declaration' && boundary.has(entry.identity)) visible.add(entry.identity)
-      if (entry.kind === 'relationship') {
-        const [sourceIdentity, , targetIdentity] = entry.identity.split('|')
-        if (sourceIdentity && boundary.has(sourceIdentity)) visible.add(sourceIdentity)
-        if (targetIdentity && boundary.has(targetIdentity)) visible.add(targetIdentity)
-      }
-      const host = entry.identity.split('#')[0]
-      if (host && boundary.has(host) && (entry.kind === 'requirement' || entry.kind === 'scenario' || entry.kind === 'property')) visible.add(host)
-    }
-    for (const identity of [...visible]) {
-      let parent = elementsByIdentity.get(identity)?.declaration.parent ?? null
-      while (parent !== null && boundary.has(parent)) {
-        visible.add(parent)
-        parent = elementsByIdentity.get(parent)?.declaration.parent ?? null
-      }
-    }
-    includeExpressions.length = 0
-    for (const identity of visible) {
-      if (elementsByIdentity.has(identity)) {
-        const path = paths[identity]
-        includeExpressions.push({ ref: { model: path === undefined ? identity : path } })
-      }
+    const diffIncludes = diffDrivenIncludes(architecture, paths, source.diff.entries, boundary)
+    // An empty Candidate Diff falls back to the root-children baseline computed above;
+    // Change-derived diff-only views keep their existing empty-diff projection behavior.
+    if (diffIncludes.length > 0 || request.viewId !== 'candidate-diff') {
+      includeExpressions.length = 0
+      includeExpressions.push(...diffIncludes)
     }
   }
   const adhocPredicates = includeExpressions.length > 0
     ? [{ include: includeExpressions }]
     : null
   const diagramId = request.viewId === 'candidate' || request.viewId === 'candidate-diff' ? 'model' : request.viewId
-  const projectionView = adhocPredicates && likec4
-    ? await likec4.viewsService!.adhocView(adhocPredicates, context.projectId)
-    : await (likec4 ? likec4.diagrams(context.projectId) : context.views.diagrams(context.projectId))
-      .then(diagrams => diagrams.find(v => v.id === diagramId))
-  const enrichedProjectionView = projectionView && likec4
-    ? attachRelationshipMetadata(projectionView, await buildRelationshipMap(likec4), paths, source.diff?.entries)
+  let usedLikec4 = likec4
+  let usedPaths = paths
+  let projectionView: LayoutedView | undefined
+  if (adhocPredicates && likec4) {
+    try {
+      projectionView = await likec4.viewsService!.adhocView(adhocPredicates, context.projectId)
+    } catch (error) {
+      // The before-after union can exceed Graphviz routing capacity on large Candidates;
+      // retry the diff-driven visible set against the candidate-only target sources.
+      // Removed ghosts are dropped in this deterministic fallback.
+      if (request.viewId !== 'candidate-diff' || !source.likec4Sources || !context.loadSources) throw error
+      const targetLikec4 = await context.loadSources(source.likec4Sources, source.sourceFingerprint ?? manifestRaw.modelFingerprint)
+      const targetPaths = source.likec4ElementPaths ?? {}
+      const targetBoundary = new Set((source.architecture?.elements ?? []).map(element => element.declaration.identity))
+      const fallbackIncludes = diffDrivenIncludes(source.architecture, targetPaths, source.diff?.entries ?? [], targetBoundary)
+      projectionView = fallbackIncludes.length > 0
+        ? await targetLikec4.viewsService!.adhocView([{ include: fallbackIncludes }], context.projectId)
+        : await targetLikec4.diagrams(context.projectId).then(diagrams => diagrams.find(view => view.id === diagramId))
+      usedLikec4 = targetLikec4
+      usedPaths = targetPaths
+    }
+  } else {
+    projectionView = await (likec4 ? likec4.diagrams(context.projectId) : context.views.diagrams(context.projectId))
+      .then(diagrams => diagrams.find(view => view.id === diagramId))
+  }
+  const enrichedProjectionView = projectionView && usedLikec4
+    ? attachRelationshipMetadata(projectionView, await buildRelationshipMap(usedLikec4), usedPaths, source.diff?.entries)
     : projectionView
   const view = enrichedProjectionView
     ? ({ ...enrichedProjectionView, id: diagramId as typeof enrichedProjectionView.id } as typeof enrichedProjectionView)

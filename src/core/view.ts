@@ -135,8 +135,12 @@ export interface ViewRuntimeCandidateDiffView {
   partitionFingerprints?: Record<Partition, string>;
   diff?: ChangeDiff;
   architecture?: BrowserSemanticModel;
+  diffArchitecture?: BrowserSemanticModel;
+  diffSourceFingerprint?: string;
   contracts?: Record<string, string>;
   likec4Sources?: Record<string, string>;
+  diffLikec4Sources?: Record<string, string>;
+  diffLikec4ElementPaths?: Record<string, string>;
   diagnostics: ChangeDiagnostic[];
 }
 
@@ -314,6 +318,15 @@ async function buildCandidateSources(
     const fingerprints = result.valid ? partitionFingerprints(candidateModel.model) : undefined;
     const architecture = projectBrowserArchitecture(candidateModel.model);
     const contracts = result.valid ? projectContracts(candidateModel.model) : undefined;
+    // Candidate Diff renders before-only objects (removed ghosts) from the formal+candidate union,
+    // mirroring change-derived diff views that load the before-after union sources.
+    const unionModel = result.comparison.baseline === 'formal'
+      ? unionSemanticModels((await readFormalSemanticModel(projectRoot)).model, candidateModel.model)
+      : null
+    const diffArchitecture = unionModel ? projectBrowserArchitecture(unionModel) : undefined
+    const diffSourceFingerprint = unionModel
+      ? hashString(JSON.stringify(partitionFingerprints(unionModel)))
+      : undefined
     // Combined fingerprint includes both candidate content and formal model baseline so both
     // candidate and candidateDiff invalidate together when either source changes.
     const formalFp = result.comparison.baseline === 'formal' ? result.comparison.formalFingerprint : ''
@@ -344,6 +357,11 @@ async function buildCandidateSources(
       ...(fingerprints ? { partitionFingerprints: fingerprints } : {}),
       ...(result.diff ? { diff: projectBrowserDiff(result.diff) } : {}),
       ...(architecture ? { architecture } : {}),
+      ...(result.valid && unionModel ? {
+        ...(diffArchitecture ? { diffArchitecture } : {}),
+        ...(diffSourceFingerprint ? { diffSourceFingerprint } : {}),
+        ...runtimeLikeC4(unionModel, 'diffLikec4Sources', 'diffLikec4ElementPaths'),
+      } : {}),
       ...(contracts ? { contracts } : {}),
       ...(result.valid ? { ...runtimeLikeC4(candidateModel.model) } : {}),
       diagnostics: result.diagnostics,

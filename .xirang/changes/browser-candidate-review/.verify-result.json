@@ -1,0 +1,398 @@
+{
+  "timestamp": "2026-08-14T10:07:35.996Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "Fixture extensions for the new e2e are not declared in tasks.md Files or proposal Impact (7 files: 5 candidate metamodel kinds, references.yaml, modified invokes.yaml); they are test-fixture data, not production behavior code",
+      "requirement": "Task 2 C5 e2e 基线改写",
+      "task": "Task 2",
+      "recommendation": "Add the seven fixture paths under test/fixtures/contract-browser/.xirang/candidate/ to Task 2 Files and proposal Impact for attribution completeness",
+      "evidenceCitations": [
+        "test/fixtures/contract-browser/.xirang/candidate/metamodel/layer.md:1-5",
+        ".xirang/changes/browser-candidate-review/tasks.md:42-48"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "Task 3 Files declares Modify for xyflow-diagram/diagram-view.ts but no working-tree diff exists; relationCounts propagation works via the existing readXirangProjectionEdge spread, so the declaration is stale",
+      "requirement": "关系边合并与聚合 diff 徽标",
+      "task": "Task 3",
+      "recommendation": "Drop the diagram-view.ts Modify entry from Task 3 Files or annotate it as no-op",
+      "evidenceCitations": [
+        ".xirang/changes/browser-candidate-review/tasks.md:91",
+        "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts:373-407"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "Panel summary rows and entry rows render ASCII '-' for REMOVED while the spec text and the new edge badges use U+2212 '−'; purely cosmetic glyph inconsistency",
+      "requirement": "折叠呈现 Metamodel 差异条目",
+      "task": "Task 1",
+      "recommendation": "Unify the REMOVED glyph (use '−' consistently) in DiagramUI.tsx",
+      "evidenceCitations": [
+        "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:431-452",
+        "likec4/packages/diagram/src/likec4diagram/custom/edges/RelationshipEdge.tsx:311"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "diffDrivenIncludes requirement/scenario/property host inclusion has no candidate-diff unit test (logic carried over from the change-derived path); contract-only Candidate diff scenario relies on unrefactored existing behavior",
+      "requirement": "呈现 Candidate 语义差异",
+      "task": "Task 2",
+      "recommendation": "Add a diffDrivenIncludes case with a requirement-level entry asserting the host element is included",
+      "evidenceCitations": [
+        "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:80-107",
+        "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts:402-602"
+      ]
+    }
+  ],
+  "tasksFileHash": "7116024e679a4d53cb75c17a0be31b5a1bc9ad135b227fa3c10c4042536d70be",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/browser-candidate-review/design.md",
+      ".xirang/changes/browser-candidate-review/elements/candidate-derived-view.md",
+      ".xirang/changes/browser-candidate-review/elements/candidate-diff-derived-view.md",
+      ".xirang/changes/browser-candidate-review/elements/xirang-diff-overlay.md",
+      ".xirang/changes/browser-candidate-review/elements/xirang-projection-service.md",
+      ".xirang/changes/browser-candidate-review/proposal.md",
+      ".xirang/changes/browser-candidate-review/tasks.md",
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+      "likec4/packages/diagram/src/likec4diagram/custom/edges/RelationshipEdge.tsx",
+      "likec4/packages/diagram/src/likec4diagram/types.ts",
+      "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+      "likec4/packages/diagram/src/xirang/architectureView.ts",
+      "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
+      "likec4/packages/diagram/src/xirang/projectionNode.ts",
+      "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
+      "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
+      "src/core/view.ts",
+      "test/core/view.test.ts",
+      "test/e2e/semantic-browser-candidate-views.spec.ts",
+      "test/fixtures/contract-browser/.xirang/candidate/metamodel/layer.md",
+      "test/fixtures/contract-browser/.xirang/candidate/metamodel/module.md",
+      "test/fixtures/contract-browser/.xirang/candidate/metamodel/references.md",
+      "test/fixtures/contract-browser/.xirang/candidate/metamodel/service.md",
+      "test/fixtures/contract-browser/.xirang/candidate/metamodel/system.md",
+      "test/fixtures/contract-browser/.xirang/candidate/relationships/invokes.yaml",
+      "test/fixtures/contract-browser/.xirang/candidate/relationships/references.yaml"
+    ],
+    "evidenceFingerprint": "8cd90af4046ae31296a9a183f7c981e6d32bb3aa2301f1588041b3f676e558dd",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/browser-candidate-review/design.md",
+        "hash": "55c651bf7fc156a03c3094e136fcdf655ef41e2371ba9ea467c61f7403224a7c"
+      },
+      {
+        "path": ".xirang/changes/browser-candidate-review/elements/candidate-derived-view.md",
+        "hash": "b2465abe68f12cb7c298d6c84aa3ef6b459c725fa266381ed3ed8b5539f90f12"
+      },
+      {
+        "path": ".xirang/changes/browser-candidate-review/elements/candidate-diff-derived-view.md",
+        "hash": "ed322e1d198a509d478eb6a184c363b0492635e86c4fc24571e6cf0ccb5fb603"
+      },
+      {
+        "path": ".xirang/changes/browser-candidate-review/elements/xirang-diff-overlay.md",
+        "hash": "64a7419a8b8f507125326ecb05bd26f7001f75920e920d195efb1d5d6abfe7e7"
+      },
+      {
+        "path": ".xirang/changes/browser-candidate-review/elements/xirang-projection-service.md",
+        "hash": "c39633984887bef23b8475706dc3ddf1ec925c08b59fce09685c05c9a54629a4"
+      },
+      {
+        "path": ".xirang/changes/browser-candidate-review/proposal.md",
+        "hash": "9dbd34566cf091d443e176edcb1dbbf57fe252fb65da48a6c8f362a0ccee30d1"
+      },
+      {
+        "path": ".xirang/changes/browser-candidate-review/tasks.md",
+        "hash": "7116024e679a4d53cb75c17a0be31b5a1bc9ad135b227fa3c10c4042536d70be"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/custom/edges/RelationshipEdge.tsx",
+        "hash": "dbc48e54954c6e246d4939837acf9a19ff772a3ca6d2dfb13d4552b581bed316"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
+        "hash": "4fec81d0e688f555c57118ef22c3d3db09e66d75d11fd26a27a8bdd257fd62dd"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+        "hash": "17afc1608fffa07764afeaf13ae61d24bd589f88782ccb165eb829eef328d84e"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/types.ts",
+        "hash": "3ae25aa36b4f7ea0d7b77ece9288739dc20de7028a6d8f8597aed70e31ee9bf6"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+        "hash": "609a043c3fec8957a1167dd3d0875e1659a7239f4ba5b152c117779687e52d2d"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+        "hash": "06c220f3601b7b4919f16e6995ac77f8df97bce75c65dc634f3cdbef5d1a6724"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
+        "hash": "a494a61a6c1dcccd3381e766aa1334b853f47432f0026e5ddd5258a355d5c99c"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/projectionNode.ts",
+        "hash": "f8dd118ec06bacf931b2c654535fb1a9e946897819ed346a2e5d030c51b9fcbf"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
+        "hash": "42bb9f2bf2d673f10c13b94454d64f68bee1e336f57abe75520cc39238112c78"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
+        "hash": "723d6db0f693399f8da3f2b5243727b9e787b8b46dae25dfe84a5e676a5921ee"
+      },
+      {
+        "path": "src/core/view.ts",
+        "hash": "addf4ed5e108d87c88b147e3c759f8127516a11948b67deb94214257f97c7b9c"
+      },
+      {
+        "path": "test/core/view.test.ts",
+        "hash": "12cc2bf6d65dc9df4fe028c55f4804fa95aa70bf510726871d225b299887925a"
+      },
+      {
+        "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
+        "hash": "0235397e4f5f2f2d0661f5b41ba88e94d155315a6dc220cfa40b3053491fe8f6"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/layer.md",
+        "hash": "d0962c53d94cf97ee9b2c43bf4dc72917b92e280f13c80afb70717f2a2b29908"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/module.md",
+        "hash": "793b54d5e1862726231971990343563a9b26ff8d0a2eea61294a8a9f6ce168ab"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/references.md",
+        "hash": "5512e3dfac556dd849cb4de7ec8dfac6f4f123c8d832d4fce8379b286e2c5b0e"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/service.md",
+        "hash": "8fa2fb02aaeefecec675e5155be6b0e6c3111ffa2e77e9ed5682e630c94658c3"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/system.md",
+        "hash": "d35fa208055a4ef208d05be23c54345dce7f545943b8121f7c23347137500a17"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/candidate/relationships/invokes.yaml",
+        "hash": "91ffe50433e585f0ca6c51f57619df057d596aec057f86ad70ea74ee6d0164c0"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/candidate/relationships/references.yaml",
+        "hash": "87b33cae07aaedef98c5bbbbe7e3906ceb0b6cd2257abd89d4de2d3355b2dcc6"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "a18fe48027dc17a3e9ea3052fbfb4b573cf97541",
+    "gitDiffSummary": "baseCommit a18fe4802 == HEAD (git cat-file -t: commit); git diff <base>...HEAD --name-only is empty; all evidence is uncommitted: 14 modified files + 7 untracked (6 fixture + .xirang/changes/). No residue of expandXirangRelationshipEdges or isInteractiveBrowserSource (multi-file grep empty). git diff --check clean. Commands run: vitest DiagramUI.spec 7/7, architectureView.spec+projectionNode.spec 29/29, projection-handler.spec 32/32, test/core/view.test.ts 33/33; typecheck @likec4/diagram + @likec4/vite-plugin clean; @likec4/spa + xirang-likec4 builds; playwright candidate-views desktop+mobile 10/10, model-view 'renders four-state diff visuals' 2/2, full regression desktop+mobile 45/45; arch outline/query/validate --change browser-candidate-review (no errors). Edera one-time probes: candidate manifest has 685 diff entries / 48 metamodel entries (16 element-kind, 22 relationship-kind, 10 authored-view), candidate baseline projection = 9 nodes, union layout fails (QueueGraphvizLayoter) and the deterministic candidate-only fallback engages (84 nodes, removed ghosts dropped as designed), 3 merged edges each carry 2 changed relationships."
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-08-14T10:07:35.996Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "Fixture extensions for the new e2e are not declared in tasks.md Files or proposal Impact (7 files: 5 candidate metamodel kinds, references.yaml, modified invokes.yaml); they are test-fixture data, not production behavior code",
+          "requirement": "Task 2 C5 e2e 基线改写",
+          "task": "Task 2",
+          "recommendation": "Add the seven fixture paths under test/fixtures/contract-browser/.xirang/candidate/ to Task 2 Files and proposal Impact for attribution completeness",
+          "evidenceCitations": [
+            "test/fixtures/contract-browser/.xirang/candidate/metamodel/layer.md:1-5",
+            ".xirang/changes/browser-candidate-review/tasks.md:42-48"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "Task 3 Files declares Modify for xyflow-diagram/diagram-view.ts but no working-tree diff exists; relationCounts propagation works via the existing readXirangProjectionEdge spread, so the declaration is stale",
+          "requirement": "关系边合并与聚合 diff 徽标",
+          "task": "Task 3",
+          "recommendation": "Drop the diagram-view.ts Modify entry from Task 3 Files or annotate it as no-op",
+          "evidenceCitations": [
+            ".xirang/changes/browser-candidate-review/tasks.md:91",
+            "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts:373-407"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "Panel summary rows and entry rows render ASCII '-' for REMOVED while the spec text and the new edge badges use U+2212 '−'; purely cosmetic glyph inconsistency",
+          "requirement": "折叠呈现 Metamodel 差异条目",
+          "task": "Task 1",
+          "recommendation": "Unify the REMOVED glyph (use '−' consistently) in DiagramUI.tsx",
+          "evidenceCitations": [
+            "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:431-452",
+            "likec4/packages/diagram/src/likec4diagram/custom/edges/RelationshipEdge.tsx:311"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "diffDrivenIncludes requirement/scenario/property host inclusion has no candidate-diff unit test (logic carried over from the change-derived path); contract-only Candidate diff scenario relies on unrefactored existing behavior",
+          "requirement": "呈现 Candidate 语义差异",
+          "task": "Task 2",
+          "recommendation": "Add a diffDrivenIncludes case with a requirement-level entry asserting the host element is included",
+          "evidenceCitations": [
+            "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:80-107",
+            "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts:402-602"
+          ]
+        }
+      ],
+      "tasksFileHash": "7116024e679a4d53cb75c17a0be31b5a1bc9ad135b227fa3c10c4042536d70be",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/browser-candidate-review/design.md",
+          ".xirang/changes/browser-candidate-review/elements/candidate-derived-view.md",
+          ".xirang/changes/browser-candidate-review/elements/candidate-diff-derived-view.md",
+          ".xirang/changes/browser-candidate-review/elements/xirang-diff-overlay.md",
+          ".xirang/changes/browser-candidate-review/elements/xirang-projection-service.md",
+          ".xirang/changes/browser-candidate-review/proposal.md",
+          ".xirang/changes/browser-candidate-review/tasks.md",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/likec4diagram/custom/edges/RelationshipEdge.tsx",
+          "likec4/packages/diagram/src/likec4diagram/types.ts",
+          "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+          "likec4/packages/diagram/src/xirang/architectureView.ts",
+          "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
+          "likec4/packages/diagram/src/xirang/projectionNode.ts",
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
+          "src/core/view.ts",
+          "test/core/view.test.ts",
+          "test/e2e/semantic-browser-candidate-views.spec.ts",
+          "test/fixtures/contract-browser/.xirang/candidate/metamodel/layer.md",
+          "test/fixtures/contract-browser/.xirang/candidate/metamodel/module.md",
+          "test/fixtures/contract-browser/.xirang/candidate/metamodel/references.md",
+          "test/fixtures/contract-browser/.xirang/candidate/metamodel/service.md",
+          "test/fixtures/contract-browser/.xirang/candidate/metamodel/system.md",
+          "test/fixtures/contract-browser/.xirang/candidate/relationships/invokes.yaml",
+          "test/fixtures/contract-browser/.xirang/candidate/relationships/references.yaml"
+        ],
+        "evidenceFingerprint": "8cd90af4046ae31296a9a183f7c981e6d32bb3aa2301f1588041b3f676e558dd",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/browser-candidate-review/design.md",
+            "hash": "55c651bf7fc156a03c3094e136fcdf655ef41e2371ba9ea467c61f7403224a7c"
+          },
+          {
+            "path": ".xirang/changes/browser-candidate-review/elements/candidate-derived-view.md",
+            "hash": "b2465abe68f12cb7c298d6c84aa3ef6b459c725fa266381ed3ed8b5539f90f12"
+          },
+          {
+            "path": ".xirang/changes/browser-candidate-review/elements/candidate-diff-derived-view.md",
+            "hash": "ed322e1d198a509d478eb6a184c363b0492635e86c4fc24571e6cf0ccb5fb603"
+          },
+          {
+            "path": ".xirang/changes/browser-candidate-review/elements/xirang-diff-overlay.md",
+            "hash": "64a7419a8b8f507125326ecb05bd26f7001f75920e920d195efb1d5d6abfe7e7"
+          },
+          {
+            "path": ".xirang/changes/browser-candidate-review/elements/xirang-projection-service.md",
+            "hash": "c39633984887bef23b8475706dc3ddf1ec925c08b59fce09685c05c9a54629a4"
+          },
+          {
+            "path": ".xirang/changes/browser-candidate-review/proposal.md",
+            "hash": "9dbd34566cf091d443e176edcb1dbbf57fe252fb65da48a6c8f362a0ccee30d1"
+          },
+          {
+            "path": ".xirang/changes/browser-candidate-review/tasks.md",
+            "hash": "7116024e679a4d53cb75c17a0be31b5a1bc9ad135b227fa3c10c4042536d70be"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/custom/edges/RelationshipEdge.tsx",
+            "hash": "dbc48e54954c6e246d4939837acf9a19ff772a3ca6d2dfb13d4552b581bed316"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
+            "hash": "4fec81d0e688f555c57118ef22c3d3db09e66d75d11fd26a27a8bdd257fd62dd"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "hash": "17afc1608fffa07764afeaf13ae61d24bd589f88782ccb165eb829eef328d84e"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/types.ts",
+            "hash": "3ae25aa36b4f7ea0d7b77ece9288739dc20de7028a6d8f8597aed70e31ee9bf6"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+            "hash": "609a043c3fec8957a1167dd3d0875e1659a7239f4ba5b152c117779687e52d2d"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+            "hash": "06c220f3601b7b4919f16e6995ac77f8df97bce75c65dc634f3cdbef5d1a6724"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
+            "hash": "a494a61a6c1dcccd3381e766aa1334b853f47432f0026e5ddd5258a355d5c99c"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/projectionNode.ts",
+            "hash": "f8dd118ec06bacf931b2c654535fb1a9e946897819ed346a2e5d030c51b9fcbf"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
+            "hash": "42bb9f2bf2d673f10c13b94454d64f68bee1e336f57abe75520cc39238112c78"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
+            "hash": "723d6db0f693399f8da3f2b5243727b9e787b8b46dae25dfe84a5e676a5921ee"
+          },
+          {
+            "path": "src/core/view.ts",
+            "hash": "addf4ed5e108d87c88b147e3c759f8127516a11948b67deb94214257f97c7b9c"
+          },
+          {
+            "path": "test/core/view.test.ts",
+            "hash": "12cc2bf6d65dc9df4fe028c55f4804fa95aa70bf510726871d225b299887925a"
+          },
+          {
+            "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
+            "hash": "0235397e4f5f2f2d0661f5b41ba88e94d155315a6dc220cfa40b3053491fe8f6"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/layer.md",
+            "hash": "d0962c53d94cf97ee9b2c43bf4dc72917b92e280f13c80afb70717f2a2b29908"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/module.md",
+            "hash": "793b54d5e1862726231971990343563a9b26ff8d0a2eea61294a8a9f6ce168ab"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/references.md",
+            "hash": "5512e3dfac556dd849cb4de7ec8dfac6f4f123c8d832d4fce8379b286e2c5b0e"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/service.md",
+            "hash": "8fa2fb02aaeefecec675e5155be6b0e6c3111ffa2e77e9ed5682e630c94658c3"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/system.md",
+            "hash": "d35fa208055a4ef208d05be23c54345dce7f545943b8121f7c23347137500a17"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/candidate/relationships/invokes.yaml",
+            "hash": "91ffe50433e585f0ca6c51f57619df057d596aec057f86ad70ea74ee6d0164c0"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/candidate/relationships/references.yaml",
+            "hash": "87b33cae07aaedef98c5bbbbe7e3906ceb0b6cd2257abd89d4de2d3355b2dcc6"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "a18fe48027dc17a3e9ea3052fbfb4b573cf97541",
+        "gitDiffSummary": "baseCommit a18fe4802 == HEAD (git cat-file -t: commit); git diff <base>...HEAD --name-only is empty; all evidence is uncommitted: 14 modified files + 7 untracked (6 fixture + .xirang/changes/). No residue of expandXirangRelationshipEdges or isInteractiveBrowserSource (multi-file grep empty). git diff --check clean. Commands run: vitest DiagramUI.spec 7/7, architectureView.spec+projectionNode.spec 29/29, projection-handler.spec 32/32, test/core/view.test.ts 33/33; typecheck @likec4/diagram + @likec4/vite-plugin clean; @likec4/spa + xirang-likec4 builds; playwright candidate-views desktop+mobile 10/10, model-view 'renders four-state diff visuals' 2/2, full regression desktop+mobile 45/45; arch outline/query/validate --change browser-candidate-review (no errors). Edera one-time probes: candidate manifest has 685 diff entries / 48 metamodel entries (16 element-kind, 22 relationship-kind, 10 authored-view), candidate baseline projection = 9 nodes, union layout fails (QueueGraphvizLayoter) and the deterministic candidate-only fallback engages (84 nodes, removed ghosts dropped as designed), 3 merged edges each carry 2 changed relationships."
+      }
+    }
+  }
+}

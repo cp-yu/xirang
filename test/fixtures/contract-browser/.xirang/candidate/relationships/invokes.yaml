@@ -2,3 +2,6 @@ relationships:
   - source: capability.leaf
     kind: invokes
     target: capability.peer
+  - source: single
+    kind: invokes
+    target: long

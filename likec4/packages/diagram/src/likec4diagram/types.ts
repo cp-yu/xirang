@@ -26,7 +26,7 @@ import type {
   BaseNodeProps,
   NonOptional,
 } from '../base/types'
-import type { XirangProjectionNodeData } from '../xirang/projectionNode'
+import type { XirangProjectionNodeData, XirangRelationCounts } from '../xirang/projectionNode'
 
 export namespace Types {
   export type LeafNodeData = Simplify<
@@ -293,6 +293,7 @@ export namespace Types {
       xirang?: {
         operation?: 'ADDED' | 'MODIFIED' | 'REMOVED'
         relation?: string
+        relationCounts?: XirangRelationCounts
       }
     }
   >

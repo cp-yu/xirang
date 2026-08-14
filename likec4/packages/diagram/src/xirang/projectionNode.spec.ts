@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   addedXirangProjectionIdentity,
+  readXirangProjectionEdge,
   readXirangProjectionNode,
+  readXirangRelationCounts,
   xirangProjectionMetadata,
 } from './projectionNode'
 
@@ -65,5 +67,28 @@ describe('Xirang projection node metadata', () => {
         expanded: false,
       },
     })).toBeNull()
+  })
+})
+
+describe('Xirang projection edge relation counts', () => {
+  it('parses added,modified,removed counts', () => {
+    expect(readXirangRelationCounts('2,1,0')).toEqual({ added: 2, modified: 1, removed: 0 })
+    expect(readXirangRelationCounts('0,0,3')).toEqual({ added: 0, modified: 0, removed: 3 })
+  })
+
+  it('rejects malformed or non-string counts', () => {
+    expect(readXirangRelationCounts('x')).toBeUndefined()
+    expect(readXirangRelationCounts('1,2')).toBeUndefined()
+    expect(readXirangRelationCounts('1,2,3,4')).toBeUndefined()
+    expect(readXirangRelationCounts(['1,0,0'])).toBeUndefined()
+    expect(readXirangRelationCounts(undefined)).toBeUndefined()
+  })
+
+  it('resolves edge metadata with relation counts and without them', () => {
+    expect(readXirangProjectionEdge({ metadata: { xirangRelationCounts: '1,0,2', xirangRelation: 'a|calls|b' } }))
+      .toMatchObject({ relation: 'a|calls|b', relationCounts: { added: 1, modified: 0, removed: 2 } })
+    const without = readXirangProjectionEdge({ metadata: { xirangRelation: 'a|calls|b' } })
+    expect(without).toMatchObject({ relation: 'a|calls|b' })
+    expect(without).not.toHaveProperty('relationCounts')
   })
 })

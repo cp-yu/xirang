@@ -1,0 +1,7 @@
+{
+  "method": "branch",
+  "branchName": "browser-candidate-review",
+  "originalBranch": "main",
+  "baseCommit": "a18fe48027dc17a3e9ea3052fbfb4b573cf97541",
+  "phase2BaselineCommit": "a018ea0b1962fd596667bb13069e24248c2a9fdc"
+}
