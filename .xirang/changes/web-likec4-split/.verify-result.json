@@ -1,0 +1,246 @@
+{
+  "timestamp": "2026-08-14T06:21:24.037Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "模型未 sync：.xirang/model/elements/semantic-browser.md:3 与 .xirang/model/relationships/supports-presentation.yaml:5 仍携带 semantic-browser，9 个模型文件共 49 处 'Semantic Browser' 文案残留；sync 属于后续 Change Closure 阶段（design Migration Plan），Phase 1 checks 以 change-local delta 为对象全部通过",
+      "requirement": "模型与代码无旧 identity 名称残留",
+      "task": "Task 2",
+      "recommendation": "在后续阶段执行 `xirang sync` 应用 delta，再复验模型残留并重跑 `xirang validate`",
+      "evidence": [
+        ".xirang/model/elements/semantic-browser.md:3",
+        ".xirang/model/relationships/supports-presentation.yaml:5"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "编译后 delta 含 6 条额外 requirement MODIFIED 条目（cli#从已安装运行时启动嵌入式 LikeC4、cli#提供 model-driven authoring help、interaction-surfaces#不构成语义来源/提供确定性操作/维护项目与工具集成/通过 Views 呈现语义信息）——位置偏移产物：ADDED requirement 追加在 Contract 末尾而非被删标题位置，正文未变",
+      "requirement": "requirement 归属映射",
+      "task": "Task 1",
+      "recommendation": "接受为良性；如需稳定 Contract 顺序可在 sync 时把 ADDED requirement 插回被删位置",
+      "evidence": [
+        "src/core/semantic-diff.ts:226-229",
+        ".xirang/changes/web-likec4-split/elements/cli.md:30-34"
+      ]
+    }
+  ],
+  "tasksFileHash": "cac85e9a1e372aa10d21174bac8eccbd661153909cac9336b1a095c1a1a0f52b",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "executionMode": "branch",
+    "evidenceFiles": [
+      ".xirang/changes/web-likec4-split/change-structural-definition.md",
+      ".xirang/changes/web-likec4-split/elements/authored-views.md",
+      ".xirang/changes/web-likec4-split/elements/cli.md",
+      ".xirang/changes/web-likec4-split/elements/collaboration-structure.md",
+      ".xirang/changes/web-likec4-split/elements/derived-views.md",
+      ".xirang/changes/web-likec4-split/elements/interaction-surfaces.md",
+      ".xirang/changes/web-likec4-split/elements/internal-agents.md",
+      ".xirang/changes/web-likec4-split/elements/model-view.md",
+      ".xirang/changes/web-likec4-split/elements/semantic-browser.md",
+      ".xirang/changes/web-likec4-split/elements/visual-presentation.md",
+      ".xirang/changes/web-likec4-split/elements/web.md",
+      ".xirang/changes/web-likec4-split/elements/xirang-contract-delivery.md",
+      ".xirang/changes/web-likec4-split/elements/xirang-diff-overlay.md",
+      ".xirang/changes/web-likec4-split/elements/xirang-projection-service.md",
+      ".xirang/changes/web-likec4-split/relationships/supports-presentation.yaml",
+      ".xirang/model/elements/semantic-browser.md"
+    ],
+    "evidenceFingerprint": "f5af33c84ed786d1db559cbb751eba56e1ffc8839de38a348cb7113f27eda010",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/web-likec4-split/change-structural-definition.md",
+        "hash": "3d01fed9464bebd81e42b93c2ee0d193f2a026e1d11076782d638359c0bda32a"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/authored-views.md",
+        "hash": "601e3085c0ddba18365af0e31e23ed75ad294209c51ece92a0366fb4e8f9279a"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/cli.md",
+        "hash": "ab07e0252f4259cc8262f28b0228a7ff3c186d7029392cea73ddb81453a899a2"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/collaboration-structure.md",
+        "hash": "40a19f973bd2c15c74d4b0bfa76ae6d9834f24fa3ec29292da6f763f91afeeb9"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/derived-views.md",
+        "hash": "e1feafeb6e04f2bc316816cab597fbbca95afee8dbbcbaf014a9b9a9f98dc0dd"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/interaction-surfaces.md",
+        "hash": "df91e0ee72b65b403f9447b256caad7ec777c1fbfb662096aaa8c4b7ca89a886"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/internal-agents.md",
+        "hash": "aacc059d9c371e8edca1e2458fa121c91291b5272c00a23c184f6913306b6b23"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/model-view.md",
+        "hash": "c0d50f8e809f500d9feff66b1af3d948020029aec2ebb4a32649b40a27ac46b4"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/semantic-browser.md",
+        "hash": "1d4f7a2db25106de82134a7597761c998a8a23fd25509fd4b4d3fa244b3cb2c6"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/visual-presentation.md",
+        "hash": "3899daa92533dabfb73f0a3a2bf2dc0e5c396e8804fbf61f08dade766e84896a"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/web.md",
+        "hash": "99bf18afe2166e784b175a5e1c703bf403dd0248f5a00f505e21bbde0c77ad59"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/xirang-contract-delivery.md",
+        "hash": "d7140a0a1d0b1eb15acfefe3c1ddacfab661ec3f9723e59cc23e61ee9bbe8d5a"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/xirang-diff-overlay.md",
+        "hash": "9b5ca07a9701861eaea3adf29fe1c11881bb04f29bda90f045bd6a788bbaed98"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/xirang-projection-service.md",
+        "hash": "1b841e95b80d3c751fcfeadac11a5a50518789be9adff00a69a0a1569b62e55a"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/relationships/supports-presentation.yaml",
+        "hash": "ead4ac8115f6fc67b69f3b9395acb7aca50fef457a7679950fb92f2a9c43cdcf"
+      },
+      {
+        "path": ".xirang/model/elements/semantic-browser.md",
+        "hash": "13d04f84e61160c1e600c62a3b841498b1a2bec0875c9e0a8fd69901a3e68611"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "b15dc836da2d4f81cfa97458d4a88f23970a3940",
+    "gitDiffSummary": "git diff b15dc836d...HEAD 为空（HEAD == baseCommit）；git status 仅 untracked .xirang/changes/web-likec4-split/；零代码改动，符合 '零代码改动' 设计目标"
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-08-14T06:21:24.037Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "模型未 sync：.xirang/model/elements/semantic-browser.md:3 与 .xirang/model/relationships/supports-presentation.yaml:5 仍携带 semantic-browser，9 个模型文件共 49 处 'Semantic Browser' 文案残留；sync 属于后续 Change Closure 阶段（design Migration Plan），Phase 1 checks 以 change-local delta 为对象全部通过",
+          "requirement": "模型与代码无旧 identity 名称残留",
+          "task": "Task 2",
+          "recommendation": "在后续阶段执行 `xirang sync` 应用 delta，再复验模型残留并重跑 `xirang validate`",
+          "evidence": [
+            ".xirang/model/elements/semantic-browser.md:3",
+            ".xirang/model/relationships/supports-presentation.yaml:5"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "编译后 delta 含 6 条额外 requirement MODIFIED 条目（cli#从已安装运行时启动嵌入式 LikeC4、cli#提供 model-driven authoring help、interaction-surfaces#不构成语义来源/提供确定性操作/维护项目与工具集成/通过 Views 呈现语义信息）——位置偏移产物：ADDED requirement 追加在 Contract 末尾而非被删标题位置，正文未变",
+          "requirement": "requirement 归属映射",
+          "task": "Task 1",
+          "recommendation": "接受为良性；如需稳定 Contract 顺序可在 sync 时把 ADDED requirement 插回被删位置",
+          "evidence": [
+            "src/core/semantic-diff.ts:226-229",
+            ".xirang/changes/web-likec4-split/elements/cli.md:30-34"
+          ]
+        }
+      ],
+      "tasksFileHash": "cac85e9a1e372aa10d21174bac8eccbd661153909cac9336b1a095c1a1a0f52b",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "executionMode": "branch",
+        "evidenceFiles": [
+          ".xirang/changes/web-likec4-split/change-structural-definition.md",
+          ".xirang/changes/web-likec4-split/elements/authored-views.md",
+          ".xirang/changes/web-likec4-split/elements/cli.md",
+          ".xirang/changes/web-likec4-split/elements/collaboration-structure.md",
+          ".xirang/changes/web-likec4-split/elements/derived-views.md",
+          ".xirang/changes/web-likec4-split/elements/interaction-surfaces.md",
+          ".xirang/changes/web-likec4-split/elements/internal-agents.md",
+          ".xirang/changes/web-likec4-split/elements/model-view.md",
+          ".xirang/changes/web-likec4-split/elements/semantic-browser.md",
+          ".xirang/changes/web-likec4-split/elements/visual-presentation.md",
+          ".xirang/changes/web-likec4-split/elements/web.md",
+          ".xirang/changes/web-likec4-split/elements/xirang-contract-delivery.md",
+          ".xirang/changes/web-likec4-split/elements/xirang-diff-overlay.md",
+          ".xirang/changes/web-likec4-split/elements/xirang-projection-service.md",
+          ".xirang/changes/web-likec4-split/relationships/supports-presentation.yaml",
+          ".xirang/model/elements/semantic-browser.md"
+        ],
+        "evidenceFingerprint": "f5af33c84ed786d1db559cbb751eba56e1ffc8839de38a348cb7113f27eda010",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/web-likec4-split/change-structural-definition.md",
+            "hash": "3d01fed9464bebd81e42b93c2ee0d193f2a026e1d11076782d638359c0bda32a"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/authored-views.md",
+            "hash": "601e3085c0ddba18365af0e31e23ed75ad294209c51ece92a0366fb4e8f9279a"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/cli.md",
+            "hash": "ab07e0252f4259cc8262f28b0228a7ff3c186d7029392cea73ddb81453a899a2"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/collaboration-structure.md",
+            "hash": "40a19f973bd2c15c74d4b0bfa76ae6d9834f24fa3ec29292da6f763f91afeeb9"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/derived-views.md",
+            "hash": "e1feafeb6e04f2bc316816cab597fbbca95afee8dbbcbaf014a9b9a9f98dc0dd"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/interaction-surfaces.md",
+            "hash": "df91e0ee72b65b403f9447b256caad7ec777c1fbfb662096aaa8c4b7ca89a886"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/internal-agents.md",
+            "hash": "aacc059d9c371e8edca1e2458fa121c91291b5272c00a23c184f6913306b6b23"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/model-view.md",
+            "hash": "c0d50f8e809f500d9feff66b1af3d948020029aec2ebb4a32649b40a27ac46b4"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/semantic-browser.md",
+            "hash": "1d4f7a2db25106de82134a7597761c998a8a23fd25509fd4b4d3fa244b3cb2c6"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/visual-presentation.md",
+            "hash": "3899daa92533dabfb73f0a3a2bf2dc0e5c396e8804fbf61f08dade766e84896a"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/web.md",
+            "hash": "99bf18afe2166e784b175a5e1c703bf403dd0248f5a00f505e21bbde0c77ad59"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/xirang-contract-delivery.md",
+            "hash": "d7140a0a1d0b1eb15acfefe3c1ddacfab661ec3f9723e59cc23e61ee9bbe8d5a"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/xirang-diff-overlay.md",
+            "hash": "9b5ca07a9701861eaea3adf29fe1c11881bb04f29bda90f045bd6a788bbaed98"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/xirang-projection-service.md",
+            "hash": "1b841e95b80d3c751fcfeadac11a5a50518789be9adff00a69a0a1569b62e55a"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/relationships/supports-presentation.yaml",
+            "hash": "ead4ac8115f6fc67b69f3b9395acb7aca50fef457a7679950fb92f2a9c43cdcf"
+          },
+          {
+            "path": ".xirang/model/elements/semantic-browser.md",
+            "hash": "13d04f84e61160c1e600c62a3b841498b1a2bec0875c9e0a8fd69901a3e68611"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "b15dc836da2d4f81cfa97458d4a88f23970a3940",
+        "gitDiffSummary": "git diff b15dc836d...HEAD 为空（HEAD == baseCommit）；git status 仅 untracked .xirang/changes/web-likec4-split/；零代码改动，符合 '零代码改动' 设计目标"
+      }
+    }
+  }
+}
