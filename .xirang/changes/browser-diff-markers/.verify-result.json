@@ -1,20 +1,20 @@
 {
-  "timestamp": "2026-08-13T18:26:24.780Z",
-  "result": "PASS",
+  "timestamp": "2026-08-14T04:10:11.483Z",
+  "result": "PASS_WITH_WARNINGS",
   "issues": [
     {
-      "severity": "SUGGESTION",
-      "message": "Stale gitignored build output likec4/packages/diagram/dist/overlays/element-details/ElementDetailsCard.d.ts still declares isAddedElement (predates the change, out of git scope; shipped bundles were rebuilt fresh)",
+      "severity": "WARNING",
+      "message": ".verify-result.json records the pre-correction tasksFileHash and evidence fingerprints, which no longer match the post-seal corrected tasks.md and source files; record is stale until phase 3 re-seal",
       "requirement": "支持 Element 级别的变更差异审查",
       "task": null,
-      "recommendation": "Run pnpm --filter @likec4/diagram build locally to refresh the gitignored dist declarations",
+      "recommendation": "Re-run phase 3 seal after this Phase 1 review so .verify-result.json fingerprints the corrected state",
       "evidenceCitations": [
-        "likec4/packages/diagram/dist/overlays/element-details/ElementDetailsCard.d.ts:18-19",
-        "likec4/packages/diagram/.gitignore:2"
+        ".xirang/changes/browser-diff-markers/.verify-result.json",
+        ".xirang/changes/browser-diff-markers/tasks.md"
       ]
     }
   ],
-  "tasksFileHash": "8fdfce4f8601b0b32eeb85fce28871ae79492a7e3a5e06c516ae1a6911a532f2",
+  "tasksFileHash": "94d4bb54b28de3de456200a72cb3a29933021387b4a3ab44f4457cd92d83f513",
   "verificationContext": {
     "contractVersion": "1.0",
     "evidenceFiles": [
@@ -23,26 +23,12 @@
       ".xirang/changes/browser-diff-markers/elements/semantic-browser.md",
       ".xirang/changes/browser-diff-markers/proposal.md",
       ".xirang/changes/browser-diff-markers/tasks.md",
-      "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
-      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
-      "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.spec.tsx",
-      "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
-      "likec4/packages/diagram/src/likec4diagram/state/machine.actions.ts",
-      "likec4/packages/diagram/src/overlays/element-details/ElementDetails.tsx",
-      "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
+      "likec4/packages/diagram/src/hooks/useLikeC4Project.ts",
       "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
-      "likec4/packages/diagram/src/overlays/element-details/actor.ts",
-      "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
-      "likec4/packages/diagram/src/xirang/architectureView.ts",
-      "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
-      "likec4/packages/diagram/src/xirang/projectionNode.ts",
       "playwright.config.ts",
-      "test/e2e/semantic-browser-model-view.spec.ts",
-      "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-parent.md",
-      "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
-      "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.peer.md"
+      "test/e2e/semantic-browser-model-view.spec.ts"
     ],
-    "evidenceFingerprint": "d0d56f1c38f3c2a10d8bb9c32c7d5dd996954f4aefe2176b8a869cb970a18322",
+    "evidenceFingerprint": "40b1e5515b670b61a633310c70575c44267603bd32a345b13aeda5525366341c",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/browser-diff-markers/design.md",
@@ -62,59 +48,15 @@
       },
       {
         "path": ".xirang/changes/browser-diff-markers/tasks.md",
-        "hash": "8fdfce4f8601b0b32eeb85fce28871ae79492a7e3a5e06c516ae1a6911a532f2"
+        "hash": "94d4bb54b28de3de456200a72cb3a29933021387b4a3ab44f4457cd92d83f513"
       },
       {
-        "path": "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.spec.tsx",
-        "hash": "039daf0df1d7b85172c268c842049be28d05153d3142844ee8d3930a3c0b92a0"
-      },
-      {
-        "path": "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
-        "hash": "2ce658af9b69b720c97c78de0c96e0e2a98e1ccc006a324ddb655db36082fd77"
-      },
-      {
-        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
-        "hash": "1dd7d9059cbf79f0f6d7e9c1d48e10f16b1d93596b11ee2e3690af9ad2751cb0"
-      },
-      {
-        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
-        "hash": "55ea9ae081add4df7374b2f61527a4ded0c84d0975251799904cf262f3fe106a"
-      },
-      {
-        "path": "likec4/packages/diagram/src/likec4diagram/state/machine.actions.ts",
-        "hash": "fc418967777a5cd55e1aa7599c53d6c344f617eaa6f0279f7d3effa8cfe45e6f"
-      },
-      {
-        "path": "likec4/packages/diagram/src/overlays/element-details/actor.ts",
-        "hash": "0829267c9b769f779a571f9722fdef74845ffdb8a2261efbcccd9ac9e4da9d4f"
-      },
-      {
-        "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetails.tsx",
-        "hash": "ba69a3dddda9c341c30fb831a3a6dc8111f75ed68893fa20e212c73f2ad9942a"
-      },
-      {
-        "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
-        "hash": "ee7d3eb11cf6d8492f812d4e819450012e7a3e8c04f029b706ab9f48b5930adc"
+        "path": "likec4/packages/diagram/src/hooks/useLikeC4Project.ts",
+        "hash": "4fd3933a9dd0b2ada4da64534bcb3dd0f9d3506f286878ccb51474d8c949989c"
       },
       {
         "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
-        "hash": "d256680944c758f7a5d665bd7c327d53e232fe88c70e8465655d995cbc5d4b53"
-      },
-      {
-        "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
-        "hash": "5b842d0a70510e9d6d11c29979b145eeb0739d89b80806b2a507d615389e995c"
-      },
-      {
-        "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
-        "hash": "4735418b0307df20fc80dea707257c5cca3f3d53afe79af6ad6e19d6a5ca2a8c"
-      },
-      {
-        "path": "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
-        "hash": "c433c624130582310169a9b98a6b28e5a640bc553976b424ccb14403a7f4fde1"
-      },
-      {
-        "path": "likec4/packages/diagram/src/xirang/projectionNode.ts",
-        "hash": "cf1664fa1fbe6adfb7c48e85f860a3b59d6cf9a699519df2d80ab4ac7b8a8e39"
+        "hash": "dd083cf989c0fb8368069b220db07ab4cfdaaaca176994ba1df3b27402c6611e"
       },
       {
         "path": "playwright.config.ts",
@@ -122,82 +64,39 @@
       },
       {
         "path": "test/e2e/semantic-browser-model-view.spec.ts",
-        "hash": "a89d5300027bc03fd5db8c02197d5a30153d4105eac06f92b0f2054d801b36f6"
-      },
-      {
-        "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-parent.md",
-        "hash": "eb73076fa32c031b52251979c83e8cdf5b0b05ee647980b64393939ebd28c3eb"
-      },
-      {
-        "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
-        "hash": "58aa9224446ca89d7a7d3e76e41dcbd7609da687f7ec0f7e08385c05acc98c3f"
-      },
-      {
-        "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.peer.md",
-        "hash": "0ce7121cd96c0484718dd0e00d24de422c6199d521b7aa51247a601462e8ef7f"
+        "hash": "cfba24edd18ab172be9e9b3b69b3e396c00321828f7258141985376cceade28c"
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "c1a1e41f3191242d6364dc18e22c16b2909f7b6f",
-    "gitDiffSummary": "baseCommit 7af0ac18 equals HEAD; all implementation evidence uncommitted working tree, 23 paths all attributed. Live re-runs: vitest targeted 11+17+24+2 and full 195/195, typecheck clean, spa+xirang-likec4 builds green, playwright desktop(8)+mobile(7)=15 pass, xirang validate browser-diff-markers Passed (2 semantic changes), xirang validate --all 157 passed.",
-    "timestamp": "2026-08-13T19:28:24.255Z"
+    "gitHeadCommit": "d9e7d2607c8a8d005ac45d7cfc1b4f85ec2e1529",
+    "gitDiffSummary": "Post-seal correction reviewed: ElementDetailsCard uses useLikeC4ProjectId fallback; e2e Contracts-tab assertions added; tasks.md Required Corrections documents the code_fix. Live re-runs: vitest targeted 11+27+4 and full 200/200, forced typecheck clean, spa+xirang-likec4 builds green, playwright desktop 8 + mobile 7 = 15/15, xirang validate browser-diff-markers Passed, xirang validate --all 157/0."
   },
   "optimization": {
-    "status": "IMPROVED",
+    "status": "NOT_NEEDED",
     "attempts": [
       {
-        "timestamp": "2026-08-13T18:39:54.472Z",
-        "type": "optimization",
-        "status": "OPTIMIZATION_PROPOSED"
-      },
-      {
-        "timestamp": "2026-08-13T18:46:48.089Z",
-        "type": "verification",
-        "result": "PASS"
-      },
-      {
-        "timestamp": "2026-08-13T19:04:23.587Z",
-        "type": "optimization",
-        "status": "OPTIMIZATION_PROPOSED"
-      },
-      {
-        "timestamp": "2026-08-13T19:12:14.657Z",
-        "type": "verification",
-        "result": "PASS"
-      },
-      {
-        "timestamp": "2026-08-13T19:18:55.779Z",
-        "type": "optimization",
-        "status": "OPTIMIZATION_PROPOSED"
-      },
-      {
-        "timestamp": "2026-08-13T19:28:24.242Z",
-        "type": "verification",
-        "result": "PASS"
-      },
-      {
-        "timestamp": "2026-08-13T19:34:06.925Z",
+        "timestamp": "2026-08-14T04:10:19.391Z",
         "type": "optimization",
         "status": "OPTIMIZATION_PROPOSED"
       }
     ],
     "baseline": {
-      "timestamp": "2026-08-13T18:26:24.780Z",
-      "result": "PASS",
+      "timestamp": "2026-08-14T04:10:11.483Z",
+      "result": "PASS_WITH_WARNINGS",
       "issues": [
         {
-          "severity": "SUGGESTION",
-          "message": "Stale gitignored build output likec4/packages/diagram/dist/overlays/element-details/ElementDetailsCard.d.ts still declares isAddedElement (predates the change, out of git scope; shipped bundles were rebuilt fresh)",
+          "severity": "WARNING",
+          "message": ".verify-result.json records the pre-correction tasksFileHash and evidence fingerprints, which no longer match the post-seal corrected tasks.md and source files; record is stale until phase 3 re-seal",
           "requirement": "支持 Element 级别的变更差异审查",
           "task": null,
-          "recommendation": "Run pnpm --filter @likec4/diagram build locally to refresh the gitignored dist declarations",
+          "recommendation": "Re-run phase 3 seal after this Phase 1 review so .verify-result.json fingerprints the corrected state",
           "evidenceCitations": [
-            "likec4/packages/diagram/dist/overlays/element-details/ElementDetailsCard.d.ts:18-19",
-            "likec4/packages/diagram/.gitignore:2"
+            ".xirang/changes/browser-diff-markers/.verify-result.json",
+            ".xirang/changes/browser-diff-markers/tasks.md"
           ]
         }
       ],
-      "tasksFileHash": "8fdfce4f8601b0b32eeb85fce28871ae79492a7e3a5e06c516ae1a6911a532f2",
+      "tasksFileHash": "94d4bb54b28de3de456200a72cb3a29933021387b4a3ab44f4457cd92d83f513",
       "verificationContext": {
         "contractVersion": "1.0",
         "evidenceFiles": [
@@ -206,26 +105,12 @@
           ".xirang/changes/browser-diff-markers/elements/semantic-browser.md",
           ".xirang/changes/browser-diff-markers/proposal.md",
           ".xirang/changes/browser-diff-markers/tasks.md",
-          "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
-          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
-          "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.spec.tsx",
-          "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
-          "likec4/packages/diagram/src/likec4diagram/state/machine.actions.ts",
-          "likec4/packages/diagram/src/overlays/element-details/ElementDetails.tsx",
-          "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
+          "likec4/packages/diagram/src/hooks/useLikeC4Project.ts",
           "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
-          "likec4/packages/diagram/src/overlays/element-details/actor.ts",
-          "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
-          "likec4/packages/diagram/src/xirang/architectureView.ts",
-          "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
-          "likec4/packages/diagram/src/xirang/projectionNode.ts",
           "playwright.config.ts",
-          "test/e2e/semantic-browser-model-view.spec.ts",
-          "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-parent.md",
-          "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
-          "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.peer.md"
+          "test/e2e/semantic-browser-model-view.spec.ts"
         ],
-        "evidenceFingerprint": "7e83b8104a68df40481c1e873659c0fa42ab64442229ab905bf46dfdd5d04bba",
+        "evidenceFingerprint": "40b1e5515b670b61a633310c70575c44267603bd32a345b13aeda5525366341c",
         "evidenceFingerprintEntries": [
           {
             "path": ".xirang/changes/browser-diff-markers/design.md",
@@ -245,59 +130,15 @@
           },
           {
             "path": ".xirang/changes/browser-diff-markers/tasks.md",
-            "hash": "8fdfce4f8601b0b32eeb85fce28871ae79492a7e3a5e06c516ae1a6911a532f2"
+            "hash": "94d4bb54b28de3de456200a72cb3a29933021387b4a3ab44f4457cd92d83f513"
           },
           {
-            "path": "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.spec.tsx",
-            "hash": "039daf0df1d7b85172c268c842049be28d05153d3142844ee8d3930a3c0b92a0"
-          },
-          {
-            "path": "likec4/packages/diagram/src/likec4diagram/custom/nodes/nodes.tsx",
-            "hash": "2ce658af9b69b720c97c78de0c96e0e2a98e1ccc006a324ddb655db36082fd77"
-          },
-          {
-            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
-            "hash": "8f41e3338360df8c349e341101ba8eb745882d0a2c12c0ecf8b90ab04aa8c63d"
-          },
-          {
-            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
-            "hash": "5da9f0acc42c8605c8fc72f37a5e65210f575bffeb824b66b974a1ef10511ae6"
-          },
-          {
-            "path": "likec4/packages/diagram/src/likec4diagram/state/machine.actions.ts",
-            "hash": "fc418967777a5cd55e1aa7599c53d6c344f617eaa6f0279f7d3effa8cfe45e6f"
-          },
-          {
-            "path": "likec4/packages/diagram/src/overlays/element-details/actor.ts",
-            "hash": "0829267c9b769f779a571f9722fdef74845ffdb8a2261efbcccd9ac9e4da9d4f"
-          },
-          {
-            "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetails.tsx",
-            "hash": "ba69a3dddda9c341c30fb831a3a6dc8111f75ed68893fa20e212c73f2ad9942a"
-          },
-          {
-            "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx",
-            "hash": "ee7d3eb11cf6d8492f812d4e819450012e7a3e8c04f029b706ab9f48b5930adc"
+            "path": "likec4/packages/diagram/src/hooks/useLikeC4Project.ts",
+            "hash": "4fd3933a9dd0b2ada4da64534bcb3dd0f9d3506f286878ccb51474d8c949989c"
           },
           {
             "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
-            "hash": "d256680944c758f7a5d665bd7c327d53e232fe88c70e8465655d995cbc5d4b53"
-          },
-          {
-            "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
-            "hash": "24eb5523fd35c0bbeb9e59392c90e43b67a92a0817666cc02d229f1acc6e0cda"
-          },
-          {
-            "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
-            "hash": "a8a26c8f35629c43f7d64027958b6055716a9f8428bea4e290f0798225069102"
-          },
-          {
-            "path": "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
-            "hash": "c433c624130582310169a9b98a6b28e5a640bc553976b424ccb14403a7f4fde1"
-          },
-          {
-            "path": "likec4/packages/diagram/src/xirang/projectionNode.ts",
-            "hash": "cf1664fa1fbe6adfb7c48e85f860a3b59d6cf9a699519df2d80ab4ac7b8a8e39"
+            "hash": "dd083cf989c0fb8368069b220db07ab4cfdaaaca176994ba1df3b27402c6611e"
           },
           {
             "path": "playwright.config.ts",
@@ -305,387 +146,16 @@
           },
           {
             "path": "test/e2e/semantic-browser-model-view.spec.ts",
-            "hash": "ff8f2ae68b6bec9f29a8cf87256acdfaed083a8612d7adb3c57e4026d41ecdac"
-          },
-          {
-            "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.added-parent.md",
-            "hash": "eb73076fa32c031b52251979c83e8cdf5b0b05ee647980b64393939ebd28c3eb"
-          },
-          {
-            "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md",
-            "hash": "58aa9224446ca89d7a7d3e76e41dcbd7609da687f7ec0f7e08385c05acc98c3f"
-          },
-          {
-            "path": "test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.peer.md",
-            "hash": "0ce7121cd96c0484718dd0e00d24de422c6199d521b7aa51247a601462e8ef7f"
+            "hash": "cfba24edd18ab172be9e9b3b69b3e396c00321828f7258141985376cceade28c"
           }
         ],
         "skippedEvidenceFiles": [],
-        "gitHeadCommit": "7af0ac18bde0aab1b0f5368ec7a8095fe25837f0",
-        "gitDiffSummary": "baseCommit 7af0ac18 equals HEAD; all implementation evidence uncommitted working tree, 23 paths all attributed. Live re-runs: vitest targeted 11+17+24+2 and full 195/195, typecheck clean, spa+xirang-likec4 builds green, playwright desktop(8)+mobile(7)=15 pass, xirang validate browser-diff-markers Passed (2 semantic changes), xirang validate --all 157 passed."
+        "gitHeadCommit": "d9e7d2607c8a8d005ac45d7cfc1b4f85ec2e1529",
+        "gitDiffSummary": "Post-seal correction reviewed: ElementDetailsCard uses useLikeC4ProjectId fallback; e2e Contracts-tab assertions added; tasks.md Required Corrections documents the code_fix. Live re-runs: vitest targeted 11+27+4 and full 200/200, forced typecheck clean, spa+xirang-likec4 builds green, playwright desktop 8 + mobile 7 = 15/15, xirang validate browser-diff-markers Passed, xirang validate --all 157/0."
       }
     },
-    "findings": [
-      {
-        "id": "OPT-20260813T183954468Z-01",
-        "status": "resolved",
-        "location": {
-          "files": [
-            "likec4/packages/diagram/src/xirang/architectureView.ts"
-          ],
-          "symbols": [
-            "applyXirangPresentationOverlay"
-          ]
-        },
-        "opportunity": "applyXirangPresentationOverlay scanned diff entries in four passes.",
-        "impact": "Single-pass classification implemented.",
-        "evidence": [
-          "architectureView.ts contains classifyDiffEntries; helpers deleted"
-        ],
-        "recommendation": "Implemented and verified.",
-        "keyDesign": "Single-pass diff classification.",
-        "preservationConstraints": [
-          "identical outputs verified"
-        ],
-        "implementationOutline": [
-          "done"
-        ],
-        "validation": [
-          "vitest 20/20, typecheck clean"
-        ],
-        "impactLevel": "low",
-        "confidence": "high",
-        "risk": "low",
-        "cost": "low",
-        "dependencies": [],
-        "priorityReason": "Resolved."
-      },
-      {
-        "id": "OPT-20260813T183954468Z-02",
-        "status": "resolved",
-        "location": {
-          "files": [
-            "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx"
-          ],
-          "symbols": [
-            "getArchitectureOverlayModel",
-            "countOperations"
-          ]
-        },
-        "opportunity": "getArchitectureOverlayModel makes three separate passes over diff entries after the initial filter; countOperations only consumes the intermediate counted array.",
-        "impact": "One loop replaces three passes and removes two intermediate allocations; countOperations deleted; returned shape unchanged.",
-        "evidence": [
-          "DiagramUI.tsx:95 entries.filter into counted then countOperations second pass",
-          "DiagramUI.tsx:100-103 metamodel filter third pass",
-          "countOperations only called from getArchitectureOverlayModel"
-        ],
-        "recommendation": "Accumulate counts and metamodel inside the single existing loop over entries; delete countOperations; keep identical return shape.",
-        "keyDesign": "Single-pass overlay-model assembly with identical sort orders and returned fields.",
-        "preservationConstraints": [
-          "counts must come only from element-declaration and relationship entries and always return {ADDED,MODIFIED,REMOVED} with zero defaults",
-          "changed must receive every element-declaration identity regardless of operation validity; context must receive before/after parent values and relationship endpoints, then remove all changed identities",
-          "entries must keep the original diff order; metamodel sort and diagnostics filter unchanged",
-          "The returned object keeps fields entries, changed, context, counts, metamodel, diagnostics"
-        ],
-        "implementationOutline": [
-          "Merge loops into one",
-          "Delete countOperations",
-          "Run DiagramUI.spec.ts and typecheck"
-        ],
-        "validation": [
-          "vitest DiagramUI.spec.ts",
-          "typecheck"
-        ],
-        "impactLevel": "low",
-        "confidence": "high",
-        "risk": "low",
-        "cost": "low",
-        "dependencies": [],
-        "priorityReason": "Ranks first among remaining findings: runtime code simplification with verified keyDesign pattern."
-      },
-      {
-        "id": "OPT-20260813T183954468Z-03",
-        "status": "merged",
-        "location": {
-          "files": [
-            "test/e2e/semantic-browser-model-view.spec.ts"
-          ],
-          "symbols": [
-            "opens ADDED element details by single click with semantic identity"
-          ]
-        },
-        "opportunity": "Two fixed page.waitForTimeout(400) sleeps between selecting first click and details-opening second click add ~800ms dead wall time per project run.",
-        "impact": "Replacing both sleeps with a selected-state assertion removes ~800ms fixed latency and eliminates timing flake.",
-        "evidence": [
-          "spec lines 130/150 waitForTimeout(400)",
-          "machine guard requires selected node; @xyflow/react 12.11.0 NodeWrapper gains class 'selected'"
-        ],
-        "recommendation": "Replace both waitForTimeout(400) calls with await expect(parent).toHaveClass(/selected/).",
-        "keyDesign": "Event-based waiting on the observable selection state.",
-        "preservationConstraints": [
-          "two clicks at {x:20,y:20} on same locator",
-          "dialog assertions unchanged",
-          "green on desktop and mobile",
-          "test-only change"
-        ],
-        "implementationOutline": [
-          "replace sleeps with toHaveClass(/selected/) in both sequences",
-          "run both Playwright projects"
-        ],
-        "validation": [
-          "playwright desktop + mobile"
-        ],
-        "impactLevel": "low",
-        "confidence": "high",
-        "risk": "low",
-        "cost": "low",
-        "dependencies": [],
-        "priorityReason": "Ranks after OPT-02 because it is test-only."
-      },
-      {
-        "status": "merged",
-        "location": {
-          "files": [
-            "test/e2e/semantic-browser-model-view.spec.ts"
-          ],
-          "symbols": [
-            "handles ADDED projection interactions and split diffs"
-          ]
-        },
-        "opportunity": "The sibling ADDED-interaction test carries two fixed page.waitForTimeout(600) sleeps that are each immediately followed by Playwright web-first auto-waiting assertions (not.toHaveAttribute('inert','')), so the sleeps add only fixed wall time (~1.2s per project run).",
-        "impact": "Deleting both sleeps removes ~1.2s fixed latency per project run (~2.4s across desktop+mobile) without weakening any assertion.",
-        "evidence": [
-          "test/e2e/semantic-browser-model-view.spec.ts:108 waitForTimeout(600) sits between parent.click() and the expect(expand).not.toHaveAttribute('inert','') assertion",
-          "test/e2e/semantic-browser-model-view.spec.ts:114 waitForTimeout(600) sits after expect(child).toBeVisible() and before the collapse assertion",
-          "Playwright web-first assertions retry until pass (default 5s): not.toHaveAttribute waits for the button to exist and lack inert"
-        ],
-        "recommendation": "Delete both await page.waitForTimeout(600) lines and keep the surrounding click/assertion sequences identical.",
-        "keyDesign": "Assertion-driven synchronization: rely on Playwright web-first retries instead of fixed-duration sleeps.",
-        "preservationConstraints": [
-          "Both click sequences must still perform the exact same clicks and assertions; only the two waitForTimeout(600) lines are removed",
-          "The Expand-children click must still occur after the selecting parent.click() and before the child visibility assertion",
-          "The collapse assertion must remain the synchronization point for the post-expansion projection update",
-          "Must remain green on both the desktop and mobile projects",
-          "No application code changes: this touches only test waiting"
-        ],
-        "implementationOutline": [
-          "Delete the waitForTimeout(600) at line 108",
-          "Delete the waitForTimeout(600) at line 114",
-          "Run the desktop and mobile Playwright projects for the spec file"
-        ],
-        "validation": [
-          "pnpm exec playwright test test/e2e/semantic-browser-model-view.spec.ts --project=desktop --project=mobile"
-        ],
-        "impactLevel": "low",
-        "confidence": "high",
-        "risk": "low",
-        "cost": "low",
-        "dependencies": [],
-        "priorityReason": "Ranks after OPT-03 because it adds no new assertion: it only removes the two remaining 600ms sleeps that are already redundant with the following auto-waiting inert assertions.",
-        "id": "OPT-20260813T190423583Z-01"
-      },
-      {
-        "status": "resolved",
-        "location": {
-          "files": [
-            "test/e2e/semantic-browser-model-view.spec.ts"
-          ],
-          "symbols": [
-            "opens ADDED element details by single click with semantic identity",
-            "handles ADDED projection interactions and split diffs"
-          ]
-        },
-        "opportunity": "The spec still carries four fixed sleeps: two waitForTimeout(400) between the selecting first click and the details-opening second click, and two waitForTimeout(600) that are each immediately followed by Playwright auto-waiting assertions. Together they add ~2.0s of fixed wall time per project run (~4.0s across desktop+mobile), and the 400ms ones gate a machine-guarded click on wall-clock time instead of observable state.",
-        "impact": "Removing all four sleeps removes ~2.0s fixed latency per project run and replaces the two timing-based selection gates with deterministic state-based synchronization. No assertion is weakened: the removed 600ms waits are already redundant with the following not.toHaveAttribute('inert','') auto-waits.",
-        "evidence": [
-          "test/e2e/semantic-browser-model-view.spec.ts:130 and :150 - page.waitForTimeout(400) sits between the selecting first click and the details-opening second click",
-          "test/e2e/semantic-browser-model-view.spec.ts:108 - waitForTimeout(600) between parent.click() and expect(expand).not.toHaveAttribute('inert',''); :114 - waitForTimeout(600) between child visibility assertion and collapse assertion",
-          "machine.setup.ts guard 'click: selected node' requires event.node.selected === true before the second click opens element details",
-          "Installed @xyflow/react 12.11.0 NodeWrapper renders the className token 'selected' directly from store node.selected"
-        ],
-        "recommendation": "Delete the two waitForTimeout(600) lines and keep surrounding sequences identical. Replace both waitForTimeout(400) lines with await expect(parent).toHaveClass(/(^|\\s)selected(\\s|$)/) after the first click of each sequence.",
-        "keyDesign": "Assertion-driven synchronization: fixed-duration sleeps replaced by Playwright web-first assertions observing the exact states the application consumes.",
-        "preservationConstraints": [
-          "Only the four wait lines change: every click position {x:20,y:20}, locator, dialog assertion, Diff-tab assertion and screenshot remains byte-identical",
-          "In the ADDED-interaction test the Expand-children click must still occur after the selecting parent.click() and before the child visibility assertion",
-          "In both details sequences the second click on the same node must still open the details dialog",
-          "Test-only change: no application code, fixtures, or configuration files touched",
-          "Must remain green on both the desktop and mobile Playwright projects"
-        ],
-        "implementationOutline": [
-          "Delete the two waitForTimeout(600) lines",
-          "Replace both waitForTimeout(400) lines with await expect(parent).toHaveClass(/(^|\\s)selected(\\s|$)/)",
-          "Run the spec on desktop and mobile projects"
-        ],
-        "validation": [
-          "pnpm exec playwright test test/e2e/semantic-browser-model-view.spec.ts --project=desktop --project=mobile"
-        ],
-        "impactLevel": "low",
-        "confidence": "high",
-        "risk": "low",
-        "cost": "low",
-        "dependencies": [],
-        "priorityReason": "Sole remaining actionable work: both pending findings are test-only sleeps in one spec validated by one Playwright command.",
-        "id": "OPT-20260813T191855776Z-01"
-      }
-    ],
-    "history": [
-      {
-        "sequence": 1,
-        "action": "add",
-        "reason": "Single-pass diff classification on the per-projection-update hot path; deletes dead helpers introduced by this change",
-        "timestamp": "2026-08-13T18:39:54.468Z",
-        "findingId": "OPT-20260813T183954468Z-01"
-      },
-      {
-        "sequence": 2,
-        "action": "add",
-        "reason": "Same single-pass keyDesign for the change-panel overlay model on the selection-change path",
-        "timestamp": "2026-08-13T18:39:54.468Z",
-        "findingId": "OPT-20260813T183954468Z-02"
-      },
-      {
-        "sequence": 3,
-        "action": "add",
-        "reason": "Replace fixed sleeps in the new e2e test with a deterministic selection-state wait",
-        "timestamp": "2026-08-13T18:39:54.468Z",
-        "findingId": "OPT-20260813T183954468Z-03"
-      },
-      {
-        "sequence": 4,
-        "action": "select",
-        "reason": "Ranks first because applyXirangPresentationOverlay recomputes on every projection update (focus, expand, mode, selection changes) while the other candidates run only on selection change or in test code; it also deletes dead code introduced by this change and has full spec coverage for preservation.",
-        "timestamp": "2026-08-13T18:39:54.471Z",
-        "findingId": "OPT-20260813T183954468Z-01",
-        "hashes": {
-          "likec4/packages/diagram/src/xirang/architectureView.ts": "a8a26c8f35629c43f7d64027958b6055716a9f8428bea4e290f0798225069102"
-        }
-      },
-      {
-        "sequence": 5,
-        "action": "implemented",
-        "reason": "Master began implementation after freshness check",
-        "timestamp": "2026-08-13T18:40:02.126Z",
-        "findingId": "OPT-20260813T183954468Z-01",
-        "hashes": {
-          "likec4/packages/diagram/src/xirang/architectureView.ts": "a8a26c8f35629c43f7d64027958b6055716a9f8428bea4e290f0798225069102"
-        }
-      },
-      {
-        "sequence": 6,
-        "action": "verified",
-        "reason": "Fresh reviewer verified preservation constraints",
-        "timestamp": "2026-08-13T18:46:48.089Z",
-        "findingId": "OPT-20260813T183954468Z-01"
-      },
-      {
-        "sequence": 7,
-        "action": "resolve",
-        "reason": "Confirmed in HEAD: single-pass classifyDiffEntries present, deleted helpers absent, durable spec cases added; targeted vitest and typecheck green.",
-        "timestamp": "2026-08-13T19:04:23.584Z",
-        "findingId": "OPT-20260813T183954468Z-01"
-      },
-      {
-        "sequence": 8,
-        "action": "retain",
-        "reason": "Still valid against current code: getArchitectureOverlayModel still performs separate counted filter pass plus countOperations and a third metamodel filter pass; countOperations only called from getArchitectureOverlayModel.",
-        "timestamp": "2026-08-13T19:04:23.584Z",
-        "findingId": "OPT-20260813T183954468Z-02"
-      },
-      {
-        "sequence": 9,
-        "action": "retain",
-        "reason": "Still valid: both waitForTimeout(400) calls remain; selected-class mechanism verified statically in installed @xyflow/react 12.11.0 dist.",
-        "timestamp": "2026-08-13T19:04:23.584Z",
-        "findingId": "OPT-20260813T183954468Z-03"
-      },
-      {
-        "sequence": 10,
-        "action": "add",
-        "reason": "Optimizer added finding",
-        "timestamp": "2026-08-13T19:04:23.584Z",
-        "findingId": "OPT-20260813T190423583Z-01"
-      },
-      {
-        "sequence": 11,
-        "action": "select",
-        "reason": "Ranks first among remaining findings: runtime code simplification with verified keyDesign pattern.",
-        "timestamp": "2026-08-13T19:04:23.587Z",
-        "findingId": "OPT-20260813T183954468Z-02",
-        "hashes": {
-          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "5da9f0acc42c8605c8fc72f37a5e65210f575bffeb824b66b974a1ef10511ae6"
-        }
-      },
-      {
-        "sequence": 12,
-        "action": "implemented",
-        "reason": "Master began implementation after freshness check",
-        "timestamp": "2026-08-13T19:04:28.936Z",
-        "findingId": "OPT-20260813T183954468Z-02",
-        "hashes": {
-          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "5da9f0acc42c8605c8fc72f37a5e65210f575bffeb824b66b974a1ef10511ae6"
-        }
-      },
-      {
-        "sequence": 13,
-        "action": "verified",
-        "reason": "Fresh reviewer verified preservation constraints",
-        "timestamp": "2026-08-13T19:12:14.657Z",
-        "findingId": "OPT-20260813T183954468Z-02"
-      },
-      {
-        "sequence": 14,
-        "action": "merge",
-        "reason": "Both pending findings touch only fixed sleeps in the same e2e spec, are validated by the same Playwright command, and share the same assertion-driven keyDesign; merging collapses two sequential implement/verify cycles into one without losing any preservation constraint.",
-        "timestamp": "2026-08-13T19:18:55.777Z",
-        "findingId": "OPT-20260813T191855776Z-01",
-        "findingIds": [
-          "OPT-20260813T183954468Z-03",
-          "OPT-20260813T190423583Z-01"
-        ]
-      },
-      {
-        "sequence": 15,
-        "action": "resolve",
-        "reason": "Confirmed in HEAD: getArchitectureOverlayModel assembles entries/changed/context/counts/metamodel in one loop, countOperations absent, DiagramUI.spec.ts carries durable cases; checkpointed after vitest and typecheck passed.",
-        "timestamp": "2026-08-13T19:18:55.777Z",
-        "findingId": "OPT-20260813T183954468Z-02"
-      },
-      {
-        "sequence": 16,
-        "action": "select",
-        "reason": "Sole remaining actionable work: both pending findings are test-only sleeps in one spec validated by one Playwright command.",
-        "timestamp": "2026-08-13T19:18:55.779Z",
-        "findingId": "OPT-20260813T191855776Z-01",
-        "hashes": {
-          "test/e2e/semantic-browser-model-view.spec.ts": "ff8f2ae68b6bec9f29a8cf87256acdfaed083a8612d7adb3c57e4026d41ecdac"
-        }
-      },
-      {
-        "sequence": 17,
-        "action": "implemented",
-        "reason": "Master began implementation after freshness check",
-        "timestamp": "2026-08-13T19:19:02.291Z",
-        "findingId": "OPT-20260813T191855776Z-01",
-        "hashes": {
-          "test/e2e/semantic-browser-model-view.spec.ts": "ff8f2ae68b6bec9f29a8cf87256acdfaed083a8612d7adb3c57e4026d41ecdac"
-        }
-      },
-      {
-        "sequence": 18,
-        "action": "verified",
-        "reason": "Fresh reviewer verified preservation constraints",
-        "timestamp": "2026-08-13T19:28:24.242Z",
-        "findingId": "OPT-20260813T191855776Z-01"
-      },
-      {
-        "sequence": 19,
-        "action": "resolve",
-        "reason": "Verified implementation committed at checkpoint bb04b7766: all four fixed sleeps removed/replaced with selected-state assertions; fresh reviewer verification PASS; playwright desktop+mobile green. Terminal.",
-        "timestamp": "2026-08-13T19:34:06.925Z",
-        "findingId": "OPT-20260813T191855776Z-01"
-      }
-    ],
+    "findings": [],
+    "history": [],
     "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
     "unchangedReconciliations": 0
   }
