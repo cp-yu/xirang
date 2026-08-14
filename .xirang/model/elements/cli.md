@@ -27,26 +27,6 @@ CLI SHALL 负责可确定性复现的操作，SHALL NOT 替代用户授权或 Ag
 - **WHEN** 输入不足以唯一决定目标层级或行为
 - **THEN** CLI 报告问题而不创作或规范化语义
 
-### Requirement: 配置 Semantic Browser 监听地址
-
-`xirang view` SHALL 接受可选 `--listen <address>` 并将该地址传递给嵌入式 LikeC4 服务；未提供该参数时 SHALL 保持 LikeC4 的默认本地监听策略。
-
-#### Scenario: 从 Windows 访问 WSL 浏览服务
-
-- **WHEN** 用户在 WSL 中运行 `xirang view --listen 0.0.0.0 --port 61000`
-- **THEN** CLI 在启动前重新生成 LikeC4 缓存，并使服务监听 `0.0.0.0:61000` 以供 Windows 通过转发地址访问
-
-#### Scenario: 未显式开放网络接口
-
-- **WHEN** 用户运行 `xirang view` 且未提供 `--listen`
-- **THEN** CLI 不注入监听地址并保留 LikeC4 默认绑定行为
-
-#### Scenario: 自定义端口
-
-- **WHEN** 用户运行 `xirang view --port 8080`
-- **THEN** CLI 在端口 8080 启动浏览器服务
-- **AND** 输出服务器地址 `http://localhost:8080`
-
 ### Requirement: 提供 model-driven authoring help
 
 `xirang help authoring semantic-delta` SHALL 从当前项目 Semantic Model 的 Metamodel 只读投影 Relationship Kinds，SHALL NOT 维护代码内置默认 relationship kinds 或预设 relationship entries。
@@ -115,3 +95,23 @@ CLI SHALL 负责可确定性复现的操作，SHALL NOT 替代用户授权或 Ag
 
 - **WHEN** 开发环境中所有 CLI runtime 包的 dist 产物均不陈旧
 - **THEN** CLI 使用 dist 运行
+
+### Requirement: 配置 Web 监听地址
+
+`xirang view` SHALL 接受可选 `--listen <address>` 并将该地址传递给嵌入式 LikeC4 服务；未提供该参数时 SHALL 保持 LikeC4 的默认本地监听策略。
+
+#### Scenario: 从 Windows 访问 WSL 浏览服务
+
+- **WHEN** 用户在 WSL 中运行 `xirang view --listen 0.0.0.0 --port 61000`
+- **THEN** CLI 在启动前重新生成 LikeC4 缓存，并使服务监听 `0.0.0.0:61000` 以供 Windows 通过转发地址访问
+
+#### Scenario: 未显式开放网络接口
+
+- **WHEN** 用户运行 `xirang view` 且未提供 `--listen`
+- **THEN** CLI 不注入监听地址并保留 LikeC4 默认绑定行为
+
+#### Scenario: 自定义端口
+
+- **WHEN** 用户运行 `xirang view --port 8080`
+- **THEN** CLI 在端口 8080 启动浏览器服务
+- **AND** 输出服务器地址 `http://localhost:8080`

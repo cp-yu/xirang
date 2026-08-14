@@ -2,6 +2,6 @@ relationships:
   - source: cli
     kind: supports-presentation
     target: text-presentation
-  - source: semantic-browser
+  - source: web
     kind: supports-presentation
     target: visual-presentation

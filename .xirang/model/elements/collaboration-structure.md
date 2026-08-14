@@ -16,7 +16,7 @@ collaboration-structure SHALL 从协作角度组织 Realization 的主体与界�
 #### Scenario: 协作结构容纳主体与界面
 
 - **WHEN** 浏览 collaboration-structure 的 descendants
-- **THEN** 呈现 Participants（用户、Agents 与 Internal Agents）与 Interaction Surfaces（CLI、Semantic Browser）
+- **THEN** 呈现 Participants（用户、Agents 与 Internal Agents）与 Interaction Surfaces（CLI、Web）
 
 #### Scenario: 工作身份描述所承担活动
 

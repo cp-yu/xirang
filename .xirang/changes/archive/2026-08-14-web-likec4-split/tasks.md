@@ -79,3 +79,7 @@
   - Verifies: `elements/web.md` / Requirement "提供三维独立控制" / Scenario "选择和清除 Change"
   - Command: `pnpm test:likec4`
   - Expect: `test/core/likec4`、`test/core/view.test.ts`、`test/integration/arch-command.test.ts` 全部通过
+
+## Required Corrections
+
+- [x] [artifact_fix] `.verify-result.json` 证据指纹含 sync 已删除的 `.xirang/model/elements/semantic-browser.md`，checkFreshness=STALE 阻塞 archive；已持久化刷新后的 Phase 1 结果（evidenceFiles/evidenceFingerprintEntries 移除已删除模型单元、重算指纹、gitHeadCommit=ee4fdc765）

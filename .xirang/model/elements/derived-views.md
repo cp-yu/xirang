@@ -56,7 +56,7 @@ Derived View SHALL NOT 持久化为 Semantic Model、Candidate 或 Change 的 du
 
 #### Scenario: 生成可重建运行表示
 
-- **WHEN** Semantic Browser 需要呈现 Derived View
+- **WHEN** Web 需要呈现 Derived View
 - **THEN** 系统可生成临时 manifest 或缓存且其缺失不影响规范性语义
 
 ### Requirement: 不作为 Delta 作用对象
@@ -82,4 +82,4 @@ Derived Views SHALL 包括每个项目唯一的 Model View、active Candidate �
 
 - **WHEN** 项目没有 active Candidate
 - **THEN** Candidate Review 入口 SHALL NOT 提供 Candidate View 或 Candidate Diff View
-- **AND** 普通 Semantic Browser 继续提供 Model、Authored Views 与活动 Changes
+- **AND** 普通 Web 界面 继续提供 Model、Authored Views 与活动 Changes
