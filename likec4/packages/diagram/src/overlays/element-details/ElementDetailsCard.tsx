@@ -54,6 +54,7 @@ import { DiagramFeatures, IconRenderer, IfEnabled } from '../../context'
 import { useCallbackRef, useUpdateEffect } from '../../hooks'
 import { useCurrentViewModel } from '../../hooks/useCurrentViewModel'
 import { useDiagram } from '../../hooks/useDiagram'
+import { useLikeC4ProjectId } from '../../hooks/useLikeC4Project'
 import type { OnNavigateTo } from '../../LikeC4Diagram.props'
 import { stopPropagation } from '../../utils'
 import { type XirangElementDeclaration, type XirangModelElement, type XirangViewSource, useXirangViewSources } from '../../xirang/ContractLoaderContext'
@@ -217,6 +218,7 @@ export function ElementDetailsCard({
   const nodeModel = fromNode ? viewModel.findNode(fromNode) : viewModel.findNodeWithElement(fqn)
 
   const elementModel = viewModel.$model.findElement(fqn) ?? null
+  const projectId = useLikeC4ProjectId()
   const runtime = useXirangViewSources()
   const { stableElementId, declaration, isProjectionElement } = resolveElementDetails({
     fqn,
@@ -246,7 +248,7 @@ export function ElementDetailsCard({
   const elementViews = elementModel ? [...elementModel.views()] : []
   const elementDefaultView = elementModel?.defaultView?.$view ?? null
   const elementColor = elementModel?.color ?? 'gray'
-  const elementProjectId = elementModel?.projectId ?? ''
+  const elementProjectId = elementModel?.projectId ?? projectId
   // The Contract projection is root-owned: an absent key means the Element has no Contract.
   const hasContract = typeof runtime.selected.contracts?.[stableElementId] === 'string'
   const hasDiff = runtime.selected.source === 'change-derived-view'

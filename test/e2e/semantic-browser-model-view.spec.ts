@@ -140,6 +140,13 @@ test('opens ADDED element details by single click with semantic identity', async
   await expect(diffTab).toBeVisible()
   await expect(diffTab).toContainText('Added parent behavior')
 
+  // 投影元素（不在 base model 中）的 Contracts 标签页同样加载目标 Contract。
+  await dialog.getByRole('tab', { name: 'Contracts' }).click()
+  const contracts = dialog.locator('[data-xirang-contracts]')
+  await expect(contracts).toBeVisible()
+  await expect(contracts).toContainText('Added parent behavior')
+  await expect(contracts).not.toContainText('Missing project or element')
+
   // complete 模式（无 diff overlay）同样以语义 identity 渲染声明内容。
   await page.goto('/view/model/?change=browser-change&mode=complete')
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })

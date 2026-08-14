@@ -126,3 +126,8 @@
 - [x] [code_fix] `Requirement 计数徽章` Scenario 缺少红色 `−N` 徽章与多徽章并排的渲染级测试证据
   - Verifies: `elements/semantic-browser.md` / Requirement "呈现 Change 目标与差异" / Scenario "Requirement 计数徽章"
   - Expect: 新增 `nodes.spec.tsx` 渲染测试覆盖三色徽章并排、非零项过滤与全零时渲染 null；C2 命令已包含该 spec 且全过
+
+- [x] [code_fix] ADDED 元素的 Contracts 标签页显示 "Missing project or element"：`elementProjectId` 对投影元素（不在 base model 中）回退为空串；已改为回退 `useLikeC4ProjectId()`
+  - Verifies: `elements/change-derived-views.md` / Requirement "支持 Element 级别的变更差异审查" / Scenario "单击打开 ADDED 元素详情"
+  - Expect: e2e 在既有单击详情用例中新增 Contracts 标签页断言（Contract 内容可见且不含 "Missing project or element"），桌面+移动端 15/15 全过
+
