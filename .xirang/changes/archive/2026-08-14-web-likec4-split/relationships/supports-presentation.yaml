@@ -1,0 +1,9 @@
+relationships:
+  - operation: REMOVED
+    source: semantic-browser
+    kind: supports-presentation
+    target: visual-presentation
+  - operation: ADDED
+    source: web
+    kind: supports-presentation
+    target: visual-presentation

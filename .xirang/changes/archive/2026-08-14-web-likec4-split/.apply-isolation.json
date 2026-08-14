@@ -1,0 +1,7 @@
+{
+  "method": "branch",
+  "branchName": "web-likec4-split",
+  "originalBranch": "main",
+  "baseCommit": "b15dc836da2d4f81cfa97458d4a88f23970a3940",
+  "phase2BaselineCommit": "ee4fdc765acf4d09fc496b327f29f3648ac3c004"
+}

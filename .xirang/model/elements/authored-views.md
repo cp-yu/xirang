@@ -20,7 +20,7 @@ Authored View SHALL 由用户显式声明。
 
 ### Requirement: 持久化 View Definition
 
-Authored View SHALL 以 `views` 分区中的单个无正文 Markdown 单元持久化 View Definition；该定义 SHALL 作为 Semantic Browser View Selection descriptor 使用，不要求生成独立 Browser route。
+Authored View SHALL 以 `views` 分区中的单个无正文 Markdown 单元持久化 View Definition；该定义 SHALL 作为 Web View Selection descriptor 使用，不要求生成独立 Browser route。
 
 #### Scenario: 加载 Authored View
 
@@ -98,7 +98,7 @@ Authored View SHALL 将每个 included Element 的 descendants 纳入选择闭�
 
 ### Requirement: 参与统一层级浏览
 
-Authored View SHALL 在单一 Semantic Browser route 中作为 View Selection，并 SHALL 支持与 Model 相同的 focus、下钻、breadcrumb、就地展开、Change Selection 与 Presentation Mode；旧独立 Authored View route SHALL NOT 作为另一种呈现入口继续存在。
+Authored View SHALL 在单一 Web route 中作为 View Selection，并 SHALL 支持与 Model 相同的 focus、下钻、breadcrumb、就地展开、Change Selection 与 Presentation Mode；旧独立 Authored View route SHALL NOT 作为另一种呈现入口继续存在。
 
 #### Scenario: 选择 Authored View
 

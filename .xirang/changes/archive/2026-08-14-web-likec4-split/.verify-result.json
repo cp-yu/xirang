@@ -1,0 +1,428 @@
+{
+  "timestamp": "2026-08-14T06:35:33.236Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "sync 后 xirang validate --change / xirang arch validate --change 报 ADDED_IDENTITY_EXISTS / REMOVED_IDENTITY_MISSING（delta 已应用于当前模型）；validate CLI 路径未启用 allowAlreadyApplied，属预 sync 门禁语义；sync 后规范检查 getPendingChangeSync pending=0 通过",
+      "requirement": "requirement 归属映射",
+      "task": "Task 1",
+      "recommendation": "接受为工具既定语义；如需 sync 后 rerun 全绿，可将 allowAlreadyApplied 接入 validate 命令（工具改动，非本 change 缺陷）",
+      "evidence": [
+        "src/commands/validate.ts:217",
+        "src/core/change-sync.ts:84-93",
+        "src/core/archive.ts:280"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "编译后 delta 含 6 条额外 requirement MODIFIED 条目——位置偏移产物：ADDED requirement 追加在 Contract 末尾而非被删标题位置，正文未变",
+      "requirement": "requirement 归属映射",
+      "task": "Task 1",
+      "recommendation": "接受为良性；如需稳定 Contract 顺序可在 sync 时把 ADDED requirement 插回被删位置",
+      "evidence": [
+        "src/core/semantic-diff.ts:226-229"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "refreshVerifyEvidenceAfterSync 对已删除证据文件无 ENOENT 保护（src/core/verify/freshness.ts:237-239 hashEvidenceFile 直接 readFile），delta 含删除单元时 sync 的证据刷新会抛错导致 .verify-result.json 指纹停留在 sync 前状态",
+      "requirement": "模型与代码无旧 identity 名称残留",
+      "task": "Task 2",
+      "recommendation": "工具改进：hashEvidenceFile 对 ENOENT 返回空并跳过条目，或同步删除对应证据条目",
+      "evidence": [
+        "src/core/verify/freshness.ts:237-239",
+        "src/core/change-sync.ts:161-174"
+      ]
+    }
+  ],
+  "tasksFileHash": "1bc1af4f3791833c9062ec4d9f2a04628895717b33638e304c0dc1b470870f35",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "executionMode": "branch",
+    "evidenceFiles": [
+      ".xirang/changes/web-likec4-split/change-structural-definition.md",
+      ".xirang/changes/web-likec4-split/design.md",
+      ".xirang/changes/web-likec4-split/elements/authored-views.md",
+      ".xirang/changes/web-likec4-split/elements/cli.md",
+      ".xirang/changes/web-likec4-split/elements/collaboration-structure.md",
+      ".xirang/changes/web-likec4-split/elements/derived-views.md",
+      ".xirang/changes/web-likec4-split/elements/interaction-surfaces.md",
+      ".xirang/changes/web-likec4-split/elements/internal-agents.md",
+      ".xirang/changes/web-likec4-split/elements/model-view.md",
+      ".xirang/changes/web-likec4-split/elements/semantic-browser.md",
+      ".xirang/changes/web-likec4-split/elements/visual-presentation.md",
+      ".xirang/changes/web-likec4-split/elements/web.md",
+      ".xirang/changes/web-likec4-split/elements/xirang-contract-delivery.md",
+      ".xirang/changes/web-likec4-split/elements/xirang-diff-overlay.md",
+      ".xirang/changes/web-likec4-split/elements/xirang-projection-service.md",
+      ".xirang/changes/web-likec4-split/proposal.md",
+      ".xirang/changes/web-likec4-split/relationships/supports-presentation.yaml",
+      ".xirang/changes/web-likec4-split/tasks.md",
+      ".xirang/model/elements/cli.md",
+      ".xirang/model/elements/interaction-surfaces.md",
+      ".xirang/model/elements/model-view.md",
+      ".xirang/model/elements/web.md",
+      ".xirang/model/elements/xirang-contract-delivery.md",
+      ".xirang/model/elements/xirang-diff-overlay.md",
+      ".xirang/model/elements/xirang-projection-service.md",
+      ".xirang/model/relationships/supports-presentation.yaml",
+      "src/commands/validate.ts",
+      "src/core/archive.ts",
+      "src/core/change-compiler.ts",
+      "src/core/change-sync.ts",
+      "src/core/verify/freshness.ts"
+    ],
+    "evidenceFingerprint": "1687b73bc078cf274c91e463d88d6c82b6994c82e0048a35a63240fb0d523cfb",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/web-likec4-split/change-structural-definition.md",
+        "hash": "3d01fed9464bebd81e42b93c2ee0d193f2a026e1d11076782d638359c0bda32a"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/design.md",
+        "hash": "762c587196382b90b08d6a6500a65196b838e23e59ea799fa8831ce19d22fecf"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/authored-views.md",
+        "hash": "601e3085c0ddba18365af0e31e23ed75ad294209c51ece92a0366fb4e8f9279a"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/cli.md",
+        "hash": "ab07e0252f4259cc8262f28b0228a7ff3c186d7029392cea73ddb81453a899a2"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/collaboration-structure.md",
+        "hash": "40a19f973bd2c15c74d4b0bfa76ae6d9834f24fa3ec29292da6f763f91afeeb9"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/derived-views.md",
+        "hash": "e1feafeb6e04f2bc316816cab597fbbca95afee8dbbcbaf014a9b9a9f98dc0dd"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/interaction-surfaces.md",
+        "hash": "df91e0ee72b65b403f9447b256caad7ec777c1fbfb662096aaa8c4b7ca89a886"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/internal-agents.md",
+        "hash": "aacc059d9c371e8edca1e2458fa121c91291b5272c00a23c184f6913306b6b23"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/model-view.md",
+        "hash": "c0d50f8e809f500d9feff66b1af3d948020029aec2ebb4a32649b40a27ac46b4"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/semantic-browser.md",
+        "hash": "1d4f7a2db25106de82134a7597761c998a8a23fd25509fd4b4d3fa244b3cb2c6"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/visual-presentation.md",
+        "hash": "3899daa92533dabfb73f0a3a2bf2dc0e5c396e8804fbf61f08dade766e84896a"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/web.md",
+        "hash": "99bf18afe2166e784b175a5e1c703bf403dd0248f5a00f505e21bbde0c77ad59"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/xirang-contract-delivery.md",
+        "hash": "d7140a0a1d0b1eb15acfefe3c1ddacfab661ec3f9723e59cc23e61ee9bbe8d5a"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/xirang-diff-overlay.md",
+        "hash": "9b5ca07a9701861eaea3adf29fe1c11881bb04f29bda90f045bd6a788bbaed98"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/elements/xirang-projection-service.md",
+        "hash": "1b841e95b80d3c751fcfeadac11a5a50518789be9adff00a69a0a1569b62e55a"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/proposal.md",
+        "hash": "2259ab4a1d73fe6d383a0a2eccd41cfef265f300a2dd0c89d21e9bc0d4a4542f"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/relationships/supports-presentation.yaml",
+        "hash": "ead4ac8115f6fc67b69f3b9395acb7aca50fef457a7679950fb92f2a9c43cdcf"
+      },
+      {
+        "path": ".xirang/changes/web-likec4-split/tasks.md",
+        "hash": "1bc1af4f3791833c9062ec4d9f2a04628895717b33638e304c0dc1b470870f35"
+      },
+      {
+        "path": ".xirang/model/elements/cli.md",
+        "hash": "ab2d57bef4b1495edc3bd96260d8e6dd07298a3bb7466b88292fad023d47d7c6"
+      },
+      {
+        "path": ".xirang/model/elements/interaction-surfaces.md",
+        "hash": "f2409800de1a7a4084c0dfb195a0caf07b4c88f4f008c6ba95aa95c41396857b"
+      },
+      {
+        "path": ".xirang/model/elements/model-view.md",
+        "hash": "7da2c4929c932c4016445df56800e85151e122d75d9fd339e792e44ba5d8fa8e"
+      },
+      {
+        "path": ".xirang/model/elements/web.md",
+        "hash": "3afc7b0e445a7bad4e9eac8250e4d1ed1e8b4ad930a2a3516554d3589c08f6bf"
+      },
+      {
+        "path": ".xirang/model/elements/xirang-contract-delivery.md",
+        "hash": "b5ef77d1d100ef6434f2b4d344c0a86a781f0fb0f07ce8db7210bce9dfdad7cb"
+      },
+      {
+        "path": ".xirang/model/elements/xirang-diff-overlay.md",
+        "hash": "87e699dbb2d28e304e5086a3bb1d61472bd3f2ef6c2dcba764f7dc44c786ab75"
+      },
+      {
+        "path": ".xirang/model/elements/xirang-projection-service.md",
+        "hash": "f631a7422890ff23a003135b3f0980619546e7ee1465d0ae7e605341ba5f4bd4"
+      },
+      {
+        "path": ".xirang/model/relationships/supports-presentation.yaml",
+        "hash": "713d1d7cec5723aec6a81a13adf38b92f7db8c65cf97c50c4250ae1a7f767407"
+      },
+      {
+        "path": "src/commands/validate.ts",
+        "hash": "d61c5f840964ca741242f0aa56d2db9db2394a20228173c932585b6693780a71"
+      },
+      {
+        "path": "src/core/archive.ts",
+        "hash": "397b3e3124b1cd4bd15c5c41e8491076d203530bdad46feaafa317f1f2c2665c"
+      },
+      {
+        "path": "src/core/change-compiler.ts",
+        "hash": "dfe94a62faec1431404095c0cb59d79e3a392cc6848063c0feb74fb9e841c088"
+      },
+      {
+        "path": "src/core/change-sync.ts",
+        "hash": "ba111fa4f42a701742287fd444d968d3b3bbb6ce23dbf452a62c10c1f432d0aa"
+      },
+      {
+        "path": "src/core/verify/freshness.ts",
+        "hash": "07064c29022d4e82f9802d8bf0ede3cbe91ca11371e255d7570e489fb70d2a85"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "ee4fdc765acf4d09fc496b327f29f3648ac3c004",
+    "gitDiffSummary": "模型已 sync（semantic-browser 删除，web + 3 child 新增，8 个受影响 Element 文案迁移，supports-presentation 端点迁移，模型零残留）；git diff b15dc836d...HEAD 仅 change 产物；src/ 与 likec4/ 零代码改动"
+  },
+  "optimization": {
+    "status": "NOT_NEEDED",
+    "attempts": [
+      {
+        "timestamp": "2026-08-14T06:35:54.186Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-08-14T06:35:33.236Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "sync 后 xirang validate --change / xirang arch validate --change 报 ADDED_IDENTITY_EXISTS / REMOVED_IDENTITY_MISSING（delta 已应用于当前模型）；validate CLI 路径未启用 allowAlreadyApplied，属预 sync 门禁语义；sync 后规范检查 getPendingChangeSync pending=0 通过",
+          "requirement": "requirement 归属映射",
+          "task": "Task 1",
+          "recommendation": "接受为工具既定语义；如需 sync 后 rerun 全绿，可将 allowAlreadyApplied 接入 validate 命令（工具改动，非本 change 缺陷）",
+          "evidence": [
+            "src/commands/validate.ts:217",
+            "src/core/change-sync.ts:84-93",
+            "src/core/archive.ts:280"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "编译后 delta 含 6 条额外 requirement MODIFIED 条目——位置偏移产物：ADDED requirement 追加在 Contract 末尾而非被删标题位置，正文未变",
+          "requirement": "requirement 归属映射",
+          "task": "Task 1",
+          "recommendation": "接受为良性；如需稳定 Contract 顺序可在 sync 时把 ADDED requirement 插回被删位置",
+          "evidence": [
+            "src/core/semantic-diff.ts:226-229"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "refreshVerifyEvidenceAfterSync 对已删除证据文件无 ENOENT 保护（src/core/verify/freshness.ts:237-239 hashEvidenceFile 直接 readFile），delta 含删除单元时 sync 的证据刷新会抛错导致 .verify-result.json 指纹停留在 sync 前状态",
+          "requirement": "模型与代码无旧 identity 名称残留",
+          "task": "Task 2",
+          "recommendation": "工具改进：hashEvidenceFile 对 ENOENT 返回空并跳过条目，或同步删除对应证据条目",
+          "evidence": [
+            "src/core/verify/freshness.ts:237-239",
+            "src/core/change-sync.ts:161-174"
+          ]
+        }
+      ],
+      "tasksFileHash": "1bc1af4f3791833c9062ec4d9f2a04628895717b33638e304c0dc1b470870f35",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "executionMode": "branch",
+        "evidenceFiles": [
+          ".xirang/changes/web-likec4-split/change-structural-definition.md",
+          ".xirang/changes/web-likec4-split/design.md",
+          ".xirang/changes/web-likec4-split/elements/authored-views.md",
+          ".xirang/changes/web-likec4-split/elements/cli.md",
+          ".xirang/changes/web-likec4-split/elements/collaboration-structure.md",
+          ".xirang/changes/web-likec4-split/elements/derived-views.md",
+          ".xirang/changes/web-likec4-split/elements/interaction-surfaces.md",
+          ".xirang/changes/web-likec4-split/elements/internal-agents.md",
+          ".xirang/changes/web-likec4-split/elements/model-view.md",
+          ".xirang/changes/web-likec4-split/elements/semantic-browser.md",
+          ".xirang/changes/web-likec4-split/elements/visual-presentation.md",
+          ".xirang/changes/web-likec4-split/elements/web.md",
+          ".xirang/changes/web-likec4-split/elements/xirang-contract-delivery.md",
+          ".xirang/changes/web-likec4-split/elements/xirang-diff-overlay.md",
+          ".xirang/changes/web-likec4-split/elements/xirang-projection-service.md",
+          ".xirang/changes/web-likec4-split/proposal.md",
+          ".xirang/changes/web-likec4-split/relationships/supports-presentation.yaml",
+          ".xirang/changes/web-likec4-split/tasks.md",
+          ".xirang/model/elements/cli.md",
+          ".xirang/model/elements/interaction-surfaces.md",
+          ".xirang/model/elements/model-view.md",
+          ".xirang/model/elements/web.md",
+          ".xirang/model/elements/xirang-contract-delivery.md",
+          ".xirang/model/elements/xirang-diff-overlay.md",
+          ".xirang/model/elements/xirang-projection-service.md",
+          ".xirang/model/relationships/supports-presentation.yaml",
+          "src/commands/validate.ts",
+          "src/core/archive.ts",
+          "src/core/change-compiler.ts",
+          "src/core/change-sync.ts",
+          "src/core/verify/freshness.ts"
+        ],
+        "evidenceFingerprint": "1687b73bc078cf274c91e463d88d6c82b6994c82e0048a35a63240fb0d523cfb",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/web-likec4-split/change-structural-definition.md",
+            "hash": "3d01fed9464bebd81e42b93c2ee0d193f2a026e1d11076782d638359c0bda32a"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/design.md",
+            "hash": "762c587196382b90b08d6a6500a65196b838e23e59ea799fa8831ce19d22fecf"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/authored-views.md",
+            "hash": "601e3085c0ddba18365af0e31e23ed75ad294209c51ece92a0366fb4e8f9279a"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/cli.md",
+            "hash": "ab07e0252f4259cc8262f28b0228a7ff3c186d7029392cea73ddb81453a899a2"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/collaboration-structure.md",
+            "hash": "40a19f973bd2c15c74d4b0bfa76ae6d9834f24fa3ec29292da6f763f91afeeb9"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/derived-views.md",
+            "hash": "e1feafeb6e04f2bc316816cab597fbbca95afee8dbbcbaf014a9b9a9f98dc0dd"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/interaction-surfaces.md",
+            "hash": "df91e0ee72b65b403f9447b256caad7ec777c1fbfb662096aaa8c4b7ca89a886"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/internal-agents.md",
+            "hash": "aacc059d9c371e8edca1e2458fa121c91291b5272c00a23c184f6913306b6b23"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/model-view.md",
+            "hash": "c0d50f8e809f500d9feff66b1af3d948020029aec2ebb4a32649b40a27ac46b4"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/semantic-browser.md",
+            "hash": "1d4f7a2db25106de82134a7597761c998a8a23fd25509fd4b4d3fa244b3cb2c6"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/visual-presentation.md",
+            "hash": "3899daa92533dabfb73f0a3a2bf2dc0e5c396e8804fbf61f08dade766e84896a"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/web.md",
+            "hash": "99bf18afe2166e784b175a5e1c703bf403dd0248f5a00f505e21bbde0c77ad59"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/xirang-contract-delivery.md",
+            "hash": "d7140a0a1d0b1eb15acfefe3c1ddacfab661ec3f9723e59cc23e61ee9bbe8d5a"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/xirang-diff-overlay.md",
+            "hash": "9b5ca07a9701861eaea3adf29fe1c11881bb04f29bda90f045bd6a788bbaed98"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/elements/xirang-projection-service.md",
+            "hash": "1b841e95b80d3c751fcfeadac11a5a50518789be9adff00a69a0a1569b62e55a"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/proposal.md",
+            "hash": "2259ab4a1d73fe6d383a0a2eccd41cfef265f300a2dd0c89d21e9bc0d4a4542f"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/relationships/supports-presentation.yaml",
+            "hash": "ead4ac8115f6fc67b69f3b9395acb7aca50fef457a7679950fb92f2a9c43cdcf"
+          },
+          {
+            "path": ".xirang/changes/web-likec4-split/tasks.md",
+            "hash": "1bc1af4f3791833c9062ec4d9f2a04628895717b33638e304c0dc1b470870f35"
+          },
+          {
+            "path": ".xirang/model/elements/cli.md",
+            "hash": "ab2d57bef4b1495edc3bd96260d8e6dd07298a3bb7466b88292fad023d47d7c6"
+          },
+          {
+            "path": ".xirang/model/elements/interaction-surfaces.md",
+            "hash": "f2409800de1a7a4084c0dfb195a0caf07b4c88f4f008c6ba95aa95c41396857b"
+          },
+          {
+            "path": ".xirang/model/elements/model-view.md",
+            "hash": "7da2c4929c932c4016445df56800e85151e122d75d9fd339e792e44ba5d8fa8e"
+          },
+          {
+            "path": ".xirang/model/elements/web.md",
+            "hash": "3afc7b0e445a7bad4e9eac8250e4d1ed1e8b4ad930a2a3516554d3589c08f6bf"
+          },
+          {
+            "path": ".xirang/model/elements/xirang-contract-delivery.md",
+            "hash": "b5ef77d1d100ef6434f2b4d344c0a86a781f0fb0f07ce8db7210bce9dfdad7cb"
+          },
+          {
+            "path": ".xirang/model/elements/xirang-diff-overlay.md",
+            "hash": "87e699dbb2d28e304e5086a3bb1d61472bd3f2ef6c2dcba764f7dc44c786ab75"
+          },
+          {
+            "path": ".xirang/model/elements/xirang-projection-service.md",
+            "hash": "f631a7422890ff23a003135b3f0980619546e7ee1465d0ae7e605341ba5f4bd4"
+          },
+          {
+            "path": ".xirang/model/relationships/supports-presentation.yaml",
+            "hash": "713d1d7cec5723aec6a81a13adf38b92f7db8c65cf97c50c4250ae1a7f767407"
+          },
+          {
+            "path": "src/commands/validate.ts",
+            "hash": "d61c5f840964ca741242f0aa56d2db9db2394a20228173c932585b6693780a71"
+          },
+          {
+            "path": "src/core/archive.ts",
+            "hash": "397b3e3124b1cd4bd15c5c41e8491076d203530bdad46feaafa317f1f2c2665c"
+          },
+          {
+            "path": "src/core/change-compiler.ts",
+            "hash": "dfe94a62faec1431404095c0cb59d79e3a392cc6848063c0feb74fb9e841c088"
+          },
+          {
+            "path": "src/core/change-sync.ts",
+            "hash": "ba111fa4f42a701742287fd444d968d3b3bbb6ce23dbf452a62c10c1f432d0aa"
+          },
+          {
+            "path": "src/core/verify/freshness.ts",
+            "hash": "07064c29022d4e82f9802d8bf0ede3cbe91ca11371e255d7570e489fb70d2a85"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "ee4fdc765acf4d09fc496b327f29f3648ac3c004",
+        "gitDiffSummary": "模型已 sync（semantic-browser 删除，web + 3 child 新增，8 个受影响 Element 文案迁移，supports-presentation 端点迁移，模型零残留）；git diff b15dc836d...HEAD 仅 change 产物；src/ 与 likec4/ 零代码改动"
+      }
+    },
+    "findings": [],
+    "history": [],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}
