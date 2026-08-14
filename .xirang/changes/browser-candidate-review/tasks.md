@@ -45,6 +45,7 @@
 - Modify: `src/core/view.ts`
 - Test: `likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts`
 - Test: `test/core/view.test.ts`
+- Test: `test/core/view-parse-count.test.ts`
 - Test: `test/e2e/semantic-browser-candidate-views.spec.ts`
 - Test: `test/fixtures/contract-browser/.xirang/candidate/relationships/invokes.yaml`
 - Test: `test/fixtures/contract-browser/.xirang/candidate/relationships/references.yaml`
@@ -75,8 +76,8 @@
 
 - [x] C3 Candidate Diff before-after union sources 单测
   - Verifies: `elements/candidate-diff-derived-view.md` / Requirement "呈现 Candidate 语义差异" / Scenario "审查 Candidate diff"
-  - Command: `pnpm exec vitest run test/core/view.test.ts`
-  - Expect: `diffArchitecture`、`diffLikec4Sources`、`diffLikec4ElementPaths`、`diffSourceFingerprint` 存在且与 candidate target sources 区分，removed ghosts 可投影
+  - Command: `pnpm exec vitest run test/core/view.test.ts test/core/view-parse-count.test.ts`
+  - Expect: `diffArchitecture`、`diffLikec4Sources`、`diffLikec4ElementPaths`、`diffSourceFingerprint` 存在且与 candidate target sources 区分，removed ghosts 可投影；单次 snapshot build 只读一次 formal 模型
 
 - [x] C4 类型检查
   - Verifies: `elements/candidate-derived-view.md` / Requirement "提供完整 Candidate 目标模型" / Scenario "浏览有效 Candidate"

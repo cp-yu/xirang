@@ -303,7 +303,7 @@ export const RelationshipEdge = memoEdge<Types.EdgeProps<'relationship'>>((props
     ? relationCounts.added + relationCounts.modified + relationCounts.removed
     : 0
   const hasDiff = !!xirangOperation || changedRelationCount > 0
-  const xirangGlyph = xirangOperation === 'ADDED' ? '+' : xirangOperation === 'REMOVED' ? '-' : '~'
+  const xirangGlyph = xirangOperation === 'ADDED' ? '+' : xirangOperation === 'REMOVED' ? '−' : '~'
 
   const relationCountBadges = [
     { key: 'added', glyph: '+', color: '#2f9e44', label: 'added relationships' },

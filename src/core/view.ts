@@ -18,7 +18,7 @@ import { PARTITIONS, relationshipIdentity, type Partition, type SemanticModel } 
 import type { ChangeDiagnostic, ChangeDiff } from './semantic-diff.js';
 import { runLikeC4 } from '../commands/arch/runner.js';
 import { validateCandidateSnapshot } from './candidate/validator.js';
-import { parseSemanticModelFiles } from './model/parser.js';
+import { parseSemanticModelFiles, type ParsedModel } from './model/parser.js';
 
 export interface ViewLaunchOptions {
   projectRoot: string;
@@ -212,8 +212,8 @@ export function partitionFingerprints(model: SemanticModel): Record<Partition, s
   ) as Record<Partition, string>;
 }
 
-async function buildSemanticModelSource(projectRoot: string): Promise<ViewRuntimeSemanticModel> {
-  const { model } = await readFormalSemanticModel(projectRoot);
+async function buildSemanticModelSource(formal: ParsedModel): Promise<ViewRuntimeSemanticModel> {
+  const { model } = formal;
   const fingerprints = partitionFingerprints(model);
   return {
     id: 'model',
@@ -247,9 +247,9 @@ function unionSemanticModels(before: SemanticModel, after: SemanticModel): Seman
   }
 }
 
-async function buildChangeDerivedView(projectRoot: string, change: string): Promise<ViewRuntimeChangeDerivedView> {
+async function buildChangeDerivedView(projectRoot: string, change: string, formal: ParsedModel): Promise<ViewRuntimeChangeDerivedView> {
   try {
-    const compiledDelta = await compileChangeDelta(projectRoot, change);
+    const compiledDelta = await compileChangeDelta(projectRoot, change, { base: formal });
     const compiled = compiledDelta.compiled;
     const projection = compiled.target ? projectContracts(compiled.target) : undefined;
     const diffModel = compiled.target ? unionSemanticModels(compiledDelta.base.model, compiled.target) : undefined;
@@ -300,6 +300,7 @@ async function buildChangeDerivedView(projectRoot: string, change: string): Prom
 
 async function buildCandidateSources(
   projectRoot: string,
+  formal: ParsedModel,
 ): Promise<{ candidate: ViewRuntimeCandidateView; candidateDiff: ViewRuntimeCandidateDiffView } | undefined> {
   const candidateRoot = path.join(projectRoot, XIRANG_DIR_NAME, 'candidate');
   const candidateExists = existsSync(candidateRoot);
@@ -321,7 +322,7 @@ async function buildCandidateSources(
     // Candidate Diff renders before-only objects (removed ghosts) from the formal+candidate union,
     // mirroring change-derived diff views that load the before-after union sources.
     const unionModel = result.comparison.baseline === 'formal'
-      ? unionSemanticModels((await readFormalSemanticModel(projectRoot)).model, candidateModel.model)
+      ? unionSemanticModels(formal.model, candidateModel.model)
       : null
     const diffArchitecture = unionModel ? projectBrowserArchitecture(unionModel) : undefined
     const diffSourceFingerprint = unionModel
@@ -398,24 +399,25 @@ export async function buildViewRuntimeSnapshot(
   projectRoot: string,
   options: { previous?: ViewRuntimeSnapshot; onlyChange?: string } = {},
 ): Promise<ViewRuntimeSnapshot> {
+  const formal = await readFormalSemanticModel(projectRoot);
   const changes = await listActiveChanges(projectRoot);
   const previous = options.previous?.changes ?? {};
   const entries = await Promise.all(
     changes.map(async change => {
       const cached = options.onlyChange && options.onlyChange !== change ? previous[change] : undefined;
-      return [change, cached ?? await buildChangeDerivedView(projectRoot, change)] as const;
+      return [change, cached ?? await buildChangeDerivedView(projectRoot, change, formal)] as const;
     }),
   );
   const sources = Object.fromEntries(entries);
 
   const [candidateSources, semanticModel] = await Promise.all([
-    buildCandidateSources(projectRoot),
-    buildSemanticModelSource(projectRoot),
+    buildCandidateSources(projectRoot, formal),
+    buildSemanticModelSource(formal),
   ]);
 
   // The Browser server consumes the resolved selection directly, so closure, exclude precedence
   // and virtual-root detection stay in one place instead of being re-derived per consumer.
-  const { model } = await readFormalSemanticModel(projectRoot);
+  const { model } = formal;
   const authoredViews: Record<string, ViewRuntimeAuthoredView> = {};
   for (const view of model.views) {
     authoredViews[view.identity] = {

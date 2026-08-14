@@ -79,7 +79,7 @@
       "test/fixtures/contract-browser/.xirang/candidate/relationships/invokes.yaml",
       "test/fixtures/contract-browser/.xirang/candidate/relationships/references.yaml"
     ],
-    "evidenceFingerprint": "8cd90af4046ae31296a9a183f7c981e6d32bb3aa2301f1588041b3f676e558dd",
+    "evidenceFingerprint": "3a889d14fc36582f7d1b46c466a0c9b9334c8dde79fdc02b8d387b01c91ba92b",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/browser-candidate-review/design.md",
@@ -107,11 +107,11 @@
       },
       {
         "path": ".xirang/changes/browser-candidate-review/tasks.md",
-        "hash": "7116024e679a4d53cb75c17a0be31b5a1bc9ad135b227fa3c10c4042536d70be"
+        "hash": "f96404674e3b27e30cb5c5c7e3d08267ed9498aef3470a0029d653f6d4bcac27"
       },
       {
         "path": "likec4/packages/diagram/src/likec4diagram/custom/edges/RelationshipEdge.tsx",
-        "hash": "dbc48e54954c6e246d4939837acf9a19ff772a3ca6d2dfb13d4552b581bed316"
+        "hash": "01f923169797087a1e225c1c3c00a687457105dabc91f4d73277fae49ee841e8"
       },
       {
         "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
@@ -119,7 +119,7 @@
       },
       {
         "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
-        "hash": "17afc1608fffa07764afeaf13ae61d24bd589f88782ccb165eb829eef328d84e"
+        "hash": "81b6bc50fe77b9fc8d53840f75118abeb94b2f5a31f705a175bd5f2a1f3fad0f"
       },
       {
         "path": "likec4/packages/diagram/src/likec4diagram/types.ts",
@@ -143,7 +143,7 @@
       },
       {
         "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
-        "hash": "42bb9f2bf2d673f10c13b94454d64f68bee1e336f57abe75520cc39238112c78"
+        "hash": "4a67907d38f8a0b2fe14c86767ee35dafbcdf06d76bc49508621291eb998cb38"
       },
       {
         "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
@@ -151,7 +151,7 @@
       },
       {
         "path": "src/core/view.ts",
-        "hash": "addf4ed5e108d87c88b147e3c759f8127516a11948b67deb94214257f97c7b9c"
+        "hash": "e5cd800993c5ed0a17ee6ead4319cfdf16db07f6c6df9cf55e8672c8e1682e58"
       },
       {
         "path": "test/core/view.test.ts",
@@ -159,7 +159,7 @@
       },
       {
         "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
-        "hash": "0235397e4f5f2f2d0661f5b41ba88e94d155315a6dc220cfa40b3053491fe8f6"
+        "hash": "916effe97579b95cfab6e7ab55e9e4c38520fdab6c865386b861245716b0cedd"
       },
       {
         "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/layer.md",
@@ -191,12 +191,24 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "a18fe48027dc17a3e9ea3052fbfb4b573cf97541",
-    "gitDiffSummary": "baseCommit a18fe4802 == HEAD (git cat-file -t: commit); git diff <base>...HEAD --name-only is empty; all evidence is uncommitted: 14 modified files + 7 untracked (6 fixture + .xirang/changes/). No residue of expandXirangRelationshipEdges or isInteractiveBrowserSource (multi-file grep empty). git diff --check clean. Commands run: vitest DiagramUI.spec 7/7, architectureView.spec+projectionNode.spec 29/29, projection-handler.spec 32/32, test/core/view.test.ts 33/33; typecheck @likec4/diagram + @likec4/vite-plugin clean; @likec4/spa + xirang-likec4 builds; playwright candidate-views desktop+mobile 10/10, model-view 'renders four-state diff visuals' 2/2, full regression desktop+mobile 45/45; arch outline/query/validate --change browser-candidate-review (no errors). Edera one-time probes: candidate manifest has 685 diff entries / 48 metamodel entries (16 element-kind, 22 relationship-kind, 10 authored-view), candidate baseline projection = 9 nodes, union layout fails (QueueGraphvizLayoter) and the deterministic candidate-only fallback engages (84 nodes, removed ghosts dropped as designed), 3 merged edges each carry 2 changed relationships."
+    "gitHeadCommit": "a17a83e4c36ef94e0b5ae9d6e9c167451052587f",
+    "gitDiffSummary": "baseCommit a18fe4802 == HEAD (git cat-file -t: commit); git diff <base>...HEAD --name-only is empty; all evidence is uncommitted: 14 modified files + 7 untracked (6 fixture + .xirang/changes/). No residue of expandXirangRelationshipEdges or isInteractiveBrowserSource (multi-file grep empty). git diff --check clean. Commands run: vitest DiagramUI.spec 7/7, architectureView.spec+projectionNode.spec 29/29, projection-handler.spec 32/32, test/core/view.test.ts 33/33; typecheck @likec4/diagram + @likec4/vite-plugin clean; @likec4/spa + xirang-likec4 builds; playwright candidate-views desktop+mobile 10/10, model-view 'renders four-state diff visuals' 2/2, full regression desktop+mobile 45/45; arch outline/query/validate --change browser-candidate-review (no errors). Edera one-time probes: candidate manifest has 685 diff entries / 48 metamodel entries (16 element-kind, 22 relationship-kind, 10 authored-view), candidate baseline projection = 9 nodes, union layout fails (QueueGraphvizLayoter) and the deterministic candidate-only fallback engages (84 nodes, removed ghosts dropped as designed), 3 merged edges each carry 2 changed relationships.",
+    "timestamp": "2026-08-14T11:22:47.842Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-08-14T10:27:49.622Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-14T11:22:47.829Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-08-14T10:07:35.996Z",
       "result": "PASS_WITH_WARNINGS",
@@ -393,6 +405,427 @@
         "gitHeadCommit": "a18fe48027dc17a3e9ea3052fbfb4b573cf97541",
         "gitDiffSummary": "baseCommit a18fe4802 == HEAD (git cat-file -t: commit); git diff <base>...HEAD --name-only is empty; all evidence is uncommitted: 14 modified files + 7 untracked (6 fixture + .xirang/changes/). No residue of expandXirangRelationshipEdges or isInteractiveBrowserSource (multi-file grep empty). git diff --check clean. Commands run: vitest DiagramUI.spec 7/7, architectureView.spec+projectionNode.spec 29/29, projection-handler.spec 32/32, test/core/view.test.ts 33/33; typecheck @likec4/diagram + @likec4/vite-plugin clean; @likec4/spa + xirang-likec4 builds; playwright candidate-views desktop+mobile 10/10, model-view 'renders four-state diff visuals' 2/2, full regression desktop+mobile 45/45; arch outline/query/validate --change browser-candidate-review (no errors). Edera one-time probes: candidate manifest has 685 diff entries / 48 metamodel entries (16 element-kind, 22 relationship-kind, 10 authored-view), candidate baseline projection = 9 nodes, union layout fails (QueueGraphvizLayoter) and the deterministic candidate-only fallback engages (84 nodes, removed ghosts dropped as designed), 3 merged edges each carry 2 changed relationships."
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "src/core/view.ts"
+          ],
+          "symbols": [
+            "buildViewRuntimeSnapshot",
+            "buildCandidateSources",
+            "buildSemanticModelSource",
+            "buildChangeDerivedView"
+          ]
+        },
+        "opportunity": "One snapshot build parses the formal Semantic Model (all four partitions) 2 + N times: buildSemanticModelSource reads it once (view.ts:216), the new Candidate-Diff union path added by this change reads it again (view.ts:324), compileChangeDelta without options.base re-reads it once per active Change (view.ts:252 -> change-compiler.ts:138), and the authoredViews section reads it a fourth time (view.ts:418). The candidate validator adds yet another formal parse (src/core/candidate/validator.ts:343, outside base scope). compileChangeDelta already supports a pre-parsed base (change-compiler.ts:25-29: 'Pre-parsed Semantic Model; avoids re-reading the four partitions'), but buildChangeDerivedView never passes it.",
+        "impact": "Collapses 2 + N whole-model four-partition parses per snapshot build into one, on every `xirang view` launch and every 75ms-debounced watcher refresh after any model/candidate/change edit. Also removes the current race where concurrent consumers (buildSemanticModelSource vs buildCandidateSources) can observe different formal file states mid-edit and produce a mixed snapshot.",
+        "evidence": [
+          "src/core/view.ts:216 `const { model } = await readFormalSemanticModel(projectRoot)` inside buildSemanticModelSource",
+          "src/core/view.ts:324 `unionSemanticModels((await readFormalSemanticModel(projectRoot)).model, candidateModel.model)` added by this change inside buildCandidateSources",
+          "src/core/view.ts:252 `const compiledDelta = await compileChangeDelta(projectRoot, change)` with no base option, once per active change",
+          "src/core/view.ts:418 `const { model } = await readFormalSemanticModel(projectRoot)` for authoredViews",
+          "src/core/change-compiler.ts:50-52 readFormalSemanticModel = parseSemanticModel(modelRoot(projectRoot)) with no caching layer (src/core/model/parser.ts has no memoization)",
+          "src/core/change-compiler.ts:133-139 compileChangeDelta accepts options.base and only re-reads when it is absent",
+          "buildCandidateSources / buildSemanticModelSource / buildChangeDerivedView / unionSemanticModels have no callers outside src/core/view.ts (grep confirms), so the refactor is fully internal"
+        ],
+        "recommendation": "Hoist a single `const formal = await readFormalSemanticModel(projectRoot)` to the top of buildViewRuntimeSnapshot, pass it into buildSemanticModelSource(formal), buildCandidateSources(projectRoot, formal) (use formal.model for the union when result.comparison.baseline === 'formal'), and buildChangeDerivedView(projectRoot, change, formal) which calls compileChangeDelta(projectRoot, change, { base: formal }). Reuse formal.model for authoredViews resolution.",
+        "keyDesign": "One immutable ParsedModel per snapshot build. Consumers keep their exact current semantics: buildCandidateSources uses it only when comparison.baseline === 'formal'; buildChangeDerivedView passes it as CompileChangeOptions.base so compiledDelta.base.model, formalFingerprint, and diagnostic index content are identical to a fresh read.",
+        "preservationConstraints": [
+          "Parsed model content is byte-identical to what each current read returns (same parser, same files); no consumer mutates ParsedModel (unionSemanticModels copies into new Maps, projectBrowserArchitecture maps to new structures)",
+          "A formal read failure still rejects buildViewRuntimeSnapshot with the same exception (today buildSemanticModelSource:216 rejects the Promise.all; hoisting rejects earlier at the same call site with the same error; per-change catch diagnostics were never delivered in that scenario either)",
+          "Snapshot output fields, fingerprints, diff entries, contracts, and manifest JSON remain unchanged",
+          "buildChangeDerivedView catch path and plan-file reading unchanged",
+          "The onlyChange refresh path still reads formal once (as it already does for authoredViews) and passes the same base to the recompiled change"
+        ],
+        "implementationOutline": [
+          "Import `type ParsedModel` from './model/parser.js' into view.ts",
+          "Read formal once at the top of buildViewRuntimeSnapshot; thread it into the three private builders",
+          "Change compileChangeDelta call to pass { base }",
+          "Remove the now-redundant reads at view.ts:216 and view.ts:324 and reuse the hoisted model at view.ts:418",
+          "Run test/core/view.test.ts (33 tests, includes the Candidate Diff union-sources case) and pnpm build"
+        ],
+        "validation": [
+          "pnpm exec vitest run test/core/view.test.ts — 33/33 pass and prove snapshot content (candidate, candidateDiff, diffLikec4Sources, diffArchitecture, diffSourceFingerprint, manifest v4) is unchanged",
+          "pnpm build — compiles clean",
+          "grep -c 'readFormalSemanticModel(' src/core/view.ts returns exactly 1",
+          "xirang arch validate --change browser-candidate-review — no model drift"
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Removes 2+N redundant four-partition formal parses from every view launch and every watcher refresh with provably identical output, while the next finding is a one-character glyph swap; same confidence/risk/cost, strictly higher impact, so it ranks first.",
+        "id": "OPT-20260814T102749617Z-01",
+        "targetFileHashes": {
+          "src/core/view.ts": "e5cd800993c5ed0a17ee6ead4319cfdf16db07f6c6df9cf55e8672c8e1682e58"
+        }
+      },
+      {
+        "status": "implemented",
+        "location": {
+          "files": [
+            "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "test/e2e/semantic-browser-candidate-views.spec.ts"
+          ],
+          "symbols": [
+            "XirangArchitectureOverlay",
+            "metamodelEntryRow"
+          ]
+        },
+        "opportunity": "The new collapsed Metamodel panel renders REMOVED counts with ASCII '-' at all three sites (entry rows DiagramUI.tsx:431, panel count line :442, group summary line :452), while the Semantic Delta mandates the `+N ~N −N` glyph set (U+2212) and the new edge count badges already render '−' (RelationshipEdge.tsx:311). This is Phase 1 SUGGESTION #3, now reconciled into an actionable item.",
+        "impact": "Makes the visible panel glyphs match the spec text and the badge glyphs shipped by this change, for every collapsed candidate-review session; three one-character source edits plus one e2e assertion glyph update.",
+        "evidence": [
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:431 `entry.operation === 'REMOVED' ? '-' : '~'`",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:442 `+{overlay.counts.ADDED} ~{overlay.counts.MODIFIED} -{overlay.counts.REMOVED}`",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx:452 group summary `-{group.counts.REMOVED}`",
+          ".xirang/changes/browser-candidate-review/elements/xirang-diff-overlay.md new Requirement '折叠呈现 Metamodel 差异条目' specifies counts as `+N ~N −N` (U+2212)",
+          "likec4/packages/diagram/src/likec4diagram/custom/edges/RelationshipEdge.tsx:311 removed badge glyph '−' (U+2212)",
+          "test/e2e/semantic-browser-candidate-views.spec.ts:76 asserts `toContainText('-2')` (ASCII) for the authored-view group and must be updated to '−2' in the same edit",
+          "DiagramUI.spec.ts asserts counts and labels only, never the glyph character, and no other e2e asserts a panel '-' glyph"
+        ],
+        "recommendation": "Replace the three ASCII '-' REMOVED glyph sites in DiagramUI.tsx with U+2212 '−' and update test/e2e/semantic-browser-candidate-views.spec.ts:76 to `toContainText('−2')`. MetamodelDiffModal.tsx:8 still uses '-' but is outside this change's base scope; full modal unification is a follow-up change.",
+        "keyDesign": "One REMOVED glyph convention '−' shared by panel count line, group summary rows, entry rows, and the edge count badges; the single-char edge glyph (RelationshipEdge.tsx:307, pre-existing ASCII '-', aria-label pinned) stays untouched because no spec text or Phase 1 finding demands changing it. Scope extension recorded at verification: the single-char edge glyph site (RelationshipEdge.tsx) was unified to U+2212 as well, because the MODIFIED spec text (xirang-diff-overlay '呈现语义差异视觉表达') mandates the `+`/`~`/`−` glyph set and round-3 Phase 1 review flagged the residual ASCII glyph; no aria-label, data attribute, or pinned assertion changes.",
+        "preservationConstraints": [
+          "No behavior beyond the rendered glyph character; data-xirang-metamodel-group attributes, aria-labels, click handlers, and modal wiring unchanged",
+          "The authored-view e2e assertion keeps checking the REMOVED count of 2, now with the U+2212 glyph",
+          "ADDED glyph '+' and MODIFIED glyph '~' untouched; e2e assertions +4/+1 and `/^\\+ element-kind module$/` unaffected",
+          "MetamodelDiffModal.tsx (outside base scope) is not modified"
+        ],
+        "implementationOutline": [
+          "Edit the three render sites in DiagramUI.tsx to use '−'",
+          "Update test/e2e/semantic-browser-candidate-views.spec.ts:76 from '-2' to '−2'",
+          "Run DiagramUI unit tests, diagram typecheck, and the candidate-views + model-view e2e"
+        ],
+        "validation": [
+          "cd likec4 && pnpm --filter @likec4/diagram exec vitest run --no-isolate src/likec4diagram/DiagramUI.spec.ts — grouping/counts tests stay green",
+          "cd likec4 && pnpm --filter @likec4/diagram typecheck",
+          "pnpm exec playwright test test/e2e/semantic-browser-candidate-views.spec.ts --project=desktop --project=mobile — proves the collapsed panel still renders the authored-view '-2'→'−2' count",
+          "pnpm exec playwright test test/e2e/semantic-browser-model-view.spec.ts --project=desktop --project=mobile --grep 'renders four-state diff visuals' — edge glyph behavior untouched"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Outranks the test-hardening item below because it closes a visible spec-text-vs-render mismatch every candidate review session sees, while the next item only adds coverage for a path that already behaves correctly.",
+        "id": "OPT-20260814T102749617Z-02"
+      },
+      {
+        "status": "implemented",
+        "location": {
+          "files": [
+            "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts"
+          ],
+          "symbols": [
+            "handleProjection Candidate sources"
+          ]
+        },
+        "opportunity": "diffDrivenIncludes' requirement/scenario/property host-inclusion branch (xirang-projection-handler.ts:101-102) has no candidate-diff unit test; the Candidate-Diff 'Candidate 只修改 Contract' scenario (candidate-diff-derived-view) depends on this shared branch, which this change extracted from the change-derived path. Phase 1 SUGGESTION #4, reconciled into an actionable spec-only hardening item.",
+        "impact": "Locks the contract-only Candidate Diff scenario at unit level so future refactors of the shared diff-driven visible set cannot silently drop contract hosts from the candidate-diff canvas.",
+        "evidence": [
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:101-102 host branch guards entry.kind requirement/scenario/property",
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts:400-602 Candidate sources describe block has element-declaration, relationship, empty-diff, union-source, and layout-fallback cases but no requirement/scenario/property entry",
+          ".xirang/changes/browser-candidate-review/elements/candidate-diff-derived-view.md Scenario 'Candidate 只修改 Contract' requires the host Element to remain present with target architecture context",
+          "test/e2e/semantic-browser-candidate-views.spec.ts only covers element/relationship-level candidate diffs"
+        ],
+        "recommendation": "Add a candidate-diff unit test to the 'handleProjection Candidate sources' describe: a diff entry { kind: 'requirement', identity: 'a.child#Some Requirement' } with focus null asserts the visible set contains root.a.child plus ancestors root.a and root; optionally a focused variant asserts in-subtree narrowing. No production code change.",
+        "keyDesign": "Spec-only test using the existing makeCandidateContext/adhocView/includeRefs helpers, mirroring the change-derived requirement-host semantics already established in diffDrivenIncludes.",
+        "preservationConstraints": [
+          "No production code change; handler behavior unchanged",
+          "Test uses the existing fixture shapes and asserts include refs exactly as the current implementation produces them"
+        ],
+        "implementationOutline": [
+          "Add the requirement-entry candidate-diff case inside the existing Candidate sources describe",
+          "Run the projection-handler spec and typecheck"
+        ],
+        "validation": [
+          "cd likec4 && pnpm --filter @likec4/vite-plugin exec vitest run --no-isolate src/xirang/xirang-projection-handler.spec.ts — 33/33 with the new case",
+          "cd likec4 && pnpm --filter @likec4/vite-plugin typecheck"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Ranked after the glyph fix (visible behavior vs coverage-only) and before all deferred items; it is cheap, behavior-free, and closes a Phase 1 suggestion that guards a contract scenario this change explicitly introduces.",
+        "id": "OPT-20260814T102749617Z-03"
+      },
+      {
+        "status": "deferred",
+        "location": {
+          "files": [
+            "likec4/packages/vite-plugin/src/plugin.ts"
+          ],
+          "symbols": [
+            "sourceEntries",
+            "prewarmManifest",
+            "notifyManifest"
+          ]
+        },
+        "opportunity": "plugin.ts sourceEntries lists candidateDiff only as [sourceFingerprint, likec4Sources] (plugin.ts:396-405); the union pair [diffSourceFingerprint, diffLikec4Sources] that handleProjection loads for candidate-diff (xirang-projection-handler.ts:255-260) is never prewarmed and is evicted from the base-model cache on every manifest refresh because the retention set is derived from sourceEntries (plugin.ts:438-447). Changes' diff pairs already get both treatments (plugin.ts:402).",
+        "impact": "Removes the cold parse+layout of the before-after union on the first candidate-diff request after server start or after any manifest refresh; benefit only materializes when the user opens Candidate Diff, so it is workload-dependent.",
+        "evidence": [
+          "likec4/packages/vite-plugin/src/plugin.ts:396-405 sourceEntries includes changes' diffSourceFingerprint/diffLikec4Sources but not candidateDiff's",
+          "likec4/packages/vite-plugin/src/plugin.ts:408 prewarmManifest prewarms only sourceEntries pairs",
+          "likec4/packages/vite-plugin/src/plugin.ts:438-447 notifyManifest retention fingerprints come from sourceEntries, so the union entry is disposed on unrelated manifest changes",
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts:255-260 projectionSource uses source.diffSourceFingerprint + source.diffLikec4Sources for candidate-diff",
+          "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts:8,15 XirangContractSourceSnapshot already types both fields, so the fix is one tuple"
+        ],
+        "recommendation": "Add `[manifest.candidateDiff?.diffSourceFingerprint, manifest.candidateDiff?.diffLikec4Sources] as const` to sourceEntries so the union sources are prewarmed and retained exactly like change-derived diff sources. plugin.ts is outside this change's base scope, so this must ride a follow-up change.",
+        "keyDesign": "Mirror the existing change pair (plugin.ts:402): same tuple shape, same filter that drops missing fingerprints/sources, no new cache semantics.",
+        "preservationConstraints": [
+          "The filter `!!entry[0] && !!entry[1]` already drops candidateDiff manifests without union sources (invalid candidate, formal-absent baseline)",
+          "Prewarming only parses the union sources; layout still happens per projection request",
+          "Retaining the union fingerprint only keeps the parsed union alive while candidateDiff is current; no observable output change"
+        ],
+        "implementationOutline": [
+          "Add the candidateDiff union tuple to sourceEntries",
+          "Typecheck and run the vite-plugin spec suite",
+          "Manual check: open candidate-diff twice around a manifest refresh and confirm no second union parse"
+        ],
+        "validation": [
+          "cd likec4 && pnpm --filter @likec4/vite-plugin typecheck",
+          "cd likec4 && pnpm --filter @likec4/vite-plugin exec vitest run --no-isolate src/xirang/xirang-projection-handler.spec.ts"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Real but workload-dependent cold-start cost on a scope-outside file (plugin.ts is not in the base scope of this change); per the decision rules workload-dependent items are deferred and scope-outside opportunities are reported as deferred.",
+        "id": "OPT-20260814T102749617Z-04"
+      },
+      {
+        "status": "deferred",
+        "location": {
+          "files": [
+            "src/core/view.ts"
+          ],
+          "symbols": [
+            "buildCandidateSources"
+          ]
+        },
+        "opportunity": "buildCandidateSources unconditionally materializes the Candidate Diff union on every snapshot build: unionSemanticModels + projectBrowserArchitecture(unionModel) + partitionFingerprints(unionModel) (a JSON.stringify of the whole union model) + runtimeLikeC4(unionModel) (full LikeC4 source text generation), even when the user never opens Candidate Diff. The manifest JSON written on every refresh then carries the union LikeC4 text alongside the candidate text.",
+        "impact": "Skipping or lazily generating the union would cut per-refresh CPU and manifest size for large models; the benefit scales with model size and candidate-edit frequency and depends on whether Candidate Diff is opened, so it is workload-dependent.",
+        "evidence": [
+          "src/core/view.ts:323-338 union computation plus runtimeLikeC4(unionModel, 'diffLikec4Sources', 'diffLikec4ElementPaths') runs whenever result.valid && unionModel, before any projection request",
+          "src/core/view.ts:512 writeViewRuntimeSnapshot JSON-serializes the whole snapshot including the union LikeC4 text on every refresh",
+          "Lazy delivery would require the projection handler or manifest protocol to request union sources on demand, crossing the core/vite-plugin package boundary"
+        ],
+        "recommendation": "Do not change now. A follow-up change could generate diffLikec4Sources lazily (e.g., a manifest-driven on-demand endpoint or separate snapshot section built only when candidate-diff is first requested), after profiling real model sizes and refresh rates.",
+        "keyDesign": "On-demand union materialization scoped to candidate-diff projection requests, with the current eager output kept as the correctness fallback.",
+        "preservationConstraints": [
+          "diffSourceFingerprint, diffArchitecture, diffLikec4Sources, and diffLikec4ElementPaths must remain present and identical whenever Candidate Diff is requested",
+          "The removed-ghost fallback to candidate-only target sources must keep working"
+        ],
+        "implementationOutline": [
+          "Profile snapshot build time on the largest real Candidate before committing to lazy generation",
+          "Design the manifest/protocol hand-off between src/core/view.ts and likec4/packages/vite-plugin",
+          "Re-run test/core/view.test.ts and the candidate e2e suite"
+        ],
+        "validation": [
+          "pnpm exec vitest run test/core/view.test.ts",
+          "pnpm exec playwright test test/e2e/semantic-browser-candidate-views.spec.ts --project=desktop --project=mobile"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "medium",
+        "dependencies": [],
+        "priorityReason": "The waste is statically provable but the benefit is proportional to model size, refresh frequency, and whether Candidate Diff is opened at all; per the decision rules it is deferred, and its redesign cost (cross-package lazy delivery) exceeds the current-round budget.",
+        "id": "OPT-20260814T102749617Z-05"
+      },
+      {
+        "status": "deferred",
+        "location": {
+          "files": [
+            ".xirang/changes/browser-candidate-review/tasks.md",
+            ".xirang/changes/browser-candidate-review/proposal.md"
+          ],
+          "symbols": [
+            "Task 2 Files",
+            "proposal Impact"
+          ]
+        },
+        "opportunity": "Reconciliation record for Phase 1 WARNING: the seven candidate fixture files (5 metamodel kinds, references.yaml, modified invokes.yaml) are not declared in tasks.md Task 2 Files or proposal Impact.",
+        "impact": "Attribution completeness only; no code behavior is involved.",
+        "evidence": [
+          ".xirang/changes/browser-candidate-review/tasks.md Task 2 Files lists only invokes.yaml among candidate fixtures while six new fixture files exist",
+          "test/fixtures/contract-browser/.xirang/candidate/metamodel/layer.md, module.md, references.md, service.md, system.md, relationships/references.yaml are untracked additions attributed nowhere"
+        ],
+        "recommendation": "Master/apply follow-up: add the seven fixture paths to Task 2 Files and proposal Impact. The optimizer MUST NOT modify tasks.md, proposal.md, design.md, or configuration (hard constraint), so this cannot be an optimizer action.",
+        "keyDesign": "Documentation-only attribution update outside the optimizer's writable surface.",
+        "preservationConstraints": [
+          "No implementation files change",
+          "Fixture content unchanged"
+        ],
+        "implementationOutline": [
+          "Append the seven fixture paths to Task 2 Files and proposal Impact",
+          "Re-run verification if the verifier requires it"
+        ],
+        "validation": [
+          "xirang arch validate --change browser-candidate-review"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Scope-outside scaffolding (tasks/proposal are compilation scaffolding the optimizer must never alter); reported as deferred so the Phase 1 non-terminal finding is reconciled without violating the no-edit constraints.",
+        "id": "OPT-20260814T102749617Z-06"
+      },
+      {
+        "status": "deferred",
+        "location": {
+          "files": [
+            ".xirang/changes/browser-candidate-review/tasks.md"
+          ],
+          "symbols": [
+            "Task 3 Files"
+          ]
+        },
+        "opportunity": "Reconciliation record for Phase 1 SUGGESTION #2: Task 3 Files declares Modify for likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts but no working-tree diff exists for it; relationCounts propagation works via the existing readXirangProjectionEdge spread, so the declaration is stale.",
+        "impact": "Removes a stale declaration so tasks.md stays a faithful record; no code behavior involved.",
+        "evidence": [
+          ".xirang/changes/browser-candidate-review/tasks.md Task 3 Files declares Modify diagram-view.ts",
+          "git diff a18fe4802...HEAD --name-only contains no diagram-view.ts entry",
+          "likec4/packages/diagram/src/likec4diagram/xyflow-diagram/diagram-view.ts:373 readXirangProjectionEdge already spreads relationCounts via the xirang data mapping"
+        ],
+        "recommendation": "Master/apply follow-up: drop the diagram-view.ts Modify entry from Task 3 Files or annotate it as no-op. Optimizer cannot edit tasks.md.",
+        "keyDesign": "Scaffolding bookkeeping only.",
+        "preservationConstraints": [
+          "No implementation files change"
+        ],
+        "implementationOutline": [
+          "Remove or annotate the stale Modify entry in Task 3 Files"
+        ],
+        "validation": [
+          "xirang arch validate --change browser-candidate-review"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Scope-outside scaffolding correction, deferred with the other Phase 1 issue records; keeps every non-terminal Phase 1 finding reconciled while respecting the optimizer's no-edit constraints.",
+        "id": "OPT-20260814T102749617Z-07"
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-14T10:27:49.618Z",
+        "findingId": "OPT-20260814T102749617Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-14T10:27:49.618Z",
+        "findingId": "OPT-20260814T102749617Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-14T10:27:49.618Z",
+        "findingId": "OPT-20260814T102749617Z-03"
+      },
+      {
+        "sequence": 4,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-14T10:27:49.618Z",
+        "findingId": "OPT-20260814T102749617Z-04"
+      },
+      {
+        "sequence": 5,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-14T10:27:49.618Z",
+        "findingId": "OPT-20260814T102749617Z-05"
+      },
+      {
+        "sequence": 6,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-14T10:27:49.618Z",
+        "findingId": "OPT-20260814T102749617Z-06"
+      },
+      {
+        "sequence": 7,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-14T10:27:49.618Z",
+        "findingId": "OPT-20260814T102749617Z-07"
+      },
+      {
+        "sequence": 8,
+        "action": "select",
+        "reason": "Removes 2+N redundant four-partition formal parses from every view launch and every watcher refresh with provably identical output, while the next finding is a one-character glyph swap; same confidence/risk/cost, strictly higher impact, so it ranks first.",
+        "timestamp": "2026-08-14T10:27:49.622Z",
+        "findingId": "OPT-20260814T102749617Z-01",
+        "hashes": {
+          "src/core/view.ts": "e5cd800993c5ed0a17ee6ead4319cfdf16db07f6c6df9cf55e8672c8e1682e58"
+        }
+      },
+      {
+        "sequence": 9,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-14T10:28:05.184Z",
+        "findingId": "OPT-20260814T102749617Z-01",
+        "hashes": {
+          "src/core/view.ts": "e5cd800993c5ed0a17ee6ead4319cfdf16db07f6c6df9cf55e8672c8e1682e58"
+        }
+      },
+      {
+        "sequence": 10,
+        "action": "implemented",
+        "reason": "Glyph unification applied at the three DiagramUI.tsx sites plus the spec-conformant single-char edge glyph extension, with the matching e2e assertion updated to U+2212.",
+        "timestamp": "2026-08-14T11:19:34.548Z",
+        "findingId": "OPT-20260814T102749617Z-02",
+        "hashes": {
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx": "81b6bc50fe77b9fc8d53840f75118abeb94b2f5a31f705a175bd5f2a1f3fad0f",
+          "likec4/packages/diagram/src/likec4diagram/custom/edges/RelationshipEdge.tsx": "01f923169797087a1e225c1c3c00a687457105dabc91f4d73277fae49ee841e8",
+          "test/e2e/semantic-browser-candidate-views.spec.ts": "916effe97579b95cfab6e7ab55e9e4c38520fdab6c865386b861245716b0cedd"
+        }
+      },
+      {
+        "sequence": 11,
+        "action": "implemented",
+        "reason": "Candidate-diff requirement-host inclusion unit test added (spec-only, no production change).",
+        "timestamp": "2026-08-14T11:19:34.548Z",
+        "findingId": "OPT-20260814T102749617Z-03",
+        "hashes": {
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts": "4a67907d38f8a0b2fe14c86767ee35dafbcdf06d76bc49508621291eb998cb38"
+        }
+      },
+      {
+        "sequence": 12,
+        "action": "verified",
+        "reason": "phase2-speculative-verify returned PASS for the selected finding against all 5 preservation constraints; WARNING (edge-glyph extension) and SUGGESTION (OPT-02/03 pending records) reconciled in this update.",
+        "timestamp": "2026-08-14T11:19:34.548Z",
+        "findingId": "OPT-20260814T102749617Z-01",
+        "hashes": {
+          "src/core/view.ts": "e5cd800993c5ed0a17ee6ead4319cfdf16db07f6c6df9cf55e8672c8e1682e58"
+        }
+      },
+      {
+        "sequence": 13,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-14T11:22:47.829Z",
+        "findingId": "OPT-20260814T102749617Z-01"
+      }
+    ],
+    "reconciliationSignature": "f739344775c779f6ef7b2a20b46e2d798bdaada4aa6d7c695d3b5e36934c04b1",
+    "unchangedReconciliations": 0
   }
 }

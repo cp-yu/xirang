@@ -73,7 +73,7 @@ test('reviews candidate changes in diff only mode', async ({ page }) => {
     await expect(groups).toHaveCount(3)
     await expect(page.locator('[data-xirang-metamodel-group="element-kind"]')).toContainText('+4')
     await expect(page.locator('[data-xirang-metamodel-group="relationship-kind"]')).toContainText('+1')
-    await expect(page.locator('[data-xirang-metamodel-group="authored-view"]')).toContainText('-2')
+    await expect(page.locator('[data-xirang-metamodel-group="authored-view"]')).toContainText('−2')
     await page.locator('[data-xirang-metamodel-group="element-kind"]').click()
     const moduleEntry = page.locator('button').filter({ hasText: /^\+ element-kind module$/ })
     await expect(moduleEntry).toBeVisible()

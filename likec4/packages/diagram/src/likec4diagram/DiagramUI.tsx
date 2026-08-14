@@ -428,7 +428,7 @@ function XirangArchitectureOverlay() {
       style={{ textAlign: 'left' }}
     >
       <Text size="xs" c="dimmed">
-        {entry.operation === 'ADDED' ? '+' : entry.operation === 'REMOVED' ? '-' : '~'} {entry.kind} {entry.identity}
+        {entry.operation === 'ADDED' ? '+' : entry.operation === 'REMOVED' ? '−' : '~'} {entry.kind} {entry.identity}
       </Text>
     </UnstyledButton>
   )
@@ -439,7 +439,7 @@ function XirangArchitectureOverlay() {
         <Text size="xs" fw={600}>Change · {selected.label}</Text>
         <Badge size="xs" color={selected.valid ? 'green' : 'red'}>{selected.valid ? 'Valid' : 'Invalid'}</Badge>
       </Group>
-      <Text size="xs" c="dimmed">+{overlay.counts.ADDED} ~{overlay.counts.MODIFIED} -{overlay.counts.REMOVED}</Text>
+      <Text size="xs" c="dimmed">+{overlay.counts.ADDED} ~{overlay.counts.MODIFIED} −{overlay.counts.REMOVED}</Text>
       {!metamodelGroups.collapsed && overlay.metamodel.map(metamodelEntryRow)}
       {metamodelGroups.collapsed && metamodelGroups.groups.map(group => (
         <Stack key={group.kind} gap={0}>
@@ -449,7 +449,7 @@ function XirangArchitectureOverlay() {
             style={{ textAlign: 'left' }}
           >
             <Text size="xs" c="dimmed" fw={600}>
-              {expandedMetamodelGroup === group.kind ? '▾' : '▸'} {group.label} +{group.counts.ADDED} ~{group.counts.MODIFIED} -{group.counts.REMOVED}
+              {expandedMetamodelGroup === group.kind ? '▾' : '▸'} {group.label} +{group.counts.ADDED} ~{group.counts.MODIFIED} −{group.counts.REMOVED}
             </Text>
           </UnstyledButton>
           {expandedMetamodelGroup === group.kind && group.entries.map(metamodelEntryRow)}

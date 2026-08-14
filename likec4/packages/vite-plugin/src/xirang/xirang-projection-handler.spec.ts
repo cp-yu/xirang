@@ -493,6 +493,16 @@ describe('handleProjection Candidate sources', () => {
     expect(new Set(includeRefs(context.adhocView))).toEqual(new Set(['root', 'root.a', 'root.a.child', 'root.b']))
   })
 
+  it('keeps contract-only Candidate Diff hosts visible through requirement entries', async () => {
+    const context = makeCandidateContext({
+      entries: [
+        { kind: 'requirement', identity: 'a.child#Some Requirement' },
+      ],
+    })
+    await handleProjection({ ...baseRequest, viewId: 'candidate-diff', mode: 'diff-only' }, context)
+    expect(new Set(includeRefs(context.adhocView))).toEqual(new Set(['root', 'root.a', 'root.a.child']))
+  })
+
   it('scopes the Candidate Diff visible set to the focused subtree', async () => {
     const context = makeCandidateContext({
       entries: [
