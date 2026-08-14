@@ -25,6 +25,7 @@ import { useCallbackRef } from '../../../hooks'
 import { useDiagram } from '../../../hooks/useDiagram'
 import type { Types } from '../../types'
 import type { XirangDiffOperation } from '../../../xirang/ContractLoaderContext'
+import type { XirangRequirementCounts } from '../../../xirang/projectionNode'
 import { CompoundActions } from './CompoundActions'
 import { DeploymentElementActions, ElementActions } from './ElementActions'
 import { NodeDrifts } from './NodeDrifts'
@@ -101,7 +102,7 @@ export function ElementNode(props: Types.NodeProps<'element'>) {
     useEnabledFeatures()
   return (
     <>
-      <NodeDiffBadge operation={props.data.xirang?.operation} />
+      <NodeDiffBadge counts={props.data.xirang?.requirementCounts} />
       <ElementNodeContainer
         className={diffOutlineByOperation(props.data.xirang?.operation)}
         nodeProps={props}
@@ -125,7 +126,7 @@ export function DeploymentNode(props: Types.NodeProps<'deployment'>) {
     useEnabledFeatures()
   return (
     <>
-      <NodeDiffBadge operation={props.data.xirang?.operation} />
+      <NodeDiffBadge counts={props.data.xirang?.requirementCounts} />
       <ElementNodeContainer
         className={diffOutlineByOperation(props.data.xirang?.operation)}
         nodeProps={props}
@@ -174,42 +175,59 @@ const diffOutline = {
 const diffOutlineByOperation = (operation: XirangDiffOperation | undefined) =>
   operation ? cx(outlineBase, diffOutline[operation]) : undefined
 
-const nodeDiffBadge = css({
+const nodeDiffBadges = css({
   position: 'absolute',
   top: '[6px]',
   left: '[6px]',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '[4px]',
+  pointerEvents: 'none',
+  zIndex: '[20]',
+})
+
+const nodeDiffBadge = css({
   minWidth: '[24px]',
   height: '[24px]',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
+  padding: '[0 6px]',
   border: '[2px solid #ffffff]',
   borderRadius: '[6px]',
-  backgroundColor: '[#ff9f0a]',
   color: '[#ffffff]',
   fontSize: '[16px]',
   fontWeight: '[800]',
   lineHeight: '[1]',
-  pointerEvents: 'none',
-  zIndex: '[20]',
   boxShadow: '[0 1px 3px rgba(0, 0, 0, 0.35)]',
 })
 
-const diffBadgeGlyph: Record<XirangDiffOperation, string> = {
-  ADDED: '+',
-  MODIFIED: '~',
-  REMOVED: '−',
-}
+const requirementCountBadges = [
+  { key: 'added', glyph: '+', color: '#2f9e44', label: 'Added requirements' },
+  { key: 'modified', glyph: '~', color: '#ff9f0a', label: 'Modified requirements' },
+  { key: 'removed', glyph: '−', color: '#e03131', label: 'Removed requirements' },
+] as const
 
 /**
- * Renders a corner badge for changed nodes. It sits outside the node container so it stays
- * fully opaque even when the container itself is dimmed (e.g. a 45% REMOVED ghost).
+ * 渲染 requirement 级变更计数徽章（`+N`/`~N`/`−N`）。三色区分，同一节点可并排多个，仅非零项可见。
+ * 徽章容器独立于节点容器，即使容器被 dim（如 45% ghost）徽章仍保持完全不透明。
  */
-function NodeDiffBadge({ operation }: { operation: XirangDiffOperation | undefined }) {
-  if (!operation) return null
+export function NodeDiffBadge({ counts }: { counts: XirangRequirementCounts | undefined }) {
+  if (!counts) return null
+  const badges = requirementCountBadges.filter(item => counts[item.key] > 0)
+  if (badges.length === 0) return null
   return (
-    <span className={nodeDiffBadge} data-xirang-node-diff aria-label={`Element ${operation}`}>
-      {diffBadgeGlyph[operation]}
+    <span className={nodeDiffBadges}>
+      {badges.map(item => (
+        <span
+          key={item.key}
+          className={nodeDiffBadge}
+          style={{ backgroundColor: item.color }}
+          data-xirang-node-diff
+          aria-label={`${counts[item.key]} ${item.label}`}>
+          {item.glyph}{counts[item.key]}
+        </span>
+      ))}
     </span>
   )
 }
@@ -223,7 +241,7 @@ export function CompoundElementNode(props: Types.NodeProps<'compound-element'>) 
   const showDrifts = enableCompareWithLatest && hasDrifts(props)
   return (
     <>
-      <NodeDiffBadge operation={props.data.xirang?.operation} />
+      <NodeDiffBadge counts={props.data.xirang?.requirementCounts} />
       <CompoundNodeContainer
         className={cx(showDrifts && compoundHasDrifts, diffOutlineByOperation(props.data.xirang?.operation))}
         nodeProps={props}
@@ -244,7 +262,7 @@ export function CompoundDeploymentNode(props: Types.NodeProps<'compound-deployme
   const showDrifts = enableCompareWithLatest && hasDrifts(props)
   return (
     <>
-      <NodeDiffBadge operation={props.data.xirang?.operation} />
+      <NodeDiffBadge counts={props.data.xirang?.requirementCounts} />
       <CompoundNodeContainer
         className={cx(showDrifts && compoundHasDrifts, diffOutlineByOperation(props.data.xirang?.operation))}
         nodeProps={props}

@@ -54,26 +54,22 @@ const structuralDiffKinds = new Set([
   'authored-view',
   'relationship',
 ])
-/** Contract children host on an element via `host#...`; they surface as node-level MODIFIED/ADDED/REMOVED. */
-const hostContractKinds = new Set(['requirement', 'scenario', 'property'])
-/** Delta kinds with no graph representation; they are presented as text instead of nodes or edges. */
-const metamodelKinds = new Set(['element-kind', 'relationship-kind', 'authored-view'])
 
-function countOperations(entries: readonly { operation: XirangDiffOperation }[]): Record<XirangDiffOperation, number> {
-  const counts: Record<XirangDiffOperation, number> = { ADDED: 0, MODIFIED: 0, REMOVED: 0 }
-  for (const entry of entries) counts[entry.operation] += 1
-  return counts
-}
-
+/**
+ * Right-side inspection panel model for the selected Change. Counts cover structural
+ * diffs (element-declaration + relationship) only; requirement-level changes surface
+ * as per-node count badges and Diff tabs, not panel counters.
+ */
 export function getArchitectureOverlayModel(source: XirangViewSource) {
-  const allEntries = source.diff?.entries ?? []
-  const entries = allEntries.filter(entry => structuralDiffKinds.has(entry.kind))
-  const hostContractEntries = allEntries.filter(entry => hostContractKinds.has(entry.kind))
+  const entries = (source.diff?.entries ?? []).filter(entry => structuralDiffKinds.has(entry.kind))
   const changed = new Set<string>()
   const context = new Set<string>()
+  const counts: Record<XirangDiffOperation, number> = { ADDED: 0, MODIFIED: 0, REMOVED: 0 }
+  const metamodel = [] as typeof entries
   for (const entry of entries) {
     if (entry.kind === 'element-declaration') {
       changed.add(entry.identity)
+      counts[entry.operation] += 1
       const beforeParent = entry.before && typeof entry.before === 'object'
         ? (entry.before as { parent?: unknown }).parent
         : null
@@ -82,38 +78,22 @@ export function getArchitectureOverlayModel(source: XirangViewSource) {
         : null
       if (typeof beforeParent === 'string') context.add(beforeParent)
       if (typeof afterParent === 'string') context.add(afterParent)
-    }
-    if (entry.kind === 'relationship') {
+    } else if (entry.kind === 'relationship') {
+      counts[entry.operation] += 1
       const [source, , target] = entry.identity.split('|')
       if (source) context.add(source)
       if (target) context.add(target)
+    } else {
+      metamodel.push(entry)
     }
   }
-  const elementDeclarationOps = new Set(
-    entries.filter(entry => entry.kind === 'element-declaration').map(entry => entry.identity),
-  )
-  const hostOps = new Map<string, XirangDiffOperation>()
-  for (const entry of hostContractEntries) {
-    const host = entry.identity.split('#')[0]
-    if (!host) continue
-    changed.add(host)
-    // Element-declaration already accounts for this host in counts.
-    if (elementDeclarationOps.has(host) || hostOps.has(host)) continue
-    hostOps.set(host, entry.operation)
-  }
   for (const identity of changed) context.delete(identity)
-  const counted: Array<{ operation: XirangDiffOperation }> = [
-    ...entries.filter(entry => entry.kind === 'element-declaration' || entry.kind === 'relationship'),
-    ...[...hostOps.values()].map(operation => ({ operation })),
-  ]
   return {
     entries,
     changed: [...changed].sort(),
     context: [...context].sort(),
-    counts: countOperations(counted),
-    metamodel: entries
-      .filter(entry => metamodelKinds.has(entry.kind))
-      .sort((left, right) => left.kind.localeCompare(right.kind) || left.identity.localeCompare(right.identity)),
+    counts,
+    metamodel: metamodel.sort((left, right) => left.kind.localeCompare(right.kind) || left.identity.localeCompare(right.identity)),
     diagnostics: source.diagnostics.filter(diagnostic => !isXirangContractDiagnostic(diagnostic)),
   }
 }

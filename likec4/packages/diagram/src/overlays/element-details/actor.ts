@@ -15,6 +15,7 @@ import { type RelationshipsBrowserActorRef, relationshipsBrowserLogic } from '..
 export type ElementDetailsInput = {
   subject: Fqn
   currentView: DiagramView
+  identity?: string | undefined
   initiatedFrom?: {
     node?: NodeId
     clientRect?: Rect
@@ -24,6 +25,7 @@ export type ElementDetailsInput = {
 export type Context = {
   subject: Fqn
   currentView: DiagramView
+  identity: string | null
   initiatedFrom: {
     node: NodeId | null
     clientRect: Rect | null
@@ -50,6 +52,7 @@ const _elementDetailsLogic = setup({
   id: 'element-details',
   context: ({ input }) => ({
     ...input,
+    identity: input.identity ?? null,
     initiatedFrom: {
       node: input.initiatedFrom?.node ?? null,
       clientRect: input.initiatedFrom?.clientRect ?? null,

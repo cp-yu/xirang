@@ -711,6 +711,9 @@ export const openElementDetails = (params?: { fqn: Fqn; fromNode?: NodeId | unde
     }
 
     const internalNode = fromNodeId ? context.xystore.getState().nodeLookup.get(fromNodeId) : null
+    const identity = internalNode && 'modelFqn' in internalNode.data
+      ? (internalNode.data as { xirang?: { identity?: string } }).xirang?.identity
+      : undefined
     if (fromNodeId && internalNode) {
       const nodeRect = nodeToRect(internalNode)
       const zoom = context.xyflow!.getZoom()
@@ -732,6 +735,7 @@ export const openElementDetails = (params?: { fqn: Fqn; fromNode?: NodeId | unde
         type: 'open.elementDetails' as const,
         subject: subject,
         currentView: context.view,
+        ...(identity ? { identity } : {}),
         ...(initiatedFrom && { initiatedFrom }),
       },
     )

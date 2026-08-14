@@ -3,12 +3,12 @@ import { MantineProvider } from '@mantine/core'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import type { XirangViewSource } from '../../xirang/ContractLoaderContext'
-import { ElementDefinitionProperties, visibleElementDetailTabs } from './ElementDetailsCard'
+import { ElementDefinitionProperties, resolveElementDetails, visibleElementDetailTabs } from './ElementDetailsCard'
 
 describe('visibleElementDetailTabs', () => {
-  it('keeps ADDED elements on Xirang-backed tabs only', () => {
+  it('keeps projection-only elements on Xirang-backed tabs only', () => {
     expect(visibleElementDetailTabs({
-      isAddedElement: true,
+      isProjectionElement: true,
       hasContract: true,
       hasDiff: true,
     })).toEqual(['Properties', 'Contracts', 'Diff'])
@@ -16,10 +16,124 @@ describe('visibleElementDetailTabs', () => {
 
   it('retains the standard LikeC4 tabs for model-backed elements', () => {
     expect(visibleElementDetailTabs({
-      isAddedElement: false,
+      isProjectionElement: false,
       hasContract: false,
       hasDiff: false,
     })).toEqual(['Properties', 'Relationships', 'Views', 'Structure', 'Deployments'])
+  })
+})
+
+describe('resolveElementDetails', () => {
+  const elements = [{
+    declaration: {
+      identity: 'alpha.id',
+      kind: 'capability',
+      parent: 'project.root',
+      title: 'Alpha',
+      definition: '',
+      summary: '',
+      description: '',
+    },
+  }]
+
+  it('解析投影节点 metadata 中的语义 identity 而非 LikeC4 FQN', () => {
+    const result = resolveElementDetails({
+      fqn: 'root.project.alpha_id',
+      nodeMetadata: { elementId: 'alpha.id' },
+      elementMetadata: null,
+      elementId: null,
+      hasBaseModelElement: false,
+      architectureElements: elements,
+    })
+    expect(result.stableElementId).toBe('alpha.id')
+    expect(result.declaration?.title).toBe('Alpha')
+    expect(result.isProjectionElement).toBe(true)
+  })
+
+  it('详情 actor 传入的 identity 优先级最高', () => {
+    const result = resolveElementDetails({
+      fqn: 'root.project.alpha_id',
+      identity: 'alpha.id',
+      nodeMetadata: { elementId: 'stale.id' },
+      elementMetadata: null,
+      elementId: null,
+      hasBaseModelElement: false,
+      architectureElements: elements,
+    })
+    expect(result.stableElementId).toBe('alpha.id')
+    expect(result.isProjectionElement).toBe(true)
+  })
+
+  it('xirangIdentity 优先于 elementId', () => {
+    const result = resolveElementDetails({
+      fqn: 'root.project.alpha_id',
+      nodeMetadata: { xirangIdentity: 'alpha.id', elementId: 'other.id' },
+      elementMetadata: null,
+      elementId: null,
+      hasBaseModelElement: false,
+      architectureElements: elements,
+    })
+    expect(result.stableElementId).toBe('alpha.id')
+  })
+
+  it('无节点 metadata 时回退 element metadata', () => {
+    const result = resolveElementDetails({
+      fqn: 'root.project.alpha_id',
+      nodeMetadata: null,
+      elementMetadata: { elementId: 'alpha.id' },
+      elementId: 'model.id',
+      hasBaseModelElement: true,
+      architectureElements: elements,
+    })
+    expect(result.stableElementId).toBe('alpha.id')
+    expect(result.isProjectionElement).toBe(false)
+  })
+
+  it('无任何 metadata 时回退 elementId，再回退 fqn', () => {
+    const withElementId = resolveElementDetails({
+      fqn: 'root.project.alpha_id',
+      nodeMetadata: null,
+      elementMetadata: null,
+      elementId: 'model.id',
+      hasBaseModelElement: true,
+      architectureElements: elements,
+    })
+    expect(withElementId.stableElementId).toBe('model.id')
+    const withFqn = resolveElementDetails({
+      fqn: 'root.project.alpha_id',
+      nodeMetadata: null,
+      elementMetadata: null,
+      elementId: null,
+      hasBaseModelElement: false,
+      architectureElements: elements,
+    })
+    expect(withFqn.stableElementId).toBe('root.project.alpha_id')
+  })
+
+  it('元素在 base model 中时不取 architecture declaration', () => {
+    const result = resolveElementDetails({
+      fqn: 'root.project.alpha_id',
+      nodeMetadata: { elementId: 'alpha.id' },
+      elementMetadata: null,
+      elementId: 'model.id',
+      hasBaseModelElement: true,
+      architectureElements: elements,
+    })
+    expect(result.declaration).toBeNull()
+    expect(result.isProjectionElement).toBe(false)
+  })
+
+  it('不在 base model 且无 declaration 时不是投影元素', () => {
+    const result = resolveElementDetails({
+      fqn: 'root.project.alpha_id',
+      nodeMetadata: { elementId: 'missing.id' },
+      elementMetadata: null,
+      elementId: null,
+      hasBaseModelElement: false,
+      architectureElements: elements,
+    })
+    expect(result.declaration).toBeNull()
+    expect(result.isProjectionElement).toBe(false)
   })
 })
 

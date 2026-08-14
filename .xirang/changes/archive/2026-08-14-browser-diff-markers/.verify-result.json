@@ -1,0 +1,162 @@
+{
+  "timestamp": "2026-08-14T04:10:11.483Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": ".verify-result.json records the pre-correction tasksFileHash and evidence fingerprints, which no longer match the post-seal corrected tasks.md and source files; record is stale until phase 3 re-seal",
+      "requirement": "支持 Element 级别的变更差异审查",
+      "task": null,
+      "recommendation": "Re-run phase 3 seal after this Phase 1 review so .verify-result.json fingerprints the corrected state",
+      "evidenceCitations": [
+        ".xirang/changes/browser-diff-markers/.verify-result.json",
+        ".xirang/changes/browser-diff-markers/tasks.md"
+      ]
+    }
+  ],
+  "tasksFileHash": "94d4bb54b28de3de456200a72cb3a29933021387b4a3ab44f4457cd92d83f513",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/browser-diff-markers/design.md",
+      ".xirang/changes/browser-diff-markers/elements/change-derived-views.md",
+      ".xirang/changes/browser-diff-markers/elements/semantic-browser.md",
+      ".xirang/changes/browser-diff-markers/proposal.md",
+      ".xirang/changes/browser-diff-markers/tasks.md",
+      "likec4/packages/diagram/src/hooks/useLikeC4Project.ts",
+      "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+      "playwright.config.ts",
+      "test/e2e/semantic-browser-model-view.spec.ts"
+    ],
+    "evidenceFingerprint": "40b1e5515b670b61a633310c70575c44267603bd32a345b13aeda5525366341c",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/browser-diff-markers/design.md",
+        "hash": "776fdb049a53b79a2fb14af62dff32334c5295881b358074a0bebce834d1c3c8"
+      },
+      {
+        "path": ".xirang/changes/browser-diff-markers/elements/change-derived-views.md",
+        "hash": "1ba183f1c9148d074485910e4b34008d34e8f9c09ae73a35c052bd81d22f5451"
+      },
+      {
+        "path": ".xirang/changes/browser-diff-markers/elements/semantic-browser.md",
+        "hash": "5359f42d874f32617c48a75b5101699e670143063cf50bdac235b39ecf6ddac1"
+      },
+      {
+        "path": ".xirang/changes/browser-diff-markers/proposal.md",
+        "hash": "74bea117f0888c9f018f0ae44204b11d975566c0bd15dcae79a23f761adb7230"
+      },
+      {
+        "path": ".xirang/changes/browser-diff-markers/tasks.md",
+        "hash": "94d4bb54b28de3de456200a72cb3a29933021387b4a3ab44f4457cd92d83f513"
+      },
+      {
+        "path": "likec4/packages/diagram/src/hooks/useLikeC4Project.ts",
+        "hash": "4fd3933a9dd0b2ada4da64534bcb3dd0f9d3506f286878ccb51474d8c949989c"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+        "hash": "dd083cf989c0fb8368069b220db07ab4cfdaaaca176994ba1df3b27402c6611e"
+      },
+      {
+        "path": "playwright.config.ts",
+        "hash": "e5c41892d25f4b6db10f913697315e586e7e41450ac0a815fd8e9a5cc68d999c"
+      },
+      {
+        "path": "test/e2e/semantic-browser-model-view.spec.ts",
+        "hash": "cfba24edd18ab172be9e9b3b69b3e396c00321828f7258141985376cceade28c"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "d9e7d2607c8a8d005ac45d7cfc1b4f85ec2e1529",
+    "gitDiffSummary": "Post-seal correction reviewed: ElementDetailsCard uses useLikeC4ProjectId fallback; e2e Contracts-tab assertions added; tasks.md Required Corrections documents the code_fix. Live re-runs: vitest targeted 11+27+4 and full 200/200, forced typecheck clean, spa+xirang-likec4 builds green, playwright desktop 8 + mobile 7 = 15/15, xirang validate browser-diff-markers Passed, xirang validate --all 157/0."
+  },
+  "optimization": {
+    "status": "NOT_NEEDED",
+    "attempts": [
+      {
+        "timestamp": "2026-08-14T04:10:19.391Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-08-14T04:10:11.483Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": ".verify-result.json records the pre-correction tasksFileHash and evidence fingerprints, which no longer match the post-seal corrected tasks.md and source files; record is stale until phase 3 re-seal",
+          "requirement": "支持 Element 级别的变更差异审查",
+          "task": null,
+          "recommendation": "Re-run phase 3 seal after this Phase 1 review so .verify-result.json fingerprints the corrected state",
+          "evidenceCitations": [
+            ".xirang/changes/browser-diff-markers/.verify-result.json",
+            ".xirang/changes/browser-diff-markers/tasks.md"
+          ]
+        }
+      ],
+      "tasksFileHash": "94d4bb54b28de3de456200a72cb3a29933021387b4a3ab44f4457cd92d83f513",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/browser-diff-markers/design.md",
+          ".xirang/changes/browser-diff-markers/elements/change-derived-views.md",
+          ".xirang/changes/browser-diff-markers/elements/semantic-browser.md",
+          ".xirang/changes/browser-diff-markers/proposal.md",
+          ".xirang/changes/browser-diff-markers/tasks.md",
+          "likec4/packages/diagram/src/hooks/useLikeC4Project.ts",
+          "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+          "playwright.config.ts",
+          "test/e2e/semantic-browser-model-view.spec.ts"
+        ],
+        "evidenceFingerprint": "40b1e5515b670b61a633310c70575c44267603bd32a345b13aeda5525366341c",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/browser-diff-markers/design.md",
+            "hash": "776fdb049a53b79a2fb14af62dff32334c5295881b358074a0bebce834d1c3c8"
+          },
+          {
+            "path": ".xirang/changes/browser-diff-markers/elements/change-derived-views.md",
+            "hash": "1ba183f1c9148d074485910e4b34008d34e8f9c09ae73a35c052bd81d22f5451"
+          },
+          {
+            "path": ".xirang/changes/browser-diff-markers/elements/semantic-browser.md",
+            "hash": "5359f42d874f32617c48a75b5101699e670143063cf50bdac235b39ecf6ddac1"
+          },
+          {
+            "path": ".xirang/changes/browser-diff-markers/proposal.md",
+            "hash": "74bea117f0888c9f018f0ae44204b11d975566c0bd15dcae79a23f761adb7230"
+          },
+          {
+            "path": ".xirang/changes/browser-diff-markers/tasks.md",
+            "hash": "94d4bb54b28de3de456200a72cb3a29933021387b4a3ab44f4457cd92d83f513"
+          },
+          {
+            "path": "likec4/packages/diagram/src/hooks/useLikeC4Project.ts",
+            "hash": "4fd3933a9dd0b2ada4da64534bcb3dd0f9d3506f286878ccb51474d8c949989c"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx",
+            "hash": "dd083cf989c0fb8368069b220db07ab4cfdaaaca176994ba1df3b27402c6611e"
+          },
+          {
+            "path": "playwright.config.ts",
+            "hash": "e5c41892d25f4b6db10f913697315e586e7e41450ac0a815fd8e9a5cc68d999c"
+          },
+          {
+            "path": "test/e2e/semantic-browser-model-view.spec.ts",
+            "hash": "cfba24edd18ab172be9e9b3b69b3e396c00321828f7258141985376cceade28c"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "d9e7d2607c8a8d005ac45d7cfc1b4f85ec2e1529",
+        "gitDiffSummary": "Post-seal correction reviewed: ElementDetailsCard uses useLikeC4ProjectId fallback; e2e Contracts-tab assertions added; tasks.md Required Corrections documents the code_fix. Live re-runs: vitest targeted 11+27+4 and full 200/200, forced typecheck clean, spa+xirang-likec4 builds green, playwright desktop 8 + mobile 7 = 15/15, xirang validate browser-diff-markers Passed, xirang validate --all 157/0."
+      }
+    },
+    "findings": [],
+    "history": [],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}
