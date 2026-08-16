@@ -69,7 +69,7 @@
       "test/e2e/semantic-browser-candidate-views.spec.ts",
       "test/e2e/semantic-browser-model-view.spec.ts"
     ],
-    "evidenceFingerprint": "791c79afd19a379ea017e30cd53ef30de2ed6c37b842c2788041227e666d9cd5",
+    "evidenceFingerprint": "c6c4776abd1fc49a6909e1b9052c8b307196a4b6158cc26aca90e5de36b46934",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/unify-candidate-change-modes/design.md",
@@ -181,7 +181,7 @@
       },
       {
         "path": "test/core/view.test.ts",
-        "hash": "9f202f23f397d82669948c422619f0de81abac2b2fabb77ca8be9070729ea201"
+        "hash": "310fe5cc238b4c2f78b779fbbd666b95bc6997c506570eb856c6302740a84761"
       },
       {
         "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
@@ -193,9 +193,9 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "1bb23ed408733e59f29341eb6ca678d4dc9d9cd5",
+    "gitHeadCommit": "fbf7819c774567098a0d03e03b150ee09f828a56",
     "gitDiffSummary": "baseCommit 9d3589c80 resolves and equals HEAD; `git diff base...HEAD --name-only` is empty (nothing committed), so all evidence is the uncommitted working tree from `git status --short`: 22 modified code/test files + new xirang-diff-overlay.spec.ts + change artifacts. Commands considered: git rev-parse/status/diff --name-only, xirang arch outline|impact|query, xirang validate --change (passed, 0 issues), grep -r candidate-diff|candidateDiff|ViewRuntimeCandidateDiffView across likec4/packages src test (zero functional residue), root+likec4 tsc --noEmit (passed), spa/vite-plugin/diagram unit suites (all passed: view.test.ts 33, SemanticBrowserController+searchParams 26, projection-handler 37, contract-handler 37, ContractLoaderContext 7, diff-overlay 2, HttpContractLoader 9, -t filters 'Candidate.*mode' 3, 'URL.*candidate' 1, '首页.*Candidate' 1), spa build + xirang-likec4 build (passed), playwright semantic-browser-candidate 12/12 passed, semantic-browser-model-view full-file 13 passed + 2 failed only on the untouched HMR test which passes in isolation on both projects.",
-    "timestamp": "2026-08-16T20:03:17.610Z"
+    "timestamp": "2026-08-16T20:21:30.600Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
@@ -217,6 +217,16 @@
       },
       {
         "timestamp": "2026-08-16T20:03:17.595Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-16T20:17:43.810Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-16T20:21:30.572Z",
         "type": "verification",
         "result": "PASS"
       }
@@ -479,7 +489,7 @@
         }
       },
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "src/core/view.ts"
@@ -527,7 +537,7 @@
         }
       },
       {
-        "status": "pending",
+        "status": "verified",
         "location": {
           "files": [
             "test/core/view.test.ts"
@@ -560,7 +570,10 @@
         "cost": "low",
         "dependencies": [],
         "priorityReason": "It ranks below the derivation dedupe because its only benefit is test-suite hygiene; it resolves a recorded Phase 1 suggestion with trivially provable preservation.",
-        "id": "OPT-20260816T193028421Z-03"
+        "id": "OPT-20260816T193028421Z-03",
+        "targetFileHashes": {
+          "test/core/view.test.ts": "9f202f23f397d82669948c422619f0de81abac2b2fabb77ca8be9070729ea201"
+        }
       },
       {
         "status": "pending",
@@ -716,9 +729,57 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-16T20:03:17.596Z",
         "findingId": "OPT-20260816T193028421Z-02"
+      },
+      {
+        "sequence": 15,
+        "action": "resolve",
+        "reason": "Implemented in commit fbf7819c7 ('wip: opt-r2') and reviewer verification recorded PASS at 2026-08-16T20:03:17.596Z. Current src/core/view.ts carries the shared derivation exactly as verified: runtimeProjectionFor at :244-268 with per-caller includeRuntime gating, called from buildChangeDerivedView at :275 (includeRuntime=true, computes whenever a target exists) and buildCandidateSources at :342 (includeRuntime=result.valid); the target-only architecture spread stays ungated, preserving the pinned invalid-candidate partial-architecture behavior. Current sha256 of src/core/view.ts (cbe6328b972eb53e230f76cf07386879957d50c0f24c3f239ecd1263695680a3) equals the verified fingerprint entry in verificationContext.evidenceFingerprintEntries, and the verification run reports all unit suites passing with byte-identical manifest output. The Change/Candidate structural-alignment contract now holds by construction. Finding closes.",
+        "timestamp": "2026-08-16T20:17:43.807Z",
+        "findingId": "OPT-20260816T193028421Z-02"
+      },
+      {
+        "sequence": 16,
+        "action": "retain",
+        "reason": "The stale describe title 'Manifest version 3' is still present at test/core/view.test.ts:444 (sole occurrence in the repo, confirmed by grep) while every inner test asserts version-4 manifests and the inner test is titled 'emits a version 4 manifest with one unified candidate source' at :456; the Phase 1 SUGGESTION remains open. Retain with unchanged priority (below the resolved OPT-02, above OPT-04).",
+        "timestamp": "2026-08-16T20:17:43.807Z",
+        "findingId": "OPT-20260816T193028421Z-03"
+      },
+      {
+        "sequence": 17,
+        "action": "retain",
+        "reason": "The canonical URL-state key is still computed inline twice in SemanticBrowserRouteSync: the URL-apply effect at likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx:354-361 and the URL-commit effect at :381 build the identical JSON.stringify({view, change, mode, focus}) normalization; the applyingUrl/pendingUrl/seenUrl/lastCommitted handshake depends on the two expressions staying equal, so the drift hazard remains. Retain with unchanged priority (last).",
+        "timestamp": "2026-08-16T20:17:43.807Z",
+        "findingId": "OPT-20260816T193028421Z-04"
+      },
+      {
+        "sequence": 18,
+        "action": "select",
+        "reason": "It ranks below the derivation dedupe because its only benefit is test-suite hygiene; it resolves a recorded Phase 1 suggestion with trivially provable preservation.",
+        "timestamp": "2026-08-16T20:17:43.810Z",
+        "findingId": "OPT-20260816T193028421Z-03",
+        "hashes": {
+          "test/core/view.test.ts": "9f202f23f397d82669948c422619f0de81abac2b2fabb77ca8be9070729ea201"
+        }
+      },
+      {
+        "sequence": 19,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-16T20:17:51.852Z",
+        "findingId": "OPT-20260816T193028421Z-03",
+        "hashes": {
+          "test/core/view.test.ts": "9f202f23f397d82669948c422619f0de81abac2b2fabb77ca8be9070729ea201"
+        }
+      },
+      {
+        "sequence": 20,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-16T20:21:30.572Z",
+        "findingId": "OPT-20260816T193028421Z-03"
       }
     ],
-    "reconciliationSignature": "2ccde13b4604fd2c299a982ad9b39c3422fa560a6268c26082118d2e7801565c",
+    "reconciliationSignature": "603dfd7c102d5cbb4822c6aa928cb63f1573e2b37d34abc70219e8ce14c783a5",
     "unchangedReconciliations": 0
   }
 }

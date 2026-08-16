@@ -441,7 +441,7 @@ describe('ViewCommand', () => {
   });
 });
 
-describe('Manifest version 3', () => {
+describe('Manifest version 4', () => {
   let tempDir: string;
 
   beforeEach(async () => {
