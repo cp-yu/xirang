@@ -39,7 +39,6 @@ export const Route = createRootRouteWithContext<Context>()({
         view: 'model',
         change: undefined,
         focus: undefined,
-        mode: 'complete',
       }),
     ],
   },

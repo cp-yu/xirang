@@ -181,10 +181,37 @@ describe('handleProjection', () => {
     expect(diagrams).toHaveBeenCalledWith('xirang')
   })
 
-  it('loads the before-after union source for diff-capable Change modes', async () => {
+  it('loads the target source for complete and complete-with-diff and the union for diff-only', async () => {
     const diagrams = vi.fn(async () => [fakeView('model')])
     const loadSources = vi.fn(async () => ({ diagrams }))
     await handleProjection({ ...validRequest, change: 'next', mode: 'complete-with-diff' }, {
+      readManifest: async () => JSON.stringify({
+        version: 4,
+        modelFingerprint: FINGERPRINT,
+        model: { contracts: {} },
+        authoredViews: {},
+        changes: {
+          next: {
+            sourceFingerprint: 'change-fingerprint',
+            diffSourceFingerprint: 'union-fingerprint',
+            likec4Sources: { 'model.c4': 'after' },
+            diffLikec4Sources: { 'model.c4': 'union' },
+          },
+        },
+      }),
+      views: { diagrams: vi.fn(async () => []) },
+      loadSources,
+      cache: new ProjectionCache(50),
+      projectId: 'xirang',
+    })
+
+    expect(loadSources).toHaveBeenCalledWith({ 'model.c4': 'after' }, 'change-fingerprint')
+  })
+
+  it('loads the before-after union source for diff-only Change mode', async () => {
+    const diagrams = vi.fn(async () => [fakeView('model')])
+    const loadSources = vi.fn(async () => ({ diagrams }))
+    await handleProjection({ ...validRequest, change: 'next', mode: 'diff-only' }, {
       readManifest: async () => JSON.stringify({
         version: 4,
         modelFingerprint: FINGERPRINT,
@@ -255,7 +282,7 @@ describe('handleProjection', () => {
 
     expect(loadSources.mock.calls.map(call => call[0])).toEqual([
       { 'model.c4': 'after' },
-      { 'model.c4': 'union' },
+      { 'model.c4': 'after' },
       { 'model.c4': 'union' },
     ])
     const diffOnlyPredicates = adhocView.mock.calls[2]?.[0] as Array<{ include?: Array<{ ref: { model: string } }> }>
@@ -404,8 +431,8 @@ describe('handleProjection', () => {
 
 describe('handleProjection Candidate sources', () => {
   const baseRequest = {
-    viewId: 'candidate' as const,
-    change: null,
+    viewId: 'model' as const,
+    change: 'candidate' as const,
     mode: 'complete' as const,
     focus: null,
     expanded: [],
@@ -433,21 +460,15 @@ describe('handleProjection Candidate sources', () => {
       changes: {},
       candidate: {
         sourceFingerprint: 'candidate-fp',
+        diffSourceFingerprint: 'union-fp',
         architecture,
-        likec4Sources: { 'model.c4': 'model {}' },
+        diffArchitecture: { elements: architecture.elements },
+        likec4Sources: { 'model.c4': 'target' },
         likec4ElementPaths: paths,
+        diffLikec4Sources: { 'model.c4': 'union' },
+        diffLikec4ElementPaths: paths,
+        ...(diff ? { diff } : {}),
       },
-      ...(diff
-        ? {
-            candidateDiff: {
-              sourceFingerprint: 'candidate-diff-fp',
-              architecture,
-              likec4Sources: { 'model.c4': 'model {}' },
-              likec4ElementPaths: paths,
-              diff,
-            },
-          }
-        : {}),
     }
     return {
       readManifest: async () => JSON.stringify(manifest),
@@ -464,10 +485,28 @@ describe('handleProjection Candidate sources', () => {
     return (predicates[0]?.include ?? []).map(item => `${item.ref.model}${item.selector ? `:${item.selector}` : ''}`)
   }
 
+  it('routes change=candidate to manifest.candidate target sources in complete mode', async () => {
+    const loadSources = vi.fn(async () => ({ diagrams: async () => [], viewsService: { adhocView: vi.fn(async () => fakeView('model')) } }))
+    const context = makeCandidateContext()
+    context.loadSources = loadSources
+    await handleProjection(baseRequest, context)
+    expect(loadSources).toHaveBeenCalledWith({ 'model.c4': 'target' }, 'candidate-fp')
+  })
+
   it('projects the Candidate root children as the collapsed baseline', async () => {
     const context = makeCandidateContext()
     await handleProjection(baseRequest, context)
     expect(includeRefs(context.adhocView)).toEqual(['root.a', 'root.b', 'root.c'])
+  })
+
+  it('keeps candidate-only target sources in complete-with-diff mode', async () => {
+    const loadSources = vi.fn(async () => ({ diagrams: async () => [], viewsService: { adhocView: vi.fn(async () => fakeView('model')) } }))
+    const context = makeCandidateContext({
+      entries: [{ kind: 'element-declaration', identity: 'a.child' }],
+    })
+    context.loadSources = loadSources
+    await handleProjection({ ...baseRequest, mode: 'complete-with-diff' }, context)
+    expect(loadSources).toHaveBeenCalledWith({ 'model.c4': 'target' }, 'candidate-fp')
   })
 
   it('expands the Candidate baseline through expanded children selectors', async () => {
@@ -482,48 +521,52 @@ describe('handleProjection Candidate sources', () => {
     expect(includeRefs(context.adhocView)).toEqual(['root.a', 'root.a:children'])
   })
 
-  it('projects root children in Candidate Diff with hierarchical baseline', async () => {
+  it('uses the union sources and diff-driven includes for Candidate diff-only', async () => {
+    const adhocView = vi.fn(async () => fakeView('model'))
+    const loadSources = vi.fn(async () => ({ diagrams: async () => [], viewsService: { adhocView } }))
     const context = makeCandidateContext({
       entries: [
         { kind: 'element-declaration', identity: 'a.child' },
         { kind: 'relationship', identity: 'a|invokes|b' },
       ],
     })
-    await handleProjection({ ...baseRequest, viewId: 'candidate-diff', mode: 'diff-only' }, context)
-    // Candidate Diff uses the same hierarchical baseline as Candidate View: root children by default.
-    expect(new Set(includeRefs(context.adhocView))).toEqual(new Set(['root.a', 'root.b', 'root.c']))
+    context.loadSources = loadSources
+    await handleProjection({ ...baseRequest, mode: 'diff-only' }, context)
+
+    expect(loadSources).toHaveBeenCalledWith({ 'model.c4': 'union' }, 'union-fp')
+    // Changed elements, their ancestors and changed relationship endpoints.
+    expect(new Set(includeRefs(adhocView))).toEqual(new Set(['root', 'root.a', 'root.a.child', 'root.b']))
   })
 
-  it('keeps contract-only Candidate Diff hosts hidden until their parent is expanded', async () => {
+  it('keeps contract-only Candidate hosts with their ancestors in diff-only', async () => {
     const context = makeCandidateContext({
       entries: [
         { kind: 'requirement', identity: 'a.child#Some Requirement' },
       ],
     })
-    await handleProjection({ ...baseRequest, viewId: 'candidate-diff', mode: 'diff-only' }, context)
-    // Hierarchical baseline: root children only, contract-only changed deep elements require expansion.
-    expect(new Set(includeRefs(context.adhocView))).toEqual(new Set(['root.a', 'root.b', 'root.c']))
+    await handleProjection({ ...baseRequest, mode: 'diff-only' }, context)
+    expect(new Set(includeRefs(context.adhocView))).toEqual(new Set(['root', 'root.a', 'root.a.child']))
   })
 
-  it('scopes the Candidate Diff to the focused subtree with hierarchical baseline', async () => {
+  it('scopes the Candidate diff-only visible set to the focused subtree', async () => {
     const context = makeCandidateContext({
       entries: [
         { kind: 'element-declaration', identity: 'a.child' },
         { kind: 'element-declaration', identity: 'c' },
       ],
     })
-    await handleProjection({ ...baseRequest, viewId: 'candidate-diff', mode: 'diff-only', focus: 'a' }, context)
-    // Focus + children: focus element itself plus direct children (not all descendants).
-    expect(new Set(includeRefs(context.adhocView))).toEqual(new Set(['root.a', 'root.a:children']))
+    await handleProjection({ ...baseRequest, mode: 'diff-only', focus: 'a' }, context)
+    expect(new Set(includeRefs(context.adhocView))).toEqual(new Set(['root.a', 'root.a.child']))
   })
 
-  it('falls back to the root-children baseline when the Candidate Diff is empty', async () => {
+  it('falls back to the model view when the Candidate diff-only diff is empty', async () => {
     const context = makeCandidateContext({ entries: [] })
-    await handleProjection({ ...baseRequest, viewId: 'candidate-diff', mode: 'diff-only' }, context)
+    await handleProjection({ ...baseRequest, mode: 'diff-only' }, context)
+    // No diff-driven includes: the ordinary baseline (root children) is projected.
     expect(includeRefs(context.adhocView)).toEqual(['root.a', 'root.b', 'root.c'])
   })
 
-  it('loads the before-after union sources for Candidate Diff removed ghosts', async () => {
+  it('loads the before-after union sources for Candidate removed ghosts in diff-only', async () => {
     const adhocView = vi.fn(async (_predicates: unknown[], _projectId?: string) => fakeView('model'))
     const loadSources = vi.fn(async () => ({ diagrams: async () => [], viewsService: { adhocView } }))
     const context = {
@@ -533,8 +576,8 @@ describe('handleProjection Candidate sources', () => {
         model: { contracts: {} },
         authoredViews: {},
         changes: {},
-        candidateDiff: {
-          sourceFingerprint: 'candidate-diff-fp',
+        candidate: {
+          sourceFingerprint: 'candidate-fp',
           diffSourceFingerprint: 'union-fp',
           architecture,
           diffArchitecture: { elements: [
@@ -554,15 +597,14 @@ describe('handleProjection Candidate sources', () => {
       cache: new ProjectionCache<Awaited<ReturnType<typeof handleProjection>>>(50),
       projectId: 'xirang',
     }
-    await handleProjection({ ...baseRequest, viewId: 'candidate-diff', mode: 'diff-only' }, context)
+    await handleProjection({ ...baseRequest, mode: 'diff-only' }, context)
 
     expect(loadSources).toHaveBeenCalledWith({ 'model.c4': 'union' }, 'union-fp')
     const predicates = adhocView.mock.calls[0]?.[0] as Array<{ include?: Array<{ ref: { model: string } }> }>
     const include = (predicates[0]?.include ?? []).map(item => item.ref.model)
-    // Hierarchical baseline from diffArchitecture (union): root children include the REMOVED ghost
-    // because 'removed' is a direct child of 'root' in the union architecture.
+    // The REMOVED ghost participates through the diff-driven visible set on the union architecture.
     expect(include).toContain('root.removed')
-    expect(new Set(include)).toEqual(new Set(['root.a', 'root.b', 'root.c', 'root.removed']))
+    expect(new Set(include)).toEqual(new Set(['root', 'root.removed']))
   })
 
   it('falls back to candidate-only target sources when the union layout fails', async () => {
@@ -580,8 +622,8 @@ describe('handleProjection Candidate sources', () => {
         model: { contracts: {} },
         authoredViews: {},
         changes: {},
-        candidateDiff: {
-          sourceFingerprint: 'candidate-diff-fp',
+        candidate: {
+          sourceFingerprint: 'candidate-fp',
           diffSourceFingerprint: 'union-fp',
           architecture,
           diffArchitecture: { elements: [
@@ -600,7 +642,7 @@ describe('handleProjection Candidate sources', () => {
       cache: new ProjectionCache<Awaited<ReturnType<typeof handleProjection>>>(50),
       projectId: 'xirang',
     }
-    const result = await handleProjection({ ...baseRequest, viewId: 'candidate-diff', mode: 'diff-only' }, context)
+    const result = await handleProjection({ ...baseRequest, mode: 'diff-only' }, context)
 
     expect(result.view.id).toBe('model')
     expect(loadSources).toHaveBeenCalledTimes(2)
@@ -609,6 +651,18 @@ describe('handleProjection Candidate sources', () => {
     const predicates = targetAdhocView.mock.calls[0]?.[0] as Array<{ include?: Array<{ ref: { model: string } }> }>
     const include = (predicates[0]?.include ?? []).map(item => item.ref.model)
     expect(new Set(include)).toEqual(new Set(['root', 'root.a', 'root.a.child']))
+  })
+
+  it('throws 404 when change=candidate is requested without an active Candidate', async () => {
+    const context = makeCandidateContext()
+    context.readManifest = async () => JSON.stringify({
+      version: 4,
+      modelFingerprint: FINGERPRINT,
+      model: { contracts: {} },
+      authoredViews: {},
+      changes: {},
+    })
+    await expect(handleProjection(baseRequest, context)).rejects.toMatchObject({ statusCode: 404 })
   })
 })
 

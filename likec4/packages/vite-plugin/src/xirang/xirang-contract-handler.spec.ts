@@ -77,9 +77,9 @@ describe('parseXirangContractSource', () => {
     expect(parseXirangContractSource(params)).toEqual({ type: 'candidate' })
   })
 
-  it('returns { type: "candidate-diff" } for source=candidate-diff', () => {
-    const params = new URLSearchParams({ source: 'candidate-diff' })
-    expect(parseXirangContractSource(params)).toEqual({ type: 'candidate-diff' })
+  it('returns { type: "change", name: "candidate" } for source=change:candidate', () => {
+    const params = new URLSearchParams({ source: 'change:candidate' })
+    expect(parseXirangContractSource(params)).toEqual({ type: 'change', name: 'candidate' })
   })
 
   it('returns { type: "change", name } for source=change:name', () => {
@@ -131,7 +131,6 @@ describe('readXirangContract with source parameter', () => {
     authoredViews: {},
     model: { contracts: { 'elem-1': '# Model contract' } },
     candidate: { contracts: { 'elem-1': '# Candidate contract', 'elem-2': '# New contract' } },
-    candidateDiff: { contracts: { 'elem-1': '# Candidate contract', 'elem-2': '# New contract' } },
     changes: { 'auth': { contracts: { 'elem-3': '# Auth contract' } } },
   }
 
@@ -150,8 +149,8 @@ describe('readXirangContract with source parameter', () => {
     expect(result).toEqual({ element: 'elem-2', md: '# New contract' })
   })
 
-  it('returns candidate-diff contract when source is { type: "candidate-diff" }', () => {
-    const result = readXirangContract(manifestWithCandidate, { type: 'candidate-diff' }, 'elem-2')
+  it('returns candidate contract when source is { type: "change", name: "candidate" }', () => {
+    const result = readXirangContract(manifestWithCandidate, { type: 'change', name: 'candidate' }, 'elem-2')
     expect(result).toEqual({ element: 'elem-2', md: '# New contract' })
   })
 
@@ -169,7 +168,7 @@ describe('readXirangContract with source parameter', () => {
       changes: {},
     }
     expect(() => 
-      readXirangContract(manifestWithoutCandidate, { type: 'candidate' }, 'elem-1')
+      readXirangContract(manifestWithoutCandidate, { type: 'change', name: 'candidate' }, 'elem-1')
     ).toThrow(XirangContractError)
   })
 })

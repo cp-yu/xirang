@@ -111,34 +111,22 @@ export interface ViewRuntimeChangeDerivedView {
   changePlan?: Record<string, string>;
 }
 
-export interface ViewRuntimeCandidateView {
+export interface ViewRuntimeCandidateSource {
   id: 'candidate';
   label: 'Candidate View';
   source: 'candidate';
   valid: boolean;
-  partitionFingerprints?: Record<Partition, string>;
-  sourceFingerprint?: string;
-  architecture?: BrowserSemanticModel;
-  contracts?: Record<string, string>;
-  likec4Sources?: Record<string, string>;
-  likec4ElementPaths?: Record<string, string>;
-  diagnostics: ChangeDiagnostic[];
-}
-
-export interface ViewRuntimeCandidateDiffView {
-  id: 'candidate-diff';
-  label: 'Candidate Diff View';
-  source: 'candidate-diff';
-  valid: boolean;
   semanticModelFingerprint?: string;
   sourceFingerprint?: string;
+  diffSourceFingerprint?: string;
   partitionFingerprints?: Record<Partition, string>;
   diff?: ChangeDiff;
   architecture?: BrowserSemanticModel;
   diffArchitecture?: BrowserSemanticModel;
-  diffSourceFingerprint?: string;
+  /** element identity → Contract markdown; the only Contract transport to the Browser. */
   contracts?: Record<string, string>;
   likec4Sources?: Record<string, string>;
+  likec4ElementPaths?: Record<string, string>;
   diffLikec4Sources?: Record<string, string>;
   diffLikec4ElementPaths?: Record<string, string>;
   diagnostics: ChangeDiagnostic[];
@@ -154,8 +142,7 @@ export interface ViewRuntimeSnapshot {
   modelFingerprint: string;
   model: ViewRuntimeSemanticModel;
   authoredViews: Record<string, ViewRuntimeAuthoredView>;
-  candidate?: ViewRuntimeCandidateView;
-  candidateDiff?: ViewRuntimeCandidateDiffView;
+  candidate?: ViewRuntimeCandidateSource;
   changes: Record<string, ViewRuntimeChangeDerivedView>;
 }
 
@@ -301,7 +288,7 @@ async function buildChangeDerivedView(projectRoot: string, change: string, forma
 async function buildCandidateSources(
   projectRoot: string,
   formal: ParsedModel,
-): Promise<{ candidate: ViewRuntimeCandidateView; candidateDiff: ViewRuntimeCandidateDiffView } | undefined> {
+): Promise<ViewRuntimeCandidateSource | undefined> {
   const candidateRoot = path.join(projectRoot, XIRANG_DIR_NAME, 'candidate');
   const candidateExists = existsSync(candidateRoot);
   if (!candidateExists) return undefined;
@@ -319,10 +306,8 @@ async function buildCandidateSources(
     const fingerprints = result.valid ? partitionFingerprints(candidateModel.model) : undefined;
     const architecture = projectBrowserArchitecture(candidateModel.model);
     const contracts = result.valid ? projectContracts(candidateModel.model) : undefined;
-    // Derived once and shared by both candidate and candidateDiff sections.
     const candidateRuntime = result.valid ? runtimeLikeC4(candidateModel.model) : null;
-    // Candidate Diff renders before-only objects (removed ghosts) from the formal+candidate union,
-    // mirroring change-derived diff views that load the before-after union sources.
+    // The before-after union carries removed ghosts; diff-only projections render from it.
     const unionModel = result.comparison.baseline === 'formal'
       ? unionSemanticModels(formal.model, candidateModel.model)
       : null
@@ -330,30 +315,17 @@ async function buildCandidateSources(
     const diffSourceFingerprint = unionModel
       ? hashString(JSON.stringify(partitionFingerprints(unionModel)))
       : undefined
-    // Combined fingerprint includes both candidate content and formal model baseline so both
-    // candidate and candidateDiff invalidate together when either source changes.
+    // The combined fingerprint includes both candidate content and the formal model baseline
+    // so the candidate source invalidates when either changes.
     const formalFp = result.comparison.baseline === 'formal' ? result.comparison.formalFingerprint : ''
     const sourceFingerprint = snapshot.reviewDigest
       ? hashString(snapshot.reviewDigest + formalFp)
       : undefined;
 
-    const candidate: ViewRuntimeCandidateView = {
+    return {
       id: 'candidate',
       label: 'Candidate View',
       source: 'candidate',
-      valid: result.valid,
-      ...(fingerprints ? { partitionFingerprints: fingerprints } : {}),
-      ...(sourceFingerprint ? { sourceFingerprint } : {}),
-      ...(architecture ? { architecture } : {}),
-      ...(contracts ? { contracts } : {}),
-      ...(candidateRuntime ? { ...candidateRuntime } : {}),
-      diagnostics: result.diagnostics,
-    };
-
-    const candidateDiff: ViewRuntimeCandidateDiffView = {
-      id: 'candidate-diff',
-      label: 'Candidate Diff View',
-      source: 'candidate-diff',
       valid: result.valid,
       ...(result.comparison.baseline === 'formal' ? { semanticModelFingerprint: result.comparison.formalFingerprint } : {}),
       ...(sourceFingerprint ? { sourceFingerprint } : {}),
@@ -369,30 +341,18 @@ async function buildCandidateSources(
       ...(candidateRuntime ? { ...candidateRuntime } : {}),
       diagnostics: result.diagnostics,
     };
-
-    return { candidate, candidateDiff };
   } catch (error) {
-    const diagnostics: ChangeDiagnostic[] = [{
-      level: 'ERROR',
-      code: 'CANDIDATE_RUNTIME_FAILED',
-      path: path.posix.join('.xirang', 'candidate'),
-      message: error instanceof Error ? error.message : 'Unable to build Candidate sources',
-    }];
     return {
-      candidate: {
-        id: 'candidate',
-        label: 'Candidate View',
-        source: 'candidate',
-        valid: false,
-        diagnostics,
-      },
-      candidateDiff: {
-        id: 'candidate-diff',
-        label: 'Candidate Diff View',
-        source: 'candidate-diff',
-        valid: false,
-        diagnostics,
-      },
+      id: 'candidate',
+      label: 'Candidate View',
+      source: 'candidate',
+      valid: false,
+      diagnostics: [{
+        level: 'ERROR',
+        code: 'CANDIDATE_RUNTIME_FAILED',
+        path: path.posix.join('.xirang', 'candidate'),
+        message: error instanceof Error ? error.message : 'Unable to build Candidate sources',
+      }],
     };
   }
 }
@@ -433,7 +393,7 @@ export async function buildViewRuntimeSnapshot(
     modelFingerprint: semanticModel.sourceFingerprint,
     model: semanticModel,
     authoredViews,
-    ...(candidateSources ? { candidate: candidateSources.candidate, candidateDiff: candidateSources.candidateDiff } : {}),
+    ...(candidateSources ? { candidate: candidateSources } : {}),
     changes: sources,
   };
 }

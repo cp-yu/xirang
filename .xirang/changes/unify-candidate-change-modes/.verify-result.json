@@ -1,0 +1,402 @@
+{
+  "timestamp": "2026-08-16T19:18:43.614Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "e2e test 'refreshes the model through HMR and keeps an equivalent Authored layout' fails with fingerprint-poll timeout when the full semantic-browser-model-view.spec.ts file runs (desktop+mobile), but passes in isolation on both projects; the test body and its server HMR code paths are untouched by this change and all modified tests execute after it in file order, so the failure appears to be pre-existing suite-order flake under dev-server load",
+      "requirement": "xirang-projection-service#Candidate source 按输入刷新",
+      "task": "Task 6",
+      "recommendation": "Re-run the full model-view e2e file to confirm reproducibility, and if it persists, investigate watcher/manifest-rebuild latency under load in a follow-up (not part of this change's required corrections)",
+      "evidenceCitations": [
+        "test/e2e/semantic-browser-model-view.spec.ts:162-180"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "Stale describe block title 'Manifest version 3' at test/core/view.test.ts:444 while all tests inside assert version 4 manifests; the inner test was renamed to 'emits a version 4 manifest...' but the describe title was not updated",
+      "requirement": "xirang-projection-service#使用分区 Runtime Manifest",
+      "task": "Task 1",
+      "recommendation": "Rename the describe block to 'Manifest version 4' or similar",
+      "evidenceCitations": [
+        "test/core/view.test.ts:444-445"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "proposal.md Impact line 'Candidate 在 Change 列表中展示' slightly misstates the landing page implementation, which renders a separate 'Candidate' section (SourceCard) that opens change=candidate&mode=complete-with-diff rather than listing the candidate inside the Active Changes card list",
+      "requirement": "web#首页提供 Candidate 与活动 Change 快速入口",
+      "task": "Task 5",
+      "recommendation": "Reword the proposal Impact bullet to 'Candidate 以独立卡片按 Change 入口打开'",
+      "evidenceCitations": [
+        ".xirang/changes/unify-candidate-change-modes/proposal.md:42",
+        "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx:86-101"
+      ]
+    }
+  ],
+  "tasksFileHash": "298935b2a8568a4f8a63020bfee8989c1e0afa4bb92cd299a130b36a45cdaa13",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/unify-candidate-change-modes/design.md",
+      ".xirang/changes/unify-candidate-change-modes/elements/semantic-browser.md",
+      ".xirang/changes/unify-candidate-change-modes/elements/web.md",
+      ".xirang/changes/unify-candidate-change-modes/elements/xirang-contract-delivery.md",
+      ".xirang/changes/unify-candidate-change-modes/elements/xirang-diff-overlay.md",
+      ".xirang/changes/unify-candidate-change-modes/elements/xirang-projection-service.md",
+      ".xirang/changes/unify-candidate-change-modes/proposal.md",
+      ".xirang/changes/unify-candidate-change-modes/tasks.md",
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
+      "likec4/packages/diagram/src/xirang/ContractLoaderContext.spec.tsx",
+      "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+      "likec4/packages/diagram/src/xirang/xirang-diff-overlay.spec.ts",
+      "likec4/packages/likec4-spa/src/routes/__root.tsx",
+      "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
+      "likec4/packages/likec4-spa/src/searchParams.spec.ts",
+      "likec4/packages/likec4-spa/src/searchParams.ts",
+      "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.spec.ts",
+      "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
+      "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
+      "likec4/packages/vite-plugin/src/plugin.ts",
+      "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.spec.ts",
+      "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts",
+      "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
+      "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
+      "playwright.config.ts",
+      "src/core/view.ts",
+      "test/core/view.test.ts",
+      "test/e2e/semantic-browser-candidate-views.spec.ts",
+      "test/e2e/semantic-browser-model-view.spec.ts"
+    ],
+    "evidenceFingerprint": "3cb9b7f0dbb4394712ba1bf308dd16cf10b0657d8246dd1c18b286dbdf104d31",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/unify-candidate-change-modes/design.md",
+        "hash": "f0e727af8eee2397823383c2aabd9811ecd7173019d26c102fe88981ca0b0bf3"
+      },
+      {
+        "path": ".xirang/changes/unify-candidate-change-modes/elements/semantic-browser.md",
+        "hash": "296a85e60f54e0dd629fa75f09c706fe80fc5d8d03a376a1a7692767e64c8d29"
+      },
+      {
+        "path": ".xirang/changes/unify-candidate-change-modes/elements/web.md",
+        "hash": "068c9697f898ae4bd33ddf9c24fec93d851f016fbd76fbeb103f98587ff0968b"
+      },
+      {
+        "path": ".xirang/changes/unify-candidate-change-modes/elements/xirang-contract-delivery.md",
+        "hash": "a34df3cac80991ada245ed1c76e8a4e3ae65f51c59190c5ee4f74865e12394b9"
+      },
+      {
+        "path": ".xirang/changes/unify-candidate-change-modes/elements/xirang-diff-overlay.md",
+        "hash": "c6c053ceab75fd1ca54f5deea6be3cb55d1437f4a0a01d5d0bf80374ec14b0ba"
+      },
+      {
+        "path": ".xirang/changes/unify-candidate-change-modes/elements/xirang-projection-service.md",
+        "hash": "5206eb21350f30b5d29414069bc608639e428b1fe08950417296a659c623d293"
+      },
+      {
+        "path": ".xirang/changes/unify-candidate-change-modes/proposal.md",
+        "hash": "5c395b04e1f97ad61d627628daa767d519584881044d5e2037b6ee159af6dbaa"
+      },
+      {
+        "path": ".xirang/changes/unify-candidate-change-modes/tasks.md",
+        "hash": "298935b2a8568a4f8a63020bfee8989c1e0afa4bb92cd299a130b36a45cdaa13"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+        "hash": "7dcc2204513a906beeb5b295ceb7ccdb39803542745abc95a9856e89017c3427"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
+        "hash": "7d2b11825181c0697a743079ab57eb8ce8be7c260529e08233d6d254cb01e88a"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.spec.tsx",
+        "hash": "485ea7ddd3a6ec300bb57832dad38d74dcae53544ed79beaf0a660988edf3354"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+        "hash": "7a9e5d9620a5a2f5da0f886d3fcd2135f21b7d0e35feded49ff223008ffbcbbb"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/xirang-diff-overlay.spec.ts",
+        "hash": "a1f9a8c0f4f83eb999445e7c4250af27c2f9b1606615e3f56f44334a21cb5f4a"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/routes/__root.tsx",
+        "hash": "c26cd4f54533ff6b5e1b8310b5f96e811965ddbb892d5dbb2de2a4f62c3a465b"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
+        "hash": "c148bb7045b6c4fdf2f822364cdd466631da7f6fb0c5807c7776340c2c4f0d54"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/searchParams.spec.ts",
+        "hash": "db71375216589ea4838462795c4b78718854efc61bdbce875dfc92fbeed57a8b"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/searchParams.ts",
+        "hash": "3fa7c8ea1edf65cd50532c58eb2e539d07da56f1ded6b0db02d8d45056e70643"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.spec.ts",
+        "hash": "65897188868fdd756d02b5a0ce6d0acf86071c134987dd3998c00f3d3c8a83d4"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
+        "hash": "36d26b2349ab266b97b8a11cb23bb3dc4c18ca8d2a246aafe89ee40c253c1bd2"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
+        "hash": "951311431529b493519501ff49a9dc0a57f43c13c9e17444fcd222c9d3631fff"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/plugin.ts",
+        "hash": "e4ec969c31377d295e7db854a9f73008910116aefcedece35ccbaef03d462e40"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.spec.ts",
+        "hash": "9eda4ca8923956f79b67dc522d22bb9a1336a9a9de8a930444a0728f70bc5848"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts",
+        "hash": "68e4da7f131b63df5c350bfa3f076ba844acf344539e8b553c412590e38ccfec"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
+        "hash": "cb225e73f58a6dd0555dd19ed782fb479c7e5557118832c0571158b1d89d4602"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
+        "hash": "d605afbd0223f4efc86304c0fa9f553438152fd2bb195d76ea6aeb8eb90a9923"
+      },
+      {
+        "path": "playwright.config.ts",
+        "hash": "25a2ebe2ef3766a0e159514c6ac3af5af5c73a141f2154d0836d7473ba221174"
+      },
+      {
+        "path": "src/core/view.ts",
+        "hash": "685ebf483a87d264f983b5cd4590d22e8e4206f86940bcfba4767fd8fe631d66"
+      },
+      {
+        "path": "test/core/view.test.ts",
+        "hash": "bc41e0f9d4663001ec31f9c3d09370b4352af4ca8cb41152dd22eb081205cbce"
+      },
+      {
+        "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
+        "hash": "79cec43a8cb768a32f34a01804b67b0715142d180e693ebe1d82ca83ac2880a6"
+      },
+      {
+        "path": "test/e2e/semantic-browser-model-view.spec.ts",
+        "hash": "9db46065761ee07ce9282322f49734c512faac45a81339ea9f5dab4c0cd2479f"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "9d3589c80c39c4aaa10fb454385c71a395fe7000",
+    "gitDiffSummary": "baseCommit 9d3589c80 resolves and equals HEAD; `git diff base...HEAD --name-only` is empty (nothing committed), so all evidence is the uncommitted working tree from `git status --short`: 22 modified code/test files + new xirang-diff-overlay.spec.ts + change artifacts. Commands considered: git rev-parse/status/diff --name-only, xirang arch outline|impact|query, xirang validate --change (passed, 0 issues), grep -r candidate-diff|candidateDiff|ViewRuntimeCandidateDiffView across likec4/packages src test (zero functional residue), root+likec4 tsc --noEmit (passed), spa/vite-plugin/diagram unit suites (all passed: view.test.ts 33, SemanticBrowserController+searchParams 26, projection-handler 37, contract-handler 37, ContractLoaderContext 7, diff-overlay 2, HttpContractLoader 9, -t filters 'Candidate.*mode' 3, 'URL.*candidate' 1, '首页.*Candidate' 1), spa build + xirang-likec4 build (passed), playwright semantic-browser-candidate 12/12 passed, semantic-browser-model-view full-file 13 passed + 2 failed only on the untouched HMR test which passes in isolation on both projects."
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-08-16T19:18:43.614Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "e2e test 'refreshes the model through HMR and keeps an equivalent Authored layout' fails with fingerprint-poll timeout when the full semantic-browser-model-view.spec.ts file runs (desktop+mobile), but passes in isolation on both projects; the test body and its server HMR code paths are untouched by this change and all modified tests execute after it in file order, so the failure appears to be pre-existing suite-order flake under dev-server load",
+          "requirement": "xirang-projection-service#Candidate source 按输入刷新",
+          "task": "Task 6",
+          "recommendation": "Re-run the full model-view e2e file to confirm reproducibility, and if it persists, investigate watcher/manifest-rebuild latency under load in a follow-up (not part of this change's required corrections)",
+          "evidenceCitations": [
+            "test/e2e/semantic-browser-model-view.spec.ts:162-180"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "Stale describe block title 'Manifest version 3' at test/core/view.test.ts:444 while all tests inside assert version 4 manifests; the inner test was renamed to 'emits a version 4 manifest...' but the describe title was not updated",
+          "requirement": "xirang-projection-service#使用分区 Runtime Manifest",
+          "task": "Task 1",
+          "recommendation": "Rename the describe block to 'Manifest version 4' or similar",
+          "evidenceCitations": [
+            "test/core/view.test.ts:444-445"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "proposal.md Impact line 'Candidate 在 Change 列表中展示' slightly misstates the landing page implementation, which renders a separate 'Candidate' section (SourceCard) that opens change=candidate&mode=complete-with-diff rather than listing the candidate inside the Active Changes card list",
+          "requirement": "web#首页提供 Candidate 与活动 Change 快速入口",
+          "task": "Task 5",
+          "recommendation": "Reword the proposal Impact bullet to 'Candidate 以独立卡片按 Change 入口打开'",
+          "evidenceCitations": [
+            ".xirang/changes/unify-candidate-change-modes/proposal.md:42",
+            "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx:86-101"
+          ]
+        }
+      ],
+      "tasksFileHash": "298935b2a8568a4f8a63020bfee8989c1e0afa4bb92cd299a130b36a45cdaa13",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/unify-candidate-change-modes/design.md",
+          ".xirang/changes/unify-candidate-change-modes/elements/semantic-browser.md",
+          ".xirang/changes/unify-candidate-change-modes/elements/web.md",
+          ".xirang/changes/unify-candidate-change-modes/elements/xirang-contract-delivery.md",
+          ".xirang/changes/unify-candidate-change-modes/elements/xirang-diff-overlay.md",
+          ".xirang/changes/unify-candidate-change-modes/elements/xirang-projection-service.md",
+          ".xirang/changes/unify-candidate-change-modes/proposal.md",
+          ".xirang/changes/unify-candidate-change-modes/tasks.md",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
+          "likec4/packages/diagram/src/xirang/ContractLoaderContext.spec.tsx",
+          "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+          "likec4/packages/diagram/src/xirang/xirang-diff-overlay.spec.ts",
+          "likec4/packages/likec4-spa/src/routes/__root.tsx",
+          "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
+          "likec4/packages/likec4-spa/src/searchParams.spec.ts",
+          "likec4/packages/likec4-spa/src/searchParams.ts",
+          "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.spec.ts",
+          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
+          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
+          "likec4/packages/vite-plugin/src/plugin.ts",
+          "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.spec.ts",
+          "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts",
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
+          "playwright.config.ts",
+          "src/core/view.ts",
+          "test/core/view.test.ts",
+          "test/e2e/semantic-browser-candidate-views.spec.ts",
+          "test/e2e/semantic-browser-model-view.spec.ts"
+        ],
+        "evidenceFingerprint": "3cb9b7f0dbb4394712ba1bf308dd16cf10b0657d8246dd1c18b286dbdf104d31",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/unify-candidate-change-modes/design.md",
+            "hash": "f0e727af8eee2397823383c2aabd9811ecd7173019d26c102fe88981ca0b0bf3"
+          },
+          {
+            "path": ".xirang/changes/unify-candidate-change-modes/elements/semantic-browser.md",
+            "hash": "296a85e60f54e0dd629fa75f09c706fe80fc5d8d03a376a1a7692767e64c8d29"
+          },
+          {
+            "path": ".xirang/changes/unify-candidate-change-modes/elements/web.md",
+            "hash": "068c9697f898ae4bd33ddf9c24fec93d851f016fbd76fbeb103f98587ff0968b"
+          },
+          {
+            "path": ".xirang/changes/unify-candidate-change-modes/elements/xirang-contract-delivery.md",
+            "hash": "a34df3cac80991ada245ed1c76e8a4e3ae65f51c59190c5ee4f74865e12394b9"
+          },
+          {
+            "path": ".xirang/changes/unify-candidate-change-modes/elements/xirang-diff-overlay.md",
+            "hash": "c6c053ceab75fd1ca54f5deea6be3cb55d1437f4a0a01d5d0bf80374ec14b0ba"
+          },
+          {
+            "path": ".xirang/changes/unify-candidate-change-modes/elements/xirang-projection-service.md",
+            "hash": "5206eb21350f30b5d29414069bc608639e428b1fe08950417296a659c623d293"
+          },
+          {
+            "path": ".xirang/changes/unify-candidate-change-modes/proposal.md",
+            "hash": "5c395b04e1f97ad61d627628daa767d519584881044d5e2037b6ee159af6dbaa"
+          },
+          {
+            "path": ".xirang/changes/unify-candidate-change-modes/tasks.md",
+            "hash": "298935b2a8568a4f8a63020bfee8989c1e0afa4bb92cd299a130b36a45cdaa13"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "hash": "7dcc2204513a906beeb5b295ceb7ccdb39803542745abc95a9856e89017c3427"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
+            "hash": "7d2b11825181c0697a743079ab57eb8ce8be7c260529e08233d6d254cb01e88a"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.spec.tsx",
+            "hash": "485ea7ddd3a6ec300bb57832dad38d74dcae53544ed79beaf0a660988edf3354"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+            "hash": "7a9e5d9620a5a2f5da0f886d3fcd2135f21b7d0e35feded49ff223008ffbcbbb"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/xirang-diff-overlay.spec.ts",
+            "hash": "a1f9a8c0f4f83eb999445e7c4250af27c2f9b1606615e3f56f44334a21cb5f4a"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/routes/__root.tsx",
+            "hash": "c26cd4f54533ff6b5e1b8310b5f96e811965ddbb892d5dbb2de2a4f62c3a465b"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
+            "hash": "c148bb7045b6c4fdf2f822364cdd466631da7f6fb0c5807c7776340c2c4f0d54"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/searchParams.spec.ts",
+            "hash": "db71375216589ea4838462795c4b78718854efc61bdbce875dfc92fbeed57a8b"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/searchParams.ts",
+            "hash": "3fa7c8ea1edf65cd50532c58eb2e539d07da56f1ded6b0db02d8d45056e70643"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.spec.ts",
+            "hash": "65897188868fdd756d02b5a0ce6d0acf86071c134987dd3998c00f3d3c8a83d4"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
+            "hash": "36d26b2349ab266b97b8a11cb23bb3dc4c18ca8d2a246aafe89ee40c253c1bd2"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
+            "hash": "951311431529b493519501ff49a9dc0a57f43c13c9e17444fcd222c9d3631fff"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/plugin.ts",
+            "hash": "e4ec969c31377d295e7db854a9f73008910116aefcedece35ccbaef03d462e40"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.spec.ts",
+            "hash": "9eda4ca8923956f79b67dc522d22bb9a1336a9a9de8a930444a0728f70bc5848"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts",
+            "hash": "68e4da7f131b63df5c350bfa3f076ba844acf344539e8b553c412590e38ccfec"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
+            "hash": "cb225e73f58a6dd0555dd19ed782fb479c7e5557118832c0571158b1d89d4602"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
+            "hash": "d605afbd0223f4efc86304c0fa9f553438152fd2bb195d76ea6aeb8eb90a9923"
+          },
+          {
+            "path": "playwright.config.ts",
+            "hash": "25a2ebe2ef3766a0e159514c6ac3af5af5c73a141f2154d0836d7473ba221174"
+          },
+          {
+            "path": "src/core/view.ts",
+            "hash": "685ebf483a87d264f983b5cd4590d22e8e4206f86940bcfba4767fd8fe631d66"
+          },
+          {
+            "path": "test/core/view.test.ts",
+            "hash": "bc41e0f9d4663001ec31f9c3d09370b4352af4ca8cb41152dd22eb081205cbce"
+          },
+          {
+            "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
+            "hash": "79cec43a8cb768a32f34a01804b67b0715142d180e693ebe1d82ca83ac2880a6"
+          },
+          {
+            "path": "test/e2e/semantic-browser-model-view.spec.ts",
+            "hash": "9db46065761ee07ce9282322f49734c512faac45a81339ea9f5dab4c0cd2479f"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "9d3589c80c39c4aaa10fb454385c71a395fe7000",
+        "gitDiffSummary": "baseCommit 9d3589c80 resolves and equals HEAD; `git diff base...HEAD --name-only` is empty (nothing committed), so all evidence is the uncommitted working tree from `git status --short`: 22 modified code/test files + new xirang-diff-overlay.spec.ts + change artifacts. Commands considered: git rev-parse/status/diff --name-only, xirang arch outline|impact|query, xirang validate --change (passed, 0 issues), grep -r candidate-diff|candidateDiff|ViewRuntimeCandidateDiffView across likec4/packages src test (zero functional residue), root+likec4 tsc --noEmit (passed), spa/vite-plugin/diagram unit suites (all passed: view.test.ts 33, SemanticBrowserController+searchParams 26, projection-handler 37, contract-handler 37, ContractLoaderContext 7, diff-overlay 2, HttpContractLoader 9, -t filters 'Candidate.*mode' 3, 'URL.*candidate' 1, '首页.*Candidate' 1), spa build + xirang-likec4 build (passed), playwright semantic-browser-candidate 12/12 passed, semantic-browser-model-view full-file 13 passed + 2 failed only on the untouched HMR test which passes in isolation on both projects."
+      }
+    }
+  }
+}

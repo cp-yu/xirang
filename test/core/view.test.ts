@@ -350,7 +350,10 @@ describe('ViewCommand', () => {
     expect(snapshot.candidate!.architecture!.elements.map(e => e.declaration.identity)).toContain('beta.id');
     expect(snapshot.candidate!.contracts).toBeDefined();
     expect(Object.keys(snapshot.candidate!.contracts!)).toEqual(['alpha.id']);
-    expect(snapshot.candidate!.diff).toBeUndefined();
+    expect(snapshot.candidate!.diff).toBeDefined();
+    expect(snapshot.candidate!.diffArchitecture).toBeDefined();
+    expect(snapshot.candidate!.diffLikec4Sources).toBeDefined();
+    expect(snapshot.candidate!.diffLikec4ElementPaths).toBeDefined();
   });
 
   it('retains invalid Candidate with diagnostics and partial architecture when parseable', async () => {
@@ -383,7 +386,7 @@ describe('ViewCommand', () => {
     expect(snapshot.candidate!.architecture!.elements.map(e => e.declaration.identity)).toContain('ghost.id');
   });
 
-  it('shares Candidate target and refresh state between Candidate View and Candidate Diff View', async () => {
+  it('carries the Candidate target and diff in one unified source', async () => {
     await writeProjectModel(tempDir, minimalModel());
     const candidateRoot = path.join(tempDir, '.xirang', 'candidate');
     await fs.mkdir(candidateRoot, { recursive: true });
@@ -402,14 +405,14 @@ describe('ViewCommand', () => {
 
     const snapshot = await buildViewRuntimeSnapshot(tempDir);
     expect(snapshot.candidate).toBeDefined();
-    expect(snapshot.candidateDiff).toBeDefined();
-    expect(snapshot.candidate!.partitionFingerprints).toEqual(snapshot.candidateDiff!.partitionFingerprints);
-    expect(snapshot.candidate!.sourceFingerprint).toBe(snapshot.candidateDiff!.sourceFingerprint);
-    expect(snapshot.candidate!.architecture).toEqual(snapshot.candidateDiff!.architecture);
-    expect(snapshot.candidateDiff!.diff).toBeDefined();
+    expect(snapshot.candidateDiff).toBeUndefined();
+    expect(snapshot.candidate!.partitionFingerprints).toBeDefined();
+    expect(snapshot.candidate!.sourceFingerprint).toBeDefined();
+    expect(snapshot.candidate!.architecture).toBeDefined();
+    expect(snapshot.candidate!.diff).toBeDefined();
   });
 
-  it('provides the before-after union sources to Candidate Diff for removed ghosts', async () => {
+  it('provides the before-after union sources to the Candidate for removed ghosts', async () => {
     await writeBaseModel(tempDir);
     const candidateRoot = path.join(tempDir, '.xirang', 'candidate');
     await fs.mkdir(candidateRoot, { recursive: true });
@@ -427,14 +430,14 @@ describe('ViewCommand', () => {
     }));
 
     const snapshot = await buildViewRuntimeSnapshot(tempDir);
-    const diffView = snapshot.candidateDiff!;
-    expect(diffView.diffLikec4Sources).toBeDefined();
-    expect(diffView.diffLikec4ElementPaths).toBeDefined();
-    expect(diffView.diffArchitecture!.elements.map(element => element.declaration.identity)).toEqual(
+    const candidate = snapshot.candidate!;
+    expect(candidate.diffLikec4Sources).toBeDefined();
+    expect(candidate.diffLikec4ElementPaths).toBeDefined();
+    expect(candidate.diffArchitecture!.elements.map(element => element.declaration.identity)).toEqual(
       expect.arrayContaining(['alpha.id', 'gamma.id']),
     );
-    expect(diffView.diffSourceFingerprint).toBeDefined();
-    expect(diffView.diffSourceFingerprint).not.toBe(diffView.sourceFingerprint);
+    expect(candidate.diffSourceFingerprint).toBeDefined();
+    expect(candidate.diffSourceFingerprint).not.toBe(candidate.sourceFingerprint);
   });
 });
 
@@ -449,7 +452,7 @@ describe('Manifest version 3', () => {
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  it('emits version 3 manifest with candidate sources', async () => {
+  it('emits a version 4 manifest with one unified candidate source', async () => {
     await writeProjectModel(tempDir, minimalModel());
     const candidateRoot = path.join(tempDir, '.xirang', 'candidate');
     await fs.mkdir(candidateRoot, { recursive: true });
@@ -470,11 +473,12 @@ describe('Manifest version 3', () => {
     expect(snapshot.version).toBe(4);
     expect(snapshot.model).toBeDefined();
     expect(snapshot.candidate).toBeDefined();
-    expect(snapshot.candidateDiff).toBeDefined();
-    
-    expect(snapshot.candidate!.valid).toBe(snapshot.candidateDiff!.valid);
-    expect(snapshot.candidate!.sourceFingerprint).toBe(snapshot.candidateDiff!.sourceFingerprint);
-    expect(snapshot.candidate!.diagnostics).toEqual(snapshot.candidateDiff!.diagnostics);
+    expect(snapshot.candidateDiff).toBeUndefined();
+
+    expect(snapshot.candidate!.valid).toBe(true);
+    expect(snapshot.candidate!.sourceFingerprint).toBeDefined();
+    expect(snapshot.candidate!.diff).toBeDefined();
+    expect(snapshot.candidate!.diagnostics).toEqual([]);
   });
 
   it('omits candidate sources when no active candidate exists', async () => {
@@ -485,11 +489,10 @@ describe('Manifest version 3', () => {
     expect(snapshot.version).toBe(4);
     expect(snapshot.model).toBeDefined();
     expect(snapshot.candidate).toBeUndefined();
-    expect(snapshot.candidateDiff).toBeUndefined();
     expect(snapshot.changes).toBeDefined();
   });
 
-  it('refreshes both candidate sources after candidate changes', async () => {
+  it('refreshes the candidate source after candidate changes', async () => {
     await writeProjectModel(tempDir, minimalModel());
     await writeChangeDelta(tempDir, 'test-change', {
       'elements/alpha.md': '---\noperation: ADDED\nentity: element\nidentity: alpha\nkind: component\nparent: project.id\n---\n# Alpha\n',
@@ -507,7 +510,6 @@ describe('Manifest version 3', () => {
 
     const before = await buildViewRuntimeSnapshot(tempDir);
     const beforeCandidateFingerprint = before.candidate!.sourceFingerprint;
-    const beforeCandidateDiffFingerprint = before.candidateDiff!.sourceFingerprint;
     const beforeModelFingerprint = before.model.sourceFingerprint;
     const beforeChangeFingerprint = before.changes['test-change']!.sourceFingerprint;
 
@@ -516,7 +518,6 @@ describe('Manifest version 3', () => {
     const after = await buildViewRuntimeSnapshot(tempDir, { previous: before });
 
     expect(after.candidate!.sourceFingerprint).not.toBe(beforeCandidateFingerprint);
-    expect(after.candidateDiff!.sourceFingerprint).not.toBe(beforeCandidateDiffFingerprint);
     expect(after.model.sourceFingerprint).toBe(beforeModelFingerprint);
     expect(after.changes['test-change']!.sourceFingerprint).toBe(beforeChangeFingerprint);
   });
@@ -539,7 +540,7 @@ describe('Manifest version 3', () => {
 
     const before = await buildViewRuntimeSnapshot(tempDir);
     const beforeModelFingerprint = before.model.sourceFingerprint;
-    const beforeCandidateDiffFingerprint = before.candidateDiff!.sourceFingerprint;
+    const beforeCandidateFingerprint = before.candidate!.sourceFingerprint;
     const beforeChangeFingerprint = before.changes['test-change']!.sourceFingerprint;
 
     const modifiedModel = minimalModel();
@@ -549,7 +550,7 @@ describe('Manifest version 3', () => {
     const after = await buildViewRuntimeSnapshot(tempDir, { previous: before });
 
     expect(after.model.sourceFingerprint).not.toBe(beforeModelFingerprint);
-    expect(after.candidateDiff!.sourceFingerprint).not.toBe(beforeCandidateDiffFingerprint);
+    expect(after.candidate!.sourceFingerprint).not.toBe(beforeCandidateFingerprint);
     expect(after.changes['test-change']!.sourceFingerprint).not.toBe(beforeChangeFingerprint);
   });
 });

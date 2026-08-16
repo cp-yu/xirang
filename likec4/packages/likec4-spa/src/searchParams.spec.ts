@@ -11,11 +11,11 @@ describe('resolveForceColorScheme', () => {
 })
 
 describe('Xirang navigation params', () => {
-  it('defaults view to model, mode to complete, change and focus undefined', () => {
+  it('defaults view to model and leaves mode, change and focus absent', () => {
     const parsed = searchParamsSchema.parse({})
     expect(parsed.view).toBe('model')
     expect(parsed.change).toBeUndefined()
-    expect(parsed.mode).toBe('complete')
+    expect(parsed.mode).toBeUndefined()
     expect(parsed.focus).toBeUndefined()
   })
 
@@ -32,9 +32,9 @@ describe('Xirang navigation params', () => {
     expect(parsed.mode).toBe('diff-only')
   })
 
-  it('coerces invalid mode to complete', () => {
+  it('drops an invalid mode instead of guessing', () => {
     const parsed = searchParamsSchema.parse({ mode: 'bogus' })
-    expect(parsed.mode).toBe('complete')
+    expect(parsed.mode).toBeUndefined()
   })
 })
 

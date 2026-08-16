@@ -2,7 +2,7 @@ import { css } from '@likec4/styles/css'
 import { hstack } from '@likec4/styles/patterns'
 import { NativeSelect } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
-import { type XirangRuntimeManifest, type XirangViewMode, type XirangViewSource, useXirangViewSources } from '@likec4/diagram'
+import { type XirangRuntimeManifest, type XirangViewSource, useXirangViewSources } from '@likec4/diagram'
 import { HttpProjectionLoader } from './HttpProjectionLoader'
 import { selectDiagramSnapshot, useDiagramActorRef, useDiagramSelector } from '@likec4/diagram'
 import { type DiagramView } from '@likec4/core/types'
@@ -75,13 +75,10 @@ export interface SemanticBrowserManifest {
   authoredViews: Record<string, { title: string; selection: string[]; roots: string[]; virtualRoot: boolean }>
   changes: Record<string, XirangChangeSource>
   candidate?: XirangViewSource
-  candidateDiff?: XirangViewSource
 }
 
 function sourceForView(manifest: SemanticBrowserManifest, view: string): string[] {
   if (view === 'model') return identities(manifest.model)
-  if (view === 'candidate') return manifest.candidate ? identities(manifest.candidate) : []
-  if (view === 'candidate-diff') return manifest.candidateDiff ? identities(manifest.candidateDiff) : []
   return manifest.authoredViews[view]?.selection ?? []
 }
 
@@ -90,16 +87,18 @@ function identities(source: XirangViewSource): string[] {
 }
 
 function validViews(manifest: SemanticBrowserManifest): Set<string> {
-  return new Set([
-    'model',
-    ...Object.keys(manifest.authoredViews),
-    ...(manifest.candidate ? ['candidate'] : []),
-    ...(manifest.candidateDiff ? ['candidate-diff'] : []),
-  ])
+  return new Set(['model', ...Object.keys(manifest.authoredViews)])
 }
 
 function validChanges(manifest: SemanticBrowserManifest): Set<string> {
-  return new Set(Object.keys(manifest.changes))
+  return new Set([
+    ...Object.keys(manifest.changes),
+    ...(manifest.candidate ? ['candidate'] : []),
+  ])
+}
+
+function changeSourceFor(manifest: SemanticBrowserManifest, change: string): XirangChangeSource | XirangViewSource | undefined {
+  return change === 'candidate' ? manifest.candidate : manifest.changes[change]
 }
 
 function defaultMode(change: string | null): SemanticBrowserMode {
@@ -111,7 +110,7 @@ function focusableIdentities(
   state: Pick<SemanticBrowserState, 'viewSelection' | 'changeSelection'>,
   manifest: SemanticBrowserManifest,
 ): Set<string> {
-  const changeSource = state.changeSelection ? manifest.changes[state.changeSelection] : undefined
+  const changeSource = state.changeSelection ? changeSourceFor(manifest, state.changeSelection) : undefined
   return new Set([
     ...sourceForView(manifest, state.viewSelection),
     ...(changeSource?.architecture?.elements ?? []).map(element => element.declaration.identity),
@@ -143,20 +142,13 @@ export function mirrorActorFocus(
 
 function clampState(state: SemanticBrowserState, manifest: SemanticBrowserManifest): SemanticBrowserState {
   const viewSelection = validViews(manifest).has(state.viewSelection) ? state.viewSelection : 'model'
-  const candidateView = viewSelection === 'candidate' || viewSelection === 'candidate-diff'
-  const changeSelection = !candidateView && state.changeSelection && validChanges(manifest).has(state.changeSelection)
+  const changeSelection = state.changeSelection && validChanges(manifest).has(state.changeSelection)
     ? state.changeSelection
     : null
   const allowed = focusableIdentities(state, manifest)
   const focus = state.focus && allowed.has(state.focus) ? state.focus : null
   const expanded = new Set([...state.expanded].filter(identity => allowed.has(identity)))
-  const presentationMode = viewSelection === 'candidate-diff'
-    ? 'diff-only'
-    : viewSelection === 'candidate'
-    ? 'complete'
-    : changeSelection === null
-    ? 'complete'
-    : state.presentationMode
+  const presentationMode = changeSelection === null ? 'complete' : state.presentationMode
   return { viewSelection, changeSelection, presentationMode, focus, expanded }
 }
 
@@ -362,7 +354,7 @@ export function SemanticBrowserRouteSync() {
     const current = JSON.stringify({
       view: search.view === 'model' ? undefined : search.view,
       change: search.change,
-      mode: search.mode === 'complete' ? undefined : search.mode,
+      mode: search.mode === 'complete-with-diff' ? undefined : search.mode,
       focus: search.focus,
     })
     if (current === seenUrl.current) return
@@ -378,7 +370,7 @@ export function SemanticBrowserRouteSync() {
     applyingUrl.current = true
     controller.dispatch({ type: 'view.select', view: search.view })
     controller.dispatch({ type: 'change.select', change: search.change ?? null })
-    controller.dispatch({ type: 'mode.select', mode: search.mode })
+    controller.dispatch({ type: 'mode.select', mode: search.mode ?? defaultMode(search.change ?? null) })
     controller.dispatch({ type: 'focus.select', focus: search.focus ?? null })
   }, [controller, search.change, search.focus, search.mode, search.view])
 
@@ -386,7 +378,7 @@ export function SemanticBrowserRouteSync() {
     if (!controller || !initializedUrl.current) return
     const next = encodeSemanticBrowserUrl(controller.state)
     const key = JSON.stringify(next)
-    const current = JSON.stringify({ view: search.view === 'model' ? undefined : search.view, change: search.change, mode: search.mode === 'complete' ? undefined : search.mode, focus: search.focus })
+    const current = JSON.stringify({ view: search.view === 'model' ? undefined : search.view, change: search.change, mode: search.mode === 'complete-with-diff' ? undefined : search.mode, focus: search.focus })
     if (applyingUrl.current) {
       if (key === current) {
         applyingUrl.current = false
@@ -495,6 +487,7 @@ function SemanticBrowserControlsSelects() {
   ]
   const changeOptions = [
     { value: '', label: 'No Change' },
+    ...(manifest.candidate ? [{ value: 'candidate', label: manifest.candidate.label }] : []),
     ...Object.entries(manifest.changes).map(([id, change]) => ({ value: id, label: change.label })),
   ]
   const modeOptions = [
@@ -535,7 +528,6 @@ function SemanticBrowserControlsSelects() {
 function SemanticBrowserControlsShell({ className }: { className: string }) {
   const controller = useContext(SemanticBrowserControllerContext)
   if (!controller) return null
-  if (controller.state.viewSelection === 'candidate' || controller.state.viewSelection === 'candidate-diff') return null
   return (
     <div
       className={className}
@@ -565,12 +557,6 @@ export function useSemanticBrowserController(): SemanticBrowserControllerValue {
   const value = useContext(SemanticBrowserControllerContext)
   if (!value) throw new Error('SemanticBrowserControllerProvider is required')
   return value
-}
-
-export function effectiveModeForSource(source: XirangViewSource['source'], mode: SemanticBrowserMode): XirangViewMode {
-  if (source === 'candidate-diff') return 'diff'
-  if (source === 'candidate') return 'full'
-  return mode === 'diff-only' ? 'diff' : 'full'
 }
 
 export type { XirangRuntimeManifest }

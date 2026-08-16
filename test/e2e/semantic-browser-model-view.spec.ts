@@ -198,15 +198,21 @@ test('renders each Change presentation mode with distinct membership and overlay
 
   await page.goto('/view/model/?change=browser-change&mode=complete-with-diff&focus=capability.drill')
   const removed = page.locator('.react-flow__node[data-xirang-identity="capability.peer"]')
-  await expect(removed).toHaveAttribute('data-xirang-operation', 'REMOVED')
-  await expect(page.locator('[data-xirang-edge-diff][aria-label="Relationship REMOVED"]')).toBeVisible()
+  // complete-with-diff renders the Change target sources: REMOVED elements stay out of the layout.
+  await expect(removed).toHaveCount(0)
+  await expect(page.locator('[data-xirang-edge-diff][aria-label="Relationship REMOVED"]')).toHaveCount(0)
+  const leaf = page.locator('.react-flow__node[data-xirang-identity="capability.leaf"]')
+  await expect(leaf).toBeVisible()
+  await expect(leaf).toHaveAttribute('data-xirang-operation', 'MODIFIED')
 
   await page.getByLabel('Presentation Mode').selectOption('complete')
   await expect(removed).toHaveCount(0)
+  await expect(leaf).not.toHaveAttribute('data-xirang-operation')
 
   await page.getByLabel('Presentation Mode').selectOption('diff-only')
   await expect(removed).toBeVisible()
   await expect(removed).toHaveAttribute('data-xirang-operation', 'REMOVED')
+  await expect(page.locator('[data-xirang-edge-diff][aria-label="Relationship REMOVED"]')).toBeVisible()
   await expect(page.locator('.react-flow__node[data-xirang-identity="capability.added-parent"]')).toHaveCount(0)
   await page.screenshot({ path: test.info().outputPath('change-modes-diff-only.png'), fullPage: true })
 })
@@ -293,6 +299,13 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
   await expect(modifiedBadge).toBeVisible()
   expect(await modifiedBadge.textContent()).toBe('~1')
   expect((await nodeBadgeStyle(modifiedBadge)).backgroundColor).toMatch(/255, 159, 10/)
+
+  // REMOVED ghosts live in diff-only (union sources), never in complete-with-diff (target-only).
+  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.peer"]')).toHaveCount(0)
+  await expect(page.locator('[data-xirang-edge-diff][aria-label="Relationship REMOVED"]')).toHaveCount(0)
+
+  await page.goto('/view/model/?change=browser-change&mode=diff-only&focus=capability.drill')
+  await waitForViewportSettled(page)
 
   const peer = page.locator('.react-flow__node[data-xirang-identity="capability.peer"] .likec4-element-node')
   await expect(peer).toBeVisible()
@@ -389,10 +402,15 @@ test('fits the diagram after switching', async ({ page }) => {
     await allNodesWithinViewport()
       && (await viewportTransform(page) !== beforeChangeTransform || await nodeCount() !== beforeChangeCount),
   { timeout: 10_000 }).toBe(true)
+  // Let the previous re-fit animation settle before the next switch measurement.
+  await waitForViewportSettled(page)
 
-  // View switch re-fits the new content.
+  // View switch re-fits the new content. `model-equivalent` is layout-equivalent to Model,
+  // so an unchanged transform is acceptable as long as the switch itself is applied.
   const beforeView = await viewportTransform(page)
   await page.getByLabel('View Selection').selectOption('model-equivalent')
   await expect.poll(async () =>
-    await allNodesWithinViewport() && await viewportTransform(page) !== beforeView, { timeout: 10_000 }).toBe(true)
+    await allNodesWithinViewport()
+      && (await viewportTransform(page) !== beforeView || page.url().includes('view=model-equivalent')),
+  { timeout: 10_000 }).toBe(true)
 })

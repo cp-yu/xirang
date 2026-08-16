@@ -402,7 +402,7 @@ export function LikeC4VitePlugin({
             [source.diffSourceFingerprint, source.diffLikec4Sources] as const,
           ]),
           [manifest.candidate?.sourceFingerprint, manifest.candidate?.likec4Sources] as const,
-          [manifest.candidateDiff?.sourceFingerprint, manifest.candidateDiff?.likec4Sources] as const,
+          [manifest.candidate?.diffSourceFingerprint, manifest.candidate?.diffLikec4Sources] as const,
         ].filter((entry): entry is readonly [string, Record<string, string>] => !!entry[0] && !!entry[1])
         const prewarmManifest = async (manifest: XirangRuntimeManifestSnapshot) => {
           await Promise.all(sourceEntries(manifest).map(([fingerprint, sources]) => xirangBaseModelCache.get(fingerprint, sources)))

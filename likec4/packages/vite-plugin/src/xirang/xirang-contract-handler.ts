@@ -35,7 +35,6 @@ export interface XirangRuntimeManifestSnapshot {
   model: XirangContractSourceSnapshot
   authoredViews: Record<string, XirangAuthoredViewSnapshot>
   candidate?: XirangContractSourceSnapshot
-  candidateDiff?: XirangContractSourceSnapshot
   changes: Record<string, XirangContractSourceSnapshot>
 }
 
@@ -62,7 +61,6 @@ export class XirangContractError extends Error {
 
 export type XirangContractSource =
   | { type: 'candidate' }
-  | { type: 'candidate-diff' }
   | { type: 'change'; name: string }
   | null
 
@@ -84,10 +82,6 @@ export function parseXirangContractSource(searchParams: URLSearchParams): Xirang
   
   if (source === 'candidate') {
     return { type: 'candidate' }
-  }
-  
-  if (source === 'candidate-diff') {
-    return { type: 'candidate-diff' }
   }
   
   if (source.startsWith('change:')) {
@@ -127,15 +121,11 @@ export function readXirangContract(
     if (!contractSource) {
       throw new XirangContractError(404, 'Candidate not found')
     }
-  } else if (source.type === 'candidate-diff') {
-    contractSource = manifest.candidateDiff
-    if (!contractSource) {
-      throw new XirangContractError(404, 'Candidate diff not found')
-    }
   } else if (source.type === 'change') {
-    contractSource = manifest.changes[source.name]
+    // `candidate` is a reserved Change Selection identity routed to `manifest.candidate`.
+    contractSource = source.name === 'candidate' ? manifest.candidate : manifest.changes[source.name]
     if (!contractSource) {
-      throw new XirangContractError(404, 'Change not found')
+      throw new XirangContractError(404, source.name === 'candidate' ? 'Candidate not found' : 'Change not found')
     }
   }
   
