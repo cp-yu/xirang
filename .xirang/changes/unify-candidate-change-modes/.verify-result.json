@@ -69,7 +69,7 @@
       "test/e2e/semantic-browser-candidate-views.spec.ts",
       "test/e2e/semantic-browser-model-view.spec.ts"
     ],
-    "evidenceFingerprint": "43379fd48678d67b26ebc6645830b14b485793901880f6daf5909fd2b2f4a0cd",
+    "evidenceFingerprint": "791c79afd19a379ea017e30cd53ef30de2ed6c37b842c2788041227e666d9cd5",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/unify-candidate-change-modes/design.md",
@@ -177,7 +177,7 @@
       },
       {
         "path": "src/core/view.ts",
-        "hash": "5cd8a51177349e3f2a1d11ab3a3a3b118b7ab06afd70ca18f862c5e13c1c084f"
+        "hash": "cbe6328b972eb53e230f76cf07386879957d50c0f24c3f239ecd1263695680a3"
       },
       {
         "path": "test/core/view.test.ts",
@@ -193,9 +193,9 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "c3f9b6ad5945e09cf3471eb33260515a41253881",
+    "gitHeadCommit": "1bb23ed408733e59f29341eb6ca678d4dc9d9cd5",
     "gitDiffSummary": "baseCommit 9d3589c80 resolves and equals HEAD; `git diff base...HEAD --name-only` is empty (nothing committed), so all evidence is the uncommitted working tree from `git status --short`: 22 modified code/test files + new xirang-diff-overlay.spec.ts + change artifacts. Commands considered: git rev-parse/status/diff --name-only, xirang arch outline|impact|query, xirang validate --change (passed, 0 issues), grep -r candidate-diff|candidateDiff|ViewRuntimeCandidateDiffView across likec4/packages src test (zero functional residue), root+likec4 tsc --noEmit (passed), spa/vite-plugin/diagram unit suites (all passed: view.test.ts 33, SemanticBrowserController+searchParams 26, projection-handler 37, contract-handler 37, ContractLoaderContext 7, diff-overlay 2, HttpContractLoader 9, -t filters 'Candidate.*mode' 3, 'URL.*candidate' 1, '首页.*Candidate' 1), spa build + xirang-likec4 build (passed), playwright semantic-browser-candidate 12/12 passed, semantic-browser-model-view full-file 13 passed + 2 failed only on the untouched HMR test which passes in isolation on both projects.",
-    "timestamp": "2026-08-16T19:42:06.626Z"
+    "timestamp": "2026-08-16T20:03:17.610Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
@@ -207,6 +207,16 @@
       },
       {
         "timestamp": "2026-08-16T19:42:06.610Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-16T19:53:33.752Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-16T20:03:17.595Z",
         "type": "verification",
         "result": "PASS"
       }
@@ -412,7 +422,7 @@
     },
     "findings": [
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "src/core/view.ts",
@@ -469,7 +479,7 @@
         }
       },
       {
-        "status": "pending",
+        "status": "verified",
         "location": {
           "files": [
             "src/core/view.ts"
@@ -483,7 +493,7 @@
         "impact": "A single shared derivation helper removes ~20 duplicated lines, gives one definition for how target and diff projections are derived, and makes the candidate/change structural-alignment contract hold by construction instead of by convention.",
         "evidence": [
           "src/core/view.ts:242-268 — change path computes diffModel, diffSourceFingerprint, architecture, diffArchitecture, runtimeLikeC4(target) and runtimeLikeC4(diffModel, 'diffLikec4Sources', 'diffLikec4ElementPaths')",
-          "src/core/view.ts:311-338 — candidate path computes the same union model, diffArchitecture, diffSourceFingerprint and diff runtimeLikeC4 values with the same expressions",
+          "src/core/view.ts:305-341 — candidate path computes the same union model, diffArchitecture, diffSourceFingerprint and diff runtimeLikeC4 values with the same expressions",
           "src/core/view.ts:355-369 — runtimeLikeC4 overloads show the two source-key variants the helper must return",
           ".xirang/changes/unify-candidate-change-modes/elements/xirang-projection-service.md — Requirement '使用分区 Runtime Manifest': candidate source 结构 SHALL 与 Change source 对齐"
         ],
@@ -511,7 +521,10 @@
         "cost": "low",
         "dependencies": [],
         "priorityReason": "It ranks second because it hardens the structural-alignment contract between Change and Candidate sources and removes the only duplicated derivation block, but its runtime benefit is zero; the watcher finding changes actual work performed per edit.",
-        "id": "OPT-20260816T193028421Z-02"
+        "id": "OPT-20260816T193028421Z-02",
+        "targetFileHashes": {
+          "src/core/view.ts": "5cd8a51177349e3f2a1d11ab3a3a3b118b7ab06afd70ca18f862c5e13c1c084f"
+        }
       },
       {
         "status": "pending",
@@ -562,7 +575,7 @@
         "opportunity": "SemanticBrowserRouteSync computes the identical canonical URL-state key twice: the URL-apply effect (line 354) and the URL-commit effect (line 381) both build `JSON.stringify({ view: search.view === 'model' ? undefined : search.view, change: search.change, mode: search.mode === 'complete-with-diff' ? undefined : search.mode, focus: search.focus })`. These two strings must always agree for the `applyingUrl`/`pendingUrl`/`seenUrl` handshake to work; the duplication is a standing drift hazard in the most delicate sync code of this change.",
         "impact": "One canonical normalization function removes the risk of the two sync effects disagreeing on the canonical URL form (a class of bug this change already hit once with the missing-mode default and fixed in the required corrections), with zero behavior change.",
         "evidence": [
-          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx:354 — URL-apply effect computes the normalized key",
+          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx:354-361 — URL-apply effect computes the normalized key",
           "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx:381 — URL-commit effect recomputes the same expression",
           ".xirang/changes/unify-candidate-change-modes/tasks.md Required Corrections '[code_fix] URL 解码缺失 mode 参数时强制为 complete' — documents the prior drift between URL normalization and default-mode decoding that this duplication enabled"
         ],
@@ -648,9 +661,64 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-16T19:42:06.610Z",
         "findingId": "OPT-20260816T193028421Z-01"
+      },
+      {
+        "sequence": 8,
+        "action": "resolve",
+        "reason": "Implemented in commit 1bb23ed40 (wip: opt-r1) and verified PASS at 2026-08-16T19:42:06Z in .verify-result.json. Current src/core/view.ts carries the candidate-only partial refresh exactly as verified: WatcherRefresh candidate variant in watcherRefreshForPath, buildViewRuntimeSnapshot onlyCandidate option with formal-fingerprint fallback, refreshCandidate flag in ViewCommand.execute, and generateLikeC4Artifacts only on all; test/core/view.test.ts adds the candidate-only reuse, formal-change fallback, directory-removal and watcher/artifact-mtime tests. File hashes match the verified fingerprint entries (view.ts 5cd8a511…, view.test.ts 9f202f23…), so the finding closes.",
+        "timestamp": "2026-08-16T19:53:33.748Z",
+        "findingId": "OPT-20260816T193028421Z-01"
+      },
+      {
+        "sequence": 9,
+        "action": "retain",
+        "reason": "Current code still carries the duplicated target+union runtime derivation: buildChangeDerivedView (src/core/view.ts:242-268) and buildCandidateSources (src/core/view.ts:305-341) independently compute unionSemanticModels, diffSourceFingerprint, diffArchitecture and diffLikec4 runtime sources; the contract-required Change/Candidate structural alignment remains enforced only by convention. Retain with unchanged priority (below the resolved OPT-01, above OPT-03/04).",
+        "timestamp": "2026-08-16T19:53:33.748Z",
+        "findingId": "OPT-20260816T193028421Z-02"
+      },
+      {
+        "sequence": 10,
+        "action": "retain",
+        "reason": "The stale describe title 'Manifest version 3' is still present at test/core/view.test.ts:444 (sole occurrence in the repo) while every inner test asserts a version 4 manifest; the Phase 1 SUGGESTION remains open. Retain with unchanged priority.",
+        "timestamp": "2026-08-16T19:53:33.748Z",
+        "findingId": "OPT-20260816T193028421Z-03"
+      },
+      {
+        "sequence": 11,
+        "action": "retain",
+        "reason": "The canonical URL-state key is still computed twice in SemanticBrowserRouteSync at likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx:354-361 (URL-apply effect) and 381 (URL-commit effect); the applyingUrl/pendingUrl/seenUrl handshake drift hazard remains. Retain with unchanged priority.",
+        "timestamp": "2026-08-16T19:53:33.748Z",
+        "findingId": "OPT-20260816T193028421Z-04"
+      },
+      {
+        "sequence": 12,
+        "action": "select",
+        "reason": "It ranks second because it hardens the structural-alignment contract between Change and Candidate sources and removes the only duplicated derivation block, but its runtime benefit is zero; the watcher finding changes actual work performed per edit.",
+        "timestamp": "2026-08-16T19:53:33.752Z",
+        "findingId": "OPT-20260816T193028421Z-02",
+        "hashes": {
+          "src/core/view.ts": "5cd8a51177349e3f2a1d11ab3a3a3b118b7ab06afd70ca18f862c5e13c1c084f"
+        }
+      },
+      {
+        "sequence": 13,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-16T19:53:42.800Z",
+        "findingId": "OPT-20260816T193028421Z-02",
+        "hashes": {
+          "src/core/view.ts": "5cd8a51177349e3f2a1d11ab3a3a3b118b7ab06afd70ca18f862c5e13c1c084f"
+        }
+      },
+      {
+        "sequence": 14,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-16T20:03:17.596Z",
+        "findingId": "OPT-20260816T193028421Z-02"
       }
     ],
-    "reconciliationSignature": "2133af1454ea38d59f256b5511c4d1913dceb52e2cdd95b1c747abf26ced653e",
+    "reconciliationSignature": "2ccde13b4604fd2c299a982ad9b39c3422fa560a6268c26082118d2e7801565c",
     "unchangedReconciliations": 0
   }
 }

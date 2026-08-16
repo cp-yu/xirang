@@ -234,12 +234,45 @@ function unionSemanticModels(before: SemanticModel, after: SemanticModel): Seman
   }
 }
 
+
+/**
+ * Target + before-after union runtime derivation shared by Change-derived and Candidate sources,
+ * so the manifest alignment contract holds by construction. `includeRuntime` carries each
+ * caller's validity gate: the Change path computes whenever a target exists, while the
+ * Candidate path computes only for valid snapshots (broken targets cannot be rendered).
+ */
+function runtimeProjectionFor(
+  formalModel: SemanticModel | null | undefined,
+  target: SemanticModel | null | undefined,
+  includeRuntime: boolean,
+): {
+  partitionFingerprints?: Record<Partition, string>;
+  architecture?: BrowserSemanticModel;
+  contracts?: Record<string, string>;
+  likec4Sources?: Record<string, string>;
+  likec4ElementPaths?: Record<string, string>;
+  diffSourceFingerprint?: string;
+  diffArchitecture?: BrowserSemanticModel;
+  diffLikec4Sources?: Record<string, string>;
+  diffLikec4ElementPaths?: Record<string, string>;
+} {
+  const unionModel = formalModel && target ? unionSemanticModels(formalModel, target) : undefined;
+  return {
+    ...(target && includeRuntime ? { partitionFingerprints: partitionFingerprints(target) } : {}),
+    ...(target ? { architecture: projectBrowserArchitecture(target) } : {}),
+    ...(target && includeRuntime ? { contracts: projectContracts(target) } : {}),
+    ...(target && includeRuntime ? runtimeLikeC4(target) : {}),
+    ...(unionModel && includeRuntime ? { diffSourceFingerprint: hashString(JSON.stringify(partitionFingerprints(unionModel))) } : {}),
+    ...(unionModel && includeRuntime ? { diffArchitecture: projectBrowserArchitecture(unionModel) } : {}),
+    ...(unionModel && includeRuntime ? runtimeLikeC4(unionModel, 'diffLikec4Sources', 'diffLikec4ElementPaths') : {}),
+  };
+}
+
 async function buildChangeDerivedView(projectRoot: string, change: string, formal: ParsedModel): Promise<ViewRuntimeChangeDerivedView> {
   try {
     const compiledDelta = await compileChangeDelta(projectRoot, change, { base: formal });
     const compiled = compiledDelta.compiled;
-    const projection = compiled.target ? projectContracts(compiled.target) : undefined;
-    const diffModel = compiled.target ? unionSemanticModels(compiledDelta.base.model, compiled.target) : undefined;
+    const runtime = runtimeProjectionFor(compiledDelta.base.model, compiled.target, true);
     const changeRoot = path.join(projectRoot, XIRANG_DIR_NAME, 'changes', change);
     const planFiles = ['design.md', 'proposal.md', 'tasks.md'] as const;
     const planResults = await Promise.allSettled(
@@ -259,14 +292,18 @@ async function buildChangeDerivedView(projectRoot: string, change: string, forma
       semanticModelFingerprint: compiled.formalFingerprint,
       changeFingerprint: compiled.changeFingerprint,
       sourceFingerprint: hashString(compiled.formalFingerprint + compiled.changeFingerprint),
-      ...(diffModel ? { diffSourceFingerprint: hashString(JSON.stringify(partitionFingerprints(diffModel))) } : {}),
-      ...(compiled.target ? { partitionFingerprints: partitionFingerprints(compiled.target) } : {}),
+      ...(runtime.diffSourceFingerprint ? { diffSourceFingerprint: runtime.diffSourceFingerprint } : {}),
+      ...(runtime.partitionFingerprints ? { partitionFingerprints: runtime.partitionFingerprints } : {}),
       diff: projectBrowserDiff(compiled.diff),
-      ...(compiled.target ? { architecture: projectBrowserArchitecture(compiled.target) } : {}),
-      ...(diffModel ? { diffArchitecture: projectBrowserArchitecture(diffModel) } : {}),
-      ...(compiled.target ? { ...runtimeLikeC4(compiled.target) } : {}),
-      ...(diffModel ? { ...runtimeLikeC4(diffModel, 'diffLikec4Sources', 'diffLikec4ElementPaths') } : {}),
-      ...(projection ? { contracts: projection } : {}),
+      ...(runtime.architecture ? { architecture: runtime.architecture } : {}),
+      ...(runtime.diffArchitecture ? { diffArchitecture: runtime.diffArchitecture } : {}),
+      ...(runtime.likec4Sources && runtime.likec4ElementPaths
+        ? { likec4Sources: runtime.likec4Sources, likec4ElementPaths: runtime.likec4ElementPaths }
+        : {}),
+      ...(runtime.diffLikec4Sources && runtime.diffLikec4ElementPaths
+        ? { diffLikec4Sources: runtime.diffLikec4Sources, diffLikec4ElementPaths: runtime.diffLikec4ElementPaths }
+        : {}),
+      ...(runtime.contracts ? { contracts: runtime.contracts } : {}),
       diagnostics: compiled.diagnostics,
       ...(Object.keys(changePlan).length > 0 ? { changePlan } : {}),
     };
@@ -284,7 +321,6 @@ async function buildChangeDerivedView(projectRoot: string, change: string, forma
     };
   }
 }
-
 async function buildCandidateSources(
   projectRoot: string,
   formal: ParsedModel,
@@ -303,18 +339,11 @@ async function buildCandidateSources(
         .map(file => [file.path, file.bytes.toString('utf8')] as const),
     );
 
-    const fingerprints = result.valid ? partitionFingerprints(candidateModel.model) : undefined;
-    const architecture = projectBrowserArchitecture(candidateModel.model);
-    const contracts = result.valid ? projectContracts(candidateModel.model) : undefined;
-    const candidateRuntime = result.valid ? runtimeLikeC4(candidateModel.model) : null;
-    // The before-after union carries removed ghosts; diff-only projections render from it.
-    const unionModel = result.comparison.baseline === 'formal'
-      ? unionSemanticModels(formal.model, candidateModel.model)
-      : null
-    const diffArchitecture = unionModel ? projectBrowserArchitecture(unionModel) : undefined
-    const diffSourceFingerprint = unionModel
-      ? hashString(JSON.stringify(partitionFingerprints(unionModel)))
-      : undefined
+    const runtime = runtimeProjectionFor(
+      result.comparison.baseline === 'formal' ? formal.model : undefined,
+      candidateModel.model,
+      result.valid,
+    );
     // The combined fingerprint includes both candidate content and the formal model baseline
     // so the candidate source invalidates when either changes.
     const formalFp = result.comparison.baseline === 'formal' ? result.comparison.formalFingerprint : ''
@@ -329,16 +358,18 @@ async function buildCandidateSources(
       valid: result.valid,
       ...(result.comparison.baseline === 'formal' ? { semanticModelFingerprint: result.comparison.formalFingerprint } : {}),
       ...(sourceFingerprint ? { sourceFingerprint } : {}),
-      ...(fingerprints ? { partitionFingerprints: fingerprints } : {}),
+      ...(runtime.partitionFingerprints ? { partitionFingerprints: runtime.partitionFingerprints } : {}),
       ...(result.diff ? { diff: projectBrowserDiff(result.diff) } : {}),
-      ...(architecture ? { architecture } : {}),
-      ...(result.valid && unionModel ? {
-        ...(diffArchitecture ? { diffArchitecture } : {}),
-        ...(diffSourceFingerprint ? { diffSourceFingerprint } : {}),
-        ...runtimeLikeC4(unionModel, 'diffLikec4Sources', 'diffLikec4ElementPaths'),
-      } : {}),
-      ...(contracts ? { contracts } : {}),
-      ...(candidateRuntime ? { ...candidateRuntime } : {}),
+      ...(runtime.architecture ? { architecture: runtime.architecture } : {}),
+      ...(runtime.diffArchitecture ? { diffArchitecture: runtime.diffArchitecture } : {}),
+      ...(runtime.diffSourceFingerprint ? { diffSourceFingerprint: runtime.diffSourceFingerprint } : {}),
+      ...(runtime.diffLikec4Sources && runtime.diffLikec4ElementPaths
+        ? { diffLikec4Sources: runtime.diffLikec4Sources, diffLikec4ElementPaths: runtime.diffLikec4ElementPaths }
+        : {}),
+      ...(runtime.contracts ? { contracts: runtime.contracts } : {}),
+      ...(runtime.likec4Sources && runtime.likec4ElementPaths
+        ? { likec4Sources: runtime.likec4Sources, likec4ElementPaths: runtime.likec4ElementPaths }
+        : {}),
       diagnostics: result.diagnostics,
     };
   } catch (error) {
