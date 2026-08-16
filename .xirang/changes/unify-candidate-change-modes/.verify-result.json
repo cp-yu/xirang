@@ -69,7 +69,7 @@
       "test/e2e/semantic-browser-candidate-views.spec.ts",
       "test/e2e/semantic-browser-model-view.spec.ts"
     ],
-    "evidenceFingerprint": "3cb9b7f0dbb4394712ba1bf308dd16cf10b0657d8246dd1c18b286dbdf104d31",
+    "evidenceFingerprint": "43379fd48678d67b26ebc6645830b14b485793901880f6daf5909fd2b2f4a0cd",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/unify-candidate-change-modes/design.md",
@@ -177,11 +177,11 @@
       },
       {
         "path": "src/core/view.ts",
-        "hash": "685ebf483a87d264f983b5cd4590d22e8e4206f86940bcfba4767fd8fe631d66"
+        "hash": "5cd8a51177349e3f2a1d11ab3a3a3b118b7ab06afd70ca18f862c5e13c1c084f"
       },
       {
         "path": "test/core/view.test.ts",
-        "hash": "bc41e0f9d4663001ec31f9c3d09370b4352af4ca8cb41152dd22eb081205cbce"
+        "hash": "9f202f23f397d82669948c422619f0de81abac2b2fabb77ca8be9070729ea201"
       },
       {
         "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
@@ -193,12 +193,24 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "9d3589c80c39c4aaa10fb454385c71a395fe7000",
-    "gitDiffSummary": "baseCommit 9d3589c80 resolves and equals HEAD; `git diff base...HEAD --name-only` is empty (nothing committed), so all evidence is the uncommitted working tree from `git status --short`: 22 modified code/test files + new xirang-diff-overlay.spec.ts + change artifacts. Commands considered: git rev-parse/status/diff --name-only, xirang arch outline|impact|query, xirang validate --change (passed, 0 issues), grep -r candidate-diff|candidateDiff|ViewRuntimeCandidateDiffView across likec4/packages src test (zero functional residue), root+likec4 tsc --noEmit (passed), spa/vite-plugin/diagram unit suites (all passed: view.test.ts 33, SemanticBrowserController+searchParams 26, projection-handler 37, contract-handler 37, ContractLoaderContext 7, diff-overlay 2, HttpContractLoader 9, -t filters 'Candidate.*mode' 3, 'URL.*candidate' 1, '首页.*Candidate' 1), spa build + xirang-likec4 build (passed), playwright semantic-browser-candidate 12/12 passed, semantic-browser-model-view full-file 13 passed + 2 failed only on the untouched HMR test which passes in isolation on both projects."
+    "gitHeadCommit": "c3f9b6ad5945e09cf3471eb33260515a41253881",
+    "gitDiffSummary": "baseCommit 9d3589c80 resolves and equals HEAD; `git diff base...HEAD --name-only` is empty (nothing committed), so all evidence is the uncommitted working tree from `git status --short`: 22 modified code/test files + new xirang-diff-overlay.spec.ts + change artifacts. Commands considered: git rev-parse/status/diff --name-only, xirang arch outline|impact|query, xirang validate --change (passed, 0 issues), grep -r candidate-diff|candidateDiff|ViewRuntimeCandidateDiffView across likec4/packages src test (zero functional residue), root+likec4 tsc --noEmit (passed), spa/vite-plugin/diagram unit suites (all passed: view.test.ts 33, SemanticBrowserController+searchParams 26, projection-handler 37, contract-handler 37, ContractLoaderContext 7, diff-overlay 2, HttpContractLoader 9, -t filters 'Candidate.*mode' 3, 'URL.*candidate' 1, '首页.*Candidate' 1), spa build + xirang-likec4 build (passed), playwright semantic-browser-candidate 12/12 passed, semantic-browser-model-view full-file 13 passed + 2 failed only on the untouched HMR test which passes in isolation on both projects.",
+    "timestamp": "2026-08-16T19:42:06.626Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "attempts": [
+      {
+        "timestamp": "2026-08-16T19:30:28.425Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-16T19:42:06.610Z",
+        "type": "verification",
+        "result": "PASS"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-08-16T19:18:43.614Z",
       "result": "PASS_WITH_WARNINGS",
@@ -397,6 +409,248 @@
         "gitHeadCommit": "9d3589c80c39c4aaa10fb454385c71a395fe7000",
         "gitDiffSummary": "baseCommit 9d3589c80 resolves and equals HEAD; `git diff base...HEAD --name-only` is empty (nothing committed), so all evidence is the uncommitted working tree from `git status --short`: 22 modified code/test files + new xirang-diff-overlay.spec.ts + change artifacts. Commands considered: git rev-parse/status/diff --name-only, xirang arch outline|impact|query, xirang validate --change (passed, 0 issues), grep -r candidate-diff|candidateDiff|ViewRuntimeCandidateDiffView across likec4/packages src test (zero functional residue), root+likec4 tsc --noEmit (passed), spa/vite-plugin/diagram unit suites (all passed: view.test.ts 33, SemanticBrowserController+searchParams 26, projection-handler 37, contract-handler 37, ContractLoaderContext 7, diff-overlay 2, HttpContractLoader 9, -t filters 'Candidate.*mode' 3, 'URL.*candidate' 1, '首页.*Candidate' 1), spa build + xirang-likec4 build (passed), playwright semantic-browser-candidate 12/12 passed, semantic-browser-model-view full-file 13 passed + 2 failed only on the untouched HMR test which passes in isolation on both projects."
       }
-    }
+    },
+    "findings": [
+      {
+        "status": "verified",
+        "location": {
+          "files": [
+            "src/core/view.ts",
+            "test/core/view.test.ts"
+          ],
+          "symbols": [
+            "watcherRefreshForPath",
+            "ViewCommand.execute",
+            "buildViewRuntimeSnapshot"
+          ]
+        },
+        "opportunity": "Every Candidate file edit during `xirang view` performs a full snapshot rebuild: `watcherRefreshForPath` maps `candidate/...` paths to `{ all: true }`, so the refresh closure recompiles every active Change delta (`buildChangeDerivedView` per change), regenerates the formal model's LikeC4 sources and authored views, and re-runs `generateLikeC4Artifacts(projectRoot)` which re-parses the whole model and rewrites artifact files on disk. None of these depend on the Candidate; on a candidate-only edit their outputs are byte-identical, so the work is purely redundant. This also over-refreshes relative to the declared contract `xirang-projection-service#Candidate source 按输入刷新` ('Candidate source 变化 SHALL 只刷新 manifest.candidate').",
+        "impact": "Candidate review is the highest-frequency authoring loop; each debounced (75ms) edit currently triggers O(active changes) delta compilations plus full model LikeC4 generation plus on-disk artifact regeneration. A candidate-only partial refresh reduces each edit to one candidate rebuild plus one formal-model read, materially cutting dev-server load, watcher churn, and latency during candidate review.",
+        "evidence": [
+          "src/core/view.ts:430-437 — watcherRefreshForPath returns { all: true } for `candidate` and `candidate/` paths (candidate edits) the same way it does for model changes",
+          "src/core/view.ts:458-469 — the refresh closure performs `buildViewRuntimeSnapshot(projectRoot)` (full rebuild) whenever `all` is set, then `await generateLikeC4Artifacts(projectRoot)`",
+          "src/core/view.ts:395-407 — buildViewRuntimeSnapshot re-reads the formal model, calls listActiveChanges and rebuilds every change via buildChangeDerivedView, rebuilds the model source (generateLikeC4 per model) and authored views, all of which depend only on the formal model, never on the Candidate",
+          "src/core/view.ts:288-343 — buildCandidateSources alone consumes candidate files; buildChangeDerivedView (242-286) only reads the formal model and the change directory",
+          ".xirang/changes/unify-candidate-change-modes/elements/xirang-projection-service.md — MODIFIED Requirement 'Candidate source 按输入刷新': Candidate source 变化 SHALL 只刷新 manifest.candidate",
+          "test/core/view.test.ts:495-525 — 'refreshes the candidate source after candidate changes' already pins that model and change fingerprints stay equal across a candidate edit, proving rebuild output is unchanged and reusable"
+        ],
+        "recommendation": "Introduce a candidate-only partial refresh: add an `onlyCandidate` option to `buildViewRuntimeSnapshot` that reuses the previous snapshot's `model`, `authoredViews` and `changes` when the re-read formal fingerprint is unchanged, extend `watcherRefreshForPath` with a `{ all: false, candidate: true }` result for candidate paths, and skip `generateLikeC4Artifacts` for candidate-only refreshes.",
+        "keyDesign": "buildViewRuntimeSnapshot(projectRoot, { previous, onlyChange, onlyCandidate }) semantics: (1) read the formal model once and compute its partition-fingerprint hash (`model.sourceFingerprint`); (2) `formalUnchanged = previous && previous.model.sourceFingerprint === formalFingerprint`; (3) when `formalUnchanged`, reuse `previous.model` and `previous.authoredViews` (fingerprint covers all four partitions, so identical content yields identical derived output); (4) rebuild the candidate source when `onlyCandidate === true` OR `!formalUnchanged` OR no previous exists, otherwise reuse `previous.candidate`; (5) rebuild changes only for `onlyChange` (reuse the rest), reuse all when `onlyCandidate`, rebuild all when `!formalUnchanged` or no previous; (6) the formal-fingerprint guard is the safety net: if a candidate-only refresh observes a changed formal model (e.g. a watcher event was dropped during promotion), it degrades to a full rebuild. ViewCommand.execute: track a `refreshCandidate` flag from `watcherRefreshForPath`'s new candidate member; the refresh closure runs full on `all`, one candidate-only rebuild when the candidate flag is set (running after any per-change loop in the same batch), the per-change loop otherwise, and calls `generateLikeC4Artifacts` only when `all` is set.",
+        "preservationConstraints": [
+          "archive-side, missing-filename, and any `model/<partition>/` event still produce `{ all: true }` and the identical full rebuild plus `generateLikeC4Artifacts` path",
+          "per-change events keep the existing `{ all: false, change }` shape and the existing sequential previous-reuse loop, including last-known-good behavior for broken changes (test at test/core/view.test.ts:607-628)",
+          "a candidate-only refresh must still return `candidate: undefined` when the candidate directory was removed, and must rebuild candidate against the formal model read from disk in the same call",
+          "mixed batches (candidate + model/change events within one debounce window) must still refresh everything the full path would; promotion correctness is additionally guarded by the formal-fingerprint fallback",
+          "the 75ms debounce, the serial `refreshing` promise chain, the `.catch(() => undefined)` error swallow, and the `writeViewRuntimeSnapshot` atomic temp-file rename remain unchanged",
+          "no change to manifest shape, fingerprints, or any Element Contract; the refresh produces the same snapshot content, only with less redundant computation"
+        ],
+        "implementationOutline": [
+          "Extend `WatcherRefresh` to `{ all: true } | { all: false; change: string } | { all: false; candidate: true }` and return the candidate variant from `watcherRefreshForPath` for `candidate`/`candidate/` paths",
+          "Add `onlyCandidate?: boolean` to the `buildViewRuntimeSnapshot` options and implement the reuse/guard logic described in keyDesign, keeping the existing `onlyChange` semantics intact",
+          "Update the ViewCommand.execute refresh closure to track `refreshCandidate`, choose the candidate-only path, and skip `generateLikeC4Artifacts` unless `all`",
+          "Add unit tests first (TDD): watcherRefreshForPath returns `{ all: false, candidate: true }` for `candidate/elements/foo.md`; a candidate edit through `ViewCommand.execute` with the injected launcher shows the candidate fingerprint changed while `changes['test-change']` and the model source are the same reused references; a model edit in the same fixture still changes the model fingerprint and regenerates artifacts; existing watcher/refresh tests keep passing unchanged"
+        ],
+        "validation": [
+          "pnpm exec vitest run test/core/view.test.ts — proves candidate-only edits reuse change and model sources (new tests), archive/model/null events still force full refresh, and all existing 'refreshes the candidate source after candidate changes', 'refreshes model + changes after model change', and last-known-good tests pass",
+          "cd likec4 && pnpm exec tsc --noEmit --project tsconfig.json — proves the new option and watcher union type-check across the monorepo",
+          "pnpm exec tsc --noEmit — proves the root build still compiles",
+          "the HMR e2e test (test/e2e/semantic-browser-model-view.spec.ts 'refreshes the model through HMR') still passes because model edits remain on the full-refresh path"
+        ],
+        "impactLevel": "high",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "medium",
+        "dependencies": [],
+        "priorityReason": "This outranks the derivation deduplication because it removes entire redundant work units (all change compiles plus artifact regeneration) from the highest-frequency edit loop, with a static proof that every skipped computation is byte-identical to the previous result; the dedupe only restructures work that runs once per snapshot build.",
+        "id": "OPT-20260816T193028421Z-01",
+        "targetFileHashes": {
+          "src/core/view.ts": "685ebf483a87d264f983b5cd4590d22e8e4206f86940bcfba4767fd8fe631d66",
+          "test/core/view.test.ts": "bc41e0f9d4663001ec31f9c3d09370b4352af4ca8cb41152dd22eb081205cbce"
+        }
+      },
+      {
+        "status": "pending",
+        "location": {
+          "files": [
+            "src/core/view.ts"
+          ],
+          "symbols": [
+            "buildChangeDerivedView",
+            "buildCandidateSources"
+          ]
+        },
+        "opportunity": "`buildChangeDerivedView` (src/core/view.ts:242-268) and `buildCandidateSources` (312-338) independently compute the same target+union runtime derivation: `unionSemanticModels(formal, target)`, `partitionFingerprints`, `projectBrowserArchitecture`, `projectContracts`, `hashString(JSON.stringify(partitionFingerprints(union)))` for `diffSourceFingerprint`, and `runtimeLikeC4(union, 'diffLikec4Sources', 'diffLikec4ElementPaths')`. The declared contract requires the candidate source structure to stay aligned with the Change source (`candidate source 结构 SHALL 与 Change source 对齐`), but nothing structurally enforces it — drift between the two copies would silently break the alignment invariant.",
+        "impact": "A single shared derivation helper removes ~20 duplicated lines, gives one definition for how target and diff projections are derived, and makes the candidate/change structural-alignment contract hold by construction instead of by convention.",
+        "evidence": [
+          "src/core/view.ts:242-268 — change path computes diffModel, diffSourceFingerprint, architecture, diffArchitecture, runtimeLikeC4(target) and runtimeLikeC4(diffModel, 'diffLikec4Sources', 'diffLikec4ElementPaths')",
+          "src/core/view.ts:311-338 — candidate path computes the same union model, diffArchitecture, diffSourceFingerprint and diff runtimeLikeC4 values with the same expressions",
+          "src/core/view.ts:355-369 — runtimeLikeC4 overloads show the two source-key variants the helper must return",
+          ".xirang/changes/unify-candidate-change-modes/elements/xirang-projection-service.md — Requirement '使用分区 Runtime Manifest': candidate source 结构 SHALL 与 Change source 对齐"
+        ],
+        "recommendation": "Extract a pure helper, e.g. `runtimeProjectionFor(formalModel: SemanticModel | undefined, target: SemanticModel | undefined): { partitionFingerprints?, architecture?, contracts?, likec4Sources?, likec4ElementPaths?, diffSourceFingerprint?, diffArchitecture?, diffLikec4Sources?, diffLikec4ElementPaths? }`, that computes the target bundle from `target` and the union bundle from `formalModel` + `target`, and call it from both `buildChangeDerivedView` and `buildCandidateSources` with the existing validity gates preserved.",
+        "keyDesign": "Helper returns optional fields only when its inputs are defined: target-derived fields (`partitionFingerprints`, `architecture`, `contracts`, `likec4Sources`, `likec4ElementPaths`) from `target`, union-derived fields (`diffSourceFingerprint` = hash of union partition fingerprints, `diffArchitecture`, `diffLikec4Sources`, `diffLikec4ElementPaths`) from `unionSemanticModels(formalModel, target)` when `formalModel` is provided. `buildChangeDerivedView` invokes it with `(compiledDelta.base.model, compiled.target)` under its existing `compiled.target` guard and attaches `changePlan`/`diff` separately. `buildCandidateSources` invokes it with `(result.comparison.baseline === 'formal' ? formal.model : undefined, candidateModel.model)` while preserving its existing `result.valid` gating for fingerprints/contracts/runtime and the unconditional `architecture` used by the invalid-candidate partial-architecture behavior.",
+        "preservationConstraints": [
+          "manifest output must stay byte-identical: same fingerprint composition (hashString(JSON.stringify(partitionFingerprints(union)))), same field presence for valid and invalid candidates",
+          "the pinned behavior 'retains invalid Candidate with diagnostics and partial architecture when parseable' (test/core/view.test.ts:360-388) must keep architecture populated even when `result.valid` is false",
+          "the change path must keep computing architecture/partitionFingerprints/contracts whenever `compiled.target` exists regardless of `compiled.valid`",
+          "`changePlan` reading, diagnostics, error-fallback objects, and `projectBrowserDiff` wrapping remain exactly as today",
+          "no change to public interfaces or the runtime manifest shape"
+        ],
+        "implementationOutline": [
+          "Add the helper below `unionSemanticModels` in src/core/view.ts, factoring `runtimeLikeC4` and the fingerprint expression into it",
+          "Replace the two inline derivations with helper calls, keeping each caller's existing conditional spreads and gates",
+          "Run the existing candidate/change snapshot unit tests unchanged to prove byte-identical output; add no new behavior tests because none is required"
+        ],
+        "validation": [
+          "pnpm exec vitest run test/core/view.test.ts — proves the unified-source, union-source, invalid-candidate, and change-derived tests pass with the same expected fingerprints and field presence, i.e. the manifest is unchanged",
+          "pnpm exec tsc --noEmit && cd likec4 && pnpm exec tsc --noEmit --project tsconfig.json — proves the refactor type-checks"
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "It ranks second because it hardens the structural-alignment contract between Change and Candidate sources and removes the only duplicated derivation block, but its runtime benefit is zero; the watcher finding changes actual work performed per edit.",
+        "id": "OPT-20260816T193028421Z-02"
+      },
+      {
+        "status": "pending",
+        "location": {
+          "files": [
+            "test/core/view.test.ts"
+          ],
+          "symbols": []
+        },
+        "opportunity": "The describe block at test/core/view.test.ts:444 is still titled 'Manifest version 3' while every test inside asserts `snapshot.version === 4` and the inner test was renamed to 'emits a version 4 manifest with one unified candidate source'. This is the non-terminal SUGGESTION recorded in Phase 1 (severity SUGGESTION, evidenceCitations test/core/view.test.ts:444-445) and remains open.",
+        "impact": "Closes the outstanding Phase 1 suggestion and removes a misleading test-suite label that actively contradicts the version-4 assertions inside it; near-zero risk.",
+        "evidence": [
+          "test/core/view.test.ts:444 — describe('Manifest version 3', ...)",
+          "test/core/view.test.ts:456 — inner test 'emits a version 4 manifest with one unified candidate source'",
+          ".verify-result.json issues[1] — Phase 1 SUGGESTION recommending the rename"
+        ],
+        "recommendation": "Rename the describe block to `describe('Manifest version 4', ...)` (or 'Runtime manifest v4').",
+        "keyDesign": "Pure title rename; no test logic, fixtures, or assertions change.",
+        "preservationConstraints": [
+          "all assertions, fixtures, and the test count inside the describe block remain identical",
+          "no other test file or grep pattern depends on the 'Manifest version 3' title (verified: the title appears only at test/core/view.test.ts:444)"
+        ],
+        "implementationOutline": [
+          "Edit the describe title at test/core/view.test.ts:444",
+          "Run the view.test.ts suite"
+        ],
+        "validation": [
+          "pnpm exec vitest run test/core/view.test.ts — proves all manifest tests still pass under the corrected title"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "It ranks below the derivation dedupe because its only benefit is test-suite hygiene; it resolves a recorded Phase 1 suggestion with trivially provable preservation.",
+        "id": "OPT-20260816T193028421Z-03"
+      },
+      {
+        "status": "pending",
+        "location": {
+          "files": [
+            "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx"
+          ],
+          "symbols": [
+            "SemanticBrowserRouteSync"
+          ]
+        },
+        "opportunity": "SemanticBrowserRouteSync computes the identical canonical URL-state key twice: the URL-apply effect (line 354) and the URL-commit effect (line 381) both build `JSON.stringify({ view: search.view === 'model' ? undefined : search.view, change: search.change, mode: search.mode === 'complete-with-diff' ? undefined : search.mode, focus: search.focus })`. These two strings must always agree for the `applyingUrl`/`pendingUrl`/`seenUrl` handshake to work; the duplication is a standing drift hazard in the most delicate sync code of this change.",
+        "impact": "One canonical normalization function removes the risk of the two sync effects disagreeing on the canonical URL form (a class of bug this change already hit once with the missing-mode default and fixed in the required corrections), with zero behavior change.",
+        "evidence": [
+          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx:354 — URL-apply effect computes the normalized key",
+          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx:381 — URL-commit effect recomputes the same expression",
+          ".xirang/changes/unify-candidate-change-modes/tasks.md Required Corrections '[code_fix] URL 解码缺失 mode 参数时强制为 complete' — documents the prior drift between URL normalization and default-mode decoding that this duplication enabled"
+        ],
+        "recommendation": "Extract a module-local pure helper, e.g. `canonicalSearchKey(search: SemanticBrowserUrlState): string`, used by both effects; keep the exact current normalization (undefined for 'model' view, undefined for 'complete-with-diff' mode).",
+        "keyDesign": "A single `canonicalSearchKey(search)` returning the JSON string the two effects currently build inline; both effects call it with `search`; the apply effect continues to compare it against `seenUrl.current`/`pendingUrl.current`/`lastCommitted.current` and the commit effect against `lastCommitted.current`. No other sync logic changes.",
+        "preservationConstraints": [
+          "the produced JSON strings stay byte-identical to today's (same key order, same undefined-omission behavior), so URL transitions and the `?change=candidate` deep-link round trip behave exactly as the e2e test pins them",
+          "effect dependency arrays stay as they are; the helper must be pure and module-scoped",
+          "no change to `encodeSemanticBrowserUrl` or the `?change=candidate` → complete-with-diff default decoding"
+        ],
+        "implementationOutline": [
+          "Add the helper near encodeSemanticBrowserUrl in SemanticBrowserController.tsx",
+          "Replace both inline computations with helper calls",
+          "Run the spa unit suites for the controller and searchParams"
+        ],
+        "validation": [
+          "cd likec4 && pnpm --filter @likec4/spa test SemanticBrowserController searchParams — proves controller state and URL decode/encode tests pass unchanged",
+          "pnpm test:e2e -- semantic-browser-candidate — proves the 'deep links change=candidate and round-trips the presentation mode' e2e still passes"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "It ranks last because it is pure deduplication of a two-line expression; its value is preventing regression in the sync handshake rather than improving current runtime behavior.",
+        "id": "OPT-20260816T193028421Z-04"
+      }
+    ],
+    "history": [
+      {
+        "sequence": 1,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-16T19:30:28.422Z",
+        "findingId": "OPT-20260816T193028421Z-01"
+      },
+      {
+        "sequence": 2,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-16T19:30:28.422Z",
+        "findingId": "OPT-20260816T193028421Z-02"
+      },
+      {
+        "sequence": 3,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-16T19:30:28.422Z",
+        "findingId": "OPT-20260816T193028421Z-03"
+      },
+      {
+        "sequence": 4,
+        "action": "add",
+        "reason": "Optimizer added finding",
+        "timestamp": "2026-08-16T19:30:28.422Z",
+        "findingId": "OPT-20260816T193028421Z-04"
+      },
+      {
+        "sequence": 5,
+        "action": "select",
+        "reason": "This outranks the derivation deduplication because it removes entire redundant work units (all change compiles plus artifact regeneration) from the highest-frequency edit loop, with a static proof that every skipped computation is byte-identical to the previous result; the dedupe only restructures work that runs once per snapshot build.",
+        "timestamp": "2026-08-16T19:30:28.425Z",
+        "findingId": "OPT-20260816T193028421Z-01",
+        "hashes": {
+          "src/core/view.ts": "685ebf483a87d264f983b5cd4590d22e8e4206f86940bcfba4767fd8fe631d66",
+          "test/core/view.test.ts": "bc41e0f9d4663001ec31f9c3d09370b4352af4ca8cb41152dd22eb081205cbce"
+        }
+      },
+      {
+        "sequence": 6,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-16T19:31:14.187Z",
+        "findingId": "OPT-20260816T193028421Z-01",
+        "hashes": {
+          "src/core/view.ts": "685ebf483a87d264f983b5cd4590d22e8e4206f86940bcfba4767fd8fe631d66",
+          "test/core/view.test.ts": "bc41e0f9d4663001ec31f9c3d09370b4352af4ca8cb41152dd22eb081205cbce"
+        }
+      },
+      {
+        "sequence": 7,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-16T19:42:06.610Z",
+        "findingId": "OPT-20260816T193028421Z-01"
+      }
+    ],
+    "reconciliationSignature": "2133af1454ea38d59f256b5511c4d1913dceb52e2cdd95b1c747abf26ced653e",
+    "unchangedReconciliations": 0
   }
 }

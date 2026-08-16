@@ -359,9 +359,21 @@ async function buildCandidateSources(
 
 export async function buildViewRuntimeSnapshot(
   projectRoot: string,
-  options: { previous?: ViewRuntimeSnapshot; onlyChange?: string } = {},
+  options: { previous?: ViewRuntimeSnapshot; onlyChange?: string; onlyCandidate?: boolean } = {},
 ): Promise<ViewRuntimeSnapshot> {
   const formal = await readFormalSemanticModel(projectRoot);
+  if (options.onlyCandidate) {
+    // A Candidate-only edit cannot change the formal model; reuse its derived sources when
+    // the fingerprint is unchanged and fall back to a full rebuild otherwise (e.g. a
+    // dropped watcher event during promotion).
+    const formalFingerprint = hashString(JSON.stringify(partitionFingerprints(formal.model)));
+    const previous = options.previous;
+    if (previous && previous.model.sourceFingerprint === formalFingerprint) {
+      const { candidate: _previousCandidate, ...rest } = previous;
+      const candidate = await buildCandidateSources(projectRoot, formal);
+      return { ...rest, ...(candidate ? { candidate } : {}) };
+    }
+  }
   const changes = await listActiveChanges(projectRoot);
   const previous = options.previous?.changes ?? {};
   const entries = await Promise.all(
@@ -425,14 +437,14 @@ export function changeFromWatcherPath(normalized: string): string | null {
   return change && change !== 'archive' ? change : null;
 }
 
-export type WatcherRefresh = { all: true } | { all: false; change: string };
+export type WatcherRefresh = { all: true } | { all: false; change: string } | { all: false; candidate: true };
 
 export function watcherRefreshForPath(normalized: string | null): WatcherRefresh | null {
   if (normalized === null || normalized === 'changes/archive' || normalized.startsWith('changes/archive/')) {
     return { all: true };
   }
   if (PARTITIONS.some(partition => normalized.startsWith(`model/${partition}/`))) return { all: true };
-  if (normalized === 'candidate' || normalized.startsWith('candidate/')) return { all: true };
+  if (normalized === 'candidate' || normalized.startsWith('candidate/')) return { all: false, candidate: true };
   const change = changeFromWatcherPath(normalized);
   return change ? { all: false, change } : null;
 }
@@ -454,17 +466,25 @@ export class ViewCommand {
       let refreshTimer: NodeJS.Timeout | undefined;
       let refreshing = Promise.resolve();
       let refreshAll = false;
+      let refreshCandidate = false;
       const refreshChanges = new Set<string>();
       const refresh = () => {
         const all = refreshAll;
+        const candidate = refreshCandidate;
         const changes = [...refreshChanges];
         refreshAll = false;
+        refreshCandidate = false;
         refreshChanges.clear();
         refreshing = refreshing.then(async () => {
           let next = runtimeSnapshot;
           if (all) next = await buildViewRuntimeSnapshot(projectRoot);
-          else for (const change of changes) {
-            next = await buildViewRuntimeSnapshot(projectRoot, { previous: next, onlyChange: change });
+          else {
+            for (const change of changes) {
+              next = await buildViewRuntimeSnapshot(projectRoot, { previous: next, onlyChange: change });
+            }
+            if (candidate) {
+              next = await buildViewRuntimeSnapshot(projectRoot, { previous: next, onlyCandidate: true });
+            }
           }
           if (all) await generateLikeC4Artifacts(projectRoot);
           await writeViewRuntimeSnapshot(next, snapshotDirectory);
@@ -480,6 +500,7 @@ export class ViewCommand {
           const requested = watcherRefreshForPath(normalized);
           if (!requested) return;
           if (requested.all) refreshAll = true;
+          else if ('candidate' in requested) refreshCandidate = true;
           else refreshChanges.add(requested.change);
           if (refreshTimer) clearTimeout(refreshTimer);
           refreshTimer = setTimeout(refresh, 75);

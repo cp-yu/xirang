@@ -405,7 +405,7 @@ describe('ViewCommand', () => {
 
     const snapshot = await buildViewRuntimeSnapshot(tempDir);
     expect(snapshot.candidate).toBeDefined();
-    expect(snapshot.candidateDiff).toBeUndefined();
+    expect('candidateDiff' in snapshot).toBe(false);
     expect(snapshot.candidate!.partitionFingerprints).toBeDefined();
     expect(snapshot.candidate!.sourceFingerprint).toBeDefined();
     expect(snapshot.candidate!.architecture).toBeDefined();
@@ -473,7 +473,7 @@ describe('Manifest version 3', () => {
     expect(snapshot.version).toBe(4);
     expect(snapshot.model).toBeDefined();
     expect(snapshot.candidate).toBeDefined();
-    expect(snapshot.candidateDiff).toBeUndefined();
+    expect('candidateDiff' in snapshot).toBe(false);
 
     expect(snapshot.candidate!.valid).toBe(true);
     expect(snapshot.candidate!.sourceFingerprint).toBeDefined();
@@ -604,6 +604,151 @@ describe('watcherRefreshForPath', () => {
 
   it('refreshes only the affected active Change for its events', () => {
     expect(watcherRefreshForPath('changes/my-change')).toEqual({ all: false, change: 'my-change' });
+  });
+
+  it('refreshes only the Candidate for candidate events', () => {
+    expect(watcherRefreshForPath('candidate')).toEqual({ all: false, candidate: true });
+    expect(watcherRefreshForPath('candidate/elements/foo.md')).toEqual({ all: false, candidate: true });
+  });
+});
+
+describe('buildViewRuntimeSnapshot candidate-only refresh', () => {
+  let tempDir: string;
+
+  beforeEach(async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-cand-refresh-'));
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  async function writeCandidateSource(root: string): Promise<string> {
+    const candidateRoot = path.join(root, '.xirang', 'candidate');
+    await fs.mkdir(candidateRoot, { recursive: true });
+    await fs.writeFile(
+      path.join(candidateRoot, 'candidate.yaml'),
+      'schemaVersion: 1\ncreatedAt: "2025-01-01T00:00:00.000Z"\nbaseline:\n  kind: current\n  reference: .xirang\n',
+      'utf8',
+    );
+    await fs.writeFile(path.join(candidateRoot, 'build.md'), '# Build\n', 'utf8');
+    return candidateRoot;
+  }
+
+  it('reuses model, authored views and changes on a candidate-only edit', async () => {
+    await writeProjectModel(tempDir, minimalModel());
+    await writeChangeDelta(tempDir, 'test-change', {
+      'elements/alpha.md': '---\noperation: ADDED\nentity: element\nidentity: alpha\nkind: component\nparent: project.id\n---\n# Alpha\n',
+    });
+    const candidateRoot = await writeCandidateSource(tempDir);
+    await writeModel(candidateRoot, minimalModel());
+
+    const before = await buildViewRuntimeSnapshot(tempDir);
+    await fs.writeFile(path.join(candidateRoot, 'build.md'), '# Build V2\n', 'utf8');
+
+    const after = await buildViewRuntimeSnapshot(tempDir, { previous: before, onlyCandidate: true });
+
+    expect(after.candidate!.sourceFingerprint).not.toBe(before.candidate!.sourceFingerprint);
+    expect(after.model).toBe(before.model);
+    expect(after.authoredViews).toBe(before.authoredViews);
+    expect(after.changes).toBe(before.changes);
+  });
+
+  it('falls back to a full rebuild when the formal model changed', async () => {
+    await writeProjectModel(tempDir, minimalModel());
+    await writeChangeDelta(tempDir, 'test-change', {
+      'elements/alpha.md': '---\noperation: ADDED\nentity: element\nidentity: alpha\nkind: component\nparent: project.id\n---\n# Alpha\n',
+    });
+    const candidateRoot = await writeCandidateSource(tempDir);
+    await writeModel(candidateRoot, minimalModel());
+
+    const before = await buildViewRuntimeSnapshot(tempDir);
+    const modifiedModel = minimalModel();
+    modifiedModel.elements![0]!.definition = 'Modified definition';
+    await writeProjectModel(tempDir, modifiedModel);
+
+    const after = await buildViewRuntimeSnapshot(tempDir, { previous: before, onlyCandidate: true });
+
+    expect(after.model).not.toBe(before.model);
+    expect(after.model.sourceFingerprint).not.toBe(before.model.sourceFingerprint);
+  });
+
+  it('drops the candidate when its directory was removed', async () => {
+    await writeProjectModel(tempDir, minimalModel());
+    const candidateRoot = await writeCandidateSource(tempDir);
+    await writeModel(candidateRoot, minimalModel());
+
+    const before = await buildViewRuntimeSnapshot(tempDir);
+    await fs.rm(candidateRoot, { recursive: true, force: true });
+
+    const after = await buildViewRuntimeSnapshot(tempDir, { previous: before, onlyCandidate: true });
+
+    expect(after.candidate).toBeUndefined();
+    expect(after.model).toBe(before.model);
+    expect(after.changes).toBe(before.changes);
+  });
+
+  it('refreshes only the Candidate through the watcher and keeps artifacts untouched', async () => {
+    await writeProjectModel(tempDir, minimalModel());
+    await writeChangeDelta(tempDir, 'test-change', {
+      'elements/alpha.md': '---\noperation: ADDED\nentity: element\nidentity: alpha\nkind: component\nparent: project.id\n---\n# Alpha\n',
+    });
+    const candidateRoot = await writeCandidateSource(tempDir);
+    await writeModel(candidateRoot, minimalModel());
+
+    const launch: ViewLauncher = async options => {
+      const readManifest = async () => JSON.parse(
+        await fs.readFile(options.changeManifestFile, 'utf8'),
+      ) as ViewRuntimeSnapshot;
+      const before = await readManifest();
+      const artifactFile = path.join(likec4CacheDir(tempDir), 'model.c4');
+      const artifactMtime = (await fs.stat(artifactFile)).mtimeMs;
+
+      await fs.writeFile(path.join(candidateRoot, 'build.md'), '# Build V2\n', 'utf8');
+
+      for (let attempt = 0; attempt < 50; attempt += 1) {
+        const after = await readManifest();
+        if (after.candidate?.sourceFingerprint !== before.candidate?.sourceFingerprint) {
+          // Candidate-only edits keep the formal-derived sources and artifacts untouched.
+          expect(after.model.sourceFingerprint).toBe(before.model.sourceFingerprint);
+          expect(after.changes['test-change']!.sourceFingerprint)
+            .toBe(before.changes['test-change']!.sourceFingerprint);
+          expect((await fs.stat(artifactFile)).mtimeMs).toBe(artifactMtime);
+          return;
+        }
+        await new Promise(resolve => setTimeout(resolve, 20));
+      }
+      throw new Error('Candidate edit did not refresh the live manifest');
+    };
+
+    await new ViewCommand(launch).execute(tempDir);
+  });
+
+  it('regenerates artifacts on a model edit through the watcher', async () => {
+    await writeProjectModel(tempDir, minimalModel());
+    const launch: ViewLauncher = async options => {
+      const readManifest = async () => JSON.parse(
+        await fs.readFile(options.changeManifestFile, 'utf8'),
+      ) as ViewRuntimeSnapshot;
+      const before = await readManifest();
+
+      const modifiedModel = minimalModel();
+      modifiedModel.elements![0]!.definition = 'Refreshed definition';
+      await writeProjectModel(tempDir, modifiedModel);
+
+      for (let attempt = 0; attempt < 50; attempt += 1) {
+        const after = await readManifest();
+        if (after.model.sourceFingerprint !== before.model.sourceFingerprint) {
+          const modelC4 = await fs.readFile(path.join(likec4CacheDir(tempDir), 'model.c4'), 'utf8');
+          expect(modelC4).toContain('Refreshed definition');
+          return;
+        }
+        await new Promise(resolve => setTimeout(resolve, 20));
+      }
+      throw new Error('Model edit did not refresh the live manifest');
+    };
+
+    await new ViewCommand(launch).execute(tempDir);
   });
 });
 
