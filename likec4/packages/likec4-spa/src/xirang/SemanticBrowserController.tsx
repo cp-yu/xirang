@@ -4,6 +4,7 @@ import { NativeSelect } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
 import { type XirangRuntimeManifest, type XirangViewSource, useXirangViewSources } from '@likec4/diagram'
 import { HttpProjectionLoader } from './HttpProjectionLoader'
+import type { SearchParams } from '../searchParams'
 import { selectDiagramSnapshot, useDiagramActorRef, useDiagramSelector } from '@likec4/diagram'
 import { type DiagramView } from '@likec4/core/types'
 import { useNavigate, useSearch } from '@tanstack/react-router'
@@ -303,6 +304,16 @@ export function SemanticBrowserRuntimeProvider({
   return <SemanticBrowserControllerProvider manifest={manifest}>{children}</SemanticBrowserControllerProvider>
 }
 
+/** Canonical URL-state key shared by the URL-apply and URL-commit effects; they must never drift. */
+function canonicalSearchKey(search: Pick<SearchParams, 'view' | 'change' | 'mode' | 'focus'>): string {
+  return JSON.stringify({
+    view: search.view === 'model' ? undefined : search.view,
+    change: search.change,
+    mode: search.mode === 'complete-with-diff' ? undefined : search.mode,
+    focus: search.focus,
+  })
+}
+
 export function SemanticBrowserRouteSync() {
   const controller = useContext(SemanticBrowserControllerContext)
   const navigate = useNavigate()
@@ -351,12 +362,7 @@ export function SemanticBrowserRouteSync() {
 
   useEffect(() => {
     if (!controller) return
-    const current = JSON.stringify({
-      view: search.view === 'model' ? undefined : search.view,
-      change: search.change,
-      mode: search.mode === 'complete-with-diff' ? undefined : search.mode,
-      focus: search.focus,
-    })
+    const current = canonicalSearchKey(search)
     if (current === seenUrl.current) return
     if (current === pendingUrl.current) {
       pendingUrl.current = null
@@ -378,7 +384,7 @@ export function SemanticBrowserRouteSync() {
     if (!controller || !initializedUrl.current) return
     const next = encodeSemanticBrowserUrl(controller.state)
     const key = JSON.stringify(next)
-    const current = JSON.stringify({ view: search.view === 'model' ? undefined : search.view, change: search.change, mode: search.mode === 'complete-with-diff' ? undefined : search.mode, focus: search.focus })
+    const current = canonicalSearchKey(search)
     if (applyingUrl.current) {
       if (key === current) {
         applyingUrl.current = false

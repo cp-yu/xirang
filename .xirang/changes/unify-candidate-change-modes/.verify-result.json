@@ -69,7 +69,7 @@
       "test/e2e/semantic-browser-candidate-views.spec.ts",
       "test/e2e/semantic-browser-model-view.spec.ts"
     ],
-    "evidenceFingerprint": "c6c4776abd1fc49a6909e1b9052c8b307196a4b6158cc26aca90e5de36b46934",
+    "evidenceFingerprint": "e4ef5f7018ee4a06d896118a89431bdc0264ae1d82b0197b2497c439b1e3f665",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/unify-candidate-change-modes/design.md",
@@ -149,7 +149,7 @@
       },
       {
         "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
-        "hash": "951311431529b493519501ff49a9dc0a57f43c13c9e17444fcd222c9d3631fff"
+        "hash": "2e4fdee181924a76fc36568bed3b252f0aea0c21d29663a7a191f723e8d815ae"
       },
       {
         "path": "likec4/packages/vite-plugin/src/plugin.ts",
@@ -193,9 +193,9 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "fbf7819c774567098a0d03e03b150ee09f828a56",
+    "gitHeadCommit": "2953ba50fa3bc5f4df11778e15d645740e6c6b23",
     "gitDiffSummary": "baseCommit 9d3589c80 resolves and equals HEAD; `git diff base...HEAD --name-only` is empty (nothing committed), so all evidence is the uncommitted working tree from `git status --short`: 22 modified code/test files + new xirang-diff-overlay.spec.ts + change artifacts. Commands considered: git rev-parse/status/diff --name-only, xirang arch outline|impact|query, xirang validate --change (passed, 0 issues), grep -r candidate-diff|candidateDiff|ViewRuntimeCandidateDiffView across likec4/packages src test (zero functional residue), root+likec4 tsc --noEmit (passed), spa/vite-plugin/diagram unit suites (all passed: view.test.ts 33, SemanticBrowserController+searchParams 26, projection-handler 37, contract-handler 37, ContractLoaderContext 7, diff-overlay 2, HttpContractLoader 9, -t filters 'Candidate.*mode' 3, 'URL.*candidate' 1, '首页.*Candidate' 1), spa build + xirang-likec4 build (passed), playwright semantic-browser-candidate 12/12 passed, semantic-browser-model-view full-file 13 passed + 2 failed only on the untouched HMR test which passes in isolation on both projects.",
-    "timestamp": "2026-08-16T20:21:30.600Z"
+    "timestamp": "2026-08-16T20:31:47.030Z"
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
@@ -227,6 +227,16 @@
       },
       {
         "timestamp": "2026-08-16T20:21:30.572Z",
+        "type": "verification",
+        "result": "PASS"
+      },
+      {
+        "timestamp": "2026-08-16T20:25:30.006Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      },
+      {
+        "timestamp": "2026-08-16T20:31:47.013Z",
         "type": "verification",
         "result": "PASS"
       }
@@ -537,7 +547,7 @@
         }
       },
       {
-        "status": "verified",
+        "status": "resolved",
         "location": {
           "files": [
             "test/core/view.test.ts"
@@ -576,7 +586,7 @@
         }
       },
       {
-        "status": "pending",
+        "status": "verified",
         "location": {
           "files": [
             "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx"
@@ -614,7 +624,10 @@
         "cost": "low",
         "dependencies": [],
         "priorityReason": "It ranks last because it is pure deduplication of a two-line expression; its value is preventing regression in the sync handshake rather than improving current runtime behavior.",
-        "id": "OPT-20260816T193028421Z-04"
+        "id": "OPT-20260816T193028421Z-04",
+        "targetFileHashes": {
+          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx": "951311431529b493519501ff49a9dc0a57f43c13c9e17444fcd222c9d3631fff"
+        }
       }
     ],
     "history": [
@@ -777,9 +790,50 @@
         "reason": "Fresh reviewer verified preservation constraints",
         "timestamp": "2026-08-16T20:21:30.572Z",
         "findingId": "OPT-20260816T193028421Z-03"
+      },
+      {
+        "sequence": 21,
+        "action": "resolve",
+        "reason": "Implemented and reviewer-verified PASS at 2026-08-16T20:21:30.572Z (optimization.attempts last verification entry). Current test/core/view.test.ts:444 reads describe('Manifest version 4', ...); grep confirms 'Manifest version 3' appears nowhere in src/test/likec4; current sha256 of test/core/view.test.ts (310fe5cc238b4c2f78b779fbbd666b95bc6997c506570eb856c6302740a84761) equals the verified evidenceFingerprintEntries entry from the PASS verification, so the verified tree state is exactly the committed state. Fresh run pnpm exec vitest run test/core/view.test.ts: 39/39 passed.",
+        "timestamp": "2026-08-16T20:25:30.004Z",
+        "findingId": "OPT-20260816T193028421Z-03"
+      },
+      {
+        "sequence": 22,
+        "action": "retain",
+        "reason": "The duplication is still present and still passes the admission gates. Current SemanticBrowserController.tsx URL-apply effect (lines 354-361) and URL-commit effect (line 381) build the identical canonical key JSON.stringify({ view: search.view === 'model' ? undefined : search.view, change: search.change, mode: search.mode === 'complete-with-diff' ? undefined : search.mode, focus: search.focus }), and the applyingUrl/pendingUrl/seenUrl/lastCommitted handshake depends on the two staying equal. Evidence remains statically provable, output is byte-identical (same key order, same undefined-omission), preservation is trivially closeable, cost and risk are low, and the actual benefit is real: drift prevention on a handshake that already regressed once in this change (tasks.md Required Corrections [code_fix] URL 解码缺失 mode 参数时强制为 complete). Worthwhile to implement, retained with unchanged (last) priority. The change's Semantic Browser delta contract (semantic-browser#三维正交组合呈现状态, scenario '选择 Candidate 后切换 Mode') is a pure-dedup edit and does not alter it.",
+        "timestamp": "2026-08-16T20:25:30.004Z",
+        "findingId": "OPT-20260816T193028421Z-04"
+      },
+      {
+        "sequence": 23,
+        "action": "select",
+        "reason": "It ranks last because it is pure deduplication of a two-line expression; its value is preventing regression in the sync handshake rather than improving current runtime behavior.",
+        "timestamp": "2026-08-16T20:25:30.006Z",
+        "findingId": "OPT-20260816T193028421Z-04",
+        "hashes": {
+          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx": "951311431529b493519501ff49a9dc0a57f43c13c9e17444fcd222c9d3631fff"
+        }
+      },
+      {
+        "sequence": 24,
+        "action": "implemented",
+        "reason": "Master began implementation after freshness check",
+        "timestamp": "2026-08-16T20:25:36.702Z",
+        "findingId": "OPT-20260816T193028421Z-04",
+        "hashes": {
+          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx": "951311431529b493519501ff49a9dc0a57f43c13c9e17444fcd222c9d3631fff"
+        }
+      },
+      {
+        "sequence": 25,
+        "action": "verified",
+        "reason": "Fresh reviewer verified preservation constraints",
+        "timestamp": "2026-08-16T20:31:47.013Z",
+        "findingId": "OPT-20260816T193028421Z-04"
       }
     ],
-    "reconciliationSignature": "603dfd7c102d5cbb4822c6aa928cb63f1573e2b37d34abc70219e8ce14c783a5",
+    "reconciliationSignature": "1fbfb3d2a92394b3e19d4b7e718af2cf689d137f65ded1a346bc2e03304b544a",
     "unchangedReconciliations": 0
   }
 }
