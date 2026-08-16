@@ -11,14 +11,15 @@ definition: Candidate Diff View 是由当前 Semantic Model 与一个项目唯�
 
 ### Requirement: 呈现 Candidate 语义差异
 
-Candidate Diff View SHALL 以当前 Semantic Model 为 before、active Candidate Semantic Model 为 after，呈现四个语义分区中的 ADDED、MODIFIED 与 REMOVED 差异。diff-only 画布 SHALL 仅投影 changed Elements、其必要 ancestors、changed Relationships 的 endpoints 与 removed ghosts；存在 focus 时 SHALL 在该 focus 的子树内收窄该集合，并 SHALL 支持与 Candidate View 一致的 focus 下钻与就地展开。
+Candidate Diff View SHALL 以当前 Semantic Model 为 before、active Candidate Semantic Model 为 after，呈现四个语义分区中的 ADDED、MODIFIED 与 REMOVED 差异。画布 SHALL 使用与 Candidate View 一致的层级折叠基线（默认根子级或 Authored View roots），并在可见节点上叠加差异视觉表达（ADDED/MODIFIED/REMOVED outline、徽标、dim）；深层差异需通过 focus 下钻与就地展开逐层查看。REMOVED ghosts SHALL 仅在其父容器可见时显示。
 
 #### Scenario: 审查 Candidate diff
 
 - **WHEN** 当前 Semantic Model 与 active Candidate 均可用且用户选择 Candidate Diff View
 - **THEN** Browser 显示 Candidate target 与相对当前 Semantic Model 的 ADDED、MODIFIED、REMOVED 语义差异
-- **AND** 画布仅投影 changed Elements、必要 ancestors、changed Relationship endpoints 与 removed ghosts
-- **AND** 用户可在该可见集合内继续下钻与就地展开
+- **AND** 画布初始显示根子级（或 Authored View roots），差异标记叠加在可见节点上
+- **AND** 用户通过 focus 下钻与就地展开逐层查看深层差异
+- **AND** REMOVED ghosts 仅在其父容器可见时显示
 
 #### Scenario: Candidate 只修改 Contract
 

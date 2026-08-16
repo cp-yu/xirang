@@ -50,22 +50,31 @@ test('reviews candidate changes in diff only mode', async ({ page }) => {
   await openCandidate(page, 'Candidate Diff View')
   await expect(page.locator('[data-xirang-controller]')).toHaveCount(0)
   await expect(page.locator('.react-flow__node:visible')).not.toHaveCount(0)
-  await expect(page.locator('.react-flow__node[data-xirang-operation="ADDED"]')).toBeVisible({ timeout: 10_000 })
   await expect(page.getByRole('button', { name: 'Full context' })).toHaveCount(0)
 
-  // Diff-driven visible set: changed elements and their ancestors only.
+  // Hierarchical baseline: ALL root children are visible, including unchanged ones.
+  // Diff overlay is applied on top — ADDED/MODIFIED/REMOVED outlines and count badges
+  // appear on visible nodes; deep changed elements require drill-down.
   await expect(page.locator('.react-flow__node[data-xirang-identity="single"]')).toBeVisible()
-  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.assistant"]')).toBeVisible()
-  await expect(page.locator('.react-flow__node[data-xirang-identity="none"]')).toHaveCount(0)
-
-  // Changed relationship endpoints surface in the visible set.
   await expect(page.locator('.react-flow__node[data-xirang-identity="long"]')).toBeVisible()
+  await expect(page.locator('.react-flow__node[data-xirang-identity="none"]')).toBeVisible()
+  await expect(page.locator('.react-flow__node[data-xirang-identity="perspective.browser"]')).toBeVisible()
 
-  // Merged edge between one pair aggregates its changed relationships into count badges;
-  // single changed relationships keep the single-operation glyph.
+  // Deep changed elements require drill-down: REMOVED capability.assistant is not visible initially.
+  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.assistant"]')).toHaveCount(0)
+
+  // The single→long edge has two ADDED relationships (invokes + references), shown as merged badges.
   await expect(page.locator('[data-xirang-edge-diff-badges]')).toBeVisible()
   await expect(page.locator('[data-xirang-edge-diff-badges]')).toContainText('+2')
-  await expect(page.locator('[data-xirang-edge-diff][aria-label="Relationship REMOVED"]')).toBeVisible()
+  // capability.assistant→capability.leaf (REMOVED) is a deep relationship, only visible after drill-down.
+
+  // Drill down into perspective.browser: its direct child capability.drill becomes visible.
+  const browser = page.locator('.react-flow__node[data-xirang-identity="perspective.browser"]')
+  await browser.dblclick()
+  await expect(page).toHaveURL(/focus=perspective\.browser/)
+  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.drill"]')).toBeVisible()
+  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.new-in-candidate"]')).toBeVisible()
+  // capability.assistant (REMOVED) is one level deeper; it requires a further drill-down into capability.drill.
 
   // Collapsed Metamodel panel: three summary points, exclusive expansion, entry diff modal.
   if ((page.viewportSize()?.width ?? 0) >= 768) {

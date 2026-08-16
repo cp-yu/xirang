@@ -482,7 +482,7 @@ describe('handleProjection Candidate sources', () => {
     expect(includeRefs(context.adhocView)).toEqual(['root.a', 'root.a:children'])
   })
 
-  it('projects only changed elements and context for Candidate Diff without focus', async () => {
+  it('projects root children in Candidate Diff with hierarchical baseline', async () => {
     const context = makeCandidateContext({
       entries: [
         { kind: 'element-declaration', identity: 'a.child' },
@@ -490,20 +490,22 @@ describe('handleProjection Candidate sources', () => {
       ],
     })
     await handleProjection({ ...baseRequest, viewId: 'candidate-diff', mode: 'diff-only' }, context)
-    expect(new Set(includeRefs(context.adhocView))).toEqual(new Set(['root', 'root.a', 'root.a.child', 'root.b']))
+    // Candidate Diff uses the same hierarchical baseline as Candidate View: root children by default.
+    expect(new Set(includeRefs(context.adhocView))).toEqual(new Set(['root.a', 'root.b', 'root.c']))
   })
 
-  it('keeps contract-only Candidate Diff hosts visible through requirement entries', async () => {
+  it('keeps contract-only Candidate Diff hosts hidden until their parent is expanded', async () => {
     const context = makeCandidateContext({
       entries: [
         { kind: 'requirement', identity: 'a.child#Some Requirement' },
       ],
     })
     await handleProjection({ ...baseRequest, viewId: 'candidate-diff', mode: 'diff-only' }, context)
-    expect(new Set(includeRefs(context.adhocView))).toEqual(new Set(['root', 'root.a', 'root.a.child']))
+    // Hierarchical baseline: root children only, contract-only changed deep elements require expansion.
+    expect(new Set(includeRefs(context.adhocView))).toEqual(new Set(['root.a', 'root.b', 'root.c']))
   })
 
-  it('scopes the Candidate Diff visible set to the focused subtree', async () => {
+  it('scopes the Candidate Diff to the focused subtree with hierarchical baseline', async () => {
     const context = makeCandidateContext({
       entries: [
         { kind: 'element-declaration', identity: 'a.child' },
@@ -511,7 +513,8 @@ describe('handleProjection Candidate sources', () => {
       ],
     })
     await handleProjection({ ...baseRequest, viewId: 'candidate-diff', mode: 'diff-only', focus: 'a' }, context)
-    expect(new Set(includeRefs(context.adhocView))).toEqual(new Set(['root.a', 'root.a.child']))
+    // Focus + children: focus element itself plus direct children (not all descendants).
+    expect(new Set(includeRefs(context.adhocView))).toEqual(new Set(['root.a', 'root.a:children']))
   })
 
   it('falls back to the root-children baseline when the Candidate Diff is empty', async () => {
@@ -556,8 +559,10 @@ describe('handleProjection Candidate sources', () => {
     expect(loadSources).toHaveBeenCalledWith({ 'model.c4': 'union' }, 'union-fp')
     const predicates = adhocView.mock.calls[0]?.[0] as Array<{ include?: Array<{ ref: { model: string } }> }>
     const include = (predicates[0]?.include ?? []).map(item => item.ref.model)
+    // Hierarchical baseline from diffArchitecture (union): root children include the REMOVED ghost
+    // because 'removed' is a direct child of 'root' in the union architecture.
     expect(include).toContain('root.removed')
-    expect(include).toContain('root')
+    expect(new Set(include)).toEqual(new Set(['root.a', 'root.b', 'root.c', 'root.removed']))
   })
 
   it('falls back to candidate-only target sources when the union layout fails', async () => {

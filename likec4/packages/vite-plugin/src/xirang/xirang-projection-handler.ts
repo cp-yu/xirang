@@ -315,7 +315,8 @@ export async function handleProjection(
       includeExpressions.push({ ref: { model: paths[expanded] ?? expanded }, selector: 'children' })
     }
   }
-  if (request.mode === 'diff-only' && source.diff && (request.change || request.viewId === 'candidate-diff')) {
+  if (request.mode === 'diff-only' && source.diff && request.change) {
+    // Change-derived diff-only: diff-driven visible set (changed + ancestors + endpoints).
     const elementsByIdentity = new Map((architecture?.elements ?? []).map(element => [element.declaration.identity, element]))
     const boundary = new Set<string>()
     const collectBoundary = (identity: string) => {
@@ -327,13 +328,14 @@ export async function handleProjection(
     else if (authoredSelection) for (const identity of authoredSelection) boundary.add(identity)
     else for (const identity of elementsByIdentity.keys()) boundary.add(identity)
     const diffIncludes = diffDrivenIncludes(architecture, paths, source.diff.entries, boundary)
-    // An empty Candidate Diff falls back to the root-children baseline computed above;
-    // Change-derived diff-only views keep their existing empty-diff projection behavior.
-    if (diffIncludes.length > 0 || request.viewId !== 'candidate-diff') {
+    if (diffIncludes.length > 0) {
       includeExpressions.length = 0
       includeExpressions.push(...diffIncludes)
     }
   }
+  // Candidate Diff uses the same hierarchical baseline as Candidate View (focus + children +
+  // expanded, or root children when no focus). Diff markers are applied by the overlay on top
+  // of the visible nodes; the user navigates to deeper changes by drilling down or expanding.
   const adhocPredicates = includeExpressions.length > 0
     ? [{ include: includeExpressions }]
     : null

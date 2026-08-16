@@ -47,3 +47,11 @@ Semantic Browser 的 Candidate 审查路径目前有三个相互放大的呈现�
 ## Open Questions
 
 无。
+
+## Post-implementation Decision
+
+实现完成后，在 Edera 真实 Candidate（685 条 diff entries / 84 nodes / 首次 build）的实际验证中发现：本 Change 对 Candidate Diff View 所采用的"变更驱动可见集合"（Decision 4）在首次 build 场景下退化为全量展开，与"汇总 → 点开看细节"的目标相悖。层级基线（方案 A）虽修复了退化问题，但仍是两个独立 View 的补丁方案。
+
+**更优方向（将作为新 Change 推进）**：将 Candidate 视为 Change without Plan，直接复用 Change 的三态 presentation mode（`complete` / `complete-with-diff` / `diff-only`），移除独立的 `candidate-diff` View identity 与 manifest 字段，Candidate 默认以 `complete-with-diff` 打开（完整目标模型 + diff overlay）。此方向消除了 Candidate / Change 的呈现分叉，也从根本上解决了 union sources 膨胀与 Graphviz 容量问题（`complete-with-diff` 使用 target sources，REMOVED ghosts 通过叠加层实现）。
+
+本 Change 的实现（层级基线 + 交互解锁 + 关系边合并 + Metamodel 面板分组）作为过渡态保留，相关基础设施（union sources、diff overlay、breadcrumb 扩展、面板折叠）将在新 Change 中继续沿用。

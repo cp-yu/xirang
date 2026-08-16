@@ -37,7 +37,7 @@
 
 ### Task 2: Candidate 与 Candidate Diff 投影基线与交互
 
-**Goal**: Candidate View 以 Project Root 为默认 focus 呈现折叠基线并支持 focus 下钻、就地展开、breadcrumb；Candidate Diff View 画布只投影 changed Elements、必要 ancestors、changed Relationship endpoints 与 removed ghosts，focus 内收窄。
+**Goal**: Candidate View 以 Project Root 为默认 focus 呈现折叠基线并支持 focus 下钻、就地展开、breadcrumb；Candidate Diff View 使用与 Candidate View 一致的层级折叠基线（默认根子级），在可见节点上叠加差异视觉表达，深层差异需通过 focus 下钻与就地展开逐层查看。
 
 **Files**:
 - Modify: `likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts`
@@ -58,7 +58,7 @@
 
 **Requirements**:
 - 删除 candidate/candidate-diff 的 include-all 分支，走标准分支：focus 存在时 focus + direct children + expanded 后代；无 focus 时根子级 + expanded。
-- candidate-diff 在 diff 存在时使用变更驱动可见集合（changed + ancestors + relationship endpoints + removed ghosts，focus 子树内收窄）；diff 为空时回退根子级基线。
+- candidate-diff 使用与 candidate 一致的层级折叠基线，不再走变更驱动可见集合（diff-driven includes）；REMOVED ghosts 仅在其父容器可见时显示。
 - Candidate Diff 的 before-after union sources（`diffArchitecture`、`diffLikec4Sources`、`diffLikec4ElementPaths`、`diffSourceFingerprint`）由 `src/core/view.ts` 从 formal+candidate 并集模型生成，removed ghosts 由 union source 投影；并集超出 Graphviz 路由容量时确定性回退 candidate-only target sources。
 - `isInteractiveBrowserSource` 与 breadcrumb 条件扩展到 Candidate 与 Candidate Diff 来源，candidate 仍锁定 full、candidate-diff 仍锁定 diff-only。
 - e2e candidate 两条用例按新基线语义改写（根子级可见、深级元素需展开/下钻；candidate-diff 只含差异相关元素），不改动其他既有用例。
@@ -73,7 +73,7 @@
 - [x] C2 Candidate Diff 可见集合单测
   - Verifies: `elements/candidate-diff-derived-view.md` / Requirement "呈现 Candidate 语义差异" / Scenario "审查 Candidate diff"
   - Command: `cd likec4 && pnpm --filter @likec4/vite-plugin exec vitest run --no-isolate src/xirang/xirang-projection-handler.spec.ts`
-  - Expect: 可见集合为 changed+ancestors+endpoints，focus 收窄，空 diff 回退根子级基线
+  - Expect: candidate-diff 使用与 candidate 一致的层级基线（根子级或 focus children + expanded）；不再走 diff-driven includes
 
 - [x] C3 Candidate Diff before-after union sources 单测
   - Verifies: `elements/candidate-diff-derived-view.md` / Requirement "呈现 Candidate 语义差异" / Scenario "审查 Candidate diff"
