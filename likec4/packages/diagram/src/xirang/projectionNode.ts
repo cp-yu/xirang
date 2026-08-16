@@ -73,16 +73,41 @@ export function readXirangProjectionNode(node: ProjectionNode): XirangProjection
 export interface XirangProjectionEdgeData {
   operation?: XirangDiffOperation
   relation?: string
+  relationCounts?: XirangRelationCounts
+}
+
+export interface XirangRelationCounts {
+  added: number
+  modified: number
+  removed: number
+}
+
+/** `added,modified,removed`；缺失或非法时按 undefined 处理。 */
+export function readXirangRelationCounts(raw: string | string[] | undefined): XirangRelationCounts | undefined {
+  if (typeof raw !== 'string') return undefined
+  const parts = raw.split(',').map(part => Number(part))
+  if (parts.length !== 3) return undefined
+  const added = parts[0]
+  const modified = parts[1]
+  const removed = parts[2]
+  if (added === undefined || modified === undefined || removed === undefined
+    || !Number.isInteger(added) || !Number.isInteger(modified) || !Number.isInteger(removed)
+    || added < 0 || modified < 0 || removed < 0) {
+    return undefined
+  }
+  return { added, modified, removed }
 }
 
 export function readXirangProjectionEdge(edge: ProjectionNode): XirangProjectionEdgeData | null {
   const rawOperation = edge.metadata?.['xirangOperation']
   const relation = edge.metadata?.['xirangRelation']
-  if (typeof rawOperation !== 'string' && typeof relation !== 'string') return null
+  const relationCounts = readXirangRelationCounts(edge.metadata?.['xirangRelationCounts'])
+  if (typeof rawOperation !== 'string' && typeof relation !== 'string' && relationCounts === undefined) return null
   if (rawOperation !== undefined && !operations.has(rawOperation as XirangDiffOperation)) return null
   return {
     ...(typeof rawOperation === 'string' ? { operation: rawOperation as XirangDiffOperation } : {}),
     ...(typeof relation === 'string' ? { relation } : {}),
+    ...(relationCounts ? { relationCounts } : {}),
   }
 }
 

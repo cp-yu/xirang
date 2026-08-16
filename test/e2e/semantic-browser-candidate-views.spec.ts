@@ -19,22 +19,83 @@ test.beforeEach(async ({ page }) => {
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
 })
 
-test('browses the complete candidate model', async ({ page }) => {
+test('browses the complete candidate model through the collapsed baseline', async ({ page }) => {
   await openCandidate(page, 'Candidate View')
   await expect(page.locator('[data-xirang-controller]')).toHaveCount(0)
   const nodes = page.locator('.react-flow__node:visible')
   await expect(nodes).not.toHaveCount(0)
 
-  await expect(page.getByRole('group', { name: /Browser Perspective\. Node kind: perspective/ })).toBeVisible()
-  await expect(page.getByRole('group', { name: /New Candidate Capability\. Node kind: capability/ })).toBeVisible()
+  // Collapsed baseline: root children only, deep elements require drill-down or expansion.
+  const browser = page.locator('.react-flow__node[data-xirang-identity="perspective.browser"]')
+  await expect(browser).toBeVisible()
+  await expect(page.locator('.react-flow__node[data-xirang-identity="long"]')).toBeVisible()
+  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.drill"]')).toHaveCount(0)
+  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.new-in-candidate"]')).toHaveCount(0)
+  await expect(page.locator('[data-xirang-focus-breadcrumb]')).toBeVisible()
+
+  // Multiple relationships between one visible pair stay merged on a single edge with the
+  // LikeC4 aggregated label.
+  await expect(page.getByRole('group', { name: /Label: \[\.\.\.\]/ })).toBeVisible()
+
+  // Drill-down inside the same candidate view identity reveals the nested level.
+  await browser.dblclick()
+  await expect(page).toHaveURL(/view=candidate/)
+  await expect(page).toHaveURL(/focus=perspective\.browser/)
+  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.drill"]')).toBeVisible()
+  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.new-in-candidate"]')).toBeVisible()
+  await page.screenshot({ path: test.info().outputPath('candidate-drill.png'), fullPage: true })
 })
 
 test('reviews candidate changes in diff only mode', async ({ page }) => {
   await openCandidate(page, 'Candidate Diff View')
   await expect(page.locator('[data-xirang-controller]')).toHaveCount(0)
   await expect(page.locator('.react-flow__node:visible')).not.toHaveCount(0)
-  await expect(page.locator('.react-flow__node[data-xirang-operation="ADDED"]')).toBeVisible({ timeout: 10_000 })
   await expect(page.getByRole('button', { name: 'Full context' })).toHaveCount(0)
+
+  // Hierarchical baseline: ALL root children are visible, including unchanged ones.
+  // Diff overlay is applied on top — ADDED/MODIFIED/REMOVED outlines and count badges
+  // appear on visible nodes; deep changed elements require drill-down.
+  await expect(page.locator('.react-flow__node[data-xirang-identity="single"]')).toBeVisible()
+  await expect(page.locator('.react-flow__node[data-xirang-identity="long"]')).toBeVisible()
+  await expect(page.locator('.react-flow__node[data-xirang-identity="none"]')).toBeVisible()
+  await expect(page.locator('.react-flow__node[data-xirang-identity="perspective.browser"]')).toBeVisible()
+
+  // Deep changed elements require drill-down: REMOVED capability.assistant is not visible initially.
+  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.assistant"]')).toHaveCount(0)
+
+  // The single→long edge has two ADDED relationships (invokes + references), shown as merged badges.
+  await expect(page.locator('[data-xirang-edge-diff-badges]')).toBeVisible()
+  await expect(page.locator('[data-xirang-edge-diff-badges]')).toContainText('+2')
+  // capability.assistant→capability.leaf (REMOVED) is a deep relationship, only visible after drill-down.
+
+  // Drill down into perspective.browser: its direct child capability.drill becomes visible.
+  const browser = page.locator('.react-flow__node[data-xirang-identity="perspective.browser"]')
+  await browser.dblclick()
+  await expect(page).toHaveURL(/focus=perspective\.browser/)
+  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.drill"]')).toBeVisible()
+  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.new-in-candidate"]')).toBeVisible()
+  // capability.assistant (REMOVED) is one level deeper; it requires a further drill-down into capability.drill.
+
+  // Collapsed Metamodel panel: three summary points, exclusive expansion, entry diff modal.
+  if ((page.viewportSize()?.width ?? 0) >= 768) {
+    const groups = page.locator('[data-xirang-metamodel-group]')
+    await expect(groups).toHaveCount(3)
+    await expect(page.locator('[data-xirang-metamodel-group="element-kind"]')).toContainText('+4')
+    await expect(page.locator('[data-xirang-metamodel-group="relationship-kind"]')).toContainText('+1')
+    await expect(page.locator('[data-xirang-metamodel-group="authored-view"]')).toContainText('−2')
+    await page.locator('[data-xirang-metamodel-group="element-kind"]').click()
+    const moduleEntry = page.locator('button').filter({ hasText: /^\+ element-kind module$/ })
+    await expect(moduleEntry).toBeVisible()
+    // Expansion is exclusive per group.
+    await page.locator('[data-xirang-metamodel-group="relationship-kind"]').click()
+    await expect(moduleEntry).toHaveCount(0)
+    await page.locator('[data-xirang-metamodel-group="element-kind"]').click()
+    await moduleEntry.click()
+    await expect(page.locator('[data-xirang-metamodel-diff] .mantine-Modal-content')).toBeVisible()
+    await page.keyboard.press('Escape')
+  }
+
+  await page.screenshot({ path: test.info().outputPath('candidate-diff-visible-set.png'), fullPage: true })
 })
 
 test('keeps invalid candidate sources diagnosable', async ({ page }) => {

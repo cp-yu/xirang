@@ -7,21 +7,7 @@ title: Xirang Diff Overlay
 definition: Xirang Diff Overlay 是 Web 对 LikeC4 的差异呈现改造：在投影节点与关系上以 outline、计数徽标与差异标记分层叠加 Element 级与 Requirement 级语义差异，并在 Element Details 中呈现 Requirement 级 before/after diff。它独立建模以隔离差异视觉表达与投影计算、Contract 投递的边界；不改变 base model 与 runtime projection，不承担浏览编排语义。
 ---
 
-## Requirements
-
-### Requirement: 合并呈现 Requirement 差异
-
-Web SHALL 在 Change-derived View 与 Candidate Diff View 的 Element Details 中，将每个存在差异的 Requirement 连同其全部 Scenario 呈现为单个 diff：该 diff 的 before 与 after 包含 Requirement 正文及全部 Scenario 文本，且不单独为 Scenario 呈现独立 diff。
-
-#### Scenario: 查看新增 Requirement 的合并 diff
-
-- **WHEN** 用户在 Change-derived View 或 Candidate Diff View 中查看一个 ADDED Requirement
-- **THEN** Browser 呈现单个 diff，其 after 包含该 Requirement 正文与全部 Scenario 文本
-
-#### Scenario: 查看修改 Requirement 的合并 diff
-
-- **WHEN** 用户在 Change-derived View 或 Candidate Diff View 中查看一个 MODIFIED Requirement
-- **THEN** Browser 呈现单个 diff，其 before 与 after 均包含该 Requirement 正文与全部 Scenario 文本
+## MODIFIED Requirements
 
 ### Requirement: 呈现语义差异视觉表达
 
@@ -56,14 +42,7 @@ diff overlay 激活时，元素节点以 outline 与计数徽标分层表达语�
 - **WHEN** 用户使用 `complete` 模式，或在无 diff 的 Candidate View 中浏览
 - **THEN** 节点与关系边保持默认透明度且不施加四态视觉
 
-### Requirement: 固定呈现 Candidate diff-only 差异
-
-Candidate Diff View SHALL 固定呈现 Candidate target 相对当前 Semantic Model 的 ADDED、MODIFIED、REMOVED 差异，且 SHALL NOT 提供 Full context 切换。
-
-#### Scenario: 审查 Candidate diff
-
-- **WHEN** 当前 Semantic Model 与 active Candidate 可用于比较且用户选择 Candidate Diff View
-- **THEN** Browser 显示 Candidate target 以及相对当前 Semantic Model 的 ADDED、MODIFIED、REMOVED 差异，且不提供 Full context 切换
+## ADDED Requirements
 
 ### Requirement: 折叠呈现 Metamodel 差异条目
 

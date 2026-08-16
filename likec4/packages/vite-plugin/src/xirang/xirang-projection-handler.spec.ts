@@ -402,6 +402,216 @@ describe('handleProjection', () => {
   })
 })
 
+describe('handleProjection Candidate sources', () => {
+  const baseRequest = {
+    viewId: 'candidate' as const,
+    change: null,
+    mode: 'complete' as const,
+    focus: null,
+    expanded: [],
+    expectedFingerprint: FINGERPRINT,
+  }
+
+  const architecture = {
+    elements: [
+      { declaration: { identity: 'root', parent: null } },
+      { declaration: { identity: 'a', parent: 'root' } },
+      { declaration: { identity: 'a.child', parent: 'a' } },
+      { declaration: { identity: 'b', parent: 'root' } },
+      { declaration: { identity: 'c', parent: 'root' } },
+    ],
+  }
+  const paths = { root: 'root', a: 'root.a', 'a.child': 'root.a.child', b: 'root.b', c: 'root.c' }
+
+  function makeCandidateContext(diff?: { entries: unknown[] }) {
+    const adhocView = vi.fn(async (_predicates: unknown[], _projectId?: string) => fakeView('model'))
+    const manifest = {
+      version: 4,
+      modelFingerprint: FINGERPRINT,
+      model: { contracts: {} },
+      authoredViews: {},
+      changes: {},
+      candidate: {
+        sourceFingerprint: 'candidate-fp',
+        architecture,
+        likec4Sources: { 'model.c4': 'model {}' },
+        likec4ElementPaths: paths,
+      },
+      ...(diff
+        ? {
+            candidateDiff: {
+              sourceFingerprint: 'candidate-diff-fp',
+              architecture,
+              likec4Sources: { 'model.c4': 'model {}' },
+              likec4ElementPaths: paths,
+              diff,
+            },
+          }
+        : {}),
+    }
+    return {
+      readManifest: async () => JSON.stringify(manifest),
+      views: { diagrams: async () => [] },
+      loadSources: async () => ({ diagrams: async () => [], viewsService: { adhocView } }),
+      cache: new ProjectionCache<Awaited<ReturnType<typeof handleProjection>>>(50),
+      projectId: 'xirang',
+      adhocView,
+    }
+  }
+
+  const includeRefs = (adhocView: ReturnType<typeof vi.fn>) => {
+    const predicates = adhocView.mock.calls[0]?.[0] as Array<{ include?: Array<{ ref: { model: string }; selector?: string }> }>
+    return (predicates[0]?.include ?? []).map(item => `${item.ref.model}${item.selector ? `:${item.selector}` : ''}`)
+  }
+
+  it('projects the Candidate root children as the collapsed baseline', async () => {
+    const context = makeCandidateContext()
+    await handleProjection(baseRequest, context)
+    expect(includeRefs(context.adhocView)).toEqual(['root.a', 'root.b', 'root.c'])
+  })
+
+  it('expands the Candidate baseline through expanded children selectors', async () => {
+    const context = makeCandidateContext()
+    await handleProjection({ ...baseRequest, expanded: ['a'] }, context)
+    expect(includeRefs(context.adhocView)).toEqual(['root.a', 'root.b', 'root.c', 'root.a:children'])
+  })
+
+  it('focuses a Candidate element to its children context', async () => {
+    const context = makeCandidateContext()
+    await handleProjection({ ...baseRequest, focus: 'a' }, context)
+    expect(includeRefs(context.adhocView)).toEqual(['root.a', 'root.a:children'])
+  })
+
+  it('projects root children in Candidate Diff with hierarchical baseline', async () => {
+    const context = makeCandidateContext({
+      entries: [
+        { kind: 'element-declaration', identity: 'a.child' },
+        { kind: 'relationship', identity: 'a|invokes|b' },
+      ],
+    })
+    await handleProjection({ ...baseRequest, viewId: 'candidate-diff', mode: 'diff-only' }, context)
+    // Candidate Diff uses the same hierarchical baseline as Candidate View: root children by default.
+    expect(new Set(includeRefs(context.adhocView))).toEqual(new Set(['root.a', 'root.b', 'root.c']))
+  })
+
+  it('keeps contract-only Candidate Diff hosts hidden until their parent is expanded', async () => {
+    const context = makeCandidateContext({
+      entries: [
+        { kind: 'requirement', identity: 'a.child#Some Requirement' },
+      ],
+    })
+    await handleProjection({ ...baseRequest, viewId: 'candidate-diff', mode: 'diff-only' }, context)
+    // Hierarchical baseline: root children only, contract-only changed deep elements require expansion.
+    expect(new Set(includeRefs(context.adhocView))).toEqual(new Set(['root.a', 'root.b', 'root.c']))
+  })
+
+  it('scopes the Candidate Diff to the focused subtree with hierarchical baseline', async () => {
+    const context = makeCandidateContext({
+      entries: [
+        { kind: 'element-declaration', identity: 'a.child' },
+        { kind: 'element-declaration', identity: 'c' },
+      ],
+    })
+    await handleProjection({ ...baseRequest, viewId: 'candidate-diff', mode: 'diff-only', focus: 'a' }, context)
+    // Focus + children: focus element itself plus direct children (not all descendants).
+    expect(new Set(includeRefs(context.adhocView))).toEqual(new Set(['root.a', 'root.a:children']))
+  })
+
+  it('falls back to the root-children baseline when the Candidate Diff is empty', async () => {
+    const context = makeCandidateContext({ entries: [] })
+    await handleProjection({ ...baseRequest, viewId: 'candidate-diff', mode: 'diff-only' }, context)
+    expect(includeRefs(context.adhocView)).toEqual(['root.a', 'root.b', 'root.c'])
+  })
+
+  it('loads the before-after union sources for Candidate Diff removed ghosts', async () => {
+    const adhocView = vi.fn(async (_predicates: unknown[], _projectId?: string) => fakeView('model'))
+    const loadSources = vi.fn(async () => ({ diagrams: async () => [], viewsService: { adhocView } }))
+    const context = {
+      readManifest: async () => JSON.stringify({
+        version: 4,
+        modelFingerprint: FINGERPRINT,
+        model: { contracts: {} },
+        authoredViews: {},
+        changes: {},
+        candidateDiff: {
+          sourceFingerprint: 'candidate-diff-fp',
+          diffSourceFingerprint: 'union-fp',
+          architecture,
+          diffArchitecture: { elements: [
+            { declaration: { identity: 'root', parent: null } },
+            { declaration: { identity: 'removed', parent: 'root' } },
+            ...architecture.elements,
+          ] },
+          likec4Sources: { 'model.c4': 'target' },
+          likec4ElementPaths: paths,
+          diffLikec4Sources: { 'model.c4': 'union' },
+          diffLikec4ElementPaths: { ...paths, removed: 'root.removed' },
+          diff: { entries: [{ kind: 'element-declaration', identity: 'removed' }] },
+        },
+      }),
+      views: { diagrams: async () => [] },
+      loadSources,
+      cache: new ProjectionCache<Awaited<ReturnType<typeof handleProjection>>>(50),
+      projectId: 'xirang',
+    }
+    await handleProjection({ ...baseRequest, viewId: 'candidate-diff', mode: 'diff-only' }, context)
+
+    expect(loadSources).toHaveBeenCalledWith({ 'model.c4': 'union' }, 'union-fp')
+    const predicates = adhocView.mock.calls[0]?.[0] as Array<{ include?: Array<{ ref: { model: string } }> }>
+    const include = (predicates[0]?.include ?? []).map(item => item.ref.model)
+    // Hierarchical baseline from diffArchitecture (union): root children include the REMOVED ghost
+    // because 'removed' is a direct child of 'root' in the union architecture.
+    expect(include).toContain('root.removed')
+    expect(new Set(include)).toEqual(new Set(['root.a', 'root.b', 'root.c', 'root.removed']))
+  })
+
+  it('falls back to candidate-only target sources when the union layout fails', async () => {
+    const unionAdhocView = vi.fn(async (_predicates: unknown[], _projectId?: string) => {
+      throw new Error('Error during layout: adhoc')
+    })
+    const targetAdhocView = vi.fn(async (_predicates: unknown[], _projectId?: string) => fakeView('model'))
+    const loadSources = vi.fn()
+      .mockResolvedValueOnce({ diagrams: async () => [], viewsService: { adhocView: unionAdhocView } })
+      .mockResolvedValueOnce({ diagrams: async () => [], viewsService: { adhocView: targetAdhocView } })
+    const context = {
+      readManifest: async () => JSON.stringify({
+        version: 4,
+        modelFingerprint: FINGERPRINT,
+        model: { contracts: {} },
+        authoredViews: {},
+        changes: {},
+        candidateDiff: {
+          sourceFingerprint: 'candidate-diff-fp',
+          diffSourceFingerprint: 'union-fp',
+          architecture,
+          diffArchitecture: { elements: [
+            { declaration: { identity: 'root', parent: null } },
+            ...architecture.elements,
+          ] },
+          likec4Sources: { 'model.c4': 'target' },
+          likec4ElementPaths: paths,
+          diffLikec4Sources: { 'model.c4': 'union' },
+          diffLikec4ElementPaths: { ...paths },
+          diff: { entries: [{ kind: 'element-declaration', identity: 'a.child' }] },
+        },
+      }),
+      views: { diagrams: async () => [] },
+      loadSources,
+      cache: new ProjectionCache<Awaited<ReturnType<typeof handleProjection>>>(50),
+      projectId: 'xirang',
+    }
+    const result = await handleProjection({ ...baseRequest, viewId: 'candidate-diff', mode: 'diff-only' }, context)
+
+    expect(result.view.id).toBe('model')
+    expect(loadSources).toHaveBeenCalledTimes(2)
+    expect(unionAdhocView).toHaveBeenCalledTimes(1)
+    expect(targetAdhocView).toHaveBeenCalledTimes(1)
+    const predicates = targetAdhocView.mock.calls[0]?.[0] as Array<{ include?: Array<{ ref: { model: string } }> }>
+    const include = (predicates[0]?.include ?? []).map(item => item.ref.model)
+    expect(new Set(include)).toEqual(new Set(['root', 'root.a', 'root.a.child']))
+  })
+})
+
 describe('official LikeC4 pipeline integration', () => {
   it('lays out Model and equivalent Authored roots identically', { timeout: 120_000 }, async () => {
     const sources = {

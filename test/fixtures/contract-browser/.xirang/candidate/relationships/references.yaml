@@ -1,0 +1,4 @@
+relationships:
+  - source: single
+    kind: references
+    target: long

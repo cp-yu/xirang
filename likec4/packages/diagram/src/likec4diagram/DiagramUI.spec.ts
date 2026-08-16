@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { XirangViewSource } from '../xirang/ContractLoaderContext'
-import { getArchitectureOverlayModel } from './DiagramUI'
+import { getArchitectureOverlayModel, getMetamodelGroups, METAMODEL_COLLAPSE_THRESHOLD } from './DiagramUI'
 
 const source = (
   diff: XirangViewSource['diff'] | undefined,
@@ -73,5 +73,45 @@ describe('getArchitectureOverlayModel', () => {
     expect(overlay.changed).toEqual(['a'])
     expect(overlay.context).toEqual(['new-parent', 'old-parent'])
     expect(overlay.diagnostics.map(diagnostic => diagnostic.code)).toEqual(['E2'])
+  })
+})
+
+describe('getMetamodelGroups', () => {
+  const entry = (kind: 'element-kind' | 'relationship-kind' | 'authored-view', identity: string, operation: 'ADDED' | 'MODIFIED' | 'REMOVED') => ({
+    kind,
+    identity,
+    operation,
+  })
+
+  it('按 Kind/Relationship/View 固定顺序分组并统计各操作计数', () => {
+    const groups = getMetamodelGroups([
+      entry('authored-view', 'v1', 'ADDED'),
+      entry('relationship-kind', 'r1', 'ADDED'),
+      entry('element-kind', 'k1', 'MODIFIED'),
+      entry('relationship-kind', 'r2', 'REMOVED'),
+    ]).groups
+    expect(groups.map(group => [group.label, group.counts])).toEqual([
+      ['Kind', { ADDED: 0, MODIFIED: 1, REMOVED: 0 }],
+      ['Relationship', { ADDED: 1, MODIFIED: 0, REMOVED: 1 }],
+      ['View', { ADDED: 1, MODIFIED: 0, REMOVED: 0 }],
+    ])
+  })
+
+  it('条目总数超过阈值时折叠，不超过阈值时平铺', () => {
+    const at = getMetamodelGroups(Array.from({ length: METAMODEL_COLLAPSE_THRESHOLD }, (_, index) => entry('element-kind', `k${index}`, 'ADDED')))
+    const over = getMetamodelGroups(Array.from({ length: METAMODEL_COLLAPSE_THRESHOLD + 1 }, (_, index) => entry('element-kind', `k${index}`, 'ADDED')))
+    expect(at.collapsed).toBe(false)
+    expect(over.collapsed).toBe(true)
+  })
+
+  it('空分组不返回，分组条目完整且保持输入排序', () => {
+    const groups = getMetamodelGroups([
+      entry('element-kind', 'alpha-kind', 'ADDED'),
+      entry('element-kind', 'zeta-kind', 'MODIFIED'),
+      entry('relationship-kind', 'invokes', 'REMOVED'),
+    ]).groups
+    expect(groups.map(group => group.kind)).toEqual(['element-kind', 'relationship-kind'])
+    expect(groups[0]!.entries.map(item => `${item.identity}:${item.operation}`)).toEqual(['alpha-kind:ADDED', 'zeta-kind:MODIFIED'])
+    expect(groups[1]!.entries.map(item => `${item.identity}:${item.operation}`)).toEqual(['invokes:REMOVED'])
   })
 })

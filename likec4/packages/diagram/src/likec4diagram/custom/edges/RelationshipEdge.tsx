@@ -298,7 +298,18 @@ export const RelationshipEdge = memoEdge<Types.EdgeProps<'relationship'>>((props
     } :
     undefined
   const xirangOperation = props.data.xirang?.operation
-  const xirangGlyph = xirangOperation === 'ADDED' ? '+' : xirangOperation === 'REMOVED' ? '-' : '~'
+  const relationCounts = props.data.xirang?.relationCounts
+  const changedRelationCount = relationCounts
+    ? relationCounts.added + relationCounts.modified + relationCounts.removed
+    : 0
+  const hasDiff = !!xirangOperation || changedRelationCount > 0
+  const xirangGlyph = xirangOperation === 'ADDED' ? '+' : xirangOperation === 'REMOVED' ? '−' : '~'
+
+  const relationCountBadges = [
+    { key: 'added', glyph: '+', color: '#2f9e44', label: 'added relationships' },
+    { key: 'modified', glyph: '~', color: '#ff9f0a', label: 'modified relationships' },
+    { key: 'removed', glyph: '−', color: '#e03131', label: 'removed relationships' },
+  ] as const
 
   return (
     <>
@@ -310,28 +321,68 @@ export const RelationshipEdge = memoEdge<Types.EdgeProps<'relationship'>>((props
             cursor: enabledEditing && selected ? 'copy' : undefined,
           },
         })}>
+        {hasDiff && (
+          <path
+            d={edgePath}
+            data-xirang-edge-underlay
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={8}
+            strokeDasharray="4 3"
+            opacity={0.28}
+            pointerEvents="none"
+          />
+        )}
         {xirangOperation && (
-          <>
-            <path
-              d={edgePath}
-              data-xirang-edge-underlay
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={8}
-              strokeDasharray="4 3"
-              opacity={0.28}
-              pointerEvents="none"
-            />
-            <text
-              x={labelX}
-              y={labelY}
-              data-xirang-edge-diff
-              aria-label={`Relationship ${xirangOperation}`}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              pointerEvents="none"
-            >{xirangGlyph}</text>
-          </>
+          <text
+            x={labelX}
+            y={labelY}
+            data-xirang-edge-diff
+            aria-label={`Relationship ${xirangOperation}`}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            pointerEvents="none"
+          >{xirangGlyph}</text>
+        )}
+        {!xirangOperation && relationCounts && changedRelationCount > 0 && (
+          <EdgeLabelRenderer>
+            <div
+              data-xirang-edge-diff-badges
+              style={{
+                position: 'absolute',
+                transform: `translate(${labelX}px, ${labelY}px) translate(-50%, calc(-100% - 6px))`,
+                display: 'flex',
+                gap: '4px',
+                pointerEvents: 'none',
+              }}
+            >
+              {relationCountBadges.filter(badge => relationCounts[badge.key] > 0).map(badge => (
+                <span
+                  key={badge.key}
+                  data-xirang-edge-diff
+                  aria-label={`${relationCounts[badge.key]} ${badge.label}`}
+                  style={{
+                    minWidth: '18px',
+                    height: '18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0 4px',
+                    border: '2px solid #ffffff',
+                    borderRadius: '6px',
+                    color: '#ffffff',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    lineHeight: 1,
+                    backgroundColor: badge.color,
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.35)',
+                  }}
+                >
+                  {badge.glyph}{relationCounts[badge.key]}
+                </span>
+              ))}
+            </div>
+          </EdgeLabelRenderer>
         )}
         <EdgePath
           edgeProps={props}
