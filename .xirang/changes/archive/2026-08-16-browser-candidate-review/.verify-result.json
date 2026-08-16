@@ -1,0 +1,306 @@
+{
+  "timestamp": "2026-08-16T13:14:54.116Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "389e2320fe53f0d048dc16f50a72a7e03cffadc3d04d07f9f9867e853c049713",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+      "likec4/packages/diagram/src/likec4diagram/custom/edges/RelationshipEdge.tsx",
+      "likec4/packages/diagram/src/likec4diagram/types.ts",
+      "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+      "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+      "likec4/packages/diagram/src/xirang/architectureView.ts",
+      "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
+      "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
+      "likec4/packages/diagram/src/xirang/projectionNode.ts",
+      "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
+      "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
+      "src/core/view.ts",
+      "test/core/view-likec4-once.test.ts",
+      "test/core/view-parse-count.test.ts",
+      "test/core/view.test.ts",
+      "test/e2e/semantic-browser-candidate-views.spec.ts",
+      "test/e2e/semantic-browser-model-view.spec.ts",
+      "test/fixtures/contract-browser/.xirang/candidate/metamodel/layer.md",
+      "test/fixtures/contract-browser/.xirang/candidate/metamodel/module.md",
+      "test/fixtures/contract-browser/.xirang/candidate/metamodel/references.md",
+      "test/fixtures/contract-browser/.xirang/candidate/metamodel/service.md",
+      "test/fixtures/contract-browser/.xirang/candidate/metamodel/system.md",
+      "test/fixtures/contract-browser/.xirang/candidate/relationships/invokes.yaml",
+      "test/fixtures/contract-browser/.xirang/candidate/relationships/references.yaml"
+    ],
+    "evidenceFingerprint": "1ba5ba7a3d44aade50b062ff26a920224963a6c89bf6cd7af38902e4e981160d",
+    "evidenceFingerprintEntries": [
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/custom/edges/RelationshipEdge.tsx",
+        "hash": "01f923169797087a1e225c1c3c00a687457105dabc91f4d73277fae49ee841e8"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
+        "hash": "4fec81d0e688f555c57118ef22c3d3db09e66d75d11fd26a27a8bdd257fd62dd"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
+        "hash": "4fec81d0e688f555c57118ef22c3d3db09e66d75d11fd26a27a8bdd257fd62dd"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+        "hash": "81b6bc50fe77b9fc8d53840f75118abeb94b2f5a31f705a175bd5f2a1f3fad0f"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+        "hash": "81b6bc50fe77b9fc8d53840f75118abeb94b2f5a31f705a175bd5f2a1f3fad0f"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/types.ts",
+        "hash": "3ae25aa36b4f7ea0d7b77ece9288739dc20de7028a6d8f8597aed70e31ee9bf6"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+        "hash": "609a043c3fec8957a1167dd3d0875e1659a7239f4ba5b152c117779687e52d2d"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+        "hash": "609a043c3fec8957a1167dd3d0875e1659a7239f4ba5b152c117779687e52d2d"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+        "hash": "06c220f3601b7b4919f16e6995ac77f8df97bce75c65dc634f3cdbef5d1a6724"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
+        "hash": "a494a61a6c1dcccd3381e766aa1334b853f47432f0026e5ddd5258a355d5c99c"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
+        "hash": "a494a61a6c1dcccd3381e766aa1334b853f47432f0026e5ddd5258a355d5c99c"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/projectionNode.ts",
+        "hash": "f8dd118ec06bacf931b2c654535fb1a9e946897819ed346a2e5d030c51b9fcbf"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
+        "hash": "f4e4e4ea4e533fe408af84eec48fc149d94c0f1bbb4efc779d7ed807cfc04543"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
+        "hash": "7f7a47828e4b65a90eeb1367a23187459e7fb79d496462d7d4cee35097f8bbd2"
+      },
+      {
+        "path": "src/core/view.ts",
+        "hash": "3185cd13e14c590608a48bff4a7d34accdd1a2c9bfd6f3cfafa7587b2ef7cfce"
+      },
+      {
+        "path": "test/core/view-likec4-once.test.ts",
+        "hash": "f3bea35f0b0ac4b95faf562e64258505615340bf05b1e930ca1e827d41c6bfb5"
+      },
+      {
+        "path": "test/core/view-parse-count.test.ts",
+        "hash": "250c3853e821bf6b342640444c98a50369251866484bc9e53043f961737b3efb"
+      },
+      {
+        "path": "test/core/view.test.ts",
+        "hash": "12cc2bf6d65dc9df4fe028c55f4804fa95aa70bf510726871d225b299887925a"
+      },
+      {
+        "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
+        "hash": "609caf1f5d27f3ea16dd477305a454d503fc758a4d1dfb4e418963ac3cd4340d"
+      },
+      {
+        "path": "test/e2e/semantic-browser-model-view.spec.ts",
+        "hash": "cfba24edd18ab172be9e9b3b69b3e396c00321828f7258141985376cceade28c"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/layer.md",
+        "hash": "d0962c53d94cf97ee9b2c43bf4dc72917b92e280f13c80afb70717f2a2b29908"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/module.md",
+        "hash": "793b54d5e1862726231971990343563a9b26ff8d0a2eea61294a8a9f6ce168ab"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/references.md",
+        "hash": "5512e3dfac556dd849cb4de7ec8dfac6f4f123c8d832d4fce8379b286e2c5b0e"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/service.md",
+        "hash": "8fa2fb02aaeefecec675e5155be6b0e6c3111ffa2e77e9ed5682e630c94658c3"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/system.md",
+        "hash": "d35fa208055a4ef208d05be23c54345dce7f545943b8121f7c23347137500a17"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/candidate/relationships/invokes.yaml",
+        "hash": "91ffe50433e585f0ca6c51f57619df057d596aec057f86ad70ea74ee6d0164c0"
+      },
+      {
+        "path": "test/fixtures/contract-browser/.xirang/candidate/relationships/references.yaml",
+        "hash": "87b33cae07aaedef98c5bbbbe7e3906ceb0b6cd2257abd89d4de2d3355b2dcc6"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "cce75c13c53b8dc4f3f451d7630c1913d4dc6d3d"
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-08-16T13:14:54.116Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "389e2320fe53f0d048dc16f50a72a7e03cffadc3d04d07f9f9867e853c049713",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/likec4diagram/custom/edges/RelationshipEdge.tsx",
+          "likec4/packages/diagram/src/likec4diagram/types.ts",
+          "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+          "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+          "likec4/packages/diagram/src/xirang/architectureView.ts",
+          "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
+          "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
+          "likec4/packages/diagram/src/xirang/projectionNode.ts",
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
+          "src/core/view.ts",
+          "test/core/view-likec4-once.test.ts",
+          "test/core/view-parse-count.test.ts",
+          "test/core/view.test.ts",
+          "test/e2e/semantic-browser-candidate-views.spec.ts",
+          "test/e2e/semantic-browser-model-view.spec.ts",
+          "test/fixtures/contract-browser/.xirang/candidate/metamodel/layer.md",
+          "test/fixtures/contract-browser/.xirang/candidate/metamodel/module.md",
+          "test/fixtures/contract-browser/.xirang/candidate/metamodel/references.md",
+          "test/fixtures/contract-browser/.xirang/candidate/metamodel/service.md",
+          "test/fixtures/contract-browser/.xirang/candidate/metamodel/system.md",
+          "test/fixtures/contract-browser/.xirang/candidate/relationships/invokes.yaml",
+          "test/fixtures/contract-browser/.xirang/candidate/relationships/references.yaml"
+        ],
+        "evidenceFingerprint": "1ba5ba7a3d44aade50b062ff26a920224963a6c89bf6cd7af38902e4e981160d",
+        "evidenceFingerprintEntries": [
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/custom/edges/RelationshipEdge.tsx",
+            "hash": "01f923169797087a1e225c1c3c00a687457105dabc91f4d73277fae49ee841e8"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
+            "hash": "4fec81d0e688f555c57118ef22c3d3db09e66d75d11fd26a27a8bdd257fd62dd"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.spec.ts",
+            "hash": "4fec81d0e688f555c57118ef22c3d3db09e66d75d11fd26a27a8bdd257fd62dd"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "hash": "81b6bc50fe77b9fc8d53840f75118abeb94b2f5a31f705a175bd5f2a1f3fad0f"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "hash": "81b6bc50fe77b9fc8d53840f75118abeb94b2f5a31f705a175bd5f2a1f3fad0f"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/types.ts",
+            "hash": "3ae25aa36b4f7ea0d7b77ece9288739dc20de7028a6d8f8597aed70e31ee9bf6"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+            "hash": "609a043c3fec8957a1167dd3d0875e1659a7239f4ba5b152c117779687e52d2d"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.spec.ts",
+            "hash": "609a043c3fec8957a1167dd3d0875e1659a7239f4ba5b152c117779687e52d2d"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/architectureView.ts",
+            "hash": "06c220f3601b7b4919f16e6995ac77f8df97bce75c65dc634f3cdbef5d1a6724"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
+            "hash": "a494a61a6c1dcccd3381e766aa1334b853f47432f0026e5ddd5258a355d5c99c"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/projectionNode.spec.ts",
+            "hash": "a494a61a6c1dcccd3381e766aa1334b853f47432f0026e5ddd5258a355d5c99c"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/projectionNode.ts",
+            "hash": "f8dd118ec06bacf931b2c654535fb1a9e946897819ed346a2e5d030c51b9fcbf"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
+            "hash": "f4e4e4ea4e533fe408af84eec48fc149d94c0f1bbb4efc779d7ed807cfc04543"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
+            "hash": "7f7a47828e4b65a90eeb1367a23187459e7fb79d496462d7d4cee35097f8bbd2"
+          },
+          {
+            "path": "src/core/view.ts",
+            "hash": "3185cd13e14c590608a48bff4a7d34accdd1a2c9bfd6f3cfafa7587b2ef7cfce"
+          },
+          {
+            "path": "test/core/view-likec4-once.test.ts",
+            "hash": "f3bea35f0b0ac4b95faf562e64258505615340bf05b1e930ca1e827d41c6bfb5"
+          },
+          {
+            "path": "test/core/view-parse-count.test.ts",
+            "hash": "250c3853e821bf6b342640444c98a50369251866484bc9e53043f961737b3efb"
+          },
+          {
+            "path": "test/core/view.test.ts",
+            "hash": "12cc2bf6d65dc9df4fe028c55f4804fa95aa70bf510726871d225b299887925a"
+          },
+          {
+            "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
+            "hash": "609caf1f5d27f3ea16dd477305a454d503fc758a4d1dfb4e418963ac3cd4340d"
+          },
+          {
+            "path": "test/e2e/semantic-browser-model-view.spec.ts",
+            "hash": "cfba24edd18ab172be9e9b3b69b3e396c00321828f7258141985376cceade28c"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/layer.md",
+            "hash": "d0962c53d94cf97ee9b2c43bf4dc72917b92e280f13c80afb70717f2a2b29908"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/module.md",
+            "hash": "793b54d5e1862726231971990343563a9b26ff8d0a2eea61294a8a9f6ce168ab"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/references.md",
+            "hash": "5512e3dfac556dd849cb4de7ec8dfac6f4f123c8d832d4fce8379b286e2c5b0e"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/service.md",
+            "hash": "8fa2fb02aaeefecec675e5155be6b0e6c3111ffa2e77e9ed5682e630c94658c3"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/candidate/metamodel/system.md",
+            "hash": "d35fa208055a4ef208d05be23c54345dce7f545943b8121f7c23347137500a17"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/candidate/relationships/invokes.yaml",
+            "hash": "91ffe50433e585f0ca6c51f57619df057d596aec057f86ad70ea74ee6d0164c0"
+          },
+          {
+            "path": "test/fixtures/contract-browser/.xirang/candidate/relationships/references.yaml",
+            "hash": "87b33cae07aaedef98c5bbbbe7e3906ceb0b6cd2257abd89d4de2d3355b2dcc6"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "cce75c13c53b8dc4f3f451d7630c1913d4dc6d3d"
+      }
+    }
+  }
+}
