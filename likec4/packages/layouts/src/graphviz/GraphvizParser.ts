@@ -126,28 +126,31 @@ function parseLabelBbox(
 function parseEdgePoints(
   { _draw_, likec4_id = '???' as EdgeId }: GraphvizJson.Edge,
   viewId: string = '<unknown view>',
-): DiagramEdge['points'] {
-  try {
-    const bezierOps = _draw_.filter((v): v is GraphvizJson.DrawOps.BSpline => v.op.toLowerCase() === 'b')
-    invariant(hasAtLeast(bezierOps, 1), `view ${viewId} edge ${likec4_id} should have at least one bezier draw op`)
-    if (bezierOps.length > 1) {
-      logger.warn(`view ${viewId} edge ${likec4_id} has more than one bezier draw op, using the first one only`)
-    }
-    const points = bezierOps[0].points.map(p => pointToPx(p))
-    invariant(hasAtLeast(points, 2), `view ${viewId} edge ${likec4_id} should have at least two points`)
-    return points
-  } catch (e) {
-    throw new Error(`failed on parsing view ${viewId} edge ${likec4_id} _draw_:\n${JSON.stringify(_draw_, null, 2)}`, {
-      cause: e,
-    })
+): DiagramEdge['points'] | null {
+  const bezierOps = (_draw_ ?? []).filter((v): v is GraphvizJson.DrawOps.BSpline => v.op.toLowerCase() === 'b')
+  if (!hasAtLeast(bezierOps, 1)) {
+    logger.warn(`Skipping edge ${viewId}:${likec4_id} because Graphviz returned no Bezier geometry`)
+    return null
   }
+  if (bezierOps.length > 1) {
+    logger.warn(`view ${viewId} edge ${likec4_id} has more than one bezier draw op, using the first one only`)
+  }
+  const points = bezierOps[0].points.map(p => pointToPx(p))
+  if (!hasAtLeast(points, 2)) {
+    logger.warn(`Skipping edge ${viewId}:${likec4_id} because Graphviz returned fewer than two Bezier points`)
+    return null
+  }
+  return points
 }
 
 function parseGraphvizEdge(
   graphvizEdge: GraphvizJson.Edge,
   { id, source, target, dir, label, description, ...computedEdge }: ComputedEdge,
   viewId: string,
-): DiagramEdge {
+): DiagramEdge | null {
+  const points = parseEdgePoints(graphvizEdge, viewId)
+  if (points === null) return null
+
   const labelBBox = parseLabelBbox(graphvizEdge._ldraw_ ?? graphvizEdge._tldraw_ ?? graphvizEdge._hldraw_)
   const isBack = graphvizEdge.dir === 'back' || dir === 'back'
   label = (label && labelBBox)
@@ -160,7 +163,7 @@ function parseGraphvizEdge(
     target,
     label,
     ...isTruthy(description) && { description },
-    points: parseEdgePoints(graphvizEdge, viewId),
+    points,
     labelBBox,
     ...(isBack ? { dir: 'back' } : {}),
     ...computedEdge,
@@ -243,9 +246,8 @@ export function parseGraphvizJson(
       logger.warn`View ${view.id} edge ${computedEdge.id} not found in graphviz output, skipping`
       continue
     }
-    edges.push(
-      parseGraphvizEdge(graphvizEdge, computedEdge, view.id),
-    )
+    const edge = parseGraphvizEdge(graphvizEdge, computedEdge, view.id)
+    if (edge) edges.push(edge)
   }
 
   return diagram
