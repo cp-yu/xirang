@@ -6,6 +6,7 @@
 - Modify: `likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx`
 - Modify: `likec4/packages/likec4-spa/src/routes/_single/single-index.tsx`
 - Modify: `likec4/packages/likec4-spa/src/searchParams.ts`
+- Modify: `playwright.config.ts`
 - Test: `likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts`
 - Test: `likec4/packages/likec4-spa/src/searchParams.spec.ts`
 - Test: `test/e2e/semantic-browser-candidate-views.spec.ts`
