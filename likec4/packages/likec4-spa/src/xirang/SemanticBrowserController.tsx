@@ -103,7 +103,12 @@ function changeSourceFor(manifest: SemanticBrowserManifest, change: string): Xir
 }
 
 function defaultMode(change: string | null): SemanticBrowserMode {
-  return change === null ? 'complete' : 'complete-with-diff'
+  return change === null || change === 'candidate' ? 'complete' : 'complete-with-diff'
+}
+
+function normalizeMode(change: string | null, requestedMode?: SemanticBrowserMode): SemanticBrowserMode {
+  const mode = requestedMode ?? defaultMode(change)
+  return change === null || (change === 'candidate' && mode === 'complete-with-diff') ? 'complete' : mode
 }
 
 /** Identities the actor may focus in a view; shared by clamping and the actor→controller mirror. */
@@ -146,10 +151,11 @@ function clampState(state: SemanticBrowserState, manifest: SemanticBrowserManife
   const changeSelection = state.changeSelection && validChanges(manifest).has(state.changeSelection)
     ? state.changeSelection
     : null
-  const allowed = focusableIdentities(state, manifest)
+  const normalizedState = { ...state, viewSelection, changeSelection }
+  const allowed = focusableIdentities(normalizedState, manifest)
   const focus = state.focus && allowed.has(state.focus) ? state.focus : null
   const expanded = new Set([...state.expanded].filter(identity => allowed.has(identity)))
-  const presentationMode = changeSelection === null ? 'complete' : state.presentationMode
+  const presentationMode = normalizeMode(changeSelection, state.presentationMode)
   return { viewSelection, changeSelection, presentationMode, focus, expanded }
 }
 
@@ -167,9 +173,10 @@ export function createSemanticBrowserState(
   history: SemanticBrowserHistoryState = { expanded: [] },
 ): SemanticBrowserState {
   const change = url.change && validChanges(manifest).has(url.change) ? url.change : null
-  const mode = url.mode === 'diff-only' || url.mode === 'complete-with-diff' || url.mode === 'complete'
+  const requestedMode = url.mode === 'diff-only' || url.mode === 'complete-with-diff' || url.mode === 'complete'
     ? url.mode
-    : defaultMode(change)
+    : undefined
+  const mode = normalizeMode(change, requestedMode)
   return clampState({
     viewSelection: url.view && validViews(manifest).has(url.view) ? url.view : 'model',
     changeSelection: change,
@@ -215,7 +222,7 @@ export function encodeSemanticBrowserUrl(state: SemanticBrowserState): SemanticB
   return {
     ...(state.viewSelection !== 'model' ? { view: state.viewSelection } : {}),
     ...(state.changeSelection ? { change: state.changeSelection } : {}),
-    ...(state.changeSelection && state.presentationMode !== 'complete-with-diff'
+    ...(state.changeSelection && state.presentationMode !== defaultMode(state.changeSelection)
       ? { mode: state.presentationMode }
       : {}),
     ...(state.focus ? { focus: state.focus } : {}),
@@ -306,10 +313,12 @@ export function SemanticBrowserRuntimeProvider({
 
 /** Canonical URL-state key shared by the URL-apply and URL-commit effects; they must never drift. */
 function canonicalSearchKey(search: Pick<SearchParams, 'view' | 'change' | 'mode' | 'focus'>): string {
+  const change = search.change ?? null
+  const normalizedMode = normalizeMode(change, search.mode)
   return JSON.stringify({
     view: search.view === 'model' ? undefined : search.view,
     change: search.change,
-    mode: search.mode === 'complete-with-diff' ? undefined : search.mode,
+    mode: normalizedMode === defaultMode(change) ? undefined : normalizedMode,
     focus: search.focus,
   })
 }
@@ -496,11 +505,16 @@ function SemanticBrowserControlsSelects() {
     ...(manifest.candidate ? [{ value: 'candidate', label: manifest.candidate.label }] : []),
     ...Object.entries(manifest.changes).map(([id, change]) => ({ value: id, label: change.label })),
   ]
-  const modeOptions = [
-    { value: 'complete', label: 'Complete' },
-    { value: 'complete-with-diff', label: 'Complete with diff', disabled: state.changeSelection === null },
-    { value: 'diff-only', label: 'Diff only', disabled: state.changeSelection === null },
-  ]
+  const modeOptions = state.changeSelection === 'candidate'
+    ? [
+        { value: 'complete', label: 'Complete' },
+        { value: 'diff-only', label: 'Diff only' },
+      ]
+    : [
+        { value: 'complete', label: 'Complete' },
+        { value: 'complete-with-diff', label: 'Complete with diff', disabled: state.changeSelection === null },
+        { value: 'diff-only', label: 'Diff only', disabled: state.changeSelection === null },
+      ]
   return (
     <>
       <NativeSelect
