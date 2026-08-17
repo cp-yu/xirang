@@ -63,7 +63,7 @@ describe('SemanticBrowserController state machine', () => {
     expect(html).toContain('<option value="diff-only" disabled="">')
   })
 
-  it('keeps Candidate as a Change Selection option with the three-state mode control', () => {
+  it('keeps Candidate as a Change Selection option with complete and diff-only', () => {
     const candidate = createSemanticBrowserState(manifest, { change: 'candidate', mode: 'diff-only' })
     expect(candidate).toMatchObject({ viewSelection: 'model', changeSelection: 'candidate', presentationMode: 'diff-only' })
     const html = renderToStaticMarkup(createElement(
@@ -77,32 +77,45 @@ describe('SemanticBrowserController state machine', () => {
     ))
     expect(html).toContain('data-xirang-controller')
     expect(html).toMatch(/<option value="candidate"[^>]*>Candidate View<\/option>/)
-    expect(html).toContain('<option value="complete-with-diff" selected="">')
+    expect(html).toContain('<option value="complete" selected="">')
+    expect(html).not.toContain('value="complete-with-diff"')
   })
 
-  it('首页 Candidate 入口生成 change=candidate&mode=complete-with-diff URL 状态', () => {
-    const state = createSemanticBrowserState(manifest, { change: 'candidate', mode: 'complete-with-diff' })
-    expect(state).toMatchObject({ viewSelection: 'model', changeSelection: 'candidate', presentationMode: 'complete-with-diff' })
+  it('首页 Candidate 入口生成 change=candidate URL 状态', () => {
+    const state = createSemanticBrowserState(manifest, { change: 'candidate' })
+    expect(state).toMatchObject({ viewSelection: 'model', changeSelection: 'candidate', presentationMode: 'complete' })
+    expect(encodeSemanticBrowserUrl(state)).toEqual({ change: 'candidate' })
     expect(projectionRequestForSemanticBrowser(state, manifest.modelFingerprint)).toMatchObject({
       viewId: 'model',
       change: 'candidate',
-      mode: 'complete-with-diff',
+      mode: 'complete',
     })
   })
 
-  it('selects Candidate and unlocks mode switching in three states', () => {
+  it('selects Candidate and unlocks complete and diff-only', () => {
     const initial = createSemanticBrowserState(manifest)
     const selected = reduceSemanticBrowserState(initial, { type: 'change.select', change: 'candidate' }, manifest)
     expect(selected.changeSelection).toBe('candidate')
-    expect(selected.presentationMode).toBe('complete-with-diff')
+    expect(selected.presentationMode).toBe('complete')
     expect(reduceSemanticBrowserState(selected, { type: 'mode.select', mode: 'complete' }, manifest).presentationMode).toBe('complete')
     expect(reduceSemanticBrowserState(selected, { type: 'mode.select', mode: 'diff-only' }, manifest).presentationMode).toBe('diff-only')
+    expect(reduceSemanticBrowserState(selected, { type: 'mode.select', mode: 'complete-with-diff' }, manifest).presentationMode).toBe('complete')
+  })
+
+  it('clamps change=candidate&mode=complete-with-diff to complete', () => {
+    const state = createSemanticBrowserState(manifest, { change: 'candidate', mode: 'complete-with-diff' })
+    expect(state.presentationMode).toBe('complete')
+    expect(encodeSemanticBrowserUrl(state)).toEqual({ change: 'candidate' })
+    expect(projectionRequestForSemanticBrowser(state, manifest.modelFingerprint)).toMatchObject({
+      change: 'candidate',
+      mode: 'complete',
+    })
   })
 
   it('encodes URL state for change=candidate', () => {
     const state = createSemanticBrowserState(manifest, { change: 'candidate' })
     expect(encodeSemanticBrowserUrl(state)).toEqual({ change: 'candidate' })
-    expect(projectionRequestForSemanticBrowser(state, manifest.modelFingerprint)).toMatchObject({ change: 'candidate', mode: 'complete-with-diff' })
+    expect(projectionRequestForSemanticBrowser(state, manifest.modelFingerprint)).toMatchObject({ change: 'candidate', mode: 'complete' })
     const diffOnly = reduceSemanticBrowserState(state, { type: 'mode.select', mode: 'diff-only' }, manifest)
     expect(encodeSemanticBrowserUrl(diffOnly)).toEqual({ change: 'candidate', mode: 'diff-only' })
   })

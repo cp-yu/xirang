@@ -93,7 +93,11 @@ function RouteComponent() {
               onOpen={() => void navigate({
                 to: '/view/$viewId/',
                 params: { viewId: 'model' },
-                search: previous => ({ ...previous, view: 'model', change: 'candidate', mode: 'complete-with-diff' }),
+                search: previous => {
+                  const next = { ...previous, view: 'model', change: 'candidate' }
+                  delete next.mode
+                  return next
+                },
               })}
             />
           </CardGrid>

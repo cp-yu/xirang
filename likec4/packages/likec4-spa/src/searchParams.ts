@@ -37,7 +37,7 @@ export const searchParamsSchema = z.object({
     .nonempty()
     .optional()
     .catch(undefined),
-  /** Xirang diff display mode; absent means complete without a Change and complete-with-diff when one is selected. */
+  /** Xirang diff display mode; absent means complete with no Change or Candidate, and complete-with-diff for an active Change. */
   mode: z.enum(['complete', 'complete-with-diff', 'diff-only'])
     .optional()
     .catch(undefined),
