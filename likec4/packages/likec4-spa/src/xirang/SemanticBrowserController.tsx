@@ -106,6 +106,11 @@ function defaultMode(change: string | null): SemanticBrowserMode {
   return change === null || change === 'candidate' ? 'complete' : 'complete-with-diff'
 }
 
+function normalizeMode(change: string | null, requestedMode?: SemanticBrowserMode): SemanticBrowserMode {
+  const mode = requestedMode ?? defaultMode(change)
+  return change === null || (change === 'candidate' && mode === 'complete-with-diff') ? 'complete' : mode
+}
+
 /** Identities the actor may focus in a view; shared by clamping and the actor→controller mirror. */
 function focusableIdentities(
   state: Pick<SemanticBrowserState, 'viewSelection' | 'changeSelection'>,
@@ -149,9 +154,7 @@ function clampState(state: SemanticBrowserState, manifest: SemanticBrowserManife
   const allowed = focusableIdentities(state, manifest)
   const focus = state.focus && allowed.has(state.focus) ? state.focus : null
   const expanded = new Set([...state.expanded].filter(identity => allowed.has(identity)))
-  const presentationMode = changeSelection === null || (changeSelection === 'candidate' && state.presentationMode === 'complete-with-diff')
-    ? 'complete'
-    : state.presentationMode
+  const presentationMode = normalizeMode(changeSelection, state.presentationMode)
   return { viewSelection, changeSelection, presentationMode, focus, expanded }
 }
 
@@ -169,9 +172,10 @@ export function createSemanticBrowserState(
   history: SemanticBrowserHistoryState = { expanded: [] },
 ): SemanticBrowserState {
   const change = url.change && validChanges(manifest).has(url.change) ? url.change : null
-  const mode = url.mode === 'diff-only' || url.mode === 'complete-with-diff' || url.mode === 'complete'
+  const requestedMode = url.mode === 'diff-only' || url.mode === 'complete-with-diff' || url.mode === 'complete'
     ? url.mode
-    : defaultMode(change)
+    : undefined
+  const mode = normalizeMode(change, requestedMode)
   return clampState({
     viewSelection: url.view && validViews(manifest).has(url.view) ? url.view : 'model',
     changeSelection: change,
@@ -309,13 +313,11 @@ export function SemanticBrowserRuntimeProvider({
 /** Canonical URL-state key shared by the URL-apply and URL-commit effects; they must never drift. */
 function canonicalSearchKey(search: Pick<SearchParams, 'view' | 'change' | 'mode' | 'focus'>): string {
   const change = search.change ?? null
-  const mode = change === null || (change === 'candidate' && search.mode === 'complete-with-diff')
-    ? defaultMode(change)
-    : search.mode
+  const normalizedMode = normalizeMode(change, search.mode)
   return JSON.stringify({
     view: search.view === 'model' ? undefined : search.view,
     change: search.change,
-    mode: mode === defaultMode(change) ? undefined : mode,
+    mode: normalizedMode === defaultMode(change) ? undefined : normalizedMode,
     focus: search.focus,
   })
 }

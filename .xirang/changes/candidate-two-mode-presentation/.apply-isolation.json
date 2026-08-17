@@ -2,5 +2,6 @@
   "method": "branch",
   "branchName": "candidate-two-mode-presentation",
   "originalBranch": "main",
-  "baseCommit": "3393791d6c9d4f95a6f60078cac11f7c8107d430"
+  "baseCommit": "3393791d6c9d4f95a6f60078cac11f7c8107d430",
+  "phase2BaselineCommit": "219c82dfacb63cc036ba1766aa956c24c2277e9f"
 }

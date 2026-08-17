@@ -120,6 +120,50 @@ describe('SemanticBrowserController state machine', () => {
     expect(encodeSemanticBrowserUrl(diffOnly)).toEqual({ change: 'candidate', mode: 'diff-only' })
   })
 
+  it('normalizes every presentation mode through state creation and the reducer', () => {
+    const cases: Array<{
+      change: string | null
+      requestedMode?: 'complete' | 'complete-with-diff' | 'diff-only'
+      expectedMode: 'complete' | 'complete-with-diff' | 'diff-only'
+      expectedUrl: Record<string, string>
+    }> = [
+      { change: null, expectedMode: 'complete', expectedUrl: {} },
+      { change: null, requestedMode: 'complete', expectedMode: 'complete', expectedUrl: {} },
+      { change: null, requestedMode: 'complete-with-diff', expectedMode: 'complete', expectedUrl: {} },
+      { change: null, requestedMode: 'diff-only', expectedMode: 'complete', expectedUrl: {} },
+      { change: 'candidate', expectedMode: 'complete', expectedUrl: { change: 'candidate' } },
+      { change: 'candidate', requestedMode: 'complete', expectedMode: 'complete', expectedUrl: { change: 'candidate' } },
+      { change: 'candidate', requestedMode: 'complete-with-diff', expectedMode: 'complete', expectedUrl: { change: 'candidate' } },
+      { change: 'candidate', requestedMode: 'diff-only', expectedMode: 'diff-only', expectedUrl: { change: 'candidate', mode: 'diff-only' } },
+      { change: 'auth', expectedMode: 'complete-with-diff', expectedUrl: { change: 'auth' } },
+      { change: 'auth', requestedMode: 'complete', expectedMode: 'complete', expectedUrl: { change: 'auth', mode: 'complete' } },
+      { change: 'auth', requestedMode: 'complete-with-diff', expectedMode: 'complete-with-diff', expectedUrl: { change: 'auth' } },
+      { change: 'auth', requestedMode: 'diff-only', expectedMode: 'diff-only', expectedUrl: { change: 'auth', mode: 'diff-only' } },
+    ]
+
+    for (const { change, requestedMode, expectedMode, expectedUrl } of cases) {
+      const url = {
+        ...(change === null ? {} : { change }),
+        ...(requestedMode === undefined ? {} : { mode: requestedMode }),
+      }
+      const created = createSemanticBrowserState(manifest, url)
+      const selected = reduceSemanticBrowserState(
+        createSemanticBrowserState(manifest),
+        { type: 'change.select', change },
+        manifest,
+      )
+      const reduced = requestedMode === undefined
+        ? selected
+        : reduceSemanticBrowserState(selected, { type: 'mode.select', mode: requestedMode }, manifest)
+
+      for (const state of [created, reduced]) {
+        expect(state.presentationMode).toBe(expectedMode)
+        expect(encodeSemanticBrowserUrl(state)).toEqual(expectedUrl)
+        expect(projectionRequestForSemanticBrowser(state, manifest.modelFingerprint).mode).toBe(expectedMode)
+      }
+    }
+  })
+
   it('ignores change=candidate without an active Candidate', () => {
     const { candidate: _candidate, ...noCandidate } = manifest
     const state = createSemanticBrowserState(noCandidate, { change: 'candidate' })
