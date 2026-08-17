@@ -1,0 +1,105 @@
+{
+  "timestamp": "2026-08-17T06:20:13.179Z",
+  "result": "FAIL_NEEDS_CORRECTIONS",
+  "issues": [
+    {
+      "severity": "CRITICAL",
+      "message": "C8 is marked complete, but no immutable evidence records the required one-time Edera verification; repository evidence only proves the behavior against the local contract-browser fixture.",
+      "requirement": "呈现 Candidate 目标与差异 / 浏览 Candidate 目标模型",
+      "task": "C8 一次性确认 Edera Candidate 默认 complete",
+      "recommendation": "Run the stated verification against Edera and persist reproducible evidence or an attested verification result; otherwise unmark C8.",
+      "evidenceCitations": [
+        ".xirang/changes/candidate-two-mode-presentation/tasks.md:57-60",
+        ".xirang/changes/candidate-two-mode-presentation/design.md:41-41",
+        "test/e2e/semantic-browser-candidate-views.spec.ts:21-52"
+      ]
+    }
+  ],
+  "tasksFileHash": "cc4edeca4d8f4778aaa95a6979778779e073b2e2d7a1343ae913cfce621d8f12",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/candidate-two-mode-presentation/.apply-isolation.json",
+      ".xirang/changes/candidate-two-mode-presentation/.xirang.yaml",
+      ".xirang/changes/candidate-two-mode-presentation/design.md",
+      ".xirang/changes/candidate-two-mode-presentation/elements/semantic-browser.md",
+      ".xirang/changes/candidate-two-mode-presentation/elements/web.md",
+      ".xirang/changes/candidate-two-mode-presentation/elements/xirang-diff-overlay.md",
+      ".xirang/changes/candidate-two-mode-presentation/proposal.md",
+      ".xirang/changes/candidate-two-mode-presentation/tasks.md",
+      "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
+      "likec4/packages/likec4-spa/src/searchParams.spec.ts",
+      "likec4/packages/likec4-spa/src/searchParams.ts",
+      "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
+      "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
+      "test/e2e/semantic-browser-candidate-views.spec.ts",
+      "test/e2e/semantic-browser-model-view.spec.ts"
+    ],
+    "evidenceFingerprint": "52181e5bb29e6b271421b46a0eba736c1c52b5d459e56e02d46da027510d0def",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/candidate-two-mode-presentation/.apply-isolation.json",
+        "hash": "cae0c83044e1c3abc4476ca4002f1fd92b14da09791da476d3a7b6bda91f3736"
+      },
+      {
+        "path": ".xirang/changes/candidate-two-mode-presentation/.xirang.yaml",
+        "hash": "8a7fb49419df5aa8ba9bf912cf373cb57f2defdd6ba7bca350ad799a4dcc9e86"
+      },
+      {
+        "path": ".xirang/changes/candidate-two-mode-presentation/design.md",
+        "hash": "f9866094de4ef20836ff19f6429f40ac70d0f291966fb14a076cb0ef8859213d"
+      },
+      {
+        "path": ".xirang/changes/candidate-two-mode-presentation/elements/semantic-browser.md",
+        "hash": "7a2839ed9b06ddf7bf0078eef77c6cabc09d7032d8091a3e44a962702a3cbb07"
+      },
+      {
+        "path": ".xirang/changes/candidate-two-mode-presentation/elements/web.md",
+        "hash": "10ac4961a04a60a0fd745dae2a9378c5052f454df89ee8cd5cf8fbe76b8148b1"
+      },
+      {
+        "path": ".xirang/changes/candidate-two-mode-presentation/elements/xirang-diff-overlay.md",
+        "hash": "153824eceba902b28360c1d2f8b0661c01f456e473d10ed567e91366832b358f"
+      },
+      {
+        "path": ".xirang/changes/candidate-two-mode-presentation/proposal.md",
+        "hash": "6faf59a091249849044e8b46c35f6e922aa3804839178bc0826de22af6878c5a"
+      },
+      {
+        "path": ".xirang/changes/candidate-two-mode-presentation/tasks.md",
+        "hash": "cc4edeca4d8f4778aaa95a6979778779e073b2e2d7a1343ae913cfce621d8f12"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
+        "hash": "1b009c34f5b5e82fa09b302139f1779e00469b3e1e7c44fa28080e7c10f9f06d"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/searchParams.spec.ts",
+        "hash": "db71375216589ea4838462795c4b78718854efc61bdbce875dfc92fbeed57a8b"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/searchParams.ts",
+        "hash": "801be52a7ce8267dd0f682f916c76a32be6f5a4d1d9bd08ff6aeca48842a95d2"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
+        "hash": "624e87760f3dcdab59603c44e5e4cdcb272236e5490ce973c1e88f51012421e0"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
+        "hash": "e3bd4d443201a2365274cac5ba439a9c97d9ad26ce0e4d8cbd48338c9c51a391"
+      },
+      {
+        "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
+        "hash": "39512e75043e13027237562b0596c67994ac825727dae74f0c7016e7847a7328"
+      },
+      {
+        "path": "test/e2e/semantic-browser-model-view.spec.ts",
+        "hash": "9db46065761ee07ce9282322f49734c512faac45a81339ea9f5dab4c0cd2479f"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "67ceec4f320e9b938defd6eafd3ba6ca35c90588",
+    "gitDiffSummary": "Validated baseCommit 3393791d6c9d4f95a6f60078cac11f7c8107d430 and reviewed the 13-file committed scope from `git diff <baseCommit>...HEAD --name-only`; `git status --short` was clean. Focused unit tests passed 27/27, Candidate e2e passed 10/10 across desktop and mobile, Change model-view e2e passed 15/15, SPA typecheck passed, and both strict change validation and Expected Semantic Model validation passed. Candidate now defaults and clamps to `complete`, exposes only `complete` and `diff-only`, omits the default mode from the landing URL, retains REMOVED ghosts in `diff-only`, and preserves active Change `complete-with-diff`. Residual risk is limited to the unsubstantiated Edera-specific C8 attestation."
+  }
+}

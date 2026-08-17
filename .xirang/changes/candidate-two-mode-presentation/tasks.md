@@ -57,4 +57,5 @@
 - [x] C8 一次性确认 Edera Candidate 默认 complete
   - Verifies: `elements/web.md` / Requirement "呈现 Candidate 目标与差异" / Scenario "浏览 Candidate 目标模型"
   - Evidence: 在 Edera 运行 `xirang view`，打开 Candidate 后 Mode 为 `complete` 且控件只有 `complete` 与 `diff-only`
+  - Result: `evidence/edera-candidate-view.json` 记录目标快照、执行方式与浏览器观测值
   - Expect: 默认呈现完整 Candidate 目标，无差异 overlay

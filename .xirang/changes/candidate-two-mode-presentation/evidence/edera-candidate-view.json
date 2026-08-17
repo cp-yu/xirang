@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "check": "C8",
+  "recordedAt": "2026-08-17T06:20:59Z",
+  "implementation": {
+    "projectRoot": "/home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec",
+    "commit": "67ceec4f320e9b938defd6eafd3ba6ca35c90588"
+  },
+  "target": {
+    "projectRoot": "/home/yunxin/Documents/Code/tools/Edera",
+    "commit": "04de5ff42bbbc3c864146d06eb1116ef2c88533f",
+    "candidateContentSha256": "039f2a20d4596c259f5ef9403e0ed4862123811b31da9cf7e48e2d3406ac8ab6"
+  },
+  "method": {
+    "server": "CI=true node <OpenSpec>/bin/xirang.js view --listen 127.0.0.1 --port 44567",
+    "client": "Playwright Chromium, 1440x900",
+    "entry": "Click the Candidate View card from the landing page"
+  },
+  "observed": {
+    "url": "http://127.0.0.1:44567/view/model/?change=candidate",
+    "changeSelection": "candidate",
+    "presentationMode": "complete",
+    "presentationModeOptions": [
+      "Complete",
+      "Diff only"
+    ],
+    "nodeDiffOverlayCount": 0,
+    "visibleNodeCount": 9
+  },
+  "result": "PASS"
+}
