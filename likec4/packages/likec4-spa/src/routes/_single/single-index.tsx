@@ -39,7 +39,7 @@ function RouteComponent() {
   const views = filterLandingPageViews(allViews, landingPage)
   const runtime = useXirangViewSources()
   const navigate = useNavigate()
-  const candidateSources = runtime.sources.filter(s => s.source === 'candidate' || s.source === 'candidate-diff')
+  const candidate = runtime.candidate
   const changes = runtime.changes
   return (
     <Container size={'xl'}>
@@ -83,21 +83,19 @@ function RouteComponent() {
       <CardGrid>
         {views.map((v) => <ViewCard key={v.id} view={v} />)}
       </CardGrid>
-      {candidateSources.length > 0 && (
+      {candidate && (
         <>
           <Text size="lg" fw={600} mt="xl" mb="xs">Candidate</Text>
           <CardGrid>
-            {candidateSources.map(s => (
-              <SourceCard
-                key={s.id}
-                source={s}
-                onOpen={() => void navigate({
-                  to: '/view/$viewId/',
-                  params: { viewId: 'model' },
-                  search: previous => ({ ...previous, view: s.id }),
-                })}
-              />
-            ))}
+            <SourceCard
+              key={candidate.id}
+              source={candidate}
+              onOpen={() => void navigate({
+                to: '/view/$viewId/',
+                params: { viewId: 'model' },
+                search: previous => ({ ...previous, view: 'model', change: 'candidate', mode: 'complete-with-diff' }),
+              })}
+            />
           </CardGrid>
         </>
       )}

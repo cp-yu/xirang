@@ -181,7 +181,6 @@ function XirangArchitectureOverlay() {
   const expandedNodes = useDiagramSelector(selectDiagramSnapshot(snapshot => snapshot.context.expandedNodes))
   const modelView = useRef(currentView)
   const previousFocusAncestors = useRef<string[]>([])
-  /** Candidate View is always full; Candidate Diff View is always diff-only; Changes can toggle. */
   const effectiveMode = resolveEffectiveMode(selected.source, mode)
   /** Previous run's View/Change/Mode selection; null before the first projection update. */
   const previousSelection = useRef<{ id: string; change: string | null; mode: ReturnType<typeof resolveEffectiveMode> } | null>(null)
@@ -228,7 +227,7 @@ function XirangArchitectureOverlay() {
     }
     return identities
   }, [declarations, focusIdentity, breadcrumbRoot, viewScope])
-  const breadcrumb = (selected.source === 'semantic-model' || selected.source === 'candidate' || selected.source === 'candidate-diff') && breadcrumbIdentities.length > 0 && (
+  const breadcrumb = (selected.source === 'semantic-model' || selected.change === 'candidate') && breadcrumbIdentities.length > 0 && (
     <FloatingChrome dragControls={breadcrumbDragControls} position={{ left: 60, bottom: 16 }}>
       <Group
         data-xirang-focus-breadcrumb

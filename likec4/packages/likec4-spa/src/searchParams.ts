@@ -37,10 +37,10 @@ export const searchParamsSchema = z.object({
     .nonempty()
     .optional()
     .catch(undefined),
-  /** Xirang diff display mode; candidate-diff is fixed to diff, candidate to full. */
+  /** Xirang diff display mode; absent means complete without a Change and complete-with-diff when one is selected. */
   mode: z.enum(['complete', 'complete-with-diff', 'diff-only'])
-    .default('complete')
-    .catch('complete'),
+    .optional()
+    .catch(undefined),
 })
 
 export type SearchParams = z.infer<typeof searchParamsSchema>

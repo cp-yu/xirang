@@ -1,0 +1,7 @@
+{
+  "method": "branch",
+  "branchName": "unify-candidate-change-modes",
+  "originalBranch": "main",
+  "baseCommit": "9d3589c80c39c4aaa10fb454385c71a395fe7000",
+  "phase2BaselineCommit": "a04cfee9a41d40ecb1c1c8d39f2c2f867dbf1ae6"
+}

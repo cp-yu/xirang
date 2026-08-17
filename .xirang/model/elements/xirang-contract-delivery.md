@@ -11,7 +11,7 @@ definition: Xirang Contract Delivery 是 Web 对 LikeC4 的 Contract 投递改�
 
 ### Requirement: 通过 Contract 接口加载 Element Contract
 
-Web SHALL 通过 Xirang-specific Contract loader、provider、tab 与 HTTP endpoint `/__xirang/contract`，按统一 source reference 加载 Semantic Model、active Candidate、Candidate Diff 或活动 Change target 中的 Element Contract；请求 MAY 使用 `source=change:<change-name>`、`source=candidate` 或 `source=candidate-diff` 选择来源。
+Web SHALL 通过 Xirang-specific Contract loader、provider、tab 与 HTTP endpoint `/__xirang/contract`，按统一 source reference 加载 Semantic Model、active Candidate 或活动 Change target 中的 Element Contract；请求 MAY 使用 `source=change:<change-name>` 或 `source=candidate` 选择来源；`source=change:candidate` SHALL 路由到 `manifest.candidate.contracts`，Candidate 的 Contract diff 与 diagnostics 呈现逻辑与活动 Change 一致。
 
 #### Scenario: 加载 Semantic Model Contract
 
@@ -25,13 +25,8 @@ Web SHALL 通过 Xirang-specific Contract loader、provider、tab 与 HTTP endpo
 
 #### Scenario: 加载 Candidate Contract
 
-- **WHEN** 用户在 Candidate View 中打开一个 Element Contract
-- **THEN** loader 携带 `source=candidate` 并呈现 active Candidate target 中的 `XirangContractContent`
-
-#### Scenario: 加载 Candidate Diff Contract
-
-- **WHEN** 用户在 Candidate Diff View 中打开一个 Element Contract
-- **THEN** loader 携带 `source=candidate-diff` 并呈现 Candidate target 中的 Contract、diff 与 diagnostics
+- **WHEN** 用户在 Candidate Selection 中打开一个 Element Contract
+- **THEN** loader 携带 `source=change:candidate` 并呈现 active Candidate target 中的 Contract、diff 与 diagnostics
 
 #### Scenario: Contract 不存在
 
@@ -45,7 +40,7 @@ Web SHALL 通过 Xirang-specific Contract loader、provider、tab 与 HTTP endpo
 
 #### Scenario: 新请求替代旧请求
 
-- **WHEN** 用户在前一个 Contract request 完成前切换 Element、Model View、Candidate source 或 Change-derived View
+- **WHEN** 用户在前一个 Contract request 完成前切换 Element、Model View、Candidate 或 Change Selection
 - **THEN** Browser 取消或忽略旧请求，且旧结果不得覆盖当前 Contract state
 
 #### Scenario: 使用 Contract selectors

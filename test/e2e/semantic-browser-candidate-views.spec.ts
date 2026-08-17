@@ -6,22 +6,24 @@ const nodeInViewport = `(node) => {
   return rect.right > 0 && rect.left < window.innerWidth && rect.bottom > 0 && rect.top < window.innerHeight
 }`
 
-async function openCandidate(page: Page, label: 'Candidate View' | 'Candidate Diff View'): Promise<void> {
+async function openCandidate(page: Page): Promise<void> {
   await page.goto('/')
-  await page.getByText(label, { exact: true }).click()
-  const identity = label === 'Candidate View' ? 'candidate' : 'candidate-diff'
-  await expect(page).toHaveURL(new RegExp(`view=${identity}`))
+  await page.getByText('Candidate View', { exact: true }).click()
+  await expect(page).toHaveURL(/change=candidate/)
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
 }
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/view/model/')
-  await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
+  await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout:20_000 })
 })
 
 test('browses the complete candidate model through the collapsed baseline', async ({ page }) => {
-  await openCandidate(page, 'Candidate View')
-  await expect(page.locator('[data-xirang-controller]')).toHaveCount(0)
+  await openCandidate(page)
+  // Candidate is a Change Selection now: the three orthogonal controls are visible.
+  await expect(page.locator('[data-xirang-controller]')).toBeVisible()
+  await expect(page.getByLabel('Change Selection')).toHaveValue('candidate')
+  await expect(page.getByLabel('Presentation Mode')).toHaveValue('complete-with-diff')
   const nodes = page.locator('.react-flow__node:visible')
   await expect(nodes).not.toHaveCount(0)
 
@@ -37,44 +39,65 @@ test('browses the complete candidate model through the collapsed baseline', asyn
   // LikeC4 aggregated label.
   await expect(page.getByRole('group', { name: /Label: \[\.\.\.\]/ })).toBeVisible()
 
-  // Drill-down inside the same candidate view identity reveals the nested level.
+  // Complete mode drops every diff mark on the Candidate target projection.
+  await page.getByLabel('Presentation Mode').selectOption('complete')
+  await expect(page.locator('[data-xirang-node-diff]')).toHaveCount(0)
+
+  // Drill-down inside the same Candidate selection reveals the nested level.
   await browser.dblclick()
-  await expect(page).toHaveURL(/view=candidate/)
+  await expect(page).toHaveURL(/change=candidate/)
   await expect(page).toHaveURL(/focus=perspective\.browser/)
   await expect(page.locator('.react-flow__node[data-xirang-identity="capability.drill"]')).toBeVisible()
   await expect(page.locator('.react-flow__node[data-xirang-identity="capability.new-in-candidate"]')).toBeVisible()
-  await page.screenshot({ path: test.info().outputPath('candidate-drill.png'), fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('candidate-complete-drill.png'), fullPage: true })
 })
 
-test('reviews candidate changes in diff only mode', async ({ page }) => {
-  await openCandidate(page, 'Candidate Diff View')
-  await expect(page.locator('[data-xirang-controller]')).toHaveCount(0)
-  await expect(page.locator('.react-flow__node:visible')).not.toHaveCount(0)
-  await expect(page.getByRole('button', { name: 'Full context' })).toHaveCount(0)
+test('reviews candidate changes in complete-with-diff mode', async ({ page }) => {
+  await openCandidate(page)
+  await expect(page.getByLabel('Presentation Mode')).toHaveValue('complete-with-diff')
 
-  // Hierarchical baseline: ALL root children are visible, including unchanged ones.
-  // Diff overlay is applied on top — ADDED/MODIFIED/REMOVED outlines and count badges
-  // appear on visible nodes; deep changed elements require drill-down.
-  await expect(page.locator('.react-flow__node[data-xirang-identity="single"]')).toBeVisible()
-  await expect(page.locator('.react-flow__node[data-xirang-identity="long"]')).toBeVisible()
-  await expect(page.locator('.react-flow__node[data-xirang-identity="none"]')).toBeVisible()
-  await expect(page.locator('.react-flow__node[data-xirang-identity="perspective.browser"]')).toBeVisible()
+  // Target-only projection with the diff overlay on visible nodes.
+  const single = page.locator('.react-flow__node[data-xirang-identity="single"]')
+  await expect(single).toBeVisible()
+  await expect(single).toHaveAttribute('data-xirang-operation', 'MODIFIED')
 
-  // Deep changed elements require drill-down: REMOVED capability.assistant is not visible initially.
+  // REMOVED elements are not part of the target projection in complete-with-diff.
   await expect(page.locator('.react-flow__node[data-xirang-identity="capability.assistant"]')).toHaveCount(0)
+
+  // Unchanged nodes dim to 25%.
+  const longNode = page.locator('.react-flow__node[data-xirang-identity="long"] .likec4-element-node')
+  await expect(longNode).toBeVisible()
+  await expect(longNode.evaluate(node => parseFloat(getComputedStyle(node).opacity))).resolves.toBeCloseTo(0.25, 2)
 
   // The single→long edge has two ADDED relationships (invokes + references), shown as merged badges.
   await expect(page.locator('[data-xirang-edge-diff-badges]')).toBeVisible()
   await expect(page.locator('[data-xirang-edge-diff-badges]')).toContainText('+2')
-  // capability.assistant→capability.leaf (REMOVED) is a deep relationship, only visible after drill-down.
 
-  // Drill down into perspective.browser: its direct child capability.drill becomes visible.
-  const browser = page.locator('.react-flow__node[data-xirang-identity="perspective.browser"]')
-  await browser.dblclick()
-  await expect(page).toHaveURL(/focus=perspective\.browser/)
-  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.drill"]')).toBeVisible()
-  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.new-in-candidate"]')).toBeVisible()
-  // capability.assistant (REMOVED) is one level deeper; it requires a further drill-down into capability.drill.
+  await page.screenshot({ path: test.info().outputPath('candidate-complete-with-diff.png'), fullPage: true })
+})
+
+test('reviews candidate changes in diff-only mode with removed ghosts', async ({ page }) => {
+  await openCandidate(page)
+  await page.getByLabel('Presentation Mode').selectOption('diff-only')
+
+  // Diff-driven visible set: changed elements, their ancestors and relationship endpoints.
+  const assistant = page.locator('.react-flow__node[data-xirang-identity="capability.assistant"]')
+  await expect(assistant).toBeVisible()
+  await expect(assistant).toHaveAttribute('data-xirang-operation', 'REMOVED')
+
+  const added = page.locator('.react-flow__node[data-xirang-identity="capability.new-in-candidate"]')
+  await expect(added).toBeVisible()
+  await expect(added).toHaveAttribute('data-xirang-operation', 'ADDED')
+
+  // Elements without diff involvement stay out of the diff-only projection.
+  await expect(page.locator('.react-flow__node[data-xirang-identity="none"]')).toHaveCount(0)
+  await expect(page.locator('.react-flow__node[data-xirang-identity="capability.peer"]')).toHaveCount(0)
+
+  // The assistant→leaf REMOVED relationship keeps its single-char badge.
+  await expect(page.locator('[data-xirang-edge-diff][aria-label="Relationship REMOVED"]')).toBeVisible()
+  // The single→long ADDED pair stays merged with its +2 count badge.
+  await expect(page.locator('[data-xirang-edge-diff-badges]')).toBeVisible()
+  await expect(page.locator('[data-xirang-edge-diff-badges]')).toContainText('+2')
 
   // Collapsed Metamodel panel: three summary points, exclusive expansion, entry diff modal.
   if ((page.viewportSize()?.width ?? 0) >= 768) {
@@ -95,19 +118,44 @@ test('reviews candidate changes in diff only mode', async ({ page }) => {
     await page.keyboard.press('Escape')
   }
 
-  await page.screenshot({ path: test.info().outputPath('candidate-diff-visible-set.png'), fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('candidate-review-diff-only.png'), fullPage: true })
 })
 
-test('keeps invalid candidate sources diagnosable', async ({ page }) => {
+test('shows the candidate card on the landing page and opens the three-state URL', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByText('Candidate View', { exact: true })).toBeVisible({ timeout: 20_000 })
-  await expect(page.getByText('Candidate Diff View', { exact: true })).toBeVisible({ timeout: 20_000 })
+  await page.getByText('Candidate View', { exact: true }).click()
+
+  await expect(page).toHaveURL(/change=candidate/)
+  await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByLabel('Change Selection')).toHaveValue('candidate')
+  await expect(page.getByLabel('Presentation Mode')).toHaveValue('complete-with-diff')
 })
 
-test('shows candidate cards on the landing page', async ({ page }) => {
-  await page.goto('/')
-  await expect(page.getByText('Candidate View')).toBeVisible({ timeout: 20_000 })
-  await expect(page.getByText('Candidate Diff View')).toBeVisible({ timeout: 20_000 })
+test('deep links change=candidate and round-trips the presentation mode', async ({ page }) => {
+  // Canonical default-state URL: mode omitted means complete-with-diff.
+  await page.goto('/view/model/?change=candidate')
+  await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByLabel('Change Selection')).toHaveValue('candidate')
+  await expect(page.getByLabel('Presentation Mode')).toHaveValue('complete-with-diff')
+
+  // A mode change is written back to the URL.
+  await page.getByLabel('Presentation Mode').selectOption('diff-only')
+  await expect(page).toHaveURL(/mode=diff-only/)
+
+  // Reload restores the explicit mode.
+  await page.reload()
+  await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByLabel('Presentation Mode')).toHaveValue('diff-only')
+
+  // The canonical default URL decodes to complete-with-diff again, and an explicit
+  // complete selection is expressible in the URL.
+  await page.goto('/view/model/?change=candidate')
+  await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByLabel('Presentation Mode')).toHaveValue('complete-with-diff')
+  await page.getByLabel('Presentation Mode').selectOption('complete')
+  await expect(page).toHaveURL(/mode=complete/)
+  await expect(page.locator('[data-xirang-node-diff]')).toHaveCount(0)
 })
 
 test('opens an active change from the landing page', async ({ page }) => {

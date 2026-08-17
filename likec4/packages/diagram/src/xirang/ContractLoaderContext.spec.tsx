@@ -61,16 +61,6 @@ const candidateSource: XirangViewSource = {
     ],
     relationships: [],
   },
-}
-
-const candidateDiffSource: XirangViewSource = {
-  id: 'candidate-diff',
-  label: 'Candidate Diff View',
-  source: 'candidate-diff',
-  valid: true,
-  sourceFingerprint: 'candidate-diff-fp',
-  diagnostics: [],
-  architecture: candidateSource.architecture!,
   diff: {
     summary: { total: 1, ADDED: 1, MODIFIED: 0, REMOVED: 0 },
     entries: [
@@ -78,7 +68,7 @@ const candidateDiffSource: XirangViewSource = {
         kind: 'element-declaration',
         identity: 'new.element',
         operation: 'ADDED',
-        after: candidateSource.architecture?.elements[1]?.declaration,
+        after: { identity: 'new.element', kind: 'capability', parent: 'project.root', title: 'New Element', definition: 'Candidate-only element', summary: 'Candidate-only element', description: 'Candidate-only element' },
       },
     ],
   },
@@ -98,7 +88,6 @@ const v4ManifestWithCandidate: XirangRuntimeManifest = {
   model: modelSource,
   authoredViews: {},
   candidate: candidateSource,
-  candidateDiff: candidateDiffSource,
   changes: {
     'auth-change': changeSource,
   },
@@ -115,62 +104,41 @@ const v4ManifestWithoutCandidate: XirangRuntimeManifest = {
 }
 
 describe('keeps change input separate from view source identities', () => {
-  it('lists Model, Candidate, and Candidate Diff without enumerating Changes as Views', () => {
-    const { model, candidate, candidateDiff, changes } = v4ManifestWithCandidate
-    const sources = [
-      model,
-      ...(candidate ? [candidate] : []),
-      ...(candidateDiff ? [candidateDiff] : []),
-    ]
+  it('lists Model without enumerating the Candidate or Changes as Views', () => {
+    const { model, candidate, changes } = v4ManifestWithCandidate
+    const sources = [model]
 
-    expect(sources.map(source => source.id)).toEqual(['model', 'candidate', 'candidate-diff'])
+    expect(sources.map(source => source.id)).toEqual(['model'])
+    expect(candidate?.id).toBe('candidate')
     expect(changes['auth-change']).not.toHaveProperty('id')
     expect(changes['auth-change']).not.toHaveProperty('source')
   })
 })
 
 describe('hides candidate sources when candidate is absent', () => {
-  it('leaves Model as the only derived View source when manifest has no Candidate', () => {
-    const { model, candidate, candidateDiff, changes } = v4ManifestWithoutCandidate
-    const sources = [
-      model,
-      ...(candidate ? [candidate] : []),
-      ...(candidateDiff ? [candidateDiff] : []),
-    ]
+  it('leaves Model as the only View source when manifest has no Candidate', () => {
+    const { model, candidate, changes } = v4ManifestWithoutCandidate
+    const sources = [model]
 
     expect(sources.map(source => source.id)).toEqual(['model'])
+    expect(candidate).toBeUndefined()
     expect(Object.keys(changes)).toEqual(['auth-change'])
   })
 })
 
-describe('locks candidate diff to diff only mode', () => {
-  it('resolveEffectiveMode locks candidate-diff to diff and candidate to full', () => {
-    expect(resolveEffectiveMode('candidate-diff', 'full')).toBe('diff')
-    expect(resolveEffectiveMode('candidate', 'diff')).toBe('full')
-  })
-
-  it('resolveEffectiveMode passes the chosen mode for model and change-derived', () => {
+describe('keeps the effective mode uniform across sources', () => {
+  it('resolveEffectiveMode passes the chosen mode for every source', () => {
+    expect(resolveEffectiveMode('candidate', 'full')).toBe('full')
+    expect(resolveEffectiveMode('candidate', 'diff')).toBe('diff')
     expect(resolveEffectiveMode('semantic-model', 'full')).toBe('full')
     expect(resolveEffectiveMode('change-derived-view', 'diff')).toBe('diff')
     expect(resolveEffectiveMode('change-derived-view', 'full')).toBe('full')
   })
 
-  it('candidate-diff source has distinct id and source identifying it as diff-only', () => {
-    expect(candidateDiffSource.id).toBe('candidate-diff')
-    expect(candidateDiffSource.source).toBe('candidate-diff')
-    expect(candidateDiffSource.diff).toBeDefined()
-    expect(candidateSource.diff).toBeUndefined()
-  })
-
-  it('candidate source is identifiable as full-mode only', () => {
+  it('candidate source carries the diff for the three-state mode', () => {
     expect(candidateSource.id).toBe('candidate')
     expect(candidateSource.source).toBe('candidate')
-    expect(candidateSource.diff).toBeUndefined()
-  })
-
-  it('candidate and candidate-diff are separate sources with separate identities', () => {
-    expect(candidateSource.id).not.toBe(candidateDiffSource.id)
-    expect(candidateSource.source).not.toBe(candidateDiffSource.source)
+    expect(candidateSource.diff).toBeDefined()
   })
 })
 

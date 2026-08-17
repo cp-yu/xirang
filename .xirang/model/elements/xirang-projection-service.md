@@ -27,7 +27,7 @@ Web SHALL 关闭 `implicitViews`，将受管语义内容降为原生 LikeC4 mode
 
 ### Requirement: 分层呈现 Element Definition
 
-Web SHALL 在 Semantic Model、Candidate View、Candidate Diff View 与 Change-derived View 的 Xirang→LikeC4 投影中将完整 Element Definition 映射为 LikeC4 `description`，并将只供 Browser 紧凑展示的确定性 excerpt 映射为 LikeC4 `summary`；该 excerpt SHALL NOT 进入 Semantic Model、Candidate、Semantic Delta、CLI 输出、diff 或 fingerprint。
+Web SHALL 在 Semantic Model、Candidate 与 Change-derived View 的 Xirang→LikeC4 投影中将完整 Element Definition 映射为 LikeC4 `description`，并将只供 Browser 紧凑展示的确定性 excerpt 映射为 LikeC4 `summary`；该 excerpt SHALL NOT 进入 Semantic Model、Candidate、Semantic Delta、CLI 输出、diff 或 fingerprint。
 
 #### Scenario: 查看图节点与 Element 详情
 
@@ -78,20 +78,19 @@ Web SHALL 将每个深层 Relationship 的 endpoints 映射到当前层最深的
 
 ### Requirement: 使用分区 Runtime Manifest
 
-Web runtime manifest SHALL 使用 `version: 4`，分别表达 `model`、`authoredViews`、`changes` 以及可选的 `candidate` 与 `candidateDiff`；Browser SHALL NOT 将 Model、Authored View、Candidate、Candidate Diff 与 Change-derived projection 合并为同一 source 列表，旧 manifest version SHALL NOT 被静默解释为 version 4。
+Web runtime manifest SHALL 使用 `version: 4`，分别表达 `model`、`authoredViews`、`changes` 以及可选的 `candidate`；`candidate` source 结构 SHALL 与 Change source 对齐，携带 `diff`、`architecture`、`diffArchitecture`、`likec4Sources`、`diffLikec4Sources` 等字段；manifest SHALL NOT 包含独立的 `candidateDiff` 字段；旧 manifest version SHALL NOT 被静默解释为 version 4。
 
 #### Scenario: 构建普通 Browser 状态
 
 - **WHEN** Browser 加载 version 4 manifest
 - **THEN** View Selection 从 `model` 与 `authoredViews` 建立
-- **AND** Change Selection 从 `changes` 建立
-- **AND** Change-derived projection 不作为独立 source entry
+- **AND** Change Selection 从 `changes` 与可选的 `candidate` 建立
 
 #### Scenario: Candidate 可用
 
 - **WHEN** active Candidate 存在
-- **THEN** manifest 包含独立 `candidate` 与 `candidateDiff`
-- **AND** 它们不进入普通 Browser 的 View Selection 或 Change Selection
+- **THEN** manifest 包含独立 `candidate` 字段，结构与 Change source 对齐
+- **AND** manifest SHALL NOT 包含独立 `candidateDiff` 字段
 
 #### Scenario: 读取旧 manifest
 
@@ -101,26 +100,24 @@ Web runtime manifest SHALL 使用 `version: 4`，分别表达 `model`、`authore
 
 ### Requirement: 服务端计算 Runtime Projection
 
-Web SHALL 由服务端根据 View Selection、可选 Change Selection、Presentation Mode、focus、expanded set 与 expected model fingerprint 确定当前可见 projection，并通过官方 LikeC4 compute-view 与 Graphviz layout 返回 layouted projection；该 projection SHALL 基于已由官方 parser 与 validator 建立的 base model，服务端 SHALL NOT 为单次 request 重复 parse 或 validate 同一 base model；Browser SHALL NOT 在已 layout 的 view 上自行计算最终节点 geometry 或 Relationship spline。
+Web SHALL 由服务端根据 View Selection、可选 Change Selection（含 Candidate）、Presentation Mode、focus、expanded set 与 expected model fingerprint 确定当前可见 projection；当 `change=candidate` 时，服务端 SHALL 路由到 `manifest.candidate` source 并以与普通 Change 相同的三态逻辑计算 projection；该 projection SHALL 基于已由官方 parser 与 validator 建立的 base model，服务端 SHALL NOT 为单次 request 重复 parse 或 validate 同一 base model。
 
 #### Scenario: 请求有效 projection
 
 - **WHEN** Controller 提交与当前模型 fingerprint 一致的 projection descriptor
 - **THEN** 服务端以官方 include/exclude predicates 在已 parse 且已 validate 的 base model 上计算该 projection
-- **AND** 返回 projection key、layouted `DiagramView` 与 diagnostics
-- **AND** 该 view 的 geometry 与 routing 来自 LikeC4/Graphviz 官方管线
+- **AND** 返回 projection key、layouted DiagramView 与 diagnostics
+
+#### Scenario: change=candidate 路由
+
+- **WHEN** projection request 的 change 为 `candidate`
+- **THEN** 服务端路由到 `manifest.candidate` source，而非 `manifest.changes['candidate']`
+- **AND** 三态 Mode 逻辑与普通 Change 完全一致
 
 #### Scenario: 请求使用旧 fingerprint
 
 - **WHEN** request 的 expected model fingerprint 已不是当前有效版本
 - **THEN** 服务端拒绝该 request 并返回结构化 stale diagnostic
-- **AND** Controller 丢弃旧响应后使用当前 fingerprint 重试
-
-#### Scenario: 新交互替代旧请求
-
-- **WHEN** 用户在前一 projection request 完成前改变 View、Change、Mode、focus 或 expanded set
-- **THEN** Controller 取消或忽略旧 request
-- **AND** 旧结果不得覆盖当前 Browser state
 
 ### Requirement: 原子刷新基础 LikeC4 缓存
 
@@ -152,12 +149,12 @@ Web 服务端 SHALL 在受管 Semantic Model、Authored View、Relationship、Me
 
 ### Requirement: Candidate source 按输入刷新
 
-Web SHALL 以 source identity、partition fingerprint 与 model fingerprint 区分 Candidate runtime data；Candidate source 变化 SHALL 刷新 Candidate 与 Candidate Diff，Semantic Model 变化 SHALL 在基础缓存原子替换成功后刷新 Model、Candidate、Candidate Diff 与活动 Change 数据，并失效旧 runtime projections。
+Web SHALL 以 source identity、partition fingerprint 与 model fingerprint 区分 Candidate runtime data；Candidate source 变化 SHALL 只刷新 `manifest.candidate`，Semantic Model 变化 SHALL 在基础缓存原子替换成功后刷新 Model、Candidate 与活动 Change 数据，并失效旧 runtime projections。
 
 #### Scenario: Candidate 修改后刷新
 
 - **WHEN** `.xirang/candidate/` 下任一受管 Candidate file 发生变化
-- **THEN** Browser 刷新独立 Candidate 与 Candidate Diff data
+- **THEN** Browser 刷新 `manifest.candidate`
 - **AND** 普通 Browser 的 View 与 Change selections 保持不变
 
 #### Scenario: Semantic Model 修改后刷新

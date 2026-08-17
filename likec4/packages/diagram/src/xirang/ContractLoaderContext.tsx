@@ -80,7 +80,7 @@ export interface XirangViewDiagnostic {
 export interface XirangViewSource {
   id: string
   label: string
-  source: 'semantic-model' | 'change-derived-view' | 'candidate' | 'candidate-diff'
+  source: 'semantic-model' | 'change-derived-view' | 'candidate'
   change?: string
   valid: boolean
   semanticModelFingerprint?: string
@@ -139,7 +139,6 @@ export interface XirangRuntimeManifest {
   model: XirangViewSource
   authoredViews: Record<string, XirangAuthoredViewDescriptor>
   candidate?: XirangViewSource
-  candidateDiff?: XirangViewSource
   changes: Record<string, XirangChangeSource>
 }
 
@@ -156,6 +155,8 @@ export interface XirangViewSourceContextValue {
   sources: readonly XirangViewSource[]
   /** Active change inputs, separate from view source identities. */
   changes: readonly XirangChangeSource[]
+  /** The active Candidate, if present; it is a Change Selection option, not a View source. */
+  candidate: XirangViewSource | null
   selected: XirangViewSource
   select(id: string): void
   /** User-chosen diff display mode; effective mode is clamped per source. */
@@ -175,15 +176,13 @@ export interface XirangViewSourceContextValue {
 export type XirangViewMode = 'full' | 'diff'
 
 /**
- * Effective diff display mode for a source: candidate-diff is locked to `diff`,
- * candidate to `full`; only other sources honor the user-chosen mode.
+ * Effective diff display mode for the selected source: the controller drives the
+ * mode through Change Selection, so the selected source simply honors it.
  */
 export function resolveEffectiveMode(
-  source: XirangViewSource['source'],
+  _source: XirangViewSource['source'],
   mode: XirangViewMode,
 ): XirangViewMode {
-  if (source === 'candidate-diff') return 'diff'
-  if (source === 'candidate') return 'full'
   return mode
 }
 
@@ -207,14 +206,13 @@ function manifestToSources(m: XirangRuntimeManifest): XirangViewSource[] {
   return [
     m.model,
     ...authored,
-    ...(m.candidate ? [m.candidate] : []),
-    ...(m.candidateDiff ? [m.candidateDiff] : []),
   ]
 }
 
 const XirangViewSourceContext = createContext<XirangViewSourceContextValue>({
   sources: [modelViewSource],
   changes: [],
+  candidate: null,
   selected: modelViewSource,
   select: () => undefined,
   mode: 'full',
@@ -290,16 +288,20 @@ export function XirangContractLoaderProvider({
     const base = sources.find(source => source.id === selectedId) ?? sources[0] ?? modelViewSource
     let selected = base
     if (browserProjection && browserProjection.viewId === base.id) {
-      const change = browserProjection.change ? manifest?.changes[browserProjection.change] : undefined
-      const selectedChange = change && !browserProjection.showDiff
-        ? (({ diff: _diff, ...rest }) => rest)(change)
-        : change
+      const selectedSource = browserProjection.change === 'candidate'
+        ? manifest?.candidate
+        : browserProjection.change
+          ? manifest?.changes[browserProjection.change]
+          : undefined
+      const change = selectedSource && !browserProjection.showDiff
+        ? (({ diff: _diff, ...rest }) => rest)(selectedSource)
+        : selectedSource
       selected = {
-        ...(selectedChange ?? base),
+        ...(change ?? base),
         id: base.id,
         label: base.label,
-        source: change ? 'change-derived-view' : base.source,
-        ...(change ? { change: change.change } : {}),
+        source: browserProjection.change ? 'change-derived-view' : base.source,
+        ...(browserProjection.change ? { change: browserProjection.change } : {}),
         projection: browserProjection.view,
         projectionKey: browserProjection.projectionKey,
       }
@@ -307,6 +309,7 @@ export function XirangContractLoaderProvider({
     return {
       sources,
       changes: manifest ? Object.values(manifest.changes) : [],
+      candidate: manifest?.candidate ?? null,
       selected,
       select: setSelectedId,
       mode,

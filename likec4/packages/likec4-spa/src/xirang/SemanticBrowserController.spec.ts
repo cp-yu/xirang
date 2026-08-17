@@ -40,10 +40,7 @@ const manifest: SemanticBrowserManifest = {
   candidate: {
     id: 'candidate', label: 'Candidate View', source: 'candidate', valid: true, diagnostics: [],
     architecture: { elements: [], relationships: [] },
-  },
-  candidateDiff: {
-    id: 'candidate-diff', label: 'Candidate Diff View', source: 'candidate-diff', valid: true, diagnostics: [],
-    architecture: { elements: [], relationships: [] },
+    diff: { summary: { total: 1, ADDED: 1, MODIFIED: 0, REMOVED: 0 }, entries: [] },
   },
 }
 
@@ -66,21 +63,67 @@ describe('SemanticBrowserController state machine', () => {
     expect(html).toContain('<option value="diff-only" disabled="">')
   })
 
-  it('keeps Candidate review outside the ordinary controls and fixes Candidate Diff to diff-only', () => {
-    const candidate = createSemanticBrowserState(manifest, { view: 'candidate', change: 'auth', mode: 'diff-only' })
-    expect(candidate).toMatchObject({ viewSelection: 'candidate', changeSelection: null, presentationMode: 'complete' })
-    const diff = createSemanticBrowserState(manifest, { view: 'candidate-diff', change: 'auth', mode: 'complete' })
-    expect(diff).toMatchObject({ viewSelection: 'candidate-diff', changeSelection: null, presentationMode: 'diff-only' })
+  it('keeps Candidate as a Change Selection option with the three-state mode control', () => {
+    const candidate = createSemanticBrowserState(manifest, { change: 'candidate', mode: 'diff-only' })
+    expect(candidate).toMatchObject({ viewSelection: 'model', changeSelection: 'candidate', presentationMode: 'diff-only' })
     const html = renderToStaticMarkup(createElement(
       MantineProvider,
       null,
       createElement(
         SemanticBrowserControllerProvider,
-        { manifest, initialUrl: { view: 'candidate-diff' } },
+        { manifest, initialUrl: { change: 'candidate' } },
         createElement(SemanticBrowserMobileControls),
       ),
     ))
-    expect(html).not.toContain('data-xirang-controller')
+    expect(html).toContain('data-xirang-controller')
+    expect(html).toMatch(/<option value="candidate"[^>]*>Candidate View<\/option>/)
+    expect(html).toContain('<option value="complete-with-diff" selected="">')
+  })
+
+  it('首页 Candidate 入口生成 change=candidate&mode=complete-with-diff URL 状态', () => {
+    const state = createSemanticBrowserState(manifest, { change: 'candidate', mode: 'complete-with-diff' })
+    expect(state).toMatchObject({ viewSelection: 'model', changeSelection: 'candidate', presentationMode: 'complete-with-diff' })
+    expect(projectionRequestForSemanticBrowser(state, manifest.modelFingerprint)).toMatchObject({
+      viewId: 'model',
+      change: 'candidate',
+      mode: 'complete-with-diff',
+    })
+  })
+
+  it('selects Candidate and unlocks mode switching in three states', () => {
+    const initial = createSemanticBrowserState(manifest)
+    const selected = reduceSemanticBrowserState(initial, { type: 'change.select', change: 'candidate' }, manifest)
+    expect(selected.changeSelection).toBe('candidate')
+    expect(selected.presentationMode).toBe('complete-with-diff')
+    expect(reduceSemanticBrowserState(selected, { type: 'mode.select', mode: 'complete' }, manifest).presentationMode).toBe('complete')
+    expect(reduceSemanticBrowserState(selected, { type: 'mode.select', mode: 'diff-only' }, manifest).presentationMode).toBe('diff-only')
+  })
+
+  it('encodes URL state for change=candidate', () => {
+    const state = createSemanticBrowserState(manifest, { change: 'candidate' })
+    expect(encodeSemanticBrowserUrl(state)).toEqual({ change: 'candidate' })
+    expect(projectionRequestForSemanticBrowser(state, manifest.modelFingerprint)).toMatchObject({ change: 'candidate', mode: 'complete-with-diff' })
+    const diffOnly = reduceSemanticBrowserState(state, { type: 'mode.select', mode: 'diff-only' }, manifest)
+    expect(encodeSemanticBrowserUrl(diffOnly)).toEqual({ change: 'candidate', mode: 'diff-only' })
+  })
+
+  it('ignores change=candidate without an active Candidate', () => {
+    const { candidate: _candidate, ...noCandidate } = manifest
+    const state = createSemanticBrowserState(noCandidate, { change: 'candidate' })
+    expect(state.changeSelection).toBeNull()
+    expect(state.presentationMode).toBe('complete')
+  })
+
+  it('converges after the Candidate is promoted and the manifest drops it', () => {
+    const selected = createSemanticBrowserState(manifest, { change: 'candidate', mode: 'diff-only' }, { expanded: ['root.api'] })
+    const { candidate: _candidate, ...noCandidate } = manifest
+    const next = reconcileSemanticBrowserState(selected, noCandidate)
+    expect(next).toMatchObject({
+      viewSelection: 'model',
+      changeSelection: null,
+      presentationMode: 'complete',
+    })
+    expect([...next.expanded]).toEqual([])
   })
 
   it('uses complete without a change and complete-with-diff when a change is selected', () => {

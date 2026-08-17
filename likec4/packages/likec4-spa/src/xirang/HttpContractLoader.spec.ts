@@ -110,17 +110,17 @@ describe('HttpContractLoader', () => {
       expect(parsed.searchParams.has('change')).toBe(false)
     })
 
-    it('loads candidate diff contract with source=candidate-diff', async () => {
+    it('loads candidate contract with source=change:candidate', async () => {
       const fetcher = vi.fn<typeof fetch>().mockResolvedValue(json({ element: 'modified-module', md: '# Modified Module' }))
       const loader = new HttpContractLoader(fetcher)
 
-      await expect(loader.load('default', 'modified-module', new AbortController().signal, 'candidate-diff')).resolves.toEqual({
+      await expect(loader.load('default', 'modified-module', new AbortController().signal, 'change:candidate')).resolves.toEqual({
         element: 'modified-module',
         md: '# Modified Module',
       })
 
       const parsed = new URL(String(fetcher.mock.calls[0]![0]), 'http://localhost')
-      expect(parsed.searchParams.get('source')).toBe('candidate-diff')
+      expect(parsed.searchParams.get('source')).toBe('change:candidate')
       expect(parsed.searchParams.has('change')).toBe(false)
     })
   })

@@ -126,9 +126,9 @@ export function ContractsTab({
   const revision = xirangViewSourceRevision(runtime.selected)
   const selectedSource = runtime.selected.source === 'semantic-model'
     ? undefined
-    : runtime.selected.source === 'change-derived-view'
-    ? (runtime.selected.change ? `change:${runtime.selected.change}` : undefined)
-    : runtime.selected.id // 'candidate' or 'candidate-diff'
+    : runtime.selected.change
+      ? `change:${runtime.selected.change}`
+      : undefined
   const displayState = state.status === 'idle'
       || (state.project === project && state.element === element)
     ? state

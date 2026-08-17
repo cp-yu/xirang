@@ -234,22 +234,24 @@ export async function handleProjection(
       ...(item.diffSourceFingerprint ? [item.diffSourceFingerprint] : []),
     ]),
     ...(manifestRaw.candidate?.sourceFingerprint ? [manifestRaw.candidate.sourceFingerprint] : []),
-    ...(manifestRaw.candidateDiff?.sourceFingerprint ? [manifestRaw.candidateDiff.sourceFingerprint] : []),
+    ...(manifestRaw.candidate?.diffSourceFingerprint ? [manifestRaw.candidate.diffSourceFingerprint] : []),
   ])
   context.cache.retainFingerprints(activeFingerprints)
 
-  const source = request.change
-    ? manifestRaw.changes[request.change]
-    : request.viewId === 'candidate'
+  // `candidate` is a reserved Change Selection identity routed to `manifest.candidate`,
+  // never to a Change with the same name.
+  const source = request.change === 'candidate'
     ? manifestRaw.candidate
-    : request.viewId === 'candidate-diff'
-    ? manifestRaw.candidateDiff
-    : manifestRaw.model
+    : request.change
+      ? manifestRaw.changes[request.change]
+      : manifestRaw.model
   if (!source) {
     throw new XirangContractError(404, request.change ? `Change ${request.change} not found` : `View ${request.viewId} not found`)
   }
 
-  const projectionSource = (request.change || request.viewId === 'candidate-diff') && request.mode !== 'complete' && source.diffLikec4Sources
+  // complete and complete-with-diff render the target sources with the diff overlay on top;
+  // only diff-only switches to the before-after union sources for removed ghosts.
+  const projectionSource = request.change && request.mode === 'diff-only' && source.diffLikec4Sources
     ? {
         ...source,
         sourceFingerprint: source.diffSourceFingerprint ?? source.sourceFingerprint,
@@ -333,13 +335,10 @@ export async function handleProjection(
       includeExpressions.push(...diffIncludes)
     }
   }
-  // Candidate Diff uses the same hierarchical baseline as Candidate View (focus + children +
-  // expanded, or root children when no focus). Diff markers are applied by the overlay on top
-  // of the visible nodes; the user navigates to deeper changes by drilling down or expanding.
   const adhocPredicates = includeExpressions.length > 0
     ? [{ include: includeExpressions }]
     : null
-  const diagramId = request.viewId === 'candidate' || request.viewId === 'candidate-diff' ? 'model' : request.viewId
+  const diagramId = request.viewId
   let usedLikec4 = likec4
   let usedPaths = paths
   let projectionView: LayoutedView | undefined
@@ -350,7 +349,7 @@ export async function handleProjection(
       // The before-after union can exceed Graphviz routing capacity on large Candidates;
       // retry the diff-driven visible set against the candidate-only target sources.
       // Removed ghosts are dropped in this deterministic fallback.
-      if (request.viewId !== 'candidate-diff' || !source.likec4Sources || !context.loadSources) throw error
+      if (request.change !== 'candidate' || request.mode !== 'diff-only' || !source.likec4Sources || !context.loadSources) throw error
       const targetLikec4 = await context.loadSources(source.likec4Sources, source.sourceFingerprint ?? manifestRaw.modelFingerprint)
       const targetPaths = source.likec4ElementPaths ?? {}
       const targetBoundary = new Set((source.architecture?.elements ?? []).map(element => element.declaration.identity))

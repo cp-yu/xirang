@@ -27,7 +27,7 @@ definition: Web 是息壤在浏览器中的可视化交互界面，以经 Xirang
 
 ### Requirement: 支持分层语义浏览
 
-Web SHALL 在单一 route 中使用 Model 或 Authored View Selection，以及独立的 Candidate View 与 Candidate Diff View，在各自适用目标模型内呈现不同抽象层级的 Elements、Element Contracts 与 Relationships；普通 Browser 的当前层 SHALL 由 View Selection 边界、focus、direct children、已就地展开后代与可映射到不同可见 endpoints 的 Relationships 共同确定。
+Web SHALL 在单一 route 中使用 Model 或 Authored View Selection，并可结合一个活动 Change 或 active Candidate，在各自适用目标模型内呈现不同抽象层级的 Elements、Element Contracts 与 Relationships；普通 Browser 的当前层 SHALL 由 View Selection 边界、focus、direct children、已就地展开后代与可映射到不同可见 endpoints 的 Relationships 共同确定。
 
 #### Scenario: 下钻 Model 或 Authored View
 
@@ -39,17 +39,6 @@ Web SHALL 在单一 route 中使用 Model 或 Authored View Selection，以及�
 - **WHEN** 用户选择没有 children 的 Element
 - **THEN** Browser 展示其声明、Contract、Relationships 与 refinement context
 - **AND** 不创建新的 View identity 或空 route
-
-### Requirement: 只列出真实 Views
-
-Web 的 View Selection SHALL 只列出唯一 Model 与实际 Authored Views；Candidate View 与 Candidate Diff View SHALL 位于独立 Build Review 入口，活动 Changes SHALL 只出现在 Change Selection，focus projections 与 Change-derived combinations SHALL NOT 作为 View entries。
-
-#### Scenario: 项目具有 Authored Views、Candidate 与 Changes
-
-- **WHEN** 用户打开普通 Web 界面
-- **THEN** View Selection 显示 Model 与实际 Authored Views
-- **AND** Change Selection 显示活动 Changes
-- **AND** Candidate 不出现在这两个控件中
 
 ### Requirement: 保持 Authored View 声明视角
 
@@ -89,7 +78,7 @@ Semantic Model、Candidate 或 Semantic Delta 刷新使当前 focus 不再存在
 
 #### Scenario: Candidate 更新移除当前 focus
 
-- **WHEN** 用户正在 Candidate View 或 Candidate Diff View 中浏览的 Element 被更新后的 Candidate 移除
+- **WHEN** 用户正在 Candidate 目标模型中浏览的 Element 被更新后的 Candidate 移除
 - **THEN** Browser 选择最近仍存在的 Candidate ancestor、更新布局和 breadcrumb，且旧 source 内容不得恢复已移除 focus
 
 ### Requirement: URL 编码导航状态并响应浏览器前进后退
@@ -210,21 +199,13 @@ Web 的 dot、d2、mmd、puml、Draw.io 与层级树导出 SHALL 导出当前所
 
 ### Requirement: 提供三维独立控制
 
-Web SHALL 在单一 Browser route 中以持久可见且相互独立的 View Selection、Change Selection 与 Presentation Mode 控件形成当前浏览状态；View Selection SHALL 只选择 Model 或一个 Authored View，Change Selection SHALL 为无 Change 或一个活动 Change，Presentation Mode SHALL 为 `complete`、`complete-with-diff` 或 `diff-only`。
+Web SHALL 在单一 Browser route 中以持久可见且相互独立的 View Selection、Change Selection 与 Presentation Mode 控件形成当前浏览状态；View Selection SHALL 只选择 Model 或一个 Authored View，Change Selection SHALL 为无 Change、一个活动 Change 或 active Candidate（以 reserved identifier `candidate` 表示），Presentation Mode SHALL 在选中 Change 或 Candidate 时提供 `complete`、`complete-with-diff` 与 `diff-only`，无 Change 与 Candidate 时锁定为 `complete`。
 
-#### Scenario: 无 Change 时限制模式
+#### Scenario: 三维独立切换
 
-- **WHEN** Change Selection 为无 Change
-- **THEN** 仅 `complete` 可用
-- **AND** 其他模式保持可见但 disabled，并说明需要选择 Change
-
-#### Scenario: 选择和清除 Change
-
-- **WHEN** 用户选择一个活动 Change
-- **THEN** Presentation Mode 默认变为 `complete-with-diff`
-- **AND** 用户可切换到 `complete` 或 `diff-only`
-- **WHEN** 用户清除 Change Selection
-- **THEN** Presentation Mode 回到 `complete`
+- **WHEN** 用户改变 View Selection、Change Selection 或 Presentation Mode
+- **THEN** 另外两个维度的选择保持不变
+- **AND** 新的组合状态立即生成对应 projection
 
 ### Requirement: 协调 View Selection 运行时状态
 
@@ -260,25 +241,19 @@ Web 的三个控制器、breadcrumb、loading/error controls 与其他交互式 
 
 ### Requirement: 首页提供 Candidate 与活动 Change 快速入口
 
-Web 首页 SHALL 为 Candidate View、Candidate Diff View 与每个活动 Change 提供快速入口卡片：Candidate 卡片 SHALL 以对应 `view` 状态打开单一 route（Candidate View 为 `view=candidate`，Candidate Diff View 为 `view=candidate-diff`）；活动 Change 卡片 SHALL 以 `change=<name>` 与 `mode=diff-only` 状态打开单一 route。活动 Change SHALL NOT 因首页入口而形成独立 View source、route 或持久 identity。
+Web 首页 SHALL 为 active Candidate（若存在）与每个活动 Change 提供快速入口卡片；Candidate 卡片 SHALL 以 `change=candidate&mode=complete-with-diff` 状态打开单一 route；活动 Change 卡片 SHALL 以 `change=<name>&mode=diff-only` 状态打开单一 route；活动 Change SHALL NOT 因首页入口而形成独立 View source。
 
-#### Scenario: 从首页打开 Candidate View
+#### Scenario: 点击 Candidate 卡片
 
-- **WHEN** 用户在首页点击 Candidate View 卡片
-- **THEN** Browser 以 `view=candidate` 状态打开单一 route 并呈现 Candidate View
-- **AND** 不创建独立 View entry
+- **WHEN** 用户在首页点击 Candidate 入口卡片
+- **THEN** Browser 以 `change=candidate&mode=complete-with-diff` 状态打开
+- **AND** Change Selection 显示 Candidate，Mode 为 `complete-with-diff`
 
-#### Scenario: 从首页打开活动 Change 差异
+#### Scenario: 点击活动 Change 卡片
 
-- **WHEN** 用户在首页点击一个活动 Change 的卡片
-- **THEN** Browser 以 `change=<name>` 与 `mode=diff-only` 状态打开单一 route
-- **AND** 呈现该 Change 的 diff-only 投影与 Change 审查面板
-- **AND** 该 Change 仍只存在于 Change Selection，不进入 View Selection 列表
-
-#### Scenario: 无活动 Change 时隐藏入口
-
-- **WHEN** 不存在活动 Change
-- **THEN** 首页 SHALL 不呈现活动 Change 快速入口区块
+- **WHEN** 用户在首页点击一个活动 Change 卡片
+- **THEN** Browser 以 `change=<name>&mode=diff-only` 状态打开
+- **AND** View Selection 保持 Model View
 
 ### Requirement: 切换 View、Change 或 Mode 后自动适配视口
 
@@ -316,7 +291,7 @@ Web SHALL 在 View Selection、Change Selection 或 Presentation Mode 切换产�
 
 ### Requirement: 呈现 Change 目标与差异
 
-Web SHALL 将当前 Semantic Model、一个可选活动 Change 与当前 View Selection 确定性组合，并提供 `complete`、`complete-with-diff` 与 `diff-only` 三种 Presentation Mode；系统 SHALL NOT 为每个 Change 创建独立可选 View source。
+Web SHALL 将当前 Semantic Model、一个可选活动 Change 与当前 View Selection 确定性组合，并提供 `complete`、`complete-with-diff` 与 `diff-only` 三种 Presentation Mode；系统 SHALL NOT 为每个 Change 创建独立可选 View source。`complete` 与 `complete-with-diff` projection SHALL 使用 change-only target sources，`diff-only` projection SHALL 使用 formal+change union sources；REMOVED elements SHALL 仅在 `diff-only` 中以 ghost 保留。
 
 #### Scenario: Complete 模式
 
@@ -327,8 +302,9 @@ Web SHALL 将当前 Semantic Model、一个可选活动 Change 与当前 View Se
 #### Scenario: Complete with diff 模式
 
 - **WHEN** 用户使用 `complete-with-diff`
-- **THEN** Browser 呈现完整目标上下文与 ADDED、MODIFIED、REMOVED overlay
-- **AND** REMOVED objects 以可选择的 ghost 保留
+- **THEN** Browser 呈现 Change target projection
+- **AND** 可见节点与边叠加 ADDED、MODIFIED 与 REMOVED 差异标记
+- **AND** REMOVED elements 不属于 target projection，不在该模式中呈现
 
 #### Scenario: Diff only 模式
 
@@ -338,17 +314,22 @@ Web SHALL 将当前 Semantic Model、一个可选活动 Change 与当前 View Se
 
 ### Requirement: 呈现 Candidate 目标与差异
 
-Web SHALL 在 active Candidate 存在时提供唯一的 Candidate View 与 Candidate Diff View：Candidate View 由 Candidate Semantic Model 确定性派生并呈现完整但尚未确认的目标模型，Candidate Diff View 由当前 Semantic Model 与 Candidate 确定性派生并固定呈现 diff-only 差异。
+Web SHALL 在 active Candidate 存在时，通过 Change Selection 的 `candidate` 选项提供对 Candidate 目标模型与语义差异的浏览；Candidate 选中时 SHALL 支持与活动 Change 相同的三态 Presentation Mode，默认为 `complete-with-diff`；Candidate 的 complete-with-diff projection SHALL 使用 candidate-only target sources 并通过 diff overlay 叠加差异标记，diff-only projection SHALL 使用 formal+candidate union sources 并仅投影 changed elements 与必要上下文。
 
-#### Scenario: 浏览 active Candidate
+#### Scenario: 浏览 Candidate 目标模型
 
-- **WHEN** active Candidate 存在且用户选择 Candidate View
-- **THEN** Browser 显示 Candidate 四分区形成的完整目标模型，且 SHALL NOT 将当前 Semantic Model 的差异标记混入 Candidate View
+- **WHEN** 用户选择 `change=candidate&mode=complete`
+- **THEN** Browser 呈现 Candidate 目标模型，无差异标记
 
-#### Scenario: Candidate invalid
+#### Scenario: 审查 Candidate 差异
 
-- **WHEN** active Candidate validation 返回 ERROR
-- **THEN** Browser 仍保留两个 Candidate sources，显示 `valid: false` 与 diagnostics，能解析的 architecture MAY 继续只读呈现，且 SHALL NOT 显示 stale Candidate snapshot
+- **WHEN** 用户选择 `change=candidate&mode=complete-with-diff`
+- **THEN** Browser 呈现 Candidate 目标模型并在可见节点上叠加 ADDED/MODIFIED/REMOVED 差异标记
+
+#### Scenario: Diff-only 聚焦 Candidate 差异
+
+- **WHEN** 用户选择 `change=candidate&mode=diff-only`
+- **THEN** Browser 仅投影 changed elements、必要 ancestors 与 changed relationship endpoints
 
 ### Requirement: 活动 Change 生命周期变化时收敛状态
 
