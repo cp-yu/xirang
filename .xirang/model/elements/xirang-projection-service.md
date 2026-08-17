@@ -11,7 +11,7 @@ definition: Xirang Projection Service 是 Web 对 LikeC4 的服务端投影改�
 
 ### Requirement: 保持 LikeC4 投影有效
 
-Web SHALL 关闭 `implicitViews`，将受管语义内容降为原生 LikeC4 model 内容并由官方 parser 与 validator 建立 base model，再让每个 runtime semantic projection 完整经过官方 compute-view 与 Graphviz layout；降级与投影 SHALL 省略 LikeC4 无法表示的 self 与 ancestor-chain Relationships，同时保持 siblings、跨子树关系及 source 中的原始 Relationships 不变。
+Web SHALL 关闭 `implicitViews`，将受管语义内容降为原生 LikeC4 model 内容并由官方 parser 与 validator 建立 base model，再让每个 runtime semantic projection 完整经过官方 compute-view 与 Graphviz layout；降级与投影 SHALL 省略 LikeC4 无法表示的 self 与 ancestor-chain Relationships，同时保持 siblings、跨子树关系及 source 中的原始 Relationships 不变。当 Graphviz 布局输出缺少某条 edge 的 spline 几何（无 `_draw_`、无 Bezier draw op 或路径点不足）时，投影 SHALL 记录 warning 并跳过该 edge，其余 nodes 与 edges SHALL 继续构成 projection，SHALL NOT 使整个 projection 请求失败，且 SHALL NOT 伪造穿过容器的直线路径。
 
 #### Scenario: 生成 runtime projection
 
@@ -24,6 +24,13 @@ Web SHALL 关闭 `implicitViews`，将受管语义内容降为原生 LikeC4 mode
 - **WHEN** source 包含 self 或 ancestor-chain Relationship
 - **THEN** LikeC4 projection 确定性省略该 edge
 - **AND** Semantic Model、Candidate 或 Change source 保留原始三元组
+
+#### Scenario: Graphviz 未产出边几何时降级
+
+- **WHEN** Graphviz 布局输出中某条 edge 缺少 spline 几何（无 `_draw_`、无 Bezier draw op 或路径点不足）
+- **THEN** 服务端记录 warning 并跳过该 edge
+- **AND** 其余 nodes 与 edges 继续构成 projection，请求成功返回
+- **AND** 系统 SHALL NOT 伪造穿过容器的直线路径
 
 ### Requirement: 分层呈现 Element Definition
 
